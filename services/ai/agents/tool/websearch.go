@@ -56,14 +56,14 @@ func (w *WebSearch) Definition() provider.ToolDefinition {
 		Description: "Search the web for current information. " +
 			"Use this when you need up-to-date information that may not be in your training data.",
 		Parameters: map[string]any{
-			"type": "object",
-			"properties": map[string]any{
-				"query": map[string]any{
-					"type":        "string",
-					"description": "The search query",
+			schemaKeyType: schemaTypeObject,
+			schemaKeyProperties: map[string]any{
+				keyQuery: map[string]any{
+					schemaKeyType:        schemaTypeString,
+					schemaKeyDescription: "The search query",
 				},
 			},
-			"required": []string{"query"},
+			schemaKeyRequired: []string{keyQuery},
 		},
 	}
 }
@@ -83,7 +83,7 @@ func (w *WebSearch) Execute(
 		return "", fmt.Errorf("failed to parse arguments: %w", err)
 	}
 
-	logger.InfoContext(ctx, "performing web search", slog.String("query", args.Query))
+	logger.InfoContext(ctx, "performing web search", slog.String(keyQuery, args.Query))
 
 	switch w.config.Provider {
 	case "brave":
@@ -137,7 +137,7 @@ func (w *WebSearch) searchTavily(
 	logger *slog.Logger,
 ) (string, error) {
 	payload, err := json.Marshal(map[string]any{
-		"query":       query,
+		keyQuery:      query,
 		"max_results": webSearchMaxResults,
 	})
 	if err != nil {

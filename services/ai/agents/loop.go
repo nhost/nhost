@@ -170,7 +170,7 @@ func finalizeMaxIterations(
 		}
 	}
 
-	if err := writeEventAndFlush(writer, "error", maxIterationsExceededWarn); err != nil {
+	if err := writeEventAndFlush(writer, errorKey, maxIterationsExceededWarn); err != nil {
 		return LoopResult{Messages: newMessages, PendingCalls: nil}, err
 	}
 
@@ -341,7 +341,7 @@ func executeToolCalls(
 			logger.ErrorContext(
 				ctx, "tool execution failed",
 				slog.String("tool", tc.Name),
-				slog.String("error", err.Error()),
+				slog.String(errorKey, err.Error()),
 			)
 
 			result = toolExecutionFailMsg

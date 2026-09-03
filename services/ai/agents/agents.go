@@ -11,6 +11,9 @@ import (
 	"github.com/nhost/nhost/services/ai/hasura"
 )
 
+// errorKey is the response and log attribute key for error messages.
+const errorKey = "error"
+
 // ProviderConfig holds API keys for each provider.
 type ProviderConfig struct {
 	AnthropicKey string

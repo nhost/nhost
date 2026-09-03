@@ -9,6 +9,9 @@ import (
 	"net/url"
 )
 
+// sourceDefault is the default Hasura source name.
+const sourceDefault = "default"
+
 //nolint:tagliatelle
 type RunSQLResponse struct {
 	ResultType string  `json:"result_type"`
@@ -27,7 +30,7 @@ func (c *Client) RunSQL(ctx context.Context, query string, readOnly bool) (*RunS
 		Type: "run_sql",
 		Args: SQLRequestArgs{
 			SQL:      query,
-			Source:   "default",
+			Source:   sourceDefault,
 			ReadOnly: readOnly,
 		},
 	}

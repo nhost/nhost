@@ -19,6 +19,19 @@ var ErrToolNotFound = errors.New("tool not found")
 // by registering a tool that reuses its name.
 var ErrDuplicateTool = errors.New("duplicate tool")
 
+// JSON Schema vocabulary and GraphQL request keys shared across tool
+// definitions and request payloads.
+const (
+	schemaKeyType        = "type"
+	schemaTypeObject     = "object"
+	schemaTypeString     = "string"
+	schemaKeyProperties  = "properties"
+	schemaKeyDescription = "description"
+	schemaKeyRequired    = "required"
+	keyQuery             = "query"
+	keyVariables         = "variables"
+)
+
 // Tool is the interface for tools that can be used by agents.
 //
 // Execute is at-least-once with respect to client disconnect: a tool call may

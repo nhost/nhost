@@ -82,18 +82,18 @@ func (s *Service) HandleApproveTools(c *gin.Context) {
 func parseApprovalRequest(c *gin.Context) (string, approveToolsRequest, bool) {
 	sessionID := c.Param("sessionID")
 	if sessionID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "session ID is required"})
+		c.JSON(http.StatusBadRequest, gin.H{errorKey: "session ID is required"})
 		return "", approveToolsRequest{Decisions: nil}, false
 	}
 
 	var req approveToolsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		c.JSON(http.StatusBadRequest, gin.H{errorKey: "invalid request body"})
 		return "", approveToolsRequest{Decisions: nil}, false
 	}
 
 	if len(req.Decisions) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "decisions are required"})
+		c.JSON(http.StatusBadRequest, gin.H{errorKey: "decisions are required"})
 		return "", approveToolsRequest{Decisions: nil}, false
 	}
 
@@ -110,16 +110,16 @@ func (s *Service) loadPendingApprovals(
 	if err != nil {
 		logger.ErrorContext(
 			c.Request.Context(), "failed to load messages",
-			slog.String("error", err.Error()),
+			slog.String(errorKey, err.Error()),
 		)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load messages"})
+		c.JSON(http.StatusInternalServerError, gin.H{errorKey: "failed to load messages"})
 
 		return nil, nil, err
 	}
 
 	if !hasPendingApprovals(messages) {
 		logger.WarnContext(c.Request.Context(), "no pending tool approvals")
-		c.JSON(http.StatusBadRequest, gin.H{"error": "no pending tool approvals"})
+		c.JSON(http.StatusBadRequest, gin.H{errorKey: "no pending tool approvals"})
 
 		return nil, nil, errMissingDecision
 	}
@@ -129,9 +129,9 @@ func (s *Service) loadPendingApprovals(
 	if err := validateDecisions(pendingCalls, decisions); err != nil {
 		logger.WarnContext(
 			c.Request.Context(), "invalid tool decisions",
-			slog.String("error", err.Error()),
+			slog.String(errorKey, err.Error()),
 		)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{errorKey: err.Error()})
 
 		return nil, nil, err
 	}
@@ -184,7 +184,7 @@ func (s *Service) resumeAfterApproval(
 		logger.ErrorContext(
 			c.Request.Context(),
 			"agent loop error after approval",
-			slog.String("error", err.Error()),
+			slog.String(errorKey, err.Error()),
 		)
 
 		// Order matters: tool results from the approval step first, then any
@@ -194,11 +194,11 @@ func (s *Service) resumeAfterApproval(
 			logger.ErrorContext(
 				persistCtx,
 				"failed to persist partial messages after agent loop error",
-				slog.String("error", persistErr.Error()),
+				slog.String(errorKey, persistErr.Error()),
 			)
 		}
 
-		_ = writer.WriteEvent("error", "internal error")
+		_ = writer.WriteEvent(errorKey, "internal error")
 		writer.Flush()
 
 		return
@@ -224,7 +224,7 @@ func processDecisions(
 			msg, err := writeToolResultSSE(writer, "tool_denied", tc, "Tool call denied by user")
 			if err != nil {
 				logger.ErrorContext(c.Request.Context(), "failed to write tool denied SSE event",
-					slog.Any("error", err))
+					slog.Any(errorKey, err))
 			}
 
 			results = append(results, msg)
@@ -248,7 +248,7 @@ func processDecisions(
 		result, err := t.Execute(c.Request.Context(), tc.Arguments, logger)
 		if err != nil {
 			logger.ErrorContext(c.Request.Context(), "tool execution failed",
-				slog.String("tool", tc.Name), slog.String("error", err.Error()))
+				slog.String("tool", tc.Name), slog.String(errorKey, err.Error()))
 
 			result = toolExecutionFailMsg
 		}
@@ -256,7 +256,7 @@ func processDecisions(
 		msg, err := writeToolResultSSE(writer, "tool_result", tc, result)
 		if err != nil {
 			logger.ErrorContext(c.Request.Context(), "failed to write tool result SSE event",
-				slog.Any("error", err))
+				slog.Any(errorKey, err))
 		}
 
 		results = append(results, msg)
