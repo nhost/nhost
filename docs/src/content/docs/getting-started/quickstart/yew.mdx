@@ -148,12 +148,16 @@ struct NotesData {
 
 // Point at a cloud project by replacing <subdomain> and <region>. For a local
 // backend, use `subdomain: "local"` and `region: "local"`.
+//
+// `build` validates the project fields and the service URLs it derives from
+// them, so it returns `Result` — it fails if you leave the placeholders below
+// in place.
 fn make_client() -> Nhost {
     Nhost::builder()
         .subdomain("<subdomain>")
         .region("<region>")
         .build()
-        .expect("client-side build cannot fail")
+        .expect("subdomain and region must be a valid Nhost project")
 }
 
 #[function_component(App)]

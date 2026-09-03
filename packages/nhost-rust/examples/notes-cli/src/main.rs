@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use clap::{Parser, Subcommand};
 use nhost::auth::{SignInEmailPasswordRequest, SignOutRequest, SignUpEmailPasswordRequest};
 use nhost::session::FileStorage;
-use nhost::storage::{UploadFileMetadata, UploadFilesBody};
+use nhost::storage::{FilePart, UploadFileMetadata, UploadFilesBody};
 use nhost::Nhost;
 use serde_json::{json, Value};
 
@@ -577,7 +577,11 @@ async fn attach(client: &Nhost, note_id: &str, file: &str) -> Result<()> {
                 name: Some(name.clone()),
                 metadata: None,
             }]),
-            file: vec![bytes],
+            file: vec![FilePart {
+                file_name: name.clone(),
+                content: bytes,
+                content_type: None,
+            }],
         })
         .await?;
     let file_id = up
@@ -636,7 +640,11 @@ async fn unshare(client: &Nhost, note_id: &str, user_id: &str) -> Result<()> {
 }
 
 async fn export(client: &Nhost) -> Result<()> {
-    let export: Value = client.functions.post("/notes/export", &json!({})).await?;
+    let export: Value = client
+        .functions
+        .post("/notes/export", &json!({}))
+        .await?
+        .body;
     println!("{}", serde_json::to_string_pretty(&export)?);
     Ok(())
 }
