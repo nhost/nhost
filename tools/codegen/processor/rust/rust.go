@@ -74,6 +74,17 @@ var rustReservedTypeNames = map[string]struct{}{ //nolint:gochecknoglobals
 	"SetRole":        {},
 }
 
+// rustReservedClientMethodNames are identifiers occupied by fixed-name method
+// definitions emitted by the client template.
+var rustReservedClientMethodNames = map[string]struct{}{ //nolint:gochecknoglobals
+	"new":                   {},
+	"refresh_token_request": {},
+	"with_headers":          {},
+	"with_middleware":       {},
+	"with_role":             {},
+	"with_session_capture":  {},
+}
+
 func splitWords(s string) []string {
 	var (
 		words []string
@@ -547,9 +558,173 @@ func newRustResponseContext(method *processor.Method) rustResponseContext {
 	}
 }
 
+type rawNamer interface {
+	RawName() string
+}
+
+func rustRawTypeName(typ processor.Type) string {
+	if named, ok := typ.(rawNamer); ok {
+		return named.RawName()
+	}
+
+	return typ.Name()
+}
+
+func registerRustIdentifier(
+	seen map[string]string, identifier, source, domain string,
+) error {
+	if previous, exists := seen[identifier]; exists {
+		return fmt.Errorf(
+			"%w: Rust %s collision: %s and %s both generate identifier %q",
+			processor.ErrUnsupportedFeature,
+			domain,
+			previous,
+			source,
+			identifier,
+		)
+	}
+
+	seen[identifier] = source
+
+	return nil
+}
+
+func validateRustFieldNames(object *processor.TypeObject) error {
+	seen := make(map[string]string, len(object.Properties()))
+	for _, prop := range object.Properties() {
+		if err := registerRustIdentifier(
+			seen,
+			prop.Name(),
+			fmt.Sprintf("property %q", prop.RawName()),
+			fmt.Sprintf("field namespace for type %q", object.RawName()),
+		); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func validateRustParameterFields(method *processor.Method) error {
+	seen := make(map[string]string, len(method.Parameters))
+	for _, param := range method.Parameters {
+		if param.Parameter.In != "query" && param.Parameter.In != "header" {
+			continue
+		}
+
+		if err := registerRustIdentifier(
+			seen,
+			param.Name(),
+			fmt.Sprintf("%s parameter %q", param.Parameter.In, param.RawName()),
+			fmt.Sprintf("parameter struct for operation %q", method.RawName()),
+		); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func methodHasRenderedBody(method *processor.Method) bool {
+	return method.RequestJSON() != nil || method.RequestFormData() != nil ||
+		method.RequestFormURLEncoded() != nil
+}
+
+func validateRustMethodBindings(method *processor.Method) error {
+	seen := make(map[string]string)
+	if !method.IsRedirect() && methodHasRenderedBody(method) {
+		seen["body"] = "generated request body argument"
+	}
+
+	hasParamsArgument := method.HasRequestParameters()
+	if method.IsRedirect() {
+		hasParamsArgument = method.HasQueryParameters()
+	}
+
+	if hasParamsArgument {
+		seen["params"] = "generated request parameters argument"
+	}
+
+	for _, param := range method.PathParameters() {
+		if err := registerRustIdentifier(
+			seen,
+			param.Name(),
+			fmt.Sprintf("path parameter %q", param.RawName()),
+			fmt.Sprintf("argument list for operation %q", method.RawName()),
+		); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func validateRustNames(types []processor.Type, methods []*processor.Method) (string, error) {
+	typeNames := make(map[string]string, len(types)+len(methods))
+	for _, typ := range types {
+		if err := registerRustIdentifier(
+			typeNames,
+			typ.Name(),
+			fmt.Sprintf("type %q", rustRawTypeName(typ)),
+			"type namespace",
+		); err != nil {
+			return "", err
+		}
+
+		if object, ok := typ.(*processor.TypeObject); ok {
+			if err := validateRustFieldNames(object); err != nil {
+				return "", err
+			}
+		}
+	}
+
+	methodNames := make(map[string]string, len(methods)+len(rustReservedClientMethodNames))
+	for name := range rustReservedClientMethodNames {
+		methodNames[name] = fmt.Sprintf("generated Client method %q", name)
+	}
+
+	for _, method := range methods {
+		methodName := method.Name()
+		if method.IsRedirect() {
+			methodName += "_url"
+		}
+
+		if err := registerRustIdentifier(
+			methodNames,
+			methodName,
+			fmt.Sprintf("operation %q", method.RawName()),
+			"client method namespace",
+		); err != nil {
+			return "", err
+		}
+
+		if method.HasRequestParameters() {
+			if err := registerRustIdentifier(
+				typeNames,
+				toPascal(method.Name())+"Params",
+				fmt.Sprintf("parameter struct for operation %q", method.RawName()),
+				"type namespace",
+			); err != nil {
+				return "", err
+			}
+		}
+
+		if err := validateRustParameterFields(method); err != nil {
+			return "", err
+		}
+
+		if err := validateRustMethodBindings(method); err != nil {
+			return "", err
+		}
+	}
+
+	return "", nil
+}
+
 func (p *Rust) GetFuncMap() map[string]any {
 	return map[string]any{
 		"rustResponse":                        newRustResponseContext,
+		"rustValidateNames":                   validateRustNames,
 		"hasHeaderParameters":                 hasHeaderParameters,
 		"hasMultipartFile":                    hasMultipartFile,
 		"isMultipartFile":                     isMultipartFileProperty,

@@ -353,6 +353,177 @@ components:
 	)
 }
 
+func TestRustRejectsIdentifierCollisions(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		spec string
+		want []string
+	}{
+		{
+			name: "top-level types",
+			spec: `openapi: "3.0.0"
+paths: {}
+components:
+  schemas:
+    Thing-One:
+      type: object
+      properties:
+        value: {type: string}
+    Thing_One:
+      type: object
+      properties:
+        value: {type: string}
+`,
+			want: []string{
+				"type namespace collision",
+				`type "Thing-One"`,
+				`type "Thing_One"`,
+				`identifier "ThingOne"`,
+			},
+		},
+		{
+			name: "object properties",
+			spec: `openapi: "3.0.0"
+paths: {}
+components:
+  schemas:
+    Thing:
+      type: object
+      properties:
+        refreshToken: {type: string}
+        refresh_token: {type: string}
+`,
+			want: []string{
+				`field namespace for type "Thing" collision`,
+				`property "refreshToken"`,
+				`property "refresh_token"`,
+				`identifier "refresh_token"`,
+			},
+		},
+		{
+			name: "operation methods",
+			spec: `openapi: "3.0.0"
+paths:
+  /one:
+    get:
+      operationId: get-thing
+      responses:
+        "204": {description: Done}
+  /two:
+    get:
+      operationId: get_thing
+      responses:
+        "204": {description: Done}
+`,
+			want: []string{
+				"client method namespace collision",
+				`operation "get-thing"`,
+				`operation "get_thing"`,
+				`identifier "get_thing"`,
+			},
+		},
+		{
+			name: "generated client method",
+			spec: `openapi: "3.0.0"
+paths:
+  /role:
+    get:
+      operationId: withRole
+      responses:
+        "204": {description: Done}
+`,
+			want: []string{
+				"client method namespace collision",
+				`generated Client method "with_role"`,
+				`operation "withRole"`,
+				`identifier "with_role"`,
+			},
+		},
+		{
+			name: "request parameter fields",
+			spec: `openapi: "3.0.0"
+paths:
+  /things:
+    get:
+      operationId: listThings
+      parameters:
+        - {name: refreshToken, in: query, schema: {type: string}}
+        - {name: refresh_token, in: header, schema: {type: string}}
+      responses:
+        "204": {description: Done}
+`,
+			want: []string{
+				`parameter struct for operation "listThings" collision`,
+				`query parameter "refreshToken"`,
+				`header parameter "refresh_token"`,
+				`identifier "refresh_token"`,
+			},
+		},
+		{
+			name: "path parameter and request body",
+			spec: `openapi: "3.0.0"
+paths:
+  /things/{body}:
+    post:
+      operationId: makeThing
+      parameters:
+        - name: body
+          in: path
+          required: true
+          schema: {type: string}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                value: {type: string}
+      responses:
+        "204": {description: Done}
+`,
+			want: []string{
+				`argument list for operation "makeThing" collision`,
+				"generated request body argument",
+				`path parameter "body"`,
+				`identifier "body"`,
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			path := t.TempDir() + "/collision.yaml"
+			if err := os.WriteFile(path, []byte(test.spec), 0o600); err != nil {
+				t.Fatalf("failed to write test spec: %v", err)
+			}
+
+			doc, err := getModel(path)
+			if err != nil {
+				t.Fatalf("failed to get model: %v", err)
+			}
+
+			ir, err := processor.NewInterMediateRepresentation(doc, &rust.Rust{})
+			if err != nil {
+				t.Fatalf("failed to create intermediate representation: %v", err)
+			}
+
+			err = ir.Render(bytes.NewBuffer(nil))
+			if !errors.Is(err, processor.ErrUnsupportedFeature) {
+				t.Fatalf("render error = %v, want ErrUnsupportedFeature", err)
+			}
+
+			for _, want := range test.want {
+				assert.Contains(t, err.Error(), want)
+			}
+		})
+	}
+}
+
 func assertRustRenderCase(t *testing.T, tc rustRenderCase) {
 	t.Helper()
 
