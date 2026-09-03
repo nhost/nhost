@@ -28,6 +28,26 @@ impl Middleware for AttemptCounter {
     }
 }
 
+#[derive(Clone)]
+struct RequestExtensionMarker;
+
+struct ExtensionObserver(Arc<AtomicUsize>);
+
+#[async_trait::async_trait]
+impl Middleware for ExtensionObserver {
+    async fn handle(
+        &self,
+        request: reqwest::Request,
+        extensions: &mut http::Extensions,
+        next: reqwest_middleware::Next<'_>,
+    ) -> reqwest_middleware::Result<reqwest::Response> {
+        if extensions.get::<RequestExtensionMarker>().is_some() {
+            self.0.fetch_add(1, Ordering::Relaxed);
+        }
+        next.run(request, extensions).await
+    }
+}
+
 /// A syntactically valid JWT expiring `in_secs` from now (negative = expired).
 fn token(in_secs: i64) -> String {
     let exp = std::time::SystemTime::now()
@@ -68,14 +88,39 @@ fn session_response_with(
 
 struct FailingSetStorage;
 
-struct FailingGetStorage {
+enum FailingStorageOperation {
+    Read,
+    Remove,
+}
+
+struct FailingStorage {
+    operation: FailingStorageOperation,
     reads: Arc<AtomicUsize>,
 }
 
-impl session::Backend for FailingGetStorage {
+impl FailingStorage {
+    fn read(reads: Arc<AtomicUsize>) -> Self {
+        Self {
+            operation: FailingStorageOperation::Read,
+            reads,
+        }
+    }
+
+    fn remove() -> Self {
+        Self {
+            operation: FailingStorageOperation::Remove,
+            reads: Arc::new(AtomicUsize::new(0)),
+        }
+    }
+}
+
+impl session::Backend for FailingStorage {
     fn get(&self) -> Result<Option<session::StoredSession>, Error> {
         self.reads.fetch_add(1, Ordering::Relaxed);
-        Err(Error::Storage("read failed".to_string()))
+        match self.operation {
+            FailingStorageOperation::Read => Err(Error::Storage("read failed".to_string())),
+            FailingStorageOperation::Remove => Ok(None),
+        }
     }
 
     fn set(&self, _value: &session::StoredSession) -> Result<(), Error> {
@@ -83,7 +128,10 @@ impl session::Backend for FailingGetStorage {
     }
 
     fn remove(&self) -> Result<(), Error> {
-        Ok(())
+        match self.operation {
+            FailingStorageOperation::Read => Ok(()),
+            FailingStorageOperation::Remove => Err(Error::Storage("remove failed".to_string())),
+        }
     }
 }
 
@@ -697,6 +745,13 @@ fn notify_callback_can_reenter_storage_without_deadlock() {
     assert!(storage.get().unwrap().is_none());
 }
 
+#[cfg(all(feature = "wasm", not(target_arch = "wasm32")))]
+#[test]
+fn native_wasm_feature_retains_file_storage() {
+    let storage = session::FileStorage::new(std::env::temp_dir().join("nhost-session.json"));
+    let _: &dyn session::Backend = &storage;
+}
+
 #[test]
 fn server_mode_requires_storage() {
     assert!(Nhost::builder().server().build().is_err());
@@ -991,6 +1046,35 @@ async fn sign_out_clears_session_even_when_request_fails() {
     assert_eq!(error.status(), Some(500));
     assert!(client.session().unwrap().is_none());
     assert_eq!(*changes.lock().unwrap(), vec![false]);
+}
+
+#[tokio::test]
+async fn sign_out_storage_error_takes_precedence_over_http_error() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/signout"))
+        .respond_with(ResponseTemplate::new(500).set_body_json(json!({"message": "failed"})))
+        .expect(1)
+        .mount(&server)
+        .await;
+
+    let client = Nhost::builder()
+        .auth_url(server.uri())
+        .storage(Box::new(FailingStorage::remove()))
+        .build()
+        .unwrap();
+
+    let error = client
+        .auth
+        .sign_out(auth::SignOutRequest {
+            refresh_token: None,
+            all: None,
+        })
+        .await
+        .unwrap_err();
+
+    assert!(matches!(error, Error::Storage(ref message) if message == "remove failed"));
+    server.verify().await;
 }
 
 #[tokio::test]
@@ -1859,6 +1943,33 @@ async fn functions_paths_are_appended_and_encoded() {
         ]
     );
     assert!(requests.iter().all(|request| request.url.query().is_none()));
+}
+
+#[tokio::test]
+async fn functions_send_preserves_request_extensions_for_middleware() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/echo"))
+        .respond_with(ResponseTemplate::new(200).set_body_string("OK"))
+        .expect(1)
+        .mount(&server)
+        .await;
+    let observations = Arc::new(AtomicUsize::new(0));
+    let functions = functions::Client::new(
+        server.uri(),
+        reqwest::Client::new(),
+        vec![Arc::new(ExtensionObserver(observations.clone()))],
+    );
+    let request = functions
+        .request(reqwest::Method::GET, "/echo")
+        .unwrap()
+        .with_extension(RequestExtensionMarker);
+
+    let response = functions.send(request).await.unwrap();
+
+    assert_eq!(response.body, "OK");
+    assert_eq!(observations.load(Ordering::Relaxed), 1);
+    server.verify().await;
 }
 
 #[tokio::test]
@@ -3368,9 +3479,7 @@ async fn session_storage_read_error_fails_request_without_sending_it() {
     let client = Nhost::builder()
         .auth_url(server.uri())
         .graphql_url(server.uri())
-        .storage(Box::new(FailingGetStorage {
-            reads: reads.clone(),
-        }))
+        .storage(Box::new(FailingStorage::read(reads.clone())))
         .build()
         .unwrap();
 
@@ -3394,9 +3503,7 @@ async fn server_mode_storage_read_error_fails_request() {
     let client = Nhost::builder()
         .auth_url(server.uri())
         .graphql_url(server.uri())
-        .storage(Box::new(FailingGetStorage {
-            reads: reads.clone(),
-        }))
+        .storage(Box::new(FailingStorage::read(reads.clone())))
         .server()
         .build()
         .unwrap();
@@ -3428,9 +3535,7 @@ async fn caller_authorization_skips_failed_session_storage_read() {
     let client = Nhost::builder()
         .auth_url(server.uri())
         .functions_url(server.uri())
-        .storage(Box::new(FailingGetStorage {
-            reads: reads.clone(),
-        }))
+        .storage(Box::new(FailingStorage::read(reads.clone())))
         .build()
         .unwrap();
 
@@ -3458,9 +3563,7 @@ async fn caller_authorization_skips_failed_session_storage_read() {
 async fn refresh_session_does_not_retry_storage_read_errors() {
     let server = MockServer::start().await;
     let reads = Arc::new(AtomicUsize::new(0));
-    let storage = SessionStorage::new(Box::new(FailingGetStorage {
-        reads: reads.clone(),
-    }));
+    let storage = SessionStorage::new(Box::new(FailingStorage::read(reads.clone())));
     let auth = auth::Client::new(server.uri(), reqwest::Client::new(), Vec::new());
 
     let err = session::refresh_session(&auth, &storage, 60)
