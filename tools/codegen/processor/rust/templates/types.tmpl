@@ -1,8 +1,24 @@
 {{- define "renderObject" -}}
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct {{ .Name }} {
-{{- range .Properties }}
-    {{ rustField . }}
+#[derive({{ if not (objectHasSensitiveFields .Object) }}Debug, {{ end }}Clone, Serialize, Deserialize)]
+pub struct {{ .Object.Name }} {
+{{- range .Object.Properties }}
+    {{ rustField . $.Methods }}
 {{- end }}
 }
+{{- if objectHasSensitiveFields .Object }}
+
+impl std::fmt::Debug for {{ .Object.Name }} {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("{{ .Object.Name }}");
+{{- range .Object.Properties }}
+{{- if isSensitiveProperty . }}
+        debug.field("{{ .Name }}", &"<redacted>");
+{{- else }}
+        debug.field("{{ .Name }}", &self.{{ .Name }});
+{{- end }}
+{{- end }}
+        debug.finish()
+    }
+}
+{{- end }}
 {{ end -}}

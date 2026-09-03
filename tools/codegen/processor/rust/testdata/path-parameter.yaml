@@ -1,0 +1,46 @@
+openapi: "3.0.0"
+
+paths:
+  /files/{id}:
+    get:
+      operationId: getFile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: File contents
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+
+  /signin/provider/{provider}:
+    get:
+      operationId: signInProvider
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "302":
+          description: Redirect to the provider
+          headers:
+            Location:
+              $ref: "#/components/headers/RedirectLocation"
+          content: {}
+
+components:
+  headers:
+    RedirectLocation:
+      description: URL to redirect to
+      schema:
+        type: string
+        format: uri
+      required: true

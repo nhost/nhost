@@ -5,6 +5,8 @@ edition = "2024"
 publish = false
 
 [dependencies]
+bytes = "1.11.1"
 reqwest = { version = "0.12.28", default-features = false, features = ["json", "multipart"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"
+url = "2.5.8"
