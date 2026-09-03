@@ -158,6 +158,51 @@ func TestRustPathSegments(t *testing.T) {
 	}
 }
 
+func TestRustClientTemplateMethodsAreReserved(t *testing.T) {
+	t.Parallel()
+
+	contents, err := fs.ReadFile(templatesFS, "templates/client.tmpl")
+	if err != nil {
+		t.Fatalf("failed to read Rust client template: %v", err)
+	}
+
+	const (
+		clientDefinitionMarker = `{{- define "client" -}}`
+		implMarker             = "impl Client {"
+	)
+
+	clientDefinitionStart := strings.Index(string(contents), clientDefinitionMarker)
+	if clientDefinitionStart < 0 {
+		t.Fatalf("Rust client template does not contain %q", clientDefinitionMarker)
+	}
+
+	implStart := strings.Index(string(contents), implMarker)
+	if implStart < 0 {
+		t.Fatalf("Rust client template does not contain %q", implMarker)
+	}
+
+	methodTemplates := string(contents[:clientDefinitionStart]) + string(contents[implStart:])
+	methodDefinition := regexp.MustCompile(
+		`(?m)^[\t ]*(?:pub(?:\(crate\))?[\t ]+)?(?:async[\t ]+)?fn[\t ]+([a-z][a-z0-9_]*)[\t ]*\(`,
+	)
+	found := make(map[string]struct{})
+	for _, match := range methodDefinition.FindAllStringSubmatch(methodTemplates, -1) {
+		found[match[1]] = struct{}{}
+		if _, ok := rustReservedClientMethodNames[match[1]]; !ok {
+			t.Errorf(
+				"Rust client template method %q is missing from rustReservedClientMethodNames",
+				match[1],
+			)
+		}
+	}
+
+	for name := range rustReservedClientMethodNames {
+		if _, ok := found[name]; !ok {
+			t.Errorf("reserved Rust client method %q is not emitted by the template", name)
+		}
+	}
+}
+
 func TestRustTemplateImportsAreReserved(t *testing.T) {
 	t.Parallel()
 
