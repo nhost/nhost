@@ -1,0 +1,660 @@
+package pgmigrate
+
+import (
+	"bytes"
+	"context"
+	"crypto/sha256"
+	"database/sql"
+	"errors"
+	"fmt"
+	"strings"
+	"testing"
+
+	"github.com/lib/pq"
+)
+
+func TestNewCatalogValidatesConfiguration(t *testing.T) {
+	t.Parallel()
+
+	database := &stubCatalogDatabase{}
+	tests := []struct {
+		name     string
+		ctx      func(*testing.T) context.Context
+		database catalogDatabase
+		schema   string
+		field    string
+	}{
+		{
+			name: "nil context",
+			ctx: func(*testing.T) context.Context {
+				return nil
+			},
+			database: database,
+			schema:   "app",
+			field:    "context",
+		},
+		{
+			name: "nil database",
+			ctx: func(t *testing.T) context.Context {
+				t.Helper()
+
+				return t.Context()
+			},
+			database: nil,
+			schema:   "app",
+			field:    "database",
+		},
+		{
+			name: "blank schema",
+			ctx: func(t *testing.T) context.Context {
+				t.Helper()
+
+				return t.Context()
+			},
+			database: database,
+			schema:   " \t",
+			field:    "schema",
+		},
+		{
+			name: "schema with zero byte",
+			ctx: func(t *testing.T) context.Context {
+				t.Helper()
+
+				return t.Context()
+			},
+			database: database,
+			schema:   "app\x00other",
+			field:    "schema",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			_, err := newCatalog(tt.ctx(t), tt.database, tt.schema)
+			if err == nil {
+				t.Fatal("newCatalog() error = nil")
+			}
+
+			var configurationErr *ConfigurationError
+			if !errors.As(err, &configurationErr) {
+				t.Fatalf("newCatalog() error = %v (%T), want *ConfigurationError", err, err)
+			}
+
+			if configurationErr.Field != tt.field {
+				t.Fatalf("newCatalog() error field = %q, want %q", configurationErr.Field, tt.field)
+			}
+		})
+	}
+}
+
+func TestCatalogBootstrapQuotesSchemaAndCreatesV1Constraints(t *testing.T) {
+	t.Parallel()
+
+	var (
+		gotQuery string
+		gotArgs  []any
+	)
+
+	database := &stubCatalogDatabase{
+		execFunc: func(_ context.Context, query string, args ...any) error {
+			gotQuery = query
+			gotArgs = args
+
+			return nil
+		},
+	}
+
+	catalog, err := newCatalog(t.Context(), database, `tenant"; SELECT pg_sleep(10); --`)
+	if err != nil {
+		t.Fatalf("newCatalog() error = %v", err)
+	}
+
+	if err := catalog.bootstrap(); err != nil {
+		t.Fatalf("bootstrap() error = %v", err)
+	}
+
+	if len(gotArgs) != 0 {
+		t.Fatalf("bootstrap() arguments = %v, want none", gotArgs)
+	}
+
+	quotedRelation := `"tenant""; SELECT pg_sleep(10); --"."schema_migration_catalog"`
+	if strings.Count(gotQuery, quotedRelation) != 3 {
+		t.Fatalf(
+			"bootstrap() query references quoted relation %d times, want 3\n%s",
+			strings.Count(gotQuery, quotedRelation),
+			gotQuery,
+		)
+	}
+
+	for _, fragment := range []string{
+		"previous_version BIGINT NULL",
+		"UNIQUE (previous_version)",
+		"FOREIGN KEY (previous_version)",
+		"ON DELETE RESTRICT",
+		"octet_length(up_sql) > 0",
+		"octet_length(down_sql) > 0",
+		"octet_length(up_sha256) = 32",
+		"octet_length(down_sha256) = 32",
+		"WHERE previous_version IS NULL",
+		"registered_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP",
+	} {
+		if !strings.Contains(gotQuery, fragment) {
+			t.Errorf("bootstrap() query does not contain %q\n%s", fragment, gotQuery)
+		}
+	}
+}
+
+func TestCatalogBootstrapWrapsDatabaseError(t *testing.T) {
+	t.Parallel()
+
+	cause := sql.ErrConnDone
+	database := &stubCatalogDatabase{
+		execFunc: func(context.Context, string, ...any) error {
+			return cause
+		},
+	}
+
+	catalog, err := newCatalog(t.Context(), database, "app")
+	if err != nil {
+		t.Fatalf("newCatalog() error = %v", err)
+	}
+
+	err = catalog.bootstrap()
+	if !errors.Is(err, cause) {
+		t.Fatalf("bootstrap() error = %v, want wrapped %v", err, cause)
+	}
+
+	if !strings.Contains(err.Error(), `schema "app"`) {
+		t.Fatalf("bootstrap() error = %q, want schema context", err)
+	}
+}
+
+//nolint:cyclop // One focused contract test checks every generated statement field and argument.
+func TestCatalogPublishUsesAscendingParameterizedRows(t *testing.T) {
+	t.Parallel()
+
+	local := testBundle(
+		testMigration(2, nil, "first"),
+		testMigration(10, uintPointer(2), "second"),
+	)
+
+	byVersion := make(map[int64]migration, len(local.migrations))
+	for _, migration := range local.migrations {
+		version, err := catalogVersion(migration.version)
+		if err != nil {
+			t.Fatalf("catalogVersion() error = %v", err)
+		}
+
+		byVersion[version] = migration
+	}
+
+	var (
+		executedQueries []string
+		executedArgs    [][]any
+	)
+
+	database := &stubCatalogDatabase{
+		execFunc: func(_ context.Context, query string, args ...any) error {
+			executedQueries = append(executedQueries, query)
+			executedArgs = append(executedArgs, append([]any(nil), args...))
+
+			return nil
+		},
+		queryFunc: func(_ context.Context, _ string, args ...any) (catalogRows, error) {
+			version, ok := args[0].(int64)
+			if !ok {
+				return nil, fmt.Errorf(
+					"unexpected version argument %T: %w",
+					args[0],
+					errors.ErrUnsupported,
+				)
+			}
+
+			migration := byVersion[version]
+
+			return rowsForMigration(migration), nil
+		},
+	}
+
+	catalog, err := newCatalog(t.Context(), database, "app")
+	if err != nil {
+		t.Fatalf("newCatalog() error = %v", err)
+	}
+
+	if err := catalog.publish(local); err != nil {
+		t.Fatalf("publish() error = %v", err)
+	}
+
+	if len(executedQueries) != 2 {
+		t.Fatalf("publish() statement count = %d, want 2", len(executedQueries))
+	}
+
+	for _, query := range executedQueries {
+		for _, fragment := range []string{
+			`INSERT INTO "app"."schema_migration_catalog" (`,
+			"version,",
+			"previous_version,",
+			"identifier,",
+			"up_sql,",
+			"down_sql,",
+			"up_sha256,",
+			"down_sha256,",
+			"format_version",
+			"VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+			"ON CONFLICT (version) DO NOTHING",
+		} {
+			if !strings.Contains(query, fragment) {
+				t.Errorf("publish() query does not contain %q\n%s", fragment, query)
+			}
+		}
+	}
+
+	firstVersion, firstOK := executedArgs[0][0].(int64)
+
+	secondVersion, secondOK := executedArgs[1][0].(int64)
+	if !firstOK || !secondOK {
+		t.Fatalf(
+			"publish() version argument types = %T and %T, want int64",
+			executedArgs[0][0],
+			executedArgs[1][0],
+		)
+	}
+
+	if firstVersion != 2 || secondVersion != 10 {
+		t.Fatalf("publish() versions = [%d %d], want [2 10]", firstVersion, secondVersion)
+	}
+
+	if executedArgs[0][1] != nil {
+		t.Fatalf("first previous version = %v, want nil", executedArgs[0][1])
+	}
+
+	if got := executedArgs[1][1]; got != int64(2) {
+		t.Fatalf("second previous version = %v, want 2", got)
+	}
+
+	for index, args := range executedArgs {
+		if len(args) != 8 {
+			t.Fatalf("publish() arguments[%d] length = %d, want 8", index, len(args))
+		}
+
+		if args[7] != catalogFormatV1 {
+			t.Fatalf(
+				"publish() arguments[%d] format = %v, want %d",
+				index,
+				args[7],
+				catalogFormatV1,
+			)
+		}
+	}
+}
+
+func TestCompareMigrationRejectsEveryImmutableMismatch(t *testing.T) {
+	t.Parallel()
+
+	local := testMigration(10, uintPointer(2), "add_name")
+	matching := storedMigrationFrom(local)
+
+	tests := []struct {
+		name   string
+		mutate func(*storedMigration)
+		issue  string
+	}{
+		{
+			name: "version",
+			mutate: func(stored *storedMigration) {
+				stored.version++
+			},
+			issue: "version",
+		},
+		{
+			name: "previous version",
+			mutate: func(stored *storedMigration) {
+				stored.previousVersion = uintPointer(1)
+			},
+			issue: "previous version",
+		},
+		{
+			name: "identifier",
+			mutate: func(stored *storedMigration) {
+				stored.identifier = "changed"
+			},
+			issue: "identifier",
+		},
+		{
+			name: "up SQL",
+			mutate: func(stored *storedMigration) {
+				stored.upSQL = []byte("SELECT 'changed up';")
+			},
+			issue: "up SQL",
+		},
+		{
+			name: "down SQL",
+			mutate: func(stored *storedMigration) {
+				stored.downSQL = []byte("SELECT 'changed down';")
+			},
+			issue: "down SQL",
+		},
+		{
+			name: "up checksum",
+			mutate: func(stored *storedMigration) {
+				stored.upChecksum[0]++
+			},
+			issue: "up checksum",
+		},
+		{
+			name: "down checksum",
+			mutate: func(stored *storedMigration) {
+				stored.downChecksum[0]++
+			},
+			issue: "down checksum",
+		},
+		{
+			name: "format version",
+			mutate: func(stored *storedMigration) {
+				stored.formatVersion++
+			},
+			issue: "format version",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			stored := cloneStoredMigration(matching)
+			tt.mutate(&stored)
+
+			err := compareMigration(local, stored)
+			if err == nil {
+				t.Fatal("compareMigration() error = nil")
+			}
+
+			var integrityErr *IntegrityError
+			if !errors.As(err, &integrityErr) {
+				t.Fatalf("compareMigration() error = %v (%T), want *IntegrityError", err, err)
+			}
+
+			if !strings.Contains(integrityErr.Issue, tt.issue) {
+				t.Fatalf("compareMigration() issue = %q, want %q", integrityErr.Issue, tt.issue)
+			}
+		})
+	}
+}
+
+func TestCatalogPublishAcceptsMatchingRowAfterConcurrentUniqueConflict(t *testing.T) {
+	t.Parallel()
+
+	migration := testMigration(1, nil, "first")
+	database := &stubCatalogDatabase{
+		execFunc: func(context.Context, string, ...any) error {
+			return &pq.Error{Code: pq.ErrorCode("23505")}
+		},
+		queryFunc: func(context.Context, string, ...any) (catalogRows, error) {
+			return rowsForMigration(migration), nil
+		},
+	}
+
+	catalog, err := newCatalog(t.Context(), database, "app")
+	if err != nil {
+		t.Fatalf("newCatalog() error = %v", err)
+	}
+
+	if err := catalog.publish(testBundle(migration)); err != nil {
+		t.Fatalf("publish() error = %v", err)
+	}
+}
+
+func TestCatalogPublishReturnsIntegrityErrors(t *testing.T) {
+	t.Parallel()
+
+	cause := sql.ErrTxDone
+	local := testBundle(testMigration(1, nil, "first"))
+	tests := []struct {
+		name     string
+		database *stubCatalogDatabase
+		cause    error
+		issue    string
+	}{
+		{
+			name: "insert failure",
+			database: &stubCatalogDatabase{
+				execFunc: func(context.Context, string, ...any) error {
+					return cause
+				},
+			},
+			cause: cause,
+			issue: "cannot publish",
+		},
+		{
+			name: "missing readback",
+			database: &stubCatalogDatabase{
+				queryFunc: func(context.Context, string, ...any) (catalogRows, error) {
+					return &stubCatalogRows{}, nil
+				},
+			},
+			cause: nil,
+			issue: "published row is missing",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			catalog, err := newCatalog(t.Context(), tt.database, "app")
+			if err != nil {
+				t.Fatalf("newCatalog() error = %v", err)
+			}
+
+			err = catalog.publish(local)
+			if err == nil {
+				t.Fatal("publish() error = nil")
+			}
+
+			var integrityErr *IntegrityError
+			if !errors.As(err, &integrityErr) {
+				t.Fatalf("publish() error = %v (%T), want *IntegrityError", err, err)
+			}
+
+			if !strings.Contains(integrityErr.Issue, tt.issue) {
+				t.Fatalf("publish() issue = %q, want %q", integrityErr.Issue, tt.issue)
+			}
+
+			if tt.cause != nil && !errors.Is(err, tt.cause) {
+				t.Fatalf("publish() error = %v, want wrapped %v", err, tt.cause)
+			}
+		})
+	}
+}
+
+type stubCatalogDatabase struct {
+	execFunc  func(context.Context, string, ...any) error
+	queryFunc func(context.Context, string, ...any) (catalogRows, error)
+}
+
+func (d *stubCatalogDatabase) exec(ctx context.Context, query string, args ...any) error {
+	if d.execFunc == nil {
+		return nil
+	}
+
+	return d.execFunc(ctx, query, args...)
+}
+
+func (d *stubCatalogDatabase) query(
+	ctx context.Context,
+	query string,
+	args ...any,
+) (catalogRows, error) {
+	if d.queryFunc == nil {
+		return nil, fmt.Errorf("unexpected query %q: %w", query, errors.ErrUnsupported)
+	}
+
+	return d.queryFunc(ctx, query, args...)
+}
+
+type stubCatalogRows struct {
+	rows     [][]any
+	position int
+	err      error
+	closeErr error
+}
+
+func (r *stubCatalogRows) Next() bool {
+	if r.position >= len(r.rows) {
+		return false
+	}
+
+	r.position++
+
+	return true
+}
+
+func (r *stubCatalogRows) Scan(dest ...any) error {
+	if r.position == 0 || r.position > len(r.rows) {
+		return fmt.Errorf("Scan called without a current row: %w", sql.ErrNoRows)
+	}
+
+	values := r.rows[r.position-1]
+	if len(values) != len(dest) {
+		return fmt.Errorf(
+			"got %d destinations for %d values: %w",
+			len(dest),
+			len(values),
+			errors.ErrUnsupported,
+		)
+	}
+
+	for index := range values {
+		if err := assignCatalogValue(dest[index], values[index]); err != nil {
+			return fmt.Errorf("column %d: %w", index, err)
+		}
+	}
+
+	return nil
+}
+
+func (r *stubCatalogRows) Err() error {
+	return r.err
+}
+
+func (r *stubCatalogRows) Close() error {
+	return r.closeErr
+}
+
+func assignCatalogValue(destination, value any) error {
+	switch typed := destination.(type) {
+	case *int64:
+		got, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("cannot assign %T to *int64: %w", value, errors.ErrUnsupported)
+		}
+
+		*typed = got
+	case *string:
+		got, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("cannot assign %T to *string: %w", value, errors.ErrUnsupported)
+		}
+
+		*typed = got
+	case *[]byte:
+		got, ok := value.([]byte)
+		if !ok {
+			return fmt.Errorf("cannot assign %T to *[]byte: %w", value, errors.ErrUnsupported)
+		}
+
+		*typed = bytes.Clone(got)
+	case *sql.NullInt64:
+		if value == nil {
+			*typed = sql.NullInt64{}
+			return nil
+		}
+
+		got, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf(
+				"cannot assign %T to *sql.NullInt64: %w",
+				value,
+				errors.ErrUnsupported,
+			)
+		}
+
+		*typed = sql.NullInt64{Int64: got, Valid: true}
+	default:
+		return fmt.Errorf("unsupported destination %T: %w", destination, errors.ErrUnsupported)
+	}
+
+	return nil
+}
+
+func rowsForMigration(migration migration) *stubCatalogRows {
+	var previous any
+	if migration.previousVersion != nil {
+		//nolint:gosec // Test migrations use small constants.
+		previous = int64(*migration.previousVersion)
+	}
+
+	return &stubCatalogRows{
+		rows: [][]any{{
+			int64(migration.version), //nolint:gosec // Test migrations use small constants.
+			previous,
+			migration.identifier,
+			migration.upSQL,
+			migration.downSQL,
+			migration.upChecksum[:],
+			migration.downChecksum[:],
+			catalogFormatV1,
+		}},
+	}
+}
+
+func testMigration(version uint, previous *uint, identifier string) migration {
+	upSQL := fmt.Appendf(nil, "SELECT 'up %d';", version)
+	downSQL := fmt.Appendf(nil, "SELECT 'down %d';", version)
+
+	return migration{
+		version:         version,
+		previousVersion: previous,
+		identifier:      identifier,
+		upSQL:           upSQL,
+		downSQL:         downSQL,
+		upChecksum:      sha256.Sum256(upSQL),
+		downChecksum:    sha256.Sum256(downSQL),
+	}
+}
+
+func testBundle(migrations ...migration) *bundle {
+	return &bundle{
+		migrations: migrations,
+		target:     migrations[len(migrations)-1].version,
+	}
+}
+
+func storedMigrationFrom(migration migration) storedMigration {
+	return storedMigration{
+		version:         migration.version,
+		previousVersion: migration.previousVersion,
+		identifier:      migration.identifier,
+		upSQL:           bytes.Clone(migration.upSQL),
+		downSQL:         bytes.Clone(migration.downSQL),
+		upChecksum:      bytes.Clone(migration.upChecksum[:]),
+		downChecksum:    bytes.Clone(migration.downChecksum[:]),
+		formatVersion:   catalogFormatV1,
+	}
+}
+
+func cloneStoredMigration(migration storedMigration) storedMigration {
+	cloned := migration
+	if migration.previousVersion != nil {
+		cloned.previousVersion = uintPointer(*migration.previousVersion)
+	}
+
+	cloned.upSQL = bytes.Clone(migration.upSQL)
+	cloned.downSQL = bytes.Clone(migration.downSQL)
+	cloned.upChecksum = bytes.Clone(migration.upChecksum)
+	cloned.downChecksum = bytes.Clone(migration.downChecksum)
+
+	return cloned
+}

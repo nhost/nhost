@@ -28,6 +28,7 @@ let
 
   checkDeps = with pkgs; [
     mockgen
+    nhost.postgresql_18
   ];
 
   buildInputs = [ ];
@@ -44,6 +45,34 @@ in
       nativeBuildInputs
       checkDeps
       ;
+
+    preCheck = ''
+      export PGMIGRATE_TEST_DATABASE_REQUIRED=1
+      export PGDATA="$TMPDIR/pgmigrate-postgres"
+      export PGMIGRATE_SOCKET_DIR="$(mktemp -d /tmp/pgmigrate.XXXXXX)"
+
+      stop_pgmigrate_postgres() {
+        if test -f "$PGDATA/postmaster.pid"; then
+          pg_ctl -D "$PGDATA" -m fast -w stop
+        fi
+        rm -rf "$PGMIGRATE_SOCKET_DIR"
+      }
+      trap stop_pgmigrate_postgres EXIT INT TERM
+
+      initdb --auth=trust --no-locale --encoding=UTF8 -D "$PGDATA"
+      pg_ctl \
+        -D "$PGDATA" \
+        -l "$PGDATA/server.log" \
+        -o "-F -h ''' -k $PGMIGRATE_SOCKET_DIR" \
+        -w start
+
+      export PGMIGRATE_TEST_DSN="host=$PGMIGRATE_SOCKET_DIR dbname=postgres sslmode=disable"
+    '';
+
+    extraCheck = ''
+      stop_pgmigrate_postgres
+      trap - EXIT INT TERM
+    '';
   };
 
   devShell = nixops-lib.go.devShell {
