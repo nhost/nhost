@@ -355,9 +355,11 @@ dependencies = [
 name = "nhost-codegen-rust-compile-fixture"
 version = "0.0.0"
 dependencies = [
+ "bytes",
  "reqwest",
  "serde",
  "serde_json",
+ "url",
 ]
 
 [[package]]

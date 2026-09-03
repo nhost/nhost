@@ -48,6 +48,13 @@ func getModel(filepath string) (*libopenapi.DocumentModel[v3.Document], error) {
 	return docModel, nil
 }
 
+type rustRenderCase struct {
+	name        string
+	fixturePath string
+	contains    []string
+	notContains []string
+}
+
 // TestRustRender renders each shared OpenAPI fixture through the rust plugin and
 // compares the result against a committed golden file. Run with -update to
 // regenerate the goldens after an intentional template or mapping change. The
@@ -56,11 +63,7 @@ func getModel(filepath string) (*libopenapi.DocumentModel[v3.Document], error) {
 func TestRustRender(t *testing.T) {
 	t.Parallel()
 
-	cases := []struct {
-		name        string
-		contains    []string
-		notContains []string
-	}{
+	cases := []rustRenderCase{
 		{
 			name: "types.yaml",
 			contains: []string{
@@ -77,14 +80,88 @@ func TestRustRender(t *testing.T) {
 			name: "methods_ref.yaml",
 			contains: []string{
 				"use crate::http::{self, Response};",
-				"        if let Some(body) = &body {\n            let mut form = reqwest::multipart::Form::new();",
+				`let url = http::append_path(self.base_url.as_str(), &["files", id])?;`,
+				"pub struct FilePart {",
+				"    pub file_name: String,\n    /// The complete file contents.\n    pub content: Vec<u8>",
+				"    pub content_type: Option<String>,",
+				"    pub file: Vec<FilePart>,",
+				"    pub file: FilePart,",
+				"        if let Some(body) = body {\n            let mut form = reqwest::multipart::Form::new();",
+				"        for item in body.file {",
+				"            let part = reqwest::multipart::Part::bytes(item.content)\n                .file_name(item.file_name);",
+				"            let v = body.file;",
 				"            request = request.multipart(form);\n        }",
 				") -> Result<Response<()>, Error> {",
-				") -> Result<Response<Vec<u8>>, Error> {",
+				") -> Result<Response<bytes::Bytes>, Error> {",
+				"        let body = bytes;",
 				"        Ok(Response {\n            body,\n            status,\n            headers,\n        })",
 			},
 			notContains: []string{
 				"let (_status, _headers, bytes) = http::send",
+				"Part::bytes(item.clone())",
+				"Part::bytes(v.clone())",
+				"file_name(format!(\"file-",
+				"let body = bytes.to_vec();",
+			},
+		},
+		{
+			name:        "multipart.yaml",
+			fixturePath: "testdata/multipart.yaml",
+			contains: []string{
+				"    pub file: Option<FilePart>,",
+				"    pub files: Vec<FilePart>,",
+				"        if let Some(v) = body.file {",
+				"        if let Some(v) = &body.label {",
+				"        for item in body.files {",
+			},
+			notContains: []string{
+				".clone()).file_name(",
+				"file_name(format!(\"file-",
+			},
+		},
+		{
+			name:        "path-parameter.yaml",
+			fixturePath: "testdata/path-parameter.yaml",
+			contains: []string{
+				`fn urlencode(s: &str) -> String {`,
+				`let url = http::append_path(self.base_url.as_str(), &["files", id])?;`,
+				`let mut url = http::append_path(self.base_url.as_str(), &["signin", "provider", provider])?.to_string();`,
+			},
+			notContains: []string{
+				`urlencode(id)`,
+				`urlencode(provider)`,
+			},
+		},
+		{
+			name:        "required-query-parameter.yaml",
+			fixturePath: "testdata/required-query-parameter.yaml",
+			contains: []string{
+				"pub async fn required_request(\n        &self,\n        params: RequiredRequestParams,",
+				"request = request.query(&params.to_query());",
+				"pub async fn optional_request(\n        &self,\n        params: Option<OptionalRequestParams>,",
+				"pub fn required_redirect_url(\n        &self,\n        params: &RequiredRedirectParams,",
+				"pub fn optional_redirect_url(\n        &self,\n        params: Option<&OptionalRedirectParams>,",
+			},
+			notContains: []string{
+				"params: Option<RequiredRequestParams>",
+				"params: Option<&RequiredRedirectParams>",
+			},
+		},
+		{
+			name:        "header-parameter.yaml",
+			fixturePath: "testdata/header-parameter.yaml",
+			contains: []string{
+				"pub struct GetFileParams {",
+				"pub if_none_match: Option<String>,",
+				"pub if_modified_since: Option<Rfc2822Date>,",
+				"pub range: Option<String>,",
+				"fn to_headers(&self) -> Vec<(String, String)>",
+				`headers.push(("Range".to_string(), v.to_string()));`,
+				"for (name, value) in p.to_headers() {",
+				"pub async fn required_header(\n        &self,\n        params: RequiredHeaderParams,",
+			},
+			notContains: []string{
+				"params: Option<RequiredHeaderParams>",
 			},
 		},
 		{
@@ -100,8 +177,31 @@ func TestRustRender(t *testing.T) {
 			name: "deepobject-map.yaml",
 			contains: []string{
 				`pub upstream_params: Option<HashMap<String, String>>,`,
+				`let mut url = http::append_path(self.base_url.as_str(), &["signin", "provider", provider])?.to_string();`,
 				`q.push((format!("{key}[{k}]"), query_scalar(v)));`,
 				`push_query(&mut q, "upstreamParams", &serde_json::to_value(v).unwrap_or_default(), "deepObject", true);`,
+			},
+		},
+		{
+			name:        "sensitive-fields.yaml",
+			fixturePath: "testdata/sensitive-fields.yaml",
+			contains: []string{
+				"#[derive(Clone, Serialize, Deserialize)]\npub struct Credentials",
+				`debug.field("username", &self.username);`,
+				`debug.field("password", &"<redacted>");`,
+				`debug.field("access_token", &"<redacted>");`,
+				`debug.field("code_challenge", &self.code_challenge);`,
+				`debug.field("hmac_create_secret", &self.hmac_create_secret);`,
+				`debug.field("unusual_value", &"<redacted>");`,
+				"#[derive(Clone, Serialize, Deserialize)]\npub struct InspectCredentialsParams",
+				`debug.field("ticket", &"<redacted>");`,
+				`debug.field("authorization", &"<redacted>");`,
+				`debug.field("trace", &"<redacted>");`,
+			},
+			notContains: []string{
+				"#[derive(Debug, Clone, Serialize, Deserialize)]\npub struct Credentials",
+				`debug.field("password", &self.password);`,
+				`debug.field("trace", &self.trace);`,
 			},
 		},
 		{
@@ -136,60 +236,123 @@ func TestRustRender(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-
-			doc, err := getModel("../testdata/" + tc.name)
-			if err != nil {
-				t.Fatalf("failed to get model: %v", err)
-			}
-
-			ir, err := processor.NewInterMediateRepresentation(doc, &rust.Rust{})
-			if err != nil {
-				t.Fatalf("failed to create intermediate representation: %v", err)
-			}
-
-			buf := bytes.NewBuffer(nil)
-			if err := ir.Render(buf); err != nil {
-				t.Fatalf("failed to render intermediate representation: %v", err)
-			}
-
-			output := buf.String()
-			for _, expected := range tc.contains {
-				assert.Contains(t, output, expected)
-			}
-
-			for _, unexpected := range tc.notContains {
-				assert.NotContains(t, output, unexpected)
-			}
-
-			assert.NotRegexp(t, `(?m)^pub [a-z][a-z0-9_]*:`, output)
-
-			golden := "../testdata/" + tc.name + ".rs"
-
-			if *flagUpdate {
-				f, err := os.OpenFile(
-					golden,
-					os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
-					0o644,
-				)
-				if err != nil {
-					t.Fatalf("failed to open output file: %v", err)
-				}
-				defer f.Close()
-
-				if _, err := f.WriteString(output); err != nil {
-					t.Fatalf("failed to write output file: %v", err)
-				}
-			}
-
-			b, err := os.ReadFile(golden)
-			if err != nil {
-				t.Fatalf("failed to read expected output file: %v", err)
-			}
-
-			assert.Equal(t, string(b), output,
-				"rendered output does not match expected output for %s", tc.name)
+			assertRustRenderCase(t, tc)
 		})
 	}
+}
+
+func assertRustRenderCase(t *testing.T, tc rustRenderCase) {
+	t.Helper()
+
+	fixturePath := tc.fixturePath
+	if fixturePath == "" {
+		fixturePath = "../testdata/" + tc.name
+	}
+
+	doc, err := getModel(fixturePath)
+	if err != nil {
+		t.Fatalf("failed to get model: %v", err)
+	}
+
+	ir, err := processor.NewInterMediateRepresentation(doc, &rust.Rust{})
+	if err != nil {
+		t.Fatalf("failed to create intermediate representation: %v", err)
+	}
+
+	buf := bytes.NewBuffer(nil)
+	if err := ir.Render(buf); err != nil {
+		t.Fatalf("failed to render intermediate representation: %v", err)
+	}
+
+	output := buf.String()
+	for _, expected := range tc.contains {
+		assert.Contains(t, output, expected)
+	}
+
+	for _, unexpected := range tc.notContains {
+		assert.NotContains(t, output, unexpected)
+	}
+
+	assert.NotRegexp(t, `(?m)^pub [a-z][a-z0-9_]*:`, output)
+
+	golden := fixturePath + ".rs"
+	if *flagUpdate {
+		f, err := os.OpenFile(golden, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o644)
+		if err != nil {
+			t.Fatalf("failed to open output file: %v", err)
+		}
+		defer f.Close()
+
+		if _, err := f.WriteString(output); err != nil {
+			t.Fatalf("failed to write output file: %v", err)
+		}
+	}
+
+	b, err := os.ReadFile(golden)
+	if err != nil {
+		t.Fatalf("failed to read expected output file: %v", err)
+	}
+
+	assert.Equal(t, string(b), output,
+		"rendered output does not match expected output for %s", tc.name)
+}
+
+func TestRefreshTokenRequestUsesOperationDefinition(t *testing.T) {
+	t.Parallel()
+
+	const spec = `openapi: "3.0.0"
+paths:
+  /v1/token:
+    put:
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RotatedTokenRequest"
+      responses:
+        "200":
+          description: OK
+components:
+  schemas:
+    RotatedTokenRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+`
+
+	path := t.TempDir() + "/refresh-token.yaml"
+	if err := os.WriteFile(path, []byte(spec), 0o600); err != nil {
+		t.Fatalf("failed to write test spec: %v", err)
+	}
+
+	doc, err := getModel(path)
+	if err != nil {
+		t.Fatalf("failed to get model: %v", err)
+	}
+
+	ir, err := processor.NewInterMediateRepresentation(doc, &rust.Rust{})
+	if err != nil {
+		t.Fatalf("failed to create intermediate representation: %v", err)
+	}
+
+	buf := bytes.NewBuffer(nil)
+	if err := ir.Render(buf); err != nil {
+		t.Fatalf("failed to render intermediate representation: %v", err)
+	}
+
+	assert.Contains(t, buf.String(), `    pub(crate) fn refresh_token_request(
+        &self,
+        body: &RotatedTokenRequest,
+    ) -> Result<http::RequestBuilder, Error> {
+        let url = http::append_path(self.base_url.as_str(), &["v1", "token"])?;
+        Ok(self.http.request(reqwest::Method::PUT, url).json(body))
+    }
+
+    /// Performs PUT /v1/token.`)
 }
 
 func TestRustRenderMixedEnumQuery(t *testing.T) {

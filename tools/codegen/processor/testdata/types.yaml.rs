@@ -3,7 +3,7 @@
 
 use crate::error::Error;
 use crate::http::{self, Response};
-use crate::middleware::{SetHeaders, SetRole};
+use crate::middleware::{HeaderPriority, SetHeaders, SetRole};
 use crate::session::SessionStorage;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -146,6 +146,7 @@ pub struct Client {
     http: http::ClientWithMiddleware,
     reqwest: reqwest::Client,
     middleware: Vec<Arc<dyn http::Middleware>>,
+    scoped_middleware: Vec<Arc<dyn http::Middleware>>,
     // Set only on the auth client: a successful response's session is captured
     // into storage by `http::send`.
     session_sink: Option<SessionStorage>,
@@ -169,6 +170,7 @@ impl Client {
             http,
             reqwest,
             middleware,
+            scoped_middleware: Vec::new(),
             session_sink: None,
         }
     }
@@ -187,20 +189,37 @@ impl Client {
     /// Returns a copy of this client that sends `x-hasura-role: <role>` on every
     /// request.
     pub fn with_role(&self, role: impl Into<String>) -> Self {
-        self.with_middleware(Arc::new(SetRole { role: role.into() }))
+        self.with_middleware(Arc::new(SetRole {
+            role: role.into(),
+            priority: HeaderPriority::Scoped,
+        }))
     }
 
     /// Returns a copy of this client that sends extra headers on every request.
     pub fn with_headers(&self, headers: HashMap<String, String>) -> Self {
-        self.with_middleware(Arc::new(SetHeaders { headers }))
+        self.with_middleware(Arc::new(SetHeaders {
+            headers,
+            priority: HeaderPriority::Scoped,
+        }))
     }
 
     fn with_middleware(&self, mw: Arc<dyn http::Middleware>) -> Self {
-        let mut middleware = self.middleware.clone();
-        middleware.push(mw);
-        let mut clone = Self::new(self.base_url.clone(), self.reqwest.clone(), middleware);
-        clone.session_sink = self.session_sink.clone();
-        clone
+        let mut scoped_middleware = self.scoped_middleware.clone();
+        scoped_middleware.push(mw);
+        let middleware = scoped_middleware
+            .iter()
+            .chain(&self.middleware)
+            .cloned()
+            .collect::<Vec<_>>();
+        let http = http::build_client(self.reqwest.clone(), &middleware);
+        Self {
+            base_url: self.base_url.clone(),
+            http,
+            reqwest: self.reqwest.clone(),
+            middleware: self.middleware.clone(),
+            scoped_middleware,
+            session_sink: self.session_sink.clone(),
+        }
     }
 
 }

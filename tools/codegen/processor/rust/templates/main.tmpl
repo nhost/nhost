@@ -3,7 +3,7 @@
 
 use crate::error::Error;
 use crate::http::{self, Response};
-use crate::middleware::{SetHeaders, SetRole};
+use crate::middleware::{HeaderPriority, SetHeaders, SetRole};
 use crate::session::SessionStorage;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -62,10 +62,44 @@ fn push_query(
         _ => q.push((key.to_string(), query_scalar(value))),
     }
 }
-
-{{ range .Types }}
+{{ if hasHeaderParameters .Methods }}
+fn header_value(value: &serde_json::Value, explode: bool) -> String {
+    match value {
+        serde_json::Value::Array(items) => items
+            .iter()
+            .map(query_scalar)
+            .collect::<Vec<_>>()
+            .join(","),
+        serde_json::Value::Object(map) => map
+            .iter()
+            .flat_map(|(key, value)| {
+                if explode {
+                    vec![format!("{key}={}", query_scalar(value))]
+                } else {
+                    vec![key.clone(), query_scalar(value)]
+                }
+            })
+            .collect::<Vec<_>>()
+            .join(","),
+        _ => query_scalar(value),
+    }
+}
+{{ end }}
+{{ if hasMultipartFile .Methods }}
+/// A file sent as one part of a multipart request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FilePart {
+    /// The filename reported to the server in `Content-Disposition`.
+    pub file_name: String,
+    /// The complete file contents.
+    pub content: Vec<u8>,
+    /// An optional MIME type for this part.
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub content_type: Option<String>,
+}
+{{ end }}{{ range .Types }}
 {{- if eq .Kind "object" }}
-{{ template "renderObject" . }}
+{{ template "renderObject" (rustObjectContext . $.Methods) }}
 {{- else if eq .Kind "enum" }}
 /// One of: {{ join .Values ", " }}.
 pub type {{ .Name }} = {{ rustEnumType . }};
@@ -74,15 +108,40 @@ pub type {{ .Name }} = {{ .Alias.Name }};
 {{ end }}
 {{- end }}
 {{ range .Methods }}
-{{- if .HasQueryParameters }}
-#[derive(Debug, Clone{{ if not .HasRequiredQueryParameters }}, Default{{ end }}, Serialize, Deserialize)]
+{{- if .HasRequestParameters }}
+#[derive({{ if not (methodHasSensitiveRequestParameters .) }}Debug, {{ end }}Clone{{ if not .HasRequiredRequestParameters }}, Default{{ end }}, Serialize, Deserialize)]
 pub struct {{ pascal .Name }}Params {
 {{- range .QueryParameters }}
     {{ rustParamField . }}
 {{- end }}
+{{- range .HeaderParameters }}
+    {{ rustParamField . }}
+{{- end }}
 }
-
+{{ if methodHasSensitiveRequestParameters . }}
+impl std::fmt::Debug for {{ pascal .Name }}Params {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut debug = f.debug_struct("{{ pascal .Name }}Params");
+{{- range .QueryParameters }}
+{{- if isSensitiveParameter . }}
+        debug.field("{{ .Name }}", &"<redacted>");
+{{- else }}
+        debug.field("{{ .Name }}", &self.{{ .Name }});
+{{- end }}
+{{- end }}
+{{- range .HeaderParameters }}
+{{- if isSensitiveParameter . }}
+        debug.field("{{ .Name }}", &"<redacted>");
+{{- else }}
+        debug.field("{{ .Name }}", &self.{{ .Name }});
+{{- end }}
+{{- end }}
+        debug.finish()
+    }
+}
+{{ end }}
 impl {{ pascal .Name }}Params {
+{{- if .HasQueryParameters }}
 {{- if .HasRequiredQueryParameters }}
     // Required parameters begin this shared assembly path with unconditional pushes.
     #[allow(clippy::vec_init_then_push)]
@@ -112,6 +171,37 @@ impl {{ pascal .Name }}Params {
 {{- end }}
         q
     }
+{{- end }}
+{{- if .HasHeaderParameters }}
+{{- if .HasRequiredHeaderParameters }}
+    #[allow(clippy::vec_init_then_push)]
+{{- end }}
+    fn to_headers(&self) -> Vec<(String, String)> {
+        let mut headers: Vec<(String, String)> = Vec::new();
+{{- range .HeaderParameters }}
+{{- if .Required }}
+{{- if .HasContent }}
+        headers.push(("{{ .RawName }}".to_string(), serde_json::to_string(&self.{{ .Name }}).unwrap_or_default()));
+{{- else if or (eq .Type.Kind "scalar") (and (eq .Type.Kind "enum") (not (rustEnumUsesJSON .Type))) }}
+        headers.push(("{{ .RawName }}".to_string(), self.{{ .Name }}.to_string()));
+{{- else }}
+        headers.push(("{{ .RawName }}".to_string(), header_value(&serde_json::to_value(&self.{{ .Name }}).unwrap_or_default(), {{ .Explode }})));
+{{- end }}
+{{- else }}
+        if let Some(v) = &self.{{ .Name }} {
+{{- if .HasContent }}
+            headers.push(("{{ .RawName }}".to_string(), serde_json::to_string(v).unwrap_or_default()));
+{{- else if or (eq .Type.Kind "scalar") (and (eq .Type.Kind "enum") (not (rustEnumUsesJSON .Type))) }}
+            headers.push(("{{ .RawName }}".to_string(), v.to_string()));
+{{- else }}
+            headers.push(("{{ .RawName }}".to_string(), header_value(&serde_json::to_value(v).unwrap_or_default(), {{ .Explode }})));
+{{- end }}
+        }
+{{- end }}
+{{- end }}
+        headers
+    }
+{{- end }}
 }
 {{ end }}
 {{- end }}

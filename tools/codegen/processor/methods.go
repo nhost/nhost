@@ -13,6 +13,7 @@ import (
 
 const (
 	minStatusForError           = 300
+	parameterLocationHeader     = "header"
 	mediaApplicationJSON        = "application/json"
 	mediaApplicationOctetStream = "application/octet-stream"
 	mediaFormURLEncoded         = "application/x-www-form-urlencoded"
@@ -88,6 +89,42 @@ func (m *Method) QueryParameters() []*Parameter {
 	}
 
 	return params
+}
+
+// HasHeaderParameters reports whether the operation declares a request header parameter.
+func (m *Method) HasHeaderParameters() bool {
+	return slices.ContainsFunc(m.Parameters, func(param *Parameter) bool {
+		return param.Parameter.In == parameterLocationHeader
+	})
+}
+
+// HasRequiredHeaderParameters reports whether a request header parameter must be supplied.
+func (m *Method) HasRequiredHeaderParameters() bool {
+	return slices.ContainsFunc(m.Parameters, func(param *Parameter) bool {
+		return param.Parameter.In == parameterLocationHeader && param.Required()
+	})
+}
+
+// HeaderParameters returns the operation's request header parameters in specification order.
+func (m *Method) HeaderParameters() []*Parameter {
+	params := make([]*Parameter, 0, 10) //nolint:mnd
+	for _, param := range m.Parameters {
+		if param.Parameter.In == parameterLocationHeader {
+			params = append(params, param)
+		}
+	}
+
+	return params
+}
+
+// HasRequestParameters reports whether a generated request method needs a params value.
+func (m *Method) HasRequestParameters() bool {
+	return m.HasQueryParameters() || m.HasHeaderParameters()
+}
+
+// HasRequiredRequestParameters reports whether a generated params value must be supplied.
+func (m *Method) HasRequiredRequestParameters() bool {
+	return m.HasRequiredQueryParameters() || m.HasRequiredHeaderParameters()
 }
 
 func (m *Method) QueryParametersTypeName() string {
