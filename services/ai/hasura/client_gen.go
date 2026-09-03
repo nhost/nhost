@@ -4,7 +4,7 @@ package hasura
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/json/jsontext"
 	"time"
 
 	"github.com/gqlgo/gqlgenc/clientv2"
@@ -93,7 +93,7 @@ type GetAgent_AiAgent struct {
 	Model        string               "json:\"model\" graphql:\"model\""
 	Name         string               "json:\"name\" graphql:\"name\""
 	Provider     AiAgentProvidersEnum "json:\"provider\" graphql:\"provider\""
-	ToolsConfig  json.RawMessage      "json:\"toolsConfig\" graphql:\"toolsConfig\""
+	ToolsConfig  jsontext.Value       "json:\"toolsConfig\" graphql:\"toolsConfig\""
 	UpdatedAt    time.Time            "json:\"updatedAt\" graphql:\"updatedAt\""
 	UserID       *string              "json:\"userID,omitempty\" graphql:\"userID\""
 }
@@ -140,7 +140,7 @@ func (t *GetAgent_AiAgent) GetProvider() *AiAgentProvidersEnum {
 	}
 	return &t.Provider
 }
-func (t *GetAgent_AiAgent) GetToolsConfig() *json.RawMessage {
+func (t *GetAgent_AiAgent) GetToolsConfig() *jsontext.Value {
 	if t == nil {
 		t = &GetAgent_AiAgent{}
 	}
@@ -199,14 +199,14 @@ func (t *GetAgentSession_AiAgentSession) GetUserID() *string {
 }
 
 type GetAgentMessages_AiAgentMessages struct {
-	Content    string          "json:\"content\" graphql:\"content\""
-	CreatedAt  time.Time       "json:\"createdAt\" graphql:\"createdAt\""
-	ID         string          "json:\"id\" graphql:\"id\""
-	Role       string          "json:\"role\" graphql:\"role\""
-	SessionID  string          "json:\"sessionID\" graphql:\"sessionID\""
-	ToolCallID *string         "json:\"toolCallID,omitempty\" graphql:\"toolCallID\""
-	ToolCalls  json.RawMessage "json:\"toolCalls,omitempty\" graphql:\"toolCalls\""
-	ToolName   *string         "json:\"toolName,omitempty\" graphql:\"toolName\""
+	Content    string         "json:\"content\" graphql:\"content\""
+	CreatedAt  time.Time      "json:\"createdAt\" graphql:\"createdAt\""
+	ID         string         "json:\"id\" graphql:\"id\""
+	Role       string         "json:\"role\" graphql:\"role\""
+	SessionID  string         "json:\"sessionID\" graphql:\"sessionID\""
+	ToolCallID *string        "json:\"toolCallID,omitempty\" graphql:\"toolCallID\""
+	ToolCalls  jsontext.Value "json:\"toolCalls,omitempty\" graphql:\"toolCalls\""
+	ToolName   *string        "json:\"toolName,omitempty\" graphql:\"toolName\""
 }
 
 func (t *GetAgentMessages_AiAgentMessages) GetContent() string {
@@ -245,7 +245,7 @@ func (t *GetAgentMessages_AiAgentMessages) GetToolCallID() *string {
 	}
 	return t.ToolCallID
 }
-func (t *GetAgentMessages_AiAgentMessages) GetToolCalls() *json.RawMessage {
+func (t *GetAgentMessages_AiAgentMessages) GetToolCalls() *jsontext.Value {
 	if t == nil {
 		t = &GetAgentMessages_AiAgentMessages{}
 	}
