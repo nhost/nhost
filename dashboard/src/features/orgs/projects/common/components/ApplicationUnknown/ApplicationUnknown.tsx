@@ -19,32 +19,67 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 export default function ApplicationUnknown() {
   const { project, loading } = useProject();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletionPending, setDeletionPending] = useState(false);
   const isOwner = useIsCurrentUserOwner();
 
   if (!project || loading) {
     return <LoadingScreen />;
   }
 
+  const projectName =
+    typeof project.name === 'string' && project.name.length > 0
+      ? project.name
+      : null;
+  const removeProjectTitle = projectName ? (
+    <>
+      Remove project{' '}
+      <span className="select-none whitespace-pre-wrap break-words">
+        {projectName}
+      </span>
+      {'?'}
+    </>
+  ) : (
+    'Remove this project?'
+  );
+  const removeProjectDescription = projectName ? (
+    <>
+      The project{' '}
+      <span className="select-none whitespace-pre-wrap break-words">
+        {projectName}
+      </span>{' '}
+      will be removed. All data will be lost and there will be no way to recover
+      the app once it has been deleted.
+    </>
+  ) : (
+    'This project will be removed. All data will be lost and there will be no way to recover the app once it has been deleted.'
+  );
+
   return (
     <>
-      <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+      <Dialog
+        open={showDeleteModal}
+        onOpenChange={(nextOpen) => {
+          // Never dismiss while the deletion is in flight.
+          if (!nextOpen && deletionPending) {
+            return;
+          }
+
+          setShowDeleteModal(nextOpen);
+        }}
+      >
         <DialogContent
-          className="!bg-transparent !shadow-none !p-0 max-w-sm border-none"
+          className="!bg-transparent !shadow-none !p-0 max-w-lg border-none"
           hideCloseButton
         >
-          <DialogTitle className="sr-only">
-            {`Remove project ${project?.name}?`}
-          </DialogTitle>
+          <DialogTitle className="sr-only">{removeProjectTitle}</DialogTitle>
           <DialogDescription className="sr-only">
-            {`The project ${project?.name} will be removed. All data will be lost
-            and there will be no way to recover the app once it has been
-            deleted.`}
+            {removeProjectDescription}
           </DialogDescription>
           <RemoveApplicationModal
             close={() => setShowDeleteModal(false)}
-            title={`Remove project ${project.name}?`}
-            description={`The project ${project.name} will be removed. All data will be lost and there will be no way to
-          recover the app once it has been deleted.`}
+            onPendingChange={setDeletionPending}
+            title={removeProjectTitle}
+            description={removeProjectDescription}
           />
         </DialogContent>
       </Dialog>

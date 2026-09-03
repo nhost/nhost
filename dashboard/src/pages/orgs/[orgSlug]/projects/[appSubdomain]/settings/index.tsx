@@ -2,7 +2,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { Lock } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { type ReactElement, useEffect, useMemo } from 'react';
+import { type ReactElement, useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -17,6 +17,12 @@ import {
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { Alert } from '@/components/ui/v3/alert';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from '@/components/ui/v3/dialog';
 import { TransferProject } from '@/features/orgs/components/TransferProject';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
@@ -63,7 +69,9 @@ export type ProjectNameValidationSchema = Yup.InferType<
 export default function SettingsGeneralPage() {
   const router = useRouter();
   const isPlatform = useIsPlatform();
-  const { openDialog, openAlertDialog, closeDialog } = useDialog();
+  const { openAlertDialog } = useDialog();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletionPending, setDeletionPending] = useState(false);
 
   const isOwner = useIsCurrentUserOwner();
   const { currentOrg: org } = useOrgs();
@@ -379,19 +387,7 @@ export default function SettingsGeneralPage() {
               <ButtonWithLoading
                 type="button"
                 disabled={!isOwner}
-                onClick={() => {
-                  openDialog({
-                    component: (
-                      <RemoveApplicationModal
-                        close={closeDialog}
-                        handler={handleDeleteApplication}
-                      />
-                    ),
-                    props: {
-                      PaperProps: { className: 'max-w-sm' },
-                    },
-                  });
-                }}
+                onClick={() => setShowDeleteModal(true)}
                 variant="destructive"
                 className="w-full sm:w-auto"
               >
@@ -401,6 +397,33 @@ export default function SettingsGeneralPage() {
           </SettingsCardFooter>
         </SettingsCard>
       )}
+
+      <Dialog
+        open={showDeleteModal}
+        onOpenChange={(nextOpen) => {
+          // Never dismiss while the deletion is in flight.
+          if (!nextOpen && deletionPending) {
+            return;
+          }
+
+          setShowDeleteModal(nextOpen);
+        }}
+      >
+        <DialogContent
+          className="!bg-transparent !shadow-none !p-0 max-w-lg border-none"
+          hideCloseButton
+        >
+          <DialogTitle className="sr-only">Delete Project</DialogTitle>
+          <DialogDescription className="sr-only">
+            Are you sure you want to delete this project?
+          </DialogDescription>
+          <RemoveApplicationModal
+            close={() => setShowDeleteModal(false)}
+            onPendingChange={setDeletionPending}
+            handler={handleDeleteApplication}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
