@@ -23,6 +23,7 @@ import (
 const (
 	extCustomType     = "x-rust-type"
 	extSensitive      = "x-nhost-sensitive"
+	rustBinaryType    = "bytes::Bytes"
 	rustValueType     = "serde_json::Value"
 	schemaTypeBoolean = "boolean"
 	schemaTypeInteger = "integer"
@@ -506,23 +507,49 @@ func newRustObjectContext(
 	return rustObjectContext{Object: object, MultipartFields: multipartFields}
 }
 
+type rustResponseContext struct {
+	ReturnType   string
+	DecodeJSON   bool
+	DecodeBinary bool
+}
+
+// newRustResponseContext selects both the public response type and its decoding
+// strategy. Binary responses remain bytes even when the IR also includes void;
+// other multi-type responses use serde_json::Value.
+func newRustResponseContext(method *processor.Method) rustResponseContext {
+	returnType := method.ReturnType()
+	variants := strings.Split(returnType, " | ")
+
+	if slices.Contains(variants, rustBinaryType) {
+		return rustResponseContext{
+			ReturnType:   rustBinaryType,
+			DecodeJSON:   false,
+			DecodeBinary: true,
+		}
+	}
+
+	if returnType == "" || returnType == "void" {
+		return rustResponseContext{
+			ReturnType:   "()",
+			DecodeJSON:   false,
+			DecodeBinary: false,
+		}
+	}
+
+	if len(variants) > 1 {
+		returnType = rustValueType
+	}
+
+	return rustResponseContext{
+		ReturnType:   returnType,
+		DecodeJSON:   true,
+		DecodeBinary: false,
+	}
+}
+
 func (p *Rust) GetFuncMap() map[string]any {
 	return map[string]any{
-		// rustReturnType maps the shared IR return expression to a single Rust
-		// type. void/empty responses become the unit type `()`; multi-type
-		// unions that cannot be expressed concretely collapse to
-		// serde_json::Value.
-		"rustReturnType": func(t string) string {
-			if t == "" || t == "void" {
-				return "()"
-			}
-
-			if strings.Contains(t, " | ") {
-				return rustValueType
-			}
-
-			return t
-		},
+		"rustResponse":                        newRustResponseContext,
 		"hasHeaderParameters":                 hasHeaderParameters,
 		"hasMultipartFile":                    hasMultipartFile,
 		"isMultipartFile":                     isMultipartFileProperty,
@@ -675,5 +702,5 @@ func (p *Rust) PropertyName(name string) string {
 }
 
 func (p *Rust) BinaryType() string {
-	return "bytes::Bytes"
+	return rustBinaryType
 }
