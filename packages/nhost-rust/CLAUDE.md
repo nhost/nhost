@@ -242,9 +242,13 @@ follow this file and the surrounding Rust code for crate conventions.
     `all(feature = "wasm", target_arch = "wasm32")`;
   - `#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]` on every
     `Middleware` impl (matching reqwest-middleware);
-  - `std::time` → `web_time`; `FileStorage` gated off wasm, `LocalStorage`
+  - `std::time` → `web_time`; `FileStorage` is gated off only on
+    wasm32-with-`wasm` and remains available to callers on native builds with the
+    `wasm` feature enabled. `LocalStorage`
     (`cfg(all(feature = "wasm", target_arch = "wasm32"))`, key `"nhostSession"`)
-    gated on; `detect_storage` returns it in the browser;
+    is gated on there. `detect_storage` returns `LocalStorage` on
+    wasm32-with-`wasm` and `MemoryStorage` in every other configuration; it never
+    selects `FileStorage`;
   - crate-level `#![cfg_attr(all(feature = "wasm", target_arch = "wasm32"),
     allow(clippy::arc_with_non_send_sync))]`.
 - getrandom on wasm: `.cargo/config.toml` sets `--cfg getrandom_backend="wasm_js"`.
@@ -253,8 +257,9 @@ follow this file and the surrounding Rust code for crate conventions.
   wasm32 std — not available in a bare sandbox). Its wasm checks are:
 
   ```sh
-  cargo clippy --offline --lib --no-default-features --features wasm -- -D warnings
+  cargo clippy --offline --lib --tests --no-default-features --features wasm -- -D warnings
   cargo build --offline --target wasm32-unknown-unknown --no-default-features --features wasm
+  cargo test --offline --test unit --no-default-features --features wasm
   ```
 
   The clippy command runs natively; the separate build exercises the wasm32
@@ -267,10 +272,11 @@ follow this file and the surrounding Rust code for crate conventions.
 - The full Nix check requires the local backend: run `make dev-env-up`, then
   `make check`, and finish with `make dev-env-down`. `make check` builds
   `.#checks.<system>.nhost-rust`; it checks generated-client staleness, formatting,
-  rustls clippy, a native-tls library build, wasm clippy, a real
-  `wasm32-unknown-unknown` build, unit tests, doctests, and the backend
-  integration tests. Every doctest must remain fenced `no_run`: the eight
-  current doctests are compile-only, which keeps the doctest step hermetic.
+  rustls clippy, a native-tls library build, wasm clippy (including tests), a real
+  `wasm32-unknown-unknown` build, default and native wasm-feature unit tests,
+  doctests, and the backend integration tests. Every doctest must remain fenced
+  `no_run`: the eight current doctests are compile-only, which keeps the doctest
+  step hermetic.
   `make check` runs while the local backend is up, so an executable doctest
   could make live requests. The derivation creates an empty output directory;
   its value is the exit status, not a build artifact. `make build` is not a

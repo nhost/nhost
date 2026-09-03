@@ -94,13 +94,19 @@ pub(crate) struct BufferedResponse {
 /// Keeping the buffered body available before status mapping lets protocols
 /// such as GraphQL give body-level errors precedence over the HTTP status.
 pub(crate) async fn send_buffered(
-    request: RequestBuilder,
+    mut request: RequestBuilder,
     sink: Option<&SessionStorage>,
 ) -> Result<BufferedResponse, Error> {
+    // `build_split` does not carry the middleware extension map into the built
+    // reqwest request. Preserve it explicitly, as RequestBuilder::send does.
+    let mut extensions = std::mem::take(request.extensions());
     let (client, request) = request.build_split();
     let request = request.map_err(Error::from)?;
     let path = request.url().path().to_owned();
-    let response = client.execute(request).await.map_err(Error::from)?;
+    let response = client
+        .execute_with_extensions(request, &mut extensions)
+        .await
+        .map_err(Error::from)?;
     let success = response.status().is_success();
     let status = response.status().as_u16();
     let headers = response.headers().clone();
@@ -191,7 +197,8 @@ async fn read_and_apply_session(
 /// `/user/password` response clears it because the server revoked all refresh
 /// tokens. Session path rules use the original request path, so redirects do
 /// not change which rule applies. Storage failures are propagated to the
-/// caller.
+/// caller. If both a `/signout` response and removal fail, the storage error
+/// takes precedence because local credentials may remain persisted.
 pub async fn send(
     request: RequestBuilder,
     sink: Option<&SessionStorage>,
