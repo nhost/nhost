@@ -99,8 +99,8 @@ in
         echo "➜ Building with the native-tls (openssl) backend"
         cargo build --offline --lib --no-default-features --features native-tls
 
-        echo "➜ Running clippy for the wasm/browser feature"
-        cargo clippy --offline --lib --no-default-features --features wasm -- -D warnings
+        echo "➜ Running clippy for the wasm/browser feature (including tests)"
+        cargo clippy --offline --lib --tests --no-default-features --features wasm -- -D warnings
 
         echo "➜ Building the wasm32 browser target"
         cargo build --offline --target wasm32-unknown-unknown \
@@ -108,6 +108,9 @@ in
 
         echo "➜ Running the offline unit tests (no backend)"
         cargo test --offline --lib --test unit
+
+        echo "➜ Running the offline unit tests with the wasm/browser feature"
+        cargo test --offline --test unit --no-default-features --features wasm
 
         echo "➜ Compiling the documentation examples"
         cargo test --offline --doc
