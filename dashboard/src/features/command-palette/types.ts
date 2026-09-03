@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import type { PageGate } from '@/components/layout/MainNav/nav-config';
+import type { PageGate } from '@/features/navigation/nav-config';
 
 export type NodeKind = 'page' | 'group' | 'setting' | 'org' | 'project' | 'doc';
 
