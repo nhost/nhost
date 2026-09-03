@@ -807,12 +807,18 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 			touchIDOpts := *touchIDWebauthnChallenge.Options
 			touchIDCh := touchIDWebauthnChallenge
 			touchIDCh.Options = &touchIDOpts
-			c.Webauthn.Storage["zznztjvFVUM0E2p8ZV6shXEcw2f4tbz5RrfZWk4VPXI"] = touchIDCh
+			c.Webauthn.Storage.Store(
+				"zznztjvFVUM0E2p8ZV6shXEcw2f4tbz5RrfZWk4VPXI",
+				touchIDCh,
+			)
 
 			windowsHelloOpts := *windowsHelloWebauthnChallenge.Options
 			windowsHelloCh := windowsHelloWebauthnChallenge
 			windowsHelloCh.Options = &windowsHelloOpts
-			c.Webauthn.Storage["zv9lPTJpOlgxzlrKWl-tG7AdxeUIbCwxqV8MFZZNRdA"] = windowsHelloCh
+			c.Webauthn.Storage.Store(
+				"zv9lPTJpOlgxzlrKWl-tG7AdxeUIbCwxqV8MFZZNRdA",
+				windowsHelloCh,
+			)
 
 			resp := assertRequest(
 				t.Context(),
@@ -826,10 +832,63 @@ func TestVerifySignUpWebauthn(t *testing.T) { //nolint:maintidx
 			if ok {
 				assertSession(t, jwtGetter, resp200.Session, tc.expectedJWT)
 
-				if _, ok := c.Webauthn.Storage["zznztjvFVUM0E2p8ZV6shXEcw2f4tbz5RrfZWk4VPXI"]; ok {
-					t.Errorf("challenge should've been removed")
+				credential, err := tc.request.Body.Credential.Parse()
+				if err != nil {
+					t.Fatalf("failed to parse successful credential: %v", err)
+				}
+
+				challengeKey := credential.Response.CollectedClientData.Challenge
+				if challenge, found := c.Webauthn.Storage.Load(challengeKey); found {
+					t.Errorf("redeemed challenge should have been removed: %#v", challenge)
 				}
 			}
 		})
 	}
+}
+
+func TestVerifySignUpWebauthnRejectsOptionsFromChallengeWithoutSignUpOptions(t *testing.T) {
+	t.Parallel()
+
+	credential, challenge := webAuthnTouchID(t)
+	challenge.Options = nil
+
+	mockController := gomock.NewController(t)
+	ctrl, _ := getController(
+		t,
+		mockController,
+		getConfig,
+		func(ctrl *gomock.Controller) controller.DBClient {
+			return mock.NewMockDBClient(ctrl)
+		},
+	)
+	ctrl.Webauthn.Storage.Store(
+		"zznztjvFVUM0E2p8ZV6shXEcw2f4tbz5RrfZWk4VPXI",
+		challenge,
+	)
+
+	assertRequest[api.VerifySignUpWebauthnRequestObject, api.VerifySignUpWebauthnResponseObject](
+		t.Context(),
+		t,
+		ctrl.VerifySignUpWebauthn,
+		api.VerifySignUpWebauthnRequestObject{
+			Body: &api.SignUpWebauthnVerifyRequest{
+				CodeChallenge: nil,
+				Credential:    credential,
+				Nickname:      nil,
+				Options: &api.SignUpOptions{
+					AllowedRoles: nil,
+					DefaultRole:  nil,
+					DisplayName:  nil,
+					Locale:       nil,
+					Metadata:     nil,
+					RedirectTo:   new("https://example.com"),
+				},
+			},
+		},
+		controller.ErrorResponse{
+			Error:   "redirectTo-not-allowed",
+			Message: `The value of "options.redirectTo" is not allowed.`,
+			Status:  400,
+		},
+	)
 }

@@ -6,7 +6,12 @@ on:
   merge_group:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ startsWith(github.event_name, 'pull_request') && format('pr-{0}', github.event.pull_request.number) || format('mg-{0}', github.event.merge_group.head_sha) }}
+  group: >-
+    ${{ github.workflow }}-${{
+      startsWith(github.event_name, 'pull_request') &&
+      format('pr-{0}', github.event.pull_request.number) ||
+      format('mg-{0}', github.event.merge_group.head_sha)
+    }}
   cancel-in-progress: true
 
 permissions:
@@ -20,16 +25,23 @@ jobs:
     timeout-minutes: 60
     steps:
       - name: Validate PR title
-        if: github.event_name == 'pull_request' && !startsWith(github.event.pull_request.title, 'release(')
+        if: >-
+          github.event_name == 'pull_request' &&
+          !startsWith(github.event.pull_request.title, 'release(')
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
           echo "Validating PR title: $PR_TITLE"
 
           VALID_TYPES="feat|fix|chore|release"
-          VALID_PKGS="auth|ci|cli|codegen|constellation|dashboard|deps|docs|examples|functions|ghactivity|govulncheck-wrapper|internal\/lib|landing|mcp|nhost-js|nixops|postgres|storage|observability|stripe-graphql-js"
+          VALID_PKGS="ai|auth|ci|cli|codegen|constellation|dashboard|deps|docs|"
+          VALID_PKGS+="examples|functions|ghactivity|govulncheck-wrapper|"
+          VALID_PKGS+="internal\/lib|landing|mcp|nhost-js|nixops|"
+          VALID_PKGS+="postgres|storage|observability|stripe-graphql-js"
 
-          if [[ ! "$PR_TITLE" =~ ^(${VALID_TYPES})\((${VALID_PKGS})\)\!?:\ .+ ]]; then
+          TITLE_PATTERN="^(${VALID_TYPES})"
+          TITLE_PATTERN+="\((${VALID_PKGS})\)\!?: .+"
+          if [[ ! "$PR_TITLE" =~ $TITLE_PATTERN ]]; then
             echo "PR title does not follow the required format!"
             echo ""
             echo "Expected format: TYPE(PKG)[!]: SUMMARY"
@@ -40,13 +52,16 @@ jobs:
             echo "  - chore:  mark this pull request as a maintenance item"
             echo ""
             echo "Valid PKGs:"
-            echo "  - auth, ci, cli, codegen, constellation, dashboard, deps, docs, examples, functions,"
-            echo "  - ghactivity, govulncheck-wrapper, landing, mcp, nhost-js, nixops, postgres, storage, observability,"
-            echo "  - internal/lib, stripe-graphql-js"
+            echo "  - ai, auth, ci, cli, codegen, constellation, dashboard,"
+            echo "  - deps, docs, examples, functions,"
+            echo "  - ghactivity, govulncheck-wrapper, landing, mcp, nhost-js,"
+            echo "  - nixops, postgres, storage, observability, internal/lib,"
+            echo "  - stripe-graphql-js"
             echo ""
             echo "Examples:"
             echo "  - feat(cli): add new command for database migrations"
-            echo "  - fix(auth)!: require elevated auth for TOTP secret generation"
+            echo "  - fix(auth)!: require elevated auth for " \
+              "TOTP secret generation"
             exit 1
           fi
 
@@ -76,7 +91,13 @@ jobs:
               const thisRunId = context.runId;
               const workflows = await github.paginate(
                 github.rest.actions.listWorkflowRunsForRepo,
-                { owner, repo, head_sha: sha, status: 'in_progress', per_page: 100 },
+                {
+                  owner,
+                  repo,
+                  head_sha: sha,
+                  status: 'in_progress',
+                  per_page: 100,
+                },
               );
               const toCancel = workflows.filter(
                 (r) => r.id !== thisRunId && !r.name.startsWith('nixops:'),
@@ -85,7 +106,9 @@ jobs:
                 core.info('No other in-progress workflow runs to cancel.');
                 return;
               }
-              core.info(`Cancelling ${toCancel.length} other workflow run(s)...`);
+              core.info(
+                `Cancelling ${toCancel.length} other workflow run(s)...`,
+              );
               for (const run of toCancel) {
                 try {
                   await github.rest.actions.cancelWorkflowRun({
@@ -95,7 +118,10 @@ jobs:
                   });
                   core.info(`  Cancelled: ${run.name} (#${run.id})`);
                 } catch (e) {
-                  core.warning(`  Failed to cancel ${run.name} (#${run.id}): ${e.message}`);
+                  core.warning(
+                    `  Failed to cancel ${run.name} (#${run.id}): ` +
+                      e.message,
+                  );
                 }
               }
             }
@@ -133,21 +159,36 @@ jobs:
 
               if (runs.length > knownCheckCount) {
                 core.info(
-                  `New checks detected: ${runs.length} (was ${knownCheckCount})`,
+                  `New checks detected: ${runs.length} ` +
+                    `(was ${knownCheckCount})`,
                 );
                 lastNewCheckTime = elapsed;
                 knownCheckCount = runs.length;
               }
 
-              const pending = runs.filter((r) => r.status !== 'completed');
-              const completed = runs.filter((r) => r.status === 'completed');
+              const pending = runs.filter(
+                (r) => r.status !== 'completed',
+              );
+              const completed = runs.filter(
+                (r) => r.status === 'completed',
+              );
+              const successfulConclusions = [
+                'success',
+                'skipped',
+                'neutral',
+                'cancelled',
+              ];
               const failed = completed.filter(
-                (r) => !['success', 'skipped', 'neutral', 'cancelled'].includes(r.conclusion),
+                (r) => !successfulConclusions.includes(r.conclusion),
               );
 
-              const ts = `${Math.floor(elapsed / 60)}m${String(elapsed % 60).padStart(2, '0')}s`;
+              const minutes = Math.floor(elapsed / 60);
+              const seconds = String(elapsed % 60).padStart(2, '0');
+              const ts = `${minutes}m${seconds}s`;
               core.info(
-                `[${ts}] total=${runs.length} completed=${completed.length} pending=${pending.length} failed=${failed.length}`,
+                `[${ts}] total=${runs.length} ` +
+                  `completed=${completed.length} ` +
+                  `pending=${pending.length} failed=${failed.length}`,
               );
 
               if (pending.length > 0) {
@@ -165,7 +206,9 @@ jobs:
                   core.info(`  - ${r.name}: ${r.conclusion}`);
                 }
                 await cancelOtherRuns();
-                core.setFailed(`${failed.length} check(s) failed — aborting immediately`);
+                core.setFailed(
+                  `${failed.length} check(s) failed — aborting immediately`,
+                );
                 return;
               }
 

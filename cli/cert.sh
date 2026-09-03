@@ -339,6 +339,17 @@ if ! validate_dns_subdomain "$deployment"; then
 	exit 2
 fi
 
+for required_command in kubectl jq dig; do
+	if ! command -v "$required_command" >/dev/null 2>&1; then
+		echo "Required command is unavailable: $required_command" >&2
+		exit 1
+	fi
+done
+if ! kubectl -n "$namespace" get deployment "$deployment" -o name >/dev/null 2>&1; then
+	echo "Could not find Kubernetes Deployment $namespace/$deployment" >&2
+	exit 1
+fi
+
 if ! script_dir=$(CDPATH='' cd -P -- "$(dirname -- "$0")" 2>/dev/null && pwd -P); then
 	echo "Could not resolve cert.sh directory" >&2
 	exit 1

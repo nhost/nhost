@@ -248,7 +248,7 @@ When a cohort's last subscriber leaves, the next poll-tick observes `c.isEmpty()
 | `connector/sql/subscription/doc.go` | Package architecture diagram and details |
 | `connector/sql/graphql/queries/multiplexed/multiplexed.go` | SQL rewrite: `UNNEST` + JSON path operators |
 | `connector/sql/postgres/postgres.go` | `ExecuteMultiplexedOperation` for pgx |
-| `internal/lib/syncmap/syncmap.go` | Typed concurrent map used by `webSocketHandler.subs` |
+| `github.com/nhost/nhost/internal/lib/syncmap` (repo root, not under constellation's `internal/`) | Typed concurrent map used by `webSocketHandler.subs` |
 
 ## See also
 
