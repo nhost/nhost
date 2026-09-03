@@ -1118,6 +1118,7 @@ components:
           type: string
           description: "The presigned URL for file operations."
           example: "https://storage.example.com/files/abc123?signature=xyz"
+          x-nhost-sensitive: true
         expiration:
           type: integer
           description: "The time in seconds until the URL expires."
