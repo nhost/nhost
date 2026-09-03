@@ -577,6 +577,21 @@ mkdir -p "$integration_repo/cli"
 cp "$CERT_SCRIPT" "$integration_repo/cli/"
 chmod +x "$integration_repo/cli/cert.sh"
 
+for missing_command in kubectl jq dig; do
+	reset_fixture
+	saved=$FAKE_BIN/$missing_command.saved
+	mv "$FAKE_BIN/$missing_command" "$saved"
+	if ! (cd "$integration_repo/cli" && env PATH="$FAKE_BIN" TEST_ROOT="$TMP_ROOT" TEST_STATE="$STATE" TEST_LOG="$LOG" TEST_CONFIG="$CONFIG" TEST_CLOCK="$CLOCK" TEST_DIG_COUNT="$DIG_COUNT" ./cert.sh test-namespace magicdns >"$OUTPUT" 2>&1) &&
+		[ ! -s "$LOG" ] &&
+		assert_contains "$OUTPUT" "Required command is unavailable: $missing_command"; then
+		pass "cert.sh missing $missing_command preflight"
+	else
+		fail_test "cert.sh missing $missing_command preflight"
+		cat "$OUTPUT" >&2
+	fi
+	mv "$saved" "$FAKE_BIN/$missing_command"
+done
+
 reset_fixture
 write_config FAIL_GET 1
 if ! (cd "$integration_repo/cli" && env PATH="$FAKE_BIN" TEST_ROOT="$TMP_ROOT" TEST_STATE="$STATE" TEST_LOG="$LOG" TEST_CONFIG="$CONFIG" TEST_CLOCK="$CLOCK" TEST_DIG_COUNT="$DIG_COUNT" ./cert.sh test-namespace magicdns >"$OUTPUT" 2>&1) &&
@@ -593,7 +608,7 @@ reset_fixture
 if (cd "$integration_repo/cli" && env PATH="$FAKE_BIN" TEST_ROOT="$TMP_ROOT" TEST_STATE="$STATE" TEST_LOG="$LOG" TEST_CONFIG="$CONFIG" TEST_CLOCK="$CLOCK" TEST_DIG_COUNT="$DIG_COUNT" ./cert.sh test-namespace magicdns >"$OUTPUT" 2>&1) &&
 	[ "$(grep -c '^certbot' "$LOG")" -eq 2 ] &&
 	[ "$(grep -c -- '--manual-auth-hook' "$LOG")" -eq 1 ] &&
-	! sed -n '1p' "$LOG" | grep -- '--manual-auth-hook' >/dev/null 2>&1 &&
+	! grep '^certbot' "$LOG" | sed -n '1p' | grep -- '--manual-auth-hook' >/dev/null 2>&1 &&
 	assert_contains "$LOG" 'ssl/.ssl/local-fullchain.pem' &&
 	assert_contains "$LOG" 'ssl/.ssl/sub-fullchain.pem' &&
 	grep '^rm.*letsencrypt' "$LOG" >/dev/null 2>&1 &&

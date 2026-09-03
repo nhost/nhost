@@ -339,10 +339,12 @@ if ! validate_dns_subdomain "$deployment"; then
 	exit 2
 fi
 
-if ! command -v kubectl >/dev/null 2>&1; then
-	echo "Required command is unavailable: kubectl" >&2
-	exit 1
-fi
+for required_command in kubectl jq dig; do
+	if ! command -v "$required_command" >/dev/null 2>&1; then
+		echo "Required command is unavailable: $required_command" >&2
+		exit 1
+	fi
+done
 if ! kubectl -n "$namespace" get deployment "$deployment" -o name >/dev/null 2>&1; then
 	echo "Could not find Kubernetes Deployment $namespace/$deployment" >&2
 	exit 1
