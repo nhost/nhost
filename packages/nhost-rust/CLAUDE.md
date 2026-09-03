@@ -28,12 +28,27 @@ code for crate conventions.
    Redaction is field-level: arbitrary values inside caller-controlled metadata,
    session variables, Hasura claims, and header maps are not inspected. This
    affects `Debug` only; serde must preserve real wire and persistence values.
-   The hand-written `http::Response<T>` and `error::ApiError` both derive
-   `Debug` without redaction and print their header maps verbatim, including
-   headers returned by caller-deployed functions; `ApiError` also prints its
-   parsed response body. Do not debug-format either when those values can contain
-   credentials, tokens, cookies, or sensitive redirects. Generated request
-   methods, Functions response helpers, and `graphql::Operation::execute` return
+   The hand-written `http::Response<T>` derives `Debug` with no wrapper-level
+   redaction: it prints its header map verbatim and delegates its body to `T`'s
+   `Debug`, including headers and payloads returned by caller-deployed functions.
+   `GraphqlResponse<T>` likewise derives `Debug` and delegates `data` to `T`;
+   its `GraphqlError` entries use the redaction described below. Do not
+   debug-format either response wrapper when its unredacted values can contain
+   credentials, tokens, cookies, or sensitive redirects. `ApiError` and
+   `GraphqlOperationError` instead have redacting `Debug` implementations: they
+   keep status, messages, error entries, header names, JSON field names, and
+   non-sensitive values, while recursively redacting JSON values whose snake-
+   or camel-cased names match the generated-model policy. `GraphqlError` applies
+   the same recursive policy to `locations`, `path`, and `extensions`, except
+   that the conventional non-secret `extensions.code` error classification
+   remains visible. Error header values are redacted for `authorization`,
+   `proxy-authorization`, `cookie`, `set-cookie`, `x-api-key`, `location`, and
+   names ending in `-secret`
+   or `-token`; a redacted `location` still shows that the redirect header was
+   present but intentionally hides the entire URL. These policies cannot
+   recognize secrets stored under arbitrary names, and human-readable error
+   messages remain visible. Generated request methods, Functions response
+   helpers, and `graphql::Operation::execute` return
    `Result<http::Response<T>, Error>` (with `execute` wrapping
    `GraphqlResponse<T>`), where `Response` carries `body`, `status`, and `headers`
    (void → `Response<()>`; use `.into_body()` when the metadata is not needed).
@@ -157,9 +172,12 @@ code for crate conventions.
   `GraphQl(Box<GraphqlOperationError>)`, `InvalidToken`, `Config`, `Storage`,
   `Http`, `Middleware`, `Json`). Boxed response errors keep `Result<_, Error>`
   small (there's a `<= 32` size test). For `ApiError`, a message extracted from
-  the response body takes precedence; a trimmed, non-blank `X-Error` header is
-  the fallback when the body has no recognized message. This preserves the
-  reason from bodyless storage HEAD errors, which storage reports only through
+  a recognized JSON response body takes precedence; unstructured non-JSON
+  bodies are retained but never promoted to the message. A trimmed, non-blank
+  `X-Error` header is the fallback when the body has no recognized message.
+  Response-derived messages use only the first line, omit control characters,
+  and are capped at 200 characters plus an ellipsis. This preserves the reason
+  from bodyless storage HEAD errors, which storage reports only through
   `X-Error`. Non-empty response bodies are retained for every error status,
   including 412. All of the JS SDK's generated clients (auth and storage)
   instead discard every 412 body because their shared generated template
