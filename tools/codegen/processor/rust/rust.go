@@ -40,9 +40,8 @@ func (p *Rust) GetTemplates() fs.FS {
 	return templatesFS
 }
 
-// rustKeywords are reserved words that cannot be used as identifiers; a field
-// or parameter colliding with one gets a trailing underscore and relies on a
-// serde rename to preserve the wire name.
+// rustKeywords are reserved words that cannot be used as plain identifiers.
+// Whenever Rust permits it, generated names use raw identifier syntax (r#name).
 var rustKeywords = map[string]struct{}{ //nolint:gochecknoglobals
 	"as": {}, "break": {}, "const": {}, "continue": {}, "crate": {}, "dyn": {},
 	"else": {}, "enum": {}, "extern": {}, "false": {}, "fn": {}, "for": {},
@@ -135,6 +134,10 @@ func wordBoundaryBeforeUpper(runes []rune, i, curLen int) bool {
 func toPascal(s string) string {
 	var b strings.Builder
 
+	// Method names may already have been converted to raw identifiers before a
+	// parameter struct name is derived from them.
+	s = strings.TrimPrefix(s, "r#")
+
 	for _, w := range splitWords(s) {
 		b.WriteString(format.Title(w))
 	}
@@ -170,7 +173,14 @@ func toSnake(s string) string {
 	}
 
 	if _, ok := rustKeywords[out]; ok {
-		return out + "_"
+		// Rust reserves crate, self, and super even in raw identifier syntax.
+		// A trailing underscore is the conventional fallback for these names.
+		switch out {
+		case "crate", "self", "super":
+			return out + "_"
+		default:
+			return "r#" + out
+		}
 	}
 
 	return out
@@ -345,7 +355,7 @@ func rustStringLiteral(value string) string {
 // omit the field entirely.
 func fieldLines(name, rawName, typeName string, optional, omittable bool) string {
 	var attrs []string
-	if name != rawName {
+	if strings.TrimPrefix(name, "r#") != rawName {
 		attrs = append(attrs, "rename = "+rustStringLiteral(rawName))
 	}
 

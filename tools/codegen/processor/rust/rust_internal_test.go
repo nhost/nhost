@@ -56,6 +56,52 @@ func TestSensitiveFieldName(t *testing.T) {
 	}
 }
 
+func TestToSnakeUsesRawIdentifiersForKeywords(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		input string
+		want  string
+	}{
+		{input: "type", want: "r#type"},
+		{input: "match", want: "r#match"},
+		{input: "async", want: "r#async"},
+		{input: "displayName", want: "display_name"},
+		// Rust forbids raw identifiers for these path keywords.
+		{input: "crate", want: "crate_"},
+		{input: "self", want: "self_"},
+		{input: "Self", want: "self_"},
+		{input: "super", want: "super_"},
+	}
+
+	for _, test := range tests {
+		t.Run(test.input, func(t *testing.T) {
+			t.Parallel()
+
+			if got := toSnake(test.input); got != test.want {
+				t.Errorf("toSnake(%q) = %q, want %q", test.input, got, test.want)
+			}
+		})
+	}
+}
+
+func TestToPascalStripsRawIdentifierPrefix(t *testing.T) {
+	t.Parallel()
+
+	if got, want := toPascal("r#type"), "Type"; got != want {
+		t.Errorf("toPascal(%q) = %q, want %q", "r#type", got, want)
+	}
+}
+
+func TestFieldLinesDoesNotRenameRawIdentifier(t *testing.T) {
+	t.Parallel()
+
+	got := fieldLines("r#type", "type", "String", false, false)
+	if want := "pub r#type: String,"; got != want {
+		t.Errorf("fieldLines() = %q, want %q", got, want)
+	}
+}
+
 func TestToPascalReservedSuffixStaysUnique(t *testing.T) {
 	t.Parallel()
 
