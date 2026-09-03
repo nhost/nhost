@@ -22,8 +22,8 @@ Keeping status and headers is required even for bodyless operations: for example
 
 ## Rust OpenAPI extensions
 
-- `x-rust-type` overrides the generated type for scalar and typed-map schemas. Its value is emitted verbatim as a Rust type expression; the generator does not validate the expression or add an import. The host crate must make the path resolve and ensure the type satisfies the traits and methods required where that schema is used, such as Serde traits, `Clone`, `Debug`, or `ToString`.
-- The presence of `x-nhost-sensitive` on an object property or query/header parameter schema forces its value to be rendered as `<redacted>` by the generated `Debug` implementation. The marker's value is ignored. The generator also redacts string-like fields and parameters whose names match its built-in credential vocabulary.
+- `x-rust-type` overrides the generated type for scalar and typed-map schemas. Its value must be a non-empty YAML string and is emitted verbatim as a Rust type expression; the generator validates the YAML value type but does not parse the Rust expression or add an import. The host crate must make the path resolve and ensure the type satisfies the traits and methods required where that schema is used, such as Serde traits, `Clone`, `Debug`, or `ToString`.
+- `x-nhost-sensitive` on an object property or query/header parameter schema is an assertion that the value must be redacted by the generated `Debug` implementation. Its value must be the boolean `true`; use of `false` or a non-boolean value fails generation rather than risking either an accidental secret leak or ambiguous redaction behavior. Omit the extension for non-sensitive values. Independently, the generator always redacts string-like fields and parameters whose names match its built-in credential vocabulary.
 
 ## Rust validation and type behavior
 
