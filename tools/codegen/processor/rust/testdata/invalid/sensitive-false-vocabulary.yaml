@@ -1,0 +1,13 @@
+openapi: "3.0.0"
+info:
+  title: Invalid sensitive extension fixture
+  version: "1.0"
+paths: {}
+components:
+  schemas:
+    Payload:
+      type: object
+      properties:
+        password:
+          type: string
+          x-nhost-sensitive: false
