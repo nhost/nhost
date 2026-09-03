@@ -106,9 +106,9 @@ pub struct SimpleObject {
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub extra: Option<serde_json::Value>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub aliases: Option<Vec<String>>,
+    pub aliases: Option<Vec<Option<String>>>,
     #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub labels: Option<HashMap<String, String>>,
+    pub labels: Option<HashMap<String, Option<String>>>,
     #[serde(rename = "nullableTags", skip_serializing_if = "Option::is_none", default)]
     pub nullable_tags: Option<Vec<String>>,
     pub data: Vec<u8>,

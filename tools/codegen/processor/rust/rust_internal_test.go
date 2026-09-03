@@ -6,6 +6,10 @@ import (
 	"sort"
 	"strings"
 	"testing"
+
+	"github.com/pb33f/libopenapi/datamodel/high/base"
+	"github.com/pb33f/libopenapi/orderedmap"
+	"gopkg.in/yaml.v3"
 )
 
 func TestSensitiveFieldName(t *testing.T) {
@@ -71,6 +75,57 @@ func TestToPascalReservedSuffixStaysUnique(t *testing.T) {
 
 			if got := toPascal(test.input); got != test.want {
 				t.Errorf("toPascal(%q) = %q, want %q", test.input, got, test.want)
+			}
+		})
+	}
+}
+
+func TestRustSchemaTypeNullableContainerMembers(t *testing.T) {
+	t.Parallel()
+
+	nullable := true
+	emptyExtensions := orderedmap.New[string, *yaml.Node]()
+	nullableString := base.CreateSchemaProxy(&base.Schema{
+		Type:       []string{schemaTypeString},
+		Nullable:   &nullable,
+		Extensions: emptyExtensions,
+	})
+
+	tests := []struct {
+		name   string
+		schema *base.SchemaProxy
+		want   string
+	}{
+		{
+			name: "array item",
+			schema: base.CreateSchemaProxy(&base.Schema{
+				Type:       []string{"array"},
+				Extensions: emptyExtensions,
+				Items: &base.DynamicValue[*base.SchemaProxy, bool]{
+					A: nullableString,
+				},
+			}),
+			want: "Vec<Option<String>>",
+		},
+		{
+			name: "map value",
+			schema: base.CreateSchemaProxy(&base.Schema{
+				Type:       []string{"object"},
+				Extensions: emptyExtensions,
+				AdditionalProperties: &base.DynamicValue[*base.SchemaProxy, bool]{
+					A: nullableString,
+				},
+			}),
+			want: "HashMap<String, Option<String>>",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := rustSchemaType(test.schema); got != test.want {
+				t.Errorf("rustSchemaType() = %q, want %q", got, test.want)
 			}
 		})
 	}
