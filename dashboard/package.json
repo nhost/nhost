@@ -159,7 +159,7 @@
     "encoding": "^0.1.13",
     "jsdom": "^27.4.0",
     "msw": "^2.12.7",
-    "orval": "^8.4.0",
+    "orval": "^8.27.0",
     "postcss": "^8.5.23",
     "require-from-string": "^2.0.2",
     "snake-case": "^3.0.4",
