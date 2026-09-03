@@ -180,10 +180,12 @@ func TestRustRender(t *testing.T) {
 			name:        "header-parameter.yaml",
 			fixturePath: "testdata/header-parameter.yaml",
 			contains: []string{
+				"pub type Rfc2822Date = crate::custom_types::Rfc2822Date;",
 				"pub struct GetFileParams {",
 				"pub if_none_match: Option<String>,",
-				"pub if_modified_since: Option<Rfc2822Date>,",
+				"pub if_modified_since: Option<crate::custom_types::Rfc2822Date>,",
 				"pub range: Option<String>,",
+				"pub x_custom_metadata: Option<crate::custom_types::CustomMetadata>,",
 				"fn to_headers(&self) -> Vec<(String, String)>",
 				`headers.push(("Range".to_string(), v.to_string()));`,
 				"for (name, value) in p.to_headers() {",
