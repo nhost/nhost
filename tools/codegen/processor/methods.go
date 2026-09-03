@@ -40,6 +40,11 @@ func (m *Method) Name() string {
 	return m.p.MethodName(m.name)
 }
 
+// RawName returns the operationId before target-specific name mapping.
+func (m *Method) RawName() string {
+	return m.name
+}
+
 func (m *Method) Method() string {
 	return strings.ToUpper(m.method)
 }
@@ -459,11 +464,13 @@ func getMethodParameters(
 	for i, param := range operation.Parameters {
 		var t Type
 		if param.GoLow().IsReference() {
+			name := format.GetNameFromComponentRef(param.GoLow().GetReference())
 			t = &TypeEnum{
-				schema: param.Schema,
-				name:   format.GetNameFromComponentRef(param.GoLow().GetReference()),
-				values: nil, // No values for reference types
-				p:      p,
+				schema:  param.Schema,
+				name:    name,
+				rawName: name,
+				values:  nil, // No values for reference types
+				p:       p,
 			}
 		} else {
 			switch {

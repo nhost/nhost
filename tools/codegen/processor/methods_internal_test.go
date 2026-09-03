@@ -35,10 +35,11 @@ func TestDefaultPartContentType(t *testing.T) {
 		p: nil,
 	}
 	enumType := &TypeEnum{
-		name:   "",
-		schema: nil,
-		values: nil,
-		p:      nil,
+		name:    "",
+		rawName: "",
+		schema:  nil,
+		values:  nil,
+		p:       nil,
 	}
 	aliasType := &TypeAlias{
 		name:   "",
