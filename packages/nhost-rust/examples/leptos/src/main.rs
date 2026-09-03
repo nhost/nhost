@@ -40,7 +40,9 @@ struct MoviesData {
 /// For a cloud project, pass your own `subdomain`/`region` here (or use
 /// `Nhost::builder()` to override the per-service URLs).
 fn make_client() -> Nhost {
-    Nhost::new("local", "local")
+    // `new` validates the project fields and the derived service URLs; the
+    // literals below are valid, so this cannot fail at runtime.
+    Nhost::new("local", "local").expect("local/local is a valid project")
 }
 
 /// Renders a human-readable label for the current session.
