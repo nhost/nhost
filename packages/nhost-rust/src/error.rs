@@ -1,9 +1,4 @@
 //! The SDK error type.
-//!
-//! Unlike the JS SDK — which funnels everything through a single API-error
-//! shape — this is a real Rust error enum: transport, middleware, HTTP-API,
-//! GraphQL, (de)serialization, token-decode, configuration, and session-storage
-//! failures are distinct variants you can match on.
 
 use crate::graphql::GraphqlError;
 use bytes::Bytes;
@@ -17,7 +12,8 @@ use reqwest::header::HeaderMap;
 /// [`Debug`](std::fmt::Debug) includes `body` and `headers` verbatim. They can
 /// contain tokens, cookies, or sensitive redirect URLs, so do not debug-format
 /// an API error when the response may contain credentials.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, thiserror::Error)]
+#[error("{message} (HTTP {status})")]
 pub struct ApiError {
     /// A human-readable message extracted from common Nhost error body shapes,
     /// or from a trimmed, non-blank `X-Error` response header as a fallback.
@@ -32,14 +28,6 @@ pub struct ApiError {
     pub headers: HeaderMap,
 }
 
-impl std::fmt::Display for ApiError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} (HTTP {})", self.message, self.status)
-    }
-}
-
-impl std::error::Error for ApiError {}
-
 /// The payload of a GraphQL operation failure.
 ///
 /// A non-empty GraphQL `errors` array takes precedence over a 3xx status other
@@ -47,7 +35,8 @@ impl std::error::Error for ApiError {}
 /// status and headers. Use
 /// [`GraphqlError::code`] to inspect machine-readable Hasura or constellation
 /// error codes.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, thiserror::Error)]
+#[error("GraphQL error: {}", GraphqlErrorsDisplay(.errors.as_slice()))]
 pub struct GraphqlOperationError {
     errors: Vec<GraphqlError>,
     data: Option<serde_json::Value>,
@@ -91,14 +80,15 @@ impl GraphqlOperationError {
     }
 }
 
-impl std::fmt::Display for GraphqlOperationError {
+struct GraphqlErrorsDisplay<'a>(&'a [GraphqlError]);
+
+impl std::fmt::Display for GraphqlErrorsDisplay<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str("GraphQL error: ")?;
-        if self.errors.is_empty() {
+        if self.0.is_empty() {
             return f.write_str("response contained no data");
         }
 
-        for (index, error) in self.errors.iter().enumerate() {
+        for (index, error) in self.0.iter().enumerate() {
             if index > 0 {
                 f.write_str(", ")?;
             }
@@ -107,8 +97,6 @@ impl std::fmt::Display for GraphqlOperationError {
         Ok(())
     }
 }
-
-impl std::error::Error for GraphqlOperationError {}
 
 /// The error type returned by every fallible SDK operation.
 #[derive(Debug, thiserror::Error)]
