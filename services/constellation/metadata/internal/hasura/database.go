@@ -19,7 +19,7 @@ type DatabaseMetadata struct {
 	Tables        []TableMetadata             `json:"tables,omitempty"    yaml:"tables,omitempty"`
 	Functions     []FunctionMetadata          `json:"functions,omitempty" yaml:"functions,omitempty"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // UnmarshalYAML implements custom YAML unmarshaling to handle !include directives.
@@ -173,12 +173,12 @@ func (d DatabaseURL) MarshalJSON() ([]byte, error) {
 type DatabaseConnectionInfo struct {
 	DatabaseURL DatabaseURL `json:"database_url" yaml:"database_url"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // DatabaseConfiguration wraps the per-database connection block.
 type DatabaseConfiguration struct {
 	ConnectionInfo DatabaseConnectionInfo `json:"connection_info" yaml:"connection_info"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
