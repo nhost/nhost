@@ -11,7 +11,6 @@ import (
 	"io/fs"
 	"reflect"
 	"slices"
-	"strconv"
 	"strings"
 	"unicode"
 
@@ -306,13 +305,49 @@ func rustEnumType(enum *processor.TypeEnum) string {
 	return rustSchemaType(schema)
 }
 
+// rustStringLiteral quotes arbitrary spec text as a Rust string literal. Keep
+// this separate from Go's strconv.Quote because Rust does not accept Go escapes
+// such as \a, \v, or \u1234.
+func rustStringLiteral(value string) string {
+	var b strings.Builder
+	b.Grow(len(value) + 2)
+	b.WriteByte('"')
+
+	for _, r := range value {
+		switch r {
+		case '"':
+			b.WriteString(`\"`)
+		case '\\':
+			b.WriteString(`\\`)
+		case '\n':
+			b.WriteString(`\n`)
+		case '\r':
+			b.WriteString(`\r`)
+		case '\t':
+			b.WriteString(`\t`)
+		case 0:
+			b.WriteString(`\0`)
+		default:
+			if !unicode.IsGraphic(r) {
+				fmt.Fprintf(&b, `\u{%x}`, r)
+			} else {
+				b.WriteRune(r)
+			}
+		}
+	}
+
+	b.WriteByte('"')
+
+	return b.String()
+}
+
 // fieldLines renders a struct field with its serde attributes. Optional controls
 // whether the Rust type accepts null, while omittable controls whether serde may
 // omit the field entirely.
 func fieldLines(name, rawName, typeName string, optional, omittable bool) string {
 	var attrs []string
 	if name != rawName {
-		attrs = append(attrs, fmt.Sprintf("rename = %q", rawName))
+		attrs = append(attrs, "rename = "+rustStringLiteral(rawName))
 	}
 
 	if omittable {
@@ -724,6 +759,7 @@ func validateRustNames(types []processor.Type, methods []*processor.Method) (str
 func (p *Rust) GetFuncMap() map[string]any {
 	return map[string]any{
 		"rustResponse":                        newRustResponseContext,
+		"rustStr":                             rustStringLiteral,
 		"rustValidateNames":                   validateRustNames,
 		"hasHeaderParameters":                 hasHeaderParameters,
 		"hasMultipartFile":                    hasMultipartFile,
@@ -830,7 +866,7 @@ func rustPathSegments(path string) string {
 			continue
 		}
 
-		segments[i] = strconv.Quote(segment)
+		segments[i] = rustStringLiteral(segment)
 	}
 
 	return strings.Join(segments, ", ")
