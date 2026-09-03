@@ -194,8 +194,7 @@ impl std::fmt::Debug for CreatePatResponse {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CredentialAssertionResponse {
     pub id: String,
-    #[serde(rename = "type")]
-    pub type_: String,
+    pub r#type: String,
     #[serde(rename = "rawId")]
     pub raw_id: UrlEncodedBase64,
     #[serde(
@@ -216,8 +215,7 @@ pub struct CredentialAssertionResponse {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CredentialCreationResponse {
     pub id: String,
-    #[serde(rename = "type")]
-    pub type_: String,
+    pub r#type: String,
     #[serde(rename = "rawId")]
     pub raw_id: UrlEncodedBase64,
     #[serde(
@@ -237,8 +235,7 @@ pub struct CredentialCreationResponse {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CredentialParameter {
-    #[serde(rename = "type")]
-    pub type_: CredentialType,
+    pub r#type: CredentialType,
     pub alg: i64,
 }
 
@@ -271,8 +268,7 @@ pub struct Jwk {
     pub kid: String,
     pub kty: String,
     pub n: String,
-    #[serde(rename = "use")]
-    pub use_: String,
+    pub r#use: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -362,8 +358,7 @@ pub struct PublicKeyCredentialCreationOptions {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PublicKeyCredentialDescriptor {
-    #[serde(rename = "type")]
-    pub type_: CredentialType,
+    pub r#type: CredentialType,
     pub id: UrlEncodedBase64,
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub transports: Option<Vec<AuthenticatorTransport>>,
@@ -1597,8 +1592,8 @@ impl SignUpProviderParams {
 #[derive(Clone, Serialize, Deserialize)]
 pub struct VerifyTicketParams {
     pub ticket: TicketQuery,
-    #[serde(rename = "type", skip_serializing_if = "Option::is_none", default)]
-    pub type_: Option<TicketTypeQuery>,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub r#type: Option<TicketTypeQuery>,
     #[serde(rename = "redirectTo")]
     pub redirect_to: RedirectToQuery,
     #[serde(
@@ -1613,7 +1608,7 @@ impl std::fmt::Debug for VerifyTicketParams {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut debug = f.debug_struct("VerifyTicketParams");
         debug.field("ticket", &"<redacted>");
-        debug.field("type_", &self.type_);
+        debug.field("r#type", &self.r#type);
         debug.field("redirect_to", &self.redirect_to);
         debug.field("code_challenge", &self.code_challenge);
         debug.finish()
@@ -1626,7 +1621,7 @@ impl VerifyTicketParams {
     fn to_query(&self) -> Vec<(String, String)> {
         let mut q: Vec<(String, String)> = Vec::new();
         q.push(("ticket".to_string(), self.ticket.to_string()));
-        if let Some(v) = &self.type_ {
+        if let Some(v) = &self.r#type {
             q.push(("type".to_string(), v.to_string()));
         }
         q.push(("redirectTo".to_string(), self.redirect_to.to_string()));
