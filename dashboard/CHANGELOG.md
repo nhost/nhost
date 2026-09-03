@@ -1,3 +1,9 @@
+## [@nhost/dashboard@3.5.3] - 2026-09-03
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Update schema in biome.json (#4939)
+
 ## [@nhost/dashboard@3.5.2] - 2026-09-03
 
 ### 🐛 Bug Fixes
