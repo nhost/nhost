@@ -1,3 +1,14 @@
+## [storage@0.15.1] - 2026-09-03
+
+### 🐛 Bug Fixes
+
+- *(docs)* Align specs with reality (#4632)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Bump flake, bump nodejs and tooling (#4894)
+
 ## [storage@0.15.0] - 2026-06-29
 
 ### 🚀 Features
