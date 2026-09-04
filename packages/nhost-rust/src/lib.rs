@@ -27,6 +27,7 @@
 //! specs; the middleware chain (built on [`reqwest_middleware`]), session
 //! handling, GraphQL, and Functions clients are hand-written.
 
+#![warn(missing_docs)]
 // On wasm32 the session store is single-threaded and its Arc wraps deliberately
 // !Send state (see `session::SessionStorage`), so silence the lint only there.
 #![cfg_attr(

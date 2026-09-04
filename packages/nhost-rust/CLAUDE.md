@@ -285,7 +285,9 @@ code for crate conventions.
   rejected instead of being silently converted to punycode; Nhost cloud project
   identifiers are canonical ASCII values.
 - clippy runs with `-D warnings` on the hand-written code (generated is
-  allow-all).
+  allow-all). The crate warns on `missing_docs`: every hand-written public item
+  must carry meaningful documentation, while generated client modules are
+  exempt at their `mod client;` declarations.
 
 ## Feature matrix (TLS + wasm)
 

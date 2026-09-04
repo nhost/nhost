@@ -40,11 +40,17 @@ pub type Variables = serde_json::Value;
 #[non_exhaustive]
 #[derive(Clone, Serialize, Deserialize)]
 pub struct GraphqlError {
+    /// The server-provided human-readable description; it may contain sensitive data.
     pub message: String,
+    /// Source locations in the submitted document, omitted when the server cannot
+    /// associate the error with a particular syntax node.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub locations: Option<serde_json::Value>,
+    /// The response path of the field that produced the error, when applicable.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<serde_json::Value>,
+    /// Server-defined metadata; [`Self::code`] reads its conventional string
+    /// `code` classification.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub extensions: Option<serde_json::Value>,
 }
@@ -115,8 +121,13 @@ impl GraphqlError {
 #[non_exhaustive]
 #[derive(Debug, Clone, Deserialize)]
 pub struct GraphqlResponse<T> {
+    /// The operation result, absent when the response omits `data` or returns it
+    /// as JSON `null`; partial data may coexist with [`Self::errors`].
     #[serde(default = "Option::default")]
     pub data: Option<T>,
+    /// Protocol errors returned by the server, omitted when no `errors` member
+    /// was present. [`Operation::send`] and [`Operation::execute`] return a
+    /// non-empty list as [`Error::GraphQl`] instead of yielding this envelope.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub errors: Option<Vec<GraphqlError>>,
 }

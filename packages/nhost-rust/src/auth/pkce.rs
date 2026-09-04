@@ -25,7 +25,9 @@ pub fn generate_code_challenge(verifier: &str) -> String {
 /// A PKCE code verifier and its derived S256 challenge.
 #[derive(Clone)]
 pub struct PkcePair {
+    /// The high-entropy secret sent only when exchanging the authorization code.
     pub verifier: String,
+    /// The public S256 digest sent with the initial authorization request.
     pub challenge: String,
 }
 
