@@ -163,22 +163,26 @@ routing maps it to `/v1/notes/export` (see the
 [Functions docs](/products/functions)). It reads the caller's notes over
 GraphQL, renders Markdown, and uploads the result to Storage — **forwarding the
 caller's token**, so Hasura permissions and Storage rules apply exactly as they
-do in the CLI:
+do in the CLI. It creates a server client and its in-memory session storage for
+each request, so a session returned by a future SDK call cannot be reused by
+another caller:
 
 ```typescript title="functions/notes/export.ts"
 import type { Request, Response } from "express";
-import { createClient } from "@nhost/nhost-js";
-
-const nhost = createClient({
-  region: process.env.NHOST_REGION,
-  subdomain: process.env.NHOST_SUBDOMAIN,
-});
+import { createServerClient } from "@nhost/nhost-js";
+import { MemoryStorage } from "@nhost/nhost-js/session";
 
 export default async (req: Request, res: Response) => {
   const authorization = req.headers.authorization ?? "";
   if (!authorization) {
     return res.status(401).json({ error: "Missing Authorization header" });
   }
+
+  const nhost = createServerClient({
+    region: process.env.NHOST_REGION,
+    subdomain: process.env.NHOST_SUBDOMAIN,
+    storage: new MemoryStorage(),
+  });
 
   const { body } = await nhost.graphql.request<{ notes: { title: string; content: string }[] }>(
     { query: `query { notes(order_by: {updated_at: desc}) { title content } }` },
@@ -206,7 +210,7 @@ function with esbuild against the `functions/` project's own dependencies — so
 install the SDK there (the `functions/` directory `nhost init` scaffolded in
 Part 1) or the build fails with `Could not resolve "@nhost/nhost-js"`. Pin the
 v5 prerelease that `export.ts` targets — npm's `latest` is still the v4 line,
-which lacks the `createClient` API the function uses:
+which lacks the `createServerClient` API the function uses:
 
 ```bash Terminal
 cd functions
