@@ -2,10 +2,11 @@
 name = "nhost"
 version = "0.0.0-dev"
 edition = "2021"
-rust-version = "1.82"
+rust-version = "1.86"
 license = "MIT"
 description = "The Nhost SDK for Rust: Auth, Storage, GraphQL, and Functions."
 repository = "https://github.com/nhost/nhost"
+include = ["/.cargo/config.toml", "/README.md", "/src/**"]
 
 [dependencies]
 # TLS backends are selected via this crate's features (see [features] below),
