@@ -8,6 +8,7 @@ use crate::middleware::{
 };
 use crate::session::{self, Backend, SessionStorage, StoredSession};
 use crate::{auth, functions, graphql, storage};
+use reqwest::header::{HeaderName, HeaderValue};
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -122,6 +123,14 @@ fn derived_service_url(service: Service, subdomain: &str, region: &str) -> Resul
         ))
     })?;
     Ok(url.into())
+}
+
+fn validate_header(name: &str, value: &str) -> Result<(), Error> {
+    HeaderName::from_bytes(name.as_bytes())
+        .map_err(|_| Error::Config(format!("invalid header name {name:?}")))?;
+    HeaderValue::from_str(value)
+        .map_err(|_| Error::Config(format!("invalid value for header {name:?}")))?;
+    Ok(())
 }
 
 fn normalize_service_url(service: Service, url: &str) -> Result<String, Error> {
@@ -397,25 +406,31 @@ impl NhostBuilder {
     }
 
     /// Sets `x-hasura-role` on every request.
+    ///
+    /// [`Self::build`] rejects values that cannot be encoded in an HTTP header,
+    /// but does not restrict the server-defined role vocabulary.
     pub fn role(mut self, role: impl Into<String>) -> Self {
         self.role = Some(role.into());
         self
     }
 
-    /// Adds a header sent on every request.
+    /// Adds a header sent on every request. [`Self::build`] rejects names and
+    /// values that cannot be encoded as HTTP headers.
     pub fn header(mut self, name: impl Into<String>, value: impl Into<String>) -> Self {
         self.headers.insert(name.into(), value.into());
         self
     }
 
-    /// Sets the whole per-request header map.
+    /// Sets the whole per-request header map. [`Self::build`] rejects names and
+    /// values that cannot be encoded as HTTP headers.
     pub fn headers(mut self, headers: HashMap<String, String>) -> Self {
         self.headers = headers;
         self
     }
 
     /// Enables the admin secret on storage/graphql/functions. **Never use in
-    /// client-side code** — it grants full admin access.
+    /// client-side code** — it grants full admin access. [`Self::build`] rejects
+    /// a secret that cannot be encoded in an HTTP header.
     pub fn admin_secret(mut self, secret: impl Into<String>) -> Self {
         self.admin = Some(AdminSessionOptions {
             admin_secret: secret.into(),
@@ -425,6 +440,8 @@ impl NhostBuilder {
     }
 
     /// Enables an admin session with full options (role, session variables).
+    /// [`Self::build`] rejects any option that cannot be encoded as its
+    /// corresponding HTTP header.
     pub fn admin(mut self, options: AdminSessionOptions) -> Self {
         self.admin = Some(options);
         self
@@ -471,8 +488,9 @@ impl NhostBuilder {
     /// # Errors
     ///
     /// Returns [`Error::Config`] for incomplete, empty, or invalid cloud-project
-    /// fields, invalid service URLs, an invalid refresh margin, or server mode
-    /// without an explicit storage backend.
+    /// fields, invalid service URLs, invalid default or admin header names or
+    /// values, an invalid refresh margin, or server mode without an explicit
+    /// storage backend.
     pub fn build(self) -> Result<Nhost, Error> {
         if self.mode == SessionMode::ServerSide && self.storage.is_none() {
             return Err(Error::Config(
@@ -480,6 +498,22 @@ impl NhostBuilder {
                  per-request/user backend to avoid leaking sessions across users)"
                     .to_string(),
             ));
+        }
+
+        if let Some(role) = &self.role {
+            validate_header("x-hasura-role", role)?;
+        }
+        for (name, value) in &self.headers {
+            validate_header(name, value)?;
+        }
+        if let Some(options) = &self.admin {
+            validate_header("x-hasura-admin-secret", &options.admin_secret)?;
+            if let Some(role) = &options.role {
+                validate_header("x-hasura-role", role)?;
+            }
+            for (key, value) in &options.session_variables {
+                validate_header(&format!("x-hasura-{key}"), value)?;
+            }
         }
 
         let subdomain = self.subdomain.as_deref();
