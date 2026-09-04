@@ -159,6 +159,12 @@ func TestCatalogActiveFutureComparisonProtectsAppliedRows(t *testing.T) {
 		testMigration(2, uintPointer(1), "beta_name"),
 		testMigration(3, uintPointer(2), "beta_enabled"),
 	)
+	additive := testBundle(
+		beta.migrations[0],
+		beta.migrations[1],
+		beta.migrations[2],
+		testMigration(4, uintPointer(3), "beta_tail"),
+	)
 	stable := testBundle(
 		testMigration(1, nil, "root"),
 		testMigration(2, uintPointer(1), "stable_squashed"),
@@ -186,6 +192,13 @@ func TestCatalogActiveFutureComparisonProtectsAppliedRows(t *testing.T) {
 		{
 			name:           "identical inactive suffix",
 			local:          beta,
+			currentVersion: 1,
+			wantMatch:      true,
+			wantError:      false,
+		},
+		{
+			name:           "additive inactive suffix",
+			local:          additive,
 			currentVersion: 1,
 			wantMatch:      true,
 			wantError:      false,

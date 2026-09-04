@@ -221,18 +221,11 @@ ORDER BY version
 	}
 
 	localByVersion := make(map[uint]*migration, len(local.migrations))
-	localFutureCount := 0
 
 	for index := range local.migrations {
 		migration := &local.migrations[index]
 		localByVersion[migration.version] = migration
-
-		if versionAfter(migration.version, currentVersion) {
-			localFutureCount++
-		}
 	}
-
-	activeFutureCount := 0
 
 	for _, version := range activeVersions {
 		stored, found, migrationErr := c.migration(version)
@@ -246,8 +239,6 @@ ORDER BY version
 
 		localMigration, present := localByVersion[version]
 		if versionAfter(version, currentVersion) {
-			activeFutureCount++
-
 			if !present || !migrationMatches(*localMigration, stored) {
 				return false, nil
 			}
@@ -262,7 +253,7 @@ ORDER BY version
 		}
 	}
 
-	return activeFutureCount == localFutureCount, nil
+	return true, nil
 }
 
 func versionAfter(version uint, currentVersion int64) bool {
