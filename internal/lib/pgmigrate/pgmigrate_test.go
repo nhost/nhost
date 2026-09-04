@@ -28,7 +28,6 @@ func TestMigrateValidatesBeforeAcquiringConnections(t *testing.T) {
 		fsys   fstest.MapFS
 		path   string
 		schema string
-		target uint
 		field  string
 	}{
 		{
@@ -43,7 +42,6 @@ func TestMigrateValidatesBeforeAcquiringConnections(t *testing.T) {
 			},
 			path:   "migrations",
 			schema: "app",
-			target: 1,
 			field:  "",
 		},
 		{
@@ -54,7 +52,6 @@ func TestMigrateValidatesBeforeAcquiringConnections(t *testing.T) {
 			fsys:   valid,
 			path:   "migrations",
 			schema: "app",
-			target: 1,
 			field:  "context",
 		},
 		{
@@ -67,7 +64,6 @@ func TestMigrateValidatesBeforeAcquiringConnections(t *testing.T) {
 			fsys:   valid,
 			path:   "migrations",
 			schema: " \t",
-			target: 1,
 			field:  "schema",
 		},
 	}
@@ -83,15 +79,13 @@ func TestMigrateValidatesBeforeAcquiringConnections(t *testing.T) {
 				tt.fsys,
 				tt.path,
 				tt.schema,
-				tt.target,
 			)
 			if err == nil {
 				t.Fatal("Migrate() error = nil")
 			}
 
 			if tt.field == "" {
-				var bundleErr *pgmigrate.BundleError
-				if !errors.As(err, &bundleErr) {
+				if _, ok := errors.AsType[*pgmigrate.BundleError](err); !ok {
 					t.Fatalf("Migrate() error = %v (%T), want *BundleError", err, err)
 				}
 
@@ -131,7 +125,6 @@ func TestMigrateWrapsInitialConnectionFailure(t *testing.T) {
 		},
 		"migrations",
 		"app",
-		1,
 	)
 	if !errors.Is(err, cause) {
 		t.Fatalf("Migrate() error = %v, want wrapped %v", err, cause)

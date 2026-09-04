@@ -1,6 +1,6 @@
 # Database-backed PostgreSQL migrations
 
-`pgmigrate` validates an embedded `golang-migrate` bundle, archives its exact SQL bytes in PostgreSQL, and moves a prepared service schema to the image's explicit target version. The catalog lets an older image run down migrations that were registered by a newer image even when those files are not embedded in the older image.
+`pgmigrate` validates an embedded `golang-migrate` bundle, archives its exact SQL bytes in PostgreSQL, and moves a prepared service schema to the bundle's highest version. The catalog lets an older image run down migrations that were registered by a newer image even when those files are not embedded in the older image.
 
 ## Calling contract
 
@@ -12,7 +12,6 @@ err := pgmigrate.Migrate(
     embeddedMigrations,
     "postgres",
     "service_schema",
-    latestVersion,
 )
 ```
 
@@ -20,7 +19,7 @@ The caller must create the service schema before calling `Migrate` and must supp
 
 The library acquires and closes two dedicated `*sql.Conn` values per concurrent `Migrate` caller: one executes migrations and holds the advisory lock, while the other reads catalog bodies. Configure the migration pool for at least two connections per concurrent caller. Acquisition of the second connection is bounded and fails with pool guidance rather than hanging indefinitely when, for example, `MaxOpenConns(1)` is configured.
 
-The target must equal the maximum version in the embedded bundle. Existing `<schema>.schema_migrations` state is reused. After catalog bootstrap, the library reads the clean migration state, reconciles the active catalog lineage with the embedded bundle, and hydrates missing rows without replaying migration SQL. Dirty state is never forced, reconciled, or repaired; an operator must inspect the failed migration and recover it explicitly.
+The target is inferred from the maximum version in the embedded bundle, so callers do not maintain a duplicate latest-version constant. Existing `<schema>.schema_migrations` state is reused. After catalog bootstrap, the library reads the clean migration state, reconciles the active catalog lineage with the embedded bundle, and hydrates missing rows without replaying migration SQL. Dirty state is never forced, reconciled, or repaired; an operator must inspect the failed migration and recover it explicitly.
 
 ## Migration authoring and catalog lineages
 

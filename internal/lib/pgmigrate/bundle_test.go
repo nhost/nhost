@@ -17,7 +17,7 @@ import (
 func TestValidateBundle(t *testing.T) {
 	t.Parallel()
 
-	if err := pgmigrate.ValidateBundle(os.DirFS("testdata"), "valid", 10); err != nil {
+	if err := pgmigrate.ValidateBundle(os.DirFS("testdata"), "valid"); err != nil {
 		t.Fatalf("ValidateBundle() error = %v", err)
 	}
 }
@@ -54,7 +54,7 @@ func TestValidateBundleReturnsTypedErrors(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			err := pgmigrate.ValidateBundle(tt.fsys, tt.path, 1)
+			err := pgmigrate.ValidateBundle(tt.fsys, tt.path)
 			if err == nil {
 				t.Fatal("ValidateBundle() error = nil")
 			}

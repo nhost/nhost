@@ -9,7 +9,6 @@ import (
 	"io"
 	"io/fs"
 	"log/slog"
-	"math"
 	"os"
 	"strings"
 	"time"
@@ -33,7 +32,7 @@ var (
 )
 
 // Migrate publishes the embedded migration bundle and migrates schema to the
-// bundle's explicit target version. The caller owns the dedicated migration
+// bundle's maximum version. The caller owns the dedicated migration
 // database; Migrate acquires and closes two connections, resets the execution
 // session before releasing it, and does not close the pool. Sharing a
 // long-lived application pool is unsupported.
@@ -44,14 +43,13 @@ func Migrate(
 	fsys fs.FS,
 	migrationPath string,
 	schema string,
-	target uint,
 ) (result error) {
-	local, err := loadBundle(fsys, migrationPath, target)
+	local, err := loadBundle(fsys, migrationPath)
 	if err != nil {
 		return fmt.Errorf("loading PostgreSQL migration bundle: %w", err)
 	}
 
-	if err := validateMigrationConfiguration(ctx, database, schema, target); err != nil {
+	if err := validateMigrationConfiguration(ctx, database, schema); err != nil {
 		return fmt.Errorf("validating PostgreSQL migration configuration: %w", err)
 	}
 
@@ -89,7 +87,6 @@ func Migrate(
 		logger,
 		local,
 		schema,
-		target,
 		databaseName,
 		executionConnection,
 		sourceConnection,
@@ -192,11 +189,12 @@ func migrateUnderLock(
 	logger *slog.Logger,
 	local *bundle,
 	schema string,
-	target uint,
 	databaseName string,
 	executionConnection *sql.Conn,
 	sourceConnection *sql.Conn,
 ) error {
+	target := local.target
+
 	driver, catalogDriver, err := prepareMigrationDrivers(
 		ctx,
 		schema,
@@ -565,7 +563,6 @@ func validateMigrationConfiguration(
 	ctx context.Context,
 	database Database,
 	schema string,
-	target uint,
 ) error {
 	if ctx == nil {
 		return &ConfigurationError{
@@ -595,14 +592,6 @@ func validateMigrationConfiguration(
 		return &ConfigurationError{
 			Field: "schema",
 			Issue: "must not contain a zero byte",
-			Cause: nil,
-		}
-	}
-
-	if uint64(target) > uint64(math.MaxInt) {
-		return &ConfigurationError{
-			Field: "target",
-			Issue: "must fit in the migration runner's integer version range",
 			Cause: nil,
 		}
 	}

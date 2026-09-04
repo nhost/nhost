@@ -286,7 +286,6 @@ func TestMigratePreparedSchemaCompatibilityMatrix(t *testing.T) {
 		older,
 		"migrations",
 		schema,
-		1,
 	); err != nil {
 		t.Fatalf("Migrate(fresh to N) error = %v", err)
 	}
@@ -301,7 +300,6 @@ func TestMigratePreparedSchemaCompatibilityMatrix(t *testing.T) {
 		newer,
 		"migrations",
 		schema,
-		3,
 	); err != nil {
 		t.Fatalf("Migrate(N to N+1) error = %v", err)
 	}
@@ -317,7 +315,6 @@ func TestMigratePreparedSchemaCompatibilityMatrix(t *testing.T) {
 		older,
 		"migrations",
 		schema,
-		1,
 	); err != nil {
 		t.Fatalf("Migrate(catalog-only N+1 to N) error = %v", err)
 	}
@@ -333,7 +330,6 @@ func TestMigratePreparedSchemaCompatibilityMatrix(t *testing.T) {
 		older,
 		"migrations",
 		schema,
-		1,
 	); err != nil {
 		t.Fatalf("Migrate(same target) error = %v", err)
 	}
@@ -369,7 +365,6 @@ func TestMigrateResetsExecutionSessionBeforeReleasingConnection(t *testing.T) {
 		bundle,
 		"migrations",
 		schema,
-		1,
 	); err != nil {
 		t.Fatalf("Migrate(session-scoped SET) error = %v", err)
 	}
@@ -433,7 +428,6 @@ INSERT INTO schema_migrations (version, dirty) VALUES (2, false);
 		bundle,
 		"migrations",
 		schema,
-		2,
 	); err != nil {
 		t.Fatalf("Migrate(existing target) error = %v", err)
 	}
@@ -483,7 +477,6 @@ func TestMigrateRejectsDirtyAndUnknownState(t *testing.T) {
 				orchestrationBundle(schema, 1),
 				"migrations",
 				schema,
-				1,
 			)
 			if err == nil {
 				t.Fatal("Migrate() error = nil")
@@ -524,7 +517,6 @@ func TestMigratePreflightsWholeDowngradeBeforeExecuting(t *testing.T) {
 		newer,
 		"migrations",
 		schema,
-		3,
 	); err != nil {
 		t.Fatalf("Migrate(to version 3) error = %v", err)
 	}
@@ -539,7 +531,6 @@ func TestMigratePreflightsWholeDowngradeBeforeExecuting(t *testing.T) {
 		orchestrationBundle(schema, 1),
 		"migrations",
 		schema,
-		1,
 	)
 	if err == nil {
 		t.Fatal("Migrate(corrupt downgrade path) error = nil")
@@ -578,7 +569,6 @@ func TestMigrateSerializesConcurrentCallers(t *testing.T) {
 				bundle,
 				"migrations",
 				schema,
-				3,
 			)
 		})
 	}
@@ -623,7 +613,6 @@ func TestMigrateArchivesUnappliedForkedCatalogUnderLock(t *testing.T) {
 		orchestrationBundle(schema, 1),
 		"migrations",
 		schema,
-		1,
 	); err != nil {
 		t.Fatalf("Migrate(forked catalog) error = %v", err)
 	}
@@ -661,7 +650,6 @@ func TestMigrateDowngradesBetasThenPublishesSquashedStableVersion(t *testing.T) 
 		orchestrationBundle(schema, 3),
 		"migrations",
 		schema,
-		3,
 	); err != nil {
 		t.Fatalf("Migrate(beta) error = %v", err)
 	}
@@ -673,7 +661,6 @@ func TestMigrateDowngradesBetasThenPublishesSquashedStableVersion(t *testing.T) 
 		orchestrationBundle(schema, 1),
 		"migrations",
 		schema,
-		1,
 	); err != nil {
 		t.Fatalf("Migrate(previous stable downgrade) error = %v", err)
 	}
@@ -689,7 +676,6 @@ func TestMigrateDowngradesBetasThenPublishesSquashedStableVersion(t *testing.T) 
 		squashedStableBundle(schema),
 		"migrations",
 		schema,
-		2,
 	); err != nil {
 		t.Fatalf("Migrate(squashed stable) error = %v", err)
 	}
@@ -772,7 +758,6 @@ func TestMigrateUsesAndReleasesExactUpstreamLock(t *testing.T) {
 					bundle,
 					"migrations",
 					schema,
-					1,
 				)
 			}()
 
@@ -804,7 +789,6 @@ func TestMigrateBoundsSecondConnectionAcquisition(t *testing.T) {
 		orchestrationBundle(schema, 1),
 		"migrations",
 		schema,
-		1,
 	)
 	elapsed := time.Since(started)
 
@@ -887,7 +871,6 @@ func TestMigrateWithRestrictedSchemaRole(t *testing.T) {
 		orchestrationBundle(schema, 1),
 		"migrations",
 		schema,
-		1,
 	); err != nil {
 		t.Fatalf("Migrate(restricted role) error = %v", err)
 	}

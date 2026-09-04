@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"io/fs"
+	"math"
 	"path"
 	"slices"
 
@@ -38,14 +39,14 @@ type migrationPair struct {
 }
 
 // ValidateBundle verifies that migrationPath contains a complete, executable
-// golang-migrate bundle whose maximum version is target.
-func ValidateBundle(fsys fs.FS, migrationPath string, target uint) error {
-	_, err := loadBundle(fsys, migrationPath, target)
+// golang-migrate bundle. Its maximum version becomes the migration target.
+func ValidateBundle(fsys fs.FS, migrationPath string) error {
+	_, err := loadBundle(fsys, migrationPath)
 
 	return err
 }
 
-func loadBundle(fsys fs.FS, migrationPath string, target uint) (*bundle, error) {
+func loadBundle(fsys fs.FS, migrationPath string) (*bundle, error) {
 	if fsys == nil {
 		return nil, &ConfigurationError{
 			Field: "filesystem",
@@ -76,7 +77,7 @@ func loadBundle(fsys fs.FS, migrationPath string, target uint) (*bundle, error) 
 		return nil, err
 	}
 
-	return linkBundle(migrationPath, pairs, target)
+	return linkBundle(migrationPath, pairs)
 }
 
 func readMigrationPairs(
@@ -203,7 +204,7 @@ func setDirection(
 	return nil
 }
 
-func linkBundle(migrationPath string, pairs map[uint]*migrationPair, target uint) (*bundle, error) {
+func linkBundle(migrationPath string, pairs map[uint]*migrationPair) (*bundle, error) {
 	versions := make([]uint, 0, len(pairs))
 	for version := range pairs {
 		versions = append(versions, version)
@@ -222,17 +223,20 @@ func linkBundle(migrationPath string, pairs map[uint]*migrationPair, target uint
 	}
 
 	maximum := versions[len(versions)-1]
-	if target != maximum {
-		return nil, &ConfigurationError{
-			Field: "target",
-			Issue: fmt.Sprintf("must equal maximum embedded version %d, got %d", maximum, target),
+	if uint64(maximum) > uint64(math.MaxInt) {
+		return nil, &BundleError{
+			Path: migrationPath,
+			Issue: fmt.Sprintf(
+				"maximum version %d exceeds the migration runner's integer version range",
+				maximum,
+			),
 			Cause: nil,
 		}
 	}
 
 	return &bundle{
 		migrations: migrations,
-		target:     target,
+		target:     maximum,
 	}, nil
 }
 
