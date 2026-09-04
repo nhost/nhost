@@ -678,7 +678,8 @@ func TestCatalogPublicationIsConcurrentSafe(t *testing.T) {
 
 	const publishers = 8
 
-	errorsChannel := make(chan error, publishers)
+	// Each publisher can report a publication error and a connection-close error.
+	errorsChannel := make(chan error, publishers*2)
 
 	var waitGroup sync.WaitGroup
 	for range publishers {
