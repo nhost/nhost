@@ -65,7 +65,7 @@ func main() {
 | `graphql`    | GraphQL client                                                   |
 | `functions`  | serverless Functions client                                      |
 | `session`    | `StoredSession`, JWT decoding, storage backends, refresh         |
-| `transport`  | HTTP middleware (`Middleware`, `Chain`, `Response`, `APIError`)  |
+| `transport`  | HTTP middleware + service-URL helpers (`Middleware`, `Chain`, `Response`, `APIError`, `IsLoopbackHost`, `NormalizeServiceURL`) |
 | `middleware` | session refresh, token attachment, role/header/admin             |
 
 ## Development

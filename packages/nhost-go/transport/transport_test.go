@@ -16,6 +16,67 @@ import (
 
 var errStopRedirect = errors.New("caller stopped redirect")
 
+func TestIsLoopbackHost(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		hostname string
+		want     bool
+	}{
+		{name: "localhost", hostname: "LOCALHOST", want: true},
+		{name: "IPv4", hostname: "127.0.0.1", want: true},
+		{name: "IPv6", hostname: "::1", want: true},
+		{name: "remote IP", hostname: "192.0.2.1", want: false},
+		{name: "remote hostname", hostname: "auth.example.com", want: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := transport.IsLoopbackHost(tt.hostname); got != tt.want {
+				t.Fatalf("IsLoopbackHost(%q) = %t, want %t", tt.hostname, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestNormalizeServiceURL(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		serviceURL string
+		want       string
+	}{
+		{
+			name:       "existing HTTPS",
+			serviceURL: "https://auth.example.com/v1",
+			want:       "https://auth.example.com/v1",
+		},
+		{
+			name:       "loopback hostname",
+			serviceURL: "localhost:1337/v1",
+			want:       "http://localhost:1337/v1",
+		},
+		{name: "loopback IPv4", serviceURL: "127.0.0.1:1337/v1", want: "http://127.0.0.1:1337/v1"},
+		{name: "loopback IPv6", serviceURL: "[::1]:1337/v1", want: "http://[::1]:1337/v1"},
+		{name: "remote", serviceURL: "auth.example.com/v1", want: "https://auth.example.com/v1"},
+		{name: "empty", serviceURL: "", want: ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := transport.NormalizeServiceURL(tt.serviceURL); got != tt.want {
+				t.Fatalf("NormalizeServiceURL(%q) = %q, want %q", tt.serviceURL, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestChainOrder(t *testing.T) {
 	t.Parallel()
 
