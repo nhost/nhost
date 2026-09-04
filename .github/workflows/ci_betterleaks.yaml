@@ -21,7 +21,6 @@ jobs:
     timeout-minutes: 30
 
     permissions:
-      id-token: write
       contents: read
 
     steps:
@@ -34,18 +33,15 @@ jobs:
           fetch-depth: 0
           allow-unsafe-pr-checkout: true
 
-      - name: Configure aws
-        uses: aws-actions/configure-aws-credentials@v6
-        with:
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
-          aws-region: eu-central-1
-
       - name: Setup Nix with Cache
         uses: ./.github/actions/setup-nix
         with:
           # NAME=nixops skips the "nixops is cached" gate. This job does not
-          # need the nixops closure, only the betterleaks dev shell, which
-          # falls back to a source build (cached below) when it is not in R2.
+          # need the nixops closure, only the betterleaks dev shell. Until the
+          # nixops build has cached pkgs.nhost.betterleaks (nixops_checks runs
+          # on every .nix change and uploads its closure), the shell falls
+          # back to a source build here, which costs a few minutes but needs
+          # no write access to the cache.
           NAME: nixops
           NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
           NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
@@ -71,14 +67,6 @@ jobs:
             --validation-max-requests 100 \
             --validation-rps 5 \
             --timeout 900
-
-      - name: "Store Nix cache"
-        uses: ./.github/actions/cache-nix
-        with:
-          NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
-          NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
-          NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
-        if: ${{ always() }}
 
   remove_label:
     runs-on: ubuntu-latest
