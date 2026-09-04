@@ -40,7 +40,11 @@ Keeping status and headers is required even for bodyless operations: for example
 
 New per-parameter serializers must mirror `toQuery`: give every template branch that declares local variables its own block scope, and format scalar values directly from their typed Go value instead of JSON-round-tripping through `any`.
 
-Heterogeneous enums alias `json.RawMessage` and every stringifying site must render them with `enumScalar`; this preserves string, number, and boolean wire scalars without quotes or byte-slice formatting. Map-kind query parameters intentionally collapse to `map[string]any`, and serializers apply `fmt.Sprint` to each value exactly as supplied by the caller.
+Heterogeneous enums alias `json.RawMessage` and every stringifying site must render them with `enumScalar`; this preserves string, number, and boolean wire scalars without quotes or byte-slice formatting. Map-kind query parameters intentionally collapse to `map[string]any`; their serializers use `queryScalar`, which applies `enumScalar` to `json.RawMessage` values and `fmt.Sprint` to other caller-supplied values.
+
+Redirect methods are URL builders and therefore cannot carry request headers. The Go plugin rejects required header parameters on redirect operations at generation time rather than silently omitting them.
+
+Caller-supplied `http.Header` values replace generated body and typed-parameter headers for each matching canonical key. All values supplied for that key are retained, so callers can still provide genuinely multi-valued headers without accidentally stacking them on generated values such as `Content-Type`.
 
 ## Rust validation and type behavior
 

@@ -91,9 +91,7 @@ func (c *Client) GetItems(
 	}
 	req.URL.RawQuery = params.toQuery().Encode()
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -126,9 +124,7 @@ func (c *Client) GetOptionalItems(
 		req.URL.RawQuery = params.toQuery().Encode()
 	}
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)

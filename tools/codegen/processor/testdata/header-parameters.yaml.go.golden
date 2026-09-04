@@ -144,15 +144,10 @@ func (c *Client) HeaderValues(
 		return payload, nil, err
 	}
 	for k, vs := range params.toHeaders() {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 	for k, vs := range headers {
-		req.Header.Del(k)
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)

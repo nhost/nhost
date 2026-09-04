@@ -319,21 +319,14 @@ func (c *Client) {{ .Name }}(
 	if params != nil {
 		for k, vs := range params.toHeaders() {
 {{- end }}
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 {{- if not .HasRequiredRequestParameters }}
 	}
 {{- end }}
 {{- end }}
 	for k, vs := range headers {
-{{- if .HasHeaderParameters }}
-		req.Header.Del(k)
-{{- end }}
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)

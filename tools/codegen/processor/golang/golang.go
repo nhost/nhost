@@ -23,6 +23,7 @@ import (
 
 	"github.com/nhost/nhost/tools/codegen/format"
 	"github.com/nhost/nhost/tools/codegen/processor"
+	"github.com/pb33f/libopenapi/datamodel/high/base"
 )
 
 const (
@@ -39,9 +40,10 @@ const (
 )
 
 var (
-	errInvalidPackageName            = errors.New("invalid Go package name")
-	errUnsupportedJSONWireName       = errors.New("unsupported JSON wire name")
-	errUnsupportedQuerySerialization = errors.New("unsupported query serialization")
+	errInvalidPackageName                 = errors.New("invalid Go package name")
+	errUnsupportedJSONWireName            = errors.New("unsupported JSON wire name")
+	errUnsupportedQuerySerialization      = errors.New("unsupported query serialization")
+	errUnsupportedRedirectHeaderParameter = errors.New("unsupported redirect header parameter")
 )
 
 //go:embed templates/*.tmpl
@@ -394,6 +396,27 @@ func validJSONTagName(name string) bool {
 	return true
 }
 
+func validateRedirectHeaderParameters(methods []*processor.Method) (string, error) {
+	for _, method := range methods {
+		if !method.IsRedirect() {
+			continue
+		}
+
+		for _, parameter := range method.HeaderParameters() {
+			if parameter.Required() {
+				return "", fmt.Errorf(
+					"%w: required header parameter %q on redirect operation %q cannot be represented by a URL builder",
+					errUnsupportedRedirectHeaderParameter,
+					parameter.RawName(),
+					method.RawName(),
+				)
+			}
+		}
+	}
+
+	return "", nil
+}
+
 func validateQueryParameters(methods []*processor.Method) (string, error) {
 	for _, method := range methods {
 		for _, parameter := range method.QueryParameters() {
@@ -653,10 +676,10 @@ func enumValueKind(value any) string {
 	}
 }
 
-func enumValuesMatchDeclaredKind(enum *processor.TypeEnum, declaredKind string) bool {
+func enumValuesMatchDeclaredKind(schema *base.SchemaProxy, declaredKind string) bool {
 	valueKind := ""
 
-	for _, node := range enum.Schema().Schema().Enum {
+	for _, node := range schema.Schema().Enum {
 		var value any
 		if err := node.Decode(&value); err != nil {
 			return false
@@ -699,7 +722,7 @@ func goEnumType(enum *processor.TypeEnum) string {
 	}
 
 	declaredKind := schema.Schema().Type[0]
-	if !enumValuesMatchDeclaredKind(enum, declaredKind) {
+	if !enumValuesMatchDeclaredKind(schema, declaredKind) {
 		return goRawMessageType
 	}
 
@@ -721,6 +744,84 @@ func hasJSONEnums(types []processor.Type) bool {
 	return slices.ContainsFunc(types, goEnumUsesJSON)
 }
 
+func isStructuredParameter(parameter *processor.Parameter) bool {
+	return parameter.Type.Kind() == processor.KindIdentifierMap ||
+		parameter.Type.Kind() == processor.KindIdentifierObject
+}
+
+func mapValuesUseJSON(typ processor.Type) bool {
+	mapType, ok := typ.(*processor.TypeMap)
+	if !ok || mapType.Schema() == nil || mapType.Schema().Schema() == nil {
+		return false
+	}
+
+	additionalProperties := mapType.Schema().Schema().AdditionalProperties
+	if additionalProperties == nil || additionalProperties.A == nil {
+		return false
+	}
+
+	schema := additionalProperties.A
+	if schema.Schema() == nil || len(schema.Schema().Enum) == 0 || len(schema.Schema().Type) != 1 {
+		return false
+	}
+
+	return !enumValuesMatchDeclaredKind(schema, schema.Schema().Type[0])
+}
+
+func hasJSONMapQueryParameters(methods []*processor.Method) bool {
+	for _, method := range methods {
+		if slices.ContainsFunc(method.QueryParameters(), func(parameter *processor.Parameter) bool {
+			return mapValuesUseJSON(parameter.Type)
+		}) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func hasNonExplodedStructuredQueryParameters(methods []*processor.Method) bool {
+	for _, method := range methods {
+		for _, parameter := range method.QueryParameters() {
+			if !parameter.JSONContent() && !parameter.Explode() &&
+				isStructuredParameter(parameter) {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func hasContainerHeaderParameters(methods []*processor.Method) bool {
+	for _, method := range methods {
+		if method.IsRedirect() {
+			continue
+		}
+
+		for _, parameter := range method.HeaderParameters() {
+			kind := parameter.Type.Kind()
+			if kind == processor.KindIdentifierArray || isStructuredParameter(parameter) {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func hasStructuredHeaderParameters(methods []*processor.Method) bool {
+	for _, method := range methods {
+		if !method.IsRedirect() && slices.ContainsFunc(
+			method.HeaderParameters(), isStructuredParameter,
+		) {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (p *Golang) GetFuncMap() map[string]any {
 	return map[string]any{
 		// goReturnType maps the shared IR return expression to a single Go type.
@@ -732,14 +833,20 @@ func (p *Golang) GetFuncMap() map[string]any {
 
 			return t
 		},
-		"goEnumType":                goEnumType,
-		"goEnumUsesJSON":            goEnumUsesJSON,
-		"goFieldType":               goFieldType,
-		"goValidateJSONWireNames":   validateJSONWireNames,
-		"goValidateNames":           validateGoNames,
-		"goValidateQueryParameters": validateQueryParameters,
-		"exported":                  toExported,
-		"hasJSONEnums":              hasJSONEnums,
+		"goEnumType":                      goEnumType,
+		"goEnumUsesJSON":                  goEnumUsesJSON,
+		"goMapValuesUseJSON":              mapValuesUseJSON,
+		"goFieldType":                     goFieldType,
+		"goValidateJSONWireNames":         validateJSONWireNames,
+		"goValidateNames":                 validateGoNames,
+		"goValidateQueryParameters":       validateQueryParameters,
+		"goValidateRedirectHeaders":       validateRedirectHeaderParameters,
+		"exported":                        toExported,
+		"hasJSONEnums":                    hasJSONEnums,
+		"hasContainerHeaderParameters":    hasContainerHeaderParameters,
+		"hasJSONMapQueryParameters":       hasJSONMapQueryParameters,
+		"hasNonExplodedStructuredQueries": hasNonExplodedStructuredQueryParameters,
+		"hasStructuredHeaderParameters":   hasStructuredHeaderParameters,
 		"hasPathParameters": func(methods []*processor.Method) bool {
 			for _, method := range methods {
 				if len(method.PathParameters()) > 0 {
