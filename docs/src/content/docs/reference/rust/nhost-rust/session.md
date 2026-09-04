@@ -28,12 +28,14 @@ fn detect_storage() -> Box<dyn Backend>
 ```
 
 Returns the default backend for the current environment: `localStorage` in
-the browser (when available), otherwise an in-memory store.
+the browser (when available), otherwise an in-memory store. See
+`LocalStorage`'s sensitive-data warning; callers can select an explicit
+backend with `crate::NhostBuilder::storage`.
 
 ### `refresh_session`
 
 ```rust
-async fn refresh_session(auth: &Client, storage: &SessionStorage, margin: i64) -> Result<Option<StoredSession>, Error>
+async fn refresh_session(auth: &auth::Client, storage: &SessionStorage, margin: i64) -> Result<Option<StoredSession>, Error>
 ```
 
 Refreshes the session if it is close to expiry.
@@ -55,6 +57,9 @@ failure or rejected response is therefore soft: this returns the existing
 session after one attempt, does not retry, and does not clear the store on
 `401`. From `crate::middleware::SessionRefresh`, the request then continues
 with the existing, possibly expired bearer token.
+
+Negative margins and margins too large for millisecond scheduling return
+`Error::Config` without making a refresh request.
 
 Once a 2xx response is observed, body-read, decode, and storage failures are
 returned without retrying, regardless of their error variant. An undecodable
@@ -87,16 +92,18 @@ read by the other.
 | --- | --- | --- |
 | `exp` | `Option<i64>` | Token expiration in **milliseconds** since the Unix epoch (the raw JWT value in seconds multiplied by 1000, matching `@nhost/nhost-js`). |
 | `iat` | `Option<i64>` | Token issued-at time in **milliseconds** since the Unix epoch. |
-| `iss` | `Option<String>` |  |
-| `sub` | `Option<String>` |  |
-| `hasura_claims` | `Option<Value>` | Hasura claims, with PostgreSQL array literals converted to arrays. Keyed under the JWT claim URL so it round-trips with `@nhost/nhost-js`. |
-| `raw` | `Value` | Every claim as decoded (including unknown ones). |
+| `iss` | `Option<String>` | The `iss` claim, when the token carries one. Decoded and exposed for callers but never checked by this SDK, so an application that needs to pin the issuer must compare it itself. |
+| `sub` | `Option<String>` | Subject identifier from the `sub` claim, normally the authenticated user's ID. |
+| `hasura_claims` | `Option<serde_json::Value>` | Hasura claims, with PostgreSQL array literals converted to arrays. Keyed under the JWT claim URL so it round-trips with `@nhost/nhost-js`. |
+| `raw` | `serde_json::Value` | Every claim as decoded (including unknown ones). |
 
 #### Trait implementations
 
 - `Default`
 
 ### `FileStorage`
+
+**Availability:** Native targets with the default features; not available on browser wasm.
 
 ```rust
 struct FileStorage
@@ -110,8 +117,46 @@ Native-only; unavailable only when the `wasm` feature is built for wasm32.
 ##### `new`
 
 ```rust
-fn new<impl Into<PathBuf>: Into<PathBuf>>(path: impl Into<PathBuf>) -> Self
+fn new(path: impl Into<PathBuf>) -> Self
 ```
+
+Creates a backend for `path`; parent directories are created on the first
+write attempt rather than during construction, so they persist even if
+that write then fails.
+
+#### Trait implementations
+
+- `Backend`
+
+### `LocalStorage`
+
+**Availability:** Browser wasm only (`wasm` feature on `wasm32`).
+
+```rust
+struct LocalStorage
+```
+
+Browser `localStorage`-backed session store (the default on the web). Uses
+the same `"nhostSession"` key as `@nhost/nhost-js`, so a session persisted
+by either SDK on the same origin is interoperable.
+
+###### Sensitive data
+
+The persisted `StoredSession` includes the long-lived refresh token.
+`localStorage` is readable by any script on the origin, so an XSS can expose
+a durable credential. Applications with a stricter threat model should pass
+an explicit backend through `crate::NhostBuilder::storage`.
+
+#### Methods
+
+##### `new`
+
+```rust
+fn new() -> Option<Self>
+```
+
+Returns a handle to `window.localStorage`, or `None` when it is
+unavailable (e.g. no `window`, or storage disabled).
 
 #### Trait implementations
 
@@ -133,6 +178,8 @@ process-wide, do not share one between users in a server context.
 
 ### `SessionStorage`
 
+**Target variants:** Declarations are shown for native targets with default features. Browser wasm differences are noted where they occur.
+
 ```rust
 struct SessionStorage
 ```
@@ -148,11 +195,17 @@ every change. Cheaply cloneable (shares one backend).
 fn new(backend: Box<dyn Backend>) -> Self
 ```
 
+Takes ownership of a backend without reading it; persisted data is loaded
+and canonicalized when `Self::get` is called.
+
 ##### `get`
 
 ```rust
 fn get(&self) -> Result<Option<StoredSession>, Error>
 ```
+
+Reads the session and re-decodes its access token so persisted
+`decodedToken` cache values cannot diverge from the public result.
 
 ##### `set`
 
@@ -161,7 +214,9 @@ fn set(&self, value: Session) -> Result<(), Error>
 ```
 
 Stores a raw auth session, enriching it into a stored session, and
-notifies subscribers.
+notifies subscribers. The access token must contain a positive integer
+`exp` claim representable as milliseconds and `accessTokenExpiresIn`
+must be a positive duration representable as milliseconds.
 
 ##### `remove`
 
@@ -169,12 +224,23 @@ notifies subscribers.
 fn remove(&self) -> Result<(), Error>
 ```
 
+Deletes the persisted session, clears its refresh schedule, and notifies
+subscribers with `None` after the backend deletion succeeds.
+
 ##### `on_change`
 
 ```rust
 fn on_change<F>(&self, callback: F) -> Subscription
 where
     F: Fn(Option<&StoredSession>) + Send + Sync + 'static
+```
+
+**Browser wasm:** The `on_change` declaration omits the native `Send + Sync` bounds:
+
+```rust
+fn on_change<F>(&self, callback: F) -> Subscription
+where
+    F: Fn(Option<&StoredSession>) + 'static
 ```
 
 Subscribes to session changes; the returned guard unsubscribes on drop.
@@ -200,8 +266,8 @@ a session into logs.
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `session` | `Session` |  |
-| `decoded_token` | `DecodedToken` |  |
+| `session` | `Session` | The raw auth response, flattened into the persisted object for JS SDK interoperability. |
+| `decoded_token` | `DecodedToken` | A persisted cache of the access-token claims. `SessionStorage::get` re-decodes the token instead of trusting this value after deserialization. |
 
 ### `Subscription`
 
@@ -215,11 +281,23 @@ A session-change subscription; unsubscribes when dropped.
 
 ### `Backend`
 
+**Target variants:** Declarations are shown for native targets with default features. Browser wasm differences are noted where they occur.
+
+```rust
+trait Backend: Send + Sync
+```
+
+**Browser wasm:** The `Backend` declaration omits the native `Send + Sync` bounds:
+
 ```rust
 trait Backend
 ```
 
 A backend persisting a single `StoredSession`.
+
+**Additional browser wasm documentation:** On a wasm32 target with the
+`wasm` feature, the Send + Sync bounds are dropped because browser storage
+handles are !Send; `SessionStorage` re-asserts them for middleware bounds.
 
 #### Required / provided methods
 
@@ -229,17 +307,23 @@ A backend persisting a single `StoredSession`.
 fn get(&self) -> Result<Option<StoredSession>, Error>
 ```
 
+Loads the current session, returning `None` when no session is persisted.
+
 ##### `set`
 
 ```rust
 fn set(&self, value: &StoredSession) -> Result<(), Error>
 ```
 
+Replaces the persisted session with `value`.
+
 ##### `remove`
 
 ```rust
 fn remove(&self) -> Result<(), Error>
 ```
+
+Deletes the persisted session; built-in backends treat absence as success.
 
 ## Constants
 
