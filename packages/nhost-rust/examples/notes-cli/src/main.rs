@@ -1,4 +1,5 @@
 use std::error::Error;
+use std::io::{self, IsTerminal};
 use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
@@ -25,10 +26,10 @@ struct Cli {
 // are grouped under their own subcommands (`notebook ls`, `tag new`, ...).
 #[derive(Subcommand)]
 enum Command {
-    /// Sign in with email and password
-    Login { email: String, password: String },
+    /// Sign in with email and a securely supplied password
+    Login { email: String },
     /// Create an account (and sign in if email verification is off)
-    Signup { email: String, password: String },
+    Signup { email: String },
     /// Sign out and clear the saved session
     Logout,
     /// Show the currently signed-in user
@@ -135,8 +136,14 @@ async fn main() {
 async fn run(command: Command) -> Result<()> {
     let client = make_client()?;
     match command {
-        Command::Login { email, password } => login(&client, &email, &password).await,
-        Command::Signup { email, password } => signup(&client, &email, &password).await,
+        Command::Login { email } => {
+            let password = read_password()?;
+            login(&client, &email, &password).await
+        }
+        Command::Signup { email } => {
+            let password = read_password()?;
+            signup(&client, &email, &password).await
+        }
         Command::Logout => logout(&client).await,
         Command::Whoami => whoami(&client),
 
@@ -214,6 +221,16 @@ fn session_path() -> PathBuf {
 
 fn env(key: &str, fallback: &str) -> String {
     std::env::var(key).unwrap_or_else(|_| fallback.to_string())
+}
+
+fn read_password() -> Result<String> {
+    if let Ok(password) = std::env::var("NOTES_PASSWORD") {
+        return Ok(password);
+    }
+    if !io::stdin().is_terminal() {
+        return Err("stdin is not a terminal; set NOTES_PASSWORD for non-interactive use".into());
+    }
+    Ok(rpassword::prompt_password("Password: ")?)
 }
 
 /// Runs a GraphQL operation and returns the `data` value.
