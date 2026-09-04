@@ -634,6 +634,23 @@ fn assert_config_error<T>(result: Result<T, Error>, expected: &str) {
     }
 }
 
+fn assert_config_error_without<T>(result: Result<T, Error>, expected: &str, forbidden: &str) {
+    match result {
+        Err(Error::Config(message)) => {
+            assert!(
+                message.contains(expected),
+                "expected configuration error containing {expected:?}, got {message:?}"
+            );
+            assert!(
+                !message.contains(forbidden),
+                "configuration error leaked {forbidden:?}: {message:?}"
+            );
+        }
+        Err(error) => panic!("expected Error::Config, got {error:?}"),
+        Ok(_) => panic!("expected configuration error"),
+    }
+}
+
 #[test]
 fn service_urls_reject_incomplete_cloud_configuration() {
     assert_config_error(
@@ -1079,6 +1096,66 @@ fn builder_rejects_invalid_refresh_margins() {
             "refresh margin",
         );
     }
+}
+
+#[test]
+fn builder_rejects_invalid_default_headers() {
+    assert_config_error(
+        Nhost::builder().role("editor\nadmin").build(),
+        "x-hasura-role",
+    );
+    assert_config_error(
+        Nhost::builder().header("bad header name", "value").build(),
+        "bad header name",
+    );
+    assert_config_error_without(
+        Nhost::builder()
+            .header("x-api-key", "SECRET\nHEADER-VALUE")
+            .build(),
+        "x-api-key",
+        "SECRET",
+    );
+}
+
+#[test]
+fn builder_rejects_invalid_admin_headers() {
+    assert_config_error(
+        Nhost::builder()
+            .admin(AdminSessionOptions {
+                admin_secret: "valid".to_string(),
+                role: Some("support\nadmin".to_string()),
+                session_variables: HashMap::new(),
+            })
+            .build(),
+        "x-hasura-role",
+    );
+    assert_config_error(
+        Nhost::builder()
+            .admin(AdminSessionOptions {
+                admin_secret: "valid".to_string(),
+                role: None,
+                session_variables: HashMap::from([(
+                    "bad variable".to_string(),
+                    "value".to_string(),
+                )]),
+            })
+            .build(),
+        "x-hasura-bad variable",
+    );
+    assert_config_error_without(
+        Nhost::builder()
+            .admin(AdminSessionOptions {
+                admin_secret: "valid".to_string(),
+                role: None,
+                session_variables: HashMap::from([(
+                    "user-id".to_string(),
+                    "SECRET\nSESSION-VALUE".to_string(),
+                )]),
+            })
+            .build(),
+        "x-hasura-user-id",
+        "SECRET",
+    );
 }
 
 #[tokio::test]
@@ -3147,26 +3224,35 @@ async fn from_clients_can_express_builder_default_header_priority() {
     assert_eq!(data["ok"], true);
 }
 
-#[tokio::test]
-async fn invalid_admin_secret_returns_middleware_error_without_exposing_value() {
-    let server = MockServer::start().await;
-    let client = Nhost::builder()
-        .graphql_url(server.uri())
-        .without_session_management()
-        .admin_secret("s3cret\n")
-        .build()
-        .unwrap();
+#[test]
+fn invalid_admin_secret_returns_config_error_without_exposing_value() {
+    assert_config_error_without(
+        Nhost::builder().admin_secret("s3cret\n").build(),
+        "x-hasura-admin-secret",
+        "s3cret",
+    );
+}
 
-    let err = client
-        .graphql
+#[tokio::test]
+async fn invalid_scoped_graphql_header_returns_middleware_error_without_exposing_value() {
+    let server = MockServer::start().await;
+    let client = mock_client(&server).graphql.with_headers(HashMap::from([(
+        "x-api-key".to_string(),
+        "SCOPED-SECRET-04\n".to_string(),
+    )]));
+
+    let error = client
         .query("query { ok }")
         .send::<serde_json::Value>()
         .await
         .unwrap_err();
-
-    assert!(matches!(err, Error::Middleware(_)));
-    assert!(err.to_string().contains("x-hasura-admin-secret"));
-    assert!(!err.to_string().contains("s3cret"));
+    let Error::Middleware(error) = error else {
+        panic!("expected Error::Middleware, got {error:?}")
+    };
+    let message = error.to_string();
+    assert!(message.contains("x-api-key"), "{message}");
+    assert!(!message.contains("SCOPED-SECRET-04"), "{message}");
+    assert!(server.received_requests().await.unwrap().is_empty());
 }
 
 #[tokio::test]
