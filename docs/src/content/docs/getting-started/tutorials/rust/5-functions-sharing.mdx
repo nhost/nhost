@@ -245,7 +245,8 @@ Here's the whole `src/main.rs` after Part 5 — the finished CLI. Collapsed sect
 are unchanged from earlier parts; highlighted lines are what this part added.
 Press **Copy** to grab the entire file.
 
-```rust title="src/main.rs" collapse={1-21,24-50,62-86,102-335} {22-23,51-61,87-101,336-374}
+```rust title="src/main.rs" collapse={1-22,25-51,63-93,109-352} {23-24,52-62,94-108,353-391}
+use std::io::{self, IsTerminal};
 use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
@@ -272,9 +273,9 @@ struct Cli {
 #[derive(Subcommand)]
 enum Command {
     /// Create an account (and sign in if email verification is off)
-    Signup { email: String, password: String },
-    /// Sign in with email and password
-    Login { email: String, password: String },
+    Signup { email: String },
+    /// Sign in with email and a securely supplied password
+    Login { email: String },
     /// Sign out and clear the saved session
     Logout,
     /// Show the currently signed-in user
@@ -321,8 +322,14 @@ async fn main() {
 async fn run(command: Command) -> Result<()> {
     let client = make_client()?;
     match command {
-        Command::Signup { email, password } => signup(&client, &email, &password).await,
-        Command::Login { email, password } => login(&client, &email, &password).await,
+        Command::Signup { email } => {
+            let password = read_password()?;
+            signup(&client, &email, &password).await
+        }
+        Command::Login { email } => {
+            let password = read_password()?;
+            login(&client, &email, &password).await
+        }
         Command::Logout => logout(&client).await,
         Command::Whoami => whoami(&client),
         Command::New { title, content } => note_new(&client, &title, content.as_deref()).await,
@@ -376,6 +383,16 @@ fn session_path() -> PathBuf {
 
 fn env(key: &str, fallback: &str) -> String {
     std::env::var(key).unwrap_or_else(|_| fallback.to_string())
+}
+
+fn read_password() -> Result<String> {
+    if let Ok(password) = std::env::var("NOTES_PASSWORD") {
+        return Ok(password);
+    }
+    if !io::stdin().is_terminal() {
+        return Err("stdin is not a terminal; set NOTES_PASSWORD for non-interactive use".into());
+    }
+    Ok(rpassword::prompt_password("Password: ")?)
 }
 
 async fn signup(client: &Nhost, email: &str, password: &str) -> Result<()> {
@@ -628,7 +645,7 @@ async fn export(client: &Nhost) -> Result<()> {
 # You need a second user to share with. Create one in its own session file so it
 # doesn't overwrite yours, then read back its id (<otherUserId> is a UUID, not an
 # email):
-NHOST_NOTES_SESSION=/tmp/bob.json cargo run -- signup bob@example.com 'not-a-secret'
+NHOST_NOTES_SESSION=/tmp/bob.json cargo run -- signup bob@example.com
 NHOST_NOTES_SESSION=/tmp/bob.json cargo run -- whoami   # bob@example.com (<otherUserId>)
 
 # back as yourself, share a note with bob (role defaults to viewer if omitted)

@@ -1,17 +1,24 @@
 # notes-cli (Rust)
 
 A note-taking CLI built on the [Nhost Rust SDK](../../), demonstrating **Auth**,
-**GraphQL**, **Storage**, and **Functions** against the `notes` quickstart
-backend.
+**GraphQL**, **Storage**, and **Functions**.
+
+This is the finished reference implementation for the [Rust notes tutorial](../../../../docs/src/content/docs/getting-started/tutorials/rust/1-introduction.mdx).
+The backend it uses is not committed with this example. Follow the tutorial to
+create a project with `nhost init` and `nhost up`, then add the notes schema and
+permissions, the `notes` storage bucket, and the `notes/export` function used by
+this CLI.
 
 ## Run
 
-Start the notes backend (`nhost up`) so it's reachable at `subdomain=local`,
-`region=local`, then from this directory:
+With `nhost up` running in the project created through the tutorial, run these
+commands from this directory. Sign-up and login prompt for a password without
+echoing it; scripts and CI can supply it through the `NOTES_PASSWORD`
+environment variable instead.
 
 ```sh
-cargo run -- signup ada@example.com secret-password
-cargo run -- login  ada@example.com secret-password
+cargo run -- signup ada@example.com
+cargo run -- login ada@example.com
 cargo run -- whoami
 
 cargo run -- notebook new "Work"
