@@ -11,7 +11,11 @@ code for crate conventions.
 1. **Generated** (`src/auth/client.rs`, `src/storage/client.rs`) — produced by
    the `rust` plugin in `tools/codegen` from the shared OpenAPI specs. **Never
    hand-edit.** Regenerate with `./gen.sh` (uses the `codegen` binary or
-   `go run`, then `rustfmt --edition 2021`). Files carry a generated header and
+   `go run`, then `rustfmt --edition 2021`). The devshell puts a prebuilt
+   `codegen` on `PATH`, so a plain run never reaches the `go run` fallback;
+   testing that branch means dropping that directory from `PATH` first. Both
+   paths resolve the generator from the committed `vendor/` tree. Files carry a
+   generated header and
    `#![allow(...)]` so they don't trip clippy. A generated Rust `Debug` impl
    redacts a property or request parameter when `x-nhost-sensitive` is present,
    or when `canContainSensitiveValue` accepts its schema and `sensitiveFieldName`
