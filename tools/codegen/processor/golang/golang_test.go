@@ -11,6 +11,7 @@ import (
 	"github.com/nhost/nhost/tools/codegen/processor"
 	"github.com/nhost/nhost/tools/codegen/processor/golang"
 	"github.com/pb33f/libopenapi"
+	"github.com/pb33f/libopenapi/datamodel/high/base"
 	v3 "github.com/pb33f/libopenapi/datamodel/high/v3"
 	"github.com/stretchr/testify/assert"
 )
@@ -76,6 +77,101 @@ func TestNewRejectsInvalidPackageNames(t *testing.T) {
 					"New(%q) error = nil, want an invalid package name error",
 					test.packageName,
 				)
+			}
+		})
+	}
+}
+
+func TestGoReturnType(t *testing.T) {
+	t.Parallel()
+
+	plugin, err := golang.New("testpkg")
+	if err != nil {
+		t.Fatalf("failed to create Go plugin: %v", err)
+	}
+
+	goReturnType, ok := plugin.GetFuncMap()["goReturnType"].(func(string) string)
+	if !ok {
+		t.Fatal("goReturnType template function has an unexpected type")
+	}
+
+	tests := []struct {
+		input string
+		want  string
+	}{
+		{input: "", want: "json.RawMessage"},
+		{input: "void", want: "json.RawMessage"},
+		{input: "Result | void", want: "json.RawMessage"},
+		{input: "Result", want: "Result"},
+	}
+
+	for _, test := range tests {
+		t.Run(test.input, func(t *testing.T) {
+			t.Parallel()
+
+			if got := goReturnType(test.input); got != test.want {
+				t.Errorf("goReturnType(%q) = %q, want %q", test.input, got, test.want)
+			}
+		})
+	}
+}
+
+func TestTypeScalarNameFallsBackToAny(t *testing.T) {
+	t.Parallel()
+
+	plugin, err := golang.New("testpkg")
+	if err != nil {
+		t.Fatalf("failed to create Go plugin: %v", err)
+	}
+
+	typeValue, _, err := processor.GetType(
+		base.CreateSchemaProxy(&base.Schema{Type: []string{"null"}}),
+		"unknown",
+		plugin,
+		false,
+	)
+	if err != nil {
+		t.Fatalf("failed to create scalar type: %v", err)
+	}
+
+	scalar, ok := typeValue.(*processor.TypeScalar)
+	if !ok {
+		t.Fatalf("type = %T, want *processor.TypeScalar", typeValue)
+	}
+
+	if got := plugin.TypeScalarName(scalar); got != "any" {
+		t.Errorf("TypeScalarName() = %q, want %q", got, "any")
+	}
+}
+
+func TestMethodPath(t *testing.T) {
+	t.Parallel()
+
+	plugin, err := golang.New("testpkg")
+	if err != nil {
+		t.Fatalf("failed to create Go plugin: %v", err)
+	}
+
+	tests := []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{name: "parameter", input: "/items/{id}", want: "/items/%s"},
+		{name: "percent", input: "/items/100%", want: "/items/100%%"},
+		{
+			name:  "unterminated parameter",
+			input: "/items/{id%",
+			want:  "/items/{id%%",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := plugin.MethodPath(test.input); got != test.want {
+				t.Errorf("MethodPath(%q) = %q, want %q", test.input, got, test.want)
 			}
 		})
 	}
@@ -386,6 +482,25 @@ paths:
 			},
 		},
 		{
+			name: "path parameter and generated helper",
+			spec: `openapi: "3.0.0"
+paths:
+  /things/{escapePathSegment}:
+    get:
+      operationId: getThing
+      parameters:
+        - {name: escapePathSegment, in: path, required: true, schema: {type: string}}
+      responses:
+        "204": {description: Done}
+`,
+			want: []string{
+				`Go argument list for operation "getThing" collision`,
+				"generated escapePathSegment helper",
+				`path parameter "escapePathSegment"`,
+				`identifier "escapePathSegment"`,
+			},
+		},
+		{
 			name: "path parameters",
 			spec: `openapi: "3.0.0"
 paths:
@@ -426,6 +541,35 @@ paths:
 			}
 		})
 	}
+}
+
+func TestGolangAllowsHelperLocalPathParameter(t *testing.T) {
+	t.Parallel()
+
+	const spec = `openapi: "3.0.0"
+paths:
+  /config/{key}:
+    get:
+      operationId: getConfig
+      parameters:
+        - {name: key, in: path, required: true, schema: {type: string}}
+      responses:
+        "204": {description: Done}
+`
+
+	filename := t.TempDir() + "/helper-local-path-parameter.yaml"
+	if err := os.WriteFile(filename, []byte(spec), 0o600); err != nil {
+		t.Fatalf("failed to write test spec: %v", err)
+	}
+
+	output, err := renderGolangFixture(filename)
+	if err != nil {
+		t.Fatalf("failed to render spec: %v", err)
+	}
+
+	assert.Contains(t, string(output), "func (c *Client) GetConfig(")
+	assert.Contains(t, string(output), "key string")
+	assert.Contains(t, string(output), "escapePathSegment(key)")
 }
 
 func TestGolangSuffixesPredeclaredMethodArguments(t *testing.T) {
@@ -475,7 +619,7 @@ func TestGolangRender(t *testing.T) {
 		{name: "escaped-go-source.yaml", directory: "../testdata"},
 		{name: "required-object-query.yaml", directory: "../testdata"},
 		{name: "header-parameters.yaml", directory: "../testdata"},
-		{name: "coverage.yaml", directory: "testdata"},
+		{name: "multipart-variants.yaml", directory: "testdata"},
 		{name: "wire-serialization.yaml", directory: "testdata"},
 	}
 

@@ -30,6 +30,11 @@ func (c *Client) {{ .Name }}URL(
 // {{ .Name }} performs {{ .Method }} {{ .RawPath }}. It returns the decoded body,
 // the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
 // responses.
+{{- if .RequestFormData }}
+// Multipart binary fields use the wire field name as their filename; binary
+// array items use deterministic file-N filenames. The raw []byte API does not
+// accept caller-provided filename metadata.
+{{- end }}
 func (c *Client) {{ .Name }}(
 	ctx context.Context,
 {{- range .PathParameters }}
@@ -149,15 +154,15 @@ func (c *Client) {{ .Name }}(
 {{- range .RequestFormData.Properties }}
 {{- $items := printf "body.%s" .Name }}
 {{- if eq .Type.Kind "array" }}
+{{- $needsIndex := and (eq .Type.Item.Kind "scalar") (eq .Type.Item.Name "[]byte") }}
 {{- if .Optional }}
 	if body.{{ .Name }} != nil {
-		for i, item := range *body.{{ .Name }} {
+		for {{ if $needsIndex }}i{{ else }}_{{ end }}, item := range *body.{{ .Name }} {
 {{- else }}
 	{
-		for i, item := range body.{{ .Name }} {
+		for {{ if $needsIndex }}i{{ else }}_{{ end }}, item := range body.{{ .Name }} {
 {{- end }}
-			_ = i
-{{- if and (eq .Type.Item.Kind "scalar") (eq .Type.Item.Name "[]byte") }}
+{{- if $needsIndex }}
 			fw, err := mw.CreateFormFile("{{ .RawName }}", fmt.Sprintf("file-%d", i))
 			if err != nil {
 				return payload, nil, err

@@ -16,7 +16,7 @@ import (
 	"net/http"
 	"net/textproto"
 	"net/url"
-{{- if or (hasHeaderParameters .Methods) (hasNonExplodedStructuredQueries .Methods) }}
+{{- if or (hasStructuredHeaderParameters .Methods) (hasNonExplodedStructuredQueries .Methods) }}
 	"sort"
 {{- end }}
 	"strings"
@@ -74,60 +74,6 @@ func queryValue(value any) string {
 	}
 
 	return strings.Join(parts, ",")
-}
-
-{{ end -}}
-{{ if and (hasHeaderParameters .Methods) (not (hasContainerHeaderParameters .Methods)) -}}
-func headerScalar(value any) string {
-	switch value := value.(type) {
-	case string:
-		return value
-	case nil:
-		return ""
-	default:
-		return fmt.Sprint(value)
-	}
-}
-
-func headerValue(value any, explode bool) string {
-	encoded, err := json.Marshal(value)
-	if err != nil {
-		return fmt.Sprint(value)
-	}
-
-	var decoded any
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
-		return fmt.Sprint(value)
-	}
-
-	switch value := decoded.(type) {
-	case []any:
-		parts := make([]string, 0, len(value))
-		for _, item := range value {
-			parts = append(parts, headerScalar(item))
-		}
-
-		return strings.Join(parts, ",")
-	case map[string]any:
-		keys := make([]string, 0, len(value))
-		for key := range value {
-			keys = append(keys, key)
-		}
-		sort.Strings(keys)
-
-		parts := make([]string, 0, len(value)*2)
-		for _, key := range keys {
-			if explode {
-				parts = append(parts, key+"="+headerScalar(value[key]))
-			} else {
-				parts = append(parts, key, headerScalar(value[key]))
-			}
-		}
-
-		return strings.Join(parts, ",")
-	default:
-		return headerScalar(value)
-	}
 }
 
 {{ end -}}
@@ -199,7 +145,7 @@ func (p *{{ .Name }}Params) toQuery() url.Values {
 	if p.{{ .Name }} != nil {
 {{- $access = printf "*p.%s" .Name }}
 {{- end }}
-{{- if .JSONContent }}
+{{- if .HasContent }}
 	{
 		encoded, _ := json.Marshal({{ $access }})
 		q.Set("{{ .RawName }}", string(encoded))
@@ -284,7 +230,7 @@ func (p *{{ .Name }}Params) toHeaders() http.Header {
 	if p.{{ .Name }} != nil {
 {{- $access = printf "*p.%s" .Name }}
 {{- end }}
-{{- if .JSONContent }}
+{{- if .HasContent }}
 	{
 		encoded, _ := json.Marshal({{ $access }})
 		headers.Set("{{ .RawName }}", string(encoded))

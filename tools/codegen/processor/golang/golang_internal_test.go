@@ -3,10 +3,13 @@ package golang
 import (
 	"go/ast"
 	"go/token"
+	"io/fs"
+	"regexp"
 	"testing"
 
 	"github.com/nhost/nhost/tools/codegen/processor"
 	"github.com/pb33f/libopenapi/datamodel/high/base"
+	"gopkg.in/yaml.v3"
 )
 
 type testType struct {
@@ -267,86 +270,97 @@ func TestGoTypeForSchemaKind(t *testing.T) {
 	}
 }
 
-func TestGoReturnType(t *testing.T) {
+func TestMapValuesUseJSON(t *testing.T) {
 	t.Parallel()
 
-	goReturnType, ok := (&Golang{}).GetFuncMap()["goReturnType"].(func(string) string)
-	if !ok {
-		t.Fatal("goReturnType template function has an unexpected type")
+	stringValue := &yaml.Node{}
+	if err := stringValue.Encode("one"); err != nil {
+		t.Fatalf("encode string enum value: %v", err)
+	}
+
+	integerValue := &yaml.Node{}
+	if err := integerValue.Encode(1); err != nil {
+		t.Fatalf("encode integer enum value: %v", err)
 	}
 
 	tests := []struct {
-		input string
-		want  string
+		name        string
+		valueSchema *base.Schema
+		want        bool
 	}{
-		{input: "", want: goRawMessageType},
-		{input: "void", want: goRawMessageType},
-		{input: "Result | void", want: goRawMessageType},
-		{input: "Result", want: "Result"},
-	}
-
-	for _, test := range tests {
-		t.Run(test.input, func(t *testing.T) {
-			t.Parallel()
-
-			if got := goReturnType(test.input); got != test.want {
-				t.Errorf("goReturnType(%q) = %q, want %q", test.input, got, test.want)
-			}
-		})
-	}
-}
-
-func TestTypeScalarNameFallsBackToAny(t *testing.T) {
-	t.Parallel()
-
-	plugin := &Golang{}
-
-	typeValue, _, err := processor.GetType(
-		base.CreateSchemaProxy(&base.Schema{Type: []string{"null"}}),
-		"unknown",
-		plugin,
-		false,
-	)
-	if err != nil {
-		t.Fatalf("failed to create scalar type: %v", err)
-	}
-
-	scalar, ok := typeValue.(*processor.TypeScalar)
-	if !ok {
-		t.Fatalf("type = %T, want *processor.TypeScalar", typeValue)
-	}
-
-	if got := plugin.TypeScalarName(scalar); got != "any" {
-		t.Errorf("TypeScalarName() = %q, want %q", got, "any")
-	}
-}
-
-func TestMethodPath(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name  string
-		input string
-		want  string
-	}{
-		{name: "parameter", input: "/items/{id}", want: "/items/%s"},
-		{name: "percent", input: "/items/100%", want: "/items/100%%"},
 		{
-			name:  "unterminated parameter",
-			input: "/items/{id%",
-			want:  "/items/{id%%",
+			name:        "missing value type",
+			valueSchema: &base.Schema{},
+			want:        false,
+		},
+		{
+			name: "invalid enum value",
+			valueSchema: &base.Schema{
+				Type: []string{schemaTypeString},
+				Enum: []*yaml.Node{{Kind: yaml.ScalarNode, Tag: "!!int", Value: "x"}},
+			},
+			want: false,
+		},
+		{
+			name: "multi-type heterogeneous enum",
+			valueSchema: &base.Schema{
+				Type: []string{schemaTypeString, schemaTypeInteger},
+				Enum: []*yaml.Node{stringValue, integerValue},
+			},
+			want: true,
 		},
 	}
 
-	plugin := &Golang{}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			if got := plugin.MethodPath(test.input); got != test.want {
-				t.Errorf("MethodPath(%q) = %q, want %q", test.input, got, test.want)
+			mapSchema := base.CreateSchemaProxy(&base.Schema{
+				Type: []string{"object"},
+				AdditionalProperties: &base.DynamicValue[*base.SchemaProxy, bool]{
+					A: base.CreateSchemaProxy(tt.valueSchema),
+				},
+			})
+
+			typ, _, err := processor.GetType(
+				mapSchema, "Map", &Golang{packageName: ""}, false,
+			)
+			if err != nil {
+				t.Fatalf("create map type: %v", err)
+			}
+
+			if got := mapValuesUseJSON(typ); got != tt.want {
+				t.Errorf("mapValuesUseJSON() = %t, want %t", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestGeneratedHelpersAreReservedMethodBindings(t *testing.T) {
+	t.Parallel()
+
+	helperPattern := regexp.MustCompile(`func(?: \([^)]*\))? ([a-z][A-Za-z0-9]*)\(`)
+	registered := goMethodBindingNames()
+	matchedHelpers := 0
+
+	for _, templatePath := range []string{"templates/main.tmpl", "templates/client.tmpl"} {
+		templateSource, err := fs.ReadFile(templatesFS, templatePath)
+		if err != nil {
+			t.Fatalf("read %s: %v", templatePath, err)
+		}
+
+		for _, match := range helperPattern.FindAllSubmatch(templateSource, -1) {
+			matchedHelpers++
+
+			helperName := string(match[1])
+			if _, ok := registered[helperName]; !ok {
+				t.Errorf("generated helper %q from %s is not reserved", helperName, templatePath)
+			}
+		}
+	}
+
+	if matchedHelpers == 0 {
+		t.Fatal("generated helper scan matched no template functions")
 	}
 }
 
