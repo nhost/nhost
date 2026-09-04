@@ -184,6 +184,232 @@ func TestDeepObjectQuerySerialization(t *testing.T) {
 }
 `
 
+const mixedEnumParameterSpec = `openapi: "3.0.0"
+paths:
+  /items/{state}:
+    get:
+      operationId: getItem
+      parameters:
+        - name: state
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [0, "one", true]
+        - name: filter
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [0, "one", true]
+        - name: filters
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/MixedState"
+      responses:
+        "204": {description: OK}
+  /form:
+    post:
+      operationId: submitForm
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [state, states]
+              properties:
+                state:
+                  type: string
+                  enum: [0, "one", true]
+                states:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/MixedState"
+      responses:
+        "204": {description: OK}
+  /multipart:
+    post:
+      operationId: submitMultipart
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [state, states]
+              properties:
+                state:
+                  type: string
+                  enum: [0, "one", true]
+                states:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/MixedState"
+      responses:
+        "204": {description: OK}
+components:
+  schemas:
+    MixedState:
+      type: string
+      enum: [0, "one", true]
+`
+
+const generatedEnumParameterTest = `package testpkg
+
+import (
+	"encoding/json"
+	"io"
+	"net/http"
+	"net/url"
+	"slices"
+	"testing"
+)
+
+type roundTripFunc func(*http.Request) (*http.Response, error)
+
+func (f roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return f(req)
+}
+
+func TestMixedEnumParametersUseWireScalars(t *testing.T) {
+	requestCount := 0
+	expectedWire := ""
+	httpClient := &http.Client{Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+		requestCount++
+
+		switch req.URL.Path {
+		case "/items/" + expectedWire:
+			if got := req.URL.Query().Get("filter"); got != expectedWire {
+				t.Errorf("query enum = %q, want %q", got, expectedWire)
+			}
+			if got, want := req.URL.Query()["filters"], []string{expectedWire}; !slices.Equal(got, want) {
+				t.Errorf("query enum array = %q, want %q", got, want)
+			}
+		case "/form":
+			body, err := io.ReadAll(req.Body)
+			if err != nil {
+				t.Fatalf("read form body: %v", err)
+			}
+			values, err := url.ParseQuery(string(body))
+			if err != nil {
+				t.Fatalf("parse form body: %v", err)
+			}
+			if got := values.Get("state"); got != expectedWire {
+				t.Errorf("URL-encoded enum = %q, want %q", got, expectedWire)
+			}
+			if got, want := values["states"], []string{expectedWire}; !slices.Equal(got, want) {
+				t.Errorf("URL-encoded enum array = %q, want %q", got, want)
+			}
+		case "/multipart":
+			if err := req.ParseMultipartForm(1024); err != nil {
+				t.Fatalf("parse multipart body: %v", err)
+			}
+			if got := req.FormValue("state"); got != expectedWire {
+				t.Errorf("multipart enum = %q, want %q", got, expectedWire)
+			}
+			if got, want := req.MultipartForm.Value["states"], []string{expectedWire}; !slices.Equal(got, want) {
+				t.Errorf("multipart enum array = %q, want %q", got, want)
+			}
+		default:
+			t.Errorf("request path = %q, want one of the generated endpoints", req.URL.EscapedPath())
+		}
+
+		return &http.Response{
+			StatusCode: http.StatusNoContent,
+			Header:     make(http.Header),
+			Body:       http.NoBody,
+			Request:    req,
+		}, nil
+	})}
+
+	client := NewClient("https://example.com", httpClient)
+	testCases := []struct {
+		name      string
+		jsonValue string
+		wireValue string
+	}{
+		{name: "string", jsonValue: ` + "`\"one\"`" + `, wireValue: "one"},
+		{name: "number", jsonValue: "1", wireValue: "1"},
+		{name: "boolean", jsonValue: "true", wireValue: "true"},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			expectedWire = tt.wireValue
+			enumValue := json.RawMessage(tt.jsonValue)
+			queryFilter := GetFilter(enumValue)
+			states := []MixedState{enumValue}
+
+			if _, _, err := client.GetItem(t.Context(), tt.wireValue, &GetItemParams{
+				Filter:  &queryFilter,
+				Filters: &states,
+			}, nil); err != nil {
+				t.Fatalf("GetItem returned an error: %v", err)
+			}
+			if _, _, err := client.SubmitForm(t.Context(), SubmitFormBody{
+				State:  enumValue,
+				States: states,
+			}, nil); err != nil {
+				t.Fatalf("SubmitForm returned an error: %v", err)
+			}
+			if _, _, err := client.SubmitMultipart(t.Context(), SubmitMultipartBody{
+				State:  enumValue,
+				States: states,
+			}, nil); err != nil {
+				t.Fatalf("SubmitMultipart returned an error: %v", err)
+			}
+		})
+	}
+
+	if want := len(testCases) * 3; requestCount != want {
+		t.Errorf("request count = %d, want %d", requestCount, want)
+	}
+}
+`
+
+const generatedEnumJSONTest = `package testpkg
+
+import (
+	"encoding/json"
+	"testing"
+)
+
+func TestEnumJSONRoundTripPreservesScalarTypes(t *testing.T) {
+	const payload = ` + "`" + `{"statusInt":1,"statusMixed":true}` + "`" + `
+
+	var object SimpleObject
+	if err := json.Unmarshal([]byte(payload), &object); err != nil {
+		t.Fatalf("unmarshal enum payload: %v", err)
+	}
+	if object.StatusInt == nil || *object.StatusInt != SimpleObjectStatusInt(1) {
+		t.Errorf("integer enum = %v, want 1", object.StatusInt)
+	}
+	if object.StatusMixed == nil || string(*object.StatusMixed) != "true" {
+		t.Errorf("mixed enum = %s, want true", object.StatusMixed)
+	}
+
+	encoded, err := json.Marshal(object)
+	if err != nil {
+		t.Fatalf("marshal enum payload: %v", err)
+	}
+
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(encoded, &fields); err != nil {
+		t.Fatalf("unmarshal round-trip payload: %v", err)
+	}
+	if string(fields["statusInt"]) != "1" {
+		t.Errorf("round-trip integer enum = %s, want 1", fields["statusInt"])
+	}
+	if string(fields["statusMixed"]) != "true" {
+		t.Errorf("round-trip mixed enum = %s, want true", fields["statusMixed"])
+	}
+}
+`
+
 const generatedOptionalBodyTestPrefix = `package testpkg
 
 import (
@@ -265,6 +491,81 @@ func TestGolangProcessSourceRejectsInvalidGo(t *testing.T) {
 
 	if _, err := (&golang.Golang{}).ProcessSource([]byte("not Go source")); err == nil {
 		t.Fatal("ProcessSource accepted invalid Go source")
+	}
+}
+
+func TestGolangGeneratedEnumsPreserveJSONScalarTypes(t *testing.T) {
+	t.Parallel()
+
+	goTool, err := exec.LookPath("go")
+	if err != nil {
+		t.Fatal("go is not available; generated Go output cannot be verified")
+	}
+
+	moduleDir := t.TempDir()
+	writeCompileFixture(t, moduleDir, "go.mod", "module github.com/nhost/nhost\n\ngo 1.26.0\n")
+	writeCompileFixture(
+		t,
+		moduleDir,
+		"packages/nhost-go/transport/transport.go",
+		transportStub,
+	)
+
+	output, renderErr := renderGolangFixture("../testdata/types.yaml")
+	if renderErr != nil {
+		t.Fatalf("failed to render types.yaml: %v", renderErr)
+	}
+
+	writeCompileFixture(t, moduleDir, "enums/generated.go", string(output))
+	writeCompileFixture(t, moduleDir, "enums/generated_test.go", generatedEnumJSONTest)
+
+	cmd := exec.CommandContext(t.Context(), goTool, "test", "./enums")
+	cmd.Dir = moduleDir
+
+	cmd.Env = append(os.Environ(), "GOFLAGS=", "GOWORK=off")
+
+	commandOutput, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("generated enum JSON tests failed: %v\n%s", err, commandOutput)
+	}
+}
+
+func TestGolangGeneratedMixedEnumParametersSerializeAsWireScalars(t *testing.T) {
+	t.Parallel()
+
+	goTool, err := exec.LookPath("go")
+	if err != nil {
+		t.Fatal("go is not available; generated Go output cannot be verified")
+	}
+
+	moduleDir := t.TempDir()
+	writeCompileFixture(t, moduleDir, "go.mod", "module github.com/nhost/nhost\n\ngo 1.26.0\n")
+	writeCompileFixture(
+		t,
+		moduleDir,
+		"packages/nhost-go/transport/transport.go",
+		transportStub,
+	)
+
+	specPath := filepath.Join(moduleDir, "mixed-enum-parameters.yaml")
+	writeCompileFixture(t, "", specPath, mixedEnumParameterSpec)
+
+	output, renderErr := renderGolangFixture(specPath)
+	if renderErr != nil {
+		t.Fatalf("failed to render mixed enum parameters: %v", renderErr)
+	}
+
+	writeCompileFixture(t, moduleDir, "mixed/generated.go", string(output))
+	writeCompileFixture(t, moduleDir, "mixed/generated_test.go", generatedEnumParameterTest)
+
+	cmd := exec.CommandContext(t.Context(), goTool, "test", "./mixed")
+	cmd.Dir = moduleDir
+
+	cmd.Env = append(os.Environ(), "GOFLAGS=", "GOWORK=off")
+
+	commandOutput, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("generated mixed enum parameter tests failed: %v\n%s", err, commandOutput)
 	}
 }
 

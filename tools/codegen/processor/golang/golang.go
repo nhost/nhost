@@ -16,6 +16,7 @@ import (
 	"go/token"
 	"io/fs"
 	"path"
+	"slices"
 	"strconv"
 	"strings"
 	"unicode"
@@ -25,8 +26,16 @@ import (
 )
 
 const (
-	extCustomType = "x-nhost-go-type"
-	goStringType  = "string"
+	extCustomType     = "x-nhost-go-type"
+	goBooleanType     = "bool"
+	goIntegerType     = "int"
+	goNumberType      = "float64"
+	goRawMessageType  = "json.RawMessage"
+	goStringType      = "string"
+	schemaTypeBoolean = "boolean"
+	schemaTypeInteger = "integer"
+	schemaTypeNumber  = "number"
+	schemaTypeString  = "string"
 )
 
 var (
@@ -597,6 +606,91 @@ func validateGoNames(types []processor.Type, methods []*processor.Method) (strin
 	return "", nil
 }
 
+// enumValueKind returns the OpenAPI primitive kind of a decoded enum value,
+// or an empty string for nil and unsupported values.
+func enumValueKind(value any) string {
+	switch value.(type) {
+	case bool:
+		return schemaTypeBoolean
+	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
+		return schemaTypeInteger
+	case float32, float64:
+		return schemaTypeNumber
+	case string:
+		return schemaTypeString
+	default:
+		return ""
+	}
+}
+
+func enumValuesMatchDeclaredKind(enum *processor.TypeEnum, declaredKind string) bool {
+	valueKind := ""
+
+	for _, node := range enum.Schema().Schema().Enum {
+		var value any
+		if err := node.Decode(&value); err != nil {
+			return false
+		}
+
+		kind := enumValueKind(value)
+		if kind == "" || (valueKind != "" && kind != valueKind) {
+			return false
+		}
+
+		valueKind = kind
+	}
+
+	return valueKind == declaredKind ||
+		(declaredKind == schemaTypeNumber && valueKind == schemaTypeInteger)
+}
+
+func goTypeForSchemaKind(kind string) string {
+	switch kind {
+	case schemaTypeBoolean:
+		return goBooleanType
+	case schemaTypeInteger:
+		return goIntegerType
+	case schemaTypeNumber:
+		return goNumberType
+	case schemaTypeString:
+		return goStringType
+	default:
+		return goRawMessageType
+	}
+}
+
+// goEnumType maps homogeneous enum values to the declared Go scalar type. It
+// falls back to json.RawMessage when the values are heterogeneous, ambiguous,
+// or inconsistent with the schema's declared type.
+func goEnumType(enum *processor.TypeEnum) string {
+	schema := enum.Schema()
+	if schema == nil || schema.Schema() == nil || len(schema.Schema().Type) != 1 {
+		return goRawMessageType
+	}
+
+	declaredKind := schema.Schema().Type[0]
+	if !enumValuesMatchDeclaredKind(enum, declaredKind) {
+		return goRawMessageType
+	}
+
+	return goTypeForSchemaKind(declaredKind)
+}
+
+// goEnumUsesJSON reports whether an enum uses json.RawMessage to preserve heterogeneous values.
+func goEnumUsesJSON(typ processor.Type) bool {
+	enum, ok := typ.(*processor.TypeEnum)
+	if !ok || enum.Schema() == nil || enum.Schema().Schema() == nil ||
+		len(enum.Schema().Schema().Enum) == 0 {
+		return false
+	}
+
+	return goEnumType(enum) == goRawMessageType
+}
+
+func hasJSONEnums(types []processor.Type) bool {
+	return slices.ContainsFunc(types, goEnumUsesJSON)
+}
+
 func (p *Golang) GetFuncMap() map[string]any {
 	return map[string]any{
 		// goReturnType maps the shared IR return expression to a single Go type.
@@ -608,11 +702,14 @@ func (p *Golang) GetFuncMap() map[string]any {
 
 			return t
 		},
+		"goEnumType":                goEnumType,
+		"goEnumUsesJSON":            goEnumUsesJSON,
 		"goFieldType":               goFieldType,
 		"goValidateJSONWireNames":   validateJSONWireNames,
 		"goValidateNames":           validateGoNames,
 		"goValidateQueryParameters": validateQueryParameters,
 		"exported":                  toExported,
+		"hasJSONEnums":              hasJSONEnums,
 		"hasPathParameters": func(methods []*processor.Method) bool {
 			for _, method := range methods {
 				if len(method.PathParameters()) > 0 {
@@ -653,11 +750,11 @@ func (p *Golang) TypeScalarName(scalar *processor.TypeScalar) string {
 
 	switch schema.Type[0] {
 	case "integer":
-		return "int"
+		return goIntegerType
 	case "number":
-		return "float64"
+		return goNumberType
 	case "boolean":
-		return "bool"
+		return goBooleanType
 	case goStringType:
 		if schema.Format == "binary" {
 			return "[]byte"

@@ -20,12 +20,33 @@ import (
 	"github.com/nhost/nhost/packages/nhost-go/transport"
 )
 
+{{ if hasJSONEnums .Types -}}
+func enumScalar(value json.RawMessage) string {
+	var scalar any
+	if err := json.Unmarshal(value, &scalar); err == nil {
+		switch value := scalar.(type) {
+		case string:
+			return value
+		case nil:
+			return ""
+		}
+	}
+
+	return string(value)
+}
+
+{{ end -}}
 {{ range .Types }}
 {{- if eq .Kind "object" }}
 {{ template "renderObject" . }}
 {{- else if eq .Kind "enum" }}
 // {{ .Name }} is one of: {{ join .Values ", " }}.
-type {{ .Name }} string
+{{- $enumType := goEnumType . }}
+{{- if goEnumUsesJSON . }}
+type {{ .Name }} = {{ $enumType }}
+{{- else }}
+type {{ .Name }} {{ $enumType }}
+{{- end }}
 {{ else if eq .Kind "alias" }}
 type {{ .Name }} = {{ .Alias.Name }}
 {{ end }}
@@ -53,13 +74,21 @@ func (p *{{ .Name }}Params) toQuery() url.Values {
 	}
 {{- else if and (eq .Type.Kind "array") .Explode }}
 	for _, item := range {{ $access }} {
+{{- if goEnumUsesJSON .Type.Item }}
+		q.Add("{{ .RawName }}", enumScalar(item))
+{{- else }}
 		q.Add("{{ .RawName }}", fmt.Sprint(item))
+{{- end }}
 	}
 {{- else if eq .Type.Kind "array" }}
 	{
 		parts := make([]string, 0, len({{ $access }}))
 		for _, item := range {{ $access }} {
+{{- if goEnumUsesJSON .Type.Item }}
+			parts = append(parts, enumScalar(item))
+{{- else }}
 			parts = append(parts, fmt.Sprint(item))
+{{- end }}
 		}
 		q.Set("{{ .RawName }}", strings.Join(parts, ","))
 	}
@@ -96,6 +125,8 @@ func (p *{{ .Name }}Params) toQuery() url.Values {
 		encoded, _ := json.Marshal({{ $access }})
 		q.Set("{{ .RawName }}", string(encoded))
 	}
+{{- else if goEnumUsesJSON .Type }}
+	q.Set("{{ .RawName }}", enumScalar({{ $access }}))
 {{- else }}
 	q.Set("{{ .RawName }}", fmt.Sprint({{ $access }}))
 {{- end }}
