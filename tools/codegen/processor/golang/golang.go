@@ -306,6 +306,15 @@ func (p *Golang) GetFuncMap() map[string]any {
 		},
 		"goFieldType": goFieldType,
 		"exported":    toExported,
+		"hasPathParameters": func(methods []*processor.Method) bool {
+			for _, method := range methods {
+				if len(method.PathParameters()) > 0 {
+					return true
+				}
+			}
+
+			return false
+		},
 		"packageName": func() string {
 			if p.Package == "" {
 				return "client"
