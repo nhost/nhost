@@ -4,37 +4,31 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
-	"io"
 	"io/fs"
-	"net/url"
-	"os"
+	"log/slog"
 	"strings"
 	"testing"
-	"time"
 
-	"github.com/golang-migrate/migrate/v4"
-	"github.com/lib/pq"
+	"github.com/nhost/nhost/internal/lib/pgmigrate"
 )
 
-type stubPostgresMigration struct {
-	upErr            error
-	sourceCloseErr   error
-	databaseCloseErr error
-	upCalls          int
-	closeCalls       int
+var (
+	errSchemaCreationFailure = errors.New("schema creation failed")
+	errMigrationFailure      = errors.New("migration failed")
+	errCloseFailure          = errors.New("close failed")
+)
+
+type migrationDatabaseStub struct{}
+
+func (*migrationDatabaseStub) Conn(context.Context) (*sql.Conn, error) {
+	return nil, sql.ErrConnDone
 }
 
-func (m *stubPostgresMigration) Up() error {
-	m.upCalls++
-
-	return m.upErr
-}
-
-func (m *stubPostgresMigration) Close() (error, error) {
-	m.closeCalls++
-
-	return m.sourceCloseErr, m.databaseCloseErr
+type migrationCall struct {
+	fsys          fs.FS
+	migrationPath string
+	schema        string
+	target        uint
 }
 
 func TestAgentsMigrationSchema(t *testing.T) {
@@ -69,277 +63,251 @@ func TestAgentsMigrationSchema(t *testing.T) {
 	}
 }
 
-func TestAgentsMigrationProviderConstraintPostgres(t *testing.T) {
+func TestEmbeddedPostgresMigrationBundleMatchesTarget(t *testing.T) {
 	t.Parallel()
 
-	db, databaseURL := openAgentsMigrationTestDatabase(t)
-
-	// The production migration runner creates the ai schema and owns all AI
-	// extensions, functions, and tables. auth.users is the only fixture because
-	// it is owned by the auth service, but migration 6 references it.
-	const externalDependencies = `
-CREATE SCHEMA auth;
-CREATE TABLE auth.users (id uuid PRIMARY KEY);
-`
-	if _, err := db.ExecContext(t.Context(), externalDependencies); err != nil {
-		t.Fatalf("create external migration dependencies: %v", err)
+	if err := pgmigrate.ValidateBundle(
+		postgresMigrations,
+		postgresMigrationPath,
+		postgresMigrationTarget,
+	); err != nil {
+		t.Fatalf("ValidateBundle() error = %v", err)
 	}
+}
 
-	migration, err := newPostgresMigration(t.Context(), databaseURL)
-	if err != nil {
-		t.Fatalf("create PostgreSQL migrator: %v", err)
-	}
+func TestRunPostgresMigrationCreatesSchemaThenDelegatesAndCloses(t *testing.T) {
+	t.Parallel()
 
-	t.Cleanup(func() {
-		sourceErr, databaseErr := migration.Close()
-		if err := errors.Join(sourceErr, databaseErr); err != nil {
-			t.Errorf("close PostgreSQL migrator: %v", err)
-		}
-	})
-
-	if err := migration.Migrate(6); err != nil {
-		t.Fatalf("migrate through version 6: %v", err)
-	}
+	ctx := t.Context()
+	logger := slog.New(slog.DiscardHandler)
+	database := &migrationDatabaseStub{}
 
 	var (
-		version int
-		dirty   bool
+		gotCall migrationCall
+		events  []string
 	)
 
-	if err := db.QueryRowContext(
-		t.Context(), "SELECT version, dirty FROM ai.schema_migrations",
-	).Scan(&version, &dirty); err != nil {
-		t.Fatalf("read migration state: %v", err)
-	}
+	err := runPostgresMigration(
+		ctx,
+		logger,
+		database,
+		func() error {
+			events = append(events, "close")
 
-	if version != 6 || dirty {
-		t.Fatalf("migration state = (%d, %t), want (6, false)", version, dirty)
-	}
+			return nil
+		},
+		func(gotContext context.Context) error {
+			events = append(events, "schema")
 
-	const insertAgent = `INSERT INTO ai.agents (name, provider, model) VALUES ($1, $2, $3)`
-	for _, validProvider := range []string{"gateway.primary-test", "a", strings.Repeat("a", 63)} {
-		if _, err := db.ExecContext(
-			t.Context(), insertAgent, "configured gateway", validProvider, "model",
-		); err != nil {
-			t.Errorf("insert provider with %d bytes: %v", len(validProvider), err)
-		}
-	}
-
-	for _, invalidProvider := range []string{"", strings.Repeat("a", 64)} {
-		if _, err := db.ExecContext(
-			t.Context(), insertAgent, "invalid gateway", invalidProvider, "model",
-		); err == nil {
-			t.Errorf(
-				"insert provider with %d bytes succeeded, want constraint failure",
-				len(invalidProvider),
-			)
-		}
-	}
-
-	var providerTableMissing bool
-	if err := db.QueryRowContext(
-		t.Context(), "SELECT to_regclass('ai.agent_providers') IS NULL",
-	).Scan(&providerTableMissing); err != nil {
-		t.Fatalf("check agent_providers table: %v", err)
-	}
-
-	if !providerTableMissing {
-		t.Error("ai.agent_providers exists after migration 6")
-	}
-
-	var providerForeignKeys int
-	if err := db.QueryRowContext(t.Context(), `
-SELECT count(*)
-FROM pg_constraint AS c
-JOIN pg_attribute AS a
-  ON a.attrelid = c.conrelid
- AND a.attnum = ANY(c.conkey)
-WHERE c.conrelid = 'ai.agents'::regclass
-  AND c.contype = 'f'
-  AND a.attname = 'provider'
-`).Scan(&providerForeignKeys); err != nil {
-		t.Fatalf("check provider foreign keys: %v", err)
-	}
-
-	if providerForeignKeys != 0 {
-		t.Errorf("provider foreign keys = %d, want 0", providerForeignKeys)
-	}
-}
-
-func openAgentsMigrationTestDatabase(t *testing.T) (*sql.DB, string) {
-	t.Helper()
-
-	dsn := os.Getenv("POSTGRES_CONNECTION")
-	if dsn == "" {
-		dsn = "postgres://postgres:postgres@localhost:5432/local?sslmode=disable"
-	}
-
-	parsedDSN, err := url.Parse(dsn)
-	if err != nil || (parsedDSN.Scheme != "postgres" && parsedDSN.Scheme != "postgresql") {
-		t.Skipf("POSTGRES_CONNECTION is not a PostgreSQL URL: %q", dsn)
-	}
-
-	adminURL := *parsedDSN
-	adminURL.Path = "/postgres"
-	adminURL.RawPath = ""
-
-	adminDB, err := sql.Open("postgres", adminURL.String())
-	if err != nil {
-		t.Skipf("open PostgreSQL admin connection: %v", err)
-	}
-
-	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
-	defer cancel()
-
-	if err := adminDB.PingContext(ctx); err != nil {
-		if closeErr := adminDB.Close(); closeErr != nil {
-			t.Errorf("close unreachable PostgreSQL admin connection: %v", closeErr)
-		}
-
-		t.Skipf("PostgreSQL is unavailable: %v", err)
-	}
-
-	databaseName := fmt.Sprintf("ai_migration_test_%d", time.Now().UnixNano())
-
-	quotedDatabaseName := pq.QuoteIdentifier(databaseName)
-	if _, err := adminDB.ExecContext(ctx, "CREATE DATABASE "+quotedDatabaseName); err != nil {
-		if closeErr := adminDB.Close(); closeErr != nil {
-			t.Errorf("close PostgreSQL admin connection: %v", closeErr)
-		}
-
-		t.Skipf("cannot create temporary PostgreSQL database: %v", err)
-	}
-
-	var db *sql.DB
-
-	t.Cleanup(func() {
-		if db != nil {
-			if err := db.Close(); err != nil {
-				t.Errorf("close temporary PostgreSQL database: %v", err)
+			if gotContext != ctx {
+				t.Errorf("schema context = %v, want supplied context", gotContext)
 			}
-		}
 
-		cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cleanupCancel()
+			return nil
+		},
+		func(
+			gotContext context.Context,
+			gotLogger *slog.Logger,
+			gotDatabase pgmigrate.Database,
+			gotFS fs.FS,
+			gotPath string,
+			gotSchema string,
+			gotTarget uint,
+		) error {
+			events = append(events, "migration")
 
-		if _, err := adminDB.ExecContext(
-			cleanupCtx, "DROP DATABASE "+quotedDatabaseName+" WITH (FORCE)",
-		); err != nil {
-			t.Errorf("drop temporary PostgreSQL database: %v", err)
-		}
+			if gotContext != ctx {
+				t.Errorf("migration context = %v, want supplied context", gotContext)
+			}
 
-		if err := adminDB.Close(); err != nil {
-			t.Errorf("close PostgreSQL admin connection: %v", err)
-		}
-	})
+			if gotLogger != logger {
+				t.Errorf("migration logger = %p, want %p", gotLogger, logger)
+			}
 
-	testURL := *parsedDSN
-	testURL.Path = "/" + databaseName
-	testURL.RawPath = ""
+			if gotDatabase != database {
+				t.Errorf("migration database = %v, want supplied database", gotDatabase)
+			}
 
-	db, err = sql.Open("postgres", testURL.String())
+			gotCall = migrationCall{
+				fsys:          gotFS,
+				migrationPath: gotPath,
+				schema:        gotSchema,
+				target:        gotTarget,
+			}
+
+			return nil
+		},
+	)
 	if err != nil {
-		t.Fatalf("open temporary PostgreSQL database: %v", err)
+		t.Fatalf("runPostgresMigration() error = %v", err)
 	}
 
-	if err := db.PingContext(ctx); err != nil {
-		t.Fatalf("connect to temporary PostgreSQL database: %v", err)
+	wantEvents := []string{"schema", "migration", "close"}
+	if len(events) != len(wantEvents) {
+		t.Fatalf("migration events = %v, want %v", events, wantEvents)
 	}
 
-	return db, testURL.String()
+	for index, want := range wantEvents {
+		if events[index] != want {
+			t.Fatalf("migration events = %v, want %v", events, wantEvents)
+		}
+	}
+
+	body, readErr := fs.ReadFile(
+		gotCall.fsys,
+		"postgres/000007_agent_messages_seq.up.sql",
+	)
+	if readErr != nil {
+		t.Errorf("reading delegated migration filesystem: %v", readErr)
+	} else if len(body) == 0 {
+		t.Error("delegated migration filesystem contains an empty target migration")
+	}
+
+	if gotCall.migrationPath != postgresMigrationPath {
+		t.Errorf(
+			"migration path = %q, want %q",
+			gotCall.migrationPath,
+			postgresMigrationPath,
+		)
+	}
+
+	if gotCall.schema != schemaName {
+		t.Errorf("migration schema = %q, want %q", gotCall.schema, schemaName)
+	}
+
+	if gotCall.target != postgresMigrationTarget {
+		t.Errorf(
+			"migration target = %d, want %d",
+			gotCall.target,
+			postgresMigrationTarget,
+		)
+	}
 }
 
-func TestRunPostgresMigration(t *testing.T) {
+func TestRunPostgresMigrationReturnsErrorsAndCloses(t *testing.T) {
 	t.Parallel()
 
-	migrationFailure := io.ErrUnexpectedEOF
-	sourceCloseFailure := fs.ErrClosed
-	databaseCloseFailure := context.DeadlineExceeded
-
-	testCases := []struct {
-		name             string
-		upErr            error
-		sourceCloseErr   error
-		databaseCloseErr error
-		wantErrors       []error
+	tests := []struct {
+		name           string
+		schemaErr      error
+		migrationErr   error
+		closeErr       error
+		wantErrors     []error
+		wantMigrations int
 	}{
 		{
-			name:             "success",
-			upErr:            nil,
-			sourceCloseErr:   nil,
-			databaseCloseErr: nil,
-			wantErrors:       nil,
+			name:           "success",
+			schemaErr:      nil,
+			migrationErr:   nil,
+			closeErr:       nil,
+			wantErrors:     nil,
+			wantMigrations: 1,
 		},
 		{
-			name:             "no migrations to apply",
-			upErr:            migrate.ErrNoChange,
-			sourceCloseErr:   nil,
-			databaseCloseErr: nil,
-			wantErrors:       nil,
+			name:           "schema creation fails",
+			schemaErr:      errSchemaCreationFailure,
+			migrationErr:   nil,
+			closeErr:       nil,
+			wantErrors:     []error{errSchemaCreationFailure},
+			wantMigrations: 0,
 		},
 		{
-			name:             "migration fails",
-			upErr:            migrationFailure,
-			sourceCloseErr:   nil,
-			databaseCloseErr: nil,
-			wantErrors:       []error{migrationFailure},
+			name:           "migration fails",
+			schemaErr:      nil,
+			migrationErr:   errMigrationFailure,
+			closeErr:       nil,
+			wantErrors:     []error{errMigrationFailure},
+			wantMigrations: 1,
 		},
 		{
-			name:             "source close fails",
-			upErr:            nil,
-			sourceCloseErr:   sourceCloseFailure,
-			databaseCloseErr: nil,
-			wantErrors:       []error{sourceCloseFailure},
+			name:           "close fails",
+			schemaErr:      nil,
+			migrationErr:   nil,
+			closeErr:       errCloseFailure,
+			wantErrors:     []error{errCloseFailure},
+			wantMigrations: 1,
 		},
 		{
-			name:             "database close fails",
-			upErr:            nil,
-			sourceCloseErr:   nil,
-			databaseCloseErr: databaseCloseFailure,
-			wantErrors:       []error{databaseCloseFailure},
+			name:           "schema creation and close fail",
+			schemaErr:      errSchemaCreationFailure,
+			migrationErr:   nil,
+			closeErr:       errCloseFailure,
+			wantErrors:     []error{errSchemaCreationFailure, errCloseFailure},
+			wantMigrations: 0,
 		},
 		{
-			name:             "migration and close fail",
-			upErr:            migrationFailure,
-			sourceCloseErr:   sourceCloseFailure,
-			databaseCloseErr: databaseCloseFailure,
-			wantErrors: []error{
-				migrationFailure,
-				sourceCloseFailure,
-				databaseCloseFailure,
-			},
+			name:           "migration and close fail",
+			schemaErr:      nil,
+			migrationErr:   errMigrationFailure,
+			closeErr:       errCloseFailure,
+			wantErrors:     []error{errMigrationFailure, errCloseFailure},
+			wantMigrations: 1,
 		},
 	}
 
-	for _, testCase := range testCases {
-		t.Run(testCase.name, func(t *testing.T) {
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			migration := &stubPostgresMigration{
-				upErr:            testCase.upErr,
-				sourceCloseErr:   testCase.sourceCloseErr,
-				databaseCloseErr: testCase.databaseCloseErr,
-				upCalls:          0,
-				closeCalls:       0,
+			var (
+				schemaCalls    int
+				migrationCalls int
+				closeCalls     int
+			)
+
+			err := runPostgresMigration(
+				t.Context(),
+				slog.New(slog.DiscardHandler),
+				&migrationDatabaseStub{},
+				func() error {
+					closeCalls++
+
+					return tt.closeErr
+				},
+				func(context.Context) error {
+					schemaCalls++
+
+					return tt.schemaErr
+				},
+				func(
+					context.Context,
+					*slog.Logger,
+					pgmigrate.Database,
+					fs.FS,
+					string,
+					string,
+					uint,
+				) error {
+					migrationCalls++
+
+					return tt.migrationErr
+				},
+			)
+
+			if len(tt.wantErrors) == 0 && err != nil {
+				t.Fatalf("runPostgresMigration() error = %v", err)
 			}
 
-			err := runPostgresMigration(migration)
-			if len(testCase.wantErrors) == 0 && err != nil {
-				t.Fatalf("runPostgresMigration() unexpected error: %v", err)
-			}
-
-			for _, wantErr := range testCase.wantErrors {
+			for _, wantErr := range tt.wantErrors {
 				if !errors.Is(err, wantErr) {
-					t.Errorf("runPostgresMigration() error %v does not wrap %v", err, wantErr)
+					t.Errorf("runPostgresMigration() error = %v, want %v", err, wantErr)
 				}
 			}
 
-			if migration.upCalls != 1 {
-				t.Errorf("Up() calls = %d, want 1", migration.upCalls)
+			if schemaCalls != 1 {
+				t.Errorf("schema creation calls = %d, want 1", schemaCalls)
 			}
 
-			if migration.closeCalls != 1 {
-				t.Errorf("Close() calls = %d, want 1", migration.closeCalls)
+			if migrationCalls != tt.wantMigrations {
+				t.Errorf(
+					"migration calls = %d, want %d",
+					migrationCalls,
+					tt.wantMigrations,
+				)
+			}
+
+			if closeCalls != 1 {
+				t.Errorf("close calls = %d, want 1", closeCalls)
 			}
 		})
 	}
