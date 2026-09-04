@@ -115,15 +115,57 @@ func TestCatalogBootstrapEnforcesDatabaseInvariants(t *testing.T) {
 			},
 		},
 		{
+			name: "one active version",
+			run: func() error {
+				migration := storedMigrationFrom(
+					testMigration(2, uintPointer(2), "duplicate_version"),
+				)
+
+				return insertStoredMigrationError(t.Context(), database, relation, migration)
+			},
+		},
+		{
 			name: "existing predecessor",
 			run: func() error {
-				migration := storedMigrationFrom(testMigration(3, uintPointer(99), "orphan"))
-				return insertStoredMigrationError(t.Context(), database, relation, migration)
+				// pi-lens-ignore: go-sql-injection
+				_, err := database.ExecContext(
+					t.Context(),
+					fmt.Sprintf(
+						"UPDATE %s SET previous_id = gen_random_uuid() WHERE version = $1",
+						relation,
+					),
+					int64(2),
+				)
+				if err != nil {
+					return fmt.Errorf("assigning nonexistent predecessor: %w", err)
+				}
+
+				return nil
+			},
+		},
+		{
+			name: "complete archive metadata",
+			run: func() error {
+				// pi-lens-ignore: go-sql-injection
+				_, err := database.ExecContext(
+					t.Context(),
+					fmt.Sprintf(
+						"UPDATE %s SET archived_at = CURRENT_TIMESTAMP WHERE version = $1",
+						relation,
+					),
+					int64(2),
+				)
+				if err != nil {
+					return fmt.Errorf("archiving without a batch identifier: %w", err)
+				}
+
+				return nil
 			},
 		},
 		{
 			name: "nonempty up SQL",
 			run: func() error {
+				// pi-lens-ignore: go-sql-injection
 				_, err := database.ExecContext(
 					t.Context(),
 					fmt.Sprintf("UPDATE %s SET up_sql = $1 WHERE version = $2", relation),
@@ -140,6 +182,7 @@ func TestCatalogBootstrapEnforcesDatabaseInvariants(t *testing.T) {
 		{
 			name: "nonempty down SQL",
 			run: func() error {
+				// pi-lens-ignore: go-sql-injection
 				_, err := database.ExecContext(
 					t.Context(),
 					fmt.Sprintf("UPDATE %s SET down_sql = $1 WHERE version = $2", relation),
@@ -156,6 +199,7 @@ func TestCatalogBootstrapEnforcesDatabaseInvariants(t *testing.T) {
 		{
 			name: "up checksum length",
 			run: func() error {
+				// pi-lens-ignore: go-sql-injection
 				_, err := database.ExecContext(
 					t.Context(),
 					fmt.Sprintf("UPDATE %s SET up_sha256 = $1 WHERE version = $2", relation),
@@ -172,6 +216,7 @@ func TestCatalogBootstrapEnforcesDatabaseInvariants(t *testing.T) {
 		{
 			name: "down checksum length",
 			run: func() error {
+				// pi-lens-ignore: go-sql-injection
 				_, err := database.ExecContext(
 					t.Context(),
 					fmt.Sprintf("UPDATE %s SET down_sha256 = $1 WHERE version = $2", relation),
@@ -188,6 +233,7 @@ func TestCatalogBootstrapEnforcesDatabaseInvariants(t *testing.T) {
 		{
 			name: "restricted predecessor deletion",
 			run: func() error {
+				// pi-lens-ignore: go-sql-injection
 				_, err := database.ExecContext(
 					t.Context(),
 					fmt.Sprintf("DELETE FROM %s WHERE version = $1", relation),
@@ -217,13 +263,16 @@ func TestCatalogBootstrapEnforcesDatabaseInvariants(t *testing.T) {
 		t.Context(),
 		`SELECT indexdef FROM pg_indexes WHERE schemaname = $1 AND indexname = $2`,
 		schema,
-		"schema_migration_catalog_one_root",
+		"schema_migration_catalog_one_active_root",
 	).Scan(&indexDefinition)
 	if err != nil {
 		t.Fatalf("querying root index: %v", err)
 	}
 
-	if !strings.Contains(indexDefinition, "WHERE (previous_version IS NULL)") {
+	if !strings.Contains(
+		indexDefinition,
+		"WHERE ((archived_at IS NULL) AND (previous_id IS NULL))",
+	) {
 		t.Fatalf(
 			"root index = %q, want PostgreSQL-13-compatible partial predicate",
 			indexDefinition,
@@ -253,6 +302,7 @@ func TestCatalogPublicationIsIdempotentAndAcceptsFutureRows(t *testing.T) {
 	relation := catalogTestRelation(schema)
 
 	var registeredAt string
+	// pi-lens-ignore: go-sql-injection
 	if err := database.QueryRowContext(
 		t.Context(),
 		fmt.Sprintf("SELECT registered_at::text FROM %s WHERE version = $1", relation),
@@ -274,6 +324,7 @@ func TestCatalogPublicationIsIdempotentAndAcceptsFutureRows(t *testing.T) {
 		t.Fatalf("publish(newer) error = %v", err)
 	}
 
+	// pi-lens-ignore: go-sql-injection
 	if _, err := database.ExecContext(
 		t.Context(),
 		fmt.Sprintf("ALTER TABLE %s ADD COLUMN future_metadata TEXT", relation),
@@ -302,6 +353,103 @@ func TestCatalogPublicationIsIdempotentAndAcceptsFutureRows(t *testing.T) {
 
 	if registeredAtAgain != registeredAt {
 		t.Fatalf("root registered_at changed from %q to %q", registeredAt, registeredAtAgain)
+	}
+}
+
+func TestCatalogReconcileArchivesInactiveSuffixAndReusesVersions(t *testing.T) {
+	t.Parallel()
+
+	database := openCatalogTestDatabase(t)
+	schema := createCatalogTestSchema(t, database, "")
+	catalog := sqlCatalogForTest(t, database, schema)
+
+	if err := catalog.bootstrap(); err != nil {
+		t.Fatalf("bootstrap() error = %v", err)
+	}
+
+	beta := testBundle(
+		testMigration(1, nil, "root"),
+		testMigration(2, uintPointer(1), "beta_name"),
+		testMigration(3, uintPointer(2), "beta_enabled"),
+	)
+	if err := catalog.reconcile(beta, -1); err != nil {
+		t.Fatalf("reconcile(beta) error = %v", err)
+	}
+
+	stable := testBundle(
+		testMigration(1, nil, "root"),
+		testMigration(2, uintPointer(1), "stable_squashed"),
+	)
+	if err := catalog.reconcile(stable, 1); err != nil {
+		t.Fatalf("reconcile(stable) error = %v", err)
+	}
+
+	stored, found, err := catalog.migration(2)
+	if err != nil {
+		t.Fatalf("migration(2) error = %v", err)
+	}
+
+	if !found {
+		t.Fatal("migration(2) found = false")
+	}
+
+	if err := compareMigration(stable.migrations[1], stored); err != nil {
+		t.Fatalf("active migration 2 does not match stable replacement: %v", err)
+	}
+
+	relation := catalogTestRelation(schema)
+
+	var (
+		activeRows     int
+		archivedRows   int
+		archiveBatches int
+	)
+
+	query := fmt.Sprintf( //nolint:gosec // relation is identifier-quoted.
+		`SELECT
+    count(*) FILTER (WHERE archived_at IS NULL),
+    count(*) FILTER (WHERE archived_at IS NOT NULL),
+    count(DISTINCT archive_batch_id) FILTER (WHERE archived_at IS NOT NULL)
+FROM %s
+WHERE version >= 2`,
+		relation,
+	)
+	if err := database.QueryRowContext(t.Context(), query).Scan(
+		&activeRows,
+		&archivedRows,
+		&archiveBatches,
+	); err != nil {
+		t.Fatalf("querying active and archived rows: %v", err)
+	}
+
+	if activeRows != 1 || archivedRows != 2 || archiveBatches != 1 {
+		t.Fatalf(
+			"catalog rows = active %d, archived %d, batches %d; want 1, 2, 1",
+			activeRows,
+			archivedRows,
+			archiveBatches,
+		)
+	}
+
+	query = fmt.Sprintf(
+		`SELECT count(*)
+FROM %s AS child
+JOIN %s AS predecessor ON predecessor.id = child.previous_id
+WHERE child.identifier = 'beta_enabled'
+  AND predecessor.identifier = 'beta_name'
+  AND child.archived_at IS NOT NULL
+  AND predecessor.archived_at IS NOT NULL`,
+		relation,
+		relation,
+	)
+
+	var linkedArchivedRows int
+	if err := database.QueryRowContext(t.Context(), query).Scan(&linkedArchivedRows); err != nil {
+		t.Fatalf("querying archived lineage: %v", err)
+	}
+
+	if linkedArchivedRows != 1 {
+		t.Fatalf("linked archived rows = %d, want 1", linkedArchivedRows)
 	}
 }
 
@@ -611,15 +759,24 @@ func insertStoredMigrationError(
 	query := fmt.Sprintf(`
 INSERT INTO %s (
     version,
-    previous_version,
+    previous_id,
     identifier,
     up_sql,
     down_sql,
     up_sha256,
     down_sha256,
     format_version
-) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-`, relation)
+) VALUES (
+    $1,
+    (SELECT id FROM %s WHERE version = $2 AND archived_at IS NULL),
+    $3,
+    $4,
+    $5,
+    $6,
+    $7,
+    $8
+)
+`, relation, relation)
 
 	databaseVersion, err := catalogVersion(migration.version)
 	if err != nil {

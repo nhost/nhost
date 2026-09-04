@@ -210,9 +210,16 @@ func TestCatalogSourceRejectsBrokenDatabaseChains(t *testing.T) {
 					t,
 					database,
 					relation,
-					"ALTER TABLE %s DROP CONSTRAINT schema_migration_catalog_previous_version_fkey",
+					"ALTER TABLE %s DROP CONSTRAINT schema_migration_catalog_previous_id_fkey",
 				)
-				updateCatalogForTest(t, database, relation, "previous_version", int64(99), 10)
+
+				query := fmt.Sprintf( //nolint:gosec // relation is identifier-quoted.
+					"UPDATE %s SET previous_id = gen_random_uuid() WHERE version = $1",
+					relation,
+				)
+				if _, err := database.ExecContext(t.Context(), query, int64(10)); err != nil {
+					t.Fatalf("assigning missing predecessor: %v", err)
+				}
 			},
 			call: func(driver *catalogSource) error {
 				_, err := driver.Prev(10)
@@ -226,9 +233,9 @@ func TestCatalogSourceRejectsBrokenDatabaseChains(t *testing.T) {
 				t.Helper()
 
 				rootIndex := strings.TrimSuffix(relation, pq.QuoteIdentifier(catalogTableName)) +
-					pq.QuoteIdentifier("schema_migration_catalog_one_root")
+					pq.QuoteIdentifier("schema_migration_catalog_one_active_root")
 				execCatalogDDLForTest(t, database, rootIndex, "DROP INDEX %s")
-				updateCatalogForTest(t, database, relation, "previous_version", nil, 10)
+				updateCatalogPredecessorForTest(t, database, relation, nil, 10)
 			},
 			call: func(driver *catalogSource) error {
 				_, err := driver.First()
@@ -240,12 +247,15 @@ func TestCatalogSourceRejectsBrokenDatabaseChains(t *testing.T) {
 			name: "multiple successors",
 			mutate: func(t *testing.T, database *sql.DB, relation string) {
 				t.Helper()
-				execCatalogDDLForTest(
-					t,
-					database,
+
+				successorIndex := strings.TrimSuffix(
 					relation,
-					"ALTER TABLE %s DROP CONSTRAINT schema_migration_catalog_previous_version_key",
-				)
+					pq.QuoteIdentifier(catalogTableName),
+				) +
+					pq.QuoteIdentifier(
+						"schema_migration_catalog_active_successor",
+					)
+				execCatalogDDLForTest(t, database, successorIndex, "DROP INDEX %s")
 
 				additional := storedMigrationFrom(
 					testMigration(20, uintPointer(1), "another_successor"),
@@ -262,7 +272,7 @@ func TestCatalogSourceRejectsBrokenDatabaseChains(t *testing.T) {
 			name: "chain without root",
 			mutate: func(t *testing.T, database *sql.DB, relation string) {
 				t.Helper()
-				updateCatalogForTest(t, database, relation, "previous_version", int64(10), 1)
+				updateCatalogPredecessorForTest(t, database, relation, int64(10), 1)
 			},
 			call: func(driver *catalogSource) error {
 				_, err := driver.First()
@@ -379,6 +389,34 @@ func assertHardIntegrityError(
 	}
 }
 
+func updateCatalogPredecessorForTest(
+	t *testing.T,
+	database *sql.DB,
+	relation string,
+	previousVersion any,
+	version int64,
+) {
+	t.Helper()
+
+	query := fmt.Sprintf( //nolint:gosec // relation is identifier-quoted.
+		`UPDATE %s AS migration
+SET previous_id = (
+    SELECT id FROM %s WHERE version = $1 AND archived_at IS NULL
+)
+WHERE migration.version = $2 AND migration.archived_at IS NULL`,
+		relation,
+		relation,
+	)
+	if _, err := database.ExecContext(
+		t.Context(),
+		query,
+		previousVersion,
+		version,
+	); err != nil {
+		t.Fatalf("updating catalog predecessor: %v", err)
+	}
+}
+
 func updateCatalogForTest(
 	t *testing.T,
 	database *sql.DB,
@@ -390,12 +428,11 @@ func updateCatalogForTest(
 	t.Helper()
 
 	allowedColumns := map[string]struct{}{
-		"down_sha256":      {},
-		"down_sql":         {},
-		"format_version":   {},
-		"previous_version": {},
-		"up_sha256":        {},
-		"up_sql":           {},
+		"down_sha256":    {},
+		"down_sql":       {},
+		"format_version": {},
+		"up_sha256":      {},
+		"up_sql":         {},
 	}
 	if _, allowed := allowedColumns[column]; !allowed {
 		t.Fatalf("test attempted to update disallowed catalog column %q", column)

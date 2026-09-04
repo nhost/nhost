@@ -143,8 +143,9 @@ func newSQLCatalog(ctx context.Context, connection *sql.Conn, schema string) (*c
 func (c *catalog) bootstrap() error {
 	query := fmt.Sprintf(`
 CREATE TABLE IF NOT EXISTS %s (
-    version BIGINT PRIMARY KEY,
-    previous_version BIGINT NULL,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    version BIGINT NOT NULL,
+    previous_id UUID NULL,
     identifier TEXT NOT NULL,
     up_sql BYTEA NOT NULL,
     down_sql BYTEA NOT NULL,
@@ -152,22 +153,146 @@ CREATE TABLE IF NOT EXISTS %s (
     down_sha256 BYTEA NOT NULL,
     format_version INTEGER NOT NULL,
     registered_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    archived_at TIMESTAMPTZ NULL,
+    archive_batch_id UUID NULL,
     CONSTRAINT schema_migration_catalog_version_nonnegative CHECK (version >= 0),
     CONSTRAINT schema_migration_catalog_up_sql_nonempty CHECK (octet_length(up_sql) > 0),
     CONSTRAINT schema_migration_catalog_down_sql_nonempty CHECK (octet_length(down_sql) > 0),
     CONSTRAINT schema_migration_catalog_up_sha256_length CHECK (octet_length(up_sha256) = 32),
     CONSTRAINT schema_migration_catalog_down_sha256_length CHECK (octet_length(down_sha256) = 32),
-    CONSTRAINT schema_migration_catalog_previous_version_fkey
-        FOREIGN KEY (previous_version) REFERENCES %s (version) ON DELETE RESTRICT,
-    CONSTRAINT schema_migration_catalog_previous_version_key UNIQUE (previous_version)
+    CONSTRAINT schema_migration_catalog_previous_id_fkey
+        FOREIGN KEY (previous_id) REFERENCES %s (id) ON DELETE RESTRICT,
+    CONSTRAINT schema_migration_catalog_archive_metadata_check CHECK (
+        (archived_at IS NULL) = (archive_batch_id IS NULL)
+    )
 );
-CREATE UNIQUE INDEX IF NOT EXISTS schema_migration_catalog_one_root
-    ON %s ((previous_version IS NULL))
-    WHERE previous_version IS NULL;
-`, c.relation, c.relation, c.relation)
+CREATE UNIQUE INDEX IF NOT EXISTS schema_migration_catalog_active_version
+    ON %s (version)
+    WHERE archived_at IS NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS schema_migration_catalog_active_successor
+    ON %s (previous_id)
+    WHERE archived_at IS NULL AND previous_id IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS schema_migration_catalog_one_active_root
+    ON %s ((previous_id IS NULL))
+    WHERE archived_at IS NULL AND previous_id IS NULL;
+`, c.relation, c.relation, c.relation, c.relation, c.relation)
 
 	if err := c.database.exec(c.ctx, query); err != nil {
 		return fmt.Errorf("bootstrapping migration catalog in schema %q: %w", c.schema, err)
+	}
+
+	return nil
+}
+
+func (c *catalog) reconcile(local *bundle, currentVersion int64) error {
+	if local == nil {
+		return &ConfigurationError{
+			Field: "bundle",
+			Issue: "must not be nil",
+			Cause: nil,
+		}
+	}
+
+	matches, err := c.activeFutureMatches(local, currentVersion)
+	if err != nil {
+		return err
+	}
+
+	if !matches {
+		if err := c.archiveAfter(currentVersion); err != nil {
+			return err
+		}
+	}
+
+	return c.publish(local)
+}
+
+func (c *catalog) activeFutureMatches(local *bundle, currentVersion int64) (bool, error) {
+	query := fmt.Sprintf(`
+SELECT version
+FROM %s
+WHERE archived_at IS NULL
+ORDER BY version
+`, c.relation)
+
+	activeVersions, err := c.queryVersions(query, nil)
+	if err != nil {
+		return false, err
+	}
+
+	localByVersion := make(map[uint]*migration, len(local.migrations))
+	localFutureCount := 0
+
+	for index := range local.migrations {
+		migration := &local.migrations[index]
+		localByVersion[migration.version] = migration
+
+		if versionAfter(migration.version, currentVersion) {
+			localFutureCount++
+		}
+	}
+
+	activeFutureCount := 0
+
+	for _, version := range activeVersions {
+		stored, found, migrationErr := c.migration(version)
+		if migrationErr != nil {
+			return false, migrationErr
+		}
+
+		if !found {
+			return false, missingMigration(version)
+		}
+
+		localMigration, present := localByVersion[version]
+		if versionAfter(version, currentVersion) {
+			activeFutureCount++
+
+			if !present || !migrationMatches(*localMigration, stored) {
+				return false, nil
+			}
+
+			continue
+		}
+
+		if present {
+			if err := compareMigration(*localMigration, stored); err != nil {
+				return false, err
+			}
+		}
+	}
+
+	return activeFutureCount == localFutureCount, nil
+}
+
+func versionAfter(version uint, currentVersion int64) bool {
+	if currentVersion < 0 {
+		return true
+	}
+
+	return uint64(version) > uint64(currentVersion)
+}
+
+func (c *catalog) archiveAfter(version int64) error {
+	query := fmt.Sprintf(`
+WITH archive_batch AS MATERIALIZED (
+    SELECT gen_random_uuid() AS id, CURRENT_TIMESTAMP AS archived_at
+)
+UPDATE %s AS migration
+SET
+    archived_at = archive_batch.archived_at,
+    archive_batch_id = archive_batch.id
+FROM archive_batch
+WHERE migration.archived_at IS NULL AND migration.version > $1
+`, c.relation)
+
+	if err := c.database.exec(c.ctx, query, version); err != nil {
+		return fmt.Errorf(
+			"archiving migration catalog suffix after version %d in schema %q: %w",
+			version,
+			c.schema,
+			err,
+		)
 	}
 
 	return nil
@@ -185,16 +310,25 @@ func (c *catalog) publish(local *bundle) error {
 	query := fmt.Sprintf(`
 INSERT INTO %s (
     version,
-    previous_version,
+    previous_id,
     identifier,
     up_sql,
     down_sql,
     up_sha256,
     down_sha256,
     format_version
-) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-ON CONFLICT (version) DO NOTHING
-`, c.relation)
+) VALUES (
+    $1,
+    (SELECT id FROM %s WHERE version = $2 AND archived_at IS NULL),
+    $3,
+    $4,
+    $5,
+    $6,
+    $7,
+    $8
+)
+ON CONFLICT (version) WHERE archived_at IS NULL DO NOTHING
+`, c.relation, c.relation)
 
 	for index := range local.migrations {
 		if err := c.publishMigration(query, &local.migrations[index]); err != nil {
@@ -312,6 +446,10 @@ func compareMigration(local migration, stored storedMigration) error {
 	return nil
 }
 
+func migrationMatches(local migration, stored storedMigration) bool {
+	return compareMigration(local, stored) == nil
+}
+
 func immutableFieldMismatch(version uint, field string) error {
 	return &IntegrityError{
 		Version: version,
@@ -336,17 +474,19 @@ func (c *catalog) migration(version uint) (storedMigration, bool, error) {
 
 	query := fmt.Sprintf(`
 SELECT
-    version,
-    previous_version,
-    identifier,
-    up_sql,
-    down_sql,
-    up_sha256,
-    down_sha256,
-    format_version
-FROM %s
-WHERE version = $1
-`, c.relation)
+    migration.version,
+    migration.previous_id,
+    predecessor.version,
+    migration.identifier,
+    migration.up_sql,
+    migration.down_sql,
+    migration.up_sha256,
+    migration.down_sha256,
+    migration.format_version
+FROM %s AS migration
+LEFT JOIN %s AS predecessor ON predecessor.id = migration.previous_id
+WHERE migration.version = $1 AND migration.archived_at IS NULL
+`, c.relation, c.relation)
 
 	var (
 		got   storedMigration
@@ -388,10 +528,12 @@ func scanStoredMigration(rows catalogRows, requestedVersion uint) (storedMigrati
 	var (
 		got             storedMigration
 		storedVersion   int64
+		previousID      sql.NullString
 		previousVersion sql.NullInt64
 	)
 	if err := rows.Scan(
 		&storedVersion,
+		&previousID,
 		&previousVersion,
 		&got.identifier,
 		&got.upSQL,
@@ -417,6 +559,14 @@ func scanStoredMigration(rows catalogRows, requestedVersion uint) (storedMigrati
 	}
 
 	got.version = convertedVersion
+
+	if previousID.Valid && !previousVersion.Valid {
+		return storedMigration{}, &IntegrityError{
+			Version: requestedVersion,
+			Issue:   "references a missing predecessor row",
+			Cause:   nil,
+		}
+	}
 
 	if previousVersion.Valid {
 		convertedPrevious, conversionErr := sourceVersion(previousVersion.Int64)
@@ -468,7 +618,7 @@ func (c *catalog) first() (uint, error) {
 	query := fmt.Sprintf(`
 SELECT version
 FROM %s
-WHERE previous_version IS NULL
+WHERE archived_at IS NULL AND previous_id IS NULL
 ORDER BY version
 LIMIT 2
 `, c.relation)
@@ -492,6 +642,7 @@ LIMIT 2
 	query = fmt.Sprintf(`
 SELECT version
 FROM %s
+WHERE archived_at IS NULL
 ORDER BY version
 LIMIT 1
 `, c.relation)
@@ -561,12 +712,15 @@ func (c *catalog) next(version uint) (uint, error) {
 	}
 
 	query := fmt.Sprintf(`
-SELECT version
-FROM %s
-WHERE previous_version = $1
-ORDER BY version
+SELECT successor.version
+FROM %s AS successor
+JOIN %s AS predecessor ON predecessor.id = successor.previous_id
+WHERE predecessor.version = $1
+  AND predecessor.archived_at IS NULL
+  AND successor.archived_at IS NULL
+ORDER BY successor.version
 LIMIT 2
-`, c.relation)
+`, c.relation, c.relation)
 
 	successors, err := c.queryVersions(query, []any{databaseVersion})
 	if err != nil {

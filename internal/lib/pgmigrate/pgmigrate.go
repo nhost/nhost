@@ -199,7 +199,6 @@ func migrateUnderLock(
 ) error {
 	driver, catalogDriver, err := prepareMigrationDrivers(
 		ctx,
-		local,
 		schema,
 		databaseName,
 		executionConnection,
@@ -212,6 +211,10 @@ func migrateUnderLock(
 	currentVersion, err := readCleanMigrationState(driver, schema)
 	if err != nil {
 		return fmt.Errorf("validating PostgreSQL migration state: %w", err)
+	}
+
+	if err := catalogDriver.catalog.reconcile(local, int64(currentVersion)); err != nil {
+		return fmt.Errorf("reconciling migration bundle: %w", err)
 	}
 
 	if logger == nil {
@@ -244,12 +247,24 @@ func migrateUnderLock(
 		return fmt.Errorf("executing target migration: %w", err)
 	}
 
+	return archiveCatalogAfterTarget(catalogDriver.catalog, target)
+}
+
+func archiveCatalogAfterTarget(catalog *catalog, target uint) error {
+	targetVersion, err := catalogVersion(target)
+	if err != nil {
+		return fmt.Errorf("converting migration target for catalog archival: %w", err)
+	}
+
+	if err := catalog.archiveAfter(targetVersion); err != nil {
+		return fmt.Errorf("archiving unapplied migration catalog suffix: %w", err)
+	}
+
 	return nil
 }
 
 func prepareMigrationDrivers(
 	ctx context.Context,
-	local *bundle,
 	schema string,
 	databaseName string,
 	executionConnection *sql.Conn,
@@ -279,10 +294,6 @@ func prepareMigrationDrivers(
 
 	if err := catalog.bootstrap(); err != nil {
 		return nil, nil, fmt.Errorf("bootstrapping migration catalog: %w", err)
-	}
-
-	if err := catalog.publish(local); err != nil {
-		return nil, nil, fmt.Errorf("publishing migration bundle: %w", err)
 	}
 
 	catalogDriver := newCatalogSource(catalog)
