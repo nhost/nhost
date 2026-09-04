@@ -2568,7 +2568,7 @@ async fn functions_post_decodes_json() {
 }
 
 #[tokio::test]
-async fn functions_empty_json_response_retains_status() {
+async fn functions_empty_json_response_retains_metadata() {
     let server = MockServer::start().await;
     Mock::given(method("GET"))
         .and(path("/empty-204"))
@@ -2588,6 +2588,11 @@ async fn functions_empty_json_response_retains_status() {
     Mock::given(method("GET"))
         .and(path("/body-204"))
         .respond_with(ResponseTemplate::new(204).set_body_json(json!({"present": true})))
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path("/not-modified"))
+        .respond_with(ResponseTemplate::new(304).insert_header("etag", "\"version-1\""))
         .mount(&server)
         .await;
 
@@ -2612,6 +2617,11 @@ async fn functions_empty_json_response_retains_status() {
         .get::<Option<serde_json::Value>>("/body-204")
         .await
         .unwrap();
+    let not_modified = client
+        .functions
+        .get::<Option<serde_json::Value>>("/not-modified")
+        .await
+        .unwrap();
 
     assert_eq!(empty_204.status, 204);
     assert_eq!(empty_204.body, None);
@@ -2622,6 +2632,9 @@ async fn functions_empty_json_response_retains_status() {
     assert_eq!(body_204.status, 204);
     // reqwest presents a 204 as bodyless even when the mock supplies a payload.
     assert_eq!(body_204.body, None);
+    assert_eq!(not_modified.status, 304);
+    assert_eq!(not_modified.body, None);
+    assert_eq!(not_modified.headers["etag"], "\"version-1\"");
 }
 
 #[tokio::test]
