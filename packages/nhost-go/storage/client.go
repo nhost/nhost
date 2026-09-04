@@ -117,11 +117,16 @@ type ListOrphanedFilesResponse200 struct {
 }
 
 type GetFileParams struct {
-	Q *int               `json:"q,omitempty"`
-	H *int               `json:"h,omitempty"`
-	W *int               `json:"w,omitempty"`
-	B *float64           `json:"b,omitempty"`
-	F *OutputImageFormat `json:"f,omitempty"`
+	Q                 *int               `json:"q,omitempty"`
+	H                 *int               `json:"h,omitempty"`
+	W                 *int               `json:"w,omitempty"`
+	B                 *float64           `json:"b,omitempty"`
+	F                 *OutputImageFormat `json:"f,omitempty"`
+	IfMatch           *string            `json:"if-match,omitempty"`
+	IfNoneMatch       *string            `json:"if-none-match,omitempty"`
+	IfModifiedSince   *string            `json:"if-modified-since,omitempty"`
+	IfUnmodifiedSince *string            `json:"if-unmodified-since,omitempty"`
+	Range             *string            `json:"Range,omitempty"`
 }
 
 func (p *GetFileParams) toQuery() url.Values {
@@ -144,12 +149,36 @@ func (p *GetFileParams) toQuery() url.Values {
 	return q
 }
 
+func (p *GetFileParams) toHeaders() http.Header {
+	headers := http.Header{}
+	if p.IfMatch != nil {
+		headers.Set("if-match", fmt.Sprint(*p.IfMatch))
+	}
+	if p.IfNoneMatch != nil {
+		headers.Set("if-none-match", fmt.Sprint(*p.IfNoneMatch))
+	}
+	if p.IfModifiedSince != nil {
+		headers.Set("if-modified-since", fmt.Sprint(*p.IfModifiedSince))
+	}
+	if p.IfUnmodifiedSince != nil {
+		headers.Set("if-unmodified-since", fmt.Sprint(*p.IfUnmodifiedSince))
+	}
+	if p.Range != nil {
+		headers.Set("Range", fmt.Sprint(*p.Range))
+	}
+	return headers
+}
+
 type GetFileMetadataHeadersParams struct {
-	Q *int               `json:"q,omitempty"`
-	H *int               `json:"h,omitempty"`
-	W *int               `json:"w,omitempty"`
-	B *float64           `json:"b,omitempty"`
-	F *OutputImageFormat `json:"f,omitempty"`
+	Q                 *int               `json:"q,omitempty"`
+	H                 *int               `json:"h,omitempty"`
+	W                 *int               `json:"w,omitempty"`
+	B                 *float64           `json:"b,omitempty"`
+	F                 *OutputImageFormat `json:"f,omitempty"`
+	IfMatch           *string            `json:"if-match,omitempty"`
+	IfNoneMatch       *string            `json:"if-none-match,omitempty"`
+	IfModifiedSince   *string            `json:"if-modified-since,omitempty"`
+	IfUnmodifiedSince *string            `json:"if-unmodified-since,omitempty"`
 }
 
 func (p *GetFileMetadataHeadersParams) toQuery() url.Values {
@@ -170,6 +199,23 @@ func (p *GetFileMetadataHeadersParams) toQuery() url.Values {
 		q.Set("f", fmt.Sprint(*p.F))
 	}
 	return q
+}
+
+func (p *GetFileMetadataHeadersParams) toHeaders() http.Header {
+	headers := http.Header{}
+	if p.IfMatch != nil {
+		headers.Set("if-match", fmt.Sprint(*p.IfMatch))
+	}
+	if p.IfNoneMatch != nil {
+		headers.Set("if-none-match", fmt.Sprint(*p.IfNoneMatch))
+	}
+	if p.IfModifiedSince != nil {
+		headers.Set("if-modified-since", fmt.Sprint(*p.IfModifiedSince))
+	}
+	if p.IfUnmodifiedSince != nil {
+		headers.Set("if-unmodified-since", fmt.Sprint(*p.IfUnmodifiedSince))
+	}
+	return headers
 }
 
 func escapePathSegment(value any) string {
@@ -208,6 +254,9 @@ func NewClient(baseURL string, httpClient *http.Client) *Client {
 // UploadFiles performs POST /files. It returns the decoded body,
 // the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
 // responses.
+// Multipart binary fields use the wire field name as their filename; binary
+// array items use deterministic file-N filenames. The raw []byte API does not
+// accept caller-provided filename metadata.
 func (c *Client) UploadFiles(
 	ctx context.Context,
 	body UploadFilesBody,
@@ -223,8 +272,7 @@ func (c *Client) UploadFiles(
 		}
 	}
 	if body.Metadata != nil {
-		for i, item := range *body.Metadata {
-			_ = i
+		for _, item := range *body.Metadata {
 			jb, err := json.Marshal(item)
 			if err != nil {
 				return payload, nil, err
@@ -243,7 +291,6 @@ func (c *Client) UploadFiles(
 	}
 	{
 		for i, item := range body.File {
-			_ = i
 			fw, err := mw.CreateFormFile("file[]", fmt.Sprintf("file-%d", i))
 			if err != nil {
 				return payload, nil, err
@@ -262,9 +309,7 @@ func (c *Client) UploadFiles(
 	}
 	req.Header.Set("Content-Type", mw.FormDataContentType())
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -282,7 +327,7 @@ func (c *Client) UploadFiles(
 	return payload, &transport.Response{Status: resp.StatusCode, Headers: resp.Header}, nil
 }
 
-// DeleteFile performs DELETE /files/%s. It returns the decoded body,
+// DeleteFile performs DELETE /files/{id}. It returns the decoded body,
 // the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
 // responses.
 func (c *Client) DeleteFile(
@@ -297,9 +342,7 @@ func (c *Client) DeleteFile(
 		return payload, nil, err
 	}
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -314,7 +357,7 @@ func (c *Client) DeleteFile(
 	return payload, &transport.Response{Status: resp.StatusCode, Headers: resp.Header}, nil
 }
 
-// GetFile performs GET /files/%s. It returns the decoded body,
+// GetFile performs GET /files/{id}. It returns the decoded body,
 // the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
 // responses.
 func (c *Client) GetFile(
@@ -332,10 +375,13 @@ func (c *Client) GetFile(
 	if params != nil {
 		req.URL.RawQuery = params.toQuery().Encode()
 	}
-	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
+	if params != nil {
+		for k, vs := range params.toHeaders() {
+			req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 		}
+	}
+	for k, vs := range headers {
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -354,7 +400,7 @@ func (c *Client) GetFile(
 	return payload, &transport.Response{Status: resp.StatusCode, Headers: resp.Header}, nil
 }
 
-// GetFileMetadataHeaders performs HEAD /files/%s. It returns the decoded body,
+// GetFileMetadataHeaders performs HEAD /files/{id}. It returns the decoded body,
 // the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
 // responses.
 func (c *Client) GetFileMetadataHeaders(
@@ -372,10 +418,13 @@ func (c *Client) GetFileMetadataHeaders(
 	if params != nil {
 		req.URL.RawQuery = params.toQuery().Encode()
 	}
-	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
+	if params != nil {
+		for k, vs := range params.toHeaders() {
+			req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 		}
+	}
+	for k, vs := range headers {
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -390,9 +439,12 @@ func (c *Client) GetFileMetadataHeaders(
 	return payload, &transport.Response{Status: resp.StatusCode, Headers: resp.Header}, nil
 }
 
-// ReplaceFile performs PUT /files/%s. It returns the decoded body,
+// ReplaceFile performs PUT /files/{id}. It returns the decoded body,
 // the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
 // responses.
+// Multipart binary fields use the wire field name as their filename; binary
+// array items use deterministic file-N filenames. The raw []byte API does not
+// accept caller-provided filename metadata.
 func (c *Client) ReplaceFile(
 	ctx context.Context,
 	id string,
@@ -437,9 +489,7 @@ func (c *Client) ReplaceFile(
 	}
 	req.Header.Set("Content-Type", mw.FormDataContentType())
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -457,7 +507,7 @@ func (c *Client) ReplaceFile(
 	return payload, &transport.Response{Status: resp.StatusCode, Headers: resp.Header}, nil
 }
 
-// GetFilePresignedURL performs GET /files/%s/presignedurl. It returns the decoded body,
+// GetFilePresignedURL performs GET /files/{id}/presignedurl. It returns the decoded body,
 // the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
 // responses.
 func (c *Client) GetFilePresignedURL(
@@ -472,9 +522,7 @@ func (c *Client) GetFilePresignedURL(
 		return payload, nil, err
 	}
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -506,9 +554,7 @@ func (c *Client) DeleteBrokenMetadata(
 		return payload, nil, err
 	}
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -540,9 +586,7 @@ func (c *Client) DeleteOrphanedFiles(
 		return payload, nil, err
 	}
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -574,9 +618,7 @@ func (c *Client) ListBrokenMetadata(
 		return payload, nil, err
 	}
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -608,9 +650,7 @@ func (c *Client) ListFilesNotUploaded(
 		return payload, nil, err
 	}
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -642,9 +682,7 @@ func (c *Client) ListOrphanedFiles(
 		return payload, nil, err
 	}
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -676,9 +714,7 @@ func (c *Client) GetVersion(
 		return payload, nil, err
 	}
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
