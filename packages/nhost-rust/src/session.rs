@@ -45,8 +45,12 @@ pub struct DecodedToken {
     /// Token issued-at time in **milliseconds** since the Unix epoch.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub iat: Option<i64>,
+    /// The `iss` claim, when the token carries one. Decoded and exposed for
+    /// callers but never checked by this SDK, so an application that needs to
+    /// pin the issuer must compare it itself.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub iss: Option<String>,
+    /// Subject identifier from the `sub` claim, normally the authenticated user's ID.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sub: Option<String>,
     /// Hasura claims, with PostgreSQL array literals converted to arrays.
@@ -87,8 +91,12 @@ impl std::fmt::Debug for DecodedToken {
 /// a session into logs.
 #[derive(Clone, Serialize, Deserialize)]
 pub struct StoredSession {
+    /// The raw auth response, flattened into the persisted object for JS SDK
+    /// interoperability.
     #[serde(flatten)]
     pub session: Session,
+    /// A persisted cache of the access-token claims. [`SessionStorage::get`]
+    /// re-decodes the token instead of trusting this value after deserialization.
     #[serde(rename = "decodedToken")]
     pub decoded_token: DecodedToken,
 }
@@ -277,8 +285,11 @@ fn canonicalize_stored_session(mut stored: StoredSession) -> Result<StoredSessio
 /// A backend persisting a single [`StoredSession`].
 #[cfg(not(all(feature = "wasm", target_arch = "wasm32")))]
 pub trait Backend: Send + Sync {
+    /// Loads the current session, returning `None` when no session is persisted.
     fn get(&self) -> Result<Option<StoredSession>, Error>;
+    /// Replaces the persisted session with `value`.
     fn set(&self, value: &StoredSession) -> Result<(), Error>;
+    /// Deletes the persisted session; built-in backends treat absence as success.
     fn remove(&self) -> Result<(), Error>;
 }
 
@@ -287,8 +298,11 @@ pub trait Backend: Send + Sync {
 /// handles are !Send; [`SessionStorage`] re-asserts them for middleware bounds.
 #[cfg(all(feature = "wasm", target_arch = "wasm32"))]
 pub trait Backend {
+    /// Loads the current session, returning `None` when no session is persisted.
     fn get(&self) -> Result<Option<StoredSession>, Error>;
+    /// Replaces the persisted session with `value`.
     fn set(&self, value: &StoredSession) -> Result<(), Error>;
+    /// Deletes the persisted session; built-in backends treat absence as success.
     fn remove(&self) -> Result<(), Error>;
 }
 
@@ -324,6 +338,9 @@ pub struct FileStorage {
 
 #[cfg(not(all(feature = "wasm", target_arch = "wasm32")))]
 impl FileStorage {
+    /// Creates a backend for `path`; parent directories are created on the first
+    /// write attempt rather than during construction, so they persist even if
+    /// that write then fails.
     pub fn new(path: impl Into<PathBuf>) -> Self {
         Self { path: path.into() }
     }
@@ -471,6 +488,8 @@ unsafe impl Send for SessionStorage {}
 unsafe impl Sync for SessionStorage {}
 
 impl SessionStorage {
+    /// Takes ownership of a backend without reading it; persisted data is loaded
+    /// and canonicalized when [`Self::get`] is called.
     pub fn new(backend: Box<dyn Backend>) -> Self {
         Self {
             inner: Arc::new(StorageInner {
@@ -515,6 +534,8 @@ impl SessionStorage {
         Ok(())
     }
 
+    /// Deletes the persisted session, clears its refresh schedule, and notifies
+    /// subscribers with `None` after the backend deletion succeeds.
     pub fn remove(&self) -> Result<(), Error> {
         self.inner.backend.remove()?;
         *self.inner.refresh_deadline.lock().unwrap() = None;

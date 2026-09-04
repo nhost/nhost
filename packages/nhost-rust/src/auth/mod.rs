@@ -1,5 +1,6 @@
 //! Nhost Auth: generated REST client and models plus hand-written PKCE helpers.
 
+#[allow(missing_docs)]
 mod client;
 mod pkce;
 
