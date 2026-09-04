@@ -3,13 +3,13 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { Container } from '@/components/layout/Container';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
-import { Button } from '@/components/ui/v3/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from '@/components/ui/v3/dialog';
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle,
+} from '@/components/ui/v3/alert-dialog';
+import { Button } from '@/components/ui/v3/button';
 import { ApplicationInfo } from '@/features/orgs/projects/common/components/ApplicationInfo';
 import { RemoveApplicationModal } from '@/features/orgs/projects/common/components/RemoveApplicationModal';
 import { StagingMetadata } from '@/features/orgs/projects/common/components/StagingMetadata';
@@ -19,35 +19,69 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 export default function ApplicationUnknown() {
   const { project, loading } = useProject();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletionPending, setDeletionPending] = useState(false);
   const isOwner = useIsCurrentUserOwner();
 
   if (!project || loading) {
     return <LoadingScreen />;
   }
 
+  const projectName =
+    typeof project.name === 'string' && project.name.length > 0
+      ? project.name
+      : null;
+  const removeProjectTitle = projectName ? (
+    <>
+      Remove project{' '}
+      <span className="select-none whitespace-pre-wrap break-words">
+        {projectName}
+      </span>
+      {'?'}
+    </>
+  ) : (
+    'Remove this project?'
+  );
+  const removeProjectDescription = projectName ? (
+    <>
+      The project{' '}
+      <span className="select-none whitespace-pre-wrap break-words">
+        {projectName}
+      </span>{' '}
+      will be removed. All data will be lost and there will be no way to recover
+      the app once it has been deleted.
+    </>
+  ) : (
+    'This project will be removed. All data will be lost and there will be no way to recover the app once it has been deleted.'
+  );
+
   return (
     <>
-      <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
-        <DialogContent
-          className="!bg-transparent !shadow-none !p-0 max-w-sm border-none"
-          hideCloseButton
-        >
-          <DialogTitle className="sr-only">
-            {`Remove project ${project?.name}?`}
-          </DialogTitle>
-          <DialogDescription className="sr-only">
-            {`The project ${project?.name} will be removed. All data will be lost
-            and there will be no way to recover the app once it has been
-            deleted.`}
-          </DialogDescription>
+      <AlertDialog
+        open={showDeleteModal}
+        onOpenChange={(nextOpen) => {
+          // Never dismiss while the deletion is in flight.
+          if (!nextOpen && deletionPending) {
+            return;
+          }
+
+          setShowDeleteModal(nextOpen);
+        }}
+      >
+        <AlertDialogContent className="!bg-transparent !shadow-none !p-0 max-w-lg border-none">
+          <AlertDialogTitle className="sr-only">
+            {removeProjectTitle}
+          </AlertDialogTitle>
+          <AlertDialogDescription className="sr-only">
+            {removeProjectDescription}
+          </AlertDialogDescription>
           <RemoveApplicationModal
             close={() => setShowDeleteModal(false)}
-            title={`Remove project ${project.name}?`}
-            description={`The project ${project.name} will be removed. All data will be lost and there will be no way to
-          recover the app once it has been deleted.`}
+            onPendingChange={setDeletionPending}
+            title={removeProjectTitle}
+            description={removeProjectDescription}
           />
-        </DialogContent>
-      </Dialog>
+        </AlertDialogContent>
+      </AlertDialog>
       <Container className="mx-auto mt-8 grid max-w-sm grid-flow-row gap-4 text-center">
         <div className="mx-auto flex w-centImage flex-col text-center">
           <Image
