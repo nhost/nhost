@@ -49,13 +49,12 @@ func (d *sqlCatalogDatabase) exec(ctx context.Context, query string, args ...any
 }
 
 // This adapter returns rows through the narrow catalogRows boundary; queryRows checks Err.
-//
-//nolint:ireturn,rowserrcheck // The interface and deferred error check are intentional.
-func (d *sqlCatalogDatabase) query(
+func (d *sqlCatalogDatabase) query( //nolint:ireturn // Returns the catalogRows boundary.
 	ctx context.Context,
 	query string,
 	args ...any,
 ) (catalogRows, error) {
+	//nolint:rowserrcheck // queryRows checks Err through the returned catalogRows boundary.
 	rows, err := d.connection.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("querying catalog: %w", err)

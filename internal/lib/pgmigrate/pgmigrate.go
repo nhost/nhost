@@ -387,8 +387,9 @@ func (s *preflightSource) seal() {
 	s.sealed = true
 }
 
-//nolint:ireturn // source.Driver requires Open to return the interface type.
-func (s *preflightSource) Open(string) (source.Driver, error) {
+func (s *preflightSource) Open( //nolint:ireturn // source.Driver contract.
+	string,
+) (source.Driver, error) {
 	return nil, errCatalogSourceURL
 }
 
