@@ -35,7 +35,7 @@ GraphQL API client.
 ##### `new`
 
 ```rust
-fn new<impl Into<String>: Into<String>>(url: impl Into<String>, reqwest: Client, middleware: Vec<Arc<dyn Middleware>>) -> Self
+fn new(url: impl Into<String>, reqwest: reqwest::Client, middleware: Vec<Arc<dyn reqwest_middleware::Middleware>>) -> Self
 ```
 
 Creates a client for the GraphQL endpoint `url` from a base client and
@@ -48,7 +48,7 @@ assemble the pipeline yourself.
 ##### `with_role`
 
 ```rust
-fn with_role<impl Into<String>: Into<String>>(&self, role: impl Into<String>) -> Self
+fn with_role(&self, role: impl Into<String>) -> Self
 ```
 
 Returns a copy of this client that sends `x-hasura-role: <role>` on every
@@ -65,7 +65,7 @@ Returns a copy of this client that sends extra headers on every request.
 ##### `query`
 
 ```rust
-fn query<impl Into<String>: Into<String>>(&self, query: impl Into<String>) -> Operation<'_>
+fn query(&self, query: impl Into<String>) -> Operation<'_>
 ```
 
 Begins building a GraphQL operation.
@@ -78,16 +78,36 @@ struct GraphqlError
 
 A single GraphQL error entry.
 
+`Debug` recursively redacts credential-bearing values in
+`locations`, `path`, and `extensions`. The conventional `extensions.code`
+classification, message, and non-sensitive values remain visible; a
+server-supplied message may itself contain sensitive data.
+
+This type is non-exhaustive because future GraphQL revisions or Nhost
+services may provide additional structured error fields. Use
+`GraphqlError::new` to construct one in test fixtures.
+
 #### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `message` | `String` |  |
-| `locations` | `Option<Value>` |  |
-| `path` | `Option<Value>` |  |
-| `extensions` | `Option<Value>` |  |
+| `message` | `String` | The server-provided human-readable description; it may contain sensitive data. |
+| `locations` | `Option<serde_json::Value>` | Source locations in the submitted document, omitted when the server cannot associate the error with a particular syntax node. |
+| `path` | `Option<serde_json::Value>` | The response path of the field that produced the error, when applicable. |
+| `extensions` | `Option<serde_json::Value>` | Server-defined metadata; `Self::code` reads its conventional string `code` classification. |
 
 #### Methods
+
+##### `new`
+
+```rust
+fn new(message: impl Into<String>) -> Self
+```
+
+Creates a GraphQL error with no locations, path, or extensions.
+
+The public fields can be updated when a test fixture needs structured
+context.
 
 ##### `code`
 
@@ -105,12 +125,26 @@ struct GraphqlResponse<T>
 
 The standard GraphQL response envelope, with `data` decoded as `T`.
 
+This type is non-exhaustive so the envelope can retain additional protocol
+metadata without breaking downstream crates. Use `GraphqlResponse::new`
+to construct one in test fixtures.
+
 #### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `data` | `Option<T>` |  |
-| `errors` | `Option<Vec<GraphqlError>>` |  |
+| `data` | `Option<T>` | The operation result, absent when the response omits `data` or returns it as JSON `null`; partial data may coexist with `Self::errors`. |
+| `errors` | `Option<Vec<GraphqlError>>` | Protocol errors returned by the server, omitted when no `errors` member was present. `Operation::send` and `Operation::execute` return a non-empty list as `Error::GraphQl` instead of yielding this envelope. |
+
+#### Methods
+
+##### `new`
+
+```rust
+fn new(data: Option<T>, errors: Option<Vec<GraphqlError>>) -> Self
+```
+
+Creates a GraphQL response envelope from optional data and errors.
 
 ### `Operation`
 
@@ -125,7 +159,7 @@ A GraphQL operation being built. Created by `Client::query`.
 ##### `variables`
 
 ```rust
-fn variables<impl Serialize: Serialize>(self, variables: impl Serialize) -> Self
+fn variables(self, variables: impl serde::Serialize) -> Self
 ```
 
 Replaces all variables at once from any serializable value.
@@ -137,7 +171,7 @@ Serialization failures are returned by `Self::execute` or `Self::send`.
 ##### `variable`
 
 ```rust
-fn variable<impl Into<String>: Into<String>, impl Serialize: Serialize>(self, key: impl Into<String>, value: impl Serialize) -> Self
+fn variable(self, key: impl Into<String>, value: impl serde::Serialize) -> Self
 ```
 
 Sets a single variable, merging into an object set by `Self::variables`.
@@ -148,7 +182,7 @@ are returned by `Self::execute` or `Self::send`.
 ##### `operation_name`
 
 ```rust
-fn operation_name<impl Into<String>: Into<String>>(self, name: impl Into<String>) -> Self
+fn operation_name(self, name: impl Into<String>) -> Self
 ```
 
 Sets the operation name (for multi-operation documents).
@@ -156,7 +190,7 @@ Sets the operation name (for multi-operation documents).
 ##### `send`
 
 ```rust
-async fn send<T: DeserializeOwned>(self) -> Result<T, Error>
+async fn send<T: serde::de::DeserializeOwned>(self) -> Result<T, Error>
 ```
 
 Sends the operation and returns `data` decoded as `T`.
@@ -171,18 +205,19 @@ GraphQL errors take precedence over a 3xx status other than 304, or a
 ##### `execute`
 
 ```rust
-async fn execute<T: DeserializeOwned>(self) -> Result<Response<GraphqlResponse<T>>, Error>
+async fn execute<T: serde::de::DeserializeOwned>(self) -> Result<Response<GraphqlResponse<T>>, Error>
 ```
 
-Sends the operation and returns the full GraphQL envelope (`data` +
-`errors`) together with the transport status and headers, decoding
-`data` as `T`.
+Sends the operation and returns the decoded `data` as `T`, together with
+the transport status and headers. The envelope's `errors` is always
+`None` here, because a non-empty array is reported as `Error::GraphQl`
+instead of being returned.
 
-On a successful HTTP response, GraphQL errors remain in the returned
-envelope so callers can inspect them directly. On a 3xx status other
-than 304, or a 4xx/5xx status, a non-empty GraphQL `errors` array takes
-precedence and produces `Error::GraphQl`; otherwise that status
-produces `Error::Api`. Variable serialization, transport, and
+A non-empty GraphQL `errors` array produces `Error::GraphQl` before
+`data` is decoded, preserving any raw partial data in the error payload.
+This applies regardless of whether the HTTP response was successful.
+Without GraphQL errors, a 3xx status other than 304, or a 4xx/5xx status,
+produces `Error::Api`. Variable serialization, transport, and genuine
 response-decoding failures are also returned as errors.
 
 ## Type Aliases
@@ -190,7 +225,7 @@ response-decoding failures are also returned as errors.
 ### `Variables`
 
 ```rust
-type Variables = Value
+type Variables = serde_json::Value
 ```
 
 GraphQL variables as free-form JSON.
