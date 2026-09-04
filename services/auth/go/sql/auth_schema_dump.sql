@@ -346,6 +346,30 @@ COMMENT ON TABLE auth.roles IS 'Persistent Hasura roles for users. Don''t modify
 
 
 --
+-- Name: schema_migration_catalog; Type: TABLE; Schema: auth; Owner: postgres
+--
+
+CREATE TABLE auth.schema_migration_catalog (
+    version bigint NOT NULL,
+    previous_version bigint,
+    identifier text NOT NULL,
+    up_sql bytea NOT NULL,
+    down_sql bytea NOT NULL,
+    up_sha256 bytea NOT NULL,
+    down_sha256 bytea NOT NULL,
+    format_version integer NOT NULL,
+    registered_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT schema_migration_catalog_down_sha256_length CHECK ((octet_length(down_sha256) = 32)),
+    CONSTRAINT schema_migration_catalog_down_sql_nonempty CHECK ((octet_length(down_sql) > 0)),
+    CONSTRAINT schema_migration_catalog_up_sha256_length CHECK ((octet_length(up_sha256) = 32)),
+    CONSTRAINT schema_migration_catalog_up_sql_nonempty CHECK ((octet_length(up_sql) > 0)),
+    CONSTRAINT schema_migration_catalog_version_nonnegative CHECK ((version >= 0))
+);
+
+
+ALTER TABLE auth.schema_migration_catalog OWNER TO postgres;
+
+--
 -- Name: schema_migrations; Type: TABLE; Schema: auth; Owner: postgres
 --
 
@@ -585,6 +609,22 @@ ALTER TABLE ONLY auth.roles
 
 
 --
+-- Name: schema_migration_catalog schema_migration_catalog_pkey; Type: CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.schema_migration_catalog
+    ADD CONSTRAINT schema_migration_catalog_pkey PRIMARY KEY (version);
+
+
+--
+-- Name: schema_migration_catalog schema_migration_catalog_previous_version_key; Type: CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.schema_migration_catalog
+    ADD CONSTRAINT schema_migration_catalog_previous_version_key UNIQUE (previous_version);
+
+
+--
 -- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: auth; Owner: postgres
 --
 
@@ -732,6 +772,13 @@ CREATE INDEX pkce_authorization_codes_expires_at_idx ON auth.pkce_authorization_
 --
 
 CREATE INDEX refresh_tokens_refresh_token_hash_expires_at_user_id_idx ON auth.refresh_tokens USING btree (refresh_token_hash, expires_at, user_id);
+
+
+--
+-- Name: schema_migration_catalog_one_root; Type: INDEX; Schema: auth; Owner: postgres
+--
+
+CREATE UNIQUE INDEX schema_migration_catalog_one_root ON auth.schema_migration_catalog USING btree (((previous_version IS NULL))) WHERE (previous_version IS NULL);
 
 
 --
@@ -916,6 +963,14 @@ ALTER TABLE ONLY auth.pkce_authorization_codes
 
 ALTER TABLE ONLY auth.refresh_tokens
     ADD CONSTRAINT refresh_tokens_types_fkey FOREIGN KEY (type) REFERENCES auth.refresh_token_types(value) ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+
+--
+-- Name: schema_migration_catalog schema_migration_catalog_previous_version_fkey; Type: FK CONSTRAINT; Schema: auth; Owner: postgres
+--
+
+ALTER TABLE ONLY auth.schema_migration_catalog
+    ADD CONSTRAINT schema_migration_catalog_previous_version_fkey FOREIGN KEY (previous_version) REFERENCES auth.schema_migration_catalog(version) ON DELETE RESTRICT;
 
 
 --

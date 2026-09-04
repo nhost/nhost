@@ -111,6 +111,18 @@ type AuthSchemaMigration struct {
 	Dirty   bool
 }
 
+type AuthSchemaMigrationCatalog struct {
+	Version         int64
+	PreviousVersion pgtype.Int8
+	Identifier      string
+	UpSql           []byte
+	DownSql         []byte
+	UpSha256        []byte
+	DownSha256      []byte
+	FormatVersion   int32
+	RegisteredAt    pgtype.Timestamptz
+}
+
 // User account information. Don't modify its structure as Hasura Auth relies on it to function properly.
 type AuthUser struct {
 	ID                           uuid.UUID

@@ -29,6 +29,7 @@ let
       ../../internal/lib/oapi
       ../../internal/lib/hasura/metadata
       ../../internal/lib/syncmap
+      (fs.fileFilter (f: f.hasExt "go") ../../internal/lib/pgmigrate)
 
       ./go/api/server.cfg.yaml
       ./go/api/types.cfg.yaml
