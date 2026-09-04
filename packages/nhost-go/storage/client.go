@@ -172,6 +172,18 @@ func (p *GetFileMetadataHeadersParams) toQuery() url.Values {
 	return q
 }
 
+func escapePathSegment(value any) string {
+	segment := fmt.Sprint(value)
+	switch segment {
+	case ".":
+		return "%2E"
+	case "..":
+		return "%2E%2E"
+	default:
+		return url.PathEscape(segment)
+	}
+}
+
 // Client is a generated API client backed by an *http.Client. Install request
 // middleware (session refresh, token attachment, ...) via the client's
 // Transport; see transport.NewHTTPClient.
@@ -279,7 +291,7 @@ func (c *Client) DeleteFile(
 	headers http.Header,
 ) (json.RawMessage, *transport.Response, error) {
 	var payload json.RawMessage
-	u := fmt.Sprintf("%s/files/%s", c.BaseURL, id)
+	u := fmt.Sprintf("%s/files/%s", c.BaseURL, escapePathSegment(id))
 	req, err := http.NewRequestWithContext(ctx, "DELETE", u, nil)
 	if err != nil {
 		return payload, nil, err
@@ -312,7 +324,7 @@ func (c *Client) GetFile(
 	headers http.Header,
 ) ([]byte, *transport.Response, error) {
 	var payload []byte
-	u := fmt.Sprintf("%s/files/%s", c.BaseURL, id)
+	u := fmt.Sprintf("%s/files/%s", c.BaseURL, escapePathSegment(id))
 	req, err := http.NewRequestWithContext(ctx, "GET", u, nil)
 	if err != nil {
 		return payload, nil, err
@@ -352,7 +364,7 @@ func (c *Client) GetFileMetadataHeaders(
 	headers http.Header,
 ) (json.RawMessage, *transport.Response, error) {
 	var payload json.RawMessage
-	u := fmt.Sprintf("%s/files/%s", c.BaseURL, id)
+	u := fmt.Sprintf("%s/files/%s", c.BaseURL, escapePathSegment(id))
 	req, err := http.NewRequestWithContext(ctx, "HEAD", u, nil)
 	if err != nil {
 		return payload, nil, err
@@ -388,7 +400,7 @@ func (c *Client) ReplaceFile(
 	headers http.Header,
 ) (FileMetadata, *transport.Response, error) {
 	var payload FileMetadata
-	u := fmt.Sprintf("%s/files/%s", c.BaseURL, id)
+	u := fmt.Sprintf("%s/files/%s", c.BaseURL, escapePathSegment(id))
 	var formBuf bytes.Buffer
 	mw := multipart.NewWriter(&formBuf)
 	if body.Metadata != nil {
@@ -454,7 +466,7 @@ func (c *Client) GetFilePresignedURL(
 	headers http.Header,
 ) (PresignedURLResponse, *transport.Response, error) {
 	var payload PresignedURLResponse
-	u := fmt.Sprintf("%s/files/%s/presignedurl", c.BaseURL, id)
+	u := fmt.Sprintf("%s/files/%s/presignedurl", c.BaseURL, escapePathSegment(id))
 	req, err := http.NewRequestWithContext(ctx, "GET", u, nil)
 	if err != nil {
 		return payload, nil, err
