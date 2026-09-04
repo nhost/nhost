@@ -133,7 +133,7 @@ async fn main() {
 }
 
 async fn run(command: Command) -> Result<()> {
-    let client = make_client();
+    let client = make_client()?;
     match command {
         Command::Login { email, password } => login(&client, &email, &password).await,
         Command::Signup { email, password } => signup(&client, &email, &password).await,
@@ -188,17 +188,16 @@ async fn run(command: Command) -> Result<()> {
     }
 }
 
-fn make_client() -> Nhost {
+fn make_client() -> Result<Nhost> {
     let path = session_path();
     if let Some(parent) = path.parent() {
-        let _ = std::fs::create_dir_all(parent);
+        std::fs::create_dir_all(parent)?;
     }
-    Nhost::builder()
+    Ok(Nhost::builder()
         .subdomain(env("NHOST_SUBDOMAIN", "local"))
         .region(env("NHOST_REGION", "local"))
         .storage(Box::new(FileStorage::new(path)))
-        .build()
-        .expect("client-side build cannot fail")
+        .build()?)
 }
 
 fn session_path() -> PathBuf {
