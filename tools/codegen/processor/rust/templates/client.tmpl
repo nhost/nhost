@@ -1,0 +1,327 @@
+{{- define "method" -}}
+{{- $body := or .RequestJSON .RequestFormData .RequestFormURLEncoded -}}
+{{- $response := rustResponse . -}}
+{{- if .IsRedirect }}
+    /// Builds the URL for {{ .Method }} {{ .Path }} without following the redirect.
+    pub fn {{ .Name }}_url(
+        &self,
+{{- range .PathParameters }}
+        {{ .Name }}: &str,
+{{- end }}
+{{- if .HasQueryParameters }}
+{{- if .HasRequiredQueryParameters }}
+        params: &{{ pascal .Name }}Params,
+{{- else }}
+        params: Option<&{{ pascal .Name }}Params>,
+{{- end }}
+{{- end }}
+    ) -> Result<String, Error> {
+        let mut url = http::append_path(self.base_url.as_str(), &[{{ rustPathSegments .Path }}])?.to_string();
+{{- if .HasQueryParameters }}
+{{- if .HasRequiredQueryParameters }}
+        let q = params.to_query();
+        if !q.is_empty() {
+            let qs = q
+                .iter()
+                .map(|(k, v)| format!("{}={}", urlencode(k), urlencode(v)))
+                .collect::<Vec<_>>()
+                .join("&");
+            url.push('?');
+            url.push_str(&qs);
+        }
+{{- else }}
+        if let Some(p) = params {
+            let q = p.to_query();
+            if !q.is_empty() {
+                let qs = q
+                    .iter()
+                    .map(|(k, v)| format!("{}={}", urlencode(k), urlencode(v)))
+                    .collect::<Vec<_>>()
+                    .join("&");
+                url.push('?');
+                url.push_str(&qs);
+            }
+        }
+{{- end }}
+{{- end }}
+        Ok(url)
+    }
+{{- else }}
+{{- if eq .Name "refresh_token" }}
+    /// Builds the refresh-token request shared by the public API and session runtime.
+    pub(crate) fn refresh_token_request(
+        &self,
+        body: &{{ $body.Name }},
+    ) -> Result<http::RequestBuilder, Error> {
+        let url = http::append_path(self.base_url.as_str(), &[{{ rustPathSegments .Path }}])?;
+        Ok(self.http.request(reqwest::Method::{{ .Method }}, url).json(body))
+    }{{ "\n" }}
+{{- end }}
+    /// Performs {{ .Method }} {{ .Path }}.
+    pub async fn {{ .Name }}(
+        &self,
+{{- range .PathParameters }}
+        {{ .Name }}: &str,
+{{- end }}
+{{- if $body }}
+        body: {{ optionalWrap $body.Name (not .BodyRequired) }},
+{{- end }}
+{{- if .HasRequestParameters }}
+{{- if .HasRequiredRequestParameters }}
+        params: {{ pascal .Name }}Params,
+{{- else }}
+        params: Option<{{ pascal .Name }}Params>,
+{{- end }}
+{{- end }}
+    ) -> Result<Response<{{ $response.ReturnType }}>, Error> {
+{{- if eq .Name "refresh_token" }}
+        let request = self.refresh_token_request(&body)?;
+{{- else }}
+        let url = http::append_path(self.base_url.as_str(), &[{{ rustPathSegments .Path }}])?;
+        let mut request = self.http.request(reqwest::Method::{{ .Method }}, url);
+{{- if .RequestJSON }}
+        request = request.json(&body);
+{{- else if .RequestFormURLEncoded }}
+        request = request.form(&body);
+{{- else if .RequestFormData }}
+{{- $m := . }}
+{{- $bodyIndent := "" }}
+{{- if not .BodyRequired }}
+        if let Some(body) = body {
+{{- $bodyIndent = "    " }}
+{{- end }}
+{{ $bodyIndent }}        let mut form = reqwest::multipart::Form::new();
+{{- range .RequestFormData.Properties }}
+{{- if eq .Type.Kind "array" }}
+{{- if isMultipartFile . }}
+{{- $fileIndent := "" }}
+{{- if .Optional }}
+{{- $fileIndent = "    " }}
+{{ $bodyIndent }}        if let Some(items) = body.{{ .Name }} {
+{{ $bodyIndent }}            for item in items {
+{{- else }}
+{{ $bodyIndent }}        for item in body.{{ .Name }} {
+{{- end }}
+{{ $bodyIndent }}{{ $fileIndent }}            let part = reqwest::multipart::Part::bytes(item.content)
+{{ $bodyIndent }}{{ $fileIndent }}                .file_name(item.file_name);
+{{ $bodyIndent }}{{ $fileIndent }}            let part = if let Some(content_type) = item.content_type {
+{{ $bodyIndent }}{{ $fileIndent }}                part.mime_str(&content_type).map_err(|_| {
+{{ $bodyIndent }}{{ $fileIndent }}                    Error::Config(format!("invalid multipart content type {content_type:?}"))
+{{ $bodyIndent }}{{ $fileIndent }}                })?
+{{ $bodyIndent }}{{ $fileIndent }}            } else {
+{{ $bodyIndent }}{{ $fileIndent }}                part
+{{ $bodyIndent }}{{ $fileIndent }}            };
+{{ $bodyIndent }}{{ $fileIndent }}            form = form.part({{ rustStr .RawName }}, part);
+{{ $bodyIndent }}{{ $fileIndent }}        }
+{{- if .Optional }}
+{{ $bodyIndent }}        }
+{{- end }}
+{{- else }}
+{{- if .Optional }}
+{{ $bodyIndent }}        if let Some(items) = &body.{{ .Name }} {
+{{ $bodyIndent }}            for (i, item) in items.iter().enumerate() {
+{{- else }}
+{{ $bodyIndent }}        {
+{{ $bodyIndent }}            for (i, item) in body.{{ .Name }}.iter().enumerate() {
+{{- end }}
+{{ $bodyIndent }}                let _ = i;
+{{- if eq .Type.Item.Kind "scalar" }}
+{{ $bodyIndent }}                form = form.text({{ rustStr .RawName }}, item.to_string());
+{{- else }}
+{{ $bodyIndent }}                form = form.part(
+{{ $bodyIndent }}                    {{ rustStr .RawName }},
+{{ $bodyIndent }}                    reqwest::multipart::Part::text(serde_json::to_string(item)?)
+{{ $bodyIndent }}                        .mime_str({{ rustStr ($m.MultipartContentType .) }})?,
+{{ $bodyIndent }}                );
+{{- end }}
+{{ $bodyIndent }}            }
+{{ $bodyIndent }}        }
+{{- end }}
+{{- else if isMultipartFile . }}
+{{- if .Optional }}
+{{ $bodyIndent }}        if let Some(v) = body.{{ .Name }} {
+{{- else }}
+{{ $bodyIndent }}        {
+{{ $bodyIndent }}            let v = body.{{ .Name }};
+{{- end }}
+{{ $bodyIndent }}            let part = reqwest::multipart::Part::bytes(v.content)
+{{ $bodyIndent }}                .file_name(v.file_name);
+{{ $bodyIndent }}            let part = if let Some(content_type) = v.content_type {
+{{ $bodyIndent }}                part.mime_str(&content_type).map_err(|_| {
+{{ $bodyIndent }}                    Error::Config(format!("invalid multipart content type {content_type:?}"))
+{{ $bodyIndent }}                })?
+{{ $bodyIndent }}            } else {
+{{ $bodyIndent }}                part
+{{ $bodyIndent }}            };
+{{ $bodyIndent }}            form = form.part({{ rustStr .RawName }}, part);
+{{ $bodyIndent }}        }
+{{- else if eq .Type.Kind "scalar" }}
+{{- if .Optional }}
+{{ $bodyIndent }}        if let Some(v) = &body.{{ .Name }} {
+{{ $bodyIndent }}            form = form.text({{ rustStr .RawName }}, v.to_string());
+{{ $bodyIndent }}        }
+{{- else }}
+{{ $bodyIndent }}        form = form.text({{ rustStr .RawName }}, body.{{ .Name }}.to_string());
+{{- end }}
+{{- else }}
+{{- if .Optional }}
+{{ $bodyIndent }}        if let Some(v) = &body.{{ .Name }} {
+{{ $bodyIndent }}            form = form.part(
+{{ $bodyIndent }}                {{ rustStr .RawName }},
+{{ $bodyIndent }}                reqwest::multipart::Part::text(serde_json::to_string(v)?)
+{{ $bodyIndent }}                    .mime_str({{ rustStr ($m.MultipartContentType .) }})?,
+{{ $bodyIndent }}            );
+{{ $bodyIndent }}        }
+{{- else }}
+{{ $bodyIndent }}        form = form.part(
+{{ $bodyIndent }}            {{ rustStr .RawName }},
+{{ $bodyIndent }}            reqwest::multipart::Part::text(serde_json::to_string(&body.{{ .Name }})?)
+{{ $bodyIndent }}                .mime_str({{ rustStr ($m.MultipartContentType .) }})?,
+{{ $bodyIndent }}        );
+{{- end }}
+{{- end }}
+{{- end }}
+{{ $bodyIndent }}        request = request.multipart(form);
+{{- if not .BodyRequired }}
+        }
+{{- end }}
+{{- end }}
+{{- end }}
+{{- if .HasQueryParameters }}
+{{- if .HasRequiredRequestParameters }}
+        request = request.query(&params.to_query());
+{{- else }}
+        if let Some(p) = &params {
+            request = request.query(&p.to_query());
+        }
+{{- end }}
+{{- end }}
+{{- if .HasHeaderParameters }}
+{{- if .HasRequiredRequestParameters }}
+        for (name, value) in params.to_headers() {
+            request = request.header(name, value);
+        }
+{{- else }}
+        if let Some(p) = &params {
+            for (name, value) in p.to_headers() {
+                request = request.header(name, value);
+            }
+        }
+{{- end }}
+{{- end }}
+        let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
+{{- if $response.DecodeJSON }}
+        let body = serde_json::from_slice(&bytes)?;
+{{- else if $response.DecodeBinary }}
+        let body = bytes;
+{{- else }}
+        let _ = bytes;
+        let body = ();
+{{- end }}
+        Ok(Response {
+            body,
+            status,
+            headers,
+        })
+    }
+{{- end }}
+{{ end -}}
+
+{{- define "client" -}}
+fn urlencode(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    for b in s.bytes() {
+        match b {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => out.push(b as char),
+            _ => out.push_str(&format!("%{b:02X}")),
+        }
+    }
+    out
+}
+
+/// Generated API client, backed by a reqwest-middleware chain.
+pub struct Client {
+    pub base_url: String,
+    http: http::ClientWithMiddleware,
+    reqwest: reqwest::Client,
+    middleware: Vec<Arc<dyn http::Middleware>>,
+    scoped_middleware: Vec<Arc<dyn http::Middleware>>,
+    // Set only on the auth client: a successful response's session is captured
+    // into storage by `http::send`.
+    session_sink: Option<SessionStorage>,
+}
+
+impl Client {
+    /// Creates a new API client for `base_url` from a base client and an
+    /// ordered middleware stack (the first entry runs first on the way out).
+    ///
+    /// Most applications get their clients from `Nhost::builder` instead; use
+    /// this together with `Nhost::from_clients` to assemble the pipeline
+    /// yourself.
+    pub fn new(
+        base_url: impl Into<String>,
+        reqwest: reqwest::Client,
+        middleware: Vec<Arc<dyn http::Middleware>>,
+    ) -> Self {
+        let http = http::build_client(reqwest.clone(), &middleware);
+        Self {
+            base_url: base_url.into(),
+            http,
+            reqwest,
+            middleware,
+            scoped_middleware: Vec::new(),
+            session_sink: None,
+        }
+    }
+
+    /// Captures a session from every successful response that carries one into
+    /// `sessions`. This replaces the JS SDK's response-sniffing middleware,
+    /// which cannot work on wasm; only the auth service returns sessions.
+    // Not `const`: the runtime's SessionStorage is not const-constructible, and
+    // a const fn here would over-constrain the public API.
+    #[allow(clippy::missing_const_for_fn)]
+    pub fn with_session_capture(mut self, sessions: SessionStorage) -> Self {
+        self.session_sink = Some(sessions);
+        self
+    }
+
+    /// Returns a copy of this client that sends `x-hasura-role: <role>` on every
+    /// request.
+    pub fn with_role(&self, role: impl Into<String>) -> Self {
+        self.with_middleware(Arc::new(SetRole {
+            role: role.into(),
+            priority: HeaderPriority::Scoped,
+        }))
+    }
+
+    /// Returns a copy of this client that sends extra headers on every request.
+    pub fn with_headers(&self, headers: HashMap<String, String>) -> Self {
+        self.with_middleware(Arc::new(SetHeaders {
+            headers,
+            priority: HeaderPriority::Scoped,
+        }))
+    }
+
+    fn with_middleware(&self, mw: Arc<dyn http::Middleware>) -> Self {
+        let mut scoped_middleware = self.scoped_middleware.clone();
+        scoped_middleware.push(mw);
+        let middleware = scoped_middleware
+            .iter()
+            .chain(&self.middleware)
+            .cloned()
+            .collect::<Vec<_>>();
+        let http = http::build_client(self.reqwest.clone(), &middleware);
+        Self {
+            base_url: self.base_url.clone(),
+            http,
+            reqwest: self.reqwest.clone(),
+            middleware: self.middleware.clone(),
+            scoped_middleware,
+            session_sink: self.session_sink.clone(),
+        }
+    }
+{{ range .Methods }}
+{{ template "method" . }}
+{{- end }}
+}
+{{- end -}}

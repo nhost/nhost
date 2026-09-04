@@ -34,6 +34,7 @@ components:
         metadata:
           type: object
           additionalProperties: true
+          nullable: true
           description: "Custom metadata associated with the file."
           example: { "alt": "Profile picture", "category": "avatar" }
         requiredNullableMetadata:
@@ -100,6 +101,14 @@ components:
         statusCode:
           type: string
           description: "Status code of the object."
+          enum:
+            - 0
+            - 1
+            - 2
+          example: 0
+        statusInt:
+          type: integer
+          description: "Integer status of the object."
           enum:
             - 0
             - 1

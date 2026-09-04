@@ -3270,6 +3270,7 @@ components:
           type: string
           description: "URL to QR code image for scanning with an authenticator app"
           example: "data:image/png;base64,iVBORw0KGg..."
+          x-nhost-sensitive: true
         totpSecret:
           type: string
           description: "TOTP secret key for manual setup with an authenticator app"

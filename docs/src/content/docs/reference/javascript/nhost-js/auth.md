@@ -738,7 +738,7 @@ As this method is a redirect, it returns a URL string instead of a Promise
 #### oauth2AuthorizeURL()
 
 ```ts
-oauth2AuthorizeURL(params?: Oauth2AuthorizeParams, options?: RequestInit): string;
+oauth2AuthorizeURL(params: Oauth2AuthorizeParams, options?: RequestInit): string;
 ```
 
 Summary: OAuth2 Authorization Endpoint
@@ -750,7 +750,7 @@ As this method is a redirect, it returns a URL string instead of a Promise
 
 | Parameter  | Type                                              |
 | ---------- | ------------------------------------------------- |
-| `params?`  | [`Oauth2AuthorizeParams`](#oauth2authorizeparams) |
+| `params`   | [`Oauth2AuthorizeParams`](#oauth2authorizeparams) |
 | `options?` | `RequestInit`                                     |
 
 ##### Returns
@@ -807,7 +807,7 @@ This method may return different T based on the response code:
 #### oauth2LoginGet()
 
 ```ts
-oauth2LoginGet(params?: Oauth2LoginGetParams, options?: RequestInit): Promise<FetchResponse<OAuth2LoginResponse>>;
+oauth2LoginGet(params: Oauth2LoginGetParams, options?: RequestInit): Promise<FetchResponse<OAuth2LoginResponse>>;
 ```
 
 Summary: Get authorization request details for consent screen
@@ -821,7 +821,7 @@ This method may return different T based on the response code:
 
 | Parameter  | Type                                            |
 | ---------- | ----------------------------------------------- |
-| `params?`  | [`Oauth2LoginGetParams`](#oauth2logingetparams) |
+| `params`   | [`Oauth2LoginGetParams`](#oauth2logingetparams) |
 | `options?` | `RequestInit`                                   |
 
 ##### Returns
@@ -1739,7 +1739,7 @@ This method may return different T based on the response code:
 #### verifyTicketURL()
 
 ```ts
-verifyTicketURL(params?: VerifyTicketParams, options?: RequestInit): string;
+verifyTicketURL(params: VerifyTicketParams, options?: RequestInit): string;
 ```
 
 Summary: Verify email and authentication tickets
@@ -1751,7 +1751,7 @@ As this method is a redirect, it returns a URL string instead of a Promise
 
 | Parameter  | Type                                        |
 | ---------- | ------------------------------------------- |
-| `params?`  | [`VerifyTicketParams`](#verifyticketparams) |
+| `params`   | [`VerifyTicketParams`](#verifyticketparams) |
 | `options?` | `RequestInit`                               |
 
 ##### Returns

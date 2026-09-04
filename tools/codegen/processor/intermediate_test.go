@@ -64,6 +64,9 @@ func TestInterMediateRepresentationRender(t *testing.T) {
 		{
 			name: "deepobject-map.yaml",
 		},
+		{
+			name: "required-object-query.yaml",
+		},
 	}
 
 	for _, tc := range cases {

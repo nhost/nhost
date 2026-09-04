@@ -1,0 +1,1203 @@
+// Package rust implements a codegen Plugin that renders an idiomatic async Rust
+// client (reqwest + serde) from an OpenAPI document. Like the other plugins it
+// is thin: naming/type mapping live here, everything else lives in the
+// templates. The generated client integrates with the hand-written fetch
+// middleware chain in the nhost crate's fetch module.
+package rust
+
+import (
+	"embed"
+	"fmt"
+	"io/fs"
+	"reflect"
+	"slices"
+	"strings"
+	"unicode"
+
+	"github.com/nhost/nhost/tools/codegen/format"
+	"github.com/nhost/nhost/tools/codegen/processor"
+	"github.com/pb33f/libopenapi/datamodel/high/base"
+)
+
+const (
+	extCustomType     = "x-rust-type"
+	extSensitive      = "x-nhost-sensitive"
+	rustBinaryType    = "bytes::Bytes"
+	rustValueType     = "serde_json::Value"
+	schemaTypeBoolean = "boolean"
+	schemaTypeInteger = "integer"
+	schemaTypeNumber  = "number"
+	schemaTypeString  = "string"
+)
+
+//go:embed templates/*.tmpl
+var templatesFS embed.FS
+
+// Rust is the code generation plugin for the Rust SDK.
+type Rust struct{}
+
+func (p *Rust) GetTemplates() fs.FS {
+	return templatesFS
+}
+
+// rustKeywords are reserved words that cannot be used as plain identifiers.
+// Whenever Rust permits it, generated names use raw identifier syntax (r#name).
+var rustKeywords = map[string]struct{}{ //nolint:gochecknoglobals
+	"as": {}, "break": {}, "const": {}, "continue": {}, "crate": {}, "dyn": {},
+	"else": {}, "enum": {}, "extern": {}, "false": {}, "fn": {}, "for": {},
+	"if": {}, "impl": {}, "in": {}, "let": {}, "loop": {}, "match": {},
+	"mod": {}, "move": {}, "mut": {}, "pub": {}, "ref": {}, "return": {},
+	"self": {}, "Self": {}, "static": {}, "struct": {}, "super": {},
+	"trait": {}, "true": {}, "type": {}, "unsafe": {}, "use": {}, "where": {},
+	"while": {}, "async": {}, "await": {}, "abstract": {}, "become": {},
+	"box": {}, "do": {}, "final": {}, "macro": {}, "override": {}, "priv": {},
+	"typeof": {}, "unsized": {}, "virtual": {}, "yield": {}, "try": {},
+}
+
+// rustReservedTypeNames are identifiers occupied by the generated module's
+// imports and client definition. Self is Rust's only PascalCase keyword.
+var rustReservedTypeNames = map[string]struct{}{ //nolint:gochecknoglobals
+	"Arc":            {},
+	"Client":         {},
+	"Deserialize":    {},
+	"Error":          {},
+	"FilePart":       {},
+	"HashMap":        {},
+	"HeaderPriority": {},
+	"Response":       {},
+	"Self":           {},
+	"Serialize":      {},
+	"SessionStorage": {},
+	"SetHeaders":     {},
+	"SetRole":        {},
+}
+
+// rustReservedClientMethodNames are identifiers occupied by fixed-name method
+// definitions emitted by the client template.
+var rustReservedClientMethodNames = map[string]struct{}{ //nolint:gochecknoglobals
+	"new":                   {},
+	"refresh_token_request": {},
+	"with_headers":          {},
+	"with_middleware":       {},
+	"with_role":             {},
+	"with_session_capture":  {},
+}
+
+func splitWords(s string) []string {
+	var (
+		words []string
+		cur   strings.Builder
+	)
+
+	flush := func() {
+		if cur.Len() > 0 {
+			words = append(words, strings.ToLower(cur.String()))
+			cur.Reset()
+		}
+	}
+
+	runes := []rune(s)
+	for i, r := range runes {
+		switch {
+		case r == '-' || r == '_' || r == ' ' || r == '.':
+			flush()
+		case unicode.IsUpper(r):
+			if wordBoundaryBeforeUpper(runes, i, cur.Len()) {
+				flush()
+			}
+
+			cur.WriteRune(r)
+		case unicode.IsLetter(r) || unicode.IsDigit(r):
+			cur.WriteRune(r)
+		default:
+			flush()
+		}
+	}
+
+	flush()
+
+	return words
+}
+
+// wordBoundaryBeforeUpper reports whether the uppercase rune at index i begins a
+// new word fragment: it follows a lowercase rune (camelCase) or precedes one
+// while a fragment is already in progress (an acronym giving way to a word).
+func wordBoundaryBeforeUpper(runes []rune, i, curLen int) bool {
+	prevLower := i > 0 && unicode.IsLower(runes[i-1])
+	nextLower := i+1 < len(runes) && unicode.IsLower(runes[i+1])
+
+	return prevLower || (curLen > 0 && nextLower)
+}
+
+// toPascal renders a PascalCase type name. Acronyms are title-cased (Json, Id,
+// Url) rather than kept upper, matching clippy's upper_case_acronyms lint.
+func toPascal(s string) string {
+	var b strings.Builder
+
+	// Method names may already have been converted to raw identifiers before a
+	// parameter struct name is derived from them.
+	s = strings.TrimPrefix(s, "r#")
+
+	for _, w := range splitWords(s) {
+		b.WriteString(format.Title(w))
+	}
+
+	out := b.String()
+	if out == "" {
+		return "Type"
+	}
+
+	if unicode.IsDigit(rune(out[0])) {
+		out = "T" + out
+	}
+
+	for candidate := out; ; candidate = strings.TrimSuffix(candidate, "Type") {
+		if _, ok := rustReservedTypeNames[candidate]; ok {
+			return out + "Type"
+		}
+
+		if !strings.HasSuffix(candidate, "Type") {
+			return out
+		}
+	}
+}
+
+func toSnake(s string) string {
+	out := strings.Join(splitWords(s), "_")
+	if out == "" {
+		return "field"
+	}
+
+	if unicode.IsDigit(rune(out[0])) {
+		out = "f" + out
+	}
+
+	if _, ok := rustKeywords[out]; ok {
+		// Rust reserves crate, self, and super even in raw identifier syntax.
+		// A trailing underscore is the conventional fallback for these names.
+		switch out {
+		case "crate", "self", "super":
+			return out + "_"
+		default:
+			return "r#" + out
+		}
+	}
+
+	return out
+}
+
+func optionalWrap(typeName string, optional bool) string {
+	if optional {
+		return "Option<" + typeName + ">"
+	}
+
+	return typeName
+}
+
+// rustPrimitiveType maps OpenAPI integer, number, boolean, and string
+// primitives to Rust types, returning an empty string when unsupported.
+func rustPrimitiveType(schemaType, formatName string) string {
+	switch schemaType {
+	case schemaTypeInteger:
+		return "i64"
+	case schemaTypeNumber:
+		return "f64"
+	case schemaTypeBoolean:
+		return "bool"
+	case schemaTypeString:
+		if formatName == "binary" {
+			return "Vec<u8>"
+		}
+
+		return "String"
+	default:
+		return ""
+	}
+}
+
+// rustSchemaType maps primitive, referenced, array, and typed-map schemas to
+// Rust types. It falls back to serde_json::Value for absent, ambiguous,
+// free-form, or unsupported schemas.
+func rustSchemaType(schema *base.SchemaProxy) string {
+	if schema == nil || schema.Schema() == nil {
+		return rustValueType
+	}
+
+	if v, ok := schema.Schema().Extensions.Get(extCustomType); ok {
+		return v.Value
+	}
+
+	if schema.IsReference() {
+		return toPascal(format.GetNameFromComponentRef(schema.GetReference()))
+	}
+
+	s := schema.Schema()
+	if len(s.Type) != 1 {
+		return rustValueType
+	}
+
+	if primitiveType := rustPrimitiveType(s.Type[0], s.Format); primitiveType != "" {
+		return primitiveType
+	}
+
+	if s.Type[0] == "array" && s.Items != nil && s.Items.A != nil {
+		return "Vec<" + optionalWrap(
+			rustSchemaType(s.Items.A), processor.SchemaNullable(s.Items.A),
+		) + ">"
+	}
+
+	if s.Type[0] == "object" {
+		if ap := s.AdditionalProperties; ap != nil && ap.A != nil {
+			return "HashMap<String, " + optionalWrap(
+				rustSchemaType(ap.A), processor.SchemaNullable(ap.A),
+			) + ">"
+		}
+	}
+
+	return rustValueType
+}
+
+// enumValueKind returns the OpenAPI primitive kind of a decoded enum value,
+// or an empty string for nil and unsupported values.
+func enumValueKind(v any) string {
+	valueType := reflect.TypeOf(v)
+	if valueType == nil {
+		return ""
+	}
+
+	switch valueType.Kind() { //nolint:exhaustive
+	case reflect.Bool:
+		return schemaTypeBoolean
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return schemaTypeInteger
+	case reflect.Float32, reflect.Float64:
+		return schemaTypeNumber
+	case reflect.String:
+		return schemaTypeString
+	default:
+		return ""
+	}
+}
+
+// rustEnumType maps a homogeneous enum to its declared Rust scalar type. String
+// enums remain open String aliases for forward compatibility. It falls back to
+// serde_json::Value for ambiguous, heterogeneous, or mismatched kinds, except
+// integer values declared as number.
+func rustEnumType(enum *processor.TypeEnum) string {
+	schema := enum.Schema()
+	if schema == nil || schema.Schema() == nil || len(schema.Schema().Type) != 1 {
+		return rustValueType
+	}
+
+	declaredKind := schema.Schema().Type[0]
+	valueKind := ""
+
+	for _, node := range schema.Schema().Enum {
+		var value any
+		if err := node.Decode(&value); err != nil {
+			return rustValueType
+		}
+
+		kind := enumValueKind(value)
+		if kind == "" || (valueKind != "" && kind != valueKind) {
+			return rustValueType
+		}
+
+		valueKind = kind
+	}
+
+	if valueKind != "" && valueKind != declaredKind &&
+		(declaredKind != schemaTypeNumber || valueKind != schemaTypeInteger) {
+		return rustValueType
+	}
+
+	return rustSchemaType(schema)
+}
+
+// rustStringLiteral quotes arbitrary spec text as a Rust string literal. Keep
+// this separate from Go's strconv.Quote because Rust does not accept Go escapes
+// such as \a, \v, or \u1234.
+func rustStringLiteral(value string) string {
+	var b strings.Builder
+	b.WriteByte('"')
+
+	for _, r := range value {
+		switch r {
+		case '"':
+			b.WriteString(`\"`)
+		case '\\':
+			b.WriteString(`\\`)
+		case '\n':
+			b.WriteString(`\n`)
+		case '\r':
+			b.WriteString(`\r`)
+		case '\t':
+			b.WriteString(`\t`)
+		case 0:
+			b.WriteString(`\0`)
+		default:
+			if !unicode.IsGraphic(r) {
+				fmt.Fprintf(&b, `\u{%x}`, r)
+			} else {
+				b.WriteRune(r)
+			}
+		}
+	}
+
+	b.WriteByte('"')
+
+	return b.String()
+}
+
+// fieldLines renders a struct field with its serde attributes. Optional controls
+// whether the Rust type accepts null, while omittable controls whether serde may
+// omit the field entirely.
+func fieldLines(name, rawName, typeName string, optional, omittable bool) string {
+	var attrs []string
+	if strings.TrimPrefix(name, "r#") != rawName {
+		attrs = append(attrs, "rename = "+rustStringLiteral(rawName))
+	}
+
+	if omittable {
+		attrs = append(attrs, `skip_serializing_if = "Option::is_none"`, "default")
+	}
+
+	var b strings.Builder
+	if len(attrs) > 0 {
+		fmt.Fprintf(&b, "#[serde(%s)]\n    ", strings.Join(attrs, ", "))
+	}
+
+	fmt.Fprintf(&b, "pub %s: %s,", name, optionalWrap(typeName, optional))
+
+	return b.String()
+}
+
+// sensitiveFieldName deliberately uses a conservative built-in vocabulary so
+// generated credential types are safe even when an OpenAPI author forgets the
+// explicit x-nhost-sensitive marker. Unusual names can opt in with the marker.
+func sensitiveFieldName(name string) bool {
+	name = toSnake(name)
+
+	switch name {
+	case "api_key", "authorization", "code", "code_verifier", "cookie", "credential",
+		"otp", "password", "private_key", "secret", "signature", "ticket", "token":
+		return true
+	}
+
+	for _, suffix := range []string{
+		"_api_key", "_code_verifier", "_otp", "_password", "_private_key",
+		"_secret", "_signature", "_ticket", "_token",
+	} {
+		if strings.HasSuffix(name, suffix) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func explicitlySensitive(t processor.Type) bool {
+	schema := t.Schema()
+	if schema == nil || schema.Schema() == nil {
+		return false
+	}
+
+	extension, ok := schema.Schema().Extensions.Get(extSensitive)
+	if !ok {
+		return false
+	}
+
+	var sensitive bool
+	if err := extension.Decode(&sensitive); err != nil {
+		// Extension validation runs before rendering. Fail closed if this helper is
+		// called independently so malformed input can never expose a marked value.
+		return true
+	}
+
+	return sensitive
+}
+
+func canContainSensitiveValue(t processor.Type) bool {
+	schema := t.Schema()
+	if schema == nil || schema.Schema() == nil || len(schema.Schema().Type) != 1 {
+		return true
+	}
+
+	switch schema.Schema().Type[0] {
+	case schemaTypeBoolean, schemaTypeInteger, schemaTypeNumber:
+		return false
+	default:
+		return true
+	}
+}
+
+func isSensitiveProperty(prop *processor.Property) bool {
+	return explicitlySensitive(prop.Type) ||
+		(canContainSensitiveValue(prop.Type) && sensitiveFieldName(prop.RawName()))
+}
+
+func objectHasSensitiveFields(object *processor.TypeObject) bool {
+	return slices.ContainsFunc(object.Properties(), isSensitiveProperty)
+}
+
+func isSensitiveParameter(param *processor.Parameter) bool {
+	return explicitlySensitive(param.Type) ||
+		(canContainSensitiveValue(param.Type) && sensitiveFieldName(param.RawName()))
+}
+
+func methodHasSensitiveRequestParameters(method *processor.Method) bool {
+	return slices.ContainsFunc(method.QueryParameters(), isSensitiveParameter) ||
+		slices.ContainsFunc(method.HeaderParameters(), isSensitiveParameter)
+}
+
+// isMultipartFileProperty reports whether prop is a scalar or array-valued
+// multipart file property with the OpenAPI binary format.
+func isMultipartFileProperty(prop *processor.Property) bool {
+	typ := prop.Type
+	if array, ok := typ.(*processor.TypeArray); ok {
+		typ = array.Item
+	}
+
+	schema := typ.Schema()
+
+	return typ.Kind() == processor.KindIdentifierScalar && schema != nil &&
+		schema.Schema() != nil && schema.Schema().Format == "binary"
+}
+
+// hasMultipartFile reports whether any method has a binary file property in
+// its multipart form-data request body.
+func hasMultipartFile(methods []*processor.Method) bool {
+	for _, method := range methods {
+		body, ok := method.RequestFormData().(*processor.TypeObject)
+		if !ok {
+			continue
+		}
+
+		if slices.ContainsFunc(body.Properties(), isMultipartFileProperty) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func hasHeaderParameters(methods []*processor.Method) bool {
+	return slices.ContainsFunc(methods, func(method *processor.Method) bool {
+		return method.HasHeaderParameters()
+	})
+}
+
+type multipartFieldKey struct {
+	objectName   string
+	propertyName string
+}
+
+type multipartTypeContext struct {
+	typ         processor.Type
+	description string
+}
+
+func newMultipartFieldKey(prop *processor.Property) multipartFieldKey {
+	return multipartFieldKey{
+		objectName:   prop.Parent.Name(),
+		propertyName: prop.RawName(),
+	}
+}
+
+func multipartConflictContexts(method *processor.Method) []multipartTypeContext {
+	contexts := []multipartTypeContext{
+		{
+			typ: method.RequestJSON(),
+			description: fmt.Sprintf(
+				"application/json request body for operation %q", method.RawName(),
+			),
+		},
+		{
+			typ: method.RequestFormURLEncoded(),
+			description: fmt.Sprintf(
+				"application/x-www-form-urlencoded request body for operation %q",
+				method.RawName(),
+			),
+		},
+	}
+
+	for _, param := range method.Parameters {
+		location := param.Parameter.In
+		if location != "query" && location != "header" {
+			continue
+		}
+
+		contexts = append(contexts, multipartTypeContext{
+			typ: param.Type,
+			description: fmt.Sprintf(
+				"%s parameter %q for operation %q",
+				location,
+				param.RawName(),
+				method.RawName(),
+			),
+		})
+	}
+
+	responseCodes := make([]string, 0, len(method.Responses))
+	for code := range method.Responses {
+		responseCodes = append(responseCodes, code)
+	}
+
+	slices.Sort(responseCodes)
+
+	for _, code := range responseCodes {
+		responses := method.Responses[code]
+
+		mediaTypes := make([]string, 0, len(responses))
+		for mediaType := range responses {
+			mediaTypes = append(mediaTypes, mediaType)
+		}
+
+		slices.Sort(mediaTypes)
+
+		for _, mediaType := range mediaTypes {
+			contexts = append(contexts, multipartTypeContext{
+				typ: responses[mediaType],
+				description: fmt.Sprintf(
+					"%s response for status %s in operation %q",
+					mediaType,
+					code,
+					method.RawName(),
+				),
+			})
+		}
+	}
+
+	return contexts
+}
+
+func multipartSchemaTypeName(
+	schema *base.SchemaProxy,
+	multipartTypes map[string]struct{},
+	visited map[*base.SchemaProxy]struct{},
+) (string, bool) {
+	if schema == nil || schema.Schema() == nil {
+		return "", false
+	}
+
+	if _, seen := visited[schema]; seen {
+		return "", false
+	}
+
+	visited[schema] = struct{}{}
+
+	if schema.IsReference() {
+		name := toPascal(format.GetNameFromComponentRef(schema.GetReference()))
+		if _, conflicts := multipartTypes[name]; conflicts {
+			return name, true
+		}
+	}
+
+	schemaValue := schema.Schema()
+	if schemaValue.Items != nil && schemaValue.Items.A != nil {
+		if name, conflicts := multipartSchemaTypeName(
+			schemaValue.Items.A, multipartTypes, visited,
+		); conflicts {
+			return name, true
+		}
+	}
+
+	if schemaValue.Properties != nil {
+		for pair := schemaValue.Properties.First(); pair != nil; pair = pair.Next() {
+			if name, conflicts := multipartSchemaTypeName(
+				pair.Value(), multipartTypes, visited,
+			); conflicts {
+				return name, true
+			}
+		}
+	}
+
+	additionalProperties := schemaValue.AdditionalProperties
+	if additionalProperties != nil && additionalProperties.A != nil {
+		return multipartSchemaTypeName(additionalProperties.A, multipartTypes, visited)
+	}
+
+	return "", false
+}
+
+func multipartConflictTypeName(
+	typ processor.Type,
+	multipartTypes map[string]struct{},
+) (string, bool) {
+	if typ == nil {
+		return "", false
+	}
+
+	if _, conflicts := multipartTypes[typ.Name()]; conflicts {
+		return typ.Name(), true
+	}
+
+	return multipartSchemaTypeName(
+		typ.Schema(), multipartTypes, make(map[*base.SchemaProxy]struct{}),
+	)
+}
+
+// multipartFileFields indexes binary file properties by their generated parent
+// type and wire name. Request bodies that reference a component and the
+// component in the rendered type list are separate IR objects, so pointer
+// identity cannot link them reliably. It rejects use of these types, including
+// through arrays and nested object or map properties, in every rendered
+// non-multipart context because FilePart's wire representation is only valid for
+// multipart requests.
+func multipartFileFields(
+	methods []*processor.Method,
+) (map[multipartFieldKey]struct{}, error) {
+	fields := make(map[multipartFieldKey]struct{})
+	multipartTypes := make(map[string]struct{})
+
+	for _, method := range methods {
+		body, ok := method.RequestFormData().(*processor.TypeObject)
+		if !ok {
+			continue
+		}
+
+		for _, prop := range body.Properties() {
+			if isMultipartFileProperty(prop) {
+				fields[newMultipartFieldKey(prop)] = struct{}{}
+				multipartTypes[body.Name()] = struct{}{}
+			}
+		}
+	}
+
+	if len(multipartTypes) == 0 {
+		return fields, nil
+	}
+
+	for _, method := range methods {
+		for _, candidate := range multipartConflictContexts(method) {
+			name, conflicts := multipartConflictTypeName(candidate.typ, multipartTypes)
+			if !conflicts {
+				continue
+			}
+
+			return nil, fmt.Errorf(
+				"%w: Rust type %s uses FilePart for multipart/form-data and cannot also be used as %s",
+				processor.ErrUnsupportedFeature,
+				name,
+				candidate.description,
+			)
+		}
+	}
+
+	return fields, nil
+}
+
+// multipartFieldType returns the Rust field type for prop. It maps multipart
+// binary fields to FilePart or Vec<FilePart> using a lookup built once per
+// render rather than rescanning every method for every rendered property.
+func multipartFieldType(
+	prop *processor.Property, multipartFields map[multipartFieldKey]struct{},
+) string {
+	if _, ok := multipartFields[newMultipartFieldKey(prop)]; !ok ||
+		!isMultipartFileProperty(prop) {
+		return prop.Type.Name()
+	}
+
+	if prop.Type.Kind() == processor.KindIdentifierArray {
+		return "Vec<FilePart>"
+	}
+
+	return "FilePart"
+}
+
+type rustObjectContext struct {
+	Object          *processor.TypeObject
+	MultipartFields map[multipartFieldKey]struct{}
+}
+
+func newRustObjectContext(
+	object *processor.TypeObject, multipartFields map[multipartFieldKey]struct{},
+) rustObjectContext {
+	return rustObjectContext{Object: object, MultipartFields: multipartFields}
+}
+
+type rustResponseContext struct {
+	ReturnType   string
+	DecodeJSON   bool
+	DecodeBinary bool
+}
+
+// newRustResponseContext selects both the public response type and its decoding
+// strategy. Binary responses remain bytes even when the IR also includes void;
+// other multi-type responses use serde_json::Value.
+func newRustResponseContext(method *processor.Method) rustResponseContext {
+	returnType := method.ReturnType()
+	variants := strings.Split(returnType, " | ")
+
+	if slices.Contains(variants, rustBinaryType) {
+		return rustResponseContext{
+			ReturnType:   rustBinaryType,
+			DecodeJSON:   false,
+			DecodeBinary: true,
+		}
+	}
+
+	if returnType == "" || returnType == "void" {
+		return rustResponseContext{
+			ReturnType:   "()",
+			DecodeJSON:   false,
+			DecodeBinary: false,
+		}
+	}
+
+	if len(variants) > 1 {
+		returnType = rustValueType
+	}
+
+	return rustResponseContext{
+		ReturnType:   returnType,
+		DecodeJSON:   true,
+		DecodeBinary: false,
+	}
+}
+
+type rawNamer interface {
+	RawName() string
+}
+
+func rustRawTypeName(typ processor.Type) string {
+	if named, ok := typ.(rawNamer); ok {
+		return named.RawName()
+	}
+
+	return typ.Name()
+}
+
+func registerRustIdentifier(
+	seen map[string]string, identifier, source, domain string,
+) error {
+	if previous, exists := seen[identifier]; exists {
+		return fmt.Errorf(
+			"%w: Rust %s collision: %s and %s both generate identifier %q",
+			processor.ErrUnsupportedFeature,
+			domain,
+			previous,
+			source,
+			identifier,
+		)
+	}
+
+	seen[identifier] = source
+
+	return nil
+}
+
+func validateRustFieldNames(object *processor.TypeObject) error {
+	seen := make(map[string]string, len(object.Properties()))
+	for _, prop := range object.Properties() {
+		if err := registerRustIdentifier(
+			seen,
+			prop.Name(),
+			fmt.Sprintf("property %q", prop.RawName()),
+			fmt.Sprintf("field namespace for type %q", object.RawName()),
+		); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func validateRustParameterFields(method *processor.Method) error {
+	seen := make(map[string]string, len(method.Parameters))
+	for _, param := range method.Parameters {
+		if param.Parameter.In != "query" && param.Parameter.In != "header" {
+			continue
+		}
+
+		if err := registerRustIdentifier(
+			seen,
+			param.Name(),
+			fmt.Sprintf("%s parameter %q", param.Parameter.In, param.RawName()),
+			fmt.Sprintf("parameter struct for operation %q", method.RawName()),
+		); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func methodHasRenderedBody(method *processor.Method) bool {
+	return method.RequestJSON() != nil || method.RequestFormData() != nil ||
+		method.RequestFormURLEncoded() != nil
+}
+
+func validateRustMethodBindings(method *processor.Method) error {
+	seen := make(map[string]string)
+	if !method.IsRedirect() && methodHasRenderedBody(method) {
+		seen["body"] = "generated request body argument"
+	}
+
+	hasParamsArgument := method.HasRequestParameters()
+	if method.IsRedirect() {
+		hasParamsArgument = method.HasQueryParameters()
+	}
+
+	if hasParamsArgument {
+		seen["params"] = "generated request parameters argument"
+	}
+
+	for _, param := range method.PathParameters() {
+		if err := registerRustIdentifier(
+			seen,
+			param.Name(),
+			fmt.Sprintf("path parameter %q", param.RawName()),
+			fmt.Sprintf("argument list for operation %q", method.RawName()),
+		); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func validateRustExtensionValues(typ processor.Type, source string) error {
+	schema := typ.Schema()
+	if schema == nil || schema.Schema() == nil {
+		return nil
+	}
+
+	if extension, ok := schema.Schema().Extensions.Get(extCustomType); ok {
+		if extension.Tag != "!!str" {
+			return fmt.Errorf(
+				"%w: %s on %s must be a string",
+				processor.ErrUnsupportedFeature,
+				extCustomType,
+				source,
+			)
+		}
+
+		if strings.TrimSpace(extension.Value) == "" {
+			return fmt.Errorf(
+				"%w: %s on %s must be a non-empty string",
+				processor.ErrUnsupportedFeature,
+				extCustomType,
+				source,
+			)
+		}
+	}
+
+	if extension, ok := schema.Schema().Extensions.Get(extSensitive); ok {
+		var sensitive bool
+		if err := extension.Decode(&sensitive); err != nil {
+			return fmt.Errorf(
+				"%w: %s on %s must be the boolean true: %w",
+				processor.ErrUnsupportedFeature,
+				extSensitive,
+				source,
+				err,
+			)
+		}
+
+		if !sensitive {
+			return fmt.Errorf(
+				"%w: %s on %s must be true; remove the extension when the value is not sensitive",
+				processor.ErrUnsupportedFeature,
+				extSensitive,
+				source,
+			)
+		}
+	}
+
+	return nil
+}
+
+func validateRustTypeExtensions(
+	typ processor.Type, source string, visited map[*base.SchemaProxy]struct{},
+) error {
+	schema := typ.Schema()
+	if schema == nil {
+		return nil
+	}
+
+	if _, ok := visited[schema]; ok {
+		return nil
+	}
+
+	visited[schema] = struct{}{}
+
+	if err := validateRustExtensionValues(typ, source); err != nil {
+		return err
+	}
+
+	switch concrete := typ.(type) {
+	case *processor.TypeArray:
+		return validateRustTypeExtensions(concrete.Item, source+" array item", visited)
+	case *processor.TypeAlias:
+		return validateRustTypeExtensions(concrete.Alias(), source, visited)
+	case *processor.TypeObject:
+		for _, prop := range concrete.Properties() {
+			if err := validateRustTypeExtensions(
+				prop.Type,
+				fmt.Sprintf("property %q of type %q", prop.RawName(), concrete.RawName()),
+				visited,
+			); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func validateRustExtensions(
+	types []processor.Type, methods []*processor.Method,
+) (string, error) {
+	visited := make(map[*base.SchemaProxy]struct{})
+	for _, typ := range types {
+		if err := validateRustTypeExtensions(
+			typ, fmt.Sprintf("type %q", rustRawTypeName(typ)), visited,
+		); err != nil {
+			return "", err
+		}
+	}
+
+	for _, method := range methods {
+		for _, param := range method.Parameters {
+			if err := validateRustTypeExtensions(
+				param.Type,
+				fmt.Sprintf(
+					"%s parameter %q of operation %q",
+					param.Parameter.In,
+					param.RawName(),
+					method.RawName(),
+				),
+				visited,
+			); err != nil {
+				return "", err
+			}
+		}
+	}
+
+	return "", nil
+}
+
+func validateRustNames(types []processor.Type, methods []*processor.Method) (string, error) {
+	typeNames := make(map[string]string, len(types)+len(methods))
+	for _, typ := range types {
+		if err := registerRustIdentifier(
+			typeNames,
+			typ.Name(),
+			fmt.Sprintf("type %q", rustRawTypeName(typ)),
+			"type namespace",
+		); err != nil {
+			return "", err
+		}
+
+		if object, ok := typ.(*processor.TypeObject); ok {
+			if err := validateRustFieldNames(object); err != nil {
+				return "", err
+			}
+		}
+	}
+
+	methodNames := make(map[string]string, len(methods)+len(rustReservedClientMethodNames))
+	for name := range rustReservedClientMethodNames {
+		methodNames[name] = fmt.Sprintf("generated Client method %q", name)
+	}
+
+	for _, method := range methods {
+		methodName := method.Name()
+		if method.IsRedirect() {
+			methodName += "_url"
+		}
+
+		if err := registerRustIdentifier(
+			methodNames,
+			methodName,
+			fmt.Sprintf("operation %q", method.RawName()),
+			"client method namespace",
+		); err != nil {
+			return "", err
+		}
+
+		if method.HasRequestParameters() {
+			if err := registerRustIdentifier(
+				typeNames,
+				toPascal(method.Name())+"Params",
+				fmt.Sprintf("parameter struct for operation %q", method.RawName()),
+				"type namespace",
+			); err != nil {
+				return "", err
+			}
+		}
+
+		if err := validateRustParameterFields(method); err != nil {
+			return "", err
+		}
+
+		if err := validateRustMethodBindings(method); err != nil {
+			return "", err
+		}
+	}
+
+	return "", nil
+}
+
+func (p *Rust) GetFuncMap() map[string]any {
+	return map[string]any{
+		"rustResponse":                        newRustResponseContext,
+		"rustStr":                             rustStringLiteral,
+		"rustValidateExtensions":              validateRustExtensions,
+		"rustValidateNames":                   validateRustNames,
+		"hasHeaderParameters":                 hasHeaderParameters,
+		"hasMultipartFile":                    hasMultipartFile,
+		"isMultipartFile":                     isMultipartFileProperty,
+		"multipartFileFields":                 multipartFileFields,
+		"isSensitiveParameter":                isSensitiveParameter,
+		"isSensitiveProperty":                 isSensitiveProperty,
+		"methodHasSensitiveRequestParameters": methodHasSensitiveRequestParameters,
+		"objectHasSensitiveFields":            objectHasSensitiveFields,
+		"optionalWrap":                        optionalWrap,
+		"pascal":                              toPascal,
+		"rustEnumType":                        rustEnumType,
+		"rustObjectContext":                   newRustObjectContext,
+		"rustEnumUsesJSON": func(t processor.Type) bool {
+			enum, ok := t.(*processor.TypeEnum)
+
+			return ok && rustEnumType(enum) == rustValueType
+		},
+		"rustField": func(
+			prop *processor.Property, multipartFields map[multipartFieldKey]struct{},
+		) string {
+			return fieldLines(
+				prop.Name(), prop.RawName(), multipartFieldType(prop, multipartFields),
+				prop.Optional(), !prop.Required(),
+			)
+		},
+		"rustParamField": func(param *processor.Parameter) string {
+			optional := !param.Required()
+
+			return fieldLines(param.Name(), param.RawName(), param.Type.Name(), optional, optional)
+		},
+		"rustPathSegments": rustPathSegments,
+	}
+}
+
+func (p *Rust) TypeObjectName(name string) string {
+	return toPascal(name)
+}
+
+func (p *Rust) TypeScalarName(scalar *processor.TypeScalar) string {
+	return rustSchemaType(scalar.Schema())
+}
+
+func (p *Rust) TypeArrayName(array *processor.TypeArray) string {
+	return "Vec<" + optionalWrap(
+		array.Item.Name(), processor.SchemaNullable(array.Item.Schema()),
+	) + ">"
+}
+
+func (p *Rust) TypeEnumName(name string) string {
+	return toPascal(name)
+}
+
+func (p *Rust) TypeEnumValues(values []any) []string {
+	enumValues := make([]string, len(values))
+	for i, v := range values {
+		if s, ok := v.(string); ok {
+			enumValues[i] = fmt.Sprintf("%q", s)
+		} else {
+			enumValues[i] = fmt.Sprintf("%v", v)
+		}
+	}
+
+	return enumValues
+}
+
+func (p *Rust) TypeMapName(mapType *processor.TypeMap) string {
+	schema := mapType.Schema()
+	if schema == nil || schema.Schema() == nil {
+		return rustValueType
+	}
+
+	if v, ok := schema.Schema().Extensions.Get(extCustomType); ok {
+		return v.Value
+	}
+
+	if ap := schema.Schema().AdditionalProperties; ap != nil && ap.A != nil {
+		return "HashMap<String, " + optionalWrap(
+			rustSchemaType(ap.A), processor.SchemaNullable(ap.A),
+		) + ">"
+	}
+
+	return rustValueType
+}
+
+func (p *Rust) MethodName(name string) string {
+	return toSnake(name)
+}
+
+// rustPathSegments turns a rewritten OpenAPI path into Rust expressions passed
+// one-by-one to url::Url::path_segments_mut. Path parameters remain identifiers;
+// static segments become quoted literals.
+func rustPathSegments(path string) string {
+	path = strings.TrimPrefix(path, "/")
+	if path == "" {
+		return ""
+	}
+
+	segments := strings.Split(path, "/")
+	for i, segment := range segments {
+		if strings.HasPrefix(segment, "{") && strings.HasSuffix(segment, "}") {
+			segments[i] = strings.TrimSuffix(strings.TrimPrefix(segment, "{"), "}")
+
+			continue
+		}
+
+		segments[i] = rustStringLiteral(segment)
+	}
+
+	return strings.Join(segments, ", ")
+}
+
+// MethodPath rewrites OpenAPI path templates so braces reference the snake_cased
+// parameter identifiers the client renders.
+func (p *Rust) MethodPath(name string) string {
+	var b strings.Builder
+
+	for {
+		open := strings.IndexByte(name, '{')
+		if open < 0 {
+			b.WriteString(name)
+
+			break
+		}
+
+		closeIdx := strings.IndexByte(name[open:], '}')
+		if closeIdx < 0 {
+			b.WriteString(name)
+
+			break
+		}
+
+		closeIdx += open
+		b.WriteString(name[:open])
+		b.WriteByte('{')
+		b.WriteString(toSnake(name[open+1 : closeIdx]))
+		b.WriteByte('}')
+
+		name = name[closeIdx+1:]
+	}
+
+	return b.String()
+}
+
+func (p *Rust) ParameterName(name string) string {
+	return toSnake(name)
+}
+
+func (p *Rust) PropertyName(name string) string {
+	return toSnake(name)
+}
+
+func (p *Rust) BinaryType() string {
+	return rustBinaryType
+}

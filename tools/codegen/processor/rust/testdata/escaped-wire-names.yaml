@@ -1,0 +1,40 @@
+openapi: "3.0.0"
+info:
+  title: Escaped wire names fixture
+  version: "1.0"
+paths:
+  /upload:
+    post:
+      operationId: escapedWireNames
+      parameters:
+        - name: 'query"name\path'
+          in: query
+          schema:
+            type: string
+        - name: 'X-Header"Name\Path'
+          in: header
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/EscapedWireNamesBody"
+      responses:
+        "204":
+          description: Uploaded
+components:
+  schemas:
+    EscapedWireNamesBody:
+      type: object
+      required:
+        - 'file"part\path'
+      properties:
+        'file"part\path':
+          type: string
+          format: binary
+        'text"field\path':
+          type: string
+        "line\nfield":
+          type: string
