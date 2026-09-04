@@ -6,7 +6,7 @@ rust-version = "1.86"
 license = "MIT"
 description = "The Nhost SDK for Rust: Auth, Storage, GraphQL, and Functions."
 repository = "https://github.com/nhost/nhost"
-include = ["/.cargo/config.toml", "/README.md", "/src/**"]
+include = ["/README.md", "/src/**"]
 
 [dependencies]
 # TLS backends are selected via this crate's features (see [features] below),
@@ -49,10 +49,12 @@ web-sys = { version = "0.3", optional = true, features = [
 ] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-# In the browser, getrandom (pulled in by `rand`, used for PKCE) needs its JS
-# backend. This also requires `--cfg getrandom_backend="wasm_js"`, which
-# .cargo/config.toml sets for the wasm32 target.
-getrandom = { version = "0.3", features = ["wasm_js"] }
+# In the browser, getrandom (pulled in by `rand`, used for PKCE) selects its JS
+# backend when this feature is enabled. 0.3.4 is the floor, not 0.3: before it,
+# wasm32-unknown-unknown was an unconditional compile_error! and the backend
+# also needed --cfg getrandom_backend="wasm_js", which a dependency cannot set
+# for its consumers.
+getrandom = { version = "0.3.4", features = ["wasm_js"] }
 
 [features]
 default = ["rustls-tls"]
