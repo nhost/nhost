@@ -12,63 +12,9 @@ import (
 	"net/http"
 	"net/textproto"
 	"net/url"
-	"sort"
-	"strings"
 
 	"github.com/nhost/nhost/packages/nhost-go/transport"
 )
-
-func headerScalar(value any) string {
-	switch value := value.(type) {
-	case string:
-		return value
-	case nil:
-		return ""
-	default:
-		return fmt.Sprint(value)
-	}
-}
-
-func headerValue(value any, explode bool) string {
-	encoded, err := json.Marshal(value)
-	if err != nil {
-		return fmt.Sprint(value)
-	}
-
-	var decoded any
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
-		return fmt.Sprint(value)
-	}
-
-	switch value := decoded.(type) {
-	case []any:
-		parts := make([]string, 0, len(value))
-		for _, item := range value {
-			parts = append(parts, headerScalar(item))
-		}
-
-		return strings.Join(parts, ",")
-	case map[string]any:
-		keys := make([]string, 0, len(value))
-		for key := range value {
-			keys = append(keys, key)
-		}
-		sort.Strings(keys)
-
-		parts := make([]string, 0, len(value)*2)
-		for _, key := range keys {
-			if explode {
-				parts = append(parts, key+"="+headerScalar(value[key]))
-			} else {
-				parts = append(parts, key, headerScalar(value[key]))
-			}
-		}
-
-		return strings.Join(parts, ",")
-	default:
-		return headerScalar(value)
-	}
-}
 
 type VersionInformation struct {
 	BuildVersion *string `json:"buildVersion,omitempty"`
@@ -376,6 +322,9 @@ func (c *Client) RefreshToken(
 // UploadFiles performs POST /files/. It returns the decoded body,
 // the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
 // responses.
+// Multipart binary fields use the wire field name as their filename; binary
+// array items use deterministic file-N filenames. The raw []byte API does not
+// accept caller-provided filename metadata.
 func (c *Client) UploadFiles(
 	ctx context.Context,
 	body UploadFilesBody,
@@ -396,8 +345,7 @@ func (c *Client) UploadFiles(
 		}
 	}
 	if body.NullableTags != nil {
-		for i, item := range *body.NullableTags {
-			_ = i
+		for _, item := range *body.NullableTags {
 			if err := mw.WriteField("nullable-tags", fmt.Sprint(item)); err != nil {
 				return payload, nil, err
 			}
@@ -420,8 +368,7 @@ func (c *Client) UploadFiles(
 		}
 	}
 	if body.Metadata != nil {
-		for i, item := range *body.Metadata {
-			_ = i
+		for _, item := range *body.Metadata {
 			jb, err := json.Marshal(item)
 			if err != nil {
 				return payload, nil, err
@@ -440,7 +387,6 @@ func (c *Client) UploadFiles(
 	}
 	{
 		for i, item := range body.File {
-			_ = i
 			fw, err := mw.CreateFormFile("file[]", fmt.Sprintf("file-%d", i))
 			if err != nil {
 				return payload, nil, err
@@ -562,6 +508,9 @@ func (c *Client) GetFile(
 // ReplaceFile performs PUT /files/{id}. It returns the decoded body,
 // the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
 // responses.
+// Multipart binary fields use the wire field name as their filename; binary
+// array items use deterministic file-N filenames. The raw []byte API does not
+// accept caller-provided filename metadata.
 func (c *Client) ReplaceFile(
 	ctx context.Context,
 	id string,

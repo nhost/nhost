@@ -328,6 +328,9 @@ func (c *Client) WireTypedJSON(
 // WireMultipart performs POST /multipart. It returns the decoded body,
 // the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
 // responses.
+// Multipart binary fields use the wire field name as their filename; binary
+// array items use deterministic file-N filenames. The raw []byte API does not
+// accept caller-provided filename metadata.
 func (c *Client) WireMultipart(
 	ctx context.Context,
 	body WireMultipartBody,

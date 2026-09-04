@@ -34,17 +34,22 @@ Keeping status and headers is required even for bodyless operations: for example
 
 - The Go plugin requires the `--package` flag with a valid, non-keyword Go identifier. The generic `PACKAGE` environment variable is intentionally ignored.
 - Names that normalize to the same generated Go type, field, client method, parameter field, or method argument are rejected instead of producing colliding identifiers. Method arguments also cannot shadow identifiers owned by the generated template, including imported packages.
+- `goMethodBindingNames` is checked only against path parameters, so it must contain the identifiers in the generated client-method scope plus every generated function and method declaration -- the latter is enforced by `TestGeneratedHelpersAreReservedMethodBindings`, so removing a generated helper from the map fails that test. Locals that exist only inside a helper body do not belong in it: over-reserving them rejects valid documents, as happened with the ordinary `/config/{key}` path.
 - Go keywords and predeclared identifiers used as method arguments receive a trailing underscore.
 
 ### Go parameter serialization conventions
 
 New per-parameter serializers must mirror `toQuery`: give every template branch that declares local variables its own block scope, and format scalar values directly from their typed Go value instead of JSON-round-tripping through `any`.
 
-Heterogeneous enums alias `json.RawMessage` and every stringifying site must render them with `enumScalar`; this preserves string, number, and boolean wire scalars without quotes or byte-slice formatting. Map-kind query parameters intentionally collapse to `map[string]any`; their serializers use `queryScalar`, which applies `enumScalar` to `json.RawMessage` values and `fmt.Sprint` to other caller-supplied values.
+Heterogeneous enums alias `json.RawMessage` and every stringifying site must render them with `enumScalar`; this preserves string, number, and boolean wire scalars without quotes or byte-slice formatting. Map-kind query parameters intentionally collapse to `map[string]any`; heterogeneous-enum-valued maps use `queryScalar`, which applies `enumScalar` to `json.RawMessage` values and `fmt.Sprint` to other caller-supplied values.
 
-Redirect methods are URL builders and therefore cannot carry request headers. The Go plugin rejects required header parameters on redirect operations at generation time rather than silently omitting them.
+Container query and header arrays format items with `fmt.Sprint` directly from the typed value, while object fields take a JSON-based path so their wire names can be recovered. This creates an accepted float-formatting asymmetry: an array can render `x-arr: 1e+06,2` while an object field renders `x-obj: n,1000000`.
 
-Caller-supplied `http.Header` values replace generated body and typed-parameter headers for each matching canonical key. All values supplied for that key are retained, so callers can still provide genuinely multi-valued headers without accidentally stacking them on generated values such as `Content-Type`.
+Go follows the OpenAPI form-style rules for non-exploded object query parameters. The Rust and TypeScript plugins currently retain their compact-JSON representation for that case.
+
+Redirect methods are URL builders and therefore cannot carry request headers. The Go plugin rejects required header parameters on redirect operations at generation time; optional header parameters are accepted as advisory metadata but silently omitted from the generated URL builder.
+
+Caller-supplied `http.Header` values replace generated body and typed-parameter headers for each matching canonical key. All values supplied for that key are retained, so callers can still provide genuinely multi-valued headers without accidentally stacking them on generated values such as `Content-Type`. Replacing a generated multipart `Content-Type` also discards its generated boundary; that is the caller's explicit choice and the caller must provide a usable replacement value.
 
 ## Rust validation and type behavior
 
