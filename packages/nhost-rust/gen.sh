@@ -18,7 +18,7 @@ run_codegen() {
 	if command -v codegen >/dev/null 2>&1; then
 		codegen gen "$@"
 	else
-		(cd "$CODEGEN_DIR" && GOFLAGS=-mod=mod go run . gen "$@")
+		(cd "$CODEGEN_DIR" && go run . gen "$@")
 	fi
 }
 
