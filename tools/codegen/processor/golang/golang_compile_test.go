@@ -125,6 +125,29 @@ func TestRedirectPathParameterEscaping(t *testing.T) {
 }
 `
 
+const generatedDeepObjectQueryTest = `package testpkg
+
+import "testing"
+
+func TestDeepObjectQuerySerialization(t *testing.T) {
+	redirectTo := "https://app.example.com/callback"
+	upstreamParams := map[string]any{
+		"connection": "abc",
+		"org":        "o1",
+	}
+
+	client := NewClient("https://auth.example.com", nil)
+	got := client.SignInProviderURL("google", &SignInProviderParams{
+		RedirectTo:     &redirectTo,
+		UpstreamParams: &upstreamParams,
+	})
+	want := "https://auth.example.com/signin/provider/google?redirectTo=https%3A%2F%2Fapp.example.com%2Fcallback&upstreamParams%5Bconnection%5D=abc&upstreamParams%5Borg%5D=o1"
+	if got != want {
+		t.Errorf("redirect URL = %q, want %q", got, want)
+	}
+}
+`
+
 const generatedOptionalBodyTestPrefix = `package testpkg
 
 import (
@@ -258,6 +281,108 @@ func TestGolangGeneratedPathParametersAreEscaped(t *testing.T) {
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("generated path escaping tests failed: %v\n%s", err, output)
+	}
+}
+
+func TestGolangGeneratedDeepObjectQueryUsesParameterName(t *testing.T) {
+	t.Parallel()
+
+	goTool, err := exec.LookPath("go")
+	if err != nil {
+		t.Fatal("go is not available; generated Go output cannot be verified")
+	}
+
+	moduleDir := t.TempDir()
+	writeCompileFixture(t, moduleDir, "go.mod", "module github.com/nhost/nhost\n\ngo 1.26.0\n")
+	writeCompileFixture(
+		t,
+		moduleDir,
+		"packages/nhost-go/transport/transport.go",
+		transportStub,
+	)
+
+	output, renderErr := renderGolangFixture("../testdata/deepobject-map.yaml")
+	if renderErr != nil {
+		t.Fatalf("failed to render deepobject-map.yaml: %v", renderErr)
+	}
+
+	writeCompileFixture(t, moduleDir, "deepobject/generated.go", string(output))
+	writeCompileFixture(t, moduleDir, "deepobject/generated_test.go", generatedDeepObjectQueryTest)
+
+	cmd := exec.CommandContext(t.Context(), goTool, "test", "./deepobject")
+	cmd.Dir = moduleDir
+
+	cmd.Env = append(os.Environ(), "GOFLAGS=", "GOWORK=off")
+
+	commandOutput, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("generated deepObject query test failed: %v\n%s", err, commandOutput)
+	}
+}
+
+func TestGolangRejectsUnsupportedQuerySerialization(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		style   string
+		explode bool
+		schema  string
+		wantErr string
+	}{
+		{
+			name:    "unsupported style",
+			style:   "pipeDelimited",
+			schema:  "            type: array\n            items:\n              type: string",
+			wantErr: `uses unsupported style "pipeDelimited"`,
+		},
+		{
+			name:    "deepObject without explode",
+			style:   "deepObject",
+			schema:  "            type: object\n            additionalProperties:\n              type: string",
+			wantErr: "uses deepObject with explode=false",
+		},
+		{
+			name:    "deepObject scalar",
+			style:   "deepObject",
+			explode: true,
+			schema:  "            type: string",
+			wantErr: "uses deepObject with unsupported scalar type",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			spec := fmt.Sprintf(`openapi: "3.0.0"
+paths:
+  /items:
+    get:
+      operationId: listItems
+      parameters:
+        - name: filter
+          in: query
+          style: %s
+          explode: %t
+          schema:
+%s
+      responses:
+        "200":
+          description: ok
+`, tt.style, tt.explode, tt.schema)
+			filename := filepath.Join(t.TempDir(), "unsupported.yaml")
+			writeCompileFixture(t, "", filename, spec)
+
+			_, renderErr := renderGolangFixture(filename)
+			if renderErr == nil {
+				t.Fatal("generation accepted unsupported query serialization")
+			}
+
+			if !strings.Contains(renderErr.Error(), tt.wantErr) {
+				t.Errorf("generation error = %q, want it to contain %q", renderErr, tt.wantErr)
+			}
+		})
 	}
 }
 
