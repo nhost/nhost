@@ -146,6 +146,9 @@ func (c *Client) GetUnion(
 // SubmitMultipart performs POST /multipart. It returns the decoded body,
 // the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
 // responses.
+// Multipart binary fields use the wire field name as their filename; binary
+// array items use deterministic file-N filenames. The raw []byte API does not
+// accept caller-provided filename metadata.
 func (c *Client) SubmitMultipart(
 	ctx context.Context,
 	body SubmitMultipartBody,
@@ -159,8 +162,7 @@ func (c *Client) SubmitMultipart(
 		return payload, nil, err
 	}
 	{
-		for i, item := range body.Labels {
-			_ = i
+		for _, item := range body.Labels {
 			if err := mw.WriteField("labels", fmt.Sprint(item)); err != nil {
 				return payload, nil, err
 			}

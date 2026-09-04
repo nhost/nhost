@@ -420,7 +420,7 @@ func validateRedirectHeaderParameters(methods []*processor.Method) (string, erro
 func validateQueryParameters(methods []*processor.Method) (string, error) {
 	for _, method := range methods {
 		for _, parameter := range method.QueryParameters() {
-			if parameter.JSONContent() {
+			if parameter.HasContent() {
 				continue
 			}
 
@@ -543,7 +543,7 @@ func goMethodBindingNames() map[string]string {
 		"ctx":         "generated context argument",
 		"body":        "generated request body argument",
 		"params":      "generated request parameters argument",
-		"headers":     "generated request headers argument",
+		"headers":     "generated request headers argument/local",
 		"payload":     "generated response payload local",
 		"u":           "generated request URL local",
 		"rawBody":     "generated encoded request body local",
@@ -565,18 +565,26 @@ func goMethodBindingNames() map[string]string {
 		"v":           "generated header value local",
 		"vs":          "generated header values local",
 		"q":           "generated query values local",
-		"bytes":       `generated import "bytes"`,
-		"context":     `generated import "context"`,
-		"json":        `generated import "encoding/json"`,
-		"fmt":         `generated import "fmt"`,
-		"io":          `generated import "io"`,
-		"multipart":   `generated import "mime/multipart"`,
-		"http":        `generated import "net/http"`,
-		"textproto":   `generated import "net/textproto"`,
-		"url":         `generated import "net/url"`,
-		"sort":        `generated import "sort"`,
-		"strings":     `generated import "strings"`,
-		"transport":   `generated import "github.com/nhost/nhost/packages/nhost-go/transport"`,
+
+		"enumScalar":        "generated enumScalar helper",
+		"queryScalar":       "generated queryScalar helper",
+		"queryValue":        "generated queryValue helper",
+		"headerValue":       "generated headerValue helper",
+		"escapePathSegment": "generated escapePathSegment helper",
+		"toHeaders":         "generated toHeaders helper method",
+		"toQuery":           "generated toQuery helper method",
+		"bytes":             `generated import "bytes"`,
+		"context":           `generated import "context"`,
+		"json":              `generated import "encoding/json"`,
+		"fmt":               `generated import "fmt"`,
+		"io":                `generated import "io"`,
+		"multipart":         `generated import "mime/multipart"`,
+		"http":              `generated import "net/http"`,
+		"textproto":         `generated import "net/textproto"`,
+		"url":               `generated import "net/url"`,
+		"sort":              `generated import "sort"`,
+		"strings":           `generated import "strings"`,
+		"transport":         `generated import "github.com/nhost/nhost/packages/nhost-go/transport"`,
 	}
 }
 
@@ -761,11 +769,18 @@ func mapValuesUseJSON(typ processor.Type) bool {
 	}
 
 	schema := additionalProperties.A
-	if schema.Schema() == nil || len(schema.Schema().Enum) == 0 || len(schema.Schema().Type) != 1 {
+	if schema.Schema() == nil || len(schema.Schema().Type) == 0 {
 		return false
 	}
 
-	return !enumValuesMatchDeclaredKind(schema, schema.Schema().Type[0])
+	valueType, _, err := processor.GetType(
+		schema, "MapValue", &Golang{packageName: ""}, false,
+	)
+	if err != nil {
+		return false
+	}
+
+	return goEnumUsesJSON(valueType)
 }
 
 func hasJSONMapQueryParameters(methods []*processor.Method) bool {
@@ -783,25 +798,8 @@ func hasJSONMapQueryParameters(methods []*processor.Method) bool {
 func hasNonExplodedStructuredQueryParameters(methods []*processor.Method) bool {
 	for _, method := range methods {
 		for _, parameter := range method.QueryParameters() {
-			if !parameter.JSONContent() && !parameter.Explode() &&
+			if !parameter.HasContent() && !parameter.Explode() &&
 				isStructuredParameter(parameter) {
-				return true
-			}
-		}
-	}
-
-	return false
-}
-
-func hasContainerHeaderParameters(methods []*processor.Method) bool {
-	for _, method := range methods {
-		if method.IsRedirect() {
-			continue
-		}
-
-		for _, parameter := range method.HeaderParameters() {
-			kind := parameter.Type.Kind()
-			if kind == processor.KindIdentifierArray || isStructuredParameter(parameter) {
 				return true
 			}
 		}
@@ -843,7 +841,6 @@ func (p *Golang) GetFuncMap() map[string]any {
 		"goValidateRedirectHeaders":       validateRedirectHeaderParameters,
 		"exported":                        toExported,
 		"hasJSONEnums":                    hasJSONEnums,
-		"hasContainerHeaderParameters":    hasContainerHeaderParameters,
 		"hasJSONMapQueryParameters":       hasJSONMapQueryParameters,
 		"hasNonExplodedStructuredQueries": hasNonExplodedStructuredQueryParameters,
 		"hasStructuredHeaderParameters":   hasStructuredHeaderParameters,
