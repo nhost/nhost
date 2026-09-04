@@ -615,14 +615,7 @@ func generatedOptionalBodyTest(operationCall string) string {
 func TestGolangGeneratedOutputIsGofmtStable(t *testing.T) {
 	t.Parallel()
 
-	fixtures, err := filepath.Glob("../testdata/*.yaml")
-	if err != nil {
-		t.Fatalf("failed to find shared OpenAPI fixtures: %v", err)
-	}
-
-	if len(fixtures) == 0 {
-		t.Fatal("no OpenAPI fixtures found")
-	}
+	fixtures := golangFixturePaths(t)
 
 	for _, fixture := range fixtures {
 		output, renderErr := renderGolangFixture(fixture)
@@ -1138,14 +1131,7 @@ func TestGolangGeneratedOutputCompiles(t *testing.T) {
 		t.Fatal("go is not available; generated Go output cannot be verified")
 	}
 
-	fixtures, err := filepath.Glob("../testdata/*.yaml")
-	if err != nil {
-		t.Fatalf("failed to find shared OpenAPI fixtures: %v", err)
-	}
-
-	if len(fixtures) == 0 {
-		t.Fatal("no OpenAPI fixtures found")
-	}
+	fixtures := golangFixturePaths(t)
 
 	moduleDir := t.TempDir()
 	writeCompileFixture(t, moduleDir, "go.mod", "module github.com/nhost/nhost\n\ngo 1.26.0\n")
@@ -1175,6 +1161,28 @@ func TestGolangGeneratedOutputCompiles(t *testing.T) {
 	if err != nil {
 		t.Fatalf("generated Go output failed to compile: %v\n%s", err, output)
 	}
+}
+
+func golangFixturePaths(t *testing.T) []string {
+	t.Helper()
+
+	patterns := []string{"../testdata/*.yaml", "testdata/*.yaml"}
+	fixtures := make([]string, 0, len(patterns))
+
+	for _, pattern := range patterns {
+		matches, err := filepath.Glob(pattern)
+		if err != nil {
+			t.Fatalf("failed to find OpenAPI fixtures matching %s: %v", pattern, err)
+		}
+
+		fixtures = append(fixtures, matches...)
+	}
+
+	if len(fixtures) == 0 {
+		t.Fatal("no OpenAPI fixtures found")
+	}
+
+	return fixtures
 }
 
 func renderGolangFixture(filename string) ([]byte, error) {

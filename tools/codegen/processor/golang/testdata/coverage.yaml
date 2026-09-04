@@ -1,0 +1,87 @@
+openapi: "3.0.0"
+
+paths:
+  /items/{type}:
+    get:
+      operationId: listItems
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: tags
+          in: query
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        "204":
+          description: No content
+
+  /union:
+    get:
+      operationId: getUnion
+      responses:
+        "200":
+          description: A string response
+          content:
+            application/json:
+              schema:
+                type: string
+        "204":
+          description: No content
+
+  /multipart:
+    post:
+      operationId: submitMultipart
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - title
+                - labels
+                - metadata
+              properties:
+                title:
+                  type: string
+                labels:
+                  type: array
+                  items:
+                    type: string
+                metadata:
+                  type: object
+                  required:
+                    - category
+                  properties:
+                    category:
+                      type: string
+                attachment:
+                  type: string
+                  format: binary
+            encoding:
+              metadata:
+                contentType: application/json
+              attachment:
+                contentType: application/octet-stream
+      responses:
+        "204":
+          description: Accepted
+
+components:
+  schemas:
+    Container:
+      type: object
+      required:
+        - typedLabels
+      properties:
+        typedLabels:
+          type: object
+          additionalProperties:
+            type: string
+          x-nhost-go-type: map[string]string
