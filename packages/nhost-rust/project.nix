@@ -46,7 +46,6 @@ let
       ./Cargo.toml
       ./Cargo.lock
       ./deny.toml
-      ./.cargo/config.toml
       ./gen.sh
       ./README.md
       ./src

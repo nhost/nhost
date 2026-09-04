@@ -367,6 +367,13 @@ impl Backend for FileStorage {
 /// Browser `localStorage`-backed session store (the default on the web). Uses
 /// the same `"nhostSession"` key as `@nhost/nhost-js`, so a session persisted
 /// by either SDK on the same origin is interoperable.
+///
+/// # Sensitive data
+///
+/// The persisted [`StoredSession`] includes the long-lived refresh token.
+/// `localStorage` is readable by any script on the origin, so an XSS can expose
+/// a durable credential. Applications with a stricter threat model should pass
+/// an explicit backend through [`crate::NhostBuilder::storage`].
 #[cfg(all(feature = "wasm", target_arch = "wasm32"))]
 pub struct LocalStorage {
     storage: web_sys::Storage,
@@ -416,7 +423,9 @@ impl Backend for LocalStorage {
 }
 
 /// Returns the default backend for the current environment: `localStorage` in
-/// the browser (when available), otherwise an in-memory store.
+/// the browser (when available), otherwise an in-memory store. See
+/// `LocalStorage`'s sensitive-data warning; callers can select an explicit
+/// backend with [`crate::NhostBuilder::storage`].
 pub fn detect_storage() -> Box<dyn Backend> {
     #[cfg(all(feature = "wasm", target_arch = "wasm32"))]
     {
