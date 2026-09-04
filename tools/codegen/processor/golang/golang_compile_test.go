@@ -410,6 +410,161 @@ func TestEnumJSONRoundTripPreservesScalarTypes(t *testing.T) {
 }
 `
 
+const generatedRequiredQueryTest = `package testpkg
+
+import (
+	"net/http"
+	"net/http/httptest"
+	"testing"
+)
+
+func TestRequiredQueryIsSent(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		if got := req.URL.Query().Get("term"); got != "required-value" {
+			t.Errorf("term query = %q, want %q", got, "required-value")
+		}
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+
+	client := NewClient(server.URL, server.Client())
+	// GetItems requires a params value; replacing it with nil must not compile.
+	if _, _, err := client.GetItems(t.Context(), GetItemsParams{
+		Filter: Filter{Term: "required-value"},
+	}, nil); err != nil {
+		t.Fatalf("GetItems returned an error: %v", err)
+	}
+}
+`
+
+const generatedOptionalHeadersTest = `package testpkg
+
+import (
+	"net/http"
+	"net/http/httptest"
+	"testing"
+)
+
+func TestTypedOptionalHeadersAndCallerOverride(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		wantHeaders := map[string]string{
+			"if-match":            "typed-match",
+			"if-none-match":       "caller-override",
+			"if-modified-since":   "typed-modified",
+			"if-unmodified-since": "typed-unmodified",
+		}
+		for name, want := range wantHeaders {
+			if got := req.Header.Get(name); got != want {
+				t.Errorf("header %s = %q, want %q", name, got, want)
+			}
+		}
+		if values := req.Header.Values("if-none-match"); len(values) != 1 {
+			t.Errorf("if-none-match values = %q, want caller value only", values)
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	ifMatch := IfMatch("typed-match")
+	ifNoneMatch := IfNoneMatch("typed-none")
+	ifModifiedSince := IfModifiedSince("typed-modified")
+	ifUnmodifiedSince := IfUnmodifiedSince("typed-unmodified")
+	client := NewClient(server.URL, server.Client())
+	if _, _, err := client.GetFile(t.Context(), "file-id", &GetFileParams{
+		IfMatch:           &ifMatch,
+		IfNoneMatch:       &ifNoneMatch,
+		IfModifiedSince:   &ifModifiedSince,
+		IfUnmodifiedSince: &ifUnmodifiedSince,
+	}, http.Header{"if-none-match": {"caller-override"}}); err != nil {
+		t.Fatalf("GetFile returned an error: %v", err)
+	}
+}
+`
+
+const requiredHeaderSpec = `openapi: "3.0.0"
+paths:
+  /required-header:
+    get:
+      operationId: requiredHeader
+      parameters:
+        - name: x-request-token
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Success
+`
+
+const generatedRequiredHeaderTest = `package testpkg
+
+import (
+	"net/http"
+	"net/http/httptest"
+	"testing"
+)
+
+func TestRequiredHeaderIsSent(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		if got := req.Header.Get("x-request-token"); got != "required-token" {
+			t.Errorf("x-request-token = %q, want %q", got, "required-token")
+		}
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+
+	client := NewClient(server.URL, server.Client())
+	if _, _, err := client.RequiredHeader(t.Context(), RequiredHeaderParams{
+		XRequestToken: "required-token",
+	}, nil); err != nil {
+		t.Fatalf("RequiredHeader returned an error: %v", err)
+	}
+}
+`
+
+const generatedHeaderValuesTest = `package testpkg
+
+import (
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+)
+
+func TestHeaderValuesUseExactWireScalars(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		wantHeaders := map[string]string{
+			"x-first-json":  "\"first\"",
+			"x-second-json": "true",
+			"x-count":       "1000000",
+			"x-number":      "12.5",
+			"x-enabled":     "true",
+			"x-mode":        "one",
+		}
+		for name, want := range wantHeaders {
+			if got := req.Header.Get(name); got != want {
+				t.Errorf("header %s = %q, want %q", name, got, want)
+			}
+		}
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+
+	client := NewClient(server.URL, server.Client())
+	if _, _, err := client.HeaderValues(t.Context(), HeaderValuesParams{
+		XFirstJSON:  "first",
+		XSecondJSON: true,
+		XCount:      1000000,
+		XNumber:     12.5,
+		XEnabled:    true,
+		XMode:       json.RawMessage(` + "`\"one\"`" + `),
+	}, nil); err != nil {
+		t.Fatalf("HeaderValues returned an error: %v", err)
+	}
+}
+`
+
 const generatedOptionalBodyTestPrefix = `package testpkg
 
 import (
@@ -705,6 +860,38 @@ components:
 	}
 }
 
+func TestGolangRejectsUnsupportedHeaderWireNames(t *testing.T) {
+	t.Parallel()
+
+	const spec = `openapi: "3.0.0"
+paths:
+  /items:
+    get:
+      operationId: getItems
+      parameters:
+        - name: 'bad"header'
+          in: header
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Done
+`
+
+	filename := filepath.Join(t.TempDir(), "invalid-header.yaml")
+	writeCompileFixture(t, "", filename, spec)
+
+	_, renderErr := renderGolangFixture(filename)
+	if renderErr == nil {
+		t.Fatal("generation accepted an unsupported header wire name")
+	}
+
+	wantErr := `unsupported JSON wire name: header parameter "bad\"header" on method "getItems"`
+	if !strings.Contains(renderErr.Error(), wantErr) {
+		t.Errorf("generation error = %q, want it to contain %q", renderErr, wantErr)
+	}
+}
+
 func TestGolangRejectsUnsupportedQuerySerialization(t *testing.T) {
 	t.Parallel()
 
@@ -826,6 +1013,120 @@ func TestGolangGeneratedOptionalFormBodiesAreAbsent(t *testing.T) {
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("generated optional body tests failed: %v\n%s", err, output)
+	}
+}
+
+func TestGolangGeneratedRequestParameters(t *testing.T) {
+	t.Parallel()
+
+	goTool, err := exec.LookPath("go")
+	if err != nil {
+		t.Fatal("go is not available; generated Go output cannot be verified")
+	}
+
+	moduleDir := t.TempDir()
+	writeCompileFixture(t, moduleDir, "go.mod", "module github.com/nhost/nhost\n\ngo 1.26.0\n")
+	writeCompileFixture(
+		t,
+		moduleDir,
+		"packages/nhost-go/transport/transport.go",
+		transportStub,
+	)
+
+	requiredQueryOutput, renderErr := renderGolangFixture(
+		"../testdata/required-object-query.yaml",
+	)
+	if renderErr != nil {
+		t.Fatalf("failed to render required query fixture: %v", renderErr)
+	}
+
+	if !strings.Contains(string(requiredQueryOutput), "params GetItemsParams") ||
+		strings.Contains(string(requiredQueryOutput), "params *GetItemsParams") {
+		t.Fatal("required query params are not generated as a non-nil value")
+	}
+
+	writeCompileFixture(
+		t,
+		moduleDir,
+		"required_query/generated.go",
+		string(requiredQueryOutput),
+	)
+	writeCompileFixture(
+		t,
+		moduleDir,
+		"required_query/generated_test.go",
+		generatedRequiredQueryTest,
+	)
+
+	optionalHeadersOutput, renderErr := renderGolangFixture("../testdata/methods_ref.yaml")
+	if renderErr != nil {
+		t.Fatalf("failed to render optional header fixture: %v", renderErr)
+	}
+
+	writeCompileFixture(
+		t,
+		moduleDir,
+		"optional_headers/generated.go",
+		string(optionalHeadersOutput),
+	)
+	writeCompileFixture(
+		t,
+		moduleDir,
+		"optional_headers/generated_test.go",
+		generatedOptionalHeadersTest,
+	)
+
+	requiredHeaderPath := filepath.Join(moduleDir, "required-header.yaml")
+	writeCompileFixture(t, "", requiredHeaderPath, requiredHeaderSpec)
+
+	requiredHeaderOutput, renderErr := renderGolangFixture(requiredHeaderPath)
+	if renderErr != nil {
+		t.Fatalf("failed to render required header fixture: %v", renderErr)
+	}
+
+	writeCompileFixture(
+		t,
+		moduleDir,
+		"required_header/generated.go",
+		string(requiredHeaderOutput),
+	)
+	writeCompileFixture(
+		t,
+		moduleDir,
+		"required_header/generated_test.go",
+		generatedRequiredHeaderTest,
+	)
+
+	headerValuesOutput, renderErr := renderGolangFixture("../testdata/header-parameters.yaml")
+	if renderErr != nil {
+		t.Fatalf("failed to render header values fixture: %v", renderErr)
+	}
+
+	if strings.Contains(string(headerValuesOutput), "type HeaderOnlyRedirectParams struct") {
+		t.Fatal("header-only redirect generated an unusable Params struct")
+	}
+
+	writeCompileFixture(
+		t,
+		moduleDir,
+		"header_values/generated.go",
+		string(headerValuesOutput),
+	)
+	writeCompileFixture(
+		t,
+		moduleDir,
+		"header_values/generated_test.go",
+		generatedHeaderValuesTest,
+	)
+
+	cmd := exec.CommandContext(t.Context(), goTool, "test", "./...")
+	cmd.Dir = moduleDir
+
+	cmd.Env = append(os.Environ(), "GOFLAGS=", "GOWORK=off")
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("generated request parameter tests failed: %v\n%s", err, output)
 	}
 }
 

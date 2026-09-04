@@ -15,6 +15,9 @@ import (
 	"net/http"
 	"net/textproto"
 	"net/url"
+{{- if hasHeaderParameters .Methods }}
+	"sort"
+{{- end }}
 	"strings"
 
 	"github.com/nhost/nhost/packages/nhost-go/transport"
@@ -36,6 +39,60 @@ func enumScalar(value json.RawMessage) string {
 }
 
 {{ end -}}
+{{ if hasHeaderParameters .Methods -}}
+func headerScalar(value any) string {
+	switch value := value.(type) {
+	case string:
+		return value
+	case nil:
+		return ""
+	default:
+		return fmt.Sprint(value)
+	}
+}
+
+func headerValue(value any, explode bool) string {
+	encoded, err := json.Marshal(value)
+	if err != nil {
+		return fmt.Sprint(value)
+	}
+
+	var decoded any
+	if err := json.Unmarshal(encoded, &decoded); err != nil {
+		return fmt.Sprint(value)
+	}
+
+	switch value := decoded.(type) {
+	case []any:
+		parts := make([]string, 0, len(value))
+		for _, item := range value {
+			parts = append(parts, headerScalar(item))
+		}
+
+		return strings.Join(parts, ",")
+	case map[string]any:
+		keys := make([]string, 0, len(value))
+		for key := range value {
+			keys = append(keys, key)
+		}
+		sort.Strings(keys)
+
+		parts := make([]string, 0, len(value)*2)
+		for _, key := range keys {
+			if explode {
+				parts = append(parts, key+"="+headerScalar(value[key]))
+			} else {
+				parts = append(parts, key, headerScalar(value[key]))
+			}
+		}
+
+		return strings.Join(parts, ",")
+	default:
+		return headerScalar(value)
+	}
+}
+
+{{ end -}}
 {{ range .Types }}
 {{- if eq .Kind "object" }}
 {{ template "renderObject" . }}
@@ -52,13 +109,19 @@ type {{ .Name }} = {{ .Alias.Name }}
 {{ end }}
 {{- end }}
 {{ range .Methods }}
-{{- if .HasQueryParameters }}
+{{- if and .HasRequestParameters (or (not .IsRedirect) .HasQueryParameters) }}
 type {{ .Name }}Params struct {
 {{- range .QueryParameters }}
 	{{ goParamField . }}
 {{- end }}
+{{- if not .IsRedirect }}
+{{- range .HeaderParameters }}
+	{{ goParamField . }}
+{{- end }}
+{{- end }}
 }
 
+{{- if .HasQueryParameters }}
 func (p *{{ .Name }}Params) toQuery() url.Values {
 	q := url.Values{}
 {{- range .QueryParameters }}
@@ -136,6 +199,36 @@ func (p *{{ .Name }}Params) toQuery() url.Values {
 {{- end }}
 	return q
 }
+{{- end }}
+{{- if and (not .IsRedirect) .HasHeaderParameters }}
+
+func (p *{{ .Name }}Params) toHeaders() http.Header {
+	headers := http.Header{}
+{{- range .HeaderParameters }}
+{{- $access := printf "p.%s" .Name }}
+{{- if not .Required }}
+	if p.{{ .Name }} != nil {
+{{- $access = printf "*p.%s" .Name }}
+{{- end }}
+{{- if .JSONContent }}
+	{
+		encoded, _ := json.Marshal({{ $access }})
+		headers.Set("{{ .RawName }}", string(encoded))
+	}
+{{- else if goEnumUsesJSON .Type }}
+	headers.Set("{{ .RawName }}", enumScalar({{ $access }}))
+{{- else if or (eq .Type.Kind "array") (eq .Type.Kind "map") (eq .Type.Kind "object") }}
+	headers.Set("{{ .RawName }}", headerValue({{ $access }}, {{ .Explode }}))
+{{- else }}
+	headers.Set("{{ .RawName }}", fmt.Sprint({{ $access }}))
+{{- end }}
+{{- if not .Required }}
+	}
+{{- end }}
+{{- end }}
+	return headers
+}
+{{- end }}
 
 {{ end }}
 {{- end }}
