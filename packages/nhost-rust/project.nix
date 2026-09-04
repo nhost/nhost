@@ -28,6 +28,9 @@ let
 
   checkDeps = rustDeps ++ [
     codegen
+    pkgs.cargo-deny
+    # cargo-deny fetches the RustSec advisory database through git.
+    pkgs.git
     # C toolchain: rustc needs a linker (cc) to build proc-macros and crates.
     pkgs.stdenv.cc
     # openssl + pkg-config let the `native-tls` feature build (openssl-sys).
@@ -42,6 +45,7 @@ let
     fileset = fs.unions [
       ./Cargo.toml
       ./Cargo.lock
+      ./deny.toml
       ./.cargo/config.toml
       ./gen.sh
       ./README.md
@@ -89,6 +93,21 @@ in
           || (echo "❌ auth/client.rs is stale; run ./gen.sh" && exit 1)
         diff "$TMPDIR/storage.before" src/storage/client.rs \
           || (echo "❌ storage/client.rs is stale; run ./gen.sh" && exit 1)
+
+        echo "➜ Resolving the locked all-features dependency graph from vendored sources"
+        cargo metadata --offline --locked --all-features --format-version 1 \
+          > "$TMPDIR/cargo-metadata.json"
+
+        echo "➜ Fetching the current RustSec database and crates.io index"
+        buildCargoHome="$CARGO_HOME"
+        export CARGO_HOME="$TMPDIR/cargo-deny"
+        mkdir -p "$CARGO_HOME"
+        cargo deny --metadata-path "$TMPDIR/cargo-metadata.json" fetch db index
+
+        echo "➜ Checking dependencies for security advisories"
+        cargo deny --metadata-path "$TMPDIR/cargo-metadata.json" \
+          --locked --offline check advisories
+        export CARGO_HOME="$buildCargoHome"
 
         echo "➜ Checking rustfmt"
         cargo fmt --check

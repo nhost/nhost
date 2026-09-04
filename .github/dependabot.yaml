@@ -12,3 +12,15 @@ updates:
       - "dependencies"
       - "github_actions"
       - "chore"
+
+  - package-ecosystem: "cargo"
+    open-pull-requests-limit: 10
+    directory: "/packages/nhost-rust"
+    schedule:
+      interval: "daily"
+      time: "04:00"
+    commit-message:
+      prefix: "chore(nhost-rust)"
+    labels:
+      - "dependencies"
+      - "chore"

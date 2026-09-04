@@ -341,6 +341,11 @@ code for crate conventions.
   its value is the exit status, not a build artifact. `make build` is not a
   substitute and fails because this check-only project intentionally has no
   `packages.<system>.nhost-rust` output.
+- The Nix check resolves cargo-deny's metadata with the vendored build
+  `CARGO_HOME`, then fetches RustSec and the crates.io index under a separate
+  `CARGO_HOME`. Keep that split: the vendored source replacement has no registry
+  index entries, so using it for the scan emits `index-failure` warnings instead
+  of reliably checking yanked crates.
 - The integration tests reach the host backend because the check derivation sets
   `__noChroot`. Nix honours that flag only for a trusted user when
   `sandbox = relaxed`; with `sandbox = true`, Nix silently ignores the flag and
