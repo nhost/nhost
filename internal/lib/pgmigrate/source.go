@@ -13,6 +13,8 @@ var (
 	errCatalogSourceURL               = errors.New("catalog source cannot be opened from a URL")
 )
 
+// catalogSource reports unusable rows as *IntegrityError because golang-migrate records
+// an os.ErrNotExist body lookup as an applied no-op; the sentinel is reserved for chain boundaries.
 type catalogSource struct {
 	catalog *catalog
 }
