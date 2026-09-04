@@ -193,14 +193,23 @@ func WithMiddleware(mw ...transport.Middleware) ConfigureFunc {
 }
 
 // Client provides unified access to Nhost auth, storage, graphql, and
-// functions.
+// functions. A Client and its service clients are safe for concurrent use by
+// multiple goroutines. Its SessionStorage is also safe for concurrent use when
+// the configured [session.Backend] satisfies the interface's concurrency
+// requirement.
 type Client struct {
-	Auth      *auth.Client
-	Storage   *storage.Client
-	GraphQL   *graphql.Client
+	// Auth provides user authentication and account-management operations.
+	Auth *auth.Client
+	// Storage provides file upload, download, and metadata operations.
+	Storage *storage.Client
+	// GraphQL executes queries and mutations against the project's GraphQL API.
+	GraphQL *graphql.Client
+	// Functions invokes serverless functions deployed to the project.
 	Functions *functions.Client
 	// RefreshClient is the bare auth client used for explicit session refreshes.
-	RefreshClient  *auth.Client
+	// Its transport intentionally excludes session middleware.
+	RefreshClient *auth.Client
+	// SessionStorage stores and manages the session shared by all service clients.
 	SessionStorage *session.Storage
 }
 
@@ -229,15 +238,38 @@ func (c *Client) ClearSession() {
 
 // Options configures the creation of an Nhost client.
 type Options struct {
-	Subdomain    string
-	Region       string
-	AuthURL      string
-	StorageURL   string
-	GraphQLURL   string
+	// Subdomain is the Nhost project subdomain used to construct cloud service
+	// URLs. Subdomain and Region must both be set to target Nhost cloud; if
+	// either is empty, services without a custom URL use local development URLs.
+	Subdomain string
+	// Region is the Nhost project region used to construct cloud service URLs.
+	// Region and Subdomain must both be set to target Nhost cloud; if either is
+	// empty, services without a custom URL use local development URLs.
+	Region string
+	// AuthURL is the complete base URL for the auth service. It overrides
+	// Subdomain and Region for auth requests.
+	AuthURL string
+	// StorageURL is the complete base URL for the storage service. It overrides
+	// Subdomain and Region for storage requests.
+	StorageURL string
+	// GraphQLURL is the complete URL for the GraphQL service. It overrides
+	// Subdomain and Region for GraphQL requests.
+	GraphQLURL string
+	// FunctionsURL is the complete base URL for the functions service. It
+	// overrides Subdomain and Region for functions requests.
 	FunctionsURL string
-	Storage      session.Backend
-	HTTPClient   *http.Client
-	Configure    []ConfigureFunc
+	// Storage is the backend used to persist sessions. Implementations must be
+	// safe for concurrent use by multiple goroutines. If nil,
+	// [session.DetectStorage] supplies an in-memory backend.
+	Storage session.Backend
+	// HTTPClient is the base HTTP client used by all services. The supplied client
+	// is never mutated and may be shared; service middleware is installed on
+	// independent copies. If nil, a default client with no timeout is used;
+	// per-request deadlines come from the context.Context passed to each method.
+	HTTPClient *http.Client
+	// Configure contains functions applied in order after constructor defaults.
+	// Middleware added here is nested inside the default middleware.
+	Configure []ConfigureFunc
 }
 
 // build constructs a client, running defaults before the caller's
@@ -306,8 +338,15 @@ func build(options Options, defaults ...ConfigureFunc) *Client {
 	}
 }
 
-// New creates an app client with automatic refresh + token attachment. This is
-// the client most applications want.
+// New creates an app client with automatic refresh and token attachment. This
+// is the client most single-user applications and command-line tools want.
+//
+// New is intended for single-user contexts. Do not share a client created by
+// New between users in a server: when options.Storage is nil, sessions are kept
+// in one in-memory store owned by the client, so one user's tokens could be
+// attached to another user's requests. Automatic refresh can also race across
+// independent request contexts. Use [NewServerClient] with a per-request or
+// per-user backend instead.
 func New(options Options) *Client {
 	return build(options, clientSideSessionMiddleware)
 }
