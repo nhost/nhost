@@ -141,12 +141,19 @@ func DetectStorage() Backend { //nolint:ireturn
 // ChangeCallback is notified on every session change.
 type ChangeCallback func(session *StoredSession)
 
+type refreshCall struct {
+	done    chan struct{}
+	session *StoredSession
+	err     error
+}
+
 // Storage wraps a Backend, decoding tokens on Set and notifying subscribers on
 // every change.
 type Storage struct {
 	backend     Backend
 	mu          sync.Mutex
 	refreshMu   sync.Mutex
+	refreshCall *refreshCall
 	subscribers map[int]ChangeCallback
 	nextID      int
 }
@@ -157,9 +164,51 @@ func NewStorage(backend Backend) *Storage {
 		backend:     backend,
 		mu:          sync.Mutex{},
 		refreshMu:   sync.Mutex{},
+		refreshCall: nil,
 		subscribers: map[int]ChangeCallback{},
 		nextID:      0,
 	}
+}
+
+func (s *Storage) beginRefresh() (*refreshCall, bool) {
+	s.refreshMu.Lock()
+	defer s.refreshMu.Unlock()
+
+	if s.refreshCall != nil {
+		return s.refreshCall, false
+	}
+
+	call := &refreshCall{done: make(chan struct{}), session: nil, err: nil}
+	s.refreshCall = call
+
+	return call, true
+}
+
+func (s *Storage) finishRefresh(call *refreshCall, session *StoredSession, err error) {
+	s.refreshMu.Lock()
+	defer s.refreshMu.Unlock()
+
+	call.session = session
+	call.err = err
+	s.refreshCall = nil
+
+	close(call.done)
+}
+
+func (s *Storage) removeIfPresent() bool {
+	s.refreshMu.Lock()
+
+	_, ok := s.backend.Get()
+	if ok {
+		s.backend.Remove()
+	}
+	s.refreshMu.Unlock()
+
+	if ok {
+		s.notify(nil)
+	}
+
+	return ok
 }
 
 // Get returns the current session from the backend, or (nil, false).

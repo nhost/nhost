@@ -2,9 +2,13 @@ package nhost_test
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"sync/atomic"
 	"testing"
+	"time"
 
 	nhost "github.com/nhost/nhost/packages/nhost-go"
 	"github.com/nhost/nhost/packages/nhost-go/auth"
@@ -150,6 +154,159 @@ func TestNewServerClientRequiresStorage(t *testing.T) {
 	}); err != nil {
 		t.Fatalf("unexpected error with storage: %v", err)
 	}
+}
+
+func TestConstructorsProvideBareRefreshClient(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		construct func() (*nhost.Client, error)
+	}{
+		{
+			name: "app client",
+			construct: func() (*nhost.Client, error) {
+				return nhost.New(nhost.Options{}), nil
+			},
+		},
+		{
+			name: "server client",
+			construct: func() (*nhost.Client, error) {
+				return nhost.NewServerClient(nhost.Options{Storage: &session.MemoryStorage{}})
+			},
+		},
+		{
+			name: "bare client",
+			construct: func() (*nhost.Client, error) {
+				return nhost.NewBareClient(nhost.Options{}), nil
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			client, err := tt.construct()
+			if err != nil {
+				t.Fatalf("construct client: %v", err)
+			}
+
+			if client.RefreshClient == nil {
+				t.Fatal("RefreshClient is nil")
+			}
+
+			if client.RefreshClient == client.Auth {
+				t.Fatal("RefreshClient aliases the middleware-wrapped Auth client")
+			}
+		})
+	}
+}
+
+func TestRefreshSessionUsesBareClientWithCustomAuthURL(t *testing.T) {
+	t.Parallel()
+
+	oldAccessToken := testAccessToken(t, time.Now().Add(30*time.Second).Unix())
+	newAccessToken := testAccessToken(t, time.Now().Add(time.Hour).Unix())
+
+	var (
+		hits          atomic.Int32
+		authorization atomic.Value
+	)
+
+	server := httptest.NewServer(
+		http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			hits.Add(1)
+			authorization.Store(request.Header.Get("Authorization"))
+
+			if request.Method != http.MethodPost || request.URL.Path != "/v1/auth/token" {
+				t.Errorf(
+					"request = %s %s, want POST /v1/auth/token",
+					request.Method,
+					request.URL.Path,
+				)
+			}
+
+			writer.Header().Set("Content-Type", "application/json")
+
+			if err := json.NewEncoder(writer).Encode(auth.Session{
+				AccessToken:  newAccessToken,
+				RefreshToken: "rotated-refresh-token",
+			}); err != nil {
+				t.Errorf("encode refresh response: %v", err)
+			}
+		}),
+	)
+	defer server.Close()
+
+	client := nhost.New(nhost.Options{
+		AuthURL:    server.URL + "/v1/auth",
+		HTTPClient: server.Client(),
+		Storage:    &session.MemoryStorage{},
+	})
+
+	var changes atomic.Int32
+	client.SessionStorage.OnChange(func(*session.StoredSession) {
+		changes.Add(1)
+	})
+
+	if err := client.SessionStorage.Set(auth.Session{
+		AccessToken:  oldAccessToken,
+		RefreshToken: "old-refresh-token",
+	}); err != nil {
+		t.Fatalf("seed session: %v", err)
+	}
+
+	changes.Store(0)
+
+	type refreshResult struct {
+		session *session.StoredSession
+		err     error
+	}
+
+	resultChannel := make(chan refreshResult, 1)
+	go func() {
+		got, err := client.RefreshSession(context.Background(), nhost.DefaultRefreshMarginSeconds)
+		resultChannel <- refreshResult{session: got, err: err}
+	}()
+
+	select {
+	case result := <-resultChannel:
+		if result.err != nil {
+			t.Fatalf("refresh session: %v", result.err)
+		}
+
+		if result.session == nil || result.session.RefreshToken != "rotated-refresh-token" {
+			t.Fatalf("session = %#v, want rotated refresh token", result.session)
+		}
+	case <-time.After(500 * time.Millisecond):
+		t.Fatal("refresh did not return before timeout")
+	}
+
+	if hits.Load() != 1 {
+		t.Fatalf("token endpoint hits = %d, want 1", hits.Load())
+	}
+
+	if got, _ := authorization.Load().(string); got != "" {
+		t.Errorf("refresh Authorization = %q, want empty", got)
+	}
+
+	if changes.Load() != 1 {
+		t.Fatalf("session change notifications = %d, want 1", changes.Load())
+	}
+}
+
+func testAccessToken(t *testing.T, expiry int64) string {
+	t.Helper()
+
+	header := base64.RawURLEncoding.EncodeToString([]byte(`{"alg":"HS256","typ":"JWT"}`))
+
+	payload, err := json.Marshal(map[string]any{"exp": expiry, "sub": "user-1"})
+	if err != nil {
+		t.Fatalf("marshal token payload: %v", err)
+	}
+
+	return header + "." + base64.RawURLEncoding.EncodeToString(payload) + ".signature"
 }
 
 func TestPKCERFC7636Vector(t *testing.T) {
