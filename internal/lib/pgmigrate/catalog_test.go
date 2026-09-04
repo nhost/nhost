@@ -98,25 +98,29 @@ func TestCatalogBootstrapEnforcesDatabaseInvariants(t *testing.T) {
 	insertStoredMigration(t, database, relation, storedMigrationFrom(child))
 
 	tests := []struct {
-		name string
-		run  func() error
+		name       string
+		constraint string
+		run        func() error
 	}{
 		{
-			name: "one root",
+			name:       "one root",
+			constraint: "schema_migration_catalog_one_active_root",
 			run: func() error {
 				migration := storedMigrationFrom(testMigration(3, nil, "another_root"))
 				return insertStoredMigrationError(t.Context(), database, relation, migration)
 			},
 		},
 		{
-			name: "one successor",
+			name:       "one successor",
+			constraint: "schema_migration_catalog_active_successor",
 			run: func() error {
 				migration := storedMigrationFrom(testMigration(3, uintPointer(1), "another_child"))
 				return insertStoredMigrationError(t.Context(), database, relation, migration)
 			},
 		},
 		{
-			name: "one active version",
+			name:       "one active version",
+			constraint: "schema_migration_catalog_active_version",
 			run: func() error {
 				migration := storedMigrationFrom(
 					testMigration(2, uintPointer(2), "duplicate_version"),
@@ -126,7 +130,8 @@ func TestCatalogBootstrapEnforcesDatabaseInvariants(t *testing.T) {
 			},
 		},
 		{
-			name: "existing predecessor",
+			name:       "existing predecessor",
+			constraint: "schema_migration_catalog_previous_id_fkey",
 			run: func() error {
 				// pi-lens-ignore: go-sql-injection
 				_, err := database.ExecContext(
@@ -145,7 +150,8 @@ func TestCatalogBootstrapEnforcesDatabaseInvariants(t *testing.T) {
 			},
 		},
 		{
-			name: "complete archive metadata",
+			name:       "complete archive metadata",
+			constraint: "schema_migration_catalog_archive_metadata_check",
 			run: func() error {
 				// pi-lens-ignore: go-sql-injection
 				_, err := database.ExecContext(
@@ -164,7 +170,8 @@ func TestCatalogBootstrapEnforcesDatabaseInvariants(t *testing.T) {
 			},
 		},
 		{
-			name: "nonempty up SQL",
+			name:       "nonempty up SQL",
+			constraint: "schema_migration_catalog_up_sql_nonempty",
 			run: func() error {
 				// pi-lens-ignore: go-sql-injection
 				_, err := database.ExecContext(
@@ -181,7 +188,8 @@ func TestCatalogBootstrapEnforcesDatabaseInvariants(t *testing.T) {
 			},
 		},
 		{
-			name: "nonempty down SQL",
+			name:       "nonempty down SQL",
+			constraint: "schema_migration_catalog_down_sql_nonempty",
 			run: func() error {
 				// pi-lens-ignore: go-sql-injection
 				_, err := database.ExecContext(
@@ -198,7 +206,8 @@ func TestCatalogBootstrapEnforcesDatabaseInvariants(t *testing.T) {
 			},
 		},
 		{
-			name: "up checksum length",
+			name:       "up checksum length",
+			constraint: "schema_migration_catalog_up_sha256_length",
 			run: func() error {
 				// pi-lens-ignore: go-sql-injection
 				_, err := database.ExecContext(
@@ -215,7 +224,8 @@ func TestCatalogBootstrapEnforcesDatabaseInvariants(t *testing.T) {
 			},
 		},
 		{
-			name: "down checksum length",
+			name:       "down checksum length",
+			constraint: "schema_migration_catalog_down_sha256_length",
 			run: func() error {
 				// pi-lens-ignore: go-sql-injection
 				_, err := database.ExecContext(
@@ -232,7 +242,8 @@ func TestCatalogBootstrapEnforcesDatabaseInvariants(t *testing.T) {
 			},
 		},
 		{
-			name: "restricted predecessor deletion",
+			name:       "restricted predecessor deletion",
+			constraint: "schema_migration_catalog_previous_id_fkey",
 			run: func() error {
 				// pi-lens-ignore: go-sql-injection
 				_, err := database.ExecContext(
@@ -251,10 +262,7 @@ func TestCatalogBootstrapEnforcesDatabaseInvariants(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := tt.run()
-			if err == nil {
-				t.Fatal("constraint-violating statement error = nil")
-			}
+			assertCatalogConstraintError(t, tt.run(), tt.constraint)
 		})
 	}
 
@@ -278,6 +286,23 @@ func TestCatalogBootstrapEnforcesDatabaseInvariants(t *testing.T) {
 			"root index = %q, want PostgreSQL-13-compatible partial predicate",
 			indexDefinition,
 		)
+	}
+}
+
+func assertCatalogConstraintError(t *testing.T, err error, constraint string) {
+	t.Helper()
+
+	if err == nil {
+		t.Fatal("constraint-violating statement error = nil")
+	}
+
+	var postgresError *pq.Error
+	if !errors.As(err, &postgresError) {
+		t.Fatalf("error = %v (%T), want *pq.Error", err, err)
+	}
+
+	if postgresError.Constraint != constraint {
+		t.Fatalf("constraint = %q, want %q", postgresError.Constraint, constraint)
 	}
 }
 
