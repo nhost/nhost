@@ -135,8 +135,10 @@ in
         cargo test --offline --doc
 
         echo "➜ Running the integration tests against the local backend"
-        export NHOST_LOCAL_BACKEND=1
-        cargo test --offline --test integration
+        # --include-ignored, not --ignored: the latter runs ONLY ignored tests,
+        # so an integration test added without #[ignore] would be filtered out
+        # of CI and stay green.
+        cargo test --offline --test integration -- --include-ignored
 
         mkdir $out
       '';
