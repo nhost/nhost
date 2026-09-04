@@ -7,7 +7,7 @@ func (c *Client) {{ .Name }}URL(
 {{- range .PathParameters }} {{ unexported .Name }} string,{{ end }}
 {{- if .HasQueryParameters }} params *{{ .Name }}Params,{{ end }}
 ) string {
-	u := fmt.Sprintf("%s{{ .Path }}", c.BaseURL{{ range .PathParameters }}, {{ unexported .Name }}{{ end }})
+	u := fmt.Sprintf("%s{{ .Path }}", c.BaseURL{{ range .PathParameters }}, escapePathSegment({{ unexported .Name }}){{ end }})
 {{- if .HasQueryParameters }}
 	if params != nil {
 		if q := params.toQuery(); len(q) > 0 {
@@ -35,7 +35,7 @@ func (c *Client) {{ .Name }}(
 	headers http.Header,
 ) ({{ $ret }}, *transport.Response, error) {
 	var payload {{ $ret }}
-	u := fmt.Sprintf("%s{{ .Path }}", c.BaseURL{{ range .PathParameters }}, {{ unexported .Name }}{{ end }})
+	u := fmt.Sprintf("%s{{ .Path }}", c.BaseURL{{ range .PathParameters }}, escapePathSegment({{ unexported .Name }}){{ end }})
 {{- if .RequestJSON }}
 {{- if .BodyRequired }}
 	rawBody, err := json.Marshal(body)
@@ -253,6 +253,20 @@ func (c *Client) {{ .Name }}(
 {{ end -}}
 
 {{- define "client" -}}
+{{ if hasPathParameters .Methods -}}
+func escapePathSegment(value any) string {
+	segment := fmt.Sprint(value)
+	switch segment {
+	case ".":
+		return "%2E"
+	case "..":
+		return "%2E%2E"
+	default:
+		return url.PathEscape(segment)
+	}
+}
+
+{{ end -}}
 // Client is a generated API client backed by an *http.Client. Install request
 // middleware (session refresh, token attachment, ...) via the client's
 // Transport; see transport.NewHTTPClient.

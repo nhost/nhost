@@ -32,6 +32,99 @@ func NewAPIErrorFromResponse(*http.Response) error { return &APIError{} }
 func DecodeJSON(*http.Response, any) error { return nil }
 `
 
+const generatedRequestPathEscapingTest = `package testpkg
+
+import (
+	"fmt"
+	"net/http"
+	"testing"
+)
+
+type roundTripFunc func(*http.Request) (*http.Response, error)
+
+func (f roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return f(req)
+}
+
+func TestRequestPathParameterEscaping(t *testing.T) {
+	tests := []struct {
+		name      string
+		parameter string
+		wantPath  string
+	}{
+		{name: "slash", parameter: "directory/file", wantPath: "/files/directory%2Ffile"},
+		{name: "dot segment", parameter: "..", wantPath: "/files/%2E%2E"},
+		{name: "query and fragment", parameter: "file?x=1#frag", wantPath: "/files/file%3Fx=1%23frag"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var gotPath, gotQuery string
+			httpClient := &http.Client{Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+				gotPath = req.URL.EscapedPath()
+				gotQuery = req.URL.RawQuery
+
+				return &http.Response{
+					StatusCode: http.StatusOK,
+					Header:     make(http.Header),
+					Body:       http.NoBody,
+					Request:    req,
+				}, nil
+			})}
+
+			client := NewClient("https://example.com", httpClient)
+			if _, _, err := client.GetFile(t.Context(), tt.parameter, nil, nil); err != nil {
+				t.Fatalf("GetFile returned an error: %v", err)
+			}
+			if gotPath != tt.wantPath {
+				t.Errorf("escaped path = %q, want %q", gotPath, tt.wantPath)
+			}
+			if gotQuery != "" {
+				t.Errorf("raw query = %q, want empty", gotQuery)
+			}
+		})
+	}
+}
+
+func TestEscapePathSegmentFormatsNonStrings(t *testing.T) {
+	if got := escapePathSegment(42); got != "42" {
+		t.Errorf("escaped integer = %q, want %q", got, "42")
+	}
+	if got := escapePathSegment(fmt.Stringer(testStringer{})); got != "directory%2Ffile" {
+		t.Errorf("escaped Stringer = %q, want %q", got, "directory%2Ffile")
+	}
+}
+
+type testStringer struct{}
+
+func (testStringer) String() string { return "directory/file" }
+`
+
+const generatedRedirectPathEscapingTest = `package testpkg
+
+import "testing"
+
+func TestRedirectPathParameterEscaping(t *testing.T) {
+	tests := []struct {
+		name      string
+		parameter string
+		wantURL   string
+	}{
+		{name: "slash", parameter: "oauth/provider", wantURL: "https://example.com/signin/provider/oauth%2Fprovider"},
+		{name: "dot segment", parameter: "..", wantURL: "https://example.com/signin/provider/%2E%2E"},
+	}
+
+	client := NewClient("https://example.com", nil)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := client.SignInProviderURL(tt.parameter, nil); got != tt.wantURL {
+				t.Errorf("redirect URL = %q, want %q", got, tt.wantURL)
+			}
+		})
+	}
+}
+`
+
 func TestGolangGeneratedOutputIsGofmtStable(t *testing.T) {
 	t.Parallel()
 
@@ -66,6 +159,58 @@ func TestGolangProcessSourceRejectsInvalidGo(t *testing.T) {
 
 	if _, err := (&golang.Golang{}).ProcessSource([]byte("not Go source")); err == nil {
 		t.Fatal("ProcessSource accepted invalid Go source")
+	}
+}
+
+func TestGolangGeneratedPathParametersAreEscaped(t *testing.T) {
+	t.Parallel()
+
+	goTool, err := exec.LookPath("go")
+	if err != nil {
+		t.Fatal("go is not available; generated Go output cannot be verified")
+	}
+
+	moduleDir := t.TempDir()
+	writeCompileFixture(t, moduleDir, "go.mod", "module github.com/nhost/nhost\n\ngo 1.26.0\n")
+	writeCompileFixture(
+		t,
+		moduleDir,
+		"packages/nhost-go/transport/transport.go",
+		transportStub,
+	)
+
+	fixtures := []struct {
+		name       string
+		testSource string
+	}{
+		{name: "methods_ref.yaml", testSource: generatedRequestPathEscapingTest},
+		{name: "content.yaml", testSource: generatedRedirectPathEscapingTest},
+	}
+
+	for _, fixture := range fixtures {
+		output, renderErr := renderGolangFixture("../testdata/" + fixture.name)
+		if renderErr != nil {
+			t.Fatalf("failed to render %s: %v", fixture.name, renderErr)
+		}
+
+		packageDir := strings.NewReplacer("-", "_", ".", "_").Replace(fixture.name)
+		writeCompileFixture(t, moduleDir, filepath.Join(packageDir, "generated.go"), string(output))
+		writeCompileFixture(
+			t,
+			moduleDir,
+			filepath.Join(packageDir, "generated_test.go"),
+			fixture.testSource,
+		)
+	}
+
+	cmd := exec.CommandContext(t.Context(), goTool, "test", "./...")
+	cmd.Dir = moduleDir
+
+	cmd.Env = append(os.Environ(), "GOFLAGS=", "GOWORK=off")
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("generated path escaping tests failed: %v\n%s", err, output)
 	}
 }
 
