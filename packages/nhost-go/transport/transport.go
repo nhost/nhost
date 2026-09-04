@@ -11,10 +11,15 @@ package transport
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"strings"
 )
+
+const defaultMaxRedirects = 10
+
+var errTooManyRedirects = errors.New("stopped after 10 redirects")
 
 // RoundTripFunc adapts an ordinary function to an [http.RoundTripper].
 type RoundTripFunc func(req *http.Request) (*http.Response, error)
@@ -47,12 +52,30 @@ func Chain(base http.RoundTripper, middleware ...Middleware) http.RoundTripper {
 // may be nil, in which case a zero-value client (using
 // [http.DefaultTransport]) is wrapped. The original base is never mutated, so
 // callers may share one *http.Client across services with distinct middleware.
+// Sensitive Nhost credentials are stripped before following a redirect to a
+// different host; redirects otherwise retain the base client's behavior.
 func NewHTTPClient(base *http.Client, middleware ...Middleware) *http.Client {
 	var client http.Client
 	if base != nil {
 		client = *base
 	}
 
+	checkRedirect := client.CheckRedirect
+	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		var err error
+		if checkRedirect != nil {
+			err = checkRedirect(req, via)
+		} else if len(via) >= defaultMaxRedirects {
+			err = errTooManyRedirects
+		}
+
+		if len(via) > 0 && !strings.EqualFold(req.URL.Host, via[0].URL.Host) {
+			req.Header.Del("Authorization")
+			req.Header.Del("x-hasura-admin-secret")
+		}
+
+		return err
+	}
 	client.Transport = Chain(client.Transport, middleware...)
 
 	return &client

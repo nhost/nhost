@@ -46,6 +46,67 @@ func TestChainOrder(t *testing.T) {
 	}
 }
 
+func TestNewHTTPClientStripsCallerCredentialsOnCrossHostRedirect(t *testing.T) {
+	t.Parallel()
+
+	type credentials struct {
+		authorization string
+		adminSecret   string
+	}
+
+	destinationCredentials := make(chan credentials, 1)
+
+	destination := httptest.NewServer(
+		http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			destinationCredentials <- credentials{
+				authorization: req.Header.Get("Authorization"),
+				adminSecret:   req.Header.Get("x-hasura-admin-secret"),
+			}
+
+			w.WriteHeader(http.StatusOK)
+		}),
+	)
+	defer destination.Close()
+
+	originCredentials := make(chan credentials, 1)
+
+	origin := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		originCredentials <- credentials{
+			authorization: req.Header.Get("Authorization"),
+			adminSecret:   req.Header.Get("x-hasura-admin-secret"),
+		}
+
+		http.Redirect(w, req, destination.URL, http.StatusFound)
+	}))
+	defer origin.Close()
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, origin.URL, nil)
+	if err != nil {
+		t.Fatalf("create request: %v", err)
+	}
+
+	req.Header.Set("Authorization", "Bearer caller-token")
+	req.Header.Set("x-hasura-admin-secret", "caller-secret")
+
+	resp, err := transport.NewHTTPClient(origin.Client()).Do(req)
+	if err != nil {
+		t.Fatalf("request through redirect: %v", err)
+	}
+
+	if err := resp.Body.Close(); err != nil {
+		t.Fatalf("close response body: %v", err)
+	}
+
+	if got := <-originCredentials; got.authorization != "Bearer caller-token" ||
+		got.adminSecret != "caller-secret" {
+		t.Fatalf("origin credentials = %+v, want caller credentials", got)
+	}
+
+	if got := <-destinationCredentials; got.authorization != "" || got.adminSecret != "" {
+		t.Fatalf("cross-host destination received credentials: %+v", got)
+	}
+}
+
 func TestNewAPIErrorFromResponseMessage(t *testing.T) {
 	t.Parallel()
 

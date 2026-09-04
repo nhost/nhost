@@ -12,7 +12,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
+	"net/url"
+	"strings"
 
 	"github.com/nhost/nhost/packages/nhost-go/auth"
 	"github.com/nhost/nhost/packages/nhost-go/functions"
@@ -47,10 +50,12 @@ const (
 
 // GenerateServiceURL builds the base URL for an Nhost service. Precedence: an
 // explicit customURL wins; otherwise a cloud URL is built from
-// subdomain/region; otherwise the local development URL is used.
+// subdomain/region; otherwise the local development URL is used. A custom URL
+// without a scheme defaults to HTTP for localhost and loopback addresses, and
+// HTTPS otherwise.
 func GenerateServiceURL(serviceType ServiceType, subdomain, region, customURL string) string {
 	if customURL != "" {
-		return customURL
+		return normalizeCustomURL(customURL)
 	}
 
 	if subdomain != "" && region != "" {
@@ -60,9 +65,31 @@ func GenerateServiceURL(serviceType ServiceType, subdomain, region, customURL st
 	return fmt.Sprintf("https://local.%s.local.nhost.run/v1", serviceType)
 }
 
+func normalizeCustomURL(customURL string) string {
+	if strings.Contains(customURL, "://") {
+		return customURL
+	}
+
+	parsed, err := url.Parse("//" + customURL)
+	if err != nil || parsed.Host == "" {
+		return customURL
+	}
+
+	scheme := "https"
+
+	hostname := parsed.Hostname()
+	if strings.EqualFold(hostname, "localhost") {
+		scheme = "http"
+	} else if ip := net.ParseIP(hostname); ip != nil && ip.IsLoopback() {
+		scheme = "http"
+	}
+
+	return scheme + "://" + customURL
+}
+
 // Config accumulates the per-service middleware applied while a client is
-// built. Configuration functions ([ConfigureFunc]) mutate it via [Config.UseAll]
-// and [Config.UseDataServices].
+// built. Configuration functions ([ConfigureFunc]) mutate it via [Config.UseAuth],
+// [Config.UseAll], and [Config.UseDataServices].
 type Config struct {
 	// RefreshClient is a bare auth client (no middleware) that the
 	// session-refresh middleware uses to reach the token endpoint, avoiding a
@@ -71,16 +98,25 @@ type Config struct {
 	// SessionStorage is the session store shared across the client's services.
 	SessionStorage *session.Storage
 
-	authMW      []transport.Middleware
-	storageMW   []transport.Middleware
-	graphqlMW   []transport.Middleware
-	functionsMW []transport.Middleware
+	authURL      string
+	storageURL   string
+	graphqlURL   string
+	functionsURL string
+	authMW       []transport.Middleware
+	storageMW    []transport.Middleware
+	graphqlMW    []transport.Middleware
+	functionsMW  []transport.Middleware
+}
+
+// UseAuth applies middleware to auth only.
+func (c *Config) UseAuth(mw ...transport.Middleware) {
+	c.authMW = append(c.authMW, mw...)
 }
 
 // UseAll applies middleware to every service: auth, storage, graphql, and
 // functions.
 func (c *Config) UseAll(mw ...transport.Middleware) {
-	c.authMW = append(c.authMW, mw...)
+	c.UseAuth(mw...)
 	c.UseDataServices(mw...)
 }
 
@@ -93,37 +129,59 @@ func (c *Config) UseDataServices(mw ...transport.Middleware) {
 	c.functionsMW = append(c.functionsMW, mw...)
 }
 
+func (c *Config) useEachService(factory func(string) transport.Middleware) {
+	c.UseAuth(factory(c.authURL))
+	c.storageMW = append(c.storageMW, factory(c.storageURL))
+	c.graphqlMW = append(c.graphqlMW, factory(c.graphqlURL))
+	c.functionsMW = append(c.functionsMW, factory(c.functionsURL))
+}
+
+func (c *Config) useEachDataService(factory func(string) transport.Middleware) {
+	c.storageMW = append(c.storageMW, factory(c.storageURL))
+	c.graphqlMW = append(c.graphqlMW, factory(c.graphqlURL))
+	c.functionsMW = append(c.functionsMW, factory(c.functionsURL))
+}
+
 // ConfigureFunc customises a client during construction by adding middleware to
 // the [Config].
 type ConfigureFunc func(c *Config)
 
-// clientSideSessionMiddleware enables automatic session refresh, token
-// attachment, and session capture on every service.
+// clientSideSessionMiddleware enables automatic session refresh and token
+// attachment on every service, with session capture limited to auth.
 func clientSideSessionMiddleware(c *Config) {
-	c.UseAll(
-		middleware.SessionRefresh(c.RefreshClient, c.SessionStorage, DefaultRefreshMarginSeconds),
-		middleware.UpdateSessionFromResponse(c.SessionStorage),
-		middleware.AttachAccessToken(c.SessionStorage),
-	)
+	c.UseAll(middleware.SessionRefresh(
+		c.RefreshClient,
+		c.SessionStorage,
+		DefaultRefreshMarginSeconds,
+	))
+	c.UseAuth(middleware.UpdateSessionFromResponse(c.SessionStorage, c.authURL))
+	c.useEachService(func(serviceURL string) transport.Middleware {
+		return middleware.AttachAccessToken(c.SessionStorage, serviceURL)
+	})
 }
 
-// serverSideSessionMiddleware enables token attachment and session capture, but
-// no automatic refresh.
+// serverSideSessionMiddleware enables token attachment on every service and
+// session capture on auth, but no automatic refresh.
 func serverSideSessionMiddleware(c *Config) {
-	c.UseAll(
-		middleware.UpdateSessionFromResponse(c.SessionStorage),
-		middleware.AttachAccessToken(c.SessionStorage),
-	)
+	c.UseAuth(middleware.UpdateSessionFromResponse(c.SessionStorage, c.authURL))
+	c.useEachService(func(serviceURL string) transport.Middleware {
+		return middleware.AttachAccessToken(c.SessionStorage, serviceURL)
+	})
 }
 
-// WithAdminSession applies admin-secret middleware to storage, graphql, and
-// functions (never auth).
+// WithAdminSession applies host-scoped admin-secret middleware to storage,
+// graphql, and functions (never auth). Admin credentials are sent only over
+// HTTPS or to a loopback development server unless options.AllowInsecureHTTP is
+// explicitly enabled.
 //
 // Security warning: never use in client-side code — the admin secret grants
-// unrestricted database access.
+// unrestricted database access. Prefer HTTPS; AllowInsecureHTTP sends the
+// secret in cleartext and should be limited to trusted development networks.
 func WithAdminSession(options middleware.AdminSessionOptions) ConfigureFunc {
 	return func(c *Config) {
-		c.UseDataServices(middleware.WithAdminSession(options))
+		c.useEachDataService(func(serviceURL string) transport.Middleware {
+			return middleware.WithAdminSession(options, serviceURL)
+		})
 	}
 }
 
@@ -186,10 +244,32 @@ func build(options Options, defaults ...ConfigureFunc) *Client {
 	sessionStorage := session.NewStorage(backend)
 
 	authURL := GenerateServiceURL(ServiceAuth, options.Subdomain, options.Region, options.AuthURL)
+	storageURL := GenerateServiceURL(
+		ServiceStorage,
+		options.Subdomain,
+		options.Region,
+		options.StorageURL,
+	)
+	graphqlURL := GenerateServiceURL(
+		ServiceGraphQL,
+		options.Subdomain,
+		options.Region,
+		options.GraphQLURL,
+	)
+	functionsURL := GenerateServiceURL(
+		ServiceFunctions,
+		options.Subdomain,
+		options.Region,
+		options.FunctionsURL,
+	)
 
 	cfg := &Config{ //nolint:exhaustruct
 		RefreshClient:  auth.NewClient(authURL, options.HTTPClient),
 		SessionStorage: sessionStorage,
+		authURL:        authURL,
+		storageURL:     storageURL,
+		graphqlURL:     graphqlURL,
+		functionsURL:   functionsURL,
 	}
 
 	for _, configure := range append(defaults, options.Configure...) {
@@ -199,15 +279,15 @@ func build(options Options, defaults ...ConfigureFunc) *Client {
 	return &Client{
 		Auth: auth.NewClient(authURL, transport.NewHTTPClient(options.HTTPClient, cfg.authMW...)),
 		Storage: storage.NewClient(
-			GenerateServiceURL(ServiceStorage, options.Subdomain, options.Region, options.StorageURL),
+			storageURL,
 			transport.NewHTTPClient(options.HTTPClient, cfg.storageMW...),
 		),
 		GraphQL: graphql.NewClient(
-			GenerateServiceURL(ServiceGraphQL, options.Subdomain, options.Region, options.GraphQLURL),
+			graphqlURL,
 			transport.NewHTTPClient(options.HTTPClient, cfg.graphqlMW...),
 		),
 		Functions: functions.NewClient(
-			GenerateServiceURL(ServiceFunctions, options.Subdomain, options.Region, options.FunctionsURL),
+			functionsURL,
 			transport.NewHTTPClient(options.HTTPClient, cfg.functionsMW...),
 		),
 		SessionStorage: sessionStorage,
