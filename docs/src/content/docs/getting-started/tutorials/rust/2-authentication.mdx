@@ -62,22 +62,47 @@ touch tokens directly.
 
 ## Add the auth commands
 
-`whoami` already exists from Part 1. Add the three sign-in commands. First extend
-the `Command` enum — clap turns each variant into a subcommand and parses its
-arguments as typed, required fields, so there's no manual argument-count checking
-to write:
+`whoami` already exists from Part 1. Add the three sign-in commands. Use
+`rpassword` to read passwords without echoing them or placing them in shell
+history and process listings:
+
+```bash Terminal
+cargo add rpassword
+```
+
+First extend the `Command` enum. The email remains a required positional
+argument, but the password does not become a command-line argument:
 
 ```rust title="src/main.rs"
 #[derive(Subcommand)]
 enum Command {
     /// Create an account (and sign in if email verification is off)
-    Signup { email: String, password: String },
-    /// Sign in with email and password
-    Login { email: String, password: String },
+    Signup { email: String },
+    /// Sign in with email and a securely supplied password
+    Login { email: String },
     /// Sign out and clear the saved session
     Logout,
     /// Show the currently signed-in user
     Whoami,
+}
+```
+
+Read the password from `NOTES_PASSWORD` when it is set, which supports scripts
+and CI. Otherwise, prompt without echoing when stdin is a terminal. A redirected
+stdin with no environment variable produces a clear error instead of hanging or
+reading a password visibly:
+
+```rust title="src/main.rs"
+use std::io::{self, IsTerminal};
+
+fn read_password() -> Result<String> {
+    if let Ok(password) = std::env::var("NOTES_PASSWORD") {
+        return Ok(password);
+    }
+    if !io::stdin().is_terminal() {
+        return Err("stdin is not a terminal; set NOTES_PASSWORD for non-interactive use".into());
+    }
+    Ok(rpassword::prompt_password("Password: ")?)
 }
 ```
 
@@ -136,13 +161,19 @@ async fn logout(client: &Nhost) -> Result<()> {
 from storage without a network call. `clear_session` removes the cached file (a
 client-side sign out), while `sign_out` revokes the refresh token on the server.
 
-Wire the new commands into `run` — each arm destructures the variant's fields
-and passes them to its handler:
+Wire the new commands into `run` — each auth arm reads the password before
+passing it to its handler:
 
 ```rust title="src/main.rs"
     match command {
-        Command::Signup { email, password } => signup(&client, &email, &password).await,
-        Command::Login { email, password } => login(&client, &email, &password).await,
+        Command::Signup { email } => {
+            let password = read_password()?;
+            signup(&client, &email, &password).await
+        }
+        Command::Login { email } => {
+            let password = read_password()?;
+            login(&client, &email, &password).await
+        }
         Command::Logout => logout(&client).await,
         Command::Whoami => whoami(&client),
     }
@@ -164,7 +195,8 @@ Here's the whole `src/main.rs` after Part 2. The collapsed sections are unchange
 from Part 1; the highlighted lines are what this part added. Press **Copy** to
 grab the entire file at once.
 
-```rust title="src/main.rs" collapse={3-3,6-19,26-41,45-49,54-56,58-58,71-74,120-130} {1-2,4-5,20-25,42-44,50-53,57,59-70,75-119}
+```rust title="src/main.rs" collapse={4-4,7-20,27-42,52-56,61-63,65-65,78-81,137-147} {1-3,5-6,21-26,43-51,57-60,64-64,66-77,82-136}
+use std::io::{self, IsTerminal};
 use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
@@ -185,9 +217,9 @@ struct Cli {
 #[derive(Subcommand)]
 enum Command {
     /// Create an account (and sign in if email verification is off)
-    Signup { email: String, password: String },
-    /// Sign in with email and password
-    Login { email: String, password: String },
+    Signup { email: String },
+    /// Sign in with email and a securely supplied password
+    Login { email: String },
     /// Sign out and clear the saved session
     Logout,
     /// Show the currently signed-in user
@@ -206,8 +238,14 @@ async fn main() {
 async fn run(command: Command) -> Result<()> {
     let client = make_client()?;
     match command {
-        Command::Signup { email, password } => signup(&client, &email, &password).await,
-        Command::Login { email, password } => login(&client, &email, &password).await,
+        Command::Signup { email } => {
+            let password = read_password()?;
+            signup(&client, &email, &password).await
+        }
+        Command::Login { email } => {
+            let password = read_password()?;
+            login(&client, &email, &password).await
+        }
         Command::Logout => logout(&client).await,
         Command::Whoami => whoami(&client),
     }
@@ -239,6 +277,16 @@ fn session_path() -> PathBuf {
 
 fn env(key: &str, fallback: &str) -> String {
     std::env::var(key).unwrap_or_else(|_| fallback.to_string())
+}
+
+fn read_password() -> Result<String> {
+    if let Ok(password) = std::env::var("NOTES_PASSWORD") {
+        return Ok(password);
+    }
+    if !io::stdin().is_terminal() {
+        return Err("stdin is not a terminal; set NOTES_PASSWORD for non-interactive use".into());
+    }
+    Ok(rpassword::prompt_password("Password: ")?)
 }
 
 async fn signup(client: &Nhost, email: &str, password: &str) -> Result<()> {
@@ -307,7 +355,8 @@ active session — so `whoami` reports `not logged in` until you verify.
 ## Try it
 
 ```bash Terminal
-cargo run -- signup ada@example.com 'not-a-secret'
+cargo run -- signup ada@example.com
+# Password: (input is hidden)
 cargo run -- whoami
 # ada@example.com (a1b2c3d4-...)
 
@@ -315,7 +364,8 @@ cargo run -- logout
 cargo run -- whoami
 # error: not logged in
 
-cargo run -- login ada@example.com 'not-a-secret'
+cargo run -- login ada@example.com
+# Password: (input is hidden)
 ```
 
 The session is written to `~/.config/nhost-notes/session.json`. Delete that file
