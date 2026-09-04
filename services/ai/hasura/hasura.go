@@ -8,7 +8,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/Yamashou/gqlgenc/clientv2"
+	"github.com/gqlgo/gqlgenc/clientv2"
 )
 
 func WithAdminSecret(adminSecret string) clientv2.RequestInterceptor {

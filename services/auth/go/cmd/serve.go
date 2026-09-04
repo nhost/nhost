@@ -235,7 +235,7 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Sources:  cli.EnvVars("AUTH_ENCRYPTION_KEY"),
 				Required: true,
 			},
-			&cli.StringFlag{ //nolint: exhaustruct
+			&cli.StringFlag{ //nolint:exhaustruct,gosec // G101 "Password in URL": localhost dev default, overridden in every deployment
 				Name:     flagPostgresConnection,
 				Usage:    "PostgreSQL connection URI: https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING",
 				Value:    "postgres://postgres:postgres@localhost:5432/local?sslmode=disable",

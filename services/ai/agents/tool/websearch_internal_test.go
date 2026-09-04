@@ -358,8 +358,7 @@ func TestWebSearchSSRFProtection(t *testing.T) {
 				t.Fatal("expected error for loopback redirect, got nil")
 			}
 
-			var ssrfErr httpsafe.ErrPrivateIPAccessError
-			if !errors.As(err, &ssrfErr) {
+			if _, ok := errors.AsType[httpsafe.ErrPrivateIPAccessError](err); !ok {
 				t.Errorf("expected ErrPrivateIPAccessError, got %v", err)
 			}
 		})

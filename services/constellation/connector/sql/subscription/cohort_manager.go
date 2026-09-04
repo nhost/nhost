@@ -121,7 +121,7 @@ func (m *cohortManager) findOrCreateCohort(
 			m.cohorts[keyStr] = c
 
 			// Use background context so polling continues even when the first subscriber disconnects.
-			go m.pollCohort(context.Background(), c) //nolint:contextcheck
+			go m.pollCohort(context.Background(), c) //nolint:contextcheck,gosec // G118
 
 			if suffix == 0 {
 				logger.DebugContext(

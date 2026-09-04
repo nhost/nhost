@@ -9,7 +9,7 @@ import (
 	"github.com/nhost/be/services/mimir/model"
 )
 
-const constellationJWTSecret = `{"claims_map":{"x-hasura-allowed-roles":{"path":"$.roles"},"x-hasura-default-role":"viewer","x-hasura-org-id":{"default":"public","path":"$.org"},"x-hasura-user-id":{"path":"$.sub"}},"key":"jwtSecretKey","type":"HS256"}` //nolint:gosec
+const constellationJWTSecret = `{"claims_map":{"x-hasura-allowed-roles":{"path":"$.roles"},"x-hasura-default-role":"viewer","x-hasura-org-id":{"default":"public","path":"$.org"},"x-hasura-user-id":{"path":"$.sub"}},"key":"jwtSecretKey","type":"HS256"}`
 
 // Canonical traefik rule strings produced by graphql.go / constellation.go.
 // These are referenced from TestGraphqlIngressWithConstellation so a regression

@@ -279,7 +279,7 @@ func (c *Customizer) liftRootSelections(
 	selections ast.SelectionSet,
 	fragments ast.FragmentDefinitionList,
 ) ast.SelectionSet {
-	var lifted ast.SelectionSet
+	lifted := make(ast.SelectionSet, 0, len(selections))
 	for _, inner := range selections {
 		lifted = append(lifted, c.liftRootSelection(inner, fragments)...)
 	}

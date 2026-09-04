@@ -23,7 +23,7 @@ func NewWindowsliveProvider(
 			ClientSecret: clientSecret,
 			RedirectURL:  authServerURL + "/signin/provider/windowslive/callback",
 			Scopes:       scopes,
-			Endpoint: oauth2.Endpoint{ //nolint:exhaustruct
+			Endpoint: oauth2.Endpoint{ //nolint:exhaustruct,gosec // G101: public OAuth endpoint URLs, not credentials
 				AuthURL:  "https://login.live.com/oauth20_authorize.srf",
 				TokenURL: "https://login.live.com/oauth20_token.srf",
 			},

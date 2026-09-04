@@ -55,7 +55,7 @@ let
   ];
 
   checkDeps = with pkgs; [
-    mockgen
+    nhost.mockgen
     nhost.oapi-codegen
     nhost.gqlgenc
     vacuum-go

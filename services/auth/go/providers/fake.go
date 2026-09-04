@@ -23,7 +23,7 @@ func NewFakeProvider(
 			ClientSecret: clientSecret,
 			RedirectURL:  authServerURL + "/signin/provider/fake/callback",
 			Scopes:       scopes,
-			Endpoint: oauth2.Endpoint{ //nolint:exhaustruct
+			Endpoint: oauth2.Endpoint{ //nolint:exhaustruct,gosec // G101: public OAuth endpoint URLs, not credentials
 				AuthURL:       "https://accounts.fake.com/o/oauth2/auth",
 				TokenURL:      "https://oauth2.fake.com/token",
 				DeviceAuthURL: "https://oauth2.fake.com/device/code",

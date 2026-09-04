@@ -459,8 +459,7 @@ func TestParseUpdate_NullOperatorsAreOmitted(t *testing.T) {
 					t.Fatalf("error %q does not contain %q", err, tt.wantErr)
 				}
 
-				var validationErr *arguments.QueryValidationError
-				if !errors.As(err, &validationErr) {
+				if _, ok := errors.AsType[*arguments.QueryValidationError](err); !ok {
 					t.Fatalf("expected QueryValidationError, got %T (%v)", err, err)
 				}
 
@@ -499,19 +498,31 @@ func TestParseUpdate_OperatorRouting(t *testing.T) {
 			wantFragSQL: `"age" = "age" + $1::int`,
 		},
 		{
-			name: "_append routes to AppendJSONB", argName: "_append", fieldName: "data", fieldType: "jsonb",
+			name:        "_append routes to AppendJSONB",
+			argName:     "_append",
+			fieldName:   "data",
+			fieldType:   "jsonb",
 			wantFragSQL: `"data" = "data" || $1::jsonb`,
 		},
 		{
-			name: "_prepend routes to PrependJSONB", argName: "_prepend", fieldName: "data", fieldType: "jsonb",
+			name:        "_prepend routes to PrependJSONB",
+			argName:     "_prepend",
+			fieldName:   "data",
+			fieldType:   "jsonb",
 			wantFragSQL: `"data" = $1::jsonb || "data"`,
 		},
 		{
-			name: "_delete_key routes to DeleteKey", argName: "_delete_key", fieldName: "data", fieldType: "jsonb",
+			name:        "_delete_key routes to DeleteKey",
+			argName:     "_delete_key",
+			fieldName:   "data",
+			fieldType:   "jsonb",
 			wantFragSQL: `"data" = "data" - $1`,
 		},
 		{
-			name: "_delete_elem routes to DeleteElem", argName: "_delete_elem", fieldName: "data", fieldType: "jsonb",
+			name:        "_delete_elem routes to DeleteElem",
+			argName:     "_delete_elem",
+			fieldName:   "data",
+			fieldType:   "jsonb",
 			wantFragSQL: `"data" = "data" - $1::int`,
 		},
 	}

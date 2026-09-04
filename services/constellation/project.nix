@@ -45,7 +45,7 @@ let
 
   checkDeps = with pkgs; [
     nhost.nhost-cli
-    mockgen
+    nhost.mockgen
     nhost.oapi-codegen
     nhost.sqlc
     nhost.postgresql_18-client

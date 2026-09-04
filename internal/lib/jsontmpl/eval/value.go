@@ -148,7 +148,12 @@ func decodeOne(dec *jsontext.Decoder) (Value, error) {
 	case '"':
 		return tok.String(), nil
 	case '0':
-		return tok.Float(), nil
+		f, err := tok.Float()
+		if err != nil {
+			return nil, fmt.Errorf("decode number: %w", err)
+		}
+
+		return f, nil
 	case '[':
 		out := []Value{}
 		for dec.PeekKind() != ']' {

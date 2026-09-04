@@ -291,7 +291,7 @@
               nhost.gqlgen
               nhost.gqlgenc
               nhost.oapi-codegen
-              mockgen
+              nhost.mockgen
               nhost.sqlc
               vacuum-go
               nhost.govulncheck

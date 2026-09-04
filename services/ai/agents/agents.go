@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Yamashou/gqlgenc/clientv2"
+	"github.com/gqlgo/gqlgenc/clientv2"
 	"github.com/nhost/nhost/services/ai/agents/provider"
 	"github.com/nhost/nhost/services/ai/hasura"
 )
@@ -99,7 +99,8 @@ func NewService(
 		&http.Client{}, //nolint:exhaustruct
 		hasuraURL,
 		&clientv2.Options{
-			ParseDataAlongWithErrors: false,
+			ParseDataAlongWithErrors:   false,
+			EncodeNilSliceAsEmptyArray: false,
 		},
 	)
 

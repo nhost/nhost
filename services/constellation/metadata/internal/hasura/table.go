@@ -52,7 +52,7 @@ type TableMetadata struct {
 	UpdatePermissions   []UpdatePermission   `json:"update_permissions,omitempty"   yaml:"update_permissions,omitempty"`
 	DeletePermissions   []DeletePermission   `json:"delete_permissions,omitempty"   yaml:"delete_permissions,omitempty"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // UnmarshalYAML handles entries that may be `!include <path>` directives in
@@ -86,14 +86,14 @@ type TableSource struct {
 	Name   string `json:"name"   yaml:"name"`
 	Schema string `json:"schema" yaml:"schema"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // ColumnConfig overrides the GraphQL name a SQL column is exposed under.
 type ColumnConfig struct {
 	CustomName string `json:"custom_name" yaml:"custom_name"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // CustomRootFields overrides the default GraphQL field names generated for a
@@ -111,7 +111,7 @@ type CustomRootFields struct {
 	UpdateByPk      string `json:"update_by_pk,omitempty"     yaml:"update_by_pk"`
 	UpdateMany      string `json:"update_many,omitempty"      yaml:"update_many"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // TableConfiguration bundles per-table GraphQL customisations: column
@@ -121,7 +121,7 @@ type TableConfiguration struct {
 	CustomName       string                  `json:"custom_name,omitempty"   yaml:"custom_name,omitempty"`
 	CustomRootFields CustomRootFields        `json:"custom_root_fields"      yaml:"custom_root_fields,omitempty"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // SelectPermission binds a role to its select-permission configuration.
@@ -129,7 +129,7 @@ type SelectPermission struct {
 	Role       string                 `json:"role"       yaml:"role"`
 	Permission SelectPermissionConfig `json:"permission" yaml:"permission"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // InsertPermission binds a role to its insert-permission configuration.
@@ -137,7 +137,7 @@ type InsertPermission struct {
 	Role       string                 `json:"role"       yaml:"role"`
 	Permission InsertPermissionConfig `json:"permission" yaml:"permission"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // UpdatePermission binds a role to its update-permission configuration.
@@ -145,7 +145,7 @@ type UpdatePermission struct {
 	Role       string                 `json:"role"       yaml:"role"`
 	Permission UpdatePermissionConfig `json:"permission" yaml:"permission"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // DeletePermission binds a role to its delete-permission configuration.
@@ -153,7 +153,7 @@ type DeletePermission struct {
 	Role       string                 `json:"role"       yaml:"role"`
 	Permission DeletePermissionConfig `json:"permission" yaml:"permission"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // PermissionExpression is a Hasura boolean expression or preset map. Its JSON
@@ -192,7 +192,7 @@ type SelectPermissionConfig struct {
 	Filter            PermissionExpression `json:"filter,omitzero"             yaml:"filter,omitempty"`
 	AllowAggregations bool                 `json:"allow_aggregations,omitzero" yaml:"allow_aggregations,omitempty"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // UnmarshalYAML accepts Hasura's select-permission `columns: '*'` shorthand
@@ -266,8 +266,8 @@ func (p *SelectPermissionConfig) UnmarshalJSON(data []byte) error {
 		AllowAggregations bool                 `json:"allow_aggregations,omitzero"`
 		// Capture unmodeled Hasura permission keys (limit, query_root_fields,
 		// backend_only, …). The custom UnmarshalJSON bypasses the struct's own
-		// `,unknown` field, so the sink must live on this raw struct.
-		Unknown jsontext.Value `json:",unknown"`
+		// `,embed` field, so the sink must live on this raw struct.
+		Unknown jsontext.Value `json:",embed"`
 	}
 
 	if err := json.Unmarshal(data, &raw); err != nil {
@@ -335,7 +335,7 @@ type InsertPermissionConfig struct {
 	Check PermissionExpression `json:"check,omitzero" yaml:"check,omitempty"`
 	Set   PermissionExpression `json:"set,omitzero"   yaml:"set,omitempty"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // UnmarshalYAML accepts Hasura's insert-permission `columns: '*'` shorthand
@@ -376,7 +376,7 @@ func (p *InsertPermissionConfig) UnmarshalJSON(data []byte) error {
 		Check   PermissionExpression `json:"check,omitempty"`
 		Set     PermissionExpression `json:"set,omitempty"`
 		// Capture unmodeled Hasura permission keys; see SelectPermissionConfig.
-		Unknown jsontext.Value `json:",unknown"`
+		Unknown jsontext.Value `json:",embed"`
 	}
 
 	if err := json.Unmarshal(data, &raw); err != nil {
@@ -406,7 +406,7 @@ type UpdatePermissionConfig struct {
 	Check  PermissionExpression `json:"check,omitzero"  yaml:"check,omitempty"`
 	Set    PermissionExpression `json:"set,omitzero"    yaml:"set,omitempty"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // UnmarshalYAML accepts Hasura's update-permission `columns: '*'` shorthand
@@ -450,7 +450,7 @@ func (p *UpdatePermissionConfig) UnmarshalJSON(data []byte) error {
 		Check   PermissionExpression `json:"check,omitempty"`
 		Set     PermissionExpression `json:"set,omitempty"`
 		// Capture unmodeled Hasura permission keys; see SelectPermissionConfig.
-		Unknown jsontext.Value `json:",unknown"`
+		Unknown jsontext.Value `json:",embed"`
 	}
 
 	if err := json.Unmarshal(data, &raw); err != nil {
@@ -477,7 +477,7 @@ type DeletePermissionConfig struct {
 	// permissions) survives export; a nil filter is still omitted.
 	Filter PermissionExpression `json:"filter,omitzero" yaml:"filter,omitempty"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // ObjectRelationship is a many-to-one relationship from this table to another.
@@ -485,7 +485,7 @@ type ObjectRelationship struct {
 	Name  string            `json:"name"  yaml:"name"`
 	Using RelationshipUsing `json:"using" yaml:"using"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // ArrayRelationship is a one-to-many relationship from this table to another.
@@ -493,7 +493,7 @@ type ArrayRelationship struct {
 	Name  string            `json:"name"  yaml:"name"`
 	Using RelationshipUsing `json:"using" yaml:"using"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // RelationshipUsing describes how a relationship is defined. Hasura's
@@ -515,7 +515,7 @@ type RelationshipUsing struct {
 	// Unknown preserves any sibling key Hasura may add to the `using` block
 	// beyond the two modeled forms. Hasura's `using` is a closed union today, so
 	// this is belt-and-braces — but the custom Un/MarshalJSON below bypass the
-	// usual `,unknown` field handling, so capture and re-emit it by hand to keep
+	// usual `,embed` field handling, so capture and re-emit it by hand to keep
 	// the round-trip invariant every other wire struct upholds. Tagged json:"-"
 	// because the custom methods govern (the tag itself is inert here).
 	Unknown jsontext.Value `json:"-" yaml:"-"`
@@ -627,7 +627,7 @@ func (r *RelationshipUsing) UnmarshalJSON(data []byte) error {
 	var raw struct {
 		ForeignKeyConstraintOn jsontext.Value       `json:"foreign_key_constraint_on,omitempty"`
 		ManualConfiguration    *ManualConfiguration `json:"manual_configuration,omitempty"`
-		Unknown                jsontext.Value       `json:",unknown"`
+		Unknown                jsontext.Value       `json:",embed"`
 	}
 
 	if err := json.Unmarshal(data, &raw); err != nil {
@@ -773,7 +773,7 @@ type ManualConfiguration struct {
 	LHSFields   []string                   `json:"-" yaml:"-"`
 	RemoteField map[string]RemoteFieldCall `json:"-" yaml:"-"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // ForeignKeyConstraint identifies the columns and table that anchor a
@@ -784,7 +784,7 @@ type ForeignKeyConstraint struct {
 	Columns []string    `json:"columns" yaml:"columns"`
 	Table   TableSource `json:"table"   yaml:"table"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // RemoteRelationship represents a cross-database relationship in Hasura format.
@@ -794,7 +794,7 @@ type RemoteRelationship struct {
 	Name       string                `json:"name"       yaml:"name"`
 	Definition RemoteRelationshipDef `json:"definition" yaml:"definition"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // RemoteRelationshipDef defines the remote relationship configuration.
@@ -802,7 +802,7 @@ type RemoteRelationshipDef struct {
 	ToSource       *ToSourceRelationship       `json:"to_source,omitempty"        yaml:"to_source,omitempty"`
 	ToRemoteSchema *ToRemoteSchemaRelationship `json:"to_remote_schema,omitempty" yaml:"to_remote_schema,omitempty"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // ToRemoteSchemaRelationship defines a relationship to a remote GraphQL schema.
@@ -811,7 +811,7 @@ type ToRemoteSchemaRelationship struct {
 	LHSFields    []string                   `json:"lhs_fields"    yaml:"lhs_fields"`
 	RemoteField  map[string]RemoteFieldCall `json:"remote_field"  yaml:"remote_field"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // RemoteFieldCall defines a remote field path with arguments.
@@ -819,7 +819,7 @@ type RemoteFieldCall struct {
 	Arguments map[string]string          `json:"arguments,omitempty" yaml:"arguments,omitempty"`
 	Field     map[string]RemoteFieldCall `json:"field,omitempty"     yaml:"field,omitempty"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // Relationship-type discriminator values for a to_source relationship's
@@ -838,7 +838,7 @@ type ToSourceRelationship struct {
 	Source           string            `json:"source"            yaml:"source"`
 	Table            TableSource       `json:"table"             yaml:"table"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // convertRemoteRelationships lowers Hasura-style remote_relationships into

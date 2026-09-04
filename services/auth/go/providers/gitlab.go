@@ -24,7 +24,7 @@ func NewGitlabProvider(
 			ClientSecret: clientSecret,
 			RedirectURL:  authServerURL + "/signin/provider/gitlab/callback",
 			Scopes:       scopes,
-			Endpoint: oauth2.Endpoint{ //nolint:exhaustruct
+			Endpoint: oauth2.Endpoint{ //nolint:exhaustruct,gosec // G101: public OAuth endpoint URLs, not credentials
 				AuthURL:  "https://gitlab.com/oauth/authorize",
 				TokenURL: "https://gitlab.com/oauth/token",
 			},

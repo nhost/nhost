@@ -55,7 +55,7 @@ func (s *stubMetadataSource) HasuraSnapshotJSON() ([]byte, int64) {
 	return s.hasura, s.version
 }
 
-const testAdminSecret = "test-admin-secret" //nolint:gosec // test-only constant, not a credential
+const testAdminSecret = "test-admin-secret"
 
 // testMetadataBodyCap is the body cap used by every metadata test router.
 // It exists only so the oversized-body tests can exceed it cheaply; the

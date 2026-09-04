@@ -242,7 +242,7 @@ func buildParserOptions(secret jwtconfig.Secret) []jwt.ParserOption {
 	if secret.AllowedSkew != nil {
 		skew := min(*secret.AllowedSkew, math.MaxInt64)
 		// bounded above by math.MaxInt64 on the previous line
-		opts = append(opts, jwt.WithLeeway(time.Duration(skew)*time.Second)) //nolint:gosec
+		opts = append(opts, jwt.WithLeeway(time.Duration(skew)*time.Second))
 	}
 
 	return opts

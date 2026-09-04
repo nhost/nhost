@@ -25,14 +25,12 @@ func NewNhostToml() *NhostToml {
 
 func (t *NhostToml) Register(server *server.MCPServer) {
 	server.AddResource(
-		mcp.Resource{
+		mcp.Resource{ //nolint:exhaustruct // mcp.Resource is an external type; omitted embedded Annotated is intentional
 			URI:  NhostTomlResourceURI,
 			Name: "nhost.toml",
-			Annotated: mcp.Annotated{
-				Annotations: &mcp.Annotations{
-					Audience: []mcp.Role{"agent"},
-					Priority: 9.0, //nolint:mnd
-				},
+			Annotations: &mcp.Annotations{
+				Audience: []mcp.Role{"agent"},
+				Priority: 9.0, //nolint:mnd
 			},
 			Description: NhostTomlResourceDescription,
 			MIMEType:    "text/plain",

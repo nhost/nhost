@@ -22,7 +22,7 @@ func NewTwitterProvider(
 	}
 
 	twitter := &Twitter{
-		Config: &oauth1.Config{
+		Config: &oauth1.Config{ //nolint:gosec // G101: public OAuth endpoint URLs, not credentials
 			ConsumerKey:     consumerKey,
 			ConsumerSecret:  consumerSecret,
 			CallbackURL:     authServerURL + "/signin/provider/twitter/callback",

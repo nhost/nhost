@@ -20,12 +20,12 @@ var ErrUnsupportedMetadataVersion = errors.New("unsupported metadata version")
 // Unknown captures envelope-level fields the engine does not model (e.g.
 // `resource_version`, `actions`, `cron_triggers`, …) so they survive a
 // FromJSON ∘ ToJSON round-trip. Per-struct unknowns are captured on the
-// individual wire types via their own `json:",unknown"` fields.
+// individual wire types via their own `json:",embed"` fields.
 type v3Metadata struct {
 	Version       int                    `json:"version"`
 	Sources       []DatabaseMetadata     `json:"sources"`
 	RemoteSchemas []RemoteSchemaMetadata `json:"remote_schemas,omitempty"`
-	Unknown       jsontext.Value         `json:",unknown"`
+	Unknown       jsontext.Value         `json:",embed"`
 }
 
 // FromJSON parses a Hasura v3 metadata JSON blob (as stored in hdb_catalog.hdb_metadata)
@@ -64,7 +64,7 @@ func FromJSON(data []byte) (*Metadata, error) {
 // ToJSON serializes a *Metadata back into the Hasura v3 JSON envelope. It is
 // the inverse of [FromJSON]: round-tripping a blob through FromJSON ∘ ToJSON
 // preserves both fields the engine models and Hasura fields it does not (the
-// latter via the `json:",unknown"` fields injected on every wire struct).
+// latter via the `json:",embed"` fields injected on every wire struct).
 //
 // The auto-derived Object/Array entries that [TableMetadata.convertRemoteRelationships]
 // lowers from RemoteRelationships at parse time are filtered out before

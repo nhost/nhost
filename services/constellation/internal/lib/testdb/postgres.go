@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	defaultAdminDBURL = "postgresql://postgres:postgres@localhost:5433/postgres"
+	defaultAdminDBURL = "postgresql://postgres:postgres@localhost:5433/postgres" //nolint:gosec // G101: test DB creds
 	maxDBNameLen      = 50
 	randomRange       = 100000
 )

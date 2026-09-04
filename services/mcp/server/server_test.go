@@ -133,9 +133,7 @@ func runTests(
 				Version: "",
 			},
 			Instructions: expectedInstructions,
-			Result: mcp.Result{
-				Meta: nil,
-			},
+			Meta:         nil,
 		},
 	); diff != "" {
 		t.Errorf("InitializeResult mismatch (-want +got):\n%s", diff)

@@ -70,7 +70,7 @@ func (pl ProjectList) Instructions() string {
 	sb.WriteString("Configured projects:\n")
 
 	for _, p := range pl {
-		sb.WriteString(fmt.Sprintf("- %s (%s): %s\n", p.Subdomain, p.Region, p.Description))
+		fmt.Fprintf(&sb, "- %s (%s): %s\n", p.Subdomain, p.Region, p.Description)
 	}
 
 	return sb.String()
