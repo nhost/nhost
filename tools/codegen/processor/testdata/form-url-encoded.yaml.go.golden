@@ -76,9 +76,7 @@ func (c *Client) Oauth2Revoke(
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
