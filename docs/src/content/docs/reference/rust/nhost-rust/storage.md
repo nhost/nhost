@@ -25,7 +25,7 @@ Generated API client, backed by a reqwest-middleware chain.
 ##### `new`
 
 ```rust
-fn new<impl Into<String>: Into<String>>(base_url: impl Into<String>, reqwest: Client, middleware: Vec<Arc<dyn Middleware>>) -> Self
+fn new(base_url: impl Into<String>, reqwest: reqwest::Client, middleware: Vec<Arc<dyn reqwest_middleware::Middleware>>) -> Self
 ```
 
 Creates a new API client for `base_url` from a base client and an
@@ -48,7 +48,7 @@ which cannot work on wasm; only the auth service returns sessions.
 ##### `with_role`
 
 ```rust
-fn with_role<impl Into<String>: Into<String>>(&self, role: impl Into<String>) -> Self
+fn with_role(&self, role: impl Into<String>) -> Self
 ```
 
 Returns a copy of this client that sends `x-hasura-role: <role>` on every
@@ -81,7 +81,7 @@ Performs DELETE /files/{id}.
 ##### `get_file`
 
 ```rust
-async fn get_file(&self, id: &str, params: Option<GetFileParams>) -> Result<Response<Bytes>, Error>
+async fn get_file(&self, id: &str, params: Option<GetFileParams>) -> Result<Response<bytes::Bytes>, Error>
 ```
 
 Performs GET /files/{id}.
@@ -192,7 +192,7 @@ struct ErrorResponse
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `error` | `Option<ErrorResponseError>` |  |
+| `error` | `Option<storage::ErrorResponseError>` |  |
 
 ### `ErrorResponseError`
 
@@ -205,7 +205,7 @@ struct ErrorResponseError
 | Field | Type | Description |
 | --- | --- | --- |
 | `message` | `String` |  |
-| `data` | `Option<Value>` |  |
+| `data` | `Option<serde_json::Value>` |  |
 
 ### `ErrorResponseWithProcessedFiles`
 
@@ -231,7 +231,7 @@ struct ErrorResponseWithProcessedFilesError
 | Field | Type | Description |
 | --- | --- | --- |
 | `message` | `String` |  |
-| `data` | `Option<Value>` |  |
+| `data` | `Option<serde_json::Value>` |  |
 
 ### `FileMetadata`
 
@@ -253,7 +253,7 @@ struct FileMetadata
 | `is_uploaded` | `bool` |  |
 | `mime_type` | `String` |  |
 | `uploaded_by_user_id` | `Option<String>` |  |
-| `metadata` | `Option<Value>` |  |
+| `metadata` | `Option<serde_json::Value>` |  |
 
 ### `FilePart`
 
@@ -408,7 +408,7 @@ struct UpdateFileMetadata
 | Field | Type | Description |
 | --- | --- | --- |
 | `name` | `Option<String>` |  |
-| `metadata` | `Option<Value>` |  |
+| `metadata` | `Option<serde_json::Value>` |  |
 
 ### `UploadFileMetadata`
 
@@ -422,7 +422,7 @@ struct UploadFileMetadata
 | --- | --- | --- |
 | `id` | `Option<String>` |  |
 | `name` | `Option<String>` |  |
-| `metadata` | `Option<Value>` |  |
+| `metadata` | `Option<serde_json::Value>` |  |
 
 ### `UploadFilesBody`
 

@@ -32,7 +32,7 @@ Functions API client.
 ##### `new`
 
 ```rust
-fn new<impl Into<String>: Into<String>>(base_url: impl Into<String>, reqwest: Client, middleware: Vec<Arc<dyn Middleware>>) -> Self
+fn new(base_url: impl Into<String>, reqwest: reqwest::Client, middleware: Vec<Arc<dyn reqwest_middleware::Middleware>>) -> Self
 ```
 
 Creates a client for `base_url` from a base client and an ordered
@@ -45,7 +45,7 @@ assemble the pipeline yourself.
 ##### `with_role`
 
 ```rust
-fn with_role<impl Into<String>: Into<String>>(&self, role: impl Into<String>) -> Self
+fn with_role(&self, role: impl Into<String>) -> Self
 ```
 
 Returns a copy of this client that sends `x-hasura-role: <role>` on every
@@ -62,7 +62,7 @@ Returns a copy of this client that sends extra headers on every request.
 ##### `request`
 
 ```rust
-fn request(&self, method: Method, path: &str) -> Result<RequestBuilder, Error>
+fn request(&self, method: http::Method, path: &str) -> Result<reqwest_middleware::RequestBuilder, Error>
 ```
 
 A middleware-aware request builder for `path`, appended to `base_url`.
@@ -80,29 +80,33 @@ Returns `Error::Config` when `base_url` is not a valid hierarchical URL.
 ##### `send`
 
 ```rust
-async fn send(&self, request: RequestBuilder) -> Result<Response<Bytes>, Error>
+async fn send(&self, request: reqwest_middleware::RequestBuilder) -> Result<Response<bytes::Bytes>, Error>
 ```
 
 Sends a built request through the middleware chain and returns its raw
-body, status, and headers. A non-success status becomes `Error::Api`.
+body, status, and headers. A 304 is returned successfully with an empty
+body; any other 3xx status, or a 4xx/5xx status, becomes `Error::Api`.
 
 ##### `post`
 
 ```rust
 async fn post<B, T>(&self, path: &str, body: &B) -> Result<Response<T>, Error>
 where
-    B: Serialize + ?Sized,
-    T: DeserializeOwned
+    B: serde::Serialize + ?Sized,
+    T: serde::de::DeserializeOwned
 ```
 
 POSTs `body` as JSON to `path` and returns the decoded response together
-with its status and headers.
+with its status and headers. An empty successful body, including a 304
+response, is decoded as JSON `null`; use `T = Option<_>` or `T = ()` to
+accept it.
 
 ##### `get`
 
 ```rust
-async fn get<T: DeserializeOwned>(&self, path: &str) -> Result<Response<T>, Error>
+async fn get<T: serde::de::DeserializeOwned>(&self, path: &str) -> Result<Response<T>, Error>
 ```
 
 GETs `path` and returns the decoded response together with its status and
-headers.
+headers. An empty successful body, including a 304 response, is decoded as
+JSON `null`; use `T = Option<_>` or `T = ()` to accept it.

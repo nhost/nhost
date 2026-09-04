@@ -63,18 +63,34 @@ or a 4xx/5xx status.
 
 ###### Sensitive data
 
-`Debug` includes `body` and `headers` verbatim. They can
-contain tokens, cookies, or sensitive redirect URLs, so do not debug-format
-an API error when the response may contain credentials.
+`Debug` redacts values of credential-bearing response
+headers and recursively redacts values whose JSON field names match the
+SDK's generated-model credential policy. It keeps header and body field
+names, non-sensitive values, `message`, and `status` visible. Because
+arbitrary field names and the human-readable message can still contain
+sensitive data, treat debug output as redacted rather than secret-free.
+
+This type is non-exhaustive so response metadata can grow without breaking
+downstream crates. Use `ApiError::new` to construct one in test fixtures.
 
 #### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `message` | `String` | A human-readable message extracted from common Nhost error body shapes, or from a trimmed, non-blank `X-Error` response header as a fallback. |
+| `message` | `String` | A human-readable, single-line message extracted from common Nhost error body shapes, or from a trimmed, non-blank `X-Error` response header as a fallback. Response-derived messages contain at most 200 characters plus an ellipsis; unstructured non-JSON bodies are not used as messages. |
 | `status` | `u16` | The HTTP status code. |
-| `body` | `Value` | The parsed response body (or a JSON string of the raw body). Non-empty bodies are retained for every error status; empty bodies are represented as `serde_json::Value::Null`. |
-| `headers` | `HeaderMap` | The response headers. |
+| `body` | `serde_json::Value` | The parsed response body (or a JSON string of the raw body). Non-empty bodies are retained for every error status; empty bodies are represented as `serde_json::Value::Null`. |
+| `headers` | `http::HeaderMap` | The response headers. |
+
+#### Methods
+
+##### `new`
+
+```rust
+fn new(message: impl Into<String>, status: u16, body: serde_json::Value, headers: http::HeaderMap) -> Self
+```
+
+Creates an API error from its response parts.
 
 #### Trait implementations
 
@@ -95,7 +111,27 @@ status and headers. Use
 `GraphqlError::code` to inspect machine-readable Hasura or constellation
 error codes.
 
+###### Sensitive data
+
+`Debug` keeps error entries, partial-data field names,
+header names, non-sensitive values, and the response status visible. It
+recursively redacts credential-bearing values in partial data and structured
+error fields, and redacts credential-bearing response header values. Error
+messages remain visible and may contain sensitive data supplied by a server.
+
+This type is non-exhaustive so additional GraphQL failure context can be
+retained without breaking downstream crates. Use
+`GraphqlOperationError::new` to construct one in test fixtures.
+
 #### Methods
+
+##### `new`
+
+```rust
+fn new(errors: Vec<GraphqlError>, data: Option<serde_json::Value>, status: u16, headers: http::HeaderMap) -> Self
+```
+
+Creates a GraphQL operation error from its response parts.
 
 ##### `errors`
 
@@ -108,7 +144,7 @@ The GraphQL error entries returned by the server.
 ##### `data`
 
 ```rust
-fn data(&self) -> Option<&Value>
+fn data(&self) -> Option<&serde_json::Value>
 ```
 
 Partial GraphQL data returned alongside the errors, when present.
@@ -124,7 +160,7 @@ The HTTP response status carrying the GraphQL failure.
 ##### `headers`
 
 ```rust
-fn headers(&self) -> &HeaderMap
+fn headers(&self) -> &http::HeaderMap
 ```
 
 The HTTP response headers carrying the GraphQL failure.
@@ -150,10 +186,10 @@ request pipeline.
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `auth` | `Client` | Auth service: sign-up and sign-in (password, OTP, magic link, WebAuthn, OAuth providers), MFA, PATs, user and JWK endpoints. The only client that captures sessions into `sessions`, and the only one where the [admin middleware](NhostBuilder::admin) is never installed. Arbitrary defaults from `NhostBuilder::header` and headers on an `auth::Client::with_headers` clone still apply, including an explicitly configured `x-hasura-admin-secret`. |
-| `storage` | `Client` | Storage service: file upload, download, replace and delete, metadata (including presigned URLs and image transformations), plus the admin-only consistency endpoints. |
-| `graphql` | `Client` | GraphQL endpoint: `query(..).variable(..).send::<T>()`, decoding `data` into your own types and mapping `errors` to `Error::GraphQl`. |
-| `functions` | `Client` | Functions service: typed `get`/`post` helpers for your project's serverless functions, or `functions::Client::request` for full control. |
+| `auth` | `auth::Client` | Auth service: sign-up and sign-in (password, OTP, magic link, WebAuthn, OAuth providers), MFA, PATs, user and JWK endpoints. The only client that captures sessions into `sessions`, and the only one where the [admin middleware](NhostBuilder::admin) is never installed. Arbitrary defaults from `NhostBuilder::header` and headers on an `auth::Client::with_headers` clone still apply, including an explicitly configured `x-hasura-admin-secret`. |
+| `storage` | `storage::Client` | Storage service: file upload, download, replace and delete, metadata (including presigned URLs and image transformations), plus the admin-only consistency endpoints. |
+| `graphql` | `graphql::Client` | GraphQL endpoint: `query(..).variable(..).send::<T>()`, decoding `data` into your own types and mapping `errors` to `Error::GraphQl`. |
+| `functions` | `functions::Client` | Functions service: typed `get`/`post` helpers for your project's serverless functions, or `functions::Client::request` for full control. |
 | `sessions` | `SessionStorage` | The session store shared by every client and the session middleware: read it with `Nhost::session`, observe it with `SessionStorage::on_change`. |
 
 #### Methods
@@ -169,7 +205,7 @@ Starts configuring a client.
 ##### `from_clients`
 
 ```rust
-fn from_clients(auth: Client, refresh_auth: Arc<Client>, storage: Client, graphql: Client, functions: Client, sessions: SessionStorage) -> Self
+fn from_clients(auth: auth::Client, refresh_auth: Arc<auth::Client>, storage: storage::Client, graphql: graphql::Client, functions: functions::Client, sessions: SessionStorage) -> Self
 ```
 
 Assembles a client from pre-built service clients.
@@ -233,7 +269,7 @@ let client = Nhost::from_clients(
 ##### `new`
 
 ```rust
-fn new<impl Into<String>: Into<String>, impl Into<String>: Into<String>>(subdomain: impl Into<String>, region: impl Into<String>) -> Result<Self, Error>
+fn new(subdomain: impl Into<String>, region: impl Into<String>) -> Result<Self, Error>
 ```
 
 A cloud client for `subdomain`/`region` with default (client-side)
@@ -287,7 +323,7 @@ Fluent builder for `Nhost`. Obtain one from `Nhost::builder`.
 ##### `subdomain`
 
 ```rust
-fn subdomain<impl Into<String>: Into<String>>(self, subdomain: impl Into<String>) -> Self
+fn subdomain(self, subdomain: impl Into<String>) -> Self
 ```
 
 Sets the cloud project subdomain.
@@ -295,7 +331,7 @@ Sets the cloud project subdomain.
 ##### `region`
 
 ```rust
-fn region<impl Into<String>: Into<String>>(self, region: impl Into<String>) -> Self
+fn region(self, region: impl Into<String>) -> Self
 ```
 
 Sets the cloud project region.
@@ -303,7 +339,7 @@ Sets the cloud project region.
 ##### `auth_url`
 
 ```rust
-fn auth_url<impl Into<String>: Into<String>>(self, url: impl Into<String>) -> Self
+fn auth_url(self, url: impl Into<String>) -> Self
 ```
 
 Overrides the auth service URL. `Self::build` validates it as an
@@ -312,7 +348,7 @@ append-safe HTTP(S) URL and removes trailing slashes.
 ##### `storage_url`
 
 ```rust
-fn storage_url<impl Into<String>: Into<String>>(self, url: impl Into<String>) -> Self
+fn storage_url(self, url: impl Into<String>) -> Self
 ```
 
 Overrides the storage service URL. `Self::build` validates it as an
@@ -321,7 +357,7 @@ append-safe HTTP(S) URL and removes trailing slashes.
 ##### `graphql_url`
 
 ```rust
-fn graphql_url<impl Into<String>: Into<String>>(self, url: impl Into<String>) -> Self
+fn graphql_url(self, url: impl Into<String>) -> Self
 ```
 
 Overrides the GraphQL service URL. `Self::build` validates it as an
@@ -330,7 +366,7 @@ append-safe HTTP(S) URL and removes trailing slashes.
 ##### `functions_url`
 
 ```rust
-fn functions_url<impl Into<String>: Into<String>>(self, url: impl Into<String>) -> Self
+fn functions_url(self, url: impl Into<String>) -> Self
 ```
 
 Overrides the functions service URL. `Self::build` validates it as an
@@ -347,7 +383,7 @@ Sets the session storage backend (defaults to in-memory / localStorage).
 ##### `http_client`
 
 ```rust
-fn http_client(self, client: Client) -> Self
+fn http_client(self, client: reqwest::Client) -> Self
 ```
 
 Uses a pre-configured `reqwest::Client` (connection pools, proxies…).
@@ -355,18 +391,22 @@ Uses a pre-configured `reqwest::Client` (connection pools, proxies…).
 ##### `role`
 
 ```rust
-fn role<impl Into<String>: Into<String>>(self, role: impl Into<String>) -> Self
+fn role(self, role: impl Into<String>) -> Self
 ```
 
 Sets `x-hasura-role` on every request.
 
+`Self::build` rejects values that cannot be encoded in an HTTP header,
+but does not restrict the server-defined role vocabulary.
+
 ##### `header`
 
 ```rust
-fn header<impl Into<String>: Into<String>, impl Into<String>: Into<String>>(self, name: impl Into<String>, value: impl Into<String>) -> Self
+fn header(self, name: impl Into<String>, value: impl Into<String>) -> Self
 ```
 
-Adds a header sent on every request.
+Adds a header sent on every request. `Self::build` rejects names and
+values that cannot be encoded as HTTP headers.
 
 ##### `headers`
 
@@ -374,16 +414,18 @@ Adds a header sent on every request.
 fn headers(self, headers: HashMap<String, String>) -> Self
 ```
 
-Sets the whole per-request header map.
+Sets the whole per-request header map. `Self::build` rejects names and
+values that cannot be encoded as HTTP headers.
 
 ##### `admin_secret`
 
 ```rust
-fn admin_secret<impl Into<String>: Into<String>>(self, secret: impl Into<String>) -> Self
+fn admin_secret(self, secret: impl Into<String>) -> Self
 ```
 
 Enables the admin secret on storage/graphql/functions. **Never use in
-client-side code** — it grants full admin access.
+client-side code** — it grants full admin access. `Self::build` rejects
+a secret that cannot be encoded in an HTTP header.
 
 ##### `admin`
 
@@ -392,6 +434,8 @@ fn admin(self, options: AdminSessionOptions) -> Self
 ```
 
 Enables an admin session with full options (role, session variables).
+`Self::build` rejects any option that cannot be encoded as its
+corresponding HTTP header.
 
 ##### `server`
 
@@ -419,7 +463,8 @@ fn refresh_margin(self, seconds: i64) -> Self
 ```
 
 Overrides the automatic session-refresh middleware's margin in seconds
-before access-token expiry.
+before access-token expiry. `Self::build` rejects negative margins and
+values too large to schedule without overflowing millisecond timestamps.
 
 A margin of `0` forces an automatic refresh attempt before every eligible
 request; requests that already have an `Authorization` header and direct
@@ -445,8 +490,9 @@ Builds the `Nhost` client.
 ###### Errors
 
 Returns `Error::Config` for incomplete, empty, or invalid cloud-project
-fields, invalid service URLs, or server mode without an explicit storage
-backend.
+fields, invalid service URLs, invalid default or admin header names or
+values, an invalid refresh margin, or server mode without an explicit
+storage backend.
 
 #### Trait implementations
 
@@ -462,33 +508,44 @@ enum Error
 
 The error type returned by every fallible SDK operation.
 
+This enum is non-exhaustive because the SDK may gain new failure modes.
+Downstream matches must include a wildcard arm.
+
 #### Variants
 
 | Variant | Description |
 | --- | --- |
-| `Api` | A request completed with a 3xx status other than 304, or a 4xx/5xx status. A GraphQL response carrying a non-empty `errors` array instead produces `Error::GraphQl`. Boxed to keep `Result<_, Error>` small (`clippy::result_large_err`). |
-| `GraphQl` | A GraphQL response carried a non-empty `errors` array, regardless of its HTTP status, or `crate::graphql::Operation::send` received no data. The structured errors, partial data, status, and headers are preserved in the payload. |
-| `InvalidToken` | An access token could not be decoded. |
-| `Config` | A caller-supplied value was invalid at the client boundary (for example, client configuration, a service URL, or a multipart MIME type). |
-| `Storage` | A session-storage backend failed (file/localStorage I/O). |
-| `Http` | A transport-level error from reqwest. |
-| `Middleware` | An error raised by a middleware in the chain. |
-| `Json` | A (de)serialization error. |
+| `Api(Box<ApiError>)` | A request completed with a 3xx status other than 304, or a 4xx/5xx status. A GraphQL response carrying a non-empty `errors` array instead produces `Error::GraphQl`. Boxed to keep `Result<_, Error>` small (`clippy::result_large_err`). |
+| `GraphQl(Box<GraphqlOperationError>)` | A GraphQL response carried a non-empty `errors` array, regardless of its HTTP status, or `crate::graphql::Operation::send` received no data. The structured errors, partial data, status, and headers are preserved in the payload. |
+| `InvalidToken(String)` | An access token could not be decoded. |
+| `Config(String)` | A caller-supplied value was invalid at the client boundary (for example, client configuration, a service URL, or a multipart MIME type). |
+| `Storage(String)` | A session-storage backend failed (file/localStorage I/O). |
+| `Http(reqwest::Error)` | A transport-level error from reqwest. |
+| `Middleware(anyhow::Error)` | An error raised by a middleware in the chain. |
+| `Json(serde_json::Error)` | A (de)serialization error. |
 
 #### Methods
 
 ##### `api`
 
 ```rust
-fn api(message: String, status: u16, body: Value, headers: HeaderMap) -> Self
+fn api(message: impl Into<String>, status: u16, body: serde_json::Value, headers: http::HeaderMap) -> Self
 ```
 
 Builds an `Error::Api` from its parts.
 
+##### `graphql`
+
+```rust
+fn graphql(errors: Vec<GraphqlError>, data: Option<serde_json::Value>, status: u16, headers: http::HeaderMap) -> Self
+```
+
+Builds an `Error::GraphQl` from its response parts.
+
 ##### `from_response`
 
 ```rust
-fn from_response(status: u16, headers: HeaderMap, body: Bytes) -> Self
+fn from_response(status: u16, headers: http::HeaderMap, body: bytes::Bytes) -> Self
 ```
 
 Builds an `Error::Api` from a buffered error response, extracting a
@@ -514,6 +571,9 @@ enum Service
 ```
 
 One of the Nhost services.
+
+This enum is non-exhaustive because Nhost may expose additional services.
+Downstream matches must include a wildcard arm.
 
 #### Variants
 

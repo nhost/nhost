@@ -9,12 +9,19 @@ Each service client owns a `ClientWithMiddleware` assembled from a base
 request through that stack and buffers the response so auth responses can
 capture or clear the session and the body can be mapped to a typed value.
 
+## Re-exports
+
+- `ClientBuilder` *(struct)* — re-exported from `reqwest_middleware::ClientBuilder`.
+- `ClientWithMiddleware` *(struct)* — re-exported from `reqwest_middleware::ClientWithMiddleware`.
+- `Middleware` *(trait)* — re-exported from `reqwest_middleware::Middleware`.
+- `RequestBuilder` *(struct)* — re-exported from `reqwest_middleware::RequestBuilder`.
+
 ## Functions
 
 ### `build_client`
 
 ```rust
-fn build_client(reqwest: Client, middleware: &[Arc<dyn Middleware>]) -> ClientWithMiddleware
+fn build_client(reqwest: reqwest::Client, middleware: &[Arc<dyn reqwest_middleware::Middleware>]) -> reqwest_middleware::ClientWithMiddleware
 ```
 
 Assembles a `ClientWithMiddleware` from a base client and an ordered
@@ -23,7 +30,7 @@ middleware stack (the first entry runs first on the way out).
 ### `send`
 
 ```rust
-async fn send(request: RequestBuilder, sink: Option<&SessionStorage>) -> Result<(u16, HeaderMap, Bytes), Error>
+async fn send(request: reqwest_middleware::RequestBuilder, sink: Option<&SessionStorage>) -> Result<(u16, http::HeaderMap, bytes::Bytes), Error>
 ```
 
 Sends a request through the middleware chain and buffers the full response.
@@ -60,15 +67,26 @@ metadata is not needed.
 format a response with `Debug` when its headers can contain credentials or
 cookies.
 
+This type is non-exhaustive so additional response metadata can be retained
+without breaking downstream crates. Use `Response::new` to construct one.
+
 #### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `body` | `T` | The decoded response payload. `()` for operations with no body. |
 | `status` | `u16` | The HTTP status code. |
-| `headers` | `HeaderMap` | The response headers. |
+| `headers` | `http::HeaderMap` | The response headers. |
 
 #### Methods
+
+##### `new`
+
+```rust
+fn new(body: T, status: u16, headers: http::HeaderMap) -> Self
+```
+
+Creates a successful response from its payload and transport metadata.
 
 ##### `into_body`
 
