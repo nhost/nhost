@@ -1,5 +1,9 @@
 // Package transport provides the HTTP middleware shared by the generated and
-// hand-written Nhost clients.
+// hand-written Nhost clients, along with the service-URL helpers
+// ([IsLoopbackHost], [NormalizeServiceURL]) that decide whether a credential
+// may travel in cleartext. Those helpers live here so the nhost and middleware
+// packages share one implementation of that rule rather than each carrying a
+// copy that can drift.
 //
 // Middleware is modelled as an [http.RoundTripper] decorator: each Middleware
 // wraps the next RoundTripper in the chain and may inspect or modify the
@@ -11,15 +15,50 @@ package transport
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
 	"io"
+	"net"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
 const defaultMaxRedirects = 10
 
-var errTooManyRedirects = errors.New("stopped after 10 redirects")
+var errTooManyRedirects = fmt.Errorf("stopped after %d redirects", defaultMaxRedirects)
+
+// IsLoopbackHost reports whether hostname identifies localhost or a loopback
+// IP address.
+func IsLoopbackHost(hostname string) bool {
+	if strings.EqualFold(hostname, "localhost") {
+		return true
+	}
+
+	ip := net.ParseIP(hostname)
+
+	return ip != nil && ip.IsLoopback()
+}
+
+// NormalizeServiceURL adds a scheme to a scheme-less service URL, choosing
+// HTTP for loopback hosts and HTTPS otherwise. URLs that already have a scheme,
+// or cannot be parsed as an authority, are returned unchanged.
+func NormalizeServiceURL(serviceURL string) string {
+	if strings.Contains(serviceURL, "://") {
+		return serviceURL
+	}
+
+	parsed, err := url.Parse("//" + serviceURL)
+	if err != nil || parsed.Host == "" {
+		return serviceURL
+	}
+
+	scheme := "https"
+	if IsLoopbackHost(parsed.Hostname()) {
+		scheme = "http"
+	}
+
+	return scheme + "://" + serviceURL
+}
 
 // RoundTripFunc adapts an ordinary function to an [http.RoundTripper].
 type RoundTripFunc func(req *http.Request) (*http.Response, error)

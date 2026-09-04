@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
-	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -34,22 +33,7 @@ type requestScope struct {
 }
 
 func newRequestScope(baseURL string) (requestScope, error) {
-	normalizedURL := baseURL
-	if !strings.Contains(normalizedURL, "://") {
-		parsedAuthority, err := url.Parse("//" + normalizedURL)
-		if err != nil || parsedAuthority.Host == "" {
-			return requestScope{}, fmt.Errorf("%w: %q", errInvalidServiceURL, baseURL)
-		}
-
-		scheme := "https"
-		if isLoopbackHost(parsedAuthority.Hostname()) {
-			scheme = "http"
-		}
-
-		normalizedURL = scheme + "://" + normalizedURL
-	}
-
-	parsed, err := url.Parse(normalizedURL)
+	parsed, err := url.Parse(transport.NormalizeServiceURL(baseURL))
 	if err != nil {
 		return requestScope{}, fmt.Errorf("%w %q: %w", errInvalidServiceURL, baseURL, err)
 	}
@@ -65,16 +49,6 @@ func newRequestScope(baseURL string) (requestScope, error) {
 	}, nil
 }
 
-func isLoopbackHost(hostname string) bool {
-	if strings.EqualFold(hostname, "localhost") {
-		return true
-	}
-
-	ip := net.ParseIP(hostname)
-
-	return ip != nil && ip.IsLoopback()
-}
-
 func (s requestScope) contains(reqURL *url.URL) bool {
 	return s.host != "" &&
 		strings.EqualFold(reqURL.Scheme, s.scheme) &&
@@ -85,7 +59,25 @@ func (s requestScope) permitsAdminSession(reqURL *url.URL, allowInsecureHTTP boo
 	return s.contains(reqURL) &&
 		(strings.EqualFold(reqURL.Scheme, "https") ||
 			allowInsecureHTTP ||
-			isLoopbackHost(reqURL.Hostname()))
+			transport.IsLoopbackHost(reqURL.Hostname()))
+}
+
+func (s requestScope) logWithheldAdminSecret(
+	reqURL *url.URL,
+	options AdminSessionOptions,
+) {
+	if !s.contains(reqURL) ||
+		!strings.EqualFold(reqURL.Scheme, "http") ||
+		transport.IsLoopbackHost(reqURL.Hostname()) ||
+		options.AllowInsecureHTTP ||
+		options.AdminSecret == "" {
+		return
+	}
+
+	slog.Debug(
+		"admin secret withheld from insecure HTTP request",
+		"host", reqURL.Host,
+	)
 }
 
 // AttachAccessToken attaches "Authorization: Bearer <access_token>" from the
@@ -355,6 +347,8 @@ func WithAdminSession(options AdminSessionOptions, serviceURL string) transport.
 			}
 
 			if !scope.permitsAdminSession(req.URL, options.AllowInsecureHTTP) {
+				scope.logWithheldAdminSecret(req.URL, options)
+
 				if options.AdminSecret != "" &&
 					req.Header.Get("x-hasura-admin-secret") == options.AdminSecret {
 					req = req.Clone(req.Context())
