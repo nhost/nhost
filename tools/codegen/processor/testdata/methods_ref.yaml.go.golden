@@ -385,7 +385,7 @@ func (c *Client) UploadFiles(
 	return payload, &transport.Response{Status: resp.StatusCode, Headers: resp.Header}, nil
 }
 
-// GetFileMetadataHeaders performs HEAD /files/%s. It returns the decoded body,
+// GetFileMetadataHeaders performs HEAD /files/{id}. It returns the decoded body,
 // the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
 // responses.
 func (c *Client) GetFileMetadataHeaders(
@@ -421,7 +421,7 @@ func (c *Client) GetFileMetadataHeaders(
 	return payload, &transport.Response{Status: resp.StatusCode, Headers: resp.Header}, nil
 }
 
-// GetFile performs GET /files/%s. It returns the decoded body,
+// GetFile performs GET /files/{id}. It returns the decoded body,
 // the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
 // responses.
 func (c *Client) GetFile(
@@ -461,7 +461,7 @@ func (c *Client) GetFile(
 	return payload, &transport.Response{Status: resp.StatusCode, Headers: resp.Header}, nil
 }
 
-// ReplaceFile performs PUT /files/%s. It returns the decoded body,
+// ReplaceFile performs PUT /files/{id}. It returns the decoded body,
 // the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
 // responses.
 func (c *Client) ReplaceFile(
@@ -538,7 +538,7 @@ func (c *Client) ReplaceFile(
 	return payload, &transport.Response{Status: resp.StatusCode, Headers: resp.Header}, nil
 }
 
-// DeleteFile performs DELETE /files/%s. It returns the decoded body,
+// DeleteFile performs DELETE /files/{id}. It returns the decoded body,
 // the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
 // responses.
 func (c *Client) DeleteFile(
