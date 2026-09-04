@@ -16,13 +16,13 @@ import {
 } from '@/components/layout/SettingsCard';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { Alert } from '@/components/ui/v3/alert';
-import { ButtonWithLoading } from '@/components/ui/v3/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from '@/components/ui/v3/dialog';
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle,
+} from '@/components/ui/v3/alert-dialog';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { TransferProject } from '@/features/orgs/components/TransferProject';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
@@ -398,7 +398,7 @@ export default function SettingsGeneralPage() {
         </SettingsCard>
       )}
 
-      <Dialog
+      <AlertDialog
         open={showDeleteModal}
         onOpenChange={(nextOpen) => {
           // Never dismiss while the deletion is in flight.
@@ -409,21 +409,20 @@ export default function SettingsGeneralPage() {
           setShowDeleteModal(nextOpen);
         }}
       >
-        <DialogContent
-          className="!bg-transparent !shadow-none !p-0 max-w-lg border-none"
-          hideCloseButton
-        >
-          <DialogTitle className="sr-only">Delete Project</DialogTitle>
-          <DialogDescription className="sr-only">
+        <AlertDialogContent className="!bg-transparent !shadow-none !p-0 max-w-lg border-none">
+          <AlertDialogTitle className="sr-only">
+            Delete Project
+          </AlertDialogTitle>
+          <AlertDialogDescription className="sr-only">
             Are you sure you want to delete this project?
-          </DialogDescription>
+          </AlertDialogDescription>
           <RemoveApplicationModal
             close={() => setShowDeleteModal(false)}
             onPendingChange={setDeletionPending}
             handler={handleDeleteApplication}
           />
-        </DialogContent>
-      </Dialog>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -6,17 +6,17 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { FormCheckbox } from '@/components/form/FormCheckbox';
 import { FormInput } from '@/components/form/FormInput';
-import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/v3/dialog';
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/v3/alert-dialog';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Form } from '@/components/ui/v3/form';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { useIsOrgAdmin } from '@/features/orgs/hooks/useIsOrgAdmin';
@@ -81,25 +81,28 @@ export default function DeleteOrg() {
 
     setDeleting(true);
 
-    await execPromiseWithErrorToast(
-      async () => {
-        await deleteOrgMutation({
-          variables: {
-            id: org?.id,
-          },
-          onCompleted: async () => {
-            await refetchOrgs();
-            setDeleting(false);
-            await router.push('/');
-          },
-        });
-      },
-      {
-        loadingMessage: 'Deleting the organization',
-        successMessage: 'Successfully deleted the organization',
-        errorMessage: 'An error occurred while deleting the organization!',
-      },
-    );
+    try {
+      await execPromiseWithErrorToast(
+        async () => {
+          await deleteOrgMutation({
+            variables: {
+              id: org?.id,
+            },
+            onCompleted: async () => {
+              await refetchOrgs();
+              await router.push('/');
+            },
+          });
+        },
+        {
+          loadingMessage: 'Deleting the organization',
+          successMessage: 'Successfully deleted the organization',
+          errorMessage: 'An error occurred while deleting the organization!',
+        },
+      );
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
@@ -119,7 +122,7 @@ export default function DeleteOrg() {
             Only organization admins can delete this organization.
           </p>
         )}
-        <Dialog
+        <AlertDialog
           open={open}
           onOpenChange={(nextOpen) => {
             // Never dismiss while the mutation is in flight.
@@ -135,25 +138,22 @@ export default function DeleteOrg() {
           }}
         >
           <span className={deleteDisabled ? 'cursor-not-allowed' : undefined}>
-            <DialogTrigger asChild>
+            <AlertDialogTrigger asChild>
               <Button variant="destructive" disabled={deleteDisabled}>
                 Delete
               </Button>
-            </DialogTrigger>
+            </AlertDialogTrigger>
           </span>
-          <DialogContent
-            hideCloseButton
-            className="flex w-full max-w-lg flex-col gap-6 p-6 text-left text-foreground"
-          >
-            <DialogHeader>
-              <DialogTitle>Delete Organization</DialogTitle>
-              <DialogDescription className="flex flex-col gap-2">
+          <AlertDialogContent className="flex w-full flex-col gap-6 text-left text-foreground">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Organization</AlertDialogTitle>
+              <AlertDialogDescription className="flex flex-col gap-2">
                 Are you sure you want to delete this Organization?
                 <span className="font-bold text-destructive">
                   This cannot be undone.
                 </span>
-              </DialogDescription>
-            </DialogHeader>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
 
             <Form {...form}>
               <form
@@ -196,12 +196,8 @@ export default function DeleteOrg() {
               </form>
             </Form>
 
-            <DialogFooter className="gap-2 sm:space-x-0">
-              <DialogClose asChild>
-                <Button type="button" variant="outline" disabled={deleting}>
-                  Cancel
-                </Button>
-              </DialogClose>
+            <AlertDialogFooter className="gap-2 sm:space-x-0">
+              <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
               <ButtonWithLoading
                 type="submit"
                 form="delete-org-form"
@@ -212,9 +208,9 @@ export default function DeleteOrg() {
               >
                 Delete Organization
               </ButtonWithLoading>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

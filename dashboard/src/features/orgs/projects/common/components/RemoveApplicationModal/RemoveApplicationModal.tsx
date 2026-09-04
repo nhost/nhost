@@ -135,31 +135,36 @@ export default function RemoveApplicationModal({
 
     setLoadingRemove(true);
 
-    if (handler) {
-      await handler();
-      setLoadingRemove(false);
-      if (close) {
-        close();
-      }
-      return;
-    }
-
     try {
-      await deleteApplication({
-        variables: {
-          appID: project?.id,
-        },
-      });
-      track('Project Deleted');
-    } catch {
-      await discordAnnounce(`Error trying to delete project: ${appName}`);
+      if (handler) {
+        await handler();
+        close();
+        return;
+      }
+
+      try {
+        await deleteApplication({
+          variables: {
+            appID: project?.id,
+          },
+        });
+        track('Project Deleted');
+      } catch {
+        triggerToast(`An error occurred while trying to delete ${appName}`);
+        discordAnnounce(`Error trying to delete project: ${appName}`).catch(
+          (announceError) => {
+            console.error(announceError);
+          },
+        );
+        return;
+      }
+
+      close();
+      await router.push(`/orgs/${org?.slug}/projects`);
+      triggerToast(`${project?.name} deleted`);
+    } finally {
       setLoadingRemove(false);
-      triggerToast(`An error occurred while trying to delete ${appName}`);
-      return;
     }
-    close();
-    await router.push(`/orgs/${org?.slug}/projects`);
-    triggerToast(`${project?.name} deleted`);
   }
 
   return (
@@ -192,7 +197,6 @@ export default function RemoveApplicationModal({
             <FormCheckbox
               control={form.control}
               name="acknowledgeIrreversible"
-              aria-label="Confirm Delete Project #2"
               label="I understand this action cannot be undone"
               className="mt-0.5 self-start"
             />
@@ -201,7 +205,6 @@ export default function RemoveApplicationModal({
               <FormCheckbox
                 control={form.control}
                 name="acknowledgeSubscription"
-                aria-label="Confirm Delete Project #3"
                 label="I understand I need to delete the organization if I want to cancel the subscription"
                 className="mt-0.5 self-start"
               />

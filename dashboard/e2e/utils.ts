@@ -459,8 +459,9 @@ export async function fillStripeCheckout(page: Page) {
 /**
  * Deletes the organization the page is currently scoped to. Assumes the page is
  * on a route within the organization (it navigates to its settings) and that
- * the org is empty enough to be deletable. Drives the two-checkbox confirmation
- * dialog and waits for the success toast and the redirect to the empty state.
+ * the org is empty enough to be deletable. Drives the acknowledgment checkbox
+ * and the typed name confirmation, then waits for the success toast and the
+ * redirect to the empty state.
  *
  * @param page - The Playwright page object.
  * @param orgSlug - The slug of the organization to delete.
@@ -475,16 +476,19 @@ export async function deleteOrganization(page: Page, orgSlug: string) {
   ).toBeVisible();
   await page.getByRole('button', { name: 'Delete', exact: true }).click();
 
-  await expect(
-    page.getByRole('alertdialog').getByText('Delete Organization'),
-  ).toBeVisible();
+  const dialog = page.getByRole('alertdialog');
+  await expect(dialog.getByText('Delete Organization')).toBeVisible();
 
   const confirmButton = page.getByTestId('deleteOrgButton');
   await expect(confirmButton).toBeDisabled();
 
-  await page.getByLabel("I'm sure I want to delete this Organization").check();
+  await dialog.getByLabel('I understand this action cannot be undone').check();
   await expect(confirmButton).toBeDisabled();
-  await page.getByLabel('I understand this action cannot be undone').check();
+
+  const requiredConfirmation =
+    (await dialog.getByRole('code').textContent()) ?? '';
+  expect(requiredConfirmation).not.toBe('');
+  await dialog.getByRole('textbox').fill(requiredConfirmation);
   await expect(confirmButton).toBeEnabled();
 
   await confirmButton.click();

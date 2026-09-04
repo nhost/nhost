@@ -75,7 +75,7 @@ async function openDeleteDialog(
   await user.click(screen.getByRole('button', { name: 'Delete' }));
 
   return {
-    dialog: await screen.findByRole('dialog'),
+    dialog: await screen.findByRole('alertdialog'),
     user,
   };
 }
@@ -88,9 +88,14 @@ function getDeleteAction(dialog: HTMLElement) {
   return within(dialog).getByTestId('deleteOrgButton');
 }
 
-// The delete action is a submit button. jsdom does not run the form
-// submission algorithm inside a Radix portal, so the submit event is
-// dispatched directly instead of clicking the button.
+// userEvent cannot activate controls inside Radix's modal layer, which sets
+// pointer-events: none on <body>. jsdom itself resolves the form= association
+// and runs the submission algorithm normally, so a plain click is enough.
+function clickDeleteAction(dialog: HTMLElement) {
+  fireEvent.click(getDeleteAction(dialog));
+}
+
+// Bypasses the button to prove the form itself refuses an invalid submit.
 function submitDeleteForm(dialog: HTMLElement) {
   fireEvent.submit(
     getConfirmationInput(dialog).closest('form') as HTMLFormElement,
@@ -139,6 +144,16 @@ describe('DeleteOrg', () => {
     });
   });
 
+  it('opens as an alertdialog focused on the non-destructive action', async () => {
+    const { dialog } = await openDeleteDialog();
+
+    await waitFor(() => {
+      expect(
+        within(dialog).getByRole('button', { name: 'Cancel' }),
+      ).toHaveFocus();
+    });
+  });
+
   it('requires both the exact organization name and irreversible acknowledgment', async () => {
     const { dialog, user } = await openDeleteDialog();
 
@@ -175,11 +190,18 @@ describe('DeleteOrg', () => {
 
     submitDeleteForm(dialog);
 
+    // The click is synchronous but validation is not, so wait for the resolver
+    // to reject the submit before asserting that nothing was deleted.
+    await waitFor(() => {
+      expect(
+        within(dialog).getByText('Typing the organization name is required'),
+      ).toBeInTheDocument();
+    });
     expect(mocks.execPromiseWithErrorToast).not.toHaveBeenCalled();
     expect(mocks.deleteOrgMutation).not.toHaveBeenCalled();
   });
 
-  it('deletes when the form is submitted, and ignores submits while invalid', async () => {
+  it('deletes when the delete action is clicked, and ignores invalid submits', async () => {
     const { dialog, user } = await openDeleteDialog();
 
     await TestUserEvent.fireTypeEvent(
@@ -197,7 +219,13 @@ describe('DeleteOrg', () => {
     expect(mocks.deleteOrgMutation).not.toHaveBeenCalled();
 
     await enableOrganizationDeletion(dialog, user);
-    submitDeleteForm(dialog);
+
+    // The form= association is the only thing wiring the footer button to the
+    // confirmation form, so pin it and then use the real affordance.
+    expect((getDeleteAction(dialog) as HTMLButtonElement).form).toBe(
+      getConfirmationInput(dialog).closest('form'),
+    );
+    clickDeleteAction(dialog);
 
     await waitFor(() => {
       expect(mocks.deleteOrgMutation).toHaveBeenCalledWith(
@@ -213,11 +241,11 @@ describe('DeleteOrg', () => {
 
     await user.click(within(dialog).getByRole('button', { name: 'Cancel' }));
     await waitFor(() => {
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
     });
 
     await user.click(screen.getByRole('button', { name: 'Delete' }));
-    const reopenedDialog = await screen.findByRole('dialog');
+    const reopenedDialog = await screen.findByRole('alertdialog');
 
     expect(getConfirmationInput(reopenedDialog)).toHaveValue('');
     expect(
@@ -226,5 +254,38 @@ describe('DeleteOrg', () => {
       }),
     ).not.toBeChecked();
     expect(getDeleteAction(reopenedDialog)).toBeDisabled();
+  });
+
+  it('stays dismissable after a failed deletion', async () => {
+    // Mirrors the real helper, which swallows the rejection and returns null.
+    mocks.execPromiseWithErrorToast.mockImplementation(
+      async (call: () => Promise<unknown>) => {
+        try {
+          return await call();
+        } catch {
+          return null;
+        }
+      },
+    );
+    mocks.deleteOrgMutation.mockRejectedValue(new Error('network error'));
+
+    const { dialog, user } = await openDeleteDialog();
+    await enableOrganizationDeletion(dialog, user);
+    clickDeleteAction(dialog);
+
+    await waitFor(() => {
+      expect(mocks.deleteOrgMutation).toHaveBeenCalled();
+    });
+    await waitFor(() => {
+      expect(
+        within(dialog).getByRole('button', { name: 'Cancel' }),
+      ).toBeEnabled();
+    });
+    expect(getDeleteAction(dialog)).toBeEnabled();
+
+    await user.click(within(dialog).getByRole('button', { name: 'Cancel' }));
+    await waitFor(() => {
+      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+    });
   });
 });

@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
   close: vi.fn(),
   deleteApplication: vi.fn(),
   discordAnnounce: vi.fn(),
+  onPendingChange: vi.fn(),
   push: vi.fn(),
   track: vi.fn(),
   triggerToast: vi.fn(),
@@ -100,7 +101,12 @@ function renderModal({
           },
   });
 
-  return render(<RemoveApplicationModal close={mocks.close} />);
+  return render(
+    <RemoveApplicationModal
+      close={mocks.close}
+      onPendingChange={mocks.onPendingChange}
+    />,
+  );
 }
 
 function getConfirmationInput() {
@@ -111,9 +117,15 @@ function getDeleteButton() {
   return screen.getByRole('button', { name: 'Delete Project' });
 }
 
+function getCancelButton() {
+  return screen.getByRole('button', { name: 'Cancel' });
+}
+
 async function acknowledgeIrreversibleAction(user: TestUserEvent) {
   await user.click(
-    screen.getByRole('checkbox', { name: 'Confirm Delete Project #2' }),
+    screen.getByRole('checkbox', {
+      name: 'I understand this action cannot be undone',
+    }),
   );
 }
 
@@ -121,6 +133,7 @@ describe('RemoveApplicationModal', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.deleteApplication.mockResolvedValue({});
+    mocks.discordAnnounce.mockResolvedValue(undefined);
     mocks.push.mockResolvedValue(true);
     mocks.useBillingDeleteAppMutation.mockReturnValue([
       mocks.deleteApplication,
@@ -164,7 +177,7 @@ describe('RemoveApplicationModal', () => {
     expect(getDeleteButton()).toBeDisabled();
 
     const paidAcknowledgment = screen.getByRole('checkbox', {
-      name: 'Confirm Delete Project #3',
+      name: 'I understand I need to delete the organization if I want to cancel the subscription',
     });
     await user.click(paidAcknowledgment);
     expect(getDeleteButton()).toBeEnabled();
@@ -193,6 +206,15 @@ describe('RemoveApplicationModal', () => {
     getDeleteButton().removeAttribute('disabled');
     fireEvent.click(getDeleteButton());
 
+    // The click is synchronous but validation is not, so wait for the resolver
+    // to reject the submit before asserting that nothing was deleted.
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          'Typing the organization and project name is required',
+        ),
+      ).toBeInTheDocument();
+    });
     expect(mocks.deleteApplication).not.toHaveBeenCalled();
     expect(mocks.close).not.toHaveBeenCalled();
   });
@@ -217,5 +239,74 @@ describe('RemoveApplicationModal', () => {
     expect(mocks.close).toHaveBeenCalledTimes(1);
     expect(mocks.push).toHaveBeenCalledWith('/orgs/example-org/projects');
     expect(mocks.triggerToast).toHaveBeenCalledWith('Example Project deleted');
+  });
+
+  it('releases the pending state when the deletion and the webhook both fail', async () => {
+    mocks.deleteApplication.mockRejectedValue(new Error('network error'));
+    mocks.discordAnnounce.mockRejectedValue(new Error('webhook unreachable'));
+
+    renderModal();
+    const user = new TestUserEvent();
+
+    await TestUserEvent.fireTypeEvent(
+      getConfirmationInput(),
+      'Example Org/Example Project',
+    );
+    await acknowledgeIrreversibleAction(user);
+    await user.click(getDeleteButton());
+
+    await waitFor(() => {
+      expect(mocks.triggerToast).toHaveBeenCalledWith(
+        'An error occurred while trying to delete Example Project',
+      );
+    });
+    await waitFor(() => {
+      expect(getCancelButton()).toBeEnabled();
+    });
+    expect(mocks.onPendingChange).toHaveBeenLastCalledWith(false);
+    expect(mocks.close).not.toHaveBeenCalled();
+  });
+
+  it('releases the pending state when a custom handler fails', async () => {
+    const handler = vi.fn().mockRejectedValue(new Error('handler failed'));
+    mocks.useProject.mockReturnValue({
+      project: {
+        ...mockApplication,
+        id: 'project-id',
+        name: 'Example Project',
+      },
+    });
+    mocks.useOrgs.mockReturnValue({
+      currentOrg: {
+        ...mockOrganization,
+        name: 'Example Org',
+        slug: 'example-org',
+        plan: { ...mockOrganization.plan, isFree: true },
+      },
+    });
+
+    render(
+      <RemoveApplicationModal
+        close={mocks.close}
+        handler={handler}
+        onPendingChange={mocks.onPendingChange}
+      />,
+    );
+    const user = new TestUserEvent();
+
+    await TestUserEvent.fireTypeEvent(
+      getConfirmationInput(),
+      'Example Org/Example Project',
+    );
+    await acknowledgeIrreversibleAction(user);
+    await user.click(getDeleteButton());
+
+    await waitFor(() => {
+      expect(handler).toHaveBeenCalledTimes(1);
+    });
+    await waitFor(() => {
+      expect(getCancelButton()).toBeEnabled();
+    });
+    expect(mocks.onPendingChange).toHaveBeenLastCalledWith(false);
   });
 });
