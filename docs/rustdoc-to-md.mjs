@@ -307,29 +307,56 @@ function codeBlock(sig) {
   return `\`\`\`rust\n${sig}\n\`\`\``;
 }
 
+function escapeRawHtmlOutsideInlineCode(line) {
+  return line
+    .split(/(`+[^`]*`+)/)
+    .map((part, index) =>
+      index % 2 === 0 ? part.replaceAll('<', '&lt;') : part,
+    )
+    .join('');
+}
+
 // Normalize the markdown inside a doc comment: drop the lines rustdoc hides
-// from rendered examples (`# use ..;` setup), unescape the `##` that stands for
-// a literal `#`, tag every Rust fence as `rust`, and demote rustdoc's prose
-// headings (`# Errors`, `# Panics`) so they nest under the item's own heading.
+// from rendered Rust examples (`# use ..;` setup), unescape the `##` that
+// stands for a literal `#`, tag every Rust fence as `rust`, escape raw HTML in
+// prose, and demote rustdoc's prose headings (`# Errors`, `# Panics`) so they
+// nest under the item's own heading.
 function normalizeDocMarkdown(docs) {
   let fenced = false;
+  let currentFenceLanguage;
   const out = [];
   for (const line of docs.split('\n')) {
     const fence = line.match(/^(\s*```)(.*)$/);
     if (fence) {
-      fenced = !fenced;
-      // Rustdoc tags the fence with doctest attributes (`no_run`, `ignore`,
-      // `should_panic`, an edition, ...); the docs site only knows languages,
-      // so normalize every Rust example to `rust`.
-      out.push(fenced ? `${fence[1]}${fenceLanguage(fence[2])}` : line);
+      if (fenced) {
+        fenced = false;
+        currentFenceLanguage = undefined;
+        out.push(line);
+      } else {
+        fenced = true;
+        currentFenceLanguage = fenceLanguage(fence[2]);
+        // Rustdoc tags the fence with doctest attributes (`no_run`, `ignore`,
+        // `should_panic`, an edition, ...); the docs site only knows languages,
+        // so normalize every Rust example to `rust`.
+        out.push(`${fence[1]}${currentFenceLanguage}`);
+      }
       continue;
     }
     if (fenced) {
-      if (/^\s*#(\s|$)/.test(line)) continue;
-      out.push(line.replace(/^(\s*)##/, '$1#'));
+      if (currentFenceLanguage === 'rust') {
+        if (/^\s*#(\s|$)/.test(line)) continue;
+        out.push(line.replace(/^(\s*)##/, '$1#'));
+      } else {
+        out.push(line);
+      }
       continue;
     }
-    out.push(line.replace(/^#{1,6} (?=\S)/, '###### '));
+    out.push(
+      escapeRawHtmlOutsideInlineCode(line).replace(
+        /^#{1,6} (?=\S)/,
+        '###### ',
+      ),
+    );
   }
   return out.join('\n');
 }
@@ -358,14 +385,29 @@ function fenceLanguage(tag) {
   return language ?? 'rust';
 }
 
-// Convert rustdoc intra-doc links (``[`Foo`]``, `[Foo]`) into plain inline
-// code so the docs site doesn't emit broken links. Real URLs are kept.
-function cleanDocs(docs) {
-  if (!docs) return '';
-  return normalizeDocMarkdown(docs)
+function cleanIntraDocLinks(line) {
+  return line
     .replace(/\[(`[^`\]]+`)\]\((?![^)]*:\/\/)[^)]*\)/g, '$1') // [`X`](path::X) -> `X`
     .replace(/\[(`[^`\]]+`)\](?!\()/g, '$1') // [`X`] -> `X`
     .replace(/\[([A-Za-z_][A-Za-z0-9_:]*)\](?!\(|\[|:)/g, '`$1`'); // [Foo] -> `Foo`
+}
+
+// Convert rustdoc intra-doc links (``[`Foo`]``, `[Foo]`) in prose into plain
+// inline code so the docs site doesn't emit broken links. Fenced content and
+// real URLs are kept.
+function cleanDocs(docs) {
+  if (!docs) return '';
+  let fenced = false;
+  return normalizeDocMarkdown(docs)
+    .split('\n')
+    .map((line) => {
+      if (/^\s*```/.test(line)) {
+        fenced = !fenced;
+        return line;
+      }
+      return fenced ? line : cleanIntraDocLinks(line);
+    })
+    .join('\n');
 }
 
 function heading(depth, text) {
