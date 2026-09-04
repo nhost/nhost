@@ -28,6 +28,11 @@ import cycle arises.
   installed on each service's `http.Client.Transport` via `transport.NewHTTPClient`.
   There is no post-construction `PushChainFunction`; `nhost.build` collects
   middleware into a `Config` first, then constructs the clients.
+- Credential middleware is scoped to its configured service origin, and
+  `transport.NewHTTPClient` also strips `Authorization` and
+  `x-hasura-admin-secret` before cross-host redirects. Both layers are needed:
+  Go copies nonstandard headers to the redirected request before invoking its
+  `RoundTripper` again.
 - Generated files carry `// Code generated ... DO NOT EDIT.` so golangci-lint
   auto-skips them; the plugin still applies Go initialisms (ID/URL/JSON) for
   nice field names.
