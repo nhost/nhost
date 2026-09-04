@@ -50,6 +50,16 @@ impl Middleware for ExtensionObserver {
     }
 }
 
+fn token_with_claims(iat: Option<i64>, exp: i64) -> String {
+    let mut payload = json!({ "exp": exp, "sub": "user-1" });
+    if let Some(iat) = iat {
+        payload["iat"] = json!(iat);
+    }
+    let body = base64::engine::general_purpose::URL_SAFE_NO_PAD
+        .encode(serde_json::to_vec(&payload).unwrap());
+    format!("aaa.{body}.sig")
+}
+
 /// A syntactically valid JWT expiring `in_secs` from now (negative = expired).
 fn token(in_secs: i64) -> String {
     let exp = std::time::SystemTime::now()
@@ -57,10 +67,7 @@ fn token(in_secs: i64) -> String {
         .unwrap()
         .as_secs() as i64
         + in_secs;
-    let payload = json!({ "exp": exp, "sub": "user-1" });
-    let body = base64::engine::general_purpose::URL_SAFE_NO_PAD
-        .encode(serde_json::to_vec(&payload).unwrap());
-    format!("aaa.{body}.sig")
+    token_with_claims(None, exp)
 }
 
 fn session_with(access_token: &str) -> auth::Session {
@@ -89,6 +96,34 @@ fn session_response_with(
 }
 
 struct FailingSetStorage;
+
+struct StoredSessionBackend {
+    session: Mutex<Option<session::StoredSession>>,
+}
+
+impl StoredSessionBackend {
+    fn new(session: session::StoredSession) -> Self {
+        Self {
+            session: Mutex::new(Some(session)),
+        }
+    }
+}
+
+impl session::Backend for StoredSessionBackend {
+    fn get(&self) -> Result<Option<session::StoredSession>, Error> {
+        Ok(self.session.lock().unwrap().clone())
+    }
+
+    fn set(&self, value: &session::StoredSession) -> Result<(), Error> {
+        *self.session.lock().unwrap() = Some(value.clone());
+        Ok(())
+    }
+
+    fn remove(&self) -> Result<(), Error> {
+        *self.session.lock().unwrap() = None;
+        Ok(())
+    }
+}
 
 enum FailingStorageOperation {
     Read,
@@ -927,12 +962,39 @@ fn jwt_decode_invalid() {
 }
 
 #[test]
-fn notify_callback_can_reenter_storage_without_deadlock() {
-    let payload = serde_json::json!({ "exp": 9_999_999_999_i64, "sub": "u" });
-    let body = base64::engine::general_purpose::URL_SAFE_NO_PAD
-        .encode(serde_json::to_vec(&payload).unwrap());
-    let token = format!("aaa.{body}.sig");
+fn jwt_decode_rejects_timestamp_overflow() {
+    for payload in [json!({ "exp": i64::MAX }), json!({ "iat": i64::MAX })] {
+        let body = base64::engine::general_purpose::URL_SAFE_NO_PAD
+            .encode(serde_json::to_vec(&payload).unwrap());
+        let token = format!("aaa.{body}.sig");
 
+        assert!(matches!(
+            session::decode_user_session(&token),
+            Err(Error::InvalidToken(_))
+        ));
+    }
+}
+
+#[test]
+fn jwt_decode_preserves_representable_expiry_boundaries() {
+    for seconds in [i64::MIN / 1000, -1, 0, i64::MAX / 1000] {
+        let payload = json!({ "exp": seconds });
+        let body = base64::engine::general_purpose::URL_SAFE_NO_PAD
+            .encode(serde_json::to_vec(&payload).unwrap());
+        let token = format!("aaa.{body}.sig");
+
+        let decoded = session::decode_user_session(&token).unwrap();
+        assert_eq!(decoded.exp, seconds.checked_mul(1000));
+        assert_eq!(
+            serde_json::to_value(decoded).unwrap()["exp"],
+            json!(seconds * 1000)
+        );
+    }
+}
+
+#[test]
+fn notify_callback_can_reenter_storage_without_deadlock() {
+    let token = token(900);
     let storage = session::SessionStorage::new(Box::<session::MemoryStorage>::default());
     let reentrant = storage.clone();
     let _sub = storage.on_change(move |s| {
@@ -969,6 +1031,16 @@ fn server_mode_requires_storage() {
         .storage(Box::<session::MemoryStorage>::default())
         .build()
         .is_ok());
+}
+
+#[test]
+fn builder_rejects_invalid_refresh_margins() {
+    for margin in [-1, i64::MAX] {
+        assert_config_error(
+            Nhost::builder().refresh_margin(margin).build(),
+            "refresh margin",
+        );
+    }
 }
 
 #[tokio::test]
@@ -3058,6 +3130,275 @@ async fn from_clients_shares_store_and_applies_middleware() {
     // only matches when the token was attached).
     let data: serde_json::Value = client.graphql.query("query { ok }").send().await.unwrap();
     assert_eq!(data["ok"], true);
+}
+
+#[tokio::test]
+async fn zero_and_negative_expiries_are_rejected_before_scheduling() {
+    let server = MockServer::start().await;
+    for seconds in [-1, 0] {
+        let payload = json!({ "exp": seconds });
+        let body = base64::engine::general_purpose::URL_SAFE_NO_PAD
+            .encode(serde_json::to_vec(&payload).unwrap());
+        let invalid = format!("aaa.{body}.sig");
+        let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
+
+        assert!(matches!(
+            sessions.set(session_with(&invalid)),
+            Err(Error::InvalidToken(_))
+        ));
+        assert!(sessions.get().unwrap().is_none());
+    }
+    assert!(server.received_requests().await.unwrap().is_empty());
+}
+
+#[tokio::test]
+async fn representable_far_future_expiry_is_safely_scheduled() {
+    let server = MockServer::start().await;
+    let seconds = i64::MAX / 1000;
+    let payload = json!({ "exp": seconds });
+    let body = base64::engine::general_purpose::URL_SAFE_NO_PAD
+        .encode(serde_json::to_vec(&payload).unwrap());
+    let access_token = format!("aaa.{body}.sig");
+    let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
+
+    sessions.set(session_with(&access_token)).unwrap();
+    let auth = auth::Client::new(server.uri(), reqwest::Client::new(), Vec::new());
+    assert!(session::refresh_session(&auth, &sessions, 60)
+        .await
+        .unwrap()
+        .is_some());
+    assert!(server.received_requests().await.unwrap().is_empty());
+}
+
+#[tokio::test]
+async fn issuer_lifetime_caps_huge_advertised_lifetime() {
+    let server = MockServer::start().await;
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs() as i64;
+    let expired = token_with_claims(Some(now - 1_800), now - 900);
+    let refreshed = token(900);
+    Mock::given(method("POST"))
+        .and(path("/token"))
+        .respond_with(
+            ResponseTemplate::new(200).set_body_json(session_response_with(
+                &refreshed,
+                "rotated-id",
+                "rotated-token",
+            )),
+        )
+        .expect(1)
+        .mount(&server)
+        .await;
+
+    let auth = auth::Client::new(server.uri(), reqwest::Client::new(), Vec::new());
+    let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
+    let mut raw = session_with(&expired);
+    raw.access_token_expires_in = 9_220_000_000_000_000;
+    sessions.set(raw).unwrap();
+
+    let returned = session::refresh_session(&auth, &sessions, 901)
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(returned.session.access_token, refreshed);
+    server.verify().await;
+}
+
+#[tokio::test]
+async fn issuer_lifetime_prevents_expired_bearer_attachment() {
+    let server = MockServer::start().await;
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs() as i64;
+    let expiring = token_with_claims(Some(now), now + 10);
+    let refreshed = token(900);
+    Mock::given(method("POST"))
+        .and(path("/token"))
+        .respond_with(
+            ResponseTemplate::new(200).set_body_json(session_response_with(
+                &refreshed,
+                "rotated-id",
+                "rotated-token",
+            )),
+        )
+        .expect(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/"))
+        .and(header(
+            "authorization",
+            format!("Bearer {refreshed}").as_str(),
+        ))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({"data": {"ok": true}})))
+        .expect(1)
+        .mount(&server)
+        .await;
+
+    let client = Nhost::builder()
+        .auth_url(server.uri())
+        .graphql_url(server.uri())
+        .storage(Box::<session::MemoryStorage>::default())
+        .build()
+        .unwrap();
+    client.sessions.set(session_with(&expiring)).unwrap();
+
+    let data: serde_json::Value = client.graphql.query("query { ok }").send().await.unwrap();
+    assert_eq!(data["ok"], true);
+    server.verify().await;
+}
+
+#[tokio::test]
+async fn iatless_token_under_fast_clock_refreshes_once_without_looping() {
+    let server = MockServer::start().await;
+    let fast_clock_token = token(-12 * 60 * 60);
+    Mock::given(method("POST"))
+        .and(path("/token"))
+        .respond_with(
+            ResponseTemplate::new(200).set_body_json(session_response_with(
+                &fast_clock_token,
+                "rotated-id",
+                "rotated-token",
+            )),
+        )
+        .expect(1)
+        .mount(&server)
+        .await;
+
+    let auth = auth::Client::new(server.uri(), reqwest::Client::new(), Vec::new());
+    let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
+    sessions.set(session_with(&fast_clock_token)).unwrap();
+
+    for _ in 0..5 {
+        assert!(session::refresh_session(&auth, &sessions, 60)
+            .await
+            .unwrap()
+            .is_some());
+    }
+    server.verify().await;
+}
+
+#[tokio::test]
+async fn server_issued_session_survives_large_clock_skew_in_both_directions() {
+    const CLOCK_SKEW_SECONDS: i64 = 12 * 60 * 60;
+
+    for skew in [-CLOCK_SKEW_SECONDS, CLOCK_SKEW_SECONDS] {
+        let server = MockServer::start().await;
+        let server_now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs() as i64
+            + skew;
+        let payload = json!({ "iat": server_now, "exp": server_now + 900, "sub": "user-1" });
+        let body = base64::engine::general_purpose::URL_SAFE_NO_PAD
+            .encode(serde_json::to_vec(&payload).unwrap());
+        let access_token = format!("aaa.{body}.sig");
+        Mock::given(method("POST"))
+            .and(path("/signin/email-password"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+                "session": session_with(&access_token),
+            })))
+            .mount(&server)
+            .await;
+
+        let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
+        let auth = auth::Client::new(server.uri(), reqwest::Client::new(), Vec::new())
+            .with_session_capture(sessions.clone());
+        auth.sign_in_email_password(auth::SignInEmailPasswordRequest {
+            email: "person@example.com".to_string(),
+            password: "password".to_string(),
+        })
+        .await
+        .unwrap();
+
+        assert_eq!(
+            sessions.get().unwrap().unwrap().session.access_token,
+            access_token
+        );
+        assert!(session::refresh_session(&auth, &sessions, 60)
+            .await
+            .unwrap()
+            .is_some());
+        assert_eq!(server.received_requests().await.unwrap().len(), 1);
+    }
+}
+
+#[test]
+fn invalid_access_token_lifetimes_are_rejected() {
+    let access_token = token(900);
+    for lifetime in [i64::MIN, -1, 0, i64::MAX] {
+        let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
+        let mut raw = session_with(&access_token);
+        raw.access_token_expires_in = lifetime;
+        assert!(matches!(sessions.set(raw), Err(Error::InvalidToken(_))));
+    }
+}
+
+#[test]
+fn unrepresentable_issuer_lifetime_is_rejected() {
+    let access_token = token_with_claims(Some(i64::MIN / 1000), i64::MAX / 1000);
+    let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
+
+    assert!(matches!(
+        sessions.set(session_with(&access_token)),
+        Err(Error::InvalidToken(_))
+    ));
+}
+
+#[tokio::test]
+async fn extreme_refresh_margin_returns_a_config_error() {
+    let server = MockServer::start().await;
+    let auth = auth::Client::new(server.uri(), reqwest::Client::new(), Vec::new());
+    let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
+    sessions.set(session_with(&token(900))).unwrap();
+
+    assert_config_error(
+        session::refresh_session(&auth, &sessions, i64::MAX).await,
+        "refresh margin",
+    );
+    assert!(server.received_requests().await.unwrap().is_empty());
+}
+
+#[tokio::test]
+async fn persisted_extreme_expiry_is_redecoded_before_scheduling() {
+    let server = MockServer::start().await;
+    let refreshed = token(900);
+    Mock::given(method("POST"))
+        .and(path("/token"))
+        .respond_with(
+            ResponseTemplate::new(200).set_body_json(session_response_with(
+                &refreshed,
+                "rotated-id",
+                "rotated-token",
+            )),
+        )
+        .expect(2)
+        .mount(&server)
+        .await;
+
+    let auth = auth::Client::new(server.uri(), reqwest::Client::new(), Vec::new());
+    for persisted_exp in [i64::MIN, i64::MAX] {
+        let expired = token(-60);
+        let mut stored = session::StoredSession {
+            session: session_with(&expired),
+            decoded_token: session::decode_user_session(&expired).unwrap(),
+        };
+        stored.decoded_token.exp = Some(persisted_exp);
+        let sessions = SessionStorage::new(Box::new(StoredSessionBackend::new(stored)));
+
+        let returned = session::refresh_session(&auth, &sessions, 60)
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(returned.session.access_token, refreshed);
+        assert_eq!(
+            sessions.get().unwrap().unwrap().decoded_token.exp,
+            session::decode_user_session(&refreshed).unwrap().exp
+        );
+    }
 }
 
 #[tokio::test]

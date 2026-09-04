@@ -442,7 +442,8 @@ impl NhostBuilder {
     }
 
     /// Overrides the automatic session-refresh middleware's margin in seconds
-    /// before access-token expiry.
+    /// before access-token expiry. [`Self::build`] rejects negative margins and
+    /// values too large to schedule without overflowing millisecond timestamps.
     ///
     /// A margin of `0` forces an automatic refresh attempt before every eligible
     /// request; requests that already have an `Authorization` header and direct
@@ -466,8 +467,8 @@ impl NhostBuilder {
     /// # Errors
     ///
     /// Returns [`Error::Config`] for incomplete, empty, or invalid cloud-project
-    /// fields, invalid service URLs, or server mode without an explicit storage
-    /// backend.
+    /// fields, invalid service URLs, an invalid refresh margin, or server mode
+    /// without an explicit storage backend.
     pub fn build(self) -> Result<Nhost, Error> {
         if self.mode == SessionMode::ServerSide && self.storage.is_none() {
             return Err(Error::Config(
@@ -499,10 +500,12 @@ impl NhostBuilder {
             self.functions_url.as_deref(),
         )?;
 
+        let margin = self.margin.unwrap_or(DEFAULT_REFRESH_MARGIN_SECONDS);
+        session::validate_refresh_margin(margin)?;
+
         let backend = self.storage.unwrap_or_else(session::detect_storage);
         let sessions = SessionStorage::new(backend);
         let http = self.reqwest.unwrap_or_default();
-        let margin = self.margin.unwrap_or(DEFAULT_REFRESH_MARGIN_SECONDS);
 
         // A bare auth client (no middleware) used by the refresh middleware, so
         // refreshing does not recurse through the session middleware.

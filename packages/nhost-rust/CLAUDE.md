@@ -153,7 +153,25 @@ code for crate conventions.
   session updates. `service_url` is public so callers can derive validated
   cloud/local URLs.
 - **`Backend` returns `Result`** (`Error::Storage` on file/localStorage I/O);
-  don't silently swallow errors. A `Backend::get` failure fails the request
+  don't silently swallow errors. Persisted `decodedToken` values are a cache,
+  not an authority: `SessionStorage::get` re-decodes the access token so refresh
+  scheduling, SDK session accessors, and reserialization agree even when a
+  built-in or custom backend returns edited persisted JSON. Session storage
+  requires an integer `exp` after the Unix epoch and a positive,
+  millisecond-representable `accessTokenExpiresIn`. Absolute client time is not
+  used to reject a server-issued expiry because clock skew is indistinguishable
+  from an unusual claim. A newly received token with `iat` is scheduled from
+  local receipt for the smaller of the issuer-clock `exp - iat` duration and
+  `accessTokenExpiresIn`. For a newly received token without `iat`, and for any
+  session loaded from persistence (which has no trustworthy receipt time), the
+  deadline is the earlier of absolute `exp` and one advertised lifetime from
+  local observation. This deliberately favors one possibly unnecessary refresh
+  under a fast client clock over attaching a potentially stale bearer; after an
+  accepted refresh without `iat`, the deadline is receipt-anchored to the
+  advertised lifetime so the clock mismatch cannot hot-loop. The advertised
+  cap prevents a slow clock from creating a never-refresh schedule.
+  Invalid tokens surface `Error::InvalidToken` through `SessionStorage::get`.
+  A `Backend::get` failure fails the request
   (`Error::Middleware` wrapping `Error::Storage`) in both `SessionRefresh` and
   `AttachToken`. Refresh retries are phase-based rather than error-variant-based:
   once a 2xx refresh response is observed, body-read, decode, and storage

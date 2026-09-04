@@ -131,17 +131,24 @@ pub fn decode_user_session(access_token: &str) -> Result<DecodedToken, Error> {
         .decode(segments[1])
         .map_err(|_| invalid())?;
     let payload: serde_json::Value = serde_json::from_slice(&raw).map_err(|_| invalid())?;
+    let milliseconds = |claim: &str| {
+        payload
+            .get(claim)
+            .and_then(serde_json::Value::as_i64)
+            .map(|seconds| {
+                seconds.checked_mul(1000).ok_or_else(|| {
+                    Error::InvalidToken(format!(
+                        "{claim} claim is outside the supported millisecond range"
+                    ))
+                })
+            })
+            .transpose()
+    };
 
     let mut decoded = DecodedToken {
         // Store in milliseconds to match @nhost/nhost-js's persisted decodedToken.
-        exp: payload
-            .get("exp")
-            .and_then(serde_json::Value::as_i64)
-            .map(|secs| secs * 1000),
-        iat: payload
-            .get("iat")
-            .and_then(serde_json::Value::as_i64)
-            .map(|secs| secs * 1000),
+        exp: milliseconds("exp")?,
+        iat: milliseconds("iat")?,
         iss: payload
             .get("iss")
             .and_then(|v| v.as_str().map(String::from)),
@@ -170,12 +177,101 @@ pub fn decode_user_session(access_token: &str) -> Result<DecodedToken, Error> {
     Ok(decoded)
 }
 
+fn session_lifetime_ms(session: &Session) -> Result<i64, Error> {
+    session
+        .access_token_expires_in
+        .checked_mul(1000)
+        .filter(|lifetime| *lifetime > 0)
+        .ok_or_else(|| {
+            Error::InvalidToken(
+                "accessTokenExpiresIn must be a positive representable duration".to_string(),
+            )
+        })
+}
+
+fn validate_session_expiry(session: &Session, decoded: &DecodedToken) -> Result<(), Error> {
+    match decoded.exp {
+        Some(exp) if exp > 0 => {}
+        Some(_) => {
+            return Err(Error::InvalidToken(
+                "exp claim must be after the Unix epoch".to_string(),
+            ));
+        }
+        None => {
+            return Err(Error::InvalidToken(
+                "access token must contain an integer exp claim".to_string(),
+            ));
+        }
+    }
+
+    session_lifetime_ms(session)?;
+    Ok(())
+}
+
+fn advertised_deadline(session: &StoredSession, now: i64) -> Result<i64, Error> {
+    now.checked_add(session_lifetime_ms(&session.session)?)
+        .ok_or_else(|| {
+            Error::InvalidToken(
+                "accessTokenExpiresIn is too large to schedule from the current time".to_string(),
+            )
+        })
+}
+
+fn received_refresh_deadline(
+    session: &StoredSession,
+    now: i64,
+    after_refresh: bool,
+) -> Result<i64, Error> {
+    let advertised_deadline = advertised_deadline(session, now)?;
+    let exp = session.decoded_token.exp.ok_or_else(|| {
+        Error::InvalidToken("access token must contain an integer exp claim".to_string())
+    })?;
+
+    let Some(iat) = session.decoded_token.iat else {
+        // Without iat the client cannot distinguish an expired token from a fast
+        // local clock. Probe an apparently expired token once, then anchor an
+        // accepted refresh response to receipt so clock skew cannot hot-loop.
+        return Ok(if after_refresh {
+            advertised_deadline
+        } else {
+            exp.min(advertised_deadline)
+        });
+    };
+
+    let issuer_lifetime = exp
+        .checked_sub(iat)
+        .filter(|lifetime| *lifetime > 0)
+        .ok_or_else(|| {
+            Error::InvalidToken(
+                "exp claim must be later than iat with a representable duration".to_string(),
+            )
+        })?;
+    let issuer_deadline = now.checked_add(issuer_lifetime).ok_or_else(|| {
+        Error::InvalidToken("issuer token lifetime is too large to schedule".to_string())
+    })?;
+    Ok(issuer_deadline.min(advertised_deadline))
+}
+
+fn persisted_refresh_deadline(session: &StoredSession, now: i64) -> Result<i64, Error> {
+    let exp = session.decoded_token.exp.ok_or_else(|| {
+        Error::InvalidToken("access token must contain an integer exp claim".to_string())
+    })?;
+    Ok(exp.min(advertised_deadline(session, now)?))
+}
+
 fn to_stored_session(session: Session) -> Result<StoredSession, Error> {
     let decoded_token = decode_user_session(&session.access_token)?;
+    validate_session_expiry(&session, &decoded_token)?;
     Ok(StoredSession {
         session,
         decoded_token,
     })
+}
+
+fn canonicalize_stored_session(mut stored: StoredSession) -> Result<StoredSession, Error> {
+    stored.decoded_token = decode_user_session(&stored.session.access_token)?;
+    validate_session_expiry(&stored.session, &stored.decoded_token)?;
+    Ok(stored)
 }
 
 /// A backend persisting a single [`StoredSession`].
@@ -343,6 +439,7 @@ struct StorageInner {
     backend: Box<dyn Backend>,
     subscribers: Mutex<HashMap<usize, ChangeCallback>>,
     next_id: Mutex<usize>,
+    refresh_deadline: Mutex<Option<(String, i64)>>,
     refresh_lock: tokio::sync::Mutex<()>,
 }
 
@@ -371,28 +468,66 @@ impl SessionStorage {
                 backend,
                 subscribers: Mutex::new(HashMap::new()),
                 next_id: Mutex::new(0),
+                refresh_deadline: Mutex::new(None),
                 refresh_lock: tokio::sync::Mutex::new(()),
             }),
         }
     }
 
+    /// Reads the session and re-decodes its access token so persisted
+    /// `decodedToken` cache values cannot diverge from the public result.
     pub fn get(&self) -> Result<Option<StoredSession>, Error> {
-        self.inner.backend.get()
+        let Some(stored) = self.inner.backend.get()? else {
+            return Ok(None);
+        };
+
+        // decodedToken is persisted for JS SDK interoperability, but it is
+        // redundant and may have been edited independently of the access token.
+        // Re-decode on read so scheduling and public accessors use one canonical
+        // set of claims instead of trusting attacker-controlled cached values.
+        Ok(Some(canonicalize_stored_session(stored)?))
     }
 
     /// Stores a raw auth session, enriching it into a stored session, and
-    /// notifies subscribers.
+    /// notifies subscribers. The access token must contain a positive integer
+    /// `exp` claim representable as milliseconds and `accessTokenExpiresIn`
+    /// must be a positive duration representable as milliseconds.
     pub fn set(&self, value: Session) -> Result<(), Error> {
+        self.set_received(value, false)
+    }
+
+    fn set_received(&self, value: Session, after_refresh: bool) -> Result<(), Error> {
         let stored = to_stored_session(value)?;
+        let deadline = received_refresh_deadline(&stored, now_ms(), after_refresh)?;
         self.inner.backend.set(&stored)?;
+        *self.inner.refresh_deadline.lock().unwrap() =
+            Some((stored.session.access_token.clone(), deadline));
         self.notify(Some(&stored));
         Ok(())
     }
 
     pub fn remove(&self) -> Result<(), Error> {
         self.inner.backend.remove()?;
+        *self.inner.refresh_deadline.lock().unwrap() = None;
         self.notify(None);
         Ok(())
+    }
+
+    fn scheduled_expiry(&self, session: &StoredSession, now: i64) -> Result<i64, Error> {
+        let mut scheduled = self.inner.refresh_deadline.lock().unwrap();
+        if let Some((token, deadline)) = scheduled.as_ref() {
+            if token == &session.session.access_token {
+                return Ok(*deadline);
+            }
+        }
+
+        // A persisted session has no trustworthy receipt time. Prefer a
+        // possibly unnecessary refresh under a fast local clock over attaching
+        // a potentially stale bearer, while capping a far-future expiry to one
+        // advertised lifetime so a slow clock cannot create a never-refresh.
+        let deadline = persisted_refresh_deadline(session, now)?;
+        *scheduled = Some((session.session.access_token.clone(), deadline));
+        Ok(deadline)
     }
 
     /// Subscribes to session changes; the returned guard unsubscribes on drop.
@@ -470,18 +605,38 @@ fn now_ms() -> i64 {
         .unwrap_or(0)
 }
 
+fn refresh_cutoff(margin: i64) -> Result<(i64, i64), Error> {
+    if margin < 0 {
+        return Err(Error::Config(
+            "refresh margin must be zero or a positive number of seconds".to_string(),
+        ));
+    }
+
+    let margin_ms = margin.checked_mul(1000).ok_or_else(|| {
+        Error::Config("refresh margin is too large to represent in milliseconds".to_string())
+    })?;
+    let now = now_ms();
+    let cutoff = now.checked_add(margin_ms).ok_or_else(|| {
+        Error::Config("refresh margin is too large to schedule from the current time".to_string())
+    })?;
+    Ok((now, cutoff))
+}
+
+pub(crate) fn validate_refresh_margin(margin: i64) -> Result<(), Error> {
+    refresh_cutoff(margin).map(|_| ())
+}
+
 /// Returns (session, needs_refresh, session_expired).
 fn needs_refresh(
     storage: &SessionStorage,
     margin: i64,
 ) -> Result<(Option<StoredSession>, bool, bool), Error> {
+    let (now, cutoff) = refresh_cutoff(margin)?;
     let Some(session) = storage.get()? else {
         return Ok((None, false, false));
     };
 
-    let Some(exp) = session.decoded_token.exp else {
-        return Ok((Some(session), true, true));
-    };
+    let exp = storage.scheduled_expiry(&session, now)?;
 
     // Force refresh if margin is 0, matching @nhost/nhost-js. The session is
     // deliberately classified as not expired for refresh-failure policy.
@@ -489,12 +644,12 @@ fn needs_refresh(
         return Ok((Some(session), true, false));
     }
 
-    // exp is milliseconds; margin is seconds (matching @nhost/nhost-js).
-    let now = now_ms();
-    if exp - now > margin * 1000 {
+    // exp and cutoff are absolute milliseconds, so this comparison cannot
+    // overflow even for an expiry loaded from untrusted persisted JSON.
+    if exp > cutoff {
         Ok((Some(session), false, false))
     } else {
-        Ok((Some(session), true, exp < now))
+        Ok((Some(session), true, exp <= now))
     }
 }
 
@@ -548,7 +703,7 @@ async fn refresh_once(
                 .map_err(Error::from)
                 .map_err(RefreshFailure::DoNotRetry)?;
             storage
-                .set(refreshed)
+                .set_received(refreshed, true)
                 .and_then(|()| storage.get())
                 .map_err(RefreshFailure::DoNotRetry)
         }
@@ -578,6 +733,9 @@ async fn refresh_once(
 /// session after one attempt, does not retry, and does not clear the store on
 /// `401`. From [`crate::middleware::SessionRefresh`], the request then continues
 /// with the existing, possibly expired bearer token.
+///
+/// Negative margins and margins too large for millisecond scheduling return
+/// [`Error::Config`] without making a refresh request.
 ///
 /// Once a 2xx response is observed, body-read, decode, and storage failures are
 /// returned without retrying, regardless of their error variant. An undecodable
