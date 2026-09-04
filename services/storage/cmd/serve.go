@@ -167,7 +167,10 @@ func getServer(
 	server := &http.Server{ //nolint:exhaustruct
 		Addr:              cmd.String(flagBind),
 		Handler:           router,
-		ReadHeaderTimeout: 5 * time.Second, //nolint:mnd
+		ReadHeaderTimeout: 5 * time.Second,   //nolint:mnd
+		ReadTimeout:       30 * time.Second,  //nolint:mnd
+		WriteTimeout:      5 * time.Minute,   //nolint:mnd
+		IdleTimeout:       120 * time.Second, //nolint:mnd
 	}
 
 	return server, nil
