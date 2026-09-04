@@ -124,7 +124,7 @@ paths:
 components:
   schemas:
     MixedState:
-      type: string
+      type: [string, integer]
       enum: [0, "one", true]
     Filter:
       type: object

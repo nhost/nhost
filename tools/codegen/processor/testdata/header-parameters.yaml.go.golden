@@ -7,8 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"sort"
-	"strings"
 
 	"github.com/nhost/nhost/packages/nhost-go/transport"
 )
@@ -25,58 +23,6 @@ func enumScalar(value json.RawMessage) string {
 	}
 
 	return string(value)
-}
-
-func headerScalar(value any) string {
-	switch value := value.(type) {
-	case string:
-		return value
-	case nil:
-		return ""
-	default:
-		return fmt.Sprint(value)
-	}
-}
-
-func headerValue(value any, explode bool) string {
-	encoded, err := json.Marshal(value)
-	if err != nil {
-		return fmt.Sprint(value)
-	}
-
-	var decoded any
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
-		return fmt.Sprint(value)
-	}
-
-	switch value := decoded.(type) {
-	case []any:
-		parts := make([]string, 0, len(value))
-		for _, item := range value {
-			parts = append(parts, headerScalar(item))
-		}
-
-		return strings.Join(parts, ",")
-	case map[string]any:
-		keys := make([]string, 0, len(value))
-		for key := range value {
-			keys = append(keys, key)
-		}
-		sort.Strings(keys)
-
-		parts := make([]string, 0, len(value)*2)
-		for _, key := range keys {
-			if explode {
-				parts = append(parts, key+"="+headerScalar(value[key]))
-			} else {
-				parts = append(parts, key, headerScalar(value[key]))
-			}
-		}
-
-		return strings.Join(parts, ",")
-	default:
-		return headerScalar(value)
-	}
 }
 
 // GetXMode is one of: 0, "one", true.
