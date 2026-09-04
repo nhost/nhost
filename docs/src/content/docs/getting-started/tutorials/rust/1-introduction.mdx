@@ -168,7 +168,7 @@ async fn main() {
 }
 
 async fn run(command: Command) -> Result<()> {
-    let client = make_client();
+    let client = make_client()?;
     match command {
         Command::Whoami => whoami(&client),
     }
@@ -176,12 +176,11 @@ async fn run(command: Command) -> Result<()> {
 
 // make_client builds the Nhost client. The client middleware attaches the
 // access token to every request and refreshes it automatically once we sign in.
-fn make_client() -> Nhost {
-    Nhost::builder()
+fn make_client() -> Result<Nhost> {
+    Ok(Nhost::builder()
         .subdomain(env("NHOST_SUBDOMAIN", "local"))
         .region(env("NHOST_REGION", "local"))
-        .build()
-        .expect("client-side build cannot fail")
+        .build()?)
 }
 
 fn env(key: &str, fallback: &str) -> String {
