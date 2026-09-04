@@ -6,8 +6,8 @@ Idiomatic Go SDK for Nhost.
 
 1. **Generated** (`auth/client.go`, `storage/client.go`) — produced by the `go`
    plugin in `tools/codegen` from the shared OpenAPI specs. **Never hand-edit.**
-   Regenerate with `./gen.sh` (uses the `codegen` binary or `go run`, then
-   `goimports -w` to prune the superset import block deterministically).
+   Regenerate with `./gen.sh` (uses the `codegen` binary or `go run`; the
+   generator prunes imports and formats the output deterministically).
 2. **Hand-written runtime** — `transport`, `middleware`, `session`, `graphql`,
    `functions`, and the top-level `nhost` package (`nhost.go`), plus `auth/pkce.go`.
 

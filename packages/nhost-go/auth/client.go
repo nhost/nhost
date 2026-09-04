@@ -653,7 +653,7 @@ func (p *SignInProviderParams) toQuery() url.Values {
 	}
 	if p.UpstreamParams != nil {
 		for k, v := range *p.UpstreamParams {
-			q.Add(k, fmt.Sprint(v))
+			q.Add("upstreamParams["+k+"]", fmt.Sprint(v))
 		}
 	}
 	if p.CodeChallenge != nil {
@@ -720,7 +720,7 @@ func (p *SignUpProviderParams) toQuery() url.Values {
 	}
 	if p.UpstreamParams != nil {
 		for k, v := range *p.UpstreamParams {
-			q.Add(k, fmt.Sprint(v))
+			q.Add("upstreamParams["+k+"]", fmt.Sprint(v))
 		}
 	}
 	if p.CodeChallenge != nil {
@@ -799,6 +799,18 @@ func (p *Oauth2LoginGetParams) toQuery() url.Values {
 	q := url.Values{}
 	q.Set("request_id", fmt.Sprint(p.RequestID))
 	return q
+}
+
+func escapePathSegment(value any) string {
+	segment := fmt.Sprint(value)
+	switch segment {
+	case ".":
+		return "%2E"
+	case "..":
+		return "%2E%2E"
+	default:
+		return url.PathEscape(segment)
+	}
 }
 
 // Client is a generated API client backed by an *http.Client. Install request
@@ -1523,7 +1535,7 @@ func (c *Client) SignInPAT(
 // SignInProviderURL builds the URL for GET /signin/provider/%s without following the redirect.
 func (c *Client) SignInProviderURL(provider string, params *SignInProviderParams,
 ) string {
-	u := fmt.Sprintf("%s/signin/provider/%s", c.BaseURL, provider)
+	u := fmt.Sprintf("%s/signin/provider/%s", c.BaseURL, escapePathSegment(provider))
 	if params != nil {
 		if q := params.toQuery(); len(q) > 0 {
 			u += "?" + q.Encode()
@@ -1541,7 +1553,7 @@ func (c *Client) GetProviderTokens(
 	headers http.Header,
 ) (ProviderSession, *transport.Response, error) {
 	var payload ProviderSession
-	u := fmt.Sprintf("%s/signin/provider/%s/callback/tokens", c.BaseURL, provider)
+	u := fmt.Sprintf("%s/signin/provider/%s/callback/tokens", c.BaseURL, escapePathSegment(provider))
 	req, err := http.NewRequestWithContext(ctx, "GET", u, nil)
 	if err != nil {
 		return payload, nil, err
@@ -1981,7 +1993,7 @@ func (c *Client) SignUpIDToken(
 // SignUpProviderURL builds the URL for GET /signup/provider/%s without following the redirect.
 func (c *Client) SignUpProviderURL(provider string, params *SignUpProviderParams,
 ) string {
-	u := fmt.Sprintf("%s/signup/provider/%s", c.BaseURL, provider)
+	u := fmt.Sprintf("%s/signup/provider/%s", c.BaseURL, escapePathSegment(provider))
 	if params != nil {
 		if q := params.toQuery(); len(q) > 0 {
 			u += "?" + q.Encode()
@@ -2040,7 +2052,7 @@ func (c *Client) RefreshProviderToken(
 	headers http.Header,
 ) (ProviderSession, *transport.Response, error) {
 	var payload ProviderSession
-	u := fmt.Sprintf("%s/token/provider/%s", c.BaseURL, provider)
+	u := fmt.Sprintf("%s/token/provider/%s", c.BaseURL, escapePathSegment(provider))
 	rawBody, err := json.Marshal(body)
 	if err != nil {
 		return payload, nil, err
