@@ -195,10 +195,12 @@ func WithMiddleware(mw ...transport.Middleware) ConfigureFunc {
 // Client provides unified access to Nhost auth, storage, graphql, and
 // functions.
 type Client struct {
-	Auth           *auth.Client
-	Storage        *storage.Client
-	GraphQL        *graphql.Client
-	Functions      *functions.Client
+	Auth      *auth.Client
+	Storage   *storage.Client
+	GraphQL   *graphql.Client
+	Functions *functions.Client
+	// RefreshClient is the bare auth client used for explicit session refreshes.
+	RefreshClient  *auth.Client
 	SessionStorage *session.Storage
 }
 
@@ -207,12 +209,17 @@ func (c *Client) GetUserSession() (*session.StoredSession, bool) {
 	return c.SessionStorage.Get()
 }
 
-// RefreshSession refreshes the session using the stored refresh token.
+// RefreshSession refreshes the session using the stored refresh token. A
+// marginSeconds value of zero forces a refresh. If refresh fails while the
+// access token is still valid, both the existing session and the error are
+// returned.
 func (c *Client) RefreshSession(
 	ctx context.Context,
 	marginSeconds int,
 ) (*session.StoredSession, error) {
-	return session.RefreshSession(ctx, c.Auth, c.SessionStorage, marginSeconds) //nolint:wrapcheck
+	return session.RefreshSession( //nolint:wrapcheck
+		ctx, c.RefreshClient, c.SessionStorage, marginSeconds,
+	)
 }
 
 // ClearSession removes the current session from storage (client-side sign-out).
@@ -276,6 +283,10 @@ func build(options Options, defaults ...ConfigureFunc) *Client {
 		configure(cfg)
 	}
 
+	if cfg.RefreshClient == nil {
+		cfg.RefreshClient = auth.NewClient(authURL, options.HTTPClient)
+	}
+
 	return &Client{
 		Auth: auth.NewClient(authURL, transport.NewHTTPClient(options.HTTPClient, cfg.authMW...)),
 		Storage: storage.NewClient(
@@ -290,6 +301,7 @@ func build(options Options, defaults ...ConfigureFunc) *Client {
 			functionsURL,
 			transport.NewHTTPClient(options.HTTPClient, cfg.functionsMW...),
 		),
+		RefreshClient:  cfg.RefreshClient,
 		SessionStorage: sessionStorage,
 	}
 }
