@@ -58,6 +58,19 @@ keywords: [keyword1, keyword2]
 
 The sidebar is configured in `astro.config.mjs` using `starlightSidebarTopics`. Add new pages to the appropriate section.
 
+### Collapsed code listings
+
+The "complete `src/main.rs`" listings in the Rust tutorials use Expressive Code's
+`collapse={...}` ranges to fold the parts a reader has already seen, with an
+unkeyed `{...}` range marking what that part added. The ranges are derived by
+diffing each listing against the previous part's, so they are only correct for
+the listing they were computed from: **recompute them whenever a listing
+changes.** Nothing in CI validates them, and a stale range is worse than none
+because it hides new code or highlights unchanged code.
+
+Note `collapse` silently drops a bare line number — a single line must be written
+as a range, e.g. `3-3`, not `3`.
+
 ## Reference Documentation (generated)
 
 The reference pages under `src/content/docs/reference/` are generated from source and
