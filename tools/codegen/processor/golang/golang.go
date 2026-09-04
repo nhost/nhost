@@ -358,6 +358,19 @@ func validateJSONWireNames(types []processor.Type, methods []*processor.Method) 
 				)
 			}
 		}
+
+		if !method.IsRedirect() {
+			for _, parameter := range method.HeaderParameters() {
+				if !validJSONTagName(parameter.RawName()) {
+					return "", fmt.Errorf(
+						"%w: header parameter %q on method %q cannot be represented in an encoding/json struct tag",
+						errUnsupportedJSONWireName,
+						parameter.RawName(),
+						method.RawName(),
+					)
+				}
+			}
+		}
 	}
 
 	return "", nil
@@ -470,7 +483,10 @@ func validateGoFieldNames(object *processor.TypeObject) error {
 }
 
 func validateGoParameterFields(method *processor.Method) error {
-	seen := make(map[string]string, len(method.QueryParameters()))
+	seen := make(
+		map[string]string,
+		len(method.QueryParameters())+len(method.HeaderParameters()),
+	)
 	for _, parameter := range method.QueryParameters() {
 		if err := registerGoIdentifier(
 			seen,
@@ -479,6 +495,19 @@ func validateGoParameterFields(method *processor.Method) error {
 			fmt.Sprintf("parameter struct for operation %q", method.RawName()),
 		); err != nil {
 			return err
+		}
+	}
+
+	if !method.IsRedirect() {
+		for _, parameter := range method.HeaderParameters() {
+			if err := registerGoIdentifier(
+				seen,
+				parameter.Name(),
+				fmt.Sprintf("header parameter %q", parameter.RawName()),
+				fmt.Sprintf("parameter struct for operation %q", method.RawName()),
+			); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -522,6 +551,7 @@ func goMethodBindingNames() map[string]string {
 		"http":        `generated import "net/http"`,
 		"textproto":   `generated import "net/textproto"`,
 		"url":         `generated import "net/url"`,
+		"sort":        `generated import "sort"`,
 		"strings":     `generated import "strings"`,
 		"transport":   `generated import "github.com/nhost/nhost/packages/nhost-go/transport"`,
 	}
@@ -583,7 +613,7 @@ func validateGoNames(types []processor.Type, methods []*processor.Method) (strin
 			return "", err
 		}
 
-		if method.HasQueryParameters() {
+		if method.HasQueryParameters() || (!method.IsRedirect() && method.HasHeaderParameters()) {
 			if err := registerGoIdentifier(
 				typeNames,
 				method.Name()+"Params",
@@ -713,6 +743,15 @@ func (p *Golang) GetFuncMap() map[string]any {
 		"hasPathParameters": func(methods []*processor.Method) bool {
 			for _, method := range methods {
 				if len(method.PathParameters()) > 0 {
+					return true
+				}
+			}
+
+			return false
+		},
+		"hasHeaderParameters": func(methods []*processor.Method) bool {
+			for _, method := range methods {
+				if !method.IsRedirect() && method.HasHeaderParameters() {
 					return true
 				}
 			}
