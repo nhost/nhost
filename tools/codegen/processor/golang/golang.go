@@ -8,6 +8,7 @@ package golang
 import (
 	"bytes"
 	"embed"
+	"errors"
 	"fmt"
 	"go/ast"
 	goformat "go/format"
@@ -24,6 +25,8 @@ import (
 )
 
 const extCustomType = "x-go-type"
+
+var errUnsupportedQuerySerialization = errors.New("unsupported query serialization")
 
 //go:embed templates/*.tmpl
 var templatesFS embed.FS
@@ -293,6 +296,44 @@ func fieldLine(name, rawName, typeName string, pointer, omitempty bool) string {
 	return fmt.Sprintf("%s %s `json:%q`", name, goFieldType(typeName, pointer), tag)
 }
 
+func validateQueryParameters(methods []*processor.Method) (string, error) {
+	for _, method := range methods {
+		for _, parameter := range method.QueryParameters() {
+			if parameter.JSONContent() {
+				continue
+			}
+
+			switch parameter.Style() {
+			case "form":
+				continue
+			case "deepObject":
+				if !parameter.Explode() {
+					return "", fmt.Errorf(
+						"%w: query parameter %q on method %q uses deepObject with explode=false",
+						errUnsupportedQuerySerialization, parameter.RawName(), method.RawName(),
+					)
+				}
+
+				kind := parameter.Type.Kind()
+				if kind != processor.KindIdentifierMap && kind != processor.KindIdentifierObject {
+					return "", fmt.Errorf(
+						"%w: query parameter %q on method %q uses deepObject with unsupported %s type",
+						errUnsupportedQuerySerialization, parameter.RawName(), method.RawName(), kind,
+					)
+				}
+			default:
+				return "", fmt.Errorf(
+					"%w: query parameter %q on method %q uses unsupported style %q",
+					errUnsupportedQuerySerialization,
+					parameter.RawName(), method.RawName(), parameter.Style(),
+				)
+			}
+		}
+	}
+
+	return "", nil
+}
+
 func (p *Golang) GetFuncMap() map[string]any {
 	return map[string]any{
 		// goReturnType maps the shared IR return expression to a single Go type.
@@ -304,8 +345,9 @@ func (p *Golang) GetFuncMap() map[string]any {
 
 			return t
 		},
-		"goFieldType": goFieldType,
-		"exported":    toExported,
+		"goFieldType":               goFieldType,
+		"goValidateQueryParameters": validateQueryParameters,
+		"exported":                  toExported,
 		"hasPathParameters": func(methods []*processor.Method) bool {
 			for _, method := range methods {
 				if len(method.PathParameters()) > 0 {

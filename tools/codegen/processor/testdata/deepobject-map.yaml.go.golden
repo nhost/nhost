@@ -20,7 +20,7 @@ func (p *SignInProviderParams) toQuery() url.Values {
 	}
 	if p.UpstreamParams != nil {
 		for k, v := range *p.UpstreamParams {
-			q.Add(k, fmt.Sprint(v))
+			q.Add("upstreamParams["+k+"]", fmt.Sprint(v))
 		}
 	}
 	return q
