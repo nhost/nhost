@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/bradfitz/gomemcache/memcache"
@@ -1602,8 +1604,8 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 	logger.InfoContext(ctx, cmd.Root().Name+" v"+cmd.Root().Version)
 	logFlags(ctx, logger, cmd)
 
-	servCtx, cancel := context.WithCancel(ctx)
-	defer cancel()
+	servCtx, stop := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
 
 	pool, err := getDBPool(ctx, cmd)
 	if err != nil {
@@ -1627,7 +1629,7 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	go func() {
-		defer cancel()
+		defer stop()
 
 		logger.InfoContext(
 			ctx, "starting server", slog.String("port", cmd.String(flagPort)),

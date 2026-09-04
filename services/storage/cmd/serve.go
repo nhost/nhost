@@ -7,7 +7,9 @@ import (
 	"log/slog"
 	"net/http"
 	_ "net/http/pprof" //nolint:gosec
+	"os/signal"
 	"runtime"
+	"syscall"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -499,8 +501,8 @@ func serve(ctx context.Context, cmd *cli.Command) error { //nolint:funlen
 	)
 	defer imageTransformer.Shutdown()
 
-	servCtx, cancel := context.WithCancel(ctx)
-	defer cancel()
+	servCtx, stop := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
 
 	contentStorage := getContentStorage(
 		servCtx,
@@ -545,7 +547,7 @@ func serve(ctx context.Context, cmd *cli.Command) error { //nolint:funlen
 	startPprofServer(servCtx, cmd.String(flagPprofBind), logger)
 
 	go func() {
-		defer cancel()
+		defer stop()
 
 		logger.InfoContext(servCtx, "starting server")
 
@@ -558,7 +560,12 @@ func serve(ctx context.Context, cmd *cli.Command) error { //nolint:funlen
 
 	logger.InfoContext(ctx, "shutting down server")
 
-	if err := server.Shutdown(ctx); err != nil {
+	shutdownCtx, shutdownCancel := context.WithTimeout(
+		context.Background(), 30*time.Second, //nolint:mnd
+	)
+	defer shutdownCancel()
+
+	if err := server.Shutdown(shutdownCtx); err != nil {
 		logger.ErrorContext(ctx, "problem shutting down server", slog.String("error", err.Error()))
 	}
 
