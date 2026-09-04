@@ -366,8 +366,15 @@ code for crate conventions.
   tests an isolated `CARGO_TARGET_DIR`; sharing the production target can make a
   later production command execute a scratch-built test binary until a forced
   rebuild.
-- Integration: `tests/integration.rs`, gated on `NHOST_LOCAL_BACKEND`; hits the
-  local backend (signup, graphql `__typename`, storage upload, functions
-  `/echo`) with `Nhost::new("local", "local").expect("static configuration")`. Run
-  `make dev-env-up` from `packages/nhost-rust` before the tests and
-  `make dev-env-down` there afterward.
+- Integration: every test in `tests/integration.rs` is marked `#[ignore]` so a
+  backend-less run visibly reports the tests as ignored instead of passing
+  without making requests. The suite hits the local backend (signup, graphql
+  `__typename`, storage upload, functions `/echo`) with
+  `Nhost::new("local", "local").expect("static configuration")`. Run
+  `make dev-env-up` from `packages/nhost-rust`, then execute it with
+  `cargo test --test integration -- --include-ignored` (or
+  `make integration-local`), and finish with `make dev-env-down` there afterward.
+  Every integration test is `#[ignore]`d, so a run without a backend reports
+  `0 passed; 5 ignored` instead of a green pass. Use `--include-ignored` rather
+  than `--ignored`: the latter runs *only* ignored tests, so a test added without
+  the attribute would be silently filtered out of CI.

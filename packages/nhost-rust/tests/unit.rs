@@ -1049,7 +1049,6 @@ fn jwt_decode_preserves_representable_expiry_boundaries() {
 
 #[test]
 fn notify_callback_can_reenter_storage_without_deadlock() {
-    let token = token(900);
     let storage = session::SessionStorage::new(Box::<session::MemoryStorage>::default());
     let reentrant = storage.clone();
     let _sub = storage.on_change(move |s| {
@@ -1058,17 +1057,57 @@ fn notify_callback_can_reenter_storage_without_deadlock() {
         }
     });
 
-    storage
-        .set(auth::Session {
-            access_token: token,
-            access_token_expires_in: 900,
-            refresh_token_id: "rid".to_string(),
-            refresh_token: "rt".to_string(),
-            user: None,
-        })
-        .unwrap();
+    storage.set(session_with(&token(900))).unwrap();
 
     assert!(storage.get().unwrap().is_none());
+}
+
+#[test]
+fn dropping_subscription_stops_notifications() {
+    let storage = session::SessionStorage::new(Box::<session::MemoryStorage>::default());
+    let notifications = Arc::new(Mutex::new(Vec::new()));
+    let recorded = Arc::clone(&notifications);
+    let subscription = storage.on_change(move |session| {
+        recorded.lock().unwrap().push(session.is_some());
+    });
+
+    storage.set(session_with(&token(900))).unwrap();
+    assert_eq!(*notifications.lock().unwrap(), vec![true]);
+
+    drop(subscription);
+    storage.remove().unwrap();
+    assert_eq!(*notifications.lock().unwrap(), vec![true]);
+}
+
+#[test]
+fn panicking_subscriber_does_not_prevent_other_subscribers() {
+    let storage = session::SessionStorage::new(Box::<session::MemoryStorage>::default());
+    let notifications = Arc::new(Mutex::new(Vec::new()));
+    let _panicking = storage.on_change(|_| panic!("intentional subscriber panic"));
+    let recorded = Arc::clone(&notifications);
+    let _recording = storage.on_change(move |session| {
+        recorded.lock().unwrap().push(session.is_some());
+    });
+
+    let result = storage.set(session_with(&token(900)));
+
+    assert!(result.is_ok());
+    assert_eq!(*notifications.lock().unwrap(), vec![true]);
+}
+
+#[test]
+fn subscription_dropped_inside_callback_does_not_deadlock() {
+    let storage = session::SessionStorage::new(Box::<session::MemoryStorage>::default());
+    let subscription_to_drop = Arc::new(Mutex::new(None));
+    let drop_from_callback = Arc::clone(&subscription_to_drop);
+    let _dropping = storage.on_change(move |_| {
+        drop_from_callback.lock().unwrap().take();
+    });
+    *subscription_to_drop.lock().unwrap() = Some(storage.on_change(|_| {}));
+
+    storage.set(session_with(&token(900))).unwrap();
+
+    assert!(subscription_to_drop.lock().unwrap().is_none());
 }
 
 #[cfg(all(feature = "wasm", not(target_arch = "wasm32")))]
