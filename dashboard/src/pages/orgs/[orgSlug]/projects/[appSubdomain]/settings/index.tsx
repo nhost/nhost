@@ -21,12 +21,15 @@ import { TransferProject } from '@/features/orgs/components/TransferProject';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { RemoveApplicationModal } from '@/features/orgs/projects/common/components/RemoveApplicationModal';
+import { TOMLEditor } from '@/features/orgs/projects/common/components/settings/TOMLEditor';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/useIsCurrentUserOwner';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useRunServices } from '@/features/orgs/projects/common/hooks/useRunServices';
+import { EnvironmentVariablesSettings } from '@/features/orgs/projects/environmentVariables/settings/components/EnvironmentVariablesSettings';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { SecretsSettings } from '@/features/orgs/projects/secrets/settings/components/SecretsSettings';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { getUnpauseErrorMessage } from '@/features/orgs/utils/getUnpauseErrorMessage';
 import {
@@ -360,6 +363,12 @@ export default function SettingsGeneralPage() {
       )}
 
       <TransferProject />
+
+      <EnvironmentVariablesSettings />
+
+      <SecretsSettings />
+
+      <TOMLEditor />
 
       {isPlatform && (
         <SettingsCard className="border-destructive">

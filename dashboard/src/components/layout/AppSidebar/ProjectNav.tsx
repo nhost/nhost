@@ -41,7 +41,7 @@ export function ProjectNavFooter() {
 
   return (
     <DashboardSidebar.Item
-      label="Settings"
+      label="General Settings"
       href={`${baseHref}/settings`}
       icon={<CogIcon className={iconClassName} />}
       active={isActive(`${baseHref}/settings`)}

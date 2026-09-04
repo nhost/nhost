@@ -5,6 +5,7 @@ import {
   orgPages,
   projectDatabasePages,
   projectPages,
+  projectSettingsPages,
   projectSubPagesBySlug,
 } from '@/features/navigation/nav-config';
 
@@ -34,6 +35,29 @@ describe('navigation nav-config', () => {
       'logs',
       'metrics',
       'settings',
+    ]);
+    expect(projectPages.find((page) => page.slug === 'settings')?.name).toBe(
+      'General Settings',
+    );
+  });
+
+  it('keeps project settings pages focused on unmigrated legacy settings', () => {
+    expect(projectSettingsPages.map((page) => page.slug)).toEqual([
+      'general',
+      'compute-resources',
+      'hasura',
+      'authentication',
+      'jwt',
+      'sign-in-methods',
+      'oauth2-provider',
+      'roles-and-permissions',
+      'storage',
+      'smtp',
+      'deployments',
+      'custom-domains',
+      'rate-limiting',
+      'ai',
+      'metrics',
     ]);
   });
 

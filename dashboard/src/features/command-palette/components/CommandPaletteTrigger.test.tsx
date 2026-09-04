@@ -244,17 +244,17 @@ describe('CommandPaletteTrigger', () => {
     );
   });
 
-  it('reaches a deep settings leaf from flat search with keyboard only', async () => {
+  it('routes migrated project-wide settings keywords to General Settings', async () => {
     renderTrigger();
     const input = await openPalette();
 
     await replaceQuery(input, 'environment variables');
-    await screen.findByRole('option', { name: /Environment Variables/ });
+    await screen.findByRole('option', { name: /General Settings/ });
     await user.keyboard('{Enter}');
 
     await waitFor(() => {
       expect(push).toHaveBeenCalledWith(
-        '/orgs/org-a/projects/project-a/settings/environment-variables',
+        '/orgs/org-a/projects/project-a/settings',
         undefined,
         { shallow: true },
       );
