@@ -120,7 +120,7 @@ func NewClient(baseURL string, httpClient *http.Client) *Client {
 	}
 }
 
-// SignInProviderURL builds the URL for GET /signin/provider/%s without following the redirect.
+// SignInProviderURL builds the URL for GET /signin/provider/{provider} without following the redirect.
 func (c *Client) SignInProviderURL(provider string, params *SignInProviderParams,
 ) string {
 	u := fmt.Sprintf("%s/signin/provider/%s", c.BaseURL, escapePathSegment(provider))
