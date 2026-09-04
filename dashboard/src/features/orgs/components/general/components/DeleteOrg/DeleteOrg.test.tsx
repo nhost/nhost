@@ -161,23 +161,23 @@ describe('DeleteOrg', () => {
     expect(getDeleteAction(dialog)).toBeDisabled();
   });
 
-  it.each([null, ''])(
-    'fails closed when the organization name is %j',
-    async (organizationName) => {
-      const { dialog } = await openDeleteDialog(organizationName);
+  it.each([
+    null,
+    '',
+  ])('fails closed when the organization name is %j', async (organizationName) => {
+    const { dialog } = await openDeleteDialog(organizationName);
 
-      expect(
-        within(dialog).getByText('Organization confirmation is unavailable.'),
-      ).toBeInTheDocument();
-      expect(getConfirmationInput(dialog)).toBeDisabled();
-      expect(getDeleteAction(dialog)).toBeDisabled();
+    expect(
+      within(dialog).getByText('Organization confirmation is unavailable.'),
+    ).toBeInTheDocument();
+    expect(getConfirmationInput(dialog)).toBeDisabled();
+    expect(getDeleteAction(dialog)).toBeDisabled();
 
-      submitDeleteForm(dialog);
+    submitDeleteForm(dialog);
 
-      expect(mocks.execPromiseWithErrorToast).not.toHaveBeenCalled();
-      expect(mocks.deleteOrgMutation).not.toHaveBeenCalled();
-    },
-  );
+    expect(mocks.execPromiseWithErrorToast).not.toHaveBeenCalled();
+    expect(mocks.deleteOrgMutation).not.toHaveBeenCalled();
+  });
 
   it('deletes when the form is submitted, and ignores submits while invalid', async () => {
     const { dialog, user } = await openDeleteDialog();

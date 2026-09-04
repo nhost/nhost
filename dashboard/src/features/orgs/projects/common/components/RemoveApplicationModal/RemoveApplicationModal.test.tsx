@@ -178,24 +178,24 @@ describe('RemoveApplicationModal', () => {
     { organizationName: '', projectName: 'Example Project' },
     { organizationName: 'Example Org', projectName: null },
     { organizationName: 'Example Org', projectName: '' },
-  ])(
-    'fails closed when a required name is missing or empty: %j',
-    async ({ organizationName, projectName }) => {
-      renderModal({ organizationName, projectName });
+  ])('fails closed when a required name is missing or empty: %j', async ({
+    organizationName,
+    projectName,
+  }) => {
+    renderModal({ organizationName, projectName });
 
-      expect(
-        screen.getByText('Project confirmation is unavailable.'),
-      ).toBeInTheDocument();
-      expect(getConfirmationInput()).toBeDisabled();
-      expect(getDeleteButton()).toBeDisabled();
+    expect(
+      screen.getByText('Project confirmation is unavailable.'),
+    ).toBeInTheDocument();
+    expect(getConfirmationInput()).toBeDisabled();
+    expect(getDeleteButton()).toBeDisabled();
 
-      getDeleteButton().removeAttribute('disabled');
-      fireEvent.click(getDeleteButton());
+    getDeleteButton().removeAttribute('disabled');
+    fireEvent.click(getDeleteButton());
 
-      expect(mocks.deleteApplication).not.toHaveBeenCalled();
-      expect(mocks.close).not.toHaveBeenCalled();
-    },
-  );
+    expect(mocks.deleteApplication).not.toHaveBeenCalled();
+    expect(mocks.close).not.toHaveBeenCalled();
+  });
 
   it('preserves the default mutation success side effects', async () => {
     renderModal();
