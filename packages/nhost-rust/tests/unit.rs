@@ -1881,7 +1881,7 @@ async fn graphql_execute_preserves_transport_metadata() {
         .respond_with(
             ResponseTemplate::new(201)
                 .insert_header("x-request-id", "request-123")
-                .set_body_string(r#"{"data":{"__typename":"query_root"}}"#),
+                .set_body_string(r#"{"data":{"__typename":"query_root"},"errors":[]}"#),
         )
         .mount(&server)
         .await;
@@ -1896,7 +1896,99 @@ async fn graphql_execute_preserves_transport_metadata() {
 
     assert_eq!(response.status, 201);
     assert_eq!(response.headers["x-request-id"], "request-123");
+    assert!(response.body.errors.is_none());
     assert_eq!(response.body.data.unwrap()["__typename"], "query_root");
+}
+
+#[derive(Debug, serde::Deserialize)]
+struct TypedViewerData {
+    #[serde(rename = "viewer")]
+    _viewer: Vec<serde_json::Value>,
+}
+
+#[tokio::test]
+async fn graphql_execute_partial_errors_precede_typed_data_decode() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .insert_header("x-request-id", "partial-request-1")
+                .set_body_json(json!({
+                    "data": {"viewer": null},
+                    "errors": [{
+                        "message": "not allowed",
+                        "extensions": {"code": "permission-error"}
+                    }]
+                })),
+        )
+        .mount(&server)
+        .await;
+
+    let err = mock_client(&server)
+        .graphql
+        .query("query { viewer { id } }")
+        .execute::<TypedViewerData>()
+        .await
+        .unwrap_err();
+
+    assert_eq!(err.to_string(), "GraphQL error: not allowed");
+    let Error::GraphQl(graphql_error) = err else {
+        panic!("expected Error::GraphQl, got {err:?}");
+    };
+    assert_eq!(graphql_error.status(), 200);
+    assert_eq!(graphql_error.headers()["x-request-id"], "partial-request-1");
+    assert_eq!(graphql_error.data(), Some(&json!({"viewer": null})));
+    assert_eq!(graphql_error.errors()[0].code(), Some("permission-error"));
+}
+
+#[tokio::test]
+async fn graphql_execute_reports_errors_even_when_typed_data_decodes() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "data": {"viewer": [{"refreshToken": "EXECUTE-PARTIAL-SECRET"}]},
+            "errors": [{"message": "degraded result"}]
+        })))
+        .mount(&server)
+        .await;
+
+    let err = mock_client(&server)
+        .graphql
+        .query("query { viewer { id } }")
+        .execute::<TypedViewerData>()
+        .await
+        .unwrap_err();
+
+    let Error::GraphQl(graphql_error) = err else {
+        panic!("expected Error::GraphQl, got {err:?}");
+    };
+    assert_eq!(
+        graphql_error.data(),
+        Some(&json!({
+            "viewer": [{"refreshToken": "EXECUTE-PARTIAL-SECRET"}]
+        }))
+    );
+    assert_eq!(graphql_error.errors()[0].message, "degraded result");
+    assert!(!format!("{graphql_error:?}").contains("EXECUTE-PARTIAL-SECRET"));
+}
+
+#[tokio::test]
+async fn graphql_execute_without_errors_keeps_typed_decode_failures() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({"data": {"viewer": null}})))
+        .mount(&server)
+        .await;
+
+    let err = mock_client(&server)
+        .graphql
+        .query("query { viewer { id } }")
+        .execute::<TypedViewerData>()
+        .await
+        .unwrap_err();
+
+    assert!(matches!(err, Error::Json(_)));
+    assert!(err.to_string().contains("invalid type: null"));
 }
 
 #[tokio::test]
