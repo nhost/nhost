@@ -66,6 +66,7 @@ func TestGolangRender(t *testing.T) {
 		{name: "form-url-encoded.yaml"},
 		{name: "optional-form-url-encoded.yaml"},
 		{name: "deepobject-map.yaml"},
+		{name: "escaped-go-source.yaml"},
 	}
 
 	for _, tc := range cases {

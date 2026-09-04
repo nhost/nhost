@@ -26,7 +26,10 @@ import (
 
 const extCustomType = "x-go-type"
 
-var errUnsupportedQuerySerialization = errors.New("unsupported query serialization")
+var (
+	errUnsupportedJSONWireName       = errors.New("unsupported JSON wire name")
+	errUnsupportedQuerySerialization = errors.New("unsupported query serialization")
+)
 
 //go:embed templates/*.tmpl
 var templatesFS embed.FS
@@ -293,7 +296,68 @@ func fieldLine(name, rawName, typeName string, pointer, omitempty bool) string {
 		tag += ",omitempty"
 	}
 
+	if strings.ContainsAny(tag, "`\"\\") {
+		structTag := "json:" + strconv.Quote(tag)
+
+		return fmt.Sprintf(
+			"%s %s %s", name, goFieldType(typeName, pointer), strconv.Quote(structTag),
+		)
+	}
+
 	return fmt.Sprintf("%s %s `json:%q`", name, goFieldType(typeName, pointer), tag)
+}
+
+func validateJSONWireNames(types []processor.Type, methods []*processor.Method) (string, error) {
+	for _, typeDefinition := range types {
+		object, ok := typeDefinition.(*processor.TypeObject)
+		if !ok {
+			continue
+		}
+
+		for _, property := range object.Properties() {
+			if !validJSONTagName(property.RawName()) {
+				return "", fmt.Errorf(
+					"%w: property %q on type %q cannot be represented in an encoding/json struct tag",
+					errUnsupportedJSONWireName,
+					property.RawName(),
+					object.RawName(),
+				)
+			}
+		}
+	}
+
+	for _, method := range methods {
+		for _, parameter := range method.QueryParameters() {
+			if !validJSONTagName(parameter.RawName()) {
+				return "", fmt.Errorf(
+					"%w: query parameter %q on method %q cannot be represented in an encoding/json struct tag",
+					errUnsupportedJSONWireName,
+					parameter.RawName(),
+					method.RawName(),
+				)
+			}
+		}
+	}
+
+	return "", nil
+}
+
+func validJSONTagName(name string) bool {
+	if name == "" || name == "-" || strings.ContainsRune(name, ',') {
+		return false
+	}
+
+	for _, character := range name {
+		if strings.ContainsRune("!#$%&()*+-./:;<=>?@[]^_{|}~ ", character) {
+			continue
+		}
+
+		if !unicode.IsLetter(character) && !unicode.IsDigit(character) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func validateQueryParameters(methods []*processor.Method) (string, error) {
@@ -346,6 +410,7 @@ func (p *Golang) GetFuncMap() map[string]any {
 			return t
 		},
 		"goFieldType":               goFieldType,
+		"goValidateJSONWireNames":   validateJSONWireNames,
 		"goValidateQueryParameters": validateQueryParameters,
 		"exported":                  toExported,
 		"hasPathParameters": func(methods []*processor.Method) bool {
@@ -450,26 +515,30 @@ func (p *Golang) MethodPath(name string) string {
 	for {
 		open := strings.IndexByte(name, '{')
 		if open < 0 {
-			b.WriteString(name)
+			b.WriteString(escapeFormatString(name))
 
 			break
 		}
 
 		closeIdx := strings.IndexByte(name[open:], '}')
 		if closeIdx < 0 {
-			b.WriteString(name)
+			b.WriteString(escapeFormatString(name))
 
 			break
 		}
 
 		closeIdx += open
-		b.WriteString(name[:open])
+		b.WriteString(escapeFormatString(name[:open]))
 		b.WriteString("%s")
 
 		name = name[closeIdx+1:]
 	}
 
 	return b.String()
+}
+
+func escapeFormatString(value string) string {
+	return strings.ReplaceAll(value, "%", "%%")
 }
 
 func (p *Golang) ParameterName(name string) string {
