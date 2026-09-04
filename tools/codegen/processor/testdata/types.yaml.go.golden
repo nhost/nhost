@@ -2,7 +2,24 @@
 
 package testpkg
 
-import "net/http"
+import (
+	"encoding/json"
+	"net/http"
+)
+
+func enumScalar(value json.RawMessage) string {
+	var scalar any
+	if err := json.Unmarshal(value, &scalar); err == nil {
+		switch value := scalar.(type) {
+		case string:
+			return value
+		case nil:
+			return ""
+		}
+	}
+
+	return string(value)
+}
 
 // StatusEnum is one of: "active", "inactive", "pending".
 type StatusEnum string
@@ -11,13 +28,13 @@ type StatusEnum string
 type SimpleObjectStatus string
 
 // SimpleObjectStatusCode is one of: 0, 1, 2.
-type SimpleObjectStatusCode string
+type SimpleObjectStatusCode = json.RawMessage
 
 // SimpleObjectStatusInt is one of: 0, 1, 2.
-type SimpleObjectStatusInt string
+type SimpleObjectStatusInt int
 
 // SimpleObjectStatusMixed is one of: 0, "One", true.
-type SimpleObjectStatusMixed string
+type SimpleObjectStatusMixed = json.RawMessage
 
 type SimpleObjectNested struct {
 	NestedID   string  `json:"nestedId"`
