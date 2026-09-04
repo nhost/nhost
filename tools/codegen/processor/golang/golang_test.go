@@ -54,6 +54,328 @@ func getModel(filepath string) (*libopenapi.DocumentModel[v3.Document], error) {
 // fixtures are the same ones the typescript plugin uses, so the plugins stay
 // exercised against an identical surface. Goldens use a ".go.golden" extension
 // (not ".go") so the tree-wide golines/gofumpt formatter leaves them untouched.
+func TestGolangRejectsIdentifierCollisions(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		spec string
+		want []string
+	}{
+		{
+			name: "top-level types",
+			spec: `openapi: "3.0.0"
+paths: {}
+components:
+  schemas:
+    Thing-One:
+      type: object
+      properties:
+        value: {type: string}
+    Thing_One:
+      type: object
+      properties:
+        value: {type: string}
+`,
+			want: []string{
+				"Go type namespace collision",
+				`type "Thing-One"`,
+				`type "Thing_One"`,
+				`identifier "ThingOne"`,
+			},
+		},
+		{
+			name: "generated Client type",
+			spec: `openapi: "3.0.0"
+paths: {}
+components:
+  schemas:
+    Client:
+      type: object
+      properties:
+        value: {type: string}
+`,
+			want: []string{
+				"Go type namespace collision",
+				`generated type "Client"`,
+				`type "Client"`,
+				`identifier "Client"`,
+			},
+		},
+		{
+			name: "generated NewClient function",
+			spec: `openapi: "3.0.0"
+paths: {}
+components:
+  schemas:
+    NewClient:
+      type: object
+      properties:
+        value: {type: string}
+`,
+			want: []string{
+				"Go type namespace collision",
+				`generated function "NewClient"`,
+				`type "NewClient"`,
+				`identifier "NewClient"`,
+			},
+		},
+		{
+			name: "generated parameter type",
+			spec: `openapi: "3.0.0"
+paths:
+  /things:
+    get:
+      operationId: listThings
+      parameters:
+        - {name: page, in: query, schema: {type: string}}
+      responses:
+        "204": {description: Done}
+components:
+  schemas:
+    ListThingsParams:
+      type: object
+      properties:
+        value: {type: string}
+`,
+			want: []string{
+				"Go type namespace collision",
+				`type "ListThingsParams"`,
+				`parameter struct for operation "listThings"`,
+				`identifier "ListThingsParams"`,
+			},
+		},
+		{
+			name: "object properties",
+			spec: `openapi: "3.0.0"
+paths: {}
+components:
+  schemas:
+    Thing:
+      type: object
+      properties:
+        user_id: {type: string}
+        userId: {type: string}
+`,
+			want: []string{
+				`Go field namespace for type "Thing" collision`,
+				`property "user_id"`,
+				`property "userId"`,
+				`identifier "UserID"`,
+			},
+		},
+		{
+			name: "parameter fields",
+			spec: `openapi: "3.0.0"
+paths:
+  /things:
+    get:
+      operationId: listThings
+      parameters:
+        - {name: user_id, in: query, schema: {type: string}}
+        - {name: userId, in: query, schema: {type: string}}
+      responses:
+        "204": {description: Done}
+`,
+			want: []string{
+				`Go parameter struct for operation "listThings" collision`,
+				`query parameter "user_id"`,
+				`query parameter "userId"`,
+				`identifier "UserID"`,
+			},
+		},
+		{
+			name: "operation methods",
+			spec: `openapi: "3.0.0"
+paths:
+  /one:
+    get:
+      operationId: get-thing
+      responses:
+        "204": {description: Done}
+  /two:
+    get:
+      operationId: get_thing
+      responses:
+        "204": {description: Done}
+`,
+			want: []string{
+				"Go client method namespace collision",
+				`operation "get-thing"`,
+				`operation "get_thing"`,
+				`identifier "GetThing"`,
+			},
+		},
+		{
+			name: "redirect method suffix",
+			spec: `openapi: "3.0.0"
+paths:
+  /redirect:
+    get:
+      operationId: getThing
+      responses:
+        "302": {description: Redirect}
+  /url:
+    get:
+      operationId: getThingURL
+      responses:
+        "204": {description: Done}
+`,
+			want: []string{
+				"Go client method namespace collision",
+				`operation "getThing"`,
+				`operation "getThingURL"`,
+				`identifier "GetThingURL"`,
+			},
+		},
+		{
+			name: "generated Client field",
+			spec: `openapi: "3.0.0"
+paths:
+  /base-url:
+    get:
+      operationId: base_url
+      responses:
+        "204": {description: Done}
+`,
+			want: []string{
+				"Go client method namespace collision",
+				`generated Client field "BaseURL"`,
+				`operation "base_url"`,
+				`identifier "BaseURL"`,
+			},
+		},
+		{
+			name: "path parameter and generated headers argument",
+			spec: `openapi: "3.0.0"
+paths:
+  /things/{headers}:
+    get:
+      operationId: getThing
+      parameters:
+        - {name: headers, in: path, required: true, schema: {type: string}}
+      responses:
+        "204": {description: Done}
+`,
+			want: []string{
+				`Go argument list for operation "getThing" collision`,
+				"generated request headers argument",
+				`path parameter "headers"`,
+				`identifier "headers"`,
+			},
+		},
+		{
+			name: "path parameter and generated payload local",
+			spec: `openapi: "3.0.0"
+paths:
+  /things/{payload}:
+    get:
+      operationId: getThing
+      parameters:
+        - {name: payload, in: path, required: true, schema: {type: string}}
+      responses:
+        "204": {description: Done}
+`,
+			want: []string{
+				`Go argument list for operation "getThing" collision`,
+				"generated response payload local",
+				`path parameter "payload"`,
+				`identifier "payload"`,
+			},
+		},
+		{
+			name: "path parameter and generated import",
+			spec: `openapi: "3.0.0"
+paths:
+  /things/{json}:
+    get:
+      operationId: getThing
+      parameters:
+        - {name: json, in: path, required: true, schema: {type: string}}
+      responses:
+        "204": {description: Done}
+`,
+			want: []string{
+				`Go argument list for operation "getThing" collision`,
+				`generated import "encoding/json"`,
+				`path parameter "json"`,
+				`identifier "json"`,
+			},
+		},
+		{
+			name: "path parameters",
+			spec: `openapi: "3.0.0"
+paths:
+  /things/{user_id}/{userId}:
+    get:
+      operationId: getThing
+      parameters:
+        - {name: user_id, in: path, required: true, schema: {type: string}}
+        - {name: userId, in: path, required: true, schema: {type: string}}
+      responses:
+        "204": {description: Done}
+`,
+			want: []string{
+				`Go argument list for operation "getThing" collision`,
+				`path parameter "user_id"`,
+				`path parameter "userId"`,
+				`identifier "userID"`,
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			filename := t.TempDir() + "/collision.yaml"
+			if err := os.WriteFile(filename, []byte(test.spec), 0o600); err != nil {
+				t.Fatalf("failed to write test spec: %v", err)
+			}
+
+			_, err := renderGolangFixture(filename)
+			if !errors.Is(err, processor.ErrUnsupportedFeature) {
+				t.Fatalf("render error = %v, want ErrUnsupportedFeature", err)
+			}
+
+			for _, want := range test.want {
+				assert.Contains(t, err.Error(), want)
+			}
+		})
+	}
+}
+
+func TestGolangSuffixesPredeclaredMethodArguments(t *testing.T) {
+	t.Parallel()
+
+	const spec = `openapi: "3.0.0"
+paths:
+  /things/{len}/{string}:
+    get:
+      operationId: getThing
+      parameters:
+        - {name: len, in: path, required: true, schema: {type: string}}
+        - {name: string, in: path, required: true, schema: {type: string}}
+      responses:
+        "204": {description: Done}
+`
+
+	filename := t.TempDir() + "/predeclared.yaml"
+	if err := os.WriteFile(filename, []byte(spec), 0o600); err != nil {
+		t.Fatalf("failed to write test spec: %v", err)
+	}
+
+	output, err := renderGolangFixture(filename)
+	if err != nil {
+		t.Fatalf("failed to render spec: %v", err)
+	}
+
+	assert.Contains(t, string(output), "len_ string")
+	assert.Contains(t, string(output), "string_ string")
+	assert.Contains(t, string(output), "escapePathSegment(len_)")
+	assert.Contains(t, string(output), "escapePathSegment(string_)")
+}
+
 func TestGolangRender(t *testing.T) {
 	t.Parallel()
 
