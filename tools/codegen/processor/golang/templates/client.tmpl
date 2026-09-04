@@ -77,12 +77,32 @@ func (c *Client) {{ .Name }}(
 {{- end }}
 	form := url.Values{}
 {{- range .RequestFormURLEncoded.Properties }}
+{{- if and (eq .Type.Kind "array") (goEnumUsesJSON .Type.Item) }}
 {{- if .Optional }}
 	if body.{{ .Name }} != nil {
-		form.Set("{{ .RawName }}", fmt.Sprint(*body.{{ .Name }}))
+		for _, item := range *body.{{ .Name }} {
+			form.Add("{{ .RawName }}", enumScalar(item))
+		}
 	}
 {{- else }}
+	for _, item := range body.{{ .Name }} {
+		form.Add("{{ .RawName }}", enumScalar(item))
+	}
+{{- end }}
+{{- else if .Optional }}
+	if body.{{ .Name }} != nil {
+{{- if goEnumUsesJSON .Type }}
+		form.Set("{{ .RawName }}", enumScalar(*body.{{ .Name }}))
+{{- else }}
+		form.Set("{{ .RawName }}", fmt.Sprint(*body.{{ .Name }}))
+{{- end }}
+	}
+{{- else }}
+{{- if goEnumUsesJSON .Type }}
+	form.Set("{{ .RawName }}", enumScalar(body.{{ .Name }}))
+{{- else }}
 	form.Set("{{ .RawName }}", fmt.Sprint(body.{{ .Name }}))
+{{- end }}
 {{- end }}
 {{- end }}
 {{- if .BodyRequired }}
@@ -132,6 +152,10 @@ func (c *Client) {{ .Name }}(
 			if _, err := fw.Write(item); err != nil {
 				return payload, nil, err
 			}
+{{- else if goEnumUsesJSON .Type.Item }}
+			if err := mw.WriteField("{{ .RawName }}", enumScalar(item)); err != nil {
+				return payload, nil, err
+			}
 {{- else if eq .Type.Item.Kind "scalar" }}
 			if err := mw.WriteField("{{ .RawName }}", fmt.Sprint(item)); err != nil {
 				return payload, nil, err
@@ -174,6 +198,18 @@ func (c *Client) {{ .Name }}(
 		if _, err := fw.Write(body.{{ .Name }}); err != nil {
 			return payload, nil, err
 		}
+	}
+{{- end }}
+{{- else if goEnumUsesJSON .Type }}
+{{- if .Optional }}
+	if body.{{ .Name }} != nil {
+		if err := mw.WriteField("{{ .RawName }}", enumScalar(*body.{{ .Name }})); err != nil {
+			return payload, nil, err
+		}
+	}
+{{- else }}
+	if err := mw.WriteField("{{ .RawName }}", enumScalar(body.{{ .Name }})); err != nil {
+		return payload, nil, err
 	}
 {{- end }}
 {{- else if eq .Type.Kind "scalar" }}
