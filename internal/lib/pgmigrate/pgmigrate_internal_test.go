@@ -711,6 +711,57 @@ func TestMigrateDowngradesBetasThenPublishesSquashedStableVersion(t *testing.T) 
 	}
 }
 
+func TestMigrateRejectsSquashedStableWhileBetaLineageIsApplied(t *testing.T) {
+	t.Parallel()
+
+	database := openCatalogTestDatabase(t)
+	schema := createCatalogTestSchema(t, database, "")
+
+	if err := Migrate(
+		t.Context(),
+		discardLogger(),
+		database,
+		orchestrationBundle(schema, 3),
+		"migrations",
+		schema,
+	); err != nil {
+		t.Fatalf("Migrate(beta) error = %v", err)
+	}
+
+	err := Migrate(
+		t.Context(),
+		discardLogger(),
+		database,
+		squashedStableBundle(schema),
+		"migrations",
+		schema,
+	)
+	if err == nil {
+		t.Fatal("Migrate(squashed stable over applied beta) error = nil")
+	}
+
+	var integrityErr *IntegrityError
+	if !errors.As(err, &integrityErr) {
+		t.Fatalf("Migrate() error = %v (%T), want *IntegrityError", err, err)
+	}
+
+	const wantIssue = "active catalog version 2 belongs to a different lineage and is still applied; " +
+		"downgrade below version 2 with an image whose bundle maximum is <= 1 before deploying this bundle"
+	if integrityErr.Version != 2 || integrityErr.Issue != wantIssue {
+		t.Fatalf(
+			"Migrate() integrity error = version %d, issue %q; want version 2, issue %q",
+			integrityErr.Version,
+			integrityErr.Issue,
+			wantIssue,
+		)
+	}
+
+	assertMigrationState(t, database, schema, 3, false)
+	assertColumnPresence(t, database, schema, "name", true)
+	assertColumnPresence(t, database, schema, "enabled", true)
+	assertOuterLockAvailable(t, database, schema)
+}
+
 //nolint:paralleltest // Lock timing cases intentionally share one database serially.
 func TestMigrateUsesAndReleasesExactUpstreamLock(t *testing.T) {
 	// These cases poll pg_stat_activity and therefore intentionally run serially.

@@ -227,6 +227,8 @@ ORDER BY version
 		localByVersion[migration.version] = migration
 	}
 
+	var lastCommonVersion *uint
+
 	for _, version := range activeVersions {
 		stored, found, migrationErr := c.migration(version)
 		if migrationErr != nil {
@@ -248,8 +250,15 @@ ORDER BY version
 
 		if present {
 			if err := compareMigration(*localMigration, stored); err != nil {
+				if migrationLineageDiffers(*localMigration, stored) {
+					return false, appliedLineageDivergence(version, lastCommonVersion)
+				}
+
 				return false, err
 			}
+
+			commonVersion := version
+			lastCommonVersion = &commonVersion
 		}
 	}
 
@@ -439,6 +448,31 @@ func compareMigration(local migration, stored storedMigration) error {
 
 func migrationMatches(local migration, stored storedMigration) bool {
 	return compareMigration(local, stored) == nil
+}
+
+func migrationLineageDiffers(local migration, stored storedMigration) bool {
+	return stored.identifier != local.identifier ||
+		!equalOptionalVersion(stored.previousVersion, local.previousVersion)
+}
+
+func appliedLineageDivergence(version uint, lastCommonVersion *uint) error {
+	maximum := fmt.Sprintf("below %d", version)
+	if lastCommonVersion != nil {
+		maximum = fmt.Sprintf("<= %d", *lastCommonVersion)
+	}
+
+	return &IntegrityError{
+		Version: version,
+		Issue: fmt.Sprintf(
+			"active catalog version %d belongs to a different lineage and is still applied; "+
+				"downgrade below version %d with an image whose bundle maximum is %s "+
+				"before deploying this bundle",
+			version,
+			version,
+			maximum,
+		),
+		Cause: nil,
+	}
 }
 
 func immutableFieldMismatch(version uint, field string) error {
