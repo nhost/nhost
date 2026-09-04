@@ -40,16 +40,16 @@ func localClient() *nhost.Client {
 }
 
 func TestIntegrationSignUpDecodesRole(t *testing.T) {
+	t.Parallel()
 	requireBackend(t)
 
 	client := localClient()
 	ctx := context.Background()
 
-	_, err := client.Auth.SignUpEmailPassword(ctx, auth.SignUpEmailPasswordRequest{
+	if _, _, err := client.Auth.SignUpEmailPassword(ctx, auth.SignUpEmailPasswordRequest{
 		Email:    randomEmail(t),
 		Password: hexPassword(t),
-	}, nil)
-	if err != nil {
+	}, nil); err != nil {
 		t.Fatalf("signup: %v", err)
 	}
 
@@ -65,11 +65,18 @@ func TestIntegrationSignUpDecodesRole(t *testing.T) {
 }
 
 func TestIntegrationGraphQLTypename(t *testing.T) {
+	t.Parallel()
 	requireBackend(t)
 
 	client := localClient()
 
-	res, _, err := client.GraphQL.Request(context.Background(), "query { __typename }", nil, "", nil)
+	res, _, err := client.GraphQL.Request(
+		context.Background(),
+		"query { __typename }",
+		nil,
+		"",
+		nil,
+	)
 	if err != nil {
 		t.Fatalf("graphql: %v", err)
 	}
@@ -80,6 +87,7 @@ func TestIntegrationGraphQLTypename(t *testing.T) {
 }
 
 func TestIntegrationFunctionsEcho(t *testing.T) {
+	t.Parallel()
 	requireBackend(t)
 
 	client := localClient()
