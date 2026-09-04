@@ -54,6 +54,69 @@ func getModel(filepath string) (*libopenapi.DocumentModel[v3.Document], error) {
 // fixtures are the same ones the typescript plugin uses, so the plugins stay
 // exercised against an identical surface. Goldens use a ".go.golden" extension
 // (not ".go") so the tree-wide golines/gofumpt formatter leaves them untouched.
+func TestNewRejectsInvalidPackageNames(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		packageName string
+	}{
+		{name: "empty", packageName: ""},
+		{name: "blank identifier", packageName: "_"},
+		{name: "invalid identifier", packageName: "my-pkg 3"},
+		{name: "keyword", packageName: "package"},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			if _, err := golang.New(test.packageName); err == nil {
+				t.Fatalf(
+					"New(%q) error = nil, want an invalid package name error",
+					test.packageName,
+				)
+			}
+		})
+	}
+}
+
+func TestGolangUsesSDKScopedCustomTypeExtension(t *testing.T) {
+	t.Parallel()
+
+	const spec = `openapi: "3.0.0"
+paths: {}
+components:
+  schemas:
+    Container:
+      type: object
+      required: [legacy, sdk]
+      properties:
+        legacy:
+          type: object
+          additionalProperties: true
+          x-go-type: ServerMap
+        sdk:
+          type: object
+          additionalProperties: true
+          x-nhost-go-type: SDKMapValue
+`
+
+	filename := t.TempDir() + "/custom-type.yaml"
+	if err := os.WriteFile(filename, []byte(spec), 0o600); err != nil {
+		t.Fatalf("failed to write test spec: %v", err)
+	}
+
+	output, err := renderGolangFixture(filename)
+	if err != nil {
+		t.Fatalf("failed to render spec: %v", err)
+	}
+
+	assert.Contains(t, string(output), "Legacy map[string]any")
+	assert.Contains(t, string(output), "SDKMapValue")
+	assert.NotContains(t, string(output), "ServerMap")
+}
+
 func TestGolangRejectsIdentifierCollisions(t *testing.T) {
 	t.Parallel()
 
@@ -400,9 +463,12 @@ func TestGolangRender(t *testing.T) {
 				t.Fatalf("failed to get model: %v", err)
 			}
 
-			ir, err := processor.NewInterMediateRepresentation(
-				doc, &golang.Golang{Package: "testpkg"},
-			)
+			goPlugin, err := golang.New("testpkg")
+			if err != nil {
+				t.Fatalf("failed to create Go plugin: %v", err)
+			}
+
+			ir, err := processor.NewInterMediateRepresentation(doc, goPlugin)
 			if err != nil {
 				t.Fatalf("failed to create intermediate representation: %v", err)
 			}

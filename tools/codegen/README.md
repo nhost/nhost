@@ -25,8 +25,14 @@ Keeping status and headers is required even for bodyless operations: for example
 - `x-rust-type` overrides the generated type for scalar and typed-map schemas. Its value must be a non-empty YAML string and is emitted verbatim as a Rust type expression; the generator validates the YAML value type but does not parse the Rust expression or add an import. The host crate must make the path resolve and ensure the type satisfies the traits and methods required where that schema is used, such as Serde traits, `Clone`, `Debug`, or `ToString`.
 - `x-nhost-sensitive` on an object property or query/header parameter schema is an assertion that the value must be redacted by the generated `Debug` implementation. Its value must be the boolean `true`; use of `false` or a non-boolean value fails generation rather than risking either an accidental secret leak or ambiguous redaction behavior. Omit the extension for non-sensitive values. Independently, the generator always redacts string-like fields and parameters whose names match its built-in credential vocabulary.
 
+## Go OpenAPI extensions
+
+- `x-nhost-go-type` overrides the generated type for typed-map schemas. Its value is emitted verbatim as a Go type expression; the generator does not validate the expression or add an import. Use a type available in the generated package or a qualified type whose import is already provided by the generated template.
+- The generator intentionally ignores oapi-codegen's server-side `x-go-type` and `x-go-type-import` extensions. SDK-specific overrides must use `x-nhost-go-type` to avoid changing server generation semantics.
+
 ## Go validation and type behavior
 
+- The Go plugin requires the `--package` flag with a valid, non-keyword Go identifier. The generic `PACKAGE` environment variable is intentionally ignored.
 - Names that normalize to the same generated Go type, field, client method, parameter field, or method argument are rejected instead of producing colliding identifiers. Method arguments also cannot shadow identifiers owned by the generated template, including imported packages.
 - Go keywords and predeclared identifiers used as method arguments receive a trailing underscore.
 
@@ -43,5 +49,6 @@ Fixtures in `processor/testdata` feed both the TypeScript and Rust render tests.
 
 ```sh
 go test ./tools/codegen/processor -run '^TestInterMediateRepresentationRender$' -update
+go test ./tools/codegen/processor/golang -run '^TestGolangRender$' -update
 go test ./tools/codegen/processor/rust -run '^TestRustRender$' -update
 ```

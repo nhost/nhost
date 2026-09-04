@@ -25,11 +25,12 @@ import (
 )
 
 const (
-	extCustomType = "x-go-type"
+	extCustomType = "x-nhost-go-type"
 	goStringType  = "string"
 )
 
 var (
+	errInvalidPackageName            = errors.New("invalid Go package name")
 	errUnsupportedJSONWireName       = errors.New("unsupported JSON wire name")
 	errUnsupportedQuerySerialization = errors.New("unsupported query serialization")
 )
@@ -37,10 +38,18 @@ var (
 //go:embed templates/*.tmpl
 var templatesFS embed.FS
 
-// Golang is the code generation plugin for the Go SDK. Package is the Go
-// package name emitted in the generated file (e.g. "auth", "storage").
+// Golang is the code generation plugin for the Go SDK.
 type Golang struct {
-	Package string
+	packageName string
+}
+
+// New constructs a Go SDK generator for the supplied package name.
+func New(packageName string) (*Golang, error) {
+	if packageName == "_" || !token.IsIdentifier(packageName) || token.IsKeyword(packageName) {
+		return nil, fmt.Errorf("%w %q", errInvalidPackageName, packageName)
+	}
+
+	return &Golang{packageName: packageName}, nil
 }
 
 func (p *Golang) GetTemplates() fs.FS {
@@ -614,11 +623,7 @@ func (p *Golang) GetFuncMap() map[string]any {
 			return false
 		},
 		"packageName": func() string {
-			if p.Package == "" {
-				return "client"
-			}
-
-			return p.Package
+			return p.packageName
 		},
 		"goField": func(prop *processor.Property) string {
 			// Pointer when optional (absent OR nullable); omitempty only when the
