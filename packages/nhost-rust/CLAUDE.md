@@ -71,6 +71,12 @@ code for crate conventions.
    and is never replaced. This deliberately keeps `.json()`'s `Content-Type:
    application/json` authoritative over scoped or builder header middleware;
    use the raw functions request API when sending a body with another media type.
+   `NhostBuilder::build` validates every string that its role, header, and admin
+   options will encode as an HTTP header, reporting malformed names or values as
+   `Error::Config` without echoing values. This is encoding-shape validation only;
+   server-defined role and session-variable vocabularies remain unrestricted.
+   Middleware still parses at request time because scoped clones and custom
+   `from_clients` pipelines bypass the builder.
 2. **Hand-written runtime** — `error`, `http`, `middleware`, `session`,
    `graphql`, `functions`, the top-level builder (`client.rs`, re-exported from
    `lib.rs`), and `auth/pkce.rs`.
