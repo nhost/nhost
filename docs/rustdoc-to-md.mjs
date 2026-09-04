@@ -139,11 +139,22 @@ function renderBound(b) {
 
 function renderGenerics(generics) {
   if (!generics) return { params: '', where: '' };
+  const syntheticTypes = new Set(
+    (generics.params ?? [])
+      .filter(
+        (p) =>
+          p.kind &&
+          'type' in p.kind &&
+          (p.kind.type.is_synthetic ?? p.kind.type.synthetic),
+      )
+      .map((p) => p.name),
+  );
   const params = [];
   for (const p of generics.params ?? []) {
     if (p.kind && 'lifetime' in p.kind) {
       params.push(p.name);
     } else if (p.kind && 'type' in p.kind) {
+      if (syntheticTypes.has(p.name)) continue;
       const bounds = (p.kind.type.bounds ?? [])
         .map(renderBound)
         .filter(Boolean);
@@ -163,6 +174,7 @@ function renderGenerics(generics) {
   for (const w of generics.where_predicates ?? []) {
     if ('bound_predicate' in w) {
       const bp = w.bound_predicate;
+      if (bp.type?.generic && syntheticTypes.has(bp.type.generic)) continue;
       const bounds = (bp.bounds ?? []).map(renderBound).filter(Boolean);
       if (bounds.length)
         wheres.push(`${renderType(bp.type)}: ${bounds.join(' + ')}`);
@@ -387,8 +399,27 @@ function renderEnum(name, it) {
   for (const vid of e.variants ?? []) {
     const v = item(vid);
     if (!v?.inner.variant) continue;
+    const kind = v.inner.variant.kind;
+    let signature = v.name;
+    if (kind && typeof kind === 'object' && 'tuple' in kind) {
+      const fields = kind.tuple.map((fid) => {
+        const field = fid != null ? item(fid) : null;
+        return field?.inner.struct_field
+          ? renderType(field.inner.struct_field)
+          : '_';
+      });
+      signature += `(${fields.join(', ')})`;
+    } else if (kind && typeof kind === 'object' && 'struct' in kind) {
+      const fields = (kind.struct.fields ?? []).flatMap((fid) => {
+        const field = item(fid);
+        if (!field?.inner.struct_field) return [];
+        return `${field.name}: ${renderType(field.inner.struct_field)}`;
+      });
+      if (kind.struct.has_stripped_fields) fields.push('..');
+      signature += ` { ${fields.join(', ')} }`;
+    }
     const vdoc = cleanDocs(v.docs).replace(/\n+/g, ' ').trim();
-    rows.push(`| \`${v.name}\` | ${vdoc} |`);
+    rows.push(`| \`${signature}\` | ${vdoc} |`);
   }
   if (rows.length) {
     parts.push(heading(4, 'Variants'));
@@ -412,8 +443,14 @@ function renderEnum(name, it) {
 function renderTrait(name, it) {
   const tr = it.inner.trait;
   const g = renderGenerics(tr.generics);
+  const qualifiers =
+    (tr.is_unsafe ? 'unsafe ' : '') + (tr.is_auto ? 'auto ' : '');
+  const bounds = (tr.bounds ?? []).map(renderBound).filter(Boolean);
+  const supertraits = bounds.length ? `: ${bounds.join(' + ')}` : '';
   const parts = [heading(3, `\`${name}\``)];
-  parts.push(codeBlock(`trait ${name}${g.params}${g.where}`));
+  parts.push(
+    codeBlock(`${qualifiers}trait ${name}${g.params}${supertraits}${g.where}`),
+  );
   const d = cleanDocs(it.docs);
   if (d) parts.push(d);
   const methods = [];
