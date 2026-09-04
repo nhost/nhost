@@ -71,6 +71,8 @@ rustup target add wasm32-unknown-unknown
 ### Install the Nhost package
 
 Add the SDK with its browser feature enabled, alongside Yew and the async glue.
+The `nhost` crate is not yet published on crates.io, so install it from the
+Nhost repository at the commit used by this guide.
 
 ```bash Terminal
 cargo add yew --features csr
@@ -83,7 +85,9 @@ cargo add console_error_panic_hook
 # default-features = false drops the native rustls-tls backend (the browser
 # handles TLS); the `wasm` feature enables the browser-compatible pipeline and
 # the localStorage-backed session store.
-cargo add nhost --no-default-features --features wasm
+cargo add nhost --git https://github.com/nhost/nhost.git \
+  --rev 77c54a1979071ccc857162cd18edcce497fbc123 \
+  --no-default-features --features wasm
 ```
 
 Your `Cargo.toml` dependencies should look like this:
@@ -91,13 +95,18 @@ Your `Cargo.toml` dependencies should look like this:
 ```toml title="Cargo.toml"
 [dependencies]
 yew = { version = "0.21", features = ["csr"] }
-nhost = { version = "0.1", default-features = false, features = ["wasm"] }
+nhost = { git = "https://github.com/nhost/nhost.git", rev = "77c54a1979071ccc857162cd18edcce497fbc123", version = "0.0.0-dev", default-features = false, features = ["wasm"] }
 web-sys = { version = "0.3", features = ["HtmlInputElement"] }
 wasm-bindgen-futures = "0.4"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 console_error_panic_hook = "0.1"
 ```
+
+The repository dependency resolves the crate from `packages/nhost-rust`. Once
+`nhost` is published, replace its `git` and `rev` keys with
+`version = "<current published version>"`, or rerun the command without `--git`
+and `--rev` to let `cargo add` select the current release.
 
 ### Configure the Nhost client, sign in, and manage notes
 
@@ -285,9 +294,9 @@ fn main() {
 </Tabs>
 
 :::note
-The SDK needs the `getrandom` JS backend for PKCE on the web. The `nhost` crate
-already ships a `.cargo/config.toml` that sets the required flag for the
-`wasm32-unknown-unknown` target, so no extra configuration is needed.
+Randomness for PKCE uses `getrandom`'s JS backend on the web. The SDK enables
+`getrandom`'s `wasm_js` feature automatically, so no application-specific
+backend configuration is required.
 :::
 
 ### The end
