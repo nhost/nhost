@@ -565,6 +565,116 @@ func TestHeaderValuesUseExactWireScalars(t *testing.T) {
 }
 `
 
+const generatedWireSerializationTest = `package testpkg
+
+import (
+	"encoding/json"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"slices"
+	"testing"
+)
+
+func TestWireSerialization(t *testing.T) {
+	requestCount := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		requestCount++
+
+		switch req.URL.Path {
+		case "/query":
+			want := "filter=limit%2C1000000%2Cterm%2Cbob&json-filter=%7B%22limit%22%3A2%2C%22term%22%3A%22json%22%7D&m=one&mapd%5Bk%5D=one"
+			if req.URL.RawQuery != want {
+				t.Errorf("raw query = %q, want %q", req.URL.RawQuery, want)
+			}
+		case "/headers":
+			wantHeaders := map[string]string{
+				"x-counts": "1000000,2",
+				"x-map":    "large,1000000,small,2",
+				"x-object": "enabled,true,limit,1000000",
+			}
+			for name, want := range wantHeaders {
+				if got := req.Header.Get(name); got != want {
+					t.Errorf("header %s = %q, want %q", name, got, want)
+				}
+			}
+		case "/json":
+			assertHeaderValues(t, req, "Content-Type", []string{"application/vnd.nhost+json"})
+		case "/typed-json":
+			assertHeaderValues(t, req, "Content-Type", []string{"application/problem+json"})
+			assertHeaderValues(t, req, "X-Token", []string{"caller-token"})
+		case "/multipart":
+			assertHeaderValues(t, req, "Content-Type", []string{"multipart/mixed"})
+		default:
+			t.Errorf("unexpected request path %q", req.URL.Path)
+		}
+
+		body, err := io.ReadAll(req.Body)
+		if err != nil {
+			t.Errorf("read request body: %v", err)
+		}
+		if req.URL.Path == "/json" || req.URL.Path == "/typed-json" {
+			if got, want := string(body), ` + "`" + `{"value":"payload"}` + "`" + `; got != want {
+				t.Errorf("request body = %q, want %q", got, want)
+			}
+		}
+
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+
+	client := NewClient(server.URL, server.Client())
+	mixed := MixedState(json.RawMessage(` + "`\"one\"`" + `))
+	if _, _, err := client.WireQuery(t.Context(), WireQueryParams{
+		Filter:     Filter{Limit: 1000000, Term: "bob"},
+		JSONFilter: Filter{Limit: 2, Term: "json"},
+		Mapd:       map[string]any{"k": mixed},
+		M:          map[string]any{"m": mixed},
+	}, nil); err != nil {
+		t.Fatalf("WireQuery returned an error: %v", err)
+	}
+	if _, _, err := client.WireHeaders(t.Context(), WireHeadersParams{
+		XCounts: []int{1000000, 2},
+		XMap:    map[string]any{"small": 2, "large": 1000000},
+		XObject: HeaderObject{Enabled: true, Limit: 1000000},
+	}, nil); err != nil {
+		t.Fatalf("WireHeaders returned an error: %v", err)
+	}
+	body := Payload{Value: "payload"}
+	if _, _, err := client.WireJSON(
+		t.Context(), body, http.Header{"content-type": {"application/vnd.nhost+json"}},
+	); err != nil {
+		t.Fatalf("WireJSON returned an error: %v", err)
+	}
+	if _, _, err := client.WireTypedJSON(
+		t.Context(), body, WireTypedJSONParams{XToken: "typed-token"}, http.Header{
+			"content-type": {"application/problem+json"},
+			"x-token":      {"caller-token"},
+		},
+	); err != nil {
+		t.Fatalf("WireTypedJSON returned an error: %v", err)
+	}
+	if _, _, err := client.WireMultipart(
+		t.Context(), WireMultipartBody{Label: "payload"},
+		http.Header{"content-type": {"multipart/mixed"}},
+	); err != nil {
+		t.Fatalf("WireMultipart returned an error: %v", err)
+	}
+
+	if requestCount != 5 {
+		t.Errorf("request count = %d, want 5", requestCount)
+	}
+}
+
+func assertHeaderValues(t *testing.T, req *http.Request, name string, want []string) {
+	t.Helper()
+
+	if got := req.Header.Values(name); !slices.Equal(got, want) {
+		t.Errorf("header %s values = %q, want %q", name, got, want)
+	}
+}
+`
+
 const generatedOptionalBodyTestPrefix = `package testpkg
 
 import (
@@ -1120,6 +1230,75 @@ func TestGolangGeneratedRequestParameters(t *testing.T) {
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("generated request parameter tests failed: %v\n%s", err, output)
+	}
+}
+
+func TestGolangGeneratedWireSerialization(t *testing.T) {
+	t.Parallel()
+
+	goTool, err := exec.LookPath("go")
+	if err != nil {
+		t.Fatal("go is not available; generated Go output cannot be verified")
+	}
+
+	moduleDir := t.TempDir()
+	writeCompileFixture(t, moduleDir, "go.mod", "module github.com/nhost/nhost\n\ngo 1.26.0\n")
+	writeCompileFixture(
+		t,
+		moduleDir,
+		"packages/nhost-go/transport/transport.go",
+		transportStub,
+	)
+
+	output, renderErr := renderGolangFixture("testdata/wire-serialization.yaml")
+	if renderErr != nil {
+		t.Fatalf("failed to render wire serialization fixture: %v", renderErr)
+	}
+
+	writeCompileFixture(t, moduleDir, "wire/generated.go", string(output))
+	writeCompileFixture(t, moduleDir, "wire/generated_test.go", generatedWireSerializationTest)
+
+	cmd := exec.CommandContext(t.Context(), goTool, "test", "./wire")
+	cmd.Dir = moduleDir
+
+	cmd.Env = append(os.Environ(), "GOFLAGS=", "GOWORK=off")
+
+	commandOutput, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("generated wire serialization tests failed: %v\n%s", err, commandOutput)
+	}
+}
+
+func TestGolangRejectsRequiredHeaderParametersOnRedirects(t *testing.T) {
+	t.Parallel()
+
+	const spec = `openapi: "3.0.0"
+paths:
+  /redirect:
+    get:
+      operationId: redirectWithHeader
+      parameters:
+        - name: x-token
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        "302":
+          description: Redirect
+`
+
+	filename := filepath.Join(t.TempDir(), "redirect-header.yaml")
+	writeCompileFixture(t, "", filename, spec)
+
+	_, renderErr := renderGolangFixture(filename)
+	if renderErr == nil {
+		t.Fatal("generation accepted a required header parameter on a redirect operation")
+	}
+
+	wantErr := `unsupported redirect header parameter: required header parameter "x-token" on redirect operation "redirectWithHeader" cannot be represented by a URL builder`
+	if !strings.Contains(renderErr.Error(), wantErr) {
+		t.Errorf("generation error = %q, want it to contain %q", renderErr, wantErr)
 	}
 }
 

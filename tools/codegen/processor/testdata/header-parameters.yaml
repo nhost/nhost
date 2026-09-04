@@ -50,7 +50,7 @@ paths:
       parameters:
         - name: x-redirect-token
           in: header
-          required: true
+          required: false
           schema:
             type: string
       responses:

@@ -476,6 +476,7 @@ func TestGolangRender(t *testing.T) {
 		{name: "required-object-query.yaml", directory: "../testdata"},
 		{name: "header-parameters.yaml", directory: "../testdata"},
 		{name: "coverage.yaml", directory: "testdata"},
+		{name: "wire-serialization.yaml", directory: "testdata"},
 	}
 
 	for _, tc := range cases {

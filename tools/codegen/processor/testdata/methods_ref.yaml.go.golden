@@ -355,9 +355,7 @@ func (c *Client) RefreshToken(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -461,9 +459,7 @@ func (c *Client) UploadFiles(
 	}
 	req.Header.Set("Content-Type", mw.FormDataContentType())
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -501,16 +497,11 @@ func (c *Client) GetFileMetadataHeaders(
 	}
 	if params != nil {
 		for k, vs := range params.toHeaders() {
-			for _, v := range vs {
-				req.Header.Add(k, v)
-			}
+			req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 		}
 	}
 	for k, vs := range headers {
-		req.Header.Del(k)
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -545,16 +536,11 @@ func (c *Client) GetFile(
 	}
 	if params != nil {
 		for k, vs := range params.toHeaders() {
-			for _, v := range vs {
-				req.Header.Add(k, v)
-			}
+			req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 		}
 	}
 	for k, vs := range headers {
-		req.Header.Del(k)
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -630,9 +616,7 @@ func (c *Client) ReplaceFile(
 		req.Header.Set("Content-Type", contentType)
 	}
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -665,9 +649,7 @@ func (c *Client) DeleteFile(
 		return payload, nil, err
 	}
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)

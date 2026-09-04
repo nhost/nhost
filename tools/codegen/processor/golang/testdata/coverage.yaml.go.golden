@@ -96,9 +96,7 @@ func (c *Client) ListItems(
 		req.URL.RawQuery = params.toQuery().Encode()
 	}
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -127,9 +125,7 @@ func (c *Client) GetUnion(
 		return payload, nil, err
 	}
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -204,9 +200,7 @@ func (c *Client) SubmitMultipart(
 	}
 	req.Header.Set("Content-Type", mw.FormDataContentType())
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
