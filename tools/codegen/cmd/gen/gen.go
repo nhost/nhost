@@ -2,6 +2,7 @@ package gen
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
@@ -18,6 +19,11 @@ const (
 	flagOutputFile  = "output-file"
 	flagPlugin      = "plugin"
 	flagPackage     = "package"
+)
+
+var (
+	errPackageOnlySupportedByGo = errors.New("--package is only supported by the go plugin")
+	errUnsupportedPlugin        = errors.New("unsupported plugin")
 )
 
 func Command() *cli.Command {
@@ -45,28 +51,45 @@ func Command() *cli.Command {
 				Sources:  cli.EnvVars("PLUGIN"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
-				Name:    flagPackage,
-				Usage:   "Package name for the generated code (go plugin)",
-				Sources: cli.EnvVars("PACKAGE"),
+				Name:  flagPackage,
+				Usage: "Package name for the generated code (required for go plugin)",
 			},
 		},
+	}
+}
+
+func newPlugin(pluginName, packageName string) (processor.Plugin, error) { //nolint:ireturn
+	switch pluginName {
+	case "typescript":
+		if packageName != "" {
+			return nil, errPackageOnlySupportedByGo
+		}
+
+		return &typescript.Typescript{}, nil
+	case "rust":
+		if packageName != "" {
+			return nil, errPackageOnlySupportedByGo
+		}
+
+		return &rust.Rust{}, nil
+	case "go":
+		goPlugin, err := golang.New(packageName)
+		if err != nil {
+			return nil, fmt.Errorf("invalid --package: %w", err)
+		}
+
+		return goPlugin, nil
+	default:
+		return nil, fmt.Errorf("%w: %s", errUnsupportedPlugin, pluginName)
 	}
 }
 
 func action(_ context.Context, c *cli.Command) error {
 	fmt.Println("Generating code...") //nolint:forbidigo
 
-	var p processor.Plugin
-
-	switch c.String(flagPlugin) {
-	case "typescript":
-		p = &typescript.Typescript{}
-	case "rust":
-		p = &rust.Rust{}
-	case "go":
-		p = &golang.Golang{Package: c.String(flagPackage)}
-	default:
-		return cli.Exit("unsupported plugin: "+c.String(flagPlugin), 1)
+	p, err := newPlugin(c.String(flagPlugin), c.String(flagPackage))
+	if err != nil {
+		return cli.Exit(err.Error(), 1)
 	}
 
 	b, err := os.ReadFile(c.String(flagOpenAPIFile))
