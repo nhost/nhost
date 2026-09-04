@@ -169,6 +169,11 @@ func TestCatalogActiveFutureComparisonProtectsAppliedRows(t *testing.T) {
 		testMigration(1, nil, "root"),
 		testMigration(2, uintPointer(1), "stable_squashed"),
 	)
+	editedBetaVersionTwo := testMigration(2, uintPointer(1), "beta_name")
+	editedBetaVersionTwo.upSQL = []byte("SELECT 'edited up 2';")
+	editedBetaVersionTwo.upChecksum = sha256.Sum256(editedBetaVersionTwo.upSQL)
+	editedBeta := testBundle(beta.migrations[0], editedBetaVersionTwo, beta.migrations[2])
+	rerootedVersionTwo := testBundle(testMigration(2, nil, "beta_name"))
 	previousStable := testBundle(testMigration(1, nil, "root"))
 
 	database := newMemoryCatalogDatabase(
@@ -188,6 +193,7 @@ func TestCatalogActiveFutureComparisonProtectsAppliedRows(t *testing.T) {
 		currentVersion int64
 		wantMatch      bool
 		wantError      bool
+		wantIssue      string
 	}{
 		{
 			name:           "identical inactive suffix",
@@ -211,11 +217,30 @@ func TestCatalogActiveFutureComparisonProtectsAppliedRows(t *testing.T) {
 			wantError:      false,
 		},
 		{
-			name:           "changed applied row",
+			name:           "different applied lineage",
 			local:          stable,
 			currentVersion: 2,
 			wantMatch:      false,
 			wantError:      true,
+			wantIssue: "active catalog version 2 belongs to a different lineage and is still applied; " +
+				"downgrade below version 2 with an image whose bundle maximum is <= 1 before deploying this bundle",
+		},
+		{
+			name:           "different applied predecessor",
+			local:          rerootedVersionTwo,
+			currentVersion: 2,
+			wantMatch:      false,
+			wantError:      true,
+			wantIssue: "active catalog version 2 belongs to a different lineage and is still applied; " +
+				"downgrade below version 2 with an image whose bundle maximum is below 2 before deploying this bundle",
+		},
+		{
+			name:           "edited applied row",
+			local:          editedBeta,
+			currentVersion: 2,
+			wantMatch:      false,
+			wantError:      true,
+			wantIssue:      "stored up SQL does not match embedded migration",
 		},
 		{
 			name:           "newer applied rows needed for downgrade",
@@ -241,6 +266,25 @@ func TestCatalogActiveFutureComparisonProtectsAppliedRows(t *testing.T) {
 
 			if matches != tt.wantMatch {
 				t.Fatalf("activeFutureMatches() = %t, want %t", matches, tt.wantMatch)
+			}
+
+			if tt.wantIssue != "" {
+				var integrityErr *IntegrityError
+				if !errors.As(comparisonErr, &integrityErr) {
+					t.Fatalf(
+						"activeFutureMatches() error = %v (%T), want *IntegrityError",
+						comparisonErr,
+						comparisonErr,
+					)
+				}
+
+				if integrityErr.Issue != tt.wantIssue {
+					t.Fatalf(
+						"activeFutureMatches() issue = %q, want %q",
+						integrityErr.Issue,
+						tt.wantIssue,
+					)
+				}
 			}
 		})
 	}
