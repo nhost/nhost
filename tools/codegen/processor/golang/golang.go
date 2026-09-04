@@ -24,7 +24,10 @@ import (
 	"github.com/nhost/nhost/tools/codegen/processor"
 )
 
-const extCustomType = "x-go-type"
+const (
+	extCustomType = "x-go-type"
+	goStringType  = "string"
+)
 
 var (
 	errUnsupportedJSONWireName       = errors.New("unsupported JSON wire name")
@@ -382,7 +385,10 @@ func validateQueryParameters(methods []*processor.Method) (string, error) {
 				if kind != processor.KindIdentifierMap && kind != processor.KindIdentifierObject {
 					return "", fmt.Errorf(
 						"%w: query parameter %q on method %q uses deepObject with unsupported %s type",
-						errUnsupportedQuerySerialization, parameter.RawName(), method.RawName(), kind,
+						errUnsupportedQuerySerialization,
+						parameter.RawName(),
+						method.RawName(),
+						kind,
 					)
 				}
 			default:
@@ -392,6 +398,190 @@ func validateQueryParameters(methods []*processor.Method) (string, error) {
 					parameter.RawName(), method.RawName(), parameter.Style(),
 				)
 			}
+		}
+	}
+
+	return "", nil
+}
+
+type rawNamer interface {
+	RawName() string
+}
+
+func goRawTypeName(typ processor.Type) string {
+	if named, ok := typ.(rawNamer); ok {
+		return named.RawName()
+	}
+
+	return typ.Name()
+}
+
+func registerGoIdentifier(
+	seen map[string]string, identifier, source, domain string,
+) error {
+	if previous, exists := seen[identifier]; exists {
+		return fmt.Errorf(
+			"%w: Go %s collision: %s and %s both generate identifier %q",
+			processor.ErrUnsupportedFeature,
+			domain,
+			previous,
+			source,
+			identifier,
+		)
+	}
+
+	seen[identifier] = source
+
+	return nil
+}
+
+func validateGoFieldNames(object *processor.TypeObject) error {
+	seen := make(map[string]string, len(object.Properties()))
+	for _, property := range object.Properties() {
+		if err := registerGoIdentifier(
+			seen,
+			property.Name(),
+			fmt.Sprintf("property %q", property.RawName()),
+			fmt.Sprintf("field namespace for type %q", object.RawName()),
+		); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func validateGoParameterFields(method *processor.Method) error {
+	seen := make(map[string]string, len(method.QueryParameters()))
+	for _, parameter := range method.QueryParameters() {
+		if err := registerGoIdentifier(
+			seen,
+			parameter.Name(),
+			fmt.Sprintf("query parameter %q", parameter.RawName()),
+			fmt.Sprintf("parameter struct for operation %q", method.RawName()),
+		); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func goMethodBindingNames() map[string]string {
+	return map[string]string{
+		"c":           "generated Client receiver",
+		"ctx":         "generated context argument",
+		"body":        "generated request body argument",
+		"params":      "generated request parameters argument",
+		"headers":     "generated request headers argument",
+		"payload":     "generated response payload local",
+		"u":           "generated request URL local",
+		"rawBody":     "generated encoded request body local",
+		"req":         "generated HTTP request local",
+		"resp":        "generated HTTP response local",
+		"err":         "generated error local",
+		"mErr":        "generated marshal error local",
+		"form":        "generated form values local",
+		"contentType": "generated content type local",
+		"formBuf":     "generated multipart buffer local",
+		"mw":          "generated multipart writer local",
+		"i":           "generated multipart index local",
+		"item":        "generated multipart item local",
+		"fw":          "generated multipart file writer local",
+		"jb":          "generated JSON body local",
+		"ph":          "generated multipart header local",
+		"pw":          "generated multipart part writer local",
+		"k":           "generated header key local",
+		"v":           "generated header value local",
+		"vs":          "generated header values local",
+		"q":           "generated query values local",
+		"bytes":       `generated import "bytes"`,
+		"context":     `generated import "context"`,
+		"json":        `generated import "encoding/json"`,
+		"fmt":         `generated import "fmt"`,
+		"io":          `generated import "io"`,
+		"multipart":   `generated import "mime/multipart"`,
+		"http":        `generated import "net/http"`,
+		"textproto":   `generated import "net/textproto"`,
+		"url":         `generated import "net/url"`,
+		"strings":     `generated import "strings"`,
+		"transport":   `generated import "github.com/nhost/nhost/packages/nhost-go/transport"`,
+	}
+}
+
+func validateGoMethodBindings(method *processor.Method) error {
+	seen := goMethodBindingNames()
+	for _, parameter := range method.PathParameters() {
+		if err := registerGoIdentifier(
+			seen,
+			unexported(parameter.Name()),
+			fmt.Sprintf("path parameter %q", parameter.RawName()),
+			fmt.Sprintf("argument list for operation %q", method.RawName()),
+		); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func validateGoNames(types []processor.Type, methods []*processor.Method) (string, error) {
+	typeNames := map[string]string{
+		"Client":    `generated type "Client"`,
+		"NewClient": `generated function "NewClient"`,
+	}
+	for _, typ := range types {
+		if err := registerGoIdentifier(
+			typeNames,
+			typ.Name(),
+			fmt.Sprintf("type %q", goRawTypeName(typ)),
+			"type namespace",
+		); err != nil {
+			return "", err
+		}
+
+		if object, ok := typ.(*processor.TypeObject); ok {
+			if err := validateGoFieldNames(object); err != nil {
+				return "", err
+			}
+		}
+	}
+
+	methodNames := map[string]string{
+		"BaseURL": `generated Client field "BaseURL"`,
+	}
+	for _, method := range methods {
+		methodName := method.Name()
+		if method.IsRedirect() {
+			methodName += "URL"
+		}
+
+		if err := registerGoIdentifier(
+			methodNames,
+			methodName,
+			fmt.Sprintf("operation %q", method.RawName()),
+			"client method namespace",
+		); err != nil {
+			return "", err
+		}
+
+		if method.HasQueryParameters() {
+			if err := registerGoIdentifier(
+				typeNames,
+				method.Name()+"Params",
+				fmt.Sprintf("parameter struct for operation %q", method.RawName()),
+				"type namespace",
+			); err != nil {
+				return "", err
+			}
+
+			if err := validateGoParameterFields(method); err != nil {
+				return "", err
+			}
+		}
+
+		if err := validateGoMethodBindings(method); err != nil {
+			return "", err
 		}
 	}
 
@@ -411,6 +601,7 @@ func (p *Golang) GetFuncMap() map[string]any {
 		},
 		"goFieldType":               goFieldType,
 		"goValidateJSONWireNames":   validateJSONWireNames,
+		"goValidateNames":           validateGoNames,
 		"goValidateQueryParameters": validateQueryParameters,
 		"exported":                  toExported,
 		"hasPathParameters": func(methods []*processor.Method) bool {
@@ -462,12 +653,12 @@ func (p *Golang) TypeScalarName(scalar *processor.TypeScalar) string {
 		return "float64"
 	case "boolean":
 		return "bool"
-	case "string":
+	case goStringType:
 		if schema.Format == "binary" {
 			return "[]byte"
 		}
 
-		return "string"
+		return goStringType
 	}
 
 	return "any"
@@ -577,19 +768,26 @@ func unexported(s string) string {
 	}
 
 	out := string(runes)
-	if isGoKeyword(out) {
+	if isGoReservedIdentifier(out) {
 		return out + "_"
 	}
 
 	return out
 }
 
-func isGoKeyword(s string) bool {
+func isGoReservedIdentifier(s string) bool {
 	switch s {
 	case "break", "case", "chan", "const", "continue", "default", "defer",
 		"else", "fallthrough", "for", "func", "go", "goto", "if", "import",
 		"interface", "map", "package", "range", "return", "select", "struct",
-		"switch", "type", "var":
+		"switch", "type", "var",
+		"any", "bool", "byte", "comparable", "complex64", "complex128", "error",
+		"float32", "float64", "int", "int8", "int16", "int32", "int64", "rune",
+		goStringType, "uint", "uint8", "uint16", "uint32", "uint64", "uintptr",
+		"true", "false", "iota", "nil",
+		"append", "cap", "clear", "close", "complex", "copy", "delete", "imag",
+		"len", "make", "max", "min", "new", "panic", "print", "println", "real",
+		"recover":
 		return true
 	default:
 		return false
