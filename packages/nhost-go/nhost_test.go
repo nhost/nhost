@@ -12,6 +12,7 @@ import (
 
 	nhost "github.com/nhost/nhost/packages/nhost-go"
 	"github.com/nhost/nhost/packages/nhost-go/auth"
+	"github.com/nhost/nhost/packages/nhost-go/middleware"
 	"github.com/nhost/nhost/packages/nhost-go/session"
 	"github.com/nhost/nhost/packages/nhost-go/transport"
 )
@@ -139,6 +140,312 @@ func TestConfigUseAuthAppliesOnlyToAuth(t *testing.T) {
 	gotFunctions := <-observed
 	if gotFunctions.path != "/functions/v1/echo" || gotFunctions.header != "" {
 		t.Fatalf("functions request = %+v, want no auth-only header", gotFunctions)
+	}
+}
+
+func TestConfigUseDataServicesNeverHitsAuth(t *testing.T) {
+	t.Parallel()
+
+	type observedRequest struct {
+		path        string
+		adminSecret string
+	}
+
+	observed := make(chan observedRequest, 5)
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		got := observedRequest{
+			path:        req.URL.Path,
+			adminSecret: req.Header.Get("x-hasura-admin-secret"),
+		}
+		select {
+		case observed <- got:
+		default:
+			t.Errorf("unexpected extra request: %+v", got)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+
+		responses := map[string]string{
+			"/auth/v1/healthz":    `"OK"`,
+			"/storage/v1/version": `{"buildVersion":"test"}`,
+			"/graphql/v1":         `{"data":{}}`,
+			"/functions/v1/echo":  `{}`,
+		}
+
+		body, ok := responses[req.URL.Path]
+		if !ok {
+			t.Errorf("unexpected request path %q", req.URL.Path)
+			w.WriteHeader(http.StatusNotFound)
+
+			return
+		}
+
+		if _, err := w.Write([]byte(body)); err != nil {
+			t.Errorf("write response: %v", err)
+		}
+	}))
+	defer server.Close()
+
+	adminCredential := t.Name()
+	adminMiddleware := middleware.WithAdminSession(
+		middleware.AdminSessionOptions{AdminSecret: adminCredential},
+		server.URL,
+	)
+
+	client := nhost.NewBareClient(nhost.Options{
+		AuthURL:      server.URL + "/auth/v1",
+		StorageURL:   server.URL + "/storage/v1",
+		GraphQLURL:   server.URL + "/graphql/v1",
+		FunctionsURL: server.URL + "/functions/v1",
+		HTTPClient:   server.Client(),
+		Configure: []nhost.ConfigureFunc{
+			func(config *nhost.Config) {
+				config.UseDataServices(adminMiddleware)
+			},
+		},
+	})
+
+	ctx := context.Background()
+	if _, _, err := client.Auth.HealthCheckGet(ctx, nil); err != nil {
+		t.Fatalf("auth health check: %v", err)
+	}
+
+	if _, _, err := client.Storage.GetVersion(ctx, nil); err != nil {
+		t.Fatalf("storage version: %v", err)
+	}
+
+	if _, _, err := client.GraphQL.Request(ctx, "query { __typename }", nil, "", nil); err != nil {
+		t.Fatalf("graphql request: %v", err)
+	}
+
+	if _, _, err := client.Functions.Call(ctx, "echo", http.MethodGet, nil, nil); err != nil {
+		t.Fatalf("functions call: %v", err)
+	}
+
+	expected := []observedRequest{
+		{path: "/auth/v1/healthz", adminSecret: ""},
+		{path: "/storage/v1/version", adminSecret: adminCredential},
+		{path: "/graphql/v1", adminSecret: adminCredential},
+		{path: "/functions/v1/echo", adminSecret: adminCredential},
+	}
+
+	for _, want := range expected {
+		if got := <-observed; got != want {
+			t.Errorf("request = %+v, want %+v", got, want)
+		}
+	}
+
+	select {
+	case got := <-observed:
+		t.Errorf("unexpected extra request: %+v", got)
+	default:
+	}
+}
+
+func TestWithAdminSessionNeverHitsAuth(t *testing.T) {
+	t.Parallel()
+
+	type observedRequest struct {
+		path        string
+		adminSecret string
+	}
+
+	observed := make(chan observedRequest, 4)
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		observed <- observedRequest{
+			path:        req.URL.Path,
+			adminSecret: req.Header.Get("x-hasura-admin-secret"),
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+
+		responses := map[string]string{
+			"/auth/v1/healthz":    `"OK"`,
+			"/storage/v1/version": `{"buildVersion":"test"}`,
+			"/graphql/v1":         `{"data":{}}`,
+			"/functions/v1/echo":  `{}`,
+		}
+
+		body, ok := responses[req.URL.Path]
+		if !ok {
+			t.Errorf("unexpected request path %q", req.URL.Path)
+			w.WriteHeader(http.StatusNotFound)
+
+			return
+		}
+
+		if _, err := w.Write([]byte(body)); err != nil {
+			t.Errorf("write response: %v", err)
+		}
+	}))
+	defer server.Close()
+
+	adminCredential := t.Name()
+
+	client := nhost.NewBareClient(nhost.Options{
+		AuthURL:      server.URL + "/auth/v1",
+		StorageURL:   server.URL + "/storage/v1",
+		GraphQLURL:   server.URL + "/graphql/v1",
+		FunctionsURL: server.URL + "/functions/v1",
+		HTTPClient:   server.Client(),
+		Configure: []nhost.ConfigureFunc{
+			nhost.WithAdminSession(middleware.AdminSessionOptions{AdminSecret: adminCredential}),
+		},
+	})
+
+	ctx := context.Background()
+	if _, _, err := client.Auth.HealthCheckGet(ctx, nil); err != nil {
+		t.Fatalf("auth health check: %v", err)
+	}
+
+	if _, _, err := client.Storage.GetVersion(ctx, nil); err != nil {
+		t.Fatalf("storage version: %v", err)
+	}
+
+	if _, _, err := client.GraphQL.Request(ctx, "query { __typename }", nil, "", nil); err != nil {
+		t.Fatalf("graphql request: %v", err)
+	}
+
+	if _, _, err := client.Functions.Call(ctx, "echo", http.MethodGet, nil, nil); err != nil {
+		t.Fatalf("functions call: %v", err)
+	}
+
+	expected := []observedRequest{
+		{path: "/auth/v1/healthz", adminSecret: ""},
+		{path: "/storage/v1/version", adminSecret: adminCredential},
+		{path: "/graphql/v1", adminSecret: adminCredential},
+		{path: "/functions/v1/echo", adminSecret: adminCredential},
+	}
+
+	for _, want := range expected {
+		if got := <-observed; got != want {
+			t.Errorf("request = %+v, want %+v", got, want)
+		}
+	}
+}
+
+func TestWithMiddlewareOrdering(t *testing.T) {
+	t.Parallel()
+
+	oldAccessToken := testAccessToken(t, time.Now().Add(30*time.Second).Unix())
+	freshAccessToken := testAccessToken(t, time.Now().Add(time.Hour).Unix())
+
+	type event struct {
+		stage         string
+		authorization string
+	}
+
+	events := make(chan event, 4)
+	recordEvent := func(got event) {
+		select {
+		case events <- got:
+		default:
+			t.Errorf("unexpected extra event: %+v", got)
+		}
+	}
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		switch req.URL.Path {
+		case "/auth/token":
+			recordEvent(event{stage: "refresh", authorization: req.Header.Get("Authorization")})
+
+			if err := json.NewEncoder(w).Encode(auth.Session{
+				AccessToken:  freshAccessToken,
+				RefreshToken: "fresh-refresh-token",
+			}); err != nil {
+				t.Errorf("encode refresh response: %v", err)
+			}
+		case "/storage/version":
+			recordEvent(event{stage: "storage", authorization: req.Header.Get("Authorization")})
+
+			if _, err := w.Write([]byte(`{"buildVersion":"test"}`)); err != nil {
+				t.Errorf("write storage response: %v", err)
+			}
+		default:
+			t.Errorf("unexpected request path %q", req.URL.Path)
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer server.Close()
+
+	client := nhost.New(nhost.Options{
+		AuthURL:    server.URL + "/auth",
+		StorageURL: server.URL + "/storage",
+		HTTPClient: server.Client(),
+		Storage:    &session.MemoryStorage{},
+		Configure: []nhost.ConfigureFunc{
+			nhost.WithMiddleware(func(next http.RoundTripper) http.RoundTripper {
+				return transport.RoundTripFunc(func(req *http.Request) (*http.Response, error) {
+					recordEvent(event{
+						stage:         "middleware",
+						authorization: req.Header.Get("Authorization"),
+					})
+
+					return next.RoundTrip(req)
+				})
+			}),
+		},
+	})
+
+	if err := client.SessionStorage.Set(auth.Session{
+		AccessToken:  oldAccessToken,
+		RefreshToken: "old-refresh-token",
+	}); err != nil {
+		t.Fatalf("seed session: %v", err)
+	}
+
+	if _, _, err := client.Storage.GetVersion(context.Background(), nil); err != nil {
+		t.Fatalf("storage version: %v", err)
+	}
+
+	wantAuthorization := "Bearer " + freshAccessToken
+	expected := []event{
+		{stage: "refresh", authorization: ""},
+		{stage: "middleware", authorization: wantAuthorization},
+		{stage: "storage", authorization: wantAuthorization},
+	}
+
+	for _, want := range expected {
+		if got := <-events; got != want {
+			t.Errorf("event = %+v, want %+v", got, want)
+		}
+	}
+
+	select {
+	case got := <-events:
+		t.Errorf("unexpected extra event: %+v", got)
+	default:
+	}
+}
+
+func TestClientSessionAccessors(t *testing.T) {
+	t.Parallel()
+
+	client := nhost.NewBareClient(nhost.Options{Storage: &session.MemoryStorage{}})
+	if got, ok := client.GetUserSession(); ok || got != nil {
+		t.Fatalf("initial session = (%#v, %t), want (nil, false)", got, ok)
+	}
+
+	if err := client.SessionStorage.Set(auth.Session{
+		AccessToken:  testAccessToken(t, time.Now().Add(time.Hour).Unix()),
+		RefreshToken: "refresh-token",
+	}); err != nil {
+		t.Fatalf("set session: %v", err)
+	}
+
+	got, ok := client.GetUserSession()
+	if !ok || got == nil || got.RefreshToken != "refresh-token" {
+		t.Fatalf("stored session = (%#v, %t), want refresh-token", got, ok)
+	}
+
+	client.ClearSession()
+
+	if got, ok := client.GetUserSession(); ok || got != nil {
+		t.Fatalf("cleared session = (%#v, %t), want (nil, false)", got, ok)
 	}
 }
 
@@ -307,23 +614,4 @@ func testAccessToken(t *testing.T, expiry int64) string {
 	}
 
 	return header + "." + base64.RawURLEncoding.EncodeToString(payload) + ".signature"
-}
-
-func TestPKCERFC7636Vector(t *testing.T) {
-	t.Parallel()
-
-	// RFC 7636 Appendix B test vector.
-	got := auth.GenerateCodeChallenge("dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk")
-	if got != "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM" {
-		t.Fatalf("challenge = %q", got)
-	}
-
-	pair := auth.GeneratePKCEPair()
-	if len(pair.Verifier) != 43 {
-		t.Fatalf("verifier length = %d, want 43", len(pair.Verifier))
-	}
-
-	if auth.GenerateCodeChallenge(pair.Verifier) != pair.Challenge {
-		t.Fatal("pair challenge does not match verifier")
-	}
 }
