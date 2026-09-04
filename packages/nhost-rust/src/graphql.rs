@@ -290,22 +290,37 @@ impl Operation<'_> {
         Ok(serde_json::from_value(data)?)
     }
 
-    /// Sends the operation and returns the full GraphQL envelope (`data` +
-    /// `errors`) together with the transport status and headers, decoding
-    /// `data` as `T`.
+    /// Sends the operation and returns the decoded `data` as `T`, together with
+    /// the transport status and headers. The envelope's `errors` is always
+    /// `None` here, because a non-empty array is reported as [`Error::GraphQl`]
+    /// instead of being returned.
     ///
-    /// On a successful HTTP response, GraphQL errors remain in the returned
-    /// envelope so callers can inspect them directly. On a 3xx status other
-    /// than 304, or a 4xx/5xx status, a non-empty GraphQL `errors` array takes
-    /// precedence and produces [`Error::GraphQl`]; otherwise that status
-    /// produces [`Error::Api`]. Variable serialization, transport, and
+    /// A non-empty GraphQL `errors` array produces [`Error::GraphQl`] before
+    /// `data` is decoded, preserving any raw partial data in the error payload.
+    /// This applies regardless of whether the HTTP response was successful.
+    /// Without GraphQL errors, a 3xx status other than 304, or a 4xx/5xx status,
+    /// produces [`Error::Api`]. Variable serialization, transport, and genuine
     /// response-decoding failures are also returned as errors.
     pub async fn execute<T: DeserializeOwned>(
         self,
     ) -> Result<http::Response<GraphqlResponse<T>>, Error> {
         let raw = self.execute_raw().await?;
         let body = match raw.body {
-            Some(body) => serde_json::from_value(body)?,
+            Some(body) => {
+                let envelope: GraphqlResponse<serde_json::Value> = serde_json::from_value(body)?;
+                if let Some(errors) = envelope.errors.filter(|errors| !errors.is_empty()) {
+                    return Err(Error::GraphQl(Box::new(GraphqlOperationError::new(
+                        errors,
+                        envelope.data,
+                        raw.status,
+                        raw.headers,
+                    ))));
+                }
+                GraphqlResponse {
+                    data: envelope.data.map(serde_json::from_value).transpose()?,
+                    errors: None,
+                }
+            }
             None => GraphqlResponse {
                 data: None,
                 errors: None,

@@ -208,12 +208,15 @@ code for crate conventions.
   conventional string `extensions.code`. For GraphQL requests, a non-empty
   body-level `errors` array takes precedence over a 3xx status other than 304,
   or a 4xx/5xx status; otherwise those statuses become `Error::Api`.
-  `Operation::send` checks raw errors before decoding typed data, while
-  `execute` returns `http::Response<GraphqlResponse<T>>`: the body is the full
-  `data` + `errors` envelope and the outer response retains transport status and
-  headers. This precedence deliberately requires GraphQL to bypass `http::send`
-  and call `http::send_buffered` directly; changes to `send`'s status mapping
-  therefore do not reach the GraphQL client.
+  Both `Operation::send` and `Operation::execute` check raw errors before
+  decoding typed data. A non-empty `errors` array always becomes
+  `Error::GraphQl`, even when `data` would decode cleanly; raw partial data is
+  retained in `GraphqlOperationError` when it would not fit `T`. Without errors,
+  `execute` returns `http::Response<GraphqlResponse<T>>`, whose outer response
+  retains transport status and headers; an empty `errors` array is normalized
+  to `None`. This precedence deliberately requires GraphQL to bypass
+  `http::send` and call `http::send_buffered` directly; changes to `send`'s
+  status mapping therefore do not reach the GraphQL client.
 - **Deferred GraphQL variable errors.** `Operation::variables` and `variable`
   store `Result<Variables, serde_json::Error>` so their builder API remains
   `-> Self`; `execute()` and `send()` both return `Error::Json` before building
