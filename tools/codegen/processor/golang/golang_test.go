@@ -248,6 +248,26 @@ paths:
 			},
 		},
 		{
+			name: "query and header parameter fields",
+			spec: `openapi: "3.0.0"
+paths:
+  /things:
+    get:
+      operationId: listThings
+      parameters:
+        - {name: request_id, in: query, schema: {type: string}}
+        - {name: requestId, in: header, schema: {type: string}}
+      responses:
+        "204": {description: Done}
+`,
+			want: []string{
+				`Go parameter struct for operation "listThings" collision`,
+				`query parameter "request_id"`,
+				`header parameter "requestId"`,
+				`identifier "RequestID"`,
+			},
+		},
+		{
 			name: "operation methods",
 			spec: `openapi: "3.0.0"
 paths:
@@ -452,6 +472,8 @@ func TestGolangRender(t *testing.T) {
 		{name: "optional-form-url-encoded.yaml"},
 		{name: "deepobject-map.yaml"},
 		{name: "escaped-go-source.yaml"},
+		{name: "required-object-query.yaml"},
+		{name: "header-parameters.yaml"},
 	}
 
 	for _, tc := range cases {
