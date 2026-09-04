@@ -15,7 +15,6 @@ let
   checkDeps = [
     pkgs.nhost.go
     pkgs.nhost.golangci-lint
-    pkgs.gotools # provides goimports (used by gen.sh to prune imports)
     codegen
     # Provides a CA bundle (its setup hook sets SSL_CERT_FILE) so the HTTP
     # client can verify the local backend's certificate in the integration run.
@@ -71,7 +70,7 @@ in
         chmod +w -R src
         cd src/${submodule}
 
-        echo "➜ Checking generated clients are up to date (codegen + goimports)"
+        echo "➜ Checking generated clients are up to date"
         cp auth/client.go "$TMPDIR/auth.before"
         cp storage/client.go "$TMPDIR/storage.before"
         sh ./gen.sh
