@@ -12,10 +12,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net"
 	"net/http"
-	"net/url"
-	"strings"
 
 	"github.com/nhost/nhost/packages/nhost-go/auth"
 	"github.com/nhost/nhost/packages/nhost-go/functions"
@@ -55,7 +52,7 @@ const (
 // HTTPS otherwise.
 func GenerateServiceURL(serviceType ServiceType, subdomain, region, customURL string) string {
 	if customURL != "" {
-		return normalizeCustomURL(customURL)
+		return transport.NormalizeServiceURL(customURL)
 	}
 
 	if subdomain != "" && region != "" {
@@ -63,28 +60,6 @@ func GenerateServiceURL(serviceType ServiceType, subdomain, region, customURL st
 	}
 
 	return fmt.Sprintf("https://local.%s.local.nhost.run/v1", serviceType)
-}
-
-func normalizeCustomURL(customURL string) string {
-	if strings.Contains(customURL, "://") {
-		return customURL
-	}
-
-	parsed, err := url.Parse("//" + customURL)
-	if err != nil || parsed.Host == "" {
-		return customURL
-	}
-
-	scheme := "https"
-
-	hostname := parsed.Hostname()
-	if strings.EqualFold(hostname, "localhost") {
-		scheme = "http"
-	} else if ip := net.ParseIP(hostname); ip != nil && ip.IsLoopback() {
-		scheme = "http"
-	}
-
-	return scheme + "://" + customURL
 }
 
 // Config accumulates the per-service middleware applied while a client is
@@ -193,10 +168,9 @@ func WithMiddleware(mw ...transport.Middleware) ConfigureFunc {
 }
 
 // Client provides unified access to Nhost auth, storage, graphql, and
-// functions. A Client and its service clients are safe for concurrent use by
-// multiple goroutines. Its SessionStorage is also safe for concurrent use when
-// the configured [session.Backend] satisfies the interface's concurrency
-// requirement.
+// functions. A Client, its service clients, and its SessionStorage are safe for
+// concurrent use when the configured [session.Backend] satisfies the
+// interface's concurrency requirement.
 type Client struct {
 	// Auth provides user authentication and account-management operations.
 	Auth *auth.Client
