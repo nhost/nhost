@@ -1,47 +1,78 @@
 package migrations
 
 import (
+	"context"
 	"database/sql"
 	"embed"
 	"errors"
 	"fmt"
+	"io/fs"
+	"log/slog"
 
-	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/postgres"
-	"github.com/golang-migrate/migrate/v4/source/iofs"
+	_ "github.com/lib/pq" // Register the PostgreSQL driver with database/sql.
+	"github.com/nhost/nhost/internal/lib/pgmigrate"
 )
 
-const schemaName = "storage"
+const (
+	schemaName                   = "storage"
+	postgresMigrationPath        = "postgres"
+	postgresMigrationTarget uint = 5
+)
 
 //go:embed postgres/*.sql
 var postgresMigrations embed.FS
 
-func ApplyPostgresMigration(postgresURL string) error {
-	db, err := sql.Open("postgres", postgresURL)
+type postgresMigrator func(
+	ctx context.Context,
+	logger *slog.Logger,
+	database pgmigrate.Database,
+	fsys fs.FS,
+	migrationPath string,
+	schema string,
+	target uint,
+) error
+
+func ApplyPostgresMigration(
+	ctx context.Context,
+	postgresURL string,
+	logger *slog.Logger,
+) error {
+	database, err := sql.Open("postgres", postgresURL)
 	if err != nil {
 		return fmt.Errorf("problem connecting to postgres: %w", err)
 	}
 
-	//nolint:exhaustruct
-	driver, err := postgres.WithInstance(db, &postgres.Config{SchemaName: schemaName})
-	if err != nil {
-		return fmt.Errorf("problem creating postgres driver: %w", err)
-	}
+	return runPostgresMigration(
+		ctx, logger, database, database.Close, pgmigrate.Migrate,
+	)
+}
 
-	source, err := iofs.New(postgresMigrations, "postgres")
-	if err != nil {
-		return fmt.Errorf("problem creating mirgations source: %w", err)
-	}
-
-	migration, err := migrate.NewWithInstance("iofs", source, "postgres", driver)
-	if err != nil {
-		return fmt.Errorf("problem migrations: %w", err)
-	}
-
-	if err := migration.Up(); err != nil { // or m.Step(2) if you want to explicitly set the number of migrations to run
-		if !errors.Is(err, migrate.ErrNoChange) {
-			return fmt.Errorf("problem migrating: %w", err)
+func runPostgresMigration(
+	ctx context.Context,
+	logger *slog.Logger,
+	database pgmigrate.Database,
+	closeDatabase func() error,
+	migrate postgresMigrator,
+) (result error) {
+	defer func() {
+		if err := closeDatabase(); err != nil {
+			result = errors.Join(
+				result,
+				fmt.Errorf("problem closing postgres migration pool: %w", err),
+			)
 		}
+	}()
+
+	if err := migrate(
+		ctx,
+		logger,
+		database,
+		postgresMigrations,
+		postgresMigrationPath,
+		schemaName,
+		postgresMigrationTarget,
+	); err != nil {
+		return fmt.Errorf("problem migrating postgres: %w", err)
 	}
 
 	return nil

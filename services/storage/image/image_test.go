@@ -7,6 +7,7 @@ import (
 	"errors"
 	"io"
 	"os"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -18,11 +19,12 @@ func TestManipulate(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
-		name     string
-		filename string
-		sum      string
-		size     uint64
-		options  image.Options
+		name           string
+		filename       string
+		sum            string
+		darwinArm64Sum string
+		size           uint64
+		options        image.Options
 	}{
 		{
 			name:     "jpg",
@@ -93,10 +95,11 @@ func TestManipulate(t *testing.T) {
 			},
 		},
 		{
-			name:     "jpeg to heic",
-			filename: "testdata/nhost.jpg",
-			sum:      "a97acda63296b073c47c602f45b2932654bc6432845e015978bf2b822bf65dff",
-			size:     33399,
+			name:           "jpeg to heic",
+			filename:       "testdata/nhost.jpg",
+			sum:            "a97acda63296b073c47c602f45b2932654bc6432845e015978bf2b822bf65dff",
+			darwinArm64Sum: "b77957715ed5b007af1ab035246f50009ffafe2eebc4b831d45ce05c133d048c",
+			size:           33399,
 			options: image.Options{
 				Width:   300,
 				Height:  100,
@@ -137,8 +140,15 @@ func TestManipulate(t *testing.T) {
 			}
 
 			got := hex.EncodeToString(hasher.Sum(nil))
-			if !cmp.Equal(got, tc.sum) {
-				t.Error(cmp.Diff(got, tc.sum))
+
+			want := tc.sum
+			if tc.darwinArm64Sum != "" && runtime.GOOS == "darwin" && runtime.GOARCH == "arm64" {
+				// libheif's Darwin arm64 output is deterministic but differs from Linux.
+				want = tc.darwinArm64Sum
+			}
+
+			if !cmp.Equal(got, want) {
+				t.Error(cmp.Diff(got, want))
 			}
 		})
 	}

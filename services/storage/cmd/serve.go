@@ -252,7 +252,7 @@ func applyMigrations(
 	if postgresMigrations {
 		logger.InfoContext(ctx, "applying postgres migrations")
 
-		if err := migrations.ApplyPostgresMigration(postgresSource); err != nil {
+		if err := migrations.ApplyPostgresMigration(ctx, postgresSource, logger); err != nil {
 			return fmt.Errorf("problem applying postgres migrations: %w", err)
 		}
 	}
