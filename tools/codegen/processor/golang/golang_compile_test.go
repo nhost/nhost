@@ -581,10 +581,12 @@ func renderGolangFixture(filename string) ([]byte, error) {
 		return nil, fmt.Errorf("building OpenAPI model: %w", err)
 	}
 
-	ir, err := processor.NewInterMediateRepresentation(
-		doc,
-		&golang.Golang{Package: "testpkg"},
-	)
+	goPlugin, err := golang.New("testpkg")
+	if err != nil {
+		return nil, fmt.Errorf("creating Go plugin: %w", err)
+	}
+
+	ir, err := processor.NewInterMediateRepresentation(doc, goPlugin)
 	if err != nil {
 		return nil, fmt.Errorf("creating intermediate representation: %w", err)
 	}
