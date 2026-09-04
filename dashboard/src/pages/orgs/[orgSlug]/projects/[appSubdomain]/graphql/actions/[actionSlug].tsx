@@ -1,10 +1,10 @@
 import type { ReactElement } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { ActionDetails } from '@/features/orgs/projects/graphql/actions/components/ActionDetails';
 import { ActionsBrowserSidebar } from '@/features/orgs/projects/graphql/actions/components/ActionsBrowserSidebar';
+import { getGraphQLLayout } from '@/features/orgs/projects/graphql/layout';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 export default function ActionDetailsPage() {
@@ -23,17 +23,9 @@ export default function ActionDetailsPage() {
 }
 
 ActionDetailsPage.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <ProjectLayout
-      mainContainerProps={{
-        className: 'flex h-full',
-      }}
-    >
-      <ActionsBrowserSidebar />
-
-      <div className="flex w-full flex-auto flex-col overflow-x-hidden bg-background">
-        {page}
-      </div>
-    </ProjectLayout>
-  );
+  return getGraphQLLayout(page, {
+    sidebar: <ActionsBrowserSidebar />,
+    contentClassName:
+      'flex w-full flex-auto flex-col overflow-x-hidden bg-background',
+  });
 };

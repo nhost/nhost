@@ -95,6 +95,7 @@ const subPageChildren: Record<
     'remote-schemas': ['graphql', 'remote', 'schemas'],
     actions: ['graphql', 'mutations', 'webhooks', 'custom types'],
     metadata: ['graphql', 'metadata'],
+    settings: ['graphql', 'settings', 'engine', 'rate limits'],
   }),
   events: toSubPageNodes(projectSubPagesBySlug.events, 'project-events', {
     'event-triggers': ['events', 'webhooks'],
@@ -132,7 +133,6 @@ const settingsPageMeta: Record<
     ],
   },
   'compute-resources': { keywords: ['settings', 'cpu', 'memory'] },
-  hasura: { keywords: ['settings', 'graphql engine', 'console'] },
   authentication: { keywords: ['settings', 'auth'] },
   jwt: { keywords: ['settings', 'tokens'] },
   'sign-in-methods': { keywords: ['settings', 'login'] },

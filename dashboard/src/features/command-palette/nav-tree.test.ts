@@ -56,6 +56,9 @@ describe('commandPaletteNavTree', () => {
     expect(byId.get('project-graphql-metadata')?.breadcrumb).toEqual([
       'GraphQL',
     ]);
+    expect(byId.get('project-graphql-settings')?.breadcrumb).toEqual([
+      'GraphQL',
+    ]);
     expect(byId.get('project-database-settings')?.breadcrumb).toEqual([
       'Database',
     ]);
@@ -66,6 +69,18 @@ describe('commandPaletteNavTree', () => {
     expect(byId.get('project-graphql')?.breadcrumb).toBeUndefined();
     expect(byId.get('org-settings')?.breadcrumb).toBeUndefined();
     expect(byId.get('docs')?.breadcrumb).toBeUndefined();
+  });
+
+  it('routes GraphQL settings through the GraphQL section', () => {
+    const byId = new Map(allNodes.map((node) => [node.id, node]));
+
+    expect(byId.get('project-graphql-settings')).toMatchObject({
+      title: 'Settings',
+      path: 'graphql/settings',
+      gate: 'settings',
+      keywords: expect.arrayContaining(['graphql', 'settings', 'engine']),
+    });
+    expect(byId.has('project-settings-hasura')).toBe(false);
   });
 
   it('routes migrated project-wide settings through General Settings', () => {

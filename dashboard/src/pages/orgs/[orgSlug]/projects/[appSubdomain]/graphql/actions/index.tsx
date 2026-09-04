@@ -1,11 +1,11 @@
 import type { ReactElement } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { ActionsBrowserSidebar } from '@/features/orgs/projects/graphql/actions/components/ActionsBrowserSidebar';
 import { ActionsEmptyState } from '@/features/orgs/projects/graphql/actions/components/ActionsEmptyState';
 import { NoActionsEmptyState } from '@/features/orgs/projects/graphql/actions/components/NoActionsEmptyState';
 import { useGetActions } from '@/features/orgs/projects/graphql/actions/hooks/useGetActions';
+import { getGraphQLLayout } from '@/features/orgs/projects/graphql/layout';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 export default function ActionsPage() {
@@ -46,17 +46,9 @@ export default function ActionsPage() {
 }
 
 ActionsPage.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <ProjectLayout
-      mainContainerProps={{
-        className: 'flex h-full',
-      }}
-    >
-      <ActionsBrowserSidebar />
-
-      <div className="flex w-full flex-auto flex-col overflow-x-hidden bg-background">
-        {page}
-      </div>
-    </ProjectLayout>
-  );
+  return getGraphQLLayout(page, {
+    sidebar: <ActionsBrowserSidebar />,
+    contentClassName:
+      'flex w-full flex-auto flex-col overflow-x-hidden bg-background',
+  });
 };

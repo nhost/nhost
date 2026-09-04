@@ -128,7 +128,6 @@ export const projectSettingsPages = definePages([
     slug: 'compute-resources',
     route: 'compute-resources',
   },
-  { name: 'Hasura', slug: 'hasura', route: 'hasura' },
   {
     name: 'Authentication',
     slug: 'authentication',
@@ -191,6 +190,12 @@ export const projectGraphQLPages = definePages([
     name: 'Metadata',
     slug: 'metadata',
     route: 'graphql/metadata',
+  },
+  {
+    name: 'Settings',
+    slug: 'settings',
+    route: 'graphql/settings',
+    gate: 'settings',
   },
 ]);
 
