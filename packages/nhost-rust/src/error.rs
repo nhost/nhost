@@ -15,6 +15,10 @@ use reqwest::header::HeaderMap;
 /// names, non-sensitive values, `message`, and `status` visible. Because
 /// arbitrary field names and the human-readable message can still contain
 /// sensitive data, treat debug output as redacted rather than secret-free.
+///
+/// This type is non-exhaustive so response metadata can grow without breaking
+/// downstream crates. Use [`ApiError::new`] to construct one in test fixtures.
+#[non_exhaustive]
 #[derive(Clone, thiserror::Error)]
 #[error("{message} (HTTP {status})")]
 pub struct ApiError {
@@ -31,6 +35,23 @@ pub struct ApiError {
     pub body: serde_json::Value,
     /// The response headers.
     pub headers: HeaderMap,
+}
+
+impl ApiError {
+    /// Creates an API error from its response parts.
+    pub fn new(
+        message: impl Into<String>,
+        status: u16,
+        body: serde_json::Value,
+        headers: HeaderMap,
+    ) -> Self {
+        Self {
+            message: message.into(),
+            status,
+            body,
+            headers,
+        }
+    }
 }
 
 impl std::fmt::Debug for ApiError {
@@ -174,6 +195,11 @@ fn normalize_field_name(name: &str) -> String {
 /// recursively redacts credential-bearing values in partial data and structured
 /// error fields, and redacts credential-bearing response header values. Error
 /// messages remain visible and may contain sensitive data supplied by a server.
+///
+/// This type is non-exhaustive so additional GraphQL failure context can be
+/// retained without breaking downstream crates. Use
+/// [`GraphqlOperationError::new`] to construct one in test fixtures.
+#[non_exhaustive]
 #[derive(Clone, thiserror::Error)]
 #[error("GraphQL error: {}", GraphqlErrorsDisplay(.errors.as_slice()))]
 pub struct GraphqlOperationError {
@@ -195,7 +221,8 @@ impl std::fmt::Debug for GraphqlOperationError {
 }
 
 impl GraphqlOperationError {
-    pub(crate) fn new(
+    /// Creates a GraphQL operation error from its response parts.
+    pub fn new(
         errors: Vec<GraphqlError>,
         data: Option<serde_json::Value>,
         status: u16,
@@ -249,6 +276,10 @@ impl std::fmt::Display for GraphqlErrorsDisplay<'_> {
 }
 
 /// The error type returned by every fallible SDK operation.
+///
+/// This enum is non-exhaustive because the SDK may gain new failure modes.
+/// Downstream matches must include a wildcard arm.
+#[non_exhaustive]
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     /// A request completed with a 3xx status other than 304, or a 4xx/5xx
@@ -293,13 +324,25 @@ pub enum Error {
 
 impl Error {
     /// Builds an [`Error::Api`] from its parts.
-    pub fn api(message: String, status: u16, body: serde_json::Value, headers: HeaderMap) -> Self {
-        Error::Api(Box::new(ApiError {
-            message,
-            status,
-            body,
-            headers,
-        }))
+    pub fn api(
+        message: impl Into<String>,
+        status: u16,
+        body: serde_json::Value,
+        headers: HeaderMap,
+    ) -> Self {
+        Error::Api(Box::new(ApiError::new(message, status, body, headers)))
+    }
+
+    /// Builds an [`Error::GraphQl`] from its response parts.
+    pub fn graphql(
+        errors: Vec<GraphqlError>,
+        data: Option<serde_json::Value>,
+        status: u16,
+        headers: HeaderMap,
+    ) -> Self {
+        Error::GraphQl(Box::new(GraphqlOperationError::new(
+            errors, data, status, headers,
+        )))
     }
 
     /// Builds an [`Error::Api`] from a buffered error response, extracting a
