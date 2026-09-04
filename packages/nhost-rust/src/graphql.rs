@@ -33,6 +33,11 @@ pub type Variables = serde_json::Value;
 /// `locations`, `path`, and `extensions`. The conventional `extensions.code`
 /// classification, message, and non-sensitive values remain visible; a
 /// server-supplied message may itself contain sensitive data.
+///
+/// This type is non-exhaustive because future GraphQL revisions or Nhost
+/// services may provide additional structured error fields. Use
+/// [`GraphqlError::new`] to construct one in test fixtures.
+#[non_exhaustive]
 #[derive(Clone, Serialize, Deserialize)]
 pub struct GraphqlError {
     pub message: String,
@@ -83,6 +88,19 @@ impl std::fmt::Debug for RedactedGraphqlExtensions<'_> {
 }
 
 impl GraphqlError {
+    /// Creates a GraphQL error with no locations, path, or extensions.
+    ///
+    /// The public fields can be updated when a test fixture needs structured
+    /// context.
+    pub fn new(message: impl Into<String>) -> Self {
+        Self {
+            message: message.into(),
+            locations: None,
+            path: None,
+            extensions: None,
+        }
+    }
+
     /// Returns the machine-readable `extensions.code`, when it is a string.
     pub fn code(&self) -> Option<&str> {
         self.extensions.as_ref()?.get("code")?.as_str()
@@ -90,12 +108,24 @@ impl GraphqlError {
 }
 
 /// The standard GraphQL response envelope, with `data` decoded as `T`.
+///
+/// This type is non-exhaustive so the envelope can retain additional protocol
+/// metadata without breaking downstream crates. Use [`GraphqlResponse::new`]
+/// to construct one in test fixtures.
+#[non_exhaustive]
 #[derive(Debug, Clone, Deserialize)]
 pub struct GraphqlResponse<T> {
     #[serde(default = "Option::default")]
     pub data: Option<T>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub errors: Option<Vec<GraphqlError>>,
+}
+
+impl<T> GraphqlResponse<T> {
+    /// Creates a GraphQL response envelope from optional data and errors.
+    pub fn new(data: Option<T>, errors: Option<Vec<GraphqlError>>) -> Self {
+        Self { data, errors }
+    }
 }
 
 #[derive(Serialize)]

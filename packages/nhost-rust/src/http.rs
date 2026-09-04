@@ -52,6 +52,10 @@ pub(crate) fn append_path(base_url: &str, segments: &[&str]) -> Result<url::Url,
 /// [`Debug`](std::fmt::Debug) includes the response headers verbatim. Do not
 /// format a response with `Debug` when its headers can contain credentials or
 /// cookies.
+///
+/// This type is non-exhaustive so additional response metadata can be retained
+/// without breaking downstream crates. Use [`Response::new`] to construct one.
+#[non_exhaustive]
 #[derive(Debug, Clone)]
 pub struct Response<T> {
     /// The decoded response payload. `()` for operations with no body.
@@ -63,6 +67,15 @@ pub struct Response<T> {
 }
 
 impl<T> Response<T> {
+    /// Creates a successful response from its payload and transport metadata.
+    pub fn new(body: T, status: u16, headers: HeaderMap) -> Self {
+        Self {
+            body,
+            status,
+            headers,
+        }
+    }
+
     /// Discards the status and headers, yielding just the payload.
     pub fn into_body(self) -> T {
         self.body

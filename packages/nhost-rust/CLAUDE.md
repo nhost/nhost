@@ -186,10 +186,24 @@ code for crate conventions.
   falls back to `MemoryStorage` when a `localStorage` handle cannot be obtained at
   construction; if an obtained handle's later `get_item` call fails (for example,
   access is revoked), that read does reach this error path.
-- **`Error` is a real enum** (`Api(Box<ApiError>)`,
+- **`Error` is a real, non-exhaustive enum** (`Api(Box<ApiError>)`,
   `GraphQl(Box<GraphqlOperationError>)`, `InvalidToken`, `Config`, `Storage`,
-  `Http`, `Middleware`, `Json`). Boxed response errors keep `Result<_, Error>`
-  small (there's a `<= 32` size test). For `ApiError`, a message extracted from
+  `Http`, `Middleware`, `Json`). The SDK-owned `Error` and `Service` enums, and
+  the `ApiError`, `GraphqlOperationError`, `GraphqlError`, `GraphqlResponse<T>`,
+  and `http::Response<T>` output/error structs are deliberately
+  `#[non_exhaustive]`: new failure modes, services, protocol fields, and
+  response metadata must not break downstream matches or literals. Public
+  fields remain readable and mutable, while `new` constructors plus
+  `Error::api`/`Error::graphql` keep downstream test-fixture construction
+  available. Compile-fail doctests provide actual downstream-crate assurance;
+  in-crate matches and literals are intentionally exempt from the attribute.
+  Caller-authored inputs/configuration and generated wire models remain
+  exhaustive because direct literal construction is their intended API. The
+  fixed RFC value `PkcePair` and session persistence values (`DecodedToken` and
+  `StoredSession`) also stay exhaustive: their fields define stable exchange or
+  persistence shapes, and callers legitimately build them directly.
+  Boxed response errors keep `Result<_, Error>` small (there's a `<= 32` size
+  test). For `ApiError`, a message extracted from
   a recognized JSON response body takes precedence; unstructured non-JSON
   bodies are retained but never promoted to the message. A trimmed, non-blank
   `X-Error` header is the fallback when the body has no recognized message.
