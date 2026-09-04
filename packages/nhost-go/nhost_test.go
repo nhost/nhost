@@ -252,12 +252,19 @@ func TestWithAdminSessionNeverHitsAuth(t *testing.T) {
 	}
 
 	observed := make(chan observedRequest, 4)
+	recordRequest := func(got observedRequest) {
+		select {
+		case observed <- got:
+		default:
+			t.Errorf("unexpected extra request: %+v", got)
+		}
+	}
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		observed <- observedRequest{
+		recordRequest(observedRequest{
 			path:        req.URL.Path,
 			adminSecret: req.Header.Get("x-hasura-admin-secret"),
-		}
+		})
 
 		w.Header().Set("Content-Type", "application/json")
 
@@ -323,6 +330,12 @@ func TestWithAdminSessionNeverHitsAuth(t *testing.T) {
 		if got := <-observed; got != want {
 			t.Errorf("request = %+v, want %+v", got, want)
 		}
+	}
+
+	select {
+	case got := <-observed:
+		t.Errorf("unexpected extra request: %+v", got)
+	default:
 	}
 }
 

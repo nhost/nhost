@@ -136,7 +136,7 @@ func (f *FileStorage) Remove() {
 }
 
 // DetectStorage returns the default backend for the current environment.
-func DetectStorage() Backend { //nolint:ireturn
+func DetectStorage() Backend { //nolint:ireturn // Intentionally hides the selected backend.
 	return &MemoryStorage{mu: sync.RWMutex{}, session: nil}
 }
 

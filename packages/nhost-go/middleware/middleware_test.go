@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -318,6 +319,41 @@ func TestWithAdminSession(t *testing.T) {
 	}
 }
 
+//nolint:paralleltest // The test temporarily replaces slog's process-wide default logger.
+func TestWithAdminSessionLogsWhenSecretIsWithheld(t *testing.T) {
+	var logs bytes.Buffer
+
+	originalLogger := slog.Default()
+
+	slog.SetDefault(slog.New(slog.NewTextHandler(&logs, &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+	})))
+	t.Cleanup(func() { slog.SetDefault(originalLogger) })
+
+	adminCredential := t.Name()
+	seen := run(t, middleware.WithAdminSession(middleware.AdminSessionOptions{
+		AdminSecret:       adminCredential,
+		Role:              "",
+		SessionVariables:  nil,
+		AllowInsecureHTTP: false,
+	}, "http://selfhosted.internal:1337/v1"), newReq(
+		t,
+		"http://selfhosted.internal:1337/v1/graphql",
+	))
+
+	if got := seen.Header.Get("x-hasura-admin-secret"); got != "" {
+		t.Fatalf("admin secret = %q, want empty", got)
+	}
+
+	if !strings.Contains(logs.String(), "admin secret withheld from insecure HTTP request") {
+		t.Fatalf("debug log = %q, want withheld-secret explanation", logs.String())
+	}
+
+	if strings.Contains(logs.String(), adminCredential) {
+		t.Fatalf("debug log contains admin secret: %q", logs.String())
+	}
+}
+
 func TestWithAdminSessionInsecureHTTPRequiresOptIn(t *testing.T) {
 	t.Parallel()
 
@@ -585,6 +621,45 @@ func TestSessionRefreshDoesNotTreatFunctionTokenPathAsAuthToken(t *testing.T) {
 
 	if got := refreshCalls.Load(); got != 1 {
 		t.Fatalf("refresh calls = %d, want 1", got)
+	}
+}
+
+func TestSessionRefreshSkipsAuthTokenEndpoint(t *testing.T) {
+	t.Parallel()
+
+	var refreshCalls atomic.Int32
+
+	freshAccessToken := makeToken(t)
+
+	refreshServer := httptest.NewServer(
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			refreshCalls.Add(1)
+			w.Header().Set("Content-Type", "application/json")
+
+			if err := json.NewEncoder(w).Encode(auth.Session{
+				AccessToken:  freshAccessToken,
+				RefreshToken: "new-refresh",
+			}); err != nil {
+				t.Errorf("encode refresh response: %v", err)
+			}
+		}),
+	)
+	defer refreshServer.Close()
+
+	store := session.NewStorage(&fakeBackend{sess: &session.StoredSession{
+		Session:      auth.Session{AccessToken: "expired", RefreshToken: "refresh"},
+		DecodedToken: session.DecodedToken{Exp: 1},
+	}})
+	authClient := auth.NewClient(refreshServer.URL+"/v1", refreshServer.Client())
+
+	run(
+		t,
+		middleware.SessionRefresh(authClient, store, 60),
+		newReq(t, refreshServer.URL+"/v1/token"),
+	)
+
+	if got := refreshCalls.Load(); got != 0 {
+		t.Fatalf("refresh calls = %d, want 0", got)
 	}
 }
 
