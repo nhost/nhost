@@ -70,6 +70,11 @@ func (c *Client) {{ .Name }}(
 	}
 {{- end }}
 {{- else if .RequestFormURLEncoded }}
+{{- if not .BodyRequired }}
+	var req *http.Request
+	var err error
+	if body != nil {
+{{- end }}
 	form := url.Values{}
 {{- range .RequestFormURLEncoded.Properties }}
 {{- if .Optional }}
@@ -80,13 +85,32 @@ func (c *Client) {{ .Name }}(
 	form.Set("{{ .RawName }}", fmt.Sprint(body.{{ .Name }}))
 {{- end }}
 {{- end }}
+{{- if .BodyRequired }}
 	req, err := http.NewRequestWithContext(ctx, "{{ .Method }}", u, bytes.NewBufferString(form.Encode()))
+{{- else }}
+		req, err = http.NewRequestWithContext(ctx, "{{ .Method }}", u, bytes.NewBufferString(form.Encode()))
+	} else {
+		req, err = http.NewRequestWithContext(ctx, "{{ .Method }}", u, nil)
+	}
+{{- end }}
 	if err != nil {
 		return payload, nil, err
 	}
+{{- if .BodyRequired }}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+{{- else }}
+	if body != nil {
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	}
+{{- end }}
 {{- else if .RequestFormData }}
 {{- $m := . }}
+{{- if not .BodyRequired }}
+	var req *http.Request
+	var err error
+	var contentType string
+	if body != nil {
+{{- end }}
 	var formBuf bytes.Buffer
 	mw := multipart.NewWriter(&formBuf)
 {{- range .RequestFormData.Properties }}
@@ -205,11 +229,25 @@ func (c *Client) {{ .Name }}(
 	if err := mw.Close(); err != nil {
 		return payload, nil, err
 	}
+{{- if .BodyRequired }}
 	req, err := http.NewRequestWithContext(ctx, "{{ .Method }}", u, &formBuf)
+{{- else }}
+		req, err = http.NewRequestWithContext(ctx, "{{ .Method }}", u, &formBuf)
+		contentType = mw.FormDataContentType()
+	} else {
+		req, err = http.NewRequestWithContext(ctx, "{{ .Method }}", u, nil)
+	}
+{{- end }}
 	if err != nil {
 		return payload, nil, err
 	}
+{{- if .BodyRequired }}
 	req.Header.Set("Content-Type", mw.FormDataContentType())
+{{- else }}
+	if body != nil {
+		req.Header.Set("Content-Type", contentType)
+	}
+{{- end }}
 {{- else }}
 	req, err := http.NewRequestWithContext(ctx, "{{ .Method }}", u, nil)
 	if err != nil {

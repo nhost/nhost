@@ -64,6 +64,7 @@ func TestGolangRender(t *testing.T) {
 		{name: "methods_ref.yaml"},
 		{name: "content.yaml"},
 		{name: "form-url-encoded.yaml"},
+		{name: "optional-form-url-encoded.yaml"},
 		{name: "deepobject-map.yaml"},
 	}
 

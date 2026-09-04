@@ -472,41 +472,51 @@ func (c *Client) ReplaceFile(
 ) (FileMetadata, *transport.Response, error) {
 	var payload FileMetadata
 	u := fmt.Sprintf("%s/files/%s", c.BaseURL, escapePathSegment(id))
-	var formBuf bytes.Buffer
-	mw := multipart.NewWriter(&formBuf)
-	if body.Metadata != nil {
-		jb, err := json.Marshal(body.Metadata)
-		if err != nil {
+	var req *http.Request
+	var err error
+	var contentType string
+	if body != nil {
+		var formBuf bytes.Buffer
+		mw := multipart.NewWriter(&formBuf)
+		if body.Metadata != nil {
+			jb, err := json.Marshal(body.Metadata)
+			if err != nil {
+				return payload, nil, err
+			}
+			ph := textproto.MIMEHeader{}
+			ph.Set("Content-Disposition", `form-data; name="metadata"`)
+			ph.Set("Content-Type", "application/json")
+			pw, err := mw.CreatePart(ph)
+			if err != nil {
+				return payload, nil, err
+			}
+			if _, err := pw.Write(jb); err != nil {
+				return payload, nil, err
+			}
+		}
+		{
+			fw, err := mw.CreateFormFile("file", "file")
+			if err != nil {
+				return payload, nil, err
+			}
+			if _, err := fw.Write(body.File); err != nil {
+				return payload, nil, err
+			}
+		}
+		if err := mw.Close(); err != nil {
 			return payload, nil, err
 		}
-		ph := textproto.MIMEHeader{}
-		ph.Set("Content-Disposition", `form-data; name="metadata"`)
-		ph.Set("Content-Type", "application/json")
-		pw, err := mw.CreatePart(ph)
-		if err != nil {
-			return payload, nil, err
-		}
-		if _, err := pw.Write(jb); err != nil {
-			return payload, nil, err
-		}
+		req, err = http.NewRequestWithContext(ctx, "PUT", u, &formBuf)
+		contentType = mw.FormDataContentType()
+	} else {
+		req, err = http.NewRequestWithContext(ctx, "PUT", u, nil)
 	}
-	{
-		fw, err := mw.CreateFormFile("file", "file")
-		if err != nil {
-			return payload, nil, err
-		}
-		if _, err := fw.Write(body.File); err != nil {
-			return payload, nil, err
-		}
-	}
-	if err := mw.Close(); err != nil {
-		return payload, nil, err
-	}
-	req, err := http.NewRequestWithContext(ctx, "PUT", u, &formBuf)
 	if err != nil {
 		return payload, nil, err
 	}
-	req.Header.Set("Content-Type", mw.FormDataContentType())
+	if body != nil {
+		req.Header.Set("Content-Type", contentType)
+	}
 	for k, vs := range headers {
 		for _, v := range vs {
 			req.Header.Add(k, v)

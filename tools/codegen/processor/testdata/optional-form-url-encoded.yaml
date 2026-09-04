@@ -1,0 +1,25 @@
+openapi: "3.0.0"
+
+paths:
+  /optional-form:
+    post:
+      operationId: submitOptionalForm
+      requestBody:
+        required: false
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/OptionalFormRequest"
+      responses:
+        "204":
+          description: Optional form accepted
+
+components:
+  schemas:
+    OptionalFormRequest:
+      type: object
+      properties:
+        value:
+          type: string
+      required:
+        - value
