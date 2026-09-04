@@ -41,6 +41,7 @@ let
 
           ../../internal/lib/oapi
           ../../internal/lib/hasura/metadata
+          (fs.fileFilter (f: f.hasExt "go") ../../internal/lib/pgmigrate)
         ])
         (
           fs.unions [
@@ -122,6 +123,13 @@ let
     vips
   ];
 
+  # vips forces external linking, so Darwin's cgo DNS objects need libresolv explicitly.
+  checkBuildInputs =
+    buildInputs
+    ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
+      pkgs.darwin.libresolv
+    ];
+
   nativeBuildInputs = with pkgs; [
     clang
     pkg-config
@@ -134,10 +142,10 @@ rec {
       submodule
       ldflags
       tags
-      buildInputs
       nativeBuildInputs
       checkDeps
       ;
+    buildInputs = checkBuildInputs;
 
     preCheck = ''
       export GIN_MODE=release
