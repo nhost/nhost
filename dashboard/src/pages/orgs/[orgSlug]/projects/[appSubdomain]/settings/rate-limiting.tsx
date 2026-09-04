@@ -9,7 +9,6 @@ import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { AuthLimitingForm } from '@/features/orgs/projects/rate-limiting/settings/components/AuthLimitingForm';
 import { RateLimitingForm } from '@/features/orgs/projects/rate-limiting/settings/components/RateLimitingForm';
 import { RunServiceLimitingForm } from '@/features/orgs/projects/rate-limiting/settings/components/RunServiceLimitingForm';
 import { useGetRateLimits } from '@/features/orgs/projects/rate-limiting/settings/hooks/useGetRateLimits';
@@ -47,7 +46,6 @@ export default function RateLimiting() {
           />
         </SettingsCardFooter>
       </SettingsCard>
-      <AuthLimitingForm />
       <RateLimitingForm
         defaultValues={storageDefaultValues}
         loading={loadingBaseServices}

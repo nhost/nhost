@@ -105,6 +105,7 @@ const subPageChildren: Record<
   auth: toSubPageNodes(projectSubPagesBySlug.auth, 'project-auth', {
     users: ['auth', 'accounts'],
     'oauth2-clients': ['auth', 'oauth', 'clients'],
+    settings: ['auth', 'settings', 'sign-in', 'jwt'],
   }),
   ai: toSubPageNodes(projectSubPagesBySlug.ai, 'project-ai', {
     'auto-embeddings': ['ai', 'embeddings'],
@@ -133,13 +134,7 @@ const settingsPageMeta: Record<
     ],
   },
   'compute-resources': { keywords: ['settings', 'cpu', 'memory'] },
-  authentication: { keywords: ['settings', 'auth'] },
-  jwt: { keywords: ['settings', 'tokens'] },
-  'sign-in-methods': { keywords: ['settings', 'login'] },
-  'oauth2-provider': { keywords: ['settings', 'oauth'] },
-  'roles-and-permissions': { keywords: ['settings', 'access control'] },
   storage: { keywords: ['settings', 'files'] },
-  smtp: { keywords: ['settings', 'email'] },
   deployments: { keywords: ['settings', 'releases'] },
   'custom-domains': { keywords: ['settings', 'domains'] },
   'rate-limiting': { keywords: ['settings', 'limits'] },

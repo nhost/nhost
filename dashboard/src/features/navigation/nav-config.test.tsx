@@ -3,6 +3,7 @@ import {
   getSettingsPageRoute,
   isPageGated,
   orgPages,
+  projectAuthPages,
   projectDatabasePages,
   projectGraphQLPages,
   projectPages,
@@ -46,13 +47,7 @@ describe('navigation nav-config', () => {
     expect(projectSettingsPages.map((page) => page.slug)).toEqual([
       'general',
       'compute-resources',
-      'authentication',
-      'jwt',
-      'sign-in-methods',
-      'oauth2-provider',
-      'roles-and-permissions',
       'storage',
-      'smtp',
       'deployments',
       'custom-domains',
       'rate-limiting',
@@ -90,6 +85,14 @@ describe('navigation nav-config', () => {
         shouldDisableSettings: true,
       }),
     ).toBe(false);
+  });
+
+  it('keeps Auth sub-pages in route-tab order', () => {
+    expect(projectAuthPages.map((page) => page.slug)).toEqual([
+      'users',
+      'oauth2-clients',
+      'settings',
+    ]);
   });
 
   it('keeps database sub-pages in route-tab order', () => {
