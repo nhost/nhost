@@ -113,7 +113,7 @@ Generated API client, backed by a reqwest-middleware chain.
 ##### `new`
 
 ```rust
-fn new<impl Into<String>: Into<String>>(base_url: impl Into<String>, reqwest: Client, middleware: Vec<Arc<dyn Middleware>>) -> Self
+fn new(base_url: impl Into<String>, reqwest: reqwest::Client, middleware: Vec<Arc<dyn reqwest_middleware::Middleware>>) -> Self
 ```
 
 Creates a new API client for `base_url` from a base client and an
@@ -136,7 +136,7 @@ which cannot work on wasm; only the auth service returns sessions.
 ##### `with_role`
 
 ```rust
-fn with_role<impl Into<String>: Into<String>>(&self, role: impl Into<String>) -> Self
+fn with_role(&self, role: impl Into<String>) -> Self
 ```
 
 Returns a copy of this client that sends `x-hasura-role: <role>` on every
@@ -649,7 +649,7 @@ struct CreatePatRequest
 | Field | Type | Description |
 | --- | --- | --- |
 | `expires_at` | `String` |  |
-| `metadata` | `Option<Value>` |  |
+| `metadata` | `Option<serde_json::Value>` |  |
 
 ### `CreatePatResponse`
 
@@ -675,7 +675,7 @@ struct CredentialAssertionResponse
 | Field | Type | Description |
 | --- | --- | --- |
 | `id` | `String` |  |
-| `type_` | `String` |  |
+| `r#type` | `String` |  |
 | `raw_id` | `UrlEncodedBase64` |  |
 | `client_extension_results` | `Option<AuthenticationExtensionsClientOutputs>` |  |
 | `authenticator_attachment` | `Option<String>` |  |
@@ -692,7 +692,7 @@ struct CredentialCreationResponse
 | Field | Type | Description |
 | --- | --- | --- |
 | `id` | `String` |  |
-| `type_` | `String` |  |
+| `r#type` | `String` |  |
 | `raw_id` | `UrlEncodedBase64` |  |
 | `client_extension_results` | `Option<AuthenticationExtensionsClientOutputs>` |  |
 | `authenticator_attachment` | `Option<String>` |  |
@@ -708,7 +708,7 @@ struct CredentialParameter
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `type_` | `CredentialType` |  |
+| `r#type` | `CredentialType` |  |
 | `alg` | `i64` |  |
 
 ### `CredentialPropertiesOutput`
@@ -735,7 +735,7 @@ struct ErrorResponse
 | --- | --- | --- |
 | `status` | `i64` |  |
 | `message` | `String` |  |
-| `error` | `ErrorResponseError` |  |
+| `error` | `auth::ErrorResponseError` |  |
 
 ### `GetVersionResponse200`
 
@@ -764,7 +764,7 @@ struct Jwk
 | `kid` | `String` |  |
 | `kty` | `String` |  |
 | `n` | `String` |  |
-| `use_` | `String` |  |
+| `r#use` | `String` |  |
 
 ### `JwkSet`
 
@@ -1079,8 +1079,8 @@ A PKCE code verifier and its derived S256 challenge.
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `verifier` | `String` |  |
-| `challenge` | `String` |  |
+| `verifier` | `String` | The high-entropy secret sent only when exchanging the authorization code. |
+| `challenge` | `String` | The public S256 digest sent with the initial authorization request. |
 
 ### `ProviderSession`
 
@@ -1130,7 +1130,7 @@ struct PublicKeyCredentialCreationOptions
 | `hints` | `Option<Vec<PublicKeyCredentialHints>>` |  |
 | `attestation` | `Option<ConveyancePreference>` |  |
 | `attestation_formats` | `Option<Vec<AttestationFormat>>` |  |
-| `extensions` | `Option<Value>` |  |
+| `extensions` | `Option<serde_json::Value>` |  |
 
 ### `PublicKeyCredentialDescriptor`
 
@@ -1142,7 +1142,7 @@ struct PublicKeyCredentialDescriptor
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `type_` | `CredentialType` |  |
+| `r#type` | `CredentialType` |  |
 | `id` | `UrlEncodedBase64` |  |
 | `transports` | `Option<Vec<AuthenticatorTransport>>` |  |
 
@@ -1162,7 +1162,7 @@ struct PublicKeyCredentialRequestOptions
 | `allow_credentials` | `Option<Vec<PublicKeyCredentialDescriptor>>` |  |
 | `user_verification` | `Option<UserVerificationRequirement>` |  |
 | `hints` | `Option<Vec<PublicKeyCredentialHints>>` |  |
-| `extensions` | `Option<Value>` |  |
+| `extensions` | `Option<serde_json::Value>` |  |
 
 ### `RefreshProviderTokenRequest`
 
@@ -1241,7 +1241,7 @@ struct SignInAnonymousRequest
 | --- | --- | --- |
 | `display_name` | `Option<String>` |  |
 | `locale` | `Option<String>` |  |
-| `metadata` | `Option<Value>` |  |
+| `metadata` | `Option<serde_json::Value>` |  |
 
 ### `SignInEmailPasswordRequest`
 
@@ -1414,7 +1414,7 @@ struct SignInProviderParams
 | `default_role` | `Option<String>` |  |
 | `display_name` | `Option<String>` |  |
 | `locale` | `Option<String>` |  |
-| `metadata` | `Option<Value>` |  |
+| `metadata` | `Option<serde_json::Value>` |  |
 | `redirect_to` | `Option<String>` |  |
 | `connect` | `Option<String>` |  |
 | `state` | `Option<String>` |  |
@@ -1508,7 +1508,7 @@ struct SignUpOptions
 | `default_role` | `Option<String>` |  |
 | `display_name` | `Option<String>` |  |
 | `locale` | `Option<String>` |  |
-| `metadata` | `Option<Value>` |  |
+| `metadata` | `Option<serde_json::Value>` |  |
 | `redirect_to` | `Option<String>` |  |
 
 ### `SignUpOtpEmailRequest`
@@ -1565,7 +1565,7 @@ struct SignUpProviderParams
 | `default_role` | `Option<String>` |  |
 | `display_name` | `Option<String>` |  |
 | `locale` | `Option<String>` |  |
-| `metadata` | `Option<Value>` |  |
+| `metadata` | `Option<serde_json::Value>` |  |
 | `redirect_to` | `Option<String>` |  |
 | `state` | `Option<String>` |  |
 | `provider_specific_params` | `Option<ProviderSpecificParams>` |  |
@@ -1649,7 +1649,7 @@ struct User
 | `id` | `String` |  |
 | `is_anonymous` | `bool` |  |
 | `locale` | `String` |  |
-| `metadata` | `Option<Value>` |  |
+| `metadata` | `Option<serde_json::Value>` |  |
 | `phone_number` | `Option<String>` |  |
 | `phone_number_verified` | `bool` |  |
 | `roles` | `Vec<String>` |  |
@@ -1829,7 +1829,7 @@ struct VerifyTicketParams
 | Field | Type | Description |
 | --- | --- | --- |
 | `ticket` | `TicketQuery` |  |
-| `type_` | `Option<TicketTypeQuery>` |  |
+| `r#type` | `Option<TicketTypeQuery>` |  |
 | `redirect_to` | `RedirectToQuery` |  |
 | `code_challenge` | `Option<String>` |  |
 

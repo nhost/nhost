@@ -86,9 +86,9 @@ recursing into itself.
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `auth` | `Arc<Client>` | The client used to call the refresh endpoint. |
+| `auth` | `Arc<auth::Client>` | The client used to call the refresh endpoint. |
 | `storage` | `SessionStorage` | The store the refresh token is read from and the new session written to. |
-| `margin` | `i64` | Seconds before expiry at which to refresh; `0` always refreshes. |
+| `margin` | `i64` | Seconds before expiry at which to refresh; `0` always refreshes. Negative or unrepresentably large values fail the request with a configuration error. |
 
 ### `SetHeaders`
 
