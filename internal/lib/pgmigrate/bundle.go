@@ -38,14 +38,6 @@ type migrationPair struct {
 	down *migrationFile
 }
 
-// ValidateBundle verifies that migrationPath contains a complete, executable
-// golang-migrate bundle. Its maximum version becomes the migration target.
-func ValidateBundle(fsys fs.FS, migrationPath string) error {
-	_, err := loadBundle(fsys, migrationPath)
-
-	return err
-}
-
 func loadBundle(fsys fs.FS, migrationPath string) (*bundle, error) {
 	if fsys == nil {
 		return nil, &ConfigurationError{
