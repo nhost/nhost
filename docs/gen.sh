@@ -104,12 +104,16 @@ function build_rustdoc() {
 	# In the docs check both rustdoc JSON files are staged by preCheck from the
 	# prebuilt nhost-rust-doc package, so only the Node transformer runs and no
 	# cargo is needed. A plain local checkout generates whichever inputs are
-	# missing. If neither input nor cargo exists, retain the committed pages.
+	# missing and fails rather than reporting success with stale reference pages.
 	if [ ! -f "$DOC_JSON" ] || [ ! -f "$WASM_DOC_JSON" ]; then
-		if [ ! -d "$RUST_PKG" ] || ! command -v cargo >/dev/null 2>&1; then
+		if [ ! -d "$RUST_PKG" ]; then
+			echo "Error: Rust SDK package is unavailable at $RUST_PKG" >&2
+			return 1
+		fi
+		if ! command -v cargo >/dev/null 2>&1; then
 			if [ ! -f "$DOC_JSON" ] && [ ! -f "$WASM_DOC_JSON" ]; then
-				echo "⚒️⚒️⚒️ Skipping Rust SDK documentation (no rustdoc JSON / cargo)"
-				return 0
+				echo "Error: Rust SDK documentation artifacts are missing and cargo is unavailable" >&2
+				return 1
 			fi
 			echo "Error: incomplete Rust SDK documentation artifacts and cargo is unavailable" >&2
 			return 1

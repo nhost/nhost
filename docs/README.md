@@ -84,10 +84,11 @@ after changing one of their sources, then commit the result:
 | `packages/nhost-rust` (rustdoc JSON → `rustdoc-to-md.mjs`) | `reference/rust/nhost-rust/**` |
 | OpenAPI schemas (auth, storage) | `src/schemas/*.yaml` |
 
-Run it in the docs Nix dev shell (`nix develop .#docs`, which provides the `cli` binary)
-on Linux — the TypeDoc/OpenAPI steps use GNU `sed`, which misbehaves on macOS. The Rust
-reference step additionally needs a Rust toolchain on `PATH` (`cargo`/`rustdoc`); it uses
-`RUSTC_BOOTSTRAP=1` so rustdoc's JSON output works on both stable and nightly channels.
+Run it in the docs Nix dev shell (`nix develop .#docs`, which provides the `cli` binary and
+Rust toolchain) on Linux — the TypeDoc/OpenAPI steps use GNU `sed`, which misbehaves on macOS.
+Outside that shell, the Rust reference step requires `cargo`/`rustdoc` on `PATH` and fails if
+its rustdoc JSON inputs are missing and no toolchain is available. It uses `RUSTC_BOOTSTRAP=1`
+so rustdoc's JSON output works on both stable and nightly channels.
 
 ### Testing the CLI reference generator
 
