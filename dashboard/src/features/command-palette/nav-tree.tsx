@@ -107,6 +107,10 @@ const subPageChildren: Record<
     'oauth2-clients': ['auth', 'oauth', 'clients'],
     settings: ['auth', 'settings', 'sign-in', 'jwt'],
   }),
+  storage: toSubPageNodes(projectSubPagesBySlug.storage, 'project-storage', {
+    storage: ['storage', 'files', 'buckets'],
+    settings: ['storage', 'settings', 'rate limits'],
+  }),
   ai: toSubPageNodes(projectSubPagesBySlug.ai, 'project-ai', {
     'auto-embeddings': ['ai', 'embeddings'],
     assistants: ['ai', 'agents'],
@@ -134,7 +138,6 @@ const settingsPageMeta: Record<
     ],
   },
   'compute-resources': { keywords: ['settings', 'cpu', 'memory'] },
-  storage: { keywords: ['settings', 'files'] },
   deployments: { keywords: ['settings', 'releases'] },
   'custom-domains': { keywords: ['settings', 'domains'] },
   'rate-limiting': { keywords: ['settings', 'limits'] },
@@ -180,7 +183,10 @@ const projectPageMeta: Record<
     keywords: ['users', 'authentication'],
     children: subPageChildren.auth,
   },
-  storage: { keywords: ['files', 'buckets'] },
+  storage: {
+    keywords: ['files', 'buckets'],
+    children: subPageChildren.storage,
+  },
   functions: { keywords: ['serverless', 'code'] },
   run: { keywords: ['services', 'docker'] },
   ai: {

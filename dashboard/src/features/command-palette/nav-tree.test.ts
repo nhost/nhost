@@ -60,6 +60,9 @@ describe('commandPaletteNavTree', () => {
       'GraphQL',
     ]);
     expect(byId.get('project-auth-settings')?.breadcrumb).toEqual(['Auth']);
+    expect(byId.get('project-storage-settings')?.breadcrumb).toEqual([
+      'Storage',
+    ]);
     expect(byId.get('project-database-settings')?.breadcrumb).toEqual([
       'Database',
     ]);
@@ -99,6 +102,18 @@ describe('commandPaletteNavTree', () => {
     expect(byId.has('project-settings-oauth2-provider')).toBe(false);
     expect(byId.has('project-settings-roles-and-permissions')).toBe(false);
     expect(byId.has('project-settings-smtp')).toBe(false);
+  });
+
+  it('routes Storage settings through the Storage section', () => {
+    const byId = new Map(allNodes.map((node) => [node.id, node]));
+
+    expect(byId.get('project-storage-settings')).toMatchObject({
+      title: 'Settings',
+      path: 'storage/settings',
+      gate: 'settings',
+      keywords: expect.arrayContaining(['storage', 'settings']),
+    });
+    expect(byId.has('project-settings-storage')).toBe(false);
   });
 
   it('routes migrated project-wide settings through General Settings', () => {
