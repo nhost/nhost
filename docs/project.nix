@@ -114,12 +114,17 @@ rec {
         self.packages.${pkgs.stdenv.hostPlatform.system}.nhost-js
       }/node_modules packages/nhost-js/node_modules
 
-      # Stage the prebuilt rustdoc JSON where gen.sh's build_rustdoc expects it,
-      # so it only runs the Node transformer (no cargo in the docs sandbox).
+      # Stage both prebuilt rustdoc JSON files where gen.sh's build_rustdoc
+      # expects them, so it only runs the Node transformer (no cargo in the
+      # docs sandbox).
       mkdir -p packages/nhost-rust/target/doc
+      mkdir -p packages/nhost-rust/target/wasm32-unknown-unknown/doc
       cp ${
         self.packages.${pkgs.stdenv.hostPlatform.system}.nhost-rust-doc
       }/nhost.json packages/nhost-rust/target/doc/nhost.json
+      cp ${
+        self.packages.${pkgs.stdenv.hostPlatform.system}.nhost-rust-doc
+      }/nhost-wasm.json packages/nhost-rust/target/wasm32-unknown-unknown/doc/nhost.json
     '';
   };
 

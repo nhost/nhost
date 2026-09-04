@@ -94,30 +94,44 @@ function build_config_reference() {
 }
 
 function build_rustdoc() {
-    echo "⚒️⚒️⚒️ Building Rust SDK documentation..."
+	echo "⚒️⚒️⚒️ Building Rust SDK documentation..."
 
-    DOCS_DIR=src/content/docs/reference/rust/nhost-rust
-    RUST_PKG=../packages/nhost-rust
-    DOC_JSON="$RUST_PKG/target/doc/nhost.json"
+	DOCS_DIR=src/content/docs/reference/rust/nhost-rust
+	RUST_PKG=../packages/nhost-rust
+	DOC_JSON="$RUST_PKG/target/doc/nhost.json"
+	WASM_DOC_JSON="$RUST_PKG/target/wasm32-unknown-unknown/doc/nhost.json"
 
-    # In the docs check the rustdoc JSON is staged by preCheck from the
-    # prebuilt nhost-rust-doc package, so we only run the Node transformer and
-    # no cargo is needed. In a plain local checkout, generate it with cargo
-    # first. If neither the artifact nor cargo is available, skip and keep the
-    # committed pages — the sha1sum freshness gate then passes unchanged.
-    if [ ! -f "$DOC_JSON" ]; then
-        if [ -d "$RUST_PKG" ] && command -v cargo >/dev/null 2>&1; then
-            # rustdoc's JSON output is behind `-Z unstable-options`;
-            # RUSTC_BOOTSTRAP=1 enables it on the stable toolchain.
-            (cd "$RUST_PKG" && RUSTC_BOOTSTRAP=1 cargo rustdoc --lib -- \
-                -Z unstable-options --output-format json >/dev/null)
-        else
-            echo "⚒️⚒️⚒️ Skipping Rust SDK documentation (no rustdoc JSON / cargo)"
-            return 0
-        fi
-    fi
+	# In the docs check both rustdoc JSON files are staged by preCheck from the
+	# prebuilt nhost-rust-doc package, so only the Node transformer runs and no
+	# cargo is needed. A plain local checkout generates whichever inputs are
+	# missing. If neither input nor cargo exists, retain the committed pages.
+	if [ ! -f "$DOC_JSON" ] || [ ! -f "$WASM_DOC_JSON" ]; then
+		if [ ! -d "$RUST_PKG" ] || ! command -v cargo >/dev/null 2>&1; then
+			if [ ! -f "$DOC_JSON" ] && [ ! -f "$WASM_DOC_JSON" ]; then
+				echo "⚒️⚒️⚒️ Skipping Rust SDK documentation (no rustdoc JSON / cargo)"
+				return 0
+			fi
+			echo "Error: incomplete Rust SDK documentation artifacts and cargo is unavailable" >&2
+			return 1
+		fi
 
-    node rustdoc-to-md.mjs "$DOC_JSON" "$DOCS_DIR"
+		# rustdoc's JSON output is behind `-Z unstable-options`;
+		# RUSTC_BOOTSTRAP=1 enables it on the stable toolchain.
+		if [ ! -f "$DOC_JSON" ]; then
+			(cd "$RUST_PKG" && RUSTC_BOOTSTRAP=1 cargo rustdoc --lib -- \
+				-Z unstable-options --output-format json >/dev/null)
+		fi
+		if [ ! -f "$WASM_DOC_JSON" ]; then
+			if ! (cd "$RUST_PKG" && RUSTC_BOOTSTRAP=1 cargo rustdoc --lib \
+				--target wasm32-unknown-unknown --no-default-features --features wasm -- \
+				-Z unstable-options --output-format json >/dev/null); then
+				echo "Error: wasm rustdoc generation failed; install the wasm32-unknown-unknown target or use the Nix dev shell" >&2
+				return 1
+			fi
+		fi
+	fi
+
+	node rustdoc-to-md.mjs "$DOC_JSON" "$DOCS_DIR" "$WASM_DOC_JSON"
 }
 
 function build_cli_docs() {

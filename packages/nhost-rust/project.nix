@@ -218,13 +218,17 @@ in
         chmod +w -R src
         cd src/${submodule}
 
-        echo "➜ Generating rustdoc JSON"
+        echo "➜ Generating native and browser wasm rustdoc JSON"
         # rustdoc's JSON output is behind `-Z unstable-options`;
         # RUSTC_BOOTSTRAP=1 enables it on the stable toolchain.
         RUSTC_BOOTSTRAP=1 cargo rustdoc --offline --lib -- \
           -Z unstable-options --output-format json
+        RUSTC_BOOTSTRAP=1 cargo rustdoc --offline --lib \
+          --target wasm32-unknown-unknown --no-default-features --features wasm -- \
+          -Z unstable-options --output-format json
 
         mkdir -p $out
         cp target/doc/nhost.json $out/nhost.json
+        cp target/wasm32-unknown-unknown/doc/nhost.json $out/nhost-wasm.json
       '';
 }

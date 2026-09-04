@@ -6,7 +6,7 @@
 // `http`, `middleware`), each grouping the module's public items by kind with rendered
 // signatures and doc comments.
 //
-// Usage: node rustdoc-to-md.mjs <path-to-nhost.json> <output-dir>
+// Usage: node rustdoc-to-md.mjs <path-to-native-nhost.json> <output-dir> [path-to-wasm-nhost.json]
 //
 // Kept dependency-free (plain Node ESM) so it runs under the same Node the docs
 // build already uses for TypeDoc — no extra toolchain in the docs pipeline.
@@ -14,29 +14,53 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const [, , jsonPath, outDir] = process.argv;
+const [, , jsonPath, outDir, wasmJsonPath] = process.argv;
 if (!jsonPath || !outDir) {
-  console.error('usage: node rustdoc-to-md.mjs <nhost.json> <output-dir>');
+  console.error(
+    'usage: node rustdoc-to-md.mjs <native-nhost.json> <output-dir> [wasm-nhost.json]',
+  );
   process.exit(1);
 }
 
-const doc = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
-const index = doc.index;
-const paths = doc.paths;
-const externalCrates = doc.external_crates ?? {};
+const TYPE_KINDS = new Set(['struct', 'enum', 'union', 'trait', 'type_alias']);
+
+function loadContext(filePath, label) {
+  const loadedDoc = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  const localTypes = new Map();
+  for (const meta of Object.values(loadedDoc.paths)) {
+    if (meta.crate_id !== 0 || !TYPE_KINDS.has(meta.kind)) continue;
+    const name = meta.path?.at(-1);
+    if (!name) continue;
+    const matches = localTypes.get(name) ?? [];
+    matches.push(meta);
+    localTypes.set(name, matches);
+  }
+  return {
+    label,
+    doc: loadedDoc,
+    index: loadedDoc.index,
+    paths: loadedDoc.paths,
+    externalCrates: loadedDoc.external_crates ?? {},
+    localTypesByName: localTypes,
+  };
+}
+
+const nativeContext = loadContext(jsonPath, 'native');
+const wasmContext = wasmJsonPath ? loadContext(wasmJsonPath, 'wasm') : null;
+
+let doc;
+let index;
+let paths;
+let externalCrates;
+let localTypesByName;
+
+function activateContext(context) {
+  ({ doc, index, paths, externalCrates, localTypesByName } = context);
+}
+
+activateContext(nativeContext);
 
 const item = (id) => index[String(id)];
-
-const TYPE_KINDS = new Set(['struct', 'enum', 'union', 'trait', 'type_alias']);
-const localTypesByName = new Map();
-for (const meta of Object.values(paths)) {
-  if (meta.crate_id !== 0 || !TYPE_KINDS.has(meta.kind)) continue;
-  const name = meta.path?.at(-1);
-  if (!name) continue;
-  const matches = localTypesByName.get(name) ?? [];
-  matches.push(meta);
-  localTypesByName.set(name, matches);
-}
 
 // ---------------------------------------------------------------------------
 // Type rendering: the rustdoc `Type` union. Every variant observed in the crate
@@ -110,6 +134,7 @@ const PUBLIC_EXTERNAL_TYPE_PATHS = new Map([
   ['http::header::map::HeaderMap', 'http::HeaderMap'],
   ['http::method::Method', 'http::Method'],
   ['reqwest::async_impl::client::Client', 'reqwest::Client'],
+  ['reqwest::wasm::client::Client', 'reqwest::Client'],
   ['reqwest::error::Error', 'reqwest::Error'],
   [
     'reqwest_middleware::client::ClientBuilder',
@@ -352,10 +377,7 @@ function normalizeDocMarkdown(docs) {
       continue;
     }
     out.push(
-      escapeRawHtmlOutsideInlineCode(line).replace(
-        /^#{1,6} (?=\S)/,
-        '###### ',
-      ),
+      escapeRawHtmlOutsideInlineCode(line).replace(/^#{1,6} (?=\S)/, '###### '),
     );
   }
   return out.join('\n');
@@ -682,6 +704,158 @@ const KIND_ORDER = [
   ['constant', 'Constants', renderConstant],
 ];
 
+function entryKind(entry) {
+  return entry.reexport?.kind ?? Object.keys(entry.it.inner)[0];
+}
+
+function availabilityText(availability) {
+  if (availability === 'native') {
+    return '**Availability:** Native targets with the default features; not available on browser wasm.';
+  }
+  if (availability === 'wasm') {
+    return '**Availability:** Browser wasm only (`wasm` feature on `wasm32`).';
+  }
+  return '';
+}
+
+function renderInContext(renderer, entry) {
+  activateContext(entry.context);
+  return renderer(entry.name, entry.it);
+}
+
+function renderedBlocks(rendered) {
+  const counters = new Map();
+  let section = '';
+  let member = '';
+
+  return rendered.split('\n\n').map((markdown) => {
+    const sectionHeading = markdown.match(/^#### (.+)$/);
+    const memberHeading = markdown.match(/^##### (.+)$/);
+    if (sectionHeading) {
+      section = sectionHeading[1];
+      member = '';
+    } else if (memberHeading) {
+      member = memberHeading[1];
+    }
+
+    const kind = markdown.startsWith('```')
+      ? 'declaration'
+      : markdown.startsWith('#')
+        ? 'heading'
+        : 'documentation';
+    const location = [section, member].filter(Boolean).join('/');
+    const counterKey = `${location}:${kind}`;
+    const occurrence = counters.get(counterKey) ?? 0;
+    counters.set(counterKey, occurrence + 1);
+    return {
+      key: `${counterKey}:${occurrence}`,
+      kind,
+      markdown,
+      name: member || section,
+    };
+  });
+}
+
+function browserDifferenceNote(nativeBlock, wasmBlock, itemName) {
+  if (nativeBlock.kind === 'declaration') {
+    const name = nativeBlock.name || `\`${itemName}\``;
+    const label =
+      nativeBlock.markdown.includes('Send + Sync') &&
+      !wasmBlock.markdown.includes('Send + Sync')
+        ? `**Browser wasm:** The ${name} declaration omits the native \`Send + Sync\` bounds:`
+        : `**Browser wasm ${name} declaration:**`;
+    return `${label}\n\n${wasmBlock.markdown}`;
+  }
+
+  if (
+    nativeBlock.kind === 'documentation' &&
+    wasmBlock.markdown.startsWith(`${nativeBlock.markdown} `)
+  ) {
+    const addition = wasmBlock.markdown.slice(nativeBlock.markdown.length + 1);
+    return `**Additional browser wasm documentation:** ${addition}`;
+  }
+
+  return `**Browser wasm ${nativeBlock.name || itemName} documentation:**\n\n${wasmBlock.markdown}`;
+}
+
+// Render the native item once, then annotate only changed blocks with their
+// browser-wasm alternative. Divergence in many members therefore adds one note
+// per affected declaration or documentation block instead of another full item.
+function renderTargetDifferences(nativeRendered, wasmRendered, itemName) {
+  const nativeBlocks = renderedBlocks(nativeRendered);
+  const wasmBlocks = renderedBlocks(wasmRendered);
+  const wasmByKey = new Map(wasmBlocks.map((block) => [block.key, block]));
+  const nativeKeys = new Set(nativeBlocks.map((block) => block.key));
+  const out = [];
+
+  for (const block of nativeBlocks) {
+    out.push(block.markdown);
+    if (block.key === ':heading:0') {
+      out.push(
+        '**Target variants:** Declarations are shown for native targets with default features. Browser wasm differences are noted where they occur.',
+      );
+    }
+
+    const wasmBlock = wasmByKey.get(block.key);
+    if (!wasmBlock) {
+      out.push(
+        '**Availability:** This block is present on native targets only.',
+      );
+    } else if (wasmBlock.markdown !== block.markdown) {
+      out.push(browserDifferenceNote(block, wasmBlock, itemName));
+    }
+  }
+
+  const wasmOnly = wasmBlocks.filter((block) => !nativeKeys.has(block.key));
+  if (wasmOnly.length) {
+    out.push(heading(4, 'Browser wasm additions'));
+    out.push(...wasmOnly.map((block) => block.markdown));
+  }
+  return out.join('\n\n');
+}
+
+function renderMergedItem(renderer, entry) {
+  const nativeRendered = entry.native
+    ? renderInContext(renderer, entry.native)
+    : null;
+  const wasmRendered = entry.wasm
+    ? renderInContext(renderer, entry.wasm)
+    : null;
+
+  if (nativeRendered && wasmRendered) {
+    if (nativeRendered === wasmRendered) return nativeRendered;
+    return renderTargetDifferences(nativeRendered, wasmRendered, entry.name);
+  }
+
+  const rendered = nativeRendered ?? wasmRendered;
+  const availability = availabilityText(entry.availability);
+  if (!availability) return rendered;
+  return rendered.replace(/^(### `[^`]+`)/, `$1\n\n${availability}`);
+}
+
+function mergeEntries(nativeEntries, wasmEntries, compareTargets) {
+  const merged = new Map();
+  for (const entry of nativeEntries) {
+    const key = `${entryKind(entry)}:${entry.name}`;
+    merged.set(key, {
+      ...entry,
+      native: entry,
+      availability: compareTargets ? 'native' : 'unknown',
+    });
+  }
+  for (const entry of wasmEntries) {
+    const key = `${entryKind(entry)}:${entry.name}`;
+    const existing = merged.get(key);
+    if (existing) {
+      existing.wasm = entry;
+      existing.availability = 'both';
+    } else {
+      merged.set(key, { ...entry, wasm: entry, availability: 'wasm' });
+    }
+  }
+  return [...merged.values()];
+}
+
 function renderPage(title, moduleDocs, entries) {
   const seenNames = new Set();
   const unique = entries.filter((e) => {
@@ -693,7 +867,7 @@ function renderPage(title, moduleDocs, entries) {
   });
   const supportedKinds = new Set(KIND_ORDER.map(([kind]) => kind));
   const unsupported = unique.filter(
-    (e) => !e.reexport && !supportedKinds.has(Object.keys(e.it.inner)[0]),
+    (e) => !e.reexport && !supportedKinds.has(entryKind(e)),
   );
   if (unsupported.length) {
     const details = unsupported
@@ -716,7 +890,9 @@ function renderPage(title, moduleDocs, entries) {
           const source = `\`${e.reexport.source}\``;
           const root = e.reexport.crate?.html_root_url;
           const origin = root ? `[${source}](${root})` : source;
-          return `- \`${e.name}\` *(${e.reexport.kind})* — re-exported from ${origin}`;
+          const availability = availabilityText(e.availability);
+          const suffix = availability ? ` ${availability}` : '';
+          return `- \`${e.name}\` *(${e.reexport.kind})* — re-exported from ${origin}.${suffix}`;
         })
         .join('\n'),
     );
@@ -728,7 +904,7 @@ function renderPage(title, moduleDocs, entries) {
       .sort((a, b) => a.name.localeCompare(b.name));
     if (!items.length) continue;
     out.push(heading(2, label));
-    for (const e of items) out.push(renderer(e.name, e.it));
+    for (const e of items) out.push(renderMergedItem(renderer, e));
   }
   return { markdown: `${out.join('\n\n')}\n`, itemCount: unique.length };
 }
@@ -748,58 +924,50 @@ function moduleIdByPath(dotted) {
   return null;
 }
 
-const ROOT = String(doc.root);
-
 const PAGES = [
-  { file: 'main', title: 'Main', moduleId: ROOT },
-  { file: 'auth', title: 'Auth', moduleId: moduleIdByPath(['nhost', 'auth']) },
-  {
-    file: 'storage',
-    title: 'Storage',
-    moduleId: moduleIdByPath(['nhost', 'storage']),
-  },
-  {
-    file: 'graphql',
-    title: 'Graphql',
-    moduleId: moduleIdByPath(['nhost', 'graphql']),
-  },
-  {
-    file: 'functions',
-    title: 'Functions',
-    moduleId: moduleIdByPath(['nhost', 'functions']),
-  },
-  {
-    file: 'session',
-    title: 'Session',
-    moduleId: moduleIdByPath(['nhost', 'session']),
-  },
-  {
-    file: 'error',
-    title: 'Error',
-    moduleId: moduleIdByPath(['nhost', 'error']),
-  },
-  {
-    file: 'http',
-    title: 'Http',
-    moduleId: moduleIdByPath(['nhost', 'http']),
-  },
-  {
-    file: 'middleware',
-    title: 'Middleware',
-    moduleId: moduleIdByPath(['nhost', 'middleware']),
-  },
+  { file: 'main', title: 'Main', path: ['nhost'] },
+  { file: 'auth', title: 'Auth', path: ['nhost', 'auth'] },
+  { file: 'storage', title: 'Storage', path: ['nhost', 'storage'] },
+  { file: 'graphql', title: 'Graphql', path: ['nhost', 'graphql'] },
+  { file: 'functions', title: 'Functions', path: ['nhost', 'functions'] },
+  { file: 'session', title: 'Session', path: ['nhost', 'session'] },
+  { file: 'error', title: 'Error', path: ['nhost', 'error'] },
+  { file: 'http', title: 'Http', path: ['nhost', 'http'] },
+  { file: 'middleware', title: 'Middleware', path: ['nhost', 'middleware'] },
 ];
+
+function pageInput(context, page) {
+  if (!context) return { entries: [], moduleDocs: '' };
+  activateContext(context);
+  const moduleId =
+    page.path.length === 1 ? String(doc.root) : moduleIdByPath(page.path);
+  if (!moduleId) {
+    throw new Error(
+      `module for page '${page.file}' not found in ${context.label} rustdoc JSON`,
+    );
+  }
+  return {
+    moduleDocs: item(moduleId)?.docs,
+    entries: collectEntries(moduleId).map((entry) => ({
+      ...entry,
+      context,
+    })),
+  };
+}
 
 fs.mkdirSync(outDir, { recursive: true });
 for (const page of PAGES) {
-  if (!page.moduleId) {
-    throw new Error(`module for page '${page.file}' not found`);
-  }
-  const modItem = item(page.moduleId);
-  const entries = collectEntries(page.moduleId);
+  const native = pageInput(nativeContext, page);
+  const wasm = pageInput(wasmContext, page);
+  const entries = mergeEntries(
+    native.entries,
+    wasm.entries,
+    wasmContext !== null,
+  );
+  activateContext(nativeContext);
   const { markdown, itemCount } = renderPage(
     page.title,
-    modItem?.docs,
+    native.moduleDocs || wasm.moduleDocs,
     entries,
   );
   const dest = path.join(outDir, `${page.file}.md`);
