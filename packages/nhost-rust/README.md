@@ -232,7 +232,10 @@ Enable the `wasm` feature to build the SDK for web frontends
 `reqwest-middleware`'s `Middleware` trait is `?Send` on `wasm32` to match, and
 the session store persists in `localStorage` by default — under the same
 `"nhostSession"` key as `@nhost/nhost-js`, so sessions are interoperable on the
-same origin.
+same origin. The persisted session includes the long-lived refresh token, and
+`localStorage` is readable by any script on the origin, so an XSS can expose a
+durable credential. Applications with a stricter threat model should select an
+explicit backend with [`NhostBuilder::storage`].
 
 ```toml
 nhost = { version = "...", default-features = false, features = ["wasm"] }
@@ -242,9 +245,9 @@ nhost = { version = "...", default-features = false, features = ["wasm"] }
 cargo build --target wasm32-unknown-unknown --no-default-features --features wasm
 ```
 
-Randomness for PKCE uses `getrandom`'s JS backend on the web; the crate's
-`.cargo/config.toml` sets the required `--cfg getrandom_backend="wasm_js"` for
-the `wasm32-unknown-unknown` target. Drive the (`!Send`) futures with
+Randomness for PKCE uses `getrandom`'s JS backend on the web. The SDK enables
+`getrandom`'s `wasm_js` feature automatically, so no application-specific
+backend configuration is required. Drive the (`!Send`) futures with
 `wasm_bindgen_futures::spawn_local`. `FileStorage` is native-only; construct an
 [`Nhost`] client as usual and it will pick up `localStorage` automatically.
 
