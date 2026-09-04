@@ -86,7 +86,6 @@ cargo add console_error_panic_hook
 # handles TLS); the `wasm` feature enables the browser-compatible pipeline and
 # the localStorage-backed session store.
 cargo add nhost --git https://github.com/nhost/nhost.git \
-  --rev 77c54a1979071ccc857162cd18edcce497fbc123 \
   --no-default-features --features wasm
 ```
 
@@ -95,7 +94,7 @@ Your `Cargo.toml` dependencies should look like this:
 ```toml title="Cargo.toml"
 [dependencies]
 yew = { version = "0.21", features = ["csr"] }
-nhost = { git = "https://github.com/nhost/nhost.git", rev = "77c54a1979071ccc857162cd18edcce497fbc123", version = "0.0.0-dev", default-features = false, features = ["wasm"] }
+nhost = { git = "https://github.com/nhost/nhost.git", version = "0.0.0-dev", default-features = false, features = ["wasm"] }
 web-sys = { version = "0.3", features = ["HtmlInputElement"] }
 wasm-bindgen-futures = "0.4"
 serde = { version = "1", features = ["derive"] }
@@ -103,8 +102,10 @@ serde_json = "1"
 console_error_panic_hook = "0.1"
 ```
 
-The repository dependency resolves the crate from `packages/nhost-rust`. Once
-`nhost` is published, replace its `git` and `rev` keys with
+The repository dependency resolves the crate from `packages/nhost-rust` on the
+default branch, because `nhost` is not on crates.io yet. It therefore tracks
+`main` rather than a fixed release; add a `rev` or `tag` if you need a
+reproducible build. Once `nhost` is published, replace its `git` key with
 `version = "<current published version>"`, or rerun the command without `--git`
 and `--rev` to let `cargo add` select the current release.
 
