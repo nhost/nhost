@@ -2,21 +2,7 @@
 
 package testpkg
 
-import (
-	"bytes"
-	"context"
-	"encoding/json"
-	"fmt"
-	"io"
-	"mime/multipart"
-	"net/http"
-	"net/textproto"
-	"net/url"
-	"strings"
-
-	"github.com/nhost/nhost/packages/nhost-go/transport"
-)
-
+import "net/http"
 
 // StatusEnum is one of: "active", "inactive", "pending".
 type StatusEnum string
@@ -34,34 +20,33 @@ type SimpleObjectStatusInt string
 type SimpleObjectStatusMixed string
 
 type SimpleObjectNested struct {
-	NestedID string `json:"nestedId"`
+	NestedID   string  `json:"nestedId"`
 	NestedData *string `json:"nestedData,omitempty"`
 }
 
 type SimpleObject struct {
-	ID string `json:"id"`
-	Active bool `json:"active"`
-	Age float64 `json:"age"`
-	CreatedAt string `json:"createdAt"`
-	Metadata *map[string]any `json:"metadata"`
-	RequiredNullableMetadata *map[string]any `json:"requiredNullableMetadata"`
-	RequiredNullableString *string `json:"requiredNullableString"`
-	RequiredNullableArray *[]string `json:"requiredNullableArray"`
-	Nickname *string `json:"nickname,omitempty"`
-	Extra *map[string]any `json:"extra,omitempty"`
-	Aliases *[]string `json:"aliases,omitempty"`
-	Labels *map[string]any `json:"labels,omitempty"`
-	NullableTags *[]string `json:"nullableTags,omitempty"`
-	Data []byte `json:"data"`
-	Tags *[]string `json:"tags,omitempty"`
-	Status *SimpleObjectStatus `json:"status,omitempty"`
-	StatusCode *SimpleObjectStatusCode `json:"statusCode,omitempty"`
-	StatusInt *SimpleObjectStatusInt `json:"statusInt,omitempty"`
-	StatusMixed *SimpleObjectStatusMixed `json:"statusMixed,omitempty"`
-	StatusRef *StatusEnum `json:"statusRef,omitempty"`
-	Nested *SimpleObjectNested `json:"nested,omitempty"`
+	ID                       string                   `json:"id"`
+	Active                   bool                     `json:"active"`
+	Age                      float64                  `json:"age"`
+	CreatedAt                string                   `json:"createdAt"`
+	Metadata                 *map[string]any          `json:"metadata"`
+	RequiredNullableMetadata *map[string]any          `json:"requiredNullableMetadata"`
+	RequiredNullableString   *string                  `json:"requiredNullableString"`
+	RequiredNullableArray    *[]string                `json:"requiredNullableArray"`
+	Nickname                 *string                  `json:"nickname,omitempty"`
+	Extra                    *map[string]any          `json:"extra,omitempty"`
+	Aliases                  *[]string                `json:"aliases,omitempty"`
+	Labels                   *map[string]any          `json:"labels,omitempty"`
+	NullableTags             *[]string                `json:"nullableTags,omitempty"`
+	Data                     []byte                   `json:"data"`
+	Tags                     *[]string                `json:"tags,omitempty"`
+	Status                   *SimpleObjectStatus      `json:"status,omitempty"`
+	StatusCode               *SimpleObjectStatusCode  `json:"statusCode,omitempty"`
+	StatusInt                *SimpleObjectStatusInt   `json:"statusInt,omitempty"`
+	StatusMixed              *SimpleObjectStatusMixed `json:"statusMixed,omitempty"`
+	StatusRef                *StatusEnum              `json:"statusRef,omitempty"`
+	Nested                   *SimpleObjectNested      `json:"nested,omitempty"`
 }
-
 
 // Client is a generated API client backed by an *http.Client. Install request
 // middleware (session refresh, token attachment, ...) via the client's
@@ -83,4 +68,3 @@ func NewClient(baseURL string, httpClient *http.Client) *Client {
 		httpClient: httpClient,
 	}
 }
-

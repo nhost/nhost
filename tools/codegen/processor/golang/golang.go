@@ -6,9 +6,16 @@
 package golang
 
 import (
+	"bytes"
 	"embed"
 	"fmt"
+	"go/ast"
+	goformat "go/format"
+	"go/parser"
+	"go/token"
 	"io/fs"
+	"path"
+	"strconv"
 	"strings"
 	"unicode"
 
@@ -29,6 +36,153 @@ type Golang struct {
 
 func (p *Golang) GetTemplates() fs.FS {
 	return templatesFS
+}
+
+// ProcessSource formats generated Go and removes imports unused by the
+// rendered API surface.
+func (p *Golang) ProcessSource(source []byte) ([]byte, error) {
+	fileSet := token.NewFileSet()
+
+	file, err := parser.ParseFile(fileSet, "generated.go", source, parser.ParseComments)
+	if err != nil {
+		return nil, fmt.Errorf("parsing generated Go source: %w", err)
+	}
+
+	removeUnusedImports(fileSet, file)
+
+	var printed bytes.Buffer
+	if err := goformat.Node(&printed, fileSet, file); err != nil {
+		return nil, fmt.Errorf("printing generated Go source: %w", err)
+	}
+
+	formatted, err := goformat.Source(printed.Bytes())
+	if err != nil {
+		return nil, fmt.Errorf("formatting generated Go source: %w", err)
+	}
+
+	return formatted, nil
+}
+
+// removeUnusedImports removes imports whose package identifier is unresolved
+// everywhere in the parsed file. It intentionally uses ast.File.Unresolved,
+// which is deprecated but distinguishes package qualifiers from local names
+// without type-checking the generated source. Generated imports must use their
+// conventional package name (the final path component) unless explicitly
+// aliased; imports whose package name differs from their path base need an alias.
+func removeUnusedImports(fileSet *token.FileSet, file *ast.File) {
+	used := make(map[string]struct{}, len(file.Unresolved))
+	for _, ident := range file.Unresolved {
+		used[ident.Name] = struct{}{}
+	}
+
+	imports := file.Imports[:0]
+	declarations := file.Decls[:0]
+
+	for _, declaration := range file.Decls {
+		genDecl, ok := declaration.(*ast.GenDecl)
+		if !ok || genDecl.Tok != token.IMPORT {
+			declarations = append(declarations, declaration)
+
+			continue
+		}
+
+		groups, importGroups := collectImportGroups(fileSet, genDecl)
+		groupOffsets := make([]int, len(groups))
+		specs := genDecl.Specs[:0]
+
+		for _, declarationSpec := range genDecl.Specs {
+			importSpec, ok := declarationSpec.(*ast.ImportSpec)
+			if !ok {
+				specs = append(specs, declarationSpec)
+
+				continue
+			}
+
+			if importUsed(importSpec, used) {
+				group := importGroups[importSpec]
+				position := groups[group][groupOffsets[group]]
+				groupOffsets[group]++
+
+				setImportPosition(importSpec, position)
+
+				specs = append(specs, importSpec)
+				imports = append(imports, importSpec)
+			}
+		}
+
+		if len(specs) > 0 {
+			genDecl.Lparen = token.NoPos
+			genDecl.Rparen = token.NoPos
+			genDecl.Specs = specs
+			declarations = append(declarations, genDecl)
+		}
+	}
+
+	file.Decls = declarations
+	file.Imports = imports
+}
+
+type importGroupPositions []token.Pos
+
+func collectImportGroups(
+	fileSet *token.FileSet, declaration *ast.GenDecl,
+) ([]importGroupPositions, map[*ast.ImportSpec]int) {
+	groups := make([]importGroupPositions, 0, 2) //nolint:mnd
+	importGroups := make(map[*ast.ImportSpec]int, len(declaration.Specs))
+	previousLine := 0
+
+	for _, declarationSpec := range declaration.Specs {
+		importSpec, ok := declarationSpec.(*ast.ImportSpec)
+		if !ok {
+			continue
+		}
+
+		line := fileSet.Position(importSpec.Pos()).Line
+		if len(groups) == 0 || line > previousLine+1 {
+			groups = append(groups, nil)
+		}
+
+		group := len(groups) - 1
+		groups[group] = append(groups[group], importSpec.Path.ValuePos)
+		importGroups[importSpec] = group
+		previousLine = fileSet.Position(importSpec.End()).Line
+	}
+
+	return groups, importGroups
+}
+
+func setImportPosition(importSpec *ast.ImportSpec, position token.Pos) {
+	importSpec.EndPos = token.NoPos
+
+	if importSpec.Name == nil {
+		importSpec.Path.ValuePos = position
+
+		return
+	}
+
+	importSpec.Name.NamePos = position
+	importSpec.Path.ValuePos = position + token.Pos(len(importSpec.Name.Name)+1)
+}
+
+func importUsed(importSpec *ast.ImportSpec, used map[string]struct{}) bool {
+	if importSpec.Name != nil {
+		if importSpec.Name.Name == "_" || importSpec.Name.Name == "." {
+			return true
+		}
+
+		_, ok := used[importSpec.Name.Name]
+
+		return ok
+	}
+
+	importPath, err := strconv.Unquote(importSpec.Path.Value)
+	if err != nil {
+		return true
+	}
+
+	_, ok := used[path.Base(importPath)]
+
+	return ok
 }
 
 // initialisms are word fragments the Go community capitalizes wholesale so the
