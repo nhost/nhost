@@ -104,7 +104,7 @@ func console( //nolint:funlen
 	useTLS bool,
 	nhostFolder string,
 	port uint,
-	hostOS string,
+	hostUser string,
 ) (*Service, error) {
 	if semver.Compare(*cfg.GetHasura().GetVersion(), minimumHasuraVerson) < 0 {
 		return nil, fmt.Errorf( //nolint:err113
@@ -210,7 +210,7 @@ func console( //nolint:funlen
 		Networks: nil,
 		Ports:    ports(port, consolePort),
 		Restart:  "always",
-		User:     hostUserSpec(hostOS),
+		User:     hostUserSpec(hostUser),
 		Volumes: []Volume{
 			{
 				Type:     "bind",

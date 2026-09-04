@@ -135,7 +135,7 @@ func callGetServices(t *testing.T, withConstellation, useTLS bool) map[string]*S
 		false,
 		// Non-Linux host: leaves User unset so these label-focused
 		// assertions aren't perturbed by the caller's uid:gid.
-		"darwin",
+		autoUser("darwin", defaultDockerEndpoint, 1000, 1000),
 	)
 	if err != nil {
 		t.Fatalf("getServices failed: %v", err)
@@ -341,7 +341,7 @@ func TestConstellation(t *testing.T) {
 				"/path/to/nhost",
 				"nhost/constellation:0.1.0",
 				// Non-Linux host leaves User unset, matching the golden.
-				"darwin",
+				autoUser("darwin", defaultDockerEndpoint, 1000, 1000),
 			)
 			if err != nil {
 				t.Fatalf("got error: %v", err)
@@ -362,7 +362,8 @@ func TestConstellationRunsAsHostUserOnLinux(t *testing.T) {
 	t.Parallel()
 
 	linux, err := constellation(
-		getConfig(), "dev", false, 1337, "/path/to/nhost", "nhost/constellation:0.1.0", osLinux,
+		getConfig(), "dev", false, 1337, "/path/to/nhost", "nhost/constellation:0.1.0",
+		autoUser(osLinux, defaultDockerEndpoint, os.Getuid(), os.Getgid()),
 	)
 	if err != nil {
 		t.Fatalf("got error: %v", err)
@@ -374,7 +375,8 @@ func TestConstellationRunsAsHostUserOnLinux(t *testing.T) {
 	}
 
 	other, err := constellation(
-		getConfig(), "dev", false, 1337, "/path/to/nhost", "nhost/constellation:0.1.0", "windows",
+		getConfig(), "dev", false, 1337, "/path/to/nhost", "nhost/constellation:0.1.0",
+		autoUser("windows", defaultDockerEndpoint, os.Getuid(), os.Getgid()),
 	)
 	if err != nil {
 		t.Fatalf("got error: %v", err)

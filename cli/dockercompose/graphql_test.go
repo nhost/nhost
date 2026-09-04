@@ -283,7 +283,7 @@ func TestConsole(t *testing.T) {
 
 	// A non-Linux host leaves User unset (see hostUserSpec), matching the
 	// expectedConsole golden which has no User.
-	const nonLinuxHost = "darwin"
+	nonLinuxHost := autoUser("darwin", defaultDockerEndpoint, 1000, 1000)
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -313,7 +313,8 @@ func TestConsoleRunsAsHostUserOnLinux(t *testing.T) {
 	cfg := getConfig()
 	cfg.Hasura.Version = new("v2.25.0")
 
-	linux, err := console(cfg, "dev", 1337, false, "/path/to/nhost", 0, osLinux)
+	linux, err := console(cfg, "dev", 1337, false, "/path/to/nhost", 0,
+		autoUser(osLinux, defaultDockerEndpoint, os.Getuid(), os.Getgid()))
 	if err != nil {
 		t.Fatalf("got error: %v", err)
 	}
@@ -323,7 +324,8 @@ func TestConsoleRunsAsHostUserOnLinux(t *testing.T) {
 		t.Errorf("linux console User = %v, want %q", linux.User, want)
 	}
 
-	other, err := console(cfg, "dev", 1337, false, "/path/to/nhost", 0, "windows")
+	other, err := console(cfg, "dev", 1337, false, "/path/to/nhost", 0,
+		autoUser("windows", defaultDockerEndpoint, os.Getuid(), os.Getgid()))
 	if err != nil {
 		t.Fatalf("got error: %v", err)
 	}

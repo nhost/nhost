@@ -281,6 +281,7 @@ Start local development environment.
 | `--run-service-volume=""` | Mount a local directory into a run service container. Format: `service-name=/local/path:/container/path`. Can be passed multiple times. Env: `$NHOST_RUN_SERVICE_VOLUME`. |
 | `--run-service=""` | Run service to add to the development environment. Can be passed multiple times. Comma-separated values are also accepted. Format: `/path/to/run-service.toml[:overlay_name]`. Env: `$NHOST_RUN_SERVICE`. |
 | `--storage-port=""` | If specified, expose storage on this port. Not recommended. Default: `0`. |
+| `--user=""` | User to run containers that write into bind mounts as. 'auto' maps them to your uid:gid on Linux with a local rootful docker daemon, 'none' keeps the images' default user, or pass an explicit uid:gid. Default: `"auto"`. Env: `$NHOST_DOCKER_USER`. |
 
 </div>
 
@@ -307,6 +308,7 @@ Start local development environment connected to an Nhost Cloud project.
 | `--http-port=""` | HTTP port to listen on. Default: `443`. Env: `$NHOST_HTTP_PORT`. |
 | `--postgres-url=""` | Postgres URL. Env: `$NHOST_POSTGRES_URL`. |
 | `--subdomain=""` | Project's subdomain to operate on, defaults to linked project. Env: `$NHOST_SUBDOMAIN`. |
+| `--user=""` | User to run containers that write into bind mounts as. 'auto' maps them to your uid:gid on Linux with a local rootful docker daemon, 'none' keeps the images' default user, or pass an explicit uid:gid. Default: `"auto"`. Env: `$NHOST_DOCKER_USER`. |
 
 </div>
 
