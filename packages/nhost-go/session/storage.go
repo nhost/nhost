@@ -11,6 +11,8 @@ import (
 
 // Backend persists a single StoredSession. Implement it to store sessions
 // somewhere other than memory (a file, Redis, a per-request store, ...).
+// Implementations must be safe for concurrent use by multiple goroutines;
+// Storage delegates operations directly and does not serialize backend access.
 type Backend interface {
 	Get() (*StoredSession, bool)
 	Set(value StoredSession)
