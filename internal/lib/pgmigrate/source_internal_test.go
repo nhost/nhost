@@ -423,7 +423,7 @@ func (d *memoryCatalogDatabase) query(
 	args ...any,
 ) (catalogRows, error) {
 	switch {
-	case strings.Contains(query, "previous_version,\n    identifier"):
+	case strings.Contains(query, "predecessor.version,\n    migration.identifier"):
 		databaseVersion, ok := args[0].(int64)
 		if !ok {
 			return nil, fmt.Errorf(
@@ -444,7 +444,7 @@ func (d *memoryCatalogDatabase) query(
 		}
 
 		return rowsForStoredMigration(migration), nil
-	case strings.Contains(query, "WHERE previous_version IS NULL"):
+	case strings.Contains(query, "WHERE archived_at IS NULL AND previous_id IS NULL"):
 		versions := make([]uint, 0, len(d.migrations))
 		for version, migration := range d.migrations {
 			if migration.previousVersion == nil {
@@ -453,7 +453,7 @@ func (d *memoryCatalogDatabase) query(
 		}
 
 		return rowsForVersions(versions, maximumChainRows), nil
-	case strings.Contains(query, "WHERE previous_version = $1"):
+	case strings.Contains(query, "successor.archived_at IS NULL"):
 		databasePrevious, ok := args[0].(int64)
 		if !ok {
 			return nil, fmt.Errorf(
@@ -476,13 +476,20 @@ func (d *memoryCatalogDatabase) query(
 		}
 
 		return rowsForVersions(versions, maximumChainRows), nil
-	case strings.Contains(query, "ORDER BY version\nLIMIT 1"):
+	case strings.Contains(query, "WHERE archived_at IS NULL\nORDER BY version\nLIMIT 1"):
 		versions := make([]uint, 0, len(d.migrations))
 		for version := range d.migrations {
 			versions = append(versions, version)
 		}
 
 		return rowsForVersions(versions, 1), nil
+	case strings.Contains(query, "WHERE archived_at IS NULL\nORDER BY version"):
+		versions := make([]uint, 0, len(d.migrations))
+		for version := range d.migrations {
+			versions = append(versions, version)
+		}
+
+		return rowsForVersions(versions, len(versions)), nil
 	default:
 		return nil, fmt.Errorf("unexpected catalog query: %w", errors.ErrUnsupported)
 	}
@@ -500,8 +507,12 @@ func sourceForTest(t *testing.T, database catalogDatabase) *catalogSource {
 }
 
 func rowsForStoredMigration(migration storedMigration) *stubCatalogRows {
-	var previous any
+	var (
+		previousID any
+		previous   any
+	)
 	if migration.previousVersion != nil {
+		previousID = "00000000-0000-0000-0000-000000000001"
 		//nolint:gosec // Test migrations use small constants.
 		previous = int64(*migration.previousVersion)
 	}
@@ -509,6 +520,7 @@ func rowsForStoredMigration(migration storedMigration) *stubCatalogRows {
 	return &stubCatalogRows{
 		rows: [][]any{{
 			int64(migration.version), //nolint:gosec // Test migrations use small constants.
+			previousID,
 			previous,
 			migration.identifier,
 			migration.upSQL,

@@ -463,9 +463,9 @@ func TestMigrateRejectsDirtyAndUnknownState(t *testing.T) {
 		wantDirty   bool
 		wantCatalog bool
 	}{
-		{name: "dirty", version: 1, dirty: true, wantDirty: true, wantCatalog: true},
+		{name: "dirty", version: 1, dirty: true, wantDirty: true, wantCatalog: false},
 		{name: "unknown", version: 99, dirty: false, wantDirty: false, wantCatalog: true},
-		{name: "invalid negative", version: -2, dirty: false, wantDirty: false, wantCatalog: true},
+		{name: "invalid negative", version: -2, dirty: false, wantDirty: false, wantCatalog: false},
 	}
 
 	for _, tt := range tests {
@@ -598,7 +598,7 @@ func TestMigrateSerializesConcurrentCallers(t *testing.T) {
 	assertPoolReleased(t, database)
 }
 
-func TestMigrateRejectsForkedCatalogPublicationUnderLock(t *testing.T) {
+func TestMigrateArchivesUnappliedForkedCatalogUnderLock(t *testing.T) {
 	t.Parallel()
 
 	database := openCatalogTestDatabase(t)
@@ -616,7 +616,7 @@ func TestMigrateRejectsForkedCatalogPublicationUnderLock(t *testing.T) {
 		storedMigrationFrom(testMigration(2, nil, "forked_root")),
 	)
 
-	err := Migrate(
+	if err := Migrate(
 		t.Context(),
 		discardLogger(),
 		database,
@@ -624,21 +624,105 @@ func TestMigrateRejectsForkedCatalogPublicationUnderLock(t *testing.T) {
 		"migrations",
 		schema,
 		1,
+	); err != nil {
+		t.Fatalf("Migrate(forked catalog) error = %v", err)
+	}
+
+	assertMigrationState(t, database, schema, 1, false)
+
+	var archived bool
+
+	query := fmt.Sprintf( //nolint:gosec // relation is identifier-quoted.
+		"SELECT archived_at IS NOT NULL FROM %s WHERE identifier = $1",
+		catalogTestRelation(schema),
 	)
-	if err == nil {
-		t.Fatal("Migrate(forked catalog) error = nil")
+	if err := database.QueryRowContext(t.Context(), query, "forked_root").
+		Scan(&archived); err != nil {
+		t.Fatalf("querying forked row archival: %v", err)
 	}
 
-	var integrityErr *IntegrityError
-	if !errors.As(err, &integrityErr) {
-		t.Fatalf("Migrate() error = %v (%T), want *IntegrityError", err, err)
-	}
-
-	if !strings.Contains(integrityErr.Issue, "cannot publish") {
-		t.Fatalf("Migrate() integrity issue = %q, want publication failure", integrityErr.Issue)
+	if !archived {
+		t.Fatal("forked row archived = false, want true")
 	}
 
 	assertOuterLockAvailable(t, database, schema)
+}
+
+func TestMigrateDowngradesBetasThenPublishesSquashedStableVersion(t *testing.T) {
+	t.Parallel()
+
+	database := openCatalogTestDatabase(t)
+	schema := createCatalogTestSchema(t, database, "")
+
+	if err := Migrate(
+		t.Context(),
+		discardLogger(),
+		database,
+		orchestrationBundle(schema, 3),
+		"migrations",
+		schema,
+		3,
+	); err != nil {
+		t.Fatalf("Migrate(beta) error = %v", err)
+	}
+
+	if err := Migrate(
+		t.Context(),
+		discardLogger(),
+		database,
+		orchestrationBundle(schema, 1),
+		"migrations",
+		schema,
+		1,
+	); err != nil {
+		t.Fatalf("Migrate(previous stable downgrade) error = %v", err)
+	}
+
+	assertMigrationState(t, database, schema, 1, false)
+	assertColumnPresence(t, database, schema, "name", false)
+	assertColumnPresence(t, database, schema, "enabled", false)
+
+	if err := Migrate(
+		t.Context(),
+		discardLogger(),
+		database,
+		squashedStableBundle(schema),
+		"migrations",
+		schema,
+		2,
+	); err != nil {
+		t.Fatalf("Migrate(squashed stable) error = %v", err)
+	}
+
+	assertMigrationState(t, database, schema, 2, false)
+	assertColumnPresence(t, database, schema, "name", true)
+	assertColumnPresence(t, database, schema, "enabled", true)
+
+	relation := catalogTestRelation(schema)
+
+	var (
+		activeVersionTwo     int
+		archivedVersionTwo   int
+		archivedVersionThree int
+	)
+
+	query := "SELECT\n    count(*) FILTER (WHERE version = 2 AND archived_at IS NULL),\n    count(*) FILTER (WHERE version = 2 AND archived_at IS NOT NULL),\n    count(*) FILTER (WHERE version = 3 AND archived_at IS NOT NULL)\nFROM " + relation
+	if err := database.QueryRowContext(t.Context(), query).Scan(
+		&activeVersionTwo,
+		&archivedVersionTwo,
+		&archivedVersionThree,
+	); err != nil {
+		t.Fatalf("querying reused catalog versions: %v", err)
+	}
+
+	if activeVersionTwo != 1 || archivedVersionTwo != 1 || archivedVersionThree != 1 {
+		t.Fatalf(
+			"catalog lineage counts = active v2 %d, archived v2 %d, archived v3 %d; want 1, 1, 1",
+			activeVersionTwo,
+			archivedVersionTwo,
+			archivedVersionThree,
+		)
+	}
 }
 
 //nolint:paralleltest // Lock timing cases intentionally share one database serially.
@@ -908,6 +992,30 @@ func orchestrationBundle(schema string, target uint) fstest.MapFS {
 	}
 
 	return migrationFS(files)
+}
+
+func squashedStableBundle(schema string) fstest.MapFS {
+	quotedSchema := pq.QuoteIdentifier(schema)
+
+	return migrationFS(map[string]string{
+		"1_create_widgets.up.sql": fmt.Sprintf(
+			"CREATE TABLE %s.widgets (id INTEGER PRIMARY KEY);",
+			quotedSchema,
+		),
+		"1_create_widgets.down.sql": fmt.Sprintf(
+			"DROP TABLE %s.widgets;",
+			quotedSchema,
+		),
+		"2_add_name_and_enabled.up.sql": fmt.Sprintf(
+			"ALTER TABLE %s.widgets ADD COLUMN name TEXT, "+
+				"ADD COLUMN enabled BOOLEAN NOT NULL DEFAULT false;",
+			quotedSchema,
+		),
+		"2_add_name_and_enabled.down.sql": fmt.Sprintf(
+			"ALTER TABLE %s.widgets DROP COLUMN enabled, DROP COLUMN name;",
+			quotedSchema,
+		),
+	})
 }
 
 func discardLogger() *slog.Logger {

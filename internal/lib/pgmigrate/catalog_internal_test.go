@@ -120,29 +120,160 @@ func TestCatalogBootstrapQuotesSchemaAndCreatesV1Constraints(t *testing.T) {
 	}
 
 	quotedRelation := `"tenant""; SELECT pg_sleep(10); --"."schema_migration_catalog"`
-	if strings.Count(gotQuery, quotedRelation) != 3 {
+	if strings.Count(gotQuery, quotedRelation) != 5 {
 		t.Fatalf(
-			"bootstrap() query references quoted relation %d times, want 3\n%s",
+			"bootstrap() query references quoted relation %d times, want 5\n%s",
 			strings.Count(gotQuery, quotedRelation),
 			gotQuery,
 		)
 	}
 
 	for _, fragment := range []string{
-		"previous_version BIGINT NULL",
-		"UNIQUE (previous_version)",
-		"FOREIGN KEY (previous_version)",
-		"ON DELETE RESTRICT",
+		"id UUID PRIMARY KEY DEFAULT gen_random_uuid()",
+		"previous_id UUID NULL",
+		"FOREIGN KEY (previous_id)",
+		"REFERENCES " + quotedRelation + " (id) ON DELETE RESTRICT",
+		"archived_at TIMESTAMPTZ NULL",
+		"archive_batch_id UUID NULL",
+		"(archived_at IS NULL) = (archive_batch_id IS NULL)",
+		"WHERE archived_at IS NULL;",
+		"WHERE archived_at IS NULL AND previous_id IS NOT NULL",
+		"WHERE archived_at IS NULL AND previous_id IS NULL",
 		"octet_length(up_sql) > 0",
 		"octet_length(down_sql) > 0",
 		"octet_length(up_sha256) = 32",
 		"octet_length(down_sha256) = 32",
-		"WHERE previous_version IS NULL",
 		"registered_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP",
 	} {
 		if !strings.Contains(gotQuery, fragment) {
 			t.Errorf("bootstrap() query does not contain %q\n%s", fragment, gotQuery)
 		}
+	}
+}
+
+func TestCatalogActiveFutureComparisonProtectsAppliedRows(t *testing.T) {
+	t.Parallel()
+
+	beta := testBundle(
+		testMigration(1, nil, "root"),
+		testMigration(2, uintPointer(1), "beta_name"),
+		testMigration(3, uintPointer(2), "beta_enabled"),
+	)
+	stable := testBundle(
+		testMigration(1, nil, "root"),
+		testMigration(2, uintPointer(1), "stable_squashed"),
+	)
+	previousStable := testBundle(testMigration(1, nil, "root"))
+
+	database := newMemoryCatalogDatabase(
+		storedMigrationFrom(beta.migrations[0]),
+		storedMigrationFrom(beta.migrations[1]),
+		storedMigrationFrom(beta.migrations[2]),
+	)
+
+	catalog, err := newCatalog(t.Context(), database, "app")
+	if err != nil {
+		t.Fatalf("newCatalog() error = %v", err)
+	}
+
+	tests := []struct {
+		name           string
+		local          *bundle
+		currentVersion int64
+		wantMatch      bool
+		wantError      bool
+	}{
+		{
+			name:           "identical inactive suffix",
+			local:          beta,
+			currentVersion: 1,
+			wantMatch:      true,
+			wantError:      false,
+		},
+		{
+			name:           "replaceable inactive suffix",
+			local:          stable,
+			currentVersion: 1,
+			wantMatch:      false,
+			wantError:      false,
+		},
+		{
+			name:           "changed applied row",
+			local:          stable,
+			currentVersion: 2,
+			wantMatch:      false,
+			wantError:      true,
+		},
+		{
+			name:           "newer applied rows needed for downgrade",
+			local:          previousStable,
+			currentVersion: 3,
+			wantMatch:      true,
+			wantError:      false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			matches, comparisonErr := catalog.activeFutureMatches(tt.local, tt.currentVersion)
+			if (comparisonErr != nil) != tt.wantError {
+				t.Fatalf(
+					"activeFutureMatches() error = %v, want error %t",
+					comparisonErr,
+					tt.wantError,
+				)
+			}
+
+			if matches != tt.wantMatch {
+				t.Fatalf("activeFutureMatches() = %t, want %t", matches, tt.wantMatch)
+			}
+		})
+	}
+}
+
+func TestCatalogArchiveAfterUsesOneBatchForTheActiveSuffix(t *testing.T) {
+	t.Parallel()
+
+	var (
+		gotQuery string
+		gotArgs  []any
+	)
+
+	database := &stubCatalogDatabase{
+		execFunc: func(_ context.Context, query string, args ...any) error {
+			gotQuery = query
+
+			gotArgs = append([]any(nil), args...)
+
+			return nil
+		},
+	}
+
+	catalog, err := newCatalog(t.Context(), database, "app")
+	if err != nil {
+		t.Fatalf("newCatalog() error = %v", err)
+	}
+
+	if err := catalog.archiveAfter(7); err != nil {
+		t.Fatalf("archiveAfter() error = %v", err)
+	}
+
+	for _, fragment := range []string{
+		"WITH archive_batch AS MATERIALIZED",
+		"SELECT gen_random_uuid() AS id, CURRENT_TIMESTAMP AS archived_at",
+		"archived_at = archive_batch.archived_at",
+		"archive_batch_id = archive_batch.id",
+		"migration.archived_at IS NULL AND migration.version > $1",
+	} {
+		if !strings.Contains(gotQuery, fragment) {
+			t.Errorf("archiveAfter() query does not contain %q\n%s", fragment, gotQuery)
+		}
+	}
+
+	if len(gotArgs) != 1 || gotArgs[0] != int64(7) {
+		t.Fatalf("archiveAfter() arguments = %v, want [7]", gotArgs)
 	}
 }
 
@@ -235,15 +366,16 @@ func TestCatalogPublishUsesAscendingParameterizedRows(t *testing.T) {
 		for _, fragment := range []string{
 			`INSERT INTO "app"."schema_migration_catalog" (`,
 			"version,",
-			"previous_version,",
+			"previous_id,",
 			"identifier,",
 			"up_sql,",
 			"down_sql,",
 			"up_sha256,",
 			"down_sha256,",
 			"format_version",
-			"VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
-			"ON CONFLICT (version) DO NOTHING",
+			`SELECT id FROM "app"."schema_migration_catalog"`,
+			"WHERE version = $2 AND archived_at IS NULL",
+			"ON CONFLICT (version) WHERE archived_at IS NULL DO NOTHING",
 		} {
 			if !strings.Contains(query, fragment) {
 				t.Errorf("publish() query does not contain %q\n%s", fragment, query)
@@ -582,6 +714,22 @@ func assignCatalogValue(destination, value any) error {
 		}
 
 		*typed = sql.NullInt64{Int64: got, Valid: true}
+	case *sql.NullString:
+		if value == nil {
+			*typed = sql.NullString{}
+			return nil
+		}
+
+		got, ok := value.(string)
+		if !ok {
+			return fmt.Errorf(
+				"cannot assign %T to *sql.NullString: %w",
+				value,
+				errors.ErrUnsupported,
+			)
+		}
+
+		*typed = sql.NullString{String: got, Valid: true}
 	default:
 		return fmt.Errorf("unsupported destination %T: %w", destination, errors.ErrUnsupported)
 	}
@@ -590,8 +738,12 @@ func assignCatalogValue(destination, value any) error {
 }
 
 func rowsForMigration(migration migration) *stubCatalogRows {
-	var previous any
+	var (
+		previousID any
+		previous   any
+	)
 	if migration.previousVersion != nil {
+		previousID = "00000000-0000-0000-0000-000000000001"
 		//nolint:gosec // Test migrations use small constants.
 		previous = int64(*migration.previousVersion)
 	}
@@ -599,6 +751,7 @@ func rowsForMigration(migration migration) *stubCatalogRows {
 	return &stubCatalogRows{
 		rows: [][]any{{
 			int64(migration.version), //nolint:gosec // Test migrations use small constants.
+			previousID,
 			previous,
 			migration.identifier,
 			migration.upSQL,

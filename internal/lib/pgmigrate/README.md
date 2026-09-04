@@ -20,36 +20,41 @@ The caller must create the service schema before calling `Migrate` and must supp
 
 The library acquires and closes two dedicated `*sql.Conn` values per concurrent `Migrate` caller: one executes migrations and holds the advisory lock, while the other reads catalog bodies. Configure the migration pool for at least two connections per concurrent caller. Acquisition of the second connection is bounded and fails with pool guidance rather than hanging indefinitely when, for example, `MaxOpenConns(1)` is configured.
 
-The target must equal the maximum version in the embedded bundle. Existing `<schema>.schema_migrations` state is reused. The bundle is published before state is read, so an existing clean schema already at the target is hydrated without replaying migration SQL. Dirty state is never forced or repaired; an operator must inspect the failed migration and recover it explicitly.
+The target must equal the maximum version in the embedded bundle. Existing `<schema>.schema_migrations` state is reused. After catalog bootstrap, the library reads the clean migration state, reconciles the active catalog lineage with the embedded bundle, and hydrates missing rows without replaying migration SQL. Dirty state is never forced, reconciled, or repaired; an operator must inspect the failed migration and recover it explicitly.
 
-## Migration authoring and immutable catalog
+## Migration authoring and catalog lineages
 
 Migration directories must contain only paired `*.up.sql` and `*.down.sql` files accepted by `golang-migrate`. Every pair must use the same version and identifier, and both bodies must contain executable, non-whitespace SQL. Do not leave unrelated files or comment-only placeholders in a migration directory.
 
-`<schema>.schema_migration_catalog` stores each identifier, predecessor link, exact up/down bytes, SHA-256 checksums, and format version. Publication is additive and idempotent. After a version has been registered, never rename it, change its predecessor, edit either body, recalculate a different checksum, or reuse the version. A changed historical row or embedded file is an integrity failure.
+`<schema>.schema_migration_catalog` stores each migration under a random UUID, links it to its predecessor UUID, and preserves its identifier, exact up/down bytes, SHA-256 checksums, and format version. Partial unique indexes enforce one version, root, and successor in the active lineage. Archived rows remain in the same table with `archived_at` and `archive_batch_id`, so their UUID-linked historical lineage remains inspectable while their sequence numbers can be reused by the active lineage.
 
-Checksums detect corruption and release drift; they do not authenticate a database writer. A principal able to replace both a body and its checksum can make a later image execute arbitrary SQL. Restrict catalog and state-table writes to the migration role. Operators can inspect archived bodies without modifying them, for example:
+Rows through the currently applied version are immutable. Never rename an applied migration, change its predecessor, edit either body, or recalculate a different checksum. Unapplied active rows are also reused unchanged when they match the embedded bundle. When the embedded future differs, the library archives that inactive suffix before publishing the replacement. After a successful downgrade, it archives every row above the new target. This allows a beta lineage such as `1 -> 2-beta -> 3-beta` to be downgraded to `1` and replaced by a squashed `2-stable` without losing the beta down migrations before they execute.
+
+Checksums detect corruption and release drift; they do not authenticate a database writer. A principal able to replace both a body and its checksum can make a later image execute arbitrary SQL. Restrict catalog and state-table writes to the migration role. Operators can inspect active and archived bodies without modifying them, for example:
 
 ```sql
 SELECT
-  version,
-  previous_version,
-  identifier,
-  convert_from(up_sql, 'UTF8') AS up_sql,
-  convert_from(down_sql, 'UTF8') AS down_sql,
-  encode(up_sha256, 'hex') AS up_sha256,
-  encode(down_sha256, 'hex') AS down_sha256,
-  format_version,
-  registered_at
-FROM service_schema.schema_migration_catalog
-ORDER BY version;
+  migration.id,
+  migration.version,
+  predecessor.version AS previous_version,
+  migration.identifier,
+  convert_from(migration.up_sql, 'UTF8') AS up_sql,
+  convert_from(migration.down_sql, 'UTF8') AS down_sql,
+  encode(migration.up_sha256, 'hex') AS up_sha256,
+  encode(migration.down_sha256, 'hex') AS down_sha256,
+  migration.format_version,
+  migration.registered_at,
+  migration.archived_at,
+  migration.archive_batch_id
+FROM service_schema.schema_migration_catalog AS migration
+LEFT JOIN service_schema.schema_migration_catalog AS predecessor
+  ON predecessor.id = migration.previous_id
+ORDER BY migration.version, migration.registered_at;
 ```
-
-Catalog format 1 is a permanent old-image compatibility surface. Future compatible catalog columns must be nullable or defaulted, and readers and writers must continue naming columns explicitly. An incompatible body encoding or required-column change needs a separately coordinated format rollout and cannot preserve arbitrary old-image downgrade.
 
 ## Locking, permissions, and rollout
 
-The wrapper serializes bootstrap, publication, preflight, and execution with the exact advisory-lock identity used by the upstream PostgreSQL driver: the current database, service schema, and `schema_migrations` table. It validates every linked body required for the requested direction before executing the first body. The upstream driver still controls per-migration dirty-state transitions.
+The wrapper serializes bootstrap, clean-state validation, catalog reconciliation, preflight, execution, and post-downgrade archival with the exact advisory-lock identity used by the upstream PostgreSQL driver: the current database, service schema, and `schema_migrations` table. It validates every linked body required for the requested direction before executing the first body. The upstream driver still controls per-migration dirty-state transitions.
 
 A dedicated migration role needs:
 
@@ -57,7 +62,7 @@ A dedicated migration role needs:
 - `USAGE` and `CREATE` on the already-existing service schema, to create the state/catalog tables and migration objects;
 - every object privilege required by the migration SQL for existing tables, sequences, functions, extensions, or other schemas.
 
-The role that creates the state and catalog tables owns them. If an administrator pre-creates either table, transfer ownership to the migration role: the state driver needs `SELECT`, `INSERT`, and `TRUNCATE`, while catalog publication needs `SELECT` and `INSERT`, and bootstrap must be able to maintain the catalog index. PostgreSQL advisory-lock functions are executable by ordinary roles by default; deployments that revoke those functions must explicitly grant their use to the migration role.
+The role that creates the state and catalog tables owns them. If an administrator pre-creates either table, transfer ownership to the migration role: the state driver needs `SELECT`, `INSERT`, and `TRUNCATE`, while catalog reconciliation needs `SELECT`, `INSERT`, and `UPDATE`, and bootstrap must be able to maintain the catalog indexes. PostgreSQL advisory-lock functions are executable by ordinary roles by default; deployments that revoke those functions must explicitly grant their use to the migration role.
 
 Only one release target may act as migration writer during a rollout. Do not start N and N+1 migration writers concurrently against one database: each image targets its own maximum and can alternate the schema between versions. Complete the schema transition before mixed application traffic. Down scripts can destroy data even when they are syntactically valid; use backups and expand/contract migrations for data-preserving rollouts.
 
