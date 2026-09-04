@@ -42,10 +42,9 @@ For a cloud project instead, edit `make_client()` in `src/main.rs` and set
 trunk serve --open
 ```
 
-Trunk builds the crate for `wasm32-unknown-unknown` and serves it. The
-`getrandom` JS-backend flag needed for PKCE is inherited from the SDK's
-`../../.cargo/config.toml` (`--cfg getrandom_backend="wasm_js"`), so no extra
-configuration is required.
+Trunk builds the crate for `wasm32-unknown-unknown` and serves it. Randomness
+for PKCE uses `getrandom`'s JS backend on the web; the SDK enables `getrandom`'s
+`wasm_js` feature automatically, so no extra configuration is required.
 
 > Note: because the local backend uses a self-signed certificate, your browser
 > may require you to accept it once (open the auth URL directly and proceed).
