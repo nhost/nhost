@@ -848,9 +848,7 @@ func (c *Client) GetJwKs(
 		return payload, nil, err
 	}
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -882,9 +880,7 @@ func (c *Client) ElevateWebAuthn(
 		return payload, nil, err
 	}
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -922,9 +918,7 @@ func (c *Client) VerifyElevateWebAuthn(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -956,9 +950,7 @@ func (c *Client) HealthCheckGet(
 		return payload, nil, err
 	}
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -990,9 +982,7 @@ func (c *Client) HealthCheckHead(
 		return payload, nil, err
 	}
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -1027,9 +1017,7 @@ func (c *Client) LinkIDToken(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -1061,9 +1049,7 @@ func (c *Client) ChangeUserMFA(
 		return payload, nil, err
 	}
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -1101,9 +1087,7 @@ func (c *Client) CreatePAT(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -1152,9 +1136,7 @@ func (c *Client) SignInAnonymous(
 		req.Header.Set("Content-Type", "application/json")
 	}
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -1192,9 +1174,7 @@ func (c *Client) SignInEmailPassword(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -1232,9 +1212,7 @@ func (c *Client) SignInIDToken(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -1272,9 +1250,7 @@ func (c *Client) VerifySignInMFATOTP(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -1312,9 +1288,7 @@ func (c *Client) SignInOTPEmail(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -1352,9 +1326,7 @@ func (c *Client) VerifySignInOTPEmail(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -1392,9 +1364,7 @@ func (c *Client) SignInPasswordlessEmail(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -1432,9 +1402,7 @@ func (c *Client) SignInPasswordlessSMS(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -1472,9 +1440,7 @@ func (c *Client) VerifySignInPasswordlessSMS(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -1512,9 +1478,7 @@ func (c *Client) SignInPAT(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -1532,7 +1496,7 @@ func (c *Client) SignInPAT(
 	return payload, &transport.Response{Status: resp.StatusCode, Headers: resp.Header}, nil
 }
 
-// SignInProviderURL builds the URL for GET /signin/provider/%s without following the redirect.
+// SignInProviderURL builds the URL for GET /signin/provider/{provider} without following the redirect.
 func (c *Client) SignInProviderURL(provider string, params *SignInProviderParams,
 ) string {
 	u := fmt.Sprintf("%s/signin/provider/%s", c.BaseURL, escapePathSegment(provider))
@@ -1544,7 +1508,7 @@ func (c *Client) SignInProviderURL(provider string, params *SignInProviderParams
 	return u
 }
 
-// GetProviderTokens performs GET /signin/provider/%s/callback/tokens. It returns the decoded body,
+// GetProviderTokens performs GET /signin/provider/{provider}/callback/tokens. It returns the decoded body,
 // the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
 // responses.
 func (c *Client) GetProviderTokens(
@@ -1559,9 +1523,7 @@ func (c *Client) GetProviderTokens(
 		return payload, nil, err
 	}
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -1610,9 +1572,7 @@ func (c *Client) SignInWebAuthn(
 		req.Header.Set("Content-Type", "application/json")
 	}
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -1650,9 +1610,7 @@ func (c *Client) VerifySignInWebAuthn(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -1690,9 +1648,7 @@ func (c *Client) SignOut(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -1730,9 +1686,7 @@ func (c *Client) SignUpEmailPassword(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -1770,9 +1724,7 @@ func (c *Client) SignUpWebAuthn(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -1810,9 +1762,7 @@ func (c *Client) VerifySignUpWebAuthn(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -1850,9 +1800,7 @@ func (c *Client) SignUpPasswordlessEmail(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -1890,9 +1838,7 @@ func (c *Client) SignUpOTPEmail(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -1930,9 +1876,7 @@ func (c *Client) SignUpPasswordlessSMS(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -1970,9 +1914,7 @@ func (c *Client) SignUpIDToken(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -1990,7 +1932,7 @@ func (c *Client) SignUpIDToken(
 	return payload, &transport.Response{Status: resp.StatusCode, Headers: resp.Header}, nil
 }
 
-// SignUpProviderURL builds the URL for GET /signup/provider/%s without following the redirect.
+// SignUpProviderURL builds the URL for GET /signup/provider/{provider} without following the redirect.
 func (c *Client) SignUpProviderURL(provider string, params *SignUpProviderParams,
 ) string {
 	u := fmt.Sprintf("%s/signup/provider/%s", c.BaseURL, escapePathSegment(provider))
@@ -2022,9 +1964,7 @@ func (c *Client) RefreshToken(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -2042,7 +1982,7 @@ func (c *Client) RefreshToken(
 	return payload, &transport.Response{Status: resp.StatusCode, Headers: resp.Header}, nil
 }
 
-// RefreshProviderToken performs POST /token/provider/%s. It returns the decoded body,
+// RefreshProviderToken performs POST /token/provider/{provider}. It returns the decoded body,
 // the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
 // responses.
 func (c *Client) RefreshProviderToken(
@@ -2063,9 +2003,7 @@ func (c *Client) RefreshProviderToken(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -2114,9 +2052,7 @@ func (c *Client) VerifyToken(
 		req.Header.Set("Content-Type", "application/json")
 	}
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -2148,9 +2084,7 @@ func (c *Client) GetUser(
 		return payload, nil, err
 	}
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -2188,9 +2122,7 @@ func (c *Client) DeanonymizeUser(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -2228,9 +2160,7 @@ func (c *Client) DeanonymizeUserSMS(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -2268,9 +2198,7 @@ func (c *Client) ChangeUserEmail(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -2308,9 +2236,7 @@ func (c *Client) ChangeUserPhoneNumber(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -2348,9 +2274,7 @@ func (c *Client) VerifyChangeUserPhoneNumber(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -2388,9 +2312,7 @@ func (c *Client) SendVerificationEmail(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -2428,9 +2350,7 @@ func (c *Client) VerifyChangeUserMFA(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -2468,9 +2388,7 @@ func (c *Client) ChangeUserPassword(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -2508,9 +2426,7 @@ func (c *Client) SendPasswordResetEmail(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -2542,9 +2458,7 @@ func (c *Client) AddSecurityKey(
 		return payload, nil, err
 	}
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -2582,9 +2496,7 @@ func (c *Client) VerifyAddSecurityKey(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -2622,9 +2534,7 @@ func (c *Client) TokenExchange(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -2643,13 +2553,11 @@ func (c *Client) TokenExchange(
 }
 
 // VerifyTicketURL builds the URL for GET /verify without following the redirect.
-func (c *Client) VerifyTicketURL(params *VerifyTicketParams,
+func (c *Client) VerifyTicketURL(params VerifyTicketParams,
 ) string {
 	u := fmt.Sprintf("%s/verify", c.BaseURL)
-	if params != nil {
-		if q := params.toQuery(); len(q) > 0 {
-			u += "?" + q.Encode()
-		}
+	if q := params.toQuery(); len(q) > 0 {
+		u += "?" + q.Encode()
 	}
 	return u
 }
@@ -2668,9 +2576,7 @@ func (c *Client) GetVersion(
 		return payload, nil, err
 	}
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -2702,9 +2608,7 @@ func (c *Client) GetOpenIDConfiguration(
 		return payload, nil, err
 	}
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -2736,9 +2640,7 @@ func (c *Client) GetOAuthAuthorizationServer(
 		return payload, nil, err
 	}
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -2757,13 +2659,11 @@ func (c *Client) GetOAuthAuthorizationServer(
 }
 
 // Oauth2AuthorizeURL builds the URL for GET /oauth2/authorize without following the redirect.
-func (c *Client) Oauth2AuthorizeURL(params *Oauth2AuthorizeParams,
+func (c *Client) Oauth2AuthorizeURL(params Oauth2AuthorizeParams,
 ) string {
 	u := fmt.Sprintf("%s/oauth2/authorize", c.BaseURL)
-	if params != nil {
-		if q := params.toQuery(); len(q) > 0 {
-			u += "?" + q.Encode()
-		}
+	if q := params.toQuery(); len(q) > 0 {
+		u += "?" + q.Encode()
 	}
 	return u
 }
@@ -2813,9 +2713,7 @@ func (c *Client) Oauth2Token(
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -2847,9 +2745,7 @@ func (c *Client) Oauth2UserinfoGet(
 		return payload, nil, err
 	}
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -2881,9 +2777,7 @@ func (c *Client) Oauth2UserinfoPost(
 		return payload, nil, err
 	}
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -2915,9 +2809,7 @@ func (c *Client) Oauth2Jwks(
 		return payload, nil, err
 	}
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -2962,9 +2854,7 @@ func (c *Client) Oauth2Revoke(
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -3006,9 +2896,7 @@ func (c *Client) Oauth2Introspect(
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -3031,7 +2919,7 @@ func (c *Client) Oauth2Introspect(
 // responses.
 func (c *Client) Oauth2LoginGet(
 	ctx context.Context,
-	params *Oauth2LoginGetParams,
+	params Oauth2LoginGetParams,
 	headers http.Header,
 ) (OAuth2LoginResponse, *transport.Response, error) {
 	var payload OAuth2LoginResponse
@@ -3040,13 +2928,9 @@ func (c *Client) Oauth2LoginGet(
 	if err != nil {
 		return payload, nil, err
 	}
-	if params != nil {
-		req.URL.RawQuery = params.toQuery().Encode()
-	}
+	req.URL.RawQuery = params.toQuery().Encode()
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
@@ -3084,9 +2968,7 @@ func (c *Client) Oauth2LoginPost(
 	}
 	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
-		for _, v := range vs {
-			req.Header.Add(k, v)
-		}
+		req.Header[http.CanonicalHeaderKey(k)] = append([]string(nil), vs...)
 	}
 
 	resp, err := c.httpClient.Do(req)
