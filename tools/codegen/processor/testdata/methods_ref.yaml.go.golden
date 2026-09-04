@@ -12,45 +12,43 @@ import (
 	"net/http"
 	"net/textproto"
 	"net/url"
-	"strings"
 
 	"github.com/nhost/nhost/packages/nhost-go/transport"
 )
-
 
 type VersionInformation struct {
 	BuildVersion *string `json:"buildVersion,omitempty"`
 }
 
 type FileSummary struct {
-	ID *string `json:"id,omitempty"`
-	Name *string `json:"name,omitempty"`
-	BucketID *string `json:"bucketId,omitempty"`
-	IsUploaded *bool `json:"isUploaded,omitempty"`
+	ID         *string `json:"id,omitempty"`
+	Name       *string `json:"name,omitempty"`
+	BucketID   *string `json:"bucketId,omitempty"`
+	IsUploaded *bool   `json:"isUploaded,omitempty"`
 }
 
 type FileMetadata struct {
-	ID *string `json:"id,omitempty"`
-	Name *string `json:"name,omitempty"`
-	Size *float64 `json:"size,omitempty"`
-	BucketID *string `json:"bucketId,omitempty"`
-	Etag *string `json:"etag,omitempty"`
-	CreatedAt *string `json:"createdAt,omitempty"`
-	UpdatedAt *string `json:"updatedAt,omitempty"`
-	IsUploaded *bool `json:"isUploaded,omitempty"`
-	MimeType *string `json:"mimeType,omitempty"`
-	UploadedByUserID *string `json:"uploadedByUserId,omitempty"`
-	Metadata *map[string]any `json:"metadata,omitempty"`
+	ID               *string         `json:"id,omitempty"`
+	Name             *string         `json:"name,omitempty"`
+	Size             *float64        `json:"size,omitempty"`
+	BucketID         *string         `json:"bucketId,omitempty"`
+	Etag             *string         `json:"etag,omitempty"`
+	CreatedAt        *string         `json:"createdAt,omitempty"`
+	UpdatedAt        *string         `json:"updatedAt,omitempty"`
+	IsUploaded       *bool           `json:"isUploaded,omitempty"`
+	MimeType         *string         `json:"mimeType,omitempty"`
+	UploadedByUserID *string         `json:"uploadedByUserId,omitempty"`
+	Metadata         *map[string]any `json:"metadata,omitempty"`
 }
 
 type UploadFileMetadata struct {
-	ID *string `json:"id,omitempty"`
-	Name *string `json:"name,omitempty"`
+	ID       *string         `json:"id,omitempty"`
+	Name     *string         `json:"name,omitempty"`
 	Metadata *map[string]any `json:"metadata,omitempty"`
 }
 
 type UpdateFileMetadata struct {
-	Name *string `json:"name,omitempty"`
+	Name     *string         `json:"name,omitempty"`
 	Metadata *map[string]any `json:"metadata,omitempty"`
 }
 
@@ -67,27 +65,27 @@ type RefreshTokenRequest struct {
 }
 
 type Session struct {
-	AccessToken string `json:"accessToken"`
-	AccessTokenExpiresIn int `json:"accessTokenExpiresIn"`
-	RefreshTokenID string `json:"refreshTokenId"`
-	RefreshToken string `json:"refreshToken"`
-	User *User `json:"user,omitempty"`
+	AccessToken          string `json:"accessToken"`
+	AccessTokenExpiresIn int    `json:"accessTokenExpiresIn"`
+	RefreshTokenID       string `json:"refreshTokenId"`
+	RefreshToken         string `json:"refreshToken"`
+	User                 *User  `json:"user,omitempty"`
 }
 
 type User struct {
-	AvatarURL string `json:"avatarUrl"`
-	CreatedAt string `json:"createdAt"`
-	DefaultRole string `json:"defaultRole"`
-	DisplayName string `json:"displayName"`
-	Email *string `json:"email,omitempty"`
-	EmailVerified bool `json:"emailVerified"`
-	ID string `json:"id"`
-	IsAnonymous bool `json:"isAnonymous"`
-	Locale string `json:"locale"`
-	Metadata map[string]any `json:"metadata"`
-	PhoneNumber *string `json:"phoneNumber,omitempty"`
-	PhoneNumberVerified bool `json:"phoneNumberVerified"`
-	Roles []string `json:"roles"`
+	AvatarURL           string         `json:"avatarUrl"`
+	CreatedAt           string         `json:"createdAt"`
+	DefaultRole         string         `json:"defaultRole"`
+	DisplayName         string         `json:"displayName"`
+	Email               *string        `json:"email,omitempty"`
+	EmailVerified       bool           `json:"emailVerified"`
+	ID                  string         `json:"id"`
+	IsAnonymous         bool           `json:"isAnonymous"`
+	Locale              string         `json:"locale"`
+	Metadata            map[string]any `json:"metadata"`
+	PhoneNumber         *string        `json:"phoneNumber,omitempty"`
+	PhoneNumberVerified bool           `json:"phoneNumberVerified"`
+	Roles               []string       `json:"roles"`
 }
 
 type FileID = string
@@ -123,12 +121,12 @@ type UploadFilesBodyNullableMetadata struct {
 }
 
 type UploadFilesBody struct {
-	BucketID *string `json:"bucket-id,omitempty"`
-	NullableNote *string `json:"nullable-note"`
-	NullableTags *[]string `json:"nullable-tags"`
+	BucketID         *string                          `json:"bucket-id,omitempty"`
+	NullableNote     *string                          `json:"nullable-note"`
+	NullableTags     *[]string                        `json:"nullable-tags"`
 	NullableMetadata *UploadFilesBodyNullableMetadata `json:"nullable-metadata"`
-	Metadata *[]FileMetadata `json:"metadata[],omitempty"`
-	File [][]byte `json:"file[]"`
+	Metadata         *[]FileMetadata                  `json:"metadata[],omitempty"`
+	File             [][]byte                         `json:"file[]"`
 }
 
 type UploadFilesResponse201 struct {
@@ -137,70 +135,67 @@ type UploadFilesResponse201 struct {
 
 type ReplaceFileBody struct {
 	Metadata *UpdateFileMetadata `json:"metadata,omitempty"`
-	File []byte `json:"file"`
+	File     []byte              `json:"file"`
 }
-
 
 type GetFileMetadataHeadersParams struct {
 	Q *ImageQuality `json:"q,omitempty"`
-	H *MaxHeight `json:"h,omitempty"`
-	W *MaxWidth `json:"w,omitempty"`
-	B *BlurSigma `json:"b,omitempty"`
+	H *MaxHeight    `json:"h,omitempty"`
+	W *MaxWidth     `json:"w,omitempty"`
+	B *BlurSigma    `json:"b,omitempty"`
 	F *OutputFormat `json:"f,omitempty"`
 }
 
 func (p *GetFileMetadataHeadersParams) toQuery() url.Values {
 	q := url.Values{}
 	if p.Q != nil {
-	q.Set("q", fmt.Sprint(*p.Q))
+		q.Set("q", fmt.Sprint(*p.Q))
 	}
 	if p.H != nil {
-	q.Set("h", fmt.Sprint(*p.H))
+		q.Set("h", fmt.Sprint(*p.H))
 	}
 	if p.W != nil {
-	q.Set("w", fmt.Sprint(*p.W))
+		q.Set("w", fmt.Sprint(*p.W))
 	}
 	if p.B != nil {
-	q.Set("b", fmt.Sprint(*p.B))
+		q.Set("b", fmt.Sprint(*p.B))
 	}
 	if p.F != nil {
-	q.Set("f", fmt.Sprint(*p.F))
+		q.Set("f", fmt.Sprint(*p.F))
 	}
 	return q
 }
 
-
 type GetFileParams struct {
 	Q *ImageQuality `json:"q,omitempty"`
-	H *MaxHeight `json:"h,omitempty"`
-	W *MaxWidth `json:"w,omitempty"`
-	B *BlurSigma `json:"b,omitempty"`
+	H *MaxHeight    `json:"h,omitempty"`
+	W *MaxWidth     `json:"w,omitempty"`
+	B *BlurSigma    `json:"b,omitempty"`
 	F *OutputFormat `json:"f,omitempty"`
 }
 
 func (p *GetFileParams) toQuery() url.Values {
 	q := url.Values{}
 	if p.Q != nil {
-	q.Set("q", fmt.Sprint(*p.Q))
+		q.Set("q", fmt.Sprint(*p.Q))
 	}
 	if p.H != nil {
-	q.Set("h", fmt.Sprint(*p.H))
+		q.Set("h", fmt.Sprint(*p.H))
 	}
 	if p.W != nil {
-	q.Set("w", fmt.Sprint(*p.W))
+		q.Set("w", fmt.Sprint(*p.W))
 	}
 	if p.B != nil {
-	q.Set("b", fmt.Sprint(*p.B))
+		q.Set("b", fmt.Sprint(*p.B))
 	}
 	if p.F != nil {
-	q.Set("f", fmt.Sprint(*p.F))
+		q.Set("f", fmt.Sprint(*p.F))
 	}
 	return q
 }
 
-
 type VerifyTicketParams struct {
-	Ticket TicketQuery `json:"ticket"`
+	Ticket     TicketQuery     `json:"ticket"`
 	RedirectTo RedirectToQuery `json:"redirectTo"`
 }
 
@@ -210,7 +205,6 @@ func (p *VerifyTicketParams) toQuery() url.Values {
 	q.Set("redirectTo", fmt.Sprint(p.RedirectTo))
 	return q
 }
-
 
 // Client is a generated API client backed by an *http.Client. Install request
 // middleware (session refresh, token attachment, ...) via the client's
@@ -232,7 +226,6 @@ func NewClient(baseURL string, httpClient *http.Client) *Client {
 		httpClient: httpClient,
 	}
 }
-
 
 // RefreshToken performs POST /token. It returns the decoded body,
 // the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
@@ -273,7 +266,6 @@ func (c *Client) RefreshToken(
 	}
 	return payload, &transport.Response{Status: resp.StatusCode, Headers: resp.Header}, nil
 }
-
 
 // UploadFiles performs POST /files/. It returns the decoded body,
 // the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
@@ -381,7 +373,6 @@ func (c *Client) UploadFiles(
 	return payload, &transport.Response{Status: resp.StatusCode, Headers: resp.Header}, nil
 }
 
-
 // GetFileMetadataHeaders performs HEAD /files/%s. It returns the decoded body,
 // the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
 // responses.
@@ -417,7 +408,6 @@ func (c *Client) GetFileMetadataHeaders(
 	}
 	return payload, &transport.Response{Status: resp.StatusCode, Headers: resp.Header}, nil
 }
-
 
 // GetFile performs GET /files/%s. It returns the decoded body,
 // the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
@@ -458,7 +448,6 @@ func (c *Client) GetFile(
 	}
 	return payload, &transport.Response{Status: resp.StatusCode, Headers: resp.Header}, nil
 }
-
 
 // ReplaceFile performs PUT /files/%s. It returns the decoded body,
 // the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
@@ -527,7 +516,6 @@ func (c *Client) ReplaceFile(
 	return payload, &transport.Response{Status: resp.StatusCode, Headers: resp.Header}, nil
 }
 
-
 // DeleteFile performs DELETE /files/%s. It returns the decoded body,
 // the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
 // responses.
@@ -560,9 +548,8 @@ func (c *Client) DeleteFile(
 	return payload, &transport.Response{Status: resp.StatusCode, Headers: resp.Header}, nil
 }
 
-
 // VerifyTicketURL builds the URL for GET /verify without following the redirect.
-func (c *Client) VerifyTicketURL( params *VerifyTicketParams,
+func (c *Client) VerifyTicketURL(params *VerifyTicketParams,
 ) string {
 	u := fmt.Sprintf("%s/verify", c.BaseURL)
 	if params != nil {
@@ -572,4 +559,3 @@ func (c *Client) VerifyTicketURL( params *VerifyTicketParams,
 	}
 	return u
 }
-
