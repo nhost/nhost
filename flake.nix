@@ -256,7 +256,6 @@
           default = pkgs.mkShell {
             buildInputs = with pkgs; [
               # general
-              nhost.betterleaks
               gh
               git-cliff
               gnused
