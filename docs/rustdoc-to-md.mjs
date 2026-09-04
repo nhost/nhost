@@ -24,6 +24,63 @@ if (!jsonPath || !outDir) {
 
 const TYPE_KINDS = new Set(['struct', 'enum', 'union', 'trait', 'type_alias']);
 
+// `crate`, `self`, `Self`, and `super` are deliberately absent: Rust does
+// not permit their `r#` forms.
+const RAW_IDENTIFIER_KEYWORDS = new Set([
+  'abstract',
+  'as',
+  'async',
+  'await',
+  'become',
+  'box',
+  'break',
+  'const',
+  'continue',
+  'do',
+  'dyn',
+  'else',
+  'enum',
+  'extern',
+  'false',
+  'final',
+  'fn',
+  'for',
+  'gen',
+  'if',
+  'impl',
+  'in',
+  'let',
+  'loop',
+  'macro',
+  'match',
+  'mod',
+  'move',
+  'mut',
+  'override',
+  'priv',
+  'pub',
+  'ref',
+  'return',
+  'static',
+  'struct',
+  'trait',
+  'true',
+  'try',
+  'type',
+  'typeof',
+  'unsafe',
+  'unsized',
+  'use',
+  'virtual',
+  'where',
+  'while',
+  'yield',
+]);
+
+function rustIdentifier(name) {
+  return RAW_IDENTIFIER_KEYWORDS.has(name) ? `r#${name}` : name;
+}
+
 function loadContext(filePath, label) {
   const loadedDoc = JSON.parse(fs.readFileSync(filePath, 'utf8'));
   const localTypes = new Map();
@@ -76,7 +133,7 @@ function renderType(t) {
     const p = t.resolved_path;
     return displayTypePath(p) + renderGenericArgs(p.args);
   }
-  if ('generic' in t) return t.generic;
+  if ('generic' in t) return rustIdentifier(t.generic);
   if ('primitive' in t) return t.primitive;
   if ('borrowed_ref' in t) {
     const r = t.borrowed_ref;
@@ -106,9 +163,9 @@ function renderType(t) {
     const q = t.qualified_path;
     const self_ = renderType(q.self_type);
     if (q.trait) {
-      return `<${self_} as ${displayTypePath(q.trait)}${renderGenericArgs(q.trait.args)}>::${q.name}`;
+      return `<${self_} as ${displayTypePath(q.trait)}${renderGenericArgs(q.trait.args)}>::${rustIdentifier(q.name)}`;
     }
-    return `${self_}::${q.name}`;
+    return `${self_}::${rustIdentifier(q.name)}`;
   }
   if ('function_pointer' in t) {
     const fp = t.function_pointer;
@@ -170,15 +227,16 @@ function lastPathSegment(p) {
 function displayTypePath(resolvedPath) {
   if (!resolvedPath) return '_';
   const name = lastPathSegment(resolvedPath.path);
+  const renderedName = rustIdentifier(name);
   const meta = paths[String(resolvedPath.id)];
-  if (!meta) return name;
+  if (!meta) return renderedName;
 
   if (meta.crate_id !== 0) {
     const crateName = externalCrates[String(meta.crate_id)]?.name;
     if (!crateName) {
       throw new Error(`cannot identify external crate for type '${meta.path}'`);
     }
-    if (PRELUDE_CRATES.has(crateName)) return name;
+    if (PRELUDE_CRATES.has(crateName)) return renderedName;
 
     const canonicalPath = meta.path?.join('::');
     const publicPath = PUBLIC_EXTERNAL_TYPE_PATHS.get(canonicalPath);
@@ -191,7 +249,7 @@ function displayTypePath(resolvedPath) {
   }
 
   const matches = localTypesByName.get(name) ?? [];
-  if (matches.length < 2) return name;
+  if (matches.length < 2) return renderedName;
 
   const modules = (meta.path ?? []).slice(1, -1);
   for (let depth = 1; depth <= modules.length; depth += 1) {
@@ -201,9 +259,10 @@ function displayTypePath(resolvedPath) {
         other === meta ||
         (other.path ?? []).slice(1, depth + 1).join('::') !== owner,
     );
-    if (unique) return `${owner}::${name}`;
+    if (unique) return `${owner}::${renderedName}`;
   }
-  return (meta.path ?? [name]).slice(1).join('::');
+  const owner = (meta.path ?? []).slice(1, -1).join('::');
+  return owner ? `${owner}::${renderedName}` : renderedName;
 }
 
 function renderGenericArgs(args) {
@@ -221,7 +280,7 @@ function renderGenericArgs(args) {
         c.binding && 'equality' in c.binding
           ? ` = ${renderType(c.binding.equality.type ?? c.binding.equality)}`
           : '';
-      parts.push(`${c.name}${binding}`);
+      parts.push(`${rustIdentifier(c.name)}${binding}`);
     }
     return parts.length ? `<${parts.join(', ')}>` : '';
   }
@@ -268,13 +327,16 @@ function renderGenerics(generics) {
       const def = p.kind.type.default
         ? ` = ${renderType(p.kind.type.default)}`
         : '';
+      const name = rustIdentifier(p.name);
       params.push(
         bounds.length
-          ? `${p.name}: ${bounds.join(' + ')}${def}`
-          : `${p.name}${def}`,
+          ? `${name}: ${bounds.join(' + ')}${def}`
+          : `${name}${def}`,
       );
     } else if (p.kind && 'const' in p.kind) {
-      params.push(`const ${p.name}: ${renderType(p.kind.const.type)}`);
+      params.push(
+        `const ${rustIdentifier(p.name)}: ${renderType(p.kind.const.type)}`,
+      );
     }
   }
   const wheres = [];
@@ -309,10 +371,10 @@ function fnSignature(name, fn, { isMethod = false } = {}) {
     (header.is_unsafe ? 'unsafe ' : '');
   const inputs = (fn.sig?.inputs ?? []).map(([argName, ty]) => {
     if (isMethod && argName === 'self') return renderSelf(ty);
-    return `${argName}: ${renderType(ty)}`;
+    return `${rustIdentifier(argName)}: ${renderType(ty)}`;
   });
   const out = fn.sig?.output ? ` -> ${renderType(fn.sig.output)}` : '';
-  return `${kw}fn ${name}${g.params}(${inputs.join(', ')})${out}${g.where}`;
+  return `${kw}fn ${rustIdentifier(name)}${g.params}(${inputs.join(', ')})${out}${g.where}`;
 }
 
 function renderSelf(ty) {
@@ -455,7 +517,7 @@ function inherentMethods(structOrEnum) {
 }
 
 function renderMethod(m) {
-  const parts = [heading(5, `\`${m.name}\``)];
+  const parts = [heading(5, `\`${rustIdentifier(m.name)}\``)];
   parts.push(
     codeBlock(fnSignature(m.name, m.inner.function, { isMethod: true })),
   );
@@ -498,8 +560,9 @@ function notableTraitImpls(structOrEnum) {
 function renderStruct(name, it) {
   const s = it.inner.struct;
   const g = renderGenerics(s.generics);
-  const parts = [heading(3, `\`${name}\``)];
-  parts.push(codeBlock(`struct ${name}${g.params}${g.where}`));
+  const renderedName = rustIdentifier(name);
+  const parts = [heading(3, `\`${renderedName}\``)];
+  parts.push(codeBlock(`struct ${renderedName}${g.params}${g.where}`));
   const d = cleanDocs(it.docs);
   if (d) parts.push(d);
 
@@ -511,7 +574,7 @@ function renderStruct(name, it) {
       if (!f?.inner.struct_field) continue;
       const fdoc = cleanDocs(f.docs).replace(/\n+/g, ' ').trim();
       rows.push(
-        `| \`${f.name}\` | \`${renderType(f.inner.struct_field)}\` | ${fdoc} |`,
+        `| \`${rustIdentifier(f.name)}\` | \`${renderType(f.inner.struct_field)}\` | ${fdoc} |`,
       );
     }
     if (rows.length) {
@@ -540,8 +603,9 @@ function renderStruct(name, it) {
 function renderEnum(name, it) {
   const e = it.inner.enum;
   const g = renderGenerics(e.generics);
-  const parts = [heading(3, `\`${name}\``)];
-  parts.push(codeBlock(`enum ${name}${g.params}${g.where}`));
+  const renderedName = rustIdentifier(name);
+  const parts = [heading(3, `\`${renderedName}\``)];
+  parts.push(codeBlock(`enum ${renderedName}${g.params}${g.where}`));
   const d = cleanDocs(it.docs);
   if (d) parts.push(d);
 
@@ -550,7 +614,7 @@ function renderEnum(name, it) {
     const v = item(vid);
     if (!v?.inner.variant) continue;
     const kind = v.inner.variant.kind;
-    let signature = v.name;
+    let signature = rustIdentifier(v.name);
     if (kind && typeof kind === 'object' && 'tuple' in kind) {
       const fields = kind.tuple.map((fid) => {
         const field = fid != null ? item(fid) : null;
@@ -563,7 +627,7 @@ function renderEnum(name, it) {
       const fields = (kind.struct.fields ?? []).flatMap((fid) => {
         const field = item(fid);
         if (!field?.inner.struct_field) return [];
-        return `${field.name}: ${renderType(field.inner.struct_field)}`;
+        return `${rustIdentifier(field.name)}: ${renderType(field.inner.struct_field)}`;
       });
       if (kind.struct.has_stripped_fields) fields.push('..');
       signature += ` { ${fields.join(', ')} }`;
@@ -593,13 +657,16 @@ function renderEnum(name, it) {
 function renderTrait(name, it) {
   const tr = it.inner.trait;
   const g = renderGenerics(tr.generics);
+  const renderedName = rustIdentifier(name);
   const qualifiers =
     (tr.is_unsafe ? 'unsafe ' : '') + (tr.is_auto ? 'auto ' : '');
   const bounds = (tr.bounds ?? []).map(renderBound).filter(Boolean);
   const supertraits = bounds.length ? `: ${bounds.join(' + ')}` : '';
-  const parts = [heading(3, `\`${name}\``)];
+  const parts = [heading(3, `\`${renderedName}\``)];
   parts.push(
-    codeBlock(`${qualifiers}trait ${name}${g.params}${supertraits}${g.where}`),
+    codeBlock(
+      `${qualifiers}trait ${renderedName}${g.params}${supertraits}${g.where}`,
+    ),
   );
   const d = cleanDocs(it.docs);
   if (d) parts.push(d);
@@ -617,7 +684,7 @@ function renderTrait(name, it) {
 }
 
 function renderFunction(name, it) {
-  const parts = [heading(3, `\`${name}\``)];
+  const parts = [heading(3, `\`${rustIdentifier(name)}\``)];
   parts.push(codeBlock(fnSignature(name, it.inner.function)));
   const d = cleanDocs(it.docs);
   if (d) parts.push(d);
@@ -627,8 +694,11 @@ function renderFunction(name, it) {
 function renderTypeAlias(name, it) {
   const ta = it.inner.type_alias;
   const g = renderGenerics(ta.generics);
-  const parts = [heading(3, `\`${name}\``)];
-  parts.push(codeBlock(`type ${name}${g.params} = ${renderType(ta.type)}`));
+  const renderedName = rustIdentifier(name);
+  const parts = [heading(3, `\`${renderedName}\``)];
+  parts.push(
+    codeBlock(`type ${renderedName}${g.params} = ${renderType(ta.type)}`),
+  );
   const d = cleanDocs(it.docs);
   if (d) parts.push(d);
   return parts.join('\n\n');
@@ -636,10 +706,11 @@ function renderTypeAlias(name, it) {
 
 function renderConstant(name, it) {
   const c = it.inner.constant;
-  const parts = [heading(3, `\`${name}\``)];
+  const renderedName = rustIdentifier(name);
+  const parts = [heading(3, `\`${renderedName}\``)];
   const ty = c.type ? `: ${renderType(c.type)}` : '';
   const val = c.const?.expr ? ` = ${c.const.expr}` : '';
-  parts.push(codeBlock(`const ${name}${ty}${val}`));
+  parts.push(codeBlock(`const ${renderedName}${ty}${val}`));
   const d = cleanDocs(it.docs);
   if (d) parts.push(d);
   return parts.join('\n\n');
@@ -892,7 +963,7 @@ function renderPage(title, moduleDocs, entries) {
           const origin = root ? `[${source}](${root})` : source;
           const availability = availabilityText(e.availability);
           const suffix = availability ? ` ${availability}` : '';
-          return `- \`${e.name}\` *(${e.reexport.kind})* — re-exported from ${origin}.${suffix}`;
+          return `- \`${rustIdentifier(e.name)}\` *(${e.reexport.kind})* — re-exported from ${origin}.${suffix}`;
         })
         .join('\n'),
     );
