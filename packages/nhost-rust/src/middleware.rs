@@ -123,7 +123,8 @@ pub struct SessionRefresh {
     pub auth: Arc<auth::Client>,
     /// The store the refresh token is read from and the new session written to.
     pub storage: SessionStorage,
-    /// Seconds before expiry at which to refresh; `0` always refreshes.
+    /// Seconds before expiry at which to refresh; `0` always refreshes. Negative
+    /// or unrepresentably large values fail the request with a configuration error.
     pub margin: i64,
 }
 
