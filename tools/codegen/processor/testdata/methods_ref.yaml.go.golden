@@ -12,9 +12,63 @@ import (
 	"net/http"
 	"net/textproto"
 	"net/url"
+	"sort"
+	"strings"
 
 	"github.com/nhost/nhost/packages/nhost-go/transport"
 )
+
+func headerScalar(value any) string {
+	switch value := value.(type) {
+	case string:
+		return value
+	case nil:
+		return ""
+	default:
+		return fmt.Sprint(value)
+	}
+}
+
+func headerValue(value any, explode bool) string {
+	encoded, err := json.Marshal(value)
+	if err != nil {
+		return fmt.Sprint(value)
+	}
+
+	var decoded any
+	if err := json.Unmarshal(encoded, &decoded); err != nil {
+		return fmt.Sprint(value)
+	}
+
+	switch value := decoded.(type) {
+	case []any:
+		parts := make([]string, 0, len(value))
+		for _, item := range value {
+			parts = append(parts, headerScalar(item))
+		}
+
+		return strings.Join(parts, ",")
+	case map[string]any:
+		keys := make([]string, 0, len(value))
+		for key := range value {
+			keys = append(keys, key)
+		}
+		sort.Strings(keys)
+
+		parts := make([]string, 0, len(value)*2)
+		for _, key := range keys {
+			if explode {
+				parts = append(parts, key+"="+headerScalar(value[key]))
+			} else {
+				parts = append(parts, key, headerScalar(value[key]))
+			}
+		}
+
+		return strings.Join(parts, ",")
+	default:
+		return headerScalar(value)
+	}
+}
 
 type VersionInformation struct {
 	BuildVersion *string `json:"buildVersion,omitempty"`
@@ -139,11 +193,15 @@ type ReplaceFileBody struct {
 }
 
 type GetFileMetadataHeadersParams struct {
-	Q *ImageQuality `json:"q,omitempty"`
-	H *MaxHeight    `json:"h,omitempty"`
-	W *MaxWidth     `json:"w,omitempty"`
-	B *BlurSigma    `json:"b,omitempty"`
-	F *OutputFormat `json:"f,omitempty"`
+	Q                 *ImageQuality      `json:"q,omitempty"`
+	H                 *MaxHeight         `json:"h,omitempty"`
+	W                 *MaxWidth          `json:"w,omitempty"`
+	B                 *BlurSigma         `json:"b,omitempty"`
+	F                 *OutputFormat      `json:"f,omitempty"`
+	IfMatch           *IfMatch           `json:"if-match,omitempty"`
+	IfNoneMatch       *IfNoneMatch       `json:"if-none-match,omitempty"`
+	IfModifiedSince   *IfModifiedSince   `json:"if-modified-since,omitempty"`
+	IfUnmodifiedSince *IfUnmodifiedSince `json:"if-unmodified-since,omitempty"`
 }
 
 func (p *GetFileMetadataHeadersParams) toQuery() url.Values {
@@ -166,12 +224,33 @@ func (p *GetFileMetadataHeadersParams) toQuery() url.Values {
 	return q
 }
 
+func (p *GetFileMetadataHeadersParams) toHeaders() http.Header {
+	headers := http.Header{}
+	if p.IfMatch != nil {
+		headers.Set("if-match", fmt.Sprint(*p.IfMatch))
+	}
+	if p.IfNoneMatch != nil {
+		headers.Set("if-none-match", fmt.Sprint(*p.IfNoneMatch))
+	}
+	if p.IfModifiedSince != nil {
+		headers.Set("if-modified-since", fmt.Sprint(*p.IfModifiedSince))
+	}
+	if p.IfUnmodifiedSince != nil {
+		headers.Set("if-unmodified-since", fmt.Sprint(*p.IfUnmodifiedSince))
+	}
+	return headers
+}
+
 type GetFileParams struct {
-	Q *ImageQuality `json:"q,omitempty"`
-	H *MaxHeight    `json:"h,omitempty"`
-	W *MaxWidth     `json:"w,omitempty"`
-	B *BlurSigma    `json:"b,omitempty"`
-	F *OutputFormat `json:"f,omitempty"`
+	Q                 *ImageQuality      `json:"q,omitempty"`
+	H                 *MaxHeight         `json:"h,omitempty"`
+	W                 *MaxWidth          `json:"w,omitempty"`
+	B                 *BlurSigma         `json:"b,omitempty"`
+	F                 *OutputFormat      `json:"f,omitempty"`
+	IfMatch           *IfMatch           `json:"if-match,omitempty"`
+	IfNoneMatch       *IfNoneMatch       `json:"if-none-match,omitempty"`
+	IfModifiedSince   *IfModifiedSince   `json:"if-modified-since,omitempty"`
+	IfUnmodifiedSince *IfUnmodifiedSince `json:"if-unmodified-since,omitempty"`
 }
 
 func (p *GetFileParams) toQuery() url.Values {
@@ -192,6 +271,23 @@ func (p *GetFileParams) toQuery() url.Values {
 		q.Set("f", fmt.Sprint(*p.F))
 	}
 	return q
+}
+
+func (p *GetFileParams) toHeaders() http.Header {
+	headers := http.Header{}
+	if p.IfMatch != nil {
+		headers.Set("if-match", fmt.Sprint(*p.IfMatch))
+	}
+	if p.IfNoneMatch != nil {
+		headers.Set("if-none-match", fmt.Sprint(*p.IfNoneMatch))
+	}
+	if p.IfModifiedSince != nil {
+		headers.Set("if-modified-since", fmt.Sprint(*p.IfModifiedSince))
+	}
+	if p.IfUnmodifiedSince != nil {
+		headers.Set("if-unmodified-since", fmt.Sprint(*p.IfUnmodifiedSince))
+	}
+	return headers
 }
 
 type VerifyTicketParams struct {
@@ -403,7 +499,15 @@ func (c *Client) GetFileMetadataHeaders(
 	if params != nil {
 		req.URL.RawQuery = params.toQuery().Encode()
 	}
+	if params != nil {
+		for k, vs := range params.toHeaders() {
+			for _, v := range vs {
+				req.Header.Add(k, v)
+			}
+		}
+	}
 	for k, vs := range headers {
+		req.Header.Del(k)
 		for _, v := range vs {
 			req.Header.Add(k, v)
 		}
@@ -439,7 +543,15 @@ func (c *Client) GetFile(
 	if params != nil {
 		req.URL.RawQuery = params.toQuery().Encode()
 	}
+	if params != nil {
+		for k, vs := range params.toHeaders() {
+			for _, v := range vs {
+				req.Header.Add(k, v)
+			}
+		}
+	}
 	for k, vs := range headers {
+		req.Header.Del(k)
 		for _, v := range vs {
 			req.Header.Add(k, v)
 		}
@@ -571,13 +683,11 @@ func (c *Client) DeleteFile(
 }
 
 // VerifyTicketURL builds the URL for GET /verify without following the redirect.
-func (c *Client) VerifyTicketURL(params *VerifyTicketParams,
+func (c *Client) VerifyTicketURL(params VerifyTicketParams,
 ) string {
 	u := fmt.Sprintf("%s/verify", c.BaseURL)
-	if params != nil {
-		if q := params.toQuery(); len(q) > 0 {
-			u += "?" + q.Encode()
-		}
+	if q := params.toQuery(); len(q) > 0 {
+		u += "?" + q.Encode()
 	}
 	return u
 }

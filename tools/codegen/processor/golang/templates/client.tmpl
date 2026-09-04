@@ -1,19 +1,28 @@
 {{- define "method" -}}
+{{/* Redirect URL builders accept only query parameters, so requiredness uses HasRequiredQueryParameters. Request methods also serialize headers, so they use HasRequiredRequestParameters. */}}
 {{- $body := or .RequestJSON .RequestFormData .RequestFormURLEncoded -}}
 {{- $ret := goReturnType .ReturnType -}}
 {{- if .IsRedirect }}
 // {{ .Name }}URL builds the URL for {{ .Method }} {{ .RawPath }} without following the redirect.
 func (c *Client) {{ .Name }}URL(
 {{- range .PathParameters }} {{ unexported .Name }} string,{{ end }}
-{{- if .HasQueryParameters }} params *{{ .Name }}Params,{{ end }}
+{{- if .HasQueryParameters }}
+{{- if .HasRequiredQueryParameters }} params {{ .Name }}Params,{{ else }} params *{{ .Name }}Params,{{ end }}
+{{- end }}
 ) string {
 	u := fmt.Sprintf("%s{{ .Path }}", c.BaseURL{{ range .PathParameters }}, escapePathSegment({{ unexported .Name }}){{ end }})
 {{- if .HasQueryParameters }}
+{{- if .HasRequiredQueryParameters }}
+	if q := params.toQuery(); len(q) > 0 {
+		u += "?" + q.Encode()
+	}
+{{- else }}
 	if params != nil {
 		if q := params.toQuery(); len(q) > 0 {
 			u += "?" + q.Encode()
 		}
 	}
+{{- end }}
 {{- end }}
 	return u
 }
@@ -29,8 +38,12 @@ func (c *Client) {{ .Name }}(
 {{- if $body }}
 	body {{ goFieldType $body.Name (not .BodyRequired) }},
 {{- end }}
-{{- if .HasQueryParameters }}
+{{- if .HasRequestParameters }}
+{{- if .HasRequiredRequestParameters }}
+	params {{ .Name }}Params,
+{{- else }}
 	params *{{ .Name }}Params,
+{{- end }}
 {{- end }}
 	headers http.Header,
 ) ({{ $ret }}, *transport.Response, error) {
@@ -291,11 +304,33 @@ func (c *Client) {{ .Name }}(
 	}
 {{- end }}
 {{- if .HasQueryParameters }}
+{{- if .HasRequiredRequestParameters }}
+	req.URL.RawQuery = params.toQuery().Encode()
+{{- else }}
 	if params != nil {
 		req.URL.RawQuery = params.toQuery().Encode()
 	}
 {{- end }}
+{{- end }}
+{{- if .HasHeaderParameters }}
+{{- if .HasRequiredRequestParameters }}
+	for k, vs := range params.toHeaders() {
+{{- else }}
+	if params != nil {
+		for k, vs := range params.toHeaders() {
+{{- end }}
+		for _, v := range vs {
+			req.Header.Add(k, v)
+		}
+	}
+{{- if not .HasRequiredRequestParameters }}
+	}
+{{- end }}
+{{- end }}
 	for k, vs := range headers {
+{{- if .HasHeaderParameters }}
+		req.Header.Del(k)
+{{- end }}
 		for _, v := range vs {
 			req.Header.Add(k, v)
 		}

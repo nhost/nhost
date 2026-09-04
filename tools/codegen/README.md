@@ -36,6 +36,12 @@ Keeping status and headers is required even for bodyless operations: for example
 - Names that normalize to the same generated Go type, field, client method, parameter field, or method argument are rejected instead of producing colliding identifiers. Method arguments also cannot shadow identifiers owned by the generated template, including imported packages.
 - Go keywords and predeclared identifiers used as method arguments receive a trailing underscore.
 
+### Go parameter serialization conventions
+
+New per-parameter serializers must mirror `toQuery`: give every template branch that declares local variables its own block scope, and format scalar values directly from their typed Go value instead of JSON-round-tripping through `any`.
+
+Heterogeneous enums alias `json.RawMessage` and every stringifying site must render them with `enumScalar`; this preserves string, number, and boolean wire scalars without quotes or byte-slice formatting. Map-kind query parameters intentionally collapse to `map[string]any`, and serializers apply `fmt.Sprint` to each value exactly as supplied by the caller.
+
 ## Rust validation and type behavior
 
 - Names that normalize to the same generated Rust type, field, client method, parameter field, or method argument are rejected instead of producing colliding identifiers.
