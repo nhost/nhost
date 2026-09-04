@@ -2,7 +2,7 @@
 {{- $body := or .RequestJSON .RequestFormData .RequestFormURLEncoded -}}
 {{- $ret := goReturnType .ReturnType -}}
 {{- if .IsRedirect }}
-// {{ .Name }}URL builds the URL for {{ .Method }} {{ .Path }} without following the redirect.
+// {{ .Name }}URL builds the URL for {{ .Method }} {{ .RawPath }} without following the redirect.
 func (c *Client) {{ .Name }}URL(
 {{- range .PathParameters }} {{ unexported .Name }} string,{{ end }}
 {{- if .HasQueryParameters }} params *{{ .Name }}Params,{{ end }}
@@ -18,7 +18,7 @@ func (c *Client) {{ .Name }}URL(
 	return u
 }
 {{- else }}
-// {{ .Name }} performs {{ .Method }} {{ .Path }}. It returns the decoded body,
+// {{ .Name }} performs {{ .Method }} {{ .RawPath }}. It returns the decoded body,
 // the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
 // responses.
 func (c *Client) {{ .Name }}(

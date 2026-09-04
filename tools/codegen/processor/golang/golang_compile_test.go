@@ -100,6 +100,42 @@ type testStringer struct{}
 func (testStringer) String() string { return "directory/file" }
 `
 
+const generatedSpecTextEscapingTest = `package testpkg
+
+import (
+	"net/http"
+	"testing"
+)
+
+type roundTripFunc func(*http.Request) (*http.Response, error)
+
+func (f roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return f(req)
+}
+
+func TestSpecTextEscaping(t *testing.T) {
+	var gotURL string
+	httpClient := &http.Client{Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+		gotURL = req.URL.String()
+
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Header:     make(http.Header),
+			Body:       http.NoBody,
+			Request:    req,
+		}, nil
+	})}
+
+	client := NewClient("https://example.com", httpClient)
+	if _, _, err := client.GetEscapedThing(t.Context(), "id1", nil); err != nil {
+		t.Fatalf("GetEscapedThing returned an error: %v", err)
+	}
+	if want := "https://example.com/things/100%25/id1"; gotURL != want {
+		t.Errorf("request URL = %q, want %q", gotURL, want)
+	}
+}
+`
+
 const generatedRedirectPathEscapingTest = `package testpkg
 
 import "testing"
@@ -255,6 +291,7 @@ func TestGolangGeneratedPathParametersAreEscaped(t *testing.T) {
 	}{
 		{name: "methods_ref.yaml", testSource: generatedRequestPathEscapingTest},
 		{name: "content.yaml", testSource: generatedRedirectPathEscapingTest},
+		{name: "escaped-go-source.yaml", testSource: generatedSpecTextEscapingTest},
 	}
 
 	for _, fixture := range fixtures {
@@ -317,6 +354,53 @@ func TestGolangGeneratedDeepObjectQueryUsesParameterName(t *testing.T) {
 	commandOutput, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("generated deepObject query test failed: %v\n%s", err, commandOutput)
+	}
+}
+
+func TestGolangRejectsUnsupportedJSONWireNames(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		wireName string
+	}{
+		{name: "backtick", wireName: "back`tick"},
+		{name: "double quote", wireName: "double\"quote"},
+		{name: "backslash", wireName: "back\\slash"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			spec := fmt.Sprintf(`openapi: "3.0.0"
+components:
+  schemas:
+    BadWireNames:
+      type: object
+      properties:
+        '%s':
+          type: string
+`, tt.wireName)
+			filename := filepath.Join(t.TempDir(), "invalid-wire-name.yaml")
+			writeCompileFixture(t, "", filename, spec)
+
+			_, renderErr := renderGolangFixture(filename)
+			if renderErr == nil {
+				t.Fatal(
+					"generation accepted a JSON property name that encoding/json cannot represent",
+				)
+			}
+
+			wantErr := fmt.Sprintf(
+				"unsupported JSON wire name: property %q on type %q",
+				tt.wireName,
+				"BadWireNames",
+			)
+			if !strings.Contains(renderErr.Error(), wantErr) {
+				t.Errorf("generation error = %q, want it to contain %q", renderErr, wantErr)
+			}
+		})
 	}
 }
 
