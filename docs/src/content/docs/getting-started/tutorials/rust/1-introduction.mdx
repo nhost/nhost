@@ -123,9 +123,8 @@ and generates `--help` for us:
 cargo init   # creates Cargo.toml and src/main.rs in the current directory
 
 # nhost is not on crates.io yet, so depend on the repository for now; once it
-# is published, drop --git/--rev and just `cargo add nhost`.
-cargo add nhost --git https://github.com/nhost/nhost.git \
-  --rev 77c54a1979071ccc857162cd18edcce497fbc123
+# is published, drop --git and just `cargo add nhost`.
+cargo add nhost --git https://github.com/nhost/nhost.git
 cargo add tokio --features rt-multi-thread,macros
 cargo add serde_json
 cargo add clap --features derive
