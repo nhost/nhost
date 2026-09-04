@@ -15,6 +15,10 @@ use std::sync::Arc;
 pub const DEFAULT_REFRESH_MARGIN_SECONDS: i64 = DEFAULT_MARGIN_SECONDS;
 
 /// One of the Nhost services.
+///
+/// This enum is non-exhaustive because Nhost may expose additional services.
+/// Downstream matches must include a wildcard arm.
+#[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Service {
     /// The auth service (`auth.<region>.nhost.run/v1`).
