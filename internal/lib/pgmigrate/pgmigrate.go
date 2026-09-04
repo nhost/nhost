@@ -33,8 +33,10 @@ var (
 )
 
 // Migrate publishes the embedded migration bundle and migrates schema to the
-// bundle's explicit target version. The caller owns database; Migrate acquires
-// and closes two dedicated connections without closing the pool.
+// bundle's explicit target version. The caller owns the dedicated migration
+// database; Migrate acquires and closes two connections, resets the execution
+// session before releasing it, and does not close the pool. Sharing a
+// long-lived application pool is unsupported.
 func Migrate(
 	ctx context.Context,
 	logger *slog.Logger,
@@ -168,12 +170,14 @@ func cleanupMigrationConnections(
 		unlockErr = outerLock.unlock(cleanupCtx)
 	}
 
+	executionResetErr := resetMigrationConnection(cleanupCtx, executionConnection)
 	sourceCloseErr := closeMigrationConnection(sourceConnection, "source")
 	executionCloseErr := closeMigrationConnection(executionConnection, "execution")
 
 	if joined := errors.Join(
 		operationErr,
 		unlockErr,
+		executionResetErr,
 		sourceCloseErr,
 		executionCloseErr,
 	); joined != nil {
@@ -672,6 +676,18 @@ func currentDatabase(ctx context.Context, connection *sql.Conn) (string, error) 
 	}
 
 	return name, nil
+}
+
+func resetMigrationConnection(ctx context.Context, connection *sql.Conn) error {
+	if connection == nil {
+		return nil
+	}
+
+	if _, err := connection.ExecContext(ctx, "DISCARD ALL"); err != nil {
+		return fmt.Errorf("resetting PostgreSQL migration execution connection: %w", err)
+	}
+
+	return nil
 }
 
 func closeMigrationConnection(connection *sql.Conn, purpose string) error {

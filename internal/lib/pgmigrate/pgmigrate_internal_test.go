@@ -342,6 +342,73 @@ func TestMigratePreparedSchemaCompatibilityMatrix(t *testing.T) {
 	assertPoolReleased(t, database)
 }
 
+func TestMigrateResetsExecutionSessionBeforeReleasingConnection(t *testing.T) {
+	t.Parallel()
+
+	database := openCatalogTestDatabase(t)
+	database.SetMaxOpenConns(2)
+	database.SetMaxIdleConns(2)
+	schema := createCatalogTestSchema(t, database, "")
+
+	var initialApplicationName string
+	if err := database.QueryRowContext(
+		t.Context(),
+		"SHOW application_name",
+	).Scan(&initialApplicationName); err != nil {
+		t.Fatalf("reading initial application_name: %v", err)
+	}
+
+	bundle := migrationFS(map[string]string{
+		"1_poison_session.up.sql":   "SET application_name TO 'pgmigrate_poisoned';",
+		"1_poison_session.down.sql": "SELECT 1;",
+	})
+	if err := Migrate(
+		t.Context(),
+		discardLogger(),
+		database,
+		bundle,
+		"migrations",
+		schema,
+		1,
+	); err != nil {
+		t.Fatalf("Migrate(session-scoped SET) error = %v", err)
+	}
+
+	connections := make([]*sql.Conn, 0, 2)
+	t.Cleanup(func() {
+		for _, connection := range connections {
+			if err := connection.Close(); err != nil {
+				t.Errorf("closing session reset probe connection: %v", err)
+			}
+		}
+	})
+
+	for range 2 {
+		connection, err := database.Conn(t.Context())
+		if err != nil {
+			t.Fatalf("acquiring session reset probe connection: %v", err)
+		}
+
+		connections = append(connections, connection)
+
+		var applicationName string
+		if err := connection.QueryRowContext(
+			t.Context(),
+			"SHOW application_name",
+		).Scan(&applicationName); err != nil {
+			t.Fatalf("reading released connection application_name: %v", err)
+		}
+
+		if applicationName != initialApplicationName {
+			t.Fatalf(
+				"released connection application_name = %q, want initial value %q",
+				applicationName,
+				initialApplicationName,
+			)
+		}
+	}
+}
+
 func TestMigrateHydratesExistingStateWithoutReplay(t *testing.T) {
 	t.Parallel()
 

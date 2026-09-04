@@ -16,7 +16,9 @@ err := pgmigrate.Migrate(
 )
 ```
 
-The caller must create the service schema before calling `Migrate` and must keep ownership of the supplied `*sql.DB`. The library acquires and closes two dedicated `*sql.Conn` values per concurrent `Migrate` caller: one executes migrations and holds the advisory lock, while the other reads catalog bodies. Size shared pools for two connections per concurrent caller, in addition to other pool users. Acquisition of the second connection is bounded and fails with pool guidance rather than hanging indefinitely when, for example, `MaxOpenConns(1)` is configured.
+The caller must create the service schema before calling `Migrate` and must supply a dedicated, short-lived migration `*sql.DB` that remains caller-owned. Do not reuse a service's long-lived application pool; migration bodies may change session state, and sharing that pool is unsupported. The library resets the execution session before releasing it, but the caller must still close the migration pool after `Migrate` returns.
+
+The library acquires and closes two dedicated `*sql.Conn` values per concurrent `Migrate` caller: one executes migrations and holds the advisory lock, while the other reads catalog bodies. Configure the migration pool for at least two connections per concurrent caller. Acquisition of the second connection is bounded and fails with pool guidance rather than hanging indefinitely when, for example, `MaxOpenConns(1)` is configured.
 
 The target must equal the maximum version in the embedded bundle. Existing `<schema>.schema_migrations` state is reused. The bundle is published before state is read, so an existing clean schema already at the target is hydrated without replaying migration SQL. Dirty state is never forced or repaired; an operator must inspect the failed migration and recover it explicitly.
 
