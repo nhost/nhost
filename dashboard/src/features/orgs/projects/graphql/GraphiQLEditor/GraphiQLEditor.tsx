@@ -30,12 +30,14 @@ export function useGraphiQLHeaderSync({
   const currentHeaderText = useRef(headerText);
   const onEditHeadersRef = useRef(onEditHeaders);
   const pendingHeaderChanges = useRef<PendingHeaderChange[]>([]);
+  const uncommittedHeaderText = useRef<string | null>(null);
   const synchronizedClearVersion = useRef(headerClearVersion);
   const synchronizedEditor = useRef(headerEditor);
   const synchronizedTabId = useRef<string | undefined>(undefined);
   const handleUserHeaderChange = useMemo(
     () =>
       debounce((nextHeaderText: string) => {
+        uncommittedHeaderText.current = null;
         onEditHeadersRef.current(nextHeaderText);
       }, 200),
     [],
@@ -45,6 +47,7 @@ export function useGraphiQLHeaderSync({
       pendingChange.canceled = true;
     }
     pendingHeaderChanges.current = [];
+    uncommittedHeaderText.current = null;
     handleUserHeaderChange.cancel();
   }, [handleUserHeaderChange]);
   const handleEditorHeaderChange = useCallback(
@@ -65,6 +68,7 @@ export function useGraphiQLHeaderSync({
         }
 
         currentHeaderText.current = nextHeaderText;
+        uncommittedHeaderText.current = nextHeaderText;
         handleUserHeaderChange(nextHeaderText);
       });
     },
@@ -76,6 +80,11 @@ export function useGraphiQLHeaderSync({
   }, [onEditHeaders]);
 
   useLayoutEffect(() => {
+    // A stale parent echo must not overwrite a newer edit awaiting its debounce.
+    if (uncommittedHeaderText.current !== null) {
+      return;
+    }
+
     currentHeaderText.current = headerText;
   }, [headerText]);
 

@@ -5,10 +5,15 @@ interface GraphiQLInterfaceProps {
   onEditHeaders: (headers: string) => void;
 }
 
+interface HeaderEditorContract {
+  getValue: () => string;
+  setValue: (nextHeaderText: string) => void;
+}
+
 const mocks = vi.hoisted(() => ({
   editorContext: {
     activeTabIndex: 0,
-    headerEditor: null,
+    headerEditor: null as HeaderEditorContract | null,
     tabs: [{ id: 'tab-1' }],
     updateActiveTabValues: vi.fn(),
   },
@@ -31,8 +36,50 @@ vi.mock('graphiql', async () => {
   };
 });
 
+function renderWithHeaderEditor(
+  onEditHeaders: GraphiQLInterfaceProps['onEditHeaders'],
+) {
+  let editorValue = '';
+  const applyEditorChange = (nextHeaderText: string) => {
+    editorValue = nextHeaderText;
+    mocks.onEditHeaders?.(nextHeaderText);
+  };
+  const headerEditor: HeaderEditorContract = {
+    getValue: () => editorValue,
+    setValue: vi.fn(applyEditorChange),
+  };
+  const rendered = render(
+    <GraphiQLEditor
+      headerClearVersion={0}
+      headerText=""
+      onEditHeaders={onEditHeaders}
+    />,
+  );
+
+  mocks.editorContext.headerEditor = headerEditor;
+  rendered.rerender(
+    <GraphiQLEditor
+      headerClearVersion={0}
+      headerText=""
+      onEditHeaders={onEditHeaders}
+    />,
+  );
+  mocks.editorContext.updateActiveTabValues.mockClear();
+
+  return {
+    ...rendered,
+    applyEditorChange,
+    getEditorValue: () => editorValue,
+    headerEditor,
+  };
+}
+
 describe('GraphiQLEditor', () => {
   beforeEach(() => {
+    mocks.editorContext.activeTabIndex = 0;
+    mocks.editorContext.headerEditor = null;
+    mocks.editorContext.tabs = [{ id: 'tab-1' }];
+    mocks.editorContext.updateActiveTabValues.mockReset();
     mocks.onEditHeaders = null;
     vi.useFakeTimers();
   });
@@ -99,6 +146,125 @@ describe('GraphiQLEditor', () => {
     expect(latestOnEditHeaders).toHaveBeenCalledWith(
       '{"x-hasura-role":"editor"}',
     );
+  });
+
+  it.each([
+    ['non-empty', '{"a":12}'],
+    ['empty', ''],
+  ])(
+    'keeps a second %s edit through a stale parent commit and tab restore',
+    async (_caseName, secondHeaders) => {
+      const firstHeaders = '{"a":1}';
+      const onEditHeaders = vi.fn();
+      const { applyEditorChange, getEditorValue, headerEditor, rerender } =
+        renderWithHeaderEditor(onEditHeaders);
+
+      await act(async () => {
+        applyEditorChange(firstHeaders);
+        await Promise.resolve();
+        vi.advanceTimersByTime(200);
+      });
+      expect(onEditHeaders).toHaveBeenCalledWith(firstHeaders);
+
+      applyEditorChange(secondHeaders);
+      await Promise.resolve();
+
+      mocks.editorContext.activeTabIndex = 1;
+      mocks.editorContext.tabs = [{ id: 'tab-1' }, { id: 'tab-2' }];
+      rerender(
+        <GraphiQLEditor
+          headerClearVersion={0}
+          headerText={firstHeaders}
+          onEditHeaders={onEditHeaders}
+        />,
+      );
+
+      expect(getEditorValue()).toBe(secondHeaders);
+      expect(headerEditor.setValue).not.toHaveBeenCalledWith(firstHeaders);
+      expect(
+        mocks.editorContext.updateActiveTabValues,
+      ).toHaveBeenLastCalledWith({
+        headers: secondHeaders,
+      });
+
+      act(() => {
+        vi.advanceTimersByTime(200);
+      });
+      expect(onEditHeaders).toHaveBeenNthCalledWith(2, secondHeaders);
+    },
+  );
+
+  it('adopts an external update after a committed local edit', async () => {
+    const localHeaders = '{"local":true}';
+    const externalHeaders = '{"external":true}';
+    const onEditHeaders = vi.fn();
+    const { applyEditorChange, getEditorValue, headerEditor, rerender } =
+      renderWithHeaderEditor(onEditHeaders);
+
+    await act(async () => {
+      applyEditorChange(localHeaders);
+      await Promise.resolve();
+      vi.advanceTimersByTime(200);
+    });
+    rerender(
+      <GraphiQLEditor
+        headerClearVersion={0}
+        headerText={localHeaders}
+        onEditHeaders={onEditHeaders}
+      />,
+    );
+
+    mocks.editorContext.activeTabIndex = 1;
+    mocks.editorContext.tabs = [{ id: 'tab-1' }, { id: 'tab-2' }];
+    rerender(
+      <GraphiQLEditor
+        headerClearVersion={0}
+        headerText={externalHeaders}
+        onEditHeaders={onEditHeaders}
+      />,
+    );
+
+    expect(getEditorValue()).toBe(externalHeaders);
+    expect(headerEditor.setValue).toHaveBeenLastCalledWith(externalHeaders);
+    expect(mocks.editorContext.updateActiveTabValues).toHaveBeenLastCalledWith({
+      headers: externalHeaders,
+    });
+  });
+
+  it('adopts an external update after Clear data cancels a local edit', async () => {
+    const localHeaders = '{"local":true}';
+    const externalHeaders = '{"external":true}';
+    const onEditHeaders = vi.fn();
+    const { applyEditorChange, getEditorValue, headerEditor, rerender } =
+      renderWithHeaderEditor(onEditHeaders);
+
+    applyEditorChange(localHeaders);
+    await Promise.resolve();
+    rerender(
+      <GraphiQLEditor
+        headerClearVersion={1}
+        headerText=""
+        onEditHeaders={onEditHeaders}
+      />,
+    );
+    await Promise.resolve();
+
+    mocks.editorContext.activeTabIndex = 1;
+    mocks.editorContext.tabs = [{ id: 'tab-1' }, { id: 'tab-2' }];
+    rerender(
+      <GraphiQLEditor
+        headerClearVersion={1}
+        headerText={externalHeaders}
+        onEditHeaders={onEditHeaders}
+      />,
+    );
+
+    expect(getEditorValue()).toBe(externalHeaders);
+    expect(headerEditor.setValue).toHaveBeenLastCalledWith(externalHeaders);
+    expect(mocks.editorContext.updateActiveTabValues).toHaveBeenLastCalledWith({
+      headers: externalHeaders,
+    });
+    expect(onEditHeaders).not.toHaveBeenCalled();
   });
 
   it('forwards an empty edit after the debounce', async () => {
