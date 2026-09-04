@@ -1,11 +1,11 @@
 // Package pgmigrate validates and applies versioned PostgreSQL migration
-// bundles while preserving enough immutable information to support later-image
-// downgrades. Migration bundles use golang-migrate filenames, pair every up
-// body with an executable down body, and retain the exact SQL bytes used to
-// calculate their checksums.
+// bundles. The highest embedded version is inferred as the image target, and
+// every up body must have an executable down body with the same identifier.
 //
-// Callers own the database pool supplied to this package. Catalog format 1 and
-// its exact SQL-byte representation are a compatibility boundary: additive
-// catalog changes may extend that format, but must not prevent an older image
-// from reading migration bodies registered by a newer image.
+// The database catalog retains exact SQL bytes and checksums so an older image
+// can downgrade migrations that it does not embed. Applied rows remain
+// immutable; successfully downgraded or conflicting unapplied suffixes are
+// archived so a replacement release lineage can reuse their version sequence.
+//
+// Callers own the dedicated migration database pool supplied to this package.
 package pgmigrate

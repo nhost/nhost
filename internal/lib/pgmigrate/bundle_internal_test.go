@@ -4,13 +4,15 @@ import (
 	"crypto/sha256"
 	"errors"
 	"io/fs"
+	"math"
 	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 	"testing/fstest"
 )
 
-func TestLoadBundleLinksAndFingerprintsExactBodies(t *testing.T) {
+func TestLoadBundleInfersTargetLinksAndFingerprintsExactBodies(t *testing.T) {
 	t.Parallel()
 
 	const (
@@ -28,7 +30,7 @@ func TestLoadBundleLinksAndFingerprintsExactBodies(t *testing.T) {
 		"nested/not_a_migration.txt": "ignored because nested directories are not traversed",
 	})
 
-	got, err := loadBundle(fsys, "migrations", 10)
+	got, err := loadBundle(fsys, "migrations")
 	if err != nil {
 		t.Fatalf("loadBundle() error = %v", err)
 	}
@@ -61,7 +63,7 @@ func TestLoadBundleLinksAndFingerprintsExactBodies(t *testing.T) {
 		t.Fatalf("loadBundle() mismatch\n got: %#v\nwant: %#v", got, want)
 	}
 
-	again, err := loadBundle(fsys, "migrations", 10)
+	again, err := loadBundle(fsys, "migrations")
 	if err != nil {
 		t.Fatalf("second loadBundle() error = %v", err)
 	}
@@ -74,11 +76,12 @@ func TestLoadBundleLinksAndFingerprintsExactBodies(t *testing.T) {
 func TestLoadBundleRejectsInvalidBundles(t *testing.T) {
 	t.Parallel()
 
+	tooLargeForRunner := strconv.FormatUint(uint64(math.MaxInt)+1, 10)
+
 	tests := []struct {
 		name       string
 		fsys       fs.FS
 		path       string
-		target     uint
 		wantIssue  string
 		wantConfig bool
 	}{
@@ -86,7 +89,6 @@ func TestLoadBundleRejectsInvalidBundles(t *testing.T) {
 			name:       "nil filesystem",
 			fsys:       nil,
 			path:       "migrations",
-			target:     1,
 			wantIssue:  "must not be nil",
 			wantConfig: true,
 		},
@@ -94,7 +96,6 @@ func TestLoadBundleRejectsInvalidBundles(t *testing.T) {
 			name:       "invalid empty path",
 			fsys:       migrationFS(validPair()),
 			path:       "",
-			target:     1,
 			wantIssue:  "valid io/fs path",
 			wantConfig: true,
 		},
@@ -102,7 +103,6 @@ func TestLoadBundleRejectsInvalidBundles(t *testing.T) {
 			name:       "missing path",
 			fsys:       migrationFS(validPair()),
 			path:       "elsewhere",
-			target:     1,
 			wantIssue:  "cannot read",
 			wantConfig: true,
 		},
@@ -112,7 +112,6 @@ func TestLoadBundleRejectsInvalidBundles(t *testing.T) {
 				"migrations": &fstest.MapFile{Mode: fs.ModeDir},
 			},
 			path:      "migrations",
-			target:    1,
 			wantIssue: "contains no migration files",
 		},
 		{
@@ -121,7 +120,6 @@ func TestLoadBundleRejectsInvalidBundles(t *testing.T) {
 				"migration.sql": "SELECT 1;",
 			}),
 			path:      "migrations",
-			target:    1,
 			wantIssue: "filename does not follow golang-migrate semantics",
 		},
 		{
@@ -130,8 +128,16 @@ func TestLoadBundleRejectsInvalidBundles(t *testing.T) {
 				"18446744073709551616_too_large.up.sql": "SELECT 1;",
 			}),
 			path:      "migrations",
-			target:    1,
 			wantIssue: "filename does not follow golang-migrate semantics",
+		},
+		{
+			name: "version exceeds migration runner range",
+			fsys: migrationFS(map[string]string{
+				tooLargeForRunner + "_too_large.up.sql":   "SELECT 1;",
+				tooLargeForRunner + "_too_large.down.sql": "SELECT 2;",
+			}),
+			path:      "migrations",
+			wantIssue: "exceeds the migration runner's integer version range",
 		},
 		{
 			name: "duplicate up direction",
@@ -141,7 +147,6 @@ func TestLoadBundleRejectsInvalidBundles(t *testing.T) {
 				"01_other.up.sql":  "SELECT 3;",
 			}),
 			path:      "migrations",
-			target:    1,
 			wantIssue: "duplicates the up migration for version 1",
 		},
 		{
@@ -152,7 +157,6 @@ func TestLoadBundleRejectsInvalidBundles(t *testing.T) {
 				"01_other.down.sql": "SELECT 3;",
 			}),
 			path:      "migrations",
-			target:    1,
 			wantIssue: "duplicates the down migration for version 1",
 		},
 		{
@@ -161,7 +165,6 @@ func TestLoadBundleRejectsInvalidBundles(t *testing.T) {
 				"1_first.down.sql": "SELECT 1;",
 			}),
 			path:      "migrations",
-			target:    1,
 			wantIssue: "missing its up migration",
 		},
 		{
@@ -170,7 +173,6 @@ func TestLoadBundleRejectsInvalidBundles(t *testing.T) {
 				"1_first.up.sql": "SELECT 1;",
 			}),
 			path:      "migrations",
-			target:    1,
 			wantIssue: "missing its down migration",
 		},
 		{
@@ -180,7 +182,6 @@ func TestLoadBundleRejectsInvalidBundles(t *testing.T) {
 				"1_different.down.sql": "SELECT 2;",
 			}),
 			path:      "migrations",
-			target:    1,
 			wantIssue: "mismatched identifiers",
 		},
 		{
@@ -190,7 +191,6 @@ func TestLoadBundleRejectsInvalidBundles(t *testing.T) {
 				"1_first.down.sql": "SELECT 1;",
 			}),
 			path:      "migrations",
-			target:    1,
 			wantIssue: "must contain non-whitespace SQL",
 		},
 		{
@@ -200,24 +200,7 @@ func TestLoadBundleRejectsInvalidBundles(t *testing.T) {
 				"1_first.down.sql": " \n\t\r\n",
 			}),
 			path:      "migrations",
-			target:    1,
 			wantIssue: "must contain non-whitespace SQL",
-		},
-		{
-			name:       "target below maximum",
-			fsys:       migrationFS(validPair()),
-			path:       "migrations",
-			target:     0,
-			wantIssue:  "must equal maximum embedded version 1, got 0",
-			wantConfig: true,
-		},
-		{
-			name:       "target above maximum",
-			fsys:       migrationFS(validPair()),
-			path:       "migrations",
-			target:     2,
-			wantIssue:  "must equal maximum embedded version 1, got 2",
-			wantConfig: true,
 		},
 	}
 
@@ -225,7 +208,7 @@ func TestLoadBundleRejectsInvalidBundles(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			_, err := loadBundle(tt.fsys, tt.path, tt.target)
+			_, err := loadBundle(tt.fsys, tt.path)
 			if err == nil {
 				t.Fatal("loadBundle() error = nil")
 			}
