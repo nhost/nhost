@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -367,6 +368,8 @@ func TestCatalogReconcileArchivesInactiveSuffixAndReusesVersions(t *testing.T) {
 		t.Fatalf("bootstrap() error = %v", err)
 	}
 
+	relation := catalogTestRelation(schema)
+
 	beta := testBundle(
 		testMigration(1, nil, "root"),
 		testMigration(2, uintPointer(1), "beta_name"),
@@ -375,6 +378,8 @@ func TestCatalogReconcileArchivesInactiveSuffixAndReusesVersions(t *testing.T) {
 	if err := catalog.reconcile(beta, -1); err != nil {
 		t.Fatalf("reconcile(beta) error = %v", err)
 	}
+
+	reconcileAdditiveCatalogAndAssertReuse(t, database, catalog, relation, beta)
 
 	stable := testBundle(
 		testMigration(1, nil, "root"),
@@ -396,8 +401,6 @@ func TestCatalogReconcileArchivesInactiveSuffixAndReusesVersions(t *testing.T) {
 	if err := compareMigration(stable.migrations[1], stored); err != nil {
 		t.Fatalf("active migration 2 does not match stable replacement: %v", err)
 	}
-
-	relation := catalogTestRelation(schema)
 
 	var (
 		activeRows     int
@@ -422,9 +425,9 @@ WHERE version >= 2`,
 		t.Fatalf("querying active and archived rows: %v", err)
 	}
 
-	if activeRows != 1 || archivedRows != 2 || archiveBatches != 1 {
+	if activeRows != 1 || archivedRows != 3 || archiveBatches != 1 {
 		t.Fatalf(
-			"catalog rows = active %d, archived %d, batches %d; want 1, 2, 1",
+			"catalog rows = active %d, archived %d, batches %d; want 1, 3, 1",
 			activeRows,
 			archivedRows,
 			archiveBatches,
@@ -450,6 +453,69 @@ WHERE child.identifier = 'beta_enabled'
 
 	if linkedArchivedRows != 1 {
 		t.Fatalf("linked archived rows = %d, want 1", linkedArchivedRows)
+	}
+}
+
+func reconcileAdditiveCatalogAndAssertReuse(
+	t *testing.T,
+	database *sql.DB,
+	catalog *catalog,
+	relation string,
+	beta *bundle,
+) {
+	t.Helper()
+
+	registrationQuery := fmt.Sprintf( //nolint:gosec // relation is identifier-quoted.
+		`SELECT array_agg(registered_at::text ORDER BY version)
+FROM %s
+WHERE archived_at IS NULL`,
+		relation,
+	)
+
+	var registeredBeforeAdditive pq.StringArray
+	if err := database.QueryRowContext(t.Context(), registrationQuery).Scan(
+		&registeredBeforeAdditive,
+	); err != nil {
+		t.Fatalf("querying registration times before additive reconcile: %v", err)
+	}
+
+	additiveMigrations := append(
+		slices.Clone(beta.migrations),
+		testMigration(4, uintPointer(3), "beta_tail"),
+	)
+	if err := catalog.reconcile(testBundle(additiveMigrations...), 1); err != nil {
+		t.Fatalf("reconcile(additive) error = %v", err)
+	}
+
+	additiveStateQuery := `
+SELECT
+    array_agg(registered_at::text ORDER BY version) FILTER (
+        WHERE archived_at IS NULL AND version <= 3
+    ),
+    count(*) FILTER (WHERE archived_at IS NOT NULL)
+FROM ` + relation
+
+	var (
+		registeredAfterAdditive pq.StringArray
+		additiveArchivedRows    int
+	)
+	if err := database.QueryRowContext(t.Context(), additiveStateQuery).Scan(
+		&registeredAfterAdditive,
+		&additiveArchivedRows,
+	); err != nil {
+		t.Fatalf("querying state after additive reconcile: %v", err)
+	}
+
+	if additiveArchivedRows != 0 {
+		t.Fatalf("archived rows after additive reconcile = %d, want 0", additiveArchivedRows)
+	}
+
+	if !slices.Equal(registeredAfterAdditive, registeredBeforeAdditive) {
+		t.Fatalf(
+			"pre-existing registered_at values changed from %v to %v",
+			registeredBeforeAdditive,
+			registeredAfterAdditive,
+		)
 	}
 }
 
