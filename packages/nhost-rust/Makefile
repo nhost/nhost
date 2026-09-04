@@ -28,7 +28,7 @@ test-local:  ## Run the offline unit tests and doctests (no backend).
 
 .PHONY: integration-local
 integration-local:  ## Run integration tests; requires a local backend.
-	NHOST_LOCAL_BACKEND=1 cargo test --test integration
+	cargo test --test integration -- --include-ignored
 
 .PHONY: generate
 generate:  ## Regenerate the auth/storage clients from the OpenAPI specs.
