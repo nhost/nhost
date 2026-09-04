@@ -23,8 +23,20 @@ if (!jsonPath || !outDir) {
 const doc = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
 const index = doc.index;
 const paths = doc.paths;
+const externalCrates = doc.external_crates ?? {};
 
 const item = (id) => index[String(id)];
+
+const TYPE_KINDS = new Set(['struct', 'enum', 'union', 'trait', 'type_alias']);
+const localTypesByName = new Map();
+for (const meta of Object.values(paths)) {
+  if (meta.crate_id !== 0 || !TYPE_KINDS.has(meta.kind)) continue;
+  const name = meta.path?.at(-1);
+  if (!name) continue;
+  const matches = localTypesByName.get(name) ?? [];
+  matches.push(meta);
+  localTypesByName.set(name, matches);
+}
 
 // ---------------------------------------------------------------------------
 // Type rendering: the rustdoc `Type` union. Every variant observed in the crate
@@ -38,7 +50,7 @@ function renderType(t) {
 
   if ('resolved_path' in t) {
     const p = t.resolved_path;
-    return escapePathName(p.path) + renderGenericArgs(p.args);
+    return displayTypePath(p) + renderGenericArgs(p.args);
   }
   if ('generic' in t) return t.generic;
   if ('primitive' in t) return t.primitive;
@@ -58,10 +70,7 @@ function renderType(t) {
   if ('dyn_trait' in t) {
     const dt = t.dyn_trait;
     const traits = dt.traits
-      .map(
-        (tr) =>
-          escapePathName(tr.trait.path) + renderGenericArgs(tr.trait.args),
-      )
+      .map((tr) => displayTypePath(tr.trait) + renderGenericArgs(tr.trait.args))
       .join(' + ');
     const lt = dt.lifetime ? ` + ${dt.lifetime}` : '';
     return `dyn ${traits}${lt}`;
@@ -73,7 +82,7 @@ function renderType(t) {
     const q = t.qualified_path;
     const self_ = renderType(q.self_type);
     if (q.trait) {
-      return `<${self_} as ${escapePathName(q.trait.path)}${renderGenericArgs(q.trait.args)}>::${q.name}`;
+      return `<${self_} as ${displayTypePath(q.trait)}${renderGenericArgs(q.trait.args)}>::${q.name}`;
     }
     return `${self_}::${q.name}`;
   }
@@ -90,13 +99,86 @@ function renderType(t) {
   return '_';
 }
 
-// Show the last path segment (e.g. `Option`, `SignInEmailPasswordRequest`)
-// rather than the fully-qualified `nhost::auth::...` — matches how the JS
-// reference and idiomatic Rust docs read.
-function escapePathName(p) {
+const PRELUDE_CRATES = new Set(['std', 'core', 'alloc']);
+
+// rustdoc records defining paths, which can point through private modules or an
+// implementation crate. Keep this small map of consumer-writable public paths
+// explicit and auditable; generation fails when a new external type is missing.
+const PUBLIC_EXTERNAL_TYPE_PATHS = new Map([
+  ['anyhow::Error', 'anyhow::Error'],
+  ['bytes::bytes::Bytes', 'bytes::Bytes'],
+  ['http::header::map::HeaderMap', 'http::HeaderMap'],
+  ['http::method::Method', 'http::Method'],
+  ['reqwest::async_impl::client::Client', 'reqwest::Client'],
+  ['reqwest::error::Error', 'reqwest::Error'],
+  [
+    'reqwest_middleware::client::ClientBuilder',
+    'reqwest_middleware::ClientBuilder',
+  ],
+  [
+    'reqwest_middleware::client::ClientWithMiddleware',
+    'reqwest_middleware::ClientWithMiddleware',
+  ],
+  [
+    'reqwest_middleware::client::RequestBuilder',
+    'reqwest_middleware::RequestBuilder',
+  ],
+  [
+    'reqwest_middleware::middleware::Middleware',
+    'reqwest_middleware::Middleware',
+  ],
+  ['serde_core::de::Deserialize', 'serde::Deserialize'],
+  ['serde_core::de::DeserializeOwned', 'serde::de::DeserializeOwned'],
+  ['serde_core::ser::Serialize', 'serde::Serialize'],
+  ['serde_json::error::Error', 'serde_json::Error'],
+  ['serde_json::value::Value', 'serde_json::Value'],
+]);
+
+function lastPathSegment(p) {
   if (!p) return '_';
-  const segs = String(p).split('::');
-  return segs[segs.length - 1];
+  return String(p).split('::').at(-1);
+}
+
+// Keep conventional standard-library and unique local names short. Local
+// collisions use the shortest owning-module prefix that distinguishes them;
+// third-party types use an explicitly verified public path.
+function displayTypePath(resolvedPath) {
+  if (!resolvedPath) return '_';
+  const name = lastPathSegment(resolvedPath.path);
+  const meta = paths[String(resolvedPath.id)];
+  if (!meta) return name;
+
+  if (meta.crate_id !== 0) {
+    const crateName = externalCrates[String(meta.crate_id)]?.name;
+    if (!crateName) {
+      throw new Error(`cannot identify external crate for type '${meta.path}'`);
+    }
+    if (PRELUDE_CRATES.has(crateName)) return name;
+
+    const canonicalPath = meta.path?.join('::');
+    const publicPath = PUBLIC_EXTERNAL_TYPE_PATHS.get(canonicalPath);
+    if (!publicPath) {
+      throw new Error(
+        `no consumer-writable path mapped for external type '${canonicalPath}'`,
+      );
+    }
+    return publicPath;
+  }
+
+  const matches = localTypesByName.get(name) ?? [];
+  if (matches.length < 2) return name;
+
+  const modules = (meta.path ?? []).slice(1, -1);
+  for (let depth = 1; depth <= modules.length; depth += 1) {
+    const owner = modules.slice(0, depth).join('::');
+    const unique = matches.every(
+      (other) =>
+        other === meta ||
+        (other.path ?? []).slice(1, depth + 1).join('::') !== owner,
+    );
+    if (unique) return `${owner}::${name}`;
+  }
+  return (meta.path ?? [name]).slice(1).join('::');
 }
 
 function renderGenericArgs(args) {
@@ -131,7 +213,7 @@ function renderBound(b) {
   if ('trait_bound' in b) {
     const tb = b.trait_bound;
     const modifier = tb.modifier === 'maybe' ? '?' : '';
-    return `${modifier}${escapePathName(tb.trait.path)}${renderGenericArgs(tb.trait.args)}`;
+    return `${modifier}${displayTypePath(tb.trait)}${renderGenericArgs(tb.trait.args)}`;
   }
   if ('outlives' in b) return b.outlives;
   return '';
@@ -336,9 +418,13 @@ function notableTraitImpls(structOrEnum) {
     if (!imp.trait || imp.is_synthetic || imp.blanket_impl) continue;
     const tid = imp.trait.id;
     const traitItem = tid != null ? item(tid) : null;
-    const name = escapePathName(imp.trait.path);
+    const shortName = lastPathSegment(imp.trait.path);
+    const name = displayTypePath(imp.trait);
     // Include traits defined in this crate, or a short allow-list of common ones.
-    if ((traitItem && traitItem.crate_id === 0) || NOTABLE_TRAITS.has(name)) {
+    if (
+      (traitItem && traitItem.crate_id === 0) ||
+      NOTABLE_TRAITS.has(shortName)
+    ) {
       names.add(name + renderGenericArgs(imp.trait.args));
     }
   }
@@ -501,21 +587,39 @@ function renderConstant(name, it) {
 // public surface a caller sees at that module path.
 // ---------------------------------------------------------------------------
 
-function collectEntries(moduleId, seen = new Set()) {
+function collectEntries(moduleId, seenModules = new Set()) {
+  if (seenModules.has(moduleId)) return [];
+  seenModules.add(moduleId);
   const mod = item(moduleId)?.inner?.module;
   if (!mod) return [];
   const entries = [];
   for (const id of mod.items) {
-    if (seen.has(id)) continue;
-    seen.add(id);
     const it = item(id);
-    if (!it) continue; // external / stripped
+    if (!it) {
+      throw new Error(`module ${moduleId} contains unresolved item ${id}`);
+    }
     if (it.inner.use) {
       const u = it.inner.use;
       const target = item(u.id);
-      if (!target) continue; // re-export of an external item
+      if (!target) {
+        const meta = paths[String(u.id)];
+        if (!meta) {
+          throw new Error(
+            `cannot resolve re-export '${u.name ?? u.source}' (item ${u.id})`,
+          );
+        }
+        entries.push({
+          name: u.name ?? meta.path?.at(-1),
+          reexport: {
+            kind: meta.kind,
+            source: u.source ?? meta.path?.join('::'),
+            crate: externalCrates[String(meta.crate_id)],
+          },
+        });
+        continue;
+      }
       if (u.is_glob && target.inner.module) {
-        entries.push(...collectEntries(u.id, seen));
+        entries.push(...collectEntries(u.id, seenModules));
       } else if (!target.inner.module) {
         entries.push({ name: u.name ?? target.name, it: target });
       }
@@ -539,24 +643,52 @@ const KIND_ORDER = [
 function renderPage(title, moduleDocs, entries) {
   const seenNames = new Set();
   const unique = entries.filter((e) => {
-    const key = `${Object.keys(e.it.inner)[0]}:${e.name}`;
+    const kind = e.reexport?.kind ?? Object.keys(e.it.inner)[0];
+    const key = `${kind}:${e.name}`;
     if (seenNames.has(key)) return false;
     seenNames.add(key);
     return true;
   });
+  const supportedKinds = new Set(KIND_ORDER.map(([kind]) => kind));
+  const unsupported = unique.filter(
+    (e) => !e.reexport && !supportedKinds.has(Object.keys(e.it.inner)[0]),
+  );
+  if (unsupported.length) {
+    const details = unsupported
+      .map((e) => `${e.name} (${Object.keys(e.it.inner)[0]})`)
+      .join(', ');
+    throw new Error(`page '${title}' has unsupported public items: ${details}`);
+  }
 
   const out = [`---\ntitle: ${title}\n---`];
   if (moduleDocs) out.push(cleanDocs(moduleDocs));
 
+  const reexports = unique
+    .filter((e) => e.reexport)
+    .sort((a, b) => a.name.localeCompare(b.name));
+  if (reexports.length) {
+    out.push(heading(2, 'Re-exports'));
+    out.push(
+      reexports
+        .map((e) => {
+          const source = `\`${e.reexport.source}\``;
+          const root = e.reexport.crate?.html_root_url;
+          const origin = root ? `[${source}](${root})` : source;
+          return `- \`${e.name}\` *(${e.reexport.kind})* — re-exported from ${origin}`;
+        })
+        .join('\n'),
+    );
+  }
+
   for (const [kind, label, renderer] of KIND_ORDER) {
     const items = unique
-      .filter((e) => kind in e.it.inner)
+      .filter((e) => e.it && kind in e.it.inner)
       .sort((a, b) => a.name.localeCompare(b.name));
     if (!items.length) continue;
     out.push(heading(2, label));
     for (const e of items) out.push(renderer(e.name, e.it));
   }
-  return `${out.join('\n\n')}\n`;
+  return { markdown: `${out.join('\n\n')}\n`, itemCount: unique.length };
 }
 
 // Find a module item id by its `paths` entry (dotted path).
@@ -619,15 +751,16 @@ const PAGES = [
 fs.mkdirSync(outDir, { recursive: true });
 for (const page of PAGES) {
   if (!page.moduleId) {
-    console.error(
-      `warning: module for page '${page.file}' not found, skipping`,
-    );
-    continue;
+    throw new Error(`module for page '${page.file}' not found`);
   }
   const modItem = item(page.moduleId);
   const entries = collectEntries(page.moduleId);
-  const md = renderPage(page.title, modItem?.docs, entries);
+  const { markdown, itemCount } = renderPage(
+    page.title,
+    modItem?.docs,
+    entries,
+  );
   const dest = path.join(outDir, `${page.file}.md`);
-  fs.writeFileSync(dest, md);
-  console.log(`wrote ${dest} (${entries.length} items)`);
+  fs.writeFileSync(dest, markdown);
+  console.log(`wrote ${dest} (${itemCount} items)`);
 }
