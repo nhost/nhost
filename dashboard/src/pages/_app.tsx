@@ -25,7 +25,7 @@ import type { NextPage } from 'next';
 import type { AppProps } from 'next/app';
 import { PagesProgressBar as ProgressBar } from 'next-nprogress-bar';
 import { DefaultSeo } from 'next-seo';
-import type { ReactElement } from 'react';
+import { useEffect, type ReactElement } from 'react';
 import { Toaster } from 'react-hot-toast';
 
 // Client-side cache, shared for the whole session of the user in the browser.
@@ -47,6 +47,13 @@ function MyApp({
   emotionCache = clientSideEmotionCache,
 }: MyAppProps) {
   const getLayout = Component.getLayout ?? ((page: ReactElement) => page);
+
+  // Dynamic import inside the guard so it is stripped from production bundles.
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      void import('react-grab');
+    }
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

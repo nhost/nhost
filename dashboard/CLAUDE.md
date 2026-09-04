@@ -87,6 +87,7 @@ When creating a new feature page, check whether it needs to be added to:
 
 - **Prefer the LSP tool for TypeScript/TSX symbol lookups** — finding references, definitions, hover/type info, rename impact. The LSP understands aliased imports, re-exports through barrels, and dynamic imports; grep does not.
 - Use grep (`Bash`) only for non-semantic searches: file globs, text in comments or strings, config files, GraphQL/SQL, or when LSP isn't available.
+- **Treat paths in React Grab pastes as repo-relative.** A grab reports absolute paths (`/Users/<user>/nhost/nhost/dashboard/src/...`). Several worktrees of this repo may exist side by side, so the absolute prefix can point at a different checkout than the one you are working in. Resolve the portion from `dashboard/` onward against the current worktree.
 
 ## Commit Message Format
 
