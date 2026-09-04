@@ -314,7 +314,10 @@ code for crate conventions.
     selects `FileStorage`;
   - crate-level `#![cfg_attr(all(feature = "wasm", target_arch = "wasm32"),
     allow(clippy::arc_with_non_send_sync))]`.
-- getrandom on wasm: `.cargo/config.toml` sets `--cfg getrandom_backend="wasm_js"`.
+- getrandom on browser wasm: the target-specific dependency enables its
+  `wasm_js` feature, which makes getrandom 0.3 select that backend automatically;
+  no backend cfg is required. Cargo does not apply a dependency's
+  `.cargo/config.toml` to downstream builds.
 - The nix check builds the whole matrix: clippy (rustls), `native-tls` build,
   clippy (wasm), and a real `wasm32-unknown-unknown` build (needs the devshell's
   wasm32 std — not available in a bare sandbox). Its wasm checks are:
@@ -345,6 +348,11 @@ code for crate conventions.
   its value is the exit status, not a build artifact. `make build` is not a
   substitute and fails because this check-only project intentionally has no
   `packages.<system>.nhost-rust` output.
+- Adding or removing a file in this crate means updating `project.nix`'s
+  `fileset`. `lib.fileset.unions` hard-errors on a path that does not exist, so a
+  stale entry breaks `nix eval` of the check — and `nix develop` will not surface
+  it, because the devShell never forces `src`. Every cargo command can pass
+  locally while CI fails to evaluate.
 - The Nix check resolves cargo-deny's metadata with the vendored build
   `CARGO_HOME`, then fetches RustSec and the crates.io index under a separate
   `CARGO_HOME`. Keep that split: the vendored source replacement has no registry

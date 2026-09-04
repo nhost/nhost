@@ -101,7 +101,8 @@ impl Client {
     }
 
     /// Sends a built request through the middleware chain and returns its raw
-    /// body, status, and headers. A non-success status becomes [`Error::Api`].
+    /// body, status, and headers. A 304 is returned successfully with an empty
+    /// body; any other 3xx status, or a 4xx/5xx status, becomes [`Error::Api`].
     pub async fn send(&self, request: RequestBuilder) -> Result<http::Response<Bytes>, Error> {
         let (status, headers, body) = http::send(request, None).await?;
         Ok(http::Response {
@@ -112,7 +113,9 @@ impl Client {
     }
 
     /// POSTs `body` as JSON to `path` and returns the decoded response together
-    /// with its status and headers.
+    /// with its status and headers. An empty successful body, including a 304
+    /// response, is decoded as JSON `null`; use `T = Option<_>` or `T = ()` to
+    /// accept it.
     pub async fn post<B, T>(&self, path: &str, body: &B) -> Result<http::Response<T>, Error>
     where
         B: Serialize + ?Sized,
@@ -126,7 +129,8 @@ impl Client {
     }
 
     /// GETs `path` and returns the decoded response together with its status and
-    /// headers.
+    /// headers. An empty successful body, including a 304 response, is decoded as
+    /// JSON `null`; use `T = Option<_>` or `T = ()` to accept it.
     pub async fn get<T: DeserializeOwned>(&self, path: &str) -> Result<http::Response<T>, Error> {
         let request = self
             .request(reqwest::Method::GET, path)?
