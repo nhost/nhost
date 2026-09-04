@@ -340,16 +340,14 @@ fn api_error_debug_redacts_credentials_but_keeps_context() {
 
 #[test]
 fn graphql_error_debug_redacts_structured_credentials_but_keeps_context() {
-    let error = graphql::GraphqlError {
-        message: "resolver failed".to_string(),
-        locations: Some(json!([{"line": 1, "column": 9}])),
-        path: Some(json!(["viewer", "email"])),
-        extensions: Some(json!({
-            "code": "permission-error",
-            "requestId": "graphql-request-04",
-            "internal": {"adminSecret": "EXTENSION-SECRET-04"},
-        })),
-    };
+    let mut error = graphql::GraphqlError::new("resolver failed");
+    error.locations = Some(json!([{"line": 1, "column": 9}]));
+    error.path = Some(json!(["viewer", "email"]));
+    error.extensions = Some(json!({
+        "code": "permission-error",
+        "requestId": "graphql-request-04",
+        "internal": {"adminSecret": "EXTENSION-SECRET-04"},
+    }));
 
     assert_debug_redacted(
         &error,
@@ -369,6 +367,46 @@ fn graphql_error_debug_redacts_structured_credentials_but_keeps_context() {
         error.extensions.as_ref().unwrap()["internal"]["adminSecret"],
         "EXTENSION-SECRET-04"
     );
+}
+
+#[test]
+fn public_output_constructors_support_downstream_test_fixtures() {
+    let mut headers = HeaderMap::new();
+    headers.insert("x-request-id", HeaderValue::from_static("request-1"));
+
+    let api = nhost::ApiError::new("rejected", 403, json!({"code": "denied"}), headers.clone());
+    assert_eq!(api.message, "rejected");
+    assert_eq!(api.status, 403);
+
+    let response = nhost::http::Response::new("ok", 201, headers.clone());
+    assert_eq!(response.into_body(), "ok");
+
+    let graphql_error = graphql::GraphqlError::new("resolver failed");
+    let graphql_response =
+        graphql::GraphqlResponse::new(None::<serde_json::Value>, Some(vec![graphql_error.clone()]));
+    assert_eq!(
+        graphql_response.errors.as_ref().unwrap()[0].message,
+        "resolver failed"
+    );
+
+    let operation = nhost::GraphqlOperationError::new(
+        vec![graphql::GraphqlError::new("resolver failed")],
+        Some(json!({"viewer": null})),
+        200,
+        headers.clone(),
+    );
+    assert_eq!(operation.status(), 200);
+    assert_eq!(operation.headers(), &headers);
+
+    let Error::GraphQl(operation) = Error::graphql(
+        vec![graphql::GraphqlError::new("resolver failed")],
+        None,
+        200,
+        headers,
+    ) else {
+        unreachable!("constructed a GraphQL error")
+    };
+    assert_eq!(operation.errors()[0].message, "resolver failed");
 }
 
 #[tokio::test]
