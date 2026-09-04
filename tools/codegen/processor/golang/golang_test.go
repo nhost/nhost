@@ -463,24 +463,28 @@ func TestGolangRender(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
-		name string
+		name      string
+		directory string
 	}{
-		{name: "types.yaml"},
-		{name: "methods_ref.yaml"},
-		{name: "content.yaml"},
-		{name: "form-url-encoded.yaml"},
-		{name: "optional-form-url-encoded.yaml"},
-		{name: "deepobject-map.yaml"},
-		{name: "escaped-go-source.yaml"},
-		{name: "required-object-query.yaml"},
-		{name: "header-parameters.yaml"},
+		{name: "types.yaml", directory: "../testdata"},
+		{name: "methods_ref.yaml", directory: "../testdata"},
+		{name: "content.yaml", directory: "../testdata"},
+		{name: "form-url-encoded.yaml", directory: "../testdata"},
+		{name: "optional-form-url-encoded.yaml", directory: "../testdata"},
+		{name: "deepobject-map.yaml", directory: "../testdata"},
+		{name: "escaped-go-source.yaml", directory: "../testdata"},
+		{name: "required-object-query.yaml", directory: "../testdata"},
+		{name: "header-parameters.yaml", directory: "../testdata"},
+		{name: "coverage.yaml", directory: "testdata"},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			doc, err := getModel("../testdata/" + tc.name)
+			fixture := tc.directory + "/" + tc.name
+
+			doc, err := getModel(fixture)
 			if err != nil {
 				t.Fatalf("failed to get model: %v", err)
 			}
@@ -501,8 +505,7 @@ func TestGolangRender(t *testing.T) {
 			}
 
 			output := buf.String()
-
-			golden := "../testdata/" + tc.name + ".go.golden"
+			golden := fixture + ".go.golden"
 
 			if *flagUpdate {
 				f, err := os.OpenFile(
