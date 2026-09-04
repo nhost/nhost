@@ -5,6 +5,7 @@ import {
   orgPages,
   projectAuthPages,
   projectDatabasePages,
+  projectFunctionsPages,
   projectGraphQLPages,
   projectPages,
   projectSettingsPages,
@@ -95,6 +96,13 @@ describe('navigation nav-config', () => {
     ]);
   });
 
+  it('keeps Functions sub-pages in route-tab order', () => {
+    expect(projectFunctionsPages.map((page) => page.slug)).toEqual([
+      'functions',
+      'settings',
+    ]);
+  });
+
   it('keeps Storage sub-pages in route-tab order', () => {
     expect(projectStoragePages.map((page) => page.slug)).toEqual([
       'storage',
@@ -129,6 +137,7 @@ describe('navigation nav-config', () => {
       'events',
       'auth',
       'storage',
+      'functions',
       'ai',
     ]);
   });

@@ -63,6 +63,9 @@ describe('commandPaletteNavTree', () => {
     expect(byId.get('project-storage-settings')?.breadcrumb).toEqual([
       'Storage',
     ]);
+    expect(byId.get('project-functions-settings')?.breadcrumb).toEqual([
+      'Functions',
+    ]);
     expect(byId.get('project-database-settings')?.breadcrumb).toEqual([
       'Database',
     ]);
@@ -102,6 +105,17 @@ describe('commandPaletteNavTree', () => {
     expect(byId.has('project-settings-oauth2-provider')).toBe(false);
     expect(byId.has('project-settings-roles-and-permissions')).toBe(false);
     expect(byId.has('project-settings-smtp')).toBe(false);
+  });
+
+  it('routes Functions settings through the Functions section', () => {
+    const byId = new Map(allNodes.map((node) => [node.id, node]));
+
+    expect(byId.get('project-functions-settings')).toMatchObject({
+      title: 'Settings',
+      path: 'functions/settings',
+      gate: 'settings',
+      keywords: expect.arrayContaining(['functions', 'settings']),
+    });
   });
 
   it('routes Storage settings through the Storage section', () => {
