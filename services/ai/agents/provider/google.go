@@ -31,7 +31,8 @@ var (
 )
 
 type googleGemini struct {
-	client *genai.Client
+	client        *genai.Client
+	logRedactions []string
 }
 
 func newGoogleGeminiConfiguration(
@@ -79,8 +80,9 @@ func newGoogleGemini(
 	configuration endpointConfiguration,
 ) (*googleGemini, error) {
 	headers, apiKey, scrubAPIKey := googleGeminiHeaders(configuration.headers)
+	logRedactions := providerLogRedactions(configuration.headers)
 
-	httpClient, err := newGoogleGeminiHTTPClient(scrubAPIKey)
+	httpClient, err := newGoogleGeminiHTTPClient(scrubAPIKey, logRedactions)
 	if err != nil {
 		return nil, errGoogleGeminiClient
 	}
@@ -107,7 +109,10 @@ func newGoogleGemini(
 		return nil, errGoogleGeminiClient
 	}
 
-	return &googleGemini{client: client}, nil
+	return &googleGemini{
+		client:        client,
+		logRedactions: logRedactions,
+	}, nil
 }
 
 func googleGeminiHeaders(headers map[string]string) (http.Header, string, bool) {
@@ -131,23 +136,28 @@ func googleGeminiHeaders(headers map[string]string) (http.Header, string, bool) 
 	return result, apiKey, scrubAPIKey
 }
 
-func newGoogleGeminiHTTPClient(scrubAPIKey bool) (*http.Client, error) {
+func newGoogleGeminiHTTPClient(
+	scrubAPIKey bool,
+	logRedactions []string,
+) (*http.Client, error) {
 	defaultTransport, ok := http.DefaultTransport.(*http.Transport)
 	if !ok {
 		return nil, errGoogleGeminiClient
 	}
 
 	transport := &googleGeminiTransport{
-		base:        defaultTransport.Clone(),
-		scrubAPIKey: scrubAPIKey,
+		base:          defaultTransport.Clone(),
+		scrubAPIKey:   scrubAPIKey,
+		logRedactions: logRedactions,
 	}
 
 	return newNoRedirectHTTPClientWithTransport(transport), nil
 }
 
 type googleGeminiTransport struct {
-	base        http.RoundTripper
-	scrubAPIKey bool
+	base          http.RoundTripper
+	scrubAPIKey   bool
+	logRedactions []string
 }
 
 func (t *googleGeminiTransport) RoundTrip(request *http.Request) (*http.Response, error) {
@@ -160,6 +170,15 @@ func (t *googleGeminiTransport) RoundTrip(request *http.Request) (*http.Response
 
 	response, err := t.base.RoundTrip(requestCopy)
 	if err != nil {
+		if request.Context().Err() == nil {
+			logProviderError(
+				request.Context(),
+				"google Gemini transport failed",
+				err,
+				t.logRedactions,
+			)
+		}
+
 		return nil, errGoogleGeminiTransport
 	}
 
@@ -167,16 +186,24 @@ func (t *googleGeminiTransport) RoundTrip(request *http.Request) (*http.Response
 	*responseCopy = *response
 
 	if response.Body != nil {
-		responseCopy.Body = &googleGeminiResponseBody{ReadCloser: response.Body}
+		responseCopy.Body = &googleGeminiResponseBody{
+			ReadCloser:    response.Body,
+			done:          request.Context().Done(),
+			logRedactions: t.logRedactions,
+		}
 	}
 
 	return responseCopy, nil
 }
 
-// The SDK logs stream scanner failures through the process-global logger;
-// normalizing body errors here prevents raw upstream data from leaking there.
+// The SDK logs stream scanner failures through the process-global logger.
+// Record body failures through the service logger before normalizing them so
+// callers stay sanitized and the SDK never logs an unredacted cause.
 type googleGeminiResponseBody struct {
 	io.ReadCloser
+
+	done          <-chan struct{}
+	logRedactions []string
 }
 
 func (b *googleGeminiResponseBody) Read(buffer []byte) (int, error) {
@@ -189,11 +216,34 @@ func (b *googleGeminiResponseBody) Read(buffer []byte) (int, error) {
 		return bytesRead, io.EOF
 	}
 
+	if !channelClosed(b.done) {
+		slog.Error(
+			"google Gemini response body read failed",
+			slog.String("error", providerErrorLogValue(err, b.logRedactions)),
+		)
+	}
+
 	return bytesRead, errGoogleGeminiResponseBody
+}
+
+func channelClosed(ch <-chan struct{}) bool {
+	select {
+	case <-ch:
+		return true
+	default:
+		return false
+	}
 }
 
 func (b *googleGeminiResponseBody) Close() error {
 	if err := b.ReadCloser.Close(); err != nil {
+		if !channelClosed(b.done) {
+			slog.Warn(
+				"failed to close google Gemini response body",
+				slog.String("error", providerErrorLogValue(err, b.logRedactions)),
+			)
+		}
+
 		return errGoogleGeminiResponseBody
 	}
 
@@ -324,12 +374,13 @@ func (g *googleGemini) StreamResponse(
 	ctx context.Context,
 	request StreamRequest,
 ) <-chan Event {
-	return streamGoogleGeminiResponse(ctx, g.client, request)
+	return streamGoogleGeminiResponse(ctx, g.client, g.logRedactions, request)
 }
 
 func streamGoogleGeminiResponse(
 	ctx context.Context,
 	client *genai.Client,
+	logRedactions []string,
 	request StreamRequest,
 ) <-chan Event {
 	if err := request.validate(); err != nil {
@@ -341,7 +392,7 @@ func streamGoogleGeminiResponse(
 	go func() {
 		defer close(ch)
 
-		processGoogleGeminiStream(ctx, client, ch, request)
+		processGoogleGeminiStream(ctx, client, ch, logRedactions, request)
 	}()
 
 	return ch
@@ -351,6 +402,7 @@ func processGoogleGeminiStream(
 	ctx context.Context,
 	client *genai.Client,
 	ch chan<- Event,
+	logRedactions []string,
 	request StreamRequest,
 ) {
 	config := &genai.GenerateContentConfig{} //nolint:exhaustruct
@@ -385,7 +437,9 @@ func processGoogleGeminiStream(
 		}
 
 		if err != nil {
+			logProviderError(ctx, "google Gemini stream failed", err, logRedactions)
 			send(ctx, ch, NewErrorEvent(mapGoogleGeminiError(err)))
+
 			return
 		}
 

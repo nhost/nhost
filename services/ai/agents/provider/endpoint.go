@@ -1,10 +1,14 @@
 package provider
 
 import (
+	"cmp"
+	"context"
 	"errors"
+	"log/slog"
 	"maps"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -154,6 +158,53 @@ func validProviderHeaderValue(value string) bool {
 	}
 
 	return true
+}
+
+func providerLogRedactions(headers map[string]string) []string {
+	redactions := make([]string, 0, len(headers)+1)
+
+	for name, value := range headers {
+		if value == "" {
+			continue
+		}
+
+		redactions = append(redactions, value)
+
+		if strings.EqualFold(name, "authorization") {
+			if _, credential, found := strings.Cut(value, " "); found && credential != "" {
+				redactions = append(redactions, credential)
+			}
+		}
+	}
+
+	slices.SortFunc(redactions, func(a, b string) int {
+		return cmp.Compare(len(b), len(a))
+	})
+
+	return slices.Compact(redactions)
+}
+
+func providerErrorLogValue(err error, redactions []string) string {
+	result := err.Error()
+
+	for _, redaction := range redactions {
+		result = strings.ReplaceAll(result, redaction, "[REDACTED]")
+	}
+
+	return result
+}
+
+func logProviderError(
+	ctx context.Context,
+	message string,
+	err error,
+	redactions []string,
+) {
+	slog.ErrorContext(
+		ctx,
+		message,
+		slog.String("error", providerErrorLogValue(err, redactions)),
+	)
 }
 
 func newNoRedirectHTTPClient() *http.Client {

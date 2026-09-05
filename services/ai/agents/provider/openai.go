@@ -116,6 +116,7 @@ func buildOpenAIParams(
 func streamOpenAIResponse(
 	ctx context.Context,
 	completions *openai.ChatCompletionService,
+	logRedactions []string,
 	request StreamRequest,
 ) <-chan Event {
 	if err := request.validate(); err != nil {
@@ -127,7 +128,7 @@ func streamOpenAIResponse(
 	go func() {
 		defer close(ch)
 
-		processOpenAIStream(ctx, ch, completions, request)
+		processOpenAIStream(ctx, ch, completions, logRedactions, request)
 	}()
 
 	return ch
@@ -137,6 +138,7 @@ func processOpenAIStream(
 	ctx context.Context,
 	ch chan<- Event,
 	completions *openai.ChatCompletionService,
+	logRedactions []string,
 	request StreamRequest,
 ) {
 	var response *http.Response
@@ -161,7 +163,7 @@ func processOpenAIStream(
 			slog.WarnContext(
 				ctx,
 				"failed to close openai stream",
-				slog.String("error", errOpenAIChatCompletionsStreamClose.Error()),
+				slog.String("error", providerErrorLogValue(err, logRedactions)),
 			)
 		}
 	}()
@@ -186,7 +188,10 @@ func processOpenAIStream(
 	}
 
 	if streamErr != nil {
-		send(ctx, ch, NewErrorEvent(mapOpenAIChatCompletionsError(response)))
+		if ctx.Err() == nil {
+			logProviderError(ctx, "openai stream failed", streamErr, logRedactions)
+			send(ctx, ch, NewErrorEvent(mapOpenAIChatCompletionsError(response)))
+		}
 
 		return
 	}

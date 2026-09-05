@@ -15,12 +15,7 @@ import (
 
 const openAIChatCompletionsMaxRetries = 2
 
-var (
-	errOpenAIChatCompletionsRequest     = errors.New("chat completions provider request failed")
-	errOpenAIChatCompletionsStreamClose = errors.New(
-		"chat completions provider stream close failed",
-	)
-)
+var errOpenAIChatCompletionsRequest = errors.New("chat completions provider request failed")
 
 func newOpenAIChatCompletionsConfiguration(
 	baseURL string,
@@ -50,7 +45,8 @@ func validateOpenAIChatCompletionsURL(baseURL string) error {
 }
 
 type openAIChatCompletions struct {
-	completions openai.ChatCompletionService
+	completions   openai.ChatCompletionService
+	logRedactions []string
 }
 
 func newOpenAIChatCompletions(
@@ -75,7 +71,8 @@ func newOpenAIChatCompletions(
 	}
 
 	return &openAIChatCompletions{
-		completions: openai.NewChatCompletionService(options...),
+		completions:   openai.NewChatCompletionService(options...),
+		logRedactions: providerLogRedactions(configuration.headers),
 	}
 }
 
@@ -83,7 +80,7 @@ func (o *openAIChatCompletions) StreamResponse(
 	ctx context.Context,
 	request StreamRequest,
 ) <-chan Event {
-	return streamOpenAIResponse(ctx, &o.completions, request)
+	return streamOpenAIResponse(ctx, &o.completions, o.logRedactions, request)
 }
 
 func mapOpenAIChatCompletionsError(response *http.Response) error {

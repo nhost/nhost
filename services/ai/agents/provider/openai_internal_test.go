@@ -329,6 +329,7 @@ func TestOpenAIStreamSanitizesNativeSDKError(t *testing.T) {
 			option.WithBaseURL(server.URL+"/"),
 			option.WithMaxRetries(0),
 		),
+		logRedactions: nil,
 	}
 	got := collectOpenAIEvents(native.StreamResponse(
 		context.Background(),
@@ -432,6 +433,7 @@ func TestOpenAIProcessStream(t *testing.T) {
 					option.WithAPIKey("test"),
 					option.WithBaseURL(srv.URL+"/"),
 				),
+				logRedactions: nil,
 			}
 
 			ch := provider.StreamResponse(

@@ -20,10 +20,7 @@ const (
 	defaultMaxTokens            = 8192
 )
 
-var (
-	errAnthropicMessagesRequest     = errors.New("anthropic messages provider request failed")
-	errAnthropicMessagesStreamClose = errors.New("anthropic messages provider stream close failed")
-)
+var errAnthropicMessagesRequest = errors.New("anthropic messages provider request failed")
 
 // toStringSlice extracts a []string from an any that holds either a Go-literal
 // []string (the common path today) or a []any of strings (the shape produced
@@ -51,7 +48,8 @@ func toStringSlice(v any) ([]string, bool) {
 }
 
 type anthropicMessages struct {
-	messages anthropic.MessageService
+	messages      anthropic.MessageService
+	logRedactions []string
 }
 
 func newAnthropicMessagesConfiguration(
@@ -109,11 +107,20 @@ func newAnthropicMessages(configuration endpointConfiguration) *anthropicMessage
 		options = append(options, option.WithHeader(name, configuration.headers[name]))
 	}
 
-	return newAnthropicMessagesWithOptions(options)
+	return newAnthropicMessagesWithOptions(
+		options,
+		providerLogRedactions(configuration.headers),
+	)
 }
 
-func newAnthropicMessagesWithOptions(options []option.RequestOption) *anthropicMessages {
-	return &anthropicMessages{messages: anthropic.NewMessageService(options...)}
+func newAnthropicMessagesWithOptions(
+	options []option.RequestOption,
+	logRedactions []string,
+) *anthropicMessages {
+	return &anthropicMessages{
+		messages:      anthropic.NewMessageService(options...),
+		logRedactions: logRedactions,
+	}
 }
 
 func toAnthropicMessages(messages []Message) ([]anthropic.MessageParam, error) {
@@ -263,7 +270,7 @@ func (a *anthropicMessages) processStream(
 			slog.WarnContext(
 				ctx,
 				"failed to close anthropic stream",
-				slog.String("error", errAnthropicMessagesStreamClose.Error()),
+				slog.String("error", providerErrorLogValue(err, a.logRedactions)),
 			)
 		}
 	}()
@@ -286,6 +293,7 @@ func (a *anthropicMessages) processStream(
 	}
 
 	if err := stream.Err(); err != nil && ctx.Err() == nil {
+		logProviderError(ctx, "anthropic stream failed", err, a.logRedactions)
 		send(ctx, ch, NewErrorEvent(mapAnthropicMessagesError(response)))
 	}
 }

@@ -489,8 +489,24 @@ func TestAnthropicMessagesRefusesRedirects(t *testing.T) {
 	}
 }
 
+// This test replaces the process-wide logger, so it cannot run in parallel.
+//
+//nolint:paralleltest // Parallel execution could capture another test's logs.
 func TestAnthropicMessagesFailuresAreSafe(t *testing.T) {
-	t.Parallel()
+	const (
+		headerMarker   = "configured-header-marker"
+		headerValue    = "Bearer " + headerMarker
+		urlMarker      = "configured-url-marker"
+		httpCause      = "upstream-http-cause-marker"
+		streamCause    = "upstream-stream-cause-marker"
+		transportCause = "upstream-transport-cause-marker"
+	)
+
+	oldLogger := slog.Default()
+
+	var logOutput bytes.Buffer
+	slog.SetDefault(slog.New(slog.NewTextHandler(&logOutput, nil)))
+	t.Cleanup(func() { slog.SetDefault(oldLogger) })
 
 	tests := []struct {
 		name      string
@@ -506,7 +522,7 @@ func TestAnthropicMessagesFailuresAreSafe(t *testing.T) {
 				writeAnthropicMessagesResponse(
 					t,
 					w,
-					`{"type":"error","error":{"message":"body-secret-marker"}}`,
+					`{"type":"error","error":{"message":"`+httpCause+`"}}`,
 				)
 			},
 			wantError: errAnthropicMessagesRequest.Error() + ": HTTP status 401",
@@ -521,7 +537,8 @@ func TestAnthropicMessagesFailuresAreSafe(t *testing.T) {
 				writeAnthropicMessagesResponse(
 					t,
 					w,
-					"event: error\ndata: {\"type\":\"error\",\"message\":\"body-secret-marker\"}\n\n",
+					"event: error\ndata: {\"type\":\"error\",\"message\":\""+
+						streamCause+"\"}\n\n",
 				)
 			},
 			wantError: errAnthropicMessagesRequest.Error(),
@@ -530,8 +547,6 @@ func TestAnthropicMessagesFailuresAreSafe(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			t.Parallel()
-
 			server := httptest.NewServer(http.HandlerFunc(
 				func(w http.ResponseWriter, _ *http.Request) { test.serve(t, w) },
 			))
@@ -539,8 +554,8 @@ func TestAnthropicMessagesFailuresAreSafe(t *testing.T) {
 
 			provider := mustAnthropicMessages(
 				t,
-				server.URL+"/url-secret-marker",
-				map[string]string{"Authorization": "Bearer header-secret-marker"},
+				server.URL+"/"+urlMarker,
+				map[string]string{"Authorization": headerValue},
 			)
 			got := collectAnthropicMessagesEvents(provider.StreamResponse(
 				t.Context(),
@@ -554,27 +569,28 @@ func TestAnthropicMessagesFailuresAreSafe(t *testing.T) {
 			assertSafeAnthropicMessagesError(
 				t,
 				got.err,
-				"body-secret-marker",
-				"url-secret-marker",
-				"header-secret-marker",
+				httpCause,
+				streamCause,
+				urlMarker,
+				headerMarker,
 			)
 		})
 	}
 
 	t.Run("transport error", func(t *testing.T) {
-		t.Parallel()
-
 		provider := mustAnthropicMessages(
 			t,
-			"https://example.com/url-secret-marker",
-			map[string]string{"Authorization": "Bearer header-secret-marker"},
+			"https://example.com/"+urlMarker,
+			map[string]string{"Authorization": headerValue},
 		)
 		provider.messages.Options = append(
 			slices.Clone(provider.messages.Options),
 			option.WithHTTPClient(&http.Client{
 				Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
 					return nil, fmt.Errorf(
-						"transport body-secret-marker: %w",
+						"%s with credential %s: %w",
+						transportCause,
+						headerValue,
 						errInvalidProviderHeaders,
 					)
 				}),
@@ -592,11 +608,22 @@ func TestAnthropicMessagesFailuresAreSafe(t *testing.T) {
 		assertSafeAnthropicMessagesError(
 			t,
 			got.err,
-			"body-secret-marker",
-			"url-secret-marker",
-			"header-secret-marker",
+			transportCause,
+			urlMarker,
+			headerMarker,
 		)
 	})
+
+	logs := logOutput.String()
+	if strings.Contains(logs, headerMarker) {
+		t.Fatalf("logger exposed configured header value: %s", logs)
+	}
+
+	for _, cause := range []string{httpCause, streamCause, transportCause} {
+		if !strings.Contains(logs, cause) {
+			t.Errorf("logger did not retain cause %q: %s", cause, logs)
+		}
+	}
 }
 
 func writeAnthropicMessagesResponse(t *testing.T, w io.Writer, response string) {
@@ -626,7 +653,10 @@ type anthropicMessagesCloseErrorBody struct {
 }
 
 func (anthropicMessagesCloseErrorBody) Close() error {
-	return fmt.Errorf("close secret-marker: %w", errInvalidProviderHeaders)
+	return fmt.Errorf(
+		"upstream-close-cause-marker with credential Bearer configured-header-marker: %w",
+		errInvalidProviderHeaders,
+	)
 }
 
 // This test replaces the process-wide logger, so it cannot run in parallel.
@@ -639,7 +669,11 @@ func TestAnthropicMessagesCloseErrorsAreSafe(t *testing.T) {
 	slog.SetDefault(slog.New(slog.NewTextHandler(&logOutput, nil)))
 	t.Cleanup(func() { slog.SetDefault(oldLogger) })
 
-	provider := mustAnthropicMessages(t, "https://example.com/url-secret-marker", nil)
+	provider := mustAnthropicMessages(
+		t,
+		"https://example.com/configured-url-marker",
+		map[string]string{"Authorization": "Bearer configured-header-marker"},
+	)
 	provider.messages.Options = append(
 		slices.Clone(provider.messages.Options),
 		option.WithHTTPClient(&http.Client{
@@ -666,17 +700,13 @@ func TestAnthropicMessagesCloseErrorsAreSafe(t *testing.T) {
 		t.Fatalf("unexpected stream error: %v", got.err)
 	}
 
-	if strings.Contains(logOutput.String(), "secret-marker") ||
-		strings.Contains(logOutput.String(), "url-secret-marker") {
-		t.Fatalf("close log exposed a marker: %s", logOutput.String())
+	logs := logOutput.String()
+	if strings.Contains(logs, "configured-header-marker") {
+		t.Fatalf("close log exposed configured header value: %s", logs)
 	}
 
-	if !strings.Contains(logOutput.String(), errAnthropicMessagesStreamClose.Error()) {
-		t.Errorf("close log does not contain safe stream-close category: %s", logOutput.String())
-	}
-
-	if strings.Contains(logOutput.String(), errAnthropicMessagesRequest.Error()) {
-		t.Errorf("close log contains request-failure category: %s", logOutput.String())
+	if !strings.Contains(logs, "upstream-close-cause-marker") {
+		t.Errorf("close log did not retain provider cause: %s", logs)
 	}
 }
 

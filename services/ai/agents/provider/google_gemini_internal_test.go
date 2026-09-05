@@ -1,10 +1,12 @@
 package provider
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"maps"
 	"net/http"
 	"net/http/httptest"
@@ -20,8 +22,11 @@ import (
 )
 
 var (
-	errGoogleGeminiTestReadMarker  = errors.New("secret-read-error-marker")
-	errGoogleGeminiTestCloseMarker = errors.New("secret-close-error-marker")
+	errGoogleGeminiTestReadMarker      = errors.New("upstream-read-cause-marker")
+	errGoogleGeminiTestCloseMarker     = errors.New("upstream-close-cause-marker")
+	errGoogleGeminiTestTransportMarker = errors.New(
+		"upstream-transport-cause-marker with credential configured-transport-credential-marker",
+	)
 )
 
 type capturedGoogleGeminiRequest struct {
@@ -525,7 +530,8 @@ func TestGoogleGeminiTransportClonesRequestAndHeaders(t *testing.T) {
 				TLS:              nil,
 			}, nil
 		}),
-		scrubAPIKey: true,
+		scrubAPIKey:   true,
+		logRedactions: nil,
 	}
 
 	request := httptest.NewRequest(http.MethodPost, "https://example.com", strings.NewReader("{}"))
@@ -563,6 +569,58 @@ func TestGoogleGeminiTransportClonesRequestAndHeaders(t *testing.T) {
 
 	if response == nil || response.Body == nil {
 		t.Fatal("transport returned no response body")
+	}
+}
+
+// This test replaces the process-wide logger, so it cannot run in parallel.
+//
+//nolint:paralleltest // Parallel execution could capture another test's logs.
+func TestGoogleGeminiTransportFailuresAreLogged(t *testing.T) {
+	const (
+		cause      = "upstream-transport-cause-marker"
+		credential = "configured-transport-credential-marker"
+	)
+
+	oldLogger := slog.Default()
+
+	var logOutput bytes.Buffer
+	slog.SetDefault(slog.New(slog.NewTextHandler(&logOutput, nil)))
+	t.Cleanup(func() { slog.SetDefault(oldLogger) })
+
+	transport := &googleGeminiTransport{
+		base: googleGeminiRoundTripFunc(func(*http.Request) (*http.Response, error) {
+			return nil, errGoogleGeminiTestTransportMarker
+		}),
+		scrubAPIKey:   false,
+		logRedactions: []string{credential},
+	}
+
+	request := httptest.NewRequest(http.MethodPost, "https://example.com", nil)
+
+	response, err := transport.RoundTrip(request)
+	if response != nil && response.Body != nil {
+		t.Cleanup(func() {
+			if closeErr := response.Body.Close(); closeErr != nil {
+				t.Errorf("close unexpected response body: %v", closeErr)
+			}
+		})
+	}
+
+	if response != nil {
+		t.Errorf("response = %v, want nil", response)
+	}
+
+	if !errors.Is(err, errGoogleGeminiTransport) {
+		t.Fatalf("error = %v, want Google Gemini transport error", err)
+	}
+
+	logs := logOutput.String()
+	if !strings.Contains(logs, cause) {
+		t.Errorf("logger did not retain transport cause: %s", logs)
+	}
+
+	if strings.Contains(logs, credential) {
+		t.Errorf("logger exposed configured credential: %s", logs)
 	}
 }
 
@@ -648,13 +706,24 @@ func (b *googleGeminiFailingBody) Close() error {
 	return b.closeErr
 }
 
+// This test replaces the process-wide logger, so it cannot run in parallel.
+//
+//nolint:paralleltest // Parallel execution could capture another test's logs.
 func TestGoogleGeminiResponseBodyErrorsAreSafe(t *testing.T) {
-	t.Parallel()
+	oldLogger := slog.Default()
 
-	body := &googleGeminiResponseBody{ReadCloser: &googleGeminiFailingBody{
-		readErr:  errGoogleGeminiTestReadMarker,
-		closeErr: errGoogleGeminiTestCloseMarker,
-	}}
+	var logOutput bytes.Buffer
+	slog.SetDefault(slog.New(slog.NewTextHandler(&logOutput, nil)))
+	t.Cleanup(func() { slog.SetDefault(oldLogger) })
+
+	body := &googleGeminiResponseBody{
+		ReadCloser: &googleGeminiFailingBody{
+			readErr:  errGoogleGeminiTestReadMarker,
+			closeErr: errGoogleGeminiTestCloseMarker,
+		},
+		done:          t.Context().Done(),
+		logRedactions: nil,
+	}
 
 	bytesRead, readErr := body.Read(make([]byte, 1))
 	if bytesRead != 0 {
@@ -662,29 +731,58 @@ func TestGoogleGeminiResponseBodyErrorsAreSafe(t *testing.T) {
 	}
 
 	if !errors.Is(readErr, errGoogleGeminiResponseBody) ||
-		strings.Contains(readErr.Error(), "secret-read-error-marker") {
+		strings.Contains(readErr.Error(), errGoogleGeminiTestReadMarker.Error()) {
 		t.Errorf("read error is not safe: %v", readErr)
 	}
 
 	closeErr := body.Close()
 	if !errors.Is(closeErr, errGoogleGeminiResponseBody) ||
-		strings.Contains(closeErr.Error(), "secret-close-error-marker") {
+		strings.Contains(closeErr.Error(), errGoogleGeminiTestCloseMarker.Error()) {
 		t.Errorf("close error is not safe: %v", closeErr)
+	}
+
+	logs := logOutput.String()
+	for _, cause := range []error{
+		errGoogleGeminiTestReadMarker,
+		errGoogleGeminiTestCloseMarker,
+	} {
+		if !strings.Contains(logs, cause.Error()) {
+			t.Errorf("logger did not retain cause %q: %s", cause, logs)
+		}
 	}
 }
 
+// This test replaces the process-wide logger, so it cannot run in parallel.
+//
+//nolint:paralleltest // Parallel execution could capture another test's logs.
 func TestGoogleGeminiFailuresAreSafe(t *testing.T) {
-	t.Parallel()
+	const (
+		apiKeyMarker   = "configured-api-key-marker"
+		headerMarker   = "configured-header-marker"
+		headerValue    = "Bearer " + headerMarker
+		urlMarker      = "configured-url-marker"
+		httpCause      = "upstream-http-cause-marker"
+		malformedCause = "upstream-malformed-cause-marker"
+	)
+
+	oldLogger := slog.Default()
+
+	var logOutput bytes.Buffer
+	slog.SetDefault(slog.New(slog.NewTextHandler(&logOutput, nil)))
+	t.Cleanup(func() { slog.SetDefault(oldLogger) })
 
 	tests := []struct {
 		name       string
+		cause      string
 		write      func(http.ResponseWriter) error
 		wantStatus string
 	}{
 		{
-			name: "HTTP status",
+			name:  "HTTP status",
+			cause: httpCause,
 			write: func(w http.ResponseWriter) error {
-				const payload = `{"error":{"code":418,"message":"response-body-secret-marker"}}`
+				const payload = `{"error":{"code":418,"message":"` + httpCause +
+					` ` + apiKeyMarker + ` ` + headerValue + `"}}`
 
 				w.WriteHeader(http.StatusTeapot)
 
@@ -702,9 +800,11 @@ func TestGoogleGeminiFailuresAreSafe(t *testing.T) {
 			wantStatus: "HTTP status 418",
 		},
 		{
-			name: "malformed stream",
+			name:  "malformed stream",
+			cause: malformedCause,
 			write: func(w http.ResponseWriter) error {
-				const payload = "data: response-body-secret-marker\n\n"
+				const payload = "data: " + malformedCause + " " + apiKeyMarker +
+					" " + headerValue + "\n\n"
 
 				w.Header().Set("Content-Type", "text/event-stream")
 				w.WriteHeader(http.StatusOK)
@@ -726,8 +826,6 @@ func TestGoogleGeminiFailuresAreSafe(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			t.Parallel()
-
 			server := httptest.NewServer(http.HandlerFunc(
 				func(w http.ResponseWriter, _ *http.Request) {
 					if err := test.write(w); err != nil {
@@ -739,10 +837,10 @@ func TestGoogleGeminiFailuresAreSafe(t *testing.T) {
 
 			provider := mustGoogleGemini(
 				t,
-				server.URL+"/configured-url-secret-marker",
+				server.URL+"/"+urlMarker,
 				map[string]string{
-					googleGeminiKeyHeader: "configured-api-key-secret-marker",
-					"X-Credential":        "configured-header-secret-marker",
+					googleGeminiKeyHeader: apiKeyMarker,
+					"X-Credential":        headerValue,
 				},
 			)
 
@@ -759,10 +857,10 @@ func TestGoogleGeminiFailuresAreSafe(t *testing.T) {
 			}
 
 			markers := []string{
-				"response-body-secret-marker",
-				"configured-url-secret-marker",
-				"configured-api-key-secret-marker",
-				"configured-header-secret-marker",
+				test.cause,
+				urlMarker,
+				apiKeyMarker,
+				headerMarker,
 				googleGeminiKeySentinel,
 			}
 			for _, marker := range markers {
@@ -771,6 +869,19 @@ func TestGoogleGeminiFailuresAreSafe(t *testing.T) {
 				}
 			}
 		})
+	}
+
+	logs := logOutput.String()
+	for _, credential := range []string{apiKeyMarker, headerMarker} {
+		if strings.Contains(logs, credential) {
+			t.Errorf("logger exposed configured credential %q: %s", credential, logs)
+		}
+	}
+
+	for _, cause := range []string{httpCause, malformedCause} {
+		if !strings.Contains(logs, cause) {
+			t.Errorf("logger did not retain cause %q: %s", cause, logs)
+		}
 	}
 }
 

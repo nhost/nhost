@@ -638,13 +638,19 @@ func TestOpenAIChatCompletionsHTTPStatusErrorsAreSafe(t *testing.T) {
 }
 
 // This test is intentionally non-parallel because it temporarily replaces the
-// process-wide default logger to verify upstream markers cannot reach logs.
+// process-wide default logger to verify provider causes are logged while client
+// errors stay sanitized.
 //
 //nolint:paralleltest // Parallel execution could expose another test's logs or logger.
 func TestOpenAIChatCompletionsFailuresAreSafe(t *testing.T) {
 	const (
-		headerMarker = "secret-header-marker"
-		urlMarker    = "secret-url-marker"
+		headerMarker     = "configured-header-marker"
+		headerValue      = "Bearer " + headerMarker
+		urlMarker        = "configured-url-marker"
+		httpCause        = "upstream-http-cause-marker"
+		streamCause      = "upstream-stream-cause-marker"
+		transportCause   = "upstream-transport-cause-marker"
+		streamCloseCause = "upstream-close-cause-marker"
 	)
 
 	oldLogger := slog.Default()
@@ -663,7 +669,7 @@ func TestOpenAIChatCompletionsFailuresAreSafe(t *testing.T) {
 
 			_, err := io.WriteString(
 				w,
-				`{"error":{"message":"`+headerMarker+` `+urlMarker+`"}}`,
+				`{"error":{"message":"`+httpCause+`"}}`,
 			)
 			if err != nil {
 				t.Errorf("write response: %v", err)
@@ -674,7 +680,7 @@ func TestOpenAIChatCompletionsFailuresAreSafe(t *testing.T) {
 		chatCompletions := mustOpenAIChatCompletions(
 			t,
 			server.URL+"/"+urlMarker,
-			map[string]string{"Authorization": "Bearer " + headerMarker},
+			map[string]string{"Authorization": headerValue},
 		)
 		got := collectChatCompletionsEvents(chatCompletions.StreamResponse(
 			context.Background(),
@@ -685,18 +691,18 @@ func TestOpenAIChatCompletionsFailuresAreSafe(t *testing.T) {
 				nil,
 			),
 		))
-		assertSafeChatCompletionsError(t, got.err, headerMarker, urlMarker)
+		assertSafeChatCompletionsError(t, got.err, headerMarker, urlMarker, httpCause)
 	})
 
 	//nolint:paralleltest // Parallel execution could mix global logger output.
 	t.Run("stream error payload", func(t *testing.T) {
 		server := newOpenAIStreamServer(t, []string{
-			`{"error":"` + headerMarker + ` ` + urlMarker + `"}`,
+			`{"error":"` + streamCause + `"}`,
 		})
 		chatCompletions := mustOpenAIChatCompletions(
 			t,
 			server.URL+"/"+urlMarker,
-			map[string]string{"Authorization": "Bearer " + headerMarker},
+			map[string]string{"Authorization": headerValue},
 		)
 		got := collectChatCompletionsEvents(chatCompletions.StreamResponse(
 			context.Background(),
@@ -707,7 +713,7 @@ func TestOpenAIChatCompletionsFailuresAreSafe(t *testing.T) {
 				nil,
 			),
 		))
-		assertSafeChatCompletionsError(t, got.err, headerMarker, urlMarker)
+		assertSafeChatCompletionsError(t, got.err, headerMarker, urlMarker, streamCause)
 	})
 
 	//nolint:paralleltest // Parallel execution could mix global logger output.
@@ -715,14 +721,16 @@ func TestOpenAIChatCompletionsFailuresAreSafe(t *testing.T) {
 		chatCompletions := mustOpenAIChatCompletions(
 			t,
 			"https://example.com/"+urlMarker,
-			map[string]string{"Authorization": "Bearer " + headerMarker},
+			map[string]string{"Authorization": headerValue},
 		)
 		chatCompletions.completions.Options = append(
 			chatCompletions.completions.Options,
 			option.WithHTTPClient(&http.Client{
 				Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
 					return nil, fmt.Errorf(
-						"transport failed with secret-header-marker and secret-url-marker: %w",
+						"%s with credential %s: %w",
+						transportCause,
+						headerMarker,
 						errInvalidProviderHeaders,
 					)
 				}),
@@ -742,7 +750,13 @@ func TestOpenAIChatCompletionsFailuresAreSafe(t *testing.T) {
 				nil,
 			),
 		))
-		assertSafeChatCompletionsError(t, got.err, headerMarker, urlMarker)
+		assertSafeChatCompletionsError(
+			t,
+			got.err,
+			headerMarker,
+			urlMarker,
+			transportCause,
+		)
 
 		if got.err.Error() != errOpenAIChatCompletionsRequest.Error() {
 			t.Errorf("error = %q, want fixed transport category", got.err)
@@ -752,13 +766,15 @@ func TestOpenAIChatCompletionsFailuresAreSafe(t *testing.T) {
 	//nolint:paralleltest // Parallel execution could mix global logger output.
 	t.Run("close failure log", func(t *testing.T) {
 		closeMarker := fmt.Errorf(
-			"close-secret-header-marker-secret-url-marker: %w",
+			"%s with credential %s: %w",
+			streamCloseCause,
+			headerValue,
 			errInvalidProviderHeaders,
 		)
 		chatCompletions := mustOpenAIChatCompletions(
 			t,
 			"https://example.com/v1",
-			map[string]string{"Authorization": "Bearer " + headerMarker},
+			map[string]string{"Authorization": headerValue},
 		)
 		chatCompletions.completions.Options = append(
 			chatCompletions.completions.Options,
@@ -792,16 +808,14 @@ func TestOpenAIChatCompletionsFailuresAreSafe(t *testing.T) {
 	})
 
 	logs := logOutput.String()
-	if strings.Contains(logs, headerMarker) || strings.Contains(logs, urlMarker) {
-		t.Fatalf("logger exposed upstream marker: %s", logs)
+	if strings.Contains(logs, headerMarker) {
+		t.Fatalf("logger exposed configured header value: %s", logs)
 	}
 
-	if !strings.Contains(logs, errOpenAIChatCompletionsStreamClose.Error()) {
-		t.Fatalf("close error log did not use fixed stream-close category: %s", logs)
-	}
-
-	if strings.Contains(logs, errOpenAIChatCompletionsRequest.Error()) {
-		t.Fatalf("close error log used request-failure category: %s", logs)
+	for _, cause := range []string{httpCause, streamCause, transportCause, streamCloseCause} {
+		if !strings.Contains(logs, cause) {
+			t.Errorf("logger did not retain cause %q: %s", cause, logs)
+		}
 	}
 }
 
