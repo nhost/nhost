@@ -226,13 +226,15 @@ func TestCatalogActiveFutureComparisonProtectsAppliedRows(t *testing.T) {
 				"downgrade below version 2 with an image whose bundle maximum is <= 1 before deploying this bundle",
 		},
 		{
-			name:           "different applied predecessor",
+			name:           "different applied predecessor without common lineage",
 			local:          rerootedVersionTwo,
 			currentVersion: 2,
 			wantMatch:      false,
 			wantError:      true,
 			wantIssue: "active catalog version 2 belongs to a different lineage and is still applied; " +
-				"downgrade below version 2 with an image whose bundle maximum is below 2 before deploying this bundle",
+				"the active and embedded bundles have no common lineage version, so pgmigrate cannot replace " +
+				"this lineage in place; keep using a compatible bundle or reinitialize the schema and explicitly " +
+				"migrate required data before deploying this bundle",
 		},
 		{
 			name:           "edited applied row",
