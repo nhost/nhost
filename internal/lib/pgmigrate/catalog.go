@@ -207,6 +207,7 @@ func (c *catalog) reconcile(local *bundle, currentVersion int64) error {
 	return c.publish(local)
 }
 
+//nolint:funlen // One ordered scan preserves divergence precedence and its last-common-version state.
 func (c *catalog) activeFutureMatches(local *bundle, currentVersion int64) (bool, error) {
 	query := fmt.Sprintf(`
 SELECT version
@@ -227,7 +228,11 @@ ORDER BY version
 		localByVersion[migration.version] = migration
 	}
 
-	var lastCommonVersion *uint
+	var (
+		lastCommonVersion          *uint
+		firstMissingAppliedVersion *uint
+		futureMatches              = true
+	)
 
 	for _, version := range activeVersions {
 		stored, found, migrationErr := c.migration(version)
@@ -242,27 +247,41 @@ ORDER BY version
 		localMigration, present := localByVersion[version]
 		if versionAfter(version, currentVersion) {
 			if !present || !migrationMatches(*localMigration, stored) {
-				return false, nil
+				futureMatches = false
+
+				break
 			}
 
 			continue
 		}
 
-		if present {
-			if err := compareMigration(*localMigration, stored); err != nil {
-				if migrationLineageDiffers(*localMigration, stored) {
-					return false, appliedLineageDivergence(version, lastCommonVersion)
-				}
-
-				return false, err
+		if !present {
+			if firstMissingAppliedVersion == nil && local.target > version {
+				missingVersion := version
+				firstMissingAppliedVersion = &missingVersion
 			}
 
-			commonVersion := version
-			lastCommonVersion = &commonVersion
+			continue
 		}
+
+		if err := compareMigration(*localMigration, stored); err != nil {
+			if migrationLineageDiffers(*localMigration, stored) {
+				return false, appliedLineageDivergence(version, lastCommonVersion)
+			}
+
+			return false, err
+		}
+
+		commonVersion := version
+		lastCommonVersion = &commonVersion
 	}
 
-	return true, nil
+	// Defer this diagnostic so a later shared version can report its more specific mismatch first.
+	if firstMissingAppliedVersion != nil {
+		return false, appliedLineageDivergence(*firstMissingAppliedVersion, lastCommonVersion)
+	}
+
+	return futureMatches, nil
 }
 
 func versionAfter(version uint, currentVersion int64) bool {
