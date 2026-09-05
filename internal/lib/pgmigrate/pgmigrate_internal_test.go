@@ -251,23 +251,74 @@ func TestPreflightMigrationPathRejectsNonProgressingLinks(t *testing.T) {
 func TestSlogAdapter(t *testing.T) {
 	t.Parallel()
 
-	var output bytes.Buffer
-
-	logger := slog.New(slog.NewTextHandler(&output, &slog.HandlerOptions{
-		AddSource:   false,
-		Level:       slog.LevelDebug,
-		ReplaceAttr: nil,
-	}))
-	adapter := newSlogAdapter(t.Context(), logger)
-
-	if !adapter.Verbose() {
-		t.Fatal("Verbose() = false for debug-enabled logger")
+	tests := []struct {
+		name         string
+		loggerLevel  slog.Level
+		format       string
+		values       []any
+		wantVerbose  bool
+		wantLogLevel string
+		wantMessage  string
+	}{
+		{
+			name:         "progress",
+			loggerLevel:  slog.LevelInfo,
+			format:       "migration %d complete\n",
+			values:       []any{5},
+			wantVerbose:  false,
+			wantLogLevel: "INFO",
+			wantMessage:  "migration 5 complete",
+		},
+		{
+			name:         "verbose diagnostics",
+			loggerLevel:  slog.LevelDebug,
+			format:       "Start buffering migration %d\n",
+			values:       []any{5},
+			wantVerbose:  true,
+			wantLogLevel: "DEBUG",
+			wantMessage:  "Start buffering migration 5",
+		},
+		{
+			name:         "error with verbose logging",
+			loggerLevel:  slog.LevelDebug,
+			format:       "error: migration %d failed\n",
+			values:       []any{5},
+			wantVerbose:  true,
+			wantLogLevel: "ERROR",
+			wantMessage:  "migration 5 failed",
+		},
 	}
 
-	adapter.Printf("migration %d complete\n", 5)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-	if !strings.Contains(output.String(), "migration 5 complete") {
-		t.Fatalf("logger output = %q, want migration message", output.String())
+			var output bytes.Buffer
+
+			logger := slog.New(slog.NewTextHandler(&output, &slog.HandlerOptions{
+				AddSource: false,
+				Level:     tt.loggerLevel,
+				ReplaceAttr: func(_ []string, attr slog.Attr) slog.Attr {
+					if attr.Key == slog.TimeKey {
+						return slog.Attr{}
+					}
+
+					return attr
+				},
+			}))
+			adapter := newSlogAdapter(t.Context(), logger)
+
+			if got := adapter.Verbose(); got != tt.wantVerbose {
+				t.Fatalf("Verbose() = %t, want %t", got, tt.wantVerbose)
+			}
+
+			adapter.Printf(tt.format, tt.values...)
+
+			want := fmt.Sprintf("level=%s msg=%q\n", tt.wantLogLevel, tt.wantMessage)
+			if got := output.String(); got != want {
+				t.Fatalf("logger output = %q, want %q", got, want)
+			}
+		})
 	}
 }
 
