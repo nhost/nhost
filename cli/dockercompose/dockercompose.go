@@ -199,21 +199,28 @@ func (dc *DockerCompose) ReloadMetadata(ctx context.Context) error {
 }
 
 func (dc *DockerCompose) ApplyMigrations(ctx context.Context, endpoint string) error {
-	cmd := exec.CommandContext( //nolint:gosec
+	return dc.execConsolePTY(
 		ctx,
-		"docker", "compose",
-		"--project-directory", dc.workingDir,
-		"-f", dc.filepath,
-		"-p", dc.projectName,
-		"exec",
-		"console",
-		"hasura-cli",
-		"migrate",
-		"apply",
+		"hasura-cli", "migrate", "apply",
 		"--endpoint", endpoint,
 		"--all-databases",
 		"--skip-update-check",
 	)
+}
+
+// execConsolePTY runs a command in the already-running console container over a
+// PTY, streaming its output to stdout. The PTY master reports an EIO read
+// error when the child exits, which is expected rather than a real failure.
+func (dc *DockerCompose) execConsolePTY(ctx context.Context, args ...string) error {
+	dockerArgs := append([]string{
+		"compose",
+		"--project-directory", dc.workingDir,
+		"-f", dc.filepath,
+		"-p", dc.projectName,
+		"exec", "console",
+	}, args...)
+
+	cmd := exec.CommandContext(ctx, "docker", dockerArgs...)
 
 	f, err := pty.Start(cmd)
 	if err != nil {
