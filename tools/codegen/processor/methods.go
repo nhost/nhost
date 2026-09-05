@@ -53,6 +53,11 @@ func (m *Method) Path() string {
 	return m.p.MethodPath(m.path)
 }
 
+// RawPath returns the OpenAPI path before target-specific formatting.
+func (m *Method) RawPath() string {
+	return m.path
+}
+
 func (m *Method) PathParameters() []*Parameter {
 	params := make([]*Parameter, 0, 10) //nolint:mnd
 	for _, param := range m.Parameters {
