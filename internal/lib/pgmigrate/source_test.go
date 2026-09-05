@@ -213,7 +213,7 @@ func TestCatalogSourceRejectsBrokenDatabaseChains(t *testing.T) {
 					"ALTER TABLE %s DROP CONSTRAINT schema_migration_catalog_previous_id_fkey",
 				)
 
-				query := fmt.Sprintf( //nolint:gosec // relation is identifier-quoted.
+				query := fmt.Sprintf(
 					"UPDATE %s SET previous_id = gen_random_uuid() WHERE version = $1",
 					relation,
 				)
@@ -398,7 +398,7 @@ func updateCatalogPredecessorForTest(
 ) {
 	t.Helper()
 
-	query := fmt.Sprintf( //nolint:gosec // relation is identifier-quoted.
+	query := fmt.Sprintf(
 		`UPDATE %s AS migration
 SET previous_id = (
     SELECT id FROM %s WHERE version = $1 AND archived_at IS NULL
@@ -438,7 +438,7 @@ func updateCatalogForTest(
 		t.Fatalf("test attempted to update disallowed catalog column %q", column)
 	}
 
-	query := fmt.Sprintf( //nolint:gosec // relation is quoted and column is checked against the allowlist.
+	query := fmt.Sprintf(
 		"UPDATE %s SET %s = $1 WHERE version = $2",
 		relation,
 		pq.QuoteIdentifier(column),

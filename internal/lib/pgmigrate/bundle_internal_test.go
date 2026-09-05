@@ -226,16 +226,14 @@ func assertErrorCategory(t *testing.T, err error, wantConfig bool) {
 	t.Helper()
 
 	if wantConfig {
-		var configErr *ConfigurationError
-		if !errors.As(err, &configErr) {
+		if _, ok := errors.AsType[*ConfigurationError](err); !ok {
 			t.Fatalf("error = %v (%T), want *ConfigurationError", err, err)
 		}
 
 		return
 	}
 
-	var bundleErr *BundleError
-	if !errors.As(err, &bundleErr) {
+	if _, ok := errors.AsType[*BundleError](err); !ok {
 		t.Fatalf("error = %v (%T), want *BundleError", err, err)
 	}
 }

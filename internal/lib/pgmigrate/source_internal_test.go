@@ -513,13 +513,13 @@ func rowsForStoredMigration(migration storedMigration) *stubCatalogRows {
 	)
 	if migration.previousVersion != nil {
 		previousID = "00000000-0000-0000-0000-000000000001"
-		//nolint:gosec // Test migrations use small constants.
+
 		previous = int64(*migration.previousVersion)
 	}
 
 	return &stubCatalogRows{
 		rows: [][]any{{
-			int64(migration.version), //nolint:gosec // Test migrations use small constants.
+			int64(migration.version),
 			previousID,
 			previous,
 			migration.identifier,
@@ -542,7 +542,7 @@ func rowsForVersions(versions []uint, limit int) *stubCatalogRows {
 	rows := make([][]any, 0, len(versions))
 	for _, version := range versions {
 		// Test catalog versions are small constants and always fit PostgreSQL BIGINT.
-		rows = append(rows, []any{int64(version)}) //nolint:gosec // See comment above.
+		rows = append(rows, []any{int64(version)})
 	}
 
 	return &stubCatalogRows{rows: rows}

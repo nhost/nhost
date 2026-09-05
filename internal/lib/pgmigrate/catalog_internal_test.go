@@ -825,13 +825,13 @@ func rowsForMigration(migration migration) *stubCatalogRows {
 	)
 	if migration.previousVersion != nil {
 		previousID = "00000000-0000-0000-0000-000000000001"
-		//nolint:gosec // Test migrations use small constants.
+
 		previous = int64(*migration.previousVersion)
 	}
 
 	return &stubCatalogRows{
 		rows: [][]any{{
-			int64(migration.version), //nolint:gosec // Test migrations use small constants.
+			int64(migration.version),
 			previousID,
 			previous,
 			migration.identifier,

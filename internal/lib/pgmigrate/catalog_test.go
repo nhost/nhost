@@ -439,7 +439,7 @@ func TestCatalogReconcileArchivesInactiveSuffixAndReusesVersions(t *testing.T) {
 		archiveBatches int
 	)
 
-	query := fmt.Sprintf( //nolint:gosec // relation is identifier-quoted.
+	query := fmt.Sprintf(
 		`SELECT
     count(*) FILTER (WHERE archived_at IS NULL),
     count(*) FILTER (WHERE archived_at IS NOT NULL),
@@ -508,7 +508,7 @@ func TestCatalogReconcileRejectsHigherReplacementAfterOmittedAppliedVersions(t *
 	}
 
 	relation := catalogTestRelation(schema)
-	stateQuery := fmt.Sprintf( //nolint:gosec // relation is identifier-quoted.
+	stateQuery := fmt.Sprintf(
 		`SELECT
     jsonb_agg(to_jsonb(catalog_row) ORDER BY version)::text,
     array_agg(registered_at::text ORDER BY version)
@@ -590,7 +590,7 @@ func reconcileAdditiveCatalogAndAssertReuse(
 ) {
 	t.Helper()
 
-	registrationQuery := fmt.Sprintf( //nolint:gosec // relation is identifier-quoted.
+	registrationQuery := fmt.Sprintf(
 		`SELECT array_agg(registered_at::text ORDER BY version)
 FROM %s
 WHERE archived_at IS NULL`,
@@ -723,7 +723,7 @@ func TestCatalogPublicationRejectsChangedHistory(t *testing.T) {
 			}
 
 			// The relation is identifier-quoted and the column comes from the fixed test table above.
-			query := fmt.Sprintf( //nolint:gosec // Only quoted, allowlisted identifiers are interpolated.
+			query := fmt.Sprintf(
 				"UPDATE %s SET %s = $1 WHERE version = $2",
 				catalogTestRelation(schema),
 				pq.QuoteIdentifier(tt.column),
@@ -947,7 +947,6 @@ func insertStoredMigrationError(
 	migration storedMigration,
 ) error {
 	// The relation is assembled exclusively from pq.QuoteIdentifier.
-	//nolint:gosec // Only a quoted identifier is interpolated.
 	query := fmt.Sprintf(`
 INSERT INTO %s (
     version,
