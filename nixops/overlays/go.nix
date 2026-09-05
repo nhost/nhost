@@ -33,8 +33,6 @@ rec {
     };
     vendorHash = "sha256-iawGHP22k96dnpoSMNxlMJ8aHZPOW1Mbaih6vAh3G94=";
     subPackages = [ "." ];
-    # Pure-Go build: the bundled re2 engine runs as WebAssembly, so no cgo
-    # toolchain is dragged into the closure (matches the nixpkgs recipe).
     env.CGO_ENABLED = 0;
     ldflags = [
       "-s"
