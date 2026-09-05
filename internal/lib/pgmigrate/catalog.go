@@ -456,20 +456,30 @@ func migrationLineageDiffers(local migration, stored storedMigration) bool {
 }
 
 func appliedLineageDivergence(version uint, lastCommonVersion *uint) error {
-	maximum := fmt.Sprintf("below %d", version)
-	if lastCommonVersion != nil {
-		maximum = fmt.Sprintf("<= %d", *lastCommonVersion)
+	if lastCommonVersion == nil {
+		return &IntegrityError{
+			Version: version,
+			Issue: fmt.Sprintf(
+				"active catalog version %d belongs to a different lineage and is still applied; "+
+					"the active and embedded bundles have no common lineage version, so pgmigrate "+
+					"cannot replace this lineage in place; keep using a compatible bundle or "+
+					"reinitialize the schema and explicitly migrate required data before deploying "+
+					"this bundle",
+				version,
+			),
+			Cause: nil,
+		}
 	}
 
 	return &IntegrityError{
 		Version: version,
 		Issue: fmt.Sprintf(
 			"active catalog version %d belongs to a different lineage and is still applied; "+
-				"downgrade below version %d with an image whose bundle maximum is %s "+
+				"downgrade below version %d with an image whose bundle maximum is <= %d "+
 				"before deploying this bundle",
 			version,
 			version,
-			maximum,
+			*lastCommonVersion,
 		),
 		Cause: nil,
 	}

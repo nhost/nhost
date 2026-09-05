@@ -762,6 +762,59 @@ func TestMigrateRejectsSquashedStableWhileBetaLineageIsApplied(t *testing.T) {
 	assertOuterLockAvailable(t, database, schema)
 }
 
+func TestMigrateRejectsReplacementWithoutCommonLineage(t *testing.T) {
+	t.Parallel()
+
+	database := openCatalogTestDatabase(t)
+	schema := createCatalogTestSchema(t, database, "")
+
+	if err := Migrate(
+		t.Context(),
+		discardLogger(),
+		database,
+		orchestrationBundle(schema, 3),
+		"migrations",
+		schema,
+	); err != nil {
+		t.Fatalf("Migrate(original lineage) error = %v", err)
+	}
+
+	err := Migrate(
+		t.Context(),
+		discardLogger(),
+		database,
+		fullPrefixSquashedBundle(schema),
+		"migrations",
+		schema,
+	)
+	if err == nil {
+		t.Fatal("Migrate(full-prefix squash over applied lineage) error = nil")
+	}
+
+	var integrityErr *IntegrityError
+	if !errors.As(err, &integrityErr) {
+		t.Fatalf("Migrate() error = %v (%T), want *IntegrityError", err, err)
+	}
+
+	const wantIssue = "active catalog version 1 belongs to a different lineage and is still applied; " +
+		"the active and embedded bundles have no common lineage version, so pgmigrate cannot replace " +
+		"this lineage in place; keep using a compatible bundle or reinitialize the schema and explicitly " +
+		"migrate required data before deploying this bundle"
+	if integrityErr.Version != 1 || integrityErr.Issue != wantIssue {
+		t.Fatalf(
+			"Migrate() integrity error = version %d, issue %q; want version 1, issue %q",
+			integrityErr.Version,
+			integrityErr.Issue,
+			wantIssue,
+		)
+	}
+
+	assertMigrationState(t, database, schema, 3, false)
+	assertColumnPresence(t, database, schema, "name", true)
+	assertColumnPresence(t, database, schema, "enabled", true)
+	assertOuterLockAvailable(t, database, schema)
+}
+
 //nolint:paralleltest // Lock timing cases intentionally share one database serially.
 func TestMigrateUsesAndReleasesExactUpstreamLock(t *testing.T) {
 	// These cases poll pg_stat_activity and therefore intentionally run serially.
@@ -1047,6 +1100,22 @@ func squashedStableBundle(schema string) fstest.MapFS {
 		),
 		"2_add_name_and_enabled.down.sql": fmt.Sprintf(
 			"ALTER TABLE %s.widgets DROP COLUMN enabled, DROP COLUMN name;",
+			quotedSchema,
+		),
+	})
+}
+
+func fullPrefixSquashedBundle(schema string) fstest.MapFS {
+	quotedSchema := pq.QuoteIdentifier(schema)
+
+	return migrationFS(map[string]string{
+		"1_create_complete_widgets.up.sql": fmt.Sprintf(
+			"CREATE TABLE %s.widgets (id INTEGER PRIMARY KEY, name TEXT, "+
+				"enabled BOOLEAN NOT NULL DEFAULT false);",
+			quotedSchema,
+		),
+		"1_create_complete_widgets.down.sql": fmt.Sprintf(
+			"DROP TABLE %s.widgets;",
 			quotedSchema,
 		),
 	})
