@@ -100,8 +100,8 @@ AuthenticatorTransport is one of: "usb", "nfc", "ble", "smart-card", "hybrid", "
 
 ```go
 type Client struct {
-	BaseURL    string
-	httpClient *http.Client
+	BaseURL string
+	// contains filtered or unexported fields
 }
 ```
 
@@ -172,6 +172,20 @@ ChangeUserPassword performs POST /user/password. It returns the decoded body,
 the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
 responses.
 
+#### `ChangeUserPhoneNumber`
+
+```go
+func (c *Client) ChangeUserPhoneNumber(
+	ctx context.Context,
+	body UserPhoneNumberChangeRequest,
+	headers http.Header,
+) (OKResponse, *transport.Response, error)
+```
+
+ChangeUserPhoneNumber performs POST /user/phone-number/change. It returns the decoded body,
+the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
+responses.
+
 #### `CreatePAT`
 
 ```go
@@ -197,6 +211,20 @@ func (c *Client) DeanonymizeUser(
 ```
 
 DeanonymizeUser performs POST /user/deanonymize. It returns the decoded body,
+the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
+responses.
+
+#### `DeanonymizeUserSMS`
+
+```go
+func (c *Client) DeanonymizeUserSMS(
+	ctx context.Context,
+	body UserDeanonymizeSMSRequest,
+	headers http.Header,
+) (OKResponse, *transport.Response, error)
+```
+
+DeanonymizeUserSMS performs POST /user/deanonymize/sms. It returns the decoded body,
 the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
 responses.
 
@@ -262,7 +290,7 @@ func (c *Client) GetProviderTokens(
 ) (ProviderSession, *transport.Response, error)
 ```
 
-GetProviderTokens performs GET /signin/provider/%s/callback/tokens. It returns the decoded body,
+GetProviderTokens performs GET /signin/provider/{provider}/callback/tokens. It returns the decoded body,
 the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
 responses.
 
@@ -343,7 +371,7 @@ Oauth2AuthorizePostURL builds the URL for POST /oauth2/authorize without followi
 #### `Oauth2AuthorizeURL`
 
 ```go
-func (c *Client) Oauth2AuthorizeURL(params *Oauth2AuthorizeParams,
+func (c *Client) Oauth2AuthorizeURL(params Oauth2AuthorizeParams,
 ) string
 ```
 
@@ -381,7 +409,7 @@ responses.
 ```go
 func (c *Client) Oauth2LoginGet(
 	ctx context.Context,
-	params *Oauth2LoginGetParams,
+	params Oauth2LoginGetParams,
 	headers http.Header,
 ) (OAuth2LoginResponse, *transport.Response, error)
 ```
@@ -469,7 +497,7 @@ func (c *Client) RefreshProviderToken(
 ) (ProviderSession, *transport.Response, error)
 ```
 
-RefreshProviderToken performs POST /token/provider/%s. It returns the decoded body,
+RefreshProviderToken performs POST /token/provider/{provider}. It returns the decoded body,
 the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
 responses.
 
@@ -620,7 +648,7 @@ func (c *Client) SignInProviderURL(provider string, params *SignInProviderParams
 ) string
 ```
 
-SignInProviderURL builds the URL for GET /signin/provider/%s without following the redirect.
+SignInProviderURL builds the URL for GET /signin/provider/{provider} without following the redirect.
 
 #### `SignInWebAuthn`
 
@@ -727,7 +755,7 @@ func (c *Client) SignUpProviderURL(provider string, params *SignUpProviderParams
 ) string
 ```
 
-SignUpProviderURL builds the URL for GET /signup/provider/%s without following the redirect.
+SignUpProviderURL builds the URL for GET /signup/provider/{provider} without following the redirect.
 
 #### `SignUpWebAuthn`
 
@@ -782,6 +810,20 @@ func (c *Client) VerifyChangeUserMFA(
 ```
 
 VerifyChangeUserMFA performs POST /user/mfa. It returns the decoded body,
+the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
+responses.
+
+#### `VerifyChangeUserPhoneNumber`
+
+```go
+func (c *Client) VerifyChangeUserPhoneNumber(
+	ctx context.Context,
+	body UserPhoneNumberChangeVerifyRequest,
+	headers http.Header,
+) (OKResponse, *transport.Response, error)
+```
+
+VerifyChangeUserPhoneNumber performs POST /user/phone-number/change/verify. It returns the decoded body,
 the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
 responses.
 
@@ -872,7 +914,7 @@ responses.
 #### `VerifyTicketURL`
 
 ```go
-func (c *Client) VerifyTicketURL(params *VerifyTicketParams,
+func (c *Client) VerifyTicketURL(params VerifyTicketParams,
 ) string
 ```
 
@@ -1248,12 +1290,6 @@ type Oauth2AuthorizeParams struct {
 }
 ```
 
-#### `toQuery`
-
-```go
-func (p *Oauth2AuthorizeParams) toQuery() url.Values
-```
-
 ### `Oauth2AuthorizePostBody`
 
 ```go
@@ -1277,12 +1313,6 @@ type Oauth2AuthorizePostBody struct {
 type Oauth2LoginGetParams struct {
 	RequestID string `json:"request_id"`
 }
-```
-
-#### `toQuery`
-
-```go
-func (p *Oauth2LoginGetParams) toQuery() url.Values
 ```
 
 ### `OptionsRedirectTo`
@@ -1586,12 +1616,6 @@ type SignInProviderParams struct {
 }
 ```
 
-#### `toQuery`
-
-```go
-func (p *SignInProviderParams) toQuery() url.Values
-```
-
 ### `SignInWebAuthnRequest`
 
 ```go
@@ -1698,12 +1722,6 @@ type SignUpProviderParams struct {
 }
 ```
 
-#### `toQuery`
-
-```go
-func (p *SignUpProviderParams) toQuery() url.Values
-```
-
 ### `SignUpWebAuthnRequest`
 
 ```go
@@ -1804,6 +1822,15 @@ type UserDeanonymizeRequestSignInMethod string
 
 UserDeanonymizeRequestSignInMethod is one of: "email-password", "passwordless".
 
+### `UserDeanonymizeSMSRequest`
+
+```go
+type UserDeanonymizeSMSRequest struct {
+	PhoneNumber string         `json:"phoneNumber"`
+	Options     *SignUpOptions `json:"options,omitempty"`
+}
+```
+
 ### `UserEmailChangeRequest`
 
 ```go
@@ -1870,6 +1897,23 @@ type UserPasswordResetRequest struct {
 }
 ```
 
+### `UserPhoneNumberChangeRequest`
+
+```go
+type UserPhoneNumberChangeRequest struct {
+	NewPhoneNumber string `json:"newPhoneNumber"`
+}
+```
+
+### `UserPhoneNumberChangeVerifyRequest`
+
+```go
+type UserPhoneNumberChangeVerifyRequest struct {
+	NewPhoneNumber string `json:"newPhoneNumber"`
+	OTP            string `json:"otp"`
+}
+```
+
 ### `UserVerificationRequirement`
 
 ```go
@@ -1905,12 +1949,6 @@ type VerifyTicketParams struct {
 	RedirectTo    RedirectToQuery  `json:"redirectTo"`
 	CodeChallenge *string          `json:"codeChallenge,omitempty"`
 }
-```
-
-#### `toQuery`
-
-```go
-func (p *VerifyTicketParams) toQuery() url.Values
 ```
 
 ### `VerifyTokenRequest`

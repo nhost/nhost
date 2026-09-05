@@ -12,42 +12,10 @@ and session variables are available without manually decoding the token.
 ## Constants and Variables
 
 ```go
-const (
-	jwtSegments   = 3
-	hasuraClaims  = "https://hasura.io/jwt/claims"
-	defaultMargin = 60
-)
-```
-
-```go
-const unauthorized = 401
-```
-
-```go
 var ErrInvalidToken = errors.New("invalid access token format")
 ```
 
 ErrInvalidToken is returned when an access token cannot be decoded.
-
-## Functions
-
-### `decodeBase64URL`
-
-```go
-func decodeBase64URL(segment string) ([]byte, error)
-```
-
-### `isPostgresArray`
-
-```go
-func isPostgresArray(v string) bool
-```
-
-### `parsePostgresArray`
-
-```go
-func parsePostgresArray(v string) []string
-```
 
 ## Types
 
@@ -63,6 +31,8 @@ type Backend interface {
 
 Backend persists a single StoredSession. Implement it to store sessions
 somewhere other than memory (a file, Redis, a per-request store, ...).
+Implementations must be safe for concurrent use by multiple goroutines;
+Storage delegates operations directly and does not serialize backend access.
 
 #### `DetectStorage`
 
@@ -123,7 +93,7 @@ the auth JWKS first.
 ```go
 type FileStorage struct {
 	Path string
-	mu   sync.RWMutex
+	// contains filtered or unexported fields
 }
 ```
 
@@ -154,8 +124,7 @@ func (f *FileStorage) Set(value StoredSession)
 
 ```go
 type MemoryStorage struct {
-	mu      sync.RWMutex
-	session *StoredSession
+	// contains filtered or unexported fields
 }
 ```
 
@@ -185,11 +154,7 @@ func (m *MemoryStorage) Set(value StoredSession)
 
 ```go
 type Storage struct {
-	backend     Backend
-	mu          sync.Mutex
-	refreshMu   sync.Mutex
-	subscribers map[int]ChangeCallback
-	nextID      int
+	// contains filtered or unexported fields
 }
 ```
 
@@ -238,21 +203,6 @@ Set stores a raw auth Session, enriching it into a StoredSession, and
 notifies subscribers. It returns an error if the access token cannot be
 decoded.
 
-#### `needsRefresh`
-
-```go
-func (s *Storage) needsRefresh(marginSeconds int) (*StoredSession, bool, bool)
-```
-
-needsRefresh reports (session, needsRefresh, sessionExpired) for the current
-stored session given a margin (seconds before expiry to refresh).
-
-#### `notify`
-
-```go
-func (s *Storage) notify(session *StoredSession)
-```
-
 ### `StoredSession`
 
 ```go
@@ -277,11 +227,17 @@ func RefreshSession(
 ) (*StoredSession, error)
 ```
 
-RefreshSession refreshes the session if it is close to expiry. It retries
-once on transient failure. If the refresh token is rejected with 401 it
-clears the stored session and returns (nil, nil); any other error (e.g. a 5xx
-or a network failure) is returned so callers can distinguish a transient
-problem from a logged-out state.
+RefreshSession refreshes the session if it is close to expiry and collapses
+concurrent attempts into one request. A marginSeconds value of zero forces a
+refresh. It retries once on failure. If the refresh token is rejected with
+401 it clears the stored session and returns (nil, nil). Any other final
+error is returned; if the access token is still valid, the existing session
+is returned with that error so callers may keep using it while handling the
+refresh failure.
+
+The supplied authClient must be bare: its HTTP transport must not include
+session-refresh middleware. A reentrancy guard prevents a misconfigured
+client from deadlocking, but callers should not rely on that fallback.
 
 #### `ToStoredSession`
 
@@ -290,15 +246,4 @@ func ToStoredSession(s auth.Session) (StoredSession, error)
 ```
 
 ToStoredSession enriches a raw auth Session into a StoredSession.
-
-#### `refreshOnce`
-
-```go
-func refreshOnce(
-	ctx context.Context,
-	authClient *auth.Client,
-	storage *Storage,
-	marginSeconds int,
-) (*StoredSession, error)
-```
 

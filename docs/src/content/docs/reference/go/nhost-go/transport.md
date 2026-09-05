@@ -3,7 +3,11 @@ title: Transport
 ---
 
 Package transport provides the HTTP middleware shared by the generated and
-hand-written Nhost clients.
+hand-written Nhost clients, along with the service-URL helpers
+([IsLoopbackHost], [NormalizeServiceURL]) that decide whether a credential
+may travel in cleartext. Those helpers live here so the nhost and middleware
+packages share one implementation of that rule rather than each carrying a
+copy that can drift.
 
 Middleware is modelled as an [http.RoundTripper] decorator: each Middleware
 wraps the next RoundTripper in the chain and may inspect or modify the
@@ -33,6 +37,15 @@ func DecodeJSON(response *http.Response, v any) error
 DecodeJSON reads response and unmarshals its body into v. It is a no-op for
 no-content statuses and empty bodies, leaving v at its zero value.
 
+### `IsLoopbackHost`
+
+```go
+func IsLoopbackHost(hostname string) bool
+```
+
+IsLoopbackHost reports whether hostname identifies localhost or a loopback
+IP address.
+
 ### `NewHTTPClient`
 
 ```go
@@ -43,15 +56,18 @@ NewHTTPClient returns a copy of base whose Transport applies middleware. base
 may be nil, in which case a zero-value client (using
 [http.DefaultTransport]) is wrapped. The original base is never mutated, so
 callers may share one *http.Client across services with distinct middleware.
+Sensitive Nhost credentials are stripped before following a redirect to a
+different host; redirects otherwise retain the base client's behavior.
 
-### `extractMessage`
+### `NormalizeServiceURL`
 
 ```go
-func extractMessage(body any) string
+func NormalizeServiceURL(serviceURL string) string
 ```
 
-extractMessage is a best-effort extraction of a human-readable message from
-an error body.
+NormalizeServiceURL adds a scheme to a scheme-less service URL, choosing
+HTTP for loopback hosts and HTTPS otherwise. URLs that already have a scheme,
+or cannot be parsed as an authority, are returned unchanged.
 
 ## Types
 
@@ -62,7 +78,7 @@ type APIError struct {
 	Body    any
 	Status  int
 	Headers http.Header
-	message string
+	// contains filtered or unexported fields
 }
 ```
 
