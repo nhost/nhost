@@ -949,7 +949,7 @@ func catalogVersion(version uint) (int64, error) {
 		}
 	}
 
-	return int64(version), nil //nolint:gosec // The bound above proves this conversion is safe.
+	return int64(version), nil
 }
 
 func sourceVersion(version int64) (uint, error) {

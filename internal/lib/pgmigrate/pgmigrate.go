@@ -728,7 +728,6 @@ func preflightMigrationPath(driver source.Driver, current int, target uint) erro
 		return nil
 	}
 
-	//nolint:gosec // Migrate rejects state below NilVersion before preflight.
 	currentVersion := uint(current)
 	if currentVersion <= target {
 		if err := preflightUpMigrationPath(driver, currentVersion, target); err != nil {

@@ -587,8 +587,7 @@ func TestMigratePreflightsWholeDowngradeBeforeExecuting(t *testing.T) {
 		t.Fatal("Migrate(corrupt downgrade path) error = nil")
 	}
 
-	var integrityErr *IntegrityError
-	if !errors.As(err, &integrityErr) {
+	if _, ok := errors.AsType[*IntegrityError](err); !ok {
 		t.Fatalf("Migrate() error = %v (%T), want *IntegrityError", err, err)
 	}
 
@@ -672,7 +671,7 @@ func TestMigrateArchivesUnappliedForkedCatalogUnderLock(t *testing.T) {
 
 	var archived bool
 
-	query := fmt.Sprintf( //nolint:gosec // relation is identifier-quoted.
+	query := fmt.Sprintf(
 		"SELECT archived_at IS NOT NULL FROM %s WHERE identifier = $1",
 		catalogTestRelation(schema),
 	)
@@ -1217,7 +1216,7 @@ func seedMigrationState(t *testing.T, database *sql.DB, schema string, version i
 	}
 
 	// relation is assembled exclusively from pq.QuoteIdentifier.
-	query := "INSERT INTO " + relation + " (version, dirty) VALUES ($1, $2)" //nolint:gosec // The relation is quoted.
+	query := "INSERT INTO " + relation + " (version, dirty) VALUES ($1, $2)"
 	if _, err := database.ExecContext(t.Context(), query, version, dirty); err != nil {
 		t.Fatalf("seeding migration state: %v", err)
 	}
