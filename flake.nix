@@ -258,6 +258,7 @@
           codegen = codegenf.check;
           constellation = constellationf.check;
           ghactivity = ghactivityf.check;
+          godoc-md = godoc-mdf.check;
           govulncheck-wrapper = govulncheck-wrapperf.check;
           dashboard = dashboardf.check;
           demos = demosf.check;
@@ -402,6 +403,7 @@
           codegen = codegenf.devShell;
           constellation = constellationf.devShell;
           ghactivity = ghactivityf.devShell;
+          godoc-md = godoc-mdf.devShell;
           govulncheck-wrapper = govulncheck-wrapperf.devShell;
           dashboard = dashboardf.devShell;
           demos = demosf.devShell;
