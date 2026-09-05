@@ -68,6 +68,15 @@ let
     nhost.go # used by gen.sh to generate the configuration reference from the CUE schema
   ];
 
+  # Only gen.sh's Rust reference step needs these, and only when run by hand:
+  # the check stages the prebuilt rustdoc JSON instead. They belong to the dev
+  # shell alone, because `buildInputs` above is also threaded into the check and
+  # the Vercel builds, which would then carry a Rust toolchain they cannot use.
+  rustGenDeps = with pkgs; [
+    rustc
+    cargo
+  ];
+
   nativeBuildInputs = with pkgs; [
     nhost.pnpm
     cacert
@@ -94,6 +103,7 @@ rec {
     ]
     ++ checkDeps
     ++ buildInputs
+    ++ rustGenDeps
     ++ nativeBuildInputs;
   };
 
@@ -113,6 +123,18 @@ rec {
       cp -r ${
         self.packages.${pkgs.stdenv.hostPlatform.system}.nhost-js
       }/node_modules packages/nhost-js/node_modules
+
+      # Stage both prebuilt rustdoc JSON files where gen.sh's build_rustdoc
+      # expects them, so it only runs the Node transformer (no cargo in the
+      # docs sandbox).
+      mkdir -p packages/nhost-rust/target/doc
+      mkdir -p packages/nhost-rust/target/wasm32-unknown-unknown/doc
+      cp ${
+        self.packages.${pkgs.stdenv.hostPlatform.system}.nhost-rust-doc
+      }/nhost.json packages/nhost-rust/target/doc/nhost.json
+      cp ${
+        self.packages.${pkgs.stdenv.hostPlatform.system}.nhost-rust-doc
+      }/nhost-wasm.json packages/nhost-rust/target/wasm32-unknown-unknown/doc/nhost.json
     '';
   };
 

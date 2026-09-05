@@ -58,6 +58,19 @@ keywords: [keyword1, keyword2]
 
 The sidebar is configured in `astro.config.mjs` using `starlightSidebarTopics`. Add new pages to the appropriate section.
 
+### Collapsed code listings
+
+The "complete `src/main.rs`" listings in the Rust tutorials use Expressive Code's
+`collapse={...}` ranges to fold the parts a reader has already seen, with an
+unkeyed `{...}` range marking what that part added. The ranges are derived by
+diffing each listing against the previous part's, so they are only correct for
+the listing they were computed from: **recompute them whenever a listing
+changes.** Nothing in CI validates them, and a stale range is worse than none
+because it hides new code or highlights unchanged code.
+
+Note `collapse` silently drops a bare line number — a single line must be written
+as a range, e.g. `3-3`, not `3`.
+
 ## Reference Documentation (generated)
 
 The reference pages under `src/content/docs/reference/` are generated from source and
@@ -68,10 +81,14 @@ after changing one of their sources, then commit the result:
 | --- | --- |
 | CLI command tree (`cli/`; see `internal/lib/clidocs`) | `reference/cli/commands.mdx` |
 | `packages/nhost-js` (TypeDoc) | `reference/javascript/nhost-js/**` |
+| `packages/nhost-rust` (rustdoc JSON → `rustdoc-to-md.mjs`) | `reference/rust/nhost-rust/**` |
 | OpenAPI schemas (auth, storage) | `src/schemas/*.yaml` |
 
-Run it in the docs Nix dev shell (`nix develop .#docs`, which provides the `cli` binary)
-on Linux — the TypeDoc/OpenAPI steps use GNU `sed`, which misbehaves on macOS.
+Run it in the docs Nix dev shell (`nix develop .#docs`, which provides the `cli` binary and
+Rust toolchain) on Linux — the TypeDoc/OpenAPI steps use GNU `sed`, which misbehaves on macOS.
+Outside that shell, the Rust reference step requires `cargo`/`rustdoc` on `PATH` and fails if
+its rustdoc JSON inputs are missing and no toolchain is available. It uses `RUSTC_BOOTSTRAP=1`
+so rustdoc's JSON output works on both stable and nightly channels.
 
 ### Testing the CLI reference generator
 

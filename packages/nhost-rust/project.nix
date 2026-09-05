@@ -19,6 +19,17 @@ let
     lockFile = ./Cargo.lock;
   };
 
+  # The examples are standalone crates with their own lockfiles (they depend on
+  # the SDK by path), so each needs its own vendor directory.
+  exampleVendorDirs = {
+    notes-cli = pkgs.rustPlatform.importCargoLock {
+      lockFile = ./examples/notes-cli/Cargo.lock;
+    };
+    leptos = pkgs.rustPlatform.importCargoLock {
+      lockFile = ./examples/leptos/Cargo.lock;
+    };
+  };
+
   rustDeps = [
     pkgs.rustc
     pkgs.cargo
@@ -50,6 +61,15 @@ let
       ./README.md
       ./src
       ./tests
+      # The examples are compiled by the check, so they cannot drift from the
+      # SDK's API. Listed file by file to keep target/ and dist/ out of the
+      # source closure.
+      ./examples/notes-cli/Cargo.toml
+      ./examples/notes-cli/Cargo.lock
+      ./examples/notes-cli/src
+      ./examples/leptos/Cargo.toml
+      ./examples/leptos/Cargo.lock
+      ./examples/leptos/src
       ../../services/auth/docs/openapi.yaml
       ../../services/storage/controller/openapi.yaml
     ];
@@ -133,6 +153,35 @@ in
         echo "➜ Compiling the documentation examples"
         cargo test --offline --doc
 
+        # The examples are what the tutorials and quickstarts are written
+        # against, so a silently uncompilable example means stale docs. Each
+        # one is a separate crate with its own lockfile, hence its own
+        # CARGO_HOME pointing at its own vendor directory; the calls run in a
+        # subshell so the SDK's CARGO_HOME survives for the steps below.
+        check_example() {
+          name=$1
+          vendor=$2
+          shift 2
+          export CARGO_HOME="$HOME/cargo-$name"
+          mkdir -p "$CARGO_HOME"
+          cat > "$CARGO_HOME/config.toml" <<EOF
+        [source.crates-io]
+        replace-with = "vendored-sources"
+        [source.vendored-sources]
+        directory = "$vendor"
+        EOF
+          cd "examples/$name"
+          cargo fmt --check
+          cargo clippy --offline --locked --all-targets "$@" -- -D warnings
+        }
+
+        echo "➜ Checking the notes-cli example (native)"
+        ( check_example notes-cli ${exampleVendorDirs.notes-cli} )
+
+        echo "➜ Checking the Leptos example (wasm32 browser target)"
+        ( check_example leptos ${exampleVendorDirs.leptos} \
+            --target wasm32-unknown-unknown )
+
         echo "➜ Running the integration tests against the local backend"
         # --include-ignored, not --ignored: the latter runs ONLY ignored tests,
         # so an integration test added without #[ignore] would be filtered out
@@ -140,5 +189,46 @@ in
         cargo test --offline --test integration -- --include-ignored
 
         mkdir $out
+      '';
+
+  # Consumed by the docs check: docs/project.nix stages this as the
+  # `nhost-rust-doc` flake package so gen.sh's build_rustdoc only has to run
+  # the Node transformer (there is no cargo in the docs sandbox).
+  rustDocJson =
+    pkgs.runCommand "nhost-rust-doc"
+      {
+        nativeBuildInputs = rustDeps ++ [
+          pkgs.stdenv.cc
+          pkgs.openssl
+          pkgs.pkg-config
+        ];
+      }
+      ''
+        export HOME=$(mktemp -d)
+        export CARGO_HOME="$HOME/cargo"
+        mkdir -p "$CARGO_HOME"
+        cat > "$CARGO_HOME/config.toml" <<EOF
+        [source.crates-io]
+        replace-with = "vendored-sources"
+        [source.vendored-sources]
+        directory = "${cargoVendorDir}"
+        EOF
+
+        cp -r ${src} src
+        chmod +w -R src
+        cd src/${submodule}
+
+        echo "➜ Generating native and browser wasm rustdoc JSON"
+        # rustdoc's JSON output is behind `-Z unstable-options`;
+        # RUSTC_BOOTSTRAP=1 enables it on the stable toolchain.
+        RUSTC_BOOTSTRAP=1 cargo rustdoc --offline --lib -- \
+          -Z unstable-options --output-format json
+        RUSTC_BOOTSTRAP=1 cargo rustdoc --offline --lib \
+          --target wasm32-unknown-unknown --no-default-features --features wasm -- \
+          -Z unstable-options --output-format json
+
+        mkdir -p $out
+        cp target/doc/nhost.json $out/nhost.json
+        cp target/wasm32-unknown-unknown/doc/nhost.json $out/nhost-wasm.json
       '';
 }
