@@ -169,6 +169,10 @@ func TestCatalogActiveFutureComparisonProtectsAppliedRows(t *testing.T) {
 		testMigration(1, nil, "root"),
 		testMigration(2, uintPointer(1), "stable_squashed"),
 	)
+	higherVersionSquash := testBundle(
+		testMigration(1, nil, "root"),
+		testMigration(6, uintPointer(1), "stable_squashed"),
+	)
 	editedBetaVersionTwo := testMigration(2, uintPointer(1), "beta_name")
 	editedBetaVersionTwo.upSQL = []byte("SELECT 'edited up 2';")
 	editedBetaVersionTwo.upChecksum = sha256.Sum256(editedBetaVersionTwo.upSQL)
@@ -219,6 +223,24 @@ func TestCatalogActiveFutureComparisonProtectsAppliedRows(t *testing.T) {
 		{
 			name:           "different applied lineage",
 			local:          stable,
+			currentVersion: 2,
+			wantMatch:      false,
+			wantError:      true,
+			wantIssue: "active catalog version 2 belongs to a different lineage and is still applied; " +
+				"downgrade below version 2 with an image whose bundle maximum is <= 1 before deploying this bundle",
+		},
+		{
+			name:           "higher replacement after omitted applied versions",
+			local:          higherVersionSquash,
+			currentVersion: 3,
+			wantMatch:      false,
+			wantError:      true,
+			wantIssue: "active catalog version 2 belongs to a different lineage and is still applied; " +
+				"downgrade below version 2 with an image whose bundle maximum is <= 1 before deploying this bundle",
+		},
+		{
+			name:           "higher replacement with stored future suffix",
+			local:          higherVersionSquash,
 			currentVersion: 2,
 			wantMatch:      false,
 			wantError:      true,

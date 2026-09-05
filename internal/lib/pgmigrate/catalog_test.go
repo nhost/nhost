@@ -481,6 +481,100 @@ WHERE child.identifier = 'beta_enabled'
 	}
 }
 
+func TestCatalogReconcileRejectsHigherReplacementAfterOmittedAppliedVersions(t *testing.T) {
+	t.Parallel()
+
+	database := openCatalogTestDatabase(t)
+	schema := createCatalogTestSchema(t, database, "")
+	catalog := sqlCatalogForTest(t, database, schema)
+
+	if err := catalog.bootstrap(); err != nil {
+		t.Fatalf("bootstrap() error = %v", err)
+	}
+
+	beta := testBundle(
+		testMigration(1, nil, "root"),
+		testMigration(2, uintPointer(1), "beta_name"),
+		testMigration(3, uintPointer(2), "beta_enabled"),
+	)
+	if err := catalog.reconcile(beta, -1); err != nil {
+		t.Fatalf("reconcile(beta) error = %v", err)
+	}
+
+	relation := catalogTestRelation(schema)
+	stateQuery := fmt.Sprintf( //nolint:gosec // relation is identifier-quoted.
+		`SELECT
+    jsonb_agg(to_jsonb(catalog_row) ORDER BY version)::text,
+    array_agg(registered_at::text ORDER BY version)
+FROM %s AS catalog_row`,
+		relation,
+	)
+
+	var (
+		rowsBefore         string
+		registeredAtBefore pq.StringArray
+	)
+	if err := database.QueryRowContext(t.Context(), stateQuery).Scan(
+		&rowsBefore,
+		&registeredAtBefore,
+	); err != nil {
+		t.Fatalf("querying catalog state before rejected reconcile: %v", err)
+	}
+
+	higherVersionSquash := testBundle(
+		testMigration(1, nil, "root"),
+		testMigration(6, uintPointer(1), "stable_squashed"),
+	)
+
+	err := catalog.reconcile(higherVersionSquash, 3)
+	if err == nil {
+		t.Fatal("reconcile(higher version squash) error = nil")
+	}
+
+	var integrityErr *IntegrityError
+	if !errors.As(err, &integrityErr) {
+		t.Fatalf(
+			"reconcile(higher version squash) error = %v (%T), want *IntegrityError",
+			err,
+			err,
+		)
+	}
+
+	wantIssue := "active catalog version 2 belongs to a different lineage and is still applied; " +
+		"downgrade below version 2 with an image whose bundle maximum is <= 1 before deploying this bundle"
+	if integrityErr.Version != 2 || integrityErr.Issue != wantIssue {
+		t.Fatalf(
+			"reconcile(higher version squash) integrity error = version %d, issue %q; want version 2, issue %q",
+			integrityErr.Version,
+			integrityErr.Issue,
+			wantIssue,
+		)
+	}
+
+	var (
+		rowsAfter         string
+		registeredAtAfter pq.StringArray
+	)
+	if err := database.QueryRowContext(t.Context(), stateQuery).Scan(
+		&rowsAfter,
+		&registeredAtAfter,
+	); err != nil {
+		t.Fatalf("querying catalog state after rejected reconcile: %v", err)
+	}
+
+	if rowsAfter != rowsBefore {
+		t.Fatalf("catalog rows changed from %s to %s", rowsBefore, rowsAfter)
+	}
+
+	if !slices.Equal(registeredAtAfter, registeredAtBefore) {
+		t.Fatalf(
+			"registered_at values changed from %v to %v",
+			registeredAtBefore,
+			registeredAtAfter,
+		)
+	}
+}
+
 func reconcileAdditiveCatalogAndAssertReuse(
 	t *testing.T,
 	database *sql.DB,
