@@ -1143,3 +1143,98 @@ func TestGoogleGeminiConcurrentInstancesAreIsolated(t *testing.T) {
 		}
 	}
 }
+
+func TestGoogleGeminiConcurrentStreams(t *testing.T) {
+	t.Parallel()
+
+	const streamCount = 12
+
+	capturedCh := make(chan capturedGoogleGeminiRequest, streamCount)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Errorf("read concurrent Google Gemini request: %v", err)
+		}
+
+		capturedCh <- capturedGoogleGeminiRequest{
+			method:   r.Method,
+			path:     r.URL.Path,
+			rawQuery: r.URL.RawQuery,
+			header:   r.Header.Clone(),
+			body:     string(body),
+		}
+
+		writeGoogleGeminiStream(t, w, "shared-content")
+	}))
+	t.Cleanup(server.Close)
+
+	gemini := mustGoogleGemini(t, server.URL, map[string]string{
+		googleGeminiKeyHeader: "shared-api-key",
+		"X-Shared":            "shared-header",
+	})
+	results := make(chan collectedGoogleGeminiEvents, streamCount)
+	expectedPaths := make(map[string]int, streamCount)
+
+	var waitGroup sync.WaitGroup
+	for index := range streamCount {
+		model := fmt.Sprintf("gemini-model-%d", index)
+		expectedPaths[fmt.Sprintf(
+			"/v1beta/models/%s:streamGenerateContent",
+			model,
+		)] = 0
+
+		waitGroup.Go(func() {
+			results <- collectGoogleGeminiEvents(gemini.StreamResponse(
+				t.Context(),
+				googleGeminiStreamRequest(model),
+			))
+		})
+	}
+
+	waitGroup.Wait()
+	close(results)
+	close(capturedCh)
+
+	for result := range results {
+		if result.err != nil {
+			t.Errorf("concurrent Google Gemini stream: %v", result.err)
+		}
+
+		if result.content != "shared-content" {
+			t.Errorf("content = %q, want shared-content", result.content)
+		}
+
+		if diff := cmp.Diff([]string{StopReasonEndTurn}, result.stopReasons); diff != "" {
+			t.Errorf("stop reasons mismatch (-want +got):\n%s", diff)
+		}
+	}
+
+	for captured := range capturedCh {
+		count, ok := expectedPaths[captured.path]
+		if !ok {
+			t.Errorf("unexpected model path %q", captured.path)
+		} else {
+			expectedPaths[captured.path] = count + 1
+		}
+
+		if got := captured.header.Values(googleGeminiKeyHeader); !cmp.Equal(
+			got,
+			[]string{"shared-api-key"},
+		) {
+			t.Errorf("API key header = %q, want shared API key", got)
+		}
+
+		if got := captured.header.Values("X-Shared"); !cmp.Equal(
+			got,
+			[]string{"shared-header"},
+		) {
+			t.Errorf("custom header = %q, want shared header", got)
+		}
+	}
+
+	for path, count := range expectedPaths {
+		if count != 1 {
+			t.Errorf("model path %q received %d requests, want 1", path, count)
+		}
+	}
+}
