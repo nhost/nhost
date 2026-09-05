@@ -25,11 +25,11 @@ value = "https://local.storage.local.nhost.run/v1"
 
 [[environment]]
 name = "NHOST_EMAIL"
-value = "cat-uploader@example.com"
+value = '{{ secrets.NHOST_EMAIL }}'
 
 [[environment]]
 name = "NHOST_PASSWORD"
-value = "password-1234"
+value = '{{ secrets.NHOST_PASSWORD }}'
 
 [resources]
 replicas = 1

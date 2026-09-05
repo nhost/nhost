@@ -31,14 +31,26 @@ import (
 )
 
 const (
-	maxCount          = 10
-	maxCatBytes       = 20 << 20 // 20 MiB cap on a downloaded cat image.
-	httpTimeout       = 30 * time.Second
-	readHeaderTimeout = 10 * time.Second
+	maxCount             = 10
+	maxCatBytes          = 2 << 20 // 2 MiB cap on a downloaded cat image.
+	maxConcurrentUploads = 2
+	httpTimeout          = 30 * time.Second
+	readTimeout          = 10 * time.Second
+	readHeaderTimeout    = 10 * time.Second
+	writeTimeout         = (2*maxCount + 1) * httpTimeout
+	idleTimeout          = 60 * time.Second
 )
 
-// errUpstreamStatus is returned when cataas responds with a non-success status.
-var errUpstreamStatus = errors.New("unexpected upstream status")
+var (
+	// errUpstreamStatus is returned when cataas responds with a non-success status.
+	errUpstreamStatus  = errors.New("unexpected upstream status")
+	errCatTooLarge     = errors.New("cat image exceeds 2 MiB limit")
+	errMissingAuth     = errors.New("NHOST_EMAIL and NHOST_PASSWORD are required")
+	errNoSignInSession = errors.New("sign-in succeeded but no session was stored")
+	errNoSignUpSession = errors.New(
+		"signed up but no session was returned; verify the service user's email, then restart the service",
+	)
+)
 
 func env(key, fallback string) string {
 	if v := os.Getenv(key); v != "" {
@@ -65,27 +77,32 @@ type config struct {
 	port             string
 }
 
-func loadConfig() config {
-	subdomain := env("NHOST_SUBDOMAIN", "local")
-	region := env("NHOST_REGION", "local")
+func loadConfig() (config, error) {
+	email := os.Getenv("NHOST_EMAIL")
+	password := os.Getenv("NHOST_PASSWORD")
+
+	if email == "" || password == "" {
+		return config{}, errMissingAuth
+	}
 
 	return config{
-		subdomain:        subdomain,
-		region:           region,
+		subdomain:        env("NHOST_SUBDOMAIN", "local"),
+		region:           env("NHOST_REGION", "local"),
 		authURL:          os.Getenv("NHOST_AUTH_URL"),
 		storageURL:       os.Getenv("NHOST_STORAGE_URL"),
-		email:            env("NHOST_EMAIL", "cat-uploader@example.com"),
-		password:         env("NHOST_PASSWORD", "password-1234"),
+		email:            email,
+		password:         password,
 		publicStorageURL: env("PUBLIC_STORAGE_URL", "https://local.storage.local.nhost.run/v1"),
 		cataasURL:        env("CATAAS_URL", "https://cataas.com"),
 		port:             env("PORT", "8080"),
-	}
+	}, nil
 }
 
 type server struct {
-	cfg   config
-	nhost *nhost.Client
-	http  *http.Client
+	cfg         config
+	nhost       *nhost.Client
+	http        *http.Client
+	uploadSlots chan struct{}
 }
 
 // ensureAuth signs the service user in, creating the account on first run.
@@ -95,11 +112,16 @@ func (s *server) ensureAuth(ctx context.Context) error {
 		Password: s.cfg.password,
 	}, nil)
 	if err == nil {
+		if _, ok := s.nhost.GetUserSession(); !ok {
+			return errNoSignInSession
+		}
+
 		return nil
 	}
 
 	// Sign-in failed (most likely the user does not exist yet); try to create
-	// it. Sign-up returns a session directly on this backend.
+	// it. Serving can start only if sign-up returns a session, which requires
+	// email verification to be disabled or already satisfied for this user.
 	log.Printf("sign-in failed (%v); attempting sign-up for %s", err, s.cfg.email)
 
 	if _, _, suErr := s.nhost.Auth.SignUpEmailPassword(
@@ -111,6 +133,10 @@ func (s *server) ensureAuth(ctx context.Context) error {
 		nil,
 	); suErr != nil {
 		return fmt.Errorf("sign-in and sign-up both failed: %w", errors.Join(err, suErr))
+	}
+
+	if _, ok := s.nhost.GetUserSession(); !ok {
+		return errNoSignUpSession
 	}
 
 	return nil
@@ -145,9 +171,13 @@ func (s *server) fetchCat(ctx context.Context) ([]byte, string, error) {
 		)
 	}
 
-	data, err := io.ReadAll(io.LimitReader(resp.Body, maxCatBytes))
+	data, err := io.ReadAll(io.LimitReader(resp.Body, maxCatBytes+1))
 	if err != nil {
 		return nil, "", fmt.Errorf("read cat body: %w", err)
+	}
+
+	if len(data) > maxCatBytes {
+		return nil, "", errCatTooLarge
 	}
 
 	ext := "jpg"
@@ -176,9 +206,36 @@ type uploadResponse struct {
 	Uploaded []uploadedFile `json:"uploaded"`
 }
 
-func (s *server) handleUpload(w http.ResponseWriter, r *http.Request) {
+func (s *server) acquireUploadSlot(w http.ResponseWriter) bool {
+	select {
+	case s.uploadSlots <- struct{}{}:
+		return true
+	default:
+		w.Header().Set("Retry-After", "1")
+		http.Error(w, "server is busy; retry later", http.StatusServiceUnavailable)
+
+		return false
+	}
+}
+
+func validateUploadRequest(w http.ResponseWriter, r *http.Request) bool {
 	if r.Method != http.MethodPost {
 		http.Error(w, "use POST", http.StatusMethodNotAllowed)
+
+		return false
+	}
+
+	if r.ContentLength != 0 {
+		http.Error(w, "request body is not supported", http.StatusBadRequest)
+
+		return false
+	}
+
+	return true
+}
+
+func (s *server) handleUpload(w http.ResponseWriter, r *http.Request) {
+	if !validateUploadRequest(w, r) {
 		return
 	}
 
@@ -192,6 +249,11 @@ func (s *server) handleUpload(w http.ResponseWriter, r *http.Request) {
 
 		count = min(n, maxCount)
 	}
+
+	if !s.acquireUploadSlot(w) {
+		return
+	}
+	defer func() { <-s.uploadSlots }()
 
 	ctx := r.Context()
 
@@ -249,7 +311,10 @@ func (s *server) writeError(w http.ResponseWriter, status int, err error) {
 }
 
 func main() {
-	cfg := loadConfig()
+	cfg, err := loadConfig()
+	if err != nil {
+		log.Fatalf("configuration: %v", err)
+	}
 
 	httpClient := &http.Client{Timeout: httpTimeout} //nolint:exhaustruct
 	client := nhost.New(nhost.Options{               //nolint:exhaustruct
@@ -260,7 +325,12 @@ func main() {
 		HTTPClient: httpClient,
 	})
 
-	srv := &server{cfg: cfg, nhost: client, http: httpClient}
+	srv := &server{
+		cfg:         cfg,
+		nhost:       client,
+		http:        httpClient,
+		uploadSlots: make(chan struct{}, maxConcurrentUploads),
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), httpTimeout)
 	if err := srv.ensureAuth(ctx); err != nil {
@@ -284,7 +354,10 @@ func main() {
 	httpSrv := &http.Server{ //nolint:exhaustruct
 		Addr:              addr,
 		Handler:           mux,
+		ReadTimeout:       readTimeout,
 		ReadHeaderTimeout: readHeaderTimeout,
+		WriteTimeout:      writeTimeout,
+		IdleTimeout:       idleTimeout,
 	}
 	if err := httpSrv.ListenAndServe(); err != nil {
 		log.Fatalf("server error: %v", err)
