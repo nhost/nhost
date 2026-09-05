@@ -67,6 +67,7 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 - Common Makefile targets: `make help`, `make develop`, `make check`, `make build`, `make build-docker-image`, `make dev-env-up`, `make dev-env-down`
 - JS/TS packages use pnpm 11.24.0 (not npm or yarn) with Turbo for orchestration
 - Node >= 22 required
+- If a local Astro docs build under `nix develop .#docs` reports missing cached compile metadata for Starlight files in the Nix store, copy `docs/node_modules` from its Nix-store symlink target to a writable local directory *inside the dev shell* and clear `docs/.astro` and `docs/.vite` before rebuilding. Restore the dev-shell symlink afterwards; the Nix docs check already performs the required copy in its isolated build directory.
 
 ## Code Standards
 

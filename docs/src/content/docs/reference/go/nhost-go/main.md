@@ -40,25 +40,9 @@ func GenerateServiceURL(serviceType ServiceType, subdomain, region, customURL st
 
 GenerateServiceURL builds the base URL for an Nhost service. Precedence: an
 explicit customURL wins; otherwise a cloud URL is built from
-subdomain/region; otherwise the local development URL is used.
-
-### `clientSideSessionMiddleware`
-
-```go
-func clientSideSessionMiddleware(c *Config)
-```
-
-clientSideSessionMiddleware enables automatic session refresh, token
-attachment, and session capture on every service.
-
-### `serverSideSessionMiddleware`
-
-```go
-func serverSideSessionMiddleware(c *Config)
-```
-
-serverSideSessionMiddleware enables token attachment and session capture, but
-no automatic refresh.
+subdomain/region; otherwise the local development URL is used. A custom URL
+without a scheme defaults to HTTP for localhost and loopback addresses, and
+HTTPS otherwise.
 
 ## Types
 
@@ -66,16 +50,26 @@ no automatic refresh.
 
 ```go
 type Client struct {
-	Auth           *auth.Client
-	Storage        *storage.Client
-	GraphQL        *graphql.Client
-	Functions      *functions.Client
+	// Auth provides user authentication and account-management operations.
+	Auth *auth.Client
+	// Storage provides file upload, download, and metadata operations.
+	Storage *storage.Client
+	// GraphQL executes queries and mutations against the project's GraphQL API.
+	GraphQL *graphql.Client
+	// Functions invokes serverless functions deployed to the project.
+	Functions *functions.Client
+	// RefreshClient is the bare auth client used for explicit session refreshes.
+	// Its transport intentionally excludes session middleware.
+	RefreshClient *auth.Client
+	// SessionStorage stores and manages the session shared by all service clients.
 	SessionStorage *session.Storage
 }
 ```
 
 Client provides unified access to Nhost auth, storage, graphql, and
-functions.
+functions. A Client, its service clients, and its SessionStorage are safe for
+concurrent use when the configured [session.Backend] satisfies the
+interface's concurrency requirement.
 
 #### `New`
 
@@ -83,8 +77,15 @@ functions.
 func New(options Options) *Client
 ```
 
-New creates an app client with automatic refresh + token attachment. This is
-the client most applications want.
+New creates an app client with automatic refresh and token attachment. This
+is the client most single-user applications and command-line tools want.
+
+New is intended for single-user contexts. Do not share a client created by
+New between users in a server: when options.Storage is nil, sessions are kept
+in one in-memory store owned by the client, so one user's tokens could be
+attached to another user's requests. Automatic refresh can also race across
+independent request contexts. Use [NewServerClient] with a per-request or
+per-user backend instead.
 
 #### `NewBareClient`
 
@@ -105,15 +106,6 @@ NewServerClient creates a server client with explicit storage and no
 automatic refresh. It requires options.Storage — sharing a process-wide
 session store between users can leak tokens across requests, so pass a
 per-request/user backend.
-
-#### `build`
-
-```go
-func build(options Options, defaults ...ConfigureFunc) *Client
-```
-
-build constructs a client, running defaults before the caller's
-options.Configure so session middleware wraps user middleware.
 
 #### `ClearSession`
 
@@ -140,7 +132,10 @@ func (c *Client) RefreshSession(
 ) (*session.StoredSession, error)
 ```
 
-RefreshSession refreshes the session using the stored refresh token.
+RefreshSession refreshes the session using the stored refresh token. A
+marginSeconds value of zero forces a refresh. If refresh fails while the
+access token is still valid, both the existing session and the error are
+returned.
 
 ### `Config`
 
@@ -152,17 +147,13 @@ type Config struct {
 	RefreshClient *auth.Client
 	// SessionStorage is the session store shared across the client's services.
 	SessionStorage *session.Storage
-
-	authMW      []transport.Middleware
-	storageMW   []transport.Middleware
-	graphqlMW   []transport.Middleware
-	functionsMW []transport.Middleware
+	// contains filtered or unexported fields
 }
 ```
 
 Config accumulates the per-service middleware applied while a client is
-built. Configuration functions ([ConfigureFunc]) mutate it via [Config.UseAll]
-and [Config.UseDataServices].
+built. Configuration functions ([ConfigureFunc]) mutate it via [Config.UseAuth],
+[Config.UseAll], and [Config.UseDataServices].
 
 #### `UseAll`
 
@@ -172,6 +163,14 @@ func (c *Config) UseAll(mw ...transport.Middleware)
 
 UseAll applies middleware to every service: auth, storage, graphql, and
 functions.
+
+#### `UseAuth`
+
+```go
+func (c *Config) UseAuth(mw ...transport.Middleware)
+```
+
+UseAuth applies middleware to auth only.
 
 #### `UseDataServices`
 
@@ -198,11 +197,14 @@ the [Config].
 func WithAdminSession(options middleware.AdminSessionOptions) ConfigureFunc
 ```
 
-WithAdminSession applies admin-secret middleware to storage, graphql, and
-functions (never auth).
+WithAdminSession applies host-scoped admin-secret middleware to storage,
+graphql, and functions (never auth). Admin credentials are sent only over
+HTTPS or to a loopback development server unless options.AllowInsecureHTTP is
+explicitly enabled.
 
 Security warning: never use in client-side code — the admin secret grants
-unrestricted database access.
+unrestricted database access. Prefer HTTPS; AllowInsecureHTTP sends the
+secret in cleartext and should be limited to trusted development networks.
 
 #### `WithMiddleware`
 
@@ -216,15 +218,38 @@ WithMiddleware applies arbitrary middleware to all four services.
 
 ```go
 type Options struct {
-	Subdomain    string
-	Region       string
-	AuthURL      string
-	StorageURL   string
-	GraphQLURL   string
+	// Subdomain is the Nhost project subdomain used to construct cloud service
+	// URLs. Subdomain and Region must both be set to target Nhost cloud; if
+	// either is empty, services without a custom URL use local development URLs.
+	Subdomain string
+	// Region is the Nhost project region used to construct cloud service URLs.
+	// Region and Subdomain must both be set to target Nhost cloud; if either is
+	// empty, services without a custom URL use local development URLs.
+	Region string
+	// AuthURL is the complete base URL for the auth service. It overrides
+	// Subdomain and Region for auth requests.
+	AuthURL string
+	// StorageURL is the complete base URL for the storage service. It overrides
+	// Subdomain and Region for storage requests.
+	StorageURL string
+	// GraphQLURL is the complete URL for the GraphQL service. It overrides
+	// Subdomain and Region for GraphQL requests.
+	GraphQLURL string
+	// FunctionsURL is the complete base URL for the functions service. It
+	// overrides Subdomain and Region for functions requests.
 	FunctionsURL string
-	Storage      session.Backend
-	HTTPClient   *http.Client
-	Configure    []ConfigureFunc
+	// Storage is the backend used to persist sessions. Implementations must be
+	// safe for concurrent use by multiple goroutines. If nil,
+	// [session.DetectStorage] supplies an in-memory backend.
+	Storage session.Backend
+	// HTTPClient is the base HTTP client used by all services. The supplied client
+	// is never mutated and may be shared; service middleware is installed on
+	// independent copies. If nil, a default client with no timeout is used;
+	// per-request deadlines come from the context.Context passed to each method.
+	HTTPClient *http.Client
+	// Configure contains functions applied in order after constructor defaults.
+	// Middleware added here is nested inside the default middleware.
+	Configure []ConfigureFunc
 }
 ```
 
@@ -237,4 +262,15 @@ type ServiceType string
 ```
 
 ServiceType is one of the Nhost services.
+
+```go
+const (
+	ServiceAuth      ServiceType = "auth"
+	ServiceStorage   ServiceType = "storage"
+	ServiceGraphQL   ServiceType = "graphql"
+	ServiceFunctions ServiceType = "functions"
+)
+```
+
+The Nhost service types.
 

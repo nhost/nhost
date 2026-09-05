@@ -11,8 +11,8 @@ through the shared HTTP middleware installed on the client's Transport.
 
 ```go
 type Client struct {
-	URL        string
-	httpClient *http.Client
+	URL string
+	// contains filtered or unexported fields
 }
 ```
 
@@ -41,18 +41,6 @@ func (c *Client) Request(
 
 Request executes a GraphQL operation, decoding data into a generic map. It
 returns a *transport.APIError if the response contains GraphQL errors.
-
-#### `do`
-
-```go
-func (c *Client) do(
-	ctx context.Context,
-	query string,
-	variables Variables,
-	operationName string,
-	headers http.Header,
-) (*http.Response, []byte, error)
-```
 
 ### `Error`
 
