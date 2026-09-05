@@ -38,3 +38,33 @@ func (e *EnumValue) String() string {
 
 	return ""
 }
+
+// Repeated flag and provider identifiers.
+const (
+	plain            = "PLAIN"
+	jwt              = "jwt"
+	oauthApple       = "oauth-apple"
+	oauthAzuread     = "oauth-azuread"
+	oauthBitbucket   = "oauth-bitbucket"
+	oauthDiscord     = "oauth-discord"
+	oauthEntraid     = "oauth-entraid"
+	oauthFacebook    = "oauth-facebook"
+	oauthGithub      = "oauth-github"
+	oauthGitlab      = "oauth-gitlab"
+	oauthGoogle      = "oauth-google"
+	oauthLinkedin    = "oauth-linkedin"
+	oauthSpotify     = "oauth-spotify"
+	oauthStrava      = "oauth-strava"
+	oauthTwitch      = "oauth-twitch"
+	oauthTwitter     = "oauth-twitter"
+	oauthWindowslive = "oauth-windowslive"
+	oauthWorkos      = "oauth-workos"
+	oauth2Provider   = "oauth2-provider"
+	rateLimit        = "rate-limit"
+	serverKey        = "server"
+	signup           = "signup"
+	smsKey           = "sms"
+	smtpKey          = "smtp"
+	twilio           = "twilio"
+	webauthn         = "webauthn"
+)

@@ -34,8 +34,8 @@ func postgres( //nolint:funlen
 	envars, err := appconfig.PostgresEnv(
 		cfg,
 		"local",
-		"postgres",
-		"postgres",
+		svcPostgres,
+		svcPostgres,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get postgres env vars: %w", err)
@@ -53,7 +53,7 @@ func postgres( //nolint:funlen
 		DependsOn:  nil,
 		EntryPoint: nil,
 		Command: []string{
-			"postgres",
+			svcPostgres,
 			"-c", "config_file=/etc/postgresql.conf",
 			"-c", "hba_file=/etc/pg_hba_local.conf",
 		},
@@ -61,33 +61,33 @@ func postgres( //nolint:funlen
 		ExtraHosts:  extraHosts,
 		HealthCheck: &HealthCheck{
 			Test: []string{
-				"CMD-SHELL", "pg_isready -U postgres -d postgres -q",
+				healthCmdShell, "pg_isready -U postgres -d postgres -q",
 			},
-			Timeout:     "60s",
+			Timeout:     healthTimeout,
 			Interval:    "5s",
-			StartPeriod: "60s",
+			StartPeriod: healthTimeout,
 		},
 		Labels:   nil,
 		Networks: networkAliases("postgres-service"),
 		Ports: []Port{
 			{
-				Mode:      "ingress",
+				Mode:      svcIngress,
 				Target:    postgresPort,
 				Published: strconv.FormatUint(uint64(port), 10),
-				Protocol:  "tcp",
+				Protocol:  tcp,
 			},
 		},
-		Restart: "always",
+		Restart: always,
 		User:    nil,
 		Volumes: []Volume{
 			{
-				Type:     "volume",
+				Type:     volumeType,
 				Source:   volumeName,
 				Target:   "/var/lib/postgresql/data/pgdata",
 				ReadOnly: new(false),
 			},
 			{
-				Type:     "bind",
+				Type:     bind,
 				Source:   dataFolder + "/db/pg_hba_local.conf",
 				Target:   "/etc/pg_hba_local.conf",
 				ReadOnly: new(false),

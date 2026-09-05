@@ -27,9 +27,9 @@ func (r *renamer) wrapperTypeName(rootKind string) string {
 // "_mutation_frontend" suffix Hasura emits (not "_mutation").
 func databaseWrapperSuffix(rootKind string) string {
 	switch rootKind {
-	case "Mutation":
+	case mutation:
 		return "_mutation_frontend"
-	case "Subscription":
+	case subscription:
 		return "_subscription"
 	default:
 		return "_query"

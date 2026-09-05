@@ -165,7 +165,7 @@ func (ctrl *Controller) GetFileWithPresignedURL( //nolint:ireturn
 		ctx,
 		request.Id,
 		true,
-		http.Header{"x-hasura-admin-secret": []string{ctrl.hasuraAdminSecret}},
+		http.Header{xHasuraAdminSecret: []string{ctrl.hasuraAdminSecret}},
 	)
 	if apiErr != nil {
 		logger.ErrorContext(

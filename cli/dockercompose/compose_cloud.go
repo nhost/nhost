@@ -152,8 +152,8 @@ func getServicesCloud( //nolint:funlen
 	}
 
 	services := map[string]*Service{
-		"console": console,
-		"dashboard": dashboardCloud(
+		svcConsole: console,
+		svcDashboard: dashboardCloud(
 			cfg,
 			subdomain,
 			cloudSubdomain,
@@ -164,8 +164,8 @@ func getServicesCloud( //nolint:funlen
 			dashboardVersion,
 			appID,
 		),
-		"traefik":      traefik,
-		"configserver": cs,
+		"traefik":       traefik,
+		svcConfigserver: cs,
 	}
 
 	return services, nil

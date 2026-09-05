@@ -14,7 +14,7 @@ import (
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 )
 
-const schemaName = "auth"
+const schemaName = schemaAuth
 
 //go:embed postgres/*.sql
 var postgresMigrations embed.FS

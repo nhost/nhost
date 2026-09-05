@@ -27,13 +27,13 @@ func run(
 	ports := make([]Port, 0, len(cfg.GetPorts()))
 	for _, p := range cfg.GetPorts() {
 		if deptr(p.GetPublish()) {
-			proto := "tcp"
+			proto := tcp
 			if p.GetType() == "udp" {
 				proto = p.GetType()
 			}
 
 			ports = append(ports, Port{
-				Mode:      "ingress",
+				Mode:      svcIngress,
 				Target:    uint(p.GetPort()),
 				Published: strconv.FormatUint(uint64(p.GetPort()), 10),
 				Protocol:  proto,
@@ -44,7 +44,7 @@ func run(
 	volumes := make([]Volume, 0, len(cfg.GetResources().GetStorage()))
 	for _, s := range cfg.GetResources().GetStorage() {
 		volumes = append(volumes, Volume{
-			Type:     "volume",
+			Type:     volumeType,
 			Source:   runVolumeName(cfg.GetName(), s.GetName(), branchName),
 			Target:   s.GetPath(),
 			ReadOnly: new(false),
@@ -62,7 +62,7 @@ func run(
 		Labels:      map[string]string{},
 		Networks:    nil,
 		Ports:       ports,
-		Restart:     "always",
+		Restart:     always,
 		User:        nil,
 		Volumes:     volumes,
 		WorkingDir:  nil,

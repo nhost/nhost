@@ -15,15 +15,15 @@ func (p *Provider) RevokeToken(
 ) *Error {
 	if req.ClientId == nil || *req.ClientId == "" {
 		return &Error{
-			Err:         "invalid_client",
-			Description: "Client ID is required",
+			Err:         invalidClient,
+			Description: clientIDIsRequired,
 		}
 	}
 
 	client, err := p.db.GetOAuth2ClientByClientID(ctx, *req.ClientId)
 	if err != nil {
 		logger.ErrorContext(ctx, "error getting OAuth2 client", logError(err))
-		return &Error{Err: "invalid_client", Description: "Unknown client"}
+		return &Error{Err: invalidClient, Description: unknownClient}
 	}
 
 	if oauthErr := p.authenticateClient(

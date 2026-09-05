@@ -17,11 +17,11 @@ const (
 func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 	return []metadata.TrackTable{
 		{ //nolint:exhaustruct
-			Type: "pg_track_table",
+			Type: pgTrackTable,
 			Args: metadata.PgTrackTableArgs{ //nolint:exhaustruct
 				Source: hasuraDBName,
 				Table: metadata.Table{
-					Schema: "auth",
+					Schema: schemaAuth,
 					Name:   "provider_requests",
 				},
 				Configuration: metadata.Configuration{ //nolint:exhaustruct
@@ -45,12 +45,12 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 			},
 		},
 		{
-			Type:   "pg_track_table",
+			Type:   pgTrackTable,
 			IsEnum: true,
 			Args: metadata.PgTrackTableArgs{ //nolint:exhaustruct
 				Source: hasuraDBName,
 				Table: metadata.Table{
-					Schema: "auth",
+					Schema: schemaAuth,
 					Name:   "refresh_token_types",
 				},
 				Configuration: metadata.Configuration{ //nolint:exhaustruct
@@ -73,14 +73,14 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 				},
 				ArrayRelationships: []metadata.ArrayRelationshipConfig{
 					{
-						Name: "refreshTokens",
+						Name: fieldRefreshTokens,
 						Using: metadata.ArrayRelationshipConfigUsing{
 							ForeignKeyConstraintOn: metadata.ForeignKeyConstraintOn{
 								Table: metadata.Table{
-									Schema: "auth",
-									Name:   "refresh_tokens",
+									Schema: schemaAuth,
+									Name:   tableRefreshTokens,
 								},
-								Columns: []string{"type"},
+								Columns: []string{typeKey},
 							},
 						},
 					},
@@ -88,12 +88,12 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 			},
 		},
 		{ //nolint:exhaustruct
-			Type: "pg_track_table",
+			Type: pgTrackTable,
 			Args: metadata.PgTrackTableArgs{ //nolint:exhaustruct
 				Source: hasuraDBName,
 				Table: metadata.Table{
-					Schema: "auth",
-					Name:   "refresh_tokens",
+					Schema: schemaAuth,
+					Name:   tableRefreshTokens,
 				},
 				Configuration: metadata.Configuration{ //nolint:exhaustruct
 					CustomName: "authRefreshTokens",
@@ -110,27 +110,27 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 					},
 					CustomColumnNames: map[string]string{
 						"refresh_token_hash": "refreshTokenHash",
-						"created_at":         "createdAt",
-						"expires_at":         "expiresAt",
-						"user_id":            "userId",
+						colCreatedAt:         fieldCreatedAt,
+						colExpiresAt:         fieldExpiresAt,
+						colUserID:            fieldUserID,
 					},
 				},
 				ObjectRelationships: []metadata.ObjectRelationshipConfig{
 					{
-						Name: "user",
+						Name: roleUser,
 						Using: metadata.ObjectRelationshipConfigUsing{
-							ForeignKeyConstraintOn: "user_id",
+							ForeignKeyConstraintOn: colUserID,
 						},
 					},
 				},
 			},
 		},
 		{ //nolint:exhaustruct
-			Type: "pg_track_table",
+			Type: pgTrackTable,
 			Args: metadata.PgTrackTableArgs{ //nolint:exhaustruct
 				Source: hasuraDBName,
 				Table: metadata.Table{
-					Schema: "auth",
+					Schema: schemaAuth,
 					Name:   "roles",
 				},
 				Configuration: metadata.Configuration{ //nolint:exhaustruct
@@ -147,7 +147,7 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 						DeleteByPk:      "deleteAuthRole",
 					},
 					CustomColumnNames: map[string]string{
-						"role": "role",
+						colRole: colRole,
 					},
 				},
 				ArrayRelationships: []metadata.ArrayRelationshipConfig{
@@ -156,10 +156,10 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 						Using: metadata.ArrayRelationshipConfigUsing{
 							ForeignKeyConstraintOn: metadata.ForeignKeyConstraintOn{
 								Table: metadata.Table{
-									Schema: "auth",
-									Name:   "user_roles",
+									Schema: schemaAuth,
+									Name:   tableUserRoles,
 								},
-								Columns: []string{"role"},
+								Columns: []string{colRole},
 							},
 						},
 					},
@@ -168,10 +168,10 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 						Using: metadata.ArrayRelationshipConfigUsing{
 							ForeignKeyConstraintOn: metadata.ForeignKeyConstraintOn{
 								Table: metadata.Table{
-									Schema: "auth",
-									Name:   "users",
+									Schema: schemaAuth,
+									Name:   tableUsers,
 								},
-								Columns: []string{"default_role"},
+								Columns: []string{colDefaultRole},
 							},
 						},
 					},
@@ -179,12 +179,12 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 			},
 		},
 		{ //nolint:exhaustruct
-			Type: "pg_track_table",
+			Type: pgTrackTable,
 			Args: metadata.PgTrackTableArgs{ //nolint:exhaustruct
 				Source: hasuraDBName,
 				Table: metadata.Table{
-					Schema: "auth",
-					Name:   "user_providers",
+					Schema: schemaAuth,
+					Name:   tableUserProviders,
 				},
 				Configuration: metadata.Configuration{ //nolint:exhaustruct
 					CustomName: "authUserProviders",
@@ -201,38 +201,38 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 					},
 					CustomColumnNames: map[string]string{
 						"id":               "id",
-						"created_at":       "createdAt",
-						"updated_at":       "updatedAt",
-						"user_id":          "userId",
+						colCreatedAt:       fieldCreatedAt,
+						colUpdatedAt:       fieldUpdatedAt,
+						colUserID:          fieldUserID,
 						"access_token":     "accessToken",
 						"refresh_token":    "refreshToken",
-						"provider_id":      "providerId",
+						colProviderID:      "providerId",
 						"provider_user_id": "providerUserId",
 					},
 				},
 				ObjectRelationships: []metadata.ObjectRelationshipConfig{
 					{
-						Name: "user",
+						Name: roleUser,
 						Using: metadata.ObjectRelationshipConfigUsing{
-							ForeignKeyConstraintOn: "user_id",
+							ForeignKeyConstraintOn: colUserID,
 						},
 					},
 					{
 						Name: "provider",
 						Using: metadata.ObjectRelationshipConfigUsing{
-							ForeignKeyConstraintOn: "provider_id",
+							ForeignKeyConstraintOn: colProviderID,
 						},
 					},
 				},
 			},
 		},
 		{ //nolint:exhaustruct
-			Type: "pg_track_table",
+			Type: pgTrackTable,
 			Args: metadata.PgTrackTableArgs{ //nolint:exhaustruct
 				Source: hasuraDBName,
 				Table: metadata.Table{
-					Schema: "auth",
-					Name:   "user_roles",
+					Schema: schemaAuth,
+					Name:   tableUserRoles,
 				},
 				Configuration: metadata.Configuration{ //nolint:exhaustruct
 					CustomName: "authUserRoles",
@@ -249,40 +249,40 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 					},
 					CustomColumnNames: map[string]string{
 						"id":         "id",
-						"created_at": "createdAt",
-						"user_id":    "userId",
-						"role":       "role",
+						colCreatedAt: fieldCreatedAt,
+						colUserID:    fieldUserID,
+						colRole:      colRole,
 					},
 				},
 				ObjectRelationships: []metadata.ObjectRelationshipConfig{
 					{
-						Name: "user",
+						Name: roleUser,
 						Using: metadata.ObjectRelationshipConfigUsing{
-							ForeignKeyConstraintOn: "user_id",
+							ForeignKeyConstraintOn: colUserID,
 						},
 					},
 					{
 						Name: "roleByRole",
 						Using: metadata.ObjectRelationshipConfigUsing{
-							ForeignKeyConstraintOn: "role",
+							ForeignKeyConstraintOn: colRole,
 						},
 					},
 				},
 			},
 		},
 		{ //nolint:exhaustruct
-			Type: "pg_track_table",
+			Type: pgTrackTable,
 			Args: metadata.PgTrackTableArgs{
 				Source: hasuraDBName,
 				Table: metadata.Table{
-					Schema: "auth",
-					Name:   "users",
+					Schema: schemaAuth,
+					Name:   tableUsers,
 				},
 				Configuration: metadata.Configuration{ //nolint:exhaustruct
-					CustomName: "users",
+					CustomName: tableUsers,
 					CustomRootFields: metadata.CustomRootFields{ //nolint:exhaustruct
-						Select:          "users",
-						SelectByPk:      "user",
+						Select:          tableUsers,
+						SelectByPk:      roleUser,
 						SelectAggregate: "usersAggregate",
 						Insert:          "insertUsers",
 						InsertOne:       "insertUser",
@@ -293,8 +293,8 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 					},
 					CustomColumnNames: map[string]string{
 						"id":                         "id",
-						"created_at":                 "createdAt",
-						"updated_at":                 "updatedAt",
+						colCreatedAt:                 fieldCreatedAt,
+						colUpdatedAt:                 fieldUpdatedAt,
 						"last_seen":                  "lastSeen",
 						"disabled":                   "disabled",
 						"display_name":               "displayName",
@@ -309,7 +309,7 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 						"otp_method_last_used":       "otpMethodLastUsed",
 						"otp_hash":                   "otpHash",
 						"otp_hash_expires_at":        "otpHashExpiresAt",
-						"default_role":               "defaultRole",
+						colDefaultRole:               "defaultRole",
 						"is_anonymous":               "isAnonymous",
 						"totp_secret":                "totpSecret",
 						"active_mfa_type":            "activeMfaType",
@@ -322,7 +322,7 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 					{
 						Name: "defaultRoleByRole",
 						Using: metadata.ObjectRelationshipConfigUsing{
-							ForeignKeyConstraintOn: "default_role",
+							ForeignKeyConstraintOn: colDefaultRole,
 						},
 					},
 				},
@@ -332,10 +332,10 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 						Using: metadata.ArrayRelationshipConfigUsing{
 							ForeignKeyConstraintOn: metadata.ForeignKeyConstraintOn{
 								Table: metadata.Table{
-									Schema: "auth",
-									Name:   "user_providers",
+									Schema: schemaAuth,
+									Name:   tableUserProviders,
 								},
-								Columns: []string{"user_id"},
+								Columns: []string{colUserID},
 							},
 						},
 					},
@@ -344,22 +344,22 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 						Using: metadata.ArrayRelationshipConfigUsing{
 							ForeignKeyConstraintOn: metadata.ForeignKeyConstraintOn{
 								Table: metadata.Table{
-									Schema: "auth",
-									Name:   "user_roles",
+									Schema: schemaAuth,
+									Name:   tableUserRoles,
 								},
-								Columns: []string{"user_id"},
+								Columns: []string{colUserID},
 							},
 						},
 					},
 					{
-						Name: "refreshTokens",
+						Name: fieldRefreshTokens,
 						Using: metadata.ArrayRelationshipConfigUsing{
 							ForeignKeyConstraintOn: metadata.ForeignKeyConstraintOn{
 								Table: metadata.Table{
-									Schema: "auth",
-									Name:   "refresh_tokens",
+									Schema: schemaAuth,
+									Name:   tableRefreshTokens,
 								},
-								Columns: []string{"user_id"},
+								Columns: []string{colUserID},
 							},
 						},
 					},
@@ -368,10 +368,10 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 						Using: metadata.ArrayRelationshipConfigUsing{
 							ForeignKeyConstraintOn: metadata.ForeignKeyConstraintOn{
 								Table: metadata.Table{
-									Schema: "auth",
+									Schema: schemaAuth,
 									Name:   "user_security_keys",
 								},
-								Columns: []string{"user_id"},
+								Columns: []string{colUserID},
 							},
 						},
 					},
@@ -380,10 +380,10 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 						Using: metadata.ArrayRelationshipConfigUsing{
 							ForeignKeyConstraintOn: metadata.ForeignKeyConstraintOn{
 								Table: metadata.Table{
-									Schema: "auth",
-									Name:   "oauth2_auth_requests",
+									Schema: schemaAuth,
+									Name:   tableOAuth2AuthRequests,
 								},
-								Columns: []string{"user_id"},
+								Columns: []string{colUserID},
 							},
 						},
 					},
@@ -392,10 +392,10 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 						Using: metadata.ArrayRelationshipConfigUsing{
 							ForeignKeyConstraintOn: metadata.ForeignKeyConstraintOn{
 								Table: metadata.Table{
-									Schema: "auth",
-									Name:   "oauth2_refresh_tokens",
+									Schema: schemaAuth,
+									Name:   tableOAuth2RefreshTokens,
 								},
-								Columns: []string{"user_id"},
+								Columns: []string{colUserID},
 							},
 						},
 					},
@@ -403,11 +403,11 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 			},
 		},
 		{ //nolint:exhaustruct
-			Type: "pg_track_table",
+			Type: pgTrackTable,
 			Args: metadata.PgTrackTableArgs{ //nolint:exhaustruct
 				Source: hasuraDBName,
 				Table: metadata.Table{
-					Schema: "auth",
+					Schema: schemaAuth,
 					Name:   "providers",
 				},
 				Configuration: metadata.Configuration{ //nolint:exhaustruct
@@ -433,10 +433,10 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 						Using: metadata.ArrayRelationshipConfigUsing{
 							ForeignKeyConstraintOn: metadata.ForeignKeyConstraintOn{
 								Table: metadata.Table{
-									Schema: "auth",
-									Name:   "user_providers",
+									Schema: schemaAuth,
+									Name:   tableUserProviders,
 								},
-								Columns: []string{"provider_id"},
+								Columns: []string{colProviderID},
 							},
 						},
 					},
@@ -444,11 +444,11 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 			},
 		},
 		{ //nolint:exhaustruct
-			Type: "pg_track_table",
+			Type: pgTrackTable,
 			Args: metadata.PgTrackTableArgs{ //nolint:exhaustruct
 				Source: hasuraDBName,
 				Table: metadata.Table{
-					Schema: "auth",
+					Schema: schemaAuth,
 					Name:   "user_security_keys",
 				},
 				Configuration: metadata.Configuration{ //nolint:exhaustruct
@@ -466,27 +466,27 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 					},
 					CustomColumnNames: map[string]string{ //nolint:gosec // G101: column-name mapping, not credentials
 						"id":                    "id",
-						"user_id":               "userId",
+						colUserID:               fieldUserID,
 						"credential_id":         "credentialId",
 						"credential_public_key": "credentialPublicKey",
 					},
 				},
 				ObjectRelationships: []metadata.ObjectRelationshipConfig{
 					{
-						Name: "user",
+						Name: roleUser,
 						Using: metadata.ObjectRelationshipConfigUsing{
-							ForeignKeyConstraintOn: "user_id",
+							ForeignKeyConstraintOn: colUserID,
 						},
 					},
 				},
 			},
 		},
 		{ //nolint:exhaustruct
-			Type: "pg_track_table",
+			Type: pgTrackTable,
 			Args: metadata.PgTrackTableArgs{
 				Source: hasuraDBName,
 				Table: metadata.Table{
-					Schema: "auth",
+					Schema: schemaAuth,
 					Name:   "oauth2_clients",
 				},
 				Configuration: metadata.Configuration{ //nolint:exhaustruct
@@ -503,16 +503,16 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 						DeleteByPk:      "deleteAuthOauth2Client",
 					},
 					CustomColumnNames: map[string]string{
-						"client_id":                    "clientId",
+						colClientID:                    fieldClientID,
 						"client_secret_hash":           "clientSecretHash",
 						"redirect_uris":                "redirectUris",
-						"scopes":                       "scopes",
-						"type":                         "type",
+						colScopes:                      colScopes,
+						typeKey:                        typeKey,
 						"metadata":                     "metadata",
 						"metadata_document_fetched_at": "metadataDocumentFetchedAt",
 						"created_by":                   "createdBy",
-						"created_at":                   "createdAt",
-						"updated_at":                   "updatedAt",
+						colCreatedAt:                   fieldCreatedAt,
+						colUpdatedAt:                   fieldUpdatedAt,
 					},
 				},
 				ObjectRelationships: []metadata.ObjectRelationshipConfig{
@@ -529,10 +529,10 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 						Using: metadata.ArrayRelationshipConfigUsing{
 							ForeignKeyConstraintOn: metadata.ForeignKeyConstraintOn{
 								Table: metadata.Table{
-									Schema: "auth",
-									Name:   "oauth2_auth_requests",
+									Schema: schemaAuth,
+									Name:   tableOAuth2AuthRequests,
 								},
-								Columns: []string{"client_id"},
+								Columns: []string{colClientID},
 							},
 						},
 					},
@@ -541,10 +541,10 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 						Using: metadata.ArrayRelationshipConfigUsing{
 							ForeignKeyConstraintOn: metadata.ForeignKeyConstraintOn{
 								Table: metadata.Table{
-									Schema: "auth",
-									Name:   "oauth2_refresh_tokens",
+									Schema: schemaAuth,
+									Name:   tableOAuth2RefreshTokens,
 								},
-								Columns: []string{"client_id"},
+								Columns: []string{colClientID},
 							},
 						},
 					},
@@ -552,12 +552,12 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 			},
 		},
 		{ //nolint:exhaustruct
-			Type: "pg_track_table",
+			Type: pgTrackTable,
 			Args: metadata.PgTrackTableArgs{
 				Source: hasuraDBName,
 				Table: metadata.Table{
-					Schema: "auth",
-					Name:   "oauth2_auth_requests",
+					Schema: schemaAuth,
+					Name:   tableOAuth2AuthRequests,
 				},
 				Configuration: metadata.Configuration{ //nolint:exhaustruct
 					CustomName: "authOauth2AuthRequests",
@@ -574,8 +574,8 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 					},
 					CustomColumnNames: map[string]string{
 						"id":                    "id",
-						"client_id":             "clientId",
-						"scopes":                "scopes",
+						colClientID:             fieldClientID,
+						colScopes:               colScopes,
 						"redirect_uri":          "redirectUri",
 						"state":                 "state",
 						"nonce":                 "nonce",
@@ -583,24 +583,24 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 						"code_challenge":        "codeChallenge",
 						"code_challenge_method": "codeChallengeMethod",
 						"resource":              "resource",
-						"user_id":               "userId",
+						colUserID:               fieldUserID,
 						"done":                  "done",
 						"auth_time":             "authTime",
-						"created_at":            "createdAt",
-						"expires_at":            "expiresAt",
+						colCreatedAt:            fieldCreatedAt,
+						colExpiresAt:            fieldExpiresAt,
 					},
 				},
 				ObjectRelationships: []metadata.ObjectRelationshipConfig{
 					{
 						Name: "client",
 						Using: metadata.ObjectRelationshipConfigUsing{
-							ForeignKeyConstraintOn: "client_id",
+							ForeignKeyConstraintOn: colClientID,
 						},
 					},
 					{
-						Name: "user",
+						Name: roleUser,
 						Using: metadata.ObjectRelationshipConfigUsing{
-							ForeignKeyConstraintOn: "user_id",
+							ForeignKeyConstraintOn: colUserID,
 						},
 					},
 				},
@@ -610,22 +610,22 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 						Using: metadata.ArrayRelationshipConfigUsing{
 							ForeignKeyConstraintOn: metadata.ForeignKeyConstraintOn{
 								Table: metadata.Table{
-									Schema: "auth",
+									Schema: schemaAuth,
 									Name:   "oauth2_authorization_codes",
 								},
-								Columns: []string{"auth_request_id"},
+								Columns: []string{colAuthRequestID},
 							},
 						},
 					},
 					{
-						Name: "refreshTokens",
+						Name: fieldRefreshTokens,
 						Using: metadata.ArrayRelationshipConfigUsing{
 							ForeignKeyConstraintOn: metadata.ForeignKeyConstraintOn{
 								Table: metadata.Table{
-									Schema: "auth",
-									Name:   "oauth2_refresh_tokens",
+									Schema: schemaAuth,
+									Name:   tableOAuth2RefreshTokens,
 								},
-								Columns: []string{"auth_request_id"},
+								Columns: []string{colAuthRequestID},
 							},
 						},
 					},
@@ -633,11 +633,11 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 			},
 		},
 		{ //nolint:exhaustruct
-			Type: "pg_track_table",
+			Type: pgTrackTable,
 			Args: metadata.PgTrackTableArgs{ //nolint:exhaustruct
 				Source: hasuraDBName,
 				Table: metadata.Table{
-					Schema: "auth",
+					Schema: schemaAuth,
 					Name:   "oauth2_authorization_codes",
 				},
 				Configuration: metadata.Configuration{ //nolint:exhaustruct
@@ -654,30 +654,30 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 						DeleteByPk:      "deleteAuthOauth2AuthorizationCode",
 					},
 					CustomColumnNames: map[string]string{
-						"id":              "id",
-						"code_hash":       "codeHash",
-						"auth_request_id": "authRequestId",
-						"created_at":      "createdAt",
-						"expires_at":      "expiresAt",
+						"id":             "id",
+						"code_hash":      "codeHash",
+						colAuthRequestID: "authRequestId",
+						colCreatedAt:     fieldCreatedAt,
+						colExpiresAt:     fieldExpiresAt,
 					},
 				},
 				ObjectRelationships: []metadata.ObjectRelationshipConfig{
 					{
 						Name: "authRequest",
 						Using: metadata.ObjectRelationshipConfigUsing{
-							ForeignKeyConstraintOn: "auth_request_id",
+							ForeignKeyConstraintOn: colAuthRequestID,
 						},
 					},
 				},
 			},
 		},
 		{ //nolint:exhaustruct
-			Type: "pg_track_table",
+			Type: pgTrackTable,
 			Args: metadata.PgTrackTableArgs{ //nolint:exhaustruct
 				Source: hasuraDBName,
 				Table: metadata.Table{
-					Schema: "auth",
-					Name:   "oauth2_refresh_tokens",
+					Schema: schemaAuth,
+					Name:   tableOAuth2RefreshTokens,
 				},
 				Configuration: metadata.Configuration{ //nolint:exhaustruct
 					CustomName: "authOauth2RefreshTokens",
@@ -693,33 +693,33 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 						DeleteByPk:      "deleteAuthOauth2RefreshToken",
 					},
 					CustomColumnNames: map[string]string{
-						"id":              "id",
-						"token_hash":      "tokenHash",
-						"auth_request_id": "authRequestId",
-						"client_id":       "clientId",
-						"user_id":         "userId",
-						"scopes":          "scopes",
-						"created_at":      "createdAt",
-						"expires_at":      "expiresAt",
+						"id":             "id",
+						"token_hash":     "tokenHash",
+						colAuthRequestID: "authRequestId",
+						colClientID:      fieldClientID,
+						colUserID:        fieldUserID,
+						colScopes:        colScopes,
+						colCreatedAt:     fieldCreatedAt,
+						colExpiresAt:     fieldExpiresAt,
 					},
 				},
 				ObjectRelationships: []metadata.ObjectRelationshipConfig{
 					{
 						Name: "authRequest",
 						Using: metadata.ObjectRelationshipConfigUsing{
-							ForeignKeyConstraintOn: "auth_request_id",
+							ForeignKeyConstraintOn: colAuthRequestID,
 						},
 					},
 					{
 						Name: "client",
 						Using: metadata.ObjectRelationshipConfigUsing{
-							ForeignKeyConstraintOn: "client_id",
+							ForeignKeyConstraintOn: colClientID,
 						},
 					},
 					{
-						Name: "user",
+						Name: roleUser,
 						Using: metadata.ObjectRelationshipConfigUsing{
-							ForeignKeyConstraintOn: "user_id",
+							ForeignKeyConstraintOn: colUserID,
 						},
 					},
 				},
@@ -746,3 +746,33 @@ func ApplyHasuraMetadata(
 
 	return nil
 }
+
+// Hasura metadata identifiers: schema/table/column names and camelCase field names.
+const (
+	schemaAuth               = "auth"
+	colAuthRequestID         = "auth_request_id"
+	fieldClientID            = "clientId"
+	colClientID              = "client_id"
+	fieldCreatedAt           = "createdAt"
+	colCreatedAt             = "created_at"
+	colDefaultRole           = "default_role"
+	fieldExpiresAt           = "expiresAt"
+	colExpiresAt             = "expires_at"
+	tableOAuth2AuthRequests  = "oauth2_auth_requests"
+	tableOAuth2RefreshTokens = "oauth2_refresh_tokens" //nolint:gosec // G101: table name, not a credential
+	pgTrackTable             = "pg_track_table"
+	colProviderID            = "provider_id"
+	fieldRefreshTokens       = "refreshTokens"
+	tableRefreshTokens       = "refresh_tokens"
+	colRole                  = "role"
+	colScopes                = "scopes"
+	typeKey                  = "type"
+	fieldUpdatedAt           = "updatedAt"
+	colUpdatedAt             = "updated_at"
+	roleUser                 = "user"
+	fieldUserID              = "userId"
+	colUserID                = "user_id"
+	tableUserProviders       = "user_providers"
+	tableUserRoles           = "user_roles"
+	tableUsers               = "users"
+)

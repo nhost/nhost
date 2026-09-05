@@ -13,7 +13,7 @@ func (ctrl *Controller) PostChangeEnv(c *gin.Context) { //nolint:funlen,cyclop
 	b, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		_ = c.Error(err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{errorKey: err.Error()})
 
 		return
 	}
@@ -22,14 +22,14 @@ func (ctrl *Controller) PostChangeEnv(c *gin.Context) { //nolint:funlen,cyclop
 
 	if err := json.Unmarshal(b, &ctrl.config); err != nil {
 		_ = c.Error(err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{errorKey: err.Error()})
 
 		return
 	}
 
 	if err := json.Unmarshal(b, &ctrl.wf.config); err != nil {
 		_ = c.Error(err)
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{errorKey: err.Error()})
 
 		return
 	}
@@ -41,7 +41,7 @@ func (ctrl *Controller) PostChangeEnv(c *gin.Context) { //nolint:funlen,cyclop
 		if err := json.Unmarshal([]byte(ctrl.config.CustomClaims), &rawClaims); err != nil {
 			c.JSON(
 				http.StatusBadRequest,
-				gin.H{"message": "failed to unmarshal custom claims", "error": err.Error()},
+				gin.H{messageKey: "failed to unmarshal custom claims", errorKey: err.Error()},
 			)
 
 			return
@@ -58,8 +58,8 @@ func (ctrl *Controller) PostChangeEnv(c *gin.Context) { //nolint:funlen,cyclop
 				c.JSON(
 					http.StatusBadRequest,
 					gin.H{
-						"message": "failed to unmarshal custom claims defaults",
-						"error":   err.Error(),
+						messageKey: "failed to unmarshal custom claims defaults",
+						errorKey:   err.Error(),
 					},
 				)
 
@@ -77,7 +77,7 @@ func (ctrl *Controller) PostChangeEnv(c *gin.Context) { //nolint:funlen,cyclop
 			)
 			if err != nil {
 				_ = c.Error(err)
-				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+				c.JSON(http.StatusBadRequest, gin.H{errorKey: err.Error()})
 
 				return
 			}
@@ -104,7 +104,7 @@ func (ctrl *Controller) PostChangeEnv(c *gin.Context) { //nolint:funlen,cyclop
 		wa, err := NewWebAuthn(ctrl.config)
 		if err != nil {
 			_ = c.Error(err)
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, gin.H{errorKey: err.Error()})
 
 			return
 		}
@@ -118,6 +118,6 @@ func (ctrl *Controller) PostChangeEnv(c *gin.Context) { //nolint:funlen,cyclop
 
 	c.JSON(
 		http.StatusOK,
-		gin.H{"message": "environment changed successfully"},
+		gin.H{messageKey: "environment changed successfully"},
 	)
 }

@@ -81,7 +81,7 @@ func (ctrl *Controller) SignUpProvider( //nolint:ireturn
 				Metadata:     req.Params.Metadata,
 				RedirectTo:   new(redirectTo.String()),
 			},
-			"state":         req.Params.State,
+			stateKey:        req.Params.State,
 			"flow":          providers.FlowSignup,
 			"codeChallenge": req.Params.CodeChallenge,
 		},

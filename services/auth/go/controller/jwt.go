@@ -260,7 +260,7 @@ func (j *JWTGetter) fetchCustomClaims(
 		logger.ErrorContext(
 			ctx,
 			"error getting custom claims",
-			slog.String("error", err.Error()),
+			slog.String(errorKey, err.Error()),
 		)
 
 		return map[string]any{}
@@ -511,18 +511,18 @@ func (j *JWTGetter) MiddlewareFunc(
 	if len(parts) != 2 || parts[0] != "Bearer" {
 		return &oapi.AuthenticatorError{
 			Scheme:  input.SecuritySchemeName,
-			Code:    "unauthorized",
+			Code:    unauthorized,
 			Message: "missing or malformed authorization header",
 		}
 	}
 
 	jwtToken, err := j.Validate(parts[1])
 	if err != nil {
-		slog.WarnContext(ctx, "error validating JWT", slog.String("error", err.Error()))
+		slog.WarnContext(ctx, "error validating JWT", slog.String(errorKey, err.Error()))
 
 		return &oapi.AuthenticatorError{
 			Scheme:  input.SecuritySchemeName,
-			Code:    "unauthorized",
+			Code:    unauthorized,
 			Message: "invalid or expired token",
 		}
 	}
@@ -530,7 +530,7 @@ func (j *JWTGetter) MiddlewareFunc(
 	if !jwtToken.Valid {
 		return &oapi.AuthenticatorError{
 			Scheme:  input.SecuritySchemeName,
-			Code:    "unauthorized",
+			Code:    unauthorized,
 			Message: "invalid token",
 		}
 	}
@@ -544,12 +544,12 @@ func (j *JWTGetter) MiddlewareFunc(
 		found, err := j.verifyElevatedClaim(ctx, jwtToken, requestPath)
 		if err != nil {
 			slog.WarnContext(
-				ctx, "error verifying elevated claim", slog.String("error", err.Error()),
+				ctx, "error verifying elevated claim", slog.String(errorKey, err.Error()),
 			)
 
 			return &oapi.AuthenticatorError{
 				Scheme:  input.SecuritySchemeName,
-				Code:    "unauthorized",
+				Code:    unauthorized,
 				Message: "error verifying elevated claim",
 			}
 		}
@@ -557,7 +557,7 @@ func (j *JWTGetter) MiddlewareFunc(
 		if !found {
 			return &oapi.AuthenticatorError{
 				Scheme:  input.SecuritySchemeName,
-				Code:    "unauthorized",
+				Code:    unauthorized,
 				Message: "elevated claim required",
 			}
 		}

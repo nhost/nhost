@@ -79,7 +79,7 @@ func generateDeleteManyField(
 		Type: graph.NewNamedType(customTableName + "_mutation_response"),
 		Arguments: []*graph.Argument{
 			{
-				Name:        "where",
+				Name:        where,
 				Description: "filter the rows which have to be deleted",
 				Type:        graph.NewNonNullType(customTableName + "_bool_exp"),
 			},

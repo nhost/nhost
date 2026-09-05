@@ -54,16 +54,16 @@ func storage( //nolint:funlen
 			"minio": {
 				Condition: "service_started",
 			},
-			"graphql": {
-				Condition: "service_healthy",
+			svcGraphql: {
+				Condition: serviceHealthy,
 			},
-			"postgres": {
-				Condition: "service_healthy",
+			svcPostgres: {
+				Condition: serviceHealthy,
 			},
 		},
 		EntryPoint: nil,
 		Command: []string{
-			"serve",
+			serve,
 		},
 		Environment: env,
 		ExtraHosts:  extraHosts,
@@ -78,7 +78,7 @@ func storage( //nolint:funlen
 		}.Labels(),
 		Networks:    networkAliases("hasura-storage-service"),
 		Ports:       ports(exposePort, storagePort),
-		Restart:     "always",
+		Restart:     always,
 		User:        nil,
 		HealthCheck: nil,
 		Volumes:     nil,

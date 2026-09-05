@@ -282,7 +282,7 @@ func normalizePostgresTypeToGraphQL(pgType string) string {
 	case "boolean", "bool":
 		return "Boolean"
 	case "text", "varchar", "character varying", "char", "character", "name":
-		return "String"
+		return scalarString
 	default:
 		// Everything else uses its own type name
 		return pgType

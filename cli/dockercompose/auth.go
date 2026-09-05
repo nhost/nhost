@@ -16,9 +16,9 @@ func traefikHostMatch(name string) string {
 func authPatchPre022(svc Service, useTLS bool) *Service {
 	svc.Labels = Ingresses{
 		{
-			Name:    "auth",
+			Name:    svcAuth,
 			TLS:     useTLS,
-			Rule:    traefikHostMatch("auth"),
+			Rule:    traefikHostMatch(svcAuth),
 			Port:    authPort,
 			Rewrite: nil,
 		},
@@ -42,14 +42,14 @@ func auth( //nolint:funlen
 	envars, err := appconfig.HasuraAuthEnv(
 		cfg,
 		"http://graphql:8080/v1/graphql",
-		URL(subdomain, "auth", httpPort, useTLS && exposePort == 0)+"/v1",
+		URL(subdomain, svcAuth, httpPort, useTLS && exposePort == 0)+"/v1",
 		"postgres://nhost_hasura@postgres:5432/local",
 		"postgres://nhost_auth_admin@postgres:5432/local",
 		&model.ConfigSmtp{
 			User:     new("user"),
 			Password: new("password"),
 			Sender:   new("auth@example.com"),
-			Host:     new("mailhog"),
+			Host:     new(svcMailhog),
 			Port:     new(uint16(1025)), //nolint:mnd
 			Secure:   new(false),
 			Method:   new("LOGIN"),
@@ -71,11 +71,11 @@ func auth( //nolint:funlen
 	svc := &Service{
 		Image: "nhost/auth:" + *cfg.Auth.Version,
 		DependsOn: map[string]DependsOn{
-			"graphql": {
-				Condition: "service_healthy",
+			svcGraphql: {
+				Condition: serviceHealthy,
 			},
-			"postgres": {
-				Condition: "service_healthy",
+			svcPostgres: {
+				Condition: serviceHealthy,
 			},
 		},
 		EntryPoint:  nil,
@@ -83,30 +83,30 @@ func auth( //nolint:funlen
 		Environment: env,
 		ExtraHosts:  extraHosts,
 		HealthCheck: &HealthCheck{
-			Test:        []string{"CMD", "wget", "--spider", "-S", "http://localhost:4000/healthz"},
-			Timeout:     "60s",
+			Test:        []string{healthCmd, wget, spider, "-S", "http://localhost:4000/healthz"},
+			Timeout:     healthTimeout,
 			Interval:    "5s",
-			StartPeriod: "60s",
+			StartPeriod: healthTimeout,
 		},
 		Labels: Ingresses{
 			{
-				Name: "auth",
+				Name: svcAuth,
 				TLS:  useTLS,
-				Rule: traefikHostMatch("auth") + " && PathPrefix(`/v1`)",
+				Rule: traefikHostMatch(svcAuth) + " && PathPrefix(`/v1`)",
 				Port: authPort,
 				Rewrite: &Rewrite{
-					Regex:       "/v1(/|$$)(.*)",
+					Regex:       v1PathRegex,
 					Replacement: "/$$2",
 				},
 			},
 		}.Labels(),
 		Networks: networkAliases("hasura-auth-service"),
 		Ports:    ports(exposePort, authPort),
-		Restart:  "always",
+		Restart:  always,
 		User:     nil,
 		Volumes: []Volume{
 			{
-				Type:     "bind",
+				Type:     bind,
 				Source:   nhostFolder + "/emails",
 				Target:   "/app/email-templates",
 				ReadOnly: new(false),

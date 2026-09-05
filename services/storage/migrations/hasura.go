@@ -15,17 +15,17 @@ const defaultTimeout = 10 * time.Second
 func storageTables(dbName string) []metadata.TrackTable { //nolint:funlen
 	return []metadata.TrackTable{
 		{
-			Type: "pg_track_table",
+			Type: pgTrackTable,
 			Args: metadata.PgTrackTableArgs{
 				Source: dbName,
 				Table: metadata.Table{
-					Schema: "storage",
-					Name:   "buckets",
+					Schema: schemaStorage,
+					Name:   tableBuckets,
 				},
 				Configuration: metadata.Configuration{
-					CustomName: "buckets",
+					CustomName: tableBuckets,
 					CustomRootFields: metadata.CustomRootFields{
-						Select:          "buckets",
+						Select:          tableBuckets,
 						SelectByPk:      "bucket",
 						SelectAggregate: "bucketsAggregate",
 						Insert:          "insertBuckets",
@@ -37,8 +37,8 @@ func storageTables(dbName string) []metadata.TrackTable { //nolint:funlen
 					},
 					CustomColumnNames: map[string]string{
 						"id":                     "id",
-						"created_at":             "createdAt",
-						"updated_at":             "updatedAt",
+						colCreatedAt:             fieldCreatedAt,
+						colUpdatedAt:             fieldUpdatedAt,
 						"download_expiration":    "downloadExpiration",
 						"min_upload_file_size":   "minUploadFileSize",
 						"max_upload_file_size":   "maxUploadFileSize",
@@ -48,14 +48,14 @@ func storageTables(dbName string) []metadata.TrackTable { //nolint:funlen
 				},
 				ArrayRelationships: []metadata.ArrayRelationshipConfig{
 					{
-						Name: "files",
+						Name: tableFiles,
 						Using: metadata.ArrayRelationshipConfigUsing{
 							ForeignKeyConstraintOn: metadata.ForeignKeyConstraintOn{
 								Table: metadata.Table{
-									Schema: "storage",
-									Name:   "files",
+									Schema: schemaStorage,
+									Name:   tableFiles,
 								},
-								Columns: []string{"bucket_id"},
+								Columns: []string{colBucketID},
 							},
 						},
 					},
@@ -63,17 +63,17 @@ func storageTables(dbName string) []metadata.TrackTable { //nolint:funlen
 			},
 		},
 		{
-			Type: "pg_track_table",
+			Type: pgTrackTable,
 			Args: metadata.PgTrackTableArgs{
 				Source: dbName,
 				Table: metadata.Table{
-					Schema: "storage",
-					Name:   "files",
+					Schema: schemaStorage,
+					Name:   tableFiles,
 				},
 				Configuration: metadata.Configuration{
-					CustomName: "files",
+					CustomName: tableFiles,
 					CustomRootFields: metadata.CustomRootFields{
-						Select:          "files",
+						Select:          tableFiles,
 						SelectByPk:      "file",
 						SelectAggregate: "filesAggregate",
 						Insert:          "insertFiles",
@@ -85,9 +85,9 @@ func storageTables(dbName string) []metadata.TrackTable { //nolint:funlen
 					},
 					CustomColumnNames: map[string]string{
 						"id":                  "id",
-						"created_at":          "createdAt",
-						"updated_at":          "updatedAt",
-						"bucket_id":           "bucketId",
+						colCreatedAt:          fieldCreatedAt,
+						colUpdatedAt:          fieldUpdatedAt,
+						colBucketID:           "bucketId",
 						"name":                "name",
 						"size":                "size",
 						"mime_type":           "mimeType",
@@ -101,25 +101,25 @@ func storageTables(dbName string) []metadata.TrackTable { //nolint:funlen
 					{
 						Name: "bucket",
 						Using: metadata.ObjectRelationshipConfigUsing{
-							ForeignKeyConstraintOn: "bucket_id",
+							ForeignKeyConstraintOn: colBucketID,
 						},
 					},
 				},
 			},
 		},
 		{
-			Type: "pg_track_table",
+			Type: pgTrackTable,
 			Args: metadata.PgTrackTableArgs{
 				Source: dbName,
 				Table: metadata.Table{
-					Schema: "storage",
-					Name:   "virus",
+					Schema: schemaStorage,
+					Name:   virus,
 				},
 				Configuration: metadata.Configuration{
-					CustomName: "virus",
+					CustomName: virus,
 					CustomRootFields: metadata.CustomRootFields{
 						Select:          "viruses",
-						SelectByPk:      "virus",
+						SelectByPk:      virus,
 						SelectAggregate: "virusesAggregate",
 						Insert:          "insertViruses",
 						InsertOne:       "insertVirus",
@@ -130,11 +130,11 @@ func storageTables(dbName string) []metadata.TrackTable { //nolint:funlen
 					},
 					CustomColumnNames: map[string]string{
 						"id":           "id",
-						"created_at":   "createdAt",
-						"updated_at":   "updatedAt",
+						colCreatedAt:   fieldCreatedAt,
+						colUpdatedAt:   fieldUpdatedAt,
 						"file_id":      "fileId",
 						"filename":     "filename",
-						"virus":        "virus",
+						virus:          virus,
 						"user_session": "userSession",
 					},
 				},
@@ -167,3 +167,17 @@ func ApplyHasuraMetadata(
 
 	return nil
 }
+
+// Hasura metadata identifiers: schema/table/column names and camelCase field names.
+const (
+	colBucketID    = "bucket_id"
+	tableBuckets   = "buckets"
+	fieldCreatedAt = "createdAt"
+	colCreatedAt   = "created_at"
+	tableFiles     = "files"
+	pgTrackTable   = "pg_track_table"
+	schemaStorage  = "storage"
+	fieldUpdatedAt = "updatedAt"
+	colUpdatedAt   = "updated_at"
+	virus          = "virus"
+)

@@ -42,7 +42,7 @@ func surfaceErrorsMiddleWare(c *gin.Context) {
 		errorCode = "bad-request"
 	}
 
-	c.JSON(status, gin.H{"error": errorCode, "message": c.Errors[0].Error()})
+	c.JSON(status, gin.H{errorKey: errorCode, "message": c.Errors[0].Error()})
 }
 
 // RecordError is the GinServerOptions.ErrorHandler shared by services. The
@@ -101,3 +101,9 @@ func NewRouter(
 
 	return router, func(c *gin.Context) { validator(c) }, nil
 }
+
+// Repeated error response keys.
+const (
+	errorKey  = "error"
+	reasonKey = "reason"
+)

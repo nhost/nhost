@@ -70,8 +70,8 @@ func wizardLocal(reader *bufio.Reader) *Project {
 		}
 
 		return &Project{
-			Subdomain:      "local",
-			Region:         "local",
+			Subdomain:      local,
+			Region:         local,
 			Description:    "Local development project running via the Nhost CLI",
 			AdminSecret:    &adminSecret,
 			PAT:            nil,

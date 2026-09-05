@@ -14,7 +14,7 @@ import (
 func (ctrl *Controller) listNotUploaded(ctx context.Context) ([]FileSummary, *APIError) {
 	filesInHasura, apiErr := ctrl.metadataStorage.ListFiles(
 		ctx,
-		http.Header{"x-hasura-admin-secret": []string{ctrl.hasuraAdminSecret}},
+		http.Header{xHasuraAdminSecret: []string{ctrl.hasuraAdminSecret}},
 	)
 	if apiErr != nil {
 		return nil, apiErr

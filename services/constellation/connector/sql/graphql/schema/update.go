@@ -55,7 +55,7 @@ func generateUpdateManyField(
 	args := generateUpdateArguments(customTableName, hasJSONB, hasNumeric)
 
 	args = append(args, &graph.Argument{ //nolint:exhaustruct
-		Name:        "where",
+		Name:        where,
 		Description: "filter the rows which have to be updated",
 		Type:        graph.NewNonNullType(customTableName + "_bool_exp"),
 	})
@@ -165,7 +165,7 @@ func generateUpdatesInput(
 	}
 
 	fields = append(fields, &graph.InputField{ //nolint:exhaustruct
-		Name:        "where",
+		Name:        where,
 		Description: "filter the rows which have to be updated",
 		Type:        graph.NewNonNullType(customTableName + "_bool_exp"),
 	})
@@ -240,7 +240,7 @@ func generateUpdateColumnEnum(
 
 		description := getColumnDescription(&col)
 		if description == "" {
-			description = "column name"
+			description = columnNameLabel
 		}
 
 		values = append(values, &graph.EnumValue{ //nolint:exhaustruct

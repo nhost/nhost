@@ -233,11 +233,11 @@ func (m *MCPManager) discoverTools(
 	for _, t := range toolsResult.Tools {
 		params := make(map[string]any)
 		if t.InputSchema.Properties != nil {
-			params["type"] = "object"
-			params["properties"] = t.InputSchema.Properties
+			params[schemaKeyType] = schemaTypeObject
+			params[schemaKeyProperties] = t.InputSchema.Properties
 
 			if len(t.InputSchema.Required) > 0 {
-				params["required"] = t.InputSchema.Required
+				params[schemaKeyRequired] = t.InputSchema.Required
 			}
 		}
 

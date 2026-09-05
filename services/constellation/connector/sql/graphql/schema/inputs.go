@@ -32,25 +32,25 @@ func generateComparisonExp(scalarType string, caps Capabilities) *graph.InputObj
 
 func comparisonOperatorType(op, scalarType string, caps Capabilities) *graph.Type {
 	switch op {
-	case "_in", "_nin":
+	case opIn, nin:
 		return graph.NewListType(graph.NewNonNullType(scalarType))
-	case "_is_null":
+	case isNull:
 		return graph.NewNamedType("Boolean")
-	case "_has_key":
-		return graph.NewNamedType("String")
-	case "_has_keys_all", "_has_keys_any":
-		return graph.NewListType(graph.NewNonNullType("String"))
-	case "_cast":
+	case hasKey:
+		return graph.NewNamedType(scalarString)
+	case hasKeysAll, hasKeysAny:
+		return graph.NewListType(graph.NewNonNullType(scalarString))
+	case cast:
 		return graph.NewNamedType(caps.castExpName(scalarType))
-	case "_contains", "_contained_in":
+	case opContains, containedIn:
 		return graph.NewNamedType(scalarType)
-	case "_st_d_within":
+	case stDWithin:
 		if scalarType == pgtypes.Geography {
 			return graph.NewNamedType("st_d_within_geography_input")
 		}
 
 		return graph.NewNamedType("st_d_within_input")
-	case "_st_3d_d_within":
+	case st3dDWithin:
 		return graph.NewNamedType("st_d_within_input")
 	default:
 		return graph.NewNamedType(scalarType)
@@ -68,8 +68,8 @@ func generateCastExp(scalarType string, caps Capabilities) *graph.InputObjectTyp
 			Name: caps.castExpName(scalarJSONB),
 			Fields: []*graph.InputField{
 				{
-					Name: "String",
-					Type: graph.NewNamedType(caps.comparisonExpName("String")),
+					Name: scalarString,
+					Type: graph.NewNamedType(caps.comparisonExpName(scalarString)),
 				},
 			},
 		}
@@ -147,52 +147,52 @@ func getComparisonOperators(scalarType string, caps Capabilities) []string {
 	var ops []string
 
 	switch scalarType {
-	case "String", "bpchar": //nolint:goconst,nolintlint
+	case scalarString, "bpchar": //nolint:goconst,nolintlint
 		ops = []string{
-			"_eq", "_gt", "_gte", "_ilike", "_in", "_iregex", "_is_null",
-			"_like", "_lt", "_lte", "_neq", "_nilike", "_nin", "_niregex",
-			"_nlike", "_nregex", "_nsimilar", "_regex", "_similar",
+			eq, gt, gte, ilike, opIn, iregex, isNull,
+			like, lt, lte, neq, nilike, nin, niregex,
+			nlike, nregex, nsimilar, regex, similar,
 		}
 	case "Boolean", "Int": //nolint:goconst,nolintlint
-		return []string{"_eq", "_gt", "_gte", "_in", "_is_null", "_lt", "_lte", "_neq", "_nin"}
+		return []string{eq, gt, gte, opIn, isNull, lt, lte, neq, nin}
 	case "citext":
 		ops = []string{
-			"_eq", "_gt", "_gte", "_ilike", "_in", "_iregex", "_is_null",
-			"_like", "_lt", "_lte", "_neq", "_nilike", "_nin", "_niregex",
-			"_nlike", "_nregex", "_nsimilar", "_regex", "_similar",
+			eq, gt, gte, ilike, opIn, iregex, isNull,
+			like, lt, lte, neq, nilike, nin, niregex,
+			nlike, nregex, nsimilar, regex, similar,
 		}
 	case scalarJSONB:
 		if !caps.SupportsJSONB {
-			return []string{"_eq", "_gt", "_gte", "_in", "_is_null", "_lt", "_lte", "_neq", "_nin"}
+			return []string{eq, gt, gte, opIn, isNull, lt, lte, neq, nin}
 		}
 
 		return []string{
-			"_cast", "_contained_in", "_contains", "_eq", "_gt", "_gte",
-			"_has_key", "_has_keys_all", "_has_keys_any", "_in", "_is_null",
-			"_lt", "_lte", "_neq", "_nin",
+			cast, containedIn, opContains, eq, gt, gte,
+			hasKey, hasKeysAll, hasKeysAny, opIn, isNull,
+			lt, lte, neq, nin,
 		}
 	case pgtypes.Geography:
 		if caps.SupportsSpatialTypes {
 			return []string{
-				"_cast", "_eq", "_gt", "_gte", "_in", "_is_null", "_lt", "_lte",
-				"_neq", "_nin", "_st_d_within", "_st_intersects",
+				cast, eq, gt, gte, opIn, isNull, lt, lte,
+				neq, nin, stDWithin, stIntersects,
 			}
 		}
 
-		return []string{"_eq", "_gt", "_gte", "_in", "_is_null", "_lt", "_lte", "_neq", "_nin"}
+		return []string{eq, gt, gte, opIn, isNull, lt, lte, neq, nin}
 	case pgtypes.Geometry:
 		if caps.SupportsSpatialTypes {
 			return []string{
-				"_cast", "_eq", "_gt", "_gte", "_in", "_is_null", "_lt", "_lte",
-				"_neq", "_nin", "_st_3d_d_within", "_st_3d_intersects",
-				"_st_contains", "_st_crosses", "_st_d_within", "_st_equals",
-				"_st_intersects", "_st_overlaps", "_st_touches", "_st_within",
+				cast, eq, gt, gte, opIn, isNull, lt, lte,
+				neq, nin, st3dDWithin, "_st_3d_intersects",
+				"_st_contains", "_st_crosses", stDWithin, "_st_equals",
+				stIntersects, "_st_overlaps", "_st_touches", "_st_within",
 			}
 		}
 
-		return []string{"_eq", "_gt", "_gte", "_in", "_is_null", "_lt", "_lte", "_neq", "_nin"}
+		return []string{eq, gt, gte, opIn, isNull, lt, lte, neq, nin}
 	default:
-		return []string{"_eq", "_gt", "_gte", "_in", "_is_null", "_lt", "_lte", "_neq", "_nin"}
+		return []string{eq, gt, gte, opIn, isNull, lt, lte, neq, nin}
 	}
 
 	if !caps.SupportsRegex {
@@ -200,7 +200,7 @@ func getComparisonOperators(scalarType string, caps Capabilities) []string {
 
 		for _, op := range ops {
 			switch op {
-			case "_iregex", "_niregex", "_nregex", "_regex", "_similar", "_nsimilar":
+			case iregex, niregex, nregex, regex, similar, nsimilar:
 				continue
 			default:
 				filtered = append(filtered, op)
@@ -221,31 +221,31 @@ func generateArrayComparisonExp(elementType string, caps Capabilities) *graph.In
 
 	fields := []*graph.InputField{
 		{
-			Name:        "_contained_in",
+			Name:        containedIn,
 			Description: "is the array contained in the given array value",
 			Type:        listType,
 		},
 		{
-			Name:        "_contains",
+			Name:        opContains,
 			Description: "does the array contain the given value",
 			Type:        listType,
 		},
-		{Name: "_eq", Type: listType},
-		{Name: "_gt", Type: listType},
-		{Name: "_gte", Type: listType},
+		{Name: eq, Type: listType},
+		{Name: gt, Type: listType},
+		{Name: gte, Type: listType},
 		{
-			Name: "_in",
+			Name: opIn,
 			Type: listOfListType,
 		},
 		{
-			Name: "_is_null",
+			Name: isNull,
 			Type: graph.NewNamedType("Boolean"),
 		},
-		{Name: "_lt", Type: listType},
-		{Name: "_lte", Type: listType},
-		{Name: "_neq", Type: listType},
+		{Name: lt, Type: listType},
+		{Name: lte, Type: listType},
+		{Name: neq, Type: listType},
 		{
-			Name: "_nin",
+			Name: nin,
 			Type: listOfListType,
 		},
 	}
@@ -263,37 +263,37 @@ func generateArrayComparisonExp(elementType string, caps Capabilities) *graph.In
 // getOperatorDescription returns a description for a comparison operator.
 func getOperatorDescription(op, scalarType string) string { //nolint:cyclop,funlen
 	switch op {
-	case "_ilike":
+	case ilike:
 		return "does the column match the given case-insensitive pattern"
-	case "_iregex":
+	case iregex:
 		return "does the column match the given POSIX regular expression, case insensitive"
-	case "_like":
+	case like:
 		return "does the column match the given pattern"
-	case "_nilike":
+	case nilike:
 		return "does the column NOT match the given case-insensitive pattern"
-	case "_niregex":
+	case niregex:
 		return "does the column NOT match the given POSIX regular expression, case insensitive"
-	case "_nlike":
+	case nlike:
 		return "does the column NOT match the given pattern"
-	case "_nregex":
+	case nregex:
 		return "does the column NOT match the given POSIX regular expression, case sensitive"
-	case "_nsimilar":
+	case nsimilar:
 		return "does the column NOT match the given SQL regular expression"
-	case "_regex":
+	case regex:
 		return "does the column match the given POSIX regular expression, case sensitive"
-	case "_similar":
+	case similar:
 		return "does the column match the given SQL regular expression"
-	case "_contained_in":
+	case containedIn:
 		return "is the column contained in the given json value"
-	case "_contains":
+	case opContains:
 		return "does the column contain the given json value at the top level"
-	case "_has_key":
+	case hasKey:
 		return "does the string exist as a top-level key in the column"
-	case "_has_keys_all":
+	case hasKeysAll:
 		return "do all of these strings exist as top-level keys in the column"
-	case "_has_keys_any":
+	case hasKeysAny:
 		return "do any of these strings exist as top-level keys in the column"
-	case "_st_3d_d_within":
+	case st3dDWithin:
 		return "is the column within a given 3D distance from the given geometry value"
 	case "_st_3d_intersects":
 		return "does the column spatially intersect the given geometry value in 3D"
@@ -301,7 +301,7 @@ func getOperatorDescription(op, scalarType string) string { //nolint:cyclop,funl
 		return "does the column contain the given geometry value"
 	case "_st_crosses":
 		return "does the column cross the given geometry value"
-	case "_st_d_within":
+	case stDWithin:
 		if scalarType == pgtypes.Geography {
 			return "is the column within a given distance from the given geography value"
 		}
@@ -309,7 +309,7 @@ func getOperatorDescription(op, scalarType string) string { //nolint:cyclop,funl
 		return "is the column within a given distance from the given geometry value"
 	case "_st_equals":
 		return "is the column equal to given geometry value (directionality is ignored)"
-	case "_st_intersects":
+	case stIntersects:
 		if scalarType == pgtypes.Geography {
 			return "does the column spatially intersect the given geography value"
 		}
@@ -325,3 +325,45 @@ func getOperatorDescription(op, scalarType string) string { //nolint:cyclop,funl
 		return ""
 	}
 }
+
+// GraphQL comparison operators, scalar names and schema keys.
+const (
+	scalarString    = "String"
+	cast            = "_cast"
+	containedIn     = "_contained_in"
+	opContains      = "_contains"
+	eq              = "_eq"
+	gt              = "_gt"
+	gte             = "_gte"
+	hasKey          = "_has_key"
+	hasKeysAll      = "_has_keys_all"
+	hasKeysAny      = "_has_keys_any"
+	ilike           = "_ilike"
+	opIn            = "_in"
+	iregex          = "_iregex"
+	isNull          = "_is_null"
+	like            = "_like"
+	lt              = "_lt"
+	lte             = "_lte"
+	neq             = "_neq"
+	nilike          = "_nilike"
+	nin             = "_nin"
+	niregex         = "_niregex"
+	nlike           = "_nlike"
+	nregex          = "_nregex"
+	nsimilar        = "_nsimilar"
+	regex           = "_regex"
+	similar         = "_similar"
+	st3dDWithin     = "_st_3d_d_within"
+	stDWithin       = "_st_d_within"
+	stIntersects    = "_st_intersects"
+	argumentsKey    = "arguments"
+	columnNameLabel = "column name"
+	count           = "count"
+	distinct        = "distinct"
+	filter          = "filter"
+	onConflict      = "on_conflict"
+	predicate       = "predicate"
+	upsertCondition = "upsert condition"
+	where           = "where"
+)

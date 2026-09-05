@@ -76,14 +76,14 @@ func (w *WebFetch) Definition() provider.ToolDefinition {
 		Name:        "web_fetch",
 		Description: "Fetch a web page and return its content as markdown. Use this to read the content of a specific URL.",
 		Parameters: map[string]any{
-			"type": "object",
-			"properties": map[string]any{
+			schemaKeyType: schemaTypeObject,
+			schemaKeyProperties: map[string]any{
 				"url": map[string]any{
-					"type":        "string",
-					"description": "The URL to fetch",
+					schemaKeyType:        schemaTypeString,
+					schemaKeyDescription: "The URL to fetch",
 				},
 			},
-			"required": []string{"url"},
+			schemaKeyRequired: []string{"url"},
 		},
 	}
 }

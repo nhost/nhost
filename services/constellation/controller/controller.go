@@ -380,3 +380,9 @@ func NewFromConnectors(
 
 	return ctrl, nil
 }
+
+// Repeated response keys.
+const (
+	messageKey   = "message"
+	unauthorized = "unauthorized"
+)
