@@ -1,1 +1,0 @@
-ALTER TABLE widgets ADD COLUMN name text NOT NULL DEFAULT '';
