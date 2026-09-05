@@ -12,11 +12,13 @@ import type { CreateActionPermissionStep } from './createActionPermissionStep';
 import type { CreateActionStep } from './createActionStep';
 import type { CreateEventTriggerStep } from './createEventTriggerStep';
 import type { CreateFunctionPermissionStep } from './createFunctionPermissionStep';
+import type { CreateLogicalModelSelectPermissionStep } from './createLogicalModelSelectPermissionStep';
 import type { DeleteEventTriggerStep } from './deleteEventTriggerStep';
 import type { DropActionOperation } from './dropActionOperation';
 import type { DropActionPermissionStep } from './dropActionPermissionStep';
 import type { DropComputedFieldStep } from './dropComputedFieldStep';
 import type { DropFunctionPermissionStep } from './dropFunctionPermissionStep';
+import type { DropLogicalModelSelectPermissionStep } from './dropLogicalModelSelectPermissionStep';
 import type { DropRemoteSchemaPermissionsStep } from './dropRemoteSchemaPermissionsStep';
 import type { RemoveRemoteSchemaStep } from './removeRemoteSchemaStep';
 import type { ReplaceMetadataOperation } from './replaceMetadataOperation';
@@ -24,8 +26,12 @@ import type { SetCustomTypesStep } from './setCustomTypesStep';
 import type { SetTableCustomizationStep } from './setTableCustomizationStep';
 import type { SetTableIsEnumStep } from './setTableIsEnumStep';
 import type { TrackFunctionStep } from './trackFunctionStep';
+import type { TrackLogicalModelStep } from './trackLogicalModelStep';
+import type { TrackNativeQueryStep } from './trackNativeQueryStep';
 import type { TrackTableStep } from './trackTableStep';
 import type { UntrackFunctionStep } from './untrackFunctionStep';
+import type { UntrackLogicalModelStep } from './untrackLogicalModelStep';
+import type { UntrackNativeQueryStep } from './untrackNativeQueryStep';
 import type { UntrackTableStep } from './untrackTableStep';
 import type { UpdateActionStep } from './updateActionStep';
 import type { UpdateRemoteSchemaStep } from './updateRemoteSchemaStep';
@@ -49,6 +55,12 @@ export type MigrationStep =
   | DropFunctionPermissionStep
   | AddComputedFieldStep
   | DropComputedFieldStep
+  | TrackLogicalModelStep
+  | UntrackLogicalModelStep
+  | CreateLogicalModelSelectPermissionStep
+  | DropLogicalModelSelectPermissionStep
+  | TrackNativeQueryStep
+  | UntrackNativeQueryStep
   | SetCustomTypesStep
   | CreateActionStep
   | UpdateActionStep
