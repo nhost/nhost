@@ -77,16 +77,24 @@ docker build -f packages/nhost-go/examples/cat-uploader/Dockerfile -t cat-upload
 ```
 
 The Run config reads both service-user credentials from Nhost secrets. For
-local development, add unique values to the ignored
-`packages/nhost-go/build/backend/.secrets` file:
+local development, append unique values to the ignored
+`packages/nhost-go/build/backend/.secrets` file — the backend also needs the
+secrets in `.secrets.example`, so create it from that template first and
+**append** rather than overwrite, or `nhost up` fails with
+`variable not found: secrets.HASURA_GRAPHQL_ADMIN_SECRET`:
 
 ```sh
 cd packages/nhost-go/build/backend
-cat > .secrets <<EOF
-NHOST_EMAIL = 'cat-uploader@example.com'
+[ -f .secrets ] || cp .secrets.example .secrets
+cat >> .secrets <<EOF
+NHOST_EMAIL = 'cat-uploader-run@example.com'
 NHOST_PASSWORD = '$(openssl rand -hex 24)'
 EOF
 ```
+
+This uses a different service user from the local run above, because the first
+run creates the account: reusing that email with a fresh password would fail
+with `sign-in and sign-up both failed`.
 
 Then start the image alongside the stack (from
 `packages/nhost-go/build/backend`); the service config points
