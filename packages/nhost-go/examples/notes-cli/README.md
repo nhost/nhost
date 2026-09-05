@@ -11,13 +11,17 @@ full CLI, follow these tutorial pages in order against the same Nhost project:
 
 1. [Local Setup](https://docs.nhost.io/getting-started/tutorials/go/1-introduction) — initialize a
    project and start its backend with `nhost up`.
-2. [Notes & GraphQL](https://docs.nhost.io/getting-started/tutorials/go/3-graphql-operations) — create
+2. [Authentication](https://docs.nhost.io/getting-started/tutorials/go/2-authentication) — decide
+   whether *"Require verified emails"* stays on. The `signup` and `login`
+   commands below depend on this: with it on, `signup` lands in the
+   verify-email state and locally the message is caught by Mailhog.
+3. [Notes & GraphQL](https://docs.nhost.io/getting-started/tutorials/go/3-graphql-operations) — create
    and track `notebooks`, `notes`, `tags`, and `note_tags`, then configure their
    relationships and owner-scoped permissions.
-3. [Attachments](https://docs.nhost.io/getting-started/tutorials/go/4-file-uploads) — create the
+4. [Attachments](https://docs.nhost.io/getting-started/tutorials/go/4-file-uploads) — create the
    `notes` Storage bucket and `note_attachments`, then configure Storage and
    table relationships and permissions.
-4. [Functions & Sharing](https://docs.nhost.io/getting-started/tutorials/go/5-functions-sharing) —
+5. [Functions & Sharing](https://docs.nhost.io/getting-started/tutorials/go/5-functions-sharing) —
    create `note_collaborators`, update sharing permissions, and install the
    `notes/export` function.
 
