@@ -2,9 +2,11 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -269,27 +271,7 @@ func newOpenAIStreamServer(t *testing.T, chunks []string) *httptest.Server {
 	t.Helper()
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Content-Type", "text/event-stream")
-		w.Header().Set("Cache-Control", "no-cache")
-
-		flusher, ok := w.(http.Flusher)
-		if !ok {
-			t.Errorf("response writer does not support flushing")
-
-			return
-		}
-
-		w.WriteHeader(http.StatusOK)
-
-		for _, chunk := range chunks {
-			if _, err := fmt.Fprintf(w, "data: %s\n\n", chunk); err != nil {
-				t.Errorf("write chunk: %v", err)
-
-				return
-			}
-
-			flusher.Flush()
-		}
+		writeChatCompletionsChunks(t, w, chunks)
 	}))
 	t.Cleanup(srv.Close)
 
@@ -322,6 +304,55 @@ func collectOpenAIEvents(ch <-chan Event) collectedOpenAIEvents {
 	}
 
 	return out
+}
+
+func TestOpenAIStreamSanitizesNativeSDKError(t *testing.T) {
+	t.Parallel()
+
+	const nativeErrorMarker = "native-sdk-error-marker"
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusUnauthorized)
+
+		if _, err := fmt.Fprint(
+			w,
+			`{"error":{"message":"`+nativeErrorMarker+`","type":"invalid_request_error"}}`,
+		); err != nil {
+			t.Errorf("write response: %v", err)
+		}
+	}))
+	t.Cleanup(server.Close)
+
+	native := &openAIChatCompletions{
+		completions: openai.NewChatCompletionService(
+			option.WithAPIKey("test-key"),
+			option.WithBaseURL(server.URL+"/"),
+			option.WithMaxRetries(0),
+		),
+		logRedactions: nil,
+	}
+	got := collectOpenAIEvents(native.StreamResponse(
+		context.Background(),
+		StreamRequest{
+			Model:        "gpt-native",
+			SystemPrompt: "",
+			Messages:     []Message{{Role: RoleUser, Content: "hi"}},
+			Tools:        nil,
+		},
+	))
+
+	if !errors.Is(got.err, errOpenAIChatCompletionsRequest) {
+		t.Fatalf("error = %v, want fixed Chat Completions error", got.err)
+	}
+
+	want := "chat completions provider request failed: HTTP status 401"
+	if got.err.Error() != want {
+		t.Errorf("error = %q, want %q", got.err, want)
+	}
+
+	if strings.Contains(got.err.Error(), nativeErrorMarker) {
+		t.Errorf("native SDK error exposed upstream response: %v", got.err)
+	}
 }
 
 func TestOpenAIProcessStream(t *testing.T) {
@@ -397,19 +428,22 @@ func TestOpenAIProcessStream(t *testing.T) {
 
 			srv := newOpenAIStreamServer(t, tc.chunks)
 
-			provider := &OpenAI{
-				client: openai.NewClient(
+			provider := &openAIChatCompletions{
+				completions: openai.NewChatCompletionService(
 					option.WithAPIKey("test"),
 					option.WithBaseURL(srv.URL+"/"),
 				),
-				model: "gpt-4o",
+				logRedactions: nil,
 			}
 
 			ch := provider.StreamResponse(
 				context.Background(),
-				"",
-				[]Message{{Role: RoleUser, Content: "hi"}},
-				nil,
+				StreamRequest{
+					Model:        "gpt-4o",
+					SystemPrompt: "",
+					Messages:     []Message{{Role: RoleUser, Content: "hi"}},
+					Tools:        nil,
+				},
 			)
 
 			got := collectOpenAIEvents(ch)

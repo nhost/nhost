@@ -1,0 +1,1259 @@
+package provider
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"log/slog"
+	"net/http"
+	"net/http/httptest"
+	"slices"
+	"strings"
+	"sync"
+	"sync/atomic"
+	"testing"
+	"time"
+
+	"github.com/google/go-cmp/cmp"
+	"github.com/openai/openai-go/option"
+)
+
+type chatCompletionsWireMessage struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
+
+type chatCompletionsWireTool struct {
+	Type     string `json:"type"`
+	Function struct {
+		Name        string         `json:"name"`
+		Description string         `json:"description"`
+		Parameters  map[string]any `json:"parameters"`
+	} `json:"function"`
+}
+
+type chatCompletionsWireRequest struct {
+	Model    string                       `json:"model"`
+	Messages []chatCompletionsWireMessage `json:"messages"`
+	Tools    []chatCompletionsWireTool    `json:"tools"`
+	Stream   bool                         `json:"stream"`
+}
+
+type capturedChatCompletionsRequest struct {
+	method        string
+	path          string
+	authorization []string
+	body          chatCompletionsWireRequest
+	err           error
+}
+
+type collectedChatCompletionsEvents struct {
+	content     string
+	tools       []ToolCall
+	stopReasons []string
+	err         error
+}
+
+func collectChatCompletionsEvents(ch <-chan Event) collectedChatCompletionsEvents {
+	var result collectedChatCompletionsEvents
+
+	for event := range ch {
+		switch event.Type {
+		case EventContentDelta:
+			result.content += event.Content
+		case EventToolUseDone:
+			if event.ToolCall != nil {
+				result.tools = append(result.tools, *event.ToolCall)
+			}
+		case EventComplete:
+			result.stopReasons = append(result.stopReasons, event.StopReason)
+		case EventError:
+			result.err = event.Error
+		case EventToolUseStart, EventToolUseDelta:
+		}
+	}
+
+	return result
+}
+
+func newChatCompletionsStreamRequest(
+	model string,
+	systemPrompt string,
+	messages []Message,
+	tools []ToolDefinition,
+) StreamRequest {
+	return StreamRequest{
+		Model:        model,
+		SystemPrompt: systemPrompt,
+		Messages:     messages,
+		Tools:        tools,
+	}
+}
+
+func mustOpenAIChatCompletions(
+	t *testing.T,
+	baseURL string,
+	headers map[string]string,
+) *openAIChatCompletions {
+	t.Helper()
+
+	configuration, err := newOpenAIChatCompletionsConfiguration(baseURL, headers)
+	if err != nil {
+		t.Fatalf("create configuration: %v", err)
+	}
+
+	return newOpenAIChatCompletions(configuration)
+}
+
+func writeChatCompletionsChunks(t *testing.T, w http.ResponseWriter, chunks []string) {
+	t.Helper()
+
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		t.Error("response writer does not support flushing")
+
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+
+	for _, chunk := range chunks {
+		if _, err := fmt.Fprintf(w, "data: %s\n\n", chunk); err != nil {
+			t.Errorf("write chunk: %v", err)
+
+			return
+		}
+
+		flusher.Flush()
+	}
+}
+
+func TestOpenAIChatCompletionsWireContract(t *testing.T) {
+	t.Parallel()
+
+	const model = "workers-ai/@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+
+	requestCh := make(chan capturedChatCompletionsRequest, 1)
+	chunks := []string{
+		`{"id":"1","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"content":"hello "}}]}`,
+		`{"id":"1","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"id":"call_1","type":"function","function":{"name":"search","arguments":"{\"q\":\""}},{"index":1,"id":"call_2","type":"function","function":{"name":"fetch","arguments":"{\"url\":\""}}]}}]}`,
+		`{"id":"1","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"function":{"arguments":"weather\"}"}},{"index":1,"function":{"arguments":"https://example.com\"}"}}]}}]}`,
+		`{"id":"1","object":"chat.completion.chunk","choices":[{"index":0,"delta":{},"finish_reason":"tool_calls"}]}`,
+		`[DONE]`,
+	}
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var body chatCompletionsWireRequest
+
+		err := json.NewDecoder(r.Body).Decode(&body)
+		requestCh <- capturedChatCompletionsRequest{
+			method:        r.Method,
+			path:          r.URL.Path,
+			authorization: append([]string(nil), r.Header.Values("Authorization")...),
+			body:          body,
+			err:           err,
+		}
+
+		writeChatCompletionsChunks(t, w, chunks)
+	}))
+	t.Cleanup(server.Close)
+
+	chatCompletions := mustOpenAIChatCompletions(t, server.URL+"/compat", nil)
+	got := collectChatCompletionsEvents(chatCompletions.StreamResponse(
+		context.Background(),
+		newChatCompletionsStreamRequest(
+			model,
+			"be concise",
+			[]Message{{
+				Role: RoleUser, Content: "find the weather", ToolCalls: nil,
+				ToolCallID: "", ToolName: "",
+			}},
+			[]ToolDefinition{{
+				Name: "search", Description: "Search the web",
+				Parameters: map[string]any{"type": "object"},
+			}},
+		),
+	))
+
+	request := <-requestCh
+	if request.err != nil {
+		t.Fatalf("decode request: %v", request.err)
+	}
+
+	if request.method != http.MethodPost {
+		t.Errorf("method = %q, want POST", request.method)
+	}
+
+	if request.path != "/compat/chat/completions" {
+		t.Errorf("path = %q, want /compat/chat/completions", request.path)
+	}
+
+	if request.body.Model != model {
+		t.Errorf("model = %q, want %q", request.body.Model, model)
+	}
+
+	if !request.body.Stream {
+		t.Error("stream was not true")
+	}
+
+	if len(request.authorization) != 0 {
+		t.Errorf("unexpected authorization headers: %q", request.authorization)
+	}
+
+	wantMessages := []chatCompletionsWireMessage{
+		{Role: "system", Content: "be concise"},
+		{Role: RoleUser, Content: "find the weather"},
+	}
+	if diff := cmp.Diff(wantMessages, request.body.Messages); diff != "" {
+		t.Errorf("messages mismatch (-want +got):\n%s", diff)
+	}
+
+	if len(request.body.Tools) != 1 {
+		t.Fatalf("tools length = %d, want 1", len(request.body.Tools))
+	}
+
+	if request.body.Tools[0].Type != "function" || request.body.Tools[0].Function.Name != "search" {
+		t.Errorf("unexpected tool: %+v", request.body.Tools[0])
+	}
+
+	if request.body.Tools[0].Function.Description != "Search the web" {
+		t.Errorf("tool description = %q", request.body.Tools[0].Function.Description)
+	}
+
+	if got.err != nil {
+		t.Fatalf("unexpected provider error: %v", got.err)
+	}
+
+	if got.content != "hello " {
+		t.Errorf("content = %q, want %q", got.content, "hello ")
+	}
+
+	wantTools := []ToolCall{
+		{ID: "call_1", Name: "search", Arguments: `{"q":"weather"}`},
+		{ID: "call_2", Name: "fetch", Arguments: `{"url":"https://example.com"}`},
+	}
+	if diff := cmp.Diff(wantTools, got.tools); diff != "" {
+		t.Errorf("tool calls mismatch (-want +got):\n%s", diff)
+	}
+
+	if diff := cmp.Diff([]string{StopReasonToolUse}, got.stopReasons); diff != "" {
+		t.Errorf("stop reasons mismatch (-want +got):\n%s", diff)
+	}
+}
+
+func TestOpenAIChatCompletionsBaseURLJoining(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		basePath string
+		wantPath string
+	}{
+		{name: "root", basePath: "", wantPath: "/chat/completions"},
+		{name: "v1", basePath: "/v1", wantPath: "/v1/chat/completions"},
+		{name: "v1 slash", basePath: "/v1/", wantPath: "/v1/chat/completions"},
+		{name: "compat", basePath: "/compat", wantPath: "/compat/chat/completions"},
+		{name: "compat slash", basePath: "/compat/", wantPath: "/compat/chat/completions"},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			pathCh := make(chan string, 1)
+			server := httptest.NewServer(
+				http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					pathCh <- r.URL.Path
+
+					writeChatCompletionsChunks(t, w, []string{`[DONE]`})
+				}),
+			)
+			t.Cleanup(server.Close)
+
+			chatCompletions := mustOpenAIChatCompletions(t, server.URL+test.basePath, nil)
+
+			got := collectChatCompletionsEvents(chatCompletions.StreamResponse(
+				context.Background(),
+				newChatCompletionsStreamRequest(
+					"provider/model",
+					"",
+					[]Message{{Role: RoleUser, Content: "hi"}},
+					nil,
+				),
+			))
+			if got.err != nil {
+				t.Fatalf("unexpected provider error: %v", got.err)
+			}
+
+			if gotPath := <-pathCh; gotPath != test.wantPath {
+				t.Errorf("path = %q, want %q", gotPath, test.wantPath)
+			}
+		})
+	}
+}
+
+func TestOpenAIChatCompletionsFinishReasons(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		finishReason string
+		want         string
+	}{
+		{finishReason: "stop", want: StopReasonEndTurn},
+		{finishReason: "tool_calls", want: StopReasonToolUse},
+		{finishReason: "function_call", want: StopReasonToolUse},
+		{finishReason: "length", want: StopReasonMaxTokens},
+		{finishReason: "content_filter", want: StopReasonRefusal},
+		{finishReason: "custom_extension", want: StopReasonEndTurn},
+	}
+
+	for _, test := range tests {
+		t.Run(test.finishReason, func(t *testing.T) {
+			t.Parallel()
+
+			chunk := fmt.Sprintf(
+				`{"id":"1","object":"chat.completion.chunk","choices":[{"index":0,"delta":{},"finish_reason":%q}]}`,
+				test.finishReason,
+			)
+			server := newOpenAIStreamServer(t, []string{chunk, `[DONE]`})
+			chatCompletions := mustOpenAIChatCompletions(t, server.URL, nil)
+
+			got := collectChatCompletionsEvents(chatCompletions.StreamResponse(
+				context.Background(),
+				newChatCompletionsStreamRequest(
+					"provider/model",
+					"",
+					[]Message{{Role: RoleUser, Content: "hi"}},
+					nil,
+				),
+			))
+			if got.err != nil {
+				t.Fatalf("unexpected provider error: %v", got.err)
+			}
+
+			if diff := cmp.Diff([]string{test.want}, got.stopReasons); diff != "" {
+				t.Errorf("stop reasons mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestOpenAIChatCompletionsConfiguredHeadersAreDefensivelyCopied(t *testing.T) {
+	t.Parallel()
+
+	type capturedHeaders struct {
+		original      []string
+		authorization []string
+	}
+
+	headersCh := make(chan capturedHeaders, 1)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		headersCh <- capturedHeaders{
+			original:      append([]string(nil), r.Header.Values("X-Original")...),
+			authorization: append([]string(nil), r.Header.Values("Authorization")...),
+		}
+
+		writeChatCompletionsChunks(t, w, []string{`[DONE]`})
+	}))
+	t.Cleanup(server.Close)
+
+	headers := map[string]string{"X-Original": "original-value"}
+
+	configuration, err := newOpenAIChatCompletionsConfiguration(server.URL+"/v1", headers)
+	if err != nil {
+		t.Fatalf("create configuration: %v", err)
+	}
+
+	headers["X-Original"] = "mutated-value"
+	headers["Authorization"] = "Bearer ambient-mutation"
+
+	chatCompletions := newOpenAIChatCompletions(configuration)
+
+	got := collectChatCompletionsEvents(chatCompletions.StreamResponse(
+		context.Background(),
+		StreamRequest{
+			Model:        "provider/model",
+			SystemPrompt: "",
+			Messages:     []Message{{Role: RoleUser, Content: "hi"}},
+			Tools:        nil,
+		},
+	))
+	if got.err != nil {
+		t.Fatalf("unexpected provider error: %v", got.err)
+	}
+
+	captured := <-headersCh
+	if diff := cmp.Diff([]string{"original-value"}, captured.original); diff != "" {
+		t.Errorf("X-Original mismatch (-want +got):\n%s", diff)
+	}
+
+	if len(captured.authorization) != 0 {
+		t.Errorf("unexpected authorization headers: %q", captured.authorization)
+	}
+}
+
+func TestOpenAIChatCompletionsSetsOneAuthorizationValue(t *testing.T) {
+	t.Parallel()
+
+	headerCh := make(chan []string, 1)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		headerCh <- append([]string(nil), r.Header.Values("Authorization")...)
+
+		writeChatCompletionsChunks(t, w, []string{`[DONE]`})
+	}))
+	t.Cleanup(server.Close)
+
+	chatCompletions := mustOpenAIChatCompletions(
+		t,
+		server.URL+"/v1/",
+		map[string]string{"Authorization": "Bearer configured-once"},
+	)
+
+	got := collectChatCompletionsEvents(chatCompletions.StreamResponse(
+		context.Background(),
+		newChatCompletionsStreamRequest(
+			"provider/model",
+			"",
+			[]Message{{Role: RoleUser, Content: "hi"}},
+			nil,
+		),
+	))
+	if got.err != nil {
+		t.Fatalf("unexpected provider error: %v", got.err)
+	}
+
+	if diff := cmp.Diff([]string{"Bearer configured-once"}, <-headerCh); diff != "" {
+		t.Errorf("authorization mismatch (-want +got):\n%s", diff)
+	}
+}
+
+// This test is intentionally non-parallel because t.Setenv changes process-wide
+// SDK inputs. It proves the chatCompletions service never loads native OpenAI defaults.
+func TestOpenAIChatCompletionsIgnoresAmbientOpenAIConfiguration(t *testing.T) {
+	var ambientRequests atomic.Int64
+
+	ambientServer := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {
+		ambientRequests.Add(1)
+	}))
+	t.Cleanup(ambientServer.Close)
+
+	t.Setenv("OPENAI_API_KEY", "ambient-api-key-marker")
+	t.Setenv("OPENAI_BASE_URL", ambientServer.URL+"/ambient")
+	t.Setenv("OPENAI_ORG_ID", "ambient-org-marker")
+	t.Setenv("OPENAI_PROJECT_ID", "ambient-project-marker")
+	t.Setenv("OPENAI_WEBHOOK_SECRET", "ambient-webhook-marker")
+
+	type capturedHeaders struct {
+		authorization []string
+		organization  []string
+		project       []string
+	}
+
+	headersCh := make(chan capturedHeaders, 1)
+	explicitServer := httptest.NewServer(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			headersCh <- capturedHeaders{
+				authorization: append([]string(nil), r.Header.Values("Authorization")...),
+				organization:  append([]string(nil), r.Header.Values("OpenAI-Organization")...),
+				project:       append([]string(nil), r.Header.Values("OpenAI-Project")...),
+			}
+
+			writeChatCompletionsChunks(t, w, []string{`[DONE]`})
+		}),
+	)
+	t.Cleanup(explicitServer.Close)
+
+	chatCompletions := mustOpenAIChatCompletions(t, explicitServer.URL+"/v1", nil)
+
+	got := collectChatCompletionsEvents(chatCompletions.StreamResponse(
+		context.Background(),
+		newChatCompletionsStreamRequest(
+			"provider/model",
+			"",
+			[]Message{{Role: RoleUser, Content: "hi"}},
+			nil,
+		),
+	))
+	if got.err != nil {
+		t.Fatalf("unexpected provider error: %v", got.err)
+	}
+
+	captured := <-headersCh
+	if len(captured.authorization) != 0 || len(captured.organization) != 0 ||
+		len(captured.project) != 0 {
+		t.Errorf("ambient OpenAI headers reached chat completions endpoint: %+v", captured)
+	}
+
+	if got := ambientRequests.Load(); got != 0 {
+		t.Errorf("ambient endpoint received %d requests", got)
+	}
+}
+
+func TestOpenAIChatCompletionsRefusesRedirects(t *testing.T) {
+	t.Parallel()
+
+	const headerValue = "Bearer redirect-secret-marker"
+
+	var redirectedRequests atomic.Int64
+
+	redirectTarget := httptest.NewServer(
+		http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+			redirectedRequests.Add(1)
+
+			if got := r.Header.Get("Authorization"); got != "" {
+				t.Errorf("redirect target received authorization %q", got)
+			}
+		}),
+	)
+	t.Cleanup(redirectTarget.Close)
+
+	var sourceRequests atomic.Int64
+
+	redirectSource := httptest.NewServer(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			sourceRequests.Add(1)
+
+			if got := r.Header.Values("Authorization"); !cmp.Equal(got, []string{headerValue}) {
+				t.Errorf("source authorization = %q, want one configured value", got)
+			}
+
+			http.Redirect(w, r, redirectTarget.URL+"/stolen", http.StatusTemporaryRedirect)
+		}),
+	)
+	t.Cleanup(redirectSource.Close)
+
+	chatCompletions := mustOpenAIChatCompletions(
+		t,
+		redirectSource.URL+"/v1",
+		map[string]string{"Authorization": headerValue},
+	)
+	got := collectChatCompletionsEvents(chatCompletions.StreamResponse(
+		context.Background(),
+		newChatCompletionsStreamRequest(
+			"provider/model",
+			"",
+			[]Message{{Role: RoleUser, Content: "hi"}},
+			nil,
+		),
+	))
+
+	if !errors.Is(got.err, errOpenAIChatCompletionsRequest) {
+		t.Fatalf("error = %v, want fixed chat completions error", got.err)
+	}
+
+	if got.err.Error() != errOpenAIChatCompletionsRequest.Error() {
+		t.Fatalf("error = %q, want fixed redirect category", got.err)
+	}
+
+	if sourceRequests.Load() != 1 {
+		t.Errorf("source requests = %d, want 1", sourceRequests.Load())
+	}
+
+	if redirectedRequests.Load() != 0 {
+		t.Errorf("redirect target requests = %d, want 0", redirectedRequests.Load())
+	}
+
+	if got.err != nil && (strings.Contains(got.err.Error(), headerValue) ||
+		strings.Contains(got.err.Error(), redirectTarget.URL)) {
+		t.Fatalf("error exposed redirect data: %v", got.err)
+	}
+}
+
+func TestOpenAIChatCompletionsHTTPStatusErrorsAreSafe(t *testing.T) {
+	t.Parallel()
+
+	const (
+		headerMarker = "status-header-marker"
+		urlMarker    = "status-url-marker"
+		bodyMarker   = "status-body-marker"
+	)
+
+	tests := []struct {
+		name   string
+		status int
+	}{
+		{name: "unauthorized", status: http.StatusUnauthorized},
+		{name: "not found", status: http.StatusNotFound},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			server := httptest.NewServer(http.HandlerFunc(
+				func(w http.ResponseWriter, _ *http.Request) {
+					w.WriteHeader(test.status)
+
+					if _, err := io.WriteString(
+						w,
+						`{"error":{"message":"`+bodyMarker+`"}}`,
+					); err != nil {
+						t.Errorf("write response: %v", err)
+					}
+				},
+			))
+			t.Cleanup(server.Close)
+
+			chatCompletions := mustOpenAIChatCompletions(
+				t,
+				server.URL+"/"+urlMarker,
+				map[string]string{"Authorization": "Bearer " + headerMarker},
+			)
+			got := collectChatCompletionsEvents(chatCompletions.StreamResponse(
+				context.Background(),
+				newChatCompletionsStreamRequest(
+					"provider/model",
+					"",
+					[]Message{{Role: RoleUser, Content: "hi"}},
+					nil,
+				),
+			))
+
+			if !errors.Is(got.err, errOpenAIChatCompletionsRequest) {
+				t.Fatalf("error = %v, want chat completions request error", got.err)
+			}
+
+			want := fmt.Sprintf(
+				"%s: HTTP status %d",
+				errOpenAIChatCompletionsRequest,
+				test.status,
+			)
+			if got.err.Error() != want {
+				t.Errorf("error = %q, want status-only error %q", got.err, want)
+			}
+
+			for _, marker := range []string{headerMarker, urlMarker, bodyMarker} {
+				if strings.Contains(got.err.Error(), marker) {
+					t.Errorf("error exposed marker %q: %v", marker, got.err)
+				}
+			}
+		})
+	}
+}
+
+// This test is intentionally non-parallel because it temporarily replaces the
+// process-wide default logger to verify provider causes are logged while client
+// errors stay sanitized.
+//
+//nolint:paralleltest // Parallel execution could expose another test's logs or logger.
+func TestOpenAIChatCompletionsFailuresAreSafe(t *testing.T) {
+	const (
+		headerMarker     = "configured-header-marker"
+		headerValue      = "Bearer " + headerMarker
+		urlMarker        = "configured-url-marker"
+		httpCause        = "upstream-http-cause-marker"
+		streamCause      = "upstream-stream-cause-marker"
+		transportCause   = "upstream-transport-cause-marker"
+		streamCloseCause = "upstream-close-cause-marker"
+	)
+
+	oldLogger := slog.Default()
+
+	var logOutput bytes.Buffer
+	slog.SetDefault(slog.New(slog.NewTextHandler(&logOutput, nil)))
+	t.Cleanup(func() {
+		slog.SetDefault(oldLogger)
+	})
+
+	// These subtests share the captured process-wide logger.
+	//nolint:paralleltest // Parallel execution could mix global logger output.
+	t.Run("HTTP response body", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusBadRequest)
+
+			_, err := io.WriteString(
+				w,
+				`{"error":{"message":"`+httpCause+`"}}`,
+			)
+			if err != nil {
+				t.Errorf("write response: %v", err)
+			}
+		}))
+		t.Cleanup(server.Close)
+
+		chatCompletions := mustOpenAIChatCompletions(
+			t,
+			server.URL+"/"+urlMarker,
+			map[string]string{"Authorization": headerValue},
+		)
+		got := collectChatCompletionsEvents(chatCompletions.StreamResponse(
+			context.Background(),
+			newChatCompletionsStreamRequest(
+				"provider/model",
+				"",
+				[]Message{{Role: RoleUser, Content: "hi"}},
+				nil,
+			),
+		))
+		assertSafeChatCompletionsError(t, got.err, headerMarker, urlMarker, httpCause)
+	})
+
+	//nolint:paralleltest // Parallel execution could mix global logger output.
+	t.Run("stream error payload", func(t *testing.T) {
+		server := newOpenAIStreamServer(t, []string{
+			`{"error":"` + streamCause + `"}`,
+		})
+		chatCompletions := mustOpenAIChatCompletions(
+			t,
+			server.URL+"/"+urlMarker,
+			map[string]string{"Authorization": headerValue},
+		)
+		got := collectChatCompletionsEvents(chatCompletions.StreamResponse(
+			context.Background(),
+			newChatCompletionsStreamRequest(
+				"provider/model",
+				"",
+				[]Message{{Role: RoleUser, Content: "hi"}},
+				nil,
+			),
+		))
+		assertSafeChatCompletionsError(t, got.err, headerMarker, urlMarker, streamCause)
+	})
+
+	//nolint:paralleltest // Parallel execution could mix global logger output.
+	t.Run("transport failure", func(t *testing.T) {
+		chatCompletions := mustOpenAIChatCompletions(
+			t,
+			"https://example.com/"+urlMarker,
+			map[string]string{"Authorization": headerValue},
+		)
+		chatCompletions.completions.Options = append(
+			chatCompletions.completions.Options,
+			option.WithHTTPClient(&http.Client{
+				Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+					return nil, fmt.Errorf(
+						"%s with credential %s: %w",
+						transportCause,
+						headerMarker,
+						errInvalidProviderHeaders,
+					)
+				}),
+				CheckRedirect: nil,
+				Jar:           nil,
+				Timeout:       0,
+			}),
+			option.WithMaxRetries(0),
+		)
+
+		got := collectChatCompletionsEvents(chatCompletions.StreamResponse(
+			context.Background(),
+			newChatCompletionsStreamRequest(
+				"provider/model",
+				"",
+				[]Message{{Role: RoleUser, Content: "hi"}},
+				nil,
+			),
+		))
+		assertSafeChatCompletionsError(
+			t,
+			got.err,
+			headerMarker,
+			urlMarker,
+			transportCause,
+		)
+
+		if got.err.Error() != errOpenAIChatCompletionsRequest.Error() {
+			t.Errorf("error = %q, want fixed transport category", got.err)
+		}
+	})
+
+	//nolint:paralleltest // Parallel execution could mix global logger output.
+	t.Run("close failure log", func(t *testing.T) {
+		closeMarker := fmt.Errorf(
+			"%s with credential %s: %w",
+			streamCloseCause,
+			headerValue,
+			errInvalidProviderHeaders,
+		)
+		chatCompletions := mustOpenAIChatCompletions(
+			t,
+			"https://example.com/v1",
+			map[string]string{"Authorization": headerValue},
+		)
+		chatCompletions.completions.Options = append(
+			chatCompletions.completions.Options,
+			option.WithHTTPClient(&http.Client{
+				Transport: roundTripFunc(func(request *http.Request) (*http.Response, error) {
+					body := &closeErrorBody{
+						Reader: strings.NewReader("data: [DONE]\n\n"),
+						err:    closeMarker,
+					}
+
+					return newChatCompletionsStreamingResponse(request, body), nil
+				}),
+				CheckRedirect: nil,
+				Jar:           nil,
+				Timeout:       0,
+			}),
+		)
+
+		got := collectChatCompletionsEvents(chatCompletions.StreamResponse(
+			context.Background(),
+			newChatCompletionsStreamRequest(
+				"provider/model",
+				"",
+				[]Message{{Role: RoleUser, Content: "hi"}},
+				nil,
+			),
+		))
+		if got.err != nil {
+			t.Fatalf("unexpected provider error: %v", got.err)
+		}
+	})
+
+	logs := logOutput.String()
+	if strings.Contains(logs, headerMarker) {
+		t.Fatalf("logger exposed configured header value: %s", logs)
+	}
+
+	for _, cause := range []string{httpCause, streamCause, transportCause, streamCloseCause} {
+		if !strings.Contains(logs, cause) {
+			t.Errorf("logger did not retain cause %q: %s", cause, logs)
+		}
+	}
+}
+
+func assertSafeChatCompletionsError(t *testing.T, err error, markers ...string) {
+	t.Helper()
+
+	if !errors.Is(err, errOpenAIChatCompletionsRequest) {
+		t.Fatalf("error = %v, want fixed chat completions error", err)
+	}
+
+	for _, marker := range markers {
+		if strings.Contains(err.Error(), marker) {
+			t.Fatalf("error exposed marker %q: %v", marker, err)
+		}
+	}
+
+	mapped := mapOpenAIChatCompletionsError(nil)
+	if !errors.Is(mapped, errOpenAIChatCompletionsRequest) {
+		t.Fatalf("mapped error = %v, want fixed chat completions error", mapped)
+	}
+}
+
+type roundTripFunc func(*http.Request) (*http.Response, error)
+
+func (f roundTripFunc) RoundTrip(request *http.Request) (*http.Response, error) {
+	return f(request)
+}
+
+type closeErrorBody struct {
+	io.Reader
+
+	onClose func()
+	err     error
+}
+
+func (b *closeErrorBody) Close() error {
+	if b.onClose != nil {
+		b.onClose()
+	}
+
+	return b.err
+}
+
+func newChatCompletionsStreamingResponse(
+	request *http.Request,
+	body io.ReadCloser,
+) *http.Response {
+	return &http.Response{
+		Status:     "200 OK",
+		StatusCode: http.StatusOK,
+		Proto:      "HTTP/1.1",
+		ProtoMajor: 1,
+		ProtoMinor: 1,
+		Header: http.Header{
+			"Content-Type": []string{"text/event-stream"},
+		},
+		Body:             body,
+		ContentLength:    -1,
+		TransferEncoding: nil,
+		Close:            false,
+		Uncompressed:     false,
+		Trailer:          nil,
+		Request:          request,
+		TLS:              nil,
+	}
+}
+
+// This test replaces the process-wide logger, so it cannot run in parallel.
+//
+//nolint:paralleltest // Parallel execution could capture another test's logs.
+func TestOpenAIChatCompletionsCancellationSuppressesCloseWarning(t *testing.T) {
+	oldLogger := slog.Default()
+
+	var logOutput bytes.Buffer
+	slog.SetDefault(slog.New(slog.NewTextHandler(&logOutput, nil)))
+	t.Cleanup(func() { slog.SetDefault(oldLogger) })
+
+	ctx, cancel := context.WithCancel(t.Context())
+	t.Cleanup(cancel)
+
+	chatCompletions := mustOpenAIChatCompletions(t, "https://example.com/v1", nil)
+	chatCompletions.completions.Options = append(
+		chatCompletions.completions.Options,
+		option.WithHTTPClient(&http.Client{
+			Transport: roundTripFunc(func(request *http.Request) (*http.Response, error) {
+				body := &closeErrorBody{
+					Reader:  strings.NewReader("data: [DONE]\n\n"),
+					onClose: cancel,
+					err:     errInvalidProviderHeaders,
+				}
+
+				return newChatCompletionsStreamingResponse(request, body), nil
+			}),
+			CheckRedirect: nil,
+			Jar:           nil,
+			Timeout:       0,
+		}),
+	)
+
+	got := collectChatCompletionsEvents(chatCompletions.StreamResponse(
+		ctx,
+		newChatCompletionsStreamRequest(
+			"provider/model",
+			"",
+			[]Message{{Role: RoleUser, Content: "hi"}},
+			nil,
+		),
+	))
+	if got.err != nil {
+		t.Fatalf("unexpected provider error: %v", got.err)
+	}
+
+	if logOutput.Len() != 0 {
+		t.Fatalf("canceled stream emitted a warning: %s", logOutput.String())
+	}
+}
+
+func TestOpenAIChatCompletionsCancellationClosesStream(t *testing.T) {
+	t.Parallel()
+
+	requestCancelled := make(chan struct{})
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		writeChatCompletionsChunks(t, w, []string{
+			`{"id":"1","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"content":"started"}}]}`,
+		})
+		<-r.Context().Done()
+		close(requestCancelled)
+	}))
+	t.Cleanup(server.Close)
+
+	chatCompletions := mustOpenAIChatCompletions(t, server.URL+"/v1", nil)
+	ctx, cancel := context.WithCancel(context.Background())
+	stream := chatCompletions.StreamResponse(
+		ctx,
+		newChatCompletionsStreamRequest(
+			"provider/model",
+			"",
+			[]Message{{Role: RoleUser, Content: "hi"}},
+			nil,
+		),
+	)
+
+	select {
+	case event := <-stream:
+		if event.Type != EventContentDelta || event.Content != "started" {
+			t.Fatalf("first event = %+v, want started content", event)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("timed out waiting for first stream event")
+	}
+
+	cancel()
+
+	select {
+	case <-requestCancelled:
+	case <-time.After(5 * time.Second):
+		t.Fatal("request context was not cancelled")
+	}
+
+	streamClosed := make(chan struct{})
+	go func() {
+		for {
+			if _, open := <-stream; !open {
+				break
+			}
+		}
+
+		close(streamClosed)
+	}()
+
+	select {
+	case <-streamClosed:
+	case <-time.After(5 * time.Second):
+		t.Fatal("provider event channel did not close")
+	}
+}
+
+func TestOpenAIChatCompletionsConcurrentStreams(t *testing.T) {
+	t.Parallel()
+
+	const streamCount = 12
+
+	requestModels := make(chan string, streamCount)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var request chatCompletionsWireRequest
+		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+			t.Errorf("decode request: %v", err)
+			w.WriteHeader(http.StatusBadRequest)
+
+			return
+		}
+
+		requestModels <- request.Model
+
+		writeChatCompletionsChunks(t, w, []string{
+			`{"id":"1","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"content":"ok"}}]}`,
+			`{"id":"1","object":"chat.completion.chunk","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}`,
+			`[DONE]`,
+		})
+	}))
+	t.Cleanup(server.Close)
+
+	configuration, err := newOpenAIChatCompletionsConfiguration(
+		server.URL+"/v1",
+		map[string]string{"X-Shared": "shared-config"},
+	)
+	if err != nil {
+		t.Fatalf("create configuration: %v", err)
+	}
+
+	chatCompletions := newOpenAIChatCompletions(configuration)
+	sharedOptions := chatCompletions.completions.Options
+
+	sharedOptionStorage := sharedOptions[:cap(sharedOptions)]
+	if len(sharedOptions) == cap(sharedOptions) {
+		t.Fatal("shared OpenAI options have no spare capacity")
+	}
+
+	results := make(chan collectedChatCompletionsEvents, streamCount)
+	wantModels := make([]string, 0, streamCount)
+
+	var waitGroup sync.WaitGroup
+	waitGroup.Add(streamCount)
+
+	for index := range streamCount {
+		model := fmt.Sprintf("provider/model-%d", index)
+		wantModels = append(wantModels, model)
+
+		go func(requestModel string) {
+			defer waitGroup.Done()
+
+			results <- collectChatCompletionsEvents(chatCompletions.StreamResponse(
+				context.Background(),
+				StreamRequest{
+					Model:        requestModel,
+					SystemPrompt: "",
+					Messages:     []Message{{Role: RoleUser, Content: "hi"}},
+					Tools:        nil,
+				},
+			))
+		}(model)
+	}
+
+	waitGroup.Wait()
+	close(results)
+	close(requestModels)
+
+	for result := range results {
+		if result.err != nil {
+			t.Errorf("unexpected provider error: %v", result.err)
+		}
+
+		if result.content != "ok" {
+			t.Errorf("content = %q, want ok", result.content)
+		}
+
+		if diff := cmp.Diff([]string{StopReasonEndTurn}, result.stopReasons); diff != "" {
+			t.Errorf("stop reasons mismatch (-want +got):\n%s", diff)
+		}
+	}
+
+	gotModels := make([]string, 0, streamCount)
+	for model := range requestModels {
+		gotModels = append(gotModels, model)
+	}
+
+	slices.Sort(wantModels)
+	slices.Sort(gotModels)
+
+	if diff := cmp.Diff(wantModels, gotModels); diff != "" {
+		t.Errorf("request models mismatch (-want +got):\n%s", diff)
+	}
+
+	for index, requestOption := range sharedOptionStorage[len(sharedOptions):] {
+		if requestOption != nil {
+			t.Errorf("shared OpenAI option storage modified at index %d", len(sharedOptions)+index)
+		}
+	}
+}
+
+func TestOpenAIChatCompletionsRetryCountIsExplicit(t *testing.T) {
+	t.Parallel()
+
+	var requests atomic.Int64
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		requests.Add(1)
+		w.Header().Set("Retry-After", "0")
+		w.WriteHeader(http.StatusInternalServerError)
+
+		if _, err := io.WriteString(
+			w,
+			`{"error":{"message":"response-secret-marker"}}`,
+		); err != nil {
+			t.Errorf("write response: %v", err)
+		}
+	}))
+	t.Cleanup(server.Close)
+
+	chatCompletions := mustOpenAIChatCompletions(t, server.URL+"/v1", nil)
+	got := collectChatCompletionsEvents(chatCompletions.StreamResponse(
+		t.Context(),
+		newChatCompletionsStreamRequest(
+			"provider/model",
+			"",
+			[]Message{{Role: RoleUser, Content: "hi"}},
+			nil,
+		),
+	))
+
+	if !errors.Is(got.err, errOpenAIChatCompletionsRequest) {
+		t.Fatalf("error = %v, want fixed Chat Completions error", got.err)
+	}
+
+	if got := requests.Load(); got != openAIChatCompletionsMaxRetries+1 {
+		t.Errorf(
+			"requests = %d, want initial request plus %d retries",
+			got,
+			openAIChatCompletionsMaxRetries,
+		)
+	}
+
+	if strings.Contains(got.err.Error(), "response-secret-marker") {
+		t.Errorf("error exposed response body: %v", got.err)
+	}
+}
+
+func TestOpenAIChatCompletionsInstancesAreIsolated(t *testing.T) {
+	t.Parallel()
+
+	type observedRequest struct {
+		model  string
+		header http.Header
+	}
+
+	newServer := func(observed chan<- observedRequest) *httptest.Server {
+		return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			var request chatCompletionsWireRequest
+			if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+				t.Errorf("decode request: %v", err)
+				w.WriteHeader(http.StatusBadRequest)
+
+				return
+			}
+
+			observed <- observedRequest{model: request.Model, header: r.Header.Clone()}
+
+			writeChatCompletionsChunks(t, w, []string{`[DONE]`})
+		}))
+	}
+
+	observedA := make(chan observedRequest, 1)
+	serverA := newServer(observedA)
+	t.Cleanup(serverA.Close)
+
+	observedB := make(chan observedRequest, 1)
+	serverB := newServer(observedB)
+	t.Cleanup(serverB.Close)
+
+	providerA := mustOpenAIChatCompletions(
+		t,
+		serverA.URL+"/v1",
+		map[string]string{"Authorization": "Bearer instance-a", "X-Instance": "a"},
+	)
+	providerB := mustOpenAIChatCompletions(
+		t,
+		serverB.URL+"/v1",
+		map[string]string{"Authorization": "Bearer instance-b", "X-Instance": "b"},
+	)
+
+	results := make(chan collectedChatCompletionsEvents, 2)
+
+	var waitGroup sync.WaitGroup
+	waitGroup.Add(2)
+
+	go func() {
+		defer waitGroup.Done()
+
+		results <- collectChatCompletionsEvents(providerA.StreamResponse(
+			t.Context(),
+			newChatCompletionsStreamRequest(
+				"model-a",
+				"",
+				[]Message{{Role: RoleUser, Content: "hi"}},
+				nil,
+			),
+		))
+	}()
+
+	go func() {
+		defer waitGroup.Done()
+
+		results <- collectChatCompletionsEvents(providerB.StreamResponse(
+			t.Context(),
+			newChatCompletionsStreamRequest(
+				"model-b",
+				"",
+				[]Message{{Role: RoleUser, Content: "hi"}},
+				nil,
+			),
+		))
+	}()
+
+	waitGroup.Wait()
+	close(results)
+
+	for result := range results {
+		if result.err != nil {
+			t.Errorf("stream response: %v", result.err)
+		}
+	}
+
+	assertObservedInstance := func(
+		observed observedRequest,
+		wantModel string,
+		wantInstance string,
+		wantAuthorization string,
+	) {
+		t.Helper()
+
+		if observed.model != wantModel {
+			t.Errorf("model = %q, want %q", observed.model, wantModel)
+		}
+
+		if got := observed.header.Get("X-Instance"); got != wantInstance {
+			t.Errorf("X-Instance = %q, want %q", got, wantInstance)
+		}
+
+		if got := observed.header.Values(
+			"Authorization",
+		); !cmp.Equal(
+			got,
+			[]string{wantAuthorization},
+		) {
+			t.Errorf("Authorization = %q, want one configured value", got)
+		}
+	}
+
+	assertObservedInstance(<-observedA, "model-a", "a", "Bearer instance-a")
+	assertObservedInstance(<-observedB, "model-b", "b", "Bearer instance-b")
+}

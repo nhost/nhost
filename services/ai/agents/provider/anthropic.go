@@ -3,14 +3,24 @@ package provider
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
+	"net/url"
+	"slices"
+	"strings"
 
 	anthropic "github.com/anthropics/anthropic-sdk-go"
 	"github.com/anthropics/anthropic-sdk-go/option"
 )
 
-const defaultMaxTokens = 8192
+const (
+	anthropicMessagesMaxRetries = 2
+	defaultMaxTokens            = 8192
+)
+
+var errAnthropicMessagesRequest = errors.New("anthropic messages provider request failed")
 
 // toStringSlice extracts a []string from an any that holds either a Go-literal
 // []string (the common path today) or a []any of strings (the shape produced
@@ -37,17 +47,79 @@ func toStringSlice(v any) ([]string, bool) {
 	}
 }
 
-// Anthropic implements the Provider interface for Anthropic's Claude.
-type Anthropic struct {
-	client anthropic.Client
-	model  string
+type anthropicMessages struct {
+	messages      anthropic.MessageService
+	logRedactions []string
 }
 
-// NewAnthropic creates a new Anthropic provider.
-func NewAnthropic(apiKey, model string) *Anthropic {
-	return &Anthropic{
-		client: anthropic.NewClient(option.WithAPIKey(apiKey)),
-		model:  model,
+func newAnthropicMessagesConfiguration(
+	baseURL string,
+	headers map[string]string,
+) (endpointConfiguration, error) {
+	configuration, err := newEndpointConfiguration(
+		baseURL,
+		headers,
+		validateAnthropicMessagesURL,
+		[]string{"x-stainless-"},
+		nil,
+	)
+	if err != nil {
+		return endpointConfiguration{}, fmt.Errorf(
+			"configure Anthropic Messages endpoint: %w",
+			err,
+		)
+	}
+
+	return configuration, nil
+}
+
+func validateAnthropicMessagesURL(baseURL string) error {
+	parsed, err := url.Parse(baseURL)
+	if err != nil {
+		return errInvalidProviderBaseURL
+	}
+
+	pathWithoutTrailingSlash := strings.TrimSuffix(parsed.Path, "/")
+	if strings.HasSuffix(pathWithoutTrailingSlash, "/messages") ||
+		strings.HasSuffix(pathWithoutTrailingSlash, "/v1") {
+		return errInvalidProviderBaseURL
+	}
+
+	return nil
+}
+
+func newAnthropicMessages(configuration endpointConfiguration) *anthropicMessages {
+	headerNames := make([]string, 0, len(configuration.headers))
+	for name := range configuration.headers {
+		headerNames = append(headerNames, name)
+	}
+
+	slices.Sort(headerNames)
+
+	options := []option.RequestOption{
+		option.WithBaseURL(configuration.baseURL),
+		option.WithHTTPClient(newNoRedirectHTTPClient()),
+		option.WithMaxRetries(anthropicMessagesMaxRetries),
+	}
+	options = slices.Grow(options, len(headerNames))
+
+	for _, name := range headerNames {
+		options = append(options, option.WithHeader(name, configuration.headers[name]))
+	}
+
+	return newAnthropicMessagesWithOptions(
+		options,
+		providerLogRedactions(configuration.headers),
+	)
+}
+
+func newAnthropicMessagesWithOptions(
+	options []option.RequestOption,
+	logRedactions []string,
+) *anthropicMessages {
+	return &anthropicMessages{
+		messages:      anthropic.NewMessageService(options...),
+		logRedactions: logRedactions,
 	}
 }
 
@@ -116,19 +188,22 @@ func toAnthropicTools(tools []ToolDefinition) []anthropic.ToolUnionParam {
 	return result
 }
 
-// StreamResponse implements Provider.StreamResponse for Anthropic.
-func (a *Anthropic) StreamResponse(
+// StreamResponse streams a request through the configured Anthropic Messages
+// endpoint.
+func (a *anthropicMessages) StreamResponse(
 	ctx context.Context,
-	systemPrompt string,
-	messages []Message,
-	tools []ToolDefinition,
+	request StreamRequest,
 ) <-chan Event {
+	if err := request.validate(); err != nil {
+		return requestErrorChannel(err)
+	}
+
 	ch := make(chan Event)
 
 	go func() {
 		defer close(ch)
 
-		a.processStream(ctx, ch, systemPrompt, messages, tools)
+		a.processStream(ctx, ch, request)
 	}()
 
 	return ch
@@ -164,27 +239,38 @@ func buildAnthropicParams(
 	return params, nil
 }
 
-func (a *Anthropic) processStream(
+func (a *anthropicMessages) processStream(
 	ctx context.Context,
 	ch chan<- Event,
-	systemPrompt string,
-	messages []Message,
-	tools []ToolDefinition,
+	request StreamRequest,
 ) {
-	params, err := buildAnthropicParams(a.model, systemPrompt, messages, tools)
+	params, err := buildAnthropicParams(
+		request.Model,
+		request.SystemPrompt,
+		request.Messages,
+		request.Tools,
+	)
 	if err != nil {
 		send(ctx, ch, NewErrorEvent(err))
 
 		return
 	}
 
-	stream := a.client.Messages.NewStreaming(ctx, params)
+	var response *http.Response
+
+	// The Anthropic SDK uses slices.Concat to combine shared service options
+	// with request options, allocating fresh option storage for each stream.
+	stream := a.messages.NewStreaming(
+		ctx,
+		params,
+		option.WithResponseInto(&response),
+	)
 	defer func() {
-		if err := stream.Close(); err != nil {
+		if err := stream.Close(); err != nil && ctx.Err() == nil {
 			slog.WarnContext(
 				ctx,
 				"failed to close anthropic stream",
-				slog.String("error", err.Error()),
+				slog.String("error", providerErrorLogValue(err, a.logRedactions)),
 			)
 		}
 	}()
@@ -206,9 +292,22 @@ func (a *Anthropic) processStream(
 		}
 	}
 
-	if err := stream.Err(); err != nil {
-		send(ctx, ch, NewErrorEvent(err))
+	if err := stream.Err(); err != nil && ctx.Err() == nil {
+		logProviderError(ctx, "anthropic stream failed", err, a.logRedactions)
+		send(ctx, ch, NewErrorEvent(mapAnthropicMessagesError(response)))
 	}
+}
+
+func mapAnthropicMessagesError(response *http.Response) error {
+	if response != nil && response.StatusCode >= http.StatusBadRequest {
+		return fmt.Errorf(
+			"%w: HTTP status %d",
+			errAnthropicMessagesRequest,
+			response.StatusCode,
+		)
+	}
+
+	return errAnthropicMessagesRequest
 }
 
 func handleAnthropicStreamEvent(
