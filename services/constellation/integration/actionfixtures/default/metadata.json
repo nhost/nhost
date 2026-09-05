@@ -1,0 +1,346 @@
+{
+  "version": 3,
+  "sources": [],
+  "remote_schemas": [],
+  "actions": [
+    {
+      "name": "addNumbers",
+      "definition": {
+        "kind": "synchronous",
+        "handler": "{{NHOST_FUNCTIONS_URL}}/actions",
+        "forward_client_headers": true,
+        "headers": [
+          {
+            "name": "x-nhost-webhook-secret",
+            "value_from_env": "NHOST_WEBHOOK_SECRET"
+          }
+        ],
+        "timeout": 30,
+        "type": "query",
+        "arguments": [
+          {
+            "name": "a",
+            "type": "Int!"
+          },
+          {
+            "name": "b",
+            "type": "Int!"
+          }
+        ],
+        "output_type": "AddNumbersOutput!"
+      },
+      "permissions": [
+        {
+          "role": "public"
+        },
+        {
+          "role": "user"
+        }
+      ],
+      "comment": "Adds two integers through a synchronous Hasura Action."
+    },
+    {
+      "name": "echoHeaders",
+      "definition": {
+        "kind": "synchronous",
+        "handler": "{{NHOST_FUNCTIONS_URL}}/actions",
+        "forward_client_headers": true,
+        "headers": [
+          {
+            "name": "x-nhost-webhook-secret",
+            "value_from_env": "NHOST_WEBHOOK_SECRET"
+          }
+        ],
+        "timeout": 30,
+        "type": "query",
+        "arguments": [
+          {
+            "name": "message",
+            "type": "String!"
+          }
+        ],
+        "output_type": "EchoHeadersOutput!"
+      },
+      "permissions": [
+        {
+          "role": "user"
+        }
+      ],
+      "comment": "Echoes selected action input, session variables, and headers."
+    },
+    {
+      "name": "login",
+      "definition": {
+        "kind": "synchronous",
+        "handler": "{{NHOST_FUNCTIONS_URL}}/actions",
+        "forward_client_headers": false,
+        "headers": [
+          {
+            "name": "x-nhost-webhook-secret",
+            "value_from_env": "NHOST_WEBHOOK_SECRET"
+          }
+        ],
+        "timeout": 30,
+        "type": "mutation",
+        "arguments": [
+          {
+            "name": "email",
+            "type": "String!"
+          },
+          {
+            "name": "password",
+            "type": "String!"
+          }
+        ],
+        "output_type": "LoginOutput!"
+      },
+      "permissions": [
+        {
+          "role": "public"
+        }
+      ],
+      "comment": "Deterministic login action used for parity tests."
+    },
+    {
+      "name": "asyncEcho",
+      "definition": {
+        "kind": "asynchronous",
+        "handler": "{{NHOST_FUNCTIONS_URL}}/actions",
+        "forward_client_headers": false,
+        "headers": [
+          {
+            "name": "x-nhost-webhook-secret",
+            "value_from_env": "NHOST_WEBHOOK_SECRET"
+          }
+        ],
+        "timeout": 30,
+        "type": "mutation",
+        "arguments": [
+          {
+            "name": "message",
+            "type": "String!"
+          }
+        ],
+        "output_type": "AsyncEchoOutput!"
+      },
+      "permissions": [
+        {
+          "role": "user"
+        }
+      ],
+      "comment": "Exercises asynchronous action mutation/result parity."
+    },
+    {
+      "name": "actionProfiles",
+      "definition": {
+        "kind": "synchronous",
+        "handler": "{{NHOST_FUNCTIONS_URL}}/actions",
+        "forward_client_headers": false,
+        "headers": [
+          {
+            "name": "x-nhost-webhook-secret",
+            "value_from_env": "NHOST_WEBHOOK_SECRET"
+          }
+        ],
+        "timeout": 30,
+        "type": "query",
+        "arguments": [],
+        "output_type": "[ActionProfile!]!"
+      },
+      "comment": "Returns deterministic profile records for action relationship parity tests."
+    },
+    {
+      "name": "transformEcho",
+      "definition": {
+        "kind": "synchronous",
+        "handler": "{{NHOST_FUNCTIONS_URL}}/actions",
+        "forward_client_headers": false,
+        "headers": [
+          {
+            "name": "x-nhost-webhook-secret",
+            "value_from_env": "NHOST_WEBHOOK_SECRET"
+          }
+        ],
+        "timeout": 30,
+        "type": "query",
+        "arguments": [
+          {
+            "name": "message",
+            "type": "String!"
+          }
+        ],
+        "output_type": "TransformEchoOutput!",
+        "request_transform": {
+          "template_engine": "Kriti",
+          "version": 2,
+          "method": "PATCH",
+          "url": "{{$base_url}}",
+          "query_params": {
+            "role": "{{getSessionVariable(\"x-hasura-role\")}}",
+            "optional": "{{$session_variables?['x-hasura-missing']}}"
+          },
+          "content_type": "application/x-www-form-urlencoded",
+          "request_headers": {
+            "remove_headers": [
+              "content-type"
+            ],
+            "add_headers": {
+              "content-type": "application/x-www-form-urlencoded",
+              "x-action-name": "transformEcho",
+              "x-session-role": "{{getSessionVariable(\"x-hasura-role\")}}"
+            }
+          },
+          "body": {
+            "action": "x_www_form_urlencoded",
+            "form_template": {
+              "message": "{{$body.input.message}}",
+              "role": "{{getSessionVariable(\"x-hasura-role\")}}",
+              "nested": "{{concat([\"nested-\", $body.input.message])}}"
+            }
+          }
+        },
+        "response_transform": {
+          "template_engine": "Kriti",
+          "version": 2,
+          "body": {
+            "action": "transform",
+            "template": "{{ if $response.status == 202 }}\n{\n  \"message\": {{$body.data.text}},\n  \"role\": {{$body.data.role}},\n  \"contentType\": {{$body.data.contentType}}\n}\n{{ else }}\n{\n  \"message\": \"unexpected status\",\n  \"role\": \"unknown\",\n  \"contentType\": null\n}\n{{ end }}\n"
+          }
+        }
+      },
+      "permissions": [
+        {
+          "role": "user"
+        }
+      ],
+      "comment": "Exercises request and response transforms for synchronous actions."
+    }
+  ],
+  "custom_types": {
+    "enums": [],
+    "input_objects": [],
+    "objects": [
+      {
+        "name": "ActionProfile",
+        "fields": [
+          {
+            "name": "label",
+            "type": "String!"
+          },
+          {
+            "name": "userId",
+            "type": "ID!"
+          }
+        ],
+        "relationships": [
+          {
+            "name": "user",
+            "type": "object",
+            "source": "default",
+            "remote_table": {
+              "schema": "auth",
+              "name": "users"
+            },
+            "field_mapping": {
+              "userId": "id"
+            }
+          },
+          {
+            "name": "departments",
+            "type": "array",
+            "source": "default",
+            "remote_table": {
+              "schema": "public",
+              "name": "user_departments"
+            },
+            "field_mapping": {
+              "userId": "user_id"
+            }
+          }
+        ]
+      },
+      {
+        "name": "AddNumbersOutput",
+        "fields": [
+          {
+            "name": "sum",
+            "type": "Int!"
+          }
+        ]
+      },
+      {
+        "name": "EchoHeadersOutput",
+        "fields": [
+          {
+            "name": "message",
+            "type": "String!"
+          },
+          {
+            "name": "role",
+            "type": "String!"
+          },
+          {
+            "name": "userId",
+            "type": "String"
+          },
+          {
+            "name": "forwardedHeader",
+            "type": "String"
+          },
+          {
+            "name": "webhookSecretPresent",
+            "type": "Boolean!"
+          }
+        ]
+      },
+      {
+        "name": "LoginOutput",
+        "fields": [
+          {
+            "name": "accessToken",
+            "type": "String!"
+          },
+          {
+            "name": "userId",
+            "type": "String!"
+          },
+          {
+            "name": "role",
+            "type": "String!"
+          }
+        ]
+      },
+      {
+        "name": "TransformEchoOutput",
+        "fields": [
+          {
+            "name": "message",
+            "type": "String!"
+          },
+          {
+            "name": "role",
+            "type": "String!"
+          },
+          {
+            "name": "contentType",
+            "type": "String"
+          }
+        ]
+      },
+      {
+        "name": "AsyncEchoOutput",
+        "fields": [
+          {
+            "name": "message",
+            "type": "String!"
+          },
+          {
+            "name": "role",
+            "type": "String!"
+          }
+        ]
+      }
+    ],
+    "scalars": []
+  }
+}

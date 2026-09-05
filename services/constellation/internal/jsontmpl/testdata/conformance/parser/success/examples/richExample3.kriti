@@ -1,0 +1,18 @@
+{
+  "author": {
+    "name": {{$.event.name}},
+    "age": {{$.event.age}},
+    "articles": [
+{{ range _, x := $.event.author.articles }}
+  {{ if x.published }}
+      {
+        "id": {{x.id}},
+        "title": {{x.title}}
+      }
+  {{ else }}
+      null
+  {{ end }}
+{{ end }}
+    ]
+  }
+}

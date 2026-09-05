@@ -1,0 +1,26 @@
+# Vanilla Javascript Expressions
+[
+  null,
+  true,
+  false,
+  1,
+  1.5,
+  "hello",
+  "hello123",
+  [1, null, true],
+  {"foo": 1},
+  {"foo": 1, "bar": { "baz": [1, true]}},
+  {
+  "event": {
+    "name": "Freddie Jones",
+    "age": 27,
+    "author": {
+      "articles": [
+        { "id": 0, "title": "The Elements", "length": 150, "published": true},
+        { "id": 1, "title": "ARRL Handbook", "length": 1000, "published": true},
+        { "id": 2, "title": "The Mars Trilogy", "length": 500, "published": false}
+      ]
+    }
+  }
+}
+]

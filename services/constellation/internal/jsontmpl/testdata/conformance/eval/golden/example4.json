@@ -1,0 +1,24 @@
+{
+    "person": {
+        "age": 26,
+        "friends": [
+            "hello",
+            [
+                {
+                    "id": 0,
+                    "name": "Wilkerson Gill"
+                },
+                {
+                    "id": 1,
+                    "name": "Gonzalez Long"
+                },
+                {
+                    "id": 2,
+                    "name": "Hanson Ellison"
+                }
+            ],
+            "world"
+        ],
+        "name": "Shepard Mccall"
+    }
+}

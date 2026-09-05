@@ -1,0 +1,9 @@
+{{ if $[0].isActive }}
+   "if_evaluated"
+{{ elif (not $[1].isActive) }}
+   "elif_evaluated"
+{{ elif (not $[0].isActive) }}
+   "another_elif_evaluated"
+{{ else }}
+   "none_evaluated"
+{{ end }}

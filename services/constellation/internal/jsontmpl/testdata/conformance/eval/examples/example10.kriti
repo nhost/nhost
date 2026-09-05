@@ -1,0 +1,6 @@
+{{ range i, x := $ }}
+  {
+    "name": "{{x.name}}",
+    "id": {{ i }}
+  }
+{{ end }}

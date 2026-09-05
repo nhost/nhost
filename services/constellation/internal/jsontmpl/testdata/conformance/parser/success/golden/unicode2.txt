@@ -1,0 +1,43 @@
+Object
+    ( Span
+        { start = AlexSourcePos
+            { line = 0
+            , col = 1
+            }
+        , end = AlexSourcePos
+            { line = 0
+            , col = 15
+            }
+        }
+    )
+    ( fromList
+        [
+            ( "🕣🛸🚈"
+            , StringTem
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 0
+                        , col = 7
+                        }
+                    , end = AlexSourcePos
+                        { line = 0
+                        , col = 14
+                        }
+                    }
+                )
+                [ String
+                    ( Span
+                        { start = AlexSourcePos
+                            { line = 0
+                            , col = 8
+                            }
+                        , end = AlexSourcePos
+                            { line = 0
+                            , col = 13
+                            }
+                        }
+                    ) "hello"
+                ]
+            )
+        ]
+    )

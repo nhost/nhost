@@ -1,0 +1,68 @@
+description: Create and drop insert / update / delete permissions for a role.
+source: permission create/drop ops (ops_permissions.go)
+
+steps:
+  - description: Track author
+    query: {type: pg_track_table, args: {source: default, table: {schema: public, name: author}}}
+    status: 200
+    response: {message: success}
+
+  - description: Create insert permission
+    query:
+      type: pg_create_insert_permission
+      args:
+        source: default
+        table: {schema: public, name: author}
+        role: user
+        permission:
+          columns: ['*']
+          check: {}
+    status: 200
+    response: {message: success}
+
+  - description: Create update permission
+    query:
+      type: pg_create_update_permission
+      args:
+        source: default
+        table: {schema: public, name: author}
+        role: user
+        permission:
+          columns: ['name']
+          filter: {}
+          check: {}
+    status: 200
+    response: {message: success}
+
+  - description: Create delete permission
+    query:
+      type: pg_create_delete_permission
+      args:
+        source: default
+        table: {schema: public, name: author}
+        role: user
+        permission:
+          filter: {}
+    status: 200
+    response: {message: success}
+
+  - description: Drop insert permission
+    query:
+      type: pg_drop_insert_permission
+      args: {source: default, table: {schema: public, name: author}, role: user}
+    status: 200
+    response: {message: success}
+
+  - description: Drop update permission
+    query:
+      type: pg_drop_update_permission
+      args: {source: default, table: {schema: public, name: author}, role: user}
+    status: 200
+    response: {message: success}
+
+  - description: Drop delete permission
+    query:
+      type: pg_drop_delete_permission
+      args: {source: default, table: {schema: public, name: author}, role: user}
+    status: 200
+    response: {message: success}

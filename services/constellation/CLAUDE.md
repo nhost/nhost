@@ -35,7 +35,7 @@ The Go module lives at the repo root (`github.com/nhost/nhost`) with a single sh
   - `resolver/` - Executes cross-connector relationship queries after primary execution and stitches results back. Two strategies: `DatabaseResolver` (WHERE IN batching) and `SchemaResolver` (aliased field batching)
   - `websocket/` - `graphql-transport-ws` protocol handler. Pure protocol layer (read/write pumps, message routing, ping/pong). Business logic delegated to `MessageHandler` interface
 - `graph/` - Intermediate GraphQL schema representation (`Schema`, `ObjectType`, `Field`, etc.) with `ToAST()` conversion to gqlparser types
-- `metadata/` - Configuration parsing. Reads Hasura-compatible YAML or TOML metadata defining databases, tables, permissions, relationships, remote schemas, and functions. `metadata/source/` holds the `FileMetadataSource` (one-time file load) and `DatabaseMetadataSource` (polls `hdb_catalog`) implementations of `MetadataSource`
+- `metadata/` - Configuration parsing. Reads Hasura-compatible YAML or TOML metadata defining databases, tables, permissions, relationships, remote schemas, and functions. `metadata/source/` holds the implementations of `metadata.Source`: `FileMetadataSource` (one-time file load), `DatabaseMetadataSource` (polls `hdb_catalog`), and `Store` — the in-process mutable `metadata.Source` backing the native `/v1/metadata` dispatcher and its `ops_*.go` handlers. In store-backed mode (`--metadata-database-url`) `Store` is bootstrapped from `hdb_metadata`, persists mutations through a `MetadataWriter`, and is kept in sync across replicas via LISTEN/NOTIFY (`source.ListenAndReload` / `notify.go`); the legacy `DatabaseMetadataSource` poller is intentionally not wired there, serving only as the bootstrap source and `MetadataWriter`
 - `subscription/` - Subscription handler interface and types (`Request`, `Update`, `Handler`)
 - `integration/` - Integration tests against real PostgreSQL and Nhost environments
 - `internal/` - Internal utilities:
@@ -123,7 +123,7 @@ Golden file tests live in `testdata/` directories. Update them with the `-update
 - **`connector/sql.Driver`** (5 methods): `Introspect()`, `ExecuteOperations()`, `ExecuteMultiplexedOperation()`, `Dialect()`, `Close()`. Implemented by `postgres.Client`, `sqlite.Client`.
 - **`Dialect`**: Abstracts all SQL syntax differences. Implementations: `PostgresDialect`, `SQLiteDialect`.
 - **`subscription.Handler`** (3 methods): `Start()`, `Stop()`, `Shutdown()`. Implemented by `sql/subscription.Handler`.
-- **`metadata.Source`** (4 methods): `InitialLoad()`, `Watch()`, `HasuraSnapshotJSON()`, `Close()`. Implementations: `FileMetadataSource` (one-time load), `DatabaseMetadataSource` (polls `hdb_catalog`). `HasuraSnapshotJSON()` returns `(nil, 0)` for the TOML file source and prior to `InitialLoad`.
+- **`metadata.Source`** (4 methods): `InitialLoad()`, `Watch()`, `HasuraSnapshotJSON()`, `Close()`. Implementations: `FileMetadataSource` (one-time load), `DatabaseMetadataSource` (polls `hdb_catalog`), and `Store` (the in-process mutable source used when `--metadata-database-url` is set; wrapped by `dbStoreSource` in `cmd/serve.go`, synced cross-replica via `ListenAndReload`/`NOTIFY` rather than polling). `HasuraSnapshotJSON()` returns `(nil, 0)` for the TOML file source and prior to `InitialLoad`.
 - **`websocket.MessageHandler`** (4 methods): `OnConnectionInit()`, `OnSubscribe()`, `OnComplete()`, `OnClose()`. Implemented by `controller.WebSocketHandler`.
 
 ## Key Architectural Concepts

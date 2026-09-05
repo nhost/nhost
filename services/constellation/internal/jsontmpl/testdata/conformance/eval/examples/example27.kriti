@@ -1,0 +1,13 @@
+{
+    "array1":
+        {{ concat([
+          [1,2],
+          [3,4]
+        ]) }},
+    "array2":
+        {{ concat([
+          "hello",
+          " ",
+          "world"
+        ]) }}
+}

@@ -1,0 +1,53 @@
+description: >-
+  Track / untrack a table and its idempotency + already-untracked behavior.
+source: tests-py/queries/v1/track_table/track_untrack_table.yaml
+
+# Empty single-source seed (default). The table need not exist in a data DB:
+# pg_track_table is a metadata-only transform on this branch.
+
+steps:
+  - description: Track table
+    query:
+      type: pg_track_table
+      args:
+        source: default
+        table: {schema: public, name: author}
+    status: 200
+    response:
+      message: success
+
+  - description: Track already-tracked table (idempotent)
+    query:
+      type: pg_track_table
+      args:
+        source: default
+        table: {schema: public, name: author}
+    # Hasura returns 400 already-tracked; Constellation treats re-track as an
+    # idempotent no-op (200 with the code as message). Intentional divergence.
+    divergence: >-
+      Hasura: 400 code=already-tracked. Constellation: 200 message=already-tracked
+      (idempotent re-apply). See KNOWN_DIFFERENCES.md.
+    status: 200
+    response:
+      message: already-tracked
+
+  - description: Untrack table
+    query:
+      type: pg_untrack_table
+      args:
+        source: default
+        table: {schema: public, name: author}
+    status: 200
+    response:
+      message: success
+
+  - description: Untrack already-untracked table
+    query:
+      type: pg_untrack_table
+      args:
+        source: default
+        table: {schema: public, name: author}
+    status: 400
+    matchError: false
+    response:
+      code: already-untracked

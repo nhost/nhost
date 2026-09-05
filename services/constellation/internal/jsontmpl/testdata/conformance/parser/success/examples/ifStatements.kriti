@@ -1,0 +1,19 @@
+# If Statement Examples
+[ {{ if p }} true {{ else }} false {{ end }},
+  {{ if (p) }} true {{ else }} false {{ end }},
+  {{ if p && q }} true {{ else }} false {{ end }},
+  {{ if (p && q) }} true {{ else }} false {{ end }}, # random comment
+  {{ if (p && q) || q }} true {{ else }} false {{ end }},
+  {{ if ((1) == 3) }} true {{ else }} false {{ end }},
+  {{ if ((1) == 3) }} {{ $path['lookup']}} {{ else }} false {{ end }},
+  {{ if $[0].isActive == false }} true {{ else }} false {{ end }},
+  {{ if $[0].isActive }} true {{ else }} false {{ end }},
+  {{ if ((1) != 3) }} true {{ else }} false {{ end }},
+  {{ if ((1) >= 3) }} true {{ else }} false {{ end }},
+  {{ if ((1) <= 3) }} true {{ else }} false {{ end }},
+  {{ if "foo" in ["foo"] }} 1 {{ else }} 0 {{ end }},
+  {{ if "foo" in { "foo": true } }} 1 {{ else }} 0 {{ end }},
+  {{ if ("foo" in { "foo": true }) }} 1 {{ else }} 0 {{ end }},
+  {{ if ("foo" in { "foo": false }) }} 1 {{ elif ("foo" in { "foo": true }) }} 0 {{ else }} 0 {{ end }},
+  {{ if ("foo" in { "foo": false }) }} 1 {{ elif ("bar" in { "bar": true }) }} 0 {{ elif true }} "text" {{ else }} 0 {{ end }}
+]

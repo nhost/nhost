@@ -1,0 +1,9 @@
+# function calls
+[ {{ head("foo") }},
+  {{ not (empty(tail("f"))) }},
+  {{ size($path[0]) }},
+  {{ inverse([1,2,3,4,5,6,7,8,9]) }},
+  {{ toUpper("hello world")}},
+  {{ toTitle("hELLO wORLD")}},
+  {{ toLower("HELLO WORLD")}}
+]

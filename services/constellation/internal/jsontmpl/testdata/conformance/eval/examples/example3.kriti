@@ -1,0 +1,9 @@
+[
+  {{ range _, x := $ }}
+   {{ if x.isActive }}
+   {{ x.eyeColor }}
+   {{ else }}
+     "not active"
+   {{ end }}
+  {{ end }}
+]

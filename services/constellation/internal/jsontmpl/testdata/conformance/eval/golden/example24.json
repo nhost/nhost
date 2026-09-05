@@ -1,0 +1,20 @@
+{
+    "agents": [
+        {
+            "agent_id": "0bcf5ea6-8e7a-4e1d-aaf3-0994535c004d",
+            "agent_name": "Arreug Ennaid",
+            "friends": 3,
+            "gender": "F",
+            "money": "2,551.65",
+            "tags": true
+        },
+        {
+            "agent_id": "8ca357de-994e-433d-af8c-d232bbab437a",
+            "agent_name": "Snehpets Adnov",
+            "friends": 3,
+            "gender": "F",
+            "money": "2,695.48",
+            "tags": true
+        }
+    ]
+}

@@ -1,0 +1,13 @@
+{
+    "agents":
+    {{ range i, x := $ }}
+        {
+            "agent_id" : {{ toLower(x.guid) }},
+            "friends" : {{ size(x.friends) }},
+            "gender" : {{toUpper(head(x.gender))}},
+            "money" : {{tail(x.balance)}},
+            "tags" : {{ not(empty(x.tags)) }},
+            "agent_name" : {{ toTitle(inverse(x.name)) }}
+        }
+    {{ end }}
+}

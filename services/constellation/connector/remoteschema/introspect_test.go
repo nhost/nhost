@@ -132,6 +132,42 @@ func TestIntrospect_GraphQLErrors(t *testing.T) {
 	}
 }
 
+// TestIntrospectRawFromMeta_* cover the exported entry point used by the
+// metadata API's introspect_remote_schema / reload_remote_schema handlers:
+// success returns the raw `data` document, and a non-http(s) URL is rejected by
+// validateRemoteURL before any request is made.
+
+func TestIntrospectRawFromMeta_Success(t *testing.T) {
+	t.Parallel()
+
+	server := newTestServer(t)
+	defer server.Close()
+
+	raw, err := remoteschema.IntrospectRawFromMeta(
+		context.Background(), newTestMetadata(server.URL, nil), nil,
+	)
+	if err != nil {
+		t.Fatalf("IntrospectRawFromMeta() error: %v", err)
+	}
+
+	// The raw document is the GraphQL response's `data` object, i.e. the
+	// { "__schema": { ... } } payload echoed verbatim.
+	if !strings.Contains(string(raw), `"__schema"`) {
+		t.Errorf("expected raw __schema document, got: %s", raw)
+	}
+}
+
+func TestIntrospectRawFromMeta_RejectsNonHTTPURL(t *testing.T) {
+	t.Parallel()
+
+	_, err := remoteschema.IntrospectRawFromMeta(
+		context.Background(), newTestMetadata("ftp://example.com/graphql", nil), nil,
+	)
+	if !errors.Is(err, remoteschema.ErrUnsupportedURLScheme) {
+		t.Errorf("expected ErrUnsupportedURLScheme, got: %v", err)
+	}
+}
+
 func TestIntrospect_NilDoerUsesDefaultClient(t *testing.T) {
 	t.Parallel()
 

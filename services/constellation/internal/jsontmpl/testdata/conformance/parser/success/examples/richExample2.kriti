@@ -1,0 +1,17 @@
+{
+  "author": {
+    "name": {{$.event.name}},
+    "age": {{$.event.age}},
+    "articles": [
+      "hello",
+{{ range _, x := $.event.author.articles }}
+      {
+        "id": {{x.id}},
+        "title": {{x.title}}
+      }
+{{ end }},
+      "world"
+    ]
+  }
+}
+

@@ -41,59 +41,6 @@ func TestConvertDatabaseURL(t *testing.T) {
 	}
 }
 
-func TestConvertHeaderValue(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name             string
-		in               hasura.EnvValue
-		wantValue        string
-		wantValueFromEnv string
-	}{
-		{
-			name:             "from env",
-			in:               hasura.EnvValue{FromEnv: "API_KEY"},
-			wantValue:        "",
-			wantValueFromEnv: "API_KEY",
-		},
-		{
-			name:             "direct value",
-			in:               hasura.EnvValue{Value: "secret123"},
-			wantValue:        "secret123",
-			wantValueFromEnv: "",
-		},
-		{
-			name:             "literal braces stay literal",
-			in:               hasura.EnvValue{Value: "{{API_KEY}}"},
-			wantValue:        "{{API_KEY}}",
-			wantValueFromEnv: "",
-		},
-		{
-			name:             "empty",
-			in:               hasura.EnvValue{},
-			wantValue:        "",
-			wantValueFromEnv: "",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			gotValue, gotValueFromEnv := convertHeaderValue(tt.in)
-			if gotValue != tt.wantValue || gotValueFromEnv != tt.wantValueFromEnv {
-				t.Errorf(
-					"convertHeaderValue = (%q, %q), want (%q, %q)",
-					gotValue,
-					gotValueFromEnv,
-					tt.wantValue,
-					tt.wantValueFromEnv,
-				)
-			}
-		})
-	}
-}
-
 func TestNormalizePermissionMap(t *testing.T) {
 	t.Parallel()
 
@@ -807,66 +754,30 @@ func TestConvertRemoteRelationship(t *testing.T) {
 func TestConvertRemoteSchema(t *testing.T) {
 	t.Parallel()
 
-	h := hasura.RemoteSchemaMetadata{
-		Name:    "payments",
-		Comment: "Payment service",
-		Definition: hasura.RemoteSchemaDefinition{
-			URLFromEnv:           "PAYMENTS_URL",
-			TimeoutSeconds:       60,
-			ForwardClientHeaders: true,
-			Customization: hasura.RemoteSchemaCustomization{
-				RootFieldsNamespace: "payments",
-				TypeNames: hasura.TypeNamesCustomization{
-					Prefix:  "Pay_",
-					Suffix:  "_RS",
-					Mapping: map[string]string{"Payment": "Charge"},
-				},
-				FieldNames: []hasura.FieldNamesCustomization{
-					{
-						ParentType: "Payment",
-						Prefix:     "p_",
-						Suffix:     "_f",
-						Mapping:    map[string]string{"id": "paymentId"},
-					},
-					{
-						ParentType: "Query",
-						Prefix:     "q_",
-					},
-				},
-			},
-			Headers: []hasura.RemoteSchemaHeader{
-				{Name: "x-api-key", Value: hasura.EnvValue{FromEnv: "PAYMENTS_KEY"}},
-			},
-		},
-		Permissions: []hasura.RemoteSchemaPermission{
-			{
-				Role: "user",
-				Definition: hasura.RemoteSchemaPermissionDef{
-					Schema: "type Query { getPayment(id: ID!): Payment }",
-				},
-			},
-		},
-		RemoteRelationships: []hasura.RemoteSchemaTypeRemoteRelationship{
-			{
-				TypeName: "Payment",
-				Relationships: []hasura.RemoteSchemaRelationshipDef{
-					{
-						Name: "user",
-						Definition: hasura.RemoteSchemaRelationshipDefinition{
-							ToSource: &hasura.RemoteSchemaToSourceRelationship{
-								FieldMapping:     map[string]string{"user_id": "id"},
-								RelationshipType: "object",
-								Source:           "default",
-								Table: hasura.RemoteSchemaTableRef{
-									Name:   "users",
-									Schema: "auth",
-								},
-							},
-						},
-					},
-				},
-			},
-		},
+	// The Hasura wire type is generated (pointers + oapi-codegen unions), so the
+	// fixture is built by decoding JSON rather than hand-writing pointer/union
+	// literals; this also exercises the wire decode path the store uses.
+	const hJSON = `{` +
+		`"name":"payments","comment":"Payment service",` +
+		`"definition":{` +
+		`"url_from_env":"PAYMENTS_URL","timeout_seconds":60,"forward_client_headers":true,` +
+		`"customization":{"root_fields_namespace":"payments",` +
+		`"type_names":{"prefix":"Pay_","suffix":"_RS","mapping":{"Payment":"Charge"}},` +
+		`"field_names":[` +
+		`{"parent_type":"Payment","prefix":"p_","suffix":"_f","mapping":{"id":"paymentId"}},` +
+		`{"parent_type":"Query","prefix":"q_"}]},` +
+		`"headers":[{"name":"x-api-key","value_from_env":"PAYMENTS_KEY"}]},` +
+		`"permissions":[{"role":"user","definition":` +
+		`{"schema":"type Query { getPayment(id: ID!): Payment }"}}],` +
+		`"remote_relationships":[{"type_name":"Payment","relationships":[` +
+		`{"name":"user","definition":{"to_source":{"field_mapping":{"user_id":"id"},` +
+		`"relationship_type":"object","source":"default",` +
+		`"table":{"name":"users","schema":"auth"}}}}]}]` +
+		`}`
+
+	var h hasura.RemoteSchemaMetadata
+	if err := stdjson.Unmarshal([]byte(hJSON), &h); err != nil {
+		t.Fatalf("building wire fixture: %v", err)
 	}
 
 	got := convertRemoteSchema(h)
@@ -943,6 +854,46 @@ func TestConvertRemoteSchema(t *testing.T) {
 	}
 }
 
+// TestConvertRemoteSchema_ToRemoteSchemaRelationship verifies the rs→rs
+// (to_remote_schema) relationship variant converts into the native model.
+func TestConvertRemoteSchema_ToRemoteSchemaRelationship(t *testing.T) {
+	t.Parallel()
+
+	const hJSON = `{"name":"rs","definition":{"url":"http://rs.test/graphql"},` +
+		`"remote_relationships":[{"type_name":"Team","relationships":[` +
+		`{"name":"weather","definition":{"to_remote_schema":{` +
+		`"remote_schema":"weather_api","lhs_fields":["city"],` +
+		`"remote_field":{"forecast":{"arguments":{"city":"$city"}}}}}}]}]}`
+
+	var h hasura.RemoteSchemaMetadata
+	if err := stdjson.Unmarshal([]byte(hJSON), &h); err != nil {
+		t.Fatalf("building wire fixture: %v", err)
+	}
+
+	got := convertRemoteSchema(h)
+
+	toRS := got.RemoteRelationships[0].Relationships[0].Definition.ToRemoteSchema
+	if toRS == nil {
+		t.Fatal("expected ToRemoteSchema to be populated")
+	}
+
+	want := &ToRemoteSchemaRelationship{
+		RemoteSchema: "weather_api",
+		LHSFields:    []string{"city"},
+		RemoteField: map[string]RemoteFieldCall{
+			"forecast": {Arguments: map[string]string{"city": "$city"}},
+		},
+	}
+
+	if diff := cmp.Diff(want, toRS, cmpopts.EquateEmpty()); diff != "" {
+		t.Errorf("to_remote_schema mismatch (-want +got):\n%s", diff)
+	}
+
+	if got.RemoteRelationships[0].Relationships[0].Definition.ToSource != nil {
+		t.Error("ToSource should be nil for a to_remote_schema relationship")
+	}
+}
+
 func TestConvertRemoteSchemaURL(t *testing.T) {
 	t.Parallel()
 
@@ -953,12 +904,12 @@ func TestConvertRemoteSchemaURL(t *testing.T) {
 	}{
 		{
 			name: "url_from_env",
-			in:   hasura.RemoteSchemaDefinition{URLFromEnv: "GRAPHQL_URL"},
+			in:   hasura.RemoteSchemaDefinition{UrlFromEnv: new("GRAPHQL_URL")},
 			want: "{{GRAPHQL_URL}}",
 		},
 		{
 			name: "direct url",
-			in:   hasura.RemoteSchemaDefinition{URL: "http://localhost:4000/graphql"},
+			in:   hasura.RemoteSchemaDefinition{Url: new("http://localhost:4000/graphql")},
 			want: "http://localhost:4000/graphql",
 		},
 	}
@@ -1083,7 +1034,7 @@ func TestFromHasura(t *testing.T) {
 			{
 				Name: "rs",
 				Definition: hasura.RemoteSchemaDefinition{
-					URL: "http://example.com/graphql",
+					Url: new("http://example.com/graphql"),
 				},
 			},
 		},
@@ -1102,5 +1053,68 @@ func TestFromHasura(t *testing.T) {
 	if got.Databases[0].Configuration.ConnectionInfo.DatabaseURL != "{{DB}}" {
 		t.Errorf("DatabaseURL = %q, want %q",
 			got.Databases[0].Configuration.ConnectionInfo.DatabaseURL, "{{DB}}")
+	}
+}
+
+// TestConvertRawRemoteFields_NestedField pins the recursive `field` descent in
+// convertRawRemoteFields, which the existing single-level remote_field fixtures
+// never exercise: a nested child field map must convert into a nested
+// RemoteFieldCall with its own arguments.
+func TestConvertRawRemoteFields_NestedField(t *testing.T) {
+	t.Parallel()
+
+	in := map[string]rawRemoteFieldCall{
+		"user": {
+			Arguments: map[string]stdjson.RawMessage{"id": stdjson.RawMessage(`"$id"`)},
+			Field: map[string]rawRemoteFieldCall{
+				"address": {
+					Arguments: map[string]stdjson.RawMessage{"kind": stdjson.RawMessage(`"$kind"`)},
+				},
+			},
+		},
+	}
+
+	want := map[string]RemoteFieldCall{
+		"user": {
+			Arguments: map[string]string{"id": "$id"},
+			Field: map[string]RemoteFieldCall{
+				"address": {
+					Arguments: map[string]string{"kind": "$kind"},
+				},
+			},
+		},
+	}
+
+	if diff := cmp.Diff(want, convertRawRemoteFields(in)); diff != "" {
+		t.Errorf("convertRawRemoteFields nested mismatch (-want +got):\n%s", diff)
+	}
+}
+
+// TestJSONRawToString pins both branches of jsonRawToString: a JSON string is
+// unquoted (the common `$`-prefixed argument case), while any non-string value
+// falls through to its raw JSON encoding — a lossy stringification locked in
+// here so it is a deliberate choice rather than a later surprise.
+func TestJSONRawToString(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		in   stdjson.RawMessage
+		want string
+	}{
+		{"string is unquoted", stdjson.RawMessage(`"$id"`), "$id"},
+		{"number falls through to raw json", stdjson.RawMessage(`5`), "5"},
+		{"bool falls through to raw json", stdjson.RawMessage(`true`), "true"},
+		{"object falls through to raw json", stdjson.RawMessage(`{"a":1}`), `{"a":1}`},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := jsonRawToString(tt.in); got != tt.want {
+				t.Errorf("jsonRawToString(%s) = %q, want %q", tt.in, got, tt.want)
+			}
+		})
 	}
 }

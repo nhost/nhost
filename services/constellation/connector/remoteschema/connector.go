@@ -64,6 +64,40 @@ type Connector struct {
 	schemas              map[string]*graph.Schema          // role -> schema
 	presets              map[string]map[string][]presetArg // role -> "TypeName.fieldName" -> presets
 	httpClient           *httpClient
+	// validationFailures records roles whose permission schema was rejected
+	// against the upstream introspection and therefore dropped. The build path
+	// reads these via ValidationFailures and surfaces them as per-role
+	// inconsistencies, matching Hasura's role-based-schema validation.
+	validationFailures []RoleValidationFailure
+}
+
+// ValidationFailures returns the roles dropped during construction because
+// their permission schema was not a valid subset of the upstream remote
+// schema. It is empty when every configured role validated cleanly.
+func (c *Connector) ValidationFailures() []RoleValidationFailure {
+	return c.validationFailures
+}
+
+// hardenedHTTPClient is the client used for credentialed outbound remote-schema
+// requests (introspection, validation, reload) when the caller supplies no
+// doer. It sets a finite timeout and disables redirect following: a GraphQL
+// operation is a POST with no legitimate redirect semantics, and following one
+// would re-issue the request — with the configured X-Api-Key and any forwarded
+// Authorization/Cookie headers — to an attacker-chosen host (SSRF + credential
+// leak). http.ErrUseLastResponse makes Do() stop at the first 3xx and hand it
+// back so the caller treats it as a non-200 response. timeoutSeconds <= 0 falls
+// back to defaultTimeoutSeconds.
+func hardenedHTTPClient(timeoutSeconds int) *http.Client {
+	if timeoutSeconds <= 0 {
+		timeoutSeconds = defaultTimeoutSeconds
+	}
+
+	return &http.Client{ //nolint:exhaustruct
+		Timeout: time.Duration(timeoutSeconds) * time.Second,
+		CheckRedirect: func(_ *http.Request, _ []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
 }
 
 // New creates a new remote schema connector from metadata. The provided doer is
@@ -101,45 +135,33 @@ func New(
 	// Wiring an injected doer into production must re-establish this guard, or
 	// redirects would silently leak the configured credentials.
 	if doer == nil {
-		doer = &http.Client{ //nolint:exhaustruct
-			Timeout: time.Duration(timeout) * time.Second,
-			// Disallow redirect following entirely. A GraphQL operation is a
-			// POST with no legitimate redirect semantics, and following one
-			// would re-issue the request — with the configured X-Api-Key and
-			// any forwarded Authorization/Cookie headers — to an
-			// attacker-chosen host (SSRF + credential leak). Returning
-			// http.ErrUseLastResponse makes Do() stop at the first 3xx and
-			// hand it back so the caller treats it as a non-200 response.
-			CheckRedirect: func(_ *http.Request, _ []*http.Request) error {
-				return http.ErrUseLastResponse
-			},
-		}
-	}
-
-	schemas, presets, err := buildRoleSchemas(meta)
-	if err != nil {
-		return nil, fmt.Errorf("building role schemas for remote schema %s: %w", meta.Name, err)
+		doer = hardenedHTTPClient(timeout)
 	}
 
 	connector := &Connector{
 		name:                 meta.Name,
 		forwardClientHeaders: meta.Definition.ForwardClientHeaders,
-		schemas:              schemas,
-		presets:              presets,
+		schemas:              make(map[string]*graph.Schema),
+		presets:              make(map[string]map[string][]presetArg),
 		httpClient: &httpClient{
 			url:     url,
 			headers: headers,
 			client:  doer,
 		},
+		validationFailures: nil,
 	}
 
-	// Admin role always has full access via introspection.
+	// Admin role always has full access via introspection. The introspection
+	// result is also the upstream schema each non-admin role's permission SDL is
+	// validated against below, so it must be fetched before the roles are built.
 	adminSchema, err := connector.introspectRemoteSchema(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to introspect remote schema for admin role: %w", err)
+		return nil, fmt.Errorf("%w: admin role: %w", ErrIntrospection, err)
 	}
 
 	connector.schemas[metadata.RoleAdmin] = adminSchema
+
+	connector.buildRoleSchemas(meta, adminSchema)
 
 	return connector, nil
 }
@@ -171,15 +193,18 @@ func buildHeaders(meta *metadata.RemoteSchemaMetadata) (map[string]string, error
 	return headers, nil
 }
 
-// buildRoleSchemas parses the SDL permission blocks for every non-admin role,
-// returning per-role schemas and the preset registry. Admin is intentionally
-// skipped — the live introspection result is the source of truth for admin.
-func buildRoleSchemas(
+// buildRoleSchemas parses the SDL permission block for every non-admin role and
+// validates it against the upstream (admin) introspection before registering
+// it. Admin is intentionally skipped — the live introspection result is the
+// source of truth for admin. A role whose SDL fails to parse, or which exposes
+// types/fields the upstream schema does not, is dropped and recorded in
+// validationFailures rather than aborting the whole remote schema; this matches
+// Hasura, which marks the offending role-based schema inconsistent and keeps
+// serving the remaining roles.
+func (c *Connector) buildRoleSchemas(
 	meta *metadata.RemoteSchemaMetadata,
-) (map[string]*graph.Schema, map[string]map[string][]presetArg, error) {
-	schemas := make(map[string]*graph.Schema)
-	presets := make(map[string]map[string][]presetArg)
-
+	upstream *graph.Schema,
+) {
 	for _, perm := range meta.Permissions {
 		if perm.Role == metadata.RoleAdmin {
 			continue
@@ -187,17 +212,29 @@ func buildRoleSchemas(
 
 		schema, rolePresets, err := parseSDL(perm.Definition.Schema)
 		if err != nil {
-			return nil, nil, fmt.Errorf("failed to parse schema for role %s: %w", perm.Role, err)
+			c.validationFailures = append(c.validationFailures, RoleValidationFailure{
+				Role:   perm.Role,
+				Errors: []string{fmt.Sprintf("failed to parse permission schema: %v", err)},
+			})
+
+			continue
 		}
 
-		schemas[perm.Role] = schema
+		if errs := validateRoleAgainstUpstream(schema, upstream); len(errs) > 0 {
+			c.validationFailures = append(c.validationFailures, RoleValidationFailure{
+				Role:   perm.Role,
+				Errors: errs,
+			})
+
+			continue
+		}
+
+		c.schemas[perm.Role] = schema
 
 		if len(rolePresets) > 0 {
-			presets[perm.Role] = rolePresets
+			c.presets[perm.Role] = rolePresets
 		}
 	}
-
-	return schemas, presets, nil
 }
 
 // GetSchema returns the parsed schemas for each role.

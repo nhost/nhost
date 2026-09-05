@@ -1,0 +1,389 @@
+Array
+    ( Span
+        { start = AlexSourcePos
+            { line = 1
+            , col = 1
+            }
+        , end = AlexSourcePos
+            { line = 9
+            , col = 2
+            }
+        }
+    )
+    [ Var
+        ( Span
+            { start = AlexSourcePos
+                { line = 1
+                , col = 6
+                }
+            , end = AlexSourcePos
+                { line = 1
+                , col = 10
+                }
+            }
+        ) "$foo"
+    , RequiredFieldAccess
+        ( Span
+            { start = AlexSourcePos
+                { line = 2
+                , col = 6
+                }
+            , end = AlexSourcePos
+                { line = 2
+                , col = 18
+                }
+            }
+        )
+        ( RequiredFieldAccess
+            ( Span
+                { start = AlexSourcePos
+                    { line = 2
+                    , col = 6
+                    }
+                , end = AlexSourcePos
+                    { line = 2
+                    , col = 14
+                    }
+                }
+            )
+            ( Var
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 2
+                        , col = 6
+                        }
+                    , end = AlexSourcePos
+                        { line = 2
+                        , col = 10
+                        }
+                    }
+                ) "$foo"
+            )
+            ( Left "bar" )
+        )
+        ( Left "baz" )
+    , RequiredFieldAccess
+        ( Span
+            { start = AlexSourcePos
+                { line = 3
+                , col = 6
+                }
+            , end = AlexSourcePos
+                { line = 3
+                , col = 25
+                }
+            }
+        )
+        ( RequiredFieldAccess
+            ( Span
+                { start = AlexSourcePos
+                    { line = 3
+                    , col = 6
+                    }
+                , end = AlexSourcePos
+                    { line = 3
+                    , col = 21
+                    }
+                }
+            )
+            ( Var
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 3
+                        , col = 6
+                        }
+                    , end = AlexSourcePos
+                        { line = 3
+                        , col = 10
+                        }
+                    }
+                ) "$foo"
+            )
+            ( Right
+                ( String
+                    ( Span
+                        { start = AlexSourcePos
+                            { line = 3
+                            , col = 12
+                            }
+                        , end = AlexSourcePos
+                            { line = 3
+                            , col = 19
+                            }
+                        }
+                    ) "bar baz"
+                )
+            )
+        )
+        ( Left "qux" )
+    , RequiredFieldAccess
+        ( Span
+            { start = AlexSourcePos
+                { line = 4
+                , col = 6
+                }
+            , end = AlexSourcePos
+                { line = 4
+                , col = 22
+                }
+            }
+        )
+        ( RequiredFieldAccess
+            ( Span
+                { start = AlexSourcePos
+                    { line = 4
+                    , col = 6
+                    }
+                , end = AlexSourcePos
+                    { line = 4
+                    , col = 19
+                    }
+                }
+            )
+            ( RequiredFieldAccess
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 4
+                        , col = 6
+                        }
+                    , end = AlexSourcePos
+                        { line = 4
+                        , col = 16
+                        }
+                    }
+                )
+                ( RequiredFieldAccess
+                    ( Span
+                        { start = AlexSourcePos
+                            { line = 4
+                            , col = 6
+                            }
+                        , end = AlexSourcePos
+                            { line = 4
+                            , col = 13
+                            }
+                        }
+                    )
+                    ( Var
+                        ( Span
+                            { start = AlexSourcePos
+                                { line = 4
+                                , col = 6
+                                }
+                            , end = AlexSourcePos
+                                { line = 4
+                                , col = 10
+                                }
+                            }
+                        ) "$foo"
+                    )
+                    ( Right
+                        ( Number
+                            ( Span
+                                { start = AlexSourcePos
+                                    { line = 4
+                                    , col = 11
+                                    }
+                                , end = AlexSourcePos
+                                    { line = 4
+                                    , col = 12
+                                    }
+                                }
+                            ) 1.0
+                        )
+                    )
+                )
+                ( Right
+                    ( Number
+                        ( Span
+                            { start = AlexSourcePos
+                                { line = 4
+                                , col = 14
+                                }
+                            , end = AlexSourcePos
+                                { line = 4
+                                , col = 15
+                                }
+                            }
+                        ) 0.0
+                    )
+                )
+            )
+            ( Right
+                ( Number
+                    ( Span
+                        { start = AlexSourcePos
+                            { line = 4
+                            , col = 17
+                            }
+                        , end = AlexSourcePos
+                            { line = 4
+                            , col = 18
+                            }
+                        }
+                    ) 3.0
+                )
+            )
+        )
+        ( Left "ok" )
+    , OptionalFieldAccess
+        ( Span
+            { start = AlexSourcePos
+                { line = 5
+                , col = 6
+                }
+            , end = AlexSourcePos
+                { line = 5
+                , col = 10
+                }
+            }
+        )
+        ( Var
+            ( Span
+                { start = AlexSourcePos
+                    { line = 5
+                    , col = 6
+                    }
+                , end = AlexSourcePos
+                    { line = 5
+                    , col = 10
+                    }
+                }
+            ) "$foo"
+        )
+        [ Left "bar" ]
+    , OptionalFieldAccess
+        ( Span
+            { start = AlexSourcePos
+                { line = 6
+                , col = 6
+                }
+            , end = AlexSourcePos
+                { line = 6
+                , col = 10
+                }
+            }
+        )
+        ( Var
+            ( Span
+                { start = AlexSourcePos
+                    { line = 6
+                    , col = 6
+                    }
+                , end = AlexSourcePos
+                    { line = 6
+                    , col = 10
+                    }
+                }
+            ) "$foo"
+        )
+        [ Right
+            ( String
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 6
+                        , col = 13
+                        }
+                    , end = AlexSourcePos
+                        { line = 6
+                        , col = 16
+                        }
+                    }
+                ) "bar"
+            )
+        ]
+    , OptionalFieldAccess
+        ( Span
+            { start = AlexSourcePos
+                { line = 7
+                , col = 6
+                }
+            , end = AlexSourcePos
+                { line = 7
+                , col = 10
+                }
+            }
+        )
+        ( Var
+            ( Span
+                { start = AlexSourcePos
+                    { line = 7
+                    , col = 6
+                    }
+                , end = AlexSourcePos
+                    { line = 7
+                    , col = 10
+                    }
+                }
+            ) "$foo"
+        )
+        [ Right
+            ( Number
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 7
+                        , col = 12
+                        }
+                    , end = AlexSourcePos
+                        { line = 7
+                        , col = 13
+                        }
+                    }
+                ) 1.0
+            )
+        ]
+    , OptionalFieldAccess
+        ( Span
+            { start = AlexSourcePos
+                { line = 8
+                , col = 6
+                }
+            , end = AlexSourcePos
+                { line = 8
+                , col = 10
+                }
+            }
+        )
+        ( OptionalFieldAccess
+            ( Span
+                { start = AlexSourcePos
+                    { line = 8
+                    , col = 6
+                    }
+                , end = AlexSourcePos
+                    { line = 8
+                    , col = 10
+                    }
+                }
+            )
+            ( Var
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 8
+                        , col = 6
+                        }
+                    , end = AlexSourcePos
+                        { line = 8
+                        , col = 10
+                        }
+                    }
+                ) "$foo"
+            )
+            [ Right
+                ( Number
+                    ( Span
+                        { start = AlexSourcePos
+                            { line = 8
+                            , col = 12
+                            }
+                        , end = AlexSourcePos
+                            { line = 8
+                            , col = 13
+                            }
+                        }
+                    ) 1.0
+                )
+            ]
+        )
+        [ Left "baz" ]
+    ]
