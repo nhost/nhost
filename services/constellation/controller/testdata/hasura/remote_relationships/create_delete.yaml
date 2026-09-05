@@ -1,0 +1,73 @@
+description: >-
+  pg_create_remote_relationship / pg_delete_remote_relationship manage remote
+  relationship metadata (the cross-source/remote-schema resolution at query time
+  is runtime/LIVE). Create is idempotent for the same name; deleting a missing
+  remote relationship is not-exists.
+source: api-tests Schema/RemoteRelationships + ops_remote_relationships.go
+
+steps:
+  - description: Track author
+    query: {type: pg_track_table, args: {source: default, table: {schema: public, name: author}}}
+    status: 200
+    response: {message: success}
+
+  - description: Create remote relationship to a remote schema
+    query:
+      type: pg_create_remote_relationship
+      args:
+        source: default
+        table: {schema: public, name: author}
+        name: profile
+        definition:
+          to_remote_schema:
+            remote_schema: my_remote
+            lhs_fields: [id]
+            remote_field:
+              user:
+                arguments:
+                  id: $id
+    status: 200
+    response: {message: success}
+
+  - description: Re-create the same remote relationship (idempotent)
+    query:
+      type: pg_create_remote_relationship
+      args:
+        source: default
+        table: {schema: public, name: author}
+        name: profile
+        definition:
+          to_remote_schema:
+            remote_schema: my_remote
+            lhs_fields: [id]
+            remote_field:
+              user:
+                arguments:
+                  id: $id
+    divergence: >-
+      Constellation treats a same-name remote-relationship create as an
+      idempotent 200 already-exists. See KNOWN_DIFFERENCES.md.
+    status: 200
+    response:
+      message: already-exists
+
+  - description: Delete the remote relationship
+    query:
+      type: pg_delete_remote_relationship
+      args:
+        source: default
+        table: {schema: public, name: author}
+        name: profile
+    status: 200
+    response: {message: success}
+
+  - description: Delete a missing remote relationship
+    query:
+      type: pg_delete_remote_relationship
+      args:
+        source: default
+        table: {schema: public, name: author}
+        name: profile
+    status: 400
+    response:
+      code: not-exists

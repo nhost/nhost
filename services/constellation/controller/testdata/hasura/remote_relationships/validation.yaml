@@ -1,0 +1,32 @@
+description: >-
+  Remote-relationship arg validation: create/delete require table + name;
+  operating on an untracked table is not-exists.
+source: ops_remote_relationships.go
+
+steps:
+  - description: Create remote relationship missing name
+    query:
+      type: pg_create_remote_relationship
+      args:
+        source: default
+        table: {schema: public, name: author}
+        definition:
+          to_remote_schema:
+            remote_schema: my_remote
+            lhs_fields: [id]
+            remote_field:
+              user: {arguments: {id: $id}}
+    status: 400
+    response:
+      code: validation-failed
+
+  - description: Delete remote relationship on an untracked table
+    query:
+      type: pg_delete_remote_relationship
+      args:
+        source: default
+        table: {schema: public, name: author}
+        name: profile
+    status: 400
+    response:
+      code: not-exists
