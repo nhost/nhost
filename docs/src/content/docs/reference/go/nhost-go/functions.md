@@ -5,22 +5,14 @@ title: Functions
 Package functions invokes Nhost serverless functions through the shared HTTP
 middleware installed on the client's Transport.
 
-## Functions
-
-### `decodeBody`
-
-```go
-func decodeBody(response *http.Response, body []byte) any
-```
-
 ## Types
 
 ### `Client`
 
 ```go
 type Client struct {
-	BaseURL    string
-	httpClient *http.Client
+	BaseURL string
+	// contains filtered or unexported fields
 }
 ```
 

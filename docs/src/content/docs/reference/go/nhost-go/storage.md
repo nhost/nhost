@@ -8,8 +8,8 @@ title: Storage
 
 ```go
 type Client struct {
-	BaseURL    string
-	httpClient *http.Client
+	BaseURL string
+	// contains filtered or unexported fields
 }
 ```
 
@@ -49,7 +49,7 @@ func (c *Client) DeleteFile(
 ) (json.RawMessage, *transport.Response, error)
 ```
 
-DeleteFile performs DELETE /files/%s. It returns the decoded body,
+DeleteFile performs DELETE /files/{id}. It returns the decoded body,
 the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
 responses.
 
@@ -77,7 +77,7 @@ func (c *Client) GetFile(
 ) ([]byte, *transport.Response, error)
 ```
 
-GetFile performs GET /files/%s. It returns the decoded body,
+GetFile performs GET /files/{id}. It returns the decoded body,
 the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
 responses.
 
@@ -92,7 +92,7 @@ func (c *Client) GetFileMetadataHeaders(
 ) (json.RawMessage, *transport.Response, error)
 ```
 
-GetFileMetadataHeaders performs HEAD /files/%s. It returns the decoded body,
+GetFileMetadataHeaders performs HEAD /files/{id}. It returns the decoded body,
 the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
 responses.
 
@@ -106,7 +106,7 @@ func (c *Client) GetFilePresignedURL(
 ) (PresignedURLResponse, *transport.Response, error)
 ```
 
-GetFilePresignedURL performs GET /files/%s/presignedurl. It returns the decoded body,
+GetFilePresignedURL performs GET /files/{id}/presignedurl. It returns the decoded body,
 the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
 responses.
 
@@ -173,9 +173,12 @@ func (c *Client) ReplaceFile(
 ) (FileMetadata, *transport.Response, error)
 ```
 
-ReplaceFile performs PUT /files/%s. It returns the decoded body,
+ReplaceFile performs PUT /files/{id}. It returns the decoded body,
 the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
 responses.
+Multipart binary fields use the wire field name as their filename; binary
+array items use deterministic file-N filenames. The raw []byte API does not
+accept caller-provided filename metadata.
 
 #### `UploadFiles`
 
@@ -190,6 +193,9 @@ func (c *Client) UploadFiles(
 UploadFiles performs POST /files. It returns the decoded body,
 the HTTP response metadata, and a *transport.APIError for non-2xx/3xx
 responses.
+Multipart binary fields use the wire field name as their filename; binary
+array items use deterministic file-N filenames. The raw []byte API does not
+accept caller-provided filename metadata.
 
 ### `DeleteBrokenMetadataResponse200`
 
@@ -275,36 +281,33 @@ type FileSummary struct {
 
 ```go
 type GetFileMetadataHeadersParams struct {
-	Q *int               `json:"q,omitempty"`
-	H *int               `json:"h,omitempty"`
-	W *int               `json:"w,omitempty"`
-	B *float64           `json:"b,omitempty"`
-	F *OutputImageFormat `json:"f,omitempty"`
+	Q                 *int               `json:"q,omitempty"`
+	H                 *int               `json:"h,omitempty"`
+	W                 *int               `json:"w,omitempty"`
+	B                 *float64           `json:"b,omitempty"`
+	F                 *OutputImageFormat `json:"f,omitempty"`
+	IfMatch           *string            `json:"if-match,omitempty"`
+	IfNoneMatch       *string            `json:"if-none-match,omitempty"`
+	IfModifiedSince   *string            `json:"if-modified-since,omitempty"`
+	IfUnmodifiedSince *string            `json:"if-unmodified-since,omitempty"`
 }
-```
-
-#### `toQuery`
-
-```go
-func (p *GetFileMetadataHeadersParams) toQuery() url.Values
 ```
 
 ### `GetFileParams`
 
 ```go
 type GetFileParams struct {
-	Q *int               `json:"q,omitempty"`
-	H *int               `json:"h,omitempty"`
-	W *int               `json:"w,omitempty"`
-	B *float64           `json:"b,omitempty"`
-	F *OutputImageFormat `json:"f,omitempty"`
+	Q                 *int               `json:"q,omitempty"`
+	H                 *int               `json:"h,omitempty"`
+	W                 *int               `json:"w,omitempty"`
+	B                 *float64           `json:"b,omitempty"`
+	F                 *OutputImageFormat `json:"f,omitempty"`
+	IfMatch           *string            `json:"if-match,omitempty"`
+	IfNoneMatch       *string            `json:"if-none-match,omitempty"`
+	IfModifiedSince   *string            `json:"if-modified-since,omitempty"`
+	IfUnmodifiedSince *string            `json:"if-unmodified-since,omitempty"`
+	Range             *string            `json:"Range,omitempty"`
 }
-```
-
-#### `toQuery`
-
-```go
-func (p *GetFileParams) toQuery() url.Values
 ```
 
 ### `ListBrokenMetadataResponse200`

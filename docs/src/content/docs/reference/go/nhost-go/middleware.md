@@ -21,12 +21,13 @@ the session-refresh middleware refreshes the access token.
 ### `AttachAccessToken`
 
 ```go
-func AttachAccessToken(storage *session.Storage) transport.Middleware
+func AttachAccessToken(storage *session.Storage, serviceURL string) transport.Middleware
 ```
 
 AttachAccessToken attaches "Authorization: Bearer &lt;access_token&gt;" from the
-stored session. It should run after the refresh middleware so the freshest
-token is used, and skips requests that already carry an Authorization header.
+stored session to requests for serviceURL. It should run after the refresh
+middleware so the freshest token is used, and skips requests that already
+carry an Authorization header.
 
 ### `SessionRefresh`
 
@@ -45,21 +46,22 @@ token endpoint itself (to avoid recursively refreshing during a refresh).
 ### `UpdateSessionFromResponse`
 
 ```go
-func UpdateSessionFromResponse(storage *session.Storage) transport.Middleware
+func UpdateSessionFromResponse(storage *session.Storage, authURL string) transport.Middleware
 ```
 
 UpdateSessionFromResponse persists session data returned by auth endpoints
-and clears it on sign-out. It reads and then restores the response body so
-downstream decoding still works.
+under authURL and clears it on sign-out. It reads and then restores the
+response body so downstream decoding still works.
 
 ### `WithAdminSession`
 
 ```go
-func WithAdminSession(options AdminSessionOptions) transport.Middleware
+func WithAdminSession(options AdminSessionOptions, serviceURL string) transport.Middleware
 ```
 
 WithAdminSession attaches x-hasura-admin-secret and optional role/session
-variables.
+variables to requests for serviceURL. Admin sessions are only sent over HTTPS
+or to a loopback development server unless AllowInsecureHTTP is enabled.
 
 ### `WithHeaders`
 
@@ -68,6 +70,9 @@ func WithHeaders(defaultHeaders map[string]string) transport.Middleware
 ```
 
 WithHeaders attaches default headers, preserving any request-specific values.
+The caller is responsible for not supplying credentials: default headers are
+intentionally unscoped and are reapplied when the HTTP client follows a
+redirect. Use the scoped access-token or admin-session middleware for secrets.
 
 ### `WithRole`
 
@@ -76,12 +81,6 @@ func WithRole(role string) transport.Middleware
 ```
 
 WithRole sets x-hasura-role on requests that don't already specify it.
-
-### `extractSession`
-
-```go
-func extractSession(data []byte) *auth.Session
-```
 
 ## Types
 
@@ -92,6 +91,10 @@ type AdminSessionOptions struct {
 	AdminSecret      string
 	Role             string
 	SessionVariables map[string]string
+	// AllowInsecureHTTP sends admin credentials in cleartext to the configured
+	// service origin. Prefer HTTPS; enable this only for a trusted development
+	// network when loopback is not usable.
+	AllowInsecureHTTP bool
 }
 ```
 
