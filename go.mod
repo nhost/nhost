@@ -47,6 +47,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2
 	github.com/pquerna/otp v1.5.0
 	github.com/sirupsen/logrus v1.9.4
+	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.11.1
 	github.com/urfave/cli-docs/v3 v3.0.0-alpha6
 	github.com/urfave/cli/v2 v2.27.7
@@ -164,6 +165,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/henvic/httpretty v0.0.6 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/invopop/jsonschema v0.13.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
@@ -205,6 +207,7 @@ require (
 	github.com/sosodev/duration v1.3.1 // indirect
 	github.com/speakeasy-api/jsonpath v0.6.2 // indirect
 	github.com/spf13/cast v1.10.0 // indirect
+	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/thlib/go-timezone-local v0.0.0-20210907160436-ef149e42d28e // indirect
 	github.com/tidwall/gjson v1.18.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect

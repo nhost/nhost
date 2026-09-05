@@ -880,6 +880,9 @@ github.com/hashicorp/golang-lru/v2/simplelru
 github.com/henvic/httpretty
 github.com/henvic/httpretty/internal/color
 github.com/henvic/httpretty/internal/header
+# github.com/inconshreveable/mousetrap v1.1.0
+## explicit; go 1.18
+github.com/inconshreveable/mousetrap
 # github.com/invopop/jsonschema v0.13.0
 ## explicit; go 1.18
 github.com/invopop/jsonschema
@@ -1147,6 +1150,12 @@ github.com/speakeasy-api/jsonpath/pkg/jsonpath/token
 ## explicit; go 1.21.0
 github.com/spf13/cast
 github.com/spf13/cast/internal
+# github.com/spf13/cobra v1.10.2
+## explicit; go 1.15
+github.com/spf13/cobra
+# github.com/spf13/pflag v1.0.10
+## explicit; go 1.12
+github.com/spf13/pflag
 # github.com/stretchr/testify v1.11.1
 ## explicit; go 1.17
 github.com/stretchr/testify/assert

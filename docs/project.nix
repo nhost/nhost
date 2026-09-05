@@ -42,6 +42,9 @@ let
       ../build
       ./.
       (fs.fileFilter (f: f.hasExt "ts") ../packages/nhost-js/src)
+      # The godoc-md binary (in checkDeps) parses these sources to regenerate
+      # the Go reference pages; the sha1sum gate then enforces they're current.
+      (fs.fileFilter (f: f.hasExt "go") ../packages/nhost-go)
       ../services/auth/docs/openapi.yaml
       ../services/storage/controller/openapi.yaml
       ../packages/nhost-js/tsconfig.json
@@ -60,6 +63,7 @@ let
 
   checkDeps = with pkgs; [
     self.packages.${pkgs.stdenv.hostPlatform.system}.cli
+    self.packages.${pkgs.stdenv.hostPlatform.system}.godoc-md
     vale
   ];
 
