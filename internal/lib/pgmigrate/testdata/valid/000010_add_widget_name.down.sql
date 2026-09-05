@@ -1,1 +1,0 @@
-ALTER TABLE widgets DROP COLUMN name;
