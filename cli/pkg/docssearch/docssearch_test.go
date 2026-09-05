@@ -242,6 +242,26 @@ func TestSearch(t *testing.T) {
 	}
 }
 
+func TestSearch_PostgresExtensions(t *testing.T) {
+	t.Parallel()
+
+	results, err := docssearch.Search("address_standardizer", 10, false)
+	if err != nil {
+		t.Fatalf("search failed: %v", err)
+	}
+
+	for _, result := range results.Results {
+		if result.Path == "/products/database/extensions" {
+			return
+		}
+	}
+
+	t.Errorf(
+		"expected Postgres extensions page in search results, got %#v",
+		results.Results,
+	)
+}
+
 func TestSearch_NoResults(t *testing.T) {
 	t.Parallel()
 

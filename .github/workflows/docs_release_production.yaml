@@ -4,14 +4,14 @@ on:
     branches:
       - main
     paths:
-      - '.github/workflows/docs_release_production.yaml'
-      - '.github/workflows/wf_deploy_vercel.yaml'
-      - '.github/actions/cache-nix/**'
-      - '.github/actions/vercel-deploy-nix/**'
-      - 'flake.nix'
-      - 'flake.lock'
-      - 'nixops/**'
-      - 'build/**'
+      - ".github/workflows/docs_release_production.yaml"
+      - ".github/workflows/wf_deploy_vercel.yaml"
+      - ".github/actions/cache-nix/**"
+      - ".github/actions/vercel-deploy-nix/**"
+      - "flake.nix"
+      - "flake.lock"
+      - "nixops/**"
+      - "build/**"
       - ".npmrc"
       - "audit-ci.jsonc"
       - "package.json"
@@ -19,6 +19,7 @@ on:
       - "pnpm-lock.yaml"
       - "turbo.json"
       - "docs/**"
+      - "services/postgres/plugins.md"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

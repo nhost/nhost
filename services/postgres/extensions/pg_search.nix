@@ -21,13 +21,16 @@ let
 in
 buildPGRXExtension rec {
   pname = "pg_search";
-  version = "0.24.0";
+  version = "0.25.3";
 
-  cargo-pgrx = pkgs.nhost.cargo-pgrx_0_18_1;
+  cargo-pgrx = pkgs.nhost.cargo-pgrx_0_19_0;
 
   doCheck = false;
 
-  buildInputs = [ pkgs.icu ];
+  buildInputs = [
+    pkgs.icu
+    pkgs.openblas
+  ];
   nativeBuildInputs = [ pkgs.pkg-config ];
 
   cargoPgrxFlags = [
@@ -38,12 +41,15 @@ buildPGRXExtension rec {
     owner = "paradedb";
     repo = "paradedb";
     rev = "v${version}";
-    hash = "sha256-w/MRK3NUqBXQig9VgtbbDvVkgYXDUH6ZhmiJqPKJgQk=";
+    hash = "sha256-+4O6WY8WRKCQn/byXMvwIbfTLSm4TgtrC+fds3b0MnU=";
   };
 
-  cargoHash = "sha256-aH2Uivowht2AN3Tx6PTwp0+8yoVaZn8Yn8QMmUr43k8=";
+  cargoHash = "sha256-Up62p6HU0EZGdDX75+1oBIBuUtNM4m0INjO3x9WUO+g=";
 
   preBuild = ''
+    # The release build uses LTO and exceeds 6 GiB with the default eight jobs.
+    export NIX_BUILD_CORES=2
+
     export LINDERA_CACHE=$TMPDIR/lindera-cache
     mkdir -p $LINDERA_CACHE/${linderaVersion}
     cp ${linderaIpadic}     $LINDERA_CACHE/${linderaVersion}/mecab-ipadic-2.7.0-20250920.tar.gz

@@ -24,6 +24,7 @@ on:
 
       # docs
       - docs/**
+      - services/postgres/plugins.md
 
       # nhost-js
       - packages/nhost-js/**
@@ -61,6 +62,7 @@ jobs:
         pnpm-lock.yaml
         turbo.json
         docs/**
+        services/postgres/plugins.md
         packages/nhost-js/**
         services/auth/docs/openapi.yaml
         services/storage/controller/openapi.yaml

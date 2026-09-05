@@ -6,9 +6,15 @@ let
   inherit (pkgs) lib;
   buildPGXSExtension = import ./build_pgxs_extension.nix { inherit pkgs postgres; };
 
+  pgrxBuilder =
+    pkgs.callPackage "${pkgs.path}/pkgs/development/tools/rust/cargo-pgrx/buildPgrxExtension.nix"
+      {
+        rustPlatform = pkgs.nhost.rustPlatform_1_96;
+      };
+
   buildPGRXExtension =
     attrs:
-    (pkgs.buildPgrxExtension) (
+    pgrxBuilder (
       attrs
       // {
         postgresql = postgres;

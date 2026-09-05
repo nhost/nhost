@@ -39,6 +39,7 @@ The document has three sections: **Repo-wide rules** apply everywhere; **Dashboa
 
 - No comments unless explaining complex logic — code should be self-explanatory.
 - No inline JSX comments like `{/* Section Name */}` to label sections.
+- In `.mdx` files, use `{/* ... */}` comments; MDX 7 rejects HTML `<!-- ... -->` comments.
 
 ---
 

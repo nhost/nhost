@@ -69,6 +69,49 @@ function build_schemas() {
 	cp ../services/auth/docs/openapi.yaml src/schemas/auth.yaml
 }
 
+function build_postgres_extensions() {
+	echo "⚒️⚒️⚒️ Building Postgres extensions documentation..."
+
+	local source=../services/postgres/plugins.md
+	local target=src/content/docs/products/database/extensions.mdx
+	local start_marker="{/*BEGIN GENERATED POSTGRES EXTENSIONS*/}"
+	local end_marker="{/*END GENERATED POSTGRES EXTENSIONS*/}"
+
+	if [ ! -s "$source" ]; then
+		echo "Error: '$source' is missing or empty"
+		return 1
+	fi
+
+	if [ "$(grep -Fxc "$start_marker" "$target" || true)" -ne 1 ] ||
+		[ "$(grep -Fxc "$end_marker" "$target" || true)" -ne 1 ]; then
+		echo "Error: expected exactly one generated Postgres extensions marker pair in '$target'"
+		return 1
+	fi
+
+	local temp_file
+	temp_file=$(mktemp)
+
+	awk -v source="$source" -v start_marker="$start_marker" -v end_marker="$end_marker" '
+		$0 == start_marker {
+			print
+			print ""
+			while ((getline line < source) > 0) {
+				print line
+			}
+			close(source)
+			replacing = 1
+			next
+		}
+		$0 == end_marker {
+			print ""
+			replacing = 0
+		}
+		!replacing { print }
+	' "$target" >"$temp_file"
+
+	mv "$temp_file" "$target"
+}
+
 function build_typedoc() {
 	echo "⚒️⚒️⚒️ Building TypeDoc documentation..."
 
@@ -102,6 +145,7 @@ function build_cli_docs() {
 }
 
 build_schemas
+build_postgres_extensions
 build_typedoc
 build_cli_docs
 build_config_reference

@@ -2,18 +2,19 @@
 
 buildPGRXExtension rec {
   pname = "pg_jsonschema";
-  version = "v0.4.0-rc1";
+  version = "0.3.4-unstable-2026-08-03";
 
   doCheck = false;
 
-  cargo-pgrx = pkgs.cargo-pgrx_0_16_1;
+  cargo-pgrx = pkgs.nhost.cargo-pgrx_0_19_2;
 
   src = pkgs.fetchFromGitHub {
     owner = "supabase";
     repo = pname;
-    rev = "7c8603f14d8d20ea84435b0b8409a4e1a40147b0";
-    hash = "sha256-zTYEFkz0cpLFG+6k3ZUWwJ//184QfwTF9keh3WebPPw=";
+    # The v0.3.4 tag uses pgrx 0.16.1; this post-tag commit updates it to 0.19.2.
+    rev = "d08e4dea14549858b54791d6da4f606dc58a512e";
+    hash = "sha256-NNMbKN+r6HZw0KjLkSBQbS9TF1FcatyUtU9i2QdXJY8=";
   };
 
-  cargoHash = "sha256-LutCrn4HRFyh+NkPNH2Zi9ko+Ickv0geaAQXYw0AzTw=";
+  cargoHash = "sha256-r6+kcKVDNHLxhL3o71DKABEcVjNzBpIds9Lkk1ON2go=";
 }
