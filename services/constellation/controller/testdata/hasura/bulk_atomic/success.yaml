@@ -1,0 +1,55 @@
+description: >-
+  bulk_atomic composes its children into a single all-or-nothing apply and
+  returns a single {message:success} envelope (not a per-child array). Its child
+  set is a narrow whitelist (relationship ops), so the tables are tracked with
+  plain ops first.
+source: api-tests BulkAtomicSpec "Supports table relationships being added (and removed)"
+
+steps:
+  - description: Track author
+    query: {type: pg_track_table, args: {source: default, table: {schema: public, name: author}}}
+    status: 200
+    response: {message: success}
+
+  - description: Track article
+    query: {type: pg_track_table, args: {source: default, table: {schema: public, name: article}}}
+    status: 200
+    response: {message: success}
+
+  - description: Atomically add object + array relationships
+    query:
+      type: bulk_atomic
+      args:
+        - type: pg_create_array_relationship
+          args:
+            source: default
+            table: {schema: public, name: author}
+            name: articles
+            using:
+              manual_configuration:
+                remote_table: {schema: public, name: article}
+                column_mapping: {id: author_id}
+        - type: pg_create_object_relationship
+          args:
+            source: default
+            table: {schema: public, name: article}
+            name: author
+            using:
+              manual_configuration:
+                remote_table: {schema: public, name: author}
+                column_mapping: {author_id: id}
+    status: 200
+    response:
+      message: success
+
+  - description: Atomically drop both relationships
+    query:
+      type: bulk_atomic
+      args:
+        - type: pg_drop_relationship
+          args: {source: default, table: {schema: public, name: author}, relationship: articles}
+        - type: pg_drop_relationship
+          args: {source: default, table: {schema: public, name: article}, relationship: author}
+    status: 200
+    response:
+      message: success

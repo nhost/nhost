@@ -1,0 +1,33 @@
+description: >-
+  Hasura treats `admin` as having implicit full permissions, so creating an
+  explicit permission for role=admin fails with 400 already-exists
+  ("select permission already defined on table \"author\" with role \"admin\"").
+  Constellation does not model an implicit admin permission, so the first create
+  for role=admin currently SUCCEEDS (200). SKIPPED pending a decision on whether
+  to special-case admin (follow-up in KNOWN_DIFFERENCES.md). Do NOT relax to
+  assert success without confirming the intended semantics.
+source: tests-py/queries/v1/permissions/create_article_permission_role_admin_error.yaml
+
+steps:
+  - description: Track author
+    query: {type: pg_track_table, args: {source: default, table: {schema: public, name: author}}}
+    status: 200
+    response: {message: success}
+
+  - description: Create select permission for role admin should be rejected
+    skip: >-
+      implicit admin permission not modeled; first explicit admin create
+      currently succeeds. Follow-up in KNOWN_DIFFERENCES.md.
+    query:
+      type: pg_create_select_permission
+      args:
+        source: default
+        table: {schema: public, name: author}
+        role: admin
+        permission:
+          columns: ['*']
+          filter:
+            id: X-Hasura-User-Id
+    status: 400
+    response:
+      code: already-exists
