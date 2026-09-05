@@ -30,6 +30,7 @@ export default function TextWithTooltip({
   const [isTruncated, setIsTruncated] = useState<boolean>(false);
   const textRef = useRef<HTMLDivElement>(null);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: text changes can alter scroll extent without triggering a resize callback.
   useEffect(() => {
     const checkTruncation = () => {
       if (textRef.current) {
@@ -56,7 +57,7 @@ export default function TextWithTooltip({
     return () => {
       resizeObserver.disconnect();
     };
-  }, [maxLines]);
+  }, [maxLines, text]);
 
   if (maxLines != null) {
     return (
@@ -65,7 +66,13 @@ export default function TextWithTooltip({
           <TooltipTrigger disabled={!isTruncated} asChild>
             <div
               ref={textRef}
-              className={cn(!isTruncated && 'pointer-events-none', className)}
+              tabIndex={isTruncated ? 0 : undefined}
+              className={cn(
+                isTruncated &&
+                  'rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                !isTruncated && 'pointer-events-none',
+                className,
+              )}
               style={{
                 display: '-webkit-box',
                 WebkitBoxOrient: 'vertical',

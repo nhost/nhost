@@ -12,6 +12,28 @@ mockPointerEvent();
 const OPTIONS = [{ value: 'now()', label: 'now()' }];
 
 describe('FreeCombobox', () => {
+  it('passes accessibility associations to the trigger', () => {
+    render(
+      <FreeCombobox
+        value={null}
+        onChange={vi.fn()}
+        options={OPTIONS}
+        aria-label="Value"
+        aria-invalid
+        aria-describedby="value-error"
+      />,
+    );
+
+    expect(screen.getByRole('combobox', { name: 'Value' })).toHaveAttribute(
+      'aria-describedby',
+      'value-error',
+    );
+    expect(screen.getByRole('combobox', { name: 'Value' })).toHaveAttribute(
+      'aria-invalid',
+      'true',
+    );
+  });
+
   it('reports source "option" when a listed option is picked', async () => {
     const user = new TestUserEvent();
     const onChange = vi.fn();
