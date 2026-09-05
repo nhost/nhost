@@ -278,12 +278,18 @@ func TestCatalogBootstrapEnforcesDatabaseInvariants(t *testing.T) {
 		t.Fatalf("querying root index: %v", err)
 	}
 
-	if !strings.Contains(
-		indexDefinition,
+	for _, fragment := range []string{
+		"((previous_id IS NULL))",
 		"WHERE ((archived_at IS NULL) AND (previous_id IS NULL))",
-	) {
+	} {
+		if !strings.Contains(indexDefinition, fragment) {
+			t.Fatalf("root index = %q, want %q", indexDefinition, fragment)
+		}
+	}
+
+	if strings.Contains(indexDefinition, "NULLS NOT DISTINCT") {
 		t.Fatalf(
-			"root index = %q, want PostgreSQL-13-compatible partial predicate",
+			"root index = %q, want no PostgreSQL-15-only NULLS NOT DISTINCT clause",
 			indexDefinition,
 		)
 	}
