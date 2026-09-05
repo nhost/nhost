@@ -26,6 +26,8 @@ func parseGraphqlError(err error) *controller.APIError {
 			return controller.ForbiddenError(ghErr, "you are not authorized")
 		case "data-exception", "constraint-violation":
 			return controller.BadDataError(err, ghErr.Error())
+		case "invalid-jwt":
+			return controller.UnauthorizedError(ghErr, "invalid or expired jwt")
 		default:
 			return controller.InternalServerError(err)
 		}
