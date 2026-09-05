@@ -44,7 +44,9 @@ Make sure the option `Track this` is enabled.
 
 Select the new `notes` table and click **Edit Permissions** to give the `user`
 role access to its own rows. This is the core of Nhost's authorization model:
-the database enforces per-user isolation, so your service never has to.
+the database enforces per-user isolation from the claims in each caller's
+access token. Your service must keep that token scoped to the caller, but it
+does not need to duplicate the row filters.
 
 - **insert** — allow the `user` role to insert `title` and `content`, and add a
   **column preset** so `user_id` is set from the session:
@@ -66,9 +68,17 @@ go get github.com/nhost/nhost/packages/nhost-go
 
 ### Configure the Nhost client and read and write notes
 
-Create the client once and share it across handlers. After `/signin`, the SDK
-captures the session and attaches the access token to every following request,
-so `/notes` runs as the signed-in user and the permissions above apply.
+Build a server client for each incoming request. `/signin` returns an access
+token, and `/notes` requires that token in the `Authorization` header. Each
+client gets its own in-memory session backend, so the SDK attaches only that
+caller's token when it sends the GraphQL request.
+
+:::caution
+Never share a client created by `nhost.New` between users in a server. Its
+in-memory session store would make every request run as the last user who
+signed in, allowing one caller to read or write another user's rows. Use
+`NewServerClient` with an explicit per-request or per-user session backend.
+:::
 
 <Tabs>
   <TabItem label="main.go">
@@ -79,13 +89,15 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 
 	nhost "github.com/nhost/nhost/packages/nhost-go"
 	"github.com/nhost/nhost/packages/nhost-go/auth"
 	"github.com/nhost/nhost/packages/nhost-go/graphql"
+	"github.com/nhost/nhost/packages/nhost-go/session"
 )
 
-// The row filter on `notes` scopes this to the signed-in user automatically.
+// The row filter on `notes` scopes this to the authenticated user automatically.
 const listNotesQuery = `query {
   notes(order_by: {created_at: desc}) {
     id
@@ -102,92 +114,149 @@ const insertNoteMutation = `mutation ($title: String!, $content: String!) {
 }`
 
 func main() {
-	// Replace <subdomain> and <region> with your project's values. For a local
-	// backend, use Subdomain: "local", Region: "local".
-	client := nhost.New(nhost.Options{
-		Subdomain: "<subdomain>",
-		Region:    "<region>",
-	})
-
-	http.HandleFunc("POST /signin", func(w http.ResponseWriter, r *http.Request) {
-		var body struct {
-			Email    string `json:"email"`
-			Password string `json:"password"`
-		}
-		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		// On success the session is captured by middleware and attached to
-		// subsequent requests automatically.
-		if _, _, err := client.Auth.SignInEmailPassword(r.Context(), auth.SignInEmailPasswordRequest{
-			Email:    body.Email,
-			Password: body.Password,
-		}, nil); err != nil {
-			http.Error(w, err.Error(), http.StatusUnauthorized)
-			return
-		}
-
-		w.WriteHeader(http.StatusNoContent)
-	})
-
-	http.HandleFunc("POST /notes", func(w http.ResponseWriter, r *http.Request) {
-		var body struct {
-			Title   string `json:"title"`
-			Content string `json:"content"`
-		}
-		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		resp, _, err := client.GraphQL.Request(r.Context(), insertNoteMutation, graphql.Variables{
-			"title":   body.Title,
-			"content": body.Content,
-		}, "", nil)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadGateway)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(resp.Data["insert_notes_one"])
-	})
-
-	http.HandleFunc("GET /notes", func(w http.ResponseWriter, r *http.Request) {
-		resp, _, err := client.GraphQL.Request(r.Context(), listNotesQuery, nil, "", nil)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadGateway)
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(resp.Data["notes"])
-	})
+	http.HandleFunc("POST /signin", signIn)
+	http.HandleFunc("POST /notes", requireUser(createNote))
+	http.HandleFunc("GET /notes", requireUser(listNotes))
 
 	log.Println("listening on :8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
+func newServerClient(backend session.Backend) (*nhost.Client, error) {
+	// Replace <subdomain> and <region> with your project's values. For a local
+	// backend, use Subdomain: "local", Region: "local".
+	return nhost.NewServerClient(nhost.Options{
+		Subdomain: "<subdomain>",
+		Region:    "<region>",
+		Storage:   backend,
+	})
+}
+
+func signIn(w http.ResponseWriter, r *http.Request) {
+	client, err := newServerClient(&session.MemoryStorage{})
+	if err != nil {
+		http.Error(w, "create Nhost client: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var body struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	result, _, err := client.Auth.SignInEmailPassword(
+		r.Context(),
+		auth.SignInEmailPasswordRequest{
+			Email:    body.Email,
+			Password: body.Password,
+		},
+		nil,
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+	if result.Session == nil || result.Session.AccessToken == "" {
+		http.Error(w, "sign-in did not return a session", http.StatusUnauthorized)
+		return
+	}
+
+	writeJSON(w, map[string]string{"accessToken": result.Session.AccessToken})
+}
+
+func requireUser(
+	next func(http.ResponseWriter, *http.Request, *nhost.Client),
+) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		accessToken, ok := bearerToken(r)
+		if !ok {
+			http.Error(w, "missing Authorization: Bearer <access token> header", http.StatusUnauthorized)
+			return
+		}
+
+		backend := &session.MemoryStorage{}
+		backend.Set(session.StoredSession{
+			Session: auth.Session{AccessToken: accessToken},
+		})
+		client, err := newServerClient(backend)
+		if err != nil {
+			http.Error(w, "create Nhost client: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		next(w, r, client)
+	}
+}
+
+func bearerToken(r *http.Request) (string, bool) {
+	scheme, token, ok := strings.Cut(strings.TrimSpace(r.Header.Get("Authorization")), " ")
+	token = strings.TrimSpace(token)
+
+	return token, ok && strings.EqualFold(scheme, "Bearer") && token != ""
+}
+
+func createNote(w http.ResponseWriter, r *http.Request, client *nhost.Client) {
+	var body struct {
+		Title   string `json:"title"`
+		Content string `json:"content"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	resp, _, err := client.GraphQL.Request(r.Context(), insertNoteMutation, graphql.Variables{
+		"title":   body.Title,
+		"content": body.Content,
+	}, "", nil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadGateway)
+		return
+	}
+
+	writeJSON(w, resp.Data["insert_notes_one"])
+}
+
+func listNotes(w http.ResponseWriter, r *http.Request, client *nhost.Client) {
+	resp, _, err := client.GraphQL.Request(r.Context(), listNotesQuery, nil, "", nil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadGateway)
+		return
+	}
+
+	writeJSON(w, resp.Data["notes"])
+}
+
+func writeJSON(w http.ResponseWriter, value any) {
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(value); err != nil {
+		log.Printf("encode response: %v", err)
+	}
 }
 ```
   </TabItem>
 </Tabs>
 
-:::note
-`New` enables automatic session refresh and token attachment. In a
-multi-user server you typically want a per-request/user session store — use
-`NewServerClient` with explicit storage rather than sharing one session
-across all callers.
-:::
-
 ### The end
 
-Run your service with `go run .`, then:
+Run your service with `go run .`, then sign in and copy the `accessToken` from
+the JSON response:
 
 ```bash Terminal
-curl -X POST localhost:8080/signin -d '{"email":"user@example.com","password":"..."}'
-curl -X POST localhost:8080/notes  -d '{"title":"Hello","content":"My first note"}'
-curl localhost:8080/notes
+curl -X POST localhost:8080/signin \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"user@example.com","password":"..."}'
+
+export TOKEN="<accessToken from the response>"
+curl -X POST localhost:8080/notes \
+  -H "Authorization: Bearer $TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{"title":"Hello","content":"My first note"}'
+curl localhost:8080/notes -H "Authorization: Bearer $TOKEN"
 ```
 
 ## Related resources
