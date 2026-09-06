@@ -1,17 +1,16 @@
 # Nhost Python SDK
 
-Async-first Python SDK for Nhost applications. It exposes generated **Auth** and
-**Storage** REST clients, a **GraphQL** client, a **Functions** client, session
-management, and a composable fetch middleware pipeline.
+Async-first Python SDK for Nhost Auth, Storage, GraphQL, Functions, and session
+management.
 
-- Async only (`async`/`await`), built on [`httpx`](https://www.python-httpx.org/).
-- Typed request/response models with [`pydantic` v2](https://docs.pydantic.dev/).
-- Python 3.11+.
+- Python 3.11+
+- Native `async`/`await`, powered by [`httpx`](https://www.python-httpx.org/)
+- Typed request and response models powered by [Pydantic v2](https://docs.pydantic.dev/)
+- PEP 561 type information (`py.typed`)
 
 ## Installation
 
-While registry publishing is out of scope, install from a checkout of this
-repository:
+Until the package is published, install it from a repository checkout:
 
 ```sh
 uv pip install -e packages/nhost-python
@@ -20,159 +19,161 @@ uv pip install -e packages/nhost-python
 
 ## Create a client
 
+Configuration is keyword-only, so adjacent URLs and credentials cannot be
+accidentally transposed:
+
 ```python
-import asyncio
-from nhost import create_client, NhostClientOptions
+from nhost import create_client
 
-
-async def main() -> None:
-    async with create_client(
-        NhostClientOptions(subdomain="my-project", region="eu-central-1")
-    ) as nhost:
-        ...
-
-
-asyncio.run(main())
+async with create_client(
+    subdomain="my-project",
+    region="eu-central-1",
+) as nhost:
+    response = await nhost.graphql.request("query { __typename }")
 ```
 
-For local development or custom deployments, pass service URLs explicitly:
+Omitting both `subdomain` and `region` uses the local Nhost endpoints. Supplying
+only one is an error. Custom deployments can set individual service URLs:
 
 ```python
 nhost = create_client(
-    NhostClientOptions(
-        auth_url="http://localhost:1337/v1",
-        storage_url="http://localhost:1337/v1/storage",
-        graphql_url="http://localhost:1337/v1/graphql",
-        functions_url="http://localhost:1337/v1/functions",
-    )
+    auth_url="http://localhost:1337/v1/auth",
+    storage_url="http://localhost:1337/v1/storage",
+    graphql_url="http://localhost:1337/v1/graphql",
+    functions_url="http://localhost:1337/v1/functions",
 )
 ```
 
-`create_client` stores auth responses in the configured session storage,
-refreshes sessions before service requests, and attaches
-`Authorization: Bearer <token>`. Use `create_nhost_client` for a bare client
-without session middleware, and `create_server_client` only in trusted,
-server-side code with explicit per-request session storage.
+`create_client` captures auth sessions, refreshes expiring access tokens, and
+attaches the current token to requests. `create_nhost_client` creates a bare
+client without session middleware. `create_server_client` requires an explicit
+per-user asynchronous session backend.
+
+Clients created by the SDK own and close their HTTP connection pools. An
+injected `httpx.AsyncClient` remains owned by the caller.
 
 ## Auth and sessions
 
-Generated Auth methods take pydantic request models and return `FetchResponse`,
-preserving status and headers alongside the decoded body.
+Generated methods mirror the Auth OpenAPI document. Request bodies and optional
+parameters are keyword-only:
 
 ```python
 import uuid
 from nhost.auth import SignUpEmailPasswordRequest
 
-email = f"ada-{uuid.uuid4()}@example.com"
-password = str(uuid.uuid4())
-
-sign_up = await nhost.auth.sign_up_email_password(
-    SignUpEmailPasswordRequest(email=email, password=password)
+response = await nhost.auth.sign_up_email_password(
+    body=SignUpEmailPasswordRequest(
+        email=f"ada-{uuid.uuid4()}@example.com",
+        password=str(uuid.uuid4()),
+    )
 )
-session = sign_up.body.session
-stored = nhost.get_user_session()
+session = await nhost.get_user_session()
 ```
+
+The high-level Auth facade adds stable conveniences such as
+`nhost.auth.get_jwks()`, `generate_totp_secret()`, and
+`get_oauth_authorization_server()` without renaming generated operations.
 
 ## GraphQL
 
+GraphQL data can remain untyped or be validated into a Pydantic model:
+
 ```python
-result = await nhost.graphql.request(
-    query="query Users($limit: Int!) { users(limit: $limit) { id displayName } }",
-    variables={"limit": 10},
-    operation_name="Users",
+from pydantic import BaseModel
+
+class Viewer(BaseModel):
+    id: str
+
+class QueryData(BaseModel):
+    viewer: Viewer
+
+response = await nhost.graphql.request(
+    "query Viewer { viewer { id } }",
+    response_type=QueryData,
+    operation_name="Viewer",
 )
-print(result.body.data)
+print(response.body.data.viewer.id)
 ```
 
-If the response contains `errors`, the client raises `FetchError` with the
-status, headers, and raw body.
+GraphQL execution errors raise `GraphQLExecutionError`. HTTP 4xx/5xx responses
+raise `HTTPError`, and malformed successful responses raise
+`ResponseDecodeError`. All response-related exceptions retain the original
+`httpx.Response` and request.
 
 ## Storage
 
-```python
-from nhost.storage import UploadFilesBody, UploadFileMetadata
+The high-level facade avoids wire-shaped multipart field names:
 
-upload = await nhost.storage.upload_files(
-    UploadFilesBody(
-        bucket_id="default",
-        metadata=[UploadFileMetadata(name="hello.txt")],
-        file=[b"hello from python"],
-    )
+```python
+from nhost import UploadFile
+from nhost.storage import UploadFileMetadata
+
+response = await nhost.storage.upload(
+    [UploadFile(filename="hello.txt", content=b"hello from python")],
+    bucket_id="default",
+    metadata=[UploadFileMetadata(name="hello.txt")],
 )
-file_id = upload.body.processed_files[0].id
-download = await nhost.storage.get_file(file_id)
-print(download.body)  # bytes
+file_id = response.body.processed_files[0].id
+content = await nhost.storage.get_file(file_id)
 ```
+
+The generated `upload_files(body=...)` method remains available when exact
+OpenAPI-level control is needed.
 
 ## Functions
 
 ```python
-hello = await nhost.functions.post("/helloworld", {"name": "Ada"})
-print(hello.body)  # parsed JSON, str, or bytes depending on content-type
+hello = await nhost.functions.post("/helloworld", json={"name": "Ada"})
+print(hello.body)
 ```
 
-## Custom session storage
+Responses with `application/json` or a structured `+json` media type are parsed
+as JSON; `text/*` becomes `str`; other content remains `bytes`. Passing
+`json=None` explicitly sends JSON `null`.
 
-The default backend is in-memory. Provide your own by implementing
-`SessionStorageBackend` (`get`/`set`/`remove` over `StoredSession`), or use the
-bundled `FileStorage`:
+## Asynchronous session storage
+
+Implement `SessionStorageBackend` with asynchronous `get`, `set`, and `remove`
+methods. The default `MemoryStorage` is suitable for a single client. The
+bundled `FileStorage` runs filesystem operations in worker threads, expands
+`~`, writes atomically, and uses owner-only file permissions:
 
 ```python
-from nhost import create_server_client, NhostClientOptions
-from nhost.session import FileStorage
+from nhost import FileStorage, create_server_client
 
 nhost = create_server_client(
-    NhostClientOptions(
-        subdomain="my-project",
-        region="eu-central-1",
-        storage=FileStorage("~/.config/nhost/session.json"),
-    )
+    subdomain="my-project",
+    region="eu-central-1",
+    session_storage=FileStorage("~/.config/nhost/session.json"),
 )
 ```
 
-## Generated code
+Storage failures and corrupt session files raise `SessionStorageError` rather
+than silently signing the user out.
 
-The Auth and Storage clients in `src/nhost/auth/client.py` and
-`src/nhost/storage/client.py` are generated by `tools/codegen` (the `python`
-plugin) from:
+## Generated API
 
-- `services/auth/docs/openapi.yaml`
-- `services/storage/controller/openapi.yaml`
+`src/nhost/auth/client.py` and `src/nhost/storage/client.py` are generated from
+the service OpenAPI documents. Their identifiers remain direct, deterministic
+mappings from the specifications. Idiomatic convenience naming belongs in the
+hand-written facade modules, not in generated output.
 
-Regenerate with:
+Generator source and tests are maintained in the `nhost-python-codegen` branch;
+the SDK branch contains the regenerated output. Do not edit generated files by
+hand.
 
-```sh
-./gen.sh
-```
-
-Do not edit generated files by hand.
-
-## Executable examples
-
-The code examples in the SDK's docstrings are executed as tests (the Python
-counterpart of nhost-js's `docstrings.test.ts`). Pure examples — such as
-`generate_service_url` — always run; examples that talk to a backend run only
-when a local Nhost backend is available:
+## Development
 
 ```sh
-make test              # offline unit suite (httpx mock transport, no backend)
-make test-doctests     # docstring examples; backend-dependent ones skip
-make dev-env-up        # start the local Nhost backend (Nhost CLI)
-make test-integration  # backend doctests, or a clean skip if no backend is up
+make test              # offline unit and doctest suite
+make test-doctests     # docstring examples
+make dev-env-up        # start the local Nhost backend
+make test-integration  # backend-dependent doctests
 ```
 
-Backend-dependent examples use `subdomain="local", region="local"` and are
-gated by `NHOST_LOCAL_BACKEND=1`, so the offline suite stays green.
-`test-integration` enables that flag after confirming the local GraphQL endpoint
-is reachable; without a running backend it reports a skip and exits successfully.
-When you change an example, keep the docstring and its expected output in sync —
-the test executes it verbatim.
+## Security
 
-## Security notes
-
-- Never ship `x-hasura-admin-secret` / `AdminSessionOptions` in an untrusted
-  client. Admin access is for trusted server-side code only.
-- Access and refresh tokens are credentials — do not log them. Prefer a custom
-  encrypted store in server environments.
-- `create_server_client` requires explicit, per-request/user storage to avoid
-  leaking sessions across requests.
+- Never ship an admin secret in untrusted client-side code.
+- Do not log access or refresh tokens.
+- Use a scoped session backend per user or request in server applications.
+- Prefer an encrypted persistent backend for production credentials.

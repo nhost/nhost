@@ -2,45 +2,45 @@
 
 from __future__ import annotations
 
+import inspect
 import logging
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 
-from ..auth import Session
+from ..auth.client import Session
 from .session import StoredSession, to_stored_session
 from .storage_backend import SessionStorageBackend
 
 logger = logging.getLogger("nhost.session")
 
-SessionChangeCallback = Callable[[StoredSession | None], None]
+SessionChangeCallback = Callable[[StoredSession | None], Awaitable[None] | None]
 
 
 class SessionStorage:
-    """Wraps a :class:`SessionStorageBackend`, decoding tokens on ``set`` and
-    notifying subscribers on every change."""
+    """Decode tokens, persist sessions, and notify sync or async subscribers."""
 
     def __init__(self, storage: SessionStorageBackend) -> None:
         self._storage = storage
         self._subscribers: dict[int, SessionChangeCallback] = {}
         self._next_subscriber_id = 0
 
-    def get(self) -> StoredSession | None:
-        return self._storage.get()
+    async def get(self) -> StoredSession | None:
+        return await self._storage.get()
 
-    def set(self, value: Session) -> None:
-        """Store an auth :class:`Session`, re-deriving its decoded access token."""
+    async def set(self, value: Session) -> None:
+        """Store an auth :class:`Session`, re-deriving its decoded token."""
         stored = to_stored_session(value)
-        self._storage.set(stored)
-        self._notify(stored)
+        await self._storage.set(stored)
+        await self._notify(stored)
 
-    def remove(self) -> None:
-        self._storage.remove()
-        self._notify(None)
+    async def remove(self) -> None:
+        await self._storage.remove()
+        await self._notify(None)
 
     def on_change(self, callback: SessionChangeCallback) -> Callable[[], None]:
-        """Subscribe to session changes and return an idempotent unsubscribe.
+        """Subscribe to changes and return an idempotent unsubscribe function.
 
-        Registering the same callable twice creates two independent subscriptions;
-        each returned unsubscribe removes exactly one registration.
+        Both synchronous and asynchronous callbacks are supported. Registering
+        the same callable twice creates two independent subscriptions.
         """
         subscriber_id = self._next_subscriber_id
         self._next_subscriber_id += 1
@@ -51,9 +51,11 @@ class SessionStorage:
 
         return unsubscribe
 
-    def _notify(self, session: StoredSession | None) -> None:
+    async def _notify(self, session: StoredSession | None) -> None:
         for subscriber in list(self._subscribers.values()):
             try:
-                subscriber(session)
-            except Exception:  # noqa: BLE001 - subscriber errors must not break storage
+                result = subscriber(session)
+                if inspect.isawaitable(result):
+                    await result
+            except Exception:  # noqa: BLE001 - subscriber failures are isolated
                 logger.exception("Error notifying session subscriber")

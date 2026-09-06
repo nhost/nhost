@@ -2,23 +2,26 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping, Sequence
+from datetime import datetime
 from typing import Any, Literal
 from urllib.parse import quote
+from uuid import UUID
 
 import httpx
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AnyUrl, BaseModel, ConfigDict, Field
 
 from ..fetch import (
     ChainFunction,
-    FetchError,
     FetchResponse,
+    HTTPError,
     create_enhanced_fetch,
     decode_json,
     to_json,
     to_jsonable,
 )
 
-_REDIRECT_STATUS = 300
+_MIN_ERROR_STATUS = 400
 
 
 def _escape_path(value: object) -> str:
@@ -66,7 +69,7 @@ AttestationFormat = Literal[
 class AuthenticationExtensionsClientOutputs(BaseModel):
     """Map of extension outputs from the client"""
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     appid: bool | None = Field(
         default=None,
@@ -85,7 +88,7 @@ class AuthenticationExtensionsClientOutputs(BaseModel):
 
 
 class AuthenticatorAssertionResponse(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     client_data_json: str = Field(
         alias="clientDataJSON",
@@ -110,7 +113,7 @@ AuthenticatorAttachment = Literal["platform", "cross-platform"]
 
 
 class AuthenticatorAttestationResponse(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     client_data_json: str = Field(
         alias="clientDataJSON",
@@ -142,7 +145,7 @@ class AuthenticatorAttestationResponse(BaseModel):
 
 
 class AuthenticatorSelection(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     authenticator_attachment: AuthenticatorAttachment | None = Field(
         default=None,
@@ -175,9 +178,9 @@ ConveyancePreference = Literal["none", "indirect", "direct", "enterprise"]
 
 
 class CreatePATRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
-    expires_at: str = Field(
+    expires_at: datetime = Field(
         alias="expiresAt",
         description="Expiration date of the PAT\n\nFormat: date-time",
     )
@@ -188,7 +191,7 @@ class CreatePATRequest(BaseModel):
 
 
 class CreatePATResponse(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     id: str = Field(
         description=(
@@ -207,7 +210,7 @@ class CreatePATResponse(BaseModel):
 
 
 class CredentialAssertionResponse(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     id: str = Field(
         description="The credential's identifier",
@@ -233,7 +236,7 @@ class CredentialAssertionResponse(BaseModel):
 
 
 class CredentialCreationResponse(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     id: str = Field(
         description="The credential's identifier",
@@ -259,7 +262,7 @@ class CredentialCreationResponse(BaseModel):
 
 
 class CredentialParameter(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     type: CredentialType = Field(
         description="The valid credential types",
@@ -272,7 +275,7 @@ class CredentialParameter(BaseModel):
 class CredentialPropertiesOutput(BaseModel):
     """Credential properties extension output"""
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     rk: bool | None = Field(
         default=None,
@@ -322,7 +325,7 @@ ErrorResponseError = Literal[
 class ErrorResponse(BaseModel):
     """Standardized error response"""
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     status: int = Field(
         description="HTTP status error code\n\nExample: 400",
@@ -341,7 +344,7 @@ IdTokenProvider = Literal["apple", "google"]
 class JWK(BaseModel):
     """JSON Web Key for JWT verification"""
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     alg: str = Field(
         description='Algorithm used with this key\n\nExample: "RS256"',
@@ -366,7 +369,7 @@ class JWK(BaseModel):
 class JWKSet(BaseModel):
     """JSON Web Key Set for verifying JWT signatures"""
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     keys: list[JWK] = Field(
         description="Array of public keys",
@@ -374,7 +377,7 @@ class JWKSet(BaseModel):
 
 
 class LinkIdTokenRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     provider: IdTokenProvider
     id_token: str = Field(
@@ -391,7 +394,7 @@ class LinkIdTokenRequest(BaseModel):
 class MFAChallengePayload(BaseModel):
     """Challenge payload for multi-factor authentication"""
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     ticket: str = Field(
         repr=False,
@@ -405,9 +408,9 @@ OKResponse = Literal["OK"]
 
 
 class OptionsRedirectTo(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
-    redirect_to: str | None = Field(
+    redirect_to: AnyUrl | None = Field(
         default=None,
         alias="redirectTo",
         description='Example: "https://my-app.com/catch-redirection"\n\nFormat: uri',
@@ -415,7 +418,7 @@ class OptionsRedirectTo(BaseModel):
 
 
 class PublicKeyCredentialCreationOptions(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     rp: RelyingPartyEntity
     user: UserEntity
@@ -465,7 +468,7 @@ class PublicKeyCredentialCreationOptions(BaseModel):
 
 
 class PublicKeyCredentialDescriptor(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     type: CredentialType = Field(
         description="The valid credential types",
@@ -483,7 +486,7 @@ PublicKeyCredentialHints = Literal["security-key", "client-device", "hybrid"]
 
 
 class PublicKeyCredentialRequestOptions(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     challenge: str = Field(
         description="Base64url-encoded binary data\n\nFormat: byte",
@@ -527,7 +530,7 @@ class PublicKeyCredentialRequestOptions(BaseModel):
 class ProviderSession(BaseModel):
     """OAuth2 provider session containing access and refresh tokens"""
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     access_token: str = Field(
         alias="accessToken",
@@ -538,7 +541,7 @@ class ProviderSession(BaseModel):
         alias="expiresIn",
         description="Number of seconds until the access token expires\n\nExample: 3599",
     )
-    expires_at: str = Field(
+    expires_at: datetime = Field(
         alias="expiresAt",
         description=(
             'Timestamp when the access token expires\n\nExample: "2024-12-31T23:59:59Z"\n\nFormat: '
@@ -557,7 +560,7 @@ class ProviderSession(BaseModel):
 
 
 class ProviderSpecificParams(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     connection: str | None = Field(
         default=None,
@@ -572,7 +575,7 @@ class ProviderSpecificParams(BaseModel):
 class RefreshProviderTokenRequest(BaseModel):
     """Request to refresh OAuth2 provider tokens"""
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     refresh_token: str = Field(
         alias="refreshToken",
@@ -587,7 +590,7 @@ class RefreshProviderTokenRequest(BaseModel):
 class RefreshTokenRequest(BaseModel):
     """Request to refresh an access token"""
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     refresh_token: str = Field(
         alias="refreshToken",
@@ -601,7 +604,7 @@ class RefreshTokenRequest(BaseModel):
 
 
 class RelyingPartyEntity(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     name: str = Field(
         description="A human-palatable name for the entity",
@@ -617,7 +620,7 @@ ResidentKeyRequirement = Literal["discouraged", "preferred", "required"]
 class Session(BaseModel):
     """User authentication session containing tokens and user information"""
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     access_token: str = Field(
         alias="accessToken",
@@ -658,7 +661,7 @@ class Session(BaseModel):
 class SessionPayload(BaseModel):
     """Container for session information"""
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     session: Session | None = Field(
         default=None,
@@ -667,7 +670,7 @@ class SessionPayload(BaseModel):
 
 
 class SignInAnonymousRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     display_name: str | None = Field(
         default=None,
@@ -687,7 +690,7 @@ class SignInAnonymousRequest(BaseModel):
 class SignInEmailPasswordRequest(BaseModel):
     """Request to authenticate using email and password"""
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     email: str = Field(
         description='User\'s email address\n\nExample: "john.smith@nhost.io"\n\nFormat: email',
@@ -701,7 +704,7 @@ class SignInEmailPasswordRequest(BaseModel):
 class SignInEmailPasswordResponse(BaseModel):
     """Response for email-password authentication that may include a session or MFA challenge"""
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     session: Session | None = Field(
         default=None,
@@ -714,7 +717,7 @@ class SignInEmailPasswordResponse(BaseModel):
 
 
 class SignInIdTokenRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     provider: IdTokenProvider
     id_token: str = Field(
@@ -730,7 +733,7 @@ class SignInIdTokenRequest(BaseModel):
 
 
 class SignInMfaTotpRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     ticket: str = Field(
         repr=False,
@@ -743,7 +746,7 @@ class SignInMfaTotpRequest(BaseModel):
 
 
 class SignInOTPEmailRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     email: str = Field(
         description='A valid email\n\nExample: "john.smith@nhost.io"\n\nFormat: email',
@@ -752,7 +755,7 @@ class SignInOTPEmailRequest(BaseModel):
 
 
 class SignInOTPEmailVerifyRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     otp: str = Field(
         repr=False,
@@ -764,7 +767,7 @@ class SignInOTPEmailVerifyRequest(BaseModel):
 
 
 class SignInOTPEmailVerifyResponse(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     session: Session | None = Field(
         default=None,
@@ -773,7 +776,7 @@ class SignInOTPEmailVerifyResponse(BaseModel):
 
 
 class SignInPATRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     personal_access_token: str = Field(
         alias="personalAccessToken",
@@ -786,7 +789,7 @@ class SignInPATRequest(BaseModel):
 
 
 class SignInPasswordlessEmailRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     email: str = Field(
         description='A valid email\n\nExample: "john.smith@nhost.io"\n\nFormat: email',
@@ -803,7 +806,7 @@ class SignInPasswordlessEmailRequest(BaseModel):
 
 
 class SignInPasswordlessSmsOtpRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     phone_number: str = Field(
         alias="phoneNumber",
@@ -816,7 +819,7 @@ class SignInPasswordlessSmsOtpRequest(BaseModel):
 
 
 class SignInPasswordlessSmsOtpResponse(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     session: Session | None = Field(
         default=None,
@@ -829,7 +832,7 @@ class SignInPasswordlessSmsOtpResponse(BaseModel):
 
 
 class SignInPasswordlessSmsRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     phone_number: str = Field(
         alias="phoneNumber",
@@ -839,7 +842,7 @@ class SignInPasswordlessSmsRequest(BaseModel):
 
 
 class SignUpPasswordlessEmailRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     email: str = Field(
         description='A valid email\n\nExample: "john.smith@nhost.io"\n\nFormat: email',
@@ -856,7 +859,7 @@ class SignUpPasswordlessEmailRequest(BaseModel):
 
 
 class SignUpOTPEmailRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     email: str = Field(
         description='A valid email\n\nExample: "john.smith@nhost.io"\n\nFormat: email',
@@ -865,7 +868,7 @@ class SignUpOTPEmailRequest(BaseModel):
 
 
 class SignUpPasswordlessSmsRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     phone_number: str = Field(
         alias="phoneNumber",
@@ -875,7 +878,7 @@ class SignUpPasswordlessSmsRequest(BaseModel):
 
 
 class SignUpIdTokenRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     provider: IdTokenProvider
     id_token: str = Field(
@@ -891,7 +894,7 @@ class SignUpIdTokenRequest(BaseModel):
 
 
 class SignInWebauthnRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     email: str | None = Field(
         default=None,
@@ -900,7 +903,7 @@ class SignInWebauthnRequest(BaseModel):
 
 
 class SignInWebauthnVerifyRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     email: str | None = Field(
         default=None,
@@ -913,7 +916,7 @@ class SignInWebauthnVerifyRequest(BaseModel):
 
 
 class SignOutRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     refresh_token: str | None = Field(
         default=None,
@@ -930,7 +933,7 @@ class SignOutRequest(BaseModel):
 class SignUpEmailPasswordRequest(BaseModel):
     """Request to register a new user with email and password"""
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     email: str = Field(
         description=(
@@ -955,7 +958,7 @@ class SignUpEmailPasswordRequest(BaseModel):
 
 
 class SignUpOptions(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     allowed_roles: list[str] | None = Field(
         default=None,
@@ -980,7 +983,7 @@ class SignUpOptions(BaseModel):
         default=None,
         description='Example: {"firstName":"John","lastName":"Smith"}',
     )
-    redirect_to: str | None = Field(
+    redirect_to: AnyUrl | None = Field(
         default=None,
         alias="redirectTo",
         description='Example: "https://my-app.com/catch-redirection"\n\nFormat: uri',
@@ -988,7 +991,7 @@ class SignUpOptions(BaseModel):
 
 
 class SignUpWebauthnRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     email: str = Field(
         description='A valid email\n\nExample: "john.smith@nhost.io"\n\nFormat: email',
@@ -997,7 +1000,7 @@ class SignUpWebauthnRequest(BaseModel):
 
 
 class SignUpWebauthnVerifyRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     credential: CredentialCreationResponse = Field(repr=False)
     options: SignUpOptions | None = None
@@ -1019,7 +1022,7 @@ class SignUpWebauthnVerifyRequest(BaseModel):
 class TokenExchangeRequest(BaseModel):
     """Request to exchange an authorization code for a session using PKCE"""
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     code: str = Field(
         repr=False,
@@ -1035,7 +1038,7 @@ class TokenExchangeRequest(BaseModel):
 class TotpGenerateResponse(BaseModel):
     """Response containing TOTP setup information for MFA"""
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     image_url: str = Field(
         alias="imageUrl",
@@ -1061,7 +1064,7 @@ URLEncodedBase64 = str
 class User(BaseModel):
     """User profile and account information"""
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     avatar_url: str = Field(
         alias="avatarUrl",
@@ -1069,7 +1072,7 @@ class User(BaseModel):
             'URL to the user\'s profile picture\n\nExample: "https://myapp.com/avatars/user123.jpg"'
         ),
     )
-    created_at: str = Field(
+    created_at: datetime = Field(
         alias="createdAt",
         description=(
             'Timestamp when the user account was created\n\nExample: "2023-01-15T12:34:56Z"\n\n'
@@ -1134,7 +1137,7 @@ UserDeanonymizeRequestSignInMethod = Literal["email-password", "passwordless"]
 
 
 class UserDeanonymizeRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     sign_in_method: UserDeanonymizeRequestSignInMethod = Field(
         alias="signInMethod",
@@ -1164,7 +1167,7 @@ class UserDeanonymizeRequest(BaseModel):
 
 
 class UserDeanonymizeSmsRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     phone_number: str = Field(
         alias="phoneNumber",
@@ -1174,7 +1177,7 @@ class UserDeanonymizeSmsRequest(BaseModel):
 
 
 class UserEmailChangeRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     new_email: str = Field(
         alias="newEmail",
@@ -1192,7 +1195,7 @@ class UserEmailChangeRequest(BaseModel):
 
 
 class UserPhoneNumberChangeRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     new_phone_number: str = Field(
         alias="newPhoneNumber",
@@ -1204,7 +1207,7 @@ class UserPhoneNumberChangeRequest(BaseModel):
 
 
 class UserPhoneNumberChangeVerifyRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     new_phone_number: str = Field(
         alias="newPhoneNumber",
@@ -1222,7 +1225,7 @@ class UserPhoneNumberChangeVerifyRequest(BaseModel):
 
 
 class UserEmailSendVerificationEmailRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     email: str = Field(
         description='A valid email\n\nExample: "john.smith@nhost.io"\n\nFormat: email',
@@ -1239,7 +1242,7 @@ class UserEmailSendVerificationEmailRequest(BaseModel):
 
 
 class UserEntity(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     name: str = Field(
         description="A human-palatable name for the entity",
@@ -1259,7 +1262,7 @@ UserMfaRequestActiveMfaType = Literal["totp", ""]
 class UserMfaRequest(BaseModel):
     """Request to activate or deactivate multi-factor authentication"""
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     code: str = Field(
         repr=False,
@@ -1275,7 +1278,7 @@ class UserMfaRequest(BaseModel):
 
 
 class UserPasswordRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     new_password: str = Field(
         alias="newPassword",
@@ -1293,7 +1296,7 @@ class UserPasswordRequest(BaseModel):
 
 
 class UserPasswordResetRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     email: str = Field(
         description='A valid email\n\nExample: "john.smith@nhost.io"\n\nFormat: email',
@@ -1313,7 +1316,7 @@ UserVerificationRequirement = Literal["required", "preferred", "discouraged"]
 
 
 class VerifyAddSecurityKeyRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     credential: CredentialCreationResponse = Field(repr=False)
     nickname: str | None = Field(
@@ -1323,7 +1326,7 @@ class VerifyAddSecurityKeyRequest(BaseModel):
 
 
 class VerifyAddSecurityKeyResponse(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     id: str = Field(
         description=(
@@ -1338,7 +1341,7 @@ class VerifyAddSecurityKeyResponse(BaseModel):
 
 
 class VerifyTokenRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     token: str | None = Field(
         default=None,
@@ -1348,7 +1351,7 @@ class VerifyTokenRequest(BaseModel):
 
 
 class OAuth2ErrorResponse(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     error: str = Field(
         description="OAuth2 error code",
@@ -1360,7 +1363,7 @@ class OAuth2ErrorResponse(BaseModel):
 
 
 class OAuth2DiscoveryResponse(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     issuer: str
     authorization_endpoint: str
@@ -1386,7 +1389,7 @@ OAuth2TokenRequestGrant_type = Literal["authorization_code", "refresh_token"]
 
 
 class OAuth2TokenRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     grant_type: OAuth2TokenRequestGrant_type
     code: str | None = Field(default=None, repr=False)
@@ -1399,7 +1402,7 @@ class OAuth2TokenRequest(BaseModel):
 
 
 class OAuth2TokenResponse(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     access_token: str = Field(repr=False)
     token_type: str
@@ -1410,7 +1413,7 @@ class OAuth2TokenResponse(BaseModel):
 
 
 class OAuth2UserinfoResponse(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     sub: str
     name: str | None = None
@@ -1423,7 +1426,7 @@ class OAuth2UserinfoResponse(BaseModel):
 
 
 class OAuth2JWKSResponse(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     keys: list[JWK]
 
@@ -1432,7 +1435,7 @@ OAuth2RevokeRequestToken_type_hint = Literal["access_token", "refresh_token"]
 
 
 class OAuth2RevokeRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     token: str = Field(repr=False)
     token_type_hint: OAuth2RevokeRequestToken_type_hint | None = None
@@ -1444,7 +1447,7 @@ OAuth2IntrospectRequestToken_type_hint = Literal["access_token", "refresh_token"
 
 
 class OAuth2IntrospectRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     token: str = Field(repr=False)
     token_type_hint: OAuth2IntrospectRequestToken_type_hint | None = None
@@ -1453,7 +1456,7 @@ class OAuth2IntrospectRequest(BaseModel):
 
 
 class OAuth2IntrospectResponse(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     active: bool
     scope: str | None = None
@@ -1466,9 +1469,9 @@ class OAuth2IntrospectResponse(BaseModel):
 
 
 class OAuth2LoginResponse(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
-    request_id: str = Field(
+    request_id: UUID = Field(
         alias="requestId",
         description="Format: uuid",
     )
@@ -1478,24 +1481,24 @@ class OAuth2LoginResponse(BaseModel):
 
 
 class OAuth2LoginRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
-    request_id: str = Field(
+    request_id: UUID = Field(
         alias="requestId",
         description="Format: uuid",
     )
 
 
 class OAuth2LoginCompleteResponse(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
-    redirect_uri: str = Field(
+    redirect_uri: AnyUrl = Field(
         alias="redirectUri",
         description="Format: uri",
     )
 
 
-RedirectToQuery = str
+RedirectToQuery = AnyUrl
 
 SignInProvider = Literal[
     "apple",
@@ -1524,7 +1527,7 @@ TicketTypeQuery = Literal[
 
 
 class GetVersionResponse200(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     version: str = Field(
         description='The version of the authentication service\n\nExample: "1.2.3"',
@@ -1535,7 +1538,7 @@ GetCode_challenge_method = Literal["S256"]
 
 
 class Oauth2AuthorizePostBody(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     client_id: str
     redirect_uri: str
@@ -1553,7 +1556,7 @@ class Oauth2AuthorizePostBody(BaseModel):
 
 
 class SignInProviderParams(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
 
     allowed_roles: list[str] | None = Field(
         default=None,
@@ -1584,7 +1587,7 @@ class SignInProviderParams(BaseModel):
             '{"firstName":"John","lastName":"Smith"}'
         ),
     )
-    redirect_to: str | None = Field(
+    redirect_to: AnyUrl | None = Field(
         default=None,
         alias="redirectTo",
         description=(
@@ -1628,7 +1631,7 @@ class SignInProviderParams(BaseModel):
 
 
 class SignUpProviderParams(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
 
     allowed_roles: list[str] | None = Field(
         default=None,
@@ -1659,7 +1662,7 @@ class SignUpProviderParams(BaseModel):
             '{"firstName":"John","lastName":"Smith"}'
         ),
     )
-    redirect_to: str | None = Field(
+    redirect_to: AnyUrl | None = Field(
         default=None,
         alias="redirectTo",
         description=(
@@ -1696,7 +1699,7 @@ class SignUpProviderParams(BaseModel):
 
 
 class VerifyTicketParams(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
 
     ticket: TicketQuery = Field(
         repr=False,
@@ -1727,7 +1730,7 @@ class VerifyTicketParams(BaseModel):
 
 
 class Oauth2AuthorizeParams(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
 
     client_id: str = Field(
         description="The OAuth2 client identifier (RFC 6749 Section 2.2).",
@@ -1782,9 +1785,9 @@ class Oauth2AuthorizeParams(BaseModel):
 
 
 class Oauth2LoginGetParams(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
 
-    request_id: str = Field(
+    request_id: UUID = Field(
         description="The pending authorization request identifier.\n\nFormat: uuid",
     )
 
@@ -1795,13 +1798,26 @@ class Client:
     def __init__(
         self,
         base_url: str,
-        chain_functions: list[ChainFunction] | None = None,
+        *,
+        chain_functions: Sequence[ChainFunction] = (),
         http_client: httpx.AsyncClient | None = None,
     ) -> None:
         self.base_url = base_url
-        self._chain_functions: list[ChainFunction] = list(chain_functions or [])
+        self._chain_functions = list(chain_functions)
+        self._owns_http_client = http_client is None
         self._http = http_client if http_client is not None else httpx.AsyncClient()
         self._fetch = create_enhanced_fetch(self._http, self._chain_functions)
+
+    async def __aenter__(self) -> Client:
+        return self
+
+    async def __aexit__(self, *_: object) -> None:
+        await self.aclose()
+
+    async def aclose(self) -> None:
+        """Close the internally owned HTTP client, if any."""
+        if self._owns_http_client:
+            await self._http.aclose()
 
     def push_chain_function(self, chain_function: ChainFunction) -> None:
         """Append a middleware chain function and rebuild the fetch pipeline."""
@@ -1810,13 +1826,14 @@ class Client:
 
     async def get_jw_ks(
         self,
-        headers: dict[str, str] | None = None,
+        *,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[JWKSet]:
         (
             """Get public keys for JWT verification in JWK Set format\n\nRetrieve the JSON Web """
             """Key Set (JWKS) containing public keys used to verify JWT signatures. This """
             """endpoint is used by clients to validate access tokens.\n\nArgs:\n    headers """
-            """(dict[str, str] | None): Additional request headers.\n\nReturns:\n    """
+            """(Mapping[str, str] | None): Additional request headers.\n\nReturns:\n    """
             """FetchResponse[JWKSet]: The HTTP response."""
         )
         url = f"{self.base_url}/.well-known/jwks.json"
@@ -1828,19 +1845,20 @@ class Client:
             headers=headers,
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, JWKSet)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def elevate_webauthn(
         self,
-        headers: dict[str, str] | None = None,
+        *,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[PublicKeyCredentialRequestOptions]:
         (
             """Elevate access for an already signed in user using FIDO2 Webauthn\n\nGenerate a """
             """Webauthn challenge for elevating user permissions\n\nArgs:\n    headers """
-            """(dict[str, str] | None): Additional request headers.\n\nReturns:\n    """
+            """(Mapping[str, str] | None): Additional request headers.\n\nReturns:\n    """
             """FetchResponse[PublicKeyCredentialRequestOptions]: The HTTP response."""
         )
         url = f"{self.base_url}/elevate/webauthn"
@@ -1852,21 +1870,22 @@ class Client:
             headers=headers,
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, PublicKeyCredentialRequestOptions)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def verify_elevate_webauthn(
         self,
+        *,
         body: SignInWebauthnVerifyRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[SessionPayload]:
         (
             """Verify FIDO2 Webauthn authentication using public-key cryptography for elevation\n"""
             """\nComplete Webauthn elevation by verifying the authentication response\n\nArgs:\n """
-            """   body (SignInWebauthnVerifyRequest): Request body.\n    headers (dict[str, str] """
-            """| None): Additional request headers.\n\nReturns:\n    """
+            """   body (SignInWebauthnVerifyRequest): Request body.\n    headers (Mapping[str, """
+            """str] | None): Additional request headers.\n\nReturns:\n    """
             """FetchResponse[SessionPayload]: The HTTP response."""
         )
         url = f"{self.base_url}/elevate/webauthn/verify"
@@ -1879,18 +1898,19 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, SessionPayload)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def health_check_get(
         self,
-        headers: dict[str, str] | None = None,
+        *,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[OKResponse]:
         (
             """Health check (GET)\n\nVerify if the authentication service is operational using """
-            """GET method\n\nArgs:\n    headers (dict[str, str] | None): Additional request """
+            """GET method\n\nArgs:\n    headers (Mapping[str, str] | None): Additional request """
             """headers.\n\nReturns:\n    FetchResponse[OKResponse]: The HTTP response."""
         )
         url = f"{self.base_url}/healthz"
@@ -1902,18 +1922,19 @@ class Client:
             headers=headers,
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, OKResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def health_check_head(
         self,
-        headers: dict[str, str] | None = None,
+        *,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[None]:
         (
             """Health check (HEAD)\n\nVerify if the authentication service is operational using """
-            """HEAD method\n\nArgs:\n    headers (dict[str, str] | None): Additional request """
+            """HEAD method\n\nArgs:\n    headers (Mapping[str, str] | None): Additional request """
             """headers.\n\nReturns:\n    FetchResponse[None]: The HTTP response."""
         )
         url = f"{self.base_url}/healthz"
@@ -1925,22 +1946,23 @@ class Client:
             headers=headers,
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = None
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def link_id_token(
         self,
+        *,
         body: LinkIdTokenRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[OKResponse]:
         (
             """Link a user account with the provider's account using an id token\n\nLink the """
             """authenticated user's account with an external OAuth provider account using an ID """
             """token. Requires elevated permissions.\n\nArgs:\n    body (LinkIdTokenRequest): """
-            """Request body.\n    headers (dict[str, str] | None): Additional request headers.\n"""
-            """\nReturns:\n    FetchResponse[OKResponse]: The HTTP response."""
+            """Request body.\n    headers (Mapping[str, str] | None): Additional request """
+            """headers.\n\nReturns:\n    FetchResponse[OKResponse]: The HTTP response."""
         )
         url = f"{self.base_url}/link/idtoken"
         query = None
@@ -1952,18 +1974,19 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, OKResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def change_user_mfa(
         self,
-        headers: dict[str, str] | None = None,
+        *,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[TotpGenerateResponse]:
         (
             """Generate TOTP secret\n\nGenerate a Time-based One-Time Password (TOTP) secret for """
-            """setting up multi-factor authentication\n\nArgs:\n    headers (dict[str, str] | """
+            """setting up multi-factor authentication\n\nArgs:\n    headers (Mapping[str, str] | """
             """None): Additional request headers.\n\nReturns:\n    """
             """FetchResponse[TotpGenerateResponse]: The HTTP response."""
         )
@@ -1976,22 +1999,23 @@ class Client:
             headers=headers,
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, TotpGenerateResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def create_pat(
         self,
+        *,
         body: CreatePATRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[CreatePATResponse]:
         (
             """Create a Personal Access Token (PAT)\n\nGenerate a new Personal Access Token for """
             """programmatic API access. PATs are long-lived tokens that can be used instead of """
             """regular authentication for automated systems. Requires elevated permissions.\n\n"""
-            """Args:\n    body (CreatePATRequest): Request body.\n    headers (dict[str, str] | """
-            """None): Additional request headers.\n\nReturns:\n    """
+            """Args:\n    body (CreatePATRequest): Request body.\n    headers (Mapping[str, str] """
+            """| None): Additional request headers.\n\nReturns:\n    """
             """FetchResponse[CreatePATResponse]: The HTTP response."""
         )
         url = f"{self.base_url}/pat"
@@ -2004,15 +2028,16 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, CreatePATResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def sign_in_anonymous(
         self,
+        *,
         body: SignInAnonymousRequest | None = None,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[SessionPayload]:
         (
             """Sign in anonymously\n\nCreate an anonymous user session without providing """
@@ -2020,7 +2045,7 @@ class Client:
             """deanonymize endpoint.\nThis endpoint always creates a new user and is **not** """
             """gated by `AUTH_DISABLE_AUTO_SIGNUP`; it is controlled by `AUTH_DISABLE_SIGNUP` """
             """and `AUTH_ANONYMOUS_USERS_ENABLED`.\n\n\nArgs:\n    body """
-            """(SignInAnonymousRequest): Request body.\n    headers (dict[str, str] | None): """
+            """(SignInAnonymousRequest): Request body.\n    headers (Mapping[str, str] | None): """
             """Additional request headers.\n\nReturns:\n    FetchResponse[SessionPayload]: The """
             """HTTP response."""
         )
@@ -2034,21 +2059,22 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, SessionPayload)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def sign_in_email_password(
         self,
+        *,
         body: SignInEmailPasswordRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[SignInEmailPasswordResponse]:
         (
             """Sign in with email and password\n\nAuthenticate a user with their email and """
             """password. Returns a session object or MFA challenge if two-factor authentication """
             """is enabled.\n\nArgs:\n    body (SignInEmailPasswordRequest): Request body.\n    """
-            """headers (dict[str, str] | None): Additional request headers.\n\nReturns:\n    """
+            """headers (Mapping[str, str] | None): Additional request headers.\n\nReturns:\n    """
             """FetchResponse[SignInEmailPasswordResponse]: The HTTP response."""
         )
         url = f"{self.base_url}/signin/email-password"
@@ -2061,15 +2087,16 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, SignInEmailPasswordResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def sign_in_id_token(
         self,
+        *,
         body: SignInIdTokenRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[SessionPayload]:
         (
             """Sign in with an ID token\n\nAuthenticate using an ID token from a supported OAuth """
@@ -2077,7 +2104,7 @@ class Client:
             """`AUTH_DISABLE_AUTO_SIGNUP` is not set, a new account will be created.\nWhen """
             """`AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/idtoken` """
             """endpoint to register first.\n\n\nArgs:\n    body (SignInIdTokenRequest): Request """
-            """body.\n    headers (dict[str, str] | None): Additional request headers.\n\n"""
+            """body.\n    headers (Mapping[str, str] | None): Additional request headers.\n\n"""
             """Returns:\n    FetchResponse[SessionPayload]: The HTTP response."""
         )
         url = f"{self.base_url}/signin/idtoken"
@@ -2090,21 +2117,22 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, SessionPayload)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def verify_sign_in_mfa_totp(
         self,
+        *,
         body: SignInMfaTotpRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[SessionPayload]:
         (
             """Verify TOTP for MFA\n\nComplete the multi-factor authentication by verifying a """
             """Time-based One-Time Password (TOTP). Returns a session if validation is """
             """successful.\n\nArgs:\n    body (SignInMfaTotpRequest): Request body.\n    headers """
-            """(dict[str, str] | None): Additional request headers.\n\nReturns:\n    """
+            """(Mapping[str, str] | None): Additional request headers.\n\nReturns:\n    """
             """FetchResponse[SessionPayload]: The HTTP response."""
         )
         url = f"{self.base_url}/signin/mfa/totp"
@@ -2117,15 +2145,16 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, SessionPayload)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def sign_in_otp_email(
         self,
+        *,
         body: SignInOTPEmailRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[OKResponse]:
         (
             """Sign in with email OTP\n\nInitiate email-based one-time password authentication. """
@@ -2133,7 +2162,7 @@ class Client:
             """`AUTH_DISABLE_AUTO_SIGNUP` is not set, a new account will be created with the """
             """provided options.\nWhen `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the """
             """`/signup/otp/email` endpoint to register first.\n\n\nArgs:\n    body """
-            """(SignInOTPEmailRequest): Request body.\n    headers (dict[str, str] | None): """
+            """(SignInOTPEmailRequest): Request body.\n    headers (Mapping[str, str] | None): """
             """Additional request headers.\n\nReturns:\n    FetchResponse[OKResponse]: The HTTP """
             """response."""
         )
@@ -2147,20 +2176,21 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, OKResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def verify_sign_in_otp_email(
         self,
+        *,
         body: SignInOTPEmailVerifyRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[SignInOTPEmailVerifyResponse]:
         (
             """Verify email OTP\n\nComplete email OTP authentication by verifying the one-time """
             """password. Returns a session if validation is successful.\n\nArgs:\n    body """
-            """(SignInOTPEmailVerifyRequest): Request body.\n    headers (dict[str, str] | """
+            """(SignInOTPEmailVerifyRequest): Request body.\n    headers (Mapping[str, str] | """
             """None): Additional request headers.\n\nReturns:\n    """
             """FetchResponse[SignInOTPEmailVerifyResponse]: The HTTP response."""
         )
@@ -2174,15 +2204,16 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, SignInOTPEmailVerifyResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def sign_in_passwordless_email(
         self,
+        *,
         body: SignInPasswordlessEmailRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[OKResponse]:
         (
             """Sign in with magic link email\n\nInitiate passwordless authentication by sending """
@@ -2190,7 +2221,7 @@ class Client:
             """`AUTH_DISABLE_AUTO_SIGNUP` is not set, a new account will be created with the """
             """provided options.\nWhen `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the """
             """`/signup/passwordless/email` endpoint to register first.\n\n\nArgs:\n    body """
-            """(SignInPasswordlessEmailRequest): Request body.\n    headers (dict[str, str] | """
+            """(SignInPasswordlessEmailRequest): Request body.\n    headers (Mapping[str, str] | """
             """None): Additional request headers.\n\nReturns:\n    FetchResponse[OKResponse]: """
             """The HTTP response."""
         )
@@ -2204,15 +2235,16 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, OKResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def sign_in_passwordless_sms(
         self,
+        *,
         body: SignInPasswordlessSmsRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[OKResponse]:
         (
             """Sign in with SMS OTP\n\nInitiate passwordless authentication by sending a """
@@ -2220,7 +2252,7 @@ class Client:
             """`AUTH_DISABLE_AUTO_SIGNUP` is not set, a new account will be created with the """
             """provided options.\nWhen `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the """
             """`/signup/passwordless/sms` endpoint to register first.\n\n\nArgs:\n    body """
-            """(SignInPasswordlessSmsRequest): Request body.\n    headers (dict[str, str] | """
+            """(SignInPasswordlessSmsRequest): Request body.\n    headers (Mapping[str, str] | """
             """None): Additional request headers.\n\nReturns:\n    FetchResponse[OKResponse]: """
             """The HTTP response."""
         )
@@ -2234,21 +2266,22 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, OKResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def verify_sign_in_passwordless_sms(
         self,
+        *,
         body: SignInPasswordlessSmsOtpRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[SignInPasswordlessSmsOtpResponse]:
         (
             """Verify SMS OTP and complete authentication\n\nComplete passwordless SMS """
             """authentication by verifying the one-time password and returning a session.\n\n"""
             """Args:\n    body (SignInPasswordlessSmsOtpRequest): Request body.\n    headers """
-            """(dict[str, str] | None): Additional request headers.\n\nReturns:\n    """
+            """(Mapping[str, str] | None): Additional request headers.\n\nReturns:\n    """
             """FetchResponse[SignInPasswordlessSmsOtpResponse]: The HTTP response."""
         )
         url = f"{self.base_url}/signin/passwordless/sms/otp"
@@ -2261,21 +2294,22 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, SignInPasswordlessSmsOtpResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def sign_in_pat(
         self,
+        *,
         body: SignInPATRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[SessionPayload]:
         (
             """Sign in with Personal Access Token (PAT)\n\nAuthenticate using a Personal Access """
             """Token. PATs are long-lived tokens that can be used for programmatic access to the """
-            """API.\n\nArgs:\n    body (SignInPATRequest): Request body.\n    headers (dict[str, """
-            """str] | None): Additional request headers.\n\nReturns:\n    """
+            """API.\n\nArgs:\n    body (SignInPATRequest): Request body.\n    headers """
+            """(Mapping[str, str] | None): Additional request headers.\n\nReturns:\n    """
             """FetchResponse[SessionPayload]: The HTTP response."""
         )
         url = f"{self.base_url}/signin/pat"
@@ -2288,14 +2322,15 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, SessionPayload)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     def sign_in_provider_url(
         self,
         provider: SignInProvider,
+        *,
         params: SignInProviderParams | None = None,
     ) -> str:
         (
@@ -2346,7 +2381,8 @@ class Client:
     async def get_provider_tokens(
         self,
         provider: SignInProvider,
-        headers: dict[str, str] | None = None,
+        *,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[ProviderSession]:
         (
             """Retrieve OAuth2 provider tokens from callback\n\nAfter successful OAuth2 """
@@ -2357,7 +2393,7 @@ class Client:
             """subsequent calls will fail without going through the sign-in flow again. It is """
             """the user's responsibility to store the session safely (e.g., in browser local """
             """storage).\n\nArgs:\n    provider (SignInProvider): The name of the social """
-            """provider\n    headers (dict[str, str] | None): Additional request headers.\n\n"""
+            """provider\n    headers (Mapping[str, str] | None): Additional request headers.\n\n"""
             """Returns:\n    FetchResponse[ProviderSession]: The HTTP response."""
         )
         url = f"{self.base_url}/signin/provider/{_escape_path(provider)}/callback/tokens"
@@ -2369,22 +2405,23 @@ class Client:
             headers=headers,
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, ProviderSession)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def sign_in_webauthn(
         self,
+        *,
         body: SignInWebauthnRequest | None = None,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[PublicKeyCredentialRequestOptions]:
         (
             """Sign in with Webauthn\n\nInitiate a Webauthn sign-in process by sending a """
             """challenge to the user's device. The user must have previously registered a """
             """Webauthn credential.\n\nArgs:\n    body (SignInWebauthnRequest): Request body.\n  """
-            """  headers (dict[str, str] | None): Additional request headers.\n\nReturns:\n    """
-            """FetchResponse[PublicKeyCredentialRequestOptions]: The HTTP response."""
+            """  headers (Mapping[str, str] | None): Additional request headers.\n\nReturns:\n   """
+            """ FetchResponse[PublicKeyCredentialRequestOptions]: The HTTP response."""
         )
         url = f"{self.base_url}/signin/webauthn"
         query = None
@@ -2396,21 +2433,22 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, PublicKeyCredentialRequestOptions)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def verify_sign_in_webauthn(
         self,
+        *,
         body: SignInWebauthnVerifyRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[SessionPayload]:
         (
             """Verify Webauthn sign-in\n\nComplete the Webauthn sign-in process by verifying the """
             """response from the user's device. Returns a session if validation is successful.\n"""
             """\nArgs:\n    body (SignInWebauthnVerifyRequest): Request body.\n    headers """
-            """(dict[str, str] | None): Additional request headers.\n\nReturns:\n    """
+            """(Mapping[str, str] | None): Additional request headers.\n\nReturns:\n    """
             """FetchResponse[SessionPayload]: The HTTP response."""
         )
         url = f"{self.base_url}/signin/webauthn/verify"
@@ -2423,21 +2461,22 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, SessionPayload)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def sign_out(
         self,
+        *,
         body: SignOutRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[OKResponse]:
         (
             """Sign out\n\nEnd the current user session by invalidating refresh tokens. """
             """Optionally sign out from all devices.\n\nArgs:\n    body (SignOutRequest): """
-            """Request body.\n    headers (dict[str, str] | None): Additional request headers.\n"""
-            """\nReturns:\n    FetchResponse[OKResponse]: The HTTP response."""
+            """Request body.\n    headers (Mapping[str, str] | None): Additional request """
+            """headers.\n\nReturns:\n    FetchResponse[OKResponse]: The HTTP response."""
         )
         url = f"{self.base_url}/signout"
         query = None
@@ -2449,21 +2488,22 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, OKResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def sign_up_email_password(
         self,
+        *,
         body: SignUpEmailPasswordRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[SessionPayload]:
         (
             """Sign up with email and password\n\nRegister a new user account with email and """
             """password. Returns a session if email verification is not required, otherwise """
             """returns null session.\n\nArgs:\n    body (SignUpEmailPasswordRequest): Request """
-            """body.\n    headers (dict[str, str] | None): Additional request headers.\n\n"""
+            """body.\n    headers (Mapping[str, str] | None): Additional request headers.\n\n"""
             """Returns:\n    FetchResponse[SessionPayload]: The HTTP response."""
         )
         url = f"{self.base_url}/signup/email-password"
@@ -2476,20 +2516,21 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, SessionPayload)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def sign_up_webauthn(
         self,
+        *,
         body: SignUpWebauthnRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[PublicKeyCredentialCreationOptions]:
         (
             """Sign up with Webauthn\n\nInitiate a Webauthn sign-up process by sending a """
             """challenge to the user's device. The user must not have an existing account.\n\n"""
-            """Args:\n    body (SignUpWebauthnRequest): Request body.\n    headers (dict[str, """
+            """Args:\n    body (SignUpWebauthnRequest): Request body.\n    headers (Mapping[str, """
             """str] | None): Additional request headers.\n\nReturns:\n    """
             """FetchResponse[PublicKeyCredentialCreationOptions]: The HTTP response."""
         )
@@ -2503,21 +2544,22 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, PublicKeyCredentialCreationOptions)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def verify_sign_up_webauthn(
         self,
+        *,
         body: SignUpWebauthnVerifyRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[SessionPayload]:
         (
             """Verify Webauthn sign-up\n\nComplete the Webauthn sign-up process by verifying the """
             """response from the user's device. Returns a session if validation is successful.\n"""
             """\nArgs:\n    body (SignUpWebauthnVerifyRequest): Request body.\n    headers """
-            """(dict[str, str] | None): Additional request headers.\n\nReturns:\n    """
+            """(Mapping[str, str] | None): Additional request headers.\n\nReturns:\n    """
             """FetchResponse[SessionPayload]: The HTTP response."""
         )
         url = f"{self.base_url}/signup/webauthn/verify"
@@ -2530,15 +2572,16 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, SessionPayload)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def sign_up_passwordless_email(
         self,
+        *,
         body: SignUpPasswordlessEmailRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[OKResponse]:
         (
             """Sign up with magic link email\n\nRegister a new user account using passwordless """
@@ -2546,7 +2589,7 @@ class Client:
             """verification.\nUse this endpoint to explicitly register a new account. When """
             """`AUTH_DISABLE_AUTO_SIGNUP` is enabled, this is the only way to register through """
             """this method.\n\n\nArgs:\n    body (SignUpPasswordlessEmailRequest): Request """
-            """body.\n    headers (dict[str, str] | None): Additional request headers.\n\n"""
+            """body.\n    headers (Mapping[str, str] | None): Additional request headers.\n\n"""
             """Returns:\n    FetchResponse[OKResponse]: The HTTP response."""
         )
         url = f"{self.base_url}/signup/passwordless/email"
@@ -2559,15 +2602,16 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, OKResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def sign_up_otp_email(
         self,
+        *,
         body: SignUpOTPEmailRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[OKResponse]:
         (
             """Sign up with email OTP\n\nRegister a new user account using email OTP """
@@ -2575,7 +2619,7 @@ class Client:
             """this endpoint to explicitly register a new account. When """
             """`AUTH_DISABLE_AUTO_SIGNUP` is enabled, this is the only way to register through """
             """this method.\n\n\nArgs:\n    body (SignUpOTPEmailRequest): Request body.\n    """
-            """headers (dict[str, str] | None): Additional request headers.\n\nReturns:\n    """
+            """headers (Mapping[str, str] | None): Additional request headers.\n\nReturns:\n    """
             """FetchResponse[OKResponse]: The HTTP response."""
         )
         url = f"{self.base_url}/signup/otp/email"
@@ -2588,22 +2632,23 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, OKResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def sign_up_passwordless_sms(
         self,
+        *,
         body: SignUpPasswordlessSmsRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[OKResponse]:
         (
             """Sign up with SMS OTP\n\nRegister a new user account using SMS OTP authentication. """
             """Sends a one-time password to the specified phone number.\nUse this endpoint to """
             """explicitly register a new account. When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, """
             """this is the only way to register through this method.\n\n\nArgs:\n    body """
-            """(SignUpPasswordlessSmsRequest): Request body.\n    headers (dict[str, str] | """
+            """(SignUpPasswordlessSmsRequest): Request body.\n    headers (Mapping[str, str] | """
             """None): Additional request headers.\n\nReturns:\n    FetchResponse[OKResponse]: """
             """The HTTP response."""
         )
@@ -2617,15 +2662,16 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, OKResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def sign_up_id_token(
         self,
+        *,
         body: SignUpIdTokenRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[SessionPayload]:
         (
             """Sign up with ID token\n\nRegister a new user account using an ID token from Apple """
@@ -2633,7 +2679,7 @@ class Client:
             """`AUTH_DISABLE_AUTO_SIGNUP` is enabled, this is the only way to register through """
             """this method.\nIf the user already exists, a `user-already-exists` error is """
             """returned.\n\n\nArgs:\n    body (SignUpIdTokenRequest): Request body.\n    headers """
-            """(dict[str, str] | None): Additional request headers.\n\nReturns:\n    """
+            """(Mapping[str, str] | None): Additional request headers.\n\nReturns:\n    """
             """FetchResponse[SessionPayload]: The HTTP response."""
         )
         url = f"{self.base_url}/signup/idtoken"
@@ -2646,14 +2692,15 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, SessionPayload)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     def sign_up_provider_url(
         self,
         provider: SignInProvider,
+        *,
         params: SignUpProviderParams | None = None,
     ) -> str:
         (
@@ -2701,15 +2748,16 @@ class Client:
 
     async def refresh_token(
         self,
+        *,
         body: RefreshTokenRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[Session]:
         (
             """Refresh access token\n\nGenerate a new JWT access token using a valid refresh """
             """token. The refresh token used will be revoked and a new one will be issued.\n\n"""
-            """Args:\n    body (RefreshTokenRequest): Request body.\n    headers (dict[str, str] """
-            """| None): Additional request headers.\n\nReturns:\n    FetchResponse[Session]: The """
-            """HTTP response."""
+            """Args:\n    body (RefreshTokenRequest): Request body.\n    headers (Mapping[str, """
+            """str] | None): Additional request headers.\n\nReturns:\n    """
+            """FetchResponse[Session]: The HTTP response."""
         )
         url = f"{self.base_url}/token"
         query = None
@@ -2721,16 +2769,17 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, Session)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def refresh_provider_token(
         self,
         provider: SignInProvider,
+        *,
         body: RefreshProviderTokenRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[ProviderSession]:
         (
             """Refresh OAuth2 provider tokens\n\nRefresh the OAuth2 provider access token using """
@@ -2739,7 +2788,7 @@ class Client:
             """allows maintaining long-lived access to provider APIs without requiring the user """
             """to re-authenticate.\n\nArgs:\n    provider (SignInProvider): The name of the """
             """social provider\n    body (RefreshProviderTokenRequest): Request body.\n    """
-            """headers (dict[str, str] | None): Additional request headers.\n\nReturns:\n    """
+            """headers (Mapping[str, str] | None): Additional request headers.\n\nReturns:\n    """
             """FetchResponse[ProviderSession]: The HTTP response."""
         )
         url = f"{self.base_url}/token/provider/{_escape_path(provider)}"
@@ -2752,21 +2801,22 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, ProviderSession)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def verify_token(
         self,
+        *,
         body: VerifyTokenRequest | None = None,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[str]:
         (
             """Verify JWT token\n\nVerify the validity of a JWT access token. If no request body """
             """is provided, the Authorization header will be used for verification.\n\nArgs:\n   """
-            """ body (VerifyTokenRequest): Request body.\n    headers (dict[str, str] | None): """
-            """Additional request headers.\n\nReturns:\n    FetchResponse[str]: The HTTP """
+            """ body (VerifyTokenRequest): Request body.\n    headers (Mapping[str, str] | """
+            """None): Additional request headers.\n\nReturns:\n    FetchResponse[str]: The HTTP """
             """response."""
         )
         url = f"{self.base_url}/token/verify"
@@ -2779,20 +2829,21 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, str)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def get_user(
         self,
-        headers: dict[str, str] | None = None,
+        *,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[User]:
         (
             """Get user information\n\nRetrieve the authenticated user's profile information """
-            """including roles, metadata, and account status.\n\nArgs:\n    headers (dict[str, """
-            """str] | None): Additional request headers.\n\nReturns:\n    FetchResponse[User]: """
-            """The HTTP response."""
+            """including roles, metadata, and account status.\n\nArgs:\n    headers """
+            """(Mapping[str, str] | None): Additional request headers.\n\nReturns:\n    """
+            """FetchResponse[User]: The HTTP response."""
         )
         url = f"{self.base_url}/user"
         query = None
@@ -2803,21 +2854,22 @@ class Client:
             headers=headers,
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, User)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def deanonymize_user(
         self,
+        *,
         body: UserDeanonymizeRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[OKResponse]:
         (
             """Deanonymize an anonymous user\n\nConvert an anonymous user to a regular user by """
             """adding email and optionally password credentials. A confirmation email will be """
             """sent if the server is configured to do so.\n\nArgs:\n    body """
-            """(UserDeanonymizeRequest): Request body.\n    headers (dict[str, str] | None): """
+            """(UserDeanonymizeRequest): Request body.\n    headers (Mapping[str, str] | None): """
             """Additional request headers.\n\nReturns:\n    FetchResponse[OKResponse]: The HTTP """
             """response."""
         )
@@ -2831,15 +2883,16 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, OKResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def deanonymize_user_sms(
         self,
+        *,
         body: UserDeanonymizeSmsRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[OKResponse]:
         (
             """Deanonymize an anonymous user with SMS OTP\n\nConvert an anonymous user to a """
@@ -2847,7 +2900,7 @@ class Client:
             """number; the user completes verification by calling `/signin/passwordless/sms/otp` """
             """with the OTP, which\nmarks the phone number as verified and returns a session.\n\n"""
             """\nArgs:\n    body (UserDeanonymizeSmsRequest): Request body.\n    headers """
-            """(dict[str, str] | None): Additional request headers.\n\nReturns:\n    """
+            """(Mapping[str, str] | None): Additional request headers.\n\nReturns:\n    """
             """FetchResponse[OKResponse]: The HTTP response."""
         )
         url = f"{self.base_url}/user/deanonymize/sms"
@@ -2860,22 +2913,23 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, OKResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def change_user_email(
         self,
+        *,
         body: UserEmailChangeRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[OKResponse]:
         (
             """Change user email\n\nRequest to change the authenticated user's email address. A """
             """verification email will be sent to the new address to confirm the change. """
             """Requires elevated permissions.\n\nArgs:\n    body (UserEmailChangeRequest): """
-            """Request body.\n    headers (dict[str, str] | None): Additional request headers.\n"""
-            """\nReturns:\n    FetchResponse[OKResponse]: The HTTP response."""
+            """Request body.\n    headers (Mapping[str, str] | None): Additional request """
+            """headers.\n\nReturns:\n    FetchResponse[OKResponse]: The HTTP response."""
         )
         url = f"{self.base_url}/user/email/change"
         query = None
@@ -2887,15 +2941,16 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, OKResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def change_user_phone_number(
         self,
+        *,
         body: UserPhoneNumberChangeRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[OKResponse]:
         (
             """Change user phone number\n\nRequest to change the authenticated user's phone """
@@ -2903,8 +2958,8 @@ class Client:
             """the change by calling\n`/user/phone-number/change/verify` with the OTP. The """
             """current `phone_number` is left\nunchanged until verification succeeds. Requires """
             """elevated permissions.\n\n\nArgs:\n    body (UserPhoneNumberChangeRequest): """
-            """Request body.\n    headers (dict[str, str] | None): Additional request headers.\n"""
-            """\nReturns:\n    FetchResponse[OKResponse]: The HTTP response."""
+            """Request body.\n    headers (Mapping[str, str] | None): Additional request """
+            """headers.\n\nReturns:\n    FetchResponse[OKResponse]: The HTTP response."""
         )
         url = f"{self.base_url}/user/phone-number/change"
         query = None
@@ -2916,22 +2971,23 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, OKResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def verify_change_user_phone_number(
         self,
+        *,
         body: UserPhoneNumberChangeVerifyRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[OKResponse]:
         (
             """Verify phone number change\n\nComplete a previously-requested phone number change """
             """by submitting the OTP that was\nsent via SMS. On success the staged phone number """
             """becomes the user's verified phone\nnumber. Requires elevated permissions.\n\n\n"""
             """Args:\n    body (UserPhoneNumberChangeVerifyRequest): Request body.\n    headers """
-            """(dict[str, str] | None): Additional request headers.\n\nReturns:\n    """
+            """(Mapping[str, str] | None): Additional request headers.\n\nReturns:\n    """
             """FetchResponse[OKResponse]: The HTTP response."""
         )
         url = f"{self.base_url}/user/phone-number/change/verify"
@@ -2944,21 +3000,22 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, OKResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def send_verification_email(
         self,
+        *,
         body: UserEmailSendVerificationEmailRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[OKResponse]:
         (
             """Send verification email\n\nSend an email verification link to the specified email """
             """address. Used to verify email addresses for new accounts or email changes.\n\n"""
             """Args:\n    body (UserEmailSendVerificationEmailRequest): Request body.\n    """
-            """headers (dict[str, str] | None): Additional request headers.\n\nReturns:\n    """
+            """headers (Mapping[str, str] | None): Additional request headers.\n\nReturns:\n    """
             """FetchResponse[OKResponse]: The HTTP response."""
         )
         url = f"{self.base_url}/user/email/send-verification-email"
@@ -2971,21 +3028,22 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, OKResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def verify_change_user_mfa(
         self,
+        *,
         body: UserMfaRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[OKResponse]:
         (
             """Manage multi-factor authentication\n\nActivate or deactivate multi-factor """
             """authentication for the authenticated user\n\nArgs:\n    body (UserMfaRequest): """
-            """Request body.\n    headers (dict[str, str] | None): Additional request headers.\n"""
-            """\nReturns:\n    FetchResponse[OKResponse]: The HTTP response."""
+            """Request body.\n    headers (Mapping[str, str] | None): Additional request """
+            """headers.\n\nReturns:\n    FetchResponse[OKResponse]: The HTTP response."""
         )
         url = f"{self.base_url}/user/mfa"
         query = None
@@ -2997,15 +3055,16 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, OKResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def change_user_password(
         self,
+        *,
         body: UserPasswordRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[OKResponse]:
         (
             """Change user password\n\nChange the user's password. The user must be """
@@ -3014,7 +3073,7 @@ class Client:
             """this operation, including the session used to make the request. Clients must """
             """treat the user as signed out after a successful response and obtain a new session """
             """via sign-in.\n\n\nArgs:\n    body (UserPasswordRequest): Request body.\n    """
-            """headers (dict[str, str] | None): Additional request headers.\n\nReturns:\n    """
+            """headers (Mapping[str, str] | None): Additional request headers.\n\nReturns:\n    """
             """FetchResponse[OKResponse]: The HTTP response."""
         )
         url = f"{self.base_url}/user/password"
@@ -3027,21 +3086,22 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, OKResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def send_password_reset_email(
         self,
+        *,
         body: UserPasswordResetRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[OKResponse]:
         (
             """Request password reset\n\nRequest a password reset for a user account. An email """
             """with a verification link will be sent to the user's email address to complete the """
             """password reset process.\n\nArgs:\n    body (UserPasswordResetRequest): Request """
-            """body.\n    headers (dict[str, str] | None): Additional request headers.\n\n"""
+            """body.\n    headers (Mapping[str, str] | None): Additional request headers.\n\n"""
             """Returns:\n    FetchResponse[OKResponse]: The HTTP response."""
         )
         url = f"{self.base_url}/user/password/reset"
@@ -3054,20 +3114,21 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, OKResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def add_security_key(
         self,
-        headers: dict[str, str] | None = None,
+        *,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[PublicKeyCredentialCreationOptions]:
         (
             """Initialize adding of a new webauthn security key\n\nStart the process of adding a """
             """new WebAuthn security key to the user's account. Returns a challenge that must be """
             """completed by the user's authenticator device. Requires elevated permissions.\n\n"""
-            """Args:\n    headers (dict[str, str] | None): Additional request headers.\n\n"""
+            """Args:\n    headers (Mapping[str, str] | None): Additional request headers.\n\n"""
             """Returns:\n    FetchResponse[PublicKeyCredentialCreationOptions]: The HTTP """
             """response."""
         )
@@ -3080,21 +3141,22 @@ class Client:
             headers=headers,
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, PublicKeyCredentialCreationOptions)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def verify_add_security_key(
         self,
+        *,
         body: VerifyAddSecurityKeyRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[VerifyAddSecurityKeyResponse]:
         (
             """Verify adding of a new webauthn security key\n\nComplete the process of adding a """
             """new WebAuthn security key by verifying the authenticator response. Requires """
             """elevated permissions.\n\nArgs:\n    body (VerifyAddSecurityKeyRequest): Request """
-            """body.\n    headers (dict[str, str] | None): Additional request headers.\n\n"""
+            """body.\n    headers (Mapping[str, str] | None): Additional request headers.\n\n"""
             """Returns:\n    FetchResponse[VerifyAddSecurityKeyResponse]: The HTTP response."""
         )
         url = f"{self.base_url}/user/webauthn/verify"
@@ -3107,22 +3169,23 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, VerifyAddSecurityKeyResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def token_exchange(
         self,
+        *,
         body: TokenExchangeRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[SessionPayload]:
         (
             """Exchange authorization code for session\n\nExchange an authorization code """
             """(obtained via PKCE flow) together with the original code_verifier for a session """
             """containing access and refresh tokens.\n\nArgs:\n    body (TokenExchangeRequest): """
-            """Request body.\n    headers (dict[str, str] | None): Additional request headers.\n"""
-            """\nReturns:\n    FetchResponse[SessionPayload]: The HTTP response."""
+            """Request body.\n    headers (Mapping[str, str] | None): Additional request """
+            """headers.\n\nReturns:\n    FetchResponse[SessionPayload]: The HTTP response."""
         )
         url = f"{self.base_url}/token/exchange"
         query = None
@@ -3134,13 +3197,14 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, SessionPayload)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     def verify_ticket_url(
         self,
+        *,
         params: VerifyTicketParams,
     ) -> str:
         (
@@ -3165,11 +3229,12 @@ class Client:
 
     async def get_version(
         self,
-        headers: dict[str, str] | None = None,
+        *,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[GetVersionResponse200]:
         (
             """Get service version\n\nRetrieve version information about the authentication """
-            """service\n\nArgs:\n    headers (dict[str, str] | None): Additional request """
+            """service\n\nArgs:\n    headers (Mapping[str, str] | None): Additional request """
             """headers.\n\nReturns:\n    FetchResponse[GetVersionResponse200]: The HTTP response."""
         )
         url = f"{self.base_url}/version"
@@ -3181,18 +3246,19 @@ class Client:
             headers=headers,
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, GetVersionResponse200)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def get_open_id_configuration(
         self,
-        headers: dict[str, str] | None = None,
+        *,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[OAuth2DiscoveryResponse]:
         (
             """OpenID Connect Discovery\n\nReturns the OpenID Provider Metadata (RFC 8414)\n\n"""
-            """Args:\n    headers (dict[str, str] | None): Additional request headers.\n\n"""
+            """Args:\n    headers (Mapping[str, str] | None): Additional request headers.\n\n"""
             """Returns:\n    FetchResponse[OAuth2DiscoveryResponse]: The HTTP response."""
         )
         url = f"{self.base_url}/.well-known/openid-configuration"
@@ -3204,18 +3270,19 @@ class Client:
             headers=headers,
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, OAuth2DiscoveryResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def get_o_auth_authorization_server(
         self,
-        headers: dict[str, str] | None = None,
+        *,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[OAuth2DiscoveryResponse]:
         (
             """OAuth2 Authorization Server Metadata\n\nReturns the Authorization Server Metadata """
-            """(RFC 8414). Same content as OpenID Discovery.\n\nArgs:\n    headers (dict[str, """
+            """(RFC 8414). Same content as OpenID Discovery.\n\nArgs:\n    headers (Mapping[str, """
             """str] | None): Additional request headers.\n\nReturns:\n    """
             """FetchResponse[OAuth2DiscoveryResponse]: The HTTP response."""
         )
@@ -3228,13 +3295,14 @@ class Client:
             headers=headers,
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, OAuth2DiscoveryResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     def oauth2_authorize_url(
         self,
+        *,
         params: Oauth2AuthorizeParams,
     ) -> str:
         (
@@ -3284,14 +3352,15 @@ class Client:
 
     async def oauth2_token(
         self,
+        *,
         body: OAuth2TokenRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[OAuth2TokenResponse]:
         (
             """OAuth2 Token Endpoint\n\nExchange an authorization code for tokens, or refresh an """
             """existing token. Supports grant_type authorization_code and refresh_token.\n\n"""
-            """Args:\n    body (OAuth2TokenRequest): Request body.\n    headers (dict[str, str] """
-            """| None): Additional request headers.\n\nReturns:\n    """
+            """Args:\n    body (OAuth2TokenRequest): Request body.\n    headers (Mapping[str, """
+            """str] | None): Additional request headers.\n\nReturns:\n    """
             """FetchResponse[OAuth2TokenResponse]: The HTTP response."""
         )
         url = f"{self.base_url}/oauth2/token"
@@ -3304,18 +3373,19 @@ class Client:
             headers=headers,
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, OAuth2TokenResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def oauth2_userinfo_get(
         self,
-        headers: dict[str, str] | None = None,
+        *,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[OAuth2UserinfoResponse]:
         (
             """OpenID Connect UserInfo Endpoint (GET)\n\nReturns claims about the authenticated """
-            """user based on the access token scopes.\n\nArgs:\n    headers (dict[str, str] | """
+            """user based on the access token scopes.\n\nArgs:\n    headers (Mapping[str, str] | """
             """None): Additional request headers.\n\nReturns:\n    """
             """FetchResponse[OAuth2UserinfoResponse]: The HTTP response."""
         )
@@ -3328,18 +3398,19 @@ class Client:
             headers=headers,
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, OAuth2UserinfoResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def oauth2_userinfo_post(
         self,
-        headers: dict[str, str] | None = None,
+        *,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[OAuth2UserinfoResponse]:
         (
             """OpenID Connect UserInfo Endpoint (POST)\n\nReturns claims about the authenticated """
-            """user based on the access token scopes.\n\nArgs:\n    headers (dict[str, str] | """
+            """user based on the access token scopes.\n\nArgs:\n    headers (Mapping[str, str] | """
             """None): Additional request headers.\n\nReturns:\n    """
             """FetchResponse[OAuth2UserinfoResponse]: The HTTP response."""
         )
@@ -3352,19 +3423,20 @@ class Client:
             headers=headers,
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, OAuth2UserinfoResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def oauth2_jwks(
         self,
-        headers: dict[str, str] | None = None,
+        *,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[OAuth2JWKSResponse]:
         (
             """OAuth2 Provider JWKS Endpoint\n\nReturns the JSON Web Key Set containing public """
-            """keys used for OAuth2/OIDC token signing.\n\nArgs:\n    headers (dict[str, str] | """
-            """None): Additional request headers.\n\nReturns:\n    """
+            """keys used for OAuth2/OIDC token signing.\n\nArgs:\n    headers (Mapping[str, str] """
+            """| None): Additional request headers.\n\nReturns:\n    """
             """FetchResponse[OAuth2JWKSResponse]: The HTTP response."""
         )
         url = f"{self.base_url}/oauth2/jwks"
@@ -3376,21 +3448,22 @@ class Client:
             headers=headers,
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, OAuth2JWKSResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def oauth2_revoke(
         self,
+        *,
         body: OAuth2RevokeRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[None]:
         (
             """OAuth2 Token Revocation (RFC 7009)\n\nRevoke an access token or refresh token.\n\n"""
-            """Args:\n    body (OAuth2RevokeRequest): Request body.\n    headers (dict[str, str] """
-            """| None): Additional request headers.\n\nReturns:\n    FetchResponse[None]: The """
-            """HTTP response."""
+            """Args:\n    body (OAuth2RevokeRequest): Request body.\n    headers (Mapping[str, """
+            """str] | None): Additional request headers.\n\nReturns:\n    FetchResponse[None]: """
+            """The HTTP response."""
         )
         url = f"{self.base_url}/oauth2/revoke"
         query = None
@@ -3402,20 +3475,21 @@ class Client:
             headers=headers,
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = None
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def oauth2_introspect(
         self,
+        *,
         body: OAuth2IntrospectRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[OAuth2IntrospectResponse]:
         (
             """OAuth2 Token Introspection (RFC 7662)\n\nIntrospect a token to determine its """
             """current state and metadata.\n\nArgs:\n    body (OAuth2IntrospectRequest): Request """
-            """body.\n    headers (dict[str, str] | None): Additional request headers.\n\n"""
+            """body.\n    headers (Mapping[str, str] | None): Additional request headers.\n\n"""
             """Returns:\n    FetchResponse[OAuth2IntrospectResponse]: The HTTP response."""
         )
         url = f"{self.base_url}/oauth2/introspect"
@@ -3428,21 +3502,22 @@ class Client:
             headers=headers,
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, OAuth2IntrospectResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def oauth2_login_get(
         self,
+        *,
         params: Oauth2LoginGetParams,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[OAuth2LoginResponse]:
         (
             """Get authorization request details for consent screen\n\nCalled by the consent UI """
             """to get details about the pending authorization request.\n\nArgs:\n    params """
-            """(Oauth2LoginGetParams): Query and header parameters.\n    headers (dict[str, str] """
-            """| None): Additional request headers.\n\nReturns:\n    """
+            """(Oauth2LoginGetParams): Query and header parameters.\n    headers (Mapping[str, """
+            """str] | None): Additional request headers.\n\nReturns:\n    """
             """FetchResponse[OAuth2LoginResponse]: The HTTP response."""
         )
         url = f"{self.base_url}/oauth2/login"
@@ -3456,21 +3531,22 @@ class Client:
             headers=headers,
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, OAuth2LoginResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def oauth2_login_post(
         self,
+        *,
         body: OAuth2LoginRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[OAuth2LoginCompleteResponse]:
         (
             """Complete login/consent for an authorization request\n\nCalled by the consent UI """
             """after user authenticates and consents. Sets the user on the auth request and """
             """redirects back to the client with an authorization code.\n\nArgs:\n    body """
-            """(OAuth2LoginRequest): Request body.\n    headers (dict[str, str] | None): """
+            """(OAuth2LoginRequest): Request body.\n    headers (Mapping[str, str] | None): """
             """Additional request headers.\n\nReturns:\n    """
             """FetchResponse[OAuth2LoginCompleteResponse]: The HTTP response."""
         )
@@ -3484,19 +3560,20 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, OAuth2LoginCompleteResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
 
 def create_api_client(
     base_url: str,
-    chain_functions: list[ChainFunction] | None = None,
+    *,
+    chain_functions: Sequence[ChainFunction] = (),
     http_client: httpx.AsyncClient | None = None,
 ) -> Client:
-    """Create a new API client."""
-    return Client(base_url, chain_functions, http_client)
+    """Create a generated API client."""
+    return Client(base_url, chain_functions=chain_functions, http_client=http_client)
 
 
 __all__ = [

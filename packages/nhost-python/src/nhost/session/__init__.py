@@ -8,6 +8,7 @@ from .storage_backend import (
     FileStorage,
     MemoryStorage,
     SessionStorageBackend,
+    SessionStorageError,
     detect_storage,
 )
 
@@ -19,6 +20,7 @@ __all__ = [
     "SessionChangeCallback",
     "SessionStorage",
     "SessionStorageBackend",
+    "SessionStorageError",
     "StoredSession",
     "decode_user_session",
     "detect_storage",
