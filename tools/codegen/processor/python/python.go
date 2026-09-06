@@ -9,8 +9,10 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"strconv"
 	"strings"
 	"unicode"
+	"unicode/utf8"
 
 	"github.com/nhost/nhost/tools/codegen/format"
 	"github.com/nhost/nhost/tools/codegen/processor"
@@ -18,8 +20,12 @@ import (
 )
 
 const (
-	extCustomType = "x-python-type"
-	extSensitive  = "x-nhost-sensitive"
+	extCustomType                  = "x-python-type"
+	extSensitive                   = "x-nhost-sensitive"
+	pythonContinuationIndentation  = 4
+	pythonFieldArgumentIndentation = 8
+	pythonLineLength               = 100
+	pythonMethodBodyIndentation    = 8
 	// pyNone is the Python literal for the absence of a value, used both as the
 	// runtime return type for void results and as the enum value for a JSON null.
 	pyNone = "None"
@@ -146,17 +152,166 @@ func toPascal(name string) string {
 	return strings.Join(parts, "")
 }
 
+// pythonDocstringLiteral returns value as a safe Python triple-quoted string.
+// strconv.Quote escapes every delimiter, backslash, control character, and
+// newline before the outer quotes are replaced, so specification text cannot
+// terminate the generated literal or become executable Python.
+func pythonDocstringLiteral(value string) string {
+	quoted := strconv.Quote(value)
+
+	return `"""` + quoted[1:len(quoted)-1] + `"""`
+}
+
+// pythonStringLiteral follows Ruff's quote normalization by using single
+// quotes only when doing so reduces the number of escaped delimiters.
+func pythonStringLiteral(value string) string {
+	literal := strconv.Quote(value)
+	if strings.Count(value, `"`) <= strings.Count(value, "'") {
+		return literal
+	}
+
+	body := literal[1 : len(literal)-1]
+	body = strings.ReplaceAll(body, "'", `\'`)
+	body = strings.ReplaceAll(body, `\"`, `"`)
+
+	return "'" + body + "'"
+}
+
+// splitPythonLiterals divides value only at UTF-8 rune boundaries, preferring
+// whitespace boundaries, so adjacent Python literals recreate the exact value.
+func splitPythonLiterals(
+	value string,
+	maxLiteralLength int,
+	render func(string) string,
+) []string {
+	var literals []string
+	for value != "" {
+		bestEnd := 0
+		whitespaceEnd := 0
+
+		for start, r := range value {
+			_, size := utf8.DecodeRuneInString(value[start:])
+
+			end := start + size
+			if len(render(value[:end])) > maxLiteralLength {
+				break
+			}
+
+			bestEnd = end
+			if unicode.IsSpace(r) {
+				whitespaceEnd = end
+			}
+		}
+
+		if bestEnd == len(value) {
+			literals = append(literals, render(value))
+
+			break
+		}
+
+		if whitespaceEnd > 0 {
+			bestEnd = whitespaceEnd
+		}
+
+		if bestEnd == 0 {
+			_, bestEnd = utf8.DecodeRuneInString(value)
+		}
+
+		literals = append(literals, render(value[:bestEnd]))
+		value = value[bestEnd:]
+	}
+
+	return literals
+}
+
+// pythonStringExpression renders a literal directly when it fits, otherwise as
+// adjacent literals in parentheses. Python concatenates the fragments without
+// changing the runtime string value.
+func pythonStringExpression(
+	value string,
+	indentation, prefixLength int,
+	render func(string) string,
+) string {
+	literal := render(value)
+	if indentation+prefixLength+len(literal) <= pythonLineLength {
+		return literal
+	}
+
+	literalIndentation := indentation + pythonContinuationIndentation
+	literals := splitPythonLiterals(
+		value,
+		pythonLineLength-literalIndentation,
+		render,
+	)
+
+	var expression strings.Builder
+	expression.WriteString("(\n")
+
+	for _, fragment := range literals {
+		expression.WriteString(strings.Repeat(" ", literalIndentation))
+		expression.WriteString(fragment)
+		expression.WriteByte('\n')
+	}
+
+	expression.WriteString(strings.Repeat(" ", indentation))
+	expression.WriteByte(')')
+
+	return expression.String()
+}
+
+func pythonDocstringExpression(value string, indentation int) string {
+	return pythonStringExpression(value, indentation, 0, pythonDocstringLiteral)
+}
+
+func documentationText(description, example, pattern, schemaFormat string) string {
+	var parts []string
+	if description != "" {
+		parts = append(parts, description)
+	}
+
+	for _, attribute := range []struct {
+		label string
+		value string
+	}{
+		{label: "Example", value: example},
+		{label: "Pattern", value: pattern},
+		{label: "Format", value: schemaFormat},
+	} {
+		if attribute.value != "" {
+			parts = append(parts, attribute.label+": "+attribute.value)
+		}
+	}
+
+	return strings.Join(parts, "\n\n")
+}
+
+func parameterDocumentation(
+	description, schemaDescription, example, pattern, schemaFormat string,
+) string {
+	if schemaDescription != "" && schemaDescription != description {
+		if description == "" {
+			description = schemaDescription
+		} else {
+			description += "\n\n" + schemaDescription
+		}
+	}
+
+	return documentationText(description, example, pattern, schemaFormat)
+}
+
 // fieldDefinition renders a single pydantic field line "name: type[ = default]",
-// wiring Field arguments for aliases, defaults, and sensitive-value repr redaction.
+// wiring Field arguments for aliases, defaults, documentation, and
+// sensitive-value repr redaction.
 func fieldDefinition(
-	name, rawName, typeName string, optional, missable, sensitive bool,
+	name, rawName, typeName, description string,
+	optional, missable, sensitive bool,
 ) string {
 	if optional {
 		typeName += " | None"
 	}
 
 	var fieldArgs []string
-	if missable && (name != rawName || sensitive) {
+	if missable && (name != rawName || sensitive || description != "") {
 		fieldArgs = append(fieldArgs, "default=None")
 	}
 
@@ -168,8 +323,22 @@ func fieldDefinition(
 		fieldArgs = append(fieldArgs, "repr=False")
 	}
 
+	if description != "" {
+		fieldArgs = append(
+			fieldArgs,
+			"description="+pythonStringExpression(
+				description,
+				pythonFieldArgumentIndentation,
+				len("description="),
+				pythonStringLiteral,
+			),
+		)
+	}
+
 	var suffix string
 	switch {
+	case description != "":
+		suffix = " = Field(\n        " + strings.Join(fieldArgs, ",\n        ") + ",\n    )"
 	case len(fieldArgs) > 0:
 		suffix = " = Field(" + strings.Join(fieldArgs, ", ") + ")"
 	case missable:
@@ -778,6 +947,122 @@ func hasHeaderParameters(methods []*processor.Method) bool {
 	return false
 }
 
+func pythonReturnType(typeName string) string {
+	if typeName == "" {
+		return pyNone
+	}
+
+	parts := strings.Split(typeName, " | ")
+	for i, part := range parts {
+		if part == "" || part == "void" {
+			parts[i] = pyNone
+		}
+	}
+
+	return strings.Join(parts, " | ")
+}
+
+func methodOperationDocumentation(method *processor.Method) []string {
+	if method.Operation == nil {
+		return nil
+	}
+
+	var sections []string
+	if method.Operation.Summary != "" {
+		sections = append(sections, method.Operation.Summary)
+	}
+
+	if method.Operation.Description != "" &&
+		method.Operation.Description != method.Operation.Summary {
+		sections = append(sections, method.Operation.Description)
+	}
+
+	return sections
+}
+
+func pathParameterDocumentation(parameter *processor.Parameter) string {
+	description := parameter.Parameter.Description
+	if description == "" && parameter.Type.Schema() != nil &&
+		parameter.Type.Schema().Schema() != nil {
+		description = parameter.Type.Schema().Schema().Description
+	}
+
+	if description == "" {
+		description = "Path parameter."
+	}
+
+	return fmt.Sprintf(
+		"    %s (%s): %s", parameter.Name(), parameter.Type.Name(), description,
+	)
+}
+
+func methodBody(method *processor.Method) processor.Type { //nolint:ireturn
+	switch {
+	case method.RequestJSON() != nil:
+		return method.RequestJSON()
+	case method.RequestFormData() != nil:
+		return method.RequestFormData()
+	case method.RequestFormURLEncoded() != nil:
+		return method.RequestFormURLEncoded()
+	default:
+		return nil
+	}
+}
+
+func methodArgumentsDocumentation(method *processor.Method) string {
+	args := make([]string, 0, len(method.PathParameters()))
+	for _, parameter := range method.PathParameters() {
+		args = append(args, pathParameterDocumentation(parameter))
+	}
+
+	if !method.IsRedirect() {
+		if body := methodBody(method); body != nil {
+			args = append(args, fmt.Sprintf("    body (%s): Request body.", body.Name()))
+		}
+	}
+
+	if hasRequestParameters(method) {
+		args = append(args, fmt.Sprintf(
+			"    params (%sParams): Query and header parameters.", toPascal(method.Name()),
+		))
+	}
+
+	if !method.IsRedirect() {
+		args = append(args, "    headers (dict[str, str] | None): Additional request headers.")
+	}
+
+	if len(args) == 0 {
+		return ""
+	}
+
+	return "Args:\n" + strings.Join(args, "\n")
+}
+
+func methodReturnDocumentation(method *processor.Method) string {
+	if method.IsRedirect() {
+		return "Returns:\n    str: The redirect URL."
+	}
+
+	return fmt.Sprintf(
+		"Returns:\n    FetchResponse[%s]: The HTTP response.",
+		pythonReturnType(method.ReturnType()),
+	)
+}
+
+func methodDocumentation(method *processor.Method) string {
+	sections := methodOperationDocumentation(method)
+	if args := methodArgumentsDocumentation(method); args != "" {
+		sections = append(sections, args)
+	}
+
+	sections = append(sections, methodReturnDocumentation(method))
+
+	return pythonDocstringExpression(
+		strings.Join(sections, "\n\n"),
+		pythonMethodBodyIndentation,
+	)
+}
+
 func (p *Python) GetFuncMap() map[string]any {
 	return map[string]any{
 		"pyValidateSensitiveExtensions":  validateSensitiveExtensions,
@@ -793,20 +1078,17 @@ func (p *Python) GetFuncMap() map[string]any {
 		// Method.ReturnType() joins multiple 2xx media/void results with " | ",
 		// so the "void" sentinel is mapped token-wise to leave real type names
 		// that merely contain the substring "void" untouched.
-		"pyReturnType": func(t string) string {
-			if t == "" {
-				return pyNone
-			}
-
-			parts := strings.Split(t, " | ")
-			for i, part := range parts {
-				if part == "" || part == "void" {
-					parts[i] = pyNone
-				}
-			}
-
-			return strings.Join(parts, " | ")
+		"pyReturnType": pythonReturnType,
+		"pyDoc": func(
+			description, example, pattern, schemaFormat string,
+			indentation int,
+		) string {
+			return pythonDocstringExpression(
+				documentationText(description, example, pattern, schemaFormat),
+				indentation,
+			)
 		},
+		"pyMethodDoc": methodDocumentation,
 		// pyStr renders a Go string as a Python string literal, escaping like the
 		// pydantic alias rendering (%q) so wire names / content types interpolated
 		// into emitted code are always valid Python.
@@ -822,15 +1104,25 @@ func (p *Python) GetFuncMap() map[string]any {
 		// pascal converts a snake_case method name into a PascalCase class prefix
 		// (used for the per-method query Params model name).
 		"pascal": toPascal,
-		"pyField": func(prop *processor.Property) string {
+		"pyField": func(
+			prop *processor.Property,
+			description, example, pattern, schemaFormat string,
+		) string {
 			return fieldDefinition(
 				prop.Name(), prop.RawName(), prop.Type.Name(),
+				documentationText(description, example, pattern, schemaFormat),
 				prop.Optional(), !prop.Required(), isSensitiveProperty(prop),
 			)
 		},
-		"pyParamField": func(param *processor.Parameter) string {
+		"pyParamField": func(
+			param *processor.Parameter,
+			description, schemaDescription, example, pattern, schemaFormat string,
+		) string {
 			return fieldDefinition(
 				param.Name(), param.RawName(), param.Type.Name(),
+				parameterDocumentation(
+					description, schemaDescription, example, pattern, schemaFormat,
+				),
 				!param.Required(), !param.Required(), isSensitiveParameter(param),
 			)
 		},

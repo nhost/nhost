@@ -27,15 +27,30 @@ class OAuth2RevokeRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     token: str = Field(repr=False)
-    token_type_hint: OAuth2RevokeRequestToken_type_hint | None = None
-    client_id: str | None = None
-    client_secret: str | None = Field(default=None, repr=False)
+    token_type_hint: OAuth2RevokeRequestToken_type_hint | None = Field(
+        default=None,
+        description="Optional token type hint declared nullable in OpenAPI.",
+    )
+    client_id: str | None = Field(
+        default=None,
+        description="Optional client identifier declared nullable in OpenAPI.",
+    )
+    client_secret: str | None = Field(
+        default=None,
+        repr=False,
+        description="Optional client secret declared nullable in OpenAPI.",
+    )
 
 class OAuth2ErrorResponse(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    error: str
-    error_description: str | None = None
+    error: str = Field(
+        description="OAuth2 error code",
+    )
+    error_description: str | None = Field(
+        default=None,
+        description="Human-readable error description",
+    )
 
 
 class Client:
@@ -63,6 +78,12 @@ class Client:
         body: OAuth2RevokeRequest,
         headers: dict[str, str] | None = None,
     ) -> FetchResponse[None]:
+        (
+            """OAuth2 Token Revocation (RFC 7009)\n\nRevoke an access token or refresh token.\n\n"""
+            """Args:\n    body (OAuth2RevokeRequest): Request body.\n    headers (dict[str, str] """
+            """| None): Additional request headers.\n\nReturns:\n    FetchResponse[None]: The """
+            """HTTP response."""
+        )
         url = f"{self.base_url}/oauth2/revoke"
         query = None
         request = self._http.build_request(

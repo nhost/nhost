@@ -72,86 +72,282 @@ def _header_value(value: Any, explode: bool) -> str:
 
 
 class VersionInformation(BaseModel):
+    """Contains version information about the storage service."""
     model_config = ConfigDict(populate_by_name=True)
 
-    build_version: str | None = Field(default=None, alias="buildVersion")
+    build_version: str | None = Field(
+        default=None,
+        alias="buildVersion",
+        description='The version number of the storage service build.\n\nExample: "1.2.3"',
+    )
 
 class FileSummary(BaseModel):
+    """Basic information about a file in storage."""
     model_config = ConfigDict(populate_by_name=True)
 
-    id: str | None = None
-    name: str | None = None
-    bucket_id: str | None = Field(default=None, alias="bucketId")
-    is_uploaded: bool | None = Field(default=None, alias="isUploaded")
+    id: str | None = Field(
+        default=None,
+        description=(
+            'Unique identifier for the file.\n\nExample: "d5e76ceb-77a2-4153-b7da-1f7c115b2ff2"'
+        ),
+    )
+    name: str | None = Field(
+        default=None,
+        description='Name of the file including extension.\n\nExample: "profile-picture.jpg"',
+    )
+    bucket_id: str | None = Field(
+        default=None,
+        alias="bucketId",
+        description='ID of the bucket containing the file.\n\nExample: "users-bucket"',
+    )
+    is_uploaded: bool | None = Field(
+        default=None,
+        alias="isUploaded",
+        description="Whether the file has been successfully uploaded.\n\nExample: true",
+    )
 
 class FileMetadata(BaseModel):
+    """Comprehensive metadata information about a file in storage."""
     model_config = ConfigDict(populate_by_name=True)
 
-    id: str | None = None
-    name: str | None = None
-    size: float | None = None
-    bucket_id: str | None = Field(default=None, alias="bucketId")
-    etag: str | None = None
-    created_at: str | None = Field(default=None, alias="createdAt")
-    updated_at: str | None = Field(default=None, alias="updatedAt")
-    is_uploaded: bool | None = Field(default=None, alias="isUploaded")
-    mime_type: str | None = Field(default=None, alias="mimeType")
-    uploaded_by_user_id: str | None = Field(default=None, alias="uploadedByUserId")
-    metadata: dict[str, Any] | None = None
+    id: str | None = Field(
+        default=None,
+        description=(
+            'Unique identifier for the file.\n\nExample: "d5e76ceb-77a2-4153-b7da-1f7c115b2ff2"'
+        ),
+    )
+    name: str | None = Field(
+        default=None,
+        description='Name of the file including extension.\n\nExample: "profile-picture.jpg"',
+    )
+    size: float | None = Field(
+        default=None,
+        description="Size of the file in bytes.\n\nExample: 245678",
+    )
+    bucket_id: str | None = Field(
+        default=None,
+        alias="bucketId",
+        description='ID of the bucket containing the file.\n\nExample: "users-bucket"',
+    )
+    etag: str | None = Field(
+        default=None,
+        description='Entity tag for cache validation.\n\nExample: "\\"a1b2c3d4e5f6\\""',
+    )
+    created_at: str | None = Field(
+        default=None,
+        alias="createdAt",
+        description=(
+            'Timestamp when the file was created.\n\nExample: "2023-01-15T12:34:56Z"\n\nFormat: '
+            "date-time"
+        ),
+    )
+    updated_at: str | None = Field(
+        default=None,
+        alias="updatedAt",
+        description=(
+            'Timestamp when the file was last updated.\n\nExample: "2023-01-16T09:45:32Z"\n\n'
+            "Format: date-time"
+        ),
+    )
+    is_uploaded: bool | None = Field(
+        default=None,
+        alias="isUploaded",
+        description="Whether the file has been successfully uploaded.\n\nExample: true",
+    )
+    mime_type: str | None = Field(
+        default=None,
+        alias="mimeType",
+        description='MIME type of the file.\n\nExample: "image/jpeg"',
+    )
+    uploaded_by_user_id: str | None = Field(
+        default=None,
+        alias="uploadedByUserId",
+        description='ID of the user who uploaded the file.\n\nExample: "abc123def456"',
+    )
+    metadata: dict[str, Any] | None = Field(
+        default=None,
+        description=(
+            'Custom metadata associated with the file.\n\nExample: {"alt":"Profile '
+            'picture","category":"avatar"}'
+        ),
+    )
 
 class UploadFileMetadata(BaseModel):
+    """Metadata provided when uploading a new file."""
     model_config = ConfigDict(populate_by_name=True)
 
-    id: str | None = None
-    name: str | None = None
-    metadata: dict[str, Any] | None = None
+    id: str | None = Field(
+        default=None,
+        description=(
+            "Optional custom ID for the file. If not provided, a UUID will be generated.\n\n"
+            'Example: "custom-id-123"'
+        ),
+    )
+    name: str | None = Field(
+        default=None,
+        description=(
+            "Name to assign to the file. If not provided, the original filename will be used.\n\n"
+            'Example: "custom-filename.png"'
+        ),
+    )
+    metadata: dict[str, Any] | None = Field(
+        default=None,
+        description=(
+            'Custom metadata to associate with the file.\n\nExample: {"alt":"Custom '
+            'image","category":"document"}'
+        ),
+    )
 
 class UpdateFileMetadata(BaseModel):
+    """Metadata that can be updated for an existing file."""
     model_config = ConfigDict(populate_by_name=True)
 
-    name: str | None = None
-    metadata: dict[str, Any] | None = None
+    name: str | None = Field(
+        default=None,
+        description='New name to assign to the file.\n\nExample: "renamed-file.jpg"',
+    )
+    metadata: dict[str, Any] | None = Field(
+        default=None,
+        description=(
+            'Updated custom metadata to associate with the file.\n\nExample: {"alt":"Updated image '
+            'description","category":"profile"}'
+        ),
+    )
 
 class ErrorResponseError(BaseModel):
+    """Error details."""
     model_config = ConfigDict(populate_by_name=True)
 
-    message: str
+    message: str = Field(
+        description='Human-readable error message.\n\nExample: "File not found"',
+    )
 
 class ErrorResponse(BaseModel):
+    """Error information returned by the API."""
     model_config = ConfigDict(populate_by_name=True)
 
-    error: ErrorResponseError | None = None
+    error: ErrorResponseError | None = Field(
+        default=None,
+        description="Error details.",
+    )
 
 class RefreshTokenRequest(BaseModel):
+    """Request to refresh an access token"""
     model_config = ConfigDict(populate_by_name=True)
 
-    refresh_token: str = Field(alias="refreshToken", repr=False)
+    refresh_token: str = Field(
+        alias="refreshToken",
+        repr=False,
+        description=(
+            "Refresh token used to generate a new access token\n\nExample: "
+            '"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"\n\nPattern: '
+            "\\b[0-9a-f]{8}\\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\\b[0-9a-f]{12}\\b"
+        ),
+    )
 
 class Session(BaseModel):
+    """User authentication session containing tokens and user information"""
     model_config = ConfigDict(populate_by_name=True)
 
-    access_token: str = Field(alias="accessToken", repr=False)
-    access_token_expires_in: int = Field(alias="accessTokenExpiresIn")
-    refresh_token_id: str = Field(alias="refreshTokenId")
-    refresh_token: str = Field(alias="refreshToken", repr=False)
-    user: User | None = None
+    access_token: str = Field(
+        alias="accessToken",
+        repr=False,
+        description=(
+            "JWT token for authenticating API requests\n\nExample: "
+            '"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."'
+        ),
+    )
+    access_token_expires_in: int = Field(
+        alias="accessTokenExpiresIn",
+        description=(
+            "Expiration time of the access token in seconds\n\nExample: 900\n\nFormat: int64"
+        ),
+    )
+    refresh_token_id: str = Field(
+        alias="refreshTokenId",
+        description=(
+            'Identifier for the refresh token\n\nExample: "2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"\n'
+            "\nPattern: \\b[0-9a-f]{8}\\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\\b[0-9a-f]{12}\\b"
+        ),
+    )
+    refresh_token: str = Field(
+        alias="refreshToken",
+        repr=False,
+        description=(
+            "Token used to refresh the access token\n\nExample: "
+            '"2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"\n\nPattern: '
+            "\\b[0-9a-f]{8}\\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\\b[0-9a-f]{12}\\b"
+        ),
+    )
+    user: User | None = Field(
+        default=None,
+        description="User profile and account information",
+    )
 
 class User(BaseModel):
+    """User profile and account information"""
     model_config = ConfigDict(populate_by_name=True)
 
-    avatar_url: str = Field(alias="avatarUrl")
-    created_at: str = Field(alias="createdAt")
-    default_role: str = Field(alias="defaultRole")
-    display_name: str = Field(alias="displayName")
-    email: str | None = None
-    email_verified: bool = Field(alias="emailVerified")
-    id: str
-    is_anonymous: bool = Field(alias="isAnonymous")
-    locale: str
-    metadata: dict[str, Any]
-    phone_number: str | None = Field(default=None, alias="phoneNumber")
-    phone_number_verified: bool = Field(alias="phoneNumberVerified")
-    roles: list[str]
+    avatar_url: str = Field(
+        alias="avatarUrl",
+        description=(
+            'URL to the user\'s profile picture\n\nExample: "https://myapp.com/avatars/user123.jpg"'
+        ),
+    )
+    created_at: str = Field(
+        alias="createdAt",
+        description=(
+            'Timestamp when the user account was created\n\nExample: "2023-01-15T12:34:56Z"\n\n'
+            "Format: date-time"
+        ),
+    )
+    default_role: str = Field(
+        alias="defaultRole",
+        description='Default authorization role for the user\n\nExample: "user"',
+    )
+    display_name: str = Field(
+        alias="displayName",
+        description='User\'s display name\n\nExample: "John Smith"',
+    )
+    email: str | None = Field(
+        default=None,
+        description='User\'s email address\n\nExample: "john.smith@nhost.io"\n\nFormat: email',
+    )
+    email_verified: bool = Field(
+        alias="emailVerified",
+        description="Whether the user's email has been verified\n\nExample: true",
+    )
+    id: str = Field(
+        description=(
+            'Unique identifier for the user\n\nExample: "2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"\n\n'
+            "Pattern: \\b[0-9a-f]{8}\\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\\b[0-9a-f]{12}\\b"
+        ),
+    )
+    is_anonymous: bool = Field(
+        alias="isAnonymous",
+        description="Whether this is an anonymous user account\n\nExample: false",
+    )
+    locale: str = Field(
+        description='User\'s preferred locale (language code)\n\nExample: "en"',
+    )
+    metadata: dict[str, Any] = Field(
+        description=(
+            "Custom metadata associated with the user\n\nExample: "
+            '{"firstName":"John","lastName":"Smith"}'
+        ),
+    )
+    phone_number: str | None = Field(
+        default=None,
+        alias="phoneNumber",
+        description='User\'s phone number\n\nExample: "+12025550123"',
+    )
+    phone_number_verified: bool = Field(
+        alias="phoneNumberVerified",
+        description="Whether the user's phone number has been verified\n\nExample: false",
+    )
+    roles: list[str] = Field(
+        description='List of roles assigned to the user\n\nExample: ["user","customer"]',
+    )
 
 FileId = str
 
@@ -180,67 +376,208 @@ TicketTypeQuery = Literal["emailVerify", "emailConfirmChange", "signinPasswordle
 RedirectToQuery = str
 
 class UploadFilesBodyNullableMetadata(BaseModel):
+    """Required multipart object that may be null."""
     model_config = ConfigDict(populate_by_name=True)
 
-    label: str | None = None
+    label: str | None = Field(
+        default=None,
+        description="Label stored with the upload.",
+    )
 
 class UploadFilesBody(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    bucket_id: str | None = Field(default=None, alias="bucket-id")
-    nullable_note: str | None = Field(alias="nullable-note")
-    nullable_tags: list[str] | None = Field(alias="nullable-tags")
-    nullable_metadata: UploadFilesBodyNullableMetadata | None = Field(alias="nullable-metadata")
-    metadata: list[FileMetadata] | None = Field(default=None, alias="metadata[]")
-    file: list[bytes | UploadFile] = Field(alias="file[]")
+    bucket_id: str | None = Field(
+        default=None,
+        alias="bucket-id",
+        description=(
+            'Target bucket identifier where files will be stored.\n\nExample: "user-uploads"'
+        ),
+    )
+    nullable_note: str | None = Field(
+        alias="nullable-note",
+        description="Required multipart string that may be null.",
+    )
+    nullable_tags: list[str] | None = Field(
+        alias="nullable-tags",
+        description="Required multipart array that may be null.",
+    )
+    nullable_metadata: UploadFilesBodyNullableMetadata | None = Field(
+        alias="nullable-metadata",
+        description="Required multipart object that may be null.",
+    )
+    metadata: list[FileMetadata] | None = Field(
+        default=None,
+        alias="metadata[]",
+        description=(
+            "Optional custom metadata for each uploaded file. Must match the order of the file[] "
+            "array."
+        ),
+    )
+    file: list[bytes | UploadFile] = Field(
+        alias="file[]",
+        description="Array of files to upload.",
+    )
 
 class UploadFilesResponse201(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    processed_files: list[FileMetadata] | None = Field(default=None, alias="processedFiles")
+    processed_files: list[FileMetadata] | None = Field(
+        default=None,
+        alias="processedFiles",
+        description="List of successfully processed files with their metadata.",
+    )
 
 class ReplaceFileBody(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    metadata: UpdateFileMetadata | None = None
-    file: bytes | UploadFile
+    metadata: UpdateFileMetadata | None = Field(
+        default=None,
+        description="Metadata that can be updated for an existing file.",
+    )
+    file: bytes | UploadFile = Field(
+        description="New file content to replace the existing file\n\nFormat: binary",
+    )
 
 
 class GetFileMetadataHeadersParams(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    q: ImageQuality | None = None
-    h: MaxHeight | None = None
-    w: MaxWidth | None = None
-    b: BlurSigma | None = None
-    f: OutputFormat | None = None
+    q: ImageQuality | None = Field(
+        default=None,
+        description="Image quality (1-100). Only applies to JPEG, WebP and PNG files",
+    )
+    h: MaxHeight | None = Field(
+        default=None,
+        description=(
+            "Maximum height to resize image to while maintaining aspect ratio. Only applies to "
+            "image files"
+        ),
+    )
+    w: MaxWidth | None = Field(
+        default=None,
+        description=(
+            "Maximum width to resize image to while maintaining aspect ratio. Only applies to "
+            "image files"
+        ),
+    )
+    b: BlurSigma | None = Field(
+        default=None,
+        description="Blur the image using this sigma value. Only applies to image files",
+    )
+    f: OutputFormat | None = Field(
+        default=None,
+        description=(
+            "Format to convert the image to. If 'auto', the format is determined based on the "
+            "Accept header."
+        ),
+    )
 
-    if_match: IfMatch | None = Field(default=None, alias="if-match")
-    if_none_match: IfNoneMatch | None = Field(default=None, alias="if-none-match")
-    if_modified_since: IfModifiedSince | None = Field(default=None, alias="if-modified-since")
-    if_unmodified_since: IfUnmodifiedSince | None = Field(default=None, alias="if-unmodified-since")
+    if_match: IfMatch | None = Field(
+        default=None,
+        alias="if-match",
+        description="Only return the file if the current ETag matches one of the values provided",
+    )
+    if_none_match: IfNoneMatch | None = Field(
+        default=None,
+        alias="if-none-match",
+        description=(
+            "Only return the file if the current ETag does not match any of the values provided"
+        ),
+    )
+    if_modified_since: IfModifiedSince | None = Field(
+        default=None,
+        alias="if-modified-since",
+        description=(
+            "Only return the file if it has been modified after the given date\n\nFormat: date-time"
+        ),
+    )
+    if_unmodified_since: IfUnmodifiedSince | None = Field(
+        default=None,
+        alias="if-unmodified-since",
+        description=(
+            "Only return the file if it has not been modified after the given date\n\nFormat: "
+            "date-time"
+        ),
+    )
 
 
 class GetFileParams(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    q: ImageQuality | None = None
-    h: MaxHeight | None = None
-    w: MaxWidth | None = None
-    b: BlurSigma | None = None
-    f: OutputFormat | None = None
+    q: ImageQuality | None = Field(
+        default=None,
+        description="Image quality (1-100). Only applies to JPEG, WebP and PNG files",
+    )
+    h: MaxHeight | None = Field(
+        default=None,
+        description=(
+            "Maximum height to resize image to while maintaining aspect ratio. Only applies to "
+            "image files"
+        ),
+    )
+    w: MaxWidth | None = Field(
+        default=None,
+        description=(
+            "Maximum width to resize image to while maintaining aspect ratio. Only applies to "
+            "image files"
+        ),
+    )
+    b: BlurSigma | None = Field(
+        default=None,
+        description="Blur the image using this sigma value. Only applies to image files",
+    )
+    f: OutputFormat | None = Field(
+        default=None,
+        description=(
+            "Format to convert the image to. If 'auto', the format is determined based on the "
+            "Accept header."
+        ),
+    )
 
-    if_match: IfMatch | None = Field(default=None, alias="if-match")
-    if_none_match: IfNoneMatch | None = Field(default=None, alias="if-none-match")
-    if_modified_since: IfModifiedSince | None = Field(default=None, alias="if-modified-since")
-    if_unmodified_since: IfUnmodifiedSince | None = Field(default=None, alias="if-unmodified-since")
+    if_match: IfMatch | None = Field(
+        default=None,
+        alias="if-match",
+        description="Only return the file if the current ETag matches one of the values provided",
+    )
+    if_none_match: IfNoneMatch | None = Field(
+        default=None,
+        alias="if-none-match",
+        description=(
+            "Only return the file if the current ETag does not match any of the values provided"
+        ),
+    )
+    if_modified_since: IfModifiedSince | None = Field(
+        default=None,
+        alias="if-modified-since",
+        description=(
+            "Only return the file if it has been modified after the given date\n\nFormat: date-time"
+        ),
+    )
+    if_unmodified_since: IfUnmodifiedSince | None = Field(
+        default=None,
+        alias="if-unmodified-since",
+        description=(
+            "Only return the file if it has not been modified after the given date\n\nFormat: "
+            "date-time"
+        ),
+    )
 
 
 class VerifyTicketParams(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    ticket: TicketQuery = Field(repr=False)
-    redirect_to: RedirectToQuery = Field(alias="redirectTo")
+    ticket: TicketQuery = Field(
+        repr=False,
+        description='Ticket\n\nExample: "verifyEmail:xxxxxxxx"',
+    )
+    redirect_to: RedirectToQuery = Field(
+        alias="redirectTo",
+        description=(
+            'Target URL for the redirect\n\nExample: "https://my-app.com/catch-redirection"\n\n'
+            "Format: uri"
+        ),
+    )
 
 
 class Client:
@@ -268,6 +605,13 @@ class Client:
         body: RefreshTokenRequest,
         headers: dict[str, str] | None = None,
     ) -> FetchResponse[Session]:
+        (
+            """Refresh access token\n\nGenerate a new JWT access token using a valid refresh """
+            """token. The refresh token used will be revoked and a new one will be issued.\n\n"""
+            """Args:\n    body (RefreshTokenRequest): Request body.\n    headers (dict[str, str] """
+            """| None): Additional request headers.\n\nReturns:\n    FetchResponse[Session]: The """
+            """HTTP response."""
+        )
         url = f"{self.base_url}/token"
         query = None
         request = self._http.build_request(
@@ -289,6 +633,14 @@ class Client:
         body: UploadFilesBody,
         headers: dict[str, str] | None = None,
     ) -> FetchResponse[UploadFilesResponse201]:
+        (
+            """Upload files\n\nUpload one or more files to a specified bucket. Supports batch """
+            """uploading with optional custom metadata for each file. If uploading multiple """
+            """files, either provide metadata for all files or none.\n\nArgs:\n    body """
+            """(UploadFilesBody): Request body.\n    headers (dict[str, str] | None): Additional """
+            """request headers.\n\nReturns:\n    FetchResponse[UploadFilesResponse201]: The HTTP """
+            """response."""
+        )
         url = f"{self.base_url}/files/"
         query = None
         _data: dict[str, Any] = {}
@@ -329,6 +681,14 @@ class Client:
         params: GetFileMetadataHeadersParams | None = None,
         headers: dict[str, str] | None = None,
     ) -> FetchResponse[None]:
+        (
+            """Check file information\n\nRetrieve file metadata headers without downloading the """
+            """file content. Supports conditional requests and provides caching information.\n\n"""
+            """Args:\n    id (FileId): Unique identifier of the file\n    params """
+            """(GetFileMetadataHeadersParams): Query and header parameters.\n    headers """
+            """(dict[str, str] | None): Additional request headers.\n\nReturns:\n    """
+            """FetchResponse[None]: The HTTP response."""
+        )
         url = f"{self.base_url}/files/{_escape_path(id)}"
 
         query: list[tuple[str, str]] = []
@@ -371,6 +731,14 @@ class Client:
         params: GetFileParams | None = None,
         headers: dict[str, str] | None = None,
     ) -> FetchResponse[bytes]:
+        (
+            """Download file\n\nRetrieve and download the complete file content. Supports """
+            """conditional requests, image transformations, and range requests for partial """
+            """downloads.\n\nArgs:\n    id (FileId): Unique identifier of the file\n    params """
+            """(GetFileParams): Query and header parameters.\n    headers (dict[str, str] | """
+            """None): Additional request headers.\n\nReturns:\n    FetchResponse[bytes]: The """
+            """HTTP response."""
+        )
         url = f"{self.base_url}/files/{_escape_path(id)}"
 
         query: list[tuple[str, str]] = []
@@ -413,6 +781,17 @@ class Client:
         body: ReplaceFileBody | None = None,
         headers: dict[str, str] | None = None,
     ) -> FetchResponse[FileMetadata]:
+        (
+            """Replace file\n\nReplace an existing file with new content while preserving the """
+            """file ID. The operation follows these steps:\n1. The isUploaded flag is set to """
+            """false to mark the file as being updated\n2. The file content is replaced in the """
+            """storage backend\n3. File metadata is updated (size, mime-type, isUploaded, etc.)\n"""
+            """\nEach step is atomic, but if a step fails, previous steps will not be """
+            """automatically rolled back.\n\n\nArgs:\n    id (FileId): Unique identifier of the """
+            """file\n    body (ReplaceFileBody): Request body.\n    headers (dict[str, str] | """
+            """None): Additional request headers.\n\nReturns:\n    FetchResponse[FileMetadata]: """
+            """The HTTP response."""
+        )
         url = f"{self.base_url}/files/{_escape_path(id)}"
         query = None
         _data: dict[str, Any] = {}
@@ -441,6 +820,12 @@ class Client:
         id: FileId,
         headers: dict[str, str] | None = None,
     ) -> FetchResponse[None]:
+        (
+            """Delete file\n\nPermanently delete a file from storage. This removes both the file """
+            """content and its associated metadata.\n\nArgs:\n    id (FileId): Unique identifier """
+            """of the file\n    headers (dict[str, str] | None): Additional request headers.\n\n"""
+            """Returns:\n    FetchResponse[None]: The HTTP response."""
+        )
         url = f"{self.base_url}/files/{_escape_path(id)}"
         query = None
         request = self._http.build_request(
@@ -460,6 +845,11 @@ class Client:
         self,
         params: VerifyTicketParams,
     ) -> str:
+        (
+            """Verify tickets created by email verification, email passwordless authentication """
+            """(magic link), or password reset\n\nArgs:\n    params (VerifyTicketParams): Query """
+            """and header parameters.\n\nReturns:\n    str: The redirect URL."""
+        )
         url = f"{self.base_url}/verify"
 
         query: list[tuple[str, str]] = []

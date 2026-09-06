@@ -54,6 +54,7 @@
         params: {{ pascal .Name }}Params{{ if not $paramsRequired }} | None = None{{ end }},
 {{- end }}
     ) -> str:
+        {{ pyMethodDoc . }}
         url = f"{self.base_url}{{ .Path }}"
 {{- if .HasQueryParameters }}
 {{ template "query" . }}
@@ -81,6 +82,7 @@
 {{- end }}
         headers: dict[str, str] | None = None,
     ) -> FetchResponse[{{ pyReturnType .ReturnType }}]:
+        {{ pyMethodDoc . }}
         url = f"{self.base_url}{{ .Path }}"
 {{- if .HasQueryParameters }}
 {{ template "query" . }}

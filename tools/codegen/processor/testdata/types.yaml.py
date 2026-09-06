@@ -32,35 +32,113 @@ SimpleObjectStatusInt = Literal[0, 1, 2]
 SimpleObjectStatusMixed = Literal[0, "One", True]
 
 class SimpleObjectNested(BaseModel):
+    """Nested object containing additional properties."""
     model_config = ConfigDict(populate_by_name=True)
 
-    nested_id: str = Field(alias="nestedId")
-    nested_data: str | None = Field(default=None, alias="nestedData")
+    nested_id: str = Field(
+        alias="nestedId",
+        description='Unique identifier for the nested object.\n\nExample: "nested123"',
+    )
+    nested_data: str | None = Field(
+        default=None,
+        alias="nestedData",
+        description='Data associated with the nested object.\n\nExample: "Nested data"',
+    )
 
 class SimpleObject(BaseModel):
+    """This is a simple object schema."""
     model_config = ConfigDict(populate_by_name=True)
 
-    id: str
-    active: bool
-    age: float
-    created_at: str = Field(alias="createdAt")
-    metadata: dict[str, Any] | None
-    required_nullable_metadata: dict[str, Any] | None = Field(alias="requiredNullableMetadata")
-    required_nullable_string: str | None = Field(alias="requiredNullableString")
-    required_nullable_array: list[str] | None = Field(alias="requiredNullableArray")
-    nickname: str | None = None
-    extra: dict[str, Any] | None = None
-    aliases: list[str | None] | None = None
-    labels: dict[str, Any] | None = None
-    nullable_tags: list[str] | None = Field(default=None, alias="nullableTags")
-    data: bytes | UploadFile
-    tags: list[str] | None = None
-    status: SimpleObjectStatus | None = None
-    status_code: SimpleObjectStatusCode | None = Field(default=None, alias="statusCode")
-    status_int: SimpleObjectStatusInt | None = Field(default=None, alias="statusInt")
-    status_mixed: SimpleObjectStatusMixed | None = Field(default=None, alias="statusMixed")
-    status_ref: StatusEnum | None = Field(default=None, alias="statusRef")
-    nested: SimpleObjectNested | None = None
+    id: str = Field(
+        description='Unique identifier for the object.\n\nExample: "abc123"',
+    )
+    active: bool = Field(
+        description="Indicates if the object is active.\n\nExample: true",
+    )
+    age: float = Field(
+        description="Age of the object in years.\n\nExample: 5",
+    )
+    created_at: str = Field(
+        alias="createdAt",
+        description=(
+            'Timestamp when the file was created.\n\nExample: "2023-01-15T12:34:56Z"\n\nFormat: '
+            "date-time"
+        ),
+    )
+    metadata: dict[str, Any] | None = Field(
+        description=(
+            'Custom metadata associated with the file.\n\nExample: {"alt":"Profile '
+            'picture","category":"avatar"}'
+        ),
+    )
+    required_nullable_metadata: dict[str, Any] | None = Field(
+        alias="requiredNullableMetadata",
+        description="Always-present metadata that may be null.",
+    )
+    required_nullable_string: str | None = Field(
+        alias="requiredNullableString",
+        description="Always-present string that may be null.",
+    )
+    required_nullable_array: list[str] | None = Field(
+        alias="requiredNullableArray",
+        description="Always-present array that may be null.",
+    )
+    nickname: str | None = Field(
+        default=None,
+        description="Optional nickname declared nullable in OpenAPI.",
+    )
+    extra: dict[str, Any] | None = Field(
+        default=None,
+        description="Optional free-form object declared nullable in OpenAPI.",
+    )
+    aliases: list[str | None] | None = Field(
+        default=None,
+        description="Array whose individual items may be null.",
+    )
+    labels: dict[str, Any] | None = Field(
+        default=None,
+        description="Typed map whose values may be null.",
+    )
+    nullable_tags: list[str] | None = Field(
+        default=None,
+        alias="nullableTags",
+        description="Optional array declared nullable in OpenAPI.",
+    )
+    data: bytes | UploadFile = Field(
+        description="Base64 encoded data of the file.\n\nFormat: binary",
+    )
+    tags: list[str] | None = Field(
+        default=None,
+        description="List of tags associated with the object.",
+    )
+    status: SimpleObjectStatus | None = Field(
+        default=None,
+        description='Status of the object.\n\nExample: "active"',
+    )
+    status_code: SimpleObjectStatusCode | None = Field(
+        default=None,
+        alias="statusCode",
+        description="Status code of the object.\n\nExample: 0",
+    )
+    status_int: SimpleObjectStatusInt | None = Field(
+        default=None,
+        alias="statusInt",
+        description="Integer status of the object.\n\nExample: 0",
+    )
+    status_mixed: SimpleObjectStatusMixed | None = Field(
+        default=None,
+        alias="statusMixed",
+        description="Some people just want to see the world burn.\n\nExample: 0",
+    )
+    status_ref: StatusEnum | None = Field(
+        default=None,
+        alias="statusRef",
+        description="Enumeration of possible status values.",
+    )
+    nested: SimpleObjectNested | None = Field(
+        default=None,
+        description="Nested object containing additional properties.",
+    )
 
 
 class Client:

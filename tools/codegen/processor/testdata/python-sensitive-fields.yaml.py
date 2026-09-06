@@ -107,6 +107,11 @@ class Client:
         params: InspectCredentialsParams,
         headers: dict[str, str] | None = None,
     ) -> FetchResponse[None]:
+        (
+            """Args:\n    params (InspectCredentialsParams): Query and header parameters.\n    """
+            """headers (dict[str, str] | None): Additional request headers.\n\nReturns:\n    """
+            """FetchResponse[None]: The HTTP response."""
+        )
         url = f"{self.base_url}/credentials"
 
         query: list[tuple[str, str]] = []

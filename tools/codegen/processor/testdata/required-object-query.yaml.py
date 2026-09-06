@@ -93,6 +93,11 @@ class Client:
         params: GetItemsParams,
         headers: dict[str, str] | None = None,
     ) -> FetchResponse[None]:
+        (
+            """Args:\n    params (GetItemsParams): Query and header parameters.\n    headers """
+            """(dict[str, str] | None): Additional request headers.\n\nReturns:\n    """
+            """FetchResponse[None]: The HTTP response."""
+        )
         url = f"{self.base_url}/items"
 
         query: list[tuple[str, str]] = []
@@ -115,6 +120,11 @@ class Client:
         params: GetOptionalItemsParams | None = None,
         headers: dict[str, str] | None = None,
     ) -> FetchResponse[None]:
+        (
+            """Args:\n    params (GetOptionalItemsParams): Query and header parameters.\n    """
+            """headers (dict[str, str] | None): Additional request headers.\n\nReturns:\n    """
+            """FetchResponse[None]: The HTTP response."""
+        )
         url = f"{self.base_url}/optional-items"
 
         query: list[tuple[str, str]] = []
