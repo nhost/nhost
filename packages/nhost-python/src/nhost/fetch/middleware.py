@@ -7,6 +7,7 @@ mirrors the middleware set in ``@nhost/nhost-js``'s ``fetch`` module.
 
 from __future__ import annotations
 
+import ipaddress
 import logging
 from collections.abc import Mapping
 from dataclasses import dataclass, field
@@ -48,6 +49,20 @@ class _RequestScope:
             url.scheme.casefold() == self.scheme
             and url.netloc.decode("ascii").casefold() == self.host
         )
+
+    def permits_admin_session(self, url: httpx.URL, allow_insecure_http: bool) -> bool:
+        return self.contains(url) and (
+            url.scheme.casefold() == "https" or allow_insecure_http or _is_loopback_host(url.host)
+        )
+
+
+def _is_loopback_host(host: str) -> bool:
+    if host.casefold() == "localhost":
+        return True
+    try:
+        return ipaddress.ip_address(host).is_loopback
+    except ValueError:
+        return False
 
 
 def attach_access_token_middleware(storage: SessionStorage) -> ChainFunction:
@@ -211,13 +226,22 @@ class AdminSessionOptions:
     admin_secret: str
     role: str | None = None
     session_variables: dict[str, str] = field(default_factory=dict)
+    allow_insecure_http: bool = False
 
 
-def with_admin_session_middleware(options: AdminSessionOptions) -> ChainFunction:
-    """Attach ``x-hasura-admin-secret`` and optional role/session variables."""
+def with_admin_session_middleware(options: AdminSessionOptions, service_url: str) -> ChainFunction:
+    """Attach admin headers only within the configured secure service origin."""
+    scope = _RequestScope.from_base_url(service_url)
 
     def chain(next_fetch: FetchFunction) -> FetchFunction:
         async def fetch(request: httpx.Request) -> httpx.Response:
+            if not scope.permits_admin_session(request.url, options.allow_insecure_http):
+                logger.warning(
+                    "admin session headers withheld from request",
+                    extra={"host": request.url.netloc.decode("ascii")},
+                )
+                return await next_fetch(request)
+
             headers = request.headers
             if "x-hasura-admin-secret" not in headers:
                 headers["x-hasura-admin-secret"] = options.admin_secret
