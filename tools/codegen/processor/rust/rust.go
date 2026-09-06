@@ -360,6 +360,91 @@ func rustStringLiteral(value string) string {
 	return b.String()
 }
 
+// rustDoc renders arbitrary OpenAPI prose as line doc comments. Markdown
+// punctuation is escaped so spec text cannot accidentally create links, HTML,
+// formatting, or doctests. Leading whitespace is encoded to prevent rustdoc
+// from treating indented prose as a Rust code block while preserving its display.
+func rustDoc(indent string, texts ...string) string {
+	var (
+		b         strings.Builder
+		wroteText bool
+	)
+
+	for _, text := range texts {
+		text = strings.Trim(
+			strings.ReplaceAll(strings.ReplaceAll(text, "\r\n", "\n"), "\r", "\n"),
+			"\n",
+		)
+		if text == "" {
+			continue
+		}
+
+		if wroteText {
+			fmt.Fprintf(&b, "%s///\n", indent)
+		}
+
+		wroteText = true
+
+		for line := range strings.SplitSeq(text, "\n") {
+			fmt.Fprintf(&b, "%s///", indent)
+
+			if line == "" {
+				b.WriteByte('\n')
+
+				continue
+			}
+
+			b.WriteByte(' ')
+			b.WriteString(escapeRustDocLine(line))
+			b.WriteByte('\n')
+		}
+	}
+
+	return strings.TrimSuffix(b.String(), "\n")
+}
+
+func escapeRustDocLine(line string) string {
+	const markdownPunctuation = `!#&*+-<>[\]_` + "`" + `|~`
+
+	var b strings.Builder
+
+	content := strings.TrimLeft(line, " \t")
+	for _, r := range line[:len(line)-len(content)] {
+		if r == ' ' {
+			b.WriteString("&#32;")
+		} else {
+			b.WriteString("&#9;")
+		}
+	}
+
+	orderedListDelimiter := 0
+	for orderedListDelimiter < len(content) &&
+		content[orderedListDelimiter] >= '0' && content[orderedListDelimiter] <= '9' {
+		orderedListDelimiter++
+	}
+
+	if orderedListDelimiter == 0 || orderedListDelimiter >= len(content) ||
+		(content[orderedListDelimiter] != '.' && content[orderedListDelimiter] != ')') {
+		orderedListDelimiter = -1
+	}
+
+	for i, r := range content {
+		if i == orderedListDelimiter || strings.ContainsRune(markdownPunctuation, r) {
+			b.WriteByte('\\')
+		}
+
+		if !unicode.IsGraphic(r) && r != '\t' {
+			fmt.Fprintf(&b, `\\u{%x}`, r)
+
+			continue
+		}
+
+		b.WriteRune(r)
+	}
+
+	return b.String()
+}
+
 // fieldLines renders a struct field with its serde attributes. Optional controls
 // whether the Rust type accepts null, while omittable controls whether serde may
 // omit the field entirely.
@@ -1131,6 +1216,7 @@ func validateRustNames(types []processor.Type, methods []*processor.Method) (str
 
 func (p *Rust) GetFuncMap() map[string]any {
 	return map[string]any{
+		"rustDoc":                             rustDoc,
 		"rustResponse":                        newRustResponseContext,
 		"rustStr":                             rustStringLiteral,
 		"rustValidateExtensions":              validateRustExtensions,

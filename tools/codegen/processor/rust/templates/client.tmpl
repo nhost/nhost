@@ -2,6 +2,10 @@
 {{- $body := or .RequestJSON .RequestFormData .RequestFormURLEncoded -}}
 {{- $response := rustResponse . -}}
 {{- if .IsRedirect }}
+{{- if or .Operation.Summary .Operation.Description }}
+{{ rustDoc "    " .Operation.Summary .Operation.Description }}
+    ///
+{{- end }}
     /// Builds the URL for {{ .Method }} {{ .Path }} without following the redirect.
     pub fn {{ .Name }}_url(
         &self,
@@ -56,6 +60,10 @@
         let url = http::append_path(self.base_url.as_str(), &[{{ rustPathSegments .Path }}])?;
         Ok(self.http.request(reqwest::Method::{{ .Method }}, url).json(body))
     }{{ "\n" }}
+{{- end }}
+{{- if or .Operation.Summary .Operation.Description }}
+{{ rustDoc "    " .Operation.Summary .Operation.Description }}
+    ///
 {{- end }}
     /// Performs {{ .Method }} {{ .Path }}.
     pub async fn {{ .Name }}(
