@@ -6,6 +6,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/exec"
+	"strings"
 	"testing"
 
 	"github.com/nhost/nhost/tools/codegen/processor"
@@ -125,6 +127,8 @@ func TestInterMediateRepresentationRender(t *testing.T) {
 func TestInterMediateRepresentationRenderPython(t *testing.T) {
 	t.Parallel()
 
+	pythonPath, pythonErr := exec.LookPath("python3")
+
 	cases := []struct {
 		name string
 	}{
@@ -161,6 +165,24 @@ func TestInterMediateRepresentationRenderPython(t *testing.T) {
 			}
 
 			output := buf.String()
+
+			if pythonErr == nil {
+				command := exec.CommandContext(
+					t.Context(),
+					pythonPath,
+					"-c",
+					"import ast, sys; source = sys.stdin.read(); compile(ast.parse(source), '<generated>', 'exec')",
+				)
+
+				command.Stdin = strings.NewReader(output)
+				if validationOutput, err := command.CombinedOutput(); err != nil {
+					t.Fatalf(
+						"generated Python failed AST validation: %v\n%s",
+						err,
+						validationOutput,
+					)
+				}
+			}
 
 			if *flagUpdate {
 				if err := os.WriteFile(
