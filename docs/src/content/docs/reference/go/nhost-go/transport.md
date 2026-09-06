@@ -46,6 +46,15 @@ func IsLoopbackHost(hostname string) bool
 IsLoopbackHost reports whether hostname identifies localhost or a loopback
 IP address.
 
+### `NewAPIErrorFromResponse`
+
+```go
+func NewAPIErrorFromResponse(response *http.Response) error
+```
+
+NewAPIErrorFromResponse builds an APIError from an error response. It returns
+a transport error instead if the response body cannot be read.
+
 ### `NewHTTPClient`
 
 ```go
@@ -57,7 +66,7 @@ may be nil, in which case a zero-value client (using
 [http.DefaultTransport]) is wrapped. The original base is never mutated, so
 callers may share one *http.Client across services with distinct middleware.
 Sensitive Nhost credentials are stripped before following a redirect to a
-different host; redirects otherwise retain the base client's behavior.
+different origin; redirects otherwise retain the base client's behavior.
 
 ### `NormalizeServiceURL`
 
@@ -82,8 +91,8 @@ type APIError struct {
 }
 ```
 
-APIError is returned when a request completes with a non-2xx/3xx status. It
-carries the parsed response Body, Status code, and Headers.
+APIError describes an API-level failure. It carries the parsed response
+Body, Status code, and Headers.
 
 #### `NewAPIError`
 
@@ -91,16 +100,9 @@ carries the parsed response Body, Status code, and Headers.
 func NewAPIError(body any, status int, headers http.Header) *APIError
 ```
 
-NewAPIError builds an APIError, extracting a human-readable message from
-common Nhost error response shapes.
-
-#### `NewAPIErrorFromResponse`
-
-```go
-func NewAPIErrorFromResponse(response *http.Response) *APIError
-```
-
-NewAPIErrorFromResponse builds an APIError from an error response.
+NewAPIError builds an APIError. Its message prefers recognized structured
+body fields, then X-Error, then a plain-text body. Messages are normalized to
+one line and bounded in length; Body retains the original value.
 
 #### `Error`
 
