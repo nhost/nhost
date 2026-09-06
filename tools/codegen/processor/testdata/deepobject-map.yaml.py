@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping, Sequence
 from typing import Any, Literal
 from urllib.parse import quote
 
@@ -10,15 +11,15 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from ..fetch import (
     ChainFunction,
-    FetchError,
     FetchResponse,
+    HTTPError,
     create_enhanced_fetch,
     decode_json,
     to_json,
     to_jsonable,
 )
 
-_REDIRECT_STATUS = 300
+_MIN_ERROR_STATUS = 400
 
 def _escape_path(value: object) -> str:
     segment = str(value)
@@ -57,7 +58,7 @@ def _query_parameter(name: str, value: Any, style: str, explode: bool) -> list[t
 
 
 class SignInProviderParams(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
 
     redirect_to: str | None = Field(default=None, alias="redirectTo")
     upstream_params: dict[str, Any] | None = Field(
@@ -76,13 +77,26 @@ class Client:
     def __init__(
         self,
         base_url: str,
-        chain_functions: list[ChainFunction] | None = None,
+        *,
+        chain_functions: Sequence[ChainFunction] = (),
         http_client: httpx.AsyncClient | None = None,
     ) -> None:
         self.base_url = base_url
-        self._chain_functions: list[ChainFunction] = list(chain_functions or [])
+        self._chain_functions = list(chain_functions)
+        self._owns_http_client = http_client is None
         self._http = http_client if http_client is not None else httpx.AsyncClient()
         self._fetch = create_enhanced_fetch(self._http, self._chain_functions)
+
+    async def __aenter__(self) -> Client:
+        return self
+
+    async def __aexit__(self, *_: object) -> None:
+        await self.aclose()
+
+    async def aclose(self) -> None:
+        """Close the internally owned HTTP client, if any."""
+        if self._owns_http_client:
+            await self._http.aclose()
 
     def push_chain_function(self, chain_function: ChainFunction) -> None:
         """Append a middleware chain function and rebuild the fetch pipeline."""
@@ -93,6 +107,7 @@ class Client:
     def sign_in_provider_url(
         self,
         provider: str,
+        *,
         params: SignInProviderParams | None = None,
     ) -> str:
         (
@@ -114,11 +129,12 @@ class Client:
 
 def create_api_client(
     base_url: str,
-    chain_functions: list[ChainFunction] | None = None,
+    *,
+    chain_functions: Sequence[ChainFunction] = (),
     http_client: httpx.AsyncClient | None = None,
 ) -> Client:
-    """Create a new API client."""
-    return Client(base_url, chain_functions, http_client)
+    """Create a generated API client."""
+    return Client(base_url, chain_functions=chain_functions, http_client=http_client)
 
 __all__ = [
     "SignInProviderParams",

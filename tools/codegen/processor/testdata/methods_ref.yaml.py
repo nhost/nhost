@@ -2,16 +2,18 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping, Sequence
+from datetime import datetime
 from typing import Any, Literal
 from urllib.parse import quote
 
 import httpx
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AnyUrl, BaseModel, ConfigDict, Field
 
 from ..fetch import (
     ChainFunction,
-    FetchError,
     FetchResponse,
+    HTTPError,
     UploadFile,
     create_enhanced_fetch,
     decode_json,
@@ -20,7 +22,7 @@ from ..fetch import (
     to_jsonable,
 )
 
-_REDIRECT_STATUS = 300
+_MIN_ERROR_STATUS = 400
 
 def _escape_path(value: object) -> str:
     segment = str(value)
@@ -73,7 +75,7 @@ def _header_value(value: Any, explode: bool) -> str:
 
 class VersionInformation(BaseModel):
     """Contains version information about the storage service."""
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     build_version: str | None = Field(
         default=None,
@@ -83,7 +85,7 @@ class VersionInformation(BaseModel):
 
 class FileSummary(BaseModel):
     """Basic information about a file in storage."""
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     id: str | None = Field(
         default=None,
@@ -108,7 +110,7 @@ class FileSummary(BaseModel):
 
 class FileMetadata(BaseModel):
     """Comprehensive metadata information about a file in storage."""
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     id: str | None = Field(
         default=None,
@@ -133,7 +135,7 @@ class FileMetadata(BaseModel):
         default=None,
         description='Entity tag for cache validation.\n\nExample: "\\"a1b2c3d4e5f6\\""',
     )
-    created_at: str | None = Field(
+    created_at: datetime | None = Field(
         default=None,
         alias="createdAt",
         description=(
@@ -141,7 +143,7 @@ class FileMetadata(BaseModel):
             "date-time"
         ),
     )
-    updated_at: str | None = Field(
+    updated_at: datetime | None = Field(
         default=None,
         alias="updatedAt",
         description=(
@@ -174,7 +176,7 @@ class FileMetadata(BaseModel):
 
 class UploadFileMetadata(BaseModel):
     """Metadata provided when uploading a new file."""
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     id: str | None = Field(
         default=None,
@@ -200,7 +202,7 @@ class UploadFileMetadata(BaseModel):
 
 class UpdateFileMetadata(BaseModel):
     """Metadata that can be updated for an existing file."""
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     name: str | None = Field(
         default=None,
@@ -216,7 +218,7 @@ class UpdateFileMetadata(BaseModel):
 
 class ErrorResponseError(BaseModel):
     """Error details."""
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     message: str = Field(
         description='Human-readable error message.\n\nExample: "File not found"',
@@ -224,7 +226,7 @@ class ErrorResponseError(BaseModel):
 
 class ErrorResponse(BaseModel):
     """Error information returned by the API."""
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     error: ErrorResponseError | None = Field(
         default=None,
@@ -233,7 +235,7 @@ class ErrorResponse(BaseModel):
 
 class RefreshTokenRequest(BaseModel):
     """Request to refresh an access token"""
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     refresh_token: str = Field(
         alias="refreshToken",
@@ -247,7 +249,7 @@ class RefreshTokenRequest(BaseModel):
 
 class Session(BaseModel):
     """User authentication session containing tokens and user information"""
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     access_token: str = Field(
         alias="accessToken",
@@ -286,7 +288,7 @@ class Session(BaseModel):
 
 class User(BaseModel):
     """User profile and account information"""
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     avatar_url: str = Field(
         alias="avatarUrl",
@@ -294,7 +296,7 @@ class User(BaseModel):
             'URL to the user\'s profile picture\n\nExample: "https://myapp.com/avatars/user123.jpg"'
         ),
     )
-    created_at: str = Field(
+    created_at: datetime = Field(
         alias="createdAt",
         description=(
             'Timestamp when the user account was created\n\nExample: "2023-01-15T12:34:56Z"\n\n'
@@ -355,9 +357,9 @@ IfMatch = str
 
 IfNoneMatch = str
 
-IfModifiedSince = str
+IfModifiedSince = datetime
 
-IfUnmodifiedSince = str
+IfUnmodifiedSince = datetime
 
 ImageQuality = float
 
@@ -373,11 +375,11 @@ TicketQuery = str
 
 TicketTypeQuery = Literal["emailVerify", "emailConfirmChange", "signinPasswordless", "passwordReset"]
 
-RedirectToQuery = str
+RedirectToQuery = AnyUrl
 
 class UploadFilesBodyNullableMetadata(BaseModel):
     """Required multipart object that may be null."""
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     label: str | None = Field(
         default=None,
@@ -385,7 +387,7 @@ class UploadFilesBodyNullableMetadata(BaseModel):
     )
 
 class UploadFilesBody(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     bucket_id: str | None = Field(
         default=None,
@@ -420,7 +422,7 @@ class UploadFilesBody(BaseModel):
     )
 
 class UploadFilesResponse201(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     processed_files: list[FileMetadata] | None = Field(
         default=None,
@@ -429,7 +431,7 @@ class UploadFilesResponse201(BaseModel):
     )
 
 class ReplaceFileBody(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     metadata: UpdateFileMetadata | None = Field(
         default=None,
@@ -441,7 +443,7 @@ class ReplaceFileBody(BaseModel):
 
 
 class GetFileMetadataHeadersParams(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
 
     q: ImageQuality | None = Field(
         default=None,
@@ -503,7 +505,7 @@ class GetFileMetadataHeadersParams(BaseModel):
 
 
 class GetFileParams(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
 
     q: ImageQuality | None = Field(
         default=None,
@@ -565,7 +567,7 @@ class GetFileParams(BaseModel):
 
 
 class VerifyTicketParams(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
 
     ticket: TicketQuery = Field(
         repr=False,
@@ -586,13 +588,26 @@ class Client:
     def __init__(
         self,
         base_url: str,
-        chain_functions: list[ChainFunction] | None = None,
+        *,
+        chain_functions: Sequence[ChainFunction] = (),
         http_client: httpx.AsyncClient | None = None,
     ) -> None:
         self.base_url = base_url
-        self._chain_functions: list[ChainFunction] = list(chain_functions or [])
+        self._chain_functions = list(chain_functions)
+        self._owns_http_client = http_client is None
         self._http = http_client if http_client is not None else httpx.AsyncClient()
         self._fetch = create_enhanced_fetch(self._http, self._chain_functions)
+
+    async def __aenter__(self) -> Client:
+        return self
+
+    async def __aexit__(self, *_: object) -> None:
+        await self.aclose()
+
+    async def aclose(self) -> None:
+        """Close the internally owned HTTP client, if any."""
+        if self._owns_http_client:
+            await self._http.aclose()
 
     def push_chain_function(self, chain_function: ChainFunction) -> None:
         """Append a middleware chain function and rebuild the fetch pipeline."""
@@ -602,15 +617,16 @@ class Client:
 
     async def refresh_token(
         self,
+        *,
         body: RefreshTokenRequest,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[Session]:
         (
             """Refresh access token\n\nGenerate a new JWT access token using a valid refresh """
             """token. The refresh token used will be revoked and a new one will be issued.\n\n"""
-            """Args:\n    body (RefreshTokenRequest): Request body.\n    headers (dict[str, str] """
-            """| None): Additional request headers.\n\nReturns:\n    FetchResponse[Session]: The """
-            """HTTP response."""
+            """Args:\n    body (RefreshTokenRequest): Request body.\n    headers (Mapping[str, """
+            """str] | None): Additional request headers.\n\nReturns:\n    """
+            """FetchResponse[Session]: The HTTP response."""
         )
         url = f"{self.base_url}/token"
         query = None
@@ -622,24 +638,25 @@ class Client:
             headers={"Content-Type": "application/json", **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, Session)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
 
     async def upload_files(
         self,
+        *,
         body: UploadFilesBody,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[UploadFilesResponse201]:
         (
             """Upload files\n\nUpload one or more files to a specified bucket. Supports batch """
             """uploading with optional custom metadata for each file. If uploading multiple """
             """files, either provide metadata for all files or none.\n\nArgs:\n    body """
-            """(UploadFilesBody): Request body.\n    headers (dict[str, str] | None): Additional """
-            """request headers.\n\nReturns:\n    FetchResponse[UploadFilesResponse201]: The HTTP """
-            """response."""
+            """(UploadFilesBody): Request body.\n    headers (Mapping[str, str] | None): """
+            """Additional request headers.\n\nReturns:\n    """
+            """FetchResponse[UploadFilesResponse201]: The HTTP response."""
         )
         url = f"{self.base_url}/files/"
         query = None
@@ -669,8 +686,8 @@ class Client:
             headers=headers,
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, UploadFilesResponse201)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
@@ -678,15 +695,16 @@ class Client:
     async def get_file_metadata_headers(
         self,
         id: FileId,
+        *,
         params: GetFileMetadataHeadersParams | None = None,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[None]:
         (
             """Check file information\n\nRetrieve file metadata headers without downloading the """
             """file content. Supports conditional requests and provides caching information.\n\n"""
             """Args:\n    id (FileId): Unique identifier of the file\n    params """
             """(GetFileMetadataHeadersParams): Query and header parameters.\n    headers """
-            """(dict[str, str] | None): Additional request headers.\n\nReturns:\n    """
+            """(Mapping[str, str] | None): Additional request headers.\n\nReturns:\n    """
             """FetchResponse[None]: The HTTP response."""
         )
         url = f"{self.base_url}/files/{_escape_path(id)}"
@@ -719,8 +737,8 @@ class Client:
             headers={**_parameter_headers, **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = None
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
@@ -728,14 +746,15 @@ class Client:
     async def get_file(
         self,
         id: FileId,
+        *,
         params: GetFileParams | None = None,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[bytes]:
         (
             """Download file\n\nRetrieve and download the complete file content. Supports """
             """conditional requests, image transformations, and range requests for partial """
             """downloads.\n\nArgs:\n    id (FileId): Unique identifier of the file\n    params """
-            """(GetFileParams): Query and header parameters.\n    headers (dict[str, str] | """
+            """(GetFileParams): Query and header parameters.\n    headers (Mapping[str, str] | """
             """None): Additional request headers.\n\nReturns:\n    FetchResponse[bytes]: The """
             """HTTP response."""
         )
@@ -769,8 +788,8 @@ class Client:
             headers={**_parameter_headers, **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = response.content
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
@@ -778,8 +797,9 @@ class Client:
     async def replace_file(
         self,
         id: FileId,
+        *,
         body: ReplaceFileBody | None = None,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[FileMetadata]:
         (
             """Replace file\n\nReplace an existing file with new content while preserving the """
@@ -788,7 +808,7 @@ class Client:
             """storage backend\n3. File metadata is updated (size, mime-type, isUploaded, etc.)\n"""
             """\nEach step is atomic, but if a step fails, previous steps will not be """
             """automatically rolled back.\n\n\nArgs:\n    id (FileId): Unique identifier of the """
-            """file\n    body (ReplaceFileBody): Request body.\n    headers (dict[str, str] | """
+            """file\n    body (ReplaceFileBody): Request body.\n    headers (Mapping[str, str] | """
             """None): Additional request headers.\n\nReturns:\n    FetchResponse[FileMetadata]: """
             """The HTTP response."""
         )
@@ -809,8 +829,8 @@ class Client:
             headers=headers,
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, FileMetadata)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
@@ -818,13 +838,14 @@ class Client:
     async def delete_file(
         self,
         id: FileId,
-        headers: dict[str, str] | None = None,
+        *,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[None]:
         (
             """Delete file\n\nPermanently delete a file from storage. This removes both the file """
             """content and its associated metadata.\n\nArgs:\n    id (FileId): Unique identifier """
-            """of the file\n    headers (dict[str, str] | None): Additional request headers.\n\n"""
-            """Returns:\n    FetchResponse[None]: The HTTP response."""
+            """of the file\n    headers (Mapping[str, str] | None): Additional request headers.\n"""
+            """\nReturns:\n    FetchResponse[None]: The HTTP response."""
         )
         url = f"{self.base_url}/files/{_escape_path(id)}"
         query = None
@@ -835,14 +856,15 @@ class Client:
             headers=headers,
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = None
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
 
     def verify_ticket_url(
         self,
+        *,
         params: VerifyTicketParams,
     ) -> str:
         (
@@ -862,11 +884,12 @@ class Client:
 
 def create_api_client(
     base_url: str,
-    chain_functions: list[ChainFunction] | None = None,
+    *,
+    chain_functions: Sequence[ChainFunction] = (),
     http_client: httpx.AsyncClient | None = None,
 ) -> Client:
-    """Create a new API client."""
-    return Client(base_url, chain_functions, http_client)
+    """Create a generated API client."""
+    return Client(base_url, chain_functions=chain_functions, http_client=http_client)
 
 __all__ = [
     "VersionInformation",

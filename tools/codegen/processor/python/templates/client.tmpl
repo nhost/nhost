@@ -51,6 +51,9 @@
         {{ .Name }}: {{ .Type.Name }},
 {{- end }}
 {{- if $hasParams }}
+        *,
+{{- end }}
+{{- if $hasParams }}
         params: {{ pascal .Name }}Params{{ if not $paramsRequired }} | None = None{{ end }},
 {{- end }}
     ) -> str:
@@ -68,6 +71,7 @@
 {{- range .PathParameters }}
         {{ .Name }}: {{ .Type.Name }},
 {{- end }}
+        *,
 {{- if and $body .BodyRequired }}
         body: {{ $body.Name }},
 {{- end }}
@@ -80,7 +84,7 @@
 {{- if and $hasParams (not $paramsRequired) }}
         params: {{ pascal .Name }}Params | None = None,
 {{- end }}
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[{{ pyReturnType .ReturnType }}]:
         {{ pyMethodDoc . }}
         url = f"{self.base_url}{{ .Path }}"
@@ -168,8 +172,8 @@
         )
 {{- end }}
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
 {{- if .ResponseJSON }}
         payload = decode_json(response, {{ pyReturnType .ReturnType }})
 {{- else if .ResponseBinary }}
@@ -188,13 +192,26 @@ class Client:
     def __init__(
         self,
         base_url: str,
-        chain_functions: list[ChainFunction] | None = None,
+        *,
+        chain_functions: Sequence[ChainFunction] = (),
         http_client: httpx.AsyncClient | None = None,
     ) -> None:
         self.base_url = base_url
-        self._chain_functions: list[ChainFunction] = list(chain_functions or [])
+        self._chain_functions = list(chain_functions)
+        self._owns_http_client = http_client is None
         self._http = http_client if http_client is not None else httpx.AsyncClient()
         self._fetch = create_enhanced_fetch(self._http, self._chain_functions)
+
+    async def __aenter__(self) -> Client:
+        return self
+
+    async def __aexit__(self, *_: object) -> None:
+        await self.aclose()
+
+    async def aclose(self) -> None:
+        """Close the internally owned HTTP client, if any."""
+        if self._owns_http_client:
+            await self._http.aclose()
 
     def push_chain_function(self, chain_function: ChainFunction) -> None:
         """Append a middleware chain function and rebuild the fetch pipeline."""
@@ -206,9 +223,10 @@ class Client:
 
 def create_api_client(
     base_url: str,
-    chain_functions: list[ChainFunction] | None = None,
+    *,
+    chain_functions: Sequence[ChainFunction] = (),
     http_client: httpx.AsyncClient | None = None,
 ) -> Client:
-    """Create a new API client."""
-    return Client(base_url, chain_functions, http_client)
+    """Create a generated API client."""
+    return Client(base_url, chain_functions=chain_functions, http_client=http_client)
 {{- end -}}
