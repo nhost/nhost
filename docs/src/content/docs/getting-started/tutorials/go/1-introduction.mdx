@@ -114,19 +114,19 @@ skip it.
 ## Scaffold the CLI
 
 In the same project directory, create a Go module and add the SDK alongside your
-backend configuration. [`cobra`](https://github.com/spf13/cobra) parses the
+backend configuration. [`urfave/cli`](https://github.com/urfave/cli) parses the
 command line and generates `--help` for us:
 
 ```bash Terminal
 go mod init example.com/notes-cli-go
 
 go get github.com/nhost/nhost/packages/nhost-go
-go get github.com/spf13/cobra
+go get github.com/urfave/cli/v3
 ```
 
-Now create a minimal `main.go`. It builds the command tree with `cobra`, creates
-the Nhost client — pointed at your local backend by default — and dispatches to a
-subcommand. The UX is **flat**: every verb is a top-level command (no
+Now create a minimal `main.go`. It builds the command tree with `urfave/cli`,
+creates the Nhost client — pointed at your local backend by default — and
+dispatches to a subcommand. The UX is **flat**: every verb is a top-level command (no
 `note <sub>` nesting). We start with a single `whoami` command and add the rest
 one product at a time in the following parts.
 
@@ -134,50 +134,110 @@ one product at a time in the following parts.
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
 
-	"github.com/spf13/cobra"
+	"github.com/urfave/cli/v3"
 
 	nhost "github.com/nhost/nhost/packages/nhost-go"
 )
 
-// client is built once in the root command's PersistentPreRun and reused by
-// every subcommand we add in later parts.
+var (
+	errTooManyArgs    = errors.New("too many arguments")
+	errUnknownCommand = errors.New("unknown command")
+)
+
+// client is built once in the root command's Before hook and reused by every
+// subcommand we add in later parts.
 var client *nhost.Client
 
 func main() {
-	if err := rootCmd().Execute(); err != nil {
+	if err := rootCmd().Run(context.Background(), os.Args); err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
 		os.Exit(1)
 	}
 }
 
-// rootCmd builds the cobra command tree. The UX is flat: every verb is a
+// rootCmd builds the cli command tree. The UX is flat: every verb is a
 // top-level command, so there's no `note <sub>` nesting. We start with a single
 // `whoami` command and add the rest one product at a time in the following parts.
-func rootCmd() *cobra.Command {
-	root := &cobra.Command{
-		Use:           "notes-cli",
-		Short:         "A note-taking CLI built on Nhost",
-		SilenceUsage:  true,
-		SilenceErrors: true,
-		PersistentPreRun: func(_ *cobra.Command, _ []string) {
-			client = newClient()
+func rootCmd() *cli.Command {
+	root := &cli.Command{
+		Name:                  "notes-cli",
+		Usage:                 "A note-taking CLI built on Nhost",
+		EnableShellCompletion: true,
+		ConfigureShellCompletionCommand: func(command *cli.Command) {
+			command.Hidden = false
+			command.Usage = "Generate the autocompletion script for the specified shell"
 		},
+		Before: func(ctx context.Context, _ *cli.Command) (context.Context, error) {
+			client = newClient()
+			return ctx, nil
+		},
+		Action: commandHelp,
 	}
 
-	root.AddCommand(&cobra.Command{
-		Use:   "whoami",
-		Short: "Show the currently signed-in user",
-		Args:  cobra.NoArgs,
-		RunE: func(_ *cobra.Command, _ []string) error {
+	root.Commands = append(root.Commands, &cli.Command{
+		Name:  "whoami",
+		Usage: "Show the currently signed-in user",
+		Action: withArgs(func(_ context.Context, _ *cli.Command, _ []string) error {
 			return cmdWhoami(client)
-		},
+		}),
 	})
 
+	silenceUsage(root)
 	return root
+}
+
+// commandArguments declares positional argument ranges for commands added in
+// later parts. withArgs rejects values beyond Max as well.
+func commandArguments(usage string, minArgs, maxArgs int) []cli.Argument {
+	return []cli.Argument{
+		&cli.StringArgs{
+			Name:      "arguments",
+			UsageText: usage,
+			Min:       minArgs,
+			Max:       maxArgs,
+		},
+	}
+}
+
+func withArgs(action func(context.Context, *cli.Command, []string) error) cli.ActionFunc {
+	return func(ctx context.Context, cmd *cli.Command) error {
+		args := cmd.StringArgs("arguments")
+		if cmd.Args().Present() {
+			return fmt.Errorf(
+				"%w: got %d, want at most %d",
+				errTooManyArgs,
+				len(args)+cmd.Args().Len(),
+				len(args),
+			)
+		}
+		return action(ctx, cmd, args)
+	}
+}
+
+func commandHelp(_ context.Context, cmd *cli.Command) error {
+	if cmd.Args().Present() {
+		return fmt.Errorf("%w: %q", errUnknownCommand, cmd.Args().First())
+	}
+	if err := cli.ShowSubcommandHelp(cmd); err != nil {
+		return fmt.Errorf("show command help: %w", err)
+	}
+	return nil
+}
+
+// silenceUsage keeps command errors concise instead of printing a full usage
+// page after them.
+func silenceUsage(cmd *cli.Command) {
+	cmd.OnUsageError = func(_ context.Context, _ *cli.Command, err error, _ bool) error {
+		return err
+	}
+	for _, subcommand := range cmd.Commands {
+		silenceUsage(subcommand)
+	}
 }
 
 // newClient builds the Nhost client. The client middleware attaches the access
@@ -214,7 +274,7 @@ With the local backend running, the client defaults to it automatically — no
 environment variables needed. Build and run:
 
 ```bash Terminal
-go run . --help      # cobra prints the command list
+go run . --help      # urfave/cli prints the command list
 go run . whoami      # "error: not logged in" until Part 2
 ```
 
