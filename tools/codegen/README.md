@@ -8,7 +8,7 @@ The Rust generator emits API code but not the hand-written crate modules that ho
 
 1. `error::Error` provides `Config(String)` and accepts both `serde_json::Error` and `reqwest::Error` through `From`. Generated multipart code uses `Config` for caller-provided invalid MIME types, while other `?` expressions preserve serialization and request-building failures.
 2. `http::Response<T>` exposes `body: T`, `status: S`, and `headers: reqwest::header::HeaderMap`. The status type `S` must match the first tuple element returned by `http::send`; both `u16` (used by the Nhost Rust SDK) and `reqwest::StatusCode` satisfy the generated uses.
-3. `http::send(RequestBuilder, Option<&SessionStorage>)` is async and returns `Result<(S, HeaderMap, B), Error>`, where `S` is the type of `Response::status`, and `B` dereferences to `[u8]` and supports `to_vec()`; `Vec<u8>` and `bytes::Bytes` both satisfy the generated uses.
+3. `http::send(RequestBuilder, Option<&SessionStorage>)` is async and returns `Result<(S, HeaderMap, B), Error>`, where `S` is the type of `Response::status` and `B` is exactly `bytes::Bytes`. Binary responses are moved into `Response::body` without conversion, so unlike `S` this element has no permitted alternatives: `Vec<u8>` does not compile.
 4. `http::append_path(&str, &[&str]) -> Result<url::Url, Error>` appends the generated path segments and is accessible from the generated module.
 5. `http::build_client(reqwest::Client, &[Arc<dyn Middleware>]) -> ClientWithMiddleware` builds the middleware-aware client retained by the generated client.
 6. `http::ClientWithMiddleware::request<U: reqwest::IntoUrl>(reqwest::Method, U) -> reqwest::RequestBuilder` accepts the `url::Url` returned by `append_path` and starts each generated request.
@@ -17,6 +17,8 @@ The Rust generator emits API code but not the hand-written crate modules that ho
 9. `session::SessionStorage` implements `Clone` and can be passed to `http::send` by shared reference.
 
 The executable reference for this contract is the minimal crate in [`processor/rust/testdata/compile-fixture`](processor/rust/testdata/compile-fixture). `TestRustGeneratedOutputCompiles` copies that crate, renders every shared and Rust-specific OpenAPI fixture into it, and runs `cargo check`, rustdoc tests, and Clippy. The test skips when Cargo is unavailable so Go-only development remains supported; the codegen Nix check includes Cargo, rustc, and Clippy so CI always enforces the contract. Changes to generated runtime requirements must update both the compile fixture and this list.
+
+The fixture pins one concrete instantiation of the contract, not the full space of types that satisfy it: it instantiates `S` as `reqwest::StatusCode`, so the `u16` alternative in point 2 — the one the Nhost Rust SDK actually uses — is exercised by that SDK rather than here. Any alternative this list offers needs its own compiled variant before it can be trusted.
 
 Keeping status and headers is required even for bodyless operations: for example, a generated `HEAD` method has `T = ()`, and its headers are the operation's result.
 
