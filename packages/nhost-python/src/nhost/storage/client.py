@@ -3,7 +3,9 @@
 # mypy: ignore-errors
 from __future__ import annotations
 
+import json
 from typing import Any, Literal
+from urllib.parse import quote
 
 import httpx
 from pydantic import BaseModel, ConfigDict, Field
@@ -19,6 +21,58 @@ from ..fetch import (
     to_json,
     to_jsonable,
 )
+
+
+def _escape_path(value: object) -> str:
+    segment = str(value)
+    if segment == ".":
+        return "%2E"
+    if segment == "..":
+        return "%2E%2E"
+    return quote(segment, safe="")
+
+
+def _parameter_scalar(value: Any) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, str):
+        return value
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, (dict, list)):
+        return json.dumps(value, separators=(",", ":"))
+    return str(value)
+
+
+def _query_parameter(name: str, value: Any, style: str, explode: bool) -> list[tuple[str, str]]:
+    value = to_jsonable(value)
+    if isinstance(value, list):
+        if explode:
+            return [(name, _parameter_scalar(item)) for item in value]
+        return [(name, ",".join(_parameter_scalar(item) for item in value))]
+    if isinstance(value, dict):
+        if style == "deepObject":
+            return [(f"{name}[{key}]", _parameter_scalar(item)) for key, item in value.items()]
+        if explode:
+            return [(key, _parameter_scalar(item)) for key, item in value.items()]
+        parts = [part for key, item in value.items() for part in (key, _parameter_scalar(item))]
+        return [(name, ",".join(parts))]
+    return [(name, _parameter_scalar(value))]
+
+
+def _header_value(value: Any, explode: bool) -> str:
+    value = to_jsonable(value)
+    if isinstance(value, list):
+        return ",".join(_parameter_scalar(item) for item in value)
+    if isinstance(value, dict):
+        parts: list[str] = []
+        for key, item in value.items():
+            if explode:
+                parts.append(f"{key}={_parameter_scalar(item)}")
+            else:
+                parts.extend((key, _parameter_scalar(item)))
+        return ",".join(parts)
+    return _parameter_scalar(value)
 
 
 RFC2822Date = str
@@ -79,7 +133,7 @@ class FileSummary(BaseModel):
 class PresignedURLResponse(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    url: str
+    url: str = Field(repr=False)
     expiration: int
 
 
@@ -167,6 +221,12 @@ class GetFileParams(BaseModel):
     b: float | None = None
     f: OutputImageFormat | None = None
 
+    if_match: str | None = Field(default=None, alias="if-match")
+    if_none_match: str | None = Field(default=None, alias="if-none-match")
+    if_modified_since: str | None = Field(default=None, alias="if-modified-since")
+    if_unmodified_since: str | None = Field(default=None, alias="if-unmodified-since")
+    range: str | None = Field(default=None, alias="Range")
+
 
 class GetFileMetadataHeadersParams(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
@@ -176,6 +236,11 @@ class GetFileMetadataHeadersParams(BaseModel):
     w: int | None = None
     b: float | None = None
     f: OutputImageFormat | None = None
+
+    if_match: str | None = Field(default=None, alias="if-match")
+    if_none_match: str | None = Field(default=None, alias="if-none-match")
+    if_modified_since: str | None = Field(default=None, alias="if-modified-since")
+    if_unmodified_since: str | None = Field(default=None, alias="if-unmodified-since")
 
 
 class Client:
@@ -233,7 +298,7 @@ class Client:
         id: str,
         headers: dict[str, str] | None = None,
     ) -> FetchResponse[None]:
-        url = f"{self.base_url}/files/{id}"
+        url = f"{self.base_url}/files/{_escape_path(id)}"
         query = None
         request = self._http.build_request(
             "DELETE",
@@ -253,13 +318,38 @@ class Client:
         params: GetFileParams | None = None,
         headers: dict[str, str] | None = None,
     ) -> FetchResponse[bytes]:
-        url = f"{self.base_url}/files/{id}"
-        query = params.model_dump(by_alias=True, exclude_none=True) if params is not None else None
+        url = f"{self.base_url}/files/{_escape_path(id)}"
+
+        query: list[tuple[str, str]] = []
+        if params is not None and params.q is not None:
+            query.extend(_query_parameter("q", params.q, "form", True))
+        if params is not None and params.h is not None:
+            query.extend(_query_parameter("h", params.h, "form", True))
+        if params is not None and params.w is not None:
+            query.extend(_query_parameter("w", params.w, "form", True))
+        if params is not None and params.b is not None:
+            query.extend(_query_parameter("b", params.b, "form", True))
+        if params is not None and params.f is not None:
+            query.extend(_query_parameter("f", params.f, "form", True))
+
+        _parameter_headers: dict[str, str] = {}
+        if params is not None and params.if_match is not None:
+            _parameter_headers["if-match"] = _header_value(params.if_match, False)
+        if params is not None and params.if_none_match is not None:
+            _parameter_headers["if-none-match"] = _header_value(params.if_none_match, False)
+        if params is not None and params.if_modified_since is not None:
+            _parameter_headers["if-modified-since"] = _header_value(params.if_modified_since, False)
+        if params is not None and params.if_unmodified_since is not None:
+            _parameter_headers["if-unmodified-since"] = _header_value(
+                params.if_unmodified_since, False
+            )
+        if params is not None and params.range is not None:
+            _parameter_headers["Range"] = _header_value(params.range, False)
         request = self._http.build_request(
             "GET",
             url,
             params=query,
-            headers=headers,
+            headers={**_parameter_headers, **(headers or {})},
         )
         response = await self._fetch(request)
         if response.status_code >= 300:
@@ -273,13 +363,36 @@ class Client:
         params: GetFileMetadataHeadersParams | None = None,
         headers: dict[str, str] | None = None,
     ) -> FetchResponse[None]:
-        url = f"{self.base_url}/files/{id}"
-        query = params.model_dump(by_alias=True, exclude_none=True) if params is not None else None
+        url = f"{self.base_url}/files/{_escape_path(id)}"
+
+        query: list[tuple[str, str]] = []
+        if params is not None and params.q is not None:
+            query.extend(_query_parameter("q", params.q, "form", True))
+        if params is not None and params.h is not None:
+            query.extend(_query_parameter("h", params.h, "form", True))
+        if params is not None and params.w is not None:
+            query.extend(_query_parameter("w", params.w, "form", True))
+        if params is not None and params.b is not None:
+            query.extend(_query_parameter("b", params.b, "form", True))
+        if params is not None and params.f is not None:
+            query.extend(_query_parameter("f", params.f, "form", True))
+
+        _parameter_headers: dict[str, str] = {}
+        if params is not None and params.if_match is not None:
+            _parameter_headers["if-match"] = _header_value(params.if_match, False)
+        if params is not None and params.if_none_match is not None:
+            _parameter_headers["if-none-match"] = _header_value(params.if_none_match, False)
+        if params is not None and params.if_modified_since is not None:
+            _parameter_headers["if-modified-since"] = _header_value(params.if_modified_since, False)
+        if params is not None and params.if_unmodified_since is not None:
+            _parameter_headers["if-unmodified-since"] = _header_value(
+                params.if_unmodified_since, False
+            )
         request = self._http.build_request(
             "HEAD",
             url,
             params=query,
-            headers=headers,
+            headers={**_parameter_headers, **(headers or {})},
         )
         response = await self._fetch(request)
         if response.status_code >= 300:
@@ -293,7 +406,7 @@ class Client:
         body: ReplaceFileBody,
         headers: dict[str, str] | None = None,
     ) -> FetchResponse[FileMetadata]:
-        url = f"{self.base_url}/files/{id}"
+        url = f"{self.base_url}/files/{_escape_path(id)}"
         query = None
         _data: dict[str, Any] = {}
         _files: list[tuple[str, Any]] = []
@@ -320,7 +433,7 @@ class Client:
         id: str,
         headers: dict[str, str] | None = None,
     ) -> FetchResponse[PresignedURLResponse]:
-        url = f"{self.base_url}/files/{id}/presignedurl"
+        url = f"{self.base_url}/files/{_escape_path(id)}/presignedurl"
         query = None
         request = self._http.build_request(
             "GET",
