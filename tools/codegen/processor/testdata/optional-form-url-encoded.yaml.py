@@ -52,6 +52,11 @@ class Client:
         body: OptionalFormRequest | None = None,
         headers: dict[str, str] | None = None,
     ) -> FetchResponse[None]:
+        (
+            """Args:\n    body (OptionalFormRequest): Request body.\n    headers (dict[str, str] """
+            """| None): Additional request headers.\n\nReturns:\n    FetchResponse[None]: The """
+            """HTTP response."""
+        )
         url = f"{self.base_url}/optional-form"
         query = None
         request = self._http.build_request(

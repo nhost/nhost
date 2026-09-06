@@ -61,6 +61,11 @@ class Client:
         id: str,
         headers: dict[str, str] | None = None,
     ) -> FetchResponse[EscapedWireNames]:
+        (
+            """Args:\n    id (str): Path parameter.\n    headers (dict[str, str] | None): """
+            """Additional request headers.\n\nReturns:\n    FetchResponse[EscapedWireNames]: The """
+            """HTTP response."""
+        )
         url = f"{self.base_url}/things/100%25/{_escape_path(id)}"
         query = None
         request = self._http.build_request(

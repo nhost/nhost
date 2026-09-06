@@ -24,7 +24,10 @@ from ..fetch import (
 class OptionalUploadRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    file: bytes | UploadFile | None = None
+    file: bytes | UploadFile | None = Field(
+        default=None,
+        description="Format: binary",
+    )
     description: str | None = None
 
 
@@ -53,6 +56,11 @@ class Client:
         body: OptionalUploadRequest | None = None,
         headers: dict[str, str] | None = None,
     ) -> FetchResponse[None]:
+        (
+            """Args:\n    body (OptionalUploadRequest): Request body.\n    headers (dict[str, """
+            """str] | None): Additional request headers.\n\nReturns:\n    FetchResponse[None]: """
+            """The HTTP response."""
+        )
         url = f"{self.base_url}/optional-upload"
         query = None
         _data: dict[str, Any] = {}

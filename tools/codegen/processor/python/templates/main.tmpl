@@ -100,11 +100,11 @@ def _header_value(value: Any, explode: bool) -> str:
 class {{ pascal .Name }}Params(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 {{ range .QueryParameters }}
-    {{ pyParamField . }}
+    {{ pyParamField . .Parameter.Description .Type.Schema.Schema.Description (example .Type) (pattern .Type) (format .Type) }}
 {{- end }}
 {{- if not .IsRedirect }}
 {{ range .HeaderParameters }}
-    {{ pyParamField . }}
+    {{ pyParamField . .Parameter.Description .Type.Schema.Schema.Description (example .Type) (pattern .Type) (format .Type) }}
 {{- end }}
 {{- end }}
 

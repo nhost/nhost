@@ -87,6 +87,11 @@ class Client:
         params: HeaderValuesParams,
         headers: dict[str, str] | None = None,
     ) -> FetchResponse[None]:
+        (
+            """Args:\n    params (HeaderValuesParams): Query and header parameters.\n    headers """
+            """(dict[str, str] | None): Additional request headers.\n\nReturns:\n    """
+            """FetchResponse[None]: The HTTP response."""
+        )
         url = f"{self.base_url}/headers"
         query = None
 
@@ -113,6 +118,7 @@ class Client:
     def header_only_redirect_url(
         self,
     ) -> str:
+        """Returns:\n    str: The redirect URL."""
         url = f"{self.base_url}/redirect"
         return url
 
