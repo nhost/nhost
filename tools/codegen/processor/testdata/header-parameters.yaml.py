@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping, Sequence
 from typing import Any, Literal
 
 import httpx
@@ -9,15 +10,15 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from ..fetch import (
     ChainFunction,
-    FetchError,
     FetchResponse,
+    HTTPError,
     create_enhanced_fetch,
     decode_json,
     to_json,
     to_jsonable,
 )
 
-_REDIRECT_STATUS = 300
+_MIN_ERROR_STATUS = 400
 
 def _parameter_scalar(value: Any) -> str:
     if value is None:
@@ -49,7 +50,7 @@ GetXMode = Literal[0, "one", True]
 
 
 class HeaderValuesParams(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
 
 
     x_first_json: str = Field(alias="x-first-json")
@@ -66,13 +67,26 @@ class Client:
     def __init__(
         self,
         base_url: str,
-        chain_functions: list[ChainFunction] | None = None,
+        *,
+        chain_functions: Sequence[ChainFunction] = (),
         http_client: httpx.AsyncClient | None = None,
     ) -> None:
         self.base_url = base_url
-        self._chain_functions: list[ChainFunction] = list(chain_functions or [])
+        self._chain_functions = list(chain_functions)
+        self._owns_http_client = http_client is None
         self._http = http_client if http_client is not None else httpx.AsyncClient()
         self._fetch = create_enhanced_fetch(self._http, self._chain_functions)
+
+    async def __aenter__(self) -> Client:
+        return self
+
+    async def __aexit__(self, *_: object) -> None:
+        await self.aclose()
+
+    async def aclose(self) -> None:
+        """Close the internally owned HTTP client, if any."""
+        if self._owns_http_client:
+            await self._http.aclose()
 
     def push_chain_function(self, chain_function: ChainFunction) -> None:
         """Append a middleware chain function and rebuild the fetch pipeline."""
@@ -82,12 +96,13 @@ class Client:
 
     async def header_values(
         self,
+        *,
         params: HeaderValuesParams,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[None]:
         (
             """Args:\n    params (HeaderValuesParams): Query and header parameters.\n    headers """
-            """(dict[str, str] | None): Additional request headers.\n\nReturns:\n    """
+            """(Mapping[str, str] | None): Additional request headers.\n\nReturns:\n    """
             """FetchResponse[None]: The HTTP response."""
         )
         url = f"{self.base_url}/headers"
@@ -107,8 +122,8 @@ class Client:
             headers={**_parameter_headers, **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = None
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
@@ -123,11 +138,12 @@ class Client:
 
 def create_api_client(
     base_url: str,
-    chain_functions: list[ChainFunction] | None = None,
+    *,
+    chain_functions: Sequence[ChainFunction] = (),
     http_client: httpx.AsyncClient | None = None,
 ) -> Client:
-    """Create a new API client."""
-    return Client(base_url, chain_functions, http_client)
+    """Create a generated API client."""
+    return Client(base_url, chain_functions=chain_functions, http_client=http_client)
 
 __all__ = [
     "GetXMode",

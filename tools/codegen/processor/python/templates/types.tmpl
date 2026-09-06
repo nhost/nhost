@@ -7,7 +7,7 @@ class {{ .Name }}(BaseModel):
 {{- if or .Schema.Schema.Description (example .) (pattern .) (format .) }}
     {{ template "renderDocstring" . }}
 {{- end }}
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 {{ range .Properties }}
     {{ pyField . .Type.Schema.Schema.Description (example .Type) (pattern .Type) (format .Type) }}
 {{- else }}

@@ -201,8 +201,10 @@ func TestTypeScalarName(t *testing.T) {
 		{name: "boolean", schemaType: "boolean", want: "bool"},
 		{name: "string", schemaType: "string", want: "str"},
 		{name: "string byte", schemaType: "string", schemaFormat: "byte", want: "str"},
-		{name: "string date", schemaType: "string", schemaFormat: "date", want: "str"},
-		{name: "string date time", schemaType: "string", schemaFormat: "date-time", want: "str"},
+		{name: "string date", schemaType: "string", schemaFormat: "date", want: "date"},
+		{name: "string date time", schemaType: "string", schemaFormat: "date-time", want: "datetime"},
+		{name: "string URI", schemaType: "string", schemaFormat: "uri", want: "AnyUrl"},
+		{name: "string UUID", schemaType: "string", schemaFormat: "uuid", want: "UUID"},
 		{name: "string password", schemaType: "string", schemaFormat: "password", want: "str"},
 		{
 			name:         "string binary",

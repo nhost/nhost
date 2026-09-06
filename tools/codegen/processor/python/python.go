@@ -610,17 +610,23 @@ func validatePythonMethodBindings(method *processor.Method) error {
 func pythonModuleNames(methods []*processor.Method) map[string]string {
 	names := map[string]string{
 		"Any":                   `generated import "Any"`,
+		"AnyUrl":                `generated import "AnyUrl"`,
 		"BaseModel":             `generated import "BaseModel"`,
 		"ChainFunction":         `generated import "ChainFunction"`,
 		"Client":                `generated type "Client"`,
 		"ConfigDict":            `generated import "ConfigDict"`,
-		"FetchError":            `generated import "FetchError"`,
 		"FetchResponse":         `generated import "FetchResponse"`,
+		"HTTPError":             `generated import "HTTPError"`,
 		"Field":                 `generated import "Field"`,
 		"Literal":               `generated import "Literal"`,
-		"_REDIRECT_STATUS":      "generated HTTP status constant",
+		"Mapping":               `generated import "Mapping"`,
+		"Sequence":              `generated import "Sequence"`,
+		"UUID":                  `generated import "UUID"`,
+		"_MIN_ERROR_STATUS":     "generated HTTP status constant",
 		"create_api_client":     `generated function "create_api_client"`,
 		"create_enhanced_fetch": `generated import "create_enhanced_fetch"`,
+		"date":                  `generated import "date"`,
+		"datetime":              `generated import "datetime"`,
 		"decode_json":           `generated import "decode_json"`,
 		"httpx":                 `generated import "httpx"`,
 		"to_json":               `generated import "to_json"`,
@@ -671,10 +677,14 @@ func validatePythonNames(types []processor.Type, methods []*processor.Method) (s
 	}
 
 	methodNames := map[string]string{
+		"__aenter__":          `generated Client method "__aenter__"`,
+		"__aexit__":           `generated Client method "__aexit__"`,
 		"__init__":            `generated Client method "__init__"`,
 		"_chain_functions":    `generated Client attribute "_chain_functions"`,
 		"_fetch":              `generated Client attribute "_fetch"`,
 		"_http":               `generated Client attribute "_http"`,
+		"_owns_http_client":   `generated Client attribute "_owns_http_client"`,
+		"aclose":              `generated Client method "aclose"`,
 		"base_url":            `generated Client attribute "base_url"`,
 		"push_chain_function": `generated Client method "push_chain_function"`,
 	}
@@ -912,6 +922,65 @@ func validateQueryParameters(method *processor.Method) error {
 	return nil
 }
 
+func visitPythonType(
+	typ processor.Type,
+	visited map[*base.SchemaProxy]struct{},
+	visit func(processor.Type),
+) {
+	if typ == nil || typ.Schema() == nil {
+		return
+	}
+	if _, ok := visited[typ.Schema()]; ok {
+		return
+	}
+	visited[typ.Schema()] = struct{}{}
+	visit(typ)
+
+	switch concrete := typ.(type) {
+	case *processor.TypeAlias:
+		visitPythonType(concrete.Alias(), visited, visit)
+	case *processor.TypeArray:
+		visitPythonType(concrete.Item, visited, visit)
+	case *processor.TypeObject:
+		for _, property := range concrete.Properties() {
+			visitPythonType(property.Type, visited, visit)
+		}
+	}
+}
+
+func usesSchemaFormat(
+	types []processor.Type,
+	methods []*processor.Method,
+	formats ...string,
+) bool {
+	wanted := make(map[string]struct{}, len(formats))
+	for _, schemaFormat := range formats {
+		wanted[schemaFormat] = struct{}{}
+	}
+
+	found := false
+	visited := make(map[*base.SchemaProxy]struct{})
+	check := func(typ processor.Type) {
+		schema := typ.Schema()
+		if schema != nil && schema.Schema() != nil {
+			if _, ok := wanted[schema.Schema().Format]; ok {
+				found = true
+			}
+		}
+	}
+	for _, typ := range types {
+		visitPythonType(typ, visited, check)
+	}
+	for _, method := range methods {
+		visitPythonType(methodBody(method), visited, check)
+		for _, parameter := range method.Parameters {
+			visitPythonType(parameter.Type, visited, check)
+		}
+	}
+
+	return found
+}
+
 func hasRequestParameters(method *processor.Method) bool {
 	return method.HasQueryParameters() || (!method.IsRedirect() && method.HasHeaderParameters())
 }
@@ -1042,7 +1111,7 @@ func methodArgumentsDocumentation(method *processor.Method) string {
 	}
 
 	if !method.IsRedirect() {
-		args = append(args, "    headers (dict[str, str] | None): Additional request headers.")
+		args = append(args, "    headers (Mapping[str, str] | None): Additional request headers.")
 	}
 
 	if len(args) == 0 {
@@ -1088,6 +1157,18 @@ func (p *Python) GetFuncMap() map[string]any {
 		"pyAnyPathParameters":            hasPathParameters,
 		"pyAnyHeaderParameters":          hasHeaderParameters,
 		"pyAnyMultipartMethods":          hasMultipartMethods,
+		"pyUsesDate": func(types []processor.Type, methods []*processor.Method) bool {
+			return usesSchemaFormat(types, methods, "date")
+		},
+		"pyUsesDateTime": func(types []processor.Type, methods []*processor.Method) bool {
+			return usesSchemaFormat(types, methods, "date-time")
+		},
+		"pyUsesURI": func(types []processor.Type, methods []*processor.Method) bool {
+			return usesSchemaFormat(types, methods, "uri", "url")
+		},
+		"pyUsesUUID": func(types []processor.Type, methods []*processor.Method) bool {
+			return usesSchemaFormat(types, methods, "uuid")
+		},
 		// pyReturnType turns the shared IR return type expression into a valid
 		// runtime Python type expression usable inside a pydantic TypeAdapter.
 		// Method.ReturnType() joins multiple 2xx media/void results with " | ",
@@ -1159,14 +1240,22 @@ func (p *Python) TypeScalarName(scalar *processor.TypeScalar) string {
 	case "boolean":
 		return "bool"
 	case "string":
-		if schema.Format == "binary" {
-			// Binary request-body parts accept either raw bytes (sent with
-			// httpx's default "upload" filename) or an UploadFile carrying an
-			// explicit filename/content-type for the multipart file part.
+		switch schema.Format {
+		case "binary":
+			// Binary request-body parts accept raw bytes or an UploadFile that
+			// carries an explicit filename and media type.
 			return "bytes | UploadFile"
+		case "date":
+			return "date"
+		case "date-time":
+			return "datetime"
+		case "uri", "url":
+			return "AnyUrl"
+		case "uuid":
+			return "UUID"
+		default:
+			return "str"
 		}
-
-		return "str"
 	}
 
 	return "Any"
