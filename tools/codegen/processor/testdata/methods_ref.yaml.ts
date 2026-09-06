@@ -738,7 +738,7 @@ Each step is atomic, but if a step fails, previous steps will not be automatical
      As this method is a redirect, it returns a URL string instead of a Promise
      */
   verifyTicketURL(
-    params?: VerifyTicketParams,
+    params: VerifyTicketParams,
     options?: RequestInit,
   ): string;
 };
@@ -1067,7 +1067,7 @@ export const createAPIClient = (
   };
 
     const  verifyTicketURL = (
-    params?: VerifyTicketParams,
+    params: VerifyTicketParams,
   ): string => {
   const encodedParameters =
     params &&
