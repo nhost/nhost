@@ -13,6 +13,7 @@ import os
 import re
 import stat
 import time
+from collections.abc import Callable
 from pathlib import Path
 
 import httpx
@@ -405,6 +406,190 @@ def _seed_session(storage: SessionStorage, *, exp_offset_seconds: int = 3600) ->
     session = storage.get()
     assert session is not None
     return session
+
+
+async def test_forced_refresh_of_expired_session_retries_and_clears_on_401() -> None:
+    token_calls: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path.endswith("/token"):
+            token_calls.append(request.url.path)
+            return httpx.Response(401, json={"message": "invalid refresh token"})
+        return httpx.Response(200, json={"data": None})
+
+    backend = MemoryStorage()
+    async with build_client(handler, backend) as nhost:
+        _seed_session(nhost.session_storage, exp_offset_seconds=-10)
+        refreshed = await nhost.refresh_session(margin_seconds=0)
+
+        assert refreshed is None
+        assert token_calls == ["/v1/token", "/v1/token"]
+        assert nhost.session_storage.get() is None
+
+
+async def test_forced_refresh_of_valid_session_preserves_it_on_500() -> None:
+    token_calls: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path.endswith("/token"):
+            token_calls.append(request.url.path)
+            return httpx.Response(500, json={"message": "temporary failure"})
+        return httpx.Response(200, json={"data": None})
+
+    backend = MemoryStorage()
+    async with build_client(handler, backend) as nhost:
+        session = _seed_session(nhost.session_storage)
+        refreshed = await nhost.refresh_session(margin_seconds=0)
+
+        assert refreshed is session
+        assert token_calls == ["/v1/token"]
+        assert nhost.session_storage.get() is session
+
+
+def test_session_storage_snapshot_allows_self_unsubscribe() -> None:
+    storage = SessionStorage(MemoryStorage())
+    notifications: list[tuple[str, bool]] = []
+    unsubscribe_first: Callable[[], None]
+
+    def first(session: StoredSession | None) -> None:
+        notifications.append(("first", session is None))
+        unsubscribe_first()
+
+    def second(session: StoredSession | None) -> None:
+        notifications.append(("second", session is None))
+
+    unsubscribe_first = storage.on_change(first)
+    storage.on_change(second)
+
+    _seed_session(storage)
+    storage.remove()
+
+    assert notifications == [("first", False), ("second", False), ("second", True)]
+
+
+def test_session_storage_duplicate_subscriptions_unsubscribe_independently() -> None:
+    storage = SessionStorage(MemoryStorage())
+    notifications: list[StoredSession | None] = []
+
+    def subscriber(session: StoredSession | None) -> None:
+        notifications.append(session)
+
+    unsubscribe_first = storage.on_change(subscriber)
+    unsubscribe_second = storage.on_change(subscriber)
+
+    stored = _seed_session(storage)
+    assert notifications == [stored, stored]
+
+    unsubscribe_first()
+    unsubscribe_first()
+    storage.remove()
+    assert notifications == [stored, stored, None]
+
+    unsubscribe_second()
+    _seed_session(storage)
+    assert notifications == [stored, stored, None]
+
+
+def test_session_storage_notifications_allow_reentrant_set_and_remove() -> None:
+    storage = SessionStorage(MemoryStorage())
+    replacement = Session(
+        access_token=make_jwt(),
+        access_token_expires_in=3600,
+        refresh_token="replacement-refresh",
+        refresh_token_id="replacement-id",
+        user=None,
+    )
+    notifications: list[tuple[str, str | None]] = []
+    reentry_count = 0
+
+    def reentrant(session: StoredSession | None) -> None:
+        nonlocal reentry_count
+        notifications.append(("reentrant", None if session is None else session.refresh_token))
+        if reentry_count == 0:
+            reentry_count += 1
+            storage.set(replacement)
+        elif reentry_count == 1:
+            reentry_count += 1
+            storage.remove()
+
+    def observer(session: StoredSession | None) -> None:
+        notifications.append(("observer", None if session is None else session.refresh_token))
+
+    storage.on_change(reentrant)
+    storage.on_change(observer)
+    storage.set(
+        Session(
+            access_token=make_jwt(),
+            access_token_expires_in=3600,
+            refresh_token="original-refresh",
+            refresh_token_id="original-id",
+            user=None,
+        )
+    )
+
+    assert notifications == [
+        ("reentrant", "original-refresh"),
+        ("reentrant", "replacement-refresh"),
+        ("reentrant", None),
+        ("observer", None),
+        ("observer", "replacement-refresh"),
+        ("observer", "original-refresh"),
+    ]
+    assert storage.get() is None
+
+
+def test_session_storage_rederives_forged_decoded_token() -> None:
+    storage = SessionStorage(MemoryStorage())
+    original = _stored_session("refresh-token")
+    expected = decode_user_session(original.access_token)
+    forged_decoded = original.decoded_token.model_copy(
+        update={"sub": "ATTACKER", "exp": expected.exp + 999999 if expected.exp else 999999}
+    )
+    forged = original.model_copy(update={"decoded_token": forged_decoded})
+
+    storage.set(forged)
+
+    stored = storage.get()
+    assert stored is not None
+    assert stored.decoded_token.sub == expected.sub == "user-123"
+    assert stored.decoded_token.exp == expected.exp
+    assert stored.decoded_token != forged_decoded
+    assert stored is not forged
+
+
+def test_session_tokens_are_hidden_from_display_but_remain_accessible() -> None:
+    access_token = make_jwt()
+    refresh_token = "controlled-refresh-token-value"
+    raw = Session(
+        access_token=access_token,
+        access_token_expires_in=3600,
+        refresh_token=refresh_token,
+        refresh_token_id="refresh-id",
+        user=None,
+    )
+    stored = to_stored_session(raw)
+
+    for session in (raw, stored):
+        for rendered in (repr(session), str(session), f"{session}"):
+            assert access_token not in rendered
+            assert refresh_token not in rendered
+        assert session.access_token == access_token
+        assert session.refresh_token == refresh_token
+        assert session.model_dump()["access_token"] == access_token
+        serialized = json.loads(session.model_dump_json(by_alias=True))
+        assert serialized["accessToken"] == access_token
+        assert serialized["refreshToken"] == refresh_token
+
+    decoded_fields = set(stored.decoded_token.model_dump(by_alias=True))
+    assert decoded_fields == {
+        "exp",
+        "iat",
+        "iss",
+        "sub",
+        "https://hasura.io/jwt/claims",
+    }
+    assert access_token not in repr(stored.decoded_token)
+    assert refresh_token not in repr(stored.decoded_token)
 
 
 def test_custom_service_urls_are_normalized() -> None:

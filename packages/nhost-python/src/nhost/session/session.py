@@ -109,6 +109,9 @@ def decode_user_session(access_token: str) -> DecodedToken:
 
 
 def to_stored_session(session: Session) -> StoredSession:
-    """Enrich a raw auth :class:`Session` into a :class:`StoredSession`."""
+    """Enrich an auth :class:`Session`, re-deriving its decoded access token."""
     decoded = decode_user_session(session.access_token)
-    return StoredSession(**session.model_dump(), decoded_token=decoded)
+    return StoredSession(
+        **session.model_dump(exclude={"decoded_token"}),
+        decoded_token=decoded,
+    )
