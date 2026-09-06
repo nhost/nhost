@@ -45,7 +45,8 @@ Validate and parse ``response`` content against ``type_`` via pydantic.
 
 Returns ``None`` for empty/no-content responses. ``type_`` may be any type
 pydantic understands: a model, a ``Literal``, a scalar, a ``list[...]`` or a
-union.
+union. Invalid successful responses raise :class:`ResponseDecodeError` so
+every service exposes the same decoding contract.
 
 ### `session_refresh_middleware`
 
@@ -149,27 +150,6 @@ grants unrestricted database access.
 | `session_variables` | `dict[str, str]` |
 | `allow_insecure_http` | `bool` |
 
-### `FetchError`
-
-```python
-class FetchError
-```
-
-Raised when a request completes with a non-2xx/3xx status.
-
-Carries the parsed response ``body``, ``status`` code, and ``headers``. The
-exception message is extracted from common Nhost error response shapes.
-
-#### Methods
-
-##### `from_response`
-
-```python
-def from_response(response: 'httpx.Response') -> 'FetchError[Any]'
-```
-
-Build a :class:`FetchError` from an error ``response``.
-
 ### `FetchResponse`
 
 ```python
@@ -185,6 +165,44 @@ A structured API response: the parsed body plus status and headers.
 | `body` | `T` |
 | `status` | `int` |
 | `headers` | `httpx.Headers` |
+
+### `HTTPError`
+
+```python
+class HTTPError
+```
+
+Raised when an API responds with a 4xx or 5xx status.
+
+The complete :class:`httpx.Response` is retained so callers can inspect the
+request, response extensions, and protocol details in addition to the
+decoded error body.
+
+#### Methods
+
+##### `from_response`
+
+```python
+def from_response(response: 'httpx.Response', *, body: 'Any' = _MISSING) -> 'HTTPError[Any]'
+```
+
+Build an :class:`HTTPError` from an error response.
+
+### `NhostError`
+
+```python
+class NhostError
+```
+
+Base class for errors raised by the Nhost SDK.
+
+### `ResponseDecodeError`
+
+```python
+class ResponseDecodeError
+```
+
+Raised when a successful response does not match its documented shape.
 
 ### `UploadFile`
 
