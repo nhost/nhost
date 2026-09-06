@@ -56,6 +56,39 @@ type rustRenderCase struct {
 	notContains []string
 }
 
+func docCommentsRustRenderCase() rustRenderCase {
+	return rustRenderCase{
+		name:        "doc-comments.yaml",
+		fixturePath: "testdata/doc-comments.yaml",
+		contains: []string{
+			"/// Payload \\[documentation\\] contains \\`ticks\\`, \\*/ and a \\\\ backslash.",
+			"/// &#32;&#32;&#32;&#32;compile\\_error\\!(\"indented type doctest must remain text\");",
+			"/// Ordered choices:\n" +
+				"/// 1\\. First choice\n" +
+				"/// 2\\) Second choice\n" +
+				"///\n" +
+				"/// One of: \"first\", \"second\".",
+			"    /// Field \\[documentation\\] with \\`ticks\\`, \\*/ and a \\\\ backslash.",
+			"    /// Query \\[details\\] with \\`formatting\\` and \\*/",
+			"    /// Hostile \\`summary\\` with \\[brackets\\], a backslash \\\\, and \\*/",
+			"    /// Final steps:\n" +
+				"    /// 1\\. Validate input\n" +
+				"    /// 2\\) Persist the result\n" +
+				"    ///\n" +
+				"    /// Performs GET /hostile.",
+			"    /// Redirect steps:\n" +
+				"    /// 1\\. Validate redirect\n" +
+				"    /// 2\\) Follow the redirect\n" +
+				"    ///\n" +
+				"    /// Builds the URL for GET /redirect without following the redirect.",
+		},
+		notContains: []string{
+			"/// ```rust",
+			"/// ~~~rust",
+		},
+	}
+}
+
 // TestRustRender renders each shared OpenAPI fixture through the rust plugin and
 // compares the result against a committed golden file. Run with -update to
 // regenerate the goldens after an intentional template or mapping change. The
@@ -79,10 +112,19 @@ func TestRustRender(t *testing.T) {
 				"#[serde(skip_serializing_if = \"Option::is_none\", default)]\n    pub metadata",
 			},
 		},
+		docCommentsRustRenderCase(),
 		{
 			name: "methods_ref.yaml",
 			contains: []string{
 				"use crate::http::{self, Response};",
+				"/// Comprehensive metadata information about a file in storage.",
+				"    /// Unique identifier for the file.",
+				"    /// Check file information\n" +
+					"    ///\n" +
+					"    /// Retrieve file metadata headers without downloading the file content. " +
+					"Supports conditional requests and provides caching information.\n" +
+					"    ///\n" +
+					"    /// Performs HEAD /files/{id}.",
 				`let url = http::append_path(self.base_url.as_str(), &["files", id])?;`,
 				"pub struct FilePart {",
 				"    pub file_name: String,\n    /// The complete file contents.\n    pub content: Vec<u8>",

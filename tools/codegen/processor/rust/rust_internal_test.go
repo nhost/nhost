@@ -212,6 +212,30 @@ func TestRustStringLiteral(t *testing.T) {
 	}
 }
 
+func TestRustDocEscapesMarkdownAndDoctests(t *testing.T) {
+	t.Parallel()
+
+	got := rustDoc(
+		"    ",
+		"Summary with `code`, [a link], a \\ backslash, */ and a \x00 control.",
+		"Prose\r\n    compile_error!(\"indented doctest\");\n~~~rust\ncompile_error!(\"fenced doctest\");\n~~~\nSteps:\n1. Validate input\n2) Persist the result",
+	)
+	want := "    /// Summary with \\`code\\`, \\[a link\\], a \\\\ backslash, \\*/ and a \\\\u{0} control.\n" +
+		"    ///\n" +
+		"    /// Prose\n" +
+		"    /// &#32;&#32;&#32;&#32;compile\\_error\\!(\"indented doctest\");\n" +
+		"    /// \\~\\~\\~rust\n" +
+		"    /// compile\\_error\\!(\"fenced doctest\");\n" +
+		"    /// \\~\\~\\~\n" +
+		"    /// Steps:\n" +
+		"    /// 1\\. Validate input\n" +
+		"    /// 2\\) Persist the result"
+
+	if got != want {
+		t.Errorf("rustDoc() = %q, want %q", got, want)
+	}
+}
+
 func TestRustPathSegments(t *testing.T) {
 	t.Parallel()
 

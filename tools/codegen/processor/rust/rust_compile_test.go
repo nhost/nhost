@@ -87,6 +87,7 @@ func TestRustGeneratedOutputCompiles(t *testing.T) {
 	}
 
 	runCargo(t, cargo, crateDir, "check", "--locked")
+	runCargo(t, cargo, crateDir, "test", "--doc", "--locked")
 
 	if _, err := exec.LookPath("cargo-clippy"); err != nil {
 		t.Log("cargo-clippy is not available; generated Rust compiled but lint check was skipped")
