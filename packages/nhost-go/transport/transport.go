@@ -21,9 +21,15 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 )
 
-const defaultMaxRedirects = 10
+const (
+	defaultAPIErrorMessage  = "An unexpected error occurred"
+	defaultMaxRedirects     = 10
+	maxAPIErrorMessageRunes = 1024
+)
 
 var errTooManyRedirects = fmt.Errorf("stopped after %d redirects", defaultMaxRedirects)
 
@@ -92,7 +98,7 @@ func Chain(base http.RoundTripper, middleware ...Middleware) http.RoundTripper {
 // [http.DefaultTransport]) is wrapped. The original base is never mutated, so
 // callers may share one *http.Client across services with distinct middleware.
 // Sensitive Nhost credentials are stripped before following a redirect to a
-// different host; redirects otherwise retain the base client's behavior.
+// different origin; redirects otherwise retain the base client's behavior.
 func NewHTTPClient(base *http.Client, middleware ...Middleware) *http.Client {
 	var client http.Client
 	if base != nil {
@@ -101,23 +107,29 @@ func NewHTTPClient(base *http.Client, middleware ...Middleware) *http.Client {
 
 	checkRedirect := client.CheckRedirect
 	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
-		var err error
 		if checkRedirect != nil {
-			err = checkRedirect(req, via)
+			if err := checkRedirect(req, via); err != nil {
+				return err
+			}
 		} else if len(via) >= defaultMaxRedirects {
-			err = errTooManyRedirects
+			return errTooManyRedirects
 		}
 
-		if len(via) > 0 && !strings.EqualFold(req.URL.Host, via[0].URL.Host) {
+		if len(via) > 0 && !sameOrigin(req.URL, via[0].URL) {
 			req.Header.Del("Authorization")
 			req.Header.Del("x-hasura-admin-secret")
 		}
 
-		return err
+		return nil
 	}
 	client.Transport = Chain(client.Transport, middleware...)
 
 	return &client
+}
+
+func sameOrigin(left, right *url.URL) bool {
+	return strings.EqualFold(left.Scheme, right.Scheme) &&
+		strings.EqualFold(left.Host, right.Host)
 }
 
 // Response carries the HTTP metadata returned alongside a decoded body.
@@ -136,18 +148,22 @@ func DecodeJSON(response *http.Response, v any) error {
 
 	data, err := io.ReadAll(response.Body)
 	if err != nil {
-		return err //nolint:wrapcheck
+		return fmt.Errorf("read JSON response body: %w", err)
 	}
 
 	if len(data) == 0 {
 		return nil
 	}
 
-	return json.Unmarshal(data, v) //nolint:wrapcheck
+	if err := json.Unmarshal(data, v); err != nil {
+		return fmt.Errorf("decode JSON response body: %w", err)
+	}
+
+	return nil
 }
 
-// APIError is returned when a request completes with a non-2xx/3xx status. It
-// carries the parsed response Body, Status code, and Headers.
+// APIError describes an API-level failure. It carries the parsed response
+// Body, Status code, and Headers.
 type APIError struct {
 	Body    any
 	Status  int
@@ -160,74 +176,143 @@ func (e *APIError) Error() string {
 	return e.message
 }
 
-// NewAPIError builds an APIError, extracting a human-readable message from
-// common Nhost error response shapes.
+// NewAPIError builds an APIError. Its message prefers recognized structured
+// body fields, then X-Error, then a plain-text body. Messages are normalized to
+// one line and bounded in length; Body retains the original value.
 func NewAPIError(body any, status int, headers http.Header) *APIError {
+	message, ok := extractMessage(body, headers)
+	if !ok {
+		message = defaultAPIErrorMessage
+	}
+
 	return &APIError{
 		Body:    body,
 		Status:  status,
 		Headers: headers,
-		message: extractMessage(body),
+		message: message,
 	}
 }
 
-// NewAPIErrorFromResponse builds an APIError from an error response.
-func NewAPIErrorFromResponse(response *http.Response) *APIError {
-	var body any
-
-	if response.StatusCode != http.StatusPreconditionFailed {
-		data, err := io.ReadAll(response.Body)
-		if err == nil && len(data) > 0 {
-			var parsed any
-			if json.Unmarshal(data, &parsed) == nil {
-				body = parsed
-			} else {
-				body = string(data)
-			}
-		}
+// NewAPIErrorFromResponse builds an APIError from an error response. It returns
+// a transport error instead if the response body cannot be read.
+func NewAPIErrorFromResponse(response *http.Response) error {
+	data, err := io.ReadAll(response.Body)
+	if err != nil {
+		return fmt.Errorf("read API error response body: %w", err)
 	}
+
+	body := decodeErrorBody(data)
 
 	return NewAPIError(body, response.StatusCode, response.Header)
 }
 
-// extractMessage is a best-effort extraction of a human-readable message from
-// an error body.
-func extractMessage(body any) string {
-	switch b := body.(type) {
-	case string:
-		if b != "" {
-			return b
+func decodeErrorBody(data []byte) any {
+	if len(data) == 0 {
+		return nil
+	}
+
+	var body any
+	if err := json.Unmarshal(data, &body); err != nil {
+		return string(data)
+	}
+
+	return body
+}
+
+// extractMessage extracts a safe, non-empty human-readable message from a
+// supported JSON-decoded error body or response header.
+func extractMessage(body any, headers http.Header) (string, bool) {
+	if object, ok := body.(map[string]any); ok {
+		if message, ok := normalizedString(object["message"]); ok {
+			return message, true
 		}
-	case map[string]any:
-		if msg, ok := b["message"].(string); ok {
-			return msg
+
+		if message, ok := nestedErrorMessage(object["error"]); ok {
+			return message, true
 		}
 
-		switch e := b["error"].(type) {
-		case string:
-			return e
-		case map[string]any:
-			if msg, ok := e["message"].(string); ok {
-				return msg
-			}
-		}
-
-		if errs, ok := b["errors"].([]any); ok {
-			messages := make([]string, 0, len(errs))
-
-			for _, item := range errs {
-				if m, ok := item.(map[string]any); ok {
-					if msg, ok := m["message"].(string); ok {
-						messages = append(messages, msg)
-					}
-				}
-			}
-
-			if len(messages) > 0 {
-				return strings.Join(messages, ", ")
-			}
+		if message, ok := joinedErrorMessages(object["errors"]); ok {
+			return message, true
 		}
 	}
 
-	return "An unexpected error occurred"
+	if message, ok := normalizeMessage(headers.Get("X-Error")); ok {
+		return message, true
+	}
+
+	return normalizedString(body)
+}
+
+func nestedErrorMessage(value any) (string, bool) {
+	if message, ok := normalizedString(value); ok {
+		return message, true
+	}
+
+	object, ok := value.(map[string]any)
+	if !ok {
+		return "", false
+	}
+
+	return normalizedString(object["message"])
+}
+
+func joinedErrorMessages(value any) (string, bool) {
+	errors, ok := value.([]any)
+	if !ok {
+		return "", false
+	}
+
+	messages := make([]string, 0, len(errors))
+
+	for _, item := range errors {
+		object, ok := item.(map[string]any)
+		if !ok {
+			continue
+		}
+
+		if message, ok := normalizedString(object["message"]); ok {
+			messages = append(messages, message)
+		}
+	}
+
+	if len(messages) == 0 {
+		return "", false
+	}
+
+	return normalizeMessage(strings.Join(messages, ", "))
+}
+
+func normalizedString(value any) (string, bool) {
+	message, ok := value.(string)
+	if !ok {
+		return "", false
+	}
+
+	return normalizeMessage(message)
+}
+
+func normalizeMessage(message string) (string, bool) {
+	if !utf8.ValidString(message) {
+		return "", false
+	}
+
+	message = strings.Map(func(r rune) rune {
+		if unicode.IsControl(r) {
+			return ' '
+		}
+
+		return r
+	}, message)
+
+	message = strings.Join(strings.Fields(message), " ")
+	if message == "" {
+		return "", false
+	}
+
+	runes := []rune(message)
+	if len(runes) > maxAPIErrorMessageRunes {
+		message = string(runes[:maxAPIErrorMessageRunes-1]) + "…"
+	}
+
+	return message, true
 }
