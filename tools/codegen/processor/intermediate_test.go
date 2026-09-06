@@ -120,7 +120,7 @@ func TestInterMediateRepresentationRender(t *testing.T) {
 // end-to-end counterpart to the TypeScript golden test above and exercises the
 // Python templates (client/main/types), the Python func-map helpers (pyField,
 // pyParamField, pyReturnType, pyIsBinary, pascal), and the shared processor
-// exports the Python templates rely on (Nullable, Optional, RawName, Style,
+// exports the Python rendering relies on (Optional, Required, RawName, Style,
 // Explode, MultipartContentType) that the TypeScript golden test does not touch.
 func TestInterMediateRepresentationRenderPython(t *testing.T) {
 	t.Parallel()
