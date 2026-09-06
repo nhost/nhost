@@ -1,0 +1,21 @@
+openapi: "3.0.0"
+info:
+  title: Map Value Fallbacks
+  version: "1.0.0"
+paths: {}
+components:
+  schemas:
+    MapValueFallbacks:
+      type: object
+      properties:
+        emptySchema:
+          type: object
+          additionalProperties: {}
+        describedSchema:
+          type: object
+          additionalProperties:
+            description: Arbitrary JSON value with schema documentation.
+        emptyObject:
+          type: object
+          additionalProperties:
+            type: object

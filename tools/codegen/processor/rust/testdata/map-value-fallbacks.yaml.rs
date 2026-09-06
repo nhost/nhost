@@ -65,129 +65,13 @@ fn push_query(
 
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ArcType {
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub value: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BoxType {
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub value: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BoxContainer {
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub boxed: Option<Box<String>>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ClientType {
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub value: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeserializeType {
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub value: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ErrorType {
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub value: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ErrorTypeType {
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub value: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HashMapType {
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub value: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IntoType {
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub value: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct IntoTypeType {
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub value: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OptionType {
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub value: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResponseType {
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub value: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResultType {
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub value: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResultTypeType {
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub value: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SelfType {
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub value: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SerializeType {
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub value: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SessionStorageType {
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub value: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SetHeadersType {
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub value: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SetRoleType {
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub value: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StringType {
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub value: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VecType {
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub value: Option<String>,
+pub struct MapValueFallbacks {
+    #[serde(rename = "emptySchema", skip_serializing_if = "Option::is_none", default)]
+    pub empty_schema: Option<HashMap<String, serde_json::Value>>,
+    #[serde(rename = "describedSchema", skip_serializing_if = "Option::is_none", default)]
+    pub described_schema: Option<HashMap<String, serde_json::Value>>,
+    #[serde(rename = "emptyObject", skip_serializing_if = "Option::is_none", default)]
+    pub empty_object: Option<HashMap<String, serde_json::Value>>,
 }
 
 
@@ -282,22 +166,6 @@ impl Client {
             scoped_middleware,
             session_sink: self.session_sink.clone(),
         }
-    }
-
-
-    /// Performs GET /result.
-    pub async fn get_result(
-        &self,
-    ) -> Result<Response<ResultType>, Error> {
-        let url = http::append_path(self.base_url.as_str(), &["result"])?;
-        let mut request = self.http.request(reqwest::Method::GET, url);
-        let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
-        let body = serde_json::from_slice(&bytes)?;
-        Ok(Response {
-            body,
-            status,
-            headers,
-        })
     }
 
 }
