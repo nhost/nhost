@@ -6,6 +6,7 @@ assert on request shape (aliases, headers, multipart) and drive responses.
 
 from __future__ import annotations
 
+import asyncio
 import base64
 import json
 import re
@@ -13,7 +14,6 @@ import time
 
 import httpx
 import pytest
-
 from nhost import (
     FetchError,
     FileStorage,
@@ -21,18 +21,27 @@ from nhost import (
     NhostClientOptions,
     UploadFile,
     create_client,
+    generate_service_url,
 )
 from nhost.auth import (
     Session,
+    SignInEmailPasswordRequest,
     SignUpEmailPasswordRequest,
     User,
+    create_api_client,
     generate_code_challenge,
     generate_code_verifier,
     generate_pkce_pair,
 )
-from nhost.fetch.middleware import _extract_session
-from nhost.session import StoredSession, decode_user_session
+from nhost.fetch import FetchFunction, create_enhanced_fetch
+from nhost.fetch.middleware import (
+    _extract_session,
+    session_refresh_middleware,
+    update_session_from_response_middleware,
+)
+from nhost.session import SessionStorage, StoredSession, decode_user_session, refresh_session
 from nhost.session.session import to_stored_session
+from nhost.storage import ReplaceFileBody, UploadFileMetadata, UploadFilesBody
 
 
 def make_jwt(exp_offset_seconds: int = 3600) -> str:
@@ -120,7 +129,7 @@ async def test_generated_auth_signup_roundtrip() -> None:
             SignUpEmailPasswordRequest(email="ada@example.com", password="secret-pw")
         )
 
-    assert resp.status == 200
+    assert resp.status == httpx.codes.OK
     assert resp.body.session is not None
     assert resp.body.session.access_token == token
     # Request body must use wire aliases, not python field names.
@@ -240,13 +249,11 @@ async def test_functions_error_raises() -> None:
         with pytest.raises(FetchError) as exc:
             await nhost.functions.post("/crash")
 
-    assert exc.value.status == 500
+    assert exc.value.status == httpx.codes.INTERNAL_SERVER_ERROR
     assert "boom" in str(exc.value)
 
 
 async def test_storage_multipart_upload_wire_shape() -> None:
-    from nhost.storage import UploadFileMetadata, UploadFilesBody
-
     captured: dict = {}
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -280,7 +287,7 @@ async def test_storage_multipart_upload_wire_shape() -> None:
             )
         )
 
-    assert resp.status == 201
+    assert resp.status == httpx.codes.CREATED
     assert resp.body.processed_files[0].id == "file-1"
     assert captured["content_type"].startswith("multipart/form-data")
     body = captured["content"]
@@ -372,6 +379,286 @@ async def test_refresh_401_clears_session() -> None:
         assert nhost.get_user_session() is None
 
 
+def _seed_session(storage: SessionStorage, *, exp_offset_seconds: int = 3600) -> StoredSession:
+    storage.set(
+        Session(
+            access_token=make_jwt(exp_offset_seconds),
+            access_token_expires_in=3600,
+            refresh_token="original-refresh",
+            refresh_token_id="original-id",
+            user=None,
+        )
+    )
+    session = storage.get()
+    assert session is not None
+    return session
+
+
+def test_custom_service_urls_are_normalized() -> None:
+    assert generate_service_url("auth", custom_url="https://auth.example/v1/") == (
+        "https://auth.example/v1"
+    )
+    assert generate_service_url("storage", custom_url="https://storage.example/v1///") == (
+        "https://storage.example/v1"
+    )
+    assert generate_service_url("graphql", custom_url="https://graphql.example/") == (
+        "https://graphql.example"
+    )
+    assert generate_service_url("functions", custom_url="https://functions.example") == (
+        "https://functions.example"
+    )
+
+
+async def test_trailing_slash_auth_url_stores_session_without_double_slash() -> None:
+    paths: list[str] = []
+    replacement_access_token = make_jwt()
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        paths.append(request.url.path)
+        return httpx.Response(200, content=session_payload_bytes(replacement_access_token))
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+        nhost = create_client(
+            NhostClientOptions(
+                auth_url="https://auth.example/v1/",
+                storage=MemoryStorage(),
+                http_client=http,
+            )
+        )
+        await nhost.auth.sign_in_email_password(
+            SignInEmailPasswordRequest(email="ada@example.com", password="secret")
+        )
+        stored = nhost.get_user_session()
+
+    assert paths == ["/v1/signin/email-password"]
+    assert stored is not None
+    assert stored.access_token == replacement_access_token
+
+
+@pytest.mark.parametrize(
+    "path",
+    ["/signout", "/signin/custom", "/token", "/user/password"],
+)
+async def test_session_response_ignores_functions_origin(path: str) -> None:
+    replacement_access_token = make_jwt()
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, content=raw_session_bytes(replacement_access_token))
+
+    session_storage = SessionStorage(MemoryStorage())
+    original = _seed_session(session_storage)
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+        fetch = create_enhanced_fetch(
+            http,
+            [update_session_from_response_middleware(session_storage, "https://auth.example/v1")],
+        )
+        request = http.build_request("POST", f"https://functions.example/v1{path}")
+        await fetch(request)
+
+    assert session_storage.get() == original
+
+
+@pytest.mark.parametrize(
+    ("path", "stores_session"),
+    [
+        ("/signout", False),
+        ("/signin/custom", True),
+        ("/token", True),
+        ("/user/password", False),
+    ],
+)
+async def test_session_response_handles_auth_origin(path: str, stores_session: bool) -> None:
+    replacement_access_token = make_jwt()
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, content=raw_session_bytes(replacement_access_token))
+
+    session_storage = SessionStorage(MemoryStorage())
+    _seed_session(session_storage)
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+        fetch = create_enhanced_fetch(
+            http,
+            [update_session_from_response_middleware(session_storage, "HTTPS://AUTH.EXAMPLE/v1")],
+        )
+        request = http.build_request("POST", f"https://auth.example/v1{path}")
+        await fetch(request)
+
+    stored = session_storage.get()
+    if stores_session:
+        assert stored is not None
+        assert stored.access_token == replacement_access_token
+        assert stored.refresh_token == "new-refresh-token"
+    else:
+        assert stored is None
+
+
+@pytest.mark.parametrize(
+    "path",
+    ["/v1/functions/signout", "/v1/functions/token"],
+)
+async def test_session_response_ignores_nested_non_auth_path(path: str) -> None:
+    replacement_access_token = make_jwt()
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, content=raw_session_bytes(replacement_access_token))
+
+    session_storage = SessionStorage(MemoryStorage())
+    original = _seed_session(session_storage)
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+        fetch = create_enhanced_fetch(
+            http,
+            [update_session_from_response_middleware(session_storage, "https://host.example/v1")],
+        )
+        await fetch(http.build_request("POST", f"https://host.example{path}"))
+
+    assert session_storage.get() == original
+
+
+async def test_session_response_ignores_scheme_mismatch() -> None:
+    replacement_access_token = make_jwt()
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, content=raw_session_bytes(replacement_access_token))
+
+    session_storage = SessionStorage(MemoryStorage())
+    original = _seed_session(session_storage)
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+        fetch = create_enhanced_fetch(
+            http,
+            [update_session_from_response_middleware(session_storage, "https://auth.example/v1")],
+        )
+        await fetch(http.build_request("POST", "http://auth.example/v1/token"))
+
+    assert session_storage.get() == original
+
+
+async def test_unsuccessful_auth_response_does_not_update_session() -> None:
+    replacement_access_token = make_jwt()
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(400, content=raw_session_bytes(replacement_access_token))
+
+    session_storage = SessionStorage(MemoryStorage())
+    original = _seed_session(session_storage)
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+        fetch = create_enhanced_fetch(
+            http,
+            [
+                update_session_from_response_middleware(
+                    session_storage, "https://auth.example/v1/auth"
+                )
+            ],
+        )
+        request = http.build_request("POST", "https://auth.example/v1/auth/token")
+        await fetch(request)
+
+    assert session_storage.get() == original
+
+
+async def test_subpath_auth_refresh_completes_once() -> None:
+    calls: list[tuple[str, str]] = []
+    refreshed_access_token = make_jwt()
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append((request.method, request.url.path))
+        if request.url.path == "/v1/auth/token":
+            return httpx.Response(200, content=raw_session_bytes(refreshed_access_token))
+        return httpx.Response(200, json={"ok": True})
+
+    backend = MemoryStorage()
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+        nhost = create_client(
+            NhostClientOptions(
+                auth_url="http://localhost:1337/v1/auth",
+                functions_url="http://localhost:1337/v1/functions",
+                storage=backend,
+                http_client=http,
+            )
+        )
+        _seed_session(nhost.session_storage, exp_offset_seconds=-10)
+        await asyncio.wait_for(nhost.functions.post("/hello"), timeout=1)
+
+    assert calls.count(("POST", "/v1/auth/token")) == 1
+
+
+async def test_functions_token_path_still_triggers_auth_refresh() -> None:
+    calls: list[tuple[str, str]] = []
+    refreshed_access_token = make_jwt()
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append((request.url.host, request.url.path))
+        if request.url.host == "auth.example":
+            return httpx.Response(200, content=raw_session_bytes(refreshed_access_token))
+        return httpx.Response(200, json={"ok": True})
+
+    backend = MemoryStorage()
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+        nhost = create_client(
+            NhostClientOptions(
+                auth_url="https://auth.example/v1",
+                functions_url="https://functions.example/v1",
+                storage=backend,
+                http_client=http,
+            )
+        )
+        _seed_session(nhost.session_storage, exp_offset_seconds=5)
+        await nhost.functions.post("/token")
+
+    assert calls.count(("auth.example", "/v1/token")) == 1
+    assert ("functions.example", "/v1/token") in calls
+
+
+async def test_reentrant_refresh_returns_without_deadlock() -> None:
+    calls: list[str] = []
+    refreshed_access_token = make_jwt()
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(request.url.path)
+        return httpx.Response(200, content=raw_session_bytes(refreshed_access_token))
+
+    session_storage = SessionStorage(MemoryStorage())
+    _seed_session(session_storage, exp_offset_seconds=-10)
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+        differently_scoped_auth = create_api_client("https://different.example/v1", [], http)
+        reentrant_auth = create_api_client(
+            "https://auth.example/v1/auth",
+            [session_refresh_middleware(differently_scoped_auth, session_storage)],
+            http,
+        )
+        result = await asyncio.wait_for(refresh_session(reentrant_auth, session_storage), timeout=1)
+
+    assert result is not None
+    assert result.access_token == refreshed_access_token
+    assert calls == ["/v1/auth/token"]
+
+
+async def test_expired_reentrant_refresh_returns_none() -> None:
+    reentry_results: list[StoredSession | None] = []
+    refreshed_access_token = make_jwt()
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, content=raw_session_bytes(refreshed_access_token))
+
+    session_storage = SessionStorage(MemoryStorage())
+    _seed_session(session_storage, exp_offset_seconds=-10)
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+        bare_auth = create_api_client("https://bare-auth.example/v1", [], http)
+
+        def reenter(next_fetch: FetchFunction) -> FetchFunction:
+            async def fetch(request: httpx.Request) -> httpx.Response:
+                reentry_results.append(await refresh_session(bare_auth, session_storage))
+                return await next_fetch(request)
+
+            return fetch
+
+        reentrant_auth = create_api_client("https://auth.example/v1", [reenter], http)
+        refreshed = await refresh_session(reentrant_auth, session_storage)
+
+    assert reentry_results == [None]
+    assert refreshed is not None
+    assert refreshed.access_token == refreshed_access_token
+
+
 def _user_with_metadata(metadata: dict | None) -> User:
     return User(
         avatar_url="",
@@ -428,8 +715,6 @@ def test_create_client_does_not_mutate_shared_options() -> None:
 
 
 async def test_replace_file_sends_file_as_multipart_file_part() -> None:
-    from nhost.storage import ReplaceFileBody
-
     captured: dict = {}
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -462,8 +747,6 @@ async def test_replace_file_sends_file_as_multipart_file_part() -> None:
 
 
 async def test_upload_file_carries_filename_via_uploadfile() -> None:
-    from nhost.storage import UploadFilesBody
-
     captured: dict = {}
 
     def handler(request: httpx.Request) -> httpx.Response:

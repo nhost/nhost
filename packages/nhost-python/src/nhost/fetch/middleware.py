@@ -28,6 +28,28 @@ logger = logging.getLogger("nhost.fetch")
 _DEFAULT_MARGIN_SECONDS = 60
 
 
+@dataclass(frozen=True)
+class _RequestScope:
+    scheme: str
+    host: str
+    path_prefix: str
+
+    @classmethod
+    def from_base_url(cls, base_url: str) -> _RequestScope:
+        parsed = httpx.URL(base_url)
+        return cls(
+            scheme=parsed.scheme.casefold(),
+            host=parsed.netloc.decode("ascii").casefold(),
+            path_prefix=parsed.path.rstrip("/"),
+        )
+
+    def contains(self, url: httpx.URL) -> bool:
+        return (
+            url.scheme.casefold() == self.scheme
+            and url.netloc.decode("ascii").casefold() == self.host
+        )
+
+
 def attach_access_token_middleware(storage: SessionStorage) -> ChainFunction:
     """Attach ``Authorization: Bearer <access_token>`` from the stored session.
 
@@ -62,11 +84,15 @@ def session_refresh_middleware(
     # load time, so import it only when the middleware actually runs.
     from ..session.refresh import refresh_session  # noqa: PLC0415
 
+    auth_scope = _RequestScope.from_base_url(auth.base_url)
+    auth_token_path = f"{auth_scope.path_prefix}/token"
+
     def chain(next_fetch: FetchFunction) -> FetchFunction:
         async def fetch(request: httpx.Request) -> httpx.Response:
-            if "Authorization" not in request.headers and not request.url.path.endswith(
-                "/v1/token"
-            ):
+            is_auth_token_request = (
+                auth_scope.contains(request.url) and request.url.path == auth_token_path
+            )
+            if "Authorization" not in request.headers and not is_auth_token_request:
                 try:
                     await refresh_session(auth, storage, margin_seconds)
                 except Exception:  # noqa: BLE001 - never block the request on refresh failure
@@ -95,32 +121,40 @@ def _extract_session(body: object) -> Session | None:
         return None
 
 
-def update_session_from_response_middleware(storage: SessionStorage) -> ChainFunction:
+def update_session_from_response_middleware(
+    storage: SessionStorage, auth_url: str
+) -> ChainFunction:
     """Persist session data returned by auth endpoints, and clear it on sign-out.
 
     Handles ``/signout`` (remove), a successful ``/user/password`` change
     (remove, since the server revokes refresh tokens), and session-bearing
     responses from ``/token``, ``/token/exchange``, ``/signin/*`` and
-    ``/signup/*``.
+    ``/signup/*`` under the configured auth origin and path prefix.
     """
+    auth_scope = _RequestScope.from_base_url(auth_url)
+    prefix = auth_scope.path_prefix
 
     def chain(next_fetch: FetchFunction) -> FetchFunction:
         async def fetch(request: httpx.Request) -> httpx.Response:
             response = await next_fetch(request)
             try:
+                if not auth_scope.contains(request.url):
+                    return response
+
                 path = request.url.path
-                if path.endswith("/signout"):
+                if path == f"{prefix}/signout":
                     storage.remove()
                     return response
-                if path.endswith("/user/password") and response.is_success:
+                if path == f"{prefix}/user/password" and response.is_success:
                     storage.remove()
                     return response
-                if (
-                    path.endswith("/token")
-                    or "/token/exchange" in path
-                    or "/signin/" in path
-                    or "/signup/" in path
-                ):
+                is_session_response = (
+                    path == f"{prefix}/token"
+                    or path.startswith(f"{prefix}/token/exchange")
+                    or path.startswith(f"{prefix}/signin/")
+                    or path.startswith(f"{prefix}/signup/")
+                )
+                if is_session_response and response.is_success:
                     try:
                         body = response.json()
                     except (ValueError, UnicodeDecodeError):

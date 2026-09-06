@@ -54,7 +54,7 @@ def generate_service_url(
     'http://localhost:1337/v1/storage'
     """
     if custom_url:
-        return custom_url
+        return custom_url.rstrip("/")
     if subdomain and region:
         return f"https://{subdomain}.{service_type}.{region}.nhost.run/v1"
     return f"https://local.{service_type}.local.nhost.run/v1"
@@ -78,7 +78,7 @@ def with_client_side_session_middleware(ctx: ConfigureContext) -> None:
     """Automatic session refresh, token attachment, and session capture."""
     chain: list[ChainFunction] = [
         session_refresh_middleware(ctx.auth, ctx.session_storage),
-        update_session_from_response_middleware(ctx.session_storage),
+        update_session_from_response_middleware(ctx.session_storage, ctx.auth.base_url),
         attach_access_token_middleware(ctx.session_storage),
     ]
     _apply(ctx, chain)
@@ -87,7 +87,7 @@ def with_client_side_session_middleware(ctx: ConfigureContext) -> None:
 def with_server_side_session_middleware(ctx: ConfigureContext) -> None:
     """Token attachment and session capture, but no automatic refresh."""
     chain: list[ChainFunction] = [
-        update_session_from_response_middleware(ctx.session_storage),
+        update_session_from_response_middleware(ctx.session_storage, ctx.auth.base_url),
         attach_access_token_middleware(ctx.session_storage),
     ]
     _apply(ctx, chain)
