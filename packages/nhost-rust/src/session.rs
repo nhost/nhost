@@ -331,6 +331,15 @@ impl Backend for MemoryStorage {
 
 /// JSON-file backed session backend, useful for CLIs and local scripts.
 /// Native-only; unavailable only when the `wasm` feature is built for wasm32.
+///
+/// # Sensitive data
+///
+/// The persisted [`StoredSession`] includes the long-lived refresh token, which
+/// can mint access tokens until it is revoked server-side. On Unix the file is
+/// created `0o600` and its parent directory `0o700`, so it is readable only by
+/// the owning user; a file left behind at a wider mode is narrowed on the next
+/// write. Other platforms inherit the default permissions, so avoid this
+/// backend on shared storage there.
 #[cfg(not(all(feature = "wasm", target_arch = "wasm32")))]
 pub struct FileStorage {
     path: PathBuf,
@@ -365,11 +374,49 @@ impl Backend for FileStorage {
     }
 
     fn set(&self, value: &StoredSession) -> Result<(), Error> {
+        use std::io::Write;
+
         let data = serde_json::to_vec(value)?;
+
         if let Some(parent) = self.path.parent() {
-            fs::create_dir_all(parent).map_err(|e| Error::Storage(e.to_string()))?;
+            let mut builder = fs::DirBuilder::new();
+            builder.recursive(true);
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::DirBuilderExt;
+                builder.mode(0o700);
+            }
+            builder
+                .create(parent)
+                .map_err(|e| Error::Storage(e.to_string()))?;
         }
-        fs::write(&self.path, data).map_err(|e| Error::Storage(e.to_string()))
+
+        // The mode is applied at open time rather than by a later chmod, so the
+        // refresh token is never briefly readable by other users.
+        let mut options = fs::OpenOptions::new();
+        options.write(true).create(true).truncate(true);
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::OpenOptionsExt;
+            options.mode(0o600);
+        }
+
+        let mut file = options
+            .open(&self.path)
+            .map_err(|e| Error::Storage(e.to_string()))?;
+
+        // OpenOptions::mode only applies when the file is created, so a file
+        // left behind at a wider mode keeps it. Narrow it before the new token
+        // is written; truncate has already dropped the previous contents.
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            file.set_permissions(fs::Permissions::from_mode(0o600))
+                .map_err(|e| Error::Storage(e.to_string()))?;
+        }
+
+        file.write_all(&data)
+            .map_err(|e| Error::Storage(e.to_string()))
     }
 
     fn remove(&self) -> Result<(), Error> {
