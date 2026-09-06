@@ -11,6 +11,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
+from contextvars import ContextVar
 from weakref import WeakKeyDictionary
 
 from ..auth import Client as AuthClient
@@ -25,6 +26,9 @@ _UNAUTHORIZED = 401
 _DEFAULT_MARGIN_SECONDS = 60
 
 _locks: WeakKeyDictionary[SessionStorage, asyncio.Lock] = WeakKeyDictionary()
+_refreshing_storages: ContextVar[frozenset[SessionStorage]] = ContextVar(
+    "nhost_refreshing_storages", default=frozenset()
+)
 
 
 def _lock_for(storage: SessionStorage) -> asyncio.Lock:
@@ -60,30 +64,33 @@ def _needs_refresh(
 async def _refresh_session(
     auth: AuthClient, storage: SessionStorage, margin_seconds: int
 ) -> StoredSession | None:
-    session, needs_refresh, _ = _needs_refresh(storage, margin_seconds)
-    if session is None:
-        return None
-    if not needs_refresh:
+    session, needs_refresh, session_expired = _needs_refresh(storage, margin_seconds)
+    if session is None or not needs_refresh:
         return session
+    if storage in _refreshing_storages.get():
+        return None if session_expired else session
 
     async with _lock_for(storage):
         session, needs_refresh, session_expired = _needs_refresh(storage, margin_seconds)
-        if session is None:
-            return None
-        if not needs_refresh:
+        if session is None or not needs_refresh:
             return session
 
+        refreshing = _refreshing_storages.get()
+        token = _refreshing_storages.set(refreshing | {storage})
         try:
-            response = await auth.refresh_token(
-                RefreshTokenRequest(refresh_token=session.refresh_token)
-            )
-        except FetchError:
-            if not session_expired:
-                return session
-            raise
+            try:
+                response = await auth.refresh_token(
+                    RefreshTokenRequest(refresh_token=session.refresh_token)
+                )
+            except FetchError:
+                if not session_expired:
+                    return session
+                raise
 
-        storage.set(response.body)
-        return storage.get()
+            storage.set(response.body)
+            return storage.get()
+        finally:
+            _refreshing_storages.reset(token)
 
 
 async def refresh_session(
@@ -95,6 +102,9 @@ async def refresh_session(
 
     Retries once on transient failure; clears the stored session and returns
     ``None`` if the refresh token is rejected with 401.
+
+    Supply a bare auth client without session-refresh middleware. The internal
+    reentry guard is a deadlock safety net, not a supported reentrancy mechanism.
     """
     try:
         return await _refresh_session(auth, storage, margin_seconds)
