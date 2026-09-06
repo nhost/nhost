@@ -41,6 +41,7 @@ func (p *Rust) GetTemplates() fs.FS {
 }
 
 // rustKeywords are reserved words that cannot be used as plain identifiers.
+// Keep this list aligned with the Rust edition in testdata/compile-fixture/Cargo.toml.
 // Whenever Rust permits it, generated names use raw identifier syntax (r#name).
 var rustKeywords = map[string]struct{}{ //nolint:gochecknoglobals
 	"as": {}, "break": {}, "const": {}, "continue": {}, "crate": {}, "dyn": {},
@@ -50,26 +51,35 @@ var rustKeywords = map[string]struct{}{ //nolint:gochecknoglobals
 	"self": {}, "Self": {}, "static": {}, "struct": {}, "super": {},
 	"trait": {}, "true": {}, "type": {}, "unsafe": {}, "use": {}, "where": {},
 	"while": {}, "async": {}, "await": {}, "abstract": {}, "become": {},
-	"box": {}, "do": {}, "final": {}, "macro": {}, "override": {}, "priv": {},
+	"box": {}, "do": {}, "final": {}, "gen": {}, "macro": {}, "override": {}, "priv": {},
 	"typeof": {}, "unsized": {}, "virtual": {}, "yield": {}, "try": {},
 }
 
 // rustReservedTypeNames are identifiers occupied by the generated module's
-// imports and client definition. Self is Rust's only PascalCase keyword.
+// imports, unqualified prelude types and traits, and client definition. Self is
+// Rust's only PascalCase keyword. TestRustTemplateImportsAreReserved enforces
+// only use-statement names; other unqualified template identifiers need separate
+// coverage.
 var rustReservedTypeNames = map[string]struct{}{ //nolint:gochecknoglobals
 	"Arc":            {},
+	"Box":            {},
 	"Client":         {},
 	"Deserialize":    {},
 	"Error":          {},
 	"FilePart":       {},
 	"HashMap":        {},
 	"HeaderPriority": {},
+	"Into":           {},
+	"Option":         {},
 	"Response":       {},
+	"Result":         {},
 	"Self":           {},
 	"Serialize":      {},
 	"SessionStorage": {},
 	"SetHeaders":     {},
 	"SetRole":        {},
+	"String":         {},
+	"Vec":            {},
 }
 
 // rustReservedClientMethodNames are identifiers occupied by fixed-name method
@@ -858,8 +868,7 @@ func validateRustMethodBindings(method *processor.Method) error {
 	return nil
 }
 
-func validateRustExtensionValues(typ processor.Type, source string) error {
-	schema := typ.Schema()
+func validateRustSchemaExtensionValues(schema *base.SchemaProxy, source string) error {
 	if schema == nil || schema.Schema() == nil {
 		return nil
 	}
@@ -909,6 +918,27 @@ func validateRustExtensionValues(typ processor.Type, source string) error {
 	return nil
 }
 
+func validateRustMapValueExtensions(
+	schema *base.SchemaProxy, source string, visited map[*base.SchemaProxy]struct{},
+) error {
+	additionalProperties := schema.Schema().AdditionalProperties
+	if additionalProperties == nil || additionalProperties.A == nil {
+		return nil
+	}
+
+	valueSchema, valueSource := additionalProperties.A, source+" map value"
+	if valueSchema.Schema() == nil || len(valueSchema.Schema().Type) != 1 {
+		return validateRustSchemaExtensionValues(valueSchema, valueSource)
+	}
+
+	valueType, _, err := processor.GetType(valueSchema, "", &Rust{}, false)
+	if err != nil {
+		return validateRustSchemaExtensionValues(valueSchema, valueSource)
+	}
+
+	return validateRustTypeExtensions(valueType, valueSource, visited)
+}
+
 func validateRustTypeExtensions(
 	typ processor.Type, source string, visited map[*base.SchemaProxy]struct{},
 ) error {
@@ -923,7 +953,7 @@ func validateRustTypeExtensions(
 
 	visited[schema] = struct{}{}
 
-	if err := validateRustExtensionValues(typ, source); err != nil {
+	if err := validateRustSchemaExtensionValues(schema, source); err != nil {
 		return err
 	}
 
@@ -932,13 +962,18 @@ func validateRustTypeExtensions(
 		return validateRustTypeExtensions(concrete.Item, source+" array item", visited)
 	case *processor.TypeAlias:
 		return validateRustTypeExtensions(concrete.Alias(), source, visited)
+	case *processor.TypeMap:
+		return validateRustMapValueExtensions(schema, source, visited)
 	case *processor.TypeObject:
 		for _, prop := range concrete.Properties() {
-			if err := validateRustTypeExtensions(
-				prop.Type,
-				fmt.Sprintf("property %q of type %q", prop.RawName(), concrete.RawName()),
-				visited,
-			); err != nil {
+			propertySource := fmt.Sprintf(
+				"property %q of type %q", prop.RawName(), concrete.RawName(),
+			)
+			if concrete.RawName() == "" {
+				propertySource = fmt.Sprintf("%s property %q", source, prop.RawName())
+			}
+
+			if err := validateRustTypeExtensions(prop.Type, propertySource, visited); err != nil {
 				return err
 			}
 		}

@@ -66,6 +66,7 @@ func TestToSnakeUsesRawIdentifiersForKeywords(t *testing.T) {
 		{input: "type", want: "r#type"},
 		{input: "match", want: "r#match"},
 		{input: "async", want: "r#async"},
+		{input: "gen", want: "r#gen"},
 		{input: "displayName", want: "display_name"},
 		// Rust forbids raw identifiers for these path keywords.
 		{input: "crate", want: "crate_"},
@@ -113,6 +114,10 @@ func TestToPascalReservedSuffixStaysUnique(t *testing.T) {
 		{input: "ErrorType", want: "ErrorTypeType"},
 		{input: "ErrorTypeType", want: "ErrorTypeTypeType"},
 		{input: "FilePart", want: "FilePartType"},
+		{input: "Into", want: "IntoType"},
+		{input: "IntoType", want: "IntoTypeType"},
+		{input: "Result", want: "ResultType"},
+		{input: "ResultType", want: "ResultTypeType"},
 	}
 
 	for _, test := range tests {
@@ -317,6 +322,71 @@ func TestRustTemplateImportsAreReserved(t *testing.T) {
 	for _, name := range missingNames {
 		t.Errorf(
 			"Rust template import %q in %s is missing from rustReservedTypeNames",
+			name,
+			strings.Join(missing[name], ", "),
+		)
+	}
+}
+
+func TestRustTemplateUnqualifiedPascalNamesAreReserved(t *testing.T) {
+	t.Parallel()
+
+	templateNames, err := fs.Glob(templatesFS, "templates/*.tmpl")
+	if err != nil {
+		t.Fatalf("failed to list Rust templates: %v", err)
+	}
+
+	templateAction := regexp.MustCompile(`(?s){{.*?}}`)
+	deriveAttribute := regexp.MustCompile(`(?m)^[\t ]*#\[derive\([^\n]*(?:\n|$)`)
+	rustString := regexp.MustCompile(`b?"(?:\\.|[^"\\])*"`)
+	lineComment := regexp.MustCompile(`(?m)//[^\n]*`)
+	rustChar := regexp.MustCompile(`b?'(?:\\.|[^'\\])'`)
+	unqualifiedPascalIdentifier := regexp.MustCompile(
+		`(?:^|[^A-Za-z0-9_:.])([A-Z][A-Za-z0-9_]*)\b`,
+	)
+	ignored := map[string]struct{}{
+		"Err":    {},
+		"None":   {},
+		"Ok":     {},
+		"Params": {}, // Suffix attached to a generated operation name.
+		"Some":   {},
+	}
+	missing := make(map[string][]string)
+
+	for _, templateName := range templateNames {
+		contents, err := fs.ReadFile(templatesFS, templateName)
+		if err != nil {
+			t.Fatalf("failed to read Rust template %s: %v", templateName, err)
+		}
+
+		source := templateAction.ReplaceAllString(string(contents), "")
+		source = deriveAttribute.ReplaceAllString(source, "")
+		source = rustString.ReplaceAllString(source, "")
+		source = lineComment.ReplaceAllString(source, "")
+		source = rustChar.ReplaceAllString(source, "")
+
+		for _, match := range unqualifiedPascalIdentifier.FindAllStringSubmatch(source, -1) {
+			identifier := match[1]
+			if _, ok := ignored[identifier]; ok {
+				continue
+			}
+
+			if _, ok := rustReservedTypeNames[identifier]; !ok {
+				missing[identifier] = append(missing[identifier], templateName)
+			}
+		}
+	}
+
+	missingNames := make([]string, 0, len(missing))
+	for name := range missing {
+		missingNames = append(missingNames, name)
+	}
+
+	sort.Strings(missingNames)
+
+	for _, name := range missingNames {
+		t.Errorf(
+			"unqualified Rust template identifier %q in %s is missing from rustReservedTypeNames or the test's ignored set",
 			name,
 			strings.Join(missing[name], ", "),
 		)
