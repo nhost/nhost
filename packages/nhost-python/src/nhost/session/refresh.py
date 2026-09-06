@@ -14,9 +14,9 @@ import time
 from contextvars import ContextVar
 from weakref import WeakKeyDictionary
 
-from ..auth import Client as AuthClient
-from ..auth import RefreshTokenRequest
-from ..fetch import FetchError
+from ..auth.client import Client as AuthClient
+from ..auth.client import RefreshTokenRequest
+from ..fetch import HTTPError
 from .session import StoredSession
 from .storage import SessionStorage
 
@@ -39,11 +39,11 @@ def _lock_for(storage: SessionStorage) -> asyncio.Lock:
     return lock
 
 
-def _needs_refresh(
+async def _needs_refresh(
     storage: SessionStorage, margin_seconds: int
 ) -> tuple[StoredSession | None, bool, bool]:
-    """Return (session, needs_refresh, session_expired)."""
-    session = storage.get()
+    """Return ``(session, needs_refresh, session_expired)``."""
+    session = await storage.get()
     if session is None:
         return None, False, False
 
@@ -64,14 +64,14 @@ def _needs_refresh(
 async def _refresh_session(
     auth: AuthClient, storage: SessionStorage, margin_seconds: int
 ) -> StoredSession | None:
-    session, needs_refresh, session_expired = _needs_refresh(storage, margin_seconds)
+    session, needs_refresh, session_expired = await _needs_refresh(storage, margin_seconds)
     if session is None or not needs_refresh:
         return session
     if storage in _refreshing_storages.get():
         return None if session_expired else session
 
     async with _lock_for(storage):
-        session, needs_refresh, session_expired = _needs_refresh(storage, margin_seconds)
+        session, needs_refresh, session_expired = await _needs_refresh(storage, margin_seconds)
         if session is None or not needs_refresh:
             return session
 
@@ -80,15 +80,15 @@ async def _refresh_session(
         try:
             try:
                 response = await auth.refresh_token(
-                    RefreshTokenRequest(refresh_token=session.refresh_token)
+                    body=RefreshTokenRequest(refresh_token=session.refresh_token)
                 )
-            except FetchError:
+            except HTTPError:
                 if not session_expired:
                     return session
                 raise
 
-            storage.set(response.body)
-            return storage.get()
+            await storage.set(response.body)
+            return await storage.get()
         finally:
             _refreshing_storages.reset(token)
 
@@ -108,12 +108,12 @@ async def refresh_session(
     """
     try:
         return await _refresh_session(auth, storage, margin_seconds)
-    except FetchError as first_error:
+    except HTTPError as first_error:
         logger.warning("error refreshing session, retrying: %s", first_error)
         try:
             return await _refresh_session(auth, storage, margin_seconds)
-        except FetchError as error:
+        except HTTPError as error:
             if error.status == _UNAUTHORIZED:
                 logger.error("session probably expired")
-                storage.remove()
+                await storage.remove()
             return None

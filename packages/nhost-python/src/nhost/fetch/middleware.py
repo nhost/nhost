@@ -16,12 +16,11 @@ from typing import TYPE_CHECKING
 import httpx
 from pydantic import ValidationError
 
-from ..auth import Client as AuthClient
-from ..auth import Session
 from . import ChainFunction, FetchFunction
 
 if TYPE_CHECKING:
-    # Type-only import: avoids the session -> auth -> fetch runtime cycle.
+    from ..auth.client import Client as AuthClient
+    from ..auth.client import Session
     from ..session.storage import SessionStorage
 
 logger = logging.getLogger("nhost.fetch")
@@ -75,7 +74,7 @@ def attach_access_token_middleware(storage: SessionStorage) -> ChainFunction:
     def chain(next_fetch: FetchFunction) -> FetchFunction:
         async def fetch(request: httpx.Request) -> httpx.Response:
             if "Authorization" not in request.headers:
-                session = storage.get()
+                session = await storage.get()
                 if session is not None and session.access_token:
                     request.headers["Authorization"] = f"Bearer {session.access_token}"
             return await next_fetch(request)
@@ -120,6 +119,8 @@ def session_refresh_middleware(
 
 
 def _extract_session(body: object) -> Session | None:
+    from ..auth.client import Session  # noqa: PLC0415
+
     if not isinstance(body, Mapping):
         return None
     if "session" in body:
@@ -158,10 +159,10 @@ def update_session_from_response_middleware(
 
                 path = request.url.path
                 if path == f"{prefix}/signout":
-                    storage.remove()
+                    await storage.remove()
                     return response
                 if path == f"{prefix}/user/password" and response.is_success:
-                    storage.remove()
+                    await storage.remove()
                     return response
                 is_session_response = (
                     path == f"{prefix}/token"
@@ -176,7 +177,7 @@ def update_session_from_response_middleware(
                         body = None
                     session = _extract_session(body)
                     if session is not None and session.access_token and session.refresh_token:
-                        storage.set(session)
+                        await storage.set(session)
             except Exception:  # noqa: BLE001 - middleware must not break the response
                 logger.warning("error in session response middleware", exc_info=True)
             return response

@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping, Sequence
+from datetime import datetime
 from typing import Any, Literal
 from urllib.parse import quote
 
@@ -10,8 +12,8 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from ..fetch import (
     ChainFunction,
-    FetchError,
     FetchResponse,
+    HTTPError,
     UploadFile,
     create_enhanced_fetch,
     decode_json,
@@ -20,7 +22,7 @@ from ..fetch import (
     to_jsonable,
 )
 
-_REDIRECT_STATUS = 300
+_MIN_ERROR_STATUS = 400
 
 
 def _escape_path(value: object) -> str:
@@ -81,7 +83,7 @@ RFC2822Date = str
 class ErrorResponseError(BaseModel):
     """Error details."""
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     message: str = Field(
         description='Human-readable error message.\n\nExample: "File not found"',
@@ -95,7 +97,7 @@ class ErrorResponseError(BaseModel):
 class ErrorResponse(BaseModel):
     """Error information returned by the API."""
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     error: ErrorResponseError | None = Field(
         default=None,
@@ -106,7 +108,7 @@ class ErrorResponse(BaseModel):
 class ErrorResponseWithProcessedFilesError(BaseModel):
     """Error details."""
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     message: str = Field(
         description='Human-readable error message.\n\nExample: "File not found"',
@@ -120,7 +122,7 @@ class ErrorResponseWithProcessedFilesError(BaseModel):
 class ErrorResponseWithProcessedFiles(BaseModel):
     """Error information returned by the API."""
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     processed_files: list[FileMetadata] | None = Field(
         default=None,
@@ -136,7 +138,7 @@ class ErrorResponseWithProcessedFiles(BaseModel):
 class FileMetadata(BaseModel):
     """Comprehensive metadata information about a file in storage."""
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     id: str = Field(
         description=(
@@ -156,14 +158,14 @@ class FileMetadata(BaseModel):
     etag: str = Field(
         description='Entity tag for cache validation.\n\nExample: "\\"a1b2c3d4e5f6\\""',
     )
-    created_at: str = Field(
+    created_at: datetime = Field(
         alias="createdAt",
         description=(
             'Timestamp when the file was created.\n\nExample: "2023-01-15T12:34:56Z"\n\nFormat: '
             "date-time"
         ),
     )
-    updated_at: str = Field(
+    updated_at: datetime = Field(
         alias="updatedAt",
         description=(
             'Timestamp when the file was last updated.\n\nExample: "2023-01-16T09:45:32Z"\n\n'
@@ -195,7 +197,7 @@ class FileMetadata(BaseModel):
 class FileSummary(BaseModel):
     """Basic information about a file in storage."""
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     id: str = Field(
         description=(
@@ -218,7 +220,7 @@ class FileSummary(BaseModel):
 class PresignedURLResponse(BaseModel):
     """Contains a presigned URL for direct file operations."""
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     url: str = Field(
         repr=False,
@@ -235,7 +237,7 @@ class PresignedURLResponse(BaseModel):
 class UpdateFileMetadata(BaseModel):
     """Metadata that can be updated for an existing file."""
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     name: str | None = Field(
         default=None,
@@ -253,7 +255,7 @@ class UpdateFileMetadata(BaseModel):
 class UploadFileMetadata(BaseModel):
     """Metadata provided when uploading a new file."""
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     id: str | None = Field(
         default=None,
@@ -281,7 +283,7 @@ class UploadFileMetadata(BaseModel):
 class VersionInformation(BaseModel):
     """Contains version information about the storage service."""
 
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     build_version: str = Field(
         alias="buildVersion",
@@ -293,7 +295,7 @@ OutputImageFormat = Literal["auto", "same", "jpeg", "webp", "png", "avif", "heic
 
 
 class UploadFilesBody(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     bucket_id: str | None = Field(
         default=None,
@@ -317,7 +319,7 @@ class UploadFilesBody(BaseModel):
 
 
 class UploadFilesResponse201(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     processed_files: list[FileMetadata] = Field(
         alias="processedFiles",
@@ -326,7 +328,7 @@ class UploadFilesResponse201(BaseModel):
 
 
 class ReplaceFileBody(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     metadata: UpdateFileMetadata | None = Field(
         default=None,
@@ -339,37 +341,37 @@ class ReplaceFileBody(BaseModel):
 
 
 class DeleteBrokenMetadataResponse200(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     metadata: list[FileSummary] | None = None
 
 
 class DeleteOrphanedFilesResponse200(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     files: list[str] | None = None
 
 
 class ListBrokenMetadataResponse200(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     metadata: list[FileSummary] | None = None
 
 
 class ListFilesNotUploadedResponse200(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     metadata: list[FileSummary] | None = None
 
 
 class ListOrphanedFilesResponse200(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     files: list[str] | None = None
 
 
 class GetFileParams(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
 
     q: int | None = Field(
         default=None,
@@ -449,7 +451,7 @@ class GetFileParams(BaseModel):
 
 
 class GetFileMetadataHeadersParams(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
 
     q: int | None = Field(
         default=None,
@@ -526,13 +528,26 @@ class Client:
     def __init__(
         self,
         base_url: str,
-        chain_functions: list[ChainFunction] | None = None,
+        *,
+        chain_functions: Sequence[ChainFunction] = (),
         http_client: httpx.AsyncClient | None = None,
     ) -> None:
         self.base_url = base_url
-        self._chain_functions: list[ChainFunction] = list(chain_functions or [])
+        self._chain_functions = list(chain_functions)
+        self._owns_http_client = http_client is None
         self._http = http_client if http_client is not None else httpx.AsyncClient()
         self._fetch = create_enhanced_fetch(self._http, self._chain_functions)
+
+    async def __aenter__(self) -> Client:
+        return self
+
+    async def __aexit__(self, *_: object) -> None:
+        await self.aclose()
+
+    async def aclose(self) -> None:
+        """Close the internally owned HTTP client, if any."""
+        if self._owns_http_client:
+            await self._http.aclose()
 
     def push_chain_function(self, chain_function: ChainFunction) -> None:
         """Append a middleware chain function and rebuild the fetch pipeline."""
@@ -541,16 +556,17 @@ class Client:
 
     async def upload_files(
         self,
+        *,
         body: UploadFilesBody,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[UploadFilesResponse201]:
         (
             """Upload files\n\nUpload one or more files to a specified bucket. Supports batch """
             """uploading with optional custom metadata for each file. If uploading multiple """
             """files, either provide metadata for all files or none.\n\nArgs:\n    body """
-            """(UploadFilesBody): Request body.\n    headers (dict[str, str] | None): Additional """
-            """request headers.\n\nReturns:\n    FetchResponse[UploadFilesResponse201]: The HTTP """
-            """response."""
+            """(UploadFilesBody): Request body.\n    headers (Mapping[str, str] | None): """
+            """Additional request headers.\n\nReturns:\n    """
+            """FetchResponse[UploadFilesResponse201]: The HTTP response."""
         )
         url = f"{self.base_url}/files"
         query = None
@@ -573,20 +589,21 @@ class Client:
             headers=headers,
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, UploadFilesResponse201)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def delete_file(
         self,
         id: str,
-        headers: dict[str, str] | None = None,
+        *,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[None]:
         (
             """Delete file\n\nPermanently delete a file from storage. This removes both the file """
             """content and its associated metadata.\n\nArgs:\n    id (str): Unique identifier of """
-            """the file to delete\n    headers (dict[str, str] | None): Additional request """
+            """the file to delete\n    headers (Mapping[str, str] | None): Additional request """
             """headers.\n\nReturns:\n    FetchResponse[None]: The HTTP response."""
         )
         url = f"{self.base_url}/files/{_escape_path(id)}"
@@ -598,24 +615,25 @@ class Client:
             headers=headers,
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = None
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def get_file(
         self,
         id: str,
+        *,
         params: GetFileParams | None = None,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[bytes]:
         (
             """Download file\n\nRetrieve and download the complete file content. Supports """
             """conditional requests, image transformations, and range requests for partial """
             """downloads.\n\nArgs:\n    id (str): Unique identifier of the file to download\n    """
-            """params (GetFileParams): Query and header parameters.\n    headers (dict[str, str] """
-            """| None): Additional request headers.\n\nReturns:\n    FetchResponse[bytes]: The """
-            """HTTP response."""
+            """params (GetFileParams): Query and header parameters.\n    headers (Mapping[str, """
+            """str] | None): Additional request headers.\n\nReturns:\n    FetchResponse[bytes]: """
+            """The HTTP response."""
         )
         url = f"{self.base_url}/files/{_escape_path(id)}"
 
@@ -651,23 +669,24 @@ class Client:
             headers={**_parameter_headers, **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = response.content
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def get_file_metadata_headers(
         self,
         id: str,
+        *,
         params: GetFileMetadataHeadersParams | None = None,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[None]:
         (
             """Check file information\n\nRetrieve file metadata headers without downloading the """
             """file content. Supports conditional requests and provides caching information.\n\n"""
             """Args:\n    id (str): Unique identifier of the file to check\n    params """
             """(GetFileMetadataHeadersParams): Query and header parameters.\n    headers """
-            """(dict[str, str] | None): Additional request headers.\n\nReturns:\n    """
+            """(Mapping[str, str] | None): Additional request headers.\n\nReturns:\n    """
             """FetchResponse[None]: The HTTP response."""
         )
         url = f"{self.base_url}/files/{_escape_path(id)}"
@@ -702,16 +721,17 @@ class Client:
             headers={**_parameter_headers, **(headers or {})},
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = None
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def replace_file(
         self,
         id: str,
+        *,
         body: ReplaceFileBody,
-        headers: dict[str, str] | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[FileMetadata]:
         (
             """Replace file\n\nReplace an existing file with new content while preserving the """
@@ -721,7 +741,7 @@ class Client:
             """\nEach step is atomic, but if a step fails, previous steps will not be """
             """automatically rolled back.\n\n\nArgs:\n    id (str): Unique identifier of the """
             """file to replace\n    body (ReplaceFileBody): Request body.\n    headers """
-            """(dict[str, str] | None): Additional request headers.\n\nReturns:\n    """
+            """(Mapping[str, str] | None): Additional request headers.\n\nReturns:\n    """
             """FetchResponse[FileMetadata]: The HTTP response."""
         )
         url = f"{self.base_url}/files/{_escape_path(id)}"
@@ -741,21 +761,22 @@ class Client:
             headers=headers,
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, FileMetadata)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def get_file_presigned_url(
         self,
         id: str,
-        headers: dict[str, str] | None = None,
+        *,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[PresignedURLResponse]:
         (
             """Retrieve presigned URL to retrieve the file\n\nRetrieve presigned URL to retrieve """
             """the file. Expiration of the URL is\ndetermined by bucket configuration\n\n\n"""
-            """Args:\n    id (str): Unique identifier of the file\n    headers (dict[str, str] | """
-            """None): Additional request headers.\n\nReturns:\n    """
+            """Args:\n    id (str): Unique identifier of the file\n    headers (Mapping[str, """
+            """str] | None): Additional request headers.\n\nReturns:\n    """
             """FetchResponse[PresignedURLResponse]: The HTTP response."""
         )
         url = f"{self.base_url}/files/{_escape_path(id)}/presignedurl"
@@ -767,20 +788,21 @@ class Client:
             headers=headers,
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, PresignedURLResponse)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def delete_broken_metadata(
         self,
-        headers: dict[str, str] | None = None,
+        *,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[DeleteBrokenMetadataResponse200]:
         (
             """Delete broken metadata\n\nBroken metadata is defined as metadata that has """
             """isUploaded = true but there is no file in the storage matching it. This is an """
             """admin operation that requires the Hasura admin secret.\n\nArgs:\n    headers """
-            """(dict[str, str] | None): Additional request headers.\n\nReturns:\n    """
+            """(Mapping[str, str] | None): Additional request headers.\n\nReturns:\n    """
             """FetchResponse[DeleteBrokenMetadataResponse200]: The HTTP response."""
         )
         url = f"{self.base_url}/ops/delete-broken-metadata"
@@ -792,19 +814,20 @@ class Client:
             headers=headers,
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, DeleteBrokenMetadataResponse200)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def delete_orphaned_files(
         self,
-        headers: dict[str, str] | None = None,
+        *,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[DeleteOrphanedFilesResponse200]:
         (
             """Deletes orphaned files\n\nOrphaned files are files that are present in the """
             """storage but have no associated metadata. This is an admin operation that requires """
-            """the Hasura admin secret.\n\nArgs:\n    headers (dict[str, str] | None): """
+            """the Hasura admin secret.\n\nArgs:\n    headers (Mapping[str, str] | None): """
             """Additional request headers.\n\nReturns:\n    """
             """FetchResponse[DeleteOrphanedFilesResponse200]: The HTTP response."""
         )
@@ -817,20 +840,21 @@ class Client:
             headers=headers,
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, DeleteOrphanedFilesResponse200)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def list_broken_metadata(
         self,
-        headers: dict[str, str] | None = None,
+        *,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[ListBrokenMetadataResponse200]:
         (
             """Lists broken metadata\n\nBroken metadata is defined as metadata that has """
             """isUploaded = true but there is no file in the storage matching it. This is an """
             """admin operation that requires the Hasura admin secret.\n\nArgs:\n    headers """
-            """(dict[str, str] | None): Additional request headers.\n\nReturns:\n    """
+            """(Mapping[str, str] | None): Additional request headers.\n\nReturns:\n    """
             """FetchResponse[ListBrokenMetadataResponse200]: The HTTP response."""
         )
         url = f"{self.base_url}/ops/list-broken-metadata"
@@ -842,19 +866,20 @@ class Client:
             headers=headers,
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, ListBrokenMetadataResponse200)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def list_files_not_uploaded(
         self,
-        headers: dict[str, str] | None = None,
+        *,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[ListFilesNotUploadedResponse200]:
         (
             """Lists files that haven't been uploaded\n\nThat is, metadata that has isUploaded = """
             """false. This is an admin operation that requires the Hasura admin secret.\n\n"""
-            """Args:\n    headers (dict[str, str] | None): Additional request headers.\n\n"""
+            """Args:\n    headers (Mapping[str, str] | None): Additional request headers.\n\n"""
             """Returns:\n    FetchResponse[ListFilesNotUploadedResponse200]: The HTTP response."""
         )
         url = f"{self.base_url}/ops/list-not-uploaded"
@@ -866,19 +891,20 @@ class Client:
             headers=headers,
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, ListFilesNotUploadedResponse200)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def list_orphaned_files(
         self,
-        headers: dict[str, str] | None = None,
+        *,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[ListOrphanedFilesResponse200]:
         (
             """Lists orphaned files\n\nOrphaned files are files that are present in the storage """
             """but have no associated metadata. This is an admin operation that requires the """
-            """Hasura admin secret.\n\nArgs:\n    headers (dict[str, str] | None): Additional """
+            """Hasura admin secret.\n\nArgs:\n    headers (Mapping[str, str] | None): Additional """
             """request headers.\n\nReturns:\n    FetchResponse[ListOrphanedFilesResponse200]: """
             """The HTTP response."""
         )
@@ -891,19 +917,20 @@ class Client:
             headers=headers,
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, ListOrphanedFilesResponse200)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
     async def get_version(
         self,
-        headers: dict[str, str] | None = None,
+        *,
+        headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[VersionInformation]:
         (
             """Get service version information\n\nRetrieves build and version information about """
             """the storage service. Useful for monitoring and debugging.\n\nArgs:\n    headers """
-            """(dict[str, str] | None): Additional request headers.\n\nReturns:\n    """
+            """(Mapping[str, str] | None): Additional request headers.\n\nReturns:\n    """
             """FetchResponse[VersionInformation]: The HTTP response."""
         )
         url = f"{self.base_url}/version"
@@ -915,19 +942,20 @@ class Client:
             headers=headers,
         )
         response = await self._fetch(request)
-        if response.status_code >= _REDIRECT_STATUS:
-            raise FetchError.from_response(response)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
         payload = decode_json(response, VersionInformation)
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
 
 def create_api_client(
     base_url: str,
-    chain_functions: list[ChainFunction] | None = None,
+    *,
+    chain_functions: Sequence[ChainFunction] = (),
     http_client: httpx.AsyncClient | None = None,
 ) -> Client:
-    """Create a new API client."""
-    return Client(base_url, chain_functions, http_client)
+    """Create a generated API client."""
+    return Client(base_url, chain_functions=chain_functions, http_client=http_client)
 
 
 __all__ = [
