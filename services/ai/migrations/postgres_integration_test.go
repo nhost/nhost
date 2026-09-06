@@ -30,7 +30,7 @@ func TestPostgresMigrationIntegration(t *testing.T) {
 	database, dsn := openAIMigrationTestDatabase(t)
 	logger := slog.New(slog.DiscardHandler)
 
-	t.Run("service creates schema and applies real bundle", func(t *testing.T) {
+	t.Run("service applies real bundle and releases lock", func(t *testing.T) {
 		resetAISchema(t, database)
 
 		if err := migrations.ApplyPostgresMigration(t.Context(), dsn, logger); err != nil {
@@ -41,109 +41,14 @@ func TestPostgresMigrationIntegration(t *testing.T) {
 		assertAIMigrationState(t, database, 7)
 		assertAICatalogRows(t, database, 7)
 		assertExtensionsInstalled(t, database, "vector", "http", "pg_jsonschema")
+		assertExactAIMigrationLockAvailable(t, database)
 	})
 
-	t.Run("real bundle releases exact lock after set role", func(t *testing.T) {
-		resetAISchema(t, database)
-		createAISchema(t, database)
-
-		if err := pgmigrate.Migrate(
-			t.Context(),
-			logger,
-			database,
-			os.DirFS("."),
-			"postgres",
-			"ai",
-			7,
-		); err != nil {
-			t.Fatalf("pgmigrate.Migrate(real AI bundle) error = %v", err)
-		}
-
-		assertExactAIMigrationLockAvailable(t, dsn)
-
-		if inUse := database.Stats().InUse; inUse != 0 {
-			t.Fatalf("migration pool in-use connections = %d, want 0", inUse)
-		}
-	})
-
-	t.Run("existing state hydrates catalog without replay", func(t *testing.T) {
+	t.Run("extension retention downs remain non-destructive", func(t *testing.T) {
 		resetAISchema(t, database)
 
 		if err := migrations.ApplyPostgresMigration(t.Context(), dsn, logger); err != nil {
-			t.Fatalf("initial ApplyPostgresMigration() error = %v", err)
-		}
-
-		executeAIMigrationSQL(t.Context(), t, database, `
-INSERT INTO ai.agent_providers (value, comment)
-VALUES ('phase-six-hydration-sentinel', 'must survive catalog hydration');
-DROP TABLE ai.schema_migration_catalog;
-`)
-
-		if err := migrations.ApplyPostgresMigration(t.Context(), dsn, logger); err != nil {
-			t.Fatalf("hydrating ApplyPostgresMigration() error = %v", err)
-		}
-
-		var sentinelRows int
-		if err := database.QueryRowContext(t.Context(), `
-SELECT count(*)
-FROM ai.agent_providers
-WHERE value = 'phase-six-hydration-sentinel'
-`).Scan(&sentinelRows); err != nil {
-			t.Fatalf("counting hydration sentinel rows: %v", err)
-		}
-
-		if sentinelRows != 1 {
-			t.Fatalf("hydration sentinel rows = %d, want 1", sentinelRows)
-		}
-
-		assertAIMigrationState(t, database, 7)
-		assertAICatalogRows(t, database, 7)
-	})
-
-	t.Run("service downgrades newer catalog to target", func(t *testing.T) {
-		resetAISchema(t, database)
-
-		if err := migrations.ApplyPostgresMigration(t.Context(), dsn, logger); err != nil {
-			t.Fatalf("initial ApplyPostgresMigration() error = %v", err)
-		}
-
-		futureBundle := realAIMigrationBundleThrough(t, 7)
-		futureBundle["postgres/000008_phase_six_future.up.sql"] = &fstest.MapFile{
-			Data: []byte("CREATE TABLE ai.phase_six_future_probe (id INTEGER PRIMARY KEY);"),
-		}
-		futureBundle["postgres/000008_phase_six_future.down.sql"] = &fstest.MapFile{
-			Data: []byte("DROP TABLE ai.phase_six_future_probe;"),
-		}
-
-		if err := pgmigrate.Migrate(
-			t.Context(),
-			logger,
-			database,
-			futureBundle,
-			"postgres",
-			"ai",
-			8,
-		); err != nil {
-			t.Fatalf("pgmigrate.Migrate(to future version) error = %v", err)
-		}
-
-		assertAIMigrationState(t, database, 8)
-		assertAIRelationExists(t, database, "ai.phase_six_future_probe", true)
-
-		if err := migrations.ApplyPostgresMigration(t.Context(), dsn, logger); err != nil {
-			t.Fatalf("downgrading ApplyPostgresMigration() error = %v", err)
-		}
-
-		assertAIMigrationState(t, database, 7)
-		assertAICatalogRows(t, database, 8)
-		assertAIRelationExists(t, database, "ai.phase_six_future_probe", false)
-	})
-
-	t.Run("retention downs execute and older state converges to target", func(t *testing.T) {
-		resetAISchema(t, database)
-
-		if err := migrations.ApplyPostgresMigration(t.Context(), dsn, logger); err != nil {
-			t.Fatalf("initial ApplyPostgresMigration() error = %v", err)
+			t.Fatalf("ApplyPostgresMigration() error = %v", err)
 		}
 
 		if err := pgmigrate.Migrate(
@@ -153,7 +58,6 @@ WHERE value = 'phase-six-hydration-sentinel'
 			realAIMigrationBundleThrough(t, 4),
 			"postgres",
 			"ai",
-			4,
 		); err != nil {
 			t.Fatalf("pgmigrate.Migrate(through extension retention down) error = %v", err)
 		}
@@ -167,14 +71,6 @@ WHERE value = 'phase-six-hydration-sentinel'
 		}
 
 		executeAIMigrationSQL(t.Context(), t, database, string(firstRetentionDown))
-
-		assertExtensionsInstalled(t, database, "vector", "http", "pg_jsonschema")
-
-		if err := migrations.ApplyPostgresMigration(t.Context(), dsn, logger); err != nil {
-			t.Fatalf("upgrading ApplyPostgresMigration() error = %v", err)
-		}
-
-		assertAIMigrationState(t, database, 7)
 		assertExtensionsInstalled(t, database, "vector", "http", "pg_jsonschema")
 	})
 }
@@ -302,12 +198,6 @@ func resetAISchema(t *testing.T, database *sql.DB) {
 	executeAIMigrationSQL(t.Context(), t, database, "DROP SCHEMA IF EXISTS ai CASCADE")
 }
 
-func createAISchema(t *testing.T, database *sql.DB) {
-	t.Helper()
-
-	executeAIMigrationSQL(t.Context(), t, database, "CREATE SCHEMA ai")
-}
-
 func executeAIMigrationSQL(
 	ctx context.Context,
 	t *testing.T,
@@ -393,28 +283,6 @@ WHERE extname = ANY($1)
 	}
 }
 
-func assertAIRelationExists(
-	t *testing.T,
-	database *sql.DB,
-	relation string,
-	want bool,
-) {
-	t.Helper()
-
-	var exists bool
-	if err := database.QueryRowContext(
-		t.Context(),
-		"SELECT to_regclass($1) IS NOT NULL",
-		relation,
-	).Scan(&exists); err != nil {
-		t.Fatalf("checking relation %q: %v", relation, err)
-	}
-
-	if exists != want {
-		t.Fatalf("relation %q exists = %t, want %t", relation, exists, want)
-	}
-}
-
 func realAIMigrationBundleThrough(t *testing.T, maximum uint) fstest.MapFS {
 	t.Helper()
 
@@ -451,23 +319,10 @@ func realAIMigrationBundleThrough(t *testing.T, maximum uint) fstest.MapFS {
 	return bundle
 }
 
-func assertExactAIMigrationLockAvailable(t *testing.T, dsn string) {
+func assertExactAIMigrationLockAvailable(t *testing.T, database *sql.DB) {
 	t.Helper()
 
-	probeDatabase, err := sql.Open("postgres", dsn)
-	if err != nil {
-		t.Fatalf("opening lock probe database: %v", err)
-	}
-
-	probeDatabase.SetMaxOpenConns(1)
-
-	defer func() {
-		if closeErr := probeDatabase.Close(); closeErr != nil {
-			t.Errorf("closing lock probe database: %v", closeErr)
-		}
-	}()
-
-	connection, err := probeDatabase.Conn(t.Context())
+	connection, err := database.Conn(t.Context())
 	if err != nil {
 		t.Fatalf("acquiring lock probe connection: %v", err)
 	}

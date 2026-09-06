@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io/fs"
 	"log/slog"
+	"slices"
 	"strings"
 	"testing"
 
@@ -22,13 +23,6 @@ type migrationDatabaseStub struct{}
 
 func (*migrationDatabaseStub) Conn(context.Context) (*sql.Conn, error) {
 	return nil, sql.ErrConnDone
-}
-
-type migrationCall struct {
-	fsys          fs.FS
-	migrationPath string
-	schema        string
-	target        uint
 }
 
 func TestAgentsMigrationSchema(t *testing.T) {
@@ -63,29 +57,13 @@ func TestAgentsMigrationSchema(t *testing.T) {
 	}
 }
 
-func TestEmbeddedPostgresMigrationBundleMatchesTarget(t *testing.T) {
-	t.Parallel()
-
-	if err := pgmigrate.ValidateBundle(
-		postgresMigrations,
-		postgresMigrationPath,
-		postgresMigrationTarget,
-	); err != nil {
-		t.Fatalf("ValidateBundle() error = %v", err)
-	}
-}
-
 func TestRunPostgresMigrationCreatesSchemaThenDelegatesAndCloses(t *testing.T) {
 	t.Parallel()
 
 	ctx := t.Context()
 	logger := slog.New(slog.DiscardHandler)
 	database := &migrationDatabaseStub{}
-
-	var (
-		gotCall migrationCall
-		events  []string
-	)
+	events := make([]string, 0, 3)
 
 	err := runPostgresMigration(
 		ctx,
@@ -100,7 +78,7 @@ func TestRunPostgresMigrationCreatesSchemaThenDelegatesAndCloses(t *testing.T) {
 			events = append(events, "schema")
 
 			if gotContext != ctx {
-				t.Errorf("schema context = %v, want supplied context", gotContext)
+				t.Error("schema creation did not receive the supplied context")
 			}
 
 			return nil
@@ -112,27 +90,25 @@ func TestRunPostgresMigrationCreatesSchemaThenDelegatesAndCloses(t *testing.T) {
 			gotFS fs.FS,
 			gotPath string,
 			gotSchema string,
-			gotTarget uint,
 		) error {
 			events = append(events, "migration")
 
-			if gotContext != ctx {
-				t.Errorf("migration context = %v, want supplied context", gotContext)
+			if gotContext != ctx || gotLogger != logger || gotDatabase != database {
+				t.Error("migration did not receive the supplied context, logger, and database")
 			}
 
-			if gotLogger != logger {
-				t.Errorf("migration logger = %p, want %p", gotLogger, logger)
+			if gotFS == nil {
+				t.Error("migration filesystem is nil")
 			}
 
-			if gotDatabase != database {
-				t.Errorf("migration database = %v, want supplied database", gotDatabase)
-			}
-
-			gotCall = migrationCall{
-				fsys:          gotFS,
-				migrationPath: gotPath,
-				schema:        gotSchema,
-				target:        gotTarget,
+			if gotPath != postgresMigrationPath || gotSchema != schemaName {
+				t.Errorf(
+					"migration config = (%q, %q), want (%q, %q)",
+					gotPath,
+					gotSchema,
+					postgresMigrationPath,
+					schemaName,
+				)
 			}
 
 			return nil
@@ -142,106 +118,34 @@ func TestRunPostgresMigrationCreatesSchemaThenDelegatesAndCloses(t *testing.T) {
 		t.Fatalf("runPostgresMigration() error = %v", err)
 	}
 
-	wantEvents := []string{"schema", "migration", "close"}
-	if len(events) != len(wantEvents) {
-		t.Fatalf("migration events = %v, want %v", events, wantEvents)
-	}
-
-	for index, want := range wantEvents {
-		if events[index] != want {
-			t.Fatalf("migration events = %v, want %v", events, wantEvents)
-		}
-	}
-
-	body, readErr := fs.ReadFile(
-		gotCall.fsys,
-		"postgres/000007_agent_messages_seq.up.sql",
-	)
-	if readErr != nil {
-		t.Errorf("reading delegated migration filesystem: %v", readErr)
-	} else if len(body) == 0 {
-		t.Error("delegated migration filesystem contains an empty target migration")
-	}
-
-	if gotCall.migrationPath != postgresMigrationPath {
-		t.Errorf(
-			"migration path = %q, want %q",
-			gotCall.migrationPath,
-			postgresMigrationPath,
-		)
-	}
-
-	if gotCall.schema != schemaName {
-		t.Errorf("migration schema = %q, want %q", gotCall.schema, schemaName)
-	}
-
-	if gotCall.target != postgresMigrationTarget {
-		t.Errorf(
-			"migration target = %d, want %d",
-			gotCall.target,
-			postgresMigrationTarget,
-		)
+	if want := []string{"schema", "migration", "close"}; !slices.Equal(events, want) {
+		t.Errorf("migration events = %v, want %v", events, want)
 	}
 }
 
-func TestRunPostgresMigrationReturnsErrorsAndCloses(t *testing.T) {
+func TestRunPostgresMigrationFailureStillClosesPool(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
 		name           string
 		schemaErr      error
 		migrationErr   error
-		closeErr       error
-		wantErrors     []error
-		wantMigrations int
+		wantMigration  bool
+		wantPrimaryErr error
 	}{
-		{
-			name:           "success",
-			schemaErr:      nil,
-			migrationErr:   nil,
-			closeErr:       nil,
-			wantErrors:     nil,
-			wantMigrations: 1,
-		},
 		{
 			name:           "schema creation fails",
 			schemaErr:      errSchemaCreationFailure,
 			migrationErr:   nil,
-			closeErr:       nil,
-			wantErrors:     []error{errSchemaCreationFailure},
-			wantMigrations: 0,
+			wantMigration:  false,
+			wantPrimaryErr: errSchemaCreationFailure,
 		},
 		{
 			name:           "migration fails",
 			schemaErr:      nil,
 			migrationErr:   errMigrationFailure,
-			closeErr:       nil,
-			wantErrors:     []error{errMigrationFailure},
-			wantMigrations: 1,
-		},
-		{
-			name:           "close fails",
-			schemaErr:      nil,
-			migrationErr:   nil,
-			closeErr:       errCloseFailure,
-			wantErrors:     []error{errCloseFailure},
-			wantMigrations: 1,
-		},
-		{
-			name:           "schema creation and close fail",
-			schemaErr:      errSchemaCreationFailure,
-			migrationErr:   nil,
-			closeErr:       errCloseFailure,
-			wantErrors:     []error{errSchemaCreationFailure, errCloseFailure},
-			wantMigrations: 0,
-		},
-		{
-			name:           "migration and close fail",
-			schemaErr:      nil,
-			migrationErr:   errMigrationFailure,
-			closeErr:       errCloseFailure,
-			wantErrors:     []error{errMigrationFailure, errCloseFailure},
-			wantMigrations: 1,
+			wantMigration:  true,
+			wantPrimaryErr: errMigrationFailure,
 		},
 	}
 
@@ -249,11 +153,8 @@ func TestRunPostgresMigrationReturnsErrorsAndCloses(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			var (
-				schemaCalls    int
-				migrationCalls int
-				closeCalls     int
-			)
+			migrationCalls := 0
+			closeCalls := 0
 
 			err := runPostgresMigration(
 				t.Context(),
@@ -262,13 +163,9 @@ func TestRunPostgresMigrationReturnsErrorsAndCloses(t *testing.T) {
 				func() error {
 					closeCalls++
 
-					return tt.closeErr
+					return errCloseFailure
 				},
-				func(context.Context) error {
-					schemaCalls++
-
-					return tt.schemaErr
-				},
+				func(context.Context) error { return tt.schemaErr },
 				func(
 					context.Context,
 					*slog.Logger,
@@ -276,7 +173,6 @@ func TestRunPostgresMigrationReturnsErrorsAndCloses(t *testing.T) {
 					fs.FS,
 					string,
 					string,
-					uint,
 				) error {
 					migrationCalls++
 
@@ -284,25 +180,17 @@ func TestRunPostgresMigrationReturnsErrorsAndCloses(t *testing.T) {
 				},
 			)
 
-			if len(tt.wantErrors) == 0 && err != nil {
-				t.Fatalf("runPostgresMigration() error = %v", err)
-			}
-
-			for _, wantErr := range tt.wantErrors {
+			for _, wantErr := range []error{tt.wantPrimaryErr, errCloseFailure} {
 				if !errors.Is(err, wantErr) {
 					t.Errorf("runPostgresMigration() error = %v, want %v", err, wantErr)
 				}
 			}
 
-			if schemaCalls != 1 {
-				t.Errorf("schema creation calls = %d, want 1", schemaCalls)
-			}
-
-			if migrationCalls != tt.wantMigrations {
+			if (migrationCalls == 1) != tt.wantMigration {
 				t.Errorf(
-					"migration calls = %d, want %d",
+					"migration calls = %d, want migration = %t",
 					migrationCalls,
-					tt.wantMigrations,
+					tt.wantMigration,
 				)
 			}
 

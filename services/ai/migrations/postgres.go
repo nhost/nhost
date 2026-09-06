@@ -14,10 +14,9 @@ import (
 )
 
 const (
-	schemaName                         = "ai"
-	postgresMigrationPath              = "postgres"
-	postgresMigrationTarget       uint = 7
-	postgresSchemaCreateStatement      = "CREATE SCHEMA IF NOT EXISTS ai"
+	schemaName                    = "ai"
+	postgresMigrationPath         = "postgres"
+	postgresSchemaCreateStatement = "CREATE SCHEMA IF NOT EXISTS ai"
 )
 
 //go:embed postgres/*.sql
@@ -30,7 +29,6 @@ type postgresMigrator func(
 	fsys fs.FS,
 	migrationPath string,
 	schema string,
-	target uint,
 ) error
 
 func ApplyPostgresMigration(
@@ -91,7 +89,6 @@ func runPostgresMigration(
 		postgresMigrations,
 		postgresMigrationPath,
 		schemaName,
-		postgresMigrationTarget,
 	); err != nil {
 		return fmt.Errorf("problem migrating postgres: %w", err)
 	}
