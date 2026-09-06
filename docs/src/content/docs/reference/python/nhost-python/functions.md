@@ -9,8 +9,10 @@ Functions client for the Nhost Python SDK.
 ### `create_api_client`
 
 ```python
-def create_api_client(base_url: 'str', chain_functions: 'list[ChainFunction] | None' = None, http_client: 'httpx.AsyncClient | None' = None) -> 'Client'
+def create_api_client(base_url: 'str', *, middleware: 'Sequence[ChainFunction]' = (), http_client: 'httpx.AsyncClient | None' = None) -> 'Client'
 ```
+
+Create a standalone Functions client.
 
 ## Classes
 
@@ -20,50 +22,42 @@ def create_api_client(base_url: 'str', chain_functions: 'list[ChainFunction] | N
 class Client
 ```
 
-Functions API client backed by an httpx.AsyncClient and a middleware chain.
+Functions client backed by an owned or injected HTTP client.
 
 #### Methods
+
+##### `aclose`
+
+```python
+async def aclose(self) -> 'None'
+```
+
+Close the internally owned HTTP client, if any.
+
+##### `add_middleware`
+
+```python
+def add_middleware(self, middleware: 'ChainFunction') -> 'None'
+```
+
+Append HTTP middleware and rebuild the request pipeline.
 
 ##### `fetch`
 
 ```python
-async def fetch(self, path: 'str', method: 'str' = 'GET', headers: 'dict[str, str] | None' = None, content: 'bytes | str | None' = None, json: 'Any' = None) -> 'FetchResponse[Any]'
+async def fetch(self, path: 'str', *, method: 'str' = 'GET', headers: 'Mapping[str, str] | None' = None, content: 'bytes | str | None' = None, json: 'Any' = _UNSET) -> 'FetchResponse[Any]'
 ```
 
-Invoke a function with an arbitrary method and raw or JSON body.
+Invoke a function with an arbitrary HTTP method and request body.
 
-The body is decoded by content type. Raises :class:`FetchError` on a
-non-2xx/3xx response.
+Omitting ``json`` sends no JSON body; passing ``json=None`` explicitly
+sends the JSON literal ``null``. ``content`` and ``json`` are mutually
+exclusive.
 
 ##### `post`
 
 ```python
-async def post(self, path: 'str', body: 'Any' = None, headers: 'dict[str, str] | None' = None) -> 'FetchResponse[Any]'
+async def post(self, path: 'str', *, json: 'Any' = None, headers: 'Mapping[str, str] | None' = None) -> 'FetchResponse[Any]'
 ```
 
-Convenience POST with a JSON body and JSON ``Accept``/``Content-Type``.
-
-Runs against a local Nhost backend (skipped unless
-``NHOST_LOCAL_BACKEND=1``). The bundled ``/echo`` function reflects the
-request as ``{"body": ..., "headers": ..., "method": ...}``:
-
-```python
->>> import asyncio
->>> from nhost import create_client, NhostClientOptions
->>>
->>> async def main() -> object:
-...     async with create_client(
-...         NhostClientOptions(subdomain="local", region="local")
-...     ) as nhost:
-...         resp = await nhost.functions.post("/echo", {"message": "hello"})
-...         return resp.body["body"]["message"]
->>>
->>> asyncio.run(main())
-'hello'
-```
-
-##### `push_chain_function`
-
-```python
-def push_chain_function(self, chain_function: 'ChainFunction') -> 'None'
-```
+Invoke a function with a JSON ``POST`` request.

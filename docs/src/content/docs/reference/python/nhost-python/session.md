@@ -78,37 +78,30 @@ declared fields, including processed Hasura claims, remain visible.
 class FileStorage
 ```
 
-JSON-file backed session storage, useful for CLIs and local scripts.
+JSON-file session storage for CLIs and local scripts.
 
-The file contains a long-lived refresh token that can mint access tokens
-until it is revoked. It is atomically written with owner-only permissions.
-
-``get``/``set`` perform synchronous, blocking filesystem I/O. Since these
-backends are invoked from inside the async request path (token attachment
-and refresh call ``get`` on every request), a shared ``FileStorage`` under
-high concurrency will block the event loop for the duration of each disk
-read/write. It is intended for CLIs and local scripts; prefer
-:class:`MemoryStorage` or a per-request backend in high-concurrency async
-servers.
+File operations run in worker threads so they do not block the event loop.
+Writes are atomic and use owner-only permissions. ``~`` in ``path`` is
+expanded when the backend is constructed.
 
 #### Methods
 
 ##### `get`
 
 ```python
-def get(self) -> 'StoredSession | None'
+async def get(self) -> 'StoredSession | None'
 ```
 
 ##### `remove`
 
 ```python
-def remove(self) -> 'None'
+async def remove(self) -> 'None'
 ```
 
 ##### `set`
 
 ```python
-def set(self, value: 'StoredSession') -> 'None'
+async def set(self, value: 'StoredSession') -> 'None'
 ```
 
 ### `MemoryStorage`
@@ -119,28 +112,28 @@ class MemoryStorage
 
 In-memory session storage. The default backend.
 
-Not shared across processes and cleared when the process exits. Because a
-single instance is process-wide, do not share one ``MemoryStorage`` between
-different users in a server context — create a scoped backend per user.
+Not shared across processes and cleared when the process exits. Do not
+share one instance between users in a server process; create a scoped
+backend per request or user instead.
 
 #### Methods
 
 ##### `get`
 
 ```python
-def get(self) -> 'StoredSession | None'
+async def get(self) -> 'StoredSession | None'
 ```
 
 ##### `remove`
 
 ```python
-def remove(self) -> 'None'
+async def remove(self) -> 'None'
 ```
 
 ##### `set`
 
 ```python
-def set(self, value: 'StoredSession') -> 'None'
+async def set(self, value: 'StoredSession') -> 'None'
 ```
 
 ### `SessionStorage`
@@ -149,15 +142,14 @@ def set(self, value: 'StoredSession') -> 'None'
 class SessionStorage
 ```
 
-Wraps a :class:`SessionStorageBackend`, decoding tokens on ``set`` and
-notifying subscribers on every change.
+Decode tokens, persist sessions, and notify sync or async subscribers.
 
 #### Methods
 
 ##### `get`
 
 ```python
-def get(self) -> 'StoredSession | None'
+async def get(self) -> 'StoredSession | None'
 ```
 
 ##### `on_change`
@@ -166,24 +158,24 @@ def get(self) -> 'StoredSession | None'
 def on_change(self, callback: 'SessionChangeCallback') -> 'Callable[[], None]'
 ```
 
-Subscribe to session changes and return an idempotent unsubscribe.
+Subscribe to changes and return an idempotent unsubscribe function.
 
-Registering the same callable twice creates two independent subscriptions;
-each returned unsubscribe removes exactly one registration.
+Both synchronous and asynchronous callbacks are supported. Registering
+the same callable twice creates two independent subscriptions.
 
 ##### `remove`
 
 ```python
-def remove(self) -> 'None'
+async def remove(self) -> 'None'
 ```
 
 ##### `set`
 
 ```python
-def set(self, value: 'Session') -> 'None'
+async def set(self, value: 'Session') -> 'None'
 ```
 
-Store an auth :class:`Session`, re-deriving its decoded access token.
+Store an auth :class:`Session`, re-deriving its decoded token.
 
 ### `SessionStorageBackend`
 
@@ -191,27 +183,35 @@ Store an auth :class:`Session`, re-deriving its decoded access token.
 class SessionStorageBackend
 ```
 
-Interface for persisting a single :class:`StoredSession`.
+Asynchronous interface for persisting one :class:`StoredSession`.
 
 #### Methods
 
 ##### `get`
 
 ```python
-def get(self) -> 'StoredSession | None'
+async def get(self) -> 'StoredSession | None'
 ```
 
 ##### `remove`
 
 ```python
-def remove(self) -> 'None'
+async def remove(self) -> 'None'
 ```
 
 ##### `set`
 
 ```python
-def set(self, value: 'StoredSession') -> 'None'
+async def set(self, value: 'StoredSession') -> 'None'
 ```
+
+### `SessionStorageError`
+
+```python
+class SessionStorageError
+```
+
+Raised when a persistent session backend cannot read or update state.
 
 ### `StoredSession`
 
