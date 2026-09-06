@@ -38,7 +38,8 @@ async def request(self, query: 'str', variables: 'GraphQLVariables | None' = Non
 
 Execute a GraphQL query or mutation.
 
-Raises :class:`FetchError` if the response includes GraphQL ``errors``.
+Raises :class:`FetchError` if the response includes GraphQL ``errors``
+or has a non-successful HTTP status.
 
 Runs against a local Nhost backend (skipped unless
 ``NHOST_LOCAL_BACKEND=1``):
@@ -71,9 +72,9 @@ A single GraphQL error entry as defined by the GraphQL spec.
 | Field | Type |
 | --- | --- |
 | `message` | `str` |
-| `locations` | `list[GraphQLErrorLocation] | None` |
-| `path` | `list[Any] | None` |
-| `extensions` | `dict[str, Any] | None` |
+| `locations` | `list[GraphQLErrorLocation] \| None` |
+| `path` | `list[Any] \| None` |
+| `extensions` | `dict[str, Any] \| None` |
 
 ### `GraphQLResponse`
 
@@ -87,5 +88,5 @@ Standard GraphQL response envelope.
 
 | Field | Type |
 | --- | --- |
-| `data` | `TData | None` |
-| `errors` | `list[GraphQLError] | None` |
+| `data` | `TData \| None` |
+| `errors` | `list[GraphQLError] \| None` |
