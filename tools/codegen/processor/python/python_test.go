@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"os/exec"
 	"strings"
@@ -15,7 +16,356 @@ import (
 	"github.com/nhost/nhost/tools/codegen/processor"
 	"github.com/nhost/nhost/tools/codegen/processor/python"
 	"github.com/pb33f/libopenapi"
+	"github.com/pb33f/libopenapi/datamodel/high/base"
+	"github.com/pb33f/libopenapi/orderedmap"
+	"gopkg.in/yaml.v3"
 )
+
+func schemaExtensions(customType string) *orderedmap.Map[string, *yaml.Node] {
+	extensions := orderedmap.New[string, *yaml.Node]()
+	if customType != "" {
+		extensions.Set("x-python-type", &yaml.Node{
+			Kind:  yaml.ScalarNode,
+			Tag:   "!!str",
+			Value: customType,
+		})
+	}
+
+	return extensions
+}
+
+func testScalar(
+	t *testing.T,
+	plugin *python.Python,
+	schemaType, schemaFormat string,
+) *processor.TypeScalar {
+	t.Helper()
+
+	typeValue, _, err := processor.GetType(
+		base.CreateSchemaProxy(&base.Schema{
+			Type:       []string{schemaType},
+			Format:     schemaFormat,
+			Extensions: schemaExtensions(""),
+		}),
+		"Scalar",
+		plugin,
+		false,
+	)
+	if err != nil {
+		t.Fatalf("create %s/%s scalar: %v", schemaType, schemaFormat, err)
+	}
+
+	scalar, ok := typeValue.(*processor.TypeScalar)
+	if !ok {
+		t.Fatalf("type = %T, want *processor.TypeScalar", typeValue)
+	}
+
+	return scalar
+}
+
+func testArray(
+	t *testing.T,
+	plugin *python.Python,
+	itemNullable bool,
+) *processor.TypeArray {
+	t.Helper()
+
+	item := base.CreateSchemaProxy(&base.Schema{
+		Type:       []string{"string"},
+		Nullable:   &itemNullable,
+		Extensions: schemaExtensions(""),
+	})
+
+	typeValue, _, err := processor.GetType(
+		base.CreateSchemaProxy(&base.Schema{
+			Type:       []string{"array"},
+			Extensions: schemaExtensions(""),
+			Items: &base.DynamicValue[*base.SchemaProxy, bool]{
+				A: item,
+			},
+		}),
+		"Array",
+		plugin,
+		false,
+	)
+	if err != nil {
+		t.Fatalf("create array with nullable=%t item: %v", itemNullable, err)
+	}
+
+	array, ok := typeValue.(*processor.TypeArray)
+	if !ok {
+		t.Fatalf("type = %T, want *processor.TypeArray", typeValue)
+	}
+
+	return array
+}
+
+func testMap(
+	t *testing.T,
+	plugin *python.Python,
+	customType string,
+) *processor.TypeMap {
+	t.Helper()
+
+	typeValue, _, err := processor.GetType(
+		base.CreateSchemaProxy(&base.Schema{
+			Type:       []string{"object"},
+			Extensions: schemaExtensions(customType),
+			AdditionalProperties: &base.DynamicValue[*base.SchemaProxy, bool]{
+				B: true,
+			},
+		}),
+		"Map",
+		plugin,
+		false,
+	)
+	if err != nil {
+		t.Fatalf("create map with custom type %q: %v", customType, err)
+	}
+
+	mapType, ok := typeValue.(*processor.TypeMap)
+	if !ok {
+		t.Fatalf("type = %T, want *processor.TypeMap", typeValue)
+	}
+
+	return mapType
+}
+
+func TestGetTemplates(t *testing.T) {
+	t.Parallel()
+
+	got, err := fs.Glob((&python.Python{}).GetTemplates(), "templates/*.tmpl")
+	if err != nil {
+		t.Fatalf("GetTemplates glob: %v", err)
+	}
+
+	want := []string{
+		"templates/client.tmpl",
+		"templates/main.tmpl",
+		"templates/types.tmpl",
+	}
+	if len(got) != len(want) {
+		t.Fatalf("GetTemplates files = %v, want %v", got, want)
+	}
+
+	for i := range want {
+		if got[i] != want[i] {
+			t.Errorf("GetTemplates files[%d] = %q, want %q", i, got[i], want[i])
+		}
+	}
+}
+
+func TestTypeObjectName(t *testing.T) {
+	t.Parallel()
+
+	plugin := &python.Python{}
+	tests := []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{name: "lowercase", input: "profile", want: "Profile"},
+		{name: "kebab case", input: "user-profile", want: "UserProfile"},
+		{name: "space separated", input: "user profile", want: "UserProfile"},
+		{name: "underscore preserved", input: "user_profile", want: "User_profile"},
+		{name: "empty", input: "", want: ""},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := plugin.TypeObjectName(test.input); got != test.want {
+				t.Errorf("TypeObjectName(%q) = %q, want %q", test.input, got, test.want)
+			}
+		})
+	}
+}
+
+func TestTypeScalarName(t *testing.T) {
+	t.Parallel()
+
+	plugin := &python.Python{}
+	tests := []struct {
+		name         string
+		schemaType   string
+		schemaFormat string
+		want         string
+	}{
+		{name: "integer", schemaType: "integer", want: "int"},
+		{name: "integer int32", schemaType: "integer", schemaFormat: "int32", want: "int"},
+		{name: "integer int64", schemaType: "integer", schemaFormat: "int64", want: "int"},
+		{name: "number", schemaType: "number", want: "float"},
+		{name: "number float", schemaType: "number", schemaFormat: "float", want: "float"},
+		{name: "number double", schemaType: "number", schemaFormat: "double", want: "float"},
+		{name: "boolean", schemaType: "boolean", want: "bool"},
+		{name: "string", schemaType: "string", want: "str"},
+		{name: "string byte", schemaType: "string", schemaFormat: "byte", want: "str"},
+		{name: "string date", schemaType: "string", schemaFormat: "date", want: "str"},
+		{name: "string date time", schemaType: "string", schemaFormat: "date-time", want: "str"},
+		{name: "string password", schemaType: "string", schemaFormat: "password", want: "str"},
+		{
+			name:         "string binary",
+			schemaType:   "string",
+			schemaFormat: "binary",
+			want:         "bytes | UploadFile",
+		},
+		{name: "unknown", schemaType: "null", want: "Any"},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			scalar := testScalar(t, plugin, test.schemaType, test.schemaFormat)
+			if got := plugin.TypeScalarName(scalar); got != test.want {
+				t.Errorf(
+					"TypeScalarName(%q, %q) = %q, want %q",
+					test.schemaType,
+					test.schemaFormat,
+					got,
+					test.want,
+				)
+			}
+		})
+	}
+}
+
+func TestTypeArrayName(t *testing.T) {
+	t.Parallel()
+
+	plugin := &python.Python{}
+	tests := []struct {
+		name         string
+		itemNullable bool
+		want         string
+	}{
+		{name: "non-null items", itemNullable: false, want: "list[str]"},
+		{name: "nullable items", itemNullable: true, want: "list[str | None]"},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			array := testArray(t, plugin, test.itemNullable)
+			if got := plugin.TypeArrayName(array); got != test.want {
+				t.Errorf(
+					"TypeArrayName(nullable=%t) = %q, want %q",
+					test.itemNullable,
+					got,
+					test.want,
+				)
+			}
+		})
+	}
+}
+
+func TestTypeEnumName(t *testing.T) {
+	t.Parallel()
+
+	plugin := &python.Python{}
+	tests := []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{name: "lowercase", input: "status", want: "Status"},
+		{name: "kebab case", input: "account-status", want: "AccountStatus"},
+		{name: "underscore preserved", input: "account_status", want: "Account_status"},
+		{name: "empty", input: "", want: ""},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := plugin.TypeEnumName(test.input); got != test.want {
+				t.Errorf("TypeEnumName(%q) = %q, want %q", test.input, got, test.want)
+			}
+		})
+	}
+}
+
+func TestTypeMapName(t *testing.T) {
+	t.Parallel()
+
+	plugin := &python.Python{}
+	tests := []struct {
+		name       string
+		customType string
+		want       string
+	}{
+		{name: "default", want: "dict[str, Any]"},
+		{name: "custom Python type", customType: "Mapping[str, UUID]", want: "Mapping[str, UUID]"},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			mapType := testMap(t, plugin, test.customType)
+			if got := plugin.TypeMapName(mapType); got != test.want {
+				t.Errorf("TypeMapName(custom=%q) = %q, want %q", test.customType, got, test.want)
+			}
+		})
+	}
+}
+
+func testIdentifierName(
+	t *testing.T,
+	methodName string,
+	mapName func(string) string,
+) {
+	t.Helper()
+
+	tests := []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{name: "camel case", input: "getUserJSON", want: "get_user_json"},
+		{name: "hard keyword", input: "class", want: "class_"},
+		{name: "soft keyword type", input: "type", want: "type"},
+		{name: "soft keyword match", input: "match", want: "match"},
+		{name: "soft keyword case", input: "case", want: "case"},
+		{name: "leading digit", input: "2fa", want: "field_2fa"},
+		{name: "pydantic protected prefix", input: "model_config", want: "model_config_"},
+		{name: "empty", input: "[]", want: "field"},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := mapName(test.input); got != test.want {
+				t.Errorf("%s(%q) = %q, want %q", methodName, test.input, got, test.want)
+			}
+		})
+	}
+}
+
+func TestMethodName(t *testing.T) {
+	t.Parallel()
+
+	plugin := &python.Python{}
+	testIdentifierName(t, "MethodName", plugin.MethodName)
+}
+
+func TestParameterName(t *testing.T) {
+	t.Parallel()
+
+	plugin := &python.Python{}
+	testIdentifierName(t, "ParameterName", plugin.ParameterName)
+}
+
+func TestBinaryType(t *testing.T) {
+	t.Parallel()
+
+	if got := (&python.Python{}).BinaryType(); got != "bytes" {
+		t.Errorf("BinaryType() = %q, want %q", got, "bytes")
+	}
+}
 
 func TestPyReturnType(t *testing.T) {
 	t.Parallel()
