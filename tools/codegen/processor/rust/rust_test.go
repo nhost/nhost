@@ -214,6 +214,15 @@ func TestRustRender(t *testing.T) {
 			},
 		},
 		{
+			name:        "map-value-fallbacks.yaml",
+			fixturePath: "testdata/map-value-fallbacks.yaml",
+			contains: []string{
+				`pub empty_schema: Option<HashMap<String, serde_json::Value>>,`,
+				`pub described_schema: Option<HashMap<String, serde_json::Value>>,`,
+				`pub empty_object: Option<HashMap<String, serde_json::Value>>,`,
+			},
+		},
+		{
 			name:        "sensitive-fields.yaml",
 			fixturePath: "testdata/sensitive-fields.yaml",
 			contains: []string{
@@ -272,17 +281,35 @@ func TestRustRender(t *testing.T) {
 			fixturePath: "testdata/reserved-type-names.yaml",
 			contains: []string{
 				"pub struct ArcType",
+				"pub struct BoxType",
 				"pub struct ClientType",
 				"pub struct DeserializeType",
 				"pub struct ErrorType",
 				"pub struct ErrorTypeType",
 				"pub struct HashMapType",
+				"pub struct IntoType",
+				"pub struct IntoTypeType",
+				"pub struct OptionType",
 				"pub struct ResponseType",
+				"pub struct ResultType",
+				"pub struct ResultTypeType",
 				"pub struct SelfType",
 				"pub struct SerializeType",
 				"pub struct SessionStorageType",
 				"pub struct SetHeadersType",
 				"pub struct SetRoleType",
+				"pub struct StringType",
+				"pub struct VecType",
+				"pub boxed: Option<Box<String>>",
+				") -> Result<Response<ResultType>, Error> {",
+			},
+			notContains: []string{
+				"pub struct Box {",
+				"pub struct Into {",
+				"pub struct Option {",
+				"pub struct Result {",
+				"pub struct String {",
+				"pub struct Vec {",
 			},
 		},
 	}
@@ -687,10 +714,12 @@ func TestRustRejectsMalformedExtensions(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name      string
-		property  string
-		extension string
-		want      string
+		name           string
+		property       string
+		extension      string
+		mapValue       bool
+		objectMapValue bool
+		want           string
 	}{
 		{
 			name:      "sensitive extension must be true",
@@ -722,11 +751,44 @@ func TestRustRejectsMalformedExtensions(t *testing.T) {
 			extension: `x-rust-type: ""`,
 			want:      "x-rust-type on property \"customField\" of type \"Payload\" must be a non-empty string",
 		},
+		{
+			name:      "map value custom type extension must be string",
+			property:  "labels",
+			extension: "x-rust-type: true",
+			mapValue:  true,
+			want:      "x-rust-type on property \"labels\" of type \"Payload\" map value must be a string",
+		},
+		{
+			name:      "map value custom type extension must not be empty",
+			property:  "labels",
+			extension: `x-rust-type: ""`,
+			mapValue:  true,
+			want:      "x-rust-type on property \"labels\" of type \"Payload\" map value must be a non-empty string",
+		},
+		{
+			name:           "object map value keeps extension locator",
+			property:       "labels",
+			extension:      "x-rust-type: true",
+			objectMapValue: true,
+			want: "x-rust-type on property \"labels\" of type \"Payload\" map value " +
+				"property \"bad\" must be a string",
+		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
+
+			propertySchema := "type: string\n          " + test.extension
+			switch {
+			case test.mapValue:
+				propertySchema = "type: object\n          additionalProperties:\n" +
+					"            type: string\n            " + test.extension
+			case test.objectMapValue:
+				propertySchema = "type: object\n          additionalProperties:\n" +
+					"            type: object\n            properties:\n" +
+					"              bad:\n                type: string\n                " + test.extension
+			}
 
 			spec := fmt.Sprintf(`openapi: "3.0.0"
 paths: {}
@@ -736,9 +798,8 @@ components:
       type: object
       properties:
         %s:
-          type: string
           %s
-`, test.property, test.extension)
+`, test.property, propertySchema)
 
 			path := t.TempDir() + "/malformed-extension.yaml"
 			if err := os.WriteFile(path, []byte(spec), 0o600); err != nil {

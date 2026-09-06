@@ -2,7 +2,17 @@ openapi: 3.0.0
 info:
   title: Reserved Rust type names
   version: 1.0.0
-paths: {}
+paths:
+  /result:
+    get:
+      operationId: getResult
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Result"
 components:
   schemas:
     Arc:
@@ -10,6 +20,17 @@ components:
       properties:
         value:
           type: string
+    Box:
+      type: object
+      properties:
+        value:
+          type: string
+    BoxContainer:
+      type: object
+      properties:
+        boxed:
+          type: string
+          x-rust-type: Box<String>
     Client:
       type: object
       properties:
@@ -35,7 +56,32 @@ components:
       properties:
         value:
           type: string
+    Into:
+      type: object
+      properties:
+        value:
+          type: string
+    IntoType:
+      type: object
+      properties:
+        value:
+          type: string
+    Option:
+      type: object
+      properties:
+        value:
+          type: string
     Response:
+      type: object
+      properties:
+        value:
+          type: string
+    Result:
+      type: object
+      properties:
+        value:
+          type: string
+    ResultType:
       type: object
       properties:
         value:
@@ -61,6 +107,16 @@ components:
         value:
           type: string
     SetRole:
+      type: object
+      properties:
+        value:
+          type: string
+    String:
+      type: object
+      properties:
+        value:
+          type: string
+    Vec:
       type: object
       properties:
         value:
