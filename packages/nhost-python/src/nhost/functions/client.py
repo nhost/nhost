@@ -15,7 +15,13 @@ from ..fetch import (
     create_enhanced_fetch,
 )
 
-_UNSET = object()
+
+class _Unset:
+    def __repr__(self) -> str:
+        return "_UNSET"
+
+
+_UNSET = _Unset()
 
 
 def _is_json_media_type(content_type: str) -> bool:
