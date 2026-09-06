@@ -1117,6 +1117,51 @@ fn native_wasm_feature_retains_file_storage() {
     let _: &dyn session::Backend = &storage;
 }
 
+#[cfg(unix)]
+#[test]
+fn file_storage_keeps_the_refresh_token_private() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let dir = std::env::temp_dir().join(format!(
+        "nhost-session-perms-{}-{:?}",
+        std::process::id(),
+        std::thread::current().id()
+    ));
+    let _ = std::fs::remove_dir_all(&dir);
+    let path = dir.join("nested").join("session.json");
+
+    let storage = session::SessionStorage::new(Box::new(session::FileStorage::new(path.clone())));
+    storage.set(session_with(&token(900))).unwrap();
+
+    let mode = std::fs::metadata(&path).unwrap().permissions().mode() & 0o777;
+    assert_eq!(
+        mode, 0o600,
+        "refresh token file must not be group/world readable"
+    );
+
+    let dir_mode = std::fs::metadata(path.parent().unwrap())
+        .unwrap()
+        .permissions()
+        .mode()
+        & 0o777;
+    assert_eq!(
+        dir_mode, 0o700,
+        "session directory must not be traversable by others"
+    );
+
+    // A file left behind by an older version at a wider mode must be narrowed
+    // rather than kept, since OpenOptions::mode only applies on creation.
+    std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o644)).unwrap();
+    storage.set(session_with(&token(900))).unwrap();
+    let mode = std::fs::metadata(&path).unwrap().permissions().mode() & 0o777;
+    assert_eq!(
+        mode, 0o600,
+        "a pre-existing world-readable file must be narrowed"
+    );
+
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
 #[test]
 fn server_mode_requires_storage() {
     assert!(Nhost::builder().server().build().is_err());
