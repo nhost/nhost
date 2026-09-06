@@ -728,31 +728,36 @@ func newRustObjectContext(
 }
 
 type rustResponseContext struct {
-	ReturnType   string
-	DecodeJSON   bool
-	DecodeBinary bool
+	ReturnType        string
+	DecodeJSON        bool
+	DecodeEmptyAsNull bool
+	DecodeBinary      bool
 }
 
 // newRustResponseContext selects both the public response type and its decoding
 // strategy. Binary responses remain bytes even when the IR also includes void;
-// other multi-type responses use serde_json::Value.
+// other multi-type responses use serde_json::Value, with void represented as
+// null for an empty response body.
 func newRustResponseContext(method *processor.Method) rustResponseContext {
 	returnType := method.ReturnType()
 	variants := strings.Split(returnType, " | ")
+	hasVoid := slices.Contains(variants, "void")
 
 	if slices.Contains(variants, rustBinaryType) {
 		return rustResponseContext{
-			ReturnType:   rustBinaryType,
-			DecodeJSON:   false,
-			DecodeBinary: true,
+			ReturnType:        rustBinaryType,
+			DecodeJSON:        false,
+			DecodeEmptyAsNull: false,
+			DecodeBinary:      true,
 		}
 	}
 
 	if returnType == "" || returnType == "void" {
 		return rustResponseContext{
-			ReturnType:   "()",
-			DecodeJSON:   false,
-			DecodeBinary: false,
+			ReturnType:        "()",
+			DecodeJSON:        false,
+			DecodeEmptyAsNull: false,
+			DecodeBinary:      false,
 		}
 	}
 
@@ -761,9 +766,10 @@ func newRustResponseContext(method *processor.Method) rustResponseContext {
 	}
 
 	return rustResponseContext{
-		ReturnType:   returnType,
-		DecodeJSON:   true,
-		DecodeBinary: false,
+		ReturnType:        returnType,
+		DecodeJSON:        true,
+		DecodeEmptyAsNull: hasVoid,
+		DecodeBinary:      false,
 	}
 }
 
@@ -1014,6 +1020,49 @@ func validateRustExtensions(
 	return "", nil
 }
 
+func validateRustRefreshTokenMethod(method *processor.Method) error {
+	if method.Name() != "refresh_token" {
+		return nil
+	}
+
+	const context = "operation %q generates the special Rust refresh_token_request method"
+
+	switch {
+	case method.IsRedirect():
+		return fmt.Errorf(
+			"%w: "+context+" and must not be a redirect",
+			processor.ErrUnsupportedFeature,
+			method.RawName(),
+		)
+	case method.RequestJSON() == nil:
+		return fmt.Errorf(
+			"%w: "+context+" and must declare an application/json request body",
+			processor.ErrUnsupportedFeature,
+			method.RawName(),
+		)
+	case !method.BodyRequired:
+		return fmt.Errorf(
+			"%w: "+context+" and must require its application/json request body",
+			processor.ErrUnsupportedFeature,
+			method.RawName(),
+		)
+	case method.HasQueryParameters():
+		return fmt.Errorf(
+			"%w: "+context+" and must not declare query parameters",
+			processor.ErrUnsupportedFeature,
+			method.RawName(),
+		)
+	case method.HasHeaderParameters():
+		return fmt.Errorf(
+			"%w: "+context+" and must not declare header parameters",
+			processor.ErrUnsupportedFeature,
+			method.RawName(),
+		)
+	}
+
+	return nil
+}
+
 func validateRustNames(types []processor.Type, methods []*processor.Method) (string, error) {
 	typeNames := make(map[string]string, len(types)+len(methods))
 	for _, typ := range types {
@@ -1039,6 +1088,10 @@ func validateRustNames(types []processor.Type, methods []*processor.Method) (str
 	}
 
 	for _, method := range methods {
+		if err := validateRustRefreshTokenMethod(method); err != nil {
+			return "", err
+		}
+
 		methodName := method.Name()
 		if method.IsRedirect() {
 			methodName += "_url"

@@ -1,0 +1,20 @@
+openapi: "3.0.0"
+
+paths:
+  /item:
+    get:
+      operationId: getItem
+      responses:
+        "200":
+          description: JSON item
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                required:
+                  - id
+        "204":
+          description: No item
