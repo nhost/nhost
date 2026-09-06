@@ -316,14 +316,14 @@ matched != nil ? {
 id = "nhost-project-url"
 description = "Nhost project service URL"
 keywords = ["nhost.run"]
-regex = '''(?i)https://(?P<subdomain>[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)\.(?:hasura|graphql|auth|storage|functions)\.(?P<region>[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)\.nhost\.run(?:[/?#\s"'`),;}\]]|$)'''
+regex = '''(?i)https://(?P<subdomain>(?-i:[a-z]{20}))\.(?:hasura|graphql|auth|storage|functions)\.(?P<region>(?-i:[a-z]{2}-[a-z]+-[1-9][0-9]*(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*))\.nhost\.run(?:[/?#\s"'`),;}\]]|$)'''
 skipReport = true
 
 [[rules]]
 id = "nhost-project-subdomain"
 description = "Nhost project subdomain"
 keywords = ["subdomain"]
-regex = '''(?i)(?:^|[^a-z0-9_])(?:(?:[a-z0-9]+_)*nhost(?:_[a-z0-9]+)*_subdomain(?:_[a-z0-9]+)*|subdomain)["']?[ \t]*(?:=|:)[ \t]*["']?([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)(?:["'\s,;}]|$)'''
+regex = '''(?im)(?:^|[^a-z0-9_])(?:(?:[a-z0-9]+_)*nhost(?:_[a-z0-9]+)*_subdomain(?:_[a-z0-9]+)*|subdomain)["']?[ \t]*(?:=|:)[ \t]*(?-i:(?:"([a-z]{20})"|'([a-z]{20})'|([a-z]{20})))(?:[\s,;\]}]|$)'''
 skipReport = true
 filter = '''finding["secret"] == "local"'''
 
@@ -331,6 +331,6 @@ filter = '''finding["secret"] == "local"'''
 id = "nhost-project-region"
 description = "Nhost project region"
 keywords = ["region"]
-regex = '''(?i)(?:^|[^a-z0-9_])(?:(?:[a-z0-9]+_)*nhost(?:_[a-z0-9]+)*_region(?:_[a-z0-9]+)*|region)["']?[ \t]*(?:=|:)[ \t]*["']?([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)(?:["'\s,;}]|$)'''
+regex = '''(?im)(?:^|[^a-z0-9_])(?:(?:[a-z0-9]+_)*nhost(?:_[a-z0-9]+)*_region(?:_[a-z0-9]+)*|region)["']?[ \t]*(?:=|:)[ \t]*(?-i:(?:"([a-z]{2}-[a-z]+-[1-9][0-9]*(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*)"|'([a-z]{2}-[a-z]+-[1-9][0-9]*(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*)'|([a-z]{2}-[a-z]+-[1-9][0-9]*(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*)))(?:[\s,;\]}]|$)'''
 skipReport = true
 filter = '''finding["secret"] == "local"'''
