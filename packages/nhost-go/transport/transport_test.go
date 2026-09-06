@@ -14,7 +14,18 @@ import (
 	"github.com/nhost/nhost/packages/nhost-go/transport"
 )
 
-var errStopRedirect = errors.New("caller stopped redirect")
+var (
+	errReadResponseBody = errors.New("read response body")
+	errStopRedirect     = errors.New("caller stopped redirect")
+)
+
+type failingReader struct {
+	data string
+}
+
+func (r failingReader) Read(p []byte) (int, error) {
+	return copy(p, r.data), errReadResponseBody
+}
 
 func TestIsLoopbackHost(t *testing.T) {
 	t.Parallel()
@@ -373,13 +384,80 @@ func TestNewHTTPClientStripsCallerCredentialsOnCrossHostRedirect(t *testing.T) {
 	}
 }
 
+func TestNewHTTPClientScopesCredentialsToOrigin(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name              string
+		from              string
+		to                string
+		wantAuthorization string
+		wantAdminSecret   string
+	}{
+		{
+			name:              "same origin",
+			from:              "https://api.example.com/first",
+			to:                "https://API.example.com/second",
+			wantAuthorization: "Bearer caller-token",
+			wantAdminSecret:   "caller-secret",
+		},
+		{
+			name: "scheme downgrade",
+			from: "https://api.example.com/first",
+			to:   "http://api.example.com/second",
+		},
+		{
+			name: "port change",
+			from: "https://api.example.com/first",
+			to:   "https://api.example.com:8443/second",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			from, err := http.NewRequestWithContext(
+				context.Background(), http.MethodGet, tt.from, nil,
+			)
+			if err != nil {
+				t.Fatalf("create origin request: %v", err)
+			}
+
+			to, err := http.NewRequestWithContext(
+				context.Background(), http.MethodGet, tt.to, nil,
+			)
+			if err != nil {
+				t.Fatalf("create redirect request: %v", err)
+			}
+
+			to.Header.Set("Authorization", "Bearer caller-token")
+			to.Header.Set("x-hasura-admin-secret", "caller-secret")
+
+			client := transport.NewHTTPClient(nil)
+			if err := client.CheckRedirect(to, []*http.Request{from}); err != nil {
+				t.Fatalf("check redirect: %v", err)
+			}
+
+			if got := to.Header.Get("Authorization"); got != tt.wantAuthorization {
+				t.Errorf("Authorization = %q, want %q", got, tt.wantAuthorization)
+			}
+
+			if got := to.Header.Get("x-hasura-admin-secret"); got != tt.wantAdminSecret {
+				t.Errorf("x-hasura-admin-secret = %q, want %q", got, tt.wantAdminSecret)
+			}
+		})
+	}
+}
+
 func TestAPIErrorMessageExtraction(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name string
-		body any
-		want string
+		name    string
+		body    any
+		headers http.Header
+		want    string
 	}{
 		{
 			name: "message",
@@ -408,8 +486,41 @@ func TestAPIErrorMessageExtraction(t *testing.T) {
 		},
 		{
 			name: "raw string",
-			body: "upstream unavailable",
+			body: "\n upstream unavailable \t",
 			want: "upstream unavailable",
+		},
+		{
+			name: "empty message falls through to error",
+			body: map[string]any{"message": "  ", "error": "bad input"},
+			want: "bad input",
+		},
+		{
+			name:    "header fallback",
+			body:    nil,
+			headers: http.Header{"X-Error": []string{"you are not authorized"}},
+			want:    "you are not authorized",
+		},
+		{
+			name:    "structured body takes precedence over header",
+			body:    map[string]any{"message": "body message"},
+			headers: http.Header{"X-Error": []string{"header message"}},
+			want:    "body message",
+		},
+		{
+			name:    "blank header falls through to raw body",
+			body:    "body message",
+			headers: http.Header{"X-Error": []string{" \t "}},
+			want:    "body message",
+		},
+		{
+			name: "empty GraphQL messages are omitted",
+			body: map[string]any{
+				"errors": []any{
+					map[string]any{"message": " "},
+					map[string]any{"message": "query failed"},
+				},
+			},
+			want: "query failed",
 		},
 		{
 			name: "empty string fallback",
@@ -425,6 +536,21 @@ func TestAPIErrorMessageExtraction(t *testing.T) {
 			want: "An unexpected error occurred",
 		},
 		{
+			name: "control characters are flattened",
+			body: map[string]any{"message": "first\nsecond\x00third"},
+			want: "first second third",
+		},
+		{
+			name: "long messages are bounded",
+			body: strings.Repeat("a", 2048),
+			want: strings.Repeat("a", 1023) + "…",
+		},
+		{
+			name: "invalid UTF-8 fallback",
+			body: string([]byte{0xff}),
+			want: "An unexpected error occurred",
+		},
+		{
 			name: "nil fallback",
 			body: nil,
 			want: "An unexpected error occurred",
@@ -435,7 +561,7 @@ func TestAPIErrorMessageExtraction(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := transport.NewAPIError(tt.body, http.StatusBadRequest, nil).Error()
+			got := transport.NewAPIError(tt.body, http.StatusBadRequest, tt.headers).Error()
 			if got != tt.want {
 				t.Fatalf("Error() = %q, want %q", got, tt.want)
 			}
@@ -460,13 +586,59 @@ func TestNewAPIErrorFromResponseMessage(t *testing.T) {
 	}
 	defer resp.Body.Close()
 
-	apiErr := transport.NewAPIErrorFromResponse(resp)
+	responseErr := transport.NewAPIErrorFromResponse(resp)
+
+	var apiErr *transport.APIError
+	if !errors.As(responseErr, &apiErr) {
+		t.Fatalf("error type = %T, want *transport.APIError", responseErr)
+	}
+
 	if apiErr.Status != http.StatusBadRequest {
 		t.Fatalf("status = %d", apiErr.Status)
 	}
 
 	if apiErr.Error() != "bad input" {
 		t.Fatalf("message = %q, want %q", apiErr.Error(), "bad input")
+	}
+}
+
+func TestNewAPIErrorFromResponsePropagatesReadError(t *testing.T) {
+	t.Parallel()
+
+	response := &http.Response{
+		StatusCode: http.StatusInternalServerError,
+		Header:     make(http.Header),
+		Body:       io.NopCloser(failingReader{data: `{"message":"partial"}`}),
+	}
+
+	err := transport.NewAPIErrorFromResponse(response)
+	if !errors.Is(err, errReadResponseBody) {
+		t.Fatalf("error = %v, want wrapped %v", err, errReadResponseBody)
+	}
+
+	if !strings.Contains(err.Error(), "read API error response body") {
+		t.Fatalf("error = %q, want read context", err)
+	}
+}
+
+func TestNewAPIErrorFromResponseReadsPreconditionFailureBody(t *testing.T) {
+	t.Parallel()
+
+	response := &http.Response{
+		StatusCode: http.StatusPreconditionFailed,
+		Header:     make(http.Header),
+		Body:       io.NopCloser(strings.NewReader(`{"message":"precondition failed"}`)),
+	}
+
+	responseErr := transport.NewAPIErrorFromResponse(response)
+
+	var apiErr *transport.APIError
+	if !errors.As(responseErr, &apiErr) {
+		t.Fatalf("error type = %T, want *transport.APIError", responseErr)
+	}
+
+	if apiErr.Error() != "precondition failed" {
+		t.Fatalf("message = %q, want precondition failed", apiErr)
 	}
 }
 
@@ -494,4 +666,40 @@ func TestDecodeJSON(t *testing.T) {
 	if out["hello"] != "world" {
 		t.Fatalf("decoded = %v", out)
 	}
+}
+
+func TestDecodeJSONErrorsIncludeContext(t *testing.T) {
+	t.Parallel()
+
+	t.Run("read", func(t *testing.T) {
+		t.Parallel()
+
+		response := &http.Response{
+			StatusCode: http.StatusOK,
+			Body:       io.NopCloser(failingReader{}),
+		}
+
+		err := transport.DecodeJSON(response, &struct{}{})
+		if !errors.Is(err, errReadResponseBody) {
+			t.Fatalf("error = %v, want wrapped %v", err, errReadResponseBody)
+		}
+
+		if !strings.Contains(err.Error(), "read JSON response body") {
+			t.Fatalf("error = %q, want read context", err)
+		}
+	})
+
+	t.Run("decode", func(t *testing.T) {
+		t.Parallel()
+
+		response := &http.Response{
+			StatusCode: http.StatusOK,
+			Body:       io.NopCloser(strings.NewReader("not json")),
+		}
+
+		err := transport.DecodeJSON(response, &struct{}{})
+		if err == nil || !strings.Contains(err.Error(), "decode JSON response body") {
+			t.Fatalf("error = %v, want decode context", err)
+		}
+	})
 }
