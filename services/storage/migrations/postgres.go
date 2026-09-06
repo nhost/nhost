@@ -14,9 +14,8 @@ import (
 )
 
 const (
-	schemaName                   = "storage"
-	postgresMigrationPath        = "postgres"
-	postgresMigrationTarget uint = 5
+	schemaName            = "storage"
+	postgresMigrationPath = "postgres"
 )
 
 //go:embed postgres/*.sql
@@ -29,7 +28,6 @@ type postgresMigrator func(
 	fsys fs.FS,
 	migrationPath string,
 	schema string,
-	target uint,
 ) error
 
 func ApplyPostgresMigration(
@@ -70,7 +68,6 @@ func runPostgresMigration(
 		postgresMigrations,
 		postgresMigrationPath,
 		schemaName,
-		postgresMigrationTarget,
 	); err != nil {
 		return fmt.Errorf("problem migrating postgres: %w", err)
 	}
