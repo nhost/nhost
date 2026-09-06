@@ -1,8 +1,14 @@
 # notes-cli (Go)
 
 A note-taking CLI built on the [Nhost Go SDK](../../), demonstrating **Auth**,
-**GraphQL**, **Storage**, and **Functions**. This directory is the completed
-source for the [Notes CLI with Nhost and Go tutorial](https://docs.nhost.io/getting-started/tutorials/go/1-introduction).
+**GraphQL**, **Storage**, and **Functions**. It accompanies the
+[Notes CLI with Nhost and Go tutorial](https://docs.nhost.io/getting-started/tutorials/go/1-introduction),
+but it is a superset rather than a copy: it carries this repository's lint
+scaffolding and commands the tutorial never introduces, and some flag surfaces
+differ from the tutorial's smaller teaching program — `new TITLE --content`
+here versus `new TITLE [CONTENT]` there, `tag add NOTE_ID TAG_NAME` versus a
+flat `tag NOTE_ID TAG_NAME`, and `share --role` versus a positional `ROLE`. Run
+the commands as `--help` prints them for whichever program you are using.
 
 ## Prepare the backend
 
@@ -59,5 +65,6 @@ The session is persisted to `~/.config/nhost-notes/session.json` (override with
 the access token automatically. Point at a different project with
 `NHOST_SUBDOMAIN` / `NHOST_REGION`.
 
-Arg parsing uses [cobra](https://github.com/spf13/cobra); run `go run . --help`
-(or `go run . <command> --help`) for the full, generated command list.
+Arg parsing uses [urfave/cli v3](https://github.com/urfave/cli); run
+`go run . --help` (or `go run . <command> --help`) for the full, generated
+command list.
