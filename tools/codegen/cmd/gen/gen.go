@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/nhost/nhost/tools/codegen/processor"
 	"github.com/nhost/nhost/tools/codegen/processor/golang"
@@ -18,12 +20,11 @@ const (
 	flagOpenAPIFile = "openapi-file"
 	flagOutputFile  = "output-file"
 	flagPlugin      = "plugin"
-	flagPackage     = "package"
 )
 
 var (
-	errPackageOnlySupportedByGo = errors.New("--package is only supported by the go plugin")
-	errUnsupportedPlugin        = errors.New("unsupported plugin")
+	errOutputPathEndsWithSeparator = errors.New("output path ends with a separator")
+	errUnsupportedPlugin           = errors.New("unsupported plugin")
 )
 
 func Command() *cli.Command {
@@ -50,32 +51,37 @@ func Command() *cli.Command {
 				Required: true,
 				Sources:  cli.EnvVars("PLUGIN"),
 			},
-			&cli.StringFlag{ //nolint:exhaustruct
-				Name:  flagPackage,
-				Usage: "Package name for the generated code (required for go plugin)",
-			},
 		},
 	}
 }
 
-func newPlugin(pluginName, packageName string) (processor.Plugin, error) { //nolint:ireturn
+func newPlugin(pluginName, outputFile string) (processor.Plugin, error) { //nolint:ireturn
 	switch pluginName {
 	case "typescript":
-		if packageName != "" {
-			return nil, errPackageOnlySupportedByGo
-		}
-
 		return &typescript.Typescript{}, nil
 	case "rust":
-		if packageName != "" {
-			return nil, errPackageOnlySupportedByGo
-		}
-
 		return &rust.Rust{}, nil
 	case "go":
+		if strings.HasSuffix(outputFile, string(filepath.Separator)) {
+			return nil, fmt.Errorf(
+				"cannot infer Go package from output path %q: %w and does not name an output file; "+
+					"put the output file in a directory named after the package",
+				outputFile,
+				errOutputPathEndsWithSeparator,
+			)
+		}
+
+		packageName := filepath.Base(filepath.Dir(outputFile))
+
 		goPlugin, err := golang.New(packageName)
 		if err != nil {
-			return nil, fmt.Errorf("invalid --package: %w", err)
+			return nil, fmt.Errorf(
+				"cannot infer Go package from output path %q: directory component %q is not a valid Go package name; "+
+					"put the output file in a directory named after the package: %w",
+				outputFile,
+				packageName,
+				err,
+			)
 		}
 
 		return goPlugin, nil
@@ -87,7 +93,9 @@ func newPlugin(pluginName, packageName string) (processor.Plugin, error) { //nol
 func action(_ context.Context, c *cli.Command) error {
 	fmt.Println("Generating code...") //nolint:forbidigo
 
-	p, err := newPlugin(c.String(flagPlugin), c.String(flagPackage))
+	outputFile := c.String(flagOutputFile)
+
+	p, err := newPlugin(c.String(flagPlugin), outputFile)
 	if err != nil {
 		return cli.Exit(err.Error(), 1)
 	}
@@ -117,7 +125,7 @@ func action(_ context.Context, c *cli.Command) error {
 	}
 
 	f, err := os.OpenFile(
-		c.String(flagOutputFile),
+		outputFile,
 		os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
 		0o644, //nolint:mnd
 	)
@@ -130,7 +138,7 @@ func action(_ context.Context, c *cli.Command) error {
 		return cli.Exit(fmt.Sprintf("failed to write output: %v", err), 1)
 	}
 
-	fmt.Printf("Code generated successfully to %s\n", c.String(flagOutputFile)) //nolint:forbidigo
+	fmt.Printf("Code generated successfully to %s\n", outputFile) //nolint:forbidigo
 
 	return nil
 }
