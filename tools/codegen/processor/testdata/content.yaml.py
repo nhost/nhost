@@ -2,23 +2,24 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping, Sequence
 from typing import Any, Literal
 from urllib.parse import quote
 
 import httpx
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AnyUrl, BaseModel, ConfigDict, Field
 
 from ..fetch import (
     ChainFunction,
-    FetchError,
     FetchResponse,
+    HTTPError,
     create_enhanced_fetch,
     decode_json,
     to_json,
     to_jsonable,
 )
 
-_REDIRECT_STATUS = 300
+_MIN_ERROR_STATUS = 400
 
 def _escape_path(value: object) -> str:
     segment = str(value)
@@ -57,7 +58,7 @@ def _query_parameter(name: str, value: Any, style: str, explode: bool) -> list[t
 
 class ErrorResponseError(BaseModel):
     """Error details."""
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     message: str = Field(
         description='Human-readable error message.\n\nExample: "File not found"',
@@ -65,7 +66,7 @@ class ErrorResponseError(BaseModel):
 
 class ErrorResponse(BaseModel):
     """Error information returned by the API."""
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     error: ErrorResponseError | None = Field(
         default=None,
@@ -73,7 +74,7 @@ class ErrorResponse(BaseModel):
     )
 
 class ProviderSpecificParams(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     connection: str | None = Field(
         default=None,
@@ -88,7 +89,7 @@ SignInProvider = Literal["apple", "github", "google", "linkedin", "discord", "sp
 
 
 class SignInProviderParams(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
 
     allowed_roles: list[str] | None = Field(
         default=None,
@@ -123,7 +124,7 @@ class SignInProviderParams(BaseModel):
             '{"firstName":"John","lastName":"Smith"}'
         ),
     )
-    redirect_to: str | None = Field(
+    redirect_to: AnyUrl | None = Field(
         default=None,
         alias="redirectTo",
         description=(
@@ -150,13 +151,26 @@ class Client:
     def __init__(
         self,
         base_url: str,
-        chain_functions: list[ChainFunction] | None = None,
+        *,
+        chain_functions: Sequence[ChainFunction] = (),
         http_client: httpx.AsyncClient | None = None,
     ) -> None:
         self.base_url = base_url
-        self._chain_functions: list[ChainFunction] = list(chain_functions or [])
+        self._chain_functions = list(chain_functions)
+        self._owns_http_client = http_client is None
         self._http = http_client if http_client is not None else httpx.AsyncClient()
         self._fetch = create_enhanced_fetch(self._http, self._chain_functions)
+
+    async def __aenter__(self) -> Client:
+        return self
+
+    async def __aexit__(self, *_: object) -> None:
+        await self.aclose()
+
+    async def aclose(self) -> None:
+        """Close the internally owned HTTP client, if any."""
+        if self._owns_http_client:
+            await self._http.aclose()
 
     def push_chain_function(self, chain_function: ChainFunction) -> None:
         """Append a middleware chain function and rebuild the fetch pipeline."""
@@ -167,6 +181,7 @@ class Client:
     def sign_in_provider_url(
         self,
         provider: SignInProvider,
+        *,
         params: SignInProviderParams | None = None,
     ) -> str:
         (
@@ -204,11 +219,12 @@ class Client:
 
 def create_api_client(
     base_url: str,
-    chain_functions: list[ChainFunction] | None = None,
+    *,
+    chain_functions: Sequence[ChainFunction] = (),
     http_client: httpx.AsyncClient | None = None,
 ) -> Client:
-    """Create a new API client."""
-    return Client(base_url, chain_functions, http_client)
+    """Create a generated API client."""
+    return Client(base_url, chain_functions=chain_functions, http_client=http_client)
 
 __all__ = [
     "ErrorResponseError",

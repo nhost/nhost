@@ -7,17 +7,23 @@ from __future__ import annotations
 {{ if or (pyAnyQueryParameters .Methods) (pyAnyHeaderParameters .Methods) -}}
 import json
 {{ end -}}
+from collections.abc import Mapping, Sequence
+{{ if or (pyUsesDate .Types .Methods) (pyUsesDateTime .Types .Methods) -}}
+from datetime import {{ if pyUsesDate .Types .Methods }}date{{ if pyUsesDateTime .Types .Methods }}, {{ end }}{{ end }}{{ if pyUsesDateTime .Types .Methods }}datetime{{ end }}
+{{ end -}}
 from typing import Any, Literal
 {{ if pyAnyPathParameters .Methods -}}
 from urllib.parse import quote
+{{ end -}}
+{{ if pyUsesUUID .Types .Methods }}from uuid import UUID
 {{ end }}
 import httpx
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import {{ if pyUsesURI .Types .Methods }}AnyUrl, {{ end }}BaseModel, ConfigDict, Field
 
 from ..fetch import (
     ChainFunction,
-    FetchError,
     FetchResponse,
+    HTTPError,
 {{- if pyAnyMultipartMethods .Methods }}
     UploadFile,
 {{- end }}
@@ -30,7 +36,7 @@ from ..fetch import (
     to_jsonable,
 )
 
-_REDIRECT_STATUS = 300
+_MIN_ERROR_STATUS = 400
 
 {{ if pyAnyPathParameters .Methods -}}
 def _escape_path(value: object) -> str:
@@ -102,7 +108,7 @@ def _header_value(value: Any, explode: bool) -> str:
 {{ range .Methods }}
 {{- if pyHasRequestParameters . }}
 class {{ pascal .Name }}Params(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
 {{ range .QueryParameters }}
     {{ pyParamField . .Parameter.Description .Type.Schema.Schema.Description (example .Type) (pattern .Type) (format .Type) }}
 {{- end }}
