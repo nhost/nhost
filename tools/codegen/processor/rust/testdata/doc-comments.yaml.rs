@@ -71,107 +71,42 @@ fn push_query(
 }
 
 
-/// Enumeration of possible status values.
+/// Ordered choices:
+/// 1\. First choice
+/// 2\) Second choice
 ///
-/// One of: "active", "inactive", "pending".
-pub type StatusEnum = String;
-
-/// Status of the object.
-///
-/// One of: "active", "inactive", "pending".
-pub type SimpleObjectStatus = String;
-
-/// Status code of the object.
-///
-/// One of: 0, 1, 2.
-pub type SimpleObjectStatusCode = serde_json::Value;
-
-/// Integer status of the object.
-///
-/// One of: 0, 1, 2.
-pub type SimpleObjectStatusInt = i64;
-
-/// Some people just want to see the world burn.
-///
-/// One of: 0, "One", true.
-pub type SimpleObjectStatusMixed = serde_json::Value;
+/// One of: "first", "second".
+pub type HostileChoice = String;
 
 
-/// Nested object containing additional properties.
+/// Payload \[documentation\] contains \`ticks\`, \*/ and a \\ backslash.
+/// &#32;&#32;&#32;&#32;compile\_error\!("indented type doctest must remain text");
+/// \`\`\`rust
+/// compile\_error\!("fenced type doctest must remain text");
+/// \`\`\`
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SimpleObjectNested {
-    /// Unique identifier for the nested object.
-    #[serde(rename = "nestedId")]
-    pub nested_id: String,
-    /// Data associated with the nested object.
-    #[serde(rename = "nestedData", skip_serializing_if = "Option::is_none", default)]
-    pub nested_data: Option<String>,
+pub struct HostilePayload {
+    /// Field \[documentation\] with \`ticks\`, \*/ and a \\ backslash.
+    pub value: String,
 }
 
 
-/// This is a simple object schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SimpleObject {
-    /// Unique identifier for the object.
-    pub id: String,
-    /// Indicates if the object is active.
-    pub active: bool,
-    /// Age of the object in years.
-    pub age: f64,
-    /// Timestamp when the file was created.
-    #[serde(rename = "createdAt")]
-    pub created_at: String,
-    /// Custom metadata associated with the file.
-    pub metadata: Option<serde_json::Value>,
-    /// Always\-present metadata that may be null.
-    #[serde(rename = "requiredNullableMetadata")]
-    pub required_nullable_metadata: Option<serde_json::Value>,
-    /// Always\-present string that may be null.
-    #[serde(rename = "requiredNullableString")]
-    pub required_nullable_string: Option<String>,
-    /// Always\-present array that may be null.
-    #[serde(rename = "requiredNullableArray")]
-    pub required_nullable_array: Option<Vec<String>>,
-    /// Optional nickname declared nullable in OpenAPI.
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub nickname: Option<String>,
-    /// Optional free\-form object declared nullable in OpenAPI.
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub extra: Option<serde_json::Value>,
-    /// Array whose individual items may be null.
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub aliases: Option<Vec<Option<String>>>,
-    /// Typed map whose values may be null.
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub labels: Option<HashMap<String, Option<String>>>,
-    /// Optional array declared nullable in OpenAPI.
-    #[serde(rename = "nullableTags", skip_serializing_if = "Option::is_none", default)]
-    pub nullable_tags: Option<Vec<String>>,
-    /// Base64 encoded data of the file.
-    pub data: Vec<u8>,
-    /// List of tags associated with the object.
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub tags: Option<Vec<String>>,
-    /// Status of the object.
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub status: Option<SimpleObjectStatus>,
-    /// Status code of the object.
-    #[serde(rename = "statusCode", skip_serializing_if = "Option::is_none", default)]
-    pub status_code: Option<SimpleObjectStatusCode>,
-    /// Integer status of the object.
-    #[serde(rename = "statusInt", skip_serializing_if = "Option::is_none", default)]
-    pub status_int: Option<SimpleObjectStatusInt>,
-    /// Some people just want to see the world burn.
-    #[serde(rename = "statusMixed", skip_serializing_if = "Option::is_none", default)]
-    pub status_mixed: Option<SimpleObjectStatusMixed>,
-    /// Enumeration of possible status values.
-    #[serde(rename = "statusRef", skip_serializing_if = "Option::is_none", default)]
-    pub status_ref: Option<StatusEnum>,
-    /// Nested object containing additional properties.
-    #[serde(skip_serializing_if = "Option::is_none", default)]
-    pub nested: Option<SimpleObjectNested>,
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct HostileDocsParams {
+    /// Query \[details\] with \`formatting\` and \*/
+    #[serde(rename = "includeDetails", skip_serializing_if = "Option::is_none", default)]
+    pub include_details: Option<bool>,
 }
 
+impl HostileDocsParams {
+    fn to_query(&self) -> Vec<(String, String)> {
+        let mut q: Vec<(String, String)> = Vec::new();
+        if let Some(v) = &self.include_details {
+            q.push(("includeDetails".to_string(), v.to_string()));
+        }
+        q
+    }
+}
 
 fn urlencode(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
@@ -264,6 +199,50 @@ impl Client {
             scoped_middleware,
             session_sink: self.session_sink.clone(),
         }
+    }
+
+
+    /// Hostile \`summary\` with \[brackets\], a backslash \\, and \*/
+    ///
+    /// Method prose preserves \`backticks\`, \[square brackets\], and a \\ backslash.
+    /// &#32;&#32;&#32;&#32;compile\_error\!("indented method doctest must remain text");
+    /// \~\~\~rust
+    /// compile\_error\!("fenced method doctest must remain text");
+    /// \~\~\~
+    /// Final steps:
+    /// 1\. Validate input
+    /// 2\) Persist the result
+    ///
+    /// Performs GET /hostile.
+    pub async fn hostile_docs(
+        &self,
+        params: Option<HostileDocsParams>,
+    ) -> Result<Response<HostilePayload>, Error> {
+        let url = http::append_path(self.base_url.as_str(), &["hostile"])?;
+        let mut request = self.http.request(reqwest::Method::GET, url);
+        if let Some(p) = &params {
+            request = request.query(&p.to_query());
+        }
+        let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
+        let body = serde_json::from_slice(&bytes)?;
+        Ok(Response {
+            body,
+            status,
+            headers,
+        })
+    }
+
+
+    /// Redirect steps:
+    /// 1\. Validate redirect
+    /// 2\) Follow the redirect
+    ///
+    /// Builds the URL for GET /redirect without following the redirect.
+    pub fn redirect_docs_url(
+        &self,
+    ) -> Result<String, Error> {
+        let mut url = http::append_path(self.base_url.as_str(), &["redirect"])?.to_string();
+        Ok(url)
     }
 
 }
