@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import inspect
 import json
 import logging
 import os
@@ -494,6 +495,14 @@ async def test_graphql_validates_typed_response_data() -> None:
     assert response.body.data.viewer.id == "user-1"
 
 
+def test_sentinel_defaults_have_stable_repr() -> None:
+    http_error_body = inspect.signature(HTTPError.from_response).parameters["body"].default
+    functions_json = inspect.signature(FunctionsClient.fetch).parameters["json"].default
+
+    assert repr(http_error_body) == "_MISSING"
+    assert repr(functions_json) == "_UNSET"
+
+
 async def test_functions_decodes_by_content_type() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         if request.url.path.endswith("/json"):
@@ -526,9 +535,13 @@ async def test_functions_supports_explicit_json_null_and_structured_json() -> No
         )
 
     async with build_client(handler) as nhost:
+        await nhost.functions.fetch("/omitted", method="POST")
         response = await nhost.functions.fetch("/problem", method="POST", json=None)
 
-    assert requests[0].content == b"null"
+    assert requests[0].content == b""
+    assert "content-type" not in requests[0].headers
+    assert requests[1].content == b"null"
+    assert requests[1].headers["content-type"] == "application/json"
     assert response.body == {"title": "ok"}
 
 

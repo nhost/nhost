@@ -28,7 +28,14 @@ ChainFunction = Callable[[FetchFunction], FetchFunction]
 
 _MIN_ERROR_STATUS = 400
 _NO_BODY_STATUSES = frozenset({204, 205, 304})
-_MISSING = object()
+
+
+class _Missing:
+    def __repr__(self) -> str:
+        return "_MISSING"
+
+
+_MISSING = _Missing()
 
 
 def create_enhanced_fetch(
