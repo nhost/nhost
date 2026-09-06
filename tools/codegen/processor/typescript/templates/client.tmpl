@@ -38,7 +38,7 @@ export interface Client {
     {{ .Name }}: {{ .Type.Name }},
     {{- end }}
     {{- range $code, $type := .Bodies }}
-    body{{ if not $method.BodyRequired }}?{{ end }}: {{ $type.Name }},
+    body{{ if $method.BodyRequired }}: {{ $type.Name }}{{ else if $method.HasRequiredQueryParameters }}: {{ $type.Name }} | undefined{{ else }}?: {{ $type.Name }}{{ end }},
     {{- end }}
     {{- if .HasQueryParameters }}
     params?: {{ title $method.Name }}Params,
@@ -78,7 +78,7 @@ export const createAPIClient = (
     {{- end }}
     {{- range $code, $type := .Bodies }}
   {{- if not $method.IsRedirect }}
-    body{{ if not $method.BodyRequired }}?{{ end }}: {{ $type.Name }},
+    body{{ if $method.BodyRequired }}: {{ $type.Name }}{{ else if $method.HasRequiredQueryParameters }}: {{ $type.Name }} | undefined{{ else }}?: {{ $type.Name }}{{ end }},
   {{- end }}
     {{- end }}
     {{- if .HasQueryParameters }}
