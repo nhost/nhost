@@ -3185,7 +3185,7 @@ All of the user's existing sessions are revoked atomically as part of this opera
 
      As this method is a redirect, it returns a URL string instead of a Promise
      */
-  verifyTicketURL(params?: VerifyTicketParams, options?: RequestInit): string;
+  verifyTicketURL(params: VerifyTicketParams, options?: RequestInit): string;
 
   /**
      Summary: Get service version
@@ -3227,7 +3227,7 @@ All of the user's existing sessions are revoked atomically as part of this opera
      As this method is a redirect, it returns a URL string instead of a Promise
      */
   oauth2AuthorizeURL(
-    params?: Oauth2AuthorizeParams,
+    params: Oauth2AuthorizeParams,
     options?: RequestInit,
   ): string;
 
@@ -3317,7 +3317,7 @@ All of the user's existing sessions are revoked atomically as part of this opera
      - 200: OAuth2LoginResponse
      */
   oauth2LoginGet(
-    params?: Oauth2LoginGetParams,
+    params: Oauth2LoginGetParams,
     options?: RequestInit,
   ): Promise<FetchResponse<OAuth2LoginResponse>>;
 
@@ -4956,7 +4956,7 @@ export const createAPIClient = (
     } as FetchResponse<SessionPayload>;
   };
 
-  const verifyTicketURL = (params?: VerifyTicketParams): string => {
+  const verifyTicketURL = (params: VerifyTicketParams): string => {
     const encodedParameters =
       params &&
       Object.entries(params)
@@ -5076,7 +5076,7 @@ export const createAPIClient = (
     } as FetchResponse<OAuth2DiscoveryResponse>;
   };
 
-  const oauth2AuthorizeURL = (params?: Oauth2AuthorizeParams): string => {
+  const oauth2AuthorizeURL = (params: Oauth2AuthorizeParams): string => {
     const encodedParameters =
       params &&
       Object.entries(params)
@@ -5362,7 +5362,7 @@ export const createAPIClient = (
   };
 
   const oauth2LoginGet = async (
-    params?: Oauth2LoginGetParams,
+    params: Oauth2LoginGetParams,
     options?: RequestInit,
   ): Promise<FetchResponse<OAuth2LoginResponse>> => {
     const encodedParameters =
