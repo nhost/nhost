@@ -618,15 +618,19 @@ func pythonModuleNames(methods []*processor.Method) map[string]string {
 		"FetchResponse":         `generated import "FetchResponse"`,
 		"Field":                 `generated import "Field"`,
 		"Literal":               `generated import "Literal"`,
-		"UploadFile":            `generated import "UploadFile"`,
+		"_REDIRECT_STATUS":      "generated HTTP status constant",
 		"create_api_client":     `generated function "create_api_client"`,
 		"create_enhanced_fetch": `generated import "create_enhanced_fetch"`,
 		"decode_json":           `generated import "decode_json"`,
 		"httpx":                 `generated import "httpx"`,
-		"to_file_part":          `generated import "to_file_part"`,
 		"to_json":               `generated import "to_json"`,
 		"to_jsonable":           `generated import "to_jsonable"`,
 	}
+	if hasMultipartMethods(methods) {
+		names["UploadFile"] = `generated import "UploadFile"`
+		names["to_file_part"] = `generated import "to_file_part"`
+	}
+
 	if hasPathParameters(methods) {
 		names["quote"] = `generated import "quote"`
 		names["_escape_path"] = "generated path escaping helper"
@@ -937,6 +941,16 @@ func hasPathParameters(methods []*processor.Method) bool {
 	return false
 }
 
+func hasMultipartMethods(methods []*processor.Method) bool {
+	for _, method := range methods {
+		if method.RequestFormData() != nil {
+			return true
+		}
+	}
+
+	return false
+}
+
 func hasHeaderParameters(methods []*processor.Method) bool {
 	for _, method := range methods {
 		if !method.IsRedirect() && method.HasHeaderParameters() {
@@ -1073,6 +1087,7 @@ func (p *Python) GetFuncMap() map[string]any {
 		"pyAnyQueryParameters":           hasQueryParameters,
 		"pyAnyPathParameters":            hasPathParameters,
 		"pyAnyHeaderParameters":          hasHeaderParameters,
+		"pyAnyMultipartMethods":          hasMultipartMethods,
 		// pyReturnType turns the shared IR return type expression into a valid
 		// runtime Python type expression usable inside a pydantic TypeAdapter.
 		// Method.ReturnType() joins multiple 2xx media/void results with " | ",
