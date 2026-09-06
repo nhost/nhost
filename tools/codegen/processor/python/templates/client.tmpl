@@ -1,5 +1,5 @@
 {{- define "query" }}
-        query: list[tuple[str, str]] = []
+        query: list[tuple[str, str | int | float | bool | None]] = []
 {{- $paramsRequired := pyHasRequiredRequestParameters . }}
 {{- range .QueryParameters }}
 {{- if .Required }}
@@ -130,13 +130,13 @@
 {{- end }}
 {{- else if eq .Type.Kind "array" }}
         if {{ if not $m.BodyRequired }}body is not None and {{ end }}body.{{ .Name }} is not None:
-            for _item in body.{{ .Name }}:
+            for _item_{{ .Name }} in body.{{ .Name }}:
 {{- if pyIsBinary .Type.Item }}
-                _files.append(({{ pyStr .RawName }}, to_file_part(_item)))
+                _files.append(({{ pyStr .RawName }}, to_file_part(_item_{{ .Name }})))
 {{- else if eq .Type.Item.Kind "scalar" }}
-                _files.append(({{ pyStr .RawName }}, _item))
+                _files.append(({{ pyStr .RawName }}, _item_{{ .Name }}))
 {{- else }}
-                _files.append(({{ pyStr .RawName }}, (None, to_json(_item), {{ pyStr ($m.MultipartContentType .) }})))
+                _files.append(({{ pyStr .RawName }}, (None, to_json(_item_{{ .Name }}), {{ pyStr ($m.MultipartContentType .) }})))
 {{- end }}
 {{- else }}
         if {{ if not $m.BodyRequired }}body is not None and {{ end }}body.{{ .Name }} is not None:
@@ -168,7 +168,7 @@
         )
 {{- end }}
         response = await self._fetch(request)
-        if response.status_code >= 300:
+        if response.status_code >= _REDIRECT_STATUS:
             raise FetchError.from_response(response)
 {{- if .ResponseJSON }}
         payload = decode_json(response, {{ pyReturnType .ReturnType }})
