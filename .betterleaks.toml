@@ -245,39 +245,92 @@ finding["secret"] in [
 [extend]
 useDefault = true
 
+# - The helpers below find project details in the same diff chunk.
+# - We try those projects, plus prod and staging. CI only fails if a secret works.
 [[rules]]
 id = "nhost-hasura-admin-secret"
-description = "Nhost-generated Hasura admin secret"
-keywords = ["nhost_admin_secret", "hasura_graphql_admin_secret", "adminsecret", "admin_secret", "admin-secret"]
-regex = '''(?i)(?:nhost_admin_secret|hasura_graphql_admin_secret|admin[_-]?secret)["']?[ \t]{0,5}(?:=|:)[ \t]{0,5}["']?([A-Za-z0-9!@#$%^&*()=_+;':,-]{32})(?:["']|[ \t\r\n;,#]|$)'''
+description = "Nhost Hasura admin secret"
+keywords = ["adminsecret", "admin_secret", "admin-secret"]
+regex = '''(?i)(?:^|[^a-z0-9_])(?:(?:(?:[a-z0-9]+_)*(?:nhost(?:_[a-z0-9]+)*|hasura(?:_graphql)?|constellation)_admin_secret(?:_[a-z0-9]+)*|x-hasura-admin-secret|admin[_-]?secret)["']?[ \t]*(?:=|:)[ \t]*|--admin-secret(?:[ \t]*=[ \t]*|[ \t]+))(?:"(?P<double_quoted>(?:\\.|[^"\\\r\n])+)"|'([^'\r\n]+)'|([^\s"'`$;,{}()\[\]][^\s"'`;,{}()\[\]]*))'''
 confidence = "high"
-validate = '''
-let production = http.post(
-  "https://otsispdzcwxyqzbfntmj.hasura.eu-central-1.nhost.run/v1/metadata",
-  {
-    "Content-Type": "application/json",
-    "X-Hasura-Admin-Secret": finding["secret"]
-  },
-  "{\"type\":\"get_inconsistent_metadata\",\"args\":{}}"
-);
-production.status == 200 ? {
-  "result": "valid",
-  "environment": "production"
-} : (
-  let staging = http.post(
-    "https://mytpiiwxeyrvlqrxuknp.hasura.eu-central-1.nhost.run/v1/metadata",
-    {
-      "Content-Type": "application/json",
-      "X-Hasura-Admin-Secret": finding["secret"]
-    },
-    "{\"type\":\"get_inconsistent_metadata\",\"args\":{}}"
-  );
-  staging.status == 200 ? {
-    "result": "valid",
-    "environment": "staging"
-  } : production.status in [401, 403] && staging.status in [401, 403] ? {
-    "result": "invalid",
-    "reason": "Rejected by both configured Nhost projects"
-  } : production.status not in [401, 403] ? validate.unknown(production) : validate.unknown(staging)
-)
+components = [
+  { id = "nhost-project-url", optional = true },
+  { id = "nhost-project-subdomain", optional = true },
+  { id = "nhost-project-region", optional = true },
+]
+filter = '''
+filter.matchesAny(finding["secret"], [
+  `^\$\{`,
+  `^\{\{`,
+  `^(?:process\.env\b|os\.(?:Getenv|LookupEnv)\b)`,
+])
 '''
+validate = '''
+let doubleQuoted = finding["captures"]?.double_quoted ?? "";
+let adminSecret = doubleQuoted != ""
+  ? fromJSON("\"" + doubleQuoted + "\"")
+  : finding["secret"];
+let projectURL = components["nhost-project-url"]?.captures;
+let subdomain = components["nhost-project-subdomain"]?.secret ?? "";
+let region = components["nhost-project-region"]?.secret ?? "";
+let targets = uniq([
+  projectURL != nil
+    ? "https://" + projectURL.subdomain + ".hasura." + projectURL.region + ".nhost.run/v1/metadata"
+    : "",
+  subdomain != "" && region != ""
+    ? "https://" + subdomain + ".hasura." + region + ".nhost.run/v1/metadata"
+    : "",
+  "https://otsispdzcwxyqzbfntmj.hasura.eu-central-1.nhost.run/v1/metadata",
+  "https://mytpiiwxeyrvlqrxuknp.hasura.eu-central-1.nhost.run/v1/metadata",
+]);
+let matched = find(targets, {
+  # != "" && (
+    let response = http.post(
+      #,
+      {
+        "Content-Type": "application/json",
+        "X-Hasura-Admin-Secret": adminSecret
+      },
+      "{\"type\":\"get_inconsistent_metadata\",\"args\":{}}"
+    );
+    response.status == 200 && response.json?.is_consistent in [true, false]
+  )
+});
+matched != nil ? {
+  "result": "valid",
+  "endpoint": matched
+} : {
+  "result": "unknown",
+  "reason": "Not confirmed against discovered or configured Nhost projects"
+}
+'''
+
+
+
+
+
+# Helpers to find Nhost project details in the same diff chunk.
+# =============================================================
+
+[[rules]]
+id = "nhost-project-url"
+description = "Nhost project service URL"
+keywords = ["nhost.run"]
+regex = '''(?i)https://(?P<subdomain>[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)\.(?:hasura|graphql|auth|storage|functions)\.(?P<region>[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)\.nhost\.run(?:[/?#\s"'`),;}\]]|$)'''
+skipReport = true
+
+[[rules]]
+id = "nhost-project-subdomain"
+description = "Nhost project subdomain"
+keywords = ["subdomain"]
+regex = '''(?i)(?:^|[^a-z0-9_])(?:(?:[a-z0-9]+_)*nhost(?:_[a-z0-9]+)*_subdomain(?:_[a-z0-9]+)*|subdomain)["']?[ \t]*(?:=|:)[ \t]*["']?([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)(?:["'\s,;}]|$)'''
+skipReport = true
+filter = '''finding["secret"] == "local"'''
+
+[[rules]]
+id = "nhost-project-region"
+description = "Nhost project region"
+keywords = ["region"]
+regex = '''(?i)(?:^|[^a-z0-9_])(?:(?:[a-z0-9]+_)*nhost(?:_[a-z0-9]+)*_region(?:_[a-z0-9]+)*|region)["']?[ \t]*(?:=|:)[ \t]*["']?([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)(?:["'\s,;}]|$)'''
+skipReport = true
+filter = '''finding["secret"] == "local"'''

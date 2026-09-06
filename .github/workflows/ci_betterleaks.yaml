@@ -43,7 +43,7 @@ jobs:
 
       - name: "Scan git history for leaked secrets"
         run: |
-          nix develop .\#betterleaks -c betterleaks git . \
+          nix develop .\#betterleaks git . \
             --log-opts='--diff-merges=first-parent origin/main..HEAD' \
             --no-banner \
             --no-color \
@@ -52,7 +52,7 @@ jobs:
             --confidence medium \
             --validation \
             --validation-status valid \
-            --validation-max-requests 100 \
+            --validation-max-requests 1000 \
             --validation-rps 5 \
             --timeout 900
 
