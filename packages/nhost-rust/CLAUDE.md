@@ -92,6 +92,13 @@ code for crate conventions.
   `crate::http::build_client` assembles a `ClientWithMiddleware` from a base
   `reqwest::Client` + an ordered `Vec<Arc<dyn Middleware>>`. Middleware is
   request-side only (attach token, refresh, role/headers/admin).
+- **Persisted credentials are owner-only.** `StoredSession` serializes the
+  long-lived refresh token, so `FileStorage` writes `0o600` and creates parent
+  directories `0o700`, matching the Nhost CLI (`cli/clienv/wf_marshal.go`). Set
+  the mode when the file is opened, never with a later `chmod`, which would
+  leave the token briefly readable; and keep narrowing files that already exist,
+  because `OpenOptions::mode` only applies on creation. Pinned by
+  `file_storage_keeps_the_refresh_token_private` in `tests/unit.rs`.
 - **Session updates are NOT middleware.** A browser `reqwest::Response` cannot
   be rebuilt from buffered bytes, so the JS SDK's response-sniffing middleware
   is impossible on wasm. Instead `crate::http::send` buffers the response and,
