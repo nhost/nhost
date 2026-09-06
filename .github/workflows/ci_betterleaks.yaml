@@ -30,6 +30,7 @@ jobs:
           ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           allow-unsafe-pr-checkout: true
+          persist-credentials: false
 
       - name: Setup Nix with Cache
         uses: ./.github/actions/setup-nix

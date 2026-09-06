@@ -405,6 +405,7 @@
           ai-docker-image = aif.dockerImage;
           auth = authf.package;
           auth-docker-image = authf.dockerImage;
+          betterleaks = pkgs.nhost.betterleaks;
           cli = clif.package;
           cli-multiplatform = clif.cli-multiplatform;
           cli-npm = clif.cli-npm;
