@@ -6,12 +6,12 @@ TAG_NAME=nhost-python
 
 .PHONY: _dev-env-up
 _dev-env-up:
-	./dev-env.sh up
+	bash ./dev-env.sh up
 
 
 .PHONY: _dev-env-down
 _dev-env-down:
-	./dev-env.sh down
+	bash ./dev-env.sh down
 
 
 .PHONY: _dev-env-build
@@ -21,13 +21,21 @@ _dev-env-build:
 
 # --- Local convenience targets (not used by CI; the nix check runs these) ---
 
-.PHONY: test-local
-test-local:  ## Run the offline unit suite via uv (no backend).
+.PHONY: test test-local
+test test-local:  ## Run the offline unit suite via uv (no backend).
 	uv run pytest
 
-.PHONY: doctests-local
-doctests-local:  ## Run docstring examples via uv; backend ones skip unless NHOST_LOCAL_BACKEND=1.
+.PHONY: test-doctests doctests-local
+test-doctests doctests-local:  ## Run docstring examples via uv; backend ones skip.
 	uv run pytest --doctest-modules --import-mode=importlib src tests
+
+.PHONY: test-integration
+test-integration:  ## Run backend doctests, or skip when the local backend is unavailable.
+	@if uv run python -c 'import httpx; response = httpx.post("https://local.graphql.local.nhost.run/v1", json={"query": "query { __typename }"}, timeout=2); response.raise_for_status()' >/dev/null 2>&1; then \
+		NHOST_LOCAL_BACKEND=1 uv run pytest --doctest-modules --import-mode=importlib src tests; \
+	else \
+		echo "SKIP: local Nhost backend is unavailable; run make dev-env-up first."; \
+	fi
 
 .PHONY: generate
 generate:  ## Regenerate the auth/storage clients from the OpenAPI specs.
