@@ -18,7 +18,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 # ``User`` is imported so pydantic can resolve the ``Session.user`` forward
 # reference when rebuilding the ``StoredSession`` subclass in this namespace.
-from ..auth import Session, User  # noqa: F401
+from ..auth.client import Session, User  # noqa: F401
 
 _JWT_SEGMENTS = 3
 _HASURA_CLAIMS = "https://hasura.io/jwt/claims"

@@ -1,16 +1,9 @@
-"""Top-level Nhost client and factory functions.
-
-``NhostClient`` bundles the auth, storage, graphql, and functions clients over a
-shared :class:`httpx.AsyncClient` and a :class:`SessionStorage`. Use
-:func:`create_client` for app clients (automatic refresh + token attachment),
-:func:`create_server_client` for trusted server contexts with explicit storage,
-and :func:`create_nhost_client` for a bare client you configure yourself.
-"""
+"""Top-level Nhost client and factory functions."""
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from dataclasses import dataclass, field, replace
+from collections.abc import Callable, Sequence
+from dataclasses import dataclass
 from typing import Literal
 
 import httpx
@@ -31,127 +24,122 @@ from .session import SessionStorage, SessionStorageBackend, StoredSession, detec
 from .session.refresh import refresh_session
 
 ServiceType = Literal["auth", "storage", "graphql", "functions"]
+ClientConfiguration = Callable[["ConfigureContext"], None]
 
 _DEFAULT_REFRESH_MARGIN_SECONDS = 60
-_DEFAULT_CONNECT_TIMEOUT_SECONDS = 10.0
-_DEFAULT_READ_TIMEOUT_SECONDS = 300.0
-_DEFAULT_WRITE_TIMEOUT_SECONDS = 300.0
-_DEFAULT_POOL_TIMEOUT_SECONDS = 60.0
-
-
-def _default_http_timeout() -> httpx.Timeout:
-    return httpx.Timeout(
-        connect=_DEFAULT_CONNECT_TIMEOUT_SECONDS,
-        read=_DEFAULT_READ_TIMEOUT_SECONDS,
-        write=_DEFAULT_WRITE_TIMEOUT_SECONDS,
-        pool=_DEFAULT_POOL_TIMEOUT_SECONDS,
-    )
+_DEFAULT_HTTP_TIMEOUT = httpx.Timeout(connect=10.0, read=300.0, write=300.0, pool=60.0)
 
 
 def generate_service_url(
     service_type: ServiceType,
+    *,
     subdomain: str | None = None,
     region: str | None = None,
     custom_url: str | None = None,
 ) -> str:
-    """Build the base URL for an Nhost service.
+    """Build a normalized service URL.
 
-    Precedence: an explicit ``custom_url`` wins; otherwise a cloud URL is built
-    from ``subdomain``/``region``; otherwise the local development URL is used.
+    An explicit ``custom_url`` takes precedence. Otherwise ``subdomain`` and
+    ``region`` must be supplied together; omitting both selects the local Nhost
+    development URL.
 
     >>> generate_service_url("auth", subdomain="demo", region="eu-central-1")
     'https://demo.auth.eu-central-1.nhost.run/v1'
     >>> generate_service_url("graphql")
     'https://local.graphql.local.nhost.run/v1'
-    >>> generate_service_url("storage", custom_url="http://localhost:1337/v1/storage")
-    'http://localhost:1337/v1/storage'
     """
-    if custom_url:
-        return custom_url.rstrip("/")
-    if subdomain and region:
-        return f"https://{subdomain}.{service_type}.{region}.nhost.run/v1"
-    return f"https://local.{service_type}.local.nhost.run/v1"
+    if custom_url is not None:
+        normalized = custom_url.rstrip("/")
+        if not normalized:
+            raise ValueError("custom_url must not be empty")
+        return normalized
+    if (subdomain is None) != (region is None):
+        raise ValueError("subdomain and region must be supplied together")
+    if subdomain is None:
+        return f"https://local.{service_type}.local.nhost.run/v1"
+    if not subdomain or not region:
+        raise ValueError("subdomain and region must not be empty")
+    return f"https://{subdomain}.{service_type}.{region}.nhost.run/v1"
 
 
-@dataclass
+@dataclass(slots=True)
 class ConfigureContext:
-    """The set of clients passed to a configuration function."""
+    """Clients and session storage passed to a configuration callback."""
 
-    auth: auth_module.Client
-    storage: storage_module.Client
+    auth: auth_module.AuthClient
+    storage: storage_module.StorageClient
     graphql: graphql_module.Client
     functions: functions_module.Client
     session_storage: SessionStorage
 
 
-ClientConfigurationFn = Callable[[ConfigureContext], None]
-
-
 def with_client_side_session_middleware(ctx: ConfigureContext) -> None:
-    """Automatic session refresh, token attachment, and session capture."""
-    chain: list[ChainFunction] = [
-        session_refresh_middleware(ctx.auth, ctx.session_storage),
-        update_session_from_response_middleware(ctx.session_storage, ctx.auth.base_url),
-        attach_access_token_middleware(ctx.session_storage),
-    ]
-    _apply(ctx, chain)
+    """Enable automatic refresh, token attachment, and session capture."""
+    _apply(
+        ctx,
+        [
+            session_refresh_middleware(ctx.auth, ctx.session_storage),
+            update_session_from_response_middleware(ctx.session_storage, ctx.auth.base_url),
+            attach_access_token_middleware(ctx.session_storage),
+        ],
+    )
 
 
 def with_server_side_session_middleware(ctx: ConfigureContext) -> None:
-    """Token attachment and session capture, but no automatic refresh."""
-    chain: list[ChainFunction] = [
-        update_session_from_response_middleware(ctx.session_storage, ctx.auth.base_url),
-        attach_access_token_middleware(ctx.session_storage),
-    ]
-    _apply(ctx, chain)
+    """Enable token attachment and session capture without automatic refresh."""
+    _apply(
+        ctx,
+        [
+            update_session_from_response_middleware(ctx.session_storage, ctx.auth.base_url),
+            attach_access_token_middleware(ctx.session_storage),
+        ],
+    )
 
 
-def with_admin_session(options: AdminSessionOptions) -> ClientConfigurationFn:
-    """Apply admin-secret middleware to storage, graphql, and functions.
+def with_admin_session(options: AdminSessionOptions) -> ClientConfiguration:
+    """Apply admin credentials to Storage, GraphQL, and Functions requests.
 
-    **Security warning:** never use in client-side code.
+    Never use an admin secret in client-side code.
     """
 
     def configure(ctx: ConfigureContext) -> None:
-        ctx.storage.push_chain_function(
-            with_admin_session_middleware(options, ctx.storage.base_url)
-        )
-        ctx.graphql.push_chain_function(with_admin_session_middleware(options, ctx.graphql.url))
-        ctx.functions.push_chain_function(
-            with_admin_session_middleware(options, ctx.functions.base_url)
-        )
+        ctx.storage.add_middleware(with_admin_session_middleware(options, ctx.storage.base_url))
+        ctx.graphql.add_middleware(with_admin_session_middleware(options, ctx.graphql.url))
+        ctx.functions.add_middleware(with_admin_session_middleware(options, ctx.functions.base_url))
 
     return configure
 
 
-def with_chain_functions(chain_functions: list[ChainFunction]) -> ClientConfigurationFn:
-    """Apply arbitrary chain functions to all four clients."""
+def with_chain_functions(chain_functions: Sequence[ChainFunction]) -> ClientConfiguration:
+    """Apply custom HTTP middleware to every service client."""
+    chain = list(chain_functions)
 
     def configure(ctx: ConfigureContext) -> None:
-        _apply(ctx, chain_functions)
+        _apply(ctx, chain)
 
     return configure
 
 
-def _apply(ctx: ConfigureContext, chain: list[ChainFunction]) -> None:
+def _apply(ctx: ConfigureContext, chain: Sequence[ChainFunction]) -> None:
     for middleware in chain:
-        ctx.auth.push_chain_function(middleware)
-        ctx.storage.push_chain_function(middleware)
-        ctx.graphql.push_chain_function(middleware)
-        ctx.functions.push_chain_function(middleware)
+        ctx.auth.add_middleware(middleware)
+        ctx.storage.add_middleware(middleware)
+        ctx.graphql.add_middleware(middleware)
+        ctx.functions.add_middleware(middleware)
 
 
 class NhostClient:
-    """Unified access to Nhost auth, storage, graphql, and functions."""
+    """Unified asynchronous access to Nhost services and session state."""
 
     def __init__(
         self,
-        auth: auth_module.Client,
-        storage: storage_module.Client,
+        auth: auth_module.AuthClient,
+        storage: storage_module.StorageClient,
         graphql: graphql_module.Client,
         functions: functions_module.Client,
         session_storage: SessionStorage,
         http_client: httpx.AsyncClient,
+        *,
         owns_http: bool = True,
     ) -> None:
         self.auth = auth
@@ -162,150 +150,156 @@ class NhostClient:
         self._http = http_client
         self._owns_http = owns_http
 
-    def get_user_session(self) -> StoredSession | None:
-        """Return the current session from storage, or ``None``."""
-        return self.session_storage.get()
+    async def get_user_session(self) -> StoredSession | None:
+        """Return the current session, if one is stored."""
+        return await self.session_storage.get()
 
     async def refresh_session(
         self, margin_seconds: int = _DEFAULT_REFRESH_MARGIN_SECONDS
     ) -> StoredSession | None:
-        """Refresh the session using the stored refresh token."""
+        """Refresh the session when it is close to expiry."""
         return await refresh_session(self.auth, self.session_storage, margin_seconds)
 
-    def clear_session(self) -> None:
-        """Remove the current session from storage (client-side sign-out)."""
-        self.session_storage.remove()
+    async def clear_session(self) -> None:
+        """Remove the current session without making a sign-out request."""
+        await self.session_storage.remove()
 
     async def aclose(self) -> None:
-        """Close the shared HTTP client and its connection pool.
-
-        A caller-supplied ``http_client`` (via ``NhostClientOptions``) is left
-        open — the SDK only closes the client it created itself.
-        """
+        """Close the internally owned HTTP connection pool, if any."""
         if self._owns_http:
             await self._http.aclose()
 
     async def __aenter__(self) -> NhostClient:
         return self
 
-    async def __aexit__(self, *_exc: object) -> None:
+    async def __aexit__(self, *_: object) -> None:
         await self.aclose()
 
 
-@dataclass
-class NhostClientOptions:
-    """Configuration for creating an Nhost client.
+def create_nhost_client(  # noqa: PLR0913 - explicit keyword API is intentional
+    *,
+    subdomain: str | None = None,
+    region: str | None = None,
+    auth_url: str | None = None,
+    storage_url: str | None = None,
+    graphql_url: str | None = None,
+    functions_url: str | None = None,
+    session_storage: SessionStorageBackend | None = None,
+    http_client: httpx.AsyncClient | None = None,
+    configure: Sequence[ClientConfiguration] = (),
+    timeout: httpx.Timeout | float | None = _DEFAULT_HTTP_TIMEOUT,
+) -> NhostClient:
+    """Create a bare Nhost client from explicit keyword configuration."""
+    if (subdomain is None) != (region is None):
+        raise ValueError("subdomain and region must be supplied together")
 
-    ``timeout`` defaults to 10 seconds for connection setup, 300 seconds for
-    reads and writes, and 60 seconds for pool acquisition. Connection failures
-    should surface quickly, while storage uploads need enough read/write time
-    for large transfers, virus scanning, and image transformations; the longer
-    pool timeout tolerates bursts through the shared transport. Pass a float to
-    use one timeout for every phase, an :class:`httpx.Timeout` for finer control,
-    or ``None`` to disable timeouts. This option is ignored when ``http_client``
-    is supplied because the caller owns that client's transport configuration.
-    """
+    backend = session_storage if session_storage is not None else detect_storage()
+    sessions = SessionStorage(backend)
+    http = http_client if http_client is not None else httpx.AsyncClient(timeout=timeout)
 
-    subdomain: str | None = None
-    region: str | None = None
-    auth_url: str | None = None
-    storage_url: str | None = None
-    graphql_url: str | None = None
-    functions_url: str | None = None
-    storage: SessionStorageBackend | None = None
-    http_client: httpx.AsyncClient | None = None
-    configure: list[ClientConfigurationFn] = field(default_factory=list)
-    timeout: httpx.Timeout | float | None = field(default_factory=_default_http_timeout)
-
-
-def create_nhost_client(options: NhostClientOptions | None = None) -> NhostClient:
-    """Create and configure an Nhost client, applying ``options.configure``."""
-    options = options or NhostClientOptions()
-
-    backend = options.storage if options.storage is not None else detect_storage()
-    session_storage = SessionStorage(backend)
-    http = (
-        options.http_client
-        if options.http_client is not None
-        else httpx.AsyncClient(timeout=options.timeout)
+    auth = auth_module.AuthClient(
+        generate_service_url("auth", subdomain=subdomain, region=region, custom_url=auth_url),
+        http_client=http,
     )
-
-    auth = auth_module.create_api_client(
-        generate_service_url("auth", options.subdomain, options.region, options.auth_url),
-        [],
-        http,
-    )
-    storage = storage_module.create_api_client(
-        generate_service_url("storage", options.subdomain, options.region, options.storage_url),
-        [],
-        http,
+    storage = storage_module.StorageClient(
+        generate_service_url("storage", subdomain=subdomain, region=region, custom_url=storage_url),
+        http_client=http,
     )
     graphql = graphql_module.create_api_client(
-        generate_service_url("graphql", options.subdomain, options.region, options.graphql_url),
-        [],
-        http,
+        generate_service_url("graphql", subdomain=subdomain, region=region, custom_url=graphql_url),
+        http_client=http,
     )
     functions = functions_module.create_api_client(
-        generate_service_url("functions", options.subdomain, options.region, options.functions_url),
-        [],
-        http,
+        generate_service_url(
+            "functions", subdomain=subdomain, region=region, custom_url=functions_url
+        ),
+        http_client=http,
     )
 
-    ctx = ConfigureContext(auth, storage, graphql, functions, session_storage)
-    for configure in options.configure:
-        configure(ctx)
+    ctx = ConfigureContext(auth, storage, graphql, functions, sessions)
+    for configure_client in configure:
+        configure_client(ctx)
 
     return NhostClient(
         auth,
         storage,
         graphql,
         functions,
-        session_storage,
+        sessions,
         http,
-        owns_http=options.http_client is None,
+        owns_http=http_client is None,
     )
 
 
-def create_client(options: NhostClientOptions | None = None) -> NhostClient:
-    """Create an app client with automatic refresh + token attachment.
-
-    This example runs against a local Nhost backend (``./dev-env.sh up``); it is
-    skipped unless ``NHOST_LOCAL_BACKEND=1``. It signs a new user up, then reads
-    the default role from the decoded access token.
+def create_client(  # noqa: PLR0913 - explicit keyword API is intentional
+    *,
+    subdomain: str | None = None,
+    region: str | None = None,
+    auth_url: str | None = None,
+    storage_url: str | None = None,
+    graphql_url: str | None = None,
+    functions_url: str | None = None,
+    session_storage: SessionStorageBackend | None = None,
+    http_client: httpx.AsyncClient | None = None,
+    configure: Sequence[ClientConfiguration] = (),
+    timeout: httpx.Timeout | float | None = _DEFAULT_HTTP_TIMEOUT,
+) -> NhostClient:
+    """Create an application client with automatic session management.
 
     >>> import asyncio, uuid
     >>> from nhost.auth import SignUpEmailPasswordRequest
-    >>>
     >>> async def main() -> str | None:
-    ...     async with create_client(
-    ...         NhostClientOptions(subdomain="local", region="local")
-    ...     ) as nhost:
-    ...         email = f"ada-{uuid.uuid4()}@example.com"
+    ...     async with create_client(subdomain="local", region="local") as nhost:
     ...         await nhost.auth.sign_up_email_password(
-    ...             SignUpEmailPasswordRequest(email=email, password=str(uuid.uuid4()))
+    ...             body=SignUpEmailPasswordRequest(
+    ...                 email=f"ada-{uuid.uuid4()}@example.com",
+    ...                 password=str(uuid.uuid4()),
+    ...             )
     ...         )
-    ...         stored = nhost.get_user_session()
-    ...         claims = stored.decoded_token.hasura_claims or {}
-    ...         return claims.get("x-hasura-default-role")
-    >>>
+    ...         session = await nhost.get_user_session()
+    ...         return (session.decoded_token.hasura_claims or {}).get(
+    ...             "x-hasura-default-role"
+    ...         )
     >>> asyncio.run(main())
     'user'
     """
-    options = options or NhostClientOptions()
-    merged = replace(options, configure=[with_client_side_session_middleware, *options.configure])
-    return create_nhost_client(merged)
+    return create_nhost_client(
+        subdomain=subdomain,
+        region=region,
+        auth_url=auth_url,
+        storage_url=storage_url,
+        graphql_url=graphql_url,
+        functions_url=functions_url,
+        session_storage=session_storage,
+        http_client=http_client,
+        configure=(with_client_side_session_middleware, *configure),
+        timeout=timeout,
+    )
 
 
-def create_server_client(options: NhostClientOptions) -> NhostClient:
-    """Create a server client with explicit storage and no automatic refresh.
-
-    Requires ``options.storage`` — sharing a process-wide session store between
-    users can leak tokens across requests, so pass a per-request/user backend.
-    """
-    if options.storage is None:
-        raise ValueError(
-            "create_server_client requires explicit options.storage "
-            "(use a per-request/user backend to avoid leaking sessions)"
-        )
-    merged = replace(options, configure=[with_server_side_session_middleware, *options.configure])
-    return create_nhost_client(merged)
+def create_server_client(  # noqa: PLR0913 - explicit keyword API is intentional
+    *,
+    session_storage: SessionStorageBackend,
+    subdomain: str | None = None,
+    region: str | None = None,
+    auth_url: str | None = None,
+    storage_url: str | None = None,
+    graphql_url: str | None = None,
+    functions_url: str | None = None,
+    http_client: httpx.AsyncClient | None = None,
+    configure: Sequence[ClientConfiguration] = (),
+    timeout: httpx.Timeout | float | None = _DEFAULT_HTTP_TIMEOUT,
+) -> NhostClient:
+    """Create a server client with explicit per-user session storage."""
+    return create_nhost_client(
+        subdomain=subdomain,
+        region=region,
+        auth_url=auth_url,
+        storage_url=storage_url,
+        graphql_url=graphql_url,
+        functions_url=functions_url,
+        session_storage=session_storage,
+        http_client=http_client,
+        configure=(with_server_side_session_middleware, *configure),
+        timeout=timeout,
+    )

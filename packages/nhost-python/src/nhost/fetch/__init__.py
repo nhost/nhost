@@ -26,8 +26,9 @@ FetchFunction = Callable[[httpx.Request], Awaitable[httpx.Response]]
 #: Middleware: takes the next fetch in the chain and returns a wrapping fetch.
 ChainFunction = Callable[[FetchFunction], FetchFunction]
 
-_MIN_ERROR_STATUS = 300
+_MIN_ERROR_STATUS = 400
 _NO_BODY_STATUSES = frozenset({204, 205, 304})
+_MISSING = object()
 
 
 def create_enhanced_fetch(
@@ -129,11 +130,15 @@ def decode_json(response: httpx.Response, type_: Any) -> Any:
 
     Returns ``None`` for empty/no-content responses. ``type_`` may be any type
     pydantic understands: a model, a ``Literal``, a scalar, a ``list[...]`` or a
-    union.
+    union. Invalid successful responses raise :class:`ResponseDecodeError` so
+    every service exposes the same decoding contract.
     """
     if type_ is None or response.status_code in _NO_BODY_STATUSES or not response.content:
         return None
-    return _adapter_for(type_).validate_json(response.content)
+    try:
+        return _adapter_for(type_).validate_json(response.content)
+    except (ValueError, UnicodeDecodeError) as error:
+        raise ResponseDecodeError(response, type_, error) from error
 
 
 def _extract_message(body: Any) -> str:
@@ -167,35 +172,72 @@ def _extract_message(body: Any) -> str:
     return "An unexpected error occurred"
 
 
-class FetchError(Exception, Generic[T]):
-    """Raised when a request completes with a non-2xx/3xx status.
+class NhostError(Exception):
+    """Base class for errors raised by the Nhost SDK."""
 
-    Carries the parsed response ``body``, ``status`` code, and ``headers``. The
-    exception message is extracted from common Nhost error response shapes.
+
+class HTTPError(NhostError, Generic[T]):
+    """Raised when an API responds with a 4xx or 5xx status.
+
+    The complete :class:`httpx.Response` is retained so callers can inspect the
+    request, response extensions, and protocol details in addition to the
+    decoded error body.
     """
 
     body: T
-    status: int
-    headers: httpx.Headers
+    response: httpx.Response
 
-    def __init__(self, body: T, status: int, headers: httpx.Headers) -> None:
+    def __init__(self, response: httpx.Response, body: T) -> None:
         self.body = body
-        self.status = status
-        self.headers = headers
+        self.response = response
         super().__init__(_extract_message(body))
 
+    @property
+    def request(self) -> httpx.Request:
+        """The request which produced the error response."""
+        return self.response.request
+
+    @property
+    def status(self) -> int:
+        """The HTTP response status code."""
+        return self.response.status_code
+
+    @property
+    def headers(self) -> httpx.Headers:
+        """The HTTP response headers."""
+        return self.response.headers
+
     @classmethod
-    def from_response(cls, response: httpx.Response) -> FetchError[Any]:
-        """Build a :class:`FetchError` from an error ``response``."""
-        body: Any
-        if response.status_code == 412:  # noqa: PLR2004 - precondition failed has no body
-            body = None
-        else:
+    def from_response(
+        cls,
+        response: httpx.Response,
+        *,
+        body: Any = _MISSING,
+    ) -> HTTPError[Any]:
+        """Build an :class:`HTTPError` from an error response."""
+        if body is _MISSING:
             try:
                 body = response.json()
-            except (ValueError, _json.JSONDecodeError):
+            except (ValueError, UnicodeDecodeError):
                 body = response.text
-        return cls(body, response.status_code, response.headers)
+        return cls(response, body)
+
+
+class ResponseDecodeError(NhostError):
+    """Raised when a successful response does not match its documented shape."""
+
+    def __init__(self, response: httpx.Response, expected_type: Any, error: Exception) -> None:
+        self.response = response
+        self.expected_type = expected_type
+        self.error = error
+        super().__init__(
+            f"Could not decode the {response.status_code} response as {expected_type!r}: {error}"
+        )
+
+    @property
+    def request(self) -> httpx.Request:
+        """The request which produced the invalid response."""
+        return self.response.request
 
 
 # Re-export middleware from the bottom so the core names above are already
@@ -213,7 +255,9 @@ from .middleware import (  # noqa: E402
 __all__ = [
     "AdminSessionOptions",
     "ChainFunction",
-    "FetchError",
+    "HTTPError",
+    "NhostError",
+    "ResponseDecodeError",
     "FetchFunction",
     "FetchResponse",
     "UploadFile",
