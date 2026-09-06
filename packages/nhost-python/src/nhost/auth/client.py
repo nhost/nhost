@@ -3,7 +3,9 @@
 # mypy: ignore-errors
 from __future__ import annotations
 
+import json
 from typing import Any, Literal
+from urllib.parse import quote
 
 import httpx
 from pydantic import BaseModel, ConfigDict, Field
@@ -19,6 +21,43 @@ from ..fetch import (
     to_json,
     to_jsonable,
 )
+
+
+def _escape_path(value: object) -> str:
+    segment = str(value)
+    if segment == ".":
+        return "%2E"
+    if segment == "..":
+        return "%2E%2E"
+    return quote(segment, safe="")
+
+
+def _parameter_scalar(value: Any) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, str):
+        return value
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, (dict, list)):
+        return json.dumps(value, separators=(",", ":"))
+    return str(value)
+
+
+def _query_parameter(name: str, value: Any, style: str, explode: bool) -> list[tuple[str, str]]:
+    value = to_jsonable(value)
+    if isinstance(value, list):
+        if explode:
+            return [(name, _parameter_scalar(item)) for item in value]
+        return [(name, ",".join(_parameter_scalar(item) for item in value))]
+    if isinstance(value, dict):
+        if style == "deepObject":
+            return [(f"{name}[{key}]", _parameter_scalar(item)) for key, item in value.items()]
+        if explode:
+            return [(key, _parameter_scalar(item)) for key, item in value.items()]
+        parts = [part for key, item in value.items() for part in (key, _parameter_scalar(item))]
+        return [(name, ",".join(parts))]
+    return [(name, _parameter_scalar(value))]
 
 
 AttestationFormat = Literal[
@@ -39,7 +78,7 @@ class AuthenticatorAssertionResponse(BaseModel):
 
     client_data_json: str = Field(alias="clientDataJSON")
     authenticator_data: str = Field(alias="authenticatorData")
-    signature: str
+    signature: str = Field(repr=False)
     user_handle: str | None = Field(default=None, alias="userHandle")
 
 
@@ -86,7 +125,7 @@ class CreatePATResponse(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     id: str
-    personal_access_token: str = Field(alias="personalAccessToken")
+    personal_access_token: str = Field(alias="personalAccessToken", repr=False)
 
 
 class CredentialAssertionResponse(BaseModel):
@@ -199,14 +238,14 @@ class LinkIdTokenRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     provider: IdTokenProvider
-    id_token: str = Field(alias="idToken")
+    id_token: str = Field(alias="idToken", repr=False)
     nonce: str | None = None
 
 
 class MFAChallengePayload(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    ticket: str
+    ticket: str = Field(repr=False)
 
 
 OKResponse = Literal["OK"]
@@ -270,10 +309,10 @@ class PublicKeyCredentialRequestOptions(BaseModel):
 class ProviderSession(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    access_token: str = Field(alias="accessToken")
+    access_token: str = Field(alias="accessToken", repr=False)
     expires_in: int = Field(alias="expiresIn")
     expires_at: str = Field(alias="expiresAt")
-    refresh_token: str | None = Field(default=None, alias="refreshToken")
+    refresh_token: str | None = Field(default=None, alias="refreshToken", repr=False)
 
 
 class ProviderSpecificParams(BaseModel):
@@ -286,13 +325,13 @@ class ProviderSpecificParams(BaseModel):
 class RefreshProviderTokenRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    refresh_token: str = Field(alias="refreshToken")
+    refresh_token: str = Field(alias="refreshToken", repr=False)
 
 
 class RefreshTokenRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    refresh_token: str = Field(alias="refreshToken")
+    refresh_token: str = Field(alias="refreshToken", repr=False)
 
 
 class RelyingPartyEntity(BaseModel):
@@ -308,10 +347,10 @@ ResidentKeyRequirement = Literal["discouraged", "preferred", "required"]
 class Session(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    access_token: str = Field(alias="accessToken")
+    access_token: str = Field(alias="accessToken", repr=False)
     access_token_expires_in: int = Field(alias="accessTokenExpiresIn")
     refresh_token_id: str = Field(alias="refreshTokenId")
-    refresh_token: str = Field(alias="refreshToken")
+    refresh_token: str = Field(alias="refreshToken", repr=False)
     user: User | None = None
 
 
@@ -333,7 +372,7 @@ class SignInEmailPasswordRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     email: str
-    password: str
+    password: str = Field(repr=False)
 
 
 class SignInEmailPasswordResponse(BaseModel):
@@ -347,7 +386,7 @@ class SignInIdTokenRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     provider: IdTokenProvider
-    id_token: str = Field(alias="idToken")
+    id_token: str = Field(alias="idToken", repr=False)
     nonce: str | None = None
     options: SignUpOptions | None = None
 
@@ -355,8 +394,8 @@ class SignInIdTokenRequest(BaseModel):
 class SignInMfaTotpRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    ticket: str
-    otp: str
+    ticket: str = Field(repr=False)
+    otp: str = Field(repr=False)
 
 
 class SignInOTPEmailRequest(BaseModel):
@@ -369,7 +408,7 @@ class SignInOTPEmailRequest(BaseModel):
 class SignInOTPEmailVerifyRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    otp: str
+    otp: str = Field(repr=False)
     email: str
 
 
@@ -382,7 +421,7 @@ class SignInOTPEmailVerifyResponse(BaseModel):
 class SignInPATRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    personal_access_token: str = Field(alias="personalAccessToken")
+    personal_access_token: str = Field(alias="personalAccessToken", repr=False)
 
 
 class SignInPasswordlessEmailRequest(BaseModel):
@@ -397,7 +436,7 @@ class SignInPasswordlessSmsOtpRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     phone_number: str = Field(alias="phoneNumber")
-    otp: str
+    otp: str = Field(repr=False)
 
 
 class SignInPasswordlessSmsOtpResponse(BaseModel):
@@ -440,7 +479,7 @@ class SignUpIdTokenRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     provider: IdTokenProvider
-    id_token: str = Field(alias="idToken")
+    id_token: str = Field(alias="idToken", repr=False)
     nonce: str | None = None
     options: SignUpOptions | None = None
 
@@ -455,13 +494,13 @@ class SignInWebauthnVerifyRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     email: str | None = None
-    credential: CredentialAssertionResponse
+    credential: CredentialAssertionResponse = Field(repr=False)
 
 
 class SignOutRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    refresh_token: str | None = Field(default=None, alias="refreshToken")
+    refresh_token: str | None = Field(default=None, alias="refreshToken", repr=False)
     all: bool | None = None
 
 
@@ -469,7 +508,7 @@ class SignUpEmailPasswordRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     email: str
-    password: str
+    password: str = Field(repr=False)
     options: SignUpOptions | None = None
     code_challenge: str | None = Field(default=None, alias="codeChallenge")
 
@@ -495,7 +534,7 @@ class SignUpWebauthnRequest(BaseModel):
 class SignUpWebauthnVerifyRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    credential: CredentialCreationResponse
+    credential: CredentialCreationResponse = Field(repr=False)
     options: SignUpOptions | None = None
     nickname: str | None = None
     code_challenge: str | None = Field(default=None, alias="codeChallenge")
@@ -504,15 +543,15 @@ class SignUpWebauthnVerifyRequest(BaseModel):
 class TokenExchangeRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    code: str
-    code_verifier: str = Field(alias="codeVerifier")
+    code: str = Field(repr=False)
+    code_verifier: str = Field(alias="codeVerifier", repr=False)
 
 
 class TotpGenerateResponse(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    image_url: str = Field(alias="imageUrl")
-    totp_secret: str = Field(alias="totpSecret")
+    image_url: str = Field(alias="imageUrl", repr=False)
+    totp_secret: str = Field(alias="totpSecret", repr=False)
 
 
 URLEncodedBase64 = str
@@ -545,7 +584,7 @@ class UserDeanonymizeRequest(BaseModel):
 
     sign_in_method: UserDeanonymizeRequestSignInMethod = Field(alias="signInMethod")
     email: str
-    password: str | None = None
+    password: str | None = Field(default=None, repr=False)
     connection: str | None = None
     options: SignUpOptions | None = None
     code_challenge: str | None = Field(default=None, alias="codeChallenge")
@@ -576,7 +615,7 @@ class UserPhoneNumberChangeVerifyRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     new_phone_number: str = Field(alias="newPhoneNumber")
-    otp: str
+    otp: str = Field(repr=False)
 
 
 class UserEmailSendVerificationEmailRequest(BaseModel):
@@ -601,15 +640,15 @@ UserMfaRequestActiveMfaType = Literal["totp", ""]
 class UserMfaRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    code: str
+    code: str = Field(repr=False)
     active_mfa_type: UserMfaRequestActiveMfaType | None = Field(default=None, alias="activeMfaType")
 
 
 class UserPasswordRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    new_password: str = Field(alias="newPassword")
-    ticket: str | None = None
+    new_password: str = Field(alias="newPassword", repr=False)
+    ticket: str | None = Field(default=None, repr=False)
 
 
 class UserPasswordResetRequest(BaseModel):
@@ -626,7 +665,7 @@ UserVerificationRequirement = Literal["required", "preferred", "discouraged"]
 class VerifyAddSecurityKeyRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    credential: CredentialCreationResponse
+    credential: CredentialCreationResponse = Field(repr=False)
     nickname: str | None = None
 
 
@@ -640,7 +679,7 @@ class VerifyAddSecurityKeyResponse(BaseModel):
 class VerifyTokenRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    token: str | None = None
+    token: str | None = Field(default=None, repr=False)
 
 
 class OAuth2ErrorResponse(BaseModel):
@@ -680,23 +719,23 @@ class OAuth2TokenRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     grant_type: OAuth2TokenRequestGrant_type
-    code: str | None = None
+    code: str | None = Field(default=None, repr=False)
     redirect_uri: str | None = None
     client_id: str | None = None
-    client_secret: str | None = None
-    code_verifier: str | None = None
-    refresh_token: str | None = None
+    client_secret: str | None = Field(default=None, repr=False)
+    code_verifier: str | None = Field(default=None, repr=False)
+    refresh_token: str | None = Field(default=None, repr=False)
     resource: str | None = None
 
 
 class OAuth2TokenResponse(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    access_token: str
+    access_token: str = Field(repr=False)
     token_type: str
     expires_in: int
-    refresh_token: str | None = None
-    id_token: str | None = None
+    refresh_token: str | None = Field(default=None, repr=False)
+    id_token: str | None = Field(default=None, repr=False)
     scope: str | None = None
 
 
@@ -725,10 +764,10 @@ OAuth2RevokeRequestToken_type_hint = Literal["access_token", "refresh_token"]
 class OAuth2RevokeRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    token: str
+    token: str = Field(repr=False)
     token_type_hint: OAuth2RevokeRequestToken_type_hint | None = None
     client_id: str | None = None
-    client_secret: str | None = None
+    client_secret: str | None = Field(default=None, repr=False)
 
 
 OAuth2IntrospectRequestToken_type_hint = Literal["access_token", "refresh_token"]
@@ -737,10 +776,10 @@ OAuth2IntrospectRequestToken_type_hint = Literal["access_token", "refresh_token"
 class OAuth2IntrospectRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    token: str
+    token: str = Field(repr=False)
     token_type_hint: OAuth2IntrospectRequestToken_type_hint | None = None
     client_id: str | None = None
-    client_secret: str | None = None
+    client_secret: str | None = Field(default=None, repr=False)
 
 
 class OAuth2IntrospectResponse(BaseModel):
@@ -867,7 +906,7 @@ class SignUpProviderParams(BaseModel):
 class VerifyTicketParams(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    ticket: TicketQuery
+    ticket: TicketQuery = Field(repr=False)
     type: TicketTypeQuery | None = None
     redirect_to: RedirectToQuery = Field(alias="redirectTo")
     code_challenge: str | None = Field(default=None, alias="codeChallenge")
@@ -1268,8 +1307,37 @@ class Client:
         provider: SignInProvider,
         params: SignInProviderParams | None = None,
     ) -> str:
-        url = f"{self.base_url}/signin/provider/{provider}"
-        query = params.model_dump(by_alias=True, exclude_none=True) if params is not None else None
+        url = f"{self.base_url}/signin/provider/{_escape_path(provider)}"
+
+        query: list[tuple[str, str]] = []
+        if params is not None and params.allowed_roles is not None:
+            query.extend(_query_parameter("allowedRoles", params.allowed_roles, "form", False))
+        if params is not None and params.default_role is not None:
+            query.extend(_query_parameter("defaultRole", params.default_role, "form", True))
+        if params is not None and params.display_name is not None:
+            query.extend(_query_parameter("displayName", params.display_name, "form", True))
+        if params is not None and params.locale is not None:
+            query.extend(_query_parameter("locale", params.locale, "form", True))
+        if params is not None and params.metadata is not None:
+            query.append(("metadata", to_json(params.metadata)))
+        if params is not None and params.redirect_to is not None:
+            query.extend(_query_parameter("redirectTo", params.redirect_to, "form", True))
+        if params is not None and params.connect is not None:
+            query.extend(_query_parameter("connect", params.connect, "form", True))
+        if params is not None and params.state is not None:
+            query.extend(_query_parameter("state", params.state, "form", True))
+        if params is not None and params.provider_specific_params is not None:
+            query.extend(
+                _query_parameter(
+                    "providerSpecificParams", params.provider_specific_params, "form", True
+                )
+            )
+        if params is not None and params.upstream_params is not None:
+            query.extend(
+                _query_parameter("upstreamParams", params.upstream_params, "deepObject", True)
+            )
+        if params is not None and params.code_challenge is not None:
+            query.extend(_query_parameter("codeChallenge", params.code_challenge, "form", True))
         if query:
             return str(self._http.build_request("GET", url, params=query).url)
         return url
@@ -1279,7 +1347,7 @@ class Client:
         provider: SignInProvider,
         headers: dict[str, str] | None = None,
     ) -> FetchResponse[ProviderSession]:
-        url = f"{self.base_url}/signin/provider/{provider}/callback/tokens"
+        url = f"{self.base_url}/signin/provider/{_escape_path(provider)}/callback/tokens"
         query = None
         request = self._http.build_request(
             "GET",
@@ -1498,8 +1566,35 @@ class Client:
         provider: SignInProvider,
         params: SignUpProviderParams | None = None,
     ) -> str:
-        url = f"{self.base_url}/signup/provider/{provider}"
-        query = params.model_dump(by_alias=True, exclude_none=True) if params is not None else None
+        url = f"{self.base_url}/signup/provider/{_escape_path(provider)}"
+
+        query: list[tuple[str, str]] = []
+        if params is not None and params.allowed_roles is not None:
+            query.extend(_query_parameter("allowedRoles", params.allowed_roles, "form", False))
+        if params is not None and params.default_role is not None:
+            query.extend(_query_parameter("defaultRole", params.default_role, "form", True))
+        if params is not None and params.display_name is not None:
+            query.extend(_query_parameter("displayName", params.display_name, "form", True))
+        if params is not None and params.locale is not None:
+            query.extend(_query_parameter("locale", params.locale, "form", True))
+        if params is not None and params.metadata is not None:
+            query.append(("metadata", to_json(params.metadata)))
+        if params is not None and params.redirect_to is not None:
+            query.extend(_query_parameter("redirectTo", params.redirect_to, "form", True))
+        if params is not None and params.state is not None:
+            query.extend(_query_parameter("state", params.state, "form", True))
+        if params is not None and params.provider_specific_params is not None:
+            query.extend(
+                _query_parameter(
+                    "providerSpecificParams", params.provider_specific_params, "form", True
+                )
+            )
+        if params is not None and params.upstream_params is not None:
+            query.extend(
+                _query_parameter("upstreamParams", params.upstream_params, "deepObject", True)
+            )
+        if params is not None and params.code_challenge is not None:
+            query.extend(_query_parameter("codeChallenge", params.code_challenge, "form", True))
         if query:
             return str(self._http.build_request("GET", url, params=query).url)
         return url
@@ -1530,7 +1625,7 @@ class Client:
         body: RefreshProviderTokenRequest,
         headers: dict[str, str] | None = None,
     ) -> FetchResponse[ProviderSession]:
-        url = f"{self.base_url}/token/provider/{provider}"
+        url = f"{self.base_url}/token/provider/{_escape_path(provider)}"
         query = None
         request = self._http.build_request(
             "POST",
@@ -1823,10 +1918,17 @@ class Client:
 
     def verify_ticket_url(
         self,
-        params: VerifyTicketParams | None = None,
+        params: VerifyTicketParams,
     ) -> str:
         url = f"{self.base_url}/verify"
-        query = params.model_dump(by_alias=True, exclude_none=True) if params is not None else None
+
+        query: list[tuple[str, str]] = []
+        query.extend(_query_parameter("ticket", params.ticket, "form", True))
+        if params.type is not None:
+            query.extend(_query_parameter("type", params.type, "form", True))
+        query.extend(_query_parameter("redirectTo", params.redirect_to, "form", True))
+        if params.code_challenge is not None:
+            query.extend(_query_parameter("codeChallenge", params.code_challenge, "form", True))
         if query:
             return str(self._http.build_request("GET", url, params=query).url)
         return url
@@ -1887,10 +1989,32 @@ class Client:
 
     def oauth2_authorize_url(
         self,
-        params: Oauth2AuthorizeParams | None = None,
+        params: Oauth2AuthorizeParams,
     ) -> str:
         url = f"{self.base_url}/oauth2/authorize"
-        query = params.model_dump(by_alias=True, exclude_none=True) if params is not None else None
+
+        query: list[tuple[str, str]] = []
+        query.extend(_query_parameter("client_id", params.client_id, "form", True))
+        query.extend(_query_parameter("redirect_uri", params.redirect_uri, "form", True))
+        query.extend(_query_parameter("response_type", params.response_type, "form", True))
+        if params.scope is not None:
+            query.extend(_query_parameter("scope", params.scope, "form", True))
+        if params.state is not None:
+            query.extend(_query_parameter("state", params.state, "form", True))
+        if params.nonce is not None:
+            query.extend(_query_parameter("nonce", params.nonce, "form", True))
+        if params.code_challenge is not None:
+            query.extend(_query_parameter("code_challenge", params.code_challenge, "form", True))
+        if params.code_challenge_method is not None:
+            query.extend(
+                _query_parameter(
+                    "code_challenge_method", params.code_challenge_method, "form", True
+                )
+            )
+        if params.resource is not None:
+            query.extend(_query_parameter("resource", params.resource, "form", True))
+        if params.prompt is not None:
+            query.extend(_query_parameter("prompt", params.prompt, "form", True))
         if query:
             return str(self._http.build_request("GET", url, params=query).url)
         return url
@@ -2017,11 +2141,13 @@ class Client:
 
     async def oauth2_login_get(
         self,
-        params: Oauth2LoginGetParams | None = None,
+        params: Oauth2LoginGetParams,
         headers: dict[str, str] | None = None,
     ) -> FetchResponse[OAuth2LoginResponse]:
         url = f"{self.base_url}/oauth2/login"
-        query = params.model_dump(by_alias=True, exclude_none=True) if params is not None else None
+
+        query: list[tuple[str, str]] = []
+        query.extend(_query_parameter("request_id", params.request_id, "form", True))
         request = self._http.build_request(
             "GET",
             url,
