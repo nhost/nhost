@@ -19,11 +19,9 @@ run_codegen() {
 run_codegen \
 	--openapi-file "$REPO_ROOT/services/auth/docs/openapi.yaml" \
 	--output-file "$SCRIPT_DIR/auth/client.go" \
-	--plugin go \
-	--package auth
+	--plugin go
 
 run_codegen \
 	--openapi-file "$REPO_ROOT/services/storage/controller/openapi.yaml" \
 	--output-file "$SCRIPT_DIR/storage/client.go" \
-	--plugin go \
-	--package storage
+	--plugin go
