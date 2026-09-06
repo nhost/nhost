@@ -19,6 +19,7 @@ pulling extra doc tooling into the build.
 
 from __future__ import annotations
 
+import dataclasses
 import importlib
 import inspect
 import sys
@@ -66,6 +67,10 @@ def _fmt_annotation(val: object) -> str:
     if inspect.isclass(val):
         return val.__name__
     return str(val).replace("typing.", "")
+
+
+def _md_cell(text: str) -> str:
+    return text.replace("|", "\\|")
 
 
 def render_signature(name: str, obj: object) -> str:
@@ -154,11 +159,13 @@ def render_class(name: str, cls: type) -> str:
     if doc:
         parts.append(doc)
 
-    if is_pydantic_model(cls):
+    if is_pydantic_model(cls) or dataclasses.is_dataclass(cls):
         fields = annotations_of(cls)
         if fields:
             rows = ["| Field | Type |", "| --- | --- |"]
-            rows += [f"| `{k}` | `{v}` |" for k, v in fields.items()]
+            rows += [
+                f"| `{_md_cell(k)}` | `{_md_cell(v)}` |" for k, v in fields.items()
+            ]
             parts.append(heading(4, "Fields"))
             parts.append("\n".join(rows))
 
