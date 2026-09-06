@@ -20,6 +20,7 @@ from pathlib import Path
 import httpx
 import pytest
 
+import nhost.session.refresh as refresh_module
 from nhost import (
     FetchError,
     FileStorage,
@@ -47,6 +48,8 @@ from nhost.fetch.middleware import (
     session_refresh_middleware,
     update_session_from_response_middleware,
     with_admin_session_middleware,
+    with_headers_middleware,
+    with_role_middleware,
 )
 from nhost.session import (
     DecodedToken,
@@ -66,23 +69,23 @@ DEFAULT_HTTP_TIMEOUT_VALUES = (10.0, 300.0, 300.0, 60.0)
 EXPLICIT_HTTP_TIMEOUT_VALUES = (2.0, 120.0, 180.0, 15.0)
 
 
-def make_jwt(exp_offset_seconds: int = 3600) -> str:
+def make_jwt(exp_offset_seconds: int | None = 3600) -> str:
     def seg(obj: dict) -> str:
         raw = json.dumps(obj).encode()
         return base64.urlsafe_b64encode(raw).rstrip(b"=").decode()
 
     header = seg({"alg": "HS256", "typ": "JWT"})
-    payload = seg(
-        {
-            "sub": "user-123",
-            "iat": int(time.time()),
-            "exp": int(time.time()) + exp_offset_seconds,
-            "https://hasura.io/jwt/claims": {
-                "x-hasura-default-role": "user",
-                "x-hasura-allowed-roles": "{user,me}",
-            },
-        }
-    )
+    claims = {
+        "sub": "user-123",
+        "iat": int(time.time()),
+        "https://hasura.io/jwt/claims": {
+            "x-hasura-default-role": "user",
+            "x-hasura-allowed-roles": "{user,me}",
+        },
+    }
+    if exp_offset_seconds is not None:
+        claims["exp"] = int(time.time()) + exp_offset_seconds
+    payload = seg(claims)
     return f"{header}.{payload}.signature"
 
 
@@ -341,6 +344,76 @@ async def test_access_token_attached_to_graphql_request() -> None:
     assert result.body.data == {"__typename": "query_root"}
 
 
+async def test_existing_authorization_header_is_preserved() -> None:
+    token = make_jwt()
+    captured: list[str | None] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured.append(request.headers.get("authorization"))
+        return httpx.Response(200, json={"data": None})
+
+    backend = MemoryStorage()
+    async with build_client(handler, backend) as nhost:
+        nhost.session_storage.set(
+            Session(
+                access_token=token,
+                access_token_expires_in=3600,
+                refresh_token="r",
+                refresh_token_id="rid",
+                user=None,
+            )
+        )
+        await nhost.graphql.request(
+            "query { __typename }", headers={"Authorization": "Bearer caller-token"}
+        )
+
+    assert captured == ["Bearer caller-token"]
+
+
+async def test_role_middleware_preserves_request_value() -> None:
+    captured: list[str | None] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured.append(request.headers.get("x-hasura-role"))
+        return httpx.Response(200, json={})
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+        fetch = create_enhanced_fetch(http, [with_role_middleware("default-role")])
+        await fetch(http.build_request("GET", "https://graphql.example/v1"))
+        await fetch(
+            http.build_request(
+                "GET",
+                "https://graphql.example/v1",
+                headers={"x-hasura-role": "request-role"},
+            )
+        )
+
+    assert captured == ["default-role", "request-role"]
+
+
+async def test_headers_middleware_preserves_request_value() -> None:
+    captured: list[str | None] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured.append(request.headers.get("x-client-name"))
+        return httpx.Response(200, json={})
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+        fetch = create_enhanced_fetch(
+            http, [with_headers_middleware({"x-client-name": "default-client"})]
+        )
+        await fetch(http.build_request("GET", "https://graphql.example/v1"))
+        await fetch(
+            http.build_request(
+                "GET",
+                "https://graphql.example/v1",
+                headers={"x-client-name": "request-client"},
+            )
+        )
+
+    assert captured == ["default-client", "request-client"]
+
+
 async def test_graphql_errors_raise_fetch_error() -> None:
     error_body = {"errors": [{"message": "field not found"}]}
 
@@ -556,7 +629,9 @@ async def test_refresh_401_clears_session() -> None:
         assert nhost.get_user_session() is None
 
 
-def _seed_session(storage: SessionStorage, *, exp_offset_seconds: int = 3600) -> StoredSession:
+def _seed_session(
+    storage: SessionStorage, *, exp_offset_seconds: int | None = 3600
+) -> StoredSession:
     storage.set(
         Session(
             access_token=make_jwt(exp_offset_seconds),
@@ -607,6 +682,97 @@ async def test_forced_refresh_of_valid_session_preserves_it_on_500() -> None:
         assert refreshed is session
         assert token_calls == ["/v1/token"]
         assert nhost.session_storage.get() is session
+
+
+async def test_concurrent_stale_requests_refresh_once() -> None:
+    request_count = 5
+    token_calls = 0
+    graphql_authorizations: list[str | None] = []
+    refresh_started = asyncio.Event()
+    allow_refresh = asyncio.Event()
+    refreshed_access_token = make_jwt(exp_offset_seconds=3600)
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal token_calls
+        if request.url.path.endswith("/token"):
+            token_calls += 1
+            refresh_started.set()
+            await allow_refresh.wait()
+            return httpx.Response(200, content=raw_session_bytes(refreshed_access_token))
+        graphql_authorizations.append(request.headers.get("authorization"))
+        return httpx.Response(200, json={"data": {"__typename": "query_root"}})
+
+    backend = MemoryStorage()
+    async with build_client(handler, backend) as nhost:
+        _seed_session(nhost.session_storage, exp_offset_seconds=-10)
+        requests = [
+            asyncio.create_task(nhost.graphql.request("query { __typename }"))
+            for _ in range(request_count)
+        ]
+        await asyncio.wait_for(refresh_started.wait(), timeout=1)
+        allow_refresh.set()
+        responses = await asyncio.gather(*requests)
+
+    assert token_calls == 1
+    assert graphql_authorizations == [f"Bearer {refreshed_access_token}"] * request_count
+    assert all(response.body.data == {"__typename": "query_root"} for response in responses)
+
+
+@pytest.mark.parametrize(
+    ("exp_offset_seconds", "margin_seconds", "expected_token_calls"),
+    [
+        pytest.param(3600, 60, 0, id="outside-margin"),
+        pytest.param(30, 60, 1, id="within-margin"),
+        pytest.param(3600, 0, 1, id="zero-margin-forces-refresh"),
+        pytest.param(None, 60, 1, id="missing-exp"),
+    ],
+)
+async def test_refresh_margin_rules(
+    exp_offset_seconds: int | None,
+    margin_seconds: int,
+    expected_token_calls: int,
+) -> None:
+    token_calls = 0
+    refreshed_access_token = make_jwt(exp_offset_seconds=3600)
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal token_calls
+        if request.url.path.endswith("/token"):
+            token_calls += 1
+            return httpx.Response(200, content=raw_session_bytes(refreshed_access_token))
+        return httpx.Response(200, json={"data": None})
+
+    backend = MemoryStorage()
+    async with build_client(handler, backend) as nhost:
+        original = _seed_session(nhost.session_storage, exp_offset_seconds=exp_offset_seconds)
+        refreshed = await nhost.refresh_session(margin_seconds=margin_seconds)
+
+    assert token_calls == expected_token_calls
+    if expected_token_calls:
+        assert refreshed is not None
+        assert refreshed.access_token == refreshed_access_token
+    else:
+        assert refreshed is original
+
+
+async def test_expired_session_retries_500_without_clearing_storage() -> None:
+    token_calls = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal token_calls
+        if request.url.path.endswith("/token"):
+            token_calls += 1
+            return httpx.Response(500, json={"message": "temporary failure"})
+        return httpx.Response(200, json={"data": None})
+
+    backend = MemoryStorage()
+    async with build_client(handler, backend) as nhost:
+        original = _seed_session(nhost.session_storage, exp_offset_seconds=-10)
+        refreshed = await nhost.refresh_session()
+
+        assert refreshed is None
+        assert token_calls == 2
+        assert nhost.session_storage.get() is original
 
 
 def test_session_storage_snapshot_allows_self_unsubscribe() -> None:
@@ -944,6 +1110,22 @@ async def test_session_response_ignores_scheme_mismatch() -> None:
     assert session_storage.get() == original
 
 
+async def test_failed_password_change_keeps_session() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(400, json={"message": "current password is invalid"})
+
+    session_storage = SessionStorage(MemoryStorage())
+    original = _seed_session(session_storage)
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+        fetch = create_enhanced_fetch(
+            http,
+            [update_session_from_response_middleware(session_storage, "https://auth.example/v1")],
+        )
+        await fetch(http.build_request("POST", "https://auth.example/v1/user/password"))
+
+    assert session_storage.get() is original
+
+
 async def test_unsuccessful_auth_response_does_not_update_session() -> None:
     replacement_access_token = make_jwt()
 
@@ -967,9 +1149,19 @@ async def test_unsuccessful_auth_response_does_not_update_session() -> None:
     assert session_storage.get() == original
 
 
-async def test_subpath_auth_refresh_completes_once() -> None:
+async def test_subpath_auth_refresh_completes_once(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     calls: list[tuple[str, str]] = []
+    refresh_checks = 0
     refreshed_access_token = make_jwt()
+
+    async def tracked_refresh(*args, **kwargs):
+        nonlocal refresh_checks
+        refresh_checks += 1
+        return await refresh_session(*args, **kwargs)
+
+    monkeypatch.setattr(refresh_module, "refresh_session", tracked_refresh)
 
     def handler(request: httpx.Request) -> httpx.Response:
         calls.append((request.method, request.url.path))
@@ -990,6 +1182,7 @@ async def test_subpath_auth_refresh_completes_once() -> None:
         _seed_session(nhost.session_storage, exp_offset_seconds=-10)
         await asyncio.wait_for(nhost.functions.post("/hello"), timeout=1)
 
+    assert refresh_checks == 1
     assert calls.count(("POST", "/v1/auth/token")) == 1
 
 
