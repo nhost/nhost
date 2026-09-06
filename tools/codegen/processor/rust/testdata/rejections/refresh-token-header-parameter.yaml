@@ -1,0 +1,28 @@
+openapi: 3.0.0
+info:
+  title: Invalid refresh token with a header parameter
+  version: 1.0.0
+paths:
+  /token:
+    post:
+      operationId: refreshToken
+      parameters:
+        - name: X-Trace
+          in: header
+          required: false
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+              required:
+                - refreshToken
+      responses:
+        "204":
+          description: Refreshed

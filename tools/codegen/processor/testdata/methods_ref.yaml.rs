@@ -556,7 +556,7 @@ impl Client {
         &self,
         body: RefreshTokenRequest,
     ) -> Result<Response<Session>, Error> {
-        let request = self.refresh_token_request(&body)?;
+        let mut request = self.refresh_token_request(&body)?;
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
         let body = serde_json::from_slice(&bytes)?;
         Ok(Response {

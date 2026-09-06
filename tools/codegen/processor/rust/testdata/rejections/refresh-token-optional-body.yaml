@@ -1,0 +1,22 @@
+openapi: 3.0.0
+info:
+  title: Invalid refresh token with an optional body
+  version: 1.0.0
+paths:
+  /token:
+    post:
+      operationId: refreshToken
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+              required:
+                - refreshToken
+      responses:
+        "204":
+          description: Refreshed

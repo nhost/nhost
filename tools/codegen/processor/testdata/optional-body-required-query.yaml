@@ -1,0 +1,30 @@
+openapi: "3.0.0"
+
+paths:
+  /items:
+    post:
+      operationId: createItem
+      parameters:
+        - name: filter
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Item"
+      responses:
+        "204":
+          description: Created
+
+components:
+  schemas:
+    Item:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string

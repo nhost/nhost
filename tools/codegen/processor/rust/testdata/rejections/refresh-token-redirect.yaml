@@ -1,0 +1,26 @@
+openapi: 3.0.0
+info:
+  title: Invalid redirecting refresh token
+  version: 1.0.0
+paths:
+  /token:
+    post:
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+              required:
+                - refreshToken
+      responses:
+        "302":
+          description: Redirect
+          headers:
+            Location:
+              schema:
+                type: string

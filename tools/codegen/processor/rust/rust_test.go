@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/nhost/nhost/tools/codegen/processor"
@@ -97,6 +98,7 @@ func TestRustRender(t *testing.T) {
 				") -> Result<Response<bytes::Bytes>, Error> {",
 				"        let body = bytes;",
 				"        Ok(Response {\n            body,\n            status,\n            headers,\n        })",
+				"let mut request = self.refresh_token_request(&body)?;",
 			},
 			notContains: []string{
 				"let (_status, _headers, bytes) = http::send",
@@ -116,6 +118,32 @@ func TestRustRender(t *testing.T) {
 			notContains: []string{
 				") -> Result<Response<serde_json::Value>, Error> {",
 				"        let body = serde_json::from_slice(&bytes)?;",
+			},
+		},
+		{
+			name:        "json-void-response.yaml",
+			fixturePath: "testdata/json-void-response.yaml",
+			contains: []string{
+				") -> Result<Response<serde_json::Value>, Error> {",
+				"        let body = if bytes.is_empty() {\n" +
+					"            serde_json::Value::Null\n" +
+					"        } else {\n" +
+					"            serde_json::from_slice(&bytes)?\n" +
+					"        };",
+			},
+		},
+		{
+			name:        "optional-request-bodies.yaml",
+			fixturePath: "testdata/optional-request-bodies.yaml",
+			contains: []string{
+				"body: Option<OptionalJsonBody>",
+				"if let Some(body) = &body {\n            request = request.json(body);\n        }",
+				"body: Option<OptionalFormBody>",
+				"if let Some(body) = &body {\n            request = request.form(body);\n        }",
+			},
+			notContains: []string{
+				"request = request.json(&body);",
+				"request = request.form(&body);",
 			},
 		},
 		{
@@ -255,6 +283,13 @@ func TestRustRender(t *testing.T) {
 			},
 		},
 		{
+			name: "optional-body-required-query.yaml",
+			contains: []string{
+				"body: Option<Item>",
+				"params: CreateItemParams",
+			},
+		},
+		{
 			name:        "reserved-keywords.yaml",
 			fixturePath: "testdata/reserved-keywords.yaml",
 			contains: []string{
@@ -318,6 +353,67 @@ func TestRustRender(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			assertRustRenderCase(t, tc)
+		})
+	}
+}
+
+func TestRustRejectsInvalidRefreshTokenMethods(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		fixturePath string
+		wantReason  string
+	}{
+		{
+			name:        "no request body",
+			fixturePath: "testdata/rejections/refresh-token-no-body.yaml",
+			wantReason:  "must declare an application/json request body",
+		},
+		{
+			name:        "optional JSON body",
+			fixturePath: "testdata/rejections/refresh-token-optional-body.yaml",
+			wantReason:  "must require its application/json request body",
+		},
+		{
+			name:        "form-urlencoded body",
+			fixturePath: "testdata/rejections/refresh-token-form-body.yaml",
+			wantReason:  "must declare an application/json request body",
+		},
+		{
+			name:        "redirect",
+			fixturePath: "testdata/rejections/refresh-token-redirect.yaml",
+			wantReason:  "must not be a redirect",
+		},
+		{
+			name:        "query parameter",
+			fixturePath: "testdata/rejections/refresh-token-query-parameter.yaml",
+			wantReason:  "must not declare query parameters",
+		},
+		{
+			name:        "header parameter",
+			fixturePath: "testdata/rejections/refresh-token-header-parameter.yaml",
+			wantReason:  "must not declare header parameters",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			_, err := renderRustFixture(tt.fixturePath)
+			if !errors.Is(err, processor.ErrUnsupportedFeature) {
+				t.Fatalf("render error = %v, want ErrUnsupportedFeature", err)
+			}
+
+			for _, want := range []string{
+				`operation "refreshToken" generates the special Rust refresh_token_request method`,
+				tt.wantReason,
+			} {
+				if !strings.Contains(err.Error(), want) {
+					t.Errorf("render error = %q, want it to contain %q", err, want)
+				}
+			}
 		})
 	}
 }
