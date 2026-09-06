@@ -235,6 +235,61 @@ finding["secret"] in [
 )
 ||
 (
+  finding["rule_id"] == "nhost-hasura-admin-secret" &&
+  finding["secret"] in [
+    "&adminSecret",
+    "super-secret-key",
+    "adminSecret",
+    "s3cret",
+    "user-supplied",
+    "nhost-admin-secret",
+    "your-admin-secret",
+    "hasuraAdminSecret",
+    "myadminsecretkey",
+    "my-cloud-admin-secret",
+    "my-admin-secret",
+    "handlerTestAdminSecret",
+    "hasuraSecret",
+    "secret",
+    "-nhost-admin-secret",
+    "changeme",
+    "...",
+    "ADMIN-SECRET-04",
+    "`+secret+`",
+    "a_long_secret_that_should_never_be_used_in_production",
+    "admin-a",
+    "admin-b",
+    "admin-secret",
+    "adminsecret",
+    "change-me",
+    "e7w36ag287qn5qry795f6ymm57qgvqup",
+    "first-secret",
+    "hasuraGraphqlAdminSecret",
+    "hello123",
+    "hush",
+    "my-secret-123",
+    "override-secret",
+    "project-admin-secret",
+    "s3cur34dm1n53cr3t",
+    "second-secret",
+    "secret$with$dollars",
+    "secret123",
+    "shared-admin",
+    "shared-secret",
+    "should-not-appear",
+    "test-admin-secret",
+    "test-secret",
+    "test_secret_key",
+    "wrong-secret",
+    "x",
+    "x-hasura-admin-secret",
+    "xxx",
+    "your-admin-secret-1",
+    "your-project-admin-secret",
+  ]
+)
+||
+(
   finding["rule_id"] == "sidekiq-secret" &&
   finding["secret"] in [
     "cafebabe:deadbeef",
@@ -251,7 +306,7 @@ useDefault = true
 id = "nhost-hasura-admin-secret"
 description = "Nhost Hasura admin secret"
 keywords = ["adminsecret", "admin_secret", "admin-secret"]
-regex = '''(?i)(?:^|[^a-z0-9_])(?:(?:(?:[a-z0-9]+_)*(?:nhost(?:_[a-z0-9]+)*|hasura(?:_graphql)?|constellation)_admin_secret(?:_[a-z0-9]+)*|x-hasura-admin-secret|admin[_-]?secret)["']?[ \t]*(?:=|:)[ \t]*|--admin-secret(?:[ \t]*=[ \t]*|[ \t]+))(?:"(?P<double_quoted>(?:\\.|[^"\\\r\n])+)"|'([^'\r\n]+)'|([^\s"'`$;,{}()\[\]][^\s"'`;,{}()\[\]]*))'''
+regex = '''(?im)(?:^|[^a-z0-9_-])(?:(?:(?:[a-z0-9]+_)*(?:nhost(?:_[a-z0-9]+)*|hasura(?:_graphql)?|constellation)_admin_secret(?:_[a-z0-9]+)*|x-hasura-admin-secret|admin[_-]?secret)["']?[ \t]*(?::=|=|:)[ \t]*|--admin-secret(?:[ \t]*=[ \t]*|[ \t]+))(?:"(?P<double_quoted>(?:\\.|[^"\\\r\n])+)"|'([^'\r\n]+)'|([^\s"'`$&*=<>;,{}()\[\]\\][^\s"'`;,{}()\[\]\\]*))'''
 confidence = "high"
 components = [
   { id = "nhost-project-url", optional = true },
@@ -259,9 +314,32 @@ components = [
   { id = "nhost-project-region", optional = true },
 ]
 filter = '''
+let bare = !filter.matchesAny(finding["match"], [`["']$`]);
+let code = filter.matchesAny(attributes["path"] ?? "", [
+  `(?i)\.(?:[cm]?[jt]sx?|go|rs|py|swift|cue|graphql|gql)$`,
+]);
+let before = finding["fragment_raw"][finding["match_line_start_idx"]:finding["match_start_idx"]];
+let after = finding["fragment_raw"][finding["match_end_idx"]:finding["match_line_end_idx"]];
+let embedded = filter.matchesAny(finding["match"], [
+  `^["'\x60][^"'\x60]*(?:=|:)[ \t]*[^"'\x60]*$`,
+]) || (
+  filter.matchesAny(finding["match"], [`--admin-secret(?:[ \t=])`]) &&
+  filter.matchesAny(before + finding["match"], [`["'\x60]`])
+);
+let prose = filter.matchesAny(attributes["path"] ?? "", [`(?i)\.mdx?$`]) &&
+filter.matchesAny(finding["match"], [`(?i)(?:^|[^a-z0-9_-])admin[_-]?secret["']?[ \t]*(?:=|:)`]) && (
+  !filter.matchesAny(before, [`^[ \t]*(?:(?:#|//|[-*])[ \t]*)?$`]) ||
+  filter.matchesAny(after, [`^[ \t]+[A-Za-z]`]) ||
+  filter.matchesAny(finding["match"], [`(?i)admin[_-]?secret[ \t]*:[ \t]*(?:string|str)[!?]?$`])
+);
+(bare && (code || prose) && !embedded) ||
+(finding["match"] startsWith "{" && before endsWith "$") ||
 filter.matchesAny(finding["secret"], [
-  `^\$\{`,
-  `^\{\{`,
+  `\$\{|\{\{`,
+  `^\$[A-Za-z_][A-Za-z0-9_]*$`,
+  `^<[^>]*>?$`,
+  `^__[A-Z][A-Z0-9_]*__$`,
+  `^%[+#0 -]?[0-9]*(?:\.[0-9]+)?[sqv]$`,
   `^(?:process\.env\b|os\.(?:Getenv|LookupEnv)\b)`,
 ])
 '''
