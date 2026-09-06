@@ -1,19 +1,5 @@
 title = "Nhost Betterleaks configuration"
 
-
-# Syntax layers:
-
-# filter = '''       Start the Expr expression
-# ( ... )            Group conditions
-# [ ... ]            List of values
-# &&                 AND
-# ||                 OR
-# '''                End the Expr expression
-
-# [extend]           One TOML section
-# [[rules]]          One repeatable detector section
-
-
 # Ignore generated artifacts for every detector rule.
 # Ignore this configuration itself.
 

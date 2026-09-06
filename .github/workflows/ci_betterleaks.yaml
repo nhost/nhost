@@ -44,7 +44,7 @@ jobs:
       - name: "Scan git history for leaked secrets"
         run: |
           nix develop .\#betterleaks -c betterleaks git . \
-            --log-opts='origin/main..HEAD' \
+            --log-opts='--diff-merges=first-parent origin/main..HEAD' \
             --no-banner \
             --no-color \
             --redact \
