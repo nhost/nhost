@@ -51,10 +51,10 @@ def _needs_refresh(
     if not exp:
         return session, True, True
 
-    if margin_seconds == 0:
-        return session, True, False
-
     now = time.time()
+    if margin_seconds == 0:
+        return session, True, exp < now
+
     if exp - now > margin_seconds:
         return session, False, False
 
