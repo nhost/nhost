@@ -44,6 +44,7 @@ from nhost.fetch.middleware import (
     update_session_from_response_middleware,
 )
 from nhost.session import (
+    DecodedToken,
     SessionStorage,
     StoredSession,
     decode_user_session,
@@ -590,6 +591,57 @@ def test_session_tokens_are_hidden_from_display_but_remain_accessible() -> None:
     }
     assert access_token not in repr(stored.decoded_token)
     assert refresh_token not in repr(stored.decoded_token)
+
+
+def test_decoded_token_repr_redacts_only_undeclared_claim_values() -> None:
+    unknown_claim = "unknown-top-level-value-WU-S4"
+    custom_hasura_claim = "visible-custom-hasura-value-WU-S4"
+    claims = {
+        "x-hasura-default-role": "visible-role-WU-S4",
+        "x-hasura-user-id": "visible-user-WU-S4",
+        "x-hasura-org-api-key": custom_hasura_claim,
+    }
+    decoded = DecodedToken.model_validate(
+        {
+            "exp": 1_700_000_001,
+            "iat": 1_700_000_000,
+            "iss": "visible-issuer-WU-S4",
+            "sub": "visible-subject-WU-S4",
+            "https://hasura.io/jwt/claims": claims,
+            "internal_api_key": unknown_claim,
+        }
+    )
+    stored = StoredSession(
+        access_token="controlled-access-token-WU-S4",
+        access_token_expires_in=3600,
+        refresh_token="controlled-refresh-token-WU-S4",
+        refresh_token_id="visible-refresh-id-WU-S4",
+        user=None,
+        decoded_token=decoded,
+    )
+
+    for value in (decoded, stored):
+        for rendered in (repr(value), str(value), f"{value}"):
+            assert unknown_claim not in rendered
+            assert "internal_api_key='<redacted>'" in rendered
+            assert "exp=1700000001" in rendered
+            assert "iat=1700000000" in rendered
+            assert "visible-issuer-WU-S4" in rendered
+            assert "visible-subject-WU-S4" in rendered
+            assert "x-hasura-default-role" in rendered
+            assert "visible-role-WU-S4" in rendered
+            assert custom_hasura_claim in rendered
+
+    dumped = decoded.model_dump()
+    dumped_json = json.loads(decoded.model_dump_json(by_alias=True))
+    assert decoded.internal_api_key == unknown_claim
+    assert dumped["internal_api_key"] == unknown_claim
+    assert dumped_json["internal_api_key"] == unknown_claim
+    assert dumped_json["https://hasura.io/jwt/claims"] == claims
+
+    round_tripped = DecodedToken.model_validate(dumped_json)
+    assert round_tripped.model_extra == {"internal_api_key": unknown_claim}
+    assert round_tripped.internal_api_key == unknown_claim
 
 
 def test_custom_service_urls_are_normalized() -> None:
