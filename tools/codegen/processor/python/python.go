@@ -659,21 +659,8 @@ func pythonModuleNames(methods []*processor.Method) map[string]string {
 
 func validatePythonNames(types []processor.Type, methods []*processor.Method) (string, error) {
 	typeNames := pythonModuleNames(methods)
-	for _, typ := range types {
-		if err := registerPythonIdentifier(
-			typeNames,
-			typ.Name(),
-			fmt.Sprintf("type %q", pythonRawTypeName(typ)),
-			"module namespace",
-		); err != nil {
-			return "", err
-		}
-
-		if object, ok := typ.(*processor.TypeObject); ok {
-			if err := validatePythonFieldNames(object); err != nil {
-				return "", err
-			}
-		}
+	if err := validatePythonTypeNames(types, typeNames); err != nil {
+		return "", err
 	}
 
 	methodNames := map[string]string{
@@ -724,6 +711,27 @@ func validatePythonNames(types []processor.Type, methods []*processor.Method) (s
 	}
 
 	return "", nil
+}
+
+func validatePythonTypeNames(types []processor.Type, typeNames map[string]string) error {
+	for _, typ := range types {
+		if err := registerPythonIdentifier(
+			typeNames,
+			typ.Name(),
+			fmt.Sprintf("type %q", pythonRawTypeName(typ)),
+			"module namespace",
+		); err != nil {
+			return err
+		}
+
+		if object, ok := typ.(*processor.TypeObject); ok {
+			if err := validatePythonFieldNames(object); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 func validateSensitiveExtension(typ processor.Type, source string) error {
@@ -930,9 +938,11 @@ func visitPythonType(
 	if typ == nil || typ.Schema() == nil {
 		return
 	}
+
 	if _, ok := visited[typ.Schema()]; ok {
 		return
 	}
+
 	visited[typ.Schema()] = struct{}{}
 	visit(typ)
 
@@ -960,6 +970,7 @@ func usesSchemaFormat(
 
 	found := false
 	visited := make(map[*base.SchemaProxy]struct{})
+
 	check := func(typ processor.Type) {
 		schema := typ.Schema()
 		if schema != nil && schema.Schema() != nil {
@@ -968,11 +979,14 @@ func usesSchemaFormat(
 			}
 		}
 	}
+
 	for _, typ := range types {
 		visitPythonType(typ, visited, check)
 	}
+
 	for _, method := range methods {
 		visitPythonType(methodBody(method), visited, check)
+
 		for _, parameter := range method.Parameters {
 			visitPythonType(parameter.Type, visited, check)
 		}
