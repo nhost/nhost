@@ -295,7 +295,7 @@ func processOpenAIResponsesStream(
 		option.WithResponseInto(&response),
 	)
 	defer func() {
-		if err := stream.Close(); err != nil {
+		if err := stream.Close(); err != nil && ctx.Err() == nil {
 			slog.WarnContext(
 				ctx,
 				"failed to close openai responses stream",
@@ -318,12 +318,16 @@ func processOpenAIResponsesStream(
 
 	streamErr := stream.Err()
 	if streamErr != nil {
-		send(ctx, ch, NewErrorEvent(mapOpenAIResponsesError(streamErr, response)))
+		if ctx.Err() == nil {
+			send(ctx, ch, NewErrorEvent(mapOpenAIResponsesError(streamErr, response)))
+		}
 
 		return
 	}
 
-	send(ctx, ch, NewErrorEvent(errOpenAIResponsesRequest))
+	if ctx.Err() == nil {
+		send(ctx, ch, NewErrorEvent(errOpenAIResponsesRequest))
+	}
 }
 
 func handleOpenAIResponsesEvent(
