@@ -13,20 +13,24 @@ Configuration (env, all optional):
     NHOST_SUBDOMAIN       default "local"
     NHOST_REGION          default "local"
     NHOST_NOTES_SESSION   session file path (default under ~/.config)
+    NOTES_PASSWORD        non-interactive login/sign-up password
 """
 
 from __future__ import annotations
 
 import asyncio
+import getpass
 import json
 import os
-from enum import Enum
+from collections.abc import Awaitable, Callable
+from contextlib import suppress
+from enum import StrEnum
 from pathlib import Path
-from typing import Awaitable, Callable, Optional
+from typing import Annotated, Any
 
 import typer
 
-from nhost import FetchError, FileStorage, NhostClientOptions, create_client
+from nhost import FetchError, FileStorage, NhostClient, NhostClientOptions, create_client
 from nhost.auth import (
     SignInEmailPasswordRequest,
     SignOutRequest,
@@ -45,7 +49,7 @@ def session_path() -> Path:
     return base / "nhost-notes" / "session.json"
 
 
-def make_client():
+def make_client() -> NhostClient:
     return create_client(
         NhostClientOptions(
             subdomain=os.environ.get("NHOST_SUBDOMAIN", "local"),
@@ -55,13 +59,17 @@ def make_client():
     )
 
 
-async def gql(nhost, query: str, variables: dict | None = None) -> dict:
+async def gql(
+    nhost: NhostClient,
+    query: str,
+    variables: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Run a GraphQL operation and return the ``data`` map."""
     resp = await nhost.graphql.request(query, variables=variables)
     return resp.body.data or {}
 
 
-def tag_list(note: dict) -> str:
+def tag_list(note: dict[str, Any]) -> str:
     tags = [nt["tag"]["name"] for nt in note.get("noteTags", [])]
     return "  " + " ".join(f"#{t}" for t in tags) if tags else ""
 
@@ -69,14 +77,14 @@ def tag_list(note: dict) -> str:
 # --- auth -------------------------------------------------------------------
 
 
-async def cmd_login(nhost, email: str, password: str) -> None:
+async def cmd_login(nhost: NhostClient, email: str, password: str) -> None:
     await nhost.auth.sign_in_email_password(
         SignInEmailPasswordRequest(email=email, password=password)
     )
     print("logged in as", email)
 
 
-async def cmd_signup(nhost, email: str, password: str) -> None:
+async def cmd_signup(nhost: NhostClient, email: str, password: str) -> None:
     await nhost.auth.sign_up_email_password(
         SignUpEmailPasswordRequest(email=email, password=password)
     )
@@ -86,18 +94,16 @@ async def cmd_signup(nhost, email: str, password: str) -> None:
         print("signed up; verify your email, then `login`")
 
 
-async def cmd_logout(nhost) -> None:
+async def cmd_logout(nhost: NhostClient) -> None:
     session = nhost.get_user_session()
     if session is not None:
-        try:
+        with suppress(FetchError):
             await nhost.auth.sign_out(SignOutRequest(refresh_token=session.refresh_token))
-        except FetchError:
-            pass
     nhost.clear_session()
     print("logged out")
 
 
-async def cmd_whoami(nhost) -> None:
+async def cmd_whoami(nhost: NhostClient) -> None:
     session = nhost.get_user_session()
     if session is None or session.user is None:
         raise SystemExit("not logged in")
@@ -107,8 +113,13 @@ async def cmd_whoami(nhost) -> None:
 # --- notes ------------------------------------------------------------------
 
 
-async def cmd_note_new(nhost, title: str, content: str | None, notebook: str | None) -> None:
-    obj: dict = {"title": title, "content": content or ""}
+async def cmd_note_new(
+    nhost: NhostClient,
+    title: str,
+    content: str | None,
+    notebook: str | None,
+) -> None:
+    obj: dict[str, Any] = {"title": title, "content": content or ""}
     if notebook:
         obj["notebook_id"] = notebook
     data = await gql(
@@ -122,8 +133,8 @@ async def cmd_note_new(nhost, title: str, content: str | None, notebook: str | N
     print("created", data["insert_notes_one"]["id"])
 
 
-async def cmd_note_ls(nhost, archived: bool, tag: str | None) -> None:
-    where: dict = {"is_archived": {"_eq": bool(archived)}}
+async def cmd_note_ls(nhost: NhostClient, archived: bool, tag: str | None) -> None:
+    where: dict[str, Any] = {"is_archived": {"_eq": bool(archived)}}
     if tag:
         where["noteTags"] = {"tag": {"name": {"_eq": tag}}}
     data = await gql(
@@ -146,7 +157,7 @@ async def cmd_note_ls(nhost, archived: bool, tag: str | None) -> None:
         print(f"{pin} {n['id']}  {n['title']}{nb}{tag_list(n)}")
 
 
-async def cmd_note_show(nhost, note_id: str) -> None:
+async def cmd_note_show(nhost: NhostClient, note_id: str) -> None:
     data = await gql(
         nhost,
         """
@@ -177,7 +188,11 @@ async def cmd_note_show(nhost, note_id: str) -> None:
             print(f"  {c['user_id']} ({c['role']})")
 
 
-async def _update_note(nhost, note_id: str, set_: dict) -> None:
+async def _update_note(
+    nhost: NhostClient,
+    note_id: str,
+    set_: dict[str, Any],
+) -> None:
     data = await gql(
         nhost,
         """
@@ -191,8 +206,13 @@ async def _update_note(nhost, note_id: str, set_: dict) -> None:
     print("updated", note_id)
 
 
-async def cmd_note_edit(nhost, note_id: str, title: str | None, content: str | None) -> None:
-    set_: dict = {}
+async def cmd_note_edit(
+    nhost: NhostClient,
+    note_id: str,
+    title: str | None,
+    content: str | None,
+) -> None:
+    set_: dict[str, Any] = {}
     if title is not None:
         set_["title"] = title
     if content is not None:
@@ -202,7 +222,7 @@ async def cmd_note_edit(nhost, note_id: str, title: str | None, content: str | N
     await _update_note(nhost, note_id, set_)
 
 
-async def cmd_note_rm(nhost, note_id: str) -> None:
+async def cmd_note_rm(nhost: NhostClient, note_id: str) -> None:
     data = await gql(
         nhost,
         "mutation Del($id: uuid!) { delete_notes_by_pk(id: $id) { id } }",
@@ -213,7 +233,7 @@ async def cmd_note_rm(nhost, note_id: str) -> None:
     print("deleted", note_id)
 
 
-async def cmd_note_tag(nhost, note_id: str, tag_name: str) -> None:
+async def cmd_note_tag(nhost: NhostClient, note_id: str, tag_name: str) -> None:
     tag_id = await upsert_tag(nhost, tag_name, None)
     await gql(
         nhost,
@@ -229,7 +249,7 @@ async def cmd_note_tag(nhost, note_id: str, tag_name: str) -> None:
     print(f"tagged {note_id} with #{tag_name}")
 
 
-async def cmd_note_untag(nhost, note_id: str, tag_name: str) -> None:
+async def cmd_note_untag(nhost: NhostClient, note_id: str, tag_name: str) -> None:
     await gql(
         nhost,
         """
@@ -246,7 +266,7 @@ async def cmd_note_untag(nhost, note_id: str, tag_name: str) -> None:
 # --- notebooks & tags -------------------------------------------------------
 
 
-async def cmd_notebook_new(nhost, name: str) -> None:
+async def cmd_notebook_new(nhost: NhostClient, name: str) -> None:
     data = await gql(
         nhost,
         """
@@ -258,14 +278,14 @@ async def cmd_notebook_new(nhost, name: str) -> None:
     print("created", data["insert_notebooks_one"]["id"])
 
 
-async def cmd_notebook_ls(nhost) -> None:
+async def cmd_notebook_ls(nhost: NhostClient) -> None:
     data = await gql(nhost, "query { notebooks(order_by: {name: asc}) { id name } }")
     for nb in data.get("notebooks", []):
         print(f"{nb['id']}  {nb['name']}")
 
 
-async def upsert_tag(nhost, name: str, color: str | None) -> str:
-    obj: dict = {"name": name}
+async def upsert_tag(nhost: NhostClient, name: str, color: str | None) -> str:
+    obj: dict[str, Any] = {"name": name}
     # Always update `name` on conflict so the upsert returns the existing row's
     # id (an empty update_columns makes Hasura DO NOTHING and return null).
     update: list[str] = ["name"]
@@ -283,14 +303,14 @@ async def upsert_tag(nhost, name: str, color: str | None) -> str:
         }""",
         {"obj": obj, "update": update},
     )
-    return data["insert_tags_one"]["id"]
+    return str(data["insert_tags_one"]["id"])
 
 
-async def cmd_tag_new(nhost, name: str, color: str) -> None:
+async def cmd_tag_new(nhost: NhostClient, name: str, color: str) -> None:
     print("created", await upsert_tag(nhost, name, color))
 
 
-async def cmd_tag_ls(nhost) -> None:
+async def cmd_tag_ls(nhost: NhostClient) -> None:
     data = await gql(nhost, "query { tags(order_by: {name: asc}) { id name color } }")
     for t in data.get("tags", []):
         print(f"{t['id']}  {t['name']:<16} {t['color']}")
@@ -299,7 +319,7 @@ async def cmd_tag_ls(nhost) -> None:
 # --- storage / sharing / functions -----------------------------------------
 
 
-async def cmd_attach(nhost, note_id: str, file: str) -> None:
+async def cmd_attach(nhost: NhostClient, note_id: str, file: str) -> None:
     raw = Path(file).read_bytes()
     name = Path(file).name
     up = await nhost.storage.upload_files(
@@ -323,13 +343,18 @@ async def cmd_attach(nhost, note_id: str, file: str) -> None:
     print(f"attached {name} (file {file_id}) to {note_id}")
 
 
-async def cmd_download(nhost, file_id: str, out_path: str) -> None:
+async def cmd_download(nhost: NhostClient, file_id: str, out_path: str) -> None:
     resp = await nhost.storage.get_file(file_id)
     Path(out_path).write_bytes(resp.body)
     print(f"wrote {len(resp.body)} bytes to {out_path}")
 
 
-async def cmd_share(nhost, note_id: str, user_id: str, role: str) -> None:
+async def cmd_share(
+    nhost: NhostClient,
+    note_id: str,
+    user_id: str,
+    role: str,
+) -> None:
     await gql(
         nhost,
         """
@@ -344,7 +369,7 @@ async def cmd_share(nhost, note_id: str, user_id: str, role: str) -> None:
     print(f"shared {note_id} with {user_id} as {role}")
 
 
-async def cmd_unshare(nhost, note_id: str, user_id: str) -> None:
+async def cmd_unshare(nhost: NhostClient, note_id: str, user_id: str) -> None:
     await gql(
         nhost,
         """
@@ -356,7 +381,7 @@ async def cmd_unshare(nhost, note_id: str, user_id: str) -> None:
     print(f"unshared {note_id} from {user_id}")
 
 
-async def cmd_export(nhost) -> None:
+async def cmd_export(nhost: NhostClient) -> None:
     resp = await nhost.functions.post("/notes/export", {})
     print(json.dumps(resp.body, indent=2))
 
@@ -371,20 +396,27 @@ app = typer.Typer(
 )
 
 
-class Role(str, Enum):
+class Role(StrEnum):
     viewer = "viewer"
     editor = "editor"
 
 
-def run(coro: Callable[..., Awaitable[None]]) -> None:
+def _read_password() -> str:
+    password = os.environ.get("NOTES_PASSWORD")
+    if password:
+        return password
+    return getpass.getpass("Password: ")
+
+
+def run(coro: Callable[[NhostClient], Awaitable[None]]) -> None:
     """Open a client, run one async command, and map SDK errors to exit codes."""
 
     async def runner() -> None:
         async with make_client() as nhost:
             try:
                 await coro(nhost)
-            except FetchError as e:
-                raise SystemExit(f"error: {e}")
+            except FetchError as exc:
+                raise SystemExit(f"error: {exc}") from exc
 
     asyncio.run(runner())
 
@@ -393,14 +425,16 @@ def run(coro: Callable[..., Awaitable[None]]) -> None:
 
 
 @app.command("signup")
-def signup(email: str, password: str) -> None:
+def signup(email: str) -> None:
     """Create an account (and sign in if email verification is off)."""
+    password = _read_password()
     run(lambda nhost: cmd_signup(nhost, email, password))
 
 
 @app.command("login")
-def login(email: str, password: str) -> None:
-    """Sign in with email and password."""
+def login(email: str) -> None:
+    """Sign in with email and a securely supplied password."""
+    password = _read_password()
     run(lambda nhost: cmd_login(nhost, email, password))
 
 
@@ -422,8 +456,8 @@ def whoami() -> None:
 @app.command("new")
 def note_new(
     title: str,
-    content: Optional[str] = typer.Option(None),
-    notebook: Optional[str] = typer.Option(None),
+    content: str | None = typer.Option(None),
+    notebook: str | None = typer.Option(None),
 ) -> None:
     """Create a note."""
     run(lambda nhost: cmd_note_new(nhost, title, content, notebook))
@@ -432,7 +466,7 @@ def note_new(
 @app.command("ls")
 def note_ls(
     archived: bool = typer.Option(False),
-    tag: Optional[str] = typer.Option(None),
+    tag: str | None = typer.Option(None),
 ) -> None:
     """List your notes."""
     run(lambda nhost: cmd_note_ls(nhost, archived, tag))
@@ -447,8 +481,8 @@ def note_show(id: str) -> None:
 @app.command("edit")
 def note_edit(
     id: str,
-    title: Optional[str] = typer.Option(None),
-    content: Optional[str] = typer.Option(None),
+    title: str | None = typer.Option(None),
+    content: str | None = typer.Option(None),
 ) -> None:
     """Edit a note's title and/or content."""
     run(lambda nhost: cmd_note_edit(nhost, id, title, content))
@@ -559,7 +593,11 @@ def download(file_id: str, out_path: str) -> None:
 
 
 @app.command("share")
-def share(note_id: str, user_id: str, role: Role = typer.Option(Role.viewer)) -> None:
+def share(
+    note_id: str,
+    user_id: str,
+    role: Annotated[Role, typer.Option()] = Role.viewer,
+) -> None:
     """Share a note with another user."""
     run(lambda nhost: cmd_share(nhost, note_id, user_id, role.value))
 

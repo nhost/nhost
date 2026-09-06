@@ -26,6 +26,11 @@ so no user session is involved.
 | `X-Webhook-Signature` | yes      | `sha256=<hex>` HMAC of the raw body with `WEBHOOK_SECRET`. |
 | `X-Webhook-Source`    | no       | Stored as the event `source` (default `thirdparty`).    |
 
+Requests larger than 1 MiB receive `413 Payload Too Large` before the service
+buffers the complete body. The cap is enforced both from `Content-Length` and
+while streaming, so chunked requests cannot bypass it and signatures are always
+checked against the complete, untruncated body.
+
 Events are written to the `public.webhook_events` table (`source`, `event_type`,
 `payload` jsonb, `received_at`), added by a migration in this backend and
 readable by the `public` role so you can query them straight away.
@@ -86,6 +91,11 @@ curl -sk -X POST https://local.graphql.local.nhost.run/v1 \
 ```
 
 ## Run as an Nhost Run service
+
+The container starts uvicorn with at most 64 concurrent connections and a
+10-second keep-alive timeout. Keep these bounds when adapting the Dockerfile so
+unauthenticated clients cannot hold unbounded request buffers or idle
+connections.
 
 Build the image with the SDK package root (`packages/nhost-python`) as the build
 context so the local SDK is installed alongside the app:
