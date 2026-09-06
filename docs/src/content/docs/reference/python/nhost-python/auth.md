@@ -49,13 +49,15 @@ Generate a PKCE code verifier and its S256 challenge in one call.
 class AuthenticationExtensionsClientOutputs
 ```
 
+Map of extension outputs from the client
+
 #### Fields
 
 | Field | Type |
 | --- | --- |
-| `appid` | `bool | None` |
-| `cred_props` | `CredentialPropertiesOutput | None` |
-| `hmac_create_secret` | `bool | None` |
+| `appid` | `bool \| None` |
+| `cred_props` | `CredentialPropertiesOutput \| None` |
+| `hmac_create_secret` | `bool \| None` |
 
 ### `AuthenticatorAssertionResponse`
 
@@ -70,7 +72,7 @@ class AuthenticatorAssertionResponse
 | `client_data_json` | `str` |
 | `authenticator_data` | `str` |
 | `signature` | `str` |
-| `user_handle` | `str | None` |
+| `user_handle` | `str \| None` |
 
 ### `AuthenticatorAttestationResponse`
 
@@ -83,10 +85,10 @@ class AuthenticatorAttestationResponse
 | Field | Type |
 | --- | --- |
 | `client_data_json` | `str` |
-| `transports` | `list[str] | None` |
-| `authenticator_data` | `str | None` |
-| `public_key` | `str | None` |
-| `public_key_algorithm` | `int | None` |
+| `transports` | `list[str] \| None` |
+| `authenticator_data` | `str \| None` |
+| `public_key` | `str \| None` |
+| `public_key_algorithm` | `int \| None` |
 | `attestation_object` | `str` |
 
 ### `AuthenticatorSelection`
@@ -99,10 +101,10 @@ class AuthenticatorSelection
 
 | Field | Type |
 | --- | --- |
-| `authenticator_attachment` | `AuthenticatorAttachment | None` |
-| `require_resident_key` | `bool | None` |
-| `resident_key` | `ResidentKeyRequirement | None` |
-| `user_verification` | `UserVerificationRequirement | None` |
+| `authenticator_attachment` | `AuthenticatorAttachment \| None` |
+| `require_resident_key` | `bool \| None` |
+| `resident_key` | `ResidentKeyRequirement \| None` |
+| `user_verification` | `UserVerificationRequirement \| None` |
 
 ### `Client`
 
@@ -120,11 +122,32 @@ Generated async API client backed by an httpx.AsyncClient and a middleware chain
 async def add_security_key(self, headers: 'dict[str, str] | None' = None) -> 'FetchResponse[PublicKeyCredentialCreationOptions]'
 ```
 
+Initialize adding of a new webauthn security key
+
+Start the process of adding a new WebAuthn security key to the user's account. Returns a challenge that must be completed by the user's authenticator device. Requires elevated permissions.
+
+Args:
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[PublicKeyCredentialCreationOptions]: The HTTP response.
+
 ##### `change_user_email`
 
 ```python
 async def change_user_email(self, body: 'UserEmailChangeRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[OKResponse]'
 ```
+
+Change user email
+
+Request to change the authenticated user's email address. A verification email will be sent to the new address to confirm the change. Requires elevated permissions.
+
+Args:
+    body (UserEmailChangeRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[OKResponse]: The HTTP response.
 
 ##### `change_user_mfa`
 
@@ -132,11 +155,56 @@ async def change_user_email(self, body: 'UserEmailChangeRequest', headers: 'dict
 async def change_user_mfa(self, headers: 'dict[str, str] | None' = None) -> 'FetchResponse[TotpGenerateResponse]'
 ```
 
+Generate TOTP secret
+
+Generate a Time-based One-Time Password (TOTP) secret for setting up multi-factor authentication
+
+Args:
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[TotpGenerateResponse]: The HTTP response.
+
 ##### `change_user_password`
 
 ```python
 async def change_user_password(self, body: 'UserPasswordRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[OKResponse]'
 ```
+
+Change user password
+
+Change the user's password. The user must be authenticated with elevated permissions or provide a valid password reset ticket.
+
+All of the user's existing sessions are revoked atomically as part of this operation, including the session used to make the request. Clients must treat the user as signed out after a successful response and obtain a new session via sign-in.
+
+
+Args:
+    body (UserPasswordRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[OKResponse]: The HTTP response.
+
+##### `change_user_phone_number`
+
+```python
+async def change_user_phone_number(self, body: 'UserPhoneNumberChangeRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[OKResponse]'
+```
+
+Change user phone number
+
+Request to change the authenticated user's phone number. A one-time password is sent
+via SMS to the new phone number; complete the change by calling
+`/user/phone-number/change/verify` with the OTP. The current `phone_number` is left
+unchanged until verification succeeds. Requires elevated permissions.
+
+
+Args:
+    body (UserPhoneNumberChangeRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[OKResponse]: The HTTP response.
 
 ##### `create_pat`
 
@@ -144,11 +212,53 @@ async def change_user_password(self, body: 'UserPasswordRequest', headers: 'dict
 async def create_pat(self, body: 'CreatePATRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[CreatePATResponse]'
 ```
 
+Create a Personal Access Token (PAT)
+
+Generate a new Personal Access Token for programmatic API access. PATs are long-lived tokens that can be used instead of regular authentication for automated systems. Requires elevated permissions.
+
+Args:
+    body (CreatePATRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[CreatePATResponse]: The HTTP response.
+
 ##### `deanonymize_user`
 
 ```python
 async def deanonymize_user(self, body: 'UserDeanonymizeRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[OKResponse]'
 ```
+
+Deanonymize an anonymous user
+
+Convert an anonymous user to a regular user by adding email and optionally password credentials. A confirmation email will be sent if the server is configured to do so.
+
+Args:
+    body (UserDeanonymizeRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[OKResponse]: The HTTP response.
+
+##### `deanonymize_user_sms`
+
+```python
+async def deanonymize_user_sms(self, body: 'UserDeanonymizeSmsRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[OKResponse]'
+```
+
+Deanonymize an anonymous user with SMS OTP
+
+Convert an anonymous user to a regular user by adding a phone number. A one-time password is sent to the
+phone number; the user completes verification by calling `/signin/passwordless/sms/otp` with the OTP, which
+marks the phone number as verified and returns a session.
+
+
+Args:
+    body (UserDeanonymizeSmsRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[OKResponse]: The HTTP response.
 
 ##### `elevate_webauthn`
 
@@ -156,11 +266,31 @@ async def deanonymize_user(self, body: 'UserDeanonymizeRequest', headers: 'dict[
 async def elevate_webauthn(self, headers: 'dict[str, str] | None' = None) -> 'FetchResponse[PublicKeyCredentialRequestOptions]'
 ```
 
+Elevate access for an already signed in user using FIDO2 Webauthn
+
+Generate a Webauthn challenge for elevating user permissions
+
+Args:
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[PublicKeyCredentialRequestOptions]: The HTTP response.
+
 ##### `get_jw_ks`
 
 ```python
 async def get_jw_ks(self, headers: 'dict[str, str] | None' = None) -> 'FetchResponse[JWKSet]'
 ```
+
+Get public keys for JWT verification in JWK Set format
+
+Retrieve the JSON Web Key Set (JWKS) containing public keys used to verify JWT signatures. This endpoint is used by clients to validate access tokens.
+
+Args:
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[JWKSet]: The HTTP response.
 
 ##### `get_o_auth_authorization_server`
 
@@ -168,11 +298,31 @@ async def get_jw_ks(self, headers: 'dict[str, str] | None' = None) -> 'FetchResp
 async def get_o_auth_authorization_server(self, headers: 'dict[str, str] | None' = None) -> 'FetchResponse[OAuth2DiscoveryResponse]'
 ```
 
+OAuth2 Authorization Server Metadata
+
+Returns the Authorization Server Metadata (RFC 8414). Same content as OpenID Discovery.
+
+Args:
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[OAuth2DiscoveryResponse]: The HTTP response.
+
 ##### `get_open_id_configuration`
 
 ```python
 async def get_open_id_configuration(self, headers: 'dict[str, str] | None' = None) -> 'FetchResponse[OAuth2DiscoveryResponse]'
 ```
+
+OpenID Connect Discovery
+
+Returns the OpenID Provider Metadata (RFC 8414)
+
+Args:
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[OAuth2DiscoveryResponse]: The HTTP response.
 
 ##### `get_provider_tokens`
 
@@ -180,11 +330,32 @@ async def get_open_id_configuration(self, headers: 'dict[str, str] | None' = Non
 async def get_provider_tokens(self, provider: 'SignInProvider', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[ProviderSession]'
 ```
 
+Retrieve OAuth2 provider tokens from callback
+
+After successful OAuth2 authentication, retrieve the provider session containing access token, refresh token, and expiration information for the specified provider. To ensure the data isn't stale this endpoint must be called immediately after the OAuth callback to obtain the tokens. The session is cleared from the database during this call, so subsequent calls will fail without going through the sign-in flow again. It is the user's responsibility to store the session safely (e.g., in browser local storage).
+
+Args:
+    provider (SignInProvider): The name of the social provider
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[ProviderSession]: The HTTP response.
+
 ##### `get_user`
 
 ```python
 async def get_user(self, headers: 'dict[str, str] | None' = None) -> 'FetchResponse[User]'
 ```
+
+Get user information
+
+Retrieve the authenticated user's profile information including roles, metadata, and account status.
+
+Args:
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[User]: The HTTP response.
 
 ##### `get_version`
 
@@ -192,11 +363,31 @@ async def get_user(self, headers: 'dict[str, str] | None' = None) -> 'FetchRespo
 async def get_version(self, headers: 'dict[str, str] | None' = None) -> 'FetchResponse[GetVersionResponse200]'
 ```
 
+Get service version
+
+Retrieve version information about the authentication service
+
+Args:
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[GetVersionResponse200]: The HTTP response.
+
 ##### `health_check_get`
 
 ```python
 async def health_check_get(self, headers: 'dict[str, str] | None' = None) -> 'FetchResponse[OKResponse]'
 ```
+
+Health check (GET)
+
+Verify if the authentication service is operational using GET method
+
+Args:
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[OKResponse]: The HTTP response.
 
 ##### `health_check_head`
 
@@ -204,11 +395,32 @@ async def health_check_get(self, headers: 'dict[str, str] | None' = None) -> 'Fe
 async def health_check_head(self, headers: 'dict[str, str] | None' = None) -> 'FetchResponse[None]'
 ```
 
+Health check (HEAD)
+
+Verify if the authentication service is operational using HEAD method
+
+Args:
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[None]: The HTTP response.
+
 ##### `link_id_token`
 
 ```python
 async def link_id_token(self, body: 'LinkIdTokenRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[OKResponse]'
 ```
+
+Link a user account with the provider's account using an id token
+
+Link the authenticated user's account with an external OAuth provider account using an ID token. Requires elevated permissions.
+
+Args:
+    body (LinkIdTokenRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[OKResponse]: The HTTP response.
 
 ##### `oauth2_authorize_post_url`
 
@@ -216,11 +428,28 @@ async def link_id_token(self, body: 'LinkIdTokenRequest', headers: 'dict[str, st
 def oauth2_authorize_post_url(self) -> 'str'
 ```
 
+OAuth2 Authorization Endpoint (POST)
+
+Initiates an OAuth2 authorization code flow via POST. Validates the request and redirects to the login UI for user authentication and consent.
+
+Returns:
+    str: The redirect URL.
+
 ##### `oauth2_authorize_url`
 
 ```python
-def oauth2_authorize_url(self, params: 'Oauth2AuthorizeParams | None' = None) -> 'str'
+def oauth2_authorize_url(self, params: 'Oauth2AuthorizeParams') -> 'str'
 ```
+
+OAuth2 Authorization Endpoint
+
+Initiates an OAuth2 authorization code flow. Validates the request and redirects to the login UI for user authentication and consent.
+
+Args:
+    params (Oauth2AuthorizeParams): Query and header parameters.
+
+Returns:
+    str: The redirect URL.
 
 ##### `oauth2_introspect`
 
@@ -228,17 +457,49 @@ def oauth2_authorize_url(self, params: 'Oauth2AuthorizeParams | None' = None) ->
 async def oauth2_introspect(self, body: 'OAuth2IntrospectRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[OAuth2IntrospectResponse]'
 ```
 
+OAuth2 Token Introspection (RFC 7662)
+
+Introspect a token to determine its current state and metadata.
+
+Args:
+    body (OAuth2IntrospectRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[OAuth2IntrospectResponse]: The HTTP response.
+
 ##### `oauth2_jwks`
 
 ```python
 async def oauth2_jwks(self, headers: 'dict[str, str] | None' = None) -> 'FetchResponse[OAuth2JWKSResponse]'
 ```
 
+OAuth2 Provider JWKS Endpoint
+
+Returns the JSON Web Key Set containing public keys used for OAuth2/OIDC token signing.
+
+Args:
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[OAuth2JWKSResponse]: The HTTP response.
+
 ##### `oauth2_login_get`
 
 ```python
-async def oauth2_login_get(self, params: 'Oauth2LoginGetParams | None' = None, headers: 'dict[str, str] | None' = None) -> 'FetchResponse[OAuth2LoginResponse]'
+async def oauth2_login_get(self, params: 'Oauth2LoginGetParams', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[OAuth2LoginResponse]'
 ```
+
+Get authorization request details for consent screen
+
+Called by the consent UI to get details about the pending authorization request.
+
+Args:
+    params (Oauth2LoginGetParams): Query and header parameters.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[OAuth2LoginResponse]: The HTTP response.
 
 ##### `oauth2_login_post`
 
@@ -246,11 +507,33 @@ async def oauth2_login_get(self, params: 'Oauth2LoginGetParams | None' = None, h
 async def oauth2_login_post(self, body: 'OAuth2LoginRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[OAuth2LoginCompleteResponse]'
 ```
 
+Complete login/consent for an authorization request
+
+Called by the consent UI after user authenticates and consents. Sets the user on the auth request and redirects back to the client with an authorization code.
+
+Args:
+    body (OAuth2LoginRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[OAuth2LoginCompleteResponse]: The HTTP response.
+
 ##### `oauth2_revoke`
 
 ```python
 async def oauth2_revoke(self, body: 'OAuth2RevokeRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[None]'
 ```
+
+OAuth2 Token Revocation (RFC 7009)
+
+Revoke an access token or refresh token.
+
+Args:
+    body (OAuth2RevokeRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[None]: The HTTP response.
 
 ##### `oauth2_token`
 
@@ -258,17 +541,48 @@ async def oauth2_revoke(self, body: 'OAuth2RevokeRequest', headers: 'dict[str, s
 async def oauth2_token(self, body: 'OAuth2TokenRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[OAuth2TokenResponse]'
 ```
 
+OAuth2 Token Endpoint
+
+Exchange an authorization code for tokens, or refresh an existing token. Supports grant_type authorization_code and refresh_token.
+
+Args:
+    body (OAuth2TokenRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[OAuth2TokenResponse]: The HTTP response.
+
 ##### `oauth2_userinfo_get`
 
 ```python
 async def oauth2_userinfo_get(self, headers: 'dict[str, str] | None' = None) -> 'FetchResponse[OAuth2UserinfoResponse]'
 ```
 
+OpenID Connect UserInfo Endpoint (GET)
+
+Returns claims about the authenticated user based on the access token scopes.
+
+Args:
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[OAuth2UserinfoResponse]: The HTTP response.
+
 ##### `oauth2_userinfo_post`
 
 ```python
 async def oauth2_userinfo_post(self, headers: 'dict[str, str] | None' = None) -> 'FetchResponse[OAuth2UserinfoResponse]'
 ```
+
+OpenID Connect UserInfo Endpoint (POST)
+
+Returns claims about the authenticated user based on the access token scopes.
+
+Args:
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[OAuth2UserinfoResponse]: The HTTP response.
 
 ##### `push_chain_function`
 
@@ -284,11 +598,34 @@ Append a middleware chain function and rebuild the fetch pipeline.
 async def refresh_provider_token(self, provider: 'SignInProvider', body: 'RefreshProviderTokenRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[ProviderSession]'
 ```
 
+Refresh OAuth2 provider tokens
+
+Refresh the OAuth2 provider access token using a valid refresh token. Returns a new provider session with updated access token, refresh token (if rotated by provider), and expiration information. This endpoint allows maintaining long-lived access to provider APIs without requiring the user to re-authenticate.
+
+Args:
+    provider (SignInProvider): The name of the social provider
+    body (RefreshProviderTokenRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[ProviderSession]: The HTTP response.
+
 ##### `refresh_token`
 
 ```python
 async def refresh_token(self, body: 'RefreshTokenRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[Session]'
 ```
+
+Refresh access token
+
+Generate a new JWT access token using a valid refresh token. The refresh token used will be revoked and a new one will be issued.
+
+Args:
+    body (RefreshTokenRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[Session]: The HTTP response.
 
 ##### `send_password_reset_email`
 
@@ -296,11 +633,33 @@ async def refresh_token(self, body: 'RefreshTokenRequest', headers: 'dict[str, s
 async def send_password_reset_email(self, body: 'UserPasswordResetRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[OKResponse]'
 ```
 
+Request password reset
+
+Request a password reset for a user account. An email with a verification link will be sent to the user's email address to complete the password reset process.
+
+Args:
+    body (UserPasswordResetRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[OKResponse]: The HTTP response.
+
 ##### `send_verification_email`
 
 ```python
 async def send_verification_email(self, body: 'UserEmailSendVerificationEmailRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[OKResponse]'
 ```
+
+Send verification email
+
+Send an email verification link to the specified email address. Used to verify email addresses for new accounts or email changes.
+
+Args:
+    body (UserEmailSendVerificationEmailRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[OKResponse]: The HTTP response.
 
 ##### `sign_in_anonymous`
 
@@ -308,11 +667,35 @@ async def send_verification_email(self, body: 'UserEmailSendVerificationEmailReq
 async def sign_in_anonymous(self, body: 'SignInAnonymousRequest | None' = None, headers: 'dict[str, str] | None' = None) -> 'FetchResponse[SessionPayload]'
 ```
 
+Sign in anonymously
+
+Create an anonymous user session without providing credentials. Anonymous users can be converted to regular users later via the deanonymize endpoint.
+This endpoint always creates a new user and is **not** gated by `AUTH_DISABLE_AUTO_SIGNUP`; it is controlled by `AUTH_DISABLE_SIGNUP` and `AUTH_ANONYMOUS_USERS_ENABLED`.
+
+
+Args:
+    body (SignInAnonymousRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[SessionPayload]: The HTTP response.
+
 ##### `sign_in_email_password`
 
 ```python
 async def sign_in_email_password(self, body: 'SignInEmailPasswordRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[SignInEmailPasswordResponse]'
 ```
+
+Sign in with email and password
+
+Authenticate a user with their email and password. Returns a session object or MFA challenge if two-factor authentication is enabled.
+
+Args:
+    body (SignInEmailPasswordRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[SignInEmailPasswordResponse]: The HTTP response.
 
 ##### `sign_in_id_token`
 
@@ -320,11 +703,39 @@ async def sign_in_email_password(self, body: 'SignInEmailPasswordRequest', heade
 async def sign_in_id_token(self, body: 'SignInIdTokenRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[SessionPayload]'
 ```
 
+Sign in with an ID token
+
+Authenticate using an ID token from a supported OAuth provider (Apple or Google).
+If the user doesn't exist and `AUTH_DISABLE_AUTO_SIGNUP` is not set, a new account will be created.
+When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/idtoken` endpoint to register first.
+
+
+Args:
+    body (SignInIdTokenRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[SessionPayload]: The HTTP response.
+
 ##### `sign_in_otp_email`
 
 ```python
 async def sign_in_otp_email(self, body: 'SignInOTPEmailRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[OKResponse]'
 ```
+
+Sign in with email OTP
+
+Initiate email-based one-time password authentication. Sends an OTP to the specified email address.
+If the user doesn't exist and `AUTH_DISABLE_AUTO_SIGNUP` is not set, a new account will be created with the provided options.
+When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/otp/email` endpoint to register first.
+
+
+Args:
+    body (SignInOTPEmailRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[OKResponse]: The HTTP response.
 
 ##### `sign_in_passwordless_email`
 
@@ -332,11 +743,39 @@ async def sign_in_otp_email(self, body: 'SignInOTPEmailRequest', headers: 'dict[
 async def sign_in_passwordless_email(self, body: 'SignInPasswordlessEmailRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[OKResponse]'
 ```
 
+Sign in with magic link email
+
+Initiate passwordless authentication by sending a magic link to the user's email.
+If the user doesn't exist and `AUTH_DISABLE_AUTO_SIGNUP` is not set, a new account will be created with the provided options.
+When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/passwordless/email` endpoint to register first.
+
+
+Args:
+    body (SignInPasswordlessEmailRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[OKResponse]: The HTTP response.
+
 ##### `sign_in_passwordless_sms`
 
 ```python
 async def sign_in_passwordless_sms(self, body: 'SignInPasswordlessSmsRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[OKResponse]'
 ```
+
+Sign in with SMS OTP
+
+Initiate passwordless authentication by sending a one-time password to the user's phone number.
+If the user doesn't exist and `AUTH_DISABLE_AUTO_SIGNUP` is not set, a new account will be created with the provided options.
+When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/passwordless/sms` endpoint to register first.
+
+
+Args:
+    body (SignInPasswordlessSmsRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[OKResponse]: The HTTP response.
 
 ##### `sign_in_pat`
 
@@ -344,11 +783,36 @@ async def sign_in_passwordless_sms(self, body: 'SignInPasswordlessSmsRequest', h
 async def sign_in_pat(self, body: 'SignInPATRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[SessionPayload]'
 ```
 
+Sign in with Personal Access Token (PAT)
+
+Authenticate using a Personal Access Token. PATs are long-lived tokens that can be used for programmatic access to the API.
+
+Args:
+    body (SignInPATRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[SessionPayload]: The HTTP response.
+
 ##### `sign_in_provider_url`
 
 ```python
 def sign_in_provider_url(self, provider: 'SignInProvider', params: 'SignInProviderParams | None' = None) -> 'str'
 ```
+
+Sign in with an OAuth2 provider
+
+Initiate OAuth2 authentication flow with a social provider. Redirects the user to the provider's authorization page.
+If the user doesn't exist and `AUTH_DISABLE_AUTO_SIGNUP` is not set, a new account will be created upon callback.
+When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, users must use the `/signup/provider/{provider}` endpoint to register first.
+
+
+Args:
+    provider (SignInProvider): The name of the social provider
+    params (SignInProviderParams): Query and header parameters.
+
+Returns:
+    str: The redirect URL.
 
 ##### `sign_in_webauthn`
 
@@ -356,11 +820,33 @@ def sign_in_provider_url(self, provider: 'SignInProvider', params: 'SignInProvid
 async def sign_in_webauthn(self, body: 'SignInWebauthnRequest | None' = None, headers: 'dict[str, str] | None' = None) -> 'FetchResponse[PublicKeyCredentialRequestOptions]'
 ```
 
+Sign in with Webauthn
+
+Initiate a Webauthn sign-in process by sending a challenge to the user's device. The user must have previously registered a Webauthn credential.
+
+Args:
+    body (SignInWebauthnRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[PublicKeyCredentialRequestOptions]: The HTTP response.
+
 ##### `sign_out`
 
 ```python
 async def sign_out(self, body: 'SignOutRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[OKResponse]'
 ```
+
+Sign out
+
+End the current user session by invalidating refresh tokens. Optionally sign out from all devices.
+
+Args:
+    body (SignOutRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[OKResponse]: The HTTP response.
 
 ##### `sign_up_email_password`
 
@@ -368,11 +854,36 @@ async def sign_out(self, body: 'SignOutRequest', headers: 'dict[str, str] | None
 async def sign_up_email_password(self, body: 'SignUpEmailPasswordRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[SessionPayload]'
 ```
 
+Sign up with email and password
+
+Register a new user account with email and password. Returns a session if email verification is not required, otherwise returns null session.
+
+Args:
+    body (SignUpEmailPasswordRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[SessionPayload]: The HTTP response.
+
 ##### `sign_up_id_token`
 
 ```python
 async def sign_up_id_token(self, body: 'SignUpIdTokenRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[SessionPayload]'
 ```
+
+Sign up with ID token
+
+Register a new user account using an ID token from Apple or Google.
+Use this endpoint to explicitly register a new account. When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, this is the only way to register through this method.
+If the user already exists, a `user-already-exists` error is returned.
+
+
+Args:
+    body (SignUpIdTokenRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[SessionPayload]: The HTTP response.
 
 ##### `sign_up_otp_email`
 
@@ -380,11 +891,37 @@ async def sign_up_id_token(self, body: 'SignUpIdTokenRequest', headers: 'dict[st
 async def sign_up_otp_email(self, body: 'SignUpOTPEmailRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[OKResponse]'
 ```
 
+Sign up with email OTP
+
+Register a new user account using email OTP authentication. Sends a one-time password to the specified email address.
+Use this endpoint to explicitly register a new account. When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, this is the only way to register through this method.
+
+
+Args:
+    body (SignUpOTPEmailRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[OKResponse]: The HTTP response.
+
 ##### `sign_up_passwordless_email`
 
 ```python
 async def sign_up_passwordless_email(self, body: 'SignUpPasswordlessEmailRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[OKResponse]'
 ```
+
+Sign up with magic link email
+
+Register a new user account using passwordless email authentication. Sends a magic link to the specified email address for verification.
+Use this endpoint to explicitly register a new account. When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, this is the only way to register through this method.
+
+
+Args:
+    body (SignUpPasswordlessEmailRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[OKResponse]: The HTTP response.
 
 ##### `sign_up_passwordless_sms`
 
@@ -392,11 +929,38 @@ async def sign_up_passwordless_email(self, body: 'SignUpPasswordlessEmailRequest
 async def sign_up_passwordless_sms(self, body: 'SignUpPasswordlessSmsRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[OKResponse]'
 ```
 
+Sign up with SMS OTP
+
+Register a new user account using SMS OTP authentication. Sends a one-time password to the specified phone number.
+Use this endpoint to explicitly register a new account. When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, this is the only way to register through this method.
+
+
+Args:
+    body (SignUpPasswordlessSmsRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[OKResponse]: The HTTP response.
+
 ##### `sign_up_provider_url`
 
 ```python
 def sign_up_provider_url(self, provider: 'SignInProvider', params: 'SignUpProviderParams | None' = None) -> 'str'
 ```
+
+Sign up with OAuth provider
+
+Initiate OAuth signup flow with the specified provider. Redirects to the provider's authorization page.
+Use this endpoint to explicitly register a new account. When `AUTH_DISABLE_AUTO_SIGNUP` is enabled, this is the only way to register through this method.
+If the user already exists at callback time, they are redirected with `error=user-already-exists`.
+
+
+Args:
+    provider (SignInProvider): The name of the social provider
+    params (SignUpProviderParams): Query and header parameters.
+
+Returns:
+    str: The redirect URL.
 
 ##### `sign_up_webauthn`
 
@@ -404,11 +968,33 @@ def sign_up_provider_url(self, provider: 'SignInProvider', params: 'SignUpProvid
 async def sign_up_webauthn(self, body: 'SignUpWebauthnRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[PublicKeyCredentialCreationOptions]'
 ```
 
+Sign up with Webauthn
+
+Initiate a Webauthn sign-up process by sending a challenge to the user's device. The user must not have an existing account.
+
+Args:
+    body (SignUpWebauthnRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[PublicKeyCredentialCreationOptions]: The HTTP response.
+
 ##### `token_exchange`
 
 ```python
 async def token_exchange(self, body: 'TokenExchangeRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[SessionPayload]'
 ```
+
+Exchange authorization code for session
+
+Exchange an authorization code (obtained via PKCE flow) together with the original code_verifier for a session containing access and refresh tokens.
+
+Args:
+    body (TokenExchangeRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[SessionPayload]: The HTTP response.
 
 ##### `verify_add_security_key`
 
@@ -416,11 +1002,53 @@ async def token_exchange(self, body: 'TokenExchangeRequest', headers: 'dict[str,
 async def verify_add_security_key(self, body: 'VerifyAddSecurityKeyRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[VerifyAddSecurityKeyResponse]'
 ```
 
+Verify adding of a new webauthn security key
+
+Complete the process of adding a new WebAuthn security key by verifying the authenticator response. Requires elevated permissions.
+
+Args:
+    body (VerifyAddSecurityKeyRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[VerifyAddSecurityKeyResponse]: The HTTP response.
+
 ##### `verify_change_user_mfa`
 
 ```python
 async def verify_change_user_mfa(self, body: 'UserMfaRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[OKResponse]'
 ```
+
+Manage multi-factor authentication
+
+Activate or deactivate multi-factor authentication for the authenticated user
+
+Args:
+    body (UserMfaRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[OKResponse]: The HTTP response.
+
+##### `verify_change_user_phone_number`
+
+```python
+async def verify_change_user_phone_number(self, body: 'UserPhoneNumberChangeVerifyRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[OKResponse]'
+```
+
+Verify phone number change
+
+Complete a previously-requested phone number change by submitting the OTP that was
+sent via SMS. On success the staged phone number becomes the user's verified phone
+number. Requires elevated permissions.
+
+
+Args:
+    body (UserPhoneNumberChangeVerifyRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[OKResponse]: The HTTP response.
 
 ##### `verify_elevate_webauthn`
 
@@ -428,11 +1056,33 @@ async def verify_change_user_mfa(self, body: 'UserMfaRequest', headers: 'dict[st
 async def verify_elevate_webauthn(self, body: 'SignInWebauthnVerifyRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[SessionPayload]'
 ```
 
+Verify FIDO2 Webauthn authentication using public-key cryptography for elevation
+
+Complete Webauthn elevation by verifying the authentication response
+
+Args:
+    body (SignInWebauthnVerifyRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[SessionPayload]: The HTTP response.
+
 ##### `verify_sign_in_mfa_totp`
 
 ```python
 async def verify_sign_in_mfa_totp(self, body: 'SignInMfaTotpRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[SessionPayload]'
 ```
+
+Verify TOTP for MFA
+
+Complete the multi-factor authentication by verifying a Time-based One-Time Password (TOTP). Returns a session if validation is successful.
+
+Args:
+    body (SignInMfaTotpRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[SessionPayload]: The HTTP response.
 
 ##### `verify_sign_in_otp_email`
 
@@ -440,11 +1090,33 @@ async def verify_sign_in_mfa_totp(self, body: 'SignInMfaTotpRequest', headers: '
 async def verify_sign_in_otp_email(self, body: 'SignInOTPEmailVerifyRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[SignInOTPEmailVerifyResponse]'
 ```
 
+Verify email OTP
+
+Complete email OTP authentication by verifying the one-time password. Returns a session if validation is successful.
+
+Args:
+    body (SignInOTPEmailVerifyRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[SignInOTPEmailVerifyResponse]: The HTTP response.
+
 ##### `verify_sign_in_passwordless_sms`
 
 ```python
 async def verify_sign_in_passwordless_sms(self, body: 'SignInPasswordlessSmsOtpRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[SignInPasswordlessSmsOtpResponse]'
 ```
+
+Verify SMS OTP and complete authentication
+
+Complete passwordless SMS authentication by verifying the one-time password and returning a session.
+
+Args:
+    body (SignInPasswordlessSmsOtpRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[SignInPasswordlessSmsOtpResponse]: The HTTP response.
 
 ##### `verify_sign_in_webauthn`
 
@@ -452,23 +1124,66 @@ async def verify_sign_in_passwordless_sms(self, body: 'SignInPasswordlessSmsOtpR
 async def verify_sign_in_webauthn(self, body: 'SignInWebauthnVerifyRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[SessionPayload]'
 ```
 
+Verify Webauthn sign-in
+
+Complete the Webauthn sign-in process by verifying the response from the user's device. Returns a session if validation is successful.
+
+Args:
+    body (SignInWebauthnVerifyRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[SessionPayload]: The HTTP response.
+
 ##### `verify_sign_up_webauthn`
 
 ```python
 async def verify_sign_up_webauthn(self, body: 'SignUpWebauthnVerifyRequest', headers: 'dict[str, str] | None' = None) -> 'FetchResponse[SessionPayload]'
 ```
 
+Verify Webauthn sign-up
+
+Complete the Webauthn sign-up process by verifying the response from the user's device. Returns a session if validation is successful.
+
+Args:
+    body (SignUpWebauthnVerifyRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[SessionPayload]: The HTTP response.
+
 ##### `verify_ticket_url`
 
 ```python
-def verify_ticket_url(self, params: 'VerifyTicketParams | None' = None) -> 'str'
+def verify_ticket_url(self, params: 'VerifyTicketParams') -> 'str'
 ```
+
+Verify email and authentication tickets
+
+Verify tickets created by email verification, magic link authentication, or password reset processes. Redirects the user to the appropriate destination upon successful verification.
+
+Args:
+    params (VerifyTicketParams): Query and header parameters.
+
+Returns:
+    str: The redirect URL.
 
 ##### `verify_token`
 
 ```python
 async def verify_token(self, body: 'VerifyTokenRequest | None' = None, headers: 'dict[str, str] | None' = None) -> 'FetchResponse[str]'
 ```
+
+Verify JWT token
+
+Verify the validity of a JWT access token. If no request body is provided, the Authorization header will be used for verification.
+
+Args:
+    body (VerifyTokenRequest): Request body.
+    headers (dict[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[str]: The HTTP response.
 
 ### `CreatePATRequest`
 
@@ -481,7 +1196,7 @@ class CreatePATRequest
 | Field | Type |
 | --- | --- |
 | `expires_at` | `str` |
-| `metadata` | `dict[str, Any] | None` |
+| `metadata` | `dict[str, Any] \| None` |
 
 ### `CreatePATResponse`
 
@@ -509,8 +1224,8 @@ class CredentialAssertionResponse
 | `id` | `str` |
 | `type` | `str` |
 | `raw_id` | `str` |
-| `client_extension_results` | `AuthenticationExtensionsClientOutputs | None` |
-| `authenticator_attachment` | `str | None` |
+| `client_extension_results` | `AuthenticationExtensionsClientOutputs \| None` |
+| `authenticator_attachment` | `str \| None` |
 | `response` | `AuthenticatorAssertionResponse` |
 
 ### `CredentialCreationResponse`
@@ -526,8 +1241,8 @@ class CredentialCreationResponse
 | `id` | `str` |
 | `type` | `str` |
 | `raw_id` | `str` |
-| `client_extension_results` | `AuthenticationExtensionsClientOutputs | None` |
-| `authenticator_attachment` | `str | None` |
+| `client_extension_results` | `AuthenticationExtensionsClientOutputs \| None` |
+| `authenticator_attachment` | `str \| None` |
 | `response` | `AuthenticatorAttestationResponse` |
 
 ### `CredentialParameter`
@@ -549,17 +1264,21 @@ class CredentialParameter
 class CredentialPropertiesOutput
 ```
 
+Credential properties extension output
+
 #### Fields
 
 | Field | Type |
 | --- | --- |
-| `rk` | `bool | None` |
+| `rk` | `bool \| None` |
 
 ### `ErrorResponse`
 
 ```python
 class ErrorResponse
 ```
+
+Standardized error response
 
 #### Fields
 
@@ -587,6 +1306,8 @@ class GetVersionResponse200
 class JWK
 ```
 
+JSON Web Key for JWT verification
+
 #### Fields
 
 | Field | Type |
@@ -603,6 +1324,8 @@ class JWK
 ```python
 class JWKSet
 ```
+
+JSON Web Key Set for verifying JWT signatures
 
 #### Fields
 
@@ -622,13 +1345,15 @@ class LinkIdTokenRequest
 | --- | --- |
 | `provider` | `IdTokenProvider` |
 | `id_token` | `str` |
-| `nonce` | `str | None` |
+| `nonce` | `str \| None` |
 
 ### `MFAChallengePayload`
 
 ```python
 class MFAChallengePayload
 ```
+
+Challenge payload for multi-factor authentication
 
 #### Fields
 
@@ -649,21 +1374,21 @@ class OAuth2DiscoveryResponse
 | `issuer` | `str` |
 | `authorization_endpoint` | `str` |
 | `token_endpoint` | `str` |
-| `userinfo_endpoint` | `str | None` |
+| `userinfo_endpoint` | `str \| None` |
 | `jwks_uri` | `str` |
-| `revocation_endpoint` | `str | None` |
-| `introspection_endpoint` | `str | None` |
-| `scopes_supported` | `list[str] | None` |
+| `revocation_endpoint` | `str \| None` |
+| `introspection_endpoint` | `str \| None` |
+| `scopes_supported` | `list[str] \| None` |
 | `response_types_supported` | `list[str]` |
-| `grant_types_supported` | `list[str] | None` |
-| `subject_types_supported` | `list[str] | None` |
-| `id_token_signing_alg_values_supported` | `list[str] | None` |
-| `token_endpoint_auth_methods_supported` | `list[str] | None` |
-| `code_challenge_methods_supported` | `list[str] | None` |
-| `claims_supported` | `list[str] | None` |
-| `request_parameter_supported` | `bool | None` |
-| `authorization_response_iss_parameter_supported` | `bool | None` |
-| `client_id_metadata_document_supported` | `bool | None` |
+| `grant_types_supported` | `list[str] \| None` |
+| `subject_types_supported` | `list[str] \| None` |
+| `id_token_signing_alg_values_supported` | `list[str] \| None` |
+| `token_endpoint_auth_methods_supported` | `list[str] \| None` |
+| `code_challenge_methods_supported` | `list[str] \| None` |
+| `claims_supported` | `list[str] \| None` |
+| `request_parameter_supported` | `bool \| None` |
+| `authorization_response_iss_parameter_supported` | `bool \| None` |
+| `client_id_metadata_document_supported` | `bool \| None` |
 
 ### `OAuth2ErrorResponse`
 
@@ -676,7 +1401,7 @@ class OAuth2ErrorResponse
 | Field | Type |
 | --- | --- |
 | `error` | `str` |
-| `error_description` | `str | None` |
+| `error_description` | `str \| None` |
 
 ### `OAuth2IntrospectRequest`
 
@@ -689,9 +1414,9 @@ class OAuth2IntrospectRequest
 | Field | Type |
 | --- | --- |
 | `token` | `str` |
-| `token_type_hint` | `OAuth2IntrospectRequestToken_type_hint | None` |
-| `client_id` | `str | None` |
-| `client_secret` | `str | None` |
+| `token_type_hint` | `OAuth2IntrospectRequestToken_type_hint \| None` |
+| `client_id` | `str \| None` |
+| `client_secret` | `str \| None` |
 
 ### `OAuth2IntrospectResponse`
 
@@ -704,13 +1429,13 @@ class OAuth2IntrospectResponse
 | Field | Type |
 | --- | --- |
 | `active` | `bool` |
-| `scope` | `str | None` |
-| `client_id` | `str | None` |
-| `sub` | `str | None` |
-| `exp` | `int | None` |
-| `iat` | `int | None` |
-| `iss` | `str | None` |
-| `token_type` | `str | None` |
+| `scope` | `str \| None` |
+| `client_id` | `str \| None` |
+| `sub` | `str \| None` |
+| `exp` | `int \| None` |
+| `iat` | `int \| None` |
+| `iss` | `str \| None` |
+| `token_type` | `str \| None` |
 
 ### `OAuth2JWKSResponse`
 
@@ -774,9 +1499,9 @@ class OAuth2RevokeRequest
 | Field | Type |
 | --- | --- |
 | `token` | `str` |
-| `token_type_hint` | `OAuth2RevokeRequestToken_type_hint | None` |
-| `client_id` | `str | None` |
-| `client_secret` | `str | None` |
+| `token_type_hint` | `OAuth2RevokeRequestToken_type_hint \| None` |
+| `client_id` | `str \| None` |
+| `client_secret` | `str \| None` |
 
 ### `OAuth2TokenRequest`
 
@@ -789,13 +1514,13 @@ class OAuth2TokenRequest
 | Field | Type |
 | --- | --- |
 | `grant_type` | `OAuth2TokenRequestGrant_type` |
-| `code` | `str | None` |
-| `redirect_uri` | `str | None` |
-| `client_id` | `str | None` |
-| `client_secret` | `str | None` |
-| `code_verifier` | `str | None` |
-| `refresh_token` | `str | None` |
-| `resource` | `str | None` |
+| `code` | `str \| None` |
+| `redirect_uri` | `str \| None` |
+| `client_id` | `str \| None` |
+| `client_secret` | `str \| None` |
+| `code_verifier` | `str \| None` |
+| `refresh_token` | `str \| None` |
+| `resource` | `str \| None` |
 
 ### `OAuth2TokenResponse`
 
@@ -810,9 +1535,9 @@ class OAuth2TokenResponse
 | `access_token` | `str` |
 | `token_type` | `str` |
 | `expires_in` | `int` |
-| `refresh_token` | `str | None` |
-| `id_token` | `str | None` |
-| `scope` | `str | None` |
+| `refresh_token` | `str \| None` |
+| `id_token` | `str \| None` |
+| `scope` | `str \| None` |
 
 ### `OAuth2UserinfoResponse`
 
@@ -825,13 +1550,13 @@ class OAuth2UserinfoResponse
 | Field | Type |
 | --- | --- |
 | `sub` | `str` |
-| `name` | `str | None` |
-| `email` | `str | None` |
-| `email_verified` | `bool | None` |
-| `picture` | `str | None` |
-| `locale` | `str | None` |
-| `phone_number` | `str | None` |
-| `phone_number_verified` | `bool | None` |
+| `name` | `str \| None` |
+| `email` | `str \| None` |
+| `email_verified` | `bool \| None` |
+| `picture` | `str \| None` |
+| `locale` | `str \| None` |
+| `phone_number` | `str \| None` |
+| `phone_number_verified` | `bool \| None` |
 
 ### `Oauth2AuthorizeParams`
 
@@ -846,13 +1571,13 @@ class Oauth2AuthorizeParams
 | `client_id` | `str` |
 | `redirect_uri` | `str` |
 | `response_type` | `str` |
-| `scope` | `str | None` |
-| `state` | `str | None` |
-| `nonce` | `str | None` |
-| `code_challenge` | `str | None` |
-| `code_challenge_method` | `GetCode_challenge_method | None` |
-| `resource` | `str | None` |
-| `prompt` | `str | None` |
+| `scope` | `str \| None` |
+| `state` | `str \| None` |
+| `nonce` | `str \| None` |
+| `code_challenge` | `str \| None` |
+| `code_challenge_method` | `GetCode_challenge_method \| None` |
+| `resource` | `str \| None` |
+| `prompt` | `str \| None` |
 
 ### `Oauth2AuthorizePostBody`
 
@@ -867,13 +1592,13 @@ class Oauth2AuthorizePostBody
 | `client_id` | `str` |
 | `redirect_uri` | `str` |
 | `response_type` | `str` |
-| `scope` | `str | None` |
-| `state` | `str | None` |
-| `nonce` | `str | None` |
-| `code_challenge` | `str | None` |
-| `code_challenge_method` | `str | None` |
-| `resource` | `str | None` |
-| `prompt` | `str | None` |
+| `scope` | `str \| None` |
+| `state` | `str \| None` |
+| `nonce` | `str \| None` |
+| `code_challenge` | `str \| None` |
+| `code_challenge_method` | `str \| None` |
+| `resource` | `str \| None` |
+| `prompt` | `str \| None` |
 
 ### `Oauth2LoginGetParams`
 
@@ -897,7 +1622,7 @@ class OptionsRedirectTo
 
 | Field | Type |
 | --- | --- |
-| `redirect_to` | `str | None` |
+| `redirect_to` | `str \| None` |
 
 ### `PKCEPair`
 
@@ -913,6 +1638,8 @@ A PKCE code verifier and its derived S256 challenge.
 class ProviderSession
 ```
 
+OAuth2 provider session containing access and refresh tokens
+
 #### Fields
 
 | Field | Type |
@@ -920,7 +1647,7 @@ class ProviderSession
 | `access_token` | `str` |
 | `expires_in` | `int` |
 | `expires_at` | `str` |
-| `refresh_token` | `str | None` |
+| `refresh_token` | `str \| None` |
 
 ### `ProviderSpecificParams`
 
@@ -932,8 +1659,8 @@ class ProviderSpecificParams
 
 | Field | Type |
 | --- | --- |
-| `connection` | `str | None` |
-| `organization` | `str | None` |
+| `connection` | `str \| None` |
+| `organization` | `str \| None` |
 
 ### `PublicKeyCredentialCreationOptions`
 
@@ -949,13 +1676,13 @@ class PublicKeyCredentialCreationOptions
 | `user` | `UserEntity` |
 | `challenge` | `str` |
 | `pub_key_cred_params` | `list[CredentialParameter]` |
-| `timeout` | `int | None` |
-| `exclude_credentials` | `list[PublicKeyCredentialDescriptor] | None` |
-| `authenticator_selection` | `AuthenticatorSelection | None` |
-| `hints` | `list[PublicKeyCredentialHints] | None` |
-| `attestation` | `ConveyancePreference | None` |
-| `attestation_formats` | `list[AttestationFormat] | None` |
-| `extensions` | `dict[str, Any] | None` |
+| `timeout` | `int \| None` |
+| `exclude_credentials` | `list[PublicKeyCredentialDescriptor] \| None` |
+| `authenticator_selection` | `AuthenticatorSelection \| None` |
+| `hints` | `list[PublicKeyCredentialHints] \| None` |
+| `attestation` | `ConveyancePreference \| None` |
+| `attestation_formats` | `list[AttestationFormat] \| None` |
+| `extensions` | `dict[str, Any] \| None` |
 
 ### `PublicKeyCredentialDescriptor`
 
@@ -969,7 +1696,7 @@ class PublicKeyCredentialDescriptor
 | --- | --- |
 | `type` | `CredentialType` |
 | `id` | `str` |
-| `transports` | `list[AuthenticatorTransport] | None` |
+| `transports` | `list[AuthenticatorTransport] \| None` |
 
 ### `PublicKeyCredentialRequestOptions`
 
@@ -982,18 +1709,20 @@ class PublicKeyCredentialRequestOptions
 | Field | Type |
 | --- | --- |
 | `challenge` | `str` |
-| `timeout` | `int | None` |
-| `rp_id` | `str | None` |
-| `allow_credentials` | `list[PublicKeyCredentialDescriptor] | None` |
-| `user_verification` | `UserVerificationRequirement | None` |
-| `hints` | `list[PublicKeyCredentialHints] | None` |
-| `extensions` | `dict[str, Any] | None` |
+| `timeout` | `int \| None` |
+| `rp_id` | `str \| None` |
+| `allow_credentials` | `list[PublicKeyCredentialDescriptor] \| None` |
+| `user_verification` | `UserVerificationRequirement \| None` |
+| `hints` | `list[PublicKeyCredentialHints] \| None` |
+| `extensions` | `dict[str, Any] \| None` |
 
 ### `RefreshProviderTokenRequest`
 
 ```python
 class RefreshProviderTokenRequest
 ```
+
+Request to refresh OAuth2 provider tokens
 
 #### Fields
 
@@ -1006,6 +1735,8 @@ class RefreshProviderTokenRequest
 ```python
 class RefreshTokenRequest
 ```
+
+Request to refresh an access token
 
 #### Fields
 
@@ -1032,6 +1763,8 @@ class RelyingPartyEntity
 class Session
 ```
 
+User authentication session containing tokens and user information
+
 #### Fields
 
 | Field | Type |
@@ -1040,7 +1773,7 @@ class Session
 | `access_token_expires_in` | `int` |
 | `refresh_token_id` | `str` |
 | `refresh_token` | `str` |
-| `user` | `User | None` |
+| `user` | `User \| None` |
 
 ### `SessionPayload`
 
@@ -1048,11 +1781,13 @@ class Session
 class SessionPayload
 ```
 
+Container for session information
+
 #### Fields
 
 | Field | Type |
 | --- | --- |
-| `session` | `Session | None` |
+| `session` | `Session \| None` |
 
 ### `SignInAnonymousRequest`
 
@@ -1064,15 +1799,17 @@ class SignInAnonymousRequest
 
 | Field | Type |
 | --- | --- |
-| `display_name` | `str | None` |
-| `locale` | `str | None` |
-| `metadata` | `dict[str, Any] | None` |
+| `display_name` | `str \| None` |
+| `locale` | `str \| None` |
+| `metadata` | `dict[str, Any] \| None` |
 
 ### `SignInEmailPasswordRequest`
 
 ```python
 class SignInEmailPasswordRequest
 ```
+
+Request to authenticate using email and password
 
 #### Fields
 
@@ -1087,12 +1824,14 @@ class SignInEmailPasswordRequest
 class SignInEmailPasswordResponse
 ```
 
+Response for email-password authentication that may include a session or MFA challenge
+
 #### Fields
 
 | Field | Type |
 | --- | --- |
-| `session` | `Session | None` |
-| `mfa` | `MFAChallengePayload | None` |
+| `session` | `Session \| None` |
+| `mfa` | `MFAChallengePayload \| None` |
 
 ### `SignInIdTokenRequest`
 
@@ -1106,8 +1845,8 @@ class SignInIdTokenRequest
 | --- | --- |
 | `provider` | `IdTokenProvider` |
 | `id_token` | `str` |
-| `nonce` | `str | None` |
-| `options` | `SignUpOptions | None` |
+| `nonce` | `str \| None` |
+| `options` | `SignUpOptions \| None` |
 
 ### `SignInMfaTotpRequest`
 
@@ -1133,7 +1872,7 @@ class SignInOTPEmailRequest
 | Field | Type |
 | --- | --- |
 | `email` | `str` |
-| `options` | `SignUpOptions | None` |
+| `options` | `SignUpOptions \| None` |
 
 ### `SignInOTPEmailVerifyRequest`
 
@@ -1158,7 +1897,7 @@ class SignInOTPEmailVerifyResponse
 
 | Field | Type |
 | --- | --- |
-| `session` | `Session | None` |
+| `session` | `Session \| None` |
 
 ### `SignInPATRequest`
 
@@ -1183,8 +1922,8 @@ class SignInPasswordlessEmailRequest
 | Field | Type |
 | --- | --- |
 | `email` | `str` |
-| `options` | `SignUpOptions | None` |
-| `code_challenge` | `str | None` |
+| `options` | `SignUpOptions \| None` |
+| `code_challenge` | `str \| None` |
 
 ### `SignInPasswordlessSmsOtpRequest`
 
@@ -1209,8 +1948,8 @@ class SignInPasswordlessSmsOtpResponse
 
 | Field | Type |
 | --- | --- |
-| `session` | `Session | None` |
-| `mfa` | `MFAChallengePayload | None` |
+| `session` | `Session \| None` |
+| `mfa` | `MFAChallengePayload \| None` |
 
 ### `SignInPasswordlessSmsRequest`
 
@@ -1223,7 +1962,7 @@ class SignInPasswordlessSmsRequest
 | Field | Type |
 | --- | --- |
 | `phone_number` | `str` |
-| `options` | `SignUpOptions | None` |
+| `options` | `SignUpOptions \| None` |
 
 ### `SignInProviderParams`
 
@@ -1235,17 +1974,17 @@ class SignInProviderParams
 
 | Field | Type |
 | --- | --- |
-| `allowed_roles` | `list[str] | None` |
-| `default_role` | `str | None` |
-| `display_name` | `str | None` |
-| `locale` | `str | None` |
-| `metadata` | `dict[str, Any] | None` |
-| `redirect_to` | `str | None` |
-| `connect` | `str | None` |
-| `state` | `str | None` |
-| `provider_specific_params` | `ProviderSpecificParams | None` |
-| `upstream_params` | `dict[str, Any] | None` |
-| `code_challenge` | `str | None` |
+| `allowed_roles` | `list[str] \| None` |
+| `default_role` | `str \| None` |
+| `display_name` | `str \| None` |
+| `locale` | `str \| None` |
+| `metadata` | `dict[str, Any] \| None` |
+| `redirect_to` | `str \| None` |
+| `connect` | `str \| None` |
+| `state` | `str \| None` |
+| `provider_specific_params` | `ProviderSpecificParams \| None` |
+| `upstream_params` | `dict[str, Any] \| None` |
+| `code_challenge` | `str \| None` |
 
 ### `SignInWebauthnRequest`
 
@@ -1257,7 +1996,7 @@ class SignInWebauthnRequest
 
 | Field | Type |
 | --- | --- |
-| `email` | `str | None` |
+| `email` | `str \| None` |
 
 ### `SignInWebauthnVerifyRequest`
 
@@ -1269,7 +2008,7 @@ class SignInWebauthnVerifyRequest
 
 | Field | Type |
 | --- | --- |
-| `email` | `str | None` |
+| `email` | `str \| None` |
 | `credential` | `CredentialAssertionResponse` |
 
 ### `SignOutRequest`
@@ -1282,8 +2021,8 @@ class SignOutRequest
 
 | Field | Type |
 | --- | --- |
-| `refresh_token` | `str | None` |
-| `all` | `bool | None` |
+| `refresh_token` | `str \| None` |
+| `all` | `bool \| None` |
 
 ### `SignUpEmailPasswordRequest`
 
@@ -1291,14 +2030,16 @@ class SignOutRequest
 class SignUpEmailPasswordRequest
 ```
 
+Request to register a new user with email and password
+
 #### Fields
 
 | Field | Type |
 | --- | --- |
 | `email` | `str` |
 | `password` | `str` |
-| `options` | `SignUpOptions | None` |
-| `code_challenge` | `str | None` |
+| `options` | `SignUpOptions \| None` |
+| `code_challenge` | `str \| None` |
 
 ### `SignUpIdTokenRequest`
 
@@ -1312,8 +2053,8 @@ class SignUpIdTokenRequest
 | --- | --- |
 | `provider` | `IdTokenProvider` |
 | `id_token` | `str` |
-| `nonce` | `str | None` |
-| `options` | `SignUpOptions | None` |
+| `nonce` | `str \| None` |
+| `options` | `SignUpOptions \| None` |
 
 ### `SignUpOTPEmailRequest`
 
@@ -1326,7 +2067,7 @@ class SignUpOTPEmailRequest
 | Field | Type |
 | --- | --- |
 | `email` | `str` |
-| `options` | `SignUpOptions | None` |
+| `options` | `SignUpOptions \| None` |
 
 ### `SignUpOptions`
 
@@ -1338,12 +2079,12 @@ class SignUpOptions
 
 | Field | Type |
 | --- | --- |
-| `allowed_roles` | `list[str] | None` |
-| `default_role` | `str | None` |
-| `display_name` | `str | None` |
-| `locale` | `str | None` |
-| `metadata` | `dict[str, Any] | None` |
-| `redirect_to` | `str | None` |
+| `allowed_roles` | `list[str] \| None` |
+| `default_role` | `str \| None` |
+| `display_name` | `str \| None` |
+| `locale` | `str \| None` |
+| `metadata` | `dict[str, Any] \| None` |
+| `redirect_to` | `str \| None` |
 
 ### `SignUpPasswordlessEmailRequest`
 
@@ -1356,8 +2097,8 @@ class SignUpPasswordlessEmailRequest
 | Field | Type |
 | --- | --- |
 | `email` | `str` |
-| `options` | `SignUpOptions | None` |
-| `code_challenge` | `str | None` |
+| `options` | `SignUpOptions \| None` |
+| `code_challenge` | `str \| None` |
 
 ### `SignUpPasswordlessSmsRequest`
 
@@ -1370,7 +2111,7 @@ class SignUpPasswordlessSmsRequest
 | Field | Type |
 | --- | --- |
 | `phone_number` | `str` |
-| `options` | `SignUpOptions | None` |
+| `options` | `SignUpOptions \| None` |
 
 ### `SignUpProviderParams`
 
@@ -1382,16 +2123,16 @@ class SignUpProviderParams
 
 | Field | Type |
 | --- | --- |
-| `allowed_roles` | `list[str] | None` |
-| `default_role` | `str | None` |
-| `display_name` | `str | None` |
-| `locale` | `str | None` |
-| `metadata` | `dict[str, Any] | None` |
-| `redirect_to` | `str | None` |
-| `state` | `str | None` |
-| `provider_specific_params` | `ProviderSpecificParams | None` |
-| `upstream_params` | `dict[str, Any] | None` |
-| `code_challenge` | `str | None` |
+| `allowed_roles` | `list[str] \| None` |
+| `default_role` | `str \| None` |
+| `display_name` | `str \| None` |
+| `locale` | `str \| None` |
+| `metadata` | `dict[str, Any] \| None` |
+| `redirect_to` | `str \| None` |
+| `state` | `str \| None` |
+| `provider_specific_params` | `ProviderSpecificParams \| None` |
+| `upstream_params` | `dict[str, Any] \| None` |
+| `code_challenge` | `str \| None` |
 
 ### `SignUpWebauthnRequest`
 
@@ -1404,7 +2145,7 @@ class SignUpWebauthnRequest
 | Field | Type |
 | --- | --- |
 | `email` | `str` |
-| `options` | `SignUpOptions | None` |
+| `options` | `SignUpOptions \| None` |
 
 ### `SignUpWebauthnVerifyRequest`
 
@@ -1417,15 +2158,17 @@ class SignUpWebauthnVerifyRequest
 | Field | Type |
 | --- | --- |
 | `credential` | `CredentialCreationResponse` |
-| `options` | `SignUpOptions | None` |
-| `nickname` | `str | None` |
-| `code_challenge` | `str | None` |
+| `options` | `SignUpOptions \| None` |
+| `nickname` | `str \| None` |
+| `code_challenge` | `str \| None` |
 
 ### `TokenExchangeRequest`
 
 ```python
 class TokenExchangeRequest
 ```
+
+Request to exchange an authorization code for a session using PKCE
 
 #### Fields
 
@@ -1440,6 +2183,8 @@ class TokenExchangeRequest
 class TotpGenerateResponse
 ```
 
+Response containing TOTP setup information for MFA
+
 #### Fields
 
 | Field | Type |
@@ -1453,6 +2198,8 @@ class TotpGenerateResponse
 class User
 ```
 
+User profile and account information
+
 #### Fields
 
 | Field | Type |
@@ -1461,16 +2208,16 @@ class User
 | `created_at` | `str` |
 | `default_role` | `str` |
 | `display_name` | `str` |
-| `email` | `str | None` |
+| `email` | `str \| None` |
 | `email_verified` | `bool` |
 | `id` | `str` |
 | `is_anonymous` | `bool` |
 | `locale` | `str` |
-| `metadata` | `dict[str, Any] | None` |
-| `phone_number` | `str | None` |
+| `metadata` | `dict[str, Any] \| None` |
+| `phone_number` | `str \| None` |
 | `phone_number_verified` | `bool` |
 | `roles` | `list[str]` |
-| `active_mfa_type` | `str | None` |
+| `active_mfa_type` | `str \| None` |
 
 ### `UserDeanonymizeRequest`
 
@@ -1484,10 +2231,23 @@ class UserDeanonymizeRequest
 | --- | --- |
 | `sign_in_method` | `UserDeanonymizeRequestSignInMethod` |
 | `email` | `str` |
-| `password` | `str | None` |
-| `connection` | `str | None` |
-| `options` | `SignUpOptions | None` |
-| `code_challenge` | `str | None` |
+| `password` | `str \| None` |
+| `connection` | `str \| None` |
+| `options` | `SignUpOptions \| None` |
+| `code_challenge` | `str \| None` |
+
+### `UserDeanonymizeSmsRequest`
+
+```python
+class UserDeanonymizeSmsRequest
+```
+
+#### Fields
+
+| Field | Type |
+| --- | --- |
+| `phone_number` | `str` |
+| `options` | `SignUpOptions \| None` |
 
 ### `UserEmailChangeRequest`
 
@@ -1500,8 +2260,8 @@ class UserEmailChangeRequest
 | Field | Type |
 | --- | --- |
 | `new_email` | `str` |
-| `options` | `OptionsRedirectTo | None` |
-| `code_challenge` | `str | None` |
+| `options` | `OptionsRedirectTo \| None` |
+| `code_challenge` | `str \| None` |
 
 ### `UserEmailSendVerificationEmailRequest`
 
@@ -1514,8 +2274,8 @@ class UserEmailSendVerificationEmailRequest
 | Field | Type |
 | --- | --- |
 | `email` | `str` |
-| `options` | `OptionsRedirectTo | None` |
-| `code_challenge` | `str | None` |
+| `options` | `OptionsRedirectTo \| None` |
+| `code_challenge` | `str \| None` |
 
 ### `UserEntity`
 
@@ -1537,12 +2297,14 @@ class UserEntity
 class UserMfaRequest
 ```
 
+Request to activate or deactivate multi-factor authentication
+
 #### Fields
 
 | Field | Type |
 | --- | --- |
 | `code` | `str` |
-| `active_mfa_type` | `UserMfaRequestActiveMfaType | None` |
+| `active_mfa_type` | `UserMfaRequestActiveMfaType \| None` |
 
 ### `UserPasswordRequest`
 
@@ -1555,7 +2317,7 @@ class UserPasswordRequest
 | Field | Type |
 | --- | --- |
 | `new_password` | `str` |
-| `ticket` | `str | None` |
+| `ticket` | `str \| None` |
 
 ### `UserPasswordResetRequest`
 
@@ -1568,8 +2330,33 @@ class UserPasswordResetRequest
 | Field | Type |
 | --- | --- |
 | `email` | `str` |
-| `options` | `OptionsRedirectTo | None` |
-| `code_challenge` | `str | None` |
+| `options` | `OptionsRedirectTo \| None` |
+| `code_challenge` | `str \| None` |
+
+### `UserPhoneNumberChangeRequest`
+
+```python
+class UserPhoneNumberChangeRequest
+```
+
+#### Fields
+
+| Field | Type |
+| --- | --- |
+| `new_phone_number` | `str` |
+
+### `UserPhoneNumberChangeVerifyRequest`
+
+```python
+class UserPhoneNumberChangeVerifyRequest
+```
+
+#### Fields
+
+| Field | Type |
+| --- | --- |
+| `new_phone_number` | `str` |
+| `otp` | `str` |
 
 ### `VerifyAddSecurityKeyRequest`
 
@@ -1582,7 +2369,7 @@ class VerifyAddSecurityKeyRequest
 | Field | Type |
 | --- | --- |
 | `credential` | `CredentialCreationResponse` |
-| `nickname` | `str | None` |
+| `nickname` | `str \| None` |
 
 ### `VerifyAddSecurityKeyResponse`
 
@@ -1595,7 +2382,7 @@ class VerifyAddSecurityKeyResponse
 | Field | Type |
 | --- | --- |
 | `id` | `str` |
-| `nickname` | `str | None` |
+| `nickname` | `str \| None` |
 
 ### `VerifyTicketParams`
 
@@ -1608,9 +2395,9 @@ class VerifyTicketParams
 | Field | Type |
 | --- | --- |
 | `ticket` | `TicketQuery` |
-| `type` | `TicketTypeQuery | None` |
+| `type` | `TicketTypeQuery \| None` |
 | `redirect_to` | `RedirectToQuery` |
-| `code_challenge` | `str | None` |
+| `code_challenge` | `str \| None` |
 
 ### `VerifyTokenRequest`
 
@@ -1622,4 +2409,4 @@ class VerifyTokenRequest
 
 | Field | Type |
 | --- | --- |
-| `token` | `str | None` |
+| `token` | `str \| None` |

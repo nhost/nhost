@@ -127,6 +127,16 @@ class ConfigureContext
 
 The set of clients passed to a configuration function.
 
+#### Fields
+
+| Field | Type |
+| --- | --- |
+| `auth` | `auth_module.Client` |
+| `storage` | `storage_module.Client` |
+| `graphql` | `graphql_module.Client` |
+| `functions` | `functions_module.Client` |
+| `session_storage` | `SessionStorage` |
+
 ### `NhostClient`
 
 ```python
@@ -179,3 +189,27 @@ class NhostClientOptions
 ```
 
 Configuration for creating an Nhost client.
+
+``timeout`` defaults to 10 seconds for connection setup, 300 seconds for
+reads and writes, and 60 seconds for pool acquisition. Connection failures
+should surface quickly, while storage uploads need enough read/write time
+for large transfers, virus scanning, and image transformations; the longer
+pool timeout tolerates bursts through the shared transport. Pass a float to
+use one timeout for every phase, an :class:`httpx.Timeout` for finer control,
+or ``None`` to disable timeouts. This option is ignored when ``http_client``
+is supplied because the caller owns that client's transport configuration.
+
+#### Fields
+
+| Field | Type |
+| --- | --- |
+| `subdomain` | `str \| None` |
+| `region` | `str \| None` |
+| `auth_url` | `str \| None` |
+| `storage_url` | `str \| None` |
+| `graphql_url` | `str \| None` |
+| `functions_url` | `str \| None` |
+| `storage` | `SessionStorageBackend \| None` |
+| `http_client` | `httpx.AsyncClient \| None` |
+| `configure` | `list[ClientConfigurationFn]` |
+| `timeout` | `httpx.Timeout \| float \| None` |
