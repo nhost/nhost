@@ -112,6 +112,17 @@ struct FileStorage
 JSON-file backed session backend, useful for CLIs and local scripts.
 Native-only; unavailable only when the `wasm` feature is built for wasm32.
 
+###### Sensitive data
+
+The persisted `StoredSession` includes the long-lived refresh token, which
+can mint access tokens until it is revoked server-side. On Unix the file is
+written `0o600`, including when an earlier version left it at a wider mode,
+so it is readable only by the owning user. A parent directory *created* here
+is `0o700`; a directory that already exists is left as it is, so point this
+at a private path rather than relying on it to tighten one. Other platforms
+inherit the default permissions, so avoid this backend on shared storage
+there.
+
 #### Methods
 
 ##### `new`
