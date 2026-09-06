@@ -17,16 +17,19 @@ import logging
 import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import Any
+from typing import Any, cast
 
 from fastapi import FastAPI, Header, HTTPException, Request
 
 from nhost import (
     AdminSessionOptions,
+    NhostClient,
     NhostClientOptions,
     create_nhost_client,
     with_admin_session,
 )
+
+MAX_BODY_BYTES = 1 << 20
 
 INSERT_EVENT = """
 mutation InsertWebhookEvent($object: webhook_events_insert_input!) {
@@ -100,6 +103,27 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 app = FastAPI(title="Nhost webhook receiver", lifespan=lifespan)
 
 
+async def _read_capped_body(request: Request) -> bytes:
+    """Read at most ``MAX_BODY_BYTES`` without truncating the signed payload."""
+    declared = request.headers.get("content-length")
+    if declared is not None:
+        try:
+            declared_size = int(declared)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail="invalid content-length") from exc
+        if declared_size < 0:
+            raise HTTPException(status_code=400, detail="invalid content-length")
+        if declared_size > MAX_BODY_BYTES:
+            raise HTTPException(status_code=413, detail="payload too large")
+
+    body = bytearray()
+    async for chunk in request.stream():
+        if len(body) + len(chunk) > MAX_BODY_BYTES:
+            raise HTTPException(status_code=413, detail="payload too large")
+        body.extend(chunk)
+    return bytes(body)
+
+
 def _verify_signature(body: bytes, signature: str | None) -> None:
     """Reject the request unless it carries a valid ``sha256=<hex>`` HMAC."""
     if not signature:
@@ -117,7 +141,7 @@ async def receive_webhook(
     x_webhook_source: str = Header(default="thirdparty"),
 ) -> dict[str, Any]:
     """Verify, parse, and persist a third-party webhook event."""
-    body = await request.body()
+    body = await _read_capped_body(request)
     _verify_signature(body, x_webhook_signature)
 
     try:
@@ -130,7 +154,8 @@ async def receive_webhook(
         "event_type": str(event.get("type", "unknown")),
         "payload": event,
     }
-    result = await request.app.state.nhost.graphql.request(INSERT_EVENT, variables={"object": obj})
+    nhost = cast(NhostClient, request.app.state.nhost)
+    result = await nhost.graphql.request(INSERT_EVENT, variables={"object": obj})
     inserted = (result.body.data or {}).get("insert_webhook_events_one")
     if inserted is None:
         raise HTTPException(status_code=502, detail="failed to record event")

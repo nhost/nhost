@@ -284,6 +284,7 @@ Here's the whole `main.py` after Part 3. Press **Copy** to grab the entire file 
 
 ```python title="main.py"
 import asyncio
+import getpass
 import os
 from pathlib import Path
 from typing import Optional
@@ -445,15 +446,24 @@ async def cmd_note_tag(nhost, note_id: str, tag_name: str) -> None:
     print(f"tagged {note_id} with #{tag_name}")
 
 
+def read_password() -> str:
+    password = os.environ.get("NOTES_PASSWORD")
+    if password:
+        return password
+    return getpass.getpass("Password: ")
+
+
 @app.command("signup")
-def signup(email: str, password: str) -> None:
+def signup(email: str) -> None:
     """Create an account (and sign in if email verification is off)."""
+    password = read_password()
     run(lambda nhost: cmd_signup(nhost, email, password))
 
 
 @app.command("login")
-def login(email: str, password: str) -> None:
-    """Sign in with email and password."""
+def login(email: str) -> None:
+    """Sign in with email and a securely supplied password."""
+    password = read_password()
     run(lambda nhost: cmd_login(nhost, email, password))
 
 

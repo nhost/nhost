@@ -220,6 +220,7 @@ Here's the whole `main.py` after Part 5 — the finished CLI. Press **Copy** to 
 
 ```python title="main.py"
 import asyncio
+import getpass
 import json
 import os
 from pathlib import Path
@@ -448,15 +449,24 @@ async def cmd_export(nhost) -> None:
     print(json.dumps(resp.body, indent=2))
 
 
+def read_password() -> str:
+    password = os.environ.get("NOTES_PASSWORD")
+    if password:
+        return password
+    return getpass.getpass("Password: ")
+
+
 @app.command("signup")
-def signup(email: str, password: str) -> None:
+def signup(email: str) -> None:
     """Create an account (and sign in if email verification is off)."""
+    password = read_password()
     run(lambda nhost: cmd_signup(nhost, email, password))
 
 
 @app.command("login")
-def login(email: str, password: str) -> None:
-    """Sign in with email and password."""
+def login(email: str) -> None:
+    """Sign in with email and a securely supplied password."""
+    password = read_password()
     run(lambda nhost: cmd_login(nhost, email, password))
 
 
@@ -546,7 +556,7 @@ if __name__ == "__main__":
 # You need a second user to share with. Create one in its own session file so it
 # doesn't overwrite yours, then read back its id (<otherUserId> is a UUID, not an
 # email):
-NHOST_NOTES_SESSION=/tmp/bob.json python main.py signup bob@example.com 'not-a-secret'
+NHOST_NOTES_SESSION=/tmp/bob.json python main.py signup bob@example.com
 NHOST_NOTES_SESSION=/tmp/bob.json python main.py whoami   # bob@example.com (<otherUserId>)
 
 # back as yourself, share a note with bob (role defaults to viewer if omitted)

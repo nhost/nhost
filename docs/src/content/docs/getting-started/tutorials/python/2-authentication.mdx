@@ -99,19 +99,33 @@ cached file (a client-side sign out), while `sign_out` revokes the refresh token
 on the server.
 
 Register each command with a `@app.command(...)` decorator. Typer turns the
-function's parameters into positional arguments and generates `--help`; the sync
-command body just calls `run` with its async coroutine:
+email parameter into a positional argument and generates `--help`. Read the
+password from `NOTES_PASSWORD` for scripts and CI, or prompt without echoing it
+for interactive use, so the secret never appears in the process arguments or
+shell history:
 
 ```python title="main.py"
+import getpass
+
+
+def read_password() -> str:
+    password = os.environ.get("NOTES_PASSWORD")
+    if password:
+        return password
+    return getpass.getpass("Password: ")
+
+
 @app.command("signup")
-def signup(email: str, password: str) -> None:
+def signup(email: str) -> None:
     """Create an account (and sign in if email verification is off)."""
+    password = read_password()
     run(lambda nhost: cmd_signup(nhost, email, password))
 
 
 @app.command("login")
-def login(email: str, password: str) -> None:
-    """Sign in with email and password."""
+def login(email: str) -> None:
+    """Sign in with email and a securely supplied password."""
+    password = read_password()
     run(lambda nhost: cmd_login(nhost, email, password))
 
 
@@ -137,6 +151,7 @@ Here's the whole `main.py` after Part 2. Press **Copy** to grab the entire file 
 
 ```python title="main.py"
 import asyncio
+import getpass
 import os
 from pathlib import Path
 
@@ -215,15 +230,24 @@ async def cmd_whoami(nhost) -> None:
     print(f"{session.user.email} ({session.user.id})")
 
 
+def read_password() -> str:
+    password = os.environ.get("NOTES_PASSWORD")
+    if password:
+        return password
+    return getpass.getpass("Password: ")
+
+
 @app.command("signup")
-def signup(email: str, password: str) -> None:
+def signup(email: str) -> None:
     """Create an account (and sign in if email verification is off)."""
+    password = read_password()
     run(lambda nhost: cmd_signup(nhost, email, password))
 
 
 @app.command("login")
-def login(email: str, password: str) -> None:
-    """Sign in with email and password."""
+def login(email: str) -> None:
+    """Sign in with email and a securely supplied password."""
+    password = read_password()
     run(lambda nhost: cmd_login(nhost, email, password))
 
 
@@ -256,8 +280,10 @@ active session — so `whoami` reports `not logged in` until you verify.
 
 ## Try it
 
+The `signup` and `login` commands prompt for the password without echoing it:
+
 ```bash Terminal
-python main.py signup ada@example.com 'not-a-secret'
+python main.py signup ada@example.com
 python main.py whoami
 # ada@example.com (a1b2c3d4-...)
 
@@ -265,7 +291,7 @@ python main.py logout
 python main.py whoami
 # not logged in
 
-python main.py login ada@example.com 'not-a-secret'
+python main.py login ada@example.com
 ```
 
 The session is written to `~/.config/nhost-notes/session.json`. Delete that file
