@@ -16,7 +16,7 @@ The Rust generator emits API code but not the hand-written crate modules that ho
 8. `middleware::HeaderPriority` has a `Scoped` variant. `middleware::SetRole { role: String, priority: HeaderPriority }` and `middleware::SetHeaders { headers: HashMap<String, String>, priority: HeaderPriority }` implement `http::Middleware`; all fields must be constructible by the generated module, which sets `priority` to `HeaderPriority::Scoped`.
 9. `session::SessionStorage` implements `Clone` and can be passed to `http::send` by shared reference.
 
-The executable reference for this contract is the minimal crate in [`processor/rust/testdata/compile-fixture`](processor/rust/testdata/compile-fixture). `TestRustGeneratedOutputCompiles` copies that crate, renders every shared and Rust-specific OpenAPI fixture into it, and runs `cargo check` plus Clippy. The test skips when Cargo is unavailable so Go-only development remains supported; the codegen Nix check includes Cargo, rustc, and Clippy so CI always enforces the contract. Changes to generated runtime requirements must update both the compile fixture and this list.
+The executable reference for this contract is the minimal crate in [`processor/rust/testdata/compile-fixture`](processor/rust/testdata/compile-fixture). `TestRustGeneratedOutputCompiles` copies that crate, renders every shared and Rust-specific OpenAPI fixture into it, and runs `cargo check`, rustdoc tests, and Clippy. The test skips when Cargo is unavailable so Go-only development remains supported; the codegen Nix check includes Cargo, rustc, and Clippy so CI always enforces the contract. Changes to generated runtime requirements must update both the compile fixture and this list.
 
 Keeping status and headers is required even for bodyless operations: for example, a generated `HEAD` method has `T = ()`, and its headers are the operation's result.
 
@@ -31,6 +31,7 @@ Keeping status and headers is required even for bodyless operations: for example
 - A type containing multipart binary fields is rejected when the same type is used in any generated non-multipart context; `FilePart` is only valid for `multipart/form-data` request bodies.
 - Nullability of array items and typed-map values is preserved with `Option<T>` on the container member.
 - Spec-derived text emitted as a Rust string literal, including wire names and static path segments, is escaped as Rust source.
+- Schema descriptions, property/parameter descriptions, and operation summaries/descriptions are emitted as Rust doc comments. Markdown control characters and leading indentation are escaped so arbitrary spec prose cannot create unintended rustdoc links, HTML, formatting, or doctests.
 
 ## Regenerating shared goldens
 
