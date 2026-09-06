@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/openai/openai-go/option"
 )
 
 type responsesWireInputItem struct {
@@ -833,6 +834,227 @@ func TestOpenAIResponsesHTTPStatusErrorsAreSafe(t *testing.T) {
 	for _, marker := range []string{headerMarker, urlMarker, bodyMarker} {
 		if strings.Contains(got.err.Error(), marker) {
 			t.Errorf("error exposed marker %q: %v", marker, got.err)
+		}
+	}
+}
+
+// This test replaces the process-wide logger, so it cannot run in parallel.
+//
+//nolint:paralleltest // Parallel execution could expose another test's logs or logger.
+func TestOpenAIResponsesFailuresAreSafe(t *testing.T) {
+	const (
+		headerMarker     = "configured-header-marker"
+		headerValue      = "Bearer " + headerMarker
+		urlMarker        = "configured-url-marker"
+		httpCause        = "upstream-http-cause-marker"
+		streamCause      = "upstream-stream-cause-marker"
+		errorEventCause  = "upstream-error-event-cause-marker"
+		failedEventCause = "upstream-failed-event-cause-marker"
+		transportCause   = "upstream-transport-cause-marker"
+		streamCloseCause = "upstream-close-cause-marker"
+	)
+
+	oldLogger := slog.Default()
+
+	var logOutput bytes.Buffer
+	slog.SetDefault(slog.New(slog.NewTextHandler(&logOutput, nil)))
+	t.Cleanup(func() { slog.SetDefault(oldLogger) })
+
+	tests := []struct {
+		name  string
+		serve func(*testing.T, http.ResponseWriter)
+	}{
+		{
+			name: "HTTP response body",
+			serve: func(t *testing.T, w http.ResponseWriter) {
+				t.Helper()
+
+				payload := `{"error":{"message":"` + httpCause + `"}}`
+
+				w.WriteHeader(http.StatusBadRequest)
+
+				bytesWritten, err := io.WriteString(w, payload)
+				if err != nil {
+					t.Errorf("write response: %v", err)
+				} else if bytesWritten != len(payload) {
+					t.Errorf("write response: %v", io.ErrShortWrite)
+				}
+			},
+		},
+		{
+			name: "stream error payload",
+			serve: func(t *testing.T, w http.ResponseWriter) {
+				t.Helper()
+				writeResponsesEvents(t, w, []string{
+					`{"error":"` + streamCause + `"}`,
+				})
+			},
+		},
+		{
+			name: "error event",
+			serve: func(t *testing.T, w http.ResponseWriter) {
+				t.Helper()
+				writeResponsesEvents(t, w, []string{
+					`{"type":"error","sequence_number":1,"code":"server_error","message":"` +
+						errorEventCause + `","param":"input"}`,
+				})
+			},
+		},
+		{
+			name: "failed event",
+			serve: func(t *testing.T, w http.ResponseWriter) {
+				t.Helper()
+				writeResponsesEvents(t, w, []string{
+					`{"type":"response.failed","sequence_number":1,"response":{"id":"resp_1","status":"failed","error":{"code":"server_error","message":"` +
+						failedEventCause + `"}}}`,
+				})
+			},
+		},
+	}
+
+	for _, test := range tests {
+		// These subtests share the captured process-wide logger.
+		//nolint:paralleltest // Parallel execution could mix global logger output.
+		t.Run(test.name, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(
+				func(w http.ResponseWriter, _ *http.Request) { test.serve(t, w) },
+			))
+			t.Cleanup(server.Close)
+
+			provider := mustOpenAIResponses(
+				t,
+				server.URL+"/"+urlMarker,
+				map[string]string{"Authorization": headerValue},
+			)
+			got := collectResponsesEvents(provider.StreamResponse(t.Context(), StreamRequest{
+				Model:    "gpt-5",
+				Messages: []Message{{Role: RoleUser, Content: "hi"}},
+			}))
+			assertSafeOpenAIResponsesError(
+				t,
+				got.err,
+				headerMarker,
+				urlMarker,
+				httpCause,
+				streamCause,
+				errorEventCause,
+				failedEventCause,
+			)
+		})
+	}
+
+	//nolint:paralleltest // Parallel execution could mix global logger output.
+	t.Run("transport failure", func(t *testing.T) {
+		provider := mustOpenAIResponses(
+			t,
+			"https://example.com/"+urlMarker,
+			map[string]string{"Authorization": headerValue},
+		)
+		provider.service.Options = append(
+			provider.service.Options,
+			option.WithHTTPClient(&http.Client{
+				Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+					return nil, fmt.Errorf(
+						"%s with credential %s: %w",
+						transportCause,
+						headerMarker,
+						errInvalidProviderHeaders,
+					)
+				}),
+				CheckRedirect: nil,
+				Jar:           nil,
+				Timeout:       0,
+			}),
+			option.WithMaxRetries(0),
+		)
+
+		got := collectResponsesEvents(provider.StreamResponse(t.Context(), StreamRequest{
+			Model:    "gpt-5",
+			Messages: []Message{{Role: RoleUser, Content: "hi"}},
+		}))
+		assertSafeOpenAIResponsesError(
+			t,
+			got.err,
+			headerMarker,
+			urlMarker,
+			transportCause,
+		)
+	})
+
+	//nolint:paralleltest // Parallel execution could mix global logger output.
+	t.Run("close failure log", func(t *testing.T) {
+		closeMarker := fmt.Errorf(
+			"%s with credential %s: %w",
+			streamCloseCause,
+			headerValue,
+			errInvalidProviderHeaders,
+		)
+		provider := mustOpenAIResponses(
+			t,
+			"https://example.com/v1",
+			map[string]string{"Authorization": headerValue},
+		)
+		provider.service.Options = append(
+			provider.service.Options,
+			option.WithHTTPClient(&http.Client{
+				Transport: roundTripFunc(func(request *http.Request) (*http.Response, error) {
+					body := &closeErrorBody{
+						Reader: strings.NewReader(
+							"data: " + completedResponsesEvent() + "\n\n",
+						),
+						err: closeMarker,
+					}
+					response := httptest.NewRecorder().Result()
+					response.Header.Set("Content-Type", "text/event-stream")
+					response.Body = body
+					response.Request = request
+
+					return response, nil
+				}),
+				CheckRedirect: nil,
+				Jar:           nil,
+				Timeout:       0,
+			}),
+		)
+
+		got := collectResponsesEvents(provider.StreamResponse(t.Context(), StreamRequest{
+			Model:    "gpt-5",
+			Messages: []Message{{Role: RoleUser, Content: "hi"}},
+		}))
+		if got.err != nil {
+			t.Fatalf("unexpected provider error: %v", got.err)
+		}
+	})
+
+	logs := logOutput.String()
+	if strings.Contains(logs, headerMarker) {
+		t.Fatalf("logger exposed configured header value: %s", logs)
+	}
+
+	for _, cause := range []string{
+		httpCause,
+		streamCause,
+		errorEventCause,
+		failedEventCause,
+		transportCause,
+		streamCloseCause,
+	} {
+		if !strings.Contains(logs, cause) {
+			t.Errorf("logger did not retain cause %q: %s", cause, logs)
+		}
+	}
+}
+
+func assertSafeOpenAIResponsesError(t *testing.T, err error, markers ...string) {
+	t.Helper()
+
+	if !errors.Is(err, errOpenAIResponsesRequest) {
+		t.Fatalf("error = %v, want fixed Responses request error", err)
+	}
+
+	for _, marker := range markers {
+		if strings.Contains(err.Error(), marker) {
+			t.Fatalf("error exposed marker %q: %v", marker, err)
 		}
 	}
 }

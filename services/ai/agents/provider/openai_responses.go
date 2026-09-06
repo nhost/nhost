@@ -23,7 +23,10 @@ const (
 	openAIResponsesMaxRetries       = 2
 )
 
-var errOpenAIResponsesRequest = errors.New("responses provider request failed")
+var (
+	errOpenAIResponsesRequest     = errors.New("responses provider request failed")
+	errOpenAIResponsesStreamEvent = errors.New("received responses provider error event")
+)
 
 func newOpenAIResponsesConfiguration(
 	baseURL string,
@@ -53,7 +56,8 @@ func validateOpenAIResponsesURL(baseURL string) error {
 }
 
 type openAIResponses struct {
-	service responses.ResponseService
+	service       responses.ResponseService
+	logRedactions []string
 }
 
 func newOpenAIResponses(configuration endpointConfiguration) *openAIResponses {
@@ -76,7 +80,8 @@ func newOpenAIResponses(configuration endpointConfiguration) *openAIResponses {
 	}
 
 	return &openAIResponses{
-		service: responses.NewResponseService(options...),
+		service:       responses.NewResponseService(options...),
+		logRedactions: providerLogRedactions(configuration.headers),
 	}
 }
 
@@ -93,7 +98,7 @@ func (o *openAIResponses) StreamResponse(
 	go func() {
 		defer close(ch)
 
-		processOpenAIResponsesStream(ctx, ch, &o.service, request)
+		processOpenAIResponsesStream(ctx, ch, &o.service, o.logRedactions, request)
 	}()
 
 	return ch
@@ -280,6 +285,7 @@ func processOpenAIResponsesStream(
 	ctx context.Context,
 	ch chan<- Event,
 	service *responses.ResponseService,
+	logRedactions []string,
 	request StreamRequest,
 ) {
 	var response *http.Response
@@ -299,7 +305,7 @@ func processOpenAIResponsesStream(
 			slog.WarnContext(
 				ctx,
 				"failed to close openai responses stream",
-				slog.String("error", mapOpenAIResponsesError(err, response).Error()),
+				slog.String("error", providerErrorLogValue(err, logRedactions)),
 			)
 		}
 	}()
@@ -311,7 +317,13 @@ func processOpenAIResponsesStream(
 			return
 		}
 
-		if !handleOpenAIResponsesEvent(ctx, ch, stream.Current(), state) {
+		if !handleOpenAIResponsesEvent(
+			ctx,
+			ch,
+			stream.Current(),
+			state,
+			logRedactions,
+		) {
 			return
 		}
 	}
@@ -319,7 +331,13 @@ func processOpenAIResponsesStream(
 	streamErr := stream.Err()
 	if streamErr != nil {
 		if ctx.Err() == nil {
-			send(ctx, ch, NewErrorEvent(mapOpenAIResponsesError(streamErr, response)))
+			logProviderError(
+				ctx,
+				"openai responses stream failed",
+				streamErr,
+				logRedactions,
+			)
+			send(ctx, ch, NewErrorEvent(mapOpenAIResponsesError(response)))
 		}
 
 		return
@@ -335,6 +353,7 @@ func handleOpenAIResponsesEvent(
 	ch chan<- Event,
 	event responses.ResponseStreamEventUnion,
 	state *openAIResponsesStreamState,
+	logRedactions []string,
 ) bool {
 	switch event.Type {
 	case "response.output_text.delta":
@@ -384,6 +403,7 @@ func handleOpenAIResponsesEvent(
 
 		return false
 	case "error", "response.failed":
+		logOpenAIResponsesEventError(ctx, event, logRedactions)
 		send(ctx, ch, NewErrorEvent(errOpenAIResponsesRequest))
 
 		return false
@@ -588,7 +608,34 @@ func mapOpenAIResponsesIncompleteReason(reason string) string {
 	}
 }
 
-func mapOpenAIResponsesError(_ error, response *http.Response) error {
+func logOpenAIResponsesEventError(
+	ctx context.Context,
+	event responses.ResponseStreamEventUnion,
+	logRedactions []string,
+) {
+	code := event.Code
+
+	message := event.Message
+	if event.Type == "response.failed" {
+		code = string(event.Response.Error.Code)
+		message = event.Response.Error.Message
+	}
+
+	logProviderError(
+		ctx,
+		"openai responses stream failed",
+		fmt.Errorf(
+			"%w: type %s, code %q: %s",
+			errOpenAIResponsesStreamEvent,
+			event.Type,
+			code,
+			message,
+		),
+		logRedactions,
+	)
+}
+
+func mapOpenAIResponsesError(response *http.Response) error {
 	if response != nil && response.StatusCode >= http.StatusBadRequest {
 		return fmt.Errorf(
 			"%w: HTTP status %d",
