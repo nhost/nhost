@@ -34,7 +34,9 @@ Keeping status and headers is required even for bodyless operations: for example
 
 ## Go validation and type behavior
 
-- The Go plugin requires the `--package` flag with a valid, non-keyword Go identifier. The generic `PACKAGE` environment variable is intentionally ignored.
+- The Go plugin infers the package name from the directory containing `--output-file`. Put the output file in a directory whose name is a valid, non-keyword Go identifier other than `_`; there is no flag or environment-variable override.
+- Dropping the old `--package` flag was deliberate, and it should not come back in any form. A flag named `package` is one `cli.EnvVars` away from inheriting the `PACKAGE` variable that `services/constellation/Makefile:37` exports, which would silently rename the generated package; `TestCommandRejectsPackageFlag` and `TestCommandIgnoresPackageEnvironment` pin both halves of that. Inference cannot go silently wrong the way a stale flag value can, because Go already requires a package name to match its directory. Callers relocate the output file instead of overriding the name.
+- Package inference runs before the OpenAPI file is read and before the output file is opened, so a rejected path never truncates an existing file (`TestCommandDoesNotTruncateOutputOnInferenceFailure`).
 - Names that normalize to the same generated Go type, field, client method, parameter field, or method argument are rejected instead of producing colliding identifiers. Method arguments also cannot shadow identifiers owned by the generated template, including imported packages.
 - `goMethodBindingNames` is checked only against path parameters, so it must contain the identifiers in the generated client-method scope plus every generated function and method declaration -- the latter is enforced by `TestGeneratedHelpersAreReservedMethodBindings`, so removing a generated helper from the map fails that test. Locals that exist only inside a helper body do not belong in it: over-reserving them rejects valid documents, as happened with the ordinary `/config/{key}` path.
 - Go keywords and predeclared identifiers used as method arguments receive a trailing underscore.
