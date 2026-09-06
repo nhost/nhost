@@ -4,42 +4,31 @@ title: Main
 
 Top-level Nhost client and factory functions.
 
-``NhostClient`` bundles the auth, storage, graphql, and functions clients over a
-shared :class:`httpx.AsyncClient` and a :class:`SessionStorage`. Use
-:func:`create_client` for app clients (automatic refresh + token attachment),
-:func:`create_server_client` for trusted server contexts with explicit storage,
-and :func:`create_nhost_client` for a bare client you configure yourself.
-
 ## Functions
 
 ### `create_client`
 
 ```python
-def create_client(options: 'NhostClientOptions | None' = None) -> 'NhostClient'
+def create_client(*, subdomain: 'str | None' = None, region: 'str | None' = None, auth_url: 'str | None' = None, storage_url: 'str | None' = None, graphql_url: 'str | None' = None, functions_url: 'str | None' = None, session_storage: 'SessionStorageBackend | None' = None, http_client: 'httpx.AsyncClient | None' = None, configure: 'Sequence[ClientConfiguration]' = (), timeout: 'httpx.Timeout | float | None' = Timeout(connect=10.0, read=300.0, write=300.0, pool=60.0)) -> 'NhostClient'
 ```
 
-Create an app client with automatic refresh + token attachment.
-
-This example runs against a local Nhost backend (``./dev-env.sh up``); it is
-skipped unless ``NHOST_LOCAL_BACKEND=1``. It signs a new user up, then reads
-the default role from the decoded access token.
+Create an application client with automatic session management.
 
 ```python
 >>> import asyncio, uuid
 >>> from nhost.auth import SignUpEmailPasswordRequest
->>>
 >>> async def main() -> str | None:
-...     async with create_client(
-...         NhostClientOptions(subdomain="local", region="local")
-...     ) as nhost:
-...         email = f"ada-{uuid.uuid4()}@example.com"
+...     async with create_client(subdomain="local", region="local") as nhost:
 ...         await nhost.auth.sign_up_email_password(
-...             SignUpEmailPasswordRequest(email=email, password=str(uuid.uuid4()))
+...             body=SignUpEmailPasswordRequest(
+...                 email=f"ada-{uuid.uuid4()}@example.com",
+...                 password=str(uuid.uuid4()),
+...             )
 ...         )
-...         stored = nhost.get_user_session()
-...         claims = stored.decoded_token.hasura_claims or {}
-...         return claims.get("x-hasura-default-role")
->>>
+...         session = await nhost.get_user_session()
+...         return (session.decoded_token.hasura_claims or {}).get(
+...             "x-hasura-default-role"
+...         )
 >>> asyncio.run(main())
 'user'
 ```
@@ -47,59 +36,55 @@ the default role from the decoded access token.
 ### `create_nhost_client`
 
 ```python
-def create_nhost_client(options: 'NhostClientOptions | None' = None) -> 'NhostClient'
+def create_nhost_client(*, subdomain: 'str | None' = None, region: 'str | None' = None, auth_url: 'str | None' = None, storage_url: 'str | None' = None, graphql_url: 'str | None' = None, functions_url: 'str | None' = None, session_storage: 'SessionStorageBackend | None' = None, http_client: 'httpx.AsyncClient | None' = None, configure: 'Sequence[ClientConfiguration]' = (), timeout: 'httpx.Timeout | float | None' = Timeout(connect=10.0, read=300.0, write=300.0, pool=60.0)) -> 'NhostClient'
 ```
 
-Create and configure an Nhost client, applying ``options.configure``.
+Create a bare Nhost client from explicit keyword configuration.
 
 ### `create_server_client`
 
 ```python
-def create_server_client(options: 'NhostClientOptions') -> 'NhostClient'
+def create_server_client(*, session_storage: 'SessionStorageBackend', subdomain: 'str | None' = None, region: 'str | None' = None, auth_url: 'str | None' = None, storage_url: 'str | None' = None, graphql_url: 'str | None' = None, functions_url: 'str | None' = None, http_client: 'httpx.AsyncClient | None' = None, configure: 'Sequence[ClientConfiguration]' = (), timeout: 'httpx.Timeout | float | None' = Timeout(connect=10.0, read=300.0, write=300.0, pool=60.0)) -> 'NhostClient'
 ```
 
-Create a server client with explicit storage and no automatic refresh.
-
-Requires ``options.storage`` — sharing a process-wide session store between
-users can leak tokens across requests, so pass a per-request/user backend.
+Create a server client with explicit per-user session storage.
 
 ### `generate_service_url`
 
 ```python
-def generate_service_url(service_type: 'ServiceType', subdomain: 'str | None' = None, region: 'str | None' = None, custom_url: 'str | None' = None) -> 'str'
+def generate_service_url(service_type: 'ServiceType', *, subdomain: 'str | None' = None, region: 'str | None' = None, custom_url: 'str | None' = None) -> 'str'
 ```
 
-Build the base URL for an Nhost service.
+Build a normalized service URL.
 
-Precedence: an explicit ``custom_url`` wins; otherwise a cloud URL is built
-from ``subdomain``/``region``; otherwise the local development URL is used.
+An explicit ``custom_url`` takes precedence. Otherwise ``subdomain`` and
+``region`` must be supplied together; omitting both selects the local Nhost
+development URL.
 
 ```python
 >>> generate_service_url("auth", subdomain="demo", region="eu-central-1")
 'https://demo.auth.eu-central-1.nhost.run/v1'
 >>> generate_service_url("graphql")
 'https://local.graphql.local.nhost.run/v1'
->>> generate_service_url("storage", custom_url="http://localhost:1337/v1/storage")
-'http://localhost:1337/v1/storage'
 ```
 
 ### `with_admin_session`
 
 ```python
-def with_admin_session(options: 'AdminSessionOptions') -> 'ClientConfigurationFn'
+def with_admin_session(options: 'AdminSessionOptions') -> 'ClientConfiguration'
 ```
 
-Apply admin-secret middleware to storage, graphql, and functions.
+Apply admin credentials to Storage, GraphQL, and Functions requests.
 
-**Security warning:** never use in client-side code.
+Never use an admin secret in client-side code.
 
 ### `with_chain_functions`
 
 ```python
-def with_chain_functions(chain_functions: 'list[ChainFunction]') -> 'ClientConfigurationFn'
+def with_chain_functions(chain_functions: 'Sequence[ChainFunction]') -> 'ClientConfiguration'
 ```
 
-Apply arbitrary chain functions to all four clients.
+Apply custom HTTP middleware to every service client.
 
 ### `with_client_side_session_middleware`
 
@@ -107,7 +92,7 @@ Apply arbitrary chain functions to all four clients.
 def with_client_side_session_middleware(ctx: 'ConfigureContext') -> 'None'
 ```
 
-Automatic session refresh, token attachment, and session capture.
+Enable automatic refresh, token attachment, and session capture.
 
 ### `with_server_side_session_middleware`
 
@@ -115,7 +100,7 @@ Automatic session refresh, token attachment, and session capture.
 def with_server_side_session_middleware(ctx: 'ConfigureContext') -> 'None'
 ```
 
-Token attachment and session capture, but no automatic refresh.
+Enable token attachment and session capture without automatic refresh.
 
 ## Classes
 
@@ -125,14 +110,14 @@ Token attachment and session capture, but no automatic refresh.
 class ConfigureContext
 ```
 
-The set of clients passed to a configuration function.
+Clients and session storage passed to a configuration callback.
 
 #### Fields
 
 | Field | Type |
 | --- | --- |
-| `auth` | `auth_module.Client` |
-| `storage` | `storage_module.Client` |
+| `auth` | `auth_module.AuthClient` |
+| `storage` | `storage_module.StorageClient` |
 | `graphql` | `graphql_module.Client` |
 | `functions` | `functions_module.Client` |
 | `session_storage` | `SessionStorage` |
@@ -143,7 +128,7 @@ The set of clients passed to a configuration function.
 class NhostClient
 ```
 
-Unified access to Nhost auth, storage, graphql, and functions.
+Unified asynchronous access to Nhost services and session state.
 
 #### Methods
 
@@ -153,26 +138,23 @@ Unified access to Nhost auth, storage, graphql, and functions.
 async def aclose(self) -> 'None'
 ```
 
-Close the shared HTTP client and its connection pool.
-
-A caller-supplied ``http_client`` (via ``NhostClientOptions``) is left
-open — the SDK only closes the client it created itself.
+Close the internally owned HTTP connection pool, if any.
 
 ##### `clear_session`
 
 ```python
-def clear_session(self) -> 'None'
+async def clear_session(self) -> 'None'
 ```
 
-Remove the current session from storage (client-side sign-out).
+Remove the current session without making a sign-out request.
 
 ##### `get_user_session`
 
 ```python
-def get_user_session(self) -> 'StoredSession | None'
+async def get_user_session(self) -> 'StoredSession | None'
 ```
 
-Return the current session from storage, or ``None``.
+Return the current session, if one is stored.
 
 ##### `refresh_session`
 
@@ -180,36 +162,4 @@ Return the current session from storage, or ``None``.
 async def refresh_session(self, margin_seconds: 'int' = 60) -> 'StoredSession | None'
 ```
 
-Refresh the session using the stored refresh token.
-
-### `NhostClientOptions`
-
-```python
-class NhostClientOptions
-```
-
-Configuration for creating an Nhost client.
-
-``timeout`` defaults to 10 seconds for connection setup, 300 seconds for
-reads and writes, and 60 seconds for pool acquisition. Connection failures
-should surface quickly, while storage uploads need enough read/write time
-for large transfers, virus scanning, and image transformations; the longer
-pool timeout tolerates bursts through the shared transport. Pass a float to
-use one timeout for every phase, an :class:`httpx.Timeout` for finer control,
-or ``None`` to disable timeouts. This option is ignored when ``http_client``
-is supplied because the caller owns that client's transport configuration.
-
-#### Fields
-
-| Field | Type |
-| --- | --- |
-| `subdomain` | `str \| None` |
-| `region` | `str \| None` |
-| `auth_url` | `str \| None` |
-| `storage_url` | `str \| None` |
-| `graphql_url` | `str \| None` |
-| `functions_url` | `str \| None` |
-| `storage` | `SessionStorageBackend \| None` |
-| `http_client` | `httpx.AsyncClient \| None` |
-| `configure` | `list[ClientConfigurationFn]` |
-| `timeout` | `httpx.Timeout \| float \| None` |
+Refresh the session when it is close to expiry.
