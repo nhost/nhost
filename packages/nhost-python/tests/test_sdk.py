@@ -9,6 +9,7 @@ from __future__ import annotations
 import asyncio
 import base64
 import json
+import logging
 import os
 import re
 import stat
@@ -25,7 +26,9 @@ from nhost import (
     NhostClientOptions,
     UploadFile,
     create_client,
+    create_nhost_client,
     generate_service_url,
+    with_admin_session,
 )
 from nhost.auth import (
     Session,
@@ -37,11 +40,12 @@ from nhost.auth import (
     generate_code_verifier,
     generate_pkce_pair,
 )
-from nhost.fetch import FetchFunction, create_enhanced_fetch
+from nhost.fetch import AdminSessionOptions, FetchFunction, create_enhanced_fetch
 from nhost.fetch.middleware import (
     _extract_session,
     session_refresh_middleware,
     update_session_from_response_middleware,
+    with_admin_session_middleware,
 )
 from nhost.session import (
     DecodedToken,
@@ -57,6 +61,8 @@ from nhost.storage import ReplaceFileBody, UploadFileMetadata, UploadFilesBody
 OWNER_ONLY_FILE_MODE = stat.S_IRUSR | stat.S_IWUSR
 PRIVATE_DIRECTORY_MODE = stat.S_IRWXU
 EXISTING_DIRECTORY_MODE = stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP
+DEFAULT_HTTP_TIMEOUT_VALUES = (10.0, 300.0, 300.0, 60.0)
+EXPLICIT_HTTP_TIMEOUT_VALUES = (2.0, 120.0, 180.0, 15.0)
 
 
 def make_jwt(exp_offset_seconds: int = 3600) -> str:
@@ -200,6 +206,115 @@ def test_extract_session_without_user_field() -> None:
     assert _extract_session({"error": "nope"}) is None
 
 
+@pytest.mark.parametrize(
+    ("service_url", "request_url", "allow_insecure_http", "should_send"),
+    [
+        ("http://internal-host/v1/graphql", "http://internal-host/v1/graphql", False, False),
+        ("https://graphql.example/v1", "https://graphql.example/v1", False, True),
+        ("http://127.0.0.1:1337/v1", "http://127.0.0.1:1337/v1", False, True),
+        ("http://internal-host/v1", "http://internal-host/v1", True, True),
+        ("https://graphql.example/v1", "https://storage.example/v1", False, False),
+    ],
+)
+async def test_admin_session_respects_origin_and_transport_security(
+    service_url: str,
+    request_url: str,
+    allow_insecure_http: bool,
+    should_send: bool,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    captured: dict[str, str | None] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["secret"] = request.headers.get("x-hasura-admin-secret")
+        captured["role"] = request.headers.get("x-hasura-role")
+        captured["user_id"] = request.headers.get("x-hasura-user-id")
+        return httpx.Response(200, json={})
+
+    options = AdminSessionOptions(
+        admin_secret="ADMIN-SECRET-XYZ",
+        role="admin",
+        session_variables={"user-id": "user-123"},
+        allow_insecure_http=allow_insecure_http,
+    )
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+        fetch = create_enhanced_fetch(http, [with_admin_session_middleware(options, service_url)])
+        with caplog.at_level(logging.WARNING, logger="nhost.fetch"):
+            await fetch(http.build_request("POST", request_url))
+
+    warnings = [
+        record
+        for record in caplog.records
+        if record.name == "nhost.fetch"
+        and record.message == "admin session headers withheld from request"
+    ]
+    if should_send:
+        assert captured == {
+            "secret": "ADMIN-SECRET-XYZ",
+            "role": "admin",
+            "user_id": "user-123",
+        }
+        assert warnings == []
+    else:
+        assert captured == {"secret": None, "role": None, "user_id": None}
+        assert len(warnings) == 1
+
+
+async def test_enhanced_fetch_disables_caller_redirect_following() -> None:
+    requests: list[tuple[str, str | None]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append((str(request.url), request.headers.get("x-hasura-admin-secret")))
+        if request.url.host == "graphql.example":
+            return httpx.Response(302, headers={"location": "https://untrusted.example/capture"})
+        return httpx.Response(200, json={})
+
+    async with httpx.AsyncClient(
+        transport=httpx.MockTransport(handler), follow_redirects=True
+    ) as http:
+        fetch = create_enhanced_fetch(http)
+        response = await fetch(
+            http.build_request(
+                "POST",
+                "https://graphql.example/v1",
+                headers={"x-hasura-admin-secret": "ADMIN-SECRET-XYZ"},
+            )
+        )
+
+    assert response.status_code == httpx.codes.FOUND
+    assert requests == [("https://graphql.example/v1", "ADMIN-SECRET-XYZ")]
+
+
+async def test_admin_session_uses_each_service_origin() -> None:
+    captured: list[tuple[str, str | None]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured.append((request.url.host, request.headers.get("x-hasura-admin-secret")))
+        return httpx.Response(200, json={})
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+        nhost = create_nhost_client(
+            NhostClientOptions(
+                storage_url="https://storage.example/v1",
+                graphql_url="https://graphql.example/v1",
+                functions_url="https://functions.example/v1",
+                http_client=http,
+                configure=[with_admin_session(AdminSessionOptions("service-secret"))],
+            )
+        )
+        await nhost.storage._fetch(http.build_request("GET", "https://storage.example/v1"))
+        await nhost.graphql._fetch(http.build_request("GET", "https://graphql.example/v1"))
+        await nhost.functions._fetch(http.build_request("GET", "https://functions.example/v1"))
+        await nhost.storage._fetch(http.build_request("GET", "https://graphql.example/v1"))
+
+    assert captured == [
+        ("storage.example", "service-secret"),
+        ("graphql.example", "service-secret"),
+        ("functions.example", "service-secret"),
+        ("graphql.example", None),
+    ]
+
+
 async def test_access_token_attached_to_graphql_request() -> None:
     token = make_jwt()
     captured: dict = {}
@@ -226,14 +341,60 @@ async def test_access_token_attached_to_graphql_request() -> None:
 
 
 async def test_graphql_errors_raise_fetch_error() -> None:
+    error_body = {"errors": [{"message": "field not found"}]}
+
     def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(200, json={"errors": [{"message": "field not found"}]})
+        return httpx.Response(200, json=error_body)
 
     async with build_client(handler) as nhost:
         with pytest.raises(FetchError) as exc:
             await nhost.graphql.request("query { nope }")
 
-    assert "field not found" in str(exc.value)
+    assert exc.value.status == httpx.codes.OK
+    assert exc.value.body == error_body
+    assert str(exc.value) == "field not found"
+
+
+async def test_graphql_non_graphql_http_error_raises() -> None:
+    error_body = {"message": "Malformed Authorization header"}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(401, json=error_body)
+
+    async with build_client(handler) as nhost:
+        with pytest.raises(FetchError) as exc:
+            await nhost.graphql.request("query { __typename }")
+
+    assert exc.value.status == httpx.codes.UNAUTHORIZED
+    assert exc.value.body == error_body
+    assert str(exc.value) == "Malformed Authorization header"
+
+
+async def test_graphql_errors_take_precedence_over_http_status() -> None:
+    error_body = {"errors": [{"message": "validation failed", "extensions": {"code": "bad"}}]}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(422, json=error_body)
+
+    async with build_client(handler) as nhost:
+        with pytest.raises(FetchError) as exc:
+            await nhost.graphql.request("query { nope }")
+
+    assert exc.value.status == httpx.codes.UNPROCESSABLE_ENTITY
+    assert exc.value.body == error_body
+    assert str(exc.value) == "validation failed"
+
+
+async def test_graphql_non_json_http_error_raises_fetch_error() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(502, text="<html>bad gateway</html>")
+
+    async with build_client(handler) as nhost:
+        with pytest.raises(FetchError) as exc:
+            await nhost.graphql.request("query { __typename }")
+
+    assert exc.value.status == httpx.codes.BAD_GATEWAY
+    assert exc.value.body == "<html>bad gateway</html>"
 
 
 async def test_functions_decodes_by_content_type() -> None:
@@ -1013,6 +1174,34 @@ def test_create_client_does_not_mutate_shared_options() -> None:
     # same options object does not accumulate duplicate middleware.
     assert opts.configure is original_configure
     assert opts.configure == []
+
+
+async def test_sdk_http_timeout_default_and_explicit_option() -> None:
+    default_client = create_nhost_client()
+    explicit_timeout = httpx.Timeout(connect=2.0, read=120.0, write=180.0, pool=15.0)
+    explicit_client = create_nhost_client(NhostClientOptions(timeout=explicit_timeout))
+    try:
+        default_timeout = default_client._http.timeout
+        assert (
+            default_timeout.connect,
+            default_timeout.read,
+            default_timeout.write,
+            default_timeout.pool,
+        ) == DEFAULT_HTTP_TIMEOUT_VALUES
+        assert default_timeout != httpx.Timeout(5.0)
+        assert default_client._owns_http is True
+
+        configured_timeout = explicit_client._http.timeout
+        assert (
+            configured_timeout.connect,
+            configured_timeout.read,
+            configured_timeout.write,
+            configured_timeout.pool,
+        ) == EXPLICIT_HTTP_TIMEOUT_VALUES
+        assert explicit_client._owns_http is True
+    finally:
+        await default_client.aclose()
+        await explicit_client.aclose()
 
 
 async def test_replace_file_sends_file_as_multipart_file_part() -> None:

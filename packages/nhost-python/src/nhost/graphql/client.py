@@ -10,7 +10,7 @@ from __future__ import annotations
 from typing import Any, Generic, TypeVar
 
 import httpx
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, ValidationError
 
 from ..fetch import ChainFunction, FetchError, FetchResponse, create_enhanced_fetch
 
@@ -73,7 +73,8 @@ class Client:
     ) -> FetchResponse[GraphQLResponse[Any]]:
         """Execute a GraphQL query or mutation.
 
-        Raises :class:`FetchError` if the response includes GraphQL ``errors``.
+        Raises :class:`FetchError` if the response includes GraphQL ``errors``
+        or has a non-successful HTTP status.
 
         Runs against a local Nhost backend (skipped unless
         ``NHOST_LOCAL_BACKEND=1``):
@@ -105,10 +106,17 @@ class Client:
         )
         response = await self._fetch(request)
 
-        raw: dict[str, Any] = response.json() if response.content else {}
-        result: GraphQLResponse[Any] = GraphQLResponse.model_validate(raw)
+        try:
+            raw: Any = response.json() if response.content else {}
+            result: GraphQLResponse[Any] = GraphQLResponse.model_validate(raw)
+        except (ValueError, UnicodeDecodeError, ValidationError):
+            raise FetchError.from_response(response) from None
 
+        # GraphQL errors are more specific than the HTTP status and may be
+        # returned with either a 2xx or error status, so preserve them first.
         if result.errors:
+            raise FetchError(raw, response.status_code, response.headers)
+        if response.status_code >= 300:  # noqa: PLR2004
             raise FetchError(raw, response.status_code, response.headers)
 
         return FetchResponse(body=result, status=response.status_code, headers=response.headers)

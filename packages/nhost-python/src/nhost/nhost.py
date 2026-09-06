@@ -33,6 +33,19 @@ from .session.refresh import refresh_session
 ServiceType = Literal["auth", "storage", "graphql", "functions"]
 
 _DEFAULT_REFRESH_MARGIN_SECONDS = 60
+_DEFAULT_CONNECT_TIMEOUT_SECONDS = 10.0
+_DEFAULT_READ_TIMEOUT_SECONDS = 300.0
+_DEFAULT_WRITE_TIMEOUT_SECONDS = 300.0
+_DEFAULT_POOL_TIMEOUT_SECONDS = 60.0
+
+
+def _default_http_timeout() -> httpx.Timeout:
+    return httpx.Timeout(
+        connect=_DEFAULT_CONNECT_TIMEOUT_SECONDS,
+        read=_DEFAULT_READ_TIMEOUT_SECONDS,
+        write=_DEFAULT_WRITE_TIMEOUT_SECONDS,
+        pool=_DEFAULT_POOL_TIMEOUT_SECONDS,
+    )
 
 
 def generate_service_url(
@@ -100,10 +113,13 @@ def with_admin_session(options: AdminSessionOptions) -> ClientConfigurationFn:
     """
 
     def configure(ctx: ConfigureContext) -> None:
-        middleware = with_admin_session_middleware(options)
-        ctx.storage.push_chain_function(middleware)
-        ctx.graphql.push_chain_function(middleware)
-        ctx.functions.push_chain_function(middleware)
+        ctx.storage.push_chain_function(
+            with_admin_session_middleware(options, ctx.storage.base_url)
+        )
+        ctx.graphql.push_chain_function(with_admin_session_middleware(options, ctx.graphql.url))
+        ctx.functions.push_chain_function(
+            with_admin_session_middleware(options, ctx.functions.base_url)
+        )
 
     return configure
 
@@ -178,7 +194,17 @@ class NhostClient:
 
 @dataclass
 class NhostClientOptions:
-    """Configuration for creating an Nhost client."""
+    """Configuration for creating an Nhost client.
+
+    ``timeout`` defaults to 10 seconds for connection setup, 300 seconds for
+    reads and writes, and 60 seconds for pool acquisition. Connection failures
+    should surface quickly, while storage uploads need enough read/write time
+    for large transfers, virus scanning, and image transformations; the longer
+    pool timeout tolerates bursts through the shared transport. Pass a float to
+    use one timeout for every phase, an :class:`httpx.Timeout` for finer control,
+    or ``None`` to disable timeouts. This option is ignored when ``http_client``
+    is supplied because the caller owns that client's transport configuration.
+    """
 
     subdomain: str | None = None
     region: str | None = None
@@ -189,6 +215,7 @@ class NhostClientOptions:
     storage: SessionStorageBackend | None = None
     http_client: httpx.AsyncClient | None = None
     configure: list[ClientConfigurationFn] = field(default_factory=list)
+    timeout: httpx.Timeout | float | None = field(default_factory=_default_http_timeout)
 
 
 def create_nhost_client(options: NhostClientOptions | None = None) -> NhostClient:
@@ -197,7 +224,11 @@ def create_nhost_client(options: NhostClientOptions | None = None) -> NhostClien
 
     backend = options.storage if options.storage is not None else detect_storage()
     session_storage = SessionStorage(backend)
-    http = options.http_client if options.http_client is not None else httpx.AsyncClient()
+    http = (
+        options.http_client
+        if options.http_client is not None
+        else httpx.AsyncClient(timeout=options.timeout)
+    )
 
     auth = auth_module.create_api_client(
         generate_service_url("auth", options.subdomain, options.region, options.auth_url),
