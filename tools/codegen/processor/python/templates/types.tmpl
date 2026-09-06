@@ -1,8 +1,15 @@
+{{- define "renderDocstring" -}}
+{{ pyDoc .Schema.Schema.Description (example .) (pattern .) (format .) 4 }}
+{{- end -}}
+
 {{- define "renderObject" -}}
 class {{ .Name }}(BaseModel):
+{{- if or .Schema.Schema.Description (example .) (pattern .) (format .) }}
+    {{ template "renderDocstring" . }}
+{{- end }}
     model_config = ConfigDict(populate_by_name=True)
 {{ range .Properties }}
-    {{ pyField . }}
+    {{ pyField . .Type.Schema.Schema.Description (example .Type) (pattern .Type) (format .Type) }}
 {{- else }}
     pass
 {{- end }}

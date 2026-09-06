@@ -58,20 +58,33 @@ def _query_parameter(name: str, value: Any, style: str, explode: bool) -> list[t
 
 
 class ErrorResponseError(BaseModel):
+    """Error details."""
     model_config = ConfigDict(populate_by_name=True)
 
-    message: str
+    message: str = Field(
+        description='Human-readable error message.\n\nExample: "File not found"',
+    )
 
 class ErrorResponse(BaseModel):
+    """Error information returned by the API."""
     model_config = ConfigDict(populate_by_name=True)
 
-    error: ErrorResponseError | None = None
+    error: ErrorResponseError | None = Field(
+        default=None,
+        description="Error details.",
+    )
 
 class ProviderSpecificParams(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    connection: str | None = None
-    organization: str | None = None
+    connection: str | None = Field(
+        default=None,
+        description="(workos) Specifies the connection to use for authentication",
+    )
+    organization: str | None = Field(
+        default=None,
+        description="(workos) Specifies the organization to use for authentication",
+    )
 
 SignInProvider = Literal["apple", "github", "google", "linkedin", "discord", "spotify", "twitch", "gitlab", "bitbucket", "workos", "azuread", "strava", "facebook", "windowslive", "twitter"]
 
@@ -79,15 +92,58 @@ SignInProvider = Literal["apple", "github", "google", "linkedin", "discord", "sp
 class SignInProviderParams(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    allowed_roles: list[str] | None = Field(default=None, alias="allowedRoles")
-    default_role: str | None = Field(default=None, alias="defaultRole")
-    filter: str | None = None
-    display_name: str | None = Field(default=None, alias="displayName")
-    locale: str | None = None
-    metadata: dict[str, Any] | None = None
-    redirect_to: str | None = Field(default=None, alias="redirectTo")
-    connect: str | None = None
-    provider_specific_params: ProviderSpecificParams | None = Field(default=None, alias="providerSpecificParams")
+    allowed_roles: list[str] | None = Field(
+        default=None,
+        alias="allowedRoles",
+        description='Array of allowed roles for the user\n\nExample: ["me","user"]',
+    )
+    default_role: str | None = Field(
+        default=None,
+        alias="defaultRole",
+        description='Default role for the user\n\nExample: "user"',
+    )
+    filter: str | None = Field(
+        default=None,
+        description="Optional query parameter declared nullable in OpenAPI",
+    )
+    display_name: str | None = Field(
+        default=None,
+        alias="displayName",
+        description=(
+            'Display name for the user\n\nExample: "John Smith"\n\nPattern: ^[\\p{L}\\p{N}\\p{S} '
+            ",.'-]+$"
+        ),
+    )
+    locale: str | None = Field(
+        default=None,
+        description='A two-characters locale\n\nExample: "en"',
+    )
+    metadata: dict[str, Any] | None = Field(
+        default=None,
+        description=(
+            "Additional metadata for the user (JSON encoded string)\n\nExample: "
+            '{"firstName":"John","lastName":"Smith"}'
+        ),
+    )
+    redirect_to: str | None = Field(
+        default=None,
+        alias="redirectTo",
+        description=(
+            'URI to redirect to\n\nExample: "https://my-app.com/catch-redirection"\n\nFormat: uri'
+        ),
+    )
+    connect: str | None = Field(
+        default=None,
+        description=(
+            "If set, this means that the user is already authenticated and wants to link their "
+            "account. This needs to be a valid JWT access token."
+        ),
+    )
+    provider_specific_params: ProviderSpecificParams | None = Field(
+        default=None,
+        alias="providerSpecificParams",
+        description="Additional provider-specific parameters",
+    )
 
 
 class Client:
@@ -115,6 +171,13 @@ class Client:
         provider: SignInProvider,
         params: SignInProviderParams | None = None,
     ) -> str:
+        (
+            """Sign in with an OAuth2 provider\n\nInitiate OAuth2 authentication flow with a """
+            """social provider. Redirects the user to the provider's authorization page.\n\n"""
+            """Args:\n    provider (SignInProvider): The name of the social provider\n    params """
+            """(SignInProviderParams): Query and header parameters.\n\nReturns:\n    str: The """
+            """redirect URL."""
+        )
         url = f"{self.base_url}/signin/provider/{_escape_path(provider)}"
 
         query: list[tuple[str, str]] = []

@@ -62,7 +62,14 @@ class SignInProviderParams(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     redirect_to: str | None = Field(default=None, alias="redirectTo")
-    upstream_params: dict[str, Any] | None = Field(default=None, alias="upstreamParams")
+    upstream_params: dict[str, Any] | None = Field(
+        default=None,
+        alias="upstreamParams",
+        description=(
+            "Extra parameters forwarded verbatim to the upstream OAuth2 provider's authorization "
+            "URL.\n\nExtra key/value parameters forwarded verbatim to the upstream OAuth2 provider."
+        ),
+    )
 
 
 class Client:
@@ -90,6 +97,11 @@ class Client:
         provider: str,
         params: SignInProviderParams | None = None,
     ) -> str:
+        (
+            """Sign in with an OAuth2 provider\n\nArgs:\n    provider (str): Path parameter.\n   """
+            """ params (SignInProviderParams): Query and header parameters.\n\nReturns:\n    """
+            """str: The redirect URL."""
+        )
         url = f"{self.base_url}/signin/provider/{_escape_path(provider)}"
 
         query: list[tuple[str, str]] = []

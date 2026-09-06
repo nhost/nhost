@@ -2,9 +2,13 @@ package python_test
 
 import (
 	"bytes"
+	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"os"
+	"os/exec"
 	"strings"
 	"testing"
 
@@ -476,6 +480,200 @@ paths:
 				t.Errorf("generation error = %q, want it to contain %q", err, tt.wantErr)
 			}
 		})
+	}
+}
+
+func quoteJSON(t *testing.T, value string) string {
+	t.Helper()
+
+	quoted, err := json.Marshal(value)
+	if err != nil {
+		t.Fatalf("failed to encode description: %v", err)
+	}
+
+	return string(quoted)
+}
+
+func TestDocumentationEscapingAndRoundTrip(t *testing.T) {
+	t.Parallel()
+
+	pythonPath, err := exec.LookPath("python3")
+	if err != nil {
+		t.Skip("python3 is not available; skipping generated Python AST validation")
+	}
+
+	modelDescription := "  Héllo from a model with \"\"\" delimiters.\n" +
+		"A line with spaces.  \rNUL:\x00\\"
+	fieldDescription := "  Field documentation with leading and trailing whitespace, enough " +
+		"prose to require value-preserving source wrapping, and a multi-byte 🧪 character.  "
+	fieldDocumentation := fieldDescription +
+		"\n\nExample: \"sample \\\"value\\\"\"\n\nPattern: ^[é]+$\n\nFormat: credential"
+	methodDescription := "Method documentation has \"\"\", a newline\n" +
+		"then a CR\rNUL:\x00 and ends in a backslash\\"
+
+	quotedMethodDescription := quoteJSON(t, methodDescription)
+	quotedModelDescription := quoteJSON(t, modelDescription)
+	quotedFieldDescription := quoteJSON(t, fieldDescription)
+
+	spec := fmt.Sprintf(`{
+  "openapi": "3.0.0",
+  "paths": {
+    "/items/{item-id}": {
+      "get": {
+        "operationId": "getItem",
+        "summary": "Get an item",
+        "description": %s,
+        "parameters": [{
+          "name": "item-id",
+          "in": "path",
+          "required": true,
+          "description": "The item identifier.",
+          "schema": {"type": "string"}
+        }],
+        "responses": {"200": {"description": "ok"}}
+      }
+    },
+    "/redirect/{item-id}": {
+      "get": {
+        "operationId": "redirectItem",
+        "summary": "Redirect to an item",
+        "parameters": [{
+          "name": "item-id",
+          "in": "path",
+          "required": true,
+          "schema": {"type": "string"}
+        }],
+        "responses": {"302": {"description": "redirect"}}
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Payload": {
+        "type": "object",
+        "description": %s,
+        "properties": {
+          "secret": {
+            "type": "string",
+            "description": %s,
+            "example": "sample \"value\"",
+            "pattern": "^[é]+$",
+            "format": "credential"
+          }
+        }
+      },
+      "WhitespacePayload": {
+        "type": "object",
+        "description": %s,
+        "properties": {"value": {"type": "string"}}
+      }
+    }
+  }
+}`, quotedMethodDescription, quotedModelDescription, quotedFieldDescription, quotedFieldDescription)
+
+	document, err := libopenapi.NewDocument([]byte(spec))
+	if err != nil {
+		t.Fatalf("failed to parse fixture: %v", err)
+	}
+
+	model, modelErrors := document.BuildV3Model()
+	if len(modelErrors) > 0 {
+		t.Fatalf("failed to build fixture: %v", modelErrors)
+	}
+
+	ir, err := processor.NewInterMediateRepresentation(model, &python.Python{})
+	if err != nil {
+		t.Fatalf("failed to build intermediate representation: %v", err)
+	}
+
+	var output bytes.Buffer
+	if err := ir.Render(&output); err != nil {
+		t.Fatalf("failed to render fixture: %v", err)
+	}
+
+	if bytes.IndexByte(output.Bytes(), 0) >= 0 {
+		t.Fatal("generated Python contains a literal NUL byte")
+	}
+
+	generatedPath := t.TempDir() + "/client.py"
+	if err := os.WriteFile(generatedPath, output.Bytes(), 0o600); err != nil {
+		t.Fatalf("failed to write generated Python: %v", err)
+	}
+
+	validation := `
+import ast
+import base64
+import pathlib
+import sys
+
+source = pathlib.Path(sys.argv[1]).read_text()
+tree = ast.parse(source)
+compile(tree, sys.argv[1], "exec")
+expected_model = base64.b64decode(sys.argv[2]).decode()
+expected_field = base64.b64decode(sys.argv[3]).decode()
+expected_field_documentation = base64.b64decode(sys.argv[4]).decode()
+expected_method = base64.b64decode(sys.argv[5]).decode()
+
+
+def assert_source_width(node):
+    lines = source.splitlines()
+    assert all(len(line) <= 100 for line in lines[node.lineno - 1:node.end_lineno])
+
+payload = next(
+    node for node in tree.body
+    if isinstance(node, ast.ClassDef) and node.name == "Payload"
+)
+assert ast.get_docstring(payload, clean=False) == expected_model
+assert_source_width(payload.body[0])
+whitespace_payload = next(
+    node for node in tree.body
+    if isinstance(node, ast.ClassDef) and node.name == "WhitespacePayload"
+)
+assert ast.get_docstring(whitespace_payload, clean=False) == expected_field
+assert_source_width(whitespace_payload.body[0])
+secret = next(
+    node for node in payload.body
+    if isinstance(node, ast.AnnAssign) and node.target.id == "secret"
+)
+keywords = {keyword.arg: ast.literal_eval(keyword.value) for keyword in secret.value.keywords}
+assert keywords["description"] == expected_field_documentation
+assert keywords["repr"] is False
+assert_source_width(secret.value)
+
+client = next(
+    node for node in tree.body
+    if isinstance(node, ast.ClassDef) and node.name == "Client"
+)
+get_item = next(
+    node for node in client.body
+    if isinstance(node, ast.AsyncFunctionDef) and node.name == "get_item"
+)
+redirect_item = next(
+    node for node in client.body
+    if isinstance(node, ast.FunctionDef) and node.name == "redirect_item_url"
+)
+assert expected_method in ast.get_docstring(get_item, clean=False)
+assert "Args:\n    item_id (str): The item identifier." in ast.get_docstring(get_item, clean=False)
+assert "Returns:\n    FetchResponse[None]:" in ast.get_docstring(get_item, clean=False)
+assert_source_width(get_item.body[0])
+assert "Args:\n    item_id (str): Path parameter." in ast.get_docstring(redirect_item, clean=False)
+assert "Returns:\n    str:" in ast.get_docstring(redirect_item, clean=False)
+assert_source_width(redirect_item.body[0])
+`
+
+	command := exec.CommandContext(
+		t.Context(),
+		pythonPath,
+		"-c",
+		validation,
+		generatedPath,
+		base64.StdEncoding.EncodeToString([]byte(modelDescription)),
+		base64.StdEncoding.EncodeToString([]byte(fieldDescription)),
+		base64.StdEncoding.EncodeToString([]byte(fieldDocumentation)),
+		base64.StdEncoding.EncodeToString([]byte(methodDescription)),
+	)
+	if validationOutput, err := command.CombinedOutput(); err != nil {
+		t.Fatalf("generated Python failed AST validation: %v\n%s", err, validationOutput)
 	}
 }
 
