@@ -11,6 +11,7 @@ from __future__ import annotations
 import base64
 import binascii
 import json
+from collections.abc import Iterable
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -27,7 +28,9 @@ class DecodedToken(BaseModel):
     """Decoded JWT access-token payload.
 
     ``exp`` and ``iat`` are epoch seconds as encoded in the JWT. Unknown claims
-    are preserved via ``extra="allow"``.
+    are preserved via ``extra="allow"`` and serialized in full, but their values
+    are replaced with ``<redacted>`` in ``repr``, ``str``, and f-strings. The
+    declared fields, including processed Hasura claims, remain visible.
     """
 
     model_config = ConfigDict(extra="allow", populate_by_name=True)
@@ -38,9 +41,20 @@ class DecodedToken(BaseModel):
     sub: str | None = None
     hasura_claims: dict[str, Any] | None = Field(default=None, alias="https://hasura.io/jwt/claims")
 
+    def __repr_args__(self) -> Iterable[tuple[str | None, Any]]:
+        extra = self.model_extra or {}
+        for key, value in super().__repr_args__():
+            yield key, "<redacted>" if key in extra else value
+
 
 class StoredSession(Session):
-    """The enriched session persisted by the SDK (raw ``Session`` + decoded token)."""
+    """The enriched session persisted by the SDK (raw ``Session`` + decoded token).
+
+    ``repr``, ``str``, and f-strings omit the access and refresh tokens and mask
+    undeclared JWT claim values. Processed Hasura claims and caller-controlled
+    user metadata remain visible. Serialization intentionally emits the complete
+    session for persistence, so do not serialize a session into logs.
+    """
 
     model_config = ConfigDict(populate_by_name=True)
 
