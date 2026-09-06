@@ -336,10 +336,12 @@ impl Backend for MemoryStorage {
 ///
 /// The persisted [`StoredSession`] includes the long-lived refresh token, which
 /// can mint access tokens until it is revoked server-side. On Unix the file is
-/// created `0o600` and its parent directory `0o700`, so it is readable only by
-/// the owning user; a file left behind at a wider mode is narrowed on the next
-/// write. Other platforms inherit the default permissions, so avoid this
-/// backend on shared storage there.
+/// written `0o600`, including when an earlier version left it at a wider mode,
+/// so it is readable only by the owning user. A parent directory *created* here
+/// is `0o700`; a directory that already exists is left as it is, so point this
+/// at a private path rather than relying on it to tighten one. Other platforms
+/// inherit the default permissions, so avoid this backend on shared storage
+/// there.
 #[cfg(not(all(feature = "wasm", target_arch = "wasm32")))]
 pub struct FileStorage {
     path: PathBuf,
