@@ -75,14 +75,26 @@
 {{- end }}
     ) -> Result<Response<{{ $response.ReturnType }}>, Error> {
 {{- if eq .Name "refresh_token" }}
-        let request = self.refresh_token_request(&body)?;
+        let mut request = self.refresh_token_request(&body)?;
 {{- else }}
         let url = http::append_path(self.base_url.as_str(), &[{{ rustPathSegments .Path }}])?;
         let mut request = self.http.request(reqwest::Method::{{ .Method }}, url);
 {{- if .RequestJSON }}
+{{- if .BodyRequired }}
         request = request.json(&body);
+{{- else }}
+        if let Some(body) = &body {
+            request = request.json(body);
+        }
+{{- end }}
 {{- else if .RequestFormURLEncoded }}
+{{- if .BodyRequired }}
         request = request.form(&body);
+{{- else }}
+        if let Some(body) = &body {
+            request = request.form(body);
+        }
+{{- end }}
 {{- else if .RequestFormData }}
 {{- $m := . }}
 {{- $bodyIndent := "" }}
@@ -211,7 +223,15 @@
 {{- end }}
         let (status, headers, bytes) = http::send(request, self.session_sink.as_ref()).await?;
 {{- if $response.DecodeJSON }}
+{{- if $response.DecodeEmptyAsNull }}
+        let body = if bytes.is_empty() {
+            serde_json::Value::Null
+        } else {
+            serde_json::from_slice(&bytes)?
+        };
+{{- else }}
         let body = serde_json::from_slice(&bytes)?;
+{{- end }}
 {{- else if $response.DecodeBinary }}
         let body = bytes;
 {{- else }}
