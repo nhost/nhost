@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/spf13/cobra"
+	"github.com/urfave/cli/v3"
 
 	nhost "github.com/nhost/nhost/packages/nhost-go"
 	"github.com/nhost/nhost/packages/nhost-go/auth"
@@ -19,9 +19,10 @@ import (
 )
 
 const (
-	bucket   = "notes"
-	twoArgs  = 2
-	filePerm = 0o600
+	argumentName = "arguments"
+	bucket       = "notes"
+	twoArgs      = 2
+	filePerm     = 0o600
 )
 
 // Sentinel errors keep the command handlers free of dynamic errors (err113)
@@ -33,303 +34,355 @@ var (
 	errNotePermission  = errors.New("note not found or not permitted")
 	errCreateTag       = errors.New("could not create tag")
 	errUploadFailed    = errors.New("upload failed")
+	errTooManyArgs     = errors.New("too many arguments")
+	errUnknownCommand  = errors.New("unknown command")
 )
 
-// client is built once in the root command's PersistentPreRun and reused by
-// every subcommand's RunE.
+// client is built once in the root command's Before hook and reused by every
+// subcommand's Action.
 var client *nhost.Client //nolint:gochecknoglobals
 
 func main() {
-	if err := rootCmd().Execute(); err != nil {
+	if err := rootCmd().Run(context.Background(), os.Args); err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
 		os.Exit(1)
 	}
 }
 
-// rootCmd builds the cobra command tree. The UX is flat: every verb is a
+// rootCmd builds the cli command tree. The UX is flat: every verb is a
 // top-level command (kebab-case), so there's no `note <sub>` nesting.
-func rootCmd() *cobra.Command { //nolint:funlen,maintidx
-	root := &cobra.Command{ //nolint:exhaustruct
-		Use:           "notes-cli",
-		Short:         "A note-taking CLI built on the Nhost Go SDK",
-		SilenceUsage:  true,
-		SilenceErrors: true,
-		PersistentPreRun: func(_ *cobra.Command, _ []string) {
+func rootCmd() *cli.Command { //nolint:funlen,maintidx
+	root := &cli.Command{ //nolint:exhaustruct
+		Name:                  "notes-cli",
+		Usage:                 "A note-taking CLI built on the Nhost Go SDK",
+		EnableShellCompletion: true,
+		ConfigureShellCompletionCommand: func(command *cli.Command) {
+			command.Hidden = false
+			command.Usage = "Generate the autocompletion script for the specified shell"
+		},
+		Before: func(ctx context.Context, _ *cli.Command) (context.Context, error) {
 			client = newClient()
+
+			return ctx, nil
+		},
+		Action: commandHelp,
+		Commands: []*cli.Command{
+			{
+				Name:      "signup",
+				Usage:     "Create an account (and sign in if email verification is off)",
+				Arguments: commandArguments("EMAIL PASSWORD", twoArgs, twoArgs),
+				Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
+					return cmdSignup(ctx, client, args[0], args[1])
+				}),
+			},
+			{
+				Name:      "login",
+				Usage:     "Sign in with email and password",
+				Arguments: commandArguments("EMAIL PASSWORD", twoArgs, twoArgs),
+				Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
+					return cmdLogin(ctx, client, args[0], args[1])
+				}),
+			},
+			{
+				Name:  "logout",
+				Usage: "Sign out and clear the saved session",
+				Action: withArgs(func(ctx context.Context, _ *cli.Command, _ []string) error {
+					return cmdLogout(ctx, client)
+				}),
+			},
+			{
+				Name:  "whoami",
+				Usage: "Show the currently signed-in user",
+				Action: withArgs(func(_ context.Context, _ *cli.Command, _ []string) error {
+					return cmdWhoami(client)
+				}),
+			},
+			{
+				Name:      "new",
+				Usage:     "Create a note",
+				Arguments: commandArguments("TITLE", 1, 1),
+				Flags: []cli.Flag{
+					&cli.StringFlag{ //nolint:exhaustruct
+						Name:  "content",
+						Usage: "note body",
+					},
+					&cli.StringFlag{ //nolint:exhaustruct
+						Name:  "notebook",
+						Usage: "notebook id",
+					},
+				},
+				Action: withArgs(func(ctx context.Context, cmd *cli.Command, args []string) error {
+					return noteNew(ctx, client, args[0], cmd.String("content"), cmd.String("notebook"))
+				}),
+			},
+			{
+				Name:  "ls",
+				Usage: "List your notes",
+				Flags: []cli.Flag{
+					&cli.BoolFlag{ //nolint:exhaustruct
+						Name:  "archived",
+						Usage: "show archived notes",
+					},
+					&cli.StringFlag{ //nolint:exhaustruct
+						Name:  "tag",
+						Usage: "filter by tag name",
+					},
+				},
+				Action: withArgs(func(ctx context.Context, cmd *cli.Command, _ []string) error {
+					return noteLs(ctx, client, cmd.Bool("archived"), cmd.String("tag"))
+				}),
+			},
+			{
+				Name:      "show",
+				Usage:     "Show a single note in full",
+				Arguments: commandArguments("ID", 1, 1),
+				Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
+					return noteShow(ctx, client, args[0])
+				}),
+			},
+			{
+				Name:      "edit",
+				Usage:     "Edit a note's title and/or content",
+				Arguments: commandArguments("ID", 1, 1),
+				Flags: []cli.Flag{
+					&cli.StringFlag{ //nolint:exhaustruct
+						Name:  "title",
+						Usage: "new title",
+					},
+					&cli.StringFlag{ //nolint:exhaustruct
+						Name:  "content",
+						Usage: "new content",
+					},
+				},
+				Action: withArgs(func(ctx context.Context, cmd *cli.Command, args []string) error {
+					set := map[string]any{}
+					if cmd.IsSet("title") {
+						set["title"] = cmd.String("title")
+					}
+
+					if cmd.IsSet("content") {
+						set["content"] = cmd.String("content")
+					}
+
+					if len(set) == 0 {
+						return errNothingToUpdate
+					}
+
+					return updateNote(ctx, client, args[0], set)
+				}),
+			},
+			{
+				Name:      "pin",
+				Usage:     "Pin a note",
+				Arguments: commandArguments("ID", 1, 1),
+				Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
+					return updateNote(ctx, client, args[0], map[string]any{"is_pinned": true})
+				}),
+			},
+			{
+				Name:      "unpin",
+				Usage:     "Unpin a note",
+				Arguments: commandArguments("ID", 1, 1),
+				Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
+					return updateNote(ctx, client, args[0], map[string]any{"is_pinned": false})
+				}),
+			},
+			{
+				Name:      "archive",
+				Usage:     "Archive a note",
+				Arguments: commandArguments("ID", 1, 1),
+				Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
+					return updateNote(ctx, client, args[0], map[string]any{"is_archived": true})
+				}),
+			},
+			{
+				Name:      "rm",
+				Usage:     "Delete a note",
+				Arguments: commandArguments("ID", 1, 1),
+				Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
+					return noteRm(ctx, client, args[0])
+				}),
+			},
+			{
+				Name:      "mv",
+				Usage:     "Move a note into a notebook",
+				Arguments: commandArguments("ID NOTEBOOK_ID", twoArgs, twoArgs),
+				Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
+					return updateNote(ctx, client, args[0], map[string]any{"notebook_id": args[1]})
+				}),
+			},
+			{
+				Name:   "notebook",
+				Usage:  "Manage notebooks",
+				Action: commandHelp,
+				Commands: []*cli.Command{
+					{
+						Name:      "new",
+						Usage:     "Create a notebook",
+						Arguments: commandArguments("NAME", 1, 1),
+						Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
+							return notebookNew(ctx, client, args[0])
+						}),
+					},
+					{
+						Name:  "ls",
+						Usage: "List your notebooks",
+						Action: withArgs(func(ctx context.Context, _ *cli.Command, _ []string) error {
+							return notebookLs(ctx, client)
+						}),
+					},
+				},
+			},
+			{
+				Name:   "tag",
+				Usage:  "Manage tags (and tag/untag notes)",
+				Action: commandHelp,
+				Commands: []*cli.Command{
+					{
+						Name:  "ls",
+						Usage: "List your tags",
+						Action: withArgs(func(ctx context.Context, _ *cli.Command, _ []string) error {
+							return tagLs(ctx, client)
+						}),
+					},
+					{
+						Name:      "new",
+						Usage:     "Create a tag",
+						Arguments: commandArguments("NAME", 1, 1),
+						Flags: []cli.Flag{
+							&cli.StringFlag{ //nolint:exhaustruct
+								Name:  "color",
+								Usage: "hex color",
+								Value: "#808080",
+							},
+						},
+						Action: withArgs(func(ctx context.Context, cmd *cli.Command, args []string) error {
+							return tagNew(ctx, client, args[0], cmd.String("color"))
+						}),
+					},
+					{
+						Name:      "add",
+						Usage:     "Add a tag to a note (creates the tag if needed)",
+						Arguments: commandArguments("NOTE_ID TAG_NAME", twoArgs, twoArgs),
+						Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
+							return noteTag(ctx, client, args[0], args[1])
+						}),
+					},
+					{
+						Name:      "rm",
+						Usage:     "Remove a tag from a note",
+						Arguments: commandArguments("NOTE_ID TAG_NAME", twoArgs, twoArgs),
+						Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
+							return noteUntag(ctx, client, args[0], args[1])
+						}),
+					},
+				},
+			},
+			{
+				Name:      "attach",
+				Usage:     "Upload a file and attach it to a note",
+				Arguments: commandArguments("NOTE_ID FILE", twoArgs, twoArgs),
+				Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
+					return cmdAttach(ctx, client, args[0], args[1])
+				}),
+			},
+			{
+				Name:      "download",
+				Usage:     "Download a file by id",
+				Arguments: commandArguments("FILE_ID OUT_PATH", twoArgs, twoArgs),
+				Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
+					return cmdDownload(ctx, client, args[0], args[1])
+				}),
+			},
+			{
+				Name:      "share",
+				Usage:     "Share a note with another user",
+				Arguments: commandArguments("NOTE_ID USER_ID", twoArgs, twoArgs),
+				Flags: []cli.Flag{
+					&cli.StringFlag{ //nolint:exhaustruct
+						Name:  "role",
+						Usage: "viewer|editor",
+						Value: "viewer",
+					},
+				},
+				Action: withArgs(func(ctx context.Context, cmd *cli.Command, args []string) error {
+					return cmdShare(ctx, client, args[0], args[1], cmd.String("role"))
+				}),
+			},
+			{
+				Name:      "unshare",
+				Usage:     "Remove a collaborator from a note",
+				Arguments: commandArguments("NOTE_ID USER_ID", twoArgs, twoArgs),
+				Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
+					return cmdUnshare(ctx, client, args[0], args[1])
+				}),
+			},
+			{
+				Name:  "export",
+				Usage: "Export your notes via a serverless function",
+				Action: withArgs(func(ctx context.Context, _ *cli.Command, _ []string) error {
+					return cmdExport(ctx, client)
+				}),
+			},
 		},
 	}
 
-	ctx := context.Background()
-
-	// --- auth ---------------------------------------------------------------
-
-	root.AddCommand(&cobra.Command{ //nolint:exhaustruct
-		Use:   "signup EMAIL PASSWORD",
-		Short: "Create an account (and sign in if email verification is off)",
-		Args:  cobra.ExactArgs(twoArgs),
-		RunE: func(_ *cobra.Command, args []string) error {
-			return cmdSignup(ctx, client, args[0], args[1])
-		},
-	})
-	root.AddCommand(&cobra.Command{ //nolint:exhaustruct
-		Use:   "login EMAIL PASSWORD",
-		Short: "Sign in with email and password",
-		Args:  cobra.ExactArgs(twoArgs),
-		RunE: func(_ *cobra.Command, args []string) error {
-			return cmdLogin(ctx, client, args[0], args[1])
-		},
-	})
-	root.AddCommand(&cobra.Command{ //nolint:exhaustruct
-		Use:   "logout",
-		Short: "Sign out and clear the saved session",
-		Args:  cobra.NoArgs,
-		RunE: func(_ *cobra.Command, _ []string) error {
-			return cmdLogout(ctx, client)
-		},
-	})
-	root.AddCommand(&cobra.Command{ //nolint:exhaustruct
-		Use:   "whoami",
-		Short: "Show the currently signed-in user",
-		Args:  cobra.NoArgs,
-		RunE: func(_ *cobra.Command, _ []string) error {
-			return cmdWhoami(client)
-		},
-	})
-
-	// --- notes --------------------------------------------------------------
-
-	var noteNewContent, noteNewNotebook string
-
-	noteNewCmd := &cobra.Command{ //nolint:exhaustruct
-		Use:   "new TITLE",
-		Short: "Create a note",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(_ *cobra.Command, args []string) error {
-			return noteNew(ctx, client, args[0], noteNewContent, noteNewNotebook)
-		},
-	}
-	noteNewCmd.Flags().StringVar(&noteNewContent, "content", "", "note body")
-	noteNewCmd.Flags().StringVar(&noteNewNotebook, "notebook", "", "notebook id")
-	root.AddCommand(noteNewCmd)
-
-	var (
-		noteLsArchived bool
-		noteLsTag      string
-	)
-
-	noteLsCmd := &cobra.Command{ //nolint:exhaustruct
-		Use:   "ls",
-		Short: "List your notes",
-		Args:  cobra.NoArgs,
-		RunE: func(_ *cobra.Command, _ []string) error {
-			return noteLs(ctx, client, noteLsArchived, noteLsTag)
-		},
-	}
-	noteLsCmd.Flags().BoolVar(&noteLsArchived, "archived", false, "show archived notes")
-	noteLsCmd.Flags().StringVar(&noteLsTag, "tag", "", "filter by tag name")
-	root.AddCommand(noteLsCmd)
-
-	root.AddCommand(&cobra.Command{ //nolint:exhaustruct
-		Use:   "show ID",
-		Short: "Show a single note in full",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(_ *cobra.Command, args []string) error {
-			return noteShow(ctx, client, args[0])
-		},
-	})
-
-	var noteEditTitle, noteEditContent string
-
-	noteEditCmd := &cobra.Command{ //nolint:exhaustruct
-		Use:   "edit ID",
-		Short: "Edit a note's title and/or content",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			set := map[string]any{}
-			if cmd.Flags().Changed("title") {
-				set["title"] = noteEditTitle
-			}
-
-			if cmd.Flags().Changed("content") {
-				set["content"] = noteEditContent
-			}
-
-			if len(set) == 0 {
-				return errNothingToUpdate
-			}
-
-			return updateNote(ctx, client, args[0], set)
-		},
-	}
-	noteEditCmd.Flags().StringVar(&noteEditTitle, "title", "", "new title")
-	noteEditCmd.Flags().StringVar(&noteEditContent, "content", "", "new content")
-	root.AddCommand(noteEditCmd)
-
-	// pin / unpin / archive all share the updateNote helper.
-	root.AddCommand(&cobra.Command{ //nolint:exhaustruct
-		Use:   "pin ID",
-		Short: "Pin a note",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(_ *cobra.Command, args []string) error {
-			return updateNote(ctx, client, args[0], map[string]any{"is_pinned": true})
-		},
-	})
-	root.AddCommand(&cobra.Command{ //nolint:exhaustruct
-		Use:   "unpin ID",
-		Short: "Unpin a note",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(_ *cobra.Command, args []string) error {
-			return updateNote(ctx, client, args[0], map[string]any{"is_pinned": false})
-		},
-	})
-	root.AddCommand(&cobra.Command{ //nolint:exhaustruct
-		Use:   "archive ID",
-		Short: "Archive a note",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(_ *cobra.Command, args []string) error {
-			return updateNote(ctx, client, args[0], map[string]any{"is_archived": true})
-		},
-	})
-	root.AddCommand(&cobra.Command{ //nolint:exhaustruct
-		Use:   "rm ID",
-		Short: "Delete a note",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(_ *cobra.Command, args []string) error {
-			return noteRm(ctx, client, args[0])
-		},
-	})
-	root.AddCommand(&cobra.Command{ //nolint:exhaustruct
-		Use:   "mv ID NOTEBOOK_ID",
-		Short: "Move a note into a notebook",
-		Args:  cobra.ExactArgs(twoArgs),
-		RunE: func(_ *cobra.Command, args []string) error {
-			return updateNote(ctx, client, args[0], map[string]any{"notebook_id": args[1]})
-		},
-	})
-
-	// --- notebooks ----------------------------------------------------------
-
-	notebookCmd := &cobra.Command{ //nolint:exhaustruct
-		Use:   "notebook",
-		Short: "Manage notebooks",
-	}
-	notebookCmd.AddCommand(&cobra.Command{ //nolint:exhaustruct
-		Use:   "new NAME",
-		Short: "Create a notebook",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(_ *cobra.Command, args []string) error {
-			return notebookNew(ctx, client, args[0])
-		},
-	})
-	notebookCmd.AddCommand(&cobra.Command{ //nolint:exhaustruct
-		Use:   "ls",
-		Short: "List your notebooks",
-		Args:  cobra.NoArgs,
-		RunE: func(_ *cobra.Command, _ []string) error {
-			return notebookLs(ctx, client)
-		},
-	})
-	root.AddCommand(notebookCmd)
-
-	// --- tags ---------------------------------------------------------------
-
-	tagCmd := &cobra.Command{ //nolint:exhaustruct
-		Use:   "tag",
-		Short: "Manage tags (and tag/untag notes)",
-	}
-	tagCmd.AddCommand(&cobra.Command{ //nolint:exhaustruct
-		Use:   "ls",
-		Short: "List your tags",
-		Args:  cobra.NoArgs,
-		RunE: func(_ *cobra.Command, _ []string) error {
-			return tagLs(ctx, client)
-		},
-	})
-
-	var tagNewColor string
-
-	tagNewCmd := &cobra.Command{ //nolint:exhaustruct
-		Use:   "new NAME",
-		Short: "Create a tag",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(_ *cobra.Command, args []string) error {
-			return tagNew(ctx, client, args[0], tagNewColor)
-		},
-	}
-	tagNewCmd.Flags().StringVar(&tagNewColor, "color", "#808080", "hex color")
-	tagCmd.AddCommand(tagNewCmd)
-
-	tagCmd.AddCommand(&cobra.Command{ //nolint:exhaustruct
-		Use:   "add NOTE_ID TAG_NAME",
-		Short: "Add a tag to a note (creates the tag if needed)",
-		Args:  cobra.ExactArgs(twoArgs),
-		RunE: func(_ *cobra.Command, args []string) error {
-			return noteTag(ctx, client, args[0], args[1])
-		},
-	})
-	tagCmd.AddCommand(&cobra.Command{ //nolint:exhaustruct
-		Use:   "rm NOTE_ID TAG_NAME",
-		Short: "Remove a tag from a note",
-		Args:  cobra.ExactArgs(twoArgs),
-		RunE: func(_ *cobra.Command, args []string) error {
-			return noteUntag(ctx, client, args[0], args[1])
-		},
-	})
-	root.AddCommand(tagCmd)
-
-	// --- storage & sharing --------------------------------------------------
-
-	root.AddCommand(&cobra.Command{ //nolint:exhaustruct
-		Use:   "attach NOTE_ID FILE",
-		Short: "Upload a file and attach it to a note",
-		Args:  cobra.ExactArgs(twoArgs),
-		RunE: func(_ *cobra.Command, args []string) error {
-			return cmdAttach(ctx, client, args[0], args[1])
-		},
-	})
-	root.AddCommand(&cobra.Command{ //nolint:exhaustruct
-		Use:   "download FILE_ID OUT_PATH",
-		Short: "Download a file by id",
-		Args:  cobra.ExactArgs(twoArgs),
-		RunE: func(_ *cobra.Command, args []string) error {
-			return cmdDownload(ctx, client, args[0], args[1])
-		},
-	})
-
-	var shareRole string
-
-	shareCmd := &cobra.Command{ //nolint:exhaustruct
-		Use:   "share NOTE_ID USER_ID",
-		Short: "Share a note with another user",
-		Args:  cobra.ExactArgs(twoArgs),
-		RunE: func(_ *cobra.Command, args []string) error {
-			return cmdShare(ctx, client, args[0], args[1], shareRole)
-		},
-	}
-	shareCmd.Flags().StringVar(&shareRole, "role", "viewer", "viewer|editor")
-	root.AddCommand(shareCmd)
-
-	root.AddCommand(&cobra.Command{ //nolint:exhaustruct
-		Use:   "unshare NOTE_ID USER_ID",
-		Short: "Remove a collaborator from a note",
-		Args:  cobra.ExactArgs(twoArgs),
-		RunE: func(_ *cobra.Command, args []string) error {
-			return cmdUnshare(ctx, client, args[0], args[1])
-		},
-	})
-
-	// --- functions ----------------------------------------------------------
-
-	root.AddCommand(&cobra.Command{ //nolint:exhaustruct
-		Use:   "export",
-		Short: "Export your notes via a serverless function",
-		Args:  cobra.NoArgs,
-		RunE: func(_ *cobra.Command, _ []string) error {
-			return cmdExport(ctx, client)
-		},
-	})
+	silenceUsage(root)
 
 	return root
+}
+
+// commandArguments declares a command's positional argument range. withArgs
+// also rejects anything left after Max, because cli.StringArgs retains extras.
+func commandArguments(usage string, minArgs, maxArgs int) []cli.Argument {
+	return []cli.Argument{
+		&cli.StringArgs{ //nolint:exhaustruct
+			Name:      argumentName,
+			UsageText: usage,
+			Min:       minArgs,
+			Max:       maxArgs,
+		},
+	}
+}
+
+func withArgs(action func(context.Context, *cli.Command, []string) error) cli.ActionFunc {
+	return func(ctx context.Context, cmd *cli.Command) error {
+		args := cmd.StringArgs(argumentName)
+		if cmd.Args().Present() {
+			return fmt.Errorf(
+				"%w: got %d, want at most %d",
+				errTooManyArgs,
+				len(args)+cmd.Args().Len(),
+				len(args),
+			)
+		}
+
+		return action(ctx, cmd, args)
+	}
+}
+
+func commandHelp(_ context.Context, cmd *cli.Command) error {
+	if cmd.Args().Present() {
+		return fmt.Errorf("%w: %q", errUnknownCommand, cmd.Args().First())
+	}
+
+	if err := cli.ShowSubcommandHelp(cmd); err != nil {
+		return fmt.Errorf("show command help: %w", err)
+	}
+
+	return nil
+}
+
+// silenceUsage preserves the concise error UX: command errors are returned to
+// main without cli printing an additional usage page.
+func silenceUsage(cmd *cli.Command) {
+	cmd.OnUsageError = func(_ context.Context, _ *cli.Command, err error, _ bool) error {
+		return err
+	}
+
+	for _, subcommand := range cmd.Commands {
+		silenceUsage(subcommand)
+	}
 }
 
 func newClient() *nhost.Client {
@@ -416,7 +469,13 @@ func cmdSignup(ctx context.Context, c *nhost.Client, email, password string) err
 func cmdLogout(ctx context.Context, c *nhost.Client) error {
 	if s, ok := c.GetUserSession(); ok {
 		rt := s.RefreshToken
-		_, _, _ = c.Auth.SignOut(ctx, auth.SignOutRequest{RefreshToken: &rt}, nil) //nolint:exhaustruct
+		_, _, _ = c.Auth.SignOut(
+			ctx,
+			auth.SignOutRequest{ //nolint:exhaustruct
+				RefreshToken: &rt,
+			},
+			nil,
+		)
 	}
 
 	c.ClearSession()

@@ -134,21 +134,21 @@ func cmdDownload(ctx context.Context, c *nhost.Client, fileID, outPath string) e
 Register both as top-level commands in `rootCmd`:
 
 ```go title="main.go"
-	root.AddCommand(&cobra.Command{
-		Use:   "attach NOTE_ID FILE",
-		Short: "Upload a file and attach it to a note",
-		Args:  cobra.ExactArgs(2),
-		RunE: func(_ *cobra.Command, args []string) error {
+	root.Commands = append(root.Commands, &cli.Command{
+		Name:      "attach",
+		Usage:     "Upload a file and attach it to a note",
+		Arguments: commandArguments("NOTE_ID FILE", 2, 2),
+		Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
 			return cmdAttach(ctx, client, args[0], args[1])
-		},
+		}),
 	})
-	root.AddCommand(&cobra.Command{
-		Use:   "download FILE_ID OUT_PATH",
-		Short: "Download a file by id",
-		Args:  cobra.ExactArgs(2),
-		RunE: func(_ *cobra.Command, args []string) error {
+	root.Commands = append(root.Commands, &cli.Command{
+		Name:      "download",
+		Usage:     "Download a file by id",
+		Arguments: commandArguments("FILE_ID OUT_PATH", 2, 2),
+		Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
 			return cmdDownload(ctx, client, args[0], args[1])
-		},
+		}),
 	})
 ```
 
@@ -166,7 +166,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/spf13/cobra"
+	"github.com/urfave/cli/v3"
 
 	nhost "github.com/nhost/nhost/packages/nhost-go"
 	"github.com/nhost/nhost/packages/nhost-go/auth"
@@ -177,127 +177,180 @@ import (
 
 const bucket = "notes"
 
-// client is built once in the root command's PersistentPreRun and reused by
-// every subcommand.
+var (
+	errTooManyArgs    = errors.New("too many arguments")
+	errUnknownCommand = errors.New("unknown command")
+)
+
+// client is built once in the root command's Before hook and reused by every
+// subcommand's Action.
 var client *nhost.Client
 
 func main() {
-	if err := rootCmd().Execute(); err != nil {
+	if err := rootCmd().Run(context.Background(), os.Args); err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
 		os.Exit(1)
 	}
 }
 
-func rootCmd() *cobra.Command {
-	root := &cobra.Command{
-		Use:           "notes-cli",
-		Short:         "A note-taking CLI built on Nhost",
-		SilenceUsage:  true,
-		SilenceErrors: true,
-		PersistentPreRun: func(_ *cobra.Command, _ []string) {
-			client = newClient()
+func rootCmd() *cli.Command {
+	root := &cli.Command{
+		Name:                  "notes-cli",
+		Usage:                 "A note-taking CLI built on Nhost",
+		EnableShellCompletion: true,
+		ConfigureShellCompletionCommand: func(command *cli.Command) {
+			command.Hidden = false
+			command.Usage = "Generate the autocompletion script for the specified shell"
 		},
+		Before: func(ctx context.Context, _ *cli.Command) (context.Context, error) {
+			client = newClient()
+			return ctx, nil
+		},
+		Action: commandHelp,
 	}
 
-	ctx := context.Background()
-
-	root.AddCommand(&cobra.Command{
-		Use:   "signup EMAIL PASSWORD",
-		Short: "Create an account (and sign in if email verification is off)",
-		Args:  cobra.ExactArgs(2),
-		RunE: func(_ *cobra.Command, args []string) error {
+	root.Commands = append(root.Commands, &cli.Command{
+		Name:      "signup",
+		Usage:     "Create an account (and sign in if email verification is off)",
+		Arguments: commandArguments("EMAIL PASSWORD", 2, 2),
+		Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
 			return cmdSignup(ctx, client, args[0], args[1])
-		},
+		}),
 	})
-	root.AddCommand(&cobra.Command{
-		Use:   "login EMAIL PASSWORD",
-		Short: "Sign in with email and password",
-		Args:  cobra.ExactArgs(2),
-		RunE: func(_ *cobra.Command, args []string) error {
+	root.Commands = append(root.Commands, &cli.Command{
+		Name:      "login",
+		Usage:     "Sign in with email and password",
+		Arguments: commandArguments("EMAIL PASSWORD", 2, 2),
+		Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
 			return cmdLogin(ctx, client, args[0], args[1])
-		},
+		}),
 	})
-	root.AddCommand(&cobra.Command{
-		Use:   "logout",
-		Short: "Sign out and clear the saved session",
-		Args:  cobra.NoArgs,
-		RunE: func(_ *cobra.Command, _ []string) error {
+	root.Commands = append(root.Commands, &cli.Command{
+		Name:  "logout",
+		Usage: "Sign out and clear the saved session",
+		Action: withArgs(func(ctx context.Context, _ *cli.Command, _ []string) error {
 			return cmdLogout(ctx, client)
-		},
+		}),
 	})
-	root.AddCommand(&cobra.Command{
-		Use:   "whoami",
-		Short: "Show the currently signed-in user",
-		Args:  cobra.NoArgs,
-		RunE: func(_ *cobra.Command, _ []string) error {
+	root.Commands = append(root.Commands, &cli.Command{
+		Name:  "whoami",
+		Usage: "Show the currently signed-in user",
+		Action: withArgs(func(_ context.Context, _ *cli.Command, _ []string) error {
 			return cmdWhoami(client)
-		},
+		}),
 	})
 
-	root.AddCommand(&cobra.Command{
-		Use:   "new TITLE [CONTENT]",
-		Short: "Create a note",
-		Args:  cobra.RangeArgs(1, 2),
-		RunE: func(_ *cobra.Command, args []string) error {
+	// Notes are flat verbs too: new, ls, pin, archive, and tag. pin and archive
+	// share the updateNote helper.
+	root.Commands = append(root.Commands, &cli.Command{
+		Name:      "new",
+		Usage:     "Create a note",
+		Arguments: commandArguments("TITLE [CONTENT]", 1, 2),
+		Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
 			content := ""
 			if len(args) > 1 {
 				content = args[1]
 			}
 			return noteNew(ctx, client, args[0], content)
-		},
+		}),
 	})
-	root.AddCommand(&cobra.Command{
-		Use:   "ls",
-		Short: "List your notes",
-		Args:  cobra.NoArgs,
-		RunE: func(_ *cobra.Command, _ []string) error {
+	root.Commands = append(root.Commands, &cli.Command{
+		Name:  "ls",
+		Usage: "List your notes",
+		Action: withArgs(func(ctx context.Context, _ *cli.Command, _ []string) error {
 			return noteLs(ctx, client)
-		},
+		}),
 	})
-	root.AddCommand(&cobra.Command{
-		Use:   "pin ID",
-		Short: "Pin a note",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(_ *cobra.Command, args []string) error {
+	root.Commands = append(root.Commands, &cli.Command{
+		Name:      "pin",
+		Usage:     "Pin a note",
+		Arguments: commandArguments("ID", 1, 1),
+		Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
 			return updateNote(ctx, client, args[0], map[string]any{"is_pinned": true})
-		},
+		}),
 	})
-	root.AddCommand(&cobra.Command{
-		Use:   "archive ID",
-		Short: "Archive a note",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(_ *cobra.Command, args []string) error {
+	root.Commands = append(root.Commands, &cli.Command{
+		Name:      "archive",
+		Usage:     "Archive a note",
+		Arguments: commandArguments("ID", 1, 1),
+		Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
 			return updateNote(ctx, client, args[0], map[string]any{"is_archived": true})
-		},
+		}),
 	})
-	root.AddCommand(&cobra.Command{
-		Use:   "tag NOTE_ID TAG_NAME",
-		Short: "Tag a note (creates the tag if needed)",
-		Args:  cobra.ExactArgs(2),
-		RunE: func(_ *cobra.Command, args []string) error {
+	root.Commands = append(root.Commands, &cli.Command{
+		Name:      "tag",
+		Usage:     "Tag a note (creates the tag if needed)",
+		Arguments: commandArguments("NOTE_ID TAG_NAME", 2, 2),
+		Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
 			return noteTag(ctx, client, args[0], args[1])
-		},
+		}),
 	})
 
 	// Storage verbs.
-	root.AddCommand(&cobra.Command{
-		Use:   "attach NOTE_ID FILE",
-		Short: "Upload a file and attach it to a note",
-		Args:  cobra.ExactArgs(2),
-		RunE: func(_ *cobra.Command, args []string) error {
+	root.Commands = append(root.Commands, &cli.Command{
+		Name:      "attach",
+		Usage:     "Upload a file and attach it to a note",
+		Arguments: commandArguments("NOTE_ID FILE", 2, 2),
+		Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
 			return cmdAttach(ctx, client, args[0], args[1])
-		},
+		}),
 	})
-	root.AddCommand(&cobra.Command{
-		Use:   "download FILE_ID OUT_PATH",
-		Short: "Download a file by id",
-		Args:  cobra.ExactArgs(2),
-		RunE: func(_ *cobra.Command, args []string) error {
+	root.Commands = append(root.Commands, &cli.Command{
+		Name:      "download",
+		Usage:     "Download a file by id",
+		Arguments: commandArguments("FILE_ID OUT_PATH", 2, 2),
+		Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
 			return cmdDownload(ctx, client, args[0], args[1])
-		},
+		}),
 	})
 
+	silenceUsage(root)
 	return root
+}
+
+func commandArguments(usage string, minArgs, maxArgs int) []cli.Argument {
+	return []cli.Argument{
+		&cli.StringArgs{
+			Name:      "arguments",
+			UsageText: usage,
+			Min:       minArgs,
+			Max:       maxArgs,
+		},
+	}
+}
+
+func withArgs(action func(context.Context, *cli.Command, []string) error) cli.ActionFunc {
+	return func(ctx context.Context, cmd *cli.Command) error {
+		args := cmd.StringArgs("arguments")
+		if cmd.Args().Present() {
+			return fmt.Errorf(
+				"%w: got %d, want at most %d",
+				errTooManyArgs,
+				len(args)+cmd.Args().Len(),
+				len(args),
+			)
+		}
+		return action(ctx, cmd, args)
+	}
+}
+
+func commandHelp(_ context.Context, cmd *cli.Command) error {
+	if cmd.Args().Present() {
+		return fmt.Errorf("%w: %q", errUnknownCommand, cmd.Args().First())
+	}
+	if err := cli.ShowSubcommandHelp(cmd); err != nil {
+		return fmt.Errorf("show command help: %w", err)
+	}
+	return nil
+}
+
+func silenceUsage(cmd *cli.Command) {
+	cmd.OnUsageError = func(_ context.Context, _ *cli.Command, err error, _ bool) error {
+		return err
+	}
+	for _, subcommand := range cmd.Commands {
+		silenceUsage(subcommand)
+	}
 }
 
 // newClient builds the Nhost client. The client middleware attaches the access
