@@ -93,7 +93,7 @@ so optional fields left unset are omitted from the payload.
 ### `update_session_from_response_middleware`
 
 ```python
-def update_session_from_response_middleware(storage: 'SessionStorage') -> 'ChainFunction'
+def update_session_from_response_middleware(storage: 'SessionStorage', auth_url: 'str') -> 'ChainFunction'
 ```
 
 Persist session data returned by auth endpoints, and clear it on sign-out.
@@ -101,15 +101,15 @@ Persist session data returned by auth endpoints, and clear it on sign-out.
 Handles ``/signout`` (remove), a successful ``/user/password`` change
 (remove, since the server revokes refresh tokens), and session-bearing
 responses from ``/token``, ``/token/exchange``, ``/signin/*`` and
-``/signup/*``.
+``/signup/*`` under the configured auth origin and path prefix.
 
 ### `with_admin_session_middleware`
 
 ```python
-def with_admin_session_middleware(options: 'AdminSessionOptions') -> 'ChainFunction'
+def with_admin_session_middleware(options: 'AdminSessionOptions', service_url: 'str') -> 'ChainFunction'
 ```
 
-Attach ``x-hasura-admin-secret`` and optional role/session variables.
+Attach admin headers only within the configured secure service origin.
 
 ### `with_headers_middleware`
 
@@ -140,6 +140,15 @@ Admin session configuration.
 **Security warning:** never use in untrusted/client code — the admin secret
 grants unrestricted database access.
 
+#### Fields
+
+| Field | Type |
+| --- | --- |
+| `admin_secret` | `str` |
+| `role` | `str \| None` |
+| `session_variables` | `dict[str, str]` |
+| `allow_insecure_http` | `bool` |
+
 ### `FetchError`
 
 ```python
@@ -169,6 +178,14 @@ class FetchResponse
 
 A structured API response: the parsed body plus status and headers.
 
+#### Fields
+
+| Field | Type |
+| --- | --- |
+| `body` | `T` |
+| `status` | `int` |
+| `headers` | `httpx.Headers` |
+
 ### `UploadFile`
 
 ```python
@@ -182,3 +199,11 @@ server should record a specific filename. Multipart parts built from bare
 ``bytes`` are sent with httpx's default ``"upload"`` filename, so every
 such file is stored under the same name unless an explicit
 ``metadata[].name`` is supplied.
+
+#### Fields
+
+| Field | Type |
+| --- | --- |
+| `filename` | `str` |
+| `content` | `bytes` |
+| `content_type` | `str` |

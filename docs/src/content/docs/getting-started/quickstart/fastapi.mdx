@@ -63,7 +63,9 @@ Create a project and install the dependencies. The SDK targets Python 3.11+.
 uv init my-fastapi-app
 cd my-fastapi-app
 
-uv add nhost fastapi "uvicorn[standard]"
+# nhost is not on PyPI yet, so depend on the repository revision for now. Once
+# published, use: uv add nhost fastapi "uvicorn[standard]"
+uv add "nhost @ git+https://github.com/nhost/nhost.git@c2a676ab7eb6c28082dd1412cd49055073c70635#subdirectory=packages/nhost-python" fastapi "uvicorn[standard]"
 ```
   </TabItem>
   <TabItem label="pip">
@@ -71,7 +73,9 @@ uv add nhost fastapi "uvicorn[standard]"
 mkdir my-fastapi-app && cd my-fastapi-app
 python -m venv .venv && source .venv/bin/activate
 
-pip install nhost fastapi "uvicorn[standard]"
+# nhost is not on PyPI yet, so depend on the repository revision for now. Once
+# published, use: pip install nhost fastapi "uvicorn[standard]"
+pip install "nhost @ git+https://github.com/nhost/nhost.git@c2a676ab7eb6c28082dd1412cd49055073c70635#subdirectory=packages/nhost-python" fastapi "uvicorn[standard]"
 ```
   </TabItem>
 </Tabs>

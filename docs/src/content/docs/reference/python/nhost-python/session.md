@@ -36,13 +36,16 @@ Refresh the session if it is close to expiry.
 Retries once on transient failure; clears the stored session and returns
 ``None`` if the refresh token is rejected with 401.
 
+Supply a bare auth client without session-refresh middleware. The internal
+reentry guard is a deadlock safety net, not a supported reentrancy mechanism.
+
 ### `to_stored_session`
 
 ```python
 def to_stored_session(session: 'Session') -> 'StoredSession'
 ```
 
-Enrich a raw auth :class:`Session` into a :class:`StoredSession`.
+Enrich an auth :class:`Session`, re-deriving its decoded access token.
 
 ## Classes
 
@@ -55,17 +58,19 @@ class DecodedToken
 Decoded JWT access-token payload.
 
 ``exp`` and ``iat`` are epoch seconds as encoded in the JWT. Unknown claims
-are preserved via ``extra="allow"``.
+are preserved via ``extra="allow"`` and serialized in full, but their values
+are replaced with ``<redacted>`` in ``repr``, ``str``, and f-strings. The
+declared fields, including processed Hasura claims, remain visible.
 
 #### Fields
 
 | Field | Type |
 | --- | --- |
-| `exp` | `int | None` |
-| `iat` | `int | None` |
-| `iss` | `str | None` |
-| `sub` | `str | None` |
-| `hasura_claims` | `dict[str, Any] | None` |
+| `exp` | `int \| None` |
+| `iat` | `int \| None` |
+| `iss` | `str \| None` |
+| `sub` | `str \| None` |
+| `hasura_claims` | `dict[str, Any] \| None` |
 
 ### `FileStorage`
 
@@ -74,6 +79,9 @@ class FileStorage
 ```
 
 JSON-file backed session storage, useful for CLIs and local scripts.
+
+The file contains a long-lived refresh token that can mint access tokens
+until it is revoked. It is atomically written with owner-only permissions.
 
 ``get``/``set`` perform synchronous, blocking filesystem I/O. Since these
 backends are invoked from inside the async request path (token attachment
@@ -158,7 +166,10 @@ def get(self) -> 'StoredSession | None'
 def on_change(self, callback: 'SessionChangeCallback') -> 'Callable[[], None]'
 ```
 
-Subscribe to session changes; returns an unsubscribe callable.
+Subscribe to session changes and return an idempotent unsubscribe.
+
+Registering the same callable twice creates two independent subscriptions;
+each returned unsubscribe removes exactly one registration.
 
 ##### `remove`
 
@@ -172,7 +183,7 @@ def remove(self) -> 'None'
 def set(self, value: 'Session') -> 'None'
 ```
 
-Store a raw auth :class:`Session`, enriching it into a stored session.
+Store an auth :class:`Session`, re-deriving its decoded access token.
 
 ### `SessionStorageBackend`
 
@@ -210,6 +221,11 @@ class StoredSession
 
 The enriched session persisted by the SDK (raw ``Session`` + decoded token).
 
+``repr``, ``str``, and f-strings omit the access and refresh tokens and mask
+undeclared JWT claim values. Processed Hasura claims and caller-controlled
+user metadata remain visible. Serialization intentionally emits the complete
+session for persistence, so do not serialize a session into logs.
+
 #### Fields
 
 | Field | Type |
@@ -218,5 +234,5 @@ The enriched session persisted by the SDK (raw ``Session`` + decoded token).
 | `access_token_expires_in` | `int` |
 | `refresh_token_id` | `str` |
 | `refresh_token` | `str` |
-| `user` | `User | None` |
+| `user` | `User \| None` |
 | `decoded_token` | `DecodedToken` |
