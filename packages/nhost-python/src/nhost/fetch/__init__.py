@@ -42,7 +42,9 @@ def create_enhanced_fetch(
     """
 
     async def base_fetch(request: httpx.Request) -> httpx.Response:
-        return await client.send(request)
+        # Never inherit redirect-following from a caller-supplied client: httpx
+        # does not strip Nhost's x-hasura-* credentials on cross-origin redirects.
+        return await client.send(request, follow_redirects=False)
 
     fetch: FetchFunction = base_fetch
     for chain_function in reversed(chain_functions or []):
