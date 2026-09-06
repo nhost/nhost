@@ -9,6 +9,8 @@ per-request store, ...). Backends operate on :class:`StoredSession`.
 from __future__ import annotations
 
 import json
+import os
+import tempfile
 from pathlib import Path
 from typing import Protocol, runtime_checkable
 
@@ -52,6 +54,9 @@ class MemoryStorage:
 class FileStorage:
     """JSON-file backed session storage, useful for CLIs and local scripts.
 
+    The file contains a long-lived refresh token that can mint access tokens
+    until it is revoked. It is atomically written with owner-only permissions.
+
     ``get``/``set`` perform synchronous, blocking filesystem I/O. Since these
     backends are invoked from inside the async request path (token attachment
     and refresh call ``get`` on every request), a shared ``FileStorage`` under
@@ -76,11 +81,38 @@ class FileStorage:
             return None
 
     def set(self, value: StoredSession) -> None:
-        self._path.parent.mkdir(parents=True, exist_ok=True)
+        parent = self._path.parent
+        try:
+            parent.mkdir(parents=True, mode=0o700)
+        except FileExistsError:
+            if not parent.is_dir():
+                raise
+        else:
+            # A restrictive umask can remove owner bits, so normalize only the
+            # directory this call created. Never alter a pre-existing directory.
+            parent.chmod(0o700)
+
         # Persist all fields (no exclude_none): required-but-nullable fields such
         # as User.metadata must round-trip, otherwise reload validation fails and
         # get() would silently delete a valid session file.
-        self._path.write_text(value.model_dump_json(by_alias=True), encoding="utf-8")
+        payload = value.model_dump_json(by_alias=True)
+
+        fd: int | None = None
+        temporary_path: str | None = None
+        try:
+            fd, temporary_path = tempfile.mkstemp(dir=parent)
+            os.fchmod(fd, 0o600)
+            stream = os.fdopen(fd, "w", encoding="utf-8")
+            fd = None
+            with stream:
+                stream.write(payload)
+            os.replace(temporary_path, self._path)
+            temporary_path = None
+        finally:
+            if fd is not None:
+                os.close(fd)
+            if temporary_path is not None:
+                Path(temporary_path).unlink(missing_ok=True)
 
     def remove(self) -> None:
         self._path.unlink(missing_ok=True)

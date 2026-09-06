@@ -9,8 +9,11 @@ from __future__ import annotations
 import asyncio
 import base64
 import json
+import os
 import re
+import stat
 import time
+from pathlib import Path
 
 import httpx
 import pytest
@@ -39,9 +42,19 @@ from nhost.fetch.middleware import (
     session_refresh_middleware,
     update_session_from_response_middleware,
 )
-from nhost.session import SessionStorage, StoredSession, decode_user_session, refresh_session
+from nhost.session import (
+    SessionStorage,
+    StoredSession,
+    decode_user_session,
+    refresh_session,
+    storage_backend,
+)
 from nhost.session.session import to_stored_session
 from nhost.storage import ReplaceFileBody, UploadFileMetadata, UploadFilesBody
+
+OWNER_ONLY_FILE_MODE = stat.S_IRUSR | stat.S_IWUSR
+PRIVATE_DIRECTORY_MODE = stat.S_IRWXU
+EXISTING_DIRECTORY_MODE = stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP
 
 
 def make_jwt(exp_offset_seconds: int = 3600) -> str:
@@ -676,29 +689,80 @@ def _user_with_metadata(metadata: dict | None) -> User:
     )
 
 
-def test_file_storage_roundtrips_session_with_null_metadata(tmp_path) -> None:
-    # User.metadata is required-but-nullable; exclude_none would drop it and make
-    # reload validation fail, silently deleting the session file.
-    path = tmp_path / "session.json"
-    storage = FileStorage(path)
-    session = to_stored_session(
+def _stored_session(refresh_token: str) -> StoredSession:
+    return to_stored_session(
         Session(
             access_token=make_jwt(),
             access_token_expires_in=3600,
-            refresh_token="r",
+            refresh_token=refresh_token,
             refresh_token_id="rid",
             user=_user_with_metadata(None),
         )
     )
 
-    storage.set(session)
+
+def test_file_storage_roundtrips_session_with_null_metadata(tmp_path) -> None:
+    # User.metadata is required-but-nullable; exclude_none would drop it and make
+    # reload validation fail, silently deleting the session file.
+    path = tmp_path / "private" / "session.json"
+    storage = FileStorage(path)
+
+    previous_umask = os.umask(0)
+    try:
+        storage.set(_stored_session("r"))
+    finally:
+        os.umask(previous_umask)
     reloaded = storage.get()
 
     assert reloaded is not None
     assert isinstance(reloaded, StoredSession)
     assert reloaded.user is not None
     assert reloaded.user.metadata is None
-    assert path.exists()
+    assert stat.S_IMODE(path.stat().st_mode) == OWNER_ONLY_FILE_MODE
+    assert stat.S_IMODE(path.parent.stat().st_mode) == PRIVATE_DIRECTORY_MODE
+
+
+def test_file_storage_replaces_existing_file_with_owner_only_permissions(tmp_path) -> None:
+    path = tmp_path / "existing" / "session.json"
+    path.parent.mkdir(mode=EXISTING_DIRECTORY_MODE)
+    path.parent.chmod(EXISTING_DIRECTORY_MODE)
+    path.write_text(_stored_session("old").model_dump_json(by_alias=True), encoding="utf-8")
+    path.chmod(stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
+
+    FileStorage(path).set(_stored_session("new"))
+    reloaded = FileStorage(path).get()
+
+    assert reloaded is not None
+    assert reloaded.refresh_token == "new"
+    assert stat.S_IMODE(path.stat().st_mode) == OWNER_ONLY_FILE_MODE
+    assert stat.S_IMODE(path.parent.stat().st_mode) == EXISTING_DIRECTORY_MODE
+
+
+def test_file_storage_failed_atomic_replace_preserves_original(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path / "session.json"
+    storage = FileStorage(path)
+    storage.set(_stored_session("original"))
+    original_payload = path.read_bytes()
+    replace_calls: list[tuple[object, object]] = []
+
+    def fail_replace(source: object, destination: object) -> None:
+        replace_calls.append((source, destination))
+        raise OSError("simulated atomic replace failure")
+
+    monkeypatch.setattr(storage_backend.os, "replace", fail_replace)
+
+    with pytest.raises(OSError, match="simulated atomic replace failure"):
+        storage.set(_stored_session("replacement"))
+
+    assert len(replace_calls) == 1
+    temporary_path, destination = (Path(value) for value in replace_calls[0])
+    assert temporary_path.parent == path.parent
+    assert destination == path
+    assert path.read_bytes() == original_payload
+    assert storage.get() is not None
+    assert [child.name for child in path.parent.iterdir()] == [path.name]
 
 
 def test_create_client_does_not_mutate_shared_options() -> None:
