@@ -26,8 +26,10 @@ run_codegen \
 	--output-file "$SCRIPT_DIR/src/nhost/storage/client.py" \
 	--plugin python
 
-# Format the generated output deterministically when ruff is available so the
-# committed files match what the Nix idempotence check regenerates.
-if command -v ruff >/dev/null 2>&1; then
-	ruff format src/nhost/auth/client.py src/nhost/storage/client.py
+if ! command -v ruff >/dev/null 2>&1; then
+	echo "error: ruff is required to format the generated clients." >&2
+	echo "Run this from the dev shell: nix develop .#nhost-python -c ./gen.sh" >&2
+	exit 1
 fi
+
+ruff format src/nhost/auth/client.py src/nhost/storage/client.py

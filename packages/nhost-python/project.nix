@@ -6,7 +6,9 @@
 let
   name = "nhost-python";
   # Matches the PEP 440 version hatchling reads from pyproject.toml so the
-  # derivation name reflects the actual wheel version.
+  # derivation name reflects the actual wheel version. Release automation must
+  # bump this and pyproject.toml together; the shared get-version target does
+  # not rewrite this project's PEP 440 development-version sentinel.
   version = "0.0.0.dev0";
   submodule = "packages/${name}";
 
@@ -101,9 +103,8 @@ in
         ruff check src tests
         ruff format --check src tests
 
-        echo "➜ Running mypy --strict (hand-written code)"
-        mypy src/nhost/fetch src/nhost/session src/nhost/graphql \
-          src/nhost/functions src/nhost/nhost.py
+        echo "➜ Running mypy --strict"
+        mypy src
 
         echo "➜ Running the offline unit + doctest suite (no backend)"
         # A single combined run covers both the unit tests in tests/ and the
@@ -132,7 +133,9 @@ in
       '';
 
   package = pkgs.python3.pkgs.buildPythonPackage {
-    pname = name;
+    # The flake output remains `nhost-python`; package metadata uses the
+    # distribution name declared in pyproject.toml.
+    pname = "nhost";
     inherit version;
     pyproject = true;
     src = pkgSrc;
@@ -143,7 +146,7 @@ in
       pydantic
     ];
 
-    # No import check here — the wheel build already validates packaging.
+    # Validate that the installed wheel exposes its public import package.
     pythonImportsCheck = [ "nhost" ];
   };
 }

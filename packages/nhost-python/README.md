@@ -156,15 +156,17 @@ when a local Nhost backend is available:
 
 ```sh
 make test              # offline unit suite (httpx mock transport, no backend)
-make test-doctests     # docstring examples; backend ones skip unless enabled
+make test-doctests     # docstring examples; backend-dependent ones skip
 make dev-env-up        # start the local Nhost backend (Nhost CLI)
-make test-integration  # NHOST_LOCAL_BACKEND=1 + doctests against local/local
+make test-integration  # backend doctests, or a clean skip if no backend is up
 ```
 
 Backend-dependent examples use `subdomain="local", region="local"` and are
-gated by `NHOST_LOCAL_BACKEND=1`, so the offline suite stays green. When you
-change an example, keep the docstring and its expected output in sync — the
-test executes it verbatim.
+gated by `NHOST_LOCAL_BACKEND=1`, so the offline suite stays green.
+`test-integration` enables that flag after confirming the local GraphQL endpoint
+is reachable; without a running backend it reports a skip and exits successfully.
+When you change an example, keep the docstring and its expected output in sync —
+the test executes it verbatim.
 
 ## Security notes
 
