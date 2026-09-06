@@ -20,13 +20,14 @@ class SessionStorage:
 
     def __init__(self, storage: SessionStorageBackend) -> None:
         self._storage = storage
-        self._subscribers: set[SessionChangeCallback] = set()
+        self._subscribers: dict[int, SessionChangeCallback] = {}
+        self._next_subscriber_id = 0
 
     def get(self) -> StoredSession | None:
         return self._storage.get()
 
     def set(self, value: Session) -> None:
-        """Store a raw auth :class:`Session`, enriching it into a stored session."""
+        """Store an auth :class:`Session`, re-deriving its decoded access token."""
         stored = to_stored_session(value)
         self._storage.set(stored)
         self._notify(stored)
@@ -36,16 +37,22 @@ class SessionStorage:
         self._notify(None)
 
     def on_change(self, callback: SessionChangeCallback) -> Callable[[], None]:
-        """Subscribe to session changes; returns an unsubscribe callable."""
-        self._subscribers.add(callback)
+        """Subscribe to session changes and return an idempotent unsubscribe.
+
+        Registering the same callable twice creates two independent subscriptions;
+        each returned unsubscribe removes exactly one registration.
+        """
+        subscriber_id = self._next_subscriber_id
+        self._next_subscriber_id += 1
+        self._subscribers[subscriber_id] = callback
 
         def unsubscribe() -> None:
-            self._subscribers.discard(callback)
+            self._subscribers.pop(subscriber_id, None)
 
         return unsubscribe
 
     def _notify(self, session: StoredSession | None) -> None:
-        for subscriber in self._subscribers:
+        for subscriber in list(self._subscribers.values()):
             try:
                 subscriber(session)
             except Exception:  # noqa: BLE001 - subscriber errors must not break storage
