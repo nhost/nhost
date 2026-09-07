@@ -15,13 +15,13 @@ from . import graphql as graphql_module
 from . import storage as storage_module
 from .fetch import (
     AdminSessionOptions,
-    ChainFunction,
+    Middleware,
     attach_access_token_middleware,
     session_refresh_middleware,
     update_session_from_response_middleware,
     with_admin_session_middleware,
 )
-from .session import SessionStorage, SessionStorageBackend, StoredSession, detect_storage
+from .session import MemoryStorage, SessionStorage, SessionStorageBackend, StoredSession
 from .session.refresh import refresh_session
 
 ServiceType = Literal["auth", "storage", "graphql", "functions"]
@@ -100,7 +100,9 @@ def _attach_access_token_to_each_service(ctx: ConfigureContext) -> None:
     ctx.storage.add_middleware(
         attach_access_token_middleware(ctx.session_storage, ctx.storage.base_url)
     )
-    ctx.graphql.add_middleware(attach_access_token_middleware(ctx.session_storage, ctx.graphql.url))
+    ctx.graphql.add_middleware(
+        attach_access_token_middleware(ctx.session_storage, ctx.graphql.base_url)
+    )
     ctx.functions.add_middleware(
         attach_access_token_middleware(ctx.session_storage, ctx.functions.base_url)
     )
@@ -135,15 +137,15 @@ def with_admin_session(options: AdminSessionOptions) -> ClientConfiguration:
 
     def configure(ctx: ConfigureContext) -> None:
         ctx.storage.add_middleware(with_admin_session_middleware(options, ctx.storage.base_url))
-        ctx.graphql.add_middleware(with_admin_session_middleware(options, ctx.graphql.url))
+        ctx.graphql.add_middleware(with_admin_session_middleware(options, ctx.graphql.base_url))
         ctx.functions.add_middleware(with_admin_session_middleware(options, ctx.functions.base_url))
 
     return configure
 
 
-def with_chain_functions(chain_functions: Sequence[ChainFunction]) -> ClientConfiguration:
+def with_middleware(middleware: Sequence[Middleware]) -> ClientConfiguration:
     """Apply custom HTTP middleware to every service client."""
-    chain = list(chain_functions)
+    chain = list(middleware)
 
     def configure(ctx: ConfigureContext) -> None:
         _apply(ctx, chain)
@@ -151,7 +153,7 @@ def with_chain_functions(chain_functions: Sequence[ChainFunction]) -> ClientConf
     return configure
 
 
-def _apply(ctx: ConfigureContext, chain: Sequence[ChainFunction]) -> None:
+def _apply(ctx: ConfigureContext, chain: Sequence[Middleware]) -> None:
     for middleware in chain:
         ctx.auth.add_middleware(middleware)
         ctx.storage.add_middleware(middleware)
@@ -202,7 +204,7 @@ class NhostClient:
         self._http = http_client
         self._owns_http = owns_http
 
-    async def get_user_session(self) -> StoredSession | None:
+    async def get_session(self) -> StoredSession | None:
         """Return the current session, if one is stored."""
         return await self.session_storage.get()
 
@@ -249,7 +251,7 @@ def create_nhost_client(  # noqa: PLR0913 - explicit keyword API is intentional
     if (subdomain is None) != (region is None):
         raise ValueError("subdomain and region must be supplied together")
 
-    backend = session_storage if session_storage is not None else detect_storage()
+    backend = session_storage if session_storage is not None else MemoryStorage()
     sessions = SessionStorage(backend)
     http = http_client if http_client is not None else httpx.AsyncClient(timeout=timeout)
     request_http = (
@@ -267,11 +269,11 @@ def create_nhost_client(  # noqa: PLR0913 - explicit keyword API is intentional
         generate_service_url("storage", subdomain=subdomain, region=region, custom_url=storage_url),
         http_client=request_http,
     )
-    graphql = graphql_module.create_api_client(
+    graphql = graphql_module.Client(
         generate_service_url("graphql", subdomain=subdomain, region=region, custom_url=graphql_url),
         http_client=request_http,
     )
-    functions = functions_module.create_api_client(
+    functions = functions_module.Client(
         generate_service_url(
             "functions", subdomain=subdomain, region=region, custom_url=functions_url
         ),
@@ -321,7 +323,7 @@ def create_client(  # noqa: PLR0913 - explicit keyword API is intentional
     ...                 password=str(uuid.uuid4()),
     ...             )
     ...         )
-    ...         session = await nhost.get_user_session()
+    ...         session = await nhost.get_session()
     ...         return (session.decoded_token.hasura_claims or {}).get(
     ...             "x-hasura-default-role"
     ...         )

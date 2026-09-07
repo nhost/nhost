@@ -16,8 +16,6 @@ from typing import Protocol, runtime_checkable
 from ..fetch import NhostError
 from .session import StoredSession
 
-DEFAULT_SESSION_KEY = "nhostSession"
-
 
 class SessionStorageError(NhostError):
     """Raised when a persistent session backend cannot read or update state."""
@@ -144,8 +142,3 @@ class FileStorage:
                 os.close(fd)
             if temporary_path is not None:
                 Path(temporary_path).unlink(missing_ok=True)
-
-
-def detect_storage() -> SessionStorageBackend:
-    """Return the default storage backend for the current environment."""
-    return MemoryStorage()

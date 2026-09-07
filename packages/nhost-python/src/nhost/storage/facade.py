@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 
-from ..fetch import ChainFunction, FetchResponse, UploadFile
+from ..fetch import FetchResponse, UploadFile
 from .client import (
     Client,
     FileMetadata,
@@ -18,10 +18,6 @@ from .client import (
 
 class StorageClient(Client):
     """Generated Storage API plus stable, idiomatic convenience operations."""
-
-    def add_middleware(self, middleware: ChainFunction) -> None:
-        """Append HTTP middleware to the Storage request pipeline."""
-        self.push_chain_function(middleware)
 
     async def upload(
         self,

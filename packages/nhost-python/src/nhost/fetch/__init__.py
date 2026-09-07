@@ -27,8 +27,8 @@ T = TypeVar("T")
 #: A fetch-like function: takes a prepared request and returns a response.
 FetchFunction = Callable[[httpx.Request], Awaitable[httpx.Response]]
 
-#: Middleware: takes the next fetch in the chain and returns a wrapping fetch.
-ChainFunction = Callable[[FetchFunction], FetchFunction]
+#: Middleware: takes the next fetch in the pipeline and returns a wrapping fetch.
+Middleware = Callable[[FetchFunction], FetchFunction]
 
 _NO_BODY_STATUSES = frozenset({204, 205, 304})
 
@@ -41,15 +41,16 @@ class _Missing:
 _MISSING = _Missing()
 
 
-def create_enhanced_fetch(
+def create_fetch_pipeline(
     client: httpx.AsyncClient,
-    chain_functions: list[ChainFunction] | None = None,
+    middleware: list[Middleware] | None = None,
 ) -> FetchFunction:
-    """Compose ``chain_functions`` around a base fetch backed by ``client``.
+    """Compose ``middleware`` around a base fetch backed by ``client``.
 
-    The chain executes in list order: the first middleware wraps the second,
-    and so on, with the base fetch (``client.send``) at the center. This matches
-    the ``reduceRight`` composition used by the JS SDK.
+    The pipeline executes in list order: the first middleware wraps the second,
+    and so on, with the base fetch (``client.send``) at the center. A middleware
+    therefore sees the request before, and the response after, every middleware
+    listed behind it.
     """
 
     async def base_fetch(request: httpx.Request) -> httpx.Response:
@@ -58,8 +59,8 @@ def create_enhanced_fetch(
         return await client.send(request, follow_redirects=False)
 
     fetch: FetchFunction = base_fetch
-    for chain_function in reversed(chain_functions or []):
-        fetch = chain_function(fetch)
+    for middleware_function in reversed(middleware or []):
+        fetch = middleware_function(fetch)
 
     return fetch
 
@@ -269,15 +270,15 @@ from .middleware import (  # noqa: E402
 
 __all__ = [
     "AdminSessionOptions",
-    "ChainFunction",
     "HTTPError",
+    "Middleware",
     "NhostError",
     "ResponseDecodeError",
     "FetchFunction",
     "FetchResponse",
     "UploadFile",
     "attach_access_token_middleware",
-    "create_enhanced_fetch",
+    "create_fetch_pipeline",
     "decode_json",
     "session_refresh_middleware",
     "to_file_part",

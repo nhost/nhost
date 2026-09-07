@@ -11,11 +11,11 @@ import httpx
 from pydantic import BaseModel, ConfigDict, Field
 
 from ..fetch import (
-    ChainFunction,
     FetchResponse,
     HTTPError,
+    Middleware,
     UploadFile,
-    create_enhanced_fetch,
+    create_fetch_pipeline,
     decode_json,
     to_file_part,
     to_json,
@@ -536,14 +536,14 @@ class Client:
         self,
         base_url: str,
         *,
-        chain_functions: Sequence[ChainFunction] = (),
+        middleware: Sequence[Middleware] = (),
         http_client: httpx.AsyncClient | None = None,
     ) -> None:
         self.base_url = base_url
-        self._chain_functions = list(chain_functions)
+        self._middleware = list(middleware)
         self._owns_http_client = http_client is None
         self._http = http_client if http_client is not None else httpx.AsyncClient()
-        self._fetch = create_enhanced_fetch(self._http, self._chain_functions)
+        self._fetch = create_fetch_pipeline(self._http, self._middleware)
 
     async def __aenter__(self) -> Client:
         return self
@@ -556,10 +556,10 @@ class Client:
         if self._owns_http_client:
             await self._http.aclose()
 
-    def push_chain_function(self, chain_function: ChainFunction) -> None:
-        """Append a middleware chain function and rebuild the fetch pipeline."""
-        self._chain_functions.append(chain_function)
-        self._fetch = create_enhanced_fetch(self._http, self._chain_functions)
+    def add_middleware(self, middleware: Middleware) -> None:
+        """Append HTTP middleware and rebuild the request pipeline."""
+        self._middleware.append(middleware)
+        self._fetch = create_fetch_pipeline(self._http, self._middleware)
 
     async def upload_files(
         self,
@@ -955,16 +955,6 @@ class Client:
         return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
 
 
-def create_api_client(
-    base_url: str,
-    *,
-    chain_functions: Sequence[ChainFunction] = (),
-    http_client: httpx.AsyncClient | None = None,
-) -> Client:
-    """Create a generated API client."""
-    return Client(base_url, chain_functions=chain_functions, http_client=http_client)
-
-
 __all__ = [
     "RFC2822Date",
     "ErrorResponseError",
@@ -989,5 +979,4 @@ __all__ = [
     "GetFileParams",
     "GetFileMetadataHeadersParams",
     "Client",
-    "create_api_client",
 ]
