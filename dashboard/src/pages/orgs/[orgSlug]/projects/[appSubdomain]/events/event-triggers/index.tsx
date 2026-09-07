@@ -1,9 +1,9 @@
 import type { ReactElement } from 'react';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { EventsEmptyState } from '@/features/orgs/projects/events/common/components/EventsEmptyState';
 import { EventTriggersBrowserSidebar } from '@/features/orgs/projects/events/event-triggers/components/EventTriggersBrowserSidebar';
 import { useGetEventTriggers } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggers';
+import { getEventsLayout } from '@/features/orgs/projects/events/layout';
 
 export default function EventTriggersPage() {
   const {
@@ -50,17 +50,9 @@ export default function EventTriggersPage() {
 }
 
 EventTriggersPage.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <ProjectLayout
-      mainContainerProps={{
-        className: 'flex h-full',
-      }}
-    >
-      <EventTriggersBrowserSidebar />
-
-      <div className="box flex w-full flex-auto flex-col overflow-x-hidden bg-default">
-        {page}
-      </div>
-    </ProjectLayout>
-  );
+  return getEventsLayout(page, {
+    sidebar: <EventTriggersBrowserSidebar />,
+    contentClassName:
+      'box flex w-full flex-auto flex-col overflow-x-hidden overflow-y-hidden bg-default',
+  });
 };

@@ -2,10 +2,10 @@ import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { CronTriggersBrowserSidebar } from '@/features/orgs/projects/events/cron-triggers/components/CronTriggersBrowserSidebar';
 import { CronTriggerView } from '@/features/orgs/projects/events/cron-triggers/components/CronTriggerView';
+import { getEventsLayout } from '@/features/orgs/projects/events/layout';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 export default function CronTriggerDetailsPage() {
@@ -26,17 +26,9 @@ export default function CronTriggerDetailsPage() {
 }
 
 CronTriggerDetailsPage.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <ProjectLayout
-      mainContainerProps={{
-        className: 'flex h-full',
-      }}
-    >
-      <CronTriggersBrowserSidebar />
-
-      <div className="box flex w-full flex-auto flex-col overflow-x-hidden">
-        {page}
-      </div>
-    </ProjectLayout>
-  );
+  return getEventsLayout(page, {
+    sidebar: <CronTriggersBrowserSidebar />,
+    contentClassName:
+      'box flex w-full flex-auto flex-col overflow-x-hidden overflow-y-hidden',
+  });
 };
