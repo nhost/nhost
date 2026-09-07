@@ -615,7 +615,7 @@ func TestRefreshSessionSurfacesStorageReadFailure(t *testing.T) {
 func TestRefreshSessionReportsFailureToClearRejectedSession(t *testing.T) {
 	t.Parallel()
 
-	stored, err := session.ToStoredSession(auth.Session{ //nolint:exhaustruct_v5
+	stored, err := session.ToStoredSession(auth.Session{
 		AccessToken:  tokenWithExpiry(t, time.Now().Add(30*time.Second).Unix()),
 		RefreshToken: "old-refresh-token",
 	})
