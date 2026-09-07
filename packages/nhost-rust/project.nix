@@ -133,6 +133,10 @@ in
         echo "➜ Compiling the documentation examples"
         cargo test --offline --doc
 
+        # The examples that exercise this SDK live under examples/ and have
+        # their own checks (nhost-rust-tutorial, leptos), so they are compiled
+        # against the SDK there rather than here.
+
         echo "➜ Running the integration tests against the local backend"
         # --include-ignored, not --ignored: the latter runs ONLY ignored tests,
         # so an integration test added without #[ignore] would be filtered out

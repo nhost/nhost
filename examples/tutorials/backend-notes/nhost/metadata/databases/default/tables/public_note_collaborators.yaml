@@ -1,0 +1,50 @@
+table:
+  name: note_collaborators
+  schema: public
+object_relationships:
+  - name: note
+    using:
+      foreign_key_constraint_on: note_id
+insert_permissions:
+  - role: user
+    permission:
+      check:
+        note:
+          user_id:
+            _eq: X-Hasura-User-Id
+      columns:
+        - note_id
+        - user_id
+        - role
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - note_id
+        - user_id
+        - role
+      filter:
+        note:
+          user_id:
+            _eq: X-Hasura-User-Id
+update_permissions:
+  - role: user
+    permission:
+      # `share` upserts with on_conflict update_columns: [role], which requires
+      # an update permission exposing `role`.
+      columns:
+        - note_id
+        - user_id
+        - role
+      filter:
+        note:
+          user_id:
+            _eq: X-Hasura-User-Id
+      check: null
+delete_permissions:
+  - role: user
+    permission:
+      filter:
+        note:
+          user_id:
+            _eq: X-Hasura-User-Id
