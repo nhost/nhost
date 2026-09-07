@@ -70,19 +70,22 @@ func TestIntegrationGraphQLTypename(t *testing.T) {
 
 	client := localClient()
 
-	res, _, err := client.GraphQL.Request(
+	var data struct {
+		TypeName string `json:"__typename"`
+	}
+
+	_, err := client.GraphQL.Request(
 		context.Background(),
 		"query { __typename }",
 		nil,
-		"",
-		nil,
+		&data,
 	)
 	if err != nil {
 		t.Fatalf("graphql: %v", err)
 	}
 
-	if res.Data["__typename"] != "query_root" {
-		t.Fatalf("__typename = %v", res.Data["__typename"])
+	if data.TypeName != "query_root" {
+		t.Fatalf("__typename = %v", data.TypeName)
 	}
 }
 

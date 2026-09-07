@@ -5,10 +5,11 @@ and Functions services. The auth and storage REST clients are generated from the
 shared OpenAPI specs; the HTTP middleware, session handling, GraphQL, and
 Functions clients are hand-written.
 
-It follows Go conventions: constructors are `New*`, request middleware is an
-[`http.RoundTripper`](https://pkg.go.dev/net/http#RoundTripper) installed on the
-client's `Transport`, and every call returns the decoded body, the HTTP response
-metadata, and an error — `(value, *transport.Response, error)`.
+It follows Go conventions: constructors are `New*`, and request middleware is
+an [`http.RoundTripper`](https://pkg.go.dev/net/http#RoundTripper) installed on
+the client's `Transport`. REST and Functions calls return the decoded body,
+HTTP response metadata, and an error. GraphQL calls decode into a typed
+caller-provided destination and return the response metadata and an error.
 
 ## Install
 
@@ -46,12 +47,20 @@ func main() {
 
 	// The session was captured by middleware; the access token is attached and
 	// refreshed automatically on subsequent requests.
-	res, _, err := client.GraphQL.Request(ctx, "query { __typename }", nil, "", nil)
-	if err != nil {
+	var data struct {
+		TypeName string `json:"__typename"`
+	}
+
+	if _, err := client.GraphQL.Request(
+		ctx,
+		"query { __typename }",
+		nil,
+		&data,
+	); err != nil {
 		panic(err)
 	}
 
-	fmt.Println(res.Data["__typename"])
+	fmt.Println(data.TypeName)
 }
 ```
 

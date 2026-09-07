@@ -24,7 +24,10 @@ import cycle arises.
   nothing to the root `go.mod`, `go.sum`, or `vendor/`.
 - Constructors are `New*` (`nhost.New`, `NewServerClient`, `NewBareClient`,
   `<svc>.NewClient`), not `Create*`.
-- Methods are `context.Context`-first and return `(value, *transport.Response, error)`.
+- Methods are `context.Context`-first. REST and Functions calls return
+  `(value, *transport.Response, error)`; GraphQL `Request` decodes into a typed
+  destination and returns `(*transport.Response, error)`, while generic
+  `graphql.Execute[T]` retains the three-value form.
 - Request middleware is an `http.RoundTripper` decorator (`transport.Middleware`)
   installed on each service's `http.Client.Transport` via `transport.NewHTTPClient`.
   There is no post-construction `PushChainFunction`; `nhost.build` collects
