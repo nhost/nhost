@@ -15,6 +15,7 @@ from ..fetch import (
     NhostError,
     ResponseDecodeError,
     create_enhanced_fetch,
+    to_jsonable,
 )
 
 GraphQLVariables = Mapping[str, Any]
@@ -135,11 +136,13 @@ class Client:
         if operation_name is not None:
             payload["operationName"] = operation_name
 
+        request_headers = httpx.Headers(headers)
+        request_headers.setdefault("Content-Type", "application/json")
         request = self._http.build_request(
             "POST",
             self.url,
-            json=payload,
-            headers={"Content-Type": "application/json", **(headers or {})},
+            json=to_jsonable(payload),
+            headers=request_headers,
         )
         response = await self._fetch(request)
 
