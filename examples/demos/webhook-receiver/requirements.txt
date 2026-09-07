@@ -1,0 +1,11 @@
+# The Nhost Python SDK, installed editable from this repo checkout.
+# (Registry publishing is out of scope; install from source.)
+-e ../../../packages/nhost-python
+
+# Third-party runtime deps.
+fastapi>=0.115
+uvicorn[standard]>=0.30
+
+# Test-only: the behavioural checks in test_app.py.
+pytest>=8
+pytest-asyncio>=0.23
