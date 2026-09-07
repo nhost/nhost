@@ -1,7 +1,0 @@
-{
-  "$schema": "https://json.schemastore.org/tsconfig",
-  "extends": "../../configs/tsconfig/node.json",
-  "compilerOptions": {
-    "strictNullChecks": false
-  }
-}
