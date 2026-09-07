@@ -193,20 +193,18 @@ describe('SettingsGeneralPage lifecycle actions', () => {
       title: 'Wake up Project',
       name: 'Waking up...',
     },
-  ])('reports "$name" under "$title" for $label', ({
-    state,
-    desiredState,
-    title,
-    name,
-  }) => {
-    mocks.snapshot = { ...stableLiveSnapshot, state, desiredState };
-    render(<SettingsGeneralPage />);
+  ])(
+    'reports "$name" under "$title" for $label',
+    ({ state, desiredState, title, name }) => {
+      mocks.snapshot = { ...stableLiveSnapshot, state, desiredState };
+      render(<SettingsGeneralPage />);
 
-    expect(screen.getByText(title)).toBeInTheDocument();
+      expect(screen.getByText(title)).toBeInTheDocument();
 
-    const button = screen.getByRole('button', { name });
-    expect(button).toBeDisabled();
-  });
+      const button = screen.getByRole('button', { name });
+      expect(button).toBeDisabled();
+    },
+  );
 
   it.each([
     {
