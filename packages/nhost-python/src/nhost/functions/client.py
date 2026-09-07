@@ -13,6 +13,7 @@ from ..fetch import (
     HTTPError,
     ResponseDecodeError,
     create_enhanced_fetch,
+    to_jsonable,
 )
 
 
@@ -93,13 +94,13 @@ class Client:
         if json is not _UNSET and content is not None:
             raise ValueError("content and json are mutually exclusive")
 
-        request_headers = dict(headers or {})
+        request_headers = httpx.Headers(headers)
         kwargs: dict[str, Any] = {"headers": request_headers or None}
         if json is None:
             request_headers.setdefault("Content-Type", "application/json")
             kwargs.update(headers=request_headers, content=b"null")
         elif json is not _UNSET:
-            kwargs["json"] = json
+            kwargs["json"] = to_jsonable(json)
         elif content is not None:
             kwargs["content"] = content
 
@@ -125,8 +126,9 @@ class Client:
         headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[Any]:
         """Invoke a function with a JSON ``POST`` request."""
-        merged = {"Accept": "application/json", **(headers or {})}
-        return await self.fetch(path, method="POST", headers=merged, json=json)
+        request_headers = httpx.Headers(headers)
+        request_headers.setdefault("Accept", "application/json")
+        return await self.fetch(path, method="POST", headers=request_headers, json=json)
 
 
 def create_api_client(
