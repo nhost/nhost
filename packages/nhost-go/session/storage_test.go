@@ -1,6 +1,7 @@
 package session_test
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -25,7 +26,9 @@ func TestFileStorageRoundTrip(t *testing.T) {
 		DecodedToken: session.DecodedToken{Exp: 12345, Sub: "user-1"},
 	}
 
-	backend.Set(value)
+	if err := backend.Set(value); err != nil {
+		t.Fatalf("Set: %v", err)
+	}
 
 	info, err := os.Stat(path)
 	if err != nil {
@@ -36,14 +39,16 @@ func TestFileStorageRoundTrip(t *testing.T) {
 		t.Errorf("session file mode = %o, want 600", got)
 	}
 
-	got, ok := backend.Get()
-	if !ok || got.AccessToken != value.AccessToken ||
+	got, err := backend.Get()
+	if err != nil || got == nil || got.AccessToken != value.AccessToken ||
 		got.RefreshToken != value.RefreshToken || got.DecodedToken.Exp != value.DecodedToken.Exp ||
 		got.DecodedToken.Sub != value.DecodedToken.Sub {
-		t.Fatalf("Get() = %#v, %v; want %#v, true", got, ok, value)
+		t.Fatalf("Get() = %#v, %v; want %#v, nil", got, err, value)
 	}
 
-	backend.Remove()
+	if err := backend.Remove(); err != nil {
+		t.Fatalf("Remove: %v", err)
+	}
 
 	if _, err := os.Stat(path); !os.IsNotExist(err) {
 		t.Fatalf("session file still exists after Remove: %v", err)
@@ -58,9 +63,22 @@ func TestFileStorageCorruptJSONRemainsOnDisk(t *testing.T) {
 		t.Fatalf("write corrupt session: %v", err)
 	}
 
+	// A corrupt file is a read failure, not a signed out user: the caller
+	// must be able to tell the difference before discarding the session.
 	backend := &session.FileStorage{Path: path}
-	if got, ok := backend.Get(); ok || got != nil {
-		t.Fatalf("Get() = %#v, %v; want nil, false", got, ok)
+
+	got, err := backend.Get()
+	if got != nil {
+		t.Fatalf("Get() = %#v; want nil", got)
+	}
+
+	var storageErr *session.StorageError
+	if !errors.As(err, &storageErr) {
+		t.Fatalf("Get() error = %v; want a *session.StorageError", err)
+	}
+
+	if storageErr.Op != "read" {
+		t.Errorf("StorageError.Op = %q, want \"read\"", storageErr.Op)
 	}
 
 	if _, err := os.Stat(path); err != nil {
@@ -72,11 +90,14 @@ func TestFileStorageConcurrentGetSet(t *testing.T) {
 	t.Parallel()
 
 	dir := t.TempDir()
+
 	backend := &session.FileStorage{Path: filepath.Join(dir, "session.json")}
-	backend.Set(session.StoredSession{
+	if err := backend.Set(session.StoredSession{
 		Session:      auth.Session{AccessToken: "access-0", RefreshToken: "refresh-0"},
 		DecodedToken: session.DecodedToken{Exp: 1},
-	})
+	}); err != nil {
+		t.Fatalf("seed session: %v", err)
+	}
 
 	const (
 		goroutines = 20
@@ -96,20 +117,22 @@ func TestFileStorageConcurrentGetSet(t *testing.T) {
 
 			for operation := range operations {
 				if index%2 == 0 {
-					backend.Set(session.StoredSession{
+					if err := backend.Set(session.StoredSession{
 						Session: auth.Session{
 							AccessToken:  fmt.Sprintf("access-%d-%d", index, operation),
 							RefreshToken: fmt.Sprintf("refresh-%d-%d", index, operation),
 						},
 						DecodedToken: session.DecodedToken{Exp: int64(operation + 1)},
-					})
+					}); err != nil {
+						t.Errorf("concurrent Set() = %v", err)
+					}
 
 					continue
 				}
 
-				got, ok := backend.Get()
-				if !ok || got == nil || got.AccessToken == "" || got.RefreshToken == "" {
-					t.Errorf("concurrent Get() = %#v, %v", got, ok)
+				got, err := backend.Get()
+				if err != nil || got == nil || got.AccessToken == "" || got.RefreshToken == "" {
+					t.Errorf("concurrent Get() = %#v, %v", got, err)
 				}
 			}
 		}()
@@ -118,8 +141,8 @@ func TestFileStorageConcurrentGetSet(t *testing.T) {
 	close(start)
 	waitGroupWithin(t, &waitGroup, time.Second)
 
-	if got, ok := backend.Get(); !ok || got == nil {
-		t.Fatalf("final Get() = %#v, %v", got, ok)
+	if got, err := backend.Get(); err != nil || got == nil {
+		t.Fatalf("final Get() = %#v, %v", got, err)
 	}
 
 	temporaryFiles, err := filepath.Glob(filepath.Join(dir, ".session-*.tmp"))
@@ -129,5 +152,70 @@ func TestFileStorageConcurrentGetSet(t *testing.T) {
 
 	if len(temporaryFiles) != 0 {
 		t.Fatalf("leftover temporary files: %v", temporaryFiles)
+	}
+}
+
+// TestFileStorageSetReportsWriteFailure pins the behaviour the swallowed errors
+// used to hide: when the session cannot be persisted the caller is told, and
+// can decide whether signing in again next time is acceptable.
+func TestFileStorageSetReportsWriteFailure(t *testing.T) {
+	t.Parallel()
+
+	// A path whose parent is a regular file: MkdirAll cannot create the
+	// directory, so the write fails.
+	dir := t.TempDir()
+	blocker := filepath.Join(dir, "blocker")
+
+	if err := os.WriteFile(blocker, []byte("not a directory"), 0o600); err != nil {
+		t.Fatalf("write blocker file: %v", err)
+	}
+
+	backend := &session.FileStorage{Path: filepath.Join(blocker, "session.json")}
+
+	err := backend.Set(session.StoredSession{ //nolint:exhaustruct_v5
+		Session: auth.Session{ //nolint:exhaustruct_v5
+			AccessToken:  "access-token",
+			RefreshToken: "refresh-token",
+		},
+	})
+	if err == nil {
+		t.Fatal("Set() = nil, want a write error")
+	}
+
+	var storageErr *session.StorageError
+	if !errors.As(err, &storageErr) {
+		t.Fatalf("Set() error = %v; want a *session.StorageError", err)
+	}
+
+	if storageErr.Op != "write" {
+		t.Errorf("StorageError.Op = %q, want \"write\"", storageErr.Op)
+	}
+}
+
+// TestFileStorageGetAbsentIsNotAnError keeps "no session stored" distinct from
+// "the session could not be read": only the latter is an error.
+func TestFileStorageGetAbsentIsNotAnError(t *testing.T) {
+	t.Parallel()
+
+	backend := &session.FileStorage{Path: filepath.Join(t.TempDir(), "session.json")}
+
+	got, err := backend.Get()
+	if err != nil {
+		t.Fatalf("Get() on a missing file = %v, want nil", err)
+	}
+
+	if got != nil {
+		t.Fatalf("Get() = %#v, want nil", got)
+	}
+}
+
+// TestFileStorageRemoveAbsentIsNotAnError documents that clearing an already
+// absent session succeeds, so sign-out is idempotent.
+func TestFileStorageRemoveAbsentIsNotAnError(t *testing.T) {
+	t.Parallel()
+
+	backend := &session.FileStorage{Path: filepath.Join(t.TempDir(), "session.json")}
+	if err := backend.Remove(); err != nil {
+		t.Fatalf("Remove() on a missing file = %v, want nil", err)
 	}
 }
