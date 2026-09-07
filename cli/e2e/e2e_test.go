@@ -240,14 +240,24 @@ func testAuth(t *testing.T, c *client) {
 
 	signupTok := c.authEmailPassword(t, "signup", email, password)
 	if !looksLikeJWT(signupTok) {
-		t.Fatalf("signup did not return a JWT access token: %q", truncate(signupTok, 40))
+		t.Fatalf(
+			"signup did not return a JWT access token: len=%d segments=%d empty=%t",
+			len(signupTok),
+			len(strings.Split(signupTok, ".")),
+			signupTok == "",
+		)
 	}
 
 	t.Logf("signup issued JWT (len=%d)", len(signupTok))
 
 	signinTok := c.authEmailPassword(t, "signin", email, password)
 	if !looksLikeJWT(signinTok) {
-		t.Fatalf("signin did not return a JWT access token: %q", truncate(signinTok, 40))
+		t.Fatalf(
+			"signin did not return a JWT access token: len=%d segments=%d empty=%t",
+			len(signinTok),
+			len(strings.Split(signinTok, ".")),
+			signinTok == "",
+		)
 	}
 
 	t.Logf("signin issued JWT (len=%d)", len(signinTok))
@@ -261,7 +271,7 @@ func (c *client) authEmailPassword(t *testing.T, action, email, password string)
 		t.Fatalf("marshal %s request: %v", action, err)
 	}
 
-	status, resp := c.do(
+	status, resp, respContentType := c.do(
 		t,
 		http.MethodPost,
 		c.url("auth", "/v1/"+action+"/email-password"),
@@ -270,7 +280,12 @@ func (c *client) authEmailPassword(t *testing.T, action, email, password string)
 		body,
 	)
 	if status != http.StatusOK {
-		t.Fatalf("%s returned HTTP %d: %s", action, status, truncate(string(resp), 200))
+		t.Fatalf(
+			"%s returned HTTP %d: %s",
+			action,
+			status,
+			truncate(redactResponseBody(resp, respContentType)),
+		)
 	}
 
 	var payload struct {
@@ -283,7 +298,7 @@ func (c *client) authEmailPassword(t *testing.T, action, email, password string)
 			"%s: cannot decode session payload: %v\n%s",
 			action,
 			err,
-			truncate(string(resp), 200),
+			truncate(redactResponseBody(resp, respContentType)),
 		)
 	}
 
@@ -300,7 +315,7 @@ func testStorage(t *testing.T, c *client) {
 	id := c.uploadFile(t, "e2e.txt", content)
 	t.Logf("uploaded file id=%s", id)
 
-	status, resp := c.do(
+	status, resp, respContentType := c.do(
 		t,
 		http.MethodGet,
 		c.url("storage", "/v1/files/"+id),
@@ -309,11 +324,21 @@ func testStorage(t *testing.T, c *client) {
 		nil,
 	)
 	if status != http.StatusOK {
-		t.Fatalf("download returned HTTP %d: %s", status, truncate(string(resp), 200))
+		t.Fatalf(
+			"download returned HTTP %d: %s",
+			status,
+			truncate(redactResponseBody(resp, respContentType)),
+		)
 	}
 
 	if !bytes.Equal(resp, content) {
-		t.Fatalf("downloaded content mismatch: got %q want %q", resp, content)
+		t.Fatalf(
+			"downloaded content mismatch: got %q (%d bytes) want %q (%d bytes)",
+			truncate(redactResponseBody(resp, respContentType)),
+			len(resp),
+			content,
+			len(content),
+		)
 	}
 
 	t.Logf("downloaded %d bytes, content matches", len(resp))
@@ -338,7 +363,7 @@ func (c *client) uploadFile(t *testing.T, name string, content []byte) string {
 
 	_ = w.Close()
 
-	status, resp := c.do(
+	status, resp, respContentType := c.do(
 		t,
 		http.MethodPost,
 		c.url("storage", "/v1/files"),
@@ -347,7 +372,11 @@ func (c *client) uploadFile(t *testing.T, name string, content []byte) string {
 		buf.Bytes(),
 	)
 	if status != http.StatusCreated && status != http.StatusOK {
-		t.Fatalf("upload returned HTTP %d: %s", status, truncate(string(resp), 200))
+		t.Fatalf(
+			"upload returned HTTP %d: %s",
+			status,
+			truncate(redactResponseBody(resp, respContentType)),
+		)
 	}
 
 	var payload struct {
@@ -356,7 +385,11 @@ func (c *client) uploadFile(t *testing.T, name string, content []byte) string {
 		} `json:"processedFiles"`
 	}
 	if err := json.Unmarshal(resp, &payload); err != nil || len(payload.ProcessedFiles) == 0 {
-		t.Fatalf("upload: cannot decode processedFiles: %v\n%s", err, truncate(string(resp), 200))
+		t.Fatalf(
+			"upload: cannot decode processedFiles: %v\n%s",
+			err,
+			truncate(redactResponseBody(resp, respContentType)),
+		)
 	}
 
 	return payload.ProcessedFiles[0].ID
@@ -375,7 +408,7 @@ func testGraphQL(t *testing.T, c *client) {
 		t.Fatalf("marshal GraphQL request: %v", err)
 	}
 
-	status, resp := c.do(
+	status, resp, respContentType := c.do(
 		t,
 		http.MethodPost,
 		c.url("graphql", "/v1"),
@@ -384,7 +417,11 @@ func testGraphQL(t *testing.T, c *client) {
 		body,
 	)
 	if status != http.StatusOK {
-		t.Fatalf("graphql introspection returned HTTP %d: %s", status, truncate(string(resp), 200))
+		t.Fatalf(
+			"graphql introspection returned HTTP %d: %s",
+			status,
+			truncate(redactResponseBody(resp, respContentType)),
+		)
 	}
 
 	var out struct {
@@ -401,15 +438,25 @@ func testGraphQL(t *testing.T, c *client) {
 		Errors []json.RawMessage `json:"errors"`
 	}
 	if err := json.Unmarshal(resp, &out); err != nil {
-		t.Fatalf("graphql: cannot decode response: %v\n%s", err, truncate(string(resp), 200))
+		t.Fatalf(
+			"graphql: cannot decode response: %v\n%s",
+			err,
+			truncate(redactResponseBody(resp, respContentType)),
+		)
 	}
 
 	if len(out.Errors) > 0 {
-		t.Fatalf("graphql introspection returned errors: %v", out.Errors)
+		t.Fatalf(
+			"graphql introspection returned errors: %s",
+			truncate(redactResponseBody(resp, respContentType)),
+		)
 	}
 
 	if out.Data.Schema.QueryType.Name == "" {
-		t.Fatalf("graphql introspection missing query type name: %s", truncate(string(resp), 200))
+		t.Fatalf(
+			"graphql introspection missing query type name: %s",
+			truncate(redactResponseBody(resp, respContentType)),
+		)
 	}
 
 	t.Logf("graphql query root type: %s", out.Data.Schema.QueryType.Name)
@@ -438,7 +485,7 @@ func (c *client) do(
 	headers map[string]string,
 	contentType string,
 	body []byte,
-) (int, []byte) {
+) (int, []byte, string) {
 	t.Helper()
 
 	var rdr io.Reader
@@ -470,7 +517,7 @@ func (c *client) do(
 		t.Fatalf("read response %s %s: %v", method, url, err)
 	}
 
-	return resp.StatusCode, out
+	return resp.StatusCode, out, resp.Header.Get("Content-Type")
 }
 
 // ---- CLI + config helpers ------------------------------------------------
@@ -664,15 +711,98 @@ func setNested(m map[string]any, value any, path ...string) {
 // ---- misc ----------------------------------------------------------------
 
 func looksLikeJWT(s string) bool {
-	return len(strings.Split(s, ".")) == 3 && len(s) > 20
+	parts := strings.Split(s, ".")
+	if len(parts) != 3 || len(s) <= 20 {
+		return false
+	}
+
+	for _, part := range parts {
+		if part == "" || strings.IndexFunc(part, isNotBase64URLCharacter) >= 0 {
+			return false
+		}
+	}
+
+	return true
 }
 
-func truncate(s string, n int) string {
-	if len(s) <= n {
+func isNotBase64URLCharacter(r rune) bool {
+	const base64URLAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+
+	return !strings.ContainsRune(base64URLAlphabet, r)
+}
+
+func redactResponseBody(body []byte, contentType string) string {
+	var payload any
+	if err := json.Unmarshal(body, &payload); err != nil {
+		return responseBodyMetadata(body, contentType)
+	}
+
+	payload = redactSensitiveJSON(payload)
+
+	redacted, err := json.Marshal(payload)
+	if err != nil {
+		return responseBodyMetadata(body, contentType)
+	}
+
+	return string(redacted)
+}
+
+func redactSensitiveJSON(value any) any {
+	switch value := value.(type) {
+	case map[string]any:
+		for key, child := range value {
+			if isSensitiveJSONKey(key) {
+				value[key] = "[REDACTED]"
+
+				continue
+			}
+
+			value[key] = redactSensitiveJSON(child)
+		}
+	case []any:
+		for i, child := range value {
+			value[i] = redactSensitiveJSON(child)
+		}
+	case string:
+		// Keep string detection deliberately narrow: redact only values with three
+		// non-empty base64url-shaped JWT segments, leaving ordinary text useful.
+		if looksLikeJWT(value) {
+			return fmt.Sprintf("[REDACTED jwt len=%d]", len(value))
+		}
+	}
+
+	return value
+}
+
+func isSensitiveJSONKey(key string) bool {
+	key = strings.ToLower(key)
+	for _, sensitivePart := range []string{
+		"token", "secret", "password", "key", "authorization", "ticket", "jwt", "bearer", "credential",
+	} {
+		if strings.Contains(key, sensitivePart) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func responseBodyMetadata(body []byte, contentType string) string {
+	if contentType == "" {
+		return fmt.Sprintf("body omitted (len=%d)", len(body))
+	}
+
+	return fmt.Sprintf("body omitted (len=%d content-type=%q)", len(body), contentType)
+}
+
+func truncate(s string) string {
+	const maxLength = 200
+
+	if len(s) <= maxLength {
 		return s
 	}
 
-	return s[:n] + "..."
+	return s[:maxLength] + "..."
 }
 
 func tail(b []byte, lines int) string {

@@ -330,10 +330,7 @@ func CommandServe() *cli.Command { //nolint:funlen
 				Name:     flagHasuraAdminSecret,
 				Usage:    "Hasura admin secret",
 				Category: "hasura",
-				Sources: cli.EnvVars(
-					"HASURA_GRAPHQL_ADMIN_SECRET",
-					"HASURA_GRAPHQL_ADMIN_SECRET",
-				),
+				Sources:  cli.EnvVars("HASURA_GRAPHQL_ADMIN_SECRET"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     flagHasuraDBName,
