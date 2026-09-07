@@ -1,0 +1,1 @@
+Jednorázové heslo pro ${redirectTo}
