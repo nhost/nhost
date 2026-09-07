@@ -16,11 +16,16 @@ import re
 import stat
 import time
 from collections.abc import Callable
+from datetime import UTC, date, datetime
+from datetime import time as datetime_time
+from decimal import Decimal
+from enum import Enum
 from pathlib import Path
+from uuid import UUID
 
 import httpx
 import pytest
-from pydantic import BaseModel
+from pydantic import AnyUrl, BaseModel, ConfigDict, Field
 
 import nhost.session.refresh as refresh_module
 from nhost import (
@@ -48,7 +53,7 @@ from nhost.auth import (
     generate_code_verifier,
     generate_pkce_pair,
 )
-from nhost.fetch import AdminSessionOptions, FetchFunction, create_enhanced_fetch
+from nhost.fetch import AdminSessionOptions, FetchFunction, create_enhanced_fetch, to_jsonable
 from nhost.fetch.middleware import (
     _extract_session,
     session_refresh_middleware,
@@ -495,6 +500,61 @@ async def test_graphql_validates_typed_response_data() -> None:
     assert response.body.data.viewer.id == "user-1"
 
 
+async def test_graphql_normalizes_variables_and_case_insensitive_headers() -> None:
+    requests: list[httpx.Request] = []
+    identifier = UUID("12345678-1234-5678-1234-567812345678")
+    requested_at = datetime(2026, 9, 7, 12, 30, tzinfo=UTC)
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(200, json={"data": None})
+
+    async with build_client(handler) as nhost:
+        await nhost.graphql.request(
+            "query Lookup($id: uuid!, $at: timestamptz!) { item_by_pk(id: $id) { id } }",
+            variables={"id": identifier, "at": requested_at},
+            headers={"content-type": "application/graphql"},
+        )
+
+    assert json.loads(requests[0].content) == {
+        "query": "query Lookup($id: uuid!, $at: timestamptz!) { item_by_pk(id: $id) { id } }",
+        "variables": {"id": str(identifier), "at": "2026-09-07T12:30:00Z"},
+    }
+    content_type_headers = [
+        (name, value) for name, value in requests[0].headers.raw if name.lower() == b"content-type"
+    ]
+    assert content_type_headers == [(b"content-type", b"application/graphql")]
+
+
+def test_to_jsonable_preserves_containers_and_converts_supported_scalars() -> None:
+    class State(Enum):
+        READY = "ready"
+        SCHEDULED = date(2026, 9, 8)
+
+    class GeneratedLikeModel(BaseModel):
+        model_config = ConfigDict(populate_by_name=True)
+
+        created_at: datetime = Field(alias="createdAt")
+        optional_note: str | None = Field(default=None, alias="optionalNote")
+
+    identifier = UUID("12345678-1234-5678-1234-567812345678")
+    created_at = datetime(2026, 9, 7, 12, 30, tzinfo=UTC)
+    model = GeneratedLikeModel(created_at=created_at)
+
+    assert to_jsonable(model) == {"createdAt": "2026-09-07T12:30:00Z"}
+    assert to_jsonable([model, {"nested": (identifier, Decimal("12.3400"), State.SCHEDULED)}]) == [
+        {"createdAt": "2026-09-07T12:30:00Z"},
+        {"nested": [str(identifier), "12.3400", "2026-09-08"]},
+    ]
+    assert to_jsonable(date(2026, 9, 7)) == "2026-09-07"
+    assert to_jsonable(created_at) == "2026-09-07T12:30:00Z"
+    assert to_jsonable(datetime_time(12, 30, 45)) == "12:30:45"
+    assert to_jsonable(identifier) == str(identifier)
+    assert to_jsonable(Decimal("1.2300")) == "1.2300"
+    assert to_jsonable(AnyUrl("https://example.com/path")) == "https://example.com/path"
+    assert to_jsonable(State.READY) == "ready"
+
+
 def test_sentinel_defaults_have_stable_repr() -> None:
     http_error_body = inspect.signature(HTTPError.from_response).parameters["body"].default
     functions_json = inspect.signature(FunctionsClient.fetch).parameters["json"].default
@@ -543,6 +603,42 @@ async def test_functions_supports_explicit_json_null_and_structured_json() -> No
     assert requests[1].content == b"null"
     assert requests[1].headers["content-type"] == "application/json"
     assert response.body == {"title": "ok"}
+
+
+async def test_functions_normalizes_models_and_case_insensitive_headers() -> None:
+    class FunctionPayload(BaseModel):
+        invoked_at: datetime
+
+    requests: list[httpx.Request] = []
+    invoked_at = datetime(2026, 9, 7, 12, 30, tzinfo=UTC)
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(200, json={"ok": True})
+
+    async with build_client(handler) as nhost:
+        await nhost.functions.post(
+            "/model",
+            json=FunctionPayload(invoked_at=invoked_at),
+            headers={"accept": "application/problem+json"},
+        )
+        await nhost.functions.fetch(
+            "/null",
+            method="POST",
+            json=None,
+            headers={"content-type": "application/merge-patch+json"},
+        )
+
+    assert json.loads(requests[0].content) == {"invoked_at": "2026-09-07T12:30:00Z"}
+    accept_headers = [
+        (name, value) for name, value in requests[0].headers.raw if name.lower() == b"accept"
+    ]
+    assert accept_headers == [(b"accept", b"application/problem+json")]
+    assert requests[1].content == b"null"
+    content_type_headers = [
+        (name, value) for name, value in requests[1].headers.raw if name.lower() == b"content-type"
+    ]
+    assert content_type_headers == [(b"content-type", b"application/merge-patch+json")]
 
 
 async def test_functions_redirect_is_returned_to_the_caller() -> None:

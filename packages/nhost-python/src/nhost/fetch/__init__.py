@@ -13,10 +13,14 @@ import contextlib
 import json as _json
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
+from datetime import date, datetime, time
+from decimal import Decimal
+from enum import Enum
 from typing import Any, Generic, TypeVar
+from uuid import UUID
 
 import httpx
-from pydantic import BaseModel, TypeAdapter
+from pydantic import AnyUrl, BaseModel, TypeAdapter
 
 T = TypeVar("T")
 
@@ -100,10 +104,11 @@ def to_file_part(value: bytes | UploadFile) -> Any:
 
 
 def to_jsonable(value: Any) -> Any:
-    """Convert pydantic models (recursively) into JSON-serializable primitives.
+    """Recursively convert supported values into JSON-serializable primitives.
 
-    Uses ``by_alias=True`` so wire names are preserved and ``exclude_none=True``
-    so optional fields left unset are omitted from the payload.
+    Pydantic models preserve wire aliases and omit ``None`` fields. Dates,
+    datetimes, and times use ISO 8601 strings; UUIDs and URLs use strings;
+    Decimals use strings to preserve precision; and Enums use their values.
     """
     if isinstance(value, BaseModel):
         return value.model_dump(mode="json", by_alias=True, exclude_none=True)
@@ -111,6 +116,10 @@ def to_jsonable(value: Any) -> Any:
         return [to_jsonable(item) for item in value]
     if isinstance(value, dict):
         return {key: to_jsonable(item) for key, item in value.items()}
+    if isinstance(value, Enum):
+        return to_jsonable(value.value)
+    if isinstance(value, (datetime, date, time, Decimal, UUID, AnyUrl)):
+        return _adapter_for(type(value)).dump_python(value, mode="json")
     return value
 
 
