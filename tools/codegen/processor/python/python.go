@@ -618,14 +618,13 @@ func pythonModuleNames(
 ) map[string]string {
 	names := map[string]string{
 		"BaseModel":             `generated import "BaseModel"`,
-		"ChainFunction":         `generated import "ChainFunction"`,
 		"Client":                `generated type "Client"`,
 		"ConfigDict":            `generated import "ConfigDict"`,
+		"Middleware":            `generated import "Middleware"`,
 		"Sequence":              `generated import "Sequence"`,
 		"UUID":                  `generated import "UUID"`,
 		"_MIN_ERROR_STATUS":     "generated HTTP status constant",
-		"create_api_client":     `generated function "create_api_client"`,
-		"create_enhanced_fetch": `generated import "create_enhanced_fetch"`,
+		"create_fetch_pipeline": `generated import "create_fetch_pipeline"`,
 		"date":                  `generated import "date"`,
 		"datetime":              `generated import "datetime"`,
 		"httpx":                 `generated import "httpx"`,
