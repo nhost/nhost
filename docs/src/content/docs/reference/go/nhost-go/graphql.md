@@ -5,6 +5,24 @@ title: Graphql
 Package graphql executes GraphQL operations against a Hasura GraphQL endpoint
 through the shared HTTP middleware installed on the client's Transport.
 
+## Functions
+
+### `Execute`
+
+```go
+func Execute[T any](
+	ctx context.Context,
+	client *Client,
+	query string,
+	variables any,
+	opts ...RequestOption,
+) (T, *transport.Response, error)
+```
+
+Execute runs a GraphQL operation and returns its data decoded into T. It is a
+generic convenience over Client.Request; use Client.Request directly when a
+destination-style API is preferable.
+
 ## Types
 
 ### `Client`
@@ -33,14 +51,48 @@ NewClient creates a new GraphQL client. A nil httpClient uses a default
 func (c *Client) Request(
 	ctx context.Context,
 	query string,
-	variables Variables,
-	operationName string,
-	headers http.Header,
-) (Response[map[string]any], *transport.Response, error)
+	variables any,
+	destination any,
+	opts ...RequestOption,
+) (*transport.Response, error)
 ```
 
-Request executes a GraphQL operation, decoding data into a generic map. It
-returns a *transport.APIError if the response contains GraphQL errors.
+Request executes a GraphQL operation and decodes its data into destination,
+which should be a pointer to the expected response type. A nil destination
+discards response data. Variables may be either a typed struct or Variables.
+
+GraphQL errors are returned as *ResponseError. If a response contains both
+data and errors, Request decodes the partial data before returning the error.
+Non-success HTTP responses without GraphQL errors are returned as
+*transport.APIError, and successful responses that cannot be decoded are
+returned as *DecodeError.
+
+### `DecodeError`
+
+```go
+type DecodeError struct {
+	// contains filtered or unexported fields
+}
+```
+
+DecodeError reports a failure to decode a successful GraphQL response or its
+data into the requested destination type.
+
+#### `Error`
+
+```go
+func (e *DecodeError) Error() string
+```
+
+Error implements the error interface.
+
+#### `Unwrap`
+
+```go
+func (e *DecodeError) Unwrap() error
+```
+
+Unwrap returns the underlying JSON decoding error.
 
 ### `Error`
 
@@ -66,43 +118,63 @@ type ErrorLocation struct {
 
 ErrorLocation is the line/column of a GraphQL error.
 
-### `Response`
+### `RequestOption`
 
 ```go
-type Response[T any] struct {
-	Data   T       `json:"data"`
-	Errors []Error `json:"errors,omitempty"`
+type RequestOption func(*requestOptions)
+```
+
+RequestOption configures a GraphQL request.
+
+#### `WithHeaders`
+
+```go
+func WithHeaders(headers http.Header) RequestOption
+```
+
+WithHeaders adds HTTP headers to a GraphQL request.
+
+#### `WithOperationName`
+
+```go
+func WithOperationName(operationName string) RequestOption
+```
+
+WithOperationName sets the GraphQL operationName request field.
+
+### `ResponseError`
+
+```go
+type ResponseError struct {
+	Errors  []Error
+	Data    json.RawMessage
+	Status  int
+	Headers http.Header
+	// contains filtered or unexported fields
 }
 ```
 
-Response is the standard GraphQL response envelope, generic over the shape of
-the data field.
+ResponseError reports errors returned in a GraphQL response. Data contains
+any partial response data supplied alongside the errors. Request and Execute
+attempt to decode that partial data into the caller's destination before
+returning this error.
 
-#### `Execute`
+#### `Error`
 
 ```go
-func Execute[T any](
-	ctx context.Context,
-	c *Client,
-	query string,
-	variables Variables,
-	operationName string,
-	headers http.Header,
-) (Response[T], *transport.Response, error)
+func (e *ResponseError) Error() string
 ```
 
-Execute runs a GraphQL operation and decodes the data field into T. It
-returns the decoded envelope, the HTTP response metadata, and an error.
+Error implements the error interface.
 
-It returns a *transport.APIError when either (a) the response body carries a
-top-level GraphQL `errors` array, or (b) the transport returns a non-2xx/3xx
-HTTP status (e.g. auth/gateway failures whose body has no `errors` key).
-GraphQL-level errors take precedence over the HTTP status.
+#### `Unwrap`
 
-Note: when a GraphQL `errors` array is present the typed data is dropped and
-only the raw response survives in APIError.Body. Callers needing partial data
-(data + errors, as Hasura may return for remote-schema/action failures) must
-read APIError.Body.
+```go
+func (e *ResponseError) Unwrap() error
+```
+
+Unwrap returns an error encountered while decoding partial response data, if
+any.
 
 ### `Variables`
 
@@ -110,5 +182,6 @@ read APIError.Body.
 type Variables map[string]any
 ```
 
-Variables is a GraphQL variables map.
+Variables is a GraphQL variables map. Request and Execute also accept typed
+structs when callers want compile-time types for their variables.
 
