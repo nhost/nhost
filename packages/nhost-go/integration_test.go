@@ -53,8 +53,12 @@ func TestIntegrationSignUpDecodesRole(t *testing.T) {
 		t.Fatalf("signup: %v", err)
 	}
 
-	stored, ok := client.Session()
-	if !ok {
+	stored, err := client.Session()
+	if err != nil {
+		t.Fatalf("read session after signup: %v", err)
+	}
+
+	if stored == nil {
 		t.Fatal("no session after signup")
 	}
 
