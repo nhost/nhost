@@ -21,19 +21,32 @@ so no user session is involved.
 
 ### Request headers
 
-| Header                | Required | Description                                             |
-| --------------------- | -------- | ------------------------------------------------------- |
+| Header                | Required | Description                                               |
+| --------------------- | -------- | --------------------------------------------------------- |
 | `X-Webhook-Signature` | yes      | `sha256=<hex>` HMAC of the raw body with `WEBHOOK_SECRET`. |
-| `X-Webhook-Source`    | no       | Stored as the event `source` (default `thirdparty`).    |
+
+The signature authenticates the raw body only. The stored `source` is the
+server-controlled `WEBHOOK_SOURCE` configuration value; it is never accepted
+from a request header, so a caller cannot forge provenance by replaying a valid
+body and signature with a different label. Use a different secret and receiver
+deployment for each source when that distinction matters.
+
+This minimal shared-secret scheme does **not** provide replay protection: a
+captured signed body can be submitted again. In production, follow the sender's
+signature protocol and persist a unique delivery ID (or sign and validate a
+short-lived timestamp) before triggering non-idempotent downstream work.
 
 Requests larger than 1 MiB receive `413 Payload Too Large` before the service
 buffers the complete body. The cap is enforced both from `Content-Length` and
 while streaming, so chunked requests cannot bypass it and signatures are always
-checked against the complete, untruncated body.
+checked against the complete, untruncated body. Valid JSON whose top level is
+not an object receives `400 Bad Request`.
 
 Events are written to the `public.webhook_events` table (`source`, `event_type`,
 `payload` jsonb, `received_at`), added by a migration in this backend and
-readable by the `public` role so you can query them straight away.
+readable by the `public` role so you can query them straight away. The endpoint
+returns `502 Bad Gateway` whenever a verified event cannot be persisted, asking
+the webhook sender to retry rather than acknowledging and losing the event.
 
 ## Configuration (environment variables)
 
@@ -44,6 +57,7 @@ readable by the `public` role so you can query them straight away.
 | `NHOST_GRAPHQL_URL`   | *(unset)*             | Override, e.g. `http://graphql:8080/v1` in-cluster. |
 | `HASURA_ADMIN_SECRET` | *(required)*          | Server credential for GraphQL writes.          |
 | `WEBHOOK_SECRET`      | *(required)*          | Shared secret for signature verification.      |
+| `WEBHOOK_SOURCE`      | `thirdparty`          | Server-controlled source label: 1-64 lowercase letters, digits, `.`, `_`, or `-`. |
 | `ALLOW_INSECURE_DEV_SECRETS` | *(unset)*      | Set to `1` to fall back to the well-known local-dev secrets below. |
 
 > **Security:** `HASURA_ADMIN_SECRET` and `WEBHOOK_SECRET` MUST be set to strong
@@ -81,7 +95,7 @@ BODY='{"type":"payment.succeeded","data":{"amount":4200,"currency":"usd"}}'
 SIG="sha256=$(python3 -c "import hmac,hashlib,sys;print(hmac.new(b'dev-webhook-secret', sys.argv[1].encode(), hashlib.sha256).hexdigest())" "$BODY")"
 curl -s -X POST http://127.0.0.1:8081/webhook \
   -H "content-type: application/json" \
-  -H "X-Webhook-Signature: $SIG" -H "X-Webhook-Source: stripe" \
+  -H "X-Webhook-Signature: $SIG" \
   -d "$BODY"
 ```
 
@@ -93,9 +107,22 @@ curl -sk -X POST https://local.graphql.local.nhost.run/v1 \
   -d '{"query":"query { webhook_events { source event_type payload received_at } }"}'
 ```
 
+## Development checks
+
+Install the separate development dependencies, then run the example's lint,
+format, type, and behavioral checks:
+
+```sh
+uv pip install -r requirements-dev.txt
+make check-local
+```
+
+The production Dockerfile installs only `requirements.txt`; pytest, mypy, ruff,
+and optional `uvicorn[standard]` extras are not shipped in the service image.
+
 ## Run as an Nhost Run service
 
-The container starts uvicorn with at most 64 concurrent connections and a
+The container starts plain uvicorn with at most 64 concurrent connections and a
 10-second keep-alive timeout. Keep these bounds when adapting the Dockerfile so
 unauthenticated clients cannot hold unbounded request buffers or idle
 connections.

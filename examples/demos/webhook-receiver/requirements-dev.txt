@@ -1,0 +1,7 @@
+-r requirements.txt
+
+# Local lint, type-check, and test tooling; never installed by the Dockerfile.
+mypy>=1.11
+pytest>=8
+pytest-asyncio>=0.23
+ruff>=0.9

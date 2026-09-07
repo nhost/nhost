@@ -6,10 +6,9 @@
 # (run from the repository root)
 FROM python:3.11-slim
 
-# The repo layout is mirrored inside the image so the relative path in
-# requirements.txt (-e ../../../packages/nhost-python) resolves exactly as it
-# does in a checkout. That keeps requirements.txt the single place dependencies
-# are declared.
+# The repo layout is mirrored inside the image so the relative path in the
+# runtime-only requirements.txt (-e ../../../packages/nhost-python) resolves
+# exactly as it does in a checkout. Development tools stay out of this image.
 WORKDIR /app/examples/demos/webhook-receiver
 
 COPY packages/nhost-python /app/packages/nhost-python
