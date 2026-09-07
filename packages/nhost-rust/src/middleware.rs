@@ -79,33 +79,115 @@ fn set_prioritized_header(
     Ok(())
 }
 
+/// The origin a credential middleware is allowed to write to.
+///
+/// Credentials are scoped to the service they were configured for so a request
+/// that has been retargeted (by custom middleware, or by a caller reusing a
+/// client against another host) cannot carry them off-origin.
+#[derive(Clone, Debug)]
+pub(crate) struct RequestScope {
+    scheme: String,
+    host: String,
+    port: Option<u16>,
+}
+
+impl RequestScope {
+    /// Parses a service base URL. An unparseable URL yields `None`, and every
+    /// scope check then fails closed.
+    pub(crate) fn from_base_url(base_url: &str) -> Option<Self> {
+        let url = url::Url::parse(base_url).ok()?;
+        Some(Self {
+            scheme: url.scheme().to_ascii_lowercase(),
+            host: url.host_str()?.to_ascii_lowercase(),
+            port: url.port_or_known_default(),
+        })
+    }
+
+    /// True when `url` is the same origin (scheme, host and port) as the scope.
+    pub(crate) fn contains(&self, url: &reqwest::Url) -> bool {
+        url.scheme().eq_ignore_ascii_case(&self.scheme)
+            && url
+                .host_str()
+                .is_some_and(|host| host.eq_ignore_ascii_case(&self.host))
+            && url.port_or_known_default() == self.port
+    }
+
+    /// True when the admin secret may be sent: same origin, and either HTTPS, a
+    /// loopback host, or an explicit cleartext opt-in.
+    pub(crate) fn permits_admin_session(
+        &self,
+        url: &reqwest::Url,
+        allow_insecure_http: bool,
+    ) -> bool {
+        self.contains(url)
+            && (self.scheme == "https" || allow_insecure_http || is_loopback_host(&self.host))
+    }
+}
+
+fn is_loopback_host(host: &str) -> bool {
+    if host.eq_ignore_ascii_case("localhost") {
+        return true;
+    }
+    host.parse::<std::net::IpAddr>()
+        .is_ok_and(|address| address.is_loopback())
+}
+
 /// Attaches `Authorization: Bearer <token>` from the stored session, unless the
 /// request already carries one. Runs after [`SessionRefresh`].
+///
+/// The token is written only for requests inside `service_url`'s origin. A
+/// request that has left that origin has the stored bearer stripped, so a
+/// retargeting middleware cannot forward the user's access token to another
+/// host; an unrelated caller-supplied `Authorization` value is preserved.
 pub struct AttachToken {
     /// The store the access token is read from.
     pub storage: SessionStorage,
+    /// The base URL of the service this middleware is installed on.
+    pub service_url: String,
 }
 
 #[cfg_attr(not(target_arch = "wasm32"), async_trait::async_trait)]
 #[cfg_attr(target_arch = "wasm32", async_trait::async_trait(?Send))]
 impl Middleware for AttachToken {
     async fn handle(&self, mut req: Request, ext: &mut Extensions, next: Next<'_>) -> MwResult {
-        if !req.headers().contains_key(AUTHORIZATION) {
-            if let Some(s) = self
-                .storage
-                .get()
-                .map_err(|error| reqwest_middleware::Error::Middleware(anyhow::Error::new(error)))?
-            {
-                if !s.session.access_token.is_empty() {
-                    set_prioritized_header(
-                        &mut req,
-                        ext,
-                        "authorization",
-                        &format!("Bearer {}", s.session.access_token),
-                        HeaderPriority::Session,
-                    )?;
-                }
-            }
+        // A missing or unparseable service URL fails closed: no token is written
+        // and any stored bearer already on the request is stripped.
+        let scope = RequestScope::from_base_url(&self.service_url);
+        let in_scope = scope.is_some_and(|scope| scope.contains(req.url()));
+        let has_authorization = req.headers().contains_key(AUTHORIZATION);
+
+        if in_scope && has_authorization {
+            return next.run(req, ext).await;
+        }
+
+        let stored = self
+            .storage
+            .get()
+            .map_err(|error| reqwest_middleware::Error::Middleware(anyhow::Error::new(error)))?;
+        let Some(session) = stored else {
+            return next.run(req, ext).await;
+        };
+        if session.session.access_token.is_empty() {
+            return next.run(req, ext).await;
+        }
+
+        let bearer = format!("Bearer {}", session.session.access_token);
+        if in_scope {
+            set_prioritized_header(
+                &mut req,
+                ext,
+                "authorization",
+                &bearer,
+                HeaderPriority::Session,
+            )?;
+        } else if req
+            .headers()
+            .get(AUTHORIZATION)
+            .is_some_and(|value| value.as_bytes() == bearer.as_bytes())
+        {
+            // Off-origin and carrying exactly the stored token: strip it. An
+            // unrelated caller-supplied value is left untouched.
+            req.headers_mut().remove(AUTHORIZATION);
         }
         next.run(req, ext).await
     }
@@ -207,6 +289,9 @@ pub struct AdminSessionOptions {
     /// `admin_secret` and `role` at the same priority, so `admin-secret` and
     /// `role` keys override those dedicated fields.
     pub session_variables: HashMap<String, String>,
+    /// Permits sending the admin secret over cleartext HTTP to a non-loopback
+    /// host. Defaults to `false`; enable only on a trusted development network.
+    pub allow_insecure_http: bool,
 }
 
 impl std::fmt::Debug for AdminSessionOptions {
@@ -215,6 +300,7 @@ impl std::fmt::Debug for AdminSessionOptions {
             .field("admin_secret", &"<redacted>")
             .field("role", &self.role)
             .field("session_variables", &self.session_variables)
+            .field("allow_insecure_http", &self.allow_insecure_http)
             .finish()
     }
 }
@@ -225,12 +311,26 @@ impl std::fmt::Debug for AdminSessionOptions {
 pub struct AdminSession {
     /// The admin secret, role and session variables to send.
     pub options: AdminSessionOptions,
+    /// The base URL of the service this middleware is installed on. Admin
+    /// headers are written only for requests inside this origin, and only over
+    /// HTTPS or to a loopback host unless
+    /// [`AdminSessionOptions::allow_insecure_http`] is set.
+    pub service_url: String,
 }
 
 #[cfg_attr(not(target_arch = "wasm32"), async_trait::async_trait)]
 #[cfg_attr(target_arch = "wasm32", async_trait::async_trait(?Send))]
 impl Middleware for AdminSession {
     async fn handle(&self, mut req: Request, ext: &mut Extensions, next: Next<'_>) -> MwResult {
+        // Fail closed: an unparseable service URL, a different origin, or
+        // cleartext to a non-loopback host all withhold every admin header.
+        let permitted = RequestScope::from_base_url(&self.service_url).is_some_and(|scope| {
+            scope.permits_admin_session(req.url(), self.options.allow_insecure_http)
+        });
+        if !permitted {
+            return next.run(req, ext).await;
+        }
+
         set_prioritized_header(
             &mut req,
             ext,
