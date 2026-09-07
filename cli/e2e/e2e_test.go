@@ -1,6 +1,6 @@
 //go:build e2e
 
-// Package e2e contains black-box end-to-end tests that boot a real `nhost up`
+// Package e2e_test contains black-box end-to-end tests that boot a real `nhost up`
 // development environment and exercise auth, storage and GraphQL through the
 // public ingress. The same assertions run against a standalone environment
 // (individual auth/storage/graphql containers) and against the bundled engine
@@ -21,7 +21,7 @@
 //
 // In engine mode the image tag defaults to the CLI/schema default; set
 // E2E_ENGINE_VERSION to pin a specific locally built nhost/engine:<version>.
-package e2e
+package e2e_test
 
 import (
 	"bytes"
@@ -75,6 +75,7 @@ func loadEnv(t *testing.T) envConfig {
 	if mode == "" {
 		mode = "standalone"
 	}
+
 	if mode != "standalone" && mode != "engine" {
 		t.Fatalf("E2E_MODE must be 'standalone' or 'engine', got %q", mode)
 	}
@@ -97,17 +98,24 @@ func envOr(key, def string) string {
 	if v := os.Getenv(key); v != "" {
 		return v
 	}
+
 	return def
 }
 
+//nolint:paralleltest // The suite binds fixed ports and manages one shared Docker stack.
 func TestE2E(t *testing.T) {
 	env := loadEnv(t)
 
-	projectDir, err := os.MkdirTemp(env.workdir, "nhost-e2e-*")
+	projectDir, err := os.MkdirTemp( //nolint:usetesting // Must honor Docker-mountable E2E_WORKDIR.
+		env.workdir,
+		"nhost-e2e-*",
+	)
 	if err != nil {
 		t.Fatalf("failed to create project dir under %q: %v", env.workdir, err)
 	}
+
 	t.Logf("project dir: %s (mode=%s)", projectDir, env.mode)
+
 	if !env.keep {
 		t.Cleanup(func() { _ = os.RemoveAll(projectDir) })
 	}
@@ -206,8 +214,10 @@ func TestE2E(t *testing.T) {
 		http: &http.Client{
 			Timeout: 30 * time.Second,
 			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-			}, //nolint:gosec // local self-signed
+				TLSClientConfig: &tls.Config{
+					InsecureSkipVerify: true, //nolint:gosec // Local stack uses a self-signed certificate.
+				},
+			},
 		},
 		subdomain: env.subdomain,
 		port:      env.httpPort,
@@ -222,26 +232,35 @@ func TestE2E(t *testing.T) {
 // ---- auth ----------------------------------------------------------------
 
 func testAuth(t *testing.T, c *client) {
+	t.Helper()
+
 	email := fmt.Sprintf("e2e-%d@example.com", time.Now().UnixNano())
+
 	const password = "Str0ngPassw0rd"
 
 	signupTok := c.authEmailPassword(t, "signup", email, password)
 	if !looksLikeJWT(signupTok) {
 		t.Fatalf("signup did not return a JWT access token: %q", truncate(signupTok, 40))
 	}
+
 	t.Logf("signup issued JWT (len=%d)", len(signupTok))
 
 	signinTok := c.authEmailPassword(t, "signin", email, password)
 	if !looksLikeJWT(signinTok) {
 		t.Fatalf("signin did not return a JWT access token: %q", truncate(signinTok, 40))
 	}
+
 	t.Logf("signin issued JWT (len=%d)", len(signinTok))
 }
 
 func (c *client) authEmailPassword(t *testing.T, action, email, password string) string {
 	t.Helper()
 
-	body, _ := json.Marshal(map[string]string{"email": email, "password": password})
+	body, err := json.Marshal(map[string]string{"email": email, "password": password})
+	if err != nil {
+		t.Fatalf("marshal %s request: %v", action, err)
+	}
+
 	status, resp := c.do(
 		t,
 		http.MethodPost,
@@ -267,13 +286,16 @@ func (c *client) authEmailPassword(t *testing.T, action, email, password string)
 			truncate(string(resp), 200),
 		)
 	}
+
 	return payload.Session.AccessToken
 }
 
 // ---- storage -------------------------------------------------------------
 
 func testStorage(t *testing.T, c *client) {
-	content := []byte(fmt.Sprintf("hello-engine-e2e-%d", time.Now().UnixNano()))
+	t.Helper()
+
+	content := fmt.Appendf(nil, "hello-engine-e2e-%d", time.Now().UnixNano())
 
 	id := c.uploadFile(t, "e2e.txt", content)
 	t.Logf("uploaded file id=%s", id)
@@ -289,9 +311,11 @@ func testStorage(t *testing.T, c *client) {
 	if status != http.StatusOK {
 		t.Fatalf("download returned HTTP %d: %s", status, truncate(string(resp), 200))
 	}
+
 	if !bytes.Equal(resp, content) {
 		t.Fatalf("downloaded content mismatch: got %q want %q", resp, content)
 	}
+
 	t.Logf("downloaded %d bytes, content matches", len(resp))
 }
 
@@ -299,15 +323,19 @@ func (c *client) uploadFile(t *testing.T, name string, content []byte) string {
 	t.Helper()
 
 	var buf bytes.Buffer
+
 	w := multipart.NewWriter(&buf)
 	_ = w.WriteField("bucket-id", "default")
+
 	fw, err := w.CreateFormFile("file[]", name)
 	if err != nil {
 		t.Fatalf("create form file: %v", err)
 	}
+
 	if _, err := fw.Write(content); err != nil {
 		t.Fatalf("write form file: %v", err)
 	}
+
 	_ = w.Close()
 
 	status, resp := c.do(
@@ -330,16 +358,23 @@ func (c *client) uploadFile(t *testing.T, name string, content []byte) string {
 	if err := json.Unmarshal(resp, &payload); err != nil || len(payload.ProcessedFiles) == 0 {
 		t.Fatalf("upload: cannot decode processedFiles: %v\n%s", err, truncate(string(resp), 200))
 	}
+
 	return payload.ProcessedFiles[0].ID
 }
 
 // ---- graphql -------------------------------------------------------------
 
 func testGraphQL(t *testing.T, c *client) {
+	t.Helper()
+
 	// Admin introspection: works against both Hasura (standalone) and
 	// constellation (engine); the public /v1 path is rewritten to the GraphQL
 	// endpoint by the ingress in both modes.
-	body, _ := json.Marshal(map[string]string{"query": "{ __schema { queryType { name } } }"})
+	body, err := json.Marshal(map[string]string{"query": "{ __schema { queryType { name } } }"})
+	if err != nil {
+		t.Fatalf("marshal GraphQL request: %v", err)
+	}
+
 	status, resp := c.do(
 		t,
 		http.MethodPost,
@@ -368,12 +403,15 @@ func testGraphQL(t *testing.T, c *client) {
 	if err := json.Unmarshal(resp, &out); err != nil {
 		t.Fatalf("graphql: cannot decode response: %v\n%s", err, truncate(string(resp), 200))
 	}
+
 	if len(out.Errors) > 0 {
 		t.Fatalf("graphql introspection returned errors: %v", out.Errors)
 	}
+
 	if out.Data.Schema.QueryType.Name == "" {
 		t.Fatalf("graphql introspection missing query type name: %s", truncate(string(resp), 200))
 	}
+
 	t.Logf("graphql query root type: %s", out.Data.Schema.QueryType.Name)
 }
 
@@ -407,13 +445,16 @@ func (c *client) do(
 	if body != nil {
 		rdr = bytes.NewReader(body)
 	}
-	req, err := http.NewRequest(method, url, rdr)
+
+	req, err := http.NewRequestWithContext(t.Context(), method, url, rdr)
 	if err != nil {
 		t.Fatalf("build request %s %s: %v", method, url, err)
 	}
+
 	if contentType != "" {
 		req.Header.Set("Content-Type", contentType)
 	}
+
 	for k, v := range headers {
 		req.Header.Set(k, v)
 	}
@@ -428,6 +469,7 @@ func (c *client) do(
 	if err != nil {
 		t.Fatalf("read response %s %s: %v", method, url, err)
 	}
+
 	return resp.StatusCode, out
 }
 
@@ -455,6 +497,7 @@ func cliCmd(ctx context.Context, env envConfig, projectDir string, args ...strin
 	if env.configserverImg != "" {
 		cmd.Env = append(cmd.Env, "NHOST_CONFIGSERVER_IMAGE="+env.configserverImg)
 	}
+
 	return cmd
 }
 
@@ -537,17 +580,21 @@ func patchConfig(t *testing.T, env envConfig, projectDir string) string {
 	t.Helper()
 
 	secretsPath := filepath.Join(projectDir, ".secrets")
+
 	secretsRaw, err := os.ReadFile(secretsPath)
 	if err != nil {
 		t.Fatalf("read .secrets: %v", err)
 	}
+
 	m := adminSecretRe.FindSubmatch(secretsRaw)
 	if m == nil {
 		t.Fatalf("could not find HASURA_GRAPHQL_ADMIN_SECRET in .secrets")
 	}
+
 	adminSecret := string(m[1])
 
 	tomlPath := filepath.Join(projectDir, "nhost", "nhost.toml")
+
 	raw, err := os.ReadFile(tomlPath)
 	if err != nil {
 		t.Fatalf("read nhost.toml: %v", err)
@@ -579,15 +626,18 @@ func patchConfig(t *testing.T, env envConfig, projectDir string) string {
 		if v := os.Getenv("E2E_ENGINE_VERSION"); v != "" {
 			nhost["version"] = v
 		}
+
 		cfg["experimental"] = map[string]any{"nhost": nhost}
 	}
 
 	outBuf := &bytes.Buffer{}
 	enc := toml.NewEncoder(outBuf)
 	enc.SetIndentTables(true)
+
 	if err := enc.Encode(cfg); err != nil {
 		t.Fatalf("marshal nhost.toml: %v", err)
 	}
+
 	if err := os.WriteFile(tomlPath, outBuf.Bytes(), 0o600); err != nil {
 		t.Fatalf("write nhost.toml: %v", err)
 	}
@@ -604,8 +654,10 @@ func setNested(m map[string]any, value any, path ...string) {
 			next = map[string]any{}
 			cur[k] = next
 		}
+
 		cur = next
 	}
+
 	cur[path[len(path)-1]] = value
 }
 
@@ -619,6 +671,7 @@ func truncate(s string, n int) string {
 	if len(s) <= n {
 		return s
 	}
+
 	return s[:n] + "..."
 }
 
@@ -627,5 +680,6 @@ func tail(b []byte, lines int) string {
 	if len(parts) > lines {
 		parts = parts[len(parts)-lines:]
 	}
+
 	return strings.Join(parts, "\n")
 }

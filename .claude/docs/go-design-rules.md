@@ -79,6 +79,12 @@ After every change to Go source files, before reporting work as complete, run fr
 
 Both commands operate on the whole project, not just the files you touched — this catches collateral fallout (import reorganisations, struct-field exhaustiveness, dead code). If either modifies files, re-stage them in the same commit. Treat any remaining `golangci-lint` finding as a blocker: either fix it or justify a targeted `//nolint:<linter>` with a comment.
 
+### Tooling notes
+
+- **Enter the project dev shell first.** `golangci-lint` and `golines` are not on the default `PATH`, and packages that link libvips (storage and anything that compiles it, such as engine) cannot build in a plain shell because `pkg-config` cannot find `vips.pc`. Run checks with, for example, `nix develop .#storage -c bash -lc '...'` or `nix develop .#engine -c bash -lc '...'`. `golangci-lint: not found` or a missing `vips.pc` is **not** a valid reason to skip a mandatory check.
+- **Lint build-tagged packages explicitly.** A package behind a build tag (for example, `//go:build e2e` in `cli/e2e/`) is invisible to `golangci-lint run ./<submodule>/...`, so it can accumulate lint debt silently. Add a project-local `extraCheck` leg in `<project>/project.nix` that runs `golangci-lint run --build-tags <tag> ./<path>/`, and keep an untagged companion file so the directory builds without the tag. See `cli/project.nix` for the working check and `cli/e2e/doc.go` for its companion file.
+- **Mutation-test with an overlay.** To verify that a test pins its claimed invariant, copy the target file to `/tmp`, mutate that copy, write an overlay JSON mapping the absolute repository file path to the mutant, and run `go test -overlay=<json>`. This works inside the Nix dev shell, leaves `git status` untouched, and answers questions such as “would this test fail if the guard were removed?”.
+
 ---
 
 ## Project-specific invariants

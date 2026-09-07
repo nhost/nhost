@@ -283,6 +283,8 @@ Start local development environment.
 | `--storage-port=""` | If specified, expose storage on this port. Not recommended. Default: `0`. |
 | `--user=""` | User to run containers that write into bind mounts as. 'auto' maps them to your uid:gid on Linux with a local rootful docker daemon, 'none' keeps the images' default user, or pass an explicit uid:gid. Default: `"auto"`. Env: `$NHOST_DOCKER_USER`. |
 
+When `[experimental.nhost]` is configured, engine mode rejects either `--auth-port` or `--storage-port` with `auth and storage host ports are not supported in engine mode: the bundled engine mounts services behind path prefixes; use the Traefik URLs`.
+
 </div>
 
 </div>
