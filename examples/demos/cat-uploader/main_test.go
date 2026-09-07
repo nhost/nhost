@@ -8,30 +8,27 @@ import (
 	"testing"
 
 	nhost "github.com/nhost/nhost/packages/nhost-go"
+	"github.com/nhost/nhost/packages/nhost-go/middleware"
 )
 
-func TestLoadConfigRequiresCredentials(t *testing.T) {
+func TestLoadConfigRequiresAdminSecret(t *testing.T) {
 	tests := []struct {
-		name     string
-		email    string
-		password string
-		wantErr  bool
+		name        string
+		adminSecret string
+		wantErr     bool
 	}{
-		{name: "both missing", email: "", password: "", wantErr: true},
-		{name: "email missing", email: "", password: "secret", wantErr: true},
-		{name: "password missing", email: "service@example.com", password: "", wantErr: true},
-		{name: "both set", email: "service@example.com", password: "secret", wantErr: false},
+		{name: "missing", adminSecret: "", wantErr: true},
+		{name: "set", adminSecret: "nhost-admin-secret", wantErr: false},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Setenv("NHOST_EMAIL", tt.email)
-			t.Setenv("NHOST_PASSWORD", tt.password)
+			t.Setenv("NHOST_ADMIN_SECRET", tt.adminSecret)
 
 			cfg, err := loadConfig()
 			if tt.wantErr {
-				if !errors.Is(err, errMissingAuth) {
-					t.Fatalf("loadConfig() error = %v, want %v", err, errMissingAuth)
+				if !errors.Is(err, errMissingAdminSecret) {
+					t.Fatalf("loadConfig() error = %v, want %v", err, errMissingAdminSecret)
 				}
 
 				return
@@ -41,67 +38,51 @@ func TestLoadConfigRequiresCredentials(t *testing.T) {
 				t.Fatalf("loadConfig() unexpected error: %v", err)
 			}
 
-			if cfg.email != tt.email || cfg.password != tt.password {
-				t.Fatalf("loadConfig() credentials = (%q, %q), want (%q, %q)",
-					cfg.email, cfg.password, tt.email, tt.password)
+			if cfg.adminSecret != tt.adminSecret {
+				t.Fatalf("loadConfig() admin secret = %q, want %q",
+					cfg.adminSecret, tt.adminSecret)
 			}
 		})
 	}
 }
 
-func TestEnsureAuthRejectsSignUpWithoutSession(t *testing.T) {
+// TestAdminSecretReachesStorage pins the pattern this example documents: the
+// service authenticates as a trusted backend with the admin secret, never by
+// signing in as a user. AllowInsecureHTTP is required because the Run service
+// reaches storage over plain HTTP inside the Nhost network.
+func TestAdminSecretReachesStorage(t *testing.T) {
 	t.Parallel()
 
-	authService := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
+	const adminSecret = "nhost-admin-secret" //nolint:gosec // Test fixture, not a real credential.
 
-		switch r.URL.Path {
-		case "/v1/signin/email-password":
-			w.WriteHeader(http.StatusUnauthorized)
+	seen := make(chan string, 1)
+	storageService := httptest.NewServer(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			seen <- r.Header.Get("x-hasura-admin-secret")
 
-			if _, err := w.Write([]byte(`{"message":"invalid credentials"}`)); err != nil {
-				t.Errorf("write sign-in response: %v", err)
-			}
-		case "/v1/signup/email-password":
-			if _, err := w.Write([]byte(`{"session":null}`)); err != nil {
-				t.Errorf("write sign-up response: %v", err)
-			}
-		default:
-			http.NotFound(w, r)
-		}
-	}))
-	t.Cleanup(authService.Close)
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{}`))
+		}),
+	)
+	t.Cleanup(storageService.Close)
 
-	client := nhost.New(nhost.Options{
-		Subdomain:    "",
-		Region:       "",
-		AuthURL:      authService.URL + "/v1",
-		StorageURL:   "",
-		GraphQLURL:   "",
-		FunctionsURL: "",
-		Storage:      nil,
-		HTTPClient:   authService.Client(),
-		Configure:    nil,
-	})
-	srv := &server{
-		cfg: config{
-			subdomain:        "",
-			region:           "",
-			authURL:          "",
-			storageURL:       "",
-			email:            "service@example.com",
-			password:         "secret",
-			publicStorageURL: "",
-			cataasURL:        "",
-			port:             "",
+	client := nhost.NewBareClient(nhost.Options{
+		StorageURL: storageService.URL + "/v1",
+		HTTPClient: storageService.Client(),
+		Configure: []nhost.ConfigureFunc{
+			nhost.WithAdminSession(middleware.AdminSessionOptions{
+				AdminSecret:       adminSecret,
+				AllowInsecureHTTP: true,
+			}),
 		},
-		nhost:       client,
-		http:        authService.Client(),
-		uploadSlots: nil,
+	})
+
+	if _, _, err := client.Storage.GetVersion(t.Context(), nil); err != nil {
+		t.Fatalf("storage request: %v", err)
 	}
 
-	if err := srv.ensureAuth(t.Context()); !errors.Is(err, errNoSignUpSession) {
-		t.Fatalf("ensureAuth() error = %v, want %v", err, errNoSignUpSession)
+	if got := <-seen; got != adminSecret {
+		t.Fatalf("x-hasura-admin-secret = %q, want %q", got, adminSecret)
 	}
 }
 
@@ -124,8 +105,7 @@ func TestFetchCatRejectsOversizedImage(t *testing.T) {
 			region:           "",
 			authURL:          "",
 			storageURL:       "",
-			email:            "",
-			password:         "",
+			adminSecret:      "",
 			publicStorageURL: "",
 			cataasURL:        upstream.URL,
 			port:             "",
@@ -152,8 +132,7 @@ func TestHandleUploadRejectsWhenBusy(t *testing.T) {
 			region:           "",
 			authURL:          "",
 			storageURL:       "",
-			email:            "",
-			password:         "",
+			adminSecret:      "",
 			publicStorageURL: "",
 			cataasURL:        "",
 			port:             "",
@@ -167,7 +146,11 @@ func TestHandleUploadRejectsWhenBusy(t *testing.T) {
 	srv.handleUpload(recorder, httptest.NewRequest(http.MethodPost, "/upload", nil))
 
 	if recorder.Code != http.StatusServiceUnavailable {
-		t.Fatalf("handleUpload() status = %d, want %d", recorder.Code, http.StatusServiceUnavailable)
+		t.Fatalf(
+			"handleUpload() status = %d, want %d",
+			recorder.Code,
+			http.StatusServiceUnavailable,
+		)
 	}
 
 	if got := recorder.Header().Get("Retry-After"); got != "1" {

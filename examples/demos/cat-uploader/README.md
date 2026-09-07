@@ -8,13 +8,21 @@ POST /upload?count=N
 ```
 
 1. fetches `N` random cat pictures from [cataas.com](https://cataas.com) (Cat-as-a-Service),
-2. authenticates against **Nhost Auth** (email/password),
-3. uploads the images to **Nhost Storage** using the authenticated session,
-4. returns the resulting file IDs, names and public URLs as JSON.
+2. uploads the images to **Nhost Storage**,
+3. returns the resulting file IDs, names and public URLs as JSON.
 
-It authenticates once at startup, signing the service user up on first run, and
-relies on the SDK's client-side session middleware to attach the bearer token
-and refresh it automatically.
+A Run service is trusted server-side code, so it authenticates with the **admin
+secret** rather than signing in as a user — the same pattern the
+[serverless-function examples](../backend/functions) use. `nhost.WithAdminSession`
+attaches the secret to every storage request, so there is no session to
+establish at startup and no user credentials to provision.
+
+> [!WARNING]
+> The admin secret grants unrestricted access and must never reach a browser or
+> any client outside your backend network. This example also sets
+> `AllowInsecureHTTP`, which is required only because a Run service reaches
+> storage over plain HTTP at `http://storage:5000/v1` inside the Nhost network.
+> Never enable it for a client that leaves that network.
 
 ## Endpoints
 
@@ -32,17 +40,11 @@ and refresh it automatically.
 | `NHOST_AUTH_URL`     | *(unset)*                                  | Override, e.g. `http://auth:4000/v1` in-cluster.  |
 | `NHOST_STORAGE_URL`  | *(unset)*                                  | Override, e.g. `http://storage:5000/v1`.          |
 | `PUBLIC_STORAGE_URL` | `https://local.storage.local.nhost.run/v1` | Only used to build download links in responses.   |
-| `NHOST_EMAIL`        | **required**                               | Service user (created on first run).              |
-| `NHOST_PASSWORD`     | **required**                               | Store this as a secret; never commit its value.   |
+| `NHOST_ADMIN_SECRET` | **required**                               | Store this as a secret; never commit its value.   |
 | `CATAAS_URL`         | `https://cataas.com`                       |                                                   |
 | `PORT`               | `8080`                                     |                                                   |
 
-Startup fails if either credential is missing. If sign-up succeeds without a
-session because email verification is enabled, the service also exits with an
-instruction to verify the service user's email and restart it; it never starts
-an upload endpoint without an authenticated session. That is why
-[`../backend-cats`](../backend-cats) turns verification off — a headless service
-has no browser in the loop to click a verification link.
+Startup fails if `NHOST_ADMIN_SECRET` is missing.
 
 ## Run locally
 
@@ -55,13 +57,12 @@ cd ../backend-cats && ./env-up.sh   # or, from here: make backend-up
 Only one local backend can run at a time, so stop any other one first.
 
 Then run the service directly — with no `*_URL` overrides it uses the public
-`local` URLs. Supply a service-user email and a unique password in your shell:
+`local` URLs. The local backend's admin secret is the one in
+[`../backend-cats/.secrets.example`](../backend-cats/.secrets.example):
 
 ```sh
 cd examples/demos/cat-uploader
-export NHOST_EMAIL='cat-uploader@example.com'
-read -rsp 'Service user password: ' NHOST_PASSWORD && export NHOST_PASSWORD
-printf '\n'
+export NHOST_ADMIN_SECRET='nhost-admin-secret'
 go run .
 
 # in another terminal:
@@ -80,25 +81,14 @@ include the root `go.mod`, `go.sum`, and `vendor/`:
 docker build -f examples/demos/cat-uploader/Dockerfile -t cat-uploader:dev .
 ```
 
-The Run config reads both service-user credentials from Nhost secrets. For
-local development, append unique values to the ignored
-`examples/demos/backend-cats/.secrets` file — the backend also needs the
-secrets in `.secrets.example`, so create it from that template first and
-**append** rather than overwrite, or `nhost up` fails with
-`variable not found: secrets.HASURA_GRAPHQL_ADMIN_SECRET`:
+The Run config reads the admin secret from the backend's Nhost secrets. That
+secret already exists as `HASURA_GRAPHQL_ADMIN_SECRET`, so the only setup step
+is creating `.secrets` from the committed template if you have not already:
 
 ```sh
 cd examples/demos/backend-cats
 [ -f .secrets ] || cp .secrets.example .secrets
-cat >> .secrets <<EOF
-NHOST_EMAIL = 'cat-uploader-run@example.com'
-NHOST_PASSWORD = '$(openssl rand -hex 24)'
-EOF
 ```
-
-This uses a different service user from the local run above, because the first
-run creates the account: reusing that email with a fresh password would fail
-with `sign-in and sign-up both failed`.
 
 Then start the image alongside the stack (from
 `examples/demos/backend-cats`); the service config points
@@ -112,9 +102,9 @@ nhost up --run-service ../cat-uploader/nhost-run-service.toml
 curl -s -X POST 'http://localhost:8080/upload?count=3' | jq
 ```
 
-For a Cloud deployment, set `NHOST_EMAIL` and `NHOST_PASSWORD` in the project's
-**Settings → Secrets** before deploying this Run config. Use an address you can
-verify, or disable email verification before the service user is first created.
+For a Cloud deployment the project's admin secret is already available to Run
+services as `HASURA_GRAPHQL_ADMIN_SECRET`, so this Run config needs no
+additional secrets.
 
 At most two upload requests run concurrently; excess requests receive `503
 Service Unavailable`. Each downloaded image is limited to 2 MiB so the service
