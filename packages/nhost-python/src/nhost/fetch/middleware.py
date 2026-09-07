@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
 import httpx
 from pydantic import ValidationError
 
-from . import ChainFunction, FetchFunction
+from . import FetchFunction, Middleware
 
 if TYPE_CHECKING:
     from ..auth.client import Client as AuthClient
@@ -64,7 +64,7 @@ def _is_loopback_host(host: str) -> bool:
         return False
 
 
-def attach_access_token_middleware(storage: SessionStorage, service_url: str) -> ChainFunction:
+def attach_access_token_middleware(storage: SessionStorage, service_url: str) -> Middleware:
     """Attach the stored access token only within the configured service origin.
 
     Should run after the refresh middleware so the freshest token is used. A
@@ -100,7 +100,7 @@ def session_refresh_middleware(
     auth: AuthClient,
     storage: SessionStorage,
     margin_seconds: int = _DEFAULT_MARGIN_SECONDS,
-) -> ChainFunction:
+) -> Middleware:
     """Refresh the session before a request when the token is near expiry.
 
     Skips requests that already carry an ``Authorization`` header and the token
@@ -146,9 +146,7 @@ def _extract_session(body: object) -> Session | None:
         return None
 
 
-def update_session_from_response_middleware(
-    storage: SessionStorage, auth_url: str
-) -> ChainFunction:
+def update_session_from_response_middleware(storage: SessionStorage, auth_url: str) -> Middleware:
     """Persist session data returned by auth endpoints, and clear it on sign-out.
 
     Handles ``/signout`` (remove), a successful ``/user/password`` change
@@ -196,7 +194,7 @@ def update_session_from_response_middleware(
     return chain
 
 
-def with_role_middleware(role: str) -> ChainFunction:
+def with_role_middleware(role: str) -> Middleware:
     """Set ``x-hasura-role`` on requests that don't already specify it."""
 
     def chain(next_fetch: FetchFunction) -> FetchFunction:
@@ -210,7 +208,7 @@ def with_role_middleware(role: str) -> ChainFunction:
     return chain
 
 
-def with_headers_middleware(default_headers: Mapping[str, str]) -> ChainFunction:
+def with_headers_middleware(default_headers: Mapping[str, str]) -> Middleware:
     """Attach default headers, preserving any request-specific values."""
 
     def chain(next_fetch: FetchFunction) -> FetchFunction:
@@ -239,7 +237,7 @@ class AdminSessionOptions:
     allow_insecure_http: bool = False
 
 
-def with_admin_session_middleware(options: AdminSessionOptions, service_url: str) -> ChainFunction:
+def with_admin_session_middleware(options: AdminSessionOptions, service_url: str) -> Middleware:
     """Attach admin headers only within the configured secure service origin."""
     scope = _RequestScope.from_base_url(service_url)
 

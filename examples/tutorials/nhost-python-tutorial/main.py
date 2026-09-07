@@ -86,14 +86,14 @@ async def cmd_signup(nhost: NhostClient, email: str, password: str) -> None:
     await nhost.auth.sign_up_email_password(
         body=SignUpEmailPasswordRequest(email=email, password=password)
     )
-    if await nhost.get_user_session() is not None:
+    if await nhost.get_session() is not None:
         print("signed up and logged in as", email)
     else:
         print("signed up; verify your email, then `login`")
 
 
 async def cmd_logout(nhost: NhostClient) -> None:
-    session = await nhost.get_user_session()
+    session = await nhost.get_session()
     if session is not None:
         with suppress(NhostError):
             await nhost.auth.sign_out(body=SignOutRequest(refresh_token=session.refresh_token))
@@ -102,7 +102,7 @@ async def cmd_logout(nhost: NhostClient) -> None:
 
 
 async def cmd_whoami(nhost: NhostClient) -> None:
-    session = await nhost.get_user_session()
+    session = await nhost.get_session()
     if session is None or session.user is None:
         raise SystemExit("not logged in")
     print(f"{session.user.email} ({session.user.id})")

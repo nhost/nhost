@@ -8,12 +8,12 @@ from typing import Any
 import httpx
 
 from ..fetch import (
-    ChainFunction,
     FetchResponse,
     HTTPError,
+    Middleware,
     NhostError,
     ResponseDecodeError,
-    create_enhanced_fetch,
+    create_fetch_pipeline,
     to_jsonable,
 )
 
@@ -70,14 +70,14 @@ class Client:
         self,
         base_url: str,
         *,
-        middleware: Sequence[ChainFunction] = (),
+        middleware: Sequence[Middleware] = (),
         http_client: httpx.AsyncClient | None = None,
     ) -> None:
         self.base_url = base_url
         self._middleware = list(middleware)
         self._owns_http_client = http_client is None
         self._http = http_client if http_client is not None else httpx.AsyncClient()
-        self._fetch = create_enhanced_fetch(self._http, self._middleware)
+        self._fetch = create_fetch_pipeline(self._http, self._middleware)
 
     async def __aenter__(self) -> Client:
         return self
@@ -90,10 +90,10 @@ class Client:
         if self._owns_http_client:
             await self._http.aclose()
 
-    def add_middleware(self, middleware: ChainFunction) -> None:
+    def add_middleware(self, middleware: Middleware) -> None:
         """Append HTTP middleware and rebuild the request pipeline."""
         self._middleware.append(middleware)
-        self._fetch = create_enhanced_fetch(self._http, self._middleware)
+        self._fetch = create_fetch_pipeline(self._http, self._middleware)
 
     async def fetch(
         self,
@@ -162,13 +162,3 @@ class Client:
         request_headers = httpx.Headers(headers)
         request_headers.setdefault("Accept", "application/json")
         return await self.fetch(path, method="POST", headers=request_headers, json=json)
-
-
-def create_api_client(
-    base_url: str,
-    *,
-    middleware: Sequence[ChainFunction] = (),
-    http_client: httpx.AsyncClient | None = None,
-) -> Client:
-    """Create a standalone Functions client."""
-    return Client(base_url, middleware=middleware, http_client=http_client)

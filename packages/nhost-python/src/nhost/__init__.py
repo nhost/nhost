@@ -25,9 +25,9 @@ from importlib.metadata import PackageNotFoundError, version
 from .auth import AuthClient
 from .fetch import (
     AdminSessionOptions,
-    ChainFunction,
     FetchResponse,
     HTTPError,
+    Middleware,
     NhostError,
     ResponseDecodeError,
     UploadFile,
@@ -42,8 +42,8 @@ from .nhost import (
     create_server_client,
     generate_service_url,
     with_admin_session,
-    with_chain_functions,
     with_client_side_session_middleware,
+    with_middleware,
     with_server_side_session_middleware,
 )
 from .session import (
@@ -65,7 +65,7 @@ except PackageNotFoundError:  # Running directly from an unpackaged source tree.
 __all__ = [
     "AdminSessionOptions",
     "AuthClient",
-    "ChainFunction",
+    "Middleware",
     "ClientConfiguration",
     "ConfigureContext",
     "DecodedToken",
@@ -89,7 +89,7 @@ __all__ = [
     "create_server_client",
     "generate_service_url",
     "with_admin_session",
-    "with_chain_functions",
+    "with_middleware",
     "with_client_side_session_middleware",
     "with_server_side_session_middleware",
 ]

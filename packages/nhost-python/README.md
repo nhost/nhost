@@ -67,7 +67,7 @@ response = await nhost.auth.sign_up_email_password(
         password=str(uuid.uuid4()),
     )
 )
-session = await nhost.get_user_session()
+session = await nhost.get_session()
 ```
 
 The high-level Auth facade adds stable conveniences such as
