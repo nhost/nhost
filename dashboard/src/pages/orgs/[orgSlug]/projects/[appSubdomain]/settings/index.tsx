@@ -22,11 +22,11 @@ import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { RemoveApplicationModal } from '@/features/orgs/projects/common/components/RemoveApplicationModal';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
-import { useCanPauseApplication } from '@/features/orgs/projects/common/hooks/useCanPauseApplication';
-import { useCanUnpauseApplication } from '@/features/orgs/projects/common/hooks/useCanUnpauseApplication';
 import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/useIsCurrentUserOwner';
+import { useIsPauseDisabled } from '@/features/orgs/projects/common/hooks/useIsPauseDisabled';
 import { useIsPausing } from '@/features/orgs/projects/common/hooks/useIsPausing';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useIsUnpauseDisabled } from '@/features/orgs/projects/common/hooks/useIsUnpauseDisabled';
 import { useIsUnpausing } from '@/features/orgs/projects/common/hooks/useIsUnpausing';
 import { usePauseApplication } from '@/features/orgs/projects/common/hooks/usePauseApplication';
 import { useRunServices } from '@/features/orgs/projects/common/hooks/useRunServices';
@@ -83,8 +83,8 @@ export default function SettingsGeneralPage() {
   const [deleteApplication] = useBillingDeleteAppMutation();
   const { onPause, loading: pauseLoading } = usePauseApplication();
   const { onUnpause, loading: unpauseLoading } = useUnpauseApplication();
-  const canPause = useCanPauseApplication();
-  const canUnpause = useCanUnpauseApplication();
+  const isPauseDisabled = useIsPauseDisabled();
+  const isUnpauseDisabled = useIsUnpauseDisabled();
   const isPausing = useIsPausing();
   const isUnpausing = useIsUnpausing();
 
@@ -171,9 +171,6 @@ export default function SettingsGeneralPage() {
   const showWakeUpCard =
     state === ApplicationStatus.Paused || state === ApplicationStatus.Unpausing;
 
-  const pauseDisabled = !isPlatform || !canPause;
-  const wakeUpDisabled = !isPlatform || !canUnpause;
-
   if (loading) {
     return <LoadingScreen />;
   }
@@ -221,7 +218,7 @@ export default function SettingsGeneralPage() {
           <SettingsCardFooter>
             <ButtonWithLoading
               type="button"
-              disabled={wakeUpDisabled}
+              disabled={isUnpauseDisabled}
               loading={unpauseLoading || isUnpausing}
               onClick={onUnpause}
               className="w-full sm:w-auto"
@@ -242,7 +239,7 @@ export default function SettingsGeneralPage() {
           <SettingsCardFooter>
             <ButtonWithLoading
               type="button"
-              disabled={pauseDisabled}
+              disabled={isPauseDisabled}
               loading={pauseLoading || isPausing}
               onClick={() => {
                 openAlertDialog({

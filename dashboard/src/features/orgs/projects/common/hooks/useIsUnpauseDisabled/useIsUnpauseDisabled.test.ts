@@ -1,14 +1,19 @@
 import { vi } from 'vitest';
+import { useIsUnpauseDisabled } from '@/features/orgs/projects/common/hooks/useIsUnpauseDisabled';
 import { renderHook } from '@/tests/testUtils';
 import { ApplicationStatus } from '@/types/application';
-import useCanUnpauseApplication from './useCanUnpauseApplication';
 
 const mocks = vi.hoisted(() => ({
   useAppState: vi.fn(),
+  isPlatform: vi.fn(() => true),
 }));
 
 vi.mock('@/features/orgs/projects/common/hooks/useAppState', () => ({
   useAppState: mocks.useAppState,
+}));
+
+vi.mock('@/features/orgs/projects/common/hooks/useIsPlatform', () => ({
+  useIsPlatform: mocks.isPlatform,
 }));
 
 const project = {
@@ -17,7 +22,7 @@ const project = {
   subdomain: 'test-project',
 };
 
-function renderCanUnpause(
+function renderIsUnpauseDisabled(
   state: ApplicationStatus,
   desiredState: ApplicationStatus,
   currentProject: typeof project | null = project,
@@ -28,15 +33,21 @@ function renderCanUnpause(
     project: currentProject,
   });
 
-  return renderHook(() => useCanUnpauseApplication()).result.current;
+  return renderHook(() => useIsUnpauseDisabled()).result.current;
 }
 
-describe('useCanUnpauseApplication', () => {
+describe('useIsUnpauseDisabled', () => {
+  beforeEach(() => {
+    mocks.isPlatform.mockReturnValue(true);
+  });
+
   it.each([
     { label: 'Paused -> Paused', desiredState: ApplicationStatus.Paused },
     { label: 'Paused -> Migrating', desiredState: ApplicationStatus.Migrating },
-  ])('allows unpausing for $label', ({ desiredState }) => {
-    expect(renderCanUnpause(ApplicationStatus.Paused, desiredState)).toBe(true);
+  ])('keeps the unpause action enabled for $label', ({ desiredState }) => {
+    expect(
+      renderIsUnpauseDisabled(ApplicationStatus.Paused, desiredState),
+    ).toBe(false);
   });
 
   it.each([
@@ -65,17 +76,28 @@ describe('useCanUnpauseApplication', () => {
       state: ApplicationStatus.Errored,
       desiredState: ApplicationStatus.Live,
     },
-  ])('blocks unpausing for $label', ({ state, desiredState }) => {
-    expect(renderCanUnpause(state, desiredState)).toBe(false);
+  ])('disables the unpause action for $label', ({ state, desiredState }) => {
+    expect(renderIsUnpauseDisabled(state, desiredState)).toBe(true);
   });
 
-  it('blocks unpausing when the project is missing', () => {
+  it('disables the unpause action when the project is missing', () => {
     expect(
-      renderCanUnpause(
+      renderIsUnpauseDisabled(
         ApplicationStatus.Paused,
         ApplicationStatus.Paused,
         null,
       ),
-    ).toBe(false);
+    ).toBe(true);
+  });
+
+  it('disables the unpause action outside the platform', () => {
+    mocks.isPlatform.mockReturnValue(false);
+
+    expect(
+      renderIsUnpauseDisabled(
+        ApplicationStatus.Paused,
+        ApplicationStatus.Paused,
+      ),
+    ).toBe(true);
   });
 });

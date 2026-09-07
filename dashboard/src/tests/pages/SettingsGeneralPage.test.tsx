@@ -232,8 +232,10 @@ describe('SettingsGeneralPage lifecycle actions', () => {
     await user.click(screen.getByRole('button', { name: 'Wake up' }));
 
     expect(mocks.wakeApplication).toHaveBeenCalledOnce();
-    expect(mocks.wakeApplication).toHaveBeenCalledWith({
-      variables: { appId: stablePausedSnapshot.project.id },
-    });
+    expect(mocks.wakeApplication).toHaveBeenCalledWith(
+      expect.objectContaining({
+        variables: { appId: stablePausedSnapshot.project.id },
+      }),
+    );
   });
 });

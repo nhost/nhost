@@ -1,14 +1,19 @@
 import { vi } from 'vitest';
+import { useIsPauseDisabled } from '@/features/orgs/projects/common/hooks/useIsPauseDisabled';
 import { renderHook } from '@/tests/testUtils';
 import { ApplicationStatus } from '@/types/application';
-import useCanPauseApplication from './useCanPauseApplication';
 
 const mocks = vi.hoisted(() => ({
   useAppState: vi.fn(),
+  isPlatform: vi.fn(() => true),
 }));
 
 vi.mock('@/features/orgs/projects/common/hooks/useAppState', () => ({
   useAppState: mocks.useAppState,
+}));
+
+vi.mock('@/features/orgs/projects/common/hooks/useIsPlatform', () => ({
+  useIsPlatform: mocks.isPlatform,
 }));
 
 const project = {
@@ -17,7 +22,7 @@ const project = {
   subdomain: 'test-project',
 };
 
-function renderCanPause(
+function renderIsPauseDisabled(
   state: ApplicationStatus,
   desiredState: ApplicationStatus,
   currentProject: typeof project | null = project,
@@ -28,10 +33,14 @@ function renderCanPause(
     project: currentProject,
   });
 
-  return renderHook(() => useCanPauseApplication()).result.current;
+  return renderHook(() => useIsPauseDisabled()).result.current;
 }
 
-describe('useCanPauseApplication', () => {
+describe('useIsPauseDisabled', () => {
+  beforeEach(() => {
+    mocks.isPlatform.mockReturnValue(true);
+  });
+
   it.each([
     {
       label: 'Live -> Live',
@@ -68,8 +77,8 @@ describe('useCanPauseApplication', () => {
       state: ApplicationStatus.Restoring,
       desiredState: ApplicationStatus.Paused,
     },
-  ])('allows pausing for $label', ({ state, desiredState }) => {
-    expect(renderCanPause(state, desiredState)).toBe(true);
+  ])('keeps the pause action enabled for $label', ({ state, desiredState }) => {
+    expect(renderIsPauseDisabled(state, desiredState)).toBe(false);
   });
 
   it.each([
@@ -93,26 +102,41 @@ describe('useCanPauseApplication', () => {
       state: ApplicationStatus.Unpausing,
       desiredState: ApplicationStatus.Live,
     },
-  ])('blocks pausing for $label', ({ state, desiredState }) => {
-    expect(renderCanPause(state, desiredState)).toBe(false);
+  ])('disables the pause action for $label', ({ state, desiredState }) => {
+    expect(renderIsPauseDisabled(state, desiredState)).toBe(true);
   });
 
-  it('blocks pausing when the project is missing', () => {
+  it('disables the pause action when the project is missing', () => {
     expect(
-      renderCanPause(ApplicationStatus.Live, ApplicationStatus.Live, null),
-    ).toBe(false);
+      renderIsPauseDisabled(
+        ApplicationStatus.Live,
+        ApplicationStatus.Live,
+        null,
+      ),
+    ).toBe(true);
   });
 
-  it('keeps allowing pause clicks on an errored project once a pause request has been submitted', () => {
+  it('disables the pause action outside the platform', () => {
+    mocks.isPlatform.mockReturnValue(false);
+
+    expect(
+      renderIsPauseDisabled(
+        ApplicationStatus.Live,
+        ApplicationStatus.Live,
+      ),
+    ).toBe(true);
+  });
+
+  it('keeps the pause action enabled on an errored project once a pause request has been submitted', () => {
     mocks.useAppState.mockReturnValue({
       state: ApplicationStatus.Errored,
       desiredState: ApplicationStatus.Live,
       project,
     });
 
-    const { result, rerender } = renderHook(() => useCanPauseApplication());
+    const { result, rerender } = renderHook(() => useIsPauseDisabled());
 
-    expect(result.current).toBe(true);
+    expect(result.current).toBe(false);
 
     mocks.useAppState.mockReturnValue({
       state: ApplicationStatus.Errored,
@@ -121,6 +145,6 @@ describe('useCanPauseApplication', () => {
     });
     rerender();
 
-    expect(result.current).toBe(true);
+    expect(result.current).toBe(false);
   });
 });
