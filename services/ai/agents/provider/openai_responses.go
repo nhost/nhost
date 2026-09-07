@@ -393,7 +393,9 @@ func handleOpenAIResponsesEvent(
 
 		return false
 	case "response.incomplete":
-		clear(state.toolCalls)
+		if !terminateOpenAIResponsesToolCalls(ctx, ch, state) {
+			return false
+		}
 
 		stopReason := mapOpenAIResponsesIncompleteReason(
 			event.Response.IncompleteDetails.Reason,
@@ -535,6 +537,24 @@ func sendOpenAIResponsesToolEvent(
 	toolCall := state.toolCall
 
 	return send(ctx, ch, NewToolEvent(eventType, &toolCall))
+}
+
+func terminateOpenAIResponsesToolCalls(
+	ctx context.Context,
+	ch chan<- Event,
+	state *openAIResponsesStreamState,
+) bool {
+	for _, outputIndex := range slices.Sorted(maps.Keys(state.toolCalls)) {
+		toolCallState := state.toolCalls[outputIndex]
+		if toolCallState.started &&
+			!sendOpenAIResponsesToolEvent(ctx, ch, EventToolUseDone, toolCallState) {
+			return false
+		}
+
+		delete(state.toolCalls, outputIndex)
+	}
+
+	return true
 }
 
 func flushOpenAIResponsesToolCalls(
