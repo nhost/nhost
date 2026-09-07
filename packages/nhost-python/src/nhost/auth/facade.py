@@ -4,16 +4,12 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from ..fetch import ChainFunction, FetchResponse
+from ..fetch import FetchResponse
 from .client import Client, JWKSet, OAuth2DiscoveryResponse, TotpGenerateResponse
 
 
 class AuthClient(Client):
     """Generated Auth API plus stable, idiomatically named conveniences."""
-
-    def add_middleware(self, middleware: ChainFunction) -> None:
-        """Append HTTP middleware to the Auth request pipeline."""
-        self.push_chain_function(middleware)
 
     async def get_jwks(self, *, headers: Mapping[str, str] | None = None) -> FetchResponse[JWKSet]:
         """Return the JSON Web Key Set used to verify access tokens."""

@@ -48,7 +48,7 @@ from nhost import (
     create_server_client,
     generate_service_url,
     with_admin_session,
-    with_chain_functions,
+    with_middleware,
 )
 from nhost.auth import (
     Client as AuthClient,
@@ -63,7 +63,6 @@ from nhost.auth import (
     SignUpProviderParams,
     User,
     VerifyTicketParams,
-    create_api_client,
     generate_code_challenge,
     generate_code_verifier,
     generate_pkce_pair,
@@ -73,7 +72,7 @@ from nhost.fetch import (
     FetchFunction,
     NhostError,
     ResponseDecodeError,
-    create_enhanced_fetch,
+    create_fetch_pipeline,
     to_jsonable,
 )
 from nhost.fetch.middleware import (
@@ -408,7 +407,7 @@ async def test_signup_response_is_captured_into_session_storage() -> None:
         await nhost.auth.sign_up_email_password(
             body=SignUpEmailPasswordRequest(email="ada@example.com", password="secret-pw")
         )
-        stored = await nhost.get_user_session()
+        stored = await nhost.get_session()
 
     assert stored is not None
     assert stored.access_token == token
@@ -477,7 +476,7 @@ async def test_admin_session_respects_origin_and_transport_security(
         allow_insecure_http=allow_insecure_http,
     )
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
-        fetch = create_enhanced_fetch(http, [with_admin_session_middleware(options, service_url)])
+        fetch = create_fetch_pipeline(http, [with_admin_session_middleware(options, service_url)])
         with caplog.at_level(logging.WARNING, logger="nhost.fetch"):
             await fetch(http.build_request("POST", request_url))
 
@@ -511,7 +510,7 @@ async def test_enhanced_fetch_disables_caller_redirect_following() -> None:
     async with httpx.AsyncClient(
         transport=httpx.MockTransport(handler), follow_redirects=True
     ) as http:
-        fetch = create_enhanced_fetch(http)
+        fetch = create_fetch_pipeline(http)
         response = await fetch(
             http.build_request(
                 "POST",
@@ -666,7 +665,7 @@ async def test_access_token_is_withheld_after_custom_middleware_changes_origin()
             graphql_url="https://graphql.example/v1",
             session_storage=backend,
             http_client=http,
-            configure=[with_chain_functions([rewrite_origin])],
+            configure=[with_middleware([rewrite_origin])],
         )
         await _seed_session(nhost.session_storage)
         await nhost.graphql.request("query { __typename }")
@@ -708,7 +707,7 @@ async def test_role_middleware_preserves_request_value() -> None:
         return httpx.Response(200, json={})
 
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
-        fetch = create_enhanced_fetch(http, [with_role_middleware("default-role")])
+        fetch = create_fetch_pipeline(http, [with_role_middleware("default-role")])
         await fetch(http.build_request("GET", "https://graphql.example/v1"))
         await fetch(
             http.build_request(
@@ -729,7 +728,7 @@ async def test_headers_middleware_preserves_request_value() -> None:
         return httpx.Response(200, json={})
 
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
-        fetch = create_enhanced_fetch(
+        fetch = create_fetch_pipeline(
             http, [with_headers_middleware({"x-client-name": "default-client"})]
         )
         await fetch(http.build_request("GET", "https://graphql.example/v1"))
@@ -1183,16 +1182,17 @@ async def test_storage_multipart_upload_wire_shape() -> None:
 async def test_automatic_refresh_bypasses_user_auth_middleware_chain() -> None:
     transport_requests: list[tuple[str, str]] = []
     middleware_requests: list[tuple[str, str]] = []
-    notifications: list[str | None] = []
     refreshed_access_token = make_jwt()
 
     class CountingMemoryStorage(MemoryStorage):
         def __init__(self) -> None:
             super().__init__()
             self.set_calls = 0
+            self.tokens: list[str] = []
 
         async def set(self, value: StoredSession) -> None:
             self.set_calls += 1
+            self.tokens.append(value.access_token)
             await super().set(value)
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -1215,13 +1215,11 @@ async def test_automatic_refresh_bypasses_user_auth_middleware_chain() -> None:
             graphql_url="https://graphql.example/v1",
             session_storage=backend,
             http_client=http,
-            configure=[with_chain_functions([observe_requests])],
+            configure=[with_middleware([observe_requests])],
         )
         await _seed_session(nhost.session_storage, exp_offset_seconds=-10)
         backend.set_calls = 0
-        nhost.session_storage.on_change(
-            lambda session: notifications.append(session.access_token if session else None)
-        )
+        backend.tokens.clear()
         await nhost.graphql.request("query { __typename }")
 
     assert transport_requests == [
@@ -1230,22 +1228,23 @@ async def test_automatic_refresh_bypasses_user_auth_middleware_chain() -> None:
     ]
     assert middleware_requests == [("POST", "https://graphql.example/v1")]
     assert backend.set_calls == 1
-    assert notifications == [refreshed_access_token]
+    assert backend.tokens == [refreshed_access_token]
 
 
 async def test_explicit_refresh_bypasses_user_auth_middleware_chain() -> None:
     transport_requests: list[tuple[str, str]] = []
     middleware_requests: list[tuple[str, str]] = []
-    notifications: list[str | None] = []
     refreshed_access_token = make_jwt()
 
     class CountingMemoryStorage(MemoryStorage):
         def __init__(self) -> None:
             super().__init__()
             self.set_calls = 0
+            self.tokens: list[str] = []
 
         async def set(self, value: StoredSession) -> None:
             self.set_calls += 1
+            self.tokens.append(value.access_token)
             await super().set(value)
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -1265,19 +1264,17 @@ async def test_explicit_refresh_bypasses_user_auth_middleware_chain() -> None:
             auth_url="https://auth.example/v1",
             session_storage=backend,
             http_client=http,
-            configure=[with_chain_functions([observe_requests])],
+            configure=[with_middleware([observe_requests])],
         )
         await _seed_session(nhost.session_storage, exp_offset_seconds=-10)
         backend.set_calls = 0
-        nhost.session_storage.on_change(
-            lambda session: notifications.append(session.access_token if session else None)
-        )
+        backend.tokens.clear()
         await nhost.refresh_session(margin_seconds=0)
 
     assert transport_requests == [("POST", "https://auth.example/v1/token")]
     assert middleware_requests == []
     assert backend.set_calls == 1
-    assert notifications == [refreshed_access_token]
+    assert backend.tokens == [refreshed_access_token]
 
 
 async def test_no_refresh_when_token_is_fresh() -> None:
@@ -1331,7 +1328,7 @@ async def test_expired_token_triggers_refresh_and_updates_storage() -> None:
 
         # An expired token must trigger a /token refresh and update storage.
         assert any(path.endswith("/token") for path in calls)
-        stored = await nhost.get_user_session()
+        stored = await nhost.get_session()
         assert stored is not None
         assert stored.access_token == new_token
 
@@ -1358,7 +1355,7 @@ async def test_refresh_401_clears_session() -> None:
         await nhost.graphql.request("query { __typename }")
 
         # A 401 from the refresh endpoint must clear the stored session.
-        assert await nhost.get_user_session() is None
+        assert await nhost.get_session() is None
 
 
 async def _seed_session(
@@ -1521,8 +1518,8 @@ async def test_refresh_middleware_propagates_unexpected_failures(
     monkeypatch.setattr(refresh_module, "refresh_session", fail_refresh)
     storage = SessionStorage(MemoryStorage())
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
-        auth = create_api_client("https://auth.example/v1", http_client=http)
-        fetch = create_enhanced_fetch(http, [session_refresh_middleware(auth, storage)])
+        auth = AuthClient("https://auth.example/v1", http_client=http)
+        fetch = create_fetch_pipeline(http, [session_refresh_middleware(auth, storage)])
         request = http.build_request("GET", "https://graphql.example/v1")
         with pytest.raises(RuntimeError, match="unexpected refresh invariant failure"):
             await fetch(request)
@@ -1755,98 +1752,6 @@ def test_session_storage_rejects_non_weak_referenceable_backend_at_construction(
         SessionStorage(SlottedBackend())  # type: ignore[arg-type]
 
 
-async def test_session_storage_snapshot_allows_self_unsubscribe() -> None:
-    storage = SessionStorage(MemoryStorage())
-    notifications: list[tuple[str, bool]] = []
-    unsubscribe_first: Callable[[], None]
-
-    def first(session: StoredSession | None) -> None:
-        notifications.append(("first", session is None))
-        unsubscribe_first()
-
-    def second(session: StoredSession | None) -> None:
-        notifications.append(("second", session is None))
-
-    unsubscribe_first = storage.on_change(first)
-    storage.on_change(second)
-
-    await _seed_session(storage)
-    await storage.remove()
-
-    assert notifications == [("first", False), ("second", False), ("second", True)]
-
-
-async def test_session_storage_duplicate_subscriptions_unsubscribe_independently() -> None:
-    storage = SessionStorage(MemoryStorage())
-    notifications: list[StoredSession | None] = []
-
-    def subscriber(session: StoredSession | None) -> None:
-        notifications.append(session)
-
-    unsubscribe_first = storage.on_change(subscriber)
-    unsubscribe_second = storage.on_change(subscriber)
-
-    stored = await _seed_session(storage)
-    assert notifications == [stored, stored]
-
-    unsubscribe_first()
-    unsubscribe_first()
-    await storage.remove()
-    assert notifications == [stored, stored, None]
-
-    unsubscribe_second()
-    await _seed_session(storage)
-    assert notifications == [stored, stored, None]
-
-
-async def test_session_storage_notifications_allow_reentrant_set_and_remove() -> None:
-    storage = SessionStorage(MemoryStorage())
-    replacement = Session(
-        access_token=make_jwt(),
-        access_token_expires_in=3600,
-        refresh_token="replacement-refresh",
-        refresh_token_id="replacement-id",
-        user=None,
-    )
-    notifications: list[tuple[str, str | None]] = []
-    reentry_count = 0
-
-    async def reentrant(session: StoredSession | None) -> None:
-        nonlocal reentry_count
-        notifications.append(("reentrant", None if session is None else session.refresh_token))
-        if reentry_count == 0:
-            reentry_count += 1
-            await storage.set(replacement)
-        elif reentry_count == 1:
-            reentry_count += 1
-            await storage.remove()
-
-    def observer(session: StoredSession | None) -> None:
-        notifications.append(("observer", None if session is None else session.refresh_token))
-
-    storage.on_change(reentrant)
-    storage.on_change(observer)
-    await storage.set(
-        Session(
-            access_token=make_jwt(),
-            access_token_expires_in=3600,
-            refresh_token="original-refresh",
-            refresh_token_id="original-id",
-            user=None,
-        )
-    )
-
-    assert notifications == [
-        ("reentrant", "original-refresh"),
-        ("reentrant", "replacement-refresh"),
-        ("reentrant", None),
-        ("observer", None),
-        ("observer", "replacement-refresh"),
-        ("observer", "original-refresh"),
-    ]
-    assert await storage.get() is None
-
-
 async def test_session_storage_rederives_forged_decoded_token() -> None:
     storage = SessionStorage(MemoryStorage())
     original = _stored_session("refresh-token")
@@ -2039,7 +1944,7 @@ async def test_trailing_slash_auth_url_stores_session_without_double_slash() -> 
         await nhost.auth.sign_in_email_password(
             body=SignInEmailPasswordRequest(email="ada@example.com", password="secret")
         )
-        stored = await nhost.get_user_session()
+        stored = await nhost.get_session()
 
     assert paths == ["/v1/signin/email-password"]
     assert stored is not None
@@ -2059,7 +1964,7 @@ async def test_session_response_ignores_functions_origin(path: str) -> None:
     session_storage = SessionStorage(MemoryStorage())
     original = await _seed_session(session_storage)
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
-        fetch = create_enhanced_fetch(
+        fetch = create_fetch_pipeline(
             http,
             [update_session_from_response_middleware(session_storage, "https://auth.example/v1")],
         )
@@ -2087,7 +1992,7 @@ async def test_session_response_handles_auth_origin(path: str, stores_session: b
     session_storage = SessionStorage(MemoryStorage())
     await _seed_session(session_storage)
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
-        fetch = create_enhanced_fetch(
+        fetch = create_fetch_pipeline(
             http,
             [update_session_from_response_middleware(session_storage, "HTTPS://AUTH.EXAMPLE/v1")],
         )
@@ -2116,7 +2021,7 @@ async def test_session_response_ignores_nested_non_auth_path(path: str) -> None:
     session_storage = SessionStorage(MemoryStorage())
     original = await _seed_session(session_storage)
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
-        fetch = create_enhanced_fetch(
+        fetch = create_fetch_pipeline(
             http,
             [update_session_from_response_middleware(session_storage, "https://host.example/v1")],
         )
@@ -2134,7 +2039,7 @@ async def test_session_response_ignores_scheme_mismatch() -> None:
     session_storage = SessionStorage(MemoryStorage())
     original = await _seed_session(session_storage)
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
-        fetch = create_enhanced_fetch(
+        fetch = create_fetch_pipeline(
             http,
             [update_session_from_response_middleware(session_storage, "https://auth.example/v1")],
         )
@@ -2150,7 +2055,7 @@ async def test_failed_password_change_keeps_session() -> None:
     session_storage = SessionStorage(MemoryStorage())
     original = await _seed_session(session_storage)
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
-        fetch = create_enhanced_fetch(
+        fetch = create_fetch_pipeline(
             http,
             [update_session_from_response_middleware(session_storage, "https://auth.example/v1")],
         )
@@ -2168,7 +2073,7 @@ async def test_unsuccessful_auth_response_does_not_update_session() -> None:
     session_storage = SessionStorage(MemoryStorage())
     original = await _seed_session(session_storage)
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
-        fetch = create_enhanced_fetch(
+        fetch = create_fetch_pipeline(
             http,
             [
                 update_session_from_response_middleware(
@@ -2257,12 +2162,10 @@ async def test_reentrant_refresh_returns_without_deadlock() -> None:
     session_storage = SessionStorage(MemoryStorage())
     await _seed_session(session_storage, exp_offset_seconds=-10)
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
-        differently_scoped_auth = create_api_client(
-            "https://different.example/v1", http_client=http
-        )
-        reentrant_auth = create_api_client(
+        differently_scoped_auth = AuthClient("https://different.example/v1", http_client=http)
+        reentrant_auth = AuthClient(
             "https://auth.example/v1/auth",
-            chain_functions=[session_refresh_middleware(differently_scoped_auth, session_storage)],
+            middleware=[session_refresh_middleware(differently_scoped_auth, session_storage)],
             http_client=http,
         )
         result = await asyncio.wait_for(refresh_session(reentrant_auth, session_storage), timeout=1)
@@ -2282,7 +2185,7 @@ async def test_expired_reentrant_refresh_returns_none() -> None:
     session_storage = SessionStorage(MemoryStorage())
     await _seed_session(session_storage, exp_offset_seconds=-10)
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
-        bare_auth = create_api_client("https://bare-auth.example/v1", http_client=http)
+        bare_auth = AuthClient("https://bare-auth.example/v1", http_client=http)
 
         def reenter(next_fetch: FetchFunction) -> FetchFunction:
             async def fetch(request: httpx.Request) -> httpx.Response:
@@ -2291,8 +2194,8 @@ async def test_expired_reentrant_refresh_returns_none() -> None:
 
             return fetch
 
-        reentrant_auth = create_api_client(
-            "https://auth.example/v1", chain_functions=[reenter], http_client=http
+        reentrant_auth = AuthClient(
+            "https://auth.example/v1", middleware=[reenter], http_client=http
         )
         refreshed = await refresh_session(reentrant_auth, session_storage)
 
@@ -2421,7 +2324,7 @@ async def test_session_storage_rederives_tampered_file_claims(tmp_path: Path) ->
         return httpx.Response(200, content=raw_session_bytes(refreshed_access_token))
 
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
-        auth = create_api_client("https://auth.example/v1", http_client=http)
+        auth = AuthClient("https://auth.example/v1", http_client=http)
         refreshed = await refresh_session(auth, storage)
 
     assert token_calls == 1
@@ -2539,13 +2442,13 @@ async def test_server_client_captures_auth_session() -> None:
         await nhost.auth.sign_in_email_password(
             body=SignInEmailPasswordRequest(email="ada@example.com", password="secret-pw")
         )
-        stored = await nhost.get_user_session()
+        stored = await nhost.get_session()
 
     assert stored is not None
     assert stored.access_token == token
 
 
-async def test_with_chain_functions_applies_to_every_service_client() -> None:
+async def test_with_middleware_applies_to_every_service_client() -> None:
     middleware_hosts: list[str] = []
 
     def observe(next_fetch: FetchFunction) -> FetchFunction:
@@ -2571,7 +2474,7 @@ async def test_with_chain_functions_applies_to_every_service_client() -> None:
             graphql_url="https://graphql.example/v1",
             functions_url="https://functions.example/v1",
             http_client=http,
-            configure=[with_chain_functions([observe])],
+            configure=[with_middleware([observe])],
         )
         await nhost.auth.get_jwks()
         await nhost.storage.delete_file("file-id")
@@ -2700,7 +2603,7 @@ async def test_explicit_request_timeout_overrides_sdk_timeout() -> None:
         nhost = create_nhost_client(
             http_client=http,
             timeout=configured_timeout,
-            configure=[with_chain_functions([apply_request_timeout])],
+            configure=[with_middleware([apply_request_timeout])],
         )
         await nhost.functions.fetch("echo")
 

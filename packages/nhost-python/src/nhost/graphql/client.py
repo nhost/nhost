@@ -9,12 +9,12 @@ import httpx
 from pydantic import BaseModel, ConfigDict, TypeAdapter, ValidationError
 
 from ..fetch import (
-    ChainFunction,
     FetchResponse,
     HTTPError,
+    Middleware,
     NhostError,
     ResponseDecodeError,
-    create_enhanced_fetch,
+    create_fetch_pipeline,
     to_jsonable,
 )
 
@@ -71,16 +71,16 @@ class Client:
 
     def __init__(
         self,
-        url: str,
+        base_url: str,
         *,
-        middleware: Sequence[ChainFunction] = (),
+        middleware: Sequence[Middleware] = (),
         http_client: httpx.AsyncClient | None = None,
     ) -> None:
-        self.url = url
+        self.base_url = base_url
         self._middleware = list(middleware)
         self._owns_http_client = http_client is None
         self._http = http_client if http_client is not None else httpx.AsyncClient()
-        self._fetch = create_enhanced_fetch(self._http, self._middleware)
+        self._fetch = create_fetch_pipeline(self._http, self._middleware)
 
     async def __aenter__(self) -> Client:
         return self
@@ -93,10 +93,10 @@ class Client:
         if self._owns_http_client:
             await self._http.aclose()
 
-    def add_middleware(self, middleware: ChainFunction) -> None:
+    def add_middleware(self, middleware: Middleware) -> None:
         """Append HTTP middleware and rebuild the request pipeline."""
         self._middleware.append(middleware)
-        self._fetch = create_enhanced_fetch(self._http, self._middleware)
+        self._fetch = create_fetch_pipeline(self._http, self._middleware)
 
     @overload
     async def request(
@@ -140,7 +140,7 @@ class Client:
         request_headers.setdefault("Content-Type", "application/json")
         request = self._http.build_request(
             "POST",
-            self.url,
+            self.base_url,
             json=to_jsonable(payload),
             headers=request_headers,
         )
@@ -178,13 +178,3 @@ class Client:
             result = GraphQLResponse[Any].model_validate({**raw, "data": typed_data})
 
         return FetchResponse(body=result, status=response.status_code, headers=response.headers)
-
-
-def create_api_client(
-    url: str,
-    *,
-    middleware: Sequence[ChainFunction] = (),
-    http_client: httpx.AsyncClient | None = None,
-) -> Client:
-    """Create a standalone GraphQL client."""
-    return Client(url, middleware=middleware, http_client=http_client)

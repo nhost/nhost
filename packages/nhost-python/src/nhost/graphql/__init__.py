@@ -7,7 +7,6 @@ from .client import (
     GraphQLExecutionError,
     GraphQLResponse,
     GraphQLVariables,
-    create_api_client,
 )
 
 __all__ = [
@@ -17,5 +16,4 @@ __all__ = [
     "GraphQLExecutionError",
     "GraphQLResponse",
     "GraphQLVariables",
-    "create_api_client",
 ]
