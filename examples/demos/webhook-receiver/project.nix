@@ -41,6 +41,7 @@ let
       ./app.py
       ./test_app.py
       ./requirements.txt
+      ./requirements-dev.txt
       ./ruff.toml
       ./mypy.ini
       ./README.md
