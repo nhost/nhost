@@ -176,6 +176,7 @@ let middleware: Vec<Arc<dyn Middleware>> = vec![
     }),
     Arc::new(AttachToken {
         storage: sessions.clone(),
+        service_url: url(Service::Auth),
     }),
 ];
 
