@@ -215,7 +215,7 @@ func TestConfigUseDataServicesNeverHitsAuth(t *testing.T) {
 		t.Fatalf("storage version: %v", err)
 	}
 
-	if _, _, err := client.GraphQL.Request(ctx, "query { __typename }", nil, "", nil); err != nil {
+	if _, err := client.GraphQL.Request(ctx, "query { __typename }", nil, nil); err != nil {
 		t.Fatalf("graphql request: %v", err)
 	}
 
@@ -311,7 +311,7 @@ func TestWithAdminSessionNeverHitsAuth(t *testing.T) {
 		t.Fatalf("storage version: %v", err)
 	}
 
-	if _, _, err := client.GraphQL.Request(ctx, "query { __typename }", nil, "", nil); err != nil {
+	if _, err := client.GraphQL.Request(ctx, "query { __typename }", nil, nil); err != nil {
 		t.Fatalf("graphql request: %v", err)
 	}
 
