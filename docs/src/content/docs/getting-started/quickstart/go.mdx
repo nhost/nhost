@@ -93,7 +93,6 @@ import (
 
 	nhost "github.com/nhost/nhost/packages/nhost-go"
 	"github.com/nhost/nhost/packages/nhost-go/auth"
-	"github.com/nhost/nhost/packages/nhost-go/graphql"
 	"github.com/nhost/nhost/packages/nhost-go/session"
 )
 
@@ -112,6 +111,21 @@ const insertNoteMutation = `mutation ($title: String!, $content: String!) {
     id
   }
 }`
+
+type graphQLID struct {
+	ID string `json:"id"`
+}
+
+type note struct {
+	ID      string `json:"id"`
+	Title   string `json:"title"`
+	Content string `json:"content"`
+}
+
+type insertNoteVariables struct {
+	Title   string `json:"title"`
+	Content string `json:"content"`
+}
 
 func main() {
 	http.HandleFunc("POST /signin", signIn)
@@ -209,26 +223,40 @@ func createNote(w http.ResponseWriter, r *http.Request, client *nhost.Client) {
 		return
 	}
 
-	resp, _, err := client.GraphQL.Request(r.Context(), insertNoteMutation, graphql.Variables{
-		"title":   body.Title,
-		"content": body.Content,
-	}, "", nil)
+	var data struct {
+		Note *graphQLID `json:"insert_notes_one"`
+	}
+
+	_, err := client.GraphQL.Request(
+		r.Context(),
+		insertNoteMutation,
+		insertNoteVariables{Title: body.Title, Content: body.Content},
+		&data,
+	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
 		return
 	}
+	if data.Note == nil {
+		http.Error(w, "insert did not return a note", http.StatusBadGateway)
+		return
+	}
 
-	writeJSON(w, resp.Data["insert_notes_one"])
+	writeJSON(w, data.Note)
 }
 
 func listNotes(w http.ResponseWriter, r *http.Request, client *nhost.Client) {
-	resp, _, err := client.GraphQL.Request(r.Context(), listNotesQuery, nil, "", nil)
+	var data struct {
+		Notes []note `json:"notes"`
+	}
+
+	_, err := client.GraphQL.Request(r.Context(), listNotesQuery, nil, &data)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
 		return
 	}
 
-	writeJSON(w, resp.Data["notes"])
+	writeJSON(w, data.Notes)
 }
 
 func writeJSON(w http.ResponseWriter, value any) {
