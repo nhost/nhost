@@ -25,17 +25,18 @@ type countingBackend struct {
 	removes  atomic.Int32
 }
 
-func (b *countingBackend) Get() (*session.StoredSession, bool) {
-	return b.delegate.Get()
+func (b *countingBackend) Get() (*session.StoredSession, error) {
+	return b.delegate.Get() //nolint:wrapcheck // Delegating to the real backend.
 }
 
-func (b *countingBackend) Set(value session.StoredSession) {
-	b.delegate.Set(value)
+func (b *countingBackend) Set(value session.StoredSession) error {
+	return b.delegate.Set(value) //nolint:wrapcheck // Delegating to the real backend.
 }
 
-func (b *countingBackend) Remove() {
+func (b *countingBackend) Remove() error {
 	b.removes.Add(1)
-	b.delegate.Remove()
+
+	return b.delegate.Remove() //nolint:wrapcheck // Delegating to the real backend.
 }
 
 func waitGroupWithin(t *testing.T, waitGroup *sync.WaitGroup, timeout time.Duration) {
@@ -136,9 +137,9 @@ func TestRefreshSessionHappyPath(t *testing.T) {
 		t.Fatalf("token endpoint hits = %d, want 1", hits.Load())
 	}
 
-	stored, ok := store.Get()
-	if !ok || stored.RefreshToken != "rotated-refresh-token" {
-		t.Fatalf("stored session = %#v, ok=%v", stored, ok)
+	stored, err := store.Get()
+	if err != nil || stored == nil || stored.RefreshToken != "rotated-refresh-token" {
+		t.Fatalf("stored session = %#v, err=%v", stored, err)
 	}
 }
 
@@ -253,15 +254,7 @@ func TestRefreshSessionErrorContract(t *testing.T) {
 				t.Fatalf("returned access token = %q, want original", got.AccessToken)
 			}
 
-			stored, ok := store.Get()
-			if ok == tt.wantCleared {
-				t.Fatalf("stored session present = %v, want %v", ok, !tt.wantCleared)
-			}
-
-			if ok && (stored.AccessToken != original.AccessToken ||
-				stored.RefreshToken != original.RefreshToken) {
-				t.Fatalf("stored session changed: %#v", stored)
-			}
+			assertStoredSession(t, store, original, tt.wantCleared)
 
 			if hits.Load() != 2 {
 				t.Fatalf("token endpoint hits = %d, want 2", hits.Load())
@@ -290,9 +283,9 @@ func TestRefreshSessionExpiredNetworkError(t *testing.T) {
 		t.Fatalf("session = %#v, want nil for expired access token", got)
 	}
 
-	stored, ok := store.Get()
-	if !ok || stored.AccessToken != original.AccessToken {
-		t.Fatalf("stored session changed: %#v, ok=%v", stored, ok)
+	stored, err := store.Get()
+	if err != nil || stored == nil || stored.AccessToken != original.AccessToken {
+		t.Fatalf("stored session changed: %#v, err=%v", stored, err)
 	}
 }
 
@@ -561,5 +554,156 @@ func TestRefreshSessionWaiterHonorsContextCancellation(t *testing.T) {
 		}
 	case <-time.After(500 * time.Millisecond):
 		t.Fatal("leader refresh did not return before timeout")
+	}
+}
+
+var (
+	errStoreUnavailable = errors.New("session store unavailable")
+	errStoreReadOnly    = errors.New("session store is read-only")
+)
+
+// failingBackend is a Backend whose reads always fail, standing in for an
+// unreadable session file or an unreachable session store.
+type failingBackend struct {
+	err     error
+	removes atomic.Int32
+}
+
+func (b *failingBackend) Get() (*session.StoredSession, error) { return nil, b.err }
+func (b *failingBackend) Set(session.StoredSession) error      { return b.err }
+
+func (b *failingBackend) Remove() error {
+	b.removes.Add(1)
+
+	return b.err
+}
+
+// TestRefreshSessionSurfacesStorageReadFailure is the regression this change
+// exists for. A backend that cannot be read used to be indistinguishable from
+// "no session stored", so RefreshSession quietly reported success with no
+// session and the caller concluded the user was signed out.
+func TestRefreshSessionSurfacesStorageReadFailure(t *testing.T) {
+	t.Parallel()
+
+	store := session.NewStorage(&failingBackend{err: errStoreUnavailable, removes: atomic.Int32{}})
+
+	server := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {
+		t.Error("refresh must not be attempted when the session cannot be read")
+	}))
+	defer server.Close()
+
+	got, err := session.RefreshSession(
+		t.Context(), auth.NewClient(server.URL, server.Client()), store, refreshMarginSeconds,
+	)
+	if err == nil {
+		t.Fatal("RefreshSession() error = nil, want the storage read failure")
+	}
+
+	if !errors.Is(err, errStoreUnavailable) {
+		t.Fatalf("RefreshSession() error = %v, want it to wrap %v", err, errStoreUnavailable)
+	}
+
+	if got != nil {
+		t.Fatalf("RefreshSession() session = %#v, want nil", got)
+	}
+}
+
+// TestRefreshSessionReportsFailureToClearRejectedSession covers the other half:
+// when the refresh token is rejected the session must be cleared, and a failure
+// to clear it must not be reported as a clean sign-out while credentials remain
+// on disk.
+func TestRefreshSessionReportsFailureToClearRejectedSession(t *testing.T) {
+	t.Parallel()
+
+	stored, err := session.ToStoredSession(auth.Session{ //nolint:exhaustruct_v5
+		AccessToken:  tokenWithExpiry(t, time.Now().Add(30*time.Second).Unix()),
+		RefreshToken: "old-refresh-token",
+	})
+	if err != nil {
+		t.Fatalf("build stored session: %v", err)
+	}
+
+	backend := &readableRemoveFailsBackend{
+		session:   &stored,
+		removeErr: errStoreReadOnly,
+		removes:   atomic.Int32{},
+	}
+
+	server := httptest.NewServer(
+		http.HandlerFunc(func(writer http.ResponseWriter, _ *http.Request) {
+			http.Error(writer, "refresh token rejected", http.StatusUnauthorized)
+		}),
+	)
+	defer server.Close()
+
+	got, err := session.RefreshSession(
+		t.Context(),
+		auth.NewClient(server.URL, server.Client()),
+		session.NewStorage(backend),
+		0,
+	)
+	if err == nil {
+		t.Fatal("RefreshSession() error = nil, want the failure to clear the session")
+	}
+
+	if !errors.Is(err, errStoreReadOnly) {
+		t.Fatalf("RefreshSession() error = %v, want it to wrap %v", err, errStoreReadOnly)
+	}
+
+	if got != nil {
+		t.Fatalf("RefreshSession() session = %#v, want nil", got)
+	}
+
+	if backend.removes.Load() == 0 {
+		t.Error("the rejected session was never cleared")
+	}
+}
+
+// readableRemoveFailsBackend reads back a session but fails to delete it.
+type readableRemoveFailsBackend struct {
+	session   *session.StoredSession
+	removeErr error
+	removes   atomic.Int32
+}
+
+func (b *readableRemoveFailsBackend) Get() (*session.StoredSession, error) {
+	return b.session, nil
+}
+
+func (b *readableRemoveFailsBackend) Set(value session.StoredSession) error {
+	b.session = &value
+
+	return nil
+}
+
+func (b *readableRemoveFailsBackend) Remove() error {
+	b.removes.Add(1)
+
+	return b.removeErr
+}
+
+// assertStoredSession checks whether the store was cleared as expected and, if
+// a session remains, that its tokens were left untouched.
+func assertStoredSession(
+	t *testing.T,
+	store *session.Storage,
+	original auth.Session,
+	wantCleared bool,
+) {
+	t.Helper()
+
+	stored, err := store.Get()
+	if err != nil {
+		t.Fatalf("read stored session: %v", err)
+	}
+
+	present := stored != nil
+	if present == wantCleared {
+		t.Fatalf("stored session present = %v, want %v", present, !wantCleared)
+	}
+
+	if present && (stored.AccessToken != original.AccessToken ||
+		stored.RefreshToken != original.RefreshToken) {
+		t.Fatalf("stored session changed: %#v", stored)
 	}
 }

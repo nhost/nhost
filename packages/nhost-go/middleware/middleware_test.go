@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"io"
 	"log/slog"
 	"net/http"
@@ -20,16 +21,31 @@ import (
 )
 
 // fakeBackend is a session.Backend that stores a single StoredSession in memory
-// and records whether Set/Remove were called, without JWT decoding.
+// and records whether Set/Remove were called, without JWT decoding. The *Err
+// fields let a test simulate a failing session store.
 type fakeBackend struct {
-	sess     *session.StoredSession
-	setCalls int
-	removed  bool
+	sess      *session.StoredSession
+	setCalls  int
+	removed   bool
+	getErr    error
+	setErr    error
+	removeErr error
 }
 
-func (f *fakeBackend) Get() (*session.StoredSession, bool) { return f.sess, f.sess != nil }
-func (f *fakeBackend) Set(v session.StoredSession)         { f.setCalls++; f.sess = &v }
-func (f *fakeBackend) Remove()                             { f.removed = true; f.sess = nil }
+func (f *fakeBackend) Get() (*session.StoredSession, error) { return f.sess, f.getErr }
+func (f *fakeBackend) Set(v session.StoredSession) error {
+	f.setCalls++
+	f.sess = &v
+
+	return f.setErr
+}
+
+func (f *fakeBackend) Remove() error {
+	f.removed = true
+	f.sess = nil
+
+	return f.removeErr
+}
 
 func makeToken(t *testing.T) string {
 	t.Helper()
@@ -677,5 +693,45 @@ func TestSessionRefreshSkips(t *testing.T) {
 	seen := run(t, middleware.SessionRefresh(authClient, store, 60), req)
 	if seen == nil {
 		t.Fatal("expected next to run when Authorization is present")
+	}
+}
+
+var errBackendUnavailable = errors.New("session store unavailable")
+
+// TestAttachAccessTokenToleratesStorageFailure pins the deliberate choice that a
+// session store failure degrades to an unauthenticated request rather than
+// failing every call: the server then decides, matching how SessionRefresh
+// already treats a failed refresh.
+func TestAttachAccessTokenToleratesStorageFailure(t *testing.T) {
+	t.Parallel()
+
+	store := session.NewStorage(&fakeBackend{getErr: errBackendUnavailable})
+
+	seen := run(
+		t,
+		middleware.AttachAccessToken(store, "https://x/v1"),
+		newReq(t, "https://x/v1/echo"),
+	)
+
+	if got := seen.Header.Get("Authorization"); got != "" {
+		t.Fatalf("Authorization = %q, want no header when the session is unreadable", got)
+	}
+}
+
+// TestAttachAccessTokenKeepsCallerHeaderWhenStorageFails covers the off-origin
+// branch: with the session unreadable the middleware cannot tell whether the
+// header is one it set, and a caller-supplied credential must survive.
+func TestAttachAccessTokenKeepsCallerHeaderWhenStorageFails(t *testing.T) {
+	t.Parallel()
+
+	store := session.NewStorage(&fakeBackend{getErr: errBackendUnavailable})
+
+	req := newReq(t, "https://other.example/v1/echo")
+	req.Header.Set("Authorization", "Bearer caller-supplied")
+
+	seen := run(t, middleware.AttachAccessToken(store, "https://x/v1"), req)
+
+	if got := seen.Header.Get("Authorization"); got != "Bearer caller-supplied" {
+		t.Fatalf("Authorization = %q, want the caller's own header preserved", got)
 	}
 }

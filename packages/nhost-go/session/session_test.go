@@ -81,18 +81,20 @@ func TestStorageSetGetRemove(t *testing.T) {
 		t.Fatalf("set: %v", err)
 	}
 
-	got, ok := store.Get()
-	if !ok || got.AccessToken != token {
-		t.Fatalf("get after set failed: ok=%v", ok)
+	got, err := store.Get()
+	if err != nil || got == nil || got.AccessToken != token {
+		t.Fatalf("get after set failed: err=%v", err)
 	}
 
 	if got.DecodedToken.Sub != "u" {
 		t.Fatalf("decoded token not derived on set: sub=%q", got.DecodedToken.Sub)
 	}
 
-	store.Remove()
+	if err := store.Remove(); err != nil {
+		t.Fatalf("remove: %v", err)
+	}
 
-	if _, ok := store.Get(); ok {
-		t.Fatal("session present after remove")
+	if got, err := store.Get(); err != nil || got != nil {
+		t.Fatalf("session after remove = (%#v, %v), want (nil, nil)", got, err)
 	}
 }

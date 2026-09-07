@@ -18,28 +18,34 @@ var errRefreshReentrant = errors.New("session refresh is already in progress on 
 type refreshContextKey struct{}
 
 // needsRefresh reports (session, needsRefresh, sessionExpired) for the current
-// stored session given a margin (seconds before expiry to refresh).
-func (s *Storage) needsRefresh(marginSeconds int) (*StoredSession, bool, bool) {
-	session, ok := s.Get()
-	if !ok {
-		return nil, false, false
+// stored session given a margin (seconds before expiry to refresh). A backend
+// read failure is returned rather than reported as "no session", so an
+// unreadable store never silently looks like a signed out user.
+func (s *Storage) needsRefresh(marginSeconds int) (*StoredSession, bool, bool, error) {
+	session, err := s.Get()
+	if err != nil {
+		return nil, false, false, err
+	}
+
+	if session == nil {
+		return nil, false, false, nil
 	}
 
 	exp := session.DecodedToken.Exp
 	if exp == 0 {
-		return session, true, true
+		return session, true, true, nil
 	}
 
 	now := time.Now().Unix()
 	if marginSeconds == 0 {
-		return session, true, exp < now
+		return session, true, exp < now, nil
 	}
 
 	if exp-now > int64(marginSeconds) {
-		return session, false, false
+		return session, false, false, nil
 	}
 
-	return session, true, exp < now
+	return session, true, exp < now, nil
 }
 
 func sessionOnRefreshError(session *StoredSession, expired bool) *StoredSession {
@@ -56,7 +62,11 @@ func refreshOnce(
 	storage *Storage,
 	marginSeconds int,
 ) (*StoredSession, error) {
-	session, needs, sessionExpired := storage.needsRefresh(marginSeconds)
+	session, needs, sessionExpired, err := storage.needsRefresh(marginSeconds)
+	if err != nil {
+		return nil, fmt.Errorf("reading stored session: %w", err)
+	}
+
 	if session == nil {
 		return nil, nil //nolint:nilnil
 	}
@@ -75,7 +85,9 @@ func refreshOnce(
 		case <-call.done:
 			return call.session, call.err
 		case <-ctx.Done():
-			session, _, sessionExpired = storage.needsRefresh(marginSeconds)
+			// A read failure here leaves session nil, which yields no session
+			// below; the context error is the one worth reporting.
+			session, _, sessionExpired, _ = storage.needsRefresh(marginSeconds)
 
 			return sessionOnRefreshError(session, sessionExpired), fmt.Errorf(
 				"waiting for in-progress session refresh: %w", ctx.Err(),
@@ -105,7 +117,11 @@ func performRefresh(
 ) (*StoredSession, error) {
 	// Another refresh may have completed between the first check and this call
 	// becoming the in-flight leader.
-	session, needs, sessionExpired := storage.needsRefresh(marginSeconds)
+	session, needs, sessionExpired, err := storage.needsRefresh(marginSeconds)
+	if err != nil {
+		return nil, fmt.Errorf("reading stored session: %w", err)
+	}
+
 	if session == nil {
 		return nil, nil //nolint:nilnil
 	}
@@ -133,7 +149,10 @@ func performRefresh(
 		)
 	}
 
-	out, _ := storage.Get()
+	out, err := storage.Get()
+	if err != nil {
+		return nil, fmt.Errorf("reading refreshed session: %w", err)
+	}
 
 	return out, nil
 }
@@ -169,8 +188,16 @@ func RefreshSession(
 
 	var apiErr *transport.APIError
 	if errors.As(err, &apiErr) && apiErr.Status == unauthorized {
-		if storage.removeIfPresent() {
+		removed, removeErr := storage.removeIfPresent()
+		if removed {
 			slog.Debug("refresh token rejected; clearing session", "error", err)
+		}
+
+		// The refresh token was rejected, so the stored session is unusable.
+		// If it could not be cleared, say so rather than reporting a clean
+		// sign-out while a dead session stays behind.
+		if removeErr != nil {
+			return nil, fmt.Errorf("clearing rejected session: %w", removeErr)
 		}
 
 		return nil, nil //nolint:nilnil

@@ -187,9 +187,11 @@ type Client struct {
 	SessionStorage *session.Storage
 }
 
-// Session returns the current session from storage, or (nil, false).
-func (c *Client) Session() (*session.StoredSession, bool) {
-	return c.SessionStorage.Get()
+// Session returns the current session from storage. It returns (nil, nil) when
+// no user is signed in, and an error only when the session store could not be
+// read — an unreadable store is not a signed out user.
+func (c *Client) Session() (*session.StoredSession, error) {
+	return c.SessionStorage.Get() //nolint:wrapcheck
 }
 
 // RefreshSession refreshes the session using the stored refresh token. A
@@ -206,8 +208,10 @@ func (c *Client) RefreshSession(
 }
 
 // ClearSession removes the current session from storage (client-side sign-out).
-func (c *Client) ClearSession() {
-	c.SessionStorage.Remove()
+// It returns an error when the session could not be cleared, so a caller is
+// never told a user was signed out while their credentials remain on disk.
+func (c *Client) ClearSession() error {
+	return c.SessionStorage.Remove() //nolint:wrapcheck
 }
 
 // Options configures the creation of an Nhost client.

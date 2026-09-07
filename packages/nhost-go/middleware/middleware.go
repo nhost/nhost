@@ -98,7 +98,16 @@ func AttachAccessToken(storage *session.Storage, serviceURL string) transport.Mi
 					return next.RoundTrip(req)
 				}
 
-				if s, ok := storage.Get(); ok && s.AccessToken != "" {
+				// A storage failure is logged rather than failing the request:
+				// the request proceeds unauthenticated and the server decides,
+				// matching how SessionRefresh treats a failed refresh.
+				s, err := storage.Get()
+				if err != nil {
+					slog.Warn(
+						"error reading session; sending request without a token",
+						"error", err,
+					)
+				} else if s != nil && s.AccessToken != "" {
 					req = req.Clone(req.Context())
 					req.Header.Set("Authorization", "Bearer "+s.AccessToken)
 				}
@@ -110,7 +119,20 @@ func AttachAccessToken(storage *session.Storage, serviceURL string) transport.Mi
 				return next.RoundTrip(req)
 			}
 
-			if s, ok := storage.Get(); ok &&
+			// Off-origin: strip only a header this middleware could have set.
+			// When the session cannot be read the header is left alone, since
+			// it can only be one the caller supplied.
+			s, err := storage.Get()
+			if err != nil {
+				slog.Warn(
+					"error reading session; leaving the caller's Authorization header",
+					"error", err,
+				)
+
+				return next.RoundTrip(req)
+			}
+
+			if s != nil &&
 				s.AccessToken != "" &&
 				req.Header.Get("Authorization") == "Bearer "+s.AccessToken {
 				req = req.Clone(req.Context())
@@ -243,13 +265,19 @@ func storeSessionFromResponse(storage *session.Storage, resp *http.Response) {
 	}
 }
 
+func removeSession(storage *session.Storage) {
+	if err := storage.Remove(); err != nil {
+		slog.Warn("error clearing stored session", "error", err)
+	}
+}
+
 func updateSession(storage *session.Storage, action sessionResponseAction, resp *http.Response) {
 	switch action {
 	case sessionResponseRemove:
-		storage.Remove()
+		removeSession(storage)
 	case sessionResponseRemoveOnSuccess:
 		if resp.StatusCode < http.StatusMultipleChoices {
-			storage.Remove()
+			removeSession(storage)
 		}
 	case sessionResponseStore:
 		storeSessionFromResponse(storage, resp)
