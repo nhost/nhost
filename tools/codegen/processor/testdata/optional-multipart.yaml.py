@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from typing import Any, Literal
+from typing import Any
 
 import httpx
 from pydantic import BaseModel, ConfigDict, Field
@@ -13,13 +13,11 @@ from ..fetch import (
     HTTPError,
     UploadFile,
     create_enhanced_fetch,
-    decode_json,
     to_file_part,
-    to_json,
     to_jsonable,
 )
 
-_MIN_ERROR_STATUS = 400
+_MIN_ERROR_STATUS = 300
 
 
 class OptionalUploadRequest(BaseModel):
@@ -30,6 +28,14 @@ class OptionalUploadRequest(BaseModel):
         description="Format: binary",
     )
     description: str | None = None
+    tags: list[str] | None = None
+
+
+class _MultipartFileParts(list[tuple[str, Any]]):
+    """Keep httpx multipart encoding active even when there are no file parts."""
+
+    def __bool__(self) -> bool:
+        return True
 
 
 class Client:
@@ -79,17 +85,19 @@ class Client:
         url = f"{self.base_url}/optional-upload"
         query = None
         _data: dict[str, Any] = {}
-        _files: list[tuple[str, Any]] = []
+        _files = _MultipartFileParts()
         if body is not None and body.file is not None:
             _files.append(("file", to_file_part(body.file)))
         if body is not None and body.description is not None:
-            _data["description"] = body.description
+            _data["description"] = to_jsonable(body.description)
+        if body is not None and body.tags is not None:
+            _data["tags"] = to_jsonable(body.tags)
         request = self._http.build_request(
             "POST",
             url,
             params=query,
             data=_data or None,
-            files=_files or None,
+            files=_files,
             headers=headers,
         )
         response = await self._fetch(request)

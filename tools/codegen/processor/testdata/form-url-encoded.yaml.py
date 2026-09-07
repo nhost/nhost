@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from typing import Any, Literal
+from typing import Literal
 
 import httpx
 from pydantic import BaseModel, ConfigDict, Field
@@ -12,21 +12,19 @@ from ..fetch import (
     FetchResponse,
     HTTPError,
     create_enhanced_fetch,
-    decode_json,
-    to_json,
     to_jsonable,
 )
 
-_MIN_ERROR_STATUS = 400
+_MIN_ERROR_STATUS = 300
 
 
-OAuth2RevokeRequestToken_type_hint = Literal["access_token", "refresh_token"]
+OAuth2RevokeRequestTokenTypeHint = Literal["access_token", "refresh_token"]
 
 class OAuth2RevokeRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     token: str = Field(repr=False)
-    token_type_hint: OAuth2RevokeRequestToken_type_hint | None = Field(
+    token_type_hint: OAuth2RevokeRequestTokenTypeHint | None = Field(
         default=None,
         description="Optional token type hint declared nullable in OpenAPI.",
     )
@@ -123,7 +121,7 @@ def create_api_client(
     return Client(base_url, chain_functions=chain_functions, http_client=http_client)
 
 __all__ = [
-    "OAuth2RevokeRequestToken_type_hint",
+    "OAuth2RevokeRequestTokenTypeHint",
     "OAuth2RevokeRequest",
     "OAuth2ErrorResponse",
     "Client",
