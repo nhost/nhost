@@ -1342,6 +1342,21 @@ func TestOpenAIResponsesConcurrentStreams(t *testing.T) {
 		map[string]string{"X-Shared": "shared-config"},
 	)
 
+	sharedOptions := provider.service.Options
+	if len(sharedOptions) == cap(sharedOptions) {
+		t.Fatal("provider service options have no spare capacity")
+	}
+
+	unusedOptionStorage := sharedOptions[len(sharedOptions):cap(sharedOptions)]
+	for index, requestOption := range unusedOptionStorage {
+		if requestOption != nil {
+			t.Fatalf(
+				"provider service option storage at index %d is non-nil before streaming",
+				len(sharedOptions)+index,
+			)
+		}
+	}
+
 	results := make(chan collectedResponsesEvents, streamCount)
 	wantModels := make([]string, 0, streamCount)
 
@@ -1365,6 +1380,15 @@ func TestOpenAIResponsesConcurrentStreams(t *testing.T) {
 	waitGroup.Wait()
 	close(results)
 	close(requestModels)
+
+	for index, requestOption := range unusedOptionStorage {
+		if requestOption != nil {
+			t.Errorf(
+				"provider service option storage at index %d was mutated by a stream",
+				len(sharedOptions)+index,
+			)
+		}
+	}
 
 	for result := range results {
 		if result.err != nil {
