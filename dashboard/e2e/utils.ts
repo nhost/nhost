@@ -459,9 +459,9 @@ export async function fillStripeCheckout(page: Page) {
 /**
  * Deletes the organization the page is currently scoped to. Assumes the page is
  * on a route within the organization (it navigates to its settings) and that
- * the org is empty enough to be deletable. Drives the acknowledgment checkboxes
- * and the typed name confirmation, then waits for the success toast and the
- * redirect to the empty state.
+ * the signed-in user is an organization admin. Drives the acknowledgment
+ * checkboxes and the typed name confirmation, then waits for the success toast
+ * and the redirect to the empty state.
  *
  * @param page - The Playwright page object.
  * @param orgSlug - The slug of the organization to delete.
