@@ -2,18 +2,19 @@
 
 # Bring the local Nhost backend up/down for integration + docstring examples.
 # Mirrors packages/nhost-js/dev-env.sh. The backend project lives under
-# ./build/backend; if it is ever missing this fails with a clear message.
+# packages/backend-sdk-tests (shared by every SDK); if it is ever missing this
+# fails with a clear message.
 
 set -euo pipefail
 
-FOLDER=./build/backend
+FOLDER=../backend-sdk-tests
 
 
 up() {
     if [ ! -d "$FOLDER" ]; then
         echo "error: $FOLDER not found." >&2
         echo "The committed backend project is missing; restore it from git" >&2
-        echo "(layout mirrors packages/nhost-js/build/backend) and retry." >&2
+        echo "(the shared testing backend) and retry." >&2
         exit 1
     fi
     cd "$FOLDER"
