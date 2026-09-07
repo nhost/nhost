@@ -32,6 +32,8 @@ var (
 	errNotLoggedIn     = errors.New("not logged in")
 	errNoteNotFound    = errors.New("note not found")
 	errNotePermission  = errors.New("note not found or not permitted")
+	errCreateNote      = errors.New("could not create note")
+	errCreateNotebook  = errors.New("could not create notebook")
 	errCreateTag       = errors.New("could not create tag")
 	errUploadFailed    = errors.New("upload failed")
 	errTooManyArgs     = errors.New("too many arguments")
@@ -41,6 +43,46 @@ var (
 // client is built once in the root command's Before hook and reused by every
 // subcommand's Action.
 var client *nhost.Client //nolint:gochecknoglobals
+
+type graphQLID struct {
+	ID string `json:"id"`
+}
+
+type noteTagData struct {
+	Tag struct {
+		Name  string `json:"name"`
+		Color string `json:"color"`
+	} `json:"tag"`
+}
+
+type noteSummary struct {
+	ID       string `json:"id"`
+	Title    string `json:"title"`
+	IsPinned bool   `json:"is_pinned"`
+	Notebook *struct {
+		Name string `json:"name"`
+	} `json:"notebook"`
+	NoteTags []noteTagData `json:"noteTags"`
+}
+
+type noteDetail struct {
+	Title       string        `json:"title"`
+	Content     string        `json:"content"`
+	IsPinned    bool          `json:"is_pinned"`
+	IsArchived  bool          `json:"is_archived"`
+	NoteTags    []noteTagData `json:"noteTags"`
+	Attachments []struct {
+		File struct {
+			ID       string `json:"id"`
+			Name     string `json:"name"`
+			MimeType string `json:"mimeType"`
+		} `json:"file"`
+	} `json:"attachments"`
+	Collaborators []struct {
+		UserID string `json:"user_id"`
+		Role   string `json:"role"`
+	} `json:"collaborators"`
+}
 
 func main() {
 	if err := rootCmd().Run(context.Background(), os.Args); err != nil {
@@ -414,22 +456,6 @@ func env(key, fallback string) string {
 	return fallback
 }
 
-// gql runs a GraphQL operation and returns the decoded data map. GraphQL errors
-// surface as a non-nil error (the SDK returns a *transport.APIError).
-func gql(
-	ctx context.Context,
-	c *nhost.Client,
-	query string,
-	vars graphql.Variables,
-) (map[string]any, error) {
-	res, _, err := c.GraphQL.Request(ctx, query, vars, "", nil)
-	if err != nil {
-		return nil, fmt.Errorf("graphql request: %w", err)
-	}
-
-	return res.Data, nil
-}
-
 // --- auth -------------------------------------------------------------------
 
 func cmdLogin(ctx context.Context, c *nhost.Client, email, password string) error {
@@ -508,15 +534,23 @@ func noteNew(ctx context.Context, c *nhost.Client, title, content, notebook stri
 		obj["notebook_id"] = notebook
 	}
 
-	data, err := gql(ctx, c, `
-		mutation NewNote($obj: notes_insert_input!) {
-			insert_notes_one(object: $obj) { id title }
-		}`, graphql.Variables{"obj": obj})
-	if err != nil {
-		return err
+	var data struct {
+		Note *graphQLID `json:"insert_notes_one"`
 	}
 
-	fmt.Fprintln(os.Stdout, "created", str(dig(data, "insert_notes_one", "id")))
+	_, err := c.GraphQL.Request(ctx, `
+		mutation NewNote($obj: notes_insert_input!) {
+			insert_notes_one(object: $obj) { id title }
+		}`, graphql.Variables{"obj": obj}, &data)
+	if err != nil {
+		return fmt.Errorf("create note: %w", err)
+	}
+
+	if data.Note == nil {
+		return errCreateNote
+	}
+
+	fmt.Fprintln(os.Stdout, "created", data.Note.ID)
 
 	return nil
 }
@@ -529,43 +563,44 @@ func noteLs(ctx context.Context, c *nhost.Client, archived bool, tag string) err
 		}
 	}
 
-	data, err := gql(ctx, c, `
+	var data struct {
+		Notes []noteSummary `json:"notes"`
+	}
+
+	_, err := c.GraphQL.Request(ctx, `
 		query Notes($where: notes_bool_exp!) {
 			notes(where: $where, order_by: [{is_pinned: desc}, {updated_at: desc}]) {
 				id title is_pinned notebook { name } noteTags { tag { name } }
 			}
-		}`, graphql.Variables{"where": where})
+		}`, graphql.Variables{"where": where}, &data)
 	if err != nil {
-		return err
+		return fmt.Errorf("list notes: %w", err)
 	}
 
-	notes, _ := data["notes"].([]any)
-	if len(notes) == 0 {
+	if len(data.Notes) == 0 {
 		fmt.Fprintln(os.Stdout, "(no notes)")
 		return nil
 	}
 
-	for _, n := range notes {
-		m, _ := n.(map[string]any)
-
+	for _, note := range data.Notes {
 		pin := " "
-		if b, _ := m["is_pinned"].(bool); b {
+		if note.IsPinned {
 			pin = "*"
 		}
 
-		nb := ""
-		if book, ok := m["notebook"].(map[string]any); ok && book != nil {
-			nb = "  [" + str(book["name"]) + "]"
+		notebook := ""
+		if note.Notebook != nil {
+			notebook = "  [" + note.Notebook.Name + "]"
 		}
 
 		fmt.Fprintf(
 			os.Stdout,
 			"%s %s  %s%s%s\n",
 			pin,
-			str(m["id"]),
-			str(m["title"]),
-			nb,
-			tagList(m),
+			note.ID,
+			note.Title,
+			notebook,
+			tagList(note.NoteTags),
 		)
 	}
 
@@ -573,7 +608,11 @@ func noteLs(ctx context.Context, c *nhost.Client, archived bool, tag string) err
 }
 
 func noteShow(ctx context.Context, c *nhost.Client, id string) error {
-	data, err := gql(ctx, c, `
+	var data struct {
+		Note *noteDetail `json:"notes_by_pk"`
+	}
+
+	_, err := c.GraphQL.Request(ctx, `
 		query Note($id: uuid!) {
 			notes_by_pk(id: $id) {
 				id title content is_pinned is_archived
@@ -582,47 +621,44 @@ func noteShow(ctx context.Context, c *nhost.Client, id string) error {
 				attachments { file { id name mimeType size } }
 				collaborators { user_id role }
 			}
-		}`, graphql.Variables{"id": id})
+		}`, graphql.Variables{"id": id}, &data)
 	if err != nil {
-		return err
+		return fmt.Errorf("show note: %w", err)
 	}
 
-	n, ok := data["notes_by_pk"].(map[string]any)
-	if !ok || n == nil {
+	if data.Note == nil {
 		return errNoteNotFound
 	}
 
-	fmt.Fprintf(os.Stdout, "# %s\n\n%s\n", str(n["title"]), str(n["content"]))
+	note := data.Note
+	fmt.Fprintf(os.Stdout, "# %s\n\n%s\n", note.Title, note.Content)
 	fmt.Fprintf(
 		os.Stdout,
 		"\npinned=%v archived=%v%s\n",
-		n["is_pinned"],
-		n["is_archived"],
-		tagList(n),
+		note.IsPinned,
+		note.IsArchived,
+		tagList(note.NoteTags),
 	)
 
-	if atts, _ := n["attachments"].([]any); len(atts) > 0 {
+	if len(note.Attachments) > 0 {
 		fmt.Fprintln(os.Stdout, "attachments:")
 
-		for _, a := range atts {
-			if f, ok := a.(map[string]any)["file"].(map[string]any); ok {
-				fmt.Fprintf(
-					os.Stdout,
-					"  %s  %s (%s)\n",
-					str(f["id"]),
-					str(f["name"]),
-					str(f["mimeType"]),
-				)
-			}
+		for _, attachment := range note.Attachments {
+			fmt.Fprintf(
+				os.Stdout,
+				"  %s  %s (%s)\n",
+				attachment.File.ID,
+				attachment.File.Name,
+				attachment.File.MimeType,
+			)
 		}
 	}
 
-	if cols, _ := n["collaborators"].([]any); len(cols) > 0 {
+	if len(note.Collaborators) > 0 {
 		fmt.Fprintln(os.Stdout, "shared with:")
 
-		for _, cl := range cols {
-			m, _ := cl.(map[string]any)
-			fmt.Fprintf(os.Stdout, "  %s (%s)\n", str(m["user_id"]), str(m["role"]))
+		for _, collaborator := range note.Collaborators {
+			fmt.Fprintf(os.Stdout, "  %s (%s)\n", collaborator.UserID, collaborator.Role)
 		}
 	}
 
@@ -630,15 +666,19 @@ func noteShow(ctx context.Context, c *nhost.Client, id string) error {
 }
 
 func updateNote(ctx context.Context, c *nhost.Client, id string, set map[string]any) error {
-	data, err := gql(ctx, c, `
-		mutation UpdateNote($id: uuid!, $set: notes_set_input!) {
-			update_notes_by_pk(pk_columns: {id: $id}, _set: $set) { id }
-		}`, graphql.Variables{"id": id, "set": set})
-	if err != nil {
-		return err
+	var data struct {
+		Note *graphQLID `json:"update_notes_by_pk"`
 	}
 
-	if dig(data, "update_notes_by_pk", "id") == nil {
+	_, err := c.GraphQL.Request(ctx, `
+		mutation UpdateNote($id: uuid!, $set: notes_set_input!) {
+			update_notes_by_pk(pk_columns: {id: $id}, _set: $set) { id }
+		}`, graphql.Variables{"id": id, "set": set}, &data)
+	if err != nil {
+		return fmt.Errorf("update note: %w", err)
+	}
+
+	if data.Note == nil {
 		return errNotePermission
 	}
 
@@ -648,15 +688,19 @@ func updateNote(ctx context.Context, c *nhost.Client, id string, set map[string]
 }
 
 func noteRm(ctx context.Context, c *nhost.Client, id string) error {
-	data, err := gql(ctx, c, `
-		mutation DeleteNote($id: uuid!) {
-			delete_notes_by_pk(id: $id) { id }
-		}`, graphql.Variables{"id": id})
-	if err != nil {
-		return err
+	var data struct {
+		Note *graphQLID `json:"delete_notes_by_pk"`
 	}
 
-	if dig(data, "delete_notes_by_pk", "id") == nil {
+	_, err := c.GraphQL.Request(ctx, `
+		mutation DeleteNote($id: uuid!) {
+			delete_notes_by_pk(id: $id) { id }
+		}`, graphql.Variables{"id": id}, &data)
+	if err != nil {
+		return fmt.Errorf("delete note: %w", err)
+	}
+
+	if data.Note == nil {
 		return errNotePermission
 	}
 
@@ -671,14 +715,14 @@ func noteTag(ctx context.Context, c *nhost.Client, noteID, tagName string) error
 		return err
 	}
 
-	if _, err := gql(ctx, c, `
+	if _, err := c.GraphQL.Request(ctx, `
 		mutation TagNote($noteId: uuid!, $tagId: uuid!) {
 			insert_note_tags_one(
 				object: {note_id: $noteId, tag_id: $tagId}
 				on_conflict: {constraint: note_tags_pkey, update_columns: []}
 			) { note_id }
-		}`, graphql.Variables{"noteId": noteID, "tagId": tagID}); err != nil {
-		return err
+		}`, graphql.Variables{"noteId": noteID, "tagId": tagID}, nil); err != nil {
+		return fmt.Errorf("tag note: %w", err)
 	}
 
 	fmt.Fprintf(os.Stdout, "tagged %s with #%s\n", noteID, tagName)
@@ -687,13 +731,13 @@ func noteTag(ctx context.Context, c *nhost.Client, noteID, tagName string) error
 }
 
 func noteUntag(ctx context.Context, c *nhost.Client, noteID, tagName string) error {
-	if _, err := gql(ctx, c, `
+	if _, err := c.GraphQL.Request(ctx, `
 		mutation Untag($noteId: uuid!, $name: String!) {
 			delete_note_tags(where: {note_id: {_eq: $noteId}, tag: {name: {_eq: $name}}}) {
 				affected_rows
 			}
-		}`, graphql.Variables{"noteId": noteID, "name": tagName}); err != nil {
-		return err
+		}`, graphql.Variables{"noteId": noteID, "name": tagName}, nil); err != nil {
+		return fmt.Errorf("untag note: %w", err)
 	}
 
 	fmt.Fprintf(os.Stdout, "removed #%s from %s\n", tagName, noteID)
@@ -704,28 +748,47 @@ func noteUntag(ctx context.Context, c *nhost.Client, noteID, tagName string) err
 // --- notebooks & tags -------------------------------------------------------
 
 func notebookNew(ctx context.Context, c *nhost.Client, name string) error {
-	data, err := gql(ctx, c, `
-		mutation NewNotebook($name: String!) {
-			insert_notebooks_one(object: {name: $name}) { id name }
-		}`, graphql.Variables{"name": name})
-	if err != nil {
-		return err
+	var data struct {
+		Notebook *graphQLID `json:"insert_notebooks_one"`
 	}
 
-	fmt.Fprintln(os.Stdout, "created", str(dig(data, "insert_notebooks_one", "id")))
+	_, err := c.GraphQL.Request(ctx, `
+		mutation NewNotebook($name: String!) {
+			insert_notebooks_one(object: {name: $name}) { id name }
+		}`, graphql.Variables{"name": name}, &data)
+	if err != nil {
+		return fmt.Errorf("create notebook: %w", err)
+	}
+
+	if data.Notebook == nil {
+		return errCreateNotebook
+	}
+
+	fmt.Fprintln(os.Stdout, "created", data.Notebook.ID)
 
 	return nil
 }
 
 func notebookLs(ctx context.Context, c *nhost.Client) error {
-	data, err := gql(ctx, c, `query { notebooks(order_by: {name: asc}) { id name } }`, nil)
-	if err != nil {
-		return err
+	var data struct {
+		Notebooks []struct {
+			ID   string `json:"id"`
+			Name string `json:"name"`
+		} `json:"notebooks"`
 	}
 
-	for _, nb := range asSlice(data["notebooks"]) {
-		m, _ := nb.(map[string]any)
-		fmt.Fprintf(os.Stdout, "%s  %s\n", str(m["id"]), str(m["name"]))
+	_, err := c.GraphQL.Request(
+		ctx,
+		`query { notebooks(order_by: {name: asc}) { id name } }`,
+		nil,
+		&data,
+	)
+	if err != nil {
+		return fmt.Errorf("list notebooks: %w", err)
+	}
+
+	for _, notebook := range data.Notebooks {
+		fmt.Fprintf(os.Stdout, "%s  %s\n", notebook.ID, notebook.Name)
 	}
 
 	return nil
@@ -743,14 +806,26 @@ func tagNew(ctx context.Context, c *nhost.Client, name, color string) error {
 }
 
 func tagLs(ctx context.Context, c *nhost.Client) error {
-	data, err := gql(ctx, c, `query { tags(order_by: {name: asc}) { id name color } }`, nil)
-	if err != nil {
-		return err
+	var data struct {
+		Tags []struct {
+			ID    string `json:"id"`
+			Name  string `json:"name"`
+			Color string `json:"color"`
+		} `json:"tags"`
 	}
 
-	for _, t := range asSlice(data["tags"]) {
-		m, _ := t.(map[string]any)
-		fmt.Fprintf(os.Stdout, "%s  %-16s %s\n", str(m["id"]), str(m["name"]), str(m["color"]))
+	_, err := c.GraphQL.Request(
+		ctx,
+		`query { tags(order_by: {name: asc}) { id name color } }`,
+		nil,
+		&data,
+	)
+	if err != nil {
+		return fmt.Errorf("list tags: %w", err)
+	}
+
+	for _, tag := range data.Tags {
+		fmt.Fprintf(os.Stdout, "%s  %-16s %s\n", tag.ID, tag.Name, tag.Color)
 	}
 
 	return nil
@@ -768,23 +843,26 @@ func upsertTag(ctx context.Context, c *nhost.Client, name, color string) (string
 		update = append(update, "color")
 	}
 
-	data, err := gql(ctx, c, `
+	var data struct {
+		Tag *graphQLID `json:"insert_tags_one"`
+	}
+
+	_, err := c.GraphQL.Request(ctx, `
 		mutation UpsertTag($obj: tags_insert_input!, $update: [tags_update_column!]!) {
 			insert_tags_one(
 				object: $obj
 				on_conflict: {constraint: tags_user_id_name_key, update_columns: $update}
 			) { id }
-		}`, graphql.Variables{"obj": obj, "update": update})
+		}`, graphql.Variables{"obj": obj, "update": update}, &data)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("upsert tag: %w", err)
 	}
 
-	id := str(dig(data, "insert_tags_one", "id"))
-	if id == "" {
+	if data.Tag == nil {
 		return "", errCreateTag
 	}
 
-	return id, nil
+	return data.Tag.ID, nil
 }
 
 // --- storage & sharing ------------------------------------------------------
@@ -812,11 +890,11 @@ func cmdAttach(ctx context.Context, c *nhost.Client, noteID, file string) error 
 	}
 
 	fileID := up.ProcessedFiles[0].ID
-	if _, err := gql(ctx, c, `
+	if _, err := c.GraphQL.Request(ctx, `
 		mutation Attach($noteId: uuid!, $fileId: uuid!) {
 			insert_note_attachments_one(object: {note_id: $noteId, file_id: $fileId}) { file_id }
-		}`, graphql.Variables{"noteId": noteID, "fileId": fileID}); err != nil {
-		return err
+		}`, graphql.Variables{"noteId": noteID, "fileId": fileID}, nil); err != nil {
+		return fmt.Errorf("attach file: %w", err)
 	}
 
 	fmt.Fprintf(os.Stdout, "attached %s (file %s) to %s\n", name, fileID, noteID)
@@ -840,14 +918,14 @@ func cmdDownload(ctx context.Context, c *nhost.Client, fileID, outPath string) e
 }
 
 func cmdShare(ctx context.Context, c *nhost.Client, noteID, userID, role string) error {
-	if _, err := gql(ctx, c, `
+	if _, err := c.GraphQL.Request(ctx, `
 		mutation Share($noteId: uuid!, $userId: uuid!, $role: String!) {
 			insert_note_collaborators_one(
 				object: {note_id: $noteId, user_id: $userId, role: $role}
 				on_conflict: {constraint: note_collaborators_pkey, update_columns: [role]}
 			) { note_id role }
-		}`, graphql.Variables{"noteId": noteID, "userId": userID, "role": role}); err != nil {
-		return err
+		}`, graphql.Variables{"noteId": noteID, "userId": userID, "role": role}, nil); err != nil {
+		return fmt.Errorf("share note: %w", err)
 	}
 
 	fmt.Fprintf(os.Stdout, "shared %s with %s as %s\n", noteID, userID, role)
@@ -856,11 +934,11 @@ func cmdShare(ctx context.Context, c *nhost.Client, noteID, userID, role string)
 }
 
 func cmdUnshare(ctx context.Context, c *nhost.Client, noteID, userID string) error {
-	if _, err := gql(ctx, c, `
+	if _, err := c.GraphQL.Request(ctx, `
 		mutation Unshare($noteId: uuid!, $userId: uuid!) {
 			delete_note_collaborators_by_pk(note_id: $noteId, user_id: $userId) { note_id }
-		}`, graphql.Variables{"noteId": noteID, "userId": userID}); err != nil {
-		return err
+		}`, graphql.Variables{"noteId": noteID, "userId": userID}, nil); err != nil {
+		return fmt.Errorf("unshare note: %w", err)
 	}
 
 	fmt.Fprintf(os.Stdout, "unshared %s from %s\n", noteID, userID)
@@ -888,33 +966,8 @@ func cmdExport(ctx context.Context, c *nhost.Client) error {
 
 // --- small helpers ----------------------------------------------------------
 
-func dig(m map[string]any, keys ...string) any {
-	var cur any = m
-	for _, k := range keys {
-		mm, ok := cur.(map[string]any)
-		if !ok {
-			return nil
-		}
-
-		cur = mm[k]
-	}
-
-	return cur
-}
-
-func asSlice(v any) []any {
-	s, _ := v.([]any)
-	return s
-}
-
-func str(v any) string {
-	s, _ := v.(string)
-	return s
-}
-
-func tagList(note map[string]any) string {
-	nts, _ := note["noteTags"].([]any)
-	if len(nts) == 0 {
+func tagList(tags []noteTagData) string {
+	if len(tags) == 0 {
 		return ""
 	}
 
@@ -922,10 +975,8 @@ func tagList(note map[string]any) string {
 
 	sb.WriteString("  ")
 
-	for _, nt := range nts {
-		if tag, ok := nt.(map[string]any)["tag"].(map[string]any); ok {
-			sb.WriteString("#" + str(tag["name"]) + " ")
-		}
+	for _, tag := range tags {
+		sb.WriteString("#" + tag.Tag.Name + " ")
 	}
 
 	return sb.String()

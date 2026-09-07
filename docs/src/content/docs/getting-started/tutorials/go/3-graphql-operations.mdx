@@ -131,37 +131,28 @@ to stop a note being **moved** into another user's notebook on update, enforce
 verifies the parent notebook's owner matches the note's owner.
 :::
 
-## A GraphQL helper
+## Model the GraphQL data
 
-Every command runs a query or mutation, so add a small helper. GraphQL errors
-come back as a non-nil `error`, and the decoded `data` is a `map[string]any`:
+`GraphQL.Request` works like `json.Unmarshal`: pass a pointer to the response
+shape you expect and the SDK decodes the GraphQL `data` field into it. Variables
+can remain a `graphql.Variables` map when their shape is dynamic. GraphQL
+failures are returned as a typed `*graphql.ResponseError`, so there is no
+untyped response map or type-assertion helper to maintain.
+
+Add the small response types shared by the operations below:
 
 ```go title="main.go"
 import "github.com/nhost/nhost/packages/nhost-go/graphql"
 
-func gql(ctx context.Context, c *nhost.Client, query string, vars graphql.Variables) (map[string]any, error) {
-	resp, _, err := c.GraphQL.Request(ctx, query, vars, "", nil)
-	if err != nil {
-		return nil, err
-	}
-	return resp.Data, nil
+type graphQLID struct {
+	ID string `json:"id"`
 }
 
-// tiny helpers for reading the untyped response map
-func dig(m map[string]any, keys ...string) any {
-	var cur any = m
-	for _, k := range keys {
-		mm, ok := cur.(map[string]any)
-		if !ok {
-			return nil
-		}
-		cur = mm[k]
-	}
-	return cur
+type noteSummary struct {
+	ID       string `json:"id"`
+	Title    string `json:"title"`
+	IsPinned bool   `json:"is_pinned"`
 }
-
-func str(v any) string   { s, _ := v.(string); return s }
-func asSlice(v any) []any { s, _ := v.([]any); return s }
 ```
 
 ## Create and list notes
@@ -171,40 +162,51 @@ schema. Notice we never send `user_id` — the permission preset fills it in.
 
 ```go title="main.go"
 func noteNew(ctx context.Context, c *nhost.Client, title, content string) error {
-	obj := map[string]any{"title": title, "content": content}
-	data, err := gql(ctx, c, `
+	var data struct {
+		Note *graphQLID `json:"insert_notes_one"`
+	}
+
+	_, err := c.GraphQL.Request(ctx, `
 		mutation NewNote($obj: notes_insert_input!) {
 			insert_notes_one(object: $obj) { id }
-		}`, graphql.Variables{"obj": obj})
+		}`,
+		graphql.Variables{"obj": map[string]any{"title": title, "content": content}},
+		&data,
+	)
 	if err != nil {
 		return err
 	}
-	fmt.Println("created", str(dig(data, "insert_notes_one", "id")))
+	if data.Note == nil {
+		return errors.New("note not found or not permitted")
+	}
+	fmt.Println("created", data.Note.ID)
 	return nil
 }
 
 func noteLs(ctx context.Context, c *nhost.Client) error {
-	data, err := gql(ctx, c, `
+	var data struct {
+		Notes []noteSummary `json:"notes"`
+	}
+
+	_, err := c.GraphQL.Request(ctx, `
 		query {
 			notes(order_by: [{is_pinned: desc}, {updated_at: desc}]) {
 				id title is_pinned
 			}
-		}`, nil)
+		}`, nil, &data)
 	if err != nil {
 		return err
 	}
-	notes := asSlice(data["notes"])
-	if len(notes) == 0 {
+	if len(data.Notes) == 0 {
 		fmt.Println("(no notes)")
 		return nil
 	}
-	for _, n := range notes {
-		m, _ := n.(map[string]any)
+	for _, note := range data.Notes {
 		pin := " "
-		if b, _ := m["is_pinned"].(bool); b {
+		if note.IsPinned {
 			pin = "*"
 		}
-		fmt.Printf("%s %s  %s\n", pin, str(m["id"]), str(m["title"]))
+		fmt.Printf("%s %s  %s\n", pin, note.ID, note.Title)
 	}
 	return nil
 }
@@ -224,14 +226,18 @@ yours:
 
 ```go title="main.go"
 func updateNote(ctx context.Context, c *nhost.Client, id string, set map[string]any) error {
-	data, err := gql(ctx, c, `
+	var data struct {
+		Note *graphQLID `json:"update_notes_by_pk"`
+	}
+
+	_, err := c.GraphQL.Request(ctx, `
 		mutation UpdateNote($id: uuid!, $set: notes_set_input!) {
 			update_notes_by_pk(pk_columns: {id: $id}, _set: $set) { id }
-		}`, graphql.Variables{"id": id, "set": set})
+		}`, graphql.Variables{"id": id, "set": set}, &data)
 	if err != nil {
 		return err
 	}
-	if dig(data, "update_notes_by_pk", "id") == nil {
+	if data.Note == nil {
 		return errors.New("note not found or not permitted")
 	}
 	fmt.Println("updated", id)
@@ -245,21 +251,24 @@ links it to the note:
 
 ```go title="main.go"
 func upsertTag(ctx context.Context, c *nhost.Client, name string) (string, error) {
-	data, err := gql(ctx, c, `
+	var data struct {
+		Tag *graphQLID `json:"insert_tags_one"`
+	}
+
+	_, err := c.GraphQL.Request(ctx, `
 		mutation UpsertTag($name: String!) {
 			insert_tags_one(
 				object: {name: $name}
 				on_conflict: {constraint: tags_user_id_name_key, update_columns: [name]}
 			) { id }
-		}`, graphql.Variables{"name": name})
+		}`, graphql.Variables{"name": name}, &data)
 	if err != nil {
 		return "", err
 	}
-	id := str(dig(data, "insert_tags_one", "id"))
-	if id == "" {
+	if data.Tag == nil {
 		return "", errors.New("could not create tag")
 	}
-	return id, nil
+	return data.Tag.ID, nil
 }
 
 func noteTag(ctx context.Context, c *nhost.Client, noteID, tagName string) error {
@@ -267,13 +276,13 @@ func noteTag(ctx context.Context, c *nhost.Client, noteID, tagName string) error
 	if err != nil {
 		return err
 	}
-	_, err = gql(ctx, c, `
+	_, err = c.GraphQL.Request(ctx, `
 		mutation TagNote($noteId: uuid!, $tagId: uuid!) {
 			insert_note_tags_one(
 				object: {note_id: $noteId, tag_id: $tagId}
 				on_conflict: {constraint: note_tags_pkey, update_columns: []}
 			) { note_id }
-		}`, graphql.Variables{"noteId": noteID, "tagId": tagID})
+		}`, graphql.Variables{"noteId": noteID, "tagId": tagID}, nil)
 	if err != nil {
 		return err
 	}
@@ -544,29 +553,15 @@ func env(key, fallback string) string {
 	return fallback
 }
 
-func gql(ctx context.Context, c *nhost.Client, query string, vars graphql.Variables) (map[string]any, error) {
-	resp, _, err := c.GraphQL.Request(ctx, query, vars, "", nil)
-	if err != nil {
-		return nil, err
-	}
-	return resp.Data, nil
+type graphQLID struct {
+	ID string `json:"id"`
 }
 
-// tiny helpers for reading the untyped response map
-func dig(m map[string]any, keys ...string) any {
-	var cur any = m
-	for _, k := range keys {
-		mm, ok := cur.(map[string]any)
-		if !ok {
-			return nil
-		}
-		cur = mm[k]
-	}
-	return cur
+type noteSummary struct {
+	ID       string `json:"id"`
+	Title    string `json:"title"`
+	IsPinned bool   `json:"is_pinned"`
 }
-
-func str(v any) string    { s, _ := v.(string); return s }
-func asSlice(v any) []any { s, _ := v.([]any); return s }
 
 func cmdSignup(ctx context.Context, c *nhost.Client, email, password string) error {
 	if _, _, err := c.Auth.SignUpEmailPassword(ctx, auth.SignUpEmailPasswordRequest{
@@ -618,40 +613,51 @@ func cmdWhoami(c *nhost.Client) error {
 }
 
 func noteNew(ctx context.Context, c *nhost.Client, title, content string) error {
-	obj := map[string]any{"title": title, "content": content}
-	data, err := gql(ctx, c, `
+	var data struct {
+		Note *graphQLID `json:"insert_notes_one"`
+	}
+
+	_, err := c.GraphQL.Request(ctx, `
 		mutation NewNote($obj: notes_insert_input!) {
 			insert_notes_one(object: $obj) { id }
-		}`, graphql.Variables{"obj": obj})
+		}`,
+		graphql.Variables{"obj": map[string]any{"title": title, "content": content}},
+		&data,
+	)
 	if err != nil {
 		return err
 	}
-	fmt.Println("created", str(dig(data, "insert_notes_one", "id")))
+	if data.Note == nil {
+		return errors.New("note not found or not permitted")
+	}
+	fmt.Println("created", data.Note.ID)
 	return nil
 }
 
 func noteLs(ctx context.Context, c *nhost.Client) error {
-	data, err := gql(ctx, c, `
+	var data struct {
+		Notes []noteSummary `json:"notes"`
+	}
+
+	_, err := c.GraphQL.Request(ctx, `
 		query {
 			notes(order_by: [{is_pinned: desc}, {updated_at: desc}]) {
 				id title is_pinned
 			}
-		}`, nil)
+		}`, nil, &data)
 	if err != nil {
 		return err
 	}
-	notes := asSlice(data["notes"])
-	if len(notes) == 0 {
+	if len(data.Notes) == 0 {
 		fmt.Println("(no notes)")
 		return nil
 	}
-	for _, n := range notes {
-		m, _ := n.(map[string]any)
+	for _, note := range data.Notes {
 		pin := " "
-		if b, _ := m["is_pinned"].(bool); b {
+		if note.IsPinned {
 			pin = "*"
 		}
-		fmt.Printf("%s %s  %s\n", pin, str(m["id"]), str(m["title"]))
+		fmt.Printf("%s %s  %s\n", pin, note.ID, note.Title)
 	}
 	return nil
 }
@@ -659,14 +665,18 @@ func noteLs(ctx context.Context, c *nhost.Client) error {
 // updateNote covers edit, pin, archive, and move; a nil primary-key result
 // means the row doesn't exist or isn't yours.
 func updateNote(ctx context.Context, c *nhost.Client, id string, set map[string]any) error {
-	data, err := gql(ctx, c, `
+	var data struct {
+		Note *graphQLID `json:"update_notes_by_pk"`
+	}
+
+	_, err := c.GraphQL.Request(ctx, `
 		mutation UpdateNote($id: uuid!, $set: notes_set_input!) {
 			update_notes_by_pk(pk_columns: {id: $id}, _set: $set) { id }
-		}`, graphql.Variables{"id": id, "set": set})
+		}`, graphql.Variables{"id": id, "set": set}, &data)
 	if err != nil {
 		return err
 	}
-	if dig(data, "update_notes_by_pk", "id") == nil {
+	if data.Note == nil {
 		return errors.New("note not found or not permitted")
 	}
 	fmt.Println("updated", id)
@@ -674,21 +684,24 @@ func updateNote(ctx context.Context, c *nhost.Client, id string, set map[string]
 }
 
 func upsertTag(ctx context.Context, c *nhost.Client, name string) (string, error) {
-	data, err := gql(ctx, c, `
+	var data struct {
+		Tag *graphQLID `json:"insert_tags_one"`
+	}
+
+	_, err := c.GraphQL.Request(ctx, `
 		mutation UpsertTag($name: String!) {
 			insert_tags_one(
 				object: {name: $name}
 				on_conflict: {constraint: tags_user_id_name_key, update_columns: [name]}
 			) { id }
-		}`, graphql.Variables{"name": name})
+		}`, graphql.Variables{"name": name}, &data)
 	if err != nil {
 		return "", err
 	}
-	id := str(dig(data, "insert_tags_one", "id"))
-	if id == "" {
+	if data.Tag == nil {
 		return "", errors.New("could not create tag")
 	}
-	return id, nil
+	return data.Tag.ID, nil
 }
 
 func noteTag(ctx context.Context, c *nhost.Client, noteID, tagName string) error {
@@ -696,13 +709,13 @@ func noteTag(ctx context.Context, c *nhost.Client, noteID, tagName string) error
 	if err != nil {
 		return err
 	}
-	_, err = gql(ctx, c, `
+	_, err = c.GraphQL.Request(ctx, `
 		mutation TagNote($noteId: uuid!, $tagId: uuid!) {
 			insert_note_tags_one(
 				object: {note_id: $noteId, tag_id: $tagId}
 				on_conflict: {constraint: note_tags_pkey, update_columns: []}
 			) { note_id }
-		}`, graphql.Variables{"noteId": noteID, "tagId": tagID})
+		}`, graphql.Variables{"noteId": noteID, "tagId": tagID}, nil)
 	if err != nil {
 		return err
 	}
