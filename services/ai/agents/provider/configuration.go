@@ -14,6 +14,7 @@ const (
 	providerTypeAnthropicMessages     = "anthropic_messages"
 	providerTypeGoogleGemini          = "google_gemini"
 	providerTypeOpenAIChatCompletions = "openai_chat_completions"
+	providerTypeOpenAIResponses       = "openai_responses"
 )
 
 var errInvalidAgentProviderConfiguration = errors.New("invalid agent provider configuration")
@@ -170,6 +171,17 @@ func lookupProviderTypeDescriptor(providerType string) (*providerTypeDescriptor,
 				configuration endpointConfiguration,
 			) (Provider, error) {
 				return newOpenAIChatCompletions(configuration), nil
+			},
+		}, true
+	case providerTypeOpenAIResponses:
+		return &providerTypeDescriptor{
+			name:             providerTypeOpenAIResponses,
+			newConfiguration: newOpenAIResponsesConfiguration,
+			newProvider: func(
+				_ context.Context,
+				configuration endpointConfiguration,
+			) (Provider, error) {
+				return newOpenAIResponses(configuration), nil
 			},
 		}, true
 	default:

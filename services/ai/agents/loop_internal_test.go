@@ -117,7 +117,12 @@ func TestProcessStreamEvents(t *testing.T) {
 	t.Run("tool use events", func(t *testing.T) {
 		t.Parallel()
 
-		tc := &provider.ToolCall{ID: "tc1", Name: testSearchToolName, Arguments: `{"q":"test"}`}
+		const metadataMarker = "private-provider-metadata"
+
+		tc := &provider.ToolCall{
+			ID: "tc1", Name: testSearchToolName, Arguments: `{"q":"test"}`,
+			ProviderMetadata: []byte(`{"opaque":"` + metadataMarker + `"}`),
+		}
 
 		ch := make(chan provider.Event, 4)
 		ch <- provider.NewToolEvent(provider.EventToolUseStart, tc)
@@ -147,6 +152,28 @@ func TestProcessStreamEvents(t *testing.T) {
 
 		if result.stopReason != provider.StopReasonToolUse {
 			t.Errorf("expected stop reason 'tool_use', got %q", result.stopReason)
+		}
+
+		if !strings.Contains(string(result.toolCalls[0].ProviderMetadata), metadataMarker) {
+			t.Error("provider metadata was not retained for persistence")
+		}
+
+		var gotToolCallEvent string
+		for _, event := range w.events {
+			if strings.HasPrefix(event, "tool_call:") {
+				gotToolCallEvent = event
+
+				break
+			}
+		}
+
+		wantToolCallEvent := `tool_call:{"id":"tc1","name":"search","arguments":"{\"q\":\"test\"}"}`
+		if diff := cmp.Diff(wantToolCallEvent, gotToolCallEvent); diff != "" {
+			t.Errorf("tool_call event mismatch (-want +got):\n%s", diff)
+		}
+
+		if strings.Contains(strings.Join(w.events, "\n"), metadataMarker) {
+			t.Error("provider metadata was exposed in public SSE events")
 		}
 	})
 

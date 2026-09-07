@@ -254,7 +254,15 @@ func handleStreamEvent(
 		if event.ToolCall != nil {
 			*toolCalls = append(*toolCalls, *event.ToolCall)
 
-			payload, err := json.Marshal(event.ToolCall)
+			payload, err := json.Marshal(struct {
+				ID        string `json:"id"`
+				Name      string `json:"name"`
+				Arguments string `json:"arguments"`
+			}{
+				ID:        event.ToolCall.ID,
+				Name:      event.ToolCall.Name,
+				Arguments: event.ToolCall.Arguments,
+			})
 			if err != nil {
 				return fmt.Errorf("failed to marshal tool call: %w", err)
 			}

@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 )
 
@@ -37,6 +38,8 @@ type ToolCall struct {
 	ID        string `json:"id"`
 	Name      string `json:"name"`
 	Arguments string `json:"arguments"`
+	// ProviderMetadata carries opaque adapter state across persisted tool continuations.
+	ProviderMetadata json.RawMessage `json:"provider_metadata,omitempty"`
 }
 
 // EventType represents the type of streaming event.

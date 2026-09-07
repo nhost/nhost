@@ -15,7 +15,8 @@ func TestBuildConfiguredProvidersPublicContract(t *testing.T) {
 	raw := `[
 		{"name":"anthropic","type":"anthropic_messages","configuration":{"base_url":"https://api.anthropic.com","headers":{"x-api-key":"anthropic-secret"}}},
 		{"name":"google","type":"google_gemini","configuration":{"base_url":"https://generativelanguage.googleapis.com","headers":{"x-goog-api-key":"google-secret"}}},
-		{"name":"openai","type":"openai_chat_completions","configuration":{"base_url":"https://api.openai.com/v1","headers":{"Authorization":"Bearer openai-secret"}}}
+		{"name":"openai","type":"openai_chat_completions","configuration":{"base_url":"https://api.openai.com/v1","headers":{"Authorization":"Bearer openai-secret"}}},
+		{"name":"openai-responses","type":"openai_responses","configuration":{"base_url":"https://api.openai.com/v1","headers":{"Authorization":"Bearer responses-secret"}}}
 	]`
 
 	registry, typesByName, err := provider.BuildConfiguredProviders(t.Context(), raw)
@@ -24,9 +25,10 @@ func TestBuildConfiguredProvidersPublicContract(t *testing.T) {
 	}
 
 	wantTypes := map[string]string{
-		"anthropic": "anthropic_messages",
-		"google":    "google_gemini",
-		"openai":    "openai_chat_completions",
+		"anthropic":        "anthropic_messages",
+		"google":           "google_gemini",
+		"openai":           "openai_chat_completions",
+		"openai-responses": "openai_responses",
 	}
 	if diff := cmp.Diff(wantTypes, typesByName); diff != "" {
 		t.Errorf("provider metadata mismatch (-want +got):\n%s", diff)
