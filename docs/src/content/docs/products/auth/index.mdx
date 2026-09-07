@@ -16,7 +16,7 @@ Nhost Auth is a ready-to-use authentication service seamlessly integrated with t
 Use the Nhost SDK to sign in users. For example, with email and password:
 
 ```js
-await nhost.auth.signIn({
+await nhost.auth.signInEmailPassword({
   email: 'user@example.com',
   password: 's3cr3t',
 });
@@ -27,7 +27,13 @@ await nhost.auth.signIn({
 To sign out the current user and invalidate their session:
 
 ```js
-await nhost.auth.signOut();
+const session = nhost.getUserSession();
+
+if (session) {
+  await nhost.auth.signOut({
+    refreshToken: session.refreshToken,
+  });
+}
 ```
 
 ## Sessions and Token Refresh

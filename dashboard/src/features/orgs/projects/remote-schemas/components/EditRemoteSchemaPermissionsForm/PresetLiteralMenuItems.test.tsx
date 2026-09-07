@@ -81,17 +81,15 @@ function renderMenuFor(argName: string, options: RenderOptions = {}) {
 }
 
 describe('null menu item', () => {
-  it.each([
-    ['flag'],
-    ['count'],
-    ['name'],
-    ['uid'],
-    ['tags'],
-    ['ints'],
-  ])('shows for nullable arg %s', (name) => {
-    renderMenuFor(name);
-    expect(screen.getByRole('menuitem', { name: 'null' })).toBeInTheDocument();
-  });
+  it.each([['flag'], ['count'], ['name'], ['uid'], ['tags'], ['ints']])(
+    'shows for nullable arg %s',
+    (name) => {
+      renderMenuFor(name);
+      expect(
+        screen.getByRole('menuitem', { name: 'null' }),
+      ).toBeInTheDocument();
+    },
+  );
 
   it.each([
     ['flagRequired'],
@@ -115,20 +113,18 @@ describe('true / false menu items', () => {
     expect(screen.getByRole('menuitem', { name: 'false' })).toBeInTheDocument();
   });
 
-  it.each([
-    ['count'],
-    ['name'],
-    ['uid'],
-    ['role'],
-  ])('hides for non-Boolean arg %s', (name) => {
-    renderMenuFor(name);
-    expect(
-      screen.queryByRole('menuitem', { name: 'true' }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('menuitem', { name: 'false' }),
-    ).not.toBeInTheDocument();
-  });
+  it.each([['count'], ['name'], ['uid'], ['role']])(
+    'hides for non-Boolean arg %s',
+    (name) => {
+      renderMenuFor(name);
+      expect(
+        screen.queryByRole('menuitem', { name: 'true' }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole('menuitem', { name: 'false' }),
+      ).not.toBeInTheDocument();
+    },
+  );
 
   it('hides for list-of-Boolean (cannot emit bare true/false on a list arg)', () => {
     renderMenuFor('bools');
@@ -153,43 +149,37 @@ describe('enum values submenu', () => {
     ).not.toBeInTheDocument();
   });
 
-  it.each([
-    ['flag'],
-    ['count'],
-    ['name'],
-    ['uid'],
-  ])('hides for non-enum arg %s', (name) => {
-    renderMenuFor(name);
-    expect(
-      screen.queryByRole('menuitem', { name: /Enum values/ }),
-    ).not.toBeInTheDocument();
-  });
+  it.each([['flag'], ['count'], ['name'], ['uid']])(
+    'hides for non-enum arg %s',
+    (name) => {
+      renderMenuFor(name);
+      expect(
+        screen.queryByRole('menuitem', { name: /Enum values/ }),
+      ).not.toBeInTheDocument();
+    },
+  );
 });
 
 describe('empty string menu item', () => {
-  it.each([
-    ['name'],
-    ['nameRequired'],
-    ['id'],
-    ['uid'],
-  ])('shows for string-like scalar arg %s', (name) => {
-    renderMenuFor(name);
-    expect(
-      screen.getByRole('menuitem', { name: /empty string/ }),
-    ).toBeInTheDocument();
-  });
+  it.each([['name'], ['nameRequired'], ['id'], ['uid']])(
+    'shows for string-like scalar arg %s',
+    (name) => {
+      renderMenuFor(name);
+      expect(
+        screen.getByRole('menuitem', { name: /empty string/ }),
+      ).toBeInTheDocument();
+    },
+  );
 
-  it.each([
-    ['flag'],
-    ['count'],
-    ['pi'],
-    ['role'],
-  ])('hides for Boolean / Int / Float / Enum arg %s', (name) => {
-    renderMenuFor(name);
-    expect(
-      screen.queryByRole('menuitem', { name: /empty string/ }),
-    ).not.toBeInTheDocument();
-  });
+  it.each([['flag'], ['count'], ['pi'], ['role']])(
+    'hides for Boolean / Int / Float / Enum arg %s',
+    (name) => {
+      renderMenuFor(name);
+      expect(
+        screen.queryByRole('menuitem', { name: /empty string/ }),
+      ).not.toBeInTheDocument();
+    },
+  );
 
   it.each([['tags'], ['ints']])('hides for list arg %s', (name) => {
     renderMenuFor(name);
@@ -198,15 +188,15 @@ describe('empty string menu item', () => {
     ).not.toBeInTheDocument();
   });
 
-  it.each([
-    ['where'],
-    ['whereRequired'],
-  ])('hides for input-object arg %s (cannot emit "" on an input-object arg)', (name) => {
-    renderMenuFor(name);
-    expect(
-      screen.queryByRole('menuitem', { name: /empty string/ }),
-    ).not.toBeInTheDocument();
-  });
+  it.each([['where'], ['whereRequired']])(
+    'hides for input-object arg %s (cannot emit "" on an input-object arg)',
+    (name) => {
+      renderMenuFor(name);
+      expect(
+        screen.queryByRole('menuitem', { name: /empty string/ }),
+      ).not.toBeInTheDocument();
+    },
+  );
 });
 
 describe('permission variables submenu', () => {
@@ -226,26 +216,25 @@ describe('permission variables submenu', () => {
     ).toBeInTheDocument();
   });
 
-  it.each([
-    ['tags'],
-    ['enums'],
-    ['bools'],
-  ])('hides for list arg %s (preset directive on a list cannot take a bare session-variable string)', (name) => {
-    renderMenuFor(name);
-    expect(
-      screen.queryByRole('menuitem', { name: /Permission variables/ }),
-    ).not.toBeInTheDocument();
-  });
+  it.each([['tags'], ['enums'], ['bools']])(
+    'hides for list arg %s (preset directive on a list cannot take a bare session-variable string)',
+    (name) => {
+      renderMenuFor(name);
+      expect(
+        screen.queryByRole('menuitem', { name: /Permission variables/ }),
+      ).not.toBeInTheDocument();
+    },
+  );
 
-  it.each([
-    ['where'],
-    ['whereRequired'],
-  ])('hides for input-object arg %s', (name) => {
-    renderMenuFor(name);
-    expect(
-      screen.queryByRole('menuitem', { name: /Permission variables/ }),
-    ).not.toBeInTheDocument();
-  });
+  it.each([['where'], ['whereRequired']])(
+    'hides for input-object arg %s',
+    (name) => {
+      renderMenuFor(name);
+      expect(
+        screen.queryByRole('menuitem', { name: /Permission variables/ }),
+      ).not.toBeInTheDocument();
+    },
+  );
 
   it('hides when sessionVariableOptions is empty even on a capable arg', () => {
     renderMenuFor('name', { sessionVariableOptions: [] });

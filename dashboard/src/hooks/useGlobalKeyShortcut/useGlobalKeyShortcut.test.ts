@@ -47,32 +47,30 @@ describe('useGlobalKeyShortcut', () => {
     expect(event.defaultPrevented).toBe(false);
   });
 
-  it.each([
-    'input',
-    'textarea',
-    'select',
-    'contenteditable',
-  ])('ignores shortcuts from a %s by default', (elementType) => {
-    const element =
-      elementType === 'contenteditable'
-        ? document.createElement('div')
-        : document.createElement(elementType);
-    if (elementType === 'contenteditable') {
-      Object.defineProperty(element, 'isContentEditable', { value: true });
-      element.tabIndex = 0;
-    }
-    document.body.append(element);
-    element.focus();
+  it.each(['input', 'textarea', 'select', 'contenteditable'])(
+    'ignores shortcuts from a %s by default',
+    (elementType) => {
+      const element =
+        elementType === 'contenteditable'
+          ? document.createElement('div')
+          : document.createElement(elementType);
+      if (elementType === 'contenteditable') {
+        Object.defineProperty(element, 'isContentEditable', { value: true });
+        element.tabIndex = 0;
+      }
+      document.body.append(element);
+      element.focus();
 
-    const onShortcut = vi.fn();
-    renderHook(() => useGlobalKeyShortcut({ key: 'f', onShortcut }));
+      const onShortcut = vi.fn();
+      renderHook(() => useGlobalKeyShortcut({ key: 'f', onShortcut }));
 
-    const event = dispatchShortcut('f', { ctrlKey: true });
+      const event = dispatchShortcut('f', { ctrlKey: true });
 
-    expect(onShortcut).not.toHaveBeenCalled();
-    expect(event.defaultPrevented).toBe(false);
-    element.remove();
-  });
+      expect(onShortcut).not.toHaveBeenCalled();
+      expect(event.defaultPrevented).toBe(false);
+      element.remove();
+    },
+  );
 
   it('handles an editable shortcut when custom policy accepts it', () => {
     const input = document.createElement('input');

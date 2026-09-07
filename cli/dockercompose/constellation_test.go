@@ -128,7 +128,7 @@ func callGetServices(t *testing.T, withConstellation, useTLS bool) map[string]*S
 		tmp,
 		ExposePorts{},
 		"main",
-		"nhost/dashboard:3.5.1",
+		"nhost/dashboard:3.5.2",
 		"2.1.0",
 		"nhost/cli:dev",
 		"00000000-0000-0000-0000-000000000000",

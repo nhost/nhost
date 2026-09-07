@@ -15,12 +15,13 @@ sql:
             go_type:
               import: "github.com/google/uuid"
               type: "UUID"
-          - column: auth.users.email
+          # CTE/UNION projections retain the domain type but lose table-column
+          # lineage, so override the nullable domain rather than individual columns.
+          - db_type: "auth.email"
+            nullable: true
             go_type:
-              type: "pgtype.Text"
-          - column: auth.users.new_email
-            go_type:
-              type: "pgtype.Text"
+              import: "github.com/jackc/pgx/v5/pgtype"
+              type: "Text"
           - column: auth.refresh_tokens.type
             go_type:
               type: "RefreshTokenType"

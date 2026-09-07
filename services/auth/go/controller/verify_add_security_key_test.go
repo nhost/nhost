@@ -314,7 +314,10 @@ func TestVerifyAddSecurityKey(t *testing.T) { //nolint:maintidx
 			}
 
 			if c.Webauthn != nil {
-				c.Webauthn.Storage["zznztjvFVUM0E2p8ZV6shXEcw2f4tbz5RrfZWk4VPXI"] = touchIDWebauthnChallenge
+				c.Webauthn.Storage.Store(
+					"zznztjvFVUM0E2p8ZV6shXEcw2f4tbz5RrfZWk4VPXI",
+					touchIDWebauthnChallenge,
+				)
 			}
 
 			ctx := t.Context()

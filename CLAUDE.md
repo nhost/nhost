@@ -8,6 +8,7 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 
 ### Go Services (`services/`)
 
+- `services/ai` - AI service providing auto-embeddings (OpenAI) and multi-provider agents (Anthropic, OpenAI, and Google Gemini) with SSE streaming. HTTP/webhook API only; agent and configuration data is exposed through Hasura, not a service-owned GraphQL schema
 - `services/auth` - JWT-based authentication service with OAuth2/OIDC support, email/SMS verification, WebAuthn. Uses OpenAPI (oapi-codegen), sqlc for DB queries, and gomock for testing
 - `services/constellation` - GraphQL engine that turns relational databases (PostgreSQL, SQLite) into a role-based GraphQL API. Near-drop-in replacement for Hasura Community Edition: Hasura-compatible metadata, schema generation, queries/mutations/subscriptions, remote schemas, and cross-source remote relationships
 - `services/functions` - Node.js development runtime for serverless functions with Express, esbuild bundling, and hot-reload. Local dev simulation only, not a production service
@@ -23,6 +24,7 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 
 - `internal/lib/oapi` - shared OpenAPI middleware and utilities
 - `internal/lib/clidocs` - CLI documentation generation
+- `internal/lib/syncmap` - typed generic map safe for concurrent use
 
 ### Dashboard (`dashboard/`)
 
@@ -61,7 +63,7 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 - Go services use Nix dev shells. Enter with: `nix develop .\#<project-name>` (e.g., `nix develop .\#auth`)
 - Each service has a `project.nix` and a `Makefile` that includes `build/makefiles/general.makefile`
 - Common Makefile targets: `make help`, `make develop`, `make check`, `make build`, `make build-docker-image`, `make dev-env-up`, `make dev-env-down`
-- JS/TS packages use pnpm 11.1.0 (not npm or yarn) with Turbo for orchestration
+- JS/TS packages use pnpm 11.24.0 (not npm or yarn) with Turbo for orchestration
 - Node >= 22 required
 
 ## Code Standards

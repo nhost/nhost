@@ -6,7 +6,7 @@ import type { ChainFunction, FetchResponse } from "../fetch";
 import { createEnhancedFetch, FetchError } from "../fetch";
 
 /**
- * 
+ * Optional token type hint declared nullable in OpenAPI.
  */
 export type OAuth2RevokeRequestToken_type_hint = "access_token" | "refresh_token";
 
@@ -14,24 +14,24 @@ export type OAuth2RevokeRequestToken_type_hint = "access_token" | "refresh_token
 /**
  * 
  @property token (`string`) - 
- @property token_type_hint? (`OAuth2RevokeRequestToken_type_hint`) - 
- @property client_id? (`string`) - 
- @property client_secret? (`string`) - */
+ @property token_type_hint? (`OAuth2RevokeRequestToken_type_hint`) - Optional token type hint declared nullable in OpenAPI.
+ @property client_id? (`string`) - Optional client identifier declared nullable in OpenAPI.
+ @property client_secret? (`string`) - Optional client secret declared nullable in OpenAPI.*/
 export interface OAuth2RevokeRequest {
   /**
    * 
    */
   token: string,
   /**
-   * 
+   * Optional token type hint declared nullable in OpenAPI.
    */
   token_type_hint?: OAuth2RevokeRequestToken_type_hint,
   /**
-   * 
+   * Optional client identifier declared nullable in OpenAPI.
    */
   client_id?: string,
   /**
-   * 
+   * Optional client secret declared nullable in OpenAPI.
    */
   client_secret?: string,
 };
@@ -91,16 +91,16 @@ export const createAPIClient = (
   ): Promise<FetchResponse<void>> => {
     const url = `${ baseURL }/oauth2/revoke`;
     const params = new URLSearchParams();
-    if (body["token"] !== undefined) {
+    if (body["token"] !== undefined && body["token"] !== null) {
       params.append("token", String(body["token"]));
     }
-    if (body["token_type_hint"] !== undefined) {
+    if (body["token_type_hint"] !== undefined && body["token_type_hint"] !== null) {
       params.append("token_type_hint", String(body["token_type_hint"]));
     }
-    if (body["client_id"] !== undefined) {
+    if (body["client_id"] !== undefined && body["client_id"] !== null) {
       params.append("client_id", String(body["client_id"]));
     }
-    if (body["client_secret"] !== undefined) {
+    if (body["client_secret"] !== undefined && body["client_secret"] !== null) {
       params.append("client_secret", String(body["client_secret"]));
     }
 

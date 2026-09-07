@@ -89,9 +89,7 @@ function DataGrid<TColumnData extends UnknownDataGridRow>(
   }: DataGridProps<TColumnData>,
   ref: ForwardedRef<HTMLDivElement>,
 ) {
-  // biome-ignore lint/correctness/useHookAtTopLevel: forwardRef render function with generic type cast
   const tableRef = useRef<HTMLDivElement | null>(null);
-  // biome-ignore lint/correctness/useHookAtTopLevel: forwardRef render function with generic type cast
   const dataGridProps = useDataGrid<TColumnData>({
     columns: columns || [],
     data: data || [],

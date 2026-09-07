@@ -95,6 +95,8 @@ overrides:
   "sharp@<0.35.0": ">=0.35.0"
   "immutable@>=5.0.0-beta.1 <5.1.8": ">=5.1.8"
   "js-yaml@>=4.0.0 <4.3.1": ">=4.3.1 <5.0.0"
+  "decode-uri-component@<=0.4.2": ">=0.5.0"
+  "browserslist@<=4.28.6": "4.28.7"
 
 minimumReleaseAgeExclude:
   - path-to-regexp@6.3.0
@@ -148,3 +150,11 @@ minimumReleaseAgeExclude:
   - nanoid@3.3.17
   - image-size@2.0.3
   - "@sveltejs/kit@2.70.2"
+  - "postcss-selector-parser@6.1.3"
+  - "browserslist@4.28.7"
+
+allowBuilds:
+     esbuild: false
+     msw: false
+     unrs-resolver: false
+

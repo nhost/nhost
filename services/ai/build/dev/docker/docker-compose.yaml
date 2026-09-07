@@ -1,0 +1,234 @@
+services:
+  ai:
+    image: ai:0.0.0-dev
+    depends_on:
+      graphql:
+        condition: service_healthy
+      auth:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    command:
+      - serve
+    environment:
+      AI_BASE_URL: http://ai:8090
+      AI_WEBHOOK_SECRET: ai-secret
+      HASURA_GRAPHQL_ADMIN_SECRET: nhost-admin-secret
+      NHOST_GRAPHQL_URL: http://graphql:8080/v1/graphql
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-fake-openai-key}
+      OPENAI_ORG: ${OPENAI_ORG:-}
+      POSTGRES_CONNECTION: >-
+        postgres://postgres:postgres@postgres:5432/local?sslmode=disable
+      SYNCH_PERIOD: 5m
+    ports:
+      - mode: ingress
+        target: 8090
+        published: "8090"
+        protocol: tcp
+    healthcheck:
+      test:
+        - CMD
+        - ai
+        - healthcheck
+      timeout: 5s
+      interval: 5s
+      start_period: 30s
+    restart: always
+
+  auth:
+    image: nhost/auth:0.47.0
+    depends_on:
+      graphql:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    command: serve
+    environment:
+      AUTH_ENCRYPTION_KEY: >-
+        5181f67e2844e4b60d571fa346cac9c37fc00d1ff519212eae6cead138e639ba
+      AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS: ""
+      AUTH_ACCESS_CONTROL_ALLOWED_EMAILS: ""
+      AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS: ""
+      AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS: ""
+      AUTH_ACCESS_CONTROL_BLOCKED_EMAILS: ""
+      AUTH_ACCESS_TOKEN_EXPIRES_IN: "900"
+      AUTH_ANONYMOUS_USERS_ENABLED: "false"
+      AUTH_API_PREFIX: /v1
+      AUTH_CLIENT_URL: http://localhost:3000
+      AUTH_DISABLE_NEW_USERS: "false"
+      AUTH_DISABLE_SIGNUP: "false"
+      AUTH_EMAIL_PASSWORDLESS_ENABLED: "false"
+      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: "true"
+      AUTH_GRAVATAR_DEFAULT: blank
+      AUTH_GRAVATAR_ENABLED: "true"
+      AUTH_GRAVATAR_RATING: g
+      AUTH_HOST: 0.0.0.0
+      AUTH_JWT_CUSTOM_CLAIMS: "{}"
+      AUTH_LOCALE_ALLOWED_LOCALES: en
+      AUTH_LOCALE_DEFAULT: en
+      AUTH_MFA_ENABLED: "false"
+      AUTH_MFA_TOTP_ISSUER: ""
+      AUTH_PASSWORD_HIBP_ENABLED: "false"
+      AUTH_PASSWORD_MIN_LENGTH: "9"
+      AUTH_PORT: "4000"
+      AUTH_REFRESH_TOKEN_EXPIRES_IN: "43200"
+      AUTH_SERVER_URL: https://local.auth.nhost.run/v1
+      AUTH_SMTP_AUTH_METHOD: LOGIN
+      AUTH_SMTP_HOST: mailhog
+      AUTH_SMTP_PASS: password
+      AUTH_SMTP_PORT: "1025"
+      AUTH_SMTP_SECURE: "false"
+      AUTH_SMTP_SENDER: hasura-auth@example.com
+      AUTH_SMTP_USER: user
+      AUTH_USER_DEFAULT_ALLOWED_ROLES: user,me
+      AUTH_USER_DEFAULT_ROLE: user
+      HASURA_GRAPHQL_ADMIN_SECRET: nhost-admin-secret
+      HASURA_GRAPHQL_DATABASE_URL: >-
+        postgres://postgres:postgres@postgres:5432/local
+      HASURA_GRAPHQL_GRAPHQL_URL: http://graphql:8080/v1/graphql
+      HASURA_STORAGE_URL: http://storage:8000/v1
+      HASURA_GRAPHQL_JWT_SECRET: >-
+        {"key":
+        "0f987876650b4a085e64594fae9219e7781b17506bec02489ad061fba8cb22db",
+        "type":"HS256"}
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - --spider
+        - -S
+        - http://localhost:4000/healthz
+      timeout: 60s
+      interval: 5s
+      start_period: 60s
+    restart: always
+
+  storage:
+    image: nhost/storage:0.11.1
+    depends_on:
+      graphql:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    environment:
+      HASURA_METADATA: 1
+      HASURA_ENDPOINT: http://graphql:8080/v1
+      HASURA_GRAPHQL_ADMIN_SECRET: nhost-admin-secret
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-5a7bdb5f42c41e0622bf61d6e08d5537}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-minioadmin}
+      S3_BUCKET: "default"
+      S3_ROOT_FOLDER: "f215cf48-7458-4596-9aa5-2159fc6a3caf"
+      POSTGRES_MIGRATIONS: 1
+      POSTGRES_MIGRATIONS_SOURCE: >-
+        postgres://postgres:postgres@postgres:5432/local?sslmode=disable
+    ports:
+      - "8000:8000"
+    restart: always
+    command: serve
+  minio:
+    image: minio/minio:RELEASE.2024-07-16T23-46-41Z
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY:-5a7bdb5f42c41e0622bf61d6e08d5537}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:-minioadmin}
+    entrypoint:
+      - /bin/sh
+    command:
+      - -c
+      - mkdir -p /data/default && /usr/bin/minio server --address :9000 /data
+    ports:
+      - "9000:9000"
+      - "32765:32765"
+  graphql:
+    image: nhost/graphql-engine:v2.48.10-ce
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      HASURA_GRAPHQL_ADMIN_INTERNAL_ERRORS: "true"
+      HASURA_GRAPHQL_ADMIN_SECRET: nhost-admin-secret
+      HASURA_GRAPHQL_CONSOLE_ASSETS_DIR: /srv/console-assets
+      HASURA_GRAPHQL_CORS_DOMAIN: "*"
+      HASURA_GRAPHQL_DATABASE_URL: >-
+        postgres://postgres:postgres@postgres:5432/local
+      HASURA_GRAPHQL_DEV_MODE: "true"
+      HASURA_GRAPHQL_DISABLE_CORS: "false"
+      HASURA_GRAPHQL_ENABLE_ALLOWLIST: "false"
+      HASURA_GRAPHQL_ENABLE_CONSOLE: "true"
+      HASURA_GRAPHQL_ENABLE_TELEMETRY: "false"
+      HASURA_GRAPHQL_ENABLED_APIS: metadata,graphql,pgdump,config
+      HASURA_GRAPHQL_ENABLED_LOG_TYPES: >-
+        startup,http-log,webhook-log,websocket-log
+      HASURA_GRAPHQL_EVENTS_HTTP_POOL_SIZE: "100"
+      HASURA_GRAPHQL_JWT_SECRET: >-
+        {"key":
+        "0f987876650b4a085e64594fae9219e7781b17506bec02489ad061fba8cb22db",
+        "type":"HS256"}
+      HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_BATCH_SIZE: "100"
+      HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL: "1000"
+      HASURA_GRAPHQL_LOG_LEVEL: warn
+      HASURA_GRAPHQL_PG_CONNECTIONS: "50"
+      HASURA_GRAPHQL_PG_TIMEOUT: "180"
+      HASURA_GRAPHQL_STRINGIFY_NUMERIC_TYPES: "false"
+      HASURA_GRAPHQL_TX_ISOLATION: read-committed
+      HASURA_GRAPHQL_UNAUTHORIZED_ROLE: public
+      HASURA_GRAPHQL_USE_PREPARED_STATEMENTS: "true"
+      HASURA_GRAPHQL_WS_READ_COOKIE: "false"
+      AI_WEBHOOK_SECRET: ai-secret
+    ports:
+      - mode: ingress
+        target: 8080
+        published: "8080"
+        protocol: tcp
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - curl http://localhost:8080/healthz > /dev/null 2>&1
+      timeout: 60s
+      interval: 5s
+      start_period: 60s
+    restart: always
+  postgres:
+    image: nhost/postgres:14.20-20251217-1
+    command:
+      - postgres
+      - -c
+      - config_file=/etc/postgresql.conf
+      - -c
+      - hba_file=/etc/pg_hba_local.conf
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_DB: local
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U postgres
+        - -d
+        - postgres
+        - -q
+      timeout: 60s
+      interval: 5s
+      start_period: 60s
+    ports:
+      - mode: ingress
+        target: 5432
+        published: "5432"
+        protocol: tcp
+    restart: always
+    volumes:
+      - type: volume
+        source: pgdata
+        target: /var/lib/postgresql/data/pgdata
+      - type: bind
+        source: ./initdb.d/0001-create-ai-schema.sql
+        target: /docker-entrypoint-initdb.d/0001-create-ai-schema.sql
+        read_only: true
+      - type: bind
+        source: ./pg_hba_local.conf
+        target: /etc/pg_hba_local.conf
+        read_only: true
+volumes:
+  pgdata: {}

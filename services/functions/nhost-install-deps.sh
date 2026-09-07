@@ -2,24 +2,18 @@
 # nhost-install-deps.sh
 #
 # SHARED, BYTE-IDENTICAL across two repositories — keep both copies in sync:
-#   * nhost/be:    services/cd/cmd/installscript/nhost-install-deps.sh   (this file)
+#   * nhost/be:    services/cd/cmd/installscript/nhost-install-deps.sh
 #   * nhost/nhost: services/functions/nhost-install-deps.sh
 # Each repo pins sha256(this file) in a test; edit one, update the pinned hash,
 # and copy the file to the other repo (the hashes must match).
 #
 # Installs a Nhost functions project's dependencies the SAME way in local
 # development (services/functions) and production deploys (services/cd). There
-# are no behavior knobs: it always
-#   * bootstraps corepack, installing it into a writable prefix when the Node
-#     image no longer bundles it (Node >= 25), fetching a pinned packageManager
-#     non-interactively;
-#   * installs @antfu/ni (no-op where it is already on PATH);
-#   * tells pnpm NOT to fail on unapproved dependency build scripts — they are
-#     SKIPPED, never run (their output is discarded by the esbuild bundle, and
-#     running untrusted postinstall scripts would be a needless supply-chain
-#     risk);
-#   * does a frozen, workspace-isolated install for reproducibility, which
-#     REQUIRES a committed lockfile (errors without one).
+# are no behavior knobs: no project or dependency lifecycle script ever runs,
+# pnpm .pnpmfile.cjs hooks and project yarn-path binaries are ignored, and Yarn
+# Berry projects are rejected before bootstrap. The install remains frozen and
+# REQUIRES a committed lockfile. The function also bootstraps corepack into a
+# writable prefix when Node no longer bundles it (Node >= 25).
 #
 # The only input is WORK_DIR (the directory holding the project's package.json).
 # Anything environment-specific is the caller's job, configured BEFORE calling:
@@ -45,28 +39,69 @@ nhost_install_deps() {
 
 	: "${WORK_DIR:?WORK_DIR must be set}"
 
-	# 1. corepack — install into a writable prefix if the image lacks it (>= 25).
+	# 1. Block every install-time user-code path before any bootstrap or return.
+	#    Probes on the production Node images verified npm's env beats .npmrc;
+	#    pnpm 11.0.6's dedicated env beats pnpm-workspace.yaml and .npmrc; and
+	#    Yarn classic's dedicated env beats .yarnrc. Yarn classic ignores the npm
+	#    setting, so every package manager keeps its own explicit control.
+	export npm_config_ignore_scripts=true
+	export PNPM_CONFIG_IGNORE_SCRIPTS=true
+	export PNPM_CONFIG_IGNORE_PNPMFILE=true
+	export YARN_IGNORE_SCRIPTS=true
+	export YARN_ENABLE_SCRIPTS=false
+	export YARN_IGNORE_PATH=1
+
+	export COREPACK_ENV_FILE=0
+
+	#    corepack refuses URL/file packageManager specs unless this is 1; pin it
+	#    so a caller's environment cannot enable that arbitrary-tarball path.
+	export COREPACK_ENABLE_UNSAFE_CUSTOM_URLS=0
+
+	#    Yarn Berry can still run project code despite disabled build scripts.
+	#    Reject it without executing Yarn. The lockfile signature is only decisive
+	#    when Yarn is the manager step 5 would actually select, so it is skipped when
+	#    packageManager names one or a higher-priority lockfile is present —
+	#    otherwise a stale Berry yarn.lock would fail an npm or pnpm project.
+	#    YARN_IGNORE_PATH also blocks project-selected Yarn binaries.
+	if [ -f "$WORK_DIR/package.json" ]; then
+		package_manager="$(node -e '
+try {
+  const value = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8")).packageManager
+  if (typeof value === "string") process.stdout.write(value)
+} catch {}
+' "$WORK_DIR/package.json")"
+		case "$package_manager" in
+		yarn@1.* | "") ;;
+		yarn@0.*)
+			echo "Yarn 0 is not supported" >&2
+			return 1
+			;;
+		yarn@*)
+			echo "Yarn Berry is not supported: install-time scripts cannot be safely disabled (detected via packageManager)" >&2
+			return 1
+			;;
+		esac
+		if [ -z "$package_manager" ] && [ ! -f "$WORK_DIR/package-lock.json" ] &&
+			[ ! -f "$WORK_DIR/pnpm-lock.yaml" ] &&
+			[ -f "$WORK_DIR/yarn.lock" ] && grep -q '^__metadata:' "$WORK_DIR/yarn.lock"; then
+			echo "Yarn Berry is not supported: install-time scripts cannot be safely disabled (detected via yarn.lock)" >&2
+			return 1
+		fi
+	fi
+
+	# 2. corepack — install into a writable prefix if the image lacks it (>= 25).
 	export COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 	mkdir -p ~/.nhost-tools/bin
 	if ! command -v corepack >/dev/null 2>&1; then
 		echo "  corepack not bundled, installing"
-		npm install --loglevel=error --no-fund --no-update-notifier \
-			--prefix ~/.nhost-tools/corepack corepack@0.34.0
+		npm install --ignore-scripts --loglevel=error --no-fund \
+			--no-update-notifier --prefix ~/.nhost-tools/corepack corepack@0.34.0
 		PATH=~/.nhost-tools/corepack/node_modules/.bin:$PATH
 		export PATH
 	fi
 	corepack enable --install-directory ~/.nhost-tools/bin
 	PATH=~/.nhost-tools/bin:$PATH
 	export PATH
-
-	# 2. @antfu/ni — install if not already on PATH (present in dev's node_modules).
-	if ! command -v nci >/dev/null 2>&1; then
-		echo "  @antfu/ni not found, installing"
-		npm install --loglevel=error --no-fund --no-update-notifier \
-			--prefix ~/.nhost-tools/ni @antfu/ni
-		PATH=~/.nhost-tools/ni/node_modules/.bin:$PATH
-		export PATH
-	fi
 
 	# 3. pnpm: skip (don't run, don't FAIL on) unapproved dep build scripts.
 	#    Use the env var, NOT ~/.config/pnpm/config.yaml: pnpm 11.0.x does not
@@ -82,21 +117,23 @@ nhost_install_deps() {
 		return 0
 	fi
 
-	# 5. require a committed lockfile and pick the package-manager-specific
-	#    workspace-isolation flag (yarn has no clean per-install equivalent).
+	# 5. require a committed lockfile and pick the frozen, workspace-isolated
+	#    install command for it. Select the command here so detection and flag
+	#    forwarding cannot change under a third-party wrapper. Corepack still
+	#    selects the manager's own version.
+	#    Yarn is always Classic (Berry is rejected above), so --frozen-lockfile
+	#    is the right flag and yarn has no per-install workspace-isolation flag.
 	if [ -f "$WORK_DIR/package-lock.json" ]; then
-		iso="--no-workspaces"
+		set -- npm ci --no-workspaces --ignore-scripts
 	elif [ -f "$WORK_DIR/pnpm-lock.yaml" ]; then
-		iso="--ignore-workspace"
+		set -- pnpm install --frozen-lockfile --ignore-workspace --ignore-scripts --ignore-pnpmfile
 	elif [ -f "$WORK_DIR/yarn.lock" ]; then
-		iso=""
+		set -- yarn install --frozen-lockfile --ignore-scripts
 	else
 		echo "no lockfile in $WORK_DIR — commit a package-lock.json, pnpm-lock.yaml, or yarn.lock" >&2
 		return 1
 	fi
 
-	# 6. frozen, workspace-isolated install. nci picks the right command:
-	#    npm ci --no-workspaces / pnpm install --frozen-lockfile --ignore-workspace
-	#    / yarn install --immutable
-	(cd "$WORK_DIR" && nci $iso)
+	# 6. frozen, workspace-isolated install.
+	(cd "$WORK_DIR" && "$@")
 }

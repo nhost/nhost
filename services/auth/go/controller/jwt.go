@@ -110,7 +110,12 @@ func decodeJWTSecret(jwtSecretb []byte, defaultIssuer string) (JWTSecret, []api.
 		jwtSecret.Key = []byte(key)
 		jwtSecret.SigningKey = []byte(key)
 
-		return jwtSecret, nil, nil
+		// Symmetric keys have no public JWK to publish, but the JWK Set must
+		// still be a valid, empty set: JWKSet.keys is a required non-nullable
+		// array and `null` is not a valid representation under RFC 7517 §5.1.
+		// Return an empty (non-nil) slice so /.well-known/jwks.json serialises
+		// as {"keys":[]} rather than {"keys":null}.
+		return jwtSecret, []api.JWK{}, nil
 	case "RS256", "RS384", "RS512":
 		return decodeJWTSecretForRSA(jwtSecret)
 	default:

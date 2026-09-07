@@ -19,7 +19,11 @@ await nhost.auth.signInAnonymous();
 
 ## Deanonymization
 
-Anonymous users can be converted to permanent accounts by linking an email address. The deanonymization flow follows the same PKCE pattern as sign-up, using `userDeanonymize`:
+Anonymous users can be converted to permanent accounts by linking an email address or a phone number.
+
+### Email
+
+The email deanonymization flow follows the same PKCE pattern as sign-up, using `deanonymizeUser`:
 
 ```js
 import { generatePKCEPair } from '@nhost/nhost-js/auth';
@@ -28,7 +32,8 @@ const { verifier, challenge } = await generatePKCEPair();
 localStorage.setItem('nhost_pkce_verifier', verifier);
 
 // Deanonymize with email + password
-await nhost.auth.userDeanonymize({
+await nhost.auth.deanonymizeUser({
+  signInMethod: 'email-password',
   email: 'joe@example.com',
   password: 'secret-password',
   options: {
@@ -38,7 +43,8 @@ await nhost.auth.userDeanonymize({
 });
 
 // Or deanonymize with passwordless email (magic link)
-await nhost.auth.userDeanonymize({
+await nhost.auth.deanonymizeUser({
+  signInMethod: 'passwordless',
   email: 'joe@example.com',
   options: {
     redirectTo: `${window.location.origin}/verify`,
@@ -49,4 +55,8 @@ await nhost.auth.userDeanonymize({
 
 After the user verifies their email, the authorization code is [exchanged for a session](/products/auth/pkce#handling-the-verification-redirect).
 
-Both pathways require [PKCE](/products/auth/pkce) via the `codeChallenge` parameter when email verification is required.
+Both email pathways require [PKCE](/products/auth/pkce) via the `codeChallenge` parameter when email verification is required.
+
+### SMS
+
+[SMS deanonymization](/products/auth/otp/sms#deanonymize-with-sms) links a phone number without a `codeChallenge`. Requesting deanonymization stages the new phone number and user options while the user remains anonymous. The conversion completes through `/signin/passwordless/sms/otp`: after the OTP is verified, the staged options are applied and a non-anonymous session is returned.
