@@ -59,6 +59,15 @@ import cycle arises.
   targets Go 1.26.0. Only `gen.sh`'s `go run tools/codegen` fallback uses
   `GOFLAGS=-mod=mod` to execute the generator.
 
+## Example and tutorial relationship
+
+The notes CLI example is a superset of the Go tutorial: it includes repository
+lint scaffolding and commands that the tutorial does not teach. The tutorial's
+final program is deliberately smaller and contains no lint pragmas. Keep the two
+behaviorally compatible for every command documented by the tutorial, but never
+paste the example into the tutorial to make them identical; doing so introduces
+unsupported commands and can break the tutorial's own command transcripts.
+
 ## Tests
 
 - Offline: `go test ./...` (httptest-based unit tests per package).
