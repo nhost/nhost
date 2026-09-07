@@ -4,25 +4,12 @@ import (
 	"context"
 	"log/slog"
 	"maps"
+	"net/http"
 	"slices"
 
 	"github.com/openai/openai-go"
 	"github.com/openai/openai-go/option"
 )
-
-// OpenAI implements the Provider interface for OpenAI.
-type OpenAI struct {
-	client openai.Client
-	model  string
-}
-
-// NewOpenAI creates a new OpenAI provider.
-func NewOpenAI(apiKey, model string) *OpenAI {
-	return &OpenAI{
-		client: openai.NewClient(option.WithAPIKey(apiKey)),
-		model:  model,
-	}
-}
 
 func toOpenAIMessages(
 	systemPrompt string,
@@ -93,24 +80,6 @@ func toOpenAITools(tools []ToolDefinition) []openai.ChatCompletionToolParam {
 	return result
 }
 
-// StreamResponse implements Provider.StreamResponse for OpenAI.
-func (o *OpenAI) StreamResponse(
-	ctx context.Context,
-	systemPrompt string,
-	messages []Message,
-	tools []ToolDefinition,
-) <-chan Event {
-	ch := make(chan Event)
-
-	go func() {
-		defer close(ch)
-
-		o.processStream(ctx, ch, systemPrompt, messages, tools)
-	}()
-
-	return ch
-}
-
 func mapOpenAIFinishReason(reason string) string {
 	switch reason {
 	case "tool_calls", "function_call":
@@ -144,23 +113,57 @@ func buildOpenAIParams(
 	return params
 }
 
-func (o *OpenAI) processStream(
+func streamOpenAIResponse(
+	ctx context.Context,
+	completions *openai.ChatCompletionService,
+	logRedactions []string,
+	request StreamRequest,
+) <-chan Event {
+	if err := request.validate(); err != nil {
+		return requestErrorChannel(err)
+	}
+
+	ch := make(chan Event)
+
+	go func() {
+		defer close(ch)
+
+		processOpenAIStream(ctx, ch, completions, logRedactions, request)
+	}()
+
+	return ch
+}
+
+func processOpenAIStream(
 	ctx context.Context,
 	ch chan<- Event,
-	systemPrompt string,
-	messages []Message,
-	tools []ToolDefinition,
+	completions *openai.ChatCompletionService,
+	logRedactions []string,
+	request StreamRequest,
 ) {
-	stream := o.client.Chat.Completions.NewStreaming(
+	var response *http.Response
+
+	// openai-go appends per-request options to the service's Options slice.
+	// Clone it so concurrent streams never share mutable backing storage.
+	requestCompletions := *completions
+	requestCompletions.Options = slices.Clone(completions.Options)
+
+	stream := requestCompletions.NewStreaming(
 		ctx,
-		buildOpenAIParams(o.model, systemPrompt, messages, tools),
+		buildOpenAIParams(
+			request.Model,
+			request.SystemPrompt,
+			request.Messages,
+			request.Tools,
+		),
+		option.WithResponseInto(&response),
 	)
 	defer func() {
-		if err := stream.Close(); err != nil {
+		if err := stream.Close(); err != nil && ctx.Err() == nil {
 			slog.WarnContext(
 				ctx,
 				"failed to close openai stream",
-				slog.String("error", err.Error()),
+				slog.String("error", providerErrorLogValue(err, logRedactions)),
 			)
 		}
 	}()
@@ -185,7 +188,10 @@ func (o *OpenAI) processStream(
 	}
 
 	if streamErr != nil {
-		send(ctx, ch, NewErrorEvent(streamErr))
+		if ctx.Err() == nil {
+			logProviderError(ctx, "openai stream failed", streamErr, logRedactions)
+			send(ctx, ch, NewErrorEvent(mapOpenAIChatCompletionsError(response)))
+		}
 
 		return
 	}

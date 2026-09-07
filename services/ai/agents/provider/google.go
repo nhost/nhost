@@ -3,38 +3,251 @@ package provider
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"log/slog"
+	"net/http"
+	"net/url"
+	"strings"
 
 	"github.com/google/uuid"
 	"google.golang.org/genai"
 )
 
-// Google implements the Provider interface for Google Gemini.
-type Google struct {
-	client *genai.Client
-	model  string
+const (
+	googleGeminiAPIVersion = "v1beta"
+	googleGeminiKeyHeader  = "x-goog-api-key"
+	// An empty SDK key loads ambient keys or fails construction; the transport
+	// removes this non-empty sentinel before sending headerless requests.
+	googleGeminiKeySentinel = "nhost-google-gemini-headerless-sentinel"
+)
+
+var (
+	errGoogleGeminiClient       = errors.New("google Gemini provider client construction failed")
+	errGoogleGeminiRequest      = errors.New("google Gemini provider request failed")
+	errGoogleGeminiTransport    = errors.New("google Gemini provider transport failed")
+	errGoogleGeminiResponseBody = errors.New("google Gemini provider response body failed")
+)
+
+type googleGemini struct {
+	client        *genai.Client
+	logRedactions []string
 }
 
-// NewGoogle creates a new Google Gemini provider. It rejects empty apiKey to
-// prevent the underlying SDK from silently falling back to ambient credentials
-// (GOOGLE_API_KEY / GEMINI_API_KEY / ADC), and constructs the client once so
-// it can be reused across requests. ctx is forwarded to genai.NewClient so
-// that any credential/init work the SDK performs is cancellable by the caller.
-func NewGoogle(ctx context.Context, apiKey, model string) (*Google, error) {
-	if apiKey == "" {
-		return nil, ErrEmptyAPIKey
-	}
-
-	client, err := genai.NewClient(ctx, &genai.ClientConfig{ //nolint:exhaustruct
-		APIKey:  apiKey,
-		Backend: genai.BackendGeminiAPI,
-	})
+func newGoogleGeminiConfiguration(
+	baseURL string,
+	headers map[string]string,
+) (endpointConfiguration, error) {
+	configuration, err := newEndpointConfiguration(
+		baseURL,
+		headers,
+		validateGoogleGeminiURL,
+		nil,
+		map[string]struct{}{
+			"user-agent":        {},
+			"x-goog-api-client": {},
+			"x-server-timeout":  {},
+		},
+	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create Google client: %w", err)
+		return endpointConfiguration{}, fmt.Errorf("configure Google Gemini endpoint: %w", err)
 	}
 
-	return &Google{client: client, model: model}, nil
+	return configuration, nil
+}
+
+func validateGoogleGeminiURL(baseURL string) error {
+	parsed, err := url.Parse(baseURL)
+	if err != nil {
+		return errInvalidProviderBaseURL
+	}
+
+	pathWithoutTrailingSlash := strings.TrimSuffix(parsed.Path, "/")
+	if strings.HasSuffix(pathWithoutTrailingSlash, "/v1beta") ||
+		strings.HasSuffix(pathWithoutTrailingSlash, "/models") ||
+		strings.Contains(pathWithoutTrailingSlash, "/models/") ||
+		strings.HasSuffix(pathWithoutTrailingSlash, ":generateContent") ||
+		strings.HasSuffix(pathWithoutTrailingSlash, ":streamGenerateContent") {
+		return errInvalidProviderBaseURL
+	}
+
+	return nil
+}
+
+func newGoogleGemini(
+	ctx context.Context,
+	configuration endpointConfiguration,
+) (*googleGemini, error) {
+	headers, apiKey, scrubAPIKey := googleGeminiHeaders(configuration.headers)
+	logRedactions := providerLogRedactions(configuration.headers)
+
+	httpClient, err := newGoogleGeminiHTTPClient(scrubAPIKey, logRedactions)
+	if err != nil {
+		return nil, errGoogleGeminiClient
+	}
+
+	clientConfig := &genai.ClientConfig{
+		APIKey:      apiKey,
+		Backend:     genai.BackendGeminiAPI,
+		Project:     "",
+		Location:    "",
+		Credentials: nil,
+		HTTPClient:  httpClient,
+		HTTPOptions: genai.HTTPOptions{
+			BaseURL:               configuration.baseURL,
+			APIVersion:            googleGeminiAPIVersion,
+			Headers:               headers,
+			Timeout:               nil,
+			ExtraBody:             nil,
+			ExtrasRequestProvider: nil,
+		},
+	}
+
+	client, err := genai.NewClient(ctx, clientConfig)
+	if err != nil {
+		return nil, errGoogleGeminiClient
+	}
+
+	return &googleGemini{
+		client:        client,
+		logRedactions: logRedactions,
+	}, nil
+}
+
+func googleGeminiHeaders(headers map[string]string) (http.Header, string, bool) {
+	result := make(http.Header, len(headers))
+	apiKey := googleGeminiKeySentinel
+	scrubAPIKey := true
+
+	for name, value := range headers {
+		if strings.EqualFold(name, googleGeminiKeyHeader) {
+			if value != "" {
+				apiKey = value
+				scrubAPIKey = false
+			}
+
+			continue
+		}
+
+		result.Set(name, value)
+	}
+
+	return result, apiKey, scrubAPIKey
+}
+
+func newGoogleGeminiHTTPClient(
+	scrubAPIKey bool,
+	logRedactions []string,
+) (*http.Client, error) {
+	defaultTransport, ok := http.DefaultTransport.(*http.Transport)
+	if !ok {
+		return nil, errGoogleGeminiClient
+	}
+
+	transport := &googleGeminiTransport{
+		base:          defaultTransport.Clone(),
+		scrubAPIKey:   scrubAPIKey,
+		logRedactions: logRedactions,
+	}
+
+	return newNoRedirectHTTPClientWithTransport(transport), nil
+}
+
+type googleGeminiTransport struct {
+	base          http.RoundTripper
+	scrubAPIKey   bool
+	logRedactions []string
+}
+
+func (t *googleGeminiTransport) RoundTrip(request *http.Request) (*http.Response, error) {
+	requestCopy := request.Clone(request.Context())
+	requestCopy.Header = request.Header.Clone()
+
+	if t.scrubAPIKey {
+		requestCopy.Header.Del(googleGeminiKeyHeader)
+	}
+
+	response, err := t.base.RoundTrip(requestCopy)
+	if err != nil {
+		if request.Context().Err() == nil {
+			logProviderError(
+				request.Context(),
+				"google Gemini transport failed",
+				err,
+				t.logRedactions,
+			)
+		}
+
+		return nil, errGoogleGeminiTransport
+	}
+
+	responseCopy := new(http.Response)
+	*responseCopy = *response
+
+	if response.Body != nil {
+		responseCopy.Body = &googleGeminiResponseBody{
+			ReadCloser:    response.Body,
+			done:          request.Context().Done(),
+			logRedactions: t.logRedactions,
+		}
+	}
+
+	return responseCopy, nil
+}
+
+// The SDK logs stream scanner failures through the process-global logger.
+// Record body failures through the service logger before normalizing them so
+// callers stay sanitized and the SDK never logs an unredacted cause.
+type googleGeminiResponseBody struct {
+	io.ReadCloser
+
+	done          <-chan struct{}
+	logRedactions []string
+}
+
+func (b *googleGeminiResponseBody) Read(buffer []byte) (int, error) {
+	bytesRead, err := b.ReadCloser.Read(buffer)
+	if err == nil {
+		return bytesRead, nil
+	}
+
+	if errors.Is(err, io.EOF) {
+		return bytesRead, io.EOF
+	}
+
+	if !channelClosed(b.done) {
+		slog.Error(
+			"google Gemini response body read failed",
+			slog.String("error", providerErrorLogValue(err, b.logRedactions)),
+		)
+	}
+
+	return bytesRead, errGoogleGeminiResponseBody
+}
+
+func channelClosed(ch <-chan struct{}) bool {
+	select {
+	case <-ch:
+		return true
+	default:
+		return false
+	}
+}
+
+func (b *googleGeminiResponseBody) Close() error {
+	if err := b.ReadCloser.Close(); err != nil {
+		if !channelClosed(b.done) {
+			slog.Warn(
+				"failed to close google Gemini response body",
+				slog.String("error", providerErrorLogValue(err, b.logRedactions)),
+			)
+		}
+
+		return errGoogleGeminiResponseBody
+	}
+
+	return nil
 }
 
 func toGeminiContents(
@@ -157,42 +370,55 @@ func toGeminiTools(tools []ToolDefinition) []*genai.Tool {
 	return []*genai.Tool{{FunctionDeclarations: toGeminiToolSchema(tools)}}
 }
 
-// StreamResponse implements Provider.StreamResponse for Google Gemini.
-func (g *Google) StreamResponse(
+func (g *googleGemini) StreamResponse(
 	ctx context.Context,
-	systemPrompt string,
-	messages []Message,
-	tools []ToolDefinition,
+	request StreamRequest,
 ) <-chan Event {
+	return streamGoogleGeminiResponse(ctx, g.client, g.logRedactions, request)
+}
+
+func streamGoogleGeminiResponse(
+	ctx context.Context,
+	client *genai.Client,
+	logRedactions []string,
+	request StreamRequest,
+) <-chan Event {
+	if err := request.validate(); err != nil {
+		return requestErrorChannel(err)
+	}
+
 	ch := make(chan Event)
 
 	go func() {
 		defer close(ch)
 
-		g.processStream(ctx, ch, systemPrompt, messages, tools)
+		processGoogleGeminiStream(ctx, client, ch, logRedactions, request)
 	}()
 
 	return ch
 }
 
-func (g *Google) processStream(
+func processGoogleGeminiStream(
 	ctx context.Context,
+	client *genai.Client,
 	ch chan<- Event,
-	systemPrompt string,
-	messages []Message,
-	tools []ToolDefinition,
+	logRedactions []string,
+	request StreamRequest,
 ) {
 	config := &genai.GenerateContentConfig{} //nolint:exhaustruct
-	if systemPrompt != "" {
-		config.SystemInstruction = genai.NewContentFromText(systemPrompt, genai.RoleUser)
+	if request.SystemPrompt != "" {
+		config.SystemInstruction = genai.NewContentFromText(
+			request.SystemPrompt,
+			genai.RoleUser,
+		)
 	}
 
-	gt := toGeminiTools(tools)
+	gt := toGeminiTools(request.Tools)
 	if len(gt) > 0 {
 		config.Tools = gt
 	}
 
-	contents, err := toGeminiContents(ctx, messages)
+	contents, err := toGeminiContents(ctx, request.Messages)
 	if err != nil {
 		send(ctx, ch, NewErrorEvent(fmt.Errorf("failed to convert messages: %w", err)))
 		return
@@ -200,13 +426,20 @@ func (g *Google) processStream(
 
 	stream := &googleStream{hasToolCalls: false}
 
-	for resp, err := range g.client.Models.GenerateContentStream(ctx, g.model, contents, config) {
+	for resp, err := range client.Models.GenerateContentStream(
+		ctx,
+		request.Model,
+		contents,
+		config,
+	) {
 		if ctx.Err() != nil {
 			return
 		}
 
 		if err != nil {
-			send(ctx, ch, NewErrorEvent(err))
+			logProviderError(ctx, "google Gemini stream failed", err, logRedactions)
+			send(ctx, ch, NewErrorEvent(mapGoogleGeminiError(err)))
+
 			return
 		}
 
@@ -214,6 +447,17 @@ func (g *Google) processStream(
 			return
 		}
 	}
+}
+
+func mapGoogleGeminiError(err error) error {
+	var apiError genai.APIError
+	if errors.As(err, &apiError) &&
+		apiError.Code >= http.StatusBadRequest &&
+		apiError.Code <= 599 {
+		return fmt.Errorf("%w: HTTP status %d", errGoogleGeminiRequest, apiError.Code)
+	}
+
+	return errGoogleGeminiRequest
 }
 
 // googleStream holds the per-StreamResponse state for a Google Gemini stream.

@@ -3,18 +3,10 @@ package provider
 import (
 	"context"
 	"errors"
-
-	"github.com/nhost/nhost/services/ai/hasura"
 )
 
-// ErrEmptyModel is returned when a provider is created with an empty model.
+// ErrEmptyModel is returned when a provider request has an empty model.
 var ErrEmptyModel = errors.New("model must not be empty")
-
-// ErrEmptyAPIKey is returned when a provider is created with an empty API key.
-// We reject empty keys explicitly because some upstream SDKs (notably Google's
-// genai client) silently fall back to ambient credentials, which can charge the
-// wrong account or succeed in environments where the operator did not intend.
-var ErrEmptyAPIKey = errors.New("apiKey must not be empty")
 
 // Role constants for message roles.
 const (
@@ -121,6 +113,38 @@ type ToolDefinition struct {
 	Parameters  map[string]any `json:"parameters"`
 }
 
+// StreamRequest contains the request-scoped configuration and conversation
+// passed to a provider. Provider credentials and client options belong in the
+// provider-specific constructor instead.
+type StreamRequest struct {
+	Model        string
+	SystemPrompt string
+	Messages     []Message
+	Tools        []ToolDefinition
+}
+
+// ValidateModel validates a model name before a provider request starts.
+func ValidateModel(model string) error {
+	if model == "" {
+		return ErrEmptyModel
+	}
+
+	return nil
+}
+
+func (r StreamRequest) validate() error {
+	return ValidateModel(r.Model)
+}
+
+func requestErrorChannel(err error) <-chan Event {
+	ch := make(chan Event, 1)
+	ch <- NewErrorEvent(err)
+
+	close(ch)
+
+	return ch
+}
+
 // Provider is the interface for LLM providers.
 //
 // StreamResponse returns a channel of streaming events. The implementation
@@ -131,54 +155,10 @@ type ToolDefinition struct {
 //
 //go:generate mockgen -package mock -destination mock/provider.go . Provider
 type Provider interface {
-	StreamResponse(
-		ctx context.Context,
-		systemPrompt string,
-		messages []Message,
-		tools []ToolDefinition,
-	) <-chan Event
+	StreamResponse(ctx context.Context, request StreamRequest) <-chan Event
 }
 
-// NewProvider creates a new provider instance based on the provider name.
-func NewProvider( //nolint:ireturn,nolintlint
-	ctx context.Context,
-	providerName Name,
-	apiKey, model string,
-) (Provider, error) {
-	if model == "" {
-		return nil, ErrEmptyModel
-	}
-
-	if apiKey == "" {
-		return nil, ErrEmptyAPIKey
-	}
-
-	switch providerName {
-	case ProviderAnthropic:
-		return NewAnthropic(apiKey, model), nil
-	case ProviderOpenAI:
-		return NewOpenAI(apiKey, model), nil
-	case ProviderGoogle:
-		return NewGoogle(ctx, apiKey, model)
-	default:
-		return nil, UnknownProviderError{Provider: providerName}
-	}
-}
-
-// Name identifies a supported LLM provider.
-type Name = hasura.AiAgentProvidersEnum
-
-const (
-	ProviderAnthropic Name = hasura.AiAgentProvidersEnumAnthropic
-	ProviderOpenAI    Name = hasura.AiAgentProvidersEnumOpenai
-	ProviderGoogle    Name = hasura.AiAgentProvidersEnumGoogle
-)
-
-// UnknownProviderError is returned when an unknown provider name is used.
-type UnknownProviderError struct {
-	Provider Name
-}
-
-func (e UnknownProviderError) Error() string {
-	return "unknown provider: " + string(e.Provider)
-}
+// Registry contains the configured provider clients keyed by provider name.
+// Provider clients are created once at service startup and shared across
+// requests.
+type Registry map[string]Provider
