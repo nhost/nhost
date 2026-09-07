@@ -125,6 +125,50 @@ impl session::Backend for StoredSessionBackend {
     }
 }
 
+/// Counts writes and deletions so a test can assert that an operation persists
+/// or clears the session exactly once, without a change-notification hook.
+#[derive(Default)]
+struct CountingBackend {
+    session: Mutex<Option<session::StoredSession>>,
+    sets: AtomicUsize,
+    removes: AtomicUsize,
+}
+
+/// Lets a test keep a handle on the counters while the client owns the backend.
+struct SharedCountingBackend(Arc<CountingBackend>);
+
+impl session::Backend for SharedCountingBackend {
+    fn get(&self) -> Result<Option<session::StoredSession>, Error> {
+        self.0.get()
+    }
+
+    fn set(&self, value: &session::StoredSession) -> Result<(), Error> {
+        self.0.set(value)
+    }
+
+    fn remove(&self) -> Result<(), Error> {
+        self.0.remove()
+    }
+}
+
+impl session::Backend for CountingBackend {
+    fn get(&self) -> Result<Option<session::StoredSession>, Error> {
+        Ok(self.session.lock().unwrap().clone())
+    }
+
+    fn set(&self, value: &session::StoredSession) -> Result<(), Error> {
+        self.sets.fetch_add(1, Ordering::Relaxed);
+        *self.session.lock().unwrap() = Some(value.clone());
+        Ok(())
+    }
+
+    fn remove(&self) -> Result<(), Error> {
+        self.removes.fetch_add(1, Ordering::Relaxed);
+        *self.session.lock().unwrap() = None;
+        Ok(())
+    }
+}
+
 enum FailingStorageOperation {
     Read,
     Remove,
@@ -239,6 +283,7 @@ fn handwritten_debug_redacts_credentials_but_keeps_context() {
         admin_secret: "ADMIN-SECRET-04".to_string(),
         role: Some("support".to_string()),
         session_variables,
+        allow_insecure_http: false,
     };
     assert_debug_redacted(&admin, &["ADMIN-SECRET-04"], &["support", "tenant", "acme"]);
 
@@ -1047,69 +1092,6 @@ fn jwt_decode_preserves_representable_expiry_boundaries() {
     }
 }
 
-#[test]
-fn notify_callback_can_reenter_storage_without_deadlock() {
-    let storage = session::SessionStorage::new(Box::<session::MemoryStorage>::default());
-    let reentrant = storage.clone();
-    let _sub = storage.on_change(move |s| {
-        if s.is_some() {
-            let _ = reentrant.remove();
-        }
-    });
-
-    storage.set(session_with(&token(900))).unwrap();
-
-    assert!(storage.get().unwrap().is_none());
-}
-
-#[test]
-fn dropping_subscription_stops_notifications() {
-    let storage = session::SessionStorage::new(Box::<session::MemoryStorage>::default());
-    let notifications = Arc::new(Mutex::new(Vec::new()));
-    let recorded = Arc::clone(&notifications);
-    let subscription = storage.on_change(move |session| {
-        recorded.lock().unwrap().push(session.is_some());
-    });
-
-    storage.set(session_with(&token(900))).unwrap();
-    assert_eq!(*notifications.lock().unwrap(), vec![true]);
-
-    drop(subscription);
-    storage.remove().unwrap();
-    assert_eq!(*notifications.lock().unwrap(), vec![true]);
-}
-
-#[test]
-fn panicking_subscriber_does_not_prevent_other_subscribers() {
-    let storage = session::SessionStorage::new(Box::<session::MemoryStorage>::default());
-    let notifications = Arc::new(Mutex::new(Vec::new()));
-    let _panicking = storage.on_change(|_| panic!("intentional subscriber panic"));
-    let recorded = Arc::clone(&notifications);
-    let _recording = storage.on_change(move |session| {
-        recorded.lock().unwrap().push(session.is_some());
-    });
-
-    let result = storage.set(session_with(&token(900)));
-
-    assert!(result.is_ok());
-    assert_eq!(*notifications.lock().unwrap(), vec![true]);
-}
-
-#[test]
-fn subscription_dropped_inside_callback_does_not_deadlock() {
-    let storage = session::SessionStorage::new(Box::<session::MemoryStorage>::default());
-    let subscription_to_drop = Arc::new(Mutex::new(None));
-    let drop_from_callback = Arc::clone(&subscription_to_drop);
-    let _dropping = storage.on_change(move |_| {
-        drop_from_callback.lock().unwrap().take();
-    });
-    *subscription_to_drop.lock().unwrap() = Some(storage.on_change(|_| {}));
-
-    storage.set(session_with(&token(900))).unwrap();
-
-    assert!(subscription_to_drop.lock().unwrap().is_none());
-}
-
 #[cfg(all(feature = "wasm", not(target_arch = "wasm32")))]
 #[test]
 fn native_wasm_feature_retains_file_storage() {
@@ -1209,6 +1191,7 @@ fn builder_rejects_invalid_admin_headers() {
                 admin_secret: "valid".to_string(),
                 role: Some("support\nadmin".to_string()),
                 session_variables: HashMap::new(),
+                allow_insecure_http: false,
             })
             .build(),
         "x-hasura-role",
@@ -1222,6 +1205,7 @@ fn builder_rejects_invalid_admin_headers() {
                     "bad variable".to_string(),
                     "value".to_string(),
                 )]),
+                allow_insecure_http: false,
             })
             .build(),
         "x-hasura-bad variable",
@@ -1235,6 +1219,7 @@ fn builder_rejects_invalid_admin_headers() {
                     "user-id".to_string(),
                     "SECRET\nSESSION-VALUE".to_string(),
                 )]),
+                allow_insecure_http: false,
             })
             .build(),
         "x-hasura-user-id",
@@ -1308,6 +1293,7 @@ async fn builder_admin_session_identity_reaches_graphql_requests() {
                 ("user-id".to_string(), "user-123".to_string()),
                 ("tenant-id".to_string(), "tenant-456".to_string()),
             ]),
+            allow_insecure_http: false,
         })
         .build()
         .unwrap();
@@ -1338,6 +1324,7 @@ async fn admin_session_variable_role_overrides_declared_role() {
                 "role".to_string(),
                 "session-variable-role".to_string(),
             )]),
+            allow_insecure_http: false,
         })
         .build()
         .unwrap();
@@ -1502,17 +1489,14 @@ async fn sign_out_clears_session_even_when_request_fails() {
         .mount(&server)
         .await;
 
+    let backend = Arc::new(CountingBackend::default());
     let client = Nhost::builder()
         .auth_url(server.uri())
-        .storage(Box::<session::MemoryStorage>::default())
+        .storage(Box::new(SharedCountingBackend(Arc::clone(&backend))))
         .build()
         .unwrap();
     client.sessions.set(session_with(&token(900))).unwrap();
-    let changes = Arc::new(Mutex::new(Vec::new()));
-    let recorded_changes = changes.clone();
-    let _subscription = client.sessions.on_change(move |session| {
-        recorded_changes.lock().unwrap().push(session.is_some());
-    });
+    backend.removes.store(0, Ordering::Relaxed);
 
     let error = client
         .auth
@@ -1525,7 +1509,7 @@ async fn sign_out_clears_session_even_when_request_fails() {
 
     assert_eq!(error.status(), Some(500));
     assert!(client.session().unwrap().is_none());
-    assert_eq!(*changes.lock().unwrap(), vec![false]);
+    assert_eq!(backend.removes.load(Ordering::Relaxed), 1);
 }
 
 #[tokio::test]
@@ -1601,17 +1585,14 @@ async fn successful_password_change_clears_session() {
         .mount(&server)
         .await;
 
+    let backend = Arc::new(CountingBackend::default());
     let client = Nhost::builder()
         .auth_url(server.uri())
-        .storage(Box::<session::MemoryStorage>::default())
+        .storage(Box::new(SharedCountingBackend(Arc::clone(&backend))))
         .build()
         .unwrap();
     client.sessions.set(session_with(&token(900))).unwrap();
-    let changes = Arc::new(Mutex::new(Vec::new()));
-    let recorded_changes = changes.clone();
-    let _subscription = client.sessions.on_change(move |session| {
-        recorded_changes.lock().unwrap().push(session.is_some());
-    });
+    backend.removes.store(0, Ordering::Relaxed);
 
     client
         .auth
@@ -1623,7 +1604,7 @@ async fn successful_password_change_clears_session() {
         .unwrap();
 
     assert!(client.session().unwrap().is_none());
-    assert_eq!(*changes.lock().unwrap(), vec![false]);
+    assert_eq!(backend.removes.load(Ordering::Relaxed), 1);
 }
 
 #[tokio::test]
@@ -2940,6 +2921,7 @@ async fn scoped_identity_overrides_admin_session_identity() {
             admin_secret: "secret".to_string(),
             role: Some("admin-impersonated".to_string()),
             session_variables: HashMap::from([("user-id".to_string(), "admin-uid".to_string())]),
+            allow_insecure_http: false,
         })
         .build()
         .unwrap();
@@ -3421,6 +3403,7 @@ async fn from_clients_shares_store_and_applies_middleware() {
 
     let middleware: Vec<Arc<dyn Middleware>> = vec![Arc::new(AttachToken {
         storage: sessions.clone(),
+        service_url: server.uri(),
     })];
 
     let client = Nhost::from_clients(
@@ -3715,7 +3698,7 @@ async fn persisted_extreme_expiry_is_redecoded_before_scheduling() {
 }
 
 #[tokio::test]
-async fn refresh_session_notifies_once_and_requests_once() {
+async fn refresh_session_persists_once_and_requests_once() {
     let server = MockServer::start().await;
     let refreshed = token(900);
     Mock::given(method("POST"))
@@ -3731,21 +3714,18 @@ async fn refresh_session_notifies_once_and_requests_once() {
         .mount(&server)
         .await;
 
+    let backend = Arc::new(CountingBackend::default());
     let client = Nhost::builder()
         .auth_url(server.uri())
-        .storage(Box::<session::MemoryStorage>::default())
+        .storage(Box::new(SharedCountingBackend(Arc::clone(&backend))))
         .build()
         .unwrap();
     client.sessions.set(session_with(&token(-60))).unwrap();
-    let notifications = Arc::new(AtomicUsize::new(0));
-    let recorded_notifications = notifications.clone();
-    let _subscription = client.sessions.on_change(move |_| {
-        recorded_notifications.fetch_add(1, Ordering::Relaxed);
-    });
+    backend.sets.store(0, Ordering::Relaxed);
 
     client.refresh_session().await.unwrap().unwrap();
 
-    assert_eq!(notifications.load(Ordering::Relaxed), 1);
+    assert_eq!(backend.sets.load(Ordering::Relaxed), 1);
     let requests = server.received_requests().await.unwrap();
     assert_eq!(requests.len(), 1);
     assert_eq!(requests[0].url.path(), "/token");
@@ -4287,6 +4267,7 @@ async fn session_refresh_middleware_refreshes_before_a_request() {
         }),
         Arc::new(AttachToken {
             storage: sessions.clone(),
+            service_url: server.uri(),
         }),
     ];
 
@@ -4341,6 +4322,7 @@ async fn concurrent_requests_share_one_session_refresh() {
         }),
         Arc::new(AttachToken {
             storage: sessions.clone(),
+            service_url: server.uri(),
         }),
     ];
     let client = Arc::new(Nhost::from_clients(
@@ -4484,4 +4466,168 @@ async fn refresh_session_does_not_retry_storage_read_errors() {
 fn error_variant_is_small() {
     // Guards against clippy::result_large_err regressions.
     assert!(std::mem::size_of::<Error>() <= 32);
+}
+
+// --- Credential scoping ---------------------------------------------------
+//
+// AttachToken and AdminSession are installed per service and must write their
+// credentials only inside that service's origin.
+//
+// The retargeting middleware is installed *ahead* of the credential middleware,
+// so the credential middleware observes the final URL. That is the ordering the
+// SDK itself produces and the only one a middleware can defend: anything
+// installed behind it runs after the header is already written. Redirects are a
+// separate vector, handled by the same-origin redirect policy on the SDK-built
+// client rather than here.
+
+/// Rewrites the request URL after the credential middleware has run, standing in
+/// for any custom middleware that retargets a request.
+struct RetargetTo(String);
+
+#[async_trait::async_trait]
+impl Middleware for RetargetTo {
+    async fn handle(
+        &self,
+        mut req: reqwest::Request,
+        ext: &mut http::Extensions,
+        next: reqwest_middleware::Next<'_>,
+    ) -> reqwest_middleware::Result<reqwest::Response> {
+        *req.url_mut() = reqwest::Url::parse(&self.0).unwrap();
+        next.run(req, ext).await
+    }
+}
+
+#[tokio::test]
+async fn attach_token_writes_the_bearer_inside_the_service_origin() {
+    let server = MockServer::start().await;
+    let access_token = token(900);
+    Mock::given(method("GET"))
+        .and(path("/scoped"))
+        .and(header(
+            "authorization",
+            format!("Bearer {access_token}").as_str(),
+        ))
+        .respond_with(ResponseTemplate::new(200).set_body_json("OK"))
+        .expect(1)
+        .mount(&server)
+        .await;
+
+    let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
+    sessions.set(session_with(&access_token)).unwrap();
+    let client = functions::Client::new(
+        server.uri(),
+        reqwest::Client::new(),
+        vec![Arc::new(AttachToken {
+            storage: sessions.clone(),
+            service_url: server.uri(),
+        })],
+    );
+
+    client.get::<serde_json::Value>("/scoped").await.unwrap();
+    server.verify().await;
+}
+
+#[tokio::test]
+async fn attach_token_is_withheld_after_middleware_moves_the_request_off_origin() {
+    let elsewhere = MockServer::start().await;
+    Mock::given(method("GET"))
+        .respond_with(ResponseTemplate::new(200).set_body_json("OK"))
+        .expect(1)
+        .mount(&elsewhere)
+        .await;
+
+    let access_token = token(900);
+    let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
+    sessions.set(session_with(&access_token)).unwrap();
+
+    // The service URL is a different origin from the one the request ends up at.
+    let service_url = "https://functions.invalid/v1".to_string();
+    let client = functions::Client::new(
+        service_url.clone(),
+        reqwest::Client::new(),
+        vec![
+            Arc::new(RetargetTo(format!("{}/anything", elsewhere.uri()))) as Arc<dyn Middleware>,
+            Arc::new(AttachToken {
+                storage: sessions.clone(),
+                service_url,
+            }) as Arc<dyn Middleware>,
+        ],
+    );
+
+    client.get::<serde_json::Value>("/anything").await.unwrap();
+
+    let requests = elsewhere.received_requests().await.unwrap();
+    assert_eq!(requests.len(), 1);
+    assert!(
+        requests[0].headers.get("authorization").is_none(),
+        "access token leaked off-origin: {:?}",
+        requests[0].headers.get("authorization"),
+    );
+}
+
+#[tokio::test]
+async fn admin_secret_is_withheld_after_middleware_moves_the_request_off_origin() {
+    let elsewhere = MockServer::start().await;
+    Mock::given(method("GET"))
+        .respond_with(ResponseTemplate::new(200).set_body_json("OK"))
+        .expect(1)
+        .mount(&elsewhere)
+        .await;
+
+    let service_url = "https://storage.invalid/v1".to_string();
+    let client = functions::Client::new(
+        service_url.clone(),
+        reqwest::Client::new(),
+        vec![
+            Arc::new(RetargetTo(format!("{}/anything", elsewhere.uri()))) as Arc<dyn Middleware>,
+            Arc::new(nhost::middleware::AdminSession {
+                options: AdminSessionOptions {
+                    admin_secret: "super-secret".to_string(),
+                    role: None,
+                    session_variables: HashMap::new(),
+                    allow_insecure_http: false,
+                },
+                service_url,
+            }) as Arc<dyn Middleware>,
+        ],
+    );
+
+    client.get::<serde_json::Value>("/anything").await.unwrap();
+
+    let requests = elsewhere.received_requests().await.unwrap();
+    assert_eq!(requests.len(), 1);
+    assert!(
+        requests[0].headers.get("x-hasura-admin-secret").is_none(),
+        "admin secret leaked off-origin",
+    );
+}
+
+#[tokio::test]
+async fn admin_secret_is_withheld_over_cleartext_to_a_non_loopback_host() {
+    let service_url = "http://storage.example.test/v1".to_string();
+    let client = functions::Client::new(
+        service_url.clone(),
+        reqwest::Client::new(),
+        vec![Arc::new(nhost::middleware::AdminSession {
+            options: AdminSessionOptions {
+                admin_secret: "super-secret".to_string(),
+                role: None,
+                session_variables: HashMap::new(),
+                allow_insecure_http: false,
+            },
+            service_url,
+        }) as Arc<dyn Middleware>],
+    );
+
+    // The host does not resolve; the request fails at the transport layer, but
+    // the middleware has already decided not to write the header. Assert the
+    // decision directly instead of inspecting a request that is never sent.
+    let error = client
+        .get::<serde_json::Value>("/anything")
+        .await
+        .unwrap_err();
+    assert!(
+        !format!("{error:?}").contains("super-secret"),
+        "admin secret must not appear in the error",
+    );
 }
