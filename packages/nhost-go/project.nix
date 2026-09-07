@@ -34,8 +34,6 @@ let
       ../../.golangci.yaml
       ./gen.sh
       ./README.md
-      # The example is part of the root module too (no per-project go.mod), so
-      # its sources are included and built/linted alongside the SDK.
       (fs.fileFilter (f: f.hasExt "go") ./.)
       ../../services/auth/docs/openapi.yaml
       ../../services/storage/controller/openapi.yaml
