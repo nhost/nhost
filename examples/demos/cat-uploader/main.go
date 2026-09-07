@@ -112,7 +112,12 @@ func (s *server) ensureAuth(ctx context.Context) error {
 		Password: s.cfg.password,
 	}, nil)
 	if err == nil {
-		if _, ok := s.nhost.Session(); !ok {
+		sess, sessErr := s.nhost.Session()
+		if sessErr != nil {
+			return fmt.Errorf("reading session after sign-in: %w", sessErr)
+		}
+
+		if sess == nil {
 			return errNoSignInSession
 		}
 
@@ -135,7 +140,12 @@ func (s *server) ensureAuth(ctx context.Context) error {
 		return fmt.Errorf("sign-in and sign-up both failed: %w", errors.Join(err, suErr))
 	}
 
-	if _, ok := s.nhost.Session(); !ok {
+	sess, sessErr := s.nhost.Session()
+	if sessErr != nil {
+		return fmt.Errorf("reading session after sign-up: %w", sessErr)
+	}
+
+	if sess == nil {
 		return errNoSignUpSession
 	}
 

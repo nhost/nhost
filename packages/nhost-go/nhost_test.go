@@ -439,8 +439,10 @@ func TestClientSessionAccessors(t *testing.T) {
 	t.Parallel()
 
 	client := nhost.NewBareClient(nhost.Options{Storage: &session.MemoryStorage{}})
-	if got, ok := client.Session(); ok || got != nil {
-		t.Fatalf("initial session = (%#v, %t), want (nil, false)", got, ok)
+
+	got, err := client.Session()
+	if err != nil || got != nil {
+		t.Fatalf("initial session = (%#v, %v), want (nil, nil)", got, err)
 	}
 
 	if err := client.SessionStorage.Set(auth.Session{
@@ -450,15 +452,18 @@ func TestClientSessionAccessors(t *testing.T) {
 		t.Fatalf("set session: %v", err)
 	}
 
-	got, ok := client.Session()
-	if !ok || got == nil || got.RefreshToken != "refresh-token" {
-		t.Fatalf("stored session = (%#v, %t), want refresh-token", got, ok)
+	got, err = client.Session()
+	if err != nil || got == nil || got.RefreshToken != "refresh-token" {
+		t.Fatalf("stored session = (%#v, %v), want refresh-token", got, err)
 	}
 
-	client.ClearSession()
+	if err := client.ClearSession(); err != nil {
+		t.Fatalf("clear session: %v", err)
+	}
 
-	if got, ok := client.Session(); ok || got != nil {
-		t.Fatalf("cleared session = (%#v, %t), want (nil, false)", got, ok)
+	got, err = client.Session()
+	if err != nil || got != nil {
+		t.Fatalf("cleared session = (%#v, %v), want (nil, nil)", got, err)
 	}
 }
 
@@ -619,17 +624,18 @@ type countingSetBackend struct {
 	sets     atomic.Int32
 }
 
-func (b *countingSetBackend) Get() (*session.StoredSession, bool) {
-	return b.delegate.Get()
+func (b *countingSetBackend) Get() (*session.StoredSession, error) {
+	return b.delegate.Get() //nolint:wrapcheck // Delegating to the real backend.
 }
 
-func (b *countingSetBackend) Set(value session.StoredSession) {
+func (b *countingSetBackend) Set(value session.StoredSession) error {
 	b.sets.Add(1)
-	b.delegate.Set(value)
+
+	return b.delegate.Set(value) //nolint:wrapcheck // Delegating to the real backend.
 }
 
-func (b *countingSetBackend) Remove() {
-	b.delegate.Remove()
+func (b *countingSetBackend) Remove() error {
+	return b.delegate.Remove() //nolint:wrapcheck // Delegating to the real backend.
 }
 
 func testAccessToken(t *testing.T, expiry int64) string {
