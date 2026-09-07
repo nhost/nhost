@@ -83,10 +83,10 @@ enabled = false
 
 [auth.method.emailPassword]
 hibpEnabled = false
-# cat-uploader is headless: it signs its service user up on first run and only
-# serves if that returns a session. With verification required there is no
-# browser in the loop to click the link, so it could never start unattended.
-# The sibling `backend/` keeps verification on, as an app with real users should.
+# cat-uploader authenticates with the admin secret and never creates a user, so
+# this setting has no effect on it. It is left off only so the backend stays
+# convenient to poke at by hand. The sibling `backend/` keeps verification on,
+# as an app with real users should.
 emailVerificationRequired = false
 passwordMinLength = 9
 

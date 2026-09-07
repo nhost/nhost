@@ -26,7 +26,7 @@ import (
 	"time"
 
 	nhost "github.com/nhost/nhost/packages/nhost-go"
-	"github.com/nhost/nhost/packages/nhost-go/auth"
+	"github.com/nhost/nhost/packages/nhost-go/middleware"
 	"github.com/nhost/nhost/packages/nhost-go/storage"
 )
 
@@ -43,13 +43,9 @@ const (
 
 var (
 	// errUpstreamStatus is returned when cataas responds with a non-success status.
-	errUpstreamStatus  = errors.New("unexpected upstream status")
-	errCatTooLarge     = errors.New("cat image exceeds 2 MiB limit")
-	errMissingAuth     = errors.New("NHOST_EMAIL and NHOST_PASSWORD are required")
-	errNoSignInSession = errors.New("sign-in succeeded but no session was stored")
-	errNoSignUpSession = errors.New(
-		"signed up but no session was returned; verify the service user's email, then restart the service",
-	)
+	errUpstreamStatus     = errors.New("unexpected upstream status")
+	errCatTooLarge        = errors.New("cat image exceeds 2 MiB limit")
+	errMissingAdminSecret = errors.New("NHOST_ADMIN_SECRET is required")
 )
 
 func env(key, fallback string) string {
@@ -64,12 +60,11 @@ func env(key, fallback string) string {
 // overrides point at the internal service names (e.g. http://auth:4000/v1);
 // from a laptop they can be left unset and subdomain/region are used instead.
 type config struct {
-	subdomain  string
-	region     string
-	authURL    string
-	storageURL string
-	email      string
-	password   string
+	subdomain   string
+	region      string
+	authURL     string
+	storageURL  string
+	adminSecret string
 	// publicStorageURL is only used to build browser-facing download links in
 	// the response; it is not used to talk to storage.
 	publicStorageURL string
@@ -78,11 +73,9 @@ type config struct {
 }
 
 func loadConfig() (config, error) {
-	email := os.Getenv("NHOST_EMAIL")
-	password := os.Getenv("NHOST_PASSWORD")
-
-	if email == "" || password == "" {
-		return config{}, errMissingAuth
+	adminSecret := os.Getenv("NHOST_ADMIN_SECRET")
+	if adminSecret == "" {
+		return config{}, errMissingAdminSecret
 	}
 
 	return config{
@@ -90,8 +83,7 @@ func loadConfig() (config, error) {
 		region:           env("NHOST_REGION", "local"),
 		authURL:          os.Getenv("NHOST_AUTH_URL"),
 		storageURL:       os.Getenv("NHOST_STORAGE_URL"),
-		email:            email,
-		password:         password,
+		adminSecret:      adminSecret,
 		publicStorageURL: env("PUBLIC_STORAGE_URL", "https://local.storage.local.nhost.run/v1"),
 		cataasURL:        env("CATAAS_URL", "https://cataas.com"),
 		port:             env("PORT", "8080"),
@@ -103,53 +95,6 @@ type server struct {
 	nhost       *nhost.Client
 	http        *http.Client
 	uploadSlots chan struct{}
-}
-
-// ensureAuth signs the service user in, creating the account on first run.
-func (s *server) ensureAuth(ctx context.Context) error {
-	_, _, err := s.nhost.Auth.SignInEmailPassword(ctx, auth.SignInEmailPasswordRequest{
-		Email:    s.cfg.email,
-		Password: s.cfg.password,
-	}, nil)
-	if err == nil {
-		sess, sessErr := s.nhost.Session()
-		if sessErr != nil {
-			return fmt.Errorf("reading session after sign-in: %w", sessErr)
-		}
-
-		if sess == nil {
-			return errNoSignInSession
-		}
-
-		return nil
-	}
-
-	// Sign-in failed (most likely the user does not exist yet); try to create
-	// it. Serving can start only if sign-up returns a session, which requires
-	// email verification to be disabled or already satisfied for this user.
-	log.Printf("sign-in failed (%v); attempting sign-up for %s", err, s.cfg.email)
-
-	if _, _, suErr := s.nhost.Auth.SignUpEmailPassword(
-		ctx,
-		auth.SignUpEmailPasswordRequest{ //nolint:exhaustruct
-			Email:    s.cfg.email,
-			Password: s.cfg.password,
-		},
-		nil,
-	); suErr != nil {
-		return fmt.Errorf("sign-in and sign-up both failed: %w", errors.Join(err, suErr))
-	}
-
-	sess, sessErr := s.nhost.Session()
-	if sessErr != nil {
-		return fmt.Errorf("reading session after sign-up: %w", sessErr)
-	}
-
-	if sess == nil {
-		return errNoSignUpSession
-	}
-
-	return nil
 }
 
 // fetchCat downloads one random cat picture, returning its bytes and file
@@ -277,10 +222,14 @@ func (s *server) handleUpload(w http.ResponseWriter, r *http.Request) {
 
 		name := fmt.Sprintf("cat-%d-%d.%s", time.Now().UnixNano(), i, ext)
 
-		uploaded, _, err := s.nhost.Storage.UploadFiles(ctx, storage.UploadFilesBody{ //nolint:exhaustruct
-			File:     [][]byte{data},
-			Metadata: &[]storage.UploadFileMetadata{{Name: &name}}, //nolint:exhaustruct
-		}, nil)
+		uploaded, _, err := s.nhost.Storage.UploadFiles(
+			ctx,
+			storage.UploadFilesBody{ //nolint:exhaustruct
+				File:     [][]byte{data},
+				Metadata: &[]storage.UploadFileMetadata{{Name: &name}}, //nolint:exhaustruct
+			},
+			nil,
+		)
 		if err != nil {
 			s.writeError(w, http.StatusBadGateway, fmt.Errorf("upload: %w", err))
 			return
@@ -327,12 +276,32 @@ func main() {
 	}
 
 	httpClient := &http.Client{Timeout: httpTimeout} //nolint:exhaustruct
-	client := nhost.New(nhost.Options{               //nolint:exhaustruct
+
+	// A Run service is trusted server-side code, so it authenticates with the
+	// admin secret rather than signing in as a user — the same pattern the
+	// serverless-function examples use.
+	//
+	// NewBareClient, not New: this process holds no user session, so the
+	// refresh and token-attachment middleware would have nothing to act on, and
+	// New documents that its client must not be shared across users in a
+	// server. The admin middleware is the entire pipeline here.
+	//
+	// AllowInsecureHTTP is required because inside the Nhost stack this service
+	// reaches storage over plain HTTP at http://storage:5000/v1; the SDK
+	// otherwise withholds the secret from a cleartext request to a non-loopback
+	// host. Never enable it for a client that leaves the internal network.
+	client := nhost.NewBareClient(nhost.Options{ //nolint:exhaustruct
 		Subdomain:  cfg.subdomain,
 		Region:     cfg.region,
 		AuthURL:    cfg.authURL,
 		StorageURL: cfg.storageURL,
 		HTTPClient: httpClient,
+		Configure: []nhost.ConfigureFunc{
+			nhost.WithAdminSession(middleware.AdminSessionOptions{ //nolint:exhaustruct
+				AdminSecret:       cfg.adminSecret,
+				AllowInsecureHTTP: true,
+			}),
+		},
 	})
 
 	srv := &server{
@@ -341,15 +310,6 @@ func main() {
 		http:        httpClient,
 		uploadSlots: make(chan struct{}, maxConcurrentUploads),
 	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), httpTimeout)
-	if err := srv.ensureAuth(ctx); err != nil {
-		cancel()
-		log.Fatalf("authentication failed: %v", err)
-	}
-
-	cancel()
-	log.Printf("authenticated as %s", cfg.email)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/upload", srv.handleUpload)

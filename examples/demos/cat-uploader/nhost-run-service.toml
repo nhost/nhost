@@ -23,13 +23,12 @@ value = "http://storage:5000/v1"
 name = "PUBLIC_STORAGE_URL"
 value = "https://local.storage.local.nhost.run/v1"
 
+# A Run service is trusted server-side code, so it authenticates with the admin
+# secret rather than signing in as a user. The secret must never reach a
+# browser or any client outside this network.
 [[environment]]
-name = "NHOST_EMAIL"
-value = '{{ secrets.NHOST_EMAIL }}'
-
-[[environment]]
-name = "NHOST_PASSWORD"
-value = '{{ secrets.NHOST_PASSWORD }}'
+name = "NHOST_ADMIN_SECRET"
+value = '{{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}'
 
 [resources]
 replicas = 1

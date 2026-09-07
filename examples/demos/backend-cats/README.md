@@ -22,34 +22,28 @@ cd examples/demos/backend-cats
 Then start the service, from [`../cat-uploader`](../cat-uploader):
 
 ```sh
-export NHOST_EMAIL='cat-uploader@example.com'
-read -rsp 'Service user password: ' NHOST_PASSWORD && export NHOST_PASSWORD
-printf '\n'
+export NHOST_ADMIN_SECRET='nhost-admin-secret'   # matches .secrets.example
 go run .
 ```
 
 Stop the backend with `nhost down --volumes`.
 
-## Why email verification is off
+## How cat-uploader authenticates
 
-`nhost.toml` sets `emailVerificationRequired = false`.
-
-`cat-uploader` is a headless service: on first run it signs its service user up
-and starts serving only if that sign-up returns a session. With verification
-required, sign-up returns no session, and the service exits telling you to
-verify the user first — there is no browser in the loop to click a link. Turning
-verification off is what makes the example start unattended, which is the point
-of a Run service.
-
-That is a choice appropriate to a machine-to-machine service, not general
-advice. The sibling `backend/` keeps verification on, as an app with real users
-should.
+`cat-uploader` is a Run service — trusted server-side code — so it authenticates
+with the **admin secret** rather than signing in as a user, the same way the
+serverless-function examples do. It creates no user, holds no session, and needs
+nothing provisioned before it starts.
 
 ## Storage permissions
 
-Uploads are restricted to the `default` bucket and stamped with
-`uploaded_by_user_id`; reads are filtered to the uploader. The URLs
-`cat-uploader` returns therefore need that service user's token to fetch — they
-are not anonymously readable, despite being shaped like public links. If you
-want the pictures to load in a browser without a token, add a `public` role
-select permission on `storage.files`.
+Uploads go to the built-in `default` bucket. Because the admin secret bypasses
+permissions, uploaded files have no owning user, so `storage.files` grants
+`select` to the **public** role, filtered to that bucket. That is what makes the
+URLs `cat-uploader` returns load in a browser, which is the entire output of the
+demo.
+
+That is a demo choice, not general advice: it makes every file in the `default`
+bucket world-readable. An app with real users should scope reads to the uploader
+(`uploaded_by_user_id = X-Hasura-User-Id`) instead, as the sibling `backend/`
+does.
