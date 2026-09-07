@@ -20,7 +20,7 @@ import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { TransferProject } from '@/features/orgs/components/TransferProject';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
-import { RemoveApplicationModal } from '@/features/orgs/projects/common/components/RemoveApplicationModal';
+import { RemoveApplicationDialog } from '@/features/orgs/projects/common/components/RemoveApplicationDialog';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/useIsCurrentUserOwner';
 import { useIsPauseDisabled } from '@/features/orgs/projects/common/hooks/useIsPauseDisabled';
@@ -57,7 +57,7 @@ export type ProjectNameValidationSchema = Yup.InferType<
 export default function SettingsGeneralPage() {
   const router = useRouter();
   const isPlatform = useIsPlatform();
-  const { openDialog, openAlertDialog, closeDialog } = useDialog();
+  const { openAlertDialog } = useDialog();
 
   const isOwner = useIsCurrentUserOwner();
   const { currentOrg: org } = useOrgs();
@@ -313,27 +313,19 @@ export default function SettingsGeneralPage() {
               </p>
             )}
             <span className={!isOwner ? 'cursor-not-allowed' : undefined}>
-              <ButtonWithLoading
-                type="button"
-                disabled={!isOwner}
-                onClick={() => {
-                  openDialog({
-                    component: (
-                      <RemoveApplicationModal
-                        close={closeDialog}
-                        handler={handleDeleteApplication}
-                      />
-                    ),
-                    props: {
-                      PaperProps: { className: 'max-w-sm' },
-                    },
-                  });
-                }}
-                variant="destructive"
-                className="w-full sm:w-auto"
-              >
-                Delete
-              </ButtonWithLoading>
+              <RemoveApplicationDialog
+                handler={handleDeleteApplication}
+                trigger={
+                  <ButtonWithLoading
+                    type="button"
+                    disabled={!isOwner}
+                    variant="destructive"
+                    className="w-full sm:w-auto"
+                  >
+                    Delete
+                  </ButtonWithLoading>
+                }
+              />
             </span>
           </SettingsCardFooter>
         </SettingsCard>
