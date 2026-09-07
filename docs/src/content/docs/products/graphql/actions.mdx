@@ -8,7 +8,7 @@ head:
 sidebar:
   label: Actions
 ---
-import { Steps } from '@astrojs/starlight/components';
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 import { SquarePen } from '@lucide/astro';
 import { Card, CardGroup } from '@components';
 
@@ -70,7 +70,8 @@ To report an error, the handler responds with a `4xx` status code and a JSON bod
 
 You can create an Action in the dashboard, or declaratively by editing your project's metadata files. Both produce the same result.
 
-### Using the Dashboard
+<Tabs>
+<TabItem label="Dashboard">
 
 <Steps>
 
@@ -120,7 +121,7 @@ You can create an Action in the dashboard, or declaratively by editing your proj
    ![Comment, webhook URL, kind, and timeout fields](/images/products/graphql/actions/handler-and-options.png)
 
    - **Comment**: an optional short description. It surfaces as the field's description in GraphQL introspection.
-   - **Webhook URL or template**: the handler endpoint. You can reference environment variables and [secrets](/platform/cloud/secrets) with the `{{VARIABLE}}` syntax, for example `{{NHOST_FUNCTIONS_URL}}/process-payment`. See [Environment Variables](/platform/cloud/environment-variables) for more details.
+   - **Webhook URL or template**: the handler endpoint. You can reference environment variables with the `{{VARIABLE}}` syntax, for example `{{NHOST_FUNCTIONS_URL}}/process-payment`. See [Environment Variables](/platform/cloud/environment-variables) for more details.
    - **Kind**: **Synchronous** or **Asynchronous**. An asynchronous Action returns an action id immediately and the response can be fetched later. Query Actions are always synchronous; only mutations can run asynchronously.
    - **Timeout**: the number of seconds to wait for the handler response before timing out (default: 30).
 
@@ -134,7 +135,8 @@ You can create an Action in the dashboard, or declaratively by editing your proj
 
 </Steps>
 
-### Using Metadata
+</TabItem>
+<TabItem label="Metadata">
 
 Everything the dashboard form configures lives in two files in your project's metadata. Editing them directly is the natural path when you manage your project as code, and it is the most direct format for AI coding agents.
 
@@ -185,6 +187,9 @@ custom_types:
 
 Run `nhost up` to apply the change to your local project.
 
+</TabItem>
+</Tabs>
+
 :::tip[Using an AI assistant?]
 Connect the [Nhost MCP server](/platform/cli/mcp) and your assistant can inspect your schema, read these docs, and create or modify Actions for you.
 :::
@@ -195,26 +200,20 @@ Connect the [Nhost MCP server](/platform/cli/mcp) and your assistant can inspect
 
 Actions often need to send authentication or context to the handler. Expand **Headers Settings** on the Action form to configure them.
 
-### Forward Client Headers
+**Forward client headers to webhook**: pass the headers sent by the client app (such as `Authorization`) along to your handler. Enable it when the handler needs the caller's authentication token or other request context.
 
-Enable **Forward client headers to webhook** to pass the headers sent by the client app (such as `Authorization`) along to your handler. This is useful when the handler needs the caller's authentication token or other request context.
-
-### Additional Headers
-
-Click **+** next to **Additional Headers** to add a row. Each row is a key, a type, and a value, and the type decides how the value is read:
+**Additional Headers**: click **+** to add a row. Each row is a key, a type, and a value, and the type decides how the value is read:
 
 - **Value** sends what you type, exactly as typed. Use it for constants, such as the key `x-source` with the value `main-api`.
 - **Env Var** treats what you type as the name of an environment variable and sends that variable's contents at request time. Use it for secrets, such as the key `x-payments-api-key` with the env var `PAYMENTS_API_TOKEN`, so you can rotate the value without editing the Action.
 
-A header is one type or the other, and header values are never templated. Unlike the webhook URL, a **Value** of `Bearer {{PAYMENTS_API_TOKEN}}` is sent as that literal string. If your handler expects a prefix, store the prefix and the secret together in the environment variable and send the header as an **Env Var**.
-
-The two types map to the `value` and `value_from_env` keys in [`nhost/metadata/actions.yaml`](#using-metadata).
+The two types map to the `value` and `value_from_env` keys in [`nhost/metadata/actions.yaml`](#creating-an-action).
 
 ## Transforms
 
-![Request and Response Options with the Request Options Transform enabled](/images/products/graphql/actions/request-and-response-options.png)
-
 Actions can reshape the outgoing request to the handler and the incoming response before it reaches the client. Expand **Request & Response Options** on the Action form to configure them. Transforms use the [Kriti templating language](/reference/kriti), the same engine used by [Event and Cron trigger transformations](/products/events/transformations).
+
+![Request and Response Options with the Request Options Transform enabled](/images/products/graphql/actions/request-and-response-options.png)
 
 **Request Options Transform**: override the HTTP method, customize the URL with a template, and add query parameters.
 
@@ -251,17 +250,9 @@ Renaming an Action is not supported. When you edit an Action, its name is locked
 
 ## Permissions
 
-By default, only the `admin` role can call an Action. To let other roles call it, grant them permission.
+By default, only the `admin` role can call an Action. To let other roles call it, open the `⋯` menu for the Action and select **Edit Permissions**. Unlike table permissions, this is call-or-deny per role, with no column-level rules or row checks.
 
-![Action menu with Edit Permissions](/images/products/graphql/actions/edit-permissions.png)
-
-Open the `⋯` menu for an Action and select **Edit Permissions**.
-
-![Roles and permissions grid for an Action](/images/products/graphql/actions/permissions-table.png)
-
-Click a permission cell to toggle whether a role is allowed to call the Action. The `admin` role is always allowed, and the `public` role is available for unauthenticated access.
-
-Action permissions are call-or-deny per role; there are no column-level rules like there are for tables. To add or remove roles, go to **Settings** > **Roles and Permissions**. For more on how roles work, see [Permissions](/products/graphql/permissions).
+See [Action Permissions](/products/graphql/permissions/examples#action-permissions) for the walkthrough, and [Permissions](/products/graphql/permissions) for how roles work.
 
 ## Relationships
 
@@ -309,39 +300,14 @@ Relationships can only be attached when the Action's output type is an object ty
 
 The **Custom Types Editor**, accessible from the bottom of the Actions sidebar, is a single SDL editor for all the custom types used across your Actions. Use it to review or edit input, object, enum, and scalar types in one place. Edit the SDL and click **Save**, or **Revert changes** to discard.
 
-## Deploying
-
-Actions are part of your project's metadata. Deploy changes by running `nhost up` locally or by pushing to your cloud project.
-
 ## Troubleshooting
 
-### Handler Timeout
-
-If calls fail with a timeout:
-
-- Increase the **Timeout** value on the Action.
-- Verify the handler is reachable from your Nhost project.
-- For long-running work, consider an **Asynchronous** mutation.
-
-### Permission Denied
-
-If a user gets a permission error when calling an Action:
-
-- Confirm the user's role has been granted permission in **Edit Permissions**.
-- Remember that only `admin` is allowed by default.
-
-### Authentication Errors from the Handler
-
-If the handler returns 401 or 403:
-
-- Enable **Forward client headers** so the caller's `Authorization` header reaches the handler.
-- Check that any header environment variables and secrets are set correctly.
-
-### Type Conflicts
-
-If saving warns that types will be overwritten:
-
-- Rename the conflicting types in your **Type Configuration**, or reconcile them in the **Custom Types Editor**.
+| Symptom | What to check |
+| --- | --- |
+| Calls fail with a timeout | Raise the Action's **Timeout**, confirm the handler is reachable from your Nhost project, or switch long-running work to an **Asynchronous** mutation. |
+| Permission denied | Grant the user's role permission in **Edit Permissions**. Only `admin` is allowed by default. |
+| Handler returns 401 or 403 | Enable **Forward client headers** so the caller's `Authorization` header reaches the handler, and confirm any header environment variables are set. |
+| Saving warns that types will be overwritten | Rename the conflicting types in your **Type Configuration**, or reconcile them in the **Custom Types Editor**. |
 
 ## Learn more
 
