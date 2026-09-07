@@ -26,6 +26,10 @@ on:
       # the backend the integration tests run against
       - "packages/backend-sdk-tests/**"
 
+      # the examples the check lints and type-checks against this SDK
+      - "examples/tutorials/nhost-python-tutorial/**"
+      - "examples/demos/webhook-receiver/**"
+
       # apis
       - "services/auth/docs/openapi.yaml"
       - "services/storage/controller/openapi.yaml"
@@ -54,6 +58,8 @@ jobs:
         tools/codegen/**
         packages/nhost-python/**
         packages/backend-sdk-tests/**
+        examples/tutorials/nhost-python-tutorial/**
+        examples/demos/webhook-receiver/**
         services/auth/docs/openapi.yaml
         services/storage/controller/openapi.yaml
 

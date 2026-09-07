@@ -1,0 +1,22 @@
+# Mirrors the lint settings in packages/nhost-python/pyproject.toml, which used
+# to apply to this example when it lived inside that package. Without this file
+# ruff would fall back to its defaults (line-length 88) and reformat code the
+# tutorial pages quote verbatim.
+line-length = 100
+target-version = "py311"
+
+[lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "PL"]
+
+[lint.isort]
+# `nhost` is built from this repository, so keep it in its own import group as
+# it is inside the SDK package. Left to auto-detection ruff would classify it as
+# third-party here and merge it with `typer`.
+known-first-party = ["nhost"]
+
+[lint.pylint]
+max-args = 8
+
+[lint.per-file-ignores]
+# Tests may use literal values and local imports for readability.
+"test_main.py" = ["PLR2004", "PLC0415"]
