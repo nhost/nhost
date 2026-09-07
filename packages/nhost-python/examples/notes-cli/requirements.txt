@@ -1,6 +1,0 @@
-# The Nhost Python SDK, installed editable from this repo checkout.
-# (Registry publishing is out of scope; install from source.)
--e ../..
-
-# Typer powers the command-line interface (flat verbs + generated --help).
-typer

@@ -66,6 +66,16 @@ Serverless export and collaborators
 - Uploading and downloading files with Nhost Storage
 - Calling a serverless function with the caller's credentials
 
+:::tip[Prefer to read the finished code?]
+The completed CLI lives in
+[`examples/tutorials/nhost-python-tutorial`](https://github.com/nhost/nhost/tree/main/examples/tutorials/nhost-python-tutorial),
+and the backend it needs — schema, permissions, storage bucket and the
+`notes/export` function — is committed next to it in
+[`examples/tutorials/backend-notes`](https://github.com/nhost/nhost/tree/main/examples/tutorials/backend-notes).
+Start that backend with `./env-up.sh` and you can run the finished CLI without
+working through the parts below first.
+:::
+
 ## Prerequisites
 
 - **Python 3.11+** installed on your machine
@@ -137,7 +147,7 @@ import os
 
 import typer
 
-from nhost import NhostClientOptions, create_client
+from nhost import NhostError, create_client
 
 app = typer.Typer(
     name="notes-cli",
@@ -158,10 +168,8 @@ def make_client():
     # The client middleware attaches the access token to every request and
     # refreshes it automatically once we sign in.
     return create_client(
-        NhostClientOptions(
-            subdomain=os.environ.get("NHOST_SUBDOMAIN", "local"),
-            region=os.environ.get("NHOST_REGION", "local"),
-        )
+        subdomain=os.environ.get("NHOST_SUBDOMAIN", "local"),
+        region=os.environ.get("NHOST_REGION", "local"),
     )
 
 
@@ -176,7 +184,7 @@ def run(coro) -> None:
 
 
 async def cmd_whoami(nhost) -> None:
-    session = nhost.get_user_session()
+    session = await nhost.get_user_session()
     if session is None or session.user is None:
         raise SystemExit("not logged in")
     print(f"{session.user.email} ({session.user.id})")

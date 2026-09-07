@@ -28,7 +28,7 @@ Update `make_client` to use it:
 ```python title="main.py"
 from pathlib import Path
 
-from nhost import FileStorage, NhostClientOptions, create_client
+from nhost import FileStorage, NhostError, create_client
 
 
 def session_path() -> Path:
@@ -41,11 +41,9 @@ def session_path() -> Path:
 
 def make_client():
     return create_client(
-        NhostClientOptions(
-            subdomain=os.environ.get("NHOST_SUBDOMAIN", "local"),
-            region=os.environ.get("NHOST_REGION", "local"),
-            storage=FileStorage(session_path()),
-        )
+        subdomain=os.environ.get("NHOST_SUBDOMAIN", "local"),
+        region=os.environ.get("NHOST_REGION", "local"),
+        session_storage=FileStorage(session_path()),
     )
 ```
 
@@ -70,9 +68,9 @@ from nhost.auth import (
 
 async def cmd_signup(nhost, email: str, password: str) -> None:
     await nhost.auth.sign_up_email_password(
-        SignUpEmailPasswordRequest(email=email, password=password)
+        body=SignUpEmailPasswordRequest(email=email, password=password)
     )
-    if nhost.get_user_session() is not None:
+    if await nhost.get_user_session() is not None:
         print("signed up and logged in as", email)
     else:
         print("signed up; verify your email, then `login`")
@@ -80,16 +78,16 @@ async def cmd_signup(nhost, email: str, password: str) -> None:
 
 async def cmd_login(nhost, email: str, password: str) -> None:
     await nhost.auth.sign_in_email_password(
-        SignInEmailPasswordRequest(email=email, password=password)
+        body=SignInEmailPasswordRequest(email=email, password=password)
     )
     print("logged in as", email)
 
 
 async def cmd_logout(nhost) -> None:
-    session = nhost.get_user_session()
+    session = await nhost.get_user_session()
     if session is not None:
-        await nhost.auth.sign_out(SignOutRequest(refresh_token=session.refresh_token))
-    nhost.clear_session()
+        await nhost.auth.sign_out(body=SignOutRequest(refresh_token=session.refresh_token))
+    await nhost.clear_session()
     print("logged out")
 ```
 
@@ -157,7 +155,7 @@ from pathlib import Path
 
 import typer
 
-from nhost import FileStorage, NhostClientOptions, create_client
+from nhost import FileStorage, NhostError, create_client
 from nhost.auth import (
     SignInEmailPasswordRequest,
     SignOutRequest,
@@ -182,11 +180,9 @@ def session_path() -> Path:
 
 def make_client():
     return create_client(
-        NhostClientOptions(
-            subdomain=os.environ.get("NHOST_SUBDOMAIN", "local"),
-            region=os.environ.get("NHOST_REGION", "local"),
-            storage=FileStorage(session_path()),
-        )
+        subdomain=os.environ.get("NHOST_SUBDOMAIN", "local"),
+        region=os.environ.get("NHOST_REGION", "local"),
+        session_storage=FileStorage(session_path()),
     )
 
 
@@ -200,9 +196,9 @@ def run(coro) -> None:
 
 async def cmd_signup(nhost, email: str, password: str) -> None:
     await nhost.auth.sign_up_email_password(
-        SignUpEmailPasswordRequest(email=email, password=password)
+        body=SignUpEmailPasswordRequest(email=email, password=password)
     )
-    if nhost.get_user_session() is not None:
+    if await nhost.get_user_session() is not None:
         print("signed up and logged in as", email)
     else:
         print("signed up; verify your email, then `login`")
@@ -210,21 +206,21 @@ async def cmd_signup(nhost, email: str, password: str) -> None:
 
 async def cmd_login(nhost, email: str, password: str) -> None:
     await nhost.auth.sign_in_email_password(
-        SignInEmailPasswordRequest(email=email, password=password)
+        body=SignInEmailPasswordRequest(email=email, password=password)
     )
     print("logged in as", email)
 
 
 async def cmd_logout(nhost) -> None:
-    session = nhost.get_user_session()
+    session = await nhost.get_user_session()
     if session is not None:
-        await nhost.auth.sign_out(SignOutRequest(refresh_token=session.refresh_token))
-    nhost.clear_session()
+        await nhost.auth.sign_out(body=SignOutRequest(refresh_token=session.refresh_token))
+    await nhost.clear_session()
     print("logged out")
 
 
 async def cmd_whoami(nhost) -> None:
-    session = nhost.get_user_session()
+    session = await nhost.get_user_session()
     if session is None or session.user is None:
         raise SystemExit("not logged in")
     print(f"{session.user.email} ({session.user.id})")
