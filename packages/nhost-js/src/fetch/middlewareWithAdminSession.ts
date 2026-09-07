@@ -6,6 +6,7 @@
  */
 
 import type { ChainFunction, FetchFunction } from './fetch';
+import { requestScopeFromBaseUrl } from './requestScope';
 
 /**
  * Configuration options for admin session middleware
@@ -37,6 +38,15 @@ export interface AdminSessionOptions {
    * ```
    */
   sessionVariables?: Record<string, string>;
+
+  /**
+   * Permits sending the admin secret over cleartext HTTP to a non-loopback host.
+   *
+   * Defaults to `false`. Enable only on a trusted development network: the admin
+   * secret grants unrestricted database access and cleartext exposes it to
+   * anyone on the path.
+   */
+  allowInsecureHttp?: boolean;
 }
 
 /**
@@ -89,9 +99,20 @@ export interface AdminSessionOptions {
  * ```
  */
 export const withAdminSessionMiddleware =
-  (options: AdminSessionOptions): ChainFunction =>
+  (options: AdminSessionOptions, serviceUrl: string): ChainFunction =>
   (next: FetchFunction): FetchFunction =>
   async (url: string, requestOptions: RequestInit = {}): Promise<Response> => {
+    const scope = requestScopeFromBaseUrl(serviceUrl);
+    // Fail closed: an unparseable service URL, a different origin, or cleartext
+    // to a non-loopback host all withhold every admin header.
+    if (!scope.permitsAdminSession(url, options.allowInsecureHttp ?? false)) {
+      console.warn(
+        'nhost: admin session headers withheld from a request outside the ' +
+          'configured service origin or over an insecure transport',
+      );
+      return next(url, requestOptions);
+    }
+
     const headers = new Headers(requestOptions.headers || {});
 
     // Set x-hasura-admin-secret if not already present

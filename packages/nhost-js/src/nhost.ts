@@ -57,7 +57,6 @@ export const withClientSideSessionMiddleware: ClientConfigurationFn = ({
   const mwChain: ChainFunction[] = [
     sessionRefreshMiddleware(auth, sessionStorage),
     updateSessionFromResponseMiddleware(sessionStorage),
-    attachAccessTokenMiddleware(sessionStorage),
   ];
 
   for (const mw of mwChain) {
@@ -66,6 +65,45 @@ export const withClientSideSessionMiddleware: ClientConfigurationFn = ({
     graphql.pushChainFunction(mw);
     functions.pushChainFunction(mw);
   }
+
+  attachAccessTokenToEachService({
+    auth,
+    storage,
+    graphql,
+    functions,
+    sessionStorage,
+  });
+};
+
+/**
+ * Installs token attachment on every service, scoped to that service's own
+ * origin so a request that leaves it cannot carry the user's access token.
+ */
+const attachAccessTokenToEachService = ({
+  auth,
+  storage,
+  graphql,
+  functions,
+  sessionStorage,
+}: {
+  auth: AuthClient;
+  storage: StorageClient;
+  graphql: GraphQLClient;
+  functions: FunctionsClient;
+  sessionStorage: SessionStorage;
+}): void => {
+  auth.pushChainFunction(
+    attachAccessTokenMiddleware(sessionStorage, auth.baseURL),
+  );
+  storage.pushChainFunction(
+    attachAccessTokenMiddleware(sessionStorage, storage.baseURL),
+  );
+  graphql.pushChainFunction(
+    attachAccessTokenMiddleware(sessionStorage, graphql.url),
+  );
+  functions.pushChainFunction(
+    attachAccessTokenMiddleware(sessionStorage, functions.baseURL),
+  );
 };
 
 /**
@@ -82,7 +120,6 @@ export const withServerSideSessionMiddleware: ClientConfigurationFn = ({
 }) => {
   const mwChain: ChainFunction[] = [
     updateSessionFromResponseMiddleware(sessionStorage),
-    attachAccessTokenMiddleware(sessionStorage),
   ];
 
   for (const mw of mwChain) {
@@ -91,6 +128,14 @@ export const withServerSideSessionMiddleware: ClientConfigurationFn = ({
     graphql.pushChainFunction(mw);
     functions.pushChainFunction(mw);
   }
+
+  attachAccessTokenToEachService({
+    auth,
+    storage,
+    graphql,
+    functions,
+    sessionStorage,
+  });
 };
 
 /**
@@ -107,11 +152,17 @@ export function withAdminSession(
   adminSession: AdminSessionOptions,
 ): ClientConfigurationFn {
   return ({ storage, graphql, functions }) => {
-    const adminMiddleware = withAdminSessionMiddleware(adminSession);
-
-    storage.pushChainFunction(adminMiddleware);
-    graphql.pushChainFunction(adminMiddleware);
-    functions.pushChainFunction(adminMiddleware);
+    // Each service gets its own instance scoped to its own base URL, so the
+    // admin secret cannot follow a request to a host it was not configured for.
+    storage.pushChainFunction(
+      withAdminSessionMiddleware(adminSession, storage.baseURL),
+    );
+    graphql.pushChainFunction(
+      withAdminSessionMiddleware(adminSession, graphql.url),
+    );
+    functions.pushChainFunction(
+      withAdminSessionMiddleware(adminSession, functions.baseURL),
+    );
   };
 }
 
