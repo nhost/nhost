@@ -3,7 +3,7 @@ import type {
   ForeignKeyRelation,
   MutationOrQueryBaseOptions,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { areForeignKeyRelationsEqual } from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
+import { areForeignKeyRelationsEqual } from '@/features/orgs/projects/database/dataGrid/utils/areForeignKeyRelationsEqual';
 import { prepareCreateForeignKeyRelationQuery } from '@/features/orgs/projects/database/dataGrid/utils/prepareCreateForeignKeyRelationQuery';
 
 export interface PrepareUpdateForeignKeyRelationQueryVariables

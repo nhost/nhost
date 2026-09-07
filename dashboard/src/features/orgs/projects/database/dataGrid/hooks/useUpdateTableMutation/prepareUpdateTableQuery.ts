@@ -12,7 +12,7 @@ import type {
   MutationOrQueryBaseOptions,
   UniqueConstraint,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { areForeignKeyRelationsEqual } from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
+import { areForeignKeyRelationsEqual } from '@/features/orgs/projects/database/dataGrid/utils/areForeignKeyRelationsEqual';
 import { isSelfReferencingRelation } from '@/features/orgs/projects/database/dataGrid/utils/isSelfReferencingRelation';
 import { prepareCreateForeignKeyRelationQuery } from '@/features/orgs/projects/database/dataGrid/utils/prepareCreateForeignKeyRelationQuery';
 import {

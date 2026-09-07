@@ -111,18 +111,6 @@ export function alignRelationshipColumnPairs(
   return alignedPairs;
 }
 
-const compareStrings = (left: string, right: string): number => {
-  if (left < right) {
-    return -1;
-  }
-
-  if (left > right) {
-    return 1;
-  }
-
-  return 0;
-};
-
 export interface ArrayRelationshipRemoteIdentityInput {
   readonly source: string;
   readonly from: RelationshipIdentityEndpoint;
@@ -157,7 +145,7 @@ export function buildArrayRelationshipRemoteKey({
     source,
     [from.schema, from.table],
     [to.schema, to.table],
-    [...remoteColumns].sort(compareStrings),
+    [...remoteColumns].sort(),
   ]);
 }
 
@@ -165,10 +153,10 @@ const compareColumnPairs = (
   left: RelationshipColumnPair,
   right: RelationshipColumnPair,
 ): number =>
-  compareStrings(left.fromColumn, right.fromColumn) ||
-  compareStrings(left.toColumn, right.toColumn);
+  left.fromColumn.localeCompare(right.fromColumn) ||
+  left.toColumn.localeCompare(right.toColumn);
 
-/** Locale-independent canonical order for column-pair identity keys. */
+/** Canonical order for column-pair identity keys. */
 export function canonicalizeColumnPairs(
   columnPairs: readonly RelationshipColumnPair[],
 ): (readonly [string, string])[] {

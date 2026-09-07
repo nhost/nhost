@@ -4,10 +4,8 @@ import type {
   HasuraMetadataRelationship,
   HasuraMetadataTable,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import {
-  getForeignKeyPairSignature,
-  getForeignKeyRelationSignature,
-} from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
+import { getForeignKeyPairSignature } from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
+import { getForeignKeyRelationSignature } from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyRelationSignature';
 import { parseRelationshipUsing } from '@/features/orgs/projects/database/dataGrid/utils/parseRelationshipUsing';
 import { areStrArraysEqual } from '@/lib/utils';
 

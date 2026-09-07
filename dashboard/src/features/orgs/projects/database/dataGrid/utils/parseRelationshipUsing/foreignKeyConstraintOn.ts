@@ -1,17 +1,13 @@
 import { isCompleteColumnSet } from '@/features/orgs/projects/database/dataGrid/utils/isCompleteColumnSet';
 import { isRecord } from '@/lib/utils';
-
-interface ForeignKeyConstraintTable {
-  name: string;
-  schema: string;
-}
+import type { QualifiedTable } from '@/utils/hasura-api/generated/schemas';
 
 export interface ParsedForeignKeyConstraintOn {
   columns: string[];
-  table?: ForeignKeyConstraintTable;
+  table?: QualifiedTable;
 }
 
-function parseTable(value: unknown): ForeignKeyConstraintTable | undefined {
+function parseTable(value: unknown): QualifiedTable | undefined {
   if (!isRecord(value)) {
     return undefined;
   }
@@ -79,7 +75,7 @@ export function parseForeignKeyConstraintOn(
  */
 export function serializeForeignKeyConstraintOn(
   columns: readonly string[],
-  table?: ForeignKeyConstraintTable,
+  table?: QualifiedTable,
 ) {
   if (!isCompleteColumnSet(columns) || (table && !parseTable(table))) {
     return undefined;

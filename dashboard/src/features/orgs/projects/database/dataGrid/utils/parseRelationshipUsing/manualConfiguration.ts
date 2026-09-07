@@ -1,14 +1,10 @@
 import type { RelationshipColumnPair } from '@/features/orgs/projects/database/dataGrid/types/relationships';
 import { isRecord } from '@/lib/utils';
-
-interface ManualRelationshipTable {
-  name: string;
-  schema: string;
-}
+import type { QualifiedTable } from '@/utils/hasura-api/generated/schemas';
 
 export interface ParsedManualRelationshipConfiguration {
   columnPairs: RelationshipColumnPair[];
-  table: ManualRelationshipTable;
+  table: QualifiedTable;
 }
 
 export function parseManualRelationshipConfiguration(

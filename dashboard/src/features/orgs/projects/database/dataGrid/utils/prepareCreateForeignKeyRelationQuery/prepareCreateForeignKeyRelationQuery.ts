@@ -3,7 +3,7 @@ import type {
   ForeignKeyRelation,
   MutationOrQueryBaseOptions,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { isCompleteForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
+import { isCompleteForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/isCompleteForeignKeyRelation';
 
 export interface PrepareCreateForeignKeyRelationQueryVariables
   extends Omit<MutationOrQueryBaseOptions, 'appUrl' | 'adminSecret'> {

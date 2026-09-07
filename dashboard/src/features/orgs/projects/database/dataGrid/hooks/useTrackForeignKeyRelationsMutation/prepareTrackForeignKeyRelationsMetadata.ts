@@ -5,22 +5,19 @@ import {
 } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackForeignKeyRelationsMutation/fetchExistingRelationships';
 import type {
   ForeignKeyRelation,
-  HasuraMetadataRelationship,
   MutationOrQueryBaseOptions,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import {
-  getForeignKeyRelationSignature,
-  isCompleteForeignKeyRelation,
-} from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
+import { getForeignKeyRelationSignature } from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyRelationSignature';
+import { isCompleteForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/isCompleteForeignKeyRelation';
 import { serializeForeignKeyConstraintOn } from '@/features/orgs/projects/database/dataGrid/utils/parseRelationshipUsing';
+import type {
+  CreateArrayRelationshipStep,
+  CreateObjectRelationshipStep,
+} from '@/utils/hasura-api/generated/schemas';
 
-type CreateRelationshipOperation = {
-  type: 'pg_create_object_relationship' | 'pg_create_array_relationship';
-  args: HasuraMetadataRelationship & {
-    source: string;
-    table: { name: string; schema: string };
-  };
-};
+type CreateRelationshipOperation =
+  | CreateObjectRelationshipStep
+  | CreateArrayRelationshipStep;
 
 type PlannedRelationshipOperation = {
   operation: CreateRelationshipOperation;

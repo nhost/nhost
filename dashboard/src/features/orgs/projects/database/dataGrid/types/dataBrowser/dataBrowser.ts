@@ -8,7 +8,9 @@ import type {
 import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import type {
   ComputedFieldItem,
+  CreateLocalRelationshipArgs,
   ExportMetadataResponseMetadataSourcesItemFunctionsItem,
+  RemoteRelationshipItem,
 } from '@/utils/hasura-api/generated/schemas';
 
 /**
@@ -40,33 +42,12 @@ export interface MutationOrQueryBaseOptions {
 /**
  * Represents a relationship from Hasura metadata.
  */
-export interface HasuraMetadataRelationship {
-  name: string;
-  using: {
-    manual_configuration?: {
-      column_mapping: Record<string, string>;
-      remote_table: {
-        name: string;
-        schema: string;
-      };
-    };
-    foreign_key_constraint_on?:
-      | string
-      | string[]
-      | {
-          column?: string;
-          columns?: string[];
-          table?: {
-            name: string;
-            schema: string;
-          };
-        };
-  };
-}
+export type HasuraMetadataRelationship = Pick<
+  CreateLocalRelationshipArgs,
+  'name' | 'using'
+>;
 
-interface HasuraMetadataRemoteRelationship {
-  name: string;
-}
+type HasuraMetadataRemoteRelationship = Pick<RemoteRelationshipItem, 'name'>;
 
 export interface HasuraMetadataPermission {
   role: string;

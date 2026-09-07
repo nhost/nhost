@@ -1,5 +1,5 @@
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { getForeignKeyRelationSignature } from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
+import { getForeignKeyRelationSignature } from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyRelationSignature';
 
 interface ValidForeignKeyRelation {
   relation: ForeignKeyRelation;

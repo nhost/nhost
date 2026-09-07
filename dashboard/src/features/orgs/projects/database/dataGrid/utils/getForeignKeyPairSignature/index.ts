@@ -1,6 +1,1 @@
-export {
-  areForeignKeyRelationsEqual,
-  default as getForeignKeyPairSignature,
-  getForeignKeyRelationSignature,
-  isCompleteForeignKeyRelation,
-} from './getForeignKeyPairSignature';
+export { default as getForeignKeyPairSignature } from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature/getForeignKeyPairSignature';

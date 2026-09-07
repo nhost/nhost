@@ -1,13 +1,17 @@
 import type {
   RemoteRelationshipDefinition,
-  RemoteRelationshipItem,
   SuggestedArrayRelationship,
   SuggestedObjectRelationship,
+  SuggestedRelationshipElement,
 } from '@/utils/hasura-api/generated/schemas';
 
+type RelationshipColumn = NonNullable<
+  SuggestedRelationshipElement['columns']
+>[number];
+
 export interface RelationshipColumnPair {
-  readonly fromColumn: string;
-  readonly toColumn: string;
+  readonly fromColumn: RelationshipColumn;
+  readonly toColumn: RelationshipColumn;
 }
 
 export interface RelationshipSuggestionViewModel {
@@ -63,11 +67,6 @@ export interface RemoteRelationshipViewModel extends RelationshipViewModel {
   toSource: string;
   definition: RemoteRelationshipDefinition;
 }
-
-export type MetadataRemoteRelationship = RemoteRelationshipItem & {
-  name?: string;
-  definition?: RemoteRelationshipDefinition;
-};
 
 /**
  * Represents how a single argument is mapped in a remote field.

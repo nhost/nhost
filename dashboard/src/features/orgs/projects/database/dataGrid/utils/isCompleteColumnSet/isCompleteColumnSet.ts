@@ -1,8 +1,8 @@
 import { isNonEmptyString } from '@/lib/utils';
 
 /**
- * A complete column set is a non-empty list of unique, non-empty column
- * names.
+ * Runtime guard for column sets from forms and untyped metadata. A complete
+ * set contains at least one unique, non-empty string.
  */
 export default function isCompleteColumnSet(value: unknown): value is string[] {
   return (

@@ -107,8 +107,9 @@ export const MATERIALIZED_VIEW_COLUMN_DEFINITION_QUERY = `
  *   %1$ = schema name (identifier)
  *   %2$ = table name (identifier)
  *
- * Candidate keys exclude deferrable/non-immediate and unusable indexes.
- * INCLUDE columns are omitted because only key attributes can be referenced.
+ * Candidate keys exclude deferrable, non-immediate, and unusable indexes.
+ * INCLUDE columns are excluded because they do not enforce uniqueness and
+ * cannot be referenced by foreign keys.
  */
 export const CONSTRAINT_DEFINITION_QUERY = `SELECT ROW_TO_JSON(TABLE_DATA) FROM (\
   SELECT CONSTRAINT_NAME, CONSTRAINT_TYPE, COLUMN_NAME, COLUMN_ORDINALITY, IS_REFERENCEABLE, REFERENCED_SCHEMA, REFERENCED_TABLE, REFERENCED_COLUMN_NAME, UPDATE_ACTION_CODE, DELETE_ACTION_CODE

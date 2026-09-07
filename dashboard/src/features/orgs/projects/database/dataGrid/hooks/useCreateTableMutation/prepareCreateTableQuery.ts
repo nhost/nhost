@@ -7,7 +7,7 @@ import type {
   DatabaseTable,
   MutationOrQueryBaseOptions,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { isCompleteForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
+import { isCompleteForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/isCompleteForeignKeyRelation';
 import { formatUniqueConstraintDefinition } from '@/features/orgs/projects/database/dataGrid/utils/prepareUniqueConstraintQueries';
 import { isNotEmptyValue } from '@/lib/utils';
 
