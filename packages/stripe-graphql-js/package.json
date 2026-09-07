@@ -60,6 +60,6 @@
     "rollup": "^4.59.0",
     "rollup-plugin-peer-deps-external": "^2.2.4",
     "terser": "^5.46.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.3"
   }
 }

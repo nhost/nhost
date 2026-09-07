@@ -38,6 +38,7 @@ import {
   useOrganizationMemberInvitesLazyQuery,
   usePrefetchNewAppQuery,
 } from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { useUserData } from '@/hooks/useUserData';
 import { isNotEmptyValue } from '@/lib/utils';
 import { ORGANIZATION_TYPES } from '@/utils/constants/organizationTypes';
@@ -72,6 +73,7 @@ export default function OnboardingPage() {
   ] = useOrganizationMemberInvitesLazyQuery();
 
   const [acceptInvite] = useOrganizationMemberInviteAcceptMutation();
+  const track = useTrackEvent();
 
   const [showOnboardingForm, setShowOnboardingForm] = useState(false);
 
@@ -153,6 +155,9 @@ export default function OnboardingPage() {
           variables: {
             inviteId: invite.id,
           },
+        });
+        track('Organization Invite Accepted', {
+          org_slug: invite.organization?.slug,
         });
 
         await router.push(`/orgs/${invite?.organization?.slug}/projects`);

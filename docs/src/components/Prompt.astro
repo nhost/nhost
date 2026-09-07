@@ -1,0 +1,86 @@
+---
+interface Props {
+  label?: string;
+}
+
+const { label = 'Prompt' } = Astro.props;
+---
+
+<figure class="prompt">
+  <figcaption class="prompt-label">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke-width="1.5"
+      stroke="currentColor"
+      aria-hidden="true"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="M8.625 9.75a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375m-13.5 3.01c0 1.6 1.123 2.994 2.707 3.227 1.068.157 2.148.279 3.238.364.466.037.893.281 1.153.671L12 21l2.755-4.133a1.55 1.55 0 0 1 1.153-.67 48.4 48.4 0 0 0 3.238-.365c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.4 48.4 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"
+      ></path>
+    </svg>
+    {label}
+  </figcaption>
+  <div class="prompt-body"><slot /></div>
+</figure>
+
+<style>
+  .prompt {
+    /* Hug the prompt text instead of filling the column, so a short prompt reads
+       as a quoted utterance rather than a full-width panel. Long prompts still
+       wrap at the container's edge. */
+    /* Full width, matching the other callouts on the page. */
+    margin: 1rem 0 1.5rem;
+    /* Extra inline-start padding sets the content in from the accent bar. */
+    padding: 1rem 1.25rem 1rem 1.5rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.5rem;
+    /* Accent bar as an inset shadow, not a thicker border: mismatched border
+       widths get mitred across the radius and render as a tapered wedge. */
+    box-shadow: inset 3px 0 0 0 var(--sl-color-accent);
+    background-color: var(--sl-color-gray-6);
+  }
+
+  .prompt-label {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    /* The perceived gap is mostly the label's leading, so flatten line-height
+       rather than leaning on margin alone. */
+    margin-bottom: 0;
+    line-height: 1;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--sl-color-text-accent);
+  }
+
+  .prompt-label svg {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+
+  .prompt-body {
+    /* Starlight gives any element following a sibling `--sl-content-gap-y` of
+       top margin, which would open a 1rem gap under the label. Zero it and set
+       the gap here instead. */
+    margin-top: 0.25rem;
+    color: var(--sl-color-white);
+    font-size: 1.0625rem;
+    font-weight: 500;
+    line-height: 1.6;
+  }
+
+  /* Slotted MDX content renders as paragraphs; keep them flush inside the box. */
+  .prompt-body :global(p) {
+    margin: 0 !important;
+  }
+
+  .prompt-body :global(p + p) {
+    margin-top: 0.5rem !important;
+  }
+</style>

@@ -36,10 +36,11 @@ enabled = true
 provider = 'twilio'
 accountSid = '{{ secrets.TWILIO_ACCOUNT_SID }}'
 authToken = '{{ secrets.TWILIO_AUTH_TOKEN }}'
-messagingServiceId = 'MG...'
+# A Twilio phone number can be used instead of a Messaging Service SID.
+messagingServiceId = '{{ secrets.TWILIO_MESSAGING_SERVICE_ID }}'
 ```
 
-Store sensitive values as [secrets](/platform/cloud/secrets) and reference them with `{{ secrets.NAME }}`. `messagingServiceId` accepts a Messaging Service SID (`MG…`) or a Twilio phone number.
+Store sensitive values as [secrets](/platform/cloud/secrets) and reference them with `{{ secrets.NAME }}`.
 
 </TabItem>
 <TabItem label="Dashboard">
@@ -61,7 +62,7 @@ Turn on the toggle and fill in:
 
 Signing in users with a phone number is a two-step process:
 
-### Step 1: Request OTP
+### Request OTP
 
 The user will receive the OTP on the phone number specified.
 
@@ -82,7 +83,7 @@ await nhost.auth.signInWithSmsPasswordless(
 </TabItem>
 </Tabs>
 
-### Step 2: Verify OTP
+### Sign In with OTP
 
 To sign in the user, pass in the OTP received on the previous step.
 
@@ -111,6 +112,10 @@ A user account is created the first time a phone number is used
 
 :::note
 Phone numbers should start with `+` (not `00`) to follow the [E.164 formatting standard](https://en.wikipedia.org/wiki/E.164)
+:::
+
+:::note
+After 5 incorrect attempts the code is burned and verification returns `otp-too-many-attempts` instead of `invalid-otp`. Request a new code to continue. This applies to every SMS code, including phone number changes and deanonymization.
 :::
 
 ### Sign In Flow
@@ -142,9 +147,9 @@ sequenceDiagram
 
 ## Change Phone Number
 
-An authenticated user can change the phone number on their account. This is a two-step flow: the user requests the change, an OTP is sent via SMS to the **new** number, and the user submits that OTP to confirm. The current phone number stays in place until verification succeeds, so a failed or abandoned change never locks the user out.
+An authenticated user can change the phone number on their account. This is a two-step flow: the user requests the change, an OTP is sent via SMS to the new number, and the user submits the OTP to confirm. The current phone number is left unchanged until verification succeeds.
 
-This endpoint requires [elevated permissions](/products/auth/elevated-permissions).
+Both endpoints require [elevated permissions](/products/auth/elevated-permissions) when `auth.elevatedPrivileges.mode` is `required`, or when it is `recommended` and the user has a security key. With the default `disabled` mode no elevated claim is needed.
 
 ### Request the Change
 
@@ -166,5 +171,23 @@ await nhost.auth.verifyChangeUserPhoneNumber({
 ```
 
 :::note
-If another user already has this phone number verified, the request fails with `user-already-exists`. Unverified numbers staged by other users don't block the change.
+Both steps reject a number that already belongs to another account, verified or not, with `user-already-exists`. The request step pre-checks it, and the verify step still fails if another user claimed the number in between. A number another user has only staged, through a pending change or an unfinished sign-up, doesn't block it.
 :::
+
+## Deanonymize with SMS
+
+[Anonymous users](/products/auth/sign-in-anonymous) can be converted to permanent accounts by linking a phone number. An OTP is sent to the new number; the user completes the conversion by signing in with the OTP via the standard SMS sign-in flow, which also returns a non-anonymous session.
+
+```js
+// 1. Anonymous user requests deanonymization with a phone number
+await nhost.auth.deanonymizeUserSms({
+  phoneNumber: '+11233213123'
+})
+
+// 2. The same user verifies the OTP via verifySignInPasswordlessSms —
+//    on success the phone number is verified and a non-anonymous session is returned
+await nhost.auth.verifySignInPasswordlessSms({
+  phoneNumber: '+11233213123',
+  otp: '123456'
+})
+```

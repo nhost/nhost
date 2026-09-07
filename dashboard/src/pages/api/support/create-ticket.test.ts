@@ -412,31 +412,31 @@ describe('POST /api/support/create-ticket', () => {
   it.each([
     { status: 403, statusText: '' },
     { status: 422, statusText: 'Unprocessable Entity' },
-  ])('preserves a sanitized $status ticket API failure without reading its body', async ({
-    status,
-    statusText,
-  }) => {
-    server.use(
-      http.post(ZENDESK_TICKET_URL, () => {
-        ticketCallCount += 1;
-        return HttpResponse.json(
-          { error: TICKET_ERROR_BODY_SENTINEL },
-          { status, statusText },
-        );
-      }),
-    );
+  ])(
+    'preserves a sanitized $status ticket API failure without reading its body',
+    async ({ status, statusText }) => {
+      server.use(
+        http.post(ZENDESK_TICKET_URL, () => {
+          ticketCallCount += 1;
+          return HttpResponse.json(
+            { error: TICKET_ERROR_BODY_SENTINEL },
+            { status, statusText },
+          );
+        }),
+      );
 
-    const result = await invokeHandler();
+      const result = await invokeHandler();
 
-    expect(result).toEqual({
-      status,
-      body: {
-        success: false,
-        error: `Failed to create ticket (Zendesk status ${status})`,
-      },
-    });
-    expect(tokenCallCount).toBe(1);
-    expect(ticketCallCount).toBe(1);
-    expectNoSensitiveOutput(result);
-  });
+      expect(result).toEqual({
+        status,
+        body: {
+          success: false,
+          error: `Failed to create ticket (Zendesk status ${status})`,
+        },
+      });
+      expect(tokenCallCount).toBe(1);
+      expect(ticketCallCount).toBe(1);
+      expectNoSensitiveOutput(result);
+    },
+  );
 });

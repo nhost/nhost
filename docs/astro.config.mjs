@@ -25,9 +25,17 @@ export default defineConfig({
   // makes the Vercel adapter emit 308 redirects from old `/path/` URLs so already
   // indexed pages and external backlinks keep working.
   trailingSlash: 'never',
-  // Redirects for pages renamed during the GraphQL docs neutralization, so
-  // existing links and indexed URLs keep working.
   redirects: {
+    // Short, memorable URL for the MCP onboarding file. The file itself lives at
+    // /install-mcp.md (in public/) so browsers render it inline and curl gets
+    // text/markdown; this redirect lets us share the extension-less form. curl -L
+    // follows the redirect, so `curl -fsSL https://docs.nhost.io/install-mcp | claude`
+    // still works.
+    '/install-mcp': '/install-mcp.md',
+    // Short, memorable entry point to the human-facing MCP overview.
+    '/mcp': '/platform/cli/mcp',
+    // Renamed during the GraphQL docs neutralization, so existing links and
+    // indexed URLs keep working.
     '/products/graphql/configuring-hasura': '/products/graphql/configuration',
   },
   // Astro 6.4 moved the GFM default onto the new `markdown.processor` (unified())
@@ -608,6 +616,27 @@ export default defineConfig({
                     { slug: 'products/ai/assistants' },
                   ],
                 },
+                {
+                  label: 'Backend MCP Server',
+                  collapsed: false,
+                  items: [
+                    { slug: 'products/ai/mcp' },
+                    { slug: 'products/ai/mcp/authentication' },
+                    { slug: 'products/ai/mcp/deployment' },
+                    { slug: 'products/ai/mcp/permissions' },
+                    { slug: 'products/ai/mcp/configuration' },
+                    {
+                      label: 'Connecting Clients',
+                      collapsed: false,
+                      items: [
+                        { slug: 'products/ai/mcp/clients' },
+                        { slug: 'products/ai/mcp/clients/claude' },
+                        { slug: 'products/ai/mcp/clients/cursor' },
+                        { slug: 'products/ai/mcp/clients/other' },
+                      ],
+                    },
+                  ],
+                },
               ],
             },
             // Platform
@@ -648,10 +677,11 @@ export default defineConfig({
                     { slug: 'platform/cli/configuration-overlays' },
                     { slug: 'platform/cli/seeds' },
                     {
-                      label: 'MCP Server',
+                      label: 'CLI MCP server',
                       collapsed: true,
                       items: [
                         { slug: 'platform/cli/mcp' },
+                        { slug: 'platform/cli/mcp/development-setup' },
                         { slug: 'platform/cli/mcp/configuration' },
                         { slug: 'platform/cli/mcp/clients' },
                         { slug: 'platform/cli/mcp/troubleshooting' },

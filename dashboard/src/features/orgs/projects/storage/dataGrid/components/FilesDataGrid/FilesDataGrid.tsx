@@ -24,6 +24,7 @@ import { useFilesAggregate } from '@/features/orgs/projects/storage/dataGrid/hoo
 import { filtersToFilesWhere } from '@/features/orgs/projects/storage/dataGrid/utils/filtersToFilesWhere';
 import type { Files, GetBucketQuery } from '@/generated/graphql';
 import { Order_By as OrderBy } from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { isNotEmptyValue } from '@/lib/utils';
 import { showLoadingToast, triggerToast } from '@/utils/toast';
 
@@ -178,6 +179,7 @@ export default function FilesDataGrid({
   }, [bucket.downloadExpiration, bucket.presignedUrlsEnabled]);
   const { project } = useProject();
   const appClient = useAppClient();
+  const track = useTrackEvent();
   const {
     appliedFilters,
     sortBy,
@@ -295,6 +297,7 @@ export default function FilesDataGrid({
           const fileId = fileMetadata.id;
 
           triggerToast(`File has been uploaded successfully (${fileId})`);
+          track('File Uploaded');
 
           await refetchFilesAndAggregate();
         } else {

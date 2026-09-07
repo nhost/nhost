@@ -1,14 +1,33 @@
 # YAML marshaling and unmarshaling support for Go
 
-[![Lint](https://github.com/invopop/yaml/actions/workflows/lint.yaml/badge.svg)](https://github.com/invopop/yaml/actions/workflows/lint.yaml)
-[![Test Go](https://github.com/invopop/yaml/actions/workflows/test.yaml/badge.svg)](https://github.com/invopop/yaml/actions/workflows/test.yaml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/invopop/yaml)](https://goreportcard.com/report/github.com/invopop/yaml)
-![Latest Tag](https://img.shields.io/github/v/tag/invopop/yaml)
+[![Lint](https://github.com/oasdiff/yaml/actions/workflows/lint.yaml/badge.svg)](https://github.com/oasdiff/yaml/actions/workflows/lint.yaml)
+[![Test Go](https://github.com/oasdiff/yaml/actions/workflows/test.yaml/badge.svg)](https://github.com/oasdiff/yaml/actions/workflows/test.yaml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/oasdiff/yaml)](https://goreportcard.com/report/github.com/oasdiff/yaml)
+![Latest Tag](https://img.shields.io/github/v/tag/oasdiff/yaml)
 
 ## Fork
-This fork is an improved version of the invopop/yaml package, designed to include line and column location information for YAML elements during unmarshalling.  
-To include location information use ```UnmarshalWithOrigin``` instead of ```Unmarshal```.  
-The heavy lifting is done by the underlying [oasdiff/yaml3](https://github.com/oasdiff/yaml3) package.
+This fork is an improved version of the invopop/yaml package, designed to include line and column location information for YAML elements during unmarshalling.
+
+Origin tracking uses a two-pass approach:
+1. `Unmarshal` decodes the YAML and extracts `__origin__` metadata injected by the underlying [oasdiff/yaml3](https://github.com/oasdiff/yaml3) decoder, returning an `*OriginTree` alongside the decoded struct.
+2. The caller walks the `OriginTree` to apply file/line/column information to the decoded Go structs.
+
+`Unmarshal` is the single public unmarshal entry point. Pass `DecodeOpts{}` for a plain decode, or set fields to opt into origin tracking or YAML 1.1 timestamp-resolution suppression:
+
+```go
+// Plain decode (no origin tracking, default YAML 1.1 behaviour):
+_, err := yaml.Unmarshal(data, &v, yaml.DecodeOpts{})
+
+// Decode with origin tracking:
+tree, err := yaml.Unmarshal(data, &v, yaml.DecodeOpts{
+    Origin: yaml.OriginOpt{Enabled: true, File: "myfile.yaml"},
+})
+
+// Decode with timestamp resolution suppressed (date-shaped scalars stay strings):
+_, err := yaml.Unmarshal(data, &v, yaml.DecodeOpts{DisableTimestamps: true})
+```
+
+The returned `*OriginTree` mirrors the YAML document structure. Each node holds a compact `[]any` sequence with the file, key name, line, column, and locations of scalar fields and sequence items within that mapping. When `Origin.Enabled` is false, `nil` is returned for the tree with no overhead.
 
 ## Introduction
 
@@ -44,13 +63,13 @@ GOOD:
 To install, run:
 
 ```
-$ go get github.com/invopop/yaml
+$ go get github.com/oasdiff/yaml
 ```
 
 And import using:
 
 ```
-import "github.com/invopop/yaml"
+import "github.com/oasdiff/yaml"
 ```
 
 Usage is very similar to the JSON library:
@@ -61,7 +80,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/invopop/yaml"
+	"github.com/oasdiff/yaml"
 )
 
 type Person struct {
@@ -85,7 +104,7 @@ func main() {
 
 	// Unmarshal the YAML back into a Person struct.
 	var p2 Person
-	err = yaml.Unmarshal(y, &p2)
+	_, err = yaml.Unmarshal(y, &p2, yaml.DecodeOpts{})
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
 		return
@@ -105,7 +124,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/invopop/yaml"
+	"github.com/oasdiff/yaml"
 )
 
 func main() {

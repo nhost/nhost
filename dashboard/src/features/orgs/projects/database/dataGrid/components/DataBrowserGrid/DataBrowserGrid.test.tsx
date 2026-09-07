@@ -20,19 +20,22 @@ describe('extractColumnMetadata', () => {
   it.each([
     ['timestamp with time zone', 'timestamptz'],
     ['time with time zone', 'timetz'],
-  ])('derives canonical baseType from FORMAT_TYPE %s, not udt_name %s', (fullDataType, udtName) => {
-    const metadata = extractColumnMetadata(
-      makeColumn({
-        data_type: fullDataType,
-        full_data_type: fullDataType,
-        udt_name: udtName,
-      }),
-    );
+  ])(
+    'derives canonical baseType from FORMAT_TYPE %s, not udt_name %s',
+    (fullDataType, udtName) => {
+      const metadata = extractColumnMetadata(
+        makeColumn({
+          data_type: fullDataType,
+          full_data_type: fullDataType,
+          udt_name: udtName,
+        }),
+      );
 
-    expect(metadata.specificType).toBe(fullDataType);
-    expect(metadata.baseType).toBe(fullDataType);
-    expect(metadata.displayType).toBe(udtName);
-  });
+      expect(metadata.specificType).toBe(fullDataType);
+      expect(metadata.baseType).toBe(fullDataType);
+      expect(metadata.displayType).toBe(udtName);
+    },
+  );
 });
 
 describe('createDataGridColumn — enableSorting', () => {

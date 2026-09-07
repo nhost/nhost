@@ -36,6 +36,48 @@ components:
           additionalProperties: true
           description: "Custom metadata associated with the file."
           example: { "alt": "Profile picture", "category": "avatar" }
+        requiredNullableMetadata:
+          type: object
+          additionalProperties: true
+          nullable: true
+          description: "Always-present metadata that may be null."
+        requiredNullableString:
+          type: string
+          nullable: true
+          description: "Always-present string that may be null."
+        requiredNullableArray:
+          type: array
+          nullable: true
+          description: "Always-present array that may be null."
+          items:
+            type: string
+        nickname:
+          type: string
+          nullable: true
+          description: "Optional nickname declared nullable in OpenAPI."
+        extra:
+          type: object
+          additionalProperties: true
+          nullable: true
+          description: "Optional free-form object declared nullable in OpenAPI."
+        aliases:
+          type: array
+          description: "Array whose individual items may be null."
+          items:
+            type: string
+            nullable: true
+        labels:
+          type: object
+          description: "Typed map whose values may be null."
+          additionalProperties:
+            type: string
+            nullable: true
+        nullableTags:
+          type: array
+          nullable: true
+          description: "Optional array declared nullable in OpenAPI."
+          items:
+            type: string
         data:
           type: string
           format: binary
@@ -94,5 +136,8 @@ components:
         - age
         - createdAt
         - metadata
+        - requiredNullableMetadata
+        - requiredNullableString
+        - requiredNullableArray
         - data
       additionalProperties: false

@@ -42,6 +42,7 @@ import {
   useGetResourcesQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import {
   RESOURCE_VCPU_MULTIPLIER,
   RESOURCE_VCPU_PRICE,
@@ -115,6 +116,7 @@ export default function ResourcesForm() {
   const { project } = useProject();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
+  const track = useTrackEvent();
   const { openDialog, closeDialog } = useDialog();
 
   const {
@@ -379,6 +381,9 @@ export default function ResourcesForm() {
       await execPromiseWithErrorToast(
         async () => {
           await updateConfigPromise;
+          track('Compute Resources Changed', {
+            enabled: formValues.enabled,
+          });
           form.reset({ ...formValues });
 
           if (!isPlatform) {

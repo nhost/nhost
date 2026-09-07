@@ -1,3 +1,107 @@
+## [@nhost/dashboard@3.5.2] - 2026-09-03
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Exclude generated columns from validation (#4919)
+- *(dashboard)* Migrate toasts to v3 (#4921)
+- *(dashboard)* Do not retry mutations in the Apollo retry link (#4927)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Bump flake, bump nodejs and tooling (#4894)
+- *(dashboard)* Remove ControlledSwitch (#4923)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4863)
+- *(deps)* Update vulnerable dependencies (#4928)
+
+## [@nhost/dashboard@3.5.1] - 2026-08-25
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Preserve roles and omit the Admin user-id header (#4870)
+- *(dashboard)* Migrate auth/users page (#4827)
+- *(dashboard)* Prevent an error boundary when editing playground headers (#4882)
+- *(dashboard)* Migrate oauth2 clients page to v3 (#4829)
+
+## [@nhost/dashboard@3.5.0] - 2026-08-24
+
+### 🚀 Features
+
+- *(dashboard)* Allow copying nhost-registry (#4838)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Restore billing button padding (#4847)
+- *(dashboard)* Add background to avatar for transparent images (#4845)
+- *(dashboard)* Fix avatar CSP and disable Stripe advanced fraud signals (#4830)
+- *(dashboard)* Improve cleanup of event triggers and cron triggers invocations in e2e tests (#4851)
+- *(dashboard)* Fix graphiql editor suggestion design (#4859)
+- *(dashboard)* Prevent composite foreign key crashing data grid (#4866)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Add Segment event tracking across the app (#4684)
+
+## [@nhost/dashboard@3.4.1] - 2026-08-18
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Reuse project info cards on the provisioning screen (#4837)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Add AU flag (#4842)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4815)
+
+## [@nhost/dashboard@3.4.0] - 2026-08-17
+
+### 🚀 Features
+
+- *(dashboard)* Add import logical backup ui (#4696)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Resolve member menu overflow on mobile screens (#4652)
+- *(dashboard)* Migrate v2 shared foundation (#4766)
+- *(dashboard)* Migrate authenticated layout to v3 (#4779)
+- *(dashboard)* Migrate leaf pages v3 (#4775)
+- *(dashboard)* Raise error when provider tokens request fails after sign-in (#4782)
+- *(dashboard)* Migrate project layout & graphiql styling to v3 (#4781)
+- *(dashboard)* Refactor account menu (#4787)
+- *(dashboard)* Migrate SelcetOrg component (#4789)
+- *(dashboard)* Migrate upgrade banner, metrics, graphql & new-project to v3 (#4790)
+- *(dashboard)* Catch table constraints to show more descriptive errors (#4788)
+- *(dashboard)* Render toasts above elevated dialogs (#4797)
+- *(dashboard)* Migrate billing & members components to v3 (#4796)
+- *(dashboard)* Exclude unnamed columns from foreign key column select (#4798)
+- *(dashboard)* Migrate Pagination to v3 (#4799)
+- *(dashboard)* Make URL the single source of truth for pagination (#4800)
+- *(dashboard)* Converge data grid pagination onto useUrlPagination (#4803)
+- *(dashboard)* Migrate provisioning & application-state components to v3 (#4808)
+- *(dashboard)* Migrate support, new and reset password pages to v3 (#4816)
+- *(dashboard)* Migrate SelectOrgAndProject and ProjectStatus (#4819)
+- *(dashboard)* Remove v2 InlineCode component (#4820)
+- *(dashboard)* Disable delete project/organization actions for non-admins (#4822)
+- *(dashboard)* Remove unnecessary CSS rules (#4836)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4773)
+- *(deps)* Update vulnerable dependencies (#4786)
+
 ## [@nhost/dashboard@3.3.0] - 2026-08-04
 
 ### 🚀 Features

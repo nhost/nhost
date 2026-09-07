@@ -19,6 +19,7 @@ import { useCreateTableMutation } from '@/features/orgs/projects/database/dataGr
 import { useSetTableTrackingMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetTableTrackingMutation';
 import { useTrackForeignKeyRelationsMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackForeignKeyRelationsMutation';
 import type { DatabaseTable } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { isNotEmptyValue } from '@/lib/utils';
 import { triggerToast } from '@/utils/toast';
 
@@ -54,6 +55,7 @@ export default function CreateTableForm({
 }: CreateTableFormProps) {
   const router = useRouter();
   const { closeDrawer } = useDialog();
+  const track = useTrackEvent();
   const [selectedSchema, setSelectedSchema] = useState<string>(schema);
 
   const dataSource = router.query.dataSourceSlug as string;
@@ -151,6 +153,11 @@ export default function CreateTableForm({
       if (onSubmit) {
         await onSubmit({ schema: selectedSchema, name: table.name });
       }
+
+      track('Table Created', {
+        schema: selectedSchema,
+        table_name: table.name,
+      });
 
       triggerToast('The table has been created successfully.');
 

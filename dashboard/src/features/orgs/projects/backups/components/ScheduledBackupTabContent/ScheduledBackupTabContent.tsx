@@ -1,11 +1,13 @@
 import { Spinner } from '@/components/ui/v3/spinner';
 import { TabsContent } from '@/components/ui/v3/tabs';
 import { useIsPiTREnabled } from '@/features/orgs/hooks/useIsPiTREnabled';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import BackupList from './BackupList';
 import PiTREnabledInfoBanner from './PiTREnabledInfoBanner';
 
 function ScheduledBackupTabContent() {
   const { isPiTREnabled, loading } = useIsPiTREnabled();
+  const { project } = useProject();
   const content = isPiTREnabled ? (
     <PiTREnabledInfoBanner />
   ) : (
@@ -18,7 +20,7 @@ function ScheduledBackupTabContent() {
         </p>
       </div>
 
-      <BackupList />
+      <BackupList appId={project?.id} />
     </>
   );
   return (

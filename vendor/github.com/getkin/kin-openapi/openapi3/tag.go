@@ -3,7 +3,7 @@ package openapi3
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"maps"
 )
 
 // Tags is specified by OpenAPI/Swagger 3.0 standard.
@@ -21,20 +21,34 @@ func (tags Tags) Get(name string) *Tag {
 // Validate returns an error if Tags does not comply with the OpenAPI spec.
 func (tags Tags) Validate(ctx context.Context, opts ...ValidationOption) error {
 	ctx = WithValidationOptions(ctx, opts...)
+	me := newErrCollector(ctx)
+
+	// Each tag name in the list MUST be unique (OpenAPI Object). Empty names
+	// are left to per-tag validation, not flagged as duplicates here.
+	seen := make(map[string]struct{}, len(tags))
 
 	for _, v := range tags {
-		if err := v.Validate(ctx); err != nil {
+		if v.Name != "" {
+			if _, dup := seen[v.Name]; dup {
+				if err := me.emit(&DuplicateTagError{Name: v.Name, Origin: v.Origin}); err != nil {
+					return err
+				}
+			}
+			seen[v.Name] = struct{}{}
+		}
+		wrap := func(e error) error { return &TagValidationError{Name: v.Name, Cause: e} }
+		if err := me.emitWrapped(wrap, v.Validate(ctx)); err != nil {
 			return err
 		}
 	}
-	return nil
+	return me.result()
 }
 
 // Tag is specified by OpenAPI/Swagger 3.0 standard.
 // See https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#tag-object
 type Tag struct {
 	Extensions map[string]any `json:"-" yaml:"-"`
-	Origin     *Origin        `json:"__origin__,omitempty" yaml:"__origin__,omitempty"`
+	Origin     *Origin        `json:"-" yaml:"-"`
 
 	Name         string        `json:"name,omitempty" yaml:"name,omitempty"`
 	Description  string        `json:"description,omitempty" yaml:"description,omitempty"`
@@ -53,9 +67,7 @@ func (t Tag) MarshalJSON() ([]byte, error) {
 // MarshalYAML returns the YAML encoding of Tag.
 func (t Tag) MarshalYAML() (any, error) {
 	m := make(map[string]any, 3+len(t.Extensions))
-	for k, v := range t.Extensions {
-		m[k] = v
-	}
+	maps.Copy(m, t.Extensions)
 	if x := t.Name; x != "" {
 		m["name"] = x
 	}
@@ -76,7 +88,6 @@ func (t *Tag) UnmarshalJSON(data []byte) error {
 		return unmarshalError(err)
 	}
 	_ = json.Unmarshal(data, &x.Extensions)
-	delete(x.Extensions, originKey)
 	delete(x.Extensions, "name")
 	delete(x.Extensions, "description")
 	delete(x.Extensions, "externalDocs")
@@ -90,12 +101,14 @@ func (t *Tag) UnmarshalJSON(data []byte) error {
 // Validate returns an error if Tag does not comply with the OpenAPI spec.
 func (t *Tag) Validate(ctx context.Context, opts ...ValidationOption) error {
 	ctx = WithValidationOptions(ctx, opts...)
+	me := newErrCollector(ctx)
 
 	if v := t.ExternalDocs; v != nil {
-		if err := v.Validate(ctx); err != nil {
-			return fmt.Errorf("invalid external docs: %w", err)
+		wrap := func(e error) error { return &SectionValidationError{Section: "external docs", Cause: e} }
+		if err := me.emitWrapped(wrap, v.Validate(ctx)); err != nil {
+			return err
 		}
 	}
 
-	return validateExtensions(ctx, t.Extensions)
+	return me.finalize(validateExtensions(ctx, t.Extensions, t.Origin))
 }

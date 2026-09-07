@@ -6,7 +6,7 @@ import (
 	"path"
 	"reflect"
 	"regexp"
-	"sort"
+	"slices"
 	"strings"
 
 	"github.com/go-openapi/jsonpointer"
@@ -70,7 +70,7 @@ func componentNames[E any](s map[string]E) []string {
 	for i := range s {
 		out = append(out, i)
 	}
-	sort.Strings(out)
+	slices.Sort(out)
 	return out
 }
 
@@ -212,7 +212,7 @@ func ReferencesComponentInRootDocument(doc *T, ref ComponentRef) (string, bool) 
 
 	var components map[string]ComponentRef
 
-	componentRefType := reflect.TypeOf(new(ComponentRef)).Elem()
+	componentRefType := reflect.TypeFor[ComponentRef]()
 	if t := reflect.TypeOf(collection); t.Kind() == reflect.Map &&
 		t.Key().Kind() == reflect.String &&
 		t.Elem().AssignableTo(componentRefType) {
@@ -230,7 +230,8 @@ func ReferencesComponentInRootDocument(doc *T, ref ComponentRef) (string, bool) 
 
 	// Case 2:
 	// Something like: ../openapi.yaml#/components/schemas/myElement
-	for name, s := range components {
+	for _, name := range componentNames(components) {
+		s := components[name]
 		// Must be a reference to a YAML file.
 		if !isWholeDocumentReference(s.RefString()) {
 			continue

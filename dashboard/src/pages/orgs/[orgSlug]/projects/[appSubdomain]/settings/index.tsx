@@ -1,4 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
+import { Lock } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { type ReactElement, useEffect, useMemo } from 'react';
@@ -19,7 +20,7 @@ import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { TransferProject } from '@/features/orgs/components/TransferProject';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
-import { RemoveApplicationModal } from '@/features/orgs/projects/common/components/RemoveApplicationModal';
+import { RemoveApplicationDialog } from '@/features/orgs/projects/common/components/RemoveApplicationDialog';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/useIsCurrentUserOwner';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -35,6 +36,7 @@ import {
   useUnpauseApplicationMutation,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { useUserData } from '@/hooks/useUserData';
 import { ApplicationStatus } from '@/types/application';
 import { getErrorMessageSuffix } from '@/utils/databaseErrors';
@@ -61,13 +63,14 @@ export type ProjectNameValidationSchema = Yup.InferType<
 export default function SettingsGeneralPage() {
   const router = useRouter();
   const isPlatform = useIsPlatform();
-  const { openDialog, openAlertDialog, closeDialog } = useDialog();
+  const { openAlertDialog } = useDialog();
 
   const isOwner = useIsCurrentUserOwner();
   const { currentOrg: org } = useOrgs();
   const userData = useUserData();
   const { project, loading, refetch: refetchProject } = useProject();
   const { state } = useAppState();
+  const track = useTrackEvent();
 
   const { services } = useRunServices();
 
@@ -173,6 +176,7 @@ export default function SettingsGeneralPage() {
             appID: project?.id,
           },
         });
+        track('Project Deleted');
 
         await router.push(`/orgs/${org?.slug}/projects`);
       },
@@ -190,6 +194,7 @@ export default function SettingsGeneralPage() {
     await execPromiseWithErrorToast(
       async () => {
         await pauseApplication();
+        track('Project Paused', { reason: 'manual' });
         await new Promise((resolve) => {
           setTimeout(resolve, 1000);
         });
@@ -209,6 +214,7 @@ export default function SettingsGeneralPage() {
     await execPromiseWithErrorToast(
       async () => {
         await unpauseApplication();
+        track('Project Resumed');
         await new Promise((resolve) => {
           setTimeout(resolve, 1000);
         });
@@ -355,7 +361,7 @@ export default function SettingsGeneralPage() {
 
       <TransferProject />
 
-      {isOwner && (
+      {isPlatform && (
         <SettingsCard className="border-destructive">
           <SettingsCardHeader
             title="Delete Project"
@@ -363,26 +369,27 @@ export default function SettingsGeneralPage() {
           />
 
           <SettingsCardFooter>
-            <ButtonWithLoading
-              type="button"
-              onClick={() => {
-                openDialog({
-                  component: (
-                    <RemoveApplicationModal
-                      close={closeDialog}
-                      handler={handleDeleteApplication}
-                    />
-                  ),
-                  props: {
-                    PaperProps: { className: 'max-w-sm' },
-                  },
-                });
-              }}
-              variant="destructive"
-              className="w-full sm:w-auto"
-            >
-              Delete
-            </ButtonWithLoading>
+            {!isOwner && (
+              <p className="flex items-center gap-2 text-muted-foreground text-sm sm:mr-auto">
+                <Lock className="h-4 w-4 shrink-0" />
+                Only organization admins can delete this project.
+              </p>
+            )}
+            <span className={!isOwner ? 'cursor-not-allowed' : undefined}>
+              <RemoveApplicationDialog
+                handler={handleDeleteApplication}
+                trigger={
+                  <ButtonWithLoading
+                    type="button"
+                    disabled={!isOwner}
+                    variant="destructive"
+                    className="w-full sm:w-auto"
+                  >
+                    Delete
+                  </ButtonWithLoading>
+                }
+              />
+            </span>
           </SettingsCardFooter>
         </SettingsCard>
       )}

@@ -1,6 +1,7 @@
 import { InfoIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
+import { CopyToClipboardButton } from '@/components/presentational/CopyToClipboardButton';
 import { Input } from '@/components/ui/v3/input';
 import {
   InputGroup,
@@ -21,12 +22,14 @@ interface ImageFieldProps {
   privateRegistryImage: string;
   imageType: 'private' | 'nhost' | 'public';
   initialImageTag?: string;
+  serviceID?: string;
 }
 
 export default function ImageField({
   privateRegistryImage,
   imageType,
   initialImageTag,
+  serviceID,
 }: ImageFieldProps) {
   const {
     register,
@@ -35,6 +38,7 @@ export default function ImageField({
   } = useFormContext<ServiceFormValues>();
 
   const [imageTag, setImageTag] = useState(initialImageTag || '');
+  const isExistingService = !!serviceID;
 
   useEffect(() => {
     if (imageType === 'nhost' && privateRegistryImage) {
@@ -58,9 +62,23 @@ export default function ImageField({
           >
             <InputGroupAddon
               align="inline-start"
-              className="max-w-[70%] justify-start truncate font-normal"
+              className="max-w-[70%] justify-start font-normal"
             >
-              <span className="truncate">{privateRegistryImage}:</span>
+              {isExistingService && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="inline-flex shrink-0">
+                      <CopyToClipboardButton
+                        aria-label="Copy registry"
+                        textToCopy={privateRegistryImage}
+                        title="Nhost registry"
+                      />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>Copy registry</TooltipContent>
+                </Tooltip>
+              )}
+              <span className="min-w-0 truncate">{privateRegistryImage}:</span>
             </InputGroupAddon>
             <InputGroupInput
               value={imageTag}

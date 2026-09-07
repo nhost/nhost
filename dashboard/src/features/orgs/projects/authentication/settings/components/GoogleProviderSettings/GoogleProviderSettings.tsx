@@ -30,6 +30,7 @@ import {
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 
 const googleProviderValidationSchema = Yup.object({
   clientId: Yup.string()
@@ -57,6 +58,7 @@ export default function GoogleProviderSettings() {
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
+  const track = useTrackEvent();
 
   const [updateConfig] = useUpdateConfigMutation({
     ...(!isPlatform ? { client: localMimirClient } : {}),
@@ -121,6 +123,9 @@ export default function GoogleProviderSettings() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+        if (form.formState.dirtyFields.enabled && formValues.enabled) {
+          track('Sign In Method Enabled', { method: 'google' });
+        }
         form.reset(formValues);
 
         if (!isPlatform) {

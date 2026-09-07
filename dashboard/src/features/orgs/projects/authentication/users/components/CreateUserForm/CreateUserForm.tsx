@@ -1,11 +1,12 @@
-import { yupResolver } from '@hookform/resolvers/yup';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import * as Yup from 'yup';
+import { z } from 'zod';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { Alert } from '@/components/ui/v2/Alert';
-import { Input } from '@/components/ui/v2/Input';
+import { FormInput } from '@/components/form/FormInput';
+import { FormPasswordInput } from '@/components/form/FormPasswordInput';
+import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -24,17 +25,15 @@ export interface CreateUserFormProps extends DialogFormProps {
   onSubmit?: () => Promise<unknown>;
 }
 
-export const validationSchema = Yup.object({
-  email: Yup.string()
+export const validationSchema = z.object({
+  email: z
+    .string()
     .min(5, 'Email must be at least 5 characters long.')
-    .email('Invalid email address')
-    .required('This field is required.'),
-  password: Yup.string()
-    .label('Users Password')
-    .required('This field is required.'),
+    .email('Invalid email address'),
+  password: z.string().min(1, 'This field is required.'),
 });
 
-export type CreateUserFormValues = Yup.InferType<typeof validationSchema>;
+export type CreateUserFormValues = z.infer<typeof validationSchema>;
 
 export default function CreateUserForm({
   onSubmit,
@@ -48,14 +47,16 @@ export default function CreateUserForm({
   );
 
   const form = useForm<CreateUserFormValues>({
-    defaultValues: {},
     reValidateMode: 'onSubmit',
-    resolver: yupResolver(validationSchema),
+    resolver: zodResolver(validationSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
   });
 
   const {
-    register,
-    formState: { errors, isSubmitting, dirtyFields },
+    formState: { isSubmitting, dirtyFields },
     setError,
   } = form;
 
@@ -113,38 +114,29 @@ export default function CreateUserForm({
         onSubmit={handleCreateUser}
         className="grid grid-flow-row gap-4 px-6 pb-6"
       >
-        <Input
-          {...register('email')}
-          id="email"
+        <FormInput
+          control={form.control}
+          name="email"
           label="Email"
           placeholder="Enter Email"
-          hideEmptyHelperText
-          error={!!errors.email}
-          helperText={errors?.email?.message}
-          fullWidth
           autoComplete="off"
           autoFocus
         />
-        <Input
-          {...register('password')}
-          id="password"
+        <FormPasswordInput
+          control={form.control}
+          name="password"
           label="Password"
           placeholder="Enter Password"
-          hideEmptyHelperText
-          error={!!errors.password}
-          helperText={errors?.password?.message}
-          fullWidth
           autoComplete="off"
-          type="password"
         />
         {createUserFormError && (
           <Alert
-            severity="error"
+            variant="destructive"
             className="grid grid-flow-col items-center justify-between px-4 py-3"
           >
-            <span className="text-left">
+            <AlertDescription className="col-start-1 text-left">
               <strong>Error:</strong> {createUserFormError.message}
-            </span>
+            </AlertDescription>
 
             <Button
               variant="ghost"

@@ -7,18 +7,19 @@ import (
 	"regexp"
 )
 
-type (
-	// FormatValidator is an interface for custom format validators.
-	FormatValidator[T any] interface {
-		Validate(value T) error
-	}
-	// StringFormatValidator is a type alias for FormatValidator[string]
-	StringFormatValidator = FormatValidator[string]
-	// NumberFormatValidator is a type alias for FormatValidator[float64]
-	NumberFormatValidator = FormatValidator[float64]
-	// IntegerFormatValidator is a type alias for FormatValidator[int64]
-	IntegerFormatValidator = FormatValidator[int64]
-)
+// FormatValidator is an interface for custom format validators.
+type FormatValidator[T any] interface {
+	Validate(value T) error
+}
+
+// StringFormatValidator is a type alias for FormatValidator[string]
+type StringFormatValidator = FormatValidator[string]
+
+// NumberFormatValidator is a type alias for FormatValidator[float64]
+type NumberFormatValidator = FormatValidator[float64]
+
+// IntegerFormatValidator is a type alias for FormatValidator[int64]
+type IntegerFormatValidator = FormatValidator[int64]
 
 var (
 	// SchemaStringFormats is a map of custom string format validators.
@@ -44,7 +45,7 @@ const (
 	FormatOfStringDate = `^[0-9]{4}-(0[1-9]|10|11|12)-(0[1-9]|[12][0-9]|3[01])$`
 
 	// FormatOfStringDateTime is a RFC3339 date-time format regexp, for example "2017-07-21T17:32:28Z".
-	FormatOfStringDateTime = `^[0-9]{4}-(0[1-9]|10|11|12)-(0[1-9]|[12][0-9]|3[01])T([0-1][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\.[0-9]+)?(Z|(\+|-)[0-9]{2}:[0-9]{2})?$`
+	FormatOfStringDateTime = `^[0-9]{4}-(0[1-9]|10|11|12)-(0[1-9]|[12][0-9]|3[01])T([0-1][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\.[0-9]+)?(Z|(\+|-)[0-9]{2}:[0-9]{2})$`
 )
 
 func init() {

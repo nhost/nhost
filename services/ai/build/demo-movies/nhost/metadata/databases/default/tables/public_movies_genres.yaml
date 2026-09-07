@@ -1,0 +1,10 @@
+table:
+  name: movies_genres
+  schema: public
+object_relationships:
+  - name: genre
+    using:
+      foreign_key_constraint_on: genre_id
+  - name: movie
+    using:
+      foreign_key_constraint_on: movie_id

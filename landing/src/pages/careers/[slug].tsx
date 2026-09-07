@@ -8,7 +8,7 @@ import { LocationIcon } from '@/components/common/icons/LocationIcon'
 import { Layout } from '@/components/common/Layout'
 import { LineGrid } from '@/components/common/LineGrid'
 import { Link } from '@/components/common/Link'
-import { getJobBySlug, Job, jobs } from '@/data/jobs'
+import { getJobBySlug, Job, visibleJobs } from '@/data/jobs'
 import { buildSeo } from '@/utils/seo'
 import { GetStaticPaths, GetStaticProps } from 'next'
 import { NextSeo } from 'next-seo'
@@ -66,6 +66,7 @@ function JobSection({
 
 export default function JobPage({ job }: JobPageProps) {
   const applySubject = encodeURIComponent(job.title)
+  const otherJobs = visibleJobs.filter((other) => other.slug !== job.slug)
 
   return (
     <>
@@ -93,7 +94,7 @@ export default function JobPage({ job }: JobPageProps) {
         className="relative max-w-4xl pb-12 lg:pb-20"
       >
         <LineGrid
-          className="top-0 left-0 right-0 mx-auto h-24 w-24 lg:top-0 lg:h-32 lg:w-32"
+          className="left-0 right-0 top-0 mx-auto h-24 w-24 lg:top-0 lg:h-32 lg:w-32"
           slotProps={{ image: { className: 'mx-auto opacity-50' } }}
         />
         <Glow className="top-0 h-24 w-24 bg-opacity-40 blur-3xl lg:top-0 lg:h-32" />
@@ -230,16 +231,15 @@ export default function JobPage({ job }: JobPageProps) {
         </section>
       </Container>
 
-      <Container component="section" className="relative pb-16 lg:pb-28">
-        <div className="border-t border-divider pt-16 lg:pt-24">
-          <h2 className="font-mona text-2xl font-semibold lg:text-3xl">
-            Other open roles
-          </h2>
+      {otherJobs.length > 0 && (
+        <Container component="section" className="relative pb-16 lg:pb-28">
+          <div className="border-t border-divider pt-16 lg:pt-24">
+            <h2 className="font-mona text-2xl font-semibold lg:text-3xl">
+              Other open roles
+            </h2>
 
-          <div className="mt-8 grid grid-flow-row gap-4">
-            {jobs
-              .filter((other) => other.slug !== job.slug)
-              .map((other) => (
+            <div className="mt-8 grid grid-flow-row gap-4">
+              {otherJobs.map((other) => (
                 <Link
                   key={other.slug}
                   href={`/careers/${other.slug}`}
@@ -271,19 +271,20 @@ export default function JobPage({ job }: JobPageProps) {
                   </div>
                 </Link>
               ))}
-          </div>
+            </div>
 
-          <div className="mt-10 text-center">
-            <Link
-              href="/careers"
-              className="!inline-grid grid-flow-col items-center gap-2 text-base !text-white !text-opacity-100"
-            >
-              <ArrowLeftIcon />
-              Back to all positions
-            </Link>
+            <div className="mt-10 text-center">
+              <Link
+                href="/careers"
+                className="!inline-grid grid-flow-col items-center gap-2 text-base !text-white !text-opacity-100"
+              >
+                <ArrowLeftIcon />
+                Back to all positions
+              </Link>
+            </div>
           </div>
-        </div>
-      </Container>
+        </Container>
+      )}
     </>
   )
 }
@@ -294,7 +295,7 @@ JobPage.getLayout = function getLayout(page: ReactElement) {
 
 export const getStaticPaths: GetStaticPaths = async () => {
   return {
-    paths: jobs.map((job) => ({ params: { slug: job.slug } })),
+    paths: visibleJobs.map((job) => ({ params: { slug: job.slug } })),
     fallback: false,
   }
 }

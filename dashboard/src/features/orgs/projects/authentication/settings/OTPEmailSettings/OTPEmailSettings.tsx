@@ -21,6 +21,7 @@ import {
   useGetSignInMethodsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 
 const validationSchema = Yup.object({
   enabled: Yup.boolean(),
@@ -33,6 +34,7 @@ export default function OTPEmailSettings() {
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
+  const track = useTrackEvent();
 
   const [updateConfig] = useUpdateConfigMutation({
     ...(!isPlatform ? { client: localMimirClient } : {}),
@@ -86,6 +88,9 @@ export default function OTPEmailSettings() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+        if (form.formState.dirtyFields.enabled && values.enabled) {
+          track('Sign In Method Enabled', { method: 'otp' });
+        }
         form.reset(values);
 
         if (!isPlatform) {

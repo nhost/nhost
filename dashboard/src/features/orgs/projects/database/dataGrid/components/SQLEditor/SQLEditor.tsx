@@ -40,6 +40,7 @@ import {
   PAGE_SIZE_OPTIONS,
   useSQLEditorPagination,
 } from '@/features/orgs/projects/database/dataGrid/hooks/useSQLEditorPagination';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 
 function InfoTooltip({ title }: { title: string }) {
   return (
@@ -70,6 +71,7 @@ export default function SQLEditor({
 }: SQLEditorProps) {
   const theme = useTheme();
   const isPlatform = useIsPlatform();
+  const trackEvent = useTrackEvent();
 
   const [sqlCode, setSQLCode] = useState(initialSQL ?? '');
   const [track, setTrack] = useState(false);
@@ -120,13 +122,16 @@ export default function SQLEditor({
     [canDismissResults, reset],
   );
 
-  const handleRunSQL = useCallback(() => {
+  const handleRunSQL = useCallback(async () => {
     if (isRunDisabled) {
       return;
     }
 
-    runSQL();
-  }, [isRunDisabled, runSQL]);
+    const succeeded = await runSQL();
+    if (succeeded) {
+      trackEvent('SQL Query Executed');
+    }
+  }, [trackEvent, isRunDisabled, runSQL]);
 
   return (
     <div className="flex flex-1 flex-col justify-center overflow-hidden">

@@ -22,6 +22,17 @@ const (
 	OAuth2ClientTypeCIMD       OAuth2ClientType = "client_id_metadata_document"
 )
 
+// MaxOTPVerificationAttempts is the @max_attempts passed to every OTP
+// verification query; a code is burned after this many wrong guesses.
+const MaxOTPVerificationAttempts int32 = 5
+
+// OTPStatus values are the statuses returned by the OTP verification queries.
+const (
+	OTPStatusOK      = "ok"
+	OTPStatusBurned  = "burned"
+	OTPStatusInvalid = "invalid"
+)
+
 func UUID(value uuid.UUID) pgtype.UUID {
 	return pgtype.UUID{
 		Bytes: value,

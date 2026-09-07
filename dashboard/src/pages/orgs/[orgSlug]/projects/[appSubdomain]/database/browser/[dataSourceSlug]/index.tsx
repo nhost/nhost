@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
-import { InlineCode } from '@/components/presentational/InlineCode';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
+import { InlineCode } from '@/components/ui/v3/inline-code';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
