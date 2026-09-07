@@ -25,10 +25,13 @@ export type {{ .Name }} = {{ .Alias.Name }};
 {{- end }}
 
 {{- range .Methods }}
-{{- if .HasQueryParameters }}
+{{- if .HasRequestParameters }}
 /**
  * Parameters for the {{ .Name }} method.
 {{- range .QueryParameters }}
+    @property {{ .Name }}{{ if not .Required}}?{{ end }} ({{ .Type.Name }}) - {{ template "renderParamAttributeHelp" .Parameter }}
+{{- end }}
+{{- range .HeaderParameters }}
     @property {{ .Name }}{{ if not .Required}}?{{ end }} ({{ .Type.Name }}) - {{ template "renderParamAttributeHelp" .Parameter }}
 {{- end -}}
  */
@@ -38,6 +41,12 @@ export interface {{ title .Name }}Params {
    * {{ template "renderParamAttributeHelp" .Parameter }}
    */
   {{ .Name }}{{ if not .Required}}?{{ end }}: {{ .Type.Name }};
+{{- end }}
+{{- range .HeaderParameters }}
+  /**
+   * {{ template "renderParamAttributeHelp" .Parameter }}
+   */
+  "{{ .RawName }}"{{ if not .Required}}?{{ end }}: {{ .Type.Name }};
 {{- end }}
 }
 {{- end }}
