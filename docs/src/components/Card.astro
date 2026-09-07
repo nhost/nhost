@@ -195,7 +195,6 @@ const iconSvg = icon ? iconMap[icon] : null;
   .sl-card {
     border: 1px solid var(--sl-color-gray-5);
     border-radius: 0.5rem;
-    padding: 1rem;
     background: transparent;
     transition: border-color 0.2s, box-shadow 0.2s;
     height: 100%;
@@ -206,10 +205,18 @@ const iconSvg = icon ? iconMap[icon] : null;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 
+  /* The padding sits on the link, not on the card, so the whole card is
+     clickable. A card without an href pads its content directly instead. */
+  .sl-card-link,
+  .sl-card > .sl-card-content {
+    padding: 1rem;
+  }
+
   .sl-card-link {
     text-decoration: none;
     color: inherit;
     display: block;
+    box-sizing: border-box;
     height: 100%;
   }
 
