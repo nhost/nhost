@@ -172,8 +172,8 @@ func TestFileStorageSetReportsWriteFailure(t *testing.T) {
 
 	backend := &session.FileStorage{Path: filepath.Join(blocker, "session.json")}
 
-	err := backend.Set(session.StoredSession{ //nolint:exhaustruct_v5
-		Session: auth.Session{ //nolint:exhaustruct_v5
+	err := backend.Set(session.StoredSession{
+		Session: auth.Session{
 			AccessToken:  "access-token",
 			RefreshToken: "refresh-token",
 		},
