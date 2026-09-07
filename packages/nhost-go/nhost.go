@@ -187,8 +187,8 @@ type Client struct {
 	SessionStorage *session.Storage
 }
 
-// GetUserSession returns the current session from storage, or (nil, false).
-func (c *Client) GetUserSession() (*session.StoredSession, bool) {
+// Session returns the current session from storage, or (nil, false).
+func (c *Client) Session() (*session.StoredSession, bool) {
 	return c.SessionStorage.Get()
 }
 
@@ -233,8 +233,8 @@ type Options struct {
 	// overrides Subdomain and Region for functions requests.
 	FunctionsURL string
 	// Storage is the backend used to persist sessions. Implementations must be
-	// safe for concurrent use by multiple goroutines. If nil,
-	// [session.DetectStorage] supplies an in-memory backend.
+	// safe for concurrent use by multiple goroutines. If nil, an in-memory
+	// backend is used.
 	Storage session.Backend
 	// HTTPClient is the base HTTP client used by all services. The supplied client
 	// is never mutated and may be shared; service middleware is installed on
@@ -251,7 +251,7 @@ type Options struct {
 func build(options Options, defaults ...ConfigureFunc) *Client {
 	backend := options.Storage
 	if backend == nil {
-		backend = session.DetectStorage()
+		backend = &session.MemoryStorage{}
 	}
 
 	sessionStorage := session.NewStorage(backend)

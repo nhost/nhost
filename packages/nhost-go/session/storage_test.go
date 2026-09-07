@@ -131,35 +131,3 @@ func TestFileStorageConcurrentGetSet(t *testing.T) {
 		t.Fatalf("leftover temporary files: %v", temporaryFiles)
 	}
 }
-
-func TestDetectStorageReturnsIndependentBackends(t *testing.T) {
-	t.Parallel()
-
-	first := session.DetectStorage()
-	second := session.DetectStorage()
-	value := session.StoredSession{
-		Session:      auth.Session{AccessToken: "access", RefreshToken: "refresh"},
-		DecodedToken: session.DecodedToken{Exp: 12345},
-	}
-
-	first.Set(value)
-
-	if got, ok := first.Get(); !ok || got == nil || got.AccessToken != value.AccessToken {
-		t.Fatalf("first backend Get() = %#v, %v", got, ok)
-	}
-
-	if got, ok := second.Get(); ok || got != nil {
-		t.Fatalf("second backend shares state: %#v, %v", got, ok)
-	}
-
-	second.Set(value)
-	first.Remove()
-
-	if _, ok := first.Get(); ok {
-		t.Fatal("first backend still contains removed session")
-	}
-
-	if got, ok := second.Get(); !ok || got == nil {
-		t.Fatalf("second backend was affected by first.Remove(): %#v, %v", got, ok)
-	}
-}

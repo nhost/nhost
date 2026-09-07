@@ -483,7 +483,7 @@ func cmdSignup(ctx context.Context, c *nhost.Client, email, password string) err
 		return fmt.Errorf("sign up: %w", err)
 	}
 
-	if _, ok := c.GetUserSession(); ok {
+	if _, ok := c.Session(); ok {
 		fmt.Fprintln(os.Stdout, "signed up and logged in as", email)
 	} else {
 		fmt.Fprintln(os.Stdout, "signed up; verify your email, then `login`")
@@ -493,7 +493,7 @@ func cmdSignup(ctx context.Context, c *nhost.Client, email, password string) err
 }
 
 func cmdLogout(ctx context.Context, c *nhost.Client) error {
-	if s, ok := c.GetUserSession(); ok {
+	if s, ok := c.Session(); ok {
 		rt := s.RefreshToken
 		_, _, _ = c.Auth.SignOut(
 			ctx,
@@ -511,7 +511,7 @@ func cmdLogout(ctx context.Context, c *nhost.Client) error {
 }
 
 func cmdWhoami(c *nhost.Client) error {
-	s, ok := c.GetUserSession()
+	s, ok := c.Session()
 	if !ok || s.User == nil {
 		return errNotLoggedIn
 	}

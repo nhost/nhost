@@ -439,7 +439,7 @@ func TestClientSessionAccessors(t *testing.T) {
 	t.Parallel()
 
 	client := nhost.NewBareClient(nhost.Options{Storage: &session.MemoryStorage{}})
-	if got, ok := client.GetUserSession(); ok || got != nil {
+	if got, ok := client.Session(); ok || got != nil {
 		t.Fatalf("initial session = (%#v, %t), want (nil, false)", got, ok)
 	}
 
@@ -450,14 +450,14 @@ func TestClientSessionAccessors(t *testing.T) {
 		t.Fatalf("set session: %v", err)
 	}
 
-	got, ok := client.GetUserSession()
+	got, ok := client.Session()
 	if !ok || got == nil || got.RefreshToken != "refresh-token" {
 		t.Fatalf("stored session = (%#v, %t), want refresh-token", got, ok)
 	}
 
 	client.ClearSession()
 
-	if got, ok := client.GetUserSession(); ok || got != nil {
+	if got, ok := client.Session(); ok || got != nil {
 		t.Fatalf("cleared session = (%#v, %t), want (nil, false)", got, ok)
 	}
 }
@@ -559,15 +559,11 @@ func TestRefreshSessionUsesBareClientWithCustomAuthURL(t *testing.T) {
 	)
 	defer server.Close()
 
+	backend := &countingSetBackend{delegate: &session.MemoryStorage{}}
 	client := nhost.New(nhost.Options{
 		AuthURL:    server.URL + "/v1/auth",
 		HTTPClient: server.Client(),
-		Storage:    &session.MemoryStorage{},
-	})
-
-	var changes atomic.Int32
-	client.SessionStorage.OnChange(func(*session.StoredSession) {
-		changes.Add(1)
+		Storage:    backend,
 	})
 
 	if err := client.SessionStorage.Set(auth.Session{
@@ -577,7 +573,7 @@ func TestRefreshSessionUsesBareClientWithCustomAuthURL(t *testing.T) {
 		t.Fatalf("seed session: %v", err)
 	}
 
-	changes.Store(0)
+	backend.sets.Store(0)
 
 	type refreshResult struct {
 		session *session.StoredSession
@@ -611,9 +607,29 @@ func TestRefreshSessionUsesBareClientWithCustomAuthURL(t *testing.T) {
 		t.Errorf("refresh Authorization = %q, want empty", got)
 	}
 
-	if changes.Load() != 1 {
-		t.Fatalf("session change notifications = %d, want 1", changes.Load())
+	if backend.sets.Load() != 1 {
+		t.Fatalf("session storage writes = %d, want 1", backend.sets.Load())
 	}
+}
+
+// countingSetBackend counts writes so a test can assert that a refresh persists
+// the rotated session exactly once.
+type countingSetBackend struct {
+	delegate *session.MemoryStorage
+	sets     atomic.Int32
+}
+
+func (b *countingSetBackend) Get() (*session.StoredSession, bool) {
+	return b.delegate.Get()
+}
+
+func (b *countingSetBackend) Set(value session.StoredSession) {
+	b.sets.Add(1)
+	b.delegate.Set(value)
+}
+
+func (b *countingSetBackend) Remove() {
+	b.delegate.Remove()
 }
 
 func testAccessToken(t *testing.T, expiry int64) string {
