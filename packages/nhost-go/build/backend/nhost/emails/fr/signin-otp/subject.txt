@@ -1,1 +1,0 @@
-Mot de passe à usage unique pour ${redirectTo}

@@ -2,11 +2,11 @@
 
 # Bring the local Nhost backend up/down for integration + docstring examples.
 # Mirrors packages/nhost-js/dev-env.sh. The backend project lives under
-# ./build/backend (committed in this package) and is driven by the nhost CLI.
+# packages/backend-sdk-tests (shared by every SDK) and is driven by the nhost CLI.
 
 set -euo pipefail
 
-FOLDER=./build/backend
+FOLDER=../backend-sdk-tests
 
 
 up() {
