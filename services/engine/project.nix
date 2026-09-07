@@ -36,7 +36,10 @@ let
 
       # Shared internal libraries (Go + any embedded assets, e.g. hasura
       # metadata) consumed across the services.
-      ../../internal/lib
+      ../../internal/lib/oapi
+      ../../internal/lib/hasura/metadata
+      ../../internal/lib/syncmap
+      ../../internal/lib/serve
 
       # Compile-time embedded assets.
       ../auth/email-templates

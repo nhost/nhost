@@ -50,6 +50,20 @@ keeps serving its own native paths.
 | storage   | `/storage`  | `/storage/v1/files`    | `/v1/files`            |
 | graphql   | `/graphql`  | `/graphql/v1`          | `/v1`                  |
 
+Other containers on the same network reach enabled services through these
+internal base URLs:
+
+| Service | Internal base URL |
+|---------|-------------------|
+| auth | `http://engine:8080/auth/v1` |
+| storage | `http://engine:8080/storage/v1` |
+| graphql | `http://engine:8080/graphql/v1` |
+
+The engine intentionally does not advertise the standalone service aliases
+`hasura-auth-service`, `hasura-storage-service`, or `constellation-service`,
+because those names imply ports and unprefixed routes that its shared listener
+does not serve.
+
 The engine also serves `GET /healthz` for liveness.
 
 ## Configuration
@@ -89,18 +103,32 @@ matching env var: `--auth-*` / `AUTH_*`, `--storage-*` / `STORAGE_*`, and
 `--graphql-*` / `GRAPHQL_*`. For example auth's `--client-url` becomes
 `--auth-client-url` (`AUTH_CLIENT_URL`). These are forwarded verbatim to the
 service's own CLI, which keeps authority over their types, defaults, and
-validation. Low-level tuning flags are accepted but hidden from `--help`.
+validation. No prefixed flags are currently accepted but hidden from `--help`;
+a prefixed option the engine does not re-expose is rejected rather than silently
+ignored.
 
 ### Precedence
 
-A global value is injected into a service flag **only when the service did not
-set that flag itself** — via its prefixed flag or its own env var. So an
-explicit per-service value always wins; the global only fills the gaps. This
-lets you set what is genuinely common once (e.g. `ADMIN_SECRET`) while still
-overriding a single service where needed.
+A shared global value is injected into a consolidated service flag **only when
+the service's native env var did not set that flag** during its own CLI parse.
+Consolidated flags are not re-exposed under service prefixes, so prefixed flags
+such as `--storage-hasura-graphql-admin-secret` do not exist. The native env var
+is the only override channel for these flags; otherwise, the global fills the
+gap.
+
+For the admin secret, graphql can override the global with
+`CONSTELLATION_ADMIN_SECRET`. Auth and storage both read
+`HASURA_GRAPHQL_ADMIN_SECRET`, so setting it overrides both services together;
+the current engine surface cannot override the admin secret for only one of
+auth or storage.
 
 > Note: each service's own `--port` / `--bind` / `--debug` flags are not
-> re-exposed — the shared listener and shared logger govern instead.
+> re-exposed — the shared listener and shared logger govern instead. The engine
+> also owns the shared HTTP server and profiling surface, so
+> `--graphql-http-read-timeout`, `--graphql-http-write-timeout`,
+> `--graphql-http-idle-timeout`, `--graphql-profile-address`, and
+> `--storage-pprof-bind` are rejected at startup rather than accepted and
+> ignored.
 
 ## Build and run
 

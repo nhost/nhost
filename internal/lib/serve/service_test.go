@@ -66,6 +66,24 @@ func TestServiceRunBackgroundDelegates(t *testing.T) {
 	}
 }
 
+func TestServiceRunBackgroundDelegateMayReturnNilBeforeCancel(t *testing.T) {
+	t.Parallel()
+
+	ctx := t.Context()
+
+	svc := &serveutil.Service{
+		Background: func(_ context.Context) error { return nil },
+	}
+
+	if err := svc.RunBackground(ctx); err != nil {
+		t.Fatalf("RunBackground err = %v; want nil", err)
+	}
+
+	if ctx.Err() != nil {
+		t.Fatal("context was cancelled before Background returned")
+	}
+}
+
 func TestServiceShutdownNilIsNoOp(t *testing.T) {
 	t.Parallel()
 

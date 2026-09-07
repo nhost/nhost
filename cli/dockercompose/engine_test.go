@@ -124,21 +124,63 @@ func TestGetServicesEngineConstellationMutuallyExclusive(t *testing.T) {
 	}
 }
 
-// TestGetServicesEngineExposePortsExclusive locks in that exposing both auth and
-// storage on distinct host ports is rejected in engine mode, where the single
-// engine container can publish only one host port.
-func TestGetServicesEngineExposePortsExclusive(t *testing.T) {
+// TestGetServicesEngineRejectsServiceExposePorts locks in that direct auth and
+// storage host ports are rejected in engine mode because they bypass Traefik's
+// required path-prefix routing.
+func TestGetServicesEngineRejectsServiceExposePorts(t *testing.T) {
 	t.Parallel()
 
-	tmp := t.TempDir()
+	tests := []struct {
+		name        string
+		ports       ExposePorts
+		disableAuth bool
+	}{
+		{
+			name:        "auth port",
+			ports:       ExposePorts{Auth: 1234},
+			disableAuth: false,
+		},
+		{
+			name:        "storage port",
+			ports:       ExposePorts{Storage: 5678},
+			disableAuth: false,
+		},
+		{
+			name:        "both ports with auth disabled",
+			ports:       ExposePorts{Auth: 1234, Storage: 5678},
+			disableAuth: true,
+		},
+	}
 
-	_, err := getServices(
-		engineModeConfig(), "dev", "nhost", 1337, false, 5432, tmp, tmp, tmp,
-		ExposePorts{Auth: 1234, Storage: 5678}, "main", "nhost/dashboard:3.0.0", "2.1.0",
-		"nhost/cli:dev", "00000000-0000-0000-0000-000000000000", false, "darwin",
-	)
-	if !errors.Is(err, errEngineExposePortsExclusive) {
-		t.Errorf("getServices error = %v; want errEngineExposePortsExclusive", err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			cfg := engineModeConfig()
+			if tt.disableAuth {
+				cfg.Hasura.AuthHook = &model.ConfigHasuraAuthHook{
+					Url:             "https://custom-auth.example.com/hook",
+					Mode:            new("POST"),
+					SendRequestBody: new(true),
+				}
+			}
+
+			tmp := t.TempDir()
+
+			dockerURL, err := url.Parse(defaultDockerEndpoint)
+			if err != nil {
+				t.Fatalf("parse default Docker endpoint: %v", err)
+			}
+
+			_, err = getServices(
+				cfg, dockerURL, "dev", "nhost", 1337, false, 5432, tmp, tmp, tmp,
+				tt.ports, "main", "nhost/dashboard:3.0.0", "2.1.0",
+				"nhost/cli:dev", "00000000-0000-0000-0000-000000000000", false, "",
+			)
+			if !errors.Is(err, errEngineExposePortsUnsupported) {
+				t.Errorf("getServices error = %v; want errEngineExposePortsUnsupported", err)
+			}
+		})
 	}
 }
 
@@ -167,6 +209,13 @@ func assertEngineEnv(
 	if withStorage {
 		if got := env["S3_BUCKET"]; got != "nhost" {
 			t.Errorf("engine env[S3_BUCKET] = %q; want nhost", got)
+		}
+
+		if got := env["PUBLIC_URL"]; got != "https://dev.storage.local.nhost.run:1336" {
+			t.Errorf(
+				"engine env[PUBLIC_URL] = %q; want https://dev.storage.local.nhost.run:1336",
+				got,
+			)
 		}
 	}
 
@@ -324,7 +373,7 @@ func expectedEngine() *Service {
 			StartPeriod: "60s",
 		},
 		Labels:   engineLabels(true, true, false),
-		Networks: networkAliases("hasura-auth-service", "hasura-storage-service"),
+		Networks: networkAliases(),
 		Ports:    nil,
 		Restart:  "always",
 		User:     nil,
@@ -344,34 +393,28 @@ func TestEngine(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
-		name          string
-		cfg           func() *model.ConfigConfig
-		hostUser      string
-		authExpose    uint
-		storageExpose uint
-		withAuth      bool
-		withStorage   bool
-		withGraphql   bool
-		expected      func() *Service
+		name        string
+		cfg         func() *model.ConfigConfig
+		hostUser    string
+		withAuth    bool
+		withStorage bool
+		withGraphql bool
+		expected    func() *Service
 	}{
 		{
-			name:          "auth and storage",
-			cfg:           engineTestConfig,
-			authExpose:    0,
-			storageExpose: 0,
-			withAuth:      true,
-			withStorage:   true,
-			withGraphql:   false,
-			expected:      expectedEngine,
+			name:        "auth and storage",
+			cfg:         engineTestConfig,
+			withAuth:    true,
+			withStorage: true,
+			withGraphql: false,
+			expected:    expectedEngine,
 		},
 		{
-			name:          "storage only",
-			cfg:           engineTestConfig,
-			authExpose:    0,
-			storageExpose: 0,
-			withAuth:      false,
-			withStorage:   true,
-			withGraphql:   false,
+			name:        "storage only",
+			cfg:         engineTestConfig,
+			withAuth:    false,
+			withStorage: true,
+			withGraphql: false,
 			expected: func() *Service {
 				svc := expectedEngine()
 				svc.Command = []string{"serve", "--disable-auth", "--disable-graphql"}
@@ -382,13 +425,11 @@ func TestEngine(t *testing.T) {
 			},
 		},
 		{
-			name:          "auth and constellation without storage",
-			cfg:           engineTestConfig,
-			authExpose:    0,
-			storageExpose: 0,
-			withAuth:      true,
-			withStorage:   false,
-			withGraphql:   true,
+			name:        "auth and constellation without storage",
+			cfg:         engineTestConfig,
+			withAuth:    true,
+			withStorage: false,
+			withGraphql: true,
 			expected: func() *Service {
 				svc := expectedEngine()
 				svc.Command = []string{"serve", "--disable-storage"}
@@ -398,9 +439,6 @@ func TestEngine(t *testing.T) {
 					"graphql":  {Condition: "service_healthy"},
 					"postgres": {Condition: "service_healthy"},
 				}
-				svc.Networks = networkAliases(
-					"hasura-auth-service", "hasura-storage-service", "constellation-service",
-				)
 				svc.Volumes = append(svc.Volumes, Volume{
 					Type:     "bind",
 					Source:   "/tmp/nhost/metadata",
@@ -415,21 +453,16 @@ func TestEngine(t *testing.T) {
 			// Covers the host-user branch: with constellation the engine writes
 			// the bind-mounted /metadata folder, so it must run as the host user
 			// when one is resolved. The other cases leave it unset (User nil).
-			name:          "auth, storage and constellation with a host user",
-			cfg:           engineTestConfig,
-			hostUser:      "1000:1000",
-			authExpose:    0,
-			storageExpose: 0,
-			withAuth:      true,
-			withStorage:   true,
-			withGraphql:   true,
+			name:        "auth, storage and constellation with a host user",
+			cfg:         engineTestConfig,
+			hostUser:    "1000:1000",
+			withAuth:    true,
+			withStorage: true,
+			withGraphql: true,
 			expected: func() *Service {
 				svc := expectedEngine()
 				svc.Command = []string{"serve"}
 				svc.Labels = engineLabels(true, true, true)
-				svc.Networks = networkAliases(
-					"hasura-auth-service", "hasura-storage-service", "constellation-service",
-				)
 				svc.Volumes = append(svc.Volumes, Volume{
 					Type:     "bind",
 					Source:   "/tmp/nhost/metadata",
@@ -449,11 +482,9 @@ func TestEngine(t *testing.T) {
 
 				return cfg
 			},
-			authExpose:    0,
-			storageExpose: 0,
-			withAuth:      true,
-			withStorage:   true,
-			withGraphql:   false,
+			withAuth:    true,
+			withStorage: true,
+			withGraphql: false,
 			expected: func() *Service {
 				svc := expectedEngine()
 				svc.Image = "nhost/engine:1.2.3"
@@ -469,7 +500,6 @@ func TestEngine(t *testing.T) {
 
 			got, err := engine(
 				tc.cfg(), "dev", true, 1336, "/tmp/nhost",
-				tc.authExpose, tc.storageExpose,
 				tc.withAuth, tc.withStorage, tc.withGraphql, tc.hostUser,
 			)
 			if err != nil {

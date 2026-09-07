@@ -122,6 +122,14 @@ func configureMiddleware(cmd *cli.Command, router *gin.Engine, logger *slog.Logg
 	}
 }
 
+func resolveVersion(injected, fallback string) string {
+	if injected != "" {
+		return injected
+	}
+
+	return fallback
+}
+
 func getHandler(
 	cmd *cli.Command,
 	metadataStorage controller.MetadataStorage,
@@ -134,6 +142,7 @@ func getHandler(
 		return nil, fmt.Errorf("problem trying to get av: %w", err)
 	}
 
+	version := resolveVersion(controller.Version(), cmd.Root().Version)
 	ctrl := controller.New(
 		cmd.String(flagPublicURL),
 		cmd.String(flagAPIRootPrefix),
@@ -143,6 +152,7 @@ func getHandler(
 		imageTransformer,
 		av,
 		logger,
+		version,
 	)
 
 	handler := api.NewStrictHandler(ctrl, []api.StrictMiddlewareFunc{})
@@ -502,22 +512,20 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 }
 
 // NewService builds storage's serving surface: the HTTP handler and the image
-// transformer whose worker pool it owns. Storage has no long-lived background
-// loop of its own — the transformer's workers run internally and are stopped by
-// Close. It is consumed both by the standalone serve command and by the
-// engine unified binary, which mounts the handler behind a shared
-// listener.
+// transformer. Storage has no long-lived background loop, so Background is nil:
+// the transformer bounds concurrency with a semaphore rather than worker
+// goroutines. Close calls Transformer.Shutdown, which tears down process-global
+// libvips state and is not re-entrant: image.NewTransformer cannot restart libvips
+// afterward. Close must therefore run exactly once, after all in-flight requests
+// have drained. NewService is consumed both by the standalone serve command and
+// by the engine unified binary, which mounts the handler behind a shared listener.
+// Its construction and cleanup error paths are integration-only because they
+// require the storage service's PostgreSQL, S3, and Hasura environment.
 func NewService(
 	ctx context.Context,
 	cmd *cli.Command,
 	logger *slog.Logger,
 ) (*serveutil.Service, error) {
-	// Fall back to the CLI root version when no build version was injected via
-	// ldflags. This keeps /v1/version populated in the engine unified binary,
-	// which sets only main.Version; standalone builds set controller.buildVersion
-	// directly and are unaffected.
-	controller.SetBuildVersion(cmd.Root().Version)
-
 	imageTransformer := newImageTransformer(ctx, cmd, logger)
 
 	contentStorage := getContentStorage(
@@ -611,7 +619,11 @@ func runServer(
 	go func() {
 		defer cancel()
 
-		_ = svc.RunBackground(servCtx)
+		if err := svc.RunBackground(servCtx); err != nil {
+			logger.ErrorContext(
+				servCtx, "background work failed", slog.String("error", err.Error()),
+			)
+		}
 	}()
 
 	go func() {

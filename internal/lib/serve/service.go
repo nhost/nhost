@@ -15,19 +15,20 @@ type Service struct {
 	Handler http.Handler
 
 	// Background runs the service's long-lived background work (controller
-	// loops, worker pools) and blocks until ctx is cancelled. It is nil for
-	// services that have no background work.
+	// loops, worker pools). When ctx is cancelled, it must return without
+	// depending on Close because lifecycle callers may wait for Background
+	// before invoking Close. It is nil for services with no background work.
 	Background func(ctx context.Context) error
 
 	// Close releases resources acquired while building the service (database
-	// pools, JWT key sets, image transformers). It is nil when there is
-	// nothing to release.
+	// pools, JWT key sets, image transformers). It must not be required to
+	// unblock Background. It is nil when there is nothing to release.
 	Close func()
 }
 
-// RunBackground runs the background work if the service defines any, otherwise
-// it blocks until ctx is cancelled and returns nil. It never returns before
-// ctx is done, so callers can treat every service uniformly.
+// RunBackground delegates to Background when defined; that hook may return
+// before ctx is cancelled, and an early nil return reports successful completion
+// to the caller. Without a hook, it blocks until ctx is cancelled and returns nil.
 func (s *Service) RunBackground(ctx context.Context) error {
 	if s.Background == nil {
 		<-ctx.Done()

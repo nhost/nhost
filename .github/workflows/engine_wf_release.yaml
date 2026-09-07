@@ -9,6 +9,10 @@ on:
       VERSION:
         required: true
         type: string
+      IS_PRERELEASE:
+        required: false
+        type: boolean
+        default: false
     secrets:
       AWS_ACCOUNT_ID:
         required: true
@@ -23,6 +27,10 @@ on:
       DOCKER_USERNAME:
         required: true
       DOCKER_PASSWORD:
+        required: true
+      NHOST_BOT_APP_ID:
+        required: true
+      NHOST_BOT_PRIVATE_KEY:
         required: true
 
 jobs:
@@ -52,6 +60,19 @@ jobs:
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+  bump-refs:
+    if: ${{ !inputs.IS_PRERELEASE }}
+    uses: ./.github/workflows/wf_bump_refs.yaml
+    needs:
+      - push-docker-hub
+    with:
+      NAME: engine
+      PATH: services/engine
+      VERSION: ${{ inputs.VERSION }}
+    secrets:
+      NHOST_BOT_APP_ID: ${{ secrets.NHOST_BOT_APP_ID }}
+      NHOST_BOT_PRIVATE_KEY: ${{ secrets.NHOST_BOT_PRIVATE_KEY }}
 
   push-docker-ecr:
     uses: ./.github/workflows/wf_docker_push_image_ecr.yaml

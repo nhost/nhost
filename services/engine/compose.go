@@ -197,9 +197,10 @@ func sharedOverridesFor(service string, cfg serveConfig) []sharedOverride {
 	return out
 }
 
-// applySharedConfig injects shared values onto a service's parsed command,
-// filling only the flags the service did not set itself (via prefixed flag or
-// its own env var), so an explicit per-service value always wins.
+// applySharedConfig injects shared values onto a service's parsed command.
+// Consolidated flags are not re-exposed under service prefixes, so only a value
+// from the service's native environment can take precedence. The shared global
+// fills the flag when that environment source did not set it during CLI parsing.
 func applySharedConfig(cmd *cli.Command, service string, cfg serveConfig) error {
 	for _, o := range sharedOverridesFor(service, cfg) {
 		if cmd.IsSet(o.flag) {
@@ -426,7 +427,8 @@ func buildService(
 }
 
 // superviseShared runs every service's background loop and the shared HTTP
-// server as peers: the moment any returns, the rest are torn down together.
+// server concurrently. On shutdown the HTTP server drains first while service
+// dependencies remain available, then the background loops are cancelled.
 func superviseShared(
 	ctx context.Context,
 	cfg serveConfig,
@@ -445,15 +447,21 @@ func superviseShared(
 		ReadHeaderTimeout: readHeaderTimeout,
 	}
 
-	units := make([]runner.Service, 0, len(services)+1)
+	backgroundUnits := make([]runner.Service, 0, len(services))
 
 	for _, m := range services {
-		units = append(units, m.svc.RunBackground)
+		backgroundUnits = append(backgroundUnits, func(ctx context.Context) error {
+			if err := m.svc.RunBackground(ctx); err != nil {
+				return fmt.Errorf("%s background: %w", m.name, err)
+			}
+
+			return nil
+		})
 	}
 
-	units = append(units, httpServerUnit(server, logger))
+	drainUnits := []runner.Service{httpServerUnit(server, logger)}
 
-	if err := runner.Supervise(ctx, units); err != nil {
+	if err := runner.Supervise(ctx, drainUnits, backgroundUnits); err != nil {
 		return fmt.Errorf("running services: %w", err)
 	}
 

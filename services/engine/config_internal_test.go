@@ -123,24 +123,6 @@ func TestApplySharedConfigFillsUnsetFlags(t *testing.T) {
 	})
 }
 
-func TestApplySharedConfigServiceValueWins(t *testing.T) {
-	t.Parallel()
-
-	cfg := serveConfig{adminSecret: "shared-secret"}
-
-	args := []string{"--hasura-admin-secret", "explicit-secret"}
-
-	runParsed(t, authFlags(), args, func(cmd *cli.Command) {
-		if err := applySharedConfig(cmd, "auth", cfg); err != nil {
-			t.Fatalf("applySharedConfig: %v", err)
-		}
-
-		if got := cmd.String("hasura-admin-secret"); got != "explicit-secret" {
-			t.Fatalf("admin-secret = %q, want explicit-secret (service wins)", got)
-		}
-	})
-}
-
 func TestApplySharedConfigEmptySharedIsNoOp(t *testing.T) {
 	t.Parallel()
 

@@ -10,6 +10,7 @@ import (
 	connectormock "github.com/nhost/nhost/services/constellation/connector/mock"
 	"github.com/nhost/nhost/services/constellation/metadata"
 	metadatamock "github.com/nhost/nhost/services/constellation/metadata/mock"
+	metadatasource "github.com/nhost/nhost/services/constellation/metadata/source"
 	"github.com/nhost/nhost/services/constellation/subscription"
 	subscriptionmock "github.com/nhost/nhost/services/constellation/subscription/mock"
 	"go.uber.org/mock/gomock"
@@ -144,11 +145,8 @@ func TestRun_FileSource_ShutdownOnCancel(t *testing.T) {
 		done:        make(chan struct{}),
 	}
 
-	// Simulate a file source whose Watch channel is already closed.
-	source := metadatamock.NewMockSource(ctrl)
-	ch := make(chan metadata.Update)
-	close(ch)
-	source.EXPECT().Watch(gomock.Any()).Return(ch)
+	source := metadatasource.NewFileMetadataSource("/irrelevant")
+	t.Cleanup(source.Close)
 
 	c := &Controller{
 		source: source,

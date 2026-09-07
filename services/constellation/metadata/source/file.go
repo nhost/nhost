@@ -60,8 +60,17 @@ func (s *FileMetadataSource) InitialLoad(
 	return meta, nil
 }
 
-// Watch returns the channel since file-based metadata has no reloads.
-func (s *FileMetadataSource) Watch(_ context.Context) <-chan metadata.Update {
+// Watch returns the channel since file-based metadata has no reloads. The
+// channel closes when ctx is cancelled or Close is called.
+func (s *FileMetadataSource) Watch(ctx context.Context) <-chan metadata.Update {
+	go func() {
+		select {
+		case <-ctx.Done():
+			s.Close()
+		case <-s.ch:
+		}
+	}()
+
 	return s.ch
 }
 

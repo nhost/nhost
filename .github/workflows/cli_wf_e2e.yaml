@@ -74,11 +74,11 @@ jobs:
       - name: "Load engine image"
         if: ${{ matrix.mode == 'engine' }}
         run: |
-          # The CLI resolves the engine image as nhost/engine:<version>,
-          # defaulting to 0.0.1; tag the locally built artifact accordingly.
+          # Pin the unpublished artifact tag explicitly so this leg cannot fall
+          # back to a released image. Keep 0.0.0-dev out of version bumps.
           skopeo copy --insecure-policy \
             "dir:$HOME/artifacts/engine-docker-image-linux-x86_64-0.0.0-dev" \
-            docker-daemon:nhost/engine:0.0.1
+            docker-daemon:nhost/engine:0.0.0-dev
 
       - name: "Unpack CLI binary"
         run: |
@@ -89,6 +89,7 @@ jobs:
         env:
           E2E_MODE: ${{ matrix.mode }}
           E2E_CONFIGSERVER_IMAGE: cli:0.0.0-dev
+          E2E_ENGINE_VERSION: 0.0.0-dev
           E2E_CLI_BIN: ${{ runner.temp }}/clibin/result/bin/cli
           # Scratch project lives under RUNNER_TEMP so docker can bind-mount it.
           E2E_WORKDIR: ${{ runner.temp }}

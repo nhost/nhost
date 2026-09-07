@@ -6,11 +6,15 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"slices"
 	"testing"
 
 	serveutil "github.com/nhost/nhost/internal/lib/serve"
 	"github.com/urfave/cli/v3"
 )
+
+var errTestBackground = errors.New("background failed")
 
 // echoService returns a serve.Service whose handler writes back the request
 // path it received, so tests can assert what the service sees after prefix
@@ -93,6 +97,38 @@ func TestNewMuxStripsPrefixAndRoutes(t *testing.T) {
 	}
 }
 
+func TestSuperviseSharedAttributesBackgroundErrors(t *testing.T) {
+	t.Parallel()
+
+	service := &serveutil.Service{
+		Handler: http.NotFoundHandler(),
+		Background: func(context.Context) error {
+			return errTestBackground
+		},
+		Close: nil,
+	}
+
+	err := superviseShared(
+		context.Background(),
+		serveConfig{bind: "127.0.0.1:0"},
+		http.NotFoundHandler(),
+		[]mounted{{name: "auth", prefix: "/auth", svc: service}},
+		slog.New(slog.DiscardHandler),
+	)
+	if err == nil {
+		t.Fatal("superviseShared() error = nil, want background failure")
+	}
+
+	if !errors.Is(err, errTestBackground) {
+		t.Fatalf("superviseShared() error = %v, want wrapped %v", err, errTestBackground)
+	}
+
+	const want = "running services: auth background: background failed"
+	if err.Error() != want {
+		t.Fatalf("superviseShared() error = %q, want %q", err, want)
+	}
+}
+
 // graphqlLikeDef builds a serviceDef mirroring how the real "graphql" service
 // is composed: its admin-secret and jwt-secret flags are Required by the
 // service yet consolidated into engine globals (so they are in skip). It lets
@@ -158,6 +194,120 @@ func TestBuildServiceFillsRequiredConsolidatedFlag(t *testing.T) {
 
 	if gotAdmin != "shared-admin" {
 		t.Fatalf("admin-secret = %q, want %q (global not injected)", gotAdmin, "shared-admin")
+	}
+}
+
+func TestBuildServiceSharedConfigPrecedence(t *testing.T) {
+	tests := []struct {
+		name         string
+		flag         string
+		env          string
+		serviceValue string
+		setEnv       bool
+		slice        bool
+		cfg          serveConfig
+		want         []string
+	}{
+		{
+			name:         "scalar service env wins",
+			flag:         "hasura-graphql-admin-secret",
+			env:          "NHOST_ENGINE_TEST_STORAGE_ADMIN_SECRET_SET",
+			serviceValue: "service-secret",
+			setEnv:       true,
+			cfg:          serveConfig{adminSecret: "shared-secret"},
+			want:         []string{"service-secret"},
+		},
+		{
+			name: "scalar global fills unset env",
+			flag: "hasura-graphql-admin-secret",
+			env:  "NHOST_ENGINE_TEST_STORAGE_ADMIN_SECRET_UNSET",
+			cfg:  serveConfig{adminSecret: "shared-secret"},
+			want: []string{"shared-secret"},
+		},
+		{
+			name:         "CORS slice service env wins",
+			flag:         "cors-allow-origins",
+			env:          "NHOST_ENGINE_TEST_STORAGE_CORS_SET",
+			serviceValue: "https://service-a.example,https://service-b.example",
+			setEnv:       true,
+			slice:        true,
+			cfg: serveConfig{
+				corsOrigins: []string{"https://shared.example"},
+			},
+			want: []string{"https://service-a.example", "https://service-b.example"},
+		},
+		{
+			name:  "CORS slice global fills unset env",
+			flag:  "cors-allow-origins",
+			env:   "NHOST_ENGINE_TEST_STORAGE_CORS_UNSET",
+			slice: true,
+			cfg: serveConfig{
+				corsOrigins: []string{"https://shared-a.example", "https://shared-b.example"},
+			},
+			want: []string{"https://shared-a.example", "https://shared-b.example"},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			// t.Setenv also registers restoration of a pre-existing value. For an
+			// unset-source case, remove the temporary value after registering that
+			// cleanup so urfave observes the environment variable as absent.
+			t.Setenv(tc.env, tc.serviceValue)
+
+			if !tc.setEnv {
+				if err := os.Unsetenv(tc.env); err != nil {
+					t.Fatalf("unsetting service env %q: %v", tc.env, err)
+				}
+			}
+
+			var got []string
+
+			def := serviceDef{
+				prefix: "/storage",
+				command: func() *cli.Command {
+					var flag cli.Flag = &cli.StringFlag{
+						Name: tc.flag, Sources: cli.EnvVars(tc.env),
+					}
+					if tc.slice {
+						flag = &cli.StringSliceFlag{
+							Name: tc.flag, Sources: cli.EnvVars(tc.env),
+						}
+					}
+
+					return &cli.Command{Flags: []cli.Flag{flag}}
+				},
+				newService: func(
+					_ context.Context, c *cli.Command, _ *slog.Logger,
+				) (*serveutil.Service, error) {
+					if tc.slice {
+						got = c.StringSlice(tc.flag)
+					} else {
+						got = []string{c.String(tc.flag)}
+					}
+
+					return echoService(), nil
+				},
+				skip:   newSet(tc.flag),
+				hidden: newSet(),
+			}
+
+			svc, err := buildService(
+				context.Background(), def, "storage", &cli.Command{},
+				"test", slog.New(slog.DiscardHandler), tc.cfg,
+			)
+			if err != nil {
+				t.Fatalf("buildService: %v", err)
+			}
+
+			if svc == nil {
+				t.Fatal("buildService returned nil service")
+			}
+
+			if !slices.Equal(got, tc.want) {
+				t.Fatalf("%s = %v, want %v", tc.flag, got, tc.want)
+			}
+		})
 	}
 }
 

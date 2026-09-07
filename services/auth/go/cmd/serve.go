@@ -1611,7 +1611,8 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 // pool it owns. Auth has no long-lived background loop, so Background is nil
 // and Close releases the pool. It is consumed both by the standalone serve
 // command and by the engine unified binary, which mounts the handler
-// behind a shared listener.
+// behind a shared listener. Its construction and cleanup error paths are
+// integration-only because they require a live PostgreSQL database.
 func NewService(
 	ctx context.Context,
 	cmd *cli.Command,
@@ -1668,7 +1669,11 @@ func runServer(
 	go func() {
 		defer cancel()
 
-		_ = svc.RunBackground(servCtx)
+		if err := svc.RunBackground(servCtx); err != nil {
+			logger.ErrorContext(
+				servCtx, "background work failed", slog.String("error", err.Error()),
+			)
+		}
 	}()
 
 	go func() {

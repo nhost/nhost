@@ -38,7 +38,7 @@ type serviceDef struct {
 	// skip lists the service's native flag names the engine does not re-expose
 	// as prefixed flags: they are either fed by an engine global (shared
 	// secrets, database URLs, CORS) or owned by the engine itself (the shared
-	// listener address and logging).
+	// listener address, HTTP timeouts, profiling listeners, and logging).
 	skip map[string]bool
 	// hidden lists native flag names still accepted as prefixed passthrough but
 	// hidden from help, to keep low-level tuning out of the default surface.
@@ -71,11 +71,11 @@ func serviceRegistry() map[string]serviceDef {
 			command:    storagecmd.CommandServe,
 			newService: storagecmd.NewService,
 			skip: newSet(
-				"debug", "log-format-text", "bind",
+				"debug", "log-format-text", "bind", "pprof-bind",
 				"hasura-graphql-admin-secret", "postgres-migrations-source",
 				"cors-allow-origins",
 			),
-			hidden: newSet("pprof-bind"),
+			hidden: newSet(),
 		},
 		"graphql": {
 			prefix:     "/graphql",
@@ -83,7 +83,8 @@ func serviceRegistry() map[string]serviceDef {
 			newService: constellationcmd.NewService,
 			skip: newSet(
 				"debug", "log-format-text", "bind-address",
-				"admin-secret", "jwt-secret", "metadata-database-url",
+				"http-read-timeout", "http-write-timeout", "http-idle-timeout",
+				"profile-address", "admin-secret", "jwt-secret", "metadata-database-url",
 				"cors-allowed-origins",
 			),
 			hidden: newSet(),

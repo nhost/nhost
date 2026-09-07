@@ -20,6 +20,19 @@ To connect your service to the Nhost stack, use the following information:
 - auth: base URL is `http://hasura-auth-service:4000`
 - storage: base URL is `http://hasura-storage-service:5000`
 
+When `experimental.nhost` enables engine mode, auth, storage, and the
+Constellation GraphQL service share the engine container and port. Use these
+engine-mode base URLs instead of the standalone service names:
+
+| Service | Engine-mode base URL |
+|---------|----------------------|
+| auth | `http://engine:8080/auth/v1` |
+| storage | `http://engine:8080/storage/v1` |
+| graphql | `http://engine:8080/graphql/v1` |
+
+The standalone `hasura-auth-service`, `hasura-storage-service`, and
+`constellation-service` names do not resolve to the engine container.
+
 ## Connecting to your service internally
 
 To connect to your own service internally from another service, follow these steps:

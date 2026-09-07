@@ -25,21 +25,26 @@ package e2e
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"mime/multipart"
 	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 	"testing"
 	"time"
 
 	toml "github.com/pelletier/go-toml/v2"
+	"gopkg.in/yaml.v3"
 )
 
 type envConfig struct {
@@ -111,27 +116,60 @@ func TestE2E(t *testing.T) {
 
 	adminSecret := patchConfig(t, env, projectDir)
 
-	// Register teardown BEFORE bringing anything up: `nhost up` starts the
-	// compose stack before it runs migrations/metadata, so a later failure must
-	// still tear down the partially-started stack (otherwise its containers and
-	// ports leak into the next mode's run). `nhost down` against a never- or
-	// partially-started project is a harmless no-op, and Cleanup runs LIFO so it
-	// executes before the projectDir removal registered above.
+	// Register teardown before bringing anything up: `nhost up` starts the
+	// compose stack before migrations/metadata, so even a partial boot must be
+	// torn down. Cleanups run LIFO: the failure-only log dump registered below
+	// runs first, then teardown (or the E2E_KEEP notice), and the projectDir
+	// removal registered above runs last when enabled. Cleanup commands use
+	// background-derived contexts because t.Context() is canceled before cleanup.
 	if env.keep {
 		t.Cleanup(func() {
 			t.Logf("E2E_KEEP set; leaving environment running at %s", projectDir)
 		})
 	} else {
 		t.Cleanup(func() {
-			down := cliCmd(env, projectDir, "down", "--volumes")
+			downCtx, cancel := context.WithTimeout(context.Background(), cleanupTimeout)
+			defer cancel()
+
+			down := cliCmd(downCtx, env, projectDir, "down", "--volumes")
 			if out, err := down.CombinedOutput(); err != nil {
+				if errors.Is(downCtx.Err(), context.DeadlineExceeded) {
+					t.Logf("`nhost down` timed out after %s\n%s", cleanupTimeout, tail(out, 20))
+
+					return
+				}
+
 				t.Logf("`nhost down` failed: %v\n%s", err, tail(out, 20))
 			}
 		})
 	}
 
-	// Bring the environment up.
+	t.Cleanup(func() {
+		if !t.Failed() {
+			return
+		}
+
+		logsCtx, cancel := context.WithTimeout(context.Background(), cleanupTimeout)
+		defer cancel()
+
+		logs := cliCmd(logsCtx, env, projectDir, "logs", "--tail=200", "--no-color")
+		out, err := logs.CombinedOutput()
+
+		if errors.Is(logsCtx.Err(), context.DeadlineExceeded) {
+			t.Logf("`nhost logs` timed out after %s", cleanupTimeout)
+		} else if err != nil {
+			t.Logf("`nhost logs` failed: %v", err)
+		}
+
+		t.Logf("service logs (mode=%s):\n%s", env.mode, out)
+	})
+
+	// Bring the environment up, streaming progress while retaining a failure tail.
+	upCtx, cancelUp := context.WithTimeout(t.Context(), upTimeout)
+	defer cancelUp()
+
 	up := cliCmd(
+		upCtx,
 		env,
 		projectDir,
 		"up",
@@ -140,10 +178,29 @@ func TestE2E(t *testing.T) {
 		"--postgres-port",
 		env.postgresPort,
 	)
+
+	var upOutput bytes.Buffer
+
+	upWriter := io.MultiWriter(os.Stdout, &upOutput)
+	up.Stdout = upWriter
+	up.Stderr = upWriter
+
 	t.Logf("booting: %s", strings.Join(up.Args, " "))
-	if out, err := up.CombinedOutput(); err != nil {
-		t.Fatalf("`nhost up` failed (mode=%s): %v\n%s", env.mode, err, tail(out, 40))
+
+	if err := up.Run(); err != nil {
+		if errors.Is(upCtx.Err(), context.DeadlineExceeded) {
+			t.Fatalf(
+				"`nhost up` timed out after %s (mode=%s)\n%s",
+				upTimeout,
+				env.mode,
+				tail(upOutput.Bytes(), 40),
+			)
+		}
+
+		t.Fatalf("`nhost up` failed (mode=%s): %v\n%s", env.mode, err, tail(upOutput.Bytes(), 40))
 	}
+
+	assertComposeTopology(t, env, projectDir)
 
 	c := &client{
 		http: &http.Client{
@@ -376,12 +433,25 @@ func (c *client) do(
 
 // ---- CLI + config helpers ------------------------------------------------
 
-func cliCmd(env envConfig, projectDir string, args ...string) *exec.Cmd {
+const (
+	cliStepTimeout   = 2 * time.Minute
+	upTimeout        = 20 * time.Minute
+	cleanupTimeout   = 5 * time.Minute
+	commandWaitDelay = 5 * time.Second
+)
+
+func cliCmd(ctx context.Context, env envConfig, projectDir string, args ...string) *exec.Cmd {
 	full := append([]string{"--branch", "e2e"}, args...)
-	cmd := exec.Command(env.cliBin, full...) //nolint:gosec // test-controlled binary + args
+	cmd := exec.CommandContext( //nolint:gosec // test-controlled binary + args
+		ctx,
+		env.cliBin,
+		full...,
+	)
 	cmd.Dir = projectDir
 	cmd.Stdin = nil // avoid interactive prompts blocking on stdin
 	cmd.Env = os.Environ()
+
+	cmd.WaitDelay = commandWaitDelay
 	if env.configserverImg != "" {
 		cmd.Env = append(cmd.Env, "NHOST_CONFIGSERVER_IMAGE="+env.configserverImg)
 	}
@@ -390,9 +460,69 @@ func cliCmd(env envConfig, projectDir string, args ...string) *exec.Cmd {
 
 func runCLI(t *testing.T, env envConfig, projectDir string, args ...string) {
 	t.Helper()
-	cmd := cliCmd(env, projectDir, args...)
+
+	ctx, cancel := context.WithTimeout(t.Context(), cliStepTimeout)
+	defer cancel()
+
+	cmd := cliCmd(ctx, env, projectDir, args...)
 	if out, err := cmd.CombinedOutput(); err != nil {
+		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+			t.Fatalf(
+				"`nhost %s` timed out after %s\n%s",
+				strings.Join(args, " "),
+				cliStepTimeout,
+				tail(out, 20),
+			)
+		}
+
 		t.Fatalf("`nhost %s` failed: %v\n%s", strings.Join(args, " "), err, tail(out, 20))
+	}
+}
+
+func assertComposeTopology(t *testing.T, env envConfig, projectDir string) {
+	t.Helper()
+
+	composePath := filepath.Join(projectDir, ".nhost", "docker-compose.yaml")
+
+	raw, err := os.ReadFile(composePath)
+	if err != nil {
+		t.Fatalf("read generated compose file %s: %v", composePath, err)
+	}
+
+	var compose struct {
+		Services map[string]any `yaml:"services"`
+	}
+	if err := yaml.Unmarshal(raw, &compose); err != nil {
+		t.Fatalf("unmarshal generated compose file %s: %v", composePath, err)
+	}
+
+	var (
+		requiredService   = "storage"
+		forbiddenServices = []string{"engine"}
+	)
+	if env.mode == "engine" {
+		requiredService = "engine"
+		forbiddenServices = []string{"auth", "storage"}
+	}
+
+	if _, ok := compose.Services[requiredService]; !ok {
+		t.Fatalf(
+			"generated compose topology does not match %s mode: service %q is missing (services: %v)",
+			env.mode,
+			requiredService,
+			slices.Sorted(maps.Keys(compose.Services)),
+		)
+	}
+
+	for _, service := range forbiddenServices {
+		if _, ok := compose.Services[service]; ok {
+			t.Fatalf(
+				"generated compose topology does not match %s mode: unexpected service %q (services: %v)",
+				env.mode,
+				service,
+				slices.Sorted(maps.Keys(compose.Services)),
+			)
+		}
 	}
 }
 

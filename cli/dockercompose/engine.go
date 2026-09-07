@@ -57,22 +57,18 @@ func engineVersion(cfg *model.ConfigConfig) string {
 // runs each service's own CLI internally), so the container environment is the
 // union of the per-service env produced by appconfig, with BIND pointed at the
 // shared engine listener.
-func engine( //nolint:funlen
+func engine(
 	cfg *model.ConfigConfig,
 	subdomain string,
 	useTLS bool,
 	httpPort uint,
 	nhostFolder string,
-	authExpose uint,
-	storageExpose uint,
 	withAuth bool,
 	withStorage bool,
 	withGraphql bool,
 	hostUser string,
 ) (*Service, error) {
-	env, err := engineEnv(
-		cfg, subdomain, useTLS, httpPort, authExpose, storageExpose, withAuth,
-	)
+	env, err := engineEnv(cfg, subdomain, useTLS, httpPort, withAuth)
 	if err != nil {
 		return nil, err
 	}
@@ -88,11 +84,6 @@ func engine( //nolint:funlen
 
 	if !withGraphql {
 		command = append(command, "--disable-graphql")
-	}
-
-	exposePort := authExpose
-	if exposePort == 0 {
-		exposePort = storageExpose
 	}
 
 	var user *string
@@ -119,8 +110,8 @@ func engine( //nolint:funlen
 			StartPeriod: "60s",
 		},
 		Labels:     engineIngresses(useTLS, withAuth, withStorage, withGraphql).Labels(),
-		Networks:   networkAliases(engineNetworkAliases(withGraphql)...),
-		Ports:      ports(exposePort, enginePort),
+		Networks:   networkAliases(),
+		Ports:      nil,
 		Restart:    "always",
 		User:       user,
 		Volumes:    engineVolumes(nhostFolder, withAuth, withGraphql),
@@ -143,15 +134,6 @@ func engineDependsOn(withAuth, withStorage bool) map[string]DependsOn {
 	}
 
 	return deps
-}
-
-func engineNetworkAliases(withGraphql bool) []string {
-	aliases := []string{"hasura-auth-service", "hasura-storage-service"}
-	if withGraphql {
-		aliases = append(aliases, "constellation-service")
-	}
-
-	return aliases
 }
 
 func engineVolumes(nhostFolder string, withAuth, withGraphql bool) []Volume {
@@ -192,19 +174,9 @@ func engineEnv(
 	cfg *model.ConfigConfig,
 	subdomain string,
 	useTLS bool,
-	httpPort, authExpose, storageExpose uint,
+	httpPort uint,
 	withAuth bool,
 ) (map[string]string, error) {
-	authHTTPPort := httpPort
-	if authExpose != 0 {
-		authHTTPPort = authExpose
-	}
-
-	storageHTTPPort := httpPort
-	if storageExpose != 0 {
-		storageHTTPPort = storageExpose
-	}
-
 	envars, err := appconfig.NhostEngineEnv(
 		cfg,
 		appconfig.NhostEngineEnvInput{
@@ -212,37 +184,27 @@ func engineEnv(
 			DisableAuth:           !withAuth,
 			DatabaseURL:           engineDatabaseURL,
 			MigrationsDatabaseURL: engineMigrationsDatabaseURL,
-			AuthServerURL: URL(
-				subdomain,
-				"auth",
-				authHTTPPort,
-				useTLS && authExpose == 0,
-			) + "/v1",
-			SMTPSettings:      engineLocalSMTP(),
-			IsCustomSMTP:      false,
-			AutoScalerEnabled: false,
-			AppID:             engineLocalAppID,
-			EncryptionKey:     engineLocalEncryptionKey,
-			StoragePublicURL: URL(
-				subdomain,
-				"storage",
-				storageHTTPPort,
-				useTLS && storageExpose == 0,
-			),
-			S3Endpoint:        "http://minio:9000",
-			S3Region:          "",
-			S3Bucket:          "nhost",
-			S3RootFolder:      "",
-			S3AccessKey:       engineLocalMinioAccessKey,
-			S3SecretKey:       engineLocalMinioAccessKey,
-			AntivirusServer:   deptr(cfg.Storage.GetAntivirus().GetServer()),
-			NhostAuthURL:      URL(subdomain, "auth", httpPort, useTLS) + "/v1",
-			NhostGraphqlURL:   URL(subdomain, "graphql", httpPort, useTLS) + "/v1",
-			NhostStorageURL:   URL(subdomain, "storage", httpPort, useTLS) + "/v1",
-			NhostFunctionsURL: "http://functions:3000",
-			Subdomain:         subdomain,
-			Region:            "local",
-			DashboardOrigin:   URL(subdomain, "dashboard", httpPort, useTLS),
+			AuthServerURL:         URL(subdomain, "auth", httpPort, useTLS) + "/v1",
+			SMTPSettings:          engineLocalSMTP(),
+			IsCustomSMTP:          false,
+			AutoScalerEnabled:     false,
+			AppID:                 engineLocalAppID,
+			EncryptionKey:         engineLocalEncryptionKey,
+			StoragePublicURL:      URL(subdomain, "storage", httpPort, useTLS),
+			S3Endpoint:            "http://minio:9000",
+			S3Region:              "",
+			S3Bucket:              "nhost",
+			S3RootFolder:          "",
+			S3AccessKey:           engineLocalMinioAccessKey,
+			S3SecretKey:           engineLocalMinioAccessKey,
+			AntivirusServer:       deptr(cfg.Storage.GetAntivirus().GetServer()),
+			NhostAuthURL:          URL(subdomain, "auth", httpPort, useTLS) + "/v1",
+			NhostGraphqlURL:       URL(subdomain, "graphql", httpPort, useTLS) + "/v1",
+			NhostStorageURL:       URL(subdomain, "storage", httpPort, useTLS) + "/v1",
+			NhostFunctionsURL:     "http://functions:3000",
+			Subdomain:             subdomain,
+			Region:                "local",
+			DashboardOrigin:       URL(subdomain, "dashboard", httpPort, useTLS),
 		},
 	)
 	if err != nil {

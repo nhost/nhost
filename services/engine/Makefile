@@ -17,3 +17,10 @@ _dev-env-down:
 .PHONY: _dev-env-build
 _dev-env-build:
 	@echo "Nothing to do"
+
+
+.PHONY: changelog-bump-refs
+changelog-bump-refs:  ## Bump engine version refs in CLI source and schemas
+	@sed -i 's|defaultEngineVersion = "[^"]*"|defaultEngineVersion = "$(VERSION)"|' $(ROOT_DIR)/cli/dockercompose/engine.go
+	@sed -i '/^#Nhost: {/,/^}/ s#version: string | \*"[^"]*"#version: string | *"$(VERSION)"#' $(ROOT_DIR)/vendor/github.com/nhost/be/services/mimir/schema/schema.cue
+	@sed -i '/^#Nhost: {/,/^}/ s#version: string | \*"[^"]*"#version: string | *"$(VERSION)"#' $(ROOT_DIR)/cli/mcp/resources/nhost_toml_schema.cue

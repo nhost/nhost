@@ -11,6 +11,7 @@ import (
 	"net/http"
 	_ "net/http/pprof" //nolint:gosec // pprof is gated behind a CLI flag
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/99designs/gqlgen/graphql/playground"
@@ -492,13 +493,30 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 	return runServer(ctx, cmd, svc, logger)
 }
 
+type resourceCleanups struct {
+	cleanups []func()
+	once     sync.Once
+}
+
+func (c *resourceCleanups) add(cleanup func()) {
+	c.cleanups = append(c.cleanups, cleanup)
+}
+
+func (c *resourceCleanups) close() {
+	c.once.Do(func() {
+		for i := len(c.cleanups) - 1; i >= 0; i-- {
+			c.cleanups[i]()
+		}
+	})
+}
+
 // NewService builds constellation's serving surface: the HTTP handler, the
 // background controller loop, and the cleanup of the resources it acquires
 // (metadata source, JWT authenticator). It is consumed both by the standalone
 // serve command and by the engine unified binary, which mounts the
 // handler behind a shared listener and runs the background loop under the
 // shared process lifecycle.
-func NewService(
+func NewService( //nolint:funlen // construction remains linear while cleanup is centralized
 	ctx context.Context,
 	cmd *cli.Command,
 	logger *slog.Logger,
@@ -508,18 +526,27 @@ func NewService(
 		return nil, err
 	}
 
+	cleanups := &resourceCleanups{
+		cleanups: []func(){metadataSource.Close},
+		once:     sync.Once{},
+	}
+
+	keepResources := false
+	defer func() {
+		if !keepResources {
+			cleanups.close()
+		}
+	}()
+
 	jwtAuth, err := initJWTAuth(ctx, cmd, logger)
 	if err != nil {
-		metadataSource.Close()
-
 		return nil, fmt.Errorf("initializing JWT auth: %w", err)
 	}
 
+	cleanups.add(jwtAuth.Close)
+
 	hasuraProxy, err := newHasuraProxy(cmd, logger)
 	if err != nil {
-		jwtAuth.Close()
-		metadataSource.Close()
-
 		return nil, err
 	}
 
@@ -535,20 +562,15 @@ func NewService(
 		hasuraProxy,
 	)
 	if err != nil {
-		// The controller did not take ownership, so release what we built.
-		jwtAuth.Close()
-		metadataSource.Close()
-
 		return nil, fmt.Errorf("failed to create controller: %w", err)
 	}
 
 	router, err := getRouter(ctx, cmd, ctrl, jwtAuth, hasuraProxy, logger)
 	if err != nil {
-		jwtAuth.Close()
-		metadataSource.Close()
-
 		return nil, fmt.Errorf("building HTTP router: %w", err)
 	}
+
+	keepResources = true
 
 	return &serveutil.Service{
 		Handler: router,
@@ -559,10 +581,7 @@ func NewService(
 
 			return nil
 		},
-		Close: func() {
-			jwtAuth.Close()
-			metadataSource.Close()
-		},
+		Close: cleanups.close,
 	}, nil
 }
 
@@ -635,7 +654,11 @@ func runServer(
 	go func() {
 		defer cancel()
 
-		_ = svc.RunBackground(ctx)
+		if err := svc.RunBackground(ctx); err != nil {
+			logger.ErrorContext(
+				ctx, "background work failed", slog.String("error", err.Error()),
+			)
+		}
 	}()
 
 	go func() {
