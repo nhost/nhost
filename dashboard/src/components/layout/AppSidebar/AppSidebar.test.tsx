@@ -152,10 +152,11 @@ describe('AppSidebar', () => {
         'href',
         '/orgs/nhost/projects/dashboard',
       );
-      expect(screen.getByRole('link', { name: 'Agents' })).toHaveAttribute(
+      expect(screen.getByRole('link', { name: 'AI' })).toHaveAttribute(
         'href',
         '/orgs/nhost/projects/dashboard/ai/assistants',
       );
+      expect(screen.queryByRole('link', { name: 'Agents' })).toBeNull();
       expect(screen.getByRole('link', { name: 'Database' })).toHaveAttribute(
         'href',
         '/orgs/nhost/projects/dashboard/database/browser/default',
@@ -207,11 +208,11 @@ describe('AppSidebar', () => {
 
       render(<AppSidebar />);
 
-      expect(screen.getByRole('link', { name: 'File Stores' })).toHaveAttribute(
+      expect(screen.getByRole('link', { name: 'AI' })).toHaveAttribute(
         'href',
-        '/orgs/nhost/projects/dashboard/ai/file-stores',
+        '/orgs/nhost/projects/dashboard/ai/assistants',
       );
-      expect(screen.getByRole('link', { name: 'File Stores' })).toHaveAttribute(
+      expect(screen.getByRole('link', { name: 'AI' })).toHaveAttribute(
         'aria-current',
         'page',
       );
@@ -228,9 +229,9 @@ describe('AppSidebar', () => {
 
       render(<AppSidebar />);
 
-      expect(screen.queryByRole('link', { name: 'Agents' })).toBeNull();
+      expect(screen.queryByRole('link', { name: 'AI' })).toBeNull();
       expect(
-        screen.getByText('Agents').closest('[aria-disabled="true"]'),
+        screen.getByText('AI').closest('[aria-disabled="true"]'),
       ).toBeInTheDocument();
       expect(screen.queryByRole('link', { name: 'Deployments' })).toBeNull();
       expect(screen.queryByRole('link', { name: 'Metrics' })).toBeNull();

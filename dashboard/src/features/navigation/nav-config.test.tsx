@@ -3,6 +3,7 @@ import {
   getSettingsPageRoute,
   isPageGated,
   orgPages,
+  projectAIPages,
   projectAuthPages,
   projectDatabasePages,
   projectDeploymentsPages,
@@ -35,9 +36,9 @@ describe('navigation nav-config', () => {
       'hasura',
       'auth',
       'storage',
+      'ai',
       'functions',
       'run',
-      'ai',
       'deployments',
       'logs',
       'metrics',
@@ -52,7 +53,6 @@ describe('navigation nav-config', () => {
     expect(projectSettingsPages.map((page) => page.slug)).toEqual([
       'general',
       'compute-resources',
-      'ai',
     ]);
   });
 
@@ -136,6 +136,15 @@ describe('navigation nav-config', () => {
       'schema',
       'sql-console',
       'backups',
+      'settings',
+    ]);
+  });
+
+  it('keeps AI sub-pages in route-tab order', () => {
+    expect(projectAIPages.map((page) => page.slug)).toEqual([
+      'assistants',
+      'file-stores',
+      'auto-embeddings',
       'settings',
     ]);
   });
