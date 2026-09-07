@@ -120,10 +120,7 @@ describe('useIsPauseDisabled', () => {
     mocks.isPlatform.mockReturnValue(false);
 
     expect(
-      renderIsPauseDisabled(
-        ApplicationStatus.Live,
-        ApplicationStatus.Live,
-      ),
+      renderIsPauseDisabled(ApplicationStatus.Live, ApplicationStatus.Live),
     ).toBe(true);
   });
 
