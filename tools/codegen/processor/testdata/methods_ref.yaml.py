@@ -8,7 +8,7 @@ from typing import Any, Literal
 from urllib.parse import quote
 
 import httpx
-from pydantic import AnyUrl, BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from ..fetch import (
     ChainFunction,
@@ -22,7 +22,7 @@ from ..fetch import (
     to_jsonable,
 )
 
-_MIN_ERROR_STATUS = 400
+_MIN_ERROR_STATUS = 300
 
 def _escape_path(value: object) -> str:
     segment = str(value)
@@ -375,7 +375,7 @@ TicketQuery = str
 
 TicketTypeQuery = Literal["emailVerify", "emailConfirmChange", "signinPasswordless", "passwordReset"]
 
-RedirectToQuery = AnyUrl
+RedirectToQuery = str
 
 class UploadFilesBodyNullableMetadata(BaseModel):
     """Required multipart object that may be null."""
@@ -582,6 +582,13 @@ class VerifyTicketParams(BaseModel):
     )
 
 
+class _MultipartFileParts(list[tuple[str, Any]]):
+    """Keep httpx multipart encoding active even when there are no file parts."""
+
+    def __bool__(self) -> bool:
+        return True
+
+
 class Client:
     """Generated async API client backed by an httpx.AsyncClient and a middleware chain."""
 
@@ -661,14 +668,13 @@ class Client:
         url = f"{self.base_url}/files/"
         query = None
         _data: dict[str, Any] = {}
-        _files: list[tuple[str, Any]] = []
+        _files = _MultipartFileParts()
         if body.bucket_id is not None:
-            _data["bucket-id"] = body.bucket_id
+            _data["bucket-id"] = to_jsonable(body.bucket_id)
         if body.nullable_note is not None:
-            _data["nullable-note"] = body.nullable_note
+            _data["nullable-note"] = to_jsonable(body.nullable_note)
         if body.nullable_tags is not None:
-            for _item_nullable_tags in body.nullable_tags:
-                _files.append(("nullable-tags", _item_nullable_tags))
+            _data["nullable-tags"] = to_jsonable(body.nullable_tags)
         if body.nullable_metadata is not None:
             _files.append(("nullable-metadata", (None, to_json(body.nullable_metadata), "application/json")))
         if body.metadata is not None:
@@ -682,7 +688,7 @@ class Client:
             url,
             params=query,
             data=_data or None,
-            files=_files or None,
+            files=_files,
             headers=headers,
         )
         response = await self._fetch(request)
@@ -815,7 +821,7 @@ class Client:
         url = f"{self.base_url}/files/{_escape_path(id)}"
         query = None
         _data: dict[str, Any] = {}
-        _files: list[tuple[str, Any]] = []
+        _files = _MultipartFileParts()
         if body is not None and body.metadata is not None:
             _files.append(("metadata", (None, to_json(body.metadata), "application/json")))
         if body is not None and body.file is not None:
@@ -825,7 +831,7 @@ class Client:
             url,
             params=query,
             data=_data or None,
-            files=_files or None,
+            files=_files,
             headers=headers,
         )
         response = await self._fetch(request)

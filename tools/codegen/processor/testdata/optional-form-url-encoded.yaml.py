@@ -2,22 +2,19 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from typing import Any, Literal
 
 import httpx
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
 from ..fetch import (
     ChainFunction,
     FetchResponse,
     HTTPError,
     create_enhanced_fetch,
-    decode_json,
-    to_json,
     to_jsonable,
 )
 
-_MIN_ERROR_STATUS = 400
+_MIN_ERROR_STATUS = 300
 
 
 class OptionalFormRequest(BaseModel):

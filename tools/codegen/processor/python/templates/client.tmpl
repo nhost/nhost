@@ -123,23 +123,24 @@
 {{- else if .RequestFormData }}
 {{- $m := . }}
         _data: dict[str, Any] = {}
-        _files: list[tuple[str, Any]] = []
+        _files = _MultipartFileParts()
 {{- range .RequestFormData.Properties }}
 {{- if eq .Type.Kind "scalar" }}
         if {{ if not $m.BodyRequired }}body is not None and {{ end }}body.{{ .Name }} is not None:
 {{- if pyIsBinary .Type }}
             _files.append(({{ pyStr .RawName }}, to_file_part(body.{{ .Name }})))
 {{- else }}
-            _data[{{ pyStr .RawName }}] = body.{{ .Name }}
+            _data[{{ pyStr .RawName }}] = to_jsonable(body.{{ .Name }})
 {{- end }}
 {{- else if eq .Type.Kind "array" }}
         if {{ if not $m.BodyRequired }}body is not None and {{ end }}body.{{ .Name }} is not None:
-            for _item_{{ .Name }} in body.{{ .Name }}:
 {{- if pyIsBinary .Type.Item }}
+            for _item_{{ .Name }} in body.{{ .Name }}:
                 _files.append(({{ pyStr .RawName }}, to_file_part(_item_{{ .Name }})))
 {{- else if eq .Type.Item.Kind "scalar" }}
-                _files.append(({{ pyStr .RawName }}, _item_{{ .Name }}))
+            _data[{{ pyStr .RawName }}] = to_jsonable(body.{{ .Name }})
 {{- else }}
+            for _item_{{ .Name }} in body.{{ .Name }}:
                 _files.append(({{ pyStr .RawName }}, (None, to_json(_item_{{ .Name }}), {{ pyStr ($m.MultipartContentType .) }})))
 {{- end }}
 {{- else }}
@@ -152,7 +153,7 @@
             url,
             params=query,
             data=_data or None,
-            files=_files or None,
+            files=_files,
 {{- if .HasHeaderParameters }}
             headers={**_parameter_headers, **(headers or {})},
 {{- else }}
@@ -186,6 +187,15 @@
 {{ end -}}
 
 {{- define "client" -}}
+{{ if pyAnyMultipartMethods .Methods -}}
+class _MultipartFileParts(list[tuple[str, Any]]):
+    """Keep httpx multipart encoding active even when there are no file parts."""
+
+    def __bool__(self) -> bool:
+        return True
+
+
+{{ end -}}
 class Client:
     """Generated async API client backed by an httpx.AsyncClient and a middleware chain."""
 

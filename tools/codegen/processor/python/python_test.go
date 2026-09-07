@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"io/fs"
@@ -17,9 +18,161 @@ import (
 	"github.com/nhost/nhost/tools/codegen/processor/python"
 	"github.com/pb33f/libopenapi"
 	"github.com/pb33f/libopenapi/datamodel/high/base"
+	v3 "github.com/pb33f/libopenapi/datamodel/high/v3"
 	"github.com/pb33f/libopenapi/orderedmap"
+	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v3"
 )
+
+//nolint:gochecknoglobals // The test binary's -update flag must be registered at package scope.
+var flagUpdate = flag.Bool(
+	"update", false, "update expected output files with current output",
+)
+
+// getModel mirrors the shared processor test helper; the Python plugin lives in
+// its own package, so it keeps a local copy instead of reaching into processor_test.
+func getModel(filepath string) (*libopenapi.DocumentModel[v3.Document], error) {
+	b, err := os.ReadFile(filepath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read openapi spec: %w", err)
+	}
+
+	document, err := libopenapi.NewDocument(b)
+	if err != nil {
+		return nil, fmt.Errorf("cannot create new document: %w", err)
+	}
+
+	docModel, errorsList := document.BuildV3Model()
+	if len(errorsList) > 0 {
+		var wrappedError error
+		for i := range errorsList {
+			wrappedError = errors.Join(wrappedError, errorsList[i])
+		}
+
+		return nil, fmt.Errorf("cannot create v3 model from document: %w", wrappedError)
+	}
+
+	return docModel, nil
+}
+
+// TestPythonRender renders the shared testdata specs through the Python plugin
+// and compares the output with the committed Python golden files.
+func assertResponseImportAlignment(t *testing.T, fixtureName, output string) {
+	t.Helper()
+
+	if fixtureName != "python-non-returning-response-imports.yaml" {
+		return
+	}
+
+	for _, forbiddenImport := range []string{
+		"from datetime import",
+		"from uuid import UUID",
+		"AnyUrl",
+		"    UploadFile,",
+	} {
+		assert.NotContains(t, output, forbiddenImport)
+	}
+}
+
+func assertRedirectURLBuilder(t *testing.T, fixtureName, output string) {
+	t.Helper()
+
+	if fixtureName != "content.yaml" {
+		return
+	}
+
+	assert.Contains(t, output, "    def sign_in_provider_url(")
+	assert.NotContains(t, output, "    async def sign_in_provider(")
+}
+
+func TestPythonRender(t *testing.T) {
+	t.Parallel()
+
+	pythonPath, pythonErr := exec.LookPath("python3")
+	if pythonErr != nil {
+		t.Logf("python3 is not available; skipping generated Python AST validation: %v", pythonErr)
+	}
+
+	cases := []struct {
+		name string
+	}{
+		{name: "types.yaml"},
+		{name: "methods_ref.yaml"},
+		{name: "content.yaml"},
+		{name: "form-url-encoded.yaml"},
+		{name: "deepobject-map.yaml"},
+		{name: "required-object-query.yaml"},
+		{name: "header-parameters.yaml"},
+		{name: "escaped-go-source.yaml"},
+		{name: "optional-form-url-encoded.yaml"},
+		{name: "optional-multipart.yaml"},
+		{name: "python-sensitive-fields.yaml"},
+		{name: "python-response-only-imports.yaml"},
+		{name: "python-non-returning-response-imports.yaml"},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			fixture := "../testdata/" + tc.name
+
+			doc, err := getModel(fixture)
+			if err != nil {
+				t.Fatalf("failed to get model: %v", err)
+			}
+
+			ir, err := processor.NewInterMediateRepresentation(doc, &python.Python{})
+			if err != nil {
+				t.Fatalf("failed to create intermediate representation: %v", err)
+			}
+
+			buf := bytes.NewBuffer(nil)
+			if err := ir.Render(buf); err != nil {
+				t.Fatalf("failed to render intermediate representation: %v", err)
+			}
+
+			output := buf.String()
+			assert.Contains(t, output, "_MIN_ERROR_STATUS = 300")
+			assert.NotContains(t, output, "_MIN_ERROR_STATUS = 400")
+			assertResponseImportAlignment(t, tc.name, output)
+			assertRedirectURLBuilder(t, tc.name, output)
+
+			if pythonErr == nil {
+				command := exec.CommandContext(
+					t.Context(),
+					pythonPath,
+					"-c",
+					"import ast, sys; source = sys.stdin.read(); compile(ast.parse(source), '<generated>', 'exec')",
+				)
+
+				command.Stdin = strings.NewReader(output)
+				if validationOutput, err := command.CombinedOutput(); err != nil {
+					t.Fatalf(
+						"generated Python failed AST validation: %v\n%s",
+						err,
+						validationOutput,
+					)
+				}
+			}
+
+			golden := fixture + ".py"
+			if *flagUpdate {
+				if err := os.WriteFile(golden, []byte(output), 0o600); err != nil {
+					t.Fatalf("failed to write output file: %v", err)
+				}
+			}
+
+			b, err := os.ReadFile(golden)
+			if err != nil {
+				t.Fatalf("failed to read expected output file: %v", err)
+			}
+
+			assert.Equal(t, string(b), output,
+				"rendered output does not match expected output for %s", tc.name)
+		})
+	}
+}
 
 func schemaExtensions(customType string) *orderedmap.Map[string, *yaml.Node] {
 	extensions := orderedmap.New[string, *yaml.Node]()
@@ -155,10 +308,17 @@ func TestGetTemplates(t *testing.T) {
 	}
 }
 
-func TestTypeObjectName(t *testing.T) {
+func TestTypeNames(t *testing.T) {
 	t.Parallel()
 
 	plugin := &python.Python{}
+	nameFunctions := []struct {
+		name string
+		call func(string) string
+	}{
+		{name: "object", call: plugin.TypeObjectName},
+		{name: "enum", call: plugin.TypeEnumName},
+	}
 	tests := []struct {
 		name  string
 		input string
@@ -167,18 +327,91 @@ func TestTypeObjectName(t *testing.T) {
 		{name: "lowercase", input: "profile", want: "Profile"},
 		{name: "kebab case", input: "user-profile", want: "UserProfile"},
 		{name: "space separated", input: "user profile", want: "UserProfile"},
-		{name: "underscore preserved", input: "user_profile", want: "User_profile"},
+		{name: "underscore separated", input: "user_profile", want: "UserProfile"},
+		{name: "PascalCase", input: "SimpleObjectStatusCode", want: "SimpleObjectStatusCode"},
+		{name: "short PascalCase", input: "SignInProvider", want: "SignInProvider"},
+		{name: "all-uppercase acronym", input: "JWK", want: "JWK"},
+		{name: "acronym with digit", input: "OAuth2", want: "OAuth2"},
+		{name: "leading letter and digits", input: "S256", want: "S256"},
+		{name: "mixed PascalCase and snake case", input: "Token_type_hint", want: "TokenTypeHint"},
 		{name: "empty", input: "", want: ""},
 	}
 
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
+	for _, nameFunction := range nameFunctions {
+		t.Run(nameFunction.name, func(t *testing.T) {
 			t.Parallel()
 
-			if got := plugin.TypeObjectName(test.input); got != test.want {
-				t.Errorf("TypeObjectName(%q) = %q, want %q", test.input, got, test.want)
+			for _, test := range tests {
+				t.Run(test.name, func(t *testing.T) {
+					t.Parallel()
+
+					if got := nameFunction.call(test.input); got != test.want {
+						t.Errorf("type name for %q = %q, want %q", test.input, got, test.want)
+					}
+				})
 			}
 		})
+	}
+}
+
+func TestTypeNamesWithDistinctAcronymCasingRender(t *testing.T) {
+	t.Parallel()
+
+	spec := `openapi: "3.0.0"
+paths: {}
+components:
+  schemas:
+    JWK:
+      type: object
+      properties: {value: {type: string}}
+    Jwk:
+      type: object
+      properties: {value: {type: string}}
+    OAuth2:
+      type: object
+      properties: {value: {type: string}}
+    S256:
+      type: object
+      properties: {value: {type: string}}
+    SimpleObjectStatusCode:
+      type: object
+      properties: {value: {type: string}}
+    Token_type_hint:
+      type: string
+      enum: [access_token, refresh_token]
+`
+
+	document, err := libopenapi.NewDocument([]byte(spec))
+	if err != nil {
+		t.Fatalf("failed to parse fixture: %v", err)
+	}
+
+	model, modelErrors := document.BuildV3Model()
+	if len(modelErrors) > 0 {
+		t.Fatalf("failed to build fixture: %v", modelErrors)
+	}
+
+	ir, err := processor.NewInterMediateRepresentation(model, &python.Python{})
+	if err != nil {
+		t.Fatalf("failed to build intermediate representation: %v", err)
+	}
+
+	var output bytes.Buffer
+	if err := ir.Render(&output); err != nil {
+		t.Fatalf("failed to render fixture with distinct acronym casing: %v", err)
+	}
+
+	for _, want := range []string{
+		"class JWK(BaseModel):",
+		"class Jwk(BaseModel):",
+		"class OAuth2(BaseModel):",
+		"class S256(BaseModel):",
+		"class SimpleObjectStatusCode(BaseModel):",
+		`TokenTypeHint = Literal["access_token", "refresh_token"]`,
+	} {
+		if !strings.Contains(output.String(), want) {
+			t.Errorf("generated output does not contain %q", want)
+		}
 	}
 }
 
@@ -208,7 +441,8 @@ func TestTypeScalarName(t *testing.T) {
 			schemaFormat: "date-time",
 			want:         "datetime",
 		},
-		{name: "string URI", schemaType: "string", schemaFormat: "uri", want: "AnyUrl"},
+		{name: "string URI", schemaType: "string", schemaFormat: "uri", want: "str"},
+		{name: "string URL", schemaType: "string", schemaFormat: "url", want: "str"},
 		{name: "string UUID", schemaType: "string", schemaFormat: "uuid", want: "UUID"},
 		{name: "string password", schemaType: "string", schemaFormat: "password", want: "str"},
 		{
@@ -263,32 +497,6 @@ func TestTypeArrayName(t *testing.T) {
 					got,
 					test.want,
 				)
-			}
-		})
-	}
-}
-
-func TestTypeEnumName(t *testing.T) {
-	t.Parallel()
-
-	plugin := &python.Python{}
-	tests := []struct {
-		name  string
-		input string
-		want  string
-	}{
-		{name: "lowercase", input: "status", want: "Status"},
-		{name: "kebab case", input: "account-status", want: "AccountStatus"},
-		{name: "underscore preserved", input: "account_status", want: "Account_status"},
-		{name: "empty", input: "", want: ""},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			t.Parallel()
-
-			if got := plugin.TypeEnumName(test.input); got != test.want {
-				t.Errorf("TypeEnumName(%q) = %q, want %q", test.input, got, test.want)
 			}
 		})
 	}
@@ -384,21 +592,29 @@ func TestPyReturnType(t *testing.T) {
 		t.Fatal("pyReturnType not registered as func(string) string")
 	}
 
-	cases := map[string]string{
-		"":                 "None",
-		"void":             "None",
-		"SomeType":         "SomeType",
-		"SomeType | void":  "SomeType | None",
-		"void | SomeType":  "None | SomeType",
-		"Avoidance":        "Avoidance",        // real name containing "void" is untouched
-		"Avoidance | void": "Avoidance | None", // only the sentinel is mapped
-		"list[Avoidance]":  "list[Avoidance]",  // nested name with "void" is untouched
+	tests := []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{name: "empty", input: "", want: "None"},
+		{name: "void sentinel", input: "void", want: "None"},
+		{name: "concrete type", input: "SomeType", want: "SomeType"},
+		{name: "union with trailing void", input: "SomeType | void", want: "SomeType | None"},
+		{name: "union with leading void", input: "void | SomeType", want: "None | SomeType"},
+		{name: "name containing void", input: "Avoidance", want: "Avoidance"},
+		{name: "union maps only the sentinel", input: "Avoidance | void", want: "Avoidance | None"},
+		{name: "nested name containing void", input: "list[Avoidance]", want: "list[Avoidance]"},
 	}
 
-	for in, want := range cases {
-		if got := fn(in); got != want {
-			t.Errorf("pyReturnType(%q) = %q, want %q", in, got, want)
-		}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := fn(test.input); got != test.want {
+				t.Errorf("pyReturnType(%q) = %q, want %q", test.input, got, test.want)
+			}
+		})
 	}
 }
 
@@ -464,6 +680,65 @@ func TestIdentifierMapping(t *testing.T) {
 				t.Errorf("PropertyName(%q) = %q, want %q", tt.input, got, tt.want)
 			}
 		})
+	}
+}
+
+func TestMultipartPathParameterNamedItem(t *testing.T) {
+	t.Parallel()
+
+	spec := `openapi: "3.0.0"
+paths:
+  /boxes/{item}:
+    post:
+      operationId: uploadBox
+      parameters:
+        - {name: item, in: path, required: true, schema: {type: string}}
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/UploadBoxRequest"
+      responses:
+        "204": {description: Uploaded}
+components:
+  schemas:
+    UploadBoxRequest:
+      type: object
+      properties:
+        file: {type: string, format: binary}
+      required: [file]
+`
+
+	document, err := libopenapi.NewDocument([]byte(spec))
+	if err != nil {
+		t.Fatalf("failed to parse fixture: %v", err)
+	}
+
+	model, modelErrors := document.BuildV3Model()
+	if len(modelErrors) > 0 {
+		t.Fatalf("failed to build fixture: %v", modelErrors)
+	}
+
+	ir, err := processor.NewInterMediateRepresentation(model, &python.Python{})
+	if err != nil {
+		t.Fatalf("failed to build intermediate representation: %v", err)
+	}
+
+	var output bytes.Buffer
+	if err := ir.Render(&output); err != nil {
+		t.Fatalf("failed to render multipart operation with item path parameter: %v", err)
+	}
+
+	for _, want := range []string{
+		"async def upload_box(",
+		"item: str,",
+		`url = f"{self.base_url}/boxes/{_escape_path(item)}"`,
+		"_files = _MultipartFileParts()",
+	} {
+		if !strings.Contains(output.String(), want) {
+			t.Errorf("generated output does not contain %q", want)
+		}
 	}
 }
 
@@ -685,20 +960,25 @@ paths:
 			},
 		},
 		{
-			name: "invalid top-level type",
+			name: "normalized top-level type collision",
 			spec: `openapi: "3.0.0"
 paths: {}
 components:
   schemas:
-    bad.name:
+    UserProfile:
+      type: object
+      properties:
+        value: {type: string}
+    user_profile:
       type: object
       properties:
         value: {type: string}
 `,
 			want: []string{
-				"Python module namespace contains invalid identifier",
-				`identifier "Bad.name"`,
-				`type "bad.name"`,
+				"Python module namespace collision",
+				`type "UserProfile"`,
+				`type "user_profile"`,
+				`identifier "UserProfile"`,
 			},
 		},
 		{
@@ -716,6 +996,40 @@ components:
 				"Python module namespace contains reserved dunder identifier",
 				`identifier "__all__"`,
 				`type "__all__"`,
+			},
+		},
+		{
+			name: "invalid dotted top-level type",
+			spec: `openapi: "3.0.0"
+paths: {}
+components:
+  schemas:
+    bad.name:
+      type: object
+      properties:
+        value: {type: string}
+`,
+			want: []string{
+				"Python module namespace contains invalid identifier",
+				`identifier "Bad.name"`,
+				`type "bad.name"`,
+			},
+		},
+		{
+			name: "invalid top-level type",
+			spec: `openapi: "3.0.0"
+paths: {}
+components:
+  schemas:
+    "!!!":
+      type: object
+      properties:
+        value: {type: string}
+`,
+			want: []string{
+				"Python module namespace contains invalid identifier",
+				`identifier "!!!"`,
+				`type "!!!"`,
 			},
 		},
 	}
@@ -760,6 +1074,8 @@ func TestRejectsUnsupportedParameterSerialization(t *testing.T) {
 		name      string
 		in        string
 		style     string
+		explode   bool
+		schema    string
 		required  bool
 		response  string
 		wantErr   string
@@ -790,11 +1106,35 @@ func TestRejectsUnsupportedParameterSerialization(t *testing.T) {
 			wantErr:   `unsupported redirect header parameter: required header parameter "value"`,
 			operation: "redirectItems",
 		},
+		{
+			name:      "deepObject without explode",
+			in:        "query",
+			style:     "deepObject",
+			schema:    "type: object\n            additionalProperties:\n              type: string",
+			response:  `"200"`,
+			operation: "listItems",
+			wantErr:   `unsupported query serialization: query parameter "value" on method "listItems" uses deepObject with explode=false`,
+		},
+		{
+			name:      "deepObject scalar",
+			in:        "query",
+			style:     "deepObject",
+			explode:   true,
+			schema:    "type: string",
+			response:  `"200"`,
+			operation: "listItems",
+			wantErr:   `unsupported query serialization: query parameter "value" on method "listItems" uses deepObject with unsupported scalar type`,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
+			schema := tt.schema
+			if schema == "" {
+				schema = "type: string"
+			}
 
 			spec := fmt.Sprintf(`openapi: "3.0.0"
 paths:
@@ -805,13 +1145,14 @@ paths:
         - name: value
           in: %s
           style: %s
+          explode: %t
           required: %t
           schema:
-            type: string
+            %s
       responses:
         %s:
           description: ok
-`, tt.operation, tt.in, tt.style, tt.required, tt.response)
+`, tt.operation, tt.in, tt.style, tt.explode, tt.required, schema, tt.response)
 
 			document, err := libopenapi.NewDocument([]byte(spec))
 			if err != nil {
@@ -1175,6 +1516,110 @@ components:
 				t.Errorf("generation error = %q, want it to contain %q", err, tt.want)
 			}
 		})
+	}
+}
+
+func renderPythonFixture(t *testing.T, spec string, output io.Writer) error {
+	t.Helper()
+
+	document, err := libopenapi.NewDocument([]byte(spec))
+	if err != nil {
+		t.Fatalf("failed to parse fixture: %v", err)
+	}
+
+	model, modelErrors := document.BuildV3Model()
+	if len(modelErrors) > 0 {
+		t.Fatalf("failed to build fixture: %v", modelErrors)
+	}
+
+	ir, err := processor.NewInterMediateRepresentation(model, &python.Python{})
+	if err != nil {
+		t.Fatalf("failed to build intermediate representation: %v", err)
+	}
+
+	if err := ir.Render(output); err != nil {
+		return fmt.Errorf("render fixture: %w", err)
+	}
+
+	return nil
+}
+
+func TestRejectsMalformedPythonTypeExtension(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		extension string
+		want      string
+	}{
+		{
+			name:      "must be string",
+			extension: "x-python-type: 42",
+			want:      `x-python-type on property "customField" of type "Payload" must be a string`,
+		},
+		{
+			name:      "must be non-empty",
+			extension: `x-python-type: ""`,
+			want:      `x-python-type on property "customField" of type "Payload" must be a non-empty string`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			spec := fmt.Sprintf(`openapi: "3.0.0"
+paths: {}
+components:
+  schemas:
+    Payload:
+      type: object
+      properties:
+        customField:
+          type: object
+          additionalProperties: true
+          %s
+`, tt.extension)
+
+			err := renderPythonFixture(t, spec, io.Discard)
+			if !errors.Is(err, processor.ErrUnsupportedFeature) {
+				t.Fatalf("generation error = %v, want ErrUnsupportedFeature", err)
+			}
+
+			if !strings.Contains(err.Error(), tt.want) {
+				t.Errorf("generation error = %q, want it to contain %q", err, tt.want)
+			}
+		})
+	}
+}
+
+func TestAcceptsValidPythonTypeExtension(t *testing.T) {
+	t.Parallel()
+
+	const customType = "dict[str, tuple[int, ...]]"
+
+	spec := fmt.Sprintf(`openapi: "3.0.0"
+paths: {}
+components:
+  schemas:
+    Payload:
+      type: object
+      required: [customField]
+      properties:
+        customField:
+          type: object
+          additionalProperties: true
+          x-python-type: %q
+`, customType)
+
+	var output bytes.Buffer
+	if err := renderPythonFixture(t, spec, &output); err != nil {
+		t.Fatalf("failed to render fixture: %v", err)
+	}
+
+	want := "    custom_field: " + customType
+	if !strings.Contains(output.String(), want) {
+		t.Errorf("generated output does not contain %q", want)
 	}
 }
 

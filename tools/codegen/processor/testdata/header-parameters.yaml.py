@@ -13,12 +13,11 @@ from ..fetch import (
     FetchResponse,
     HTTPError,
     create_enhanced_fetch,
-    decode_json,
     to_json,
     to_jsonable,
 )
 
-_MIN_ERROR_STATUS = 400
+_MIN_ERROR_STATUS = 300
 
 def _parameter_scalar(value: Any) -> str:
     if value is None:

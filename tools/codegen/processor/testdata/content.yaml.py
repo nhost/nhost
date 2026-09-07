@@ -2,24 +2,21 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping, Sequence
+from collections.abc import Sequence
 from typing import Any, Literal
 from urllib.parse import quote
 
 import httpx
-from pydantic import AnyUrl, BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from ..fetch import (
     ChainFunction,
-    FetchResponse,
-    HTTPError,
     create_enhanced_fetch,
-    decode_json,
     to_json,
     to_jsonable,
 )
 
-_MIN_ERROR_STATUS = 400
+_MIN_ERROR_STATUS = 300
 
 def _escape_path(value: object) -> str:
     segment = str(value)
@@ -124,7 +121,7 @@ class SignInProviderParams(BaseModel):
             '{"firstName":"John","lastName":"Smith"}'
         ),
     )
-    redirect_to: AnyUrl | None = Field(
+    redirect_to: str | None = Field(
         default=None,
         alias="redirectTo",
         description=(

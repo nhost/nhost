@@ -1,3 +1,4 @@
+{{- pyValidateExtensions .Types .Methods -}}
 {{- pyValidateSensitiveExtensions .Types .Methods -}}
 {{- pyValidateNames .Types .Methods -}}
 {{- pyValidateParameters .Methods -}}
@@ -7,36 +8,46 @@ from __future__ import annotations
 {{ if or (pyAnyQueryParameters .Methods) (pyAnyHeaderParameters .Methods) -}}
 import json
 {{ end -}}
-from collections.abc import Mapping, Sequence
+from collections.abc import {{ if pyHasNonRedirectMethods .Methods }}Mapping, {{ end }}Sequence
 {{ if or (pyUsesDate .Types .Methods) (pyUsesDateTime .Types .Methods) -}}
 from datetime import {{ if pyUsesDate .Types .Methods }}date{{ if pyUsesDateTime .Types .Methods }}, {{ end }}{{ end }}{{ if pyUsesDateTime .Types .Methods }}datetime{{ end }}
 {{ end -}}
-from typing import Any, Literal
+{{ if or (pyUsesAny .Types .Methods) (pyUsesLiteral .Types .Methods) -}}
+from typing import {{ if pyUsesAny .Types .Methods }}Any{{ if pyUsesLiteral .Types .Methods }}, {{ end }}{{ end }}{{ if pyUsesLiteral .Types .Methods }}Literal{{ end }}
+{{ end -}}
 {{ if pyAnyPathParameters .Methods -}}
 from urllib.parse import quote
 {{ end -}}
 {{ if pyUsesUUID .Types .Methods }}from uuid import UUID
 {{ end }}
 import httpx
-from pydantic import {{ if pyUsesURI .Types .Methods }}AnyUrl, {{ end }}BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict{{ if pyUsesField .Types .Methods }}, Field{{ end }}
 
 from ..fetch import (
     ChainFunction,
+{{- if pyHasNonRedirectMethods .Methods }}
     FetchResponse,
     HTTPError,
-{{- if pyAnyMultipartMethods .Methods }}
+{{- end }}
+{{- if pyUsesBinary .Types .Methods }}
     UploadFile,
 {{- end }}
     create_enhanced_fetch,
+{{- if pyUsesDecodeJSON .Methods }}
     decode_json,
+{{- end }}
 {{- if pyAnyMultipartMethods .Methods }}
     to_file_part,
 {{- end }}
+{{- if pyUsesToJSON .Methods }}
     to_json,
+{{- end }}
+{{- if pyUsesToJSONable .Methods }}
     to_jsonable,
+{{- end }}
 )
 
-_MIN_ERROR_STATUS = 400
+_MIN_ERROR_STATUS = {{ pyMinErrorStatus }}
 
 {{ if pyAnyPathParameters .Methods -}}
 def _escape_path(value: object) -> str:
