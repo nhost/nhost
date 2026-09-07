@@ -9,7 +9,7 @@ from urllib.parse import quote
 from uuid import UUID
 
 import httpx
-from pydantic import AnyUrl, BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from ..fetch import (
     ChainFunction,
@@ -21,7 +21,7 @@ from ..fetch import (
     to_jsonable,
 )
 
-_MIN_ERROR_STATUS = 400
+_MIN_ERROR_STATUS = 300
 
 
 def _escape_path(value: object) -> str:
@@ -410,7 +410,7 @@ OKResponse = Literal["OK"]
 class OptionsRedirectTo(BaseModel):
     model_config = ConfigDict(populate_by_name=True, extra="allow")
 
-    redirect_to: AnyUrl | None = Field(
+    redirect_to: str | None = Field(
         default=None,
         alias="redirectTo",
         description='Example: "https://my-app.com/catch-redirection"\n\nFormat: uri',
@@ -983,7 +983,7 @@ class SignUpOptions(BaseModel):
         default=None,
         description='Example: {"firstName":"John","lastName":"Smith"}',
     )
-    redirect_to: AnyUrl | None = Field(
+    redirect_to: str | None = Field(
         default=None,
         alias="redirectTo",
         description='Example: "https://my-app.com/catch-redirection"\n\nFormat: uri',
@@ -1385,13 +1385,13 @@ class OAuth2DiscoveryResponse(BaseModel):
     client_id_metadata_document_supported: bool | None = None
 
 
-OAuth2TokenRequestGrant_type = Literal["authorization_code", "refresh_token"]
+OAuth2TokenRequestGrantType = Literal["authorization_code", "refresh_token"]
 
 
 class OAuth2TokenRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True, extra="allow")
 
-    grant_type: OAuth2TokenRequestGrant_type
+    grant_type: OAuth2TokenRequestGrantType
     code: str | None = Field(default=None, repr=False)
     redirect_uri: str | None = None
     client_id: str | None = None
@@ -1431,26 +1431,26 @@ class OAuth2JWKSResponse(BaseModel):
     keys: list[JWK]
 
 
-OAuth2RevokeRequestToken_type_hint = Literal["access_token", "refresh_token"]
+OAuth2RevokeRequestTokenTypeHint = Literal["access_token", "refresh_token"]
 
 
 class OAuth2RevokeRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     token: str = Field(repr=False)
-    token_type_hint: OAuth2RevokeRequestToken_type_hint | None = None
+    token_type_hint: OAuth2RevokeRequestTokenTypeHint | None = None
     client_id: str | None = None
     client_secret: str | None = Field(default=None, repr=False)
 
 
-OAuth2IntrospectRequestToken_type_hint = Literal["access_token", "refresh_token"]
+OAuth2IntrospectRequestTokenTypeHint = Literal["access_token", "refresh_token"]
 
 
 class OAuth2IntrospectRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True, extra="allow")
 
     token: str = Field(repr=False)
-    token_type_hint: OAuth2IntrospectRequestToken_type_hint | None = None
+    token_type_hint: OAuth2IntrospectRequestTokenTypeHint | None = None
     client_id: str | None = None
     client_secret: str | None = Field(default=None, repr=False)
 
@@ -1492,13 +1492,13 @@ class OAuth2LoginRequest(BaseModel):
 class OAuth2LoginCompleteResponse(BaseModel):
     model_config = ConfigDict(populate_by_name=True, extra="allow")
 
-    redirect_uri: AnyUrl = Field(
+    redirect_uri: str = Field(
         alias="redirectUri",
         description="Format: uri",
     )
 
 
-RedirectToQuery = AnyUrl
+RedirectToQuery = str
 
 SignInProvider = Literal[
     "apple",
@@ -1534,7 +1534,7 @@ class GetVersionResponse200(BaseModel):
     )
 
 
-GetCode_challenge_method = Literal["S256"]
+GetCodeChallengeMethod = Literal["S256"]
 
 
 class Oauth2AuthorizePostBody(BaseModel):
@@ -1587,7 +1587,7 @@ class SignInProviderParams(BaseModel):
             '{"firstName":"John","lastName":"Smith"}'
         ),
     )
-    redirect_to: AnyUrl | None = Field(
+    redirect_to: str | None = Field(
         default=None,
         alias="redirectTo",
         description=(
@@ -1662,7 +1662,7 @@ class SignUpProviderParams(BaseModel):
             '{"firstName":"John","lastName":"Smith"}'
         ),
     )
-    redirect_to: AnyUrl | None = Field(
+    redirect_to: str | None = Field(
         default=None,
         alias="redirectTo",
         description=(
@@ -1767,7 +1767,7 @@ class Oauth2AuthorizeParams(BaseModel):
         default=None,
         description="PKCE code challenge derived from the code verifier (RFC 7636 Section 4.2).",
     )
-    code_challenge_method: GetCode_challenge_method | None = Field(
+    code_challenge_method: GetCodeChallengeMethod | None = Field(
         default=None,
         description="Only S256 is supported. The plain method is not allowed.",
     )
@@ -3659,14 +3659,14 @@ __all__ = [
     "VerifyTokenRequest",
     "OAuth2ErrorResponse",
     "OAuth2DiscoveryResponse",
-    "OAuth2TokenRequestGrant_type",
+    "OAuth2TokenRequestGrantType",
     "OAuth2TokenRequest",
     "OAuth2TokenResponse",
     "OAuth2UserinfoResponse",
     "OAuth2JWKSResponse",
-    "OAuth2RevokeRequestToken_type_hint",
+    "OAuth2RevokeRequestTokenTypeHint",
     "OAuth2RevokeRequest",
-    "OAuth2IntrospectRequestToken_type_hint",
+    "OAuth2IntrospectRequestTokenTypeHint",
     "OAuth2IntrospectRequest",
     "OAuth2IntrospectResponse",
     "OAuth2LoginResponse",
@@ -3677,7 +3677,7 @@ __all__ = [
     "TicketQuery",
     "TicketTypeQuery",
     "GetVersionResponse200",
-    "GetCode_challenge_method",
+    "GetCodeChallengeMethod",
     "Oauth2AuthorizePostBody",
     "SignInProviderParams",
     "SignUpProviderParams",

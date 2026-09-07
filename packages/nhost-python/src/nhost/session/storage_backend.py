@@ -31,7 +31,12 @@ class SessionStorageError(NhostError):
 
 @runtime_checkable
 class SessionStorageBackend(Protocol):
-    """Asynchronous interface for persisting one :class:`StoredSession`."""
+    """Asynchronous interface for persisting one :class:`StoredSession`.
+
+    Backend instances are weak-mapping keys for in-process refresh locking, so
+    implementations must remain hashable, have stable equality semantics, and
+    support weak references.
+    """
 
     async def get(self) -> StoredSession | None: ...
 
@@ -71,10 +76,18 @@ class FileStorage:
 
     def __init__(self, path: str | Path) -> None:
         self._path = Path(path).expanduser()
-        self._lock = asyncio.Lock()
+        self._lock: tuple[asyncio.AbstractEventLoop, asyncio.Lock] | None = None
+
+    def _lock_for_running_loop(self) -> asyncio.Lock:
+        loop = asyncio.get_running_loop()
+        if self._lock is None or self._lock[0] is not loop:
+            lock = asyncio.Lock()
+            self._lock = (loop, lock)
+            return lock
+        return self._lock[1]
 
     async def get(self) -> StoredSession | None:
-        async with self._lock:
+        async with self._lock_for_running_loop():
             try:
                 return await asyncio.to_thread(self._read)
             except FileNotFoundError:
@@ -83,14 +96,14 @@ class FileStorage:
                 raise SessionStorageError("read", self._path, error) from error
 
     async def set(self, value: StoredSession) -> None:
-        async with self._lock:
+        async with self._lock_for_running_loop():
             try:
                 await asyncio.to_thread(self._write, value)
             except OSError as error:
                 raise SessionStorageError("write", self._path, error) from error
 
     async def remove(self) -> None:
-        async with self._lock:
+        async with self._lock_for_running_loop():
             try:
                 await asyncio.to_thread(self._path.unlink, missing_ok=True)
             except OSError as error:

@@ -47,6 +47,10 @@ class PKCEPair(NamedTuple):
     verifier: str
     challenge: str
 
+    def __repr__(self) -> str:
+        """Show the public challenge without exposing the secret verifier."""
+        return f"PKCEPair(verifier='<redacted>', challenge={self.challenge!r})"
+
 
 def generate_pkce_pair() -> PKCEPair:
     """Generate a PKCE code verifier and its S256 challenge in one call."""

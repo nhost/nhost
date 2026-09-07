@@ -30,7 +30,6 @@ FetchFunction = Callable[[httpx.Request], Awaitable[httpx.Response]]
 #: Middleware: takes the next fetch in the chain and returns a wrapping fetch.
 ChainFunction = Callable[[FetchFunction], FetchFunction]
 
-_MIN_ERROR_STATUS = 400
 _NO_BODY_STATUSES = frozenset({204, 205, 304})
 
 
@@ -193,7 +192,7 @@ class NhostError(Exception):
 
 
 class HTTPError(NhostError, Generic[T]):
-    """Raised when an API responds with a 4xx or 5xx status.
+    """Raised when an API responds with a 3xx, 4xx, or 5xx status.
 
     The complete :class:`httpx.Response` is retained so callers can inspect the
     request, response extensions, and protocol details in addition to the

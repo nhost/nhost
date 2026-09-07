@@ -5,8 +5,10 @@ architecture of `packages/nhost-js` and `packages/nhost-swift`.
 
 ## Build and checks
 
-- Dev workflow uses `uv`: `uv pip install -e .` then `uv run pytest`,
-  `uv run mypy src ...`, `uv run ruff check src tests`.
+- Dev workflow uses `uv`: `uv pip install -e .` then `make test-local`,
+  `uv run mypy src tests conftest.py`, and `uv run ruff check src tests conftest.py`.
+- `uv.lock` is committed and CI enforces `uv lock --check --offline`; update it
+  whenever dependency declarations in `pyproject.toml` change.
 - `ruff` is a prebuilt Rust binary and does not run on bare NixOS; run
   formatting/linting inside the Nix dev shell (adds a patched `ruff`).
 - Python 3.11+; `httpx` and `pydantic` v2 are the only runtime dependencies.
@@ -28,7 +30,8 @@ architecture of `packages/nhost-js` and `packages/nhost-swift`.
   (`MemoryStorage` default, `FileStorage`), the `SessionStorage` wrapper, and
   async `refresh_session` (serialized with an asyncio lock).
 - `nhost.py` — `NhostClient` + `create_client` / `create_server_client` /
-  `create_nhost_client` factories and configuration functions.
+  `create_nhost_client` factories and configuration functions. Session refreshes use a
+  dedicated bare auth client; never add user-facing or session middleware to that client.
 
 ## Generated code
 
@@ -48,18 +51,20 @@ architecture of `packages/nhost-js` and `packages/nhost-swift`.
 ## Testing
 
 - Unit tests use `httpx.MockTransport` (no network I/O): pass a mock-backed
-  `httpx.AsyncClient` as the keyword-only `http_client=` argument. Run with `make test`.
+  `httpx.AsyncClient` as the keyword-only `http_client=` argument. Run the unit tests
+  and offline doctests with `make test-local`.
 - Docstring examples are executable documentation (the Python counterpart of
-  nhost-js's `docstrings.test.ts`), run via `pytest --doctest-modules`
-  (`make test-doctests`). `conftest.py` gates them: pure examples like
+  nhost-js's `docstrings.test.ts`), run via `pytest --doctest-modules` as part of
+  `make test-local`. `conftest.py` gates them: pure examples like
   `generate_service_url` always run; backend-dependent examples (listed by
   fully-qualified name in `_BACKEND_DEPENDENT_DOCTESTS`) and anything marked
   `@pytest.mark.integration` are skipped unless `NHOST_LOCAL_BACKEND=1`.
-- Backend examples use `subdomain="local", region="local"`; bring the backend up
-  with `./dev-env.sh up` then `make test-integration`. The `build/backend`
-  project and full nix/Makefile wiring are still pending.
+- Backend examples and marked integration tests use
+  `subdomain="local", region="local"`; bring the backend up with
+  `make dev-env-up` then run `make integration-local`, which executes both.
 - When editing a backend-only example, add its qualified doctest name to
   `_BACKEND_DEPENDENT_DOCTESTS` in `conftest.py`, or the offline suite will try
-  to run it and fail.
-- **Not yet verified against a live backend** in this environment (no local
-  Nhost backend available); only the offline path and gating were exercised.
+  to run it and fail. Doctest collection raises an error if a configured name no
+  longer exists, so rename the matching entry with the example.
+- `make integration-local` has been verified against the backend started by
+  `make dev-env-up`; without that backend it must fail rather than report a skip.

@@ -64,19 +64,31 @@ def _is_loopback_host(host: str) -> bool:
         return False
 
 
-def attach_access_token_middleware(storage: SessionStorage) -> ChainFunction:
-    """Attach ``Authorization: Bearer <access_token>`` from the stored session.
+def attach_access_token_middleware(storage: SessionStorage, service_url: str) -> ChainFunction:
+    """Attach the stored access token only within the configured service origin.
 
-    Should run after the refresh middleware so the freshest token is used. Skips
-    requests that already carry an ``Authorization`` header.
+    Should run after the refresh middleware so the freshest token is used. A
+    caller-supplied authorization header is preserved unless it is the stored
+    bearer token on a request that has moved outside the service origin.
     """
+    scope = _RequestScope.from_base_url(service_url)
 
     def chain(next_fetch: FetchFunction) -> FetchFunction:
         async def fetch(request: httpx.Request) -> httpx.Response:
-            if "Authorization" not in request.headers:
-                session = await storage.get()
-                if session is not None and session.access_token:
-                    request.headers["Authorization"] = f"Bearer {session.access_token}"
+            in_scope = scope.contains(request.url)
+            has_authorization = "Authorization" in request.headers
+            if (in_scope and has_authorization) or (not in_scope and not has_authorization):
+                return await next_fetch(request)
+
+            session = await storage.get()
+            if session is None or not session.access_token:
+                return await next_fetch(request)
+
+            authorization = f"Bearer {session.access_token}"
+            if in_scope:
+                request.headers["Authorization"] = authorization
+            elif request.headers.get("Authorization") == authorization:
+                del request.headers["Authorization"]
             return await next_fetch(request)
 
         return fetch
@@ -107,10 +119,7 @@ def session_refresh_middleware(
                 auth_scope.contains(request.url) and request.url.path == auth_token_path
             )
             if "Authorization" not in request.headers and not is_auth_token_request:
-                try:
-                    await refresh_session(auth, storage, margin_seconds)
-                except Exception:  # noqa: BLE001 - never block the request on refresh failure
-                    logger.debug("session refresh failed; continuing", exc_info=True)
+                await refresh_session(auth, storage, margin_seconds)
             return await next_fetch(request)
 
         return fetch

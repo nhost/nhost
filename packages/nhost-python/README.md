@@ -165,10 +165,9 @@ hand.
 ## Development
 
 ```sh
-make test              # offline unit and doctest suite
-make test-doctests     # docstring examples
-make dev-env-up        # start the local Nhost backend
-make test-integration  # backend-dependent doctests
+make test-local         # offline unit tests and doctests (backend examples skip)
+make dev-env-up         # start the local Nhost backend
+make integration-local  # all doctests, including backend-dependent examples
 ```
 
 ## Security
