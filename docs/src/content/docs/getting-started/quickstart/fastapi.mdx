@@ -94,7 +94,7 @@ signed-in user and the permissions above apply.
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
-from nhost import create_client, NhostClientOptions
+from nhost import create_client
 from nhost.auth import SignInEmailPasswordRequest
 from pydantic import BaseModel
 
@@ -113,9 +113,7 @@ LIST_NOTES = "query { notes(order_by: {created_at: desc}) { id title content } }
 async def lifespan(app: FastAPI):
     # Replace <subdomain> and <region> with your project's values. For a local
     # backend, use subdomain="local", region="local".
-    async with create_client(
-        NhostClientOptions(subdomain="<subdomain>", region="<region>")
-    ) as nhost:
+    async with create_client(subdomain="<subdomain>", region="<region>") as nhost:
         app.state.nhost = nhost
         yield
 
@@ -187,3 +185,4 @@ curl localhost:8000/notes
 
 - [`nhost-python` SDK reference](/reference/python/nhost-python/main) — the full API for auth, storage, GraphQL, and functions.
 - [Notes CLI tutorial](/getting-started/tutorials/python/1-introduction) — a five-part walkthrough that builds a complete notes CLI exercising auth, GraphQL, Storage (attachments), and Functions (export).
+- [webhook-receiver example](https://github.com/nhost/nhost/tree/main/examples/demos/webhook-receiver) — a runnable FastAPI service that verifies HMAC-signed webhooks and records them over GraphQL, packaged to deploy on [Nhost Run](/products/run/overview).
