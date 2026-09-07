@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/openai/openai-go"
 	"github.com/openai/openai-go/option"
 )
 
@@ -996,16 +997,24 @@ func TestOpenAIResponsesFailuresAreSafe(t *testing.T) {
 	})
 
 	//nolint:paralleltest // Parallel execution could mix global logger output.
-	t.Run("close failure log", func(t *testing.T) {
-		closeMarker := fmt.Errorf(
-			"%s with credential %s: %w",
-			streamCloseCause,
-			headerValue,
-			errInvalidProviderHeaders,
-		)
+	t.Run("API close failure log", func(t *testing.T) {
+		var closeError openai.Error
+		if err := json.Unmarshal(
+			[]byte(`{"message":"`+streamCloseCause+`"}`),
+			&closeError,
+		); err != nil {
+			t.Fatalf("create OpenAI API error: %v", err)
+		}
+
+		closeError.StatusCode = http.StatusBadGateway
+		closeErrorResponse := httptest.NewRecorder().Result()
+		closeErrorResponse.Status = "502 Bad Gateway"
+		closeErrorResponse.StatusCode = http.StatusBadGateway
+		closeError.Response = closeErrorResponse
+
 		provider := mustOpenAIResponses(
 			t,
-			"https://example.com/v1",
+			"https://example.com/"+urlMarker,
 			map[string]string{"Authorization": headerValue},
 		)
 		provider.service.Options = append(
@@ -1016,12 +1025,13 @@ func TestOpenAIResponsesFailuresAreSafe(t *testing.T) {
 						Reader: strings.NewReader(
 							"data: " + completedResponsesEvent() + "\n\n",
 						),
-						err: closeMarker,
 					}
 					response := httptest.NewRecorder().Result()
 					response.Header.Set("Content-Type", "text/event-stream")
 					response.Body = body
 					response.Request = request
+					closeError.Request = request
+					body.err = &closeError
 
 					return response, nil
 				}),
@@ -1041,20 +1051,31 @@ func TestOpenAIResponsesFailuresAreSafe(t *testing.T) {
 	})
 
 	logs := logOutput.String()
-	if strings.Contains(logs, headerMarker) {
-		t.Fatalf("logger exposed configured header value: %s", logs)
+	for _, marker := range []string{
+		headerMarker,
+		urlMarker,
+		httpCause,
+		streamCloseCause,
+	} {
+		if strings.Contains(logs, marker) {
+			t.Fatalf("logger exposed marker %q: %s", marker, logs)
+		}
 	}
 
 	for _, cause := range []string{
-		httpCause,
 		streamCause,
 		errorEventCause,
 		failedEventCause,
 		transportCause,
-		streamCloseCause,
 	} {
 		if !strings.Contains(logs, cause) {
 			t.Errorf("logger did not retain cause %q: %s", cause, logs)
+		}
+	}
+
+	for _, status := range []string{"HTTP status 400", "HTTP status 502"} {
+		if !strings.Contains(logs, status) {
+			t.Errorf("logger did not retain safe status %q: %s", status, logs)
 		}
 	}
 }

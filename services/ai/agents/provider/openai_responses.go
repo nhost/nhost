@@ -305,7 +305,7 @@ func processOpenAIResponsesStream(
 			slog.WarnContext(
 				ctx,
 				"failed to close openai responses stream",
-				slog.String("error", providerErrorLogValue(err, logRedactions)),
+				slog.String("error", openAIProviderErrorLogValue(err, logRedactions)),
 			)
 		}
 	}()
@@ -331,7 +331,7 @@ func processOpenAIResponsesStream(
 	streamErr := stream.Err()
 	if streamErr != nil {
 		if ctx.Err() == nil {
-			logProviderError(
+			logOpenAIProviderError(
 				ctx,
 				"openai responses stream failed",
 				streamErr,

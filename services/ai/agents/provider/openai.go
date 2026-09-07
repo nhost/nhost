@@ -2,9 +2,12 @@ package provider
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"log/slog"
 	"maps"
 	"net/http"
+	"net/url"
 	"slices"
 
 	"github.com/openai/openai-go"
@@ -134,6 +137,46 @@ func streamOpenAIResponse(
 	return ch
 }
 
+func openAIProviderErrorLogValue(err error, redactions []string) string {
+	var apiError *openai.Error
+	if errors.As(err, &apiError) && apiError != nil {
+		statusCode := apiError.StatusCode
+		if statusCode == 0 && apiError.Response != nil {
+			statusCode = apiError.Response.StatusCode
+		}
+
+		if statusCode == 0 {
+			return "provider API request failed"
+		}
+
+		return fmt.Sprintf("provider API request failed: HTTP status %d", statusCode)
+	}
+
+	var requestError *url.Error
+	if errors.As(err, &requestError) && requestError != nil {
+		if requestError.Err == nil {
+			return "provider request failed"
+		}
+
+		return providerErrorLogValue(requestError.Err, redactions)
+	}
+
+	return providerErrorLogValue(err, redactions)
+}
+
+func logOpenAIProviderError(
+	ctx context.Context,
+	message string,
+	err error,
+	redactions []string,
+) {
+	slog.ErrorContext(
+		ctx,
+		message,
+		slog.String("error", openAIProviderErrorLogValue(err, redactions)),
+	)
+}
+
 func processOpenAIStream(
 	ctx context.Context,
 	ch chan<- Event,
@@ -163,7 +206,7 @@ func processOpenAIStream(
 			slog.WarnContext(
 				ctx,
 				"failed to close openai stream",
-				slog.String("error", providerErrorLogValue(err, logRedactions)),
+				slog.String("error", openAIProviderErrorLogValue(err, logRedactions)),
 			)
 		}
 	}()
@@ -189,7 +232,7 @@ func processOpenAIStream(
 
 	if streamErr != nil {
 		if ctx.Err() == nil {
-			logProviderError(ctx, "openai stream failed", streamErr, logRedactions)
+			logOpenAIProviderError(ctx, "openai stream failed", streamErr, logRedactions)
 			send(ctx, ch, NewErrorEvent(mapOpenAIChatCompletionsError(response)))
 		}
 
