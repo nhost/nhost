@@ -16,11 +16,15 @@ export default function AccountMenuContent({
 
   return (
     <div className="grid grid-flow-row">
-      <Separator />
+      {isPlatform && (
+        <>
+          <Separator />
 
-      <AccountMenuActions onNavigate={onNavigate} />
+          <AccountMenuActions onNavigate={onNavigate} />
 
-      <Separator />
+          <Separator />
+        </>
+      )}
 
       <div className="p-2">
         <ThemeSwitcher />

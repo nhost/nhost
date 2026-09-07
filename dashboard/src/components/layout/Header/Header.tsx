@@ -2,6 +2,7 @@ import type { ComponentPropsWithoutRef } from 'react';
 import { twMerge } from 'tailwind-merge';
 
 import { AccountMenu } from '@/components/layout/AccountMenu';
+import SupportPopover from '@/components/layout/Header/SupportPopover';
 import { MobileNav } from '@/components/layout/MobileNav';
 import { Logo } from '@/components/presentational/Logo';
 import { InboxPopover } from '@/features/orgs/components/members/components/InboxPopover';
@@ -26,6 +27,7 @@ export default function Header({ className, ...props }: HeaderProps) {
 
       <div className="ml-auto hidden shrink-0 grid-flow-col items-center gap-1 sm:grid">
         <InboxPopover />
+        <SupportPopover />
 
         <AccountMenu />
       </div>
