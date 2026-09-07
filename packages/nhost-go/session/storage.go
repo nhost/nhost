@@ -135,40 +135,25 @@ func (f *FileStorage) Remove() {
 	_ = os.Remove(f.Path)
 }
 
-// DetectStorage returns the default backend for the current environment.
-func DetectStorage() Backend { //nolint:ireturn // Intentionally hides the selected backend.
-	return &MemoryStorage{mu: sync.RWMutex{}, session: nil}
-}
-
-// ChangeCallback is notified on every session change.
-type ChangeCallback func(session *StoredSession)
-
 type refreshCall struct {
 	done    chan struct{}
 	session *StoredSession
 	err     error
 }
 
-// Storage wraps a Backend, decoding tokens on Set and notifying subscribers on
-// every change.
+// Storage wraps a Backend, decoding tokens on Set.
 type Storage struct {
 	backend     Backend
-	mu          sync.Mutex
 	refreshMu   sync.Mutex
 	refreshCall *refreshCall
-	subscribers map[int]ChangeCallback
-	nextID      int
 }
 
 // NewStorage wraps a backend.
 func NewStorage(backend Backend) *Storage {
 	return &Storage{
 		backend:     backend,
-		mu:          sync.Mutex{},
 		refreshMu:   sync.Mutex{},
 		refreshCall: nil,
-		subscribers: map[int]ChangeCallback{},
-		nextID:      0,
 	}
 }
 
@@ -206,10 +191,6 @@ func (s *Storage) removeIfPresent() bool {
 	}
 	s.refreshMu.Unlock()
 
-	if ok {
-		s.notify(nil)
-	}
-
 	return ok
 }
 
@@ -218,9 +199,8 @@ func (s *Storage) Get() (*StoredSession, bool) {
 	return s.backend.Get()
 }
 
-// Set stores a raw auth Session, enriching it into a StoredSession, and
-// notifies subscribers. It returns an error if the access token cannot be
-// decoded.
+// Set stores a raw auth Session, enriching it into a StoredSession. It returns
+// an error if the access token cannot be decoded.
 func (s *Storage) Set(value auth.Session) error {
 	stored, err := ToStoredSession(value)
 	if err != nil {
@@ -228,44 +208,11 @@ func (s *Storage) Set(value auth.Session) error {
 	}
 
 	s.backend.Set(stored)
-	s.notify(&stored)
 
 	return nil
 }
 
-// Remove clears the session and notifies subscribers.
+// Remove clears the session.
 func (s *Storage) Remove() {
 	s.backend.Remove()
-	s.notify(nil)
-}
-
-// OnChange subscribes to session changes; the returned func unsubscribes.
-func (s *Storage) OnChange(cb ChangeCallback) func() {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	id := s.nextID
-	s.nextID++
-	s.subscribers[id] = cb
-
-	return func() {
-		s.mu.Lock()
-		defer s.mu.Unlock()
-
-		delete(s.subscribers, id)
-	}
-}
-
-func (s *Storage) notify(session *StoredSession) {
-	s.mu.Lock()
-
-	subs := make([]ChangeCallback, 0, len(s.subscribers))
-	for _, cb := range s.subscribers {
-		subs = append(subs, cb)
-	}
-	s.mu.Unlock()
-
-	for _, cb := range subs {
-		cb(session)
-	}
 }

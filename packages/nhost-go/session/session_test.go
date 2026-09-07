@@ -68,20 +68,11 @@ func TestDecodeUserSessionInvalid(t *testing.T) {
 	}
 }
 
-func TestStorageSetGetRemoveSubscribe(t *testing.T) {
+func TestStorageSetGetRemove(t *testing.T) {
 	t.Parallel()
 
 	token := makeToken(t, map[string]any{"exp": 9999999999, "sub": "u"})
 	store := session.NewStorage(&session.MemoryStorage{})
-
-	var changes int
-
-	var last *session.StoredSession
-
-	unsub := store.OnChange(func(s *session.StoredSession) {
-		changes++
-		last = s
-	})
 
 	if err := store.Set(auth.Session{
 		AccessToken:  token,
@@ -95,24 +86,13 @@ func TestStorageSetGetRemoveSubscribe(t *testing.T) {
 		t.Fatalf("get after set failed: ok=%v", ok)
 	}
 
-	if changes != 1 || last == nil || last.DecodedToken.Sub != "u" {
-		t.Fatalf("subscribe not notified correctly: changes=%d", changes)
+	if got.DecodedToken.Sub != "u" {
+		t.Fatalf("decoded token not derived on set: sub=%q", got.DecodedToken.Sub)
 	}
 
 	store.Remove()
 
 	if _, ok := store.Get(); ok {
 		t.Fatal("session present after remove")
-	}
-
-	if changes != 2 || last != nil {
-		t.Fatalf("remove notification wrong: changes=%d last=%v", changes, last)
-	}
-
-	unsub()
-	store.Set(auth.Session{AccessToken: token, RefreshToken: "r"}) //nolint:errcheck
-
-	if changes != 2 {
-		t.Fatalf("unsubscribe failed: changes=%d", changes)
 	}
 }

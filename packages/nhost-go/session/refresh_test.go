@@ -369,13 +369,6 @@ func TestRefreshSessionUnauthorizedNotifiesOnceForConcurrentCallers(t *testing.T
 		t.Fatalf("seed session: %v", err)
 	}
 
-	var notifications atomic.Int32
-	store.OnChange(func(value *session.StoredSession) {
-		if value == nil {
-			notifications.Add(1)
-		}
-	})
-
 	var hits atomic.Int32
 
 	server := httptest.NewServer(
@@ -428,10 +421,6 @@ func TestRefreshSessionUnauthorizedNotifiesOnceForConcurrentCallers(t *testing.T
 
 	if backend.removes.Load() != 1 {
 		t.Errorf("backend Remove calls = %d, want 1", backend.removes.Load())
-	}
-
-	if notifications.Load() != 1 {
-		t.Errorf("nil OnChange notifications = %d, want 1", notifications.Load())
 	}
 }
 
