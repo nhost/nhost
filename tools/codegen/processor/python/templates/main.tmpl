@@ -24,15 +24,15 @@ import httpx
 from pydantic import BaseModel, ConfigDict{{ if pyUsesField .Types .Methods }}, Field{{ end }}
 
 from ..fetch import (
-    ChainFunction,
 {{- if pyHasNonRedirectMethods .Methods }}
     FetchResponse,
     HTTPError,
 {{- end }}
+    Middleware,
 {{- if pyUsesBinary .Types .Methods }}
     UploadFile,
 {{- end }}
-    create_enhanced_fetch,
+    create_fetch_pipeline,
 {{- if pyUsesDecodeJSON .Methods }}
     decode_json,
 {{- end }}
@@ -145,5 +145,4 @@ __all__ = [
 {{- end }}
 {{- end }}
     "Client",
-    "create_api_client",
 ]
