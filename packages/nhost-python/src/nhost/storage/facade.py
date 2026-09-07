@@ -9,6 +9,7 @@ from .client import (
     Client,
     FileMetadata,
     ReplaceFileBody,
+    UpdateFileMetadata,
     UploadFileMetadata,
     UploadFilesBody,
     UploadFilesResponse201,
@@ -43,10 +44,14 @@ class StorageClient(Client):
         file_id: str,
         *,
         file: bytes | UploadFile,
-        metadata: dict[str, object] | None = None,
+        metadata: UpdateFileMetadata | None = None,
         headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[FileMetadata]:
-        """Replace a file while preserving its identifier."""
+        """Replace a file while preserving its identifier.
+
+        When passing metadata, include its ``name`` field: the Storage API treats
+        an omitted replacement name as empty rather than preserving the old name.
+        """
         return await self.replace_file(
             file_id,
             body=ReplaceFileBody(file=file, metadata=metadata),

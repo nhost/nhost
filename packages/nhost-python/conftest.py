@@ -3,7 +3,7 @@
 Docstring examples are executable documentation (the Python counterpart of
 nhost-js's ``docstrings.test.ts``). Run them with::
 
-    pytest --doctest-modules src tests
+    pytest --doctest-modules src
 
 Pure examples (e.g. URL building) always run as a canary that the doctest
 harness is wired. Examples that talk to a backend — and any test marked
@@ -22,13 +22,7 @@ import pytest
 # Doctests (by fully-qualified name) whose examples perform live backend I/O.
 # Everything else — including pure examples like ``generate_service_url`` — runs
 # offline as a canary that the doctest harness is wired.
-_BACKEND_DEPENDENT_DOCTESTS = frozenset(
-    {
-        "nhost.nhost.create_client",
-        "nhost.graphql.client.Client.request",
-        "nhost.functions.client.Client.post",
-    }
-)
+_BACKEND_DEPENDENT_DOCTESTS = frozenset({"nhost.nhost.create_client"})
 
 
 def _backend_enabled() -> bool:
@@ -43,6 +37,14 @@ def pytest_configure(config: pytest.Config) -> None:
 
 
 def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
+    doctest_names = {item.name for item in items if type(item).__name__ == "DoctestItem"}
+    if doctest_names:
+        unmatched = _BACKEND_DEPENDENT_DOCTESTS - doctest_names
+        if unmatched:
+            raise pytest.UsageError(
+                f"stale _BACKEND_DEPENDENT_DOCTESTS entries: {sorted(unmatched)}"
+            )
+
     if _backend_enabled():
         return
 

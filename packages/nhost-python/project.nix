@@ -31,6 +31,7 @@ let
   checkDeps = [
     pythonEnv
     pkgs.ruff
+    pkgs.uv
     codegen
     # Provides a CA bundle (its setup hook sets SSL_CERT_FILE) so httpx can
     # build its default TLS context when talking to the backend.
@@ -44,6 +45,7 @@ let
     fileset = fs.unions [
       ../../.gitignore
       ./pyproject.toml
+      ./uv.lock
       ./README.md
       ./Makefile
       ./gen.sh
@@ -67,10 +69,7 @@ let
 in
 {
   devShell = pkgs.mkShell {
-    buildInputs = checkDeps ++ [
-      pkgs.uv
-      pkgs.nhost.nhost-cli
-    ];
+    buildInputs = checkDeps ++ [ pkgs.nhost.nhost-cli ];
   };
 
   check =
@@ -99,35 +98,46 @@ in
         diff "$TMPDIR/storage.before" src/nhost/storage/client.py \
           || (echo "❌ storage/client.py is stale; run ./gen.sh" && exit 1)
 
+        echo "➜ Checking uv.lock is in sync with pyproject.toml"
+        UV_CACHE_DIR="$TMPDIR/uv-cache" uv lock --check --offline
+
         echo "➜ Running ruff (lint + format check)"
-        ruff check src tests
-        ruff format --check src tests
+        ruff check src tests conftest.py
+        ruff format --check src tests conftest.py
 
-        echo "➜ Running mypy --strict"
-        mypy src
+        echo "➜ Running mypy --strict over source, tests, and pytest configuration"
+        mypy src tests conftest.py
 
-        echo "➜ Running the offline unit + doctest suite (no backend)"
-        # A single combined run covers both the unit tests in tests/ and the
-        # doctests in src/ (and tests/). Streamed via tee so failures are
-        # visible in the build log; pipefail (set above) propagates pytest's
-        # exit status through the pipe.
-        pytest --doctest-modules --import-mode=importlib src tests -rs \
-          | tee "$TMPDIR/offline.log"
-        # Canary: pure doctests must have run, so not everything is skipped.
-        grep -qE '[1-9][0-9]* passed' "$TMPDIR/offline.log" \
-          || (echo "❌ offline doctests did not run" && exit 1)
+        echo "➜ Running the offline unit suite (no backend)"
+        pytest tests
+
+        echo "➜ Running offline doctests (backend examples skip)"
+        pytest --doctest-modules --import-mode=importlib src -rs -vv \
+          | tee "$TMPDIR/offline-doctests.log"
+        # Positive canary: this known pure doctest must be collected and pass.
+        grep -qF \
+          'src/nhost/nhost.py::nhost.nhost.generate_service_url PASSED' \
+          "$TMPDIR/offline-doctests.log" \
+          || (echo "❌ pure doctest canary did not pass" && exit 1)
 
         echo "➜ Running integration doctests against the local backend"
         export NHOST_LOCAL_BACKEND=1
-        pytest --doctest-modules --import-mode=importlib src tests -rs \
-          | tee "$TMPDIR/integ.log"
-        # Fail loudly if the backend examples were silently skipped: with the
-        # backend flag set they must all execute.
-        if grep -q 'needs a local Nhost backend' "$TMPDIR/integ.log"; then
-          echo "❌ backend doctests were skipped even though NHOST_LOCAL_BACKEND=1" \
-            "(is the backend up? run make dev-env-up)"
-          exit 1
-        fi
+        pytest --doctest-modules --import-mode=importlib src -rs -vv \
+          | tee "$TMPDIR/integration-doctests.log"
+        # Positive canary: the known backend doctest must execute and pass.
+        grep -qF \
+          'src/nhost/nhost.py::nhost.nhost.create_client PASSED' \
+          "$TMPDIR/integration-doctests.log" \
+          || (echo "❌ backend doctest canary did not pass" && exit 1)
+
+        echo "➜ Running marked integration tests against the local backend"
+        pytest tests -m integration -rs -vv \
+          | tee "$TMPDIR/integration-tests.log"
+        # Positive canary: tests/ integration markers must be collected and execute.
+        grep -qF \
+          'tests/test_sdk.py::test_local_backend_graphql_integration PASSED' \
+          "$TMPDIR/integration-tests.log" \
+          || (echo "❌ marked integration test canary did not pass" && exit 1)
 
         mkdir $out
       '';

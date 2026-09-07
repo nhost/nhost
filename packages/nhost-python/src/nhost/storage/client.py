@@ -22,7 +22,7 @@ from ..fetch import (
     to_jsonable,
 )
 
-_MIN_ERROR_STATUS = 400
+_MIN_ERROR_STATUS = 300
 
 
 def _escape_path(value: object) -> str:
@@ -522,6 +522,13 @@ class GetFileMetadataHeadersParams(BaseModel):
     )
 
 
+class _MultipartFileParts(list[tuple[str, Any]]):
+    """Keep httpx multipart encoding active even when there are no file parts."""
+
+    def __bool__(self) -> bool:
+        return True
+
+
 class Client:
     """Generated async API client backed by an httpx.AsyncClient and a middleware chain."""
 
@@ -571,9 +578,9 @@ class Client:
         url = f"{self.base_url}/files"
         query = None
         _data: dict[str, Any] = {}
-        _files: list[tuple[str, Any]] = []
+        _files = _MultipartFileParts()
         if body.bucket_id is not None:
-            _data["bucket-id"] = body.bucket_id
+            _data["bucket-id"] = to_jsonable(body.bucket_id)
         if body.metadata is not None:
             for _item_metadata in body.metadata:
                 _files.append(("metadata[]", (None, to_json(_item_metadata), "application/json")))
@@ -585,7 +592,7 @@ class Client:
             url,
             params=query,
             data=_data or None,
-            files=_files or None,
+            files=_files,
             headers=headers,
         )
         response = await self._fetch(request)
@@ -747,7 +754,7 @@ class Client:
         url = f"{self.base_url}/files/{_escape_path(id)}"
         query = None
         _data: dict[str, Any] = {}
-        _files: list[tuple[str, Any]] = []
+        _files = _MultipartFileParts()
         if body.metadata is not None:
             _files.append(("metadata", (None, to_json(body.metadata), "application/json")))
         if body.file is not None:
@@ -757,7 +764,7 @@ class Client:
             url,
             params=query,
             data=_data or None,
-            files=_files or None,
+            files=_files,
             headers=headers,
         )
         response = await self._fetch(request)

@@ -54,6 +54,8 @@ class StoredSession(Session):
     undeclared JWT claim values. Processed Hasura claims and caller-controlled
     user metadata remain visible. Serialization intentionally emits the complete
     session for persistence, so do not serialize a session into logs.
+    ``decoded_token`` is derived state: storage consumers must re-derive it from
+    ``access_token`` rather than trusting persisted claims.
     """
 
     model_config = ConfigDict(populate_by_name=True)
@@ -92,7 +94,10 @@ def decode_user_session(access_token: str) -> DecodedToken:
     if len(segments) != _JWT_SEGMENTS or not segments[1]:
         raise ValueError("Invalid access token format")
 
-    payload: dict[str, Any] = json.loads(_decode_base64url(segments[1]))
+    decoded_payload: object = json.loads(_decode_base64url(segments[1]))
+    if not isinstance(decoded_payload, dict):
+        raise ValueError("Invalid access token payload: expected a JSON object")
+    payload: dict[str, Any] = decoded_payload
 
     raw_claims = payload.get(_HASURA_CLAIMS)
     processed_claims: dict[str, Any] | None = None
