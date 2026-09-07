@@ -24,6 +24,9 @@ on:
       # nhost-go
       - "packages/nhost-go/**"
 
+      # the backend the integration tests run against
+      - "packages/backend-sdk-tests/**"
+
       # apis
       - "services/auth/docs/openapi.yaml"
       - "services/storage/controller/openapi.yaml"
@@ -50,6 +53,7 @@ jobs:
         vendor/**
         tools/codegen/**
         packages/nhost-go/**
+        packages/backend-sdk-tests/**
         services/auth/docs/openapi.yaml
         services/storage/controller/openapi.yaml
 
