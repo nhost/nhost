@@ -648,12 +648,13 @@ func TestOpenAIResponsesTerminalEvents(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name        string
-		events      []string
-		wantContent string
-		wantReason  string
-		wantTools   []ToolCall
-		wantError   bool
+		name           string
+		events         []string
+		wantContent    string
+		wantReason     string
+		wantToolStarts []string
+		wantTools      []ToolCall
+		wantError      bool
 	}{
 		{
 			name:       "completed",
@@ -684,17 +685,15 @@ func TestOpenAIResponsesTerminalEvents(t *testing.T) {
 			wantReason: StopReasonRefusal,
 		},
 		{
-			name: "incomplete function call terminates started event",
+			name: "incomplete function call is discarded",
 			events: []string{
 				`{"type":"response.output_item.added","sequence_number":1,"output_index":0,"item":{"id":"fc_1","type":"function_call","call_id":"call_1","name":"search","arguments":"","status":"in_progress"}}`,
 				`{"type":"response.function_call_arguments.delta","sequence_number":2,"item_id":"fc_1","output_index":0,"delta":"{\"q\":"}`,
 				`{"type":"response.output_item.done","sequence_number":3,"output_index":0,"item":{"id":"fc_1","type":"function_call","call_id":"call_1","name":"search","arguments":"{\"q\":","status":"incomplete"}}`,
 				`{"type":"response.incomplete","sequence_number":4,"response":{"id":"resp_1","status":"incomplete","incomplete_details":{"reason":"max_output_tokens"}}}`,
 			},
-			wantReason: StopReasonMaxTokens,
-			wantTools: []ToolCall{{
-				ID: "call_1", Name: "search", Arguments: `{"q":`,
-			}},
+			wantReason:     StopReasonMaxTokens,
+			wantToolStarts: []string{"search"},
 		},
 		{
 			name: "completed function call preserves fields omitted from terminal item",
@@ -705,7 +704,8 @@ func TestOpenAIResponsesTerminalEvents(t *testing.T) {
 				`{"type":"response.output_item.done","sequence_number":4,"output_index":0,"item":{"id":"fc_1","type":"function_call","status":"completed"}}`,
 				completedResponsesEvent(),
 			},
-			wantReason: StopReasonToolUse,
+			wantReason:     StopReasonToolUse,
+			wantToolStarts: []string{"search"},
 			wantTools: []ToolCall{{
 				ID: "call_1", Name: "search", Arguments: `{"q":"x"}`,
 			}},
@@ -717,7 +717,8 @@ func TestOpenAIResponsesTerminalEvents(t *testing.T) {
 				`{"type":"response.function_call_arguments.done","sequence_number":2,"item_id":"fc_1","output_index":0,"arguments":"{\"q\":\"x\"}"}`,
 				`{"type":"response.completed","sequence_number":3,"response":{"id":"resp_1","status":"completed","output":[{"id":"fc_1","type":"function_call","call_id":"call_1","name":"search","arguments":"{\"q\":\"x\"}","status":"completed"}]}}`,
 			},
-			wantError: true,
+			wantToolStarts: []string{"search"},
+			wantError:      true,
 		},
 		{
 			name: "missing terminal event",
@@ -764,19 +765,12 @@ func TestOpenAIResponsesTerminalEvents(t *testing.T) {
 				t.Errorf("content = %q, want %q", got.content, test.wantContent)
 			}
 
-			if diff := cmp.Diff(test.wantTools, got.tools); diff != "" {
-				t.Errorf("tool calls mismatch (-want +got):\n%s", diff)
+			if diff := cmp.Diff(test.wantToolStarts, got.toolStarts); diff != "" {
+				t.Errorf("tool starts mismatch (-want +got):\n%s", diff)
 			}
 
-			if !test.wantError {
-				var toolCompletions []string
-				for _, toolCall := range got.tools {
-					toolCompletions = append(toolCompletions, toolCall.Name)
-				}
-
-				if diff := cmp.Diff(got.toolStarts, toolCompletions); diff != "" {
-					t.Errorf("tool event imbalance (-starts +completions):\n%s", diff)
-				}
+			if diff := cmp.Diff(test.wantTools, got.tools); diff != "" {
+				t.Errorf("tool calls mismatch (-want +got):\n%s", diff)
 			}
 
 			if test.wantError {
