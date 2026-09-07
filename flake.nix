@@ -157,6 +157,14 @@
             ;
         };
 
+        cat-uploaderf = import ./examples/demos/cat-uploader/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
         leptosf = import ./examples/quickstarts/leptos/project.nix {
           inherit
             self
@@ -182,6 +190,14 @@
         };
 
         nhost-jsf = import ./packages/nhost-js/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
+        nhost-go-tutorialf = import ./examples/tutorials/nhost-go-tutorial/project.nix {
           inherit
             self
             pkgs
@@ -285,7 +301,14 @@
           mcp = mcpf.check;
           nhostclient = nhostclientf.check;
           nhost-js = nhost-jsf.check;
-          nhost-go = nhost-gof.check;
+          nhost-go = pkgs.symlinkJoin {
+            name = "nhost-go-checks";
+            paths = [
+              nhost-gof.check
+              nhost-go-tutorialf.check
+              cat-uploaderf.check
+            ];
+          };
           # The examples exist to prove the SDK's API has not drifted under the
           # docs, so they are part of the SDK's own check rather than separate
           # CI entries. Each still has its own project.nix (and so its own
@@ -300,7 +323,9 @@
             ];
           };
           nhost-rust-tutorial = nhost-rust-tutorialf.check;
+          nhost-go-tutorial = nhost-go-tutorialf.check;
           leptos = leptosf.check;
+          cat-uploader = cat-uploaderf.check;
           stripe-graphql-js = stripe-graphql-jsf.check;
           nixops = nixopsf.check;
           postgres = postgresf.check;
@@ -454,7 +479,9 @@
           nhost-go = nhost-gof.devShell;
           nhost-rust = nhost-rustf.devShell;
           nhost-rust-tutorial = nhost-rust-tutorialf.devShell;
+          nhost-go-tutorial = nhost-go-tutorialf.devShell;
           leptos = leptosf.devShell;
+          cat-uploader = cat-uploaderf.devShell;
           stripe-graphql-js = stripe-graphql-jsf.devShell;
           nixops = nixopsf.devShell;
           postgres = postgresf.devShell;
