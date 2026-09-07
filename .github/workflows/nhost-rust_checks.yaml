@@ -27,6 +27,10 @@ on:
       # the backend the integration tests run against
       - "packages/backend-sdk-tests/**"
 
+      # the examples the check compiles against this SDK
+      - "examples/tutorials/nhost-rust-tutorial/**"
+      - "examples/quickstarts/leptos/**"
+
       # apis
       - "services/auth/docs/openapi.yaml"
       - "services/storage/controller/openapi.yaml"
@@ -54,6 +58,8 @@ jobs:
         tools/codegen/**
         packages/nhost-rust/**
         packages/backend-sdk-tests/**
+        examples/tutorials/nhost-rust-tutorial/**
+        examples/quickstarts/leptos/**
         services/auth/docs/openapi.yaml
         services/storage/controller/openapi.yaml
 
