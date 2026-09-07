@@ -167,6 +167,22 @@
             ;
         };
 
+        nhost-python-tutorialf = import ./examples/tutorials/nhost-python-tutorial/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
+        webhook-receiverf = import ./examples/demos/webhook-receiver/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
         leptosf = import ./examples/quickstarts/leptos/project.nix {
           inherit
             self
@@ -331,11 +347,20 @@
               leptosf.check
             ];
           };
-          nhost-python = nhost-pythonf.check;
+          nhost-python = pkgs.symlinkJoin {
+            name = "nhost-python-checks";
+            paths = [
+              nhost-pythonf.check
+              nhost-python-tutorialf.check
+              webhook-receiverf.check
+            ];
+          };
           nhost-rust-tutorial = nhost-rust-tutorialf.check;
           nhost-go-tutorial = nhost-go-tutorialf.check;
           leptos = leptosf.check;
           cat-uploader = cat-uploaderf.check;
+          nhost-python-tutorial = nhost-python-tutorialf.check;
+          webhook-receiver = webhook-receiverf.check;
           stripe-graphql-js = stripe-graphql-jsf.check;
           nixops = nixopsf.check;
           postgres = postgresf.check;
@@ -486,6 +511,8 @@
           nhost-go-tutorial = nhost-go-tutorialf.devShell;
           leptos = leptosf.devShell;
           cat-uploader = cat-uploaderf.devShell;
+          nhost-python-tutorial = nhost-python-tutorialf.devShell;
+          webhook-receiver = webhook-receiverf.devShell;
           stripe-graphql-js = stripe-graphql-jsf.devShell;
           nixops = nixopsf.devShell;
           postgres = postgresf.devShell;
