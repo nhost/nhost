@@ -161,6 +161,10 @@ export const createAPIClient = (
         if (value === null || value === undefined) {
           return []
         }
+        if (key === "metadata") {
+          // content-typed parameter - serialized as JSON regardless of shape
+          return [`${key}=${encodeURIComponent(JSON.stringify(value))}`]
+        }
         if (key === "providerSpecificParams") {
           // Object with explode: true - each property as separate parameter
           if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
