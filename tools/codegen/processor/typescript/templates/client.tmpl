@@ -38,10 +38,10 @@ export interface Client {
     {{ .Name }}: {{ .Type.Name }},
     {{- end }}
     {{- range $code, $type := .Bodies }}
-    body{{ if $method.BodyRequired }}: {{ $type.Name }}{{ else if $method.HasRequiredQueryParameters }}: {{ $type.Name }} | undefined{{ else }}?: {{ $type.Name }}{{ end }},
+    body{{ if $method.BodyRequired }}: {{ $type.Name }}{{ else if $method.HasRequiredRequestParameters }}: {{ $type.Name }} | undefined{{ else }}?: {{ $type.Name }}{{ end }},
     {{- end }}
-    {{- if .HasQueryParameters }}
-    params{{ if not .HasRequiredQueryParameters }}?{{ end }}: {{ title $method.Name }}Params,
+    {{- if .HasRequestParameters }}
+    params{{ if not .HasRequiredRequestParameters }}?{{ end }}: {{ title $method.Name }}Params,
     {{- end }}
     options?: RequestInit,
   {{- if .IsRedirect }}
@@ -78,11 +78,11 @@ export const createAPIClient = (
     {{- end }}
     {{- range $code, $type := .Bodies }}
   {{- if not $method.IsRedirect }}
-    body{{ if $method.BodyRequired }}: {{ $type.Name }}{{ else if $method.HasRequiredQueryParameters }}: {{ $type.Name }} | undefined{{ else }}?: {{ $type.Name }}{{ end }},
+    body{{ if $method.BodyRequired }}: {{ $type.Name }}{{ else if $method.HasRequiredRequestParameters }}: {{ $type.Name }} | undefined{{ else }}?: {{ $type.Name }}{{ end }},
   {{- end }}
     {{- end }}
-    {{- if .HasQueryParameters }}
-    params{{ if not .HasRequiredQueryParameters }}?{{ end }}: {{ title $method.Name }}Params,
+    {{- if .HasRequestParameters }}
+    params{{ if not .HasRequiredRequestParameters }}?{{ end }}: {{ title $method.Name }}Params,
     {{- end }}
   {{- if .IsRedirect }}
   ): string => {
@@ -99,25 +99,30 @@ export const createAPIClient = (
           return []
         }
         {{- range .QueryParameters }}
-        {{- if .Explode }}
+        {{- if .HasContent }}
+        if (key === "{{ .RawName }}") {
+          // content-typed parameter - serialized as JSON regardless of shape
+          return [`${key}=${encodeURIComponent(JSON.stringify(value))}`]
+        }
+        {{- else if .Explode }}
         {{- if eq .Style "deepObject" }}
-        if (key === "{{ .Name }}") {
-          // deepObject with explode: true - {{ .Name }}[prop]=value
+        if (key === "{{ .RawName }}") {
+          // deepObject with explode: true - {{ .RawName }}[prop]=value
           if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
             return Object.entries(value)
-              .map(([k, v]) => `{{ .Name }}[${encodeURIComponent(k)}]=${encodeURIComponent(String(v))}`)
+              .map(([k, v]) => `{{ .RawName }}[${encodeURIComponent(k)}]=${encodeURIComponent(String(v))}`)
           }
           return []
         }
         {{- else if eq .Type.Kind "array" }}
-        if (key === "{{ .Name }}") {
+        if (key === "{{ .RawName }}") {
           // Array with explode: true - repeat key for each value
           return Array.isArray(value)
             ? value.map(v => `${key}=${encodeURIComponent(String(v))}`)
             : [`${key}=${encodeURIComponent(String(value))}`]
         }
         {{- else if eq .Type.Kind "object" }}
-        if (key === "{{ .Name }}") {
+        if (key === "{{ .RawName }}") {
           // Object with explode: true - each property as separate parameter
           if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
             return Object.entries(value)
@@ -126,6 +131,15 @@ export const createAPIClient = (
           return [`${key}=${encodeURIComponent(String(value))}`]
         }
         {{- end }}
+        {{- else if eq .Type.Kind "object" }}
+        if (key === "{{ .RawName }}") {
+          // Object with explode: false - name=k1,v1,k2,v2
+          if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+            const parts = Object.entries(value).flatMap(([k, v]) => [k, String(v)])
+            return [`${key}=${encodeURIComponent(parts.join(','))}`]
+          }
+          return [`${key}=${encodeURIComponent(String(value))}`]
+        }
         {{- end }}
         {{- end }}
         // Default handling (scalars or explode: false)
@@ -148,12 +162,30 @@ export const createAPIClient = (
   {{- if .IsRedirect }}
     return url;
   {{- else }}
+  {{- if .HasHeaderParameters }}
+    // Header parameters declared by the operation. A caller-supplied header in
+    // `options.headers` overrides these, matching the query/body precedence.
+    const parameterHeaders: Record<string, string> = {}
+    {{- range .HeaderParameters }}
+    if (params?.["{{ .RawName }}"] !== undefined && params?.["{{ .RawName }}"] !== null) {
+      parameterHeaders["{{ .RawName }}"] =
+      {{- if .HasContent }} JSON.stringify(params["{{ .RawName }}"])
+      {{- else if eq .Type.Kind "array" }} params["{{ .RawName }}"].map(v => String(v)).join(',')
+      {{- else if eq .Type.Kind "object" }} Object.entries(params["{{ .RawName }}"]).flatMap(([k, v]) => [k, String(v)]).join(',')
+      {{- else }} String(params["{{ .RawName }}"])
+      {{- end }};
+    }
+    {{- end }}
+  {{- end }}
   {{- if .RequestJSON }}
     const res = await fetch(url, {
       ...options,
       method: "{{ .Method }}",
       headers: {
         "Content-Type": "application/json",
+        {{- if .HasHeaderParameters }}
+        ...parameterHeaders,
+        {{- end }}
         ...options?.headers,
       },
       body: JSON.stringify(body),
@@ -224,6 +256,14 @@ export const createAPIClient = (
     const res = await fetch(url, {
       ...options,
       method: "{{ .Method }}",
+      {{- if .HasHeaderParameters }}
+      // Content-Type is intentionally left unset so fetch keeps the multipart
+      // boundary it generates for `formData`.
+      headers: {
+        ...parameterHeaders,
+        ...options?.headers,
+      },
+      {{- end }}
       body: formData,
     });
   {{- else if .RequestFormURLEncoded }}
@@ -247,6 +287,9 @@ export const createAPIClient = (
       method: "{{ .Method }}",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
+        {{- if .HasHeaderParameters }}
+        ...parameterHeaders,
+        {{- end }}
         ...options?.headers,
       },
       body: params.toString(),
@@ -256,6 +299,9 @@ export const createAPIClient = (
       ...options,
       method: "{{ .Method }}",
       headers: {
+        {{- if .HasHeaderParameters }}
+        ...parameterHeaders,
+        {{- end }}
         ...options?.headers,
       },
     });

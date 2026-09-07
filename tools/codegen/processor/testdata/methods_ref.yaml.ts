@@ -543,7 +543,15 @@ export interface ReplaceFileBody {
     @property b? (BlurSigma) - 
     *    Blur the image using this sigma value. Only applies to image files
     @property f? (OutputFormat) - 
-    *    Format to convert the image to. If 'auto', the format is determined based on the Accept header.*/
+    *    Format to convert the image to. If 'auto', the format is determined based on the Accept header.
+    @property if-match? (IfMatch) - 
+    *    Only return the file if the current ETag matches one of the values provided
+    @property if-none-match? (IfNoneMatch) - 
+    *    Only return the file if the current ETag does not match any of the values provided
+    @property if-modified-since? (IfModifiedSince) - 
+    *    Only return the file if it has been modified after the given date
+    @property if-unmodified-since? (IfUnmodifiedSince) - 
+    *    Only return the file if it has not been modified after the given date*/
 export interface GetFileMetadataHeadersParams {
   /**
    * 
@@ -570,6 +578,26 @@ export interface GetFileMetadataHeadersParams {
     *    Format to convert the image to. If 'auto', the format is determined based on the Accept header.
    */
   f?: OutputFormat;
+  /**
+   * 
+    *    Only return the file if the current ETag matches one of the values provided
+   */
+  "if-match"?: IfMatch;
+  /**
+   * 
+    *    Only return the file if the current ETag does not match any of the values provided
+   */
+  "if-none-match"?: IfNoneMatch;
+  /**
+   * 
+    *    Only return the file if it has been modified after the given date
+   */
+  "if-modified-since"?: IfModifiedSince;
+  /**
+   * 
+    *    Only return the file if it has not been modified after the given date
+   */
+  "if-unmodified-since"?: IfUnmodifiedSince;
 }
 /**
  * Parameters for the getFile method.
@@ -582,7 +610,15 @@ export interface GetFileMetadataHeadersParams {
     @property b? (BlurSigma) - 
     *    Blur the image using this sigma value. Only applies to image files
     @property f? (OutputFormat) - 
-    *    Format to convert the image to. If 'auto', the format is determined based on the Accept header.*/
+    *    Format to convert the image to. If 'auto', the format is determined based on the Accept header.
+    @property if-match? (IfMatch) - 
+    *    Only return the file if the current ETag matches one of the values provided
+    @property if-none-match? (IfNoneMatch) - 
+    *    Only return the file if the current ETag does not match any of the values provided
+    @property if-modified-since? (IfModifiedSince) - 
+    *    Only return the file if it has been modified after the given date
+    @property if-unmodified-since? (IfUnmodifiedSince) - 
+    *    Only return the file if it has not been modified after the given date*/
 export interface GetFileParams {
   /**
    * 
@@ -609,6 +645,26 @@ export interface GetFileParams {
     *    Format to convert the image to. If 'auto', the format is determined based on the Accept header.
    */
   f?: OutputFormat;
+  /**
+   * 
+    *    Only return the file if the current ETag matches one of the values provided
+   */
+  "if-match"?: IfMatch;
+  /**
+   * 
+    *    Only return the file if the current ETag does not match any of the values provided
+   */
+  "if-none-match"?: IfNoneMatch;
+  /**
+   * 
+    *    Only return the file if it has been modified after the given date
+   */
+  "if-modified-since"?: IfModifiedSince;
+  /**
+   * 
+    *    Only return the file if it has not been modified after the given date
+   */
+  "if-unmodified-since"?: IfUnmodifiedSince;
 }
 /**
  * Parameters for the verifyTicket method.
@@ -904,10 +960,26 @@ export const createAPIClient = (
      encodedParameters
         ? `${ baseURL }/files/${id}?${encodedParameters}`
         : `${ baseURL }/files/${id}`;
+    // Header parameters declared by the operation. A caller-supplied header in
+    // `options.headers` overrides these, matching the query/body precedence.
+    const parameterHeaders: Record<string, string> = {}
+    if (params?.["if-match"] !== undefined && params?.["if-match"] !== null) {
+      parameterHeaders["if-match"] = String(params["if-match"]);
+    }
+    if (params?.["if-none-match"] !== undefined && params?.["if-none-match"] !== null) {
+      parameterHeaders["if-none-match"] = String(params["if-none-match"]);
+    }
+    if (params?.["if-modified-since"] !== undefined && params?.["if-modified-since"] !== null) {
+      parameterHeaders["if-modified-since"] = String(params["if-modified-since"]);
+    }
+    if (params?.["if-unmodified-since"] !== undefined && params?.["if-unmodified-since"] !== null) {
+      parameterHeaders["if-unmodified-since"] = String(params["if-unmodified-since"]);
+    }
     const res = await fetch(url, {
       ...options,
       method: "HEAD",
       headers: {
+        ...parameterHeaders,
         ...options?.headers,
       },
     });
@@ -955,10 +1027,26 @@ export const createAPIClient = (
      encodedParameters
         ? `${ baseURL }/files/${id}?${encodedParameters}`
         : `${ baseURL }/files/${id}`;
+    // Header parameters declared by the operation. A caller-supplied header in
+    // `options.headers` overrides these, matching the query/body precedence.
+    const parameterHeaders: Record<string, string> = {}
+    if (params?.["if-match"] !== undefined && params?.["if-match"] !== null) {
+      parameterHeaders["if-match"] = String(params["if-match"]);
+    }
+    if (params?.["if-none-match"] !== undefined && params?.["if-none-match"] !== null) {
+      parameterHeaders["if-none-match"] = String(params["if-none-match"]);
+    }
+    if (params?.["if-modified-since"] !== undefined && params?.["if-modified-since"] !== null) {
+      parameterHeaders["if-modified-since"] = String(params["if-modified-since"]);
+    }
+    if (params?.["if-unmodified-since"] !== undefined && params?.["if-unmodified-since"] !== null) {
+      parameterHeaders["if-unmodified-since"] = String(params["if-unmodified-since"]);
+    }
     const res = await fetch(url, {
       ...options,
       method: "GET",
       headers: {
+        ...parameterHeaders,
         ...options?.headers,
       },
     });
