@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 
 # Bring the local Nhost backend up/down for integration + docstring examples.
-# Mirrors packages/nhost-js/dev-env.sh. The backend project lives under
-# ./build/backend (committed alongside this script).
+# Mirrors packages/nhost-js/dev-env.sh. The backend project is the shared
+# packages/backend-sdk-tests, used by every SDK's integration suite.
 
 set -euo pipefail
 
-FOLDER=./build/backend
+FOLDER=../backend-sdk-tests
 
 
 up() {
     if [ ! -d "$FOLDER" ]; then
-        echo "error: $FOLDER not found (expected the committed backend project)." >&2
+        echo "error: $FOLDER not found (expected the shared testing backend)." >&2
         exit 1
     fi
     cd "$FOLDER"
