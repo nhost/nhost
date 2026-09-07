@@ -22,32 +22,26 @@ import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { RemoveApplicationModal } from '@/features/orgs/projects/common/components/RemoveApplicationModal';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
+import { useCanPauseApplication } from '@/features/orgs/projects/common/hooks/useCanPauseApplication';
+import { useCanUnpauseApplication } from '@/features/orgs/projects/common/hooks/useCanUnpauseApplication';
 import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/useIsCurrentUserOwner';
+import { useIsPausing } from '@/features/orgs/projects/common/hooks/useIsPausing';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useIsUnpausing } from '@/features/orgs/projects/common/hooks/useIsUnpausing';
+import { usePauseApplication } from '@/features/orgs/projects/common/hooks/usePauseApplication';
 import { useRunServices } from '@/features/orgs/projects/common/hooks/useRunServices';
+import { useUnpauseApplication } from '@/features/orgs/projects/common/hooks/useUnpauseApplication';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { getUnpauseErrorMessage } from '@/features/orgs/utils/getUnpauseErrorMessage';
+import { getLockedProjectErrorMessage } from '@/features/orgs/utils/getLockedProjectErrorMessage';
 import {
-  GetOrganizationsDocument,
   useBillingDeleteAppMutation,
-  usePauseApplicationMutation,
-  useUnpauseApplicationMutation,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
 import { useTrackEvent } from '@/hooks/useTrackEvent';
-import { useUserData } from '@/hooks/useUserData';
 import { ApplicationStatus } from '@/types/application';
-import { getErrorMessageSuffix } from '@/utils/databaseErrors';
 import { slugifyString } from '@/utils/helpers';
-
-function getLockedProjectErrorMessage(genericMessage: string) {
-  return (error: Error): string => {
-    const lockReason = getErrorMessageSuffix(error, 'app is locked: ');
-    return lockReason ? `Project is locked: ${lockReason}` : genericMessage;
-  };
-}
 
 const projectNameValidationSchema = Yup.object({
   name: Yup.string()
@@ -67,8 +61,7 @@ export default function SettingsGeneralPage() {
 
   const isOwner = useIsCurrentUserOwner();
   const { currentOrg: org } = useOrgs();
-  const userData = useUserData();
-  const { project, loading, refetch: refetchProject } = useProject();
+  const { project, loading } = useProject();
   const { state } = useAppState();
   const track = useTrackEvent();
 
@@ -88,27 +81,12 @@ export default function SettingsGeneralPage() {
 
   const [updateApp] = useUpdateApplicationMutation();
   const [deleteApplication] = useBillingDeleteAppMutation();
-  const [pauseApplication, { loading: pauseApplicationLoading }] =
-    usePauseApplicationMutation({
-      variables: { appId: project?.id },
-      refetchQueries: [
-        {
-          query: GetOrganizationsDocument,
-          variables: { userId: userData?.id },
-        },
-      ],
-    });
-
-  const [unpauseApplication, { loading: unpauseApplicationLoading }] =
-    useUnpauseApplicationMutation({
-      variables: { appId: project?.id },
-      refetchQueries: [
-        {
-          query: GetOrganizationsDocument,
-          variables: { userId: userData?.id },
-        },
-      ],
-    });
+  const { onPause, loading: pauseLoading } = usePauseApplication();
+  const { onUnpause, loading: unpauseLoading } = useUnpauseApplication();
+  const canPause = useCanPauseApplication();
+  const canUnpause = useCanUnpauseApplication();
+  const isPausing = useIsPausing();
+  const isUnpausing = useIsUnpausing();
 
   const form = useForm<ProjectNameValidationSchema>({
     mode: 'onSubmit',
@@ -190,49 +168,11 @@ export default function SettingsGeneralPage() {
     );
   }
 
-  async function handlePauseApplication() {
-    await execPromiseWithErrorToast(
-      async () => {
-        await pauseApplication();
-        track('Project Paused', { reason: 'manual' });
-        await new Promise((resolve) => {
-          setTimeout(resolve, 1000);
-        });
-        await refetchProject();
-      },
-      {
-        loadingMessage: `Pausing ${project?.name}...`,
-        successMessage: `${project?.name} will be paused, but please note that it may take some time to complete the process.`,
-        errorMessage: getLockedProjectErrorMessage(
-          `An error occurred while trying to pause the project "${project?.name}". Please try again.`,
-        ),
-      },
-    );
-  }
+  const showWakeUpCard =
+    state === ApplicationStatus.Paused || state === ApplicationStatus.Unpausing;
 
-  async function handleTriggerUnpausing() {
-    await execPromiseWithErrorToast(
-      async () => {
-        await unpauseApplication();
-        track('Project Resumed');
-        await new Promise((resolve) => {
-          setTimeout(resolve, 1000);
-        });
-        await refetchProject();
-      },
-      {
-        loadingMessage: 'Starting the project...',
-        successMessage: 'The project has been started successfully.',
-        errorMessage: getUnpauseErrorMessage,
-      },
-    );
-  }
-  const isPaused = state === ApplicationStatus.Paused;
-  const isPausing = state === ApplicationStatus.Pausing;
-
-  const pausedDisabled = !isPlatform || pauseApplicationLoading;
-
-  const wakeUpDisabled = !isPlatform || unpauseApplicationLoading || isPausing;
+  const pauseDisabled = !isPlatform || !canPause;
+  const wakeUpDisabled = !isPlatform || !canUnpause;
 
   if (loading) {
     return <LoadingScreen />;
@@ -271,7 +211,7 @@ export default function SettingsGeneralPage() {
         </Form>
       </FormProvider>
 
-      {isPaused || isPausing ? (
+      {showWakeUpCard ? (
         <SettingsCard>
           <SettingsCardHeader
             title="Wake up Project"
@@ -282,17 +222,17 @@ export default function SettingsGeneralPage() {
             <ButtonWithLoading
               type="button"
               disabled={wakeUpDisabled}
-              loading={unpauseApplicationLoading || isPausing}
-              onClick={handleTriggerUnpausing}
+              loading={unpauseLoading || isUnpausing}
+              onClick={onUnpause}
               className="w-full sm:w-auto"
             >
-              {isPausing ? 'Pausing...' : 'Wake up'}
+              {isUnpausing ? 'Waking up...' : 'Wake up'}
             </ButtonWithLoading>
           </SettingsCardFooter>
         </SettingsCard>
       ) : null}
 
-      {!isPaused && !isPausing && (
+      {!showWakeUpCard && (
         <SettingsCard>
           <SettingsCardHeader
             title="Pause Project"
@@ -302,8 +242,8 @@ export default function SettingsGeneralPage() {
           <SettingsCardFooter>
             <ButtonWithLoading
               type="button"
-              disabled={pausedDisabled}
-              loading={pauseApplicationLoading}
+              disabled={pauseDisabled}
+              loading={pauseLoading || isPausing}
               onClick={() => {
                 openAlertDialog({
                   title: 'Pause Project?',
@@ -347,13 +287,13 @@ export default function SettingsGeneralPage() {
                   ),
                   props: {
                     maxWidth: 'sm',
-                    onPrimaryAction: handlePauseApplication,
+                    onPrimaryAction: onPause,
                   },
                 });
               }}
               className="w-full sm:w-auto"
             >
-              Pause
+              {isPausing ? 'Pausing...' : 'Pause'}
             </ButtonWithLoading>
           </SettingsCardFooter>
         </SettingsCard>
