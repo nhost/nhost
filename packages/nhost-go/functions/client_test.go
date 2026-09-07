@@ -114,10 +114,12 @@ func TestCallDecodeBodyByContentType(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-				w.Header().Set("Content-Type", tc.contentType)
-				_, _ = io.WriteString(w, tc.payload)
-			}))
+			srv := httptest.NewServer(
+				http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+					w.Header().Set("Content-Type", tc.contentType)
+					_, _ = io.WriteString(w, tc.payload)
+				}),
+			)
 			defer srv.Close()
 
 			c := functions.NewClient(srv.URL, srv.Client())
@@ -169,7 +171,12 @@ func TestPostDoesNotMutateCallerHeaders(t *testing.T) {
 
 	headers := http.Header{"X-Trace": {"t1"}}
 
-	if _, _, err := c.Post(context.Background(), "/echo", map[string]any{"a": 1}, headers); err != nil {
+	if _, _, err := c.Post(
+		context.Background(),
+		"/echo",
+		map[string]any{"a": 1},
+		headers,
+	); err != nil {
 		t.Fatalf("post: %v", err)
 	}
 
