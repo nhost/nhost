@@ -207,9 +207,65 @@ pub struct Nhost {
     /// serverless functions, or [`functions::Client::request`] for full control.
     pub functions: functions::Client,
     /// The session store shared by every client and the session middleware:
-    /// read it with [`Nhost::session`], observe it with
-    /// [`SessionStorage::on_change`].
+    /// read it with [`Nhost::session`].
     pub sessions: SessionStorage,
+}
+
+/// Follows redirects only while the origin is unchanged.
+///
+/// A cross-origin `Location` is not followed: reqwest applies redirects beneath
+/// the middleware layer (so [`AttachToken`] and [`AdminSession`] never re-check
+/// the new URL) and strips only `Authorization` and `Cookie` across hosts, which
+/// would leave `x-hasura-admin-secret` and the other `x-hasura-*` credentials on
+/// a request to a host the SDK was never pointed at.
+#[cfg(not(target_arch = "wasm32"))]
+fn same_origin_redirect_policy() -> reqwest::redirect::Policy {
+    const MAX_REDIRECTS: usize = 10;
+
+    reqwest::redirect::Policy::custom(move |attempt| {
+        let Some(previous) = attempt.previous().last() else {
+            return attempt.follow();
+        };
+        let next = attempt.url();
+        let same_origin = next.scheme().eq_ignore_ascii_case(previous.scheme())
+            && next.host_str() == previous.host_str()
+            && next.port_or_known_default() == previous.port_or_known_default();
+
+        if !same_origin {
+            attempt.stop()
+        } else if attempt.previous().len() >= MAX_REDIRECTS {
+            attempt.error("too many redirects")
+        } else {
+            attempt.follow()
+        }
+    })
+}
+
+/// Builds the HTTP client used when the caller supplies none, refusing to follow
+/// a redirect off the service's origin.
+#[cfg(not(target_arch = "wasm32"))]
+fn default_http_client() -> Result<reqwest::Client, Error> {
+    reqwest::Client::builder()
+        .redirect(same_origin_redirect_policy())
+        .build()
+        .map_err(|error| Error::Config(format!("could not build the default HTTP client: {error}")))
+}
+
+/// Builds the HTTP client used when the caller supplies none.
+///
+/// On wasm32 reqwest delegates to the browser's `fetch`, which exposes no
+/// redirect policy, so there is nothing to configure here. The protection is
+/// therefore weaker than the native build's: the browser follows a cross-origin
+/// redirect itself, and while re-sending `x-hasura-*` headers to a new origin
+/// requires that origin to permit them in a CORS preflight, that is an opt-in by
+/// the redirect target rather than a refusal by this client. The origin checks
+/// in [`crate::middleware::AttachToken`] and
+/// [`crate::middleware::AdminSession`] still govern the initial request.
+#[cfg(target_arch = "wasm32")]
+fn default_http_client() -> Result<reqwest::Client, Error> {
+    reqwest::Client::builder()
+        .build()
+        .map_err(|error| Error::Config(format!("could not build the default HTTP client: {error}")))
 }
 
 impl Nhost {
@@ -262,7 +318,10 @@ impl Nhost {
     ///         storage: sessions.clone(),
     ///         margin: nhost::DEFAULT_REFRESH_MARGIN_SECONDS,
     ///     }),
-    ///     Arc::new(AttachToken { storage: sessions.clone() }),
+    ///     Arc::new(AttachToken {
+    ///         storage: sessions.clone(),
+    ///         service_url: url(Service::Auth),
+    ///     }),
     /// ];
     ///
     /// let client = Nhost::from_clients(
@@ -543,7 +602,17 @@ impl NhostBuilder {
 
         let backend = self.storage.unwrap_or_else(session::detect_storage);
         let sessions = SessionStorage::new(backend);
-        let http = self.reqwest.unwrap_or_default();
+        // Redirects are followed by reqwest below the middleware layer, so a
+        // redirected request never re-enters the origin checks in AttachToken
+        // and AdminSession. reqwest strips only Authorization and Cookie across
+        // hosts, never the x-hasura-* credentials, and a redirect policy cannot
+        // edit headers. Follow same-origin redirects only, so a cross-origin
+        // Location cannot carry credentials off the service. A caller-supplied
+        // client keeps its own policy and owns that decision.
+        let http = match self.reqwest {
+            Some(client) => client,
+            None => default_http_client()?,
+        };
 
         // A bare auth client (no middleware) used by the refresh middleware, so
         // refreshing does not recurse through the session middleware.
@@ -570,38 +639,55 @@ impl NhostBuilder {
                 priority: HeaderPriority::Default,
             }));
         }
-        match self.mode {
-            SessionMode::ClientSide => {
-                common.push(Arc::new(SessionRefresh {
-                    auth: refresh_auth.clone(),
-                    storage: sessions.clone(),
-                    margin,
-                }));
-                common.push(Arc::new(AttachToken {
-                    storage: sessions.clone(),
-                }));
-            }
-            SessionMode::ServerSide => {
-                common.push(Arc::new(AttachToken {
-                    storage: sessions.clone(),
-                }));
-            }
-            SessionMode::Disabled => {}
-        }
-
-        // The admin secret applies to the data services, not auth.
-        let mut data = common.clone();
-        if let Some(admin) = &self.admin {
-            data.push(Arc::new(AdminSession {
-                options: admin.clone(),
+        if self.mode == SessionMode::ClientSide {
+            common.push(Arc::new(SessionRefresh {
+                auth: refresh_auth.clone(),
+                storage: sessions.clone(),
+                margin,
             }));
         }
 
-        let auth = auth::Client::new(auth_url, http.clone(), common)
+        // AttachToken and AdminSession are scoped to one service origin, so each
+        // service gets its own instance built from its own base URL rather than
+        // sharing a single one across all four.
+        let attach_token = |service_url: &str| -> Option<Arc<dyn Middleware>> {
+            match self.mode {
+                SessionMode::ClientSide | SessionMode::ServerSide => Some(Arc::new(AttachToken {
+                    storage: sessions.clone(),
+                    service_url: service_url.to_string(),
+                })
+                    as Arc<dyn Middleware>),
+                SessionMode::Disabled => None,
+            }
+        };
+        let admin_session = |service_url: &str| -> Option<Arc<dyn Middleware>> {
+            self.admin.as_ref().map(|admin| {
+                Arc::new(AdminSession {
+                    options: admin.clone(),
+                    service_url: service_url.to_string(),
+                }) as Arc<dyn Middleware>
+            })
+        };
+        // The admin secret applies to the data services, not auth.
+        let service_stack = |service_url: &str, admin: bool| -> Vec<Arc<dyn Middleware>> {
+            let mut stack = common.clone();
+            stack.extend(attach_token(service_url));
+            if admin {
+                stack.extend(admin_session(service_url));
+            }
+            stack
+        };
+
+        let auth_stack = service_stack(&auth_url, false);
+        let storage_stack = service_stack(&storage_url, true);
+        let graphql_stack = service_stack(&graphql_url, true);
+        let functions_stack = service_stack(&functions_url, true);
+
+        let auth = auth::Client::new(auth_url, http.clone(), auth_stack)
             .with_session_capture(sessions.clone());
-        let storage = storage::Client::new(storage_url, http.clone(), data.clone());
-        let graphql = graphql::Client::new(graphql_url, http.clone(), data.clone());
-        let functions = functions::Client::new(functions_url, http, data);
+        let storage = storage::Client::new(storage_url, http.clone(), storage_stack);
+        let graphql = graphql::Client::new(graphql_url, http.clone(), graphql_stack);
+        let functions = functions::Client::new(functions_url, http, functions_stack);
 
         Ok(Nhost::from_clients(
             auth,

@@ -9,7 +9,6 @@ use crate::auth::{self, RefreshTokenRequest, Session};
 use crate::error::Error;
 use base64::Engine;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 // The file-backed store is native-only; the browser uses localStorage instead.
@@ -502,24 +501,14 @@ pub fn detect_storage() -> Box<dyn Backend> {
     Box::<MemoryStorage>::default()
 }
 
-// Callbacks are stored behind an Arc so `notify` can snapshot the current set
-// under the lock, release it, and invoke them without holding the mutex (which
-// would deadlock if a callback re-enters set/remove/subscribe/unsubscribe).
-#[cfg(not(all(feature = "wasm", target_arch = "wasm32")))]
-type ChangeCallback = Arc<dyn Fn(Option<&StoredSession>) + Send + Sync>;
-#[cfg(all(feature = "wasm", target_arch = "wasm32"))]
-type ChangeCallback = Arc<dyn Fn(Option<&StoredSession>)>;
-
 struct StorageInner {
     backend: Box<dyn Backend>,
-    subscribers: Mutex<HashMap<usize, ChangeCallback>>,
-    next_id: Mutex<usize>,
     refresh_deadline: Mutex<Option<(String, i64)>>,
     refresh_lock: tokio::sync::Mutex<()>,
 }
 
-/// Wraps a [`Backend`], decoding tokens on set and notifying subscribers on
-/// every change. Cheaply cloneable (shares one backend).
+/// Wraps a [`Backend`], decoding tokens on set. Cheaply cloneable (shares one
+/// backend).
 #[derive(Clone)]
 pub struct SessionStorage {
     inner: Arc<StorageInner>,
@@ -543,8 +532,6 @@ impl SessionStorage {
         Self {
             inner: Arc::new(StorageInner {
                 backend,
-                subscribers: Mutex::new(HashMap::new()),
-                next_id: Mutex::new(0),
                 refresh_deadline: Mutex::new(None),
                 refresh_lock: tokio::sync::Mutex::new(()),
             }),
@@ -565,10 +552,10 @@ impl SessionStorage {
         Ok(Some(canonicalize_stored_session(stored)?))
     }
 
-    /// Stores a raw auth session, enriching it into a stored session, and
-    /// notifies subscribers. The access token must contain a positive integer
-    /// `exp` claim representable as milliseconds and `accessTokenExpiresIn`
-    /// must be a positive duration representable as milliseconds.
+    /// Stores a raw auth session, enriching it into a stored session. The access
+    /// token must contain a positive integer `exp` claim representable as
+    /// milliseconds and `accessTokenExpiresIn` must be a positive duration
+    /// representable as milliseconds.
     pub fn set(&self, value: Session) -> Result<(), Error> {
         self.set_received(value, false)
     }
@@ -579,16 +566,13 @@ impl SessionStorage {
         self.inner.backend.set(&stored)?;
         *self.inner.refresh_deadline.lock().unwrap() =
             Some((stored.session.access_token.clone(), deadline));
-        self.notify(Some(&stored));
         Ok(())
     }
 
-    /// Deletes the persisted session, clears its refresh schedule, and notifies
-    /// subscribers with `None` after the backend deletion succeeds.
+    /// Deletes the persisted session and clears its refresh schedule.
     pub fn remove(&self) -> Result<(), Error> {
         self.inner.backend.remove()?;
         *self.inner.refresh_deadline.lock().unwrap() = None;
-        self.notify(None);
         Ok(())
     }
 
@@ -607,73 +591,6 @@ impl SessionStorage {
         let deadline = persisted_refresh_deadline(session, now)?;
         *scheduled = Some((session.session.access_token.clone(), deadline));
         Ok(deadline)
-    }
-
-    /// Subscribes to session changes; the returned guard unsubscribes on drop.
-    #[cfg(not(all(feature = "wasm", target_arch = "wasm32")))]
-    pub fn on_change<F>(&self, callback: F) -> Subscription
-    where
-        F: Fn(Option<&StoredSession>) + Send + Sync + 'static,
-    {
-        self.subscribe(Arc::new(callback))
-    }
-
-    /// Subscribes to session changes; the returned guard unsubscribes on drop.
-    #[cfg(all(feature = "wasm", target_arch = "wasm32"))]
-    pub fn on_change<F>(&self, callback: F) -> Subscription
-    where
-        F: Fn(Option<&StoredSession>) + 'static,
-    {
-        self.subscribe(Arc::new(callback))
-    }
-
-    fn subscribe(&self, callback: ChangeCallback) -> Subscription {
-        let mut id = self.inner.next_id.lock().unwrap();
-        let this_id = *id;
-        *id += 1;
-        self.inner
-            .subscribers
-            .lock()
-            .unwrap()
-            .insert(this_id, callback);
-        Subscription {
-            inner: Arc::downgrade(&self.inner),
-            id: this_id,
-        }
-    }
-
-    fn notify(&self, session: Option<&StoredSession>) {
-        // Snapshot the callbacks and drop the lock before invoking them. Running
-        // callbacks outside the lock avoids a reentrancy deadlock when a
-        // callback touches the storage (set/remove/subscribe or drops its
-        // Subscription), and recovering from a poisoned lock plus isolating each
-        // callback keeps one panicking subscriber from bricking the rest.
-        let callbacks: Vec<ChangeCallback> = self
-            .inner
-            .subscribers
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner)
-            .values()
-            .cloned()
-            .collect();
-
-        for cb in callbacks {
-            let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| cb(session)));
-        }
-    }
-}
-
-/// A session-change subscription; unsubscribes when dropped.
-pub struct Subscription {
-    inner: std::sync::Weak<StorageInner>,
-    id: usize,
-}
-
-impl Drop for Subscription {
-    fn drop(&mut self) {
-        if let Some(inner) = self.inner.upgrade() {
-            inner.subscribers.lock().unwrap().remove(&self.id);
-        }
     }
 }
 
