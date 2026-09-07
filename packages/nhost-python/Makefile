@@ -19,23 +19,17 @@ _dev-env-build:
 	@echo "Nothing to do"
 
 
-# --- Local convenience targets (not used by CI; the nix check runs these) ---
+# --- Local convenience targets (CI runs equivalent commands in the Nix check) ---
 
-.PHONY: test test-local
-test test-local:  ## Run the offline unit suite via uv (no backend).
-	uv run pytest
+.PHONY: test-local
+test-local:  ## Run the offline unit tests and doctests (no backend).
+	uv run pytest tests
+	uv run pytest --doctest-modules --import-mode=importlib src
 
-.PHONY: test-doctests doctests-local
-test-doctests doctests-local:  ## Run docstring examples via uv; backend ones skip.
-	uv run pytest --doctest-modules --import-mode=importlib src tests
-
-.PHONY: test-integration
-test-integration:  ## Run backend doctests, or skip when the local backend is unavailable.
-	@if uv run python -c 'import httpx; response = httpx.post("https://local.graphql.local.nhost.run/v1", json={"query": "query { __typename }"}, timeout=2); response.raise_for_status()' >/dev/null 2>&1; then \
-		NHOST_LOCAL_BACKEND=1 uv run pytest --doctest-modules --import-mode=importlib src tests; \
-	else \
-		echo "SKIP: local Nhost backend is unavailable; run make dev-env-up first."; \
-	fi
+.PHONY: integration-local
+integration-local:  ## Run backend doctests and integration tests; requires make dev-env-up.
+	NHOST_LOCAL_BACKEND=1 uv run pytest --doctest-modules --import-mode=importlib src
+	NHOST_LOCAL_BACKEND=1 uv run pytest tests -m integration
 
 .PHONY: generate
 generate:  ## Regenerate the auth/storage clients from the OpenAPI specs.

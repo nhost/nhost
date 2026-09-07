@@ -11,6 +11,7 @@ from ..fetch import (
     ChainFunction,
     FetchResponse,
     HTTPError,
+    NhostError,
     ResponseDecodeError,
     create_enhanced_fetch,
     to_jsonable,
@@ -28,6 +29,24 @@ _UNSET = _Unset()
 def _is_json_media_type(content_type: str) -> bool:
     media_type = content_type.partition(";")[0].strip().casefold()
     return media_type == "application/json" or media_type.endswith("+json")
+
+
+def _join_function_url(base_url: str, path: str) -> httpx.URL:
+    base = httpx.URL(base_url)
+    base_directory = base.copy_with(
+        raw_path=base.raw_path.partition(b"?")[0].rstrip(b"/") + b"/",
+        fragment=None,
+    )
+    relative = httpx.URL(path)
+    if relative.scheme or relative.host:
+        raise ValueError("function path must not include a scheme or host")
+    if ".." in relative.path.split("/"):
+        raise ValueError("function path must not escape the functions base path")
+
+    joined = base_directory.join(path.lstrip("/"))
+    if not joined.path.startswith(base_directory.path):
+        raise ValueError("function path must not escape the functions base path")
+    return joined
 
 
 def _decode_body(response: httpx.Response) -> Any:
@@ -90,6 +109,10 @@ class Client:
         Omitting ``json`` sends no JSON body; passing ``json=None`` explicitly
         sends the JSON literal ``null``. ``content`` and ``json`` are mutually
         exclusive.
+
+        Raises:
+            ValueError: If ``path`` is absolute or escapes the Functions base path.
+            NhostError: If the Functions base URL or ``path`` is not a valid URL.
         """
         if json is not _UNSET and content is not None:
             raise ValueError("content and json are mutually exclusive")
@@ -104,16 +127,21 @@ class Client:
         elif content is not None:
             kwargs["content"] = content
 
-        request = self._http.build_request(method, f"{self.base_url}{path}", **kwargs)
+        try:
+            request = self._http.build_request(
+                method, _join_function_url(self.base_url, path), **kwargs
+            )
+        except httpx.InvalidURL as error:
+            raise NhostError(f"invalid Functions URL or path: {error}") from error
         response = await self._fetch(request)
 
         try:
             body = _decode_body(response)
         except ResponseDecodeError as error:
-            if response.is_error:
+            if response.status_code >= httpx.codes.MULTIPLE_CHOICES:
                 raise HTTPError.from_response(response) from error
             raise
-        if response.is_error:
+        if response.status_code >= httpx.codes.MULTIPLE_CHOICES:
             raise HTTPError.from_response(response, body=body)
 
         return FetchResponse(body=body, status=response.status_code, headers=response.headers)
@@ -125,7 +153,12 @@ class Client:
         json: Any = None,
         headers: Mapping[str, str] | None = None,
     ) -> FetchResponse[Any]:
-        """Invoke a function with a JSON ``POST`` request."""
+        """Invoke a function with a JSON ``POST`` request.
+
+        Raises:
+            ValueError: If ``path`` is absolute or escapes the Functions base path.
+            NhostError: If the Functions base URL or ``path`` is not a valid URL.
+        """
         request_headers = httpx.Headers(headers)
         request_headers.setdefault("Accept", "application/json")
         return await self.fetch(path, method="POST", headers=request_headers, json=json)
