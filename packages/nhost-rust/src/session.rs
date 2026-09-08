@@ -335,12 +335,22 @@ impl Backend for MemoryStorage {
 ///
 /// The persisted [`StoredSession`] includes the long-lived refresh token, which
 /// can mint access tokens until it is revoked server-side. On Unix the file is
-/// written `0o600`, including when an earlier version left it at a wider mode,
-/// so it is readable only by the owning user. A parent directory *created* here
-/// is `0o700`; a directory that already exists is left as it is, so point this
-/// at a private path rather than relying on it to tighten one. Other platforms
-/// inherit the default permissions, so avoid this backend on shared storage
-/// there.
+/// created `0o600`, so it is readable only by the owning user; because each
+/// write renames a freshly created file into place, a file left at a wider mode
+/// by an earlier version is replaced rather than reused. A parent directory
+/// *created* here is `0o700`; a directory that already exists is left as it is,
+/// so point this at a private path rather than relying on it to tighten one.
+/// Other platforms inherit the default permissions, so avoid this backend on
+/// shared storage there.
+///
+/// # Durability
+///
+/// Writes are atomic: the session is written to a temporary file in the same
+/// directory, flushed, and renamed over the destination, so a concurrent reader
+/// or an interrupted write never observes a partial file. A file that cannot be
+/// parsed is reported as [`Error::Storage`] and left in place — it may still
+/// hold a usable refresh token, so it is never deleted to manufacture a clean
+/// "no session" result.
 #[cfg(not(all(feature = "wasm", target_arch = "wasm32")))]
 pub struct FileStorage {
     path: PathBuf,
@@ -354,6 +364,65 @@ impl FileStorage {
     pub fn new(path: impl Into<PathBuf>) -> Self {
         Self { path: path.into() }
     }
+
+    /// Names the scratch file [`Backend::set`] renames into place. The process
+    /// id separates concurrent processes and the counter separates concurrent
+    /// writers within one, so two writers never contend for the same path.
+    fn temporary_name(&self) -> String {
+        static COUNTER: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+        let file_name = self
+            .path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .unwrap_or("session");
+
+        format!(
+            ".{file_name}.{}.{}.tmp",
+            std::process::id(),
+            COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
+        )
+    }
+}
+
+/// Removes a partially written scratch file unless it was renamed into place.
+///
+/// Every failure between creating the temporary file and renaming it returns
+/// early, so the cleanup is a drop guard rather than a step that each of those
+/// paths has to remember.
+#[cfg(not(all(feature = "wasm", target_arch = "wasm32")))]
+struct TemporaryFile {
+    path: PathBuf,
+    renamed: bool,
+}
+
+#[cfg(not(all(feature = "wasm", target_arch = "wasm32")))]
+impl TemporaryFile {
+    fn new(path: PathBuf) -> Self {
+        Self {
+            path,
+            renamed: false,
+        }
+    }
+
+    fn path(&self) -> &std::path::Path {
+        &self.path
+    }
+
+    /// Gives up ownership after a successful rename, so the guard does not
+    /// delete the file now living at the destination.
+    fn into_renamed(mut self) {
+        self.renamed = true;
+    }
+}
+
+#[cfg(not(all(feature = "wasm", target_arch = "wasm32")))]
+impl Drop for TemporaryFile {
+    fn drop(&mut self) {
+        if !self.renamed {
+            let _ = fs::remove_file(&self.path);
+        }
+    }
 }
 
 #[cfg(not(all(feature = "wasm", target_arch = "wasm32")))]
@@ -364,14 +433,14 @@ impl Backend for FileStorage {
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(None),
             Err(e) => return Err(Error::Storage(e.to_string())),
         };
-        match serde_json::from_slice(&data) {
-            Ok(s) => Ok(Some(s)),
-            // A corrupt file is not fatal: drop it and report "no session".
-            Err(_) => {
-                let _ = self.remove();
-                Ok(None)
-            }
-        }
+
+        // A file that will not parse is reported, never deleted. Discarding it
+        // would destroy the refresh token it may still contain, and reporting
+        // `Ok(None)` would present that loss to the caller as a signed out
+        // user, so a transient problem becomes permanent silently.
+        serde_json::from_slice(&data)
+            .map(Some)
+            .map_err(|e| Error::Storage(format!("{}: {e}", self.path.display())))
     }
 
     fn set(&self, value: &StoredSession) -> Result<(), Error> {
@@ -379,7 +448,9 @@ impl Backend for FileStorage {
 
         let data = serde_json::to_vec(value)?;
 
-        if let Some(parent) = self.path.parent() {
+        let parent = self.path.parent().unwrap_or(std::path::Path::new("."));
+
+        if self.path.parent().is_some() {
             let mut builder = fs::DirBuilder::new();
             builder.recursive(true);
             #[cfg(unix)]
@@ -392,10 +463,19 @@ impl Backend for FileStorage {
                 .map_err(|e| Error::Storage(e.to_string()))?;
         }
 
+        // Write to a temporary file in the same directory and rename it over the
+        // destination. Writing in place would truncate the stored session first,
+        // so an interrupted write would leave a half-written file that no longer
+        // parses; rename within a directory is atomic, so a reader sees either
+        // the previous session or the new one.
+        let temporary = TemporaryFile::new(parent.join(self.temporary_name()));
+
         // The mode is applied at open time rather than by a later chmod, so the
-        // refresh token is never briefly readable by other users.
+        // refresh token is never briefly readable by other users. `create_new`
+        // refuses to reuse a path, so a stale temporary file from a crashed run
+        // is never written through.
         let mut options = fs::OpenOptions::new();
-        options.write(true).create(true).truncate(true);
+        options.write(true).create_new(true);
         #[cfg(unix)]
         {
             use std::os::unix::fs::OpenOptionsExt;
@@ -403,21 +483,25 @@ impl Backend for FileStorage {
         }
 
         let mut file = options
-            .open(&self.path)
+            .open(temporary.path())
             .map_err(|e| Error::Storage(e.to_string()))?;
 
-        // OpenOptions::mode only applies when the file is created, so a file
-        // left behind at a wider mode keeps it. Narrow it before the new token
-        // is written; truncate has already dropped the previous contents.
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::PermissionsExt;
-            file.set_permissions(fs::Permissions::from_mode(0o600))
-                .map_err(|e| Error::Storage(e.to_string()))?;
-        }
-
         file.write_all(&data)
-            .map_err(|e| Error::Storage(e.to_string()))
+            .map_err(|e| Error::Storage(e.to_string()))?;
+
+        // Flush to disk before the rename. Without this the rename can be
+        // durable while the contents are not, which is the truncated-file case
+        // this rewrite exists to prevent.
+        file.sync_all().map_err(|e| Error::Storage(e.to_string()))?;
+        drop(file);
+
+        // Renaming moves the temporary file's inode, so the destination takes
+        // its 0o600 mode; a file previously left at a wider mode is replaced
+        // rather than reused, and needs no separate chmod.
+        fs::rename(temporary.path(), &self.path).map_err(|e| Error::Storage(e.to_string()))?;
+        temporary.into_renamed();
+
+        Ok(())
     }
 
     fn remove(&self) -> Result<(), Error> {
@@ -464,13 +548,13 @@ impl Backend for LocalStorage {
             Ok(None) => return Ok(None),
             Err(_) => return Err(Error::Storage("localStorage read failed".to_string())),
         };
-        match serde_json::from_str(&raw) {
-            Ok(s) => Ok(Some(s)),
-            Err(_) => {
-                let _ = self.remove();
-                Ok(None)
-            }
-        }
+        // Reported, never deleted: the stored value may hold a usable refresh
+        // token, and `Ok(None)` would present the loss as a signed out user.
+        // A value written by another SDK version is a case to surface, not to
+        // silently discard.
+        serde_json::from_str(&raw)
+            .map(Some)
+            .map_err(|e| Error::Storage(format!("{}: {e}", Self::KEY)))
     }
 
     fn set(&self, value: &StoredSession) -> Result<(), Error> {
@@ -715,7 +799,8 @@ async fn refresh_once(
 /// With a nonzero margin, an expired session's refresh request is retried once
 /// only when no 2xx response was observed. If both requests fail, this returns
 /// `Ok(None)` but retains the existing session unless the second failure has
-/// status `401`, which triggers a store-clear attempt. `Ok(None)` also means
+/// status `401`, which clears the store; a failure to clear it is returned
+/// rather than reported as a sign-out. `Ok(None)` also means
 /// there was no session to refresh; it does not by itself mean the store is
 /// empty, so call [`SessionStorage::get`] (or [`crate::Nhost::session`]) to
 /// distinguish those cases. From [`crate::middleware::SessionRefresh`], a
@@ -755,7 +840,11 @@ pub async fn refresh_session(
             Err(RefreshFailure::DoNotRetry(error)) => Err(error),
             Err(RefreshFailure::RequestFailed(error)) => {
                 if error.status() == Some(UNAUTHORIZED) {
-                    let _ = storage.remove();
+                    // The refresh token was rejected, so the stored session is
+                    // unusable. Report a failure to clear it rather than
+                    // returning `Ok(None)`: that reads as a clean sign-out
+                    // while the dead session stays behind for the next `get`.
+                    storage.remove()?;
                 }
                 Ok(None)
             }
