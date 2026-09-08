@@ -13,32 +13,10 @@ let
   # codegen is the prebuilt binary; gen.sh prefers it over `go run`.
   codegen = self.packages.${pkgs.system}.codegen;
 
-  # Vendored crates resolved from the committed Cargo.lock (no network needed
-  # to compile in the sandbox).
-  cargoVendorDir = pkgs.rustPlatform.importCargoLock {
-    lockFile = ./Cargo.lock;
-  };
-
-  rustDeps = [
-    pkgs.rustc
-    pkgs.cargo
-    pkgs.clippy
-    pkgs.rustfmt
-  ];
-
-  checkDeps = rustDeps ++ [
-    codegen
-    pkgs.cargo-deny
-    # cargo-deny fetches the RustSec advisory database through git.
-    pkgs.git
-    # C toolchain: rustc needs a linker (cc) to build proc-macros and crates.
-    pkgs.stdenv.cc
-    # openssl + pkg-config let the `native-tls` feature build (openssl-sys).
-    pkgs.openssl
-    pkgs.pkg-config
-    # CA bundle for the integration run (its setup hook sets SSL_CERT_FILE).
-    pkgs.cacert
-  ];
+  # The Rust toolchain, cargo-deny, and the C/openssl/CA dependencies every
+  # crate check needs come from nixops-lib.rust; only the codegen binary is
+  # specific to this package.
+  checkDeps = [ codegen ];
 
   src = fs.toSource {
     root = ../..;
@@ -56,93 +34,67 @@ let
   };
 in
 {
-  devShell = pkgs.mkShell {
+  devShell = nixops-lib.rust.devShell {
     buildInputs = checkDeps ++ [ pkgs.nhost.nhost-cli ];
   };
 
-  check =
-    pkgs.runCommand "nhost-rust-tests"
-      {
-        # The integration tests talk to the local backend started by
-        # `make dev-env-up`, so the check must run outside the sandbox.
-        __noChroot = true;
-        nativeBuildInputs = checkDeps;
-      }
-      ''
-        set -eo pipefail
-        export HOME=$(mktemp -d)
-        export CARGO_HOME="$HOME/cargo"
-        mkdir -p "$CARGO_HOME"
-        cat > "$CARGO_HOME/config.toml" <<EOF
-        [source.crates-io]
-        replace-with = "vendored-sources"
-        [source.vendored-sources]
-        directory = "${cargoVendorDir}"
-        EOF
+  check = nixops-lib.rust.check {
+    inherit src submodule checkDeps;
 
-        cp -r ${src} src
-        chmod +w -R src
-        cd src/${submodule}
+    cargoLock = ./Cargo.lock;
+    denyConfig = ./deny.toml;
 
-        echo "➜ Checking generated clients are up to date (codegen + rustfmt)"
-        cp src/auth/client.rs "$TMPDIR/auth.before"
-        cp src/storage/client.rs "$TMPDIR/storage.before"
-        sh ./gen.sh
-        diff "$TMPDIR/auth.before" src/auth/client.rs \
-          || (echo "❌ auth/client.rs is stale; run ./gen.sh" && exit 1)
-        diff "$TMPDIR/storage.before" src/storage/client.rs \
-          || (echo "❌ storage/client.rs is stale; run ./gen.sh" && exit 1)
+    # The shared clippy and test steps cover the default (rustls-tls) feature
+    # set; the other three feature sets are checked in extraCheck below.
+    clippyArgs = "--lib --tests";
+    cargoTestArgs = "--lib --test unit";
 
-        echo "➜ Resolving the locked all-features dependency graph from vendored sources"
-        cargo metadata --offline --locked --all-features --format-version 1 \
-          > "$TMPDIR/cargo-metadata.json"
+    # Regenerating in place would leave the working copy formatted by whichever
+    # rustfmt this check pinned, so gen.sh runs against a throwaway copy and the
+    # committed clients are compared to its output.
+    preCheck = ''
+      echo "➜ Checking generated clients are up to date (codegen + rustfmt)"
+      mkdir -p $TMPDIR/gen
+      cp -r ${src}/* $TMPDIR/gen
+      chmod +w -R $TMPDIR/gen
+      sh $TMPDIR/gen/${submodule}/gen.sh
+      diff ${src}/${submodule}/src/auth/client.rs $TMPDIR/gen/${submodule}/src/auth/client.rs \
+        || (echo "❌ auth/client.rs is stale; run ./gen.sh" && exit 1)
+      diff ${src}/${submodule}/src/storage/client.rs $TMPDIR/gen/${submodule}/src/storage/client.rs \
+        || (echo "❌ storage/client.rs is stale; run ./gen.sh" && exit 1)
+      echo ""
+    '';
 
-        echo "➜ Fetching the current RustSec database and crates.io index"
-        buildCargoHome="$CARGO_HOME"
-        export CARGO_HOME="$TMPDIR/cargo-deny"
-        mkdir -p "$CARGO_HOME"
-        cargo deny --metadata-path "$TMPDIR/cargo-metadata.json" fetch db index
+    # This crate ships four feature sets and only one of them is the default, so
+    # the remaining three are compiled and tested here. The integration suite
+    # needs the local backend and so cannot live in the shared test step.
+    extraCheck = ''
+      echo "➜ Building with the native-tls (openssl) backend"
+      cargo build --offline --locked --lib --no-default-features --features native-tls
 
-        echo "➜ Checking dependencies for security advisories"
-        cargo deny --metadata-path "$TMPDIR/cargo-metadata.json" \
-          --locked --offline check advisories
-        export CARGO_HOME="$buildCargoHome"
+      echo "➜ Running clippy for the wasm/browser feature (including tests)"
+      cargo clippy --offline --locked --lib --tests \
+        --no-default-features --features wasm -- -D warnings
 
-        echo "➜ Checking rustfmt"
-        cargo fmt --check
+      echo "➜ Building the wasm32 browser target"
+      cargo build --offline --locked --target wasm32-unknown-unknown \
+        --no-default-features --features wasm
 
-        echo "➜ Running clippy (default / rustls-tls)"
-        cargo clippy --offline --lib --tests -- -D warnings
+      echo "➜ Running the offline unit tests with the wasm/browser feature"
+      cargo test --offline --locked --test unit --no-default-features --features wasm
 
-        echo "➜ Building with the native-tls (openssl) backend"
-        cargo build --offline --lib --no-default-features --features native-tls
+      echo "➜ Compiling the documentation examples"
+      cargo test --offline --locked --doc
 
-        echo "➜ Running clippy for the wasm/browser feature (including tests)"
-        cargo clippy --offline --lib --tests --no-default-features --features wasm -- -D warnings
+      # The examples that exercise this SDK live under examples/ and have
+      # their own checks (nhost-rust-tutorial, leptos), so they are compiled
+      # against the SDK there rather than here.
 
-        echo "➜ Building the wasm32 browser target"
-        cargo build --offline --target wasm32-unknown-unknown \
-          --no-default-features --features wasm
-
-        echo "➜ Running the offline unit tests (no backend)"
-        cargo test --offline --lib --test unit
-
-        echo "➜ Running the offline unit tests with the wasm/browser feature"
-        cargo test --offline --test unit --no-default-features --features wasm
-
-        echo "➜ Compiling the documentation examples"
-        cargo test --offline --doc
-
-        # The examples that exercise this SDK live under examples/ and have
-        # their own checks (nhost-rust-tutorial, leptos), so they are compiled
-        # against the SDK there rather than here.
-
-        echo "➜ Running the integration tests against the local backend"
-        # --include-ignored, not --ignored: the latter runs ONLY ignored tests,
-        # so an integration test added without #[ignore] would be filtered out
-        # of CI and stay green.
-        cargo test --offline --test integration -- --include-ignored
-
-        mkdir $out
-      '';
+      echo "➜ Running the integration tests against the local backend"
+      # --include-ignored, not --ignored: the latter runs ONLY ignored tests,
+      # so an integration test added without #[ignore] would be filtered out
+      # of CI and stay green.
+      cargo test --offline --locked --test integration -- --include-ignored
+    '';
+  };
 }
