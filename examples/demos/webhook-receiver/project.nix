@@ -27,6 +27,7 @@ let
     fileset = fs.unions [
       ./app.py
       ./test_app.py
+      ./requirements.in
       ./requirements.txt
       ./requirements-dev.txt
       ./ruff.toml
@@ -49,16 +50,12 @@ in
   check = nixops-lib.python.check {
     inherit src submodule pythonPackages;
 
-    # No advisory scan, because there is nothing here to scan deterministically.
-    # requirements.txt is a list of ranges (`fastapi>=0.115`), not a lock, and
-    # osv-scanner resolves ranges against PyPI as it runs: `fastapi>=0.115`
-    # became 0.141.1 with a full transitive tree, so the result would change
-    # with upstream releases rather than with this repository. A check that goes
-    # red because someone else published a package teaches people to ignore it.
-    #
-    # The SDK is scanned properly through its uv.lock. Auditing these examples
-    # means giving them real lock files first.
-    audit = false;
+    # requirements.txt is compiled from requirements.in and pins every
+    # transitive dependency, so osv-scanner reads exactly what the Dockerfile
+    # installs and resolves nothing against PyPI itself. The editable SDK line
+    # is skipped by the scanner, which is correct: the SDK is scanned through
+    # its own uv.lock.
+    auditLockfile = "requirements.txt";
 
     lintPaths = "app.py test_app.py";
     typecheckPaths = "app.py";

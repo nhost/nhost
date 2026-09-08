@@ -29,6 +29,10 @@ backend-up:  ## Start the notes backend this example runs against.
 backend-down:  ## Stop the notes backend.
 	cd $(ROOT_DIR)/examples/tutorials/backend-notes && nhost down --volumes
 
+.PHONY: lock
+lock:  ## Recompile requirements.txt from requirements.in (needs network).
+	uv pip compile requirements.in --python-version 3.11 -o requirements.txt
+
 .PHONY: check-local
 check-local:  ## Run the same checks the nix check runs.
 	ruff check main.py test_main.py

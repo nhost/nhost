@@ -63,3 +63,18 @@ the access token automatically. Point at a different project with
 `NHOST_SUBDOMAIN` / `NHOST_REGION`.
 
 Run `python main.py --help` for the full command list.
+
+## Dependencies
+
+Edit `requirements.in`, which lists what this example depends on;
+`requirements.txt` is compiled from it with every transitive dependency pinned,
+and is the file you install:
+
+```sh
+make lock   # uv pip compile requirements.in -o requirements.txt
+```
+
+The pins are what let the nix check scan these dependencies for advisories: it
+reads the versions in the file rather than resolving ranges against PyPI while
+it runs, so the result depends on this checkout and not on what was published
+today.

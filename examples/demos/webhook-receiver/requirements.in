@@ -1,0 +1,9 @@
+# The Nhost Python SDK, installed editable from this repo checkout.
+# (Registry publishing is out of scope; install from source.)
+-e ../../../packages/nhost-python
+
+# Runtime dependencies only. Keep this file minimal because the production
+# image installs it verbatim.
+fastapi>=0.115
+httpx>=0.27
+uvicorn>=0.30

@@ -1,0 +1,9 @@
+# The Nhost Python SDK, installed editable from this repo checkout.
+# (Registry publishing is out of scope; install from source.)
+-e ../../../packages/nhost-python
+
+# Typer powers the command-line interface (flat verbs + generated --help).
+typer
+
+# Test-only: the behavioural checks in test_main.py.
+pytest>=8
