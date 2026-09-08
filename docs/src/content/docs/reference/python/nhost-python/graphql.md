@@ -9,17 +9,26 @@ GraphQL client for the Nhost Python SDK.
 ### `create_api_client`
 
 ```python
-def create_api_client(url: 'str', *, middleware: 'Sequence[ChainFunction]' = (), http_client: 'httpx.AsyncClient | None' = None) -> 'Client'
+def create_api_client(url: str, *, middleware: Sequence[ChainFunction] = (), http_client: httpx.AsyncClient | None = None) -> Client
 ```
 
 Create a standalone GraphQL client.
+
+## Type aliases
+
+### `GraphQLVariables`
+
+```python
+GraphQLVariables = Mapping[str, Any]
+```
 
 ## Classes
 
 ### `Client`
 
 ```python
-class Client
+class Client:
+    def __init__(url: str, *, middleware: Sequence[ChainFunction] = (), http_client: httpx.AsyncClient | None = None) -> None
 ```
 
 GraphQL API client backed by an owned or injected HTTP client.
@@ -29,7 +38,7 @@ GraphQL API client backed by an owned or injected HTTP client.
 ##### `aclose`
 
 ```python
-async def aclose(self) -> 'None'
+async def aclose(self) -> None
 ```
 
 Close the internally owned HTTP client, if any.
@@ -37,7 +46,7 @@ Close the internally owned HTTP client, if any.
 ##### `add_middleware`
 
 ```python
-def add_middleware(self, middleware: 'ChainFunction') -> 'None'
+def add_middleware(self, middleware: ChainFunction) -> None
 ```
 
 Append HTTP middleware and rebuild the request pipeline.
@@ -45,7 +54,7 @@ Append HTTP middleware and rebuild the request pipeline.
 ##### `request`
 
 ```python
-async def request(self, query: 'str', *, response_type: 'type[Any] | TypeAdapter[Any] | None' = None, variables: 'GraphQLVariables | None' = None, operation_name: 'str | None' = None, headers: 'Mapping[str, str] | None' = None) -> 'FetchResponse[GraphQLResponse[Any]]'
+async def request(self, query: str, *, response_type: type[Any] | TypeAdapter[Any] | None = None, variables: GraphQLVariables | None = None, operation_name: str | None = None, headers: Mapping[str, str] | None = None) -> FetchResponse[GraphQLResponse[Any]]
 ```
 
 Execute an operation and optionally validate its ``data`` value.
@@ -53,7 +62,7 @@ Execute an operation and optionally validate its ``data`` value.
 ### `GraphQLError`
 
 ```python
-class GraphQLError
+class GraphQLError(BaseModel):
 ```
 
 One GraphQL error entry.
@@ -70,7 +79,7 @@ One GraphQL error entry.
 ### `GraphQLErrorLocation`
 
 ```python
-class GraphQLErrorLocation
+class GraphQLErrorLocation(BaseModel):
 ```
 
 Source location associated with a GraphQL error.
@@ -85,15 +94,25 @@ Source location associated with a GraphQL error.
 ### `GraphQLExecutionError`
 
 ```python
-class GraphQLExecutionError
+class GraphQLExecutionError(NhostError):
+    def __init__(response: httpx.Response, result: GraphQLResponse[Any]) -> None
 ```
 
 Raised when a valid GraphQL response contains execution errors.
 
+#### Properties
+
+##### `request`
+
+```python
+@property
+def request(self) -> httpx.Request
+```
+
 ### `GraphQLResponse`
 
 ```python
-class GraphQLResponse
+class GraphQLResponse(BaseModel, Generic):
 ```
 
 Standard GraphQL response envelope.

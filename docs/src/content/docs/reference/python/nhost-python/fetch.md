@@ -5,9 +5,9 @@ title: Fetch
 HTTP fetch pipeline shared by the generated and hand-written Nhost clients.
 
 The pipeline mirrors ``@nhost/nhost-js``'s ``fetch`` module: a chain of
-middleware functions wrap a base fetch backed by an :class:`httpx.AsyncClient`.
-Each middleware can inspect/modify the outgoing :class:`httpx.Request` and the
-returned :class:`httpx.Response`, which is how session refresh, access-token
+middleware functions wrap a base fetch backed by an `httpx.AsyncClient`.
+Each middleware can inspect/modify the outgoing `httpx.Request` and the
+returned `httpx.Response`, which is how session refresh, access-token
 attachment, and role/header injection are implemented.
 
 ## Functions
@@ -15,18 +15,19 @@ attachment, and role/header injection are implemented.
 ### `attach_access_token_middleware`
 
 ```python
-def attach_access_token_middleware(storage: 'SessionStorage') -> 'ChainFunction'
+def attach_access_token_middleware(storage: SessionStorage, service_url: str) -> ChainFunction
 ```
 
-Attach ``Authorization: Bearer <access_token>`` from the stored session.
+Attach the stored access token only within the configured service origin.
 
-Should run after the refresh middleware so the freshest token is used. Skips
-requests that already carry an ``Authorization`` header.
+Should run after the refresh middleware so the freshest token is used. A
+caller-supplied authorization header is preserved unless it is the stored
+bearer token on a request that has moved outside the service origin.
 
 ### `create_enhanced_fetch`
 
 ```python
-def create_enhanced_fetch(client: 'httpx.AsyncClient', chain_functions: 'list[ChainFunction] | None' = None) -> 'FetchFunction'
+def create_enhanced_fetch(client: httpx.AsyncClient, chain_functions: list[ChainFunction] | None = None) -> FetchFunction
 ```
 
 Compose ``chain_functions`` around a base fetch backed by ``client``.
@@ -38,20 +39,20 @@ the ``reduceRight`` composition used by the JS SDK.
 ### `decode_json`
 
 ```python
-def decode_json(response: 'httpx.Response', type_: 'Any') -> 'Any'
+def decode_json(response: httpx.Response, type_: Any) -> Any
 ```
 
 Validate and parse ``response`` content against ``type_`` via pydantic.
 
 Returns ``None`` for empty/no-content responses. ``type_`` may be any type
 pydantic understands: a model, a ``Literal``, a scalar, a ``list[...]`` or a
-union. Invalid successful responses raise :class:`ResponseDecodeError` so
+union. Invalid successful responses raise `ResponseDecodeError` so
 every service exposes the same decoding contract.
 
 ### `session_refresh_middleware`
 
 ```python
-def session_refresh_middleware(auth: 'AuthClient', storage: 'SessionStorage', margin_seconds: 'int' = 60) -> 'ChainFunction'
+def session_refresh_middleware(auth: AuthClient, storage: SessionStorage, margin_seconds: int = 60) -> ChainFunction
 ```
 
 Refresh the session before a request when the token is near expiry.
@@ -62,12 +63,12 @@ endpoint itself (to avoid recursively refreshing during a refresh).
 ### `to_file_part`
 
 ```python
-def to_file_part(value: 'bytes | UploadFile') -> 'Any'
+def to_file_part(value: bytes | UploadFile) -> Any
 ```
 
 Normalize a binary multipart value into an httpx ``files`` entry.
 
-An :class:`UploadFile` becomes a ``(filename, content, content_type)``
+An `UploadFile` becomes a ``(filename, content, content_type)``
 tuple so its filename reaches the ``Content-Disposition`` header; bare
 ``bytes`` are passed through unchanged (httpx assigns its default
 ``"upload"`` filename).
@@ -75,7 +76,7 @@ tuple so its filename reaches the ``Content-Disposition`` header; bare
 ### `to_json`
 
 ```python
-def to_json(value: 'Any') -> 'str'
+def to_json(value: Any) -> str
 ```
 
 Serialize ``value`` to a JSON string (used for multipart JSON parts).
@@ -83,18 +84,19 @@ Serialize ``value`` to a JSON string (used for multipart JSON parts).
 ### `to_jsonable`
 
 ```python
-def to_jsonable(value: 'Any') -> 'Any'
+def to_jsonable(value: Any) -> Any
 ```
 
-Convert pydantic models (recursively) into JSON-serializable primitives.
+Recursively convert supported values into JSON-serializable primitives.
 
-Uses ``by_alias=True`` so wire names are preserved and ``exclude_none=True``
-so optional fields left unset are omitted from the payload.
+Pydantic models preserve wire aliases and omit ``None`` fields. Dates,
+datetimes, and times use ISO 8601 strings; UUIDs and URLs use strings;
+Decimals use strings to preserve precision; and Enums use their values.
 
 ### `update_session_from_response_middleware`
 
 ```python
-def update_session_from_response_middleware(storage: 'SessionStorage', auth_url: 'str') -> 'ChainFunction'
+def update_session_from_response_middleware(storage: SessionStorage, auth_url: str) -> ChainFunction
 ```
 
 Persist session data returned by auth endpoints, and clear it on sign-out.
@@ -107,7 +109,7 @@ responses from ``/token``, ``/token/exchange``, ``/signin/*`` and
 ### `with_admin_session_middleware`
 
 ```python
-def with_admin_session_middleware(options: 'AdminSessionOptions', service_url: 'str') -> 'ChainFunction'
+def with_admin_session_middleware(options: AdminSessionOptions, service_url: str) -> ChainFunction
 ```
 
 Attach admin headers only within the configured secure service origin.
@@ -115,7 +117,7 @@ Attach admin headers only within the configured secure service origin.
 ### `with_headers_middleware`
 
 ```python
-def with_headers_middleware(default_headers: 'Mapping[str, str]') -> 'ChainFunction'
+def with_headers_middleware(default_headers: Mapping[str, str]) -> ChainFunction
 ```
 
 Attach default headers, preserving any request-specific values.
@@ -123,17 +125,31 @@ Attach default headers, preserving any request-specific values.
 ### `with_role_middleware`
 
 ```python
-def with_role_middleware(role: 'str') -> 'ChainFunction'
+def with_role_middleware(role: str) -> ChainFunction
 ```
 
 Set ``x-hasura-role`` on requests that don't already specify it.
+
+## Type aliases
+
+### `ChainFunction`
+
+```python
+ChainFunction = Callable[[Callable[[httpx.Request], Awaitable[httpx.Response]]], Callable[[httpx.Request], Awaitable[httpx.Response]]]
+```
+
+### `FetchFunction`
+
+```python
+FetchFunction = Callable[[httpx.Request], Awaitable[httpx.Response]]
+```
 
 ## Classes
 
 ### `AdminSessionOptions`
 
 ```python
-class AdminSessionOptions
+class AdminSessionOptions:
 ```
 
 Admin session configuration.
@@ -153,7 +169,7 @@ grants unrestricted database access.
 ### `FetchResponse`
 
 ```python
-class FetchResponse
+class FetchResponse(Generic):
 ```
 
 A structured API response: the parsed body plus status and headers.
@@ -169,29 +185,69 @@ A structured API response: the parsed body plus status and headers.
 ### `HTTPError`
 
 ```python
-class HTTPError
+class HTTPError(NhostError, Generic):
+    def __init__(response: httpx.Response, body: T) -> None
 ```
 
-Raised when an API responds with a 4xx or 5xx status.
+Extends [`NhostError`](#nhosterror).
 
-The complete :class:`httpx.Response` is retained so callers can inspect the
+Raised when an API responds with a 3xx, 4xx, or 5xx status.
+
+The complete `httpx.Response` is retained so callers can inspect the
 request, response extensions, and protocol details in addition to the
 decoded error body.
+
+#### Fields
+
+| Field | Type |
+| --- | --- |
+| `body` | `T` |
+| `response` | `httpx.Response` |
+
+#### Properties
+
+##### `headers`
+
+```python
+@property
+def headers(self) -> httpx.Headers
+```
+
+The HTTP response headers.
+
+##### `request`
+
+```python
+@property
+def request(self) -> httpx.Request
+```
+
+The request which produced the error response.
+
+##### `status`
+
+```python
+@property
+def status(self) -> int
+```
+
+The HTTP response status code.
 
 #### Methods
 
 ##### `from_response`
 
 ```python
-def from_response(response: 'httpx.Response', *, body: 'Any' = _MISSING) -> 'HTTPError[Any]'
+@classmethod
+def from_response(response: httpx.Response, *, body: Any = ...) -> HTTPError[Any]
 ```
 
-Build an :class:`HTTPError` from an error response.
+Build an `HTTPError` from an error response.
 
 ### `NhostError`
 
 ```python
-class NhostError
+class NhostError(Exception):
 ```
 
 Base class for errors raised by the Nhost SDK.
@@ -199,15 +255,29 @@ Base class for errors raised by the Nhost SDK.
 ### `ResponseDecodeError`
 
 ```python
-class ResponseDecodeError
+class ResponseDecodeError(NhostError):
+    def __init__(response: httpx.Response, expected_type: Any, error: Exception) -> None
 ```
 
+Extends [`NhostError`](#nhosterror).
+
 Raised when a successful response does not match its documented shape.
+
+#### Properties
+
+##### `request`
+
+```python
+@property
+def request(self) -> httpx.Request
+```
+
+The request which produced the invalid response.
 
 ### `UploadFile`
 
 ```python
-class UploadFile
+class UploadFile:
 ```
 
 A binary payload for a multipart file part, carrying its filename.
