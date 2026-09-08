@@ -6,6 +6,7 @@ import sitemap from '@astrojs/sitemap';
 import starlight from '@astrojs/starlight';
 import vercel from '@astrojs/vercel';
 import { defineConfig } from 'astro/config';
+import starlightLlmsTxt from 'starlight-llms-txt';
 import starlightSidebarTopics from 'starlight-sidebar-topics';
 import starlightOpenAPI, {
   createOpenAPISidebarGroup,
@@ -94,6 +95,48 @@ export default defineConfig({
         TableOfContents: './src/components/TableOfContents.astro',
       },
       plugins: [
+        // Emits /llms.txt, /llms-full.txt and /llms-small.txt.
+        starlightLlmsTxt({
+          projectName: 'Nhost',
+          description:
+            "Nhost is a managed backend platform providing a Postgres database with pgvector, an instant role-based GraphQL API, authentication, file storage, serverless functions, custom containers and an AI toolkit. It is built to be a backend for agentic AI: the Backend MCP Server exposes a project's GraphQL API to MCP clients with every operation running under the calling user's own permissions, agents authenticate through Nhost's OAuth2/OIDC provider, and embeddings live in the same Postgres database as the rest of the application.",
+          details: [
+            'Notes for interpreting these docs:',
+            '',
+            '- Every project is addressed by a `subdomain` and a `region`, which together form service URLs such as `https://{subdomain}.auth.{region}.nhost.run/v1`.',
+            '- The GraphQL API is generated from your Postgres schema, with role-based permissions declared as metadata rather than written in application code.',
+            "- Two engines can serve that API. Constellation is Nhost's own GraphQL engine, a Hasura-compatible drop-in replacement that runs the same traffic on around 90% less memory. It is alpha and opt-in today: enabled per project through an `[experimental.constellation]` block in `nhost.toml`, running alongside Hasura rather than replacing it, and set to become the default over time. Both engines expose the same API, so these docs say 'the GraphQL API' rather than naming an engine.",
+            "- Nhost has two MCP servers. The Backend MCP Server exposes a project's own GraphQL API to assistants, authenticating end users through Nhost Auth so every operation runs with that user's permissions. The CLI MCP server runs locally, authenticates as you, and manages local and Nhost Cloud projects.",
+            '- The `@nhost/nhost-js` SDK is the primary client and wraps auth, storage, GraphQL and functions in a single client.',
+            '- The Auth and Storage REST APIs have machine-readable OpenAPI specs; see the optional links below rather than inferring endpoints from prose.',
+          ].join('\n'),
+          // `minify` only strips asides and collapses whitespace, it never drops
+          // pages, so llms-small.txt came out within a few percent of the full
+          // file. Excluding these keeps it to the hand-written guides.
+          exclude: ['reference/**', 'getting-started/tutorials/**'],
+          // The Auth/Storage reference pages are virtual routes from
+          // starlight-openapi, not content collection entries, so llms-full.txt
+          // can't include them. Link the raw specs, published by gen.sh.
+          optionalLinks: [
+            {
+              label: 'Auth API OpenAPI specification',
+              url: 'https://docs.nhost.io/openapi/auth.json',
+              description:
+                'Complete OpenAPI 3.0 spec for the Nhost Authentication API. Also served as YAML at /openapi/auth.yaml.',
+            },
+            {
+              label: 'Storage API OpenAPI specification',
+              url: 'https://docs.nhost.io/openapi/storage.json',
+              description:
+                'Complete OpenAPI 3.0 spec for the Nhost Storage API. Also served as YAML at /openapi/storage.yaml.',
+            },
+            {
+              label: 'Nhost website',
+              url: 'https://nhost.io',
+              description: 'Product overview, pricing and customer stories.',
+            },
+          ],
+        }),
         starlightOpenAPI([
           {
             base: 'reference/auth',
