@@ -12,9 +12,9 @@ use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
 
 // The file-backed store is native-only; the browser uses localStorage instead.
-#[cfg(not(all(feature = "wasm", target_arch = "wasm32")))]
+#[cfg(not(target_arch = "wasm32"))]
 use std::fs;
-#[cfg(not(all(feature = "wasm", target_arch = "wasm32")))]
+#[cfg(not(target_arch = "wasm32"))]
 use std::path::PathBuf;
 
 // SystemTime::now() panics on wasm32; web_time provides a browser-backed clock
@@ -329,7 +329,11 @@ impl Backend for MemoryStorage {
 }
 
 /// JSON-file backed session backend, useful for CLIs and local scripts.
-/// Native-only; unavailable only when the `wasm` feature is built for wasm32.
+///
+/// Not available on wasm32, which has no filesystem: the browser persists
+/// sessions through [`LocalStorage`] instead. This is deliberately keyed on the
+/// target rather than on the `wasm` feature, so the type is absent wherever a
+/// file cannot actually be written.
 ///
 /// # Sensitive data
 ///
@@ -351,12 +355,12 @@ impl Backend for MemoryStorage {
 /// parsed is reported as [`Error::Storage`] and left in place — it may still
 /// hold a usable refresh token, so it is never deleted to manufacture a clean
 /// "no session" result.
-#[cfg(not(all(feature = "wasm", target_arch = "wasm32")))]
+#[cfg(not(target_arch = "wasm32"))]
 pub struct FileStorage {
     path: PathBuf,
 }
 
-#[cfg(not(all(feature = "wasm", target_arch = "wasm32")))]
+#[cfg(not(target_arch = "wasm32"))]
 impl FileStorage {
     /// Creates a backend for `path`; parent directories are created on the first
     /// write attempt rather than during construction, so they persist even if
@@ -390,13 +394,13 @@ impl FileStorage {
 /// Every failure between creating the temporary file and renaming it returns
 /// early, so the cleanup is a drop guard rather than a step that each of those
 /// paths has to remember.
-#[cfg(not(all(feature = "wasm", target_arch = "wasm32")))]
+#[cfg(not(target_arch = "wasm32"))]
 struct TemporaryFile {
     path: PathBuf,
     renamed: bool,
 }
 
-#[cfg(not(all(feature = "wasm", target_arch = "wasm32")))]
+#[cfg(not(target_arch = "wasm32"))]
 impl TemporaryFile {
     fn new(path: PathBuf) -> Self {
         Self {
@@ -416,7 +420,7 @@ impl TemporaryFile {
     }
 }
 
-#[cfg(not(all(feature = "wasm", target_arch = "wasm32")))]
+#[cfg(not(target_arch = "wasm32"))]
 impl Drop for TemporaryFile {
     fn drop(&mut self) {
         if !self.renamed {
@@ -425,7 +429,7 @@ impl Drop for TemporaryFile {
     }
 }
 
-#[cfg(not(all(feature = "wasm", target_arch = "wasm32")))]
+#[cfg(not(target_arch = "wasm32"))]
 impl Backend for FileStorage {
     fn get(&self) -> Result<Option<StoredSession>, Error> {
         let data = match fs::read(&self.path) {
