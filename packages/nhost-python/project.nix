@@ -14,29 +14,17 @@ let
 
   fs = pkgs.lib.fileset;
 
-  # Python interpreter + all runtime/dev dependencies. Using nixpkgs-provided
-  # packages (not uv) keeps the check reproducible and gives us a ruff/mypy that
-  # actually run on NixOS.
-  pythonEnv = pkgs.python3.withPackages (ps: [
+  # The libraries this package imports. The interpreter, mypy, pytest, ruff, uv
+  # and the CA bundle come from nixops-lib.python.
+  pythonPackages = ps: [
     ps.httpx
     ps.pydantic
-    ps.pytest
-    ps.pytest-asyncio
-    ps.mypy
-  ]);
+  ];
 
   # codegen is the prebuilt binary; gen.sh prefers it over `go run`.
   codegen = self.packages.${pkgs.system}.codegen;
 
-  checkDeps = [
-    pythonEnv
-    pkgs.ruff
-    pkgs.uv
-    codegen
-    # Provides a CA bundle (its setup hook sets SSL_CERT_FILE) so httpx can
-    # build its default TLS context when talking to the backend.
-    pkgs.cacert
-  ];
+  checkDeps = [ codegen ];
 
   # Source used by the check: rooted at the repo so gen.sh can resolve the
   # shared OpenAPI specs via REPO_ROOT (../..), mirroring nhost-js.
@@ -68,79 +56,86 @@ let
   };
 in
 {
-  devShell = pkgs.mkShell {
+  devShell = nixops-lib.python.devShell {
+    inherit pythonPackages;
     buildInputs = checkDeps ++ [ pkgs.nhost.nhost-cli ];
   };
 
-  check =
-    pkgs.runCommand "nhost-python-tests"
-      {
-        # Integration doctests talk to the local backend started by
-        # `make dev-env-up`; the check must run outside the sandbox to reach it.
-        __noChroot = true;
-        nativeBuildInputs = checkDeps;
-      }
-      ''
-        set -eo pipefail
-        export HOME=$(mktemp -d)
+  check = nixops-lib.python.check {
+    inherit
+      src
+      submodule
+      pythonPackages
+      checkDeps
+      ;
 
-        cp -r ${src} src
-        chmod +w -R src
-        cd src/${submodule}
-        export PYTHONPATH="$PWD/src"
+    # The advisory scan this package previously had no equivalent of: uv.lock
+    # pins the resolved dependency set, so that is what gets scanned.
+    auditLockfile = "uv.lock";
 
-        echo "➜ Checking generated clients are up to date (codegen + ruff)"
-        cp src/nhost/auth/client.py "$TMPDIR/auth.before"
-        cp src/nhost/storage/client.py "$TMPDIR/storage.before"
-        ./gen.sh
-        diff "$TMPDIR/auth.before" src/nhost/auth/client.py \
-          || (echo "❌ auth/client.py is stale; run ./gen.sh" && exit 1)
-        diff "$TMPDIR/storage.before" src/nhost/storage/client.py \
-          || (echo "❌ storage/client.py is stale; run ./gen.sh" && exit 1)
+    lintPaths = "src tests conftest.py";
+    testPaths = "tests";
 
-        echo "➜ Checking uv.lock is in sync with pyproject.toml"
-        UV_CACHE_DIR="$TMPDIR/uv-cache" uv lock --check --offline
+    # The SDK is imported from source, the way the editable install resolves it.
+    pythonPath = "${submodule}/src";
 
-        echo "➜ Running ruff (lint + format check)"
-        ruff check src tests conftest.py
-        ruff format --check src tests conftest.py
+    # Both checks answer "does the committed tree match its inputs", so they run
+    # before anything is linted or executed. gen.sh rewrites the clients and
+    # `uv lock` can rewrite the lock, so both run against a throwaway copy
+    # instead of the tree the rest of the check reads.
+    preCheck = ''
+      echo "➜ Checking generated clients are up to date (codegen + ruff)"
+      mkdir -p $TMPDIR/gen
+      cp -r ${src}/* $TMPDIR/gen
+      chmod +w -R $TMPDIR/gen
+      (cd $TMPDIR/gen/${submodule} && ./gen.sh)
+      diff ${src}/${submodule}/src/nhost/auth/client.py \
+        $TMPDIR/gen/${submodule}/src/nhost/auth/client.py \
+        || (echo "❌ auth/client.py is stale; run ./gen.sh" && exit 1)
+      diff ${src}/${submodule}/src/nhost/storage/client.py \
+        $TMPDIR/gen/${submodule}/src/nhost/storage/client.py \
+        || (echo "❌ storage/client.py is stale; run ./gen.sh" && exit 1)
 
-        echo "➜ Running mypy --strict over source, tests, and pytest configuration"
-        mypy src tests conftest.py
+      echo "➜ Checking uv.lock is in sync with pyproject.toml"
+      (cd $TMPDIR/gen/${submodule} \
+        && UV_CACHE_DIR="$TMPDIR/uv-cache" uv lock --check --offline)
+      echo ""
+    '';
 
-        echo "➜ Running the offline unit suite (no backend)"
-        pytest tests
+    # The doctests are run twice, once without a backend and once with, and each
+    # run asserts a known example was actually collected: a doctest suite that
+    # silently collects nothing passes, which is the failure mode these canaries
+    # exist to catch.
+    extraCheck = ''
+      echo "➜ Running offline doctests (backend examples skip)"
+      pytest --doctest-modules --import-mode=importlib src -rs -vv \
+        | tee "$TMPDIR/offline-doctests.log"
+      # Positive canary: this known pure doctest must be collected and pass.
+      grep -qF \
+        'src/nhost/nhost.py::nhost.nhost.generate_service_url PASSED' \
+        "$TMPDIR/offline-doctests.log" \
+        || (echo "❌ pure doctest canary did not pass" && exit 1)
 
-        echo "➜ Running offline doctests (backend examples skip)"
-        pytest --doctest-modules --import-mode=importlib src -rs -vv \
-          | tee "$TMPDIR/offline-doctests.log"
-        # Positive canary: this known pure doctest must be collected and pass.
-        grep -qF \
-          'src/nhost/nhost.py::nhost.nhost.generate_service_url PASSED' \
-          "$TMPDIR/offline-doctests.log" \
-          || (echo "❌ pure doctest canary did not pass" && exit 1)
+      echo "➜ Running integration doctests against the local backend"
+      export NHOST_LOCAL_BACKEND=1
+      pytest --doctest-modules --import-mode=importlib src -rs -vv \
+        | tee "$TMPDIR/integration-doctests.log"
+      # Positive canary: the known backend doctest must execute and pass.
+      grep -qF \
+        'src/nhost/nhost.py::nhost.nhost.create_client PASSED' \
+        "$TMPDIR/integration-doctests.log" \
+        || (echo "❌ backend doctest canary did not pass" && exit 1)
 
-        echo "➜ Running integration doctests against the local backend"
-        export NHOST_LOCAL_BACKEND=1
-        pytest --doctest-modules --import-mode=importlib src -rs -vv \
-          | tee "$TMPDIR/integration-doctests.log"
-        # Positive canary: the known backend doctest must execute and pass.
-        grep -qF \
-          'src/nhost/nhost.py::nhost.nhost.create_client PASSED' \
-          "$TMPDIR/integration-doctests.log" \
-          || (echo "❌ backend doctest canary did not pass" && exit 1)
-
-        echo "➜ Running marked integration tests against the local backend"
-        pytest tests -m integration -rs -vv \
-          | tee "$TMPDIR/integration-tests.log"
-        # Positive canary: tests/ integration markers must be collected and execute.
-        grep -qF \
-          'tests/test_sdk.py::test_local_backend_graphql_integration PASSED' \
-          "$TMPDIR/integration-tests.log" \
-          || (echo "❌ marked integration test canary did not pass" && exit 1)
-
-        mkdir $out
-      '';
+      echo "➜ Running marked integration tests against the local backend"
+      pytest tests -m integration -rs -vv \
+        | tee "$TMPDIR/integration-tests.log"
+      # Positive canary: tests/ integration markers must be collected and execute.
+      grep -qF \
+        'tests/test_sdk.py::test_local_backend_graphql_integration PASSED' \
+        "$TMPDIR/integration-tests.log" \
+        || (echo "❌ marked integration test canary did not pass" && exit 1)
+    '';
+  };
 
   package = pkgs.python3.pkgs.buildPythonPackage {
     # The flake output remains `nhost-python`; package metadata uses the
