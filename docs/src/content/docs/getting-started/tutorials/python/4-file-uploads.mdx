@@ -72,14 +72,15 @@ the `user` role:
 
 ## Upload a file
 
-`storage.upload_files` takes the bucket, the raw bytes, and per-file metadata. It
-returns the processed files, including the new file's `id`, which we then link to
-the note. Add a `BUCKET` constant for the bucket id you created above:
+The `storage.upload` convenience method takes the raw bytes plus keyword-only
+bucket and per-file metadata arguments. It returns the processed files,
+including the new file's `id`, which we then link to the note. Add a `BUCKET`
+constant for the bucket id you created above:
 
 ```python title="main.py"
 from pathlib import Path
 
-from nhost.storage import UploadFileMetadata, UploadFilesBody
+from nhost.storage import UploadFileMetadata
 
 BUCKET = "notes"
 
@@ -87,12 +88,10 @@ BUCKET = "notes"
 async def cmd_attach(nhost, note_id: str, file: str) -> None:
     raw = Path(file).read_bytes()
     name = Path(file).name
-    up = await nhost.storage.upload_files(
-        body=UploadFilesBody(
-            bucket_id=BUCKET,
-            file=[raw],
-            metadata=[UploadFileMetadata(name=name)],
-        )
+    up = await nhost.storage.upload(
+        [raw],
+        bucket_id=BUCKET,
+        metadata=[UploadFileMetadata(name=name)],
     )
     if not up.body.processed_files:
         raise SystemExit("upload failed")
@@ -154,7 +153,7 @@ from nhost.auth import (
     SignOutRequest,
     SignUpEmailPasswordRequest,
 )
-from nhost.storage import UploadFileMetadata, UploadFilesBody
+from nhost.storage import UploadFileMetadata
 
 BUCKET = "notes"
 
@@ -185,7 +184,10 @@ def make_client():
 def run(coro) -> None:
     async def runner() -> None:
         async with make_client() as nhost:
-            await coro(nhost)
+            try:
+                await coro(nhost)
+            except NhostError as exc:
+                raise SystemExit(f"error: {exc}") from exc
 
     asyncio.run(runner())
 
@@ -307,12 +309,10 @@ async def cmd_note_tag(nhost, note_id: str, tag_name: str) -> None:
 async def cmd_attach(nhost, note_id: str, file: str) -> None:
     raw = Path(file).read_bytes()
     name = Path(file).name
-    up = await nhost.storage.upload_files(
-        body=UploadFilesBody(
-            bucket_id=BUCKET,
-            file=[raw],
-            metadata=[UploadFileMetadata(name=name)],
-        )
+    up = await nhost.storage.upload(
+        [raw],
+        bucket_id=BUCKET,
+        metadata=[UploadFileMetadata(name=name)],
     )
     if not up.body.processed_files:
         raise SystemExit("upload failed")
