@@ -368,6 +368,7 @@ export default defineConfig({
                     },
                     { slug: 'products/graphql/computed-fields' },
                     { slug: 'products/graphql/remote-schemas' },
+                    { slug: 'products/graphql/actions' },
                     { slug: 'products/graphql/advanced-features' },
                     { slug: 'products/graphql/constellation' },
                   ],
