@@ -10,31 +10,12 @@ let
 
   fs = pkgs.lib.fileset;
 
-  # A standalone crate that depends on the SDK by path, so it has its own
-  # lockfile and therefore its own vendor directory.
-  cargoVendorDir = pkgs.rustPlatform.importCargoLock {
-    lockFile = ./Cargo.lock;
-  };
-
-  rustDeps = [
-    pkgs.rustc
-    pkgs.cargo
-    pkgs.clippy
-    pkgs.rustfmt
-  ];
-
-  checkDeps = rustDeps ++ [
-    # rustc needs a linker (cc) to build proc-macros.
-    pkgs.stdenv.cc
-    pkgs.openssl
-    pkgs.pkg-config
-  ];
-
   src = fs.toSource {
     root = ../../..;
     fileset = fs.unions [
       ./Cargo.toml
       ./Cargo.lock
+      ./deny.toml
       ./src
       ./index.html
       ./README.md
@@ -47,8 +28,8 @@ let
   };
 in
 {
-  devShell = pkgs.mkShell {
-    buildInputs = checkDeps ++ [
+  devShell = nixops-lib.rust.devShell {
+    buildInputs = [
       # Trunk is the WASM bundler / dev server the README tells you to use.
       pkgs.trunk
       pkgs.nhost.nhost-cli
@@ -58,34 +39,18 @@ in
   # This example is the SDK's only browser/WASM consumer, so it is what proves
   # the `wasm` feature still builds for a real frontend. Checked on the
   # wasm32-unknown-unknown target, which is how it actually runs.
-  check =
-    pkgs.runCommand "${name}-tests"
-      {
-        nativeBuildInputs = checkDeps;
-      }
-      ''
-        set -eo pipefail
-        export HOME=$(mktemp -d)
-        export CARGO_HOME="$HOME/cargo"
-        mkdir -p "$CARGO_HOME"
-        cat > "$CARGO_HOME/config.toml" <<EOF
-        [source.crates-io]
-        replace-with = "vendored-sources"
-        [source.vendored-sources]
-        directory = "${cargoVendorDir}"
-        EOF
+  #
+  # It has its own lockfile, and a frontend dependency tree the SDK does not
+  # otherwise pull in, so it is scanned for advisories separately.
+  check = nixops-lib.rust.check {
+    inherit src submodule;
 
-        cp -r ${src} src
-        chmod +w -R src
-        cd src/${submodule}
+    cargoLock = ./Cargo.lock;
+    denyConfig = ./deny.toml;
 
-        echo "➜ Checking rustfmt"
-        cargo fmt --check
+    clippyArgs = "--all-targets --target wasm32-unknown-unknown";
 
-        echo "➜ Running clippy (wasm32 browser target)"
-        cargo clippy --offline --locked --all-targets \
-          --target wasm32-unknown-unknown -- -D warnings
-
-        mkdir $out
-      '';
+    # A wasm-only frontend: its test targets cannot run on the build host.
+    runTests = false;
+  };
 }
