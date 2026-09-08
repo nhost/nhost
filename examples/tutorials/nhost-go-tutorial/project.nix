@@ -22,6 +22,14 @@ let
     ];
   };
 
+  # docs_snippets_test.go compiles the programs published on the tutorial pages,
+  # so those pages are inputs to this check. They sit outside the module, so the
+  # test is told where they are.
+  tutorialPages = fs.toSource {
+    root = ../../../docs/src/content/docs/getting-started/tutorials/go;
+    fileset = ../../../docs/src/content/docs/getting-started/tutorials/go;
+  };
+
   moduleSrc = fs.toSource {
     root = ./.;
     fileset = fs.unions [
@@ -65,5 +73,9 @@ in
       ;
 
     submodule = ".";
+
+    impureEnvVars = {
+      NHOST_GO_TUTORIAL_PAGES = "${tutorialPages}";
+    };
   };
 }
