@@ -49,14 +49,18 @@ The per-role row **limit** is enforced by the default engine. [Constellation](/p
 
 [Actions](/products/graphql/actions) are permissioned per role too, but the rules are simpler: a role either can call the Action or it cannot. By default, only the `admin` role can.
 
-![Action menu with Edit Permissions](/images/products/graphql/actions/edit-permissions.png)
+![Actions section](/images/products/graphql/permissions/examples/actions-section.png)
 
 1. Go to the **GraphQL** > **Actions** section in the Nhost Dashboard.
-2. In the `⋯` menu of the Action you want to edit, click **Edit Permissions**.
-3. Click a permission cell to toggle whether that role is allowed to call the Action.
-4. Click **Save**.
 
-![Roles and permissions grid for an Action](/images/products/graphql/actions/permissions-table.png)
+![Action menu with Edit Permissions](/images/products/graphql/permissions/examples/actions-edit-permissions.png)
+
+2. In the `⋯` menu of the Action you want to edit, click **Edit Permissions**.
+
+![Roles and permissions grid for an Action](/images/products/graphql/permissions/examples/actions-permissions-table.png)
+
+3. Click a permission cell to toggle whether that role is allowed to call the Action.
+4. Click **Allow**.
 
 The `admin` role is always allowed, and the `public` role is available for unauthenticated access. There are no column-level rules or row checks, because an Action resolves through your webhook rather than a table. Any filtering of what the caller may see belongs in the handler.
 
