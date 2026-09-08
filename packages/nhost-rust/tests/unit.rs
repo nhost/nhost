@@ -4631,3 +4631,202 @@ async fn admin_secret_is_withheld_over_cleartext_to_a_non_loopback_host() {
         "admin secret must not appear in the error",
     );
 }
+
+/// Returns a unique scratch directory for a file-storage test.
+#[cfg(not(target_arch = "wasm32"))]
+fn scratch_dir(label: &str) -> std::path::PathBuf {
+    let dir = std::env::temp_dir().join(format!(
+        "nhost-session-{label}-{}-{:?}",
+        std::process::id(),
+        std::thread::current().id()
+    ));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).unwrap();
+    dir
+}
+
+/// A file that will not parse may still contain a usable refresh token, so it is
+/// reported and left alone. Deleting it and answering `Ok(None)` would turn a
+/// transient problem into permanent, silent loss of the session.
+#[cfg(not(target_arch = "wasm32"))]
+#[test]
+fn file_storage_reports_a_corrupt_file_without_deleting_it() {
+    let dir = scratch_dir("corrupt");
+    let path = dir.join("session.json");
+    std::fs::write(&path, b"{not json").unwrap();
+
+    let storage = session::FileStorage::new(path.clone());
+
+    let error = <session::FileStorage as session::Backend>::get(&storage)
+        .expect_err("a corrupt session file must be reported");
+    assert!(
+        matches!(error, Error::Storage(_)),
+        "corrupt file error = {error:?}, want Error::Storage"
+    );
+
+    assert_eq!(
+        std::fs::read(&path).unwrap(),
+        b"{not json",
+        "the corrupt file must be left exactly as it was found"
+    );
+}
+
+/// Absence is not corruption: no file means no session, which is not an error.
+#[cfg(not(target_arch = "wasm32"))]
+#[test]
+fn file_storage_reports_a_missing_file_as_no_session() {
+    let dir = scratch_dir("missing");
+    let storage = session::FileStorage::new(dir.join("session.json"));
+
+    assert!(<session::FileStorage as session::Backend>::get(&storage)
+        .expect("a missing file is not an error")
+        .is_none());
+}
+
+/// The write must not be observable in a partial state, and must leave no
+/// scratch files behind. Writing in place would truncate the previous session
+/// first, so an interrupted write left a file that no longer parsed.
+#[cfg(not(target_arch = "wasm32"))]
+#[test]
+fn file_storage_write_is_atomic_and_leaves_no_temporary_files() {
+    let dir = scratch_dir("atomic");
+    let path = dir.join("session.json");
+    let storage = session::SessionStorage::new(Box::new(session::FileStorage::new(path.clone())));
+
+    storage.set(session_with(&token(900))).unwrap();
+    let first = std::fs::read(&path).unwrap();
+
+    storage.set(session_with(&token(1800))).unwrap();
+    let second = std::fs::read(&path).unwrap();
+
+    assert_ne!(first, second, "the second write must replace the first");
+
+    // Both writes must be complete documents, never a truncated prefix.
+    for contents in [&first, &second] {
+        serde_json::from_slice::<serde_json::Value>(contents)
+            .expect("every persisted session must be a complete JSON document");
+    }
+
+    let leftovers: Vec<_> = std::fs::read_dir(&dir)
+        .unwrap()
+        .map(|entry| entry.unwrap().file_name())
+        .filter(|name| name.to_string_lossy().ends_with(".tmp"))
+        .collect();
+    assert!(
+        leftovers.is_empty(),
+        "temporary files left behind: {leftovers:?}"
+    );
+}
+
+/// A failed write must not damage the session already stored. The destination is
+/// only ever replaced by a rename that happens after the new contents are
+/// written, so a write that cannot start leaves the previous session readable.
+#[cfg(unix)]
+#[test]
+fn file_storage_failed_write_preserves_the_previous_session() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let dir = scratch_dir("readonly");
+    let path = dir.join("session.json");
+    let storage = session::SessionStorage::new(Box::new(session::FileStorage::new(path.clone())));
+
+    storage.set(session_with(&token(900))).unwrap();
+    let before = std::fs::read(&path).unwrap();
+
+    // Deny writes to the directory so the temporary file cannot be created.
+    let original = std::fs::metadata(&dir).unwrap().permissions();
+    let mut readonly = original.clone();
+    readonly.set_mode(0o500);
+    std::fs::set_permissions(&dir, readonly).unwrap();
+
+    let result = storage.set(session_with(&token(1800)));
+
+    std::fs::set_permissions(&dir, original).unwrap();
+
+    assert!(
+        result.is_err(),
+        "a write that cannot create its temporary file must be reported"
+    );
+    assert_eq!(
+        std::fs::read(&path).unwrap(),
+        before,
+        "the previously stored session must survive a failed write"
+    );
+}
+
+/// A backend that reads back a session but cannot delete it.
+struct RemoveFailsBackend {
+    session: Mutex<Option<session::StoredSession>>,
+    removes: AtomicUsize,
+}
+
+impl session::Backend for RemoveFailsBackend {
+    fn get(&self) -> Result<Option<session::StoredSession>, Error> {
+        Ok(self.session.lock().unwrap().clone())
+    }
+
+    fn set(&self, value: &session::StoredSession) -> Result<(), Error> {
+        *self.session.lock().unwrap() = Some(value.clone());
+        Ok(())
+    }
+
+    fn remove(&self) -> Result<(), Error> {
+        self.removes.fetch_add(1, Ordering::Relaxed);
+        Err(Error::Storage("session store is read-only".to_string()))
+    }
+}
+
+/// Lets a test hold the counters while the storage owns the backend.
+struct SharedRemoveFailsBackend(Arc<RemoveFailsBackend>);
+
+impl session::Backend for SharedRemoveFailsBackend {
+    fn get(&self) -> Result<Option<session::StoredSession>, Error> {
+        self.0.get()
+    }
+
+    fn set(&self, value: &session::StoredSession) -> Result<(), Error> {
+        self.0.set(value)
+    }
+
+    fn remove(&self) -> Result<(), Error> {
+        self.0.remove()
+    }
+}
+
+/// A rejected refresh token makes the stored session unusable, so it is cleared.
+/// If the clear fails, that has to reach the caller: returning `Ok(None)` would
+/// report a clean sign-out while the dead session stays behind and is handed
+/// back by the next `get`.
+#[tokio::test]
+async fn refresh_session_reports_failure_to_clear_a_rejected_session() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/token"))
+        .respond_with(ResponseTemplate::new(401).set_body_json(json!({"message": "unauthorized"})))
+        .mount(&server)
+        .await;
+
+    let backend = Arc::new(RemoveFailsBackend {
+        session: Mutex::new(None),
+        removes: AtomicUsize::new(0),
+    });
+    let sessions = SessionStorage::new(Box::new(SharedRemoveFailsBackend(backend.clone())));
+    // Already expired: a session merely inside the refresh margin is a soft
+    // failure that keeps the existing session, so it never reaches the clear.
+    sessions.set(session_with(&token(-10))).unwrap();
+
+    let auth = auth::Client::new(server.uri(), reqwest::Client::new(), Vec::new());
+
+    let error = session::refresh_session(&auth, &sessions, 60)
+        .await
+        .expect_err("a failure to clear a rejected session must be reported");
+
+    assert!(
+        matches!(error, Error::Storage(_)),
+        "error = {error:?}, want Error::Storage"
+    );
+    assert!(
+        backend.removes.load(Ordering::Relaxed) >= 1,
+        "the rejected session must have been cleared"
+    );
+}
