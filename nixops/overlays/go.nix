@@ -22,6 +22,32 @@ rec {
 
   buildGoModule = prev.buildGoModule.override { inherit go; };
 
+  betterleaks = final.nhost.buildGoModule rec {
+    pname = "betterleaks";
+    version = "1.8.1";
+    src = final.fetchFromGitHub {
+      owner = "betterleaks";
+      repo = "betterleaks";
+      rev = "v${version}";
+      sha256 = "sha256-TFWjGY5s1/X3JGCvXiK2n0mkedWvcwzOfWYkVBsFBg8=";
+    };
+    vendorHash = "sha256-iawGHP22k96dnpoSMNxlMJ8aHZPOW1Mbaih6vAh3G94=";
+    subPackages = [ "." ];
+    env.CGO_ENABLED = 0;
+    ldflags = [
+      "-s"
+      "-w"
+      "-X=github.com/betterleaks/betterleaks/version.Version=${version}"
+    ];
+    doCheck = false;
+    meta = with final.lib; {
+      description = "Find leaked secrets in git history, files and more";
+      homepage = "https://github.com/betterleaks/betterleaks";
+      license = licenses.mit;
+      maintainers = [ "@nhost" ];
+    };
+  };
+
   golangci-lint = final.nhost.buildGoModule rec {
     pname = "golangci-lint";
     version = "2.9.0";

@@ -32,6 +32,7 @@ let
     (with pkgs; [
       nhost.biome
       bash
+      nhost.betterleaks
       bun
       cacert
       nhost.certbot-full

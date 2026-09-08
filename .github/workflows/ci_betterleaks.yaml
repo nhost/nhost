@@ -1,0 +1,67 @@
+---
+name: "ci: betterleaks"
+on:
+  pull_request_target:
+  merge_group:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ startsWith(github.event_name, 'pull_request') && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
+  cancel-in-progress: ${{ startsWith(github.event_name, 'pull_request') }}
+
+jobs:
+  check-permissions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/check-permissions
+
+  scan:
+    needs: [check-permissions]
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    timeout-minutes: 30
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: "Check out repository"
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          allow-unsafe-pr-checkout: true
+          persist-credentials: false
+
+      - name: Setup Nix with Cache
+        uses: ./.github/actions/setup-nix
+        with:
+          NAME: nixops
+          NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+          NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+          NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Scan git history for leaked secrets"
+        run: |
+          nix develop .\#betterleaks --command betterleaks git . \
+            --log-opts='--diff-merges=first-parent origin/main..HEAD' \
+            --no-banner \
+            --no-color \
+            --redact \
+            --verbose \
+            --confidence medium \
+            --validation \
+            --validation-status valid \
+            --validation-max-requests 100 \
+            --validation-rps 5 \
+            --timeout 900
+
+  remove_label:
+    runs-on: ubuntu-latest
+    needs: [check-permissions]
+    if: contains(github.event.pull_request.labels.*.name, 'safe_to_test')
+    steps:
+      - uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          labels: |
+            safe_to_test
