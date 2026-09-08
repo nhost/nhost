@@ -104,7 +104,7 @@ from nhost import (
     MemoryStorage,
     NhostClient,
     create_server_client,
-    with_chain_functions,
+    with_middleware,
 )
 from nhost.auth import SignInEmailPasswordRequest
 from nhost.fetch import with_headers_middleware
@@ -193,7 +193,7 @@ async def authenticated_nhost(
         session_storage=MemoryStorage(),
         http_client=shared_http(request),
         configure=(
-            with_chain_functions(
+            with_middleware(
                 (with_headers_middleware({"Authorization": bearer}),)
             ),
         ),
