@@ -7,13 +7,11 @@
 # Each repo pins sha256(this file) in a test; edit one, update the pinned hash,
 # and copy the file to the other repo (the hashes must match).
 #
-# Installs a Nhost functions project's dependencies the SAME way in local
-# development (services/functions) and production deploys (services/cd). There
-# are no behavior knobs: no project or dependency lifecycle script ever runs,
-# pnpm .pnpmfile.cjs hooks and project yarn-path binaries are ignored, and Yarn
-# Berry projects are rejected before bootstrap. The install remains frozen and
-# REQUIRES a committed lockfile. The function also bootstraps corepack into a
-# writable prefix when Node no longer bundles it (Node >= 25).
+# Shared dependency installer for local development and production deploys.
+# Disables lifecycle scripts, pnpm hooks, and project-selected Yarn binaries.
+# Yarn installs use pinned Classic because Berry can load project plugins even
+# when lifecycle scripts are disabled. Requires a lockfile when package.json
+# exists, and bootstraps Corepack if the Node image does not include it.
 #
 # The only input is WORK_DIR (the directory holding the project's package.json).
 # Anything environment-specific is the caller's job, configured BEFORE calling:
@@ -34,12 +32,14 @@
 NHOST_EXPRESS_VERSION=5.2.1
 NHOST_SERVERLESS_HTTP_VERSION=4.0.0
 
+NHOST_YARN_CLASSIC_SPEC=1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610
+
 nhost_install_deps() {
 	set -eu
 
 	: "${WORK_DIR:?WORK_DIR must be set}"
 
-	# 1. Block every install-time user-code path before any bootstrap or return.
+	# 1. Disable lifecycle scripts and package-manager hooks before bootstrapping.
 	#    Probes on the production Node images verified npm's env beats .npmrc;
 	#    pnpm 11.0.6's dedicated env beats pnpm-workspace.yaml and .npmrc; and
 	#    Yarn classic's dedicated env beats .yarnrc. Yarn classic ignores the npm
@@ -57,19 +57,24 @@ nhost_install_deps() {
 	#    so a caller's environment cannot enable that arbitrary-tarball path.
 	export COREPACK_ENABLE_UNSAFE_CUSTOM_URLS=0
 
-	#    Yarn Berry can still run project code despite disabled build scripts.
-	#    Reject it without executing Yarn. The lockfile signature is only decisive
-	#    when Yarn is the manager step 5 would actually select, so it is skipped when
-	#    packageManager names one or a higher-priority lockfile is present —
-	#    otherwise a stale Berry yarn.lock would fail an npm or pnpm project.
-	#    YARN_IGNORE_PATH also blocks project-selected Yarn binaries.
+	# Give Berry projects a clear error before installation.
+	# This check is optional for blocking Berry plugins: step 5 pins Classic, and YARN_IGNORE_PATH stops
+	# project config from replacing it. Classic does not load Berry plugins.
 	if [ -f "$WORK_DIR/package.json" ]; then
 		package_manager="$(node -e '
-try {
-  const value = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8")).packageManager
-  if (typeof value === "string") process.stdout.write(value)
-} catch {}
-' "$WORK_DIR/package.json")"
+const manifest = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"))
+if (typeof manifest.packageManager === "string") {
+  process.stdout.write(manifest.packageManager)
+} else {
+  const manager = manifest.devEngines?.packageManager
+  if (manager && typeof manager.name === "string" && typeof manager.version === "string") {
+    process.stdout.write(`${manager.name}@${manager.version}`)
+  }
+}
+' "$WORK_DIR/package.json")" || {
+			echo "could not read $WORK_DIR/package.json; refusing to guess the package manager" >&2
+			return 1
+		}
 		case "$package_manager" in
 		yarn@1.* | "") ;;
 		yarn@0.*)
@@ -77,7 +82,7 @@ try {
 			return 1
 			;;
 		yarn@*)
-			echo "Yarn Berry is not supported: install-time scripts cannot be safely disabled (detected via packageManager)" >&2
+			echo "Yarn Berry is not supported: install-time scripts cannot be safely disabled (detected via packageManager or devEngines.packageManager)" >&2
 			return 1
 			;;
 		esac
@@ -117,23 +122,21 @@ try {
 		return 0
 	fi
 
-	# 5. require a committed lockfile and pick the frozen, workspace-isolated
-	#    install command for it. Select the command here so detection and flag
-	#    forwarding cannot change under a third-party wrapper. Corepack still
-	#    selects the manager's own version.
-	#    Yarn is always Classic (Berry is rejected above), so --frozen-lockfile
-	#    is the right flag and yarn has no per-install workspace-isolation flag.
+	# 5. Choose a frozen install from the available lockfile.
+	#    Pin Yarn Classic here so Corepack cannot select Berry from a project or
+	#    parent manifest, even if the earlier check missed it. Yarn Classic has
+	#    no per-install workspace-isolation flag.
 	if [ -f "$WORK_DIR/package-lock.json" ]; then
 		set -- npm ci --no-workspaces --ignore-scripts
 	elif [ -f "$WORK_DIR/pnpm-lock.yaml" ]; then
 		set -- pnpm install --frozen-lockfile --ignore-workspace --ignore-scripts --ignore-pnpmfile
 	elif [ -f "$WORK_DIR/yarn.lock" ]; then
-		set -- yarn install --frozen-lockfile --ignore-scripts
+		set -- corepack "yarn@$NHOST_YARN_CLASSIC_SPEC" install --frozen-lockfile --ignore-scripts
 	else
 		echo "no lockfile in $WORK_DIR — commit a package-lock.json, pnpm-lock.yaml, or yarn.lock" >&2
 		return 1
 	fi
 
-	# 6. frozen, workspace-isolated install.
+	# 6. Run the selected install in the project directory.
 	(cd "$WORK_DIR" && "$@")
 }
