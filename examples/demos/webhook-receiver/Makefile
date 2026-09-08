@@ -33,6 +33,10 @@ backend-down:  ## Stop the demos backend.
 docker-build:  ## Build the service image (from the repo root, as the Dockerfile expects).
 	cd $(ROOT_DIR) && docker build -f examples/demos/webhook-receiver/Dockerfile -t webhook-receiver:dev .
 
+.PHONY: lock
+lock:  ## Recompile requirements.txt from requirements.in (needs network).
+	uv pip compile requirements.in --python-version 3.11 -o requirements.txt
+
 .PHONY: check-local
 check-local:  ## Run the same checks the nix check runs.
 	ruff check app.py test_app.py

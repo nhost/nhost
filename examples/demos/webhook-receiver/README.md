@@ -120,6 +120,28 @@ make check-local
 The production Dockerfile installs only `requirements.txt`; pytest, mypy, ruff,
 and optional `uvicorn[standard]` extras are not shipped in the service image.
 
+## Dependencies
+
+`requirements.in` is the file to edit: it lists what this example actually
+depends on. `requirements.txt` is compiled from it and pins every transitive
+dependency, so it is what you install and what the image installs:
+
+```sh
+make lock   # uv pip compile requirements.in -o requirements.txt
+```
+
+Pinning is what makes the image reproducible, and it is also what makes the
+nix check's advisory scan meaningful: the scanner reads the pinned versions
+instead of resolving ranges against PyPI as it runs, so the check reports on
+what this example installs rather than on whatever was published today.
+Regenerate deliberately with `make lock` and read the diff — a new advisory
+should be a decision, not a surprise from an unrelated build.
+
+`requirements-dev.txt` is deliberately left unpinned. It pulls in the pinned
+runtime set with `-r requirements.txt` and adds floating ranges for the local
+tooling, which is never shipped; compiling it would duplicate every runtime pin
+in a second file that could then drift from the first.
+
 ## Run as an Nhost Run service
 
 The container starts plain uvicorn with at most 64 concurrent connections and a
