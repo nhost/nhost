@@ -190,7 +190,7 @@ request pipeline.
 | `storage` | `storage::Client` | Storage service: file upload, download, replace and delete, metadata (including presigned URLs and image transformations), plus the admin-only consistency endpoints. |
 | `graphql` | `graphql::Client` | GraphQL endpoint: `query(..).variable(..).send::<T>()`, decoding `data` into your own types and mapping `errors` to `Error::GraphQl`. |
 | `functions` | `functions::Client` | Functions service: typed `get`/`post` helpers for your project's serverless functions, or `functions::Client::request` for full control. |
-| `sessions` | `SessionStorage` | The session store shared by every client and the session middleware: read it with `Nhost::session`, observe it with `SessionStorage::on_change`. |
+| `sessions` | `SessionStorage` | The session store shared by every client and the session middleware: read it with `Nhost::session`. |
 
 #### Methods
 
@@ -252,7 +252,10 @@ let middleware: Vec<Arc<dyn Middleware>> = vec![
         storage: sessions.clone(),
         margin: nhost::DEFAULT_REFRESH_MARGIN_SECONDS,
     }),
-    Arc::new(AttachToken { storage: sessions.clone() }),
+    Arc::new(AttachToken {
+        storage: sessions.clone(),
+        service_url: url(Service::Auth),
+    }),
 ];
 
 let client = Nhost::from_clients(
