@@ -10,27 +10,6 @@ let
 
   fs = pkgs.lib.fileset;
 
-  # A standalone crate that depends on the SDK by path, so it has its own
-  # lockfile and therefore its own vendor directory.
-  cargoVendorDir = pkgs.rustPlatform.importCargoLock {
-    lockFile = ./Cargo.lock;
-  };
-
-  rustDeps = [
-    pkgs.rustc
-    pkgs.cargo
-    pkgs.clippy
-    pkgs.rustfmt
-  ];
-
-  checkDeps = rustDeps ++ [
-    # rustc needs a linker (cc) to build proc-macros and crates.
-    pkgs.stdenv.cc
-    # openssl + pkg-config in case a dependency pulls in openssl-sys.
-    pkgs.openssl
-    pkgs.pkg-config
-  ];
-
   # Rooted at the repo so the `nhost = { path = "../../../packages/nhost-rust" }`
   # dependency resolves. Listed file by file to keep target/ out of the closure.
   src = fs.toSource {
@@ -49,40 +28,25 @@ let
   };
 in
 {
-  devShell = pkgs.mkShell {
-    buildInputs = checkDeps ++ [ pkgs.nhost.nhost-cli ];
+  devShell = nixops-lib.rust.devShell {
+    buildInputs = [ pkgs.nhost.nhost-cli ];
   };
 
   # The tutorial pages are written against this crate, so an example that stops
   # compiling against the SDK means the docs have gone stale. Compiling it here
   # is what keeps that from happening silently.
-  check =
-    pkgs.runCommand "${name}-tests"
-      {
-        nativeBuildInputs = checkDeps;
-      }
-      ''
-        set -eo pipefail
-        export HOME=$(mktemp -d)
-        export CARGO_HOME="$HOME/cargo"
-        mkdir -p "$CARGO_HOME"
-        cat > "$CARGO_HOME/config.toml" <<EOF
-        [source.crates-io]
-        replace-with = "vendored-sources"
-        [source.vendored-sources]
-        directory = "${cargoVendorDir}"
-        EOF
+  #
+  # It is a standalone crate with its own lockfile, so its dependencies are
+  # resolved and scanned for advisories separately from the SDK's: an example
+  # is code users copy, and it should not be the one place a vulnerable
+  # dependency goes unnoticed.
+  check = nixops-lib.rust.check {
+    inherit src submodule;
 
-        cp -r ${src} src
-        chmod +w -R src
-        cd src/${submodule}
+    cargoLock = ./Cargo.lock;
 
-        echo "➜ Checking rustfmt"
-        cargo fmt --check
-
-        echo "➜ Running clippy"
-        cargo clippy --offline --locked --all-targets -- -D warnings
-
-        mkdir $out
-      '';
+    # The crate has no tests of its own; clippy --all-targets already compiles
+    # every target, which is what this check exists to prove.
+    runTests = false;
+  };
 }
