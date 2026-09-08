@@ -81,6 +81,7 @@ When creating a new feature page, check whether it needs to be added to:
 - When using table data hooks, use `useTableSchemaQuery` if you only need column definitions or foreign key relations (no row data). Use `useTableQuery` only when you also need row data (e.g. for a data grid).
 - For mutations, use `isPending` (not the deprecated `isLoading`) for status checks.
 - Reference component test: `src/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/CustomCheckEditor.test.tsx` — MSW setup, `TestWrapper` with `react-hook-form`, grouping by `describe`, async assertions with `waitFor`.
+- `renderHook` re-exported by `@/tests/testUtils` does not automatically use the custom Apollo/Auth providers. Hooks that require them need an explicit wrapper or a harness component rendered with the custom `render` helper.
 - Mock Next.js router with `vi.mock('next/router', ...)`. Do not mock components — mock responses (e.g., via MSW) instead. Mocking hooks like `useRouter` is acceptable.
 
 ## Tool Usage

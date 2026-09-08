@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 
 export interface MetricTableColumn<Row> {
   key: string;
-  label: string;
+  label: ReactNode;
   alignRight?: boolean;
   render: (row: Row) => ReactNode;
 }
