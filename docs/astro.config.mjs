@@ -106,7 +106,7 @@ export default defineConfig({
             '- Every project is addressed by a `subdomain` and a `region`, which together form service URLs such as `https://{subdomain}.auth.{region}.nhost.run/v1`.',
             '- The GraphQL API is generated from your Postgres schema, with role-based permissions declared as metadata rather than written in application code.',
             "- Two engines can serve that API. Constellation is Nhost's own GraphQL engine, a Hasura-compatible drop-in replacement that runs the same traffic on around 90% less memory. It is alpha and opt-in today: enabled per project through an `[experimental.constellation]` block in `nhost.toml`, running alongside Hasura rather than replacing it, and set to become the default over time. Both engines expose the same API, so these docs say 'the GraphQL API' rather than naming an engine.",
-            "- Nhost has two MCP servers. The Backend MCP Server exposes a project's own GraphQL API to assistants, authenticating end users through Nhost Auth so every operation runs with that user's permissions. The CLI MCP server runs locally, authenticates as you, and manages local and Nhost Cloud projects.",
+            "- Nhost has two MCP servers. The Backend MCP Server exposes a project's own GraphQL API to assistants, authenticating end users through Nhost Auth so every operation runs with that user's permissions. The CLI MCP server runs locally, authenticates as you, and manages local and Nhost Cloud projects; its Cloud schema is linked below.",
             '- The `@nhost/nhost-js` SDK is the primary client and wraps auth, storage, GraphQL and functions in a single client.',
             '- The Auth and Storage REST APIs have machine-readable OpenAPI specs; see the optional links below rather than inferring endpoints from prose.',
           ].join('\n'),
@@ -129,6 +129,12 @@ export default defineConfig({
               url: 'https://docs.nhost.io/openapi/storage.json',
               description:
                 'Complete OpenAPI 3.0 spec for the Nhost Storage API. Also served as YAML at /openapi/storage.yaml.',
+            },
+            {
+              label: 'Nhost Cloud management GraphQL schema',
+              url: 'https://docs.nhost.io/graphql/cloud-with-mutations.graphql',
+              description:
+                'Schema the CLI MCP server uses to manage Nhost projects, organizations and project config. Read-only variant at /graphql/cloud.graphql.',
             },
             {
               label: 'Nhost website',

@@ -83,6 +83,16 @@ function build_schemas() {
 	done
 }
 
+function build_graphql_schemas() {
+	echo "⚒️⚒️⚒️ Publishing GraphQL schemas..."
+	# The same Cloud schema the CLI's MCP server embeds, served from
+	# docs.nhost.io/graphql/ for agents that aren't running the CLI.
+	mkdir -p public/graphql
+	cp ../cli/mcp/resources/cloud_schema.graphql public/graphql/cloud.graphql
+	cp ../cli/mcp/resources/cloud_schema-with-mutations.graphql \
+		public/graphql/cloud-with-mutations.graphql
+}
+
 function build_typedoc() {
 	echo "⚒️⚒️⚒️ Building TypeDoc documentation..."
 
@@ -116,6 +126,7 @@ function build_cli_docs() {
 }
 
 build_schemas
+build_graphql_schemas
 build_typedoc
 build_cli_docs
 build_config_reference
