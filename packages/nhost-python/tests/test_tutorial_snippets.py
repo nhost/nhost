@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+import importlib
 import inspect
 import re
 from collections.abc import Callable, Iterator
@@ -10,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from nhost import create_client, create_nhost_client, create_server_client
+from nhost import NhostClient, create_client, create_nhost_client, create_server_client
 
 _REPO_ROOT = Path(__file__).parents[3]
 _DOCS = (
@@ -25,7 +26,15 @@ _BODY_METHODS = {
     "sign_up_email_password",
     "upload_files",
 }
-_ASYNC_SESSION_METHODS = {"clear_session", "get_user_session"}
+# Derived from the client rather than listed, so renaming or adding an async
+# method cannot leave the "must be awaited" guard quietly covering a name that
+# no longer exists: get_user_session was renamed to get_session and the listed
+# version kept passing while checking nothing.
+_ASYNC_SESSION_METHODS = {
+    name
+    for name, _ in inspect.getmembers(NhostClient, inspect.iscoroutinefunction)
+    if not name.startswith("_")
+}
 _CLIENT_FACTORIES: dict[str, Callable[..., object]] = {
     "create_client": create_client,
     "create_nhost_client": create_nhost_client,
@@ -99,10 +108,56 @@ def _validate_sdk_calls(source: str) -> None:
             assert len(node.args) <= 1, "Functions post payload must use json=..."
 
 
+def _validate_sdk_imports(source: str) -> None:
+    for node in ast.walk(ast.parse(source)):
+        if not isinstance(node, ast.ImportFrom) or node.module is None:
+            continue
+        if node.module != "nhost" and not node.module.startswith("nhost."):
+            continue
+
+        module = importlib.import_module(node.module)
+        for alias in node.names:
+            if alias.name == "*":
+                continue
+            assert hasattr(module, alias.name), f"{node.module} does not export {alias.name!r}"
+
+
+def test_async_session_methods_were_discovered() -> None:
+    """Guard the guard: an empty set would silently check nothing."""
+    assert "get_session" in _ASYNC_SESSION_METHODS
+    assert "clear_session" in _ASYNC_SESSION_METHODS
+
+
 @pytest.mark.parametrize("source", list(_snippets()))
 def test_python_tutorial_snippet_uses_current_sdk(source: str) -> None:
     """Keep parseable snippets free of SDK call shapes that previously drifted."""
     _validate_sdk_calls(source)
+
+
+@pytest.mark.parametrize("source", list(_snippets()))
+def test_python_tutorial_snippet_imports_exist(source: str) -> None:
+    """Every name a snippet imports from the SDK has to still be exported.
+
+    Call-shape validation only inspects calls, so a snippet could import a
+    deleted symbol and pass: the fastapi quickstart went on importing
+    with_chain_functions after it became with_middleware, and nothing failed.
+    """
+    _validate_sdk_imports(source)
+
+
+@pytest.mark.parametrize(
+    "source",
+    (
+        pytest.param("from nhost import with_chain_functions", id="with-chain-functions"),
+        pytest.param("from nhost import create_api_client", id="create-api-client"),
+        pytest.param("from nhost.session import detect_storage", id="detect-storage"),
+        pytest.param("from nhost.fetch import ChainFunction", id="chain-function"),
+    ),
+)
+def test_removed_sdk_imports_are_rejected(source: str) -> None:
+    """The import check must fail on the symbols this SDK actually dropped."""
+    with pytest.raises(AssertionError, match="does not export"):
+        _validate_sdk_imports(source)
 
 
 @pytest.mark.parametrize(

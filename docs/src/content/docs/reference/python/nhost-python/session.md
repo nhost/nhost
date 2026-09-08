@@ -17,14 +17,6 @@ Decode the payload of a JWT access token into a `DecodedToken`.
 Hasura claims encoded as PostgreSQL array literals (e.g. ``{user,me}``) are
 converted into Python lists, mirroring the JS SDK.
 
-### `detect_storage`
-
-```python
-def detect_storage() -> SessionStorageBackend
-```
-
-Return the default storage backend for the current environment.
-
 ### `refresh_session`
 
 ```python
@@ -46,14 +38,6 @@ def to_stored_session(session: Session) -> StoredSession
 ```
 
 Enrich an auth `Session`, re-deriving its decoded access token.
-
-## Type aliases
-
-### `SessionChangeCallback`
-
-```python
-SessionChangeCallback = Callable[[nhost.session.session.StoredSession | None], Awaitable[None] | None]
-```
 
 ## Classes
 
@@ -153,7 +137,7 @@ class SessionStorage:
     def __init__(storage: SessionStorageBackend) -> None
 ```
 
-Decode tokens, persist sessions, and notify sync or async subscribers.
+Decode access tokens and persist sessions through a backend.
 
 #### Properties
 
@@ -178,17 +162,6 @@ Return a session with decoded claims re-derived from its access token.
 
 Persisted ``decoded_token`` data is derived state and is never trusted.
 A malformed access token raises `ValueError`, matching `set`.
-
-##### `on_change`
-
-```python
-def on_change(self, callback: SessionChangeCallback) -> Callable[[], None]
-```
-
-Subscribe to changes and return an idempotent unsubscribe function.
-
-Both synchronous and asynchronous callbacks are supported. Registering
-the same callable twice creates two independent subscriptions.
 
 ##### `remove`
 

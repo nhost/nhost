@@ -27,7 +27,7 @@ Create an application client with automatic session management.
 ...                 password=str(uuid.uuid4()),
 ...             )
 ...         )
-...         session = await nhost.get_user_session()
+...         session = await nhost.get_session()
 ...         return (session.decoded_token.hasura_claims or {}).get(
 ...             "x-hasura-default-role"
 ...         )
@@ -87,14 +87,6 @@ Apply admin credentials to Storage, GraphQL, and Functions requests.
 
 Never use an admin secret in client-side code.
 
-### `with_chain_functions`
-
-```python
-def with_chain_functions(chain_functions: Sequence[ChainFunction]) -> ClientConfiguration
-```
-
-Apply custom HTTP middleware to every service client.
-
 ### `with_client_side_session_middleware`
 
 ```python
@@ -102,6 +94,14 @@ def with_client_side_session_middleware(ctx: ConfigureContext) -> None
 ```
 
 Enable automatic refresh, token attachment, and session capture.
+
+### `with_middleware`
+
+```python
+def with_middleware(middleware: Sequence[Middleware]) -> ClientConfiguration
+```
+
+Apply custom HTTP middleware to every service client.
 
 ### `with_server_side_session_middleware`
 
@@ -173,10 +173,10 @@ async def clear_session(self) -> None
 
 Remove the current session without making a sign-out request.
 
-##### `get_user_session`
+##### `get_session`
 
 ```python
-async def get_user_session(self) -> StoredSession | None
+async def get_session(self) -> StoredSession | None
 ```
 
 Return the current session, if one is stored.

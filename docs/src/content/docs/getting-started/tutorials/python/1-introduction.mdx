@@ -187,7 +187,7 @@ def run(coro) -> None:
 
 
 async def cmd_whoami(nhost) -> None:
-    session = await nhost.get_user_session()
+    session = await nhost.get_session()
     if session is None or session.user is None:
         raise SystemExit("not logged in")
     print(f"{session.user.email} ({session.user.id})")

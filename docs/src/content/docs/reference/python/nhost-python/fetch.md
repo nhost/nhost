@@ -15,7 +15,7 @@ attachment, and role/header injection are implemented.
 ### `attach_access_token_middleware`
 
 ```python
-def attach_access_token_middleware(storage: SessionStorage, service_url: str) -> ChainFunction
+def attach_access_token_middleware(storage: SessionStorage, service_url: str) -> Middleware
 ```
 
 Attach the stored access token only within the configured service origin.
@@ -24,17 +24,18 @@ Should run after the refresh middleware so the freshest token is used. A
 caller-supplied authorization header is preserved unless it is the stored
 bearer token on a request that has moved outside the service origin.
 
-### `create_enhanced_fetch`
+### `create_fetch_pipeline`
 
 ```python
-def create_enhanced_fetch(client: httpx.AsyncClient, chain_functions: list[ChainFunction] | None = None) -> FetchFunction
+def create_fetch_pipeline(client: httpx.AsyncClient, middleware: list[Middleware] | None = None) -> FetchFunction
 ```
 
-Compose ``chain_functions`` around a base fetch backed by ``client``.
+Compose ``middleware`` around a base fetch backed by ``client``.
 
-The chain executes in list order: the first middleware wraps the second,
-and so on, with the base fetch (``client.send``) at the center. This matches
-the ``reduceRight`` composition used by the JS SDK.
+The pipeline executes in list order: the first middleware wraps the second,
+and so on, with the base fetch (``client.send``) at the center. A middleware
+therefore sees the request before, and the response after, every middleware
+listed behind it.
 
 ### `decode_json`
 
@@ -52,7 +53,7 @@ every service exposes the same decoding contract.
 ### `session_refresh_middleware`
 
 ```python
-def session_refresh_middleware(auth: AuthClient, storage: SessionStorage, margin_seconds: int = 60) -> ChainFunction
+def session_refresh_middleware(auth: AuthClient, storage: SessionStorage, margin_seconds: int = 60) -> Middleware
 ```
 
 Refresh the session before a request when the token is near expiry.
@@ -96,7 +97,7 @@ Decimals use strings to preserve precision; and Enums use their values.
 ### `update_session_from_response_middleware`
 
 ```python
-def update_session_from_response_middleware(storage: SessionStorage, auth_url: str) -> ChainFunction
+def update_session_from_response_middleware(storage: SessionStorage, auth_url: str) -> Middleware
 ```
 
 Persist session data returned by auth endpoints, and clear it on sign-out.
@@ -109,7 +110,7 @@ responses from ``/token``, ``/token/exchange``, ``/signin/*`` and
 ### `with_admin_session_middleware`
 
 ```python
-def with_admin_session_middleware(options: AdminSessionOptions, service_url: str) -> ChainFunction
+def with_admin_session_middleware(options: AdminSessionOptions, service_url: str) -> Middleware
 ```
 
 Attach admin headers only within the configured secure service origin.
@@ -117,7 +118,7 @@ Attach admin headers only within the configured secure service origin.
 ### `with_headers_middleware`
 
 ```python
-def with_headers_middleware(default_headers: Mapping[str, str]) -> ChainFunction
+def with_headers_middleware(default_headers: Mapping[str, str]) -> Middleware
 ```
 
 Attach default headers, preserving any request-specific values.
@@ -125,23 +126,23 @@ Attach default headers, preserving any request-specific values.
 ### `with_role_middleware`
 
 ```python
-def with_role_middleware(role: str) -> ChainFunction
+def with_role_middleware(role: str) -> Middleware
 ```
 
 Set ``x-hasura-role`` on requests that don't already specify it.
 
 ## Type aliases
 
-### `ChainFunction`
-
-```python
-ChainFunction = Callable[[Callable[[httpx.Request], Awaitable[httpx.Response]]], Callable[[httpx.Request], Awaitable[httpx.Response]]]
-```
-
 ### `FetchFunction`
 
 ```python
 FetchFunction = Callable[[httpx.Request], Awaitable[httpx.Response]]
+```
+
+### `Middleware`
+
+```python
+Middleware = Callable[[Callable[[httpx.Request], Awaitable[httpx.Response]]], Callable[[httpx.Request], Awaitable[httpx.Response]]]
 ```
 
 ## Classes

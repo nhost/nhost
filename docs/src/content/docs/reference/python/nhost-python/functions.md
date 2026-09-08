@@ -4,23 +4,13 @@ title: Functions
 
 Functions client for the Nhost Python SDK.
 
-## Functions
-
-### `create_api_client`
-
-```python
-def create_api_client(base_url: str, *, middleware: Sequence[ChainFunction] = (), http_client: httpx.AsyncClient | None = None) -> Client
-```
-
-Create a standalone Functions client.
-
 ## Classes
 
 ### `Client`
 
 ```python
 class Client:
-    def __init__(base_url: str, *, middleware: Sequence[ChainFunction] = (), http_client: httpx.AsyncClient | None = None) -> None
+    def __init__(base_url: str, *, middleware: Sequence[Middleware] = (), http_client: httpx.AsyncClient | None = None) -> None
 ```
 
 Functions client backed by an owned or injected HTTP client.
@@ -38,7 +28,7 @@ Close the internally owned HTTP client, if any.
 ##### `add_middleware`
 
 ```python
-def add_middleware(self, middleware: ChainFunction) -> None
+def add_middleware(self, middleware: Middleware) -> None
 ```
 
 Append HTTP middleware and rebuild the request pipeline.

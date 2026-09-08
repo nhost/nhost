@@ -4,23 +4,13 @@ title: Storage
 
 Nhost Storage generated API and hand-written conveniences.
 
-## Functions
-
-### `create_api_client`
-
-```python
-def create_api_client(base_url: str, *, chain_functions: Sequence[ChainFunction] = (), http_client: httpx.AsyncClient | None = None) -> Client
-```
-
-Create a generated API client.
-
 ## Classes
 
 ### `Client`
 
 ```python
 class Client:
-    def __init__(base_url: str, *, chain_functions: Sequence[ChainFunction] = (), http_client: httpx.AsyncClient | None = None) -> None
+    def __init__(base_url: str, *, middleware: Sequence[Middleware] = (), http_client: httpx.AsyncClient | None = None) -> None
 ```
 
 Generated async API client backed by an httpx.AsyncClient and a middleware chain.
@@ -34,6 +24,14 @@ async def aclose(self) -> None
 ```
 
 Close the internally owned HTTP client, if any.
+
+##### `add_middleware`
+
+```python
+def add_middleware(self, middleware: Middleware) -> None
+```
+
+Append HTTP middleware and rebuild the request pipeline.
 
 ##### `delete_broken_metadata`
 
@@ -202,14 +200,6 @@ Args:
 
 Returns:
     FetchResponse[ListOrphanedFilesResponse200]: The HTTP response.
-
-##### `push_chain_function`
-
-```python
-def push_chain_function(self, chain_function: ChainFunction) -> None
-```
-
-Append a middleware chain function and rebuild the fetch pipeline.
 
 ##### `replace_file`
 
@@ -504,10 +494,10 @@ Close the internally owned HTTP client, if any.
 ##### `add_middleware`
 
 ```python
-def add_middleware(self, middleware: ChainFunction) -> None
+def add_middleware(self, middleware: Middleware) -> None
 ```
 
-Append HTTP middleware to the Storage request pipeline.
+Append HTTP middleware and rebuild the request pipeline.
 
 ##### `delete_broken_metadata`
 
@@ -676,14 +666,6 @@ Args:
 
 Returns:
     FetchResponse[ListOrphanedFilesResponse200]: The HTTP response.
-
-##### `push_chain_function`
-
-```python
-def push_chain_function(self, chain_function: ChainFunction) -> None
-```
-
-Append a middleware chain function and rebuild the fetch pipeline.
 
 ##### `replace_file`
 
