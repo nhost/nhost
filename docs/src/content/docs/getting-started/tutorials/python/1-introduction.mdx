@@ -178,7 +178,10 @@ def run(coro) -> None:
     # command, and let asyncio drive it to completion.
     async def runner() -> None:
         async with make_client() as nhost:
-            await coro(nhost)
+            try:
+                await coro(nhost)
+            except NhostError as exc:
+                raise SystemExit(f"error: {exc}") from exc
 
     asyncio.run(runner())
 

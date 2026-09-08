@@ -82,21 +82,36 @@ pip install "nhost @ git+https://github.com/nhost/nhost.git@c2a676ab7eb6c28082dd
 
 ### Configure the Nhost client and read and write notes
 
-The `NhostClient` owns an `httpx.AsyncClient`, so create it once for the app's
-lifetime with a FastAPI [lifespan](https://fastapi.tiangolo.com/advanced/events/)
-and share it across requests. After `/signin`, the SDK attaches the access token
-to every following request (and refreshes it as needed), so `/notes` runs as the
-signed-in user and the permissions above apply.
+Create one `httpx.AsyncClient` in the FastAPI
+[lifespan](https://fastapi.tiangolo.com/advanced/events/) so requests share its
+connection pool, but create an Nhost client with request-scoped session storage
+for each caller. `/signin` returns that caller's tokens. The caller then sends
+its access token as `Authorization: Bearer <token>`; the dependency below
+forwards only that request's credentials, so concurrent users never share
+session state.
 
 <Tabs>
   <TabItem label="main.py">
 ```python
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from typing import Annotated, cast
 
-from fastapi import FastAPI, HTTPException, Request
-from nhost import create_client
+import httpx
+from fastapi import Depends, FastAPI, Header, HTTPException, Request
+from nhost import (
+    HTTPError,
+    MemoryStorage,
+    NhostClient,
+    create_server_client,
+    with_chain_functions,
+)
 from nhost.auth import SignInEmailPasswordRequest
+from nhost.fetch import with_headers_middleware
 from pydantic import BaseModel
+
+NHOST_SUBDOMAIN = "<subdomain>"
+NHOST_REGION = "<region>"
 
 # `user_id` is filled in by the column preset, so we only send title + content.
 INSERT_NOTE = """
@@ -110,11 +125,10 @@ LIST_NOTES = "query { notes(order_by: {created_at: desc}) { id title content } }
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Replace <subdomain> and <region> with your project's values. For a local
-    # backend, use subdomain="local", region="local".
-    async with create_client(subdomain="<subdomain>", region="<region>") as nhost:
-        app.state.nhost = nhost
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    # Reuse only the connection pool. Never put a user session on app.state.
+    async with httpx.AsyncClient() as http:
+        app.state.http = http
         yield
 
 
@@ -126,18 +140,10 @@ class SignIn(BaseModel):
     password: str
 
 
-@app.post("/signin")
-async def signin(request: Request, body: SignIn):
-    nhost = request.app.state.nhost
-    try:
-        # On success the session is captured by middleware and attached to
-        # subsequent requests automatically.
-        resp = await nhost.auth.sign_in_email_password(
-            SignInEmailPasswordRequest(email=body.email, password=body.password)
-        )
-    except Exception as err:  # noqa: BLE001
-        raise HTTPException(status_code=401, detail=str(err)) from err
-    return {"session": resp.body.session is not None}
+class Tokens(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
 
 
 class NewNote(BaseModel):
@@ -145,40 +151,139 @@ class NewNote(BaseModel):
     content: str = ""
 
 
+class NoteId(BaseModel):
+    id: str
+
+
+class Note(NoteId):
+    title: str
+    content: str
+
+
+class InsertNoteData(BaseModel):
+    insert_notes_one: NoteId | None
+
+
+class ListNotesData(BaseModel):
+    notes: list[Note]
+
+
+def shared_http(request: Request) -> httpx.AsyncClient:
+    return cast(httpx.AsyncClient, request.app.state.http)
+
+
+async def authenticated_nhost(
+    request: Request,
+    authorization: Annotated[str | None, Header()] = None,
+) -> AsyncIterator[NhostClient]:
+    scheme, _, credentials = (authorization or "").partition(" ")
+    if scheme.casefold() != "bearer" or not credentials.strip():
+        raise HTTPException(
+            status_code=401,
+            detail="missing bearer token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    bearer = f"Bearer {credentials.strip()}"
+    # MemoryStorage belongs to this request only. The explicit header is kept by
+    # the SDK middleware and applied to this request's Nhost service calls.
+    async with create_server_client(
+        subdomain=NHOST_SUBDOMAIN,
+        region=NHOST_REGION,
+        session_storage=MemoryStorage(),
+        http_client=shared_http(request),
+        configure=(
+            with_chain_functions(
+                (with_headers_middleware({"Authorization": bearer}),)
+            ),
+        ),
+    ) as nhost:
+        yield nhost
+
+
+@app.post("/signin")
+async def signin(request: Request, body: SignIn) -> Tokens:
+    # Sign-in also gets isolated storage; its captured session is never shared.
+    async with create_server_client(
+        subdomain=NHOST_SUBDOMAIN,
+        region=NHOST_REGION,
+        session_storage=MemoryStorage(),
+        http_client=shared_http(request),
+    ) as nhost:
+        try:
+            response = await nhost.auth.sign_in_email_password(
+                body=SignInEmailPasswordRequest(
+                    email=body.email,
+                    password=body.password,
+                )
+            )
+        except HTTPError as error:
+            raise HTTPException(status_code=error.status, detail=str(error)) from error
+
+        session = response.body.session
+        if session is None:
+            raise HTTPException(status_code=401, detail="sign-in returned no session")
+        return Tokens(
+            access_token=session.access_token,
+            refresh_token=session.refresh_token,
+        )
+
+
 @app.post("/notes")
-async def create_note(request: Request, body: NewNote):
-    nhost = request.app.state.nhost
+async def create_note(
+    body: NewNote,
+    nhost: Annotated[NhostClient, Depends(authenticated_nhost)],
+) -> NoteId:
     result = await nhost.graphql.request(
-        INSERT_NOTE, variables={"title": body.title, "content": body.content}
+        INSERT_NOTE,
+        variables={"title": body.title, "content": body.content},
+        response_type=InsertNoteData,
     )
-    return result.body.data["insert_notes_one"]
+    if result.body.data is None or result.body.data.insert_notes_one is None:
+        raise HTTPException(status_code=502, detail="Nhost returned no inserted note")
+    return result.body.data.insert_notes_one
 
 
 @app.get("/notes")
-async def list_notes(request: Request):
-    nhost = request.app.state.nhost
-    result = await nhost.graphql.request(LIST_NOTES)
-    return result.body.data["notes"]
+async def list_notes(
+    nhost: Annotated[NhostClient, Depends(authenticated_nhost)],
+) -> list[Note]:
+    result = await nhost.graphql.request(LIST_NOTES, response_type=ListNotesData)
+    if result.body.data is None:
+        raise HTTPException(status_code=502, detail="Nhost returned no notes data")
+    return result.body.data.notes
 ```
   </TabItem>
 </Tabs>
 
 :::note
-`create_client` enables automatic session refresh and token attachment. In a
-multi-user server you typically want a per-request/user session store — use
-`create_server_client` with explicit storage rather than sharing one session
-across all callers.
+`create_server_client` deliberately requires explicit session storage and does
+not refresh a process-global session. This stateless service accepts a bearer
+token on every protected request; the calling application is responsible for
+refreshing its own token. If you keep sessions server-side instead, back
+`SessionStorageBackend` with an encrypted store and scope each instance by an
+unguessable user session id. `create_client` is for single-user applications
+such as scripts and CLIs, not a shared server singleton.
 :::
 
 ### The end
 
-Run your service with `uv run uvicorn main:app --reload` (or
-`uvicorn main:app --reload` inside the pip virtualenv), then:
+Replace `NHOST_SUBDOMAIN` and `NHOST_REGION` with your project's values (or use
+`"local"` for both with a local backend). Run your service with
+`uv run uvicorn main:app --reload` (or `uvicorn main:app --reload` inside the pip
+virtualenv), then:
 
 ```bash Terminal
-curl -X POST localhost:8000/signin -d '{"email":"user@example.com","password":"..."}'
-curl -X POST localhost:8000/notes  -d '{"title":"Hello","content":"My first note"}'
-curl localhost:8000/notes
+TOKENS=$(curl -sS -X POST localhost:8000/signin \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"user@example.com","password":"..."}')
+ACCESS_TOKEN=$(printf '%s' "$TOKENS" | jq -r .access_token)
+
+curl -X POST localhost:8000/notes \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{"title":"Hello","content":"My first note"}'
+curl localhost:8000/notes -H "Authorization: Bearer $ACCESS_TOKEN"
 ```
 
 ## Related resources
