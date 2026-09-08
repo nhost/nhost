@@ -684,24 +684,37 @@ func addPythonImportNames(
 	}
 }
 
+// pythonClientReservedNames lists the identifiers the generated Client already
+// occupies, so an operation whose name would shadow one is rejected at
+// generation time rather than producing a client that silently overrides its
+// own plumbing.
+//
+// Every entry must correspond to a member the Client template actually emits;
+// TestPythonClientReservedNamesMatchTemplate renders a client and compares the
+// two, because a stale entry here fails open — it guards a name nothing
+// generates while leaving the real one unprotected.
+func pythonClientReservedNames() map[string]string {
+	return map[string]string{
+		"__aenter__":        `generated Client method "__aenter__"`,
+		"__aexit__":         `generated Client method "__aexit__"`,
+		"__init__":          `generated Client method "__init__"`,
+		"_fetch":            `generated Client attribute "_fetch"`,
+		"_http":             `generated Client attribute "_http"`,
+		"_middleware":       `generated Client attribute "_middleware"`,
+		"_owns_http_client": `generated Client attribute "_owns_http_client"`,
+		"aclose":            `generated Client method "aclose"`,
+		"add_middleware":    `generated Client method "add_middleware"`,
+		"base_url":          `generated Client attribute "base_url"`,
+	}
+}
+
 func validatePythonNames(types []processor.Type, methods []*processor.Method) (string, error) {
 	typeNames := pythonModuleNames(types, methods)
 	if err := validatePythonTypeNames(types, typeNames); err != nil {
 		return "", err
 	}
 
-	methodNames := map[string]string{
-		"__aenter__":          `generated Client method "__aenter__"`,
-		"__aexit__":           `generated Client method "__aexit__"`,
-		"__init__":            `generated Client method "__init__"`,
-		"_chain_functions":    `generated Client attribute "_chain_functions"`,
-		"_fetch":              `generated Client attribute "_fetch"`,
-		"_http":               `generated Client attribute "_http"`,
-		"_owns_http_client":   `generated Client attribute "_owns_http_client"`,
-		"aclose":              `generated Client method "aclose"`,
-		"base_url":            `generated Client attribute "base_url"`,
-		"push_chain_function": `generated Client method "push_chain_function"`,
-	}
+	methodNames := pythonClientReservedNames()
 	for _, method := range methods {
 		methodName := method.Name()
 		if method.IsRedirect() {
