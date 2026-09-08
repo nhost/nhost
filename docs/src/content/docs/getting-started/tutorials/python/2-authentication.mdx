@@ -21,14 +21,14 @@ series.
 
 ## Persist the session
 
-The client accepts a `storage` backend that it uses to save and load the
-session. The SDK ships `FileStorage`, which writes the session to a JSON file.
-Update `make_client` to use it:
+The client accepts a `session_storage` backend that it uses to save and load
+the session. The SDK ships `FileStorage`, which writes the session to a JSON
+file. Update `make_client` to use it:
 
 ```python title="main.py"
 from pathlib import Path
 
-from nhost import FileStorage, NhostError, create_client
+from nhost import FileStorage, create_client
 
 
 def session_path() -> Path:
@@ -47,10 +47,10 @@ def make_client():
     )
 ```
 
-With a `storage` backend configured, the SDK's middleware does the rest: after
-you sign in it saves the session, attaches the access token to every request,
-and refreshes the token in the background when it expires. Your commands never
-touch tokens directly.
+With a `session_storage` backend configured, the SDK's middleware does the
+rest: after you sign in it saves the session, attaches the access token to every
+request, and refreshes the token in the background when it expires. Your
+commands never touch tokens directly.
 
 ## Add the auth commands
 
@@ -189,7 +189,10 @@ def make_client():
 def run(coro) -> None:
     async def runner() -> None:
         async with make_client() as nhost:
-            await coro(nhost)
+            try:
+                await coro(nhost)
+            except NhostError as exc:
+                raise SystemExit(f"error: {exc}") from exc
 
     asyncio.run(runner())
 
