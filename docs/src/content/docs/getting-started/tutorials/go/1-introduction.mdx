@@ -267,8 +267,11 @@ func env(key, fallback string) string {
 }
 
 func cmdWhoami(c *nhost.Client) error {
-	s, ok := c.GetUserSession()
-	if !ok || s.User == nil {
+	s, err := c.Session()
+	if err != nil {
+		return fmt.Errorf("reading session: %w", err)
+	}
+	if s == nil || s.User == nil {
 		return errors.New("not logged in")
 	}
 	email := ""

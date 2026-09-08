@@ -27,6 +27,9 @@ let
       ../../../.golangci.yaml
       (fs.fileFilter (f: f.hasExt "go") ./.)
       (fs.fileFilter (f: f.hasExt "go") ../../../packages/nhost-go)
+      # docs_snippets_test.go compiles the programs published on the tutorial
+      # pages, so those pages are inputs to this check.
+      ../../../docs/src/content/docs/getting-started/tutorials/go
     ];
   };
 in
