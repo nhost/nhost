@@ -67,6 +67,20 @@ function build_schemas() {
 	echo "⚒️⚒️⚒️ Building schemas documentation..."
 	cp ../services/storage/controller/openapi.yaml src/schemas/storage.yaml
 	cp ../services/auth/docs/openapi.yaml src/schemas/auth.yaml
+
+	# Also serve the specs as files from docs.nhost.io/openapi/, not just as
+	# rendered reference pages.
+	mkdir -p public/openapi
+	for spec in auth storage; do
+		cp "src/schemas/${spec}.yaml" "public/openapi/${spec}.yaml"
+		# JSON too: its content type doesn't depend on the host's mime table,
+		# and most OpenAPI tooling prefers it.
+		node -e "
+		  const yaml = require('js-yaml'), fs = require('fs');
+		  const spec = yaml.load(fs.readFileSync('src/schemas/${spec}.yaml', 'utf8'));
+		  fs.writeFileSync('public/openapi/${spec}.json', JSON.stringify(spec, null, 2) + '\n');
+		"
+	done
 }
 
 function build_typedoc() {
