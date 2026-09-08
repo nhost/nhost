@@ -10,28 +10,15 @@ let
 
   fs = pkgs.lib.fileset;
 
-  # Interpreter plus the example's own dependencies. Using nixpkgs-provided
-  # packages (not uv) keeps the check reproducible, and mirrors how the SDK's
-  # own check builds its environment.
-  pythonEnv = pkgs.python3.withPackages (ps: [
+  # The libraries this example imports. The interpreter, mypy, pytest, ruff and
+  # the CA bundle come from nixops-lib.python.
+  pythonPackages = ps: [
     # The SDK's runtime dependencies; it is imported from source below.
     ps.httpx
     ps.pydantic
     # The example's own dependencies.
     ps.fastapi
     ps.uvicorn
-    # Test tooling.
-    ps.pytest
-    ps.pytest-asyncio
-    ps.mypy
-  ]);
-
-  checkDeps = [
-    pythonEnv
-    pkgs.ruff
-    # Provides a CA bundle (its setup hook sets SSL_CERT_FILE) so httpx can
-    # build its default TLS context.
-    pkgs.cacert
   ];
 
   # Rooted at the repo so the SDK this example imports is available.
@@ -51,43 +38,34 @@ let
   };
 in
 {
-  devShell = pkgs.mkShell {
-    buildInputs = checkDeps ++ [
-      pkgs.uv
-      pkgs.nhost.nhost-cli
-    ];
+  devShell = nixops-lib.python.devShell {
+    inherit pythonPackages;
+    buildInputs = [ pkgs.nhost.nhost-cli ];
   };
 
   # This example receives untrusted external input, so its body-size limits and
   # signature verification carry real weight; test_app.py pins that behaviour
   # and the check runs it.
-  check =
-    pkgs.runCommand "${name}-tests"
-      {
-        nativeBuildInputs = checkDeps;
-      }
-      ''
-        set -eo pipefail
-        export HOME=$(mktemp -d)
+  check = nixops-lib.python.check {
+    inherit src submodule pythonPackages;
 
-        cp -r ${src} src
-        chmod +w -R src
-        cd src
-        # Import the SDK from source, the way the example's editable install
-        # (-e ../../../packages/nhost-python in requirements.txt) resolves it.
-        export PYTHONPATH="$PWD/packages/nhost-python/src"
-        cd ${submodule}
+    # No advisory scan, because there is nothing here to scan deterministically.
+    # requirements.txt is a list of ranges (`fastapi>=0.115`), not a lock, and
+    # osv-scanner resolves ranges against PyPI as it runs: `fastapi>=0.115`
+    # became 0.141.1 with a full transitive tree, so the result would change
+    # with upstream releases rather than with this repository. A check that goes
+    # red because someone else published a package teaches people to ignore it.
+    #
+    # The SDK is scanned properly through its uv.lock. Auditing these examples
+    # means giving them real lock files first.
+    audit = false;
 
-        echo "➜ Running ruff (lint + format check)"
-        ruff check app.py test_app.py
-        ruff format --check app.py test_app.py
+    lintPaths = "app.py test_app.py";
+    typecheckPaths = "app.py";
+    testPaths = "test_app.py";
 
-        echo "➜ Running mypy (strict, via mypy.ini)"
-        mypy app.py
-
-        echo "➜ Running the behavioural example tests"
-        pytest -rs test_app.py
-
-        mkdir $out
-      '';
+    # Import the SDK from source, the way the example's editable install
+    # (-e ../../../packages/nhost-python in requirements.txt) resolves it.
+    pythonPath = "packages/nhost-python/src";
+  };
 }
