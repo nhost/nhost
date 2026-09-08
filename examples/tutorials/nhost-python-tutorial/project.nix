@@ -26,6 +26,7 @@ let
     fileset = fs.unions [
       ./main.py
       ./test_main.py
+      ./requirements.in
       ./requirements.txt
       ./ruff.toml
       ./mypy.ini
@@ -47,11 +48,10 @@ in
   check = nixops-lib.python.check {
     inherit src submodule pythonPackages;
 
-    # See examples/demos/webhook-receiver/project.nix: requirements.txt holds
-    # ranges rather than pinned versions, so an advisory scan would resolve them
-    # against PyPI at build time and report on whatever was published today.
-    # The SDK itself is scanned through its uv.lock.
-    audit = false;
+    # requirements.txt is compiled from requirements.in with every transitive
+    # dependency pinned, so the advisory scan reads the file rather than
+    # resolving ranges against PyPI as it runs.
+    auditLockfile = "requirements.txt";
 
     lintPaths = "main.py test_main.py";
     typecheckPaths = "main.py";
