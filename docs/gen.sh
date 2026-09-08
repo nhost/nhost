@@ -163,24 +163,32 @@ function build_rustdoc() {
 }
 
 function build_pydoc() {
-    echo "⚒️⚒️⚒️ Building Python SDK documentation..."
+	echo "⚒️⚒️⚒️ Building Python SDK documentation..."
 
-    DOCS_DIR=$(pwd)/src/content/docs/reference/python/nhost-python
-    SCRIPT=$(pwd)/pydoc-to-md.py
-    PY_PKG=../packages/nhost-python
+	DOCS_DIR=$(pwd)/src/content/docs/reference/python/nhost-python
+	SCRIPT=$(pwd)/pydoc-to-md.py
+	PY_PKG=../packages/nhost-python
 
-    # pydoc-to-md.py imports `nhost` and introspects it. In the docs check the
-    # SDK source is on PYTHONPATH and pydantic/httpx come from the checkDeps
-    # python env, so introspect it directly with the plain interpreter. In a
-    # local checkout, fall back to the package's uv venv. If neither can import
-    # nhost, skip and keep the committed pages — the sha1sum gate passes.
-    if PYTHONPATH="$PY_PKG/src" python3 -c "import nhost" >/dev/null 2>&1; then
-        PYTHONPATH="$PY_PKG/src" python3 "$SCRIPT" "$DOCS_DIR"
-    elif command -v uv >/dev/null 2>&1 && [ -d "$PY_PKG" ]; then
-        (cd "$PY_PKG" && uv run python "$SCRIPT" "$DOCS_DIR")
-    else
-        echo "⚒️⚒️⚒️ Skipping Python SDK documentation (nhost import unavailable)"
-    fi
+	if [ ! -d "$PY_PKG" ]; then
+		echo "⚒️⚒️⚒️ Skipping Python SDK documentation (SDK source unavailable at $PY_PKG)"
+		return
+	fi
+
+	# The docs check provides python3 plus the SDK's runtime dependencies. Local
+	# checkouts may instead use the SDK's uv environment. An import failure is a
+	# generator failure unless that fallback completes successfully; never leave
+	# stale committed pages behind while reporting success.
+	if PYTHONPATH="$PY_PKG/src" python3 -c "import nhost" >/dev/null 2>&1; then
+		PYTHONPATH="$PY_PKG/src" python3 "$SCRIPT" "$DOCS_DIR"
+	elif command -v uv >/dev/null 2>&1; then
+		if ! (cd "$PY_PKG" && uv run python "$SCRIPT" "$DOCS_DIR"); then
+			echo "Error: Python SDK documentation generation failed with uv" >&2
+			return 1
+		fi
+	else
+		echo "Error: cannot import nhost from $PY_PKG/src and uv is unavailable; refusing to report success with stale Python reference pages" >&2
+		return 1
+	fi
 }
 
 function build_cli_docs() {

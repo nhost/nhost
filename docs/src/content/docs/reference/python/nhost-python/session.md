@@ -9,10 +9,10 @@ Session management for the Nhost Python SDK.
 ### `decode_user_session`
 
 ```python
-def decode_user_session(access_token: 'str') -> 'DecodedToken'
+def decode_user_session(access_token: str) -> DecodedToken
 ```
 
-Decode the payload of a JWT access token into a :class:`DecodedToken`.
+Decode the payload of a JWT access token into a `DecodedToken`.
 
 Hasura claims encoded as PostgreSQL array literals (e.g. ``{user,me}``) are
 converted into Python lists, mirroring the JS SDK.
@@ -20,7 +20,7 @@ converted into Python lists, mirroring the JS SDK.
 ### `detect_storage`
 
 ```python
-def detect_storage() -> 'SessionStorageBackend'
+def detect_storage() -> SessionStorageBackend
 ```
 
 Return the default storage backend for the current environment.
@@ -28,7 +28,7 @@ Return the default storage backend for the current environment.
 ### `refresh_session`
 
 ```python
-async def refresh_session(auth: 'AuthClient', storage: 'SessionStorage', margin_seconds: 'int' = 60) -> 'StoredSession | None'
+async def refresh_session(auth: AuthClient, storage: SessionStorage, margin_seconds: int = 60) -> StoredSession | None
 ```
 
 Refresh the session if it is close to expiry.
@@ -42,17 +42,25 @@ reentry guard is a deadlock safety net, not a supported reentrancy mechanism.
 ### `to_stored_session`
 
 ```python
-def to_stored_session(session: 'Session') -> 'StoredSession'
+def to_stored_session(session: Session) -> StoredSession
 ```
 
-Enrich an auth :class:`Session`, re-deriving its decoded access token.
+Enrich an auth `Session`, re-deriving its decoded access token.
+
+## Type aliases
+
+### `SessionChangeCallback`
+
+```python
+SessionChangeCallback = Callable[[nhost.session.session.StoredSession | None], Awaitable[None] | None]
+```
 
 ## Classes
 
 ### `DecodedToken`
 
 ```python
-class DecodedToken
+class DecodedToken(BaseModel):
 ```
 
 Decoded JWT access-token payload.
@@ -75,7 +83,8 @@ declared fields, including processed Hasura claims, remain visible.
 ### `FileStorage`
 
 ```python
-class FileStorage
+class FileStorage:
+    def __init__(path: str | Path) -> None
 ```
 
 JSON-file session storage for CLIs and local scripts.
@@ -89,25 +98,26 @@ expanded when the backend is constructed.
 ##### `get`
 
 ```python
-async def get(self) -> 'StoredSession | None'
+async def get(self) -> StoredSession | None
 ```
 
 ##### `remove`
 
 ```python
-async def remove(self) -> 'None'
+async def remove(self) -> None
 ```
 
 ##### `set`
 
 ```python
-async def set(self, value: 'StoredSession') -> 'None'
+async def set(self, value: StoredSession) -> None
 ```
 
 ### `MemoryStorage`
 
 ```python
-class MemoryStorage
+class MemoryStorage:
+    def __init__() -> None
 ```
 
 In-memory session storage. The default backend.
@@ -121,41 +131,58 @@ backend per request or user instead.
 ##### `get`
 
 ```python
-async def get(self) -> 'StoredSession | None'
+async def get(self) -> StoredSession | None
 ```
 
 ##### `remove`
 
 ```python
-async def remove(self) -> 'None'
+async def remove(self) -> None
 ```
 
 ##### `set`
 
 ```python
-async def set(self, value: 'StoredSession') -> 'None'
+async def set(self, value: StoredSession) -> None
 ```
 
 ### `SessionStorage`
 
 ```python
-class SessionStorage
+class SessionStorage:
+    def __init__(storage: SessionStorageBackend) -> None
 ```
 
 Decode tokens, persist sessions, and notify sync or async subscribers.
+
+#### Properties
+
+##### `backend`
+
+```python
+@property
+def backend(self) -> SessionStorageBackend
+```
+
+Return the backend used as the weak refresh-lock mapping key.
 
 #### Methods
 
 ##### `get`
 
 ```python
-async def get(self) -> 'StoredSession | None'
+async def get(self) -> StoredSession | None
 ```
+
+Return a session with decoded claims re-derived from its access token.
+
+Persisted ``decoded_token`` data is derived state and is never trusted.
+A malformed access token raises `ValueError`, matching `set`.
 
 ##### `on_change`
 
 ```python
-def on_change(self, callback: 'SessionChangeCallback') -> 'Callable[[], None]'
+def on_change(self, callback: SessionChangeCallback) -> Callable[[], None]
 ```
 
 Subscribe to changes and return an idempotent unsubscribe function.
@@ -166,49 +193,55 @@ the same callable twice creates two independent subscriptions.
 ##### `remove`
 
 ```python
-async def remove(self) -> 'None'
+async def remove(self) -> None
 ```
 
 ##### `set`
 
 ```python
-async def set(self, value: 'Session') -> 'None'
+async def set(self, value: Session) -> None
 ```
 
-Store an auth :class:`Session`, re-deriving its decoded token.
+Store an auth `Session`, re-deriving its decoded token.
 
 ### `SessionStorageBackend`
 
 ```python
-class SessionStorageBackend
+class SessionStorageBackend(Protocol):
+    def __init__(*args, **kwargs)
 ```
 
-Asynchronous interface for persisting one :class:`StoredSession`.
+Asynchronous interface for persisting one `StoredSession`.
+
+Backend instances are weak-mapping keys for in-process refresh locking, so
+implementations must remain hashable, have stable equality semantics, and
+support weak references.
 
 #### Methods
 
 ##### `get`
 
 ```python
-async def get(self) -> 'StoredSession | None'
+async def get(self) -> StoredSession | None
 ```
 
 ##### `remove`
 
 ```python
-async def remove(self) -> 'None'
+async def remove(self) -> None
 ```
 
 ##### `set`
 
 ```python
-async def set(self, value: 'StoredSession') -> 'None'
+async def set(self, value: StoredSession) -> None
 ```
 
 ### `SessionStorageError`
 
 ```python
-class SessionStorageError
+class SessionStorageError(NhostError):
+    def __init__(operation: str, path: Path, error: Exception) -> None
 ```
 
 Raised when a persistent session backend cannot read or update state.
@@ -216,7 +249,7 @@ Raised when a persistent session backend cannot read or update state.
 ### `StoredSession`
 
 ```python
-class StoredSession
+class StoredSession(Session):
 ```
 
 The enriched session persisted by the SDK (raw ``Session`` + decoded token).
@@ -225,6 +258,8 @@ The enriched session persisted by the SDK (raw ``Session`` + decoded token).
 undeclared JWT claim values. Processed Hasura claims and caller-controlled
 user metadata remain visible. Serialization intentionally emits the complete
 session for persistence, so do not serialize a session into logs.
+``decoded_token`` is derived state: storage consumers must re-derive it from
+``access_token`` rather than trusting persisted claims.
 
 #### Fields
 

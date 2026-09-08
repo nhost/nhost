@@ -9,7 +9,7 @@ Nhost Storage generated API and hand-written conveniences.
 ### `create_api_client`
 
 ```python
-def create_api_client(base_url: 'str', *, chain_functions: 'Sequence[ChainFunction]' = (), http_client: 'httpx.AsyncClient | None' = None) -> 'Client'
+def create_api_client(base_url: str, *, chain_functions: Sequence[ChainFunction] = (), http_client: httpx.AsyncClient | None = None) -> Client
 ```
 
 Create a generated API client.
@@ -19,7 +19,8 @@ Create a generated API client.
 ### `Client`
 
 ```python
-class Client
+class Client:
+    def __init__(base_url: str, *, chain_functions: Sequence[ChainFunction] = (), http_client: httpx.AsyncClient | None = None) -> None
 ```
 
 Generated async API client backed by an httpx.AsyncClient and a middleware chain.
@@ -29,7 +30,7 @@ Generated async API client backed by an httpx.AsyncClient and a middleware chain
 ##### `aclose`
 
 ```python
-async def aclose(self) -> 'None'
+async def aclose(self) -> None
 ```
 
 Close the internally owned HTTP client, if any.
@@ -37,7 +38,7 @@ Close the internally owned HTTP client, if any.
 ##### `delete_broken_metadata`
 
 ```python
-async def delete_broken_metadata(self, *, headers: 'Mapping[str, str] | None' = None) -> 'FetchResponse[DeleteBrokenMetadataResponse200]'
+async def delete_broken_metadata(self, *, headers: Mapping[str, str] | None = None) -> FetchResponse[DeleteBrokenMetadataResponse200]
 ```
 
 Delete broken metadata
@@ -53,7 +54,7 @@ Returns:
 ##### `delete_file`
 
 ```python
-async def delete_file(self, id: 'str', *, headers: 'Mapping[str, str] | None' = None) -> 'FetchResponse[None]'
+async def delete_file(self, id: str, *, headers: Mapping[str, str] | None = None) -> FetchResponse[None]
 ```
 
 Delete file
@@ -70,7 +71,7 @@ Returns:
 ##### `delete_orphaned_files`
 
 ```python
-async def delete_orphaned_files(self, *, headers: 'Mapping[str, str] | None' = None) -> 'FetchResponse[DeleteOrphanedFilesResponse200]'
+async def delete_orphaned_files(self, *, headers: Mapping[str, str] | None = None) -> FetchResponse[DeleteOrphanedFilesResponse200]
 ```
 
 Deletes orphaned files
@@ -86,7 +87,7 @@ Returns:
 ##### `get_file`
 
 ```python
-async def get_file(self, id: 'str', *, params: 'GetFileParams | None' = None, headers: 'Mapping[str, str] | None' = None) -> 'FetchResponse[bytes]'
+async def get_file(self, id: str, *, params: GetFileParams | None = None, headers: Mapping[str, str] | None = None) -> FetchResponse[bytes]
 ```
 
 Download file
@@ -104,7 +105,7 @@ Returns:
 ##### `get_file_metadata_headers`
 
 ```python
-async def get_file_metadata_headers(self, id: 'str', *, params: 'GetFileMetadataHeadersParams | None' = None, headers: 'Mapping[str, str] | None' = None) -> 'FetchResponse[None]'
+async def get_file_metadata_headers(self, id: str, *, params: GetFileMetadataHeadersParams | None = None, headers: Mapping[str, str] | None = None) -> FetchResponse[None]
 ```
 
 Check file information
@@ -122,7 +123,7 @@ Returns:
 ##### `get_file_presigned_url`
 
 ```python
-async def get_file_presigned_url(self, id: 'str', *, headers: 'Mapping[str, str] | None' = None) -> 'FetchResponse[PresignedURLResponse]'
+async def get_file_presigned_url(self, id: str, *, headers: Mapping[str, str] | None = None) -> FetchResponse[PresignedURLResponse]
 ```
 
 Retrieve presigned URL to retrieve the file
@@ -141,7 +142,7 @@ Returns:
 ##### `get_version`
 
 ```python
-async def get_version(self, *, headers: 'Mapping[str, str] | None' = None) -> 'FetchResponse[VersionInformation]'
+async def get_version(self, *, headers: Mapping[str, str] | None = None) -> FetchResponse[VersionInformation]
 ```
 
 Get service version information
@@ -157,7 +158,7 @@ Returns:
 ##### `list_broken_metadata`
 
 ```python
-async def list_broken_metadata(self, *, headers: 'Mapping[str, str] | None' = None) -> 'FetchResponse[ListBrokenMetadataResponse200]'
+async def list_broken_metadata(self, *, headers: Mapping[str, str] | None = None) -> FetchResponse[ListBrokenMetadataResponse200]
 ```
 
 Lists broken metadata
@@ -173,7 +174,7 @@ Returns:
 ##### `list_files_not_uploaded`
 
 ```python
-async def list_files_not_uploaded(self, *, headers: 'Mapping[str, str] | None' = None) -> 'FetchResponse[ListFilesNotUploadedResponse200]'
+async def list_files_not_uploaded(self, *, headers: Mapping[str, str] | None = None) -> FetchResponse[ListFilesNotUploadedResponse200]
 ```
 
 Lists files that haven't been uploaded
@@ -189,7 +190,7 @@ Returns:
 ##### `list_orphaned_files`
 
 ```python
-async def list_orphaned_files(self, *, headers: 'Mapping[str, str] | None' = None) -> 'FetchResponse[ListOrphanedFilesResponse200]'
+async def list_orphaned_files(self, *, headers: Mapping[str, str] | None = None) -> FetchResponse[ListOrphanedFilesResponse200]
 ```
 
 Lists orphaned files
@@ -205,7 +206,7 @@ Returns:
 ##### `push_chain_function`
 
 ```python
-def push_chain_function(self, chain_function: 'ChainFunction') -> 'None'
+def push_chain_function(self, chain_function: ChainFunction) -> None
 ```
 
 Append a middleware chain function and rebuild the fetch pipeline.
@@ -213,7 +214,7 @@ Append a middleware chain function and rebuild the fetch pipeline.
 ##### `replace_file`
 
 ```python
-async def replace_file(self, id: 'str', *, body: 'ReplaceFileBody', headers: 'Mapping[str, str] | None' = None) -> 'FetchResponse[FileMetadata]'
+async def replace_file(self, id: str, *, body: ReplaceFileBody, headers: Mapping[str, str] | None = None) -> FetchResponse[FileMetadata]
 ```
 
 Replace file
@@ -237,7 +238,7 @@ Returns:
 ##### `upload_files`
 
 ```python
-async def upload_files(self, *, body: 'UploadFilesBody', headers: 'Mapping[str, str] | None' = None) -> 'FetchResponse[UploadFilesResponse201]'
+async def upload_files(self, *, body: UploadFilesBody, headers: Mapping[str, str] | None = None) -> FetchResponse[UploadFilesResponse201]
 ```
 
 Upload files
@@ -254,7 +255,7 @@ Returns:
 ### `DeleteBrokenMetadataResponse200`
 
 ```python
-class DeleteBrokenMetadataResponse200
+class DeleteBrokenMetadataResponse200(BaseModel):
 ```
 
 #### Fields
@@ -266,7 +267,7 @@ class DeleteBrokenMetadataResponse200
 ### `DeleteOrphanedFilesResponse200`
 
 ```python
-class DeleteOrphanedFilesResponse200
+class DeleteOrphanedFilesResponse200(BaseModel):
 ```
 
 #### Fields
@@ -278,7 +279,7 @@ class DeleteOrphanedFilesResponse200
 ### `ErrorResponse`
 
 ```python
-class ErrorResponse
+class ErrorResponse(BaseModel):
 ```
 
 Error information returned by the API.
@@ -292,7 +293,7 @@ Error information returned by the API.
 ### `ErrorResponseError`
 
 ```python
-class ErrorResponseError
+class ErrorResponseError(BaseModel):
 ```
 
 Error details.
@@ -307,7 +308,7 @@ Error details.
 ### `ErrorResponseWithProcessedFiles`
 
 ```python
-class ErrorResponseWithProcessedFiles
+class ErrorResponseWithProcessedFiles(BaseModel):
 ```
 
 Error information returned by the API.
@@ -322,7 +323,7 @@ Error information returned by the API.
 ### `ErrorResponseWithProcessedFilesError`
 
 ```python
-class ErrorResponseWithProcessedFilesError
+class ErrorResponseWithProcessedFilesError(BaseModel):
 ```
 
 Error details.
@@ -337,7 +338,7 @@ Error details.
 ### `FileMetadata`
 
 ```python
-class FileMetadata
+class FileMetadata(BaseModel):
 ```
 
 Comprehensive metadata information about a file in storage.
@@ -361,7 +362,7 @@ Comprehensive metadata information about a file in storage.
 ### `FileSummary`
 
 ```python
-class FileSummary
+class FileSummary(BaseModel):
 ```
 
 Basic information about a file in storage.
@@ -378,7 +379,7 @@ Basic information about a file in storage.
 ### `GetFileMetadataHeadersParams`
 
 ```python
-class GetFileMetadataHeadersParams
+class GetFileMetadataHeadersParams(BaseModel):
 ```
 
 #### Fields
@@ -398,7 +399,7 @@ class GetFileMetadataHeadersParams
 ### `GetFileParams`
 
 ```python
-class GetFileParams
+class GetFileParams(BaseModel):
 ```
 
 #### Fields
@@ -419,7 +420,7 @@ class GetFileParams
 ### `ListBrokenMetadataResponse200`
 
 ```python
-class ListBrokenMetadataResponse200
+class ListBrokenMetadataResponse200(BaseModel):
 ```
 
 #### Fields
@@ -431,7 +432,7 @@ class ListBrokenMetadataResponse200
 ### `ListFilesNotUploadedResponse200`
 
 ```python
-class ListFilesNotUploadedResponse200
+class ListFilesNotUploadedResponse200(BaseModel):
 ```
 
 #### Fields
@@ -443,7 +444,7 @@ class ListFilesNotUploadedResponse200
 ### `ListOrphanedFilesResponse200`
 
 ```python
-class ListOrphanedFilesResponse200
+class ListOrphanedFilesResponse200(BaseModel):
 ```
 
 #### Fields
@@ -455,7 +456,7 @@ class ListOrphanedFilesResponse200
 ### `PresignedURLResponse`
 
 ```python
-class PresignedURLResponse
+class PresignedURLResponse(BaseModel):
 ```
 
 Contains a presigned URL for direct file operations.
@@ -470,7 +471,7 @@ Contains a presigned URL for direct file operations.
 ### `ReplaceFileBody`
 
 ```python
-class ReplaceFileBody
+class ReplaceFileBody(BaseModel):
 ```
 
 #### Fields
@@ -483,41 +484,271 @@ class ReplaceFileBody
 ### `StorageClient`
 
 ```python
-class StorageClient
+class StorageClient(Client):
 ```
+
+Extends [`Client`](#client).
 
 Generated Storage API plus stable, idiomatic convenience operations.
 
 #### Methods
 
+##### `aclose`
+
+```python
+async def aclose(self) -> None
+```
+
+Close the internally owned HTTP client, if any.
+
 ##### `add_middleware`
 
 ```python
-def add_middleware(self, middleware: 'ChainFunction') -> 'None'
+def add_middleware(self, middleware: ChainFunction) -> None
 ```
 
 Append HTTP middleware to the Storage request pipeline.
 
+##### `delete_broken_metadata`
+
+```python
+async def delete_broken_metadata(self, *, headers: Mapping[str, str] | None = None) -> FetchResponse[DeleteBrokenMetadataResponse200]
+```
+
+Delete broken metadata
+
+Broken metadata is defined as metadata that has isUploaded = true but there is no file in the storage matching it. This is an admin operation that requires the Hasura admin secret.
+
+Args:
+    headers (Mapping[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[DeleteBrokenMetadataResponse200]: The HTTP response.
+
+##### `delete_file`
+
+```python
+async def delete_file(self, id: str, *, headers: Mapping[str, str] | None = None) -> FetchResponse[None]
+```
+
+Delete file
+
+Permanently delete a file from storage. This removes both the file content and its associated metadata.
+
+Args:
+    id (str): Unique identifier of the file to delete
+    headers (Mapping[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[None]: The HTTP response.
+
+##### `delete_orphaned_files`
+
+```python
+async def delete_orphaned_files(self, *, headers: Mapping[str, str] | None = None) -> FetchResponse[DeleteOrphanedFilesResponse200]
+```
+
+Deletes orphaned files
+
+Orphaned files are files that are present in the storage but have no associated metadata. This is an admin operation that requires the Hasura admin secret.
+
+Args:
+    headers (Mapping[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[DeleteOrphanedFilesResponse200]: The HTTP response.
+
+##### `get_file`
+
+```python
+async def get_file(self, id: str, *, params: GetFileParams | None = None, headers: Mapping[str, str] | None = None) -> FetchResponse[bytes]
+```
+
+Download file
+
+Retrieve and download the complete file content. Supports conditional requests, image transformations, and range requests for partial downloads.
+
+Args:
+    id (str): Unique identifier of the file to download
+    params (GetFileParams): Query and header parameters.
+    headers (Mapping[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[bytes]: The HTTP response.
+
+##### `get_file_metadata_headers`
+
+```python
+async def get_file_metadata_headers(self, id: str, *, params: GetFileMetadataHeadersParams | None = None, headers: Mapping[str, str] | None = None) -> FetchResponse[None]
+```
+
+Check file information
+
+Retrieve file metadata headers without downloading the file content. Supports conditional requests and provides caching information.
+
+Args:
+    id (str): Unique identifier of the file to check
+    params (GetFileMetadataHeadersParams): Query and header parameters.
+    headers (Mapping[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[None]: The HTTP response.
+
+##### `get_file_presigned_url`
+
+```python
+async def get_file_presigned_url(self, id: str, *, headers: Mapping[str, str] | None = None) -> FetchResponse[PresignedURLResponse]
+```
+
+Retrieve presigned URL to retrieve the file
+
+Retrieve presigned URL to retrieve the file. Expiration of the URL is
+determined by bucket configuration
+
+
+Args:
+    id (str): Unique identifier of the file
+    headers (Mapping[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[PresignedURLResponse]: The HTTP response.
+
+##### `get_version`
+
+```python
+async def get_version(self, *, headers: Mapping[str, str] | None = None) -> FetchResponse[VersionInformation]
+```
+
+Get service version information
+
+Retrieves build and version information about the storage service. Useful for monitoring and debugging.
+
+Args:
+    headers (Mapping[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[VersionInformation]: The HTTP response.
+
+##### `list_broken_metadata`
+
+```python
+async def list_broken_metadata(self, *, headers: Mapping[str, str] | None = None) -> FetchResponse[ListBrokenMetadataResponse200]
+```
+
+Lists broken metadata
+
+Broken metadata is defined as metadata that has isUploaded = true but there is no file in the storage matching it. This is an admin operation that requires the Hasura admin secret.
+
+Args:
+    headers (Mapping[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[ListBrokenMetadataResponse200]: The HTTP response.
+
+##### `list_files_not_uploaded`
+
+```python
+async def list_files_not_uploaded(self, *, headers: Mapping[str, str] | None = None) -> FetchResponse[ListFilesNotUploadedResponse200]
+```
+
+Lists files that haven't been uploaded
+
+That is, metadata that has isUploaded = false. This is an admin operation that requires the Hasura admin secret.
+
+Args:
+    headers (Mapping[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[ListFilesNotUploadedResponse200]: The HTTP response.
+
+##### `list_orphaned_files`
+
+```python
+async def list_orphaned_files(self, *, headers: Mapping[str, str] | None = None) -> FetchResponse[ListOrphanedFilesResponse200]
+```
+
+Lists orphaned files
+
+Orphaned files are files that are present in the storage but have no associated metadata. This is an admin operation that requires the Hasura admin secret.
+
+Args:
+    headers (Mapping[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[ListOrphanedFilesResponse200]: The HTTP response.
+
+##### `push_chain_function`
+
+```python
+def push_chain_function(self, chain_function: ChainFunction) -> None
+```
+
+Append a middleware chain function and rebuild the fetch pipeline.
+
+##### `replace_file`
+
+```python
+async def replace_file(self, id: str, *, body: ReplaceFileBody, headers: Mapping[str, str] | None = None) -> FetchResponse[FileMetadata]
+```
+
+Replace file
+
+Replace an existing file with new content while preserving the file ID. The operation follows these steps:
+1. The isUploaded flag is set to false to mark the file as being updated
+2. The file content is replaced in the storage backend
+3. File metadata is updated (size, mime-type, isUploaded, etc.)
+
+Each step is atomic, but if a step fails, previous steps will not be automatically rolled back.
+
+
+Args:
+    id (str): Unique identifier of the file to replace
+    body (ReplaceFileBody): Request body.
+    headers (Mapping[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[FileMetadata]: The HTTP response.
+
 ##### `replace_file_content`
 
 ```python
-async def replace_file_content(self, file_id: 'str', *, file: 'bytes | UploadFile', metadata: 'dict[str, object] | None' = None, headers: 'Mapping[str, str] | None' = None) -> 'FetchResponse[FileMetadata]'
+async def replace_file_content(self, file_id: str, *, file: bytes | UploadFile, metadata: UpdateFileMetadata | None = None, headers: Mapping[str, str] | None = None) -> FetchResponse[FileMetadata]
 ```
 
 Replace a file while preserving its identifier.
 
+When passing metadata, include its ``name`` field: the Storage API treats
+an omitted replacement name as empty rather than preserving the old name.
+
 ##### `upload`
 
 ```python
-async def upload(self, files: 'Sequence[bytes | UploadFile]', *, bucket_id: 'str | None' = None, metadata: 'Sequence[UploadFileMetadata] | None' = None, headers: 'Mapping[str, str] | None' = None) -> 'FetchResponse[UploadFilesResponse201]'
+async def upload(self, files: Sequence[bytes | UploadFile], *, bucket_id: str | None = None, metadata: Sequence[UploadFileMetadata] | None = None, headers: Mapping[str, str] | None = None) -> FetchResponse[UploadFilesResponse201]
 ```
 
 Upload one or more files without constructing a wire-shaped body.
 
+##### `upload_files`
+
+```python
+async def upload_files(self, *, body: UploadFilesBody, headers: Mapping[str, str] | None = None) -> FetchResponse[UploadFilesResponse201]
+```
+
+Upload files
+
+Upload one or more files to a specified bucket. Supports batch uploading with optional custom metadata for each file. If uploading multiple files, either provide metadata for all files or none.
+
+Args:
+    body (UploadFilesBody): Request body.
+    headers (Mapping[str, str] | None): Additional request headers.
+
+Returns:
+    FetchResponse[UploadFilesResponse201]: The HTTP response.
+
 ### `UpdateFileMetadata`
 
 ```python
-class UpdateFileMetadata
+class UpdateFileMetadata(BaseModel):
 ```
 
 Metadata that can be updated for an existing file.
@@ -532,7 +763,7 @@ Metadata that can be updated for an existing file.
 ### `UploadFileMetadata`
 
 ```python
-class UploadFileMetadata
+class UploadFileMetadata(BaseModel):
 ```
 
 Metadata provided when uploading a new file.
@@ -548,7 +779,7 @@ Metadata provided when uploading a new file.
 ### `UploadFilesBody`
 
 ```python
-class UploadFilesBody
+class UploadFilesBody(BaseModel):
 ```
 
 #### Fields
@@ -562,7 +793,7 @@ class UploadFilesBody
 ### `UploadFilesResponse201`
 
 ```python
-class UploadFilesResponse201
+class UploadFilesResponse201(BaseModel):
 ```
 
 #### Fields
@@ -574,7 +805,7 @@ class UploadFilesResponse201
 ### `VersionInformation`
 
 ```python
-class VersionInformation
+class VersionInformation(BaseModel):
 ```
 
 Contains version information about the storage service.
