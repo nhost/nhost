@@ -43,7 +43,8 @@ Refreshes the session if it is close to expiry.
 With a nonzero margin, an expired session's refresh request is retried once
 only when no 2xx response was observed. If both requests fail, this returns
 `Ok(None)` but retains the existing session unless the second failure has
-status `401`, which triggers a store-clear attempt. `Ok(None)` also means
+status `401`, which clears the store; a failure to clear it is returned
+rather than reported as a sign-out. `Ok(None)` also means
 there was no session to refresh; it does not by itself mean the store is
 empty, so call `SessionStorage::get` (or `crate::Nhost::session`) to
 distinguish those cases. From `crate::middleware::SessionRefresh`, a
@@ -110,18 +111,32 @@ struct FileStorage
 ```
 
 JSON-file backed session backend, useful for CLIs and local scripts.
-Native-only; unavailable only when the `wasm` feature is built for wasm32.
+
+Not available on wasm32, which has no filesystem: the browser persists
+sessions through `LocalStorage` instead. This is deliberately keyed on the
+target rather than on the `wasm` feature, so the type is absent wherever a
+file cannot actually be written.
 
 ###### Sensitive data
 
 The persisted `StoredSession` includes the long-lived refresh token, which
 can mint access tokens until it is revoked server-side. On Unix the file is
-written `0o600`, including when an earlier version left it at a wider mode,
-so it is readable only by the owning user. A parent directory *created* here
-is `0o700`; a directory that already exists is left as it is, so point this
-at a private path rather than relying on it to tighten one. Other platforms
-inherit the default permissions, so avoid this backend on shared storage
-there.
+created `0o600`, so it is readable only by the owning user; because each
+write renames a freshly created file into place, a file left at a wider mode
+by an earlier version is replaced rather than reused. A parent directory
+*created* here is `0o700`; a directory that already exists is left as it is,
+so point this at a private path rather than relying on it to tighten one.
+Other platforms inherit the default permissions, so avoid this backend on
+shared storage there.
+
+###### Durability
+
+Writes are atomic: the session is written to a temporary file in the same
+directory, flushed, and renamed over the destination, so a concurrent reader
+or an interrupted write never observes a partial file. A file that cannot be
+parsed is reported as `Error::Storage` and left in place — it may still
+hold a usable refresh token, so it is never deleted to manufacture a clean
+"no session" result.
 
 #### Methods
 
@@ -189,14 +204,12 @@ process-wide, do not share one between users in a server context.
 
 ### `SessionStorage`
 
-**Target variants:** Declarations are shown for native targets with default features. Browser wasm differences are noted where they occur.
-
 ```rust
 struct SessionStorage
 ```
 
-Wraps a `Backend`, decoding tokens on set and notifying subscribers on
-every change. Cheaply cloneable (shares one backend).
+Wraps a `Backend`, decoding tokens on set. Cheaply cloneable (shares one
+backend).
 
 #### Methods
 
@@ -224,10 +237,10 @@ Reads the session and re-decodes its access token so persisted
 fn set(&self, value: Session) -> Result<(), Error>
 ```
 
-Stores a raw auth session, enriching it into a stored session, and
-notifies subscribers. The access token must contain a positive integer
-`exp` claim representable as milliseconds and `accessTokenExpiresIn`
-must be a positive duration representable as milliseconds.
+Stores a raw auth session, enriching it into a stored session. The access
+token must contain a positive integer `exp` claim representable as
+milliseconds and `accessTokenExpiresIn` must be a positive duration
+representable as milliseconds.
 
 ##### `remove`
 
@@ -235,26 +248,7 @@ must be a positive duration representable as milliseconds.
 fn remove(&self) -> Result<(), Error>
 ```
 
-Deletes the persisted session, clears its refresh schedule, and notifies
-subscribers with `None` after the backend deletion succeeds.
-
-##### `on_change`
-
-```rust
-fn on_change<F>(&self, callback: F) -> Subscription
-where
-    F: Fn(Option<&StoredSession>) + Send + Sync + 'static
-```
-
-**Browser wasm:** The `on_change` declaration omits the native `Send + Sync` bounds:
-
-```rust
-fn on_change<F>(&self, callback: F) -> Subscription
-where
-    F: Fn(Option<&StoredSession>) + 'static
-```
-
-Subscribes to session changes; the returned guard unsubscribes on drop.
+Deletes the persisted session and clears its refresh schedule.
 
 ### `StoredSession`
 
@@ -279,14 +273,6 @@ a session into logs.
 | --- | --- | --- |
 | `session` | `Session` | The raw auth response, flattened into the persisted object for JS SDK interoperability. |
 | `decoded_token` | `DecodedToken` | A persisted cache of the access-token claims. `SessionStorage::get` re-decodes the token instead of trusting this value after deserialization. |
-
-### `Subscription`
-
-```rust
-struct Subscription
-```
-
-A session-change subscription; unsubscribes when dropped.
 
 ## Traits
 
