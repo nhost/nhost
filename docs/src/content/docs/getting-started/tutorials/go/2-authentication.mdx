@@ -76,7 +76,11 @@ func cmdSignup(ctx context.Context, c *nhost.Client, email, password string) err
 	}, nil); err != nil {
 		return err
 	}
-	if _, ok := c.GetUserSession(); ok {
+	sess, err := c.Session()
+	if err != nil {
+		return fmt.Errorf("reading session after sign up: %w", err)
+	}
+	if sess != nil {
 		fmt.Println("signed up and logged in as", email)
 	} else {
 		fmt.Println("signed up; verify your email, then `login`")
@@ -96,19 +100,28 @@ func cmdLogin(ctx context.Context, c *nhost.Client, email, password string) erro
 }
 
 func cmdLogout(ctx context.Context, c *nhost.Client) error {
-	if s, ok := c.GetUserSession(); ok {
+	s, err := c.Session()
+	if err != nil {
+		return fmt.Errorf("reading session: %w", err)
+	}
+	if s != nil {
 		rt := s.RefreshToken
 		_, _, _ = c.Auth.SignOut(ctx, auth.SignOutRequest{RefreshToken: &rt}, nil)
 	}
-	c.ClearSession()
+	if err := c.ClearSession(); err != nil {
+		return fmt.Errorf("clearing session: %w", err)
+	}
 	fmt.Println("logged out")
 	return nil
 }
 ```
 
-`GetUserSession` reads the current session from storage without a network call —
-perfect for `whoami`. `ClearSession` removes the cached file (a client-side sign
-out), while `SignOut` revokes the refresh token on the server.
+`Session` reads the current session from storage without a network call —
+perfect for `whoami`. It returns `(nil, nil)` when nobody is signed in, and an
+error only when the store could not be read, so an unreadable session file is
+never mistaken for a signed-out user. `ClearSession` removes the cached file (a
+client-side sign out) and reports a failure to do so, while `SignOut` revokes
+the refresh token on the server.
 
 Now register the three commands on the root command in `rootCmd`, alongside the
 `whoami` command from Part 1. Each `Action` receives a context from `urfave/cli`
@@ -318,7 +331,11 @@ func cmdSignup(ctx context.Context, c *nhost.Client, email, password string) err
 	}, nil); err != nil {
 		return err
 	}
-	if _, ok := c.GetUserSession(); ok {
+	sess, err := c.Session()
+	if err != nil {
+		return fmt.Errorf("reading session after sign up: %w", err)
+	}
+	if sess != nil {
 		fmt.Println("signed up and logged in as", email)
 	} else {
 		fmt.Println("signed up; verify your email, then `login`")
@@ -338,18 +355,27 @@ func cmdLogin(ctx context.Context, c *nhost.Client, email, password string) erro
 }
 
 func cmdLogout(ctx context.Context, c *nhost.Client) error {
-	if s, ok := c.GetUserSession(); ok {
+	s, err := c.Session()
+	if err != nil {
+		return fmt.Errorf("reading session: %w", err)
+	}
+	if s != nil {
 		rt := s.RefreshToken
 		_, _, _ = c.Auth.SignOut(ctx, auth.SignOutRequest{RefreshToken: &rt}, nil)
 	}
-	c.ClearSession()
+	if err := c.ClearSession(); err != nil {
+		return fmt.Errorf("clearing session: %w", err)
+	}
 	fmt.Println("logged out")
 	return nil
 }
 
 func cmdWhoami(c *nhost.Client) error {
-	s, ok := c.GetUserSession()
-	if !ok || s.User == nil {
+	s, err := c.Session()
+	if err != nil {
+		return fmt.Errorf("reading session: %w", err)
+	}
+	if s == nil || s.User == nil {
 		return errors.New("not logged in")
 	}
 	email := ""
