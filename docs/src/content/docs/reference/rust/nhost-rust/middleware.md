@@ -26,6 +26,7 @@ Security warning: never use in client-side code — it grants admin access.
 | Field | Type | Description |
 | --- | --- | --- |
 | `options` | `AdminSessionOptions` | The admin secret, role and session variables to send. |
+| `service_url` | `String` | The base URL of the service this middleware is installed on. Admin headers are written only for requests inside this origin, and only over HTTPS or to a loopback host unless `AdminSessionOptions::allow_insecure_http` is set. |
 
 ### `AdminSessionOptions`
 
@@ -48,6 +49,7 @@ caller-controlled session-variable map visible. Those variables are sent as
 | `admin_secret` | `String` | The project's admin secret, sent as `x-hasura-admin-secret`. |
 | `role` | `Option<String>` | Role to impersonate, sent as `x-hasura-role`. |
 | `session_variables` | `HashMap<String, String>` | Session variables, each sent as `x-hasura-<key>`. They are applied after `admin_secret` and `role` at the same priority, so `admin-secret` and `role` keys override those dedicated fields. |
+| `allow_insecure_http` | `bool` | Permits sending the admin secret over cleartext HTTP to a non-loopback host. Defaults to `false`; enable only on a trusted development network. |
 
 #### Trait implementations
 
@@ -62,11 +64,17 @@ struct AttachToken
 Attaches `Authorization: Bearer <token>` from the stored session, unless the
 request already carries one. Runs after `SessionRefresh`.
 
+The token is written only for requests inside `service_url`'s origin. A
+request that has left that origin has the stored bearer stripped, so a
+retargeting middleware cannot forward the user's access token to another
+host; an unrelated caller-supplied `Authorization` value is preserved.
+
 #### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
 | `storage` | `SessionStorage` | The store the access token is read from. |
+| `service_url` | `String` | The base URL of the service this middleware is installed on. |
 
 ### `SessionRefresh`
 
