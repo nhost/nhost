@@ -250,7 +250,6 @@ func serveFlags() []cli.Flag {
 // CommandServe returns the "serve" CLI command, which starts the
 // constellation HTTP server.
 func CommandServe() *cli.Command {
-	fmt.Println("REMOVE ME")
 	return &cli.Command{ //nolint:exhaustruct
 		Name:   "serve",
 		Usage:  "Serve the application",
