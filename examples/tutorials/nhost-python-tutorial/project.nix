@@ -10,26 +10,14 @@ let
 
   fs = pkgs.lib.fileset;
 
-  # Interpreter plus the example's own dependencies. Using nixpkgs-provided
-  # packages (not uv) keeps the check reproducible, and mirrors how the SDK's
-  # own check builds its environment.
-  pythonEnv = pkgs.python3.withPackages (ps: [
+  # The libraries this example imports. The interpreter, mypy, pytest, ruff and
+  # the CA bundle come from nixops-lib.python.
+  pythonPackages = ps: [
     # The SDK's runtime dependencies; it is imported from source below.
     ps.httpx
     ps.pydantic
     # The example's own dependency.
     ps.typer
-    # Test tooling.
-    ps.pytest
-    ps.mypy
-  ]);
-
-  checkDeps = [
-    pythonEnv
-    pkgs.ruff
-    # Provides a CA bundle (its setup hook sets SSL_CERT_FILE) so httpx can
-    # build its default TLS context.
-    pkgs.cacert
   ];
 
   # Rooted at the repo so the SDK this example imports is available.
@@ -48,43 +36,29 @@ let
   };
 in
 {
-  devShell = pkgs.mkShell {
-    buildInputs = checkDeps ++ [
-      pkgs.uv
-      pkgs.nhost.nhost-cli
-    ];
+  devShell = nixops-lib.python.devShell {
+    inherit pythonPackages;
+    buildInputs = [ pkgs.nhost.nhost-cli ];
   };
 
   # The tutorial pages are written against this program, so an example that
   # stops working against the SDK means the docs have gone stale. Linting and
   # type-checking it here is what keeps that from happening silently.
-  check =
-    pkgs.runCommand "${name}-tests"
-      {
-        nativeBuildInputs = checkDeps;
-      }
-      ''
-        set -eo pipefail
-        export HOME=$(mktemp -d)
+  check = nixops-lib.python.check {
+    inherit src submodule pythonPackages;
 
-        cp -r ${src} src
-        chmod +w -R src
-        cd src
-        # Import the SDK from source, the way the example's editable install
-        # (-e ../../../packages/nhost-python in requirements.txt) resolves it.
-        export PYTHONPATH="$PWD/packages/nhost-python/src"
-        cd ${submodule}
+    # See examples/demos/webhook-receiver/project.nix: requirements.txt holds
+    # ranges rather than pinned versions, so an advisory scan would resolve them
+    # against PyPI at build time and report on whatever was published today.
+    # The SDK itself is scanned through its uv.lock.
+    audit = false;
 
-        echo "➜ Running ruff (lint + format check)"
-        ruff check main.py test_main.py
-        ruff format --check main.py test_main.py
+    lintPaths = "main.py test_main.py";
+    typecheckPaths = "main.py";
+    testPaths = "test_main.py";
 
-        echo "➜ Running mypy (strict, via mypy.ini)"
-        mypy main.py
-
-        echo "➜ Running the behavioural example tests"
-        pytest -rs test_main.py
-
-        mkdir $out
-      '';
+    # Import the SDK from source, the way the example's editable install
+    # (-e ../../../packages/nhost-python in requirements.txt) resolves it.
+    pythonPath = "packages/nhost-python/src";
+  };
 }
