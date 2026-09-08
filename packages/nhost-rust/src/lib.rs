@@ -35,6 +35,17 @@
     allow(clippy::arc_with_non_send_sync)
 )]
 
+// Targeting wasm32 without the `wasm` feature builds cleanly and then fails at
+// runtime in three separate ways: the clock is `std::time`, whose
+// `SystemTime::now()` panics on wasm32, so the first token-expiry check aborts;
+// `LocalStorage` is not compiled, so nothing persists the session; and
+// `web-sys` is absent. Refuse the build instead of shipping that.
+#[cfg(all(target_arch = "wasm32", not(feature = "wasm")))]
+compile_error!(
+    "building for wasm32 requires the `wasm` feature: \
+     cargo build --target wasm32-unknown-unknown --no-default-features --features wasm"
+);
+
 // Keep the crate-level overview above concise while compiling every Rust
 // example in the more extensive README as a doctest.
 #[cfg(doctest)]

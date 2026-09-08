@@ -229,7 +229,11 @@ nhost = { version = "...", default-features = false, features = ["native-tls"] }
 ### WebAssembly (browser) support
 
 Enable the `wasm` feature to build the SDK for web frontends
-(`wasm32-unknown-unknown`). The browser `reqwest` futures are `!Send`;
+(`wasm32-unknown-unknown`). The feature is required on that target, not
+optional: without it the clock is `std::time`, whose `SystemTime::now()` panics
+on `wasm32`, and no `localStorage` backend is compiled. Building for `wasm32`
+without it therefore fails at compile time rather than at the first token
+refresh. The browser `reqwest` futures are `!Send`;
 `reqwest-middleware`'s `Middleware` trait is `?Send` on `wasm32` to match, and
 the session store persists in `localStorage` by default — under the same
 `"nhostSession"` key as `@nhost/nhost-js`, so sessions are interoperable on the
