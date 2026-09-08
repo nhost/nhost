@@ -110,18 +110,12 @@ per-request/user backend.
 #### `ClearSession`
 
 ```go
-func (c *Client) ClearSession()
+func (c *Client) ClearSession() error
 ```
 
 ClearSession removes the current session from storage (client-side sign-out).
-
-#### `GetUserSession`
-
-```go
-func (c *Client) GetUserSession() (*session.StoredSession, bool)
-```
-
-GetUserSession returns the current session from storage, or (nil, false).
+It returns an error when the session could not be cleared, so a caller is
+never told a user was signed out while their credentials remain on disk.
 
 #### `RefreshSession`
 
@@ -136,6 +130,16 @@ RefreshSession refreshes the session using the stored refresh token. A
 marginSeconds value of zero forces a refresh. If refresh fails while the
 access token is still valid, both the existing session and the error are
 returned.
+
+#### `Session`
+
+```go
+func (c *Client) Session() (*session.StoredSession, error)
+```
+
+Session returns the current session from storage. It returns (nil, nil) when
+no user is signed in, and an error only when the session store could not be
+read — an unreadable store is not a signed out user.
 
 ### `Config`
 
@@ -239,8 +243,8 @@ type Options struct {
 	// overrides Subdomain and Region for functions requests.
 	FunctionsURL string
 	// Storage is the backend used to persist sessions. Implementations must be
-	// safe for concurrent use by multiple goroutines. If nil,
-	// [session.DetectStorage] supplies an in-memory backend.
+	// safe for concurrent use by multiple goroutines. If nil, an in-memory
+	// backend is used.
 	Storage session.Backend
 	// HTTPClient is the base HTTP client used by all services. The supplied client
 	// is never mutated and may be shared; service middleware is installed on

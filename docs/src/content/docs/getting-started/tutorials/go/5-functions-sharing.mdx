@@ -510,7 +510,11 @@ func cmdSignup(ctx context.Context, c *nhost.Client, email, password string) err
 	}, nil); err != nil {
 		return err
 	}
-	if _, ok := c.GetUserSession(); ok {
+	sess, err := c.Session()
+	if err != nil {
+		return fmt.Errorf("reading session after sign up: %w", err)
+	}
+	if sess != nil {
 		fmt.Println("signed up and logged in as", email)
 	} else {
 		fmt.Println("signed up; verify your email, then `login`")
@@ -530,18 +534,27 @@ func cmdLogin(ctx context.Context, c *nhost.Client, email, password string) erro
 }
 
 func cmdLogout(ctx context.Context, c *nhost.Client) error {
-	if s, ok := c.GetUserSession(); ok {
+	s, err := c.Session()
+	if err != nil {
+		return fmt.Errorf("reading session: %w", err)
+	}
+	if s != nil {
 		rt := s.RefreshToken
 		_, _, _ = c.Auth.SignOut(ctx, auth.SignOutRequest{RefreshToken: &rt}, nil)
 	}
-	c.ClearSession()
+	if err := c.ClearSession(); err != nil {
+		return fmt.Errorf("clearing session: %w", err)
+	}
 	fmt.Println("logged out")
 	return nil
 }
 
 func cmdWhoami(c *nhost.Client) error {
-	s, ok := c.GetUserSession()
-	if !ok || s.User == nil {
+	s, err := c.Session()
+	if err != nil {
+		return fmt.Errorf("reading session: %w", err)
+	}
+	if s == nil || s.User == nil {
 		return errors.New("not logged in")
 	}
 	email := ""

@@ -12,6 +12,16 @@ and session variables are available without manually decoding the token.
 ## Constants and Variables
 
 ```go
+const (
+	OpRead   = "read"
+	OpWrite  = "write"
+	OpRemove = "remove"
+)
+```
+
+Session-backend operation names reported by StorageError.Op.
+
+```go
 var ErrInvalidToken = errors.New("invalid access token format")
 ```
 
@@ -23,9 +33,9 @@ ErrInvalidToken is returned when an access token cannot be decoded.
 
 ```go
 type Backend interface {
-	Get() (*StoredSession, bool)
-	Set(value StoredSession)
-	Remove()
+	Get() (*StoredSession, error)
+	Set(value StoredSession) error
+	Remove() error
 }
 ```
 
@@ -34,21 +44,11 @@ somewhere other than memory (a file, Redis, a per-request store, ...).
 Implementations must be safe for concurrent use by multiple goroutines;
 Storage delegates operations directly and does not serialize backend access.
 
-#### `DetectStorage`
-
-```go
-func DetectStorage() Backend
-```
-
-DetectStorage returns the default backend for the current environment.
-
-### `ChangeCallback`
-
-```go
-type ChangeCallback func(session *StoredSession)
-```
-
-ChangeCallback is notified on every session change.
+Every operation reports failure so a caller can decide whether losing the
+session is acceptable. Get returns (nil, nil) when no session is stored,
+which is not an error; it must return a non-nil error only when the session
+could not be read, so that a backend outage is never mistaken for a signed
+out user. Remove treats an absent session as success.
 
 ### `DecodedToken`
 
@@ -105,19 +105,19 @@ during a refresh's Set never observes a truncated or partial file.
 #### `Get`
 
 ```go
-func (f *FileStorage) Get() (*StoredSession, bool)
+func (f *FileStorage) Get() (*StoredSession, error)
 ```
 
 #### `Remove`
 
 ```go
-func (f *FileStorage) Remove()
+func (f *FileStorage) Remove() error
 ```
 
 #### `Set`
 
 ```go
-func (f *FileStorage) Set(value StoredSession)
+func (f *FileStorage) Set(value StoredSession) error
 ```
 
 ### `MemoryStorage`
@@ -135,19 +135,19 @@ server context — create a scoped backend per user.
 #### `Get`
 
 ```go
-func (m *MemoryStorage) Get() (*StoredSession, bool)
+func (m *MemoryStorage) Get() (*StoredSession, error)
 ```
 
 #### `Remove`
 
 ```go
-func (m *MemoryStorage) Remove()
+func (m *MemoryStorage) Remove() error
 ```
 
 #### `Set`
 
 ```go
-func (m *MemoryStorage) Set(value StoredSession)
+func (m *MemoryStorage) Set(value StoredSession) error
 ```
 
 ### `Storage`
@@ -158,8 +158,7 @@ type Storage struct {
 }
 ```
 
-Storage wraps a Backend, decoding tokens on Set and notifying subscribers on
-every change.
+Storage wraps a Backend, decoding tokens on Set.
 
 #### `NewStorage`
 
@@ -172,26 +171,25 @@ NewStorage wraps a backend.
 #### `Get`
 
 ```go
-func (s *Storage) Get() (*StoredSession, bool)
+func (s *Storage) Get() (*StoredSession, error)
 ```
 
-Get returns the current session from the backend, or (nil, false).
+Get returns the current session from the backend. It returns (nil, nil) when
+no session is stored, and a non-nil error only when the backend could not be
+read — an unreadable store is not a signed out user.
 
-#### `OnChange`
-
-```go
-func (s *Storage) OnChange(cb ChangeCallback) func()
-```
-
-OnChange subscribes to session changes; the returned func unsubscribes.
+The backend's error is returned unwrapped: a backend is caller-supplied, so
+its error is the caller's own and adding a layer of SDK context would only
+obscure it.
 
 #### `Remove`
 
 ```go
-func (s *Storage) Remove()
+func (s *Storage) Remove() error
 ```
 
-Remove clears the session and notifies subscribers.
+Remove clears the session, reporting a backend failure so the caller can
+decide whether a session left on disk is acceptable.
 
 #### `Set`
 
@@ -199,9 +197,38 @@ Remove clears the session and notifies subscribers.
 func (s *Storage) Set(value auth.Session) error
 ```
 
-Set stores a raw auth Session, enriching it into a StoredSession, and
-notifies subscribers. It returns an error if the access token cannot be
-decoded.
+Set stores a raw auth Session, enriching it into a StoredSession. It returns
+an error if the access token cannot be decoded or the backend rejects the
+write.
+
+### `StorageError`
+
+```go
+type StorageError struct {
+	// Op is the operation that failed: OpRead, OpWrite, or OpRemove.
+	Op string
+	// Path is the file the operation was performed on.
+	Path string
+	// Err is the underlying error.
+	Err error
+}
+```
+
+StorageError reports a failed session-backend operation. The built-in
+FileStorage returns it so callers can tell a genuine persistence failure
+(a full disk, a read-only directory) apart from "no session stored".
+
+#### `Error`
+
+```go
+func (e *StorageError) Error() string
+```
+
+#### `Unwrap`
+
+```go
+func (e *StorageError) Unwrap() error
+```
 
 ### `StoredSession`
 
