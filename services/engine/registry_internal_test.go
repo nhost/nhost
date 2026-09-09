@@ -58,15 +58,16 @@ func TestSharedOverridesMatchServiceFlags(t *testing.T) {
 	t.Parallel()
 
 	cfg := serveConfig{
-		bind:          "",
-		debug:         false,
-		logFormatText: false,
-		adminSecret:   "x",
-		jwtSecret:     "x",
-		databaseURL:   "x",
-		migrationsURL: "x",
-		corsOrigins:   []string{"x"},
-		disabled:      nil,
+		bind:            "",
+		debug:           false,
+		logFormatText:   false,
+		adminSecret:     "x",
+		jwtSecret:       "x",
+		databaseURL:     "x",
+		migrationsURL:   "x",
+		corsOrigins:     []string{"x"},
+		compatAuthHosts: nil,
+		disabled:        nil,
 	}
 	expected := map[string][]string{
 		"auth": {

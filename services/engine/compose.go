@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"reflect"
+	"regexp"
 	"strings"
 	"time"
 
@@ -21,6 +22,8 @@ import (
 const (
 	// defaultBind is the shared listener address used when --bind is not set.
 	defaultBind = ":8080"
+	// maxDNSHostnameLength is the RFC 1035 maximum hostname length.
+	maxDNSHostnameLength = 253
 	// readHeaderTimeout bounds how long the shared server waits for request
 	// headers, mirroring the per-service standalone servers.
 	readHeaderTimeout = 5 * time.Second
@@ -29,22 +32,22 @@ const (
 	shutdownTimeout = 30 * time.Second
 )
 
-// serveConfig holds the engine-level configuration parsed from the serve
-// command's global flags. Process-level settings (listener, logger, HTTP
-// timeouts) configure the engine directly; the cross-cutting values (secrets,
-// database URLs, CORS origins) are injected into each service that consumes
-// them, filling only the flags the service did not set itself. disabled records
-// the services opted out of with --disable-<service>.
+// serveConfig holds the engine-level configuration for the serve command.
+// Process-level settings (listener, logger, HTTP timeouts) configure the engine
+// directly; cross-cutting values from global flags are injected into each
+// service that consumes them. disabled records the services opted out of with
+// --disable-<service>.
 type serveConfig struct {
 	bind          string
 	debug         bool
 	logFormatText bool
 
-	adminSecret   string
-	jwtSecret     string
-	databaseURL   string
-	migrationsURL string
-	corsOrigins   []string
+	adminSecret     string
+	jwtSecret       string
+	databaseURL     string
+	migrationsURL   string
+	corsOrigins     []string
+	compatAuthHosts []string
 
 	disabled map[string]bool
 }
@@ -100,6 +103,11 @@ func globalFlags() []cli.Flag {
 			Usage:   "origins permitted to make cross-origin requests, shared by storage and graphql",
 			Sources: cli.EnvVars("CORS_ALLOWED_ORIGINS"),
 		},
+		&cli.StringSliceFlag{ //nolint:exhaustruct
+			Name:    "auth-compat-hosts",
+			Usage:   "DNS hostnames that route legacy auth requests without the /auth prefix",
+			Sources: cli.EnvVars("AUTH_COMPAT_HOSTS"),
+		},
 	}
 
 	// Append one --disable-<service> opt-out per service after the shared
@@ -142,15 +150,16 @@ func serveConfigFrom(cmd *cli.Command) serveConfig {
 	}
 
 	return serveConfig{
-		bind:          cmd.String("bind"),
-		debug:         cmd.Bool("debug"),
-		logFormatText: cmd.Bool("log-format-text"),
-		adminSecret:   cmd.String("admin-secret"),
-		jwtSecret:     cmd.String("jwt-secret"),
-		databaseURL:   cmd.String("database-url"),
-		migrationsURL: cmd.String("migrations-database-url"),
-		corsOrigins:   cmd.StringSlice("cors-allowed-origins"),
-		disabled:      disabled,
+		bind:            cmd.String("bind"),
+		debug:           cmd.Bool("debug"),
+		logFormatText:   cmd.Bool("log-format-text"),
+		adminSecret:     cmd.String("admin-secret"),
+		jwtSecret:       cmd.String("jwt-secret"),
+		databaseURL:     cmd.String("database-url"),
+		migrationsURL:   cmd.String("migrations-database-url"),
+		corsOrigins:     cmd.StringSlice("cors-allowed-origins"),
+		compatAuthHosts: cmd.StringSlice("auth-compat-hosts"),
+		disabled:        disabled,
 	}
 }
 
@@ -248,7 +257,12 @@ func runServe(ctx context.Context, cmd *cli.Command, version string) error {
 
 	logger.InfoContext(ctx, "engine v"+version)
 
-	return superviseShared(ctx, cfg, newMux(services), services, logger)
+	mux, err := newMux(services, cfg.compatAuthHosts, logger)
+	if err != nil {
+		return fmt.Errorf("building shared router: %w", err)
+	}
+
+	return superviseShared(ctx, cfg, mux, services, logger)
 }
 
 // buildAll constructs each enabled service in mount order. Until every service
@@ -325,6 +339,9 @@ var (
 	// into a global is required by the service but was filled by neither the
 	// global nor the service's own environment.
 	errMissingRequired = errors.New("required value not provided")
+	// errCompatAuthRouteRegistration converts ServeMux's documented configuration
+	// panic into a clean startup error.
+	errCompatAuthRouteRegistration = errors.New("registering compat auth route")
 )
 
 // relaxRequiredForSkipped clears the Required bit on the service's own flags
@@ -368,13 +385,23 @@ func relaxRequiredForSkipped(flags []cli.Flag, skip map[string]bool) []string {
 // newMux builds the shared request router: each service is mounted beneath its
 // path prefix with the prefix stripped before dispatch, so the service handler
 // keeps serving its own native paths. Root-relative redirects have the prefix
-// restored before they reach the client. A root /healthz reports engine
+// restored before they reach the client. Compat auth hosts dispatch directly to
+// auth without changing the request path. A root /healthz reports engine
 // liveness.
-func newMux(services []mounted) *http.ServeMux {
-	mux := http.NewServeMux()
+func newMux(
+	services []mounted, compatAuthHosts []string, logger *slog.Logger,
+) (*http.ServeMux, error) {
+	var (
+		mux         = http.NewServeMux()
+		authHandler http.Handler
+	)
 
 	for _, m := range services {
 		mux.Handle(m.prefix+"/", mountHandler(m.prefix, m.svc.Handler))
+
+		if m.name == "auth" {
+			authHandler = m.svc.Handler
+		}
 	}
 
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
@@ -382,7 +409,81 @@ func newMux(services []mounted) *http.ServeMux {
 		_, _ = io.WriteString(w, "ok")
 	})
 
-	return mux
+	if authHandler == nil {
+		return mux, nil
+	}
+
+	for _, host := range normalizeCompatAuthHosts(compatAuthHosts, logger) {
+		pattern := host + "/"
+		if err := registerMuxHandler(mux, pattern, authHandler); err != nil {
+			return nil, err
+		}
+	}
+
+	return mux, nil
+}
+
+var compatAuthHostLabel = regexp.MustCompile(`^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$`)
+
+func normalizeCompatAuthHosts(hosts []string, logger *slog.Logger) []string {
+	normalized := make([]string, 0, len(hosts))
+	seen := make(map[string]struct{}, len(hosts))
+
+	for _, value := range hosts {
+		host := strings.ToLower(strings.TrimSpace(value))
+		if host == "" {
+			continue
+		}
+
+		if !validCompatAuthHost(host) {
+			logger.Warn(
+				"skipping invalid auth compatibility host",
+				slog.String("host", value),
+				slog.String("reason", "expected a DNS hostname without a scheme, port, or path"),
+			)
+
+			continue
+		}
+
+		if _, exists := seen[host]; exists {
+			continue
+		}
+
+		seen[host] = struct{}{}
+		normalized = append(normalized, host)
+	}
+
+	return normalized
+}
+
+func validCompatAuthHost(host string) bool {
+	if len(host) > maxDNSHostnameLength {
+		return false
+	}
+
+	for label := range strings.SplitSeq(host, ".") {
+		if !compatAuthHostLabel.MatchString(label) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func registerMuxHandler(mux *http.ServeMux, pattern string, handler http.Handler) (
+	err error,
+) {
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			err = fmt.Errorf(
+				"%w %q: %v", errCompatAuthRouteRegistration, pattern, recovered,
+			)
+		}
+	}()
+
+	mux.Handle(pattern, handler)
+
+	return nil
 }
 
 // mountHandler keeps the underlying writer's optional interfaces intact while

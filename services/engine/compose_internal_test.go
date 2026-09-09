@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"log/slog"
@@ -8,6 +9,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -34,41 +36,89 @@ func echoService() *serveutil.Service {
 	}
 }
 
-func TestNewMuxStripsPrefixAndRoutes(t *testing.T) {
+func mustNewMux(
+	t *testing.T, services []mounted, compatAuthHosts []string,
+) *http.ServeMux {
+	t.Helper()
+
+	mux, err := newMux(
+		services, compatAuthHosts, slog.New(slog.DiscardHandler),
+	)
+	if err != nil {
+		t.Fatalf("newMux: %v", err)
+	}
+
+	return mux
+}
+
+func TestNewMuxRoutesEnginePathsAndCompatAuthHosts(t *testing.T) {
 	t.Parallel()
 
-	mux := newMux([]mounted{
+	mux := mustNewMux(t, []mounted{
 		{name: "auth", prefix: "/auth", svc: echoService()},
 		{name: "storage", prefix: "/storage", svc: echoService()},
 		{name: "graphql", prefix: "/graphql", svc: echoService()},
+	}, []string{
+		"hasura-auth-service",
+		"",
+		" hasura-auth-service ",
+		"hasura-auth-service.nhost-project.svc.cluster.local",
 	})
 
 	tests := []struct {
 		name     string
+		host     string
 		path     string
 		wantCode int
 		wantBody string
 	}{
 		{
-			name:     "auth request reaches auth with prefix stripped",
+			name:     "compat short host reaches auth with path unchanged",
+			host:     "hasura-auth-service",
+			path:     "/v1/signin/email-password",
+			wantCode: http.StatusOK,
+			wantBody: "/v1/signin/email-password",
+		},
+		{
+			name:     "compat short host with legacy port reaches auth",
+			host:     "hasura-auth-service:4000",
+			path:     "/v1/signin/email-password",
+			wantCode: http.StatusOK,
+			wantBody: "/v1/signin/email-password",
+		},
+		{
+			name:     "explicit compat FQDN reaches auth",
+			host:     "hasura-auth-service.nhost-project.svc.cluster.local:4000",
+			path:     "/v1/token",
+			wantCode: http.StatusOK,
+			wantBody: "/v1/token",
+		},
+		{
+			name:     "unsupplied FQDN is not routed",
+			host:     "hasura-auth-service.other.svc.cluster.local:4000",
+			path:     "/v1/token",
+			wantCode: http.StatusNotFound,
+		},
+		{
+			name:     "engine auth route remains prefix stripped",
 			path:     "/auth/v1/signin/email-password",
 			wantCode: http.StatusOK,
 			wantBody: "/v1/signin/email-password",
 		},
 		{
-			name:     "storage request reaches storage with prefix stripped",
+			name:     "engine storage route remains prefix stripped",
 			path:     "/storage/v1/files",
 			wantCode: http.StatusOK,
 			wantBody: "/v1/files",
 		},
 		{
-			name:     "graphql metadata request reaches constellation",
+			name:     "engine graphql route remains prefix stripped",
 			path:     "/graphql/v1/metadata",
 			wantCode: http.StatusOK,
 			wantBody: "/v1/metadata",
 		},
 		{
-			name:     "healthz is served by the engine",
+			name:     "engine healthz route remains available",
 			path:     "/healthz",
 			wantCode: http.StatusOK,
 			wantBody: "ok",
@@ -77,7 +127,6 @@ func TestNewMuxStripsPrefixAndRoutes(t *testing.T) {
 			name:     "unknown prefix is not found",
 			path:     "/nope/v1",
 			wantCode: http.StatusNotFound,
-			wantBody: "",
 		},
 	}
 
@@ -85,19 +134,166 @@ func TestNewMuxStripsPrefixAndRoutes(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			rec := httptest.NewRecorder()
-			req := httptest.NewRequest(http.MethodGet, tc.path, nil)
+			recorder := httptest.NewRecorder()
+			request := httptest.NewRequest(http.MethodGet, tc.path, nil)
 
-			mux.ServeHTTP(rec, req)
-
-			if rec.Code != tc.wantCode {
-				t.Fatalf("status = %d, want %d", rec.Code, tc.wantCode)
+			if tc.host != "" {
+				request.Host = tc.host
 			}
 
-			if tc.wantBody != "" && rec.Body.String() != tc.wantBody {
-				t.Fatalf("body = %q, want %q", rec.Body.String(), tc.wantBody)
+			mux.ServeHTTP(recorder, request)
+
+			if recorder.Code != tc.wantCode {
+				t.Fatalf("status = %d, want %d", recorder.Code, tc.wantCode)
+			}
+
+			if tc.wantBody != "" && recorder.Body.String() != tc.wantBody {
+				t.Fatalf("body = %q, want %q", recorder.Body.String(), tc.wantBody)
 			}
 		})
+	}
+}
+
+func TestNewMuxCompatAuthHostDoesNotRewriteRedirect(t *testing.T) {
+	t.Parallel()
+
+	auth := &serveutil.Service{Handler: http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, "/v1/verify", http.StatusTemporaryRedirect)
+		},
+	)}
+	mux := mustNewMux(t, []mounted{
+		{name: "auth", prefix: "/auth", svc: auth},
+	}, []string{"hasura-auth-service"})
+
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodGet, "/v1/signin", nil)
+	request.Host = "hasura-auth-service:4000"
+
+	mux.ServeHTTP(recorder, request)
+
+	if location := recorder.Header().Get("Location"); location != "/v1/verify" {
+		t.Fatalf("Location = %q, want %q", location, "/v1/verify")
+	}
+}
+
+func TestNewMuxCompatAuthHostsWithAuthDisabled(t *testing.T) {
+	t.Parallel()
+
+	mux := mustNewMux(t, []mounted{
+		{name: "storage", prefix: "/storage", svc: echoService()},
+		{name: "graphql", prefix: "/graphql", svc: echoService()},
+	}, []string{"hasura-auth-service"})
+
+	tests := []struct {
+		name     string
+		host     string
+		path     string
+		wantCode int
+		wantBody string
+	}{
+		{
+			name:     "compat host is not registered",
+			host:     "hasura-auth-service:4000",
+			path:     "/v1/token",
+			wantCode: http.StatusNotFound,
+		},
+		{
+			name:     "enabled service remains routed",
+			path:     "/storage/v1/files",
+			wantCode: http.StatusOK,
+			wantBody: "/v1/files",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			recorder := httptest.NewRecorder()
+			request := httptest.NewRequest(http.MethodGet, tc.path, nil)
+
+			if tc.host != "" {
+				request.Host = tc.host
+			}
+
+			mux.ServeHTTP(recorder, request)
+
+			if recorder.Code != tc.wantCode {
+				t.Fatalf("status = %d, want %d", recorder.Code, tc.wantCode)
+			}
+
+			if tc.wantBody != "" && recorder.Body.String() != tc.wantBody {
+				t.Fatalf("body = %q, want %q", recorder.Body.String(), tc.wantBody)
+			}
+		})
+	}
+}
+
+func TestNewMuxSkipsMalformedCompatAuthHosts(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		host string
+	}{
+		{name: "port", host: "hasura-auth-service:4000"},
+		{name: "scheme", host: "http://hasura-auth-service"},
+		{name: "path", host: "hasura-auth-service/auth"},
+		{name: "empty DNS label", host: "hasura-auth-service..svc"},
+		{name: "over-length DNS label", host: strings.Repeat("a", 64) + ".example"},
+		{name: "over-length hostname", host: strings.Repeat("a", 254)},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			var logs bytes.Buffer
+
+			mux, err := newMux(
+				[]mounted{{name: "auth", prefix: "/auth", svc: echoService()}},
+				[]string{tc.host, "valid-auth.example"},
+				slog.New(slog.NewTextHandler(&logs, nil)),
+			)
+			if err != nil {
+				t.Fatalf("newMux() error = %v, want malformed host to be skipped", err)
+			}
+
+			recorder := httptest.NewRecorder()
+			request := httptest.NewRequest(http.MethodGet, "/v1/token", nil)
+			request.Host = "valid-auth.example:4000"
+			mux.ServeHTTP(recorder, request)
+
+			if recorder.Code != http.StatusOK {
+				t.Fatalf(
+					"valid host status = %d, want %d after malformed host",
+					recorder.Code,
+					http.StatusOK,
+				)
+			}
+
+			if !strings.Contains(logs.String(), "level=WARN") ||
+				!strings.Contains(logs.String(), tc.host) {
+				t.Fatalf("warning log = %q, want WARN containing %q", logs.String(), tc.host)
+			}
+		})
+	}
+}
+
+func TestNewMuxReturnsErrorForCompatAuthHostConflict(t *testing.T) {
+	t.Parallel()
+
+	_, err := newMux(
+		[]mounted{
+			{name: "storage", prefix: "hasura-auth-service", svc: echoService()},
+			{name: "auth", prefix: "/auth", svc: echoService()},
+		},
+		[]string{"hasura-auth-service"},
+		slog.New(slog.DiscardHandler),
+	)
+	if err == nil {
+		t.Fatal("newMux() error = nil, want route conflict error")
 	}
 }
 
@@ -109,13 +305,13 @@ func TestNewMuxPreservesRedirectPrefix(t *testing.T) {
 		c.Status(http.StatusOK)
 	})
 
-	mux := newMux([]mounted{
+	mux := mustNewMux(t, []mounted{
 		{
 			name:   "storage",
 			prefix: "/storage",
 			svc:    &serveutil.Service{Handler: router},
 		},
-	})
+	}, nil)
 
 	redirect := httptest.NewRecorder()
 	mux.ServeHTTP(
@@ -201,13 +397,13 @@ func TestNewMuxRewritesOnlyRootRelativeRedirects(t *testing.T) {
 					w.WriteHeader(tc.secondStatus)
 				}
 			})
-			mux := newMux([]mounted{
+			mux := mustNewMux(t, []mounted{
 				{
 					name:   "storage",
 					prefix: "/storage",
 					svc:    &serveutil.Service{Handler: handler},
 				},
-			})
+			}, nil)
 
 			recorder := httptest.NewRecorder()
 			mux.ServeHTTP(
@@ -241,13 +437,13 @@ func TestNewMuxPreservesFlusher(t *testing.T) {
 
 		flusher.Flush()
 	})
-	mux := newMux([]mounted{
+	mux := mustNewMux(t, []mounted{
 		{
 			name:   "graphql",
 			prefix: "/graphql",
 			svc:    &serveutil.Service{Handler: handler},
 		},
-	})
+	}, nil)
 
 	recorder := httptest.NewRecorder()
 	mux.ServeHTTP(

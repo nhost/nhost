@@ -94,6 +94,45 @@ func TestServeConfigFrom(t *testing.T) {
 	}
 }
 
+func TestServeConfigFromReadsCompatAuthHostsFlag(t *testing.T) {
+	tests := []struct {
+		name string
+		env  string
+		args []string
+		want []string
+	}{
+		{
+			name: "comma-separated environment value",
+			env:  "hasura-auth-service,hasura-auth-service.nhost-project.svc.cluster.local",
+			want: []string{
+				"hasura-auth-service",
+				"hasura-auth-service.nhost-project.svc.cluster.local",
+			},
+		},
+		{
+			name: "command flag overrides environment",
+			env:  "environment.example",
+			args: []string{
+				"--auth-compat-hosts", "first.example,second.example",
+			},
+			want: []string{"first.example", "second.example"},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv("AUTH_COMPAT_HOSTS", tc.env)
+
+			runParsed(t, globalFlags(), tc.args, func(cmd *cli.Command) {
+				got := serveConfigFrom(cmd).compatAuthHosts
+				if !slices.Equal(got, tc.want) {
+					t.Fatalf("compatAuthHosts = %v, want %v", got, tc.want)
+				}
+			})
+		})
+	}
+}
+
 func TestApplySharedConfigFillsUnsetFlags(t *testing.T) {
 	t.Parallel()
 
