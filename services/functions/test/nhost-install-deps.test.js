@@ -1,4 +1,4 @@
-const { execFileSync } = require('node:child_process');
+const { spawnSync } = require('node:child_process');
 const { createHash } = require('node:crypto');
 const {
   mkdirSync,
@@ -69,6 +69,7 @@ describe('shared install library (parity with nhost/be services/cd)', () => {
         cwd: workDir,
         env: { ...process.env, HOME: root, WORK_DIR: workDir },
         encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe'],
       };
       const argv = [
         '-c',
@@ -85,19 +86,14 @@ describe('shared install library (parity with nhost/be services/cd)', () => {
         SCRIPT,
       ];
 
-      try {
-        return {
-          status: 0,
-          stdout: execFileSync('sh', argv, opts),
-          stderr: '',
-        };
-      } catch (error) {
-        return {
-          status: error.status,
-          stdout: error.stdout ?? '',
-          stderr: error.stderr ?? '',
-        };
-      }
+      const result = spawnSync('sh', argv, opts);
+      if (result.error) throw result.error;
+
+      return {
+        status: result.status,
+        stdout: result.stdout,
+        stderr: result.stderr,
+      };
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
