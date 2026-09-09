@@ -498,7 +498,7 @@ func TestLoopWritesConnectionAckBeforeExpirationDeadline(t *testing.T) {
 	conn := &Connection{
 		conn: fake,
 		handler: &expiringNopHandler{
-			nopHandler: nopHandler{onInit: nil, onSub: nil, onComplete: nil, onClose: nil},
+			onInit: nil, onSub: nil, onComplete: nil, onClose: nil,
 			expiresAt: func() time.Time {
 				expiresAt = time.Now().Add(100 * time.Millisecond)
 

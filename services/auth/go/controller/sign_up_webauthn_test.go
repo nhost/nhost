@@ -30,64 +30,62 @@ func TestSignUpWebauthn(t *testing.T) { //nolint:maintidx
 
 	cases := []testWebauhtnRequest{
 		{
-			testRequest: testRequest[api.SignUpWebauthnRequestObject, api.SignUpWebauthnResponseObject]{
-				name:   "simple",
-				config: getConfig,
-				db: func(ctrl *gomock.Controller) controller.DBClient {
-					mock := mock.NewMockDBClient(ctrl)
+			name:   "simple",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
 
-					return mock
-				},
-				request: api.SignUpWebauthnRequestObject{
-					Body: &api.SignUpWebauthnJSONRequestBody{
-						Email:   "jane@acme.com",
-						Options: nil,
-					},
-				},
-				expectedResponse: api.SignUpWebauthn200JSONResponse{
-					RelyingParty: protocol.RelyingPartyEntity{
-						CredentialEntity: protocol.CredentialEntity{
-							Name: "React Apollo Example",
-						},
-						ID: "react-apollo.example.nhost.io",
-					},
-					User: protocol.UserEntity{
-						CredentialEntity: protocol.CredentialEntity{
-							Name: "jane@acme.com",
-						},
-						DisplayName: "jane@acme.com",
-						ID:          userID.String(),
-					},
-					Challenge: []byte{},
-					Parameters: []protocol.CredentialParameter{
-						{Type: "public-key", Algorithm: -7},
-						{Type: "public-key", Algorithm: -35},
-						{Type: "public-key", Algorithm: -36},
-						{Type: "public-key", Algorithm: -257},
-						{Type: "public-key", Algorithm: -258},
-						{Type: "public-key", Algorithm: -259},
-						{Type: "public-key", Algorithm: -37},
-						{Type: "public-key", Algorithm: -38},
-						{Type: "public-key", Algorithm: -39},
-						{Type: "public-key", Algorithm: -8},
-					},
-					Timeout:               60000,
-					CredentialExcludeList: nil,
-					AttestationFormats:    nil,
-					AuthenticatorSelection: protocol.AuthenticatorSelection{
-						AuthenticatorAttachment: "",
-						RequireResidentKey:      new(false),
-						ResidentKey:             "preferred",
-						UserVerification:        "preferred",
-					},
-					Attestation: "indirect",
-					Extensions:  nil,
-					Hints:       nil,
-				},
-				expectedJWT:       nil,
-				jwtTokenFn:        nil,
-				getControllerOpts: []getControllerOptsFunc{},
+				return mock
 			},
+			request: api.SignUpWebauthnRequestObject{
+				Body: &api.SignUpWebauthnJSONRequestBody{
+					Email:   "jane@acme.com",
+					Options: nil,
+				},
+			},
+			expectedResponse: api.SignUpWebauthn200JSONResponse{
+				RelyingParty: protocol.RelyingPartyEntity{
+					CredentialEntity: protocol.CredentialEntity{
+						Name: "React Apollo Example",
+					},
+					ID: "react-apollo.example.nhost.io",
+				},
+				User: protocol.UserEntity{
+					CredentialEntity: protocol.CredentialEntity{
+						Name: "jane@acme.com",
+					},
+					DisplayName: "jane@acme.com",
+					ID:          userID.String(),
+				},
+				Challenge: []byte{},
+				Parameters: []protocol.CredentialParameter{
+					{Type: "public-key", Algorithm: -7},
+					{Type: "public-key", Algorithm: -35},
+					{Type: "public-key", Algorithm: -36},
+					{Type: "public-key", Algorithm: -257},
+					{Type: "public-key", Algorithm: -258},
+					{Type: "public-key", Algorithm: -259},
+					{Type: "public-key", Algorithm: -37},
+					{Type: "public-key", Algorithm: -38},
+					{Type: "public-key", Algorithm: -39},
+					{Type: "public-key", Algorithm: -8},
+				},
+				Timeout:               60000,
+				CredentialExcludeList: nil,
+				AttestationFormats:    nil,
+				AuthenticatorSelection: protocol.AuthenticatorSelection{
+					AuthenticatorAttachment: "",
+					RequireResidentKey:      new(false),
+					ResidentKey:             "preferred",
+					UserVerification:        "preferred",
+				},
+				Attestation: "indirect",
+				Extensions:  nil,
+				Hints:       nil,
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
 			savedChallenge: controller.WebauthnChallenge{
 				Session: webauthn.SessionData{
 					Challenge:            "xxx",
@@ -117,74 +115,72 @@ func TestSignUpWebauthn(t *testing.T) { //nolint:maintidx
 		},
 
 		{
-			testRequest: testRequest[api.SignUpWebauthnRequestObject, api.SignUpWebauthnResponseObject]{
-				name:   "with options",
-				config: getConfig,
-				db: func(ctrl *gomock.Controller) controller.DBClient {
-					mock := mock.NewMockDBClient(ctrl)
+			name:   "with options",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
 
-					return mock
-				},
-				request: api.SignUpWebauthnRequestObject{
-					Body: &api.SignUpWebauthnJSONRequestBody{
-						Email: "jane@acme.com",
-						Options: &api.SignUpOptions{
-							AllowedRoles: &[]string{"user"},
-							DefaultRole:  new("user"),
-							DisplayName:  new("Jane Doe"),
-							Locale:       new("en"),
-							Metadata: &map[string]any{
-								"key": "value",
-							},
-							RedirectTo: new("http://localhost:3000/redirect"),
-						},
-					},
-				},
-				expectedResponse: api.SignUpWebauthn200JSONResponse{
-					RelyingParty: protocol.RelyingPartyEntity{
-						CredentialEntity: protocol.CredentialEntity{
-							Name: "React Apollo Example",
-						},
-						ID: "react-apollo.example.nhost.io",
-					},
-					User: protocol.UserEntity{
-						CredentialEntity: protocol.CredentialEntity{
-							Name: "Jane Doe",
-						},
-						DisplayName: "Jane Doe",
-						ID:          userID.String(),
-					},
-					Challenge: []byte{},
-					Parameters: []protocol.CredentialParameter{
-						{Type: "public-key", Algorithm: -7},
-						{Type: "public-key", Algorithm: -35},
-						{Type: "public-key", Algorithm: -36},
-						{Type: "public-key", Algorithm: -257},
-						{Type: "public-key", Algorithm: -258},
-						{Type: "public-key", Algorithm: -259},
-						{Type: "public-key", Algorithm: -37},
-						{Type: "public-key", Algorithm: -38},
-						{Type: "public-key", Algorithm: -39},
-						{Type: "public-key", Algorithm: -8},
-					},
-					Timeout:               60000,
-					CredentialExcludeList: nil,
-
-					AuthenticatorSelection: protocol.AuthenticatorSelection{
-						AuthenticatorAttachment: "",
-						RequireResidentKey:      new(false),
-						ResidentKey:             "preferred",
-						UserVerification:        "preferred",
-					},
-					AttestationFormats: nil,
-					Attestation:        "indirect",
-					Extensions:         nil,
-					Hints:              nil,
-				},
-				expectedJWT:       nil,
-				jwtTokenFn:        nil,
-				getControllerOpts: []getControllerOptsFunc{},
+				return mock
 			},
+			request: api.SignUpWebauthnRequestObject{
+				Body: &api.SignUpWebauthnJSONRequestBody{
+					Email: "jane@acme.com",
+					Options: &api.SignUpOptions{
+						AllowedRoles: &[]string{"user"},
+						DefaultRole:  new("user"),
+						DisplayName:  new("Jane Doe"),
+						Locale:       new("en"),
+						Metadata: &map[string]any{
+							"key": "value",
+						},
+						RedirectTo: new("http://localhost:3000/redirect"),
+					},
+				},
+			},
+			expectedResponse: api.SignUpWebauthn200JSONResponse{
+				RelyingParty: protocol.RelyingPartyEntity{
+					CredentialEntity: protocol.CredentialEntity{
+						Name: "React Apollo Example",
+					},
+					ID: "react-apollo.example.nhost.io",
+				},
+				User: protocol.UserEntity{
+					CredentialEntity: protocol.CredentialEntity{
+						Name: "Jane Doe",
+					},
+					DisplayName: "Jane Doe",
+					ID:          userID.String(),
+				},
+				Challenge: []byte{},
+				Parameters: []protocol.CredentialParameter{
+					{Type: "public-key", Algorithm: -7},
+					{Type: "public-key", Algorithm: -35},
+					{Type: "public-key", Algorithm: -36},
+					{Type: "public-key", Algorithm: -257},
+					{Type: "public-key", Algorithm: -258},
+					{Type: "public-key", Algorithm: -259},
+					{Type: "public-key", Algorithm: -37},
+					{Type: "public-key", Algorithm: -38},
+					{Type: "public-key", Algorithm: -39},
+					{Type: "public-key", Algorithm: -8},
+				},
+				Timeout:               60000,
+				CredentialExcludeList: nil,
+
+				AuthenticatorSelection: protocol.AuthenticatorSelection{
+					AuthenticatorAttachment: "",
+					RequireResidentKey:      new(false),
+					ResidentKey:             "preferred",
+					UserVerification:        "preferred",
+				},
+				AttestationFormats: nil,
+				Attestation:        "indirect",
+				Extensions:         nil,
+				Hints:              nil,
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
 			savedChallenge: controller.WebauthnChallenge{
 				Session: webauthn.SessionData{
 					Challenge:            "xxx",
@@ -214,127 +210,121 @@ func TestSignUpWebauthn(t *testing.T) { //nolint:maintidx
 		},
 
 		{
-			testRequest: testRequest[api.SignUpWebauthnRequestObject, api.SignUpWebauthnResponseObject]{
-				name: "webauthn disabled",
-				config: func() *controller.Config {
-					c := getConfig()
-					c.WebauthnEnabled = false
+			name: "webauthn disabled",
+			config: func() *controller.Config {
+				c := getConfig()
+				c.WebauthnEnabled = false
 
-					return c
-				},
-				db: func(ctrl *gomock.Controller) controller.DBClient {
-					mock := mock.NewMockDBClient(ctrl)
-					return mock
-				},
-				request: api.SignUpWebauthnRequestObject{
-					Body: &api.SignUpWebauthnJSONRequestBody{
-						Email:   "jane@acme.com",
-						Options: nil,
-					},
-				},
-				expectedResponse: controller.ErrorResponse{
-					Error:   "disabled-endpoint",
-					Message: "This endpoint is disabled",
-					Status:  409,
-				},
-				expectedJWT:       nil,
-				jwtTokenFn:        nil,
-				getControllerOpts: []getControllerOptsFunc{},
+				return c
 			},
-			savedChallenge: controller.WebauthnChallenge{},
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				return mock
+			},
+			request: api.SignUpWebauthnRequestObject{
+				Body: &api.SignUpWebauthnJSONRequestBody{
+					Email:   "jane@acme.com",
+					Options: nil,
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "disabled-endpoint",
+				Message: "This endpoint is disabled",
+				Status:  409,
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
+			savedChallenge:    controller.WebauthnChallenge{},
 		},
 
 		{
-			testRequest: testRequest[api.SignUpWebauthnRequestObject, api.SignUpWebauthnResponseObject]{
-				name: "signup disabled",
-				config: func() *controller.Config {
-					c := getConfig()
-					c.DisableSignup = true
+			name: "signup disabled",
+			config: func() *controller.Config {
+				c := getConfig()
+				c.DisableSignup = true
 
-					return c
-				},
-				db: func(ctrl *gomock.Controller) controller.DBClient {
-					mock := mock.NewMockDBClient(ctrl)
-					return mock
-				},
-				request: api.SignUpWebauthnRequestObject{
-					Body: &api.SignUpWebauthnJSONRequestBody{
-						Email:   "jane@acme.com",
-						Options: nil,
-					},
-				},
-				expectedResponse: controller.ErrorResponse{
-					Error:   "signup-disabled",
-					Message: "Sign up is disabled.",
-					Status:  403,
-				},
-				expectedJWT:       nil,
-				jwtTokenFn:        nil,
-				getControllerOpts: []getControllerOptsFunc{},
+				return c
 			},
-			savedChallenge: controller.WebauthnChallenge{},
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				return mock
+			},
+			request: api.SignUpWebauthnRequestObject{
+				Body: &api.SignUpWebauthnJSONRequestBody{
+					Email:   "jane@acme.com",
+					Options: nil,
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "signup-disabled",
+				Message: "Sign up is disabled.",
+				Status:  403,
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
+			savedChallenge:    controller.WebauthnChallenge{},
 		},
 
 		{
-			testRequest: testRequest[api.SignUpWebauthnRequestObject, api.SignUpWebauthnResponseObject]{
-				name:   "user exists",
-				config: getConfig,
-				db: func(ctrl *gomock.Controller) controller.DBClient {
-					mock := mock.NewMockDBClient(ctrl)
+			name:   "user exists",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
 
-					return mock
-				},
-				request: api.SignUpWebauthnRequestObject{
-					Body: &api.SignUpWebauthnJSONRequestBody{
-						Email:   "jane@acme.com",
-						Options: nil,
-					},
-				},
-				expectedResponse: api.SignUpWebauthn200JSONResponse{
-					RelyingParty: protocol.RelyingPartyEntity{
-						CredentialEntity: protocol.CredentialEntity{
-							Name: "React Apollo Example",
-						},
-						ID: "react-apollo.example.nhost.io",
-					},
-					User: protocol.UserEntity{
-						CredentialEntity: protocol.CredentialEntity{
-							Name: "jane@acme.com",
-						},
-						DisplayName: "jane@acme.com",
-						ID:          userID.String(),
-					},
-					Challenge: []byte{},
-					Parameters: []protocol.CredentialParameter{
-						{Type: "public-key", Algorithm: -7},
-						{Type: "public-key", Algorithm: -35},
-						{Type: "public-key", Algorithm: -36},
-						{Type: "public-key", Algorithm: -257},
-						{Type: "public-key", Algorithm: -258},
-						{Type: "public-key", Algorithm: -259},
-						{Type: "public-key", Algorithm: -37},
-						{Type: "public-key", Algorithm: -38},
-						{Type: "public-key", Algorithm: -39},
-						{Type: "public-key", Algorithm: -8},
-					},
-					Timeout:               60000,
-					CredentialExcludeList: nil,
-
-					AuthenticatorSelection: protocol.AuthenticatorSelection{
-						AuthenticatorAttachment: "",
-						RequireResidentKey:      new(false),
-						ResidentKey:             "preferred",
-						UserVerification:        "preferred",
-					},
-					AttestationFormats: nil,
-					Attestation:        "indirect",
-					Extensions:         nil,
-					Hints:              nil,
-				},
-				expectedJWT:       nil,
-				jwtTokenFn:        nil,
-				getControllerOpts: []getControllerOptsFunc{},
+				return mock
 			},
+			request: api.SignUpWebauthnRequestObject{
+				Body: &api.SignUpWebauthnJSONRequestBody{
+					Email:   "jane@acme.com",
+					Options: nil,
+				},
+			},
+			expectedResponse: api.SignUpWebauthn200JSONResponse{
+				RelyingParty: protocol.RelyingPartyEntity{
+					CredentialEntity: protocol.CredentialEntity{
+						Name: "React Apollo Example",
+					},
+					ID: "react-apollo.example.nhost.io",
+				},
+				User: protocol.UserEntity{
+					CredentialEntity: protocol.CredentialEntity{
+						Name: "jane@acme.com",
+					},
+					DisplayName: "jane@acme.com",
+					ID:          userID.String(),
+				},
+				Challenge: []byte{},
+				Parameters: []protocol.CredentialParameter{
+					{Type: "public-key", Algorithm: -7},
+					{Type: "public-key", Algorithm: -35},
+					{Type: "public-key", Algorithm: -36},
+					{Type: "public-key", Algorithm: -257},
+					{Type: "public-key", Algorithm: -258},
+					{Type: "public-key", Algorithm: -259},
+					{Type: "public-key", Algorithm: -37},
+					{Type: "public-key", Algorithm: -38},
+					{Type: "public-key", Algorithm: -39},
+					{Type: "public-key", Algorithm: -8},
+				},
+				Timeout:               60000,
+				CredentialExcludeList: nil,
+
+				AuthenticatorSelection: protocol.AuthenticatorSelection{
+					AuthenticatorAttachment: "",
+					RequireResidentKey:      new(false),
+					ResidentKey:             "preferred",
+					UserVerification:        "preferred",
+				},
+				AttestationFormats: nil,
+				Attestation:        "indirect",
+				Extensions:         nil,
+				Hints:              nil,
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
 			savedChallenge: controller.WebauthnChallenge{
 				Session: webauthn.SessionData{
 					Challenge:            "xxx",
@@ -364,36 +354,34 @@ func TestSignUpWebauthn(t *testing.T) { //nolint:maintidx
 		},
 
 		{
-			testRequest: testRequest[api.SignUpWebauthnRequestObject, api.SignUpWebauthnResponseObject]{
-				name:   "wrong redirectTo",
-				config: getConfig,
-				db: func(ctrl *gomock.Controller) controller.DBClient {
-					mock := mock.NewMockDBClient(ctrl)
-					return mock
-				},
-				request: api.SignUpWebauthnRequestObject{
-					Body: &api.SignUpWebauthnJSONRequestBody{
-						Email: "jane@acme.com",
-						Options: &api.SignUpOptions{
-							AllowedRoles: nil,
-							DefaultRole:  nil,
-							DisplayName:  nil,
-							Locale:       nil,
-							Metadata:     nil,
-							RedirectTo:   new("http://evil.com/redirect"),
-						},
+			name:   "wrong redirectTo",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				return mock
+			},
+			request: api.SignUpWebauthnRequestObject{
+				Body: &api.SignUpWebauthnJSONRequestBody{
+					Email: "jane@acme.com",
+					Options: &api.SignUpOptions{
+						AllowedRoles: nil,
+						DefaultRole:  nil,
+						DisplayName:  nil,
+						Locale:       nil,
+						Metadata:     nil,
+						RedirectTo:   new("http://evil.com/redirect"),
 					},
 				},
-				expectedResponse: controller.ErrorResponse{
-					Error:   "redirectTo-not-allowed",
-					Message: `The value of "options.redirectTo" is not allowed.`,
-					Status:  400,
-				},
-				expectedJWT:       nil,
-				jwtTokenFn:        nil,
-				getControllerOpts: []getControllerOptsFunc{},
 			},
-			savedChallenge: controller.WebauthnChallenge{},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "redirectTo-not-allowed",
+				Message: `The value of "options.redirectTo" is not allowed.`,
+				Status:  400,
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
+			savedChallenge:    controller.WebauthnChallenge{},
 		},
 	}
 

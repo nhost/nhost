@@ -3,10 +3,8 @@ package controller_test
 import (
 	"context"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/controller"
 	"github.com/nhost/nhost/services/auth/go/controller/mock"
@@ -116,42 +114,16 @@ func TestOauth2Revoke(t *testing.T) {
 	t.Run("dual credentials", func(t *testing.T) {
 		t.Parallel()
 
-		ctrl := gomock.NewController(t)
-
-		c, _ := getController(
-			t,
-			ctrl,
-			getConfigOAuth2Enabled,
-			func(ctrl *gomock.Controller) controller.DBClient {
-				return mock.NewMockDBClient(ctrl)
-			},
-		)
-
 		bodyClientID := "body-client-id"
 
-		w := httptest.NewRecorder()
-		ginCtx, _ := gin.CreateTestContext(w)
-		ginCtx.Request = httptest.NewRequest(
-			http.MethodPost, "/oauth2/revoke", nil,
-		)
-		ginCtx.Request.SetBasicAuth("header-client-id", "header-client-secret")
-
-		assertRequest[api.Oauth2RevokeRequestObject, api.Oauth2RevokeResponseObject](
-			ginCtx, t, c.Oauth2Revoke,
+		assertOAuth2DualCredentials(
+			t,
+			"/oauth2/revoke",
+			(*controller.Controller).Oauth2Revoke,
 			api.Oauth2RevokeRequestObject{
 				Body: &api.OAuth2RevokeRequest{
 					Token:    "some-token",
 					ClientId: &bodyClientID,
-				},
-			},
-			controller.OAuth2ErrorResponse{
-				StatusCode: http.StatusBadRequest,
-				Body: api.OAuth2ErrorResponse{
-					Error: "invalid_request",
-					ErrorDescription: ptr(
-						"client credentials MUST NOT be provided in " +
-							"both the Authorization header and the request body",
-					),
 				},
 			},
 		)

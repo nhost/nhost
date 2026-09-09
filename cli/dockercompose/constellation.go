@@ -20,7 +20,7 @@ func constellation( //nolint:funlen
 ) (*Service, error) {
 	envars, err := appconfig.ConstellationEnv(
 		cfg,
-		appconfig.ConstellationEnvInput{
+		appconfig.ConstellationEnvInput{ //nolint:gosec // G101: local dev docker-compose connection string, not a secret
 			PostgresConnection: "postgres://postgres:postgres@postgres:5432/local",
 			NhostAuthURL:       URL(subdomain, "auth", httpPort, useTLS) + "/v1",
 			NhostGraphqlURL:    URL(subdomain, "graphql", httpPort, useTLS) + "/v1",

@@ -2007,7 +2007,7 @@ func TestRequiresPostInsertCheck(t *testing.T) {
 	}
 
 	insertCheck := func(cols ...string) where.Clause {
-		clause := where.Clause{}
+		clause := make(where.Clause, 0, len(cols))
 		for _, c := range cols {
 			clause = append(
 				clause,
