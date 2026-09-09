@@ -67,6 +67,30 @@ function build_schemas() {
 	echo "⚒️⚒️⚒️ Building schemas documentation..."
 	cp ../services/storage/controller/openapi.yaml src/schemas/storage.yaml
 	cp ../services/auth/docs/openapi.yaml src/schemas/auth.yaml
+
+	# Also serve the specs as files from docs.nhost.io/openapi/, not just as
+	# rendered reference pages.
+	mkdir -p public/openapi
+	for spec in auth storage; do
+		cp "src/schemas/${spec}.yaml" "public/openapi/${spec}.yaml"
+		# JSON too: its content type doesn't depend on the host's mime table,
+		# and most OpenAPI tooling prefers it.
+		node -e "
+		  const yaml = require('js-yaml'), fs = require('fs');
+		  const spec = yaml.load(fs.readFileSync('src/schemas/${spec}.yaml', 'utf8'));
+		  fs.writeFileSync('public/openapi/${spec}.json', JSON.stringify(spec, null, 2) + '\n');
+		"
+	done
+}
+
+function build_graphql_schemas() {
+	echo "⚒️⚒️⚒️ Publishing GraphQL schemas..."
+	# The same Cloud schema the CLI's MCP server embeds, served from
+	# docs.nhost.io/graphql/ for agents that aren't running the CLI.
+	mkdir -p public/graphql
+	cp ../cli/mcp/resources/cloud_schema.graphql public/graphql/cloud.graphql
+	cp ../cli/mcp/resources/cloud_schema-with-mutations.graphql \
+		public/graphql/cloud-with-mutations.graphql
 }
 
 function build_typedoc() {
@@ -102,6 +126,7 @@ function build_cli_docs() {
 }
 
 build_schemas
+build_graphql_schemas
 build_typedoc
 build_cli_docs
 build_config_reference
