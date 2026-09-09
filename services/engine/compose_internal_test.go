@@ -10,11 +10,15 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/gin-gonic/gin"
 	serveutil "github.com/nhost/nhost/internal/lib/serve"
 	"github.com/urfave/cli/v3"
 )
 
-var errTestBackground = errors.New("background failed")
+var (
+	errTestBackground   = errors.New("background failed")
+	errTestServiceBuild = errors.New("service build failed")
+)
 
 // echoService returns a serve.Service whose handler writes back the request
 // path it received, so tests can assert what the service sees after prefix
@@ -97,6 +101,169 @@ func TestNewMuxStripsPrefixAndRoutes(t *testing.T) {
 	}
 }
 
+func TestNewMuxPreservesRedirectPrefix(t *testing.T) {
+	t.Parallel()
+
+	router := gin.New()
+	router.GET("/v1/files", func(c *gin.Context) {
+		c.Status(http.StatusOK)
+	})
+
+	mux := newMux([]mounted{
+		{
+			name:   "storage",
+			prefix: "/storage",
+			svc:    &serveutil.Service{Handler: router},
+		},
+	})
+
+	redirect := httptest.NewRecorder()
+	mux.ServeHTTP(
+		redirect,
+		httptest.NewRequest(http.MethodGet, "/storage/v1/files/", nil),
+	)
+
+	if redirect.Code != http.StatusMovedPermanently {
+		t.Fatalf("redirect status = %d, want %d", redirect.Code, http.StatusMovedPermanently)
+	}
+
+	location := redirect.Header().Get("Location")
+	if location != "/storage/v1/files" {
+		t.Fatalf("Location = %q, want %q", location, "/storage/v1/files")
+	}
+
+	followed := httptest.NewRecorder()
+	mux.ServeHTTP(followed, httptest.NewRequest(http.MethodGet, location, nil))
+
+	if followed.Code != http.StatusOK {
+		t.Fatalf("follow-up status = %d, want %d", followed.Code, http.StatusOK)
+	}
+}
+
+func TestNewMuxRewritesOnlyRootRelativeRedirects(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name         string
+		status       int
+		location     string
+		secondStatus int
+		wantLocation string
+	}{
+		{
+			name:         "root-relative redirect",
+			status:       http.StatusTemporaryRedirect,
+			location:     "/v1/files?download=true",
+			wantLocation: "/storage/v1/files?download=true",
+		},
+		{
+			name:         "already-prefixed redirect",
+			status:       http.StatusTemporaryRedirect,
+			location:     "/storage/v1/files",
+			wantLocation: "/storage/v1/files",
+		},
+		{
+			name:         "absolute URL redirect",
+			status:       http.StatusTemporaryRedirect,
+			location:     "https://example.com/v1/files",
+			wantLocation: "https://example.com/v1/files",
+		},
+		{
+			name:         "network-path redirect",
+			status:       http.StatusTemporaryRedirect,
+			location:     "//example.com/v1/files",
+			wantLocation: "//example.com/v1/files",
+		},
+		{
+			name:         "non-redirect response",
+			status:       http.StatusOK,
+			location:     "/v1/files",
+			wantLocation: "/v1/files",
+		},
+		{
+			name:         "second WriteHeader is ignored",
+			status:       http.StatusOK,
+			location:     "/v1/files",
+			secondStatus: http.StatusTemporaryRedirect,
+			wantLocation: "/v1/files",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.Header().Set("Location", tc.location)
+				w.WriteHeader(tc.status)
+
+				if tc.secondStatus != 0 {
+					w.WriteHeader(tc.secondStatus)
+				}
+			})
+			mux := newMux([]mounted{
+				{
+					name:   "storage",
+					prefix: "/storage",
+					svc:    &serveutil.Service{Handler: handler},
+				},
+			})
+
+			recorder := httptest.NewRecorder()
+			mux.ServeHTTP(
+				recorder,
+				httptest.NewRequest(http.MethodGet, "/storage/v1/files", nil),
+			)
+
+			if recorder.Header().Get("Location") != tc.wantLocation {
+				t.Fatalf(
+					"Location = %q, want %q",
+					recorder.Header().Get("Location"), tc.wantLocation,
+				)
+			}
+		})
+	}
+}
+
+func TestNewMuxPreservesFlusher(t *testing.T) {
+	t.Parallel()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		flusher, ok := w.(http.Flusher)
+		if !ok {
+			http.Error(w, "http.Flusher unavailable", http.StatusInternalServerError)
+
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("chunk"))
+
+		flusher.Flush()
+	})
+	mux := newMux([]mounted{
+		{
+			name:   "graphql",
+			prefix: "/graphql",
+			svc:    &serveutil.Service{Handler: handler},
+		},
+	})
+
+	recorder := httptest.NewRecorder()
+	mux.ServeHTTP(
+		recorder,
+		httptest.NewRequest(http.MethodGet, "/graphql/v1", nil),
+	)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", recorder.Code, http.StatusOK)
+	}
+
+	if !recorder.Flushed {
+		t.Fatal("http.Flusher did not reach the underlying response writer")
+	}
+}
+
 func TestSuperviseSharedAttributesBackgroundErrors(t *testing.T) {
 	t.Parallel()
 
@@ -165,6 +332,170 @@ func graphqlLikeDef(t *testing.T, gotAdmin *string) serviceDef {
 			"admin-secret", "jwt-secret", "metadata-database-url", "cors-allowed-origins",
 		),
 		hidden: newSet(),
+	}
+}
+
+func lifecycleDef(
+	name string,
+	attempted, closed *[]string,
+	failAt string,
+) serviceDef {
+	return serviceDef{
+		prefix: "/" + name,
+		command: func() *cli.Command {
+			return &cli.Command{}
+		},
+		newService: func(
+			_ context.Context, _ *cli.Command, _ *slog.Logger,
+		) (*serveutil.Service, error) {
+			*attempted = append(*attempted, name)
+			if name == failAt {
+				return nil, errTestServiceBuild
+			}
+
+			return &serveutil.Service{
+				Handler:    http.NotFoundHandler(),
+				Background: nil,
+				Close: func() {
+					*closed = append(*closed, name)
+				},
+			}, nil
+		},
+		skip:   newSet(),
+		hidden: newSet(),
+	}
+}
+
+func TestBuildAll(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		order         []string
+		disabled      map[string]bool
+		failAt        string
+		wantAttempted []string
+		wantMounted   []string
+		wantClosed    []string
+		wantErr       error
+		wantErrText   string
+	}{
+		{
+			name:          "failure closes preceding service exactly once",
+			order:         []string{"first", "second"},
+			failAt:        "second",
+			wantAttempted: []string{"first", "second"},
+			wantMounted:   nil,
+			wantClosed:    []string{"first"},
+			wantErr:       errTestServiceBuild,
+			wantErrText:   "initializing second: running second command: service build failed",
+		},
+		{
+			name:          "failure closes in reverse construction order",
+			order:         []string{"first", "second", "third"},
+			failAt:        "third",
+			wantAttempted: []string{"first", "second", "third"},
+			wantMounted:   nil,
+			wantClosed:    []string{"second", "first"},
+			wantErr:       errTestServiceBuild,
+			wantErrText:   "initializing third: running third command: service build failed",
+		},
+		{
+			name:  "all services disabled",
+			order: serviceOrder(),
+			disabled: map[string]bool{
+				"auth": true, "storage": true, "graphql": true,
+			},
+			wantAttempted: nil,
+			wantMounted:   nil,
+			wantClosed:    nil,
+			wantErr:       errAllServicesDisabled,
+			wantErrText:   errAllServicesDisabled.Error(),
+		},
+		{
+			name:          "disabled service is skipped",
+			order:         serviceOrder(),
+			disabled:      map[string]bool{"storage": true},
+			wantAttempted: []string{"auth", "graphql"},
+			wantMounted:   []string{"auth", "graphql"},
+			wantClosed:    nil,
+			wantErr:       nil,
+			wantErrText:   "",
+		},
+		{
+			name:          "success transfers cleanup ownership",
+			order:         serviceOrder(),
+			wantAttempted: serviceOrder(),
+			wantMounted:   serviceOrder(),
+			wantClosed:    nil,
+			wantErr:       nil,
+			wantErrText:   "",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			var (
+				attempted []string
+				closed    []string
+			)
+
+			registry := make(map[string]serviceDef, len(tc.order))
+			for _, name := range tc.order {
+				registry[name] = lifecycleDef(name, &attempted, &closed, tc.failAt)
+			}
+
+			got, err := buildAll(
+				context.Background(), registry, tc.order, &cli.Command{}, "test",
+				slog.New(slog.DiscardHandler), serveConfig{disabled: tc.disabled},
+			)
+			if !errors.Is(err, tc.wantErr) {
+				t.Fatalf("buildAll() error = %v, want wrapped %v", err, tc.wantErr)
+			}
+
+			if tc.wantErrText != "" && err.Error() != tc.wantErrText {
+				t.Fatalf("buildAll() error = %q, want %q", err, tc.wantErrText)
+			}
+
+			if err == nil {
+				t.Cleanup(func() {
+					shutdownMounted(got)
+				})
+			}
+
+			mountedNames := make([]string, 0, len(got))
+			for _, service := range got {
+				mountedNames = append(mountedNames, service.name)
+			}
+
+			if !slices.Equal(attempted, tc.wantAttempted) {
+				t.Errorf("construction attempts = %v, want %v", attempted, tc.wantAttempted)
+			}
+
+			if !slices.Equal(mountedNames, tc.wantMounted) {
+				t.Errorf("mounted services = %v, want %v", mountedNames, tc.wantMounted)
+			}
+
+			if !slices.Equal(closed, tc.wantClosed) {
+				t.Errorf("closed services = %v, want %v", closed, tc.wantClosed)
+			}
+		})
+	}
+}
+
+func TestRunServeErrorsWhenAllServicesDisabled(t *testing.T) {
+	t.Parallel()
+
+	err := newApp("test").Run(
+		context.Background(),
+		[]string{
+			"engine", "serve", "--disable-auth", "--disable-storage", "--disable-graphql",
+		},
+	)
+	if !errors.Is(err, errAllServicesDisabled) {
+		t.Fatalf("runServe() error = %v, want errAllServicesDisabled", err)
 	}
 }
 

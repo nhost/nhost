@@ -11,6 +11,7 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 - `services/ai` - AI service providing auto-embeddings (native OpenAI) and multi-provider agents through OpenAI Chat Completions, OpenAI Responses, Anthropic Messages, and Google Gemini adapters with SSE streaming. HTTP/webhook API only; agent and configuration data is exposed through Hasura, not a service-owned GraphQL schema
 - `services/auth` - JWT-based authentication service with OAuth2/OIDC support, email/SMS verification, WebAuthn. Uses OpenAPI (oapi-codegen), sqlc for DB queries, and gomock for testing
 - `services/constellation` - GraphQL engine that turns relational databases (PostgreSQL, SQLite) into a role-based GraphQL API. Near-drop-in replacement for Hasura Community Edition: Hasura-compatible metadata, schema generation, queries/mutations/subscriptions, remote schemas, and cross-source remote relationships
+- `services/engine` - Unified command that runs auth, storage, and constellation behind one shared listener; `services/engine/internal/runner` supervises concurrent services and ordered shutdown
 - `services/functions` - Node.js development runtime for serverless functions with Express, esbuild bundling, and hot-reload. Local dev simulation only, not a production service
 - `services/mcp` - MCP (Model Context Protocol) server exposing a Hasura GraphQL endpoint to AI assistants. OAuth2/OIDC auth with JWT forwarding to the upstream GraphQL endpoint
 - `services/postgres` - PostgreSQL Docker image with the extensions and plugins used by Nhost projects (not a Go service; image config and tests only)
@@ -24,6 +25,7 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 
 - `internal/lib/oapi` - shared OpenAPI middleware and utilities
 - `internal/lib/clidocs` - CLI documentation generation
+- `internal/lib/serve` - shared logger construction, startup flag logging with secret redaction, and `Service` handler/background/cleanup abstraction
 - `internal/lib/syncmap` - typed generic map safe for concurrent use
 
 ### Dashboard (`dashboard/`)

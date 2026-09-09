@@ -42,7 +42,9 @@ options.
 
 Every enabled service is mounted under a path prefix on the shared listener;
 the prefix is stripped before the request reaches the service, so each service
-keeps serving its own native paths.
+keeps serving its own native paths. Root-relative redirects emitted by a service
+have the mount prefix restored, so following them stays within that service's
+routes.
 
 | Service   | Prefix      | Example request        | Reaches the service as |
 |-----------|-------------|------------------------|------------------------|

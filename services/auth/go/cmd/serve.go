@@ -1623,31 +1623,37 @@ func NewService(
 		return nil, fmt.Errorf("failed to create database pool: %w", err)
 	}
 
+	cleanups := &serveutil.Cleanups{}
+	cleanups.Add(pool.Close)
+
+	keepResources := false
+	defer func() {
+		if !keepResources {
+			cleanups.Close()
+		}
+	}()
+
 	encrypter, err := crypto.NewEncrypterFromString(cmd.String(flagEncryptionKey))
 	if err != nil {
-		pool.Close()
-
 		return nil, fmt.Errorf("problem creating encrypter: %w", err)
 	}
 
 	db := sql.New(pool)
 	if err := applyMigrations(ctx, cmd, db, encrypter, logger); err != nil {
-		pool.Close()
-
 		return nil, fmt.Errorf("failed to apply migrations: %w", err)
 	}
 
 	handler, err := getHandler(ctx, cmd, db, encrypter, logger)
 	if err != nil {
-		pool.Close()
-
 		return nil, fmt.Errorf("failed to create server: %w", err)
 	}
+
+	keepResources = true
 
 	return &serveutil.Service{
 		Handler:    handler,
 		Background: nil,
-		Close:      pool.Close,
+		Close:      cleanups.Close,
 	}, nil
 }
 

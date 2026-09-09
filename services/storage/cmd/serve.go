@@ -525,6 +525,16 @@ func NewService(
 ) (*serveutil.Service, error) {
 	imageTransformer := newImageTransformer(ctx, cmd, logger)
 
+	cleanups := &serveutil.Cleanups{}
+	cleanups.Add(imageTransformer.Shutdown)
+
+	keepResources := false
+	defer func() {
+		if !keepResources {
+			cleanups.Close()
+		}
+	}()
+
 	contentStorage := getContentStorage(
 		ctx,
 		cmd.String(flagS3Endpoint),
@@ -547,8 +557,6 @@ func NewService(
 		cmd.String(flagHasuraDBName),
 		logger,
 	); err != nil {
-		imageTransformer.Shutdown()
-
 		return nil, err
 	}
 
@@ -560,15 +568,15 @@ func NewService(
 		cmd, metadataStorage, contentStorage, imageTransformer, logger,
 	)
 	if err != nil {
-		imageTransformer.Shutdown()
-
 		return nil, err
 	}
+
+	keepResources = true
 
 	return &serveutil.Service{
 		Handler:    handler,
 		Background: nil,
-		Close:      imageTransformer.Shutdown,
+		Close:      cleanups.Close,
 	}, nil
 }
 

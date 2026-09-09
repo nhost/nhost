@@ -11,7 +11,6 @@ import (
 	"net/http"
 	_ "net/http/pprof" //nolint:gosec // pprof is gated behind a CLI flag
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/99designs/gqlgen/graphql/playground"
@@ -493,30 +492,13 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 	return runServer(ctx, cmd, svc, logger)
 }
 
-type resourceCleanups struct {
-	cleanups []func()
-	once     sync.Once
-}
-
-func (c *resourceCleanups) add(cleanup func()) {
-	c.cleanups = append(c.cleanups, cleanup)
-}
-
-func (c *resourceCleanups) close() {
-	c.once.Do(func() {
-		for i := len(c.cleanups) - 1; i >= 0; i-- {
-			c.cleanups[i]()
-		}
-	})
-}
-
 // NewService builds constellation's serving surface: the HTTP handler, the
 // background controller loop, and the cleanup of the resources it acquires
 // (metadata source, JWT authenticator). It is consumed both by the standalone
 // serve command and by the engine unified binary, which mounts the
 // handler behind a shared listener and runs the background loop under the
 // shared process lifecycle.
-func NewService( //nolint:funlen // construction remains linear while cleanup is centralized
+func NewService(
 	ctx context.Context,
 	cmd *cli.Command,
 	logger *slog.Logger,
@@ -526,15 +508,13 @@ func NewService( //nolint:funlen // construction remains linear while cleanup is
 		return nil, err
 	}
 
-	cleanups := &resourceCleanups{
-		cleanups: []func(){metadataSource.Close},
-		once:     sync.Once{},
-	}
+	cleanups := &serveutil.Cleanups{}
+	cleanups.Add(metadataSource.Close)
 
 	keepResources := false
 	defer func() {
 		if !keepResources {
-			cleanups.close()
+			cleanups.Close()
 		}
 	}()
 
@@ -543,7 +523,7 @@ func NewService( //nolint:funlen // construction remains linear while cleanup is
 		return nil, fmt.Errorf("initializing JWT auth: %w", err)
 	}
 
-	cleanups.add(jwtAuth.Close)
+	cleanups.Add(jwtAuth.Close)
 
 	hasuraProxy, err := newHasuraProxy(cmd, logger)
 	if err != nil {
@@ -581,7 +561,7 @@ func NewService( //nolint:funlen // construction remains linear while cleanup is
 
 			return nil
 		},
-		Close: cleanups.close,
+		Close: cleanups.Close,
 	}, nil
 }
 

@@ -7,9 +7,12 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"reflect"
+	"strings"
 	"time"
 
+	"github.com/felixge/httpsnoop"
 	serveutil "github.com/nhost/nhost/internal/lib/serve"
 	"github.com/nhost/nhost/services/engine/internal/runner"
 	"github.com/urfave/cli/v3"
@@ -235,18 +238,42 @@ func runServe(ctx context.Context, cmd *cli.Command, version string) error {
 	cfg := serveConfigFrom(cmd)
 	logger := serveutil.NewLogger(cfg.debug, cfg.logFormatText)
 
-	reg := serviceRegistry()
-	services := make([]mounted, 0, len(serviceOrder()))
+	services, err := buildAll(
+		ctx, serviceRegistry(), serviceOrder(), cmd, version, logger, cfg,
+	)
+	if err != nil {
+		return err
+	}
+	defer shutdownMounted(services)
 
-	// Shut down everything we built, even on a mid-build failure, in reverse
-	// order of construction.
+	logger.InfoContext(ctx, "engine v"+version)
+
+	return superviseShared(ctx, cfg, newMux(services), services, logger)
+}
+
+// buildAll constructs each enabled service in mount order. Until every service
+// is built, it retains ownership and shuts down partial results in reverse
+// construction order on failure. A successful return transfers cleanup
+// ownership to the caller.
+func buildAll(
+	ctx context.Context,
+	reg map[string]serviceDef,
+	order []string,
+	cmd *cli.Command,
+	version string,
+	logger *slog.Logger,
+	cfg serveConfig,
+) ([]mounted, error) {
+	services := make([]mounted, 0, len(order))
+	ownershipTransferred := false
+
 	defer func() {
-		for i := len(services) - 1; i >= 0; i-- {
-			services[i].svc.Shutdown()
+		if !ownershipTransferred {
+			shutdownMounted(services)
 		}
 	}()
 
-	for _, name := range serviceOrder() {
+	for _, name := range order {
 		if cfg.disabled[name] {
 			logger.InfoContext(ctx, "service disabled", slog.String("service", name))
 
@@ -257,7 +284,7 @@ func runServe(ctx context.Context, cmd *cli.Command, version string) error {
 
 		svc, err := buildService(ctx, def, name, cmd, version, logger, cfg)
 		if err != nil {
-			return fmt.Errorf("initializing %s: %w", name, err)
+			return nil, fmt.Errorf("initializing %s: %w", name, err)
 		}
 
 		services = append(
@@ -272,12 +299,18 @@ func runServe(ctx context.Context, cmd *cli.Command, version string) error {
 	}
 
 	if len(services) == 0 {
-		return errAllServicesDisabled
+		return nil, errAllServicesDisabled
 	}
 
-	logger.InfoContext(ctx, "engine v"+version)
+	ownershipTransferred = true
 
-	return superviseShared(ctx, cfg, newMux(services), services, logger)
+	return services, nil
+}
+
+func shutdownMounted(services []mounted) {
+	for i := len(services) - 1; i >= 0; i-- {
+		services[i].svc.Shutdown()
+	}
 }
 
 var (
@@ -334,12 +367,14 @@ func relaxRequiredForSkipped(flags []cli.Flag, skip map[string]bool) []string {
 
 // newMux builds the shared request router: each service is mounted beneath its
 // path prefix with the prefix stripped before dispatch, so the service handler
-// keeps serving its own native paths. A root /healthz reports engine liveness.
+// keeps serving its own native paths. Root-relative redirects have the prefix
+// restored before they reach the client. A root /healthz reports engine
+// liveness.
 func newMux(services []mounted) *http.ServeMux {
 	mux := http.NewServeMux()
 
 	for _, m := range services {
-		mux.Handle(m.prefix+"/", http.StripPrefix(m.prefix, m.svc.Handler))
+		mux.Handle(m.prefix+"/", mountHandler(m.prefix, m.svc.Handler))
 	}
 
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
@@ -348,6 +383,81 @@ func newMux(services []mounted) *http.ServeMux {
 	})
 
 	return mux
+}
+
+// mountHandler keeps the underlying writer's optional interfaces intact while
+// making root-relative redirects transparent to the service's mount prefix.
+func mountHandler(prefix string, handler http.Handler) http.Handler {
+	stripped := http.StripPrefix(prefix, handler)
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		wroteFinalHeader := false
+		wrapped := httpsnoop.Wrap(w, httpsnoop.Hooks{
+			Header: nil,
+			WriteHeader: func(next httpsnoop.WriteHeaderFunc) httpsnoop.WriteHeaderFunc {
+				return func(code int) {
+					if !wroteFinalHeader && code >= http.StatusOK {
+						rewriteRedirectLocation(w.Header(), prefix, code)
+
+						wroteFinalHeader = true
+					}
+
+					next(code)
+				}
+			},
+			Write: func(next httpsnoop.WriteFunc) httpsnoop.WriteFunc {
+				return func(body []byte) (int, error) {
+					wroteFinalHeader = true
+
+					return next(body)
+				}
+			},
+			Flush: func(next httpsnoop.FlushFunc) httpsnoop.FlushFunc {
+				return func() {
+					wroteFinalHeader = true
+
+					next()
+				}
+			},
+			CloseNotify: nil,
+			Hijack:      nil,
+			ReadFrom: func(next httpsnoop.ReadFromFunc) httpsnoop.ReadFromFunc {
+				return func(src io.Reader) (int64, error) {
+					n, err := next(src)
+					if n > 0 {
+						wroteFinalHeader = true
+					}
+
+					return n, err
+				}
+			},
+			Push: nil,
+		})
+
+		stripped.ServeHTTP(wrapped, r)
+	})
+}
+
+func rewriteRedirectLocation(header http.Header, prefix string, code int) {
+	if code < http.StatusMultipleChoices || code >= http.StatusBadRequest {
+		return
+	}
+
+	location := header.Get("Location")
+	if !strings.HasPrefix(location, "/") {
+		return
+	}
+
+	parsed, err := url.Parse(location)
+	if err != nil || parsed.IsAbs() || parsed.Host != "" {
+		return
+	}
+
+	if parsed.Path == prefix || strings.HasPrefix(parsed.Path, prefix+"/") {
+		return
+	}
+
+	header.Set("Location", prefix+location)
 }
 
 // buildService parses one service's prefixed flags back through its own CLI (so

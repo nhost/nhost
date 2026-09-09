@@ -29,9 +29,10 @@ type serviceDef struct {
 	// reach the service handler, so the service keeps serving its own native
 	// paths (auth's api-prefix, storage's /v1 root, constellation's /v1/*).
 	prefix string
-	// command builds a fresh serve command whose Flags define the service's
-	// per-service configuration surface. A fresh command per invocation keeps
-	// concurrently composed services from sharing mutable flag state.
+	// command builds a fresh serve command for each use. serveFlags obtains one
+	// command's Flags to derive the engine surface; buildService parses a separate
+	// instance so parse state stays local and relaxRequiredForSkipped can safely
+	// mutate Required.
 	command func() *cli.Command
 	// newService constructs the service from its parsed command.
 	newService newServiceFunc

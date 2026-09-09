@@ -1,62 +1,118 @@
 package main
 
-import "testing"
+import (
+	"slices"
+	"testing"
 
-func TestEngineOwnedServiceFlagsAreSkipped(t *testing.T) {
-	t.Parallel()
+	"github.com/urfave/cli/v3"
+)
 
-	targets := []struct {
-		service string
-		flag    string
-	}{
-		{service: "graphql", flag: "http-read-timeout"},
-		{service: "graphql", flag: "http-write-timeout"},
-		{service: "graphql", flag: "http-idle-timeout"},
-		{service: "graphql", flag: "profile-address"},
-		{service: "storage", flag: "pprof-bind"},
+func primaryFlags(t *testing.T, flags []cli.Flag) map[string]cli.Flag {
+	t.Helper()
+
+	primary := make(map[string]cli.Flag, len(flags))
+	for _, flag := range flags {
+		names := flag.Names()
+		if len(names) == 0 {
+			t.Fatal("service flag has no names")
+		}
+
+		name := names[0]
+		if _, exists := primary[name]; exists {
+			t.Fatalf("duplicate primary service flag %q", name)
+		}
+
+		primary[name] = flag
 	}
 
-	registry := serviceRegistry()
-	engineFlags := serveFlags()
+	return primary
+}
 
-	for _, target := range targets {
-		t.Run(target.service+"/"+target.flag, func(t *testing.T) {
+func TestServiceRegistryFlagReferencesExist(t *testing.T) {
+	t.Parallel()
+
+	registry := serviceRegistry()
+	for _, service := range serviceOrder() {
+		t.Run(service, func(t *testing.T) {
 			t.Parallel()
 
-			def := registry[target.service]
-			if !def.skip[target.flag] {
-				t.Fatalf("%s flag %q is not in the engine skip set", target.service, target.flag)
-			}
+			def := registry[service]
+			flags := primaryFlags(t, def.command().Flags)
 
-			foundPrimary := false
-			for _, flag := range def.command().Flags {
-				if flag.Names()[0] == target.flag {
-					foundPrimary = true
-
-					break
+			for name := range def.skip {
+				if _, exists := flags[name]; !exists {
+					t.Errorf("skip name %q is not a primary service flag", name)
 				}
 			}
 
-			if !foundPrimary {
-				t.Fatalf(
-					"%s skip name %q is not a primary service flag",
-					target.service,
-					target.flag,
-				)
-			}
-
-			engineName := prefixedName(target.service, target.flag)
-			for _, flag := range engineFlags {
-				for _, name := range flag.Names() {
-					if name == engineName {
-						t.Fatalf("engine still exposes --%s", engineName)
-					}
+			for name := range def.hidden {
+				if _, exists := flags[name]; !exists {
+					t.Errorf("hidden name %q is not a primary service flag", name)
 				}
 			}
 		})
 	}
+}
 
-	if serviceRegistry()["storage"].hidden["pprof-bind"] {
-		t.Fatal("storage pprof-bind remains hidden instead of skipped")
+func TestSharedOverridesMatchServiceFlags(t *testing.T) {
+	t.Parallel()
+
+	cfg := serveConfig{
+		bind:          "",
+		debug:         false,
+		logFormatText: false,
+		adminSecret:   "x",
+		jwtSecret:     "x",
+		databaseURL:   "x",
+		migrationsURL: "x",
+		corsOrigins:   []string{"x"},
+		disabled:      nil,
+	}
+	expected := map[string][]string{
+		"auth": {
+			"hasura-admin-secret",
+			"hasura-graphql-jwt-secret",
+			"postgres",
+			"postgres-migrations",
+		},
+		"storage": {
+			"hasura-graphql-admin-secret",
+			"postgres-migrations-source",
+			"cors-allow-origins",
+		},
+		"graphql": {
+			"admin-secret",
+			"jwt-secret",
+			"metadata-database-url",
+			"cors-allowed-origins",
+		},
+	}
+
+	registry := serviceRegistry()
+	for _, service := range serviceOrder() {
+		t.Run(service, func(t *testing.T) {
+			t.Parallel()
+
+			def := registry[service]
+			flags := primaryFlags(t, def.command().Flags)
+			overrides := sharedOverridesFor(service, cfg)
+
+			got := make([]string, 0, len(overrides))
+			for _, override := range overrides {
+				got = append(got, override.flag)
+
+				if _, exists := flags[override.flag]; !exists {
+					t.Errorf("shared override %q is not a primary service flag", override.flag)
+				}
+
+				if !def.skip[override.flag] {
+					t.Errorf("shared override %q is not in the service skip set", override.flag)
+				}
+			}
+
+			if !slices.Equal(got, expected[service]) {
+				t.Errorf("shared override flags = %q, want %q", got, expected[service])
+			}
+		})
 	}
 }
