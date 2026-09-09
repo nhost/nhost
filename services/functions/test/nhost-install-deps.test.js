@@ -17,7 +17,7 @@ const SCRIPT = join(__dirname, '..', 'nhost-install-deps.sh');
 // pinned. On an intentional edit: update this hash AND copy the file to the
 // other repo so the two stay in sync.
 const WANT_CHECKSUM =
-  '3aa61e6870e6ebb578d46f4a2662a3aaf5f32610a045116dac2effbcd7a6fe26';
+  'af0249aa36d6b8a67d3bdc85f15ce684c54594df5b3cc679f4871da233f919b8';
 
 describe('shared install library (parity with nhost/be services/cd)', () => {
   test('checksum is in sync with nhost/be', () => {
@@ -207,7 +207,7 @@ describe('shared install library (parity with nhost/be services/cd)', () => {
 
   test('dev express major matches the cd wrapper (NHOST_EXPRESS_VERSION)', () => {
     const script = readFileSync(SCRIPT, 'utf8');
-    const pinned = script.match(/^NHOST_EXPRESS_VERSION=(\S+)/m);
+    const pinned = script.match(/^(?:export )?NHOST_EXPRESS_VERSION=(\S+)/m);
     expect(pinned).not.toBeNull();
 
     const declared = require('../package.json').devDependencies.express;

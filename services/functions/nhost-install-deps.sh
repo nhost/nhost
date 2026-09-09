@@ -8,10 +8,11 @@
 # and copy the file to the other repo (the hashes must match).
 #
 # Installs a project's dependencies without ever running the project's own code.
-# The repo being installed is UNTRUSTED: in services/cd it is a customer repo
-# being built inside Nhost's infrastructure.
+# Treat the project as untrusted input: a dependency install is a normal way to
+# get arbitrary code executed, and callers may run this somewhere that matters.
 #
-# What can run code during an install, and what stops it:
+# A package manager will run project-supplied code from any of these, so each
+# one is turned off:
 #   * package.json scripts (preinstall/install/postinstall/prepare) -> step 1 env
 #   * pnpm .pnpmfile.cjs hooks                                     -> step 1 env
 #   * a project-supplied yarn binary (.yarnrc yarn-path)           -> step 1 env
@@ -28,19 +29,19 @@
 #     download uses undici and CANNOT traverse the bump, so it is deliberately
 #     left to go DIRECT — do NOT set HTTP(S)_PROXY here or corepack will break.
 #
-# POSIX/busybox sh; needs node + npm on PATH. Uses `~` (not $HOME) so paths
-# match node's os.homedir() whether or not HOME is exported.
+# POSIX/busybox sh; needs node + npm on PATH. Tool paths use `~`, so callers
+# must export HOME if it differs from the passwd entry node would report.
 
-# Wrapper-runtime versions, pinned here as the single source of truth so a
-# function behaves the SAME in dev and prod. services/cd installs these into the
-# user's project (its Lambda wrapper.js requires them); services/functions ships
-# the same express major in its dev runtime — a parity test there asserts its
-# package.json matches NHOST_EXPRESS_VERSION. serverless-http is prod-only
-# (Lambda); the dev runtime is a long-lived express server. Bump in lockstep.
-NHOST_EXPRESS_VERSION=5.2.1
-NHOST_SERVERLESS_HTTP_VERSION=4.0.0
+# Wrapper-runtime versions. services/cd installs these into the user's project
+# (its Lambda wrapper.js requires them). services/functions declares its own
+# express in package.json; a parity test there checks only that the MAJOR
+# matches NHOST_EXPRESS_VERSION, so dev and prod can differ within a major.
+# serverless-http is prod-only (Lambda); dev runs a long-lived express server.
+# Exported: callers read these after sourcing (see services/cd's deploy task).
+export NHOST_EXPRESS_VERSION=5.2.1
+export NHOST_SERVERLESS_HTTP_VERSION=4.0.0
 
-NHOST_YARN_CLASSIC_SPEC=1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610
+export NHOST_YARN_CLASSIC_SPEC=1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610
 
 nhost_install_deps() {
 	set -eu
