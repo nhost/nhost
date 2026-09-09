@@ -251,11 +251,10 @@ func serveFlags() []cli.Flag {
 // constellation HTTP server.
 func CommandServe() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
-		Name:            "serve",
-		Usage:           "Serve the application",
-		Flags:           serveFlags(),
-		Action:          serve,
-		HideHelpCommand: true,
+		Name:   "serve",
+		Usage:  "Serve the application",
+		Flags:  serveFlags(),
+		Action: serve,
 	}
 }
 
