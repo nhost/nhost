@@ -7,11 +7,19 @@
 # Each repo pins sha256(this file) in a test; edit one, update the pinned hash,
 # and copy the file to the other repo (the hashes must match).
 #
-# Shared dependency installer for local development and production deploys.
-# Disables lifecycle scripts, pnpm hooks, and project-selected Yarn binaries.
-# Yarn installs use pinned Classic because Berry can load project plugins even
-# when lifecycle scripts are disabled. Requires a lockfile when package.json
-# exists, and bootstraps Corepack if the Node image does not include it.
+# Installs a project's dependencies without ever running the project's own code.
+# The repo being installed is UNTRUSTED: in services/cd it is a customer repo
+# being built inside Nhost's infrastructure.
+#
+# What can run code during an install, and what stops it:
+#   * package.json scripts (preinstall/install/postinstall/prepare) -> step 1 env
+#   * pnpm .pnpmfile.cjs hooks                                     -> step 1 env
+#   * a project-supplied yarn binary (.yarnrc yarn-path)           -> step 1 env
+#   * Yarn Berry .yarnrc.yml plugins                               -> step 5 pin
+#
+# Berry is the awkward one: it loads plugins while starting up, BEFORE it parses
+# --ignore-scripts, so no flag or env var can stop it. The only fix is to never
+# let Berry run — step 5 hands corepack an explicit Yarn Classic version.
 #
 # The only input is WORK_DIR (the directory holding the project's package.json).
 # Anything environment-specific is the caller's job, configured BEFORE calling:
@@ -39,11 +47,10 @@ nhost_install_deps() {
 
 	: "${WORK_DIR:?WORK_DIR must be set}"
 
-	# 1. Disable lifecycle scripts and package-manager hooks before bootstrapping.
-	#    Probes on the production Node images verified npm's env beats .npmrc;
-	#    pnpm 11.0.6's dedicated env beats pnpm-workspace.yaml and .npmrc; and
-	#    Yarn classic's dedicated env beats .yarnrc. Yarn classic ignores the npm
-	#    setting, so every package manager keeps its own explicit control.
+	# 1. Turn off every "run the project's code" feature, before anything runs.
+	#    Env vars, not config files: we tested that a project's own .npmrc /
+	#    pnpm-workspace.yaml / .yarnrc CANNOT override these. Each manager needs
+	#    its own — Yarn ignores npm's setting.
 	export npm_config_ignore_scripts=true
 	export PNPM_CONFIG_IGNORE_SCRIPTS=true
 	export PNPM_CONFIG_IGNORE_PNPMFILE=true
@@ -53,25 +60,42 @@ nhost_install_deps() {
 
 	export COREPACK_ENV_FILE=0
 
-	#    corepack refuses URL/file packageManager specs unless this is 1; pin it
-	#    so a caller's environment cannot enable that arbitrary-tarball path.
+	#    Set to 1, corepack would fetch a package manager from any URL the
+	#    project names. Pin it off so the environment cannot turn that on.
 	export COREPACK_ENABLE_UNSAFE_CUSTOM_URLS=0
 
-	# Give Berry projects a clear error before installation.
-	# This check is optional for blocking Berry plugins: step 5 pins Classic, and YARN_IGNORE_PATH stops
-	# project config from replacing it. Classic does not load Berry plugins.
+	# Tell Berry projects why they fail, instead of letting them fail later with
+	# a confusing third-party error. This is only about the error message — the
+	# thing that actually keeps Berry from running is step 5's pin.
+	#
+	# Reading the manifest, the parts that are easy to get wrong:
+	#   * devEngines version is a RANGE ("^1.22.19"), not a version. Only an
+	#     exact version tells us which Yarn this is, so we ignore anything else
+	#     and let the checks below decide. A range is safe either way: step 5
+	#     pins Classic regardless.
+	#   * devEngines.packageManager may be an object OR an array of them.
+	#   * A leading BOM is legal to npm, so strip it — don't fail a project npm
+	#     would happily install.
+	#   * 2>/dev/null hides node's stack trace so our message is the one seen.
 	if [ -f "$WORK_DIR/package.json" ]; then
 		package_manager="$(node -e '
-const manifest = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"))
+const raw = require("fs").readFileSync(process.argv[1], "utf8").replace(/^\uFEFF/, "")
+const manifest = JSON.parse(raw)
 if (typeof manifest.packageManager === "string") {
   process.stdout.write(manifest.packageManager)
 } else {
-  const manager = manifest.devEngines?.packageManager
-  if (manager && typeof manager.name === "string" && typeof manager.version === "string") {
+  const declared = manifest.devEngines?.packageManager
+  const manager = Array.isArray(declared) ? declared[0] : declared
+  if (
+    manager &&
+    typeof manager.name === "string" &&
+    typeof manager.version === "string" &&
+    /^\d+\.\d+\.\d+(?:[-+].*)?$/.test(manager.version)
+  ) {
     process.stdout.write(`${manager.name}@${manager.version}`)
   }
 }
-' "$WORK_DIR/package.json")" || {
+' "$WORK_DIR/package.json" 2>/dev/null)" || {
 			echo "could not read $WORK_DIR/package.json; refusing to guess the package manager" >&2
 			return 1
 		}
@@ -86,10 +110,23 @@ if (typeof manifest.packageManager === "string") {
 			return 1
 			;;
 		esac
-		if [ -z "$package_manager" ] && [ ! -f "$WORK_DIR/package-lock.json" ] &&
+		#    A Berry lockfile has a "__metadata:" line. Only check it when yarn is
+		#    the manager step 5 would pick (same lockfile order as step 5) —
+		#    otherwise a leftover yarn.lock would fail an npm or pnpm project.
+		if [ ! -f "$WORK_DIR/package-lock.json" ] &&
 			[ ! -f "$WORK_DIR/pnpm-lock.yaml" ] &&
 			[ -f "$WORK_DIR/yarn.lock" ] && grep -q '^__metadata:' "$WORK_DIR/yarn.lock"; then
 			echo "Yarn Berry is not supported: install-time scripts cannot be safely disabled (detected via yarn.lock)" >&2
+			return 1
+		fi
+
+		#    If the project ships a .pnpmfile.cjs, pnpm records a checksum of it in
+		#    the lockfile and then refuses a frozen install once we disable hooks.
+		#    Its error tells the user to re-run with --no-frozen-lockfile, which a
+		#    deploy can't do — so say what's actually wrong.
+		if [ ! -f "$WORK_DIR/package-lock.json" ] && [ -f "$WORK_DIR/pnpm-lock.yaml" ] &&
+			grep -q '^pnpmfileChecksum:' "$WORK_DIR/pnpm-lock.yaml"; then
+			echo "pnpm hook files (.pnpmfile.cjs) are not supported: install-time code cannot be safely disabled" >&2
 			return 1
 		fi
 	fi
@@ -108,12 +145,9 @@ if (typeof manifest.packageManager === "string") {
 	PATH=~/.nhost-tools/bin:$PATH
 	export PATH
 
-	# 3. pnpm: skip (don't run, don't FAIL on) unapproved dep build scripts.
-	#    Use the env var, NOT ~/.config/pnpm/config.yaml: pnpm 11.0.x does not
-	#    read config.yaml (it returns `undefined` for the setting), so the file
-	#    silently fails there — while PNPM_CONFIG_STRICT_DEP_BUILDS is honored by
-	#    every pnpm version (10.x, 11.0.x, 11.5.x) and survives --ignore-workspace.
-	#    It applies to every later pnpm call in this shell; npm/yarn ignore it.
+	# 3. A dependency wanting to run a build script should be SKIPPED, not treated
+	#    as an error. Must be the env var: pnpm 11.0.x ignores this setting in
+	#    ~/.config/pnpm/config.yaml, so setting it there fails silently.
 	export PNPM_CONFIG_STRICT_DEP_BUILDS=false
 
 	# 4. nothing to install without a project manifest (e.g. a zero-dep function).
@@ -122,10 +156,12 @@ if (typeof manifest.packageManager === "string") {
 		return 0
 	fi
 
-	# 5. Choose a frozen install from the available lockfile.
-	#    Pin Yarn Classic here so Corepack cannot select Berry from a project or
-	#    parent manifest, even if the earlier check missed it. Yarn Classic has
-	#    no per-install workspace-isolation flag.
+	# 5. Pick the frozen install command from the lockfile.
+	#    The yarn line is the security fix. A bare `yarn` lets corepack choose the
+	#    version, and it reads packageManager from THIS directory or ANY parent —
+	#    so a parent manifest we never looked at could still select Berry. Naming
+	#    the version here overrides all of that. The +sha1 is checked on download.
+	#    (Classic has no per-install workspace-isolation flag, hence no --ignore.)
 	if [ -f "$WORK_DIR/package-lock.json" ]; then
 		set -- npm ci --no-workspaces --ignore-scripts
 	elif [ -f "$WORK_DIR/pnpm-lock.yaml" ]; then
