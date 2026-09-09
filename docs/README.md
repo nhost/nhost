@@ -6,7 +6,7 @@ This is the source for [docs.nhost.io](https://docs.nhost.io), built with [Astro
 
 ```
 docs/
-├── public/              # Static assets (favicons, etc.)
+├── public/              # Static assets, plus generated openapi/ and graphql/ specs
 ├── src/
 │   ├── assets/          # Images and other assets
 │   ├── components/      # Custom Astro components
@@ -60,15 +60,17 @@ The sidebar is configured in `astro.config.mjs` using `starlightSidebarTopics`. 
 
 ## Reference Documentation (generated)
 
-The reference pages under `src/content/docs/reference/` are generated from source and
-committed to the repo, so `pnpm dev`/`pnpm build` use them as-is. Run `pnpm generate` only
-after changing one of their sources, then commit the result:
+The reference pages under `src/content/docs/reference/`, along with the spec and schema copies
+under `public/`, are generated from source and committed to the repo, so `pnpm dev`/`pnpm
+build` use them as-is. Run `pnpm generate` only after changing one of their sources, then
+commit the result:
 
 | Source changed | Regenerated output |
 | --- | --- |
 | CLI command tree (`cli/`; see `internal/lib/clidocs`) | `reference/cli/commands.mdx` |
 | `packages/nhost-js` (TypeDoc) | `reference/javascript/nhost-js/**` |
-| OpenAPI schemas (auth, storage) | `src/schemas/*.yaml` |
+| OpenAPI schemas (auth, storage) | `src/schemas/*.yaml`, `public/openapi/*.{yaml,json}` |
+| Cloud GraphQL schema (`cli/mcp/resources/cloud_schema*.graphql`) | `public/graphql/*.graphql` |
 
 Run it in the docs Nix dev shell (`nix develop .#docs`, which provides the `cli` binary)
 on Linux — the TypeDoc/OpenAPI steps use GNU `sed`, which misbehaves on macOS.

@@ -1,45 +1,32 @@
 ---
 title: SMS OTP
 description: Learn how to sign in users with one-time passwords delivered via SMS using Twilio.
-keywords:
-  [
-    'SMS',
-    'OTP',
-    'phone',
-    'mobile',
-    'text message',
-    'Twilio',
-    'passwordless',
-    'phone verification',
-    'deanonymize',
-    'change phone number'
-  ]
+keywords: ["SMS", "OTP", "phone", "mobile", "text message", "Twilio", "passwordless", "phone verification", "deanonymize", "change phone number"]
 head:
   - tag: title
-    content: 'Phone Number Login with Twilio One-Time Passwords | Nhost Docs'
+    content: "Phone Number Login with Twilio One-Time Passwords | Nhost Docs"
 sidebar:
   label: SMS
 ---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-import { Tabs, TabItem } from '@astrojs/starlight/components'
-
-An SMS OTP (one-time password) is a secure authorization method where a numeric or alphanumeric code is sent to a mobile phone number.
+An SMS OTP (one-time password) is a secure authentication method where a numeric or alphanumeric code is sent to a mobile phone number. Codes expire after 5 minutes and can only be used once.
 
 Nhost supports OTP via SMS with Twilio.
 
+## Prerequisites
+
+All SMS are sent through [Twilio](https://www.twilio.com/try-twilio), so you need a Twilio account with:
+
+- An **Account SID** and **Auth Token** (both on the Twilio Console home page).
+- A **Messaging Service SID** (`MG…`) **or** a Twilio **phone number** (`+…`) to send from.
+
 ## Configuration
 
-You need a [Twilio account](https://www.twilio.com/try-twilio) to use this feature because all SMS' are sent through Twilio.
+Enable the Phone Number (SMS) sign-in method and provide your Twilio credentials.
 
-Enable the Phone Number (SMS) sign-in method in the Nhost Dashboard under **Settings -> Sign-In Methods -> Phone Number (SMS)**.
-
-You need to configure the following:
-
-- Account SID
-- Auth Token
-- Messaging Service SID (or a Twilio phone number)
-
-Or in `nhost.toml`:
+<Tabs>
+<TabItem label="nhost.toml">
 
 ```toml
 [auth.method.smsPasswordless]
@@ -52,6 +39,24 @@ authToken = '{{ secrets.TWILIO_AUTH_TOKEN }}'
 # A Twilio phone number can be used instead of a Messaging Service SID.
 messagingServiceId = '{{ secrets.TWILIO_MESSAGING_SERVICE_ID }}'
 ```
+
+Store sensitive values as [secrets](/platform/cloud/secrets) and reference them with `{{ secrets.NAME }}`.
+
+</TabItem>
+<TabItem label="Dashboard">
+
+In the Nhost Dashboard, go to **Settings → Sign-In Methods → Phone Number (SMS)**.
+
+![Nhost local dashboard](/images/products/auth/otp/sms/phone-number.png)
+
+Turn on the toggle and fill in:
+
+- **Account SID**
+- **Auth Token**
+- **Messaging Service ID** — a Messaging Service SID (`MG…`) or a Twilio phone number
+
+</TabItem>
+</Tabs>
 
 ## Sign In
 
@@ -71,7 +76,7 @@ await nhost.auth.signInPasswordlessSms({
 </TabItem>
 <TabItem label="Dart">
 ```dart
-await nhost.auth.signIn(
+await nhost.auth.signInWithSmsPasswordless(
   phoneNumber: '+11233213123'
 )
 ```
@@ -93,9 +98,9 @@ await nhost.auth.verifySignInPasswordlessSms({
 </TabItem>
 <TabItem label="Dart">
 ```dart
-await nhost.auth.signIn(
-  phoneNumber: '+11233213123',
-  otp: '123456'
+await nhost.auth.completeSmsPasswordlessSignIn(
+  '+11233213123',
+  '123456'
 )
 ```
 </TabItem>
@@ -108,6 +113,37 @@ A user account is created the first time a phone number is used
 :::note
 Phone numbers should start with `+` (not `00`) to follow the [E.164 formatting standard](https://en.wikipedia.org/wiki/E.164)
 :::
+
+:::note
+After 5 incorrect attempts the code is burned and verification returns `otp-too-many-attempts` instead of `invalid-otp`. Request a new code to continue. This applies to every SMS code, including phone number changes and deanonymization.
+:::
+
+### Sign In Flow
+
+```mermaid
+sequenceDiagram
+ autonumber
+ actor U as User
+ participant C as Client
+ participant A as Nhost Auth
+ participant S as SMS Provider (Twilio)
+ U->>C: Enter phone number
+ C->>+A: POST /signin/passwordless/sms
+ Note right of C: phoneNumber
+ opt No user found
+  A->>A: Create user
+ end
+ A->>A: Generate OTP (store hash, 5 min expiry)
+ A-)S: Send SMS with code
+ A->>-C: OK
+ S-)U: Receive SMS
+ U->>C: Enter OTP
+ C->>+A: POST /signin/passwordless/sms/otp
+ Note right of C: phoneNumber, otp
+ A->>A: Validate OTP (unexpired, single-use)
+ A->>A: Mark phone number verified
+ A->>-C: Session (access + refresh tokens)
+```
 
 ## Change Phone Number
 
@@ -134,7 +170,9 @@ await nhost.auth.verifyChangeUserPhoneNumber({
 })
 ```
 
-If a different user already has this phone number verified, the request fails with `user-already-exists`.
+:::note
+Both steps reject a number that already belongs to another account, verified or not, with `user-already-exists`. The request step pre-checks it, and the verify step still fails if another user claimed the number in between. A number another user has only staged, through a pending change or an unfinished sign-up, doesn't block it.
+:::
 
 ## Deanonymize with SMS
 
