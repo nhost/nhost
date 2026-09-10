@@ -125,7 +125,6 @@ export default function ProjectsComboBox() {
       triggerLabel={triggerLabel}
       placeholder="Select a project"
       searchPlaceholder="Select a project..."
-      hideCheck
       footerSlot={footerSlot}
       popoverContentClassName="w-[290px]"
       linkHref={

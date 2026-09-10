@@ -118,8 +118,6 @@ export default function OrgsComboBox() {
         value={selectedOrg?.slug ?? null}
         triggerLabel={triggerLabel}
         placeholder="Select organization"
-        hideSearch
-        hideCheck
         footerSlot={footerSlot}
         popoverContentClassName="w-[290px]"
         linkHref={
