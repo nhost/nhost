@@ -35,7 +35,6 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"slices"
@@ -46,17 +45,6 @@ import (
 	toml "github.com/pelletier/go-toml/v2"
 	"gopkg.in/yaml.v3"
 )
-
-type envConfig struct {
-	cliBin          string // path to the nhost CLI binary
-	workdir         string // parent dir for the scratch project (must be docker-mountable)
-	mode            string // "standalone" or "engine"
-	httpPort        string
-	postgresPort    string
-	configserverImg string // optional NHOST_CONFIGSERVER_IMAGE override
-	subdomain       string
-	keep            bool // skip teardown for debugging
-}
 
 func loadEnv(t *testing.T) envConfig {
 	t.Helper()
@@ -112,6 +100,11 @@ func TestE2E(t *testing.T) {
 	)
 	if err != nil {
 		t.Fatalf("failed to create project dir under %q: %v", env.workdir, err)
+	}
+
+	projectDir, err = normalizeProjectDir(projectDir)
+	if err != nil {
+		t.Fatalf("failed to normalize project dir: %v", err)
 	}
 
 	t.Logf("project dir: %s (mode=%s)", projectDir, env.mode)
@@ -524,31 +517,10 @@ func (c *client) do(
 // ---- CLI + config helpers ------------------------------------------------
 
 const (
-	cliStepTimeout   = 2 * time.Minute
-	upTimeout        = 20 * time.Minute
-	cleanupTimeout   = 5 * time.Minute
-	commandWaitDelay = 5 * time.Second
+	cliStepTimeout = 2 * time.Minute
+	upTimeout      = 20 * time.Minute
+	cleanupTimeout = 5 * time.Minute
 )
-
-func cliCmd(ctx context.Context, env envConfig, projectDir string, args ...string) *exec.Cmd {
-	full := append([]string{"--branch", "e2e"}, args...)
-	// test-controlled binary + args
-	cmd := exec.CommandContext(
-		ctx,
-		env.cliBin,
-		full...,
-	)
-	cmd.Dir = projectDir
-	cmd.Stdin = nil // avoid interactive prompts blocking on stdin
-	cmd.Env = os.Environ()
-
-	cmd.WaitDelay = commandWaitDelay
-	if env.configserverImg != "" {
-		cmd.Env = append(cmd.Env, "NHOST_CONFIGSERVER_IMAGE="+env.configserverImg)
-	}
-
-	return cmd
-}
 
 func runCLI(t *testing.T, env envConfig, projectDir string, args ...string) {
 	t.Helper()
