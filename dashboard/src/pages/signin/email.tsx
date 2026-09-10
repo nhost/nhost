@@ -1,7 +1,8 @@
 import type { ReactElement } from 'react';
 import { SignInRightColumn } from '@/components/auth/SignInRightColumn';
 import { NavLink } from '@/components/common/NavLink';
-import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
+import { AuthFlowLayout } from '@/components/layout/AuthFlowLayout';
+import { GuestGuard } from '@/features/auth/GuestGuard';
 import { SignInWithEmailAndPassword } from '@/features/auth/SignIn/SignInWithEmailAndPassword';
 
 function SigninPage() {
@@ -32,12 +33,12 @@ function SigninPage() {
 
 SigninPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <UnauthenticatedLayout
+    <AuthFlowLayout
       title="Sign In"
       rightColumnContent={<SignInRightColumn />}
     >
-      {page}
-    </UnauthenticatedLayout>
+      <GuestGuard>{page}</GuestGuard>
+    </AuthFlowLayout>
   );
 };
 
