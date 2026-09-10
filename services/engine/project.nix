@@ -90,6 +90,24 @@ rec {
       export GOEXPERIMENT=jsonv2
       export GIN_MODE=release
     '';
+
+    goTestFlags = "-race";
+
+    # The shared check only selects the engine submodule. Keep this project-local
+    # check here so the shared serve library is linted and tested too.
+    extraCheck = ''
+      echo "➜ Running golangci-lint for shared serve library"
+      golangci-lint run \
+        --timeout 600s \
+        ./internal/lib/serve/...
+
+      echo "➜ Running tests for shared serve library"
+      richgo test \
+        -tags="${pkgs.lib.strings.concatStringsSep " " tags}" \
+        -ldflags="${pkgs.lib.strings.concatStringsSep " " ldflags}" \
+        -v -race \
+        ./internal/lib/serve/...
+    '';
   };
 
   devShell = nixops-lib.go.devShell {

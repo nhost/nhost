@@ -1,6 +1,9 @@
 package serve
 
-import "sync"
+import (
+	"slices"
+	"sync"
+)
 
 // Cleanups collects release hooks acquired while constructing a service.
 // Add hooks in acquisition order before calling Close. Close runs them in
@@ -19,8 +22,8 @@ func (c *Cleanups) Add(cleanup func()) {
 // Close runs the registered release hooks in reverse order exactly once.
 func (c *Cleanups) Close() {
 	c.once.Do(func() {
-		for i := len(c.cleanups) - 1; i >= 0; i-- {
-			c.cleanups[i]()
+		for _, cleanup := range slices.Backward(c.cleanups) {
+			cleanup()
 		}
 	})
 }
