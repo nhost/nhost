@@ -1,0 +1,304 @@
+---
+title: Authentication and Sessions in a Python CLI
+description: Add sign-up, sign-in, and a file-persisted session to a Python notes CLI with the async Nhost Python SDK, so it stays authenticated across runs.
+keywords: ["Python", "asyncio", "CLI", "Nhost auth", "authentication", "session", "email password"]
+head:
+  - tag: title
+    content: "Python Notes CLI Tutorial: Authentication | Nhost Docs"
+sidebar:
+  label: Authentication
+---
+
+In [Part 1](/getting-started/tutorials/python/1-introduction) you scaffolded the
+CLI and wired up the Nhost client. A command-line tool runs, exits, and runs
+again — so to stay signed in between invocations we need to **persist the session
+to disk**. The Python SDK makes this a one-liner.
+
+:::note
+This is **Part 2** of the [Notes CLI with Nhost and Python](/getting-started/tutorials/python/1-introduction)
+series.
+:::
+
+## Persist the session
+
+The client accepts a `session_storage` backend that it uses to save and load
+the session. The SDK ships `FileStorage`, which writes the session to a JSON
+file. Update `make_client` to use it:
+
+```python title="main.py"
+from pathlib import Path
+
+from nhost import FileStorage, create_client
+
+
+def session_path() -> Path:
+    override = os.environ.get("NHOST_NOTES_SESSION")
+    if override:
+        return Path(override)
+    base = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
+    return base / "nhost-notes" / "session.json"
+
+
+def make_client():
+    return create_client(
+        subdomain=os.environ.get("NHOST_SUBDOMAIN", "local"),
+        region=os.environ.get("NHOST_REGION", "local"),
+        session_storage=FileStorage(session_path()),
+    )
+```
+
+With a `session_storage` backend configured, the SDK's middleware does the
+rest: after you sign in it saves the session, attaches the access token to every
+request, and refreshes the token in the background when it expires. Your
+commands never touch tokens directly.
+
+## Add the auth commands
+
+`whoami` already exists from Part 1. Add the three sign-in commands. Each is an
+async coroutine that receives the client; `sign_in_email_password`,
+`sign_up_email_password`, and `sign_out` come from `nhost.auth`:
+
+```python title="main.py"
+from nhost.auth import (
+    SignInEmailPasswordRequest,
+    SignOutRequest,
+    SignUpEmailPasswordRequest,
+)
+
+
+async def cmd_signup(nhost, email: str, password: str) -> None:
+    await nhost.auth.sign_up_email_password(
+        body=SignUpEmailPasswordRequest(email=email, password=password)
+    )
+    if await nhost.get_session() is not None:
+        print("signed up and logged in as", email)
+    else:
+        print("signed up; verify your email, then `login`")
+
+
+async def cmd_login(nhost, email: str, password: str) -> None:
+    await nhost.auth.sign_in_email_password(
+        body=SignInEmailPasswordRequest(email=email, password=password)
+    )
+    print("logged in as", email)
+
+
+async def cmd_logout(nhost) -> None:
+    session = await nhost.get_session()
+    if session is not None:
+        await nhost.auth.sign_out(body=SignOutRequest(refresh_token=session.refresh_token))
+    await nhost.clear_session()
+    print("logged out")
+```
+
+`get_session` (used by the `cmd_whoami` you wrote in Part 1) reads the
+current session from storage without a network call. `clear_session` removes the
+cached file (a client-side sign out), while `sign_out` revokes the refresh token
+on the server.
+
+Register each command with a `@app.command(...)` decorator. Typer turns the
+email parameter into a positional argument and generates `--help`. Read the
+password from `NOTES_PASSWORD` for scripts and CI, or prompt without echoing it
+for interactive use, so the secret never appears in the process arguments or
+shell history:
+
+```python title="main.py"
+import getpass
+
+
+def read_password() -> str:
+    password = os.environ.get("NOTES_PASSWORD")
+    if password:
+        return password
+    return getpass.getpass("Password: ")
+
+
+@app.command("signup")
+def signup(email: str) -> None:
+    """Create an account (and sign in if email verification is off)."""
+    password = read_password()
+    run(lambda nhost: cmd_signup(nhost, email, password))
+
+
+@app.command("login")
+def login(email: str) -> None:
+    """Sign in with email and a securely supplied password."""
+    password = read_password()
+    run(lambda nhost: cmd_login(nhost, email, password))
+
+
+@app.command("logout")
+def logout() -> None:
+    """Sign out and clear the saved session."""
+    run(cmd_logout)
+```
+
+## Enable email/password sign-up
+
+New projects require email verification by default. For a smooth CLI experience
+during development, you can allow users to sign in immediately after sign-up: in
+the local Nhost dashboard (`https://local.dashboard.local.nhost.run`) open
+**Settings → Sign-In methods** and, under **Email and Password**, disable
+*"Require verified emails"*. (Locally, verification emails are caught by Mailhog
+at `https://local.mailhog.local.nhost.run` if you'd rather click the link
+instead.)
+
+## The complete `main.py`
+
+Here's the whole `main.py` after Part 2. Press **Copy** to grab the entire file at once.
+
+```python title="main.py"
+import asyncio
+import getpass
+import os
+from pathlib import Path
+
+import typer
+
+from nhost import FileStorage, NhostError, create_client
+from nhost.auth import (
+    SignInEmailPasswordRequest,
+    SignOutRequest,
+    SignUpEmailPasswordRequest,
+)
+
+app = typer.Typer(
+    name="notes-cli",
+    help="Nhost notes CLI",
+    add_completion=False,
+    no_args_is_help=True,
+)
+
+
+def session_path() -> Path:
+    override = os.environ.get("NHOST_NOTES_SESSION")
+    if override:
+        return Path(override)
+    base = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
+    return base / "nhost-notes" / "session.json"
+
+
+def make_client():
+    return create_client(
+        subdomain=os.environ.get("NHOST_SUBDOMAIN", "local"),
+        region=os.environ.get("NHOST_REGION", "local"),
+        session_storage=FileStorage(session_path()),
+    )
+
+
+def run(coro) -> None:
+    async def runner() -> None:
+        async with make_client() as nhost:
+            try:
+                await coro(nhost)
+            except NhostError as exc:
+                raise SystemExit(f"error: {exc}") from exc
+
+    asyncio.run(runner())
+
+
+async def cmd_signup(nhost, email: str, password: str) -> None:
+    await nhost.auth.sign_up_email_password(
+        body=SignUpEmailPasswordRequest(email=email, password=password)
+    )
+    if await nhost.get_session() is not None:
+        print("signed up and logged in as", email)
+    else:
+        print("signed up; verify your email, then `login`")
+
+
+async def cmd_login(nhost, email: str, password: str) -> None:
+    await nhost.auth.sign_in_email_password(
+        body=SignInEmailPasswordRequest(email=email, password=password)
+    )
+    print("logged in as", email)
+
+
+async def cmd_logout(nhost) -> None:
+    session = await nhost.get_session()
+    if session is not None:
+        await nhost.auth.sign_out(body=SignOutRequest(refresh_token=session.refresh_token))
+    await nhost.clear_session()
+    print("logged out")
+
+
+async def cmd_whoami(nhost) -> None:
+    session = await nhost.get_session()
+    if session is None or session.user is None:
+        raise SystemExit("not logged in")
+    print(f"{session.user.email} ({session.user.id})")
+
+
+def read_password() -> str:
+    password = os.environ.get("NOTES_PASSWORD")
+    if password:
+        return password
+    return getpass.getpass("Password: ")
+
+
+@app.command("signup")
+def signup(email: str) -> None:
+    """Create an account (and sign in if email verification is off)."""
+    password = read_password()
+    run(lambda nhost: cmd_signup(nhost, email, password))
+
+
+@app.command("login")
+def login(email: str) -> None:
+    """Sign in with email and a securely supplied password."""
+    password = read_password()
+    run(lambda nhost: cmd_login(nhost, email, password))
+
+
+@app.command("logout")
+def logout() -> None:
+    """Sign out and clear the saved session."""
+    run(cmd_logout)
+
+
+@app.command("whoami")
+def whoami() -> None:
+    """Show the currently signed-in user."""
+    run(cmd_whoami)
+
+
+def main() -> None:
+    app()
+
+
+if __name__ == "__main__":
+    main()
+```
+
+:::caution
+Do the **Enable email/password sign-up** step above before running `signup`. If
+*"Require verified emails"* is still on, `signup` lands in the verify-email
+branch and prints `signed up; verify your email, then login` instead of an
+active session — so `whoami` reports `not logged in` until you verify.
+:::
+
+## Try it
+
+The `signup` and `login` commands prompt for the password without echoing it:
+
+```bash Terminal
+python main.py signup ada@example.com
+python main.py whoami
+# ada@example.com (a1b2c3d4-...)
+
+python main.py logout
+python main.py whoami
+# not logged in
+
+python main.py login ada@example.com
+```
+
+The session is written to `~/.config/nhost-notes/session.json`. Delete that file
+(or run `logout`) to sign out.
+
+## What's Next?
+
+You can sign in and the CLI remembers you. In
+[Part 3](/getting-started/tutorials/python/3-graphql-operations) you'll create the
+`notes` schema with owner-scoped permissions and add the commands to create,
+list, and organise notes over GraphQL.

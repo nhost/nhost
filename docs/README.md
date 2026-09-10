@@ -84,6 +84,7 @@ commit the result:
 | `packages/nhost-js` (TypeDoc) | `reference/javascript/nhost-js/**` |
 | `packages/nhost-rust` (rustdoc JSON → `rustdoc-to-md.mjs`) | `reference/rust/nhost-rust/**` |
 | `packages/nhost-go` (go/doc → `tools/godoc-md`) | `reference/go/nhost-go/**` |
+| `packages/nhost-python` (introspection → `pydoc-to-md.py`; docs-check Python environment or local SDK `uv` environment) | `reference/python/nhost-python/**` |
 | OpenAPI schemas (auth, storage) | `src/schemas/*.yaml`, `public/openapi/*.{yaml,json}` |
 | Cloud GraphQL schema (`cli/mcp/resources/cloud_schema*.graphql`) | `public/graphql/*.graphql` |
 
@@ -91,7 +92,9 @@ Run it in the docs Nix dev shell (`nix develop .#docs`, which provides the `cli`
 Rust toolchain) on Linux — the TypeDoc/OpenAPI steps use GNU `sed`, which misbehaves on macOS.
 Outside that shell, the Rust reference step requires `cargo`/`rustdoc` on `PATH` and fails if
 its rustdoc JSON inputs are missing and no toolchain is available. It uses `RUSTC_BOOTSTRAP=1`
-so rustdoc's JSON output works on both stable and nightly channels.
+so rustdoc's JSON output works on both stable and nightly channels. Python reference generation
+uses the SDK's `uv` environment as a local fallback; if the checked-out SDK cannot be imported
+with either environment, generation fails rather than accepting stale pages.
 
 ### Testing the CLI reference generator
 
