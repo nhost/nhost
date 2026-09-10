@@ -171,6 +171,10 @@ func TestRun_FileSource_ShutdownOnCancel(t *testing.T) {
 	case <-time.After(2 * time.Second):
 		t.Fatal("Run did not return after context cancellation")
 	}
+
+	// Run's deferred shutdown and an explicit owner cleanup share the same
+	// per-state release guard, so the connector expectation remains exactly one.
+	c.Close()
 }
 
 func TestRun_WithSource_ShutdownOnClose(t *testing.T) {

@@ -494,9 +494,9 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 
 // NewService builds constellation's serving surface: the HTTP handler, the
 // background controller loop, and the cleanup of the resources it acquires
-// (metadata source, JWT authenticator). It is consumed both by the standalone
-// serve command and by the engine unified binary, which mounts the
-// handler behind a shared listener and runs the background loop under the
+// (controller state, metadata source, JWT authenticator). It is consumed both
+// by the standalone serve command and by the engine unified binary, which
+// mounts the handler behind a shared listener and runs the background loop under the
 // shared process lifecycle.
 func NewService(
 	ctx context.Context,
@@ -530,20 +530,14 @@ func NewService(
 		return nil, err
 	}
 
-	ctrl, err := controller.New(
-		ctx,
-		cmd.Duration(flagSubscriptionPollInterval),
-		cmd.String(flagAdminSecret),
-		cmd.Bool(flagDevMode),
-		jwtAuth,
-		metadataSource,
-		logger,
-		cmd.Root().Version,
-		hasuraProxy,
+	ctrl, err := newServiceController(
+		ctx, cmd, jwtAuth, metadataSource, logger, hasuraProxy,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create controller: %w", err)
+		return nil, err
 	}
+
+	cleanups.Add(ctrl.Close)
 
 	router, err := getRouter(ctx, cmd, ctrl, jwtAuth, hasuraProxy, logger)
 	if err != nil {
@@ -563,6 +557,32 @@ func NewService(
 		},
 		Close: cleanups.Close,
 	}, nil
+}
+
+func newServiceController(
+	ctx context.Context,
+	cmd *cli.Command,
+	jwtAuth middleware.JWTAuthenticator,
+	metadataSource metadata.Source,
+	logger *slog.Logger,
+	hasuraProxy http.Handler,
+) (*controller.Controller, error) {
+	ctrl, err := controller.New(
+		ctx,
+		cmd.Duration(flagSubscriptionPollInterval),
+		cmd.String(flagAdminSecret),
+		cmd.Bool(flagDevMode),
+		jwtAuth,
+		metadataSource,
+		logger,
+		cmd.Root().Version,
+		hasuraProxy,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create controller: %w", err)
+	}
+
+	return ctrl, nil
 }
 
 // newMetadataSource builds the metadata source from the configured flags: a
