@@ -75,6 +75,13 @@ export const projectPages = definePages([
     slug: 'storage',
   },
   {
+    name: 'AI',
+    icon: <AIIcon className="h-4 w-4" />,
+    route: 'ai/assistants',
+    slug: 'ai',
+    gate: 'settings',
+  },
+  {
     name: 'Functions',
     icon: <Code className="h-4 w-4" />,
     route: 'functions',
@@ -85,13 +92,6 @@ export const projectPages = definePages([
     icon: <ServicesIcon className="h-4 w-4" />,
     route: 'run',
     slug: 'run',
-  },
-  {
-    name: 'AI',
-    icon: <AIIcon className="h-4 w-4" />,
-    route: 'ai/auto-embeddings',
-    slug: 'ai',
-    gate: 'settings',
   },
   {
     name: 'Deployments',
@@ -128,7 +128,6 @@ export const projectSettingsPages = definePages([
     slug: 'compute-resources',
     route: 'compute-resources',
   },
-  { name: 'AI', slug: 'ai', route: 'ai' },
 ]);
 
 export const projectGraphQLPages = definePages([
@@ -300,13 +299,19 @@ export const projectDatabasePages = definePages([
 ]);
 
 export const projectAIPages = definePages([
+  { name: 'Agents', slug: 'assistants', route: 'ai/assistants' },
+  { name: 'File Stores', slug: 'file-stores', route: 'ai/file-stores' },
   {
-    name: 'Auto-embeddings',
+    name: 'Auto-Embeddings',
     slug: 'auto-embeddings',
     route: 'ai/auto-embeddings',
   },
-  { name: 'Assistants', slug: 'assistants', route: 'ai/assistants' },
-  { name: 'File stores', slug: 'file-stores', route: 'ai/file-stores' },
+  {
+    name: 'Settings',
+    slug: 'settings',
+    route: 'ai/settings',
+    gate: 'settings',
+  },
 ]);
 
 export const orgPages = definePages([

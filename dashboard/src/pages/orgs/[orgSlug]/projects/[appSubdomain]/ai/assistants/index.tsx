@@ -1,20 +1,18 @@
 import { PlusIcon } from 'lucide-react';
 import Link from 'next/link';
-import { type ReactElement, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
-import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Alert } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
-import { AISidebar } from '@/features/orgs/layout/AISidebar';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { AssistantForm } from '@/features/orgs/projects/ai/AssistantForm';
 import { AssistantsList } from '@/features/orgs/projects/ai/AssistantsList';
 import type { Assistant } from '@/features/orgs/projects/ai/assistants/types';
 import type { GraphiteFileStore } from '@/features/orgs/projects/ai/file-stores/types';
+import { getAILayout } from '@/features/orgs/projects/ai/layout';
 import { useIsFileStoreSupported } from '@/features/orgs/projects/common/hooks/useIsFileStoreSupported';
 import { useIsGraphiteEnabled } from '@/features/orgs/projects/common/hooks/useIsGraphiteEnabled';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -127,7 +125,7 @@ export default function AssistantsPage() {
           <p>
             To enable graphite, configure the service first in{' '}
             <Link
-              href={`/orgs/${slug}/projects/${project?.subdomain}/settings/ai`}
+              href={`/orgs/${slug}/projects/${project?.subdomain}/ai/settings`}
               rel="noopener noreferrer"
               className="text-primary hover:underline"
             >
@@ -188,18 +186,4 @@ export default function AssistantsPage() {
   );
 }
 
-AssistantsPage.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <ProjectLayout
-      mainContainerProps={{
-        className:
-          'flex flex-row w-full h-full !bg-[#fafafa] dark:!bg-[#151a22]',
-      }}
-    >
-      <AISidebar />
-      <div className="w-full overflow-auto">
-        <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
-      </div>
-    </ProjectLayout>
-  );
-};
+AssistantsPage.getLayout = getAILayout;
