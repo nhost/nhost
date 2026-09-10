@@ -13,6 +13,10 @@ on:
         required: false
         type: boolean
         default: false
+      BUMP_REFS:
+        required: false
+        type: boolean
+        default: true
     secrets:
       AWS_ACCOUNT_ID:
         required: true
@@ -29,9 +33,9 @@ on:
       DOCKER_PASSWORD:
         required: true
       NHOST_BOT_APP_ID:
-        required: true
+        required: false
       NHOST_BOT_PRIVATE_KEY:
-        required: true
+        required: false
 
 jobs:
   build_artifacts:
@@ -62,7 +66,7 @@ jobs:
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
   bump-refs:
-    if: ${{ !inputs.IS_PRERELEASE }}
+    if: ${{ inputs.BUMP_REFS && !inputs.IS_PRERELEASE }}
     uses: ./.github/workflows/wf_bump_refs.yaml
     needs:
       - push-docker-hub

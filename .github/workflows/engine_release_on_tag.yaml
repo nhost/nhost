@@ -7,6 +7,7 @@ name: "engine: release on tag"
 # (unlike `on: release`, which ci_release.yaml uses — that always runs the
 # default branch's workflows and therefore needs the PR merged). Tagging a
 # commit on this branch that contains this file is enough to trigger it.
+# Bot credentials and stable-reference bumps are deliberately disabled here.
 #
 # Delete this file once the branch merges; official releases then go through
 # ci_release.yaml's `engine:` job (`on: release`, tag `engine@<version>`).
@@ -38,6 +39,7 @@ jobs:
     with:
       GIT_REF: ${{ github.sha }}
       VERSION: ${{ needs.extract-version.outputs.version }}
+      BUMP_REFS: false
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
