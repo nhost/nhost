@@ -29,6 +29,11 @@ vitest run <file>           # Run a single test file
 vitest run --reporter=verbose src/features/orgs/layout/OrgLayout/OrganizationGuard.test.tsx  # Run specific test with verbose output
 ```
 
+Run Vitest with `dashboard/` as the working directory so it loads
+`vitest.config.mts` and resolves workspace dependencies such as `jsdom`.
+
+Route-entry tests for files under `src/pages/` belong under `src/tests/pages/` because the default Next.js page extensions treat colocated test files as routes.
+
 ### E2E Testing
 
 ```bash
