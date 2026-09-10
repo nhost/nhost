@@ -8,7 +8,7 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 
 ### Go Services (`services/`)
 
-- `services/ai` - AI service providing auto-embeddings (OpenAI) and multi-provider agents (Anthropic, OpenAI, and Google Gemini) with SSE streaming. HTTP/webhook API only; agent and configuration data is exposed through Hasura, not a service-owned GraphQL schema
+- `services/ai` - AI service providing auto-embeddings (native OpenAI) and multi-provider agents through OpenAI Chat Completions, OpenAI Responses, Anthropic Messages, and Google Gemini adapters with SSE streaming. HTTP/webhook API only; agent and configuration data is exposed through Hasura, not a service-owned GraphQL schema
 - `services/auth` - JWT-based authentication service with OAuth2/OIDC support, email/SMS verification, WebAuthn. Uses OpenAPI (oapi-codegen), sqlc for DB queries, and gomock for testing
 - `services/constellation` - GraphQL engine that turns relational databases (PostgreSQL, SQLite) into a role-based GraphQL API. Near-drop-in replacement for Hasura Community Edition: Hasura-compatible metadata, schema generation, queries/mutations/subscriptions, remote schemas, and cross-source remote relationships
 - `services/functions` - Node.js development runtime for serverless functions with Express, esbuild bundling, and hot-reload. Local dev simulation only, not a production service
@@ -70,7 +70,7 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 
 Authoritative design rules live in `.claude/docs/`. Load the one that matches the file you are touching before writing or reviewing code:
 
-- **Go** — `.claude/docs/go-design-rules.md`. Covers placement, package invariants, local correctness, the mandatory `golines` / `golangci-lint --fix ./...` post-change checks, and the module-wide constraints (Go 1.26.0, single `go.mod` at root, generated-file globs, `exhaustruct` policy, `export_test.go` ban).
+- **Go** — `.claude/docs/go-design-rules.md`. Covers placement, package invariants, local correctness, the mandatory `golines` / `golangci-lint --fix ./...` post-change checks, and the module-wide constraints (Go 1.27.0, single `go.mod` at root, generated-file globs, `exhaustruct` policy, `export_test.go` ban).
 - **TypeScript / JavaScript** — `.claude/docs/javascript-design-rules.md`. Repo-wide rules plus separate sections for **Dashboard (React/Next.js)** and **SDK & Node**. Tooling: `pnpm` (never `npm`/`yarn`), Biome, Turbo, Node ≥ 22.
 
 Per-project `CLAUDE.md`s layer project-specific invariants on top of these — read them too.

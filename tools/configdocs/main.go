@@ -83,9 +83,10 @@ func generate(filename string, src []byte) (string, error) {
 	}
 
 	g := &generator{
-		defs:       map[string]*ast.Field{},
-		topLevel:   map[string]bool{},
-		sharedSeen: map[string]bool{},
+		defs:        map[string]*ast.Field{},
+		topLevel:    map[string]bool{},
+		sharedSeen:  map[string]bool{},
+		sharedQueue: nil,
 	}
 
 	for _, d := range file.Decls {

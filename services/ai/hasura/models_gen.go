@@ -4,7 +4,7 @@ package hasura
 
 import (
 	"bytes"
-	"encoding/json"
+	"encoding/json/jsontext"
 	"fmt"
 	"io"
 	"strconv"
@@ -98,7 +98,7 @@ type AiAgentMessages struct {
 	Seq          string           `json:"seq"`
 	SessionID    string           `json:"sessionID"`
 	ToolCallID   *string          `json:"toolCallID,omitempty"`
-	ToolCalls    json.RawMessage  `json:"toolCalls,omitempty"`
+	ToolCalls    jsontext.Value   `json:"toolCalls,omitempty"`
 	ToolName     *string          `json:"toolName,omitempty"`
 }
 
@@ -151,7 +151,7 @@ type AiAgentMessagesAggregateOrderBy struct {
 
 // append existing jsonb value of filtered columns with new jsonb value
 type AiAgentMessagesAppendInput struct {
-	ToolCalls json.RawMessage `json:"toolCalls,omitempty"`
+	ToolCalls jsontext.Value `json:"toolCalls,omitempty"`
 }
 
 // input type for inserting array relation for remote table "ai.agent_messages"
@@ -212,7 +212,7 @@ type AiAgentMessagesInsertInput struct {
 	Role         *string                           `json:"role,omitempty"`
 	SessionID    *string                           `json:"sessionID,omitempty"`
 	ToolCallID   *string                           `json:"toolCallID,omitempty"`
-	ToolCalls    json.RawMessage                   `json:"toolCalls,omitempty"`
+	ToolCalls    jsontext.Value                    `json:"toolCalls,omitempty"`
 	ToolName     *string                           `json:"toolName,omitempty"`
 }
 
@@ -300,19 +300,19 @@ type AiAgentMessagesPkColumnsInput struct {
 
 // prepend existing jsonb value of filtered columns with new jsonb value
 type AiAgentMessagesPrependInput struct {
-	ToolCalls json.RawMessage `json:"toolCalls,omitempty"`
+	ToolCalls jsontext.Value `json:"toolCalls,omitempty"`
 }
 
 // input type for updating data in table "ai.agent_messages"
 type AiAgentMessagesSetInput struct {
-	Content    *string         `json:"content,omitempty"`
-	CreatedAt  *time.Time      `json:"createdAt,omitempty"`
-	ID         *string         `json:"id,omitempty"`
-	Role       *string         `json:"role,omitempty"`
-	SessionID  *string         `json:"sessionID,omitempty"`
-	ToolCallID *string         `json:"toolCallID,omitempty"`
-	ToolCalls  json.RawMessage `json:"toolCalls,omitempty"`
-	ToolName   *string         `json:"toolName,omitempty"`
+	Content    *string        `json:"content,omitempty"`
+	CreatedAt  *time.Time     `json:"createdAt,omitempty"`
+	ID         *string        `json:"id,omitempty"`
+	Role       *string        `json:"role,omitempty"`
+	SessionID  *string        `json:"sessionID,omitempty"`
+	ToolCallID *string        `json:"toolCallID,omitempty"`
+	ToolCalls  jsontext.Value `json:"toolCalls,omitempty"`
+	ToolName   *string        `json:"toolName,omitempty"`
 }
 
 // aggregate stddev on columns
@@ -355,15 +355,15 @@ type AiAgentMessagesStreamCursorInput struct {
 
 // Initial value of the column from where the streaming should start
 type AiAgentMessagesStreamCursorValueInput struct {
-	Content    *string         `json:"content,omitempty"`
-	CreatedAt  *time.Time      `json:"createdAt,omitempty"`
-	ID         *string         `json:"id,omitempty"`
-	Role       *string         `json:"role,omitempty"`
-	Seq        *string         `json:"seq,omitempty"`
-	SessionID  *string         `json:"sessionID,omitempty"`
-	ToolCallID *string         `json:"toolCallID,omitempty"`
-	ToolCalls  json.RawMessage `json:"toolCalls,omitempty"`
-	ToolName   *string         `json:"toolName,omitempty"`
+	Content    *string        `json:"content,omitempty"`
+	CreatedAt  *time.Time     `json:"createdAt,omitempty"`
+	ID         *string        `json:"id,omitempty"`
+	Role       *string        `json:"role,omitempty"`
+	Seq        *string        `json:"seq,omitempty"`
+	SessionID  *string        `json:"sessionID,omitempty"`
+	ToolCallID *string        `json:"toolCallID,omitempty"`
+	ToolCalls  jsontext.Value `json:"toolCalls,omitempty"`
+	ToolName   *string        `json:"toolName,omitempty"`
 }
 
 // aggregate sum on columns
@@ -421,114 +421,6 @@ type AiAgentMessagesVarianceFields struct {
 // order by variance() on columns of table "ai.agent_messages"
 type AiAgentMessagesVarianceOrderBy struct {
 	Seq *OrderBy `json:"seq,omitempty"`
-}
-
-// columns and relationships of "ai.agent_providers"
-type AiAgentProviders struct {
-	Comment *string `json:"comment,omitempty"`
-	Value   string  `json:"value"`
-}
-
-// aggregated selection of "ai.agent_providers"
-type AiAgentProvidersAggregate struct {
-	Aggregate *AiAgentProvidersAggregateFields `json:"aggregate,omitempty"`
-	Nodes     []*AiAgentProviders              `json:"nodes"`
-}
-
-// aggregate fields of "ai.agent_providers"
-type AiAgentProvidersAggregateFields struct {
-	Count int64                      `json:"count"`
-	Max   *AiAgentProvidersMaxFields `json:"max,omitempty"`
-	Min   *AiAgentProvidersMinFields `json:"min,omitempty"`
-}
-
-// Boolean expression to filter rows from the table "ai.agent_providers". All fields are combined with a logical 'AND'.
-type AiAgentProvidersBoolExp struct {
-	And     []*AiAgentProvidersBoolExp `json:"_and,omitempty"`
-	Not     *AiAgentProvidersBoolExp   `json:"_not,omitempty"`
-	Or      []*AiAgentProvidersBoolExp `json:"_or,omitempty"`
-	Comment *StringComparisonExp       `json:"comment,omitempty"`
-	Value   *StringComparisonExp       `json:"value,omitempty"`
-}
-
-// Boolean expression to compare columns of type "aiAgentProviders_enum". All fields are combined with logical 'AND'.
-type AiAgentProvidersEnumComparisonExp struct {
-	Eq     *AiAgentProvidersEnum  `json:"_eq,omitempty"`
-	In     []AiAgentProvidersEnum `json:"_in,omitempty"`
-	IsNull *bool                  `json:"_is_null,omitempty"`
-	Neq    *AiAgentProvidersEnum  `json:"_neq,omitempty"`
-	Nin    []AiAgentProvidersEnum `json:"_nin,omitempty"`
-}
-
-// input type for inserting data into table "ai.agent_providers"
-type AiAgentProvidersInsertInput struct {
-	Comment *string `json:"comment,omitempty"`
-	Value   *string `json:"value,omitempty"`
-}
-
-// aggregate max on columns
-type AiAgentProvidersMaxFields struct {
-	Comment *string `json:"comment,omitempty"`
-	Value   *string `json:"value,omitempty"`
-}
-
-// aggregate min on columns
-type AiAgentProvidersMinFields struct {
-	Comment *string `json:"comment,omitempty"`
-	Value   *string `json:"value,omitempty"`
-}
-
-// response of any mutation on the table "ai.agent_providers"
-type AiAgentProvidersMutationResponse struct {
-	// number of rows affected by the mutation
-	AffectedRows int64 `json:"affected_rows"`
-	// data from the rows affected by the mutation
-	Returning []*AiAgentProviders `json:"returning"`
-}
-
-// on_conflict condition type for table "ai.agent_providers"
-type AiAgentProvidersOnConflict struct {
-	Constraint    AiAgentProvidersConstraint     `json:"constraint"`
-	UpdateColumns []AiAgentProvidersUpdateColumn `json:"update_columns"`
-	Where         *AiAgentProvidersBoolExp       `json:"where,omitempty"`
-}
-
-// Ordering options when selecting data from "ai.agent_providers".
-type AiAgentProvidersOrderBy struct {
-	Comment *OrderBy `json:"comment,omitempty"`
-	Value   *OrderBy `json:"value,omitempty"`
-}
-
-// primary key columns input for table: ai.agent_providers
-type AiAgentProvidersPkColumnsInput struct {
-	Value string `json:"value"`
-}
-
-// input type for updating data in table "ai.agent_providers"
-type AiAgentProvidersSetInput struct {
-	Comment *string `json:"comment,omitempty"`
-	Value   *string `json:"value,omitempty"`
-}
-
-// Streaming cursor of the table "aiAgentProviders"
-type AiAgentProvidersStreamCursorInput struct {
-	// Stream column input with initial value
-	InitialValue *AiAgentProvidersStreamCursorValueInput `json:"initial_value"`
-	// cursor ordering
-	Ordering *CursorOrdering `json:"ordering,omitempty"`
-}
-
-// Initial value of the column from where the streaming should start
-type AiAgentProvidersStreamCursorValueInput struct {
-	Comment *string `json:"comment,omitempty"`
-	Value   *string `json:"value,omitempty"`
-}
-
-type AiAgentProvidersUpdates struct {
-	// sets the columns of the filtered rows to the given values
-	Set *AiAgentProvidersSetInput `json:"_set,omitempty"`
-	// filter the rows which have to be updated
-	Where *AiAgentProvidersBoolExp `json:"where"`
 }
 
 // columns and relationships of "ai.agent_sessions"
@@ -681,16 +573,16 @@ type AiAgentSessionsUpdates struct {
 
 // columns and relationships of "ai.agents"
 type AiAgents struct {
-	CreatedAt    time.Time            `json:"createdAt"`
-	Description  string               `json:"description"`
-	ID           string               `json:"id"`
-	Instructions string               `json:"instructions"`
-	Model        string               `json:"model"`
-	Name         string               `json:"name"`
-	Provider     AiAgentProvidersEnum `json:"provider"`
-	ToolsConfig  json.RawMessage      `json:"toolsConfig"`
-	UpdatedAt    time.Time            `json:"updatedAt"`
-	UserID       *string              `json:"userID,omitempty"`
+	CreatedAt    time.Time      `json:"createdAt"`
+	Description  string         `json:"description"`
+	ID           string         `json:"id"`
+	Instructions string         `json:"instructions"`
+	Model        string         `json:"model"`
+	Name         string         `json:"name"`
+	Provider     string         `json:"provider"`
+	ToolsConfig  jsontext.Value `json:"toolsConfig"`
+	UpdatedAt    time.Time      `json:"updatedAt"`
+	UserID       *string        `json:"userID,omitempty"`
 }
 
 // aggregated selection of "ai.agents"
@@ -708,24 +600,24 @@ type AiAgentsAggregateFields struct {
 
 // append existing jsonb value of filtered columns with new jsonb value
 type AiAgentsAppendInput struct {
-	ToolsConfig json.RawMessage `json:"toolsConfig,omitempty"`
+	ToolsConfig jsontext.Value `json:"toolsConfig,omitempty"`
 }
 
 // Boolean expression to filter rows from the table "ai.agents". All fields are combined with a logical 'AND'.
 type AiAgentsBoolExp struct {
-	And          []*AiAgentsBoolExp                 `json:"_and,omitempty"`
-	Not          *AiAgentsBoolExp                   `json:"_not,omitempty"`
-	Or           []*AiAgentsBoolExp                 `json:"_or,omitempty"`
-	CreatedAt    *TimestamptzComparisonExp          `json:"createdAt,omitempty"`
-	Description  *StringComparisonExp               `json:"description,omitempty"`
-	ID           *UUIDComparisonExp                 `json:"id,omitempty"`
-	Instructions *StringComparisonExp               `json:"instructions,omitempty"`
-	Model        *StringComparisonExp               `json:"model,omitempty"`
-	Name         *StringComparisonExp               `json:"name,omitempty"`
-	Provider     *AiAgentProvidersEnumComparisonExp `json:"provider,omitempty"`
-	ToolsConfig  *JsonbComparisonExp                `json:"toolsConfig,omitempty"`
-	UpdatedAt    *TimestamptzComparisonExp          `json:"updatedAt,omitempty"`
-	UserID       *UUIDComparisonExp                 `json:"userID,omitempty"`
+	And          []*AiAgentsBoolExp        `json:"_and,omitempty"`
+	Not          *AiAgentsBoolExp          `json:"_not,omitempty"`
+	Or           []*AiAgentsBoolExp        `json:"_or,omitempty"`
+	CreatedAt    *TimestamptzComparisonExp `json:"createdAt,omitempty"`
+	Description  *StringComparisonExp      `json:"description,omitempty"`
+	ID           *UUIDComparisonExp        `json:"id,omitempty"`
+	Instructions *StringComparisonExp      `json:"instructions,omitempty"`
+	Model        *StringComparisonExp      `json:"model,omitempty"`
+	Name         *StringComparisonExp      `json:"name,omitempty"`
+	Provider     *StringComparisonExp      `json:"provider,omitempty"`
+	ToolsConfig  *JsonbComparisonExp       `json:"toolsConfig,omitempty"`
+	UpdatedAt    *TimestamptzComparisonExp `json:"updatedAt,omitempty"`
+	UserID       *UUIDComparisonExp        `json:"userID,omitempty"`
 }
 
 // delete the field or element with specified path (for JSON arrays, negative integers count from the end)
@@ -745,16 +637,16 @@ type AiAgentsDeleteKeyInput struct {
 
 // input type for inserting data into table "ai.agents"
 type AiAgentsInsertInput struct {
-	CreatedAt    *time.Time            `json:"createdAt,omitempty"`
-	Description  *string               `json:"description,omitempty"`
-	ID           *string               `json:"id,omitempty"`
-	Instructions *string               `json:"instructions,omitempty"`
-	Model        *string               `json:"model,omitempty"`
-	Name         *string               `json:"name,omitempty"`
-	Provider     *AiAgentProvidersEnum `json:"provider,omitempty"`
-	ToolsConfig  json.RawMessage       `json:"toolsConfig,omitempty"`
-	UpdatedAt    *time.Time            `json:"updatedAt,omitempty"`
-	UserID       *string               `json:"userID,omitempty"`
+	CreatedAt    *time.Time     `json:"createdAt,omitempty"`
+	Description  *string        `json:"description,omitempty"`
+	ID           *string        `json:"id,omitempty"`
+	Instructions *string        `json:"instructions,omitempty"`
+	Model        *string        `json:"model,omitempty"`
+	Name         *string        `json:"name,omitempty"`
+	Provider     *string        `json:"provider,omitempty"`
+	ToolsConfig  jsontext.Value `json:"toolsConfig,omitempty"`
+	UpdatedAt    *time.Time     `json:"updatedAt,omitempty"`
+	UserID       *string        `json:"userID,omitempty"`
 }
 
 // aggregate max on columns
@@ -765,6 +657,7 @@ type AiAgentsMaxFields struct {
 	Instructions *string    `json:"instructions,omitempty"`
 	Model        *string    `json:"model,omitempty"`
 	Name         *string    `json:"name,omitempty"`
+	Provider     *string    `json:"provider,omitempty"`
 	UpdatedAt    *time.Time `json:"updatedAt,omitempty"`
 	UserID       *string    `json:"userID,omitempty"`
 }
@@ -777,6 +670,7 @@ type AiAgentsMinFields struct {
 	Instructions *string    `json:"instructions,omitempty"`
 	Model        *string    `json:"model,omitempty"`
 	Name         *string    `json:"name,omitempty"`
+	Provider     *string    `json:"provider,omitempty"`
 	UpdatedAt    *time.Time `json:"updatedAt,omitempty"`
 	UserID       *string    `json:"userID,omitempty"`
 }
@@ -824,21 +718,21 @@ type AiAgentsPkColumnsInput struct {
 
 // prepend existing jsonb value of filtered columns with new jsonb value
 type AiAgentsPrependInput struct {
-	ToolsConfig json.RawMessage `json:"toolsConfig,omitempty"`
+	ToolsConfig jsontext.Value `json:"toolsConfig,omitempty"`
 }
 
 // input type for updating data in table "ai.agents"
 type AiAgentsSetInput struct {
-	CreatedAt    *time.Time            `json:"createdAt,omitempty"`
-	Description  *string               `json:"description,omitempty"`
-	ID           *string               `json:"id,omitempty"`
-	Instructions *string               `json:"instructions,omitempty"`
-	Model        *string               `json:"model,omitempty"`
-	Name         *string               `json:"name,omitempty"`
-	Provider     *AiAgentProvidersEnum `json:"provider,omitempty"`
-	ToolsConfig  json.RawMessage       `json:"toolsConfig,omitempty"`
-	UpdatedAt    *time.Time            `json:"updatedAt,omitempty"`
-	UserID       *string               `json:"userID,omitempty"`
+	CreatedAt    *time.Time     `json:"createdAt,omitempty"`
+	Description  *string        `json:"description,omitempty"`
+	ID           *string        `json:"id,omitempty"`
+	Instructions *string        `json:"instructions,omitempty"`
+	Model        *string        `json:"model,omitempty"`
+	Name         *string        `json:"name,omitempty"`
+	Provider     *string        `json:"provider,omitempty"`
+	ToolsConfig  jsontext.Value `json:"toolsConfig,omitempty"`
+	UpdatedAt    *time.Time     `json:"updatedAt,omitempty"`
+	UserID       *string        `json:"userID,omitempty"`
 }
 
 // Streaming cursor of the table "aiAgents"
@@ -851,16 +745,16 @@ type AiAgentsStreamCursorInput struct {
 
 // Initial value of the column from where the streaming should start
 type AiAgentsStreamCursorValueInput struct {
-	CreatedAt    *time.Time            `json:"createdAt,omitempty"`
-	Description  *string               `json:"description,omitempty"`
-	ID           *string               `json:"id,omitempty"`
-	Instructions *string               `json:"instructions,omitempty"`
-	Model        *string               `json:"model,omitempty"`
-	Name         *string               `json:"name,omitempty"`
-	Provider     *AiAgentProvidersEnum `json:"provider,omitempty"`
-	ToolsConfig  json.RawMessage       `json:"toolsConfig,omitempty"`
-	UpdatedAt    *time.Time            `json:"updatedAt,omitempty"`
-	UserID       *string               `json:"userID,omitempty"`
+	CreatedAt    *time.Time     `json:"createdAt,omitempty"`
+	Description  *string        `json:"description,omitempty"`
+	ID           *string        `json:"id,omitempty"`
+	Instructions *string        `json:"instructions,omitempty"`
+	Model        *string        `json:"model,omitempty"`
+	Name         *string        `json:"name,omitempty"`
+	Provider     *string        `json:"provider,omitempty"`
+	ToolsConfig  jsontext.Value `json:"toolsConfig,omitempty"`
+	UpdatedAt    *time.Time     `json:"updatedAt,omitempty"`
+	UserID       *string        `json:"userID,omitempty"`
 }
 
 type AiAgentsUpdates struct {
@@ -1544,9 +1438,9 @@ type AuthOauth2Clients struct {
 	CreatedAt             time.Time                        `json:"createdAt"`
 	CreatedBy             *string                          `json:"createdBy,omitempty"`
 	// An object relationship
-	CreatedByUser             *Users          `json:"createdByUser,omitempty"`
-	Metadata                  json.RawMessage `json:"metadata,omitempty"`
-	MetadataDocumentFetchedAt *time.Time      `json:"metadataDocumentFetchedAt,omitempty"`
+	CreatedByUser             *Users         `json:"createdByUser,omitempty"`
+	Metadata                  jsontext.Value `json:"metadata,omitempty"`
+	MetadataDocumentFetchedAt *time.Time     `json:"metadataDocumentFetchedAt,omitempty"`
 	// An array relationship
 	Oauth2RefreshTokens []*AuthOauth2RefreshTokens `json:"oauth2RefreshTokens"`
 	// An aggregate relationship
@@ -1572,7 +1466,7 @@ type AuthOauth2ClientsAggregateFields struct {
 
 // append existing jsonb value of filtered columns with new jsonb value
 type AuthOauth2ClientsAppendInput struct {
-	Metadata json.RawMessage `json:"metadata,omitempty"`
+	Metadata jsontext.Value `json:"metadata,omitempty"`
 }
 
 // Boolean expression to filter rows from the table "auth.oauth2_clients". All fields are combined with a logical 'AND'.
@@ -1620,7 +1514,7 @@ type AuthOauth2ClientsInsertInput struct {
 	CreatedAt                 *time.Time                                `json:"createdAt,omitempty"`
 	CreatedBy                 *string                                   `json:"createdBy,omitempty"`
 	CreatedByUser             *UsersObjRelInsertInput                   `json:"createdByUser,omitempty"`
-	Metadata                  json.RawMessage                           `json:"metadata,omitempty"`
+	Metadata                  jsontext.Value                            `json:"metadata,omitempty"`
 	MetadataDocumentFetchedAt *time.Time                                `json:"metadataDocumentFetchedAt,omitempty"`
 	Oauth2RefreshTokens       *AuthOauth2RefreshTokensArrRelInsertInput `json:"oauth2RefreshTokens,omitempty"`
 	RedirectUris              []string                                  `json:"redirectUris,omitempty"`
@@ -1701,21 +1595,21 @@ type AuthOauth2ClientsPkColumnsInput struct {
 
 // prepend existing jsonb value of filtered columns with new jsonb value
 type AuthOauth2ClientsPrependInput struct {
-	Metadata json.RawMessage `json:"metadata,omitempty"`
+	Metadata jsontext.Value `json:"metadata,omitempty"`
 }
 
 // input type for updating data in table "auth.oauth2_clients"
 type AuthOauth2ClientsSetInput struct {
-	ClientID                  *string         `json:"clientId,omitempty"`
-	ClientSecretHash          *string         `json:"clientSecretHash,omitempty"`
-	CreatedAt                 *time.Time      `json:"createdAt,omitempty"`
-	CreatedBy                 *string         `json:"createdBy,omitempty"`
-	Metadata                  json.RawMessage `json:"metadata,omitempty"`
-	MetadataDocumentFetchedAt *time.Time      `json:"metadataDocumentFetchedAt,omitempty"`
-	RedirectUris              []string        `json:"redirectUris,omitempty"`
-	Scopes                    []string        `json:"scopes,omitempty"`
-	Type                      *string         `json:"type,omitempty"`
-	UpdatedAt                 *time.Time      `json:"updatedAt,omitempty"`
+	ClientID                  *string        `json:"clientId,omitempty"`
+	ClientSecretHash          *string        `json:"clientSecretHash,omitempty"`
+	CreatedAt                 *time.Time     `json:"createdAt,omitempty"`
+	CreatedBy                 *string        `json:"createdBy,omitempty"`
+	Metadata                  jsontext.Value `json:"metadata,omitempty"`
+	MetadataDocumentFetchedAt *time.Time     `json:"metadataDocumentFetchedAt,omitempty"`
+	RedirectUris              []string       `json:"redirectUris,omitempty"`
+	Scopes                    []string       `json:"scopes,omitempty"`
+	Type                      *string        `json:"type,omitempty"`
+	UpdatedAt                 *time.Time     `json:"updatedAt,omitempty"`
 }
 
 // Streaming cursor of the table "authOauth2Clients"
@@ -1728,16 +1622,16 @@ type AuthOauth2ClientsStreamCursorInput struct {
 
 // Initial value of the column from where the streaming should start
 type AuthOauth2ClientsStreamCursorValueInput struct {
-	ClientID                  *string         `json:"clientId,omitempty"`
-	ClientSecretHash          *string         `json:"clientSecretHash,omitempty"`
-	CreatedAt                 *time.Time      `json:"createdAt,omitempty"`
-	CreatedBy                 *string         `json:"createdBy,omitempty"`
-	Metadata                  json.RawMessage `json:"metadata,omitempty"`
-	MetadataDocumentFetchedAt *time.Time      `json:"metadataDocumentFetchedAt,omitempty"`
-	RedirectUris              []string        `json:"redirectUris,omitempty"`
-	Scopes                    []string        `json:"scopes,omitempty"`
-	Type                      *string         `json:"type,omitempty"`
-	UpdatedAt                 *time.Time      `json:"updatedAt,omitempty"`
+	ClientID                  *string        `json:"clientId,omitempty"`
+	ClientSecretHash          *string        `json:"clientSecretHash,omitempty"`
+	CreatedAt                 *time.Time     `json:"createdAt,omitempty"`
+	CreatedBy                 *string        `json:"createdBy,omitempty"`
+	Metadata                  jsontext.Value `json:"metadata,omitempty"`
+	MetadataDocumentFetchedAt *time.Time     `json:"metadataDocumentFetchedAt,omitempty"`
+	RedirectUris              []string       `json:"redirectUris,omitempty"`
+	Scopes                    []string       `json:"scopes,omitempty"`
+	Type                      *string        `json:"type,omitempty"`
+	UpdatedAt                 *time.Time     `json:"updatedAt,omitempty"`
 }
 
 type AuthOauth2ClientsUpdates struct {
@@ -1970,8 +1864,8 @@ type AuthOauth2RefreshTokensUpdates struct {
 
 // Oauth requests, inserted before redirecting to the provider's site. Don't modify its structure as Hasura Auth relies on it to function properly.
 type AuthProviderRequests struct {
-	ID      string          `json:"id"`
-	Options json.RawMessage `json:"options,omitempty"`
+	ID      string         `json:"id"`
+	Options jsontext.Value `json:"options,omitempty"`
 }
 
 // aggregated selection of "auth.provider_requests"
@@ -1989,7 +1883,7 @@ type AuthProviderRequestsAggregateFields struct {
 
 // append existing jsonb value of filtered columns with new jsonb value
 type AuthProviderRequestsAppendInput struct {
-	Options json.RawMessage `json:"options,omitempty"`
+	Options jsontext.Value `json:"options,omitempty"`
 }
 
 // Boolean expression to filter rows from the table "auth.provider_requests". All fields are combined with a logical 'AND'.
@@ -2018,8 +1912,8 @@ type AuthProviderRequestsDeleteKeyInput struct {
 
 // input type for inserting data into table "auth.provider_requests"
 type AuthProviderRequestsInsertInput struct {
-	ID      *string         `json:"id,omitempty"`
-	Options json.RawMessage `json:"options,omitempty"`
+	ID      *string        `json:"id,omitempty"`
+	Options jsontext.Value `json:"options,omitempty"`
 }
 
 // aggregate max on columns
@@ -2060,13 +1954,13 @@ type AuthProviderRequestsPkColumnsInput struct {
 
 // prepend existing jsonb value of filtered columns with new jsonb value
 type AuthProviderRequestsPrependInput struct {
-	Options json.RawMessage `json:"options,omitempty"`
+	Options jsontext.Value `json:"options,omitempty"`
 }
 
 // input type for updating data in table "auth.provider_requests"
 type AuthProviderRequestsSetInput struct {
-	ID      *string         `json:"id,omitempty"`
-	Options json.RawMessage `json:"options,omitempty"`
+	ID      *string        `json:"id,omitempty"`
+	Options jsontext.Value `json:"options,omitempty"`
 }
 
 // Streaming cursor of the table "authProviderRequests"
@@ -2079,8 +1973,8 @@ type AuthProviderRequestsStreamCursorInput struct {
 
 // Initial value of the column from where the streaming should start
 type AuthProviderRequestsStreamCursorValueInput struct {
-	ID      *string         `json:"id,omitempty"`
-	Options json.RawMessage `json:"options,omitempty"`
+	ID      *string        `json:"id,omitempty"`
+	Options jsontext.Value `json:"options,omitempty"`
 }
 
 type AuthProviderRequestsUpdates struct {
@@ -2315,12 +2209,12 @@ type AuthRefreshTokenTypesUpdates struct {
 
 // User refresh tokens. Hasura auth uses them to rotate new access tokens as long as the refresh token is not expired. Don't modify its structure as Hasura Auth relies on it to function properly.
 type AuthRefreshTokens struct {
-	CreatedAt        time.Time       `json:"createdAt"`
-	ExpiresAt        time.Time       `json:"expiresAt"`
-	ID               string          `json:"id"`
-	Metadata         json.RawMessage `json:"metadata,omitempty"`
-	RefreshTokenHash *string         `json:"refreshTokenHash,omitempty"`
-	Type             string          `json:"type"`
+	CreatedAt        time.Time      `json:"createdAt"`
+	ExpiresAt        time.Time      `json:"expiresAt"`
+	ID               string         `json:"id"`
+	Metadata         jsontext.Value `json:"metadata,omitempty"`
+	RefreshTokenHash *string        `json:"refreshTokenHash,omitempty"`
+	Type             string         `json:"type"`
 	// An object relationship
 	User   *Users `json:"user"`
 	UserID string `json:"userId"`
@@ -2359,7 +2253,7 @@ type AuthRefreshTokensAggregateOrderBy struct {
 
 // append existing jsonb value of filtered columns with new jsonb value
 type AuthRefreshTokensAppendInput struct {
-	Metadata json.RawMessage `json:"metadata,omitempty"`
+	Metadata jsontext.Value `json:"metadata,omitempty"`
 }
 
 // input type for inserting array relation for remote table "auth.refresh_tokens"
@@ -2404,7 +2298,7 @@ type AuthRefreshTokensInsertInput struct {
 	CreatedAt        *time.Time              `json:"createdAt,omitempty"`
 	ExpiresAt        *time.Time              `json:"expiresAt,omitempty"`
 	ID               *string                 `json:"id,omitempty"`
-	Metadata         json.RawMessage         `json:"metadata,omitempty"`
+	Metadata         jsontext.Value          `json:"metadata,omitempty"`
 	RefreshTokenHash *string                 `json:"refreshTokenHash,omitempty"`
 	Type             *string                 `json:"type,omitempty"`
 	User             *UsersObjRelInsertInput `json:"user,omitempty"`
@@ -2485,18 +2379,18 @@ type AuthRefreshTokensPkColumnsInput struct {
 
 // prepend existing jsonb value of filtered columns with new jsonb value
 type AuthRefreshTokensPrependInput struct {
-	Metadata json.RawMessage `json:"metadata,omitempty"`
+	Metadata jsontext.Value `json:"metadata,omitempty"`
 }
 
 // input type for updating data in table "auth.refresh_tokens"
 type AuthRefreshTokensSetInput struct {
-	CreatedAt        *time.Time      `json:"createdAt,omitempty"`
-	ExpiresAt        *time.Time      `json:"expiresAt,omitempty"`
-	ID               *string         `json:"id,omitempty"`
-	Metadata         json.RawMessage `json:"metadata,omitempty"`
-	RefreshTokenHash *string         `json:"refreshTokenHash,omitempty"`
-	Type             *string         `json:"type,omitempty"`
-	UserID           *string         `json:"userId,omitempty"`
+	CreatedAt        *time.Time     `json:"createdAt,omitempty"`
+	ExpiresAt        *time.Time     `json:"expiresAt,omitempty"`
+	ID               *string        `json:"id,omitempty"`
+	Metadata         jsontext.Value `json:"metadata,omitempty"`
+	RefreshTokenHash *string        `json:"refreshTokenHash,omitempty"`
+	Type             *string        `json:"type,omitempty"`
+	UserID           *string        `json:"userId,omitempty"`
 }
 
 // Streaming cursor of the table "authRefreshTokens"
@@ -2509,13 +2403,13 @@ type AuthRefreshTokensStreamCursorInput struct {
 
 // Initial value of the column from where the streaming should start
 type AuthRefreshTokensStreamCursorValueInput struct {
-	CreatedAt        *time.Time      `json:"createdAt,omitempty"`
-	ExpiresAt        *time.Time      `json:"expiresAt,omitempty"`
-	ID               *string         `json:"id,omitempty"`
-	Metadata         json.RawMessage `json:"metadata,omitempty"`
-	RefreshTokenHash *string         `json:"refreshTokenHash,omitempty"`
-	Type             *string         `json:"type,omitempty"`
-	UserID           *string         `json:"userId,omitempty"`
+	CreatedAt        *time.Time     `json:"createdAt,omitempty"`
+	ExpiresAt        *time.Time     `json:"expiresAt,omitempty"`
+	ID               *string        `json:"id,omitempty"`
+	Metadata         jsontext.Value `json:"metadata,omitempty"`
+	RefreshTokenHash *string        `json:"refreshTokenHash,omitempty"`
+	Type             *string        `json:"type,omitempty"`
+	UserID           *string        `json:"userId,omitempty"`
 }
 
 type AuthRefreshTokensUpdates struct {
@@ -3606,18 +3500,18 @@ type CitextComparisonExp struct {
 // columns and relationships of "storage.files"
 type Files struct {
 	// An object relationship
-	Bucket           *Buckets        `json:"bucket"`
-	BucketID         string          `json:"bucketId"`
-	CreatedAt        time.Time       `json:"createdAt"`
-	Etag             *string         `json:"etag,omitempty"`
-	ID               string          `json:"id"`
-	IsUploaded       *bool           `json:"isUploaded,omitempty"`
-	Metadata         json.RawMessage `json:"metadata,omitempty"`
-	MimeType         *string         `json:"mimeType,omitempty"`
-	Name             *string         `json:"name,omitempty"`
-	Size             *int64          `json:"size,omitempty"`
-	UpdatedAt        time.Time       `json:"updatedAt"`
-	UploadedByUserID *string         `json:"uploadedByUserId,omitempty"`
+	Bucket           *Buckets       `json:"bucket"`
+	BucketID         string         `json:"bucketId"`
+	CreatedAt        time.Time      `json:"createdAt"`
+	Etag             *string        `json:"etag,omitempty"`
+	ID               string         `json:"id"`
+	IsUploaded       *bool          `json:"isUploaded,omitempty"`
+	Metadata         jsontext.Value `json:"metadata,omitempty"`
+	MimeType         *string        `json:"mimeType,omitempty"`
+	Name             *string        `json:"name,omitempty"`
+	Size             *int64         `json:"size,omitempty"`
+	UpdatedAt        time.Time      `json:"updatedAt"`
+	UploadedByUserID *string        `json:"uploadedByUserId,omitempty"`
 }
 
 // aggregated selection of "storage.files"
@@ -3685,7 +3579,7 @@ type FilesAggregateOrderBy struct {
 
 // append existing jsonb value of filtered columns with new jsonb value
 type FilesAppendInput struct {
-	Metadata json.RawMessage `json:"metadata,omitempty"`
+	Metadata jsontext.Value `json:"metadata,omitempty"`
 }
 
 // input type for inserting array relation for remote table "storage.files"
@@ -3752,7 +3646,7 @@ type FilesInsertInput struct {
 	Etag             *string                   `json:"etag,omitempty"`
 	ID               *string                   `json:"id,omitempty"`
 	IsUploaded       *bool                     `json:"isUploaded,omitempty"`
-	Metadata         json.RawMessage           `json:"metadata,omitempty"`
+	Metadata         jsontext.Value            `json:"metadata,omitempty"`
 	MimeType         *string                   `json:"mimeType,omitempty"`
 	Name             *string                   `json:"name,omitempty"`
 	Size             *int64                    `json:"size,omitempty"`
@@ -3857,22 +3751,22 @@ type FilesPkColumnsInput struct {
 
 // prepend existing jsonb value of filtered columns with new jsonb value
 type FilesPrependInput struct {
-	Metadata json.RawMessage `json:"metadata,omitempty"`
+	Metadata jsontext.Value `json:"metadata,omitempty"`
 }
 
 // input type for updating data in table "storage.files"
 type FilesSetInput struct {
-	BucketID         *string         `json:"bucketId,omitempty"`
-	CreatedAt        *time.Time      `json:"createdAt,omitempty"`
-	Etag             *string         `json:"etag,omitempty"`
-	ID               *string         `json:"id,omitempty"`
-	IsUploaded       *bool           `json:"isUploaded,omitempty"`
-	Metadata         json.RawMessage `json:"metadata,omitempty"`
-	MimeType         *string         `json:"mimeType,omitempty"`
-	Name             *string         `json:"name,omitempty"`
-	Size             *int64          `json:"size,omitempty"`
-	UpdatedAt        *time.Time      `json:"updatedAt,omitempty"`
-	UploadedByUserID *string         `json:"uploadedByUserId,omitempty"`
+	BucketID         *string        `json:"bucketId,omitempty"`
+	CreatedAt        *time.Time     `json:"createdAt,omitempty"`
+	Etag             *string        `json:"etag,omitempty"`
+	ID               *string        `json:"id,omitempty"`
+	IsUploaded       *bool          `json:"isUploaded,omitempty"`
+	Metadata         jsontext.Value `json:"metadata,omitempty"`
+	MimeType         *string        `json:"mimeType,omitempty"`
+	Name             *string        `json:"name,omitempty"`
+	Size             *int64         `json:"size,omitempty"`
+	UpdatedAt        *time.Time     `json:"updatedAt,omitempty"`
+	UploadedByUserID *string        `json:"uploadedByUserId,omitempty"`
 }
 
 // aggregate stddev on columns
@@ -3915,17 +3809,17 @@ type FilesStreamCursorInput struct {
 
 // Initial value of the column from where the streaming should start
 type FilesStreamCursorValueInput struct {
-	BucketID         *string         `json:"bucketId,omitempty"`
-	CreatedAt        *time.Time      `json:"createdAt,omitempty"`
-	Etag             *string         `json:"etag,omitempty"`
-	ID               *string         `json:"id,omitempty"`
-	IsUploaded       *bool           `json:"isUploaded,omitempty"`
-	Metadata         json.RawMessage `json:"metadata,omitempty"`
-	MimeType         *string         `json:"mimeType,omitempty"`
-	Name             *string         `json:"name,omitempty"`
-	Size             *int64          `json:"size,omitempty"`
-	UpdatedAt        *time.Time      `json:"updatedAt,omitempty"`
-	UploadedByUserID *string         `json:"uploadedByUserId,omitempty"`
+	BucketID         *string        `json:"bucketId,omitempty"`
+	CreatedAt        *time.Time     `json:"createdAt,omitempty"`
+	Etag             *string        `json:"etag,omitempty"`
+	ID               *string        `json:"id,omitempty"`
+	IsUploaded       *bool          `json:"isUploaded,omitempty"`
+	Metadata         jsontext.Value `json:"metadata,omitempty"`
+	MimeType         *string        `json:"mimeType,omitempty"`
+	Name             *string        `json:"name,omitempty"`
+	Size             *int64         `json:"size,omitempty"`
+	UpdatedAt        *time.Time     `json:"updatedAt,omitempty"`
+	UploadedByUserID *string        `json:"uploadedByUserId,omitempty"`
 }
 
 // aggregate sum on columns
@@ -3995,24 +3889,24 @@ type JsonbCastExp struct {
 type JsonbComparisonExp struct {
 	Cast *JsonbCastExp `json:"_cast,omitempty"`
 	// is the column contained in the given json value
-	ContainedIn json.RawMessage `json:"_contained_in,omitempty"`
+	ContainedIn jsontext.Value `json:"_contained_in,omitempty"`
 	// does the column contain the given json value at the top level
-	Contains json.RawMessage `json:"_contains,omitempty"`
-	Eq       json.RawMessage `json:"_eq,omitempty"`
-	Gt       json.RawMessage `json:"_gt,omitempty"`
-	Gte      json.RawMessage `json:"_gte,omitempty"`
+	Contains jsontext.Value `json:"_contains,omitempty"`
+	Eq       jsontext.Value `json:"_eq,omitempty"`
+	Gt       jsontext.Value `json:"_gt,omitempty"`
+	Gte      jsontext.Value `json:"_gte,omitempty"`
 	// does the string exist as a top-level key in the column
 	HasKey *string `json:"_has_key,omitempty"`
 	// do all of these strings exist as top-level keys in the column
 	HasKeysAll []string `json:"_has_keys_all,omitempty"`
 	// do any of these strings exist as top-level keys in the column
-	HasKeysAny []string          `json:"_has_keys_any,omitempty"`
-	In         []json.RawMessage `json:"_in,omitempty"`
-	IsNull     *bool             `json:"_is_null,omitempty"`
-	Lt         json.RawMessage   `json:"_lt,omitempty"`
-	Lte        json.RawMessage   `json:"_lte,omitempty"`
-	Neq        json.RawMessage   `json:"_neq,omitempty"`
-	Nin        []json.RawMessage `json:"_nin,omitempty"`
+	HasKeysAny []string         `json:"_has_keys_any,omitempty"`
+	In         []jsontext.Value `json:"_in,omitempty"`
+	IsNull     *bool            `json:"_is_null,omitempty"`
+	Lt         jsontext.Value   `json:"_lt,omitempty"`
+	Lte        jsontext.Value   `json:"_lte,omitempty"`
+	Neq        jsontext.Value   `json:"_neq,omitempty"`
+	Nin        []jsontext.Value `json:"_nin,omitempty"`
 }
 
 // mutation root
@@ -4035,14 +3929,6 @@ type SubscriptionRoot struct {
 	AiAgentMessageStream []*AiAgentMessages `json:"aiAgentMessageStream"`
 	// fetch data from the table: "ai.agent_messages"
 	AiAgentMessages []*AiAgentMessages `json:"aiAgentMessages"`
-	// fetch data from the table: "ai.agent_providers" using primary key columns
-	AiAgentProvider *AiAgentProviders `json:"aiAgentProvider,omitempty"`
-	// fetch aggregated fields from the table: "ai.agent_providers"
-	AiAgentProviderAggregate *AiAgentProvidersAggregate `json:"aiAgentProviderAggregate"`
-	// fetch data from the table in a streaming manner: "ai.agent_providers"
-	AiAgentProviderStream []*AiAgentProviders `json:"aiAgentProviderStream"`
-	// fetch data from the table: "ai.agent_providers"
-	AiAgentProviders []*AiAgentProviders `json:"aiAgentProviders"`
 	// fetch data from the table: "ai.agent_sessions" using primary key columns
 	AiAgentSession *AiAgentSessions `json:"aiAgentSession,omitempty"`
 	// fetch aggregated fields from the table: "ai.agent_sessions"
@@ -4214,17 +4100,17 @@ type Users struct {
 	CurrentChallenge *string   `json:"currentChallenge,omitempty"`
 	DefaultRole      string    `json:"defaultRole"`
 	// An object relationship
-	DefaultRoleByRole *AuthRoles      `json:"defaultRoleByRole"`
-	Disabled          bool            `json:"disabled"`
-	DisplayName       string          `json:"displayName"`
-	Email             *string         `json:"email,omitempty"`
-	EmailVerified     bool            `json:"emailVerified"`
-	ID                string          `json:"id"`
-	IsAnonymous       bool            `json:"isAnonymous"`
-	LastSeen          *time.Time      `json:"lastSeen,omitempty"`
-	Locale            string          `json:"locale"`
-	Metadata          json.RawMessage `json:"metadata,omitempty"`
-	NewEmail          *string         `json:"newEmail,omitempty"`
+	DefaultRoleByRole *AuthRoles     `json:"defaultRoleByRole"`
+	Disabled          bool           `json:"disabled"`
+	DisplayName       string         `json:"displayName"`
+	Email             *string        `json:"email,omitempty"`
+	EmailVerified     bool           `json:"emailVerified"`
+	ID                string         `json:"id"`
+	IsAnonymous       bool           `json:"isAnonymous"`
+	LastSeen          *time.Time     `json:"lastSeen,omitempty"`
+	Locale            string         `json:"locale"`
+	Metadata          jsontext.Value `json:"metadata,omitempty"`
+	NewEmail          *string        `json:"newEmail,omitempty"`
 	// An array relationship
 	Oauth2AuthRequests []*AuthOauth2AuthRequests `json:"oauth2AuthRequests"`
 	// An aggregate relationship
@@ -4310,7 +4196,7 @@ type UsersAggregateOrderBy struct {
 
 // append existing jsonb value of filtered columns with new jsonb value
 type UsersAppendInput struct {
-	Metadata json.RawMessage `json:"metadata,omitempty"`
+	Metadata jsontext.Value `json:"metadata,omitempty"`
 }
 
 // input type for inserting array relation for remote table "auth.users"
@@ -4396,7 +4282,7 @@ type UsersInsertInput struct {
 	IsAnonymous         *bool                                     `json:"isAnonymous,omitempty"`
 	LastSeen            *time.Time                                `json:"lastSeen,omitempty"`
 	Locale              *string                                   `json:"locale,omitempty"`
-	Metadata            json.RawMessage                           `json:"metadata,omitempty"`
+	Metadata            jsontext.Value                            `json:"metadata,omitempty"`
 	NewEmail            *string                                   `json:"newEmail,omitempty"`
 	Oauth2AuthRequests  *AuthOauth2AuthRequestsArrRelInsertInput  `json:"oauth2AuthRequests,omitempty"`
 	Oauth2RefreshTokens *AuthOauth2RefreshTokensArrRelInsertInput `json:"oauth2RefreshTokens,omitempty"`
@@ -4577,36 +4463,36 @@ type UsersPkColumnsInput struct {
 
 // prepend existing jsonb value of filtered columns with new jsonb value
 type UsersPrependInput struct {
-	Metadata json.RawMessage `json:"metadata,omitempty"`
+	Metadata jsontext.Value `json:"metadata,omitempty"`
 }
 
 // input type for updating data in table "auth.users"
 type UsersSetInput struct {
-	ActiveMfaType       *string         `json:"activeMfaType,omitempty"`
-	AvatarURL           *string         `json:"avatarUrl,omitempty"`
-	CreatedAt           *time.Time      `json:"createdAt,omitempty"`
-	CurrentChallenge    *string         `json:"currentChallenge,omitempty"`
-	DefaultRole         *string         `json:"defaultRole,omitempty"`
-	Disabled            *bool           `json:"disabled,omitempty"`
-	DisplayName         *string         `json:"displayName,omitempty"`
-	Email               *string         `json:"email,omitempty"`
-	EmailVerified       *bool           `json:"emailVerified,omitempty"`
-	ID                  *string         `json:"id,omitempty"`
-	IsAnonymous         *bool           `json:"isAnonymous,omitempty"`
-	LastSeen            *time.Time      `json:"lastSeen,omitempty"`
-	Locale              *string         `json:"locale,omitempty"`
-	Metadata            json.RawMessage `json:"metadata,omitempty"`
-	NewEmail            *string         `json:"newEmail,omitempty"`
-	OtpHash             *string         `json:"otpHash,omitempty"`
-	OtpHashExpiresAt    *time.Time      `json:"otpHashExpiresAt,omitempty"`
-	OtpMethodLastUsed   *string         `json:"otpMethodLastUsed,omitempty"`
-	PasswordHash        *string         `json:"passwordHash,omitempty"`
-	PhoneNumber         *string         `json:"phoneNumber,omitempty"`
-	PhoneNumberVerified *bool           `json:"phoneNumberVerified,omitempty"`
-	Ticket              *string         `json:"ticket,omitempty"`
-	TicketExpiresAt     *time.Time      `json:"ticketExpiresAt,omitempty"`
-	TotpSecret          *string         `json:"totpSecret,omitempty"`
-	UpdatedAt           *time.Time      `json:"updatedAt,omitempty"`
+	ActiveMfaType       *string        `json:"activeMfaType,omitempty"`
+	AvatarURL           *string        `json:"avatarUrl,omitempty"`
+	CreatedAt           *time.Time     `json:"createdAt,omitempty"`
+	CurrentChallenge    *string        `json:"currentChallenge,omitempty"`
+	DefaultRole         *string        `json:"defaultRole,omitempty"`
+	Disabled            *bool          `json:"disabled,omitempty"`
+	DisplayName         *string        `json:"displayName,omitempty"`
+	Email               *string        `json:"email,omitempty"`
+	EmailVerified       *bool          `json:"emailVerified,omitempty"`
+	ID                  *string        `json:"id,omitempty"`
+	IsAnonymous         *bool          `json:"isAnonymous,omitempty"`
+	LastSeen            *time.Time     `json:"lastSeen,omitempty"`
+	Locale              *string        `json:"locale,omitempty"`
+	Metadata            jsontext.Value `json:"metadata,omitempty"`
+	NewEmail            *string        `json:"newEmail,omitempty"`
+	OtpHash             *string        `json:"otpHash,omitempty"`
+	OtpHashExpiresAt    *time.Time     `json:"otpHashExpiresAt,omitempty"`
+	OtpMethodLastUsed   *string        `json:"otpMethodLastUsed,omitempty"`
+	PasswordHash        *string        `json:"passwordHash,omitempty"`
+	PhoneNumber         *string        `json:"phoneNumber,omitempty"`
+	PhoneNumberVerified *bool          `json:"phoneNumberVerified,omitempty"`
+	Ticket              *string        `json:"ticket,omitempty"`
+	TicketExpiresAt     *time.Time     `json:"ticketExpiresAt,omitempty"`
+	TotpSecret          *string        `json:"totpSecret,omitempty"`
+	UpdatedAt           *time.Time     `json:"updatedAt,omitempty"`
 }
 
 // Streaming cursor of the table "users"
@@ -4619,31 +4505,31 @@ type UsersStreamCursorInput struct {
 
 // Initial value of the column from where the streaming should start
 type UsersStreamCursorValueInput struct {
-	ActiveMfaType       *string         `json:"activeMfaType,omitempty"`
-	AvatarURL           *string         `json:"avatarUrl,omitempty"`
-	CreatedAt           *time.Time      `json:"createdAt,omitempty"`
-	CurrentChallenge    *string         `json:"currentChallenge,omitempty"`
-	DefaultRole         *string         `json:"defaultRole,omitempty"`
-	Disabled            *bool           `json:"disabled,omitempty"`
-	DisplayName         *string         `json:"displayName,omitempty"`
-	Email               *string         `json:"email,omitempty"`
-	EmailVerified       *bool           `json:"emailVerified,omitempty"`
-	ID                  *string         `json:"id,omitempty"`
-	IsAnonymous         *bool           `json:"isAnonymous,omitempty"`
-	LastSeen            *time.Time      `json:"lastSeen,omitempty"`
-	Locale              *string         `json:"locale,omitempty"`
-	Metadata            json.RawMessage `json:"metadata,omitempty"`
-	NewEmail            *string         `json:"newEmail,omitempty"`
-	OtpHash             *string         `json:"otpHash,omitempty"`
-	OtpHashExpiresAt    *time.Time      `json:"otpHashExpiresAt,omitempty"`
-	OtpMethodLastUsed   *string         `json:"otpMethodLastUsed,omitempty"`
-	PasswordHash        *string         `json:"passwordHash,omitempty"`
-	PhoneNumber         *string         `json:"phoneNumber,omitempty"`
-	PhoneNumberVerified *bool           `json:"phoneNumberVerified,omitempty"`
-	Ticket              *string         `json:"ticket,omitempty"`
-	TicketExpiresAt     *time.Time      `json:"ticketExpiresAt,omitempty"`
-	TotpSecret          *string         `json:"totpSecret,omitempty"`
-	UpdatedAt           *time.Time      `json:"updatedAt,omitempty"`
+	ActiveMfaType       *string        `json:"activeMfaType,omitempty"`
+	AvatarURL           *string        `json:"avatarUrl,omitempty"`
+	CreatedAt           *time.Time     `json:"createdAt,omitempty"`
+	CurrentChallenge    *string        `json:"currentChallenge,omitempty"`
+	DefaultRole         *string        `json:"defaultRole,omitempty"`
+	Disabled            *bool          `json:"disabled,omitempty"`
+	DisplayName         *string        `json:"displayName,omitempty"`
+	Email               *string        `json:"email,omitempty"`
+	EmailVerified       *bool          `json:"emailVerified,omitempty"`
+	ID                  *string        `json:"id,omitempty"`
+	IsAnonymous         *bool          `json:"isAnonymous,omitempty"`
+	LastSeen            *time.Time     `json:"lastSeen,omitempty"`
+	Locale              *string        `json:"locale,omitempty"`
+	Metadata            jsontext.Value `json:"metadata,omitempty"`
+	NewEmail            *string        `json:"newEmail,omitempty"`
+	OtpHash             *string        `json:"otpHash,omitempty"`
+	OtpHashExpiresAt    *time.Time     `json:"otpHashExpiresAt,omitempty"`
+	OtpMethodLastUsed   *string        `json:"otpMethodLastUsed,omitempty"`
+	PasswordHash        *string        `json:"passwordHash,omitempty"`
+	PhoneNumber         *string        `json:"phoneNumber,omitempty"`
+	PhoneNumberVerified *bool          `json:"phoneNumberVerified,omitempty"`
+	Ticket              *string        `json:"ticket,omitempty"`
+	TicketExpiresAt     *time.Time     `json:"ticketExpiresAt,omitempty"`
+	TotpSecret          *string        `json:"totpSecret,omitempty"`
+	UpdatedAt           *time.Time     `json:"updatedAt,omitempty"`
 }
 
 type UsersUpdates struct {
@@ -4680,13 +4566,13 @@ type UUIDComparisonExp struct {
 type Virus struct {
 	CreatedAt time.Time `json:"createdAt"`
 	// An object relationship
-	File        *Files          `json:"file"`
-	FileID      string          `json:"fileId"`
-	Filename    string          `json:"filename"`
-	ID          string          `json:"id"`
-	UpdatedAt   time.Time       `json:"updatedAt"`
-	UserSession json.RawMessage `json:"userSession"`
-	Virus       string          `json:"virus"`
+	File        *Files         `json:"file"`
+	FileID      string         `json:"fileId"`
+	Filename    string         `json:"filename"`
+	ID          string         `json:"id"`
+	UpdatedAt   time.Time      `json:"updatedAt"`
+	UserSession jsontext.Value `json:"userSession"`
+	Virus       string         `json:"virus"`
 }
 
 // aggregated selection of "storage.virus"
@@ -4704,7 +4590,7 @@ type VirusAggregateFields struct {
 
 // append existing jsonb value of filtered columns with new jsonb value
 type VirusAppendInput struct {
-	UserSession json.RawMessage `json:"userSession,omitempty"`
+	UserSession jsontext.Value `json:"userSession,omitempty"`
 }
 
 // Boolean expression to filter rows from the table "storage.virus". All fields are combined with a logical 'AND'.
@@ -4745,7 +4631,7 @@ type VirusInsertInput struct {
 	Filename    *string                 `json:"filename,omitempty"`
 	ID          *string                 `json:"id,omitempty"`
 	UpdatedAt   *time.Time              `json:"updatedAt,omitempty"`
-	UserSession json.RawMessage         `json:"userSession,omitempty"`
+	UserSession jsontext.Value          `json:"userSession,omitempty"`
 	Virus       *string                 `json:"virus,omitempty"`
 }
 
@@ -4803,18 +4689,18 @@ type VirusPkColumnsInput struct {
 
 // prepend existing jsonb value of filtered columns with new jsonb value
 type VirusPrependInput struct {
-	UserSession json.RawMessage `json:"userSession,omitempty"`
+	UserSession jsontext.Value `json:"userSession,omitempty"`
 }
 
 // input type for updating data in table "storage.virus"
 type VirusSetInput struct {
-	CreatedAt   *time.Time      `json:"createdAt,omitempty"`
-	FileID      *string         `json:"fileId,omitempty"`
-	Filename    *string         `json:"filename,omitempty"`
-	ID          *string         `json:"id,omitempty"`
-	UpdatedAt   *time.Time      `json:"updatedAt,omitempty"`
-	UserSession json.RawMessage `json:"userSession,omitempty"`
-	Virus       *string         `json:"virus,omitempty"`
+	CreatedAt   *time.Time     `json:"createdAt,omitempty"`
+	FileID      *string        `json:"fileId,omitempty"`
+	Filename    *string        `json:"filename,omitempty"`
+	ID          *string        `json:"id,omitempty"`
+	UpdatedAt   *time.Time     `json:"updatedAt,omitempty"`
+	UserSession jsontext.Value `json:"userSession,omitempty"`
+	Virus       *string        `json:"virus,omitempty"`
 }
 
 // Streaming cursor of the table "virus"
@@ -4827,13 +4713,13 @@ type VirusStreamCursorInput struct {
 
 // Initial value of the column from where the streaming should start
 type VirusStreamCursorValueInput struct {
-	CreatedAt   *time.Time      `json:"createdAt,omitempty"`
-	FileID      *string         `json:"fileId,omitempty"`
-	Filename    *string         `json:"filename,omitempty"`
-	ID          *string         `json:"id,omitempty"`
-	UpdatedAt   *time.Time      `json:"updatedAt,omitempty"`
-	UserSession json.RawMessage `json:"userSession,omitempty"`
-	Virus       *string         `json:"virus,omitempty"`
+	CreatedAt   *time.Time     `json:"createdAt,omitempty"`
+	FileID      *string        `json:"fileId,omitempty"`
+	Filename    *string        `json:"filename,omitempty"`
+	ID          *string        `json:"id,omitempty"`
+	UpdatedAt   *time.Time     `json:"updatedAt,omitempty"`
+	UserSession jsontext.Value `json:"userSession,omitempty"`
+	Virus       *string        `json:"virus,omitempty"`
 }
 
 type VirusUpdates struct {
@@ -5058,237 +4944,6 @@ func (e *AiAgentMessagesUpdateColumn) UnmarshalJSON(b []byte) error {
 }
 
 func (e AiAgentMessagesUpdateColumn) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// unique or primary key constraints on table "ai.agent_providers"
-type AiAgentProvidersConstraint string
-
-const (
-	// unique or primary key constraint on columns "value"
-	AiAgentProvidersConstraintAgentProvidersPkey AiAgentProvidersConstraint = "agent_providers_pkey"
-)
-
-var AllAiAgentProvidersConstraint = []AiAgentProvidersConstraint{
-	AiAgentProvidersConstraintAgentProvidersPkey,
-}
-
-func (e AiAgentProvidersConstraint) IsValid() bool {
-	switch e {
-	case AiAgentProvidersConstraintAgentProvidersPkey:
-		return true
-	}
-	return false
-}
-
-func (e AiAgentProvidersConstraint) String() string {
-	return string(e)
-}
-
-func (e *AiAgentProvidersConstraint) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = AiAgentProvidersConstraint(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid aiAgentProviders_constraint", str)
-	}
-	return nil
-}
-
-func (e AiAgentProvidersConstraint) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *AiAgentProvidersConstraint) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e AiAgentProvidersConstraint) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-type AiAgentProvidersEnum string
-
-const (
-	// Anthropic Claude models
-	AiAgentProvidersEnumAnthropic AiAgentProvidersEnum = "anthropic"
-	// Google Gemini models
-	AiAgentProvidersEnumGoogle AiAgentProvidersEnum = "google"
-	// OpenAI models
-	AiAgentProvidersEnumOpenai AiAgentProvidersEnum = "openai"
-)
-
-var AllAiAgentProvidersEnum = []AiAgentProvidersEnum{
-	AiAgentProvidersEnumAnthropic,
-	AiAgentProvidersEnumGoogle,
-	AiAgentProvidersEnumOpenai,
-}
-
-func (e AiAgentProvidersEnum) IsValid() bool {
-	switch e {
-	case AiAgentProvidersEnumAnthropic, AiAgentProvidersEnumGoogle, AiAgentProvidersEnumOpenai:
-		return true
-	}
-	return false
-}
-
-func (e AiAgentProvidersEnum) String() string {
-	return string(e)
-}
-
-func (e *AiAgentProvidersEnum) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = AiAgentProvidersEnum(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid aiAgentProviders_enum", str)
-	}
-	return nil
-}
-
-func (e AiAgentProvidersEnum) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *AiAgentProvidersEnum) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e AiAgentProvidersEnum) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// select columns of table "ai.agent_providers"
-type AiAgentProvidersSelectColumn string
-
-const (
-	// column name
-	AiAgentProvidersSelectColumnComment AiAgentProvidersSelectColumn = "comment"
-	// column name
-	AiAgentProvidersSelectColumnValue AiAgentProvidersSelectColumn = "value"
-)
-
-var AllAiAgentProvidersSelectColumn = []AiAgentProvidersSelectColumn{
-	AiAgentProvidersSelectColumnComment,
-	AiAgentProvidersSelectColumnValue,
-}
-
-func (e AiAgentProvidersSelectColumn) IsValid() bool {
-	switch e {
-	case AiAgentProvidersSelectColumnComment, AiAgentProvidersSelectColumnValue:
-		return true
-	}
-	return false
-}
-
-func (e AiAgentProvidersSelectColumn) String() string {
-	return string(e)
-}
-
-func (e *AiAgentProvidersSelectColumn) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = AiAgentProvidersSelectColumn(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid aiAgentProviders_select_column", str)
-	}
-	return nil
-}
-
-func (e AiAgentProvidersSelectColumn) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *AiAgentProvidersSelectColumn) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e AiAgentProvidersSelectColumn) MarshalJSON() ([]byte, error) {
-	var buf bytes.Buffer
-	e.MarshalGQL(&buf)
-	return buf.Bytes(), nil
-}
-
-// update columns of table "ai.agent_providers"
-type AiAgentProvidersUpdateColumn string
-
-const (
-	// column name
-	AiAgentProvidersUpdateColumnComment AiAgentProvidersUpdateColumn = "comment"
-	// column name
-	AiAgentProvidersUpdateColumnValue AiAgentProvidersUpdateColumn = "value"
-)
-
-var AllAiAgentProvidersUpdateColumn = []AiAgentProvidersUpdateColumn{
-	AiAgentProvidersUpdateColumnComment,
-	AiAgentProvidersUpdateColumnValue,
-}
-
-func (e AiAgentProvidersUpdateColumn) IsValid() bool {
-	switch e {
-	case AiAgentProvidersUpdateColumnComment, AiAgentProvidersUpdateColumnValue:
-		return true
-	}
-	return false
-}
-
-func (e AiAgentProvidersUpdateColumn) String() string {
-	return string(e)
-}
-
-func (e *AiAgentProvidersUpdateColumn) UnmarshalGQL(v any) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = AiAgentProvidersUpdateColumn(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid aiAgentProviders_update_column", str)
-	}
-	return nil
-}
-
-func (e AiAgentProvidersUpdateColumn) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-func (e *AiAgentProvidersUpdateColumn) UnmarshalJSON(b []byte) error {
-	s, err := strconv.Unquote(string(b))
-	if err != nil {
-		return err
-	}
-	return e.UnmarshalGQL(s)
-}
-
-func (e AiAgentProvidersUpdateColumn) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	e.MarshalGQL(&buf)
 	return buf.Bytes(), nil

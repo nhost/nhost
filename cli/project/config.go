@@ -14,7 +14,7 @@ func DefaultConfig() (*model.ConfigConfig, error) {
 	}
 
 	c := &model.ConfigConfig{ //nolint:exhaustruct
-		Hasura: &model.ConfigHasura{ //nolint:exhaustruct
+		Hasura: &model.ConfigHasura{ //nolint:exhaustruct,gosec // G101: example config values, not real credentials
 			AdminSecret:   "{{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}",
 			WebhookSecret: "{{ secrets.NHOST_WEBHOOK_SECRET }}",
 			JwtSecrets: []*model.ConfigJWTSecret{
@@ -34,7 +34,7 @@ func DefaultConfig() (*model.ConfigConfig, error) {
 			},
 		},
 		Observability: &model.ConfigObservability{
-			Grafana: &model.ConfigGrafana{
+			Grafana: &model.ConfigGrafana{ //nolint:gosec // G101: example config values, not real credentials
 				AdminPassword: "{{ secrets.GRAFANA_ADMIN_PASSWORD }}",
 				Smtp:          nil,
 				Alerting:      &model.ConfigGrafanaAlerting{}, //nolint:exhaustruct

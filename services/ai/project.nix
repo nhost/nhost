@@ -35,7 +35,7 @@ let
   checkDeps = with pkgs; [
     nhost.nhost-cli
     nhost.gqlgenc
-    mockgen
+    nhost.mockgen
   ];
 
   buildInputs = [ ];
