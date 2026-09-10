@@ -114,7 +114,7 @@ export const projectPages = definePages([
     gate: 'platform',
   },
   {
-    name: 'Settings',
+    name: 'General Settings',
     route: 'settings',
     slug: 'settings',
     gate: 'settings',
@@ -158,12 +158,6 @@ export const projectSettingsPages = definePages([
   { name: 'SMTP', slug: 'smtp', route: 'smtp' },
   { name: 'Deployments', slug: 'deployments', route: 'deployments' },
   {
-    name: 'Environment Variables',
-    slug: 'environment-variables',
-    route: 'environment-variables',
-  },
-  { name: 'Secrets', slug: 'secrets', route: 'secrets' },
-  {
     name: 'Custom Domains',
     slug: 'custom-domains',
     route: 'custom-domains',
@@ -175,7 +169,6 @@ export const projectSettingsPages = definePages([
   },
   { name: 'AI', slug: 'ai', route: 'ai' },
   { name: 'Observability', slug: 'metrics', route: 'metrics' },
-  { name: 'Configuration Editor', slug: 'editor', route: 'editor' },
 ]);
 
 export const projectGraphQLPages = definePages([

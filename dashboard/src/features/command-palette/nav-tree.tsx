@@ -116,7 +116,21 @@ const settingsPageMeta: Record<
   (typeof projectSettingsPages)[number]['slug'],
   PaletteMeta
 > = {
-  general: { keywords: ['settings'] },
+  general: {
+    title: 'General Settings',
+    keywords: [
+      'settings',
+      'project name',
+      'pause project',
+      'wake project',
+      'transfer project',
+      'environment variables',
+      'system environment variables',
+      'secrets',
+      'configuration editor',
+      'delete project',
+    ],
+  },
   'compute-resources': { keywords: ['settings', 'cpu', 'memory'] },
   hasura: { keywords: ['settings', 'graphql engine', 'console'] },
   authentication: { keywords: ['settings', 'auth'] },
@@ -127,18 +141,12 @@ const settingsPageMeta: Record<
   storage: { keywords: ['settings', 'files'] },
   smtp: { keywords: ['settings', 'email'] },
   deployments: { keywords: ['settings', 'releases'] },
-  'environment-variables': { keywords: ['settings', 'env'] },
-  secrets: { keywords: ['settings', 'environment'] },
   'custom-domains': { keywords: ['settings', 'domains'] },
   'rate-limiting': { keywords: ['settings', 'limits'] },
   ai: { keywords: ['settings', 'embeddings'] },
   metrics: {
     id: 'project-settings-observability',
     keywords: ['settings', 'metrics', 'monitoring'],
-  },
-  editor: {
-    id: 'project-settings-configuration-editor',
-    keywords: ['settings', 'config'],
   },
 };
 

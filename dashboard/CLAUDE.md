@@ -29,6 +29,11 @@ vitest run <file>           # Run a single test file
 vitest run --reporter=verbose src/features/orgs/layout/OrgLayout/OrganizationGuard.test.tsx  # Run specific test with verbose output
 ```
 
+If Vitest or typecheck reports missing package modules after pnpm warns
+that `node_modules` is out of sync with the lockfile, run
+`pnpm install --frozen-lockfile` from the repository root before rerunning
+checks.
+
 ### E2E Testing
 
 ```bash
