@@ -1,4 +1,4 @@
-import type { UseQueryResult } from '@tanstack/react-query';
+import type { UseQueryOptions, UseQueryResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { fetchExportMetadata } from '@/features/orgs/projects/common/utils/fetchExportMetadata';
@@ -8,9 +8,18 @@ import type { ExportMetadataResponse } from '@/utils/hasura-api/generated/schema
 export const EXPORT_METADATA_QUERY_KEY = 'export-metadata';
 const EXPORT_METADATA_STALE_TIME = 5 * 60_000;
 
-export interface UseExportMetadataOptions {
-  enabled?: boolean;
-}
+/**
+ * A control-options subset of react-query's `UseQueryOptions`, forwarded into
+ * the query. The hook owns `queryKey`, `queryFn` and `select`; `refetchOnMount`
+ * is narrowed to its value form because its callback form is typed over the
+ * `select`-transformed result and can't ride the pick here.
+ */
+export type UseExportMetadataOptions = Pick<
+  UseQueryOptions<ExportMetadataResponse>,
+  'enabled' | 'staleTime'
+> & {
+  refetchOnMount?: boolean | 'always';
+};
 
 /**
  * This hook fetches metadata from the Hasura API and caches it.
@@ -37,6 +46,7 @@ export default function useExportMetadata<T>(
     },
     staleTime: EXPORT_METADATA_STALE_TIME,
     refetchOnWindowFocus: false,
+    ...options,
     enabled: !!(
       project?.subdomain &&
       project?.region &&

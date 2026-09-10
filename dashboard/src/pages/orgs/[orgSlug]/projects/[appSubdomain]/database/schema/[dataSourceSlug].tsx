@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { getDatabaseLayout } from '@/features/orgs/projects/database/layout';
 import SchemaDiagram from '@/features/orgs/projects/database/schema-diagram/SchemaDiagram';
 
 export default function DatabaseSchemaDiagramPage() {
@@ -12,11 +12,8 @@ export default function DatabaseSchemaDiagramPage() {
 }
 
 DatabaseSchemaDiagramPage.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <ProjectLayout mainContainerProps={{ className: 'flex h-full' }}>
-      <div className="box flex w-full flex-auto flex-col overflow-hidden bg-default">
-        {page}
-      </div>
-    </ProjectLayout>
-  );
+  return getDatabaseLayout(page, {
+    contentClassName:
+      'box flex w-full flex-auto flex-col overflow-hidden bg-default',
+  });
 };

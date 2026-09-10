@@ -66,7 +66,7 @@ export default function ProjectsGrid({ projects }: ProjectGridProps) {
 
   return (
     <div className="mx-auto h-full overflow-auto bg-accent-background">
-      <div className="flex w-full flex-shrink-0 flex-row items-center justify-end gap-2 border-b bg-background p-2">
+      <div className="flex w-full flex-shrink-0 flex-row items-center justify-end gap-2 border-b p-2">
         <Button asChild>
           <Link href={`/orgs/${org?.slug}/projects/new`}>
             <div className="flex h-fit flex-row items-center justify-center space-x-2">

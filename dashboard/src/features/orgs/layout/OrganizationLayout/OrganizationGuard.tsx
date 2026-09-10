@@ -1,11 +1,23 @@
 import { useRouter } from 'next/router';
-import { type PropsWithChildren, useEffect } from 'react';
+import { type PropsWithChildren, type ReactNode, useEffect } from 'react';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { isEmptyValue } from '@/lib/utils';
 import { useAuth } from '@/providers/Auth';
 
-function OrganizationGuard({ children }: PropsWithChildren) {
+export interface OrganizationGuardProps {
+  /**
+   * Rendered instead of the children while the org loads. Defaults to `null`
+   * because the guard fills a different slot in each layout that uses it, so
+   * only the caller knows how a placeholder should be sized.
+   */
+  fallback?: ReactNode;
+}
+
+function OrganizationGuard({
+  children,
+  fallback = null,
+}: PropsWithChildren<OrganizationGuardProps>) {
   const { org, loading, error } = useCurrentOrg();
   const router = useRouter();
   const isPlatform = useIsPlatform();
@@ -30,7 +42,7 @@ function OrganizationGuard({ children }: PropsWithChildren) {
     throw error;
   }
 
-  return (isUserLoggedIn && orgNotFound) || loading ? null : children;
+  return (isUserLoggedIn && orgNotFound) || loading ? fallback : children;
 }
 
 export default OrganizationGuard;

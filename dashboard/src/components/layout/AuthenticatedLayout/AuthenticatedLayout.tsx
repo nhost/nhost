@@ -115,12 +115,15 @@ function AuthenticatedLayoutContent({
           }}
         >
           <div className="flex h-full w-full flex-col overflow-auto">
-            <OrgStatus />
             <Analytics />
             {hasAppSidebar(router.pathname) ? (
               <div className="flex h-full min-w-0 flex-row overflow-hidden">
                 <AppSidebar />
-                {children}
+
+                <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
+                  <OrgStatus />
+                  {children}
+                </div>
               </div>
             ) : (
               children
