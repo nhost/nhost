@@ -12,14 +12,19 @@ export const getProjectQuery = nhostGraphQLLink.query('getProject', () =>
   }),
 );
 
-export const getProjectStateQuery = (appStates?: any) =>
+export const getProjectStateQuery = (
+  appStates?: any,
+  overrides?: Partial<typeof mockApplication>,
+) =>
   nhostGraphQLLink.query('getProjectState', () =>
     HttpResponse.json({
       data: {
         apps: [
           {
             ...mockApplication,
-            appStates: appStates || mockApplication.appStates,
+            ...overrides,
+            appStates:
+              appStates ?? overrides?.appStates ?? mockApplication.appStates,
           },
         ],
       },
