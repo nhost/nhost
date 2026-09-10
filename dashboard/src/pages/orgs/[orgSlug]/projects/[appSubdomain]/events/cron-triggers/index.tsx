@@ -1,9 +1,9 @@
 import type { ReactElement } from 'react';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { EventsEmptyState } from '@/features/orgs/projects/events/common/components/EventsEmptyState';
 import { CronTriggersBrowserSidebar } from '@/features/orgs/projects/events/cron-triggers/components/CronTriggersBrowserSidebar';
 import { useGetCronTriggers } from '@/features/orgs/projects/events/cron-triggers/hooks/useGetCronTriggers';
+import { getEventsLayout } from '@/features/orgs/projects/events/layout';
 
 export default function CronTriggersPage() {
   const {
@@ -50,17 +50,9 @@ export default function CronTriggersPage() {
 }
 
 CronTriggersPage.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <ProjectLayout
-      mainContainerProps={{
-        className: 'flex h-full',
-      }}
-    >
-      <CronTriggersBrowserSidebar />
-
-      <div className="box flex w-full flex-auto flex-col overflow-x-hidden">
-        {page}
-      </div>
-    </ProjectLayout>
-  );
+  return getEventsLayout(page, {
+    sidebar: <CronTriggersBrowserSidebar />,
+    contentClassName:
+      'box flex w-full flex-auto flex-col overflow-x-hidden overflow-y-hidden',
+  });
 };

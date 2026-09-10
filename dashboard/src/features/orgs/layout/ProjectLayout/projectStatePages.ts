@@ -36,7 +36,6 @@ const sidebarSkeletonPages = toRoutes([
   'events/event-triggers/[eventTriggerSlug]',
   'events/cron-triggers',
   'events/cron-triggers/[cronTriggerSlug]',
-  'events/one-offs',
   'storage',
   'storage/bucket/[bucketId]',
   'graphql/remote-schemas',
