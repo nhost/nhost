@@ -1,0 +1,13 @@
+table:
+  name: webhook_events
+  schema: public
+select_permissions:
+  - role: public
+    permission:
+      columns:
+        - id
+        - source
+        - event_type
+        - payload
+        - received_at
+      filter: {}
