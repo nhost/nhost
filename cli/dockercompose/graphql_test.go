@@ -1,8 +1,6 @@
 package dockercompose //nolint:testpackage
 
 import (
-	"fmt"
-	"os"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -281,17 +279,11 @@ func TestConsole(t *testing.T) {
 		},
 	}
 
-	// A non-Linux host leaves User unset (see hostUserSpec), matching the
-	// expectedConsole golden which has no User.
-	nonLinuxHost := autoUser("darwin", defaultDockerEndpoint, 1000, 1000)
-
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := console(
-				tc.cfg(), "dev", 1337, tc.useTlS, "/path/to/nhost", 0, nonLinuxHost,
-			)
+			got, err := console(tc.cfg(), "dev", 1337, tc.useTlS, "/path/to/nhost", 0, "")
 			if err != nil {
 				t.Fatalf("got error: %v", err)
 			}
@@ -303,34 +295,43 @@ func TestConsole(t *testing.T) {
 	}
 }
 
-// TestConsoleRunsAsHostUserOnLinux pins the host-user mapping: on Linux
-// the console container is stamped with the caller's uid:gid so files it
-// writes into the bind-mounted nhost folder stay owned by the caller,
-// while on other hosts User is left unset.
-func TestConsoleRunsAsHostUserOnLinux(t *testing.T) {
+func TestConsoleHostUser(t *testing.T) {
 	t.Parallel()
 
-	cfg := getConfig()
-	cfg.Hasura.Version = new("v2.25.0")
-
-	linux, err := console(cfg, "dev", 1337, false, "/path/to/nhost", 0,
-		autoUser(osLinux, defaultDockerEndpoint, os.Getuid(), os.Getgid()))
-	if err != nil {
-		t.Fatalf("got error: %v", err)
+	cases := []struct {
+		name     string
+		hostUser string
+		want     *string
+	}{
+		{
+			name:     "set",
+			hostUser: "1000:1000",
+			want:     new("1000:1000"),
+		},
+		{
+			name:     "unset",
+			hostUser: "",
+			want:     nil,
+		},
 	}
 
-	want := fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid())
-	if linux.User == nil || *linux.User != want {
-		t.Errorf("linux console User = %v, want %q", linux.User, want)
-	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	other, err := console(cfg, "dev", 1337, false, "/path/to/nhost", 0,
-		autoUser("windows", defaultDockerEndpoint, os.Getuid(), os.Getgid()))
-	if err != nil {
-		t.Fatalf("got error: %v", err)
-	}
+			cfg := getConfig()
+			cfg.Hasura.Version = new("v2.25.0")
 
-	if other.User != nil {
-		t.Errorf("non-linux console User = %q, want nil", *other.User)
+			got, err := console(
+				cfg, "dev", 1337, false, "/path/to/nhost", 0, tc.hostUser,
+			)
+			if err != nil {
+				t.Fatalf("got error: %v", err)
+			}
+
+			if diff := cmp.Diff(tc.want, got.User); diff != "" {
+				t.Error(diff)
+			}
+		})
 	}
 }
