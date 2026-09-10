@@ -96,7 +96,7 @@ jobs:
           GOEXPERIMENT: jsonv2
         run: |
           nix develop .#cli --command \
-            go test -tags e2e -run TestE2E -timeout 40m -v ./cli/e2e/
+            go test -tags e2e -timeout 40m -v ./cli/e2e/
 
       - name: "Store Nix cache"
         uses: ./.github/actions/cache-nix
