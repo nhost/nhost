@@ -25,7 +25,9 @@ const defaultEngineVersion = "0.0.1"
 // sslmode=disable is required because the local Postgres has no TLS and
 // hasura-storage's lib/pq migration driver defaults to sslmode=require.
 const (
-	engineDatabaseURL           = "postgres://postgres:postgres@postgres:5432/local?sslmode=disable"
+	//nolint:gosec // G101: local dev connection strings, not real credentials
+	engineDatabaseURL = "postgres://postgres:postgres@postgres:5432/local?sslmode=disable"
+	//nolint:gosec // G101: local dev connection strings, not real credentials
 	engineMigrationsDatabaseURL = "postgres://postgres:postgres@postgres:5432/local?sslmode=disable"
 	engineLocalAppID            = "00000000-0000-0000-0000-000000000000"
 	engineLocalEncryptionKey    = "5181f67e2844e4b60d571fa346cac9c37fc00d1ff519212eae6cead138e639ba"

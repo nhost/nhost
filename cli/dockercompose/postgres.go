@@ -46,7 +46,7 @@ func postgres( //nolint:funlen
 		env[v.Name] = v.Value
 	}
 
-	env["POSTGRES_DEV_INSECURE"] = valueTrue
+	env["POSTGRES_DEV_INSECURE"] = "true" //nolint:goconst,nolintlint
 
 	return &Service{
 		Image:      "nhost/postgres:" + *cfg.GetPostgres().GetVersion(),

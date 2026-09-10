@@ -15,7 +15,9 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-// TODO(meh): Remove this after `Engine` is added to the catalog.
+// softwareTypeEngine is a local stand-in for the catalog's software type
+// enum, which doesn't include `Engine` yet. It can be dropped once the
+// generated enum has it.
 const softwareTypeEngine = graphql.SoftwareTypeEnum("Engine")
 
 func CommandVersion() *cli.Command {

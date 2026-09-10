@@ -16,15 +16,11 @@ func traefikHostMatch(name string) string {
 	)
 }
 
-// valueTrue is the string form of a true flag used in generated traefik labels
-// and container env values. Shared so the literal isn't repeated (goconst).
-const valueTrue = "true"
-
 type Ingresses []Ingress
 
 func (i Ingresses) Labels() map[string]string {
 	labels := make(map[string]string)
-	labels["traefik.enable"] = valueTrue
+	labels["traefik.enable"] = "true" //nolint:goconst,nolintlint
 
 	for _, ingress := range i {
 		maps.Copy(labels, ingress.Labels())
