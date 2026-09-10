@@ -1,8 +1,9 @@
 import type { ReactElement } from 'react';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { DeleteOrg } from '@/features/orgs/components/general/components/DeleteOrg';
 import { GeneralSettings } from '@/features/orgs/components/general/components/GeneralSettings';
 import { Soc2Download } from '@/features/orgs/components/general/components/Soc2Download';
-import { OrganizationLayout } from '@/features/orgs/layout/OrganizationLayout';
+import { OrganizationScope } from '@/features/orgs/layout/OrganizationScope';
 
 export default function OrgSettings() {
   return (
@@ -15,5 +16,9 @@ export default function OrgSettings() {
 }
 
 OrgSettings.getLayout = function getLayout(page: ReactElement) {
-  return <OrganizationLayout>{page}</OrganizationLayout>;
+  return (
+    <AppLayout>
+      <OrganizationScope>{page}</OrganizationScope>
+    </AppLayout>
+  );
 };

@@ -1,10 +1,7 @@
 import { useRouter } from 'next/router';
 import { NextSeo } from 'next-seo';
-import { type ComponentPropsWithoutRef, useEffect } from 'react';
-import { twMerge } from 'tailwind-merge';
-import type { AuthenticatedLayoutProps } from '@/components/layout/AuthenticatedLayout';
+import { type PropsWithChildren, useEffect } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
-import ProjectViewWithState from '@/features/orgs/layout/ProjectLayout/ProjectViewWithState';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
@@ -34,21 +31,13 @@ function isPlatformOnlyPage(route: string) {
   return isNotPlatform && platFormOnlyPage;
 }
 
-export interface ProjectLayoutContentProps extends AuthenticatedLayoutProps {
-  /**
-   * Props passed to the internal `<main />` element.
-   */
-  mainContainerProps?: ComponentPropsWithoutRef<'main'>;
-}
-
-function ProjectLayoutContent({
-  children,
-  mainContainerProps = {},
-}: ProjectLayoutContentProps) {
-  const { className: mainContainerClassName, ...mainContainerRest } =
-    mainContainerProps;
+/**
+ * Renders its children once the current project exists and is loaded. Whether
+ * the project is *running* is a separate question, answered by
+ * `ProjectViewWithState` below whatever chrome must stay visible while paused.
+ */
+export default function ProjectGuard({ children }: PropsWithChildren) {
   const { route, push } = useRouter();
-
   const isPlatform = useIsPlatform();
 
   const { project, loading, error, projectNotFound } = useProject();
@@ -87,24 +76,14 @@ function ProjectLayoutContent({
     throw new Error('Could not load project. Please try again later.');
   }
 
+  if (loading) {
+    return <LoadingScreen data-testid="projectLoadingIndicator" />;
+  }
+
   return (
-    <main
-      {...mainContainerRest}
-      className={twMerge(
-        'relative h-full flex-auto overflow-y-auto',
-        mainContainerClassName,
-      )}
-    >
-      {loading ? (
-        <LoadingScreen data-testid="projectLoadingIndicator" />
-      ) : (
-        <>
-          <ProjectViewWithState>{children}</ProjectViewWithState>
-          <NextSeo title={!isPlatform ? 'Local App' : project?.name} />
-        </>
-      )}
-    </main>
+    <>
+      {children}
+      <NextSeo title={!isPlatform ? 'Local App' : project?.name} />
+    </>
   );
 }
-
-export default ProjectLayoutContent;

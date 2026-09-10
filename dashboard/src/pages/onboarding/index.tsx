@@ -5,8 +5,8 @@ import type { ReactElement } from 'react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
+import { StandaloneLayout } from '@/components/layout/StandaloneLayout';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/v3/select';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedForm';
+import { AuthGuard } from '@/features/orgs/layout/AuthGuard';
 import { planDescriptions } from '@/features/orgs/projects/common/utils/planDescriptions';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -454,8 +455,8 @@ export default function OnboardingPage() {
 
 OnboardingPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <AuthenticatedLayout title="Onboarding - Welcome to Nhost">
-      {page}
-    </AuthenticatedLayout>
+    <StandaloneLayout title="Onboarding - Welcome to Nhost">
+      <AuthGuard>{page}</AuthGuard>
+    </StandaloneLayout>
   );
 };

@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react';
 import { SelectOrg } from '@/components/common/SelectOrg';
-import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
+import { StandaloneLayout } from '@/components/layout/StandaloneLayout';
+import { AuthGuard } from '@/features/orgs/layout/AuthGuard';
 
 export default function SelectOrganization() {
   return <SelectOrg />;
@@ -8,8 +9,8 @@ export default function SelectOrganization() {
 
 SelectOrganization.getLayout = function getLayout(page: ReactElement) {
   return (
-    <AuthenticatedLayout title="Select an Organization">
-      {page}
-    </AuthenticatedLayout>
+    <StandaloneLayout title="Select an Organization">
+      <AuthGuard>{page}</AuthGuard>
+    </StandaloneLayout>
   );
 };

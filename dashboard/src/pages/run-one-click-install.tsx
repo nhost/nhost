@@ -4,12 +4,13 @@ import { useRouter } from 'next/router';
 import type { ChangeEvent, ReactElement } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
-import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
+import { StandaloneLayout } from '@/components/layout/StandaloneLayout';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
 import { Input } from '@/components/ui/v3/input';
 import { Spinner } from '@/components/ui/v3/spinner';
+import { AuthGuard } from '@/features/orgs/layout/AuthGuard';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { cn } from '@/lib/utils';
 
@@ -211,6 +212,8 @@ SelectOrganizationAndProject.getLayout = function getLayout(
   page: ReactElement,
 ) {
   return (
-    <AuthenticatedLayout title="New Run Service">{page}</AuthenticatedLayout>
+    <StandaloneLayout title="New Run Service">
+      <AuthGuard>{page}</AuthGuard>
+    </StandaloneLayout>
   );
 };

@@ -2,10 +2,11 @@ import { TriangleAlert } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { type ReactElement, useEffect, useState } from 'react';
-import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
+import { StandaloneLayout } from '@/components/layout/StandaloneLayout';
 import { CodeBlock } from '@/components/presentational/CodeBlock';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { AuthGuard } from '@/features/orgs/layout/AuthGuard';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
@@ -120,5 +121,9 @@ export default function IndexPage() {
 }
 
 IndexPage.getLayout = function getLayout(page: ReactElement) {
-  return <AuthenticatedLayout title="Dashboard">{page}</AuthenticatedLayout>;
+  return (
+    <StandaloneLayout title="Dashboard">
+      <AuthGuard>{page}</AuthGuard>
+    </StandaloneLayout>
+  );
 };

@@ -1,8 +1,9 @@
 import type { ReactElement } from 'react';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { BillingEstimate } from '@/features/orgs/components/billing/BillingEstimate';
 import { SubscriptionPlan } from '@/features/orgs/components/billing/SubscriptionPlan';
-import { OrganizationLayout } from '@/features/orgs/layout/OrganizationLayout';
+import { OrganizationScope } from '@/features/orgs/layout/OrganizationScope';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 
 export default function OrgBilling() {
@@ -22,5 +23,9 @@ export default function OrgBilling() {
 }
 
 OrgBilling.getLayout = function getLayout(page: ReactElement) {
-  return <OrganizationLayout>{page}</OrganizationLayout>;
+  return (
+    <AppLayout>
+      <OrganizationScope>{page}</OrganizationScope>
+    </AppLayout>
+  );
 };
