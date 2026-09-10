@@ -592,7 +592,7 @@ Configuration for observability service
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `constellation?` | [`Constellation`](#constellation) |  | Constellation GraphQL engine settings. |
-| `nhost?` | [`Nhost`](#nhost) |  | Run auth, storage and constellation bundled in a single nhost-engine binary instead of as standalone containers. Auth and storage are configured from their normal root sections; their per-service version and resources are rejected during validation because the one binary has a single version and a single resources block (see #Nhost). The engine always runs constellation as its GraphQL engine, so it is mutually exclusive with the standalone experimental.constellation service (enforced during config validation). |
+| `nhost?` | [`Nhost`](#nhost) |  | Run auth, storage and constellation bundled in a single nhost-engine binary instead of as standalone containers. Auth and storage are configured from their normal root sections. Per-service versions and sizing resources are rejected because the binary has one version and one sizing block (see #Nhost), but auth.resources.networking remains supported for custom auth domains. The engine always runs constellation as its GraphQL engine, so it is mutually exclusive with the standalone experimental.constellation service (enforced during config validation). |
 
 ## Shared types
 
@@ -831,8 +831,9 @@ Includes all fields from [`ConstellationConfig`](#constellationconfig).
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `version` | `string` | `"0.0.1"` | Version of the engine to run. See available versions at: https://hub.docker.com/r/nhost/engine/tags |
-| `resources?` | [`Resources`](#resources) |  | Resources for the single engine container. The engine runs auth, storage and constellation in one process, so this configures the whole binary rather than any individual service. |
-| `graphql?` | [`ConstellationConfig`](#constellationconfig) |  | GraphQL (constellation) engine configuration. The engine always runs constellation as its GraphQL engine; this is the only setting not taken from a root section, since constellation has none of its own. |
+| `debug?` | `bool` |  | Enable debug logging for every service bundled in the engine process. For backward compatibility, graphql.settings.debug remains supported, but this engine-wide field takes precedence when both fields are set. |
+| `resources?` | [`Resources`](#resources) |  | Resources for the single engine container. The engine runs auth, storage and constellation in one process, so this configures the whole binary rather than any individual service. Networking is rejected during validation because a shared custom domain has no single service target; auth custom domains remain under auth.resources.networking. |
+| `graphql?` | [`ConstellationConfig`](#constellationconfig) |  | Constellation-specific GraphQL engine configuration. The legacy settings.debug field remains supported, but the engine-level debug field takes precedence when both fields are set. |
 
 ### Autoscaler
 

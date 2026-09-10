@@ -267,7 +267,7 @@ Start local development environment.
 | | |
 | --- | --- |
 | `--apply-seeds` | Apply seeds. If the .nhost folder does not exist, seeds will be applied regardless of this flag. Env: `$NHOST_APPLY_SEEDS`. |
-| `--auth-port=""` | If specified, expose auth on this port. Not recommended. Default: `0`. |
+| `--auth-port=""` | If specified, expose auth on this port. Not recommended. Rejected in engine mode (experimental.nhost), where auth is mounted behind a path prefix; use the Traefik URLs instead. Default: `0`. |
 | `--ca-certificates=""` | Mounts and overrides path to CA certificates in the containers. Env: `$NHOST_CA_CERTIFICATES`. |
 | `--dashboard-version=""` | Dashboard version to use. Default: `"nhost/dashboard:3.5.3"`. Env: `$NHOST_DASHBOARD_VERSION`. |
 | `--disable-tls` | Disable TLS. Env: `$NHOST_DISABLE_TLS`. |
@@ -280,10 +280,8 @@ Start local development environment.
 | `--postgres-port=""` | Postgres port to listen on. Default: `5432`. Env: `$NHOST_POSTGRES_PORT`. |
 | `--run-service-volume=""` | Mount a local directory into a run service container. Format: `service-name=/local/path:/container/path`. Can be passed multiple times. Env: `$NHOST_RUN_SERVICE_VOLUME`. |
 | `--run-service=""` | Run service to add to the development environment. Can be passed multiple times. Comma-separated values are also accepted. Format: `/path/to/run-service.toml[:overlay_name]`. Env: `$NHOST_RUN_SERVICE`. |
-| `--storage-port=""` | If specified, expose storage on this port. Not recommended. Default: `0`. |
+| `--storage-port=""` | If specified, expose storage on this port. Not recommended. Rejected in engine mode (experimental.nhost), where storage is mounted behind a path prefix; use the Traefik URLs instead. Default: `0`. |
 | `--user=""` | User to run containers that write into bind mounts as. 'auto' maps them to your uid:gid on Linux with a local rootful docker daemon, 'none' keeps the images' default user, or pass an explicit uid:gid. Default: `"auto"`. Env: `$NHOST_DOCKER_USER`. |
-
-When `[experimental.nhost]` is configured, engine mode rejects either `--auth-port` or `--storage-port` with `auth and storage host ports are not supported in engine mode: the bundled engine mounts services behind path prefixes; use the Traefik URLs`.
 
 </div>
 
