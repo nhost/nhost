@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { ComponentPropsWithoutRef, ReactNode } from 'react';
+import { dashboardNavItemTextClassName } from '@/components/layout/DashboardSidebar/DashboardSidebar';
 import { cn } from '@/lib/utils';
 
 export interface SectionSidebarNavProps
@@ -17,7 +18,7 @@ export function SectionSidebarNav({
   return (
     <nav
       aria-label={ariaLabel}
-      className={cn('flex h-full min-h-0 flex-col gap-6 px-4 py-6', className)}
+      className={cn('flex h-full min-h-0 flex-col overflow-y-auto p-2', className)}
       {...props}
     >
       {children}
@@ -42,24 +43,27 @@ export function SectionSidebarGroup({
   ...props
 }: SectionSidebarGroupProps) {
   return (
-    <section className={className} {...props}>
+    <section className={cn('mt-6 first:mt-0', className)} {...props}>
       {label && (
         <h2
           className={cn(
-            'px-3 pb-2 font-semibold text-muted-foreground text-xs uppercase tracking-[0.16em]',
+            'px-2 mb-1 text-[10px] font-normal uppercase tracking-[0.08em] text-muted-foreground dark:text-sidebar-section-title',
             labelClassName,
           )}
         >
           {label}
         </h2>
       )}
-      <ul className={cn('flex flex-col gap-1', listClassName)}>{children}</ul>
+      <ul className={cn('flex flex-col', listClassName)}>{children}</ul>
     </section>
   );
 }
 
-const sectionSidebarItemClassName =
-  'flex h-10 w-full items-center rounded-lg px-3 font-medium text-muted-foreground text-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
+const sectionSidebarItemClassName = cn(
+  'flex w-full items-center justify-start gap-2.5 rounded-md px-2 py-1.5',
+  dashboardNavItemTextClassName,
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+);
 
 interface SectionSidebarItemProps {
   active?: boolean;
@@ -74,9 +78,10 @@ function getSectionSidebarItemClassName({
 }: SectionSidebarItemProps) {
   return cn(
     sectionSidebarItemClassName,
-    active && 'bg-muted text-primary hover:bg-muted hover:text-primary',
+    active &&
+      'bg-neutral-100 text-primary hover:bg-neutral-100 hover:text-primary dark:bg-muted dark:text-primary dark:hover:bg-muted dark:hover:text-primary',
     disabled &&
-      'cursor-not-allowed opacity-50 hover:bg-transparent hover:text-muted-foreground',
+      'cursor-not-allowed opacity-50 hover:bg-transparent hover:text-neutral-600 dark:hover:bg-transparent dark:hover:text-muted-foreground',
     className,
   );
 }

@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
-import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
+import { UpgradeBanner } from '@/components/common/UpgradeBanner';
 import {
   SectionSidebarButton,
   SectionSidebarGroup,
@@ -68,7 +68,7 @@ function RunSettingsSidebar() {
   const { activeTab, setActiveTab } = useRunSettingsTab();
 
   return (
-    <aside className="h-full w-[280px] max-w-[280px] shrink-0 overflow-auto bg-background-default">
+    <aside className="h-full w-[280px] max-w-[280px] shrink-0 overflow-auto">
       <SectionSidebarNav ariaLabel="Run settings navigation">
         <SectionSidebarGroup label="CONNECTIVITY">
           <SectionSidebarButton
@@ -97,11 +97,7 @@ function RunCustomDomainSettings() {
 
   if (isPlatform && org?.plan?.isFree) {
     return (
-      <UpgradeToProBanner
-        section="settings-custom-domains"
-        title="To unlock Custom Domains, transfer this project to a Pro or Team organization."
-        description=""
-      />
+      <UpgradeBanner section="settings-custom-domains" />
     );
   }
 

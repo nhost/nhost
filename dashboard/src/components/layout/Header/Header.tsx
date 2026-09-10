@@ -25,7 +25,7 @@ export default function Header({ className, ...props }: HeaderProps) {
   const dashboardHref = currentOrgSlug
     ? `/orgs/${currentOrgSlug}/projects`
     : '/';
-  const isFreeOrg = org?.plan?.isFree;
+  const isEnterpriseOrg = org?.plan?.name?.startsWith('Enterprise');
 
   function handleUpgradeClick() {
     if (!org?.slug) {
@@ -38,7 +38,7 @@ export default function Header({ className, ...props }: HeaderProps) {
   return (
     <header
       className={twMerge(
-        'relative z-40 flex h-14 w-full transform-gpu items-center gap-2 border-b bg-paper px-4',
+        'relative z-40 flex h-14 w-full transform-gpu items-center gap-2 border-b px-4',
         className,
       )}
       {...props}
@@ -63,8 +63,8 @@ export default function Header({ className, ...props }: HeaderProps) {
 
       <div className="ml-auto flex min-w-0 shrink-0 justify-end">
         <div className="hidden items-center gap-2 sm:flex">
-          {isFreeOrg && (
-            <Button onClick={handleUpgradeClick} size="xs" variant="outline">
+          {!isEnterpriseOrg && (
+            <Button onClick={handleUpgradeClick} size="xs" variant="outline-emboss">
               Upgrade
             </Button>
           )}

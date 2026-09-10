@@ -1,5 +1,5 @@
 import { useDialog } from '@/components/common/DialogProvider';
-import { Button } from '@/components/ui/v3/button';
+import { Button, type ButtonProps } from '@/components/ui/v3/button';
 import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/useIsCurrentUserOwner';
 
 interface Props {
@@ -7,9 +7,15 @@ interface Props {
   onClick: () => void;
   // Fires on every click regardless of ownership; onClick only fires for owners.
   onInteract?: (meta: { isOwner: boolean }) => void;
+  variant?: ButtonProps['variant'];
 }
 
-function OpenTransferDialogButton({ buttonText, onClick, onInteract }: Props) {
+function OpenTransferDialogButton({
+  buttonText,
+  onClick,
+  onInteract,
+  variant,
+}: Props) {
   const text = buttonText ?? 'Transfer Project';
   const isOwner = useIsCurrentUserOwner();
   const { openAlertDialog } = useDialog();
@@ -31,7 +37,11 @@ function OpenTransferDialogButton({ buttonText, onClick, onInteract }: Props) {
     }
   };
   return (
-    <Button className="max-w-xs lg:w-auto" onClick={handleClick}>
+    <Button
+      className="max-w-xs lg:w-auto"
+      onClick={handleClick}
+      variant={variant}
+    >
       {text}
     </Button>
   );

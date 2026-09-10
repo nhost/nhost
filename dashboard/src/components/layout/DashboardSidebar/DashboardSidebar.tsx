@@ -9,6 +9,7 @@ import {
   useId,
 } from 'react';
 import { Button } from '@/components/ui/v3/button';
+import { getDashboardVersion } from '@/utils/env';
 import {
   Tooltip,
   TooltipContent,
@@ -35,6 +36,7 @@ export interface DashboardSidebarItemProps {
   icon: ReactElement;
   active?: boolean;
   disabled?: boolean;
+  tag?: ReactNode;
 }
 
 export interface DashboardSidebarSectionProps
@@ -85,31 +87,42 @@ function SidebarTooltip({
   );
 }
 
+export const dashboardNavItemTextClassName =
+  'font-semibold text-neutral-600 text-sm transition-colors hover:bg-neutral-50 hover:text-neutral-900 dark:text-sidebar-foreground dark:hover:bg-accent dark:hover:text-foreground';
+
+export const dashboardNavItemIconClassName = 'text-neutral-600 dark:text-sidebar-foreground';
+
 function DashboardSidebarItem({
   label,
   href,
   icon,
   active,
   disabled,
+  tag,
 }: DashboardSidebarItemProps) {
   const { collapsed } = useDashboardSidebarContext();
   const itemClassName = cn(
-    'flex h-10 w-full items-center rounded-lg font-medium text-muted-foreground text-sm transition-colors hover:bg-accent hover:text-accent-foreground',
-    collapsed ? 'justify-center px-0' : 'justify-start gap-3 px-3',
+    'flex w-full items-center rounded-md',
+    dashboardNavItemTextClassName,
+    collapsed ? 'justify-center px-2 py-2' : 'justify-start gap-2.5 px-2 py-1.5',
     active &&
-      'bg-[#ebf3ff] text-primary hover:bg-[#ebf3ff] dark:bg-muted dark:hover:bg-muted',
+      'bg-neutral-100 text-primary hover:bg-neutral-100 hover:text-primary dark:bg-muted dark:text-primary dark:hover:bg-muted dark:hover:text-primary',
     disabled &&
-      'cursor-not-allowed opacity-50 hover:bg-transparent hover:text-muted-foreground',
+      'cursor-not-allowed opacity-50 hover:bg-transparent hover:text-neutral-600 dark:hover:bg-transparent dark:hover:text-muted-foreground',
+  );
+  const iconClassName = cn(
+    'flex size-4 shrink-0 items-center justify-center',
+    active ? 'text-primary' : dashboardNavItemIconClassName,
   );
   const content = (
     <>
-      <span
-        aria-hidden="true"
-        className="flex size-5 shrink-0 items-center justify-center"
-      >
+      <span aria-hidden="true" className={iconClassName}>
         {icon}
       </span>
-      <span className={cn('truncate', collapsed && 'sr-only')}>{label}</span>
+      <span className={cn('flex-1 truncate text-left', collapsed && 'sr-only')}>
+        {label}
+      </span>
+      {tag && !collapsed && <span className="shrink-0">{tag}</span>}
     </>
   );
 
@@ -151,11 +164,16 @@ function DashboardSidebarSection({
   const labelId = label ? (id ? `${id}-heading` : generatedLabelId) : undefined;
 
   return (
-    <section id={id} aria-labelledby={labelId} {...props}>
+    <section
+      id={id}
+      aria-labelledby={labelId}
+      className="mt-6 first:mt-0"
+      {...props}
+    >
       {label && !collapsed && (
         <h2
           id={labelId}
-          className="px-3 pt-5 pb-2 font-semibold text-muted-foreground text-xs uppercase tracking-[0.16em]"
+          className="px-2 mb-1 text-[10px] font-normal uppercase tracking-[0.08em] text-muted-foreground dark:text-sidebar-section-title"
         >
           {label}
         </h2>
@@ -165,7 +183,7 @@ function DashboardSidebarSection({
           {label}
         </h2>
       )}
-      <ul className="flex flex-col gap-1">{children}</ul>
+      <ul className={cn('flex flex-col', collapsed && 'gap-1')}>{children}</ul>
     </section>
   );
 }
@@ -186,7 +204,7 @@ function DashboardSidebar({
       <aside
         aria-label={ariaLabel}
         className={cn(
-          'flex h-full shrink-0 flex-col border-r bg-background transition-[width] duration-200 ease-in-out',
+          'flex h-full shrink-0 flex-col border-r transition-[width] duration-200 ease-in-out',
           collapsed ? COLLAPSED_WIDTH_CLASS : EXPANDED_WIDTH_CLASS,
           className,
         )}
@@ -199,13 +217,22 @@ function DashboardSidebar({
           <div className="flex flex-col gap-1">{children}</div>
         </nav>
 
+        <div
+          className={cn(
+            'shrink-0 py-1 pl-4 pr-2 text-left text-[10px] text-muted-foreground dark:text-sidebar-section-title',
+            collapsed && 'sr-only',
+          )}
+        >
+          v{getDashboardVersion()}
+        </div>
+
         {footer && (
           <div className="shrink-0 border-t p-2">
             <ul className="flex flex-col gap-1">{footer}</ul>
           </div>
         )}
 
-        <div className="flex h-16 shrink-0 items-center justify-center border-t px-2">
+        <div className="flex shrink-0 items-center justify-center border-t px-2 py-1">
           <Button
             type="button"
             variant="ghost"

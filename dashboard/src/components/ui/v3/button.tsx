@@ -9,11 +9,16 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-primary text-white hover:bg-primary/90',
-        destructive:
-          'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+        // "Soft emboss" main CTA style, matching the Lovable reference design.
+        default: 'btn-emboss btn-emboss-primary',
+        // "Soft emboss" danger style, matching the Lovable reference design.
+        destructive: 'btn-emboss btn-emboss-danger',
         outline:
-          'border bg-background hover:bg-accent hover:text-accent-foreground',
+          'border border-input bg-transparent hover:bg-accent hover:text-accent-foreground',
+        // "Soft emboss" secondary style, matching the Lovable reference design.
+        // Additive only — the plain `outline` variant above is left untouched
+        // since it's used broadly across the app.
+        'outline-emboss': 'btn-emboss btn-emboss-secondary',
         secondary:
           'bg-secondary text-secondary-foreground hover:bg-secondary-hover',
         ghost: 'text-accent-foreground hover:bg-accent',

@@ -1,10 +1,11 @@
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
 import { graphql } from 'cm6-graphql';
+import { codeMirrorAppBackground } from '@/lib/codeMirrorAppTheme';
 import { cn } from '@/lib/utils';
 import { useThemePreference } from '@/providers/Theme';
 
-const GRAPHQL_EXTENSIONS = [graphql()];
+const GRAPHQL_EXTENSIONS = [graphql(), codeMirrorAppBackground];
 
 export interface GraphQLSdlEditorProps {
   value: string;

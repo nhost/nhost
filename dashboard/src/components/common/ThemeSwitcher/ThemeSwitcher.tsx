@@ -36,7 +36,7 @@ export default function ThemeSwitcher({ className }: ThemeSwitcherProps) {
             setThemePreference(value as ThemePreference);
           }
         }}
-        className="w-full gap-1 rounded-md bg-muted p-1"
+        className="w-full gap-1 rounded-md bg-neutral-100 dark:bg-muted p-1"
       >
         {themeOptions.map(({ value, label, icon: Icon }) => (
           <ToggleGroupItem

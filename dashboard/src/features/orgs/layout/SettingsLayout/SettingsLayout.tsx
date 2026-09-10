@@ -24,8 +24,8 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
   }
 
   return (
-    <div className="flex w-full flex-auto flex-col overflow-x-hidden bg-background-default">
-      <div className="flex flex-col bg-background-default">
+    <div className="flex w-full flex-auto flex-col overflow-x-hidden">
+      <div className="flex flex-col">
         <RetryableErrorBoundary>
           <div className="flex flex-col space-y-2">
             {hasGitRepo && (

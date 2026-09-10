@@ -387,7 +387,7 @@ export default function ServiceForm({
             </Button>
           </div>
 
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button type="button" variant="outline-emboss" onClick={onCancel}>
             Cancel
           </Button>
         </div>

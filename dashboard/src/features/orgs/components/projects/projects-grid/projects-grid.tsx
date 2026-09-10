@@ -1,15 +1,184 @@
-import { ArrowRight, Box, Plus } from 'lucide-react';
+import {
+  ArrowRight,
+  CircleAlert,
+  CircleCheck,
+  PauseCircle,
+  Play,
+  Plus,
+  PlayCircle,
+  RotateCw,
+  type LucideIcon,
+} from 'lucide-react';
 import Link from 'next/link';
+import { type MouseEvent, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
-import { ProjectStatusIndicator } from '@/features/orgs/components/common/ProjectStatusIndicator';
 import { DeploymentStatusMessage } from '@/features/orgs/projects/deployments/components/DeploymentStatusMessage';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { getUnpauseErrorMessage } from '@/features/orgs/utils/getUnpauseErrorMessage';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import type { GetProjectsQuery } from '@/generated/graphql';
+import {
+  GetOrganizationsDocument,
+  type GetProjectsQuery,
+  useUnpauseApplicationMutation,
+} from '@/generated/graphql';
+import { useUserData } from '@/hooks/useUserData';
+import { ApplicationStatus } from '@/types/application';
 
 type Project = GetProjectsQuery['apps'][0];
 
+// Keep the 3D tilt and the blob parallax very subtle.
+const MAX_TILT_DEGREES = 6.5;
+const MAX_BLOB_SHIFT_PX = 10;
+
+const NEUTRAL_TILT = { rotateX: 0, rotateY: 0, blobX: 0, blobY: 0 };
+
+interface ProjectStatusPillStyle {
+  icon: LucideIcon;
+  iconClassName?: string;
+  pillClassName: string;
+  description: string;
+}
+
+const PROJECT_STATUS_PILL_STYLES: Partial<
+  Record<ApplicationStatus, ProjectStatusPillStyle>
+> = {
+  [ApplicationStatus.Errored]: {
+    icon: CircleAlert,
+    pillClassName: 'border-destructive/40 text-destructive',
+    description: 'Project error',
+  },
+  [ApplicationStatus.Pausing]: {
+    icon: PauseCircle,
+    iconClassName: 'animate-blinking',
+    pillClassName: 'border-slate-400/40 text-slate-500 dark:text-slate-400',
+    description: 'Project is pausing',
+  },
+  [ApplicationStatus.Restoring]: {
+    icon: RotateCw,
+    iconClassName: 'animate-spin',
+    pillClassName: 'border-slate-400/40 text-slate-500 dark:text-slate-400',
+    description: 'Project is restoring',
+  },
+  [ApplicationStatus.Paused]: {
+    icon: PauseCircle,
+    pillClassName: 'border-slate-400/40 text-slate-500 dark:text-slate-400',
+    description: 'Project is paused',
+  },
+  [ApplicationStatus.Unpausing]: {
+    icon: PlayCircle,
+    iconClassName: 'animate-blinking',
+    pillClassName: 'border-slate-400/40 text-slate-500 dark:text-slate-400',
+    description: 'Project is waking up',
+  },
+  [ApplicationStatus.Live]: {
+    icon: CircleCheck,
+    pillClassName: 'border-primary-main/40 text-primary-main',
+    description: 'Project is live',
+  },
+};
+
+function ProjectStatusPill({ status }: { status: ApplicationStatus }) {
+  const style = PROJECT_STATUS_PILL_STYLES[status];
+
+  if (!style) {
+    return null;
+  }
+
+  const { icon: Icon, iconClassName, pillClassName, description } = style;
+
+  return (
+    <div
+      className={`inline-flex items-center gap-1.5 rounded-full border py-1 pl-[0.3rem] pr-2.5 ${pillClassName}`}
+    >
+      <Icon className={`h-4 w-4 flex-shrink-0 ${iconClassName ?? ''}`} />
+      <span className="whitespace-nowrap font-medium text-xs">
+        {description}
+      </span>
+    </div>
+  );
+}
+
+/**
+ * Shortcut for waking up a paused project directly from its card, instead of
+ * having to open the project and go to Settings. Reuses the exact same
+ * mutation (and error handling) as the "Wake up" button on the project's
+ * Settings page - this is only a new entry point, not a new feature.
+ *
+ * The card owns whether a wake up was triggered (so it can flip the status
+ * pill over to "Project is waking up" the moment this button is clicked,
+ * instead of waiting on the next poll of the projects list).
+ */
+function WakeUpProjectButton({
+  projectId,
+  onTriggered,
+  onFailed,
+}: {
+  projectId: string;
+  onTriggered: () => void;
+  onFailed: () => void;
+}) {
+  const userData = useUserData();
+
+  const [unpauseApplication, { loading }] = useUnpauseApplicationMutation({
+    refetchQueries: [
+      {
+        query: GetOrganizationsDocument,
+        variables: { userId: userData?.id },
+      },
+    ],
+  });
+
+  const handleWakeUp = async (event: MouseEvent<HTMLButtonElement>) => {
+    // This button lives inside the card's own link - don't navigate.
+    event.preventDefault();
+    event.stopPropagation();
+
+    onTriggered();
+
+    const result = await execPromiseWithErrorToast(
+      () => unpauseApplication({ variables: { appId: projectId } }),
+      {
+        loadingMessage: 'Waking up the project...',
+        successMessage: 'The project is waking up.',
+        errorMessage: getUnpauseErrorMessage,
+      },
+    );
+
+    if (!result) {
+      // The mutation failed - let the user try again.
+      onFailed();
+    }
+  };
+
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="xs"
+      disabled={loading}
+      onClick={handleWakeUp}
+      className="flex-shrink-0 gap-1"
+    >
+      <Play className="h-3.5 w-3.5" />
+      Wake up
+    </Button>
+  );
+}
+
 function ProjectCard({ project }: { project: Project }) {
   const { org } = useCurrentOrg();
+  const [tilt, setTilt] = useState(NEUTRAL_TILT);
+  const [wakeUpTriggered, setWakeUpTriggered] = useState(false);
+
+  const realStatus = project.appStates[0]?.stateId;
+  const isPaused = realStatus === ApplicationStatus.Paused;
+
+  // Once "Wake up" is clicked, show the project as unpausing right away
+  // instead of waiting for the projects list to poll again. As soon as the
+  // real status moves past "Paused" this stops doing anything - the actual
+  // status just takes over.
+  const displayStatus =
+    wakeUpTriggered && isPaused ? ApplicationStatus.Unpausing : realStatus;
 
   const [latestPipelineRun] = project.pipelineRuns;
   const [latestDeployment] = project.deployments;
@@ -24,34 +193,93 @@ function ProjectCard({ project }: { project: Project }) {
 
   const showPipelineRun = prDate >= depDate && latestPipelineRun;
 
+  const handleMouseMove = (event: MouseEvent<HTMLAnchorElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const relativeX = (event.clientX - rect.left) / rect.width - 0.5;
+    const relativeY = (event.clientY - rect.top) / rect.height - 0.5;
+
+    setTilt({
+      rotateX: -relativeY * MAX_TILT_DEGREES,
+      rotateY: relativeX * MAX_TILT_DEGREES,
+      blobX: relativeX * MAX_BLOB_SHIFT_PX,
+      blobY: relativeY * MAX_BLOB_SHIFT_PX,
+    });
+  };
+
+  const handleMouseLeave = () => setTilt(NEUTRAL_TILT);
+
   return (
     <Link
       href={`/orgs/${org?.slug}/projects/${project.subdomain}`}
-      className="flex h-44 cursor-pointer flex-col gap-4 rounded-lg border bg-background p-4 hover:shadow-sm"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className="group relative block h-44 rounded-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_0_1px_rgba(0,82,204,0.15),0_0_16px_3px_rgba(0,82,204,0.14)] dark:hover:shadow-[0_0_0_1px_rgba(100,157,254,0.18),0_0_16px_3px_rgba(100,157,254,0.12)]"
     >
-      <div className="flex flex-row items-start gap-2">
-        <Box className="mt-[2px] h-5 w-5 flex-shrink-0" />
-        <div className="flex w-full flex-col overflow-hidden">
-          <p title={project.name} className="truncate font-bold">
-            {project.name}
-          </p>
-          <span className="text-muted-foreground text-xs">
-            {project.region.name}
-          </span>
+      <div
+        className="relative h-full overflow-hidden rounded-lg p-[2px] transition-transform duration-200 ease-out"
+        style={{
+          transform: `perspective(700px) rotateX(${tilt.rotateX}deg) rotateY(${tilt.rotateY}deg)`,
+        }}
+      >
+        <div
+          className="absolute inset-0 rounded-lg opacity-0 transition-opacity duration-200 [--card-border-angle:0deg] [--card-border-base:hsl(var(--primary)/15%)] [--card-border-glow:hsl(var(--primary)/85%)] group-hover:animate-card-border-sweep group-hover:opacity-100 dark:[--card-border-base:hsl(var(--primary)/20%)] dark:[--card-border-glow:hsl(var(--primary)/90%)]"
+          style={{
+            background:
+              'conic-gradient(from var(--card-border-angle), var(--card-border-base) 80%, var(--card-border-glow) 87%, var(--card-border-base) 96%)',
+          }}
+        />
+        <div className="relative flex h-full cursor-pointer flex-col gap-4 overflow-hidden rounded-[6px] border bg-background p-4 transition-colors duration-300 group-hover:border-primary/50">
+          <div
+            className="pointer-events-none absolute -right-6 -top-6 transition-transform duration-200 ease-out"
+            style={{
+              transform: `translate(${tilt.blobX}px, ${tilt.blobY}px)`,
+            }}
+          >
+            <div className="h-24 w-24 scale-75 rounded-full bg-primary/25 opacity-0 blur-2xl transition-all duration-500 group-hover:scale-125 group-hover:opacity-60" />
+          </div>
+          <div
+            className="pointer-events-none absolute -bottom-8 -left-8 transition-transform duration-200 ease-out"
+            style={{
+              transform: `translate(${tilt.blobX}px, ${tilt.blobY}px)`,
+            }}
+          >
+            <div className="h-28 w-28 scale-75 rounded-full bg-primary/20 opacity-0 blur-2xl transition-all duration-500 delay-75 group-hover:scale-125 group-hover:opacity-60" />
+          </div>
+
+          <div className="flex flex-row items-start gap-2">
+            <div className="flex w-full flex-col overflow-hidden">
+              <p title={project.name} className="truncate font-bold">
+                {project.name}
+              </p>
+              <span className="text-muted-foreground text-xs">
+                {project.region.name}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-1 flex-row items-start gap-2">
+            {showPipelineRun ? (
+              <DeploymentStatusMessage pipelineRun={latestPipelineRun} />
+            ) : (
+              <DeploymentStatusMessage deployment={latestDeployment} />
+            )}
+          </div>
+
+          <div className="flex w-full flex-row items-end justify-between gap-2">
+            <div className="flex min-w-0 flex-row items-center gap-2">
+              {isPaused && !wakeUpTriggered ? (
+                <WakeUpProjectButton
+                  projectId={project.id}
+                  onTriggered={() => setWakeUpTriggered(true)}
+                  onFailed={() => setWakeUpTriggered(false)}
+                />
+              ) : (
+                <ProjectStatusPill status={displayStatus} />
+              )}
+            </div>
+            <ArrowRight className="flex-shrink-0" />
+          </div>
         </div>
-        <ProjectStatusIndicator status={project.appStates[0]?.stateId} />
-      </div>
-
-      <div className="flex flex-1 flex-row items-start gap-2">
-        {showPipelineRun ? (
-          <DeploymentStatusMessage pipelineRun={latestPipelineRun} />
-        ) : (
-          <DeploymentStatusMessage deployment={latestDeployment} />
-        )}
-      </div>
-
-      <div className="flex w-full justify-end">
-        <ArrowRight />
       </div>
     </Link>
   );
@@ -65,8 +293,9 @@ export default function ProjectsGrid({ projects }: ProjectGridProps) {
   const { org } = useCurrentOrg();
 
   return (
-    <div className="mx-auto h-full overflow-auto bg-accent-background">
-      <div className="flex w-full flex-shrink-0 flex-row items-center justify-end gap-2 border-b p-2">
+    <div className="mx-auto h-full overflow-auto bg-accent-background pb-16">
+      <div className="mx-auto flex w-full max-w-5xl flex-shrink-0 flex-row items-center justify-between gap-2 px-5 pb-4 pt-8">
+        <h1 className="text-2xl font-semibold">Projects</h1>
         <Button asChild>
           <Link href={`/orgs/${org?.slug}/projects/new`}>
             <div className="flex h-fit flex-row items-center justify-center space-x-2">
@@ -76,7 +305,7 @@ export default function ProjectsGrid({ projects }: ProjectGridProps) {
           </Link>
         </Button>
       </div>
-      <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+      <div className="mx-auto grid w-full max-w-5xl grid-cols-1 gap-4 px-5 py-4 sm:grid-cols-2 lg:grid-cols-3">
         {projects.map((project) => (
           <ProjectCard key={project.id} project={project} />
         ))}

@@ -41,6 +41,7 @@ import {
   useSQLEditorPagination,
 } from '@/features/orgs/projects/database/dataGrid/hooks/useSQLEditorPagination';
 import { useTrackEvent } from '@/hooks/useTrackEvent';
+import { codeMirrorAppBackground } from '@/lib/codeMirrorAppTheme';
 
 function InfoTooltip({ title }: { title: string }) {
   return (
@@ -232,6 +233,7 @@ export default function SQLEditor({
               },
             ]),
           ),
+          codeMirrorAppBackground,
         ]}
         onChange={onChange}
       />

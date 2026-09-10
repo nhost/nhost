@@ -14,6 +14,6 @@ export default function DatabaseSchemaDiagramPage() {
 DatabaseSchemaDiagramPage.getLayout = function getLayout(page: ReactElement) {
   return getDatabaseLayout(page, {
     contentClassName:
-      'box flex w-full flex-auto flex-col overflow-hidden bg-default',
+      'box flex w-full flex-auto flex-col overflow-hidden pt-0',
   });
 };

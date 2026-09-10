@@ -7,9 +7,7 @@ import {
   CogIcon,
   DatabaseIcon,
   FileTextIcon,
-  FolderIcon,
   GaugeIcon,
-  GitBranchIcon,
   HardDriveIcon,
   HomeIcon,
   RocketIcon,
@@ -17,9 +15,11 @@ import {
   UserIcon,
   ZapIcon,
 } from 'lucide-react';
+import { ProTag } from '@/components/common/ProTag';
 import { useCurrentRoute } from '@/components/layout/AppSidebar/useCurrentRoute';
 import { DashboardSidebar } from '@/components/layout/DashboardSidebar';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useSettingsDisabled } from '@/hooks/useSettingsDisabled';
 
 const iconClassName = 'size-4';
@@ -54,6 +54,9 @@ export default function ProjectNav() {
   const { currentPath, baseHref, isActive } = useProjectRoute();
   const isPlatform = useIsPlatform();
   const settingsDisabled = useSettingsDisabled();
+  const { org } = useCurrentOrg();
+  const isFreeOrg = isPlatform && org?.plan?.isFree;
+  const proTag = isFreeOrg ? <ProTag /> : undefined;
 
   return (
     <>
@@ -101,6 +104,14 @@ export default function ProjectNav() {
 
       <DashboardSidebar.Section label="Compute">
         <DashboardSidebar.Item
+          label="AI"
+          href={`${baseHref}/ai/assistants`}
+          icon={<SparklesIcon className={iconClassName} />}
+          active={isActive(`${baseHref}/ai`)}
+          disabled={settingsDisabled}
+          tag={proTag}
+        />
+        <DashboardSidebar.Item
           label="Functions"
           href={`${baseHref}/functions`}
           icon={<CodeIcon className={iconClassName} />}
@@ -111,30 +122,7 @@ export default function ProjectNav() {
           href={`${baseHref}/run`}
           icon={<ServicesIcon className={iconClassName} />}
           active={isActive(`${baseHref}/run`)}
-        />
-      </DashboardSidebar.Section>
-
-      <DashboardSidebar.Section label="AI">
-        <DashboardSidebar.Item
-          label="Agents"
-          href={`${baseHref}/ai/assistants`}
-          icon={<SparklesIcon className={iconClassName} />}
-          active={isActive(`${baseHref}/ai/assistants`)}
-          disabled={settingsDisabled}
-        />
-        <DashboardSidebar.Item
-          label="File Stores"
-          href={`${baseHref}/ai/file-stores`}
-          icon={<FolderIcon className={iconClassName} />}
-          active={isActive(`${baseHref}/ai/file-stores`)}
-          disabled={settingsDisabled}
-        />
-        <DashboardSidebar.Item
-          label="Auto-Embeddings"
-          href={`${baseHref}/ai/auto-embeddings`}
-          icon={<GitBranchIcon className={iconClassName} />}
-          active={isActive(`${baseHref}/ai/auto-embeddings`)}
-          disabled={settingsDisabled}
+          tag={proTag}
         />
       </DashboardSidebar.Section>
 
@@ -158,6 +146,7 @@ export default function ProjectNav() {
           icon={<GaugeIcon className={iconClassName} />}
           active={isActive(`${baseHref}/metrics`)}
           disabled={!isPlatform}
+          tag={proTag}
         />
       </DashboardSidebar.Section>
     </>

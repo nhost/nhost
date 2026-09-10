@@ -23,6 +23,7 @@ import { TrackFunctionButton } from '@/features/orgs/projects/database/dataGrid/
 import { useFunctionCustomizationQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionCustomizationQuery';
 import { useFunctionQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionQuery';
 import { useIsTrackedFunction } from '@/features/orgs/projects/database/dataGrid/hooks/useIsTrackedFunction';
+import { codeMirrorAppBackground } from '@/lib/codeMirrorAppTheme';
 
 const EditFunctionForm = dynamic(
   () =>
@@ -309,7 +310,7 @@ export default function FunctionDefinitionView() {
                   theme={
                     theme.palette.mode === 'light' ? githubLight : githubDark
                   }
-                  extensions={[sql({ dialect: PostgreSQL })]}
+                  extensions={[sql({ dialect: PostgreSQL }), codeMirrorAppBackground]}
                   editable={false}
                   basicSetup={{
                     lineNumbers: true,

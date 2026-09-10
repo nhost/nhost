@@ -18,6 +18,8 @@ module.exports = {
         brown: '#382D22',
         copper: '#DD792D',
         paper: 'hsl(var(--paper))',
+        'header-bg': 'hsl(var(--background) / 70%)',
+        'header-border': 'hsl(var(--border) / 70%)',
         divider: 'hsl(var(--divider))',
         disabled: 'hsl(var(--disabled))',
         'data-cell-bg': 'hsl(var(--data-cell-bg))',
@@ -72,12 +74,16 @@ module.exports = {
         accent: {
           DEFAULT: 'hsl(var(--accent))',
           foreground: 'hsl(var(--accent-foreground))',
-          background: 'hsl(var(--accent-background))',
+          background: 'hsl(var(--background))',
         },
         destructive: {
           DEFAULT: 'hsl(var(--destructive))',
           foreground: 'hsl(var(--destructive-foreground))',
+          hover: 'hsl(var(--destructive-hover))',
         },
+        warning: 'hsl(var(--warning) / <alpha-value>)',
+        'sidebar-foreground': 'hsl(var(--sidebar-foreground))',
+        'sidebar-section-title': 'hsl(var(--sidebar-section-title))',
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
@@ -96,6 +102,8 @@ module.exports = {
       boxShadow: {
         outline: 'inset 0 0 0 2px rgba(0, 82, 205, 0.6)',
         'outline-dark': 'inset 0 0 0 2px rgba(0, 82, 205, 1)',
+        overlay: 'var(--shadow-overlay)',
+        'overlay-strong': 'var(--shadow-overlay-strong)',
       },
       zIndex: {
         '-1': '-1',
@@ -218,8 +226,8 @@ module.exports = {
         'near-screen': '96vh',
       },
       fontFamily: {
-        display: ['Inter var', ...defaultTheme.fontFamily.sans],
-        sans: ['Work Sans', ...defaultTheme.fontFamily.sans],
+        display: ['Satoshi', ...defaultTheme.fontFamily.sans],
+        sans: ['Satoshi', ...defaultTheme.fontFamily.sans],
         system: defaultTheme.fontFamily.sans,
         'inter-var': ['Inter var', ...defaultTheme.fontFamily.sans],
         mono: ['"Roboto Mono"', ...defaultTheme.fontFamily.mono],
@@ -251,6 +259,10 @@ module.exports = {
           from: { height: 'var(--radix-accordion-content-height)' },
           to: { height: '0' },
         },
+        'card-border-sweep': {
+          from: { '--card-border-angle': '0deg' },
+          to: { '--card-border-angle': '180deg' },
+        },
       },
       animation: {
         blinking: 'blinking 1s infinite',
@@ -259,6 +271,8 @@ module.exports = {
         progress: 'progress 1s infinite linear',
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out forwards',
+        'card-border-sweep':
+          'card-border-sweep 0.75s cubic-bezier(0.16,1,0.3,1) forwards',
       },
     },
   },

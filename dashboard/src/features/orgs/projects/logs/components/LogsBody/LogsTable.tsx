@@ -136,7 +136,7 @@ export const LogsTable = forwardRef<LogsTableHandle, LogsTableProps>(
       <div
         ref={scrollRef}
         className={cn(
-          'relative min-h-0 w-full flex-1 overflow-auto bg-paper',
+          'relative min-h-0 w-full flex-1 overflow-auto',
           className,
         )}
         style={{ scrollbarGutter: 'stable' }}
@@ -162,7 +162,7 @@ export const LogsTable = forwardRef<LogsTableHandle, LogsTableProps>(
               <tr key={headerGroup.id}>
                 <th
                   scope="col"
-                  className="sticky left-0 top-0 z-[3] border-b border-divider bg-paper p-2"
+                  className="sticky left-0 top-0 z-[3] border-b border-divider bg-background p-2"
                   aria-label="Actions"
                 />
                 {headerGroup.headers.map((header) => {
@@ -176,7 +176,7 @@ export const LogsTable = forwardRef<LogsTableHandle, LogsTableProps>(
                         stickyLeft !== null ? { left: stickyLeft } : undefined
                       }
                       className={cn(
-                        'sticky top-0 border-b border-divider bg-paper p-2 text-left align-middle font-display text-xs- font-semibold',
+                        'sticky top-0 border-b border-divider bg-background p-2 text-left align-middle font-display text-xs- font-semibold',
                         stickyLeft !== null ? 'z-[3]' : 'z-[2]',
                       )}
                     >

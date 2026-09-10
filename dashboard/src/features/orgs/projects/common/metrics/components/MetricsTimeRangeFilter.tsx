@@ -170,7 +170,7 @@ export default function MetricsTimeRangeFilter({
               </p>
             )}
             <div className="mt-1 flex justify-end gap-2">
-              <Button variant="outline" onClick={handleCancel}>
+              <Button variant="outline-emboss" onClick={handleCancel}>
                 Cancel
               </Button>
               <Button onClick={handleApply} disabled={isInvalid}>

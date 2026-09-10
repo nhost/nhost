@@ -6,7 +6,7 @@ import { type ReactElement, useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
-import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
+import { UpgradeBanner } from '@/components/common/UpgradeBanner';
 import { Form } from '@/components/form/Form';
 import { FormInput } from '@/components/form/FormInput';
 import {
@@ -134,7 +134,7 @@ function GeneralSettingsSidebar() {
   const { activeTab, setActiveTab } = useGeneralSettingsTab();
 
   return (
-    <aside className="flex h-full w-[280px] max-w-[280px] shrink-0 flex-col overflow-hidden border-r bg-background-default">
+    <aside className="flex h-full w-[200px] max-w-[200px] shrink-0 flex-col overflow-hidden border-r">
       <div className="shrink-0 border-b px-4 py-3 font-medium text-sm">
         Settings
       </div>
@@ -192,11 +192,7 @@ function ComputeResourcesSettings({ isFree }: ComputeResourcesSettingsProps) {
   if (isFree) {
     return (
       <div className="grid grid-flow-row gap-6">
-        <UpgradeToProBanner
-          section="settings-compute-resources"
-          title="To unlock Compute Resources, transfer this project to a Pro or Team organization."
-          description=""
-        />
+        <UpgradeBanner section="settings-compute-resources" />
       </div>
     );
   }
@@ -518,7 +514,7 @@ export default function SettingsGeneralPage() {
             <TransferProject />
 
             {isPlatform && (
-              <SettingsCard className="border-destructive">
+              <SettingsCard>
                 <SettingsCardHeader
                   title="Delete Project"
                   description="The project will be permanently deleted, including its database, metadata, files, etc. This action is irreversible and can not be undone."

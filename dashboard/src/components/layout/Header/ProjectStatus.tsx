@@ -4,7 +4,7 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { ApplicationStatus } from '@/types/application';
 
 const WARNING_BADGE =
-  'pointer-events-none border-transparent font-medium bg-[rgba(255,154,35,0.2)] text-[#ff9a23]';
+  'pointer-events-none border-transparent font-medium bg-warning/20 text-warning';
 
 export default function ProjectStatus() {
   const { project, refetch: refetchProject } = useProject();

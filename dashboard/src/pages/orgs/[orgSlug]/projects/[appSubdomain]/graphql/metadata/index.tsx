@@ -7,7 +7,7 @@ import { ResetMetadataCard } from '@/features/orgs/projects/graphql/metadata/com
 
 export default function MetadataPage() {
   return (
-    <div className="mx-auto grid w-full max-w-5xl grid-flow-row gap-y-8 px-10 py-8">
+    <div className="mx-auto grid w-full max-w-5xl grid-flow-row gap-y-8 px-10 pb-8">
       <div>
         <h1 className="font-semibold text-foreground text-lg tracking-tight">
           Metadata
@@ -28,7 +28,7 @@ export default function MetadataPage() {
 
 MetadataPage.getLayout = function getLayout(page: ReactElement) {
   return getGraphQLLayout(page, {
-    bodyClassName: 'bg-background-default',
-    contentClassName: 'bg-background-default',
+    bodyClassName: '',
+    contentClassName: '',
   });
 };

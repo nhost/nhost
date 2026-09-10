@@ -151,7 +151,7 @@ function TicketPage() {
   };
 
   return (
-    <div className="flex min-h-full flex-col items-center justify-center bg-background-default py-10">
+    <div className="flex min-h-full flex-col items-center justify-center py-10">
       <div className="flex w-full max-w-3xl flex-col">
         <div className="mb-4 flex flex-col items-center">
           <h4 className="font-bold text-2xl">Nhost Support</h4>
