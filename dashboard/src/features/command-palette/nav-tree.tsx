@@ -9,14 +9,14 @@ import {
   UsersIcon,
 } from 'lucide-react';
 import type { ReactElement } from 'react';
+import type { CommandNode } from '@/features/command-palette/types';
 import {
   getSettingsPageRoute,
   orgPages,
   projectPages,
   projectSettingsPages,
   projectSubPagesBySlug,
-} from '@/components/layout/MainNav/nav-config';
-import type { CommandNode } from '@/features/command-palette/types';
+} from '@/features/navigation/nav-config';
 
 const iconClassName = 'h-4 w-4';
 
