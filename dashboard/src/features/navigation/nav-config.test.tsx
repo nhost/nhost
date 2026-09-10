@@ -8,6 +8,7 @@ import {
   projectFunctionsPages,
   projectGraphQLPages,
   projectPages,
+  projectRunPages,
   projectSettingsPages,
   projectStoragePages,
   projectSubPagesBySlug,
@@ -50,8 +51,6 @@ describe('navigation nav-config', () => {
       'general',
       'compute-resources',
       'deployments',
-      'custom-domains',
-      'rate-limiting',
       'ai',
       'metrics',
     ]);
@@ -92,6 +91,13 @@ describe('navigation nav-config', () => {
     expect(projectAuthPages.map((page) => page.slug)).toEqual([
       'users',
       'oauth2-clients',
+      'settings',
+    ]);
+  });
+
+  it('keeps Run sub-pages in route-tab order', () => {
+    expect(projectRunPages.map((page) => page.slug)).toEqual([
+      'services',
       'settings',
     ]);
   });
@@ -138,6 +144,7 @@ describe('navigation nav-config', () => {
       'auth',
       'storage',
       'functions',
+      'run',
       'ai',
     ]);
   });
