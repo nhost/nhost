@@ -1,7 +1,7 @@
 import { Archive } from 'lucide-react';
 import type { ReactElement } from 'react';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { StorageLayout } from '@/features/orgs/projects/storage/components/StorageLayout';
+import { getStorageLayout } from '@/features/orgs/projects/storage/layout';
 
 export default function StorageIndexPage() {
   return (
@@ -20,13 +20,7 @@ export default function StorageIndexPage() {
 }
 
 StorageIndexPage.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <ProjectLayout
-      mainContainerProps={{
-        className: 'flex h-full',
-      }}
-    >
-      <StorageLayout>{page}</StorageLayout>
-    </ProjectLayout>
-  );
+  return getStorageLayout(<StorageLayout>{page}</StorageLayout>, {
+    contentClassName: 'flex w-full flex-auto overflow-hidden',
+  });
 };

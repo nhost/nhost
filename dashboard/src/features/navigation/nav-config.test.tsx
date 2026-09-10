@@ -8,6 +8,7 @@ import {
   projectGraphQLPages,
   projectPages,
   projectSettingsPages,
+  projectStoragePages,
   projectSubPagesBySlug,
 } from '@/features/navigation/nav-config';
 
@@ -47,7 +48,6 @@ describe('navigation nav-config', () => {
     expect(projectSettingsPages.map((page) => page.slug)).toEqual([
       'general',
       'compute-resources',
-      'storage',
       'deployments',
       'custom-domains',
       'rate-limiting',
@@ -95,6 +95,13 @@ describe('navigation nav-config', () => {
     ]);
   });
 
+  it('keeps Storage sub-pages in route-tab order', () => {
+    expect(projectStoragePages.map((page) => page.slug)).toEqual([
+      'storage',
+      'settings',
+    ]);
+  });
+
   it('keeps database sub-pages in route-tab order', () => {
     expect(projectDatabasePages.map((page) => page.slug)).toEqual([
       'browser',
@@ -121,6 +128,7 @@ describe('navigation nav-config', () => {
       'graphql',
       'events',
       'auth',
+      'storage',
       'ai',
     ]);
   });
