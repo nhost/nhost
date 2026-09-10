@@ -1,0 +1,30 @@
+openapi: "3.0.0"
+
+paths:
+  /optional-upload:
+    post:
+      operationId: submitOptionalUpload
+      requestBody:
+        required: false
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/OptionalUploadRequest"
+      responses:
+        "204":
+          description: Optional upload accepted
+
+components:
+  schemas:
+    OptionalUploadRequest:
+      type: object
+      properties:
+        file:
+          type: string
+          format: binary
+        description:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string

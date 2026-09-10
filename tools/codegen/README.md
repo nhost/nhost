@@ -22,10 +22,30 @@ The fixture pins one concrete instantiation of the contract, not the full space 
 
 Keeping status and headers is required even for bodyless operations: for example, a generated `HEAD` method has `T = ()`, and its headers are the operation's result.
 
+## Python runtime contract
+
+The Python generator emits an async API module, not the hand-written package that hosts it. The generated module must be placed in an immediate child package of the package that provides `fetch`: for example, `nhost.auth.client` resolves `from ..fetch import ...` to `nhost.fetch`. Depending on the rendered API surface, that module imports these host symbols:
+
+- `ChainFunction` and `create_enhanced_fetch`, which build the async middleware pipeline around an `httpx.AsyncClient`.
+- `FetchResponse`, a generic response type constructible with the keyword fields `body`, `status`, and `headers`.
+- `HTTPError`, an exception type with `from_response(httpx.Response)`; generated methods raise its result for responses with status 300 or greater. Redirect operations are emitted as URL builders and do not send requests, so their declared 302 response remains part of their generation contract without being treated as a returned success payload.
+- `UploadFile` and `to_file_part`, which support binary multipart fields in addition to raw `bytes`.
+- `decode_json`, which decodes and validates JSON responses against the generated return type.
+- `to_json` and `to_jsonable`, which serialize request bodies, parameters, and multipart values while preserving generated Pydantic aliases.
+
+The complete possible `from ..fetch import (...)` set is therefore `ChainFunction`, `FetchResponse`, `HTTPError`, `UploadFile`, `create_enhanced_fetch`, `decode_json`, `to_file_part`, `to_json`, and `to_jsonable`. The generated module also imports `httpx` and Pydantic directly and uses Pydantic v2 APIs such as `BaseModel`, `ConfigDict`, and `Field`, so both packages are runtime dependencies of the host package.
+
+`TestPythonRender` parses and compiles every generated golden with the standard-library `ast` module when `python3` is available. That AST validation is skipped locally when the interpreter is absent; `python3` is therefore included in the codegen Nix check dependencies so CI always enforces it. Changes to generated runtime requirements must update the host package, the Python goldens, and this contract together.
+
 ## Rust OpenAPI extensions
 
 - `x-rust-type` overrides the generated type for scalar and typed-map schemas. Its value must be a non-empty YAML string and is emitted verbatim as a Rust type expression; the generator validates the YAML value type but does not parse the Rust expression or add an import. The host crate must make the path resolve and ensure the type satisfies the traits and methods required where that schema is used, such as Serde traits, `Clone`, `Debug`, or `ToString`.
 - `x-nhost-sensitive` on an object property or query/header parameter schema is an assertion that the value must be redacted by the generated `Debug` implementation. Its value must be the boolean `true`; use of `false` or a non-boolean value fails generation rather than risking either an accidental secret leak or ambiguous redaction behavior. Omit the extension for non-sensitive values. Independently, the generator always redacts string-like fields and parameters whose names match its built-in credential vocabulary.
+
+## Python OpenAPI extensions
+
+- `x-python-type` overrides the generated type expression for a typed-map schema. Its value must be a non-empty YAML string and is emitted verbatim; the generator neither parses the Python expression nor adds imports for it. Use built-ins or names already available in the generated module, and ensure the resulting type works anywhere the schema is used, including Pydantic response validation.
+- `x-nhost-sensitive` on an object property or generated query/header parameter schema suppresses that field from the Pydantic model representation with `Field(repr=False)`. Its value must be the boolean `true`; `false` and non-boolean values fail generation. Omit the extension for non-sensitive values. The generator also applies this representation redaction to string-like fields and parameters whose names match its built-in credential vocabulary. This affects representations only, not serialization, logging outside the model representation, or transport of the value.
 
 ## Go OpenAPI extensions
 
@@ -63,12 +83,25 @@ Caller-supplied `http.Header` values replace generated body and typed-parameter 
 - Spec-derived text emitted as a Rust string literal, including wire names and static path segments, is escaped as Rust source.
 - Schema descriptions, property/parameter descriptions, and operation summaries/descriptions are emitted as Rust doc comments. Markdown control characters and leading indentation are escaped so arbitrary spec prose cannot create unintended rustdoc links, HTML, formatting, or doctests.
 
+## Python validation and type behavior
+
+- Top-level type names remove spaces, hyphens, and underscores and uppercase the first rune of each resulting word without case-folding the remaining letters. Existing acronym and digit spellings are therefore preserved: `JWK`, `OAuth2`, and `S256` stay unchanged, while `Token_type_hint` becomes `TokenTypeHint`. Names that normalize to the same identifier are rejected.
+- Before normalization, a raw top-level schema name that starts and ends with `__` is rejected as a reserved Python dunder identifier. This raw-name guard prevents names such as `__all__` from becoming an apparently harmless normalized public type.
+- Type-driven import gates use the shared `usesPythonType(types, methods, match)` traversal. Any new import predicate must cover top-level and nested types plus method request bodies, parameters, and the successful `application/json` responses that `ReturnType()` renders. Types reachable only through error responses or ignored response media must not activate imports. Because the generated module enables `from __future__ import annotations`, the AST compile check can accept a missing annotation import and the defect may appear only later as Ruff `F821` or at runtime.
+
+## Generated formatting and golden files
+
+Golden files under `processor/testdata` preserve the exact renderer output and must not be passed through package-level formatters. TypeScript, Rust, and Python goldens contain raw template output; the Go plugin is the exception because its own `ProcessSource` hook formats Go before the golden is written. Shipped clients are formatted after generation instead: the TypeScript package's `generate` script runs Biome after `gen.sh`, and, on the child `feat/nhost-python-sdk` branch where the Python package is present, that package's `gen.sh` runs `ruff format` over its generated clients.
+
+Ruff deliberately does not split long string literals. The Python plugin's `pythonLineLength` handling is therefore limited to source string expressions it owns, such as generated docstrings and Pydantic field descriptions; it is not a general Python formatter. Do not treat an externally formatted client and its raw golden as byte-for-byte formatting equivalents.
+
 ## Regenerating shared goldens
 
-Fixtures in `processor/testdata` feed both the TypeScript and Rust render tests. After changing a shared fixture, regenerate both golden sets before running the full suite:
+Fixtures in `processor/testdata` feed the TypeScript, Go, Rust, and Python render tests. After changing a shared fixture, regenerate all four golden sets before running the full suite:
 
 ```sh
-go test ./tools/codegen/processor -run '^TestInterMediateRepresentationRender$' -update
-go test ./tools/codegen/processor/golang -run '^TestGolangRender$' -update
-go test ./tools/codegen/processor/rust -run '^TestRustRender$' -update
+GOEXPERIMENT=jsonv2 go test ./tools/codegen/processor -run '^TestInterMediateRepresentationRender$' -update
+GOEXPERIMENT=jsonv2 go test ./tools/codegen/processor/golang -run '^TestGolangRender$' -update
+GOEXPERIMENT=jsonv2 go test ./tools/codegen/processor/rust -run '^TestRustRender$' -update
+GOEXPERIMENT=jsonv2 go test ./tools/codegen/processor/python -run '^TestPythonRender$' -update
 ```

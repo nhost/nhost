@@ -1,0 +1,233 @@
+{{- define "query" }}
+        query: list[tuple[str, str | int | float | bool | None]] = []
+{{- $paramsRequired := pyHasRequiredRequestParameters . }}
+{{- range .QueryParameters }}
+{{- if .Required }}
+{{- if .HasContent }}
+        query.append(({{ pyStr .RawName }}, to_json(params.{{ .Name }})))
+{{- else }}
+        query.extend(_query_parameter({{ pyStr .RawName }}, params.{{ .Name }}, {{ pyStr .Style }}, {{ if .Explode }}True{{ else }}False{{ end }}))
+{{- end }}
+{{- else }}
+        if {{ if not $paramsRequired }}params is not None and {{ end }}params.{{ .Name }} is not None:
+{{- if .HasContent }}
+            query.append(({{ pyStr .RawName }}, to_json(params.{{ .Name }})))
+{{- else }}
+            query.extend(_query_parameter({{ pyStr .RawName }}, params.{{ .Name }}, {{ pyStr .Style }}, {{ if .Explode }}True{{ else }}False{{ end }}))
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end -}}
+
+{{- define "parameter_headers" }}
+        _parameter_headers: dict[str, str] = {}
+{{- $paramsRequired := pyHasRequiredRequestParameters . }}
+{{- range .HeaderParameters }}
+{{- if .Required }}
+{{- if .HasContent }}
+        _parameter_headers[{{ pyStr .RawName }}] = to_json(params.{{ .Name }})
+{{- else }}
+        _parameter_headers[{{ pyStr .RawName }}] = _header_value(params.{{ .Name }}, {{ if .Explode }}True{{ else }}False{{ end }})
+{{- end }}
+{{- else }}
+        if {{ if not $paramsRequired }}params is not None and {{ end }}params.{{ .Name }} is not None:
+{{- if .HasContent }}
+            _parameter_headers[{{ pyStr .RawName }}] = to_json(params.{{ .Name }})
+{{- else }}
+            _parameter_headers[{{ pyStr .RawName }}] = _header_value(params.{{ .Name }}, {{ if .Explode }}True{{ else }}False{{ end }})
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end -}}
+
+{{- define "method" -}}
+{{- $body := or .RequestJSON .RequestFormData .RequestFormURLEncoded -}}
+{{- $hasParams := pyHasRequestParameters . -}}
+{{- $paramsRequired := pyHasRequiredRequestParameters . -}}
+{{- if .IsRedirect }}
+    def {{ .Name }}_url(
+        self,
+{{- range .PathParameters }}
+        {{ .Name }}: {{ .Type.Name }},
+{{- end }}
+{{- if $hasParams }}
+        *,
+{{- end }}
+{{- if $hasParams }}
+        params: {{ pascal .Name }}Params{{ if not $paramsRequired }} | None = None{{ end }},
+{{- end }}
+    ) -> str:
+        {{ pyMethodDoc . }}
+        url = f"{self.base_url}{{ .Path }}"
+{{- if .HasQueryParameters }}
+{{ template "query" . }}
+        if query:
+            return str(self._http.build_request("GET", url, params=query).url)
+{{- end }}
+        return url
+{{- else }}
+    async def {{ .Name }}(
+        self,
+{{- range .PathParameters }}
+        {{ .Name }}: {{ .Type.Name }},
+{{- end }}
+        *,
+{{- if and $body .BodyRequired }}
+        body: {{ $body.Name }},
+{{- end }}
+{{- if and $hasParams $paramsRequired }}
+        params: {{ pascal .Name }}Params,
+{{- end }}
+{{- if and $body (not .BodyRequired) }}
+        body: {{ $body.Name }} | None = None,
+{{- end }}
+{{- if and $hasParams (not $paramsRequired) }}
+        params: {{ pascal .Name }}Params | None = None,
+{{- end }}
+        headers: Mapping[str, str] | None = None,
+    ) -> FetchResponse[{{ pyReturnType .ReturnType }}]:
+        {{ pyMethodDoc . }}
+        url = f"{self.base_url}{{ .Path }}"
+{{- if .HasQueryParameters }}
+{{ template "query" . }}
+{{- else }}
+        query = None
+{{- end }}
+{{- if .HasHeaderParameters }}
+{{ template "parameter_headers" . }}
+{{- end }}
+{{- if .RequestJSON }}
+        request = self._http.build_request(
+            "{{ .Method }}",
+            url,
+            params=query,
+            json=to_jsonable(body),
+{{- if .HasHeaderParameters }}
+            headers={"Content-Type": "application/json", **_parameter_headers, **(headers or {})},
+{{- else }}
+            headers={"Content-Type": "application/json", **(headers or {})},
+{{- end }}
+        )
+{{- else if .RequestFormURLEncoded }}
+        request = self._http.build_request(
+            "{{ .Method }}",
+            url,
+            params=query,
+            data=to_jsonable(body){{ if not .BodyRequired }} if body is not None else None{{ end }},
+{{- if .HasHeaderParameters }}
+            headers={**_parameter_headers, **(headers or {})},
+{{- else }}
+            headers=headers,
+{{- end }}
+        )
+{{- else if .RequestFormData }}
+{{- $m := . }}
+        _data: dict[str, Any] = {}
+        _files = _MultipartFileParts()
+{{- range .RequestFormData.Properties }}
+{{- if eq .Type.Kind "scalar" }}
+        if {{ if not $m.BodyRequired }}body is not None and {{ end }}body.{{ .Name }} is not None:
+{{- if pyIsBinary .Type }}
+            _files.append(({{ pyStr .RawName }}, to_file_part(body.{{ .Name }})))
+{{- else }}
+            _data[{{ pyStr .RawName }}] = to_jsonable(body.{{ .Name }})
+{{- end }}
+{{- else if eq .Type.Kind "array" }}
+        if {{ if not $m.BodyRequired }}body is not None and {{ end }}body.{{ .Name }} is not None:
+{{- if pyIsBinary .Type.Item }}
+            for _item_{{ .Name }} in body.{{ .Name }}:
+                _files.append(({{ pyStr .RawName }}, to_file_part(_item_{{ .Name }})))
+{{- else if eq .Type.Item.Kind "scalar" }}
+            _data[{{ pyStr .RawName }}] = to_jsonable(body.{{ .Name }})
+{{- else }}
+            for _item_{{ .Name }} in body.{{ .Name }}:
+                _files.append(({{ pyStr .RawName }}, (None, to_json(_item_{{ .Name }}), {{ pyStr ($m.MultipartContentType .) }})))
+{{- end }}
+{{- else }}
+        if {{ if not $m.BodyRequired }}body is not None and {{ end }}body.{{ .Name }} is not None:
+            _files.append(({{ pyStr .RawName }}, (None, to_json(body.{{ .Name }}), {{ pyStr ($m.MultipartContentType .) }})))
+{{- end }}
+{{- end }}
+        request = self._http.build_request(
+            "{{ .Method }}",
+            url,
+            params=query,
+            data=_data or None,
+            files=_files,
+{{- if .HasHeaderParameters }}
+            headers={**_parameter_headers, **(headers or {})},
+{{- else }}
+            headers=headers,
+{{- end }}
+        )
+{{- else }}
+        request = self._http.build_request(
+            "{{ .Method }}",
+            url,
+            params=query,
+{{- if .HasHeaderParameters }}
+            headers={**_parameter_headers, **(headers or {})},
+{{- else }}
+            headers=headers,
+{{- end }}
+        )
+{{- end }}
+        response = await self._fetch(request)
+        if response.status_code >= _MIN_ERROR_STATUS:
+            raise HTTPError.from_response(response)
+{{- if .ResponseJSON }}
+        payload = decode_json(response, {{ pyReturnType .ReturnType }})
+{{- else if .ResponseBinary }}
+        payload = response.content
+{{- else }}
+        payload = None
+{{- end }}
+        return FetchResponse(body=payload, status=response.status_code, headers=response.headers)
+{{- end }}
+{{ end -}}
+
+{{- define "client" -}}
+{{ if pyAnyMultipartMethods .Methods -}}
+class _MultipartFileParts(list[tuple[str, Any]]):
+    """Keep httpx multipart encoding active even when there are no file parts."""
+
+    def __bool__(self) -> bool:
+        return True
+
+
+{{ end -}}
+class Client:
+    """Generated async API client backed by an httpx.AsyncClient and a middleware chain."""
+
+    def __init__(
+        self,
+        base_url: str,
+        *,
+        middleware: Sequence[Middleware] = (),
+        http_client: httpx.AsyncClient | None = None,
+    ) -> None:
+        self.base_url = base_url
+        self._middleware = list(middleware)
+        self._owns_http_client = http_client is None
+        self._http = http_client if http_client is not None else httpx.AsyncClient()
+        self._fetch = create_fetch_pipeline(self._http, self._middleware)
+
+    async def __aenter__(self) -> Client:
+        return self
+
+    async def __aexit__(self, *_: object) -> None:
+        await self.aclose()
+
+    async def aclose(self) -> None:
+        """Close the internally owned HTTP client, if any."""
+        if self._owns_http_client:
+            await self._http.aclose()
+
+    def add_middleware(self, middleware: Middleware) -> None:
+        """Append HTTP middleware and rebuild the request pipeline."""
+        self._middleware.append(middleware)
+        self._fetch = create_fetch_pipeline(self._http, self._middleware)
+{{ range .Methods }}
+{{ template "method" . }}
+{{- end }}
+{{- end -}}
