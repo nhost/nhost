@@ -2,6 +2,7 @@ package dockercompose //nolint:testpackage
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"testing"
 
@@ -116,8 +117,14 @@ func callGetServices(t *testing.T, withConstellation, useTLS bool) map[string]*S
 		}
 	}
 
+	dockerURL, err := url.Parse(defaultDockerEndpoint)
+	if err != nil {
+		t.Fatalf("parse default Docker endpoint: %v", err)
+	}
+
 	services, err := getServices(
 		cfg,
+		dockerURL,
 		"dev",
 		"nhost",
 		1337,

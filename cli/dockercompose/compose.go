@@ -1,6 +1,7 @@
 package dockercompose
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/url"
@@ -278,29 +279,14 @@ func trafikFiles(dotnhostfolder string) error {
 	return nil
 }
 
-func getDockerHost() (*url.URL, error) {
-	socket, ok := os.LookupEnv("DOCKER_HOST")
-	if !ok {
-		u, _ := url.Parse("unix:///var/run/docker.sock")
-		return u, nil
-	}
-
-	u, err := url.Parse(socket)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse DOCKER_HOST: %w", err)
-	}
-
-	return u, nil
-}
-
-func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*Service, error) {
+func traefik(
+	subdomain, projectName string,
+	port uint,
+	dotnhostfolder string,
+	dockerURL *url.URL,
+) (*Service, error) {
 	if err := trafikFiles(dotnhostfolder); err != nil {
 		return nil, fmt.Errorf("failed to create traefik files: %w", err)
-	}
-
-	dockerURL, err := getDockerHost()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get docker host: %w", err)
 	}
 
 	volumes := []Volume{{
@@ -310,7 +296,7 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 		ReadOnly: new(true),
 	}}
 
-	dockerEndpoint := dockerURL.String()
+	containerDockerEndpoint := dockerURL.String()
 	if dockerURL.Scheme == "unix" {
 		volumes = append(volumes, Volume{
 			Type:     "bind",
@@ -321,7 +307,7 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 			// reach the docker daemon on SELinux/Podman hosts (no-op elsewhere).
 			Bind: &BindOptions{SELinux: "z"},
 		})
-		dockerEndpoint = "unix:///var/run/docker.sock"
+		containerDockerEndpoint = defaultDockerEndpoint
 	}
 
 	return &Service{
@@ -331,7 +317,7 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 		Command: []string{
 			"--api.insecure=true",
 			"--providers.docker=true",
-			"--providers.docker.endpoint=" + dockerEndpoint,
+			"--providers.docker.endpoint=" + containerDockerEndpoint,
 			"--providers.file.directory=/opt/traefik",
 			"--providers.file.watch=true",
 			"--providers.docker.exposedbydefault=false",
@@ -656,6 +642,7 @@ func IsJWTSecretCompatibleWithHasuraAuth(
 
 func getServices( //nolint: funlen,cyclop
 	cfg *model.ConfigConfig,
+	dockerURL *url.URL,
 	subdomain string,
 	projectName string,
 	httpPort uint,
@@ -716,7 +703,7 @@ func getServices( //nolint: funlen,cyclop
 		return nil, err
 	}
 
-	traefik, err := traefik(subdomain, projectName, httpPort, dotNhostFolder)
+	traefik, err := traefik(subdomain, projectName, httpPort, dotNhostFolder, dockerURL)
 	if err != nil {
 		return nil, err
 	}
@@ -724,7 +711,8 @@ func getServices( //nolint: funlen,cyclop
 	mailhogVolumeName := "mailhog_" + sanitizeBranch(branch)
 	mailhog := mailhog(mailhogVolumeName, useTLS)
 
-	cs, err := configserver(
+	cs := configserver(
+		dockerURL,
 		configserviceImage,
 		rootFolder,
 		nhostFolder,
@@ -733,9 +721,6 @@ func getServices( //nolint: funlen,cyclop
 		useTLS,
 		runServices...,
 	)
-	if err != nil {
-		return nil, err
-	}
 
 	services := map[string]*Service{
 		"console":      console,
@@ -855,6 +840,7 @@ func hostUserSpec(hostUser string) *string {
 }
 
 func ComposeFileFromConfig( //nolint:funlen
+	ctx context.Context,
 	cfg *model.ConfigConfig,
 	subdomain string,
 	projectName string,
@@ -875,8 +861,14 @@ func ComposeFileFromConfig( //nolint:funlen
 	caCertificatesPath string,
 	runServices ...*RunService,
 ) (*ComposeFile, error) {
+	dockerURL, err := resolveDockerHost(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get Docker host: %w", err)
+	}
+
 	services, err := getServices(
 		cfg,
+		dockerURL,
 		subdomain,
 		projectName,
 		httpPort,

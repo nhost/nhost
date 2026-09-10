@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"os/exec"
 	"regexp"
@@ -20,19 +21,32 @@ const (
 // For rootful docker daemon.
 const defaultDockerEndpoint = "unix:///var/run/docker.sock"
 
-func dockerEndpoint(ctx context.Context) string {
-	if h := os.Getenv("DOCKER_HOST"); h != "" {
-		return h
+func resolveDockerHost(ctx context.Context) (*url.URL, error) {
+	endpoint := os.Getenv("DOCKER_HOST")
+	if endpoint == "" {
+		out, err := exec.CommandContext(ctx, "docker", "context", "inspect",
+			"--format", "{{.Endpoints.docker.Host}}").Output()
+		if err != nil {
+			if ctxErr := ctx.Err(); ctxErr != nil {
+				return nil, fmt.Errorf("inspecting current Docker context: %w", ctxErr)
+			}
+
+			endpoint = defaultDockerEndpoint
+		} else {
+			endpoint = strings.TrimSpace(string(out))
+		}
 	}
 
-	out, err := exec.CommandContext(ctx, "docker", "context", "inspect",
-		"--format", "{{.Endpoints.docker.Host}}").Output()
+	if endpoint == "" {
+		endpoint = defaultDockerEndpoint
+	}
+
+	dockerURL, err := url.Parse(endpoint)
 	if err != nil {
-		// fallback
-		return defaultDockerEndpoint
+		return nil, fmt.Errorf("parsing Docker endpoint %q: %w", endpoint, err)
 	}
 
-	return strings.TrimSpace(string(out))
+	return dockerURL, nil
 }
 
 // The `auto` heuristic: map containers to the
@@ -71,7 +85,12 @@ var (
 func ResolveHostUser(ctx context.Context, value string) (string, error) {
 	switch value {
 	case HostUserAuto, "":
-		return autoUser(runtime.GOOS, dockerEndpoint(ctx), os.Getuid(), os.Getgid()), nil
+		dockerURL, err := resolveDockerHost(ctx)
+		if err != nil {
+			return "", fmt.Errorf("resolving Docker endpoint: %w", err)
+		}
+
+		return autoUser(runtime.GOOS, dockerURL.String(), os.Getuid(), os.Getgid()), nil
 	case HostUserNone:
 		return "", nil
 	default:

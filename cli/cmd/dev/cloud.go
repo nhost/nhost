@@ -204,6 +204,7 @@ func cloud( //nolint:funlen
 	ce.Infoln("Setting up Nhost development environment...")
 
 	composeFile, err := dockercompose.CloudComposeFileFromConfig(
+		ctx,
 		cfgSecrets,
 		ce.LocalSubdomain(),
 		proj.GetSubdomain(),
