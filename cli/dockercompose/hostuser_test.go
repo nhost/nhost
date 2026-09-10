@@ -1,15 +1,22 @@
 package dockercompose_test
 
 import (
+	"fmt"
+	"os"
+	"runtime"
 	"testing"
 
 	"github.com/nhost/nhost/cli/dockercompose"
 )
 
-// The "auto" branch depends on the host OS and the reachable docker daemon,
-// so it's in TestAutoUser.
 func TestResolveHostUser(t *testing.T) {
-	t.Parallel()
+	t.Setenv("DOCKER_HOST", "unix:///var/run/docker.sock")
+	t.Setenv("PATH", t.TempDir())
+
+	autoWant := ""
+	if runtime.GOOS == "linux" {
+		autoWant = fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid())
+	}
 
 	cases := []struct {
 		name    string
@@ -17,6 +24,18 @@ func TestResolveHostUser(t *testing.T) {
 		want    string
 		wantErr bool
 	}{
+		{
+			name:    "auto",
+			value:   dockercompose.HostUserAuto,
+			want:    autoWant,
+			wantErr: false,
+		},
+		{
+			name:    "empty defaults to auto",
+			value:   "",
+			want:    autoWant,
+			wantErr: false,
+		},
 		{
 			name:    "none",
 			value:   dockercompose.HostUserNone,
@@ -49,10 +68,8 @@ func TestResolveHostUser(t *testing.T) {
 		},
 	}
 
-	for _, tc := range cases {
+	for _, tc := range cases { //nolint:paralleltest // subtests share the parent Docker environment
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
 			got, err := dockercompose.ResolveHostUser(t.Context(), tc.value)
 			if (err != nil) != tc.wantErr {
 				t.Fatalf("ResolveHostUser(%q) error = %v, wantErr %v", tc.value, err, tc.wantErr)

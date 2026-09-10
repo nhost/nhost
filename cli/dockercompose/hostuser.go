@@ -21,19 +21,30 @@ const (
 // For rootful docker daemon.
 const defaultDockerEndpoint = "unix:///var/run/docker.sock"
 
-func resolveDockerHost(ctx context.Context) (*url.URL, error) {
+type dockerHostResolution struct {
+	dockerURL *url.URL
+	known     bool
+}
+
+func detectDockerHost(ctx context.Context) (dockerHostResolution, error) {
 	endpoint := os.Getenv("DOCKER_HOST")
-	if endpoint == "" {
+	known := endpoint != ""
+
+	if !known {
 		out, err := exec.CommandContext(ctx, "docker", "context", "inspect",
 			"--format", "{{.Endpoints.docker.Host}}").Output()
 		if err != nil {
 			if ctxErr := ctx.Err(); ctxErr != nil {
-				return nil, fmt.Errorf("inspecting current Docker context: %w", ctxErr)
+				return dockerHostResolution{}, fmt.Errorf(
+					"inspecting current Docker context: %w",
+					ctxErr,
+				)
 			}
 
 			endpoint = defaultDockerEndpoint
 		} else {
 			endpoint = strings.TrimSpace(string(out))
+			known = endpoint != ""
 		}
 	}
 
@@ -43,10 +54,22 @@ func resolveDockerHost(ctx context.Context) (*url.URL, error) {
 
 	dockerURL, err := url.Parse(endpoint)
 	if err != nil {
-		return nil, fmt.Errorf("parsing Docker endpoint %q: %w", endpoint, err)
+		return dockerHostResolution{}, fmt.Errorf("parsing Docker endpoint %q: %w", endpoint, err)
 	}
 
-	return dockerURL, nil
+	return dockerHostResolution{
+		dockerURL: dockerURL,
+		known:     known,
+	}, nil
+}
+
+func resolveDockerHost(ctx context.Context) (*url.URL, error) {
+	resolution, err := detectDockerHost(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return resolution.dockerURL, nil
 }
 
 // The `auto` heuristic: map containers to the
@@ -82,15 +105,36 @@ var (
 	)
 )
 
-func ResolveHostUser(ctx context.Context, value string) (string, error) {
+type hostUserEnvironment struct {
+	hostOS           string
+	uid              int
+	gid              int
+	detectDockerHost func(context.Context) (dockerHostResolution, error)
+}
+
+func resolveHostUser(
+	ctx context.Context,
+	value string,
+	environment hostUserEnvironment,
+) (string, error) {
 	switch value {
 	case HostUserAuto, "":
-		dockerURL, err := resolveDockerHost(ctx)
+		resolution, err := environment.detectDockerHost(ctx)
 		if err != nil {
 			return "", fmt.Errorf("resolving Docker endpoint: %w", err)
 		}
 
-		return autoUser(runtime.GOOS, dockerURL.String(), os.Getuid(), os.Getgid()), nil
+		if !resolution.known {
+			// The fallback socket does not prove that the daemon is rootful.
+			return "", nil
+		}
+
+		return autoUser(
+			environment.hostOS,
+			resolution.dockerURL.String(),
+			environment.uid,
+			environment.gid,
+		), nil
 	case HostUserNone:
 		return "", nil
 	default:
@@ -100,4 +144,13 @@ func ResolveHostUser(ctx context.Context, value string) (string, error) {
 
 		return value, nil
 	}
+}
+
+func ResolveHostUser(ctx context.Context, value string) (string, error) {
+	return resolveHostUser(ctx, value, hostUserEnvironment{
+		hostOS:           runtime.GOOS,
+		uid:              os.Getuid(),
+		gid:              os.Getgid(),
+		detectDockerHost: detectDockerHost,
+	})
 }

@@ -1,6 +1,96 @@
 package dockercompose
 
-import "testing"
+import (
+	"context"
+	"errors"
+	"net/url"
+	"testing"
+)
+
+func TestResolveHostUserAutoEnvironment(t *testing.T) {
+	t.Parallel()
+
+	errDetect := context.Canceled
+
+	cases := []struct {
+		name      string
+		value     string
+		endpoint  string
+		known     bool
+		detectErr error
+		want      string
+		wantErr   error
+	}{
+		{
+			name:      "auto uses injected identity",
+			value:     HostUserAuto,
+			endpoint:  defaultDockerEndpoint,
+			known:     true,
+			detectErr: nil,
+			want:      "1234:5678",
+			wantErr:   nil,
+		},
+		{
+			name:      "empty defaults to auto",
+			value:     "",
+			endpoint:  defaultDockerEndpoint,
+			known:     true,
+			detectErr: nil,
+			want:      "1234:5678",
+			wantErr:   nil,
+		},
+		{
+			name:      "unknown endpoint disables mapping",
+			value:     HostUserAuto,
+			endpoint:  defaultDockerEndpoint,
+			known:     false,
+			detectErr: nil,
+			want:      "",
+			wantErr:   nil,
+		},
+		{
+			name:      "endpoint detection error",
+			value:     HostUserAuto,
+			endpoint:  "",
+			known:     false,
+			detectErr: errDetect,
+			want:      "",
+			wantErr:   errDetect,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			dockerURL, err := url.Parse(tc.endpoint)
+			if err != nil {
+				t.Fatalf("parse test Docker endpoint: %v", err)
+			}
+
+			environment := hostUserEnvironment{
+				hostOS: "linux",
+				uid:    1234,
+				gid:    5678,
+				detectDockerHost: func(context.Context) (dockerHostResolution, error) {
+					return dockerHostResolution{
+						dockerURL: dockerURL,
+						known:     tc.known,
+					}, tc.detectErr
+				},
+			}
+
+			got, err := resolveHostUser(t.Context(), tc.value, environment)
+			if !errors.Is(err, tc.wantErr) {
+				t.Fatalf("resolveHostUser() error = %v, want %v", err, tc.wantErr)
+			}
+
+			if got != tc.want {
+				t.Errorf("resolveHostUser() = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
 
 func TestAutoUser(t *testing.T) {
 	t.Parallel()

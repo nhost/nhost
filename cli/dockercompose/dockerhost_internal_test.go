@@ -27,6 +27,64 @@ func useDockerContextEndpoint(t *testing.T, endpoint string) {
 	t.Setenv("PATH", binDir+string(os.PathListSeparator)+os.Getenv("PATH"))
 }
 
+func TestDetectDockerHost(t *testing.T) {
+	cases := []struct {
+		name              string
+		dockerHost        string
+		wantEndpoint      string
+		wantKnown         bool
+		verifyUserMapping bool
+	}{
+		{
+			name:              "DOCKER_HOST takes precedence",
+			dockerHost:        "unix:///run/user/1000/docker.sock",
+			wantEndpoint:      "unix:///run/user/1000/docker.sock",
+			wantKnown:         true,
+			verifyUserMapping: false,
+		},
+		{
+			name:              "command failure uses unknown fallback",
+			dockerHost:        "",
+			wantEndpoint:      defaultDockerEndpoint,
+			wantKnown:         false,
+			verifyUserMapping: true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv("DOCKER_HOST", tc.dockerHost)
+			t.Setenv("PATH", t.TempDir())
+
+			resolution, err := detectDockerHost(t.Context())
+			if err != nil {
+				t.Fatalf("detectDockerHost failed: %v", err)
+			}
+
+			if got := resolution.dockerURL.String(); got != tc.wantEndpoint {
+				t.Errorf("Docker endpoint = %q, want %q", got, tc.wantEndpoint)
+			}
+
+			if resolution.known != tc.wantKnown {
+				t.Errorf("Docker endpoint known = %t, want %t", resolution.known, tc.wantKnown)
+			}
+
+			if !tc.verifyUserMapping {
+				return
+			}
+
+			hostUser, err := ResolveHostUser(t.Context(), HostUserAuto)
+			if err != nil {
+				t.Fatalf("resolveHostUser failed: %v", err)
+			}
+
+			if hostUser != "" {
+				t.Errorf("resolveHostUser returned %q, want empty", hostUser)
+			}
+		})
+	}
+}
+
 func requireDockerSocketMount(t *testing.T, service *Service, source string) {
 	t.Helper()
 
