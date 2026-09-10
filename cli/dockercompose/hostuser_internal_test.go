@@ -24,6 +24,18 @@ func TestAutoUser(t *testing.T) {
 			want:     "1000:1000",
 		},
 		{
+			name:     "linux with rootful podman socket under /var/run",
+			hostOS:   "linux",
+			endpoint: "unix:///var/run/podman/podman.sock",
+			want:     "1000:1000",
+		},
+		{
+			name:     "linux with rootful podman socket under /run",
+			hostOS:   "linux",
+			endpoint: "unix:///run/podman/podman.sock",
+			want:     "1000:1000",
+		},
+		{
 			name:     "macos",
 			hostOS:   "darwin",
 			endpoint: "unix:///var/run/docker.sock",

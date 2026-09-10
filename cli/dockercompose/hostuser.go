@@ -17,7 +17,7 @@ const (
 	HostUserNone = "none"
 )
 
-// For rootful docker daemon
+// For rootful docker daemon.
 const defaultDockerEndpoint = "unix:///var/run/docker.sock"
 
 func dockerEndpoint(ctx context.Context) string {
@@ -28,7 +28,7 @@ func dockerEndpoint(ctx context.Context) string {
 	out, err := exec.CommandContext(ctx, "docker", "context", "inspect",
 		"--format", "{{.Endpoints.docker.Host}}").Output()
 	if err != nil {
-	    // fallback
+		// fallback
 		return defaultDockerEndpoint
 	}
 
@@ -50,7 +50,10 @@ func autoUser(hostOS, endpoint string, uid, gid int) string {
 		return "" // ssh://, tcp://, npipe://
 	}
 
-	if path != "/var/run/docker.sock" && path != "/run/docker.sock" {
+	if path != "/var/run/docker.sock" &&
+		path != "/run/docker.sock" &&
+		path != "/var/run/podman/podman.sock" &&
+		path != "/run/podman/podman.sock" {
 		return "" // $XDG_RUNTIME_DIR, ~/.docker/desktop, ~/.colima, ...
 	}
 
