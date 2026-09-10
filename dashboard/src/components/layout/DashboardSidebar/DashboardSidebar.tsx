@@ -232,14 +232,14 @@ function DashboardSidebar({
           </div>
         )}
 
-        <div className="flex shrink-0 items-center justify-center border-t px-2 py-1">
+        <div className="flex shrink-0 items-center justify-end border-t px-2 py-1">
           <Button
             type="button"
             variant="ghost"
             size="icon"
             aria-label={toggleLabel}
             aria-pressed={collapsed}
-            className="size-10 text-muted-foreground"
+            className="size-7 text-muted-foreground"
             onClick={() => setCollapsed(!collapsed)}
           >
             {collapsed ? (
