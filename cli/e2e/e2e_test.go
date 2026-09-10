@@ -215,7 +215,8 @@ func TestE2E(t *testing.T) {
 			Timeout: 30 * time.Second,
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{
-					InsecureSkipVerify: true, //nolint:gosec // Local stack uses a self-signed certificate.
+					// Local stack uses a self-signed certificate.
+					InsecureSkipVerify: true,
 				},
 			},
 		},
@@ -531,7 +532,8 @@ const (
 
 func cliCmd(ctx context.Context, env envConfig, projectDir string, args ...string) *exec.Cmd {
 	full := append([]string{"--branch", "e2e"}, args...)
-	cmd := exec.CommandContext( //nolint:gosec // test-controlled binary + args
+	// test-controlled binary + args
+	cmd := exec.CommandContext(
 		ctx,
 		env.cliBin,
 		full...,
