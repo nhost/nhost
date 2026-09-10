@@ -1,0 +1,17 @@
+# Advisory policy for `cargo deny check advisories`, run by the Nix check in
+# project.nix. This is the cargo equivalent of govulncheck.yaml for the Go
+# packages: a build-time gate, not an advisory notification.
+#
+# There are currently no accepted exceptions. Record one here, scoped to an
+# exact version and with a reason, rather than relaxing the check:
+#
+#   ignore = [
+#     { crate = "name@1.2.3", reason = "why this is accepted" },
+#   ]
+#
+# Note that an `ignore` entry which never matches makes every run emit
+# `warning[yanked-not-detected]`, so do not pre-emptively list crates that are
+# not actually in the resolved graph. The lockfile does contain a yanked
+# `chacha20 0.10.1`, but only through reqwest's disabled `http3` feature, so it
+# is unreachable in every supported feature set and is not listed here.
+[advisories]

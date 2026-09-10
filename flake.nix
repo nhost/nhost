@@ -151,6 +151,14 @@
             ;
         };
 
+        leptosf = import ./examples/quickstarts/leptos/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
         mcpf = import ./services/mcp/project.nix {
           inherit
             self
@@ -159,7 +167,23 @@
             ;
         };
 
+        nhost-rust-tutorialf = import ./examples/tutorials/nhost-rust-tutorial/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
         nhost-jsf = import ./packages/nhost-js/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
+        nhost-rustf = import ./packages/nhost-rust/project.nix {
           inherit
             self
             pkgs
@@ -245,6 +269,21 @@
           mcp = mcpf.check;
           nhostclient = nhostclientf.check;
           nhost-js = nhost-jsf.check;
+          # The examples exist to prove the SDK's API has not drifted under the
+          # docs, so they are part of the SDK's own check rather than separate
+          # CI entries. Each still has its own project.nix (and so its own
+          # vendor directory and devShell); this only makes the SDK check
+          # depend on them.
+          nhost-rust = pkgs.symlinkJoin {
+            name = "nhost-rust-checks";
+            paths = [
+              nhost-rustf.check
+              nhost-rust-tutorialf.check
+              leptosf.check
+            ];
+          };
+          nhost-rust-tutorial = nhost-rust-tutorialf.check;
+          leptos = leptosf.check;
           stripe-graphql-js = stripe-graphql-jsf.check;
           nixops = nixopsf.check;
           postgres = postgresf.check;
@@ -387,6 +426,9 @@
           mcp = mcpf.devShell;
           nhostclient = nhostclientf.devShell;
           nhost-js = nhost-jsf.devShell;
+          nhost-rust = nhost-rustf.devShell;
+          nhost-rust-tutorial = nhost-rust-tutorialf.devShell;
+          leptos = leptosf.devShell;
           stripe-graphql-js = stripe-graphql-jsf.devShell;
           nixops = nixopsf.devShell;
           postgres = postgresf.devShell;
