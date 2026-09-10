@@ -33,12 +33,14 @@ export default function ForeignKeyEditorRow({
         <LinkIcon className="h-4 w-4" />
 
         <p className="m-0 grid grid-flow-col items-center gap-1.5 truncate font-medium">
-          <span className="truncate">{foreignKeyRelation.columnName}</span>{' '}
+          <span className="truncate">
+            {foreignKeyRelation.columns.join(', ')}
+          </span>{' '}
           <ArrowRight className="h-4 w-4" />
           <span className="truncate">
             {foreignKeyRelation.referencedSchema}.
             {foreignKeyRelation.referencedTable}.
-            {foreignKeyRelation.referencedColumn}
+            {foreignKeyRelation.referencedColumns.join(', ')}
           </span>
         </p>
       </div>

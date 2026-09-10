@@ -2,19 +2,25 @@ import { X } from 'lucide-react';
 import type { MouseEvent } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/v3/button';
-import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import type {
+  DatabaseColumn,
+  ForeignKeyRelation,
+  FormUniqueConstraint,
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { isSelfReferencingRelation } from '@/features/orgs/projects/database/dataGrid/utils/isSelfReferencingRelation';
 import type { FieldArrayInputProps } from './ColumnEditorRow';
 
 export interface RemoveButtonProps extends FieldArrayInputProps {
   onClick?: (event: MouseEvent<HTMLButtonElement>) => void;
+  schema?: string;
 }
 
-export function RemoveButton({ index, onClick }: RemoveButtonProps) {
-  const { setValue } = useFormContext();
+export function RemoveButton({ index, onClick, schema }: RemoveButtonProps) {
+  const { getValues, setValue } = useFormContext();
   const foreignKeyRelations: ForeignKeyRelation[] = useWatch({
     name: 'foreignKeyRelations',
   });
-  const columns = useWatch({ name: 'columns' });
+  const columns = useWatch({ name: 'columns' }) as DatabaseColumn[];
   const primaryKeyIndices = useWatch({ name: 'primaryKeyIndices' }) as string[];
   const identityColumnIndex = useWatch({ name: 'identityColumnIndex' });
 
@@ -38,19 +44,37 @@ export function RemoveButton({ index, onClick }: RemoveButtonProps) {
 
         setValue('primaryKeyIndices', updatedPrimaryKeyIndices);
 
-        if (
-          foreignKeyRelations.find(
-            (foreignKeyRelation) =>
-              foreignKeyRelation.columnName === columns[index].name,
-          )
-        ) {
-          setValue(
-            'foreignKeyRelations',
-            foreignKeyRelations.filter(
-              (foreignKeyRelation) =>
-                foreignKeyRelation.columnName !== columns[index].name,
-            ),
+        const removedColumnName = columns[index].name;
+        const tableName = getValues('name') as string | undefined;
+        const remainingRelations = foreignKeyRelations.filter((relation) => {
+          const isSelfReference =
+            !!tableName &&
+            isSelfReferencingRelation(relation, schema, tableName);
+
+          return (
+            !relation.columns.includes(removedColumnName) &&
+            (!isSelfReference ||
+              !relation.referencedColumns.includes(removedColumnName))
           );
+        });
+        if (remainingRelations.length !== foreignKeyRelations.length) {
+          setValue('foreignKeyRelations', remainingRelations);
+        }
+
+        const removedColumnReference = columns[index].formReference;
+        if (removedColumnReference) {
+          const uniqueConstraints = (getValues('uniqueConstraints') ??
+            []) as FormUniqueConstraint[];
+          const remainingUniqueConstraints = uniqueConstraints.filter(
+            ({ columnReferences }) =>
+              !columnReferences.includes(removedColumnReference),
+          );
+
+          if (remainingUniqueConstraints.length !== uniqueConstraints.length) {
+            setValue('uniqueConstraints', remainingUniqueConstraints, {
+              shouldDirty: true,
+            });
+          }
         }
 
         if (identityColumnIndex === index) {

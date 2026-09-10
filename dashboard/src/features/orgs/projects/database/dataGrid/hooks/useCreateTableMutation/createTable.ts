@@ -27,6 +27,10 @@ export default async function createTable({
 }: CreateTableOptions & CreateTableVariables) {
   const args = prepareCreateTableQuery({ dataSource, schema, table });
 
+  if (args.length === 0) {
+    throw new Error('Unable to create a table with invalid constraints.');
+  }
+
   const response = await fetch(`${appUrl}/v2/query`, {
     method: 'POST',
     headers: {

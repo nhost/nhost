@@ -1,6 +1,12 @@
-import { afterEach, beforeEach, vi } from 'vitest';
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import trackForeignKeyRelationsMigration from './trackForeignKeyRelationsMigration';
+
+vi.mock('@/features/orgs/projects/common/utils/fetchExportMetadata', () => ({
+  fetchExportMetadata: vi.fn().mockResolvedValue({
+    resource_version: 1,
+    metadata: { version: 3, sources: [] },
+  }),
+}));
 
 const fetchMock = vi.fn();
 
@@ -23,10 +29,10 @@ const baseOptions = {
 const unTrackedForeignKeyRelations: ForeignKeyRelation[] = [
   {
     name: 'authors_author_id_fkey',
-    columnName: 'author_id',
+    columns: ['author_id'],
     referencedSchema: 'public',
     referencedTable: 'authors',
-    referencedColumn: 'id',
+    referencedColumns: ['id'],
     updateAction: 'RESTRICT',
     deleteAction: 'RESTRICT',
   },
@@ -66,6 +72,19 @@ describe('trackForeignKeyRelationsMigration', () => {
       name: 'track_foreign_key_relations_public_books',
       down: [],
     });
+  });
+
+  it.each([
+    { name: 'empty', relations: [] },
+  ])('does not issue a migrations request for $name operations', async ({
+    relations,
+  }) => {
+    await trackForeignKeyRelationsMigration({
+      ...baseOptions,
+      unTrackedForeignKeyRelations: relations,
+    });
+
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('throws a normalized error when the response is not ok', async () => {

@@ -1,9 +1,18 @@
 import type {
   RemoteRelationshipDefinition,
-  RemoteRelationshipItem,
   SuggestedArrayRelationship,
   SuggestedObjectRelationship,
+  SuggestedRelationshipElement,
 } from '@/utils/hasura-api/generated/schemas';
+
+type RelationshipColumn = NonNullable<
+  SuggestedRelationshipElement['columns']
+>[number];
+
+export interface RelationshipColumnPair {
+  readonly fromColumn: RelationshipColumn;
+  readonly toColumn: RelationshipColumn;
+}
 
 export interface RelationshipSuggestionViewModel {
   key: string;
@@ -12,6 +21,7 @@ export interface RelationshipSuggestionViewModel {
   type: 'Array' | 'Object';
   from: string;
   to: string;
+  columnPairs: readonly RelationshipColumnPair[];
   rawSuggestion: SuggestedObjectRelationship | SuggestedArrayRelationship;
 }
 
@@ -47,7 +57,9 @@ export interface LocalRelationshipViewModel extends RelationshipViewModel {
    * Structural key of the relationship.
    * Used to check if suggested relationships already exist.
    */
-  structuralKey: string;
+  structuralKey?: string;
+  /** Complete positional mapping when it can be resolved from metadata. */
+  columnPairs?: readonly RelationshipColumnPair[];
 }
 
 export interface RemoteRelationshipViewModel extends RelationshipViewModel {
@@ -55,11 +67,6 @@ export interface RemoteRelationshipViewModel extends RelationshipViewModel {
   toSource: string;
   definition: RemoteRelationshipDefinition;
 }
-
-export type MetadataRemoteRelationship = RemoteRelationshipItem & {
-  name?: string;
-  definition?: RemoteRelationshipDefinition;
-};
 
 /**
  * Represents how a single argument is mapped in a remote field.

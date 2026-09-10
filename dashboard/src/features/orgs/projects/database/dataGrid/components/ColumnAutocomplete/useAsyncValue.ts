@@ -1,10 +1,45 @@
 import { useEffect, useState } from 'react';
 import type { FetchTableSchemaReturnType } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
+import type { AutocompleteOption } from '@/features/orgs/projects/database/dataGrid/components/ColumnAutocomplete/types';
 import type {
   FetchMetadataReturnType,
+  ForeignKeyRelation,
   HasuraMetadataTable,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import type { AutocompleteOption } from './types';
+import {
+  type RelationshipTableTarget,
+  resolveRelationshipTarget,
+} from '@/features/orgs/projects/database/dataGrid/utils/resolveRelationshipTarget';
+
+function resolveRelationshipTraversal({
+  metadataTables,
+  selectedSchema,
+  selectedTable,
+  relationshipName,
+  foreignKeyRelations,
+}: {
+  metadataTables: readonly HasuraMetadataTable[];
+  selectedSchema: string;
+  selectedTable: string;
+  relationshipName: string;
+  foreignKeyRelations: readonly ForeignKeyRelation[];
+}): RelationshipTableTarget | undefined {
+  const metadataTable = metadataTables.find(
+    ({ table }) =>
+      table.schema === selectedSchema && table.name === selectedTable,
+  );
+  const relationship = [
+    ...(metadataTable?.object_relationships ?? []),
+    ...(metadataTable?.array_relationships ?? []),
+  ].find(({ name }) => name === relationshipName);
+  return resolveRelationshipTarget({
+    using: relationship?.using,
+    selectedSchema,
+    selectedTable,
+    foreignKeyRelations,
+    metadataTables,
+  });
+}
 
 export interface UseAsyncValueOptions {
   /**
@@ -71,8 +106,7 @@ export default function useAsyncValue({
     .join('.');
   const [selectedColumn, setSelectedColumn] =
     useState<AutocompleteOption | null>(null);
-  const activeRelationship =
-    selectedRelationships[selectedRelationships.length - 1];
+  const activeRelationship = selectedRelationships.at(-1);
 
   useEffect(() => {
     if (remainingColumnPath?.length > 0 || initialized) {
@@ -113,13 +147,11 @@ export default function useAsyncValue({
 
     const [activeColumn] = remainingColumnPath;
 
-    // If there is a single column in the path, it means that we can look for it
-    // in the table columns
-    if (
-      !tableData?.columns.some((column) => column.column_name === activeColumn)
-    ) {
+    const column = tableData.columns.find(
+      ({ column_name: columnName }) => columnName === activeColumn,
+    );
+    if (!column) {
       setRemainingColumnPath([]);
-
       return;
     }
 
@@ -127,9 +159,7 @@ export default function useAsyncValue({
       value: activeColumn,
       label: activeColumn,
       group: 'columns',
-      metadata: tableData.columns.find(
-        (column) => column.column_name === activeColumn,
-      )!,
+      metadata: column,
     });
     setRemainingColumnPath((columnPath) => columnPath.slice(1));
   }, [
@@ -151,124 +181,24 @@ export default function useAsyncValue({
       return;
     }
 
-    const metadataMap = (metadata?.tables ?? []).reduce(
-      (map, metadataTable) =>
-        map.set(
-          `${metadataTable.table.schema}.${metadataTable.table.name}`,
-          metadataTable,
-        ),
-      new Map<string, HasuraMetadataTable>(),
-    );
-
-    const [nextPath] = remainingColumnPath.slice(
-      0,
-      remainingColumnPath.length - 1,
-    );
-
-    const tableMetadata = metadataMap.get(`${selectedSchema}.${selectedTable}`);
-    const currentRelationship = [
-      ...(tableMetadata?.object_relationships || []),
-      ...(tableMetadata?.array_relationships || []),
-    ].find(({ name }) => name === nextPath);
-
-    if (!currentRelationship) {
+    const [nextPath] = remainingColumnPath;
+    const target = resolveRelationshipTraversal({
+      metadataTables: metadata?.tables ?? [],
+      selectedSchema: selectedSchema ?? 'public',
+      selectedTable: selectedTable ?? '',
+      relationshipName: nextPath,
+      foreignKeyRelations: tableData.foreignKeyRelations ?? [],
+    });
+    if (!target) {
       setRemainingColumnPath([]);
       return;
     }
 
-    const {
-      foreign_key_constraint_on: metadataConstraint,
-      manual_configuration: metadataManualConfiguration,
-    } = currentRelationship.using || {};
-
-    if (metadataManualConfiguration) {
-      setAsyncTablePath(
-        `${metadataManualConfiguration.remote_table.schema}.${metadataManualConfiguration.remote_table.name}`,
-      );
-
-      setSelectedRelationships((currentRelationships) => [
-        ...currentRelationships,
-        {
-          schema: metadataManualConfiguration.remote_table.schema || 'public',
-          table: metadataManualConfiguration.remote_table.name,
-          name: nextPath,
-        },
-      ]);
-
-      setRemainingColumnPath((columnPath) => columnPath.slice(1));
-
-      return;
-    }
-
-    // In some cases the metadata already contains the schema and table name
-    if (metadataConstraint && typeof metadataConstraint !== 'string') {
-      setAsyncTablePath(
-        `${metadataConstraint.table.schema || 'public'}.${
-          metadataConstraint.table.name
-        }`,
-      );
-
-      setSelectedRelationships((currentRelationships) => [
-        ...currentRelationships,
-        {
-          schema: metadataConstraint.table.schema || 'public',
-          table: metadataConstraint.table.name,
-          name: nextPath,
-        },
-      ]);
-
-      setRemainingColumnPath((columnPath) => columnPath.slice(1));
-
-      return;
-    }
-
-    const foreignKeyRelation = tableData?.foreignKeyRelations?.find(
-      ({ columnName }) => {
-        const normalizedColumnName = columnName.replace(/"/g, '');
-        const { foreign_key_constraint_on, manual_configuration } =
-          currentRelationship.using || {};
-
-        if (!foreign_key_constraint_on && !manual_configuration) {
-          return false;
-        }
-
-        if (manual_configuration) {
-          return Object.keys(manual_configuration.column_mapping).includes(
-            normalizedColumnName,
-          );
-        }
-
-        if (typeof foreign_key_constraint_on === 'string') {
-          return foreign_key_constraint_on === normalizedColumnName;
-        }
-
-        return foreign_key_constraint_on?.column === normalizedColumnName;
-      },
-    );
-
-    if (!foreignKeyRelation) {
-      setRemainingColumnPath([]);
-      return;
-    }
-
-    const normalizedSchema = foreignKeyRelation.referencedSchema?.replace(
-      /(\\"|")/g,
-      '',
-    );
-    const normalizedTable =
-      foreignKeyRelation.referencedTable?.replace(/(\\"|")/g, '') ?? '';
-
-    setAsyncTablePath(`${normalizedSchema || 'public'}.${normalizedTable}`);
-
+    setAsyncTablePath(`${target.schema}.${target.table}`);
     setSelectedRelationships((currentRelationships) => [
       ...currentRelationships,
-      {
-        schema: normalizedSchema || 'public',
-        table: normalizedTable,
-        name: nextPath,
-      },
+      { ...target, name: nextPath },
     ]);
-
     setRemainingColumnPath((columnPath) => columnPath.slice(1));
   }, [
     currentTablePath,

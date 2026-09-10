@@ -15,6 +15,8 @@ import {
   BaseTableForm,
   baseTableValidationSchema,
 } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm';
+import { createColumnFormReference } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm/formReferences';
+import { serializeFormUniqueConstraints } from '@/features/orgs/projects/database/dataGrid/components/BaseTableForm/serializeFormUniqueConstraints';
 import { useCreateTableMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateTableMutation';
 import { useSetTableTrackingMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetTableTrackingMutation';
 import { useTrackForeignKeyRelationsMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackForeignKeyRelationsMutation';
@@ -85,25 +87,26 @@ export default function CreateTableForm({
     defaultValues: {
       columns: [
         {
+          formReference: createColumnFormReference(),
           type: 'uuid',
           name: 'id',
           defaultValue: 'gen_random_uuid()',
           isNullable: false,
-          isUnique: false,
           isIdentity: false,
           comment: '',
         },
         {
+          formReference: createColumnFormReference(),
           name: '',
           type: null,
           defaultValue: null,
           isNullable: false,
-          isUnique: false,
           isIdentity: false,
           comment: '',
         },
       ],
       foreignKeyRelations: [],
+      uniqueConstraints: [],
       primaryKeyIndices: ['0'],
       identityColumnIndex: null,
     },
@@ -122,9 +125,15 @@ export default function CreateTableForm({
     );
 
     try {
+      const { uniqueConstraints: formUniqueConstraints, ...tableValues } =
+        values;
       const table: DatabaseTable = {
-        ...values,
+        ...tableValues,
         primaryKey,
+        uniqueConstraints: serializeFormUniqueConstraints(
+          values.columns,
+          formUniqueConstraints,
+        ),
         identityColumn:
           values.identityColumnIndex !== null &&
           typeof values.identityColumnIndex !== 'undefined'
