@@ -7,8 +7,10 @@ import (
 	"io"
 	"log/slog"
 	"os"
+	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	serveutil "github.com/nhost/nhost/internal/lib/serve"
@@ -77,24 +79,7 @@ func TestNewLogger(t *testing.T) {
 				t.Errorf("gin mode = %q; want %q", got, tt.wantGinMode)
 			}
 
-			var entry map[string]any
-
-			err := json.Unmarshal(bytes.TrimSpace(output), &entry)
-			if tt.wantJSON {
-				if err != nil {
-					t.Fatalf("parsing JSON logger output %q: %v", output, err)
-				}
-
-				if got := entry["msg"]; got != "logger output" {
-					t.Errorf("log message = %v; want %q", got, "logger output")
-				}
-
-				if got := entry["level"]; got != "INFO" {
-					t.Errorf("log level = %v; want %q", got, "INFO")
-				}
-			} else if err == nil {
-				t.Errorf("text logger output unexpectedly parsed as JSON: %q", output)
-			}
+			assertLoggerOutput(t, output, tt.wantJSON)
 
 			hasSource := strings.Contains(string(output), "logger_test.go")
 			if hasSource != tt.debug {
@@ -106,6 +91,54 @@ func TestNewLogger(t *testing.T) {
 				)
 			}
 		})
+	}
+}
+
+func assertLoggerOutput(t *testing.T, output []byte, wantJSON bool) {
+	t.Helper()
+
+	if !bytes.Contains(output, []byte("logger output")) {
+		t.Errorf("logger output does not contain message %q: %q", "logger output", output)
+	}
+
+	var entry map[string]any
+
+	err := json.Unmarshal(bytes.TrimSpace(output), &entry)
+	if wantJSON {
+		if err != nil {
+			t.Fatalf("parsing JSON logger output %q: %v", output, err)
+		}
+
+		if got := entry["msg"]; got != "logger output" {
+			t.Errorf("log message = %v; want %q", got, "logger output")
+		}
+
+		if got := entry["level"]; got != "INFO" {
+			t.Errorf("JSON log level = %v; want %q", got, "INFO")
+		}
+
+		return
+	}
+
+	if err == nil {
+		t.Errorf("text logger output unexpectedly parsed as JSON: %q", output)
+	}
+
+	ansiEscape := regexp.MustCompile("\x1b\\[[0-9;]*m")
+	plainOutput := ansiEscape.ReplaceAllString(string(output), "")
+
+	timestamp, _, found := strings.Cut(plainOutput, " INF ")
+	if !found {
+		t.Fatalf("text log level marker %q missing from output: %q", "INF", output)
+	}
+
+	if _, err := time.Parse(time.StampMilli, timestamp); err != nil {
+		t.Errorf(
+			"text log timestamp %q does not match layout %q: %v",
+			timestamp,
+			time.StampMilli,
+			err,
+		)
 	}
 }
 
