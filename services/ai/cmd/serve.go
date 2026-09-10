@@ -10,7 +10,7 @@ import (
 	"slices"
 	"time"
 
-	"github.com/Yamashou/gqlgenc/clientv2"
+	"github.com/gqlgo/gqlgenc/clientv2"
 	_ "github.com/lib/pq" // postgres driver for database/sql
 	"github.com/nhost/nhost/services/ai/agents"
 	agentprovider "github.com/nhost/nhost/services/ai/agents/provider"
@@ -109,7 +109,7 @@ func CommandServe() *cli.Command { //nolint:funlen
 				Category: "auto-embeddings",
 				EnvVars:  []string{"OPENAI_ORG"},
 			},
-			&cli.StringFlag{ //nolint: exhaustruct
+			&cli.StringFlag{ //nolint:exhaustruct,gosec // local dev default connection string
 				Name:     flagPostgresConnection,
 				Usage:    "Postgres connection string",
 				Value:    "postgres://postgres:postgres@localhost:5432/local?sslmode=disable",
@@ -198,7 +198,8 @@ func getHasuraClient(cCtx *cli.Context) *hasura.Client {
 		&http.Client{}, //nolint:exhaustruct
 		cCtx.String(flagNhostGraphqlURL),
 		&clientv2.Options{
-			ParseDataAlongWithErrors: false,
+			ParseDataAlongWithErrors:   false,
+			EncodeNilSliceAsEmptyArray: false,
 		},
 		hasura.WithAdminSecret(cCtx.String(flagHasuraGraphqlAdminSecret)),
 	)

@@ -44,6 +44,9 @@ let
       (fs.fileFilter (f: f.hasExt "ts") ../packages/nhost-js/src)
       ../services/auth/docs/openapi.yaml
       ../services/storage/controller/openapi.yaml
+      # GraphQL schemas gen.sh publishes into public/graphql.
+      ../cli/mcp/resources/cloud_schema.graphql
+      ../cli/mcp/resources/cloud_schema-with-mutations.graphql
       ../packages/nhost-js/tsconfig.json
       ../build/configs/tsconfig/library.json
       ../build/configs/tsconfig/base.json

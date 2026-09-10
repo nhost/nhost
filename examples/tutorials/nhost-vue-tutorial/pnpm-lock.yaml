@@ -74,7 +74,10 @@ overrides:
   immutable@>=5.0.0-beta.1 <5.1.8: '>=5.1.8'
   js-yaml@>=4.0.0 <4.3.1: '>=4.3.1 <5.0.0'
   decode-uri-component@<=0.4.2: '>=0.5.0'
+  js-yaml@>=4.0.0 <4.3.2: '>=4.3.2 <5.0.0'
+  js-yaml@<=4.3.1: '>=4.3.2 <5.0.0'
   browserslist@<=4.28.6: 4.28.7
+  fflate@>=0.7.0 <0.7.5: '>=0.7.5 <0.8.0'
 
 packageExtensionsChecksum: sha256-gRFeykwiwMfEE6etcYx6N48XwVeKzxbqNveL7KTQgSQ=
 

@@ -27,7 +27,7 @@
     "eslint-config-next": "^16.2.10",
     "fast-glob": "^3.3.3",
     "lucide-react": "^0.475.0",
-    "next": "^16.2.11",
+    "next": "^16.3.4",
     "next-plausible": "^3.12.5",
     "next-seo": "^5.15.0",
     "next-sitemap": "^3.1.55",
@@ -39,7 +39,7 @@
     "react-medium-image-zoom": "^5.4.8",
     "react-syntax-highlighter": "^15.6.6",
     "react-twitter-embed": "^4.0.4",
-    "sharp": "^0.35.3",
+    "sharp": "^0.35.4",
     "tailwind-merge": "^1.14.0"
   },
   "devDependencies": {

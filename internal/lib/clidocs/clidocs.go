@@ -408,7 +408,7 @@ func getFlagDefaultValue(f cli.DocGenerationFlag) string {
 	}
 
 	ref := reflect.ValueOf(f)
-	if ref.Kind() != reflect.Ptr {
+	if ref.Kind() != reflect.Pointer {
 		return ""
 	}
 
