@@ -155,7 +155,7 @@ function DashboardSidebarSection({
       {label && !collapsed && (
         <h2
           id={labelId}
-          className="px-3 pt-5 pb-2 font-semibold text-muted-foreground text-xs uppercase tracking-[0.16em]"
+          className="px-3 pt-5 pb-2 font-semibold text-2xs text-muted-foreground uppercase tracking-[0.16em]"
         >
           {label}
         </h2>
