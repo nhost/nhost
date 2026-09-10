@@ -5,15 +5,17 @@ import { type ReactElement, useMemo } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Alert } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
 import { EmbeddingsIcon } from '@/components/ui/v3/icons/EmbeddingsIcon';
 import { Spinner } from '@/components/ui/v3/spinner';
+import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
+import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { AISidebar } from '@/features/orgs/layout/AISidebar';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { AutoEmbeddingsForm } from '@/features/orgs/projects/ai/AutoEmbeddingsForm';
 import { AutoEmbeddingsList } from '@/features/orgs/projects/ai/AutoEmbeddingsList';
 import type { AutoEmbeddingsConfiguration } from '@/features/orgs/projects/ai/auto-embeddings/types';
@@ -205,16 +207,17 @@ export default function AutoEmbeddingsPage() {
 
 AutoEmbeddingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout
-      mainContainerProps={{
-        className:
-          'flex flex-row w-full h-full !bg-[#fafafa] dark:!bg-[#151a22]',
-      }}
-    >
-      <AISidebar />
-      <div className="w-full overflow-auto">
-        <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
-      </div>
-    </ProjectLayout>
+    <AppLayout>
+      <ProjectScope>
+        <ProjectStateGate>
+          <div className="!bg-[#fafafa] dark:!bg-[#151a22] flex h-full w-full flex-row">
+            <AISidebar />
+            <div className="w-full overflow-auto">
+              <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
+            </div>
+          </div>
+        </ProjectStateGate>
+      </ProjectScope>
+    </AppLayout>
   );
 };

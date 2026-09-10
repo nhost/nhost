@@ -3,12 +3,14 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type { ReactElement } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Button } from '@/components/ui/v3/button';
 import { Separator } from '@/components/ui/v3/separator';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
+import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -149,5 +151,11 @@ function MetricsPageContent() {
 }
 
 MetricsPage.getLayout = function getLayout(page: ReactElement) {
-  return <ProjectLayout>{page}</ProjectLayout>;
+  return (
+    <AppLayout>
+      <ProjectScope>
+        <ProjectStateGate>{page}</ProjectStateGate>
+      </ProjectScope>
+    </AppLayout>
+  );
 };

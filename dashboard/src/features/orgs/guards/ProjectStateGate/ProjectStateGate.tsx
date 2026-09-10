@@ -11,7 +11,7 @@ import { ApplicationStatus } from '@/types/application';
 import ProjectStateScreen from './ProjectStateScreen';
 import { requiresRunningProject } from './projectStatePages';
 
-function ProjectViewWithState({ children }: PropsWithChildren) {
+function ProjectStateGate({ children }: PropsWithChildren) {
   const {
     query: { appSubdomain },
     route,
@@ -93,4 +93,4 @@ function ProjectViewWithState({ children }: PropsWithChildren) {
   return projectPageContent;
 }
 
-export default ProjectViewWithState;
+export default ProjectStateGate;

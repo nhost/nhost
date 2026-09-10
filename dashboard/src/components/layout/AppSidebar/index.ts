@@ -1,4 +1,1 @@
-export {
-  default as AppSidebar,
-  hasAppSidebar,
-} from '@/components/layout/AppSidebar/AppSidebar';
+export { default as AppSidebar } from '@/components/layout/AppSidebar/AppSidebar';

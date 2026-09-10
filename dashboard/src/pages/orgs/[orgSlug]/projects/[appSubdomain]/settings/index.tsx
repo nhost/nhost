@@ -8,6 +8,7 @@ import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { FormInput } from '@/components/form/FormInput';
+import { AppLayout } from '@/components/layout/AppLayout';
 import {
   SettingsCard,
   SettingsCardContent,
@@ -18,9 +19,11 @@ import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { Alert } from '@/components/ui/v3/alert';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { TransferProject } from '@/features/orgs/components/TransferProject';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
-import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
+import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
+import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
+import { SettingsGuard } from '@/features/orgs/guards/SettingsGuard';
 import { RemoveApplicationDialog } from '@/features/orgs/projects/common/components/RemoveApplicationDialog';
+import { SettingsArea } from '@/features/orgs/projects/common/components/settings/SettingsArea';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/useIsCurrentUserOwner';
 import { useIsPauseDisabled } from '@/features/orgs/projects/common/hooks/useIsPauseDisabled';
@@ -336,10 +339,14 @@ export default function SettingsGeneralPage() {
 
 SettingsGeneralPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout>
-      <SettingsLayout>
-        <div className="mx-auto w-full max-w-5xl px-5 py-4">{page}</div>
-      </SettingsLayout>
-    </ProjectLayout>
+    <AppLayout>
+      <ProjectScope>
+        <SettingsGuard>
+          <ProjectStateGate>
+            <SettingsArea>{page}</SettingsArea>
+          </ProjectStateGate>
+        </SettingsGuard>
+      </ProjectScope>
+    </AppLayout>
   );
 };

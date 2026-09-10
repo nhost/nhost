@@ -1,7 +1,9 @@
 import type { ReactElement } from 'react';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
-import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
+import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
+import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
+import { SettingsGuard } from '@/features/orgs/guards/SettingsGuard';
 import { AllowedEmailSettings } from '@/features/orgs/projects/authentication/settings/components/AllowedEmailSettings';
 import { AllowedRedirectURLsSettings } from '@/features/orgs/projects/authentication/settings/components/AllowedRedirectURLsSettings';
 import { AuthServiceVersionSettings } from '@/features/orgs/projects/authentication/settings/components/AuthServiceVersionSettings';
@@ -12,6 +14,7 @@ import { GravatarSettings } from '@/features/orgs/projects/authentication/settin
 import { MFASettings } from '@/features/orgs/projects/authentication/settings/components/MFASettings';
 import { SessionSettings } from '@/features/orgs/projects/authentication/settings/components/SessionSettings';
 import { UserCreationSettings } from '@/features/orgs/projects/authentication/settings/components/UserCreationSettings';
+import { SettingsArea } from '@/features/orgs/projects/common/components/settings/SettingsArea';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -61,10 +64,14 @@ export default function SettingsAuthenticationPage() {
 
 SettingsAuthenticationPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout>
-      <SettingsLayout>
-        <div className="mx-auto w-full max-w-5xl px-5 py-4">{page}</div>
-      </SettingsLayout>
-    </ProjectLayout>
+    <AppLayout>
+      <ProjectScope>
+        <SettingsGuard>
+          <ProjectStateGate>
+            <SettingsArea>{page}</SettingsArea>
+          </ProjectStateGate>
+        </SettingsGuard>
+      </ProjectScope>
+    </AppLayout>
   );
 };

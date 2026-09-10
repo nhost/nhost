@@ -26,7 +26,7 @@ pnpm test                    # Run lint + all vitests
 pnpm test:vitest             # Run all vitests (unit/integration tests)
 pnpm test:watch              # Run vitests in watch mode
 vitest run <file>           # Run a single test file
-vitest run --reporter=verbose src/features/orgs/layout/OrganizationLayout/OrganizationGuard.test.tsx  # Run specific test with verbose output
+vitest run --reporter=verbose src/features/orgs/guards/OrganizationGuard/OrganizationGuard.test.tsx  # Run specific test with verbose output
 ```
 
 Run Vitest with `dashboard/` as the working directory so it loads
@@ -73,9 +73,16 @@ These layer on top of the rules in `.claude/docs/javascript-design-rules.md`. An
 
 ### Navigation
 
+A page's `getLayout` composes a shell from `components/layout/` with guards and scopes from `features/orgs/guards/`. `AppLayout` must be the root element of every organization and project page, so React keeps the shell mounted across navigation:
+
+- Organization pages: `<AppLayout><OrganizationScope>{page}</OrganizationScope></AppLayout>`.
+- Project pages: `<AppLayout><ProjectScope><ProjectStateGate>{page}</ProjectStateGate></ProjectScope></AppLayout>`. `ProjectScope` does not include the project-state gate, so every project page adds `ProjectStateGate` itself. Navigation that must stay usable while the project is paused goes between `ProjectScope` and `ProjectStateGate`.
+- Project settings pages: `<AppLayout><ProjectScope><SettingsGuard><ProjectStateGate><SettingsArea>{page}</SettingsArea></ProjectStateGate></SettingsGuard></ProjectScope></AppLayout>`.
+- Pages outside an organization: `<StandaloneLayout><AuthGuard>{page}</AuthGuard></StandaloneLayout>`.
+
 When creating a new feature page, check whether it needs to be added to:
 
-- The `runningProjectPages` list in `projectStatePages.ts` (and `sidebarSkeletonPages` if the page has a sidebar), which gate the project-state screen via `requiresRunningProject()` / `hasSidebarSkeleton()`.
+- The `runningProjectPages` list in `projectStatePages.ts` (and `sidebarSkeletonPages` if the page has a sidebar), which `ProjectStateGate` reads via `requiresRunningProject()` / `hasSidebarSkeleton()` to show the project-state screen. They only take effect on pages that compose `ProjectStateGate`.
 - `components/layout/AppSidebar/ProjectNav.tsx` or `components/layout/AppSidebar/OrganizationNav.tsx` for visible sidebar entries.
 - `features/navigation/nav-config.tsx` for the shared page catalog, page gating via `isPageGated`, and URL helpers.
 - `features/command-palette/nav-tree.tsx` for command-palette metadata and keywords (layered over `nav-config`).

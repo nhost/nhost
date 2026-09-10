@@ -1,7 +1,10 @@
 import type { ReactElement } from 'react';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
-import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
+import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
+import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
+import { SettingsGuard } from '@/features/orgs/guards/SettingsGuard';
+import { SettingsArea } from '@/features/orgs/projects/common/components/settings/SettingsArea';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -42,10 +45,14 @@ export default function MetricsSettingsPage() {
 
 MetricsSettingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout>
-      <SettingsLayout>
-        <div className="mx-auto w-full max-w-5xl px-5 py-4">{page}</div>
-      </SettingsLayout>
-    </ProjectLayout>
+    <AppLayout>
+      <ProjectScope>
+        <SettingsGuard>
+          <ProjectStateGate>
+            <SettingsArea>{page}</SettingsArea>
+          </ProjectStateGate>
+        </SettingsGuard>
+      </ProjectScope>
+    </AppLayout>
   );
 };

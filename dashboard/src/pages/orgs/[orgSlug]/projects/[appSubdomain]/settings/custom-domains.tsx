@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
+import { AppLayout } from '@/components/layout/AppLayout';
 import {
   SettingsCard,
   SettingsCardFooter,
@@ -7,8 +8,10 @@ import {
   SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
-import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
+import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
+import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
+import { SettingsGuard } from '@/features/orgs/guards/SettingsGuard';
+import { SettingsArea } from '@/features/orgs/projects/common/components/settings/SettingsArea';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useRunServices } from '@/features/orgs/projects/common/hooks/useRunServices';
 import { AuthDomain } from '@/features/orgs/projects/custom-domains/settings/components/AuthDomain';
@@ -114,10 +117,14 @@ export default function CustomDomains() {
 
 CustomDomains.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout>
-      <SettingsLayout>
-        <div className="mx-auto w-full max-w-5xl px-5 py-4">{page}</div>
-      </SettingsLayout>
-    </ProjectLayout>
+    <AppLayout>
+      <ProjectScope>
+        <SettingsGuard>
+          <ProjectStateGate>
+            <SettingsArea>{page}</SettingsArea>
+          </ProjectStateGate>
+        </SettingsGuard>
+      </ProjectScope>
+    </AppLayout>
   );
 };

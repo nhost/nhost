@@ -1,5 +1,6 @@
 import { type ReactElement, useEffect, useState } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
+import { AppLayout } from '@/components/layout/AppLayout';
 import {
   Select,
   SelectContent,
@@ -8,11 +9,13 @@ import {
   SelectValue,
 } from '@/components/ui/v3/select';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
-import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
+import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
+import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
+import { SettingsGuard } from '@/features/orgs/guards/SettingsGuard';
 import DeleteSMTPSettings from '@/features/orgs/projects/authentication/settings/components/DeleteSMTPSettings/DeleteSMTPSettings';
 import { PostmarkSettings } from '@/features/orgs/projects/authentication/settings/components/PostmarkSettings';
 import { SMTPSettings } from '@/features/orgs/projects/authentication/settings/components/SMTPSettings';
+import { SettingsArea } from '@/features/orgs/projects/common/components/settings/SettingsArea';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -83,10 +86,14 @@ export default function SMTPSettingsPage() {
 
 SMTPSettingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout>
-      <SettingsLayout>
-        <div className="mx-auto w-full max-w-5xl px-5 py-4">{page}</div>
-      </SettingsLayout>
-    </ProjectLayout>
+    <AppLayout>
+      <ProjectScope>
+        <SettingsGuard>
+          <ProjectStateGate>
+            <SettingsArea>{page}</SettingsArea>
+          </ProjectStateGate>
+        </SettingsGuard>
+      </ProjectScope>
+    </AppLayout>
   );
 };

@@ -1,8 +1,10 @@
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
+import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { EventTriggersBrowserSidebar } from '@/features/orgs/projects/events/event-triggers/components/EventTriggersBrowserSidebar';
 import { EventTriggerView } from '@/features/orgs/projects/events/event-triggers/components/EventTriggerView';
@@ -27,16 +29,17 @@ export default function EventTriggerDetailsPage() {
 
 EventTriggerDetailsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout
-      mainContainerProps={{
-        className: 'flex h-full',
-      }}
-    >
-      <EventTriggersBrowserSidebar />
-
-      <div className="box flex w-full flex-auto flex-col overflow-x-hidden">
-        {page}
-      </div>
-    </ProjectLayout>
+    <AppLayout>
+      <ProjectScope>
+        <ProjectStateGate>
+          <div className="flex h-full">
+            <EventTriggersBrowserSidebar />
+            <div className="box flex w-full flex-auto flex-col overflow-x-hidden">
+              {page}
+            </div>
+          </div>
+        </ProjectStateGate>
+      </ProjectScope>
+    </AppLayout>
   );
 };
