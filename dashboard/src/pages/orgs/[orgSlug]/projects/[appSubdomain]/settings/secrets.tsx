@@ -5,6 +5,7 @@ import { Fragment, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
+import { AppLayout } from '@/components/layout/AppLayout';
 import {
   SettingsCard,
   SettingsCardContent,
@@ -19,7 +20,8 @@ import {
 } from '@/components/ui/v3/dropdown-menu';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { ProjectViewWithState } from '@/features/orgs/layout/ProjectGuard';
+import { ProjectScope } from '@/features/orgs/layout/ProjectScope';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -243,10 +245,12 @@ export default function SecretsPage() {
 
 SecretsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout>
-      <SettingsLayout>
-        <div className="mx-auto w-full max-w-5xl px-5 py-4">{page}</div>
-      </SettingsLayout>
-    </ProjectLayout>
+    <AppLayout>
+      <ProjectScope>
+        <ProjectViewWithState>
+          <SettingsLayout>{page}</SettingsLayout>
+        </ProjectViewWithState>
+      </ProjectScope>
+    </AppLayout>
   );
 };

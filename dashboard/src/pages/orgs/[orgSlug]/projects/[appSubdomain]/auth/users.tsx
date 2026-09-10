@@ -5,13 +5,15 @@ import type { ChangeEvent, ReactElement } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Button } from '@/components/ui/v3/button';
 import { Input } from '@/components/ui/v3/input';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { ProjectViewWithState } from '@/features/orgs/layout/ProjectGuard';
+import { ProjectScope } from '@/features/orgs/layout/ProjectScope';
 import { CreateUserForm } from '@/features/orgs/projects/authentication/users/components/CreateUserForm';
 import { UsersBody } from '@/features/orgs/projects/authentication/users/components/UsersBody';
 import {
@@ -307,5 +309,11 @@ function UsersPageContent() {
 }
 
 UsersPage.getLayout = function getLayout(page: ReactElement) {
-  return <ProjectLayout>{page}</ProjectLayout>;
+  return (
+    <AppLayout>
+      <ProjectScope>
+        <ProjectViewWithState>{page}</ProjectViewWithState>
+      </ProjectScope>
+    </AppLayout>
+  );
 };

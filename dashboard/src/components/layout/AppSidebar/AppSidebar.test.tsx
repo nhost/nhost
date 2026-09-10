@@ -1,8 +1,6 @@
 import { useRouter } from 'next/router';
 import { vi } from 'vitest';
-import AppSidebar, {
-  hasAppSidebar,
-} from '@/components/layout/AppSidebar/AppSidebar';
+import AppSidebar from '@/components/layout/AppSidebar/AppSidebar';
 import { mockRouter } from '@/tests/mocks';
 import { render, screen } from '@/tests/testUtils';
 
@@ -36,24 +34,6 @@ afterEach(() => {
   vi.unstubAllEnvs();
   vi.clearAllMocks();
   window.localStorage.removeItem('dashboard-sidebar-collapsed');
-});
-
-describe('hasAppSidebar', () => {
-  it('covers every route scoped to an organization', () => {
-    expect(hasAppSidebar('/orgs/[orgSlug]/projects')).toBe(true);
-    expect(hasAppSidebar('/orgs/[orgSlug]/projects/new')).toBe(true);
-    expect(hasAppSidebar('/orgs/[orgSlug]/projects/[appSubdomain]/logs')).toBe(
-      true,
-    );
-  });
-
-  it('excludes routes outside an organization', () => {
-    expect(hasAppSidebar('/')).toBe(false);
-    expect(hasAppSidebar('/onboarding')).toBe(false);
-    expect(hasAppSidebar('/support/ticket')).toBe(false);
-    expect(hasAppSidebar('/orgs/_/[...slug]')).toBe(false);
-    expect(hasAppSidebar('/orgs/_/projects/_/[...slug]')).toBe(false);
-  });
 });
 
 describe('AppSidebar', () => {

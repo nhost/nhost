@@ -8,6 +8,7 @@ import {
   useTheme,
 } from '@graphiql/react';
 import { PlayIcon } from 'lucide-react';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Button } from '@/components/ui/v3/button';
@@ -16,7 +17,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { ProjectViewWithState } from '@/features/orgs/layout/ProjectGuard';
+import { ProjectScope } from '@/features/orgs/layout/ProjectScope';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { UserAndRoleSelect } from '@/features/orgs/projects/graphql/common/components/UserAndRoleSelect';
 import {
@@ -370,12 +372,12 @@ export default function GraphQLPage() {
 
 GraphQLPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout
-      mainContainerProps={{
-        className: 'graphiql-themed flex h-full flex-col',
-      }}
-    >
-      {page}
-    </ProjectLayout>
+    <AppLayout>
+      <ProjectScope>
+        <ProjectViewWithState>
+          <div className="graphiql-themed flex h-full flex-col">{page}</div>
+        </ProjectViewWithState>
+      </ProjectScope>
+    </AppLayout>
   );
 };
