@@ -19,15 +19,14 @@ export {
   type FetchFunction,
   type FetchResponse,
 } from './fetch';
-
 /**
  * Middleware for attaching authorization tokens to outgoing requests.
  *
  * @param storage - Storage implementation for retrieving session data
+ * @param serviceUrl - Base URL of the service this middleware is installed on
  * @returns A middleware function that adds Authorization headers
  */
 export { attachAccessTokenMiddleware } from './middlewareAttachAccessToken';
-
 /**
  * Middleware for automatically refreshing authentication tokens when they're about to expire.
  *
@@ -37,7 +36,6 @@ export { attachAccessTokenMiddleware } from './middlewareAttachAccessToken';
  * @returns A middleware function that refreshes tokens as needed
  */
 export { sessionRefreshMiddleware } from './middlewareSessionRefresh';
-
 /**
  * Middleware for extracting and storing session data from authentication responses.
  *
@@ -49,6 +47,7 @@ export { updateSessionFromResponseMiddleware } from './middlewareUpdateSessionFr
  * Middleware for attaching Hasura admin secret for elevated permissions.
  *
  * @param options - Admin session options including the admin secret
+ * @param serviceUrl - Base URL of the service this middleware is installed on
  * @returns A middleware function that adds x-hasura-admin-secret header
  */
 export {
@@ -56,7 +55,6 @@ export {
   withAdminSessionMiddleware,
 } from './middlewareWithAdminSession';
 export { withHeadersMiddleware } from './middlewareWithHeaders';
-
 /**
  * Middleware for setting the Hasura role header for requests.
  *
@@ -64,3 +62,4 @@ export { withHeadersMiddleware } from './middlewareWithHeaders';
  * @returns A middleware function that adds x-hasura-role header
  */
 export { withRoleMiddleware } from './middlewareWithRole';
+export { type RequestScope, requestScopeFromBaseUrl } from './requestScope';

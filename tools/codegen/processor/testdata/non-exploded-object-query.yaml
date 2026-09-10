@@ -1,0 +1,33 @@
+openapi: "3.0.0"
+
+paths:
+  /search:
+    get:
+      operationId: search
+      parameters:
+        - name: filter
+          in: query
+          required: false
+          description: Object serialized without explode - filter=k1,v1,k2,v2
+          style: form
+          explode: false
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              owner:
+                type: string
+        - name: tags
+          in: query
+          required: false
+          description: Array serialized without explode - tags=a,b
+          style: form
+          explode: false
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        "204":
+          description: Success

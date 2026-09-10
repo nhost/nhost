@@ -6,62 +6,56 @@
  * is properly authenticated.
  */
 
-import type { Session } from '../auth';
 import type { SessionStorage } from '../session/storage';
 import type { ChainFunction, FetchFunction } from './fetch';
+import { requestScopeFromBaseUrl } from './requestScope';
 
 /**
  * Creates a fetch middleware that adds the Authorization header with the current access token.
  *
- * This middleware:
- * 1. Gets the current session from storage
- * 2. Adds the authorization header with the access token to outgoing requests
+ * The token is written only for requests inside `serviceUrl`'s origin. A request
+ * that has left that origin has the stored bearer token stripped, so custom
+ * middleware that retargets a request cannot forward the user's access token to
+ * another host. An unrelated caller-supplied `Authorization` value is always
+ * preserved.
  *
  * This middleware should be used after the refresh middleware in the chain to
  * ensure the most recent token is used.
  *
  * @param storage - Storage implementation for retrieving session data
+ * @param serviceUrl - Base URL of the service this middleware is installed on
  * @returns A middleware function that adds Authorization headers
  */
 export const attachAccessTokenMiddleware =
-  (storage: SessionStorage): ChainFunction =>
+  (storage: SessionStorage, serviceUrl: string): ChainFunction =>
   (next: FetchFunction): FetchFunction =>
   async (url: string, options: RequestInit = {}): Promise<Response> => {
+    const scope = requestScopeFromBaseUrl(serviceUrl);
+    const inScope = scope.contains(url);
     const headers = new Headers(options.headers || {});
+    const hasAuthorization = headers.has('Authorization');
 
-    // Skip if Authorization header is already set
-    if (headers.has('Authorization')) {
+    // In scope with a caller-supplied header: the caller wins.
+    // Out of scope with no header: nothing to do.
+    if (inScope === hasAuthorization) {
       return next(url, options);
     }
 
-    // Get current session from storage
     const session = storage.get();
-
-    if (session?.accessToken) {
-      // Add authorization header
-      const newOptions = {
-        ...options,
-        headers: addAuthorizationHeader(headers, session),
-      };
-
-      // Continue with the fetch chain
-      return next(url, newOptions);
+    if (!session?.accessToken) {
+      return next(url, options);
     }
 
-    // No session or no access token, continue without authorization
-    return next(url, options);
-  };
+    const authorization = `Bearer ${session.accessToken}`;
+    if (inScope) {
+      headers.set('Authorization', authorization);
+    } else if (headers.get('Authorization') === authorization) {
+      // Off-origin and carrying exactly the stored token: strip it. An
+      // unrelated caller-supplied value is left untouched.
+      headers.delete('Authorization');
+    } else {
+      return next(url, options);
+    }
 
-/**
- * Adds the Authorization header with the access token to the request headers
- *
- * @param headers - Original request headers
- * @param session - Current session containing the access token
- * @returns Modified headers with Authorization header
- */
-function addAuthorizationHeader(headers: Headers, session: Session): Headers {
-  if (session.accessToken) {
-    headers.set('Authorization', `Bearer ${session.accessToken}`);
-  }
-  return headers;
-}
+    return next(url, { ...options, headers });
+  };
