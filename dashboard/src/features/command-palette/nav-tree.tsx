@@ -111,6 +111,14 @@ const subPageChildren: Record<
     storage: ['storage', 'files', 'buckets'],
     settings: ['storage', 'settings', 'rate limits'],
   }),
+  functions: toSubPageNodes(
+    projectSubPagesBySlug.functions,
+    'project-functions',
+    {
+      functions: ['functions', 'serverless', 'code'],
+      settings: ['functions', 'settings', 'custom domain', 'rate limits'],
+    },
+  ),
   ai: toSubPageNodes(projectSubPagesBySlug.ai, 'project-ai', {
     'auto-embeddings': ['ai', 'embeddings'],
     assistants: ['ai', 'agents'],
@@ -187,7 +195,10 @@ const projectPageMeta: Record<
     keywords: ['files', 'buckets'],
     children: subPageChildren.storage,
   },
-  functions: { keywords: ['serverless', 'code'] },
+  functions: {
+    keywords: ['serverless', 'code'],
+    children: subPageChildren.functions,
+  },
   run: { keywords: ['services', 'docker'] },
   ai: {
     keywords: ['auto embeddings', 'embeddings'],

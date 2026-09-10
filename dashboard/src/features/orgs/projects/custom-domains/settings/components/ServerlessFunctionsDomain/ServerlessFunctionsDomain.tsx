@@ -96,11 +96,11 @@ export default function ServerlessFunctionsDomain() {
     if (isNotEmptyValue(formValues.functions_fqdn)) {
       ingresses = [{ fqdn: [formValues.functions_fqdn] }];
       successMessage =
-        'Serverless Functions domain has been updated successfully.';
+        'Serverless Functions custom domain has been updated successfully.';
     } else {
       ingresses = null;
       successMessage =
-        'Custom Serverless Functions domain has been removed successfully.';
+        'Serverless Functions custom domain has been removed successfully.';
     }
 
     const updateConfigPromise = updateConfig({
@@ -140,10 +140,11 @@ export default function ServerlessFunctionsDomain() {
         }
       },
       {
-        loadingMessage: 'Serverless Functions domain is being updated...',
+        loadingMessage:
+          'Serverless Functions custom domain is being updated...',
         successMessage,
         errorMessage:
-          'An error occurred while trying to update the Serverless Functions domain.',
+          'An error occurred while trying to update the Serverless Functions custom domain.',
       },
     );
   }
@@ -153,7 +154,7 @@ export default function ServerlessFunctionsDomain() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Serverless Functions Domain"
+            title="Serverless Functions Custom Domain"
             description="Enter below your custom domain for Serverless Functions."
           />
 
