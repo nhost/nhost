@@ -94,6 +94,42 @@ func TestServeConfigFrom(t *testing.T) {
 	}
 }
 
+func TestServeConfigFromReadsMountPrefixHostsFlag(t *testing.T) {
+	tests := []struct {
+		name string
+		env  string
+		args []string
+		want []string
+	}{
+		{
+			name: "comma-separated environment value",
+			env:  "nhost-engine-service,engine.example.com",
+			want: []string{"nhost-engine-service", "engine.example.com"},
+		},
+		{
+			name: "command flag overrides environment",
+			env:  "environment.example",
+			args: []string{
+				"--mount-prefix-hosts", "first.example,second.example",
+			},
+			want: []string{"first.example", "second.example"},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv("MOUNT_PREFIX_HOSTS", tc.env)
+
+			runParsed(t, globalFlags(), tc.args, func(cmd *cli.Command) {
+				got := serveConfigFrom(cmd).mountPrefixHosts
+				if !slices.Equal(got, tc.want) {
+					t.Fatalf("mountPrefixHosts = %v, want %v", got, tc.want)
+				}
+			})
+		})
+	}
+}
+
 func TestServeConfigFromReadsCompatAuthHostsFlag(t *testing.T) {
 	tests := []struct {
 		name string

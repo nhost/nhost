@@ -2,7 +2,12 @@ package dockercompose //nolint:testpackage
 
 import (
 	"errors"
+	"net"
+	"net/http"
+	"net/http/httptest"
 	"net/url"
+	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -309,6 +314,188 @@ func assertEngineAuthDisabledEnv(t *testing.T, env map[string]string) {
 			t.Errorf("engine env[%q] = %q; want %q", k, got, want)
 		}
 	}
+}
+
+func TestEngineIngressRedirectRoundTrips(t *testing.T) {
+	t.Parallel()
+
+	labels := engineIngresses(false, true, true, true).Labels()
+	tests := []struct {
+		name        string
+		router      string
+		host        string
+		requestPath string
+		targetPath  string
+	}{
+		{
+			name:        "storage",
+			router:      "storage",
+			host:        "dev.storage.local.nhost.run:1337",
+			requestPath: "/v1/version/",
+			targetPath:  "/v1/version",
+		},
+		{
+			name:        "auth",
+			router:      "auth",
+			host:        "dev.auth.local.nhost.run:1337",
+			requestPath: "/v1/signin/",
+			targetPath:  "/v1/signin",
+		},
+		{
+			name:        "graphql",
+			router:      "constellation",
+			host:        "dev.graphql.local.nhost.run:1337",
+			requestPath: "/v1/graphql/",
+			targetPath:  "/v1/graphql",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			mountPrefix := ingressAddPrefixFromLabels(t, labels, tc.router)
+			service := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				switch r.URL.Path {
+				case tc.requestPath:
+					http.Redirect(w, r, tc.targetPath, http.StatusMovedPermanently)
+				case tc.targetPath:
+					w.WriteHeader(http.StatusOK)
+				default:
+					http.NotFound(w, r)
+				}
+			})
+			engineMux := http.NewServeMux()
+			engineMux.Handle(mountPrefix+"/", http.StripPrefix(mountPrefix, service))
+			ingress := simulatedTraefikRouterFromLabels(t, labels, tc.router, engineMux)
+
+			initial := serveExternalRequest(ingress, tc.host, tc.requestPath)
+			if initial.Code != http.StatusMovedPermanently {
+				t.Fatalf(
+					"initial status = %d, want %d",
+					initial.Code,
+					http.StatusMovedPermanently,
+				)
+			}
+
+			location := initial.Header().Get("Location")
+			if location != tc.targetPath {
+				t.Fatalf("Location = %q, want %q", location, tc.targetPath)
+			}
+
+			oldFollow := serveExternalRequest(ingress, tc.host, mountPrefix+tc.targetPath)
+			if oldFollow.Code != http.StatusNotFound {
+				t.Fatalf(
+					"old prefixed follow-up status = %d, want %d",
+					oldFollow.Code,
+					http.StatusNotFound,
+				)
+			}
+
+			followed := serveExternalRequest(ingress, tc.host, location)
+			if followed.Code != http.StatusOK {
+				t.Fatalf(
+					"follow-up status = %d, want %d", followed.Code, http.StatusOK,
+				)
+			}
+		})
+	}
+}
+
+func serveExternalRequest(handler http.Handler, host, path string) *httptest.ResponseRecorder {
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodGet, path, nil)
+	request.Host = host
+	handler.ServeHTTP(recorder, request)
+
+	return recorder
+}
+
+func ingressAddPrefixFromLabels(t *testing.T, labels map[string]string, router string) string {
+	t.Helper()
+
+	for middleware := range strings.SplitSeq(
+		labels["traefik.http.routers."+router+".middlewares"], ",",
+	) {
+		key := "traefik.http.middlewares." + middleware + ".addprefix.prefix"
+		if prefix := labels[key]; prefix != "" {
+			return prefix
+		}
+	}
+
+	t.Fatalf("router %q has no AddPrefix middleware in labels", router)
+
+	return ""
+}
+
+func simulatedTraefikRouterFromLabels(
+	t *testing.T, labels map[string]string, router string, upstream http.Handler,
+) http.Handler {
+	t.Helper()
+
+	rule := labels["traefik.http.routers."+router+".rule"]
+	prefix := ingressAddPrefixFromLabels(t, labels, router)
+	hostRegexps := regexp.MustCompile("HostRegexp\\(`([^`]+)`\\)").FindAllStringSubmatch(rule, -1)
+	hosts := regexp.MustCompile("Host\\(`([^`]+)`\\)").FindAllStringSubmatch(rule, -1)
+	pathPrefixes := regexp.MustCompile("PathPrefix\\(`([^`]+)`\\)").FindAllStringSubmatch(rule, -1)
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !simulatedTraefikRuleMatches(r, hostRegexps, hosts, pathPrefixes) {
+			http.NotFound(w, r)
+
+			return
+		}
+
+		backendRequest := r.Clone(r.Context())
+		backendURL := *r.URL
+		backendURL.Path = prefix + r.URL.Path
+		backendRequest.URL = &backendURL
+		upstream.ServeHTTP(w, backendRequest)
+	})
+}
+
+func simulatedTraefikRuleMatches(
+	r *http.Request, hostRegexps, hosts, pathPrefixes [][]string,
+) bool {
+	host := r.Host
+	if parsedHost, _, err := net.SplitHostPort(r.Host); err == nil {
+		host = parsedHost
+	}
+
+	hostMatches := false
+	for _, match := range hosts {
+		if host == match[1] {
+			hostMatches = true
+
+			break
+		}
+	}
+
+	if !hostMatches {
+		for _, match := range hostRegexps {
+			if regexp.MustCompile(match[1]).MatchString(host) {
+				hostMatches = true
+
+				break
+			}
+		}
+	}
+
+	if !hostMatches {
+		return false
+	}
+
+	if len(pathPrefixes) == 0 {
+		return true
+	}
+
+	for _, match := range pathPrefixes {
+		if strings.HasPrefix(r.URL.Path, match[1]) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func engineLabels(withAuth, withStorage, withGraphql bool) map[string]string {

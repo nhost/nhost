@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"net"
 	"net/http"
 	"net/url"
 	"reflect"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 
@@ -42,12 +44,13 @@ type serveConfig struct {
 	debug         bool
 	logFormatText bool
 
-	adminSecret     string
-	jwtSecret       string
-	databaseURL     string
-	migrationsURL   string
-	corsOrigins     []string
-	compatAuthHosts []string
+	adminSecret      string
+	jwtSecret        string
+	databaseURL      string
+	migrationsURL    string
+	corsOrigins      []string
+	compatAuthHosts  []string
+	mountPrefixHosts []string
 
 	disabled map[string]bool
 }
@@ -108,6 +111,11 @@ func globalFlags() []cli.Flag {
 			Usage:   "DNS hostnames that route legacy auth requests without the /auth prefix",
 			Sources: cli.EnvVars("AUTH_COMPAT_HOSTS"),
 		},
+		&cli.StringSliceFlag{ //nolint:exhaustruct
+			Name:    "mount-prefix-hosts",
+			Usage:   "DNS hostnames where service mount prefixes are externally visible",
+			Sources: cli.EnvVars("MOUNT_PREFIX_HOSTS"),
+		},
 	}
 
 	// Append one --disable-<service> opt-out per service after the shared
@@ -150,16 +158,17 @@ func serveConfigFrom(cmd *cli.Command) serveConfig {
 	}
 
 	return serveConfig{
-		bind:            cmd.String("bind"),
-		debug:           cmd.Bool("debug"),
-		logFormatText:   cmd.Bool("log-format-text"),
-		adminSecret:     cmd.String("admin-secret"),
-		jwtSecret:       cmd.String("jwt-secret"),
-		databaseURL:     cmd.String("database-url"),
-		migrationsURL:   cmd.String("migrations-database-url"),
-		corsOrigins:     cmd.StringSlice("cors-allowed-origins"),
-		compatAuthHosts: cmd.StringSlice("auth-compat-hosts"),
-		disabled:        disabled,
+		bind:             cmd.String("bind"),
+		debug:            cmd.Bool("debug"),
+		logFormatText:    cmd.Bool("log-format-text"),
+		adminSecret:      cmd.String("admin-secret"),
+		jwtSecret:        cmd.String("jwt-secret"),
+		databaseURL:      cmd.String("database-url"),
+		migrationsURL:    cmd.String("migrations-database-url"),
+		corsOrigins:      cmd.StringSlice("cors-allowed-origins"),
+		compatAuthHosts:  cmd.StringSlice("auth-compat-hosts"),
+		mountPrefixHosts: cmd.StringSlice("mount-prefix-hosts"),
+		disabled:         disabled,
 	}
 }
 
@@ -257,7 +266,7 @@ func runServe(ctx context.Context, cmd *cli.Command, version string) error {
 
 	logger.InfoContext(ctx, "engine v"+version)
 
-	mux, err := newMux(services, cfg.compatAuthHosts, logger)
+	mux, err := newMux(services, cfg.compatAuthHosts, cfg.mountPrefixHosts, logger)
 	if err != nil {
 		return fmt.Errorf("building shared router: %w", err)
 	}
@@ -322,8 +331,8 @@ func buildAll(
 }
 
 func shutdownMounted(services []mounted) {
-	for i := len(services) - 1; i >= 0; i-- {
-		services[i].svc.Shutdown()
+	for _, service := range slices.Backward(services) {
+		service.svc.Shutdown()
 	}
 }
 
@@ -384,20 +393,26 @@ func relaxRequiredForSkipped(flags []cli.Flag, skip map[string]bool) []string {
 
 // newMux builds the shared request router: each service is mounted beneath its
 // path prefix with the prefix stripped before dispatch, so the service handler
-// keeps serving its own native paths. Root-relative redirects have the prefix
-// restored before they reach the client. Compat auth hosts dispatch directly to
-// auth without changing the request path. A root /healthz reports engine
-// liveness.
+// keeps serving its own native paths. Root-relative redirects regain the prefix
+// only on hosts where that mount path is externally visible. Compat auth hosts
+// dispatch directly to auth without changing the request path. A root /healthz
+// reports engine liveness.
 func newMux(
-	services []mounted, compatAuthHosts []string, logger *slog.Logger,
+	services []mounted,
+	compatAuthHosts []string,
+	mountPrefixHosts []string,
+	logger *slog.Logger,
 ) (*http.ServeMux, error) {
 	var (
-		mux         = http.NewServeMux()
-		authHandler http.Handler
+		mux                = http.NewServeMux()
+		authHandler        http.Handler
+		mountPrefixHostSet = normalizedDNSHostSet(
+			mountPrefixHosts, logger, "mount prefix",
+		)
 	)
 
 	for _, m := range services {
-		mux.Handle(m.prefix+"/", mountHandler(m.prefix, m.svc.Handler))
+		mux.Handle(m.prefix+"/", mountHandler(m.prefix, mountPrefixHostSet, m.svc.Handler))
 
 		if m.name == "auth" {
 			authHandler = m.svc.Handler
@@ -423,9 +438,24 @@ func newMux(
 	return mux, nil
 }
 
-var compatAuthHostLabel = regexp.MustCompile(`^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$`)
+var dnsHostLabel = regexp.MustCompile(`^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$`)
 
 func normalizeCompatAuthHosts(hosts []string, logger *slog.Logger) []string {
+	return normalizeDNSHosts(hosts, logger, "auth compatibility")
+}
+
+func normalizedDNSHostSet(
+	hosts []string, logger *slog.Logger, purpose string,
+) map[string]struct{} {
+	normalized := make(map[string]struct{}, len(hosts))
+	for _, host := range normalizeDNSHosts(hosts, logger, purpose) {
+		normalized[host] = struct{}{}
+	}
+
+	return normalized
+}
+
+func normalizeDNSHosts(hosts []string, logger *slog.Logger, purpose string) []string {
 	normalized := make([]string, 0, len(hosts))
 	seen := make(map[string]struct{}, len(hosts))
 
@@ -435,9 +465,9 @@ func normalizeCompatAuthHosts(hosts []string, logger *slog.Logger) []string {
 			continue
 		}
 
-		if !validCompatAuthHost(host) {
+		if !validDNSHost(host) {
 			logger.Warn(
-				"skipping invalid auth compatibility host",
+				"skipping invalid "+purpose+" host",
 				slog.String("host", value),
 				slog.String("reason", "expected a DNS hostname without a scheme, port, or path"),
 			)
@@ -456,13 +486,13 @@ func normalizeCompatAuthHosts(hosts []string, logger *slog.Logger) []string {
 	return normalized
 }
 
-func validCompatAuthHost(host string) bool {
+func validDNSHost(host string) bool {
 	if len(host) > maxDNSHostnameLength {
 		return false
 	}
 
 	for label := range strings.SplitSeq(host, ".") {
-		if !compatAuthHostLabel.MatchString(label) {
+		if !dnsHostLabel.MatchString(label) {
 			return false
 		}
 	}
@@ -487,8 +517,11 @@ func registerMuxHandler(mux *http.ServeMux, pattern string, handler http.Handler
 }
 
 // mountHandler keeps the underlying writer's optional interfaces intact while
-// making root-relative redirects transparent to the service's mount prefix.
-func mountHandler(prefix string, handler http.Handler) http.Handler {
+// restoring root-relative redirect prefixes for clients that address the engine
+// through a mount-prefix host.
+func mountHandler(
+	prefix string, mountPrefixHosts map[string]struct{}, handler http.Handler,
+) http.Handler {
 	stripped := http.StripPrefix(prefix, handler)
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -498,7 +531,9 @@ func mountHandler(prefix string, handler http.Handler) http.Handler {
 			WriteHeader: func(next httpsnoop.WriteHeaderFunc) httpsnoop.WriteHeaderFunc {
 				return func(code int) {
 					if !wroteFinalHeader && code >= http.StatusOK {
-						rewriteRedirectLocation(w.Header(), prefix, code)
+						if requestHostInSet(r.Host, mountPrefixHosts) {
+							rewriteRedirectLocation(w.Header(), prefix, code)
+						}
 
 						wroteFinalHeader = true
 					}
@@ -537,6 +572,17 @@ func mountHandler(prefix string, handler http.Handler) http.Handler {
 
 		stripped.ServeHTTP(wrapped, r)
 	})
+}
+
+func requestHostInSet(requestHost string, hosts map[string]struct{}) bool {
+	host := requestHost
+	if parsedHost, _, err := net.SplitHostPort(requestHost); err == nil {
+		host = parsedHost
+	}
+
+	_, ok := hosts[strings.ToLower(host)]
+
+	return ok
 }
 
 func rewriteRedirectLocation(header http.Header, prefix string, code int) {

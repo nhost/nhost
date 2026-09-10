@@ -37,12 +37,15 @@ func echoService() *serveutil.Service {
 }
 
 func mustNewMux(
-	t *testing.T, services []mounted, compatAuthHosts []string,
+	t *testing.T,
+	services []mounted,
+	compatAuthHosts []string,
+	mountPrefixHosts []string,
 ) *http.ServeMux {
 	t.Helper()
 
 	mux, err := newMux(
-		services, compatAuthHosts, slog.New(slog.DiscardHandler),
+		services, compatAuthHosts, mountPrefixHosts, slog.New(slog.DiscardHandler),
 	)
 	if err != nil {
 		t.Fatalf("newMux: %v", err)
@@ -63,7 +66,7 @@ func TestNewMuxRoutesEnginePathsAndCompatAuthHosts(t *testing.T) {
 		"",
 		" hasura-auth-service ",
 		"hasura-auth-service.nhost-project.svc.cluster.local",
-	})
+	}, nil)
 
 	tests := []struct {
 		name     string
@@ -164,7 +167,7 @@ func TestNewMuxCompatAuthHostDoesNotRewriteRedirect(t *testing.T) {
 	)}
 	mux := mustNewMux(t, []mounted{
 		{name: "auth", prefix: "/auth", svc: auth},
-	}, []string{"hasura-auth-service"})
+	}, []string{"hasura-auth-service"}, []string{"hasura-auth-service"})
 
 	recorder := httptest.NewRecorder()
 	request := httptest.NewRequest(http.MethodGet, "/v1/signin", nil)
@@ -183,7 +186,7 @@ func TestNewMuxCompatAuthHostsWithAuthDisabled(t *testing.T) {
 	mux := mustNewMux(t, []mounted{
 		{name: "storage", prefix: "/storage", svc: echoService()},
 		{name: "graphql", prefix: "/graphql", svc: echoService()},
-	}, []string{"hasura-auth-service"})
+	}, []string{"hasura-auth-service"}, nil)
 
 	tests := []struct {
 		name     string
@@ -254,6 +257,7 @@ func TestNewMuxSkipsMalformedCompatAuthHosts(t *testing.T) {
 			mux, err := newMux(
 				[]mounted{{name: "auth", prefix: "/auth", svc: echoService()}},
 				[]string{tc.host, "valid-auth.example"},
+				nil,
 				slog.New(slog.NewTextHandler(&logs, nil)),
 			)
 			if err != nil {
@@ -290,6 +294,7 @@ func TestNewMuxReturnsErrorForCompatAuthHostConflict(t *testing.T) {
 			{name: "auth", prefix: "/auth", svc: echoService()},
 		},
 		[]string{"hasura-auth-service"},
+		nil,
 		slog.New(slog.DiscardHandler),
 	)
 	if err == nil {
@@ -311,13 +316,12 @@ func TestNewMuxPreservesRedirectPrefix(t *testing.T) {
 			prefix: "/storage",
 			svc:    &serveutil.Service{Handler: router},
 		},
-	}, nil)
+	}, nil, []string{"nhost-engine-service"})
 
 	redirect := httptest.NewRecorder()
-	mux.ServeHTTP(
-		redirect,
-		httptest.NewRequest(http.MethodGet, "/storage/v1/files/", nil),
-	)
+	request := httptest.NewRequest(http.MethodGet, "/storage/v1/files/", nil)
+	request.Host = "nhost-engine-service:8080"
+	mux.ServeHTTP(redirect, request)
 
 	if redirect.Code != http.StatusMovedPermanently {
 		t.Fatalf("redirect status = %d, want %d", redirect.Code, http.StatusMovedPermanently)
@@ -329,10 +333,37 @@ func TestNewMuxPreservesRedirectPrefix(t *testing.T) {
 	}
 
 	followed := httptest.NewRecorder()
-	mux.ServeHTTP(followed, httptest.NewRequest(http.MethodGet, location, nil))
+	followRequest := httptest.NewRequest(http.MethodGet, location, nil)
+	followRequest.Host = "nhost-engine-service:8080"
+	mux.ServeHTTP(followed, followRequest)
 
 	if followed.Code != http.StatusOK {
 		t.Fatalf("follow-up status = %d, want %d", followed.Code, http.StatusOK)
+	}
+}
+
+func TestNewMuxLeavesRedirectUnprefixedByDefault(t *testing.T) {
+	t.Parallel()
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/v1/files", http.StatusTemporaryRedirect)
+	})
+	mux := mustNewMux(t, []mounted{
+		{
+			name:   "storage",
+			prefix: "/storage",
+			svc:    &serveutil.Service{Handler: handler},
+		},
+	}, nil, nil)
+
+	recorder := httptest.NewRecorder()
+	mux.ServeHTTP(
+		recorder,
+		httptest.NewRequest(http.MethodGet, "/storage/v1/files/", nil),
+	)
+
+	if location := recorder.Header().Get("Location"); location != "/v1/files" {
+		t.Fatalf("Location = %q, want %q", location, "/v1/files")
 	}
 }
 
@@ -403,13 +434,12 @@ func TestNewMuxRewritesOnlyRootRelativeRedirects(t *testing.T) {
 					prefix: "/storage",
 					svc:    &serveutil.Service{Handler: handler},
 				},
-			}, nil)
+			}, nil, []string{"nhost-engine-service"})
 
 			recorder := httptest.NewRecorder()
-			mux.ServeHTTP(
-				recorder,
-				httptest.NewRequest(http.MethodGet, "/storage/v1/files", nil),
-			)
+			request := httptest.NewRequest(http.MethodGet, "/storage/v1/files", nil)
+			request.Host = "nhost-engine-service:8080"
+			mux.ServeHTTP(recorder, request)
 
 			if recorder.Header().Get("Location") != tc.wantLocation {
 				t.Fatalf(
@@ -443,7 +473,7 @@ func TestNewMuxPreservesFlusher(t *testing.T) {
 			prefix: "/graphql",
 			svc:    &serveutil.Service{Handler: handler},
 		},
-	}, nil)
+	}, nil, nil)
 
 	recorder := httptest.NewRecorder()
 	mux.ServeHTTP(
