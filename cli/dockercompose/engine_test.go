@@ -1,6 +1,7 @@
 package dockercompose //nolint:testpackage
 
 import (
+	"encoding/json"
 	"errors"
 	"net"
 	"net/http"
@@ -205,6 +206,8 @@ func assertEngineEnv(
 		t.Errorf("engine env[BIND] = %q; want :8080", got)
 	}
 
+	assertEngineMetadataJWTEnv(t, env)
+
 	if withAuth {
 		assertEngineAuthEnabledEnv(t, env)
 	} else {
@@ -235,6 +238,29 @@ func assertEngineEnv(
 		if got := env["NHOST_SUBDOMAIN"]; got != "dev" {
 			t.Errorf("engine env[NHOST_SUBDOMAIN] = %q; want dev", got)
 		}
+	}
+}
+
+// assertEngineMetadataJWTEnv asserts the metadata interpolation variable is
+// retained under its own name and contains only verification material.
+func assertEngineMetadataJWTEnv(t *testing.T, env map[string]string) {
+	t.Helper()
+
+	got, ok := env["NHOST_JWT_SECRET"]
+	if !ok {
+		t.Fatal("engine env missing NHOST_JWT_SECRET")
+	}
+
+	if got != constellationJWTSecret {
+		t.Errorf(
+			"engine env[NHOST_JWT_SECRET] = %q; want verification-only %q",
+			got,
+			constellationJWTSecret,
+		)
+	}
+
+	if strings.Contains(got, `"signing_key"`) {
+		t.Errorf("engine env[NHOST_JWT_SECRET] contains signing material: %q", got)
 	}
 }
 
@@ -274,8 +300,7 @@ func assertEngineAuthEnabledEnv(t *testing.T, env map[string]string) {
 	for _, k := range []string{
 		"AUTH_HOST", "AUTH_PORT",
 		"HASURA_GRAPHQL_ADMIN_SECRET", "HASURA_GRAPHQL_JWT_SECRET",
-		"POSTGRES_MIGRATIONS_CONNECTION",
-		"POSTGRES_MIGRATIONS_SOURCE", "NHOST_JWT_SECRET",
+		"POSTGRES_MIGRATIONS_CONNECTION", "POSTGRES_MIGRATIONS_SOURCE",
 		"CONSTELLATION_ADMIN_SECRET", "CONSTELLATION_JWT_SECRET",
 		"CONSTELLATION_METADATA_DATABASE_URL",
 	} {
@@ -314,6 +339,104 @@ func assertEngineAuthDisabledEnv(t *testing.T, env map[string]string) {
 			t.Errorf("engine env[%q] = %q; want %q", k, got, want)
 		}
 	}
+}
+
+func TestEngineJWTSecretPrivateMaterial(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name         string
+		withAuth     bool
+		wantJWT      map[string]string
+		wantDistinct bool
+	}{
+		{
+			name:     "auth enabled",
+			withAuth: true,
+			wantJWT: map[string]string{
+				"key":         "public-key",
+				"kid":         "signing-key-id",
+				"signing_key": "private-key",
+				"type":        "RS256",
+			},
+			wantDistinct: true,
+		},
+		{
+			name:     "auth disabled",
+			withAuth: false,
+			wantJWT: map[string]string{
+				"key":  "public-key",
+				"type": "RS256",
+			},
+			wantDistinct: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			cfg := engineTestConfig()
+			jwtSecret := cfg.Hasura.JwtSecrets[0]
+			jwtSecret.ClaimsMap = nil
+			jwtSecret.Type = new("RS256")
+			jwtSecret.Key = new("public-key")
+			jwtSecret.SigningKey = new("private-key")
+			jwtSecret.Kid = new("signing-key-id")
+
+			env, err := engineEnv(cfg, "dev", true, 1336, tt.withAuth)
+			if err != nil {
+				t.Fatalf("engineEnv returned an error: %v", err)
+			}
+
+			gotJWT := decodeEngineJWTEnv(t, env, "JWT_SECRET")
+			if diff := cmp.Diff(tt.wantJWT, gotJWT); diff != "" {
+				t.Errorf("JWT_SECRET mismatch (-want +got):\n%s", diff)
+			}
+
+			gotMetadata := decodeEngineJWTEnv(t, env, "NHOST_JWT_SECRET")
+
+			wantMetadata := map[string]string{
+				"key":  "public-key",
+				"type": "RS256",
+			}
+			if diff := cmp.Diff(wantMetadata, gotMetadata); diff != "" {
+				t.Errorf("NHOST_JWT_SECRET mismatch (-want +got):\n%s", diff)
+			}
+
+			if _, leaked := gotMetadata["signing_key"]; leaked {
+				t.Error("NHOST_JWT_SECRET contains signing material")
+			}
+
+			if distinct := env["JWT_SECRET"] != env["NHOST_JWT_SECRET"]; distinct != tt.wantDistinct {
+				t.Errorf(
+					"JWT_SECRET and NHOST_JWT_SECRET distinct values = %t; want %t",
+					distinct,
+					tt.wantDistinct,
+				)
+			}
+		})
+	}
+}
+
+func decodeEngineJWTEnv(
+	t *testing.T,
+	env map[string]string,
+	name string,
+) map[string]string {
+	t.Helper()
+
+	value, ok := env[name]
+	if !ok {
+		t.Fatalf("engine env missing %s", name)
+	}
+
+	got := make(map[string]string)
+	if err := json.Unmarshal([]byte(value), &got); err != nil {
+		t.Fatalf("unmarshal engine env[%s]: %v", name, err)
+	}
+
+	return got
 }
 
 func TestEngineIngressRedirectRoundTrips(t *testing.T) {
