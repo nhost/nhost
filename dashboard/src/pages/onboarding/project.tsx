@@ -6,8 +6,8 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import slugify from 'slugify';
 import { z } from 'zod';
-import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
+import { StandaloneLayout } from '@/components/layout/StandaloneLayout';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Form,
@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from '@/components/ui/v3/select';
 import { Spinner } from '@/components/ui/v3/spinner';
+import { AuthGuard } from '@/features/orgs/layout/AuthGuard';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { getCreateProjectErrorMessage } from '@/features/orgs/utils/getCreateProjectErrorMessage';
@@ -323,8 +324,8 @@ export default function OnboardingProjectPage() {
 
 OnboardingProjectPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <AuthenticatedLayout title="Onboarding - Create Project">
-      {page}
-    </AuthenticatedLayout>
+    <StandaloneLayout title="Onboarding - Create Project">
+      <AuthGuard>{page}</AuthGuard>
+    </StandaloneLayout>
   );
 };
