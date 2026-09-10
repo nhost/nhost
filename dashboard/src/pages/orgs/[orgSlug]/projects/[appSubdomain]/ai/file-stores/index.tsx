@@ -10,7 +10,7 @@ import { FileStoresIcon } from '@/components/ui/v3/icons/FileStoresIcon';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { AISidebar } from '@/features/orgs/layout/AISidebar';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { FileStoreForm } from '@/features/orgs/projects/ai/FileStoreForm';
 import { FileStoresList } from '@/features/orgs/projects/ai/FileStoresList';
 import type { GraphiteFileStore } from '@/features/orgs/projects/ai/file-stores/types';
@@ -176,7 +176,7 @@ export default function FileStoresPage() {
 
 FileStoresPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <OrgLayout
+    <ProjectLayout
       mainContainerProps={{
         className:
           'flex flex-row w-full h-full !bg-[#fafafa] dark:!bg-[#151a22]',
@@ -186,6 +186,6 @@ FileStoresPage.getLayout = function getLayout(page: ReactElement) {
       <div className="w-full overflow-auto">
         <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
       </div>
-    </OrgLayout>
+    </ProjectLayout>
   );
 };
