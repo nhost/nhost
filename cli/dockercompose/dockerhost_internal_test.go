@@ -29,25 +29,28 @@ func useDockerContextEndpoint(t *testing.T, endpoint string) {
 
 func TestDetectDockerHost(t *testing.T) {
 	cases := []struct {
-		name              string
-		dockerHost        string
-		wantEndpoint      string
-		wantKnown         bool
-		verifyUserMapping bool
+		name                string
+		dockerHost          string
+		wantEndpoint        string
+		wantKnown           bool
+		wantFromEnvironment bool
+		verifyUserMapping   bool
 	}{
 		{
-			name:              "DOCKER_HOST takes precedence",
-			dockerHost:        "unix:///run/user/1000/docker.sock",
-			wantEndpoint:      "unix:///run/user/1000/docker.sock",
-			wantKnown:         true,
-			verifyUserMapping: false,
+			name:                "DOCKER_HOST takes precedence",
+			dockerHost:          "unix:///run/user/1000/docker.sock",
+			wantEndpoint:        "unix:///run/user/1000/docker.sock",
+			wantKnown:           true,
+			wantFromEnvironment: true,
+			verifyUserMapping:   false,
 		},
 		{
-			name:              "command failure uses unknown fallback",
-			dockerHost:        "",
-			wantEndpoint:      defaultDockerEndpoint,
-			wantKnown:         false,
-			verifyUserMapping: true,
+			name:                "command failure uses unknown fallback",
+			dockerHost:          "",
+			wantEndpoint:        defaultDockerEndpoint,
+			wantKnown:           false,
+			wantFromEnvironment: false,
+			verifyUserMapping:   true,
 		},
 	}
 
@@ -67,6 +70,14 @@ func TestDetectDockerHost(t *testing.T) {
 
 			if resolution.known != tc.wantKnown {
 				t.Errorf("Docker endpoint known = %t, want %t", resolution.known, tc.wantKnown)
+			}
+
+			if resolution.fromEnvironment != tc.wantFromEnvironment {
+				t.Errorf(
+					"Docker endpoint from environment = %t, want %t",
+					resolution.fromEnvironment,
+					tc.wantFromEnvironment,
+				)
 			}
 
 			if !tc.verifyUserMapping {
@@ -104,63 +115,107 @@ func requireDockerSocketMount(t *testing.T, service *Service, source string) {
 	t.Fatal("Docker socket is not mounted")
 }
 
-func TestRootlessDockerContextIsUsedBySocketConsumers( //nolint:paralleltest // mutates process-wide Docker environment
+func TestDockerSocketConsumersUseHostCompatibleEndpoint(
 	t *testing.T,
 ) {
 	if runtime.GOOS == "windows" {
 		t.Skip("test helper uses a POSIX shell script")
 	}
 
-	const rootlessEndpoint = "unix:///run/user/1000/docker.sock"
-
-	useDockerContextEndpoint(t, rootlessEndpoint)
-
-	ctx := t.Context()
-
-	hostUser, err := ResolveHostUser(ctx, HostUserAuto)
-	if err != nil {
-		t.Fatalf("ResolveHostUser failed: %v", err)
+	cases := []struct {
+		name            string
+		hostOS          string
+		contextEndpoint string
+		dockerHost      string
+		wantEndpoint    string
+		wantSource      string
+	}{
+		{
+			name:            "Linux rootless context",
+			hostOS:          osLinux,
+			contextEndpoint: "unix:///run/user/1000/docker.sock",
+			dockerHost:      "",
+			wantEndpoint:    "unix:///run/user/1000/docker.sock",
+			wantSource:      "/run/user/1000/docker.sock",
+		},
+		{
+			name:            "Docker Desktop context",
+			hostOS:          "darwin",
+			contextEndpoint: "unix:///Users/test/.docker/run/docker.sock",
+			dockerHost:      "",
+			wantEndpoint:    defaultDockerEndpoint,
+			wantSource:      "/var/run/docker.sock",
+		},
+		{
+			name:            "explicit non-Linux DOCKER_HOST",
+			hostOS:          "darwin",
+			contextEndpoint: "",
+			dockerHost:      "unix:///Users/test/.colima/default/docker.sock",
+			wantEndpoint:    "unix:///Users/test/.colima/default/docker.sock",
+			wantSource:      "/Users/test/.colima/default/docker.sock",
+		},
 	}
 
-	if hostUser != "" {
-		t.Fatalf("ResolveHostUser returned %q for a rootless Docker context, want empty", hostUser)
-	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.dockerHost == "" {
+				useDockerContextEndpoint(t, tc.contextEndpoint)
+			} else {
+				t.Setenv("DOCKER_HOST", tc.dockerHost)
+				t.Setenv("PATH", t.TempDir())
+			}
 
-	dockerURL, err := resolveDockerHost(ctx)
-	if err != nil {
-		t.Fatalf("resolveDockerHost failed: %v", err)
-	}
+			resolution, err := detectDockerHost(t.Context())
+			if err != nil {
+				t.Fatalf("detectDockerHost failed: %v", err)
+			}
 
-	if got := dockerURL.String(); got != rootlessEndpoint {
-		t.Fatalf("resolveDockerHost returned %q, want %q", got, rootlessEndpoint)
-	}
+			wantDetectedEndpoint := tc.contextEndpoint
+			if tc.dockerHost != "" {
+				wantDetectedEndpoint = tc.dockerHost
+			}
 
-	traefikService, err := traefik("dev", "project", 1337, t.TempDir(), dockerURL)
-	if err != nil {
-		t.Fatalf("create traefik service: %v", err)
-	}
+			if got := resolution.dockerURL.String(); got != wantDetectedEndpoint {
+				t.Fatalf("detected Docker endpoint = %q, want %q", got, wantDetectedEndpoint)
+			}
 
-	configserverService := configserver(
-		dockerURL,
-		"nhost/cli:test",
-		"/project",
-		"/project/nhost",
-		"project",
-		"app-id",
-		false,
-	)
+			dockerURL, err := dockerHostForSocketConsumers(resolution, tc.hostOS)
+			if err != nil {
+				t.Fatalf("resolve Docker host for socket consumers: %v", err)
+			}
 
-	requireDockerSocketMount(t, traefikService, "/run/user/1000/docker.sock")
-	requireDockerSocketMount(t, configserverService, "/run/user/1000/docker.sock")
+			if got := dockerURL.String(); got != tc.wantEndpoint {
+				t.Fatalf("Docker endpoint = %q, want %q", got, tc.wantEndpoint)
+			}
 
-	if want := "--providers.docker.endpoint=" + defaultDockerEndpoint; !slices.Contains(
-		traefikService.Command,
-		want,
-	) {
-		t.Errorf("traefik command does not contain %q", want)
-	}
+			traefikService, err := traefik("dev", "project", 1337, t.TempDir(), dockerURL)
+			if err != nil {
+				t.Fatalf("create traefik service: %v", err)
+			}
 
-	if got := configserverService.Environment["DOCKER_HOST"]; got != defaultDockerEndpoint {
-		t.Errorf("configserver DOCKER_HOST = %q, want %q", got, defaultDockerEndpoint)
+			configserverService := configserver(
+				dockerURL,
+				"nhost/cli:test",
+				"/project",
+				"/project/nhost",
+				"project",
+				"app-id",
+				false,
+			)
+
+			requireDockerSocketMount(t, traefikService, tc.wantSource)
+			requireDockerSocketMount(t, configserverService, tc.wantSource)
+
+			if want := "--providers.docker.endpoint=" + defaultDockerEndpoint; !slices.Contains(
+				traefikService.Command,
+				want,
+			) {
+				t.Errorf("traefik command does not contain %q", want)
+			}
+
+			if got := configserverService.Environment["DOCKER_HOST"]; got != defaultDockerEndpoint {
+				t.Errorf("configserver DOCKER_HOST = %q, want %q", got, defaultDockerEndpoint)
+			}
+		})
 	}
 }

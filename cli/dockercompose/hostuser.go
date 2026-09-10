@@ -22,13 +22,15 @@ const (
 const defaultDockerEndpoint = "unix:///var/run/docker.sock"
 
 type dockerHostResolution struct {
-	dockerURL *url.URL
-	known     bool
+	dockerURL       *url.URL
+	known           bool
+	fromEnvironment bool
 }
 
 func detectDockerHost(ctx context.Context) (dockerHostResolution, error) {
 	endpoint := os.Getenv("DOCKER_HOST")
-	known := endpoint != ""
+	fromEnvironment := endpoint != ""
+	known := fromEnvironment
 
 	if !known {
 		out, err := exec.CommandContext(ctx, "docker", "context", "inspect",
@@ -58,9 +60,27 @@ func detectDockerHost(ctx context.Context) (dockerHostResolution, error) {
 	}
 
 	return dockerHostResolution{
-		dockerURL: dockerURL,
-		known:     known,
+		dockerURL:       dockerURL,
+		known:           known,
+		fromEnvironment: fromEnvironment,
 	}, nil
+}
+
+func dockerHostForSocketConsumers(
+	resolution dockerHostResolution,
+	hostOS string,
+) (*url.URL, error) {
+	if hostOS == osLinux || resolution.fromEnvironment {
+		return resolution.dockerURL, nil
+	}
+
+	// Docker Desktop context sockets are client-side proxies that containers cannot mount.
+	dockerURL, err := url.Parse(defaultDockerEndpoint)
+	if err != nil {
+		return nil, fmt.Errorf("parsing default Docker endpoint: %w", err)
+	}
+
+	return dockerURL, nil
 }
 
 func resolveDockerHost(ctx context.Context) (*url.URL, error) {
@@ -69,7 +89,7 @@ func resolveDockerHost(ctx context.Context) (*url.URL, error) {
 		return nil, err
 	}
 
-	return resolution.dockerURL, nil
+	return dockerHostForSocketConsumers(resolution, runtime.GOOS)
 }
 
 // The `auto` heuristic: map containers to the
