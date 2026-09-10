@@ -3,8 +3,8 @@ import type { ReactElement } from 'react';
 import { NavLink } from '@/components/common/NavLink';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { AppDeployments } from '@/features/orgs/projects/deployments/components/AppDeployments';
+import { getDeploymentsLayout } from '@/features/orgs/projects/deployments/layout';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
@@ -32,7 +32,7 @@ export default function DeploymentsPage() {
         </div>
         <div className="flex w-full justify-center">
           <NavLink
-            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/deployments`}
+            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/settings`}
             underline="none"
             variant="ghost"
             className="!text-primary"
@@ -58,5 +58,5 @@ export default function DeploymentsPage() {
 }
 
 DeploymentsPage.getLayout = function getLayout(page: ReactElement) {
-  return <ProjectLayout>{page}</ProjectLayout>;
+  return getDeploymentsLayout(page);
 };
