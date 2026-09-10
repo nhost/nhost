@@ -1,9 +1,6 @@
 import type { RemoteSchemaInfo } from '@/utils/hasura-api/generated/schemas';
 import { executeMigration } from '@/utils/hasura-api/migrationFetch';
-
-export interface UpdateRemoteSchemaMigrationOptions {
-  adminSecret: string;
-}
+import type { MigrationOperationOptions } from '@/utils/hasura-api/types';
 
 export interface UpdateRemoteSchemaMigrationVariables {
   originalRemoteSchema: RemoteSchemaInfo;
@@ -11,10 +8,11 @@ export interface UpdateRemoteSchemaMigrationVariables {
 }
 
 export default async function updateRemoteSchemaMigration({
+  appUrl,
   adminSecret,
   originalRemoteSchema,
   updatedRemoteSchema,
-}: UpdateRemoteSchemaMigrationOptions & UpdateRemoteSchemaMigrationVariables) {
+}: MigrationOperationOptions & UpdateRemoteSchemaMigrationVariables) {
   try {
     const response = await executeMigration(
       {
@@ -34,6 +32,7 @@ export default async function updateRemoteSchemaMigration({
         datasource: 'default',
       },
       {
+        appUrl,
         adminSecret,
       },
     );

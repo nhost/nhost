@@ -7,6 +7,7 @@ export interface RemoveRemoteSchemaMigrationVariables {
 }
 
 export default async function removeRemoteSchemaMigration({
+  appUrl,
   adminSecret,
   remoteSchema,
 }: MigrationOperationOptions & RemoveRemoteSchemaMigrationVariables) {
@@ -31,6 +32,7 @@ export default async function removeRemoteSchemaMigration({
         datasource: 'default',
       },
       {
+        appUrl,
         adminSecret,
       },
     );

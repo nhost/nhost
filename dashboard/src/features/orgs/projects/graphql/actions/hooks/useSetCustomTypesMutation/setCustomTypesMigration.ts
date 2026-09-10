@@ -33,6 +33,7 @@ export function buildSetCustomTypesMigrationRequest({
 }
 
 export default async function setCustomTypesMigration({
+  appUrl,
   adminSecret,
   ...variables
 }: MigrationOperationOptions & SetCustomTypesVariables) {
@@ -40,6 +41,7 @@ export default async function setCustomTypesMigration({
     const response = await executeMigration(
       buildSetCustomTypesMigrationRequest(variables),
       {
+        appUrl,
         adminSecret,
       },
     );

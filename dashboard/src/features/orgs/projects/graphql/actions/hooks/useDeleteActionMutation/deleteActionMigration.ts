@@ -39,6 +39,7 @@ export function buildDeleteActionMigrationRequest({
 }
 
 export default async function deleteActionMigration({
+  appUrl,
   adminSecret,
   ...variables
 }: MigrationOperationOptions & DeleteActionVariables) {
@@ -46,6 +47,7 @@ export default async function deleteActionMigration({
     const response = await executeMigration(
       buildDeleteActionMigrationRequest(variables),
       {
+        appUrl,
         adminSecret,
       },
     );

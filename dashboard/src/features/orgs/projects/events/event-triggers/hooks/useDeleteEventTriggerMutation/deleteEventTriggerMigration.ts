@@ -7,6 +7,7 @@ export interface DeleteEventTriggerMigrationVariables {
 }
 
 export async function deleteEventTriggerMigration({
+  appUrl,
   adminSecret,
   originalEventTrigger,
 }: MigrationOperationOptions & DeleteEventTriggerMigrationVariables) {
@@ -43,6 +44,7 @@ export async function deleteEventTriggerMigration({
         skip_execution: false,
       },
       {
+        appUrl,
         adminSecret,
       },
     );

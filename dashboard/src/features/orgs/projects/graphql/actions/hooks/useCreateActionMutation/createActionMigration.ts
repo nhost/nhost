@@ -43,6 +43,7 @@ export function buildCreateActionMigrationRequest({
 }
 
 export default async function createActionMigration({
+  appUrl,
   adminSecret,
   ...variables
 }: MigrationOperationOptions & CreateActionVariables) {
@@ -50,6 +51,7 @@ export default async function createActionMigration({
     const response = await executeMigration(
       buildCreateActionMigrationRequest(variables),
       {
+        appUrl,
         adminSecret,
       },
     );

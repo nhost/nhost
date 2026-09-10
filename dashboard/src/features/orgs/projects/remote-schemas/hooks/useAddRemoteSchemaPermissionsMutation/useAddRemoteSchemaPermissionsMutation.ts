@@ -53,6 +53,7 @@ export default function useAddRemoteSchemaPermissionsMutation({
 
     return addRemoteSchemaPermissionsMigration({
       ...(variables as AddRemoteSchemaPermissionsMigrationVariables),
+      appUrl: adminApi!.appUrl,
       ...base,
     });
   }, mutationOptions);

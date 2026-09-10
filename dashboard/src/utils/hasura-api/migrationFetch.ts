@@ -6,18 +6,38 @@ import type {
   MigrationRequest,
   SuccessResponse,
 } from '@/utils/hasura-api/generated/schemas';
+import {
+  classifyMigrationMetadataVersionConflictResponse,
+  MetadataVersionConflictError,
+} from '@/utils/hasura-api/metadata-version-conflict-error';
+
+export interface ExecuteMigrationOptions extends CustomFetchOptions {
+  appUrl: string;
+}
 
 export type ExecuteMigrationResponse =
   | { data: SuccessResponse; status: 200; headers: Headers }
+  | { data: ErrorResponse; status: 400; headers: Headers }
   | { data: ErrorResponse; status: 500; headers: Headers };
 
-export function executeMigration(
+export async function executeMigration(
   migrationRequest: MigrationRequest,
-  options?: CustomFetchOptions,
+  options: ExecuteMigrationOptions,
 ): Promise<ExecuteMigrationResponse> {
-  return customFetch<ExecuteMigrationResponse>(getHasuraMigrationsApiUrl(), {
-    ...options,
-    method: 'POST',
-    body: JSON.stringify(migrationRequest),
-  });
+  const { appUrl, ...fetchOptions } = options;
+  const response = await customFetch<ExecuteMigrationResponse>(
+    getHasuraMigrationsApiUrl(),
+    {
+      ...fetchOptions,
+      method: 'POST',
+      body: JSON.stringify(migrationRequest),
+    },
+  );
+  const conflict = classifyMigrationMetadataVersionConflictResponse(response);
+
+  if (conflict) {
+    throw new MetadataVersionConflictError(conflict.message, appUrl);
+  }
+
+  return response;
 }

@@ -12,6 +12,7 @@ export interface CreateEventTriggerMigrationVariables {
 }
 
 export default async function createEventTriggerMigration({
+  appUrl,
   adminSecret,
   args,
   originalEventTrigger,
@@ -56,6 +57,7 @@ export default async function createEventTriggerMigration({
         skip_execution: false,
       },
       {
+        appUrl,
         adminSecret,
       },
     );

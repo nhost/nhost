@@ -70,6 +70,7 @@ export default function useDeleteEventTriggerMutation({
 
       return deleteEventTriggerMigration({
         originalEventTrigger: variables.originalEventTrigger,
+        appUrl: adminApi!.appUrl,
         ...base,
       });
     },

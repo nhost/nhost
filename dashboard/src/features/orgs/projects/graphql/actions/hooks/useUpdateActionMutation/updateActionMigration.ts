@@ -52,6 +52,7 @@ export function buildUpdateActionMigrationRequest({
 }
 
 export default async function updateActionMigration({
+  appUrl,
   adminSecret,
   ...variables
 }: MigrationOperationOptions & UpdateActionVariables) {
@@ -59,6 +60,7 @@ export default async function updateActionMigration({
     const response = await executeMigration(
       buildUpdateActionMigrationRequest(variables),
       {
+        appUrl,
         adminSecret,
       },
     );

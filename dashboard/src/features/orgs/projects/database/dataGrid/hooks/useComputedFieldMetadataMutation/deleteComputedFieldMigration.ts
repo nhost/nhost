@@ -11,6 +11,7 @@ export interface DeleteComputedFieldMigrationVariables {
 }
 
 export default async function deleteComputedFieldMigration({
+  appUrl,
   adminSecret,
   args,
   original,
@@ -43,6 +44,7 @@ export default async function deleteComputedFieldMigration({
         skip_execution: false,
       },
       {
+        appUrl,
         adminSecret,
       },
     );

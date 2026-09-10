@@ -74,6 +74,7 @@ export default function useCreateEventTriggerMutation({
       return createEventTriggerMigration({
         args: variables.args,
         originalEventTrigger: variables.originalEventTrigger,
+        appUrl: adminApi!.appUrl,
         ...base,
       });
     },

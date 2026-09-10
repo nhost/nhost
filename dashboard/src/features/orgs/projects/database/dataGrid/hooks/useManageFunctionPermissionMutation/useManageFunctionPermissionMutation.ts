@@ -58,6 +58,7 @@ export default function useManageFunctionPermissionMutation({
 
       return manageFunctionPermissionMigration({
         ...(variables as ManageFunctionPermissionMigrationVariables),
+        appUrl: adminApi!.appUrl,
         ...base,
       });
     },

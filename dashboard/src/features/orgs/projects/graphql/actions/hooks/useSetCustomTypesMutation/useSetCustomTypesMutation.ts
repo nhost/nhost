@@ -1,8 +1,8 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 import type { SuccessResponse } from '@/utils/hasura-api/generated/schemas/successResponse';
@@ -32,6 +32,7 @@ export default function useSetCustomTypesMutation({
   mutationOptions,
 }: UseSetCustomTypesMutationOptions = {}) {
   const { project } = useProject();
+  const adminApi = useAdminApiTarget();
   const isPlatform = useIsPlatform();
   const queryClient = useQueryClient();
 
@@ -41,13 +42,7 @@ export default function useSetCustomTypesMutation({
     SetCustomTypesVariables
   >(
     (variables) => {
-      const appUrl = generateAppServiceUrl(
-        project!.subdomain,
-        project!.region,
-        'hasura',
-      );
-
-      const adminSecret = project!.config!.hasura.adminSecret;
+      const { appUrl, adminSecret } = adminApi!;
 
       if (isPlatform) {
         return setCustomTypes({
@@ -59,6 +54,7 @@ export default function useSetCustomTypesMutation({
 
       return setCustomTypesMigration({
         ...variables,
+        appUrl,
         adminSecret,
       });
     },

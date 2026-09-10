@@ -1,4 +1,4 @@
-import type { ErrorResponse } from './generated/schemas';
+import type { ErrorResponse } from '@/utils/hasura-api/generated/schemas';
 
 export type HasuraError = Error & ErrorResponse;
 
@@ -8,6 +8,7 @@ export interface MetadataOperationOptions {
 }
 
 export interface MigrationOperationOptions {
+  appUrl: string;
   adminSecret: string;
 }
 

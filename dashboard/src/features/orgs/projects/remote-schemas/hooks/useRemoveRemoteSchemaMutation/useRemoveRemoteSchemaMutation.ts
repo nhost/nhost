@@ -52,6 +52,7 @@ export default function useRemoveRemoteSchemaMutation({
 
     return removeRemoteSchemaMigration({
       ...variables,
+      appUrl: adminApi!.appUrl,
       ...base,
     });
   }, mutationOptions);

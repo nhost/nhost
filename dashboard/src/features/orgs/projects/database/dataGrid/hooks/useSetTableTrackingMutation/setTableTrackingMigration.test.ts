@@ -10,6 +10,7 @@ vi.mock('@/utils/hasura-api/migrationFetch', () => ({
 }));
 
 const baseOptions = {
+  appUrl: 'http://hasura.local.test:8080',
   adminSecret: 'test-secret',
 };
 
@@ -43,7 +44,10 @@ describe('setTableTrackingMigration', () => {
         datasource: 'default',
         skip_execution: false,
       },
-      { adminSecret: baseOptions.adminSecret },
+      {
+        appUrl: baseOptions.appUrl,
+        adminSecret: baseOptions.adminSecret,
+      },
     );
   });
 
@@ -67,7 +71,10 @@ describe('setTableTrackingMigration', () => {
         datasource: 'default',
         skip_execution: false,
       },
-      { adminSecret: baseOptions.adminSecret },
+      {
+        appUrl: baseOptions.appUrl,
+        adminSecret: baseOptions.adminSecret,
+      },
     );
   });
 

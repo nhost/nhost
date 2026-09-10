@@ -33,6 +33,7 @@ export function buildManageActionPermissionMigrationRequest({
 }
 
 export default async function manageActionPermissionMigration({
+  appUrl,
   adminSecret,
   ...variables
 }: MigrationOperationOptions & ManageActionPermissionVariables) {
@@ -40,6 +41,7 @@ export default async function manageActionPermissionMigration({
     const response = await executeMigration(
       buildManageActionPermissionMigrationRequest(variables),
       {
+        appUrl,
         adminSecret,
       },
     );

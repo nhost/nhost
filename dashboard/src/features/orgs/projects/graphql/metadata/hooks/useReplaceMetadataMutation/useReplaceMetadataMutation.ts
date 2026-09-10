@@ -48,6 +48,7 @@ export default function useReplaceMetadataMutation(
 
       return replaceMetadataMigration({
         ...(variables as ReplaceMetadataMigrationVariables),
+        appUrl: adminApi!.appUrl,
         ...base,
       });
     },

@@ -7,6 +7,7 @@ export interface CreateComputedFieldMigrationVariables {
 }
 
 export default async function createComputedFieldMigration({
+  appUrl,
   adminSecret,
   args,
 }: MigrationOperationOptions & CreateComputedFieldMigrationVariables) {
@@ -35,6 +36,7 @@ export default async function createComputedFieldMigration({
         skip_execution: false,
       },
       {
+        appUrl,
         adminSecret,
       },
     );

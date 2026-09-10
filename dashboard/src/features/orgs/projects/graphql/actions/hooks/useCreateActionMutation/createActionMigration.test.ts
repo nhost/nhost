@@ -1,8 +1,24 @@
+import { vi } from 'vitest';
+import createActionMigration, {
+  buildCreateActionMigrationRequest,
+} from '@/features/orgs/projects/graphql/actions/hooks/useCreateActionMutation/createActionMigration';
 import type {
   CreateActionArgs,
   CustomTypes,
 } from '@/utils/hasura-api/generated/schemas';
-import { buildCreateActionMigrationRequest } from './createActionMigration';
+import { MetadataVersionConflictError } from '@/utils/hasura-api/metadata-version-conflict-error';
+
+const mocks = vi.hoisted(() => ({
+  executeMigration: vi.fn(),
+}));
+
+vi.mock('@/utils/hasura-api/migrationFetch', () => ({
+  executeMigration: mocks.executeMigration,
+}));
+
+const APP_URL = 'http://hasura.local.test:8080';
+const CONFLICT_MESSAGE =
+  'metadata resource version referenced (42) did not match current version';
 
 const args: CreateActionArgs = {
   name: 'getExchangeRates',
@@ -65,5 +81,35 @@ describe('buildCreateActionMigrationRequest', () => {
       { type: 'drop_action', args: { name: 'getExchangeRates' } },
       { type: 'set_custom_types', args: previousCustomTypes },
     ]);
+  });
+});
+
+describe('createActionMigration', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('preserves a typed metadata conflict from the migration boundary', async () => {
+    const conflict = new MetadataVersionConflictError(
+      CONFLICT_MESSAGE,
+      APP_URL,
+    );
+    mocks.executeMigration.mockRejectedValue(conflict);
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    await expect(
+      createActionMigration({
+        appUrl: APP_URL,
+        adminSecret: 'test-secret',
+        args,
+        customTypes,
+        previousCustomTypes,
+      }),
+    ).rejects.toBe(conflict);
+
+    expect(mocks.executeMigration).toHaveBeenCalledWith(expect.anything(), {
+      appUrl: APP_URL,
+      adminSecret: 'test-secret',
+    });
   });
 });

@@ -11,6 +11,7 @@ export interface EditComputedFieldMigrationVariables {
 }
 
 export default async function editComputedFieldMigration({
+  appUrl,
   adminSecret,
   args,
   original,
@@ -62,6 +63,7 @@ export default async function editComputedFieldMigration({
         skip_execution: false,
       },
       {
+        appUrl,
         adminSecret,
       },
     );

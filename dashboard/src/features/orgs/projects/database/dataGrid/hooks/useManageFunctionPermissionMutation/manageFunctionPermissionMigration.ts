@@ -25,6 +25,7 @@ export interface ManageFunctionPermissionMigrationVariables {
 }
 
 export default async function manageFunctionPermissionMigration({
+  appUrl,
   adminSecret,
   type,
   args,
@@ -50,6 +51,7 @@ export default async function manageFunctionPermissionMigration({
         skip_execution: false,
       },
       {
+        appUrl,
         adminSecret,
       },
     );

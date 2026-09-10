@@ -56,6 +56,7 @@ export default function useSetTableIsEnumMutation({
 
       return setTableIsEnumMigration({
         ...(variables as SetTableIsEnumMigrationVariables),
+        appUrl: adminApi!.appUrl,
         ...commonParams,
       });
     },

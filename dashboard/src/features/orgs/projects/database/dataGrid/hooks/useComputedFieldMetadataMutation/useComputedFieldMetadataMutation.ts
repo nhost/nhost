@@ -110,6 +110,7 @@ export default function useComputedFieldMetadataMutation<
         case 'add':
           return createComputedFieldMigration({
             ...base,
+            appUrl: adminApi!.appUrl,
             args: variables.args as AddComputedFieldArgs,
           });
         case 'edit': {
@@ -117,6 +118,7 @@ export default function useComputedFieldMetadataMutation<
             variables as ComputedFieldMutationVariables<'edit'>;
           return editComputedFieldMigration({
             ...base,
+            appUrl: adminApi!.appUrl,
             args: editVariables.args,
             original: editVariables.original,
           });
@@ -126,6 +128,7 @@ export default function useComputedFieldMetadataMutation<
             variables as ComputedFieldMutationVariables<'delete'>;
           return deleteComputedFieldMigration({
             ...base,
+            appUrl: adminApi!.appUrl,
             args: deleteVariables.args,
             original: deleteVariables.original,
           });

@@ -49,7 +49,10 @@ export default function useSetTableTrackingMutation(
           ...commonParams,
         });
       }
-      return setTableTrackingMigration(commonParams);
+      return setTableTrackingMigration({
+        ...commonParams,
+        appUrl: adminApi!.appUrl,
+      });
     },
     ...mutationOptions,
     onSuccess: (...args) => {

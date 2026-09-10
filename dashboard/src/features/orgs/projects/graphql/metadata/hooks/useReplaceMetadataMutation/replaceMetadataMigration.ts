@@ -8,6 +8,7 @@ export interface ReplaceMetadataMigrationVariables {
 }
 
 export default async function replaceMetadataMigration({
+  appUrl,
   adminSecret,
   oldMetadata,
   metadata,
@@ -39,6 +40,7 @@ export default async function replaceMetadataMigration({
         skip_execution: false,
       },
       {
+        appUrl,
         adminSecret,
       },
     );

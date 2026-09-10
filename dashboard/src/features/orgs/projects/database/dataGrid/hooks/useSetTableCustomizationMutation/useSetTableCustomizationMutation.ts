@@ -56,6 +56,7 @@ export default function useSetTableCustomizationMutation({
 
       return setTableCustomizationMigration({
         ...(variables as SetTableCustomizationMigrationVariables),
+        appUrl: adminApi!.appUrl,
         ...base,
       });
     },

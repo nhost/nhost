@@ -49,7 +49,10 @@ export default function useSetFunctionTrackingMutation(
           ...commonParams,
         });
       }
-      return setFunctionTrackingMigration(commonParams);
+      return setFunctionTrackingMigration({
+        ...commonParams,
+        appUrl: adminApi!.appUrl,
+      });
     },
     ...mutationOptions,
     onSuccess: (...args) => {
