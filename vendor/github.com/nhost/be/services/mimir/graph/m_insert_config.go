@@ -83,6 +83,10 @@ func (r *mutationResolver) insertConfig(
 		Services:       make(Services, 0),
 	}
 
+	if err := schema.ValidateConfigMutation(newApp.Config, &configInput); err != nil {
+		return nil, fmt.Errorf("failed to validate config mutation: %w", err)
+	}
+
 	config, systemConfig, err = validateAndFillConfig(r.schema, newApp)
 	if err != nil {
 		return nil, err

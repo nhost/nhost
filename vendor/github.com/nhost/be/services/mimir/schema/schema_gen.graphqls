@@ -2199,10 +2199,11 @@ type ConfigExperimental {
     """
     Run auth, storage and constellation bundled in a single nhost-engine
     binary instead of as standalone containers. Auth and storage are
-    configured from their normal root sections; their per-service version
-    and resources are rejected during validation because the one binary has
-    a single version and a single resources block (see #Nhost). The engine
-    always runs constellation as its GraphQL engine, so it is mutually
+    configured from their normal root sections. Per-service versions and
+    sizing resources are rejected because the binary has one version and one
+    sizing block (see #Nhost), but auth.resources.networking remains supported
+    for custom auth domains. The engine always runs constellation as its GraphQL
+    engine, so it is mutually
     exclusive with the standalone experimental.constellation service
     (enforced during config validation).
     """
@@ -3367,27 +3368,37 @@ type ConfigNhost {
     """
     version: String
     """
+    Enable debug logging for every service bundled in the engine process.
+    For backward compatibility, graphql.settings.debug remains supported, but
+    this engine-wide field takes precedence when both fields are set.
+    """
+    debug: Boolean
+    """
     Resources for the single engine container. The engine runs auth,
     storage and constellation in one process, so this configures the whole
-    binary rather than any individual service.
+    binary rather than any individual service. Networking is rejected during
+    validation because a shared custom domain has no single service target;
+    auth custom domains remain under auth.resources.networking.
     """
     resources: ConfigResources
     """
-    GraphQL (constellation) engine configuration. The engine always runs
-    constellation as its GraphQL engine; this is the only setting not taken
-    from a root section, since constellation has none of its own.
+    Constellation-specific GraphQL engine configuration. The legacy
+    settings.debug field remains supported, but the engine-level debug field
+    takes precedence when both fields are set.
     """
     graphql: ConfigConstellationConfig
 }
 
 input ConfigNhostUpdateInput {
     version: String
+    debug: Boolean
     resources: ConfigResourcesUpdateInput
     graphql: ConfigConstellationConfigUpdateInput
 }
 
 input ConfigNhostInsertInput {
     version: String
+    debug: Boolean
     resources: ConfigResourcesInsertInput
     graphql: ConfigConstellationConfigInsertInput
 }
@@ -3397,6 +3408,7 @@ input ConfigNhostComparisonExp {
     _not: ConfigNhostComparisonExp
     _or: [ConfigNhostComparisonExp!]
     version: ConfigStringComparisonExp
+    debug: ConfigBooleanComparisonExp
     resources: ConfigResourcesComparisonExp
     graphql: ConfigConstellationConfigComparisonExp
 }

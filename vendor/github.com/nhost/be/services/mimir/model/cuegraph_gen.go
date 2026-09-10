@@ -13814,10 +13814,11 @@ type ConfigExperimental struct {
 	Constellation *ConfigConstellation `json:"constellation,omitempty" toml:"constellation,omitempty"`
 	// Run auth, storage and constellation bundled in a single nhost-engine
 	// binary instead of as standalone containers. Auth and storage are
-	// configured from their normal root sections; their per-service version
-	// and resources are rejected during validation because the one binary has
-	// a single version and a single resources block (see #Nhost). The engine
-	// always runs constellation as its GraphQL engine, so it is mutually
+	// configured from their normal root sections. Per-service versions and
+	// sizing resources are rejected because the binary has one version and one
+	// sizing block (see #Nhost), but auth.resources.networking remains supported
+	// for custom auth domains. The engine always runs constellation as its GraphQL
+	// engine, so it is mutually
 	// exclusive with the standalone experimental.constellation service
 	// (enforced during config validation).
 	Nhost *ConfigNhost `json:"nhost,omitempty" toml:"nhost,omitempty"`
@@ -21723,13 +21724,19 @@ type ConfigNhost struct {
 	// Version of the engine to run. See available versions at:
 	// https://hub.docker.com/r/nhost/engine/tags
 	Version *string `json:"version" toml:"version"`
+	// Enable debug logging for every service bundled in the engine process.
+	// For backward compatibility, graphql.settings.debug remains supported, but
+	// this engine-wide field takes precedence when both fields are set.
+	Debug *bool `json:"debug" toml:"debug"`
 	// Resources for the single engine container. The engine runs auth,
 	// storage and constellation in one process, so this configures the whole
-	// binary rather than any individual service.
+	// binary rather than any individual service. Networking is rejected during
+	// validation because a shared custom domain has no single service target;
+	// auth custom domains remain under auth.resources.networking.
 	Resources *ConfigResources `json:"resources,omitempty" toml:"resources,omitempty"`
-	// GraphQL (constellation) engine configuration. The engine always runs
-	// constellation as its GraphQL engine; this is the only setting not taken
-	// from a root section, since constellation has none of its own.
+	// Constellation-specific GraphQL engine configuration. The legacy
+	// settings.debug field remains supported, but the engine-level debug field
+	// takes precedence when both fields are set.
 	Graphql *ConfigConstellationConfig `json:"graphql,omitempty" toml:"graphql,omitempty"`
 }
 
@@ -21737,6 +21744,9 @@ func (o *ConfigNhost) MarshalJSON() ([]byte, error) {
 	m := make(map[string]any)
 	if o.Version != nil {
 		m["version"] = o.Version
+	}
+	if o.Debug != nil {
+		m["debug"] = o.Debug
 	}
 	if o.Resources != nil {
 		m["resources"] = o.Resources
@@ -21752,6 +21762,13 @@ func (o *ConfigNhost) GetVersion() *string {
 		o = &ConfigNhost{}
 	}
 	return o.Version
+}
+
+func (o *ConfigNhost) GetDebug() *bool {
+	if o == nil {
+		o = &ConfigNhost{}
+	}
+	return o.Debug
 }
 
 func (o *ConfigNhost) GetResources() *ConfigResources {
@@ -21771,6 +21788,8 @@ func (o *ConfigNhost) GetGraphql() *ConfigConstellationConfig {
 type ConfigNhostUpdateInput struct {
 	Version        *string                               `json:"version,omitempty" toml:"version,omitempty"`
 	IsSetVersion   bool                                  `json:"-"`
+	Debug          *bool                                 `json:"debug,omitempty" toml:"debug,omitempty"`
+	IsSetDebug     bool                                  `json:"-"`
 	Resources      *ConfigResourcesUpdateInput           `json:"resources,omitempty" toml:"resources,omitempty"`
 	IsSetResources bool                                  `json:"-"`
 	Graphql        *ConfigConstellationConfigUpdateInput `json:"graphql,omitempty" toml:"graphql,omitempty"`
@@ -21798,6 +21817,23 @@ func (o *ConfigNhostUpdateInput) UnmarshalGQL(v interface{}) error {
 			o.Version = &x
 		}
 		o.IsSetVersion = true
+	}
+	if v, ok := m["debug"]; ok {
+		if v == nil {
+			o.Debug = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x bool
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Debug = &x
+		}
+		o.IsSetDebug = true
 	}
 	if x, ok := m["resources"]; ok {
 		if x != nil {
@@ -21837,6 +21873,13 @@ func (o *ConfigNhostUpdateInput) GetVersion() *string {
 	return o.Version
 }
 
+func (o *ConfigNhostUpdateInput) GetDebug() *bool {
+	if o == nil {
+		o = &ConfigNhostUpdateInput{}
+	}
+	return o.Debug
+}
+
 func (o *ConfigNhostUpdateInput) GetResources() *ConfigResourcesUpdateInput {
 	if o == nil {
 		return nil
@@ -21857,6 +21900,9 @@ func (s *ConfigNhost) Update(v *ConfigNhostUpdateInput) {
 	}
 	if v.IsSetVersion || v.Version != nil {
 		s.Version = v.Version
+	}
+	if v.IsSetDebug || v.Debug != nil {
+		s.Debug = v.Debug
 	}
 	if v.IsSetResources || v.Resources != nil {
 		if v.Resources == nil {
@@ -21882,6 +21928,7 @@ func (s *ConfigNhost) Update(v *ConfigNhostUpdateInput) {
 
 type ConfigNhostInsertInput struct {
 	Version   *string                               `json:"version,omitempty" toml:"version,omitempty"`
+	Debug     *bool                                 `json:"debug,omitempty" toml:"debug,omitempty"`
 	Resources *ConfigResourcesInsertInput           `json:"resources,omitempty" toml:"resources,omitempty"`
 	Graphql   *ConfigConstellationConfigInsertInput `json:"graphql,omitempty" toml:"graphql,omitempty"`
 }
@@ -21891,6 +21938,13 @@ func (o *ConfigNhostInsertInput) GetVersion() *string {
 		o = &ConfigNhostInsertInput{}
 	}
 	return o.Version
+}
+
+func (o *ConfigNhostInsertInput) GetDebug() *bool {
+	if o == nil {
+		o = &ConfigNhostInsertInput{}
+	}
+	return o.Debug
 }
 
 func (o *ConfigNhostInsertInput) GetResources() *ConfigResourcesInsertInput {
@@ -21909,6 +21963,7 @@ func (o *ConfigNhostInsertInput) GetGraphql() *ConfigConstellationConfigInsertIn
 
 func (s *ConfigNhost) Insert(v *ConfigNhostInsertInput) {
 	s.Version = v.Version
+	s.Debug = v.Debug
 	if v.Resources != nil {
 		if s.Resources == nil {
 			s.Resources = &ConfigResources{}
@@ -21930,6 +21985,7 @@ func (s *ConfigNhost) Clone() *ConfigNhost {
 
 	v := &ConfigNhost{}
 	v.Version = s.Version
+	v.Debug = s.Debug
 	v.Resources = s.Resources.Clone()
 	v.Graphql = s.Graphql.Clone()
 	return v
@@ -21940,6 +21996,7 @@ type ConfigNhostComparisonExp struct {
 	Not       *ConfigNhostComparisonExp               `json:"_not,omitempty"`
 	Or        []*ConfigNhostComparisonExp             `json:"_or,omitempty"`
 	Version   *ConfigStringComparisonExp              `json:"version,omitempty"`
+	Debug     *ConfigBooleanComparisonExp             `json:"debug,omitempty"`
 	Resources *ConfigResourcesComparisonExp           `json:"resources,omitempty"`
 	Graphql   *ConfigConstellationConfigComparisonExp `json:"graphql,omitempty"`
 }
@@ -21956,6 +22013,9 @@ func (exp *ConfigNhostComparisonExp) Matches(o *ConfigNhost) bool {
 		}
 	}
 	if o.Version != nil && !exp.Version.Matches(*o.Version) {
+		return false
+	}
+	if o.Debug != nil && !exp.Debug.Matches(*o.Debug) {
 		return false
 	}
 	if !exp.Resources.Matches(o.Resources) {

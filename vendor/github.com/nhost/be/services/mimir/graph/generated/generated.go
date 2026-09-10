@@ -560,6 +560,7 @@ type ComplexityRoot struct {
 	}
 
 	ConfigNhost struct {
+		Debug     func(childComplexity int) int
 		Graphql   func(childComplexity int) int
 		Resources func(childComplexity int) int
 		Version   func(childComplexity int) int
@@ -2543,6 +2544,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.ConfigNetworking.Ingresses(childComplexity), true
 
+	case "ConfigNhost.debug":
+		if e.complexity.ConfigNhost.Debug == nil {
+			break
+		}
+
+		return e.complexity.ConfigNhost.Debug(childComplexity), true
 	case "ConfigNhost.graphql":
 		if e.complexity.ConfigNhost.Graphql == nil {
 			break
@@ -6270,10 +6277,11 @@ type ConfigExperimental {
     """
     Run auth, storage and constellation bundled in a single nhost-engine
     binary instead of as standalone containers. Auth and storage are
-    configured from their normal root sections; their per-service version
-    and resources are rejected during validation because the one binary has
-    a single version and a single resources block (see #Nhost). The engine
-    always runs constellation as its GraphQL engine, so it is mutually
+    configured from their normal root sections. Per-service versions and
+    sizing resources are rejected because the binary has one version and one
+    sizing block (see #Nhost), but auth.resources.networking remains supported
+    for custom auth domains. The engine always runs constellation as its GraphQL
+    engine, so it is mutually
     exclusive with the standalone experimental.constellation service
     (enforced during config validation).
     """
@@ -7438,27 +7446,37 @@ type ConfigNhost {
     """
     version: String
     """
+    Enable debug logging for every service bundled in the engine process.
+    For backward compatibility, graphql.settings.debug remains supported, but
+    this engine-wide field takes precedence when both fields are set.
+    """
+    debug: Boolean
+    """
     Resources for the single engine container. The engine runs auth,
     storage and constellation in one process, so this configures the whole
-    binary rather than any individual service.
+    binary rather than any individual service. Networking is rejected during
+    validation because a shared custom domain has no single service target;
+    auth custom domains remain under auth.resources.networking.
     """
     resources: ConfigResources
     """
-    GraphQL (constellation) engine configuration. The engine always runs
-    constellation as its GraphQL engine; this is the only setting not taken
-    from a root section, since constellation has none of its own.
+    Constellation-specific GraphQL engine configuration. The legacy
+    settings.debug field remains supported, but the engine-level debug field
+    takes precedence when both fields are set.
     """
     graphql: ConfigConstellationConfig
 }
 
 input ConfigNhostUpdateInput {
     version: String
+    debug: Boolean
     resources: ConfigResourcesUpdateInput
     graphql: ConfigConstellationConfigUpdateInput
 }
 
 input ConfigNhostInsertInput {
     version: String
+    debug: Boolean
     resources: ConfigResourcesInsertInput
     graphql: ConfigConstellationConfigInsertInput
 }
@@ -7468,6 +7486,7 @@ input ConfigNhostComparisonExp {
     _not: ConfigNhostComparisonExp
     _or: [ConfigNhostComparisonExp!]
     version: ConfigStringComparisonExp
+    debug: ConfigBooleanComparisonExp
     resources: ConfigResourcesComparisonExp
     graphql: ConfigConstellationConfigComparisonExp
 }
@@ -15796,6 +15815,8 @@ func (ec *executionContext) fieldContext_ConfigExperimental_nhost(_ context.Cont
 			switch field.Name {
 			case "version":
 				return ec.fieldContext_ConfigNhost_version(ctx, field)
+			case "debug":
+				return ec.fieldContext_ConfigNhost_debug(ctx, field)
 			case "resources":
 				return ec.fieldContext_ConfigNhost_resources(ctx, field)
 			case "graphql":
@@ -18898,6 +18919,35 @@ func (ec *executionContext) fieldContext_ConfigNhost_version(_ context.Context, 
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigNhost_debug(ctx context.Context, field graphql.CollectedField, obj *model.ConfigNhost) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ConfigNhost_debug,
+		func(ctx context.Context) (any, error) {
+			return obj.Debug, nil
+		},
+		nil,
+		ec.marshalOBoolean2ᚖbool,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ConfigNhost_debug(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigNhost",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -34382,7 +34432,7 @@ func (ec *executionContext) unmarshalInputConfigNhostComparisonExp(ctx context.C
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "version", "resources", "graphql"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "version", "debug", "resources", "graphql"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -34417,6 +34467,13 @@ func (ec *executionContext) unmarshalInputConfigNhostComparisonExp(ctx context.C
 				return it, err
 			}
 			it.Version = data
+		case "debug":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("debug"))
+			data, err := ec.unmarshalOConfigBooleanComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Debug = data
 		case "resources":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resources"))
 			data, err := ec.unmarshalOConfigResourcesComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigResourcesComparisonExp(ctx, v)
@@ -34444,7 +34501,7 @@ func (ec *executionContext) unmarshalInputConfigNhostInsertInput(ctx context.Con
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"version", "resources", "graphql"}
+	fieldsInOrder := [...]string{"version", "debug", "resources", "graphql"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -34458,6 +34515,13 @@ func (ec *executionContext) unmarshalInputConfigNhostInsertInput(ctx context.Con
 				return it, err
 			}
 			it.Version = data
+		case "debug":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("debug"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Debug = data
 		case "resources":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resources"))
 			data, err := ec.unmarshalOConfigResourcesInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigResourcesInsertInput(ctx, v)
@@ -41879,6 +41943,8 @@ func (ec *executionContext) _ConfigNhost(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = graphql.MarshalString("ConfigNhost")
 		case "version":
 			out.Values[i] = ec._ConfigNhost_version(ctx, field, obj)
+		case "debug":
+			out.Values[i] = ec._ConfigNhost_debug(ctx, field, obj)
 		case "resources":
 			out.Values[i] = ec._ConfigNhost_resources(ctx, field, obj)
 		case "graphql":
