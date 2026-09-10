@@ -1,10 +1,12 @@
 import type { ReactElement } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useIsPiTREnabled } from '@/features/orgs/hooks/useIsPiTREnabled';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { ProjectViewWithState } from '@/features/orgs/layout/ProjectGuard';
+import { ProjectScope } from '@/features/orgs/layout/ProjectScope';
 import { BackupsContent } from '@/features/orgs/projects/backups/components/BackupsContent';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 
@@ -47,5 +49,11 @@ export default function BackupsPage() {
 }
 
 BackupsPage.getLayout = function getLayout(page: ReactElement) {
-  return <ProjectLayout>{page}</ProjectLayout>;
+  return (
+    <AppLayout>
+      <ProjectScope>
+        <ProjectViewWithState>{page}</ProjectViewWithState>
+      </ProjectScope>
+    </AppLayout>
+  );
 };

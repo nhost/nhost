@@ -1,5 +1,9 @@
 import { HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
+import { AppLayout } from '@/components/layout/AppLayout';
+import { AuthGuard } from '@/features/orgs/layout/AuthGuard';
+import { OrganizationScope } from '@/features/orgs/layout/OrganizationScope';
+import { ProjectViewWithState } from '@/features/orgs/layout/ProjectGuard';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
   type GetOrganizationQuery,
@@ -8,8 +12,10 @@ import {
   type GetOrganizationsQueryVariables,
   type GetProjectQuery,
   type GetProjectQueryVariables,
+  Organization_Status_Enum,
   Sla_Level_Enum,
 } from '@/generated/graphql';
+import { AuthContext } from '@/providers/Auth';
 import {
   mockApplication,
   mockMatchMediaValue,
@@ -28,7 +34,7 @@ import {
   within,
 } from '@/tests/testUtils';
 import { ApplicationStatus } from '@/types/application';
-import ProjectLayout from './ProjectLayout';
+import ProjectScope from './ProjectScope';
 
 const mocks = vi.hoisted(() => ({ useRouter: vi.fn() }));
 vi.mock('next/router', async () => ({
@@ -115,6 +121,22 @@ const getOrganizationNewRequestsQuery = nhostGraphQLLink.query(
   () => HttpResponse.json({ data: { organizationNewRequests: [] } }),
 );
 
+function setOrganizationStatus(status: Organization_Status_Enum) {
+  server.use(
+    nhostGraphQLLink.query<GetOrganizationQuery, GetOrganizationQueryVariables>(
+      'getOrganization',
+      () =>
+        HttpResponse.json({
+          data: {
+            organizations: [
+              { ...mockOrganization, apps: applications, status },
+            ],
+          },
+        }),
+    ),
+  );
+}
+
 const server = setupServer(tokenQuery);
 const originalRouter = { ...mockRouter, query: { ...mockRouter.query } };
 const originalMatchMedia = window.matchMedia;
@@ -134,9 +156,11 @@ function ProjectContent() {
 
 function TestHarness() {
   return (
-    <ProjectLayout>
-      <ProjectContent />
-    </ProjectLayout>
+    <AppLayout>
+      <ProjectScope>
+        <ProjectContent />
+      </ProjectScope>
+    </AppLayout>
   );
 }
 
@@ -200,7 +224,143 @@ afterEach(() => {
 
 afterAll(() => server.close());
 
-describe('ProjectLayout', () => {
+it('keeps the header and sidebar visible while auth loads, but hides page content', () => {
+  render(
+    <AuthContext.Provider
+      value={{
+        user: null,
+        session: null,
+        isAuthenticated: false,
+        isLoading: true,
+        isSigningOut: false,
+        signout: vi.fn(async () => {}),
+        updateSession: vi.fn(),
+        clearIsSigningOut: vi.fn(),
+      }}
+    >
+      <AppLayout>
+        <AuthGuard>
+          <h1>Protected page content</h1>
+        </AuthGuard>
+      </AppLayout>
+    </AuthContext.Provider>,
+  );
+
+  expect(screen.getByRole('banner')).toBeVisible();
+  expect(
+    screen.getByRole('navigation', { name: 'Project navigation' }),
+  ).toBeVisible();
+  expect(
+    screen.queryByRole('heading', { name: 'Protected page content' }),
+  ).not.toBeInTheDocument();
+});
+
+describe.each([
+  { name: 'OrganizationScope', Scope: OrganizationScope },
+  { name: 'ProjectScope', Scope: ProjectScope },
+])('$name banner layout', ({ name, Scope }) => {
+  it.each([
+    { status: Organization_Status_Enum.Ok, banner: null },
+    {
+      status: Organization_Status_Enum.AllowanceExceeded,
+      banner: 'Usage limit has been exceeded for this organization',
+    },
+    {
+      status: Organization_Status_Enum.Cancelled,
+      banner:
+        'Subscription is cancelled after multiple failed billing attempts',
+    },
+  ])(
+    'reserves the remaining height for content when status is $status',
+    async ({ status, banner }) => {
+      setProject(HEALTHY_SUBDOMAIN);
+      if (name === 'OrganizationScope') {
+        mockRouter.pathname = '/orgs/[orgSlug]/projects';
+        mockRouter.route = '/orgs/[orgSlug]/projects';
+        mockRouter.asPath = `/orgs/${ORG_SLUG}/projects`;
+        mockRouter.query = { orgSlug: ORG_SLUG };
+      }
+      setOrganizationStatus(status);
+
+      render(
+        <AppLayout>
+          <Scope>
+            <div className="h-full" data-testid="page-content">
+              Page content
+            </div>
+          </Scope>
+        </AppLayout>,
+      );
+
+      const page = await screen.findByTestId('page-content');
+      const main = screen.getByRole('main');
+      const content = page.parentElement;
+
+      expect(main).toHaveClass('flex', 'flex-col', 'overflow-y-auto');
+      expect(content).toHaveClass('relative', 'min-h-0', 'flex-1');
+      expect(content?.parentElement).toBe(main);
+
+      if (banner) {
+        const heading = within(main).getByRole('heading', { name: banner });
+        const statusBanner = heading.parentElement?.parentElement;
+
+        expect(statusBanner).toHaveClass('shrink-0');
+        expect(content?.previousElementSibling).toBe(statusBanner);
+      } else {
+        expect(main.children).toHaveLength(1);
+      }
+    },
+  );
+});
+
+describe('ProjectScope', () => {
+  it('keeps a paused-project screen in the remaining-height content area', async () => {
+    setProject(HEALTHY_SUBDOMAIN);
+    mockRouter.pathname = `${PROJECT_ROUTE}/graphql`;
+    mockRouter.route = `${PROJECT_ROUTE}/graphql`;
+    mockRouter.asPath += '/graphql';
+    setOrganizationStatus(Organization_Status_Enum.AllowanceExceeded);
+    server.use(
+      getProjectStateQuery([{ stateId: ApplicationStatus.Paused }], {
+        desiredState: ApplicationStatus.Paused,
+      }),
+      nhostGraphQLLink.query('GetFreeAndActiveProjects', () =>
+        HttpResponse.json({ data: { freeAndActiveProjects: [] } }),
+      ),
+      nhostGraphQLLink.query('getProjectIsLocked', () =>
+        HttpResponse.json({
+          data: { app: { isLocked: false, isLockedReason: '' } },
+        }),
+      ),
+    );
+
+    render(
+      <AppLayout>
+        <ProjectScope>
+          <ProjectViewWithState>
+            <h1>Project content</h1>
+          </ProjectViewWithState>
+        </ProjectScope>
+      </AppLayout>,
+    );
+
+    const dialog = await screen.findByRole('dialog', { name: 'Project State' });
+    const main = screen.getByRole('main');
+    const content = main.lastElementChild;
+
+    expect(content).toHaveClass('relative', 'min-h-0', 'flex-1');
+    expect(content).toContainElement(dialog);
+    expect(content?.firstElementChild).toHaveClass('h-full');
+    expect(
+      within(main).getByRole('heading', {
+        name: 'Usage limit has been exceeded for this organization',
+      }),
+    ).toBeVisible();
+    expect(
+      screen.queryByRole('heading', { name: 'Project content' }),
+    ).not.toBeInTheDocument();
+  });
+
   it('keeps navigation available and recovers when another project has a config error', async () => {
     const { rerender } = render(<TestHarness />);
 

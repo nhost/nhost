@@ -1,35 +1,25 @@
-import type { HTMLAttributes } from 'react';
-import type { AuthenticatedLayoutProps } from '@/components/layout/AuthenticatedLayout';
-import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
+import {
+  StandaloneLayout,
+  type StandaloneLayoutProps,
+} from '@/components/layout/StandaloneLayout';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { cn } from '@/lib/utils';
+import { AuthGuard } from '@/features/orgs/layout/AuthGuard';
 
-export interface AccountSettingsLayoutProps extends AuthenticatedLayoutProps {
-  slotProps?: {
-    main?: HTMLAttributes<HTMLElement>;
-  };
-}
+export type AccountSettingsLayoutProps = StandaloneLayoutProps;
 
 export default function AccountSettingsLayout({
   children,
-  slotProps = {},
   ...props
 }: AccountSettingsLayoutProps) {
-  const { className: mainClassName, ...mainProps } = slotProps.main ?? {};
-
   return (
-    <AuthenticatedLayout {...props}>
-      <main
-        {...mainProps}
-        className={cn(
-          'relative flex h-full flex-auto overflow-y-auto',
-          mainClassName,
-        )}
-      >
-        <div className="flex w-full flex-auto flex-col overflow-x-hidden bg-background-default">
-          <RetryableErrorBoundary>{children}</RetryableErrorBoundary>
+    <StandaloneLayout {...props}>
+      <AuthGuard>
+        <div className="relative flex h-full flex-auto overflow-y-auto">
+          <div className="flex w-full flex-auto flex-col overflow-x-hidden bg-background-default">
+            <RetryableErrorBoundary>{children}</RetryableErrorBoundary>
+          </div>
         </div>
-      </main>
-    </AuthenticatedLayout>
+      </AuthGuard>
+    </StandaloneLayout>
   );
 }
