@@ -189,6 +189,7 @@ module.exports = {
         'pl-1.5': '7px',
       },
       fontSize: {
+        '2xs': ['0.625rem', '0.875rem'],
         'xs-': ['0.6875rem', '0.875rem'],
         'sm-': ['0.8125rem', '1rem'],
         'sm+': ['0.9375rem', '1.25rem'],

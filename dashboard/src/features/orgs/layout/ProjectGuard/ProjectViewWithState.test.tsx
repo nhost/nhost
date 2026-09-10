@@ -292,7 +292,7 @@ describe('ProjectViewWithState', () => {
   it('preserves child identity across live, restoring, and live on a non-overlay route', async () => {
     mocks.useRouter.mockImplementation(() =>
       getUseRouterObject(
-        '/orgs/[orgSlug]/projects/[appSubdomain]/settings/backups',
+        '/orgs/[orgSlug]/projects/[appSubdomain]/database/settings',
       ),
     );
     server.use(getProjectQuery);
@@ -330,7 +330,9 @@ describe('ProjectViewWithState', () => {
 
   it('blocks overlay-page children while restoring', async () => {
     mocks.useRouter.mockImplementation(() =>
-      getUseRouterObject('/orgs/[orgSlug]/projects/[appSubdomain]/database'),
+      getUseRouterObject(
+        '/orgs/[orgSlug]/projects/[appSubdomain]/database/browser/[dataSourceSlug]',
+      ),
     );
     server.use(getProjectQuery);
     server.use(
