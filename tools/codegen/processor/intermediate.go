@@ -1,6 +1,7 @@
 package processor
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -161,6 +162,10 @@ func newInterMediateRepresentationPaths(
 	return methods, types, nil
 }
 
+type sourceProcessor interface {
+	ProcessSource(source []byte) ([]byte, error)
+}
+
 func (ir *InterMediateRepresentation) Render(out io.Writer) error {
 	templatesFS := ir.plugin.GetTemplates()
 	// ReadDir to get list of embedded templates
@@ -192,8 +197,21 @@ func (ir *InterMediateRepresentation) Render(out io.Writer) error {
 		return fmt.Errorf("failed to parse interface template: %w", err)
 	}
 
-	if err := tmpl.ExecuteTemplate(out, "main.tmpl", ir); err != nil {
+	var rendered bytes.Buffer
+	if err := tmpl.ExecuteTemplate(&rendered, "main.tmpl", ir); err != nil {
 		return fmt.Errorf("failed to execute template: %w", err)
+	}
+
+	source := rendered.Bytes()
+	if sourceProcessor, ok := ir.plugin.(sourceProcessor); ok {
+		source, err = sourceProcessor.ProcessSource(source)
+		if err != nil {
+			return fmt.Errorf("failed to process rendered source: %w", err)
+		}
+	}
+
+	if _, err := out.Write(source); err != nil {
+		return fmt.Errorf("failed to write rendered source: %w", err)
 	}
 
 	return nil

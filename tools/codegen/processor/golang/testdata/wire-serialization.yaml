@@ -1,0 +1,150 @@
+openapi: "3.0.0"
+
+paths:
+  /query:
+    get:
+      operationId: wireQuery
+      parameters:
+        - name: filter
+          in: query
+          required: true
+          style: form
+          explode: false
+          schema:
+            $ref: "#/components/schemas/Filter"
+        - name: json-filter
+          in: query
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Filter"
+        - name: mapd
+          in: query
+          required: true
+          style: deepObject
+          explode: true
+          schema:
+            type: object
+            additionalProperties:
+              $ref: "#/components/schemas/MixedState"
+        - name: m
+          in: query
+          required: true
+          style: form
+          explode: true
+          schema:
+            type: object
+            additionalProperties:
+              $ref: "#/components/schemas/MixedState"
+      responses:
+        "204":
+          description: Success
+
+  /headers:
+    get:
+      operationId: wireHeaders
+      parameters:
+        - name: x-counts
+          in: header
+          required: true
+          schema:
+            type: array
+            items:
+              type: integer
+        - name: x-map
+          in: header
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: object
+            additionalProperties:
+              type: integer
+        - name: x-object
+          in: header
+          required: true
+          style: simple
+          explode: false
+          schema:
+            $ref: "#/components/schemas/HeaderObject"
+      responses:
+        "204":
+          description: Success
+
+  /json:
+    post:
+      operationId: wireJSON
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Payload"
+      responses:
+        "204":
+          description: Success
+
+  /typed-json:
+    post:
+      operationId: wireTypedJSON
+      parameters:
+        - name: x-token
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Payload"
+      responses:
+        "204":
+          description: Success
+
+  /multipart:
+    post:
+      operationId: wireMultipart
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [label]
+              properties:
+                label:
+                  type: string
+      responses:
+        "204":
+          description: Success
+
+components:
+  schemas:
+    MixedState:
+      type: [string, integer]
+      enum: [0, "one", true]
+    Filter:
+      type: object
+      required: [limit, term]
+      properties:
+        limit:
+          type: integer
+        term:
+          type: string
+    HeaderObject:
+      type: object
+      required: [enabled, limit]
+      properties:
+        enabled:
+          type: boolean
+        limit:
+          type: integer
+    Payload:
+      type: object
+      required: [value]
+      properties:
+        value:
+          type: string
