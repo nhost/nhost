@@ -45,7 +45,7 @@ export default function OAuth2AuthorizePage() {
       const consentPath = requestId
         ? `/oauth2/authorize?request_id=${encodeURIComponent(requestId)}`
         : '/oauth2/authorize';
-      // Both are needed: the query param is used by UnauthenticatedLayout for
+      // Both are needed: the query param is used by GuestGuard for
       // email/password sign-in, while sessionStorage is used by AuthProvider for
       // OAuth sign-in (where the redirect to the external provider loses the query param).
       sessionStorage.setItem('postSignInRedirect', consentPath);

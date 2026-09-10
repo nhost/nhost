@@ -1,60 +1,26 @@
 import Image from 'next/image';
-import { useRouter } from 'next/router';
-import { useEffect } from 'react';
-import type { BaseLayoutProps } from '@/components/layout/BaseLayout';
-import { BaseLayout } from '@/components/layout/BaseLayout';
+import type { ReactNode } from 'react';
+import {
+  BaseLayout,
+  type BaseLayoutProps,
+} from '@/components/layout/BaseLayout';
 import { Container } from '@/components/layout/Container';
-import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useAuth } from '@/providers/Auth';
 
-export interface UnauthenticatedLayoutProps extends BaseLayoutProps {
-  rightColumnContent?: React.ReactNode;
+export interface AuthFlowLayoutProps extends Omit<BaseLayoutProps, 'className'> {
+  rightColumnContent?: ReactNode;
 }
 
-export default function UnauthenticatedLayout({
+/**
+ * The sign-in / sign-up / verification flow: forced dark, full viewport, the
+ * form on the left and the brand column on the right. Whether the visitor may
+ * see it is `GuestGuard`'s business.
+ */
+export default function AuthFlowLayout({
   children,
   rightColumnContent,
   ...props
-}: UnauthenticatedLayoutProps) {
-  const router = useRouter();
-  const isPlatform = useIsPlatform();
-  const { isAuthenticated, isLoading } = useAuth();
-  const isOnResetPassword = router.route === '/password/reset';
-
-  useEffect(() => {
-    if (!isPlatform || (!isLoading && isAuthenticated)) {
-      // we do not want to redirect if the user tries to reset their password
-      if (!isOnResetPassword) {
-        const redirectQuery =
-          typeof router.query.redirect === 'string' &&
-          router.query.redirect.startsWith('/')
-            ? router.query.redirect
-            : null;
-        const storedRedirect = sessionStorage.getItem('postSignInRedirect');
-        const redirectTarget =
-          redirectQuery ||
-          (storedRedirect?.startsWith('/') ? storedRedirect : null) ||
-          '/';
-
-        if (storedRedirect) {
-          sessionStorage.removeItem('postSignInRedirect');
-        }
-
-        router.push(redirectTarget);
-      }
-    }
-  }, [isLoading, isAuthenticated, router, isPlatform, isOnResetPassword]);
-
-  if ((!isPlatform || isLoading || isAuthenticated) && !isOnResetPassword) {
-    return (
-      <BaseLayout {...props}>
-        <LoadingScreen className="bg-background" />
-      </BaseLayout>
-    );
-  }
-
+}: AuthFlowLayoutProps) {
   return (
     <BaseLayout {...props}>
       <div className="dark h-screen overflow-auto bg-black text-foreground">
