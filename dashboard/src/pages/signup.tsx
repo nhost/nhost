@@ -2,9 +2,10 @@ import { CircleCheckBig, Code2, Database } from 'lucide-react';
 import type { ReactElement } from 'react';
 import { useCallback } from 'react';
 import { CookieConsent } from '@/components/common/CookieConsent';
-import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
+import { AuthFlowLayout } from '@/components/layout/AuthFlowLayout';
 import { Separator } from '@/components/ui/v3/separator';
 import { TextLink } from '@/components/ui/v3/text-link';
+import { GuestGuard } from '@/features/auth/GuestGuard';
 import { SignUpTabs } from '@/features/auth/SignUp/SignUpTabs';
 import { SignUpWithGithub } from '@/features/auth/SignUp/SignUpWithGithub';
 
@@ -160,11 +161,8 @@ export default function SignUpPage() {
 
 SignUpPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <UnauthenticatedLayout
-      title="Sign Up"
-      rightColumnContent={rightColumnContent}
-    >
-      {page}
-    </UnauthenticatedLayout>
+    <AuthFlowLayout title="Sign Up" rightColumnContent={rightColumnContent}>
+      <GuestGuard>{page}</GuestGuard>
+    </AuthFlowLayout>
   );
 };
