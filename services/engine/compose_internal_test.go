@@ -41,7 +41,7 @@ func mustNewMux(
 	services []mounted,
 	compatAuthHosts []string,
 	mountPrefixHosts []string,
-) *http.ServeMux {
+) http.Handler {
 	t.Helper()
 
 	mux, err := newMux(
@@ -90,11 +90,32 @@ func TestNewMuxRoutesEnginePathsAndCompatAuthHosts(t *testing.T) {
 			wantBody: "/v1/signin/email-password",
 		},
 		{
+			name:     "root-anchored compat short host reaches auth",
+			host:     "hasura-auth-service.",
+			path:     "/v1/version",
+			wantCode: http.StatusOK,
+			wantBody: "/v1/version",
+		},
+		{
+			name:     "root-anchored compat short host with port reaches auth",
+			host:     "hasura-auth-service.:4000",
+			path:     "/v1/version",
+			wantCode: http.StatusOK,
+			wantBody: "/v1/version",
+		},
+		{
 			name:     "explicit compat FQDN reaches auth",
 			host:     "hasura-auth-service.nhost-project.svc.cluster.local:4000",
 			path:     "/v1/token",
 			wantCode: http.StatusOK,
 			wantBody: "/v1/token",
+		},
+		{
+			name:     "root-anchored compat FQDN reaches auth",
+			host:     "hasura-auth-service.nhost-project.svc.cluster.local.",
+			path:     "/v1/version",
+			wantCode: http.StatusOK,
+			wantBody: "/v1/version",
 		},
 		{
 			name:     "unsupplied FQDN is not routed",
@@ -152,6 +173,33 @@ func TestNewMuxRoutesEnginePathsAndCompatAuthHosts(t *testing.T) {
 
 			if tc.wantBody != "" && recorder.Body.String() != tc.wantBody {
 				t.Fatalf("body = %q, want %q", recorder.Body.String(), tc.wantBody)
+			}
+		})
+	}
+}
+
+func TestNormalizeRequestHost(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		requestHost string
+		want        string
+	}{
+		{name: "host", requestHost: "h", want: "h"},
+		{name: "root-anchored host", requestHost: "h.", want: "h"},
+		{name: "root-anchored host with port", requestHost: "h.:4000", want: "h:4000"},
+		{name: "host with port", requestHost: "h:4000", want: "h:4000"},
+		{name: "IPv6 with port", requestHost: "[::1]:8080", want: "[::1]:8080"},
+		{name: "root anchor only", requestHost: ".", want: ""},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := normalizeRequestHost(tc.requestHost); got != tc.want {
+				t.Fatalf("normalizeRequestHost(%q) = %q, want %q", tc.requestHost, got, tc.want)
 			}
 		})
 	}
@@ -305,6 +353,23 @@ func TestNewMuxReturnsErrorForCompatAuthHostConflict(t *testing.T) {
 func TestNewMuxPreservesRedirectPrefix(t *testing.T) {
 	t.Parallel()
 
+	// The root-anchored form names the same host as the bare one, so a client
+	// that fully qualifies the service name must have the prefix restored too.
+	for _, host := range []string{
+		"nhost-engine-service:8080",
+		"nhost-engine-service.:8080",
+	} {
+		t.Run(host, func(t *testing.T) {
+			t.Parallel()
+
+			assertRedirectPrefixPreserved(t, host)
+		})
+	}
+}
+
+func assertRedirectPrefixPreserved(t *testing.T, host string) {
+	t.Helper()
+
 	router := gin.New()
 	router.GET("/v1/files", func(c *gin.Context) {
 		c.Status(http.StatusOK)
@@ -320,7 +385,7 @@ func TestNewMuxPreservesRedirectPrefix(t *testing.T) {
 
 	redirect := httptest.NewRecorder()
 	request := httptest.NewRequest(http.MethodGet, "/storage/v1/files/", nil)
-	request.Host = "nhost-engine-service:8080"
+	request.Host = host
 	mux.ServeHTTP(redirect, request)
 
 	if redirect.Code != http.StatusMovedPermanently {
@@ -334,7 +399,7 @@ func TestNewMuxPreservesRedirectPrefix(t *testing.T) {
 
 	followed := httptest.NewRecorder()
 	followRequest := httptest.NewRequest(http.MethodGet, location, nil)
-	followRequest.Host = "nhost-engine-service:8080"
+	followRequest.Host = host
 	mux.ServeHTTP(followed, followRequest)
 
 	if followed.Code != http.StatusOK {

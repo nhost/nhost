@@ -402,7 +402,7 @@ func newMux(
 	compatAuthHosts []string,
 	mountPrefixHosts []string,
 	logger *slog.Logger,
-) (*http.ServeMux, error) {
+) (http.Handler, error) {
 	var (
 		mux                = http.NewServeMux()
 		authHandler        http.Handler
@@ -424,18 +424,45 @@ func newMux(
 		_, _ = io.WriteString(w, "ok")
 	})
 
-	if authHandler == nil {
-		return mux, nil
-	}
-
-	for _, host := range normalizeCompatAuthHosts(compatAuthHosts, logger) {
-		pattern := host + "/"
-		if err := registerMuxHandler(mux, pattern, authHandler); err != nil {
-			return nil, err
+	if authHandler != nil {
+		for _, host := range normalizeCompatAuthHosts(compatAuthHosts, logger) {
+			pattern := host + "/"
+			if err := registerMuxHandler(mux, pattern, authHandler); err != nil {
+				return nil, err
+			}
 		}
 	}
 
-	return mux, nil
+	return normalizeRequestHostHandler(mux), nil
+}
+
+func normalizeRequestHostHandler(handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		host := normalizeRequestHost(r.Host)
+		if host == r.Host {
+			handler.ServeHTTP(w, r)
+
+			return
+		}
+
+		request := r.Clone(r.Context())
+		request.Host = host
+		handler.ServeHTTP(w, request)
+	})
+}
+
+func normalizeRequestHost(requestHost string) string {
+	host, port, err := net.SplitHostPort(requestHost)
+	if err != nil {
+		return strings.TrimSuffix(requestHost, ".")
+	}
+
+	normalizedHost := strings.TrimSuffix(host, ".")
+	if normalizedHost == host {
+		return requestHost
+	}
+
+	return net.JoinHostPort(normalizedHost, port)
 }
 
 var dnsHostLabel = regexp.MustCompile(`^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$`)
