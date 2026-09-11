@@ -1,27 +1,13 @@
-import { CommandLoading } from 'cmdk';
-import { Columns, GitBranch, Group, Plus } from 'lucide-react';
+import { GitBranch, Group } from 'lucide-react';
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Button } from '@/components/ui/v3/button';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/v3/command';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/v3/popover';
+import { CommandGroup, CommandItem } from '@/components/ui/v3/command';
 import { useExportMetadata } from '@/features/orgs/projects/common/hooks/useExportMetadata';
 import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import useColumnGroups from '@/features/orgs/projects/database/dataGrid/components/ColumnAutocomplete/useColumnGroups';
 import type { FetchMetadataReturnType } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { RuleNode } from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils';
-import { cn } from '@/lib/utils';
+import AddNodeMenu from './AddNodeMenu';
 import useCustomCheckEditor from './useCustomCheckEditor';
 
 interface AddNodeButtonProps {
@@ -131,94 +117,42 @@ export default function AddNodeButton({
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          disabled={!hasTable}
-          className={cn(
-            'justify-start text-muted-foreground',
-            fullWidth && 'w-full',
-          )}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          {label}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        side="bottom"
-        align="start"
-        className="w-[var(--radix-popover-trigger-width)] min-w-[240px] p-0"
-      >
-        <Command>
-          <CommandInput autoFocus placeholder="Search..." />
-          <CommandList>
-            <CommandEmpty>No options found.</CommandEmpty>
-            {isLoading && <CommandLoading>Loading...</CommandLoading>}
-            <CommandGroup heading="Boolean operators">
+    <AddNodeMenu
+      open={open}
+      onOpenChange={setOpen}
+      disabled={!hasTable}
+      fullWidth={fullWidth}
+      label={label}
+      isLoading={isLoading}
+      columns={columns.map((option) => ({
+        value: option.value,
+        label: option.label,
+        badge: option.metadata?.udt_name,
+      }))}
+      onSelectColumn={handleColumnSelect}
+      onSelectGroup={handleGroupSelect}
+      extraOperators={
+        <CommandItem value="_exists" onSelect={handleExistsSelect}>
+          <Group className="mr-2 h-4 w-4 text-muted-foreground" />
+          exists
+        </CommandItem>
+      }
+      extraGroups={
+        relationships.length > 0 && (
+          <CommandGroup heading="Relationships">
+            {relationships.map((option) => (
               <CommandItem
-                value="_and"
-                onSelect={() => handleGroupSelect('_and')}
+                key={option.value}
+                value={option.value}
+                onSelect={handleRelationshipSelect}
               >
-                <Group className="mr-2 h-4 w-4 text-muted-foreground" />
-                and
+                <GitBranch className="mr-2 h-4 w-4 text-muted-foreground" />
+                <span className="truncate">{option.label}</span>
               </CommandItem>
-              <CommandItem
-                value="_or"
-                onSelect={() => handleGroupSelect('_or')}
-              >
-                <Group className="mr-2 h-4 w-4 text-muted-foreground" />
-                or
-              </CommandItem>
-              <CommandItem
-                value="_not"
-                onSelect={() => handleGroupSelect('_not')}
-              >
-                <Group className="mr-2 h-4 w-4 text-muted-foreground" />
-                not
-              </CommandItem>
-              <CommandItem value="_exists" onSelect={handleExistsSelect}>
-                <Group className="mr-2 h-4 w-4 text-muted-foreground" />
-                exists
-              </CommandItem>
-            </CommandGroup>
-            {columns.length > 0 && (
-              <CommandGroup heading="Columns">
-                {columns.map((option) => (
-                  <CommandItem
-                    key={option.value}
-                    value={option.value}
-                    onSelect={handleColumnSelect}
-                  >
-                    <Columns className="mr-2 h-4 w-4 text-muted-foreground" />
-                    <span className="truncate">{option.label}</span>
-                    {option.metadata?.udt_name && (
-                      <code className="ml-auto rounded bg-primary px-1 font-mono text-white text-xs">
-                        {option.metadata.udt_name}
-                      </code>
-                    )}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            )}
-            {relationships.length > 0 && (
-              <CommandGroup heading="Relationships">
-                {relationships.map((option) => (
-                  <CommandItem
-                    key={option.value}
-                    value={option.value}
-                    onSelect={handleRelationshipSelect}
-                  >
-                    <GitBranch className="mr-2 h-4 w-4 text-muted-foreground" />
-                    <span className="truncate">{option.label}</span>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            )}
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+            ))}
+          </CommandGroup>
+        )
+      }
+    />
   );
 }

@@ -25,7 +25,11 @@ export default function RelationshipNodeRenderer({
   depth = 0,
   maxDepth,
 }: RelationshipNodeRendererProps) {
-  const { schema: parentSchema, table: parentTable } = useCustomCheckEditor();
+  const {
+    schema: parentSchema,
+    table: parentTable,
+    dialect,
+  } = useCustomCheckEditor();
   const { setValue, getFieldState, formState } = useFormContext();
 
   const { error: childError } = getFieldState(`${name}.child`, formState);
@@ -89,8 +93,9 @@ export default function RelationshipNodeRenderer({
     () => ({
       schema: resolvedTarget.schema,
       table: resolvedTarget.table,
+      dialect,
     }),
-    [resolvedTarget.schema, resolvedTarget.table],
+    [resolvedTarget.schema, resolvedTarget.table, dialect],
   );
 
   function handleRelationshipChange(value: {
