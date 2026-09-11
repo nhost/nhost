@@ -61,7 +61,7 @@ func (ctrl *Controller) SignInWebauthn( //nolint:ireturn
 		return ctrl.sendError(ErrDisabledEndpoint), nil
 	}
 
-	if request.Body.Email == nil {
+	if request.Body == nil || request.Body.Email == nil {
 		return ctrl.postSigninWebauthnDiscoverableLogin(ctx, logger)
 	}
 
