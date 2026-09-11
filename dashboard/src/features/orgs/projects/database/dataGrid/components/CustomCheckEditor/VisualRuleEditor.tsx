@@ -1,16 +1,20 @@
 import { useMemo } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { v4 as uuidv4 } from 'uuid';
+import GroupNodeRenderer from '@/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/GroupNodeRenderer';
+import tableCustomCheckEditorDialect from '@/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/tableCustomCheckEditorDialect';
+import {
+  CustomCheckEditorContext,
+  type CustomCheckEditorDialect,
+} from '@/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/useCustomCheckEditor';
 import type { RuleNode } from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils';
-import AddNodeButton from './AddNodeButton';
-import GroupNodeRenderer from './GroupNodeRenderer';
-import { CustomCheckEditorContext } from './useCustomCheckEditor';
 
 export interface VisualRuleEditorProps {
   schema: string;
   table: string;
   name: string;
   maxDepth?: number;
+  dialect?: CustomCheckEditorDialect;
 }
 
 function isEmptyFilter(value: unknown): boolean {
@@ -41,6 +45,7 @@ export default function VisualRuleEditor({
   table,
   name,
   maxDepth,
+  dialect = tableCustomCheckEditorDialect,
 }: VisualRuleEditorProps) {
   const { setValue, resetField } = useFormContext();
   const filterValue = useWatch({ name });
@@ -49,8 +54,9 @@ export default function VisualRuleEditor({
     () => ({
       schema,
       table,
+      dialect,
     }),
-    [schema, table],
+    [schema, table, dialect],
   );
 
   const isEmpty = isEmptyFilter(filterValue);
@@ -79,10 +85,12 @@ export default function VisualRuleEditor({
     });
   }
 
+  const { AddNode } = dialect;
+
   return (
     <CustomCheckEditorContext.Provider value={contextValue}>
       {isEmpty ? (
-        <AddNodeButton onSelect={handleAddNodeSelect} fullWidth />
+        <AddNode onSelect={handleAddNodeSelect} fullWidth />
       ) : (
         <GroupNodeRenderer
           name={name}
