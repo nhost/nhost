@@ -12,20 +12,14 @@ import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
 import { SettingsGuard } from '@/features/orgs/guards/SettingsGuard';
 import { SettingsArea } from '@/features/orgs/projects/common/components/settings/SettingsArea';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { RateLimitingForm } from '@/features/orgs/projects/rate-limiting/settings/components/RateLimitingForm';
 import { RunServiceLimitingForm } from '@/features/orgs/projects/rate-limiting/settings/components/RunServiceLimitingForm';
-import { useGetRateLimits } from '@/features/orgs/projects/rate-limiting/settings/hooks/useGetRateLimits';
 import { useGetRunServiceRateLimits } from '@/features/orgs/projects/rate-limiting/settings/hooks/useGetRunServiceRateLimits';
 
 export default function RateLimiting() {
   const { project, loading: loadingProject } = useProject();
   const { services, loading } = useGetRunServiceRateLimits();
 
-  const { functionsDefaultValues, loading: loadingBaseServices } =
-    useGetRateLimits();
-
-  const isInitialLoading =
-    loadingProject || !project?.id || loadingBaseServices || loading;
+  const isInitialLoading = loadingProject || !project?.id || loading;
 
   if (isInitialLoading) {
     return (
@@ -46,12 +40,6 @@ export default function RateLimiting() {
           />
         </SettingsCardFooter>
       </SettingsCard>
-      <RateLimitingForm
-        defaultValues={functionsDefaultValues}
-        loading={loadingBaseServices}
-        serviceName="functions"
-        title="Functions"
-      />
       {services?.map((service) => {
         if (
           service?.ports?.some((port) => port?.type === 'http' && port?.publish)

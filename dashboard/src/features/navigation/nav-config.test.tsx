@@ -4,6 +4,7 @@ import {
   isPageGated,
   orgPages,
   projectDatabasePages,
+  projectFunctionsPages,
   projectGraphQLPages,
   projectPages,
   projectStoragePages,
@@ -86,6 +87,13 @@ describe('navigation nav-config', () => {
     ).toBe('database/console/default');
   });
 
+  it('keeps Functions sub-pages in route-tab order', () => {
+    expect(projectFunctionsPages.map((page) => page.slug)).toEqual([
+      'functions',
+      'settings',
+    ]);
+  });
+
   it('keeps Storage sub-pages in route-tab order', () => {
     expect(projectStoragePages.map((page) => page.slug)).toEqual([
       'storage',
@@ -111,6 +119,7 @@ describe('navigation nav-config', () => {
       'events',
       'auth',
       'storage',
+      'functions',
       'ai',
     ]);
   });
