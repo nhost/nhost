@@ -412,6 +412,14 @@ const subPageChildren: Record<
     },
     { settings: runSettingsTabChildren },
   ),
+  deployments: toSubPageNodes(
+    projectSubPagesBySlug.deployments,
+    'project-deployments',
+    {
+      deployments: ['deployments', 'releases'],
+      settings: ['deployments', 'settings', 'git', 'repository'],
+    },
+  ),
   ai: toSubPageNodes(projectSubPagesBySlug.ai, 'project-ai', {
     'auto-embeddings': ['ai', 'embeddings'],
     assistants: ['ai', 'agents'],
@@ -434,7 +442,6 @@ const settingsPageMeta: Record<
       'delete project',
     ],
   },
-  deployments: { keywords: ['settings', 'releases'] },
   ai: { keywords: ['settings', 'embeddings'] },
   metrics: {
     id: 'project-settings-observability',
@@ -524,7 +531,10 @@ const projectPageMeta: Record<
     keywords: ['auto embeddings', 'embeddings'],
     children: subPageChildren.ai,
   },
-  deployments: { keywords: ['releases'] },
+  deployments: {
+    keywords: ['releases'],
+    children: subPageChildren.deployments,
+  },
   logs: { keywords: ['log entries'] },
   metrics: { keywords: ['observability', 'monitoring'] },
   settings: {
