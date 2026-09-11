@@ -3,6 +3,7 @@ import {
   getSettingsPageRoute,
   isPageGated,
   orgPages,
+  projectAIPages,
   projectDatabasePages,
   projectDeploymentsPages,
   projectFunctionsPages,
@@ -32,9 +33,9 @@ describe('navigation nav-config', () => {
       'events',
       'auth',
       'storage',
+      'ai',
       'functions',
       'run',
-      'ai',
       'deployments',
       'logs',
       'metrics',
@@ -47,7 +48,6 @@ describe('navigation nav-config', () => {
       '/orgs/nhost/projects/dashboard',
     );
     expect(getSettingsPageRoute({ route: '' })).toBe('settings');
-    expect(getSettingsPageRoute({ route: 'ai' })).toBe('settings/ai');
   });
 
   it('gates platform and settings pages', () => {
@@ -119,6 +119,15 @@ describe('navigation nav-config', () => {
   it('keeps Storage sub-pages in route-tab order', () => {
     expect(projectStoragePages.map((page) => page.slug)).toEqual([
       'storage',
+      'settings',
+    ]);
+  });
+
+  it('keeps AI sub-pages in route-tab order', () => {
+    expect(projectAIPages.map((page) => page.slug)).toEqual([
+      'assistants',
+      'file-stores',
+      'auto-embeddings',
       'settings',
     ]);
   });
