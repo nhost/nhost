@@ -26,7 +26,7 @@ export default function DataBrowserEmptyState({
   return (
     <div
       className={cn(
-        'grid w-full place-content-center gap-2 px-4 py-16 text-center',
+        'grid h-full w-full place-content-center gap-2 px-4 py-16 text-center',
         className,
       )}
       {...props}

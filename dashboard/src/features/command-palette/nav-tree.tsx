@@ -58,9 +58,15 @@ interface PaletteMeta {
 }
 
 const toSubPageNodes = <Slug extends string>(
-  pages: ReadonlyArray<{ name: string; slug: Slug; route: string }>,
+  pages: ReadonlyArray<{
+    name: string;
+    slug: Slug;
+    route: string;
+    gate?: CommandNode['gate'];
+  }>,
   idPrefix: string,
   keywordsBySlug: Record<Slug, string[]>,
+  childrenBySlug: Partial<Record<Slug, CommandNode[]>> = {},
 ): CommandNode[] =>
   pages.map((page) => ({
     id: `${idPrefix}-${page.slug}`,
@@ -69,7 +75,81 @@ const toSubPageNodes = <Slug extends string>(
     path: page.route,
     scope: 'project',
     keywords: keywordsBySlug[page.slug],
+    gate: page.gate,
+    children: childrenBySlug[page.slug],
   }));
+
+interface SettingsTabEntry {
+  slug: string;
+  title: string;
+  keywords: string[];
+  gate?: CommandNode['gate'];
+}
+
+// A settings page's `?tab=` entries, so the palette can land on the tab
+// directly instead of on the page.
+const toSettingsTabNodes = (
+  idPrefix: string,
+  settingsRoute: string,
+  tabs: ReadonlyArray<SettingsTabEntry>,
+): CommandNode[] =>
+  tabs.map((tab) => ({
+    id: `${idPrefix}-settings-${tab.slug}`,
+    title: tab.title,
+    kind: 'setting',
+    path: `${settingsRoute}?tab=${tab.slug}`,
+    scope: 'project',
+    keywords: tab.keywords,
+    gate: tab.gate,
+  }));
+
+const databaseSettingsTabChildren = toSettingsTabNodes(
+  'project-database',
+  'database/settings',
+  [
+    {
+      slug: 'version',
+      title: 'Database Postgres Version',
+      keywords: ['database', 'settings', 'postgres', 'version'],
+    },
+    {
+      slug: 'capacity',
+      title: 'Database Storage Capacity',
+      keywords: ['database', 'settings', 'storage capacity', 'database size'],
+    },
+    {
+      slug: 'point-in-time',
+      title: 'Database Point-in-Time Recovery',
+      keywords: ['database', 'settings', 'pitr', 'backups', 'point in time'],
+      gate: 'platform',
+    },
+    {
+      slug: 'access',
+      title: 'Database Access',
+      keywords: [
+        'database',
+        'settings',
+        'access',
+        'connection string',
+        'allowed cidrs',
+        'cidr',
+      ],
+      gate: 'platform',
+    },
+    {
+      slug: 'custom-domain',
+      title: 'Database Custom Domain',
+      keywords: ['database', 'settings', 'custom domain'],
+      gate: 'platform',
+    },
+    {
+      slug: 'reset-password',
+      title: 'Database Reset Password',
+      keywords: ['database', 'settings', 'password', 'reset password'],
+      gate: 'platform',
+    },
+  ],
+);
 
 // Exhaustive over nav-config's sub-page families, so adding a family there
 // fails to compile until the palette assigns its keywords.
@@ -77,10 +157,18 @@ const subPageChildren: Record<
   keyof typeof projectSubPagesBySlug,
   CommandNode[]
 > = {
-  database: toSubPageNodes(projectSubPagesBySlug.database, 'project-database', {
-    browser: ['database', 'tables', 'rows'],
-    schema: ['database', 'schema', 'columns'],
-  }),
+  database: toSubPageNodes(
+    projectSubPagesBySlug.database,
+    'project-database',
+    {
+      browser: ['database', 'tables', 'rows'],
+      schema: ['database', 'schema', 'columns'],
+      'sql-console': ['database', 'sql', 'console'],
+      backups: ['database', 'restore', 'snapshots'],
+      settings: ['database', 'settings'],
+    },
+    { settings: databaseSettingsTabChildren },
+  ),
   graphql: toSubPageNodes(projectSubPagesBySlug.graphql, 'project-graphql', {
     playground: ['graphql', 'api', 'console'],
     'remote-schemas': ['graphql', 'remote', 'schemas'],
@@ -109,7 +197,6 @@ const settingsPageMeta: Record<
 > = {
   general: { keywords: ['settings'] },
   'compute-resources': { keywords: ['settings', 'cpu', 'memory'] },
-  database: { keywords: ['settings', 'postgres'] },
   hasura: { keywords: ['settings', 'graphql engine', 'console'] },
   authentication: { keywords: ['settings', 'auth'] },
   jwt: { keywords: ['settings', 'tokens'] },
@@ -177,7 +264,6 @@ const projectPageMeta: Record<
     children: subPageChildren.ai,
   },
   deployments: { keywords: ['releases'] },
-  backups: { keywords: ['restore', 'snapshots'] },
   logs: { keywords: ['log entries'] },
   metrics: { keywords: ['observability', 'monitoring'] },
   settings: {
