@@ -58,6 +58,7 @@ export interface FreeComboboxProps {
   popoverContentClassName?: string;
   'data-testid'?: string;
   'aria-label'?: string;
+  'aria-describedby'?: string;
   'aria-invalid'?: boolean;
 }
 
