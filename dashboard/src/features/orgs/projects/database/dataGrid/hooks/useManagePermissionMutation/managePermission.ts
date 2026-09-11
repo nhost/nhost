@@ -8,6 +8,7 @@ import type {
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { normalizeMetadataError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeMetadataError';
 
+import { throwIfMetadataVersionConflict } from '@/utils/hasura-api/legacy-metadata-conflict';
 export interface ManagePermissionVariables {
   /**
    * The role to manage the permission for.
@@ -116,6 +117,8 @@ export default async function managePermission({
   if (response.ok) {
     return;
   }
+
+  throwIfMetadataVersionConflict(response, responseData, appUrl);
 
   const normalizedError = normalizeMetadataError(responseData);
 

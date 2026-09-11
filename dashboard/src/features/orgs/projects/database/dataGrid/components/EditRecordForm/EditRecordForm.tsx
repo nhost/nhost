@@ -16,6 +16,8 @@ import { wrapResolverWithDefaultPlaceholder } from '@/features/orgs/projects/dat
 import { getEditRecordFormDefaultValues } from '@/features/orgs/projects/database/dataGrid/utils/recordFormValues';
 import { createDynamicValidationSchema } from '@/features/orgs/projects/database/dataGrid/utils/validationSchemaHelpers';
 import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
+import showErrorToast from '@/features/orgs/utils/execPromiseWithErrorToast/show-error-toast';
+import { isMetadataVersionConflictError } from '@/utils/hasura-api/metadata-version-conflict-error';
 import { triggerToast } from '@/utils/toast';
 
 export interface EditRecordFormProps
@@ -118,8 +120,10 @@ export default function EditRecordForm({
 
         triggerToast('The row has been updated successfully.');
       }
-    } catch {
-      // Error is handled by the mutation or toast wrapper.
+    } catch (caughtError: unknown) {
+      if (isMetadataVersionConflictError(caughtError)) {
+        showErrorToast(caughtError, caughtError.message);
+      }
     }
   }
 

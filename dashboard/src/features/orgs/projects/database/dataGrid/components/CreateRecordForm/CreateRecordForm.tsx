@@ -11,7 +11,9 @@ import type { ColumnInsertOptions } from '@/features/orgs/projects/database/data
 import { wrapResolverWithDefaultPlaceholder } from '@/features/orgs/projects/database/dataGrid/utils/postgresDefaultPlaceholder';
 import { getCreateRecordFormDefaultValues } from '@/features/orgs/projects/database/dataGrid/utils/recordFormValues';
 import { createDynamicValidationSchema } from '@/features/orgs/projects/database/dataGrid/utils/validationSchemaHelpers';
+import showErrorToast from '@/features/orgs/utils/execPromiseWithErrorToast/show-error-toast';
 import { useTrackEvent } from '@/hooks/useTrackEvent';
+import { isMetadataVersionConflictError } from '@/utils/hasura-api/metadata-version-conflict-error';
 import { triggerToast } from '@/utils/toast';
 
 export interface CreateRecordFormProps
@@ -65,8 +67,10 @@ export default function CreateRecordForm({
       }
 
       triggerToast('The row has been inserted successfully.');
-    } catch {
-      // This error is handled by the useCreateRecordMutation hook.
+    } catch (caughtError: unknown) {
+      if (isMetadataVersionConflictError(caughtError)) {
+        showErrorToast(caughtError, caughtError.message);
+      }
     }
   }
 

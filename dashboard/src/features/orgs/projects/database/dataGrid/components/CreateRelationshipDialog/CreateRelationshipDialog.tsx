@@ -10,6 +10,8 @@ import { isRemoteSchemaRelationshipFormValues } from '@/features/orgs/projects/d
 import { prepareLocalRelationshipDTO } from '@/features/orgs/projects/database/dataGrid/utils/prepareLocalRelationshipDTO';
 import { prepareRemoteSchemaRelationshipDTO } from '@/features/orgs/projects/database/dataGrid/utils/prepareRemoteSchemaRelationshipDTO';
 import { prepareRemoteSourceRelationshipDTO } from '@/features/orgs/projects/database/dataGrid/utils/prepareRemoteSourceRelationshipDTO';
+import showErrorToast from '@/features/orgs/utils/execPromiseWithErrorToast/show-error-toast';
+import { isMetadataVersionConflictError } from '@/utils/hasura-api/metadata-version-conflict-error';
 import { triggerToast } from '@/utils/toast';
 
 interface CreateRelationshipDialogProps {
@@ -62,7 +64,12 @@ export default function CreateRelationshipDialog({
         });
       }
       triggerToast('Relationship created successfully.');
-    } catch (error) {
+    } catch (error: unknown) {
+      if (isMetadataVersionConflictError(error)) {
+        showErrorToast(error, error.message);
+        throw error;
+      }
+
       const message =
         error instanceof Error
           ? error.message

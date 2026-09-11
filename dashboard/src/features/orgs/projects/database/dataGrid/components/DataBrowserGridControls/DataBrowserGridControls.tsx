@@ -20,6 +20,8 @@ import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGr
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import type { DataGridPaginationProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPagination';
 import { DataGridPagination } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPagination';
+import showErrorToast from '@/features/orgs/utils/execPromiseWithErrorToast/show-error-toast';
+import { isMetadataVersionConflictError } from '@/utils/hasura-api/metadata-version-conflict-error';
 import { triggerToast } from '@/utils/toast';
 
 export interface DataBrowserGridControlsProps {
@@ -142,8 +144,14 @@ export default function DataBrowserGridControls({
         await refetchData();
         await queryClient.invalidateQueries({ refetchType: 'inactive' });
       }
-    } catch (error) {
-      triggerToast(error.message || 'Unknown error occurred');
+    } catch (error: unknown) {
+      if (isMetadataVersionConflictError(error)) {
+        showErrorToast(error, error.message);
+      } else {
+        triggerToast(
+          error instanceof Error ? error.message : 'Unknown error occurred',
+        );
+      }
     }
   }
 

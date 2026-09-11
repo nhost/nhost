@@ -7,6 +7,7 @@ import type {
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
 import { getHasuraMigrationsApiUrl } from '@/utils/env';
+import { throwIfMigrationMetadataVersionConflict } from '@/utils/hasura-api/legacy-metadata-conflict';
 import prepareTrackForeignKeyRelationsMetadata from './prepareTrackForeignKeyRelationsMetadata';
 
 export interface TrackForeignKeyRelationsMigrationVariables {
@@ -73,6 +74,8 @@ export default async function trackForeignKeyRelationsMigration({
   if (response.ok) {
     return;
   }
+
+  throwIfMigrationMetadataVersionConflict(response, responseData, appUrl);
 
   const normalizedError = normalizeQueryError(responseData);
 

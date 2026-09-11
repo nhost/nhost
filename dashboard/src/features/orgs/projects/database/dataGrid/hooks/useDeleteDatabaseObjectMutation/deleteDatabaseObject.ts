@@ -13,6 +13,7 @@ import type {
 import { buildFunctionSignature } from '@/features/orgs/projects/database/dataGrid/utils/buildFunctionSignature';
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
 
+import { throwIfMetadataVersionConflict } from '@/utils/hasura-api/legacy-metadata-conflict';
 export const typeToQuery: Record<DatabaseObjectType, string> = {
   'ORDINARY TABLE': 'TABLE',
   VIEW: 'VIEW',
@@ -97,6 +98,8 @@ export default async function deleteDatabaseObject({
   if (response.ok) {
     return;
   }
+
+  throwIfMetadataVersionConflict(response, responseData, appUrl);
 
   const normalizedError = normalizeQueryError(responseData);
 

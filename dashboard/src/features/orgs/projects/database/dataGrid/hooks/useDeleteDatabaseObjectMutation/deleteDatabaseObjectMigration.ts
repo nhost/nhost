@@ -14,6 +14,7 @@ import type {
 import { buildFunctionSignature } from '@/features/orgs/projects/database/dataGrid/utils/buildFunctionSignature';
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
 import { getHasuraMigrationsApiUrl } from '@/utils/env';
+import { throwIfMigrationMetadataVersionConflict } from '@/utils/hasura-api/legacy-metadata-conflict';
 import { typeToQuery } from './deleteDatabaseObject';
 
 export interface DeleteDatabaseObjectMigrationVariables {
@@ -40,6 +41,7 @@ export interface DeleteDatabaseObjectMigrationOptions
 
 export default async function deleteDatabaseObject({
   dataSource,
+  appUrl,
   adminSecret,
   schema,
   objectName,
@@ -103,6 +105,8 @@ export default async function deleteDatabaseObject({
   if (response.ok) {
     return;
   }
+
+  throwIfMigrationMetadataVersionConflict(response, responseData, appUrl);
 
   const normalizedError = normalizeQueryError(responseData);
 

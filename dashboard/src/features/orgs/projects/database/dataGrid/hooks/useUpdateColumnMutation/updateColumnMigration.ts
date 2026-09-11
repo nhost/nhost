@@ -8,6 +8,7 @@ import type {
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
 import { getHasuraMigrationsApiUrl } from '@/utils/env';
+import { throwIfMigrationMetadataVersionConflict } from '@/utils/hasura-api/legacy-metadata-conflict';
 import prepareUpdateColumnQuery from './prepareUpdateColumnQuery';
 
 export interface UpdateColumnMigrationVariables {
@@ -26,6 +27,7 @@ export interface UpdateColumnMigrationOptions
 
 export default async function updateColumnMigration({
   dataSource,
+  appUrl,
   schema,
   table,
   adminSecret,
@@ -86,6 +88,8 @@ export default async function updateColumnMigration({
   if (response.ok) {
     return;
   }
+
+  throwIfMigrationMetadataVersionConflict(response, responseData, appUrl);
 
   const normalizedError = normalizeQueryError(responseData);
 

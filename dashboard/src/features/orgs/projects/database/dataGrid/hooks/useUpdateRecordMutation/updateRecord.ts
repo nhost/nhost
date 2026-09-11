@@ -15,6 +15,7 @@ import type {
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
 import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 
+import { throwIfMetadataVersionConflict } from '@/utils/hasura-api/legacy-metadata-conflict';
 export interface UpdateRecordVariables<
   TData extends UnknownDataGridRow = UnknownDataGridRow,
 > {
@@ -139,6 +140,8 @@ export default async function updateRecord<
 
     return { ...row, original: { ...row.original, ...columnsToUpdate } };
   }
+
+  throwIfMetadataVersionConflict(response, responseData, appUrl);
 
   const normalizedError = normalizeQueryError(responseData);
 

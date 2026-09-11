@@ -8,8 +8,14 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
 import { POSTGRES_FUNCTIONS_QUERY_KEY } from '@/features/orgs/projects/database/dataGrid/hooks/usePostgresFunctionsQuery';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import showErrorToast from '@/features/orgs/utils/execPromiseWithErrorToast/show-error-toast';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { getHasuraMigrationsApiUrl } from '@/utils/env';
+import {
+  throwIfMetadataVersionConflict,
+  throwIfMigrationMetadataVersionConflict,
+} from '@/utils/hasura-api/legacy-metadata-conflict';
+import { isMetadataVersionConflictError } from '@/utils/hasura-api/metadata-version-conflict-error';
 import { parseIdentifiersFromSQL } from '@/utils/sql';
 
 export default function useRunSQL(
@@ -86,13 +92,26 @@ export default function useRunSQL(
       });
 
       if (!migrationApiResponse.ok) {
+        const responseData: unknown = await migrationApiResponse
+          .clone()
+          .json()
+          .catch(() => null);
+        throwIfMigrationMetadataVersionConflict(
+          migrationApiResponse,
+          responseData,
+          appUrl,
+        );
         throw new Error('Migration API call failed');
       }
 
       return {
         error: null,
       };
-    } catch (createMigrationError) {
+    } catch (createMigrationError: unknown) {
+      if (isMetadataVersionConflictError(createMigrationError)) {
+        throw createMigrationError;
+      }
+
       toast.error('An error happened when calling the migration API', {
         style: toastStyle.style,
         ...toastStyle.error,
@@ -135,6 +154,7 @@ export default function useRunSQL(
 
       if (!response.ok) {
         const errorResponse = await response.json();
+        throwIfMetadataVersionConflict(response, errorResponse, appUrl);
         const queryApiError =
           errorResponse?.internal?.error?.message || 'Unknown error';
         return {
@@ -172,12 +192,16 @@ export default function useRunSQL(
         rows: [],
         error: 'Unknown response type',
       };
-    } catch (error) {
+    } catch (error: unknown) {
+      if (isMetadataVersionConflictError(error)) {
+        throw error;
+      }
+
       return {
         result_type: 'error',
         columns: [],
         rows: [],
-        error: error.message || 'Unknown error',
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   };
@@ -187,25 +211,64 @@ export default function useRunSQL(
     const url = isPlatform
       ? `${appUrl}/v1/metadata`
       : getHasuraMigrationsApiUrl();
-    const responses: Response[] = await Promise.all(
-      objects.map((object) =>
-        fetch(url, {
+    const settledResponses = await Promise.allSettled(
+      objects.map(async (object) => {
+        const response = await fetch(url, {
           method: 'POST',
           headers: { 'x-hasura-admin-secret': adminSecret },
           body: JSON.stringify(object),
-        }).then((response) => {
-          if (!response.ok) {
-            console.error('failed to track:', response);
-          }
-          return response;
-        }),
-      ),
-    ).catch((error) => {
-      console.error('Error in trackAll:', error);
-      throw error;
-    });
+        });
 
-    return responses;
+        if (!response.ok) {
+          const responseData: unknown = await response
+            .clone()
+            .json()
+            .catch(() => null);
+
+          if (isPlatform) {
+            throwIfMetadataVersionConflict(response, responseData, appUrl);
+          } else {
+            throwIfMigrationMetadataVersionConflict(
+              response,
+              responseData,
+              appUrl,
+            );
+          }
+
+          console.error('failed to track:', response);
+        }
+
+        return response;
+      }),
+    );
+
+    const conflict = settledResponses.find(
+      (result) =>
+        result.status === 'rejected' &&
+        isMetadataVersionConflictError(result.reason),
+    );
+
+    if (conflict?.status === 'rejected') {
+      console.error('Error in trackAll:', conflict.reason);
+      throw conflict.reason;
+    }
+
+    const failure = settledResponses.find(
+      (result) => result.status === 'rejected',
+    );
+
+    if (failure?.status === 'rejected') {
+      console.error('Error in trackAll:', failure.reason);
+      throw failure.reason;
+    }
+
+    return settledResponses.map((result) => {
+      if (result.status === 'fulfilled') {
+        return result.value;
+      }
+
+      throw result.reason;
+    });
   };
 
   const updateMetadata = async (inputSQL: string) => {
@@ -292,7 +355,11 @@ export default function useRunSQL(
           });
         },
       );
-    } catch {
+    } catch (error: unknown) {
+      if (isMetadataVersionConflictError(error)) {
+        throw error;
+      }
+
       toast.error('An error happened when calling the metadata API', {
         style: toastStyle.style,
         ...toastStyle.error,
@@ -305,57 +372,67 @@ export default function useRunSQL(
     setCommandOk(false);
     setErrorMessage('');
 
-    let succeeded = false;
+    try {
+      let succeeded = false;
 
-    if (isMigration) {
-      const { error: createMigrationError } = await createMigration(
-        sqlCode,
-        migrationName,
-        cascade,
-      );
+      if (isMigration) {
+        const { error: createMigrationError } = await createMigration(
+          sqlCode,
+          migrationName,
+          cascade,
+        );
 
-      succeeded = !createMigrationError;
-      setCommandOk(succeeded);
+        succeeded = !createMigrationError;
 
-      if (createMigrationError) {
-        setErrorMessage('An unknown error occurred');
+        if (createMigrationError) {
+          setErrorMessage('An unknown error occurred');
+        }
+
+        if (track && succeeded) {
+          await updateMetadata(sqlCode);
+        }
+
+        setCommandOk(succeeded);
+      } else {
+        const {
+          result_type,
+          error: $error,
+          columns: $columns,
+          rows: $rows,
+        } = await sendSQLToHasura(sqlCode, cascade, readOnly);
+
+        succeeded = result_type !== 'error';
+        setColumns($columns);
+        setRows($rows);
+        setErrorMessage($error);
+
+        if (track && !$error) {
+          await updateMetadata(sqlCode);
+        }
+
+        setCommandOk(result_type === 'CommandOk');
       }
 
-      // if running the migration fails then we don't update the metadata
-      if (track && succeeded) {
-        await updateMetadata(sqlCode);
-      }
-    } else {
-      const {
-        result_type,
-        error: $error,
-        columns: $columns,
-        rows: $rows,
-      } = await sendSQLToHasura(sqlCode, cascade, readOnly);
+      await refetch();
+      await queryClient.invalidateQueries({
+        queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: [POSTGRES_FUNCTIONS_QUERY_KEY, project?.subdomain],
+      });
 
-      succeeded = result_type !== 'error';
-      setCommandOk(result_type === 'CommandOk');
-      setColumns($columns);
-      setRows($rows);
-      setErrorMessage($error);
-
-      // if running the sql fails then we don't update the metadata
-      if (track && !$error) {
-        await updateMetadata(sqlCode);
+      return succeeded;
+    } catch (error: unknown) {
+      if (isMetadataVersionConflictError(error)) {
+        setCommandOk(false);
+        showErrorToast(error, error.message);
+        return false;
       }
+
+      throw error;
+    } finally {
+      setLoading(false);
     }
-
-    await refetch();
-    await queryClient.invalidateQueries({
-      queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
-    });
-    await queryClient.invalidateQueries({
-      queryKey: [POSTGRES_FUNCTIONS_QUERY_KEY, project?.subdomain],
-    });
-
-    setLoading(false);
-
-    return succeeded;
   };
 
   const reset = useCallback(() => {

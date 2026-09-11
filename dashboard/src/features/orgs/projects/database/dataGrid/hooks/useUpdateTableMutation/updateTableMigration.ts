@@ -10,6 +10,7 @@ import type {
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
 import { getHasuraMigrationsApiUrl } from '@/utils/env';
+import { throwIfMigrationMetadataVersionConflict } from '@/utils/hasura-api/legacy-metadata-conflict';
 import prepareUpdateTableQuery from './prepareUpdateTableQuery';
 
 export interface UpdateTableMigrationVariables {
@@ -36,6 +37,7 @@ export interface UpdateTableMigrationOptions
 
 export default async function updateTableMigration({
   dataSource,
+  appUrl,
   schema,
   adminSecret,
   originalTableName,
@@ -86,6 +88,8 @@ export default async function updateTableMigration({
   if (response.ok) {
     return;
   }
+
+  throwIfMigrationMetadataVersionConflict(response, responseData, appUrl);
 
   const normalizedError = normalizeQueryError(responseData);
 

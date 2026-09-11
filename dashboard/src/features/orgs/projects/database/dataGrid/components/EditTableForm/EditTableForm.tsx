@@ -20,7 +20,9 @@ import { useUpdateTableMutation } from '@/features/orgs/projects/database/dataGr
 import type { DatabaseTable } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { getUntrackedForeignKeyRelations } from '@/features/orgs/projects/database/dataGrid/utils/getUntrackedForeignKeyRelations';
 import { normalizeDatabaseColumn } from '@/features/orgs/projects/database/dataGrid/utils/normalizeDatabaseColumn';
+import showErrorToast from '@/features/orgs/utils/execPromiseWithErrorToast/show-error-toast';
 import { isNotEmptyValue } from '@/lib/utils';
+import { isMetadataVersionConflictError } from '@/utils/hasura-api/metadata-version-conflict-error';
 import { triggerToast } from '@/utils/toast';
 
 export interface EditTableFormProps
@@ -197,8 +199,10 @@ export default function EditTableForm({
       }
 
       triggerToast('The table has been updated successfully.');
-    } catch {
-      // Errors are already handled by hooks.
+    } catch (caughtError: unknown) {
+      if (isMetadataVersionConflictError(caughtError)) {
+        showErrorToast(caughtError, caughtError.message);
+      }
     }
   }
 

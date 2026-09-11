@@ -1,5 +1,6 @@
 import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
+import { MetadataVersionConflictError } from '@/utils/hasura-api/metadata-version-conflict-error';
 import type { ManagePermissionOptions } from './managePermission';
 import managePermission from './managePermission';
 
@@ -33,4 +34,34 @@ test('should throw an error if permission object is incorrectly provided', async
       'A permission must be provided when creating or updating a permission.',
     ),
   );
+});
+
+test('preserves a metadata version conflict before normalization', async () => {
+  server.use(
+    http.post('http://localhost:1337/v1/metadata', () =>
+      HttpResponse.json(
+        {
+          path: '$',
+          error:
+            'metadata resource version referenced (42) did not match current version',
+          code: 'conflict',
+        },
+        { status: 409 },
+      ),
+    ),
+  );
+
+  await expect(
+    managePermission({
+      ...defaultParameters,
+      action: 'select',
+      role: 'user',
+      mode: 'insert',
+      permission: { columns: ['id'] },
+      resourceVersion: 1,
+    }),
+  ).rejects.toMatchObject({
+    name: MetadataVersionConflictError.name,
+    origin: { appUrl: defaultParameters.appUrl },
+  });
 });

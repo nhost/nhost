@@ -19,8 +19,10 @@ import { useCreateTableMutation } from '@/features/orgs/projects/database/dataGr
 import { useSetTableTrackingMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetTableTrackingMutation';
 import { useTrackForeignKeyRelationsMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useTrackForeignKeyRelationsMutation';
 import type { DatabaseTable } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import showErrorToast from '@/features/orgs/utils/execPromiseWithErrorToast/show-error-toast';
 import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { isNotEmptyValue } from '@/lib/utils';
+import { isMetadataVersionConflictError } from '@/utils/hasura-api/metadata-version-conflict-error';
 import { triggerToast } from '@/utils/toast';
 
 export interface CreateTableFormProps
@@ -168,8 +170,10 @@ export default function CreateTableForm({
       } else {
         closeDrawer();
       }
-    } catch {
-      // This error is handled by the useCreateTableMutation hook.
+    } catch (caughtError: unknown) {
+      if (isMetadataVersionConflictError(caughtError)) {
+        showErrorToast(caughtError, caughtError.message);
+      }
     }
   }
 

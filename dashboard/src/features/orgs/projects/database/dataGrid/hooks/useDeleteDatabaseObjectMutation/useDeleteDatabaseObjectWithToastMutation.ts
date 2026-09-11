@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import type { UseDeleteDatabaseObjectMutationOptions } from '@/features/orgs/projects/database/dataGrid/hooks/useDeleteDatabaseObjectMutation';
+import showErrorToast from '@/features/orgs/utils/execPromiseWithErrorToast/show-error-toast';
+import { isMetadataVersionConflictError } from '@/utils/hasura-api/metadata-version-conflict-error';
 import { showLoadingToast, triggerToast } from '@/utils/toast';
 import useDeleteDatabaseObjectMutation from './useDeleteDatabaseObjectMutation';
 
@@ -30,10 +32,20 @@ export default function useDeleteDatabaseObjectWithToastMutation(
       setToastId(loadingToastId);
     }
 
-    if (status === 'error' && toastId) {
-      toast.remove(toastId);
+    if (status === 'error') {
+      const isMetadataConflict = isMetadataVersionConflictError(error);
 
-      if (error && error instanceof Error) {
+      if (!toastId && !isMetadataConflict) {
+        return;
+      }
+
+      if (toastId) {
+        toast.remove(toastId);
+      }
+
+      if (isMetadataConflict) {
+        showErrorToast(error, error.message);
+      } else if (error instanceof Error) {
         triggerToast(
           error.message || 'An error occurred while deleting the object.',
         );

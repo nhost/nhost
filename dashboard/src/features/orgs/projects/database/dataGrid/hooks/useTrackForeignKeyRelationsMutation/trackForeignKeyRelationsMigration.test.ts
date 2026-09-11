@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, vi } from 'vitest';
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { MetadataVersionConflictError } from '@/utils/hasura-api/metadata-version-conflict-error';
 import trackForeignKeyRelationsMigration from './trackForeignKeyRelationsMigration';
 
 const fetchMock = vi.fn();
@@ -8,8 +9,8 @@ function ok(body: unknown) {
   return { ok: true, json: async () => body } as Response;
 }
 
-function notOk(body: unknown) {
-  return { ok: false, json: async () => body } as Response;
+function notOk(body: unknown, status = 400) {
+  return { ok: false, status, json: async () => body } as Response;
 }
 
 const baseOptions = {
@@ -66,6 +67,7 @@ describe('trackForeignKeyRelationsMigration', () => {
       name: 'track_foreign_key_relations_public_books',
       down: [],
     });
+    expect(body).not.toHaveProperty('appUrl');
   });
 
   it('throws a normalized error when the response is not ok', async () => {
@@ -77,5 +79,26 @@ describe('trackForeignKeyRelationsMigration', () => {
         unTrackedForeignKeyRelations,
       }),
     ).rejects.toThrow('boom');
+  });
+
+  it('preserves a migration metadata version conflict before normalization', async () => {
+    fetchMock.mockResolvedValueOnce(
+      notOk({
+        code: 'data_api_error',
+        message: JSON.stringify({
+          path: '$',
+          error:
+            'metadata resource version referenced (42) did not match current version',
+          code: 'conflict',
+        }),
+      }),
+    );
+
+    await expect(
+      trackForeignKeyRelationsMigration({
+        ...baseOptions,
+        unTrackedForeignKeyRelations,
+      }),
+    ).rejects.toBeInstanceOf(MetadataVersionConflictError);
   });
 });

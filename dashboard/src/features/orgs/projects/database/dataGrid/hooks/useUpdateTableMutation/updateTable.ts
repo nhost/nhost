@@ -8,6 +8,7 @@ import type {
   QueryResult,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
+import { throwIfMetadataVersionConflict } from '@/utils/hasura-api/legacy-metadata-conflict';
 import prepareUpdateTableQuery from './prepareUpdateTableQuery';
 
 export interface UpdateTableVariables {
@@ -73,6 +74,8 @@ export default async function updateTable({
   if (response.ok) {
     return;
   }
+
+  throwIfMetadataVersionConflict(response, responseData, appUrl);
 
   const normalizedError = normalizeQueryError(responseData);
 

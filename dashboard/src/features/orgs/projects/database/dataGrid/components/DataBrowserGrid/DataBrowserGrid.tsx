@@ -49,7 +49,9 @@ import {
 import { DataGridBooleanCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridBooleanCell';
 import { DataGridNumericCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridNumericCell';
 import { DataGridTextCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridTextCell';
+import showErrorToast from '@/features/orgs/utils/execPromiseWithErrorToast/show-error-toast';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
+import { isMetadataVersionConflictError } from '@/utils/hasura-api/metadata-version-conflict-error';
 import { triggerToast } from '@/utils/toast';
 import { useDataGridQueryParams } from './DataGridQueryParamsProvider';
 import GeneratedColumnIndicator from './GeneratedColumnIndicator';
@@ -392,8 +394,16 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
               await queryClient.invalidateQueries({
                 queryKey: [currentTablePath],
               });
-            } catch (err) {
-              triggerToast(err.message || 'Unknown error occurred');
+            } catch (caughtError: unknown) {
+              if (isMetadataVersionConflictError(caughtError)) {
+                showErrorToast(caughtError, caughtError.message);
+              } else {
+                triggerToast(
+                  caughtError instanceof Error
+                    ? caughtError.message
+                    : 'Unknown error occurred',
+                );
+              }
             }
           },
         },

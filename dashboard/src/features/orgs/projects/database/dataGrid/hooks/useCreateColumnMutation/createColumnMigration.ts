@@ -8,6 +8,7 @@ import type {
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
 import { getHasuraMigrationsApiUrl } from '@/utils/env';
+import { throwIfMigrationMetadataVersionConflict } from '@/utils/hasura-api/legacy-metadata-conflict';
 import prepareCreateColumnQuery from './prepareCreateColumnQuery';
 
 export interface CreateColumnMigrationVariables {
@@ -22,6 +23,7 @@ export interface CreateColumnMigrationOptions
 
 export default async function createColumnMigration({
   dataSource,
+  appUrl,
   schema,
   table,
   adminSecret,
@@ -62,6 +64,8 @@ export default async function createColumnMigration({
   if (response.ok) {
     return;
   }
+
+  throwIfMigrationMetadataVersionConflict(response, responseData, appUrl);
 
   const normalizedError = normalizeQueryError(responseData);
 

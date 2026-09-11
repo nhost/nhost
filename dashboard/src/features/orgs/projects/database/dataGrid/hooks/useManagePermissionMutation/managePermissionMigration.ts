@@ -9,6 +9,7 @@ import type {
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
 import { getHasuraMigrationsApiUrl } from '@/utils/env';
 
+import { throwIfMigrationMetadataVersionConflict } from '@/utils/hasura-api/legacy-metadata-conflict';
 export interface ManagePermissionMigrationVariables {
   /**
    * The role to manage the permission for.
@@ -49,6 +50,7 @@ export interface ManagePermissionMigrationOptions
 
 export default async function managePermissionMigration({
   dataSource,
+  appUrl,
   schema,
   adminSecret,
   table,
@@ -134,6 +136,8 @@ export default async function managePermissionMigration({
   if (response.ok) {
     return;
   }
+
+  throwIfMigrationMetadataVersionConflict(response, responseData, appUrl);
 
   const normalizedError = normalizeQueryError(responseData);
 

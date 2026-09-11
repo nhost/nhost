@@ -1,5 +1,7 @@
 import { useRouter } from 'next/router';
 import { useRefreshMaterializedViewMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useRefreshMaterializedViewMutation';
+import showErrorToast from '@/features/orgs/utils/execPromiseWithErrorToast/show-error-toast';
+import { isMetadataVersionConflictError } from '@/utils/hasura-api/metadata-version-conflict-error';
 import { triggerToast } from '@/utils/toast';
 
 export interface UseRefreshMaterializedViewOptions {
@@ -24,7 +26,12 @@ export default function useRefreshMaterializedView({
       await mutateAsync({ schema: schemaSlug, table: tableSlug });
       await refetch();
       triggerToast('The materialized view has been refreshed successfully.');
-    } catch (error) {
+    } catch (error: unknown) {
+      if (isMetadataVersionConflictError(error)) {
+        showErrorToast(error, error.message);
+        return;
+      }
+
       triggerToast(
         error instanceof Error
           ? error.message

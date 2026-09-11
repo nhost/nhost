@@ -9,6 +9,7 @@ import type {
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
 import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 
+import { throwIfMetadataVersionConflict } from '@/utils/hasura-api/legacy-metadata-conflict';
 export interface DeleteRecordVariables {
   /**
    * List of rows to delete.
@@ -84,6 +85,8 @@ export default async function deleteRecord({
   if (response.ok) {
     return selectedRows.length;
   }
+
+  throwIfMetadataVersionConflict(response, responseData, appUrl);
 
   const normalizedError = normalizeQueryError(responseData);
 

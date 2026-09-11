@@ -6,6 +6,7 @@ import type {
   QueryResult,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { normalizeMetadataError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeMetadataError';
+import { throwIfMetadataVersionConflict } from '@/utils/hasura-api/legacy-metadata-conflict';
 import prepareTrackForeignKeyRelationsMetadata from './prepareTrackForeignKeyRelationsMetadata';
 
 export interface TrackForeignKeyRelationsVariables {
@@ -70,6 +71,8 @@ export default async function trackForeignKeyRelations({
   if (response.ok) {
     return;
   }
+
+  throwIfMetadataVersionConflict(response, responseData, appUrl);
 
   const normalizedError = normalizeMetadataError(responseData);
 

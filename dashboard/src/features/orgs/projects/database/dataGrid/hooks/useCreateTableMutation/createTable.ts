@@ -6,6 +6,7 @@ import type {
   QueryResult,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
+import { throwIfMetadataVersionConflict } from '@/utils/hasura-api/legacy-metadata-conflict';
 import prepareCreateTableQuery from './prepareCreateTableQuery';
 
 export interface CreateTableVariables {
@@ -45,6 +46,8 @@ export default async function createTable({
   if (response.ok) {
     return;
   }
+
+  throwIfMetadataVersionConflict(response, responseData, appUrl);
 
   const normalizedError = normalizeQueryError(responseData);
 

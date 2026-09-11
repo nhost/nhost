@@ -23,8 +23,10 @@ import {
   ACTIONS_COLUMN_ID,
   SELECTION_COLUMN_ID,
 } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
+import showErrorToast from '@/features/orgs/utils/execPromiseWithErrorToast/show-error-toast';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import { copy } from '@/utils/copy';
+import { isMetadataVersionConflictError } from '@/utils/hasura-api/metadata-version-conflict-error';
 import { triggerToast } from '@/utils/toast';
 import DataGridCellProvider from './DataGridCellProvider';
 import useDataGridCell from './useDataGridCell';
@@ -192,8 +194,14 @@ function DataGridCellContent<
       // Syncing optimistic value with server-side value
       setTemporaryValue(data.original[id.toString()] as DataGridCellValue);
       setOptimisticValue(data.original[id.toString()] as DataGridCellValue);
-    } catch (error) {
-      triggerToast(`Error: ${error.message || 'Unknown error occurred.'}`);
+    } catch (error: unknown) {
+      if (isMetadataVersionConflictError(error)) {
+        showErrorToast(error, error.message);
+      } else {
+        triggerToast(
+          `Error: ${error instanceof Error && error.message ? error.message : 'Unknown error occurred.'}`,
+        );
+      }
 
       // Resetting values
       setTemporaryValue(latestOptimisticValue);

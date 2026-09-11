@@ -1,6 +1,6 @@
 import type { ApolloError } from '@apollo/client';
-import { type Toast, toast } from 'react-hot-toast';
-import ErrorToast from '@/features/orgs/utils/execPromiseWithErrorToast/ErrorToast';
+import { toast } from 'react-hot-toast';
+import showErrorToast from '@/features/orgs/utils/execPromiseWithErrorToast/show-error-toast';
 import { getToastStyleProps } from '@/utils/constants/settings';
 
 type ErrorExtensions = {
@@ -83,20 +83,7 @@ export default async function execPromiseWithErrorToast(
 
     const resolvedErrorMessage = resolveErrorMessage(error, errorMessage);
 
-    toast(
-      (t: Toast) => (
-        <ErrorToast
-          toastId={t.id}
-          errorMessage={resolvedErrorMessage}
-          error={error}
-        />
-      ),
-      {
-        className: 'error-toast',
-        duration: Number.POSITIVE_INFINITY,
-        style: toastStyle.style,
-      },
-    );
+    showErrorToast(error, resolvedErrorMessage);
 
     return null;
   }
