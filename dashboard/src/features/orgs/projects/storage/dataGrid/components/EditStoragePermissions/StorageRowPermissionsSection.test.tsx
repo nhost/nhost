@@ -183,6 +183,47 @@ describe('StorageRowPermissionsSection', () => {
     });
   });
 
+  it('switches the shared storage editor between Visual and JSON modes', async () => {
+    mocks.useRouter.mockImplementation(() => getRouter());
+    renderSection(
+      { storageAction: 'download' },
+      {
+        rowCheckType: 'custom',
+        filter: {
+          type: 'group',
+          id: 'g1',
+          operator: '_implicit',
+          children: [],
+        },
+      },
+    );
+
+    expect(screen.getByRole('button', { name: 'Visual' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(screen.getByText('Add check')).toBeInTheDocument();
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'JSON' }));
+
+    expect(screen.getByRole('button', { name: 'JSON' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(screen.getByRole('textbox')).toHaveValue('{}');
+    expect(screen.queryByText('Add check')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Visual' }));
+
+    expect(screen.getByRole('button', { name: 'Visual' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(screen.getByText('Add check')).toBeInTheDocument();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+  });
+
   it('hides CustomCheckEditor when switching back to "none"', async () => {
     mocks.useRouter.mockImplementation(() => getRouter());
     renderSection(

@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { render, screen, TestUserEvent } from '@/tests/testUtils';
 import { CustomCheckModeProvider } from './CustomCheckModeProvider';
 import CustomCheckModeToggle from './CustomCheckModeToggle';
@@ -66,6 +67,64 @@ describe('CustomCheckModeToggle', () => {
     expect(screen.getByRole('button', { name: 'Visual' })).toHaveAttribute(
       'aria-pressed',
       'false',
+    );
+  });
+
+  it('keeps a supplied mode authoritative and requests controlled changes', async () => {
+    const onModeChange = vi.fn();
+    const { rerender } = render(
+      <CustomCheckModeProvider mode="builder" onModeChange={onModeChange}>
+        <CustomCheckModeToggle />
+      </CustomCheckModeProvider>,
+    );
+
+    const user = new TestUserEvent();
+    await user.click(screen.getByRole('button', { name: 'JSON' }));
+
+    expect(onModeChange).toHaveBeenCalledOnce();
+    expect(onModeChange).toHaveBeenCalledWith('json');
+    expect(screen.getByRole('button', { name: 'Visual' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+
+    rerender(
+      <CustomCheckModeProvider mode="json" onModeChange={onModeChange}>
+        <CustomCheckModeToggle />
+      </CustomCheckModeProvider>,
+    );
+
+    expect(screen.getByRole('button', { name: 'JSON' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+  });
+
+  it('keeps a disabled mode visible and does not request a mode change', async () => {
+    const onModeChange = vi.fn();
+    render(
+      <CustomCheckModeProvider mode="json" onModeChange={onModeChange}>
+        <CustomCheckModeToggle
+          disabledModes={{
+            builder: 'This filter can only be edited as JSON.',
+          }}
+        />
+      </CustomCheckModeProvider>,
+    );
+
+    const visualButton = screen.getByRole('button', { name: 'Visual' });
+    expect(visualButton).toBeDisabled();
+    expect(visualButton).toHaveAccessibleDescription(
+      'This filter can only be edited as JSON.',
+    );
+
+    const user = new TestUserEvent();
+    await user.click(visualButton);
+
+    expect(onModeChange).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: 'JSON' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
     );
   });
 });

@@ -244,6 +244,8 @@ describe('ConditionValue', () => {
       { value: 'X-Hasura-User-Id', expected: 'X-Hasura-User-Id' },
       { value: null, expected: 'Select variable...' },
       { value: undefined, expected: 'Select variable...' },
+      { value: { country: 'ES' }, expected: '{"country":"ES"}' },
+      { value: [1, 2], expected: '[1,2]' },
     ])(
       'renders $value as "$expected" in the trigger',
       ({ value, expected }) => {
