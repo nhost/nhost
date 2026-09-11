@@ -8,6 +8,7 @@ import {
   projectFunctionsPages,
   projectGraphQLPages,
   projectPages,
+  projectRunPages,
   projectStoragePages,
   projectSubPagesBySlug,
 } from '@/features/navigation/nav-config';
@@ -96,6 +97,13 @@ describe('navigation nav-config', () => {
     ]);
   });
 
+  it('keeps Run sub-pages in route-tab order', () => {
+    expect(projectRunPages.map((page) => page.slug)).toEqual([
+      'services',
+      'settings',
+    ]);
+  });
+
   it('keeps Functions sub-pages in route-tab order', () => {
     expect(projectFunctionsPages.map((page) => page.slug)).toEqual([
       'functions',
@@ -129,6 +137,7 @@ describe('navigation nav-config', () => {
       'auth',
       'storage',
       'functions',
+      'run',
       'ai',
     ]);
   });
