@@ -53,12 +53,12 @@ test('should truncate at the first dynamic segment for remote schemas', () => {
   ).toBe('/graphql/remote-schemas');
 });
 
-test('should return /storage when on a bucket detail page', () => {
+test('should return /storage/buckets when on a bucket detail page', () => {
   expect(
     getProjectFeaturePagePath(
-      '/orgs/[orgSlug]/projects/[appSubdomain]/storage/bucket/[bucketId]',
+      '/orgs/[orgSlug]/projects/[appSubdomain]/storage/buckets/[...bucketId]',
     ),
-  ).toBe('/storage');
+  ).toBe('/storage/buckets');
 });
 
 test('should return /database/schema/default when on the schema navigator page', () => {

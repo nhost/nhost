@@ -60,6 +60,9 @@ describe('commandPaletteNavTree', () => {
       'GraphQL',
     ]);
     expect(byId.get('project-auth-settings')?.breadcrumb).toEqual(['Auth']);
+    expect(byId.get('project-storage-settings')?.breadcrumb).toEqual([
+      'Storage',
+    ]);
     expect(byId.get('project-database-settings')?.breadcrumb).toEqual([
       'Database',
     ]);
@@ -171,6 +174,26 @@ describe('commandPaletteNavTree', () => {
     expect(
       byId.get('project-auth-settings-custom-domain')?.gate,
     ).toBeUndefined();
+  });
+
+  it('routes Storage settings through the Storage area', () => {
+    const byId = new Map(allNodes.map((node) => [node.id, node]));
+
+    expect(byId.get('project-storage-settings')).toMatchObject({
+      title: 'Settings',
+      path: 'storage/settings',
+      gate: 'settings',
+      keywords: expect.arrayContaining(['storage', 'settings']),
+    });
+    expect(byId.has('project-settings-storage')).toBe(false);
+    expect(byId.get('project-storage-settings-storage')).toMatchObject({
+      title: 'Storage General Settings',
+      path: 'storage/settings?tab=storage',
+    });
+    expect(byId.get('project-storage-settings-rate-limiting')).toMatchObject({
+      title: 'Storage Rate Limiting',
+      path: 'storage/settings?tab=rate-limiting',
+    });
   });
 
   it('lists the project settings tabs next to Project Settings', () => {
