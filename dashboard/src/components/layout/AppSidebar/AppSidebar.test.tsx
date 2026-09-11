@@ -250,6 +250,23 @@ describe('AppSidebar', () => {
       ).not.toHaveAttribute('aria-current');
     });
 
+    it('marks only Metrics active on its settings page', () => {
+      mockRoute(
+        '/orgs/[orgSlug]/projects/[appSubdomain]/metrics/settings',
+        '/orgs/nhost/projects/dashboard/metrics/settings',
+        projectQuery,
+      );
+
+      render(<AppSidebar />);
+
+      expect(screen.getAllByRole('link', { current: 'page' })).toEqual([
+        screen.getByRole('link', { name: 'Metrics' }),
+      ]);
+      expect(
+        screen.getByRole('link', { name: 'Settings' }),
+      ).not.toHaveAttribute('aria-current');
+    });
+
     it('falls back to the path while router query params are not ready', () => {
       mockRoute(
         '/orgs/[orgSlug]/projects/[appSubdomain]/ai/file-stores',
@@ -308,6 +325,24 @@ describe('AppSidebar', () => {
         '/orgs/nhost/projects/dashboard/deployments/settings',
       );
       expect(deployments).toHaveAttribute('aria-current', 'page');
+    });
+
+    it('links Metrics to its settings page in self-hosted mode', () => {
+      vi.stubEnv('NEXT_PUBLIC_NHOST_PLATFORM', 'false');
+      mockRoute(
+        '/orgs/[orgSlug]/projects/[appSubdomain]/metrics/settings',
+        '/orgs/nhost/projects/dashboard/metrics/settings',
+        projectQuery,
+      );
+
+      render(<AppSidebar />);
+
+      const metrics = screen.getByRole('link', { name: 'Metrics' });
+      expect(metrics).toHaveAttribute(
+        'href',
+        '/orgs/nhost/projects/dashboard/metrics/settings',
+      );
+      expect(metrics).toHaveAttribute('aria-current', 'page');
     });
   });
 });
