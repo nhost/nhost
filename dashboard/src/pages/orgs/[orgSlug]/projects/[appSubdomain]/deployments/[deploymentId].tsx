@@ -1,9 +1,9 @@
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { ProjectViewWithState } from '@/features/orgs/layout/ProjectGuard';
 import { ProjectScope } from '@/features/orgs/layout/ProjectScope';
 import DeploymentDetails from '@/features/orgs/projects/deployments/components/DeploymentDetails/DeploymentDetails';
+import { DeploymentsArea } from '@/features/orgs/projects/deployments/layout';
 
 export default function DeploymentDetailsPage() {
   const {
@@ -16,7 +16,7 @@ DeploymentDetailsPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <AppLayout>
       <ProjectScope>
-        <ProjectViewWithState>{page}</ProjectViewWithState>
+        <DeploymentsArea>{page}</DeploymentsArea>
       </ProjectScope>
     </AppLayout>
   );
