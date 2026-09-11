@@ -55,6 +55,9 @@ interface PaletteMeta {
   keywords?: string[];
   icon?: ReactElement;
   children?: CommandNode[];
+  // Gate only the page's own path instead of the whole group, for sections
+  // whose children stay reachable where the page itself is not.
+  gatePathOnly?: boolean;
 }
 
 const toSubPageNodes = <Slug extends string>(
@@ -409,6 +412,23 @@ const subPageChildren: Record<
     },
     { settings: runSettingsTabChildren },
   ),
+  deployments: toSubPageNodes(
+    projectSubPagesBySlug.deployments,
+    'project-deployments',
+    {
+      deployments: ['deployments', 'releases'],
+      settings: [
+        'deployments',
+        'settings',
+        'git',
+        'github',
+        'repository',
+        'branch',
+        'base directory',
+        'automatic deploys',
+      ],
+    },
+  ),
   ai: toSubPageNodes(projectSubPagesBySlug.ai, 'project-ai', {
     'auto-embeddings': ['ai', 'embeddings'],
     assistants: ['ai', 'agents'],
@@ -431,7 +451,6 @@ const settingsPageMeta: Record<
       'delete project',
     ],
   },
-  deployments: { keywords: ['settings', 'releases'] },
   ai: { keywords: ['settings', 'embeddings'] },
   metrics: {
     id: 'project-settings-observability',
@@ -521,7 +540,13 @@ const projectPageMeta: Record<
     keywords: ['auto embeddings', 'embeddings'],
     children: subPageChildren.ai,
   },
-  deployments: { keywords: ['releases'] },
+  // Off-platform only the Deployments pages are unavailable; their settings
+  // are not.
+  deployments: {
+    keywords: ['releases'],
+    children: subPageChildren.deployments,
+    gatePathOnly: true,
+  },
   logs: { keywords: ['log entries'] },
   metrics: { keywords: ['observability', 'monitoring'] },
   settings: {
@@ -543,7 +568,8 @@ const projectPageNodes: CommandNode[] = projectPages.map((page) => {
     path: page.route,
     scope: 'project',
     keywords: meta.keywords,
-    gate: page.gate,
+    gate: meta.gatePathOnly ? undefined : page.gate,
+    pathGate: meta.gatePathOnly ? page.gate : undefined,
     children: meta.children,
   };
 });

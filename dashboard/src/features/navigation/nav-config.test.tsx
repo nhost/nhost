@@ -5,6 +5,7 @@ import {
   orgPages,
   projectAuthPages,
   projectDatabasePages,
+  projectDeploymentsPages,
   projectFunctionsPages,
   projectGraphQLPages,
   projectPages,
@@ -46,9 +47,7 @@ describe('navigation nav-config', () => {
       '/orgs/nhost/projects/dashboard',
     );
     expect(getSettingsPageRoute({ route: '' })).toBe('settings');
-    expect(getSettingsPageRoute({ route: 'deployments' })).toBe(
-      'settings/deployments',
-    );
+    expect(getSettingsPageRoute({ route: 'ai' })).toBe('settings/ai');
   });
 
   it('gates platform and settings pages', () => {
@@ -97,6 +96,13 @@ describe('navigation nav-config', () => {
     ]);
   });
 
+  it('keeps Deployments sub-pages in route-tab order', () => {
+    expect(projectDeploymentsPages.map((page) => page.slug)).toEqual([
+      'deployments',
+      'settings',
+    ]);
+  });
+
   it('keeps Run sub-pages in route-tab order', () => {
     expect(projectRunPages.map((page) => page.slug)).toEqual([
       'services',
@@ -138,6 +144,7 @@ describe('navigation nav-config', () => {
       'storage',
       'functions',
       'run',
+      'deployments',
       'ai',
     ]);
   });
