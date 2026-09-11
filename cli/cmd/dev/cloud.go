@@ -56,7 +56,7 @@ func CommandCloud() *cli.Command {
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagDashboardVersion,
 				Usage:   "Dashboard version to use",
-				Value:   "nhost/dashboard:3.5.2",
+				Value:   "nhost/dashboard:3.5.3",
 				Sources: cli.EnvVars("NHOST_DASHBOARD_VERSION"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
@@ -74,6 +74,14 @@ func CommandCloud() *cli.Command {
 				Name:    flagCACertificates,
 				Usage:   "Mounts and overrides path to CA certificates in the containers",
 				Sources: cli.EnvVars("NHOST_CA_CERTIFICATES"),
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name: flagUser,
+				Usage: "User to run containers that write into bind mounts as. 'auto' maps " +
+					"them to your uid:gid on Linux with a local rootful docker daemon, " +
+					"'none' keeps the images' default user, or pass an explicit uid:gid",
+				Value:   dockercompose.HostUserAuto,
+				Sources: cli.EnvVars("NHOST_DOCKER_USER"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagSubdomain,
@@ -117,6 +125,11 @@ func commandCloud(ctx context.Context, cmd *cli.Command) error {
 
 	applySeeds := cmd.Bool(flagApplySeeds)
 
+	hostUser, err := dockercompose.ResolveHostUser(ctx, cmd.String(flagUser))
+	if err != nil {
+		return fmt.Errorf("failed to resolve --%s: %w", flagUser, err)
+	}
+
 	return Cloud(
 		ctx,
 		ce,
@@ -134,6 +147,7 @@ func commandCloud(ctx context.Context, cmd *cli.Command) error {
 		cmd.String(flagDashboardVersion),
 		configserverImage,
 		cmd.String(flagCACertificates),
+		hostUser,
 		cmd.Bool(flagDownOnError),
 		proj,
 		cmd.String(flagPostgresURL),
@@ -152,6 +166,7 @@ func cloud( //nolint:funlen
 	dashboardVersion string,
 	configserverImage string,
 	caCertificatesPath string,
+	hostUser string,
 	proj *graphql.AppSummaryFragment,
 	postgresURL string,
 ) error {
@@ -189,6 +204,7 @@ func cloud( //nolint:funlen
 	ce.Infoln("Setting up Nhost development environment...")
 
 	composeFile, err := dockercompose.CloudComposeFileFromConfig(
+		ctx,
 		cfgSecrets,
 		ce.LocalSubdomain(),
 		proj.GetSubdomain(),
@@ -205,6 +221,7 @@ func cloud( //nolint:funlen
 		dashboardVersion,
 		configserverImage,
 		proj.GetID(),
+		hostUser,
 		caCertificatesPath,
 	)
 	if err != nil {
@@ -242,6 +259,7 @@ func cloud( //nolint:funlen
 		ce.LocalSubdomain(),
 		ce.Path.NhostFolder(),
 		*cfgSecrets.Hasura.Version,
+		hostUser,
 		"metadata", "export",
 		"--skip-update-check",
 		"--log-level", "ERROR",
@@ -285,6 +303,7 @@ func Cloud(
 	dashboardVersion string,
 	configserverImage string,
 	caCertificatesPath string,
+	hostUser string,
 	downOnError bool,
 	proj *graphql.AppSummaryFragment,
 	postgresURL string,
@@ -303,6 +322,7 @@ func Cloud(
 		dashboardVersion,
 		configserverImage,
 		caCertificatesPath,
+		hostUser,
 		proj,
 		postgresURL,
 	); err != nil {

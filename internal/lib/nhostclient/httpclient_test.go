@@ -176,7 +176,7 @@ func TestRetryDoer_RetriesPreserveRequestBody(t *testing.T) {
 		nhostclient.WithBaseDelay(time.Millisecond),
 	)
 
-	req, err := http.NewRequest( //nolint:noctx
+	req, err := http.NewRequest(
 		http.MethodPost,
 		"http://localhost/test",
 		strings.NewReader(body),
@@ -229,7 +229,7 @@ func TestRetryDoer_RetriesPreserveRequestBodyBytesReader(t *testing.T) {
 		nhostclient.WithBaseDelay(time.Millisecond),
 	)
 
-	req, err := http.NewRequest( //nolint:noctx
+	req, err := http.NewRequest(
 		http.MethodPost,
 		"http://localhost/test",
 		bytes.NewReader([]byte(body)),
