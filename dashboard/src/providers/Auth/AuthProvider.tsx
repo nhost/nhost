@@ -8,6 +8,7 @@ import {
   useState,
 } from 'react';
 import { toast } from 'react-hot-toast';
+import { saveLastSignInMethod } from '@/features/auth/SignIn/utils/lastSignInMethod';
 import {
   clearGitHubToken,
   type GitHubProviderToken,
@@ -111,6 +112,7 @@ function AuthProvider({ children }: PropsWithChildren) {
           removeQueryParamsFromUrl(...removableParams);
 
           if (exchangedSession && signinProvider === 'github') {
+            saveLastSignInMethod('github');
             try {
               const providerTokensResponse =
                 await nhost.auth.getProviderTokens('github');
@@ -137,6 +139,8 @@ function AuthProvider({ children }: PropsWithChildren) {
                 getToastStyleProps(),
               );
             }
+          } else if (exchangedSession && signinProvider === 'email') {
+            saveLastSignInMethod('email');
           }
 
           const postSignInRedirect =

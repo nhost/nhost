@@ -1,3 +1,4 @@
+import { resolve } from 'node:path';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vitest/config';
 
@@ -6,6 +7,36 @@ export default defineConfig({
   cacheDir: './.vitest',
   resolve: {
     tsconfigPaths: true,
+    alias: {
+      '@nhost/nhost-js/session': resolve(
+        __dirname,
+        '../packages/nhost-js/src/session/index.ts',
+      ),
+      '@nhost/nhost-js/auth': resolve(
+        __dirname,
+        '../packages/nhost-js/src/auth/index.ts',
+      ),
+      '@nhost/nhost-js/fetch': resolve(
+        __dirname,
+        '../packages/nhost-js/src/fetch/index.ts',
+      ),
+      '@nhost/nhost-js/functions': resolve(
+        __dirname,
+        '../packages/nhost-js/src/functions/index.ts',
+      ),
+      '@nhost/nhost-js/graphql': resolve(
+        __dirname,
+        '../packages/nhost-js/src/graphql/index.ts',
+      ),
+      '@nhost/nhost-js/storage': resolve(
+        __dirname,
+        '../packages/nhost-js/src/storage/index.ts',
+      ),
+      '@nhost/nhost-js': resolve(
+        __dirname,
+        '../packages/nhost-js/src/index.ts',
+      ),
+    },
   },
   test: {
     globalSetup: './vitest.global-setup.ts',
