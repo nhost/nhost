@@ -2,10 +2,10 @@ import type { ReactElement } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
-import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
 import { EventsEmptyState } from '@/features/orgs/projects/events/common/components/EventsEmptyState';
 import { CronTriggersBrowserSidebar } from '@/features/orgs/projects/events/cron-triggers/components/CronTriggersBrowserSidebar';
 import { useGetCronTriggers } from '@/features/orgs/projects/events/cron-triggers/hooks/useGetCronTriggers';
+import { EventsArea } from '@/features/orgs/projects/events/layout';
 
 export default function CronTriggersPage() {
   const {
@@ -55,14 +55,14 @@ CronTriggersPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <AppLayout>
       <ProjectScope>
-        <ProjectStateGate>
+        <EventsArea>
           <div className="flex h-full">
             <CronTriggersBrowserSidebar />
             <div className="box flex w-full flex-auto flex-col overflow-x-hidden">
               {page}
             </div>
           </div>
-        </ProjectStateGate>
+        </EventsArea>
       </ProjectScope>
     </AppLayout>
   );
