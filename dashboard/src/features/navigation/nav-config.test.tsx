@@ -3,6 +3,7 @@ import {
   getSettingsPageRoute,
   isPageGated,
   orgPages,
+  projectAuthPages,
   projectDatabasePages,
   projectGraphQLPages,
   projectPages,
@@ -42,7 +43,7 @@ describe('navigation nav-config', () => {
       '/orgs/nhost/projects/dashboard',
     );
     expect(getSettingsPageRoute({ route: '' })).toBe('settings');
-    expect(getSettingsPageRoute({ route: 'jwt' })).toBe('settings/jwt');
+    expect(getSettingsPageRoute({ route: 'storage' })).toBe('settings/storage');
   });
 
   it('gates platform and settings pages', () => {
@@ -81,6 +82,14 @@ describe('navigation nav-config', () => {
     expect(
       projectDatabasePages.find((page) => page.slug === 'sql-console')?.route,
     ).toBe('database/console/default');
+  });
+
+  it('keeps Auth sub-pages in route-tab order', () => {
+    expect(projectAuthPages.map((page) => page.slug)).toEqual([
+      'users',
+      'oauth2-clients',
+      'settings',
+    ]);
   });
 
   it('keeps GraphQL sub-pages in route-tab order', () => {
