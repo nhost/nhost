@@ -1,8 +1,9 @@
 import type { ReactElement } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
+import { ContentPanel } from '@/components/layout/ContentPanel';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { ProjectViewWithState } from '@/features/orgs/layout/ProjectGuard';
 import { ProjectScope } from '@/features/orgs/layout/ProjectScope';
+import { GraphQLArea } from '@/features/orgs/projects/graphql/layout';
 import { RemoteSchemaBrowserSidebar } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaBrowserSidebar';
 import { RemoteSchemaEmptyState } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaEmptyState';
 import { useGetRemoteSchemas } from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemas';
@@ -41,14 +42,16 @@ RemoteSchemasPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <AppLayout>
       <ProjectScope>
-        <ProjectViewWithState>
-          <div className="flex h-full">
-            <RemoteSchemaBrowserSidebar />
-            <div className="flex w-full flex-auto flex-col overflow-x-hidden bg-background-default">
-              {page}
+        <GraphQLArea>
+          <ContentPanel>
+            <div className="flex h-full">
+              <RemoteSchemaBrowserSidebar />
+              <div className="flex w-full flex-auto flex-col overflow-x-hidden">
+                {page}
+              </div>
             </div>
-          </div>
-        </ProjectViewWithState>
+          </ContentPanel>
+        </GraphQLArea>
       </ProjectScope>
     </AppLayout>
   );
