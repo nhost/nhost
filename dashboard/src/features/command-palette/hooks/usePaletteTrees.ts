@@ -9,6 +9,7 @@ import { useSettingsDisabled } from '@/hooks/useSettingsDisabled';
 // Gates only children, so the root always survives filtering.
 const filterNavTree = (node: CommandNode, gating: NavGating): CommandNode => ({
   ...node,
+  path: isPageGated(node.pathGate, gating) ? undefined : node.path,
   children: node.children
     ?.filter((child) => !isPageGated(child.gate, gating))
     .map((child) => filterNavTree(child, gating))
