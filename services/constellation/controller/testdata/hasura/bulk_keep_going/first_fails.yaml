@@ -1,0 +1,30 @@
+description: >-
+  bulk_keep_going continues past a failing first child and still applies the
+  later successful ones.
+source: api-tests BulkKeepGoingSpec "returns successes when the /first/ query fails"
+
+steps:
+  - description: keep_going where the first child fails
+    query:
+      type: bulk_keep_going
+      args:
+        - type: pg_drop_relationship
+          args:
+            source: default
+            table: {schema: public, name: author}
+            relationship: nope
+        - type: pg_track_table
+          args: {source: default, table: {schema: public, name: author}}
+    # First child targets an untracked table -> not-exists; second succeeds.
+    status: 200
+    response:
+      - {code: not-exists}
+      - {message: success}
+
+  - description: The later child persisted - author is tracked
+    query:
+      type: pg_track_table
+      args: {source: default, table: {schema: public, name: author}}
+    status: 200
+    response:
+      message: already-tracked

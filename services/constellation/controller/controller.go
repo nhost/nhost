@@ -30,6 +30,7 @@ import (
 	"github.com/nhost/nhost/services/constellation/controller/relationships"
 	"github.com/nhost/nhost/services/constellation/controller/resolver"
 	"github.com/nhost/nhost/services/constellation/metadata"
+	"github.com/nhost/nhost/services/constellation/metadata/source"
 	"github.com/nhost/nhost/services/constellation/subscription"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -131,6 +132,12 @@ type Controller struct {
 
 	source metadata.Source
 
+	// store is the in-process mutable metadata snapshot used by the
+	// /v1/metadata mutation dispatcher. Nil for file-source deployments;
+	// mutations then fall through to the Hasura upstream proxy (or return
+	// `not-supported` when no proxy is configured).
+	store *source.Store
+
 	// version is the build-time version string surfaced by the GetVersion
 	// OpenAPI handler.
 	version string
@@ -151,6 +158,7 @@ func New(
 	devMode bool,
 	jwtAuth middleware.JWTAuthenticator,
 	source metadata.Source,
+	store *source.Store,
 	logger *slog.Logger,
 	version string,
 	hasuraProxy http.Handler,
@@ -175,6 +183,7 @@ func New(
 		logger:          logger,
 		devMode:         devMode,
 		source:          source,
+		store:           store,
 		version:         version,
 		hasuraProxy:     hasuraProxy,
 	}
@@ -372,6 +381,7 @@ func NewFromConnectors(
 		logger:          logger,
 		devMode:         false,
 		source:          nil,
+		store:           nil,
 		hasuraProxy:     nil,
 		version:         "",
 		state:           atomic.Pointer[controllerState]{},

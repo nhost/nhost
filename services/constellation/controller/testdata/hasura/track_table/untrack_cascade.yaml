@@ -1,0 +1,73 @@
+description: >-
+  cascade:true drops a table together with its reverse dependents. This uses a
+  manual_configuration object relationship so the reverse-dependent target
+  (article.author -> author) is resolvable from metadata alone, with no FK-graph
+  introspection — keeping the cascade path offline. (Hasura's original case used a
+  bare foreign_key_constraint_on, whose reverse resolution needs the live DB FK
+  graph; that DB-backed cascade is covered by the live parity harness, task #10,
+  and by ops_untrack_cascade_internal_test.go.)
+source: tests-py/queries/v1/track_table/track_untrack_table_deps.yaml
+
+steps:
+  - description: Track author
+    query:
+      type: pg_track_table
+      args:
+        source: default
+        table: {schema: public, name: author}
+    status: 200
+    response: {message: success}
+
+  - description: Track article
+    query:
+      type: pg_track_table
+      args:
+        source: default
+        table: {schema: public, name: article}
+    status: 200
+    response: {message: success}
+
+  - description: Create object relationship article.author (manual config)
+    query:
+      type: pg_create_object_relationship
+      args:
+        source: default
+        table: {schema: public, name: article}
+        name: author
+        using:
+          manual_configuration:
+            remote_table: {schema: public, name: author}
+            column_mapping: {author_id: id}
+    status: 200
+    response: {message: success}
+
+  - description: Untrack author without cascade fails (reverse dependent article.author)
+    query:
+      type: pg_untrack_table
+      args:
+        source: default
+        table: {schema: public, name: author}
+    status: 400
+    response:
+      code: dependency-error
+
+  - description: Untrack author with cascade succeeds (drops article.author)
+    query:
+      type: pg_untrack_table
+      args:
+        source: default
+        table: {schema: public, name: author}
+        cascade: true
+    status: 200
+    response:
+      message: success
+
+  - description: Untrack article now succeeds (its relationship was cascade-dropped)
+    query:
+      type: pg_untrack_table
+      args:
+        source: default
+        table: {schema: public, name: article}
+    status: 200
+    response:
+      message: success

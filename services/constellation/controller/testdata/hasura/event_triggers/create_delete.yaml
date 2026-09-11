@@ -1,0 +1,62 @@
+description: >-
+  pg_create_event_trigger / pg_delete_event_trigger operate on table metadata
+  only (the actual SQL trigger + delivery is runtime, LIVE). Create is idempotent
+  for the same name without `replace`; deleting a missing trigger is not-exists.
+source: api-tests EventTriggers + ops_event_triggers.go
+
+steps:
+  - description: Track author
+    query: {type: pg_track_table, args: {source: default, table: {schema: public, name: author}}}
+    status: 200
+    response: {message: success}
+
+  - description: Create event trigger
+    query:
+      type: pg_create_event_trigger
+      args:
+        source: default
+        table: {schema: public, name: author}
+        name: author_changed
+        webhook: http://example.com/hook
+        insert:
+          columns: '*'
+    status: 200
+    response: {message: success}
+
+  - description: Re-create the same trigger without replace (idempotent)
+    query:
+      type: pg_create_event_trigger
+      args:
+        source: default
+        table: {schema: public, name: author}
+        name: author_changed
+        webhook: http://example.com/hook
+        insert:
+          columns: '*'
+    divergence: >-
+      Constellation treats a same-name create without `replace` as an idempotent
+      200 already-exists. See KNOWN_DIFFERENCES.md.
+    status: 200
+    response:
+      message: already-exists
+
+  - description: Delete event trigger
+    query:
+      type: pg_delete_event_trigger
+      args:
+        source: default
+        table: {schema: public, name: author}
+        name: author_changed
+    status: 200
+    response: {message: success}
+
+  - description: Delete a missing event trigger
+    query:
+      type: pg_delete_event_trigger
+      args:
+        source: default
+        table: {schema: public, name: author}
+        name: author_changed
+    status: 400
+    response:
+      code: not-exists

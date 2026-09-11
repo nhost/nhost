@@ -1,0 +1,28 @@
+description: >-
+  export_metadata serves the live in-process snapshot. After tracking tables they
+  appear in the exported metadata under the source's `tables` list (subset match —
+  env-derived source configuration is not pinned).
+source: tests-py/queries/v1/metadata/export_metadata.yaml
+
+steps:
+  - description: Track author
+    query: {type: pg_track_table, args: {source: default, table: {schema: public, name: author}}}
+    status: 200
+    response: {message: success}
+
+  - description: Track article
+    query: {type: pg_track_table, args: {source: default, table: {schema: public, name: article}}}
+    status: 200
+    response: {message: success}
+
+  - description: Export metadata includes both tracked tables
+    query: {type: export_metadata, args: {}}
+    status: 200
+    expectBody:
+      metadata:
+        version: 3
+        sources:
+          - name: default
+            tables:
+              - table: {schema: public, name: author}
+              - table: {schema: public, name: article}

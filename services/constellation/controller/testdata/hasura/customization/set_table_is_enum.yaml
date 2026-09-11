@@ -1,0 +1,53 @@
+description: >-
+  pg_set_table_is_enum marks/unmarks a tracked table as an enum (metadata flag).
+  The rejection of a structurally-invalid enum table (invalid-configuration with
+  PK-type/column-count reasons) requires DB column introspection and is covered
+  by the live parity harness (task #10).
+source: tests-py/queries/v1/set_table_is_enum/add_and_remove.yaml
+
+steps:
+  - description: Track colors
+    query: {type: pg_track_table, args: {source: default, table: {schema: public, name: colors}}}
+    status: 200
+    response: {message: success}
+
+  - description: Mark table as enum
+    query:
+      type: pg_set_table_is_enum
+      args:
+        source: default
+        table: {schema: public, name: colors}
+        is_enum: true
+    status: 200
+    response: {message: success}
+
+  - description: Unmark table as enum
+    query:
+      type: pg_set_table_is_enum
+      args:
+        source: default
+        table: {schema: public, name: colors}
+        is_enum: false
+    status: 200
+    response: {message: success}
+
+  - description: Set is_enum on an untracked table
+    query:
+      type: pg_set_table_is_enum
+      args:
+        source: default
+        table: {schema: public, name: not_tracked}
+        is_enum: true
+    status: 400
+    response:
+      code: not-exists
+
+  - description: Set is_enum with missing table arg
+    query:
+      type: pg_set_table_is_enum
+      args:
+        source: default
+        is_enum: true
+    status: 400
+    response:
+      code: validation-failed

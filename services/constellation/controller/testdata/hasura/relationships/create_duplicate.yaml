@@ -1,0 +1,66 @@
+description: >-
+  Re-creating a relationship: an identical definition is an idempotent no-op; a
+  conflicting definition under the same name is rejected.
+source: relationship reapply handling (ops_postgres.go, relationshipReapplyCode)
+
+steps:
+  - description: Track author
+    query: {type: pg_track_table, args: {source: default, table: {schema: public, name: author}}}
+    status: 200
+    response: {message: success}
+
+  - description: Track article
+    query: {type: pg_track_table, args: {source: default, table: {schema: public, name: article}}}
+    status: 200
+    response: {message: success}
+
+  - description: Create array relationship author.articles (manual)
+    query:
+      type: pg_create_array_relationship
+      args:
+        source: default
+        table: {schema: public, name: author}
+        name: articles
+        using:
+          manual_configuration:
+            remote_table: {schema: public, name: article}
+            column_mapping: {id: author_id}
+    status: 200
+    response: {message: success}
+
+  - description: Re-create author.articles with the identical definition (idempotent)
+    query:
+      type: pg_create_array_relationship
+      args:
+        source: default
+        table: {schema: public, name: author}
+        name: articles
+        using:
+          manual_configuration:
+            remote_table: {schema: public, name: article}
+            column_mapping: {id: author_id}
+    # Hasura: 400 already-exists. Constellation: 200 message=already-exists for an
+    # identical re-apply (idempotent); a CHANGED definition is still rejected (next
+    # step). See KNOWN_DIFFERENCES.md.
+    divergence: >-
+      Hasura rejects any duplicate create with 400 already-exists; Constellation
+      treats a byte-identical re-apply as an idempotent 200.
+    status: 200
+    response:
+      message: already-exists
+
+  - description: Re-create author.articles with a DIFFERENT definition is rejected
+    query:
+      type: pg_create_array_relationship
+      args:
+        source: default
+        table: {schema: public, name: author}
+        name: articles
+        using:
+          manual_configuration:
+            remote_table: {schema: public, name: article}
+            column_mapping: {id: author_id}
+        comment: changed definition
+    status: 400
+    response:
+      code: already-exists

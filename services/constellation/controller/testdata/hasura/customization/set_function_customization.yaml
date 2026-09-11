@@ -1,0 +1,49 @@
+description: >-
+  pg_set_function_customization sets a tracked function's customization. It
+  requires the function to be tracked; an untracked function is not-exists and a
+  missing function arg is validation-failed.
+source: pg_set_function_customization (ops_functions.go)
+
+steps:
+  - description: Track function
+    query:
+      type: pg_track_function
+      args:
+        source: default
+        function: {schema: public, name: search_articles}
+    status: 200
+    response: {message: success}
+
+  - description: Set function customization
+    query:
+      type: pg_set_function_customization
+      args:
+        source: default
+        function: {schema: public, name: search_articles}
+        configuration:
+          custom_name: searchArticles
+    status: 200
+    response: {message: success}
+
+  - description: Set customization on an untracked function
+    query:
+      type: pg_set_function_customization
+      args:
+        source: default
+        function: {schema: public, name: not_tracked}
+        configuration:
+          custom_name: x
+    status: 400
+    response:
+      code: not-exists
+
+  - description: Set function customization with missing function arg
+    query:
+      type: pg_set_function_customization
+      args:
+        source: default
+        configuration:
+          custom_name: x
+    status: 400
+    response:
+      code: validation-failed

@@ -1,0 +1,36 @@
+description: >-
+  Role names longer than Postgres' 63-char identifier limit are accepted for
+  permissions (roles are metadata strings, not PG roles).
+source: tests-py/queries/v1/permissions/create_author_insert_permission_long_role.yaml
+
+steps:
+  - description: Track author
+    query: {type: pg_track_table, args: {source: default, table: {schema: public, name: author}}}
+    status: 200
+    response: {message: success}
+
+  - description: Create insert permission with a >63-char role
+    query:
+      type: pg_create_insert_permission
+      args:
+        source: default
+        table: {schema: public, name: author}
+        role: this.is.really.a.very.long.and.long.role.more.than.63.characters.one
+        permission:
+          columns: ['*']
+          check: {}
+    status: 200
+    response: {message: success}
+
+  - description: Create insert permission with a second >63-char role
+    query:
+      type: pg_create_insert_permission
+      args:
+        source: default
+        table: {schema: public, name: author}
+        role: this.is.really.a.very.long.and.long.role.more.than.63.characters.two
+        permission:
+          columns: ['*']
+          check: {}
+    status: 200
+    response: {message: success}

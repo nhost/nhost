@@ -1,0 +1,28 @@
+description: >-
+  pg_suggest_relationships derives suggestions from the database foreign-key
+  graph (loadFKSuggestions queries the data DB). With no Queryer the op returns
+  not-supported, so meaningful parity can only be checked against a live DB — it
+  belongs to the live parity harness (task #10). The omit_tracked filtering and
+  table-include argument handling are also only observable with real suggestions.
+  These steps are SKIPPED here as a visible pointer.
+source: api-tests Metadata/SuggestRelationshipsSpec.hs + ops_reads.go
+
+steps:
+  - description: Suggest reciprocal relationships from FKs (LIVE)
+    skip: requires a data DB FK graph; covered by the live parity harness (task #10)
+    query:
+      type: pg_suggest_relationships
+      args:
+        source: default
+    status: 200
+    response: {}
+
+  - description: Omit already-tracked relationships from suggestions (LIVE)
+    skip: requires a data DB FK graph; covered by the live parity harness (task #10)
+    query:
+      type: pg_suggest_relationships
+      args:
+        source: default
+        omit_tracked: true
+    status: 200
+    response: {}

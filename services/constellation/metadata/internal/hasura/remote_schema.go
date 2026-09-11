@@ -8,9 +8,12 @@ import (
 
 // RemoteSchemaMetadata contains the metadata for a remote GraphQL schema.
 type RemoteSchemaMetadata struct {
-	Name                string                               `json:"name"                           yaml:"name"`
-	Definition          RemoteSchemaDefinition               `json:"definition"                     yaml:"definition"`
-	Comment             string                               `json:"comment,omitempty"              yaml:"comment,omitempty"`              //nolint:lll
+	Name       string                 `json:"name"       yaml:"name"`
+	Definition RemoteSchemaDefinition `json:"definition" yaml:"definition"`
+	// Comment has no json omitempty: Hasura always emits remote_schemas[].comment
+	// (as "" when unset), so a faithful drop-in export must too. YAML file sources
+	// keep omitempty.
+	Comment             string                               `json:"comment"                        yaml:"comment,omitempty"`              //nolint:lll
 	Permissions         []RemoteSchemaPermission             `json:"permissions,omitempty"          yaml:"permissions,omitempty"`          //nolint:lll
 	RemoteRelationships []RemoteSchemaTypeRemoteRelationship `json:"remote_relationships,omitempty" yaml:"remote_relationships,omitempty"` //nolint:lll
 

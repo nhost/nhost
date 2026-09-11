@@ -1,0 +1,30 @@
+description: >-
+  A `bulk` request is fail-fast: the first failing child aborts the whole batch
+  (nothing is persisted) and the error carries the failing child's index path.
+source: bulk fail-fast dispatch (metadata_bulk.go, source.ApplyBulk)
+
+steps:
+  - description: Bulk where the second child fails aborts the batch
+    query:
+      type: bulk
+      args:
+        - type: pg_track_table
+          args: {source: default, table: {schema: public, name: author}}
+        - type: pg_drop_relationship
+          args:
+            source: default
+            table: {schema: public, name: author}
+            relationship: nope
+    status: 400
+    matchPath: true
+    response:
+      code: not-exists
+      path: $.args[1]
+
+  - description: The aborted batch persisted nothing - author is still untracked
+    query:
+      type: pg_track_table
+      args: {source: default, table: {schema: public, name: author}}
+    status: 200
+    response:
+      message: success

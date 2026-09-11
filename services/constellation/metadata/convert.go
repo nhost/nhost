@@ -4,6 +4,7 @@ import (
 	"context"
 	stdjson "encoding/json"
 	"fmt"
+	"maps"
 	"math"
 	"os"
 	"path/filepath"
@@ -59,21 +60,13 @@ func FromHasuraJSON(data []byte) (*Metadata, error) {
 	return fromHasura(h), nil
 }
 
-// FromDetectWithHasura mirrors FromDetect but also returns a pre-conversion
-// Hasura JSON snapshot when the path resolves to a Hasura YAML directory
-// layout. The snapshot is a best-effort re-encoding (via [hasura.ToJSON]) of
-// what hasura.FromYAML reads from databases/ and remote_schemas.yaml — NOT a
-// lossless inverse of the source tree. FromYAML never parses a top-level
-// envelope (it leaves Metadata.Unknown nil), so unmodeled top-level keys such
-// as actions and cron_triggers are dropped; only per-struct unknown keys
-// inside the files it does read survive. A verbatim, fully-faithful snapshot
-// is available only from the database source, which caches the original
-// hdb_metadata blob; see FileMetadataSource.HasuraSnapshotJSON for the file
-// caveat. For TOML paths the snapshot is nil: the engine has no Hasura-shaped
-// source to serialize and `export_metadata` returns an empty envelope.
+// FromDetectWithHasura mirrors FromDetect but also returns the *hasura.Metadata
+// wire form when the path resolves to a Hasura YAML directory layout. For TOML
+// paths the wire form is nil — the engine has no Hasura-shaped source to
+// serialize and `export_metadata` will return an empty envelope.
 func FromDetectWithHasura(
 	ctx context.Context, path string,
-) (*Metadata, []byte, error) {
+) (*Metadata, *hasura.Metadata, error) {
 	if strings.HasSuffix(filepath.Base(path), ".toml") {
 		data, err := os.ReadFile(path)
 		if err != nil {
@@ -93,12 +86,26 @@ func FromDetectWithHasura(
 		return nil, nil, fmt.Errorf("loading hasura metadata: %w", err)
 	}
 
-	raw, err := hasura.ToJSON(h)
+	return fromHasura(h), h, nil
+}
+
+// MarshalHasura serializes the wire-level Hasura metadata back into the v3
+// JSON envelope. It is the inverse of [hasura.FromJSON]'s parse step (with
+// the native conversion stripped). The engine intentionally holds a
+// *hasura.Metadata alongside the native *Metadata so that fields the engine
+// does not model (actions, cron triggers, event triggers, etc.) survive the
+// round-trip required by /v1/metadata's `export_metadata` operation. The
+// reverse projection *Metadata → *hasura.Metadata is intentionally not
+// implemented: the native form is lossy (it drops the unmodeled top-level
+// keys above), so it could never reconstruct a faithful wire blob. Keeping the
+// *hasura.Metadata as the source of truth for export sidesteps that entirely.
+func MarshalHasura(h *hasura.Metadata) ([]byte, error) {
+	data, err := hasura.ToJSON(h)
 	if err != nil {
-		return nil, nil, fmt.Errorf("serializing hasura metadata for snapshot: %w", err)
+		return nil, fmt.Errorf("marshaling hasura JSON metadata: %w", err)
 	}
 
-	return fromHasura(h), raw, nil
+	return data, nil
 }
 
 // fromHasuraYAML loads Hasura v3 metadata from the directory layout rooted at
@@ -501,9 +508,18 @@ func convertRelationshipUsing(h hasura.RelationshipUsing) RelationshipUsing {
 	if h.ManualConfiguration != nil {
 		remoteField := convertRemoteFieldCalls(h.ManualConfiguration.RemoteField)
 
+		// Clone ColumnMapping so the downstream column rename does not alias and
+		// mutate the shared *hasura.Metadata snapshot map, mirroring the
+		// Arguments clone in convertRemoteFieldCalls.
+		var columnMapping map[string]string
+		if h.ManualConfiguration.ColumnMapping != nil {
+			columnMapping = make(map[string]string, len(h.ManualConfiguration.ColumnMapping))
+			maps.Copy(columnMapping, h.ManualConfiguration.ColumnMapping)
+		}
+
 		manual = &ManualConfiguration{
 			RemoteTable:     convertTableSource(h.ManualConfiguration.RemoteTable),
-			ColumnMapping:   h.ManualConfiguration.ColumnMapping,
+			ColumnMapping:   columnMapping,
 			Source:          h.ManualConfiguration.Source,
 			RemoteSchema:    h.ManualConfiguration.RemoteSchema,
 			RemoteFieldPath: ExtractRemoteFieldPath(remoteField),
@@ -562,8 +578,18 @@ func convertRemoteFieldCalls(h map[string]hasura.RemoteFieldCall) map[string]Rem
 
 	result := make(map[string]RemoteFieldCall, len(h))
 	for k, v := range h {
+		// Clone Arguments so applyRemoteSchemaColumnRenames' in-place rename of
+		// $sql_column → $graphql_name does not leak back into the source
+		// *hasura.Metadata that FileMetadataSource snapshots verbatim for
+		// export_metadata.
+		var args map[string]string
+		if v.Arguments != nil {
+			args = make(map[string]string, len(v.Arguments))
+			maps.Copy(args, v.Arguments)
+		}
+
 		result[k] = RemoteFieldCall{
-			Arguments: v.Arguments,
+			Arguments: args,
 			Field:     convertRemoteFieldCalls(v.Field),
 		}
 	}

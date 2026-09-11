@@ -1,0 +1,28 @@
+description: >-
+  A `bulk` request runs its children against one in-flight metadata copy and
+  returns a bare top-level array of per-child results, in order.
+source: api-tests BulkKeepGoingSpec / bulk dispatch (metadata_bulk.go)
+
+steps:
+  - description: Bulk track + track + create relationship
+    query:
+      type: bulk
+      args:
+        - type: pg_track_table
+          args: {source: default, table: {schema: public, name: author}}
+        - type: pg_track_table
+          args: {source: default, table: {schema: public, name: article}}
+        - type: pg_create_object_relationship
+          args:
+            source: default
+            table: {schema: public, name: article}
+            name: author
+            using:
+              manual_configuration:
+                remote_table: {schema: public, name: author}
+                column_mapping: {author_id: id}
+    status: 200
+    response:
+      - {message: success}
+      - {message: success}
+      - {message: success}
