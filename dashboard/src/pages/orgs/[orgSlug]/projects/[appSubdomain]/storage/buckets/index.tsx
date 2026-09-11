@@ -2,8 +2,8 @@ import { Archive } from 'lucide-react';
 import type { ReactElement } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
-import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
 import { StorageLayout } from '@/features/orgs/projects/storage/components/StorageLayout';
+import { StorageArea } from '@/features/orgs/projects/storage/layout';
 
 export default function StorageIndexPage() {
   return (
@@ -25,11 +25,11 @@ StorageIndexPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <AppLayout>
       <ProjectScope>
-        <ProjectStateGate>
+        <StorageArea>
           <div className="flex h-full">
             <StorageLayout>{page}</StorageLayout>
           </div>
-        </ProjectStateGate>
+        </StorageArea>
       </ProjectScope>
     </AppLayout>
   );

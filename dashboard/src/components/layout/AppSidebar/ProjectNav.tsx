@@ -80,8 +80,9 @@ export default function ProjectNav() {
         />
         <DashboardSidebar.Item
           label="Storage"
-          href={`${baseHref}/storage`}
+          href={`${baseHref}/storage/buckets`}
           icon={<HardDriveIcon className={iconClassName} />}
+          activePath={`${baseHref}/storage`}
         />
         <DashboardSidebar.Item
           label="Events"
