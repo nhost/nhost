@@ -23,6 +23,8 @@ describe('requiresRunningProject', () => {
     `${base}/graphql/actions/custom-types`,
     `${base}/graphql/remote-schemas`,
     `${base}/graphql/remote-schemas/[remoteSchemaSlug]`,
+    `${base}/storage/buckets`,
+    `${base}/storage/buckets/[...bucketId]`,
   ])('blocks %s', (route) => {
     expect(requiresRunningProject(route)).toBe(true);
   });
@@ -33,6 +35,7 @@ describe('requiresRunningProject', () => {
     `${base}/database/backups/import`,
     `${base}/database/settings`,
     `${base}/graphql/settings`,
+    `${base}/storage/settings`,
   ])('leaves %s reachable while the project is paused', (route) => {
     expect(requiresRunningProject(route)).toBe(false);
   });
