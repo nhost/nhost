@@ -350,6 +350,85 @@ describe('ProjectViewWithState', () => {
     expect(statefulChildMountCount).toBe(0);
   });
 
+  describe.each([
+    '/orgs/[orgSlug]/projects/[appSubdomain]/database/native-queries/[dataSourceSlug]',
+    '/orgs/[orgSlug]/projects/[appSubdomain]/database/native-queries/[dataSourceSlug]/models/[modelSlug]',
+    '/orgs/[orgSlug]/projects/[appSubdomain]/database/native-queries/[dataSourceSlug]/queries/[querySlug]',
+  ])('native-query route %s', (route) => {
+    it.each([
+      {
+        state: ApplicationStatus.Paused,
+        message: 'This project is paused. Unpause to make this available.',
+      },
+      {
+        state: ApplicationStatus.Pausing,
+        message: 'Project is pausing...',
+      },
+      {
+        state: ApplicationStatus.Unpausing,
+        message: 'Project is waking up...',
+      },
+      {
+        state: ApplicationStatus.Restoring,
+        message: 'Project is restoring...',
+      },
+    ])(
+      'blocks child mounting while state is $state',
+      async ({ state, message }) => {
+        mocks.useRouter.mockImplementation(() => getUseRouterObject(route));
+        server.use(
+          getProjectQuery,
+          getProjectStateQuery([{ stateId: state }], {
+            desiredState:
+              state === ApplicationStatus.Paused
+                ? ApplicationStatus.Paused
+                : ApplicationStatus.Live,
+          }),
+        );
+
+        render(
+          <ProjectViewWithState>
+            <StatefulChild />
+          </ProjectViewWithState>,
+        );
+
+        expect(await screen.findByText(message)).toBeInTheDocument();
+        expect(
+          screen.queryByRole('button', { name: '0' }),
+        ).not.toBeInTheDocument();
+        expect(statefulChildMountCount).toBe(0);
+
+        if (state === ApplicationStatus.Paused) {
+          expect(
+            screen.getByRole('button', { name: 'Wake up' }),
+          ).toBeInTheDocument();
+        }
+      },
+    );
+
+    it('renders children when the project is live', async () => {
+      mocks.useRouter.mockImplementation(() => getUseRouterObject(route));
+      server.use(
+        getProjectQuery,
+        getProjectStateQuery([{ stateId: ApplicationStatus.Live }]),
+      );
+
+      render(
+        <ProjectViewWithState>
+          <StatefulChild />
+        </ProjectViewWithState>,
+      );
+
+      expect(
+        await screen.findByRole('button', { name: '0' }),
+      ).toBeInTheDocument();
+      expect(statefulChildMountCount).toBe(1);
+      expect(
+        screen.queryByRole('dialog', { name: 'Project State' }),
+      ).not.toBeInTheDocument();
+    });
+  });
+
   it('should clear the query cache on unmount', async () => {
     const clearSpy = vi.spyOn(queryClient, 'clear');
     mocks.useRouter.mockImplementation(() => getUseRouterObject());
