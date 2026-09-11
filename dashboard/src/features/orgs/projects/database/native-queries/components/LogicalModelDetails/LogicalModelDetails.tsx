@@ -8,6 +8,7 @@ import { EditLogicalModelForm } from '@/features/orgs/projects/database/native-q
 import { NativeQueriesDetailsHeader } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesDetailsHeader';
 import { NativeQueriesDetailsSection } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesDetailsSection';
 import { NativeQueriesEmptyState } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesEmptyState';
+import NativeQuerySourceGuard from '@/features/orgs/projects/database/native-queries/components/NativeQuerySourceGuard/NativeQuerySourceGuard';
 import { useGetLogicalModels } from '@/features/orgs/projects/database/native-queries/hooks/useGetLogicalModels';
 import { useGetNativeQueries } from '@/features/orgs/projects/database/native-queries/hooks/useGetNativeQueries';
 import type { LogicalModelType } from '@/utils/hasura-api/generated/schemas';
@@ -27,11 +28,9 @@ export function formatLogicalModelType(type: LogicalModelType): string {
   }`;
 }
 
-export default function LogicalModelDetails() {
+function LogicalModelDetailsContent({ source }: { source: string }) {
   const router = useRouter();
-  const { modelSlug, orgSlug, appSubdomain, dataSourceSlug } = router.query;
-  const source =
-    typeof dataSourceSlug === 'string' ? dataSourceSlug : 'default';
+  const { modelSlug, orgSlug, appSubdomain } = router.query;
   const { data: models = [], isLoading, error } = useGetLogicalModels(source);
   const {
     data: queries = [],
@@ -46,19 +45,6 @@ export default function LogicalModelDetails() {
 
   if (queriesError instanceof Error) {
     throw queriesError;
-  }
-
-  if (dataSourceSlug && dataSourceSlug !== 'default') {
-    return (
-      <NativeQueriesEmptyState
-        title="Database not found"
-        description={
-          <span>
-            Database <InlineCode>{dataSourceSlug}</InlineCode> does not exist.
-          </span>
-        }
-      />
-    );
   }
 
   if (isLoading || queriesLoading || !modelSlug) {
@@ -182,5 +168,15 @@ export default function LogicalModelDetails() {
         </NativeQueriesDetailsSection>
       </div>
     </div>
+  );
+}
+
+export default function LogicalModelDetails() {
+  const { dataSourceSlug } = useRouter().query;
+  const source = typeof dataSourceSlug === 'string' ? dataSourceSlug : '';
+  return (
+    <NativeQuerySourceGuard source={source}>
+      <LogicalModelDetailsContent source={source} />
+    </NativeQuerySourceGuard>
   );
 }

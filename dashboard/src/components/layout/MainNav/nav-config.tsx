@@ -261,7 +261,7 @@ export const projectDatabasePages = definePages([
   {
     name: 'Native Queries',
     slug: 'native-queries',
-    route: 'database/native-queries/default',
+    route: 'database/native-queries',
   },
 ]);
 

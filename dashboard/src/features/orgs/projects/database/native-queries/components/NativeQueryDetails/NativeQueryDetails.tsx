@@ -11,33 +11,19 @@ import { EditNativeQueryForm } from '@/features/orgs/projects/database/native-qu
 import { NativeQueriesDetailsHeader } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesDetailsHeader';
 import { NativeQueriesDetailsSection } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesDetailsSection';
 import { NativeQueriesEmptyState } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesEmptyState';
+import NativeQuerySourceGuard from '@/features/orgs/projects/database/native-queries/components/NativeQuerySourceGuard/NativeQuerySourceGuard';
 import { useGetNativeQueries } from '@/features/orgs/projects/database/native-queries/hooks/useGetNativeQueries';
 import { useThemePreference } from '@/providers/Theme';
 
-export default function NativeQueryDetails() {
+function NativeQueryDetailsContent({ source }: { source: string }) {
   const router = useRouter();
   const { resolvedTheme } = useThemePreference();
-  const { querySlug, orgSlug, appSubdomain, dataSourceSlug } = router.query;
-  const source =
-    typeof dataSourceSlug === 'string' ? dataSourceSlug : 'default';
+  const { querySlug, orgSlug, appSubdomain } = router.query;
   const { data: queries = [], isLoading, error } = useGetNativeQueries(source);
   const { openDrawer } = useDialog();
 
   if (error instanceof Error) {
     throw error;
-  }
-
-  if (dataSourceSlug && dataSourceSlug !== 'default') {
-    return (
-      <NativeQueriesEmptyState
-        title="Database not found"
-        description={
-          <span>
-            Database <InlineCode>{dataSourceSlug}</InlineCode> does not exist.
-          </span>
-        }
-      />
-    );
   }
 
   if (isLoading || !querySlug) {
@@ -154,5 +140,15 @@ export default function NativeQueryDetails() {
         </NativeQueriesDetailsSection>
       </div>
     </div>
+  );
+}
+
+export default function NativeQueryDetails() {
+  const { dataSourceSlug } = useRouter().query;
+  const source = typeof dataSourceSlug === 'string' ? dataSourceSlug : '';
+  return (
+    <NativeQuerySourceGuard source={source}>
+      <NativeQueryDetailsContent source={source} />
+    </NativeQuerySourceGuard>
   );
 }

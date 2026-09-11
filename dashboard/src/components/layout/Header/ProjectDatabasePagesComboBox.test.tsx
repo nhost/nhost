@@ -30,7 +30,7 @@ const databasePages = [
   {
     label: 'Native Queries',
     value: 'native-queries',
-    route: 'database/native-queries/default',
+    route: 'database/native-queries',
   },
 ];
 
@@ -65,22 +65,25 @@ describe('ProjectDatabasePagesComboBox', () => {
     ).toEqual(databasePages.map(({ label }) => label));
   });
 
-  it.each(databasePages)(
-    'shows $label as selected and navigates to its route',
-    async ({ label, value, route }) => {
-      renderDatabasePagesCombobox(value);
+  it.each(
+    databasePages,
+  )('shows $label as selected and navigates to its route', async ({
+    label,
+    value,
+    route,
+  }) => {
+    renderDatabasePagesCombobox(value);
 
-      const user = new TestUserEvent();
-      const combobox = screen.getByRole('combobox');
-      expect(combobox).toHaveTextContent(label);
+    const user = new TestUserEvent();
+    const combobox = screen.getByRole('combobox');
+    expect(combobox).toHaveTextContent(label);
 
-      await user.click(combobox);
-      await user.click(screen.getByRole('option', { name: label }));
+    await user.click(combobox);
+    await user.click(screen.getByRole('option', { name: label }));
 
-      expect(mocks.push).toHaveBeenCalledOnce();
-      expect(mocks.push).toHaveBeenCalledWith(
-        `/orgs/org-a/projects/project-a/${route}`,
-      );
-    },
-  );
+    expect(mocks.push).toHaveBeenCalledOnce();
+    expect(mocks.push).toHaveBeenCalledWith(
+      `/orgs/org-a/projects/project-a/${route}`,
+    );
+  });
 });

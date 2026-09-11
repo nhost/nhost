@@ -101,7 +101,6 @@ export default function CreateNativeQueryForm({
         existingNames={queries.map((query) => query.root_field_name)}
         logicalModelNames={models.map((model) => model.name)}
         sourceOptions={sourceNames}
-        sourceDisabled
         isPending={mutation.isPending}
         onSourceChange={setSelectedSource}
         onCancel={(event) => onCancel?.(event)}

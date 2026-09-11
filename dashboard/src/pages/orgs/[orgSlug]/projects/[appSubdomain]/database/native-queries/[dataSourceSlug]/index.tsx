@@ -1,40 +1,17 @@
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
-import { InlineCode } from '@/components/ui/v3/inline-code';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { NativeQueriesBrowserSidebar } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesBrowserSidebar';
 import { NativeQueriesEmptyState } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesEmptyState';
+import NativeQuerySourceGuard from '@/features/orgs/projects/database/native-queries/components/NativeQuerySourceGuard/NativeQuerySourceGuard';
 import { NoLogicalModelsEmptyState } from '@/features/orgs/projects/database/native-queries/components/NoLogicalModelsEmptyState';
 import { useGetLogicalModels } from '@/features/orgs/projects/database/native-queries/hooks/useGetLogicalModels';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
-export default function NativeQueriesIndexPage() {
-  const { project } = useProject();
-  const isPlatform = useIsPlatform();
-  const { query } = useRouter();
-  const source =
-    typeof query.dataSourceSlug === 'string' ? query.dataSourceSlug : 'default';
+function NativeQueriesIndexContent({ source }: { source: string }) {
   const { data: models = [], isLoading, error } = useGetLogicalModels(source);
-
-  if (isPlatform && !project?.config?.hasura.adminSecret) {
-    return <LoadingScreen />;
-  }
-
-  if (query.dataSourceSlug !== 'default') {
-    return (
-      <NativeQueriesEmptyState
-        title="Database not found"
-        description={
-          <span>
-            Database <InlineCode>{query.dataSourceSlug}</InlineCode> does not
-            exist.
-          </span>
-        }
-      />
-    );
-  }
 
   if (isLoading) {
     return <LoadingScreen />;
@@ -50,7 +27,7 @@ export default function NativeQueriesIndexPage() {
   }
 
   if (models.length === 0) {
-    return <NoLogicalModelsEmptyState />;
+    return <NoLogicalModelsEmptyState source={source} />;
   }
 
   return (
@@ -58,6 +35,23 @@ export default function NativeQueriesIndexPage() {
       title="Native queries"
       description="Select a logical model or native query from the sidebar, or create a new one."
     />
+  );
+}
+
+export default function NativeQueriesIndexPage() {
+  const { project } = useProject();
+  const isPlatform = useIsPlatform();
+  const { dataSourceSlug } = useRouter().query;
+  const source = typeof dataSourceSlug === 'string' ? dataSourceSlug : '';
+
+  if (isPlatform && !project?.config?.hasura.adminSecret) {
+    return <LoadingScreen />;
+  }
+
+  return (
+    <NativeQuerySourceGuard source={source}>
+      <NativeQueriesIndexContent source={source} />
+    </NativeQuerySourceGuard>
   );
 }
 
