@@ -20,35 +20,41 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-describe('usePaletteTrees', () => {
-  it('keeps the Deployments page and its settings on platform', () => {
+// Sections whose page is platform-only but whose settings are not.
+describe.each([
+  ['Deployments', 'deployments'],
+  ['Metrics', 'metrics'],
+])('usePaletteTrees: %s', (_name, slug) => {
+  const groupId = `project-${slug}`;
+
+  it('keeps the page and its settings on platform', () => {
     vi.stubEnv('NEXT_PUBLIC_NHOST_PLATFORM', 'true');
 
-    const deployments = getNode('project-deployments');
+    const group = getNode(groupId);
 
-    expect(deployments?.path).toBe('deployments');
-    expect(deployments?.children?.map((child) => child.id)).toEqual([
-      'project-deployments-deployments',
-      'project-deployments-settings',
+    expect(group?.path).toBe(slug);
+    expect(group?.children?.map((child) => child.id)).toEqual([
+      `${groupId}-${slug}`,
+      `${groupId}-settings`,
     ]);
   });
 
-  it('keeps only Deployments settings, as a drill-only group, off-platform', () => {
+  it('keeps only the settings, as a drill-only group, off-platform', () => {
     vi.stubEnv('NEXT_PUBLIC_NHOST_PLATFORM', 'false');
     vi.stubEnv('NEXT_PUBLIC_NHOST_CONFIGSERVER_URL', 'https://config.local');
 
-    const deployments = getNode('project-deployments');
+    const group = getNode(groupId);
 
-    expect(deployments?.path).toBeUndefined();
-    expect(deployments?.children?.map((child) => child.id)).toEqual([
-      'project-deployments-settings',
+    expect(group?.path).toBeUndefined();
+    expect(group?.children?.map((child) => child.id)).toEqual([
+      `${groupId}-settings`,
     ]);
   });
 
-  it('drops Deployments off-platform when settings are disabled', () => {
+  it('drops the group off-platform when settings are disabled', () => {
     vi.stubEnv('NEXT_PUBLIC_NHOST_PLATFORM', 'false');
     vi.stubEnv('NEXT_PUBLIC_NHOST_CONFIGSERVER_URL', '');
 
-    expect(getNode('project-deployments')).toBeUndefined();
+    expect(getNode(groupId)).toBeUndefined();
   });
 });

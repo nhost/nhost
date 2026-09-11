@@ -272,6 +272,11 @@ describe('ProjectGuard', () => {
         'should not redirect to 404 if we are on platform and on the metrics page',
       route: '/orgs/[orgSlug]/projects/[appSubdomain]/metrics',
     },
+    {
+      description:
+        'should not redirect to 404 if we are on platform and on the metrics settings page',
+      route: '/orgs/[orgSlug]/projects/[appSubdomain]/metrics/settings',
+    },
   ])('$description', async ({ route }) => {
     vi.stubEnv('NEXT_PUBLIC_NHOST_PLATFORM', 'true');
     mocks.useRouter.mockImplementation(() => getUseRouterObject(route));
@@ -318,6 +323,22 @@ describe('ProjectGuard', () => {
     mocks.useRouter.mockImplementation(() =>
       getUseRouterObject(
         '/orgs/[orgSlug]/projects/[appSubdomain]/deployments/settings',
+      ),
+    );
+
+    render(<TestComponent />);
+
+    await waitFor(() => {
+      expect(screen.queryByText('Project loaded')).toBeInTheDocument();
+    });
+    expect(mocks.push).not.toHaveBeenCalledWith('/404');
+  });
+
+  it('should not redirect to 404 if we are not on platform and on the metrics settings page', async () => {
+    vi.stubEnv('NEXT_PUBLIC_NHOST_PLATFORM', 'false');
+    mocks.useRouter.mockImplementation(() =>
+      getUseRouterObject(
+        '/orgs/[orgSlug]/projects/[appSubdomain]/metrics/settings',
       ),
     );
 

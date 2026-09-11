@@ -7,6 +7,7 @@ import {
   projectDeploymentsPages,
   projectFunctionsPages,
   projectGraphQLPages,
+  projectMetricsPages,
   projectPages,
   projectRunPages,
   projectStoragePages,
@@ -87,6 +88,13 @@ describe('navigation nav-config', () => {
     ).toBe('database/console/default');
   });
 
+  it('keeps Metrics sub-pages in route-tab order', () => {
+    expect(projectMetricsPages.map((page) => page.slug)).toEqual([
+      'metrics',
+      'settings',
+    ]);
+  });
+
   it('keeps Deployments sub-pages in route-tab order', () => {
     expect(projectDeploymentsPages.map((page) => page.slug)).toEqual([
       'deployments',
@@ -136,6 +144,7 @@ describe('navigation nav-config', () => {
       'functions',
       'run',
       'deployments',
+      'metrics',
       'ai',
     ]);
   });

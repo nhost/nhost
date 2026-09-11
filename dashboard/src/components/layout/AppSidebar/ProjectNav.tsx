@@ -147,9 +147,12 @@ export default function ProjectNav() {
         />
         <DashboardSidebar.Item
           label="Metrics"
-          href={`${baseHref}/metrics`}
+          href={
+            isPlatform ? `${baseHref}/metrics` : `${baseHref}/metrics/settings`
+          }
           icon={<GaugeIcon className={iconClassName} />}
-          disabled={!isPlatform}
+          activePath={`${baseHref}/metrics`}
+          disabled={!isPlatform && settingsDisabled}
         />
       </DashboardSidebar.Section>
     </>
