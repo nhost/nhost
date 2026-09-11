@@ -22,7 +22,7 @@ const runningProjectPages = toRoutes([
   'events/cron-triggers',
   'events/cron-triggers/[cronTriggerSlug]',
   'events/one-offs',
-  'hasura',
+  'graphql/console',
   'auth/users',
   'auth/oauth2-clients',
   'storage',
