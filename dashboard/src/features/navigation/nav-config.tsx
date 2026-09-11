@@ -117,7 +117,6 @@ export const projectPages = definePages([
 export const projectSettingsPages = definePages([
   { name: 'General', slug: 'general', route: '' },
   { name: 'AI', slug: 'ai', route: 'ai' },
-  { name: 'Observability', slug: 'metrics', route: 'metrics' },
 ]);
 
 export const projectGraphQLPages = definePages([
@@ -188,6 +187,21 @@ export const projectAuthPages = definePages([
     slug: 'settings',
     route: 'auth/settings',
     gate: 'settings',
+  },
+]);
+
+export const projectMetricsPages = definePages([
+  {
+    name: 'Metrics',
+    slug: 'metrics',
+    route: 'metrics',
+    gate: 'platform',
+  },
+  {
+    name: 'Settings',
+    slug: 'settings',
+    route: 'metrics/settings',
+    gate: 'platform',
   },
 ]);
 
@@ -326,5 +340,6 @@ export const projectSubPagesBySlug = {
   functions: projectFunctionsPages,
   run: projectRunPages,
   deployments: projectDeploymentsPages,
+  metrics: projectMetricsPages,
   ai: projectAIPages,
 } satisfies Partial<Record<ProjectPage['slug'], ReadonlyArray<PageEntry>>>;

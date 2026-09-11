@@ -8,6 +8,7 @@ import {
   projectDeploymentsPages,
   projectFunctionsPages,
   projectGraphQLPages,
+  projectMetricsPages,
   projectPages,
   projectRunPages,
   projectSettingsPages,
@@ -47,7 +48,6 @@ describe('navigation nav-config', () => {
     expect(projectSettingsPages.map((page) => page.slug)).toEqual([
       'general',
       'ai',
-      'metrics',
     ]);
   });
 
@@ -94,6 +94,13 @@ describe('navigation nav-config', () => {
     expect(projectAuthPages.map((page) => page.slug)).toEqual([
       'users',
       'oauth2-clients',
+      'settings',
+    ]);
+  });
+
+  it('keeps Metrics sub-pages in route-tab order', () => {
+    expect(projectMetricsPages.map((page) => page.slug)).toEqual([
+      'metrics',
       'settings',
     ]);
   });
@@ -147,6 +154,7 @@ describe('navigation nav-config', () => {
       'functions',
       'run',
       'deployments',
+      'metrics',
       'ai',
     ]);
   });

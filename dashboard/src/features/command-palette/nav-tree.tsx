@@ -420,6 +420,10 @@ const subPageChildren: Record<
       settings: ['deployments', 'settings', 'git', 'repository'],
     },
   ),
+  metrics: toSubPageNodes(projectSubPagesBySlug.metrics, 'project-metrics', {
+    metrics: ['metrics', 'observability', 'monitoring'],
+    settings: ['metrics', 'settings', 'alerting', 'smtp'],
+  }),
   ai: toSubPageNodes(projectSubPagesBySlug.ai, 'project-ai', {
     'auto-embeddings': ['ai', 'embeddings'],
     assistants: ['ai', 'agents'],
@@ -443,10 +447,6 @@ const settingsPageMeta: Record<
     ],
   },
   ai: { keywords: ['settings', 'embeddings'] },
-  metrics: {
-    id: 'project-settings-observability',
-    keywords: ['settings', 'metrics', 'monitoring'],
-  },
 };
 
 // The project settings page's own `?tab=` entries.
@@ -536,7 +536,10 @@ const projectPageMeta: Record<
     children: subPageChildren.deployments,
   },
   logs: { keywords: ['log entries'] },
-  metrics: { keywords: ['observability', 'monitoring'] },
+  metrics: {
+    keywords: ['observability', 'monitoring'],
+    children: subPageChildren.metrics,
+  },
   settings: {
     title: 'Settings (Project)',
     keywords: ['configuration'],
