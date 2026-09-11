@@ -25,8 +25,8 @@ pnpm test:typecheck       # TypeScript type checking
 pnpm test                    # Run lint + all vitests
 pnpm test:vitest             # Run all vitests (unit/integration tests)
 pnpm test:watch              # Run vitests in watch mode
-vitest run <file>           # Run a single test file
-vitest run --reporter=verbose src/features/orgs/layout/OrgLayout/OrganizationGuard.test.tsx  # Run specific test with verbose output
+pnpm exec vitest run <file> # Run focused files
+pnpm exec vitest run --reporter=verbose src/features/orgs/layout/OrgLayout/OrganizationGuard.test.tsx  # Run specific test with verbose output
 ```
 
 Run Vitest with `dashboard/` as the working directory so it loads
@@ -82,6 +82,7 @@ When creating a new feature page, check whether it needs to be added to:
 
 ### Helpers and references
 
+- Native-query and logical-model CRUD uses the feature-local `executeMetadataMutation`: local mutations go through CLI `executeMigration` with implicit metadata export; platform mutations use `metadataOperation`. Keep atomic untrack/retrack steps in one nested `bulk_atomic` migration step. Snapshot `export_metadata` reads remain necessary, but the CLI drops `resource_version`, so local mutations have no optimistic concurrency guarantee. Test local writes via `/apis/migrate`, allow only snapshot reads on `/v1/metadata`, and reject explicit `/apis/metadata` exports.
 - Use `execPromiseWithErrorToast` from `@/features/orgs/utils/execPromiseWithErrorToast` for mutations / async operations that should show loading/success/error toasts. It takes a promise callback and `{ loadingMessage, successMessage, errorMessage }`.
 - When using table data hooks, use `useTableSchemaQuery` if you only need column definitions or foreign key relations (no row data). Use `useTableQuery` only when you also need row data (e.g. for a data grid).
 - For mutations, use `isPending` (not the deprecated `isLoading`) for status checks.

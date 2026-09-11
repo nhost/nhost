@@ -258,6 +258,11 @@ export const projectDatabasePages = definePages([
     slug: 'schema',
     route: 'database/schema/default',
   },
+  {
+    name: 'Native Queries',
+    slug: 'native-queries',
+    route: 'database/native-queries/default',
+  },
 ]);
 
 export const projectAIPages = definePages([

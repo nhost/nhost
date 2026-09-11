@@ -17,8 +17,8 @@ import {
 import { Form } from '@/components/ui/v3/form';
 import TextWithTooltip from '@/features/orgs/projects/common/components/TextWithTooltip/TextWithTooltip';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
-import { getRelationshipNameSchema } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
 import { useRenameRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useRenameRelationshipMutation';
+import { getGraphQLIdentifierSchema } from '@/features/orgs/projects/graphql/common/utils/getGraphQLIdentifierSchema';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 
 interface RenameRelationshipDialogProps {
@@ -50,7 +50,7 @@ const RELATIONSHIP_NAME_HELPER_TEXT =
   'GraphQL fields are limited to letters, numbers, and underscores.';
 
 const validationSchema = z.object({
-  newRelationshipName: getRelationshipNameSchema('Relationship name'),
+  newRelationshipName: getGraphQLIdentifierSchema('Relationship name'),
 });
 
 type RenameRelationshipFormValues = z.infer<typeof validationSchema>;
