@@ -36,6 +36,7 @@ import type { GetScheduledEventInvocationsOperation } from './getScheduledEventI
 import type { GetScheduledEventsOperation } from './getScheduledEventsOperation';
 import type { IntrospectRemoteSchemaOperation } from './introspectRemoteSchemaOperation';
 import type { InvokeEventTriggerOperation } from './invokeEventTriggerOperation';
+import type { NativeQueryMetadataBulkOperation } from './nativeQueryMetadataBulkOperation';
 import type { RedeliverEventOperation } from './redeliverEventOperation';
 import type { ReloadMetadataOperation } from './reloadMetadataOperation';
 import type { ReloadRemoteSchemaOperation } from './reloadRemoteSchemaOperation';
@@ -72,6 +73,7 @@ export type MetadataOperation =
   | CreateFunctionPermissionBulkOperation
   | DropFunctionPermissionBulkOperation
   | ComputedFieldBulkOperation
+  | NativeQueryMetadataBulkOperation
   | SuggestRelationshipsOperation
   | DropRelationshipBulkOperation
   | DeleteRemoteRelationshipBulkOperation

@@ -106,6 +106,7 @@ components:
         - $ref: "#/components/schemas/CreateFunctionPermissionBulkOperation"
         - $ref: "#/components/schemas/DropFunctionPermissionBulkOperation"
         - $ref: "#/components/schemas/ComputedFieldBulkOperation"
+        - $ref: "#/components/schemas/NativeQueryMetadataBulkOperation"
         - $ref: "#/components/schemas/SuggestRelationshipsOperation"
         - $ref: "#/components/schemas/DropRelationshipBulkOperation"
         - $ref: "#/components/schemas/DeleteRemoteRelationshipBulkOperation"
@@ -1292,6 +1293,468 @@ components:
               description: Name of the source database of the trigger
               default: default
 
+    LogicalModelType:
+      oneOf:
+        - type: object
+          required:
+            - scalar
+          properties:
+            scalar:
+              type: string
+            nullable:
+              type: boolean
+              default: false
+        - type: object
+          required:
+            - logical_model
+          properties:
+            logical_model:
+              type: string
+            nullable:
+              type: boolean
+              default: false
+        - type: object
+          required:
+            - array
+          properties:
+            array:
+              $ref: "#/components/schemas/LogicalModelType"
+            nullable:
+              type: boolean
+              default: false
+
+    LogicalModelField:
+      type: object
+      required:
+        - name
+        - type
+      properties:
+        name:
+          type: string
+        type:
+          $ref: "#/components/schemas/LogicalModelType"
+        description:
+          type: string
+
+    LogicalModelSelectPermission:
+      type: object
+      required:
+        - columns
+        - filter
+      properties:
+        columns:
+          oneOf:
+            - type: string
+              enum: ["*"]
+            - type: array
+              items:
+                type: string
+        filter:
+          type: object
+          additionalProperties: true
+        limit:
+          type: integer
+        allow_aggregations:
+          type: boolean
+          default: false
+        computed_fields:
+          type: array
+          default: []
+          items:
+            type: string
+        query_root_fields:
+          type: array
+          nullable: true
+          items:
+            type: string
+            enum: [select, select_by_pk, select_aggregate]
+        subscription_root_fields:
+          type: array
+          nullable: true
+          items:
+            type: string
+            enum: [select, select_by_pk, select_aggregate, select_stream]
+
+    LogicalModelSelectPermissionItem:
+      type: object
+      required:
+        - role
+        - permission
+      properties:
+        role:
+          type: string
+        permission:
+          $ref: "#/components/schemas/LogicalModelSelectPermission"
+        comment:
+          type: string
+          nullable: true
+
+    LogicalModelItem:
+      type: object
+      required:
+        - name
+        - fields
+      properties:
+        name:
+          type: string
+        fields:
+          type: array
+          items:
+            $ref: "#/components/schemas/LogicalModelField"
+        description:
+          type: string
+        select_permissions:
+          type: array
+          items:
+            $ref: "#/components/schemas/LogicalModelSelectPermissionItem"
+
+    NativeQueryArgument:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+        nullable:
+          type: boolean
+        description:
+          type: string
+
+    NativeQueryRelationship:
+      type: object
+      required:
+        - name
+        - using
+      properties:
+        name:
+          type: string
+        comment:
+          type: string
+          nullable: true
+        using:
+          oneOf:
+            - $ref: >-
+                #/components/schemas/NativeQueryRelationshipUsingNativeQuery
+            - $ref: "#/components/schemas/NativeQueryRelationshipUsingTable"
+
+    NativeQueryRelationshipUsingNativeQuery:
+      type: object
+      required:
+        - column_mapping
+        - remote_native_query
+      properties:
+        column_mapping:
+          type: object
+          additionalProperties:
+            type: string
+        insertion_order:
+          type: string
+          nullable: true
+          enum: [before_parent, after_parent, null]
+        remote_native_query:
+          type: string
+
+    NativeQueryRelationshipUsingTable:
+      type: object
+      required:
+        - column_mapping
+        - remote_table
+      properties:
+        column_mapping:
+          type: object
+          additionalProperties:
+            type: string
+        insertion_order:
+          type: string
+          nullable: true
+          enum: [before_parent, after_parent, null]
+        remote_table:
+          oneOf:
+            - type: string
+            - $ref: "#/components/schemas/QualifiedTable"
+
+    NativeQueryItem:
+      type: object
+      required:
+        - root_field_name
+        - code
+        - returns
+      properties:
+        root_field_name:
+          type: string
+        type:
+          type: string
+          enum: [query]
+        arguments:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/NativeQueryArgument"
+        code:
+          type: string
+        returns:
+          type: string
+        description:
+          type: string
+        object_relationships:
+          type: array
+          items:
+            $ref: "#/components/schemas/NativeQueryRelationship"
+        array_relationships:
+          type: array
+          items:
+            $ref: "#/components/schemas/NativeQueryRelationship"
+
+    TrackLogicalModelStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_track_logical_model]
+        args:
+          $ref: "#/components/schemas/TrackLogicalModelArgs"
+
+    TrackLogicalModelArgs:
+      type: object
+      required:
+        - name
+        - fields
+      properties:
+        source:
+          type: string
+          default: default
+        name:
+          type: string
+        fields:
+          type: array
+          items:
+            $ref: "#/components/schemas/LogicalModelField"
+        description:
+          type: string
+
+    UntrackLogicalModelStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_untrack_logical_model]
+        args:
+          $ref: "#/components/schemas/UntrackLogicalModelArgs"
+
+    UntrackLogicalModelArgs:
+      type: object
+      required:
+        - name
+      properties:
+        source:
+          type: string
+          default: default
+        name:
+          type: string
+
+    CreateLogicalModelSelectPermissionStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_create_logical_model_select_permission]
+        args:
+          $ref: "#/components/schemas/CreateLogicalModelSelectPermissionArgs"
+
+    CreateLogicalModelSelectPermissionArgs:
+      type: object
+      required:
+        - name
+        - role
+        - permission
+      properties:
+        source:
+          type: string
+          default: default
+        name:
+          type: string
+        role:
+          type: string
+        permission:
+          $ref: "#/components/schemas/LogicalModelSelectPermission"
+        comment:
+          type: string
+          nullable: true
+
+    DropLogicalModelSelectPermissionStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_drop_logical_model_select_permission]
+        args:
+          $ref: "#/components/schemas/DropLogicalModelSelectPermissionArgs"
+
+    DropLogicalModelSelectPermissionArgs:
+      type: object
+      required:
+        - name
+        - role
+      properties:
+        source:
+          type: string
+          default: default
+        name:
+          type: string
+        role:
+          type: string
+
+    TrackNativeQueryStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_track_native_query]
+        args:
+          $ref: "#/components/schemas/TrackNativeQueryArgs"
+
+    TrackNativeQueryArgs:
+      type: object
+      required:
+        - root_field_name
+        - code
+        - returns
+      properties:
+        source:
+          type: string
+          default: default
+        root_field_name:
+          type: string
+        type:
+          type: string
+          enum: [query]
+        arguments:
+          type: object
+          default: {}
+          additionalProperties:
+            $ref: "#/components/schemas/NativeQueryArgument"
+        code:
+          type: string
+        returns:
+          type: string
+        description:
+          type: string
+        object_relationships:
+          type: array
+          items:
+            $ref: "#/components/schemas/NativeQueryRelationship"
+        array_relationships:
+          type: array
+          items:
+            $ref: "#/components/schemas/NativeQueryRelationship"
+
+    UntrackNativeQueryStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [pg_untrack_native_query]
+        args:
+          $ref: "#/components/schemas/UntrackNativeQueryArgs"
+
+    UntrackNativeQueryArgs:
+      type: object
+      required:
+        - root_field_name
+      properties:
+        source:
+          type: string
+          default: default
+        root_field_name:
+          type: string
+
+    NativeQueryAtomicMetadataStep:
+      oneOf:
+        - $ref: "#/components/schemas/TrackLogicalModelStep"
+        - $ref: "#/components/schemas/UntrackLogicalModelStep"
+        - $ref: "#/components/schemas/TrackNativeQueryStep"
+        - $ref: "#/components/schemas/UntrackNativeQueryStep"
+
+    NativeQueryAtomicMigrationStep:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk_atomic]
+        args:
+          type: array
+          items:
+            $ref: "#/components/schemas/NativeQueryAtomicMetadataStep"
+
+    NativeQueryMetadataStep:
+      oneOf:
+        - $ref: "#/components/schemas/TrackLogicalModelStep"
+        - $ref: "#/components/schemas/UntrackLogicalModelStep"
+        - $ref: "#/components/schemas/CreateLogicalModelSelectPermissionStep"
+        - $ref: "#/components/schemas/DropLogicalModelSelectPermissionStep"
+        - $ref: "#/components/schemas/TrackNativeQueryStep"
+        - $ref: "#/components/schemas/UntrackNativeQueryStep"
+        - $ref: "#/components/schemas/NativeQueryAtomicMigrationStep"
+
+    NativeQueryAtomicMetadataOperation:
+      type: object
+      required:
+        - type
+        - resource_version
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk_atomic]
+        resource_version:
+          type: integer
+        args:
+          type: array
+          items:
+            $ref: "#/components/schemas/NativeQueryAtomicMetadataStep"
+
+    NativeQueryBulkMetadataOperation:
+      type: object
+      required:
+        - type
+        - resource_version
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk]
+        resource_version:
+          type: integer
+        args:
+          type: array
+          items:
+            $ref: "#/components/schemas/NativeQueryMetadataStep"
+
+    NativeQueryMetadataBulkOperation:
+      oneOf:
+        - $ref: "#/components/schemas/NativeQueryAtomicMetadataOperation"
+        - $ref: "#/components/schemas/NativeQueryBulkMetadataOperation"
+
     MigrationStep:
       oneOf:
         - $ref: "#/components/schemas/ReplaceMetadataOperation"
@@ -1312,6 +1775,13 @@ components:
         - $ref: "#/components/schemas/DropFunctionPermissionStep"
         - $ref: "#/components/schemas/AddComputedFieldStep"
         - $ref: "#/components/schemas/DropComputedFieldStep"
+        - $ref: "#/components/schemas/TrackLogicalModelStep"
+        - $ref: "#/components/schemas/UntrackLogicalModelStep"
+        - $ref: "#/components/schemas/CreateLogicalModelSelectPermissionStep"
+        - $ref: "#/components/schemas/DropLogicalModelSelectPermissionStep"
+        - $ref: "#/components/schemas/TrackNativeQueryStep"
+        - $ref: "#/components/schemas/UntrackNativeQueryStep"
+        - $ref: "#/components/schemas/NativeQueryAtomicMigrationStep"
         - $ref: "#/components/schemas/SetCustomTypesStep"
         - $ref: "#/components/schemas/CreateActionStep"
         - $ref: "#/components/schemas/UpdateActionStep"
@@ -1505,6 +1975,14 @@ components:
                           description: List of permissions for the function
                           items:
                             $ref: "#/components/schemas/FunctionPermission"
+                  logical_models:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/LogicalModelItem"
+                  native_queries:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/NativeQueryItem"
                 additionalProperties: true
             remote_schemas:
               type: array
