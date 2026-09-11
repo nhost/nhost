@@ -5,6 +5,7 @@ import {
   orgPages,
   projectDatabasePages,
   projectPages,
+  projectSettingsPages,
   projectSubPagesBySlug,
 } from '@/features/navigation/nav-config';
 
@@ -34,6 +35,25 @@ describe('navigation nav-config', () => {
       'logs',
       'metrics',
       'settings',
+    ]);
+  });
+
+  it('keeps only the settings pages that still have their own route', () => {
+    expect(projectSettingsPages.map((page) => page.slug)).toEqual([
+      'general',
+      'hasura',
+      'authentication',
+      'jwt',
+      'sign-in-methods',
+      'oauth2-provider',
+      'roles-and-permissions',
+      'storage',
+      'smtp',
+      'deployments',
+      'custom-domains',
+      'rate-limiting',
+      'ai',
+      'metrics',
     ]);
   });
 

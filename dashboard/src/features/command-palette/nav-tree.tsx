@@ -195,8 +195,17 @@ const settingsPageMeta: Record<
   (typeof projectSettingsPages)[number]['slug'],
   PaletteMeta
 > = {
-  general: { keywords: ['settings'] },
-  'compute-resources': { keywords: ['settings', 'cpu', 'memory'] },
+  general: {
+    title: 'Project Settings',
+    keywords: [
+      'settings',
+      'project name',
+      'pause project',
+      'wake project',
+      'transfer project',
+      'delete project',
+    ],
+  },
   hasura: { keywords: ['settings', 'graphql engine', 'console'] },
   authentication: { keywords: ['settings', 'auth'] },
   jwt: { keywords: ['settings', 'tokens'] },
@@ -206,8 +215,6 @@ const settingsPageMeta: Record<
   storage: { keywords: ['settings', 'files'] },
   smtp: { keywords: ['settings', 'email'] },
   deployments: { keywords: ['settings', 'releases'] },
-  'environment-variables': { keywords: ['settings', 'env'] },
-  secrets: { keywords: ['settings', 'environment'] },
   'custom-domains': { keywords: ['settings', 'domains'] },
   'rate-limiting': { keywords: ['settings', 'limits'] },
   ai: { keywords: ['settings', 'embeddings'] },
@@ -215,24 +222,56 @@ const settingsPageMeta: Record<
     id: 'project-settings-observability',
     keywords: ['settings', 'metrics', 'monitoring'],
   },
-  editor: {
-    id: 'project-settings-configuration-editor',
-    keywords: ['settings', 'config'],
-  },
 };
 
-const settingsChildren: CommandNode[] = projectSettingsPages.map((page) => {
-  const meta = settingsPageMeta[page.slug];
+// The project settings page's own `?tab=` entries.
+const generalSettingsTabChildren = toSettingsTabNodes(
+  'project',
+  'settings',
+  [
+    {
+      slug: 'compute-resources',
+      title: 'Compute Resources',
+      keywords: ['settings', 'compute resources', 'cpu', 'memory'],
+    },
+    {
+      slug: 'environment-variables',
+      title: 'Environment Variables',
+      keywords: [
+        'settings',
+        'environment variables',
+        'system environment variables',
+        'env vars',
+      ],
+    },
+    {
+      slug: 'secrets',
+      title: 'Secrets',
+      keywords: ['settings', 'secrets'],
+    },
+    {
+      slug: 'editor',
+      title: 'Configuration Editor',
+      keywords: ['settings', 'configuration editor', 'toml'],
+    },
+  ],
+);
 
-  return {
-    id: meta.id ?? `project-settings-${page.slug}`,
-    title: meta.title ?? page.name,
-    kind: 'setting',
-    path: getSettingsPageRoute(page),
-    scope: 'project',
-    keywords: meta.keywords,
-  };
-});
+const settingsChildren: CommandNode[] = [
+  ...projectSettingsPages.map((page) => {
+    const meta = settingsPageMeta[page.slug];
+
+    return {
+      id: meta.id ?? `project-settings-${page.slug}`,
+      title: meta.title ?? page.name,
+      kind: 'setting' as const,
+      path: getSettingsPageRoute(page),
+      scope: 'project' as const,
+      keywords: meta.keywords,
+    };
+  }),
+  ...generalSettingsTabChildren,
+];
 
 const projectPageMeta: Record<
   (typeof projectPages)[number]['slug'],

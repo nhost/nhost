@@ -244,7 +244,7 @@ describe('CommandPaletteTrigger', () => {
     );
   });
 
-  it('reaches a deep settings leaf from flat search with keyboard only', async () => {
+  it('opens a project settings tab from flat search', async () => {
     renderTrigger();
     const input = await openPalette();
 
@@ -254,7 +254,7 @@ describe('CommandPaletteTrigger', () => {
 
     await waitFor(() => {
       expect(push).toHaveBeenCalledWith(
-        '/orgs/org-a/projects/project-a/settings/environment-variables',
+        '/orgs/org-a/projects/project-a/settings?tab=environment-variables',
         undefined,
         { shallow: true },
       );
