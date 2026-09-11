@@ -8,7 +8,7 @@ import {
 
 const push = vi.hoisted(() => vi.fn());
 const router = vi.hoisted(() => ({
-  query: { appSubdomain: 'project-a' } as Record<string, string>,
+  query: { appSubdomain: 'project-a' } as Record<string, string | string[]>,
   pathname: '/orgs/[orgSlug]/projects/[appSubdomain]',
   push,
 }));
@@ -64,11 +64,11 @@ describe('ProjectsComboBox', () => {
   it('drops the tab when switching from a dynamic detail page', async () => {
     router.query = {
       appSubdomain: 'project-a',
-      functionSlug: 'hello',
+      functionSlug: ['hello'],
       tab: 'logs',
     };
     router.pathname =
-      '/orgs/[orgSlug]/projects/[appSubdomain]/functions/[functionSlug]';
+      '/orgs/[orgSlug]/projects/[appSubdomain]/functions/browser/[...functionSlug]';
     const user = new TestUserEvent();
     render(<ProjectsComboBox />);
 
@@ -76,7 +76,7 @@ describe('ProjectsComboBox', () => {
     await user.click(await screen.findByRole('option', { name: /project b/i }));
 
     expect(push).toHaveBeenCalledWith(
-      '/orgs/org-a/projects/project-b/functions',
+      '/orgs/org-a/projects/project-b/functions/browser',
     );
   });
 

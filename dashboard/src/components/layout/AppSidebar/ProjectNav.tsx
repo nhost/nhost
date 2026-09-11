@@ -95,8 +95,9 @@ export default function ProjectNav() {
       <DashboardSidebar.Section label="Compute">
         <DashboardSidebar.Item
           label="Functions"
-          href={`${baseHref}/functions`}
+          href={`${baseHref}/functions/browser`}
           icon={<CodeIcon className={iconClassName} />}
+          activePath={`${baseHref}/functions`}
         />
         <DashboardSidebar.Item
           label="Run"

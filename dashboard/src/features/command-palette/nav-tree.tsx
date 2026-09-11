@@ -301,6 +301,23 @@ const storageSettingsTabChildren = toSettingsTabNodes(
   ],
 );
 
+const functionsSettingsTabChildren = toSettingsTabNodes(
+  'project-functions',
+  'functions/settings',
+  [
+    {
+      slug: 'custom-domain',
+      title: 'Functions Custom Domain',
+      keywords: ['functions', 'settings', 'custom domain'],
+    },
+    {
+      slug: 'rate-limiting',
+      title: 'Functions Rate Limiting',
+      keywords: ['functions', 'settings', 'rate limiting', 'rate limits'],
+    },
+  ],
+);
+
 // Exhaustive over nav-config's sub-page families, so adding a family there
 // fails to compile until the palette assigns its keywords.
 const subPageChildren: Record<
@@ -356,6 +373,15 @@ const subPageChildren: Record<
       settings: ['storage', 'settings'],
     },
     { settings: storageSettingsTabChildren },
+  ),
+  functions: toSubPageNodes(
+    projectSubPagesBySlug.functions,
+    'project-functions',
+    {
+      functions: ['functions', 'serverless', 'code'],
+      settings: ['functions', 'settings'],
+    },
+    { settings: functionsSettingsTabChildren },
   ),
   ai: toSubPageNodes(projectSubPagesBySlug.ai, 'project-ai', {
     'auto-embeddings': ['ai', 'embeddings'],
@@ -459,7 +485,10 @@ const projectPageMeta: Record<
     keywords: ['files', 'buckets'],
     children: subPageChildren.storage,
   },
-  functions: { keywords: ['serverless', 'code'] },
+  functions: {
+    keywords: ['serverless', 'code'],
+    children: subPageChildren.functions,
+  },
   run: { keywords: ['services', 'docker'] },
   ai: {
     keywords: ['auto embeddings', 'embeddings'],

@@ -194,6 +194,21 @@ describe('AppSidebar', () => {
       );
     });
 
+    it('keeps Functions active on its settings page', () => {
+      mockRoute(
+        '/orgs/[orgSlug]/projects/[appSubdomain]/functions/settings',
+        '/orgs/nhost/projects/dashboard/functions/settings',
+        projectQuery,
+      );
+
+      render(<AppSidebar />);
+
+      expect(screen.getByRole('link', { name: 'Functions' })).toHaveAttribute(
+        'aria-current',
+        'page',
+      );
+    });
+
     it('falls back to the path while router query params are not ready', () => {
       mockRoute(
         '/orgs/[orgSlug]/projects/[appSubdomain]/ai/file-stores',

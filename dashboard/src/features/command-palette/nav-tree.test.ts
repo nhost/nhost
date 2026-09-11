@@ -63,6 +63,9 @@ describe('commandPaletteNavTree', () => {
     expect(byId.get('project-storage-settings')?.breadcrumb).toEqual([
       'Storage',
     ]);
+    expect(byId.get('project-functions-settings')?.breadcrumb).toEqual([
+      'Functions',
+    ]);
     expect(byId.get('project-database-settings')?.breadcrumb).toEqual([
       'Database',
     ]);
@@ -174,6 +177,28 @@ describe('commandPaletteNavTree', () => {
     expect(
       byId.get('project-auth-settings-custom-domain')?.gate,
     ).toBeUndefined();
+  });
+
+  it('routes Functions settings through the Functions area', () => {
+    const byId = new Map(allNodes.map((node) => [node.id, node]));
+
+    expect(byId.get('project-functions-settings')).toMatchObject({
+      title: 'Settings',
+      path: 'functions/settings',
+      gate: 'settings',
+      keywords: expect.arrayContaining(['functions', 'settings']),
+    });
+    expect(byId.get('project-functions-settings-custom-domain')).toMatchObject({
+      title: 'Functions Custom Domain',
+      path: 'functions/settings?tab=custom-domain',
+    });
+    expect(
+      byId.get('project-functions-settings-custom-domain')?.gate,
+    ).toBeUndefined();
+    expect(byId.get('project-functions-settings-rate-limiting')).toMatchObject({
+      title: 'Functions Rate Limiting',
+      path: 'functions/settings?tab=rate-limiting',
+    });
   });
 
   it('routes Storage settings through the Storage area', () => {
