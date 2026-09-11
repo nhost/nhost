@@ -10,12 +10,12 @@ const overview: CommandNode = {
 };
 
 const settingsChild: CommandNode = {
-  id: 'project-settings-jwt',
-  title: 'JWT',
-  kind: 'setting',
-  path: 'settings/jwt',
+  id: 'project-auth-settings',
+  title: 'Settings',
+  kind: 'page',
+  path: 'auth/settings',
   scope: 'project',
-  breadcrumb: ['Project Settings'],
+  breadcrumb: ['Auth'],
 };
 
 const settingsGroup: CommandNode = {
@@ -70,12 +70,14 @@ describe('buildOrgProjectNodes', () => {
     ]);
 
     const settingsClone = shop.children?.[1];
-    const jwtClone = settingsClone?.children?.[0];
+    const authSettingsClone = settingsClone?.children?.[0];
 
-    expect(jwtClone?.id).toBe('switch:project:acme:shop:project-settings-jwt');
-    expect(jwtClone?.path).toBe('settings/jwt');
-    expect(jwtClone?.breadcrumb).toEqual(['Project Settings']);
-    expect(jwtClone?.commandPalette).toEqual({
+    expect(authSettingsClone?.id).toBe(
+      'switch:project:acme:shop:project-auth-settings',
+    );
+    expect(authSettingsClone?.path).toBe('auth/settings');
+    expect(authSettingsClone?.breadcrumb).toEqual(['Auth']);
+    expect(authSettingsClone?.commandPalette).toEqual({
       originalNode: settingsChild,
       orgSlug: 'acme',
       appSubdomain: 'shop',
