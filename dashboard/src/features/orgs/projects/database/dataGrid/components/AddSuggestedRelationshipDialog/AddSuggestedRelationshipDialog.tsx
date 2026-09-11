@@ -15,10 +15,10 @@ import {
 } from '@/components/ui/v3/dialog';
 import { Form } from '@/components/ui/v3/form';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
-import { getRelationshipNameSchema } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
 import { useCreateRelationshipMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateRelationshipMutation';
 import { normalizeColumns } from '@/features/orgs/projects/database/dataGrid/utils/normalizeColumns';
 import { prepareSuggestedRelationshipDTO } from '@/features/orgs/projects/database/dataGrid/utils/prepareSuggestedRelationshipDTO';
+import { getGraphQLIdentifierSchema } from '@/features/orgs/projects/graphql/common/utils/getGraphQLIdentifierSchema';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type {
   CreateLocalRelationshipArgs,
@@ -54,7 +54,7 @@ interface AddSuggestedRelationshipDialogProps {
 type AddSuggestedRelationshipFormValues = z.infer<typeof validationSchema>;
 
 const validationSchema = z.object({
-  relationshipName: getRelationshipNameSchema('Relationship name'),
+  relationshipName: getGraphQLIdentifierSchema('Relationship name'),
 });
 
 export default function AddSuggestedRelationshipDialog({

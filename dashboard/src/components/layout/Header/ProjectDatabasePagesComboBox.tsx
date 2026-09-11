@@ -19,6 +19,11 @@ const projectDatabasePages: Option[] = [
     value: 'schema',
     route: 'database/schema/default',
   },
+  {
+    label: 'Native Queries',
+    value: 'native-queries',
+    route: 'database/native-queries',
+  },
 ];
 
 export default function ProjectDatabasePagesComboBox() {
