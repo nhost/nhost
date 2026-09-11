@@ -14,6 +14,7 @@ const platFormOnlyPages = [
   '/orgs/[orgSlug]/projects/[appSubdomain]/database/backups/point-in-time',
   '/orgs/[orgSlug]/projects/[appSubdomain]/database/backups/import',
   '/orgs/[orgSlug]/projects/[appSubdomain]/metrics',
+  '/orgs/[orgSlug]/projects/[appSubdomain]/metrics/settings',
   '/orgs/[orgSlug]/projects/[appSubdomain]/deployments/[deploymentId]',
   '/orgs/[orgSlug]/projects/[appSubdomain]/deployments/settings',
 ];
