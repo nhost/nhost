@@ -268,7 +268,7 @@ export default function EditRemoteSchemaPermissionsForm({
           <Alert className="text-left">
             Please go to the{' '}
             <NavLink
-              href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/roles-and-permissions`}
+              href={`/orgs/${org?.slug}/projects/${project?.subdomain}/auth/settings?tab=roles-and-permissions`}
               underline="hover"
               className="px-0"
             >

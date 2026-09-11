@@ -42,7 +42,7 @@ describe('navigation nav-config', () => {
       '/orgs/nhost/projects/dashboard',
     );
     expect(getSettingsPageRoute({ route: '' })).toBe('settings');
-    expect(getSettingsPageRoute({ route: 'jwt' })).toBe('settings/jwt');
+    expect(getSettingsPageRoute({ route: 'storage' })).toBe('settings/storage');
   });
 
   it('gates platform and settings pages', () => {
