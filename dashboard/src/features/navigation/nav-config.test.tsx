@@ -3,6 +3,7 @@ import {
   getSettingsPageRoute,
   isPageGated,
   orgPages,
+  projectAuthPages,
   projectDatabasePages,
   projectGraphQLPages,
   projectPages,
@@ -41,13 +42,7 @@ describe('navigation nav-config', () => {
   it('keeps only the settings pages that still have their own route', () => {
     expect(projectSettingsPages.map((page) => page.slug)).toEqual([
       'general',
-      'authentication',
-      'jwt',
-      'sign-in-methods',
-      'oauth2-provider',
-      'roles-and-permissions',
       'storage',
-      'smtp',
       'deployments',
       'custom-domains',
       'rate-limiting',
@@ -61,7 +56,7 @@ describe('navigation nav-config', () => {
       '/orgs/nhost/projects/dashboard',
     );
     expect(getSettingsPageRoute({ route: '' })).toBe('settings');
-    expect(getSettingsPageRoute({ route: 'jwt' })).toBe('settings/jwt');
+    expect(getSettingsPageRoute({ route: 'storage' })).toBe('settings/storage');
   });
 
   it('gates platform and settings pages', () => {
@@ -91,6 +86,14 @@ describe('navigation nav-config', () => {
       'schema',
       'sql-console',
       'backups',
+      'settings',
+    ]);
+  });
+
+  it('keeps Auth sub-pages in route-tab order', () => {
+    expect(projectAuthPages.map((page) => page.slug)).toEqual([
+      'users',
+      'oauth2-clients',
       'settings',
     ]);
   });

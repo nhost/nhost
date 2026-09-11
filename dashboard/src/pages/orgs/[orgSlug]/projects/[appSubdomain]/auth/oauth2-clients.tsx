@@ -12,8 +12,8 @@ import { Button } from '@/components/ui/v3/button';
 import { Input } from '@/components/ui/v3/input';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
-import { ProjectViewWithState } from '@/features/orgs/layout/ProjectGuard';
 import { ProjectScope } from '@/features/orgs/layout/ProjectScope';
+import { AuthArea } from '@/features/orgs/projects/authentication/layout';
 import { MIN_AUTH_VERSION_OAUTH2 } from '@/features/orgs/projects/authentication/oauth2/constants';
 import { CreateOAuth2ClientForm } from '@/features/orgs/projects/authentication/oauth2-clients/components/CreateOAuth2ClientForm';
 import { OAuth2ClientsList } from '@/features/orgs/projects/authentication/oauth2-clients/components/OAuth2ClientsList';
@@ -162,7 +162,7 @@ function OAuth2ClientsPageContent() {
           <Button
             onClick={() =>
               router.push(
-                `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/settings/authentication`,
+                `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/auth/settings?tab=authentication`,
               )
             }
           >
@@ -207,7 +207,7 @@ function OAuth2ClientsPageContent() {
           <Button
             onClick={() =>
               router.push(
-                `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/settings/oauth2-provider`,
+                `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/auth/settings?tab=oauth2-provider`,
               )
             }
           >
@@ -342,7 +342,7 @@ OAuth2ClientsPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <AppLayout>
       <ProjectScope>
-        <ProjectViewWithState>{page}</ProjectViewWithState>
+        <AuthArea>{page}</AuthArea>
       </ProjectScope>
     </AppLayout>
   );
