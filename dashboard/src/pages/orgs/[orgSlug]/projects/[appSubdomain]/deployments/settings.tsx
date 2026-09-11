@@ -2,9 +2,9 @@ import { useRouter } from 'next/router';
 import { type ReactElement, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
-import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
 import { SettingsGuard } from '@/features/orgs/guards/SettingsGuard';
 import { SettingsArea } from '@/features/orgs/projects/common/components/settings/SettingsArea';
+import { DeploymentsArea } from '@/features/orgs/projects/deployments/layout';
 import { useGitHubModal } from '@/features/orgs/projects/git/common/hooks/useGitHubModal';
 import { AutomaticDeploysSettings } from '@/features/orgs/projects/git/settings/components/AutomaticDeploysSettings';
 import { BaseDirectorySettings } from '@/features/orgs/projects/git/settings/components/BaseDirectorySettings';
@@ -46,11 +46,11 @@ DeploymentsSettingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <AppLayout>
       <ProjectScope>
-        <ProjectStateGate>
+        <DeploymentsArea>
           <SettingsGuard>
             <SettingsArea>{page}</SettingsArea>
           </SettingsGuard>
-        </ProjectStateGate>
+        </DeploymentsArea>
       </ProjectScope>
     </AppLayout>
   );

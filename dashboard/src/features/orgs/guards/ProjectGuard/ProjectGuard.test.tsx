@@ -243,6 +243,11 @@ describe('ProjectGuard', () => {
     },
     {
       description:
+        'should not redirect to 404 if we are on platform and on the deployments settings page',
+      route: '/orgs/[orgSlug]/projects/[appSubdomain]/deployments/settings',
+    },
+    {
+      description:
         'should not redirect to 404 if we are on platform and on the database backups page',
       route: '/orgs/[orgSlug]/projects/[appSubdomain]/database/backups',
     },
@@ -306,5 +311,21 @@ describe('ProjectGuard', () => {
       expect(screen.queryByText('Project loaded')).toBeInTheDocument();
       expect(mocks.push).not.toHaveBeenCalledWith('/404');
     });
+  });
+
+  it('should not redirect to 404 if we are not on platform and on the deployments settings page', async () => {
+    vi.stubEnv('NEXT_PUBLIC_NHOST_PLATFORM', 'false');
+    mocks.useRouter.mockImplementation(() =>
+      getUseRouterObject(
+        '/orgs/[orgSlug]/projects/[appSubdomain]/deployments/settings',
+      ),
+    );
+
+    render(<TestComponent />);
+
+    await waitFor(() => {
+      expect(screen.queryByText('Project loaded')).toBeInTheDocument();
+    });
+    expect(mocks.push).not.toHaveBeenCalledWith('/404');
   });
 });

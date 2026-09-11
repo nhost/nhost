@@ -128,11 +128,17 @@ export default function ProjectNav() {
       </DashboardSidebar.Section>
 
       <DashboardSidebar.Section label="Operate">
+        {/* Off-platform only the Deployments settings page exists. */}
         <DashboardSidebar.Item
           label="Deployments"
-          href={`${baseHref}/deployments`}
+          href={
+            isPlatform
+              ? `${baseHref}/deployments`
+              : `${baseHref}/deployments/settings`
+          }
           icon={<RocketIcon className={iconClassName} />}
-          disabled={!isPlatform}
+          activePath={`${baseHref}/deployments`}
+          disabled={!isPlatform && settingsDisabled}
         />
         <DashboardSidebar.Item
           label="Logs"

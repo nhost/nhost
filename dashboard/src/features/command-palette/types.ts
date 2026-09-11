@@ -17,6 +17,9 @@ export interface CommandNode {
   breadcrumb?: string[];
   children?: CommandNode[];
   gate?: PageGate;
+  // Gates only the node's own path; its children keep their own gates, so a
+  // gated-off group still lets them through as a drill-only container.
+  pathGate?: PageGate;
   // Search flattening stops here; drilling still descends into children.
   searchBoundary?: boolean;
   // Present only on runtime clones (recents, org/project switch nodes);
