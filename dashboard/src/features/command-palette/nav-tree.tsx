@@ -286,6 +286,23 @@ const authSettingsTabChildren = toSettingsTabNodes(
   ],
 );
 
+const storageSettingsTabChildren = toSettingsTabNodes(
+  'project-storage',
+  'storage/settings',
+  [
+    {
+      slug: 'storage',
+      title: 'Storage General Settings',
+      keywords: ['storage', 'settings', 'version', 'antivirus'],
+    },
+    {
+      slug: 'rate-limiting',
+      title: 'Storage Rate Limiting',
+      keywords: ['storage', 'settings', 'rate limiting', 'rate limits'],
+    },
+  ],
+);
+
 // Exhaustive over nav-config's sub-page families, so adding a family there
 // fails to compile until the palette assigns its keywords.
 const subPageChildren: Record<
@@ -332,6 +349,15 @@ const subPageChildren: Record<
     },
     { settings: authSettingsTabChildren },
   ),
+  storage: toSubPageNodes(
+    projectSubPagesBySlug.storage,
+    'project-storage',
+    {
+      storage: ['storage', 'files', 'buckets'],
+      settings: ['storage', 'settings'],
+    },
+    { settings: storageSettingsTabChildren },
+  ),
   ai: toSubPageNodes(projectSubPagesBySlug.ai, 'project-ai', {
     'auto-embeddings': ['ai', 'embeddings'],
     assistants: ['ai', 'agents'],
@@ -354,7 +380,6 @@ const settingsPageMeta: Record<
       'delete project',
     ],
   },
-  storage: { keywords: ['settings', 'files'] },
   deployments: { keywords: ['settings', 'releases'] },
   'custom-domains': { keywords: ['settings', 'domains'] },
   'rate-limiting': { keywords: ['settings', 'limits'] },
@@ -431,7 +456,10 @@ const projectPageMeta: Record<
     keywords: ['users', 'authentication'],
     children: subPageChildren.auth,
   },
-  storage: { keywords: ['files', 'buckets'] },
+  storage: {
+    keywords: ['files', 'buckets'],
+    children: subPageChildren.storage,
+  },
   functions: { keywords: ['serverless', 'code'] },
   run: { keywords: ['services', 'docker'] },
   ai: {

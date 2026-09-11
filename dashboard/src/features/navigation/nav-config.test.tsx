@@ -8,6 +8,7 @@ import {
   projectGraphQLPages,
   projectPages,
   projectSettingsPages,
+  projectStoragePages,
   projectSubPagesBySlug,
 } from '@/features/navigation/nav-config';
 
@@ -42,7 +43,6 @@ describe('navigation nav-config', () => {
   it('keeps only the settings pages that still have their own route', () => {
     expect(projectSettingsPages.map((page) => page.slug)).toEqual([
       'general',
-      'storage',
       'deployments',
       'custom-domains',
       'rate-limiting',
@@ -56,7 +56,9 @@ describe('navigation nav-config', () => {
       '/orgs/nhost/projects/dashboard',
     );
     expect(getSettingsPageRoute({ route: '' })).toBe('settings');
-    expect(getSettingsPageRoute({ route: 'storage' })).toBe('settings/storage');
+    expect(getSettingsPageRoute({ route: 'deployments' })).toBe(
+      'settings/deployments',
+    );
   });
 
   it('gates platform and settings pages', () => {
@@ -98,6 +100,13 @@ describe('navigation nav-config', () => {
     ]);
   });
 
+  it('keeps Storage sub-pages in route-tab order', () => {
+    expect(projectStoragePages.map((page) => page.slug)).toEqual([
+      'storage',
+      'settings',
+    ]);
+  });
+
   it('keeps GraphQL sub-pages in route-tab order', () => {
     expect(projectGraphQLPages.map((page) => page.slug)).toEqual([
       'playground',
@@ -115,6 +124,7 @@ describe('navigation nav-config', () => {
       'graphql',
       'events',
       'auth',
+      'storage',
       'ai',
     ]);
   });
