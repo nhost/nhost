@@ -17,6 +17,7 @@ const DIRTY_SOURCE_ID = 'create-logical-model';
 
 export interface CreateLogicalModelFormProps extends DialogFormProps {
   logicalModelNames?: string[];
+  initialSource?: string;
   lockedSource?: string;
   onCancel?: (event?: unknown) => void;
   onCreated?: (name: string) => void;
@@ -41,14 +42,17 @@ function initialValues(
 export default function CreateLogicalModelForm({
   onCancel,
   logicalModelNames,
-  lockedSource = 'default',
+  initialSource = 'default',
+  lockedSource,
   onCreated,
   onDirtyChange,
   location,
 }: CreateLogicalModelFormProps) {
   const router = useRouter();
   const { setDirtySource } = useDialog();
-  const [selectedSource, setSelectedSource] = useState(lockedSource);
+  const [selectedSource, setSelectedSource] = useState(
+    lockedSource ?? initialSource,
+  );
   const { data: models = [] } = useGetLogicalModels(selectedSource);
   const { data: sourceNames = [] } = useGetSupportedNativeQuerySources();
   const mutation = useLogicalModelMetadataMutation({ type: 'add' });
@@ -78,11 +82,11 @@ export default function CreateLogicalModelForm({
     <div className="flex min-h-0 flex-1 flex-col text-foreground">
       <BaseLogicalModelForm
         isDrawer={!isEmbedded}
-        values={initialValues(lockedSource)}
+        values={initialValues(lockedSource ?? initialSource)}
         existingNames={modelNames}
         logicalModelNames={modelNames}
         sourceOptions={sourceNames}
-        sourceDisabled
+        sourceDisabled={lockedSource !== undefined}
         isPending={mutation.isPending}
         onSourceChange={setSelectedSource}
         onCancel={(event) => onCancel?.(event)}

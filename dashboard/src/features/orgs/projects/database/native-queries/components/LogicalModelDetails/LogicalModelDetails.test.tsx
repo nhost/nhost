@@ -212,7 +212,9 @@ describe('LogicalModelDetails', () => {
   });
 
   it('renders the no-models empty state', () => {
-    const { container } = render(<NoLogicalModelsEmptyState />);
+    const { container } = render(
+      <NoLogicalModelsEmptyState source="default" />,
+    );
 
     expect(
       screen.getByText('Create your first logical model'),

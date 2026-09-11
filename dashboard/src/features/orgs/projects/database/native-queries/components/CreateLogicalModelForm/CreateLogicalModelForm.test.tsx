@@ -254,9 +254,7 @@ describe('CreateLogicalModelForm', () => {
     const onCancel = vi.fn();
     render(<CreateLogicalModelForm onCancel={onCancel} />);
 
-    expect(
-      screen.getByRole('combobox', { name: 'Data Source' }),
-    ).toBeDisabled();
+    expect(screen.getByRole('combobox', { name: 'Data Source' })).toBeEnabled();
     await fillLogicalModel(user, 'standalone_result');
     await user.click(screen.getByRole('button', { name: 'Create' }));
 

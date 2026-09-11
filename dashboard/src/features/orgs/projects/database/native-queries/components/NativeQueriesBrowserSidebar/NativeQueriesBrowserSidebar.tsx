@@ -8,6 +8,13 @@ import { FeatureSidebar } from '@/components/layout/FeatureSidebar';
 import { Button } from '@/components/ui/v3/button';
 import { Input } from '@/components/ui/v3/input';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/v3/select';
+import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -18,8 +25,10 @@ import { DeleteNativeQueryDialog } from '@/features/orgs/projects/database/nativ
 import { LogicalModelListItem } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesBrowserSidebar/LogicalModelListItem';
 import { NativeQueriesBrowserSidebarSkeleton } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesBrowserSidebar/NativeQueriesBrowserSidebarSkeleton';
 import { NativeQueryListItem } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesBrowserSidebar/NativeQueryListItem';
+import NativeQuerySourceGuard from '@/features/orgs/projects/database/native-queries/components/NativeQuerySourceGuard/NativeQuerySourceGuard';
 import { useGetLogicalModels } from '@/features/orgs/projects/database/native-queries/hooks/useGetLogicalModels';
 import { useGetNativeQueries } from '@/features/orgs/projects/database/native-queries/hooks/useGetNativeQueries';
+import { useGetSupportedNativeQuerySources } from '@/features/orgs/projects/database/native-queries/hooks/useGetSupportedNativeQuerySources';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type {
   LogicalModelItem,
@@ -204,7 +213,7 @@ function NativeQueriesBrowserSidebarContent({
                         openDrawer({
                           title: 'Create logical model',
                           component: (
-                            <CreateLogicalModelForm lockedSource={source} />
+                            <CreateLogicalModelForm initialSource={source} />
                           ),
                         })
                       }
@@ -257,7 +266,14 @@ function NativeQueriesBrowserSidebarContent({
 export default function NativeQueriesBrowserSidebar() {
   const isPlatform = useIsPlatform();
   const { project } = useProject();
-  const { dataSourceSlug } = useRouter().query;
+  const router = useRouter();
+  const { dataSourceSlug, orgSlug, appSubdomain } = router.query;
+  const source = typeof dataSourceSlug === 'string' ? dataSourceSlug : '';
+  const {
+    data: sources = [],
+    isLoading,
+    error,
+  } = useGetSupportedNativeQuerySources();
 
   if (isPlatform && !project?.config?.hasura.adminSecret) {
     return null;
@@ -265,13 +281,46 @@ export default function NativeQueriesBrowserSidebar() {
 
   return (
     <FeatureSidebar toggleOffset="left-8">
-      {dataSourceSlug && dataSourceSlug !== 'default' ? (
-        <p className="px-2 text-muted-foreground text-sm">
-          Database not found.
-        </p>
-      ) : (
-        <NativeQueriesBrowserSidebarContent source="default" />
-      )}
+      <div className="px-2 pb-3">
+        <Select
+          value={sources.includes(source) ? source : ''}
+          disabled={isLoading || !!error || sources.length === 0}
+          onValueChange={async (nextSource) => {
+            if (nextSource === source) {
+              return;
+            }
+            try {
+              await router.push(
+                `/orgs/${orgSlug}/projects/${appSubdomain}/database/native-queries/${encodeURIComponent(nextSource)}`,
+              );
+            } catch (navigationError) {
+              if (
+                navigationError instanceof Error &&
+                navigationError.message === 'Unsaved changes'
+              ) {
+                return;
+              }
+              console.error(navigationError);
+            }
+          }}
+        >
+          <SelectTrigger aria-label="Data Source">
+            <SelectValue placeholder="Select a data source" />
+          </SelectTrigger>
+          <SelectContent>
+            {sources.map((name) => (
+              <SelectItem key={name} value={name}>
+                {name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      {source ? (
+        <NativeQuerySourceGuard source={source}>
+          <NativeQueriesBrowserSidebarContent key={source} source={source} />
+        </NativeQuerySourceGuard>
+      ) : null}
     </FeatureSidebar>
   );
 }
