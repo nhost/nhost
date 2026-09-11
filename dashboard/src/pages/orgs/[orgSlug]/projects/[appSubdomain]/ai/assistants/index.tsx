@@ -5,18 +5,16 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Container } from '@/components/layout/Container';
-import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Alert } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
-import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
-import { AISidebar } from '@/features/orgs/layout/AISidebar';
 import { AssistantForm } from '@/features/orgs/projects/ai/AssistantForm';
 import { AssistantsList } from '@/features/orgs/projects/ai/AssistantsList';
 import type { Assistant } from '@/features/orgs/projects/ai/assistants/types';
 import type { GraphiteFileStore } from '@/features/orgs/projects/ai/file-stores/types';
+import { AIArea } from '@/features/orgs/projects/ai/layout';
 import { useIsFileStoreSupported } from '@/features/orgs/projects/common/hooks/useIsFileStoreSupported';
 import { useIsGraphiteEnabled } from '@/features/orgs/projects/common/hooks/useIsGraphiteEnabled';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -129,7 +127,7 @@ export default function AssistantsPage() {
           <p>
             To enable graphite, configure the service first in{' '}
             <Link
-              href={`/orgs/${slug}/projects/${project?.subdomain}/settings/ai`}
+              href={`/orgs/${slug}/projects/${project?.subdomain}/ai/settings`}
               rel="noopener noreferrer"
               className="text-primary hover:underline"
             >
@@ -171,7 +169,7 @@ export default function AssistantsPage() {
   }
 
   return (
-    <div className="flex w-full flex-col overflow-hidden">
+    <div className="flex w-full flex-col overflow-x-hidden">
       <div className="flex flex-row place-content-end border-b-1 p-4">
         <Button onClick={openCreateAssistantForm}>
           <PlusIcon className="mr-2 h-4 w-4" />
@@ -194,14 +192,7 @@ AssistantsPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <AppLayout>
       <ProjectScope>
-        <ProjectStateGate>
-          <div className="!bg-[#fafafa] dark:!bg-[#151a22] flex h-full w-full flex-row">
-            <AISidebar />
-            <div className="w-full overflow-auto">
-              <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
-            </div>
-          </div>
-        </ProjectStateGate>
+        <AIArea>{page}</AIArea>
       </ProjectScope>
     </AppLayout>
   );

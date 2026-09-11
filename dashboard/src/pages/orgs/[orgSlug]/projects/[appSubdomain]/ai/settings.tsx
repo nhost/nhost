@@ -3,8 +3,8 @@ import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
-import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
 import { SettingsGuard } from '@/features/orgs/guards/SettingsGuard';
+import { AIArea } from '@/features/orgs/projects/ai/layout';
 import { AISettings } from '@/features/orgs/projects/ai/settings/components';
 import { SettingsArea } from '@/features/orgs/projects/common/components/settings/SettingsArea';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -76,11 +76,11 @@ AISettingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <AppLayout>
       <ProjectScope>
-        <ProjectStateGate>
+        <AIArea>
           <SettingsGuard>
             <SettingsArea>{page}</SettingsArea>
           </SettingsGuard>
-        </ProjectStateGate>
+        </AIArea>
       </ProjectScope>
     </AppLayout>
   );
