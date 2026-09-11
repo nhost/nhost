@@ -116,33 +116,7 @@ export const projectPages = definePages([
 
 export const projectSettingsPages = definePages([
   { name: 'General', slug: 'general', route: '' },
-  {
-    name: 'Authentication',
-    slug: 'authentication',
-    route: 'authentication',
-  },
-  {
-    name: 'JWT',
-    slug: 'jwt',
-    route: 'jwt',
-  },
-  {
-    name: 'Sign-In methods',
-    slug: 'sign-in-methods',
-    route: 'sign-in-methods',
-  },
-  {
-    name: 'OAuth2 Provider',
-    slug: 'oauth2-provider',
-    route: 'oauth2-provider',
-  },
-  {
-    name: 'Roles and Permissions',
-    slug: 'roles-and-permissions',
-    route: 'roles-and-permissions',
-  },
   { name: 'Storage', slug: 'storage', route: 'storage' },
-  { name: 'SMTP', slug: 'smtp', route: 'smtp' },
   { name: 'Deployments', slug: 'deployments', route: 'deployments' },
   {
     name: 'Custom Domains',
@@ -220,6 +194,12 @@ export const projectAuthPages = definePages([
     name: 'OAuth2 Clients',
     slug: 'oauth2-clients',
     route: 'auth/oauth2-clients',
+  },
+  {
+    name: 'Settings',
+    slug: 'settings',
+    route: 'auth/settings',
+    gate: 'settings',
   },
 ]);
 
