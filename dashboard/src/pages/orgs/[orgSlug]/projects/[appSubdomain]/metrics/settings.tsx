@@ -2,12 +2,12 @@ import type { ReactElement } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
-import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
 import { SettingsGuard } from '@/features/orgs/guards/SettingsGuard';
 import { SettingsArea } from '@/features/orgs/projects/common/components/settings/SettingsArea';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { MetricsArea } from '@/features/orgs/projects/metrics/layout';
 import { MetricsSettings } from '@/features/orgs/projects/metrics/settings/components/MetricsSettings';
 import { useGetObservabilitySettingsQuery } from '@/generated/graphql';
 
@@ -47,11 +47,11 @@ MetricsSettingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <AppLayout>
       <ProjectScope>
-        <ProjectStateGate>
+        <MetricsArea>
           <SettingsGuard>
             <SettingsArea>{page}</SettingsArea>
           </SettingsGuard>
-        </ProjectStateGate>
+        </MetricsArea>
       </ProjectScope>
     </AppLayout>
   );
