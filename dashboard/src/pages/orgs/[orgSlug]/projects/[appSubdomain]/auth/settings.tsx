@@ -1,6 +1,8 @@
+import { UserIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { type ReactElement, useEffect, useState } from 'react';
-import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
+import { ProTag } from '@/components/common/ProTag';
+import { UpgradeBanner } from '@/components/common/UpgradeBanner';
 import {
   SectionSidebarButton,
   SectionSidebarGroup,
@@ -145,9 +147,12 @@ function useAuthSettingsTab() {
 
 function AuthSettingsSidebar() {
   const { activeTab, setActiveTab } = useAuthSettingsTab();
+  const { org } = useCurrentOrg();
+  const isPlatform = useIsPlatform();
+  const isFreeOrg = isPlatform && org?.plan?.isFree;
 
   return (
-    <aside className="h-full w-[280px] max-w-[280px] shrink-0 overflow-auto bg-background-default">
+    <aside className="h-full w-[240px] max-w-[240px] shrink-0 overflow-auto pt-14">
       <SectionSidebarNav ariaLabel="Auth settings navigation">
         <SectionSidebarGroup label="SIGN-IN">
           <SectionSidebarButton
@@ -197,6 +202,7 @@ function AuthSettingsSidebar() {
             onClick={() => setActiveTab('custom-domain')}
           >
             Custom Domain
+            {isFreeOrg && <ProTag />}
           </SectionSidebarButton>
           <SectionSidebarButton
             active={activeTab === 'rate-limiting'}
@@ -350,11 +356,7 @@ function SMTPSettingsSection() {
   if (isPlatform && org?.plan?.isFree) {
     return (
       <div className="grid grid-flow-row gap-6">
-        <UpgradeToProBanner
-          section="settings-smtp"
-          title="To unlock custom SMTP, transfer this project to a Pro or Team organization."
-          description=""
-        />
+        <UpgradeBanner section="settings-smtp" icon={UserIcon} />
       </div>
     );
   }
@@ -503,11 +505,7 @@ function AuthCustomDomainSettings() {
 
   if (shouldShowUpgrade) {
     return (
-      <UpgradeToProBanner
-        section="settings-custom-domains"
-        title="To unlock Custom Domains, transfer this project to a Pro or Team organization."
-        description=""
-      />
+      <UpgradeBanner section="settings-custom-domains" icon={UserIcon} />
     );
   }
 
@@ -580,7 +578,7 @@ function AuthSettingsContent() {
 export default function AuthSettingsPage() {
   return (
     <SettingsLayout>
-      <div className="w-full px-5 py-4">
+      <div className="w-full px-5 pb-4">
         <AuthSettingsContent />
       </div>
     </SettingsLayout>

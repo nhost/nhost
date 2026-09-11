@@ -70,7 +70,7 @@ function StorageSettingsSidebar() {
   const { activeTab, setActiveTab } = useStorageSettingsTab();
 
   return (
-    <aside className="h-full w-[280px] max-w-[280px] shrink-0 overflow-auto bg-background-default">
+    <aside className="h-full w-[240px] max-w-[240px] shrink-0 overflow-auto pt-14">
       <SectionSidebarNav ariaLabel="Storage settings navigation">
         <SectionSidebarGroup label="GENERAL">
           <SectionSidebarButton
@@ -162,7 +162,7 @@ function StorageSettingsContent() {
 export default function StorageSettingsPage() {
   return (
     <SettingsLayout>
-      <div className="w-full px-5 py-4">
+      <div className="w-full px-5 pb-4">
         <StorageSettingsContent />
       </div>
     </SettingsLayout>

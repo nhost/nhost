@@ -24,12 +24,12 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
   }
 
   return (
-    <div className="flex w-full flex-auto flex-col overflow-x-hidden bg-background-default">
-      <div className="flex flex-col bg-background-default">
+    <div className="flex w-full flex-auto flex-col overflow-x-hidden">
+      <div className="flex flex-col">
         <RetryableErrorBoundary>
-          <div className="flex flex-col space-y-2">
-            {hasGitRepo && (
-              <Alert className="mb-4 bg-[#ebf3ff] text-center dark:bg-muted">
+          {hasGitRepo && (
+            <div className="mx-auto w-full max-w-5xl px-5">
+              <Alert className="mb-4 bg-primary-highlight text-center">
                 <div className="flex flex-col gap-2">
                   <div>
                     <p className="text-sm">
@@ -37,9 +37,9 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                         GitHub Repository Connected
                       </span>
                       <br />
-                      <span className="mt-1.5 block text-gray-600 text-xs dark:text-gray-400">
+                      <span className="mt-1.5 block text-muted-foreground text-xs">
                         Make sure to run{' '}
-                        <code className="rounded bg-primary/10 px-1.5 py-0.5 font-mono text-primary-dark text-xs dark:text-primary">
+                        <code className="rounded bg-primary/10 px-1.5 py-0.5 font-mono text-primary text-xs">
                           nhost config pull
                         </code>{' '}
                         to sync your changes
@@ -51,7 +51,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                           href="https://docs.nhost.io/platform/cli/configuration-overlays"
                           target="_blank"
                           rel="noreferrer"
-                          className="text-primary text-xs hover:text-primary-dark"
+                          className="text-primary text-xs hover:text-primary/80"
                         >
                           configuration overlays
                         </TextLink>
@@ -60,8 +60,8 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                   </div>
                 </div>
               </Alert>
-            )}
-          </div>
+            </div>
+          )}
           {children}
         </RetryableErrorBoundary>
       </div>

@@ -228,7 +228,7 @@ export default function CreateOAuth2ClientForm({
           <Button type="submit" disabled={isSubmitting}>
             Create Client
           </Button>
-          <Button variant="outline" onClick={onCancel}>
+          <Button variant="outline-emboss" onClick={onCancel}>
             Cancel
           </Button>
         </div>

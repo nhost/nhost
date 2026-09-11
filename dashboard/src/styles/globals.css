@@ -4,6 +4,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@property --card-border-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
 .sb-show-main {
   overflow: auto;
 }
@@ -47,7 +53,7 @@ html.dark .graphiql-themed .graphiql-container {
   --color-tertiary: 172, 66%, 50%;
   --color-info: 216, 100%, 61%;
   --color-neutral: 210, 17%, 93%;
-  --color-base: 216, 25%, 12%;
+  --color-base: 210, 5.71%, 13.73%;
   --color-warning: 32, 100%, 57%;
   --color-success: 149, 55%, 60%;
 }
@@ -98,7 +104,7 @@ html.dark .graphiql-themed .graphiql-container {
 
 .graphiql-themed .graphiql-container .graphiql-main,
 .graphiql-themed .graphiql-container .graphiql-sessions {
-  background-color: hsl(var(--background-default));
+  background-color: transparent;
 }
 
 .graphiql-themed .graphiql-container .graphiql-editors,
@@ -112,7 +118,7 @@ html.dark .graphiql-themed .graphiql-container {
   + div
   > ul,
 .graphiql-themed .graphiql-container .cm-searching {
-  background-color: hsl(var(--paper));
+  background-color: transparent;
 }
 
 .graphiql-themed .graphiql-container .CodeMirror-linenumber,
@@ -291,16 +297,19 @@ html.dark .graphiql-themed .graphiql-container {
     --secondary-foreground: 210 40% 98%;
     --secondary-hover: 215.3, 19.3%, 34.5%;
     --muted: 0 0% 98%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 216 100% 40.2% / 8%;
+    --muted-foreground: 0 0% 38.8%;
+    --accent: 0 0% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
-    --accent-background: 204 29% 97%;
     --destructive: 340 52% 48%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
+    --destructive-hover: 350 100% 96%;
+    --warning: 32 100% 57%;
+    --border: 220 13.04% 90.98%;
+    --input: 0 0% 83.1%;
     --ring: 216 100% 40%;
     --radius: 0.5rem;
+    --shadow-overlay: 0 10px 15px -3px rgb(0 0 0 / 0.10), 0 4px 6px -4px rgb(0 0 0 / 0.10);
+    --shadow-overlay-strong: 0 25px 50px -12px rgb(0 0 0 / 0.25);
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
@@ -310,7 +319,7 @@ html.dark .graphiql-themed .graphiql-container {
     --divider: 210 16.67% 92.94%;
     --disabled: 215.56 15.79% 66.47%;
     --background-default: 0, 0%, 98%;
-    --primary-text: 215.71 38.89% 21.18%;
+    --primary-text: 222.2 84% 4.9%;
     --data-cell-bg: 216, 12.2%, 92%;
     --data-cell-bg-odd: 220, 13%, 95.5%;
     --data-cell-bg-hover: 213.3, 14.8%, 88%;
@@ -320,6 +329,14 @@ html.dark .graphiql-themed .graphiql-container {
     --table-selected: 216 100% 96.08%;
     --default: 0 0% 98.04%;
     --primary-highlight: 216 100% 40.2% / 8%;
+    --primary-gradient-from: 217.01 88.55% 44.51%;
+    --primary-gradient-to: 215.88 100% 40%;
+    --primary-gradient-hover-from: 216.76 82.26% 48.63%;
+    --primary-gradient-hover-to: 216.83 90.99% 43.53%;
+    --primary-gradient-active-from: 215.67 100% 35.29%;
+    --primary-gradient-active-to: 215.76 100% 38.82%;
+    --primary-gradient-disabled-from: 216 47.01% 77.06%;
+    --primary-gradient-disabled-to: 216.61 43.07% 73.14%;
     --error-toast-bg: 215.71 38.89% 21.18%;
     --secondary-100: 204, 28.6%, 96.9%;
     --secondary-200: 210, 21.7%, 92.4%;
@@ -331,48 +348,68 @@ html.dark .graphiql-themed .graphiql-container {
     --secondary-800: 214, 24.7%, 69%;
     --grey-400: 216 20% 80%;
     --grey-500: 216 20% 90%;
+    /* Always-dark surface for terminal/log-style panels (deployment logs,
+       migration logs) that stay dark regardless of the app's light/dark
+       theme. Same value in both blocks below on purpose. */
+    --console-background: 0 0% 10%;
   }
 
   .dark {
-    --background: 216 24.59% 11.96%;
-    --foreground: 210 40% 98%;
+    --background: 210 5.71% 13.73%;
+    --foreground: 220 7% 91.6%;
     --card: 216 25% 12%;
-    --card-foreground: 210 40% 98%;
-    --popover: 216 25% 12%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 216 100% 61%;
+    --card-foreground: 220 7% 91.6%;
+    --popover: 210 5.71% 13.73%;
+    --popover-foreground: 220 7% 91.6%;
+    --primary: 217.8 100% 64%;
     --primary-foreground: 222.2 47.4% 11.2%;
     --secondary: 216 17.07% 40.2%;
     --secondary-foreground: 0, 0%, 85%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 215.88 100% 60.98% / 16%;
+    --muted: 214.4 7.2% 19%;
+    --muted-foreground: 210 4% 70.2%;
+    --console-background: 0 0% 10%;
+    --accent: 210 7.1% 16.5%;
     --accent-foreground: 210 40% 98%;
-    --accent-background: 217 24% 11%;
-    --destructive: 340 52% 48%;
+    --destructive: 358.73 79.73% 80.35%;
     --destructive-foreground: 210 40% 98%;
-    --border: 210 13% 21%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 216 100% 61%;
+    --destructive-hover: 358.26 26.68% 22.03%;
+    --warning: 32 100% 57%;
+    --sidebar-foreground: 220 6.98% 91.57%;
+    --sidebar-section-title: 204 2.2% 55.1%;
+    --border: 214.29 5.43% 25.29%;
+    --input: 210.0 4.6% 34.1%;
+    --ring: 218.4 10.64% 46.08%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
-    --paper: 216 24.58% 11.96%;
+    --paper: 214.29 8.24% 16.67%;
     --divider: 210deg 12.96% 21.18%;
     --disabled: 211.58 8.92% 58.24%;
-    --primary-text: 204.55 52.38% 91.76%;
-    --background-default: 210, 23%, 11%;
+    --primary-text: 220 7% 91.6%;
+    --shadow-overlay: 0 16px 32px -8px rgb(0 0 0 / 0.60), 0 4px 12px -2px rgb(0 0 0 / 0.45);
+    --shadow-overlay-strong: 0 40px 80px -16px rgb(0 0 0 / 0.75), 0 8px 24px -4px rgb(0 0 0 / 0.55);
+    --background-default: 214.29, 8.24%, 16.67%;
     --data-cell-bg: 214.7, 24.1%, 15.5%;
     --data-cell-bg-odd: 216, 21.7%, 18%;
     --data-cell-bg-hover: 215 20% 22%;
     --data-cell-bg-disabled: 215, 12%, 19%;
     --data-table-border-color: 210, 13%, 21.2%;
-    --primary-main: 215.88 100% 60.98%;
+    --primary-main: 217.8 100% 64%;
     --table-selected: 216 31.65% 15.49%;
     --default: 216.92 23.64% 10.78%;
-    --primary-highlight: 215.88 100% 60.98% / 16%;
+    --primary-highlight: 217.8 100% 64% / 16%;
+    --primary-gradient-from: 216 86.67% 44.12%;
+    --primary-gradient-mid: 216 90.48% 41.18%;
+    --primary-gradient-to: 214.24 100% 36.08%;
+    --primary-gradient-hover-from: 215.51 79.03% 48.63%;
+    --primary-gradient-hover-mid: 216.18 86.9% 44.9%;
+    --primary-gradient-hover-to: 215.81 90.29% 40.39%;
+    --primary-gradient-active-from: 216.61 89.85% 38.63%;
+    --primary-gradient-active-to: 215.74 89.27% 40.2%;
+    --primary-gradient-disabled-from: 215.56 49.09% 21.57%;
+    --primary-gradient-disabled-to: 213.66 48.24% 16.67%;
     --error-toast-bg: 221.5, 10.7%, 23.7%;
     --secondary-100: 216, 14.5%, 15.3%;
     --secondary-200: 215, 16.3%, 17.5%;
@@ -405,7 +442,7 @@ html.dark .graphiql-themed .graphiql-container {
 }
 
 .box {
-  @apply border-divider bg-paper text-primary-text;
+  @apply border-divider text-primary-text;
 }
 
 #reset-popper-content-wrapper-styles [data-radix-popper-content-wrapper] {
@@ -425,4 +462,376 @@ html.dark .graphiql-themed .graphiql-container {
 
 .error-toast div[role="status"] {
   @apply w-full m-0;
+}
+
+/* ------------------------------------------------------------------
+ * CTA button system ("soft emboss"), matching the Lovable reference.
+ * A 3-stop vertical gradient, a 1px top highlight, a hairline inner
+ * ring and a dark bottom lip, all as inset shadows. No outer glow.
+ * Real pressed state (translateY + inner shadow) and a dark-mode pair.
+ * ------------------------------------------------------------------ */
+.btn-emboss {
+  border: 0;
+  transition:
+    background 0.16s cubic-bezier(0.32, 0.72, 0, 1),
+    box-shadow 0.16s cubic-bezier(0.32, 0.72, 0, 1),
+    transform 0.1s ease;
+}
+.btn-emboss:disabled,
+.btn-emboss[aria-disabled="true"] {
+  transform: none;
+  cursor: not-allowed;
+}
+
+.btn-emboss-primary {
+  color: #ffffff;
+  text-shadow: 0 1px 1px rgba(0, 32, 86, 0.35);
+  background: linear-gradient(180deg, hsl(var(--primary-gradient-from)) 0%, hsl(var(--primary-gradient-to)) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 0 0 1px rgba(0, 44, 116, 0.42);
+}
+.btn-emboss-primary:hover:not(:disabled) {
+  background: linear-gradient(180deg, hsl(var(--primary-gradient-hover-from)) 0%, hsl(var(--primary-gradient-hover-to)) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.34),
+    inset 0 0 0 1px rgba(0, 44, 116, 0.36);
+}
+.btn-emboss-primary:active:not(:disabled) {
+  transform: translateY(1px);
+  background: linear-gradient(180deg, hsl(var(--primary-gradient-active-from)) 0%, hsl(var(--primary-gradient-active-to)) 100%);
+  box-shadow:
+    inset 0 2px 4px rgba(0, 26, 72, 0.4),
+    inset 0 0 0 1px rgba(0, 44, 116, 0.5);
+}
+.btn-emboss-primary:disabled,
+.btn-emboss-primary[aria-disabled="true"] {
+  color: #ffffff;
+  text-shadow: none;
+  background: linear-gradient(180deg, hsl(var(--primary-gradient-disabled-from)) 0%, hsl(var(--primary-gradient-disabled-to)) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 0 0 1px rgba(0, 44, 116, 0.14);
+}
+.dark .btn-emboss-primary {
+  color: #ffffff;
+  text-shadow: 0 1px 1px rgba(0, 26, 72, 0.45);
+  background: linear-gradient(180deg, hsl(var(--primary-gradient-from)) 0%, hsl(var(--primary-gradient-mid)) 46%, hsl(var(--primary-gradient-to)) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.26),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+    inset 0 -1px 1px rgba(0, 20, 60, 0.35);
+}
+.dark .btn-emboss-primary:hover:not(:disabled) {
+  background: linear-gradient(180deg, hsl(var(--primary-gradient-hover-from)) 0%, hsl(var(--primary-gradient-hover-mid)) 46%, hsl(var(--primary-gradient-hover-to)) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+    inset 0 -1px 1px rgba(0, 20, 60, 0.3);
+}
+.dark .btn-emboss-primary:active:not(:disabled) {
+  transform: translateY(1px);
+  background: linear-gradient(180deg, hsl(var(--primary-gradient-active-from)) 0%, hsl(var(--primary-gradient-active-to)) 100%);
+  box-shadow:
+    inset 0 2px 4px rgba(0, 18, 54, 0.55),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+.dark .btn-emboss-primary:disabled,
+.dark .btn-emboss-primary[aria-disabled="true"] {
+  color: rgba(255, 255, 255, 0.5);
+  text-shadow: none;
+  background: linear-gradient(180deg, hsl(var(--primary-gradient-disabled-from)) 0%, hsl(var(--primary-gradient-disabled-to)) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+/* ------------------------------------------------------------------
+ * Same primary gradient as .btn-emboss-primary, without the emboss
+ * bezel (no inset highlight/lip shadows, no text-shadow). Used where
+ * the raised 3D look is too much, e.g. the Discord banner.
+ * ------------------------------------------------------------------ */
+.btn-emboss-primary-gradient-only {
+  color: #ffffff;
+  border: 0;
+  background: linear-gradient(180deg, hsl(var(--primary-gradient-from)) 0%, hsl(var(--primary-gradient-to)) 100%);
+  transition: background 0.16s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.btn-emboss-primary-gradient-only:hover:not(:disabled) {
+  background: linear-gradient(180deg, hsl(var(--primary-gradient-hover-from)) 0%, hsl(var(--primary-gradient-hover-to)) 100%);
+}
+.btn-emboss-primary-gradient-only:disabled,
+.btn-emboss-primary-gradient-only[aria-disabled="true"] {
+  color: #ffffff;
+  background: linear-gradient(180deg, hsl(var(--primary-gradient-disabled-from)) 0%, hsl(var(--primary-gradient-disabled-to)) 100%);
+}
+.dark .btn-emboss-primary-gradient-only {
+  color: #ffffff;
+  background: linear-gradient(180deg, hsl(var(--primary-gradient-from)) 0%, hsl(var(--primary-gradient-mid)) 46%, hsl(var(--primary-gradient-to)) 100%);
+}
+.dark .btn-emboss-primary-gradient-only:hover:not(:disabled) {
+  background: linear-gradient(180deg, hsl(var(--primary-gradient-hover-from)) 0%, hsl(var(--primary-gradient-hover-mid)) 46%, hsl(var(--primary-gradient-hover-to)) 100%);
+}
+.dark .btn-emboss-primary-gradient-only:disabled,
+.dark .btn-emboss-primary-gradient-only[aria-disabled="true"] {
+  color: rgba(255, 255, 255, 0.5);
+  background: linear-gradient(180deg, hsl(var(--primary-gradient-disabled-from)) 0%, hsl(var(--primary-gradient-disabled-to)) 100%);
+}
+
+/* ------------------------------------------------------------------
+ * SECONDARY button ("soft emboss"), matching the Lovable reference.
+ * Border only, transparent background.
+ * ------------------------------------------------------------------ */
+.btn-emboss-secondary {
+  color: #26303f;
+  text-shadow: none;
+  background: transparent;
+  box-shadow: inset 0 0 0 1px rgba(16, 38, 74, 0.18);
+}
+.btn-emboss-secondary:hover:not(:disabled) {
+  color: #16202e;
+  background: rgba(16, 38, 74, 0.05);
+  box-shadow: inset 0 0 0 1px rgba(16, 38, 74, 0.26);
+}
+.btn-emboss-secondary:active:not(:disabled) {
+  transform: translateY(1px);
+  background: rgba(16, 38, 74, 0.09);
+  box-shadow: inset 0 0 0 1px rgba(16, 38, 74, 0.28);
+}
+.btn-emboss-secondary:disabled,
+.btn-emboss-secondary[aria-disabled="true"] {
+  color: rgba(38, 48, 63, 0.3);
+  text-shadow: none;
+  background: transparent;
+  box-shadow: inset 0 0 0 1px rgba(16, 38, 74, 0.1);
+}
+.dark .btn-emboss-secondary {
+  color: #dbe4f0;
+  text-shadow: none;
+  background: transparent;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+.dark .btn-emboss-secondary:hover:not(:disabled) {
+  color: #f0f5fb;
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+.dark .btn-emboss-secondary:active:not(:disabled) {
+  transform: translateY(1px);
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+.dark .btn-emboss-secondary:disabled,
+.dark .btn-emboss-secondary[aria-disabled="true"] {
+  color: rgba(219, 228, 240, 0.3);
+  text-shadow: none;
+  background: transparent;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+/* ------------------------------------------------------------------
+ * DANGER button ("soft emboss"), matching the Lovable reference.
+ * Same recipe as the primary CTA, in the destructive red family.
+ * ------------------------------------------------------------------ */
+.btn-emboss-danger {
+  color: #ffffff;
+  text-shadow: 0 1px 1px rgba(84, 0, 24, 0.35);
+  background: linear-gradient(180deg, #d9174a 0%, #cf0a3d 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.26),
+    inset 0 0 0 1px rgba(108, 2, 34, 0.42);
+}
+.btn-emboss-danger:hover:not(:disabled) {
+  background: linear-gradient(180deg, #e42153 0%, #d70f44 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    inset 0 0 0 1px rgba(108, 2, 34, 0.36);
+}
+.btn-emboss-danger:active:not(:disabled) {
+  transform: translateY(1px);
+  background: linear-gradient(180deg, #b70832 0%, #c80a3b 100%);
+  box-shadow:
+    inset 0 2px 4px rgba(70, 0, 20, 0.4),
+    inset 0 0 0 1px rgba(108, 2, 34, 0.5);
+}
+.btn-emboss-danger:disabled,
+.btn-emboss-danger[aria-disabled="true"] {
+  color: #ffffff;
+  text-shadow: none;
+  background: linear-gradient(180deg, #e5b1c0 0%, #dca4b5 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 0 0 1px rgba(108, 2, 34, 0.14);
+}
+.dark .btn-emboss-danger {
+  color: #ffffff;
+  text-shadow: 0 1px 1px rgba(70, 0, 18, 0.5);
+  background: linear-gradient(180deg, #e01e4d 0%, #d40f43 46%, #bd0a38 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+    inset 0 -1px 1px rgba(60, 0, 16, 0.38);
+}
+.dark .btn-emboss-danger:hover:not(:disabled) {
+  background: linear-gradient(180deg, #ea2b59 0%, #dd154b 46%, #c60c3d 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+    inset 0 -1px 1px rgba(60, 0, 16, 0.34);
+}
+.dark .btn-emboss-danger:active:not(:disabled) {
+  transform: translateY(1px);
+  background: linear-gradient(180deg, #b3082f 0%, #c40a3a 100%);
+  box-shadow:
+    inset 0 2px 4px rgba(54, 0, 14, 0.6),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+.dark .btn-emboss-danger:disabled,
+.dark .btn-emboss-danger[aria-disabled="true"] {
+  color: rgba(255, 255, 255, 0.5);
+  text-shadow: none;
+  background: linear-gradient(180deg, #4a2130 0%, #391a25 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+
+/* Pro feature banner (UpgradeBanner) ---------------------------------- */
+/* A quiet, continuous ambient loop. Differing long durations keep the
+ * layers from appearing to share a visible start or end point. Ported
+ * from the Lovable design exploration's pro-feature-banner. */
+.pro-feature-banner {
+  isolation: isolate;
+  transition: border-color 500ms ease, box-shadow 500ms ease;
+}
+
+.pro-feature-banner::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(
+    110deg,
+    transparent 15%,
+    hsl(var(--primary) / 13%) 42%,
+    transparent 67%
+  );
+  background-size: 240% 100%;
+  background-repeat: no-repeat;
+  opacity: 0;
+  animation: pro-banner-light 14s ease-in-out infinite;
+}
+
+.pro-feature-banner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px hsl(var(--primary) / 8%);
+  animation: pro-banner-border 7s ease-in-out infinite alternate;
+}
+
+.pro-banner-blob {
+  position: absolute;
+  z-index: -1;
+  width: 9rem;
+  height: 9rem;
+  border-radius: 9999px;
+  pointer-events: none;
+  filter: blur(42px);
+  opacity: 0.09;
+  background: hsl(var(--primary));
+  animation: pro-banner-blob 11s ease-in-out infinite alternate;
+}
+
+.pro-banner-blob-a {
+  top: -4rem;
+  right: 22%;
+}
+
+.pro-banner-blob-b {
+  right: -3rem;
+  bottom: -4rem;
+  opacity: 0.07;
+  animation-duration: 15s;
+  animation-direction: alternate-reverse;
+}
+
+.pro-orbit {
+  transform-box: view-box;
+  transform-origin: 120px 80px;
+}
+
+.pro-orbit-inner {
+  animation: pro-orbit-spin 32s linear infinite;
+}
+
+.pro-orbit-outer {
+  animation: pro-orbit-spin-reverse 48s linear infinite;
+}
+
+.pro-illustration-halo {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pro-halo-breathe 8s ease-in-out infinite alternate;
+}
+
+.pro-illustration-icon {
+  animation: pro-icon-breathe 7s ease-in-out infinite alternate;
+}
+
+@keyframes pro-banner-light {
+  0%, 8% {
+    background-position: 130% 0;
+    opacity: 0;
+  }
+  18% { opacity: 0.7; }
+  82% { opacity: 0.7; }
+  92%, 100% {
+    background-position: -130% 0;
+    opacity: 0;
+  }
+}
+
+@keyframes pro-banner-border {
+  from { opacity: 0.45; }
+  to { opacity: 0.9; }
+}
+
+@keyframes pro-banner-blob {
+  from { transform: translate3d(0, 0, 0) scale(0.95); }
+  to { transform: translate3d(-18px, 12px, 0) scale(1.12); }
+}
+
+@keyframes pro-orbit-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pro-orbit-spin-reverse {
+  to { transform: rotate(-360deg); }
+}
+
+@keyframes pro-halo-breathe {
+  from { opacity: 0.72; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1.035); }
+}
+
+@keyframes pro-icon-breathe {
+  from { opacity: 0.88; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pro-feature-banner::before,
+  .pro-feature-banner::after,
+  .pro-banner-blob,
+  .pro-orbit,
+  .pro-illustration-halo,
+  .pro-illustration-icon {
+    animation: none !important;
+  }
 }

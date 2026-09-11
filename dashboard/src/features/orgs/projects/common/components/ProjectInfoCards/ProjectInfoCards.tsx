@@ -26,8 +26,8 @@ export default function ProjectInfoCards({ layout }: ProjectInfoCardsProps) {
     project.region?.city
   );
 
-  return (
-    <div className="grid grid-flow-row gap-3">
+  const cards = (
+    <>
       <InfoCard
         title="Region"
         value={project.region.name}
@@ -52,6 +52,16 @@ export default function ProjectInfoCards({ layout }: ProjectInfoCardsProps) {
       />
 
       <InfoCard title="Subdomain" value={project.subdomain} layout={layout} />
+    </>
+  );
+
+  if (layout === 'stacked') {
+    return <div className="grid grid-flow-row gap-3">{cards}</div>;
+  }
+
+  return (
+    <div className="grid divide-y divide-border overflow-hidden rounded-lg border">
+      {cards}
     </div>
   );
 }

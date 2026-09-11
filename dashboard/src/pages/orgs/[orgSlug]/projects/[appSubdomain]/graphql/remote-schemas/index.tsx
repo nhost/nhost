@@ -39,6 +39,6 @@ RemoteSchemasPage.getLayout = function getLayout(page: ReactElement) {
   return getGraphQLLayout(page, {
     sidebar: <RemoteSchemaBrowserSidebar />,
     contentClassName:
-      'flex w-full flex-auto flex-col overflow-x-hidden bg-background-default',
+      'flex w-full flex-auto flex-col overflow-x-hidden',
   });
 };

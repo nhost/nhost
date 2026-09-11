@@ -157,7 +157,7 @@ export default function BaseRelationshipDialog({
                 {submitButtonText}
               </ButtonWithLoading>
               <DialogClose asChild>
-                <Button variant="outline" className="!text-sm+ text-foreground">
+                <Button variant="outline-emboss" className="!text-sm+ text-foreground">
                   Cancel
                 </Button>
               </DialogClose>

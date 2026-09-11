@@ -105,7 +105,7 @@ export default function DeleteOrg() {
   };
 
   return (
-    <div className="flex w-full flex-col rounded-md border border-destructive bg-background">
+    <div className="flex w-full flex-col rounded-md border bg-background">
       <div className="flex w-full flex-col gap-2 border-b p-4 font-medium">
         <h3>Delete Organization</h3>
         <p className="font-normal text-muted-foreground text-sm">

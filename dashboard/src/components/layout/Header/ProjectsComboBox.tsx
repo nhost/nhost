@@ -1,18 +1,18 @@
 import { SiGithub } from '@icons-pack/react-simple-icons';
-import { Box, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useRouter } from 'next/router';
 import HeaderCombobox from '@/components/layout/Header/HeaderCombobox';
 import ProjectStatus from '@/components/layout/Header/ProjectStatus';
-import { CommandItem, CommandSeparator } from '@/components/ui/v3/command';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
-import { ProjectStatusIndicator } from '@/features/orgs/components/common/ProjectStatusIndicator';
+import { ProjectStatusPill } from '@/features/orgs/components/common/ProjectStatusPill';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { ApplicationStatus } from '@/types/application';
 import { getProjectFeaturePagePath } from '@/utils/getProjectFeaturePagePath';
 
 export default function ProjectsComboBox() {
@@ -36,41 +36,50 @@ export default function ProjectsComboBox() {
     push(`/orgs/${orgSlug}/projects/${subdomain}${featurePath}`);
   };
 
-  const options = apps.map((app) => ({
-    value: app.subdomain,
-    label: app.name,
-    render: (
-      <div className="flex w-full items-center gap-1">
-        <Box className="h-4 w-4 shrink-0" />
-        <span className="max-w-52 truncate">{app.name}</span>
-        {!!app.githubRepository && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="ml-auto flex shrink-0 items-center">
-                <SiGithub className="h-3.5 w-3.5" />
-              </span>
-            </TooltipTrigger>
-            <TooltipContent
-              side="right"
-              sideOffset={8}
-              className="pointer-events-none max-w-56"
-            >
-              <p className="font-medium">GitHub connected</p>
-              <p className="text-muted-foreground">
-                Metadata changes may be overridden by the next deployment.
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        )}
-      </div>
-    ),
-  }));
+  const options = apps.map((app) => {
+    const isSelected = app.subdomain === selectedProjectFromUrl?.subdomain;
+    const rowStatus = isSelected
+      ? appState
+      : (app.appStates[0]?.stateId ?? ApplicationStatus.Empty);
+
+    return {
+      value: app.subdomain,
+      label: app.name,
+      className: isSelected
+        ? 'bg-primary/[0.06] font-medium dark:bg-primary/[0.08]'
+        : undefined,
+      render: (
+        <div className="flex w-full items-center gap-2">
+          <span className="min-w-0 flex-1 truncate">{app.name}</span>
+          <div className="ml-auto flex shrink-0 items-center gap-2">
+            {!!app.githubRepository && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="flex shrink-0 items-center">
+                    <SiGithub className="h-3.5 w-3.5" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="right"
+                  sideOffset={8}
+                  className="pointer-events-none max-w-56"
+                >
+                  <p className="font-medium">GitHub connected</p>
+                  <p className="text-muted-foreground">
+                    Metadata changes may be overridden by the next deployment.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            <ProjectStatusPill status={rowStatus} />
+          </div>
+        </div>
+      ),
+    };
+  });
 
   const triggerLabel = selectedProjectFromUrl ? (
     <div className="flex items-center gap-2">
-      <span className="flex size-2 shrink-0 items-center justify-center">
-        <ProjectStatusIndicator status={appState} />
-      </span>
       {selectedProjectFromUrl.name}
       {isGitHubConnected && (
         <Tooltip>
@@ -90,28 +99,28 @@ export default function ProjectsComboBox() {
           </TooltipContent>
         </Tooltip>
       )}
+      <ProjectStatusPill status={appState} />
       <ProjectStatus />
     </div>
   ) : null;
 
   const footerSlot = (
-    <>
-      <CommandSeparator className="mt-1" />
-      <CommandItem
-        forceMount
-        value="new-project"
-        onSelect={() => {
+    <div className="border-t p-1">
+      <button
+        type="button"
+        onClick={() => {
           if (!orgSlug) {
             return;
           }
 
           push(`/orgs/${orgSlug}/projects/new`);
         }}
+        className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 font-medium text-primary text-sm hover:bg-primary/10"
       >
-        <Plus className="mr-2 h-4 w-4" />
+        <Plus className="h-3.5 w-3.5" />
         New Project
-      </CommandItem>
-    </>
+      </button>
+    </div>
   );
 
   return (
@@ -122,6 +131,7 @@ export default function ProjectsComboBox() {
       placeholder="Select a project"
       searchPlaceholder="Select a project..."
       footerSlot={footerSlot}
+      popoverContentClassName="w-[290px]"
       linkHref={
         selectedProjectFromUrl && orgSlug
           ? `/orgs/${orgSlug}/projects/${selectedProjectFromUrl.subdomain}`

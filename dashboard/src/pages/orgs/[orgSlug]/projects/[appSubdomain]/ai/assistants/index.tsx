@@ -1,16 +1,15 @@
-import { PlusIcon } from 'lucide-react';
+import { PlusIcon, SparklesIcon } from 'lucide-react';
 import Link from 'next/link';
 import { type ReactElement, useMemo } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
-import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
+import { UpgradeBanner } from '@/components/common/UpgradeBanner';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Alert } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
-import { AISidebar } from '@/features/orgs/layout/AISidebar';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { getAILayout } from '@/features/orgs/projects/ai/layout';
 import { AssistantForm } from '@/features/orgs/projects/ai/AssistantForm';
 import { AssistantsList } from '@/features/orgs/projects/ai/AssistantsList';
 import type { Assistant } from '@/features/orgs/projects/ai/assistants/types';
@@ -108,11 +107,7 @@ export default function AssistantsPage() {
         className="grid grid-flow-row gap-6 bg-transparent"
         rootClassName="bg-transparent"
       >
-        <UpgradeToProBanner
-          section="ai-assistants"
-          title="To unlock Nhost Assistants, transfer this project to a Pro or Team organization."
-          description=""
-        />
+        <UpgradeBanner section="ai-assistants" icon={SparklesIcon} />
       </Container>
     );
   }
@@ -127,7 +122,7 @@ export default function AssistantsPage() {
           <p>
             To enable graphite, configure the service first in{' '}
             <Link
-              href={`/orgs/${slug}/projects/${project?.subdomain}/settings/ai`}
+              href={`/orgs/${slug}/projects/${project?.subdomain}/ai/settings`}
               rel="noopener noreferrer"
               className="text-primary hover:underline"
             >
@@ -189,17 +184,5 @@ export default function AssistantsPage() {
 }
 
 AssistantsPage.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <ProjectLayout
-      mainContainerProps={{
-        className:
-          'flex flex-row w-full h-full !bg-[#fafafa] dark:!bg-[#151a22]',
-      }}
-    >
-      <AISidebar />
-      <div className="w-full overflow-auto">
-        <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
-      </div>
-    </ProjectLayout>
-  );
+  return getAILayout(<RetryableErrorBoundary>{page}</RetryableErrorBoundary>);
 };

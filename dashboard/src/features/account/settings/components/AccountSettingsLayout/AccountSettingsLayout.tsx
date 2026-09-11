@@ -26,7 +26,7 @@ export default function AccountSettingsLayout({
           mainClassName,
         )}
       >
-        <div className="flex w-full flex-auto flex-col overflow-x-hidden bg-background-default">
+        <div className="flex w-full flex-auto flex-col overflow-x-hidden">
           <RetryableErrorBoundary>{children}</RetryableErrorBoundary>
         </div>
       </main>

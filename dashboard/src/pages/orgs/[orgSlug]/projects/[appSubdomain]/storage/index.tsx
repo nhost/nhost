@@ -21,6 +21,6 @@ export default function StorageIndexPage() {
 
 StorageIndexPage.getLayout = function getLayout(page: ReactElement) {
   return getStorageLayout(<StorageLayout>{page}</StorageLayout>, {
-    contentClassName: 'flex w-full flex-auto overflow-hidden',
+    contentClassName: 'flex w-full flex-auto overflow-hidden pt-0',
   });
 };

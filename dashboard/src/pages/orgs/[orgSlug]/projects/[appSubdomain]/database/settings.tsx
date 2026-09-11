@@ -1,6 +1,10 @@
+import { DatabaseIcon, SettingsIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import type { ReactElement, ReactNode } from 'react';
-import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
+import { ProTag } from '@/components/common/ProTag';
+import { UpgradeBanner } from '@/components/common/UpgradeBanner';
+import { dashboardNavItemTextClassName } from '@/components/layout/DashboardSidebar/DashboardSidebar';
+import { FeatureSidebar } from '@/components/layout/FeatureSidebar';
 import { Spinner } from '@/components/ui/v3/spinner';
 import {
   Tabs,
@@ -22,6 +26,7 @@ import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useGetPostgresSettingsQuery } from '@/generated/graphql';
+import { cn } from '@/lib/utils';
 import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 
 type DatabaseSettingsTab =
@@ -73,57 +78,92 @@ function getDatabaseSettingsTab(
   return tab;
 }
 
+interface DatabaseSettingsSectionLabelProps {
+  children: ReactNode;
+}
+
+/** Uppercase group label above a set of related settings tabs, matching the
+ * section label style used in the main project sidebar. */
+const databaseSettingsTabTriggerClassName = cn(
+  'flex w-full items-center justify-start gap-2.5 rounded-md px-2 py-1.5 text-left',
+  dashboardNavItemTextClassName,
+  'data-[state=active]:bg-neutral-100 data-[state=active]:text-primary data-[state=active]:hover:bg-neutral-100 data-[state=active]:hover:text-primary dark:data-[state=active]:bg-muted dark:data-[state=active]:text-primary dark:data-[state=active]:hover:bg-muted dark:data-[state=active]:hover:text-primary',
+);
+
+function DatabaseSettingsSectionLabel({
+  children,
+}: DatabaseSettingsSectionLabelProps) {
+  return (
+    <p className="mt-[1.2rem] px-2 pb-1 text-[10px] font-normal uppercase tracking-[0.08em] text-muted-foreground first:mt-0 dark:text-sidebar-section-title">
+      {children}
+    </p>
+  );
+}
+
 function DatabaseSettingsSidebar() {
   const isPlatform = useIsPlatform();
+  const { org } = useCurrentOrg();
+  const isFreeOrg = isPlatform && org?.plan?.isFree;
 
   return (
-    <aside className="h-full w-[280px] max-w-[280px] shrink-0 overflow-auto bg-background-default">
+    <FeatureSidebar
+      className="w-[240px] max-w-[240px] border-r-0 md:pt-14"
+      mobileBreakpoint="md"
+      toggleIcon={<SettingsIcon className="h-4 w-4 text-white" />}
+      toggleOffset="left-8"
+    >
       <TabsList
         aria-label="Database settings navigation"
-        className="flex h-full min-h-0 w-full flex-col items-stretch justify-start gap-1 rounded-none bg-transparent px-4 py-6 text-muted-foreground"
+        className="flex h-full min-h-0 w-full flex-col items-stretch justify-start rounded-none bg-transparent p-2 text-muted-foreground"
       >
-        <TabsTrigger
-          value="version"
-          className="h-10 w-full justify-start rounded-lg px-3 text-left font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground data-[state=active]:bg-muted data-[state=active]:text-primary data-[state=active]:shadow-none"
-        >
+        <DatabaseSettingsSectionLabel>Engine</DatabaseSettingsSectionLabel>
+        <TabsTrigger value="version" className={databaseSettingsTabTriggerClassName}>
           Postgres version
         </TabsTrigger>
-        <TabsTrigger
-          value="capacity"
-          className="h-10 w-full justify-start rounded-lg px-3 text-left font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground data-[state=active]:bg-muted data-[state=active]:text-primary data-[state=active]:shadow-none"
-        >
+
+        <DatabaseSettingsSectionLabel>Storage</DatabaseSettingsSectionLabel>
+        <TabsTrigger value="capacity" className={databaseSettingsTabTriggerClassName}>
           Capacity
+          {isFreeOrg && <ProTag />}
         </TabsTrigger>
         {isPlatform && (
+          <TabsTrigger
+            value="point-in-time"
+            className={databaseSettingsTabTriggerClassName}
+          >
+            Point-in-Time Recovery
+            {isFreeOrg && <ProTag />}
+          </TabsTrigger>
+        )}
+
+        {isPlatform && (
           <>
-            <TabsTrigger
-              value="point-in-time"
-              className="h-10 w-full justify-start rounded-lg px-3 text-left font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground data-[state=active]:bg-muted data-[state=active]:text-primary data-[state=active]:shadow-none"
-            >
-              Point-in-Time
-            </TabsTrigger>
+            <DatabaseSettingsSectionLabel>Connectivity</DatabaseSettingsSectionLabel>
             <TabsTrigger
               value="public-access"
-              className="h-10 w-full justify-start rounded-lg px-3 text-left font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground data-[state=active]:bg-muted data-[state=active]:text-primary data-[state=active]:shadow-none"
+              className={databaseSettingsTabTriggerClassName}
             >
-              Public access
+              Access
             </TabsTrigger>
             <TabsTrigger
               value="custom-domain"
-              className="h-10 w-full justify-start rounded-lg px-3 text-left font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground data-[state=active]:bg-muted data-[state=active]:text-primary data-[state=active]:shadow-none"
+              className={databaseSettingsTabTriggerClassName}
             >
               Custom Domain
+              {isFreeOrg && <ProTag />}
             </TabsTrigger>
+
+            <DatabaseSettingsSectionLabel>Security</DatabaseSettingsSectionLabel>
             <TabsTrigger
               value="reset-password"
-              className="h-10 w-full justify-start rounded-lg px-3 text-left font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground data-[state=active]:bg-muted data-[state=active]:text-primary data-[state=active]:shadow-none"
+              className={databaseSettingsTabTriggerClassName}
             >
               Reset password
             </TabsTrigger>
           </>
         )}
       </TabsList>
-    </aside>
+    </FeatureSidebar>
   );
 }
 
@@ -186,15 +226,31 @@ function DatabaseCustomDomainSettings() {
 
   if (org?.plan?.isFree) {
     return (
-      <UpgradeToProBanner
-        section="settings-custom-domains"
-        title="To unlock Custom Domains, transfer this project to a Pro or Team organization."
-        description=""
-      />
+      <UpgradeBanner section="settings-custom-domains" icon={DatabaseIcon} />
     );
   }
 
   return <DatabaseDomain />;
+}
+
+function DatabaseCapacitySettings() {
+  const { org } = useCurrentOrg();
+
+  if (org?.plan?.isFree) {
+    return <UpgradeBanner section="settings-capacity" icon={DatabaseIcon} />;
+  }
+
+  return <DatabaseStorageCapacity />;
+}
+
+function DatabasePointInTimeRecoverySettings() {
+  const { org } = useCurrentOrg();
+
+  if (org?.plan?.isFree) {
+    return <UpgradeBanner section="settings-point-in-time" icon={DatabaseIcon} />;
+  }
+
+  return <DatabasePiTRSettings />;
 }
 
 export default function DatabaseSettingsPage() {
@@ -224,20 +280,20 @@ export default function DatabaseSettingsPage() {
 
   return (
     <SettingsLayout>
-      <div className="w-full px-5 py-4">
+      <div className="w-full px-5 pb-4">
         <div className="grid grid-flow-row gap-y-6">
           <TabsContent value="version" className="mt-0">
             <DatabaseServiceVersionSettings />
           </TabsContent>
 
           <TabsContent value="capacity" className="mt-0">
-            <DatabaseStorageCapacity />
+            <DatabaseCapacitySettings />
           </TabsContent>
 
           {isPlatform && (
             <>
               <TabsContent value="point-in-time" className="mt-0">
-                <DatabasePiTRSettings />
+                <DatabasePointInTimeRecoverySettings />
               </TabsContent>
 
               <TabsContent

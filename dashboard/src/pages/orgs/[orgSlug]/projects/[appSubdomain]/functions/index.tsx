@@ -46,6 +46,6 @@ FunctionsPage.getLayout = function getLayout(page: ReactElement) {
   return getFunctionsLayout(page, {
     sidebar: <FunctionsBrowserSidebar />,
     contentClassName:
-      'box flex w-full flex-auto flex-col overflow-x-hidden bg-default',
+      'box flex w-full flex-auto flex-col overflow-x-hidden',
   });
 };

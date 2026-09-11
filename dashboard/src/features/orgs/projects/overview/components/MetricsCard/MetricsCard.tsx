@@ -32,7 +32,7 @@ export default function MetricsCard({
   return (
     <div
       className={cn(
-        'grid grid-flow-row gap-2 rounded-md bg-muted px-4 py-3',
+        'grid grid-flow-row gap-2 rounded-lg border p-3 shadow-sm',
         className,
       )}
       {...props}

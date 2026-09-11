@@ -1,16 +1,20 @@
+import { ArchiveRestore, Download, Loader2 } from 'lucide-react';
 import { format, formatDistanceStrict, parseISO } from 'date-fns';
-import { twMerge } from 'tailwind-merge';
 import { useDialog } from '@/components/common/DialogProvider';
-import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import { IconButton } from '@/components/ui/v3/icon-button';
 import { TableCell, TableRow } from '@/components/ui/v3/table';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import {
   BACKUP_OPERATION_COPY,
   type BackupOperation,
 } from '@/features/orgs/projects/backups/components/common/backup-operation';
-import { useGetBackupPresignedUrlLazyQuery } from '@/generated/graphql';
+import { useDownloadBackup } from '@/features/orgs/projects/backups/hooks/useDownloadBackup';
 import type { Backup } from '@/types/application';
 import { prettifySize } from '@/utils/prettifySize';
-import { triggerToast } from '@/utils/toast';
 import RestoreBackupModal from './RestoreBackupModal';
 
 export interface BackupListItemProps {
@@ -34,32 +38,11 @@ export default function BackupListItem({
 }: BackupListItemProps) {
   const { id, createdAt, size } = backup;
   const { openDialog, closeDialog } = useDialog();
-  const [fetchPresignedUrl, { loading: loadingPresignedUrl }] =
-    useGetBackupPresignedUrlLazyQuery({
-      variables: {
-        appId,
-        backupId: id,
-      },
-    });
+  const { downloadBackup, loading: loadingPresignedUrl } = useDownloadBackup(
+    appId,
+    id,
+  );
   const operationCopy = BACKUP_OPERATION_COPY[operation].backupList;
-
-  async function downloadBackup() {
-    const { data: presignedUrlData, error } = await fetchPresignedUrl();
-
-    if (error) {
-      triggerToast(
-        'An error occurred while fetching the presigned URL. Please try again later.',
-      );
-
-      return;
-    }
-
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    window.open(presignedUrlData?.getBackupPresignedUrl.url, '_blank');
-  }
 
   function restoreBackup() {
     openDialog({
@@ -87,28 +70,31 @@ export default function BackupListItem({
           addSuffix: true,
         })}
       </TableCell>
-      <TableCell
-        className={twMerge('text-right', !loadingPresignedUrl && 'pl-8')}
-      >
-        <div className="flex flex-row justify-end gap-2">
-          <ButtonWithLoading
-            variant="ghost"
-            size="sm"
-            className="text-primary hover:text-primary"
-            onClick={downloadBackup}
-            loading={loadingPresignedUrl}
-          >
-            Download
-          </ButtonWithLoading>
+      <TableCell className="text-right">
+        <div className="flex flex-row justify-end gap-1">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <IconButton
+                icon={loadingPresignedUrl ? Loader2 : Download}
+                iconClassName={loadingPresignedUrl ? 'animate-spin' : ''}
+                aria-label="Download"
+                disabled={loadingPresignedUrl}
+                onClick={downloadBackup}
+              />
+            </TooltipTrigger>
+            <TooltipContent>Download</TooltipContent>
+          </Tooltip>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-primary hover:text-primary"
-            onClick={restoreBackup}
-          >
-            {operationCopy.actionButtonText}
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <IconButton
+                icon={ArchiveRestore}
+                aria-label={operationCopy.actionButtonText}
+                onClick={restoreBackup}
+              />
+            </TooltipTrigger>
+            <TooltipContent>{operationCopy.actionButtonText}</TooltipContent>
+          </Tooltip>
         </div>
       </TableCell>
     </TableRow>

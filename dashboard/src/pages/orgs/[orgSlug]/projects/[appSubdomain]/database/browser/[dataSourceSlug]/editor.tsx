@@ -19,7 +19,7 @@ Editor.getLayout = function getLayout(page: ReactElement) {
   return getDatabaseLayout(
     <RetryableErrorBoundary>{page}</RetryableErrorBoundary>,
     {
-      contentClassName: 'box flex w-full flex-col overflow-x-hidden bg-default',
+      contentClassName: 'box flex w-full flex-col overflow-x-hidden pt-0',
     },
   );
 };

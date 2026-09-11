@@ -1,6 +1,8 @@
+import { SiGraphql as GraphQLIcon } from '@icons-pack/react-simple-icons';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
-import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
+import { ProTag } from '@/components/common/ProTag';
+import { UpgradeBanner } from '@/components/common/UpgradeBanner';
 import {
   SectionSidebarButton,
   SectionSidebarGroup,
@@ -88,9 +90,11 @@ function useGraphQLSettingsTab() {
 
 function GraphQLSettingsSidebar() {
   const { activeTab, setActiveTab } = useGraphQLSettingsTab();
+  const { org } = useCurrentOrg();
+  const isFreeOrg = org?.plan?.isFree;
 
   return (
-    <aside className="h-full w-[280px] max-w-[280px] shrink-0 overflow-auto bg-background-default">
+    <aside className="h-full w-[240px] max-w-[240px] shrink-0 overflow-auto pt-14">
       <SectionSidebarNav ariaLabel="GraphQL settings navigation">
         <SectionSidebarGroup label="ENGINE">
           <SectionSidebarButton
@@ -113,6 +117,7 @@ function GraphQLSettingsSidebar() {
             onClick={() => setActiveTab('custom-domain')}
           >
             Custom Domain
+            {isFreeOrg && <ProTag />}
           </SectionSidebarButton>
           <SectionSidebarButton
             active={activeTab === 'rate-limiting'}
@@ -131,11 +136,7 @@ function GraphQLCustomDomainSettings() {
 
   if (org?.plan?.isFree) {
     return (
-      <UpgradeToProBanner
-        section="settings-custom-domains"
-        title="To unlock Custom Domains, transfer this project to a Pro or Team organization."
-        description=""
-      />
+      <UpgradeBanner section="settings-custom-domains" icon={GraphQLIcon} />
     );
   }
 
@@ -193,7 +194,7 @@ export default function GraphQLSettingsPage() {
 
   return (
     <SettingsLayout>
-      <div className="w-full px-5 py-4">
+      <div className="w-full px-5 pb-4">
         <div className="grid grid-flow-row gap-y-6">
           {activeTab === 'engine' && (
             <>

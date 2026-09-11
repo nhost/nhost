@@ -2,13 +2,11 @@ import { Plus } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import HeaderCombobox from '@/components/layout/Header/HeaderCombobox';
-import { Badge } from '@/components/ui/v3/badge';
-import { CommandItem, CommandSeparator } from '@/components/ui/v3/command';
+import { PlanBadge } from '@/components/common/PlanBadge';
 import CreateOrgDialog from '@/features/orgs/components/CreateOrgFormDialog/CreateOrgFormDialog';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
-import { cn } from '@/lib/utils';
 
 export default function OrgsComboBox() {
   const { orgs } = useOrgs();
@@ -30,32 +28,37 @@ export default function OrgsComboBox() {
       return null;
     }
 
-    return (
-      <Badge
-        variant={plan === 'Starter' ? 'outline' : 'default'}
-        className={cn(
-          plan === 'Starter' ? 'bg-muted' : '',
-          plan === 'Legacy'
-            ? 'bg-orange-200 text-foreground hover:bg-orange-200 dark:bg-orange-500'
-            : '',
-          'hover:none ml-2 h-5 px-[6px] text-[10px]',
-        )}
-      >
-        {plan}
-      </Badge>
-    );
+    return <PlanBadge plan={plan} />;
   };
 
-  const options = orgs.map((org) => ({
-    value: org.slug,
-    label: org.name,
-    render: (
-      <div className="flex w-full items-center justify-between">
-        <span className="truncate">{org.name}</span>
-        {renderBadge(org.plan?.name ?? 'Legacy')}
-      </div>
-    ),
-  }));
+  const options = orgs.map((org) => {
+    const projectCount = org.apps?.length ?? 0;
+    const projectCountLabel =
+      projectCount === 0
+        ? 'No projects'
+        : `${projectCount} project${projectCount === 1 ? '' : 's'}`;
+
+    const isSelected = org.slug === selectedOrg?.slug;
+
+    return {
+      value: org.slug,
+      label: org.name,
+      className: isSelected
+        ? 'bg-primary/[0.06] font-medium dark:bg-primary/[0.08]'
+        : undefined,
+      render: (
+        <div className="flex w-full items-center justify-between gap-2">
+          <span className="min-w-0 flex-1">
+            <span className="block truncate">{org.name}</span>
+            <span className="mt-0.5 block truncate text-muted-foreground text-xs">
+              {projectCountLabel}
+            </span>
+          </span>
+          {renderBadge(org.plan?.name ?? 'Legacy')}
+        </div>
+      ),
+    };
+  });
 
   const triggerLabel = selectedOrg ? (
     <div className="flex flex-row items-center justify-center">
@@ -65,17 +68,16 @@ export default function OrgsComboBox() {
   ) : null;
 
   const footerSlot = (
-    <>
-      <CommandSeparator className="mt-1" />
-      <CommandItem
-        forceMount
-        value="new-organization"
-        onSelect={() => setCreateOrgOpen(true)}
+    <div className="border-t p-1">
+      <button
+        type="button"
+        onClick={() => setCreateOrgOpen(true)}
+        className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 font-medium text-primary text-sm hover:bg-primary/10"
       >
-        <Plus className="mr-2 h-4 w-4" />
+        <Plus className="h-3.5 w-3.5" />
         New Organization
-      </CommandItem>
-    </>
+      </button>
+    </div>
   );
 
   return (
@@ -91,8 +93,8 @@ export default function OrgsComboBox() {
         value={selectedOrg?.slug ?? null}
         triggerLabel={triggerLabel}
         placeholder="Select organization"
-        searchPlaceholder="Select organization..."
         footerSlot={footerSlot}
+        popoverContentClassName="w-[290px]"
         linkHref={
           selectedOrg ? `/orgs/${selectedOrg.slug}/projects` : undefined
         }

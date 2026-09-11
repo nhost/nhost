@@ -6,6 +6,7 @@ import { ApplicationProvisioning } from '@/features/orgs/projects/common/compone
 import { ApplicationUnknown } from '@/features/orgs/projects/common/components/ApplicationUnknown';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { usePollWhileTransitioning } from '@/features/orgs/projects/common/hooks/usePollWhileTransitioning';
+import { OverviewPausedState } from '@/features/orgs/projects/overview/components/OverviewPausedState';
 import { isNotEmptyValue } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/application';
 import ProjectStateScreen from './ProjectStateScreen';
@@ -76,6 +77,9 @@ function ProjectViewWithState({ children }: PropsWithChildren) {
       case ApplicationStatus.Paused:
       case ApplicationStatus.Unpausing:
       case ApplicationStatus.Restoring:
+        if (isOnOverviewPage) {
+          return <OverviewPausedState state={state} />;
+        }
         return requiresRunningProject(route) ? (
           <ProjectStateScreen state={state} />
         ) : (

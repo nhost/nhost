@@ -114,7 +114,7 @@ export default function AddComputedFieldPanel({
           <div className="flex items-center justify-between gap-2">
             <Button
               type="button"
-              variant="outline"
+              variant="outline-emboss"
               onClick={handleCancel}
               disabled={isSubmitting}
             >

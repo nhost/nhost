@@ -8,13 +8,16 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { Button } from '@/components/ui/v3/button';
+import { dashboardNavItemIconClassName } from '@/components/layout/DashboardSidebar/DashboardSidebar';
+import { getDashboardVersion } from '@/utils/env';
+import { IconButton } from '@/components/ui/v3/icon-button';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
 import { Separator } from '@/components/ui/v3/separator';
+import { cn } from '@/lib/utils';
 
 const DISCORD_URL = 'https://discord.com/invite/9V7Qb2U';
 const DOCS_URL = 'https://docs.nhost.io';
@@ -24,21 +27,32 @@ interface SupportLinkProps {
   href: string;
   icon: ReactNode;
   children: ReactNode;
+  subtitle?: ReactNode;
 }
 
-function SupportLink({ href, icon, children }: SupportLinkProps) {
+function SupportLink({ href, icon, children, subtitle }: SupportLinkProps) {
   return (
     <Link
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex h-9 items-center gap-3 rounded-md px-4 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+      className={cn(
+        'flex items-center gap-3 rounded-md px-4 text-sm transition-colors hover:bg-accent hover:text-accent-foreground',
+        subtitle ? 'py-2' : 'h-9',
+      )}
     >
-      <span className="flex size-5 shrink-0 items-center justify-center text-muted-foreground">
+      <span className={cn('flex size-5 shrink-0 items-center justify-center', dashboardNavItemIconClassName)}>
         {icon}
       </span>
-      <span className="flex-1">{children}</span>
-      <ExternalLinkIcon className="size-4 shrink-0 text-muted-foreground" />
+      <span className="flex-1">
+        <span className="block">{children}</span>
+        {subtitle && (
+          <span className="block text-muted-foreground text-xs">
+            {subtitle}
+          </span>
+        )}
+      </span>
+      <ExternalLinkIcon className={cn('size-4 shrink-0', dashboardNavItemIconClassName)} />
     </Link>
   );
 }
@@ -47,14 +61,7 @@ export default function SupportPopover() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Help and support"
-          className="h-8 w-8 rounded-full p-0 text-muted-foreground"
-        >
-          <CircleHelpIcon className="size-4" />
-        </Button>
+        <IconButton icon={CircleHelpIcon} aria-label="Help and support" />
       </PopoverTrigger>
 
       <PopoverContent align="end" sideOffset={8} className="w-72 p-0">
@@ -83,6 +90,7 @@ export default function SupportPopover() {
           <SupportLink
             href={STATUS_URL}
             icon={<ActivityIcon className="size-4" />}
+            subtitle={`v${getDashboardVersion()}`}
           >
             Status
           </SupportLink>
@@ -93,7 +101,7 @@ export default function SupportPopover() {
             href={DISCORD_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 rounded-md bg-primary px-3 py-4 text-white transition-colors hover:bg-primary/90 hover:text-white"
+            className="btn-emboss-primary-gradient-only flex items-center gap-3 rounded-md px-3 py-2"
           >
             <DiscordIcon className="size-7 shrink-0" />
             <span className="min-w-0 flex-1">

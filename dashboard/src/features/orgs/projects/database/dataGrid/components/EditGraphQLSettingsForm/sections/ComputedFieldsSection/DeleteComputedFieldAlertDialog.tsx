@@ -90,7 +90,7 @@ export default function DeleteComputedFieldAlertDialog({
           <DialogFooter>
             <DialogClose asChild>
               <Button
-                variant="outline"
+                variant="outline-emboss"
                 disabled={isDeleting}
                 className="mt-2 sm:mt-0"
               >

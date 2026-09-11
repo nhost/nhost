@@ -370,6 +370,6 @@ export default function GraphQLPage() {
 
 GraphQLPage.getLayout = function getLayout(page: ReactElement) {
   return getGraphQLLayout(page, {
-    contentClassName: 'graphiql-themed flex h-full flex-col overflow-hidden',
+    contentClassName: 'graphiql-themed flex h-full flex-col overflow-hidden pt-0',
   });
 };

@@ -1,9 +1,10 @@
+import { SiDocker as ServicesIcon } from '@icons-pack/react-simple-icons';
 import { PlusIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { type ReactElement, useCallback, useEffect } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
-import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
+import { UpgradeBanner } from '@/components/common/UpgradeBanner';
 import { Container } from '@/components/layout/Container';
 import { Button } from '@/components/ui/v3/button';
 import { ServicesOutlinedIcon } from '@/components/ui/v3/icons/ServicesOutlinedIcon';
@@ -95,11 +96,7 @@ export default function RunPage() {
         className="grid grid-flow-row gap-6 bg-transparent"
         rootClassName="bg-transparent"
       >
-        <UpgradeToProBanner
-          section="run"
-          title="To unlock Nhost Run, transfer this project to a Pro or Team organization."
-          description=""
-        />
+        <UpgradeBanner section="run" icon={ServicesIcon} />
       </Container>
     );
   }

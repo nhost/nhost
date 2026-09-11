@@ -37,7 +37,7 @@ function FormFooter({
   return (
     <div className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t p-2">
       <Button
-        variant="ghost"
+        variant="outline-emboss"
         type="button"
         onClick={onCancel}
         tabIndex={isDirty ? -1 : 0}

@@ -2,7 +2,7 @@ import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { Clock, Code, FileCode, History } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
-import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
+import { UpgradeBanner } from '@/components/common/UpgradeBanner';
 import { Container } from '@/components/layout/Container';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/v3/tabs';
 import {
@@ -185,11 +185,7 @@ export default function FunctionDetailsPanel({
               className="grid grid-flow-row gap-6 bg-transparent"
               rootClassName="bg-transparent"
             >
-              <UpgradeToProBanner
-                section="serverless-functions-metrics"
-                title="To unlock Function Metrics, transfer this project to a Pro or Team organization."
-                description=""
-              />
+              <UpgradeBanner section="serverless-functions-metrics" icon={Code} />
             </Container>
           ) : (
             <MetricsTab fn={fn} />

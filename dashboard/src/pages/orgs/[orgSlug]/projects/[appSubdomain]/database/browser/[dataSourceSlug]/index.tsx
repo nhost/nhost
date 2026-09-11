@@ -64,6 +64,6 @@ DataBrowserDatabaseDetailsPage.getLayout = function getLayout(
   return getDatabaseLayout(page, {
     sidebar: <DataBrowserSidebar />,
     contentClassName:
-      'box flex w-full flex-auto flex-col overflow-x-hidden bg-default',
+      'box flex w-full flex-auto flex-col overflow-x-hidden pt-0',
   });
 };

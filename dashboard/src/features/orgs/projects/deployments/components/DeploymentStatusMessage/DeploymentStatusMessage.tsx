@@ -66,13 +66,13 @@ export default function DeploymentStatusMessage({
           src={avatarUrl}
           className="mt-1 mr-2 h-4 w-4"
         />
-        <div className="flex flex-col text-muted-foreground text-sm">
-          <p className="line-clamp-1 break-all">{userName}</p>
-          <p>{statusMessage}</p>
+        <div className="flex flex-col">
+          <p className="line-clamp-1 break-all text-sm">{userName}</p>
+          <p className="text-muted-foreground text-xs">{statusMessage}</p>
         </div>
       </div>
     );
   }
 
-  return <span className="text-muted-foreground text-sm">No deployments</span>;
+  return null;
 }

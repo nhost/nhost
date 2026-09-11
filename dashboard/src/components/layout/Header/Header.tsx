@@ -1,3 +1,4 @@
+import { Home } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import type { ComponentPropsWithoutRef } from 'react';
@@ -25,7 +26,7 @@ export default function Header({ className, ...props }: HeaderProps) {
   const dashboardHref = currentOrgSlug
     ? `/orgs/${currentOrgSlug}/projects`
     : '/';
-  const isFreeOrg = org?.plan?.isFree;
+  const isEnterpriseOrg = org?.plan?.name?.startsWith('Enterprise');
 
   function handleUpgradeClick() {
     if (!org?.slug) {
@@ -38,7 +39,7 @@ export default function Header({ className, ...props }: HeaderProps) {
   return (
     <header
       className={twMerge(
-        'relative z-40 flex h-14 w-full transform-gpu items-center gap-2 border-b bg-paper px-4',
+        'relative z-40 flex h-14 w-full transform-gpu items-center gap-2 border-b px-4',
         className,
       )}
       {...props}
@@ -47,9 +48,14 @@ export default function Header({ className, ...props }: HeaderProps) {
         <Link
           href={dashboardHref}
           aria-label="Dashboard"
-          className="h-6 w-6 shrink-0"
+          className="group relative grid h-6 w-6 shrink-0 place-items-center"
         >
-          <Logo className="mx-auto h-6 w-6 cursor-pointer" />
+          <Logo className="col-start-1 row-start-1 h-6 w-6 cursor-pointer transition-all duration-300 ease-out motion-safe:group-hover:scale-75 motion-safe:group-hover:-rotate-12 motion-safe:group-hover:opacity-0" />
+          <Home
+            aria-hidden="true"
+            strokeWidth={2}
+            className="col-start-1 row-start-1 h-5 w-5 rotate-12 scale-75 text-foreground opacity-0 transition-all duration-300 ease-out motion-safe:group-hover:rotate-0 motion-safe:group-hover:scale-100 motion-safe:group-hover:opacity-100"
+          />
         </Link>
 
         <HeaderNavigation />
@@ -63,8 +69,8 @@ export default function Header({ className, ...props }: HeaderProps) {
 
       <div className="ml-auto flex min-w-0 shrink-0 justify-end">
         <div className="hidden items-center gap-2 sm:flex">
-          {isFreeOrg && (
-            <Button onClick={handleUpgradeClick} size="xs" variant="outline">
+          {!isEnterpriseOrg && (
+            <Button onClick={handleUpgradeClick} size="xs" variant="outline-emboss">
               Upgrade
             </Button>
           )}

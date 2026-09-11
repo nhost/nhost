@@ -1,264 +1,50 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Inbox } from 'lucide-react';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { Button } from '@/components/ui/v3/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/v3/dialog';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/v3/form';
-import { Input } from '@/components/ui/v3/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/v3/select';
-import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgInvite } from '@/features/orgs/components/members/components/OrgInvite';
 import { useIsOrgAdmin } from '@/features/orgs/hooks/useIsOrgAdmin';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
-import execPromiseWithErrorToast from '@/features/orgs/utils/execPromiseWithErrorToast/execPromiseWithErrorToast';
-import {
-  Organization_Members_Role_Enum,
-  useGetOrganizationInvitesQuery,
-  useInsertOrganizationMemberInviteMutation,
-} from '@/generated/graphql';
-import { analytics } from '@/lib/segment';
-import {
-  errorMessageIncludes,
-  getViolatedConstraint,
-} from '@/utils/databaseErrors';
-import { discordAnnounce } from '@/utils/discordAnnounce';
+import { Spinner } from '@/components/ui/v3/spinner';
+import type { GetOrganizationInvitesQuery } from '@/generated/graphql';
 
-const sendInviteFormSchema = z.object({
-  email: z.string().email(),
-  role: z.nativeEnum(Organization_Members_Role_Enum),
-});
+type Invite = GetOrganizationInvitesQuery['organizationMemberInvites'][0];
 
-export default function PendingInvites() {
-  const { org } = useCurrentOrg();
+export interface PendingInvitesProps {
+  invites: Invite[];
+  loading: boolean;
+}
+
+export default function PendingInvites({ invites, loading }: PendingInvitesProps) {
   const isAdmin = useIsOrgAdmin();
-  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
-
-  const {
-    data: { organizationMemberInvites = [] } = {},
-    loading,
-    error: getInvitesError,
-    refetch: refetchInvites,
-  } = useGetOrganizationInvitesQuery({
-    variables: { organizationId: org?.id },
-    skip: !org,
-  });
-
-  const [inviteUser] = useInsertOrganizationMemberInviteMutation();
-
-  const form = useForm<z.infer<typeof sendInviteFormSchema>>({
-    resolver: zodResolver(sendInviteFormSchema),
-    defaultValues: {
-      email: '',
-      role: Organization_Members_Role_Enum.User,
-    },
-  });
-
-  const onSubmit = async (values: z.infer<typeof sendInviteFormSchema>) => {
-    const { id: organizationID } = org;
-    const { email, role } = values;
-
-    await execPromiseWithErrorToast(
-      async () => {
-        await inviteUser({
-          variables: {
-            organizationMemberInvite: {
-              organizationID,
-              email,
-              role,
-            },
-          },
-        });
-
-        analytics.track('Organization Invite Sent', {
-          organizationId: org?.id,
-          organizationName: org?.name,
-          organizationSlug: org?.slug,
-          organizationPlan: org?.plan?.name,
-          organizationPlanId: org?.plan?.id,
-          inviteeEmail: email,
-          inviteeRole: role,
-        });
-
-        setInviteDialogOpen(false);
-        form.reset();
-        refetchInvites();
-      },
-      {
-        loadingMessage: 'Sending invite...',
-        successMessage: `Invite to join Organization ${org?.name} sent to ${email}.`,
-        errorMessage: (error) => {
-          if (
-            getViolatedConstraint(error) ===
-            'organization_member_invites_organization_id_email_key'
-          ) {
-            return `${email} has already been invited to this organization.`;
-          }
-
-          if (
-            errorMessageIncludes(error, 'already a member of the organization')
-          ) {
-            return `${email} is already a member of this organization.`;
-          }
-
-          return 'An error occurred while sending the invite. Please try again.';
-        },
-        onError: async (error) => {
-          await discordAnnounce(
-            `Error trying to invite to ${email} to Organization ${org?.name} ${error.message}`,
-          );
-        },
-      },
-    );
-  };
-
-  const handleDismissDialog = () => {
-    setInviteDialogOpen(false);
-    form.reset();
-  };
-
-  if (getInvitesError) {
-    throw getInvitesError;
-  }
 
   return (
-    <div className="flex w-full flex-col rounded-md border bg-background">
-      <div className="flex w-full flex-row items-center justify-between border-b p-4">
-        <h4 className="font-medium">
-          Pending Invites{' '}
-          {organizationMemberInvites.length > 0 &&
-            `(${organizationMemberInvites.length})`}
-        </h4>
-        <Dialog
-          open={inviteDialogOpen}
-          onOpenChange={(value) => {
-            form.reset();
-            setInviteDialogOpen(value);
-          }}
-        >
-          <DialogTrigger asChild>
-            <Button>Add member</Button>
-          </DialogTrigger>
-          <DialogContent className="text-foreground sm:max-w-xl">
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)}>
-                <DialogHeader className="mb-4">
-                  <DialogTitle className="text-foreground">
-                    Add a member
-                  </DialogTitle>
-                  <DialogDescription>
-                    Send invite over email (e.g. name@mycompany.com)
-                  </DialogDescription>
-                </DialogHeader>
-
-                <div className="mb-4 flex flex-col gap-4">
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            type="email"
-                            placeholder="name@company.com"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="role"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Role</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a verified email to display" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {Object.entries(Organization_Members_Role_Enum).map(
-                              (role) => (
-                                <SelectItem key={role[0]} value={role[1]}>
-                                  {role[1]}
-                                </SelectItem>
-                              ),
-                            )}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <DialogFooter>
-                  <Button
-                    variant="secondary"
-                    type="button"
-                    onClick={handleDismissDialog}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit">Send</Button>
-                </DialogFooter>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {/* Todo add an empty state here */}
-      <div className="flex w-full flex-col items-center gap-4 p-4">
-        {loading && (
+    <div className="flex w-full flex-col overflow-hidden rounded-md border bg-background">
+      {loading && (
+        <div className="flex w-full items-center justify-center p-6">
           <Spinner size="xs" wrapperClassName="flex-row justify-center gap-1.5">
             <span className="text-muted-foreground text-xs">
               Loading pending invites...
             </span>
           </Spinner>
-        )}
+        </div>
+      )}
 
-        {!loading &&
-          organizationMemberInvites.map((invite) => (
-            <OrgInvite key={invite.id} invite={invite} isAdmin={isAdmin} />
+      {!loading && invites.length === 0 && (
+        <div className="flex w-full flex-col items-center justify-center gap-2 p-6 text-muted-foreground">
+          <Inbox />
+          <p className="text-sm">No pending invites</p>
+        </div>
+      )}
+
+      {!loading && invites.length > 0 && (
+        <div className="flex w-full flex-col divide-y">
+          {invites.map((invite) => (
+            <div
+              key={invite.id}
+              className="px-4 py-3 transition-colors hover:bg-muted/60"
+            >
+              <OrgInvite invite={invite} isAdmin={isAdmin} />
+            </div>
           ))}
-
-        {!loading && organizationMemberInvites.length === 0 && (
-          <div className="flex w-full flex-col items-center justify-center text-muted-foreground">
-            <Inbox />
-            <p className="text-sm">No pending invites</p>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

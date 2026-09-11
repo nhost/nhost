@@ -9,6 +9,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/v3/form';
+import { codeMirrorAppBackground } from '@/lib/codeMirrorAppTheme';
 import { cn } from '@/lib/utils';
 import { useThemePreference } from '@/providers/Theme';
 
@@ -66,7 +67,7 @@ export default function FormCodeEditor<
                 onChange?.(value);
               }}
               theme={resolvedTheme === 'light' ? githubLight : githubDark}
-              extensions={extensions}
+              extensions={[...(extensions ?? []), codeMirrorAppBackground]}
               readOnly={readOnly}
               editable={!readOnly}
               basicSetup={{

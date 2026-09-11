@@ -8,21 +8,16 @@ export default function MembersList() {
   const isAdmin = useIsOrgAdmin();
 
   return (
-    <div className="flex w-full flex-col rounded-md border bg-background">
-      <div className="flex w-full flex-col gap-1 border-b p-4">
-        <h4 className="font-medium">
-          Members {members.length > 0 && `(${members.length})`}
-        </h4>
-        <p className="font-normal text-muted-foreground">
-          People of this organization have the ability to manage all projects
-          within the organization.
-        </p>
-      </div>
-
+    <div className="flex w-full flex-col overflow-hidden rounded-md border bg-background">
       {/* Todo add an empty state here */}
-      <div className="flex w-full flex-col gap-4 p-4">
+      <div className="flex w-full flex-col divide-y">
         {members.map((member) => (
-          <OrgMember key={member.id} member={member} isAdmin={isAdmin} />
+          <div
+            key={member.id}
+            className="px-4 py-3 transition-colors hover:bg-muted/60"
+          >
+            <OrgMember member={member} isAdmin={isAdmin} />
+          </div>
         ))}
       </div>
     </div>
