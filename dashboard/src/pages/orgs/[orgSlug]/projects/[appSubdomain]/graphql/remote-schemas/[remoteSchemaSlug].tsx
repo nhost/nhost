@@ -1,7 +1,9 @@
 import type { ReactElement } from 'react';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { ProjectViewWithState } from '@/features/orgs/layout/ProjectGuard';
+import { ProjectScope } from '@/features/orgs/layout/ProjectScope';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { RemoteSchemaBrowserSidebar } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaBrowserSidebar';
@@ -28,16 +30,17 @@ export default function RemoteSchemaDetailsPage() {
 
 RemoteSchemaDetailsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout
-      mainContainerProps={{
-        className: 'flex h-full',
-      }}
-    >
-      <RemoteSchemaBrowserSidebar />
-
-      <div className="flex w-full flex-auto flex-col overflow-x-hidden bg-background-default">
-        {page}
-      </div>
-    </ProjectLayout>
+    <AppLayout>
+      <ProjectScope>
+        <ProjectViewWithState>
+          <div className="flex h-full">
+            <RemoteSchemaBrowserSidebar />
+            <div className="flex w-full flex-auto flex-col overflow-x-hidden bg-background-default">
+              {page}
+            </div>
+          </div>
+        </ProjectViewWithState>
+      </ProjectScope>
+    </AppLayout>
   );
 };

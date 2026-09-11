@@ -105,7 +105,7 @@ Lives in `dashboard/`. Stack: React 19, TypeScript, Next.js (file-system routing
 
 When adding a new feature page, check whether it needs to be registered in each of these:
 
-- The `runningProjectPages` list in `features/orgs/layout/ProjectLayout/projectStatePages.ts` (and `sidebarSkeletonPages` if the page has a sidebar), which gate the project-state screen via `requiresRunningProject()` / `hasSidebarSkeleton()`.
+- The `runningProjectPages` list in `features/orgs/layout/ProjectGuard/projectStatePages.ts` (and `sidebarSkeletonPages` if the page has a sidebar), which gate the project-state screen via `requiresRunningProject()` / `hasSidebarSkeleton()`.
 - `components/layout/AppSidebar/ProjectNav.tsx` or `components/layout/AppSidebar/OrganizationNav.tsx` for visible sidebar entries.
 - `features/navigation/nav-config.tsx` for the shared page catalog, page gating via `isPageGated`, and URL helpers.
 - `features/command-palette/nav-tree.tsx` for command-palette metadata and keywords (layered over `nav-config`).

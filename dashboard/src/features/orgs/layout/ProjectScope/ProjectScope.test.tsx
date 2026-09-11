@@ -1,5 +1,6 @@
 import { HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
   type GetOrganizationQuery,
@@ -29,7 +30,7 @@ import {
   within,
 } from '@/tests/testUtils';
 import { ApplicationStatus } from '@/types/application';
-import ProjectLayout from './ProjectLayout';
+import ProjectScope from './ProjectScope';
 
 const mocks = vi.hoisted(() => ({ useRouter: vi.fn() }));
 vi.mock('next/router', async () => ({
@@ -135,9 +136,11 @@ function ProjectContent() {
 
 function TestHarness() {
   return (
-    <ProjectLayout>
-      <ProjectContent />
-    </ProjectLayout>
+    <AppLayout>
+      <ProjectScope>
+        <ProjectContent />
+      </ProjectScope>
+    </AppLayout>
   );
 }
 
@@ -204,7 +207,7 @@ afterEach(() => {
 
 afterAll(() => server.close());
 
-describe('ProjectLayout', () => {
+describe('ProjectScope', () => {
   it('keeps navigation available and recovers when another project has a config error', async () => {
     const { rerender } = render(<TestHarness />);
 
