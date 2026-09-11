@@ -1,5 +1,7 @@
+import { CodeIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
+import { ProTag } from '@/components/common/ProTag';
 import { UpgradeBanner } from '@/components/common/UpgradeBanner';
 import {
   SectionSidebarButton,
@@ -69,6 +71,9 @@ function useFunctionsSettingsTab() {
 
 function FunctionsSettingsSidebar() {
   const { activeTab, setActiveTab } = useFunctionsSettingsTab();
+  const { org } = useCurrentOrg();
+  const isPlatform = useIsPlatform();
+  const isFreeOrg = isPlatform && org?.plan?.isFree;
 
   return (
     <aside className="h-full w-[240px] max-w-[240px] shrink-0 overflow-auto pt-14">
@@ -79,6 +84,7 @@ function FunctionsSettingsSidebar() {
             onClick={() => setActiveTab('custom-domain')}
           >
             Custom Domain
+            {isFreeOrg && <ProTag />}
           </SectionSidebarButton>
           <SectionSidebarButton
             active={activeTab === 'rate-limiting'}
@@ -107,7 +113,7 @@ function FunctionsCustomDomainSettings() {
 
   if (shouldShowUpgrade) {
     return (
-      <UpgradeBanner section="settings-custom-domains" />
+      <UpgradeBanner section="settings-custom-domains" icon={CodeIcon} />
     );
   }
 

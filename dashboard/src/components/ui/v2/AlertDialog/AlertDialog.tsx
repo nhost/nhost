@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/v2/Button';
+import { Button } from '@/components/ui/v3/button';
 import type { CommonDialogProps } from '@/components/ui/v2/Dialog';
 import { Dialog } from '@/components/ui/v2/Dialog';
 
@@ -66,8 +66,7 @@ function AlertDialog({
           {!hidePrimaryAction && (
             // TODO: Manage loading states
             <Button
-              variant="contained"
-              color={primaryButtonColor}
+              variant={primaryButtonColor === 'error' ? 'destructive' : 'default'}
               autoFocus
               onClick={onPrimaryAction}
             >
@@ -77,8 +76,7 @@ function AlertDialog({
 
           {!hideSecondaryAction && (
             <Button
-              variant="outlined"
-              color="secondary"
+              variant="outline-emboss"
               onClick={onSecondaryAction}
               autoFocus={hidePrimaryAction}
             >

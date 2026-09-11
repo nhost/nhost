@@ -1,4 +1,4 @@
-import { PlusIcon } from 'lucide-react';
+import { PlusIcon, SparklesIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { type ReactElement, useMemo } from 'react';
@@ -107,7 +107,7 @@ export default function AutoEmbeddingsPage() {
         className="grid grid-flow-row gap-6 bg-transparent"
         rootClassName="bg-transparent"
       >
-        <UpgradeBanner section="ai-auto-embeddings" />
+        <UpgradeBanner section="ai-auto-embeddings" icon={SparklesIcon} />
       </Container>
     );
   }
@@ -123,7 +123,7 @@ export default function AutoEmbeddingsPage() {
           <p>
             To enable graphite, configure the service first in{' '}
             <Link
-              href={`/orgs/${slug}/projects/${project?.subdomain}/settings/ai`}
+              href={`/orgs/${slug}/projects/${project?.subdomain}/ai/settings`}
               rel="noopener noreferrer"
               className="text-primary hover:underline"
             >

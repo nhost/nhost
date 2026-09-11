@@ -1,17 +1,8 @@
-import {
-  ArrowRight,
-  CircleAlert,
-  CircleCheck,
-  PauseCircle,
-  Play,
-  Plus,
-  PlayCircle,
-  RotateCw,
-  type LucideIcon,
-} from 'lucide-react';
+import { ArrowRight, Play, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { type MouseEvent, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
+import { ProjectStatusPill } from '@/features/orgs/components/common/ProjectStatusPill';
 import { DeploymentStatusMessage } from '@/features/orgs/projects/deployments/components/DeploymentStatusMessage';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { getUnpauseErrorMessage } from '@/features/orgs/utils/getUnpauseErrorMessage';
@@ -25,78 +16,6 @@ import { useUserData } from '@/hooks/useUserData';
 import { ApplicationStatus } from '@/types/application';
 
 type Project = GetProjectsQuery['apps'][0];
-
-// Keep the 3D tilt and the blob parallax very subtle.
-const MAX_TILT_DEGREES = 6.5;
-const MAX_BLOB_SHIFT_PX = 10;
-
-const NEUTRAL_TILT = { rotateX: 0, rotateY: 0, blobX: 0, blobY: 0 };
-
-interface ProjectStatusPillStyle {
-  icon: LucideIcon;
-  iconClassName?: string;
-  pillClassName: string;
-  description: string;
-}
-
-const PROJECT_STATUS_PILL_STYLES: Partial<
-  Record<ApplicationStatus, ProjectStatusPillStyle>
-> = {
-  [ApplicationStatus.Errored]: {
-    icon: CircleAlert,
-    pillClassName: 'border-destructive/40 text-destructive',
-    description: 'Project error',
-  },
-  [ApplicationStatus.Pausing]: {
-    icon: PauseCircle,
-    iconClassName: 'animate-blinking',
-    pillClassName: 'border-slate-400/40 text-slate-500 dark:text-slate-400',
-    description: 'Project is pausing',
-  },
-  [ApplicationStatus.Restoring]: {
-    icon: RotateCw,
-    iconClassName: 'animate-spin',
-    pillClassName: 'border-slate-400/40 text-slate-500 dark:text-slate-400',
-    description: 'Project is restoring',
-  },
-  [ApplicationStatus.Paused]: {
-    icon: PauseCircle,
-    pillClassName: 'border-slate-400/40 text-slate-500 dark:text-slate-400',
-    description: 'Project is paused',
-  },
-  [ApplicationStatus.Unpausing]: {
-    icon: PlayCircle,
-    iconClassName: 'animate-blinking',
-    pillClassName: 'border-slate-400/40 text-slate-500 dark:text-slate-400',
-    description: 'Project is waking up',
-  },
-  [ApplicationStatus.Live]: {
-    icon: CircleCheck,
-    pillClassName: 'border-primary-main/40 text-primary-main',
-    description: 'Project is live',
-  },
-};
-
-function ProjectStatusPill({ status }: { status: ApplicationStatus }) {
-  const style = PROJECT_STATUS_PILL_STYLES[status];
-
-  if (!style) {
-    return null;
-  }
-
-  const { icon: Icon, iconClassName, pillClassName, description } = style;
-
-  return (
-    <div
-      className={`inline-flex items-center gap-1.5 rounded-full border py-1 pl-[0.3rem] pr-2.5 ${pillClassName}`}
-    >
-      <Icon className={`h-4 w-4 flex-shrink-0 ${iconClassName ?? ''}`} />
-      <span className="whitespace-nowrap font-medium text-xs">
-        {description}
-      </span>
-    </div>
-  );
-}
 
 /**
  * Shortcut for waking up a paused project directly from its card, instead of
@@ -167,7 +86,6 @@ function WakeUpProjectButton({
 
 function ProjectCard({ project }: { project: Project }) {
   const { org } = useCurrentOrg();
-  const [tilt, setTilt] = useState(NEUTRAL_TILT);
   const [wakeUpTriggered, setWakeUpTriggered] = useState(false);
 
   const realStatus = project.appStates[0]?.stateId;
@@ -193,34 +111,12 @@ function ProjectCard({ project }: { project: Project }) {
 
   const showPipelineRun = prDate >= depDate && latestPipelineRun;
 
-  const handleMouseMove = (event: MouseEvent<HTMLAnchorElement>) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const relativeX = (event.clientX - rect.left) / rect.width - 0.5;
-    const relativeY = (event.clientY - rect.top) / rect.height - 0.5;
-
-    setTilt({
-      rotateX: -relativeY * MAX_TILT_DEGREES,
-      rotateY: relativeX * MAX_TILT_DEGREES,
-      blobX: relativeX * MAX_BLOB_SHIFT_PX,
-      blobY: relativeY * MAX_BLOB_SHIFT_PX,
-    });
-  };
-
-  const handleMouseLeave = () => setTilt(NEUTRAL_TILT);
-
   return (
     <Link
       href={`/orgs/${org?.slug}/projects/${project.subdomain}`}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      className="group relative block h-44 rounded-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_0_1px_rgba(0,82,204,0.15),0_0_16px_3px_rgba(0,82,204,0.14)] dark:hover:shadow-[0_0_0_1px_rgba(100,157,254,0.18),0_0_16px_3px_rgba(100,157,254,0.12)]"
+      className="group relative block h-44 rounded-lg transition-colors duration-300"
     >
-      <div
-        className="relative h-full overflow-hidden rounded-lg p-[2px] transition-transform duration-200 ease-out"
-        style={{
-          transform: `perspective(700px) rotateX(${tilt.rotateX}deg) rotateY(${tilt.rotateY}deg)`,
-        }}
-      >
+      <div className="relative h-full overflow-hidden rounded-lg p-[2px]">
         <div
           className="absolute inset-0 rounded-lg opacity-0 transition-opacity duration-200 [--card-border-angle:0deg] [--card-border-base:hsl(var(--primary)/15%)] [--card-border-glow:hsl(var(--primary)/85%)] group-hover:animate-card-border-sweep group-hover:opacity-100 dark:[--card-border-base:hsl(var(--primary)/20%)] dark:[--card-border-glow:hsl(var(--primary)/90%)]"
           style={{
@@ -229,23 +125,6 @@ function ProjectCard({ project }: { project: Project }) {
           }}
         />
         <div className="relative flex h-full cursor-pointer flex-col gap-4 overflow-hidden rounded-[6px] border bg-background p-4 transition-colors duration-300 group-hover:border-primary/50">
-          <div
-            className="pointer-events-none absolute -right-6 -top-6 transition-transform duration-200 ease-out"
-            style={{
-              transform: `translate(${tilt.blobX}px, ${tilt.blobY}px)`,
-            }}
-          >
-            <div className="h-24 w-24 scale-75 rounded-full bg-primary/25 opacity-0 blur-2xl transition-all duration-500 group-hover:scale-125 group-hover:opacity-60" />
-          </div>
-          <div
-            className="pointer-events-none absolute -bottom-8 -left-8 transition-transform duration-200 ease-out"
-            style={{
-              transform: `translate(${tilt.blobX}px, ${tilt.blobY}px)`,
-            }}
-          >
-            <div className="h-28 w-28 scale-75 rounded-full bg-primary/20 opacity-0 blur-2xl transition-all duration-500 delay-75 group-hover:scale-125 group-hover:opacity-60" />
-          </div>
-
           <div className="flex flex-row items-start gap-2">
             <div className="flex w-full flex-col overflow-hidden">
               <p title={project.name} className="truncate font-bold">

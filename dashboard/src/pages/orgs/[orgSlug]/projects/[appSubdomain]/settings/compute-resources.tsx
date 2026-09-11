@@ -1,3 +1,4 @@
+import { CogIcon } from 'lucide-react';
 import type { ReactElement } from 'react';
 import { UpgradeBanner } from '@/components/common/UpgradeBanner';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
@@ -11,7 +12,7 @@ export default function ResourceSettingsPage() {
   if (org?.plan?.isFree) {
     return (
       <div className="grid grid-flow-row gap-6">
-        <UpgradeBanner section="settings-compute-resources" />
+        <UpgradeBanner section="settings-compute-resources" icon={CogIcon} />
       </div>
     );
   }

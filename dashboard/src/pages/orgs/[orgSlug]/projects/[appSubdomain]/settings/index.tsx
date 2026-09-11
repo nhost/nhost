@@ -1,5 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Lock } from 'lucide-react';
+import { CogIcon, Lock, Pause, Play } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { type ReactElement, useEffect, useMemo } from 'react';
@@ -24,6 +24,7 @@ import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { Alert } from '@/components/ui/v3/alert';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { TransferProject } from '@/features/orgs/components/TransferProject';
+import { ProjectStatusPill } from '@/features/orgs/components/common/ProjectStatusPill';
 import { getProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { RemoveApplicationDialog } from '@/features/orgs/projects/common/components/RemoveApplicationDialog';
@@ -140,7 +141,7 @@ function GeneralSettingsSidebar() {
       </div>
       <SectionSidebarNav
         ariaLabel="Project settings navigation"
-        className="h-auto flex-1 overflow-auto"
+        className="h-auto flex-1 overflow-auto pt-4"
       >
         <SectionSidebarGroup label="PROJECT">
           <SectionSidebarButton
@@ -156,8 +157,6 @@ function GeneralSettingsSidebar() {
             Compute Resources
           </SectionSidebarButton>
         </SectionSidebarGroup>
-
-        <div className="mx-3 h-px bg-border" />
 
         <SectionSidebarGroup label="CONFIGURATION">
           <SectionSidebarButton
@@ -192,7 +191,7 @@ function ComputeResourcesSettings({ isFree }: ComputeResourcesSettingsProps) {
   if (isFree) {
     return (
       <div className="grid grid-flow-row gap-6">
-        <UpgradeBanner section="settings-compute-resources" />
+        <UpgradeBanner section="settings-compute-resources" icon={CogIcon} />
       </div>
     );
   }
@@ -369,6 +368,15 @@ export default function SettingsGeneralPage() {
   }
   const isPaused = state === ApplicationStatus.Paused;
   const isPausing = state === ApplicationStatus.Pausing;
+  const isWakingUpOrRestoring =
+    state === ApplicationStatus.Unpausing ||
+    state === ApplicationStatus.Restoring;
+  const isWakingUp =
+    unpauseApplicationLoading || isPausing || isWakingUpOrRestoring;
+  // Covers every state where the project isn't fully running, so the "Wake
+  // up Project" card (and its animated tag) shows for the whole
+  // pause/pausing/waking-up/restoring cycle, not just Paused/Pausing.
+  const isPausedFamily = isPaused || isPausing || isWakingUpOrRestoring;
 
   const pausedDisabled = !isPlatform || pauseApplicationLoading;
 
@@ -421,7 +429,7 @@ export default function SettingsGeneralPage() {
               </Form>
             </FormProvider>
 
-            {isPaused || isPausing ? (
+            {isPausedFamily ? (
               <SettingsCard>
                 <SettingsCardHeader
                   title="Wake up Project"
@@ -429,20 +437,25 @@ export default function SettingsGeneralPage() {
                 />
 
                 <SettingsCardFooter>
-                  <ButtonWithLoading
-                    type="button"
-                    disabled={wakeUpDisabled}
-                    loading={unpauseApplicationLoading || isPausing}
-                    onClick={handleTriggerUnpausing}
-                    className="w-full sm:w-auto"
-                  >
-                    {isPausing ? 'Pausing...' : 'Wake up'}
-                  </ButtonWithLoading>
+                  {isWakingUp ? (
+                    <ProjectStatusPill status={state} />
+                  ) : (
+                    <ButtonWithLoading
+                      type="button"
+                      variant="outline-emboss"
+                      disabled={wakeUpDisabled}
+                      onClick={handleTriggerUnpausing}
+                      className="w-full sm:w-auto"
+                    >
+                      <Play className="mr-2 h-4 w-4" />
+                      Wake up
+                    </ButtonWithLoading>
+                  )}
                 </SettingsCardFooter>
               </SettingsCard>
             ) : null}
 
-            {!isPaused && !isPausing && (
+            {!isPausedFamily && (
               <SettingsCard>
                 <SettingsCardHeader
                   title="Pause Project"
@@ -503,8 +516,10 @@ export default function SettingsGeneralPage() {
                         },
                       });
                     }}
+                    variant="outline-emboss"
                     className="w-full sm:w-auto"
                   >
+                    <Pause className="mr-2 h-4 w-4" />
                     Pause
                   </ButtonWithLoading>
                 </SettingsCardFooter>

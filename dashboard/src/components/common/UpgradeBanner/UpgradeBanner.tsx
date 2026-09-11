@@ -1,5 +1,5 @@
-import { Sparkles } from 'lucide-react';
 import { useRouter } from 'next/router';
+import type { ComponentType } from 'react';
 import { useEffect, useState } from 'react';
 import { OpenTransferDialogButton } from '@/components/common/OpenTransferDialogButton';
 import { ProIllustration } from '@/components/common/UpgradeBanner/ProIllustration';
@@ -12,6 +12,9 @@ import { useTrackEvent } from '@/hooks/useTrackEvent';
 interface UpgradeBannerProps {
   // Analytics grouping key: use a route-area slug (for example, run).
   section: string;
+  // The icon this feature already uses in the main menu (for example the
+  // AI, Run, or Metrics icon). Falls back to the Nhost mark when omitted.
+  icon?: ComponentType<{ className?: string }>;
 }
 
 /**
@@ -19,7 +22,7 @@ interface UpgradeBannerProps {
  * everywhere it's used, no per-feature copy, so a future change to it
  * updates every page at once.
  */
-export default function UpgradeBanner({ section }: UpgradeBannerProps) {
+export default function UpgradeBanner({ section, icon }: UpgradeBannerProps) {
   const router = useRouter();
   const { org } = useCurrentOrg();
   const [transferProjectDialogOpen, setTransferProjectDialogOpen] =
@@ -52,16 +55,11 @@ export default function UpgradeBanner({ section }: UpgradeBannerProps) {
         className="pro-banner-blob pro-banner-blob-b"
       />
       <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-1/2 text-primary sm:block">
-        <ProIllustration className="h-full w-full opacity-90" />
+        <ProIllustration className="h-full w-full opacity-90" icon={icon} />
       </div>
 
-      <div className="relative max-w-xl px-6 py-8 sm:px-8 sm:py-10">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-background/70 px-2.5 py-1 text-2xs font-semibold uppercase tracking-wider text-primary">
-          <Sparkles className="size-3" />
-          Pro &amp; Team
-        </span>
-
-        <h3 className="mt-4 font-semibold text-2xl tracking-tight">
+      <div className="relative max-w-xl px-6 py-6 sm:px-8 sm:py-8">
+        <h3 className="font-semibold text-2xl tracking-tight">
           Unlock this feature with Nhost Pro
         </h3>
         <p className="mt-2 max-w-sm text-muted-foreground text-sm leading-relaxed">

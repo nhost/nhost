@@ -8,10 +8,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
-import { ProjectStatusIndicator } from '@/features/orgs/components/common/ProjectStatusIndicator';
+import { ProjectStatusPill } from '@/features/orgs/components/common/ProjectStatusPill';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { ApplicationStatus } from '@/types/application';
 import { getProjectFeaturePagePath } from '@/utils/getProjectFeaturePagePath';
 
 export default function ProjectsComboBox() {
@@ -37,6 +38,9 @@ export default function ProjectsComboBox() {
 
   const options = apps.map((app) => {
     const isSelected = app.subdomain === selectedProjectFromUrl?.subdomain;
+    const rowStatus = isSelected
+      ? appState
+      : (app.appStates[0]?.stateId ?? ApplicationStatus.Empty);
 
     return {
       value: app.subdomain,
@@ -45,27 +49,30 @@ export default function ProjectsComboBox() {
         ? 'bg-primary/[0.06] font-medium dark:bg-primary/[0.08]'
         : undefined,
       render: (
-        <div className="flex w-full items-center justify-between gap-2">
+        <div className="flex w-full items-center gap-2">
           <span className="min-w-0 flex-1 truncate">{app.name}</span>
-          {!!app.githubRepository && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="flex shrink-0 items-center">
-                  <SiGithub className="h-3.5 w-3.5" />
-                </span>
-              </TooltipTrigger>
-              <TooltipContent
-                side="right"
-                sideOffset={8}
-                className="pointer-events-none max-w-56"
-              >
-                <p className="font-medium">GitHub connected</p>
-                <p className="text-muted-foreground">
-                  Metadata changes may be overridden by the next deployment.
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          )}
+          <div className="ml-auto flex shrink-0 items-center gap-2">
+            {!!app.githubRepository && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="flex shrink-0 items-center">
+                    <SiGithub className="h-3.5 w-3.5" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="right"
+                  sideOffset={8}
+                  className="pointer-events-none max-w-56"
+                >
+                  <p className="font-medium">GitHub connected</p>
+                  <p className="text-muted-foreground">
+                    Metadata changes may be overridden by the next deployment.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            <ProjectStatusPill status={rowStatus} />
+          </div>
         </div>
       ),
     };
@@ -73,9 +80,6 @@ export default function ProjectsComboBox() {
 
   const triggerLabel = selectedProjectFromUrl ? (
     <div className="flex items-center gap-2">
-      <span className="flex size-2 shrink-0 items-center justify-center">
-        <ProjectStatusIndicator status={appState} />
-      </span>
       {selectedProjectFromUrl.name}
       {isGitHubConnected && (
         <Tooltip>
@@ -95,6 +99,7 @@ export default function ProjectsComboBox() {
           </TooltipContent>
         </Tooltip>
       )}
+      <ProjectStatusPill status={appState} />
       <ProjectStatus />
     </div>
   ) : null;

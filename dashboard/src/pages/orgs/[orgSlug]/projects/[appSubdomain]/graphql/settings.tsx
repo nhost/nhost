@@ -1,5 +1,7 @@
+import { SiGraphql as GraphQLIcon } from '@icons-pack/react-simple-icons';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
+import { ProTag } from '@/components/common/ProTag';
 import { UpgradeBanner } from '@/components/common/UpgradeBanner';
 import {
   SectionSidebarButton,
@@ -88,6 +90,8 @@ function useGraphQLSettingsTab() {
 
 function GraphQLSettingsSidebar() {
   const { activeTab, setActiveTab } = useGraphQLSettingsTab();
+  const { org } = useCurrentOrg();
+  const isFreeOrg = org?.plan?.isFree;
 
   return (
     <aside className="h-full w-[240px] max-w-[240px] shrink-0 overflow-auto pt-14">
@@ -113,6 +117,7 @@ function GraphQLSettingsSidebar() {
             onClick={() => setActiveTab('custom-domain')}
           >
             Custom Domain
+            {isFreeOrg && <ProTag />}
           </SectionSidebarButton>
           <SectionSidebarButton
             active={activeTab === 'rate-limiting'}
@@ -131,7 +136,7 @@ function GraphQLCustomDomainSettings() {
 
   if (org?.plan?.isFree) {
     return (
-      <UpgradeBanner section="settings-custom-domains" />
+      <UpgradeBanner section="settings-custom-domains" icon={GraphQLIcon} />
     );
   }
 

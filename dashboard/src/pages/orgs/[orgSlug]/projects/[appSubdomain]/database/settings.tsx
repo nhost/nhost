@@ -1,4 +1,4 @@
-import { SettingsIcon } from 'lucide-react';
+import { DatabaseIcon, SettingsIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import type { ReactElement, ReactNode } from 'react';
 import { ProTag } from '@/components/common/ProTag';
@@ -94,7 +94,7 @@ function DatabaseSettingsSectionLabel({
   children,
 }: DatabaseSettingsSectionLabelProps) {
   return (
-    <p className="mt-6 px-2 pb-1 text-[10px] font-normal uppercase tracking-[0.08em] text-muted-foreground first:mt-0 dark:text-sidebar-section-title">
+    <p className="mt-[1.2rem] px-2 pb-1 text-[10px] font-normal uppercase tracking-[0.08em] text-muted-foreground first:mt-0 dark:text-sidebar-section-title">
       {children}
     </p>
   );
@@ -226,7 +226,7 @@ function DatabaseCustomDomainSettings() {
 
   if (org?.plan?.isFree) {
     return (
-      <UpgradeBanner section="settings-custom-domains" />
+      <UpgradeBanner section="settings-custom-domains" icon={DatabaseIcon} />
     );
   }
 
@@ -237,7 +237,7 @@ function DatabaseCapacitySettings() {
   const { org } = useCurrentOrg();
 
   if (org?.plan?.isFree) {
-    return <UpgradeBanner section="settings-capacity" />;
+    return <UpgradeBanner section="settings-capacity" icon={DatabaseIcon} />;
   }
 
   return <DatabaseStorageCapacity />;
@@ -247,7 +247,7 @@ function DatabasePointInTimeRecoverySettings() {
   const { org } = useCurrentOrg();
 
   if (org?.plan?.isFree) {
-    return <UpgradeBanner section="settings-point-in-time" />;
+    return <UpgradeBanner section="settings-point-in-time" icon={DatabaseIcon} />;
   }
 
   return <DatabasePiTRSettings />;

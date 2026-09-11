@@ -1,3 +1,4 @@
+import { DatabaseIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { UpgradeBanner } from '@/components/common/UpgradeBanner';
 import { Container } from '@/components/layout/Container';
@@ -26,7 +27,7 @@ export default function BackupsPageLayout({
         className="grid grid-flow-row gap-6 bg-transparent pt-0"
         rootClassName="bg-transparent"
       >
-        <UpgradeBanner section="backups" />
+        <UpgradeBanner section="backups" icon={DatabaseIcon} />
       </Container>
     );
   }

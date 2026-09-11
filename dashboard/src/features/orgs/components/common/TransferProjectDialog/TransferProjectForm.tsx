@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Badge } from '@/components/ui/v3/badge';
+import { PlanBadge } from '@/components/common/PlanBadge';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
 import {
   Form,
@@ -31,7 +31,7 @@ import {
 } from '@/generated/graphql';
 import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { useUserData } from '@/hooks/useUserData';
-import { cn, isNotEmptyValue } from '@/lib/utils';
+import { isNotEmptyValue } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/application';
 
 const CREATE_NEW_ORG = 'createNewOrg';
@@ -138,17 +138,9 @@ function TransferProjectForm({
                       placeholder={
                         <span className="flex items-center">
                           {currentOrg?.name}
-                          <Badge
-                            variant={
-                              currentOrg?.plan.isFree ? 'outline' : 'default'
-                            }
-                            className={cn(
-                              currentOrg?.plan.isFree ? 'bg-muted' : '',
-                              'hover:none ml-2 h-5 px-[6px] text-[10px]',
-                            )}
-                          >
-                            {currentOrg?.plan.name}
-                          </Badge>
+                          {currentOrg?.plan.name ? (
+                            <PlanBadge plan={currentOrg.plan.name} />
+                          ) : null}
                         </span>
                       }
                     />
@@ -167,15 +159,7 @@ function TransferProjectForm({
                           !isUserAdminOfOrg(org, user?.id) // disable orgs that the current user is not admin of
                         }
                       >
-                        <Badge
-                          variant={org.plan.isFree ? 'outline' : 'default'}
-                          className={cn(
-                            org.plan.isFree ? 'bg-muted' : '',
-                            'hover:none ml-2 h-5 px-[6px] text-[10px]',
-                          )}
-                        >
-                          {org.plan.name}
-                        </Badge>
+                        <PlanBadge plan={org.plan.name} />
                       </SelectItem>
                     ))}
                   <SelectItem key={CREATE_NEW_ORG} value={CREATE_NEW_ORG}>
@@ -193,7 +177,7 @@ function TransferProjectForm({
 
         <div className="flex justify-end space-x-2">
           <Button
-            variant="secondary"
+            variant="outline-emboss"
             type="button"
             disabled={form.formState.isSubmitting}
             onClick={onCancel}

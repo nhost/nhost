@@ -2,12 +2,11 @@ import { Plus } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import HeaderCombobox from '@/components/layout/Header/HeaderCombobox';
-import { Badge } from '@/components/ui/v3/badge';
+import { PlanBadge } from '@/components/common/PlanBadge';
 import CreateOrgDialog from '@/features/orgs/components/CreateOrgFormDialog/CreateOrgFormDialog';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
-import { cn } from '@/lib/utils';
 
 export default function OrgsComboBox() {
   const { orgs } = useOrgs();
@@ -24,36 +23,12 @@ export default function OrgsComboBox() {
     ? orgs.find((item) => item.slug === orgSlug)
     : undefined;
 
-  // One tone per plan tier, each with its own border/background/text color
-  // so Starter, Pro, Team and Enterprise read as visually distinct at a
-  // glance instead of all collapsing into the same solid badge.
-  const PLAN_TONES: Record<string, string> = {
-    Starter: 'border-foreground/15 bg-foreground/[0.06] text-foreground/80',
-    Pro: 'border-primary/20 bg-primary/[0.07] text-primary',
-    Team: 'border-violet-500/20 bg-violet-500/[0.08] text-violet-600 dark:text-violet-300',
-    Enterprise:
-      'border-amber-500/20 bg-amber-500/[0.08] text-amber-600 dark:text-amber-300',
-  };
-
   const renderBadge = (plan: string) => {
     if (!isPlatform) {
       return null;
     }
 
-    return (
-      <Badge
-        variant="outline"
-        className={cn(
-          PLAN_TONES[plan],
-          plan === 'Legacy'
-            ? 'border-transparent bg-orange-200 text-foreground hover:bg-orange-200 dark:bg-orange-500'
-            : '',
-          'hover:none ml-2 h-5 px-[6px] text-[10px]',
-        )}
-      >
-        {plan}
-      </Badge>
-    );
+    return <PlanBadge plan={plan} />;
   };
 
   const options = orgs.map((org) => {

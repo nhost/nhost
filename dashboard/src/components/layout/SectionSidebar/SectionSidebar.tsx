@@ -43,7 +43,7 @@ export function SectionSidebarGroup({
   ...props
 }: SectionSidebarGroupProps) {
   return (
-    <section className={cn('mt-6 first:mt-0', className)} {...props}>
+    <section className={cn('mt-[1.2rem] first:mt-0', className)} {...props}>
       {label && (
         <h2
           className={cn(

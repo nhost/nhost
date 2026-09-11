@@ -1,9 +1,11 @@
+import { Mail } from 'lucide-react';
 import NextLink from 'next/link';
 import { type ReactElement, useEffect } from 'react';
 import { SignInRightColumn } from '@/components/auth/SignInRightColumn';
 import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
 import { Button } from '@/components/ui/v3/button';
 import { Separator } from '@/components/ui/v3/separator';
+import { TextLink } from '@/components/ui/v3/text-link';
 import { SignInWithSecurityKey } from '@/features/auth/SignIn/SecurityKey';
 import { SignInWithGithub } from '@/features/auth/SignIn/SignInWithGithub';
 import { useAuth } from '@/providers/Auth';
@@ -19,12 +21,12 @@ export default function SigninPage() {
   }, []);
 
   return (
-    <div className="grid gap-12 font-[Inter]">
+    <div className="grid gap-12">
       <div className="text-center">
         <h2 className="mb-3 font-semibold text-3.5xl lg:text-4.5xl">
           Welcome back
         </h2>
-        <p className="mx-auto max-w-md text-[#A2B3BE] text-lg">
+        <p className="mx-auto max-w-md text-muted-foreground text-lg">
           Continue building amazing things with Nhost
         </p>
       </div>
@@ -33,47 +35,46 @@ export default function SigninPage() {
         <SignInWithGithub />
         <SignInWithSecurityKey />
         <div className="relative py-2">
-          <p className="absolute top-1/2 right-0 left-0 mx-auto w-12 -translate-y-1/2 bg-black px-2 text-center text-[#68717A] text-sm">
+          <p className="absolute top-1/2 right-0 left-0 mx-auto w-12 -translate-y-1/2 bg-background px-2 text-center text-muted-foreground text-sm">
             OR
           </p>
 
           <Separator className="my-2" />
         </div>
-        <Button
-          asChild
-          variant="ghost"
-          className="!text-white hover:!bg-white hover:!bg-opacity-10 focus:!bg-white focus:!bg-opacity-10"
-        >
-          <NextLink href="/signin/email">Continue with Email</NextLink>
+        <Button variant="outline-emboss" className="gap-2 text-sm+" asChild>
+          <NextLink href="/signin/email">
+            <Mail size={14} />
+            Continue with Email
+          </NextLink>
         </Button>
         <p className="text-center text-sm">
           By clicking continue, you agree to our{' '}
-          <NextLink
+          <TextLink
             href="https://nhost.io/legal/terms-of-service"
             target="_blank"
             rel="noopener noreferrer"
-            className="font-semibold text-white"
+            className="font-semibold"
           >
             Terms of Service
-          </NextLink>{' '}
+          </TextLink>{' '}
           and{' '}
-          <NextLink
+          <TextLink
             href="https://nhost.io/legal/privacy-policy"
             target="_blank"
             rel="noopener noreferrer"
-            className="font-semibold text-white"
+            className="font-semibold"
           >
             Privacy Policy
-          </NextLink>
+          </TextLink>
         </p>
       </div>
 
-      <p className="text-center lg:text-lg">
+      <div className="rounded-md border bg-transparent p-4 text-center lg:text-lg">
         Don&apos;t have an account?{' '}
-        <NextLink href="/signup" className="font-medium text-white">
+        <TextLink href="/signup" className="font-medium">
           Sign Up
-        </NextLink>
-      </p>
+        </TextLink>
+      </div>
     </div>
   );
 }

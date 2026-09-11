@@ -378,7 +378,7 @@ export default function ServiceForm({
             </Button>
             <Button
               type="button"
-              variant="outline"
+              variant="outline-emboss"
               disabled={isSubmitting}
               onClick={copyConfig}
             >

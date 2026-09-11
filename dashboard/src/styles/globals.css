@@ -348,6 +348,10 @@ html.dark .graphiql-themed .graphiql-container {
     --secondary-800: 214, 24.7%, 69%;
     --grey-400: 216 20% 80%;
     --grey-500: 216 20% 90%;
+    /* Always-dark surface for terminal/log-style panels (deployment logs,
+       migration logs) that stay dark regardless of the app's light/dark
+       theme. Same value in both blocks below on purpose. */
+    --console-background: 0 0% 10%;
   }
 
   .dark {
@@ -357,12 +361,13 @@ html.dark .graphiql-themed .graphiql-container {
     --card-foreground: 220 7% 91.6%;
     --popover: 210 5.71% 13.73%;
     --popover-foreground: 220 7% 91.6%;
-    --primary: 217.8 98.7% 69.4%;
+    --primary: 217.8 100% 64%;
     --primary-foreground: 222.2 47.4% 11.2%;
     --secondary: 216 17.07% 40.2%;
     --secondary-foreground: 0, 0%, 85%;
     --muted: 214.4 7.2% 19%;
     --muted-foreground: 210 4% 70.2%;
+    --console-background: 0 0% 10%;
     --accent: 210 7.1% 16.5%;
     --accent-foreground: 210 40% 98%;
     --destructive: 358.73 79.73% 80.35%;
@@ -391,10 +396,10 @@ html.dark .graphiql-themed .graphiql-container {
     --data-cell-bg-hover: 215 20% 22%;
     --data-cell-bg-disabled: 215, 12%, 19%;
     --data-table-border-color: 210, 13%, 21.2%;
-    --primary-main: 217.8 98.7% 69.4%;
+    --primary-main: 217.8 100% 64%;
     --table-selected: 216 31.65% 15.49%;
     --default: 216.92 23.64% 10.78%;
-    --primary-highlight: 217.8 98.7% 69.4% / 16%;
+    --primary-highlight: 217.8 100% 64% / 16%;
     --primary-gradient-from: 216 86.67% 44.12%;
     --primary-gradient-mid: 216 90.48% 41.18%;
     --primary-gradient-to: 214.24 100% 36.08%;
@@ -539,6 +544,38 @@ html.dark .graphiql-themed .graphiql-container {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.06),
     inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+/* ------------------------------------------------------------------
+ * Same primary gradient as .btn-emboss-primary, without the emboss
+ * bezel (no inset highlight/lip shadows, no text-shadow). Used where
+ * the raised 3D look is too much, e.g. the Discord banner.
+ * ------------------------------------------------------------------ */
+.btn-emboss-primary-gradient-only {
+  color: #ffffff;
+  border: 0;
+  background: linear-gradient(180deg, hsl(var(--primary-gradient-from)) 0%, hsl(var(--primary-gradient-to)) 100%);
+  transition: background 0.16s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.btn-emboss-primary-gradient-only:hover:not(:disabled) {
+  background: linear-gradient(180deg, hsl(var(--primary-gradient-hover-from)) 0%, hsl(var(--primary-gradient-hover-to)) 100%);
+}
+.btn-emboss-primary-gradient-only:disabled,
+.btn-emboss-primary-gradient-only[aria-disabled="true"] {
+  color: #ffffff;
+  background: linear-gradient(180deg, hsl(var(--primary-gradient-disabled-from)) 0%, hsl(var(--primary-gradient-disabled-to)) 100%);
+}
+.dark .btn-emboss-primary-gradient-only {
+  color: #ffffff;
+  background: linear-gradient(180deg, hsl(var(--primary-gradient-from)) 0%, hsl(var(--primary-gradient-mid)) 46%, hsl(var(--primary-gradient-to)) 100%);
+}
+.dark .btn-emboss-primary-gradient-only:hover:not(:disabled) {
+  background: linear-gradient(180deg, hsl(var(--primary-gradient-hover-from)) 0%, hsl(var(--primary-gradient-hover-mid)) 46%, hsl(var(--primary-gradient-hover-to)) 100%);
+}
+.dark .btn-emboss-primary-gradient-only:disabled,
+.dark .btn-emboss-primary-gradient-only[aria-disabled="true"] {
+  color: rgba(255, 255, 255, 0.5);
+  background: linear-gradient(180deg, hsl(var(--primary-gradient-disabled-from)) 0%, hsl(var(--primary-gradient-disabled-to)) 100%);
 }
 
 /* ------------------------------------------------------------------
@@ -726,7 +763,7 @@ html.dark .graphiql-themed .graphiql-container {
 
 .pro-orbit {
   transform-box: view-box;
-  transform-origin: 146px 80px;
+  transform-origin: 120px 80px;
 }
 
 .pro-orbit-inner {
@@ -743,16 +780,8 @@ html.dark .graphiql-themed .graphiql-container {
   animation: pro-halo-breathe 8s ease-in-out infinite alternate;
 }
 
-.pro-illustration-logo {
-  animation: pro-logo-breathe 7s ease-in-out infinite alternate;
-}
-
-.pro-unlock-badge {
-  animation: pro-badge-float 6s ease-in-out infinite alternate;
-}
-
-.pro-sparkles {
-  animation: pro-sparkle 5s ease-in-out infinite alternate;
+.pro-illustration-icon {
+  animation: pro-icon-breathe 7s ease-in-out infinite alternate;
 }
 
 @keyframes pro-banner-light {
@@ -791,19 +820,9 @@ html.dark .graphiql-themed .graphiql-container {
   to { opacity: 1; transform: scale(1.035); }
 }
 
-@keyframes pro-logo-breathe {
+@keyframes pro-icon-breathe {
   from { opacity: 0.88; }
   to { opacity: 1; }
-}
-
-@keyframes pro-badge-float {
-  from { opacity: 0.82; }
-  to { opacity: 1; }
-}
-
-@keyframes pro-sparkle {
-  from { opacity: 0.24; }
-  to { opacity: 0.52; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -812,9 +831,7 @@ html.dark .graphiql-themed .graphiql-container {
   .pro-banner-blob,
   .pro-orbit,
   .pro-illustration-halo,
-  .pro-illustration-logo,
-  .pro-unlock-badge,
-  .pro-sparkles {
+  .pro-illustration-icon {
     animation: none !important;
   }
 }

@@ -30,6 +30,7 @@ module.exports = {
         'primary-text': 'hsl(var(--primary-text))',
         'primary-main': 'hsl(var(--primary-main))',
         'primary-highlight': 'hsl(var(--primary-highlight))',
+        'console-background': 'hsl(var(--console-background))',
         'primary-light': '#ebf3ff',
         'primary-dark': '#063799',
         'theme-grey-200': '#21262d',

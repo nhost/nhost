@@ -200,8 +200,8 @@ export const LogsTable = forwardRef<LogsTableHandle, LogsTableProps>(
               const row = rows[virtualRow.index];
               const isSelected = isSameLogEntry(selectedEntry, row.original);
               const cellBg = isSelected
-                ? 'bg-sky-50 group-hover:bg-sky-100 dark:bg-sky-950 dark:group-hover:bg-sky-900'
-                : 'bg-paper group-hover:bg-slate-100 dark:bg-data-cell-bg dark:group-hover:bg-data-cell-bg-hover';
+                ? 'bg-muted'
+                : 'bg-transparent group-hover:bg-neutral-50 dark:group-hover:bg-accent';
               return (
                 <tr
                   key={row.id}

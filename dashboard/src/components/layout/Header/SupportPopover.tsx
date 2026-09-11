@@ -9,6 +9,7 @@ import {
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { dashboardNavItemIconClassName } from '@/components/layout/DashboardSidebar/DashboardSidebar';
+import { getDashboardVersion } from '@/utils/env';
 import { IconButton } from '@/components/ui/v3/icon-button';
 import {
   Popover,
@@ -26,20 +27,31 @@ interface SupportLinkProps {
   href: string;
   icon: ReactNode;
   children: ReactNode;
+  subtitle?: ReactNode;
 }
 
-function SupportLink({ href, icon, children }: SupportLinkProps) {
+function SupportLink({ href, icon, children, subtitle }: SupportLinkProps) {
   return (
     <Link
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex h-9 items-center gap-3 rounded-md px-4 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+      className={cn(
+        'flex items-center gap-3 rounded-md px-4 text-sm transition-colors hover:bg-accent hover:text-accent-foreground',
+        subtitle ? 'py-2' : 'h-9',
+      )}
     >
       <span className={cn('flex size-5 shrink-0 items-center justify-center', dashboardNavItemIconClassName)}>
         {icon}
       </span>
-      <span className="flex-1">{children}</span>
+      <span className="flex-1">
+        <span className="block">{children}</span>
+        {subtitle && (
+          <span className="block text-muted-foreground text-xs">
+            {subtitle}
+          </span>
+        )}
+      </span>
       <ExternalLinkIcon className={cn('size-4 shrink-0', dashboardNavItemIconClassName)} />
     </Link>
   );
@@ -78,6 +90,7 @@ export default function SupportPopover() {
           <SupportLink
             href={STATUS_URL}
             icon={<ActivityIcon className="size-4" />}
+            subtitle={`v${getDashboardVersion()}`}
           >
             Status
           </SupportLink>
@@ -88,7 +101,7 @@ export default function SupportPopover() {
             href={DISCORD_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="btn-emboss btn-emboss-primary flex items-center gap-3 rounded-md px-3 py-4"
+            className="btn-emboss-primary-gradient-only flex items-center gap-3 rounded-md px-3 py-2"
           >
             <DiscordIcon className="size-7 shrink-0" />
             <span className="min-w-0 flex-1">

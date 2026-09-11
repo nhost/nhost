@@ -1,3 +1,4 @@
+import { ArrowRightLeft } from 'lucide-react';
 import { useState } from 'react';
 import {
   SettingsCard,
@@ -23,10 +24,12 @@ export default function TransferProject() {
         <SettingsCardFooter>
           <ButtonWithLoading
             type="button"
+            variant="outline-emboss"
             disabled={!isPlatform}
             onClick={() => setOpen(true)}
             className="w-full sm:w-auto"
           >
+            <ArrowRightLeft className="mr-2 h-4 w-4" />
             Transfer
           </ButtonWithLoading>
         </SettingsCardFooter>

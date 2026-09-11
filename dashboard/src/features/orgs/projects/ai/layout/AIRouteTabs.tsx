@@ -28,7 +28,7 @@ export default function AIRouteTabs() {
     router.route ===
     '/orgs/[orgSlug]/projects/[appSubdomain]/ai/auto-embeddings';
   const isSettingsActive =
-    router.route === '/orgs/[orgSlug]/projects/[appSubdomain]/settings/ai';
+    router.route === '/orgs/[orgSlug]/projects/[appSubdomain]/ai/settings';
 
   return (
     <RouteTabs aria-label="AI section navigation">
@@ -52,7 +52,7 @@ export default function AIRouteTabs() {
       </RouteTabLink>
       <RouteTabSeparator />
       <RouteTabLink
-        href={`${projectPath}/settings/ai`}
+        href={`${projectPath}/ai/settings`}
         active={isSettingsActive}
         disabled={shouldDisableSettings}
       >

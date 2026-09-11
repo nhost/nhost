@@ -162,21 +162,14 @@ export default function HasuraEnabledAPISettings() {
                     }
                   >
                     <FormControl>
-                      <MultiSelectTrigger className="w-full rounded-sm hover:bg-accent-background dark:border-[#2f363d] dark:bg-[#171d26] dark:hover:bg-[#1b2534]">
-                        <MultiSelectValue
-                          placeholder="Select Enabled APIs"
-                          placeHolderClassName="text-[#9ca7b7]"
-                        />
+                      <MultiSelectTrigger className="w-full rounded-sm">
+                        <MultiSelectValue placeholder="Select Enabled APIs" />
                       </MultiSelectTrigger>
                     </FormControl>
                     <MultiSelectContent>
                       <MultiSelectGroup>
                         {availableAPIs.map((opt) => (
-                          <MultiSelectItem
-                            key={opt.value}
-                            value={opt.value}
-                            className="data-[selected='true']:bg-accent data-[selected='true']:dark:bg-[#1b2534]"
-                          >
+                          <MultiSelectItem key={opt.value} value={opt.value}>
                             {opt.label}
                           </MultiSelectItem>
                         ))}

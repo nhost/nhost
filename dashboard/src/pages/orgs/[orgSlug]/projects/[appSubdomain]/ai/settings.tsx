@@ -1,8 +1,9 @@
+import { SparklesIcon } from 'lucide-react';
 import type { ReactElement } from 'react';
 import { UpgradeBanner } from '@/components/common/UpgradeBanner';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
+import { getAILayout } from '@/features/orgs/projects/ai/layout/getAILayout';
 import { AISettings } from '@/features/orgs/projects/ai/settings/components';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
@@ -14,7 +15,7 @@ import {
   useGetSoftwareVersionsQuery,
 } from '@/generated/graphql';
 
-export default function AISettingsPage() {
+function AISettingsContent() {
   const { org, error } = useCurrentOrg();
   const { project, loading: loadingProject } = useProject();
   const isPlatform = useIsPlatform();
@@ -35,7 +36,7 @@ export default function AISettingsPage() {
   if (org?.plan?.isFree) {
     return (
       <div className="grid grid-flow-row gap-6">
-        <UpgradeBanner section="settings-ai" />
+        <UpgradeBanner section="settings-ai" icon={SparklesIcon} />
       </div>
     );
   }
@@ -65,12 +66,16 @@ export default function AISettingsPage() {
   );
 }
 
-AISettingsPage.getLayout = function getLayout(page: ReactElement) {
+export default function AISettingsPage() {
   return (
-    <ProjectLayout>
-      <SettingsLayout>
-        <div className="mx-auto w-full max-w-5xl px-5 py-4">{page}</div>
-      </SettingsLayout>
-    </ProjectLayout>
+    <SettingsLayout>
+      <div className="mx-auto w-full max-w-5xl px-5 py-4">
+        <AISettingsContent />
+      </div>
+    </SettingsLayout>
   );
+}
+
+AISettingsPage.getLayout = function getLayout(page: ReactElement) {
+  return getAILayout(page);
 };

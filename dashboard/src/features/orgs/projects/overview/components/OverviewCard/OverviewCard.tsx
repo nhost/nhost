@@ -1,4 +1,4 @@
-import { ArrowRightIcon } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 import type { ImageProps } from 'next/image';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -91,7 +91,7 @@ export default function OverviewCard({
   return (
     <div
       className={cn(
-        'flex h-full flex-col place-content-between gap-12 rounded-lg border bg-muted px-4 py-3 shadow-sm',
+        'flex h-full flex-col place-content-between gap-6 rounded-lg border px-4 py-3 shadow-sm',
         className,
       )}
       {...props}
@@ -130,10 +130,10 @@ export default function OverviewCard({
           href={link}
           target="_blank"
           rel="noopener noreferrer"
-          className="grid grid-flow-col items-center justify-start gap-1 font-medium text-primary text-sm hover:underline"
+          className="grid grid-flow-col items-center justify-start gap-1 font-medium text-foreground/70 text-sm underline underline-offset-4 hover:text-primary"
         >
           Learn more
-          <ArrowRightIcon className="h-4 w-4" />
+          <ArrowUpRight className="h-4 w-4" />
         </Link>
       )}
     </div>

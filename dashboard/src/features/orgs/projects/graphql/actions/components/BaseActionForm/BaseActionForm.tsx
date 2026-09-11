@@ -470,8 +470,7 @@ export default function BaseActionForm({
         <div className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t p-2">
           <Button
             type="button"
-            variant="ghost"
-            className="text-foreground"
+            variant="outline-emboss"
             onClick={handleCancel}
             disabled={isSubmitting}
           >

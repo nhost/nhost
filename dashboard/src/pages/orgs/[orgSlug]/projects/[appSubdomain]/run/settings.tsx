@@ -1,5 +1,7 @@
+import { SiDocker as ServicesIcon } from '@icons-pack/react-simple-icons';
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
+import { ProTag } from '@/components/common/ProTag';
 import { UpgradeBanner } from '@/components/common/UpgradeBanner';
 import {
   SectionSidebarButton,
@@ -66,6 +68,9 @@ function useRunSettingsTab() {
 
 function RunSettingsSidebar() {
   const { activeTab, setActiveTab } = useRunSettingsTab();
+  const isPlatform = useIsPlatform();
+  const { org } = useCurrentOrg();
+  const isFreeOrg = isPlatform && org?.plan?.isFree;
 
   return (
     <aside className="h-full w-[280px] max-w-[280px] shrink-0 overflow-auto">
@@ -76,6 +81,7 @@ function RunSettingsSidebar() {
             onClick={() => setActiveTab('custom-domain')}
           >
             Custom Domain
+            {isFreeOrg && <ProTag />}
           </SectionSidebarButton>
           <SectionSidebarButton
             active={activeTab === 'rate-limiting'}
@@ -97,7 +103,7 @@ function RunCustomDomainSettings() {
 
   if (isPlatform && org?.plan?.isFree) {
     return (
-      <UpgradeBanner section="settings-custom-domains" />
+      <UpgradeBanner section="settings-custom-domains" icon={ServicesIcon} />
     );
   }
 

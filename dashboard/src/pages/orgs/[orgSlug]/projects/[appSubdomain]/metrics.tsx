@@ -1,4 +1,4 @@
-import { ExternalLink as ArrowSquareOutIcon, CopyIcon } from 'lucide-react';
+import { ExternalLink as ArrowSquareOutIcon, CopyIcon, GaugeIcon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { ReactElement } from 'react';
@@ -48,7 +48,7 @@ function MetricsPageContent() {
         className="grid grid-flow-row gap-6 bg-transparent"
         rootClassName="bg-transparent"
       >
-        <UpgradeBanner section="metrics" />
+        <UpgradeBanner section="metrics" icon={GaugeIcon} />
       </Container>
     );
   }

@@ -120,7 +120,7 @@ export default function OAuth2AuthorizePage() {
         className="flex max-w-md flex-col items-center gap-8 bg-transparent py-12"
       >
         <div className="relative flex items-center justify-center">
-          <div className="backface-hidden absolute right-0 left-0 z-0 mx-auto h-20 w-20 transform-gpu rounded-full bg-primary-main opacity-80 blur-[56px]" />
+          <div className="backface-hidden absolute right-0 left-0 z-0 mx-auto h-20 w-20 transform-gpu rounded-full bg-primary-main opacity-80 blur-3xl" />
           <Image
             src="/assets/logo.svg"
             width={119}

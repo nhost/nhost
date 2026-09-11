@@ -8,8 +8,7 @@ import {
   useContext,
   useId,
 } from 'react';
-import { Button } from '@/components/ui/v3/button';
-import { getDashboardVersion } from '@/utils/env';
+import { IconButton } from '@/components/ui/v3/icon-button';
 import {
   Tooltip,
   TooltipContent,
@@ -167,7 +166,7 @@ function DashboardSidebarSection({
     <section
       id={id}
       aria-labelledby={labelId}
-      className="mt-6 first:mt-0"
+      className="mt-[1.2rem] first:mt-0"
       {...props}
     >
       {label && !collapsed && (
@@ -217,37 +216,27 @@ function DashboardSidebar({
           <div className="flex flex-col gap-1">{children}</div>
         </nav>
 
-        <div
-          className={cn(
-            'shrink-0 py-1 pl-4 pr-2 text-left text-[10px] text-muted-foreground dark:text-sidebar-section-title',
-            collapsed && 'sr-only',
-          )}
-        >
-          v{getDashboardVersion()}
-        </div>
-
         {footer && (
           <div className="shrink-0 border-t p-2">
             <ul className="flex flex-col gap-1">{footer}</ul>
           </div>
         )}
 
-        <div className="flex shrink-0 items-center justify-end border-t px-2 py-1">
-          <Button
+        <div
+          className={cn(
+            'flex shrink-0 items-center px-2 pt-1 pb-3',
+            collapsed ? 'justify-center' : 'justify-start',
+          )}
+        >
+          <IconButton
             type="button"
-            variant="ghost"
-            size="icon"
             aria-label={toggleLabel}
             aria-pressed={collapsed}
-            className="size-7 text-muted-foreground"
+            className="h-7 w-7"
+            iconClassName="h-4 w-4"
+            icon={collapsed ? ChevronRight : ChevronLeft}
             onClick={() => setCollapsed(!collapsed)}
-          >
-            {collapsed ? (
-              <ChevronRight className="size-4" />
-            ) : (
-              <ChevronLeft className="size-4" />
-            )}
-          </Button>
+          />
         </div>
       </aside>
     </DashboardSidebarContext.Provider>

@@ -1,20 +1,11 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import { useCallback } from 'react';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { Dialog, DialogTitle } from '@/components/ui/v3/dialog';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useAppPausedReason } from '@/features/orgs/projects/common/hooks/useAppPausedReason';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { getUnpauseErrorMessage } from '@/features/orgs/utils/getUnpauseErrorMessage';
-import {
-  GetOrganizationsDocument,
-  useUnpauseApplicationMutation,
-} from '@/generated/graphql';
-import { useTrackEvent } from '@/hooks/useTrackEvent';
-import { useUserData } from '@/hooks/useUserData';
+import { useUnpauseProject } from '@/features/orgs/projects/common/hooks/useUnpauseProject';
 import { ApplicationStatus } from '@/types/application';
 import ProjectViewSkeleton from './ProjectViewSkeleton';
 import { hasSidebarSkeleton } from './projectStatePages';
@@ -27,40 +18,8 @@ export default function ProjectStateScreen({
   const { route } = useRouter();
 
   const { freeAndLiveProjectsNumberExceeded } = useAppPausedReason();
-  const { project, refetch: refetchProject } = useProject();
-  const userData = useUserData();
-  const track = useTrackEvent();
-
-  const [unpauseApplication, { loading: changingApplicationStateLoading }] =
-    useUnpauseApplicationMutation({
-      variables: {
-        appId: project?.id,
-      },
-      refetchQueries: [
-        {
-          query: GetOrganizationsDocument,
-          variables: { userId: userData?.id },
-        },
-      ],
-    });
-
-  const handleTriggerUnpausing = useCallback(async () => {
-    await execPromiseWithErrorToast(
-      async () => {
-        await unpauseApplication({ variables: { appId: project?.id } });
-        track('Project Resumed');
-        await new Promise((resolve) => {
-          setTimeout(resolve, 1000);
-        });
-        await refetchProject();
-      },
-      {
-        loadingMessage: 'Starting the project...',
-        successMessage: 'The project has been started successfully.',
-        errorMessage: getUnpauseErrorMessage,
-      },
-    );
-  }, [unpauseApplication, project?.id, refetchProject, track]);
+  const { handleTriggerUnpausing, loading: changingApplicationStateLoading } =
+    useUnpauseProject();
 
   return (
     <div className="relative h-full w-full bg-background">

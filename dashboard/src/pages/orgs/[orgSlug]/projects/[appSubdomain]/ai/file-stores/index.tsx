@@ -1,4 +1,4 @@
-import { PlusIcon } from 'lucide-react';
+import { PlusIcon, SparklesIcon } from 'lucide-react';
 import Link from 'next/link';
 import { type ReactElement, useMemo } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -73,7 +73,7 @@ export default function FileStoresPage() {
   if (isPlatform && org?.plan?.isFree) {
     return (
       <div className="bg-background p-4">
-        <UpgradeBanner section="ai-file-stores" />
+        <UpgradeBanner section="ai-file-stores" icon={SparklesIcon} />
       </div>
     );
   }
@@ -89,7 +89,7 @@ export default function FileStoresPage() {
           <p>
             To enable graphite, configure the service first in{' '}
             <Link
-              href={`/orgs/${slug}/projects/${project?.subdomain}/settings/ai`}
+              href={`/orgs/${slug}/projects/${project?.subdomain}/ai/settings`}
               rel="noopener noreferrer"
               className="text-primary hover:underline"
             >

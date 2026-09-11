@@ -1,8 +1,6 @@
 import { useRouter } from 'next/router';
 import OrganizationNav from '@/components/layout/AppSidebar/OrganizationNav';
-import ProjectNav, {
-  ProjectNavFooter,
-} from '@/components/layout/AppSidebar/ProjectNav';
+import ProjectNav from '@/components/layout/AppSidebar/ProjectNav';
 import { DashboardSidebar } from '@/components/layout/DashboardSidebar';
 
 /**
@@ -26,7 +24,6 @@ export default function AppSidebar() {
       ariaLabel={
         isProjectRoute ? 'Project navigation' : 'Organization navigation'
       }
-      footer={isProjectRoute && <ProjectNavFooter />}
     >
       {isProjectRoute ? <ProjectNav /> : <OrganizationNav />}
     </DashboardSidebar>

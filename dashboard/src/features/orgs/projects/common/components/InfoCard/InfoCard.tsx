@@ -80,7 +80,7 @@ export default function InfoCard({
   return (
     <div
       className={cn(
-        'grid grid-flow-col place-content-between items-center gap-1 rounded-lg bg-muted p-3 shadow-sm',
+        'grid grid-flow-col place-content-between items-center gap-1 p-3',
         className,
       )}
       {...props}

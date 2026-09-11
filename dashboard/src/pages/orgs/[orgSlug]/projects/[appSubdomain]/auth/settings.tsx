@@ -1,5 +1,7 @@
+import { UserIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { type ReactElement, useEffect, useState } from 'react';
+import { ProTag } from '@/components/common/ProTag';
 import { UpgradeBanner } from '@/components/common/UpgradeBanner';
 import {
   SectionSidebarButton,
@@ -145,6 +147,9 @@ function useAuthSettingsTab() {
 
 function AuthSettingsSidebar() {
   const { activeTab, setActiveTab } = useAuthSettingsTab();
+  const { org } = useCurrentOrg();
+  const isPlatform = useIsPlatform();
+  const isFreeOrg = isPlatform && org?.plan?.isFree;
 
   return (
     <aside className="h-full w-[240px] max-w-[240px] shrink-0 overflow-auto pt-14">
@@ -197,6 +202,7 @@ function AuthSettingsSidebar() {
             onClick={() => setActiveTab('custom-domain')}
           >
             Custom Domain
+            {isFreeOrg && <ProTag />}
           </SectionSidebarButton>
           <SectionSidebarButton
             active={activeTab === 'rate-limiting'}
@@ -350,7 +356,7 @@ function SMTPSettingsSection() {
   if (isPlatform && org?.plan?.isFree) {
     return (
       <div className="grid grid-flow-row gap-6">
-        <UpgradeBanner section="settings-smtp" />
+        <UpgradeBanner section="settings-smtp" icon={UserIcon} />
       </div>
     );
   }
@@ -499,7 +505,7 @@ function AuthCustomDomainSettings() {
 
   if (shouldShowUpgrade) {
     return (
-      <UpgradeBanner section="settings-custom-domains" />
+      <UpgradeBanner section="settings-custom-domains" icon={UserIcon} />
     );
   }
 

@@ -1,3 +1,4 @@
+import { SiDocker as ServicesIcon } from '@icons-pack/react-simple-icons';
 import { PlusIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { type ReactElement, useCallback, useEffect } from 'react';
@@ -95,7 +96,7 @@ export default function RunPage() {
         className="grid grid-flow-row gap-6 bg-transparent"
         rootClassName="bg-transparent"
       >
-        <UpgradeBanner section="run" />
+        <UpgradeBanner section="run" icon={ServicesIcon} />
       </Container>
     );
   }
