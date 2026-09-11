@@ -349,7 +349,7 @@ func traefik(
 
 func minio(volumeName string) *Service {
 	return &Service{
-		Image:      "minio/minio:RELEASE.2025-02-28T09-55-16Z",
+		Image:      "quay.io/minio/minio:RELEASE.2025-02-28T09-55-16Z",
 		DependsOn:  nil,
 		EntryPoint: []string{"/bin/sh"},
 		Command: []string{
