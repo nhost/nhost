@@ -174,6 +174,29 @@ describe('RowPermissionsSection', () => {
     expect(screen.getByLabelText('With custom check')).toBeChecked();
   });
 
+  it('shows table row copy for the selected role and action', () => {
+    mocks.useRouter.mockImplementation(() => getRouter());
+    renderRowPermissionsSection(
+      { role: 'editor', action: 'select' },
+      {
+        rowCheckType: 'custom',
+        filter: {
+          type: 'group',
+          id: 'test-group-id',
+          operator: '_implicit',
+          children: [],
+        },
+      },
+    );
+
+    expect(screen.getByText('Row select permissions')).toBeInTheDocument();
+    expect(screen.getByText('editor')).toBeInTheDocument();
+    expect(screen.getByText('select')).toBeInTheDocument();
+    expect(screen.getByLabelText('With custom check')).toBeChecked();
+    expect(screen.getByText('Add check')).toBeInTheDocument();
+    expect(screen.getByLabelText('Limit number of rows')).toBeInTheDocument();
+  });
+
   it('should show validation errors when condition has no value', async () => {
     const user = new TestUserEvent();
     mocks.useRouter.mockImplementation(() => getRouter());
