@@ -2,10 +2,10 @@ import type { ReactElement } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
-import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
 import { FunctionsBrowserSidebar } from '@/features/orgs/projects/serverless-functions/components/FunctionsBrowserSidebar';
 import { FunctionsEmptyState } from '@/features/orgs/projects/serverless-functions/components/FunctionsEmptyState';
 import { useGetNhostFunctions } from '@/features/orgs/projects/serverless-functions/hooks/useGetNhostFunctions';
+import { FunctionsArea } from '@/features/orgs/projects/serverless-functions/layout';
 
 export default function FunctionsPage() {
   const { data: functions, loading, error } = useGetNhostFunctions();
@@ -48,14 +48,14 @@ FunctionsPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <AppLayout>
       <ProjectScope>
-        <ProjectStateGate>
+        <FunctionsArea>
           <div className="flex h-full">
             <FunctionsBrowserSidebar />
             <div className="box flex w-full flex-auto flex-col overflow-x-hidden bg-default">
               {page}
             </div>
           </div>
-        </ProjectStateGate>
+        </FunctionsArea>
       </ProjectScope>
     </AppLayout>
   );

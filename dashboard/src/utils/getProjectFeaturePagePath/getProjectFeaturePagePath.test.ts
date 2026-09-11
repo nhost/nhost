@@ -61,6 +61,14 @@ test('should return /storage/buckets when on a bucket detail page', () => {
   ).toBe('/storage/buckets');
 });
 
+test('should return /functions/browser when on a function detail page', () => {
+  expect(
+    getProjectFeaturePagePath(
+      '/orgs/[orgSlug]/projects/[appSubdomain]/functions/browser/[...functionSlug]',
+    ),
+  ).toBe('/functions/browser');
+});
+
 test('should return /database/schema/default when on the schema navigator page', () => {
   expect(
     getProjectFeaturePagePath(
