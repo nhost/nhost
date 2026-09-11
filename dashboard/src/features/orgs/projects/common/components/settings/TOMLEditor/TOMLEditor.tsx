@@ -141,11 +141,11 @@ export default function TOMLEditor() {
   };
 
   return (
-    <>
+    <div className="flex min-h-[32rem] w-full flex-col overflow-hidden rounded-lg border bg-background">
       <div className="flex w-full flex-col space-y-2 border-b p-4">
-        <p className="font-semibold">Configuration Editor</p>
+        <h3 className="font-semibold text-lg">Configuration Editor</h3>
       </div>
-      <div className="h-full overflow-auto">
+      <div className="min-h-0 flex-1 overflow-auto">
         {loading ? (
           <div className="h-full w-full animate-pulse bg-muted" />
         ) : (
@@ -179,6 +179,6 @@ export default function TOMLEditor() {
           Save
         </ButtonWithLoading>
       </div>
-    </>
+    </div>
   );
 }

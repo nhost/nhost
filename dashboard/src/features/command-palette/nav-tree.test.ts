@@ -97,6 +97,34 @@ describe('commandPaletteNavTree', () => {
     });
   });
 
+  it('lists the project settings tabs next to Project Settings', () => {
+    const byId = new Map(allNodes.map((node) => [node.id, node]));
+
+    expect(byId.get('project-settings-general')).toMatchObject({
+      title: 'Project Settings',
+      path: 'settings',
+      keywords: expect.arrayContaining(['project name', 'pause project']),
+    });
+    expect(byId.get('project-settings-compute-resources')).toMatchObject({
+      title: 'Compute Resources',
+      path: 'settings?tab=compute-resources',
+      keywords: expect.arrayContaining(['cpu']),
+    });
+    expect(byId.get('project-settings-environment-variables')).toMatchObject({
+      title: 'Environment Variables',
+      path: 'settings?tab=environment-variables',
+    });
+    expect(byId.get('project-settings-secrets')).toMatchObject({
+      title: 'Secrets',
+      path: 'settings?tab=secrets',
+    });
+    expect(byId.get('project-settings-editor')).toMatchObject({
+      title: 'Configuration Editor',
+      path: 'settings?tab=editor',
+      keywords: expect.arrayContaining(['toml']),
+    });
+  });
+
   it('gates every org page off-platform', () => {
     const orgNodes = allNodes.filter((node) => node.kind === 'org');
 

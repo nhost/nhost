@@ -2,13 +2,25 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { Lock } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { type ReactElement, useEffect, useMemo } from 'react';
+import {
+  type ComponentType,
+  type ReactElement,
+  useEffect,
+  useMemo,
+} from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
+import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Form } from '@/components/form/Form';
 import { FormInput } from '@/components/form/FormInput';
 import { AppLayout } from '@/components/layout/AppLayout';
+import {
+  AreaSidebarGroup,
+  AreaSidebarLink,
+  AreaSidebarNav,
+  AreaSidebarRoot,
+} from '@/components/layout/AreaSidebar';
 import {
   SettingsCard,
   SettingsCardContent,
@@ -23,6 +35,7 @@ import { ProjectViewWithState } from '@/features/orgs/layout/ProjectGuard';
 import { ProjectScope } from '@/features/orgs/layout/ProjectScope';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { RemoveApplicationDialog } from '@/features/orgs/projects/common/components/RemoveApplicationDialog';
+import { TOMLEditor } from '@/features/orgs/projects/common/components/settings/TOMLEditor';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/useIsCurrentUserOwner';
 import { useIsPauseDisabled } from '@/features/orgs/projects/common/hooks/useIsPauseDisabled';
@@ -33,8 +46,12 @@ import { useIsUnpausing } from '@/features/orgs/projects/common/hooks/useIsUnpau
 import { usePauseApplication } from '@/features/orgs/projects/common/hooks/usePauseApplication';
 import { useRunServices } from '@/features/orgs/projects/common/hooks/useRunServices';
 import { useUnpauseApplication } from '@/features/orgs/projects/common/hooks/useUnpauseApplication';
+import { EnvironmentVariablesSettings } from '@/features/orgs/projects/environmentVariables/settings/components/EnvironmentVariablesSettings';
+import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { ResourcesForm } from '@/features/orgs/projects/resources/settings/components/ResourcesForm';
+import { SecretsSettings } from '@/features/orgs/projects/secrets/settings/components/SecretsSettings';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { getLockedProjectErrorMessage } from '@/features/orgs/utils/getLockedProjectErrorMessage';
 import {
@@ -43,6 +60,7 @@ import {
 } from '@/generated/graphql';
 import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { ApplicationStatus } from '@/types/application';
+import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 import { slugifyString } from '@/utils/helpers';
 
 const projectNameValidationSchema = Yup.object({
@@ -56,7 +74,7 @@ export type ProjectNameValidationSchema = Yup.InferType<
   typeof projectNameValidationSchema
 >;
 
-export default function SettingsGeneralPage() {
+function GeneralSettings() {
   const router = useRouter();
   const isPlatform = useIsPlatform();
   const { openAlertDialog } = useDialog();
@@ -336,12 +354,136 @@ export default function SettingsGeneralPage() {
   );
 }
 
+function ComputeResourcesSettings() {
+  const { org } = useCurrentOrg();
+
+  if (org?.plan?.isFree) {
+    return (
+      <div className="grid grid-flow-row gap-6">
+        <UpgradeToProBanner
+          section="settings-compute-resources"
+          title="To unlock Compute Resources, transfer this project to a Pro or Team organization."
+          description=""
+        />
+      </div>
+    );
+  }
+
+  return <ResourcesForm />;
+}
+
+interface ProjectSettingsTab {
+  slug: string;
+  label: string;
+  Content: ComponentType;
+}
+
+interface ProjectSettingsGroup {
+  label: string;
+  tabs: readonly ProjectSettingsTab[];
+}
+
+const PROJECT_SETTINGS_GROUPS: readonly ProjectSettingsGroup[] = [
+  {
+    label: 'Project',
+    tabs: [
+      { slug: 'general', label: 'General', Content: GeneralSettings },
+      {
+        slug: 'compute-resources',
+        label: 'Compute Resources',
+        Content: ComputeResourcesSettings,
+      },
+    ],
+  },
+  {
+    label: 'Configuration',
+    tabs: [
+      {
+        slug: 'environment-variables',
+        label: 'Environment Variables',
+        Content: EnvironmentVariablesSettings,
+      },
+      { slug: 'secrets', label: 'Secrets', Content: SecretsSettings },
+      { slug: 'editor', label: 'Configuration Editor', Content: TOMLEditor },
+    ],
+  },
+];
+
+const DEFAULT_TAB = PROJECT_SETTINGS_GROUPS[0].tabs[0];
+
+/**
+ * The active tab lives in `?tab=`; an unknown value falls back to the
+ * first tab.
+ */
+function useProjectSettingsTabs() {
+  const router = useRouter();
+
+  const requested = getSingleQueryParam(router.query.tab);
+  const activeTab =
+    PROJECT_SETTINGS_GROUPS.flatMap((group) => group.tabs).find(
+      (tab) => tab.slug === requested,
+    ) ?? DEFAULT_TAB;
+
+  function hrefFor(tab: ProjectSettingsTab) {
+    const { tab: _tab, ...query } = router.query;
+
+    return {
+      pathname: router.pathname,
+      query:
+        tab.slug === DEFAULT_TAB.slug
+          ? query
+          : { ...query, tab: tab.slug },
+    };
+  }
+
+  return { activeTab, hrefFor };
+}
+
+function ProjectSettingsSidebar() {
+  const { activeTab, hrefFor } = useProjectSettingsTabs();
+
+  return (
+    <AreaSidebarRoot>
+      <AreaSidebarNav ariaLabel="Project settings navigation">
+        {PROJECT_SETTINGS_GROUPS.map((group) => (
+          <AreaSidebarGroup key={group.label} label={group.label}>
+            {group.tabs.map((tab) => (
+              <AreaSidebarLink
+                key={tab.slug}
+                href={hrefFor(tab)}
+                active={tab.slug === activeTab.slug}
+                shallow
+                scroll={false}
+              >
+                {tab.label}
+              </AreaSidebarLink>
+            ))}
+          </AreaSidebarGroup>
+        ))}
+      </AreaSidebarNav>
+    </AreaSidebarRoot>
+  );
+}
+
+export default function SettingsGeneralPage() {
+  const { activeTab } = useProjectSettingsTabs();
+
+  return (
+    <SettingsLayout>
+      <activeTab.Content />
+    </SettingsLayout>
+  );
+}
+
 SettingsGeneralPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <AppLayout>
       <ProjectScope>
         <ProjectViewWithState>
-          <SettingsLayout>{page}</SettingsLayout>
+          <div className="mx-auto flex h-full w-full max-w-6xl">
+            <ProjectSettingsSidebar />
+            <div className="min-w-0 flex-1">{page}</div>
+          </div>
         </ProjectViewWithState>
       </ProjectScope>
     </AppLayout>
