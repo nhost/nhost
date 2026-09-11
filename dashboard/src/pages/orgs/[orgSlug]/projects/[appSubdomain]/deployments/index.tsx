@@ -5,8 +5,8 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
-import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
 import { AppDeployments } from '@/features/orgs/projects/deployments/components/AppDeployments';
+import { DeploymentsArea } from '@/features/orgs/projects/deployments/layout';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
@@ -34,7 +34,7 @@ export default function DeploymentsPage() {
         </div>
         <div className="flex w-full justify-center">
           <NavLink
-            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/deployments`}
+            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/settings`}
             underline="none"
             variant="ghost"
             className="!text-primary"
@@ -63,7 +63,7 @@ DeploymentsPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <AppLayout>
       <ProjectScope>
-        <ProjectStateGate>{page}</ProjectStateGate>
+        <DeploymentsArea>{page}</DeploymentsArea>
       </ProjectScope>
     </AppLayout>
   );
