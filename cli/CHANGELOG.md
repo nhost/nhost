@@ -1,3 +1,9 @@
+## [cli@1.51.1] - 2026-09-12
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.51.0
+
 ## [cli@1.51.0] - 2026-09-12
 
 ### 🚀 Features
