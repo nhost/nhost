@@ -1,3 +1,15 @@
+## [constellation@0.7.1] - 2026-09-12
+
+### 🐛 Bug Fixes
+
+- *(auth)* Guard webauthn challenge storage with a mutex (#4884)
+- *(constellation)* Pnpm build failure (#4969)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Bump Go to 1.27 (#4887)
+
 ## [constellation@0.7.0] - 2026-06-29
 
 ### 🚀 Features
