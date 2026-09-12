@@ -80,11 +80,6 @@ func (t MultipartMixed) Do(w http.ResponseWriter, r *http.Request, exec graphql.
 
 	params := &graphql.RawParams{}
 	start := graphql.Now()
-	params.Headers = r.Header
-	params.ReadTime = graphql.TraceTiming{
-		Start: start,
-		End:   graphql.Now(),
-	}
 
 	bodyString, err := getRequestBody(r)
 	if err != nil {
@@ -96,7 +91,7 @@ func (t MultipartMixed) Do(w http.ResponseWriter, r *http.Request, exec graphql.
 	}
 
 	bodyReader := io.NopCloser(strings.NewReader(bodyString))
-	if err = jsonDecode(bodyReader, &params); err != nil {
+	if err = jsonDecode(bodyReader, params); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		gqlErr := gqlerror.Errorf(
 			"json request body could not be decoded: %+v body:%s",
@@ -107,6 +102,12 @@ func (t MultipartMixed) Do(w http.ResponseWriter, r *http.Request, exec graphql.
 		log.Printf("decoding error: %+v body:%s", err.Error(), bodyString)
 		writeJson(w, resp)
 		return
+	}
+
+	params.Headers = r.Header
+	params.ReadTime = graphql.TraceTiming{
+		Start: start,
+		End:   graphql.Now(),
 	}
 
 	rc, opErr := exec.CreateOperationContext(ctx, params)

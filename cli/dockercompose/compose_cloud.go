@@ -1,8 +1,9 @@
 package dockercompose
 
 import (
+	"context"
 	"fmt"
-	"runtime"
+	"net/url"
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/nhost/cli/clienv"
@@ -54,7 +55,7 @@ func consoleCloud(
 	useTLS bool,
 	nhostFolder string,
 	ports ExposePorts,
-	hostOS string,
+	hostUser string,
 ) (*Service, error) {
 	console, err := console(
 		cfg,
@@ -63,7 +64,7 @@ func consoleCloud(
 		useTLS,
 		nhostFolder,
 		ports.Console,
-		hostOS,
+		hostUser,
 	)
 	if err != nil {
 		return nil, err
@@ -100,6 +101,7 @@ func consoleCloud(
 
 func getServicesCloud( //nolint:funlen
 	cfg *model.ConfigConfig,
+	dockerURL *url.URL,
 	subdomain string,
 	cloudSubdomain string,
 	cloudRegion string,
@@ -115,9 +117,9 @@ func getServicesCloud( //nolint:funlen
 	dashboardVersion string,
 	configserviceImage string,
 	appID string,
-	hostOS string,
+	hostUser string,
 ) (map[string]*Service, error) {
-	traefik, err := traefik(subdomain, projectName, httpPort, dotNhostFolder)
+	traefik, err := traefik(subdomain, projectName, httpPort, dotNhostFolder, dockerURL)
 	if err != nil {
 		return nil, err
 	}
@@ -133,13 +135,14 @@ func getServicesCloud( //nolint:funlen
 		useTLS,
 		nhostFolder,
 		ports,
-		hostOS,
+		hostUser,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create console service: %w", err)
 	}
 
-	cs, err := configserver(
+	cs := configserver(
+		dockerURL,
 		configserviceImage,
 		rootFolder,
 		nhostFolder,
@@ -147,9 +150,6 @@ func getServicesCloud( //nolint:funlen
 		appID,
 		useTLS,
 	)
-	if err != nil {
-		return nil, err
-	}
 
 	services := map[string]*Service{
 		"console": console,
@@ -172,6 +172,7 @@ func getServicesCloud( //nolint:funlen
 }
 
 func CloudComposeFileFromConfig(
+	ctx context.Context,
 	cfg *model.ConfigConfig,
 	subdomain string,
 	cloudSubdomain string,
@@ -188,10 +189,17 @@ func CloudComposeFileFromConfig(
 	dashboardVersion string,
 	configserverImage string,
 	appID string,
+	hostUser string,
 	caCertificatesPath string,
 ) (*ComposeFile, error) {
+	dockerURL, err := resolveDockerHost(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get Docker host: %w", err)
+	}
+
 	services, err := getServicesCloud(
 		cfg,
+		dockerURL,
 		subdomain,
 		cloudSubdomain,
 		cloudRegion,
@@ -207,7 +215,7 @@ func CloudComposeFileFromConfig(
 		dashboardVersion,
 		configserverImage,
 		appID,
-		runtime.GOOS,
+		hostUser,
 	)
 	if err != nil {
 		return nil, err

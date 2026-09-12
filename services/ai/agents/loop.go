@@ -48,6 +48,7 @@ type LoopResult struct {
 func RunAgentLoop(
 	ctx context.Context,
 	p provider.Provider,
+	model string,
 	systemPrompt string,
 	messages []provider.Message,
 	tools *tool.Registry,
@@ -72,7 +73,8 @@ func RunAgentLoop(
 		// promptly when processStreamEvents returns early on error — without
 		// it the goroutine would block on its next channel send forever.
 		iterCtx, iterCancel := context.WithCancel(ctx)
-		eventCh := p.StreamResponse(iterCtx, systemPrompt, allMessages, toolDefs)
+		streamRequest := buildStreamRequest(model, systemPrompt, allMessages, toolDefs)
+		eventCh := p.StreamResponse(iterCtx, streamRequest)
 
 		result, err := processStreamEvents(eventCh, writer)
 
@@ -111,6 +113,19 @@ func RunAgentLoop(
 	}
 
 	return LoopResult{Messages: newMessages, PendingCalls: nil}, nil
+}
+
+func buildStreamRequest(
+	model, systemPrompt string,
+	messages []provider.Message,
+	tools []provider.ToolDefinition,
+) provider.StreamRequest {
+	return provider.StreamRequest{
+		Model:        model,
+		SystemPrompt: systemPrompt,
+		Messages:     messages,
+		Tools:        tools,
+	}
 }
 
 func assistantMessageFromResult(result streamResult) provider.Message {
@@ -239,7 +254,15 @@ func handleStreamEvent(
 		if event.ToolCall != nil {
 			*toolCalls = append(*toolCalls, *event.ToolCall)
 
-			payload, err := json.Marshal(event.ToolCall)
+			payload, err := json.Marshal(struct {
+				ID        string `json:"id"`
+				Name      string `json:"name"`
+				Arguments string `json:"arguments"`
+			}{
+				ID:        event.ToolCall.ID,
+				Name:      event.ToolCall.Name,
+				Arguments: event.ToolCall.Arguments,
+			})
 			if err != nil {
 				return fmt.Errorf("failed to marshal tool call: %w", err)
 			}

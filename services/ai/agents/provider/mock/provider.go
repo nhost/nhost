@@ -42,15 +42,15 @@ func (m *MockProvider) EXPECT() *MockProviderMockRecorder {
 }
 
 // StreamResponse mocks base method.
-func (m *MockProvider) StreamResponse(ctx context.Context, systemPrompt string, messages []provider.Message, tools []provider.ToolDefinition) <-chan provider.Event {
+func (m *MockProvider) StreamResponse(ctx context.Context, request provider.StreamRequest) <-chan provider.Event {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "StreamResponse", ctx, systemPrompt, messages, tools)
+	ret := m.ctrl.Call(m, "StreamResponse", ctx, request)
 	ret0, _ := ret[0].(<-chan provider.Event)
 	return ret0
 }
 
 // StreamResponse indicates an expected call of StreamResponse.
-func (mr *MockProviderMockRecorder) StreamResponse(ctx, systemPrompt, messages, tools any) *gomock.Call {
+func (mr *MockProviderMockRecorder) StreamResponse(ctx, request any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StreamResponse", reflect.TypeOf((*MockProvider)(nil).StreamResponse), ctx, systemPrompt, messages, tools)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StreamResponse", reflect.TypeOf((*MockProvider)(nil).StreamResponse), ctx, request)
 }

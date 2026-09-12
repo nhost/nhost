@@ -1,13 +1,13 @@
 package dockercompose
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
-	"runtime"
 	"strconv"
 	"strings"
 
@@ -279,29 +279,14 @@ func trafikFiles(dotnhostfolder string) error {
 	return nil
 }
 
-func getDockerHost() (*url.URL, error) {
-	socket, ok := os.LookupEnv("DOCKER_HOST")
-	if !ok {
-		u, _ := url.Parse("unix:///var/run/docker.sock")
-		return u, nil
-	}
-
-	u, err := url.Parse(socket)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse DOCKER_HOST: %w", err)
-	}
-
-	return u, nil
-}
-
-func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*Service, error) {
+func traefik(
+	subdomain, projectName string,
+	port uint,
+	dotnhostfolder string,
+	dockerURL *url.URL,
+) (*Service, error) {
 	if err := trafikFiles(dotnhostfolder); err != nil {
 		return nil, fmt.Errorf("failed to create traefik files: %w", err)
-	}
-
-	dockerURL, err := getDockerHost()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get docker host: %w", err)
 	}
 
 	volumes := []Volume{{
@@ -311,7 +296,7 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 		ReadOnly: new(true),
 	}}
 
-	dockerEndpoint := dockerURL.String()
+	containerDockerEndpoint := dockerURL.String()
 	if dockerURL.Scheme == "unix" {
 		volumes = append(volumes, Volume{
 			Type:     "bind",
@@ -322,7 +307,7 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 			// reach the docker daemon on SELinux/Podman hosts (no-op elsewhere).
 			Bind: &BindOptions{SELinux: "z"},
 		})
-		dockerEndpoint = "unix:///var/run/docker.sock"
+		containerDockerEndpoint = defaultDockerEndpoint
 	}
 
 	return &Service{
@@ -332,7 +317,7 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 		Command: []string{
 			"--api.insecure=true",
 			"--providers.docker=true",
-			"--providers.docker.endpoint=" + dockerEndpoint,
+			"--providers.docker.endpoint=" + containerDockerEndpoint,
 			"--providers.file.directory=/opt/traefik",
 			"--providers.file.watch=true",
 			"--providers.docker.exposedbydefault=false",
@@ -364,7 +349,7 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 
 func minio(volumeName string) *Service {
 	return &Service{
-		Image:      "minio/minio:RELEASE.2025-02-28T09-55-16Z",
+		Image:      "nhost/minio:RELEASE.2025-02-28T09-55-16Z",
 		DependsOn:  nil,
 		EntryPoint: []string{"/bin/sh"},
 		Command: []string{
@@ -590,7 +575,7 @@ func functions( //nolint:funlen
 
 func mailhog(volumeName string, useTLS bool) *Service {
 	return &Service{
-		Image:      "jcalonso/mailhog:v1.0.1",
+		Image:      "nhost/mailhog:v1.0.1",
 		DependsOn:  nil,
 		EntryPoint: []string{},
 		Command:    []string{},
@@ -657,6 +642,7 @@ func IsJWTSecretCompatibleWithHasuraAuth(
 
 func getServices( //nolint: funlen,cyclop
 	cfg *model.ConfigConfig,
+	dockerURL *url.URL,
 	subdomain string,
 	projectName string,
 	httpPort uint,
@@ -672,7 +658,7 @@ func getServices( //nolint: funlen,cyclop
 	configserviceImage string,
 	appID string,
 	startFunctions bool,
-	hostOS string,
+	hostUser string,
 	runServices ...*RunService,
 ) (map[string]*Service, error) {
 	minioVolumeName := "minio_" + sanitizeBranch(branch)
@@ -711,13 +697,13 @@ func getServices( //nolint: funlen,cyclop
 		useTLS,
 		nhostFolder,
 		ports.Console,
-		hostOS,
+		hostUser,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	traefik, err := traefik(subdomain, projectName, httpPort, dotNhostFolder)
+	traefik, err := traefik(subdomain, projectName, httpPort, dotNhostFolder, dockerURL)
 	if err != nil {
 		return nil, err
 	}
@@ -725,7 +711,8 @@ func getServices( //nolint: funlen,cyclop
 	mailhogVolumeName := "mailhog_" + sanitizeBranch(branch)
 	mailhog := mailhog(mailhogVolumeName, useTLS)
 
-	cs, err := configserver(
+	cs := configserver(
+		dockerURL,
 		configserviceImage,
 		rootFolder,
 		nhostFolder,
@@ -734,9 +721,6 @@ func getServices( //nolint: funlen,cyclop
 		useTLS,
 		runServices...,
 	)
-	if err != nil {
-		return nil, err
-	}
 
 	services := map[string]*Service{
 		"console":      console,
@@ -775,7 +759,7 @@ func getServices( //nolint: funlen,cyclop
 			httpPort,
 			nhostFolder,
 			"nhost/constellation:"+*cfg.GetExperimental().GetConstellation().GetVersion(),
-			hostOS,
+			hostUser,
 		)
 		if err != nil {
 			return nil, err
@@ -838,13 +822,7 @@ const osLinux = "linux"
 // hostUserSpec returns the `user: <uid>:<gid>` value that makes a
 // container write host-visible files (migrations, metadata, generated
 // config) as the caller instead of root, or nil when host-user mapping
-// must not be applied.
-//
-// It is applied only on Linux: on Docker Desktop (macOS/Windows) the
-// bind-mount layer already maps ownership to the host user, and forcing
-// `user:` can break images that expect their default UID. Passing
-// hostOS explicitly (rather than reading runtime.GOOS here) keeps the
-// callers testable with a stable value and free of side-effects.
+// must not be applied. The mapping is resolved by ResolveHostUser.
 //
 // Only services that write into user-owned bind mounts should use this.
 // The `functions` service must not: its Nix-built image ships a
@@ -853,22 +831,16 @@ const osLinux = "linux"
 // either: it bind-mounts the host Docker socket (owned by root:docker,
 // reached via the caller's `docker` supplementary group), and forcing a
 // primary gid drops those supplementary groups and loses socket access.
-func hostUserSpec(hostOS string) *string {
-	if hostOS != osLinux {
+func hostUserSpec(hostUser string) *string {
+	if hostUser == "" {
 		return nil
 	}
 
-	uid := os.Getuid()
-	if uid < 0 {
-		return nil
-	}
-
-	spec := fmt.Sprintf("%d:%d", uid, os.Getgid())
-
-	return &spec
+	return &hostUser
 }
 
 func ComposeFileFromConfig( //nolint:funlen
+	ctx context.Context,
 	cfg *model.ConfigConfig,
 	subdomain string,
 	projectName string,
@@ -885,11 +857,18 @@ func ComposeFileFromConfig( //nolint:funlen
 	configserverImage string,
 	appID string,
 	startFunctions bool,
+	hostUser string,
 	caCertificatesPath string,
 	runServices ...*RunService,
 ) (*ComposeFile, error) {
+	dockerURL, err := resolveDockerHost(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get Docker host: %w", err)
+	}
+
 	services, err := getServices(
 		cfg,
+		dockerURL,
 		subdomain,
 		projectName,
 		httpPort,
@@ -905,7 +884,7 @@ func ComposeFileFromConfig( //nolint:funlen
 		configserverImage,
 		appID,
 		startFunctions,
-		runtime.GOOS,
+		hostUser,
 		runServices...,
 	)
 	if err != nil {

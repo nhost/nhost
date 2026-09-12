@@ -24,7 +24,7 @@ func sendMutation(query string) func() error {
 			return fmt.Errorf("marshal mutation: %w", err)
 		}
 
-		req, err := http.NewRequest( //nolint:noctx
+		req, err := http.NewRequest(
 			http.MethodPost,
 			constellationURL,
 			bytes.NewReader(body),

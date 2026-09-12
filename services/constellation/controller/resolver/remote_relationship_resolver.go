@@ -257,8 +257,7 @@ func remapRemoteQueryValidationArgumentPath(
 		return err
 	}
 
-	var remapper queryValidationArgumentPathRemapper
-	if errors.As(err, &remapper) {
+	if remapper, ok := errors.AsType[queryValidationArgumentPathRemapper](err); ok {
 		remoteRootPath := remoteOperationRootArgumentPath(remoteOp)
 		remapper.RemapArgumentPath(func(path string) string {
 			if remoteRootPath == "" || path == remoteRootPath {

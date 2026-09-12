@@ -269,7 +269,7 @@ Start local development environment.
 | `--apply-seeds` | Apply seeds. If the .nhost folder does not exist, seeds will be applied regardless of this flag. Env: `$NHOST_APPLY_SEEDS`. |
 | `--auth-port=""` | If specified, expose auth on this port. Not recommended. Default: `0`. |
 | `--ca-certificates=""` | Mounts and overrides path to CA certificates in the containers. Env: `$NHOST_CA_CERTIFICATES`. |
-| `--dashboard-version=""` | Dashboard version to use. Default: `"nhost/dashboard:3.5.2"`. Env: `$NHOST_DASHBOARD_VERSION`. |
+| `--dashboard-version=""` | Dashboard version to use. Default: `"nhost/dashboard:3.5.3"`. Env: `$NHOST_DASHBOARD_VERSION`. |
 | `--disable-tls` | Disable TLS. Env: `$NHOST_DISABLE_TLS`. |
 | `--down-on-error` | Skip confirmation. Env: `$NHOST_YES`. |
 | `--functions-port=""` | If specified, expose functions on this port. Not recommended. Default: `0`. |
@@ -281,6 +281,7 @@ Start local development environment.
 | `--run-service-volume=""` | Mount a local directory into a run service container. Format: `service-name=/local/path:/container/path`. Can be passed multiple times. Env: `$NHOST_RUN_SERVICE_VOLUME`. |
 | `--run-service=""` | Run service to add to the development environment. Can be passed multiple times. Comma-separated values are also accepted. Format: `/path/to/run-service.toml[:overlay_name]`. Env: `$NHOST_RUN_SERVICE`. |
 | `--storage-port=""` | If specified, expose storage on this port. Not recommended. Default: `0`. |
+| `--user=""` | User to run containers that write into bind mounts as. 'auto' maps them to your uid:gid on Linux with a local rootful docker daemon, 'none' keeps the images' default user, or pass an explicit uid:gid. Default: `"auto"`. Env: `$NHOST_DOCKER_USER`. |
 
 </div>
 
@@ -300,13 +301,14 @@ Start local development environment connected to an Nhost Cloud project.
 | --- | --- |
 | `--apply-seeds` | Apply seeds. If the .nhost folder does not exist, seeds will be applied regardless of this flag. Env: `$NHOST_APPLY_SEEDS`. |
 | `--ca-certificates=""` | Mounts and overrides path to CA certificates in the containers. Env: `$NHOST_CA_CERTIFICATES`. |
-| `--dashboard-version=""` | Dashboard version to use. Default: `"nhost/dashboard:3.5.2"`. Env: `$NHOST_DASHBOARD_VERSION`. |
+| `--dashboard-version=""` | Dashboard version to use. Default: `"nhost/dashboard:3.5.3"`. Env: `$NHOST_DASHBOARD_VERSION`. |
 | `--disable-tls` | Disable TLS. Env: `$NHOST_DISABLE_TLS`. |
 | `--down-on-error` | Skip confirmation. Env: `$NHOST_YES`. |
 | `--hasura-console-port=""` | If specified, expose hasura console on this port. Not recommended. Default: `0`. |
 | `--http-port=""` | HTTP port to listen on. Default: `443`. Env: `$NHOST_HTTP_PORT`. |
 | `--postgres-url=""` | Postgres URL. Env: `$NHOST_POSTGRES_URL`. |
 | `--subdomain=""` | Project's subdomain to operate on, defaults to linked project. Env: `$NHOST_SUBDOMAIN`. |
+| `--user=""` | User to run containers that write into bind mounts as. 'auto' maps them to your uid:gid on Linux with a local rootful docker daemon, 'none' keeps the images' default user, or pass an explicit uid:gid. Default: `"auto"`. Env: `$NHOST_DOCKER_USER`. |
 
 </div>
 
