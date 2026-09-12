@@ -10,7 +10,9 @@ import (
 	"log/slog"
 	"net/http"
 	_ "net/http/pprof" //nolint:gosec // pprof is gated behind a CLI flag
+	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/99designs/gqlgen/graphql/playground"
@@ -561,12 +563,13 @@ func runServer(
 		return fmt.Errorf("configuring HTTP server: %w", err)
 	}
 
-	ctx, cancel := context.WithCancel(ctx)
+	ctx, stop := signal.NotifyContext(ctx, syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
 
 	profileServer := startProfileServer(ctx, cmd.String(flagProfileAddress), logger)
 
 	go func() {
-		defer cancel()
+		defer stop()
 
 		logger.InfoContext(ctx, "starting controller")
 		ctrl.Run(ctx, logger)
@@ -574,7 +577,7 @@ func runServer(
 	}()
 
 	go func() {
-		defer cancel()
+		defer stop()
 
 		logger.InfoContext(ctx, "starting server", slog.String("address", server.Addr))
 
