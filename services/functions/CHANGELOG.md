@@ -1,3 +1,32 @@
+## [functions@2.3.0] - 2026-09-12
+
+### 🚀 Features
+
+- *(docs)* Update sms docs (#4627)
+
+
+### 🐛 Bug Fixes
+
+- *(functions)* Update stale functions version ref in CLI docs and fix bump-refs sed pattern (#4740)
+- *(functions)* Upgrade serverless http version (#4805)
+- *(functions)* Normalize dependency installation (#4904)
+- *(functions)* Pin Yarn Classic in shared dependency installer (#4975)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Bump Go to 1.27 (#4887)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4744)
+- *(deps)* Update vulnerable dependencies (#4773)
+- *(deps)* Update vulnerable dependencies (#4815)
+- *(deps)* Update vulnerable dependencies (#4863)
+- *(deps)* Update vulnerable dependencies (#4928)
+- *(deps)* Update vulnerable dependencies (#4973)
+
 ## [functions@2.2.0] - 2026-07-28
 
 ### 🚀 Features
