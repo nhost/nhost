@@ -1,3 +1,20 @@
+## [@nhost/dashboard@3.5.4] - 2026-09-12
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Isolate project config errors (#4818)
+- *(dashboard)* Improve multiline text tooltip accessibility with keyboard (#4978)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Bump Go to 1.27 (#4887)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4973)
+
 ## [@nhost/dashboard@3.5.3] - 2026-09-07
 
 ### 🐛 Bug Fixes
