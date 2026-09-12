@@ -364,7 +364,7 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 
 func minio(volumeName string) *Service {
 	return &Service{
-		Image:      "minio/minio:RELEASE.2025-02-28T09-55-16Z",
+		Image:      "nhost/minio:RELEASE.2025-02-28T09-55-16Z",
 		DependsOn:  nil,
 		EntryPoint: []string{"/bin/sh"},
 		Command: []string{
@@ -590,7 +590,7 @@ func functions( //nolint:funlen
 
 func mailhog(volumeName string, useTLS bool) *Service {
 	return &Service{
-		Image:      "jcalonso/mailhog:v1.0.1",
+		Image:      "nhost/mailhog:v1.0.1",
 		DependsOn:  nil,
 		EntryPoint: []string{},
 		Command:    []string{},
