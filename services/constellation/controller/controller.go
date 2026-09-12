@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -66,7 +67,8 @@ type controllerState struct {
 	inconsistencies []metadata.Inconsistency
 	// done is closed when this state is shut down (metadata reload or server stop).
 	// WebSocket connections select on this to close when the state becomes stale.
-	done chan struct{}
+	done        chan struct{}
+	releaseOnce sync.Once
 }
 
 // newControllerState assembles a controllerState with the always-zero
@@ -93,6 +95,7 @@ func newControllerState(
 		queryCache:                 newQueryCache(),
 		inconsistencies:            inconsistencies,
 		done:                       make(chan struct{}),
+		releaseOnce:                sync.Once{},
 	}
 }
 
@@ -113,6 +116,14 @@ func (s *controllerState) closeConnectors() {
 	for _, conn := range s.connectors {
 		conn.Close()
 	}
+}
+
+// release shuts down the state and closes its connectors exactly once.
+func (s *controllerState) release(ctx context.Context) {
+	s.releaseOnce.Do(func() {
+		s.shutdown(ctx)
+		s.closeConnectors()
+	})
 }
 
 // Controller is the top-level orchestrator. Immutable configuration lives
@@ -311,18 +322,27 @@ func (c *Controller) swapState(
 		shutdownCtx, cancel := context.WithTimeout(ctx, shutdownTimeout)
 		defer cancel()
 
-		oldState.shutdown(shutdownCtx)
-		oldState.closeConnectors()
+		oldState.release(shutdownCtx)
 	}()
+}
+
+// Close releases the controller's current state. It is safe to call more than
+// once and after Run has returned.
+func (c *Controller) Close() {
+	c.releaseState(context.Background())
 }
 
 // shutdownState tears down the current state on controller exit.
 func (c *Controller) shutdownState(ctx context.Context, logger *slog.Logger) {
 	logger.InfoContext(ctx, "shutting down controller")
+	c.releaseState(ctx)
+}
 
+func (c *Controller) releaseState(ctx context.Context) {
 	state := c.state.Load()
-	state.shutdown(ctx)
-	state.closeConnectors()
+	if state != nil {
+		state.release(ctx)
+	}
 }
 
 // NewFromConnectors builds a Controller around an already-constructed set of

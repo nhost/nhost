@@ -1,10 +1,12 @@
 package source_test
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/nhost/nhost/services/constellation/metadata/source"
 )
@@ -160,6 +162,27 @@ func TestFileMetadataSource_Watch_ChannelClosesOnClose(t *testing.T) {
 
 	if _, ok := <-ch; ok {
 		t.Error("expected channel to be closed after Close")
+	}
+}
+
+func TestFileMetadataSource_Watch_ChannelClosesOnContextCancellation(t *testing.T) {
+	t.Parallel()
+
+	src := source.NewFileMetadataSource("/irrelevant")
+	t.Cleanup(src.Close)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	ch := src.Watch(ctx)
+
+	cancel()
+
+	select {
+	case _, ok := <-ch:
+		if ok {
+			t.Error("expected channel to be closed after context cancellation")
+		}
+	case <-time.After(time.Second):
+		t.Fatal("Watch channel did not close after context cancellation")
 	}
 }
 

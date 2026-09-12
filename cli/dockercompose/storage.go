@@ -7,14 +7,6 @@ import (
 	"github.com/nhost/be/services/mimir/schema/appconfig"
 )
 
-func deptr[T any](t *T) T { //nolint:ireturn
-	if t == nil {
-		return *new(T)
-	}
-
-	return *t
-}
-
 func storage( //nolint:funlen
 	cfg *model.ConfigConfig,
 	subdomain string,
@@ -69,11 +61,12 @@ func storage( //nolint:funlen
 		ExtraHosts:  extraHosts,
 		Labels: Ingresses{
 			{
-				Name:    "storage",
-				TLS:     useTLS,
-				Rule:    traefikHostMatch("storage") + "&& PathPrefix(`/v1`)",
-				Port:    storagePort,
-				Rewrite: nil,
+				Name:      "storage",
+				TLS:       useTLS,
+				Rule:      traefikHostMatch("storage") + "&& PathPrefix(`/v1`)",
+				Port:      storagePort,
+				Rewrite:   nil,
+				AddPrefix: "",
 			},
 		}.Labels(),
 		Networks:    networkAliases("hasura-storage-service"),

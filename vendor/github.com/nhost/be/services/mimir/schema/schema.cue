@@ -43,31 +43,57 @@ import (
 	// Experimental configuration for unreleased services. Subject to breaking changes.
 	experimental?: #Experimental
 
-	_totalResourcesCPU: (
-				hasura.resources.replicas*hasura.resources.compute.cpu +
-		auth.resources.replicas*auth.resources.compute.cpu +
-		storage.resources.replicas*storage.resources.compute.cpu +
-		postgres.resources.compute.cpu) @cuegraph(skip)
+	if experimental.nhost != _|_ {
+		_totalResourcesCPU: (
+			hasura.resources.replicas*hasura.resources.compute.cpu +
+			postgres.resources.compute.cpu +
+			experimental.nhost.resources.replicas*experimental.nhost.resources.compute.cpu) @cuegraph(skip)
 
-	_totalResourcesMemory: (
-				hasura.resources.replicas*hasura.resources.compute.memory +
-		auth.resources.replicas*auth.resources.compute.memory +
-		storage.resources.replicas*storage.resources.compute.memory +
-		postgres.resources.compute.memory) @cuegraph(skip)
+		_totalResourcesMemory: (
+			hasura.resources.replicas*hasura.resources.compute.memory +
+			postgres.resources.compute.memory +
+			experimental.nhost.resources.replicas*experimental.nhost.resources.compute.memory) @cuegraph(skip)
 
-	_validateResourcesTotalCpuMemoryRatioMustBe1For2: (
-								_totalResourcesCPU*2.048 & _totalResourcesMemory*1.0) @cuegraph(skip)
+		_validateResourcesTotalCpuMemoryRatioMustBe1For2: (
+			_totalResourcesCPU*2.048 & _totalResourcesMemory*1.0) @cuegraph(skip)
 
-	_validateResourcesTotalCpuMin1000: (
-						hasura.resources.compute.cpu+
-		auth.resources.compute.cpu+
-		storage.resources.compute.cpu+
-		postgres.resources.compute.cpu) >= 1000 & true @cuegraph(skip)
+		_validateResourcesTotalCpuMin1000: (
+			hasura.resources.compute.cpu+
+			postgres.resources.compute.cpu+
+			experimental.nhost.resources.compute.cpu) >= 1000 & true @cuegraph(skip)
 
-	_validateAllResourcesAreSetOrNot: (
-						((hasura.resources.compute != _|_) == (auth.resources.compute != _|_)) &&
-		((auth.resources.compute != _|_) == (storage.resources.compute != _|_)) &&
-		((storage.resources.compute != _|_) == (postgres.resources.compute != _|_))) & true @cuegraph(skip)
+		_validateAllResourcesAreSetOrNot: (
+			((hasura.resources.compute != _|_) == (postgres.resources.compute != _|_)) &&
+			((postgres.resources.compute != _|_) == (experimental.nhost.resources.compute != _|_))) & true @cuegraph(skip)
+	}
+
+	if experimental.nhost == _|_ {
+		_totalResourcesCPU: (
+			hasura.resources.replicas*hasura.resources.compute.cpu +
+			auth.resources.replicas*auth.resources.compute.cpu +
+			storage.resources.replicas*storage.resources.compute.cpu +
+			postgres.resources.compute.cpu) @cuegraph(skip)
+
+		_totalResourcesMemory: (
+			hasura.resources.replicas*hasura.resources.compute.memory +
+			auth.resources.replicas*auth.resources.compute.memory +
+			storage.resources.replicas*storage.resources.compute.memory +
+			postgres.resources.compute.memory) @cuegraph(skip)
+
+		_validateResourcesTotalCpuMemoryRatioMustBe1For2: (
+			_totalResourcesCPU*2.048 & _totalResourcesMemory*1.0) @cuegraph(skip)
+
+		_validateResourcesTotalCpuMin1000: (
+			hasura.resources.compute.cpu+
+			auth.resources.compute.cpu+
+			storage.resources.compute.cpu+
+			postgres.resources.compute.cpu) >= 1000 & true @cuegraph(skip)
+
+		_validateAllResourcesAreSetOrNot: (
+			((hasura.resources.compute != _|_) == (auth.resources.compute != _|_)) &&
+			((auth.resources.compute != _|_) == (storage.resources.compute != _|_)) &&
+			((storage.resources.compute != _|_) == (postgres.resources.compute != _|_))) & true @cuegraph(skip)
+	}
 
 	_validateNetworkingMustBeNullOrNotSet: !storage.resources.networking | storage.resources.networking == null @cuegraph(skip)
 
@@ -882,9 +908,43 @@ import (
 	persistentVolumesEncrypted: bool | *false
 }
 
+#Nhost: {
+	// Version of the engine to run. See available versions at:
+	// https://hub.docker.com/r/nhost/engine/tags
+	version: string | *"0.0.1"
+
+	// Enable debug logging for every service bundled in the engine process.
+	// For backward compatibility, graphql.settings.debug remains supported, but
+	// this engine-wide field takes precedence when both fields are set.
+	debug?: bool
+
+	// Resources for the single engine container. The engine runs auth,
+	// storage and constellation in one process, so this configures the whole
+	// binary rather than any individual service. Networking is rejected during
+	// validation because a shared custom domain has no single service target;
+	// auth custom domains remain under auth.resources.networking.
+	resources?: #Resources
+
+	// Constellation-specific GraphQL engine configuration. The legacy
+	// settings.debug field remains supported, but the engine-level debug field
+	// takes precedence when both fields are set.
+	graphql?: #ConstellationConfig
+}
+
 #Experimental: {
 	// Constellation GraphQL engine settings.
 	constellation?: #Constellation
+
+	// Run auth, storage and constellation bundled in a single nhost-engine
+	// binary instead of as standalone containers. Auth and storage are
+	// configured from their normal root sections. Per-service versions and
+	// sizing resources are rejected because the binary has one version and one
+	// sizing block (see #Nhost), but auth.resources.networking remains supported
+	// for custom auth domains. The engine always runs constellation as its GraphQL
+	// engine, so it is mutually
+	// exclusive with the standalone experimental.constellation service
+	// (enforced during config validation).
+	nhost?: #Nhost
 }
 
 #Constellation: {
@@ -892,6 +952,13 @@ import (
 	// https://hub.docker.com/r/nhost/constellation/tags
 	version: string | *"0.1.0"
 
+	#ConstellationConfig
+}
+
+// Constellation (GraphQL engine) configuration, shared between the standalone
+// constellation service and the bundled engine (which has no per-service
+// version of its own).
+#ConstellationConfig: {
 	// Advanced configuration settings for the service.
 	settings?: {
 		// CORS allowed origins. If set, these are used as-is.

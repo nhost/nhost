@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -37,6 +38,48 @@ const (
 )
 
 var errSentinel = errors.New("test sentinel")
+
+type closeCountingConnector struct {
+	connector.Connector
+
+	closeCount atomic.Int32
+}
+
+func (c *closeCountingConnector) Close() {
+	c.closeCount.Add(1)
+	c.Connector.Close()
+}
+
+func TestControllerCloseIsIdempotent(t *testing.T) {
+	t.Parallel()
+
+	inner, err := memconnector.New(nil, nil)
+	if err != nil {
+		t.Fatalf("memconnector.New: %v", err)
+	}
+
+	conn := &closeCountingConnector{
+		Connector:  inner,
+		closeCount: atomic.Int32{},
+	}
+
+	ctrl, err := controller.NewFromConnectors(
+		testAdminSecret,
+		map[string]connector.Connector{"mem": conn},
+		nil,
+		slog.New(slog.DiscardHandler),
+	)
+	if err != nil {
+		t.Fatalf("NewFromConnectors: %v", err)
+	}
+
+	ctrl.Close()
+	ctrl.Close()
+
+	if got := conn.closeCount.Load(); got != 1 {
+		t.Fatalf("connector close count = %d, want 1", got)
+	}
+}
 
 // newTestController wires a Controller around a memconnector serving the
 // canned "users" query, with admin-secret session middleware so that requests

@@ -88,13 +88,17 @@ func CommandUp() *cli.Command { //nolint:funlen
 				Sources: cli.EnvVars("NHOST_APPLY_SEEDS"),
 			},
 			&cli.UintFlag{ //nolint:exhaustruct
-				Name:  flagAuthPort,
-				Usage: "If specified, expose auth on this port. Not recommended",
+				Name: flagAuthPort,
+				Usage: "If specified, expose auth on this port. Not recommended. " +
+					"Rejected in engine mode (experimental.nhost), where auth is mounted " +
+					"behind a path prefix; use the Traefik URLs instead",
 				Value: 0,
 			},
 			&cli.UintFlag{ //nolint:exhaustruct
-				Name:  flagStoragePort,
-				Usage: "If specified, expose storage on this port. Not recommended",
+				Name: flagStoragePort,
+				Usage: "If specified, expose storage on this port. Not recommended. " +
+					"Rejected in engine mode (experimental.nhost), where storage is mounted " +
+					"behind a path prefix; use the Traefik URLs instead",
 				Value: 0,
 			},
 			&cli.UintFlag{ //nolint:exhaustruct
@@ -273,6 +277,13 @@ func restart(
 	ce.Infoln("Restarting services to reapply metadata if needed...")
 
 	args := []string{"restart"}
+
+	// Restart whichever backend serves metadata-reapplying services: the
+	// bundled engine in engine mode, or the standalone storage/auth containers
+	// otherwise.
+	if _, ok := composeFile.Services["engine"]; ok {
+		args = append(args, "engine")
+	}
 
 	if _, ok := composeFile.Services["storage"]; ok {
 		args = append(args, "storage")

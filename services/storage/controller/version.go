@@ -22,7 +22,7 @@ func (ctrl *Controller) Version(ctx *gin.Context) {
 	ctx.JSON(
 		http.StatusOK,
 		VersionResponse{
-			BuildVersion: buildVersion,
+			BuildVersion: ctrl.version,
 		},
 	)
 }
@@ -32,6 +32,6 @@ func (ctrl *Controller) GetVersion( //nolint:ireturn
 	_ api.GetVersionRequestObject,
 ) (api.GetVersionResponseObject, error) {
 	return api.GetVersion200JSONResponse{
-		BuildVersion: buildVersion,
+		BuildVersion: ctrl.version,
 	}, nil
 }

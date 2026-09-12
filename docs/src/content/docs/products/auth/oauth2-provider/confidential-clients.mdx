@@ -61,7 +61,7 @@ Many applications support **OIDC Discovery** — you only need to provide the di
 | JWKS | `https://<auth-url>/v1/oauth2/jwks` |
 
 :::note
-Some apps make the token and userinfo requests server-to-server. If the app runs in a container alongside Nhost, use the internal service URL (e.g. `http://hasura-auth-service:4000`, see [Run networking](/products/run/networking)) for these endpoints, and the public URL for the authorization endpoint (which the browser accesses).
+Some apps make the token and userinfo requests server-to-server. If the app runs in a container alongside Nhost, use the mode-appropriate internal auth base URL (`http://hasura-auth-service:4000` with standalone services or `http://engine:8080/auth/v1` in engine mode; see [Run networking](/products/run/networking)) for these endpoints, and the public URL for the authorization endpoint (which the browser accesses).
 :::
 
 ## Example: Outline Wiki

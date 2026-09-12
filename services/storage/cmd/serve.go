@@ -18,6 +18,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/nhost/nhost/internal/lib/oapi"
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
+	serveutil "github.com/nhost/nhost/internal/lib/serve"
 	"github.com/nhost/nhost/services/storage/api"
 	"github.com/nhost/nhost/services/storage/controller"
 	"github.com/nhost/nhost/services/storage/image"
@@ -121,18 +122,27 @@ func configureMiddleware(cmd *cli.Command, router *gin.Engine, logger *slog.Logg
 	}
 }
 
-func getServer(
+func resolveVersion(injected, fallback string) string {
+	if injected != "" {
+		return injected
+	}
+
+	return fallback
+}
+
+func getHandler(
 	cmd *cli.Command,
 	metadataStorage controller.MetadataStorage,
 	contentStorage controller.ContentStorage,
 	imageTransformer *image.Transformer,
 	logger *slog.Logger,
-) (*http.Server, error) {
+) (http.Handler, error) {
 	av, err := getAv(cmd.String(flagClamavServer))
 	if err != nil {
 		return nil, fmt.Errorf("problem trying to get av: %w", err)
 	}
 
+	version := resolveVersion(controller.Version(), cmd.Root().Version)
 	ctrl := controller.New(
 		cmd.String(flagPublicURL),
 		cmd.String(flagAPIRootPrefix),
@@ -142,6 +152,7 @@ func getServer(
 		imageTransformer,
 		av,
 		logger,
+		version,
 	)
 
 	handler := api.NewStrictHandler(ctrl, []api.StrictMiddlewareFunc{})
@@ -178,13 +189,7 @@ func getServer(
 		},
 	)
 
-	server := &http.Server{ //nolint:exhaustruct
-		Addr:              cmd.String(flagBind),
-		Handler:           router,
-		ReadHeaderTimeout: 5 * time.Second, //nolint:mnd
-	}
-
-	return server, nil
+	return router, nil
 }
 
 func getMetadataStorage(endpoint string) *metadata.Hasura {
@@ -325,10 +330,7 @@ func CommandServe() *cli.Command { //nolint:funlen
 				Name:     flagHasuraAdminSecret,
 				Usage:    "Hasura admin secret",
 				Category: "hasura",
-				Sources: cli.EnvVars(
-					"HASURA_GRAPHQL_ADMIN_SECRET",
-					"HASURA_GRAPHQL_ADMIN_SECRET",
-				),
+				Sources:  cli.EnvVars("HASURA_GRAPHQL_ADMIN_SECRET"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     flagHasuraDBName,
@@ -491,33 +493,50 @@ func startPprofServer(ctx context.Context, bind string, logger *slog.Logger) {
 	}()
 }
 
-func serve(ctx context.Context, cmd *cli.Command) error { //nolint:funlen
-	logger := getLogger(cmd.Bool(flagDebug), cmd.Bool(flagLogFormatTEXT))
+func serve(ctx context.Context, cmd *cli.Command) error {
+	logger := serveutil.NewLogger(cmd.Bool(flagDebug), cmd.Bool(flagLogFormatTEXT))
 	logger.InfoContext(ctx, cmd.Root().Name+" v"+cmd.Root().Version)
-	logFlags(ctx, logger, cmd)
+	serveutil.LogFlags(ctx, logger, cmd)
 
-	imageTransformerWorkers := cmd.Int(flagImageTransformerWorkers)
-	if imageTransformerWorkers <= 0 {
-		imageTransformerWorkers = 2 * runtime.GOMAXPROCS(0) //nolint:mnd
-		logger.InfoContext(
-			ctx,
-			"calculating number of image transformer workers based on GOMAXPROCS",
-			slog.Int("workers", imageTransformerWorkers),
-		)
+	svc, err := NewService(ctx, cmd, logger)
+	if err != nil {
+		return err
 	}
 
-	imageTransformer := image.NewTransformer(
-		imageTransformerWorkers,
-		cmd.Int(flagImageTransformerMaxDim),
-		cmd.Float(flagImageTransformerMaxBlur),
-	)
-	defer imageTransformer.Shutdown()
+	defer svc.Shutdown()
 
-	servCtx, cancel := context.WithCancel(ctx)
-	defer cancel()
+	return runServer(ctx, cmd, svc, logger)
+}
+
+// NewService builds storage's serving surface: the HTTP handler and the image
+// transformer. Storage has no long-lived background loop, so Background is nil:
+// the transformer bounds concurrency with a semaphore rather than worker
+// goroutines. Close calls Transformer.Shutdown, which tears down process-global
+// libvips state and is not re-entrant: image.NewTransformer cannot restart libvips
+// afterward. Close must therefore run exactly once, after all in-flight requests
+// have drained. NewService is consumed both by the standalone serve command and
+// by the engine unified binary, which mounts the handler behind a shared listener.
+// Its construction and cleanup error paths are integration-only because they
+// require the storage service's PostgreSQL, S3, and Hasura environment.
+func NewService(
+	ctx context.Context,
+	cmd *cli.Command,
+	logger *slog.Logger,
+) (*serveutil.Service, error) {
+	imageTransformer := newImageTransformer(ctx, cmd, logger)
+
+	cleanups := &serveutil.Cleanups{}
+	cleanups.Add(imageTransformer.Shutdown)
+
+	keepResources := false
+	defer func() {
+		if !keepResources {
+			cleanups.Close()
+		}
+	}()
 
 	contentStorage := getContentStorage(
-		servCtx,
+		ctx,
 		cmd.String(flagS3Endpoint),
 		cmd.String(flagS3Region),
 		cmd.String(flagS3AccessKey),
@@ -538,25 +557,79 @@ func serve(ctx context.Context, cmd *cli.Command) error { //nolint:funlen
 		cmd.String(flagHasuraDBName),
 		logger,
 	); err != nil {
-		return err
+		return nil, err
 	}
 
 	metadataStorage := getMetadataStorage(
 		cmd.String(flagHasuraEndpoint) + "/graphql",
 	)
 
-	server, err := getServer( //nolint: contextcheck
-		cmd,
-		metadataStorage,
-		contentStorage,
-		imageTransformer,
-		logger,
+	handler, err := getHandler( //nolint:contextcheck
+		cmd, metadataStorage, contentStorage, imageTransformer, logger,
 	)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
+	keepResources = true
+
+	return &serveutil.Service{
+		Handler:    handler,
+		Background: nil,
+		Close:      cleanups.Close,
+	}, nil
+}
+
+// newImageTransformer builds the image transformer, defaulting the worker count
+// to 2×GOMAXPROCS when it is not explicitly configured.
+func newImageTransformer(
+	ctx context.Context,
+	cmd *cli.Command,
+	logger *slog.Logger,
+) *image.Transformer {
+	workers := cmd.Int(flagImageTransformerWorkers)
+	if workers <= 0 {
+		workers = 2 * runtime.GOMAXPROCS(0) //nolint:mnd
+		logger.InfoContext(
+			ctx,
+			"calculating number of image transformer workers based on GOMAXPROCS",
+			slog.Int("workers", workers),
+		)
+	}
+
+	return image.NewTransformer(
+		workers,
+		cmd.Int(flagImageTransformerMaxDim),
+		cmd.Float(flagImageTransformerMaxBlur),
+	)
+}
+
+func runServer(
+	ctx context.Context,
+	cmd *cli.Command,
+	svc *serveutil.Service,
+	logger *slog.Logger,
+) error {
+	server := &http.Server{ //nolint:exhaustruct
+		Addr:              cmd.String(flagBind),
+		Handler:           svc.Handler,
+		ReadHeaderTimeout: 5 * time.Second, //nolint:mnd
+	}
+
+	servCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
 	startPprofServer(servCtx, cmd.String(flagPprofBind), logger)
+
+	go func() {
+		defer cancel()
+
+		if err := svc.RunBackground(servCtx); err != nil {
+			logger.ErrorContext(
+				servCtx, "background work failed", slog.String("error", err.Error()),
+			)
+		}
+	}()
 
 	go func() {
 		defer cancel()
