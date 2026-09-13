@@ -56,6 +56,7 @@ func TestDeleteFile(t *testing.T) {
 				nil,
 				nil,
 				logger,
+				"",
 			)
 
 			resp, err := ctrl.DeleteFile(
