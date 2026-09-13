@@ -53,6 +53,12 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 - `build/makefiles/release.makefile` - release targets
 - `build/configs/` - shared build configurations
 
+Go binaries take their version from `-X main.Version=${version}` in each project's
+`project.nix`. `nixops-lib.go.package` sets `subPackages = [ submodule ]`, so exactly one
+main package is linked and the bare `main.Version` path is unambiguous. A mistyped `-X`
+symbol path is **silently ignored** by the linker — verify version changes against a built
+binary (`--version` plus the service's version endpoint), never against a passing `go test`.
+
 ### Tools (`tools/`)
 
 - `tools/codegen` - code generation utilities
