@@ -114,6 +114,23 @@ rec {
       echo "➜ Getting access token"
       export NHOST_ACCESS_TOKEN=$(bash ${src}/cli/get_access_token.sh)
     '';
+
+    # The shared lint pass does not enable opt-in build tags. Keep this CLI-only
+    # check here so the e2e package is visible without changing other projects.
+    extraCheck = ''
+      echo "➜ Running golangci-lint for CLI e2e tests"
+      golangci-lint run \
+        --timeout 600s \
+        --build-tags e2e \
+        ./cli/e2e/
+
+      # Lint alone never executes the tagged tests, so the guards that pin the
+      # harness against production reworks could not fail. Run every tagged test
+      # except TestE2E, which needs Docker and a built CLI. -skip rather than -run
+      # so tests added later are covered without editing this list.
+      echo "➜ Running Docker-free CLI e2e unit tests"
+      go test -tags e2e -count=1 -skip '^TestE2E$' ./cli/e2e/
+    '';
   };
 
   devShell = nixops-lib.go.devShell {

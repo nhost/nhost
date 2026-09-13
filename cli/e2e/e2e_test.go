@@ -1,0 +1,801 @@
+//go:build e2e
+
+// Package e2e_test contains black-box end-to-end tests that boot a real `nhost up`
+// development environment and exercise auth, storage and GraphQL through the
+// public ingress. The same assertions run against a standalone environment
+// (individual auth/storage/graphql containers) and against the bundled engine
+// (experimental.nhost), so a passing run in both modes proves the engine
+// behaves like the standalone services.
+//
+// The suite is guarded by the `e2e` build tag and driven by environment
+// variables (see envConfig) so it never runs as part of `go test ./...` and can
+// target a locally built CLI + engine image. The host also needs Docker daemon
+// access and registry egress for any stack images not already cached locally.
+//
+// Run it with, e.g.:
+//
+//	E2E_CLI_BIN=/tmp/nhostcli \
+//	E2E_WORKDIR=/home/me/work/nhost \
+//	E2E_MODE=engine \
+//	E2E_CONFIGSERVER_IMAGE=cli:0.0.0-dev \
+//	go test -tags e2e -run TestE2E -timeout 45m ./cli/e2e/
+//
+// The 45-minute outer timeout exceeds the 40-minute internal worst-case budget:
+// 5m stale-stack reclamation + 2m init + 20m up + 30s ownership check +
+// 5*30s HTTP requests + 5m logs + 5m down. TestE2E rejects a shorter deadline
+// before starting Docker because a go test timeout bypasses all t.Cleanup calls.
+// Concurrent runs on one host must set distinct E2E_HTTP_PORT and
+// E2E_POSTGRES_PORT pairs; the pair also determines the reclaimable Compose
+// project identity. E2E_KEEP prints the exact teardown command and releases the
+// harness lock, so the next run using the same pair will reclaim the kept stack
+// before starting.
+//
+// In engine mode the image tag defaults to the CLI/schema default; set
+// E2E_ENGINE_VERSION to pin a specific locally built nhost/engine:<version>.
+package e2e_test
+
+import (
+	"bytes"
+	"context"
+	"crypto/sha256"
+	"crypto/tls"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"maps"
+	"mime/multipart"
+	"net/http"
+	"os"
+	"path/filepath"
+	"slices"
+	"strings"
+	"testing"
+	"time"
+
+	toml "github.com/pelletier/go-toml/v2"
+	"gopkg.in/yaml.v3"
+)
+
+func loadEnv(t *testing.T) envConfig {
+	t.Helper()
+
+	cliBin := os.Getenv("E2E_CLI_BIN")
+	if cliBin == "" {
+		t.Fatal("E2E_CLI_BIN not set; build the CLI and set E2E_CLI_BIN")
+	}
+
+	mode := os.Getenv("E2E_MODE")
+	if mode == "" {
+		mode = "standalone"
+	}
+
+	if mode != "standalone" && mode != "engine" {
+		t.Fatalf("E2E_MODE must be 'standalone' or 'engine', got %q", mode)
+	}
+
+	httpPort := requirePort(t, "E2E_HTTP_PORT", envOr("E2E_HTTP_PORT", "8443"))
+	postgresPort := requirePort(t, "E2E_POSTGRES_PORT", envOr("E2E_POSTGRES_PORT", "5434"))
+
+	cfg := envConfig{
+		cliBin:          cliBin,
+		workdir:         os.Getenv("E2E_WORKDIR"),
+		mode:            mode,
+		httpPort:        httpPort,
+		postgresPort:    postgresPort,
+		projectName:     composeProjectName(httpPort, postgresPort),
+		configserverImg: os.Getenv("E2E_CONFIGSERVER_IMAGE"),
+		subdomain:       envOr("E2E_SUBDOMAIN", "local"),
+		keep:            os.Getenv("E2E_KEEP") != "",
+	}
+
+	return cfg
+}
+
+func envOr(key, def string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+
+	return def
+}
+
+//nolint:paralleltest // The suite binds host ports and manages one Docker stack per port pair.
+func TestE2E(t *testing.T) {
+	env := loadEnv(t)
+	requireSuiteDeadline(t)
+
+	env, projectDir, releasePorts := prepareHarness(t, env)
+
+	runCLI(t, env, projectDir, "init")
+
+	adminSecret := patchConfig(t, env, projectDir)
+
+	// Register teardown before bringing anything up: `nhost up` starts the
+	// compose stack before migrations/metadata, so even a partial boot must be
+	// torn down. Cleanups run LIFO: the failure-only log dump registered below
+	// runs first, then teardown (or the E2E_KEEP notice), and the projectDir
+	// removal registered above runs last when enabled. Cleanup commands use
+	// background-derived contexts because t.Context() is canceled before cleanup.
+	if env.keep {
+		t.Cleanup(func() {
+			t.Logf(
+				"E2E_KEEP set; leaving environment running at %s\nRecovery command: %s",
+				projectDir,
+				keepRecoveryCommand(env, projectDir),
+			)
+		})
+	} else {
+		t.Cleanup(func() {
+			tearDownComposeProject(t, env, projectDir)
+		})
+	}
+
+	t.Cleanup(func() {
+		if !t.Failed() {
+			return
+		}
+
+		logsCtx, cancel := context.WithTimeout(context.Background(), cleanupTimeout)
+		defer cancel()
+
+		logs := cliCmd(logsCtx, env, projectDir, "logs", "--tail=200", "--no-color")
+		out, err := logs.CombinedOutput()
+
+		switch {
+		case errors.Is(logsCtx.Err(), context.DeadlineExceeded):
+			t.Logf("`nhost logs` timed out after %s", cleanupTimeout)
+		case err != nil:
+			t.Logf("`nhost logs` failed: %v", err)
+		case bytes.Contains(out, []byte(logsFailureText)):
+			t.Logf("`nhost logs` reported a swallowed Docker failure")
+		}
+
+		t.Logf(
+			"service logs (mode=%s; capped at %d lines/%d bytes):\n%s",
+			env.mode,
+			serviceLogOutputLines,
+			serviceLogOutputBytes,
+			redactedBoundedTail(out, serviceLogOutputLines, serviceLogOutputBytes),
+		)
+	})
+
+	if err := releasePorts(); err != nil {
+		t.Fatalf("release reserved host ports before `nhost up`: %v", err)
+	}
+
+	// Bring the environment up, streaming progress while retaining a failure tail.
+	upCtx, cancelUp := context.WithTimeout(t.Context(), upTimeout)
+	defer cancelUp()
+
+	up := cliCmd(
+		upCtx,
+		env,
+		projectDir,
+		"up",
+		"--http-port",
+		env.httpPort,
+		"--postgres-port",
+		env.postgresPort,
+	)
+
+	var upOutput bytes.Buffer
+
+	upStream := newRedactingLineWriter(os.Stdout)
+	upWriter := io.MultiWriter(&upOutput, upStream)
+	up.Stdout = upWriter
+	up.Stderr = upWriter
+
+	t.Logf("booting: %s", strings.Join(up.Args, " "))
+
+	upErr := up.Run()
+
+	if err := upStream.Flush(); err != nil {
+		t.Errorf("flush redacted `nhost up` output: %v", err)
+	}
+
+	if upErr != nil {
+		if errors.Is(upCtx.Err(), context.DeadlineExceeded) {
+			t.Fatalf(
+				"`nhost up` timed out after %s (mode=%s)\n%s",
+				upTimeout,
+				env.mode,
+				redactedTail(upOutput.Bytes(), 40),
+			)
+		}
+
+		t.Fatalf(
+			"`nhost up` failed (mode=%s): %v\n%s",
+			env.mode,
+			upErr,
+			redactedTail(upOutput.Bytes(), 40),
+		)
+	}
+
+	if bytes.Contains(upOutput.Bytes(), []byte(upFailurePrompt)) {
+		t.Fatalf(
+			"`nhost up` reported a swallowed startup failure:\n%s",
+			redactedTail(upOutput.Bytes(), 40),
+		)
+	}
+
+	assertComposeTopology(t, env, projectDir)
+	assertComposeProjectOwnsPorts(t, env.projectName, env.httpPort, env.postgresPort)
+
+	c := &client{
+		http: &http.Client{
+			Timeout: httpRequestTimeout,
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					// Local stack uses a self-signed certificate.
+					InsecureSkipVerify: true,
+				},
+			},
+		},
+		subdomain: env.subdomain,
+		port:      env.httpPort,
+		admin:     adminSecret,
+	}
+
+	t.Run("auth", func(t *testing.T) { runAuthScenario(t, c) })
+	t.Run("storage", func(t *testing.T) { runStorageScenario(t, c) })
+	t.Run("graphql", func(t *testing.T) { runGraphQLScenario(t, c) })
+}
+
+// ---- auth ----------------------------------------------------------------
+
+//nolint:thelper // This is the auth subtest body; marking it as a helper hides assertion locations.
+func runAuthScenario(
+	t *testing.T,
+	c *client,
+) {
+	email := fmt.Sprintf("e2e-%d@example.com", time.Now().UnixNano())
+
+	const password = "Str0ngPassw0rd"
+
+	signupTok := c.authEmailPassword(t, "signup", email, password)
+	if !looksLikeJWT(signupTok) {
+		t.Fatalf(
+			"signup did not return a JWT access token: len=%d segments=%d empty=%t",
+			len(signupTok),
+			len(strings.Split(signupTok, ".")),
+			signupTok == "",
+		)
+	}
+
+	t.Logf("signup issued JWT (len=%d)", len(signupTok))
+
+	signinTok := c.authEmailPassword(t, "signin", email, password)
+	if !looksLikeJWT(signinTok) {
+		t.Fatalf(
+			"signin did not return a JWT access token: len=%d segments=%d empty=%t",
+			len(signinTok),
+			len(strings.Split(signinTok, ".")),
+			signinTok == "",
+		)
+	}
+
+	t.Logf("signin issued JWT (len=%d)", len(signinTok))
+}
+
+func (c *client) authEmailPassword(t *testing.T, action, email, password string) string {
+	t.Helper()
+
+	body, err := json.Marshal(map[string]string{"email": email, "password": password})
+	if err != nil {
+		t.Fatalf("marshal %s request: %v", action, err)
+	}
+
+	status, resp, respContentType := c.do(
+		t,
+		http.MethodPost,
+		c.url("auth", "/v1/"+action+"/email-password"),
+		nil,
+		"application/json",
+		body,
+	)
+	if status != http.StatusOK {
+		t.Fatalf(
+			"%s returned HTTP %d: %s",
+			action,
+			status,
+			truncate(redactResponseBody(resp, respContentType)),
+		)
+	}
+
+	var payload struct {
+		Session struct {
+			AccessToken string `json:"accessToken"`
+		} `json:"session"`
+	}
+	if err := json.Unmarshal(resp, &payload); err != nil {
+		t.Fatalf(
+			"%s: cannot decode session payload: %v\n%s",
+			action,
+			err,
+			truncate(redactResponseBody(resp, respContentType)),
+		)
+	}
+
+	outputScrubber.add(payload.Session.AccessToken)
+
+	return payload.Session.AccessToken
+}
+
+// ---- storage -------------------------------------------------------------
+
+//nolint:thelper // This is the storage subtest body; marking it as a helper hides assertion locations.
+func runStorageScenario(
+	t *testing.T,
+	c *client,
+) {
+	content := fmt.Appendf(nil, "hello-engine-e2e-%d", time.Now().UnixNano())
+
+	id := c.uploadFile(t, "e2e.txt", content)
+	t.Logf("uploaded file id=%s", id)
+
+	status, resp, respContentType := c.do(
+		t,
+		http.MethodGet,
+		c.url("storage", "/v1/files/"+id),
+		c.adminHeaders(),
+		"",
+		nil,
+	)
+	if status != http.StatusOK {
+		t.Fatalf(
+			"download returned HTTP %d: %s",
+			status,
+			truncate(redactResponseBody(resp, respContentType)),
+		)
+	}
+
+	if !bytes.Equal(resp, content) {
+		t.Fatalf("downloaded content mismatch: %s", byteMismatchSummary(resp, content))
+	}
+
+	t.Logf("downloaded %d bytes, content matches", len(resp))
+}
+
+func (c *client) uploadFile(t *testing.T, name string, content []byte) string {
+	t.Helper()
+
+	var buf bytes.Buffer
+
+	w := multipart.NewWriter(&buf)
+	if err := w.WriteField("bucket-id", "default"); err != nil {
+		t.Fatalf("write bucket-id field: %v", err)
+	}
+
+	fw, err := w.CreateFormFile("file[]", name)
+	if err != nil {
+		t.Fatalf("create form file: %v", err)
+	}
+
+	if _, err := fw.Write(content); err != nil {
+		t.Fatalf("write form file: %v", err)
+	}
+
+	if err := w.Close(); err != nil {
+		t.Fatalf("close multipart writer: %v", err)
+	}
+
+	status, resp, respContentType := c.do(
+		t,
+		http.MethodPost,
+		c.url("storage", "/v1/files"),
+		c.adminHeaders(),
+		w.FormDataContentType(),
+		buf.Bytes(),
+	)
+	if status != http.StatusCreated && status != http.StatusOK {
+		t.Fatalf(
+			"upload returned HTTP %d: %s",
+			status,
+			truncate(redactResponseBody(resp, respContentType)),
+		)
+	}
+
+	var payload struct {
+		ProcessedFiles []struct {
+			ID string `json:"id"`
+		} `json:"processedFiles"`
+	}
+	if err := json.Unmarshal(resp, &payload); err != nil || len(payload.ProcessedFiles) == 0 {
+		t.Fatalf(
+			"upload: cannot decode processedFiles: %v\n%s",
+			err,
+			truncate(redactResponseBody(resp, respContentType)),
+		)
+	}
+
+	return payload.ProcessedFiles[0].ID
+}
+
+// ---- graphql -------------------------------------------------------------
+
+//nolint:thelper // This is the GraphQL subtest body; marking it as a helper hides assertion locations.
+func runGraphQLScenario(
+	t *testing.T,
+	c *client,
+) {
+	// Admin introspection: works against both Hasura (standalone) and
+	// constellation (engine); the public /v1 path is rewritten to the GraphQL
+	// endpoint by the ingress in both modes.
+	body, err := json.Marshal(map[string]string{"query": "{ __schema { queryType { name } } }"})
+	if err != nil {
+		t.Fatalf("marshal GraphQL request: %v", err)
+	}
+
+	status, resp, respContentType := c.do(
+		t,
+		http.MethodPost,
+		c.url("graphql", "/v1"),
+		c.adminHeaders(),
+		"application/json",
+		body,
+	)
+	if status != http.StatusOK {
+		t.Fatalf(
+			"graphql introspection returned HTTP %d: %s",
+			status,
+			truncate(redactResponseBody(resp, respContentType)),
+		)
+	}
+
+	var out struct {
+		Data struct {
+			Schema struct {
+				QueryType struct {
+					Name string `json:"name"`
+				} `json:"queryType"`
+			} `json:"__schema"`
+		} `json:"data"`
+		// []json.RawMessage treats an absent, null, or empty `errors` field all as
+		// length 0, so an explicit `"errors": null`/`[]` does not false-fail (the
+		// two GraphQL backends need not serialize an empty error list identically).
+		Errors []json.RawMessage `json:"errors"`
+	}
+	if err := json.Unmarshal(resp, &out); err != nil {
+		t.Fatalf(
+			"graphql: cannot decode response: %v\n%s",
+			err,
+			truncate(redactResponseBody(resp, respContentType)),
+		)
+	}
+
+	if len(out.Errors) > 0 {
+		t.Fatalf(
+			"graphql introspection returned errors: %s",
+			truncate(redactResponseBody(resp, respContentType)),
+		)
+	}
+
+	if out.Data.Schema.QueryType.Name == "" {
+		t.Fatalf(
+			"graphql introspection missing query type name: %s",
+			truncate(redactResponseBody(resp, respContentType)),
+		)
+	}
+
+	t.Logf("graphql query root type: %s", out.Data.Schema.QueryType.Name)
+}
+
+// ---- HTTP client ---------------------------------------------------------
+
+type client struct {
+	http      *http.Client
+	subdomain string
+	port      string
+	admin     string
+}
+
+func (c *client) url(service, path string) string {
+	return fmt.Sprintf("https://%s.%s.local.nhost.run:%s%s", c.subdomain, service, c.port, path)
+}
+
+func (c *client) adminHeaders() map[string]string {
+	return map[string]string{"x-hasura-admin-secret": c.admin}
+}
+
+func (c *client) do(
+	t *testing.T,
+	method, url string,
+	headers map[string]string,
+	contentType string,
+	body []byte,
+) (int, []byte, string) {
+	t.Helper()
+
+	var rdr io.Reader
+	if body != nil {
+		rdr = bytes.NewReader(body)
+	}
+
+	req, err := http.NewRequestWithContext(t.Context(), method, url, rdr)
+	if err != nil {
+		t.Fatalf("build request %s %s: %v", method, url, err)
+	}
+
+	if contentType != "" {
+		req.Header.Set("Content-Type", contentType)
+	}
+
+	for k, v := range headers {
+		req.Header.Set(k, v)
+	}
+
+	resp, err := c.http.Do(req)
+	if err != nil {
+		t.Fatalf("request %s %s failed: %v", method, url, err)
+	}
+	defer resp.Body.Close()
+
+	out, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("read response %s %s: %v", method, url, err)
+	}
+
+	return resp.StatusCode, out, resp.Header.Get("Content-Type")
+}
+
+// ---- CLI + config helpers ------------------------------------------------
+
+const (
+	cliStepTimeout        = 2 * time.Minute
+	upTimeout             = 20 * time.Minute
+	cleanupTimeout        = 5 * time.Minute
+	downCommandTimeout    = 4 * time.Minute
+	dockerInspectTimeout  = 30 * time.Second
+	httpRequestTimeout    = 30 * time.Second
+	httpRequestCount      = 5
+	serviceLogOutputLines = 200
+	serviceLogOutputBytes = 32 * 1024
+
+	// suiteTimeoutBudget covers every bounded phase, including failure-only logs
+	// and stale-project reclamation. The documented 45m timeout leaves 5m of
+	// scheduling/process-exit headroom above this 40m internal maximum.
+	suiteTimeoutBudget = cleanupTimeout + cliStepTimeout + upTimeout + dockerInspectTimeout +
+		httpRequestCount*httpRequestTimeout + cleanupTimeout + cleanupTimeout
+)
+
+func runCLI(t *testing.T, env envConfig, projectDir string, args ...string) {
+	t.Helper()
+
+	ctx, cancel := context.WithTimeout(t.Context(), cliStepTimeout)
+	defer cancel()
+
+	cmd := cliCmd(ctx, env, projectDir, args...)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		if registerErr := registerProjectSecrets(projectDir); registerErr != nil {
+			t.Logf(
+				"could not register project secrets before reporting CLI failure: %v",
+				registerErr,
+			)
+		}
+
+		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+			t.Fatalf(
+				"`nhost %s` timed out after %s\n%s",
+				strings.Join(args, " "),
+				cliStepTimeout,
+				redactedTail(out, 20),
+			)
+		}
+
+		t.Fatalf(
+			"`nhost %s` failed: %v\n%s",
+			strings.Join(args, " "),
+			err,
+			redactedTail(out, 20),
+		)
+	}
+}
+
+func assertComposeTopology(t *testing.T, env envConfig, projectDir string) {
+	t.Helper()
+
+	composePath := filepath.Join(projectDir, ".nhost", "docker-compose.yaml")
+
+	raw, err := os.ReadFile(composePath)
+	if err != nil {
+		t.Fatalf("read generated compose file %s: %v", composePath, err)
+	}
+
+	var compose struct {
+		Services map[string]any `yaml:"services"`
+	}
+	if err := yaml.Unmarshal(raw, &compose); err != nil {
+		t.Fatalf("unmarshal generated compose file %s: %v", composePath, err)
+	}
+
+	var (
+		requiredService   = "storage"
+		forbiddenServices = []string{"engine"}
+	)
+	if env.mode == "engine" {
+		requiredService = "engine"
+		forbiddenServices = []string{"auth", "storage"}
+	}
+
+	if _, ok := compose.Services[requiredService]; !ok {
+		t.Fatalf(
+			"generated compose topology does not match %s mode: service %q is missing (services: %v)",
+			env.mode,
+			requiredService,
+			slices.Sorted(maps.Keys(compose.Services)),
+		)
+	}
+
+	for _, service := range forbiddenServices {
+		if _, ok := compose.Services[service]; ok {
+			t.Fatalf(
+				"generated compose topology does not match %s mode: unexpected service %q (services: %v)",
+				env.mode,
+				service,
+				slices.Sorted(maps.Keys(compose.Services)),
+			)
+		}
+	}
+}
+
+// patchConfig disables email verification (so signup returns a session) and, in
+// engine mode, opts into experimental.nhost and strips the per-service
+// version/resources from the root auth/storage sections (which the single engine
+// binary rejects). The engine reads the same root sections the standalone
+// services do, so no config duplication is needed. It returns the admin secret.
+func patchConfig(t *testing.T, env envConfig, projectDir string) string {
+	t.Helper()
+
+	secretsPath := filepath.Join(projectDir, ".secrets")
+
+	secrets, err := readAndRegisterSecrets(secretsPath)
+	if err != nil {
+		t.Fatalf("load .secrets: %v", err)
+	}
+
+	adminSecret, ok := secrets["HASURA_GRAPHQL_ADMIN_SECRET"]
+	if !ok || adminSecret == "" {
+		t.Fatalf("could not find HASURA_GRAPHQL_ADMIN_SECRET in .secrets")
+	}
+
+	tomlPath := filepath.Join(projectDir, "nhost", "nhost.toml")
+
+	raw, err := os.ReadFile(tomlPath)
+	if err != nil {
+		t.Fatalf("read nhost.toml: %v", err)
+	}
+
+	var cfg map[string]any
+	if err := toml.Unmarshal(raw, &cfg); err != nil {
+		t.Fatalf("unmarshal nhost.toml: %v", err)
+	}
+
+	// signup should return a session immediately in both modes.
+	setNested(cfg, false, "auth", "method", "emailPassword", "emailVerificationRequired")
+
+	if env.mode == "engine" {
+		// The single engine binary has one version and one resources block
+		// (experimental.nhost), so per-service version/resources for auth and
+		// storage are rejected. Strip them from the root sections the engine reads
+		// directly.
+		for _, svc := range []string{"auth", "storage"} {
+			if m, ok := cfg[svc].(map[string]any); ok {
+				delete(m, "version")
+				delete(m, "resources")
+			}
+		}
+		// Opt into the engine without pinning a version so the CLI/schema default
+		// drives the image tag; the local image only needs to match that default.
+		// E2E_ENGINE_VERSION overrides it to target a specific locally built tag.
+		nhost := map[string]any{}
+		if v := os.Getenv("E2E_ENGINE_VERSION"); v != "" {
+			nhost["version"] = v
+		}
+
+		cfg["experimental"] = map[string]any{"nhost": nhost}
+	}
+
+	outBuf := &bytes.Buffer{}
+	enc := toml.NewEncoder(outBuf)
+	enc.SetIndentTables(true)
+
+	if err := enc.Encode(cfg); err != nil {
+		t.Fatalf("marshal nhost.toml: %v", err)
+	}
+
+	if err := os.WriteFile(tomlPath, outBuf.Bytes(), 0o600); err != nil {
+		t.Fatalf("write nhost.toml: %v", err)
+	}
+
+	return adminSecret
+}
+
+func registerProjectSecrets(projectDir string) error {
+	_, err := readAndRegisterSecrets(filepath.Join(projectDir, ".secrets"))
+	if errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
+
+	return err
+}
+
+func readAndRegisterSecrets(path string) (map[string]string, error) {
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("reading %s: %w", path, err)
+	}
+
+	var secrets map[string]string
+	if err := toml.Unmarshal(raw, &secrets); err != nil {
+		return nil, fmt.Errorf("unmarshalling %s: %w", path, err)
+	}
+
+	for _, secret := range secrets {
+		outputScrubber.add(secret)
+	}
+
+	return secrets, nil
+}
+
+// setNested sets a value at a nested key path, creating intermediate maps.
+func setNested(m map[string]any, value any, path ...string) {
+	cur := m
+	for _, k := range path[:len(path)-1] {
+		next, ok := cur[k].(map[string]any)
+		if !ok {
+			next = map[string]any{}
+			cur[k] = next
+		}
+
+		cur = next
+	}
+
+	cur[path[len(path)-1]] = value
+}
+
+// ---- misc ----------------------------------------------------------------
+
+func byteMismatchSummary(got, want []byte) string {
+	firstDifference := min(len(got), len(want))
+	for i := range firstDifference {
+		if got[i] != want[i] {
+			firstDifference = i
+
+			break
+		}
+	}
+
+	const contextBytes = 8
+
+	start := max(0, firstDifference-contextBytes)
+	gotEnd := min(len(got), firstDifference+contextBytes)
+	wantEnd := min(len(want), firstDifference+contextBytes)
+	gotHash := sha256.Sum256(got)
+	wantHash := sha256.Sum256(want)
+
+	return fmt.Sprintf(
+		"got-len=%d want-len=%d first-difference=%d got-sha256=%x want-sha256=%x got-hex[%d:%d]=%x want-hex[%d:%d]=%x",
+		len(got),
+		len(want),
+		firstDifference,
+		gotHash,
+		wantHash,
+		start,
+		gotEnd,
+		got[start:gotEnd],
+		start,
+		wantEnd,
+		want[start:wantEnd],
+	)
+}
+
+func truncate(s string) string {
+	const maxLength = 200
+
+	if len(s) <= maxLength {
+		return s
+	}
+
+	return s[:maxLength] + "..."
+}
