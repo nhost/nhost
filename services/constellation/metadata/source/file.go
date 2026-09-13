@@ -22,7 +22,7 @@ type FileMetadataSource struct {
 	path       string
 	loader     metadataLoader
 	hasuraJSON atomic.Pointer[[]byte]
-	ch         chan metadata.Update
+	done       chan struct{}
 	closeOnce  sync.Once
 }
 
@@ -39,7 +39,7 @@ func newFileMetadataSource(path string, loader metadataLoader) *FileMetadataSour
 		path:       path,
 		loader:     loader,
 		hasuraJSON: atomic.Pointer[[]byte]{},
-		ch:         make(chan metadata.Update),
+		done:       make(chan struct{}),
 		closeOnce:  sync.Once{},
 	}
 }
@@ -60,9 +60,22 @@ func (s *FileMetadataSource) InitialLoad(
 	return meta, nil
 }
 
-// Watch returns the channel since file-based metadata has no reloads.
-func (s *FileMetadataSource) Watch(_ context.Context) <-chan metadata.Update {
-	return s.ch
+// Watch returns an empty update channel since file-based metadata has no
+// reloads. The returned channel closes when ctx is cancelled or Close is
+// called; cancelling ctx does not close the source itself.
+func (s *FileMetadataSource) Watch(ctx context.Context) <-chan metadata.Update {
+	ch := make(chan metadata.Update)
+
+	go func() {
+		defer close(ch)
+
+		select {
+		case <-ctx.Done():
+		case <-s.done:
+		}
+	}()
+
+	return ch
 }
 
 // HasuraSnapshotJSON returns the pre-conversion Hasura wire form retained
@@ -87,7 +100,8 @@ func (s *FileMetadataSource) HasuraSnapshotJSON() ([]byte, int64) {
 	return nil, 0
 }
 
-// Close closes the update channel. Safe to call multiple times.
+// Close signals all active Watch calls to close their update channels. Safe to
+// call multiple times.
 func (s *FileMetadataSource) Close() {
-	s.closeOnce.Do(func() { close(s.ch) })
+	s.closeOnce.Do(func() { close(s.done) })
 }
