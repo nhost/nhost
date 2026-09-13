@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -66,7 +67,8 @@ type controllerState struct {
 	inconsistencies []metadata.Inconsistency
 	// done is closed when this state is shut down (metadata reload or server stop).
 	// WebSocket connections select on this to close when the state becomes stale.
-	done chan struct{}
+	done        chan struct{}
+	releaseOnce sync.Once
 }
 
 // newControllerState assembles a controllerState with the always-zero
@@ -93,6 +95,7 @@ func newControllerState(
 		queryCache:                 newQueryCache(),
 		inconsistencies:            inconsistencies,
 		done:                       make(chan struct{}),
+		releaseOnce:                sync.Once{},
 	}
 }
 
@@ -115,11 +118,20 @@ func (s *controllerState) closeConnectors() {
 	}
 }
 
+// release shuts down the state and closes its connectors exactly once.
+func (s *controllerState) release(ctx context.Context) {
+	s.releaseOnce.Do(func() {
+		s.shutdown(ctx)
+		s.closeConnectors()
+	})
+}
+
 // Controller is the top-level orchestrator. Immutable configuration lives
 // directly on the struct; everything that gets rebuilt on metadata changes
 // is behind an atomic pointer.
 type Controller struct {
 	state           atomic.Pointer[controllerState]
+	closed          atomic.Bool
 	adminSecret     string
 	jwtAuth         middleware.JWTAuthenticator
 	pollingInterval time.Duration
@@ -169,6 +181,7 @@ func New(
 
 	ctrl := &Controller{
 		state:           atomic.Pointer[controllerState]{},
+		closed:          atomic.Bool{},
 		adminSecret:     adminSecret,
 		jwtAuth:         jwtAuth,
 		pollingInterval: subscriptionPollInterval,
@@ -311,18 +324,32 @@ func (c *Controller) swapState(
 		shutdownCtx, cancel := context.WithTimeout(ctx, shutdownTimeout)
 		defer cancel()
 
-		oldState.shutdown(shutdownCtx)
-		oldState.closeConnectors()
+		oldState.release(shutdownCtx)
+
+		if c.closed.Load() {
+			newState.release(shutdownCtx)
+		}
 	}()
+}
+
+// Close permanently marks the controller closed and releases its current
+// state. It is safe to call more than once and concurrently with Run.
+func (c *Controller) Close() {
+	c.closed.Store(true)
+	c.releaseState(context.Background())
 }
 
 // shutdownState tears down the current state on controller exit.
 func (c *Controller) shutdownState(ctx context.Context, logger *slog.Logger) {
 	logger.InfoContext(ctx, "shutting down controller")
+	c.releaseState(ctx)
+}
 
+func (c *Controller) releaseState(ctx context.Context) {
 	state := c.state.Load()
-	state.shutdown(ctx)
-	state.closeConnectors()
+	if state != nil {
+		state.release(ctx)
+	}
 }
 
 // NewFromConnectors builds a Controller around an already-constructed set of
@@ -375,6 +402,7 @@ func NewFromConnectors(
 		hasuraProxy:     nil,
 		version:         "",
 		state:           atomic.Pointer[controllerState]{},
+		closed:          atomic.Bool{},
 	}
 	ctrl.state.Store(state)
 
