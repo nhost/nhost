@@ -14,6 +14,7 @@ import (
 // validTestOptions returns Options that pass Validate, for tests to adjust.
 func validTestOptions() Options {
 	return Options{
+		Version:                      "",
 		PublicURL:                    "http://localhost:8000",
 		APIRootPrefix:                "/v1",
 		HasuraEndpoint:               "http://hasura:8080/v1",
@@ -209,6 +210,7 @@ func TestOptionsFromCommandDefaults(t *testing.T) {
 	)
 
 	want := Options{
+		Version:                      "",
 		PublicURL:                    "http://localhost:8000",
 		APIRootPrefix:                "/v1",
 		HasuraEndpoint:               "",
@@ -273,6 +275,7 @@ func TestOptionsFromCommandFlags(t *testing.T) {
 	)
 
 	want := Options{
+		Version:                  "",
 		PublicURL:                "https://storage.example.com",
 		APIRootPrefix:            "/v2",
 		HasuraEndpoint:           "http://hasura:8080/v1",

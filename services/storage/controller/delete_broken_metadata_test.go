@@ -107,6 +107,7 @@ func TestDeleteBrokenMetadata(t *testing.T) {
 				nil,
 				nil,
 				logger,
+				"",
 			)
 
 			resp, err := ctrl.DeleteBrokenMetadata(
