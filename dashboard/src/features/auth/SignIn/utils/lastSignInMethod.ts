@@ -1,23 +1,21 @@
 import { useEffect, useState } from 'react';
 
-export type LastSignInMethod = 'github' | 'security-key' | 'email';
+const SIGN_IN_METHODS = ['github', 'security-key', 'email'] as const;
+
+export type LastSignInMethod = (typeof SIGN_IN_METHODS)[number];
 
 export const LAST_SIGN_IN_METHOD_STORAGE_KEY = 'nhost_last_signin_method';
 
-const VALID_SIGN_IN_METHODS: ReadonlySet<string> = new Set([
-  'github',
-  'security-key',
-  'email',
-]);
+function isLastSignInMethod(value: string | null): value is LastSignInMethod {
+  return SIGN_IN_METHODS.includes(value as LastSignInMethod);
+}
 
 /**
  * Persists the last successful sign-in method to localStorage.
  */
 export function saveLastSignInMethod(method: LastSignInMethod): void {
   try {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      window.localStorage.setItem(LAST_SIGN_IN_METHOD_STORAGE_KEY, method);
-    }
+    localStorage.setItem(LAST_SIGN_IN_METHOD_STORAGE_KEY, method);
   } catch (error) {
     console.error('Failed to save last sign-in method to localStorage:', error);
   }
@@ -28,13 +26,9 @@ export function saveLastSignInMethod(method: LastSignInMethod): void {
  */
 export function getLastSignInMethod(): LastSignInMethod | null {
   try {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      const storedMethod = window.localStorage.getItem(
-        LAST_SIGN_IN_METHOD_STORAGE_KEY,
-      );
-      if (storedMethod && VALID_SIGN_IN_METHODS.has(storedMethod)) {
-        return storedMethod as LastSignInMethod;
-      }
+    const storedMethod = localStorage.getItem(LAST_SIGN_IN_METHOD_STORAGE_KEY);
+    if (isLastSignInMethod(storedMethod)) {
+      return storedMethod;
     }
   } catch (error) {
     console.error(
@@ -43,22 +37,6 @@ export function getLastSignInMethod(): LastSignInMethod | null {
     );
   }
   return null;
-}
-
-/**
- * Clears the last successful sign-in method from localStorage.
- */
-export function clearLastSignInMethod(): void {
-  try {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      window.localStorage.removeItem(LAST_SIGN_IN_METHOD_STORAGE_KEY);
-    }
-  } catch (error) {
-    console.error(
-      'Failed to clear last sign-in method from localStorage:',
-      error,
-    );
-  }
 }
 
 /**

@@ -1,2 +1,1 @@
-export * from './LastUsedBadge';
-export { default } from './LastUsedBadge';
+export { default as LastUsedBadge } from './LastUsedBadge';

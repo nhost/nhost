@@ -1,5 +1,5 @@
 import NextLink from 'next/link';
-import { type ReactElement, useEffect } from 'react';
+import { type PropsWithChildren, type ReactElement, useEffect } from 'react';
 import { SignInRightColumn } from '@/components/auth/SignInRightColumn';
 import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
 import { Button } from '@/components/ui/v3/button';
@@ -8,11 +8,32 @@ import { LastUsedBadge } from '@/features/auth/SignIn/components/LastUsedBadge';
 import { SignInWithSecurityKey } from '@/features/auth/SignIn/SecurityKey';
 import { SignInWithGithub } from '@/features/auth/SignIn/SignInWithGithub';
 import { useLastSignInMethod } from '@/features/auth/SignIn/utils/lastSignInMethod';
+import { cn } from '@/lib/utils';
 import { useAuth } from '@/providers/Auth';
+
+// Resting outline marking the last used option. Focus blanks it via the shared
+// button styles so the standard focus ring takes over at the same offset.
+const lastUsedOutline = 'outline outline-2 outline-offset-2 outline-border';
+
+function SignInOption({
+  isLastUsed,
+  children,
+}: PropsWithChildren<{ isLastUsed: boolean }>) {
+  return (
+    <div className="relative">
+      {isLastUsed && <span className="sr-only">Last used sign-in method:</span>}
+      {children}
+      {isLastUsed && <LastUsedBadge />}
+    </div>
+  );
+}
 
 export default function SigninPage() {
   const { isSigningOut, clearIsSigningOut } = useAuth();
   const lastSignInMethod = useLastSignInMethod();
+  const isGithubLastUsed = lastSignInMethod === 'github';
+  const isSecurityKeyLastUsed = lastSignInMethod === 'security-key';
+  const isEmailLastUsed = lastSignInMethod === 'email';
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: onmounted
   useEffect(() => {
@@ -33,15 +54,17 @@ export default function SigninPage() {
       </div>
 
       <div className="grid grid-flow-row gap-4 rounded-md border bg-transparent p-6 lg:p-12">
-        <div className="relative">
-          <SignInWithGithub />
-          {lastSignInMethod === 'github' && <LastUsedBadge />}
-        </div>
+        <SignInOption isLastUsed={isGithubLastUsed}>
+          <SignInWithGithub
+            className={cn(isGithubLastUsed && lastUsedOutline)}
+          />
+        </SignInOption>
 
-        <div className="relative">
-          <SignInWithSecurityKey />
-          {lastSignInMethod === 'security-key' && <LastUsedBadge />}
-        </div>
+        <SignInOption isLastUsed={isSecurityKeyLastUsed}>
+          <SignInWithSecurityKey
+            className={cn(isSecurityKeyLastUsed && lastUsedOutline)}
+          />
+        </SignInOption>
 
         <div className="relative py-2">
           <p className="absolute top-1/2 right-0 left-0 mx-auto w-12 -translate-y-1/2 bg-black px-2 text-center text-[#68717A] text-sm">
@@ -51,16 +74,18 @@ export default function SigninPage() {
           <Separator className="my-2" />
         </div>
 
-        <div className="relative">
+        <SignInOption isLastUsed={isEmailLastUsed}>
           <Button
             asChild
             variant="ghost"
-            className="!text-white hover:!bg-white hover:!bg-opacity-10 focus:!bg-white focus:!bg-opacity-10 w-full"
+            className={cn(
+              '!text-white hover:!bg-white hover:!bg-opacity-10 focus:!bg-white focus:!bg-opacity-10 w-full',
+              isEmailLastUsed && lastUsedOutline,
+            )}
           >
             <NextLink href="/signin/email">Continue with Email</NextLink>
           </Button>
-          {lastSignInMethod === 'email' && <LastUsedBadge />}
-        </div>
+        </SignInOption>
         <p className="text-center text-sm">
           By clicking continue, you agree to our{' '}
           <NextLink

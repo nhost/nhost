@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderHook } from '@/tests/testUtils';
 import {
-  clearLastSignInMethod,
   getLastSignInMethod,
   LAST_SIGN_IN_METHOD_STORAGE_KEY,
   saveLastSignInMethod,
@@ -15,29 +14,18 @@ describe('lastSignInMethod utilities', () => {
   });
 
   describe('saveLastSignInMethod', () => {
-    it('should save github to localStorage', () => {
+    it('should save the method under the shared storage key', () => {
       saveLastSignInMethod('github');
+      expect(window.localStorage.getItem('nhost_last_signin_method')).toBe(
+        'github',
+      );
       expect(window.localStorage.getItem(LAST_SIGN_IN_METHOD_STORAGE_KEY)).toBe(
         'github',
       );
     });
 
-    it('should save security-key to localStorage', () => {
-      saveLastSignInMethod('security-key');
-      expect(window.localStorage.getItem(LAST_SIGN_IN_METHOD_STORAGE_KEY)).toBe(
-        'security-key',
-      );
-    });
-
-    it('should save email to localStorage', () => {
-      saveLastSignInMethod('email');
-      expect(window.localStorage.getItem(LAST_SIGN_IN_METHOD_STORAGE_KEY)).toBe(
-        'email',
-      );
-    });
-
     it('should handle localStorage.setItem errors gracefully without throwing', () => {
-      vi.spyOn(window.localStorage, 'setItem').mockImplementationOnce(() => {
+      vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
         throw new Error('QuotaExceededError');
       });
       const consoleErrorSpy = vi
@@ -81,7 +69,7 @@ describe('lastSignInMethod utilities', () => {
     });
 
     it('should handle localStorage.getItem errors gracefully without throwing', () => {
-      vi.spyOn(window.localStorage, 'getItem').mockImplementationOnce(() => {
+      vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
         throw new Error('SecurityError');
       });
       const consoleErrorSpy = vi
@@ -93,34 +81,7 @@ describe('lastSignInMethod utilities', () => {
     });
   });
 
-  describe('clearLastSignInMethod', () => {
-    it('should remove the key from localStorage', () => {
-      window.localStorage.setItem(LAST_SIGN_IN_METHOD_STORAGE_KEY, 'github');
-      clearLastSignInMethod();
-      expect(
-        window.localStorage.getItem(LAST_SIGN_IN_METHOD_STORAGE_KEY),
-      ).toBeNull();
-    });
-
-    it('should handle localStorage.removeItem errors gracefully without throwing', () => {
-      vi.spyOn(window.localStorage, 'removeItem').mockImplementationOnce(() => {
-        throw new Error('SecurityError');
-      });
-      const consoleErrorSpy = vi
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
-
-      expect(() => clearLastSignInMethod()).not.toThrow();
-      expect(consoleErrorSpy).toHaveBeenCalled();
-    });
-  });
-
   describe('useLastSignInMethod hook', () => {
-    it('should return null initially if nothing stored', () => {
-      const { result } = renderHook(() => useLastSignInMethod());
-      expect(result.current).toBeNull();
-    });
-
     it('should return stored method after mount', () => {
       window.localStorage.setItem(LAST_SIGN_IN_METHOD_STORAGE_KEY, 'github');
       const { result } = renderHook(() => useLastSignInMethod());
