@@ -15,8 +15,8 @@ import {
   UserIcon,
   ZapIcon,
 } from 'lucide-react';
-import { useCurrentRoute } from '@/components/layout/AppSidebar/useCurrentRoute';
-import { DashboardSidebar } from '@/components/layout/DashboardSidebar';
+import { useCurrentRoute } from '@/components/layout/DashboardNavigation/useCurrentRoute';
+import { NavigationList } from '@/components/layout/NavigationList';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useSettingsDisabled } from '@/hooks/useSettingsDisabled';
 
@@ -28,12 +28,12 @@ function useProjectBaseHref() {
   return `/orgs/${orgSlug}/projects/${appSubdomain}`;
 }
 
-export function ProjectNavFooter() {
+export function ProjectNavigationFooter() {
   const baseHref = useProjectBaseHref();
   const settingsDisabled = useSettingsDisabled();
 
   return (
-    <DashboardSidebar.Item
+    <NavigationList.Item
       label="Settings"
       href={`${baseHref}/settings`}
       icon={<CogIcon className={iconClassName} />}
@@ -42,78 +42,78 @@ export function ProjectNavFooter() {
   );
 }
 
-export default function ProjectNav() {
+export default function ProjectNavigation() {
   const baseHref = useProjectBaseHref();
   const isPlatform = useIsPlatform();
   const settingsDisabled = useSettingsDisabled();
 
   return (
     <>
-      <DashboardSidebar.Section>
-        <DashboardSidebar.Item
+      <NavigationList.Section>
+        <NavigationList.Item
           label="Overview"
           href={baseHref}
           icon={<HomeIcon className={iconClassName} />}
           exact
         />
-      </DashboardSidebar.Section>
+      </NavigationList.Section>
 
-      <DashboardSidebar.Section label="Build">
-        <DashboardSidebar.Item
+      <NavigationList.Section label="Build">
+        <NavigationList.Item
           label="Database"
           href={`${baseHref}/database/browser/default`}
           icon={<DatabaseIcon className={iconClassName} />}
           activePath={`${baseHref}/database`}
         />
-        <DashboardSidebar.Item
+        <NavigationList.Item
           label="GraphQL"
           href={`${baseHref}/graphql`}
           icon={<GraphQLIcon className={iconClassName} />}
         />
-        <DashboardSidebar.Item
+        <NavigationList.Item
           label="Auth"
           href={`${baseHref}/auth/users`}
           icon={<UserIcon className={iconClassName} />}
           activePath={`${baseHref}/auth`}
         />
-        <DashboardSidebar.Item
+        <NavigationList.Item
           label="Storage"
           href={`${baseHref}/storage/buckets`}
           icon={<HardDriveIcon className={iconClassName} />}
           activePath={`${baseHref}/storage`}
         />
-        <DashboardSidebar.Item
+        <NavigationList.Item
           label="Events"
           href={`${baseHref}/events/event-triggers`}
           icon={<ZapIcon className={iconClassName} />}
           activePath={`${baseHref}/events`}
         />
-      </DashboardSidebar.Section>
+      </NavigationList.Section>
 
-      <DashboardSidebar.Section label="Compute">
-        <DashboardSidebar.Item
+      <NavigationList.Section label="Compute">
+        <NavigationList.Item
           label="AI"
           href={`${baseHref}/ai/assistants`}
           icon={<SparklesIcon className={iconClassName} />}
           activePath={`${baseHref}/ai`}
           disabled={settingsDisabled}
         />
-        <DashboardSidebar.Item
+        <NavigationList.Item
           label="Functions"
           href={`${baseHref}/functions/browser`}
           icon={<CodeIcon className={iconClassName} />}
           activePath={`${baseHref}/functions`}
         />
-        <DashboardSidebar.Item
+        <NavigationList.Item
           label="Run"
           href={`${baseHref}/run`}
           icon={<ServicesIcon className={iconClassName} />}
         />
-      </DashboardSidebar.Section>
+      </NavigationList.Section>
 
-      <DashboardSidebar.Section label="Operate">
+      <NavigationList.Section label="Operate">
         {/* Off-platform only the Deployments settings page exists. */}
-        <DashboardSidebar.Item
+        <NavigationList.Item
           label="Deployments"
           href={
             isPlatform
@@ -124,12 +124,12 @@ export default function ProjectNav() {
           activePath={`${baseHref}/deployments`}
           disabled={!isPlatform && settingsDisabled}
         />
-        <DashboardSidebar.Item
+        <NavigationList.Item
           label="Logs"
           href={`${baseHref}/logs`}
           icon={<FileTextIcon className={iconClassName} />}
         />
-        <DashboardSidebar.Item
+        <NavigationList.Item
           label="Metrics"
           href={
             isPlatform ? `${baseHref}/metrics` : `${baseHref}/metrics/settings`
@@ -138,7 +138,7 @@ export default function ProjectNav() {
           activePath={`${baseHref}/metrics`}
           disabled={!isPlatform && settingsDisabled}
         />
-      </DashboardSidebar.Section>
+      </NavigationList.Section>
     </>
   );
 }

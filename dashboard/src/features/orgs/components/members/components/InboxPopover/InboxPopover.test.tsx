@@ -1,6 +1,9 @@
 import { HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { toast } from 'react-hot-toast';
+import MobileAccountMenu from '@/components/layout/Header/MobileAccountMenu';
+import InboxPopover from '@/features/orgs/components/members/components/InboxPopover/InboxPopover';
+import useInbox from '@/features/orgs/components/members/components/InboxPopover/useInbox';
 import {
   CheckoutStatus,
   Organization_Members_Role_Enum,
@@ -17,7 +20,6 @@ import {
   waitFor,
   within,
 } from '@/tests/testUtils';
-import InboxPopover from './InboxPopover';
 
 vi.mock('@/hooks/useTrackEvent', () => ({
   useTrackEvent: () => vi.fn(),
@@ -47,6 +49,17 @@ const invite: OrganizationMemberInvitesQuery['organizationMemberInvites'][number
   };
 
 mockScrollIntoViewAndPointerCapture();
+
+// Stands in for `Header`, the inbox state's single owner.
+function InboxHost({ mobile }: { mobile: boolean }) {
+  const inbox = useInbox();
+
+  return mobile ? (
+    <MobileAccountMenu inbox={inbox} />
+  ) : (
+    <InboxPopover inbox={inbox} />
+  );
+}
 
 function mockPendingRequest() {
   const postCalled = vi.fn();
@@ -81,46 +94,65 @@ function mockPendingRequest() {
   return postCalled;
 }
 
-async function acceptInviteWithPendingNavigation() {
-  const user = new TestUserEvent();
-  const navigation = Promise.withResolvers<boolean>();
-  vi.mocked(mockRouter.push).mockReturnValue(navigation.promise);
-  let accepted = false;
-  server.use(
-    nhostGraphQLLink.query('organizationMemberInvites', () =>
-      HttpResponse.json({
-        data: { organizationMemberInvites: accepted ? [] : [invite] },
+describe.each([
+  { layout: 'desktop', mobile: false },
+  { layout: 'mobile', mobile: true },
+])('$layout inbox', ({ mobile }) => {
+  function renderInbox() {
+    return render(<InboxHost mobile={mobile} />);
+  }
+
+  async function openInbox(user: TestUserEvent) {
+    const trigger = screen.getByRole('button', {
+      name: mobile ? 'Open account menu' : 'Inbox',
+    });
+    await user.click(trigger);
+    if (mobile) {
+      await user.click(await screen.findByRole('button', { name: /Inbox/ }));
+    }
+    return trigger;
+  }
+
+  async function acceptInviteWithPendingNavigation() {
+    const user = new TestUserEvent();
+    const navigation = Promise.withResolvers<boolean>();
+    vi.mocked(mockRouter.push).mockReturnValue(navigation.promise);
+    let accepted = false;
+    server.use(
+      nhostGraphQLLink.query('organizationMemberInvites', () =>
+        HttpResponse.json({
+          data: { organizationMemberInvites: accepted ? [] : [invite] },
+        }),
+      ),
+      nhostGraphQLLink.mutation('organizationMemberInviteAccept', () => {
+        accepted = true;
+        return HttpResponse.json({
+          data: {
+            organizationMemberInviteAccept: [
+              { __typename: 'organization_members' },
+            ],
+          },
+        });
       }),
-    ),
-    nhostGraphQLLink.mutation('organizationMemberInviteAccept', () => {
-      accepted = true;
-      return HttpResponse.json({
-        data: {
-          organizationMemberInviteAccept: [
-            { __typename: 'organization_members' },
-          ],
-        },
-      });
-    }),
-  );
+    );
 
-  render(<InboxPopover />);
+    renderInbox();
 
-  const inboxTrigger = screen.getByRole('button', { name: 'Inbox' });
-  await user.click(inboxTrigger);
-  await user.click(await screen.findByRole('button', { name: 'Accept' }));
+    const inboxTrigger = await openInbox(user);
+    await user.click(await screen.findByRole('button', { name: 'Accept' }));
 
-  await waitFor(() => {
-    expect(mockRouter.push).toHaveBeenCalledWith('/orgs/invited-org/projects');
-  });
-  expect(
-    screen.getByRole('button', { name: 'Close inbox' }),
-  ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(mockRouter.push).toHaveBeenCalledWith(
+        '/orgs/invited-org/projects',
+      );
+    });
+    expect(
+      screen.getByRole('button', { name: 'Close inbox' }),
+    ).toBeInTheDocument();
 
-  return { inboxTrigger, navigation };
-}
+    return { inboxTrigger, navigation };
+  }
 
-describe('InboxPopover', () => {
   beforeAll(() => {
     process.env.NEXT_PUBLIC_NHOST_PLATFORM = 'true';
     server.listen({ onUnhandledRequest: 'error' });
@@ -142,6 +174,9 @@ describe('InboxPopover', () => {
       nhostGraphQLLink.query('getOrganizations', () =>
         HttpResponse.json({ data: { organizations: [] } }),
       ),
+      nhostGraphQLLink.query('getOrganization', () =>
+        HttpResponse.json({ data: { organizations: [] } }),
+      ),
     );
   });
 
@@ -157,13 +192,36 @@ describe('InboxPopover', () => {
     const user = new TestUserEvent();
     const postCalled = mockPendingRequest();
 
-    render(<InboxPopover />);
+    renderInbox();
 
     await waitFor(() => {
       expect(postCalled).toHaveBeenCalledTimes(1);
     });
 
-    await user.click(screen.getByRole('button', { name: 'Inbox' }));
+    await openInbox(user);
+
+    expect(
+      await screen.findByText(
+        'You have previously tried to upgrade or create a new organization',
+      ),
+    ).toBeInTheDocument();
+    expect(postCalled).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the pending organization request when switching layouts', async () => {
+    const user = new TestUserEvent();
+    const postCalled = mockPendingRequest();
+
+    const { rerender } = renderInbox();
+
+    await waitFor(() => {
+      expect(postCalled).toHaveBeenCalledTimes(1);
+    });
+
+    rerender(<InboxHost mobile={!mobile} />);
+    rerender(<InboxHost mobile={mobile} />);
+
+    await openInbox(user);
 
     expect(
       await screen.findByText(
@@ -180,11 +238,49 @@ describe('InboxPopover', () => {
     await act(async () => navigation.resolve(true));
 
     await waitFor(() => {
-      expect(inboxTrigger).toHaveAttribute('aria-expanded', 'false');
+      expect(
+        screen.queryByRole('button', { name: 'Close inbox', hidden: true }),
+      ).not.toBeInTheDocument();
+      expect(inboxTrigger).toHaveFocus();
     });
-    expect(
-      screen.queryByRole('button', { name: 'Close inbox', hidden: true }),
-    ).not.toBeInTheDocument();
+    if (!mobile) {
+      expect(inboxTrigger).toHaveAttribute('aria-expanded', 'false');
+    }
+  });
+
+  it('returns focus to the trigger when closed with the close button', async () => {
+    const user = new TestUserEvent();
+
+    renderInbox();
+
+    const inboxTrigger = await openInbox(user);
+    await user.click(
+      await screen.findByRole('button', { name: 'Close inbox' }),
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('button', { name: 'Close inbox', hidden: true }),
+      ).not.toBeInTheDocument();
+      expect(inboxTrigger).toHaveFocus();
+    });
+  });
+
+  it('returns focus to the trigger when closed with Escape', async () => {
+    const user = new TestUserEvent();
+
+    renderInbox();
+
+    const inboxTrigger = await openInbox(user);
+    await screen.findByRole('button', { name: 'Close inbox' });
+    await user.keyboard('{Escape}');
+
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('button', { name: 'Close inbox', hidden: true }),
+      ).not.toBeInTheDocument();
+      expect(inboxTrigger).toHaveFocus();
+    });
   });
 
   it('keeps the inbox open after accepting an invite if navigation fails', async () => {
@@ -194,11 +290,13 @@ describe('InboxPopover', () => {
     await act(async () => navigation.resolve(false));
 
     await waitFor(() => {
-      expect(inboxTrigger).toHaveAttribute('aria-expanded', 'true');
+      expect(
+        screen.getByRole('button', { name: 'Close inbox' }),
+      ).toBeInTheDocument();
     });
-    expect(
-      screen.getByRole('button', { name: 'Close inbox' }),
-    ).toBeInTheDocument();
+    if (!mobile) {
+      expect(inboxTrigger).toHaveAttribute('aria-expanded', 'true');
+    }
   });
 
   it('keeps the inbox open and shows an error if accepting an invite fails', async () => {
@@ -214,9 +312,9 @@ describe('InboxPopover', () => {
       ),
     );
 
-    render(<InboxPopover />);
+    renderInbox();
 
-    await user.click(screen.getByRole('button', { name: 'Inbox' }));
+    await openInbox(user);
     await user.click(await screen.findByRole('button', { name: 'Accept' }));
 
     expect(
@@ -233,10 +331,9 @@ describe('InboxPopover', () => {
     const user = new TestUserEvent();
     const postCalled = mockPendingRequest();
 
-    render(<InboxPopover />);
+    renderInbox();
 
-    const inboxTrigger = screen.getByRole('button', { name: 'Inbox' });
-    await user.click(inboxTrigger);
+    const inboxTrigger = await openInbox(user);
     await user.click(await screen.findByRole('button', { name: 'Continue' }));
 
     const checkout = await screen.findByRole('dialog', {
@@ -260,7 +357,7 @@ describe('InboxPopover', () => {
     });
     expect(inboxTrigger).toHaveAttribute('aria-expanded', 'false');
 
-    await user.click(inboxTrigger);
+    await openInbox(user);
     await user.click(await screen.findByRole('button', { name: 'Continue' }));
     expect(
       await screen.findByRole('dialog', {
