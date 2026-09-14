@@ -19,7 +19,7 @@ describe('user email', () => {
   let client: Client;
   let accessToken: string | undefined;
   let body: SignInResponse | undefined;
-  const email = faker.internet.email();
+  let email: string;
   const password = faker.internet.password(8);
 
   beforeAll(async () => {
@@ -36,6 +36,8 @@ describe('user email', () => {
   });
 
   beforeEach(async () => {
+    email = faker.internet.email();
+
     await client.query(`DELETE FROM auth.users;`);
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
@@ -242,6 +244,47 @@ describe('user email', () => {
       .get(link.replace('http://127.0.0.2:4000', ''))
       .expect(StatusCodes.MOVED_TEMPORARILY);
     expectUrlParameters(res2).not.toIncludeAnyMembers([
+      'error',
+      'errorDescription',
+    ]);
+  });
+
+  it('reuses the signup verification ticket when resending', async () => {
+    const verificationEmail = faker.internet.email();
+
+    await request.post('/change-env').send({
+      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
+    });
+
+    await request
+      .post('/signup/email-password')
+      .send({ email: verificationEmail, password })
+      .expect(StatusCodes.OK);
+
+    await request.post('/change-env').send({
+      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
+    });
+
+    await request
+      .post('/user/email/send-verification-email')
+      .send({ email: verificationEmail })
+      .expect(StatusCodes.OK);
+
+    const messages = await mailHogSearch(verificationEmail);
+    expect(messages).toHaveLength(2);
+
+    const [newerMessage, olderMessage] = messages;
+    const newerLink = newerMessage.Content.Headers['X-Link'][0];
+    const olderLink = olderMessage.Content.Headers['X-Link'][0];
+    const olderTicket = new URL(olderLink).searchParams.get('ticket');
+
+    expect(olderTicket).toBeTruthy();
+    expect(new URL(newerLink).searchParams.get('ticket')).toBe(olderTicket);
+
+    const res = await request
+      .get(olderLink.replace('http://127.0.0.2:4000', ''))
+      .expect(StatusCodes.MOVED_TEMPORARILY);
+    expectUrlParameters(res).not.toIncludeAnyMembers([
       'error',
       'errorDescription',
     ]);
