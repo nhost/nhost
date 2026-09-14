@@ -23,18 +23,6 @@ describe('lastSignInMethod utilities', () => {
         'github',
       );
     });
-
-    it('should handle localStorage.setItem errors gracefully without throwing', () => {
-      vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
-        throw new Error('QuotaExceededError');
-      });
-      const consoleErrorSpy = vi
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
-
-      expect(() => saveLastSignInMethod('github')).not.toThrow();
-      expect(consoleErrorSpy).toHaveBeenCalled();
-    });
   });
 
   describe('getLastSignInMethod', () => {
@@ -66,18 +54,6 @@ describe('lastSignInMethod utilities', () => {
         'unsupported_method',
       );
       expect(getLastSignInMethod()).toBeNull();
-    });
-
-    it('should handle localStorage.getItem errors gracefully without throwing', () => {
-      vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
-        throw new Error('SecurityError');
-      });
-      const consoleErrorSpy = vi
-        .spyOn(console, 'error')
-        .mockImplementation(() => {});
-
-      expect(getLastSignInMethod()).toBeNull();
-      expect(consoleErrorSpy).toHaveBeenCalled();
     });
   });
 

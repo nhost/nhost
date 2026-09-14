@@ -28,14 +28,20 @@ describe('SigninPage - last sign-in method badge', () => {
     ['github', /continue with github/i, 'button'],
     ['security-key', /continue with a security key/i, 'button'],
     ['email', /continue with email/i, 'link'],
-  ] as const)('marks the %s option as last used', (storedMethod, accessibleName, role) => {
-    window.localStorage.setItem(LAST_SIGN_IN_METHOD_STORAGE_KEY, storedMethod);
-    render(<SigninPage />);
+  ] as const)(
+    'marks the %s option as last used',
+    (storedMethod, accessibleName, role) => {
+      window.localStorage.setItem(
+        LAST_SIGN_IN_METHOD_STORAGE_KEY,
+        storedMethod,
+      );
+      render(<SigninPage />);
 
-    const badge = screen.getByText('LAST USED');
-    const option = screen.getByRole(role, { name: accessibleName });
+      const badge = screen.getByText('LAST USED');
+      const option = screen.getByRole(role, { name: accessibleName });
 
-    expect(badge.closest('.relative')).toContainElement(option);
-    expect(screen.getByText('Last used sign-in method:')).toBeInTheDocument();
-  });
+      expect(badge.closest('.relative')).toContainElement(option);
+      expect(screen.getByText('Last used sign-in method:')).toBeInTheDocument();
+    },
+  );
 });
