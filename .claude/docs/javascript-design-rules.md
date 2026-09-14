@@ -116,8 +116,7 @@ When adding a new feature page, check whether it needs to be registered in each 
 
 - The `runningProjectPages` list in `features/orgs/guards/ProjectStateGate/projectStatePages.ts` (and `sidebarSkeletonPages` if the page has a sidebar), which `ProjectStateGate` reads via `requiresRunningProject()` / `hasSidebarSkeleton()` to show the project-state screen. They only take effect on pages that compose `ProjectStateGate`.
 - `components/layout/AppSidebar/ProjectNav.tsx` or `components/layout/AppSidebar/OrganizationNav.tsx` for visible sidebar entries.
-- `features/navigation/nav-config.tsx` for the shared page catalog and URL helpers. Its `gate` field (checked by `isPageGated`) only hides the page in the command palette; it does not control sidebar entries or direct page access.
-- `features/command-palette/nav-tree.tsx` for command-palette metadata and keywords (layered over `nav-config`).
+- `features/command-palette/catalog.tsx` (page names, routes, palette gates via `isHiddenFromPalette`, URL helpers) and `features/command-palette/tree.tsx` (search keywords, ids, hierarchy) so the command palette finds it. A page's palette `gate` only hides it in the command palette; it does not control sidebar entries or direct page access.
 
 ### Testing
 
