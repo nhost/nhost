@@ -1,5 +1,10 @@
 import NextLink from 'next/link';
-import { type PropsWithChildren, type ReactElement, useEffect } from 'react';
+import {
+  type PropsWithChildren,
+  type ReactElement,
+  useEffect,
+  useId,
+} from 'react';
 import { SignInRightColumn } from '@/components/auth/SignInRightColumn';
 import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
 import { Button } from '@/components/ui/v3/button';
@@ -15,19 +20,20 @@ const lastUsedOutline = 'outline outline-2 outline-offset-2 outline-border';
 
 function SignInOption({
   isLastUsed,
+  badgeId,
   children,
-}: PropsWithChildren<{ isLastUsed: boolean }>) {
+}: PropsWithChildren<{ isLastUsed: boolean; badgeId: string }>) {
   return (
     <div className="relative">
-      {isLastUsed && <span className="sr-only">Last used sign-in method:</span>}
       {children}
-      {isLastUsed && <LastUsedBadge />}
+      {isLastUsed && <LastUsedBadge id={badgeId} />}
     </div>
   );
 }
 
 export default function SigninPage() {
   const { isSigningOut, clearIsSigningOut } = useAuth();
+  const lastUsedBadgeId = useId();
   const lastSignInMethod = useLastSignInMethod();
   const isGithubLastUsed = lastSignInMethod === 'github';
   const isSecurityKeyLastUsed = lastSignInMethod === 'security-key';
@@ -52,15 +58,22 @@ export default function SigninPage() {
       </div>
 
       <div className="grid grid-flow-row gap-4 rounded-md border bg-transparent p-6 lg:p-12">
-        <SignInOption isLastUsed={isGithubLastUsed}>
+        <SignInOption isLastUsed={isGithubLastUsed} badgeId={lastUsedBadgeId}>
           <SignInWithGithub
             className={cn(isGithubLastUsed && lastUsedOutline)}
+            aria-describedby={isGithubLastUsed ? lastUsedBadgeId : undefined}
           />
         </SignInOption>
 
-        <SignInOption isLastUsed={isSecurityKeyLastUsed}>
+        <SignInOption
+          isLastUsed={isSecurityKeyLastUsed}
+          badgeId={lastUsedBadgeId}
+        >
           <SignInWithSecurityKey
             className={cn(isSecurityKeyLastUsed && lastUsedOutline)}
+            aria-describedby={
+              isSecurityKeyLastUsed ? lastUsedBadgeId : undefined
+            }
           />
         </SignInOption>
 
@@ -72,7 +85,7 @@ export default function SigninPage() {
           <Separator className="my-2" />
         </div>
 
-        <SignInOption isLastUsed={isEmailLastUsed}>
+        <SignInOption isLastUsed={isEmailLastUsed} badgeId={lastUsedBadgeId}>
           <Button
             asChild
             variant="ghost"
@@ -80,6 +93,7 @@ export default function SigninPage() {
               '!text-white hover:!bg-white hover:!bg-opacity-10 focus:!bg-white focus:!bg-opacity-10 w-full',
               isEmailLastUsed && lastUsedOutline,
             )}
+            aria-describedby={isEmailLastUsed ? lastUsedBadgeId : undefined}
           >
             <NextLink href="/signin/email">Continue with Email</NextLink>
           </Button>

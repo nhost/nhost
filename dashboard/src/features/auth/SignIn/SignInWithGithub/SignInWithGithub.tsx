@@ -4,15 +4,20 @@ import { cn } from '@/lib/utils';
 
 export interface SignInWithGithubProps {
   className?: string;
+  'aria-describedby'?: string;
 }
 
-function SignInWithGithub({ className }: SignInWithGithubProps) {
+function SignInWithGithub({
+  className,
+  'aria-describedby': ariaDescribedBy,
+}: SignInWithGithubProps) {
   const redirectTo = `${useHostName()}?signinProvider=github`;
   return (
     <GithubAuthButton
       redirectTo={redirectTo}
       buttonText="Continue with GitHub"
       className={cn('w-full', className)}
+      aria-describedby={ariaDescribedBy}
     />
   );
 }

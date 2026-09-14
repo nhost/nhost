@@ -40,7 +40,7 @@ describe('SigninPage - last sign-in method badge', () => {
       const option = screen.getByRole(role, { name: accessibleName });
 
       expect(badge.closest('.relative')).toContainElement(option);
-      expect(screen.getByText('Last used sign-in method:')).toBeInTheDocument();
+      expect(option).toHaveAccessibleDescription('LAST USED');
     },
   );
 });

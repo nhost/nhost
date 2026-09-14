@@ -7,9 +7,13 @@ import { VerifyEmailDialog } from './VerifyEmailDialog';
 
 export interface SignInWithSecurityKeyProps {
   className?: string;
+  'aria-describedby'?: string;
 }
 
-function SignInWithSecurityKey({ className }: SignInWithSecurityKeyProps) {
+function SignInWithSecurityKey({
+  className,
+  'aria-describedby': ariaDescribedBy,
+}: SignInWithSecurityKeyProps) {
   const [open, setOpen] = useState(false);
   function onNeedsEmailVerification() {
     setOpen(true);
@@ -28,6 +32,7 @@ function SignInWithSecurityKey({ className }: SignInWithSecurityKeyProps) {
         )}
         disabled={disabled}
         onClick={signInWithSecurityKey}
+        aria-describedby={ariaDescribedBy}
       >
         <Fingerprint size={14} />
         Continue with a security key
