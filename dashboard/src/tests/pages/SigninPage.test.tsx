@@ -1,4 +1,3 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { LAST_SIGN_IN_METHOD_STORAGE_KEY } from '@/features/auth/SignIn/utils/lastSignInMethod';
 import SigninPage from '@/pages/signin';
 import { render, screen } from '@/tests/testUtils';

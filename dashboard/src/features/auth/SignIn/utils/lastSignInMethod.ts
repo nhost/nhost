@@ -40,8 +40,8 @@ export function getLastSignInMethod(): LastSignInMethod | null {
 }
 
 /**
- * Hydration-safe React hook to retrieve the last used sign-in method.
- * Returns null initially to match SSR HTML, then updates on mount.
+ * Reads storage after mount so the first client render matches the prerendered
+ * HTML, which has no access to localStorage.
  */
 export function useLastSignInMethod(): LastSignInMethod | null {
   const [lastSignInMethod, setLastSignInMethod] =

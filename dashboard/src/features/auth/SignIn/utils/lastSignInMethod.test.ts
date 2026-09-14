@@ -1,4 +1,3 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderHook } from '@/tests/testUtils';
 import {
   getLastSignInMethod,

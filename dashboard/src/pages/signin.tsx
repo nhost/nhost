@@ -11,8 +11,6 @@ import { useLastSignInMethod } from '@/features/auth/SignIn/utils/lastSignInMeth
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/providers/Auth';
 
-// Resting outline marking the last used option. Focus blanks it via the shared
-// button styles so the standard focus ring takes over at the same offset.
 const lastUsedOutline = 'outline outline-2 outline-offset-2 outline-border';
 
 function SignInOption({
