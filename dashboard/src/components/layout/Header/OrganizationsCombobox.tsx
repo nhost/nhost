@@ -2,17 +2,15 @@ import { Plus } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import HeaderCombobox from '@/components/layout/Header/HeaderCombobox';
-import { Badge } from '@/components/ui/v3/badge';
+import OrganizationLabel from '@/components/layout/Header/OrganizationLabel';
+import OrganizationPlanBadge from '@/components/layout/Header/OrganizationPlanBadge';
 import { CommandItem, CommandSeparator } from '@/components/ui/v3/command';
 import CreateOrgDialog from '@/features/orgs/components/CreateOrgFormDialog/CreateOrgFormDialog';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
-import { cn } from '@/lib/utils';
 
 export default function OrganizationsCombobox() {
   const { orgs } = useOrgs();
-  const isPlatform = useIsPlatform();
   const [, setLastSlug] = useSSRLocalStorage<string | null>('slug', null);
 
   const {
@@ -25,43 +23,19 @@ export default function OrganizationsCombobox() {
     ? orgs.find((item) => item.slug === orgSlug)
     : undefined;
 
-  const renderBadge = (plan: string) => {
-    if (!isPlatform) {
-      return null;
-    }
-
-    return (
-      <Badge
-        variant={plan === 'Starter' ? 'outline' : 'default'}
-        className={cn(
-          plan === 'Starter' ? 'bg-muted' : '',
-          plan === 'Legacy'
-            ? 'bg-orange-200 text-foreground hover:bg-orange-200 dark:bg-orange-500'
-            : '',
-          'hover:none ml-2 h-5 px-[6px] text-[10px]',
-        )}
-      >
-        {plan}
-      </Badge>
-    );
-  };
-
   const options = orgs.map((org) => ({
     value: org.slug,
     label: org.name,
     render: (
       <div className="flex w-full items-center justify-between">
         <span className="truncate">{org.name}</span>
-        {renderBadge(org.plan?.name ?? 'Legacy')}
+        <OrganizationPlanBadge plan={org.plan?.name} />
       </div>
     ),
   }));
 
   const selectedLabel = selectedOrg ? (
-    <div className="flex flex-row items-center justify-center">
-      {selectedOrg.name}
-      {renderBadge(selectedOrg.plan?.name ?? 'Legacy')}
-    </div>
+    <OrganizationLabel organization={selectedOrg} />
   ) : null;
 
   const footerSlot = (

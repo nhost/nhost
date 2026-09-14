@@ -76,7 +76,7 @@ These layer on top of the rules in `.claude/docs/javascript-design-rules.md`. An
 When creating a new feature page, check whether it needs to be added to:
 
 - The `runningProjectPages` list in `projectStatePages.ts` (and `sidebarSkeletonPages` if the page has a sidebar), which gate the project-state screen via `requiresRunningProject()` / `hasSidebarSkeleton()`.
-- `components/layout/AppSidebar/ProjectNav.tsx` or `components/layout/AppSidebar/OrganizationNav.tsx` for the app sidebar.
+- `components/layout/DashboardNavigation/ProjectNavigation.tsx` or `components/layout/DashboardNavigation/OrganizationNavigation.tsx` for the app sidebar.
 - The area's `features/orgs/projects/<area>/layout/<Area>RouteTabs.tsx` for its route tabs.
 - `features/command-palette/catalog.tsx` (page names, routes, palette gates, URL helpers) and `features/command-palette/tree.tsx` (search keywords, ids, hierarchy) so the command palette finds it.
 

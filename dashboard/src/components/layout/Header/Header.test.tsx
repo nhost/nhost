@@ -17,9 +17,11 @@ const router = {
     appSubdomain?: string;
   },
   asPath: '/orgs/org-a/projects/project-a',
+  pathname: '/orgs/[orgSlug]/projects/[appSubdomain]',
   route: '/orgs/[orgSlug]/projects/[appSubdomain]',
   push,
   isReady: true,
+  events: { on: vi.fn(), off: vi.fn(), emit: vi.fn() },
 };
 
 const useCurrentOrgMock = vi.fn();
@@ -35,22 +37,32 @@ vi.mock('@/components/layout/AccountMenu', () => ({
   AccountMenu: () => <div>Account menu</div>,
 }));
 
-vi.mock('@/components/layout/MobileNav', () => ({
-  MobileNav: () => <div>Mobile nav</div>,
-}));
-
 vi.mock('@/components/layout/Header/HeaderNavigation', () => ({
   default: () => <nav>Header navigation</nav>,
 }));
 
 vi.mock('@/features/orgs/components/members/components/InboxPopover', () => ({
   InboxPopover: () => <div>Inbox</div>,
+  InboxSheet: () => null,
+  useInbox: () => ({
+    invites: [],
+    invitesLoading: false,
+    announcements: [],
+    announcementsLoading: false,
+    pendingOrganizationRequest: null,
+    hasUnread: false,
+  }),
 }));
 
 vi.mock('@/features/command-palette', () => ({
   CommandPaletteTrigger: () => (
     <button type="button" aria-label="Open command palette">
       Search or navigate to...
+    </button>
+  ),
+  CommandPaletteIconTrigger: () => (
+    <button type="button" aria-label="Open command palette">
+      Search
     </button>
   ),
 }));
@@ -75,6 +87,7 @@ const projectA = {
   id: 'project-a',
   name: 'Project A',
   subdomain: 'project-a',
+  appStates: [],
 };
 const orgA = {
   id: 'org-a',
@@ -136,19 +149,24 @@ describe('Header', () => {
     );
   });
 
-  it('renders the command palette trigger on desktop', () => {
+  it('renders the search box trigger on desktop', () => {
     renderHeader();
 
-    expect(screen.getByLabelText('Open command palette')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Open command palette' }),
+    ).toHaveTextContent('Search or navigate to...');
   });
 
-  it('does not render the command palette trigger on mobile', () => {
+  it('renders the icon trigger on mobile', () => {
     mockViewport(false);
 
     renderHeader();
 
     expect(
-      screen.queryByLabelText('Open command palette'),
+      screen.getByRole('button', { name: 'Open command palette' }),
+    ).toHaveTextContent('Search');
+    expect(
+      screen.queryByText('Search or navigate to...'),
     ).not.toBeInTheDocument();
   });
 
