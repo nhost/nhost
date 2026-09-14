@@ -45,6 +45,7 @@ rec {
       homepage = "https://github.com/betterleaks/betterleaks";
       license = licenses.mit;
       maintainers = [ "@nhost" ];
+      mainProgram = "betterleaks";
     };
   };
 

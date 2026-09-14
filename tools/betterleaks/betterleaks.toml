@@ -1,17 +1,16 @@
 title = "Nhost Betterleaks configuration"
 
-# Ignore generated artifacts for every detector rule.
-# Ignore this configuration itself.
-
-
 filter = '''
 filter.matchesAny(attributes["path"], [
   `(?:^|/)\.betterleaks\.toml$`,
+  `^tools/betterleaks/`,
   `(?:^|/)(?:generated|__generated__)(?:/|$)`,
   `(?:^|/)[^/]+(?:\.gen|_gen|\.typegen)\.[^/]+$`,
 ])
 ||
 finding["secret"] in [
+  // Standard Nhost sample JWT reused across demos (examples/demos/express/curl.sh
+  // etc.); value-scoped so both the jwt and curl-auth-header rules ignore it.
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTY3MzY3NDUsImh0dHBzOi8vaGFzdXJhLmlvL2p3dC9jbGFpbXMiOnsieC1oYXN1cmEtYWxsb3dlZC1yb2xlcyI6WyJ1c2VyIiwibWUiXSwieC1oYXN1cmEtZGVmYXVsdC1yb2xlIjoidXNlciIsIngtaGFzdXJhLXVzZXItaWQiOiI1ZDA0Y2ZmMS0yMDZjLTQ4ZTgtODYzYy1iZWM3YzMyNGVjZTciLCJ4LWhhc3VyYS11c2VyLWlzLWFub255bW91cyI6ImZhbHNlIn0sImlhdCI6MTc1NjczNjY4MCwiaXNzIjoiaGFzdXJhLWF1dGgiLCJzdWIiOiI1ZDA0Y2ZmMS0yMDZjLTQ4ZTgtODYzYy1iZWM3YzMyNGVjZTcifQ.0vhBD7vZ0OYxFlpiTelt0mZw5NSYvO26EcWbD3Wk3_M",
   "hejsan",
   "password",
@@ -46,7 +45,6 @@ finding["secret"] in [
   "admin-secret",
   "adminsecret",
   "change-me",
-  "e7w36ag287qn5qry795f6ymm57qgvqup",
   "first-secret",
   "hasuraGraphqlAdminSecret",
   "hello123",
@@ -142,7 +140,6 @@ finding["secret"] in [
   "s3cr3t",
   "s3cur3!",
   "s3cur3p4ssw0rd!",
-  "secret",
   "secret-password",
   "secret-pw",
   "secretpassword",
@@ -288,7 +285,7 @@ useDefault = true
 id = "nhost-hasura-admin-secret"
 description = "Nhost Hasura admin secret"
 keywords = ["adminsecret", "admin_secret", "admin-secret"]
-regex = '''(?im)(?:^|[^a-z0-9_-])(?:(?:(?:[a-z0-9]+_)*(?:nhost(?:_[a-z0-9]+)*|hasura(?:_graphql)?|constellation)_admin_secret(?:_[a-z0-9]+)*|x-hasura-admin-secret|admin[_-]?secret)["']?[ \t]*(?::=|=|:)[ \t]*|--admin-secret(?:[ \t]*=[ \t]*|[ \t]+))(?:"(?P<double_quoted>(?:\\.|[^"\\\r\n])+)"|'([^'\r\n]+)'|([^\s"'`$&*=<>;,{}()\[\]\\][^\s"'`;,{}()\[\]\\]*))'''
+regex = '''(?im)(?:^|[^a-z0-9_-])(?:(?:(?:[a-z0-9]+_)*(?:nhost(?:_[a-z0-9]+)*|hasura(?:_graphql)?|constellation)_admin_secret(?:_[a-z0-9]+)*|x-hasura-admin-secret|admin[_-]?secret)["']?[ \t]*(?::=|=|:)[ \t]*|--admin-secret(?:[ \t]*=[ \t]*|[ \t]+))(?:"(?P<double_quoted>(?:\\.|[^"\\\r\n])+)"|'([^'\r\n]+)'|`([^`\r\n]+)`|([^\s"'`$&*=<>;,{}()\[\]\\][^\s"'`;,{}()\[\]\\]*))'''
 confidence = "high"
 components = [
   { id = "nhost-project-url", optional = true },
@@ -296,7 +293,7 @@ components = [
   { id = "nhost-project-region", optional = true },
 ]
 filter = '''
-let bare = !filter.matchesAny(finding["match"], [`["']$`]);
+let bare = !filter.matchesAny(finding["match"], [`["'\x60]$`]);
 let code = filter.matchesAny(attributes["path"] ?? "", [
   `(?i)\.(?:[cm]?[jt]sx?|go|rs|py|swift|cue|graphql|gql)$`,
 ]);
@@ -317,6 +314,7 @@ filter.matchesAny(finding["match"], [`(?i)(?:^|[^a-z0-9_-])admin[_-]?secret["']?
 (bare && (code || prose) && !embedded) ||
 (finding["match"] startsWith "{" && before endsWith "$") ||
 filter.matchesAny(finding["secret"], [
+  `^[^A-Za-z0-9]+$`,
   `\$\{|\{\{`,
   `^\$[A-Za-z_][A-Za-z0-9_]*$`,
   `^<[^>]*>?$`,
@@ -326,10 +324,7 @@ filter.matchesAny(finding["secret"], [
 ])
 '''
 validate = '''
-let doubleQuoted = finding["captures"]?.double_quoted ?? "";
-let adminSecret = doubleQuoted != ""
-  ? fromJSON("\"" + doubleQuoted + "\"")
-  : finding["secret"];
+let adminSecret = finding["secret"];
 let projectURL = components["nhost-project-url"]?.captures;
 let subdomain = components["nhost-project-subdomain"]?.secret ?? "";
 let region = components["nhost-project-region"]?.secret ?? "";
@@ -370,13 +365,13 @@ matched != nil ? {
 
 
 # Helpers to find Nhost project details (subdomain, region) in the same diff chunk.
-# =============================================================
+# ================================================================================= 
 
 [[rules]]
 id = "nhost-project-url"
 description = "Nhost project service URL"
 keywords = ["nhost.run"]
-regex = '''(?i)https://(?P<subdomain>(?-i:[a-z]{20}))\.(?:hasura|graphql|auth|storage|functions)\.(?P<region>(?-i:[a-z]{2}-[a-z]+-[1-9][0-9]*(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*))\.nhost\.run(?:[/?#\s"'`),;}\]]|$)'''
+regex = '''(?i)https://(?P<subdomain>(?-i:[a-z]{20}))\.(?:hasura|graphql|auth|storage|functions)\.(?P<region>(?-i:[a-z]{2}-[a-z]+-[1-9][0-9]*))\.nhost\.run(?:[/?#\s"'`),;}\]]|$)'''
 skipReport = true
 
 [[rules]]
@@ -391,6 +386,6 @@ filter = '''finding["secret"] == "local"'''
 id = "nhost-project-region"
 description = "Nhost project region"
 keywords = ["region"]
-regex = '''(?im)(?:^|[^a-z0-9_])(?:(?:[a-z0-9]+_)*nhost(?:_[a-z0-9]+)*_region(?:_[a-z0-9]+)*|region)["']?[ \t]*(?:=|:)[ \t]*(?-i:(?:"([a-z]{2}-[a-z]+-[1-9][0-9]*(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*)"|'([a-z]{2}-[a-z]+-[1-9][0-9]*(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*)'|([a-z]{2}-[a-z]+-[1-9][0-9]*(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*)))(?:[\s,;\]}]|$)'''
+regex = '''(?im)(?:^|[^a-z0-9_])(?:(?:[a-z0-9]+_)*nhost(?:_[a-z0-9]+)*_region(?:_[a-z0-9]+)*|region)["']?[ \t]*(?:=|:)[ \t]*(?-i:(?:"([a-z]{2}-[a-z]+-[1-9][0-9]*)"|'([a-z]{2}-[a-z]+-[1-9][0-9]*)'|([a-z]{2}-[a-z]+-[1-9][0-9]*)))(?:[\s,;\]}]|$)'''
 skipReport = true
 filter = '''finding["secret"] == "local"'''

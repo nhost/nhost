@@ -54,6 +54,7 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 
 ### Tools (`tools/`)
 
+- `tools/betterleaks` - secret-scanning configuration, ignore list and per-rule tests, plus a wrapper that bakes them into the pinned `betterleaks` build from `nixops/overlays/go.nix`
 - `tools/codegen` - code generation utilities
 - `tools/ghactivity` - `gh` CLI extension (binary `gh-activity`, invoked as `gh activity ...`) that builds a markdown stand-up report of a user's GitHub PR/issue activity in an org over a time window
 - `tools/govulncheck-wrapper` - wrapper around `govulncheck` for the monorepo's vulnerability scanning workflow

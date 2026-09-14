@@ -24,13 +24,25 @@ jobs:
       contents: read
 
     steps:
-      - name: "Check out repository"
+      - name: "Check out repository (base revision)"
         uses: actions/checkout@v7
         with:
-          ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
           fetch-depth: 0
-          allow-unsafe-pr-checkout: true
           persist-credentials: false
+
+      - name: "Fetch the revisions under review"
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          MERGE_GROUP_REF: ${{ github.event.merge_group.head_ref }}
+        run: |
+          set -euo pipefail
+          if [ -n "${PR_NUMBER}" ]; then
+            src="refs/pull/${PR_NUMBER}/head"
+          else
+            src="${MERGE_GROUP_REF}"
+          fi
+          git fetch --no-tags --force origin "${src}:refs/nhost/under-review"
 
       - name: Setup Nix with Cache
         uses: ./.github/actions/setup-nix
@@ -42,16 +54,26 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Scan git history for leaked secrets"
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
         run: |
+          set -euo pipefail
+          ignore_file="${RUNNER_TEMP}/.betterleaksignore"
+          cp tools/betterleaks/.betterleaksignore "${ignore_file}" 2>/dev/null || : > "${ignore_file}"
+          if git cat-file -e refs/nhost/under-review:tools/betterleaks/.betterleaksignore 2>/dev/null; then
+            git show refs/nhost/under-review:tools/betterleaks/.betterleaksignore >> "${ignore_file}"
+          fi
+
           nix develop .\#betterleaks --command betterleaks git . \
-            --log-opts='--diff-merges=first-parent origin/main..HEAD' \
+            --log-opts="--diff-merges=first-parent ${BASE_SHA}..refs/nhost/under-review" \
+            --gitleaks-ignore-path "${ignore_file}" \
             --no-banner \
             --no-color \
             --redact \
             --verbose \
             --confidence medium \
             --validation \
-            --validation-status valid \
+            --validation-status valid,none \
             --validation-max-requests 100 \
             --validation-rps 5 \
             --timeout 900
