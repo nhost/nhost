@@ -1,7 +1,7 @@
 import {
   getProjectUrl,
   getSettingsPageRoute,
-  isPageGated,
+  isHiddenFromPalette,
   orgPages,
   projectAIPages,
   projectAuthPages,
@@ -15,9 +15,9 @@ import {
   projectSettingsPages,
   projectStoragePages,
   projectSubPagesBySlug,
-} from '@/features/navigation/nav-config';
+} from '@/features/command-palette/catalog';
 
-describe('navigation nav-config', () => {
+describe('command palette catalog', () => {
   it('keeps organization pages in sidebar order', () => {
     expect(orgPages.map((page) => page.slug)).toEqual([
       'projects',
@@ -59,19 +59,19 @@ describe('navigation nav-config', () => {
 
   it('gates platform and settings pages', () => {
     expect(
-      isPageGated('platform', {
+      isHiddenFromPalette('platform', {
         isNotPlatform: true,
         shouldDisableSettings: false,
       }),
     ).toBe(true);
     expect(
-      isPageGated('settings', {
+      isHiddenFromPalette('settings', {
         isNotPlatform: false,
         shouldDisableSettings: true,
       }),
     ).toBe(true);
     expect(
-      isPageGated(undefined, {
+      isHiddenFromPalette(undefined, {
         isNotPlatform: true,
         shouldDisableSettings: true,
       }),
