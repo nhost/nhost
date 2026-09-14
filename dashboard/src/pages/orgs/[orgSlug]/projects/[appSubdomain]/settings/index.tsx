@@ -19,7 +19,6 @@ import {
   AreaSidebarGroup,
   AreaSidebarLink,
   AreaSidebarNav,
-  AreaSidebarRoot,
 } from '@/components/layout/AreaSidebar';
 import {
   SettingsCard,
@@ -440,9 +439,17 @@ function useProjectSettingsTabs() {
 function ProjectSettingsSidebar() {
   const { activeTab, hrefFor } = useProjectSettingsTabs();
 
+  // Docked against the app sidebar, unlike the area settings pages whose
+  // sidebar is centered with the content.
   return (
-    <AreaSidebarRoot>
-      <AreaSidebarNav ariaLabel="Project settings navigation">
+    <aside className="flex h-full w-56 shrink-0 flex-col border-r bg-background">
+      <div className="shrink-0 border-b px-4 py-3 font-medium text-sm">
+        Settings
+      </div>
+      <AreaSidebarNav
+        ariaLabel="Project settings navigation"
+        className="h-auto min-h-0 flex-1 overflow-auto"
+      >
         {PROJECT_SETTINGS_GROUPS.map((group) => (
           <AreaSidebarGroup key={group.label} label={group.label}>
             {group.tabs.map((tab) => (
@@ -459,7 +466,7 @@ function ProjectSettingsSidebar() {
           </AreaSidebarGroup>
         ))}
       </AreaSidebarNav>
-    </AreaSidebarRoot>
+    </aside>
   );
 }
 
@@ -478,9 +485,9 @@ SettingsGeneralPage.getLayout = function getLayout(page: ReactElement) {
     <AppLayout>
       <ProjectScope>
         <ProjectViewWithState>
-          <div className="mx-auto flex h-full w-full max-w-6xl">
+          <div className="flex h-full">
             <ProjectSettingsSidebar />
-            <div className="min-w-0 flex-1">{page}</div>
+            <div className="min-w-0 flex-1 overflow-y-auto">{page}</div>
           </div>
         </ProjectViewWithState>
       </ProjectScope>
