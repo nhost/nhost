@@ -1,8 +1,9 @@
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 import { NavLink } from '@/components/common/NavLink';
-import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
+import { AuthFlowLayout } from '@/components/layout/AuthFlowLayout';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { GuestGuard } from '@/features/auth/GuestGuard';
 import SendVerificationEmailForm from '@/features/auth/SignIn/SignInWithEmailAndPassword/components/SendVerificationEmailForm';
 import useResendVerificationEmail from '@/features/auth/SignIn/SignInWithEmailAndPassword/hooks/useResendVerificationEmail';
 
@@ -63,8 +64,8 @@ export default function VerifyEmailPage() {
 
 VerifyEmailPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <UnauthenticatedLayout title="Verify your email">
-      {page}
-    </UnauthenticatedLayout>
+    <AuthFlowLayout title="Verify your email">
+      <GuestGuard>{page}</GuestGuard>
+    </AuthFlowLayout>
   );
 };
