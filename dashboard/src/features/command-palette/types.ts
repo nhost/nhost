@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import type { PageGate } from '@/features/navigation/nav-config';
+import type { PaletteGate } from '@/features/command-palette/catalog';
 
 export type NodeKind = 'page' | 'group' | 'setting' | 'org' | 'project' | 'doc';
 
@@ -16,7 +16,7 @@ export interface CommandNode {
   // header breadcrumb levels.
   breadcrumb?: string[];
   children?: CommandNode[];
-  gate?: PageGate;
+  gate?: PaletteGate;
   // Search flattening stops here; drilling still descends into children.
   searchBoundary?: boolean;
   // Present only on runtime clones (recents, org/project switch nodes);

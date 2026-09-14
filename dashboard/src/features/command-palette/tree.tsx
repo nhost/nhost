@@ -9,14 +9,14 @@ import {
   UsersIcon,
 } from 'lucide-react';
 import type { ReactElement } from 'react';
-import type { CommandNode } from '@/features/command-palette/types';
 import {
   getSettingsPageRoute,
   orgPages,
   projectPages,
   projectSettingsPages,
   projectSubPagesBySlug,
-} from '@/features/navigation/nav-config';
+} from '@/features/command-palette/catalog';
+import type { CommandNode } from '@/features/command-palette/types';
 
 const iconClassName = 'h-4 w-4';
 
@@ -48,7 +48,7 @@ const withBreadcrumbs = (
   };
 };
 
-// Palette-only metadata layered over the nav-config catalog, keyed by slug.
+// Palette-only metadata layered over the catalog, keyed by slug.
 interface PaletteMeta {
   id?: string;
   title?: string;
@@ -339,7 +339,7 @@ const runSettingsTabChildren = toSettingsTabNodes(
   ],
 );
 
-// Exhaustive over nav-config's sub-page families, so adding a family there
+// Exhaustive over the catalog's sub-page families, so adding a family there
 // fails to compile until the palette assigns its keywords.
 const subPageChildren: Record<
   keyof typeof projectSubPagesBySlug,
@@ -595,7 +595,7 @@ const orgPageNodes: CommandNode[] = orgPages.map((page) => {
   };
 });
 
-const rawNavTree: CommandNode = {
+const rawTree: CommandNode = {
   id: 'root',
   title: 'Command palette',
   kind: 'group',
@@ -646,6 +646,4 @@ const rawNavTree: CommandNode = {
   ],
 };
 
-export const commandPaletteNavTree = withBreadcrumbs(
-  withInheritedIcons(rawNavTree),
-);
+export const commandPaletteTree = withBreadcrumbs(withInheritedIcons(rawTree));
