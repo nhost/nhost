@@ -1,66 +1,24 @@
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import { useCallback } from 'react';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { Dialog, DialogTitle } from '@/components/ui/v3/dialog';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useAppPausedReason } from '@/features/orgs/projects/common/hooks/useAppPausedReason';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { getUnpauseErrorMessage } from '@/features/orgs/utils/getUnpauseErrorMessage';
-import {
-  GetOrganizationsDocument,
-  useUnpauseApplicationMutation,
-} from '@/generated/graphql';
-import { useTrackEvent } from '@/hooks/useTrackEvent';
-import { useUserData } from '@/hooks/useUserData';
+import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
+import { useIsUnpausing } from '@/features/orgs/projects/common/hooks/useIsUnpausing';
+import { useUnpauseApplication } from '@/features/orgs/projects/common/hooks/useUnpauseApplication';
 import { ApplicationStatus } from '@/types/application';
 import ProjectViewSkeleton from './ProjectViewSkeleton';
 import { hasSidebarSkeleton } from './projectStatePages';
 
-export default function ProjectStateScreen({
-  state,
-}: {
-  state: ApplicationStatus;
-}) {
+export default function ProjectStateScreen() {
   const { route } = useRouter();
+  const { state } = useAppState();
 
   const { freeAndLiveProjectsNumberExceeded } = useAppPausedReason();
-  const { project, refetch: refetchProject } = useProject();
-  const userData = useUserData();
-  const track = useTrackEvent();
-
-  const [unpauseApplication, { loading: changingApplicationStateLoading }] =
-    useUnpauseApplicationMutation({
-      variables: {
-        appId: project?.id,
-      },
-      refetchQueries: [
-        {
-          query: GetOrganizationsDocument,
-          variables: { userId: userData?.id },
-        },
-      ],
-    });
-
-  const handleTriggerUnpausing = useCallback(async () => {
-    await execPromiseWithErrorToast(
-      async () => {
-        await unpauseApplication({ variables: { appId: project?.id } });
-        track('Project Resumed');
-        await new Promise((resolve) => {
-          setTimeout(resolve, 1000);
-        });
-        await refetchProject();
-      },
-      {
-        loadingMessage: 'Starting the project...',
-        successMessage: 'The project has been started successfully.',
-        errorMessage: getUnpauseErrorMessage,
-      },
-    );
-  }, [unpauseApplication, project?.id, refetchProject, track]);
+  const { onUnpause, loading: unpauseLoading } = useUnpauseApplication();
+  const isUnpausing = useIsUnpausing();
 
   return (
     <div className="relative h-full w-full bg-background">
@@ -80,7 +38,7 @@ export default function ProjectStateScreen({
               height={40}
             />
 
-            {state === ApplicationStatus.Paused && (
+            {state === ApplicationStatus.Paused && !isUnpausing && (
               <>
                 <p className="text-center">
                   This project is paused. Unpause to make this available.
@@ -94,8 +52,8 @@ export default function ProjectStateScreen({
                 <ButtonWithLoading
                   variant="outline"
                   className="w-full"
-                  loading={changingApplicationStateLoading}
-                  onClick={handleTriggerUnpausing}
+                  loading={unpauseLoading}
+                  onClick={onUnpause}
                 >
                   Wake up
                 </ButtonWithLoading>
@@ -109,7 +67,7 @@ export default function ProjectStateScreen({
               </p>
             )}
 
-            {state === ApplicationStatus.Unpausing && (
+            {isUnpausing && (
               <>
                 <p className="flex items-center gap-2 text-center">
                   <Spinner size="xs" />

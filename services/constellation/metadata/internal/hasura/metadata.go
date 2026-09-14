@@ -22,7 +22,7 @@ type Metadata struct {
 	Databases     []DatabaseMetadata     `json:"databases"                yaml:"databases"`
 	RemoteSchemas []RemoteSchemaMetadata `json:"remote_schemas,omitempty" yaml:"remote_schemas,omitempty"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // baseDirKey is the unexported key used to thread the current !include base

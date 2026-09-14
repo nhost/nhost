@@ -217,8 +217,7 @@ func executeOperationRows(t *testing.T, tx pgx.Tx, operation core.SQLOperation) 
 	}
 
 	if err := r.Err(); err != nil {
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) {
+		if pgErr, ok := errors.AsType[*pgconn.PgError](err); ok {
 			// Convert PgError to a map to ensure proper JSON serialization
 			return map[string]any{
 				"Severity":            pgErr.Severity,
@@ -269,7 +268,7 @@ func updateGoldenFile(t *testing.T, data any, goldenFile string) {
 		t.Fatalf("failed to marshal data: %v", err)
 	}
 
-	if err := os.WriteFile(goldenFile, b, 0o644); err != nil { //nolint:gosec
+	if err := os.WriteFile(goldenFile, b, 0o644); err != nil {
 		t.Fatalf("failed to write golden file: %v", err)
 	}
 }
@@ -456,8 +455,7 @@ func executeSubscriptionOperation(
 	}
 
 	if err := r.Err(); err != nil {
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) {
+		if pgErr, ok := errors.AsType[*pgconn.PgError](err); ok {
 			return map[string]any{
 				"Severity":            pgErr.Severity,
 				"SeverityUnlocalized": pgErr.SeverityUnlocalized,

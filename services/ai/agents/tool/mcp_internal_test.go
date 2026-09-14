@@ -533,7 +533,7 @@ func TestMCPManagerDiscoverTools(t *testing.T) {
 		{
 			name: "success populates tools and serverTools",
 			listToolsResult: &mcp.ListToolsResult{
-				PaginatedResult: mcp.PaginatedResult{NextCursor: ""},
+				NextCursor: "",
 				Tools: []mcp.Tool{
 					{
 						Name:        "search",
@@ -559,8 +559,8 @@ func TestMCPManagerDiscoverTools(t *testing.T) {
 		{
 			name: "success with zero tools still records server",
 			listToolsResult: &mcp.ListToolsResult{
-				PaginatedResult: mcp.PaginatedResult{NextCursor: ""},
-				Tools:           []mcp.Tool{},
+				NextCursor: "",
+				Tools:      []mcp.Tool{},
 			},
 			listToolsErr:    nil,
 			wantErr:         false,

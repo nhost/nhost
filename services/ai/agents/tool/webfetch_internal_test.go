@@ -36,8 +36,7 @@ func TestWebFetchSSRFProtection(t *testing.T) {
 		t.Fatal("expected error for loopback address, got nil")
 	}
 
-	var ssrfErr httpsafe.ErrPrivateIPAccessError
-	if !errors.As(err, &ssrfErr) {
+	if _, ok := errors.AsType[httpsafe.ErrPrivateIPAccessError](err); !ok {
 		t.Logf("error did not unwrap to ErrPrivateIPAccess: %v", err)
 	}
 }

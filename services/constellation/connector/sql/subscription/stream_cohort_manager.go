@@ -90,7 +90,7 @@ func (m *streamCohortManager) addSubscription(
 		// caller's ctx prevents the first subscriber's disconnect from failing
 		// in-flight polls and broadcasting "context canceled" to remaining
 		// cohort members.
-		go m.pollCohort(context.Background(), c) //nolint:contextcheck
+		go m.pollCohort(context.Background(), c) //nolint:contextcheck,gosec // G118
 
 		logger.DebugContext(
 			ctx, "created new stream cohort",
@@ -887,7 +887,7 @@ func (m *streamCohortManager) attachOrCreateCohortForCursor(
 
 	// Detach polling from the caller's ctx — see addSubscription for the
 	// rationale.
-	go m.pollCohort(context.Background(), nc) //nolint:contextcheck
+	go m.pollCohort(context.Background(), nc) //nolint:contextcheck,gosec // G118: see comment above
 
 	logger.DebugContext(
 		ctx, "created new stream cohort for new subscribers",

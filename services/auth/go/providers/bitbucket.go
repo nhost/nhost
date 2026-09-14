@@ -28,7 +28,7 @@ func NewBitbucketProvider(
 			ClientSecret: clientSecret,
 			RedirectURL:  authServerURL + "/signin/provider/bitbucket/callback",
 			Scopes:       scopes,
-			Endpoint: oauth2.Endpoint{ //nolint:exhaustruct
+			Endpoint: oauth2.Endpoint{ //nolint:exhaustruct,gosec // G101: public OAuth endpoint URLs, not credentials
 				AuthURL:  "https://bitbucket.org/site/oauth2/authorize",
 				TokenURL: "https://bitbucket.org/site/oauth2/access_token",
 			},

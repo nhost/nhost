@@ -1,13 +1,3 @@
-CREATE TABLE ai.agent_providers (
-  value text PRIMARY KEY,
-  comment text
-);
-
-INSERT INTO ai.agent_providers (value, comment) VALUES
-  ('anthropic', 'Anthropic Claude models'),
-  ('openai', 'OpenAI models'),
-  ('google', 'Google Gemini models');
-
 CREATE TABLE ai.agents (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   created_at timestamptz NOT NULL DEFAULT now(),
@@ -16,7 +6,7 @@ CREATE TABLE ai.agents (
   name text NOT NULL,
   description text NOT NULL DEFAULT '',
   instructions text NOT NULL DEFAULT '',
-  provider text NOT NULL,
+  provider text NOT NULL CHECK (octet_length(provider) BETWEEN 1 AND 63),
   model text NOT NULL,
   tools_config jsonb NOT NULL DEFAULT '{}'::jsonb CHECK (
     jsonb_matches_schema('{
@@ -79,8 +69,7 @@ CREATE TABLE ai.agents (
   PRIMARY KEY (id),
   -- Agents are reusable resources; on user deletion they persist with NULL user_id.
   -- Sessions, in contrast, are per-user and cascade-deleted (see agent_sessions).
-  FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL ON UPDATE CASCADE,
-  FOREIGN KEY (provider) REFERENCES ai.agent_providers(value) ON DELETE RESTRICT ON UPDATE CASCADE
+  FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 CREATE INDEX idx_agents_user_id ON ai.agents(user_id);

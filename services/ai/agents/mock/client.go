@@ -13,7 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	clientv2 "github.com/Yamashou/gqlgenc/clientv2"
+	clientv2 "github.com/gqlgo/gqlgenc/clientv2"
 	hasura "github.com/nhost/nhost/services/ai/hasura"
 	gomock "go.uber.org/mock/gomock"
 )

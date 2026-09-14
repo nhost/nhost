@@ -116,7 +116,7 @@ func (bif *BoolWithInverseFlag) PostParse() error {
 
 func (bif *BoolWithInverseFlag) Set(name, val string) error {
 	if bif.count > 0 && bif.OnlyOnce {
-		return fmt.Errorf("cant duplicate this flag")
+		return fmt.Errorf("can't duplicate this flag")
 	}
 
 	bif.hasBeenSet = true
@@ -167,6 +167,9 @@ func (bif *BoolWithInverseFlag) IsVisible() bool {
 //
 // Example for BoolFlag{Name: "env"}
 // --[no-]env	(default: false)
+//
+// Example for BoolFlag{Name: "env", Aliases: []string{"e"}}
+// --[no-]env, -e	(default: false)
 func (bif *BoolWithInverseFlag) String() string {
 	out := FlagStringer(bif)
 
@@ -179,10 +182,32 @@ func (bif *BoolWithInverseFlag) String() string {
 		prefix = "-"
 	}
 
-	return fmt.Sprintf("%s[%s]%s%s", prefix, bif.inversePrefix(), bif.Name, out[i:])
+	// Guard against a FlagStringer that returns a string without a tab (e.g.
+	// a custom stringer or the default stringer when the flag does not
+	// implement DocGenerationFlag). In that case treat the entire output as
+	// the tab-delimited suffix so the slice never goes out of bounds.
+	if i < 0 {
+		i = 0
+	}
+
+	var aliasParts []string
+	for _, alias := range bif.Aliases {
+		aPrefix := "--"
+		if len(alias) == 1 {
+			aPrefix = "-"
+		}
+		aliasParts = append(aliasParts, aPrefix+alias)
+	}
+
+	names := fmt.Sprintf("%s[%s]%s", prefix, bif.inversePrefix(), bif.Name)
+	if len(aliasParts) > 0 {
+		names = names + ", " + strings.Join(aliasParts, ", ")
+	}
+
+	return fmt.Sprintf("%s%s", names, out[i:])
 }
 
-// IsBoolFlag returns whether the flag doesnt need to accept args
+// IsBoolFlag returns whether the flag doesn't need to accept args
 func (bif *BoolWithInverseFlag) IsBoolFlag() bool {
 	return true
 }
@@ -237,4 +262,12 @@ func (bif *BoolWithInverseFlag) IsDefaultVisible() bool {
 // TypeName is used for stringify/docs. For bool its a no-op
 func (bif *BoolWithInverseFlag) TypeName() string {
 	return "bool"
+}
+
+func (bif *BoolWithInverseFlag) SchemaType() string {
+	return "boolean"
+}
+
+func (bif *BoolWithInverseFlag) SchemaItemsType() string {
+	return ""
 }

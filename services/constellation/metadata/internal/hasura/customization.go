@@ -14,7 +14,7 @@ type RemoteSchemaCustomization struct {
 	// FieldNames renames fields per parent type.
 	FieldNames []FieldNamesCustomization `json:"field_names,omitempty" yaml:"field_names,omitempty"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // DatabaseSourceCustomization mirrors a database source's customization
@@ -26,7 +26,7 @@ type DatabaseSourceCustomization struct {
 	// TypeNames renames types by prefix/suffix.
 	TypeNames TypeNamesCustomization `json:"type_names" yaml:"type_names"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // RootFieldsCustomization is the database root_fields customization: a
@@ -36,7 +36,7 @@ type RootFieldsCustomization struct {
 	Prefix    string `json:"prefix,omitempty"    yaml:"prefix,omitempty"`
 	Suffix    string `json:"suffix,omitempty"    yaml:"suffix,omitempty"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // TypeNamesCustomization renames types. Mapping takes precedence over
@@ -46,7 +46,7 @@ type TypeNamesCustomization struct {
 	Suffix  string            `json:"suffix,omitempty"  yaml:"suffix,omitempty"`
 	Mapping map[string]string `json:"mapping,omitempty" yaml:"mapping,omitempty"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // FieldNamesCustomization renames the fields of a single parent type
@@ -57,5 +57,5 @@ type FieldNamesCustomization struct {
 	Suffix     string            `json:"suffix,omitempty"  yaml:"suffix,omitempty"`
 	Mapping    map[string]string `json:"mapping,omitempty" yaml:"mapping,omitempty"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }

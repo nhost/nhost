@@ -56,8 +56,7 @@ func FuzzLexer(f *testing.F) {
 	f.Fuzz(func(t *testing.T, src string) {
 		toks, err := lexer.Lex(src)
 		if err != nil {
-			var le *lexer.Error
-			if !errors.As(err, &le) {
+			if _, ok := errors.AsType[*lexer.Error](err); !ok {
 				t.Fatalf("non-typed lex error: %T %v", err, err)
 			}
 			return
@@ -76,8 +75,7 @@ func FuzzParser(f *testing.F) {
 			return
 		}
 		if _, err := parser.Parse(toks); err != nil {
-			var pe *parser.Error
-			if !errors.As(err, &pe) {
+			if _, ok := errors.AsType[*parser.Error](err); !ok {
 				t.Fatalf("non-typed parse error: %T %v", err, err)
 			}
 		}

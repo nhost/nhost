@@ -1,0 +1,5 @@
+# Published copies of specs and schemas, produced by gen.sh from their
+# sources. Mark them generated so GitHub collapses them in diffs and leaves
+# them out of the language stats.
+public/openapi/** linguist-generated=true
+public/graphql/** linguist-generated=true

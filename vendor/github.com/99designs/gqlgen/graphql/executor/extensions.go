@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/99designs/gqlgen/graphql"
 )
@@ -84,8 +85,8 @@ func processExtensions(exts []graphql.HandlerExtension) extensions {
 	}
 
 	// this loop goes backwards so the first extension is the outer most middleware and runs first.
-	for i := len(exts) - 1; i >= 0; i-- {
-		p := exts[i]
+	for _, v := range slices.Backward(exts) {
+		p := v
 		if p, ok := p.(graphql.OperationInterceptor); ok {
 			previous := e.operationMiddleware
 			e.operationMiddleware = func(ctx context.Context, next graphql.OperationHandler) graphql.ResponseHandler {

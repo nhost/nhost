@@ -97,8 +97,8 @@ cuelang.org/go/pkg/uuid
 # dario.cat/mergo v1.0.2
 ## explicit; go 1.13
 dario.cat/mergo
-# github.com/99designs/gqlgen v0.17.86
-## explicit; go 1.24.0
+# github.com/99designs/gqlgen v0.17.91
+## explicit; go 1.25.0
 github.com/99designs/gqlgen/complexity
 github.com/99designs/gqlgen/graphql
 github.com/99designs/gqlgen/graphql/errcode
@@ -165,10 +165,6 @@ github.com/ProtonMail/go-crypto/openpgp/x448
 github.com/RoaringBitmap/roaring/v2
 github.com/RoaringBitmap/roaring/v2/internal
 github.com/RoaringBitmap/roaring/v2/roaring64
-# github.com/Yamashou/gqlgenc v0.33.0
-## explicit; go 1.23.0
-github.com/Yamashou/gqlgenc/clientv2
-github.com/Yamashou/gqlgenc/graphqljson
 # github.com/agnivade/levenshtein v1.2.1
 ## explicit; go 1.21
 github.com/agnivade/levenshtein
@@ -556,6 +552,13 @@ github.com/cloudwego/base64x/internal/rt
 # github.com/cockroachdb/apd/v3 v3.2.1
 ## explicit; go 1.17
 github.com/cockroachdb/apd/v3
+# github.com/coder/websocket v1.8.15
+## explicit; go 1.23
+github.com/coder/websocket
+github.com/coder/websocket/internal/bpool
+github.com/coder/websocket/internal/errd
+github.com/coder/websocket/internal/util
+github.com/coder/websocket/internal/wsjs
 # github.com/containerd/errdefs v1.0.0
 ## explicit; go 1.20
 github.com/containerd/errdefs
@@ -748,7 +751,7 @@ github.com/go-playground/universal-translator
 # github.com/go-playground/validator/v10 v10.27.0
 ## explicit; go 1.20
 github.com/go-playground/validator/v10
-# github.com/go-viper/mapstructure/v2 v2.4.0
+# github.com/go-viper/mapstructure/v2 v2.5.0
 ## explicit; go 1.18
 github.com/go-viper/mapstructure/v2
 github.com/go-viper/mapstructure/v2/internal/errors
@@ -864,6 +867,10 @@ github.com/gorilla/mux
 # github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674
 ## explicit; go 1.20
 github.com/gorilla/websocket
+# github.com/gqlgo/gqlgenc v0.38.2
+## explicit; go 1.26
+github.com/gqlgo/gqlgenc/clientv2
+github.com/gqlgo/gqlgenc/graphqljson
 # github.com/hashicorp/errwrap v1.1.0
 ## explicit
 github.com/hashicorp/errwrap
@@ -944,8 +951,8 @@ github.com/mark3labs/mcp-go/client/transport
 github.com/mark3labs/mcp-go/mcp
 github.com/mark3labs/mcp-go/server
 github.com/mark3labs/mcp-go/util
-# github.com/mattn/go-isatty v0.0.20
-## explicit; go 1.15
+# github.com/mattn/go-isatty v0.0.21
+## explicit; go 1.21
 github.com/mattn/go-isatty
 # github.com/mattn/go-runewidth v0.0.16
 ## explicit; go 1.9
@@ -1135,7 +1142,7 @@ github.com/sirupsen/logrus
 # github.com/skeema/knownhosts v1.3.2
 ## explicit; go 1.24.0
 github.com/skeema/knownhosts
-# github.com/sosodev/duration v1.3.1
+# github.com/sosodev/duration v1.4.0
 ## explicit; go 1.17
 github.com/sosodev/duration
 # github.com/speakeasy-api/jsonpath v0.6.2
@@ -1194,7 +1201,7 @@ github.com/urfave/cli-docs/v3
 # github.com/urfave/cli/v2 v2.27.7
 ## explicit; go 1.18
 github.com/urfave/cli/v2
-# github.com/urfave/cli/v3 v3.6.1
+# github.com/urfave/cli/v3 v3.10.1
 ## explicit; go 1.22
 github.com/urfave/cli/v3
 # github.com/valyala/bytebufferpool v1.0.0
@@ -1203,7 +1210,7 @@ github.com/valyala/bytebufferpool
 # github.com/valyala/fasttemplate v1.2.2
 ## explicit; go 1.12
 github.com/valyala/fasttemplate
-# github.com/vektah/gqlparser/v2 v2.5.31
+# github.com/vektah/gqlparser/v2 v2.5.34
 ## explicit; go 1.22
 github.com/vektah/gqlparser/v2
 github.com/vektah/gqlparser/v2/ast

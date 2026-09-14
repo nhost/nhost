@@ -3,6 +3,7 @@ package cmd
 import (
 	"log/slog"
 	"os"
+	"slices"
 	"strings"
 	"time"
 
@@ -51,20 +52,11 @@ func getLogger(debug bool, formatJSON bool) *slog.Logger {
 
 func logFlags(logger *slog.Logger, cCtx *cli.Context) {
 	flags := make([]any, 0, len(cCtx.App.Flags)+len(cCtx.Command.Flags))
-	for _, flag := range cCtx.App.Flags {
-		name := flag.Names()[0]
-		flags = append(flags, slog.Any(name, cCtx.Generic(name)))
-	}
-
-	for _, flag := range cCtx.Command.Flags {
+	for _, flag := range slices.Concat(cCtx.App.Flags, cCtx.Command.Flags) {
 		name := flag.Names()[0]
 
 		value := cCtx.Generic(name)
-		if strings.Contains(name, "pass") ||
-			strings.Contains(name, "token") ||
-			strings.Contains(name, "secret") ||
-			strings.Contains(name, "key") ||
-			name == "postgres" {
+		if isSensitiveFlag(name) {
 			value = "********"
 		}
 
@@ -72,4 +64,17 @@ func logFlags(logger *slog.Logger, cCtx *cli.Context) {
 	}
 
 	logger.LogAttrs(cCtx.Context, slog.LevelInfo, "starting program", slog.Group("flags", flags...))
+}
+
+func isSensitiveFlag(name string) bool {
+	name = strings.ToLower(name)
+	if name == flagAgentProviders {
+		return true
+	}
+
+	return strings.Contains(name, "pass") ||
+		strings.Contains(name, "token") ||
+		strings.Contains(name, "secret") ||
+		strings.Contains(name, "key") ||
+		name == flagPostgresConnection
 }

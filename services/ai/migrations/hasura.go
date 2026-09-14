@@ -9,15 +9,13 @@ import (
 	"github.com/nhost/nhost/services/ai/hasura"
 )
 
-const aiSchema = "ai"
-
 func tableAutoEmbeddingsConfiguration(ctx context.Context, cl *hasura.Client) error {
 	table := &hasura.TrackTableRequest{
 		Type: "pg_track_table",
 		Args: hasura.TrackTableRequestArgs{
 			Source: "default",
 			Table: hasura.TrackTableRequestArgsTable{
-				Schema: aiSchema,
+				Schema: schemaName,
 				Name:   "auto_embeddings_configuration",
 			},
 			Configuration: hasura.TrackTableRequestArgsConfiguration{
@@ -123,53 +121,13 @@ func createEvent(
 	return nil
 }
 
-func tableAgentProviders(ctx context.Context, cl *hasura.Client) error {
-	table := &hasura.TrackEnumTableRequest{
-		Type: "pg_track_table",
-		Args: hasura.TrackEnumTableArgs{
-			Source: "default",
-			Table: hasura.TrackTableRequestArgsTable{
-				Schema: aiSchema,
-				Name:   "agent_providers",
-			},
-			IsEnum: true,
-			Configuration: hasura.TrackTableRequestArgsConfiguration{
-				CustomName: "aiAgentProviders",
-				CustomRootFields: hasura.TrackTableRequestArgsConfigurationCustomRootFields{
-					Select:          "aiAgentProviders",
-					SelectByPk:      "aiAgentProvider",
-					SelectAggregate: "aiAgentProviderAggregate",
-					SelectStream:    "aiAgentProviderStream",
-					Insert:          "insertAiAgentProviders",
-					InsertOne:       "insertAiAgentProvider",
-					Update:          "updateAiAgentProviders",
-					UpdateByPk:      "updateAiAgentProvider",
-					UpdateMany:      "updateManyAiAgentProviders",
-					Delete:          "deleteAiAgentProviders",
-					DeleteByPk:      "deleteAiAgentProvider",
-				},
-				ColumnConfig: map[string]hasura.TrackTableRequestArgsConfigurationColumnConfig{
-					"value":   {CustomName: "value"},
-					"comment": {CustomName: "comment"},
-				},
-			},
-		},
-	}
-
-	if err := cl.TrackEnumTable(ctx, table); err != nil {
-		return fmt.Errorf("failed to track agent_providers table: %w", err)
-	}
-
-	return nil
-}
-
 func tableAgents(ctx context.Context, cl *hasura.Client) error {
 	table := &hasura.TrackTableRequest{
 		Type: "pg_track_table",
 		Args: hasura.TrackTableRequestArgs{
 			Source: "default",
 			Table: hasura.TrackTableRequestArgsTable{
-				Schema: aiSchema,
+				Schema: schemaName,
 				Name:   "agents",
 			},
 			Configuration: hasura.TrackTableRequestArgsConfiguration{
@@ -216,7 +174,7 @@ func tableAgentSessions(ctx context.Context, cl *hasura.Client) error {
 		Args: hasura.TrackTableRequestArgs{
 			Source: "default",
 			Table: hasura.TrackTableRequestArgsTable{
-				Schema: aiSchema,
+				Schema: schemaName,
 				Name:   "agent_sessions",
 			},
 			Configuration: hasura.TrackTableRequestArgsConfiguration{
@@ -254,7 +212,7 @@ func tableAgentSessions(ctx context.Context, cl *hasura.Client) error {
 
 func agentSessionsRelationships(ctx context.Context, cl *hasura.Client) error {
 	agentSessionsTable := hasura.TrackTableRequestArgsTable{
-		Schema: aiSchema,
+		Schema: schemaName,
 		Name:   "agent_sessions",
 	}
 
@@ -299,7 +257,7 @@ func agentSessionsRelationships(ctx context.Context, cl *hasura.Client) error {
 			Using: hasura.RelationshipUsing{
 				ForeignKeyConstraintOn: hasura.ArrayRelationshipForeignKey{
 					Table: hasura.TrackTableRequestArgsTable{
-						Schema: aiSchema,
+						Schema: schemaName,
 						Name:   "agent_messages",
 					},
 					Column: "session_id",
@@ -321,7 +279,7 @@ func tableAgentMessages(ctx context.Context, cl *hasura.Client) error {
 		Args: hasura.TrackTableRequestArgs{
 			Source: "default",
 			Table: hasura.TrackTableRequestArgsTable{
-				Schema: aiSchema,
+				Schema: schemaName,
 				Name:   "agent_messages",
 			},
 			Configuration: hasura.TrackTableRequestArgsConfiguration{
@@ -366,7 +324,7 @@ func agentMessagesRelationships(ctx context.Context, cl *hasura.Client) error {
 		Type: "pg_create_object_relationship",
 		Args: hasura.CreateRelationshipArgs{
 			Table: hasura.TrackTableRequestArgsTable{
-				Schema: aiSchema,
+				Schema: schemaName,
 				Name:   "agent_messages",
 			},
 			Name:   "agentSession",
@@ -395,7 +353,6 @@ func ApplyHasuraMetadata(
 			"auto-embeddings table",
 			func() error { return tableAutoEmbeddingsConfiguration(ctx, cl) },
 		},
-		{"agent providers table", func() error { return tableAgentProviders(ctx, cl) }},
 		{"agents table", func() error { return tableAgents(ctx, cl) }},
 		{"agent sessions table", func() error { return tableAgentSessions(ctx, cl) }},
 		{"agent messages table", func() error { return tableAgentMessages(ctx, cl) }},
@@ -410,7 +367,7 @@ func ApplyHasuraMetadata(
 		{"auto-embeddings event", func() error {
 			return createEvent(
 				ctx, cl, "auto_embeddings_configuration",
-				aiSchema, aiBaseURL, "auto-embeddings-configuration",
+				schemaName, aiBaseURL, "auto-embeddings-configuration",
 			)
 		}},
 	}

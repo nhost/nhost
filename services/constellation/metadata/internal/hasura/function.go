@@ -14,14 +14,14 @@ type FunctionMetadata struct {
 	// For stable/immutable functions, permissions are inherited from the base table.
 	Permissions []FunctionPermission `json:"permissions,omitempty" yaml:"permissions,omitempty"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // FunctionPermission represents a role's permission to execute a function.
 type FunctionPermission struct {
 	Role string `json:"role" yaml:"role"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // UnmarshalYAML handles entries that may be `!include <path>` directives in
@@ -54,7 +54,7 @@ type FunctionSource struct {
 	Name   string `json:"name"   yaml:"name"`
 	Schema string `json:"schema" yaml:"schema"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // FunctionConfiguration allows customizing the function's GraphQL representation.
@@ -72,7 +72,7 @@ type FunctionConfiguration struct {
 	// automatically populated with the session variables at query execution time.
 	SessionArgument string `json:"session_argument,omitempty" yaml:"session_argument,omitempty"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // FunctionCustomRootFields allows overriding the default GraphQL field names for functions.
@@ -80,5 +80,5 @@ type FunctionCustomRootFields struct {
 	Function          string `json:"function,omitempty"           yaml:"function,omitempty"`
 	FunctionAggregate string `json:"function_aggregate,omitempty" yaml:"function_aggregate,omitempty"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }

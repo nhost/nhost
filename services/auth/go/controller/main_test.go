@@ -3,11 +3,14 @@ package controller_test
 import (
 	"context"
 	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -371,6 +374,56 @@ func assertRequest[T any, U any](
 	}
 
 	return resp
+}
+
+func assertOAuth2DualCredentials[T, U any](
+	t *testing.T,
+	path string,
+	handler func(*controller.Controller, context.Context, T) (U, error),
+	request T,
+) {
+	t.Helper()
+
+	ctrl := gomock.NewController(t)
+
+	c, _ := getController(
+		t,
+		ctrl,
+		getConfigOAuth2Enabled,
+		func(ctrl *gomock.Controller) controller.DBClient {
+			return mock.NewMockDBClient(ctrl)
+		},
+	)
+
+	w := httptest.NewRecorder()
+	ginCtx, _ := gin.CreateTestContext(w)
+	ginCtx.Request = httptest.NewRequest(http.MethodPost, path, nil)
+	ginCtx.Request.SetBasicAuth("header-client-id", "header-client-secret")
+
+	// U is the handler's response interface; the concrete error value must be
+	// asserted to it because a type parameter has no implicit interface conversion.
+	want, ok := any(controller.OAuth2ErrorResponse{
+		StatusCode: http.StatusBadRequest,
+		Body: api.OAuth2ErrorResponse{
+			Error: "invalid_request",
+			ErrorDescription: ptr(
+				"client credentials MUST NOT be provided in " +
+					"both the Authorization header and the request body",
+			),
+		},
+	}).(U)
+	if !ok {
+		t.Fatalf("OAuth2ErrorResponse does not implement the handler response type")
+	}
+
+	assertRequest[T, U](
+		ginCtx, t,
+		func(ctx context.Context, req T) (U, error) {
+			return handler(c, ctx, req)
+		},
+		request,
+		want,
+	)
 }
 
 func assertSession(

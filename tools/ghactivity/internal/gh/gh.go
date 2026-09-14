@@ -97,8 +97,7 @@ func (c *Client) AuthenticatedLogin(ctx context.Context) (string, error) {
 // error item of type INSUFFICIENT_SCOPES or, less consistently, as a plain
 // message saying "has not been granted the required scopes".
 func isInsufficientScopes(err error) bool {
-	var gqlErr *api.GraphQLError
-	if errors.As(err, &gqlErr) {
+	if gqlErr, ok := errors.AsType[*api.GraphQLError](err); ok {
 		for _, item := range gqlErr.Errors {
 			if item.Type == "INSUFFICIENT_SCOPES" {
 				return true
