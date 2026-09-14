@@ -2,7 +2,12 @@ import { vi } from 'vitest';
 
 import Header, { type HeaderProps } from '@/components/layout/Header/Header';
 import { mockMatchMediaValue } from '@/tests/mocks';
-import { render, screen } from '@/tests/testUtils';
+import {
+  mockPointerEvent,
+  render,
+  screen,
+  TestUserEvent,
+} from '@/tests/testUtils';
 
 const push = vi.fn();
 const router = {
@@ -91,6 +96,8 @@ beforeEach(() => {
 
 const renderHeader = (props: HeaderProps = {}) => render(<Header {...props} />);
 
+mockPointerEvent();
+
 describe('Header command palette affordance', () => {
   it('does not render a command palette trigger', () => {
     renderHeader();
@@ -98,5 +105,32 @@ describe('Header command palette affordance', () => {
     expect(
       screen.queryByLabelText('Open command palette'),
     ).not.toBeInTheDocument();
+  });
+
+  it('opens help and support resources from the header', async () => {
+    const user = new TestUserEvent();
+
+    renderHeader();
+
+    await user.click(screen.getByRole('button', { name: 'Help and support' }));
+
+    expect(
+      await screen.findByText('Resources to keep you shipping.'),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Support' })).toHaveAttribute(
+      'href',
+      '/support',
+    );
+    expect(screen.getByRole('link', { name: 'Docs' })).toHaveAttribute(
+      'href',
+      'https://docs.nhost.io',
+    );
+    expect(screen.getByRole('link', { name: 'Status' })).toHaveAttribute(
+      'href',
+      'https://status.nhost.io',
+    );
+    expect(
+      screen.getByRole('link', { name: /Join us on Discord/ }),
+    ).toHaveAttribute('href', 'https://discord.com/invite/9V7Qb2U');
   });
 });
