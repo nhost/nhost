@@ -192,7 +192,12 @@ beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 
 beforeEach(() => {
   vi.stubEnv('NEXT_PUBLIC_NHOST_PLATFORM', 'true');
-  window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
+  // Desktop viewport: the docked sidebar and the header switchers only render
+  // from the `md` breakpoint up.
+  window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+    ...mockMatchMediaValue(query),
+    matches: true,
+  }));
   mockScrollIntoViewAndPointerCapture();
   setProject(BROKEN_SUBDOMAIN);
   mocks.useRouter.mockReturnValue(mockRouter);

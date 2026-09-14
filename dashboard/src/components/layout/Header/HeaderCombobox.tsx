@@ -4,14 +4,18 @@ import { type ReactNode, useState } from 'react';
 import { Combobox, type ComboboxProps } from '@/components/ui/v3/combobox';
 import { cn } from '@/lib/utils';
 
+// Widths follow the selected name, so the chevron sits right after it, up to a
+// cap past which the name truncates. Before a selection there is a single
+// trigger; after it, a link plus an icon-only trigger. The two caps add up to
+// the same width.
 const headerComboboxClassName =
-  'h-9 justify-start gap-2 border-0 bg-background px-3 py-0 font-medium text-foreground hover:bg-accent dark:hover:bg-muted';
+  'h-9 min-w-0 max-w-[15.25rem] gap-2 border-0 bg-background px-3 py-0 font-medium text-foreground hover:bg-accent dark:hover:bg-muted';
 
 const headerComboboxIconClassName =
   'h-9 w-9 justify-center border-0 bg-background px-0 py-0 font-medium text-foreground hover:bg-accent dark:hover:bg-muted';
 
 const headerComboboxLinkClassName =
-  'inline-flex h-9 min-w-0 items-center justify-start gap-2 overflow-hidden rounded-md border-0 bg-background px-3 py-0 font-medium text-foreground whitespace-nowrap hover:bg-accent dark:hover:bg-muted';
+  'inline-flex h-9 min-w-0 max-w-52 items-center justify-start gap-2 overflow-hidden rounded-md border-0 bg-background px-3 py-0 font-medium text-foreground whitespace-nowrap hover:bg-accent dark:hover:bg-muted';
 
 interface HeaderComboboxProps
   extends Omit<

@@ -8,7 +8,7 @@ import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 export default function OrgMembers() {
   const { org: { plan: { isFree } = {} } = {} } = useCurrentOrg();
   return (
-    <div className="flex h-full flex-col gap-4 overflow-auto bg-accent-background p-4">
+    <div className="flex min-h-full flex-col gap-4 bg-accent-background p-4">
       <MembersList />
       {!isFree && <PendingInvites />}
     </div>
