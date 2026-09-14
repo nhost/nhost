@@ -1,5 +1,5 @@
 import { X } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
   Dialog,
@@ -10,73 +10,72 @@ import {
 } from '@/components/ui/v3/dialog';
 import {
   Popover,
+  PopoverAnchor,
   PopoverClose,
   PopoverContent,
 } from '@/components/ui/v3/popover';
-import { usePendingOrganizationRequest } from '@/features/orgs/components/members/hooks/usePendingOrganizationRequest';
-import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedForm';
+import InboxBody from '@/features/orgs/components/members/components/InboxPopover/InboxBody';
 import {
-  useGetAnnouncementsQuery,
-  useOrganizationMemberInvitesQuery,
-} from '@/generated/graphql';
-import { useUserData } from '@/hooks/useUserData';
-import { isNotEmptyValue } from '@/lib/utils';
-import { useAuth } from '@/providers/Auth';
-import AnnouncementsSection from './AnnouncementsSection';
-import InboxPopoverTrigger from './InboxPopoverTrigger';
-import NotificationsSection from './NotificationsSection';
+  INBOX_POPOVER_ID,
+  inboxAnchorRef,
+  setInboxOpen,
+  useInboxOpen,
+} from '@/features/orgs/components/members/components/InboxPopover/inboxStore';
+import type { InboxState } from '@/features/orgs/components/members/components/InboxPopover/useInbox';
+import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedForm';
 
-interface InboxPopoverProps {
-  className?: string;
+export interface InboxPopoverProps {
+  inbox: InboxState;
 }
 
-export default function InboxPopover({ className }: InboxPopoverProps) {
-  const [inboxOpen, setInboxOpen] = useState(false);
-  const inboxTriggerRef = useRef<HTMLButtonElement>(null);
-  const userData = useUserData();
-  const { isAuthenticated } = useAuth();
-  const hasUserId = isNotEmptyValue(userData?.id);
+/**
+ * Rendered once by `Header`, outside its layout switch, so an open checkout
+ * survives crossing `md`. It attaches to whatever holds `inboxAnchorRef`.
+ */
+export default function InboxPopover({ inbox }: InboxPopoverProps) {
+  const open = useInboxOpen();
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  // Radix only restores focus to a `PopoverTrigger`, so this mirrors its rule:
+  // focus goes back to the anchor unless the user dismissed by interacting
+  // elsewhere.
+  const dismissedOutsideRef = useRef(false);
+  const { pendingOrganizationRequest } = inbox;
 
-  const { data: invitesData, loading: invitesLoading } =
-    useOrganizationMemberInvitesQuery({
-      variables: {
-        userId: userData?.id ?? '',
-      },
-      skip: !hasUserId,
-    });
+  // The open state lives in a module, so it would otherwise outlive the header
+  // and reopen the inbox the next time it mounts.
+  useEffect(() => () => setInboxOpen(false), []);
 
-  const { data: announcementsData, loading: announcementsLoading } =
-    useGetAnnouncementsQuery({
-      skip: !isAuthenticated,
-    });
-
-  const pendingOrganizationRequest = usePendingOrganizationRequest();
-  const invites = invitesData?.organizationMemberInvites ?? [];
-  const announcements = announcementsData?.announcements ?? [];
-  const hasUnread =
-    invites.length > 0 ||
-    announcements.some((announcement) => announcement.read.length === 0) ||
-    isNotEmptyValue(pendingOrganizationRequest);
+  function openCheckout() {
+    setInboxOpen(false);
+    setCheckoutOpen(true);
+  }
 
   return (
-    <Dialog
-      onOpenChange={(open) => {
-        if (open) {
-          setInboxOpen(false);
-        }
-      }}
-    >
-      <Popover open={inboxOpen} onOpenChange={setInboxOpen}>
-        <InboxPopoverTrigger
-          ref={inboxTriggerRef}
-          className={className}
-          hasUnread={hasUnread}
-        />
+    <>
+      <Popover open={open} onOpenChange={setInboxOpen}>
+        <PopoverAnchor virtualRef={inboxAnchorRef} />
 
         <PopoverContent
+          id={INBOX_POPOVER_ID}
           align="end"
           sideOffset={8}
           className="w-[min(calc(100vw-2rem),32rem)] overflow-hidden p-0"
+          onInteractOutside={(event) => {
+            // The anchor toggles the inbox itself; pressing it would otherwise
+            // dismiss the inbox first and the click would reopen it.
+            if (inboxAnchorRef.current?.contains(event.target as Node)) {
+              event.preventDefault();
+              return;
+            }
+            dismissedOutsideRef.current = true;
+          }}
+          onCloseAutoFocus={(event) => {
+            event.preventDefault();
+            if (!dismissedOutsideRef.current) {
+              inboxAnchorRef.current?.focus();
+            }
+            dismissedOutsideRef.current = false;
+          }}
         >
           <div className="flex h-14 items-center justify-between border-b px-5">
             <h2 className="font-semibold text-lg">Inbox</h2>
@@ -92,42 +91,36 @@ export default function InboxPopover({ className }: InboxPopoverProps) {
             </PopoverClose>
           </div>
 
-          <div className="max-h-[min(calc(100vh-8rem),32rem)] overflow-y-auto">
-            <NotificationsSection
-              invites={invites}
-              loading={invitesLoading}
-              pendingOrganizationRequest={pendingOrganizationRequest}
-              onInviteAccepted={() => setInboxOpen(false)}
-            />
-
-            <AnnouncementsSection
-              announcements={announcements}
-              loading={announcementsLoading}
-            />
-          </div>
+          <InboxBody
+            inbox={inbox}
+            className="max-h-[min(calc(100vh-8rem),32rem)]"
+            onInviteAccepted={() => setInboxOpen(false)}
+            onContinueCheckout={openCheckout}
+          />
         </PopoverContent>
       </Popover>
 
       {pendingOrganizationRequest && (
-        <DialogContent
-          className="bg-white text-black sm:max-w-xl"
-          onInteractOutside={(event) => event.preventDefault()}
-          onEscapeKeyDown={(event) => event.preventDefault()}
-          onCloseAutoFocus={(event) => {
-            event.preventDefault();
-            inboxTriggerRef.current?.focus();
-          }}
-        >
-          <DialogHeader className="sr-only">
-            <DialogTitle>Create Organization Checkout Form</DialogTitle>
-            <DialogDescription />
-          </DialogHeader>
-
-          <StripeEmbeddedForm
-            clientSecret={pendingOrganizationRequest.ClientSecret!}
-          />
-        </DialogContent>
+        <Dialog open={checkoutOpen} onOpenChange={setCheckoutOpen}>
+          <DialogContent
+            className="bg-white text-black sm:max-w-xl"
+            onInteractOutside={(event) => event.preventDefault()}
+            onEscapeKeyDown={(event) => event.preventDefault()}
+            onCloseAutoFocus={(event) => {
+              event.preventDefault();
+              inboxAnchorRef.current?.focus();
+            }}
+          >
+            <DialogHeader className="sr-only">
+              <DialogTitle>Create Organization Checkout Form</DialogTitle>
+              <DialogDescription />
+            </DialogHeader>
+            <StripeEmbeddedForm
+              clientSecret={pendingOrganizationRequest.ClientSecret!}
+            />
+          </DialogContent>
+        </Dialog>
       )}
-    </Dialog>
+    </>
   );
 }

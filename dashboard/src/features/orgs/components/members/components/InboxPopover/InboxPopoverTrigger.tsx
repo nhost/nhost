@@ -1,32 +1,42 @@
 import { Bell } from 'lucide-react';
-import { forwardRef } from 'react';
-import { Button, type ButtonProps } from '@/components/ui/v3/button';
-import { PopoverTrigger } from '@/components/ui/v3/popover';
+import { Button } from '@/components/ui/v3/button';
+import {
+  INBOX_POPOVER_ID,
+  inboxAnchorRef,
+  setInboxOpen,
+  useInboxOpen,
+} from '@/features/orgs/components/members/components/InboxPopover/inboxStore';
 import { cn } from '@/lib/utils';
 
-interface InboxPopoverTriggerProps extends ButtonProps {
+interface InboxPopoverTriggerProps {
   hasUnread?: boolean;
+  className?: string;
 }
 
-const InboxPopoverTrigger = forwardRef<
-  HTMLButtonElement,
-  InboxPopoverTriggerProps
->(({ className, hasUnread = false, ...props }, ref) => (
-  <PopoverTrigger asChild>
+// Not a `PopoverTrigger`: the popover is rendered once by `Header` and is
+// opened from the account menu on mobile, so this button carries the trigger
+// semantics itself.
+export default function InboxPopoverTrigger({
+  hasUnread = false,
+  className,
+}: InboxPopoverTriggerProps) {
+  const open = useInboxOpen();
+
+  return (
     <Button
-      ref={ref}
+      ref={inboxAnchorRef}
       variant="ghost"
       className={cn('relative flex h-8 w-8 items-center p-0', className)}
       aria-label="Inbox"
-      {...props}
+      aria-haspopup="dialog"
+      aria-expanded={open}
+      aria-controls={open ? INBOX_POPOVER_ID : undefined}
+      onClick={() => setInboxOpen(!open)}
     >
       <Bell className="h-4.5 w-4.5" />
       {hasUnread && (
         <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary ring-2 ring-paper" />
       )}
     </Button>
-  </PopoverTrigger>
-));
-InboxPopoverTrigger.displayName = 'InboxPopoverTrigger';
-
-export default InboxPopoverTrigger;
+  );
+}

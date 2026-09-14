@@ -90,7 +90,7 @@ function setRoute(route: string) {
 
 beforeAll(async () => {
   server.listen({ onUnhandledRequest: 'error' });
-  await import('@/components/layout/AppSidebar');
+  await import('@/components/layout/DashboardSidebar');
 });
 
 beforeEach(() => {

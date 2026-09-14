@@ -1,6 +1,6 @@
 import { setupServer } from 'msw/node';
 import OrganizationsCombobox from '@/components/layout/Header/OrganizationsCombobox';
-import { prefetchNewAppQuery } from '@/tests/msw/mocks/graphql/prefetchNewAppQuery';
+import { openCreateOrgDialog } from '@/features/orgs/components/CreateOrgFormDialog/createOrgDialogStore';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import {
   mockScrollIntoViewAndPointerCapture,
@@ -20,6 +20,11 @@ vi.mock('next/router', () => ({
   useRouter: () => router,
 }));
 
+vi.mock(
+  '@/features/orgs/components/CreateOrgFormDialog/createOrgDialogStore',
+  () => ({ openCreateOrgDialog: vi.fn() }),
+);
+
 vi.mock('@/features/orgs/projects/hooks/useOrgs', () => ({
   useOrgs: () => ({
     orgs: [{ slug: 'org-a', name: 'Org A', plan: { name: 'Starter' } }],
@@ -27,7 +32,7 @@ vi.mock('@/features/orgs/projects/hooks/useOrgs', () => ({
   }),
 }));
 
-const server = setupServer(tokenQuery, prefetchNewAppQuery);
+const server = setupServer(tokenQuery);
 
 describe('OrganizationsCombobox', () => {
   beforeAll(() => {
@@ -38,6 +43,7 @@ describe('OrganizationsCombobox', () => {
     vi.stubEnv('NEXT_PUBLIC_NHOST_PLATFORM', 'true');
     mockScrollIntoViewAndPointerCapture();
     push.mockReset();
+    vi.mocked(openCreateOrgDialog).mockClear();
   });
 
   afterEach(() => {
@@ -59,8 +65,7 @@ describe('OrganizationsCombobox', () => {
       await screen.findByRole('option', { name: /new organization/i }),
     );
 
-    expect(
-      await screen.findByRole('heading', { name: 'New Organization' }),
-    ).toBeInTheDocument();
+    // `Header` renders the dialog, so it survives the layout switch.
+    expect(openCreateOrgDialog).toHaveBeenCalledOnce();
   });
 });
