@@ -4,37 +4,37 @@ import {
   LayoutGridIcon,
   UsersIcon,
 } from 'lucide-react';
-import { useCurrentRoute } from '@/components/layout/AppSidebar/useCurrentRoute';
-import { DashboardSidebar } from '@/components/layout/DashboardSidebar';
+import { useCurrentRoute } from '@/components/layout/DashboardNavigation/useCurrentRoute';
+import { NavigationList } from '@/components/layout/NavigationList';
 
 const iconClassName = 'size-4';
 
-export default function OrganizationNav() {
+export default function OrganizationNavigation() {
   const { orgSlug } = useCurrentRoute();
   const baseHref = `/orgs/${orgSlug}`;
 
   return (
-    <DashboardSidebar.Section>
-      <DashboardSidebar.Item
+    <NavigationList.Section>
+      <NavigationList.Item
         label="Projects"
         href={`${baseHref}/projects`}
         icon={<LayoutGridIcon className={iconClassName} />}
       />
-      <DashboardSidebar.Item
+      <NavigationList.Item
         label="General"
         href={`${baseHref}/settings`}
         icon={<CogIcon className={iconClassName} />}
       />
-      <DashboardSidebar.Item
+      <NavigationList.Item
         label="Members"
         href={`${baseHref}/members`}
         icon={<UsersIcon className={iconClassName} />}
       />
-      <DashboardSidebar.Item
+      <NavigationList.Item
         label="Billing"
         href={`${baseHref}/billing`}
         icon={<CreditCardIcon className={iconClassName} />}
       />
-    </DashboardSidebar.Section>
+    </NavigationList.Section>
   );
 }
