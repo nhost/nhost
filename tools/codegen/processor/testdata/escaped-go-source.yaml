@@ -1,0 +1,28 @@
+openapi: "3.0.0"
+info:
+  title: Escaped Go source fixture
+  version: "1.0"
+paths:
+  /things/100%25/{id}:
+    get:
+      operationId: getEscapedThing
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Escaped thing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EscapedWireNames"
+components:
+  schemas:
+    EscapedWireNames:
+      type: object
+      properties:
+        value:
+          type: string
