@@ -1,9 +1,9 @@
 import { useRouter } from 'next/router';
 import { type ReactElement, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { ProjectViewWithState } from '@/features/orgs/layout/ProjectGuard';
 import { ProjectScope } from '@/features/orgs/layout/ProjectScope';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
+import { DeploymentsArea } from '@/features/orgs/projects/deployments/layout';
 import { useGitHubModal } from '@/features/orgs/projects/git/common/hooks/useGitHubModal';
 import { AutomaticDeploysSettings } from '@/features/orgs/projects/git/settings/components/AutomaticDeploysSettings';
 import { BaseDirectorySettings } from '@/features/orgs/projects/git/settings/components/BaseDirectorySettings';
@@ -32,12 +32,14 @@ export default function DeploymentsSettingsPage() {
   }, [githubModal, isRouterReady, openGitHubModal, removeQueryParamsFromUrl]);
 
   return (
-    <div className="grid grid-flow-row gap-y-6">
-      <GitConnectionSettings />
-      <AutomaticDeploysSettings />
-      <DeploymentBranchSettings />
-      <BaseDirectorySettings />
-    </div>
+    <SettingsLayout>
+      <div className="grid grid-flow-row gap-y-6">
+        <GitConnectionSettings />
+        <AutomaticDeploysSettings />
+        <DeploymentBranchSettings />
+        <BaseDirectorySettings />
+      </div>
+    </SettingsLayout>
   );
 }
 
@@ -45,9 +47,7 @@ DeploymentsSettingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <AppLayout>
       <ProjectScope>
-        <ProjectViewWithState>
-          <SettingsLayout>{page}</SettingsLayout>
-        </ProjectViewWithState>
+        <DeploymentsArea>{page}</DeploymentsArea>
       </ProjectScope>
     </AppLayout>
   );
