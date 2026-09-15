@@ -11,7 +11,7 @@ but you can also use it directly if you have a specific use case.
 You can import and use this package with:
 
 ```ts
-import { createClient } from "@nhost/nhost-js/auth";
+import { createAPIClient } from "@nhost/nhost-js/auth";
 ```
 
 # Usage

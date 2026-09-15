@@ -112,7 +112,8 @@
     "rollup": "^4.59.0",
     "rollup-plugin-peer-deps-external": "^2.2.4",
     "terser": "^5.39.0",
-    "ts-jest": "^29.3.2"
+    "ts-jest": "^29.3.2",
+    "typescript": "5.8.3"
   },
   "sideEffects": false,
   "dependencies": {
