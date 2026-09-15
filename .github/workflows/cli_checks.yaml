@@ -34,8 +34,17 @@ on:
       - "internal/lib/nhostclient/**"
       - "internal/lib/oapi/**"
 
-      # constellation (imported by `nhost schema` for SDL dump/diff)
+      # bundled engine: the engine-mode e2e leg compiles the engine, its three
+      # services, and their additional shared libraries. Intentionally running
+      # the full CLI checks for auth/storage changes keeps mode equivalence
+      # tested; constellation is also imported by `nhost schema`.
+      - "services/engine/**"
+      - "services/auth/**"
+      - "services/storage/**"
       - "services/constellation/**"
+      - "internal/lib/hasura/metadata/**"
+      - "internal/lib/serve/**"
+      - "internal/lib/syncmap/**"
 
       # auth email templates (embedded into the CLI by `nhost init`)
       - "services/auth/email-templates/**"
@@ -74,7 +83,13 @@ jobs:
         internal/lib/clidocs/**
         internal/lib/nhostclient/**
         internal/lib/oapi/**
+        services/engine/**
+        services/auth/**
+        services/storage/**
         services/constellation/**
+        internal/lib/hasura/metadata/**
+        internal/lib/serve/**
+        internal/lib/syncmap/**
         services/auth/email-templates/**
         docs/**
 
