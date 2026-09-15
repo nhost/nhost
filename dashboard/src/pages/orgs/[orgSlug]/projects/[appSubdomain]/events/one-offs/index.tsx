@@ -1,14 +1,15 @@
 import type { ReactElement } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
+import { ContentPanel } from '@/components/layout/ContentPanel';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { ProjectViewWithState } from '@/features/orgs/layout/ProjectGuard';
 import { ProjectScope } from '@/features/orgs/layout/ProjectScope';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { EventsArea } from '@/features/orgs/projects/events/layout';
 import { OneOffsView } from '@/features/orgs/projects/events/one-offs/components/OneOffsView';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
-export default function CronTriggersPage() {
+export default function OneOffsPage() {
   const { project } = useProject();
   const isPlatform = useIsPlatform();
 
@@ -23,17 +24,19 @@ export default function CronTriggersPage() {
   );
 }
 
-CronTriggersPage.getLayout = function getLayout(page: ReactElement) {
+OneOffsPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <AppLayout>
       <ProjectScope>
-        <ProjectViewWithState>
-          <div className="flex h-full">
-            <div className="box flex w-full flex-auto flex-col overflow-x-hidden">
-              {page}
+        <EventsArea>
+          <ContentPanel>
+            <div className="flex h-full">
+              <div className="box flex w-full flex-auto flex-col overflow-x-hidden">
+                {page}
+              </div>
             </div>
-          </div>
-        </ProjectViewWithState>
+          </ContentPanel>
+        </EventsArea>
       </ProjectScope>
     </AppLayout>
   );
