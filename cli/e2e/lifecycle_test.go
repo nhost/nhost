@@ -26,6 +26,8 @@ import (
 const (
 	composeProjectLabel = "com.docker.compose.project"
 	upFailurePrompt     = "Do you want to stop Nhost's development environment? [y/N]"
+	noMigrationsWarning = "No migrations found"
+	noMetadataWarning   = "No metadata found"
 	downFailureText     = "failed to stop Nhost development environment"
 	logsFailureText     = "failed to show logs from docker compose"
 )
@@ -74,9 +76,10 @@ func requireSuiteDeadline(t *testing.T) {
 	remaining := time.Until(deadline)
 	if remaining < suiteTimeoutBudget {
 		t.Fatalf(
-			"go test -timeout is too small for TestE2E: need at least %s of remaining time for the internal timeout budget, have %s; use -timeout 45m or greater",
+			"go test -timeout is too small for TestE2E: need at least %s of remaining time for the internal timeout budget, have %s; use -timeout %s or greater",
 			suiteTimeoutBudget,
 			remaining.Round(time.Second),
+			suiteTestTimeout,
 		)
 	}
 }
@@ -474,10 +477,57 @@ func dockerOutput(ctx context.Context, args ...string) ([]byte, error) {
 }
 
 const (
-	loadEnvFailureChildEnv = "E2E_LOAD_ENV_FAILURE_TEST_CHILD"
-	keepWorkdirChildEnv    = "E2E_KEEP_WORKDIR_TEST_CHILD"
-	keepWorkdirResultEnv   = "E2E_KEEP_WORKDIR_TEST_RESULT"
+	loadEnvFailureChildEnv       = "E2E_LOAD_ENV_FAILURE_TEST_CHILD"
+	keepWorkdirChildEnv          = "E2E_KEEP_WORKDIR_TEST_CHILD"
+	keepWorkdirResultEnv         = "E2E_KEEP_WORKDIR_TEST_RESULT"
+	suiteDeadlineFailureChildEnv = "E2E_SUITE_DEADLINE_FAILURE_TEST_CHILD"
 )
+
+func TestSuiteTimeoutBudget(t *testing.T) {
+	t.Parallel()
+
+	if suiteTimeoutBudget != 27*time.Minute {
+		t.Fatalf("suiteTimeoutBudget = %s, want 27m", suiteTimeoutBudget)
+	}
+
+	if got := suiteTestTimeout - suiteTimeoutBudget; got != 3*time.Minute {
+		t.Fatalf("suite timeout headroom = %s, want 3m", got)
+	}
+}
+
+func TestRequireSuiteDeadlineRejectsShortDeadline(t *testing.T) {
+	if os.Getenv(suiteDeadlineFailureChildEnv) == "1" {
+		requireSuiteDeadline(t)
+		t.Fatal("requireSuiteDeadline accepted a deadline below suiteTimeoutBudget")
+	}
+
+	t.Parallel()
+
+	shortTimeout := suiteTimeoutBudget - time.Second
+	cmd := exec.CommandContext(
+		t.Context(),
+		os.Args[0],
+		"-test.run=^TestRequireSuiteDeadlineRejectsShortDeadline$",
+		"-test.timeout="+shortTimeout.String(),
+	)
+	cmd.Env = environmentWithOverrides(os.Environ(), map[string]string{
+		suiteDeadlineFailureChildEnv: "1",
+	})
+
+	out, err := cmd.CombinedOutput()
+	if err == nil {
+		t.Fatalf("requireSuiteDeadline subprocess accepted %s timeout:\n%s", shortTimeout, out)
+	}
+
+	for _, want := range []string{
+		"need at least 27m0s",
+		"use -timeout 30m0s or greater",
+	} {
+		if !bytes.Contains(out, []byte(want)) {
+			t.Fatalf("requireSuiteDeadline failure missing %q:\n%s", want, redactOutput(out))
+		}
+	}
+}
 
 func TestLoadEnvRequiresCLIBinary(t *testing.T) {
 	if os.Getenv(loadEnvFailureChildEnv) == "1" {
@@ -713,6 +763,16 @@ func TestSwallowedFailureMarkersMatchProductionSource(t *testing.T) {
 			name:   "up prompt",
 			path:   filepath.Join(filepath.Dir(thisFile), "..", "cmd", "dev", "up.go"),
 			marker: upFailurePrompt,
+		},
+		{
+			name:   "missing migrations warning",
+			path:   filepath.Join(filepath.Dir(thisFile), "..", "cmd", "dev", "up.go"),
+			marker: noMigrationsWarning,
+		},
+		{
+			name:   "missing metadata warning",
+			path:   filepath.Join(filepath.Dir(thisFile), "..", "cmd", "dev", "up.go"),
+			marker: noMetadataWarning,
 		},
 		{
 			name:   "down warning",

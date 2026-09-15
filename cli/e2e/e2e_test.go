@@ -18,11 +18,11 @@
 //	E2E_WORKDIR=/home/me/work/nhost \
 //	E2E_MODE=engine \
 //	E2E_CONFIGSERVER_IMAGE=cli:0.0.0-dev \
-//	go test -tags e2e -run TestE2E -timeout 45m ./cli/e2e/
+//	go test -tags e2e -run TestE2E -timeout 30m ./cli/e2e/
 //
-// The 45-minute outer timeout exceeds the 40-minute internal worst-case budget:
-// 5m stale-stack reclamation + 2m init + 20m up + 30s ownership check +
-// 5*30s HTTP requests + 5m logs + 5m down. TestE2E rejects a shorter deadline
+// The 30-minute outer timeout exceeds the 27-minute internal worst-case budget:
+// 4m stale-stack reclamation + 1m init + 10m up + 30s ownership check +
+// 7*30s HTTP requests + 4m logs + 4m down. TestE2E rejects a shorter deadline
 // before starting Docker because a go test timeout bypasses all t.Cleanup calls.
 // Concurrent runs on one host must set distinct E2E_HTTP_PORT and
 // E2E_POSTGRES_PORT pairs; the pair also determines the reclaimable Compose
@@ -48,6 +48,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 	"testing"
@@ -109,6 +110,7 @@ func TestE2E(t *testing.T) {
 
 	runCLI(t, env, projectDir, "init")
 
+	copyExampleMetadata(t, projectDir)
 	adminSecret := patchConfig(t, env, projectDir)
 
 	// Register teardown before bringing anything up: `nhost up` starts the
@@ -219,6 +221,16 @@ func TestE2E(t *testing.T) {
 		)
 	}
 
+	for _, warning := range []string{noMigrationsWarning, noMetadataWarning} {
+		if bytes.Contains(upOutput.Bytes(), []byte(warning)) {
+			t.Fatalf(
+				"`nhost up` skipped required project state (%q):\n%s",
+				warning,
+				redactedTail(upOutput.Bytes(), 40),
+			)
+		}
+	}
+
 	assertComposeTopology(t, env, projectDir)
 	assertComposeProjectOwnsPorts(t, env.projectName, env.httpPort, env.postgresPort)
 
@@ -237,48 +249,74 @@ func TestE2E(t *testing.T) {
 		admin:     adminSecret,
 	}
 
-	t.Run("auth", func(t *testing.T) { runAuthScenario(t, c) })
-	t.Run("storage", func(t *testing.T) { runStorageScenario(t, c) })
-	t.Run("graphql", func(t *testing.T) { runGraphQLScenario(t, c) })
+	var auth authSession
+	if !t.Run("auth", func(t *testing.T) { auth = runAuthScenario(t, c) }) {
+		t.FailNow()
+	}
+
+	t.Run("storage", func(t *testing.T) {
+		runStorageScenario(t, c, auth.accessToken, auth.userID)
+	})
+	t.Run("graphql", func(t *testing.T) {
+		runGraphQLScenario(t, c, auth.accessToken, auth.userID)
+	})
 }
 
 // ---- auth ----------------------------------------------------------------
+
+type authSession struct {
+	accessToken string
+	userID      string
+}
 
 //nolint:thelper // This is the auth subtest body; marking it as a helper hides assertion locations.
 func runAuthScenario(
 	t *testing.T,
 	c *client,
-) {
+) authSession {
 	email := fmt.Sprintf("e2e-%d@example.com", time.Now().UnixNano())
 
 	const password = "Str0ngPassw0rd"
 
-	signupTok := c.authEmailPassword(t, "signup", email, password)
-	if !looksLikeJWT(signupTok) {
-		t.Fatalf(
-			"signup did not return a JWT access token: len=%d segments=%d empty=%t",
-			len(signupTok),
-			len(strings.Split(signupTok, ".")),
-			signupTok == "",
-		)
+	signup := c.authEmailPassword(t, "signup", email, password)
+	assertAuthSession(t, "signup", signup)
+
+	signin := c.authEmailPassword(t, "signin", email, password)
+	assertAuthSession(t, "signin", signin)
+
+	if signin.userID != signup.userID {
+		t.Fatalf("signin user id %q does not match signup user id %q", signin.userID, signup.userID)
 	}
 
-	t.Logf("signup issued JWT (len=%d)", len(signupTok))
-
-	signinTok := c.authEmailPassword(t, "signin", email, password)
-	if !looksLikeJWT(signinTok) {
-		t.Fatalf(
-			"signin did not return a JWT access token: len=%d segments=%d empty=%t",
-			len(signinTok),
-			len(strings.Split(signinTok, ".")),
-			signinTok == "",
-		)
-	}
-
-	t.Logf("signin issued JWT (len=%d)", len(signinTok))
+	return authSession{accessToken: signin.accessToken, userID: signup.userID}
 }
 
-func (c *client) authEmailPassword(t *testing.T, action, email, password string) string {
+func assertAuthSession(t *testing.T, action string, session authSession) {
+	t.Helper()
+
+	if !looksLikeJWT(session.accessToken) {
+		t.Fatalf(
+			"%s did not return a JWT access token: len=%d segments=%d empty=%t",
+			action,
+			len(session.accessToken),
+			len(strings.Split(session.accessToken, ".")),
+			session.accessToken == "",
+		)
+	}
+
+	if session.userID == "" {
+		t.Fatalf("%s did not return a user id", action)
+	}
+
+	t.Logf(
+		"%s issued JWT (len=%d) for user id=%s",
+		action,
+		len(session.accessToken),
+		session.userID,
+	)
+}
+
+func (c *client) authEmailPassword(t *testing.T, action, email, password string) authSession {
 	t.Helper()
 
 	body, err := json.Marshal(map[string]string{"email": email, "password": password})
@@ -306,6 +344,9 @@ func (c *client) authEmailPassword(t *testing.T, action, email, password string)
 	var payload struct {
 		Session struct {
 			AccessToken string `json:"accessToken"`
+			User        struct {
+				ID string `json:"id"`
+			} `json:"user"`
 		} `json:"session"`
 	}
 	if err := json.Unmarshal(resp, &payload); err != nil {
@@ -319,7 +360,7 @@ func (c *client) authEmailPassword(t *testing.T, action, email, password string)
 
 	outputScrubber.add(payload.Session.AccessToken)
 
-	return payload.Session.AccessToken
+	return authSession{accessToken: payload.Session.AccessToken, userID: payload.Session.User.ID}
 }
 
 // ---- storage -------------------------------------------------------------
@@ -328,16 +369,18 @@ func (c *client) authEmailPassword(t *testing.T, action, email, password string)
 func runStorageScenario(
 	t *testing.T,
 	c *client,
+	accessToken string,
+	userID string,
 ) {
 	content := fmt.Appendf(nil, "hello-engine-e2e-%d", time.Now().UnixNano())
 
-	id := c.uploadFile(t, "e2e.txt", content)
-	t.Logf("uploaded file id=%s", id)
+	adminFile := c.uploadFile(t, "e2e.txt", content, c.adminHeaders())
+	t.Logf("uploaded file as admin id=%s", adminFile.id)
 
 	status, resp, respContentType := c.do(
 		t,
 		http.MethodGet,
-		c.url("storage", "/v1/files/"+id),
+		c.url("storage", "/v1/files/"+adminFile.id),
 		c.adminHeaders(),
 		"",
 		nil,
@@ -354,10 +397,40 @@ func runStorageScenario(
 		t.Fatalf("downloaded content mismatch: %s", byteMismatchSummary(resp, content))
 	}
 
-	t.Logf("downloaded %d bytes, content matches", len(resp))
+	t.Logf("downloaded %d bytes as admin, content matches", len(resp))
+
+	userFile := c.uploadFile(
+		t,
+		"user-e2e.txt",
+		fmt.Appendf(nil, "hello-user-e2e-%d", time.Now().UnixNano()),
+		c.bearerHeaders(accessToken),
+	)
+	if userFile.uploadedByUserID == nil {
+		t.Fatalf("signed-in storage upload owner is missing; want signup user id=%q", userID)
+	}
+
+	if *userFile.uploadedByUserID != userID {
+		t.Fatalf(
+			"signed-in storage upload owner = %q, want signup user id=%q",
+			*userFile.uploadedByUserID,
+			userID,
+		)
+	}
+
+	t.Logf("uploaded file as signed-in user id=%s", userFile.id)
 }
 
-func (c *client) uploadFile(t *testing.T, name string, content []byte) string {
+type uploadedFile struct {
+	id               string
+	uploadedByUserID *string
+}
+
+func (c *client) uploadFile(
+	t *testing.T,
+	name string,
+	content []byte,
+	headers map[string]string,
+) uploadedFile {
 	t.Helper()
 
 	var buf bytes.Buffer
@@ -384,7 +457,7 @@ func (c *client) uploadFile(t *testing.T, name string, content []byte) string {
 		t,
 		http.MethodPost,
 		c.url("storage", "/v1/files"),
-		c.adminHeaders(),
+		headers,
 		w.FormDataContentType(),
 		buf.Bytes(),
 	)
@@ -398,7 +471,8 @@ func (c *client) uploadFile(t *testing.T, name string, content []byte) string {
 
 	var payload struct {
 		ProcessedFiles []struct {
-			ID string `json:"id"`
+			ID               string  `json:"id"`
+			UploadedByUserID *string `json:"uploadedByUserId"`
 		} `json:"processedFiles"`
 	}
 	if err := json.Unmarshal(resp, &payload); err != nil || len(payload.ProcessedFiles) == 0 {
@@ -409,7 +483,12 @@ func (c *client) uploadFile(t *testing.T, name string, content []byte) string {
 		)
 	}
 
-	return payload.ProcessedFiles[0].ID
+	file := payload.ProcessedFiles[0]
+	if file.ID == "" {
+		t.Fatalf("upload returned an empty file id")
+	}
+
+	return uploadedFile{id: file.ID, uploadedByUserID: file.UploadedByUserID}
 }
 
 // ---- graphql -------------------------------------------------------------
@@ -418,6 +497,8 @@ func (c *client) uploadFile(t *testing.T, name string, content []byte) string {
 func runGraphQLScenario(
 	t *testing.T,
 	c *client,
+	accessToken string,
+	userID string,
 ) {
 	// Admin introspection: works against both Hasura (standalone) and
 	// constellation (engine); the public /v1 path is rewritten to the GraphQL
@@ -479,6 +560,78 @@ func runGraphQLScenario(
 	}
 
 	t.Logf("graphql query root type: %s", out.Data.Schema.QueryType.Name)
+
+	assertAuthenticatedGraphQLUser(t, c, accessToken, userID)
+}
+
+func assertAuthenticatedGraphQLUser(t *testing.T, c *client, accessToken, userID string) {
+	t.Helper()
+
+	body, err := json.Marshal(map[string]string{
+		"query": "{ authRefreshTokens { userId } }",
+	})
+	if err != nil {
+		t.Fatalf("marshal authenticated GraphQL request: %v", err)
+	}
+
+	status, resp, respContentType := c.do(
+		t,
+		http.MethodPost,
+		c.url("graphql", "/v1"),
+		c.bearerHeaders(accessToken),
+		"application/json",
+		body,
+	)
+	if status != http.StatusOK {
+		t.Fatalf(
+			"authenticated graphql query returned HTTP %d: %s",
+			status,
+			truncate(redactResponseBody(resp, respContentType)),
+		)
+	}
+
+	var out struct {
+		Data struct {
+			RefreshTokens []struct {
+				UserID string `json:"userId"`
+			} `json:"authRefreshTokens"`
+		} `json:"data"`
+		Errors []json.RawMessage `json:"errors"`
+	}
+	if err := json.Unmarshal(resp, &out); err != nil {
+		t.Fatalf(
+			"authenticated graphql: cannot decode response: %v\n%s",
+			err,
+			truncate(redactResponseBody(resp, respContentType)),
+		)
+	}
+
+	if len(out.Errors) > 0 {
+		t.Fatalf(
+			"authenticated graphql query returned errors: %s",
+			truncate(redactResponseBody(resp, respContentType)),
+		)
+	}
+
+	if len(out.Data.RefreshTokens) == 0 {
+		t.Fatalf("authenticated graphql query returned no refresh tokens for user id=%s", userID)
+	}
+
+	for _, refreshToken := range out.Data.RefreshTokens {
+		if refreshToken.UserID != userID {
+			t.Fatalf(
+				"authenticated graphql returned user id=%q, want signup user id=%q",
+				refreshToken.UserID,
+				userID,
+			)
+		}
+	}
+
+	t.Logf(
+		"authenticated graphql returned %d refresh token(s) for user id=%s",
+		len(out.Data.RefreshTokens),
+		userID,
+	)
 }
 
 // ---- HTTP client ---------------------------------------------------------
@@ -496,6 +649,10 @@ func (c *client) url(service, path string) string {
 
 func (c *client) adminHeaders() map[string]string {
 	return map[string]string{"x-hasura-admin-secret": c.admin}
+}
+
+func (c *client) bearerHeaders(accessToken string) map[string]string {
+	return map[string]string{"Authorization": "Bearer " + accessToken}
 }
 
 func (c *client) do(
@@ -542,19 +699,20 @@ func (c *client) do(
 // ---- CLI + config helpers ------------------------------------------------
 
 const (
-	cliStepTimeout        = 2 * time.Minute
-	upTimeout             = 20 * time.Minute
-	cleanupTimeout        = 5 * time.Minute
-	downCommandTimeout    = 4 * time.Minute
+	cliStepTimeout        = time.Minute
+	upTimeout             = 10 * time.Minute
+	cleanupTimeout        = 4 * time.Minute
+	downCommandTimeout    = 3 * time.Minute
 	dockerInspectTimeout  = 30 * time.Second
 	httpRequestTimeout    = 30 * time.Second
-	httpRequestCount      = 5
+	httpRequestCount      = 7
 	serviceLogOutputLines = 200
 	serviceLogOutputBytes = 32 * 1024
+	suiteTestTimeout      = 30 * time.Minute
 
 	// suiteTimeoutBudget covers every bounded phase, including failure-only logs
-	// and stale-project reclamation. The documented 45m timeout leaves 5m of
-	// scheduling/process-exit headroom above this 40m internal maximum.
+	// and stale-project reclamation. suiteTestTimeout leaves 3m of
+	// scheduling/process-exit headroom above this 27m internal maximum.
 	suiteTimeoutBudget = cleanupTimeout + cliStepTimeout + upTimeout + dockerInspectTimeout +
 		httpRequestCount*httpRequestTimeout + cleanupTimeout + cleanupTimeout
 )
@@ -636,6 +794,366 @@ func assertComposeTopology(t *testing.T, env envConfig, projectDir string) {
 				slices.Sorted(maps.Keys(compose.Services)),
 			)
 		}
+	}
+}
+
+// copyExampleMetadata installs only the example metadata that the default
+// scratch project can satisfy, so TestE2E exercises metadata apply and the
+// post-apply restart without inheriting AI or functions dependencies.
+func copyExampleMetadata(t *testing.T, projectDir string) {
+	t.Helper()
+
+	_, thisFile, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Fatal("locate e2e test source")
+	}
+
+	exampleNhostDir := filepath.Join(
+		filepath.Dir(thisFile),
+		"..",
+		"examples",
+		"myproject",
+		"nhost",
+	)
+
+	metadataDir := filepath.Join(projectDir, "nhost", "metadata")
+	for _, name := range []string{
+		"version.yaml",
+		filepath.Join("databases", "databases.yaml"),
+	} {
+		copyExampleFile(
+			t,
+			filepath.Join(exampleNhostDir, "metadata", name),
+			filepath.Join(metadataDir, name),
+		)
+	}
+
+	tableFiles := []string{
+		"auth_oauth2_auth_requests.yaml",
+		"auth_oauth2_authorization_codes.yaml",
+		"auth_oauth2_clients.yaml",
+		"auth_oauth2_refresh_tokens.yaml",
+		"auth_provider_requests.yaml",
+		"auth_providers.yaml",
+		"auth_refresh_token_types.yaml",
+		"auth_refresh_tokens.yaml",
+		"auth_roles.yaml",
+		"auth_user_providers.yaml",
+		"auth_user_roles.yaml",
+		"auth_user_security_keys.yaml",
+		"auth_users.yaml",
+		"public_animals.yaml",
+		"storage_buckets.yaml",
+		"storage_files.yaml",
+		"storage_virus.yaml",
+	}
+	tablesDir := filepath.Join(metadataDir, "databases", "default", "tables")
+
+	var tableIncludes strings.Builder
+
+	for _, name := range tableFiles {
+		source := filepath.Join(
+			exampleNhostDir,
+			"metadata",
+			"databases",
+			"default",
+			"tables",
+			name,
+		)
+		destination := filepath.Join(tablesDir, name)
+
+		if name == "storage_files.yaml" {
+			copyStorageFilesMetadataForE2E(t, source, destination)
+		} else {
+			copyExampleFile(t, source, destination)
+		}
+
+		fmt.Fprintf(&tableIncludes, "- \"!include %s\"\n", name)
+	}
+
+	writeExampleFile(t, filepath.Join(tablesDir, "tables.yaml"), []byte(tableIncludes.String()))
+	writeExampleFile(t, filepath.Join(metadataDir, "remote_schemas.yaml"), []byte("[]\n"))
+
+	for _, migration := range []string{
+		"1684245591231_create_table_public_animals",
+		"1753779357316_alter_table_public_animals_add_column_user_id",
+		"1753779380523_set_fk_public_animals_user_id",
+	} {
+		for _, name := range []string{"up.sql", "down.sql"} {
+			relativePath := filepath.Join("default", migration, name)
+			copyExampleFile(
+				t,
+				filepath.Join(exampleNhostDir, "migrations", relativePath),
+				filepath.Join(projectDir, "nhost", "migrations", relativePath),
+			)
+		}
+	}
+}
+
+func copyStorageFilesMetadataForE2E(t *testing.T, source, destination string) {
+	t.Helper()
+
+	raw, err := os.ReadFile(source)
+	if err != nil {
+		t.Fatalf("read example metadata %s: %v", source, err)
+	}
+
+	var metadata map[string]any
+	if err := yaml.Unmarshal(raw, &metadata); err != nil {
+		t.Fatalf("parse example metadata %s: %v", source, err)
+	}
+
+	delete(metadata, "event_triggers")
+	metadata["insert_permissions"] = []map[string]any{
+		{
+			"role": "user",
+			"permission": map[string]any{
+				"check": map[string]any{
+					"bucket_id": map[string]any{"_eq": "default"},
+				},
+				"set": map[string]any{
+					"uploaded_by_user_id": "X-Hasura-User-Id",
+				},
+				"columns": []string{"id", "bucket_id", "name", "size", "mime_type"},
+			},
+		},
+	}
+
+	raw, err = yaml.Marshal(metadata)
+	if err != nil {
+		t.Fatalf("encode curated metadata %s: %v", source, err)
+	}
+
+	writeExampleFile(t, destination, raw)
+}
+
+func copyExampleFile(t *testing.T, source, destination string) {
+	t.Helper()
+
+	raw, err := os.ReadFile(source)
+	if err != nil {
+		t.Fatalf("read example fixture %s: %v", source, err)
+	}
+
+	writeExampleFile(t, destination, raw)
+}
+
+func writeExampleFile(t *testing.T, destination string, content []byte) {
+	t.Helper()
+
+	if err := os.MkdirAll(filepath.Dir(destination), 0o755); err != nil {
+		t.Fatalf("create example fixture directory %s: %v", filepath.Dir(destination), err)
+	}
+
+	if err := os.WriteFile(destination, content, 0o600); err != nil {
+		t.Fatalf("write example fixture %s: %v", destination, err)
+	}
+}
+
+func TestCopyExampleMetadata(t *testing.T) {
+	t.Parallel()
+
+	projectDir := t.TempDir()
+	for _, name := range []string{"metadata", filepath.Join("migrations", "default")} {
+		if err := os.MkdirAll(filepath.Join(projectDir, "nhost", name), 0o755); err != nil {
+			t.Fatalf("create initialized project directory %s: %v", name, err)
+		}
+	}
+
+	copyExampleMetadata(t, projectDir)
+
+	tests := []struct {
+		name string
+		path string
+	}{
+		{
+			name: "metadata version",
+			path: filepath.Join("metadata", "version.yaml"),
+		},
+		{
+			name: "database metadata",
+			path: filepath.Join("metadata", "databases", "databases.yaml"),
+		},
+		{
+			name: "auth table metadata",
+			path: filepath.Join(
+				"metadata",
+				"databases",
+				"default",
+				"tables",
+				"auth_users.yaml",
+			),
+		},
+		{
+			name: "storage table metadata",
+			path: filepath.Join(
+				"metadata",
+				"databases",
+				"default",
+				"tables",
+				"storage_files.yaml",
+			),
+		},
+		{
+			name: "public table metadata",
+			path: filepath.Join(
+				"metadata",
+				"databases",
+				"default",
+				"tables",
+				"public_animals.yaml",
+			),
+		},
+		{
+			name: "empty remote schemas metadata",
+			path: filepath.Join("metadata", "remote_schemas.yaml"),
+		},
+		{
+			name: "final companion migration",
+			path: filepath.Join(
+				"migrations",
+				"default",
+				"1753779380523_set_fk_public_animals_user_id",
+				"up.sql",
+			),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if _, err := os.Stat(filepath.Join(projectDir, "nhost", tt.path)); err != nil {
+				t.Errorf("expected copied fixture %s: %v", tt.path, err)
+			}
+		})
+	}
+
+	assertCuratedMetadata(t, filepath.Join(projectDir, "nhost", "metadata"))
+}
+
+func assertCuratedMetadata(t *testing.T, metadataDir string) {
+	t.Helper()
+
+	remoteSchemas, err := os.ReadFile(filepath.Join(metadataDir, "remote_schemas.yaml"))
+	if err != nil {
+		t.Fatalf("read copied remote schemas metadata: %v", err)
+	}
+
+	if strings.TrimSpace(string(remoteSchemas)) != "[]" {
+		t.Errorf("remote schemas metadata = %q, want an empty list", remoteSchemas)
+	}
+
+	tablesDir := filepath.Join(metadataDir, "databases", "default", "tables")
+
+	tableEntries, err := os.ReadDir(tablesDir)
+	if err != nil {
+		t.Fatalf("read copied metadata tables: %v", err)
+	}
+
+	for _, entry := range tableEntries {
+		if strings.HasPrefix(entry.Name(), "graphite_") {
+			t.Errorf("copied project-specific Graphite table metadata %s", entry.Name())
+		}
+	}
+
+	assertStorageUserInsertPermission(t, filepath.Join(tablesDir, "storage_files.yaml"))
+
+	for _, forbidden := range []string{"graphite_", "ai:8090", "NHOST_FUNCTIONS_URL"} {
+		err := filepath.WalkDir(
+			metadataDir,
+			func(path string, entry os.DirEntry, walkErr error) error {
+				if walkErr != nil {
+					return walkErr
+				}
+
+				if entry.IsDir() {
+					return nil
+				}
+
+				raw, readErr := os.ReadFile(path)
+				if readErr != nil {
+					return fmt.Errorf("read %s: %w", path, readErr)
+				}
+
+				if bytes.Contains(raw, []byte(forbidden)) {
+					t.Errorf(
+						"copied metadata %s contains forbidden project dependency %q",
+						path,
+						forbidden,
+					)
+				}
+
+				return nil
+			},
+		)
+		if err != nil {
+			t.Fatalf("inspect copied metadata for %q: %v", forbidden, err)
+		}
+	}
+}
+
+func assertStorageUserInsertPermission(t *testing.T, path string) {
+	t.Helper()
+
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read copied storage files metadata: %v", err)
+	}
+
+	var metadata struct {
+		InsertPermissions []struct {
+			Role       string `yaml:"role"`
+			Permission struct {
+				Check struct {
+					BucketID struct {
+						Equal string `yaml:"_eq"`
+					} `yaml:"bucket_id"`
+				} `yaml:"check"`
+				Set struct {
+					UploadedByUserID string `yaml:"uploaded_by_user_id"`
+				} `yaml:"set"`
+				Columns []string `yaml:"columns"`
+			} `yaml:"permission"`
+		} `yaml:"insert_permissions"`
+	}
+	if err := yaml.Unmarshal(raw, &metadata); err != nil {
+		t.Fatalf("parse copied storage files metadata: %v", err)
+	}
+
+	if len(metadata.InsertPermissions) != 1 {
+		t.Fatalf("storage insert permissions count = %d, want 1", len(metadata.InsertPermissions))
+	}
+
+	permission := metadata.InsertPermissions[0]
+	if permission.Role != "user" {
+		t.Errorf("storage insert permission role = %q, want user", permission.Role)
+	}
+
+	if permission.Permission.Check.BucketID.Equal != "default" {
+		t.Errorf(
+			"storage insert permission bucket = %q, want default",
+			permission.Permission.Check.BucketID.Equal,
+		)
+	}
+
+	if permission.Permission.Set.UploadedByUserID != "X-Hasura-User-Id" {
+		t.Errorf(
+			"storage insert permission uploader = %q, want X-Hasura-User-Id",
+			permission.Permission.Set.UploadedByUserID,
+		)
+	}
+
+	gotColumns := slices.Clone(permission.Permission.Columns)
+	slices.Sort(gotColumns)
+
+	wantColumns := []string{"bucket_id", "id", "mime_type", "name", "size"}
+	if !slices.Equal(gotColumns, wantColumns) {
+		t.Errorf(
+			"storage insert permission columns = %v, want %v",
+			permission.Permission.Columns,
+			wantColumns,
+		)
 	}
 }
 
