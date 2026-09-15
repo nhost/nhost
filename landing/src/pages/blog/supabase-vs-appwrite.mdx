@@ -1,0 +1,430 @@
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Supabase vs Appwrite: what I found with both dashboards open',
+  description:
+    'I built the same small app on the free tiers of Supabase and Appwrite, in the dashboards rather than the docs, and wrote down where they actually differ on data models, permissions, auth, and pricing.',
+  image: '/images/blog/supabase-vs-appwrite/cover.png',
+  date: '2026-09-18',
+  seoTitle: 'Supabase vs Appwrite: Hands-On Comparison (2026)',
+  seoDescription:
+    'I built the same app in both. How they differ on data models, permissions, auth and pricing tested in the dashboards, not copied from the docs.',
+  authors: [
+    {
+      name: 'Max Serdiukov',
+      title: 'Product Marketer',
+      avatarUrl: '/images/avatars/max.jpeg',
+      url: 'https://twitter.com/true_marketer',
+    },
+  ],
+  tags: ['Comparison', 'Supabase', 'Appwrite'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+I picked the worst possible week to write this.
+
+Appwrite [shipped 2.0](https://appwrite.io/blog/post/announcing-appwrite-2) on August 31st, which means most of the comparison articles ranking on page one describe an Appwrite that's already a version behind.
+
+So here's what this is: a hands-on comparison of Supabase and Appwrite, from building the same small app on their free tiers in September 2026. I say where I tested something, or if I'm repeating the vendor's own claim, and where I got stuck.
+
+I didn't use the CLI. Everything here was done through the dashboards. Serious builders lean on the CLI heavily, I know, but a dashboard's usability is also part of choosing a platform, so that's the lens I'm using.
+
+_Disclaimer: I've built several apps on Nhost, which gives me certain expectations on how working with a backend should feel, and it also gives me an obvious interest in this space._
+
+---
+
+## TL;DR
+
+Supabase is a better fit for developers who want PostgreSQL at the core of their backend. It's ideal for people who are comfortable with SQL and relational databases and want more direct control over their data and database architecture.
+
+Developers who prefer a more traditional backend-as-a-service (BaaS) experience will likely appreciate Appwrite: you work through SDKs and APIs, on a platform that abstracts away most of the infrastructure and database details.
+
+And if you want Postgres at the core but a GraphQL API on top, with permissions tied to roles instead of hand-written policies, that's the bet Nhost makes - [sign up free](https://app.nhost.io/signup) before you commit to either.
+
+---
+
+## Supabase vs Appwrite Overview
+
+| Capability           | Supabase                                | Appwrite                                                          |
+| :------------------- | :-------------------------------------- | :---------------------------------------------------------------- |
+| Core data model      | One Postgres                            | Five: relational, document, vector, native Postgres, native MySQL |
+| Query interface      | PostgREST (REST), SQL, optional GraphQL | SDK methods, or raw SQL on native engines                         |
+| Authorization        | Postgres RLS                            | Table/row permission rules (and nothing on native engines)        |
+| Identity provider    | OAuth 2.1 server, public beta           | OAuth 2.1 + OIDC server, GA in 2.0                                |
+| Storage protocol     | S3-compatible                           | S3-compatible                                                     |
+| Static hosting       | No                                      | Yes (Sites)                                                       |
+| Edge/network control | No                                      | Firewall + Domains                                                |
+| Read replicas        | Yes                                     | No                                                                |
+| Warehouse CDC        | Pipelines, public alpha                 | No                                                                |
+| Free plan databases  | 1 project, 500 MB                       | 1 database, hard cap                                              |
+
+## What each one actually is, in one picture
+
+```text
+         SUPABASE                        APPWRITE 2.0
+         ========                        ============
+
+         your app                          your app
+             |                                 |
+     PostgREST / Auth /                  Appwrite API
+     Storage / Realtime                        |
+             |                      +----------+-----------+
+         POSTGRES                   |          |           |
+       (the product)            TablesDB  DocumentsDB  VectorsDB
+                                   (all managed by Appwrite)
+
+                                 ...and, off to the side, with
+                                no Appwrite in the request path:
+
+                                           your app
+                                               |
+                                      psql / ORM / driver
+                                               |
+                                   NATIVE POSTGRES 18 / MySQL
+```
+
+Supabase is a Postgres database with services wrapped around it. Everything is in the database. Auth users are a table. Storage metadata is a table. Your permissions are SQL policies. This is why Supabase users are so evangelical about Postgres: the architecture rewards knowing it.
+
+Appwrite is an API platform with storage engines behind it. You talk to Appwrite, and Appwrite serves as an API layer over its underlying storage infrastructure. This architecture was criticized for years, until the 2.0 release, letting you skip the platform entirely if you want to.
+
+![Appwrite (left) and Supabase (right), side by side.](/images/blog/supabase-vs-appwrite/dashboards-side-by-side.png)
+
+## Data modeling: one Postgres vs five stores
+
+This used to be the easy part. Postgres versus documents, relational versus JSON. Pick your camp and move on. But that's no longer what matters when choosing between these two platforms. So what does?
+
+### Supabase: one store, and you extend it
+
+You get Postgres. When you need something Postgres doesn't do natively, you can install an extension. Vectors are `pgvector`. Queues are `pgmq`. Cron is `pg_cron`. Geospatial is PostGIS. Full-text search is built in.
+
+The upside is that everything lives in one place with one consistency model and one backup. You can join your embeddings against your users in a single query, and nobody has to think about which system owns which record.
+
+The downside is that you inherit Postgres's operational envelope. One primary, vertical scaling until you add read replicas, and connection limits that will eventually make you learn more about poolers than you wanted to.
+
+### Appwrite: five stores, and you pick per workload
+
+- **TablesDB** - structured app data with relations, queried through Appwrite's API instead of SQL.
+- **DocumentsDB** - schemaless JSON when the shape varies between records; still in beta.
+- **VectorsDB** - embeddings and similarity search, with the dimension fixed when you create the collection; also still in beta.
+- **Native Postgres** - a real Postgres for anything you'd normally use one for, but Appwrite's permissions and realtime don't reach it.
+- **Native MySQL** - the same deal for the MySQL half of the world, with the same catch.
+
+That's the announcement's list. Here's what the console actually showed me, which is more interesting than either "all five are here" or "it's marketing."
+
+The Databases page offers exactly three creatable types: TablesDB, DocumentsDB, and VectorsDB - and the latter two carry beta badges the announcement doesn't mention. Native Postgres and MySQL aren't in that picker at all.
+
+But go to the Explorer and the API tree lists all five: TablesDB, DocumentsDB, VectorsDB, PostgreSQL, MySQL. The PostgreSQL service alone has 33 endpoints - create a dedicated database, create a branch, create a backup, get the connection pooler configuration, get credentials, get status. So it's real and it's shipped; it's just provisioned through the API rather than the type picker on my plan.
+
+That gap matters if you're evaluating. Judging Appwrite 2.0 by the Databases page will tell you three stores exist. Judging it by the Explorer will tell you five do. Both are true, and which one you hit first depends on where you click.
+
+I also couldn't create a second one, because the free plan caps you at one database.
+
+One nice detail while I was there: each database card shows its type as a badge and its compute tier underneath - mine reads "Serverless" - plus a live read/write sparkline for the last 24 hours.
+
+![Appwrite's Databases page: three creatable types, DocumentsDB and VectorsDB in beta.](/images/blog/supabase-vs-appwrite/appwrite-database-types.png)
+
+One note on terminology, because it trips people up in the docs: Appwrite renamed collections to tables, documents to rows, and attributes to columns back in August 2025, and introduced the TablesDB API to match. The old document methods still work and still get security patches, but they're deprecated. If you're reading a tutorial from 2024 and the docs don't match it, that's why.
+
+### One important thing about Appwrite's native Postgres
+
+Native Postgres is not the same thing as Appwrite's TablesDB. They serve different purposes: TablesDB integrates with Appwrite's platform features, while native Postgres gives you direct access to a standard Postgres database.
+
+And it's not the Postgres that Appwrite's own features run on either. Both of these live inside Appwrite, and only one of them is wired into the platform:
+
+| Appwrite               | TablesDB | Native Postgres    |
+| :--------------------- | :------- | :----------------- |
+| Row-level permissions  | Yes      | No                 |
+| Realtime subscriptions | Yes      | No                 |
+| SDK access             | Yes      | No (use a driver)  |
+| Console editing        | Yes      | Via terminal/tools |
+
+Put your data in native Postgres and you give up many platform features. Row-level permissions, realtime subscriptions, the SDK, the console grid editor: none of that applies. You're back to writing your own API layer, which is exactly what you were paying a BaaS to avoid.
+
+### Relations: a constraint versus a field
+
+I linked posts to authors, and I noticed the two products handle relationships quite differently.
+
+In Supabase it's a foreign key, and that's the entire thing:
+
+```sql
+alter table public.posts add constraint posts_author_id_fkey
+  foreign key (author_id) references public.authors (id);
+```
+
+One statement, and it does double duty: it enforces integrity, and it's what makes PostgREST resolve `.select('*, authors(name)')` as a join, because the API generator reads your foreign keys.
+
+In Appwrite a relation is a column type you design in a form. Creating it asked me, in order: one-way or two-way, which table, what to call the column on each side, the cardinality (one-to-one, one-to-many, many-to-one, many-to-many), and what happens on delete (Set NULL, Cascade, Restrict). More clicks, but more explicit, and the console renders a plain-English summary under your choices: "posts can contain one author, author can belong to many posts".
+
+Also, the console warns that the column key on the related side can't be renamed after creation. In Postgres you can drop and recreate a foreign key whenever you like.
+
+### The API layer
+
+Both give you a generated API over your data, but they feel different.
+
+**Supabase:**
+
+```ts
+const { data, error } = await supabase
+  .from('posts')
+  .select('id, title, author:authors(name)')
+  .eq('published', true)
+  .order('created_at', { ascending: false })
+  .limit(20)
+```
+
+That `author:authors(...)` bit is a join, resolved by PostgREST because it can see the foreign key I added earlier. Once it clicks, it's fast to write. Before it clicks, the error messages are a hazing ritual.
+
+**Appwrite:**
+
+```ts
+import { TablesDB, Query } from 'appwrite'
+
+const tablesDB = new TablesDB(client)
+
+const rows = await tablesDB.listRows({
+  databaseId: 'main',
+  tableId: 'posts',
+  queries: [
+    Query.equal('published', [true]),
+    Query.orderDesc('$createdAt'),
+    Query.limit(20),
+  ],
+})
+```
+
+Note the `$createdAt`. Appwrite gives every row `$id`, `$createdAt`, and `$updatedAt` for free, and the dollar sign is how you tell its own fields from yours. Handy, and also the first thing that'll throw an error if you type it from muscle memory.
+
+Two Supabase gotchas worth putting on your calendar:
+
+New tables in the `public` schema are [no longer exposed to the Data API automatically](https://supabase.com/changelog/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically). It's opt-in today, it became the default for new projects on May 30th, and it gets enforced on all projects on October 30th, 2026.
+
+I checked what this actually looks like on a project that predates the cutover, and the answer is: nothing has changed for you yet, which is exactly why you should look now. On mine, "Automatically expose new tables" was still switched on, and both tables I'd just created via SQL were live on the REST endpoint without my ever visiting the setting. The old default persists until October, then it doesn't.
+
+Two things worth knowing when you go check. First, the Data API has moved: it's now listed as an integration rather than a project setting, at Integrations → Data API → Settings. Second, there's a new per-table toggle next to the schema one, so you can expose `public` while keeping individual tables out of it, which is a much better tool than the all-or-nothing schema switch people were working around before.
+
+And GraphQL: `pg_graphql` is no longer enabled automatically, and since 1.6.0 introspection is off by default for new projects. GraphQL on Supabase is now something you deliberately turn on rather than something you find already running. If GraphQL is central to how you build, that posture matters more than the feature checkbox.
+
+![Supabase's Data API settings, with "Automatically expose new tables" still on.](/images/blog/supabase-vs-appwrite/supabase-data-api-settings.png)
+
+## Auth
+
+Both have a solid provider list, both do MFA and OIDC, both now let your project be an identity provider. The interesting differences are narrower than the marketing suggests.
+
+Supabase added passkeys in beta (WebAuthn, biometrics, device PIN, or a hardware key) and OAuth 2.1 authorization-server capabilities, so your project can issue tokens to third-party apps and MCP clients. Auth users live in a Postgres table, which means custom claims, triggers, and joins against your own tables are trivially available. It also means you can shoot yourself in the foot with a badly written trigger on signup, and people do.
+
+Appwrite 2.0's OAuth server made two decisions I like:
+
+- You host the consent screen. Users approving access to your app never bounce to a page that looks like someone else's product.
+- Client registration is an API in the client SDKs, not a form in the console. Which is the difference between "we support OAuth" and "you can build a self-serve developer portal on this."
+
+If you're building a platform that other developers integrate with, that second point is the whole ballgame and it's worth more than any other line in this article. If you're building a normal app with Google and email login, you'll never touch it and both products are fine.
+
+### Authorization rules
+
+The test case is simple: one table, `posts`, with `title`, `body`, `published`, and an author. The app needs four basic rules:
+
+1. Anonymous visitors see only posts where `published` is true
+2. Signed-in users can create posts
+3. Authors can edit and delete only their own
+4. Nobody else's drafts are visible to anyone
+
+Supabase does rules 1 and 4 in two policies:
+
+```sql
+create policy "anyone reads published posts"
+on public.posts for select using (published = true);
+
+create policy "authors read their own drafts"
+on public.posts for select to authenticated using (auth.uid() = author_id);
+```
+
+I ran `select title, published from posts` from the dashboard's Anonymous role. One row came back out of two. The draft was invisible. That's the whole implementation.
+
+![Run as Anonymous in Supabase: one row back, the draft hidden.](/images/blog/supabase-vs-appwrite/supabase-run-as-anonymous.png)
+
+A note on scope: I directly tested rules 1 and 4 on both platforms. Rules 2 and 3 are implemented in both, but I didn't test them end to end because that would require real user accounts. So consider those two implemented, not proven.
+
+Appwrite cannot express rule 1 at all, and this is the finding I'd build the article around if I only had one. Its permission roles answer the question "who are you" - Any, All guests, All users, a specific user, a team. There is no place to put a condition about the row's own data. `published = true` is not a role. And filtering it in the query doesn't count: a query filter is a convention the caller can drop, a permission is enforced whether they cooperate or not.
+
+So you work around it, and the workaround has a cost. Here's what I actually had to do:
+
+1. Remove Any → Read at the table level. Leave it on and every draft is world-readable, because table permissions override row permissions.
+2. Enable Row security.
+3. On the published row, add Any → Read by hand.
+4. On the draft, add only `user:demo-author-1` with read, update, delete.
+
+![Appwrite row permissions: the draft's access granted to one user by hand.](/images/blog/supabase-vs-appwrite/appwrite-row-permissions.png)
+
+It works. The result is the same. But look at what happened to the schema: the `published` column is now decorative. The real publish switch is a permission you have to remember to write onto every row at creation time. Forget it on a published post and nobody sees it. Forget it the other way and a draft goes public. In Supabase there is nothing to forget, because the condition lives in one place instead of on every record.
+
+The ceiling shows up fast, too. "Users can read orders in their org, unless the order is archived, unless they're an admin" is four lines of SQL and a data-model redesign in a permission system.
+
+And on Appwrite's native Postgres you get neither model, because there's no Appwrite in the request path to enforce anything. You write your own middleware, or you write RLS yourself against your own JWTs.
+
+Both products can now show you what a given role actually sees, and this is the part of the tooling that changed most in 2026.
+
+On Supabase, don't go looking for a thing called "RLS Tester" - I did, and it isn't a panel in the policy editor. What exists is a role switcher in the SQL editor: the dropdown next to Run offers postgres, Anonymous, and Authenticated (with a user picker and an MFA level), and it tells you plainly that postgres bypasses RLS.
+
+Appwrite's equivalent is buried somewhere I didn't expect: the Explorer, its in-console API client. Pick TablesDB → List rows, fill in the database and table IDs, and there's an Act as: Guest / User toggle sitting right above the Send button. I ran it as Guest against my table and got back exactly this:
+
+```json
+{
+  "total": 1,
+  "rows": [
+    {
+      "title": "Hello from Appwrite",
+      "body": "Public post, visible to everyone."
+    }
+  ]
+}
+```
+
+One row out of two, 200 OK in 202 ms. The draft never left the server. Same proof as the Supabase side, arrived at completely differently - and arguably a better one, because it's a real HTTP request through the actual API rather than a SQL session with a role set. If you're evaluating Appwrite's permission model, this is the fastest way to convince yourself it works.
+
+The shield button on Supabase's Policies page, meanwhile, is something else entirely - it opens the AI Assistant, which will write a policy for you but won't test one.
+
+Worth checking out while you're on that page: Supabase now offers to install a trigger that automatically enables RLS on every new table. Given that the classic way to leak a database is creating a table and forgetting, this is the single most valuable checkbox in the product, and it's off by default.
+
+Three roadblocks I hit in Appwrite that aren't in the docs:
+
+- Row permissions are invisible from the row. Open a row to edit it and you see the data fields only. Permissions live in the `...` menu under "Manage permissions." Looking at a record tells you nothing about who can read it.
+- Row-level permissions have no Create, only Read, Update, Delete. Logical, briefly confusing.
+- Custom permissions aren't validated. The field takes `user:[USER_ID]`, `team:[TEAM_ID]/[ROLE]`, or `member:[MEMBERSHIP_ID]` as free text. I typed a user ID that doesn't exist and it saved without complaint. A typo here is a silently broken rule.
+
+If you're comfortable in SQL, RLS gives you more power and one place to look. If you're not, permission rules are harder to get subtly wrong, as long as your rules are about people and not about the data.
+
+## Storage
+
+Both speak S3 now, removing the main reason to switch away from either platform.
+
+Supabase splits egress into cached and origin tiers, and has priced cached at $0.03/GB, roughly a third of origin. I'm quoting that from [their changelog](https://supabase.com/changelog/38119-3x-cheaper-egress-for-cache-hits) rather than from their pricing page, so double check costs before committing. If you serve images, the critical takeaway is the cost structure: serving cached assets is significantly cheaper than pulling directly from the origin.
+
+Appwrite says its S3 API maps onto your existing buckets, so files uploaded via the AWS CLI show up in the console and vice versa. That's from [their 2.0 announcement](https://appwrite.io/blog/post/announcing-appwrite-2) rather than a round-trip I ran myself - I stayed in the dashboard. The dual addressing is the nice part: you don't have to choose a lane at the start.
+
+The differences that matter for most apps come down to CDN performance, image transformations, and upload limits. Don't rely on vendor benchmarks; test these with your team's own typical file sizes.
+
+## Functions, and the runtime arms race
+
+| Capability       | Supabase                       | Appwrite                                               |
+| :--------------- | :----------------------------- | :----------------------------------------------------- |
+| Runtime          | Deno 2.1, all regions          | Node, Bun 1.4, Deno, Python, PHP, Ruby, Rust, and more |
+| Deploy           | CLI, dashboard, Management API | CLI, console, Git triggers                             |
+| Language freedom | TypeScript/JavaScript          | Wide                                                   |
+
+Appwrite's runtime breadth is the clear win here, and [Bun 1.4](https://bun.sh/blog/bun-v1.4) landed on August 20th as both a function runtime and a build runtime for Appwrite Sites. It's the first Bun written in Rust rather than Zig; Appwrite's own numbers put builds 22% faster than Bun 1.3 on a Next.js app with 640 packages. Again: vendor benchmark, one workload, take it with a grain of salt.
+
+Supabase's counter-argument is that one runtime means one set of behaviors to learn, and Deno's security model and web-standard APIs are genuinely pleasant. If your functions are webhooks and glue, this doesn't matter. If you have a Python ML step in your pipeline, it decides the whole thing.
+
+Cold starts: measure them. I'm not publishing numbers from a free tier and pretending they generalize, and you shouldn't trust anyone who does. Hit your own function 20 times after five idle minutes and look at your own p95.
+
+## Realtime
+
+Supabase Realtime broadcasts database changes over WebSockets, gates channels through RLS policies, and [as of June 2026 supports binary payloads over Broadcast](https://supabase.com/changelog/46834-realtime-broadcast-now-supports-binary-payloads), which cuts JSON overhead if you're pushing sensor data or image frames. Realtime also picked up per-project settings for connection pool size and max concurrent clients, which you will need eventually.
+
+Appwrite's realtime rides on the same permission model as your data, so a client subscribed to a table only sees rows it's allowed to see, with no separate policy layer. 1.9.5 added a [Presences API](https://appwrite.io/blog/post/announcing-presences-api) for online/typing/activity states, which is the feature everyone typically reimplements poorly by hand.
+
+Neither applies to data sitting in Appwrite's native Postgres. Worth saying twice.
+
+## Local dev and migrations: the part that decides if you're happy in six months
+
+Supabase's local stack has a better reputation than its marketing suggests, and I'm reporting that, rather than demonstrating it - everything in this article was done through the dashboards, not the CLI. What's on offer: the full stack in Docker, migrations as SQL files in your repo, branching (no longer requiring Git as of May 2026), and pg-delta in public alpha for declarative schema management, where you edit `.sql` files describing the desired state and the CLI diffs it. If you've suffered through hand-writing migrations, that last one is the headline.
+
+Appwrite's story is more API-shaped. The [Projects API](https://appwrite.io/blog/post/announcing-projects-api) (as of July 2026) makes every project setting configurable from the server SDKs, from auth methods to SMTP to labels, and there's Terraform support. That's a different flavor of infrastructure-as-code: less "my schema is in Git" and more "my entire project config is in Git."
+
+If your instinct is to check schema into version control and review it in PRs, Supabase fits your muscle memory. If it's Terraform, Appwrite might be a better fit.
+
+The 2.0 console also runs the Appwrite CLI inside the console with your session preconfigured, and ships an Explorer that loads your project's OpenAPI spec and builds live requests with guided forms. The Explorer is the one I'd point people to: it splits Client API from Server API, shows the required scopes for each endpoint, has ID pickers instead of making you paste identifiers, exports the whole OpenAPI spec, and will hand you the request as cURL. It's the tool I ended up using to prove the permissions model worked, and I didn't expect a vendor console to replace Postman for a task like that.
+
+![Appwrite's Explorer: an in-console API client with an Act as Guest / User toggle.](/images/blog/supabase-vs-appwrite/appwrite-explorer.png)
+
+## The AI in the console
+
+Both products have quietly put a model in the dashboard, on the free tier, and they've aimed it at completely different problems.
+
+Appwrite aims it at the empty state. Creating a table offers "Smart column suggestions - enable AI to suggest useful columns based on your table name." An empty table offers "Suggest columns" and "Generate sample data" as first-class buttons next to "Create column." The bet is that the hard part is starting: you've named a thing `orders` and now you're staring at a blank schema.
+
+Supabase aims it at the dangerous part. The Assistant lives on the Policies page and its listed ideas are things like "Set up RLS policies," "Query your data," "Create a function." The bet is that the hard part is the thing most likely to leak your database.
+
+If I had to pick which one saves more grief: Supabase's, because a wrong column is a migration and a wrong policy is an incident. But Appwrite's is the one you'll actually use on day one, and there's an argument that generating sample data is worth more than either - you can't test a permission rule against an empty table.
+
+Worth knowing before you turn them on: Supabase's Assistant now prompts you to opt in to sharing schema metadata and query logs for better results.
+
+## Beyond the basics: what each one uniquely offers
+
+**Supabase:**
+
+- Read replicas
+- Pipelines: managed change data capture (CDC) to BigQuery, public alpha, paid plans
+- Log drains and a mature observability story
+- Foreign data wrappers (query Stripe, MongoDB, and friends as if they were tables)
+- Multigres, the horizontal-scaling project, still 0.1 alpha and not something to plan around yet
+- The extension ecosystem, which is really "everything Postgres has"
+
+**Appwrite:**
+
+- Sites: static and framework hosting
+- Messaging: push, email, SMS as a first-class product
+- Firewall: rules on IP, hostname, path, method, headers, query params, user agent, or location, with deny / bypass / challenge / rate limit / redirect actions, and a preview of how many recent requests a rule would have matched before you enable it
+- Domains: an actual registrar, 160+ TLDs, DNS zone editing, MX presets, automatic TLS.
+- Native MySQL, if that's your world
+- Multiple data models in one project
+
+That Firewall preview feature deserves a callout. Shipping a web application firewall (WAF) rule and finding out its blast radius afterwards is a specific kind of misery, and previewing the match count first is the sort of thing you only build if you've been burned.
+
+One practical note: I couldn't reach Firewall from the legacy console at all. The organization tabs there are Projects, Domains, Members, Usage, Billing, Settings, and that's it. If you're evaluating it, flip to Console IV first via the banner, or you'll conclude the feature doesn't exist.
+
+## Self-hosting
+
+Both are open source. Both self-host. But...
+
+Supabase self-hosted has had a rough year of breaking changes, and if you're pinned to an old compose file you have homework:
+
+- [Envoy replaced Kong as the default API gateway](https://supabase.com/changelog/48048-self-hosted-supabase-envoy-becomes-the-default-api-gateway-b) (August 2026). If you rely on Kong's HTTPS listener or a custom `kong.yml`, you need to opt back in.
+- The default database image moved from Postgres 15 to 17, and PG 15 data does not auto-upgrade. Run the script or pin the old image.
+- Analytics and Vector became opt-in, so Logs Explorer needs an extra compose file.
+- `API_EXTERNAL_URL` now includes `/auth/v1`, which breaks SAML SSO setups until you repoint your IdP.
+
+None of these are unreasonable. Collectively they mean self-hosted Supabase is not a set-and-forget deployment.
+
+Appwrite self-hosted is simpler to run and has been for years, docker compose and go. Two caveats for 2.0: Community Edition gets the full release when Init week wraps up rather than the day of the announcement, and Domains and Firewall stay Cloud-only because both are tied to Appwrite's own registrar and network. So the self-hosted product is genuinely missing two of the flagship 2.0 features. If Firewall is why you're interested, self-hosting isn't an option.
+
+Also, 1.9.5 had a bumpy upgrade that 1.9.6 cleaned up in July 2026 (missing Git provider attributes, migrations that failed instead of skipping). Not damning, but if you self-host, wait a beat after a major and let the first patch land. You knew that already.
+
+## Pricing
+
+I'm not going to publish a pricing table that's wrong by the time you read it. Both vendors change these, and both pricing pages are one click away. What I'll give you instead is where the bill surprises people, because that doesn't change:
+
+Supabase: the surprises are compute and egress. Compute is billed hourly on provisioned disk, monthly active user (MAU) overage runs past the included tier, and origin egress costs 3x what cached egress does. A project that's cheap in development gets expensive the first time an image-heavy page goes viral without a CDN in front of it.
+
+Appwrite: the new surprise is that native Postgres and MySQL are dedicated databases with paid compute tiers starting at $10/month. Every Pro project gets $10 in database credits, which covers exactly one small database. If your plan is "we'll use native Postgres for everything," price that before you architect around it.
+
+The real cost comparison is this: with Supabase you'll probably also pay for hosting and possibly a CDN and a WAF. With Appwrite those come out of the box. Remember to compare costs across the whole stack, not the line item.
+
+## Where each one breaks down
+
+**Supabase:**
+
+- You need a second data shape and end up bolting on another service
+- Nobody on the team wants to own RLS, and authorization becomes an ambient anxiety
+- You hit the vertical ceiling and read replicas aren't enough
+- Self-hosting turns into a part-time job
+
+**Appwrite:**
+
+- Your query is complicated enough that the SDK's query API stops keeping up, and you don't want to move to native Postgres and lose the platform
+- You want SQL for reporting against your app data, which TablesDB doesn't hand you
+- You need a feature that only exists on Cloud and you're committed to self-hosting
+- You're standing in front of five data stores at project creation
+
+## So which one
+
+Supabase is strongest when the database is the center of the application: relational data, SQL you're comfortable writing, and a team willing to own policies and migrations. It also carries everything that exists because Postgres is underneath - read replicas, CDC into a warehouse, foreign data wrappers, the extension ecosystem. Appwrite has no equivalent there.
+
+Appwrite fits teams building an application rather than a schema, where getting auth, files, functions and hosting from one vendor saves more time than direct database control would. Two capabilities are genuinely unusual: the OAuth server with SDK-based client registration, and a firewall and domain registrar sitting in the same product as the backend. Both are Cloud-only.
+
+## Or don't pick a side
+
+Both of these make you choose: Postgres and SQL at the center, or an SDK-and-API platform that hides the database. Nhost refuses the tradeoff. You get a real Postgres you own, a GraphQL API generated on top of it, and permissions tied to roles instead of hand-written policies or per-row grants - the database stays at the center, and nobody has to own RLS by hand. It is open source, single-tenant on every service, and you can bring your own containers when a function isn't enough.
+
+If that's the backend you actually wanted while reading this, [start building on Nhost for free](https://app.nhost.io/signup).
