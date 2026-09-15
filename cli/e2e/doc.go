@@ -1,6 +1,11 @@
-// Package e2e contains black-box end-to-end tests for the CLI-managed local
-// development environment. The tests are guarded by the `e2e` build tag and are
-// driven by environment variables; see e2e_test.go for details and how to run
-// them. This file exists (untagged) so the package always has a buildable Go
-// file, keeping `go build ./...` and linters happy when the tag is absent.
+// Package e2e tests the CLI-managed local development environment. The
+// Docker-suite files e2e_test.go and lifecycle_test.go require the `e2e` build
+// tag; command_test.go and redaction_test.go are untagged so their harness unit
+// tests run in the ordinary test leg. This file keeps the package buildable
+// when the tag is absent.
+//
+// Hasura CLI can exit successfully after reporting inconsistent metadata, so
+// `nhost up` succeeding does not prove that a fixture was accepted. The suite
+// copies only metadata the scratch project can satisfy, and the negative
+// assertions in TestCopyExampleMetadata pin those exclusions.
 package e2e
