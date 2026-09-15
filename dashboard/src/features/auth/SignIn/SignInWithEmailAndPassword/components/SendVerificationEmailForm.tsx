@@ -18,13 +18,15 @@ const emailFormSchema = z.object({
 });
 
 function SendVerificationEmailForm() {
-  const { resendVerificationEmail } = useResendVerificationEmail();
   const form = useForm<z.infer<typeof emailFormSchema>>({
     resolver: zodResolver(emailFormSchema),
     defaultValues: {
       email: '',
     },
   });
+
+  const { resendVerificationEmail, secondsRemaining } =
+    useResendVerificationEmail(form.watch('email'));
 
   const onSubmit = async (values: z.infer<typeof emailFormSchema>) => {
     await resendVerificationEmail(values.email);
@@ -53,10 +55,12 @@ function SendVerificationEmailForm() {
           className="!bg-white !text-black disabled:!text-black disabled:!text-opacity-60 w-full"
           size="lg"
           loading={form.formState.isSubmitting}
-          disabled={form.formState.isSubmitting}
+          disabled={form.formState.isSubmitting || secondsRemaining > 0}
           type="submit"
         >
-          Resend verification email
+          {secondsRemaining > 0
+            ? `Resend verification email (${secondsRemaining}s)`
+            : 'Resend verification email'}
         </ButtonWithLoading>
       </form>
     </Form>

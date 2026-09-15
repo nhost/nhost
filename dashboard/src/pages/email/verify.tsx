@@ -13,8 +13,11 @@ export default function VerifyEmailPage() {
     query: { email },
   } = router;
 
-  const { resendVerificationEmail, loading: resendVerificationEmailLoading } =
-    useResendVerificationEmail();
+  const {
+    resendVerificationEmail,
+    loading: resendVerificationEmailLoading,
+    secondsRemaining,
+  } = useResendVerificationEmail(email as string);
 
   const handleResendEmailClick = async () => {
     await resendVerificationEmail(email as string);
@@ -37,12 +40,14 @@ export default function VerifyEmailPage() {
           <ButtonWithLoading
             className="!bg-white !text-black disabled:!text-black disabled:!text-opacity-60"
             size="lg"
-            disabled={resendVerificationEmailLoading}
+            disabled={resendVerificationEmailLoading || secondsRemaining > 0}
             loading={resendVerificationEmailLoading}
             type="button"
             onClick={handleResendEmailClick}
           >
-            Resend verification email
+            {secondsRemaining > 0
+              ? `Resend verification email (${secondsRemaining}s)`
+              : 'Resend verification email'}
           </ButtonWithLoading>
         ) : (
           <SendVerificationEmailForm />
