@@ -36,19 +36,9 @@ vi.mock('@/components/layout/Header/HeaderNavigation', () => ({
   default: () => <nav>Header navigation</nav>,
 }));
 
-vi.mock(
-  '@/features/orgs/components/members/components/AnnouncementsTray',
-  () => ({
-    AnnouncementsTray: () => <div>Announcements</div>,
-  }),
-);
-
-vi.mock(
-  '@/features/orgs/components/members/components/NotificationsTray',
-  () => ({
-    NotificationsTray: () => <div>Notifications</div>,
-  }),
-);
+vi.mock('@/features/orgs/components/members/components/InboxPopover', () => ({
+  InboxPopover: () => <div>Inbox</div>,
+}));
 
 vi.mock('@/features/orgs/projects/hooks/useOrgs', () => ({
   useOrgs: () => useOrgsMock(),
