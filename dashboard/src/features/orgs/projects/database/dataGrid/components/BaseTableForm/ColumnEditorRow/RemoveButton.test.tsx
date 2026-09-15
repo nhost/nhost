@@ -5,12 +5,17 @@ import { RemoveButton } from './RemoveButton';
 
 // Mock the form data structure
 interface FormData {
-  columns: Array<{ name: string; type: string }>;
+  name?: string;
+  columns: Array<{ name: string; type: string; formReference: string }>;
   foreignKeyRelations: Array<{
-    columnName: string;
+    columns: string[];
     referencedSchema: string;
     referencedTable: string;
-    referencedColumn: string;
+    referencedColumns: string[];
+  }>;
+  uniqueConstraints: Array<{
+    id: string;
+    columnReferences: string[];
   }>;
   primaryKeyIndices: string[];
   identityColumnIndex: number | null;
@@ -47,18 +52,19 @@ describe('RemoveButton onClick', () => {
 
   const defaultFormData: FormData = {
     columns: [
-      { name: 'id', type: 'integer' },
-      { name: 'name', type: 'text' },
-      { name: 'email', type: 'text' },
+      { name: 'id', type: 'integer', formReference: 'id-reference' },
+      { name: 'name', type: 'text', formReference: 'name-reference' },
+      { name: 'email', type: 'text', formReference: 'email-reference' },
     ],
     foreignKeyRelations: [
       {
-        columnName: 'name',
+        columns: ['name'],
         referencedSchema: 'public',
         referencedTable: 'users',
-        referencedColumn: 'username',
+        referencedColumns: ['username'],
       },
     ],
+    uniqueConstraints: [],
     primaryKeyIndices: ['0', '1'],
     identityColumnIndex: 1,
   };
@@ -83,13 +89,59 @@ describe('RemoveButton onClick', () => {
     expect(formValues!.primaryKeyIndices).toEqual(['0', '1']);
     expect(formValues!.foreignKeyRelations).toEqual([
       {
-        columnName: 'name',
+        columns: ['name'],
         referencedSchema: 'public',
         referencedTable: 'users',
-        referencedColumn: 'username',
+        referencedColumns: ['username'],
       },
     ]);
     expect(formValues!.identityColumnIndex).toBe(1);
+  });
+
+  it('removes self foreign keys and UNIQUE constraints that reference the removed column', async () => {
+    let formValues: FormData;
+
+    render(
+      <TestWrapper
+        defaultValues={{
+          ...defaultFormData,
+          name: 'users',
+          foreignKeyRelations: [
+            {
+              columns: ['email'],
+              referencedSchema: 'public',
+              referencedTable: 'users',
+              referencedColumns: ['id', 'name'],
+            },
+          ],
+          uniqueConstraints: [
+            {
+              id: 'composite-key',
+              columnReferences: ['id-reference', 'name-reference'],
+            },
+            {
+              id: 'email-key',
+              columnReferences: ['email-reference'],
+            },
+          ],
+        }}
+        onFormChange={(values) => {
+          formValues = values;
+        }}
+      >
+        <RemoveButton index={1} schema="public" />
+      </TestWrapper>,
+    );
+
+    await user.click(screen.getByTestId('remove-column-1'));
+
+    expect(formValues!.foreignKeyRelations).toEqual([]);
+    expect(formValues!.uniqueConstraints).toEqual([
+      {
+        id: 'email-key',
+        columnReferences: ['email-reference'],
+      },
+    ]);
   });
 
   it('should handle multiple operations simultaneously', async () => {
