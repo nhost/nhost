@@ -32,7 +32,7 @@ let
 
   checkDeps = with pkgs; [
     nhost.sqlc
-    mockgen
+    nhost.mockgen
     nhost.nhost-cli
   ];
 
