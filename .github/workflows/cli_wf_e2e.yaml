@@ -25,8 +25,8 @@ on:
 jobs:
   e2e:
     runs-on: blacksmith-2vcpu-ubuntu-2404
-    # 45m Go test deadline below + 30m for setup, artifacts, and cache storage.
-    timeout-minutes: 75
+    # 30m Go test deadline below + 8m for setup, artifacts, and cache storage.
+    timeout-minutes: 38 # Must stay below .github/workflows/ci_final_status_check.yaml's MAX_WAIT_S (45m).
 
     strategy:
       fail-fast: false
@@ -37,7 +37,7 @@ jobs:
 
     permissions:
       id-token: write
-      contents: write
+      contents: read
       actions: read
 
     steps:
@@ -46,6 +46,7 @@ jobs:
         with:
           ref: ${{ inputs.GIT_REF }}
           allow-unsafe-pr-checkout: true
+          persist-credentials: false
 
       - name: Configure aws
         uses: aws-actions/configure-aws-credentials@v6
@@ -80,16 +81,22 @@ jobs:
           unzip -o "$HOME/artifacts/cli-artifact-linux-x86_64-0.0.0-dev/result.zip" -d "$RUNNER_TEMP/clibin"
 
       # The engine image is not a CLI build artifact, so engine mode builds it
-      # here and loads it under the tag E2E_ENGINE_VERSION pins below.
+      # here and loads it under the tag E2E_ENGINE_VERSION pins below. Keep the
+      # build under the same release/dashboard guard as the e2e suite.
       - name: "Build and load engine image"
-        if: matrix.mode == 'engine'
+        if: ${{ matrix.mode == 'engine' && !startsWith(github.head_ref, 'release/dashboard') }}
         run: |
           nix build .#engine-docker-image --out-link "$RUNNER_TEMP/engine-image"
           skopeo copy --insecure-policy \
             "dir:$RUNNER_TEMP/engine-image" \
             docker-daemon:nhost/engine:0.0.0-dev
 
+      # Skipped on `release/dashboard` PRs because the release PR bumps the
+      # `nhost/dashboard:<tag>` ref in `cli/cmd/dev/` to a version that isn't
+      # published until the PR merges, which makes `cli up` fail to pull it.
+      # `github.head_ref` is empty on merge_group, so that event still runs.
       - name: "Run e2e suite (${{ matrix.mode }})"
+        if: ${{ !startsWith(github.head_ref, 'release/dashboard') }}
         env:
           E2E_MODE: ${{ matrix.mode }}
           E2E_CONFIGSERVER_IMAGE: cli:0.0.0-dev
@@ -102,7 +109,7 @@ jobs:
           GOEXPERIMENT: jsonv2
         run: |
           nix develop .#cli --command \
-            go test -tags e2e -timeout 45m -v ./cli/e2e/
+            go test -tags e2e -timeout 30m -v ./cli/e2e/
 
       - name: "Store Nix cache"
         uses: ./.github/actions/cache-nix
