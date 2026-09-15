@@ -1,6 +1,8 @@
 import type { ReactElement } from 'react';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { ProjectViewWithState } from '@/features/orgs/layout/ProjectGuard';
+import { ProjectScope } from '@/features/orgs/layout/ProjectScope';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { AnonymousSignInSettings } from '@/features/orgs/projects/authentication/settings/components/AnonymousSignInSettings';
 import { AppleProviderSettings } from '@/features/orgs/projects/authentication/settings/components/AppleProviderSettings';
@@ -79,10 +81,12 @@ export default function SettingsSignInMethodsPage() {
 
 SettingsSignInMethodsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout>
-      <SettingsLayout>
-        <div className="mx-auto w-full max-w-5xl px-5 py-4">{page}</div>
-      </SettingsLayout>
-    </ProjectLayout>
+    <AppLayout>
+      <ProjectScope>
+        <ProjectViewWithState>
+          <SettingsLayout>{page}</SettingsLayout>
+        </ProjectViewWithState>
+      </ProjectScope>
+    </AppLayout>
   );
 };

@@ -4,11 +4,13 @@ import { type ReactElement, useCallback, useEffect } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { Container } from '@/components/layout/Container';
 import { Button } from '@/components/ui/v3/button';
 import { ServicesOutlinedIcon } from '@/components/ui/v3/icons/ServicesOutlinedIcon';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { ProjectViewWithState } from '@/features/orgs/layout/ProjectGuard';
+import { ProjectScope } from '@/features/orgs/layout/ProjectScope';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useRunServices } from '@/features/orgs/projects/common/hooks/useRunServices';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
@@ -178,5 +180,11 @@ export default function RunPage() {
 }
 
 RunPage.getLayout = function getLayout(page: ReactElement) {
-  return <ProjectLayout>{page}</ProjectLayout>;
+  return (
+    <AppLayout>
+      <ProjectScope>
+        <ProjectViewWithState>{page}</ProjectViewWithState>
+      </ProjectScope>
+    </AppLayout>
+  );
 };
