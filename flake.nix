@@ -167,6 +167,22 @@
             ;
         };
 
+        nhost-python-tutorialf = import ./examples/tutorials/nhost-python-tutorial/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
+        webhook-receiverf = import ./examples/demos/webhook-receiver/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
         leptosf = import ./examples/quickstarts/leptos/project.nix {
           inherit
             self
@@ -208,6 +224,14 @@
         };
 
         nhost-gof = import ./packages/nhost-go/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
+        nhost-pythonf = import ./packages/nhost-python/project.nix {
           inherit
             self
             pkgs
@@ -323,10 +347,20 @@
               leptosf.check
             ];
           };
+          nhost-python = pkgs.symlinkJoin {
+            name = "nhost-python-checks";
+            paths = [
+              nhost-pythonf.check
+              nhost-python-tutorialf.check
+              webhook-receiverf.check
+            ];
+          };
           nhost-rust-tutorial = nhost-rust-tutorialf.check;
           nhost-go-tutorial = nhost-go-tutorialf.check;
           leptos = leptosf.check;
           cat-uploader = cat-uploaderf.check;
+          nhost-python-tutorial = nhost-python-tutorialf.check;
+          webhook-receiver = webhook-receiverf.check;
           stripe-graphql-js = stripe-graphql-jsf.check;
           nixops = nixopsf.check;
           postgres = postgresf.check;
@@ -471,11 +505,14 @@
           nhostclient = nhostclientf.devShell;
           nhost-js = nhost-jsf.devShell;
           nhost-go = nhost-gof.devShell;
+          nhost-python = nhost-pythonf.devShell;
           nhost-rust = nhost-rustf.devShell;
           nhost-rust-tutorial = nhost-rust-tutorialf.devShell;
           nhost-go-tutorial = nhost-go-tutorialf.devShell;
           leptos = leptosf.devShell;
           cat-uploader = cat-uploaderf.devShell;
+          nhost-python-tutorial = nhost-python-tutorialf.devShell;
+          webhook-receiver = webhook-receiverf.devShell;
           stripe-graphql-js = stripe-graphql-jsf.devShell;
           nixops = nixopsf.devShell;
           postgres = postgresf.devShell;
@@ -524,6 +561,7 @@
           landing-vercel-deploy-production = landingf.vercelDeployProduction;
           nhost-js = nhost-jsf.package;
           nhost-go = nhost-gof.package;
+          nhost-python = nhost-pythonf.package;
           nhost-rust-doc = nhost-rustf.rustDocJson;
           stripe-graphql-js = stripe-graphql-jsf.package;
           mcp = mcpf.package;

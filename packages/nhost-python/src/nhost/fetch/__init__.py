@@ -1,0 +1,291 @@
+"""HTTP fetch pipeline shared by the generated and hand-written Nhost clients.
+
+The pipeline mirrors ``@nhost/nhost-js``'s ``fetch`` module: a chain of
+middleware functions wrap a base fetch backed by an :class:`httpx.AsyncClient`.
+Each middleware can inspect/modify the outgoing :class:`httpx.Request` and the
+returned :class:`httpx.Response`, which is how session refresh, access-token
+attachment, and role/header injection are implemented.
+"""
+
+from __future__ import annotations
+
+import contextlib
+import json as _json
+from collections.abc import Awaitable, Callable
+from dataclasses import dataclass
+from datetime import date, datetime, time
+from decimal import Decimal
+from enum import Enum
+from typing import Any, Generic, TypeVar
+from uuid import UUID
+
+import httpx
+from pydantic import AnyUrl, BaseModel, TypeAdapter
+
+T = TypeVar("T")
+
+#: A fetch-like function: takes a prepared request and returns a response.
+FetchFunction = Callable[[httpx.Request], Awaitable[httpx.Response]]
+
+#: Middleware: takes the next fetch in the pipeline and returns a wrapping fetch.
+Middleware = Callable[[FetchFunction], FetchFunction]
+
+_NO_BODY_STATUSES = frozenset({204, 205, 304})
+
+
+class _Missing:
+    def __repr__(self) -> str:
+        return "_MISSING"
+
+
+_MISSING = _Missing()
+
+
+def create_fetch_pipeline(
+    client: httpx.AsyncClient,
+    middleware: list[Middleware] | None = None,
+) -> FetchFunction:
+    """Compose ``middleware`` around a base fetch backed by ``client``.
+
+    The pipeline executes in list order: the first middleware wraps the second,
+    and so on, with the base fetch (``client.send``) at the center. A middleware
+    therefore sees the request before, and the response after, every middleware
+    listed behind it.
+    """
+
+    async def base_fetch(request: httpx.Request) -> httpx.Response:
+        # Never inherit redirect-following from a caller-supplied client: httpx
+        # does not strip Nhost's x-hasura-* credentials on cross-origin redirects.
+        return await client.send(request, follow_redirects=False)
+
+    fetch: FetchFunction = base_fetch
+    for middleware_function in reversed(middleware or []):
+        fetch = middleware_function(fetch)
+
+    return fetch
+
+
+@dataclass
+class FetchResponse(Generic[T]):
+    """A structured API response: the parsed body plus status and headers."""
+
+    body: T
+    status: int
+    headers: httpx.Headers
+
+
+@dataclass(frozen=True)
+class UploadFile:
+    """A binary payload for a multipart file part, carrying its filename.
+
+    Pass this instead of bare ``bytes`` to a generated upload method when the
+    server should record a specific filename. Multipart parts built from bare
+    ``bytes`` are sent with httpx's default ``"upload"`` filename, so every
+    such file is stored under the same name unless an explicit
+    ``metadata[].name`` is supplied.
+    """
+
+    filename: str
+    content: bytes
+    content_type: str = "application/octet-stream"
+
+
+def to_file_part(value: bytes | UploadFile) -> Any:
+    """Normalize a binary multipart value into an httpx ``files`` entry.
+
+    An :class:`UploadFile` becomes a ``(filename, content, content_type)``
+    tuple so its filename reaches the ``Content-Disposition`` header; bare
+    ``bytes`` are passed through unchanged (httpx assigns its default
+    ``"upload"`` filename).
+    """
+    if isinstance(value, UploadFile):
+        return (value.filename, value.content, value.content_type)
+    return value
+
+
+def to_jsonable(value: Any) -> Any:
+    """Recursively convert supported values into JSON-serializable primitives.
+
+    Pydantic models preserve wire aliases and omit ``None`` fields. Dates,
+    datetimes, and times use ISO 8601 strings; UUIDs and URLs use strings;
+    Decimals use strings to preserve precision; and Enums use their values.
+    """
+    if isinstance(value, BaseModel):
+        return value.model_dump(mode="json", by_alias=True, exclude_none=True)
+    if isinstance(value, (list, tuple)):
+        return [to_jsonable(item) for item in value]
+    if isinstance(value, dict):
+        return {key: to_jsonable(item) for key, item in value.items()}
+    if isinstance(value, Enum):
+        return to_jsonable(value.value)
+    if isinstance(value, (datetime, date, time, Decimal, UUID, AnyUrl)):
+        return _adapter_for(type(value)).dump_python(value, mode="json")
+    return value
+
+
+def to_json(value: Any) -> str:
+    """Serialize ``value`` to a JSON string (used for multipart JSON parts)."""
+    return _json.dumps(to_jsonable(value))
+
+
+_adapter_cache: dict[Any, TypeAdapter[Any]] = {}
+
+
+def _adapter_for(type_: Any) -> TypeAdapter[Any]:
+    try:
+        return _adapter_cache[type_]
+    except (KeyError, TypeError):
+        adapter: TypeAdapter[Any] = TypeAdapter(type_)
+        with contextlib.suppress(TypeError):  # unhashable type key
+            _adapter_cache[type_] = adapter
+        return adapter
+
+
+def decode_json(response: httpx.Response, type_: Any) -> Any:
+    """Validate and parse ``response`` content against ``type_`` via pydantic.
+
+    Returns ``None`` for empty/no-content responses. ``type_`` may be any type
+    pydantic understands: a model, a ``Literal``, a scalar, a ``list[...]`` or a
+    union. Invalid successful responses raise :class:`ResponseDecodeError` so
+    every service exposes the same decoding contract.
+    """
+    if type_ is None or response.status_code in _NO_BODY_STATUSES or not response.content:
+        return None
+    try:
+        return _adapter_for(type_).validate_json(response.content)
+    except (ValueError, UnicodeDecodeError) as error:
+        raise ResponseDecodeError(response, type_, error) from error
+
+
+def _extract_message(body: Any) -> str:
+    """Best-effort extraction of a human-readable message from an error body."""
+    if isinstance(body, str) and body:
+        return body
+
+    if isinstance(body, dict):
+        message = body.get("message")
+        if isinstance(message, str):
+            return message
+
+        error = body.get("error")
+        if isinstance(error, str):
+            return error
+        if isinstance(error, dict):
+            nested = error.get("message")
+            if isinstance(nested, str):
+                return nested
+
+        errors = body.get("errors")
+        if isinstance(errors, list):
+            messages = [
+                item["message"]
+                for item in errors
+                if isinstance(item, dict) and isinstance(item.get("message"), str)
+            ]
+            if messages:
+                return ", ".join(messages)
+
+    return "An unexpected error occurred"
+
+
+class NhostError(Exception):
+    """Base class for errors raised by the Nhost SDK."""
+
+
+class HTTPError(NhostError, Generic[T]):
+    """Raised when an API responds with a 3xx, 4xx, or 5xx status.
+
+    The complete :class:`httpx.Response` is retained so callers can inspect the
+    request, response extensions, and protocol details in addition to the
+    decoded error body.
+    """
+
+    body: T
+    response: httpx.Response
+
+    def __init__(self, response: httpx.Response, body: T) -> None:
+        self.body = body
+        self.response = response
+        super().__init__(_extract_message(body))
+
+    @property
+    def request(self) -> httpx.Request:
+        """The request which produced the error response."""
+        return self.response.request
+
+    @property
+    def status(self) -> int:
+        """The HTTP response status code."""
+        return self.response.status_code
+
+    @property
+    def headers(self) -> httpx.Headers:
+        """The HTTP response headers."""
+        return self.response.headers
+
+    @classmethod
+    def from_response(
+        cls,
+        response: httpx.Response,
+        *,
+        body: Any = _MISSING,
+    ) -> HTTPError[Any]:
+        """Build an :class:`HTTPError` from an error response."""
+        if body is _MISSING:
+            try:
+                body = response.json()
+            except (ValueError, UnicodeDecodeError):
+                body = response.text
+        return cls(response, body)
+
+
+class ResponseDecodeError(NhostError):
+    """Raised when a successful response does not match its documented shape."""
+
+    def __init__(self, response: httpx.Response, expected_type: Any, error: Exception) -> None:
+        self.response = response
+        self.expected_type = expected_type
+        self.error = error
+        super().__init__(
+            f"Could not decode the {response.status_code} response as {expected_type!r}: {error}"
+        )
+
+    @property
+    def request(self) -> httpx.Request:
+        """The request which produced the invalid response."""
+        return self.response.request
+
+
+# Re-export middleware from the bottom so the core names above are already
+# defined when middleware (transitively) imports back from this package.
+from .middleware import (  # noqa: E402
+    AdminSessionOptions,
+    attach_access_token_middleware,
+    session_refresh_middleware,
+    update_session_from_response_middleware,
+    with_admin_session_middleware,
+    with_headers_middleware,
+    with_role_middleware,
+)
+
+__all__ = [
+    "AdminSessionOptions",
+    "HTTPError",
+    "Middleware",
+    "NhostError",
+    "ResponseDecodeError",
+    "FetchFunction",
+    "FetchResponse",
+    "UploadFile",
+    "attach_access_token_middleware",
+    "create_fetch_pipeline",
+    "decode_json",
+    "session_refresh_middleware",
+    "to_file_part",
+    "to_json",
+    "to_jsonable",
+    "update_session_from_response_middleware",
+    "with_admin_session_middleware",
+    "with_headers_middleware",
+    "with_role_middleware",
+]

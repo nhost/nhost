@@ -1,0 +1,29 @@
+name = "webhook-receiver"
+
+[image]
+image = "webhook-receiver:dev"
+
+[[ports]]
+port = 8080
+type = "http"
+publish = true
+
+# Reach GraphQL by its internal name/port (HTTP, no TLS) inside the stack.
+[[environment]]
+name = "NHOST_GRAPHQL_URL"
+value = "http://graphql:8080/v1"
+
+[[environment]]
+name = "HASURA_ADMIN_SECRET"
+value = "{{ secrets.HASURA_GRAPHQL_ADMIN_SECRET }}"
+
+[[environment]]
+name = "WEBHOOK_SECRET"
+value = "{{ secrets.WEBHOOK_SECRET }}"
+
+[resources]
+replicas = 1
+
+[resources.compute]
+cpu = 62
+memory = 128
