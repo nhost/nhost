@@ -31,7 +31,7 @@ clientCA = "{{ secrets.client_ca }}"
 
 The following headers will be added to all successful requests:
 
-- `ssl-client-cert`: The client cetificate that was used
+- `ssl-client-cert`: The client certificate that was used
 - `ssl-client-issuer-dn`: Client certificate's issuer DN
 - `ssl-client-subject-dn`: Client certificate;s distinguished name
 - `ssl-client-verify`: Result of the operation. As we only forward requests on success the value should always be `SUCCESS`.
@@ -76,7 +76,7 @@ The resulting `ca.key` file will be needed later to sign client certificates whi
 
 #### Creating client certificates
 
-Now we can proceed to create client certificats. You can repeat the steps below to create as many as you need.
+Now we can proceed to create client certificates. You can repeat the steps below to create as many as you need.
 
 
 
@@ -169,7 +169,7 @@ $ curl --cert client.crt --key client.key https://functions.acme.com/v1/echo | j
 {
   "headers": {
     "accept": "*/*",
-    "ssl-client-cert": "-----BEGIN%20CERTIFICATE-----...ommitted for brevity...-----END%20CERTIFICATE-----%0A",
+    "ssl-client-cert": "-----BEGIN%20CERTIFICATE-----...omitted for brevity...-----END%20CERTIFICATE-----%0A",
     "ssl-client-issuer-dn": "OU=IT,O=Acme Org.,L=Stockholm,ST=Stockholm,C=SE",
     "ssl-client-subject-dn": "emailAddress=jane@acme.org,OU=IT,O=Acme Org.,L=Sausalito,ST=California,C=US",
     "ssl-client-verify": "SUCCESS",

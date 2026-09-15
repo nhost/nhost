@@ -16,7 +16,7 @@ func constellation( //nolint:funlen
 	httpPort uint,
 	nhostFolder string,
 	image string,
-	hostOS string,
+	hostUser string,
 ) (*Service, error) {
 	envars, err := appconfig.ConstellationEnv(
 		cfg,
@@ -73,7 +73,7 @@ func constellation( //nolint:funlen
 		Networks: networkAliases("constellation-service"),
 		Ports:    nil,
 		Restart:  "always",
-		User:     hostUserSpec(hostOS),
+		User:     hostUserSpec(hostUser),
 		Volumes: []Volume{
 			{
 				Type:     "bind",

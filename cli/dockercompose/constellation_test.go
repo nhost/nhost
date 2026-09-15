@@ -1,8 +1,7 @@
 package dockercompose //nolint:testpackage
 
 import (
-	"fmt"
-	"os"
+	"net/url"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -116,8 +115,14 @@ func callGetServices(t *testing.T, withConstellation, useTLS bool) map[string]*S
 		}
 	}
 
+	dockerURL, err := url.Parse(defaultDockerEndpoint)
+	if err != nil {
+		t.Fatalf("parse default Docker endpoint: %v", err)
+	}
+
 	services, err := getServices(
 		cfg,
+		dockerURL,
 		"dev",
 		"nhost",
 		1337,
@@ -133,9 +138,7 @@ func callGetServices(t *testing.T, withConstellation, useTLS bool) map[string]*S
 		"nhost/cli:dev",
 		"00000000-0000-0000-0000-000000000000",
 		false,
-		// Non-Linux host: leaves User unset so these label-focused
-		// assertions aren't perturbed by the caller's uid:gid.
-		"darwin",
+		"",
 	)
 	if err != nil {
 		t.Fatalf("getServices failed: %v", err)
@@ -340,8 +343,7 @@ func TestConstellation(t *testing.T) {
 				1337,
 				"/path/to/nhost",
 				"nhost/constellation:0.1.0",
-				// Non-Linux host leaves User unset, matching the golden.
-				"darwin",
+				"",
 			)
 			if err != nil {
 				t.Fatalf("got error: %v", err)
@@ -354,33 +356,46 @@ func TestConstellation(t *testing.T) {
 	}
 }
 
-// TestConstellationRunsAsHostUserOnLinux mirrors the console host-user
-// mapping: constellation writes into the bind-mounted nhost/metadata
-// folder, so on Linux it is stamped with the caller's uid:gid and left
-// unset elsewhere.
-func TestConstellationRunsAsHostUserOnLinux(t *testing.T) {
+func TestConstellationHostUser(t *testing.T) {
 	t.Parallel()
 
-	linux, err := constellation(
-		getConfig(), "dev", false, 1337, "/path/to/nhost", "nhost/constellation:0.1.0", osLinux,
-	)
-	if err != nil {
-		t.Fatalf("got error: %v", err)
+	cases := []struct {
+		name     string
+		hostUser string
+		want     *string
+	}{
+		{
+			name:     "set",
+			hostUser: "1000:1000",
+			want:     new("1000:1000"),
+		},
+		{
+			name:     "unset",
+			hostUser: "",
+			want:     nil,
+		},
 	}
 
-	want := fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid())
-	if linux.User == nil || *linux.User != want {
-		t.Errorf("linux constellation User = %v, want %q", linux.User, want)
-	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	other, err := constellation(
-		getConfig(), "dev", false, 1337, "/path/to/nhost", "nhost/constellation:0.1.0", "windows",
-	)
-	if err != nil {
-		t.Fatalf("got error: %v", err)
-	}
+			got, err := constellation(
+				getConfig(),
+				"dev",
+				false,
+				1337,
+				"/path/to/nhost",
+				"nhost/constellation:0.1.0",
+				tc.hostUser,
+			)
+			if err != nil {
+				t.Fatalf("got error: %v", err)
+			}
 
-	if other.User != nil {
-		t.Errorf("non-linux constellation User = %q, want nil", *other.User)
+			if diff := cmp.Diff(tc.want, got.User); diff != "" {
+				t.Error(diff)
+			}
+		})
 	}
 }
