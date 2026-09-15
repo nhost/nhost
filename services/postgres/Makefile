@@ -40,11 +40,11 @@ check-dry-run:  ## Returns the derivation of the check
 
 
 .PHONY: _check-pre
-_check-pre: check-pitr-container
+_check-pre: check-pitr-container check-graceful-shutdown
 
 
 .PHONY: check-docker
-check-docker:  ## Run check in the development environment
+check-docker:  ## Run checks in the development environment
 	docker exec -it postgres-tests psql -U postgres \
 		-f /tests/plugins.sql --no-psqlrc -1 -d local -v "ON_ERROR_STOP=1"
 
@@ -54,15 +54,20 @@ check-pitr-container:  ## Verify PITR preflight uses the image's writable temp d
 	./tests/pitr-restore-container.sh
 
 
+.PHONY: check-graceful-shutdown
+check-graceful-shutdown:  ## Verify PostgreSQL shuts down cleanly
+	./scripts/test-graceful-shutdown.sh
+
+
 .PHONY: _dev-env-build
 _dev-env-build: build-docker-image
 
 
 .PHONY: _dev-env-up
 _dev-env-up:
-	docker rm -f postgres-tests || true
+	docker rm -fv postgres-tests || true
 	docker run -d --name postgres-tests \
-		-v $(shell pwd)/tests:/tests:ro --rm -p 5432:5432 \
+		-v $(shell pwd)/tests:/tests:ro -p 5432:5432 \
 		-e POSTGRES_DEV_INSECURE=1 \
 		--health-cmd="pg_isready -U postgres -d postgres -q" \
 		nhost/postgres:$(VERSION)
@@ -70,7 +75,7 @@ _dev-env-up:
 
 .PHONY: _dev-env-down
 _dev-env-down:
-	docker rm -f postgres-tests || true
+	docker rm -fv postgres-tests || true
 
 
 .PHONY: dev-env-connect
