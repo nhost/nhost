@@ -7,9 +7,7 @@ import {
   CogIcon,
   DatabaseIcon,
   FileTextIcon,
-  FolderIcon,
   GaugeIcon,
-  GitBranchIcon,
   HardDriveIcon,
   HomeIcon,
   RocketIcon,
@@ -101,6 +99,13 @@ export default function ProjectNav() {
 
       <DashboardSidebar.Section label="Compute">
         <DashboardSidebar.Item
+          label="AI"
+          href={`${baseHref}/ai/assistants`}
+          icon={<SparklesIcon className={iconClassName} />}
+          active={isActive(`${baseHref}/ai`)}
+          disabled={settingsDisabled}
+        />
+        <DashboardSidebar.Item
           label="Functions"
           href={`${baseHref}/functions`}
           icon={<CodeIcon className={iconClassName} />}
@@ -111,30 +116,6 @@ export default function ProjectNav() {
           href={`${baseHref}/run`}
           icon={<ServicesIcon className={iconClassName} />}
           active={isActive(`${baseHref}/run`)}
-        />
-      </DashboardSidebar.Section>
-
-      <DashboardSidebar.Section label="AI">
-        <DashboardSidebar.Item
-          label="Agents"
-          href={`${baseHref}/ai/assistants`}
-          icon={<SparklesIcon className={iconClassName} />}
-          active={isActive(`${baseHref}/ai/assistants`)}
-          disabled={settingsDisabled}
-        />
-        <DashboardSidebar.Item
-          label="File Stores"
-          href={`${baseHref}/ai/file-stores`}
-          icon={<FolderIcon className={iconClassName} />}
-          active={isActive(`${baseHref}/ai/file-stores`)}
-          disabled={settingsDisabled}
-        />
-        <DashboardSidebar.Item
-          label="Auto-Embeddings"
-          href={`${baseHref}/ai/auto-embeddings`}
-          icon={<GitBranchIcon className={iconClassName} />}
-          active={isActive(`${baseHref}/ai/auto-embeddings`)}
-          disabled={settingsDisabled}
         />
       </DashboardSidebar.Section>
 
