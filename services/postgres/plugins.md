@@ -29,6 +29,7 @@
 | pageinspect|1.13|inspect the contents of database pages at a low level|
 | pg_buffercache|1.6|examine the shared buffer cache|
 | pg_cron|1.6|Job scheduler for PostgreSQL|
+| pg_durable|0.2.5|pg_durable: SQL-native durable orchestrations for PostgreSQL|
 | pg_freespacemap|1.3|examine the free space map (FSM)|
 | pg_hashids|1.3|pg_hashids|
 | pg_ivm|1.15|incremental view maintenance on PostgreSQL|

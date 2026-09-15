@@ -744,7 +744,7 @@ track_io_timing = $TRACK_IO_TIMING
 
 #local_preload_libraries = ''
 #session_preload_libraries = ''
-shared_preload_libraries = 'pg_stat_statements,pg_cron,timescaledb,pg_squeeze,pg_search'
+shared_preload_libraries = 'pg_stat_statements,pg_cron,timescaledb,pg_squeeze,pg_search,pg_durable'
 #jit_provider = 'llvmjit'               # JIT library to use
 
 # - Other Defaults -
@@ -819,4 +819,6 @@ shared_preload_libraries = 'pg_stat_statements,pg_cron,timescaledb,pg_squeeze,pg
 
 # Add settings for extensions here
 cron.database_name = '$POSTGRES_DB'
+pg_durable.database = '$POSTGRES_DB'
+pg_durable.worker_role = '$POSTGRES_USER'
 timescaledb.telemetry_level=off

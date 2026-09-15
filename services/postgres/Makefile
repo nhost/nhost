@@ -47,6 +47,9 @@ _check-pre: check-pitr-container check-graceful-shutdown check-extension-upgrade
 check-docker:  ## Run checks in the development environment
 	docker exec -it postgres-tests psql -U postgres \
 		-f /tests/plugins.sql --no-psqlrc -1 -d local -v "ON_ERROR_STOP=1"
+	# Do not add -1: the readiness procedure commits between worker-state polls.
+	docker exec -it postgres-tests psql -U postgres \
+		-f /tests/pg_durable_http.sql --no-psqlrc -d local -v "ON_ERROR_STOP=1"
 
 
 .PHONY: check-pitr-container
