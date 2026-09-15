@@ -9,10 +9,6 @@ import (
 	nhcontext "github.com/nhost/be/lib/graphql/context"
 )
 
-func ptr[T any](v T) *T {
-	return &v
-}
-
 func deptr[T any](v *T) T {
 	if v == nil {
 		return *new(T)
@@ -74,8 +70,8 @@ func (r *mutationResolver) changeDatabaseVersion(
 		Services:       oldApp.Services,
 	}
 
-	newApp.Config.Postgres.Version = ptr(version)
-	newApp.SystemConfig.Postgres.MajorVersion = ptr(version[:2])
+	newApp.Config.Postgres.Version = new(version)
+	newApp.SystemConfig.Postgres.MajorVersion = new(version[:2])
 
 	if _, err := newApp.ResolveConfig(r.schema, true); err != nil {
 		return false, err

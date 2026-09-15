@@ -39,7 +39,7 @@ require (
 	github.com/lmittmann/tint v1.1.2
 	github.com/mark3labs/mcp-go v0.41.1
 	github.com/mattn/go-sqlite3 v1.14.22
-	github.com/nhost/be v0.0.0-20260812080400-60cdbaa04069
+	github.com/nhost/be v0.0.0-20260915020141-38ea46ab1f74
 	github.com/oapi-codegen/runtime v1.4.1
 	github.com/openai/openai-go v1.12.0
 	github.com/pb33f/libopenapi v0.21.12
@@ -55,7 +55,7 @@ require (
 	github.com/vektah/gqlparser/v2 v2.5.34
 	github.com/wI2L/jsondiff v0.7.0
 	go.uber.org/automaxprocs v1.6.0
-	go.uber.org/mock v0.5.2
+	go.uber.org/mock v0.6.0
 	go.yaml.in/yaml/v3 v3.0.4
 	golang.org/x/crypto v0.56.0
 	golang.org/x/mod v0.40.0
@@ -229,7 +229,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.44.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.3 // indirect
 	golang.org/x/arch v0.20.0 // indirect
-	golang.org/x/net v0.57.0 // indirect
+	golang.org/x/net v0.58.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
