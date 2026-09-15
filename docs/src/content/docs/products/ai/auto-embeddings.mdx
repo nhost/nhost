@@ -67,7 +67,7 @@ On every `sync-period` graphite will perform a graphql query to get all the rows
 In this example we are going to opt for the following mechanism to detect outdated embeddings:
 
 1. Add a column `outdated` (boolean) to indicated whether the row is outdated or not.
-2. Add a postgres trigger and function that will set the `outdated` column to true everytime there is a change to our data.
+2. Add a postgres trigger and function that will set the `outdated` column to true every time there is a change to our data.
 
 With this in mind we are going to create a migration with the following contents:
 
