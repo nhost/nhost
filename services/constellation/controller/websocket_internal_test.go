@@ -12,10 +12,10 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/nhost/nhost/internal/lib/syncmap"
 	"github.com/nhost/nhost/services/constellation/connector/schemamerge"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	"github.com/nhost/nhost/services/constellation/controller/websocket"
-	"github.com/nhost/nhost/services/constellation/internal/lib/syncmap"
 	"github.com/nhost/nhost/services/constellation/subscription"
 	subscriptionmock "github.com/nhost/nhost/services/constellation/subscription/mock"
 	"github.com/vektah/gqlparser/v2/ast"

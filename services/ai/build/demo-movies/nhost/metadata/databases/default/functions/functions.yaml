@@ -1,0 +1,2 @@
+- "!include public_ai_search_movies.yaml"
+- "!include public_ai_similar_movies.yaml"

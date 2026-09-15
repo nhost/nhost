@@ -65,14 +65,17 @@ describe('useUrlPagination', () => {
     [25, 25, 1],
     [26, 25, 2],
     [100, 25, 4],
-  ])('reports %i elements at %i per page as %i pages', (totalNrOfElements, elementsPerPage, expected) => {
-    const { result } = renderPagination({
-      totalNrOfElements,
-      elementsPerPage,
-    });
+  ])(
+    'reports %i elements at %i per page as %i pages',
+    (totalNrOfElements, elementsPerPage, expected) => {
+      const { result } = renderPagination({
+        totalNrOfElements,
+        elementsPerPage,
+      });
 
-    expect(result.current.nrOfPages).toBe(expected);
-  });
+      expect(result.current.nrOfPages).toBe(expected);
+    },
+  );
 
   it('pushes the target page number when navigating to a page > 1', () => {
     const { result, router } = renderPagination();

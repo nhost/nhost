@@ -133,14 +133,14 @@ describe('TableNode', () => {
     { objectType: 'VIEW' as const, label: 'View' },
     { objectType: 'MATERIALIZED VIEW' as const, label: 'Materialized View' },
     { objectType: 'FOREIGN TABLE' as const, label: 'Foreign Table' },
-  ])('renders the "$label" object-type icon in the header for a $objectType', ({
-    objectType,
-    label,
-  }) => {
-    renderNode({ ...baseData, objectType });
+  ])(
+    'renders the "$label" object-type icon in the header for a $objectType',
+    ({ objectType, label }) => {
+      renderNode({ ...baseData, objectType });
 
-    expect(screen.getByLabelText(label)).toBeInTheDocument();
-  });
+      expect(screen.getByLabelText(label)).toBeInTheDocument();
+    },
+  );
 
   it('renders the "Enum" icon for an enum table', () => {
     renderNode(baseData, {

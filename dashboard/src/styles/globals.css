@@ -414,6 +414,10 @@ html.dark .graphiql-themed .graphiql-container {
   will-change: auto !important;
 }
 
+.loading-toast {
+  background-color: hsl(var(--error-toast-bg));
+}
+
 .error-toast.error-toast {
   @apply flex w-full max-w-xl flex-col space-y-4 rounded-lg p-4 text-white;
   background-color: hsl(var(--error-toast-bg));

@@ -22,7 +22,7 @@ const composeServiceLabel = "com.docker.compose.service"
 func stdcopyFrame(stream stdcopy.StdType, data string) []byte {
 	header := [8]byte{}
 	header[0] = byte(stream)
-	binary.BigEndian.PutUint32(header[4:], uint32(len(data))) //nolint:gosec
+	binary.BigEndian.PutUint32(header[4:], uint32(len(data)))
 
 	buf := make([]byte, 0, len(header)+len(data))
 	buf = append(buf, header[:]...)

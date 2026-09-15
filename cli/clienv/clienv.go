@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/Yamashou/gqlgenc/clientv2"
+	"github.com/gqlgo/gqlgenc/clientv2"
 	"github.com/nhost/nhost/cli/nhostclient/graphql"
 	"github.com/nhost/nhost/internal/lib/nhostclient"
 	"github.com/nhost/nhost/internal/lib/nhostclient/auth"

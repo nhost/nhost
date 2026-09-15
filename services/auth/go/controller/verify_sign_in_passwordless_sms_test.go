@@ -1,13 +1,19 @@
 package controller_test
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"log/slog"
 	"testing"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/controller"
 	"github.com/nhost/nhost/services/auth/go/controller/mock"
@@ -126,7 +132,7 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						gomock.Any(),
 						"+1234567890",
 						"123456",
-					).Return(user, nil)
+					).Return(user, "ok", nil)
 
 					return mock
 				}),
@@ -189,7 +195,7 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						gomock.Any(),
 						"+1234567890",
 						"wrong",
-					).Return(sql.AuthUser{}, errors.New("invalid OTP")) //nolint:err113
+					).Return(sql.AuthUser{}, "invalid", nil)
 
 					return mock
 				}),
@@ -197,11 +203,10 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 		},
 
 		{
-			name:   "user is disabled",
+			name:   "no matching OTP row is rejected with invalid-otp",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
-				mock := mock.NewMockDBClient(ctrl)
-				return mock
+				return mock.NewMockDBClient(ctrl)
 			},
 			request: api.VerifySignInPasswordlessSmsRequestObject{
 				Body: &api.SignInPasswordlessSmsOtpRequest{
@@ -210,9 +215,9 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
-				Error:   "internal-server-error",
-				Message: "Internal server error",
-				Status:  500,
+				Error:   "invalid-otp",
+				Message: "Invalid or expired OTP",
+				Status:  400,
 			},
 			expectedJWT: nil,
 			jwtTokenFn:  nil,
@@ -220,16 +225,11 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 				withSMS(func(ctrl *gomock.Controller) *mock.MockSMSer {
 					mock := mock.NewMockSMSer(ctrl)
 
-					user := getSigninUser(userID)
-					user.PhoneNumber = sql.Text("+1234567890")
-					user.PhoneNumberVerified = true
-					user.Disabled = true
-
 					mock.EXPECT().CheckVerificationCode(
 						gomock.Any(),
 						"+1234567890",
 						"123456",
-					).Return(user, nil)
+					).Return(sql.AuthUser{}, "invalid", nil)
 
 					return mock
 				}),
@@ -255,9 +255,9 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
-				Error:   "internal-server-error",
-				Message: "Internal server error",
-				Status:  500,
+				Error:   "unverified-user",
+				Message: "User is not verified.",
+				Status:  401,
 			},
 			expectedJWT: nil,
 			jwtTokenFn:  nil,
@@ -274,7 +274,50 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						gomock.Any(),
 						"+1234567890",
 						"123456",
-					).Return(user, nil)
+					).Return(user, "ok", nil)
+
+					return mock
+				}),
+			},
+		},
+
+		{
+			name: "blocked email is rejected on ordinary SMS sign-in",
+			config: func() *controller.Config {
+				config := getConfig()
+				config.BlockedEmails = []string{"jane@acme.com"}
+
+				return config
+			},
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				return mock.NewMockDBClient(ctrl)
+			},
+			request: api.VerifySignInPasswordlessSmsRequestObject{
+				Body: &api.SignInPasswordlessSmsOtpRequest{
+					PhoneNumber: "+1234567890",
+					Otp:         "123456",
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "invalid-email-password",
+				Message: "Incorrect email or password",
+				Status:  401,
+			},
+			expectedJWT: nil,
+			jwtTokenFn:  nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withSMS(func(ctrl *gomock.Controller) *mock.MockSMSer {
+					mock := mock.NewMockSMSer(ctrl)
+
+					user := getSigninUser(userID)
+					user.PhoneNumber = sql.Text("+1234567890")
+					user.PhoneNumberVerified = true
+
+					mock.EXPECT().CheckVerificationCode(
+						gomock.Any(),
+						"+1234567890",
+						"123456",
+					).Return(user, "ok", nil)
 
 					return mock
 				}),
@@ -318,7 +361,7 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						gomock.Any(),
 						"+1234567890",
 						"123456",
-					).Return(user, nil)
+					).Return(user, "ok", nil)
 
 					return mock
 				}),
@@ -423,7 +466,7 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						gomock.Any(),
 						"+1234567890",
 						"123456",
-					).Return(user, nil)
+					).Return(user, "ok", nil)
 
 					return mock
 				}),
@@ -458,7 +501,7 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						gomock.Any(),
 						"",
 						"123456",
-					).Return(sql.AuthUser{}, errors.New("invalid phone number")) //nolint:err113
+					).Return(sql.AuthUser{}, "invalid", nil)
 
 					return mock
 				}),
@@ -493,7 +536,7 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						gomock.Any(),
 						"+1234567890",
 						"",
-					).Return(sql.AuthUser{}, errors.New("empty OTP")) //nolint:err113
+					).Return(sql.AuthUser{}, "invalid", nil)
 
 					return mock
 				}),
@@ -514,9 +557,9 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
-				Error:   "invalid-otp",
-				Message: "Invalid or expired OTP",
-				Status:  400,
+				Error:   "internal-server-error",
+				Message: "Internal server error",
+				Status:  500,
 			},
 			expectedJWT: nil,
 			jwtTokenFn:  nil,
@@ -528,7 +571,147 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						gomock.Any(),
 						"+1234567890",
 						"123456",
-					).Return(sql.AuthUser{}, errors.New("SMS service unavailable")) //nolint:err113
+					).Return(sql.AuthUser{}, "", errors.New("SMS service unavailable")) //nolint:err113
+
+					return mock
+				}),
+			},
+		},
+
+		{
+			name:   "too many attempts burns the code",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				return mock
+			},
+			request: api.VerifySignInPasswordlessSmsRequestObject{
+				Body: &api.SignInPasswordlessSmsOtpRequest{
+					PhoneNumber: "+1234567890",
+					Otp:         "999999",
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "otp-too-many-attempts",
+				Message: "Too many incorrect attempts, please request a new OTP",
+				Status:  400,
+			},
+			expectedJWT: nil,
+			jwtTokenFn:  nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withSMS(func(ctrl *gomock.Controller) *mock.MockSMSer {
+					mock := mock.NewMockSMSer(ctrl)
+
+					mock.EXPECT().CheckVerificationCode(
+						gomock.Any(),
+						"+1234567890",
+						"999999",
+					).Return(sql.AuthUser{}, "burned", nil)
+
+					return mock
+				}),
+			},
+		},
+
+		{
+			name:   "anonymous SMS-only user completes valid staged deanonymization on OTP verify",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserRoles(
+					gomock.Any(), userID,
+				).Return([]sql.AuthUserRole{
+					{UserID: userID, Role: "user"},
+					{UserID: userID, Role: "me"},
+				}, nil)
+
+				mock.EXPECT().InsertRefreshtoken(
+					gomock.Any(),
+					cmpDBParams(sql.InsertRefreshtokenParams{
+						UserID:           userID,
+						RefreshTokenHash: pgtype.Text{},
+						ExpiresAt:        sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
+						Type:             sql.RefreshTokenTypeRegular,
+						Metadata:         nil,
+					}),
+				).Return(refreshTokenID, nil)
+
+				mock.EXPECT().UpdateUserLastSeen(
+					gomock.Any(), userID,
+				).Return(sql.TimestampTz(time.Now()), nil)
+
+				return mock
+			},
+			request: api.VerifySignInPasswordlessSmsRequestObject{
+				Body: &api.SignInPasswordlessSmsOtpRequest{
+					PhoneNumber: "+1234567890",
+					Otp:         "123456",
+				},
+			},
+			expectedResponse: api.VerifySignInPasswordlessSms200JSONResponse{
+				Session: &api.Session{
+					AccessToken:          "",
+					AccessTokenExpiresIn: 900,
+					RefreshTokenId:       "c3b747ef-76a9-4c56-8091-ed3e6b8afb2c",
+					RefreshToken:         "1fb17604-86c7-444e-b337-09a644465f2d",
+					User: &api.User{
+						AvatarUrl:           "",
+						CreatedAt:           time.Now(),
+						DefaultRole:         "user",
+						DisplayName:         "Jane Doe",
+						Email:               nil,
+						EmailVerified:       false,
+						Id:                  "db477732-48fa-4289-b694-2886a646b6eb",
+						IsAnonymous:         false,
+						Locale:              "en",
+						Metadata:            map[string]any{},
+						PhoneNumber:         new("+1234567890"),
+						PhoneNumberVerified: true,
+						Roles:               []string{"user", "me"},
+						ActiveMfaType:       nil,
+					},
+				},
+				Mfa: nil,
+			},
+			expectedJWT: &jwt.Token{
+				Raw:    "",
+				Method: jwt.SigningMethodHS256,
+				Header: map[string]any{
+					"alg": "HS256",
+					"typ": "JWT",
+				},
+				Claims: jwt.MapClaims{
+					"exp": float64(time.Now().Add(900 * time.Second).Unix()),
+					"https://hasura.io/jwt/claims": map[string]any{
+						"x-hasura-allowed-roles":     []any{"user", "me"},
+						"x-hasura-default-role":      "user",
+						"x-hasura-user-id":           "db477732-48fa-4289-b694-2886a646b6eb",
+						"x-hasura-user-is-anonymous": "false",
+					},
+					"iat": float64(time.Now().Unix()),
+					"iss": "hasura-auth",
+					"sub": "db477732-48fa-4289-b694-2886a646b6eb",
+				},
+				Signature: []byte{},
+				Valid:     true,
+			},
+			jwtTokenFn: nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withSMS(func(ctrl *gomock.Controller) *mock.MockSMSer {
+					mock := mock.NewMockSMSer(ctrl)
+
+					user := getSigninUser(userID)
+					user.Email = pgtype.Text{}
+					user.EmailVerified = false
+					user.PhoneNumber = sql.Text("+1234567890")
+					user.PhoneNumberVerified = true
+
+					mock.EXPECT().CheckVerificationCode(
+						gomock.Any(),
+						"+1234567890",
+						"123456",
+					).Return(user, "ok", nil)
 
 					return mock
 				}),
@@ -557,5 +740,97 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 				assertSession(t, jwtGetter, resp200.Session, tc.expectedJWT)
 			}
 		})
+	}
+}
+
+func TestVerifySignInPasswordlessSmsDuplicatePhoneNumber(t *testing.T) {
+	t.Parallel()
+
+	const phoneNumber = "+1234567890"
+
+	config := func() *controller.Config {
+		config := getConfig()
+		config.SMSPasswordlessEnabled = true
+
+		return config
+	}
+
+	duplicateErr := &pgconn.PgError{
+		Severity:       "ERROR",
+		Code:           "23505",
+		Message:        `duplicate key value violates unique constraint "users_phone_number_key"`,
+		ConstraintName: "users_phone_number_key",
+	}
+	verificationErr := fmt.Errorf(
+		"error verifying SMS OTP and promoting phone number: %w",
+		duplicateErr,
+	)
+
+	mockCtrl := gomock.NewController(t)
+	ctrl, _ := getController(
+		t,
+		mockCtrl,
+		config,
+		func(ctrl *gomock.Controller) controller.DBClient {
+			return mock.NewMockDBClient(ctrl)
+		},
+		withSMS(func(ctrl *gomock.Controller) *mock.MockSMSer {
+			smsMock := mock.NewMockSMSer(ctrl)
+			smsMock.EXPECT().CheckVerificationCode(
+				gomock.Any(),
+				phoneNumber,
+				"123456",
+			).Return(sql.AuthUser{}, "", verificationErr)
+
+			return smsMock
+		}),
+	)
+
+	var logBuffer bytes.Buffer
+
+	logger := slog.New(slog.NewJSONHandler(&logBuffer, nil))
+	ctx := middleware.LoggerToContext(t.Context(), logger)
+
+	assertRequest(
+		ctx,
+		t,
+		ctrl.VerifySignInPasswordlessSms,
+		api.VerifySignInPasswordlessSmsRequestObject{
+			Body: &api.SignInPasswordlessSmsOtpRequest{
+				PhoneNumber: phoneNumber,
+				Otp:         "123456",
+			},
+		},
+		api.VerifySignInPasswordlessSmsResponseObject(controller.ErrorResponse{
+			Error:   "invalid-otp",
+			Message: "Invalid or expired OTP",
+			Status:  400,
+		}),
+	)
+
+	var logRecord struct {
+		Level       string `json:"level"`
+		Message     string `json:"msg"`
+		PhoneNumber string `json:"phoneNumber"`
+		Constraint  string `json:"constraint"`
+	}
+	if err := json.Unmarshal(bytes.TrimSpace(logBuffer.Bytes()), &logRecord); err != nil {
+		t.Fatalf("failed to decode log record: %v", err)
+	}
+
+	if logRecord.Level != "ERROR" {
+		t.Errorf("log level = %q; want ERROR", logRecord.Level)
+	}
+
+	if logRecord.Message != "phone number promotion conflict during SMS passwordless verification" {
+		t.Errorf("log message = %q; want promotion conflict message", logRecord.Message)
+	}
+
+	if logRecord.PhoneNumber != phoneNumber {
+		t.Errorf("logged phone number = %q; want %q", logRecord.PhoneNumber, phoneNumber)
+	}
+
+	if logRecord.Constraint != "users_phone_number_key" {
+		t.Errorf("logged constraint = %q; want users_phone_number_key", logRecord.Constraint)
 	}
 }

@@ -108,6 +108,7 @@ const (
 	flagSMSGenericHeaders                        = "sms-generic-headers"
 	flagSMSGenericTimeout                        = "sms-generic-timeout"
 	flagSMSGenericBodyTemplate                   = "sms-generic-body-template"
+	flagSMSDevOutputDir                          = "sms-dev-output-dir"
 	flagAnonymousUsersEnabled                    = "enable-anonymous-users"
 	flagMfaEnabled                               = "mfa-enabled"
 	flagMfaTotpIssuer                            = "mfa-totp-issuer"
@@ -234,7 +235,7 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Sources:  cli.EnvVars("AUTH_ENCRYPTION_KEY"),
 				Required: true,
 			},
-			&cli.StringFlag{ //nolint: exhaustruct
+			&cli.StringFlag{ //nolint:exhaustruct,gosec // G101 "Password in URL": localhost dev default, overridden in every deployment
 				Name:     flagPostgresConnection,
 				Usage:    "PostgreSQL connection URI: https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING",
 				Value:    "postgres://postgres:postgres@localhost:5432/local?sslmode=disable",
@@ -786,6 +787,12 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 					`{"to":"${to}","message":"${body}"}`,
 				Category: "sms",
 				Sources:  cli.EnvVars("AUTH_SMS_GENERIC_BODY_TEMPLATE"),
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagSMSDevOutputDir,
+				Usage:    "Directory where the dev SMS provider writes each SMS body to <phone>.txt (test only)", //nolint:lll
+				Category: "sms",
+				Sources:  cli.EnvVars("AUTH_SMS_DEV_OUTPUT_DIR"),
 			},
 			&cli.BoolFlag{ //nolint: exhaustruct
 				Name:     flagAnonymousUsersEnabled,

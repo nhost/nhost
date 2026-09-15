@@ -3,6 +3,7 @@ import {
   createHttpLink,
   from,
   InMemoryCache,
+  type Operation,
   split,
   type WatchQueryFetchPolicy,
 } from '@apollo/client/core';
@@ -16,6 +17,17 @@ import { isNotEmptyValue } from '@/lib/utils';
 import { createRestartableClient } from './ws';
 
 const isBrowser = typeof window !== 'undefined';
+
+// Mutations are not idempotent: replaying one that timed out server-side (e.g.
+// restoreApplicationDatabase) starts the operation again. Only retry queries.
+const isRetriableOperation = (operation: Operation) => {
+  const mainDefinition = getMainDefinition(operation.query);
+
+  return (
+    mainDefinition.kind === 'OperationDefinition' &&
+    mainDefinition.operation === 'query'
+  );
+};
 
 export type NhostApolloClientOptions = {
   nhost?: NhostClient;
@@ -90,7 +102,13 @@ export const createApolloClient = ({
       })
     : null;
 
-  const retryLink = new RetryLink();
+  const retryLink = new RetryLink({
+    attempts: {
+      max: 5,
+      retryIf: (error, operation) =>
+        Boolean(error) && isRetriableOperation(operation),
+    },
+  });
   const wsLink = wsClient ? new GraphQLWsLink(wsClient) : null;
 
   const httpLink = setContext(async (_, { headers }) => ({

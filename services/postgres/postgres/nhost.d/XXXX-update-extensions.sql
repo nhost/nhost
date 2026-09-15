@@ -1,4 +1,4 @@
-DO $$
+DO $$$$
 DECLARE
     ext record;
 BEGIN
@@ -16,4 +16,4 @@ BEGIN
         END;
     END LOOP;
 END;
-$$;
+$$$$;

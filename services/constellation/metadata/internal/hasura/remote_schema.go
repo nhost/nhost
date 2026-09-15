@@ -14,7 +14,7 @@ type RemoteSchemaMetadata struct {
 	Permissions         []RemoteSchemaPermission             `json:"permissions,omitempty"          yaml:"permissions,omitempty"`          //nolint:lll
 	RemoteRelationships []RemoteSchemaTypeRemoteRelationship `json:"remote_relationships,omitempty" yaml:"remote_relationships,omitempty"` //nolint:lll
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // RemoteSchemaTypeRemoteRelationship maps a type name to its remote relationships.
@@ -22,7 +22,7 @@ type RemoteSchemaTypeRemoteRelationship struct {
 	TypeName      string                        `json:"type_name"     yaml:"type_name"`
 	Relationships []RemoteSchemaRelationshipDef `json:"relationships" yaml:"relationships"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // RemoteSchemaRelationshipDef defines a remote relationship from a remote schema type.
@@ -30,14 +30,14 @@ type RemoteSchemaRelationshipDef struct {
 	Name       string                             `json:"name"       yaml:"name"`
 	Definition RemoteSchemaRelationshipDefinition `json:"definition" yaml:"definition"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // RemoteSchemaRelationshipDefinition contains the relationship definition.
 type RemoteSchemaRelationshipDefinition struct {
 	ToSource *RemoteSchemaToSourceRelationship `json:"to_source,omitempty" yaml:"to_source,omitempty"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // RemoteSchemaToSourceRelationship defines a relationship from a remote schema to a database.
@@ -47,7 +47,7 @@ type RemoteSchemaToSourceRelationship struct {
 	Source           string               `json:"source"            yaml:"source"`
 	Table            RemoteSchemaTableRef `json:"table"             yaml:"table"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // RemoteSchemaTableRef references a table in a database.
@@ -55,7 +55,7 @@ type RemoteSchemaTableRef struct {
 	Name   string `json:"name"   yaml:"name"`
 	Schema string `json:"schema" yaml:"schema"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // RemoteSchemaDefinition defines the connection settings for a remote schema.
@@ -67,7 +67,7 @@ type RemoteSchemaDefinition struct {
 	Headers              []RemoteSchemaHeader      `json:"headers,omitempty"                yaml:"headers,omitempty"`                //nolint:lll
 	ForwardClientHeaders bool                      `json:"forward_client_headers,omitempty" yaml:"forward_client_headers,omitempty"` //nolint:lll
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // RemoteSchemaHeader defines a header to be sent with requests to the remote schema.
@@ -144,12 +144,12 @@ type RemoteSchemaPermission struct {
 	Role       string                    `json:"role"       yaml:"role"`
 	Definition RemoteSchemaPermissionDef `json:"definition" yaml:"definition"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }
 
 // RemoteSchemaPermissionDef contains the GraphQL SDL schema for a role's permissions.
 type RemoteSchemaPermissionDef struct {
 	Schema string `json:"schema" yaml:"schema"`
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	Unknown jsontext.Value `json:",embed" yaml:"-"`
 }

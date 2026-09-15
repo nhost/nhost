@@ -61,6 +61,7 @@ func TestSignUpOTPEmail(t *testing.T) {
 							Metadata:        []byte("null"),
 							Roles:           []string{"user", "me"},
 							PhoneNumber:     pgtype.Text{},
+							NewPhoneNumber:  pgtype.Text{},
 							Otp:             "xxx",
 							OtpHashExpiresAt: sql.TimestampTz(
 								time.Now().Add(controller.In10Minutes),

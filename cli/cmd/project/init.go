@@ -199,6 +199,11 @@ func deploy(
 ) error {
 	docker := dockercompose.NewDocker()
 
+	hostUser, err := dockercompose.ResolveHostUser(ctx, os.Getenv("NHOST_DOCKER_USER"))
+	if err != nil {
+		return fmt.Errorf("failed to resolve NHOST_DOCKER_USER: %w", err)
+	}
+
 	ce.Infoln("Creating postgres migration")
 
 	if err := docker.HasuraWrapper(
@@ -206,6 +211,7 @@ func deploy(
 		ce.LocalSubdomain(),
 		ce.Path.NhostFolder(),
 		*cfg.Hasura.Version,
+		hostUser,
 		"migrate", "create", "init", "--from-server", "--schema", "public",
 		"--database-name", "default",
 		"--skip-update-check",
@@ -223,6 +229,7 @@ func deploy(
 		ce.LocalSubdomain(),
 		ce.Path.NhostFolder(),
 		*cfg.Hasura.Version,
+		hostUser,
 		"metadata", "export",
 		"--skip-update-check",
 		"--log-level", "ERROR",

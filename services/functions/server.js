@@ -418,8 +418,7 @@ const main = async () => {
           // Reinstall through the same shared library start.sh uses, so a
           // hot-reload reinstall is identical to the initial install (corepack
           // bootstrap, strictDepBuilds, frozen + workspace-isolated). Sourcing
-          // the function keeps the package-manager/isolation logic in one place
-          // instead of re-deriving it here with a bare `nci`.
+          // the function keeps the package-manager/isolation logic in one place.
           const installScript = path.join(__dirname, 'nhost-install-deps.sh');
           execSync(`. "${installScript}" && nhost_install_deps`, {
             stdio: 'inherit',

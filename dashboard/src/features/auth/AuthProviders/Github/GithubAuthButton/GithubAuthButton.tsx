@@ -11,6 +11,7 @@ interface Props {
   className?: string;
   withAnonId?: boolean;
   redirectTo?: string;
+  'aria-describedby'?: string;
 }
 
 function GithubAuthButton({
@@ -18,6 +19,7 @@ function GithubAuthButton({
   withAnonId = false,
   redirectTo,
   className,
+  'aria-describedby': ariaDescribedBy,
 }: Props) {
   async function signInWithGithub() {
     const { challenge, id } = await generateAndStorePKCE();
@@ -52,6 +54,7 @@ function GithubAuthButton({
         className,
       )}
       onClick={signInWithGithub}
+      aria-describedby={ariaDescribedBy}
     >
       <SiGithub size={14} /> {buttonText}
     </Button>

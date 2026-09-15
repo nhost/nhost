@@ -65,28 +65,27 @@ describe('useRecent', () => {
     expect(remountedResult.current.recent).toEqual(result.current.recent);
   });
 
-  it.each([
-    null,
-    {},
-    'recent',
-  ])('ignores non-array stored JSON: %j', (stored) => {
-    window.localStorage.setItem(
-      'command-palette-recent',
-      JSON.stringify(stored),
-    );
+  it.each([null, {}, 'recent'])(
+    'ignores non-array stored JSON: %j',
+    (stored) => {
+      window.localStorage.setItem(
+        'command-palette-recent',
+        JSON.stringify(stored),
+      );
 
-    const { result } = renderHook(() => useRecent());
+      const { result } = renderHook(() => useRecent());
 
-    expect(result.current.recent).toEqual([]);
+      expect(result.current.recent).toEqual([]);
 
-    act(() => {
-      result.current.pushRecent(makeEntry({ nodeId: 'project-graphql' }));
-    });
+      act(() => {
+        result.current.pushRecent(makeEntry({ nodeId: 'project-graphql' }));
+      });
 
-    expect(result.current.recent).toEqual([
-      expect.objectContaining({ nodeId: 'project-graphql' }),
-    ]);
-  });
+      expect(result.current.recent).toEqual([
+        expect.objectContaining({ nodeId: 'project-graphql' }),
+      ]);
+    },
+  );
 
   it('keeps valid entries and discards malformed entries', () => {
     const validEntry = makeEntry({

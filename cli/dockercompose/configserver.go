@@ -1,12 +1,13 @@
 package dockercompose
 
 import (
-	"fmt"
+	"net/url"
 	"path/filepath"
 	"slices"
 )
 
 func configserver( //nolint: funlen
+	dockerURL *url.URL,
 	image,
 	rootPath,
 	nhostPath,
@@ -14,7 +15,7 @@ func configserver( //nolint: funlen
 	appID string,
 	useTLS bool,
 	runServices ...*RunService,
-) (*Service, error) {
+) *Service {
 	bindings := make([]Volume, 0, len(runServices))
 	extraArgs := make([]string, len(runServices))
 
@@ -40,11 +41,6 @@ func configserver( //nolint: funlen
 		})
 	}
 
-	dockerURL, err := getDockerHost()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get docker host: %w", err)
-	}
-
 	volumes := append(
 		[]Volume{
 			{
@@ -63,7 +59,7 @@ func configserver( //nolint: funlen
 		bindings...,
 	)
 
-	dockerEndpoint := dockerURL.String()
+	containerDockerEndpoint := dockerURL.String()
 	if dockerURL.Scheme == "unix" {
 		volumes = append(volumes, Volume{
 			Type:     "bind",
@@ -74,7 +70,7 @@ func configserver( //nolint: funlen
 			// server can reach the docker daemon on SELinux/Podman hosts.
 			Bind: &BindOptions{SELinux: "z"},
 		})
-		dockerEndpoint = "unix:///var/run/docker.sock"
+		containerDockerEndpoint = defaultDockerEndpoint
 	}
 
 	return &Service{
@@ -87,7 +83,7 @@ func configserver( //nolint: funlen
 			"--debug",
 		}, extraArgs...),
 		Environment: map[string]string{
-			"DOCKER_HOST":            dockerEndpoint,
+			"DOCKER_HOST":            containerDockerEndpoint,
 			"DOCKER_COMPOSE_PROJECT": projectName,
 			"NHOST_APP_ID":           appID,
 		},
@@ -115,5 +111,5 @@ func configserver( //nolint: funlen
 		User:       nil,
 		Volumes:    volumes,
 		WorkingDir: nil,
-	}, nil
+	}
 }

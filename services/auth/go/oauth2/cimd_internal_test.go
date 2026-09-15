@@ -3,6 +3,7 @@ package oauth2
 import (
 	"context"
 	"log/slog"
+	"net"
 	"net/url"
 	"testing"
 )
@@ -74,7 +75,7 @@ func TestIsLoopbackRedirectURI(t *testing.T) {
 	}
 }
 
-func TestIsPrivateOrLoopback(t *testing.T) {
+func TestIsBlockedHost(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -118,6 +119,11 @@ func TestIsPrivateOrLoopback(t *testing.T) {
 			expected: true,
 		},
 		{
+			name:     "nat64 wrapped cloud metadata",
+			host:     "64:ff9b::a9fe:a9fe",
+			expected: true,
+		},
+		{
 			name:     "public IP",
 			host:     "8.8.8.8",
 			expected: false,
@@ -138,9 +144,116 @@ func TestIsPrivateOrLoopback(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := isPrivateOrLoopback(context.Background(), tc.host)
+			got := isBlockedHost(context.Background(), tc.host)
 			if got != tc.expected {
-				t.Errorf("isPrivateOrLoopback(%q) = %v, want %v", tc.host, got, tc.expected)
+				t.Errorf("isBlockedHost(%q) = %v, want %v", tc.host, got, tc.expected)
+			}
+		})
+	}
+}
+
+func TestIsBlockedIP(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		ip       string
+		expected bool
+	}{
+		{
+			name:     "nat64 wrapped cloud metadata",
+			ip:       "64:ff9b::a9fe:a9fe",
+			expected: true,
+		},
+		{
+			name:     "nat64 wrapped private ipv4",
+			ip:       "64:ff9b::a00:1",
+			expected: true,
+		},
+		{
+			name:     "nat64 local use prefix",
+			ip:       "64:ff9b:1::1",
+			expected: true,
+		},
+		{
+			name:     "6to4 wrapped loopback",
+			ip:       "2002:7f00:1::",
+			expected: true,
+		},
+		{
+			name:     "teredo wrapped loopback",
+			ip:       "2001:0000:4136:e378:8000:63bf:80ff:fffe",
+			expected: true,
+		},
+		{
+			name:     "ipv4 compatible wrapped private ipv4",
+			ip:       "::10.0.0.1",
+			expected: true,
+		},
+		{
+			name:     "ipv4 translated wrapped private ipv4",
+			ip:       "::ffff:0:10.0.0.1",
+			expected: true,
+		},
+		{
+			name:     "ipv4 mapped private ipv4",
+			ip:       "::ffff:192.168.1.1",
+			expected: true,
+		},
+		{
+			name:     "unspecified ipv4",
+			ip:       "0.0.0.0",
+			expected: true,
+		},
+		{
+			name:     "unspecified ipv6",
+			ip:       "::",
+			expected: true,
+		},
+		{
+			name:     "multicast",
+			ip:       "224.0.0.1",
+			expected: true,
+		},
+		{
+			name:     "unique local ipv6",
+			ip:       "fd00::1",
+			expected: true,
+		},
+		{
+			name:     "public ipv4",
+			ip:       "8.8.8.8",
+			expected: false,
+		},
+		{
+			name:     "public ipv6",
+			ip:       "2606:4700:4700::1111",
+			expected: false,
+		},
+		{
+			name:     "nat64 wrapped public ipv4",
+			ip:       "64:ff9b::808:808",
+			expected: false,
+		},
+		{
+			name:     "6to4 wrapped public ipv4",
+			ip:       "2002:808:808::",
+			expected: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			ip := net.ParseIP(tc.ip)
+			if ip == nil {
+				t.Fatalf("failed to parse IP %q", tc.ip)
+			}
+
+			got := isBlockedIP(ip)
+			if got != tc.expected {
+				t.Errorf("isBlockedIP(%q) = %v, want %v", tc.ip, got, tc.expected)
 			}
 		})
 	}

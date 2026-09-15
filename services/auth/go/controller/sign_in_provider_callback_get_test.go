@@ -119,7 +119,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 	}
 
 	// Create JWT token for connect tests
-	jwtToken := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjEwNzExMTE4MDI0LCJodHRwczovL2hhc3VyYS5pby9qd3QvY2xhaW1zIjp7IngtaGFzdXJhLWFsbG93ZWQtcm9sZXMiOlsibWUiLCJ1c2VyIiwiZWRpdG9yIl0sIngtaGFzdXJhLWRlZmF1bHQtcm9sZSI6InVzZXIiLCJ4LWhhc3VyYS11c2VyLWlkIjoiZjkwNzgyZGUtZjBhMy00MWZlLWI3NzgtMDFlNGY4MGMyNDEzIiwieC1oYXN1cmEtdXNlci1pcy1hbm9ueW1vdXMiOiJmYWxzZSJ9LCJpYXQiOjE3MTExMTgwMjQsImlzcyI6Imhhc3VyYS1hdXRoIiwic3ViIjoiZjkwNzgyZGUtZjBhMy00MWZlLWI3NzgtMDFlNGY4MGMyNDEzIn0.wms_3kNeVVeqxQvSMcM2l7By1BTz4uteKSAGmVgafYY" //nolint:gosec
+	jwtToken := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjEwNzExMTE4MDI0LCJodHRwczovL2hhc3VyYS5pby9qd3QvY2xhaW1zIjp7IngtaGFzdXJhLWFsbG93ZWQtcm9sZXMiOlsibWUiLCJ1c2VyIiwiZWRpdG9yIl0sIngtaGFzdXJhLWRlZmF1bHQtcm9sZSI6InVzZXIiLCJ4LWhhc3VyYS11c2VyLWlkIjoiZjkwNzgyZGUtZjBhMy00MWZlLWI3NzgtMDFlNGY4MGMyNDEzIiwieC1oYXN1cmEtdXNlci1pcy1hbm9ueW1vdXMiOiJmYWxzZSJ9LCJpYXQiOjE3MTExMTgwMjQsImlzcyI6Imhhc3VyYS1hdXRoIiwic3ViIjoiZjkwNzgyZGUtZjBhMy00MWZlLWI3NzgtMDFlNGY4MGMyNDEzIn0.wms_3kNeVVeqxQvSMcM2l7By1BTz4uteKSAGmVgafYY"
 
 	cases := []testRequest[api.SignInProviderCallbackGetRequestObject, api.SignInProviderCallbackGetResponseObject]{
 		{ //nolint:dupl
@@ -476,6 +476,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 						TicketExpiresAt:          sql.TimestampTz(time.Now()),
 						Metadata:                 []byte{},
 						WebauthnCurrentChallenge: pgtype.Text{},
+						NewPhoneNumber:           pgtype.Text{},
 					}, nil,
 				)
 
@@ -574,6 +575,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 						TicketExpiresAt:          sql.TimestampTz(time.Now()),
 						Metadata:                 []byte{},
 						WebauthnCurrentChallenge: pgtype.Text{},
+						NewPhoneNumber:           pgtype.Text{},
 					}, nil,
 				)
 
@@ -697,7 +699,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 		{
 			name:   "signin - user disabled",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUserByProviderID( //nolint:dupl
@@ -738,6 +740,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 						TicketExpiresAt:          sql.TimestampTz(time.Now()),
 						Metadata:                 []byte{},
 						WebauthnCurrentChallenge: pgtype.Text{},
+						NewPhoneNumber:           pgtype.Text{},
 					}, nil,
 				)
 
@@ -937,6 +940,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 					TicketExpiresAt:          sql.TimestampTz(time.Now()),
 					Metadata:                 []byte{},
 					WebauthnCurrentChallenge: pgtype.Text{},
+					NewPhoneNumber:           pgtype.Text{},
 				}, nil)
 
 				mock.EXPECT().InsertUserProvider(
@@ -1030,6 +1034,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 					TicketExpiresAt:          sql.TimestampTz(time.Now()),
 					Metadata:                 []byte{},
 					WebauthnCurrentChallenge: pgtype.Text{},
+					NewPhoneNumber:           pgtype.Text{},
 				}, nil)
 
 				mock.EXPECT().InsertUserProvider(
@@ -1118,6 +1123,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 					TicketExpiresAt:          sql.TimestampTz(time.Now()),
 					Metadata:                 []byte{},
 					WebauthnCurrentChallenge: pgtype.Text{},
+					NewPhoneNumber:           pgtype.Text{},
 				}, nil)
 
 				return mock
@@ -1212,6 +1218,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 					TicketExpiresAt:          sql.TimestampTz(time.Now()),
 					Metadata:                 []byte{},
 					WebauthnCurrentChallenge: pgtype.Text{},
+					NewPhoneNumber:           pgtype.Text{},
 				}, nil)
 
 				mock.EXPECT().InsertUserProvider(
@@ -1504,6 +1511,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 						TicketExpiresAt:          sql.TimestampTz(time.Now()),
 						Metadata:                 []byte{},
 						WebauthnCurrentChallenge: pgtype.Text{},
+						NewPhoneNumber:           pgtype.Text{},
 					}, nil,
 				)
 
@@ -1835,6 +1843,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 						TicketExpiresAt:          sql.TimestampTz(time.Now()),
 						Metadata:                 []byte{},
 						WebauthnCurrentChallenge: pgtype.Text{},
+						NewPhoneNumber:           pgtype.Text{},
 					}, nil,
 				)
 

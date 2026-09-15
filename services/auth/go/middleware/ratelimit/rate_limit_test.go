@@ -116,6 +116,20 @@ func classifierCases() []struct {
 			buckets: []bucket{bucketEmailWithVerify},
 		},
 
+		// User endpoints that send SMS.
+		{
+			path:    "/user/deanonymize/sms",
+			buckets: []bucket{bucketSMS},
+		},
+		{
+			path:    "/user/phone-number/change",
+			buckets: []bucket{bucketSMS},
+		},
+		{
+			path:    "/user/phone-number/change/verify",
+			buckets: []bucket{bucketBruteForce},
+		},
+
 		// OAuth2 brute-force paths.
 		{path: "/oauth2/authorize", buckets: []bucket{bucketBruteForce}},
 		{path: "/oauth2/login", buckets: []bucket{bucketBruteForce}},

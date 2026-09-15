@@ -190,8 +190,8 @@ func TestCustomizedConnectorNewSubscriptionHandlerCapable(t *testing.T) {
 	t.Parallel()
 
 	inner := &fakeSubConnector{
-		fakeConnector: fakeConnector{schema: teamSchema()},
-		handler:       &fakeSubHandler{ch: make(chan subscription.Update, 1)},
+		schema:  teamSchema(),
+		handler: &fakeSubHandler{ch: make(chan subscription.Update, 1)},
 	}
 
 	conn, err := newCustomizedConnector(

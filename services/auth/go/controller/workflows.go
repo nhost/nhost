@@ -277,6 +277,35 @@ func (wf *Workflows) GetUser(
 	return user, nil
 }
 
+func (wf *Workflows) validateUserIsAnonymous(
+	ctx context.Context,
+	id uuid.UUID,
+	logger *slog.Logger,
+) *APIError {
+	user, err := wf.db.GetUser(ctx, id)
+	if errors.Is(err, pgx.ErrNoRows) {
+		logger.WarnContext(ctx, "user not found")
+		return ErrInvalidEmailPassword
+	}
+
+	if err != nil {
+		logger.ErrorContext(ctx, "error getting user", logError(err))
+		return ErrInternalServerError
+	}
+
+	if user.Disabled {
+		logger.WarnContext(ctx, "user is disabled")
+		return ErrDisabledUser
+	}
+
+	if !user.IsAnonymous {
+		logger.WarnContext(ctx, "user is not anonymous")
+		return ErrUserNotAnonymous
+	}
+
+	return nil
+}
+
 func (wf *Workflows) UserByEmailExists(
 	ctx context.Context,
 	email string,
@@ -290,6 +319,25 @@ func (wf *Workflows) UserByEmailExists(
 
 	if err != nil {
 		logger.ErrorContext(ctx, "error getting user by email", logError(err))
+		return false, ErrInternalServerError
+	}
+
+	return true, nil
+}
+
+func (wf *Workflows) UserByPhoneNumberExists(
+	ctx context.Context,
+	phoneNumber string,
+	logger *slog.Logger,
+) (bool, *APIError) {
+	_, err := wf.db.GetUserByPhoneNumber(ctx, sql.Text(phoneNumber))
+	if errors.Is(err, pgx.ErrNoRows) {
+		logger.WarnContext(ctx, "user not found")
+		return false, nil
+	}
+
+	if err != nil {
+		logger.ErrorContext(ctx, "error getting user by phone number", logError(err))
 		return false, ErrInternalServerError
 	}
 
@@ -423,7 +471,7 @@ func (wf *Workflows) VerifyEmailOTP(
 		sql.VerifyEmailOTPParams{
 			Email:       sql.Text(email),
 			Otp:         sql.Text(otp),
-			MaxAttempts: pgtype.Int4{Int32: maxOTPVerificationAttempts, Valid: true},
+			MaxAttempts: pgtype.Int4{Int32: sql.MaxOTPVerificationAttempts, Valid: true},
 		},
 	)
 	if err != nil {
@@ -432,13 +480,13 @@ func (wf *Workflows) VerifyEmailOTP(
 	}
 
 	switch status {
-	case otpStatusOK:
+	case sql.OTPStatusOK:
 		// Correct code: the statement above cleared it and verified the email.
 		// Load the updated user for the session below.
-	case otpStatusBurned:
+	case sql.OTPStatusBurned:
 		logger.WarnContext(ctx, "otp burned after too many attempts")
 		return sql.AuthUser{}, ErrTooManyOTPAttempts
-	case otpStatusInvalid:
+	case sql.OTPStatusInvalid:
 		logger.WarnContext(ctx, "invalid or expired otp")
 		return sql.AuthUser{}, ErrInvalidOTP
 	default:
@@ -671,6 +719,33 @@ func (wf *Workflows) GetUserFromJWTInContext(
 	return user, nil
 }
 
+func (wf *Workflows) getUserFromJWTInContextEmailOptional(
+	ctx context.Context,
+	logger *slog.Logger,
+) (sql.AuthUser, *APIError) {
+	userID, apiErr := wf.GetJWTInContext(ctx, logger)
+	if apiErr != nil {
+		return sql.AuthUser{}, apiErr
+	}
+
+	user, err := wf.db.GetUser(ctx, userID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		logger.WarnContext(ctx, "user not found")
+		return sql.AuthUser{}, ErrInvalidEmailPassword
+	}
+
+	if err != nil {
+		logger.ErrorContext(ctx, "error getting user", logError(err))
+		return sql.AuthUser{}, ErrInternalServerError
+	}
+
+	if apiErr := wf.ValidateUserEmailOptional(ctx, user, logger); apiErr != nil {
+		return sql.AuthUser{}, apiErr
+	}
+
+	return user, nil
+}
+
 func (wf *Workflows) VerifyJWTToken(
 	ctx context.Context,
 	token string,
@@ -752,6 +827,104 @@ func (wf *Workflows) ChangeEmail(
 	}
 
 	return user, nil
+}
+
+// PhoneNumberClaimedByOtherUser mirrors the users_phone_number_key unique
+// constraint exactly (no verified or disabled filter) to reject a doomed change
+// before wasting an SMS. Staged new_phone_number squats intentionally don't
+// block — see services/auth/test/routes/user/phone-squat.test.ts.
+func (wf *Workflows) PhoneNumberClaimedByOtherUser(
+	ctx context.Context,
+	userID uuid.UUID,
+	phoneNumber string,
+	logger *slog.Logger,
+) (bool, *APIError) {
+	_, err := wf.db.GetUserByPhoneNumberOtherThanSelf(
+		ctx,
+		sql.GetUserByPhoneNumberOtherThanSelfParams{
+			UserID:      userID,
+			PhoneNumber: sql.Text(phoneNumber),
+		},
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return false, nil
+	}
+
+	if err != nil {
+		logger.ErrorContext(ctx, "error getting user by phone number", logError(err))
+		return false, ErrInternalServerError
+	}
+
+	return true, nil
+}
+
+func (wf *Workflows) ChangePhoneNumber(
+	ctx context.Context,
+	userID uuid.UUID,
+	newPhoneNumber string,
+	otp string,
+	otpExpiresAt time.Time,
+	logger *slog.Logger,
+) *APIError {
+	if err := wf.db.UpdateUserChangePhoneNumber(
+		ctx,
+		sql.UpdateUserChangePhoneNumberParams{
+			ID:               userID,
+			NewPhoneNumber:   sql.Text(newPhoneNumber),
+			Otp:              otp,
+			OtpHashExpiresAt: sql.TimestampTz(otpExpiresAt),
+		},
+	); err != nil {
+		logger.ErrorContext(ctx, "error updating user phone number change", logError(err))
+		return ErrInternalServerError
+	}
+
+	return nil
+}
+
+func (wf *Workflows) ConfirmChangePhoneNumber(
+	ctx context.Context,
+	userID uuid.UUID,
+	newPhoneNumber string,
+	otp string,
+	logger *slog.Logger,
+) *APIError {
+	status, err := wf.db.UpdateUserConfirmChangePhoneNumber(
+		ctx,
+		sql.UpdateUserConfirmChangePhoneNumberParams{
+			ID:             sql.UUID(userID),
+			NewPhoneNumber: sql.Text(newPhoneNumber),
+			Otp:            sql.Text(otp),
+			MaxAttempts:    pgtype.Int4{Int32: sql.MaxOTPVerificationAttempts, Valid: true},
+		},
+	)
+	if err != nil {
+		if sqlIsDuplcateError(err, "users_phone_number_key") {
+			logger.WarnContext(ctx, "phone number already in use", logError(err))
+			return ErrUserAlreadyExists
+		}
+
+		logger.ErrorContext(ctx, "error confirming phone number change", logError(err))
+
+		return ErrInternalServerError
+	}
+
+	switch status {
+	case sql.OTPStatusOK:
+		return nil
+	case sql.OTPStatusBurned:
+		logger.WarnContext(ctx, "phone number change otp burned after too many attempts")
+		return ErrTooManyOTPAttempts
+	case sql.OTPStatusInvalid:
+		logger.WarnContext(ctx, "phone number change verification failed")
+		return ErrInvalidOTP
+	default:
+		logger.ErrorContext(
+			ctx, "unexpected otp verification status", slog.String("status", status),
+		)
+
+		return ErrInternalServerError
+	}
 }
 
 func (wf *Workflows) ChangePassword(
@@ -1143,6 +1316,49 @@ func (wf *Workflows) DeanonymizeUser(
 			logger.ErrorContext(ctx, "error deleting refresh tokens", logError(err))
 			return ErrInternalServerError
 		}
+	}
+
+	return nil
+}
+
+func (wf *Workflows) DeanonymizeUserSMS(
+	ctx context.Context,
+	userID uuid.UUID,
+	phoneNumber string,
+	otp string,
+	otpExpiresAt time.Time,
+	options *api.SignUpOptions,
+	logger *slog.Logger,
+) *APIError {
+	var (
+		metadatab []byte
+		err       error
+	)
+
+	if options.Metadata != nil {
+		metadatab, err = json.Marshal(options.Metadata)
+		if err != nil {
+			logger.ErrorContext(ctx, "error marshalling metadata", logError(err))
+			return ErrInternalServerError
+		}
+	}
+
+	if err := wf.db.UpdateUserDeanonymizeSMS(
+		ctx,
+		sql.UpdateUserDeanonymizeSMSParams{
+			Roles:            *options.AllowedRoles,
+			PhoneNumber:      sql.Text(phoneNumber),
+			Otp:              otp,
+			OtpHashExpiresAt: sql.TimestampTz(otpExpiresAt),
+			DefaultRole:      *options.DefaultRole,
+			DisplayName:      *options.DisplayName,
+			Locale:           *options.Locale,
+			Metadata:         metadatab,
+			ID:               userID,
+		},
+	); err != nil {
+		logger.ErrorContext(ctx, "error staging SMS deanonymization", logError(err))
+		return ErrInternalServerError
 	}
 
 	return nil

@@ -141,9 +141,7 @@ permissions, remote schemas, etc.
 - schema://nhost.toml: Cuelang schema for the nhost.toml configuration file. Run nhost
 config validate after making changes to your nhost.toml file to ensure it is valid.
 `,
-			Result: mcp.Result{
-				Meta: nil,
-			},
+			Meta: nil,
 		},
 	); diff != "" {
 		t.Errorf("ServerInfo mismatch (-want +got):\n%s", diff)
@@ -415,11 +413,9 @@ config validate after making changes to your nhost.toml file to ensure it is val
 		&mcp.ListResourcesResult{
 			Resources: []mcp.Resource{
 				{
-					Annotated: mcp.Annotated{
-						Annotations: &mcp.Annotations{
-							Audience: []mcp.Role{"agent"},
-							Priority: 9,
-						},
+					Annotations: &mcp.Annotations{
+						Audience: []mcp.Role{"agent"},
+						Priority: 9,
 					},
 					URI:         "schema://graphql-management",
 					Name:        "graphql-management",
@@ -428,11 +424,9 @@ config validate after making changes to your nhost.toml file to ensure it is val
 				},
 
 				{
-					Annotated: mcp.Annotated{
-						Annotations: &mcp.Annotations{
-							Audience: []mcp.Role{"agent"},
-							Priority: 9,
-						},
+					Annotations: &mcp.Annotations{
+						Audience: []mcp.Role{"agent"},
+						Priority: 9,
 					},
 					URI:         "schema://nhost-cloud",
 					Name:        "nhost-cloud",
@@ -440,11 +434,9 @@ config validate after making changes to your nhost.toml file to ensure it is val
 					MIMEType:    "text/plain",
 				},
 				{
-					Annotated: mcp.Annotated{
-						Annotations: &mcp.Annotations{
-							Audience: []mcp.Role{"agent"},
-							Priority: 9,
-						},
+					Annotations: &mcp.Annotations{
+						Audience: []mcp.Role{"agent"},
+						Priority: 9,
 					},
 					URI:         "schema://nhost.toml",
 					Name:        "nhost.toml",

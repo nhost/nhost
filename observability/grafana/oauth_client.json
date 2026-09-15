@@ -1,0 +1,8 @@
+{
+  "client_id": "{{ .RootURL }}/public/oauth-client.json",
+  "redirect_uris": ["{{ .RootURL }}/login/generic_oauth"],
+  "token_endpoint_auth_method": "none",
+  "grant_types": ["authorization_code"],
+  "response_types": ["code"],
+  "scope": "openid email profile graphql"
+}

@@ -10,11 +10,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/nhost/nhost/internal/lib/syncmap"
 	"github.com/nhost/nhost/services/constellation/connector/schemamerge"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	"github.com/nhost/nhost/services/constellation/controller/planner/transform"
 	"github.com/nhost/nhost/services/constellation/controller/websocket"
-	"github.com/nhost/nhost/services/constellation/internal/lib/syncmap"
 	"github.com/nhost/nhost/services/constellation/subscription"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/gqlerror"

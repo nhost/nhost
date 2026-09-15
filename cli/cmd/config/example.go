@@ -34,7 +34,7 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 				},
 			},
 		},
-		Ai: &model.ConfigAI{
+		Ai: &model.ConfigAI{ //nolint:gosec // G101: example config values, not real credentials
 			Version: new("0.3.0"),
 			Resources: &model.ConfigAIResources{
 				Compute: &model.ConfigComputeResources{
@@ -42,7 +42,7 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 					Memory: 512,
 				},
 			},
-			Openai: &model.ConfigAIOpenai{
+			Openai: &model.ConfigAIOpenai{ //nolint:gosec // G101: example config values, not real credentials
 				Organization: new("org-id"),
 				ApiKey:       "opeanai-api-key",
 			},
@@ -460,7 +460,7 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 				Secure:   new(true),
 				Method:   new("LOGIN"),
 			},
-			Sms: &model.ConfigSms{
+			Sms: &model.ConfigSms{ //nolint:gosec // G101: example config values, not real credentials
 				Provider:           new("twilio"),
 				AccountSid:         "twilioAccountSid",
 				AuthToken:          "twilioAuthToken",

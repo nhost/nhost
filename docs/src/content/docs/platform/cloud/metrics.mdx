@@ -79,7 +79,7 @@ This will enable the following rules, which you can find in your grafana dashboa
    - Duration: Persistent for 5-10 minutes
 
 3. **Low free memory**
-   - Trigger: Memory usage > 75%
+   - Trigger: Memory usage > 75% (cold file cache is excluded; recently accessed file cache still counts)
    - Duration: Continuous for 5-10 minutes
 
 4. **Service restarted due to lack of memory**
@@ -110,7 +110,7 @@ First, make sure you have enabled alerting as described above. Then, go to your 
 ![contact points](/images/platform/metrics/contact_points_dashboard.png)
 </TabItem>
 <TabItem label="Config">
-To configure them include one ore more sections in your configuration file:
+To configure them include one or more sections in your configuration file:
 
 ```toml
 [observability.grafana.contacts]

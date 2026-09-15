@@ -95,6 +95,9 @@ export const createAPIClient = (
     params &&
     Object.entries(params)
       .flatMap(([key, value]) => {
+        if (value === null || value === undefined) {
+          return []
+        }
         {{- range .QueryParameters }}
         {{- if .Explode }}
         {{- if eq .Style "deepObject" }}
@@ -163,11 +166,11 @@ export const createAPIClient = (
 
     {{- range .RequestFormData.Properties }}
     {{- if eq .Type.Kind "scalar" }}
-    if (body["{{ .Name }}"] !== undefined) {
+    if (body["{{ .Name }}"] !== undefined && body["{{ .Name }}"] !== null) {
       formData.append("{{ .Name }}", body["{{ .Name }}"]);
     }
     {{- else if eq .Type.Kind "array" }}
-    if (body["{{ .Name }}"] !== undefined) {
+    if (body["{{ .Name }}"] !== undefined && body["{{ .Name }}"] !== null) {
       body["{{ .Name }}"].forEach((value) => {
         {{- if eq .Type.Item.Kind "scalar" }}
           formData.append("{{ .Name }}", value)
@@ -195,7 +198,7 @@ export const createAPIClient = (
       );
     }
     {{- else if eq .Type.Kind "object" }}
-    if (body["{{ .Name }}"] !== undefined) {
+    if (body["{{ .Name }}"] !== undefined && body["{{ .Name }}"] !== null) {
       if (isReactNative) {
         formData.append(
           "{{ .Name }}",
@@ -227,13 +230,13 @@ export const createAPIClient = (
     const params = new URLSearchParams();
     {{- range .RequestFormURLEncoded.Properties }}
     {{- if eq .Type.Kind "array" }}
-    if (body["{{ .Name }}"] !== undefined) {
+    if (body["{{ .Name }}"] !== undefined && body["{{ .Name }}"] !== null) {
       body["{{ .Name }}"].forEach((value) => {
         params.append("{{ .Name }}", String(value));
       });
     }
     {{- else }}
-    if (body["{{ .Name }}"] !== undefined) {
+    if (body["{{ .Name }}"] !== undefined && body["{{ .Name }}"] !== null) {
       params.append("{{ .Name }}", String(body["{{ .Name }}"]));
     }
     {{- end }}

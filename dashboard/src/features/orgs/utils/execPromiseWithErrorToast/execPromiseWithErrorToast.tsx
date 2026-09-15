@@ -1,6 +1,6 @@
 import type { ApolloError } from '@apollo/client';
 import { type Toast, toast } from 'react-hot-toast';
-import { ErrorToast } from '@/components/ui/v2/ErrorToast';
+import ErrorToast from '@/features/orgs/utils/execPromiseWithErrorToast/ErrorToast';
 import { getToastStyleProps } from '@/utils/constants/settings';
 
 type ErrorExtensions = {

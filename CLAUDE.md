@@ -8,6 +8,7 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 
 ### Go Services (`services/`)
 
+- `services/ai` - AI service providing auto-embeddings (native OpenAI) and multi-provider agents through OpenAI Chat Completions, OpenAI Responses, Anthropic Messages, and Google Gemini adapters with SSE streaming. HTTP/webhook API only; agent and configuration data is exposed through Hasura, not a service-owned GraphQL schema
 - `services/auth` - JWT-based authentication service with OAuth2/OIDC support, email/SMS verification, WebAuthn. Uses OpenAPI (oapi-codegen), sqlc for DB queries, and gomock for testing
 - `services/constellation` - GraphQL engine that turns relational databases (PostgreSQL, SQLite) into a role-based GraphQL API. Near-drop-in replacement for Hasura Community Edition: Hasura-compatible metadata, schema generation, queries/mutations/subscriptions, remote schemas, and cross-source remote relationships
 - `services/functions` - Node.js development runtime for serverless functions with Express, esbuild bundling, and hot-reload. Local dev simulation only, not a production service
@@ -23,6 +24,7 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 
 - `internal/lib/oapi` - shared OpenAPI middleware and utilities
 - `internal/lib/clidocs` - CLI documentation generation
+- `internal/lib/syncmap` - typed generic map safe for concurrent use
 
 ### Dashboard (`dashboard/`)
 
@@ -61,14 +63,14 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 - Go services use Nix dev shells. Enter with: `nix develop .\#<project-name>` (e.g., `nix develop .\#auth`)
 - Each service has a `project.nix` and a `Makefile` that includes `build/makefiles/general.makefile`
 - Common Makefile targets: `make help`, `make develop`, `make check`, `make build`, `make build-docker-image`, `make dev-env-up`, `make dev-env-down`
-- JS/TS packages use pnpm 11.1.0 (not npm or yarn) with Turbo for orchestration
+- JS/TS packages use pnpm 11.24.0 (not npm or yarn) with Turbo for orchestration
 - Node >= 22 required
 
 ## Code Standards
 
 Authoritative design rules live in `.claude/docs/`. Load the one that matches the file you are touching before writing or reviewing code:
 
-- **Go** — `.claude/docs/go-design-rules.md`. Covers placement, package invariants, local correctness, the mandatory `golines` / `golangci-lint --fix ./...` post-change checks, and the module-wide constraints (Go 1.26.0, single `go.mod` at root, generated-file globs, `exhaustruct` policy, `export_test.go` ban).
+- **Go** — `.claude/docs/go-design-rules.md`. Covers placement, package invariants, local correctness, the mandatory `golines` / `golangci-lint --fix ./...` post-change checks, and the module-wide constraints (Go 1.27.0, single `go.mod` at root, generated-file globs, `exhaustruct` policy, `export_test.go` ban).
 - **TypeScript / JavaScript** — `.claude/docs/javascript-design-rules.md`. Repo-wide rules plus separate sections for **Dashboard (React/Next.js)** and **SDK & Node**. Tooling: `pnpm` (never `npm`/`yarn`), Biome, Turbo, Node ≥ 22.
 
 Per-project `CLAUDE.md`s layer project-specific invariants on top of these — read them too.

@@ -3,12 +3,10 @@ package controller_test
 import (
 	"context"
 	"net/http"
-	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -19,7 +17,7 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func TestOauth2Introspect(t *testing.T) { //nolint:maintidx
+func TestOauth2Introspect(t *testing.T) {
 	t.Parallel()
 
 	clientID := "nhost_abc123def456"
@@ -251,42 +249,16 @@ func TestOauth2Introspect(t *testing.T) { //nolint:maintidx
 	t.Run("dual credentials", func(t *testing.T) {
 		t.Parallel()
 
-		ctrl := gomock.NewController(t)
-
-		c, _ := getController(
-			t,
-			ctrl,
-			getConfigOAuth2Enabled,
-			func(ctrl *gomock.Controller) controller.DBClient {
-				return mock.NewMockDBClient(ctrl)
-			},
-		)
-
 		bodyClientID := "body-client-id"
 
-		w := httptest.NewRecorder()
-		ginCtx, _ := gin.CreateTestContext(w)
-		ginCtx.Request = httptest.NewRequest(
-			http.MethodPost, "/oauth2/introspect", nil,
-		)
-		ginCtx.Request.SetBasicAuth("header-client-id", "header-client-secret")
-
-		assertRequest[api.Oauth2IntrospectRequestObject, api.Oauth2IntrospectResponseObject](
-			ginCtx, t, c.Oauth2Introspect,
+		assertOAuth2DualCredentials(
+			t,
+			"/oauth2/introspect",
+			(*controller.Controller).Oauth2Introspect,
 			api.Oauth2IntrospectRequestObject{
 				Body: &api.OAuth2IntrospectRequest{
 					Token:    "some-token",
 					ClientId: &bodyClientID,
-				},
-			},
-			controller.OAuth2ErrorResponse{
-				StatusCode: http.StatusBadRequest,
-				Body: api.OAuth2ErrorResponse{
-					Error: "invalid_request",
-					ErrorDescription: ptr(
-						"client credentials MUST NOT be provided in " +
-							"both the Authorization header and the request body",
-					),
 				},
 			},
 		)

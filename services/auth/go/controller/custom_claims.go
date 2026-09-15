@@ -244,7 +244,7 @@ func NewCustomClaims(
 					for _, part := range filterParts {
 						if strings.Contains(part, "[?") {
 							// Extract just the field name before the filter
-							basePart := strings.Split(part, "[")[0]
+							basePart, _, _ := strings.Cut(part, "[")
 							baseParts = append(baseParts, basePart)
 
 							break

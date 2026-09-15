@@ -83,7 +83,7 @@ var (
 	text     = newMIME("text/plain", ".txt", magic.Text, html, svg, xml, php, js, lua, perl, python, json, ndJSON, rtf, srt, tcl, csv, tsv, vCard, iCalendar, warc, vtt)
 	xml      = newMIME("text/xml", ".xml", magic.XML, rss, atom, x3d, kml, xliff, collada, gml, gpx, tcx, amf, threemf, xfdf, owl2).
 			alias("application/xml")
-	json    = newMIME("application/json", ".json", magic.JSON, geoJSON, har)
+	json    = newMIME("application/json", ".json", magic.JSON, geoJSON, har, gltf)
 	har     = newMIME("application/json", ".har", magic.HAR)
 	csv     = newMIME("text/csv", ".csv", magic.Csv)
 	tsv     = newMIME("text/tab-separated-values", ".tsv", magic.Tsv)
@@ -262,7 +262,8 @@ var (
 	pat     = newMIME("image/x-gimp-pat", ".pat", magic.Pat)
 	gbr     = newMIME("image/x-gimp-gbr", ".gbr", magic.Gbr)
 	xfdf    = newMIME("application/vnd.adobe.xfdf", ".xfdf", magic.Xfdf)
-	glb     = newMIME("model/gltf-binary", ".glb", magic.Glb)
+	glb     = newMIME("model/gltf-binary", ".glb", magic.GLB)
+	gltf    = newMIME("model/gltf+json", ".gltf", magic.GLTF)
 	jxr     = newMIME("image/jxr", ".jxr", magic.Jxr).alias("image/vnd.ms-photo")
 	parquet = newMIME("application/vnd.apache.parquet", ".parquet", magic.Par1).
 		alias("application/x-parquet")

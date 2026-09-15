@@ -244,17 +244,17 @@ describe('ConditionValue', () => {
       { value: 'X-Hasura-User-Id', expected: 'X-Hasura-User-Id' },
       { value: null, expected: 'Select variable...' },
       { value: undefined, expected: 'Select variable...' },
-    ])('renders $value as "$expected" in the trigger', ({
-      value,
-      expected,
-    }) => {
-      render(
-        <TestWrapper defaultValues={{ operator: '_eq', value }}>
-          <ConditionValue name="test" selectedTablePath="public.users" />
-        </TestWrapper>,
-      );
+    ])(
+      'renders $value as "$expected" in the trigger',
+      ({ value, expected }) => {
+        render(
+          <TestWrapper defaultValues={{ operator: '_eq', value }}>
+            <ConditionValue name="test" selectedTablePath="public.users" />
+          </TestWrapper>,
+        );
 
-      expect(screen.getByRole('combobox')).toHaveTextContent(expected);
-    });
+        expect(screen.getByRole('combobox')).toHaveTextContent(expected);
+      },
+    );
   });
 });

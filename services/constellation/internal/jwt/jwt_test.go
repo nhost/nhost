@@ -542,10 +542,8 @@ func TestAuthenticator(t *testing.T) { //nolint:maintidx
 						Type: jwtconfig.AlgorithmHS256,
 						Key:  "cookie-key",
 						Header: &jwtconfig.HeaderJSON{
-							HeaderConfig: jwtconfig.HeaderConfig{
-								Type: jwtconfig.HeaderTypeCookie,
-								Name: "session",
-							},
+							Type: jwtconfig.HeaderTypeCookie,
+							Name: "session",
 						},
 					},
 				},
@@ -575,10 +573,8 @@ func TestAuthenticator(t *testing.T) { //nolint:maintidx
 						Type: jwtconfig.AlgorithmHS256,
 						Key:  "cookie-key",
 						Header: &jwtconfig.HeaderJSON{
-							HeaderConfig: jwtconfig.HeaderConfig{
-								Type: jwtconfig.HeaderTypeCookie,
-								Name: "session",
-							},
+							Type: jwtconfig.HeaderTypeCookie,
+							Name: "session",
 						},
 					},
 				},
@@ -605,10 +601,8 @@ func TestAuthenticator(t *testing.T) { //nolint:maintidx
 						Type: jwtconfig.AlgorithmHS256,
 						Key:  "custom-key",
 						Header: &jwtconfig.HeaderJSON{
-							HeaderConfig: jwtconfig.HeaderConfig{
-								Type: jwtconfig.HeaderTypeCustomHeader,
-								Name: "X-My-Token",
-							},
+							Type: jwtconfig.HeaderTypeCustomHeader,
+							Name: "X-My-Token",
 						},
 					},
 				},
@@ -638,10 +632,8 @@ func TestAuthenticator(t *testing.T) { //nolint:maintidx
 						Type: jwtconfig.AlgorithmHS256,
 						Key:  "custom-key",
 						Header: &jwtconfig.HeaderJSON{
-							HeaderConfig: jwtconfig.HeaderConfig{
-								Type: jwtconfig.HeaderTypeCustomHeader,
-								Name: "X-My-Token",
-							},
+							Type: jwtconfig.HeaderTypeCustomHeader,
+							Name: "X-My-Token",
 						},
 					},
 				},
@@ -744,10 +736,8 @@ func TestAuthenticator(t *testing.T) { //nolint:maintidx
 						Type: jwtconfig.AlgorithmHS256,
 						Key:  "key-1",
 						Header: &jwtconfig.HeaderJSON{
-							HeaderConfig: jwtconfig.HeaderConfig{
-								Type: jwtconfig.HeaderTypeCookie,
-								Name: "jwt",
-							},
+							Type: jwtconfig.HeaderTypeCookie,
+							Name: "jwt",
 						},
 					},
 					{Type: jwtconfig.AlgorithmHS256, Key: "key-2"},
@@ -773,20 +763,16 @@ func TestAuthenticator(t *testing.T) { //nolint:maintidx
 						Type: jwtconfig.AlgorithmHS256,
 						Key:  "key-1",
 						Header: &jwtconfig.HeaderJSON{
-							HeaderConfig: jwtconfig.HeaderConfig{
-								Type: jwtconfig.HeaderTypeCookie,
-								Name: "jwt",
-							},
+							Type: jwtconfig.HeaderTypeCookie,
+							Name: "jwt",
 						},
 					},
 					{
 						Type: jwtconfig.AlgorithmHS256,
 						Key:  "key-2",
 						Header: &jwtconfig.HeaderJSON{
-							HeaderConfig: jwtconfig.HeaderConfig{
-								Type: jwtconfig.HeaderTypeCustomHeader,
-								Name: "X-Token",
-							},
+							Type: jwtconfig.HeaderTypeCustomHeader,
+							Name: "X-Token",
 						},
 					},
 				},

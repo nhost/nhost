@@ -69,23 +69,23 @@ describe('usePollWhileTransitioning', () => {
     vi.clearAllMocks();
   });
 
-  it.each([
-    ApplicationStatus.Restoring,
-    ApplicationStatus.Unpausing,
-  ])('polls application state while project is %s', async (state) => {
-    mocks.useAppState.mockReturnValue({ state });
+  it.each([ApplicationStatus.Restoring, ApplicationStatus.Unpausing])(
+    'polls application state while project is %s',
+    async (state) => {
+      mocks.useAppState.mockReturnValue({ state });
 
-    renderHook(() => usePollWhileTransitioning());
+      renderHook(() => usePollWhileTransitioning());
 
-    expect(mocks.useGetApplicationStateQuery).toHaveBeenCalledWith({
-      variables: { appId: 'app-id' },
-      skip: false,
-    });
+      expect(mocks.useGetApplicationStateQuery).toHaveBeenCalledWith({
+        variables: { appId: 'app-id' },
+        skip: false,
+      });
 
-    await waitFor(() => {
-      expect(mocks.startPolling).toHaveBeenCalledWith(2000);
-    });
-  });
+      await waitFor(() => {
+        expect(mocks.startPolling).toHaveBeenCalledWith(2000);
+      });
+    },
+  );
 
   it('skips polling when project is not transitioning', async () => {
     mocks.useAppState.mockReturnValue({ state: ApplicationStatus.Live });
@@ -127,36 +127,36 @@ describe('usePollWhileTransitioning', () => {
     });
   });
 
-  it.each([
-    ApplicationStatus.Live,
-    ApplicationStatus.Errored,
-  ])('refreshes organizations and project state when polling observes %s', async (state) => {
-    mockApplicationStateQuery(state);
+  it.each([ApplicationStatus.Live, ApplicationStatus.Errored])(
+    'refreshes organizations and project state when polling observes %s',
+    async (state) => {
+      mockApplicationStateQuery(state);
 
-    renderHook(() => usePollWhileTransitioning());
+      renderHook(() => usePollWhileTransitioning());
 
-    await waitFor(() => {
-      expect(mocks.getOrgs).toHaveBeenCalledWith({
-        variables: { userId: 'user-id' },
+      await waitFor(() => {
+        expect(mocks.getOrgs).toHaveBeenCalledWith({
+          variables: { userId: 'user-id' },
+        });
+        expect(mocks.invalidateQueries).toHaveBeenCalledWith({
+          queryKey: ['projectWithState', 'app-subdomain'],
+        });
       });
-      expect(mocks.invalidateQueries).toHaveBeenCalledWith({
-        queryKey: ['projectWithState', 'app-subdomain'],
+    },
+  );
+
+  it.each([ApplicationStatus.Restoring, ApplicationStatus.Unpausing])(
+    'does not refresh organizations while polling observes %s',
+    async (state) => {
+      mockApplicationStateQuery(state);
+
+      renderHook(() => usePollWhileTransitioning());
+
+      await waitFor(() => {
+        expect(mocks.startPolling).toHaveBeenCalledWith(2000);
       });
-    });
-  });
-
-  it.each([
-    ApplicationStatus.Restoring,
-    ApplicationStatus.Unpausing,
-  ])('does not refresh organizations while polling observes %s', async (state) => {
-    mockApplicationStateQuery(state);
-
-    renderHook(() => usePollWhileTransitioning());
-
-    await waitFor(() => {
-      expect(mocks.startPolling).toHaveBeenCalledWith(2000);
-    });
-    expect(mocks.getOrgs).not.toHaveBeenCalled();
-    expect(mocks.invalidateQueries).not.toHaveBeenCalled();
-  });
+      expect(mocks.getOrgs).not.toHaveBeenCalled();
+      expect(mocks.invalidateQueries).not.toHaveBeenCalled();
+    },
+  );
 });

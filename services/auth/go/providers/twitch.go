@@ -26,7 +26,7 @@ func NewTwitchProvider(
 			ClientSecret: clientSecret,
 			RedirectURL:  authServerURL + "/signin/provider/twitch/callback",
 			Scopes:       scopes,
-			Endpoint: oauth2.Endpoint{ //nolint:exhaustruct
+			Endpoint: oauth2.Endpoint{ //nolint:exhaustruct,gosec // G101: public OAuth endpoint URLs, not credentials
 				AuthURL:  "https://id.twitch.tv/oauth2/authorize",
 				TokenURL: "https://id.twitch.tv/oauth2/token",
 			},
