@@ -1,0 +1,120 @@
+---
+# Functional end-to-end tests for the CLI-managed local development
+# environment. The same black-box suite (cli/e2e) runs against both topologies:
+# the standalone auth/storage/graphql containers, and the bundled engine
+# (experimental.nhost). Running identical assertions in both is what makes the
+# engine's equivalence to the standalone services a tested claim.
+on:
+  workflow_call:
+    inputs:
+      GIT_REF:
+        type: string
+        required: false
+    secrets:
+      AWS_ACCOUNT_ID:
+        required: true
+      NIX_CACHE_PUB_KEY:
+        required: true
+      NIX_CACHE_PRIV_KEY:
+        required: true
+      NIX_CACHE_ACCESS_KEY_ID:
+        required: true
+      NIX_CACHE_SECRET_ACCESS_KEY:
+        required: true
+
+jobs:
+  e2e:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    # 30m Go test deadline below + 8m for setup, artifacts, and cache storage.
+    timeout-minutes: 38 # Must stay below .github/workflows/ci_final_status_check.yaml's MAX_WAIT_S (45m).
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # standalone = individual auth/storage/graphql containers.
+        # engine     = one nhost/engine container serving all three.
+        mode: [standalone, engine]
+
+    permissions:
+      id-token: write
+      contents: read
+      actions: read
+
+    steps:
+      - name: "Check out repository"
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.GIT_REF }}
+          allow-unsafe-pr-checkout: true
+          persist-credentials: false
+
+      - name: Configure aws
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
+          aws-region: eu-central-1
+
+      - name: Setup Nix with Cache
+        uses: ./.github/actions/setup-nix
+        with:
+          NAME: cli
+          NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+          NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+          NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Get artifacts"
+        uses: actions/download-artifact@v8
+        with:
+          pattern: cli-*-linux-x86_64-0.0.0-dev
+          path: ~/artifacts
+
+      - name: "Load CLI image (configserver)"
+        run: |
+          skopeo copy --insecure-policy \
+            "dir:$HOME/artifacts/cli-docker-image-linux-x86_64-0.0.0-dev" \
+            docker-daemon:cli:0.0.0-dev
+
+      - name: "Unpack CLI binary"
+        run: |
+          mkdir -p "$RUNNER_TEMP/clibin"
+          unzip -o "$HOME/artifacts/cli-artifact-linux-x86_64-0.0.0-dev/result.zip" -d "$RUNNER_TEMP/clibin"
+
+      # The engine image is not a CLI build artifact, so engine mode builds it
+      # here and loads it under the tag E2E_ENGINE_VERSION pins below. Keep the
+      # build under the same release/dashboard guard as the e2e suite.
+      - name: "Build and load engine image"
+        if: ${{ matrix.mode == 'engine' && !startsWith(github.head_ref, 'release/dashboard') }}
+        run: |
+          nix build .#engine-docker-image --out-link "$RUNNER_TEMP/engine-image"
+          skopeo copy --insecure-policy \
+            "dir:$RUNNER_TEMP/engine-image" \
+            docker-daemon:nhost/engine:0.0.0-dev
+
+      # Skipped on `release/dashboard` PRs because the release PR bumps the
+      # `nhost/dashboard:<tag>` ref in `cli/cmd/dev/` to a version that isn't
+      # published until the PR merges, which makes `cli up` fail to pull it.
+      # `github.head_ref` is empty on merge_group, so that event still runs.
+      - name: "Run e2e suite (${{ matrix.mode }})"
+        if: ${{ !startsWith(github.head_ref, 'release/dashboard') }}
+        env:
+          E2E_MODE: ${{ matrix.mode }}
+          E2E_CONFIGSERVER_IMAGE: cli:0.0.0-dev
+          E2E_CLI_BIN: ${{ runner.temp }}/clibin/result/bin/cli
+          # Pin the engine tag to the locally built image rather than the
+          # schema default, which points at a released version.
+          E2E_ENGINE_VERSION: 0.0.0-dev
+          # Scratch project lives under RUNNER_TEMP so docker can bind-mount it.
+          E2E_WORKDIR: ${{ runner.temp }}
+          GOEXPERIMENT: jsonv2
+        run: |
+          nix develop .#cli --command \
+            go test -tags e2e -timeout 30m -v ./cli/e2e/
+
+      - name: "Store Nix cache"
+        uses: ./.github/actions/cache-nix
+        with:
+          NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+          NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+          NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
+        if: always()

@@ -28,6 +28,10 @@ let
       ./ssl/.ssl
       ./cmd/config/testdata
       ./cmd/project/templates
+      # Curated at runtime by cli/e2e/e2e_test.go; the source examples include
+      # project-specific metadata that the default e2e scratch project omits.
+      ./examples/myproject/nhost/metadata
+      ./examples/myproject/nhost/migrations
       ./nhostclient/graphql/query
 
       (fs.fileFilter (f: f.hasExt "go") ../internal/lib/clidocs)
@@ -113,6 +117,23 @@ rec {
 
       echo "➜ Getting access token"
       export NHOST_ACCESS_TOKEN=$(bash ${src}/cli/get_access_token.sh)
+    '';
+
+    # The shared lint pass does not enable opt-in build tags. Keep this CLI-only
+    # check here so the e2e package is visible without changing other projects.
+    extraCheck = ''
+      echo "➜ Running golangci-lint for CLI e2e tests"
+      golangci-lint run \
+        --timeout 600s \
+        --build-tags e2e \
+        ./cli/e2e/
+
+      # The ordinary check already runs the untagged command/redaction tests.
+      # Lint only compiles the tagged fixture and lifecycle guards, so execute
+      # those too, except TestE2E, which needs Docker and a built CLI. Use -skip
+      # so tests added later are covered without editing this list.
+      echo "➜ Running Docker-free CLI e2e unit tests"
+      go test -tags e2e -count=1 -skip '^TestE2E$' ./cli/e2e/
     '';
   };
 
