@@ -95,7 +95,10 @@ describe('ProjectLayoutContent', () => {
     render(<TestComponent />);
 
     await waitFor(() => {
-      expect(screen.getByTestId('projectLoadingIndicator')).toBeInTheDocument();
+      const loadingIndicator = screen.getByTestId('projectLoadingIndicator');
+
+      expect(loadingIndicator).toBeInTheDocument();
+      expect(loadingIndicator.closest('main')).not.toBeNull();
       expect(screen.queryByText('Project loaded')).not.toBeInTheDocument();
     });
 
