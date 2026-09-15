@@ -36,6 +36,14 @@ func (r *mutationResolver) updateConfig(
 
 	newApp.Config.Update(&input)
 
+	if err := r.schema.ValidateConfigMutation(newApp.Config, &input); err != nil {
+		return nil, fmt.Errorf("failed to validate config mutation: %w", err)
+	}
+
+	if err := r.schema.ValidateEngineActivation(oldApp.Config, newApp.Config); err != nil {
+		return nil, fmt.Errorf("failed to validate nhost activation: %w", err)
+	}
+
 	if _, err := newApp.ResolveConfig(r.schema, true); err != nil {
 		return nil, err
 	}
