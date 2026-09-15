@@ -70,6 +70,7 @@ export interface ComboboxProps {
    */
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  onCloseAutoFocus?: (event: Event) => void;
   onSearchChange?: (search: string) => void;
   popoverContentClassName?: string;
   id?: string;
@@ -96,6 +97,7 @@ const Combobox = forwardRef<HTMLButtonElement, ComboboxProps>(
       footerSlot,
       open,
       onOpenChange,
+      onCloseAutoFocus,
       onSearchChange,
       popoverContentClassName,
       id,
@@ -163,6 +165,7 @@ const Combobox = forwardRef<HTMLButtonElement, ComboboxProps>(
         </PopoverTrigger>
         <PopoverContent
           align="start"
+          onCloseAutoFocus={onCloseAutoFocus}
           className={cn(
             'max-h-[var(--radix-popover-content-available-height)] w-auto min-w-[var(--radix-popover-trigger-width)] p-0',
             popoverContentClassName,
