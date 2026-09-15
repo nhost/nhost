@@ -85,6 +85,13 @@ let
     '';
   };
 
+  glibcLoader = pkgs.runCommand "glibc-loader" { } ''
+    loader="${pkgs.stdenv.cc.bintools.dynamicLinker}"
+    mkdir -p $out/lib64 $out/lib
+    ln -s "$loader" "$out/lib64/$(basename "$loader")"
+    ln -s "$loader" "$out/lib/$(basename "$loader")"
+  '';
+
   mkDockerImage =
     {
       nodeRuntime,
@@ -101,6 +108,7 @@ let
             name = "image";
             paths = [
               pkgs.fakeNss
+              glibcLoader
               serverFiles
               pkgs.busybox
               nodeRuntime
