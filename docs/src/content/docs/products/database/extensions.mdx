@@ -1,7 +1,7 @@
 ---
 title: List of Available Extensions
-description: Browse all PostgreSQL extensions available on Nhost, including pgvector, PostGIS, pg_cron, and uuid-ossp, with versions and details.
-keywords: ["PostgreSQL extensions", "pgvector", "PostGIS", "pg_cron", "uuid-ossp", "postgres plugins", "database extensions"]
+description: Browse all PostgreSQL extensions available on Nhost, including pgvector, PostGIS, pg_cron, pg_durable, and uuid-ossp, with versions and details.
+keywords: ["PostgreSQL extensions", "pgvector", "PostGIS", "pg_cron", "pg_durable", "uuid-ossp", "postgres plugins", "database extensions"]
 head:
   - tag: title
     content: "Supported PostgreSQL Extensions on Nhost | Nhost Docs"
@@ -45,6 +45,7 @@ In the table below you can find a list of available extensions with Nhost Postgr
 | pageinspect|1.13|inspect the contents of database pages at a low level|
 | pg_buffercache|1.6|examine the shared buffer cache|
 | pg_cron|1.6|Job scheduler for PostgreSQL|
+| pg_durable|0.2.5|pg_durable: SQL-native durable orchestrations for PostgreSQL|
 | pg_freespacemap|1.3|examine the free space map (FSM)|
 | pg_hashids|1.3|pg_hashids|
 | pg_ivm|1.15|incremental view maintenance on PostgreSQL|
@@ -289,6 +290,73 @@ DROP EXTENSION pg_cron;
 ### Resources
 
 - [GitHub](https://github.com/citusdata/pg_cron)
+
+## pg_durable
+
+pg_durable provides SQL-native durable orchestrations that persist their state in PostgreSQL and resume after crashes, restarts, and failovers.
+
+### Managing
+
+Nhost preloads pg_durable and configures its background worker for your project database. The extension does not grant access to `PUBLIC`. To enable it and allow workflows submitted through Nhost GraphQL, create a migration that grants access to the `nhost_hasura` database role:
+
+```sql
+SET ROLE postgres;
+CREATE EXTENSION pg_durable;
+SELECT df.grant_usage('nhost_hasura');
+RESET ROLE;
+```
+
+After the migration commits, the `df.*` functions exist, but the background worker initializes asynchronously. During the first 1–5 seconds, calls can fail with:
+
+```text
+pg_durable background worker not yet initialized — try again in a moment
+```
+
+Retry the call after a short delay.
+
+Nhost leaves `pg_durable.enable_superuser_instances` at its secure default of `off`. Workflows must therefore be submitted by a non-superuser role with `LOGIN`, because the background worker reconnects as the role captured by `df.start()`. Do not submit as `postgres` or `nhost_admin`; both are superusers and `df.start()` rejects them. The `nhost_hasura` role used by Nhost GraphQL is a non-superuser `LOGIN` role.
+
+For a service that connects directly to PostgreSQL, use a dedicated, least-privileged login role in the installation migration. For example:
+
+```sql
+SET ROLE postgres;
+CREATE ROLE durable_executor
+  LOGIN
+  NOSUPERUSER
+  NOCREATEDB
+  NOCREATEROLE
+  NOREPLICATION
+  NOBYPASSRLS;
+SELECT df.grant_usage('durable_executor');
+RESET ROLE;
+```
+
+Configure authentication for the role through your normal secrets workflow rather than committing credentials in a migration. Grant it only the additional table and function privileges required by its workflow SQL.
+
+### HTTP egress and access control
+
+Nhost builds pg_durable with the `http-allow-all` feature, enabling unrestricted HTTP destinations. `df.http()` and `df.http_multipart()` can contact any HTTP or HTTPS destination reachable from PostgreSQL. However, build-time HTTP support does not grant SQL access automatically. Fresh pg_durable installations revoke execution of both HTTP functions from `PUBLIC`, and the general grant above does not include them. A database administrator must explicitly opt a role into HTTP egress:
+
+```sql
+SET ROLE postgres;
+SELECT df.grant_usage('app_role', include_http => true);
+```
+
+Equivalent direct `GRANT EXECUTE` statements can grant either HTTP function more narrowly. Do not grant HTTP execution to roles that do not require outbound network access.
+
+To uninstall the extension, use the following migration:
+
+```sql
+SET ROLE postgres;
+DROP EXTENSION pg_durable CASCADE;
+```
+
+`CASCADE` is required and removes pg_durable's workflow state. Wait at least 20 seconds before recreating the extension so its background worker can shut down fully.
+
+### Resources
+
+- [GitHub](https://github.com/microsoft/pg_durable)
+- [Documentation](https://microsoft.github.io/pg_durable/)
 
 ## pg_hashids
 

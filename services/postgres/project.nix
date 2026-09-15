@@ -72,6 +72,11 @@ in
           -f ${src}/tests/plugins.sql --no-psqlrc -1 -v "ON_ERROR_STOP=1" \
           "$PG_URL"
 
+        # Do not add -1: the readiness procedure commits between worker-state polls.
+        psql \
+          -f ${src}/tests/pg_durable_http.sql --no-psqlrc -v "ON_ERROR_STOP=1" \
+          "$PG_URL"
+
         # Verify plugins.md is up to date (only for PG18)
         PG_MAJOR=$(psql --no-psqlrc -t -A -c "SHOW server_version_num;" "$PG_URL" | head -c2)
         if [ "$PG_MAJOR" = "18" ]; then
