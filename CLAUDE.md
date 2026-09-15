@@ -56,15 +56,18 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 
 - `tools/codegen` - code generation utilities
 - `tools/ghactivity` - `gh` CLI extension (binary `gh-activity`, invoked as `gh activity ...`) that builds a markdown stand-up report of a user's GitHub PR/issue activity in an org over a time window
+- `tools/godoc-md` - Go SDK reference documentation generator
 - `tools/govulncheck-wrapper` - wrapper around `govulncheck` for the monorepo's vulnerability scanning workflow
 
 ## Development Environment
 
 - Go services use Nix dev shells. Enter with: `nix develop .\#<project-name>` (e.g., `nix develop .\#auth`)
+- When validating a Nix check that depends on newly created, untracked files, use `nix build path:$PWD#checks.<system>.<name>`; the ordinary Git-backed `.#checks...` source omits untracked files.
 - Each service has a `project.nix` and a `Makefile` that includes `build/makefiles/general.makefile`
 - Common Makefile targets: `make help`, `make develop`, `make check`, `make build`, `make build-docker-image`, `make dev-env-up`, `make dev-env-down`
 - JS/TS packages use pnpm 11.24.0 (not npm or yarn) with Turbo for orchestration
 - Node >= 22 required
+- If a local Astro docs build under `nix develop .#docs` reports missing cached compile metadata for Starlight files in the Nix store, copy `docs/node_modules` from its Nix-store symlink target to a writable local directory *inside the dev shell* and clear `docs/.astro` and `docs/.vite` before rebuilding. Restore the dev-shell symlink afterwards; the Nix docs check already performs the required copy in its isolated build directory.
 
 ## Code Standards
 

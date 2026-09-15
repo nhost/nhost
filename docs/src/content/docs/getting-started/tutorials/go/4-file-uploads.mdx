@@ -1,0 +1,630 @@
+---
+title: File Attachments with Nhost Storage in Go
+description: Upload note attachments to Nhost Storage from a Go CLI, link them to notes over GraphQL, and download them again with the Nhost Go SDK.
+keywords: ["Go", "CLI", "Nhost Storage", "file upload", "download", "buckets", "SDK"]
+head:
+  - tag: title
+    content: "Go Notes CLI Tutorial: File Attachments | Nhost Docs"
+sidebar:
+  label: Attachments
+---
+
+Notes are more useful with files attached. In this part you'll upload a file to
+**Nhost Storage**, record the link in the database, and download it again.
+
+:::note
+This is **Part 4** of the [Notes CLI with Nhost and Go](/getting-started/tutorials/go/1-introduction)
+series.
+:::
+
+## Add a bucket and a join table
+
+Run this in the **SQL Editor**. It creates a `notes` storage bucket and a
+`note_attachments` table that links a note to an uploaded file (Nhost's Storage
+metadata lives in the tracked `storage.files` table).
+
+```sql SQL Editor
+INSERT INTO storage.buckets (id) VALUES ('notes') ON CONFLICT DO NOTHING;
+
+CREATE TABLE public.note_attachments (
+  note_id uuid NOT NULL REFERENCES public.notes (id) ON DELETE CASCADE,
+  file_id uuid NOT NULL REFERENCES storage.files (id) ON DELETE CASCADE,
+  PRIMARY KEY (note_id, file_id)
+);
+```
+
+Track `note_attachments`, then open its **Relationships** tab and add the two
+foreign-key relationships Nhost suggests: `file`
+(`public.note_attachments.file_id → storage.files.id`) and `note`
+(`public.note_attachments.note_id → public.notes.id`). Then set permissions for
+the `user` role:
+
+- **note_attachments** — gate through the parent note. Check columns `note_id`
+  and `file_id` for both `insert` and `select` (without them the insert
+  permission allows zero columns and `attach` is rejected), then use
+  `{ "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } }` as the `insert`
+  check and the `select` / `delete` filter.
+- **storage.files** — set these under **Storage → Permissions** (Nhost's UI for
+  the `storage.files` table permissions), where **Upload** is the `insert`
+  permission and **Download** is the `select` permission. Leave Replace / Delete
+  as-is for this tutorial.
+  - **Upload** — allow it for `user` and enable *Prefill
+    `uploaded_by_user_id` with `X-Hasura-User-Id`* so every upload is stamped
+    with its uploader. Without this stamp the column stays `NULL`, the Download
+    filter below never matches, and `download` 404s with `file not found` even
+    though `attach` succeeded.
+  - **Download** — a user should see a file if they uploaded it **or** it's
+    attached to a note they can see. This clause traverses a `noteAttachments`
+    array relationship on `storage.files`, which lives in the **Database** UI —
+    so add it there **first** under **Database → `storage` schema → `files` →
+    Relationships**, otherwise the row filter won't save
+    (`"noteAttachments" does not exist`). Then, back in **Storage → Permissions**
+    for the Download action, filter on the **database column**
+    `uploaded_by_user_id` (the `uploadedByUserId` GraphQL alias errors on save
+    with `"uploadedByUserId" does not exist`):
+
+    ```json
+    { "_or": [
+        { "uploaded_by_user_id": { "_eq": "X-Hasura-User-Id" } },
+        { "noteAttachments": { "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } } }
+    ]}
+    ```
+
+## Upload a file
+
+`Storage.UploadFiles` takes the bucket, the raw bytes, and per-file metadata. It
+returns the processed files, including the new file's `ID`, which we then link to
+the note. Add a `bucket` constant for the bucket id you created above:
+
+```go title="main.go"
+import "github.com/nhost/nhost/packages/nhost-go/storage"
+
+const bucket = "notes"
+
+func cmdAttach(ctx context.Context, c *nhost.Client, noteID, file string) error {
+	raw, err := os.ReadFile(file)
+	if err != nil {
+		return err
+	}
+	name := filepath.Base(file)
+	b := bucket
+	up, _, err := c.Storage.UploadFiles(ctx, storage.UploadFilesBody{
+		BucketID: &b,
+		File:     [][]byte{raw},
+		Metadata: &[]storage.UploadFileMetadata{{Name: &name}},
+	}, nil)
+	if err != nil {
+		return err
+	}
+	if len(up.ProcessedFiles) == 0 {
+		return errors.New("upload failed")
+	}
+	fileID := up.ProcessedFiles[0].ID
+
+	if _, err := c.GraphQL.Request(ctx, `
+		mutation Attach($noteId: uuid!, $fileId: uuid!) {
+			insert_note_attachments_one(object: {note_id: $noteId, file_id: $fileId}) { file_id }
+		}`, graphql.Variables{"noteId": noteID, "fileId": fileID}, nil); err != nil {
+		return err
+	}
+	fmt.Printf("attached %s (file %s) to %s\n", name, fileID, noteID)
+	return nil
+}
+```
+
+## Download a file
+
+`Storage.GetFile` streams the file's bytes back. Write them wherever the user
+asked:
+
+```go title="main.go"
+func cmdDownload(ctx context.Context, c *nhost.Client, fileID, outPath string) error {
+	resp, _, err := c.Storage.GetFile(ctx, fileID, nil, nil)
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(outPath, resp, 0o600); err != nil {
+		return err
+	}
+	fmt.Printf("wrote %d bytes to %s\n", len(resp), outPath)
+	return nil
+}
+```
+
+Register both as top-level commands in `rootCmd`:
+
+```go title="main.go"
+	root.Commands = append(root.Commands, &cli.Command{
+		Name:      "attach",
+		Usage:     "Upload a file and attach it to a note",
+		Arguments: commandArguments("NOTE_ID FILE", 2, 2),
+		Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
+			return cmdAttach(ctx, client, args[0], args[1])
+		}),
+	})
+	root.Commands = append(root.Commands, &cli.Command{
+		Name:      "download",
+		Usage:     "Download a file by id",
+		Arguments: commandArguments("FILE_ID OUT_PATH", 2, 2),
+		Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
+			return cmdDownload(ctx, client, args[0], args[1])
+		}),
+	})
+```
+
+## The complete `main.go`
+
+Here's the whole `main.go` after Part 4. Collapsed sections are unchanged from earlier parts; the highlighted lines are what this part added. Press **Copy** to grab the entire file at once.
+
+```go title="main.go"
+package main
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
+
+	"github.com/urfave/cli/v3"
+
+	nhost "github.com/nhost/nhost/packages/nhost-go"
+	"github.com/nhost/nhost/packages/nhost-go/auth"
+	"github.com/nhost/nhost/packages/nhost-go/graphql"
+	"github.com/nhost/nhost/packages/nhost-go/session"
+	"github.com/nhost/nhost/packages/nhost-go/storage"
+)
+
+const bucket = "notes"
+
+var (
+	errTooManyArgs    = errors.New("too many arguments")
+	errUnknownCommand = errors.New("unknown command")
+)
+
+// client is built once in the root command's Before hook and reused by every
+// subcommand's Action.
+var client *nhost.Client
+
+func main() {
+	if err := rootCmd().Run(context.Background(), os.Args); err != nil {
+		fmt.Fprintln(os.Stderr, "error:", err)
+		os.Exit(1)
+	}
+}
+
+func rootCmd() *cli.Command {
+	root := &cli.Command{
+		Name:                  "notes-cli",
+		Usage:                 "A note-taking CLI built on Nhost",
+		EnableShellCompletion: true,
+		ConfigureShellCompletionCommand: func(command *cli.Command) {
+			command.Hidden = false
+			command.Usage = "Generate the autocompletion script for the specified shell"
+		},
+		Before: func(ctx context.Context, _ *cli.Command) (context.Context, error) {
+			client = newClient()
+			return ctx, nil
+		},
+		Action: commandHelp,
+	}
+
+	root.Commands = append(root.Commands, &cli.Command{
+		Name:      "signup",
+		Usage:     "Create an account (and sign in if email verification is off)",
+		Arguments: commandArguments("EMAIL PASSWORD", 2, 2),
+		Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
+			return cmdSignup(ctx, client, args[0], args[1])
+		}),
+	})
+	root.Commands = append(root.Commands, &cli.Command{
+		Name:      "login",
+		Usage:     "Sign in with email and password",
+		Arguments: commandArguments("EMAIL PASSWORD", 2, 2),
+		Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
+			return cmdLogin(ctx, client, args[0], args[1])
+		}),
+	})
+	root.Commands = append(root.Commands, &cli.Command{
+		Name:  "logout",
+		Usage: "Sign out and clear the saved session",
+		Action: withArgs(func(ctx context.Context, _ *cli.Command, _ []string) error {
+			return cmdLogout(ctx, client)
+		}),
+	})
+	root.Commands = append(root.Commands, &cli.Command{
+		Name:  "whoami",
+		Usage: "Show the currently signed-in user",
+		Action: withArgs(func(_ context.Context, _ *cli.Command, _ []string) error {
+			return cmdWhoami(client)
+		}),
+	})
+
+	// Notes are flat verbs too: new, ls, pin, archive, and tag. pin and archive
+	// share the updateNote helper.
+	root.Commands = append(root.Commands, &cli.Command{
+		Name:      "new",
+		Usage:     "Create a note",
+		Arguments: commandArguments("TITLE [CONTENT]", 1, 2),
+		Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
+			content := ""
+			if len(args) > 1 {
+				content = args[1]
+			}
+			return noteNew(ctx, client, args[0], content)
+		}),
+	})
+	root.Commands = append(root.Commands, &cli.Command{
+		Name:  "ls",
+		Usage: "List your notes",
+		Action: withArgs(func(ctx context.Context, _ *cli.Command, _ []string) error {
+			return noteLs(ctx, client)
+		}),
+	})
+	root.Commands = append(root.Commands, &cli.Command{
+		Name:      "pin",
+		Usage:     "Pin a note",
+		Arguments: commandArguments("ID", 1, 1),
+		Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
+			return updateNote(ctx, client, args[0], map[string]any{"is_pinned": true})
+		}),
+	})
+	root.Commands = append(root.Commands, &cli.Command{
+		Name:      "archive",
+		Usage:     "Archive a note",
+		Arguments: commandArguments("ID", 1, 1),
+		Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
+			return updateNote(ctx, client, args[0], map[string]any{"is_archived": true})
+		}),
+	})
+	root.Commands = append(root.Commands, &cli.Command{
+		Name:      "tag",
+		Usage:     "Tag a note (creates the tag if needed)",
+		Arguments: commandArguments("NOTE_ID TAG_NAME", 2, 2),
+		Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
+			return noteTag(ctx, client, args[0], args[1])
+		}),
+	})
+
+	// Storage verbs.
+	root.Commands = append(root.Commands, &cli.Command{
+		Name:      "attach",
+		Usage:     "Upload a file and attach it to a note",
+		Arguments: commandArguments("NOTE_ID FILE", 2, 2),
+		Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
+			return cmdAttach(ctx, client, args[0], args[1])
+		}),
+	})
+	root.Commands = append(root.Commands, &cli.Command{
+		Name:      "download",
+		Usage:     "Download a file by id",
+		Arguments: commandArguments("FILE_ID OUT_PATH", 2, 2),
+		Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
+			return cmdDownload(ctx, client, args[0], args[1])
+		}),
+	})
+
+	silenceUsage(root)
+	return root
+}
+
+func commandArguments(usage string, minArgs, maxArgs int) []cli.Argument {
+	return []cli.Argument{
+		&cli.StringArgs{
+			Name:      "arguments",
+			UsageText: usage,
+			Min:       minArgs,
+			Max:       maxArgs,
+		},
+	}
+}
+
+func withArgs(action func(context.Context, *cli.Command, []string) error) cli.ActionFunc {
+	return func(ctx context.Context, cmd *cli.Command) error {
+		args := cmd.StringArgs("arguments")
+		if cmd.Args().Present() {
+			return fmt.Errorf(
+				"%w: got %d, want at most %d",
+				errTooManyArgs,
+				len(args)+cmd.Args().Len(),
+				len(args),
+			)
+		}
+		return action(ctx, cmd, args)
+	}
+}
+
+func commandHelp(_ context.Context, cmd *cli.Command) error {
+	if cmd.Args().Present() {
+		return fmt.Errorf("%w: %q", errUnknownCommand, cmd.Args().First())
+	}
+	if err := cli.ShowSubcommandHelp(cmd); err != nil {
+		return fmt.Errorf("show command help: %w", err)
+	}
+	return nil
+}
+
+func silenceUsage(cmd *cli.Command) {
+	cmd.OnUsageError = func(_ context.Context, _ *cli.Command, err error, _ bool) error {
+		return err
+	}
+	for _, subcommand := range cmd.Commands {
+		silenceUsage(subcommand)
+	}
+}
+
+// newClient builds the Nhost client. The client middleware attaches the access
+// token to every request and refreshes it automatically once we sign in.
+func newClient() *nhost.Client {
+	return nhost.New(nhost.Options{
+		Subdomain: env("NHOST_SUBDOMAIN", "local"),
+		Region:    env("NHOST_REGION", "local"),
+		Storage:   &session.FileStorage{Path: sessionPath()},
+	})
+}
+
+func sessionPath() string {
+	if p := os.Getenv("NHOST_NOTES_SESSION"); p != "" {
+		return p
+	}
+	dir, err := os.UserConfigDir()
+	if err != nil {
+		dir = os.TempDir()
+	}
+	return filepath.Join(dir, "nhost-notes", "session.json")
+}
+
+func env(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
+}
+
+type graphQLID struct {
+	ID string `json:"id"`
+}
+
+type noteSummary struct {
+	ID       string `json:"id"`
+	Title    string `json:"title"`
+	IsPinned bool   `json:"is_pinned"`
+}
+
+func cmdSignup(ctx context.Context, c *nhost.Client, email, password string) error {
+	if _, _, err := c.Auth.SignUpEmailPassword(ctx, auth.SignUpEmailPasswordRequest{
+		Email:    email,
+		Password: password,
+	}, nil); err != nil {
+		return err
+	}
+	sess, err := c.Session()
+	if err != nil {
+		return fmt.Errorf("reading session after sign up: %w", err)
+	}
+	if sess != nil {
+		fmt.Println("signed up and logged in as", email)
+	} else {
+		fmt.Println("signed up; verify your email, then `login`")
+	}
+	return nil
+}
+
+func cmdLogin(ctx context.Context, c *nhost.Client, email, password string) error {
+	if _, _, err := c.Auth.SignInEmailPassword(ctx, auth.SignInEmailPasswordRequest{
+		Email:    email,
+		Password: password,
+	}, nil); err != nil {
+		return err
+	}
+	fmt.Println("logged in as", email)
+	return nil
+}
+
+func cmdLogout(ctx context.Context, c *nhost.Client) error {
+	s, err := c.Session()
+	if err != nil {
+		return fmt.Errorf("reading session: %w", err)
+	}
+	if s != nil {
+		rt := s.RefreshToken
+		_, _, _ = c.Auth.SignOut(ctx, auth.SignOutRequest{RefreshToken: &rt}, nil)
+	}
+	if err := c.ClearSession(); err != nil {
+		return fmt.Errorf("clearing session: %w", err)
+	}
+	fmt.Println("logged out")
+	return nil
+}
+
+func cmdWhoami(c *nhost.Client) error {
+	s, err := c.Session()
+	if err != nil {
+		return fmt.Errorf("reading session: %w", err)
+	}
+	if s == nil || s.User == nil {
+		return errors.New("not logged in")
+	}
+	email := ""
+	if s.User.Email != nil {
+		email = *s.User.Email
+	}
+	fmt.Printf("%s (%s)\n", email, s.User.ID)
+	return nil
+}
+
+func noteNew(ctx context.Context, c *nhost.Client, title, content string) error {
+	var data struct {
+		Note *graphQLID `json:"insert_notes_one"`
+	}
+
+	_, err := c.GraphQL.Request(ctx, `
+		mutation NewNote($obj: notes_insert_input!) {
+			insert_notes_one(object: $obj) { id }
+		}`,
+		graphql.Variables{"obj": map[string]any{"title": title, "content": content}},
+		&data,
+	)
+	if err != nil {
+		return err
+	}
+	if data.Note == nil {
+		return errors.New("note not found or not permitted")
+	}
+	fmt.Println("created", data.Note.ID)
+	return nil
+}
+
+func noteLs(ctx context.Context, c *nhost.Client) error {
+	var data struct {
+		Notes []noteSummary `json:"notes"`
+	}
+
+	_, err := c.GraphQL.Request(ctx, `
+		query {
+			notes(order_by: [{is_pinned: desc}, {updated_at: desc}]) {
+				id title is_pinned
+			}
+		}`, nil, &data)
+	if err != nil {
+		return err
+	}
+	if len(data.Notes) == 0 {
+		fmt.Println("(no notes)")
+		return nil
+	}
+	for _, note := range data.Notes {
+		pin := " "
+		if note.IsPinned {
+			pin = "*"
+		}
+		fmt.Printf("%s %s  %s\n", pin, note.ID, note.Title)
+	}
+	return nil
+}
+
+func updateNote(ctx context.Context, c *nhost.Client, id string, set map[string]any) error {
+	var data struct {
+		Note *graphQLID `json:"update_notes_by_pk"`
+	}
+
+	_, err := c.GraphQL.Request(ctx, `
+		mutation UpdateNote($id: uuid!, $set: notes_set_input!) {
+			update_notes_by_pk(pk_columns: {id: $id}, _set: $set) { id }
+		}`, graphql.Variables{"id": id, "set": set}, &data)
+	if err != nil {
+		return err
+	}
+	if data.Note == nil {
+		return errors.New("note not found or not permitted")
+	}
+	fmt.Println("updated", id)
+	return nil
+}
+
+func upsertTag(ctx context.Context, c *nhost.Client, name string) (string, error) {
+	var data struct {
+		Tag *graphQLID `json:"insert_tags_one"`
+	}
+
+	_, err := c.GraphQL.Request(ctx, `
+		mutation UpsertTag($name: String!) {
+			insert_tags_one(
+				object: {name: $name}
+				on_conflict: {constraint: tags_user_id_name_key, update_columns: [name]}
+			) { id }
+		}`, graphql.Variables{"name": name}, &data)
+	if err != nil {
+		return "", err
+	}
+	if data.Tag == nil {
+		return "", errors.New("could not create tag")
+	}
+	return data.Tag.ID, nil
+}
+
+func noteTag(ctx context.Context, c *nhost.Client, noteID, tagName string) error {
+	tagID, err := upsertTag(ctx, c, tagName)
+	if err != nil {
+		return err
+	}
+	_, err = c.GraphQL.Request(ctx, `
+		mutation TagNote($noteId: uuid!, $tagId: uuid!) {
+			insert_note_tags_one(
+				object: {note_id: $noteId, tag_id: $tagId}
+				on_conflict: {constraint: note_tags_pkey, update_columns: []}
+			) { note_id }
+		}`, graphql.Variables{"noteId": noteID, "tagId": tagID}, nil)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("tagged %s with #%s\n", noteID, tagName)
+	return nil
+}
+
+func cmdAttach(ctx context.Context, c *nhost.Client, noteID, file string) error {
+	raw, err := os.ReadFile(file)
+	if err != nil {
+		return err
+	}
+	name := filepath.Base(file)
+	b := bucket
+	up, _, err := c.Storage.UploadFiles(ctx, storage.UploadFilesBody{
+		BucketID: &b,
+		File:     [][]byte{raw},
+		Metadata: &[]storage.UploadFileMetadata{{Name: &name}},
+	}, nil)
+	if err != nil {
+		return err
+	}
+	if len(up.ProcessedFiles) == 0 {
+		return errors.New("upload failed")
+	}
+	fileID := up.ProcessedFiles[0].ID
+
+	if _, err := c.GraphQL.Request(ctx, `
+		mutation Attach($noteId: uuid!, $fileId: uuid!) {
+			insert_note_attachments_one(object: {note_id: $noteId, file_id: $fileId}) { file_id }
+		}`, graphql.Variables{"noteId": noteID, "fileId": fileID}, nil); err != nil {
+		return err
+	}
+	fmt.Printf("attached %s (file %s) to %s\n", name, fileID, noteID)
+	return nil
+}
+
+func cmdDownload(ctx context.Context, c *nhost.Client, fileID, outPath string) error {
+	resp, _, err := c.Storage.GetFile(ctx, fileID, nil, nil)
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(outPath, resp, 0o600); err != nil {
+		return err
+	}
+	fmt.Printf("wrote %d bytes to %s\n", len(resp), outPath)
+	return nil
+}
+```
+
+## Try it
+
+```bash Terminal
+go run . new "Design doc"
+
+# attach any file you have on disk — create a quick sample if you need one
+echo "notes CLI attachment demo" > diagram.txt
+go run . attach <noteId> ./diagram.txt
+# attached diagram.txt (file <fileId>) to <noteId>
+
+go run . download <fileId> ./out.txt
+# wrote 26 bytes to ./out.txt
+```
+
+Because Storage access is governed by the same `storage.files` permissions, a
+different user can't download your file even with its ID — the request is denied
+by the backend.
+
+## What's Next?
+
+Files are attached and access-controlled. In the final
+[Part 5](/getting-started/tutorials/go/5-functions-sharing) you'll call a
+serverless function to export a note and share notes with other users.

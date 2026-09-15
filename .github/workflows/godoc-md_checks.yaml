@@ -1,12 +1,10 @@
-name: "docs: check and build"
+---
+name: "godoc-md: check and build"
 on:
   pull_request_target:
     paths:
       - ".github/workflows/wf_check.yaml"
-      - ".github/workflows/wf_deploy_vercel.yaml"
-      - ".github/workflows/docs_checks.yaml"
-      - ".github/actions/cache-nix/**"
-      - ".github/actions/vercel-deploy-nix/**"
+      - ".github/workflows/godoc-md_checks.yaml"
 
       # common build
       - "flake.nix"
@@ -14,32 +12,15 @@ on:
       - "nixops/**"
       - "build/**"
 
-      # common javascript
-      - ".npmrc"
-      - "audit-ci.jsonc"
-      - "package.json"
-      - "pnpm-workspace.yaml"
-      - "pnpm-lock.yaml"
-      - "turbo.json"
+      # common go
+      - ".golangci.yaml"
+      - "govulncheck.yaml"
+      - "go.mod"
+      - "go.sum"
+      - "vendor/**"
 
-      # docs
-      - docs/**
-
-      # nhost-js
-      - packages/nhost-js/**
-
-      # nhost-rust
-      - packages/nhost-rust/**
-
-      # nhost-go
-      - packages/nhost-go/**
-
-      # apis
-      - "services/auth/docs/openapi.yaml"
-      - "services/storage/controller/openapi.yaml"
-
-      # cli
-      - cli/**
+      # godoc-md
+      - "tools/godoc-md/**"
   merge_group:
 
 concurrency:
@@ -52,27 +33,17 @@ jobs:
     with:
       patterns: |
         .github/workflows/wf_check.yaml
-        .github/workflows/wf_deploy_vercel.yaml
-        .github/workflows/docs_checks.yaml
-        .github/actions/cache-nix/**
-        .github/actions/vercel-deploy-nix/**
+        .github/workflows/godoc-md_checks.yaml
         flake.nix
         flake.lock
         nixops/**
         build/**
-        .npmrc
-        audit-ci.jsonc
-        package.json
-        pnpm-workspace.yaml
-        pnpm-lock.yaml
-        turbo.json
-        docs/**
-        packages/nhost-js/**
-        packages/nhost-rust/**
-        packages/nhost-go/**
-        services/auth/docs/openapi.yaml
-        services/storage/controller/openapi.yaml
-        cli/**
+        .golangci.yaml
+        govulncheck.yaml
+        go.mod
+        go.sum
+        vendor/**
+        tools/godoc-md/**
 
   check-permissions:
     needs: [detect-changes]
@@ -89,9 +60,10 @@ jobs:
       - check-permissions
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
-      NAME: docs
-      PATH: docs
+      NAME: godoc-md
+      PATH: tools/godoc-md
       GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
@@ -99,26 +71,24 @@ jobs:
       NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
       NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
 
-  deploy-vercel:
-    uses: ./.github/workflows/wf_deploy_vercel.yaml
+  build_artifacts:
+    uses: ./.github/workflows/wf_build_artifacts.yaml
     needs:
       - detect-changes
       - check-permissions
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
-      NAME: docs
+      NAME: godoc-md
+      PATH: tools/godoc-md
       GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
-      ENVIRONMENT: preview
+      VERSION: 0.0.0-dev # we use a fixed version here to avoid unnecessary rebuilds
+      DOCKER: false
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
       NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
       NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
-      VERCEL_TEAM_ID: ${{ secrets.DASHBOARD_VERCEL_TEAM_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.DOCS_VERCEL_PROJECT_ID }}
-      VERCEL_DEPLOY_TOKEN: ${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
-      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
 
   remove_label:
     runs-on: ubuntu-latest
