@@ -1,3 +1,35 @@
+## [cli@1.51.0] - 2026-09-12
+
+### 🚀 Features
+
+- *(cli)* Added support for ap-southeast-2 and eu-north-1 (#4832)
+
+
+### 🐛 Bug Fixes
+
+- *(docs)* Update cli install instructions (#4879)
+- *(cli)* Fix broken rootless docker/podman because uid:gid is set (#4778)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.50.2
+- *(dashboard)* Bump references to 3.4.0
+- *(dashboard)* Bump references to 3.4.1
+- *(dashboard)* Bump references to 3.5.0
+- *(dashboard)* Bump references to 3.5.1
+- *(dashboard)* Bump references to 3.5.2
+- *(cli)* Update certs (#4929)
+- *(cli)* Update schema (#4941)
+- *(dashboard)* Bump references to 3.5.3
+- *(nixops)* Bump Go to 1.27 (#4887)
+- *(cli)* Mirror third party images (#4986)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4928)
+
 ## [cli@1.50.2] - 2026-08-12
 
 ### 🐛 Bug Fixes

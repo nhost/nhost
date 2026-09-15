@@ -24,6 +24,8 @@ unpinned Node/npm installation.
 ## npm trusted publishing setup
 
 Auth is npm trusted publishing (OIDC) — no npm token secret is used by CI.
+The `publish-npm` job must run on a GitHub-hosted runner because npm rejects
+trusted-publishing provenance from self-hosted runners, including Blacksmith.
 Configure all five npm packages on npmjs.com:
 
 - `@nhost/cli`

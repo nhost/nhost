@@ -8,6 +8,7 @@ import {
   useState,
 } from 'react';
 import { toast } from 'react-hot-toast';
+import { saveLastSignInMethod } from '@/features/auth/SignIn/utils/lastSignInMethod';
 import {
   clearGitHubToken,
   type GitHubProviderToken,
@@ -102,6 +103,10 @@ function AuthProvider({ children }: PropsWithChildren) {
         }
 
         try {
+          // Connecting GitHub from account or project settings runs the same
+          // exchange, but only ever while already signed in.
+          const isSignIn = !nhost.getUserSession();
+
           await nhost.auth.tokenExchange({
             code,
             codeVerifier,
@@ -111,6 +116,9 @@ function AuthProvider({ children }: PropsWithChildren) {
           removeQueryParamsFromUrl(...removableParams);
 
           if (exchangedSession && signinProvider === 'github') {
+            if (isSignIn) {
+              saveLastSignInMethod('github');
+            }
             try {
               const providerTokensResponse =
                 await nhost.auth.getProviderTokens('github');
