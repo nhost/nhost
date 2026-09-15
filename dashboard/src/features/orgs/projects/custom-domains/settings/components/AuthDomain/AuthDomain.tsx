@@ -94,10 +94,10 @@ export default function AuthDomain() {
 
     if (isNotEmptyValue(formValues.auth_fqdn)) {
       ingresses = [{ fqdn: [formValues.auth_fqdn] }];
-      successMessage = 'Auth domain has been updated successfully.';
+      successMessage = 'Auth custom domain has been updated successfully.';
     } else {
       ingresses = null;
-      successMessage = 'Custom Auth domain has been removed successfully.';
+      successMessage = 'Auth custom domain has been removed successfully.';
     }
 
     const updateConfigPromise = updateConfig({
@@ -137,10 +137,10 @@ export default function AuthDomain() {
         }
       },
       {
-        loadingMessage: 'Auth domain is being updated...',
+        loadingMessage: 'Auth custom domain is being updated...',
         successMessage,
         errorMessage:
-          'An error occurred while trying to update the auth domain.',
+          'An error occurred while trying to update the Auth custom domain.',
       },
     );
   }
@@ -150,7 +150,7 @@ export default function AuthDomain() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Auth Domain"
+            title="Auth Custom Domain"
             description="Enter below your custom domain for the authentication service."
           />
 

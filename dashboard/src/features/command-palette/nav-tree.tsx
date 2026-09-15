@@ -202,6 +202,90 @@ const graphQLSettingsTabChildren = toSettingsTabNodes(
   ],
 );
 
+const authSettingsTabChildren = toSettingsTabNodes(
+  'project-auth',
+  'auth/settings',
+  [
+    {
+      slug: 'sign-in-methods',
+      title: 'Auth Sign-In Methods',
+      keywords: [
+        'auth',
+        'settings',
+        'sign-in',
+        'email password',
+        'magic link',
+        'webauthn',
+        'anonymous',
+        'sms',
+        'otp',
+        'social providers',
+      ],
+    },
+    {
+      slug: 'oauth2-provider',
+      title: 'Auth OAuth2 Provider',
+      keywords: ['auth', 'settings', 'oauth2 provider', 'oauth'],
+    },
+    {
+      slug: 'smtp',
+      title: 'Auth SMTP',
+      keywords: ['auth', 'settings', 'smtp', 'postmark', 'email'],
+    },
+    {
+      slug: 'authentication',
+      title: 'Auth Authentication',
+      keywords: [
+        'auth',
+        'settings',
+        'client url',
+        'redirect urls',
+        'allowed emails',
+        'blocked emails',
+        'mfa',
+        'session',
+        'gravatar',
+        'user creation',
+        'conceal errors',
+      ],
+    },
+    {
+      slug: 'roles-and-permissions',
+      title: 'Auth Roles and Permissions',
+      keywords: [
+        'auth',
+        'settings',
+        'roles',
+        'permissions',
+        'permission variables',
+        'allowed roles',
+      ],
+    },
+    {
+      slug: 'jwt',
+      title: 'Auth JWT',
+      keywords: ['auth', 'settings', 'jwt', 'json web token', 'secrets'],
+    },
+    {
+      slug: 'custom-domain',
+      title: 'Auth Custom Domain',
+      keywords: ['auth', 'settings', 'custom domain'],
+      gate: 'platform',
+    },
+    {
+      slug: 'rate-limiting',
+      title: 'Auth Rate Limiting',
+      keywords: [
+        'auth',
+        'settings',
+        'rate limiting',
+        'rate limits',
+        'brute force',
+      ],
+    },
+  ],
+);
+
 // Exhaustive over nav-config's sub-page families, so adding a family there
 // fails to compile until the palette assigns its keywords.
 const subPageChildren: Record<
@@ -238,10 +322,16 @@ const subPageChildren: Record<
     'cron-triggers': ['events', 'scheduled'],
     'one-offs': ['events', 'scheduled'],
   }),
-  auth: toSubPageNodes(projectSubPagesBySlug.auth, 'project-auth', {
-    users: ['auth', 'accounts'],
-    'oauth2-clients': ['auth', 'oauth', 'clients'],
-  }),
+  auth: toSubPageNodes(
+    projectSubPagesBySlug.auth,
+    'project-auth',
+    {
+      users: ['auth', 'accounts'],
+      'oauth2-clients': ['auth', 'oauth', 'clients'],
+      settings: ['auth', 'settings'],
+    },
+    { settings: authSettingsTabChildren },
+  ),
   ai: toSubPageNodes(projectSubPagesBySlug.ai, 'project-ai', {
     'auto-embeddings': ['ai', 'embeddings'],
     assistants: ['ai', 'agents'],
@@ -264,13 +354,7 @@ const settingsPageMeta: Record<
       'delete project',
     ],
   },
-  authentication: { keywords: ['settings', 'auth'] },
-  jwt: { keywords: ['settings', 'tokens'] },
-  'sign-in-methods': { keywords: ['settings', 'login'] },
-  'oauth2-provider': { keywords: ['settings', 'oauth'] },
-  'roles-and-permissions': { keywords: ['settings', 'access control'] },
   storage: { keywords: ['settings', 'files'] },
-  smtp: { keywords: ['settings', 'email'] },
   deployments: { keywords: ['settings', 'releases'] },
   'custom-domains': { keywords: ['settings', 'domains'] },
   'rate-limiting': { keywords: ['settings', 'limits'] },
