@@ -56,6 +56,17 @@ let
       # docs
       ../docs/embed.go
       (fs.fileFilter (f: f.hasExt "mdx") ../docs/src/content/docs)
+
+      # nextjs-shadcn starter template, scaffolded by `nhost create` and
+      # exercised end-to-end by TestCreateScaffoldsRealLocalTemplate. Exclude
+      # local-only build artifacts so the check stays hermetic.
+      (fs.difference
+        ../templates/nextjs-shadcn
+        (fs.unions [
+          (fs.maybeMissing ../templates/nextjs-shadcn/frontend/node_modules)
+          (fs.maybeMissing ../templates/nextjs-shadcn/frontend/.next)
+        ])
+      )
     ];
   };
 
