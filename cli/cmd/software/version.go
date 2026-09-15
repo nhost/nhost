@@ -72,6 +72,10 @@ const nhostReleasesURL = "https://github.com/nhost/nhost/releases"
 // containers that the user could not act on anyway; the engine's own version
 // is what governs all three.
 func servicesToCheck(cfg *model.ConfigConfig) []serviceVersion {
+	if cfg == nil {
+		return nil
+	}
+
 	services := make([]serviceVersion, 0, 5) //nolint:mnd
 
 	if engine := cfg.GetExperimental().GetNhost(); engine != nil {
