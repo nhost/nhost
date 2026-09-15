@@ -19,6 +19,11 @@ var templates = []template{ //nolint:gochecknoglobals
 		display:     "Next.js + shadcn/ui",
 		description: "Next.js (App Router) + Tailwind CSS + shadcn/ui with email OTP auth",
 	},
+	{
+		name:        "react-native",
+		display:     "React Native (Expo)",
+		description: "Expo (React Native) + Expo Router with email OTP auth",
+	},
 }
 
 func lookupTemplate(name string) (template, bool) {
