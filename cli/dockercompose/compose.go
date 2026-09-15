@@ -3,6 +3,7 @@ package dockercompose
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -640,7 +641,7 @@ func IsJWTSecretCompatibleWithHasuraAuth(
 	return false
 }
 
-func getServices( //nolint: funlen,cyclop
+func getServices( //nolint:funlen,cyclop // Topology assembly necessarily selects among service variants.
 	cfg *model.ConfigConfig,
 	dockerURL *url.URL,
 	subdomain string,
@@ -661,6 +662,13 @@ func getServices( //nolint: funlen,cyclop
 	hostUser string,
 	runServices ...*RunService,
 ) (map[string]*Service, error) {
+	if engineEnabled(cfg) && (ports.Auth != 0 || ports.Storage != 0) {
+		return nil, errors.New( //nolint:err113 // User-facing configuration validation.
+			"the --auth-port/--storage-port flags cannot be used when experimental.nhost is enabled: " +
+				"the bundled engine serves auth and storage behind one listener",
+		)
+	}
+
 	minioVolumeName := "minio_" + sanitizeBranch(branch)
 	minio := minio(minioVolumeName)
 
