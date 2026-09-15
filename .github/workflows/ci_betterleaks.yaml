@@ -1,0 +1,89 @@
+---
+name: "ci: betterleaks"
+on:
+  pull_request_target:
+  merge_group:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ startsWith(github.event_name, 'pull_request') && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
+  cancel-in-progress: ${{ startsWith(github.event_name, 'pull_request') }}
+
+jobs:
+  check-permissions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/check-permissions
+
+  scan:
+    needs: [check-permissions]
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    timeout-minutes: 30
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: "Check out repository (base revision)"
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: "Fetch the revisions under review"
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          MERGE_GROUP_REF: ${{ github.event.merge_group.head_ref }}
+        run: |
+          set -euo pipefail
+          if [ -n "${PR_NUMBER}" ]; then
+            src="refs/pull/${PR_NUMBER}/head"
+          else
+            src="${MERGE_GROUP_REF}"
+          fi
+          git fetch --no-tags --force origin "${src}:refs/nhost/under-review"
+
+      - name: Setup Nix with Cache
+        uses: ./.github/actions/setup-nix
+        with:
+          NAME: nixops
+          NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+          NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+          NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Scan git history for leaked secrets"
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+        run: |
+          set -euo pipefail
+          ignore_file="${RUNNER_TEMP}/.betterleaksignore"
+          cp tools/betterleaks/.betterleaksignore "${ignore_file}" 2>/dev/null || : > "${ignore_file}"
+          if git cat-file -e refs/nhost/under-review:tools/betterleaks/.betterleaksignore 2>/dev/null; then
+            git show refs/nhost/under-review:tools/betterleaks/.betterleaksignore >> "${ignore_file}"
+          fi
+
+          nix develop .\#betterleaks --command betterleaks git . \
+            --log-opts="--diff-merges=first-parent ${BASE_SHA}..refs/nhost/under-review" \
+            --gitleaks-ignore-path "${ignore_file}" \
+            --no-banner \
+            --no-color \
+            --redact \
+            --verbose \
+            --confidence medium \
+            --validation \
+            --validation-status valid,none \
+            --validation-max-requests 100 \
+            --validation-rps 5 \
+            --timeout 900
+
+  remove_label:
+    runs-on: ubuntu-latest
+    needs: [check-permissions]
+    if: contains(github.event.pull_request.labels.*.name, 'safe_to_test')
+    steps:
+      - uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          labels: |
+            safe_to_test
