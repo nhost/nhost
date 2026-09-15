@@ -616,6 +616,28 @@ type ConfigConstellation struct {
 	Version  *string                      `json:"version,omitempty"`
 }
 
+type ConfigConstellationConfig struct {
+	Settings *ConfigConstellationConfigSettings `json:"settings,omitempty"`
+}
+
+type ConfigConstellationConfigSettings struct {
+	CorsAllowedOrigins       []string `json:"corsAllowedOrigins,omitempty"`
+	Debug                    *bool    `json:"debug,omitempty"`
+	DevMode                  *bool    `json:"devMode,omitempty"`
+	SubscriptionPollInterval *string  `json:"subscriptionPollInterval,omitempty"`
+}
+
+type ConfigConstellationConfigSettingsUpdateInput struct {
+	CorsAllowedOrigins       []string `json:"corsAllowedOrigins,omitempty"`
+	Debug                    *bool    `json:"debug,omitempty"`
+	DevMode                  *bool    `json:"devMode,omitempty"`
+	SubscriptionPollInterval *string  `json:"subscriptionPollInterval,omitempty"`
+}
+
+type ConfigConstellationConfigUpdateInput struct {
+	Settings *ConfigConstellationConfigSettingsUpdateInput `json:"settings,omitempty"`
+}
+
 type ConfigConstellationSettings struct {
 	CorsAllowedOrigins       []string `json:"corsAllowedOrigins,omitempty"`
 	Debug                    *bool    `json:"debug,omitempty"`
@@ -652,10 +674,12 @@ type ConfigEnvironmentVariableUpdateInput struct {
 
 type ConfigExperimental struct {
 	Constellation *ConfigConstellation `json:"constellation,omitempty"`
+	Nhost         *ConfigNhost         `json:"nhost,omitempty"`
 }
 
 type ConfigExperimentalUpdateInput struct {
 	Constellation *ConfigConstellationUpdateInput `json:"constellation,omitempty"`
+	Nhost         *ConfigNhostUpdateInput         `json:"nhost,omitempty"`
 }
 
 type ConfigFunctions struct {
@@ -1009,6 +1033,20 @@ type ConfigNetworking struct {
 
 type ConfigNetworkingUpdateInput struct {
 	Ingresses []*ConfigIngressUpdateInput `json:"ingresses,omitempty"`
+}
+
+type ConfigNhost struct {
+	Debug     *bool                      `json:"debug,omitempty"`
+	Graphql   *ConfigConstellationConfig `json:"graphql,omitempty"`
+	Resources *ConfigResources           `json:"resources,omitempty"`
+	Version   *string                    `json:"version,omitempty"`
+}
+
+type ConfigNhostUpdateInput struct {
+	Debug     *bool                                 `json:"debug,omitempty"`
+	Graphql   *ConfigConstellationConfigUpdateInput `json:"graphql,omitempty"`
+	Resources *ConfigResourcesUpdateInput           `json:"resources,omitempty"`
+	Version   *string                               `json:"version,omitempty"`
 }
 
 type ConfigObservability struct {
@@ -9658,6 +9696,8 @@ type SoftwareTypeEnum string
 const (
 	// Hasura Auth
 	SoftwareTypeEnumAuth SoftwareTypeEnum = "Auth"
+	// Nhost Engine
+	SoftwareTypeEnumEngine SoftwareTypeEnum = "Engine"
 	// Nhost AI service
 	SoftwareTypeEnumGraphite SoftwareTypeEnum = "Graphite"
 	// Hasura GraphQL Engine
@@ -9670,6 +9710,7 @@ const (
 
 var AllSoftwareTypeEnum = []SoftwareTypeEnum{
 	SoftwareTypeEnumAuth,
+	SoftwareTypeEnumEngine,
 	SoftwareTypeEnumGraphite,
 	SoftwareTypeEnumHasura,
 	SoftwareTypeEnumPostgreSQL,
@@ -9678,7 +9719,7 @@ var AllSoftwareTypeEnum = []SoftwareTypeEnum{
 
 func (e SoftwareTypeEnum) IsValid() bool {
 	switch e {
-	case SoftwareTypeEnumAuth, SoftwareTypeEnumGraphite, SoftwareTypeEnumHasura, SoftwareTypeEnumPostgreSQL, SoftwareTypeEnumStorage:
+	case SoftwareTypeEnumAuth, SoftwareTypeEnumEngine, SoftwareTypeEnumGraphite, SoftwareTypeEnumHasura, SoftwareTypeEnumPostgreSQL, SoftwareTypeEnumStorage:
 		return true
 	}
 	return false
