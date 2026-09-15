@@ -2,24 +2,21 @@ import { Plus } from 'lucide-react';
 import { useFieldArray, useFormState } from 'react-hook-form';
 import { Button } from '@/components/ui/v3/button';
 import { Label } from '@/components/ui/v3/label';
+import { createColumnFormReference } from '@/features/orgs/projects/database/dataGrid/utils/formReferences';
+import { getFieldArrayErrorMessage } from '@/utils/getFieldArrayErrorMessage';
 import { ColumnEditorRow } from './ColumnEditorRow';
 import DefaultValueHelpTooltip from './DefaultValueHelpTooltip';
 
 function ColumnErrorMessage() {
   const { errors } = useFormState({ name: 'columns' });
+  const message = getFieldArrayErrorMessage(errors.columns);
 
-  if (typeof errors?.columns?.root?.message === 'string') {
-    return (
-      <p className="mt-2 font-medium text-destructive text-sm">
-        {errors.columns.root.message}
-      </p>
-    );
-  }
-
-  return null;
+  return message ? (
+    <p className="mt-2 font-medium text-destructive text-sm">{message}</p>
+  ) : null;
 }
 
-export default function ColumnEditorTable() {
+export default function ColumnEditorTable({ schema }: { schema?: string }) {
   const { fields, append, remove } = useFieldArray({ name: 'columns' });
 
   return (
@@ -73,7 +70,12 @@ export default function ColumnEditorTable() {
 
         <div className="flex w-full flex-col gap-2">
           {fields.map((field, index) => (
-            <ColumnEditorRow key={field.id} index={index} remove={remove} />
+            <ColumnEditorRow
+              key={field.id}
+              index={index}
+              remove={remove}
+              schema={schema}
+            />
           ))}
         </div>
 
@@ -88,11 +90,11 @@ export default function ColumnEditorTable() {
           className="gap-2 text-primary hover:text-primary"
           onClick={() =>
             append({
+              formReference: createColumnFormReference(),
               name: '',
               type: null,
               defaultValue: null,
               isNullable: false,
-              isUnique: false,
               isIdentity: false,
               comment: null,
             })

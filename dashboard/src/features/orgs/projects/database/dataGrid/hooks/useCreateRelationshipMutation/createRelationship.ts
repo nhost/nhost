@@ -1,16 +1,18 @@
 import type {
   CreateArrayRelationshipBulkOperation,
-  CreateLocalRelationshipArgs,
+  CreateArrayRelationshipStep,
   CreateObjectRelationshipBulkOperation,
+  CreateObjectRelationshipStep,
 } from '@/utils/hasura-api/generated/schemas';
 import { metadataOperation } from '@/utils/hasura-api/metadataFetch';
 import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
-export interface CreateRelationshipVariables {
+export type CreateRelationshipVariables = (
+  | CreateObjectRelationshipStep
+  | CreateArrayRelationshipStep
+) & {
   resourceVersion: number;
-  args: CreateLocalRelationshipArgs;
-  type: 'pg_create_object_relationship' | 'pg_create_array_relationship';
-}
+};
 
 export default async function createRelationship({
   appUrl,
