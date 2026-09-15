@@ -555,6 +555,7 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 			},
 		},
 		Experimental: &model.ConfigExperimental{
+			Nhost: nil,
 			Constellation: &model.ConfigConstellation{
 				Version: new("0.1.0"),
 				Settings: &model.ConfigConstellationSettings{
