@@ -249,6 +249,7 @@ func writeFakeCLI(t *testing.T) string {
 
 const fakeCLI = `#!/bin/sh
 set -eu
+set -x
 mkdir -p "$NHOST_ROOT_FOLDER" "$NHOST_NHOST_FOLDER" "$NHOST_DOT_NHOST_FOLDER" "$XDG_STATE_HOME/nhost"
 printf overwritten > "$NHOST_ROOT_FOLDER/.secrets"
 printf overwritten > "$NHOST_NHOST_FOLDER/nhost.toml"
