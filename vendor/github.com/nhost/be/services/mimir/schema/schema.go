@@ -91,7 +91,12 @@ func (s *Schema) ValidateConfig(config any) error {
 		return NewConfigNotValidError(err)
 	}
 
-	return nil
+	cfg, err := configFromValue(u)
+	if err != nil {
+		return err
+	}
+
+	return validateConfigConstraints(cfg)
 }
 
 // Fill validates the configuration and returns a new configuration object with
@@ -109,6 +114,21 @@ func (s *Schema) Fill(config any) (*model.ConfigConfig, error) {
 		return nil, NewConfigNotValidError(err)
 	}
 
+	merged, err := configFromValue(u)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := validateConfigConstraints(merged); err != nil {
+		return nil, err
+	}
+
+	return merged, nil
+}
+
+// configFromValue marshals a validated cue value into a ConfigConfig with
+// defaults applied.
+func configFromValue(u *cue.Value) (*model.ConfigConfig, error) {
 	b, err := json.Marshal(u)
 	if err != nil {
 		return nil, fmt.Errorf("problem marshaling cue value: %w", err)
