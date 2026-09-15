@@ -2,7 +2,6 @@ package dockercompose //nolint:testpackage
 
 import (
 	"net/url"
-	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -184,6 +183,30 @@ func TestEngineTopologyReplacesAuthAndStorage(t *testing.T) {
 		t.Error("hasura should keep running: the engine's graphql service proxies to it")
 	}
 
+	for serviceName, service := range services {
+		for dependency := range service.DependsOn {
+			if _, ok := services[dependency]; !ok {
+				t.Errorf("service %q depends on undefined service %q", serviceName, dependency)
+			}
+		}
+	}
+
+	aiService, ok := services["ai"]
+	if !ok {
+		t.Fatal("ai service missing from ai-enabled engine topology")
+	}
+
+	if dependency, ok := aiService.DependsOn["engine"]; !ok {
+		t.Error("ai should wait for the engine's bundled auth and storage services")
+	} else if dependency.Condition != "service_healthy" {
+		t.Errorf("ai engine dependency condition = %q, want service_healthy", dependency.Condition)
+	}
+
+	if got, want := aiService.Environment["NHOST_STORAGE_URL"],
+		"http://engine:8080/storage/v1"; got != want {
+		t.Errorf("ai NHOST_STORAGE_URL = %q, want %q", got, want)
+	}
+
 	// The engine owns the public graphql host, so hasura keeps only its console
 	// routes, exactly as when standalone constellation is enabled.
 	labels := services["graphql"].Labels
@@ -196,10 +219,50 @@ func TestEngineTopologyReplacesAuthAndStorage(t *testing.T) {
 	}
 }
 
+func TestEngineRejectsStandalonePorts(t *testing.T) {
+	t.Parallel()
+
+	const wantErr = "the --auth-port/--storage-port flags cannot be used when experimental.nhost is enabled: " +
+		"the bundled engine serves auth and storage behind one listener"
+
+	tests := []struct {
+		name  string
+		ports ExposePorts
+	}{
+		{
+			name:  "auth port",
+			ports: ExposePorts{Auth: 4001},
+		},
+		{
+			name:  "storage port",
+			ports: ExposePorts{Storage: 5001},
+		},
+		{
+			name:  "auth and storage ports",
+			ports: ExposePorts{Auth: 4001, Storage: 5001},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			_, err := getServicesWithEngine(t, test.ports)
+			if err == nil {
+				t.Fatal("getServices accepted standalone service ports in engine mode")
+			}
+
+			if got := err.Error(); got != wantErr {
+				t.Errorf("getServices error = %q, want %q", got, wantErr)
+			}
+		})
+	}
+}
+
 // TestEngineEnvMatchesStandaloneServices guards against the engine and the
-// standalone services drifting apart in local dev: every variable both emit
-// must carry the same value, except the connections and listener the engine
-// deliberately owns.
+// standalone services drifting apart in local dev: every standalone variable
+// must either be explicitly consolidated by the engine or emitted with the same
+// value, except the connection and listener values the engine deliberately owns.
 //
 // Both sides are rendered from one config with a single auth replica, because
 // that is the only shape the engine can be given: mimir rejects auth replica
@@ -240,7 +303,21 @@ func TestEngineEnvMatchesStandaloneServices(t *testing.T) {
 
 			for key, want := range tc.env {
 				got, ok := eng.Environment[key]
-				if !ok || isEngineOwned(key) {
+				if !ok {
+					if isStandaloneEnvConsolidatedByEngine(key) {
+						continue
+					}
+
+					t.Errorf(
+						"%s: standalone variable %s is missing from the engine environment",
+						tc.name,
+						key,
+					)
+
+					continue
+				}
+
+				if isEngineOwned(key) {
 					continue
 				}
 
@@ -268,14 +345,40 @@ func TestEngineEnvMatchesStandaloneServices(t *testing.T) {
 }
 
 // isEngineOwned reports whether a variable's value is expected to differ
-// between the engine and a standalone service: the database connections the
-// engine consolidates and re-scopes, and the one HTTP listener it serves all
+// between the engine and a standalone service: the runtime database connection
+// the engine consolidates and re-scopes, and the one HTTP listener it serves all
 // three bundled services on.
 func isEngineOwned(key string) bool {
-	return key == "DATABASE_URL" || key == "BIND" || strings.HasPrefix(key, "POSTGRES")
+	return key == "DATABASE_URL" || key == "BIND"
+}
+
+// isStandaloneEnvConsolidatedByEngine reports whether the engine intentionally
+// replaces a standalone variable with a shared engine global.
+func isStandaloneEnvConsolidatedByEngine(key string) bool {
+	switch key {
+	case "AUTH_HOST", "AUTH_PORT":
+		// The engine replaces auth's listener variables with its shared BIND.
+		return true
+	case "HASURA_GRAPHQL_ADMIN_SECRET", "HASURA_GRAPHQL_JWT_SECRET":
+		// The engine exposes these as ADMIN_SECRET and JWT_SECRET.
+		return true
+	default:
+		return false
+	}
 }
 
 func callGetServicesWithEngine(t *testing.T) map[string]*Service {
+	t.Helper()
+
+	services, err := getServicesWithEngine(t, ExposePorts{})
+	if err != nil {
+		t.Fatalf("getServices failed: %v", err)
+	}
+
+	return services
+}
+
+func getServicesWithEngine(t *testing.T, ports ExposePorts) (map[string]*Service, error) {
 	t.Helper()
 
 	tmp := t.TempDir()
@@ -285,7 +388,7 @@ func callGetServicesWithEngine(t *testing.T) map[string]*Service {
 		t.Fatalf("parse default Docker endpoint: %v", err)
 	}
 
-	services, err := getServices(
+	return getServices(
 		engineConfig(),
 		dockerURL,
 		"dev",
@@ -296,7 +399,7 @@ func callGetServicesWithEngine(t *testing.T) map[string]*Service {
 		tmp,
 		tmp,
 		tmp,
-		ExposePorts{},
+		ports,
 		"main",
 		"nhost/dashboard:3.5.3",
 		"2.1.0",
@@ -305,9 +408,4 @@ func callGetServicesWithEngine(t *testing.T) map[string]*Service {
 		false,
 		"",
 	)
-	if err != nil {
-		t.Fatalf("getServices failed: %v", err)
-	}
-
-	return services
 }
