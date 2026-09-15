@@ -120,6 +120,12 @@ Run these from `frontend/`:
 - `pnpm lint` / `pnpm format` — check or format with Biome.
 - `pnpm build` — create a production build.
 
+## Session cookie security
+
+The session cookie holds the refresh token (30 day maxAge) and is intentionally set with `httpOnly: false`. The browser SDK in `frontend/src/lib/nhost/client.ts` reads it through `document.cookie` to make client-side GraphQL requests, so this trades XSS refresh-token exposure for client-side data fetching.
+
+If you want to keep the refresh token out of JavaScript, fetch and mutate only from server components and server actions, then set `httpOnly: true` in `frontend/src/lib/nhost/server.ts`. The same note lives next to the cookie options in that file.
+
 ## Optional MCP integration
 
 The optional `.mcp.json` registers the Nhost MCP server for assistants that support live inspection. It is not required: the committed schema, generated types, skills, and every step in the primary development loop work without MCP.
