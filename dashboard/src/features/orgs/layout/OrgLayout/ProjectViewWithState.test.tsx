@@ -350,6 +350,34 @@ describe('ProjectViewWithState', () => {
     expect(statefulChildMountCount).toBe(0);
   });
 
+  it('blocks child mounting on a native-query route while the project is paused', async () => {
+    mocks.useRouter.mockImplementation(() =>
+      getUseRouterObject(
+        '/orgs/[orgSlug]/projects/[appSubdomain]/database/native-queries/[dataSourceSlug]/models/[modelSlug]',
+      ),
+    );
+    server.use(
+      getProjectQuery,
+      getProjectStateQuery([{ stateId: ApplicationStatus.Paused }], {
+        desiredState: ApplicationStatus.Paused,
+      }),
+    );
+
+    render(
+      <ProjectViewWithState>
+        <StatefulChild />
+      </ProjectViewWithState>,
+    );
+
+    expect(
+      await screen.findByText(
+        'This project is paused. Unpause to make this available.',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '0' })).not.toBeInTheDocument();
+    expect(statefulChildMountCount).toBe(0);
+  });
+
   it('should clear the query cache on unmount', async () => {
     const clearSpy = vi.spyOn(queryClient, 'clear');
     mocks.useRouter.mockImplementation(() => getUseRouterObject());
