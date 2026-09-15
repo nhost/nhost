@@ -5,10 +5,11 @@ on:
     paths:
       - ".github/workflows/templates_checks.yaml"
       - "templates/**"
+  merge_group:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ startsWith(github.event_name, 'pull_request') && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
+  cancel-in-progress: ${{ startsWith(github.event_name, 'pull_request') }}
 
 jobs:
   nextjs-shadcn:
