@@ -10,8 +10,8 @@ import type { LogicalModelItem } from '@/utils/hasura-api/generated/schemas';
 const EditLogicalModelPermissionsForm = dynamic(
   () =>
     import(
-      '@/features/orgs/projects/database/native-queries/components/EditLogicalModelPermissionsForm'
-    ).then((mod) => mod.EditLogicalModelPermissionsForm),
+      '@/features/orgs/projects/database/native-queries/components/EditLogicalModelPermissionsForm/EditLogicalModelPermissionsForm'
+    ),
   {
     ssr: false,
     loading: () => <FormActivityIndicator />,
