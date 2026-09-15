@@ -1,0 +1,38 @@
+{
+  "name": "svelte",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "prepare": "svelte-kit sync",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "lint": "biome check src vite.config.ts vitest.config.mts codegen.ts svelte.config.js",
+    "format": "biome format --write src vite.config.ts vitest.config.mts codegen.ts svelte.config.js",
+    "codegen:schema": "nhost schema dump --subdomain local --role user -o schema.graphql",
+    "codegen:types": "graphql-codegen --config codegen.ts",
+    "codegen": "pnpm codegen:schema && pnpm codegen:types",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@graphql-typed-document-node/core": "^3.2.0",
+    "@nhost/nhost-js": "^4.7.2",
+    "graphql": "^16.14.2"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.0",
+    "@graphql-codegen/cli": "^7.2.0",
+    "@graphql-codegen/client-preset": "^6.1.1",
+    "@sveltejs/adapter-static": "^3.0.8",
+    "@sveltejs/kit": "^2.70.2",
+    "@sveltejs/vite-plugin-svelte": "^6.2.0",
+    "svelte": "^5.55.7",
+    "svelte-check": "^4.3.1",
+    "svelte2tsx": "^0.7.30",
+    "typescript": "~5.9.3",
+    "vite": "^7.1.5",
+    "vitest": "^4.1.10"
+  }
+}
