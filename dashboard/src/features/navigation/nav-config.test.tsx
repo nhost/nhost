@@ -4,6 +4,7 @@ import {
   isPageGated,
   orgPages,
   projectDatabasePages,
+  projectGraphQLPages,
   projectPages,
   projectSettingsPages,
   projectSubPagesBySlug,
@@ -25,7 +26,6 @@ describe('navigation nav-config', () => {
       'database',
       'graphql',
       'events',
-      'hasura',
       'auth',
       'storage',
       'functions',
@@ -41,7 +41,6 @@ describe('navigation nav-config', () => {
   it('keeps only the settings pages that still have their own route', () => {
     expect(projectSettingsPages.map((page) => page.slug)).toEqual([
       'general',
-      'hasura',
       'authentication',
       'jwt',
       'sign-in-methods',
@@ -62,7 +61,7 @@ describe('navigation nav-config', () => {
       '/orgs/nhost/projects/dashboard',
     );
     expect(getSettingsPageRoute({ route: '' })).toBe('settings');
-    expect(getSettingsPageRoute({ route: 'hasura' })).toBe('settings/hasura');
+    expect(getSettingsPageRoute({ route: 'jwt' })).toBe('settings/jwt');
   });
 
   it('gates platform and settings pages', () => {
@@ -92,6 +91,17 @@ describe('navigation nav-config', () => {
       'schema',
       'sql-console',
       'backups',
+      'settings',
+    ]);
+  });
+
+  it('keeps GraphQL sub-pages in route-tab order', () => {
+    expect(projectGraphQLPages.map((page) => page.slug)).toEqual([
+      'playground',
+      'remote-schemas',
+      'actions',
+      'metadata',
+      'console',
       'settings',
     ]);
   });

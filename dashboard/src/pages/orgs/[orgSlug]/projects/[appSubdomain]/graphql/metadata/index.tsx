@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { ProjectViewWithState } from '@/features/orgs/layout/ProjectGuard';
 import { ProjectScope } from '@/features/orgs/layout/ProjectScope';
+import { GraphQLArea } from '@/features/orgs/projects/graphql/layout';
 import { ImportExportMetadataCard } from '@/features/orgs/projects/graphql/metadata/components/ImportExportMetadataCard';
 import { MetadataStatusCard } from '@/features/orgs/projects/graphql/metadata/components/MetadataStatusCard';
 import { ReloadMetadataCard } from '@/features/orgs/projects/graphql/metadata/components/ReloadMetadataCard';
@@ -32,11 +32,11 @@ MetadataPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <AppLayout>
       <ProjectScope>
-        <ProjectViewWithState>
-          <div className="flex min-h-full bg-background-default">
+        <GraphQLArea>
+          <div className="flex min-h-full">
             <div className="mx-auto w-full max-w-5xl px-10">{page}</div>
           </div>
-        </ProjectViewWithState>
+        </GraphQLArea>
       </ProjectScope>
     </AppLayout>
   );
