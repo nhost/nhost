@@ -3,6 +3,7 @@
   pkgs,
   nix2containerPkgs,
   nixops-lib,
+  overlayComponents,
 }:
 let
   name = "nixops";
@@ -152,6 +153,7 @@ in
           root = ../.;
           fileset = fs.fileFilter (f: f.hasExt "nix") ../.;
         };
+        inherit overlayComponents;
         overlay = self.overlays.default;
       })
     ];

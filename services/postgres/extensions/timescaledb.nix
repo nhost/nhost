@@ -5,7 +5,7 @@
 }:
 buildPGXSExtension rec {
   pname = "timescaledb-apache";
-  version = "2.27.2";
+  version = "2.29.2";
 
   nativeBuildInputs = [ pkgs.cmake ];
   buildInputs = [
@@ -17,7 +17,7 @@ buildPGXSExtension rec {
     owner = "timescale";
     repo = "timescaledb";
     rev = version;
-    hash = "sha256-/z8qr+56svxnUrnmh0uetPPttXdc1B8aDKZ5mtZpTt4=";
+    hash = "sha256-pR68kA795hFX4aEC7UXyruigDNnudQVekDg+eIpdzJU=";
   };
 
   cmakeFlags = [

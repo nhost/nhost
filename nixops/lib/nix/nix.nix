@@ -18,22 +18,49 @@
       '';
 
   # Guard against reintroducing unpinned toolchains: everything Nhost pins
-  # lives under `pkgs.nhost.*` (see nixops/overlays/). The overlay may export
-  # only `nhost`; another top-level attr could shadow nixpkgs build inputs
-  # (go, nodejs, rustc, ...), tainting packages and defeating cache.nixos.org.
+  # lives under `pkgs.nhost.*` (see nixops/overlays/). flake.nix declares each
+  # applied overlay together with its permitted top-level API. Any undeclared
+  # top-level attr could shadow nixpkgs build inputs (go, nodejs, rustc, ...),
+  # tainting every package that uses them and defeating cache.nixos.org.
   # References to nixpkgs attrs that `pkgs.nhost.*` shadows must go through the
   # namespace, or they silently resolve to nixpkgs' unpinned versions.
   checkPinnedToolchains =
     {
       src,
       overlay,
+      overlayComponents,
     }:
     let
       l = pkgs.lib // builtins;
+
+      # Check each component independently to retain attribution. A composite
+      # allowlist is necessarily the union of every component's allowlist, so
+      # it cannot detect one component exporting an attr owned by another.
+      # Applying the functions and inspecting their attr names is exact, and
+      # laziness keeps it cheap.
+      componentSurfaces = l.map (
+        component:
+        let
+          actualAttrs = l.attrNames (component.overlay pkgs pkgs);
+        in
+        {
+          inherit (component) allowedAttrs name;
+          missingAttrs = l.subtractLists actualAttrs (component.requiredAttrs or [ ]);
+          unexpectedAttrs = l.subtractLists component.allowedAttrs actualAttrs;
+        }
+      ) overlayComponents;
+
+      componentViolations = l.filter (
+        component: component.missingAttrs != [ ] || component.unexpectedAttrs != [ ]
+      ) componentSurfaces;
+
+      # Also check the literal applied surface. Components in a composition see
+      # an incrementally extended `prev`, unlike the independent checks above,
+      # and may therefore expose additional, prev-dependent names.
+      allowedOverlayAttrs = l.unique (l.concatMap (component: component.allowedAttrs) overlayComponents);
       overlayResult = overlay pkgs pkgs;
       overlayAttrs = l.attrNames overlayResult;
-      unexpectedAttrs = l.subtractLists [ "nhost" ] overlayAttrs;
-      missingAttrs = l.subtractLists overlayAttrs [ "nhost" ];
+      composedViolations = l.subtractLists allowedOverlayAttrs overlayAttrs;
 
       # Names provided under `pkgs.nhost.*` that also exist as top-level
       # nixpkgs attrs: a bare `pkgs.<name>` reference silently picks the
@@ -52,16 +79,26 @@
       ];
     in
     pkgs.runCommand "check-pinned-toolchains" { } ''
-      ${l.optionalString (unexpectedAttrs != [ ] || missingAttrs != [ ]) ''
-        echo "Nhost overlay must export only nhost:" >&2
-        ${l.optionalString (unexpectedAttrs != [ ]) ''
-          echo "unexpected attrs:" >&2
-          printf '  %s\n' ${l.escapeShellArgs unexpectedAttrs} >&2
-        ''}
-        ${l.optionalString (missingAttrs != [ ]) ''
-          echo "missing required attrs:" >&2
-          printf '  %s\n' ${l.escapeShellArgs missingAttrs} >&2
-        ''}
+      ${l.optionalString (componentViolations != [ ]) ''
+        ${l.concatStringsSep "\n" (
+          l.map (component: ''
+            echo ${l.escapeShellArg "${component.name} overlay surface violates its declaration:"} >&2
+            ${l.optionalString (component.unexpectedAttrs != [ ]) ''
+              echo "unexpected attrs:" >&2
+              printf '  %s\n' ${l.escapeShellArgs component.unexpectedAttrs} >&2
+            ''}
+            ${l.optionalString (component.missingAttrs != [ ]) ''
+              echo "missing required attrs:" >&2
+              printf '  %s\n' ${l.escapeShellArgs component.missingAttrs} >&2
+            ''}
+          '') componentViolations
+        )}
+        exit 1
+      ''}
+
+      ${l.optionalString (composedViolations != [ ]) ''
+        echo "the composed nixpkgs overlay exports attrs from no declared component:" >&2
+        printf '  %s\n' ${l.escapeShellArgs composedViolations} >&2
         exit 1
       ''}
 

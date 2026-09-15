@@ -128,6 +128,27 @@ run_psql_file() {
 	fi
 }
 
+run_psql_file_all_databases() {
+	file=$1
+	database_list=$(mktemp -p /tmp/postgresql databases.XXXXXX) || return 1
+
+	if ! run_interruptibly psql -X -q -A -t -U postgres -d postgres -v ON_ERROR_STOP=1 \
+		-o "$database_list" \
+		-c "SELECT datname FROM pg_database WHERE datallowconn ORDER BY datname"; then
+		rm -f "$database_list"
+		return 1
+	fi
+
+	while IFS= read -r database; do
+		if ! run_psql_file "$database" "$file"; then
+			rm -f "$database_list"
+			return 1
+		fi
+	done <"$database_list"
+
+	rm -f "$database_list"
+}
+
 run_init_scripts() {
 	echo "Running init scripts"
 	run_interruptibly createdb -U postgres "$POSTGRES_DB" || return 1
@@ -149,10 +170,17 @@ run_nhost_scripts() {
 	mkdir -p /tmp/postgresql/nhost.d || return 1
 	for f in /nhost.d/*; do
 		filename=$(basename "$f") || return 1
-		rendered_file="/tmp/postgresql/nhost.d/$filename"
-		envsubst <"$f" >"$rendered_file" || return 1
 
-		run_psql_file "$POSTGRES_DB" "$rendered_file" || return 1
+		case "$filename" in
+		0002-update-extensions.sql)
+			run_psql_file_all_databases "$f" || return 1
+			;;
+		*)
+			rendered_file="/tmp/postgresql/nhost.d/$filename"
+			envsubst <"$f" >"$rendered_file" || return 1
+			run_psql_file "$POSTGRES_DB" "$rendered_file" || return 1
+			;;
+		esac
 	done
 }
 

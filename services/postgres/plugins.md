@@ -17,7 +17,7 @@
 | fuzzystrmatch|1.2|determine similarities and distance between strings|
 | hstore|1.8|data type for storing sets of (key, value) pairs|
 | http|1.7|HTTP client for PostgreSQL, allows web page retrieval inside the database.|
-| hypopg|1.4.2|Hypothetical indexes for PostgreSQL|
+| hypopg|1.4.3|Hypothetical indexes for PostgreSQL|
 | insert_username|1.0|functions for tracking who changed a table|
 | intagg|1.1|integer aggregator and enumerator (obsolete)|
 | intarray|1.5|functions, operators, and index support for 1-D arrays of integers|
@@ -31,12 +31,12 @@
 | pg_cron|1.6|Job scheduler for PostgreSQL|
 | pg_freespacemap|1.3|examine the free space map (FSM)|
 | pg_hashids|1.3|pg_hashids|
-| pg_ivm|1.14|incremental view maintenance on PostgreSQL|
-| pg_jsonschema|0.3.3|pg_jsonschema|
+| pg_ivm|1.15|incremental view maintenance on PostgreSQL|
+| pg_jsonschema|0.3.4|pg_jsonschema|
 | pg_logicalinspect|1.0|functions to inspect logical decoding components|
 | pg_prewarm|1.2|prewarm relation data|
 | pg_repack|1.5.3|Reorganize tables in PostgreSQL databases with minimal locks|
-| pg_search|0.24.0|pg_search: Full text search for PostgreSQL using BM25|
+| pg_search|0.25.3|pg_search: Full text search for PostgreSQL using BM25|
 | pg_squeeze|1.9|A tool to remove unused space from a relation.|
 | pg_stat_statements|1.12|track planning and execution statistics of all SQL statements executed|
 | pg_surgery|1.0|extension to perform surgery on a damaged relation|
@@ -44,7 +44,7 @@
 | pg_visibility|1.2|examine the visibility map (VM) and page-level visibility info|
 | pg_walinspect|1.1|functions to inspect contents of PostgreSQL Write-Ahead Log|
 | pgcrypto|1.4|cryptographic functions|
-| pgmq|1.11.1|A lightweight message queue. Like AWS SQS and RSMQ but on Postgres.|
+| pgmq|1.12.0|A lightweight message queue. Like AWS SQS and RSMQ but on Postgres.|
 | pgrouting|4.0.1|pgRouting Extension|
 | pgrowlocks|1.2|show row-level locking information|
 | pgstattuple|1.5|show tuple-level statistics|
@@ -59,10 +59,10 @@
 | sslinfo|1.2|information about SSL certificates|
 | tablefunc|1.0|functions that manipulate whole tables, including crosstab|
 | tcn|1.0|Triggered change notifications|
-| timescaledb|2.27.2|Enables scalable inserts and complex queries for time-series data|
+| timescaledb|2.29.2|Enables scalable inserts and complex queries for time-series data|
 | tsm_system_rows|1.0|TABLESAMPLE method which accepts number of rows as a limit|
 | tsm_system_time|1.0|TABLESAMPLE method which accepts time in milliseconds as a limit|
 | unaccent|1.1|text search dictionary that removes accents|
 | uuid-ossp|1.1|generate universally unique identifiers (UUIDs)|
-| vector|0.8.2|vector data type and ivfflat and hnsw access methods|
+| vector|0.8.6|vector data type and ivfflat and hnsw access methods|
 | xml2|1.2|XPath querying and XSLT|
