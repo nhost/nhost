@@ -1,11 +1,11 @@
 import { CircleHelpIcon, CircleUserIcon } from 'lucide-react';
 
 import { flattenTree } from '@/features/command-palette/lib/flatten';
-import { commandPaletteNavTree } from '@/features/command-palette/nav-tree';
+import { commandPaletteTree } from '@/features/command-palette/tree';
 
-const allNodes = flattenTree(commandPaletteNavTree);
+const allNodes = flattenTree(commandPaletteTree);
 
-describe('commandPaletteNavTree', () => {
+describe('commandPaletteTree', () => {
   it('uses globally unique ids', () => {
     const ids = allNodes.map((node) => node.id);
 
@@ -13,7 +13,7 @@ describe('commandPaletteNavTree', () => {
   });
 
   it('orders and configures platform root utility commands', () => {
-    const rootChildren = commandPaletteNavTree.children ?? [];
+    const rootChildren = commandPaletteTree.children ?? [];
 
     expect(rootChildren.slice(-3).map((node) => node.id)).toEqual([
       'account-settings',
