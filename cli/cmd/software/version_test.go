@@ -1,10 +1,12 @@
 package software //nolint:testpackage
 
 import (
+	"bytes"
 	"slices"
 	"testing"
 
 	"github.com/nhost/be/services/mimir/model"
+	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/nhostclient/graphql"
 )
 
@@ -36,6 +38,135 @@ func softwareTypes(services []serviceVersion) []graphql.SoftwareTypeEnum {
 
 func contains(types []graphql.SoftwareTypeEnum, want graphql.SoftwareTypeEnum) bool {
 	return slices.Contains(types, want)
+}
+
+func TestCheckServiceVersion(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name              string
+		software          graphql.SoftwareTypeEnum
+		currentVersion    string
+		availableVersions *graphql.GetSoftwareVersions
+		changelog         string
+		wantStdout        string
+		wantStderr        string
+	}{
+		{
+			name:           "current version is recommended",
+			software:       graphql.SoftwareTypeEnumAuth,
+			currentVersion: "0.40.0",
+			availableVersions: &graphql.GetSoftwareVersions{
+				SoftwareVersions: []*graphql.GetSoftwareVersions_SoftwareVersions{
+					{
+						Software: graphql.SoftwareTypeEnumAuth,
+						Version:  "0.40.0",
+					},
+				},
+			},
+			changelog:  nhostReleasesURL,
+			wantStdout: "✅ Auth is already on a recommended version: 0.40.0\n",
+			wantStderr: "",
+		},
+		{
+			name:           "current version is not recommended",
+			software:       graphql.SoftwareTypeEnumEngine,
+			currentVersion: "0.0.1",
+			availableVersions: &graphql.GetSoftwareVersions{
+				SoftwareVersions: []*graphql.GetSoftwareVersions_SoftwareVersions{
+					{
+						Software: graphql.SoftwareTypeEnumEngine,
+						Version:  "1.0.0",
+					},
+					{
+						Software: graphql.SoftwareTypeEnumEngine,
+						Version:  "1.1.0",
+					},
+				},
+			},
+			changelog: nhostReleasesURL,
+			wantStdout: "🟡 Engine is not on a recommended version. Recommended: 1.0.0, 1.1.0\n" +
+				"   More info: https://github.com/nhost/nhost/releases\n",
+			wantStderr: "",
+		},
+		{
+			name:           "no versions published for software",
+			software:       graphql.SoftwareTypeEnumEngine,
+			currentVersion: "0.0.1",
+			availableVersions: &graphql.GetSoftwareVersions{
+				SoftwareVersions: []*graphql.GetSoftwareVersions_SoftwareVersions{
+					{
+						Software: graphql.SoftwareTypeEnumStorage,
+						Version:  "0.7.0",
+					},
+				},
+			},
+			changelog:  nhostReleasesURL,
+			wantStdout: "",
+			wantStderr: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			var stdout, stderr bytes.Buffer
+
+			ce := clienv.New(
+				&stdout,
+				&stderr,
+				clienv.NewPathStructure("", "", "", ""),
+				"",
+				"",
+				"",
+				"",
+				"",
+				"",
+				"",
+			)
+
+			checkServiceVersion(
+				ce,
+				tt.software,
+				tt.currentVersion,
+				tt.availableVersions,
+				tt.changelog,
+			)
+
+			if got := stdout.String(); got != tt.wantStdout {
+				t.Errorf("stdout = %q, want %q", got, tt.wantStdout)
+			}
+
+			if got := stderr.String(); got != tt.wantStderr {
+				t.Errorf("stderr = %q, want %q", got, tt.wantStderr)
+			}
+		})
+	}
+}
+
+func TestServicesToCheckToleratesNilConfig(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		cfg  *model.ConfigConfig
+	}{
+		{
+			name: "outside a project",
+			cfg:  nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := servicesToCheck(tt.cfg); len(got) != 0 {
+				t.Errorf("servicesToCheck() = %v, want no services", got)
+			}
+		})
+	}
 }
 
 // TestServicesToCheckEngineReplacesAuthAndStorage covers the reason this
