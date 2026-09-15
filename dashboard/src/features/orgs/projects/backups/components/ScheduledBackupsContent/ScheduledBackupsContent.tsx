@@ -1,11 +1,10 @@
 import { Spinner } from '@/components/ui/v3/spinner';
-import { TabsContent } from '@/components/ui/v3/tabs';
 import { useIsPiTREnabled } from '@/features/orgs/hooks/useIsPiTREnabled';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import BackupList from './BackupList';
 import PiTREnabledInfoBanner from './PiTREnabledInfoBanner';
 
-function ScheduledBackupTabContent() {
+function ScheduledBackupsContent() {
   const { isPiTREnabled, loading } = useIsPiTREnabled();
   const { project } = useProject();
   const content = isPiTREnabled ? (
@@ -24,12 +23,10 @@ function ScheduledBackupTabContent() {
     </>
   );
   return (
-    <TabsContent value="scheduledBackups">
-      <div className="grid w-full grid-flow-row gap-6">
-        {loading ? <Spinner /> : content}
-      </div>
-    </TabsContent>
+    <div className="grid w-full grid-flow-row gap-6">
+      {loading ? <Spinner /> : content}
+    </div>
   );
 }
 
-export default ScheduledBackupTabContent;
+export default ScheduledBackupsContent;

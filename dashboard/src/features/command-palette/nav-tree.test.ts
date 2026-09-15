@@ -56,16 +56,45 @@ describe('commandPaletteNavTree', () => {
     expect(byId.get('project-graphql-metadata')?.breadcrumb).toEqual([
       'GraphQL',
     ]);
-    expect(byId.get('project-settings-database')?.breadcrumb).toEqual([
-      'Settings (Project)',
+    expect(byId.get('project-database-settings')?.breadcrumb).toEqual([
+      'Database',
     ]);
     expect(byId.get('project-database-browser')?.breadcrumb).toEqual([
       'Database',
     ]);
+    expect(
+      byId.get('project-database-settings-point-in-time')?.breadcrumb,
+    ).toEqual(['Database', 'Settings']);
     // Structural groups have no path, so top-level pages carry no trail.
     expect(byId.get('project-graphql')?.breadcrumb).toBeUndefined();
     expect(byId.get('org-settings')?.breadcrumb).toBeUndefined();
     expect(byId.get('docs')?.breadcrumb).toBeUndefined();
+  });
+
+  it('lists the Database settings tabs under Database settings', () => {
+    const byId = new Map(allNodes.map((node) => [node.id, node]));
+
+    expect(byId.get('project-database-settings')).toMatchObject({
+      title: 'Settings',
+      path: 'database/settings',
+      keywords: expect.arrayContaining(['database', 'settings']),
+    });
+    expect(byId.get('project-database-settings-version')).toMatchObject({
+      title: 'Database Postgres Version',
+      path: 'database/settings?tab=version',
+      keywords: expect.arrayContaining(['postgres', 'version']),
+    });
+    expect(byId.get('project-database-settings-point-in-time')).toMatchObject({
+      title: 'Database Point-in-Time Recovery',
+      path: 'database/settings?tab=point-in-time',
+      gate: 'platform',
+    });
+    expect(byId.get('project-database-settings-access')).toMatchObject({
+      title: 'Database Access',
+      path: 'database/settings?tab=access',
+      gate: 'platform',
+      keywords: expect.arrayContaining(['allowed cidrs']),
+    });
   });
 
   it('gates every org page off-platform', () => {

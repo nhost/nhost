@@ -108,6 +108,18 @@ describe('scoreNode', () => {
     });
   });
 
+  it('matches the breadcrumb-qualified label without title ranges', () => {
+    const node = makeNode({ title: 'Settings', breadcrumb: ['Storage'] });
+
+    expect(scoreNode('storage settings', node)).toEqual({
+      score: SCORE_BANDS.ALL_TOKENS_PRESENT,
+      titleRanges: [],
+    });
+    expect(
+      scoreNode('storage settings', makeNode({ title: 'Settings' })).score,
+    ).toBe(SCORE_BANDS.NONE);
+  });
+
   it('returns zero for non-matches and blank queries', () => {
     expect(scoreNode('xyz', makeNode({ title: 'Remote Schemas' }))).toEqual({
       score: SCORE_BANDS.NONE,
