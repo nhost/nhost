@@ -1,0 +1,24 @@
+description: >-
+  Arg validation: pg_track_table / pg_untrack_table require table.schema and
+  table.name. A missing/empty table is rejected with validation-failed
+  (errMissingRequiredField) before any mutation runs.
+source: track/untrack arg validation (ops_postgres.go, ops_tables.go)
+
+steps:
+  - description: Track with missing table is rejected
+    query:
+      type: pg_track_table
+      args:
+        source: default
+    status: 400
+    response:
+      code: validation-failed
+
+  - description: Untrack with missing table is rejected
+    query:
+      type: pg_untrack_table
+      args:
+        source: default
+    status: 400
+    response:
+      code: validation-failed

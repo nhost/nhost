@@ -1,0 +1,48 @@
+description: >-
+  replace_metadata swaps the entire metadata for the supplied document. The
+  replacement takes effect immediately: export reflects it and the newly-declared
+  table is operable.
+source: >-
+  tests-py/queries/v1/metadata/replace_metadata.yaml,
+  tests-py/queries/v1/metadata/replace_metadata_v2.yaml
+
+steps:
+  - description: Replace metadata with a single tracked table
+    query:
+      type: replace_metadata
+      args:
+        version: 3
+        sources:
+          - name: default
+            kind: postgres
+            tables:
+              - table: {schema: public, name: author}
+            configuration:
+              connection_info:
+                database_url: {from_env: PG}
+                isolation_level: read-committed
+                use_prepared_statements: true
+    status: 200
+    response: {message: success}
+
+  - description: Export reflects the replaced metadata
+    query: {type: export_metadata, args: {}}
+    status: 200
+    expectBody:
+      metadata:
+        sources:
+          - name: default
+            tables:
+              - table: {schema: public, name: author}
+
+  - description: The replaced table is tracked (re-track is idempotent)
+    query: {type: pg_track_table, args: {source: default, table: {schema: public, name: author}}}
+    status: 200
+    response:
+      message: already-tracked
+
+  - description: A table not in the replacement is untracked
+    query: {type: pg_untrack_table, args: {source: default, table: {schema: public, name: article}}}
+    status: 400
+    response:
+      code: already-untracked
