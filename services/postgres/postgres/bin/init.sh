@@ -2,6 +2,22 @@
 
 set -eu
 
+run_interruptibly() {
+	# POSIX asynchronous commands receive /dev/null on stdin, so callers must
+	# pass all required input as command arguments rather than redirections.
+	"$@" &
+	IN_FLIGHT_PID=$!
+
+	if wait "$IN_FLIGHT_PID"; then
+		interruptible_exit_code=0
+	else
+		interruptible_exit_code=$?
+	fi
+
+	IN_FLIGHT_PID=
+	return "$interruptible_exit_code"
+}
+
 init_db() {
 	DATABASE_INITIALIZED=false
 	if [ ! -f "$PGDATA/PG_VERSION" ]; then
@@ -10,7 +26,7 @@ init_db() {
 		chmod 600 "$password_file"
 		printf '%s\n' "$POSTGRES_PASSWORD" >"$password_file"
 
-		if ! initdb --username="$POSTGRES_USER" --pwfile="$password_file"; then
+		if ! run_interruptibly initdb --username="$POSTGRES_USER" --pwfile="$password_file"; then
 			rm -f "$password_file"
 			return 1
 		fi
@@ -42,7 +58,7 @@ wait_for_postgres() {
 			echo "PostgreSQL process (PID: $POSTGRES_PID) is no longer running"
 			exit 1
 		fi
-		sleep 0.5
+		run_interruptibly sleep 0.5
 	done
 }
 
@@ -63,14 +79,14 @@ wait_for_postgres_slow() {
 			wait_for_postgres
 			return
 		fi
-		sleep 10
+		run_interruptibly sleep 10
 	done
 }
 
 start_postgres() {
 	echo "Starting postgres"
 	chmod u=rwx,g=rx "$PGDATA"
-	postgres \
+	exec postgres \
 		-h 0.0.0.0 \
 		-p 5432 \
 		-c config_file="/tmp/postgresql/postgresql.conf" \
@@ -88,12 +104,12 @@ run_psql_file() {
 	database=$1
 	file=$2
 
-	psql -X -q -b -U postgres -d "$database" -v ON_ERROR_STOP=1 -f "$file"
+	run_interruptibly psql -X -q -b -U postgres -d "$database" -v ON_ERROR_STOP=1 -f "$file"
 }
 
 run_init_scripts() {
 	echo "Running init scripts"
-	createdb -U postgres "$POSTGRES_DB"
+	run_interruptibly createdb -U postgres "$POSTGRES_DB"
 
 	mkdir -p /tmp/postgresql/initdb.d
 	for f in /initdb.d/*; do
@@ -119,9 +135,9 @@ run_nhost_scripts() {
 
 pitr_restore() {
 	echo "Cleaning up PGDATA"
-	rm -rf "$PGDATA"
+	run_interruptibly rm -rf "$PGDATA"
 	echo "pitr_recover: fetching $PITR_BASEBACKUP"
-	wal-g backup-fetch "$PGDATA" "$PITR_BASEBACKUP"
+	run_interruptibly wal-g backup-fetch "$PGDATA" "$PITR_BASEBACKUP"
 	echo "pitr_recover: finished fetching  $PITR_BASEBACKUP"
 	echo "pitr_recover: setting recovery target to $PITR_RECOVERY_TARGET"
 	rm -f "$PGDATA/postgresql.auto.conf"
@@ -137,16 +153,50 @@ pitr_restore() {
 post_restore_sql() {
 	if [ -n "${PITR_POST_RESTORE_SQL_NO_DB:-}" ]; then
 		echo "Running post restore SQL without database connection"
-		psql -X -U postgres -v ON_ERROR_STOP=1 -c "$PITR_POST_RESTORE_SQL_NO_DB"
+		run_interruptibly psql -X -U postgres -v ON_ERROR_STOP=1 -c "$PITR_POST_RESTORE_SQL_NO_DB"
 	fi
 
 	if [ -n "${PITR_POST_RESTORE_SQL:-}" ]; then
 		echo "Running post restore SQL with database connection"
-		psql -X -U postgres -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c "$PITR_POST_RESTORE_SQL"
+		run_interruptibly psql -X -U postgres -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c "$PITR_POST_RESTORE_SQL"
 	fi
 }
 
+# shellcheck disable=SC2329 # Invoked by the signal trap.
+shutdown_postgres() {
+	trap '' TERM INT
+	echo "Received shutdown signal, shutting down PostgreSQL..."
+
+	if [ -n "${IN_FLIGHT_PID:-}" ] && kill -0 "$IN_FLIGHT_PID" 2>/dev/null; then
+		kill -TERM "$IN_FLIGHT_PID" 2>/dev/null || true
+		wait "$IN_FLIGHT_PID" 2>/dev/null || true
+		IN_FLIGHT_PID=
+	fi
+
+	if [ -z "${POSTGRES_PID:-}" ] || ! kill -0 "$POSTGRES_PID" 2>/dev/null; then
+		exit 0
+	fi
+
+	if [ ! -f "$PGDATA/postmaster.pid" ]; then
+		kill -TERM "$POSTGRES_PID" 2>/dev/null || true
+		wait "$POSTGRES_PID" 2>/dev/null || true
+		exit 0
+	fi
+
+	# Fast mode disconnects clients, and --wait keeps PID 1 alive until the
+	# server has checkpointed and removed its PID file.
+	if ! pg_ctl stop --pgdata="$PGDATA" --mode=fast --wait; then
+		echo "Failed to stop PostgreSQL cleanly" >&2
+		exit 1
+	fi
+	exit 0
+}
+
 main() {
+	IN_FLIGHT_PID=
+	POSTGRES_PID=
+	trap shutdown_postgres TERM INT
+
 	if [ -n "${PITR_BASEBACKUP:-}" ]; then
 		resolve_config
 		pitr_restore
@@ -158,7 +208,10 @@ main() {
 			post_restore_sql
 			pg_ctl stop
 		else
-			start_postgres
+			start_postgres &
+			POSTGRES_PID=$!
+			echo "PostgreSQL started with PID: $POSTGRES_PID"
+			wait "$POSTGRES_PID"
 		fi
 		exit 0
 	fi
@@ -182,9 +235,7 @@ main() {
 	run_nhost_scripts
 
 	delete_core_dumps &
-
-	# Setup signal handling
-	trap 'echo "Received SIGTERM, shutting down PostgreSQL..."; kill -TERM "$POSTGRES_PID"; wait "$POSTGRES_PID"' TERM
+	echo "PostgreSQL initialization complete"
 
 	# Simply wait for postgres
 	EXIT_CODE=0
@@ -196,7 +247,7 @@ main() {
 		sleep infinity
 	fi
 
-	exit $EXIT_CODE
+	exit "$EXIT_CODE"
 }
 
 main
