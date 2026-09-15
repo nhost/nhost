@@ -1,11 +1,12 @@
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
+import { ContentPanel } from '@/components/layout/ContentPanel';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { ProjectViewWithState } from '@/features/orgs/layout/ProjectGuard';
 import { ProjectScope } from '@/features/orgs/layout/ProjectScope';
 import { FunctionsBrowserSidebar } from '@/features/orgs/projects/serverless-functions/components/FunctionsBrowserSidebar';
 import { ServerlessFunctionView } from '@/features/orgs/projects/serverless-functions/components/ServerlessFunctionView';
+import { FunctionsArea } from '@/features/orgs/projects/serverless-functions/layout';
 
 export default function FunctionDetailsPage() {
   const router = useRouter();
@@ -25,14 +26,16 @@ FunctionDetailsPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <AppLayout>
       <ProjectScope>
-        <ProjectViewWithState>
-          <div className="flex h-full">
-            <FunctionsBrowserSidebar />
-            <div className="box flex w-full flex-auto flex-col overflow-x-hidden">
-              {page}
+        <FunctionsArea>
+          <ContentPanel>
+            <div className="flex h-full">
+              <FunctionsBrowserSidebar />
+              <div className="box flex w-full flex-auto flex-col overflow-x-hidden">
+                {page}
+              </div>
             </div>
-          </div>
-        </ProjectViewWithState>
+          </ContentPanel>
+        </FunctionsArea>
       </ProjectScope>
     </AppLayout>
   );
