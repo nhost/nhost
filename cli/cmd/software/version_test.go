@@ -47,7 +47,7 @@ func TestServicesToCheckEngineReplacesAuthAndStorage(t *testing.T) {
 
 	got := softwareTypes(servicesToCheck(versionConfig(true)))
 
-	if !contains(got, softwareTypeEngine) {
+	if !contains(got, graphql.SoftwareTypeEnumEngine) {
 		t.Errorf("engine version is not checked: %v", got)
 	}
 
@@ -93,7 +93,7 @@ func TestServicesToCheckStandaloneIsUnchanged(t *testing.T) {
 		}
 	}
 
-	if contains(got, softwareTypeEngine) {
+	if contains(got, graphql.SoftwareTypeEnumEngine) {
 		t.Error("engine is checked without experimental.nhost")
 	}
 }
@@ -105,7 +105,7 @@ func TestServicesToCheckReportsEngineVersion(t *testing.T) {
 	t.Parallel()
 
 	for _, service := range servicesToCheck(versionConfig(true)) {
-		if service.software != softwareTypeEngine {
+		if service.software != graphql.SoftwareTypeEnumEngine {
 			continue
 		}
 
@@ -129,7 +129,7 @@ func TestServicesToCheckToleratesUnsetEngineVersion(t *testing.T) {
 
 	got := softwareTypes(servicesToCheck(cfg))
 
-	if contains(got, softwareTypeEngine) {
+	if contains(got, graphql.SoftwareTypeEnumEngine) {
 		t.Errorf("engine checked without a version: %v", got)
 	}
 
