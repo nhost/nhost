@@ -664,11 +664,6 @@ func getServices( //nolint: funlen,cyclop
 	minioVolumeName := "minio_" + sanitizeBranch(branch)
 	minio := minio(minioVolumeName)
 
-	storage, err := storage(cfg, subdomain, useTLS, httpPort, ports.Storage)
-	if err != nil {
-		return nil, err
-	}
-
 	pgVolumeName := "pgdata_" + sanitizeBranch(branch)
 	dataFolder := filepath.Join(dotNhostFolder, "data")
 
@@ -728,10 +723,24 @@ func getServices( //nolint: funlen,cyclop
 		"graphql":      graphql,
 		"minio":        minio,
 		"postgres":     postgres,
-		"storage":      storage,
 		"mailhog":      mailhog,
 		"traefik":      traefik,
 		"configserver": cs,
+	}
+
+	// The engine serves auth, storage and graphql from one container, so those
+	// services are replaced rather than added alongside it. Hasura keeps running
+	// either way: the engine's graphql service proxies to it.
+	if engineEnabled(cfg) {
+		services["engine"], err = engine(cfg, subdomain, useTLS, httpPort, nhostFolder, hostUser)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		services["storage"], err = storage(cfg, subdomain, useTLS, httpPort, ports.Storage)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if startFunctions {
@@ -768,15 +777,17 @@ func getServices( //nolint: funlen,cyclop
 		services["constellation"] = c
 	}
 
-	if len(cfg.GetHasura().GetJwtSecrets()) > 0 &&
-		IsJWTSecretCompatibleWithHasuraAuth(cfg.GetHasura().GetJwtSecrets()[0]) &&
-		cfg.GetHasura().GetAuthHook() == nil {
-		auth, err := auth(cfg, subdomain, httpPort, useTLS, nhostFolder, ports.Auth)
-		if err != nil {
-			return nil, err
-		}
+	if hasuraAuthUsable(cfg) {
+		// In engine mode auth is already bundled; only the standalone topology
+		// needs its own container.
+		if !engineEnabled(cfg) {
+			auth, err := auth(cfg, subdomain, httpPort, useTLS, nhostFolder, ports.Auth)
+			if err != nil {
+				return nil, err
+			}
 
-		services["auth"] = auth
+			services["auth"] = auth
+		}
 
 		if cfg.Ai != nil {
 			services["ai"] = ai(cfg)
