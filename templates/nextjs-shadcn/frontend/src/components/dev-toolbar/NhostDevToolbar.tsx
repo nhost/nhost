@@ -21,7 +21,7 @@ import {
 } from 'react';
 import { HasuraLogo } from './HasuraLogo';
 import { NhostLogo } from './NhostLogo';
-import { nearestEdge } from './snap';
+import { clamp, nearestEdge } from './snap';
 import { Trapezoid } from './Trapezoid';
 import {
   type Edge,
@@ -60,26 +60,40 @@ function restingCenter(edge: Edge, offset: number, vw: number, vh: number) {
   }
 }
 
-// Keep the tab fully on screen along its growth axis. When docked near a
-// corner this shifts the expanded menu inward so it never overflows.
-function clampToViewport(
+const VIEWPORT_MARGIN = 8;
+
+// The tab grows from the handle toward one far end: down on a vertical edge,
+// right on a horizontal one. These are the distances from the handle anchor to
+// the tab's near end (where the handle sits) and to its far end once expanded.
+const ANCHOR_NEAR = COLLAPSED / 2;
+const ANCHOR_FAR = EXPANDED - COLLAPSED / 2;
+
+// Clamp the handle anchor along the growth axis so both the near end and the
+// *expanded* far end clear the viewport by VIEWPORT_MARGIN. Reserving the
+// expanded length regardless of open state is what keeps the handle still:
+// there is always room to grow, so opening the menu never nudges it inward.
+function clampAnchor(
   edge: Edge,
   cx: number,
   cy: number,
-  size: number,
   vw: number,
   vh: number,
 ) {
-  const margin = 8;
-  const half = size / 2;
+  const min = VIEWPORT_MARGIN + ANCHOR_NEAR;
   if (isVertical(edge)) {
-    const min = half + margin;
-    const max = vh - half - margin;
-    return { cx, cy: max < min ? vh / 2 : Math.min(max, Math.max(min, cy)) };
+    const max = vh - VIEWPORT_MARGIN - ANCHOR_FAR;
+    return { cx, cy: max < min ? (min + max) / 2 : clamp(cy, min, max) };
   }
-  const min = half + margin;
-  const max = vw - half - margin;
-  return { cx: max < min ? vw / 2 : Math.min(max, Math.max(min, cx)), cy };
+  const max = vw - VIEWPORT_MARGIN - ANCHOR_FAR;
+  return { cx: max < min ? (min + max) / 2 : clamp(cx, min, max), cy };
+}
+
+// Offset from the handle anchor to the tab's centre for the current size. The
+// handle stays pinned to the anchor while the body extends past it, so the
+// centre we position by moves half the extra length toward the far end.
+function growthOffset(edge: Edge, size: number) {
+  const shift = (size - COLLAPSED) / 2;
+  return isVertical(edge) ? { dx: 0, dy: shift } : { dx: shift, dy: 0 };
 }
 
 // Position for the single shared tooltip, aligned with the hovered item at
@@ -232,20 +246,20 @@ function Toolbar() {
       viewport.w,
       viewport.h,
     );
+    const anchor = clampAnchor(
+      settings.edge,
+      rest.cx,
+      rest.cy,
+      viewport.w,
+      viewport.h,
+    );
     sizeTarget.current = open ? EXPANDED : COLLAPSED;
     if (!dragging) {
-      posTarget.current = clampToViewport(
-        settings.edge,
-        rest.cx,
-        rest.cy,
-        sizeTarget.current,
-        viewport.w,
-        viewport.h,
-      );
+      posTarget.current = anchor;
     }
     if (!inited.current) {
       inited.current = true;
-      cur.current = { cx: rest.cx, cy: rest.cy, size: COLLAPSED };
+      cur.current = { cx: anchor.cx, cy: anchor.cy, size: COLLAPSED };
       force();
       return;
     }
@@ -338,14 +352,15 @@ function Toolbar() {
   const vertical = isVertical(settings.edge);
   const urls = localServiceUrls();
   const { cx, cy, size } = cur.current;
+  const growth = growthOffset(settings.edge, size);
   const shellW = vertical ? NARROW : size;
   const shellH = vertical ? size : NARROW;
   const colors = palette(settings.theme);
 
   const rootStyle: CSSProperties = {
     position: 'fixed',
-    left: cx,
-    top: cy,
+    left: cx + growth.dx,
+    top: cy + growth.dy,
     translate: '-50% -50%',
     width: shellW,
     height: shellH,
