@@ -41,9 +41,16 @@
 
     # Node 24.21.0 already bundles npm 11.19.0. Reuse nixpkgs' standard
     # nodejs wrapper to combine the slim runtime with its npm output.
-    nodejs = prev.nodejs_24.override {
-      nodejs-slim = final.nhost.nodejs-slim;
-    };
+    # The attrs override exists solely to unwrap nixpkgs' `lib.warn` from `nodejs.src`.
+    nodejs =
+      (prev.nodejs_24.override {
+        nodejs-slim = final.nhost.nodejs-slim;
+      }).overrideAttrs
+        (oldAttrs: {
+          passthru = oldAttrs.passthru // {
+            inherit (final.nhost.nodejs-slim) src;
+          };
+        });
 
     vercel =
       (import ./vercel {
