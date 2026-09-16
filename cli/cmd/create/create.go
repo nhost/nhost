@@ -111,13 +111,15 @@ func action(ctx context.Context, cmd *cli.Command) error {
 	ce := clienv.FromCLI(cmd)
 	interactive := term.IsTerminal(int(os.Stdin.Fd())) && term.IsTerminal(int(os.Stdout.Fd()))
 
-	resolved, runInteractively, err := resolveChoices(cmd, interactive)
+	res, err := resolveChoices(cmd, interactive)
 	if err != nil {
 		return err
 	}
 
-	if runInteractively {
-		if resolved, err = runInteractive(ce, resolved); err != nil {
+	resolved := res.choices
+
+	if res.prompt {
+		if resolved, err = runInteractive(ce, resolved, res.answered); err != nil {
 			return err
 		}
 
@@ -147,10 +149,20 @@ func action(ctx context.Context, cmd *cli.Command) error {
 		return err
 	}
 
-	installFrontendDependencies(ctx, ce, resolved, target)
+	// installNow ends up meaning what the rest of the command needs it to mean:
+	// the frontend has its dependencies. An install that failed leaves the
+	// project in the same shape --no-install would have, so there is nothing to
+	// offer to start and the next steps have to include the install again.
+	resolved.installNow = installFrontendDependencies(ctx, ce, resolved, target)
+
+	if resolved.startNow, err = confirmStart(
+		ce, resolved, res.prompt && !res.answered.startNow,
+	); err != nil {
+		return err
+	}
 
 	if resolved.startNow {
-		return startServers(ctx, ce, resolved, target)
+		return startServers(ctx, ce, cmd.Root().Version, resolved, target)
 	}
 
 	printNextSteps(ce, resolved)
@@ -158,14 +170,33 @@ func action(ctx context.Context, cmd *cli.Command) error {
 	return nil
 }
 
+// confirmStart settles whether to start the servers. The question comes after
+// the install rather than with the other prompts so that it is asked about a
+// project that is ready to run, and --start answers it up front for a run that
+// should not stop to ask.
+func confirmStart(ce *clienv.CliEnv, resolved choices, ask bool) (bool, error) {
+	if !resolved.installNow {
+		return false, nil
+	}
+
+	if !ask {
+		return resolved.startNow, nil
+	}
+
+	return runConfirm(ce, "Start the backend and the frontend now?", true)
+}
+
+// installFrontendDependencies reports whether the frontend ended up with its
+// dependencies. A failed install is a warning rather than a failed create: the
+// project is on disk either way.
 func installFrontendDependencies(
 	ctx context.Context,
 	ce *clienv.CliEnv,
 	resolved choices,
 	target string,
-) {
+) bool {
 	if !resolved.installNow {
-		return
+		return false
 	}
 
 	ce.Infoln("Installing frontend dependencies with %s...", resolved.packageManager)
@@ -177,7 +208,11 @@ func installFrontendDependencies(
 			"Could not install dependencies (%v). Run `%s install` in %s/frontend yourself.",
 			err, resolved.packageManager, resolved.name,
 		)
+
+		return false
 	}
+
+	return true
 }
 
 func stageProject(
@@ -432,12 +467,21 @@ func packageManagerScript(pm, script string) string {
 }
 
 func printNextSteps(ce *clienv.CliEnv, resolved choices) {
-	devCommand := packageManagerScript(resolved.packageManager, "dev")
-
 	ce.Println("")
 	ce.Infoln("Created %s", resolved.name)
 	ce.Println("")
 	ce.Println("Next steps:")
+	printStartCommands(ce, resolved)
+	printProjectNotes(ce, resolved)
+}
+
+// printStartCommands prints the two commands that bring the project up, in the
+// order it needs them. Every path that stops short of running them prints this
+// same pair, so what the user is told to run cannot drift from what `--start`
+// would have done.
+func printStartCommands(ce *clienv.CliEnv, resolved choices) {
+	devCommand := packageManagerScript(resolved.packageManager, "dev")
+
 	ce.Println("  1. Start the backend:")
 	ce.Println("       cd %s/backend && nhost up", resolved.name)
 	ce.Println("  2. In another terminal, start the frontend:")
@@ -450,8 +494,6 @@ func printNextSteps(ce *clienv.CliEnv, resolved choices) {
 			resolved.name, resolved.packageManager, devCommand,
 		)
 	}
-
-	printProjectNotes(ce, resolved)
 }
 
 // printProjectNotes covers what is true however the project was started, so it
@@ -459,15 +501,10 @@ func printNextSteps(ce *clienv.CliEnv, resolved choices) {
 // dev server.
 func printProjectNotes(ce *clienv.CliEnv, resolved choices) {
 	ce.Println("")
+	ce.Println("App: http://localhost:3000")
 	ce.Println(
-		"After you change the schema, run `%s` in %s/frontend.",
+		"Codegen after schema changes: %s in %s/frontend",
 		packageManagerScript(resolved.packageManager, "codegen"),
 		resolved.name,
-	)
-	ce.Println(
-		"The app runs on http://localhost:3000 and sign-in emails appear in the local mailbox.",
-	)
-	ce.Println(
-		"backend/nhost/project-name keeps this project's containers and database volume separate from other projects.",
 	)
 }

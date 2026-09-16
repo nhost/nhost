@@ -10,16 +10,22 @@ import (
 	"testing"
 )
 
-// stubStart restores the process seams after a test mutates them.
+// stubStart restores the process seams after a test mutates them, and puts a
+// preflight in place that never touches docker.
 func stubStart(t *testing.T) {
 	t.Helper()
 
-	origBackend, origFrontend := runBackend, runFrontend
+	origBackend, origFrontend, origPreflight := runBackend, runFrontend, runPreflight
 
 	t.Cleanup(func() {
 		runBackend = origBackend
 		runFrontend = origFrontend
+		runPreflight = origPreflight
 	})
+
+	runPreflight = func(_ context.Context, _ string) []blocker {
+		return nil
+	}
 }
 
 //nolint:paralleltest // mutates package-level process seams
@@ -51,7 +57,11 @@ func TestStartServersRunsBackendThenFrontend(t *testing.T) {
 	}
 
 	if err := startServers(
-		context.Background(), newTestEnv(&output), resolved, filepath.Join("/tmp", "demo"),
+		context.Background(),
+		newTestEnv(&output),
+		devVersion,
+		resolved,
+		filepath.Join("/tmp", "demo"),
 	); err != nil {
 		t.Fatalf("startServers: %v", err)
 	}
@@ -93,7 +103,7 @@ func TestStartServersKeepsTheProjectWhenTheBackendFails(t *testing.T) {
 
 	var output bytes.Buffer
 
-	err := startServers(context.Background(), newTestEnv(&output), choices{
+	err := startServers(context.Background(), newTestEnv(&output), devVersion, choices{
 		template:       defaultTemplate,
 		name:           "demo",
 		packageManager: defaultPackageManager,
@@ -110,6 +120,57 @@ func TestStartServersKeepsTheProjectWhenTheBackendFails(t *testing.T) {
 
 	if !strings.Contains(output.String(), "cd demo/backend && nhost up") {
 		t.Errorf("output missing the retry command:\n%s", output.String())
+	}
+}
+
+// A machine that cannot run the backend must not be handed to docker compose
+// only to fail there: the create explains itself and prints both commands.
+//
+//nolint:paralleltest // mutates package-level process seams
+func TestStartServersStopsOnAPreflightBlocker(t *testing.T) {
+	stubStart(t)
+
+	runPreflight = func(_ context.Context, _ string) []blocker {
+		return []blocker{{
+			problem: "Port 443 is in use, and the backend's HTTPS gateway needs it.",
+			fix:     "Stop what is listening on it.",
+		}}
+	}
+
+	runBackend = func(_ context.Context, _ string) error {
+		t.Error("backend was started despite a blocker")
+
+		return nil
+	}
+
+	runFrontend = func(_ context.Context, _, _ string) error {
+		t.Error("frontend was started despite a blocker")
+
+		return nil
+	}
+
+	var output bytes.Buffer
+
+	err := startServers(context.Background(), newTestEnv(&output), devVersion, choices{
+		template:       defaultTemplate,
+		name:           "demo",
+		packageManager: defaultPackageManager,
+		installNow:     true,
+		startNow:       true,
+	}, filepath.Join("/tmp", "demo"))
+	if err != nil {
+		t.Fatalf("startServers() error = %v, want nil", err)
+	}
+
+	for _, want := range []string{
+		"Port 443 is in use",
+		"Stop what is listening on it.",
+		"cd demo/backend && nhost up",
+		"cd demo/frontend && pnpm dev",
+	} {
+		if !strings.Contains(output.String(), want) {
+			t.Errorf("output missing %q:\n%s", want, output.String())
+		}
 	}
 }
 

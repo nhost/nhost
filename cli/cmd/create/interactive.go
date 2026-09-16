@@ -16,10 +16,27 @@ type choices struct {
 	startNow       bool
 }
 
-// resolveChoices seeds the choices from flags and reports whether the
-// interactive flow should run. Without a terminal, or with --yes, every value
-// has to come from flags and arguments.
-func resolveChoices(cmd *cli.Command, interactive bool) (choices, bool, error) {
+// answered records which choices the command line already made. A value passed
+// as a flag or an argument is an answer, so the interactive flow asks about
+// what is left rather than asking the same question twice.
+type answered struct {
+	template       bool
+	name           bool
+	packageManager bool
+	startNow       bool
+}
+
+// resolution is where the command line leaves things before any prompt runs.
+type resolution struct {
+	choices  choices
+	answered answered
+	prompt   bool
+}
+
+// resolveChoices seeds the choices from flags and reports what is left to ask.
+// Without a terminal, or with --yes, every value has to come from flags and
+// arguments.
+func resolveChoices(cmd *cli.Command, interactive bool) (resolution, error) {
 	resolved := choices{
 		template:       cmd.String(flagTemplate),
 		name:           cmd.Args().First(),
@@ -28,57 +45,61 @@ func resolveChoices(cmd *cli.Command, interactive bool) (choices, bool, error) {
 		startNow:       cmd.Bool(flagStart),
 	}
 
+	given := answered{
+		template:       cmd.IsSet(flagTemplate),
+		name:           resolved.name != "",
+		packageManager: cmd.IsSet(flagPackageManager),
+		startNow:       cmd.IsSet(flagStart),
+	}
+
 	if interactive && !cmd.Bool(flagYes) {
-		return resolved, true, nil
+		return resolution{choices: resolved, answered: given, prompt: true}, nil
 	}
 
-	resolved, err := validateChoices(resolved)
+	validated, err := validateChoices(resolved)
 	if err != nil {
-		return choices{}, false, err
+		return resolution{}, err
 	}
 
-	return resolved, false, nil
+	return resolution{choices: validated, answered: given, prompt: false}, nil
 }
 
-func runInteractive(ce *clienv.CliEnv, defaults choices) (choices, error) {
+// runInteractive asks for the choices the command line did not already make.
+// Whether to start the servers is not among them: that question belongs after
+// the install, so action asks it once the project can actually run.
+func runInteractive(
+	ce *clienv.CliEnv,
+	defaults choices,
+	given answered,
+) (choices, error) {
 	resolved := defaults
 
-	template, err := pickTemplate(ce, defaults.template)
-	if err != nil {
-		return choices{}, err
+	if !given.template {
+		template, err := pickTemplate(ce, defaults.template)
+		if err != nil {
+			return choices{}, err
+		}
+
+		resolved.template = template
 	}
 
-	resolved.template = template
+	if !given.name {
+		name, err := promptProjectName(ce, defaults.name)
+		if err != nil {
+			return choices{}, err
+		}
 
-	name, err := promptProjectName(ce, defaults.name)
-	if err != nil {
-		return choices{}, err
+		resolved.name = name
 	}
 
-	resolved.name = name
+	if !given.packageManager {
+		packageManager, err := pickPackageManager(ce, defaults.packageManager)
+		if err != nil {
+			return choices{}, err
+		}
 
-	packageManager, err := pickPackageManager(ce, defaults.packageManager)
-	if err != nil {
-		return choices{}, err
+		resolved.packageManager = packageManager
 	}
-
-	resolved.packageManager = packageManager
-
-	// Nothing to start without the dependencies, so --no-install skips the
-	// question rather than offering an answer validateChoices would reject.
-	if !resolved.installNow {
-		return resolved, nil
-	}
-
-	// Defaulted to yes rather than seeded from --start, which exists for
-	// non-interactive runs and has to stay off there. Starting is what you were
-	// about to do next anyway, and this prompt is how you say otherwise.
-	startNow, err := runConfirm(ce, "Start the backend and the frontend now?", true)
-	if err != nil {
-		return choices{}, err
-	}
-
-	resolved.startNow = startNow
 
 	return resolved, nil
 }

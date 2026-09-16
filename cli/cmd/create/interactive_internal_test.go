@@ -20,6 +20,7 @@ func TestResolveChoices(t *testing.T) {
 		args            []string
 		interactive     bool
 		want            choices
+		wantAnswered    answered
 		wantInteractive bool
 		wantErr         error
 	}{
@@ -28,6 +29,7 @@ func TestResolveChoices(t *testing.T) {
 			args:            nil,
 			interactive:     false,
 			want:            choices{},
+			wantAnswered:    answered{},
 			wantInteractive: false,
 			wantErr:         errNameRequired,
 		},
@@ -40,6 +42,12 @@ func TestResolveChoices(t *testing.T) {
 				name:           "demo",
 				packageManager: defaultPackageManager,
 				installNow:     true,
+				startNow:       false,
+			},
+			wantAnswered: answered{
+				template:       false,
+				name:           true,
+				packageManager: false,
 				startNow:       false,
 			},
 			wantInteractive: false,
@@ -61,6 +69,12 @@ func TestResolveChoices(t *testing.T) {
 				installNow:     false,
 				startNow:       false,
 			},
+			wantAnswered: answered{
+				template:       true,
+				name:           true,
+				packageManager: true,
+				startNow:       false,
+			},
 			wantInteractive: true,
 			wantErr:         nil,
 		},
@@ -75,6 +89,12 @@ func TestResolveChoices(t *testing.T) {
 				installNow:     true,
 				startNow:       true,
 			},
+			wantAnswered: answered{
+				template:       false,
+				name:           true,
+				packageManager: false,
+				startNow:       true,
+			},
 			wantInteractive: false,
 			wantErr:         nil,
 		},
@@ -83,8 +103,31 @@ func TestResolveChoices(t *testing.T) {
 			args:            []string{"--yes", "--start", "--no-install", "demo"},
 			interactive:     true,
 			want:            choices{},
+			wantAnswered:    answered{},
 			wantInteractive: false,
 			wantErr:         errStartNeedsInstall,
+		},
+		// --start is an answer to the only question left after the install, so
+		// an interactive run that passes it has nothing to ask.
+		{
+			name:        "every answer on the command line leaves nothing to ask",
+			args:        []string{"--package-manager", "npm", "--start", "demo"},
+			interactive: true,
+			want: choices{
+				template:       defaultTemplate,
+				name:           "demo",
+				packageManager: "npm",
+				installNow:     true,
+				startNow:       true,
+			},
+			wantAnswered: answered{
+				template:       false,
+				name:           true,
+				packageManager: true,
+				startNow:       true,
+			},
+			wantInteractive: true,
+			wantErr:         nil,
 		},
 	}
 
@@ -92,19 +135,26 @@ func TestResolveChoices(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got, interactive, err := resolveChoicesForTest(t, tt.args, tt.interactive)
+			got, err := resolveChoicesForTest(t, tt.args, tt.interactive)
 			if !errors.Is(err, tt.wantErr) {
 				t.Fatalf("resolveChoices() error = %v, want %v", err, tt.wantErr)
 			}
 
-			if got != tt.want {
-				t.Errorf("resolveChoices() choices = %#v, want %#v", got, tt.want)
+			if got.choices != tt.want {
+				t.Errorf("resolveChoices() choices = %#v, want %#v", got.choices, tt.want)
 			}
 
-			if interactive != tt.wantInteractive {
+			if got.answered != tt.wantAnswered {
 				t.Errorf(
-					"resolveChoices() interactive = %v, want %v",
-					interactive, tt.wantInteractive,
+					"resolveChoices() answered = %#v, want %#v",
+					got.answered, tt.wantAnswered,
+				)
+			}
+
+			if got.prompt != tt.wantInteractive {
+				t.Errorf(
+					"resolveChoices() prompt = %v, want %v",
+					got.prompt, tt.wantInteractive,
 				)
 			}
 		})
@@ -114,7 +164,7 @@ func TestResolveChoices(t *testing.T) {
 func TestResolveChoicesRejectsUnknownTemplate(t *testing.T) {
 	t.Parallel()
 
-	_, _, err := resolveChoicesForTest(t, []string{"--template", "nope", "demo"}, false)
+	_, err := resolveChoicesForTest(t, []string{"--template", "nope", "demo"}, false)
 	if err == nil || !strings.Contains(err.Error(), "unknown template") {
 		t.Fatalf("resolveChoices() error = %v, want unknown template", err)
 	}
@@ -158,11 +208,10 @@ func TestRunInteractive(t *testing.T) {
 		return "demo", nil
 	}
 
-	// Installing is no longer a question, so starting is the only confirm left.
+	// Whether to start is asked after the install, so runInteractive has no
+	// confirm left to run.
 	runConfirm = func(_ *clienv.CliEnv, message string, _ bool) (bool, error) {
-		if message != "Start the backend and the frontend now?" {
-			t.Fatalf("unexpected confirm %q", message)
-		}
+		t.Fatalf("unexpected confirm %q", message)
 
 		return false, nil
 	}
@@ -175,7 +224,7 @@ func TestRunInteractive(t *testing.T) {
 		packageManager: defaultPackageManager,
 		installNow:     true,
 		startNow:       false,
-	})
+	}, answered{})
 	if err != nil {
 		t.Fatalf("runInteractive: %v", err)
 	}
@@ -192,84 +241,128 @@ func TestRunInteractive(t *testing.T) {
 	}
 }
 
-// Pressing enter through the prompts has to land on a project that is installed
-// and running, which is the reason the install question was dropped.
+// An answer that came in as a flag or an argument is not asked for again.
 //
 //nolint:paralleltest // mutates package-level prompt seams
-func TestRunInteractiveDefaultsToInstallAndStart(t *testing.T) {
+func TestRunInteractiveSkipsWhatTheCommandLineAnswered(t *testing.T) {
 	stubPrompts(t)
 
-	runPicker = func(_ *clienv.CliEnv, _ string, _ []pickerItem, idx int) (int, error) {
-		return idx, nil
+	runPicker = func(_ *clienv.CliEnv, title string, _ []pickerItem, _ int) (int, error) {
+		t.Errorf("unexpected picker %q", title)
+
+		return -1, nil
 	}
 
-	runPrompt = func(_ *clienv.CliEnv, _, _ string) (string, error) {
-		return "demo", nil
-	}
+	runPrompt = func(_ *clienv.CliEnv, label, _ string) (string, error) {
+		t.Errorf("unexpected prompt %q", label)
 
-	// Every confirm answered with enter, which is what the default stands for.
-	runConfirm = func(_ *clienv.CliEnv, _ string, defaultYes bool) (bool, error) {
-		return defaultYes, nil
-	}
-
-	var output bytes.Buffer
-
-	got, err := runInteractive(newTestEnv(&output), choices{
-		template:       defaultTemplate,
-		name:           "",
-		packageManager: defaultPackageManager,
-		installNow:     true,
-		startNow:       false,
-	})
-	if err != nil {
-		t.Fatalf("runInteractive: %v", err)
-	}
-
-	if !got.installNow {
-		t.Error("installNow = false, want true")
-	}
-
-	if !got.startNow {
-		t.Error("startNow = false, want true")
-	}
-}
-
-// Answering the start prompt is only possible when there is something to start,
-// so --no-install must not ask a question validateChoices would then reject.
-//
-//nolint:paralleltest // mutates package-level prompt seams
-func TestRunInteractiveSkipsTheStartPromptWithoutDependencies(t *testing.T) {
-	stubPrompts(t)
-
-	runPicker = func(_ *clienv.CliEnv, _ string, _ []pickerItem, idx int) (int, error) {
-		return idx, nil
-	}
-
-	runPrompt = func(_ *clienv.CliEnv, _, _ string) (string, error) {
-		return "demo", nil
+		return "", nil
 	}
 
 	runConfirm = func(_ *clienv.CliEnv, message string, _ bool) (bool, error) {
-		t.Fatalf("unexpected confirm %q", message)
+		t.Errorf("unexpected confirm %q", message)
 
 		return false, nil
 	}
 
 	var output bytes.Buffer
 
-	got, err := runInteractive(newTestEnv(&output), choices{
+	defaults := choices{
 		template:       defaultTemplate,
-		name:           "",
-		packageManager: defaultPackageManager,
-		installNow:     false,
+		name:           "demo",
+		packageManager: "bun",
+		installNow:     true,
 		startNow:       false,
+	}
+
+	got, err := runInteractive(newTestEnv(&output), defaults, answered{
+		template:       true,
+		name:           true,
+		packageManager: true,
+		startNow:       true,
 	})
 	if err != nil {
 		t.Fatalf("runInteractive: %v", err)
 	}
 
-	if got.startNow {
-		t.Error("startNow = true, want false")
+	if got != defaults {
+		t.Errorf("runInteractive() = %#v, want %#v", got, defaults)
+	}
+}
+
+//nolint:paralleltest // mutates package-level prompt seams
+func TestConfirmStart(t *testing.T) {
+	tests := []struct {
+		name       string
+		resolved   choices
+		ask        bool
+		confirm    bool
+		wantAsked  bool
+		wantResult bool
+	}{
+		{
+			name:       "enter starts the servers",
+			resolved:   choices{installNow: true},
+			ask:        true,
+			confirm:    true,
+			wantAsked:  true,
+			wantResult: true,
+		},
+		{
+			name:       "declining leaves the servers alone",
+			resolved:   choices{installNow: true},
+			ask:        true,
+			confirm:    false,
+			wantAsked:  true,
+			wantResult: false,
+		},
+		{
+			name:       "--start answers the question up front",
+			resolved:   choices{installNow: true, startNow: true},
+			ask:        false,
+			confirm:    false,
+			wantAsked:  false,
+			wantResult: true,
+		},
+		// Nothing to start without the dependencies, so the question is not
+		// worth asking: a failed install lands here too.
+		{
+			name:       "no dependencies, no question",
+			resolved:   choices{installNow: false},
+			ask:        true,
+			confirm:    true,
+			wantAsked:  false,
+			wantResult: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			stubPrompts(t)
+
+			asked := false
+
+			runConfirm = func(_ *clienv.CliEnv, _ string, _ bool) (bool, error) {
+				asked = true
+
+				return tt.confirm, nil
+			}
+
+			var output bytes.Buffer
+
+			got, err := confirmStart(newTestEnv(&output), tt.resolved, tt.ask)
+			if err != nil {
+				t.Fatalf("confirmStart: %v", err)
+			}
+
+			if got != tt.wantResult {
+				t.Errorf("confirmStart() = %v, want %v", got, tt.wantResult)
+			}
+
+			if asked != tt.wantAsked {
+				t.Errorf("asked = %v, want %v", asked, tt.wantAsked)
+			}
+		})
 	}
 }
 
@@ -302,7 +395,8 @@ func TestRunInteractiveRepromptsOnInvalidName(t *testing.T) {
 		name:           "",
 		packageManager: defaultPackageManager,
 		installNow:     true,
-	})
+		startNow:       false,
+	}, answered{})
 	if err != nil {
 		t.Fatalf("runInteractive: %v", err)
 	}
@@ -337,7 +431,8 @@ func TestRunInteractivePropagatesPickerError(t *testing.T) {
 		name:           "",
 		packageManager: defaultPackageManager,
 		installNow:     true,
-	}); !errors.Is(err, errPickerFailed) {
+		startNow:       false,
+	}, answered{}); !errors.Is(err, errPickerFailed) {
 		t.Fatalf("runInteractive() error = %v, want errPickerFailed", err)
 	}
 }
@@ -412,13 +507,11 @@ func TestRunInteractivePreselectsFlagChoices(t *testing.T) {
 		startNow:       false,
 	}
 
-	got, err := runInteractive(newTestEnv(&output), defaults)
+	got, err := runInteractive(newTestEnv(&output), defaults, answered{})
 	if err != nil {
 		t.Fatalf("runInteractive: %v", err)
 	}
 
-	// --no-install also means the start prompt never runs, so every value here
-	// is the one the flags provided.
 	if got != defaults {
 		t.Errorf("runInteractive() = %#v, want %#v", got, defaults)
 	}
@@ -443,17 +536,17 @@ func TestPrintNextStepsUsesManagerScriptSyntax(t *testing.T) {
 		{
 			packageManager: "pnpm",
 			wantDev:        "cd demo/frontend && pnpm install && pnpm dev",
-			wantCodegen:    "After you change the schema, run `pnpm codegen`",
+			wantCodegen:    "Codegen after schema changes: pnpm codegen",
 		},
 		{
 			packageManager: "npm",
 			wantDev:        "cd demo/frontend && npm install && npm run dev",
-			wantCodegen:    "After you change the schema, run `npm run codegen`",
+			wantCodegen:    "Codegen after schema changes: npm run codegen",
 		},
 		{
 			packageManager: "bun",
 			wantDev:        "cd demo/frontend && bun install && bun run dev",
-			wantCodegen:    "After you change the schema, run `bun run codegen`",
+			wantCodegen:    "Codegen after schema changes: bun run codegen",
 		},
 	}
 
@@ -486,28 +579,25 @@ func resolveChoicesForTest(
 	t *testing.T,
 	args []string,
 	interactive bool,
-) (choices, bool, error) {
+) (resolution, error) {
 	t.Helper()
 
 	cmd := Command()
 
-	var (
-		got              choices
-		runInteractively bool
-	)
+	var got resolution
 
 	cmd.Action = func(_ context.Context, cmd *cli.Command) error {
 		var err error
 
-		got, runInteractively, err = resolveChoices(cmd, interactive)
+		got, err = resolveChoices(cmd, interactive)
 
 		return err
 	}
 
 	err := cmd.Run(context.Background(), append([]string{"create"}, args...))
 	if err != nil {
-		return got, runInteractively, fmt.Errorf("run create command: %w", err)
+		return got, fmt.Errorf("run create command: %w", err)
 	}
 
-	return got, runInteractively, nil
+	return got, nil
 }
