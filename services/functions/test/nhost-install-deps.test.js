@@ -17,7 +17,7 @@ const SCRIPT = join(__dirname, '..', 'nhost-install-deps.sh');
 // pinned. On an intentional edit: update this hash AND copy the file to the
 // other repo so the two stay in sync.
 const WANT_CHECKSUM =
-  '0e88d648de1efbd1e91f57965a74b39b31a5c9f7112d2c6ea3d61c3bcdca11bb';
+  'fc3fe6f2e1362b73af293ed2eb8e0d2b945d5fd68137f38bc7e373b7676a78c0';
 
 describe('shared install library (parity with nhost/be services/cd)', () => {
   test('checksum is in sync with nhost/be', () => {
