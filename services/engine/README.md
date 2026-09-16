@@ -179,10 +179,12 @@ So anything keying off a service's reported version — dashboards, support
 triage, client compatibility checks — sees engine versions once a deployment
 moves to the engine.
 
-`TestBundledServicesReportEngineVersion` pins this wiring per service, because
-every way it breaks is silent: a mistyped linker symbol still builds, and a
-service reintroducing its own package-level version var would compile and
-report an empty string.
+`TestBundledServicesReportEngineVersion` pins the engine side of this wiring:
+`buildService` hands the engine's build version to each service wrapper command,
+where `cmd.Root().Version` resolves to it. Service-level command tests separately
+pin the hop from that root-command version into each controller and version
+endpoint. This coverage matters because a mistyped linker symbol is silently
+ignored and still produces a binary with an empty version.
 
 ## Configuration
 
