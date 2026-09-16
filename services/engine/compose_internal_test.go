@@ -342,6 +342,78 @@ func TestEngineDefaultsAuthToV1OnRealMux(t *testing.T) {
 	}
 }
 
+func TestEngineDefaultsGraphQLPlaygroundEndpointOnRealMux(t *testing.T) {
+	const endpointEnv = "CONSTELLATION_PLAYGROUND_GRAPHQL_ENDPOINT"
+
+	// Isolate the engine-owned endpoint from a developer's ambient
+	// Constellation configuration while preserving any prior value for cleanup.
+	t.Setenv(endpointEnv, "")
+
+	if err := os.Unsetenv(endpointEnv); err != nil {
+		t.Fatalf("unsetting %s: %v", endpointEnv, err)
+	}
+
+	def := serviceRegistry()["graphql"]
+
+	var effectiveEndpoint string
+
+	def.newService = func(
+		_ context.Context, cmd *cli.Command, _ *slog.Logger,
+	) (*serveutil.Service, error) {
+		effectiveEndpoint = cmd.String("playground-graphql-endpoint")
+
+		serviceMux := http.NewServeMux()
+		if cmd.Bool("enable-playground") {
+			serviceMux.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
+				_, _ = w.Write([]byte(effectiveEndpoint))
+			})
+		}
+
+		return &serveutil.Service{Handler: serviceMux}, nil
+	}
+
+	prefixed := servicePrefixedFlags(
+		"graphql", def.command().Flags, def.skip, def.hidden,
+	)
+	runParsed(t, prefixed, []string{"--graphql-enable-playground"}, func(cmd *cli.Command) {
+		svc, err := buildService(
+			context.Background(), def, "graphql", cmd, "test",
+			slog.New(slog.DiscardHandler), serveConfig{
+				adminSecret: "test-admin-secret",
+				jwtSecret:   "test-jwt-secret",
+			},
+		)
+		if err != nil {
+			t.Fatalf("buildService: %v", err)
+		}
+
+		mux := mustNewMux(
+			t, []mounted{{name: "graphql", prefix: def.prefix, svc: svc}}, nil, nil,
+		)
+		recorder := httptest.NewRecorder()
+		request := httptest.NewRequest(http.MethodGet, "/graphql/", nil)
+		mux.ServeHTTP(recorder, request)
+
+		if recorder.Code != http.StatusOK {
+			t.Fatalf("GET /graphql/ status = %d, want %d", recorder.Code, http.StatusOK)
+		}
+
+		if got := recorder.Body.String(); got != defaultGraphQLPlaygroundEndpoint {
+			t.Fatalf(
+				"playground endpoint = %q, want %q",
+				got, defaultGraphQLPlaygroundEndpoint,
+			)
+		}
+	})
+
+	if effectiveEndpoint != defaultGraphQLPlaygroundEndpoint {
+		t.Fatalf(
+			"effective playground endpoint = %q, want %q",
+			effectiveEndpoint, defaultGraphQLPlaygroundEndpoint,
+		)
+	}
+}
+
 func TestNormalizeRequestHost(t *testing.T) {
 	t.Parallel()
 
@@ -890,6 +962,7 @@ func graphqlLikeDef(t *testing.T, gotAdmin *string) serviceDef {
 					&cli.StringFlag{Name: "jwt-secret", Required: true},
 					&cli.StringFlag{Name: "metadata-database-url"},
 					&cli.StringSliceFlag{Name: "cors-allowed-origins"},
+					&cli.StringFlag{Name: "playground-graphql-endpoint"},
 				},
 			}
 		},
@@ -906,6 +979,7 @@ func graphqlLikeDef(t *testing.T, gotAdmin *string) serviceDef {
 		},
 		skip: newSet(
 			"admin-secret", "jwt-secret", "metadata-database-url", "cors-allowed-origins",
+			"playground-graphql-endpoint",
 		),
 		hidden: newSet(),
 	}
@@ -919,11 +993,16 @@ func lifecycleDef(
 	return serviceDef{
 		prefix: "/" + name,
 		command: func() *cli.Command {
-			if name == "auth" {
+			switch name {
+			case "auth":
 				return &cli.Command{Flags: []cli.Flag{&cli.StringFlag{Name: "api-prefix"}}}
+			case "graphql":
+				return &cli.Command{Flags: []cli.Flag{
+					&cli.StringFlag{Name: "playground-graphql-endpoint"},
+				}}
+			default:
+				return &cli.Command{}
 			}
-
-			return &cli.Command{}
 		},
 		newService: func(
 			_ context.Context, _ *cli.Command, _ *slog.Logger,
