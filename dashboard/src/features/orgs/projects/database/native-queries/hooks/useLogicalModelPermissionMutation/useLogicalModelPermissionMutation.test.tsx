@@ -48,7 +48,6 @@ let metadataBodies: MetadataRequest[] = [];
 let migrationBodies: unknown[] = [];
 let requestOrder: string[] = [];
 let unexpectedRequests: string[] = [];
-let exportMetadataRequests = 0;
 let nextResourceVersion: number | undefined = 244;
 let metadataStatus = 200;
 let migrationStatus = 200;
@@ -63,7 +62,6 @@ const server = setupServer(
 
     if (body.type === 'export_metadata') {
       requestOrder.push('resource-version');
-      exportMetadataRequests += 1;
       return exportMetadataStatus === 200
         ? HttpResponse.json({
             resource_version: nextResourceVersion,
@@ -107,6 +105,7 @@ function wrapper({ children }: PropsWithChildren) {
 
 const original = { columns: ['id'], filter: {} };
 const SOURCE = 'default';
+const RESOURCE_VERSION = 244;
 const dropStep = {
   type: 'pg_drop_logical_model_select_permission',
   args: { source: SOURCE, name: args.name, role: args.role },
@@ -123,7 +122,7 @@ const cases = [
   {
     source: SOURCE,
     type: 'add' as const,
-    variables: { source: SOURCE, args },
+    variables: { source: SOURCE, resourceVersion: RESOURCE_VERSION, args },
     expectedArgs: [createStep],
     expectedName: `create_logical_model_select_permission_${args.name}_${args.role}`,
     expectedDown: [dropStep],
@@ -131,7 +130,12 @@ const cases = [
   {
     source: SOURCE,
     type: 'edit' as const,
-    variables: { source: SOURCE, args, original },
+    variables: {
+      source: SOURCE,
+      resourceVersion: RESOURCE_VERSION,
+      args,
+      original,
+    },
     expectedArgs: [dropStep, createStep],
     expectedName: `update_logical_model_select_permission_${args.name}_${args.role}`,
     expectedDown: [dropStep, restoreStep],
@@ -139,27 +143,18 @@ const cases = [
   {
     source: SOURCE,
     type: 'delete' as const,
-    variables: { source: SOURCE, name: args.name, role: args.role, original },
+    variables: {
+      source: SOURCE,
+      resourceVersion: RESOURCE_VERSION,
+      name: args.name,
+      role: args.role,
+      original,
+    },
     expectedArgs: [dropStep],
     expectedName: `drop_logical_model_select_permission_${args.name}_${args.role}`,
     expectedDown: [restoreStep],
   },
 ];
-
-async function waitForResourceVersion() {
-  await waitFor(() =>
-    expect(
-      queryClient.getQueryState([EXPORT_METADATA_QUERY_KEY, project.subdomain]),
-    ).toMatchObject({ status: 'success', fetchStatus: 'idle' }),
-  );
-}
-
-async function waitForInitialResourceVersion() {
-  await waitForResourceVersion();
-  metadataBodies = [];
-  requestOrder = [];
-  exportMetadataRequests = 0;
-}
 
 const metadataQueryKey = [EXPORT_METADATA_QUERY_KEY, project.subdomain];
 
@@ -178,7 +173,6 @@ describe('useLogicalModelPermissionMutation', () => {
     migrationBodies = [];
     requestOrder = [];
     unexpectedRequests = [];
-    exportMetadataRequests = 0;
     nextResourceVersion = 244;
     metadataStatus = 200;
     migrationStatus = 200;
@@ -215,7 +209,6 @@ describe('useLogicalModelPermissionMutation', () => {
           }),
         { wrapper },
       );
-      await waitForInitialResourceVersion();
       const completion = Promise.withResolvers<void>();
       migrationFinished = completion.promise;
       const mutation = result.current.mutateAsync(variables as never);
@@ -224,10 +217,8 @@ describe('useLogicalModelPermissionMutation', () => {
         await waitFor(() => expect(migrationBodies).toHaveLength(1));
         expect(onSuccess).not.toHaveBeenCalled();
         expect(invalidate).not.toHaveBeenCalled();
-        expect(requestOrder).toEqual(['resource-version', 'migration']);
-        expect(metadataBodies).toEqual([
-          { type: 'export_metadata', version: 2, args: {} },
-        ]);
+        expect(requestOrder).toEqual(['migration']);
+        expect(metadataBodies).toEqual([]);
         expect(migrationBodies).toEqual([
           {
             name: expectedName,
@@ -245,47 +236,7 @@ describe('useLogicalModelPermissionMutation', () => {
       expect(invalidate).toHaveBeenCalledExactlyOnceWith({
         queryKey: metadataQueryKey,
       });
-      await waitForResourceVersion();
-      expect(requestOrder).toEqual([
-        'resource-version',
-        'migration',
-        'resource-version',
-      ]);
-    },
-  );
-
-  it.each([false, true])(
-    'fetches a fresh snapshot for consecutive mutations (platform: %s)',
-    async (isPlatform) => {
-      mocks.useIsPlatform.mockReturnValue(isPlatform);
-      const { result } = renderHook(
-        () => useLogicalModelPermissionMutation({ type: 'add' }),
-        { wrapper },
-      );
-
-      await waitForInitialResourceVersion();
-      await result.current.mutateAsync({ source: 'default', args });
-      await waitForResourceVersion();
-      nextResourceVersion = 245;
-      await result.current.mutateAsync({ source: 'default', args });
-      await waitForResourceVersion();
-
-      const transport = isPlatform ? 'metadata' : 'migration';
-      expect(requestOrder).toEqual([
-        'resource-version',
-        transport,
-        'resource-version',
-        'resource-version',
-        transport,
-        'resource-version',
-      ]);
-      expect(exportMetadataRequests).toBe(4);
-      expect(
-        metadataBodies
-          .filter((body) => body.type === 'bulk')
-          .map((body) => body.resource_version),
-      ).toEqual(isPlatform ? [244, 245] : []);
-      expect(migrationBodies).toHaveLength(isPlatform ? 0 : 2);
+      expect(requestOrder).toEqual(['migration']);
     },
   );
 
@@ -298,21 +249,15 @@ describe('useLogicalModelPermissionMutation', () => {
         { wrapper },
       );
 
-      await waitForInitialResourceVersion();
       await expect(
         result.current.mutateAsync(variables as never),
       ).resolves.toEqual({ message: 'success' });
-      await waitForResourceVersion();
 
-      expect(requestOrder).toEqual([
-        'resource-version',
-        'metadata',
-        'resource-version',
-      ]);
+      expect(requestOrder).toEqual(['metadata']);
       expect(metadataBodies.filter((body) => body.type === 'bulk')).toEqual([
         {
           type: 'bulk',
-          resource_version: 244,
+          resource_version: RESOURCE_VERSION,
           args: expectedArgs,
         },
       ]);
@@ -336,11 +281,10 @@ describe('useLogicalModelPermissionMutation', () => {
         { wrapper },
       );
 
-      await waitForInitialResourceVersion();
       await expect(
         result.current.mutateAsync(variables as never),
       ).rejects.toThrow('metadata failed');
-      expect(requestOrder).toEqual(['resource-version', 'metadata']);
+      expect(requestOrder).toEqual(['metadata']);
       expect(migrationBodies).toEqual([]);
       expect(invalidate).not.toHaveBeenCalled();
       expect(onSuccess).not.toHaveBeenCalled();
@@ -362,15 +306,12 @@ describe('useLogicalModelPermissionMutation', () => {
         { wrapper },
       );
 
-      await waitForInitialResourceVersion();
       await expect(
         result.current.mutateAsync(variables as never),
       ).rejects.toThrow('migration failed');
-      expect(requestOrder).toEqual(['resource-version', 'migration']);
+      expect(requestOrder).toEqual(['migration']);
       expect(migrationBodies).toHaveLength(1);
-      expect(metadataBodies).toEqual([
-        { type: 'export_metadata', version: 2, args: {} },
-      ]);
+      expect(metadataBodies).toEqual([]);
       expect(invalidate).not.toHaveBeenCalled();
       expect(onSuccess).not.toHaveBeenCalled();
 
@@ -378,36 +319,13 @@ describe('useLogicalModelPermissionMutation', () => {
       await expect(
         result.current.mutateAsync(variables as never),
       ).resolves.toEqual(migrationSuccess);
-      await waitForResourceVersion();
       expect(migrationBodies).toHaveLength(2);
       expect(migrationBodies[1]).toEqual(migrationBodies[0]);
-      expect(requestOrder).toEqual([
-        'resource-version',
-        'migration',
-        'resource-version',
-        'migration',
-        'resource-version',
-      ]);
+      expect(requestOrder).toEqual(['migration', 'migration']);
       expect(invalidate).toHaveBeenCalledExactlyOnceWith({
         queryKey: metadataQueryKey,
       });
       expect(onSuccess).toHaveBeenCalledOnce();
-    },
-  );
-
-  it.each(['', 'missing'])(
-    'rejects unavailable source %s without writing',
-    async (unavailable) => {
-      const { result } = renderHook(
-        () => useLogicalModelPermissionMutation({ type: 'add' }),
-        { wrapper },
-      );
-      await waitForInitialResourceVersion();
-      await expect(
-        result.current.mutateAsync({ source: unavailable, args }),
-      ).rejects.toThrow();
-      expect(requestOrder).toEqual([]);
-      expect(migrationBodies).toEqual([]);
     },
   );
 });

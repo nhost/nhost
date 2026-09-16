@@ -5,6 +5,7 @@ import { toast } from 'react-hot-toast';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
 import { EditLogicalModelPermissionsForm } from '@/features/orgs/projects/database/native-queries/components/EditLogicalModelPermissionsForm';
 import { mockMatchMediaValue } from '@/tests/mocks';
+import permissionVariablesQuery from '@/tests/msw/mocks/graphql/permissionVariablesQuery';
 import {
   fireEvent,
   mockPointerEvent,
@@ -13,6 +14,7 @@ import {
   screen,
   TestUserEvent,
   waitFor,
+  within,
 } from '@/tests/testUtils';
 import type {
   CreateLogicalModelSelectPermissionArgs,
@@ -27,12 +29,7 @@ const project = {
   config: { hasura: { adminSecret: 'secret' } },
 };
 
-const jsonOnlyFilter = {
-  _or: [
-    { id: { _eq: 'X-Hasura-User-Id' } },
-    { profile: { active: { _eq: true } } },
-  ],
-};
+const columnComparisonFilter = { id: { _ceq: ['id'] } };
 const model: LogicalModelItem = {
   name: 'author_result',
   fields: [
@@ -42,7 +39,7 @@ const model: LogicalModelItem = {
   select_permissions: [
     {
       role: 'user',
-      permission: { columns: ['id'], filter: jsonOnlyFilter },
+      permission: { columns: ['id'], filter: columnComparisonFilter },
     },
     {
       role: 'viewer',
@@ -62,7 +59,7 @@ const extendedPermissionModel: LogicalModelItem = {
       comment: 'Preserve this permission comment.',
       permission: {
         columns: ['id'],
-        filter: jsonOnlyFilter,
+        filter: columnComparisonFilter,
         limit: 25,
         allow_aggregations: true,
         computed_fields: ['display_name'],
@@ -72,33 +69,7 @@ const extendedPermissionModel: LogicalModelItem = {
     },
   ],
 };
-const arrayOnlyModel: LogicalModelItem = {
-  name: 'array_result',
-  fields: [
-    {
-      name: 'tags',
-      type: {
-        array: { scalar: 'text', nullable: true },
-        nullable: false,
-      },
-    },
-  ],
-  select_permissions: [
-    {
-      role: 'user',
-      permission: {
-        columns: ['tags'],
-        filter: { tags: { _eq: ['existing'] } },
-      },
-    },
-    {
-      role: 'viewer',
-      permission: { columns: '*', filter: {} },
-    },
-  ],
-};
 let logicalModels: LogicalModelItem[] = [model];
-let selectedSource = 'default';
 
 let migrationBodies: MigrationRequest[] = [];
 let unexpectedRequests: string[] = [];
@@ -106,6 +77,7 @@ let migrationStatus = 200;
 let migrationFinished: Promise<void> | undefined;
 
 const server = setupServer(
+  permissionVariablesQuery,
   http.post(`${API}/v1/metadata`, async ({ request }) => {
     const body = (await request.json()) as { type?: string };
     if (body.type !== 'export_metadata') {
@@ -217,6 +189,11 @@ async function waitForSavedPermission(
   await screen.findByRole('heading', { name: 'Roles & Actions overview' });
 }
 
+function getPermissionButton(role: string) {
+  const row = screen.getByRole('row', { name: new RegExp(`^${role} `, 'i') });
+  return within(row).getByRole('button');
+}
+
 describe('EditLogicalModelPermissionsForm', () => {
   beforeAll(() => {
     server.listen({
@@ -233,7 +210,6 @@ describe('EditLogicalModelPermissionsForm', () => {
   });
 
   beforeEach(() => {
-    selectedSource = 'default';
     mockPointerEvent();
     logicalModels = [model];
     queryClient.clear();
@@ -253,7 +229,7 @@ describe('EditLogicalModelPermissionsForm', () => {
       expect(body.name).toMatch(
         /^(create|update|drop)_logical_model_select_permission_/,
       );
-      expect(body.datasource).toBe(selectedSource);
+      expect(body.datasource).toBe('default');
       expect(body.down ?? []).not.toHaveLength(0);
     }
   });
@@ -277,26 +253,18 @@ describe('EditLogicalModelPermissionsForm', () => {
     );
 
     expect(
-      screen.queryByRole('button', { name: 'admin select: full access' }),
+      within(screen.getByRole('row', { name: /^admin /i })).queryByRole(
+        'button',
+      ),
     ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'viewer select: full access' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'user select: partial access' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'auditor select: partial access' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'editor select: no access' }),
-    ).toBeInTheDocument();
+    expect(getPermissionButton('viewer')).toBeInTheDocument();
+    expect(getPermissionButton('user')).toBeInTheDocument();
+    expect(getPermissionButton('auditor')).toBeInTheDocument();
+    expect(getPermissionButton('editor')).toBeInTheDocument();
     expect(screen.getAllByText('auditor')).toHaveLength(1);
     expect(screen.queryByText('admin', { selector: 'button' })).toBeNull();
 
-    await user.click(
-      screen.getByRole('button', { name: 'auditor select: partial access' }),
-    );
+    await user.click(getPermissionButton('auditor'));
     expect(
       screen.getByRole('heading', { name: 'Selected role & action' }),
     ).toBeInTheDocument();
@@ -316,9 +284,7 @@ describe('EditLogicalModelPermissionsForm', () => {
     const user = new TestUserEvent();
     await renderForm();
 
-    await user.click(
-      screen.getByRole('button', { name: /viewer select: full access/i }),
-    );
+    await user.click(getPermissionButton('viewer'));
     const save = screen.getByRole('button', { name: 'Save' });
     expect(save).toBeDisabled();
 
@@ -335,9 +301,7 @@ describe('EditLogicalModelPermissionsForm', () => {
 
     expect(screen.getByText('public')).toBeInTheDocument();
     expect(screen.getByText('editor')).toBeInTheDocument();
-    await user.click(
-      screen.getByRole('button', { name: /user select: partial access/i }),
-    );
+    await user.click(getPermissionButton('user'));
     expect(screen.getByLabelText('Role:')).toHaveTextContent('user');
     expect(screen.getByRole('checkbox', { name: 'id' })).toBeChecked();
     expect(screen.getByRole('checkbox', { name: 'name' })).not.toBeChecked();
@@ -350,9 +314,7 @@ describe('EditLogicalModelPermissionsForm', () => {
     ).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
-    await user.click(
-      screen.getByRole('button', { name: /viewer select: full access/i }),
-    );
+    await user.click(getPermissionButton('viewer'));
     expect(screen.getByRole('checkbox', { name: 'id' })).toBeChecked();
     expect(screen.getByRole('checkbox', { name: 'name' })).toBeChecked();
     expect(screen.getByLabelText('Without any checks')).toBeChecked();
@@ -364,9 +326,7 @@ describe('EditLogicalModelPermissionsForm', () => {
     ).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
-    await user.click(
-      screen.getByRole('button', { name: /editor select: no access/i }),
-    );
+    await user.click(getPermissionButton('editor'));
     expect(screen.getByLabelText('Role:')).toHaveTextContent('editor');
     expect(
       screen.getByRole('button', { name: 'Select All' }),
@@ -379,9 +339,7 @@ describe('EditLogicalModelPermissionsForm', () => {
   it('preserves unedited permission settings and comment when editing', async () => {
     const user = new TestUserEvent();
     await renderForm(extendedPermissionModel);
-    await user.click(
-      screen.getByRole('button', { name: /user select: partial access/i }),
-    );
+    await user.click(getPermissionButton('user'));
 
     await user.click(screen.getByRole('checkbox', { name: 'name' }));
     fireEvent.submit(
@@ -395,7 +353,7 @@ describe('EditLogicalModelPermissionsForm', () => {
       comment: 'Preserve this permission comment.',
       permission: {
         columns: ['id', 'name'],
-        filter: jsonOnlyFilter,
+        filter: columnComparisonFilter,
         limit: 25,
         allow_aggregations: true,
         computed_fields: ['display_name'],
@@ -405,99 +363,59 @@ describe('EditLogicalModelPermissionsForm', () => {
     });
   });
 
-  it('preserves an unsupported filter until it is explicitly cleared', async () => {
+  it('opens a column comparison in Visual mode and preserves it exactly', async () => {
     const user = new TestUserEvent();
-    await renderForm(arrayOnlyModel);
-    await user.click(
-      screen.getByRole('button', { name: /user select: partial access/i }),
-    );
+    await renderForm();
+    await user.click(getPermissionButton('user'));
 
-    expect(screen.getByLabelText('With custom check')).toBeChecked();
-    expect(screen.getByLabelText('With custom check')).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
+    const visual = screen.getByRole('button', { name: 'Visual' });
+    expect(visual).toBeEnabled();
+    expect(visual).toHaveAttribute('aria-pressed', 'true');
     expect(
-      screen.getByRole('button', { name: 'Delete Permissions' }),
-    ).toBeInTheDocument();
-    expect(screen.queryByLabelText('Filter JSON')).toBeNull();
+      screen.getByRole('combobox', {
+        name: 'Logical model comparison field',
+      }),
+    ).toHaveTextContent('id');
 
-    fireEvent.submit(
-      screen.getByRole('button', { name: 'Save' }).closest('form')!,
-    );
-    expect(migrationBodies).toEqual([]);
-
-    await user.click(screen.getByLabelText('Without any checks'));
-    await user.click(screen.getByRole('button', { name: 'Cancel' }));
-    expect(screen.getByText(/unsaved local changes/i)).toBeInTheDocument();
-    await user.keyboard('{Escape}');
-    await waitFor(() =>
-      expect(
-        screen.queryByRole('dialog', { name: 'Unsaved changes' }),
-      ).not.toBeInTheDocument(),
-    );
-
+    await user.click(screen.getByRole('checkbox', { name: 'name' }));
     fireEvent.submit(
       screen.getByRole('button', { name: 'Save' }).closest('form')!,
     );
     await waitForSavedPermission({
       source: 'default',
-      name: arrayOnlyModel.name,
+      name: model.name,
       role: 'user',
-      permission: { columns: ['tags'], filter: {} },
+      permission: {
+        columns: ['id', 'name'],
+        filter: columnComparisonFilter,
+      },
     });
-  });
-
-  it('locks a JSON-only filter out of Visual mode and preserves it exactly', async () => {
-    const user = new TestUserEvent();
-    await renderForm();
-    await user.click(
-      screen.getByRole('button', { name: /user select: partial access/i }),
-    );
-
-    const visual = screen.getByRole('button', { name: 'Visual' });
-    expect(visual).toBeDisabled();
-    expect(visual).toHaveAccessibleDescription(/only be edited in JSON mode/i);
-    expect(screen.getByLabelText('Filter JSON')).toHaveValue(
-      JSON.stringify(jsonOnlyFilter, null, 2),
-    );
-    await user.click(visual);
-    expect(screen.getByLabelText('Filter JSON')).toHaveValue(
-      JSON.stringify(jsonOnlyFilter, null, 2),
-    );
   });
 
   it('validates JSON and saves the complete edited permission', async () => {
     const user = new TestUserEvent();
     await renderForm();
-    await user.click(
-      screen.getByRole('button', { name: /user select: partial access/i }),
-    );
+    await user.click(getPermissionButton('user'));
     await user.click(screen.getByRole('button', { name: 'JSON' }));
 
-    fireEvent.change(screen.getByLabelText('Filter JSON'), {
-      target: { value: '{' },
-    });
+    const jsonEditor = screen.getByRole('textbox');
+    await user.clear(jsonEditor);
+    await user.paste('{');
     expect(screen.getByText('Invalid JSON')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
 
-    for (const emptyGroupFilter of [
-      '{"_and":[]}',
-      '{"_or":[]}',
-      '{"_not":{}}',
-    ]) {
-      fireEvent.change(screen.getByLabelText('Filter JSON'), {
-        target: { value: emptyGroupFilter },
-      });
-      expect(
-        screen.getByText(/empty _and, _or, and _not groups match every row/i),
-      ).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
-    }
+    await user.clear(jsonEditor);
+    await user.paste('{"_and":[]}');
+    const save = screen.getByRole('button', { name: 'Save' });
+    expect(save).toBeEnabled();
+    fireEvent.submit(save.closest('form')!);
+    expect(
+      await screen.findByText(/please add at least one rule/i),
+    ).toBeInTheDocument();
     expect(migrationBodies).toEqual([]);
 
     const nextFilter = { id: { _eq: 'X-Hasura-User-Id' } };
-    fireEvent.change(screen.getByLabelText('Filter JSON'), {
-      target: { value: JSON.stringify(nextFilter) },
-    });
+    await user.clear(jsonEditor);
+    await user.paste(JSON.stringify(nextFilter));
     fireEvent.submit(
       screen.getByRole('button', { name: 'Save' }).closest('form')!,
     );
@@ -519,12 +437,7 @@ describe('EditLogicalModelPermissionsForm', () => {
       const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
       const role = type === 'add' ? 'public' : 'viewer';
       await user.click(
-        screen.getByRole('button', {
-          name:
-            type === 'add'
-              ? 'public select: no access'
-              : 'viewer select: full access',
-        }),
+        getPermissionButton(type === 'add' ? 'public' : 'viewer'),
       );
 
       const save = screen.getByRole('button', { name: 'Save' });
@@ -572,9 +485,7 @@ describe('EditLogicalModelPermissionsForm', () => {
   it('creates and deletes permissions and resets to the roles view on reopen', async () => {
     const user = new TestUserEvent();
     const view = await renderForm();
-    await user.click(
-      screen.getByRole('button', { name: /public select: no access/i }),
-    );
+    await user.click(getPermissionButton('public'));
     await user.click(screen.getByRole('button', { name: 'Select All' }));
     fireEvent.submit(
       screen.getByRole('button', { name: 'Save' }).closest('form')!,
@@ -583,12 +494,10 @@ describe('EditLogicalModelPermissionsForm', () => {
       source: 'default',
       name: model.name,
       role: 'public',
-      permission: { columns: '*', filter: {} },
+      permission: { columns: ['id', 'name'], filter: {} },
     });
 
-    await user.click(
-      screen.getByRole('button', { name: /user select: partial access/i }),
-    );
+    await user.click(getPermissionButton('user'));
     await user.click(
       screen.getByRole('button', { name: 'Delete Permissions' }),
     );
@@ -611,9 +520,7 @@ describe('EditLogicalModelPermissionsForm', () => {
   it('guards dirty Cancel and confirmed role switching', async () => {
     const user = new TestUserEvent();
     await renderForm();
-    await user.click(
-      screen.getByRole('button', { name: /viewer select: full access/i }),
-    );
+    await user.click(getPermissionButton('viewer'));
     await user.click(screen.getByRole('button', { name: 'Deselect All' }));
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
     expect(screen.getByText(/unsaved local changes/i)).toBeInTheDocument();

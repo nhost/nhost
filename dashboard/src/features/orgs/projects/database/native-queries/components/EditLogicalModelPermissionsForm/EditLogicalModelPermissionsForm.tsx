@@ -8,16 +8,9 @@ import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { LogicalModelPermissionForm } from '@/features/orgs/projects/database/native-queries/components/LogicalModelPermissionForm';
 import { useGetLogicalModels } from '@/features/orgs/projects/database/native-queries/hooks/useGetLogicalModels';
-import { useLogicalModelPermissionMutation } from '@/features/orgs/projects/database/native-queries/hooks/useLogicalModelPermissionMutation';
-import type { LogicalModelPermissionArgs } from '@/features/orgs/projects/database/native-queries/hooks/useLogicalModelPermissionMutation/types';
-import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useGetRemoteAppRolesQuery } from '@/generated/graphql';
 import type { DialogFormProps } from '@/types/common';
-import type {
-  LogicalModelItem,
-  LogicalModelSelectPermission,
-  LogicalModelSelectPermissionItem,
-} from '@/utils/hasura-api/generated/schemas';
+import type { LogicalModelSelectPermission } from '@/utils/hasura-api/generated/schemas';
 
 export interface EditLogicalModelPermissionsFormProps extends DialogFormProps {
   source: string;
@@ -42,114 +35,6 @@ function getPermissionAccess(
   return permission ? 'partial' : 'none';
 }
 
-function LogicalModelPermissionEditor({
-  source,
-  model,
-  models,
-  role,
-  availableRoles,
-  location,
-  onRoleChange,
-  onBack,
-}: {
-  source: string;
-  model: LogicalModelItem;
-  models: LogicalModelItem[];
-  role: string;
-  availableRoles: string[];
-  location?: DialogFormProps['location'];
-  onRoleChange: (role: string) => void;
-  onBack: VoidFunction;
-}) {
-  const existing = model.select_permissions?.find(
-    (permission) => permission.role === role,
-  );
-  const createMutation = useLogicalModelPermissionMutation({ type: 'add' });
-  const editMutation = useLogicalModelPermissionMutation({ type: 'edit' });
-  const deleteMutation = useLogicalModelPermissionMutation({ type: 'delete' });
-  const isPending =
-    createMutation.isPending ||
-    editMutation.isPending ||
-    deleteMutation.isPending;
-
-  async function savePermission(
-    permission: LogicalModelSelectPermissionItem['permission'],
-  ) {
-    const args: LogicalModelPermissionArgs = {
-      name: model.name,
-      role,
-      permission,
-      ...(existing?.comment !== undefined ? { comment: existing.comment } : {}),
-    };
-    const result = await execPromiseWithErrorToast(
-      () =>
-        existing
-          ? editMutation.mutateAsync({
-              source,
-              args,
-              original: existing.permission,
-            })
-          : createMutation.mutateAsync({ source, args }),
-      {
-        loadingMessage: existing
-          ? 'Updating select permission...'
-          : 'Creating select permission...',
-        successMessage: existing
-          ? 'Select permission updated.'
-          : 'Select permission created.',
-        errorMessage: 'Could not save the select permission.',
-      },
-    );
-    if (result) {
-      onBack();
-      return true;
-    }
-    return false;
-  }
-
-  async function deletePermission() {
-    if (!existing) {
-      return false;
-    }
-    const result = await execPromiseWithErrorToast(
-      () =>
-        deleteMutation.mutateAsync({
-          source,
-          name: model.name,
-          role,
-          original: existing.permission,
-          originalComment: existing.comment,
-        }),
-      {
-        loadingMessage: 'Deleting select permission...',
-        successMessage: 'Select permission deleted.',
-        errorMessage: 'Could not delete the select permission.',
-      },
-    );
-    if (result) {
-      onBack();
-      return true;
-    }
-    return false;
-  }
-
-  return (
-    <LogicalModelPermissionForm
-      model={model}
-      models={models}
-      role={role}
-      availableRoles={availableRoles}
-      location={location}
-      permission={existing?.permission}
-      isPending={isPending}
-      onRoleChange={onRoleChange}
-      onSubmit={savePermission}
-      onDelete={existing ? deletePermission : undefined}
-      onCancel={onBack}
-    />
-  );
-}
-
 export default function EditLogicalModelPermissionsForm({
   source,
   logicalModelName,
@@ -167,7 +52,7 @@ export default function EditLogicalModelPermissionsForm({
     data: models = [],
     isLoading: modelsLoading,
     error: modelsError,
-  } = useGetLogicalModels(source);
+  } = useGetLogicalModels();
   if (rolesError) {
     throw rolesError;
   }
@@ -201,7 +86,7 @@ export default function EditLogicalModelPermissionsForm({
   ).filter((role) => role !== 'admin');
   if (selectedRole) {
     return (
-      <LogicalModelPermissionEditor
+      <LogicalModelPermissionForm
         key={`${source}:${selectedRole}`}
         source={source}
         model={model}
@@ -210,7 +95,7 @@ export default function EditLogicalModelPermissionsForm({
         availableRoles={availableRoles}
         location={location}
         onRoleChange={setSelectedRole}
-        onBack={() => setSelectedRole(undefined)}
+        onCancel={() => setSelectedRole(undefined)}
       />
     );
   }

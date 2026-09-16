@@ -2,15 +2,12 @@ import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
-import { useGetDataSources } from '@/features/orgs/projects/common/hooks/useGetDataSources';
-import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import type {
   LogicalModelPermissionMutationType,
   LogicalModelPermissionMutationVariables,
 } from '@/features/orgs/projects/database/native-queries/hooks/useLogicalModelPermissionMutation/types';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { isEmptyValue } from '@/lib/utils';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 import type { SuccessResponse } from '@/utils/hasura-api/generated/schemas/successResponse';
 import createLogicalModelPermission from './createLogicalModelPermission';
@@ -52,8 +49,6 @@ export default function useLogicalModelPermissionMutation<
   const { project } = useProject();
   const adminApi = useAdminApiTarget();
   const isPlatform = useIsPlatform();
-  const { refetch: refetchResourceVersion } = useGetMetadataResourceVersion();
-  const { data: supportedSources = [] } = useGetDataSources();
   const queryClient = useQueryClient();
 
   return useMutation<
@@ -66,24 +61,8 @@ export default function useLogicalModelPermissionMutation<
         throw new Error('Project metadata connection is unavailable.');
       }
 
-      const { source } = variables;
-      if (isEmptyValue(source)) {
-        throw new Error('A data source is required.');
-      }
-      if (!supportedSources.includes(source)) {
-        throw new Error('The selected data source is unavailable.');
-      }
-
+      const { source, resourceVersion } = variables;
       const base = { adminSecret: adminApi.adminSecret, source } as const;
-
-      const { data: resourceVersion, error: resourceVersionError } =
-        await refetchResourceVersion();
-      if (resourceVersionError) {
-        throw resourceVersionError;
-      }
-      if (resourceVersion === undefined) {
-        throw new Error('Could not load the latest metadata version.');
-      }
 
       if (isPlatform) {
         const { appUrl } = adminApi;

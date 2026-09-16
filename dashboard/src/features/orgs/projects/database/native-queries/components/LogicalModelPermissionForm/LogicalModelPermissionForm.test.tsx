@@ -1,5 +1,11 @@
+import { setupServer } from 'msw/node';
 import LogicalModelPermissionForm from '@/features/orgs/projects/database/native-queries/components/LogicalModelPermissionForm/LogicalModelPermissionForm';
 import { mockMatchMediaValue } from '@/tests/mocks';
+import { getProjectQuery } from '@/tests/msw/mocks/graphql/getProjectQuery';
+import permissionVariablesQuery from '@/tests/msw/mocks/graphql/permissionVariablesQuery';
+import hasuraMetadataQuery from '@/tests/msw/mocks/rest/hasuraMetadataQuery';
+import tableQuery from '@/tests/msw/mocks/rest/tableQuery';
+import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import {
   fireEvent,
   mockPointerEvent,
@@ -8,64 +14,187 @@ import {
   TestUserEvent,
   waitFor,
 } from '@/tests/testUtils';
-import type { LogicalModelItem } from '@/utils/hasura-api/generated/schemas';
+import type {
+  LogicalModelItem,
+  LogicalModelSelectPermission,
+} from '@/utils/hasura-api/generated/schemas';
 
+const profile: LogicalModelItem = {
+  name: 'profile',
+  fields: [
+    { name: 'active', type: { scalar: 'boolean', nullable: false } },
+    { name: 'displayName', type: { scalar: 'text', nullable: true } },
+  ],
+};
 const model: LogicalModelItem = {
   name: 'author',
   fields: [
     { name: 'id', type: { scalar: 'uuid', nullable: false } },
     { name: 'name', type: { scalar: 'text', nullable: true } },
+    { name: 'profile', type: { logical_model: 'profile', nullable: true } },
   ],
 };
-const filter = { id: { _eq: 'X-Hasura-User-Id' } };
+const server = setupServer(
+  tokenQuery,
+  tableQuery,
+  hasuraMetadataQuery,
+  getProjectQuery,
+  permissionVariablesQuery,
+);
+const mocks = vi.hoisted(() => ({
+  useRouter: vi.fn(),
+  mutateAsync: vi.fn(),
+}));
 
-describe('LogicalModelPermissionForm visual validation', () => {
+vi.mock('next/router', () => ({
+  useRouter: mocks.useRouter,
+}));
+vi.mock(
+  '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion',
+  () => ({
+    useGetMetadataResourceVersion: () => ({ data: 244 }),
+  }),
+);
+vi.mock(
+  '@/features/orgs/projects/database/native-queries/hooks/useLogicalModelPermissionMutation',
+  () => ({
+    useLogicalModelPermissionMutation: () => ({
+      mutateAsync: mocks.mutateAsync,
+      isPending: false,
+    }),
+  }),
+);
+
+function renderForm(permission: LogicalModelSelectPermission) {
+  render(
+    // biome-ignore lint/a11y/useValidAriaRole: This component's role prop names a permission role, not an ARIA role.
+    <LogicalModelPermissionForm
+      source="default"
+      model={{
+        ...model,
+        select_permissions: [{ role: 'user', permission }],
+      }}
+      models={[model, profile]}
+      role="user"
+      availableRoles={['user']}
+      onRoleChange={vi.fn()}
+      onCancel={vi.fn()}
+    />,
+  );
+  return mocks.mutateAsync;
+}
+
+describe('LogicalModelPermissionForm validation', () => {
   beforeAll(() => {
+    process.env.NEXT_PUBLIC_ENV = 'dev';
+    process.env.NEXT_PUBLIC_NHOST_CONFIGSERVER_URL =
+      'https://local.graphql.local.nhost.run/v1';
+    server.listen({ onUnhandledRequest: 'error' });
     window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
   });
+
   beforeEach(() => {
     mockPointerEvent();
+    mocks.useRouter.mockReturnValue({
+      basePath: '',
+      pathname: '/orgs/xyz/projects/test-project',
+      route: '/orgs/[orgSlug]/projects/[appSubdomain]',
+      asPath: '/orgs/xyz/projects/test-project',
+      isLocaleDomain: false,
+      isReady: true,
+      isPreview: false,
+      query: {
+        orgSlug: 'xyz',
+        appSubdomain: 'test-project',
+        dataSourceSlug: 'default',
+      },
+      push: vi.fn(),
+      replace: vi.fn(),
+      reload: vi.fn(),
+      back: vi.fn(),
+      prefetch: vi.fn(),
+      beforePopState: vi.fn(),
+      events: { on: vi.fn(), off: vi.fn(), emit: vi.fn() },
+      isFallback: false,
+      forward: vi.fn(),
+    });
+    mocks.mutateAsync.mockReset().mockResolvedValue({ message: 'success' });
   });
 
-  it('blocks Save for an empty group and recovers without changing the stored filter', async () => {
-    const operator = 'not';
-    const onSubmit = vi.fn().mockResolvedValue(true);
+  afterEach(() => server.resetHandlers());
+  afterAll(() => server.close());
+
+  it.each([
+    {
+      label: 'nested object',
+      filter: { profile: { active: { _eq: true } } },
+    },
+    {
+      label: '_is_null',
+      filter: { id: { _is_null: true } },
+    },
+  ])(
+    'opens a stored $label filter in Visual and round-trips it',
+    async ({ filter }) => {
+      const user = new TestUserEvent();
+      const savePermission = renderForm({ columns: ['id'], filter });
+
+      expect(screen.getByRole('button', { name: 'Visual' })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      );
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+
+      await user.click(screen.getByRole('checkbox', { name: 'name' }));
+      fireEvent.submit(
+        screen.getByRole('button', { name: 'Save' }).closest('form')!,
+      );
+      await waitFor(() =>
+        expect(savePermission).toHaveBeenCalledWith(
+          expect.objectContaining({
+            source: 'default',
+            resourceVersion: 244,
+            args: expect.objectContaining({
+              name: model.name,
+              role: 'user',
+              permission: { columns: ['id', 'name'], filter },
+            }),
+          }),
+        ),
+      );
+    },
+  );
+
+  it('opens an outer column comparison in Visual and saves it', async () => {
     const user = new TestUserEvent();
-    render(
-      // biome-ignore lint/a11y/useValidAriaRole: This component's role prop names a permission role, not an ARIA role.
-      <LogicalModelPermissionForm
-        model={model}
-        models={[model]}
-        role="user"
-        availableRoles={['user']}
-        permission={{ columns: ['id'], filter }}
-        isPending={false}
-        onRoleChange={vi.fn()}
-        onCancel={vi.fn()}
-        onSubmit={onSubmit}
-      />,
-    );
+    const filter = { id: { _ceq: ['id'] } };
+    const savePermission = renderForm({ columns: ['id'], filter });
+
+    const visual = screen.getByRole('button', { name: 'Visual' });
+    expect(visual).toBeEnabled();
+    expect(visual).toHaveAttribute('aria-pressed', 'true');
+    expect(
+      screen.getByRole('combobox', {
+        name: 'Logical model comparison field',
+      }),
+    ).toHaveTextContent('id');
+
     await user.click(screen.getByRole('checkbox', { name: 'name' }));
     const save = screen.getByRole('button', { name: 'Save' });
     expect(save).toBeEnabled();
-    await user.click(screen.getByRole('button', { name: 'Add' }));
-    await user.click(await screen.findByText(operator, { exact: true }));
-    await waitFor(() => expect(save).toBeDisabled());
-    expect(screen.getByRole('alert')).toHaveTextContent(
-      `_${operator} must contain at least one child.`,
-    );
-    fireEvent.submit(save.closest('form')!);
-    expect(onSubmit).not.toHaveBeenCalled();
-    await user.click(
-      screen.getAllByRole('button', { name: 'Delete group' })[1],
-    );
-    await waitFor(() => expect(save).toBeEnabled());
     fireEvent.submit(save.closest('form')!);
     await waitFor(() =>
-      expect(onSubmit).toHaveBeenCalledWith({
-        columns: ['id', 'name'],
-        filter,
-      }),
+      expect(savePermission).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'default',
+          resourceVersion: 244,
+          args: expect.objectContaining({
+            name: model.name,
+            role: 'user',
+            permission: { columns: ['id', 'name'], filter },
+          }),
+        }),
+      ),
     );
   });
 });
