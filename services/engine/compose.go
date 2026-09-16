@@ -568,10 +568,10 @@ func normalizeRequestHostHandler(handler http.Handler) http.Handler {
 func normalizeRequestHost(requestHost string) string {
 	host, port, err := net.SplitHostPort(requestHost)
 	if err != nil {
-		return strings.TrimSuffix(requestHost, ".")
+		return strings.ToLower(strings.TrimSuffix(requestHost, "."))
 	}
 
-	normalizedHost := strings.TrimSuffix(host, ".")
+	normalizedHost := strings.ToLower(strings.TrimSuffix(host, "."))
 	if normalizedHost == host {
 		return requestHost
 	}
@@ -724,7 +724,7 @@ func requestHostInSet(requestHost string, hosts map[string]struct{}) bool {
 		host = parsedHost
 	}
 
-	_, ok := hosts[strings.ToLower(host)]
+	_, ok := hosts[host]
 
 	return ok
 }
