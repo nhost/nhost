@@ -13,9 +13,8 @@ import (
 
 //nolint:gochecknoglobals // Test seams for the interactive prompts.
 var (
-	runPrompt  = promptLine
-	runConfirm = promptConfirm
-	runPicker  = promptPick
+	runPrompt = promptLine
+	runPicker = promptPick
 )
 
 // pickerItem is one selectable option in a numbered prompt.
@@ -50,31 +49,6 @@ func promptLine(ce *clienv.CliEnv, label, defaultValue string) (string, error) {
 	}
 
 	return defaultValue, nil
-}
-
-// promptConfirm asks a yes/no question, returning defaultYes when the answer is
-// empty.
-func promptConfirm(ce *clienv.CliEnv, message string, defaultYes bool) (bool, error) {
-	hint := "y/N"
-	if defaultYes {
-		hint = "Y/n"
-	}
-
-	ce.PromptMessage("%s [%s]: ", message, hint)
-
-	input, err := ce.PromptInput(false)
-	if err != nil {
-		return false, fmt.Errorf("failed to read confirmation: %w", err)
-	}
-
-	switch strings.ToLower(strings.TrimSpace(input)) {
-	case "":
-		return defaultYes, nil
-	case "y", "yes":
-		return true, nil
-	default:
-		return false, nil
-	}
 }
 
 // pickerHeading phrases a picker's title as the question it is asking. The

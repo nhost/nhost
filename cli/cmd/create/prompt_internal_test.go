@@ -89,40 +89,6 @@ func TestPromptLineShowsDefault(t *testing.T) {
 }
 
 //nolint:paralleltest // swaps os.Stdin
-func TestPromptConfirm(t *testing.T) {
-	tests := []struct {
-		name       string
-		input      string
-		defaultYes bool
-		want       bool
-	}{
-		{name: "yes", input: "y\n", defaultYes: false, want: true},
-		{name: "long yes", input: "YES\n", defaultYes: false, want: true},
-		{name: "no", input: "n\n", defaultYes: true, want: false},
-		{name: "empty keeps default true", input: "\n", defaultYes: true, want: true},
-		{name: "empty keeps default false", input: "\n", defaultYes: false, want: false},
-		{name: "garbage is no", input: "maybe\n", defaultYes: true, want: false},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			withStdin(t, tt.input)
-
-			var output bytes.Buffer
-
-			got, err := promptConfirm(newTestEnv(&output), "Install now?", tt.defaultYes)
-			if err != nil {
-				t.Fatalf("promptConfirm: %v", err)
-			}
-
-			if got != tt.want {
-				t.Errorf("promptConfirm() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-//nolint:paralleltest // swaps os.Stdin
 func TestPromptPick(t *testing.T) {
 	items := []pickerItem{
 		{Label: "first", Desc: "the first one"},

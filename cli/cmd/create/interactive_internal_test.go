@@ -44,13 +44,11 @@ func TestResolveChoices(t *testing.T) {
 				rel:            "",
 				packageManager: defaultPackageManager,
 				installNow:     true,
-				startNow:       false,
 			},
 			wantAnswered: answered{
 				template:       false,
 				name:           false,
 				packageManager: false,
-				startNow:       false,
 			},
 			wantInteractive: false,
 			wantErr:         nil,
@@ -76,14 +74,12 @@ func TestResolveChoices(t *testing.T) {
 				rel:            "demo",
 				packageManager: defaultPackageManager,
 				installNow:     true,
-				startNow:       false,
 			},
 			wantAnswered: answered{
 				template:       false,
 				name:           true,
 				dir:            true,
 				packageManager: false,
-				startNow:       false,
 			},
 			wantInteractive: false,
 			wantErr:         nil,
@@ -98,14 +94,12 @@ func TestResolveChoices(t *testing.T) {
 				rel:            "demo",
 				packageManager: defaultPackageManager,
 				installNow:     true,
-				startNow:       false,
 			},
 			wantAnswered: answered{
 				template:       false,
 				name:           false,
 				dir:            true,
 				packageManager: false,
-				startNow:       false,
 			},
 			wantInteractive: false,
 			wantErr:         nil,
@@ -125,54 +119,21 @@ func TestResolveChoices(t *testing.T) {
 				rel:            "demo",
 				packageManager: "bun",
 				installNow:     false,
-				startNow:       false,
 			},
 			wantAnswered: answered{
 				template:       true,
 				name:           false,
 				dir:            true,
 				packageManager: true,
-				startNow:       false,
 			},
 			wantInteractive: true,
 			wantErr:         nil,
 		},
+		// An interactive run still asks for what the command line left out,
+		// which here is the template.
 		{
-			name:        "start is opt-in when prompts are skipped",
-			args:        []string{"--yes", "--start", "demo"},
-			interactive: true,
-			want: choices{
-				template:       defaultTemplate,
-				name:           "demo",
-				rel:            "demo",
-				packageManager: defaultPackageManager,
-				installNow:     true,
-				startNow:       true,
-			},
-			wantAnswered: answered{
-				template:       false,
-				name:           false,
-				dir:            true,
-				packageManager: false,
-				startNow:       true,
-			},
-			wantInteractive: false,
-			wantErr:         nil,
-		},
-		{
-			name:            "start cannot run without the dependencies",
-			args:            []string{"--yes", "--start", "--no-install", "demo"},
-			interactive:     true,
-			want:            choices{},
-			wantAnswered:    answered{},
-			wantInteractive: false,
-			wantErr:         errStartNeedsInstall,
-		},
-		// --start is an answer to the only question left after the install, so
-		// an interactive run that passes it has nothing to ask.
-		{
-			name:        "every answer on the command line leaves nothing to ask",
-			args:        []string{"--package-manager", "npm", "--start", "--name", "demo", "demo"},
+			name:        "flags and an argument answer what they name",
+			args:        []string{"--package-manager", "npm", "--name", "demo", "demo"},
 			interactive: true,
 			want: choices{
 				template:       defaultTemplate,
@@ -180,14 +141,12 @@ func TestResolveChoices(t *testing.T) {
 				rel:            "demo",
 				packageManager: "npm",
 				installNow:     true,
-				startNow:       true,
 			},
 			wantAnswered: answered{
 				template:       false,
 				name:           true,
 				dir:            true,
 				packageManager: true,
-				startNow:       true,
 			},
 			wantInteractive: true,
 			wantErr:         nil,
@@ -283,12 +242,11 @@ func TestResolveChoicesRejectsUnknownTemplate(t *testing.T) {
 func stubPrompts(t *testing.T) {
 	t.Helper()
 
-	origPicker, origPrompt, origConfirm := runPicker, runPrompt, runConfirm
+	origPicker, origPrompt := runPicker, runPrompt
 
 	t.Cleanup(func() {
 		runPicker = origPicker
 		runPrompt = origPrompt
-		runConfirm = origConfirm
 	})
 }
 
@@ -317,14 +275,6 @@ func TestRunInteractive(t *testing.T) {
 		return "demo", nil
 	}
 
-	// Whether to start is asked after the install, so runInteractive has no
-	// confirm left to run.
-	runConfirm = func(_ *clienv.CliEnv, message string, _ bool) (bool, error) {
-		t.Fatalf("unexpected confirm %q", message)
-
-		return false, nil
-	}
-
 	var output bytes.Buffer
 
 	got, err := runInteractive(newTestEnv(&output), choices{
@@ -332,7 +282,6 @@ func TestRunInteractive(t *testing.T) {
 		name:           "",
 		packageManager: defaultPackageManager,
 		installNow:     true,
-		startNow:       false,
 	}, answered{})
 	if err != nil {
 		t.Fatalf("runInteractive: %v", err)
@@ -343,7 +292,6 @@ func TestRunInteractive(t *testing.T) {
 		name:           "demo",
 		packageManager: "npm",
 		installNow:     true,
-		startNow:       false,
 	}
 	if got != want {
 		t.Errorf("runInteractive() = %#v, want %#v", got, want)
@@ -368,12 +316,6 @@ func TestRunInteractiveSkipsWhatTheCommandLineAnswered(t *testing.T) {
 		return "", nil
 	}
 
-	runConfirm = func(_ *clienv.CliEnv, message string, _ bool) (bool, error) {
-		t.Errorf("unexpected confirm %q", message)
-
-		return false, nil
-	}
-
 	var output bytes.Buffer
 
 	defaults := choices{
@@ -381,14 +323,12 @@ func TestRunInteractiveSkipsWhatTheCommandLineAnswered(t *testing.T) {
 		name:           "demo",
 		packageManager: "bun",
 		installNow:     true,
-		startNow:       false,
 	}
 
 	got, err := runInteractive(newTestEnv(&output), defaults, answered{
 		template:       true,
 		name:           true,
 		packageManager: true,
-		startNow:       true,
 	})
 	if err != nil {
 		t.Fatalf("runInteractive: %v", err)
@@ -396,155 +336,6 @@ func TestRunInteractiveSkipsWhatTheCommandLineAnswered(t *testing.T) {
 
 	if got != defaults {
 		t.Errorf("runInteractive() = %#v, want %#v", got, defaults)
-	}
-}
-
-//nolint:paralleltest // mutates package-level prompt seams
-func TestConfirmStart(t *testing.T) {
-	tests := []struct {
-		name       string
-		resolved   choices
-		ask        bool
-		confirm    bool
-		wantAsked  bool
-		wantResult bool
-	}{
-		{
-			name:       "enter starts the servers",
-			resolved:   choices{installNow: true},
-			ask:        true,
-			confirm:    true,
-			wantAsked:  true,
-			wantResult: true,
-		},
-		{
-			name:       "declining leaves the servers alone",
-			resolved:   choices{installNow: true},
-			ask:        true,
-			confirm:    false,
-			wantAsked:  true,
-			wantResult: false,
-		},
-		{
-			name:       "--start answers the question up front",
-			resolved:   choices{installNow: true, startNow: true},
-			ask:        false,
-			confirm:    false,
-			wantAsked:  false,
-			wantResult: true,
-		},
-		// Nothing to start without the dependencies, so the question is not
-		// worth asking: a failed install lands here too.
-		{
-			name:       "no dependencies, no question",
-			resolved:   choices{installNow: false},
-			ask:        true,
-			confirm:    true,
-			wantAsked:  false,
-			wantResult: false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			stubPrompts(t)
-
-			asked := false
-
-			runConfirm = func(_ *clienv.CliEnv, _ string, _ bool) (bool, error) {
-				asked = true
-
-				return tt.confirm, nil
-			}
-
-			var output bytes.Buffer
-
-			got, err := confirmStart(newTestEnv(&output), tt.resolved, tt.ask)
-			if err != nil {
-				t.Fatalf("confirmStart: %v", err)
-			}
-
-			if got != tt.wantResult {
-				t.Errorf("confirmStart() = %v, want %v", got, tt.wantResult)
-			}
-
-			if asked != tt.wantAsked {
-				t.Errorf("asked = %v, want %v", asked, tt.wantAsked)
-			}
-		})
-	}
-}
-
-// The project is announced before the start question, so the answer is given
-// to a create that has already said it succeeded.
-//
-//nolint:paralleltest // mutates package-level prompt seams
-func TestConfirmStartAnnouncesTheProjectBeforeAsking(t *testing.T) {
-	stubPrompts(t)
-
-	var output bytes.Buffer
-
-	seenWhenAsked := ""
-
-	runConfirm = func(_ *clienv.CliEnv, _ string, _ bool) (bool, error) {
-		seenWhenAsked = output.String()
-
-		return true, nil
-	}
-
-	if _, err := confirmStart(newTestEnv(&output), choices{
-		template:       defaultTemplate,
-		name:           "demo",
-		rel:            "demo",
-		packageManager: defaultPackageManager,
-		installNow:     true,
-		startNow:       false,
-	}, true); err != nil {
-		t.Fatalf("confirmStart: %v", err)
-	}
-
-	if !strings.Contains(seenWhenAsked, "Created demo in ./demo") {
-		t.Errorf(
-			"the start question was asked before the project was announced:\n%s",
-			seenWhenAsked,
-		)
-	}
-}
-
-// Every path through the create says it once, including the ones that never
-// reach the question.
-//
-//nolint:paralleltest // mutates package-level prompt seams
-func TestConfirmStartAnnouncesTheProjectWithoutAsking(t *testing.T) {
-	tests := []struct {
-		name     string
-		resolved choices
-		ask      bool
-	}{
-		{name: "--yes", resolved: choices{name: "demo", installNow: true}, ask: false},
-		{name: "no dependencies", resolved: choices{name: "demo", installNow: false}, ask: true},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			stubPrompts(t)
-
-			runConfirm = func(_ *clienv.CliEnv, message string, _ bool) (bool, error) {
-				t.Errorf("unexpected confirm %q", message)
-
-				return false, nil
-			}
-
-			var output bytes.Buffer
-
-			if _, err := confirmStart(newTestEnv(&output), tt.resolved, tt.ask); err != nil {
-				t.Fatalf("confirmStart: %v", err)
-			}
-
-			if !strings.Contains(output.String(), "Created demo") {
-				t.Errorf("the project was never announced:\n%s", output.String())
-			}
-		})
 	}
 }
 
@@ -566,10 +357,6 @@ func TestRunInteractiveRepromptsOnInvalidName(t *testing.T) {
 		return value, nil
 	}
 
-	runConfirm = func(_ *clienv.CliEnv, _ string, _ bool) (bool, error) {
-		return true, nil
-	}
-
 	var output bytes.Buffer
 
 	got, err := runInteractive(newTestEnv(&output), choices{
@@ -577,7 +364,6 @@ func TestRunInteractiveRepromptsOnInvalidName(t *testing.T) {
 		name:           "",
 		packageManager: defaultPackageManager,
 		installNow:     true,
-		startNow:       false,
 	}, answered{})
 	if err != nil {
 		t.Fatalf("runInteractive: %v", err)
@@ -625,7 +411,6 @@ func TestRunInteractiveAsksNameFirst(t *testing.T) {
 		name:           "skate-app",
 		packageManager: defaultPackageManager,
 		installNow:     true,
-		startNow:       false,
 	}, answered{})
 	if err != nil {
 		t.Fatalf("runInteractive: %v", err)
@@ -664,7 +449,6 @@ func TestRunInteractivePropagatesPickerError(t *testing.T) {
 		name:           "",
 		packageManager: defaultPackageManager,
 		installNow:     true,
-		startNow:       false,
 	}, answered{}); !errors.Is(err, errPickerFailed) {
 		t.Fatalf("runInteractive() error = %v, want errPickerFailed", err)
 	}
@@ -744,7 +528,6 @@ func TestRetarget(t *testing.T) {
 				rel:            "",
 				packageManager: defaultPackageManager,
 				installNow:     true,
-				startNow:       false,
 			})
 
 			if got.dir != tt.wantDir {
@@ -789,10 +572,6 @@ func TestRunInteractivePreselectsFlagChoices(t *testing.T) {
 		return defaultValue, nil
 	}
 
-	runConfirm = func(_ *clienv.CliEnv, _ string, defaultYes bool) (bool, error) {
-		return defaultYes, nil
-	}
-
 	var output bytes.Buffer
 
 	defaults := choices{
@@ -800,7 +579,6 @@ func TestRunInteractivePreselectsFlagChoices(t *testing.T) {
 		name:           "demo",
 		packageManager: "bun",
 		installNow:     false,
-		startNow:       false,
 	}
 
 	got, err := runInteractive(newTestEnv(&output), defaults, answered{})
@@ -818,6 +596,26 @@ func TestRunInteractivePreselectsFlagChoices(t *testing.T) {
 
 	if defaultIdx["Template"] != 0 {
 		t.Errorf("template default index = %d, want 0", defaultIdx["Template"])
+	}
+}
+
+// The create ends by saying what it made and where, so the commands under it
+// are read against a project that has been reported as created.
+func TestPrintNextStepsAnnouncesTheProject(t *testing.T) {
+	t.Parallel()
+
+	var output bytes.Buffer
+
+	printNextSteps(newTestEnv(&output), choices{
+		template:       defaultTemplate,
+		name:           "demo",
+		rel:            "demo",
+		packageManager: defaultPackageManager,
+		installNow:     true,
+	})
+
+	if !strings.Contains(output.String(), "Created demo in ./demo") {
+		t.Errorf("the project was never announced:\n%s", output.String())
 	}
 }
 
@@ -870,7 +668,6 @@ func TestPrintNextStepsUsesManagerScriptSyntax(t *testing.T) {
 				rel:            tt.rel,
 				packageManager: tt.packageManager,
 				installNow:     false,
-				startNow:       false,
 			})
 
 			if !strings.Contains(output.String(), tt.wantDev) {

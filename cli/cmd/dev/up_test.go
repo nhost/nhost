@@ -271,8 +271,8 @@ var errUpFailed = errors.New("failed to start docker compose")
 
 // Declining the teardown, or not being able to ask about it, says nothing about
 // whether the environment came up, so `nhost up` has to keep reporting the
-// failure. Callers that chain onto a running backend, such as `nhost create
-// --start`, only have the exit code to go on.
+// failure. A script that chains onto a running backend only has the exit code
+// to go on.
 //
 //nolint:paralleltest // swaps os.Stdin
 func TestUpErrReportsTheFailureWhateverTheAnswer(t *testing.T) {

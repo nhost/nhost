@@ -27,7 +27,6 @@ const (
 	flagPackageManager = "package-manager"
 	flagYes            = "yes"
 	flagNoInstall      = "no-install"
-	flagStart          = "start"
 	flagTemplatePath   = "template-path"
 	flagTemplatesRepo  = "templates-repo"
 	flagTemplatesRef   = "templates-ref"
@@ -46,10 +45,6 @@ var errNameRequired = errors.New(
 )
 
 var errTargetConflict = errors.New("would overwrite existing files")
-
-var errStartNeedsInstall = errors.New(
-	"--start needs the frontend dependencies, so it cannot be used with --no-install",
-)
 
 // Command returns the `nhost create` command.
 func Command() *cli.Command {
@@ -95,11 +90,6 @@ func Command() *cli.Command {
 			&cli.BoolFlag{ //nolint:exhaustruct
 				Name:  flagNoInstall,
 				Usage: "Skip installing frontend dependencies",
-				Value: false,
-			},
-			&cli.BoolFlag{ //nolint:exhaustruct
-				Name:  flagStart,
-				Usage: "Start the backend and the frontend dev server once the project is created",
 				Value: false,
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
@@ -172,48 +162,13 @@ func action(ctx context.Context, cmd *cli.Command) error {
 
 	// installNow ends up meaning what the rest of the command needs it to mean:
 	// the frontend has its dependencies. An install that failed leaves the
-	// project in the same shape --no-install would have, so there is nothing to
-	// offer to start and the next steps have to include the install again.
+	// project in the same shape --no-install would have, so the next steps have
+	// to include the install again.
 	resolved.installNow = installFrontendDependencies(ctx, ce, resolved, target)
-
-	if resolved.startNow, err = confirmStart(
-		ce, resolved, res.prompt && !res.answered.startNow,
-	); err != nil {
-		return err
-	}
-
-	if resolved.startNow {
-		return startServers(ctx, ce, cmd.Root().Version, resolved, target)
-	}
 
 	printNextSteps(ce, resolved)
 
 	return nil
-}
-
-// confirmStart settles whether to start the servers. The question comes after
-// the install rather than with the other prompts so that it is asked about a
-// project that is ready to run, and --start answers it up front for a run that
-// should not stop to ask.
-//
-// The project is announced here, so that it is announced once on every path,
-// after the install output it would otherwise be buried in and before anything
-// asks a question about it.
-func confirmStart(ce *clienv.CliEnv, resolved choices, ask bool) (bool, error) {
-	ce.Println("")
-	ce.Infoln("Created %s in %s", resolved.name, resolved.where())
-
-	if !resolved.installNow {
-		return false, nil
-	}
-
-	if !ask {
-		return resolved.startNow, nil
-	}
-
-	ce.Println("")
-
-	return runConfirm(ce, "Start backend & frontend?", true)
 }
 
 // installFrontendDependencies reports whether the frontend ended up with its
@@ -544,14 +499,18 @@ func packageManagerScript(pm, script string) string {
 
 func printNextSteps(ce *clienv.CliEnv, resolved choices) {
 	ce.Println("")
+	ce.Infoln("Created %s in %s", resolved.name, resolved.where())
+	ce.Println("")
 	ce.Println("Next steps:")
 	printStartCommands(ce, resolved)
 }
 
 // printStartCommands prints the two commands that bring the project up, in the
-// order it needs them. Every path that stops short of running them prints this
-// same pair, so what the user is told to run cannot drift from what `--start`
-// would have done.
+// order it needs them: the backend first, because the frontend renders against
+// its GraphQL API.
+//
+// Running them is left to the user. They own the two processes either way, so
+// starting them here would only take away the terminal that stops them.
 func printStartCommands(ce *clienv.CliEnv, resolved choices) {
 	devCommand := packageManagerScript(resolved.packageManager, "dev")
 

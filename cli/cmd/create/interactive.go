@@ -20,7 +20,6 @@ type choices struct {
 	rel            string
 	packageManager string
 	installNow     bool
-	startNow       bool
 }
 
 // path spells one of the project's directories the way the user would type it
@@ -54,7 +53,6 @@ type answered struct {
 	name           bool
 	dir            bool
 	packageManager bool
-	startNow       bool
 }
 
 // resolution is where the command line leaves things before any prompt runs.
@@ -135,7 +133,6 @@ func resolveChoices(cmd *cli.Command, interactive bool) (resolution, error) {
 		rel:            rel,
 		packageManager: cmd.String(flagPackageManager),
 		installNow:     !cmd.Bool(flagNoInstall),
-		startNow:       cmd.Bool(flagStart),
 	}
 
 	given := answered{
@@ -143,7 +140,6 @@ func resolveChoices(cmd *cli.Command, interactive bool) (resolution, error) {
 		name:           resolved.name != "",
 		dir:            cmd.Args().First() != "",
 		packageManager: cmd.IsSet(flagPackageManager),
-		startNow:       cmd.IsSet(flagStart),
 	}
 
 	// The directory the project lands in names it unless --name says otherwise,
@@ -326,10 +322,6 @@ func validateChoices(resolved choices) (choices, error) {
 
 	if err := validatePackageManager(resolved.packageManager); err != nil {
 		return choices{}, err
-	}
-
-	if resolved.startNow && !resolved.installNow {
-		return choices{}, errStartNeedsInstall
 	}
 
 	return resolved, nil
