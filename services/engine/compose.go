@@ -346,6 +346,8 @@ func runServe(ctx context.Context, cmd *cli.Command, version string) error {
 	cfg := serveConfigFrom(cmd)
 	logger := serveutil.NewLogger(cfg.debug, cfg.logFormatText)
 
+	logStartup(ctx, logger, cmd, version)
+
 	services, err := buildAll(
 		ctx, serviceRegistry(), serviceOrder(), cmd, version, logger, cfg,
 	)
@@ -357,14 +359,20 @@ func runServe(ctx context.Context, cmd *cli.Command, version string) error {
 	// idempotent, so releasing mounted resources remains safe in that broken state.
 	defer shutdownMounted(services)
 
-	logger.InfoContext(ctx, "engine v"+version)
-
 	mux, err := newMux(services, cfg.compatAuthHosts, cfg.mountPrefixHosts, logger)
 	if err != nil {
 		return fmt.Errorf("building shared router: %w", err)
 	}
 
 	return superviseShared(ctx, cfg, mux, services, logger)
+}
+
+// logStartup identifies the engine before service construction can emit logs or
+// fail, then records the resolved engine-visible configuration with secrets
+// redacted by the shared serve logger.
+func logStartup(ctx context.Context, logger *slog.Logger, cmd *cli.Command, version string) {
+	logger.InfoContext(ctx, "engine v"+version)
+	serveutil.LogFlags(ctx, logger, cmd)
 }
 
 // buildAll constructs each enabled service in mount order. Until every service

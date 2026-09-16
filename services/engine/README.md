@@ -161,14 +161,19 @@ The engine is one binary with one version, injected at build time as
 
 The bundled services no longer link their own `main` packages, so the version
 they report is the engine's — not the auth, storage, or constellation release
-each was built from. The engine hands its version to every service's serve
-command, and each service uses it for its startup log and its version endpoint:
+each was built from. The engine hands its version to every service's wrapper
+command, and each service uses it for its version endpoint and other surfaces
+built from its controller:
 
 | Endpoint | Reports |
 |----------|---------|
 | `GET /auth/v1/version` | the engine's version |
 | `GET /storage/v1/version` | the engine's version |
 | `GET /graphql/v1/version` | the engine's version |
+
+At startup the engine emits one `engine v<version>` line rather than three
+per-service version lines, followed by one redacted log group containing the
+resolved engine-visible flags for all bundled services.
 
 So anything keying off a service's reported version — dashboards, support
 triage, client compatibility checks — sees engine versions once a deployment
