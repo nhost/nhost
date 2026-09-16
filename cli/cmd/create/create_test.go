@@ -163,6 +163,100 @@ func TestCreateScaffoldsIntoTheCurrentDirectory(t *testing.T) {
 // narrow: only a name the template would land on top of stops the create, and
 // when it does the directory is left exactly as it was.
 //
+// Naming a project something other than the directory you are standing in
+// makes that directory, so a create from a scratch directory does not empty
+// the project into it.
+//
+//nolint:paralleltest // mutates process cwd via t.Chdir
+func TestCreateMakesADirectoryForANameOfItsOwn(t *testing.T) {
+	workdir := t.TempDir()
+	templateDir := filepath.Join(workdir, "template")
+
+	writeTestFile(
+		t,
+		filepath.Join(templateDir, "frontend", "package.json"),
+		"{\n  \"name\": \"starter\"\n}\n",
+	)
+
+	scratch := filepath.Join(workdir, "nhost-create-test")
+	if err := os.MkdirAll(scratch, 0o755); err != nil {
+		t.Fatalf("make scratch: %v", err)
+	}
+
+	t.Chdir(scratch)
+
+	var output bytes.Buffer
+
+	cmd := newTestRootCommand(t, &output)
+
+	if err := cmd.Run(context.Background(), []string{
+		"nhost", "create",
+		"--template-path", templateDir, "--no-install", "--name", "skate-app",
+	}); err != nil {
+		t.Fatalf("create command: %v\n%s", err, output.String())
+	}
+
+	projectDir := filepath.Join(scratch, "skate-app")
+
+	if _, err := os.Stat(
+		filepath.Join(projectDir, "backend", "nhost", "nhost.toml"),
+	); err != nil {
+		t.Fatalf("expected the project in a directory of its own: %v\n%s", err, output.String())
+	}
+
+	if _, err := os.Stat(filepath.Join(scratch, "backend")); !errors.Is(err, os.ErrNotExist) {
+		t.Errorf("create emptied the project into the current directory: %v", err)
+	}
+
+	if !strings.Contains(output.String(), "cd skate-app/backend && nhost up") {
+		t.Errorf("next steps do not cd into the new directory:\n%s", output.String())
+	}
+
+	assertNoStagingLeftovers(t, projectDir)
+}
+
+// A directory given on the command line is the target as typed, so a name that
+// differs from it does not nest a second directory inside it.
+//
+//nolint:paralleltest // mutates process cwd via t.Chdir
+func TestCreateDoesNotNestInsideAGivenDirectory(t *testing.T) {
+	workdir := t.TempDir()
+	templateDir := filepath.Join(workdir, "template")
+
+	writeTestFile(
+		t,
+		filepath.Join(templateDir, "frontend", "package.json"),
+		"{\n  \"name\": \"starter\"\n}\n",
+	)
+
+	t.Chdir(workdir)
+
+	var output bytes.Buffer
+
+	cmd := newTestRootCommand(t, &output)
+
+	if err := cmd.Run(context.Background(), []string{
+		"nhost", "create",
+		"--template-path", templateDir, "--no-install", "--name", "skate-app", "somewhere",
+	}); err != nil {
+		t.Fatalf("create command: %v\n%s", err, output.String())
+	}
+
+	projectDir := filepath.Join(workdir, "somewhere")
+
+	if got := readTestFile(
+		t, filepath.Join(projectDir, "backend", "nhost", "project-name"),
+	); got != "skate-app\n" {
+		t.Errorf("project name = %q, want the name that was asked for", got)
+	}
+
+	if _, err := os.Stat(
+		filepath.Join(projectDir, "skate-app"),
+	); !errors.Is(err, os.ErrNotExist) {
+		t.Errorf("create nested a directory inside the one it was given: %v", err)
+	}
+}
+
 //nolint:paralleltest // mutates process cwd via t.Chdir
 func TestCreateRefusesToLandOnExistingEntries(t *testing.T) {
 	workdir := t.TempDir()

@@ -57,14 +57,16 @@ func Command() *cli.Command {
 		Name:      "create",
 		Usage:     "Create a new Nhost project from a template",
 		ArgsUsage: "[directory]",
-		Description: "Scaffolds into the current directory, or into [directory] " +
-			"when one is given. The directory is created if it does not exist, and " +
-			"files already in it are left alone unless the template would overwrite them.",
+		Description: "Scaffolds into [directory] when one is given, otherwise into a " +
+			"directory named after the project, or into the current directory when " +
+			"that is already its name. The directory is created if it does not exist, " +
+			"and files already in it are left alone unless the template would " +
+			"overwrite them.",
 		Action: action,
 		Flags: []cli.Flag{
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:  flagName,
-				Usage: "Project name (default: the target directory's name)",
+				Usage: "Project name, and the directory it lands in (default: the target directory's name)",
 				Value: "",
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
@@ -142,6 +144,10 @@ func action(ctx context.Context, cmd *cli.Command) error {
 		if resolved, err = validateChoices(resolved); err != nil {
 			return err
 		}
+	}
+
+	if !res.answered.dir {
+		resolved = retarget(resolved)
 	}
 
 	// validateChoices already rejected unknown templates.

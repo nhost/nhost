@@ -15,16 +15,22 @@ The quickstarts add Nhost to an app you already have. Use this instead when you 
 
 ## Create the project
 
-Create scaffolds into the directory you run it in, so make one and change into it first:
+Run it from wherever you keep your projects:
+
+```bash Terminal
+nhost create
+```
+
+You are prompted for the template, project name, and package manager, then for whether to start the project once it is created. The name you give the project is also the directory it is created in.
+
+The name it offers is the current directory's own, so a directory you made and changed into already is the project's directory and nothing is nested inside it:
 
 ```bash Terminal
 mkdir my-app && cd my-app
 nhost create
 ```
 
-You are prompted for the template, project name, and package manager, then for whether to start the project once it is created. The project name defaults to the directory's name.
-
-Pass a directory to scaffold there instead. It is created if it does not exist:
+Pass a directory to scaffold into exactly that, whatever the project ends up being called. It is created if it does not exist:
 
 ```bash Terminal
 nhost create my-app
@@ -36,7 +42,7 @@ Or skip the prompts entirely:
 nhost create my-app --template nextjs-shadcn --package-manager pnpm --yes
 ```
 
-Files already in the target directory are left where they are. Create only stops if the template would land on top of something, and it names what clashed. A fresh `git init` is fine, but note that the template ships its own `README.md` and `.gitignore`, so a directory that already has either needs that file moved out of the way first. Use `--name` when the project should be called something other than the directory it lives in.
+Files already in the target directory are left where they are. Create only stops if the template would land on top of something, and it names what clashed. A fresh `git init` is fine, but note that the template ships its own `README.md` and `.gitignore`, so a directory that already has either needs that file moved out of the way first. `--name` answers the name prompt up front, and without a directory argument it picks the directory too.
 
 Frontend dependencies are always installed. Pass `--no-install` to skip that, for instance when scaffolding in a container that has no network.
 

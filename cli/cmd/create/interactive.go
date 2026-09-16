@@ -36,11 +36,14 @@ func (c choices) path(sub string) string {
 // where names the directory the project landed in, for prose rather than for a
 // command to copy.
 func (c choices) where() string {
-	if c.rel == "" {
+	switch {
+	case c.rel == "":
 		return "the current directory"
+	case filepath.IsAbs(c.rel):
+		return c.rel
+	default:
+		return "." + string(filepath.Separator) + c.rel
 	}
-
-	return c.rel
 }
 
 // answered records which choices the command line already made. A value passed
@@ -49,6 +52,7 @@ func (c choices) where() string {
 type answered struct {
 	template       bool
 	name           bool
+	dir            bool
 	packageManager bool
 	startNow       bool
 }
@@ -137,6 +141,7 @@ func resolveChoices(cmd *cli.Command, interactive bool) (resolution, error) {
 	given := answered{
 		template:       cmd.IsSet(flagTemplate),
 		name:           resolved.name != "",
+		dir:            cmd.Args().First() != "",
 		packageManager: cmd.IsSet(flagPackageManager),
 		startNow:       cmd.IsSet(flagStart),
 	}
@@ -197,6 +202,24 @@ func runInteractive(
 	}
 
 	return resolved, nil
+}
+
+// retarget gives the project a directory of its own. Naming a project
+// something other than the directory you are standing in means making that
+// directory, which is what creating a project has always done. The flow the
+// directory argument exists for is the other case: you make a directory, cd
+// into it, and the name the create takes from it already matches, so nothing
+// moves. A directory given on the command line is the target as typed and is
+// never added to.
+func retarget(resolved choices) choices {
+	if nameFromDir(resolved.dir) == resolved.name {
+		return resolved
+	}
+
+	resolved.dir = filepath.Join(resolved.dir, resolved.name)
+	resolved.rel = resolved.name
+
+	return resolved
 }
 
 func pickTemplate(ce *clienv.CliEnv, preferred string) (string, error) {

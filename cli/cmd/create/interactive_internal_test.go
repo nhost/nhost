@@ -81,6 +81,7 @@ func TestResolveChoices(t *testing.T) {
 			wantAnswered: answered{
 				template:       false,
 				name:           true,
+				dir:            true,
 				packageManager: false,
 				startNow:       false,
 			},
@@ -102,6 +103,7 @@ func TestResolveChoices(t *testing.T) {
 			wantAnswered: answered{
 				template:       false,
 				name:           false,
+				dir:            true,
 				packageManager: false,
 				startNow:       false,
 			},
@@ -128,6 +130,7 @@ func TestResolveChoices(t *testing.T) {
 			wantAnswered: answered{
 				template:       true,
 				name:           false,
+				dir:            true,
 				packageManager: true,
 				startNow:       false,
 			},
@@ -149,6 +152,7 @@ func TestResolveChoices(t *testing.T) {
 			wantAnswered: answered{
 				template:       false,
 				name:           false,
+				dir:            true,
 				packageManager: false,
 				startNow:       true,
 			},
@@ -181,6 +185,7 @@ func TestResolveChoices(t *testing.T) {
 			wantAnswered: answered{
 				template:       false,
 				name:           true,
+				dir:            true,
 				packageManager: true,
 				startNow:       true,
 			},
@@ -561,6 +566,69 @@ func TestIndexOfPackageManager(t *testing.T) {
 
 			if got := indexOfPackageManager(tt.preferred); got != tt.want {
 				t.Errorf("indexOfPackageManager(%q) = %d, want %d", tt.preferred, got, tt.want)
+			}
+		})
+	}
+}
+
+// The name decides the directory when the command line did not, and the
+// directory you are already standing in counts as the answer when it is
+// already the project's name.
+func TestRetarget(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		dir     string
+		project string
+		wantDir string
+		wantRel string
+	}{
+		{
+			name:    "a name of its own gets a directory of its own",
+			dir:     filepath.Join("/tmp", "nhost-create-test"),
+			project: "skate-app",
+			wantDir: filepath.Join("/tmp", "nhost-create-test", "skate-app"),
+			wantRel: "skate-app",
+		},
+		{
+			name:    "the directory you made and entered stays the target",
+			dir:     filepath.Join("/tmp", "my-app"),
+			project: "my-app",
+			wantDir: filepath.Join("/tmp", "my-app"),
+			wantRel: "",
+		},
+		// nameFromDir is what the prompt offered, so accepting a default the
+		// directory name cannot spell verbatim still means here.
+		{
+			name:    "a name the directory could not spell still matches",
+			dir:     filepath.Join("/tmp", "my project"),
+			project: "my-project",
+			wantDir: filepath.Join("/tmp", "my project"),
+			wantRel: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := retarget(choices{
+				template:       defaultTemplate,
+				name:           tt.project,
+				dir:            tt.dir,
+				rel:            "",
+				packageManager: defaultPackageManager,
+				installNow:     true,
+				startNow:       false,
+			})
+
+			if got.dir != tt.wantDir {
+				t.Errorf("retarget() dir = %q, want %q", got.dir, tt.wantDir)
+			}
+
+			if got.rel != tt.wantRel {
+				t.Errorf("retarget() rel = %q, want %q", got.rel, tt.wantRel)
 			}
 		})
 	}
