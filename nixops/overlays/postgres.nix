@@ -1,123 +1,12 @@
 final: prev: rec {
-  postgresql_14 = (prev.postgresql_14.override { systemdSupport = false; }).overrideAttrs (
-    finalAttrs: previousAttrs: rec {
-      pname = "postgresql";
-      version = "14.23";
-
-      src = final.fetchurl {
-        url = "mirror://postgresql/source/v${version}/${pname}-${version}.tar.bz2";
-        hash = "sha256-zHIWgitUYzDinC+R4SPIc0pMQXlQghRbuWKqcS6MlKU=";
-      };
-
-      doCheck = false;
-      doInstallCheck = false;
-    }
-  );
-
-  postgresql_14-client = final.stdenv.mkDerivation {
-    pname = "postgresql-client";
-    version = postgresql_14.version;
-
-    phases = [ "installPhase" ];
-
-    installPhase = ''
-      mkdir -p $out/bin
-      cp ${postgresql_14}/bin/psql $out/bin/
-      cp ${postgresql_14}/bin/pg_dump $out/bin/
-      cp ${postgresql_14}/bin/pg_dumpall $out/bin/
-      cp ${postgresql_14}/bin/pg_restore $out/bin/
-    '';
-  };
-
-  postgresql_15 = (prev.postgresql_15.override { systemdSupport = false; }).overrideAttrs (
-    finalAttrs: previousAttrs: rec {
-      pname = "postgresql";
-      version = "15.18";
-
-      src = final.fetchurl {
-        url = "mirror://postgresql/source/v${version}/${pname}-${version}.tar.bz2";
-        hash = "sha256-Ed8N+X/j6kupp5H6rznO4dL+Vx54iFtbVdhRfSfDI7Q=";
-      };
-    }
-  );
-
-  postgresql_15-client = final.stdenv.mkDerivation {
-    pname = "postgresql-client";
-    version = postgresql_15.version;
-
-    phases = [ "installPhase" ];
-
-    installPhase = ''
-      mkdir -p $out/bin
-      cp ${postgresql_15}/bin/psql $out/bin/
-      cp ${postgresql_15}/bin/pg_dump $out/bin/
-      cp ${postgresql_15}/bin/pg_dumpall $out/bin/
-      cp ${postgresql_15}/bin/pg_restore $out/bin/
-    '';
-  };
-
-  postgresql_16 = (prev.postgresql_16.override { systemdSupport = false; }).overrideAttrs (
-    finalAttrs: previousAttrs: rec {
-      pname = "postgresql";
-      version = "16.14";
-
-      src = final.fetchurl {
-        url = "mirror://postgresql/source/v${version}/${pname}-${version}.tar.bz2";
-        hash = "sha256-9tB3FCc3kghYzpWMzbdcbuE3pjtbCFPHBpPUAax+NHE=";
-      };
-    }
-  );
-
-  postgresql_16-client = final.stdenv.mkDerivation {
-    pname = "postgresql-client";
-    version = postgresql_16.version;
-
-    phases = [ "installPhase" ];
-
-    installPhase = ''
-      mkdir -p $out/bin
-      cp ${postgresql_16}/bin/psql $out/bin/
-      cp ${postgresql_16}/bin/pg_dump $out/bin/
-      cp ${postgresql_16}/bin/pg_dumpall $out/bin/
-      cp ${postgresql_16}/bin/pg_restore $out/bin/
-    '';
-  };
-
-  postgresql_17 = (prev.postgresql_17.override { systemdSupport = false; }).overrideAttrs (
-    finalAttrs: previousAttrs: rec {
-      pname = "postgresql";
-      version = "17.10";
-
-      src = final.fetchurl {
-        url = "mirror://postgresql/source/v${version}/${pname}-${version}.tar.bz2";
-        hash = "sha256-B4oDUW3NvbcF/sr0Feo9E6lWxYnkbwn+1ooG+wBZjJA=";
-      };
-    }
-  );
-
-  postgresql_17-client = final.stdenv.mkDerivation {
-    pname = "postgresql-client";
-    version = postgresql_17.version;
-
-    phases = [ "installPhase" ];
-
-    installPhase = ''
-      mkdir -p $out/bin
-      cp ${postgresql_17}/bin/psql $out/bin/
-      cp ${postgresql_17}/bin/pg_dump $out/bin/
-      cp ${postgresql_17}/bin/pg_dumpall $out/bin/
-      cp ${postgresql_17}/bin/pg_restore $out/bin/
-    '';
-  };
-
   postgresql_18 = (prev.postgresql_18.override { systemdSupport = false; }).overrideAttrs (
     finalAttrs: previousAttrs: rec {
       pname = "postgresql";
-      version = "18.4";
+      version = "18.6";
 
       src = final.fetchurl {
         url = "mirror://postgresql/source/v${version}/${pname}-${version}.tar.bz2";
-        hash = "sha256-gagexpX7DHkBQH3vqh0veXNhcVTPJ7p046erjmRDYJQ=";
+        hash = "sha256-VVYQwk1T5DFtpbfT/CXCedloVtXg4j7jCMMoxfqIHZ8=";
       };
     }
   );
