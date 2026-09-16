@@ -17,10 +17,16 @@
 #   * pnpm .pnpmfile.cjs hooks                                     -> step 1 env
 #   * a project-supplied yarn binary (.yarnrc yarn-path)           -> step 1 env
 #   * Yarn Berry .yarnrc.yml plugins                               -> step 5 pin
+#   * npm 10 `prepare` of a file:/git dependency (ignores the flag) -> step 5 pin
 #
 # Berry is the awkward one: it loads plugins while starting up, BEFORE it parses
 # --ignore-scripts, so no flag or env var can stop it. The only fix is to never
 # let Berry run — step 5 hands corepack an explicit Yarn Classic version.
+#
+# npm 10 (bundled with Node 22) is the other one: --ignore-scripts skips a
+# dependency's install hooks but still runs its `prepare` when that dependency
+# is a directory (file:) or a git checkout. npm only fixed this in 11, so step
+# 5 never uses the bundled npm either — corepack runs a pinned npm 11 instead.
 #
 # The only input is WORK_DIR (the directory holding the project's package.json).
 # Anything environment-specific is the caller's job, configured BEFORE calling:
@@ -41,6 +47,11 @@
 export NHOST_EXPRESS_VERSION=5.2.1
 export NHOST_SERVERLESS_HTTP_VERSION=4.0.0
 
+# Package-manager pins, run through corepack (version + sha1 checked on
+# download). Yarn: keeps Berry out (see above). npm: the bundled npm 10 on
+# Node 22 runs a file:/git dependency's `prepare` despite --ignore-scripts;
+# npm 11 honours it (needs Node >= 22.9, which every image we use has).
+export NHOST_NPM_SPEC=11.13.0+sha1.1af5ccf2fc595e4ede1f46f4e6cda78cee0d7458
 export NHOST_YARN_CLASSIC_SPEC=1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610
 
 nhost_install_deps() {
@@ -64,6 +75,13 @@ nhost_install_deps() {
 	#    Set to 1, corepack would fetch a package manager from any URL the
 	#    project names. Pin it off so the environment cannot turn that on.
 	export COREPACK_ENABLE_UNSAFE_CUSTOM_URLS=0
+
+	#    In strict mode corepack refuses `corepack npm@X` when a packageManager
+	#    field in THIS directory or any parent names another manager (a monorepo
+	#    root on yarn with an npm functions dir, say). We pass the exact version
+	#    on the command line, so the field has nothing to add: turn the check
+	#    off. It never changes WHICH version runs — the pin does that.
+	export COREPACK_ENABLE_STRICT=0
 
 	# Tell Berry projects why they fail, instead of letting them fail later with
 	# a confusing third-party error. This is only about the error message — the
@@ -158,13 +176,16 @@ if (typeof manifest.packageManager === "string") {
 	fi
 
 	# 5. Pick the frozen install command from the lockfile.
-	#    The yarn line is the security fix. A bare `yarn` lets corepack choose the
+	#    The yarn and npm lines are the security fixes.
+	#    yarn: a bare `yarn` lets corepack choose the
 	#    version, and it reads packageManager from THIS directory or ANY parent —
 	#    so a parent manifest we never looked at could still select Berry. Naming
 	#    the version here overrides all of that. The +sha1 is checked on download.
 	#    (Classic has no per-install workspace-isolation flag, hence no --ignore.)
+	#    npm: the bundled npm 10 runs a file:/git dependency's `prepare` despite
+	#    --ignore-scripts (fixed in npm 11), so run a pinned npm 11 the same way.
 	if [ -f "$WORK_DIR/package-lock.json" ]; then
-		set -- npm ci --no-workspaces --ignore-scripts
+		set -- corepack "npm@$NHOST_NPM_SPEC" ci --no-workspaces --ignore-scripts
 	elif [ -f "$WORK_DIR/pnpm-lock.yaml" ]; then
 		set -- pnpm install --frozen-lockfile --ignore-workspace --ignore-scripts --ignore-pnpmfile
 	elif [ -f "$WORK_DIR/yarn.lock" ]; then

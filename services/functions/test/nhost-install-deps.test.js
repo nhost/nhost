@@ -17,7 +17,7 @@ const SCRIPT = join(__dirname, '..', 'nhost-install-deps.sh');
 // pinned. On an intentional edit: update this hash AND copy the file to the
 // other repo so the two stay in sync.
 const WANT_CHECKSUM =
-  'af0249aa36d6b8a67d3bdc85f15ce684c54594df5b3cc679f4871da233f919b8';
+  '0e88d648de1efbd1e91f57965a74b39b31a5c9f7112d2c6ea3d61c3bcdca11bb';
 
 describe('shared install library (parity with nhost/be services/cd)', () => {
   test('checksum is in sync with nhost/be', () => {
@@ -28,8 +28,11 @@ describe('shared install library (parity with nhost/be services/cd)', () => {
   test('runs a frozen, workspace-isolated install for each manager', () => {
     const script = readFileSync(SCRIPT, 'utf8');
 
-    expect(script.match(/npm ci --/)).not.toBeNull();
-    expect(script).toMatch(/npm ci .*--ignore-scripts/);
+    // npm is pinned through corepack: the npm 10 bundled with Node 22 runs a
+    // file:/git dependency's prepare script despite --ignore-scripts.
+    expect(script).toMatch(
+      /corepack "npm@\$NHOST_NPM_SPEC" ci .*--no-workspaces.*--ignore-scripts/,
+    );
     expect(script).toMatch(/pnpm install .*--ignore-scripts/);
     expect(script).toMatch(
       /corepack "yarn@\$NHOST_YARN_CLASSIC_SPEC" install .*--frozen-lockfile.*--ignore-scripts/,
