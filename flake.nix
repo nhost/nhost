@@ -99,6 +99,14 @@
             ;
         };
 
+        betterleaksf = import ./tools/betterleaks/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
         dashboardf = import ./dashboard/project.nix {
           inherit
             self
@@ -230,6 +238,7 @@
         checks = {
           ai = aif.check;
           auth = authf.check;
+          betterleaks = betterleaksf.check;
           cli = clif.check;
           codegen = codegenf.check;
           constellation = constellationf.check;
@@ -372,6 +381,7 @@
 
           ai = aif.devShell;
           auth = authf.devShell;
+          betterleaks = betterleaksf.devShell;
           cli = clif.devShell;
           codegen = codegenf.devShell;
           constellation = constellationf.devShell;
@@ -399,6 +409,7 @@
           ai-docker-image = aif.dockerImage;
           auth = authf.package;
           auth-docker-image = authf.dockerImage;
+          betterleaks = betterleaksf.package;
           cli = clif.package;
           cli-multiplatform = clif.cli-multiplatform;
           cli-npm = clif.cli-npm;
