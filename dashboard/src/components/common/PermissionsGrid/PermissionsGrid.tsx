@@ -32,20 +32,6 @@ function AccessLevelIcon({ level }: { level: AccessLevel }) {
   return <FullPermissionIcon />;
 }
 
-const accessLevelLabels: Record<AccessLevel, string> = {
-  full: 'full access',
-  partial: 'partial access',
-  none: 'no access',
-};
-
-function getCellLabel(
-  role: string,
-  actionLabel: string,
-  accessLevel: AccessLevel,
-) {
-  return `${role} ${actionLabel.toLowerCase()}: ${accessLevelLabels[accessLevel]}`;
-}
-
 export default function PermissionsGrid<TAction extends string>({
   roles,
   actions,
@@ -82,12 +68,7 @@ export default function PermissionsGrid<TAction extends string>({
                   index < actions.length - 1 && 'border-r-1',
                 )}
               >
-                <span className="sr-only">
-                  {getCellLabel('admin', actionLabels[action], 'full')}
-                </span>
-                <span aria-hidden="true">
-                  <AccessLevelIcon level="full" />
-                </span>
+                <AccessLevelIcon level="full" />
               </td>
             ))}
           </tr>
@@ -101,34 +82,23 @@ export default function PermissionsGrid<TAction extends string>({
               )}
             >
               <td className="block truncate border-r-1 p-2">{role}</td>
-              {actions.map((action, actionIndex) => {
-                const accessLevel = getAccessLevel(role, action);
-
-                return (
-                  <td
-                    key={action}
-                    className={twMerge(
-                      'inline-grid h-full w-full items-center p-0 text-center',
-                      actionIndex < actions.length - 1 && 'border-r-1',
-                    )}
+              {actions.map((action, actionIndex) => (
+                <td
+                  key={action}
+                  className={twMerge(
+                    'inline-grid h-full w-full items-center p-0 text-center',
+                    actionIndex < actions.length - 1 && 'border-r-1',
+                  )}
+                >
+                  <button
+                    type="button"
+                    className="flex h-full w-full items-center justify-center rounded-none hover:bg-accent"
+                    onClick={() => onSelect(role, action)}
                   >
-                    <button
-                      type="button"
-                      aria-label={getCellLabel(
-                        role,
-                        actionLabels[action],
-                        accessLevel,
-                      )}
-                      className="flex h-full w-full items-center justify-center rounded-none hover:bg-accent"
-                      onClick={() => onSelect(role, action)}
-                    >
-                      <span aria-hidden="true">
-                        <AccessLevelIcon level={accessLevel} />
-                      </span>
-                    </button>
-                  </td>
-                );
-              })}
+                    <AccessLevelIcon level={getAccessLevel(role, action)} />
+                  </button>
+                </td>
+              ))}
             </tr>
           ))}
         </tbody>

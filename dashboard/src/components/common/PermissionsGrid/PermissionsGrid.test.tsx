@@ -1,7 +1,8 @@
-import type { AccessLevel } from '@/components/common/PermissionsGrid/PermissionsGrid';
-import PermissionsGrid from '@/components/common/PermissionsGrid/PermissionsGrid';
+import { vi } from 'vitest';
 import type { DatabaseAction } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { render, screen } from '@/tests/testUtils';
+import type { AccessLevel } from './PermissionsGrid';
+import PermissionsGrid from './PermissionsGrid';
 
 const ALL_ACTIONS: DatabaseAction[] = ['insert', 'select', 'update', 'delete'];
 
@@ -51,12 +52,11 @@ describe('PermissionsGrid', () => {
     ).toBeInTheDocument();
   });
 
-  it('should render contextual admin cells without buttons', () => {
+  it('should render the admin row with full permission icons and no buttons', () => {
     renderGrid({ roles: [] });
 
     expect(screen.getByText('admin')).toBeInTheDocument();
-    expect(screen.getByText('admin insert: full access')).toBeInTheDocument();
-    expect(screen.getByText('admin select: full access')).toBeInTheDocument();
+    expect(screen.getAllByLabelText('Full permission')).toHaveLength(4);
     expect(screen.queryAllByRole('button')).toHaveLength(0);
   });
 
@@ -67,7 +67,7 @@ describe('PermissionsGrid', () => {
     expect(screen.getByText('editor')).toBeInTheDocument();
   });
 
-  it('should expose contextual names for each access level', () => {
+  it('should render the correct icon for each access level', () => {
     const accessLevels: Record<string, Record<DatabaseAction, AccessLevel>> = {
       user: {
         insert: 'full',
@@ -82,18 +82,10 @@ describe('PermissionsGrid', () => {
       getAccessLevel: (role, action) => accessLevels[role]?.[action] ?? 'none',
     });
 
-    expect(
-      screen.getByRole('button', { name: 'user insert: full access' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'user select: partial access' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'user update: no access' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'user delete: full access' }),
-    ).toBeInTheDocument();
+    // 4 from admin row + 2 from user row (insert + delete)
+    expect(screen.getAllByLabelText('Full permission')).toHaveLength(6);
+    expect(screen.getAllByLabelText('Partial permission')).toHaveLength(1);
+    expect(screen.getAllByLabelText('No permission')).toHaveLength(1);
   });
 
   it('should render only the specified actions', () => {
@@ -119,13 +111,17 @@ describe('PermissionsGrid', () => {
       onSelect,
     });
 
-    screen.getByRole('button', { name: 'public select: no access' }).click();
+    const buttons = screen.getAllByRole('button');
+    // 2 roles × 2 actions = 4 buttons
+    expect(buttons).toHaveLength(4);
+
+    buttons[0].click();
     expect(onSelect).toHaveBeenCalledWith('public', 'select');
 
-    screen.getByRole('button', { name: 'public insert: no access' }).click();
+    buttons[1].click();
     expect(onSelect).toHaveBeenCalledWith('public', 'insert');
 
-    screen.getByRole('button', { name: 'editor select: no access' }).click();
+    buttons[2].click();
     expect(onSelect).toHaveBeenCalledWith('editor', 'select');
   });
 
@@ -145,9 +141,6 @@ describe('PermissionsGrid', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByRole('columnheader', { name: 'Download' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'public upload: no access' }),
     ).toBeInTheDocument();
   });
 });

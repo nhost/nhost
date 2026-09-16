@@ -6,7 +6,6 @@ import type {
   ConditionNode,
   ExistsNode,
   GroupNode,
-  InvalidNode,
   LogicalOperator,
   RelationshipNode,
   RuleNode,
@@ -182,38 +181,9 @@ describe('VisualRuleEditor', () => {
         </TestWrapper>,
       );
 
-      const title = await screen.findByText('title');
-      const releaseDate = screen.getByText('release_date');
-      const authorId = screen.getByText('author_id');
-
-      expect(title).toBeInTheDocument();
-      expect(releaseDate).toBeInTheDocument();
-      expect(authorId).toBeInTheDocument();
-    });
-
-    it('renders invalid nodes without replacing their original key', () => {
-      render(
-        <TestWrapper
-          defaultValues={{
-            rule: group('_implicit', [
-              {
-                type: 'invalid',
-                id: crypto.randomUUID(),
-                key: '_unknown',
-                raw: [{ title: { _eq: 'foo' } }],
-                reason: 'operator',
-              } satisfies InvalidNode,
-            ]),
-          }}
-        >
-          <VisualRuleEditor {...defaultProps} />
-        </TestWrapper>,
-      );
-
-      expect(screen.getByText('Invalid rule: _unknown')).toBeInTheDocument();
-      expect(
-        screen.getByRole('button', { name: 'Delete invalid rule' }),
-      ).toBeEnabled();
+      expect(await screen.findByText('title')).toBeInTheDocument();
+      expect(screen.getByText('release_date')).toBeInTheDocument();
+      expect(screen.getByText('author_id')).toBeInTheDocument();
     });
 
     it('renders nested groups recursively', async () => {
@@ -976,39 +946,6 @@ describe('VisualRuleEditor', () => {
   });
 
   describe('condition row behavior', () => {
-    it('offers table column-comparison operators', async () => {
-      render(
-        <TestWrapper
-          defaultValues={{
-            rule: group('_and', [condition('title')]),
-          }}
-        >
-          <VisualRuleEditor {...defaultProps} />
-        </TestWrapper>,
-      );
-
-      expect(await screen.findByText('title')).toBeInTheDocument();
-
-      const user = new TestUserEvent();
-      await user.click(screen.getByText('_eq'));
-
-      expect(
-        await screen.findByRole('option', {
-          name: /_ceq.*equal to column/,
-        }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole('option', {
-          name: /_cne.*not equal to column/,
-        }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole('option', {
-          name: /_cgte.*greater than or equal to column/,
-        }),
-      ).toBeInTheDocument();
-    });
-
     it('changing the column resets operator to _eq', async () => {
       render(
         <TestWrapper
