@@ -23,8 +23,10 @@ func TestIsSecret(t *testing.T) {
 		{"postgres-url", true},
 		{"client-id", true},
 		{"client-secret", true},
-		// Named individually in isSecret; both are real flags whose names
+		// Named individually in isSecret; these are real flags whose names
 		// contain no generic secret term.
+		{"database-url", true},
+		{"migrations-database-url", true},
 		{"metadata-database-url", true},
 		{"sms-generic-headers", true},
 		{"postgres", true},
@@ -38,11 +40,10 @@ func TestIsSecret(t *testing.T) {
 		{"profile-address", false},
 		{"metadata-path", false},
 		{"", false},
-		// Deliberately NOT redacted: these would be caught by widening
-		// "metadata-database-url" to "database-url" or "sms-generic-headers"
-		// to "headers". No such flag exists today, and a future one would not
-		// necessarily carry a secret, so the specific names are used instead.
-		{"database-url", false},
+		// Deliberately NOT redacted: this would be caught by widening
+		// "sms-generic-headers" to "headers". No such flag exists today, and
+		// a future one would not necessarily carry a secret, so the specific
+		// name is used instead.
 		{"headers", false},
 		// smtp-api-header is SendGrid's X-SMTPAPI value (categories,
 		// substitutions, filters), not a credential, so it stays visible.

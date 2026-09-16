@@ -67,15 +67,17 @@ func NewLogger(debug bool, formatText bool) *slog.Logger {
 // single flag each, because no general term describes them without also
 // matching unrelated flags:
 //
+//   - database-url: the engine's shared runtime Postgres DSN.
+//   - migrations-database-url: the engine's shared migrations Postgres DSN.
 //   - metadata-database-url: constellation's Hasura metadata DSN, which embeds
 //     Postgres credentials but is not named after any of them.
 //   - sms-generic-headers: a JSON object of HTTP headers for the generic SMS
 //     provider, documented to hold values like {"Authorization":"Bearer ..."}.
 //
 // Prefer adding the exact flag name over widening a term. Matching "headers"
-// or "database-url" instead would redact any future flag containing those
-// words, including ones carrying no secret, and neither covers anything the
-// specific names miss today.
+// instead would redact any future flag containing that word, including ones
+// carrying no secret, and does not cover anything the specific name misses
+// today.
 func isSecret(name string) bool {
 	return strings.Contains(name, "pass") ||
 		strings.Contains(name, "token") ||
@@ -85,6 +87,8 @@ func isSecret(name string) bool {
 		strings.Contains(name, "postgres") ||
 		strings.Contains(name, "client-id") ||
 		strings.Contains(name, "client-secret") ||
+		name == "database-url" ||
+		name == "migrations-database-url" ||
 		strings.Contains(name, "metadata-database-url") ||
 		strings.Contains(name, "sms-generic-headers")
 }
