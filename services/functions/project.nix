@@ -85,11 +85,36 @@ let
     '';
   };
 
+  # Curated shared libraries for unpatched dynamic binaries a user project pulls
+  # in at install time (prebuilt native npm addons, vendored tools). getLib
+  # selects each package's lib output (glibc/openssl/zlib are multi-output; their
+  # default output has no /lib), so the merged tree actually holds the .so files.
+  fhsLibraries = [
+    pkgs.stdenv.cc.cc.lib # libstdc++.so.6, libgcc_s.so.1
+    (pkgs.lib.getLib pkgs.stdenv.cc.libc) # glibc: libc/libm/...
+    (pkgs.lib.getLib pkgs.zlib)
+    (pkgs.lib.getLib pkgs.openssl)
+  ];
+
+  fhsLibs = pkgs.buildEnv {
+    name = "functions-fhs-libs";
+    paths = fhsLibraries;
+    pathsToLink = [ "/lib" ];
+  };
+
+  # The image is built from Nix store paths only, so there is no FHS ELF
+  # interpreter (/lib64/ld-linux-x86-64.so.2); symlink the glibc loader into the
+  # conventional locations so unpatched binaries can exec. The loader alone only
+  # resolves the interpreter, not DT_NEEDED libraries, so LD_LIBRARY_PATH (set on
+  # the image, below) points at fhsLibs. fhsLibs is anchored here to keep it in
+  # the image closure without merging its /lib into the image root, which would
+  # collide with the loader symlinks below on single-libdir arches (aarch64).
   glibcLoader = pkgs.runCommand "glibc-loader" { } ''
     loader="${pkgs.stdenv.cc.bintools.dynamicLinker}"
-    mkdir -p $out/lib64 $out/lib
+    mkdir -p $out/lib64 $out/lib $out/nix-support
     ln -s "$loader" "$out/lib64/$(basename "$loader")"
     ln -s "$loader" "$out/lib/$(basename "$loader")"
+    echo ${fhsLibs} > $out/nix-support/ld-library-path
   '';
 
   mkDockerImage =
@@ -133,6 +158,7 @@ let
             Env = [
               "TMPDIR=/tmp"
               "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
+              "LD_LIBRARY_PATH=${fhsLibs}/lib"
               "NODE_PATH=${node_modules_runtime}/${submodule}/node_modules"
               "PATH=${node_modules_runtime}/${submodule}/node_modules/.bin:${nodeRuntime}/bin:${pkgs.gitMinimal}/bin:${pkgs.openssh}/bin:/bin:/usr/bin"
               "SERVER_PATH=/opt/server"
