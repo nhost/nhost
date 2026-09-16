@@ -1,7 +1,6 @@
 import {
   createContext,
   type ReactNode,
-  useCallback,
   useContext,
   useMemo,
   useState,
@@ -20,29 +19,14 @@ const CustomCheckModeContext =
 export interface CustomCheckModeProviderProps {
   children: ReactNode;
   defaultMode?: CustomCheckEditorMode;
-  mode?: CustomCheckEditorMode;
-  onModeChange?: (mode: CustomCheckEditorMode) => void;
 }
 
 export function CustomCheckModeProvider({
   children,
   defaultMode = 'builder',
-  mode: controlledMode,
-  onModeChange,
 }: CustomCheckModeProviderProps) {
-  const [uncontrolledMode, setUncontrolledMode] =
-    useState<CustomCheckEditorMode>(defaultMode);
-  const mode = controlledMode ?? uncontrolledMode;
-  const setMode = useCallback(
-    (nextMode: CustomCheckEditorMode) => {
-      if (controlledMode === undefined) {
-        setUncontrolledMode(nextMode);
-      }
-      onModeChange?.(nextMode);
-    },
-    [controlledMode, onModeChange],
-  );
-  const value = useMemo(() => ({ mode, setMode }), [mode, setMode]);
+  const [mode, setMode] = useState<CustomCheckEditorMode>(defaultMode);
+  const value = useMemo(() => ({ mode, setMode }), [mode]);
   return (
     <CustomCheckModeContext.Provider value={value}>
       {children}

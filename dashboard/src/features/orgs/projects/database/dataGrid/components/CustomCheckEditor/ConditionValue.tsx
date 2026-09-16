@@ -113,22 +113,12 @@ export interface ConditionValueProps {
    * Path of the table selected through the column input.
    */
   selectedTablePath: string;
-  /**
-   * Accessible label for the value control.
-   */
-  ariaLabel?: string;
-  /**
-   * Converts a free-form combobox value before storing it.
-   */
-  transformCreatedValue?: (value: string) => unknown;
 }
 
 function ConditionValue({
   name,
   selectedTablePath,
   className,
-  ariaLabel,
-  transformCreatedValue,
 }: ConditionValueProps) {
   const { schema, table } = useCustomCheckEditor();
   const { project } = useProject();
@@ -250,9 +240,6 @@ function ConditionValue({
     if (value === null || value === undefined) {
       return '';
     }
-    if (typeof value === 'object') {
-      return JSON.stringify(value);
-    }
     return String(value);
   }
 
@@ -270,7 +257,6 @@ function ConditionValue({
         <Button
           variant="outline"
           role="combobox"
-          aria-label={ariaLabel}
           aria-expanded={open}
           className={cn('w-full justify-between', className)}
         >
@@ -312,13 +298,7 @@ function ConditionValue({
             </CommandGroup>
             <CommandCreateItem
               onCreate={(currentValue) => {
-                setValue(
-                  inputName,
-                  transformCreatedValue
-                    ? transformCreatedValue(currentValue)
-                    : currentValue,
-                  { shouldDirty: true },
-                );
+                setValue(inputName, currentValue, { shouldDirty: true });
                 setOpen(false);
               }}
             />

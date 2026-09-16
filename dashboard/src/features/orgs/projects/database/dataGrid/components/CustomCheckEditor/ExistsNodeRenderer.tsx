@@ -4,9 +4,7 @@ import { useFormContext, useWatch } from 'react-hook-form';
 import { cn } from '@/lib/utils';
 import GroupNodeRenderer from './GroupNodeRenderer';
 import TableComboBox from './TableComboBox';
-import useCustomCheckEditor, {
-  CustomCheckEditorContext,
-} from './useCustomCheckEditor';
+import { CustomCheckEditorContext } from './useCustomCheckEditor';
 
 interface ExistsNodeRendererProps {
   name: string;
@@ -20,7 +18,6 @@ export default function ExistsNodeRenderer({
   depth = 0,
 }: ExistsNodeRendererProps) {
   const { setValue, getFieldState, formState } = useFormContext();
-  const { dialect } = useCustomCheckEditor();
 
   const schema: string = useWatch({ name: `${name}.schema` }) ?? '';
   const table: string = useWatch({ name: `${name}.table` }) ?? '';
@@ -33,9 +30,8 @@ export default function ExistsNodeRenderer({
     () => ({
       schema,
       table,
-      dialect,
     }),
-    [schema, table, dialect],
+    [schema, table],
   );
 
   function handleTableChange(value: { schema: string; table: string }) {
