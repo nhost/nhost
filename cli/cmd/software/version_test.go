@@ -250,8 +250,9 @@ func TestServicesToCheckReportsEngineVersion(t *testing.T) {
 	t.Fatal("engine was not among the checked services")
 }
 
-// TestServicesToCheckToleratesUnsetEngineVersion keeps a config that has not
-// been filled from panicking a version check.
+// TestServicesToCheckToleratesUnsetEngineVersion pins the engine-specific nil
+// guard: a hand-built config with no engine version skips the engine without
+// falling back to standalone auth.
 func TestServicesToCheckToleratesUnsetEngineVersion(t *testing.T) {
 	t.Parallel()
 
