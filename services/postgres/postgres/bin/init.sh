@@ -187,8 +187,8 @@ main() {
 	trap 'echo "Received SIGTERM, shutting down PostgreSQL..."; kill -TERM "$POSTGRES_PID"; wait "$POSTGRES_PID"' TERM
 
 	# Simply wait for postgres
-	wait "$POSTGRES_PID"
-	EXIT_CODE=$?
+	EXIT_CODE=0
+	wait "$POSTGRES_PID" || EXIT_CODE=$?
 	echo "PostgreSQL exited with code: $EXIT_CODE"
 
 	if [ -n "${DEBUG:-}" ]; then
