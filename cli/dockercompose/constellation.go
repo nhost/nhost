@@ -40,6 +40,10 @@ func constellation( //nolint:funlen
 		env[v.Name] = v.Value
 	}
 
+	// Keep the listener owned by compose so it cannot drift from the ingress
+	// and healthcheck port when the constellation binary default changes.
+	env["CONSTELLATION_BIND_ADDRESS"] = fmt.Sprintf(":%d", constellationPort)
+
 	return &Service{
 		Image: image,
 		DependsOn: map[string]DependsOn{
