@@ -38,6 +38,9 @@ const (
 	// defaultAuthAPIPrefix preserves the standard Nhost auth /v1 route surface
 	// when auth is embedded behind the engine's /auth mount.
 	defaultAuthAPIPrefix = "/v1"
+	// defaultGraphQLPlaygroundEndpoint points Constellation's playground at the
+	// GraphQL route exposed through the engine's /graphql mount.
+	defaultGraphQLPlaygroundEndpoint = "/graphql/v1/graphql"
 )
 
 // serveConfig holds the engine-level configuration for the serve command.
@@ -237,6 +240,7 @@ func sharedOverridesFor(service string, cfg serveConfig) []sharedOverride {
 		scalar("postgres-migrations-source", cfg.migrationsURL)
 		cors("cors-allow-origins", emptyMeansUnconfigured)
 	case "graphql":
+		scalar("playground-graphql-endpoint", defaultGraphQLPlaygroundEndpoint)
 		scalar("admin-secret", cfg.adminSecret)
 		scalar("jwt-secret", cfg.jwtSecret)
 		scalar("metadata-database-url", cfg.databaseURL)
