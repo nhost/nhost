@@ -24,6 +24,7 @@
 //	client := &http.Client{Transport: tr}
 //
 // Deprecated: This package is deprecated.
+// It is not maintained and should not be used.
 package h2c
 
 import (
@@ -83,6 +84,10 @@ type h2cHandler struct {
 // the result of NewHandler in an http.MaxBytesHandler.
 
 // NewHandler is deprecated.
+//
+// The Handler returned by NewHandler will read the first request on a connection entirely
+// into memory. To limit the memory consumed by this request, wrap the result of NewHandler
+// in an http.MaxBytesHandler.
 //
 // Deprecated: Set the [http.Server] Protocols field to use unencrypted HTTP/2 instead.
 func NewHandler(h http.Handler, s *http2.Server) http.Handler {
