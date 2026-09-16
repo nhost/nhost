@@ -64,16 +64,34 @@ func TestServicePrefixedFlags(t *testing.T) {
 	skip := newSet("postgres")
 	hidden := newSet("disable-signup")
 
-	flags := servicePrefixedFlags("auth", passthroughSrc(), skip, hidden)
+	src := append(passthroughSrc(), &cli.IntFlag{
+		Name:  "smtp-port",
+		Usage: "SMTP port",
+		Value: 587,
+	})
+	flags := servicePrefixedFlags("auth", src, skip, hidden)
 
 	names := make([]string, 0, len(flags))
 	for _, f := range flags {
 		names = append(names, f.Names()[0])
 	}
 
-	want := []string{"auth-api-prefix", "auth-disable-signup", "auth-trusted"}
+	want := []string{"auth-api-prefix", "auth-disable-signup", "auth-trusted", "auth-smtp-port"}
 	if !slices.Equal(names, want) {
 		t.Fatalf("prefixed flag names = %v, want %v (postgres must be skipped)", names, want)
+	}
+
+	docFlag, ok := flags[len(flags)-1].(cli.DocGenerationFlag)
+	if !ok {
+		t.Fatalf("auth-smtp-port type = %T, want cli.DocGenerationFlag", flags[len(flags)-1])
+	}
+
+	if got := docFlag.GetDefaultText(); got != "587" {
+		t.Errorf("auth-smtp-port default text = %q, want 587", got)
+	}
+
+	if got := docFlag.GetUsage(); got != "SMTP port (int)" {
+		t.Errorf("auth-smtp-port usage = %q, want %q", got, "SMTP port (int)")
 	}
 
 	// The hidden native flag is still exposed, just not visible in help.

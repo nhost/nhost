@@ -35,10 +35,30 @@ func classifyFlag(f cli.Flag) flagKind {
 	return kindScalar
 }
 
-// flagUsage returns a flag's help text, or "" for flags that do not expose it.
+// flagUsage returns a flag's help text with its native type, or "" for flags
+// that do not expose documentation metadata.
 func flagUsage(f cli.Flag) string {
 	if dg, ok := f.(cli.DocGenerationFlag); ok {
-		return dg.GetUsage()
+		usage := dg.GetUsage()
+		if typeName := dg.TypeName(); typeName != "" {
+			return strings.TrimSpace(usage + " (" + typeName + ")")
+		}
+
+		return usage
+	}
+
+	return ""
+}
+
+// flagDefaultText returns the explicit default text when present, otherwise
+// the native flag's string representation of its default value.
+func flagDefaultText(f cli.Flag) string {
+	if dg, ok := f.(cli.DocGenerationFlag); ok {
+		if defaultText := dg.GetDefaultText(); defaultText != "" {
+			return defaultText
+		}
+
+		return dg.GetValue()
 	}
 
 	return ""
@@ -88,23 +108,24 @@ func servicePrefixedFlags(
 		pname := prefixedName(service, name)
 		env := cli.EnvVars(prefixedEnv(service, name))
 		usage := flagUsage(f)
+		defaultText := flagDefaultText(f)
 		hide := hidden[name]
 
 		switch classifyFlag(f) {
 		case kindBool:
 			out = append(out, &cli.BoolFlag{ //nolint:exhaustruct
 				Name: pname, Usage: usage, Category: category,
-				Sources: env, Hidden: hide,
+				Sources: env, Hidden: hide, DefaultText: defaultText,
 			})
 		case kindSlice:
 			out = append(out, &cli.StringSliceFlag{ //nolint:exhaustruct
 				Name: pname, Usage: usage, Category: category,
-				Sources: env, Hidden: hide,
+				Sources: env, Hidden: hide, DefaultText: defaultText,
 			})
 		case kindScalar:
 			out = append(out, &cli.StringFlag{ //nolint:exhaustruct
 				Name: pname, Usage: usage, Category: category,
-				Sources: env, Hidden: hide,
+				Sources: env, Hidden: hide, DefaultText: defaultText,
 			})
 		}
 	}
