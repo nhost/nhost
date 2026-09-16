@@ -39,6 +39,7 @@ func expectedConstellation(useTLS bool) *Service {
 		Command:    []string{"serve"},
 		Environment: map[string]string{
 			"CONSTELLATION_ADMIN_SECRET":               "adminSecret",
+			"CONSTELLATION_BIND_ADDRESS":               ":8000",
 			"CONSTELLATION_CORS_ALLOWED_ORIGINS":       scheme + "://dev.dashboard.local.nhost.run:1337,http://localhost:3000",
 			"CONSTELLATION_DEBUG":                      "false",
 			"CONSTELLATION_DEV_MODE":                   "false",

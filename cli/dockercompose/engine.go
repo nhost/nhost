@@ -80,11 +80,10 @@ func engineEnabled(cfg *model.ConfigConfig) bool {
 // service's mount prefix.
 //
 // The engine serves each bundled service under /auth, /storage or /graphql,
-// while clients keep using the unprefixed per-service hosts. In the cloud the
-// nginx ingress prepends the prefix; here traefik does, so the prefixes stay
-// invisible to clients in both topologies. That is also why the engine's
-// --mount-prefix-hosts and --auth-compat-hosts stay empty locally: nothing
-// reaches the engine on a host where the prefix is externally visible.
+// while clients keep using the unprefixed per-service hosts. Every local caller
+// reaches the engine through traefik, which owns prepending the mount prefix;
+// the cloud nginx ingress does the same. The prefixes therefore stay invisible
+// to callers, so --mount-prefix-hosts and --auth-compat-hosts stay empty locally.
 func engineIngress(service, mount string, useTLS bool, rule string) Ingress {
 	return Ingress{
 		Name: "engine-" + service,
@@ -117,8 +116,9 @@ func engine( //nolint:funlen
 	envars, err := appconfig.NhostEngineEnv(
 		cfg,
 		appconfig.NhostEngineEnvInput{
-			// The engine binds its own default; the compose ingress targets it.
-			ListenAddress: "",
+			// Keep the listener owned by compose so it cannot drift from the
+			// ingress and healthcheck port when appconfig defaults change.
+			ListenAddress: fmt.Sprintf(":%d", enginePort),
 
 			// Hasura is not bundled: the engine's graphql service proxies to the
 			// same container the standalone services talk to.
@@ -214,7 +214,7 @@ func engine( //nolint:funlen
 		// The engine deliberately does not answer to hasura-auth-service,
 		// hasura-storage-service or constellation-service: those names imply the
 		// per-service ports and unprefixed routes its shared listener does not
-		// serve. In-container callers use http://engine:8080/<mount>/v1.
+		// serve. In-container callers use the public service URLs through traefik.
 		Networks: networkAliases(),
 		Ports:    nil,
 		Restart:  "always",
