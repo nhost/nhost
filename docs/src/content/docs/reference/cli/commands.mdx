@@ -21,12 +21,12 @@ nhost [GLOBAL OPTIONS] [command [COMMAND OPTIONS]] [ARGUMENTS...]
 
 | | |
 | --- | --- |
-| `--branch=""` | Git branch name. If not set, it will be detected from the current git repository. This flag is used to dynamically create docker volumes for each branch. If you want to have a static volume name or if you are not using git, set this flag to a static value. Default: `<current-git-branch>`. Env: `$BRANCH`. |
+| `--branch=""` | Branch name used to namespace this project's docker volumes (detected from git by default). Default: `<current-git-branch>`. Env: `$BRANCH`. |
 | `--dot-nhost-folder=""` | Path to .nhost folder. Default: `".nhost"`. Env: `$NHOST_DOT_NHOST_FOLDER`. |
 | `--help, -h` | show help. |
 | `--local-subdomain=""` | Local subdomain to reach the development environment. Default: `"local"`. Env: `$NHOST_LOCAL_SUBDOMAIN`. |
 | `--nhost-folder=""` | Path to nhost folder. Default: `"nhost"`. Env: `$NHOST_NHOST_FOLDER`. |
-| `--project-name=""` | Project name. Default: `<project-directory-name>`. Env: `$NHOST_PROJECT_NAME`. |
+| `--project-name=""` | Project name. Default: `<nhost/project-name or directory name>`. Env: `$NHOST_PROJECT_NAME`. |
 | `--root-folder=""` | Root folder of project. Default: `"."`. Env: `$NHOST_ROOT_FOLDER`. |
 | `--version, -v` | print the version. |
 
@@ -145,6 +145,35 @@ Edit base configuration or an overlay.
 | --- | --- |
 | `--editor=""` | Editor to use. Default: `"vim"`. Env: `$EDITOR`. |
 | `--subdomain=""` | If specified, edit this subdomain's overlay, otherwise edit base configuration. Env: `$NHOST_SUBDOMAIN`. |
+
+</div>
+
+</div>
+
+---
+
+<div class="cli-command cli-l0">
+
+## create
+
+</div>
+
+<div class="cli-command cli-l1">
+
+### `nhost create`
+
+<div class="cli-body">
+
+Create a new Nhost project from a template.
+
+| | |
+| --- | --- |
+| `--no-install` | Skip installing frontend dependencies. |
+| `--package-manager=""` | Package manager for the frontend (pnpm, npm, bun, yarn). Default: `"pnpm"`. |
+| `--start` | Start the backend and the frontend dev server once the project is created. |
+| `--template, -t=""` | Template to scaffold (available: nextjs-shadcn). Default: `"nextjs-shadcn"`. |
+| `--template-path=""` | Use a local template directory instead of downloading (`offline/dev`). |
+| `--yes, -y, --skip-prompts` | Accept defaults and skip all prompts. |
 
 </div>
 

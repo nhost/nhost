@@ -1,8 +1,13 @@
 package dev //nolint:testpackage
 
 import (
+	"bytes"
+	"errors"
+	"os"
+	"path/filepath"
 	"testing"
 
+	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/dockercompose"
 )
 
@@ -235,5 +240,62 @@ func TestRunServiceOverrideFields(t *testing.T) {
 
 	if len(svc.BindMounts) != 1 {
 		t.Errorf("expected 1 bind mount, got %d", len(svc.BindMounts))
+	}
+}
+
+// withStdin points os.Stdin at a file holding the answer to one prompt.
+func withStdin(t *testing.T, input string) {
+	t.Helper()
+
+	path := filepath.Join(t.TempDir(), "stdin")
+	if err := os.WriteFile(path, []byte(input), 0o600); err != nil {
+		t.Fatalf("write stdin fixture: %v", err)
+	}
+
+	f, err := os.Open(path)
+	if err != nil {
+		t.Fatalf("open stdin fixture: %v", err)
+	}
+
+	orig := os.Stdin
+	os.Stdin = f
+
+	t.Cleanup(func() {
+		os.Stdin = orig
+
+		f.Close()
+	})
+}
+
+var errUpFailed = errors.New("failed to start docker compose")
+
+// Declining the teardown, or not being able to ask about it, says nothing about
+// whether the environment came up, so `nhost up` has to keep reporting the
+// failure. Callers that chain onto a running backend, such as `nhost create
+// --start`, only have the exit code to go on.
+//
+//nolint:paralleltest // swaps os.Stdin
+func TestUpErrReportsTheFailureWhateverTheAnswer(t *testing.T) {
+	tests := []struct {
+		name  string
+		stdin string
+	}{
+		{name: "declines the teardown", stdin: "n\n"},
+		{name: "cannot read an answer", stdin: ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			withStdin(t, tt.stdin)
+
+			var output bytes.Buffer
+
+			ce := clienv.New(&output, &output, nil, "", "", "", "", "", "", "")
+
+			err := upErr(ce, nil, false, errUpFailed)
+			if !errors.Is(err, errUpFailed) {
+				t.Errorf("upErr() = %v, want errUpFailed", err)
+			}
+		})
 	}
 }
