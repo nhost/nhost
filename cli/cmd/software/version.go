@@ -71,6 +71,10 @@ const nhostReleasesURL = "https://github.com/nhost/nhost/releases"
 // per-service versions, so reporting on them would be advice about absent
 // containers that the user could not act on anyway; the engine's own version
 // is what governs all three.
+//
+// cfg must be nil or a result of schema.Fill, which guarantees a concrete
+// version for every section it contains. Only the engine version is guarded
+// for callers that construct a config by hand.
 func servicesToCheck(cfg *model.ConfigConfig) []serviceVersion {
 	if cfg == nil {
 		return nil
@@ -178,6 +182,9 @@ func CheckVersions(
 		return fmt.Errorf("failed to get nhost client: %w", err)
 	}
 
+	// XXX(meh): Do not publish Engine rows in software_versions until a CLI
+	// release containing that enum value has shipped and been adopted. Older
+	// CLIs reject the entire response when strict enum decoding sees Engine.
 	swv, err := cl.GetSoftwareVersions(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get software versions: %w", err)
