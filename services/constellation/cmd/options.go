@@ -60,8 +60,10 @@ type Options struct {
 	// upstream. 0 disables the cap.
 	HasuraProxyRequestBodyLimitBytes int64
 
-	// EnablePlayground serves the GraphQL playground at /.
-	EnablePlayground bool
+	// EnablePlayground serves the GraphQL playground at /, which sends its
+	// queries and subscriptions to PlaygroundGraphQLEndpoint.
+	EnablePlayground          bool
+	PlaygroundGraphQLEndpoint string
 	// DevMode returns raw connector and database errors to clients. It leaks
 	// schema and data, so it is for development only.
 	DevMode bool
@@ -126,6 +128,7 @@ func optionsFromCommand(cmd *cli.Command) Options {
 		HasuraUpstreamURL:                cmd.String(flagHasuraUpstreamURL),
 		HasuraProxyRequestBodyLimitBytes: cmd.Int64(flagHasuraProxyRequestBodyLimitBytes),
 		EnablePlayground:                 cmd.Bool(flagEnablePlayground),
+		PlaygroundGraphQLEndpoint:        cmd.String(flagPlaygroundGraphQLEndpoint),
 		DevMode:                          cmd.Bool(flagDevMode),
 	}
 }

@@ -28,6 +28,7 @@ func validTestOptions() Options {
 		HasuraUpstreamURL:                "",
 		HasuraProxyRequestBodyLimitBytes: defaultHasuraProxyRequestBodyLimitBytes,
 		EnablePlayground:                 false,
+		PlaygroundGraphQLEndpoint:        defaultPlaygroundGraphQLEndpoint,
 		DevMode:                          false,
 	}
 }
@@ -209,6 +210,7 @@ func TestOptionsFromCommandDefaults(t *testing.T) {
 		HasuraUpstreamURL:                defaultHasuraUpstreamURL,
 		HasuraProxyRequestBodyLimitBytes: defaultHasuraProxyRequestBodyLimitBytes,
 		EnablePlayground:                 false,
+		PlaygroundGraphQLEndpoint:        defaultPlaygroundGraphQLEndpoint,
 		DevMode:                          false,
 	}
 
@@ -238,6 +240,7 @@ func TestOptionsFromCommandFlags(t *testing.T) {
 		"--"+flagHasuraUpstreamURL, "",
 		"--"+flagHasuraProxyRequestBodyLimitBytes, "0",
 		"--"+flagEnablePlayground,
+		"--"+flagPlaygroundGraphQLEndpoint, "/graphql/v1/graphql",
 		"--"+flagDevMode,
 	)
 
@@ -256,6 +259,7 @@ func TestOptionsFromCommandFlags(t *testing.T) {
 		HasuraUpstreamURL:                "",
 		HasuraProxyRequestBodyLimitBytes: 0,
 		EnablePlayground:                 true,
+		PlaygroundGraphQLEndpoint:        "/graphql/v1/graphql",
 		DevMode:                          true,
 	}
 
