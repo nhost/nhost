@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/nhost/nhost/cli/clienv"
 )
@@ -23,8 +25,15 @@ type pickerItem struct {
 }
 
 // promptLine asks for a single line of input, returning defaultValue when the
-// answer is empty.
+// answer is empty. It prefers the frame's editor, which starts with the default
+// already typed in, and falls back to a plain prompt that offers it in brackets
+// when the terminal cannot be read key by key.
 func promptLine(ce *clienv.CliEnv, label, defaultValue string) (string, error) {
+	value, err := editLine(ce, label, defaultValue)
+	if !errors.Is(err, errNoRawTerminal) {
+		return value, err
+	}
+
 	if defaultValue == "" {
 		ce.PromptMessage("%s: ", label)
 	} else {
@@ -68,9 +77,25 @@ func promptConfirm(ce *clienv.CliEnv, message string, defaultYes bool) (bool, er
 	}
 }
 
+// pickerHeading phrases a picker's title as the question it is asking. The
+// title itself stays the bare noun, because it is also what the answer is
+// recorded under once the menu is gone, and because a heading reads as a
+// sentence rather than a column label.
+func pickerHeading(title string) string {
+	if title == "" {
+		return "Select one"
+	}
+
+	first, rest := utf8.DecodeRuneInString(title)
+
+	return "Select a " + string(unicode.ToLower(first)) + title[rest:]
+}
+
 // promptPick asks which of the items to use, preferring the arrow-key picker
 // and falling back to a numbered list when stdin cannot be read key by key. A
-// single-item list is resolved without asking.
+// list with one item is still asked about: what is on offer is part of what the
+// prompt is for, and skipping it would leave the create choosing a template
+// without ever naming it.
 func promptPick(ce *clienv.CliEnv, title string, items []pickerItem, defaultIdx int) (int, error) {
 	if len(items) == 0 {
 		return -1, fmt.Errorf("%s: nothing to choose from", title) //nolint:err113
@@ -78,10 +103,6 @@ func promptPick(ce *clienv.CliEnv, title string, items []pickerItem, defaultIdx 
 
 	if defaultIdx < 0 || defaultIdx >= len(items) {
 		defaultIdx = 0
-	}
-
-	if len(items) == 1 {
-		return 0, nil
 	}
 
 	idx, err := pickWithKeys(ce, title, items, defaultIdx)
@@ -93,8 +114,8 @@ func promptPick(ce *clienv.CliEnv, title string, items []pickerItem, defaultIdx 
 		return -1, err
 	}
 
-	ce.Infoln("%s: %s", title, items[idx].Label)
-
+	// The picker leaves the answer on screen in the frame, so there is nothing
+	// to record here.
 	return idx, nil
 }
 
@@ -108,7 +129,7 @@ func pickByNumber(
 	defaultIdx int,
 ) (int, error) {
 	ce.Println("")
-	ce.Infoln("%s", title)
+	ce.Infoln("%s", pickerHeading(title))
 
 	for i, item := range items {
 		if item.Desc == "" {

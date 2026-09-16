@@ -112,11 +112,13 @@ func TestRenderItems(t *testing.T) {
 
 	got := output.String()
 
-	if strings.Count(got, "\r\n") != 2 {
-		t.Errorf("rendered rows = %d, want 2:\n%q", strings.Count(got, "\r\n"), got)
+	// One row per item, plus the row that closes the frame under them while the
+	// question is still open.
+	if strings.Count(got, "\r\n") != 3 {
+		t.Errorf("rendered rows = %d, want 3:\n%q", strings.Count(got, "\r\n"), got)
 	}
 
-	for _, want := range []string{"  pnpm", "> npm - the default"} {
+	for _, want := range []string{frameOff + " pnpm", frameOn + " npm - the default", frameClose} {
 		if !strings.Contains(got, want) {
 			t.Errorf("render missing %q:\n%q", want, got)
 		}

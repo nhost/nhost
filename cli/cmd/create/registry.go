@@ -28,17 +28,17 @@ func defaultTemplatesRef(version string) string {
 }
 
 // template describes a starter template that `nhost create` can scaffold.
+// display is what the picker lists, so it is the stack and nothing else: a line
+// per template that fits on one.
 type template struct {
-	name        string
-	display     string
-	description string
+	name    string
+	display string
 }
 
 var templates = []template{ //nolint:gochecknoglobals
 	{
-		name:        "nextjs-shadcn",
-		display:     "Next.js + shadcn/ui",
-		description: "Next.js (App Router) + Tailwind CSS + shadcn/ui with email OTP auth",
+		name:    "nextjs-shadcn",
+		display: "Next.js + shadcn/ui",
 	},
 }
 

@@ -158,7 +158,11 @@ func action(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("failed to create %s: %w", target, err)
 	}
 
-	ce.Infoln("Creating Nhost project %q from template %q", resolved.name, tmpl.name)
+	// An interactive run closed its frame by saying this, under the answers it
+	// is made of, so it is only worth saying here when nothing was asked.
+	if !res.prompt {
+		ce.Infoln("Creating Nhost project %q from template %q", resolved.name, tmpl.name)
+	}
 
 	if err := stageProject(
 		ctx, ce, cmd, tmpl, resolved.name, target, resolved.packageManager,

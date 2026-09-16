@@ -596,11 +596,62 @@ func TestRunInteractiveRepromptsOnInvalidName(t *testing.T) {
 	}
 }
 
+// Naming the project is the first question, because it is the answer that
+// decides where the project lands and it arrives already filled in from the
+// directory the command was pointed at, so the usual answer is enter.
+//
+//nolint:paralleltest // mutates package-level prompt seams
+func TestRunInteractiveAsksNameFirst(t *testing.T) {
+	stubPrompts(t)
+
+	var asked []string
+
+	runPrompt = func(_ *clienv.CliEnv, label, defaultValue string) (string, error) {
+		asked = append(asked, label)
+
+		return defaultValue, nil
+	}
+
+	runPicker = func(_ *clienv.CliEnv, title string, _ []pickerItem, defaultIdx int) (int, error) {
+		asked = append(asked, title)
+
+		return defaultIdx, nil
+	}
+
+	var output bytes.Buffer
+
+	got, err := runInteractive(newTestEnv(&output), choices{
+		template:       defaultTemplate,
+		name:           "skate-app",
+		packageManager: defaultPackageManager,
+		installNow:     true,
+		startNow:       false,
+	}, answered{})
+	if err != nil {
+		t.Fatalf("runInteractive: %v", err)
+	}
+
+	want := "Project name > Template > Package manager"
+	if got := strings.Join(asked, " > "); got != want {
+		t.Errorf("asked %q, want %q", got, want)
+	}
+
+	if got.name != "skate-app" {
+		t.Errorf("name = %q, want %q: enter accepts the default", got.name, "skate-app")
+	}
+}
+
 var errPickerFailed = errors.New("picker failed")
 
 //nolint:paralleltest // mutates package-level prompt seams
 func TestRunInteractivePropagatesPickerError(t *testing.T) {
 	stubPrompts(t)
+
+	// The name is asked first, so it has to be answered for the run to reach a
+	// picker at all.
+	runPrompt = func(_ *clienv.CliEnv, _, _ string) (string, error) {
+		return "demo", nil
+	}
 
 	runPicker = func(_ *clienv.CliEnv, _ string, _ []pickerItem, _ int) (int, error) {
 		return -1, errPickerFailed

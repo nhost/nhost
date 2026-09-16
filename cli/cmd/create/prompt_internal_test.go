@@ -161,12 +161,18 @@ func TestPromptPick(t *testing.T) {
 	}
 }
 
+// One template is still a template the user gets to see and accept, so the
+// menu is printed rather than answered on their behalf.
+//
 //nolint:paralleltest // swaps os.Stdin
-func TestPromptPickSkipsSingleOption(t *testing.T) {
+func TestPromptPickAsksAboutASingleOption(t *testing.T) {
+	withStdin(t, "\n")
+
 	var output bytes.Buffer
 
-	// No stdin fixture: a single-option list must not read input at all.
-	got, err := promptPick(newTestEnv(&output), "Template", []pickerItem{{Label: "only"}}, 0)
+	got, err := promptPick(
+		newTestEnv(&output), "Template", []pickerItem{{Label: "only", Desc: "the one"}}, 0,
+	)
 	if err != nil {
 		t.Fatalf("promptPick: %v", err)
 	}
@@ -175,8 +181,51 @@ func TestPromptPickSkipsSingleOption(t *testing.T) {
 		t.Errorf("promptPick() = %d, want 0", got)
 	}
 
-	if output.Len() != 0 {
-		t.Errorf("promptPick() printed a menu for one option:\n%s", output.String())
+	if !strings.Contains(output.String(), "1. only - the one") {
+		t.Errorf("promptPick() did not offer the one option:\n%s", output.String())
+	}
+}
+
+// The heading asks for the choice rather than naming it, while the title it is
+// built from stays the bare noun the answer is recorded under.
+//
+//nolint:paralleltest // swaps os.Stdin
+func TestPromptPickAsksToSelect(t *testing.T) {
+	withStdin(t, "2\n")
+
+	var output bytes.Buffer
+
+	items := []pickerItem{{Label: "Next.js"}, {Label: "React"}}
+
+	if _, err := promptPick(newTestEnv(&output), "Template", items, 0); err != nil {
+		t.Fatalf("promptPick: %v", err)
+	}
+
+	if !strings.Contains(output.String(), "Select a template") {
+		t.Errorf("menu did not ask to select a template:\n%s", output.String())
+	}
+}
+
+func TestPickerHeading(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		title string
+		want  string
+	}{
+		{title: "Template", want: "Select a template"},
+		{title: "Package manager", want: "Select a package manager"},
+		{title: "", want: "Select one"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.title, func(t *testing.T) {
+			t.Parallel()
+
+			if got := pickerHeading(tt.title); got != tt.want {
+				t.Errorf("pickerHeading(%q) = %q, want %q", tt.title, got, tt.want)
+			}
+		})
 	}
 }
 

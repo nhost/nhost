@@ -7,7 +7,6 @@ import (
 	"os"
 	"unicode/utf8"
 
-	"github.com/charmbracelet/lipgloss"
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/urfave/cli/v3"
 	"golang.org/x/term"
@@ -24,18 +23,6 @@ const (
 	// keyBufferSize holds the longest sequence a single key press produces,
 	// which is the three bytes of an arrow key.
 	keyBufferSize = 3
-)
-
-//nolint:gochecknoglobals // A lipgloss style is built once and reused.
-var (
-	pickerTitle = lipgloss.NewStyle().
-			Foreground(clienv.ANSIColorCyan).
-			Render
-
-	pickerSelected = lipgloss.NewStyle().
-			Foreground(clienv.ANSIColorCyan).
-			Bold(true).
-			Render
 )
 
 // errCancelled ends the command quietly when the user aborts a picker. Raw
@@ -82,7 +69,12 @@ func pickWithKeys(
 	out := ce.Stdout()
 	width := terminalWidth(fd)
 
-	fmt.Fprintf(out, "\r\n\x1b[K%s\r\n", pickerTitle(title+" (↑/↓ to move, enter to select)"))
+	fmt.Fprintf(out, "\r\x1b[K%s\r\n", barLine())
+	fmt.Fprintf(
+		out,
+		"\r\x1b[K%s\r\n",
+		askLine(true, pickerHeading(title))+hintLine("  ↑/↓ to move, enter to select"),
+	)
 	fmt.Fprint(out, "\x1b[?25l")
 
 	defer fmt.Fprint(out, "\x1b[?25h")
@@ -99,7 +91,7 @@ func pickWithKeys(
 
 		switch action {
 		case actionSelect:
-			eraseBlock(out, len(items)+1)
+			submitPick(out, pickerHeading(title), items[cursor], len(items), width)
 
 			return cursor, nil
 		case actionCancel:
@@ -113,8 +105,25 @@ func pickWithKeys(
 			cursor = moveSelection(cursor, action, len(items))
 		}
 
-		moveUp(out, len(items))
+		moveUp(out, len(items)+1)
 	}
+}
+
+// submitPick replaces the list with the one line that survives it: the question
+// marked as answered and the choice under it. The end of the frame goes with
+// the list, because the next question continues the same frame.
+func submitPick(w io.Writer, heading string, chosen pickerItem, count, width int) {
+	// The list, the line that closes the frame under it, and the question
+	// itself, all of which the answered form replaces.
+	const aroundList = 2
+
+	eraseBlock(w, count+aroundList)
+	fmt.Fprintf(
+		w,
+		"%s\r\n%s\r\n",
+		askLine(false, heading),
+		optionLine(true, truncate(chosen.Label, width-marginWidth()-len(frameOn+" "))),
+	)
 }
 
 // decodeKey maps the bytes a raw terminal delivers for one key press to the
@@ -179,20 +188,23 @@ func readAction(r io.Reader, buf []byte) (pickerAction, error) {
 	return decodeKey(buf[:n]), nil
 }
 
-// renderItems draws the list in place, one terminal row per item. Raw mode
-// does not turn a newline into a carriage return, so every row starts at
-// column 0 explicitly and clears whatever the previous draw left there.
+// renderItems draws the list in place, one terminal row per item, and closes
+// the frame under it while the question is still open. Raw mode does not turn a
+// newline into a carriage return, so every row starts at column 0 explicitly
+// and clears whatever the previous draw left there.
 func renderItems(w io.Writer, items []pickerItem, cursor, width int) {
 	for i, item := range items {
-		line := "  " + itemLabel(item)
-		if i == cursor {
-			line = pickerSelected(truncate("> "+itemLabel(item), width))
-		} else {
-			line = truncate(line, width)
-		}
-
-		fmt.Fprintf(w, "\r\x1b[K%s\r\n", line)
+		fmt.Fprintf(w, "\r\x1b[K%s\r\n", optionLine(i == cursor, fitLabel(item, width)))
 	}
+
+	fmt.Fprintf(w, "\r\x1b[K%s\r\n", closeLine(""))
+}
+
+// fitLabel cuts an item to what is left of the row once the margin and the mark
+// have taken their columns. The cut happens before the colour is applied, so a
+// narrow terminal never truncates an escape sequence half way through.
+func fitLabel(item pickerItem, width int) string {
+	return truncate(itemLabel(item), width-marginWidth()-len(frameOn+" "))
 }
 
 func itemLabel(item pickerItem) string {

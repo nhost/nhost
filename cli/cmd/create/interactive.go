@@ -174,15 +174,12 @@ func runInteractive(
 ) (choices, error) {
 	resolved := defaults
 
-	if !given.template {
-		template, err := pickTemplate(ce, defaults.template)
-		if err != nil {
-			return choices{}, err
-		}
+	ce.Println("")
+	ce.Println("%s", openLine("Nhost"))
 
-		resolved.template = template
-	}
-
+	// The name comes first because it is the one answer that decides where the
+	// project lands, and because it is already filled in from the directory the
+	// command was pointed at, so the usual answer to it is enter.
 	if !given.name {
 		name, err := promptProjectName(ce, defaults.name)
 		if err != nil {
@@ -190,6 +187,15 @@ func runInteractive(
 		}
 
 		resolved.name = name
+	}
+
+	if !given.template {
+		template, err := pickTemplate(ce, defaults.template)
+		if err != nil {
+			return choices{}, err
+		}
+
+		resolved.template = template
 	}
 
 	if !given.packageManager {
@@ -200,6 +206,10 @@ func runInteractive(
 
 		resolved.packageManager = packageManager
 	}
+
+	ce.Println("%s", barLine())
+	ce.Println("%s", closeLine("Creating "+resolved.name))
+	ce.Println("")
 
 	return resolved, nil
 }
@@ -225,10 +235,7 @@ func retarget(resolved choices) choices {
 func pickTemplate(ce *clienv.CliEnv, preferred string) (string, error) {
 	items := make([]pickerItem, len(templates))
 	for i, tmpl := range templates {
-		items[i] = pickerItem{
-			Label: tmpl.display,
-			Desc:  tmpl.description,
-		}
+		items[i] = pickerItem{Label: tmpl.display, Desc: ""}
 	}
 
 	idx, err := runPicker(ce, "Template", items, indexOfTemplate(preferred))
