@@ -14,15 +14,16 @@ concurrency:
 jobs:
   nextjs-shadcn:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: templates/nextjs-shadcn/frontend
     steps:
       - uses: actions/checkout@v7
 
+      # No `version:` input: the action resolves pnpm from the monorepo root
+      # `packageManager` field, and errors out if the two ever disagree.
       - uses: pnpm/action-setup@v4
-        with:
-          version: 11.1.0
 
       - uses: actions/setup-node@v4
         with:
@@ -37,10 +38,27 @@ jobs:
       - name: Verify generated GraphQL types
         run: |
           pnpm codegen:types
-          test -z "$(git status --porcelain -- src/gql)"
+          if [ -n "$(git status --porcelain -- src/gql)" ]; then
+            echo "::error::Generated GraphQL types are out of date."
+            echo "Fix: pnpm codegen:types && git add src/gql"
+            git status --porcelain -- src/gql
+            git --no-pager diff -- src/gql
+            exit 1
+          fi
 
       - run: pnpm lint
 
       - run: pnpm test
 
       - run: pnpm build
+
+  # Cross-template, and deliberately without a `working-directory` default:
+  # the guard walks every `templates/*/` from the repository root.
+  agent-context:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check the duplicated agent-context files for drift
+        run: ./templates/check-agent-context.sh

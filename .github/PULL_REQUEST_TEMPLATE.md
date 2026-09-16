@@ -24,6 +24,7 @@ Where `TYPE` is:
 
 Where `PKG` is:
 
+- `ai`: For changes to the Nhost AI service
 - `auth`: For changes to the Nhost Auth service
 - `ci`: For general changes to the build and/or CI/CD pipeline
 - `cli`: For changes to the Nhost CLI
@@ -37,6 +38,7 @@ Where `PKG` is:
 - `ghactivity`: For changes to the gh-activity CLI extension
 - `govulncheck-wrapper`: For changes to the govulncheck wrapper tool
 - `internal/lib`: For changes to Nhost's common libraries (internal)
+- `landing`: For changes to the Nhost landing page
 - `mcp`: For changes to the Nhost MCP server
 - `nhost-js`: For changes to the Nhost JavaScript SDK
 - `nixops`: For changes to the NixOps
@@ -44,6 +46,7 @@ Where `PKG` is:
 - `storage`: For changes to the Nhost Storage service
 - `observability`: For changes to the Nhost Observability managed service
 - `stripe-graphql-js`: For changes to the Stripe GraphQL JS SDK
+- `templates`: For changes to the starter templates used by `nhost create`
 
 Where `SUMMARY` is a short description of what the PR does.
 
