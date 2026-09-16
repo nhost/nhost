@@ -96,8 +96,8 @@ function build_graphql_schemas() {
 function build_postgres_extensions() {
 	echo "⚒️⚒️⚒️ Building Postgres extensions documentation..."
 
-	local source=../services/postgres/plugins.md
-	local target=src/content/docs/products/database/extensions.mdx
+	local source="${1:-../services/postgres/plugins.md}"
+	local target="${2:-src/content/docs/products/database/extensions.mdx}"
 	local start_marker="{/*BEGIN GENERATED POSTGRES EXTENSIONS*/}"
 	local end_marker="{/*END GENERATED POSTGRES EXTENSIONS*/}"
 
@@ -116,11 +116,36 @@ function build_postgres_extensions() {
 	temp_file=$(mktemp)
 
 	awk -v source="$source" -v start_marker="$start_marker" -v end_marker="$end_marker" '
+		function escape_mdx(value) {
+			gsub(/&/, "\\&amp;", value)
+			gsub(/</, "\\&lt;", value)
+			gsub(/>/, "\\&gt;", value)
+			gsub(/[{]/, "\\&#123;", value)
+			gsub(/[}]/, "\\&#125;", value)
+			gsub(/[|]/, "\\&#124;", value)
+			return value
+		}
+
+		function escape_table_row(line, columns, column_count, description, i) {
+			column_count = split(line, columns, "[|]")
+			if (column_count < 5 || columns[1] != "" || columns[column_count] != "") {
+				return escape_mdx(line)
+			}
+
+			# The first two separators delimit name and version; later pipes belong to the description.
+			description = columns[4]
+			for (i = 5; i < column_count; i++) {
+				description = description "|" columns[i]
+			}
+
+			return "|" escape_mdx(columns[2]) "|" escape_mdx(columns[3]) "|" escape_mdx(description) "|"
+		}
+
 		$0 == start_marker {
 			print
 			print ""
 			while ((getline line < source) > 0) {
-				print line
+				print escape_table_row(line)
 			}
 			close(source)
 			replacing = 1
@@ -169,9 +194,11 @@ function build_cli_docs() {
 	cli gen-docs >src/content/docs/reference/cli/commands.mdx
 }
 
-build_schemas
-build_graphql_schemas
-build_postgres_extensions
-build_typedoc
-build_cli_docs
-build_config_reference
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+	build_schemas
+	build_graphql_schemas
+	build_postgres_extensions
+	build_typedoc
+	build_cli_docs
+	build_config_reference
+fi
