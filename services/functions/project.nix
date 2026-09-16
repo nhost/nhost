@@ -85,11 +85,42 @@ let
     '';
   };
 
-  glibcLoader = pkgs.runCommand "glibc-loader" { } ''
-    loader="${pkgs.stdenv.cc.bintools.dynamicLinker}"
-    mkdir -p $out/lib64 $out/lib
-    ln -s "$loader" "$out/lib64/$(basename "$loader")"
-    ln -s "$loader" "$out/lib/$(basename "$loader")"
+  # The image is built from Nix store paths only, so there is no FHS ELF
+  # interpreter (/lib64/ld-linux-x86-64.so.2). Unpatched dynamic binaries a user
+  # project pulls in at install time (prebuilt native npm addons, vendored
+  # tools) would fail to exec. nix-ld is a small shim installed at that
+  # conventional interpreter path: such binaries exec through it, and it reads
+  # NIX_LD (the real glibc loader) plus NIX_LD_LIBRARY_PATH (the libraries
+  # below) and hands off. Nix-built binaries are unaffected — their interpreter
+  # already points into the store. Users can extend NIX_LD_LIBRARY_PATH at
+  # runtime for addons needing libraries not in the curated set.
+  # getLib picks each package's lib output (glibc/openssl/zlib are multi-output;
+  # their default output has no /lib), so the merged tree actually holds the
+  # shared objects.
+  nixLdLibraries = [
+    pkgs.stdenv.cc.cc.lib # libstdc++.so.6, libgcc_s.so.1
+    (pkgs.lib.getLib pkgs.stdenv.cc.libc) # glibc: libc/libm/... and the real loader (NIX_LD)
+    (pkgs.lib.getLib pkgs.zlib)
+    (pkgs.lib.getLib pkgs.openssl)
+  ];
+
+  nixLdLibs = pkgs.buildEnv {
+    name = "nix-ld-libs";
+    paths = nixLdLibraries;
+    pathsToLink = [ "/lib" ];
+  };
+
+  # nix-ld records the FHS interpreter path for this platform in
+  # nix-support/ldpath (e.g. /lib64/ld-linux-x86-64.so.2); link the shim there.
+  # nixLdLibs is kept in the image closure via a nix-support reference file
+  # rather than added to copyToRoot: NIX_LD_LIBRARY_PATH points at its store
+  # path, and merging its /lib into the image root would collide with the shim's
+  # loader path on single-libdir arches (e.g. aarch64's /lib/ld-linux-*.so.*).
+  nixLd = pkgs.runCommand "nix-ld" { } ''
+    ldpath="$(cat ${pkgs.nix-ld}/nix-support/ldpath)"
+    mkdir -p "$out$(dirname "$ldpath")" "$out/nix-support"
+    ln -s ${pkgs.nix-ld}/libexec/nix-ld "$out$ldpath"
+    echo ${nixLdLibs} > "$out/nix-support/nix-ld-libraries"
   '';
 
   mkDockerImage =
@@ -108,7 +139,7 @@ let
             name = "image";
             paths = [
               pkgs.fakeNss
-              glibcLoader
+              nixLd
               serverFiles
               pkgs.busybox
               nodeRuntime
@@ -133,6 +164,8 @@ let
             Env = [
               "TMPDIR=/tmp"
               "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
+              "NIX_LD=${pkgs.stdenv.cc.bintools.dynamicLinker}"
+              "NIX_LD_LIBRARY_PATH=${nixLdLibs}/lib"
               "NODE_PATH=${node_modules_runtime}/${submodule}/node_modules"
               "PATH=${node_modules_runtime}/${submodule}/node_modules/.bin:${nodeRuntime}/bin:${pkgs.gitMinimal}/bin:${pkgs.openssh}/bin:/bin:/usr/bin"
               "SERVER_PATH=/opt/server"
