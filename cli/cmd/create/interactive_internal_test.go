@@ -40,6 +40,7 @@ func TestResolveChoices(t *testing.T) {
 				name:           "demo",
 				packageManager: defaultPackageManager,
 				installNow:     true,
+				startNow:       false,
 			},
 			wantInteractive: false,
 			wantErr:         nil,
@@ -58,9 +59,32 @@ func TestResolveChoices(t *testing.T) {
 				name:           "demo",
 				packageManager: "bun",
 				installNow:     false,
+				startNow:       false,
 			},
 			wantInteractive: true,
 			wantErr:         nil,
+		},
+		{
+			name:        "start is opt-in when prompts are skipped",
+			args:        []string{"--yes", "--start", "demo"},
+			interactive: true,
+			want: choices{
+				template:       defaultTemplate,
+				name:           "demo",
+				packageManager: defaultPackageManager,
+				installNow:     true,
+				startNow:       true,
+			},
+			wantInteractive: false,
+			wantErr:         nil,
+		},
+		{
+			name:            "start cannot run without the dependencies",
+			args:            []string{"--yes", "--start", "--no-install", "demo"},
+			interactive:     true,
+			want:            choices{},
+			wantInteractive: false,
+			wantErr:         errStartNeedsInstall,
 		},
 	}
 
@@ -134,8 +158,9 @@ func TestRunInteractive(t *testing.T) {
 		return "demo", nil
 	}
 
+	// Installing is no longer a question, so starting is the only confirm left.
 	runConfirm = func(_ *clienv.CliEnv, message string, _ bool) (bool, error) {
-		if message != "Install frontend dependencies now?" {
+		if message != "Start the backend and the frontend now?" {
 			t.Fatalf("unexpected confirm %q", message)
 		}
 
@@ -149,6 +174,7 @@ func TestRunInteractive(t *testing.T) {
 		name:           "",
 		packageManager: defaultPackageManager,
 		installNow:     true,
+		startNow:       false,
 	})
 	if err != nil {
 		t.Fatalf("runInteractive: %v", err)
@@ -158,10 +184,92 @@ func TestRunInteractive(t *testing.T) {
 		template:       defaultTemplate,
 		name:           "demo",
 		packageManager: "npm",
-		installNow:     false,
+		installNow:     true,
+		startNow:       false,
 	}
 	if got != want {
 		t.Errorf("runInteractive() = %#v, want %#v", got, want)
+	}
+}
+
+// Pressing enter through the prompts has to land on a project that is installed
+// and running, which is the reason the install question was dropped.
+//
+//nolint:paralleltest // mutates package-level prompt seams
+func TestRunInteractiveDefaultsToInstallAndStart(t *testing.T) {
+	stubPrompts(t)
+
+	runPicker = func(_ *clienv.CliEnv, _ string, _ []pickerItem, idx int) (int, error) {
+		return idx, nil
+	}
+
+	runPrompt = func(_ *clienv.CliEnv, _, _ string) (string, error) {
+		return "demo", nil
+	}
+
+	// Every confirm answered with enter, which is what the default stands for.
+	runConfirm = func(_ *clienv.CliEnv, _ string, defaultYes bool) (bool, error) {
+		return defaultYes, nil
+	}
+
+	var output bytes.Buffer
+
+	got, err := runInteractive(newTestEnv(&output), choices{
+		template:       defaultTemplate,
+		name:           "",
+		packageManager: defaultPackageManager,
+		installNow:     true,
+		startNow:       false,
+	})
+	if err != nil {
+		t.Fatalf("runInteractive: %v", err)
+	}
+
+	if !got.installNow {
+		t.Error("installNow = false, want true")
+	}
+
+	if !got.startNow {
+		t.Error("startNow = false, want true")
+	}
+}
+
+// Answering the start prompt is only possible when there is something to start,
+// so --no-install must not ask a question validateChoices would then reject.
+//
+//nolint:paralleltest // mutates package-level prompt seams
+func TestRunInteractiveSkipsTheStartPromptWithoutDependencies(t *testing.T) {
+	stubPrompts(t)
+
+	runPicker = func(_ *clienv.CliEnv, _ string, _ []pickerItem, idx int) (int, error) {
+		return idx, nil
+	}
+
+	runPrompt = func(_ *clienv.CliEnv, _, _ string) (string, error) {
+		return "demo", nil
+	}
+
+	runConfirm = func(_ *clienv.CliEnv, message string, _ bool) (bool, error) {
+		t.Fatalf("unexpected confirm %q", message)
+
+		return false, nil
+	}
+
+	var output bytes.Buffer
+
+	got, err := runInteractive(newTestEnv(&output), choices{
+		template:       defaultTemplate,
+		name:           "",
+		packageManager: defaultPackageManager,
+		installNow:     false,
+		startNow:       false,
+	})
+	if err != nil {
+		t.Fatalf("runInteractive: %v", err)
+	}
+
+	if got.startNow {
+		t.Error("startNow = true, want false")
 	}
 }
 
@@ -301,6 +409,7 @@ func TestRunInteractivePreselectsFlagChoices(t *testing.T) {
 		name:           "demo",
 		packageManager: "bun",
 		installNow:     false,
+		startNow:       false,
 	}
 
 	got, err := runInteractive(newTestEnv(&output), defaults)
@@ -308,6 +417,8 @@ func TestRunInteractivePreselectsFlagChoices(t *testing.T) {
 		t.Fatalf("runInteractive: %v", err)
 	}
 
+	// --no-install also means the start prompt never runs, so every value here
+	// is the one the flags provided.
 	if got != defaults {
 		t.Errorf("runInteractive() = %#v, want %#v", got, defaults)
 	}
@@ -352,7 +463,13 @@ func TestPrintNextStepsUsesManagerScriptSyntax(t *testing.T) {
 
 			var output bytes.Buffer
 
-			printNextSteps(newTestEnv(&output), "demo", tt.packageManager, true)
+			printNextSteps(newTestEnv(&output), choices{
+				template:       defaultTemplate,
+				name:           "demo",
+				packageManager: tt.packageManager,
+				installNow:     false,
+				startNow:       false,
+			})
 
 			if !strings.Contains(output.String(), tt.wantDev) {
 				t.Errorf("next steps missing %q:\n%s", tt.wantDev, output.String())

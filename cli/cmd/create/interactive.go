@@ -13,6 +13,7 @@ type choices struct {
 	name           string
 	packageManager string
 	installNow     bool
+	startNow       bool
 }
 
 // resolveChoices seeds the choices from flags and reports whether the
@@ -24,6 +25,7 @@ func resolveChoices(cmd *cli.Command, interactive bool) (choices, bool, error) {
 		name:           cmd.Args().First(),
 		packageManager: cmd.String(flagPackageManager),
 		installNow:     !cmd.Bool(flagNoInstall),
+		startNow:       cmd.Bool(flagStart),
 	}
 
 	if interactive && !cmd.Bool(flagYes) {
@@ -62,12 +64,21 @@ func runInteractive(ce *clienv.CliEnv, defaults choices) (choices, error) {
 
 	resolved.packageManager = packageManager
 
-	installNow, err := runConfirm(ce, "Install frontend dependencies now?", defaults.installNow)
+	// Nothing to start without the dependencies, so --no-install skips the
+	// question rather than offering an answer validateChoices would reject.
+	if !resolved.installNow {
+		return resolved, nil
+	}
+
+	// Defaulted to yes rather than seeded from --start, which exists for
+	// non-interactive runs and has to stay off there. Starting is what you were
+	// about to do next anyway, and this prompt is how you say otherwise.
+	startNow, err := runConfirm(ce, "Start the backend and the frontend now?", true)
 	if err != nil {
 		return choices{}, err
 	}
 
-	resolved.installNow = installNow
+	resolved.startNow = startNow
 
 	return resolved, nil
 }
@@ -169,6 +180,10 @@ func validateChoices(resolved choices) (choices, error) {
 
 	if err := validatePackageManager(resolved.packageManager); err != nil {
 		return choices{}, err
+	}
+
+	if resolved.startNow && !resolved.installNow {
+		return choices{}, errStartNeedsInstall
 	}
 
 	return resolved, nil

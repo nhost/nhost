@@ -26,7 +26,7 @@ nhost [GLOBAL OPTIONS] [command [COMMAND OPTIONS]] [ARGUMENTS...]
 | `--help, -h` | show help. |
 | `--local-subdomain=""` | Local subdomain to reach the development environment. Default: `"local"`. Env: `$NHOST_LOCAL_SUBDOMAIN`. |
 | `--nhost-folder=""` | Path to nhost folder. Default: `"nhost"`. Env: `$NHOST_NHOST_FOLDER`. |
-| `--project-name=""` | Project name. Default: `<project-directory-name>`. Env: `$NHOST_PROJECT_NAME`. |
+| `--project-name=""` | Project name. Default: `<nhost/project-name or directory name>`. Env: `$NHOST_PROJECT_NAME`. |
 | `--root-folder=""` | Root folder of project. Default: `"."`. Env: `$NHOST_ROOT_FOLDER`. |
 | `--version, -v` | print the version. |
 
@@ -170,6 +170,7 @@ Create a new Nhost project from a template.
 | --- | --- |
 | `--no-install` | Skip installing frontend dependencies. |
 | `--package-manager=""` | Package manager for the frontend (pnpm, npm, bun, yarn). Default: `"pnpm"`. |
+| `--start` | Start the backend and the frontend dev server once the project is created. |
 | `--template, -t=""` | Template to scaffold (available: nextjs-shadcn). Default: `"nextjs-shadcn"`. |
 | `--template-path=""` | Use a local template directory instead of downloading (`offline/dev`). |
 | `--yes, -y, --skip-prompts` | Accept defaults and skip all prompts. |

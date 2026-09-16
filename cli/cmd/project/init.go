@@ -114,15 +114,16 @@ func commandInit(ctx context.Context, cmd *cli.Command) error {
 	return nil
 }
 
-// InitProject scaffolds the local project layout at the given path.
+// InitProject scaffolds the local project layout at the given path, creating
+// every folder it writes into, including the nhost folder itself.
 func InitProject(ps *clienv.PathStructure) error {
+	if err := initFolders(ps); err != nil {
+		return err
+	}
+
 	hasuraConf := map[string]any{"version": hasuraMetadataVersion}
 	if err := clienv.MarshalFile(hasuraConf, ps.HasuraConfig(), yaml.Marshal); err != nil {
 		return fmt.Errorf("failed to save hasura config: %w", err)
-	}
-
-	if err := initFolders(ps); err != nil {
-		return err
 	}
 
 	if err := writeFS(embeddedFS, "templates/init", ps.Root()); err != nil {

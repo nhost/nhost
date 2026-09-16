@@ -26,6 +26,7 @@ const (
 	flagPackageManager = "package-manager"
 	flagYes            = "yes"
 	flagNoInstall      = "no-install"
+	flagStart          = "start"
 	flagTemplatePath   = "template-path"
 	flagTemplatesRepo  = "templates-repo"
 	flagTemplatesRef   = "templates-ref"
@@ -36,6 +37,10 @@ const (
 
 var errNameRequired = errors.New(
 	"project name is required (usage: nhost create <name>)",
+)
+
+var errStartNeedsInstall = errors.New(
+	"--start needs the frontend dependencies, so it cannot be used with --no-install",
 )
 
 // Command returns the `nhost create` command.
@@ -74,6 +79,11 @@ func Command() *cli.Command {
 				Usage: "Skip installing frontend dependencies",
 				Value: false,
 			},
+			&cli.BoolFlag{ //nolint:exhaustruct
+				Name:  flagStart,
+				Usage: "Start the backend and the frontend dev server once the project is created",
+				Value: false,
+			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:  flagTemplatePath,
 				Usage: "Use a local template directory instead of downloading (offline/dev)",
@@ -88,8 +98,8 @@ func Command() *cli.Command {
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagTemplatesRef,
-				Usage:   "Git ref to fetch templates from",
-				Value:   defaultTemplatesRef,
+				Usage:   "Git ref to fetch templates from (default: this CLI's release tag)",
+				Value:   "",
 				Sources: cli.EnvVars("NHOST_CREATE_TEMPLATES_REF"),
 				Hidden:  true,
 			},
@@ -138,7 +148,12 @@ func action(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	installFrontendDependencies(ctx, ce, resolved, target)
-	printNextSteps(ce, resolved.name, resolved.packageManager, !resolved.installNow)
+
+	if resolved.startNow {
+		return startServers(ctx, ce, resolved, target)
+	}
+
+	printNextSteps(ce, resolved)
 
 	return nil
 }
@@ -188,7 +203,7 @@ func stageProject(
 		return fmt.Errorf("failed to set staging permissions: %w", err)
 	}
 
-	if err := scaffoldBackend(filepath.Join(staging, "backend")); err != nil {
+	if err := scaffoldBackend(filepath.Join(staging, "backend"), name); err != nil {
 		return fmt.Errorf("failed to scaffold backend: %w", err)
 	}
 
@@ -211,6 +226,12 @@ func stageProject(
 		); err != nil && !errors.Is(err, os.ErrNotExist) {
 			return fmt.Errorf("failed to remove pnpm-lock.yaml: %w", err)
 		}
+
+		// Skipped for pnpm so the generated context files stay byte-identical to
+		// the template.
+		if err := retargetPackageManagerDocs(staging, packageManager); err != nil {
+			return fmt.Errorf("failed to adapt the project docs to %s: %w", packageManager, err)
+		}
 	}
 
 	if err := os.Rename(staging, target); err != nil {
@@ -230,28 +251,60 @@ func addTemplate(
 	staging string,
 ) error {
 	if local := cmd.String(flagTemplatePath); local != "" {
+		src, err := localTemplateDir(local)
+		if err != nil {
+			return err
+		}
+
 		ce.Infoln("Using local template at %s", local)
 
-		if err := copyDir(local, staging); err != nil {
+		if err := copyDir(src, staging); err != nil {
 			return fmt.Errorf("failed to copy template: %w", err)
 		}
 
 		return nil
 	}
 
-	ce.Infoln("Fetching template %q...", tmpl.name)
+	ref := cmd.String(flagTemplatesRef)
+	if ref == "" {
+		ref = defaultTemplatesRef(cmd.Root().Version)
+	}
+
+	ce.Infoln("Fetching template %q at %s...", tmpl.name, ref)
 
 	return fetchTemplate(
 		ctx,
 		ce,
 		cmd.String(flagTemplatesRepo),
-		cmd.String(flagTemplatesRef),
+		ref,
 		tmpl,
 		staging,
 	)
 }
 
-func scaffoldBackend(root string) error {
+// localTemplateDir checks that a --template-path value is a directory and
+// resolves it to a real path. Resolving matters because filepath.WalkDir does
+// not follow a symlinked root, so a symlink to a template directory would
+// otherwise copy nothing and only fail later against the staging path.
+func localTemplateDir(local string) (string, error) {
+	resolved, err := filepath.EvalSymlinks(local)
+	if err != nil {
+		return "", fmt.Errorf("failed to read --template-path %q: %w", local, err)
+	}
+
+	info, err := os.Stat(resolved)
+	if err != nil {
+		return "", fmt.Errorf("failed to read --template-path %q: %w", local, err)
+	}
+
+	if !info.IsDir() {
+		return "", fmt.Errorf("--template-path %q: %w", local, errTemplateNotDirectory)
+	}
+
+	return resolved, nil
+}
+
+func scaffoldBackend(root, name string) error {
 	ps := clienv.NewPathStructure(
 		root,
 		root,
@@ -261,6 +314,10 @@ func scaffoldBackend(root string) error {
 
 	if err := os.MkdirAll(ps.NhostFolder(), 0o755); err != nil { //nolint:mnd
 		return fmt.Errorf("failed to create nhost folder: %w", err)
+	}
+
+	if err := clienv.WriteProjectName(ps.ProjectNameFile(), name); err != nil {
+		return fmt.Errorf("failed to write project name: %w", err)
 	}
 
 	cfg, err := project.DefaultConfig()
@@ -315,12 +372,13 @@ func setClientURL(cfg *model.ConfigConfig, url string) {
 	cfg.Auth.Redirections.ClientUrl = &url
 }
 
-var nameRE = regexp.MustCompile(`^[a-zA-Z0-9._-]+$`)
+var nameRE = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9._-]*$`)
 
 func validateName(name string) error {
-	if name == "" || name == "." || name == ".." || !nameRE.MatchString(name) {
+	if !nameRE.MatchString(name) {
 		return fmt.Errorf( //nolint:err113
-			"invalid project name %q: use letters, numbers, '.', '_' or '-'", name,
+			"invalid project name %q: start with a letter or number, then use letters, numbers, '.', '_' or '-'",
+			name,
 		)
 	}
 
@@ -358,47 +416,58 @@ func runInstall(ctx context.Context, pm, dir string) error {
 	return nil
 }
 
-func packageManagerScript(pm, script string) string {
+// packageManagerArgs is how pm spells `run <script>`, as argv. Everything that
+// names or runs a script goes through it so the printed command and the one we
+// execute cannot drift apart.
+func packageManagerArgs(pm, script string) []string {
 	if pm == defaultPackageManager {
-		return fmt.Sprintf("%s %s", pm, script)
+		return []string{script}
 	}
 
-	return fmt.Sprintf("%s run %s", pm, script)
+	return []string{"run", script}
 }
 
-func printNextSteps(ce *clienv.CliEnv, name, pm string, noInstall bool) {
-	projectName := strings.ToLower(name)
-	devCommand := packageManagerScript(pm, "dev")
+func packageManagerScript(pm, script string) string {
+	return fmt.Sprintf("%s %s", pm, strings.Join(packageManagerArgs(pm, script), " "))
+}
+
+func printNextSteps(ce *clienv.CliEnv, resolved choices) {
+	devCommand := packageManagerScript(resolved.packageManager, "dev")
 
 	ce.Println("")
-	ce.Infoln("Created %s", name)
+	ce.Infoln("Created %s", resolved.name)
 	ce.Println("")
 	ce.Println("Next steps:")
 	ce.Println("  1. Start the backend:")
-	ce.Println("       cd %s/backend", name)
-	ce.Println(
-		"       export NHOST_PROJECT_NAME=%s   # isolates this project's local containers and database volume",
-		projectName,
-	)
-	ce.Println("       nhost up")
+	ce.Println("       cd %s/backend && nhost up", resolved.name)
 	ce.Println("  2. In another terminal, start the frontend:")
 
-	if noInstall {
-		ce.Println("       cd %s/frontend && %s install && %s", name, pm, devCommand)
+	if resolved.installNow {
+		ce.Println("       cd %s/frontend && %s", resolved.name, devCommand)
 	} else {
-		ce.Println("       cd %s/frontend && %s", name, devCommand)
+		ce.Println(
+			"       cd %s/frontend && %s install && %s",
+			resolved.name, resolved.packageManager, devCommand,
+		)
 	}
 
+	printProjectNotes(ce, resolved)
+}
+
+// printProjectNotes covers what is true however the project was started, so it
+// is printed both by printNextSteps and ahead of handing the terminal to the
+// dev server.
+func printProjectNotes(ce *clienv.CliEnv, resolved choices) {
 	ce.Println("")
 	ce.Println(
 		"After you change the schema, run `%s` in %s/frontend.",
-		packageManagerScript(pm, "codegen"),
-		name,
+		packageManagerScript(resolved.packageManager, "codegen"),
+		resolved.name,
 	)
 	ce.Println(
 		"The app runs on http://localhost:3000 and sign-in emails appear in the local mailbox.",
 	)
 	ce.Println(
-		"Keep NHOST_PROJECT_NAME set (or pass --project-name) for `nhost up`/`down`/`logs` in this project.",
+		"backend/nhost/project-name keeps this project's containers and database volume separate from other projects.",
 	)
 }

@@ -1,6 +1,7 @@
 package create
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -90,7 +91,16 @@ func cloneTemplateRepo(ctx context.Context, gitPath, repo, ref, tmpClone string)
 		tmpClone,
 	)
 	if out, err := cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("failed to clone templates repo %s at %s: %w\n%s", repo, ref, err, out)
+		// The default ref is this CLI's release tag, so a ref that does not
+		// resolve is only recoverable through the override; both are hidden.
+		return fmt.Errorf(
+			"failed to clone templates repo %s at %s: %w\n%s\n"+
+				"if that ref does not exist, pick another with --templates-ref or NHOST_CREATE_TEMPLATES_REF",
+			repo,
+			ref,
+			err,
+			bytes.TrimSpace(out),
+		)
 	}
 
 	return nil

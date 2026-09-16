@@ -74,6 +74,13 @@ func TestStageProjectLocalTemplate(t *testing.T) {
 
 	if got := readTestFile(
 		t,
+		filepath.Join(projectDir, "backend", "nhost", "project-name"),
+	); got != "my-app\n" {
+		t.Fatalf("backend/nhost/project-name = %q", got)
+	}
+
+	if got := readTestFile(
+		t,
 		filepath.Join(projectDir, "frontend", "src", "app.ts"),
 	); got != "export const ok = true\n" {
 		t.Fatalf("frontend overlay = %q", got)
@@ -82,6 +89,270 @@ func TestStageProjectLocalTemplate(t *testing.T) {
 	packageJSON := readTestFile(t, filepath.Join(projectDir, "frontend", "package.json"))
 	if !strings.Contains(packageJSON, `"name": "my-app"`) {
 		t.Fatalf("package.json name was not patched:\n%s", packageJSON)
+	}
+
+	assertNoStagingLeftovers(t, workdir, "my-app")
+}
+
+//nolint:paralleltest // mutates process cwd via t.Chdir
+func TestCreateRejectsTemplatePathThatIsNotADirectory(t *testing.T) {
+	workdir := t.TempDir()
+	templateFile := filepath.Join(workdir, "template.tar")
+
+	writeTestFile(t, templateFile, "not a directory\n")
+	t.Chdir(workdir)
+
+	var output bytes.Buffer
+
+	cmd := newTestRootCommand(t, &output)
+
+	err := cmd.Run(
+		context.Background(),
+		[]string{"nhost", "create", "--template-path", templateFile, "--no-install", "my-app"},
+	)
+	if err == nil {
+		t.Fatalf("create succeeded with a file as --template-path\n%s", output.String())
+	}
+
+	if !errors.Is(err, errTemplateNotDirectory) {
+		t.Errorf("error = %v, want errTemplateNotDirectory", err)
+	}
+
+	// The message has to name the flag value, not the staging path the copy
+	// would have failed against later.
+	if !strings.Contains(err.Error(), templateFile) {
+		t.Errorf("error %v does not name --template-path %s", err, templateFile)
+	}
+
+	assertNoStagingLeftovers(t, workdir, "my-app")
+}
+
+// `--template-path ~/templates/current`, where `current` is a symlink to the
+// real template, is ordinary developer setup for the flag's offline/dev
+// audience. filepath.WalkDir does not descend into a symlinked root, so the
+// copy has to resolve it first or it silently copies nothing.
+//
+//nolint:paralleltest // mutates process cwd via t.Chdir
+func TestCreateFollowsSymlinkedTemplatePath(t *testing.T) {
+	workdir := t.TempDir()
+	templateDir := filepath.Join(workdir, "template-v2")
+
+	writeTestFile(
+		t,
+		filepath.Join(templateDir, "frontend", "package.json"),
+		"{\n  \"name\": \"starter\"\n}\n",
+	)
+	writeTestFile(
+		t,
+		filepath.Join(templateDir, "frontend", "src", "app.ts"),
+		"export const ok = true\n",
+	)
+
+	link := filepath.Join(workdir, "current")
+	if err := os.Symlink(templateDir, link); err != nil {
+		t.Fatalf("Symlink: %v", err)
+	}
+
+	t.Chdir(workdir)
+
+	var output bytes.Buffer
+
+	cmd := newTestRootCommand(t, &output)
+	if err := cmd.Run(
+		context.Background(),
+		[]string{"nhost", "create", "--template-path", link, "--no-install", "my-app"},
+	); err != nil {
+		t.Fatalf("create command: %v\n%s", err, output.String())
+	}
+
+	if got := readTestFile(
+		t,
+		filepath.Join(workdir, "my-app", "frontend", "src", "app.ts"),
+	); got != "export const ok = true\n" {
+		t.Fatalf("frontend overlay = %q", got)
+	}
+
+	packageJSON := readTestFile(t, filepath.Join(workdir, "my-app", "frontend", "package.json"))
+	if !strings.Contains(packageJSON, `"name": "my-app"`) {
+		t.Fatalf("package.json name was not patched:\n%s", packageJSON)
+	}
+}
+
+// The generated backend always sits in a directory called `backend`, so the
+// docker compose project name cannot come from the directory name without every
+// created project sharing one set of containers and one Postgres volume.
+//
+//nolint:paralleltest // mutates process cwd via t.Chdir
+func TestCreatedProjectsGetDistinctComposeProjectNames(t *testing.T) {
+	workdir := t.TempDir()
+	templateDir := filepath.Join(workdir, "template")
+
+	writeTestFile(
+		t,
+		filepath.Join(templateDir, "frontend", "package.json"),
+		"{\n  \"name\": \"starter\"\n}\n",
+	)
+
+	t.Chdir(workdir)
+
+	var output bytes.Buffer
+
+	for _, name := range []string{"First-App", "second-app"} {
+		cmd := newTestRootCommand(t, &output)
+		if err := cmd.Run(
+			context.Background(),
+			[]string{"nhost", "create", "--template-path", templateDir, "--no-install", name},
+		); err != nil {
+			t.Fatalf("create %s: %v\n%s", name, err, output.String())
+		}
+	}
+
+	first := composeProjectName(t, filepath.Join(workdir, "First-App", "backend"))
+	second := composeProjectName(t, filepath.Join(workdir, "second-app", "backend"))
+
+	if first != "first-app" {
+		t.Errorf("project name in First-App/backend = %q, want %q", first, "first-app")
+	}
+
+	if second != "second-app" {
+		t.Errorf("project name in second-app/backend = %q, want %q", second, "second-app")
+	}
+}
+
+// composeProjectName reports the docker compose project name `nhost up` would
+// use in dir, resolving the global flags exactly as the real CLI does.
+func composeProjectName(t *testing.T, dir string) string {
+	t.Helper()
+
+	t.Chdir(dir)
+
+	var output bytes.Buffer
+
+	flags, err := clienv.Flags()
+	if err != nil {
+		t.Fatalf("Flags: %v", err)
+	}
+
+	var name string
+
+	cmd := &cli.Command{
+		Name:  "nhost",
+		Flags: flags,
+		Commands: []*cli.Command{
+			{
+				Name: "show",
+				Action: func(_ context.Context, cmd *cli.Command) error {
+					name = clienv.FromCLI(cmd).ProjectName()
+					return nil
+				},
+			},
+		},
+		Writer:    &output,
+		ErrWriter: &output,
+	}
+
+	if err := cmd.Run(context.Background(), []string{"nhost", "show"}); err != nil {
+		t.Fatalf("resolve project name in %s: %v\n%s", dir, err, output.String())
+	}
+
+	return name
+}
+
+//nolint:paralleltest // mutates process cwd via t.Chdir
+func TestCreatePnpmLockfileByPackageManager(t *testing.T) {
+	tests := []struct {
+		name                string
+		packageManager      string
+		templateHasLockfile bool
+		wantLockfile        bool
+	}{
+		{
+			name:                "pnpm keeps the lockfile",
+			packageManager:      "pnpm",
+			templateHasLockfile: true,
+			wantLockfile:        true,
+		},
+		{
+			name:                "npm drops the lockfile",
+			packageManager:      "npm",
+			templateHasLockfile: true,
+			wantLockfile:        false,
+		},
+		{
+			name:                "bun drops the lockfile",
+			packageManager:      "bun",
+			templateHasLockfile: true,
+			wantLockfile:        false,
+		},
+		{
+			name:                "yarn drops the lockfile",
+			packageManager:      "yarn",
+			templateHasLockfile: true,
+			wantLockfile:        false,
+		},
+		{
+			name:                "npm tolerates a template without a lockfile",
+			packageManager:      "npm",
+			templateHasLockfile: false,
+			wantLockfile:        false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			workdir := t.TempDir()
+			templateDir := filepath.Join(workdir, "template")
+
+			writeTestFile(
+				t,
+				filepath.Join(templateDir, "frontend", "package.json"),
+				"{\n  \"name\": \"starter\"\n}\n",
+			)
+
+			if tt.templateHasLockfile {
+				writeTestFile(
+					t,
+					filepath.Join(templateDir, "frontend", "pnpm-lock.yaml"),
+					"lockfileVersion: '9.0'\n",
+				)
+			}
+
+			t.Chdir(workdir)
+
+			var output bytes.Buffer
+
+			cmd := newTestRootCommand(t, &output)
+			if err := cmd.Run(
+				context.Background(),
+				[]string{
+					"nhost",
+					"create",
+					"--template-path",
+					templateDir,
+					"--package-manager",
+					tt.packageManager,
+					"--no-install",
+					"my-app",
+				},
+			); err != nil {
+				t.Fatalf("create command: %v\n%s", err, output.String())
+			}
+
+			lockfile := filepath.Join(workdir, "my-app", "frontend", "pnpm-lock.yaml")
+
+			_, statErr := os.Stat(lockfile)
+			switch {
+			case tt.wantLockfile && statErr != nil:
+				t.Fatalf("pnpm-lock.yaml was not kept for %s: %v", tt.packageManager, statErr)
+			case !tt.wantLockfile && !errors.Is(statErr, os.ErrNotExist):
+				t.Fatalf(
+					"pnpm-lock.yaml was not removed for %s: stat error = %v",
+					tt.packageManager, statErr,
+				)
+			}
+
+			assertNoStagingLeftovers(t, workdir, "my-app")
+		})
 	}
 }
 
@@ -163,6 +434,86 @@ func TestCreateScaffoldsRealLocalTemplate(t *testing.T) {
 	}
 
 	assertNoGitDirs(t, projectDir)
+	assertNoStagingLeftovers(t, workdir, "agent-ready-app")
+}
+
+// The scaffolded Markdown is the instruction set an agent follows literally, so
+// a project created with another package manager must not be told to run pnpm:
+// `pnpm install` would write a second lockfile next to the one that manager
+// owns.
+//
+//nolint:paralleltest // mutates process cwd via t.Chdir
+func TestCreateRetargetsRealTemplateDocs(t *testing.T) {
+	templateDir, err := filepath.Abs("../../../templates/nextjs-shadcn")
+	if err != nil {
+		t.Fatalf("resolve template path: %v", err)
+	}
+
+	workdir := t.TempDir()
+	t.Chdir(workdir)
+
+	var output bytes.Buffer
+
+	cmd := newTestRootCommand(t, &output)
+	if err := cmd.Run(
+		context.Background(),
+		[]string{
+			"nhost",
+			"create",
+			"--template-path",
+			templateDir,
+			"--package-manager",
+			"npm",
+			"--yes",
+			"--no-install",
+			"npm-app",
+		},
+	); err != nil {
+		t.Fatalf("create command: %v\n%s", err, output.String())
+	}
+
+	projectDir := filepath.Join(workdir, "npm-app")
+
+	var packageJSON struct {
+		Scripts map[string]string `json:"scripts"`
+	}
+	if err := json.Unmarshal(
+		[]byte(readTestFile(t, filepath.Join(projectDir, "frontend", "package.json"))),
+		&packageJSON,
+	); err != nil {
+		t.Fatalf("parse frontend/package.json: %v", err)
+	}
+
+	forbidden := make([]string, 0, len(packageJSON.Scripts)+1)
+	forbidden = append(forbidden, "pnpm install")
+
+	for script := range packageJSON.Scripts {
+		forbidden = append(forbidden, "pnpm "+script)
+	}
+
+	for _, doc := range []string{
+		"AGENTS.md",
+		"CLAUDE.md",
+		"README.md",
+		"SKILLS.md",
+		".claude/skills/add-table/SKILL.md",
+		".claude/skills/add-permission/SKILL.md",
+		".claude/skills/refresh-context/SKILL.md",
+	} {
+		content := readTestFile(t, filepath.Join(projectDir, filepath.FromSlash(doc)))
+		for _, command := range forbidden {
+			if strings.Contains(content, command) {
+				t.Errorf("%s still tells the agent to run %q", doc, command)
+			}
+		}
+	}
+
+	agents := readTestFile(t, filepath.Join(projectDir, "AGENTS.md"))
+	for _, want := range []string{"npm install", "npm run codegen", "npm run lint"} {
+		if !strings.Contains(agents, want) {
+			t.Errorf("AGENTS.md is missing %q", want)
+		}
+	}
 }
 
 func TestCreateFetchesTemplateFromLocalGitFixture(t *testing.T) {
@@ -214,6 +565,7 @@ func TestCreateFetchesTemplateFromLocalGitFixture(t *testing.T) {
 
 	assertNoGitDirs(t, projectDir)
 	assertNoTemplateTempClones(t, tmpDir)
+	assertNoStagingLeftovers(t, workdir, "my-app")
 }
 
 func TestCreateCleansUpAfterGitFetchFailure(t *testing.T) {
@@ -251,6 +603,13 @@ func TestCreateCleansUpAfterGitFetchFailure(t *testing.T) {
 		t.Fatal("create command succeeded; want git fetch failure")
 	}
 
+	msg := err.Error()
+	for _, want := range []string{"--templates-ref", "NHOST_CREATE_TEMPLATES_REF"} {
+		if !strings.Contains(msg, want) {
+			t.Fatalf("error %q missing %q", msg, want)
+		}
+	}
+
 	if _, statErr := os.Stat(
 		filepath.Join(workdir, "broken-app"),
 	); !errors.Is(
@@ -261,6 +620,7 @@ func TestCreateCleansUpAfterGitFetchFailure(t *testing.T) {
 	}
 
 	assertNoTemplateTempClones(t, tmpDir)
+	assertNoStagingLeftovers(t, workdir, "broken-app")
 }
 
 //nolint:paralleltest // mutates package-level gitLookPath test seam
@@ -306,6 +666,9 @@ func TestValidateName(t *testing.T) {
 		{name: "", wantErr: true},
 		{name: ".", wantErr: true},
 		{name: "..", wantErr: true},
+		{name: "...", wantErr: true},
+		{name: ".hidden", wantErr: true},
+		{name: "-dash", wantErr: true},
 		{name: "my app", wantErr: true},
 		{name: "my/app", wantErr: true},
 		{name: "../escape", wantErr: true},
@@ -356,32 +719,34 @@ func TestValidatePackageManager(t *testing.T) {
 	}
 }
 
-func TestSafeJoin(t *testing.T) {
+// copyDir writes through an os.Root, so a symlinked directory already sitting
+// under the destination cannot redirect the copy out of it — a plain
+// MkdirAll/OpenFile pair follows such a link happily.
+func TestCopyDirRefusesSymlinkedDestinationDirs(t *testing.T) {
 	t.Parallel()
 
-	base := t.TempDir()
-	tests := []struct {
-		name    string
-		wantErr bool
-	}{
-		{name: "a/b.txt", wantErr: false},
-		{name: "./c.txt", wantErr: false},
-		{name: "frontend/package.json", wantErr: false},
-		{name: "../evil", wantErr: true},
-		{name: "../../evil", wantErr: true},
-		{name: "/etc/passwd", wantErr: true},
-		{name: "a/../../evil", wantErr: true},
+	src := t.TempDir()
+	writeTestFile(t, filepath.Join(src, "frontend", "package.json"), "{\n  \"name\": \"x\"\n}\n")
+
+	outside := t.TempDir()
+
+	dst := filepath.Join(t.TempDir(), "out")
+	if err := os.MkdirAll(dst, 0o755); err != nil {
+		t.Fatal(err)
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+	if err := os.Symlink(outside, filepath.Join(dst, "frontend")); err != nil {
+		t.Fatalf("Symlink: %v", err)
+	}
 
-			_, err := safeJoin(base, tt.name)
-			if (err != nil) != tt.wantErr {
-				t.Fatalf("safeJoin(%q) error = %v, wantErr %v", tt.name, err, tt.wantErr)
-			}
-		})
+	if err := copyDir(src, dst); err == nil {
+		t.Error("copyDir followed a symlinked destination directory")
+	}
+
+	if _, err := os.Stat(
+		filepath.Join(outside, "package.json"),
+	); !errors.Is(err, os.ErrNotExist) {
+		t.Errorf("copyDir wrote outside the destination: %v", err)
 	}
 }
 
@@ -408,6 +773,83 @@ func TestPatchPackageJSONName(t *testing.T) {
 	want := "{\n  \"name\": \"my-app\",\n  \"version\": \"0.1.0\"\n}\n"
 	if string(got) != want {
 		t.Errorf("patched package.json = %q, want %q", got, want)
+	}
+}
+
+func TestRetargetPackageManagerDocs(t *testing.T) {
+	t.Parallel()
+
+	// The last line pins the other half of the contract: only real commands are
+	// rewritten, so prose that merely mentions pnpm survives intact.
+	const agents = "Install with `pnpm install`, then run `pnpm codegen:types`.\n" +
+		"`pnpm dev` starts the app; `pnpm lint` and `pnpm build` validate it.\n" +
+		"The upstream template is developed with pnpm workspaces.\n"
+
+	const skill = "(cd frontend && pnpm codegen)\n"
+
+	tests := []struct {
+		name       string
+		pm         string
+		wantAgents string
+		wantSkill  string
+	}{
+		{
+			name: "npm",
+			pm:   "npm",
+			wantAgents: "Install with `npm install`, then run `npm run codegen:types`.\n" +
+				"`npm run dev` starts the app; `npm run lint` and `npm run build` validate it.\n" +
+				"The upstream template is developed with pnpm workspaces.\n",
+			wantSkill: "(cd frontend && npm run codegen)\n",
+		},
+		{
+			name: "yarn",
+			pm:   "yarn",
+			wantAgents: "Install with `yarn install`, then run `yarn run codegen:types`.\n" +
+				"`yarn run dev` starts the app; `yarn run lint` and `yarn run build` validate it.\n" +
+				"The upstream template is developed with pnpm workspaces.\n",
+			wantSkill: "(cd frontend && yarn run codegen)\n",
+		},
+		{
+			name:       "pnpm leaves the docs byte-identical",
+			pm:         "pnpm",
+			wantAgents: agents,
+			wantSkill:  skill,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			root := t.TempDir()
+			writeTestFile(
+				t,
+				filepath.Join(root, "frontend", "package.json"),
+				`{"name":"app","scripts":{"dev":"next dev","build":"next build",`+
+					`"lint":"biome check .","codegen":"x","codegen:types":"y"}}`,
+			)
+			writeTestFile(t, filepath.Join(root, "AGENTS.md"), agents)
+			writeTestFile(
+				t,
+				filepath.Join(root, ".claude", "skills", "add-table", "SKILL.md"),
+				skill,
+			)
+
+			if err := retargetPackageManagerDocs(root, tt.pm); err != nil {
+				t.Fatalf("retargetPackageManagerDocs: %v", err)
+			}
+
+			if got := readTestFile(t, filepath.Join(root, "AGENTS.md")); got != tt.wantAgents {
+				t.Errorf("AGENTS.md =\n%s\nwant\n%s", got, tt.wantAgents)
+			}
+
+			if got := readTestFile(
+				t,
+				filepath.Join(root, ".claude", "skills", "add-table", "SKILL.md"),
+			); got != tt.wantSkill {
+				t.Errorf("SKILL.md = %q, want %q", got, tt.wantSkill)
+			}
+		})
 	}
 }
 
@@ -551,6 +993,25 @@ func assertNoTemplateTempClones(t *testing.T, tmpDir string) {
 	for _, entry := range entries {
 		if strings.HasPrefix(entry.Name(), "nhost-create-template-") {
 			t.Fatalf("temporary clone was not removed: %s", filepath.Join(tmpDir, entry.Name()))
+		}
+	}
+}
+
+// assertNoStagingLeftovers pins the invariant stageProject exists to protect:
+// the `.<name>.partial-*` directory it stages into never survives in the user's
+// working directory, on either the success or the failure path.
+func assertNoStagingLeftovers(t *testing.T, dir string, name string) {
+	t.Helper()
+
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		t.Fatalf("ReadDir(%s): %v", dir, err)
+	}
+
+	prefix := "." + name + ".partial-"
+	for _, entry := range entries {
+		if strings.HasPrefix(entry.Name(), prefix) {
+			t.Fatalf("staging directory was not removed: %s", filepath.Join(dir, entry.Name()))
 		}
 	}
 }

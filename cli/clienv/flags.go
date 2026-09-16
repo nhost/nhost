@@ -50,6 +50,7 @@ func Flags() ([]cli.Flag, error) { //nolint:funlen
 	workingDir := "."
 	dotNhostFolder := filepath.Join(workingDir, ".nhost")
 	nhostFolder := filepath.Join(workingDir, "nhost")
+	paths := NewPathStructure(fullWorkingDir, workingDir, dotNhostFolder, nhostFolder)
 
 	return []cli.Flag{
 		&cli.StringFlag{ //nolint:exhaustruct
@@ -112,8 +113,11 @@ func Flags() ([]cli.Flag, error) { //nolint:funlen
 			Name:        flagProjectName,
 			Usage:       "Project name",
 			Value:       filepath.Base(fullWorkingDir),
-			DefaultText: "<project-directory-name>",
-			Sources:     cli.EnvVars("NHOST_PROJECT_NAME"),
+			DefaultText: "<nhost/project-name or directory name>",
+			Sources: cli.NewValueSourceChain(
+				cli.EnvVar("NHOST_PROJECT_NAME"),
+				&projectNameFileSource{path: paths.ProjectNameFile()},
+			),
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:    flagLocalSubdomain,

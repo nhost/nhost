@@ -58,15 +58,10 @@ let
       (fs.fileFilter (f: f.hasExt "mdx") ../docs/src/content/docs)
 
       # nextjs-shadcn starter template, scaffolded by `nhost create` and
-      # exercised end-to-end by TestCreateScaffoldsRealLocalTemplate. Exclude
-      # local-only build artifacts so the check stays hermetic.
-      (fs.difference
-        ../templates/nextjs-shadcn
-        (fs.unions [
-          (fs.maybeMissing ../templates/nextjs-shadcn/frontend/node_modules)
-          (fs.maybeMissing ../templates/nextjs-shadcn/frontend/.next)
-        ])
-      )
+      # exercised end-to-end by TestCreateScaffoldsRealLocalTemplate. Local
+      # build artifacts (node_modules, .next, next-env.d.ts) are gitignored, so
+      # the flake's git-tracked source already keeps them out.
+      ../templates/nextjs-shadcn
     ];
   };
 
