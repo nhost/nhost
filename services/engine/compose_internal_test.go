@@ -1065,6 +1065,51 @@ func TestBuildAll(t *testing.T) {
 	}
 }
 
+func TestLogStartupReportsVersionBeforeRedactedFlags(t *testing.T) {
+	t.Parallel()
+
+	const rawSecret = "must-not-appear"
+
+	runParsed(
+		t,
+		[]cli.Flag{
+			&cli.StringFlag{Name: "auth-client-secret"},
+			&cli.StringFlag{Name: "auth-api-prefix"},
+		},
+		[]string{
+			"--auth-client-secret", rawSecret,
+			"--auth-api-prefix", "/v1",
+		},
+		func(cmd *cli.Command) {
+			var logs bytes.Buffer
+
+			logStartup(
+				context.Background(), slog.New(slog.NewTextHandler(&logs, nil)), cmd, "test",
+			)
+
+			got := logs.String()
+			versionAt := strings.Index(got, "engine vtest")
+			flagsAt := strings.Index(got, "starting program")
+
+			if versionAt < 0 || flagsAt < 0 || versionAt > flagsAt {
+				t.Fatalf("startup logs = %q, want version before resolved flags", got)
+			}
+
+			if strings.Contains(got, rawSecret) {
+				t.Fatalf("startup logs contain prefixed secret: %q", got)
+			}
+
+			if !strings.Contains(got, "flags.auth-client-secret=********") {
+				t.Fatalf("startup logs = %q, want redacted prefixed secret", got)
+			}
+
+			if !strings.Contains(got, "flags.auth-api-prefix=/v1") {
+				t.Fatalf("startup logs = %q, want resolved non-secret flag", got)
+			}
+		},
+	)
+}
+
 func TestRunServeErrorsWhenAllServicesDisabled(t *testing.T) {
 	t.Parallel()
 

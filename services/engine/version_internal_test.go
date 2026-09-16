@@ -51,8 +51,9 @@ func requiredPassthroughArgs(t *testing.T, service string, def serviceDef) []str
 // project.nix injects never reaches them here; services/engine/project.nix
 // injects the engine's main.Version instead, and buildService hands it to each
 // service's wrapper command. Auth, storage and constellation all read
-// cmd.Root().Version for their startup log and their version endpoint, so that
-// hop is the only thing keeping those from going empty.
+// cmd.Root().Version for their version endpoint and other controller-built
+// surfaces, so that hop is the only thing keeping those from going empty. The
+// engine itself emits one startup version line rather than one per service.
 //
 // This is worth asserting because every way it breaks is silent: a mistyped
 // linker symbol still builds (storage shipped that way, injecting
@@ -100,7 +101,7 @@ func TestBundledServicesReportEngineVersion(t *testing.T) {
 			if got != engineVersionUnderTest {
 				t.Errorf(
 					"%s reports Root().Version = %q, want the engine's %q"+
-						" (its --version, startup log and /version endpoint go stale or empty)",
+						" (its --version and /version endpoint go stale or empty)",
 					rs.name, got, engineVersionUnderTest,
 				)
 			}
