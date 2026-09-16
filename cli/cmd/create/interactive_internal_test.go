@@ -475,6 +475,79 @@ func TestConfirmStart(t *testing.T) {
 	}
 }
 
+// The project is announced before the start question, so the answer is given
+// to a create that has already said it succeeded.
+//
+//nolint:paralleltest // mutates package-level prompt seams
+func TestConfirmStartAnnouncesTheProjectBeforeAsking(t *testing.T) {
+	stubPrompts(t)
+
+	var output bytes.Buffer
+
+	seenWhenAsked := ""
+
+	runConfirm = func(_ *clienv.CliEnv, _ string, _ bool) (bool, error) {
+		seenWhenAsked = output.String()
+
+		return true, nil
+	}
+
+	if _, err := confirmStart(newTestEnv(&output), choices{
+		template:       defaultTemplate,
+		name:           "demo",
+		rel:            "demo",
+		packageManager: defaultPackageManager,
+		installNow:     true,
+		startNow:       false,
+	}, true); err != nil {
+		t.Fatalf("confirmStart: %v", err)
+	}
+
+	if !strings.Contains(seenWhenAsked, "Created demo in ./demo") {
+		t.Errorf(
+			"the start question was asked before the project was announced:\n%s",
+			seenWhenAsked,
+		)
+	}
+}
+
+// Every path through the create says it once, including the ones that never
+// reach the question.
+//
+//nolint:paralleltest // mutates package-level prompt seams
+func TestConfirmStartAnnouncesTheProjectWithoutAsking(t *testing.T) {
+	tests := []struct {
+		name     string
+		resolved choices
+		ask      bool
+	}{
+		{name: "--yes", resolved: choices{name: "demo", installNow: true}, ask: false},
+		{name: "no dependencies", resolved: choices{name: "demo", installNow: false}, ask: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			stubPrompts(t)
+
+			runConfirm = func(_ *clienv.CliEnv, message string, _ bool) (bool, error) {
+				t.Errorf("unexpected confirm %q", message)
+
+				return false, nil
+			}
+
+			var output bytes.Buffer
+
+			if _, err := confirmStart(newTestEnv(&output), tt.resolved, tt.ask); err != nil {
+				t.Fatalf("confirmStart: %v", err)
+			}
+
+			if !strings.Contains(output.String(), "Created demo") {
+				t.Errorf("the project was never announced:\n%s", output.String())
+			}
+		})
+	}
+}
+
 //nolint:paralleltest // mutates package-level prompt seams
 func TestRunInteractiveRepromptsOnInvalidName(t *testing.T) {
 	stubPrompts(t)

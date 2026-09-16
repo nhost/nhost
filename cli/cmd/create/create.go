@@ -191,7 +191,14 @@ func action(ctx context.Context, cmd *cli.Command) error {
 // the install rather than with the other prompts so that it is asked about a
 // project that is ready to run, and --start answers it up front for a run that
 // should not stop to ask.
+//
+// The project is announced here, so that it is announced once on every path,
+// after the install output it would otherwise be buried in and before anything
+// asks a question about it.
 func confirmStart(ce *clienv.CliEnv, resolved choices, ask bool) (bool, error) {
+	ce.Println("")
+	ce.Infoln("Created %s in %s", resolved.name, resolved.where())
+
 	if !resolved.installNow {
 		return false, nil
 	}
@@ -200,7 +207,9 @@ func confirmStart(ce *clienv.CliEnv, resolved choices, ask bool) (bool, error) {
 		return resolved.startNow, nil
 	}
 
-	return runConfirm(ce, "Start backend and frontend?", true)
+	ce.Println("")
+
+	return runConfirm(ce, "Start backend & frontend?", true)
 }
 
 // installFrontendDependencies reports whether the frontend ended up with its
@@ -531,8 +540,6 @@ func packageManagerScript(pm, script string) string {
 
 func printNextSteps(ce *clienv.CliEnv, resolved choices) {
 	ce.Println("")
-	ce.Infoln("Created %s in %s", resolved.name, resolved.where())
-	ce.Println("")
 	ce.Println("Next steps:")
 	printStartCommands(ce, resolved)
 }
@@ -556,12 +563,4 @@ func printStartCommands(ce *clienv.CliEnv, resolved choices) {
 			resolved.path("frontend"), resolved.packageManager, devCommand,
 		)
 	}
-}
-
-// printAppURL is only true once something is serving, so it belongs to the
-// paths that start the servers rather than to the ones that hand the commands
-// back for the user to run later.
-func printAppURL(ce *clienv.CliEnv) {
-	ce.Println("")
-	ce.Println("App: http://localhost:3000")
 }

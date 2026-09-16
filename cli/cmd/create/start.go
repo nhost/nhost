@@ -33,10 +33,6 @@ func startServers(
 	target string,
 ) error {
 	ce.Println("")
-	ce.Infoln("Created %s", resolved.name)
-	printAppURL(ce)
-
-	ce.Println("")
 	ce.Infoln("Checking this machine can run the backend...")
 
 	if blockers := runPreflight(ctx, version); len(blockers) > 0 {
