@@ -1,6 +1,7 @@
 package create
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -67,9 +68,9 @@ func promptConfirm(ce *clienv.CliEnv, message string, defaultYes bool) (bool, er
 	}
 }
 
-// promptPick prints a numbered list and returns the index of the chosen item,
-// falling back to defaultIdx on an empty answer. A single-item list is resolved
-// without asking.
+// promptPick asks which of the items to use, preferring the arrow-key picker
+// and falling back to a numbered list when stdin cannot be read key by key. A
+// single-item list is resolved without asking.
 func promptPick(ce *clienv.CliEnv, title string, items []pickerItem, defaultIdx int) (int, error) {
 	if len(items) == 0 {
 		return -1, fmt.Errorf("%s: nothing to choose from", title) //nolint:err113
@@ -83,6 +84,29 @@ func promptPick(ce *clienv.CliEnv, title string, items []pickerItem, defaultIdx 
 		return 0, nil
 	}
 
+	idx, err := pickWithKeys(ce, title, items, defaultIdx)
+
+	switch {
+	case errors.Is(err, errNoRawTerminal):
+		return pickByNumber(ce, title, items, defaultIdx)
+	case err != nil:
+		return -1, err
+	}
+
+	ce.Infoln("%s: %s", title, items[idx].Label)
+
+	return idx, nil
+}
+
+// pickByNumber prints a numbered list and returns the index of the chosen
+// item, falling back to defaultIdx on an empty answer. It is what runs when
+// input is piped in rather than typed.
+func pickByNumber(
+	ce *clienv.CliEnv,
+	title string,
+	items []pickerItem,
+	defaultIdx int,
+) (int, error) {
 	ce.Println("")
 	ce.Infoln("%s", title)
 
