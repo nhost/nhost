@@ -2,6 +2,8 @@ package create
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/nhost/nhost/cli/clienv"
@@ -9,11 +11,36 @@ import (
 )
 
 type choices struct {
-	template       string
-	name           string
+	template string
+	name     string
+	// dir is the absolute directory the project is scaffolded into, and rel
+	// is that directory as typed from where the command ran. rel is empty when
+	// they are the same place, which is the default.
+	dir            string
+	rel            string
 	packageManager string
 	installNow     bool
 	startNow       bool
+}
+
+// path spells one of the project's directories the way the user would type it
+// from where they ran the command.
+func (c choices) path(sub string) string {
+	if c.rel == "" {
+		return sub
+	}
+
+	return filepath.Join(c.rel, sub)
+}
+
+// where names the directory the project landed in, for prose rather than for a
+// command to copy.
+func (c choices) where() string {
+	if c.rel == "" {
+		return "the current directory"
+	}
+
+	return c.rel
 }
 
 // answered records which choices the command line already made. A value passed
@@ -33,13 +60,75 @@ type resolution struct {
 	prompt   bool
 }
 
+// resolveTarget turns the directory argument into the absolute path to
+// scaffold into, plus how to refer to it from where the command ran. An empty
+// argument means the current directory, which is the common case: you make a
+// directory, cd into it, and create there.
+func resolveTarget(arg string) (string, string, error) {
+	wd, err := os.Getwd()
+	if err != nil {
+		return "", "", fmt.Errorf("failed to determine working directory: %w", err)
+	}
+
+	if arg == "" {
+		return wd, "", nil
+	}
+
+	dir, err := filepath.Abs(arg)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to resolve %q: %w", arg, err)
+	}
+
+	if dir == wd {
+		return dir, "", nil
+	}
+
+	rel, err := filepath.Rel(wd, dir)
+	if err != nil {
+		return dir, dir, nil //nolint:nilerr // an absolute path is still printable
+	}
+
+	return dir, rel, nil
+}
+
+// nameFromDir derives a project name from the directory's own name, keeping
+// what validateName accepts and replacing the rest. Anything that cannot start
+// a name is dropped until the first letter or digit, so "_tmp" becomes "tmp"
+// and "my project" becomes "my-project". An empty result means the directory
+// name has nothing usable in it and the name has to come from somewhere else.
+func nameFromDir(dir string) string {
+	var b strings.Builder
+
+	for _, r := range filepath.Base(dir) {
+		switch {
+		case (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9'):
+			b.WriteRune(r)
+		case b.Len() == 0:
+			continue
+		case r == '.' || r == '_' || r == '-':
+			b.WriteRune(r)
+		default:
+			b.WriteRune('-')
+		}
+	}
+
+	return strings.TrimRight(b.String(), "._-")
+}
+
 // resolveChoices seeds the choices from flags and reports what is left to ask.
 // Without a terminal, or with --yes, every value has to come from flags and
 // arguments.
 func resolveChoices(cmd *cli.Command, interactive bool) (resolution, error) {
+	dir, rel, err := resolveTarget(cmd.Args().First())
+	if err != nil {
+		return resolution{}, err
+	}
+
 	resolved := choices{
 		template:       cmd.String(flagTemplate),
-		name:           cmd.Args().First(),
+		name:           cmd.String(flagName),
+		dir:            dir,
+		rel:            rel,
 		packageManager: cmd.String(flagPackageManager),
 		installNow:     !cmd.Bool(flagNoInstall),
 		startNow:       cmd.Bool(flagStart),
@@ -50,6 +139,12 @@ func resolveChoices(cmd *cli.Command, interactive bool) (resolution, error) {
 		name:           resolved.name != "",
 		packageManager: cmd.IsSet(flagPackageManager),
 		startNow:       cmd.IsSet(flagStart),
+	}
+
+	// The directory the project lands in names it unless --name says otherwise,
+	// so the prompt has something to offer and --yes has something to use.
+	if !given.name {
+		resolved.name = nameFromDir(dir)
 	}
 
 	if interactive && !cmd.Bool(flagYes) {

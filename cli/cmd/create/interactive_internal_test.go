@@ -5,6 +5,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -12,8 +14,14 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
+//nolint:paralleltest // t.Chdir fixes the directory the target resolves against
 func TestResolveChoices(t *testing.T) {
-	t.Parallel()
+	workspace := filepath.Join(t.TempDir(), "workspace")
+	if err := os.MkdirAll(workspace, 0o755); err != nil {
+		t.Fatalf("MkdirAll: %v", err)
+	}
+
+	t.Chdir(workspace)
 
 	tests := []struct {
 		name            string
@@ -24,14 +32,60 @@ func TestResolveChoices(t *testing.T) {
 		wantInteractive bool
 		wantErr         error
 	}{
+		// No argument is the default: scaffold here, and let the directory
+		// name the project.
 		{
-			name:            "non-interactive requires name",
-			args:            nil,
+			name:        "no argument scaffolds into the current directory",
+			args:        []string{"--yes"},
+			interactive: true,
+			want: choices{
+				template:       defaultTemplate,
+				name:           "workspace",
+				rel:            "",
+				packageManager: defaultPackageManager,
+				installNow:     true,
+				startNow:       false,
+			},
+			wantAnswered: answered{
+				template:       false,
+				name:           false,
+				packageManager: false,
+				startNow:       false,
+			},
+			wantInteractive: false,
+			wantErr:         nil,
+		},
+		// A directory with nothing name-shaped in it leaves the project
+		// nameless, and without a prompt to fall back on that has to stop.
+		{
+			name:            "non-interactive needs a usable name",
+			args:            []string{"./___"},
 			interactive:     false,
 			want:            choices{},
 			wantAnswered:    answered{},
 			wantInteractive: false,
 			wantErr:         errNameRequired,
+		},
+		{
+			name:        "--name overrides the directory",
+			args:        []string{"--yes", "--name", "billing", "demo"},
+			interactive: true,
+			want: choices{
+				template:       defaultTemplate,
+				name:           "billing",
+				rel:            "demo",
+				packageManager: defaultPackageManager,
+				installNow:     true,
+				startNow:       false,
+			},
+			wantAnswered: answered{
+				template:       false,
+				name:           true,
+				packageManager: false,
+				startNow:       false,
+			},
+			wantInteractive: false,
+			wantErr:         nil,
 		},
 		{
 			name:        "yes bypasses prompts",
@@ -40,13 +94,14 @@ func TestResolveChoices(t *testing.T) {
 			want: choices{
 				template:       defaultTemplate,
 				name:           "demo",
+				rel:            "demo",
 				packageManager: defaultPackageManager,
 				installNow:     true,
 				startNow:       false,
 			},
 			wantAnswered: answered{
 				template:       false,
-				name:           true,
+				name:           false,
 				packageManager: false,
 				startNow:       false,
 			},
@@ -65,13 +120,14 @@ func TestResolveChoices(t *testing.T) {
 			want: choices{
 				template:       "nextjs-shadcn",
 				name:           "demo",
+				rel:            "demo",
 				packageManager: "bun",
 				installNow:     false,
 				startNow:       false,
 			},
 			wantAnswered: answered{
 				template:       true,
-				name:           true,
+				name:           false,
 				packageManager: true,
 				startNow:       false,
 			},
@@ -85,13 +141,14 @@ func TestResolveChoices(t *testing.T) {
 			want: choices{
 				template:       defaultTemplate,
 				name:           "demo",
+				rel:            "demo",
 				packageManager: defaultPackageManager,
 				installNow:     true,
 				startNow:       true,
 			},
 			wantAnswered: answered{
 				template:       false,
-				name:           true,
+				name:           false,
 				packageManager: false,
 				startNow:       true,
 			},
@@ -111,11 +168,12 @@ func TestResolveChoices(t *testing.T) {
 		// an interactive run that passes it has nothing to ask.
 		{
 			name:        "every answer on the command line leaves nothing to ask",
-			args:        []string{"--package-manager", "npm", "--start", "demo"},
+			args:        []string{"--package-manager", "npm", "--start", "--name", "demo", "demo"},
 			interactive: true,
 			want: choices{
 				template:       defaultTemplate,
 				name:           "demo",
+				rel:            "demo",
 				packageManager: "npm",
 				installNow:     true,
 				startNow:       true,
@@ -133,7 +191,11 @@ func TestResolveChoices(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+			// dir is whatever the temp workspace happens to be, so the table
+			// carries the relative path and the absolute one is filled in here.
+			if tt.wantErr == nil {
+				tt.want.dir = filepath.Join(workspace, tt.want.rel)
+			}
 
 			got, err := resolveChoicesForTest(t, tt.args, tt.interactive)
 			if !errors.Is(err, tt.wantErr) {
@@ -156,6 +218,48 @@ func TestResolveChoices(t *testing.T) {
 					"resolveChoices() prompt = %v, want %v",
 					got.prompt, tt.wantInteractive,
 				)
+			}
+		})
+	}
+}
+
+// The directory a project lands in names it, and directory names are freer
+// than project names: spaces, leading underscores and trailing punctuation all
+// have to come out the other side as something validateName accepts.
+func TestNameFromDir(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		dir  string
+		want string
+	}{
+		{dir: "/tmp/my-app", want: "my-app"},
+		{dir: "/tmp/My_App.v2", want: "My_App.v2"},
+		{dir: "/tmp/my project", want: "my-project"},
+		{dir: "/tmp/_tmp", want: "tmp"},
+		{dir: "/tmp/2026-notes", want: "2026-notes"},
+		{dir: "/tmp/trailing-", want: "trailing"},
+		{dir: "/tmp/@scope", want: "scope"},
+		// Nothing here can start a project name, so there is no name to
+		// derive and the caller has to ask or give up.
+		{dir: "/tmp/___", want: ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.dir, func(t *testing.T) {
+			t.Parallel()
+
+			got := nameFromDir(tt.dir)
+			if got != tt.want {
+				t.Errorf("nameFromDir(%q) = %q, want %q", tt.dir, got, tt.want)
+			}
+
+			if got == "" {
+				return
+			}
+
+			if err := validateName(got); err != nil {
+				t.Errorf("nameFromDir(%q) = %q, which is not a valid name: %v", tt.dir, got, err)
 			}
 		})
 	}
@@ -529,25 +633,41 @@ func TestPrintNextStepsUsesManagerScriptSyntax(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
+		name           string
 		packageManager string
+		rel            string
 		wantDev        string
 	}{
 		{
+			name:           "pnpm",
 			packageManager: "pnpm",
+			rel:            "demo",
 			wantDev:        "cd demo/frontend && pnpm install && pnpm dev",
 		},
 		{
+			name:           "npm",
 			packageManager: "npm",
+			rel:            "demo",
 			wantDev:        "cd demo/frontend && npm install && npm run dev",
 		},
 		{
+			name:           "bun",
 			packageManager: "bun",
+			rel:            "demo",
 			wantDev:        "cd demo/frontend && bun install && bun run dev",
+		},
+		// Scaffolding into the current directory is the default, and there
+		// the project is not under a directory to cd into first.
+		{
+			name:           "current directory",
+			packageManager: "pnpm",
+			rel:            "",
+			wantDev:        "cd frontend && pnpm install && pnpm dev",
 		},
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.packageManager, func(t *testing.T) {
+		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
 			var output bytes.Buffer
@@ -555,6 +675,7 @@ func TestPrintNextStepsUsesManagerScriptSyntax(t *testing.T) {
 			printNextSteps(newTestEnv(&output), choices{
 				template:       defaultTemplate,
 				name:           "demo",
+				rel:            tt.rel,
 				packageManager: tt.packageManager,
 				installNow:     false,
 				startNow:       false,

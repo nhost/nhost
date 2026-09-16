@@ -106,6 +106,7 @@ func TestStartServersKeepsTheProjectWhenTheBackendFails(t *testing.T) {
 	err := startServers(context.Background(), newTestEnv(&output), devVersion, choices{
 		template:       defaultTemplate,
 		name:           "demo",
+		rel:            "demo",
 		packageManager: defaultPackageManager,
 		installNow:     true,
 		startNow:       true,
@@ -154,6 +155,7 @@ func TestStartServersStopsOnAPreflightBlocker(t *testing.T) {
 	err := startServers(context.Background(), newTestEnv(&output), devVersion, choices{
 		template:       defaultTemplate,
 		name:           "demo",
+		rel:            "demo",
 		packageManager: defaultPackageManager,
 		installNow:     true,
 		startNow:       true,

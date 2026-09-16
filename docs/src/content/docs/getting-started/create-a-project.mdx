@@ -15,14 +15,19 @@ The quickstarts add Nhost to an app you already have. Use this instead when you 
 
 ## Create the project
 
+Create scaffolds into the directory you run it in, so make one and change into it first:
+
 ```bash Terminal
-nhost create my-app
+mkdir my-app && cd my-app
+nhost create
 ```
 
-Run without arguments to be prompted for the template, project name, package manager, and whether to start the project once it is created:
+You are prompted for the template, project name, and package manager, then for whether to start the project once it is created. The project name defaults to the directory's name.
+
+Pass a directory to scaffold there instead. It is created if it does not exist:
 
 ```bash Terminal
-nhost create
+nhost create my-app
 ```
 
 Or skip the prompts entirely:
@@ -31,20 +36,23 @@ Or skip the prompts entirely:
 nhost create my-app --template nextjs-shadcn --package-manager pnpm --yes
 ```
 
+Files already in the target directory are left where they are. Create only stops if the template would land on top of something, and it names what clashed. A fresh `git init` is fine, but note that the template ships its own `README.md` and `.gitignore`, so a directory that already has either needs that file moved out of the way first. Use `--name` when the project should be called something other than the directory it lives in.
+
 Frontend dependencies are always installed. Pass `--no-install` to skip that, for instance when scaffolding in a container that has no network.
 
 ## What you get
 
+In the directory you created it in:
+
 ```
-my-app/
-  backend/          nhost.toml, migrations, metadata, functions, .secrets, project-name
-  frontend/         the template's app, with its own lockfile
-  AGENTS.md         project context for coding agents
-  CLAUDE.md         the same content, for Claude Code
-  SKILLS.md         repeatable workflows, for any coding agent
-  .claude/skills/   the same workflows, in the layout Claude Code loads
-  .mcp.json         Nhost MCP server configuration
-  README.md
+backend/          nhost.toml, migrations, metadata, functions, .secrets, project-name
+frontend/         the template's app, with its own lockfile
+AGENTS.md         project context for coding agents
+CLAUDE.md         the same content, for Claude Code
+SKILLS.md         repeatable workflows, for any coding agent
+.claude/skills/   the same workflows, in the layout Claude Code loads
+.mcp.json         Nhost MCP server configuration
+README.md
 ```
 
 The backend is the same layout [`nhost init`](/getting-started/local-development/cli) produces, with email OTP sign-in already enabled and the client URL pointed at your local frontend. The template is applied on top, so it can ship its own migrations and metadata.
@@ -60,12 +68,12 @@ nhost create my-app --yes --start
 Otherwise start them yourself, in two terminals:
 
 ```bash Terminal
-cd my-app/backend
+cd backend
 nhost up
 ```
 
 ```bash Terminal
-cd my-app/frontend
+cd frontend
 pnpm dev
 ```
 
@@ -97,7 +105,6 @@ Both forms are plain markdown over CLI commands, so they work with any agent and
 Once the project exists, you can hand it straight to an agent:
 
 ```bash Terminal
-cd my-app
 claude "This is an Nhost and Next.js starter. Add a projects table that todos belong to, with permissions so users only see their own."
 ```
 
@@ -114,6 +121,7 @@ Re-run the `refresh-context` skill, or `nhost schema dump --subdomain local --ro
 | | |
 | --- | --- |
 | `--template`, `-t` | Template to scaffold. Defaults to `nextjs-shadcn`. |
+| `--name` | Project name. Defaults to the target directory's name. |
 | `--package-manager` | `pnpm`, `npm`, `bun`, or `yarn`. Defaults to `pnpm`. |
 | `--no-install` | Skip installing frontend dependencies. |
 | `--start` | Start the backend and the frontend dev server once the project is created. |

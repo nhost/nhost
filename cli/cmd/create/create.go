@@ -23,6 +23,7 @@ import (
 
 const (
 	flagTemplate       = "template"
+	flagName           = "name"
 	flagPackageManager = "package-manager"
 	flagYes            = "yes"
 	flagNoInstall      = "no-install"
@@ -33,11 +34,18 @@ const (
 
 	defaultClientURL      = "http://localhost:3000"
 	defaultPackageManager = "pnpm"
+
+	// stagingPrefix names the directory the project is built in before it is
+	// moved into place. It sits inside the target, so the name has to be one
+	// nothing else would claim.
+	stagingPrefix = ".nhost-create.partial-"
 )
 
 var errNameRequired = errors.New(
-	"project name is required (usage: nhost create <name>)",
+	"could not name the project after the target directory; pass --name",
 )
+
+var errTargetConflict = errors.New("would overwrite existing files")
 
 var errStartNeedsInstall = errors.New(
 	"--start needs the frontend dependencies, so it cannot be used with --no-install",
@@ -48,9 +56,17 @@ func Command() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
 		Name:      "create",
 		Usage:     "Create a new Nhost project from a template",
-		ArgsUsage: "[name]",
-		Action:    action,
+		ArgsUsage: "[directory]",
+		Description: "Scaffolds into the current directory, or into [directory] " +
+			"when one is given. The directory is created if it does not exist, and " +
+			"files already in it are left alone unless the template would overwrite them.",
+		Action: action,
 		Flags: []cli.Flag{
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:  flagName,
+				Usage: "Project name (default: the target directory's name)",
+				Value: "",
+			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagTemplate,
 				Aliases: []string{"t"},
@@ -131,14 +147,9 @@ func action(ctx context.Context, cmd *cli.Command) error {
 	// validateChoices already rejected unknown templates.
 	tmpl, _ := lookupTemplate(resolved.template)
 
-	wd, err := os.Getwd()
-	if err != nil {
-		return fmt.Errorf("failed to determine working directory: %w", err)
-	}
-
-	target := filepath.Join(wd, resolved.name)
-	if clienv.PathExists(target) {
-		return fmt.Errorf("destination %q already exists", resolved.name) //nolint:err113
+	target := resolved.dir
+	if err := os.MkdirAll(target, 0o755); err != nil { //nolint:mnd
+		return fmt.Errorf("failed to create %s: %w", target, err)
 	}
 
 	ce.Infoln("Creating Nhost project %q from template %q", resolved.name, tmpl.name)
@@ -205,8 +216,8 @@ func installFrontendDependencies(
 		ctx, resolved.packageManager, filepath.Join(target, "frontend"),
 	); err != nil {
 		ce.Warnln(
-			"Could not install dependencies (%v). Run `%s install` in %s/frontend yourself.",
-			err, resolved.packageManager, resolved.name,
+			"Could not install dependencies (%v). Run `%s install` in %s yourself.",
+			err, resolved.packageManager, resolved.path("frontend"),
 		)
 
 		return false
@@ -222,7 +233,10 @@ func stageProject(
 	tmpl template,
 	name, target, packageManager string,
 ) error {
-	staging, err := os.MkdirTemp(filepath.Dir(target), "."+name+".partial-*")
+	// Staging lives inside the target so that finalizing is a rename per entry
+	// on one filesystem, and so a create that fails leaves nothing behind
+	// anywhere but the directory it was pointed at.
+	staging, err := os.MkdirTemp(target, stagingPrefix+"*")
 	if err != nil {
 		return fmt.Errorf("failed to create staging directory: %w", err)
 	}
@@ -269,11 +283,54 @@ func stageProject(
 		}
 	}
 
-	if err := os.Rename(staging, target); err != nil {
-		return fmt.Errorf("failed to finalize project: %w", err)
+	if err := adoptStaging(staging, target); err != nil {
+		return err
+	}
+
+	if err := os.Remove(staging); err != nil {
+		return fmt.Errorf("failed to clean up staging directory: %w", err)
 	}
 
 	success = true
+
+	return nil
+}
+
+// adoptStaging moves the staged project into the target directory. Scaffolding
+// into a directory that already holds files is the point, so the check is per
+// entry rather than "is it empty": a .git, a README or notes are left alone,
+// and only a name the template would land on top of stops the create. The
+// whole check runs before the first move, so a refusal leaves the directory
+// exactly as it was.
+func adoptStaging(staging, target string) error {
+	entries, err := os.ReadDir(staging)
+	if err != nil {
+		return fmt.Errorf("failed to read staged project: %w", err)
+	}
+
+	conflicts := make([]string, 0, len(entries))
+
+	for _, entry := range entries {
+		if clienv.PathExists(filepath.Join(target, entry.Name())) {
+			conflicts = append(conflicts, entry.Name())
+		}
+	}
+
+	if len(conflicts) > 0 {
+		return fmt.Errorf(
+			"cannot scaffold into %s: %w: %s",
+			target, errTargetConflict, strings.Join(conflicts, ", "),
+		)
+	}
+
+	for _, entry := range entries {
+		if err := os.Rename(
+			filepath.Join(staging, entry.Name()),
+			filepath.Join(target, entry.Name()),
+		); err != nil {
+			return fmt.Errorf("failed to move %s into place: %w", entry.Name(), err)
+		}
+	}
 
 	return nil
 }
@@ -468,7 +525,7 @@ func packageManagerScript(pm, script string) string {
 
 func printNextSteps(ce *clienv.CliEnv, resolved choices) {
 	ce.Println("")
-	ce.Infoln("Created %s", resolved.name)
+	ce.Infoln("Created %s in %s", resolved.name, resolved.where())
 	ce.Println("")
 	ce.Println("Next steps:")
 	printStartCommands(ce, resolved)
@@ -482,15 +539,15 @@ func printStartCommands(ce *clienv.CliEnv, resolved choices) {
 	devCommand := packageManagerScript(resolved.packageManager, "dev")
 
 	ce.Println("  1. Start the backend:")
-	ce.Println("       cd %s/backend && nhost up", resolved.name)
+	ce.Println("       cd %s && nhost up", resolved.path("backend"))
 	ce.Println("  2. In another terminal, start the frontend:")
 
 	if resolved.installNow {
-		ce.Println("       cd %s/frontend && %s", resolved.name, devCommand)
+		ce.Println("       cd %s && %s", resolved.path("frontend"), devCommand)
 	} else {
 		ce.Println(
-			"       cd %s/frontend && %s install && %s",
-			resolved.name, resolved.packageManager, devCommand,
+			"       cd %s && %s install && %s",
+			resolved.path("frontend"), resolved.packageManager, devCommand,
 		)
 	}
 }

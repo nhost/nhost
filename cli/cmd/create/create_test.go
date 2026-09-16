@@ -91,7 +91,123 @@ func TestStageProjectLocalTemplate(t *testing.T) {
 		t.Fatalf("package.json name was not patched:\n%s", packageJSON)
 	}
 
-	assertNoStagingLeftovers(t, workdir, "my-app")
+	assertNoStagingLeftovers(t, filepath.Join(workdir, "my-app"))
+}
+
+// Without an argument the project is built where the command runs, which is
+// the normal way in: make a directory, cd into it, create. Whatever is already
+// there and does not clash stays.
+//
+//nolint:paralleltest // mutates process cwd via t.Chdir
+func TestCreateScaffoldsIntoTheCurrentDirectory(t *testing.T) {
+	workdir := t.TempDir()
+	templateDir := filepath.Join(workdir, "template")
+
+	writeTestFile(
+		t,
+		filepath.Join(templateDir, "frontend", "package.json"),
+		"{\n  \"name\": \"starter\",\n  \"version\": \"0.1.0\"\n}\n",
+	)
+
+	projectDir := filepath.Join(workdir, "my-app")
+	writeTestFile(t, filepath.Join(projectDir, "README.md"), "notes I wrote\n")
+	writeTestFile(t, filepath.Join(projectDir, ".git", "HEAD"), "ref: refs/heads/main\n")
+
+	t.Chdir(projectDir)
+
+	var output bytes.Buffer
+
+	cmd := newTestRootCommand(t, &output)
+
+	if err := cmd.Run(
+		context.Background(),
+		[]string{"nhost", "create", "--template-path", templateDir, "--no-install"},
+	); err != nil {
+		t.Fatalf("create command: %v\n%s", err, output.String())
+	}
+
+	if _, err := os.Stat(
+		filepath.Join(projectDir, "backend", "nhost", "nhost.toml"),
+	); err != nil {
+		t.Fatalf("expected the backend in the current directory: %v\n%s", err, output.String())
+	}
+
+	if _, err := os.Stat(filepath.Join(projectDir, "my-app")); !errors.Is(err, os.ErrNotExist) {
+		t.Errorf("create made a subdirectory instead of scaffolding here: %v", err)
+	}
+
+	if got := readTestFile(
+		t, filepath.Join(projectDir, "backend", "nhost", "project-name"),
+	); got != "my-app\n" {
+		t.Errorf("project name = %q, want the directory's name", got)
+	}
+
+	if got := readTestFile(t, filepath.Join(projectDir, "README.md")); got != "notes I wrote\n" {
+		t.Errorf("create clobbered an unrelated file: %q", got)
+	}
+
+	if _, err := os.Stat(filepath.Join(projectDir, ".git", "HEAD")); err != nil {
+		t.Errorf("create did not leave the repo alone: %v", err)
+	}
+
+	// The commands handed back have to work from where the user is standing,
+	// and here that is inside the project rather than above it.
+	if !strings.Contains(output.String(), "cd backend && nhost up") {
+		t.Errorf("next steps do not cd from the current directory:\n%s", output.String())
+	}
+
+	assertNoStagingLeftovers(t, projectDir)
+}
+
+// Scaffolding alongside existing files is the point, so the refusal has to be
+// narrow: only a name the template would land on top of stops the create, and
+// when it does the directory is left exactly as it was.
+//
+//nolint:paralleltest // mutates process cwd via t.Chdir
+func TestCreateRefusesToLandOnExistingEntries(t *testing.T) {
+	workdir := t.TempDir()
+	templateDir := filepath.Join(workdir, "template")
+
+	writeTestFile(
+		t,
+		filepath.Join(templateDir, "frontend", "package.json"),
+		"{\n  \"name\": \"starter\",\n  \"version\": \"0.1.0\"\n}\n",
+	)
+
+	projectDir := filepath.Join(workdir, "occupied")
+	writeTestFile(t, filepath.Join(projectDir, "frontend", "page.tsx"), "my own frontend\n")
+
+	t.Chdir(projectDir)
+
+	var output bytes.Buffer
+
+	cmd := newTestRootCommand(t, &output)
+
+	err := cmd.Run(
+		context.Background(),
+		[]string{"nhost", "create", "--template-path", templateDir, "--no-install"},
+	)
+	if !errors.Is(err, errTargetConflict) {
+		t.Fatalf("create error = %v, want a conflict\n%s", err, output.String())
+	}
+
+	if !strings.Contains(err.Error(), "frontend") {
+		t.Errorf("error does not name what clashed: %v", err)
+	}
+
+	if got := readTestFile(
+		t, filepath.Join(projectDir, "frontend", "page.tsx"),
+	); got != "my own frontend\n" {
+		t.Errorf("refused create still modified the directory: %q", got)
+	}
+
+	if _, err := os.Stat(
+		filepath.Join(projectDir, "backend"),
+	); !errors.Is(err, os.ErrNotExist) {
+		t.Errorf("refused create still scaffolded the backend: %v", err)
+	}
+
+	assertNoStagingLeftovers(t, projectDir)
 }
 
 //nolint:paralleltest // mutates process cwd via t.Chdir
@@ -124,7 +240,7 @@ func TestCreateRejectsTemplatePathThatIsNotADirectory(t *testing.T) {
 		t.Errorf("error %v does not name --template-path %s", err, templateFile)
 	}
 
-	assertNoStagingLeftovers(t, workdir, "my-app")
+	assertNoStagingLeftovers(t, filepath.Join(workdir, "my-app"))
 }
 
 // `--template-path ~/templates/current`, where `current` is a symlink to the
@@ -351,7 +467,7 @@ func TestCreatePnpmLockfileByPackageManager(t *testing.T) {
 				)
 			}
 
-			assertNoStagingLeftovers(t, workdir, "my-app")
+			assertNoStagingLeftovers(t, filepath.Join(workdir, "my-app"))
 		})
 	}
 }
@@ -434,7 +550,7 @@ func TestCreateScaffoldsRealLocalTemplate(t *testing.T) {
 	}
 
 	assertNoGitDirs(t, projectDir)
-	assertNoStagingLeftovers(t, workdir, "agent-ready-app")
+	assertNoStagingLeftovers(t, filepath.Join(workdir, "agent-ready-app"))
 }
 
 // The scaffolded Markdown is the instruction set an agent follows literally, so
@@ -565,7 +681,7 @@ func TestCreateFetchesTemplateFromLocalGitFixture(t *testing.T) {
 
 	assertNoGitDirs(t, projectDir)
 	assertNoTemplateTempClones(t, tmpDir)
-	assertNoStagingLeftovers(t, workdir, "my-app")
+	assertNoStagingLeftovers(t, filepath.Join(workdir, "my-app"))
 }
 
 func TestCreateCleansUpAfterGitFetchFailure(t *testing.T) {
@@ -610,17 +726,20 @@ func TestCreateCleansUpAfterGitFetchFailure(t *testing.T) {
 		}
 	}
 
-	if _, statErr := os.Stat(
-		filepath.Join(workdir, "broken-app"),
-	); !errors.Is(
-		statErr,
-		os.ErrNotExist,
-	) {
-		t.Fatalf("target directory exists after failure: %v", statErr)
+	// The target directory is created before the template is fetched, so a
+	// failure leaves it behind. What must not survive is anything in it: a
+	// half-scaffolded project is worse than an empty directory.
+	left, statErr := os.ReadDir(filepath.Join(workdir, "broken-app"))
+	if statErr != nil {
+		t.Fatalf("ReadDir(broken-app): %v", statErr)
+	}
+
+	if len(left) != 0 {
+		t.Fatalf("failed create left %d entries behind in broken-app", len(left))
 	}
 
 	assertNoTemplateTempClones(t, tmpDir)
-	assertNoStagingLeftovers(t, workdir, "broken-app")
+	assertNoStagingLeftovers(t, filepath.Join(workdir, "broken-app"))
 }
 
 //nolint:paralleltest // mutates package-level gitLookPath test seam
@@ -998,20 +1117,26 @@ func assertNoTemplateTempClones(t *testing.T, tmpDir string) {
 }
 
 // assertNoStagingLeftovers pins the invariant stageProject exists to protect:
-// the `.<name>.partial-*` directory it stages into never survives in the user's
-// working directory, on either the success or the failure path.
-func assertNoStagingLeftovers(t *testing.T, dir string, name string) {
+// the `.nhost-create.partial-*` directory it stages into never survives in the
+// target directory, on either the success or the failure path.
+func assertNoStagingLeftovers(t *testing.T, target string) {
 	t.Helper()
 
-	entries, err := os.ReadDir(dir)
-	if err != nil {
-		t.Fatalf("ReadDir(%s): %v", dir, err)
+	entries, err := os.ReadDir(target)
+	if errors.Is(err, os.ErrNotExist) {
+		return
 	}
 
-	prefix := "." + name + ".partial-"
+	if err != nil {
+		t.Fatalf("ReadDir(%s): %v", target, err)
+	}
+
 	for _, entry := range entries {
-		if strings.HasPrefix(entry.Name(), prefix) {
-			t.Fatalf("staging directory was not removed: %s", filepath.Join(dir, entry.Name()))
+		if strings.HasPrefix(entry.Name(), stagingPrefix) {
+			t.Fatalf(
+				"staging directory was not removed: %s",
+				filepath.Join(target, entry.Name()),
+			)
 		}
 	}
 }
