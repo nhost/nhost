@@ -94,6 +94,20 @@ func TestNewMuxRoutesEnginePathsAndCompatAuthHosts(t *testing.T) {
 			wantBody: "/v1/signin/email-password",
 		},
 		{
+			name:     "mixed-case compat short host reaches auth",
+			host:     "Hasura-Auth-Service",
+			path:     "/v1/version",
+			wantCode: http.StatusOK,
+			wantBody: "/v1/version",
+		},
+		{
+			name:     "mixed-case compat short host with port reaches auth",
+			host:     "HASURA-AUTH-SERVICE:4000",
+			path:     "/v1/version",
+			wantCode: http.StatusOK,
+			wantBody: "/v1/version",
+		},
+		{
 			name:     "root-anchored compat short host reaches auth",
 			host:     "hasura-auth-service.",
 			path:     "/v1/version",
@@ -145,6 +159,13 @@ func TestNewMuxRoutesEnginePathsAndCompatAuthHosts(t *testing.T) {
 		{
 			name:     "root-anchored compat FQDN reaches auth",
 			host:     "hasura-auth-service.nhost-project.svc.cluster.local.",
+			path:     "/v1/version",
+			wantCode: http.StatusOK,
+			wantBody: "/v1/version",
+		},
+		{
+			name:     "mixed-case root-anchored compat FQDN reaches auth",
+			host:     "Hasura-Auth-Service.Nhost-Project.Svc.Cluster.Local.",
 			path:     "/v1/version",
 			wantCode: http.StatusOK,
 			wantBody: "/v1/version",
@@ -330,9 +351,15 @@ func TestNormalizeRequestHost(t *testing.T) {
 		want        string
 	}{
 		{name: "host", requestHost: "h", want: "h"},
+		{name: "mixed-case host", requestHost: "Example.COM", want: "example.com"},
 		{name: "root-anchored host", requestHost: "h.", want: "h"},
 		{name: "root-anchored host with port", requestHost: "h.:4000", want: "h:4000"},
 		{name: "host with port", requestHost: "h:4000", want: "h:4000"},
+		{
+			name:        "mixed-case host with port",
+			requestHost: "Example.COM:4000",
+			want:        "example.com:4000",
+		},
 		{name: "IPv6 with port", requestHost: "[::1]:8080", want: "[::1]:8080"},
 		{name: "root anchor only", requestHost: ".", want: ""},
 	}
@@ -501,6 +528,7 @@ func TestNewMuxPreservesRedirectPrefix(t *testing.T) {
 	for _, host := range []string{
 		"nhost-engine-service:8080",
 		"nhost-engine-service.:8080",
+		"Nhost-Engine-Service:8080",
 	} {
 		t.Run(host, func(t *testing.T) {
 			t.Parallel()
