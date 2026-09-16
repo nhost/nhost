@@ -8,6 +8,18 @@
 - Updated PostgreSQL 17 overlay pin to 17.11
 - Updated PostgreSQL to 18.6
 - Dropped support for PostgreSQL 16 and 17
+- Updated extensions:
+  - hypopg: 1.4.2 → 1.4.3
+  - pg_cron: 1.6.7 → 1.6.8
+  - pg_ivm: 1.14 → 1.15
+  - pg_jsonschema: 0.3.3 → 0.3.4
+  - pg_search: 0.24.0 → 0.25.9
+  - pg_squeeze: 1.9.1 → 1.9.4
+  - pgmq: 1.11.1 → 1.13.0
+  - pgrouting: 4.0.1 → 4.0.2
+  - pgsql-http: 1.7.0 → 1.7.2
+  - pgvector: 0.8.2 → 0.8.6
+  - timescaledb: 2.27.2 → 2.30.0
 
 ### {16.14,17.10,18.4}-20260610-1
 
