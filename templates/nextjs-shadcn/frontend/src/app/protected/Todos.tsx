@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { graphql } from '@/gql';
 import { gqlRequest } from '@/lib/graphql';
 import { nhost } from '@/lib/nhost/client';
+import { localTableURL } from '@/lib/nhost/env';
 
 const GetTodos = graphql(`
   query GetTodos {
@@ -41,6 +42,8 @@ const CreateTodo = graphql(`
 `);
 
 const todosQueryKey = ['todos'] as const;
+
+const todosTable = localTableURL('todos');
 
 export function Todos() {
   const titleId = useId();
@@ -136,6 +139,21 @@ export function Todos() {
               </li>
             ))}
           </ul>
+        ) : null}
+
+        {todosTable ? (
+          <p className="text-muted-foreground text-sm">
+            The same rows, unfiltered:{' '}
+            <a
+              href={todosTable}
+              target="_blank"
+              rel="noreferrer"
+              className="underline underline-offset-4"
+            >
+              open the todos table in the dashboard
+            </a>
+            .
+          </p>
         ) : null}
       </CardContent>
     </Card>

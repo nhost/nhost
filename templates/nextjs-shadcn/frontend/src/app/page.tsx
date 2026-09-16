@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { TryAuthCard } from '@/components/TryAuthCard';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -23,6 +24,8 @@ async function checkConnectivity(): Promise<boolean> {
 }
 
 export default async function Home() {
+  const nhost = await createNhostClient();
+  const session = nhost.getUserSession();
   const connected = await checkConnectivity();
 
   return (
@@ -54,33 +57,21 @@ export default async function Home() {
       </Card>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>1. Try authentication</CardTitle>
-            <CardDescription>
-              Sign in with an email one-time code. While running locally, the
-              email with the code is captured by the local mail viewer.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex gap-2">
-            <Button asChild>
-              <Link href="/signin">Sign in</Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link href="/protected">Protected page</Link>
-            </Button>
-          </CardContent>
-        </Card>
+        <TryAuthCard session={session} />
 
         <Card>
           <CardHeader>
             <CardTitle>2. Try typed data</CardTitle>
             <CardDescription>
               The starter includes a per-user <code>todos</code> table with a
-              typed query and mutation. Sign in, open the protected page, and
-              add a todo.
+              typed query and mutation. Open the protected page to add todos.
             </CardDescription>
           </CardHeader>
+          <CardContent>
+            <Button asChild variant="outline">
+              <Link href="/protected">Open the protected page</Link>
+            </Button>
+          </CardContent>
         </Card>
       </div>
     </div>

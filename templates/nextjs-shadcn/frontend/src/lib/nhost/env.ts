@@ -33,6 +33,18 @@ export const localServiceURL = (service: string): string =>
 export const localMailboxURL = (): string | null =>
   nhostRegion() === LOCAL ? localServiceURL('mailhog') : null;
 
+/**
+ * URL of the local dashboard's row browser for a table in the public schema, or
+ * null when the app targets a real project, whose org and project slugs are not
+ * known here. Same rule as localMailboxURL: the region is what decides.
+ */
+export const localTableURL = (table: string): string | null =>
+  nhostRegion() === LOCAL
+    ? `${localServiceURL(
+        'dashboard',
+      )}/orgs/${LOCAL}/projects/${LOCAL}/database/browser/default/public/tables/${table}`
+    : null;
+
 if (
   process.env.NODE_ENV === 'production' &&
   !(
