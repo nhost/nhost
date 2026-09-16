@@ -58,8 +58,6 @@
         nodejs = final.nhost.nodejs;
       })."vercel-53.3.2";
 
-    # pnpm 12 is a Rust rewrite, so the Node-specific pnpm 11 workarounds are
-    # no longer needed.
     pnpm = prev.pnpm_12;
 
     biome = final.biome.overrideAttrs (
