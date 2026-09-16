@@ -26,9 +26,7 @@ on:
       - "cli/**"
 
       # lib
-      - "internal/lib/clidocs/**"
-      - "internal/lib/nhostclient/**"
-      - "internal/lib/oapi/**"
+      - "internal/lib/**"
 
       # bundled engine: the engine-mode e2e leg compiles the engine, its three
       # services, and their additional shared libraries. Intentionally running
@@ -38,9 +36,6 @@ on:
       - "services/auth/**"
       - "services/storage/**"
       - "services/constellation/**"
-      - "internal/lib/hasura/metadata/**"
-      - "internal/lib/serve/**"
-      - "internal/lib/syncmap/**"
 
       # auth email templates (embedded into the CLI by `nhost init`)
       - "services/auth/email-templates/**"
@@ -73,16 +68,11 @@ jobs:
         go.sum
         vendor/**
         cli/**
-        internal/lib/clidocs/**
-        internal/lib/nhostclient/**
-        internal/lib/oapi/**
+        internal/lib/**
         services/engine/**
         services/auth/**
         services/storage/**
         services/constellation/**
-        internal/lib/hasura/metadata/**
-        internal/lib/serve/**
-        internal/lib/syncmap/**
         services/auth/email-templates/**
         docs/**
 
@@ -132,6 +122,33 @@ jobs:
       NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
       NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
 
+  build_engine_image:
+    uses: ./.github/workflows/wf_build_artifacts.yaml
+    needs:
+      - detect-changes
+      - check-permissions
+    # Skipped on `release/dashboard` PRs because the release PR bumps the
+    # `nhost/dashboard:<tag>` ref in `cli/cmd/dev/` to a version that isn't
+    # published until the PR merges, which makes `cli up` fail to pull it.
+    # `test_e2e` needs this job, so this guard also skips that suite on those PRs.
+    # `github.head_ref` is empty on `merge_group`, so that event still runs.
+    if: |
+      needs.detect-changes.outputs.should_run == 'true' &&
+      !startsWith(github.head_ref, 'release/dashboard')
+    with:
+      NAME: engine
+      PATH: services/engine
+      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+      VERSION: 0.0.0-dev # keep in sync with E2E_ENGINE_VERSION
+      DOCKER: true
+      OS_MATRIX: '["blacksmith-2vcpu-ubuntu-2404"]'
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+      NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
+
   test_cli_build:
     uses: ./.github/workflows/cli_wf_test_new_project.yaml
     needs:
@@ -158,6 +175,7 @@ jobs:
       - detect-changes
       - check-permissions
       - build_artifacts
+      - build_engine_image
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
       GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
