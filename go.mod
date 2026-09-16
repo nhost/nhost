@@ -20,6 +20,7 @@ require (
 	github.com/creack/pty v1.1.24
 	github.com/cshum/vipsgen v1.2.1
 	github.com/docker/docker v28.3.3+incompatible
+	github.com/felixge/httpsnoop v1.0.4
 	github.com/gabriel-vasile/mimetype v1.4.9
 	github.com/getkin/kin-openapi v0.144.0
 	github.com/gin-contrib/cors v1.7.6
@@ -139,7 +140,6 @@ require (
 	github.com/docker/go-connections v0.5.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
-	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.0 // indirect
 	github.com/gin-contrib/sse v1.1.0 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
