@@ -531,22 +531,18 @@ func TestPrintNextStepsUsesManagerScriptSyntax(t *testing.T) {
 	tests := []struct {
 		packageManager string
 		wantDev        string
-		wantCodegen    string
 	}{
 		{
 			packageManager: "pnpm",
 			wantDev:        "cd demo/frontend && pnpm install && pnpm dev",
-			wantCodegen:    "Codegen after schema changes: pnpm codegen",
 		},
 		{
 			packageManager: "npm",
 			wantDev:        "cd demo/frontend && npm install && npm run dev",
-			wantCodegen:    "Codegen after schema changes: npm run codegen",
 		},
 		{
 			packageManager: "bun",
 			wantDev:        "cd demo/frontend && bun install && bun run dev",
-			wantCodegen:    "Codegen after schema changes: bun run codegen",
 		},
 	}
 
@@ -568,8 +564,13 @@ func TestPrintNextStepsUsesManagerScriptSyntax(t *testing.T) {
 				t.Errorf("next steps missing %q:\n%s", tt.wantDev, output.String())
 			}
 
-			if !strings.Contains(output.String(), tt.wantCodegen) {
-				t.Errorf("next steps missing %q:\n%s", tt.wantCodegen, output.String())
+			// Nothing is serving yet on a create that stopped short of
+			// starting, so the next steps must not advertise an app URL.
+			if strings.Contains(output.String(), "localhost:3000") {
+				t.Errorf(
+					"next steps advertise an app URL with nothing running:\n%s",
+					output.String(),
+				)
 			}
 		})
 	}

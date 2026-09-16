@@ -472,7 +472,6 @@ func printNextSteps(ce *clienv.CliEnv, resolved choices) {
 	ce.Println("")
 	ce.Println("Next steps:")
 	printStartCommands(ce, resolved)
-	printProjectNotes(ce, resolved)
 }
 
 // printStartCommands prints the two commands that bring the project up, in the
@@ -496,15 +495,10 @@ func printStartCommands(ce *clienv.CliEnv, resolved choices) {
 	}
 }
 
-// printProjectNotes covers what is true however the project was started, so it
-// is printed both by printNextSteps and ahead of handing the terminal to the
-// dev server.
-func printProjectNotes(ce *clienv.CliEnv, resolved choices) {
+// printAppURL is only true once something is serving, so it belongs to the
+// paths that start the servers rather than to the ones that hand the commands
+// back for the user to run later.
+func printAppURL(ce *clienv.CliEnv) {
 	ce.Println("")
 	ce.Println("App: http://localhost:3000")
-	ce.Println(
-		"Codegen after schema changes: %s in %s/frontend",
-		packageManagerScript(resolved.packageManager, "codegen"),
-		resolved.name,
-	)
 }

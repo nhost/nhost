@@ -34,7 +34,7 @@ func startServers(
 ) error {
 	ce.Println("")
 	ce.Infoln("Created %s", resolved.name)
-	printProjectNotes(ce, resolved)
+	printAppURL(ce)
 
 	ce.Println("")
 	ce.Infoln("Checking this machine can run the backend...")
