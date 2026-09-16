@@ -13,8 +13,9 @@
     "lint:code": "biome check",
     "lint:prose": "vale src/content/docs/",
     "format": "biome format --write",
-    "test": "pnpm build && pnpm lint && pnpm test:check-links",
-    "test:check-links": "./check_broken_links.sh"
+    "test": "pnpm test:gen && pnpm build && pnpm lint && pnpm test:check-links",
+    "test:check-links": "./check_broken_links.sh",
+    "test:gen": "./gen_test.sh"
   },
   "dependencies": {
     "@astrojs/markdown-remark": "^7.2.1",
