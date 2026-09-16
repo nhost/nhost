@@ -21,7 +21,7 @@ let
 in
 buildPGRXExtension rec {
   pname = "pg_search";
-  version = "0.25.3";
+  version = "0.25.9";
 
   cargo-pgrx = pkgs.nhost.cargo-pgrx_0_19_0;
 
@@ -41,10 +41,10 @@ buildPGRXExtension rec {
     owner = "paradedb";
     repo = "paradedb";
     rev = "v${version}";
-    hash = "sha256-+4O6WY8WRKCQn/byXMvwIbfTLSm4TgtrC+fds3b0MnU=";
+    hash = "sha256-FPRsbSjsY4w4I9AuSzOUDIlniTah6tmnOvL46ooX29o=";
   };
 
-  cargoHash = "sha256-Up62p6HU0EZGdDX75+1oBIBuUtNM4m0INjO3x9WUO+g=";
+  cargoHash = "sha256-K0jAg5A8jr9Ip9BXL8KLdSwPLkgR4Rp9grlWfRcDuAI=";
 
   preBuild = ''
     # The release build uses LTO and exceeds 6 GiB with the default eight jobs.
