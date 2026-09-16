@@ -1,66 +1,59 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useMemo, useState } from 'react';
-import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
-import { z } from 'zod';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useEffect, useMemo } from 'react';
+import { FormProvider, type Resolver, useForm } from 'react-hook-form';
 import { useDialog } from '@/components/common/DialogProvider';
 import { PermissionSettingsSection } from '@/components/common/PermissionSettingsSection';
 import { RoleActionSwitcher } from '@/components/common/RoleActionSwitcher';
 import { Form } from '@/components/form/Form';
-import { HighlightedText } from '@/components/presentational/HighlightedText';
-import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
-import { Checkbox } from '@/components/ui/v3/checkbox';
-import { Label } from '@/components/ui/v3/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
-import {
-  type CustomCheckEditorMode,
-  CustomCheckModeToggle,
-} from '@/features/orgs/projects/database/dataGrid/components/CustomCheckEditor';
+import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import {
   type GroupNode,
   serializeNode,
   wrapPermissionsInAGroup,
 } from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils';
-import {
-  LogicalModelCustomCheckEditor,
-  LogicalModelCustomCheckEditorProvider,
-} from '@/features/orgs/projects/database/native-queries/components/LogicalModelCustomCheckEditor';
-import {
-  analyzeLogicalModelFilter,
-  hasEmptyBooleanGroup,
-  resolveLogicalModelFieldDescriptors,
-  serializeLogicalModelFilter,
-} from '@/features/orgs/projects/database/native-queries/utils/logicalModelPermissionFilter';
+import { useLogicalModelPermissionMutation } from '@/features/orgs/projects/database/native-queries/hooks/useLogicalModelPermissionMutation';
+import type { LogicalModelPermissionArgs } from '@/features/orgs/projects/database/native-queries/hooks/useLogicalModelPermissionMutation/types';
+import { resolveLogicalModelFieldDescriptors } from '@/features/orgs/projects/database/native-queries/utils/logicalModelPermissionFilter';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { isNotEmptyValue } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
 import type {
   LogicalModelItem,
   LogicalModelSelectPermission,
 } from '@/utils/hasura-api/generated/schemas';
+import FieldPermissionsSection from './sections/FieldPermissionsSection';
+import RowPermissionsSection from './sections/RowPermissionsSection';
+import validationSchema from './validationSchema';
 
-const permissionSchema = z.object({
-  rowCheckType: z.enum(['none', 'custom']),
-  columns: z.array(z.string()),
-  columnsRepresentation: z.enum(['preserve', 'wildcard', 'explicit']),
-  filter: z.custom<GroupNode>(),
-});
-
-export type LogicalModelPermissionFormValues = z.infer<typeof permissionSchema>;
+export interface LogicalModelPermissionFormValues {
+  rowCheckType: 'none' | 'custom';
+  columns: string[];
+  filter?: GroupNode;
+}
 
 interface LogicalModelPermissionFormProps extends DialogFormProps {
+  source: string;
   model: LogicalModelItem;
   models: LogicalModelItem[];
   role: string;
   availableRoles: string[];
-  permission?: LogicalModelSelectPermission;
-  isPending: boolean;
   onRoleChange: (role: string) => void;
-  onSubmit: (permission: LogicalModelSelectPermission) => Promise<boolean>;
-  onDelete?: () => Promise<boolean>;
   onCancel: VoidFunction;
 }
 
-function isEmptyFilter(filter?: Record<string, unknown>): boolean {
-  return !filter || Object.keys(filter).length === 0;
+function getDefaultFilter(permission?: LogicalModelSelectPermission): {
+  rowCheckType: LogicalModelPermissionFormValues['rowCheckType'];
+  filter: LogicalModelPermissionFormValues['filter'];
+} {
+  if (!permission || !isNotEmptyValue(permission.filter)) {
+    return { rowCheckType: 'none', filter: wrapPermissionsInAGroup({}) };
+  }
+
+  return {
+    rowCheckType: 'custom',
+    filter: wrapPermissionsInAGroup(permission.filter),
+  };
 }
 
 function defaultValues(
@@ -68,90 +61,50 @@ function defaultValues(
   permission?: LogicalModelSelectPermission,
 ): LogicalModelPermissionFormValues {
   return {
-    rowCheckType: isEmptyFilter(permission?.filter) ? 'none' : 'custom',
+    ...getDefaultFilter(permission),
     columns:
       permission?.columns === '*'
         ? model.fields.map(({ name }) => name)
         : (permission?.columns ?? []),
-    columnsRepresentation: 'preserve',
-    filter: wrapPermissionsInAGroup(permission?.filter ?? {}),
   };
 }
 
 export default function LogicalModelPermissionForm({
+  source,
   model,
   models,
   role,
   availableRoles,
-  permission,
-  isPending,
   onRoleChange,
-  onSubmit,
-  onDelete,
   onCancel,
   location,
 }: LogicalModelPermissionFormProps) {
-  const form = useForm<LogicalModelPermissionFormValues>({
-    resolver: zodResolver(permissionSchema),
-    defaultValues: defaultValues(model, permission),
-  });
+  const existingPermission = model.select_permissions?.find(
+    (item) => item.role === role,
+  );
+  const permission = existingPermission?.permission;
+  const { data: resourceVersion } = useGetMetadataResourceVersion();
+  const createMutation = useLogicalModelPermissionMutation({ type: 'add' });
+  const editMutation = useLogicalModelPermissionMutation({ type: 'edit' });
+  const deleteMutation = useLogicalModelPermissionMutation({ type: 'delete' });
+  const isPending =
+    createMutation.isPending ||
+    editMutation.isPending ||
+    deleteMutation.isPending;
   const fields = useMemo(
     () => resolveLogicalModelFieldDescriptors(model, models),
     [model, models],
   );
-  const canAuthorCustomCheck = fields.selectablePaths.length > 0;
-  const hasUnsupportedArray = fields.issues.some(
-    (issue) => issue.code === 'array',
-  );
-  const customCheckUnavailableDescriptionId =
-    'logical-model-custom-check-unavailable-description';
-  const compatibility = useMemo(
-    () => analyzeLogicalModelFilter(permission?.filter ?? {}, fields),
-    [fields, permission],
-  );
-  const [filterMode, setFilterMode] = useState<CustomCheckEditorMode>(
-    compatibility.compatible ? 'builder' : 'json',
-  );
+  const form = useForm<LogicalModelPermissionFormValues>({
+    resolver: yupResolver(
+      validationSchema,
+    ) as Resolver<LogicalModelPermissionFormValues>,
+    defaultValues: defaultValues(model, permission),
+  });
   const { setDirtySource, openDirtyConfirmation, openAlertDialog } =
     useDialog();
   const sourceId = `logical-model-permission:${model.name}:${role}`;
   const { isDirty, isSubmitting } = form.formState;
-  const rowCheckType = useWatch({
-    control: form.control,
-    name: 'rowCheckType',
-  });
-  const selectedColumns = useWatch({
-    control: form.control,
-    name: 'columns',
-  });
-  const customCheckUnavailable =
-    rowCheckType === 'custom' && !canAuthorCustomCheck;
-  const filterNode = useWatch({ control: form.control, name: 'filter' });
-  const filterResult = useMemo(() => {
-    if (filterMode !== 'json') {
-      return serializeLogicalModelFilter(filterNode, fields);
-    }
-    const value = serializeNode(filterNode);
-    if (hasEmptyBooleanGroup(value)) {
-      return {
-        success: false as const,
-        errors: [
-          {
-            message:
-              'Empty _and, _or, and _not groups match every row. Add a condition or remove the group.',
-          },
-        ],
-      };
-    }
-    return { success: true as const, value };
-  }, [fields, filterMode, filterNode]);
-  const filterError =
-    rowCheckType === 'custom' && !filterResult.success
-      ? filterResult.errors.map(({ message }) => message).join(' ')
-      : undefined;
-  const isAllFieldsSelected =
-    model.fields.length > 0 &&
-    model.fields.every(({ name }) => selectedColumns.includes(name));
 
   useEffect(() => {
     setDirtySource(sourceId, isDirty, location);
@@ -182,47 +135,71 @@ export default function LogicalModelPermissionForm({
     onRoleChange(nextRole);
   }
 
-  function resolveColumns(values: LogicalModelPermissionFormValues) {
-    switch (values.columnsRepresentation) {
-      case 'preserve':
-        return permission?.columns ?? values.columns;
-      case 'wildcard':
-        return '*';
-      default:
-        return values.columns;
-    }
-  }
-
   async function handleSubmit(values: LogicalModelPermissionFormValues) {
-    if (customCheckUnavailable) {
-      return;
-    }
-    let filter: Record<string, unknown> = {};
-    if (values.rowCheckType !== 'none') {
-      if (!filterResult.success) {
-        return;
-      }
-      filter = filterResult.value;
-    }
-    const columns = resolveColumns(values);
-    const succeeded = await onSubmit({
-      ...(permission ?? {}),
-      columns,
-      filter,
-    });
-    if (succeeded) {
-      clearDirtySource();
-    }
+    const args: LogicalModelPermissionArgs = {
+      name: model.name,
+      role,
+      permission: {
+        ...(permission ?? {}),
+        columns: values.columns,
+        filter: values.filter ? serializeNode(values.filter) : {},
+      },
+      ...(existingPermission?.comment !== undefined
+        ? { comment: existingPermission.comment }
+        : {}),
+    };
+    const base = { source, resourceVersion: resourceVersion! };
+    const save = existingPermission
+      ? () =>
+          editMutation.mutateAsync({
+            ...base,
+            args,
+            original: existingPermission.permission,
+          })
+      : () => createMutation.mutateAsync({ ...base, args });
+
+    await execPromiseWithErrorToast(
+      async () => {
+        await save();
+        clearDirtySource();
+        onCancel();
+      },
+      {
+        loadingMessage: existingPermission
+          ? 'Updating select permission...'
+          : 'Creating select permission...',
+        successMessage: existingPermission
+          ? 'Select permission updated.'
+          : 'Select permission created.',
+        errorMessage: 'Could not save the select permission.',
+      },
+    );
   }
 
   async function handleDelete() {
-    if (!onDelete) {
+    if (!existingPermission) {
       return;
     }
-    const succeeded = await onDelete();
-    if (succeeded) {
-      clearDirtySource();
-    }
+
+    await execPromiseWithErrorToast(
+      async () => {
+        await deleteMutation.mutateAsync({
+          source,
+          resourceVersion: resourceVersion!,
+          name: model.name,
+          role,
+          original: existingPermission.permission,
+          originalComment: existingPermission.comment,
+        });
+        clearDirtySource();
+        onCancel();
+      },
+      {
+        loadingMessage: 'Deleting select permission...',
+        successMessage: 'Select permission deleted.',
+        errorMessage: 'Could not delete the select permission.',
+      },
+    );
   }
 
   function handleDeleteClick() {
@@ -262,180 +239,9 @@ export default function LogicalModelPermissionForm({
             />
           </PermissionSettingsSection>
 
-          <PermissionSettingsSection title="Row select permissions">
-            <LogicalModelCustomCheckEditorProvider
-              mode={filterMode}
-              onModeChange={setFilterMode}
-            >
-              <p>
-                Allow role <HighlightedText>{role}</HighlightedText> to{' '}
-                <HighlightedText>select</HighlightedText> rows:
-              </p>
-              <div className="flex items-center justify-between gap-4">
-                <RadioGroup
-                  value={rowCheckType}
-                  className="grid grid-flow-col justify-start gap-4"
-                  onValueChange={(value) => {
-                    form.setValue(
-                      'rowCheckType',
-                      value as LogicalModelPermissionFormValues['rowCheckType'],
-                      { shouldDirty: true },
-                    );
-                  }}
-                >
-                  <div className="flex items-center gap-2">
-                    <RadioGroupItem
-                      id="logical-model-row-none"
-                      value="none"
-                      className="cursor-pointer"
-                    />
-                    <Label
-                      htmlFor="logical-model-row-none"
-                      className="cursor-pointer"
-                    >
-                      Without any checks
-                    </Label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <RadioGroupItem
-                      id="logical-model-row-custom"
-                      value="custom"
-                      disabled={!canAuthorCustomCheck}
-                      aria-describedby={
-                        canAuthorCustomCheck
-                          ? undefined
-                          : customCheckUnavailableDescriptionId
-                      }
-                      className={
-                        canAuthorCustomCheck
-                          ? 'cursor-pointer'
-                          : 'cursor-not-allowed'
-                      }
-                    />
-                    <Label
-                      htmlFor="logical-model-row-custom"
-                      className={
-                        canAuthorCustomCheck
-                          ? 'cursor-pointer'
-                          : 'cursor-not-allowed text-muted-foreground'
-                      }
-                    >
-                      With custom check
-                    </Label>
-                  </div>
-                </RadioGroup>
-                {rowCheckType === 'custom' && canAuthorCustomCheck ? (
-                  <CustomCheckModeToggle
-                    disabledModes={
-                      compatibility.compatible
-                        ? undefined
-                        : {
-                            builder:
-                              'This filter contains conditions that can only be edited in JSON mode.',
-                          }
-                    }
-                  />
-                ) : null}
-              </div>
-              {!canAuthorCustomCheck ? (
-                <Alert variant="info">
-                  <AlertDescription
-                    id={customCheckUnavailableDescriptionId}
-                    className="space-y-1"
-                  >
-                    <p>
-                      This logical model has no fields supported in row checks.
-                      Choose <strong>Without any checks</strong> to continue.
-                    </p>
-                    {hasUnsupportedArray ? (
-                      <p>Array fields cannot be used in row checks.</p>
-                    ) : null}
-                  </AlertDescription>
-                </Alert>
-              ) : null}
-              {rowCheckType === 'custom' && canAuthorCustomCheck ? (
-                <>
-                  <LogicalModelCustomCheckEditor
-                    name="filter"
-                    fields={fields}
-                  />
-                  {filterError ? (
-                    <p role="alert" className="mt-1 text-destructive text-sm">
-                      {filterError}
-                    </p>
-                  ) : null}
-                </>
-              ) : null}
-            </LogicalModelCustomCheckEditorProvider>
-          </PermissionSettingsSection>
+          <RowPermissionsSection role={role} fields={fields} />
 
-          <PermissionSettingsSection title="Fields select permissions">
-            <div className="grid grid-flow-col items-center justify-between gap-2">
-              <p>Select the logical model fields this role can access.</p>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="text-primary"
-                onClick={() => {
-                  if (isAllFieldsSelected) {
-                    form.setValue('columns', [], { shouldDirty: true });
-                    form.setValue('columnsRepresentation', 'explicit', {
-                      shouldDirty: true,
-                    });
-                    return;
-                  }
-
-                  form.setValue(
-                    'columns',
-                    model.fields.map(({ name }) => name),
-                    { shouldDirty: true },
-                  );
-                  form.setValue('columnsRepresentation', 'wildcard', {
-                    shouldDirty: true,
-                  });
-                }}
-              >
-                {isAllFieldsSelected ? 'Deselect All' : 'Select All'}
-              </Button>
-            </div>
-            <Controller
-              control={form.control}
-              name="columns"
-              render={({ field }) => (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {model.fields.map((modelField) => {
-                    const checked = field.value.includes(modelField.name);
-                    const id = `logical-model-field-${modelField.name}`;
-                    return (
-                      <div
-                        key={modelField.name}
-                        className="flex items-center gap-2"
-                      >
-                        <Checkbox
-                          id={id}
-                          checked={checked}
-                          onCheckedChange={(next) => {
-                            field.onChange(
-                              next
-                                ? [...field.value, modelField.name]
-                                : field.value.filter(
-                                    (name) => name !== modelField.name,
-                                  ),
-                            );
-                            form.setValue('columnsRepresentation', 'explicit', {
-                              shouldDirty: true,
-                            });
-                          }}
-                        />
-                        <Label htmlFor={id}>{modelField.name}</Label>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            />
-          </PermissionSettingsSection>
+          <FieldPermissionsSection model={model} />
         </div>
 
         <div className="grid flex-shrink-0 gap-2 border-t-1 p-2 sm:grid-flow-col sm:justify-between">
@@ -449,7 +255,7 @@ export default function LogicalModelPermissionForm({
             Cancel
           </Button>
           <div className="grid grid-flow-row gap-2 sm:grid-flow-col">
-            {onDelete && (
+            {existingPermission && (
               <Button
                 type="button"
                 variant="outline"
@@ -463,13 +269,7 @@ export default function LogicalModelPermissionForm({
             )}
             <ButtonWithLoading
               loading={isSubmitting || isPending}
-              disabled={
-                !isDirty ||
-                isSubmitting ||
-                isPending ||
-                customCheckUnavailable ||
-                filterError !== undefined
-              }
+              disabled={!isDirty || isSubmitting || isPending}
               size="sm"
               type="submit"
               className="justify-self-end"

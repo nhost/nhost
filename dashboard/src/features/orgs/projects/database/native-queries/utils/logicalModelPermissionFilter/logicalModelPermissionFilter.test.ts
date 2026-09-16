@@ -1,14 +1,14 @@
-import type {
-  ConditionNode,
-  GroupNode,
-} from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils';
+import { getAvailableOperators } from '@/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/getAvailableOperators';
+import type { HasuraOperator } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import {
-  analyzeLogicalModelFilter,
-  hasEmptyBooleanGroup,
-  LOGICAL_MODEL_COMPARISON_OPERATORS,
-  parseLogicalModelFilter,
+  type GroupNode,
+  serializeNode,
+  wrapPermissionsInAGroup,
+} from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils';
+import validationSchema from '@/features/orgs/projects/database/native-queries/components/LogicalModelPermissionForm/validationSchema';
+import {
+  normalizeLogicalModelScalar,
   resolveLogicalModelFieldDescriptors,
-  serializeLogicalModelFilter,
 } from '@/features/orgs/projects/database/native-queries/utils/logicalModelPermissionFilter';
 import type { LogicalModelItem } from '@/utils/hasura-api/generated/schemas';
 
@@ -23,6 +23,15 @@ const author: LogicalModelItem = {
   name: 'author',
   fields: [
     { name: 'id', type: { scalar: 'uuid', nullable: false } },
+    { name: 'bio', type: { scalar: 'character varying', nullable: true } },
+    { name: 'metadata', type: { scalar: 'json', nullable: true } },
+    {
+      name: 'tags',
+      type: {
+        array: { scalar: 'text', nullable: false },
+        nullable: false,
+      },
+    },
     {
       name: 'profile',
       type: { logical_model: 'profile', nullable: true },
@@ -37,94 +46,56 @@ function fields(
   return resolveLogicalModelFieldDescriptors(model, models);
 }
 
+function permissionValues(filter: GroupNode, rowCheckType = 'custom') {
+  return {
+    rowCheckType,
+    columns: ['id'],
+    filter,
+  };
+}
+
 function condition(
-  id: string,
   column: string,
-  operator: ConditionNode['operator'],
+  operator: HasuraOperator,
   value: unknown,
-): ConditionNode {
-  return { type: 'condition', id, column, operator, value };
-}
-
-function group(
-  id: string,
-  operator: GroupNode['operator'],
-  children: GroupNode['children'],
 ): GroupNode {
-  return { type: 'group', id, operator, children };
-}
-
-function expectCompatible(filter: Record<string, unknown>) {
-  const result = analyzeLogicalModelFilter(filter, fields());
-  expect(result).toMatchObject({ compatible: true });
-  if (!result.compatible) {
-    throw new Error('Expected a compatible filter');
-  }
-  expect(result.value).toEqual(filter);
-  return result;
-}
-
-function expectIncompatible(filter: Record<string, unknown>, code: string) {
-  const snapshot = JSON.stringify(filter);
-  const result = analyzeLogicalModelFilter(filter, fields());
-  expect(result).toMatchObject({
-    compatible: false,
-    errors: [expect.objectContaining({ code })],
-  });
-  expect(JSON.stringify(filter)).toBe(snapshot);
-}
-
-function comparisonValue(operator: string): unknown {
-  if (operator === '_is_null') {
-    return false;
-  }
-  if (operator === '_in' || operator === '_nin') {
-    return ['one', 'two'];
-  }
-  return 'value';
+  return {
+    type: 'group',
+    id: 'root',
+    operator: '_implicit',
+    children: [
+      {
+        type: 'condition',
+        id: 'condition',
+        column,
+        operator,
+        value,
+      },
+    ],
+  };
 }
 
 describe('resolveLogicalModelFieldDescriptors', () => {
   it('returns scalar leaves as selectable and references as traversal-only', () => {
-    expect(fields()).toEqual({
-      descriptors: [
-        {
-          kind: 'scalar',
-          name: 'id',
-          path: 'id',
-          nullable: false,
-          selectable: true,
-          scalar: 'uuid',
-        },
-        {
-          kind: 'object',
-          name: 'profile',
-          path: 'profile',
-          nullable: true,
-          selectable: false,
-          logicalModel: 'profile',
-        },
-        {
-          kind: 'scalar',
-          name: 'active',
-          path: 'profile.active',
-          nullable: false,
-          selectable: true,
-          scalar: 'boolean',
-        },
-        {
-          kind: 'scalar',
-          name: 'displayName',
-          path: 'profile.displayName',
-          nullable: true,
-          selectable: true,
-          scalar: 'text',
-        },
-      ],
-      selectablePaths: ['id', 'profile.active', 'profile.displayName'],
-      traversalPaths: ['profile'],
-      issues: [],
-    });
+    const result = fields();
+
+    expect(
+      result.descriptors
+        .filter(({ kind, selectable }) => kind === 'scalar' && selectable)
+        .map(({ path }) => path),
+    ).toEqual([
+      'id',
+      'bio',
+      'metadata',
+      'profile.active',
+      'profile.displayName',
+    ]);
+    expect(
+      result.descriptors
+        .filter(({ kind, selectable }) => kind === 'object' && !selectable)
+        .map(({ path }) => path),
+    ).toEqual(['profile']);
+    expect(result.issues).toEqual([{ code: 'array', path: 'tags' }]);
   });
 
   it('excludes arrays and unresolved references', () => {
@@ -145,18 +116,17 @@ describe('resolveLogicalModelFieldDescriptors', () => {
       ],
     };
 
-    expect(fields(model, [model])).toMatchObject({
-      selectablePaths: [],
-      traversalPaths: [],
-      issues: [
-        { code: 'array', path: 'tags' },
-        {
-          code: 'unresolved-reference',
-          path: 'missing',
-          reference: 'absent',
-        },
-      ],
-    });
+    const result = fields(model, [model]);
+
+    expect(result.descriptors).toEqual([]);
+    expect(result.issues).toEqual([
+      { code: 'array', path: 'tags' },
+      {
+        code: 'unresolved-reference',
+        path: 'missing',
+        reference: 'absent',
+      },
+    ]);
   });
 
   it('resolves references per branch and stops cycles', () => {
@@ -189,7 +159,11 @@ describe('resolveLogicalModelFieldDescriptors', () => {
     };
 
     const result = fields(root, [root, left, right]);
-    expect(result.selectablePaths).toEqual([
+    expect(
+      result.descriptors
+        .filter(({ kind, selectable }) => kind === 'scalar' && selectable)
+        .map(({ path }) => path),
+    ).toEqual([
       'first.value',
       'first.right.value',
       'second.value',
@@ -201,7 +175,7 @@ describe('resolveLogicalModelFieldDescriptors', () => {
     ]);
   });
 
-  it('excludes unsafe, duplicate, and dotted names without prototype access', () => {
+  it('excludes unsafe, duplicate, and dotted names', () => {
     const model: LogicalModelItem = {
       name: 'unsafe',
       fields: [
@@ -214,232 +188,94 @@ describe('resolveLogicalModelFieldDescriptors', () => {
       ],
     };
 
-    expect(fields(model, [model])).toMatchObject({
-      descriptors: [],
-      selectablePaths: [],
-      issues: [
-        { code: 'unsafe-name', path: '__proto__' },
-        { code: 'unsafe-name', path: 'constructor' },
-        { code: 'unsafe-name', path: '_and' },
-        { code: 'dotted-name', path: 'a.b' },
-        { code: 'duplicate-field', path: 'same' },
-        { code: 'duplicate-field', path: 'same' },
-      ],
-    });
-    expect(({} as Record<string, unknown>).polluted).toBeUndefined();
+    const result = fields(model, [model]);
+
+    expect(result.descriptors).toEqual([]);
+    expect(result.issues).toEqual([
+      { code: 'unsafe-name', path: '__proto__' },
+      { code: 'unsafe-name', path: 'constructor' },
+      { code: 'unsafe-name', path: '_and' },
+      { code: 'dotted-name', path: 'a.b' },
+      { code: 'duplicate-field', path: 'same' },
+      { code: 'duplicate-field', path: 'same' },
+    ]);
   });
 });
 
-describe('logical-model filter admission', () => {
-  it('admits every fixed comparison operator and preserves values', () => {
-    const filter = {
-      id: Object.fromEntries(
-        LOGICAL_MODEL_COMPARISON_OPERATORS.map((operator) => [
-          operator,
-          comparisonValue(operator),
-        ]),
-      ),
+describe('logical-model permission validation', () => {
+  it('accepts canonical nested objects and shared value conventions losslessly', async () => {
+    const stored = {
+      profile: { active: { _is_null: true } },
+      id: {
+        _in: 'X-Hasura-Allowed-Ids',
+        _nin: 'X-Hasura-Blocked-Ids',
+      },
     };
-
-    expectCompatible(filter);
-  });
-
-  it.each([
-    {},
-    { _and: [] },
-    { _or: [] },
-    {
-      _and: [
-        { id: { _eq: 'one' } },
-        { _or: [{ profile: { active: { _eq: true } } }] },
-      ],
-    },
-    { _not: { _and: [{ id: { _eq: 'one' } }, { id: { _neq: 'two' } }] } },
-  ])('admits exact lossless empty and nested shape %#', (filter) => {
-    expectCompatible(filter);
-  });
-
-  const malformedBooleanCases: Array<[Record<string, unknown>, string]> = [
-    [{ _and: [{}] }, 'empty-boolean-child'],
-    [{ _or: [{}] }, 'empty-boolean-child'],
-    [{ _not: {} }, 'empty-boolean-child'],
-    [{ _and: [{ _not: {} }] }, 'empty-boolean-child'],
-    [{ _and: {} }, 'malformed-boolean-group'],
-    [{ _or: [true] }, 'malformed-boolean-group'],
-    [{ _not: [] }, 'malformed-boolean-group'],
-  ];
-
-  it.each(malformedBooleanCases)(
-    'classifies malformed Boolean shape %# as JSON-only',
-    (filter, code) => {
-      expectIncompatible(filter, code);
-    },
-  );
-
-  const unsupportedCases: Array<[Record<string, unknown>, string]> = [
-    [{ id: { _regex: 'x' } }, 'unknown-operator'],
-    [{ _exists: {} }, 'unknown-operator'],
-    [{ id: { _is_null: 'true' } }, 'noncanonical-is-null'],
-    [{ id: { _is_null: 1 } }, 'noncanonical-is-null'],
-    [{ unknown: { _eq: 1 } }, 'invalid-field'],
-    [{ profile: [] }, 'invalid-field'],
-  ];
-
-  it.each(unsupportedCases)(
-    'classifies unsupported filter %# without mutation',
-    (filter, code) => {
-      expectIncompatible(filter, code);
-    },
-  );
-
-  it('rejects manually supplied array conditions during parsing', () => {
-    const model: LogicalModelItem = {
-      name: 'array_result',
-      fields: [
-        {
-          name: 'tags',
-          type: {
-            array: { scalar: 'text', nullable: true },
-            nullable: false,
+    const tree = wrapPermissionsInAGroup(stored);
+    const relationship = tree.children.find(
+      (child) => child.type === 'relationship',
+    );
+    expect(relationship).toMatchObject({
+      relationship: 'profile',
+      child: {
+        children: [
+          {
+            type: 'condition',
+            column: 'active',
+            operator: '_is_null',
+            value: 'true',
           },
-        },
-      ],
-    };
-    const arrayFields = fields(model, [model]);
-
-    expect(
-      parseLogicalModelFilter({ tags: { _eq: ['one'] } }, arrayFields),
-    ).toMatchObject({
-      success: false,
-      errors: [{ code: 'invalid-field' }],
-    });
-  });
-
-  it('rejects unsafe own keys and non-plain prototypes', () => {
-    const unsafe = Object.create(null) as Record<string, unknown>;
-    Object.defineProperty(unsafe, '__proto__', {
-      value: { polluted: true },
-      enumerable: true,
-    });
-    expectIncompatible(unsafe, 'unsafe-key');
-
-    const inherited = Object.create({ id: { _eq: 'inherited' } }) as Record<
-      string,
-      unknown
-    >;
-    const result = parseLogicalModelFilter(inherited, fields());
-    expect(result).toMatchObject({
-      success: false,
-      errors: [{ code: 'unsafe-object' }],
-    });
-    expect(({} as Record<string, unknown>).polluted).toBeUndefined();
-  });
-});
-
-describe('serializeLogicalModelFilter', () => {
-  it.each(['_and', '_or'] as const)(
-    'rejects empty %s authoring but preserves stored filters for display',
-    (operator) => {
-      const stored = { [operator]: [] };
-      expectCompatible(stored);
-      expect(parseLogicalModelFilter(stored, fields())).toMatchObject({
-        success: true,
-      });
-      for (const node of [
-        group('empty', operator, []),
-        group('root', '_implicit', [
-          condition('id', 'id', '_eq', 'one'),
-          group('empty', operator, []),
-        ]),
-      ]) {
-        expect(serializeLogicalModelFilter(node, fields())).toMatchObject({
-          success: false,
-          errors: [
-            {
-              code: 'malformed-boolean-group',
-              message: `${operator} must contain at least one child.`,
-            },
-          ],
-        });
-      }
-    },
-  );
-
-  it('merges implicit siblings recursively when collision-free', () => {
-    const node = group('root', '_implicit', [
-      condition('one', 'profile.active', '_eq', true),
-      condition('two', 'profile.displayName', '_like', 'A%'),
-      condition('three', 'id', '_neq', 'anonymous'),
-    ]);
-
-    expect(serializeLogicalModelFilter(node, fields())).toEqual({
-      success: true,
-      value: {
-        profile: {
-          active: { _eq: true },
-          displayName: { _like: 'A%' },
-        },
-        id: { _neq: 'anonymous' },
+        ],
       },
     });
+
+    await expect(
+      validationSchema.validate(permissionValues(tree)),
+    ).resolves.toBeDefined();
+    expect(serializeNode(tree)).toEqual(stored);
   });
 
-  it('uses explicit _and for duplicate conditions instead of dropping a child', () => {
-    const node = group('root', '_implicit', [
-      condition('one', 'id', '_eq', 'first'),
-      condition('two', 'id', '_eq', 'second'),
-    ]);
-
-    expect(serializeLogicalModelFilter(node, fields())).toEqual({
-      success: true,
-      value: {
-        _and: [{ id: { _eq: 'first' } }, { id: { _eq: 'second' } }],
-      },
-    });
-  });
-
-  it('returns structured validation errors and never serializes unsupported nodes', () => {
-    const emptyNot = group('not', '_not', []);
-    expect(serializeLogicalModelFilter(emptyNot, fields())).toMatchObject({
-      success: false,
-      errors: [{ code: 'malformed-boolean-group' }],
-    });
-
-    expect(
-      serializeLogicalModelFilter(
-        {
-          type: 'exists',
-          id: 'exists',
-          schema: 'public',
-          table: 'authors',
-          where: group('where', '_implicit', []),
-        },
-        fields(),
+  it('allows the server to validate whether a field exists', async () => {
+    await expect(
+      validationSchema.validate(
+        permissionValues(condition('missing', '_eq', 'x')),
       ),
-    ).toMatchObject({
-      success: false,
-      errors: [{ code: 'invalid-node' }],
-    });
+    ).resolves.toBeDefined();
+  });
+
+  it.each([
+    ['bare string', 'bio'],
+    ['same-scope array', ['bio']],
+    ['root-relative array', ['$', 'bio']],
+  ])('accepts a %s column comparison reference', async (_label, reference) => {
+    await expect(
+      validationSchema.validate(
+        permissionValues(condition('id', '_ceq', reference)),
+      ),
+    ).resolves.toBeDefined();
+  });
+
+  it('strips the filter when row checks are disabled', async () => {
+    const result = await validationSchema.validate(
+      permissionValues(condition('missing', '_like', 'x'), 'none'),
+    );
+    expect(result).not.toHaveProperty('filter');
   });
 });
 
-describe('hasEmptyBooleanGroup', () => {
+describe('logical-model scalar normalization', () => {
   it.each([
-    { filter: { _and: [] }, expected: true },
-    { filter: { _or: [] }, expected: true },
-    { filter: { _not: {} }, expected: true },
-    { filter: { _and: [{ _or: [] }] }, expected: true },
-    { filter: { _or: [{}] }, expected: true },
-    { filter: { _and: [{}] }, expected: true },
-    { filter: { _and: [{ id: { _eq: '1' } }, {}] }, expected: true },
-    { filter: { _not: { _or: [{}] } }, expected: true },
-    { filter: { payload: { _eq: { _and: [] } } }, expected: false },
-    { filter: { payload: { _in: [{ _or: [] }] } }, expected: false },
-    { filter: { _not: { _and: [] } }, expected: true },
-    { filter: {}, expected: false },
-    { filter: { id: { _eq: 'X-Hasura-User-Id' } }, expected: false },
-    { filter: { _and: [{ id: { _eq: '1' } }] }, expected: false },
-  ])('returns $expected for $filter', ({ filter, expected }) => {
-    expect(hasEmptyBooleanGroup(filter)).toBe(expected);
+    ['text', 'text'],
+    ['character varying', 'varchar'],
+    ['character', 'bpchar'],
+    ['citext', 'text'],
+    ['json', 'jsonb'],
+    ['jsonb', 'jsonb'],
+    ['custom_scalar', 'custom_scalar'],
+  ])('normalizes %s to %s before selecting operators', (raw, normalized) => {
+    expect(normalizeLogicalModelScalar(raw)).toBe(normalized);
+    expect(getAvailableOperators(normalizeLogicalModelScalar(raw))).toEqual(
+      getAvailableOperators(normalized),
+    );
   });
 });

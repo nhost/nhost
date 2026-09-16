@@ -567,7 +567,9 @@ describe('NativeQueriesBrowserSidebar', () => {
       await screen.findByText('Roles & Actions overview'),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: 'user select: full access' }),
+      within(
+        screen.getByRole('row', { name: 'user Full permission' }),
+      ).getByRole('button'),
     ).toBeInTheDocument();
   });
 
