@@ -16,22 +16,11 @@
         url = "https://nodejs.org/dist/v${version}/node-v${version}.tar.xz";
         sha256 = "sha256-pvVN77b9fIT0HboT1h546bTglhcSz2HylxXAX1ztlPw=";
       };
-      # Node 24.21.0 includes the OpenSSL test fix and changed context in the
-      # node --run fixture, so these inherited patches no longer apply.
+      # Node 24.21.0 includes the OpenSSL CCM test fix, so this inherited
+      # patch no longer applies.
       patches = builtins.filter (
-        p:
-        !(builtins.any (marker: prev.lib.hasInfix marker (toString p)) [
-          "a37601c99d7bde9abb3b3ae57b2fb2bacd81ec9d"
-          "bin-sh-node-run-v22.patch"
-        ])
+        p: !(prev.lib.hasInfix "a37601c99d7bde9abb3b3ae57b2fb2bacd81ec9d" (toString p))
       ) (oldAttrs.patches or [ ]);
-
-      # Preserve nixpkgs' /bin/sh fixture fix without relying on the changed
-      # surrounding line as patch context.
-      postPatch = (oldAttrs.postPatch or "") + ''
-        substituteInPlace test/fixtures/run-script/node_modules/.bin/positional-args \
-          --replace-fail '#!/bin/bash' '#!/bin/sh'
-      '';
 
       # nixpkgs runs the upstream `test-ci-js` suite during the build. Two tests
       # fail only inside the macOS Nix sandbox (they pass on Linux/hydra, where
