@@ -73,7 +73,7 @@ jobs:
             --verbose \
             --confidence medium \
             --validation \
-            --validation-status valid,none \
+            --validation-status valid,none,error,needs_validation \
             --validation-max-requests 100 \
             --validation-rps 5 \
             --timeout 900
