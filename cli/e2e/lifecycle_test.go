@@ -516,7 +516,11 @@ func TestRequireSuiteDeadlineRejectsShortDeadline(t *testing.T) {
 
 	out, err := cmd.CombinedOutput()
 	if err == nil {
-		t.Fatalf("requireSuiteDeadline subprocess accepted %s timeout:\n%s", shortTimeout, out)
+		t.Fatalf(
+			"requireSuiteDeadline subprocess accepted %s timeout:\n%s",
+			shortTimeout,
+			redactOutput(out),
+		)
 	}
 
 	for _, want := range []string{
@@ -870,12 +874,64 @@ func (f roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
 	return f(req)
 }
 
-func TestLooksLikeJWTAcceptsPadding(t *testing.T) {
+func TestLooksLikeJWT(t *testing.T) {
 	t.Parallel()
 
-	const paddedJWT = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.SECRETSIG=="
-	if !looksLikeJWT(paddedJWT) {
-		t.Fatal("looksLikeJWT rejected a padded JWT")
+	tests := []struct {
+		name  string
+		token string
+		want  bool
+	}{
+		{
+			name:  "padded",
+			token: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.SECRETSIG==",
+			want:  true,
+		},
+		{
+			name:  "unpadded",
+			token: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.SECRETSIG",
+			want:  true,
+		},
+		{
+			name:  "wrong segment count",
+			token: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0",
+			want:  false,
+		},
+		{
+			name:  "minimum length",
+			token: "abcdef.ghijkl.mnopqr",
+			want:  false,
+		},
+		{
+			name:  "empty unpadded segment",
+			token: "eyJhbGciOiJIUzI1NiJ9..SECRETSIGNATUREXX",
+			want:  false,
+		},
+		{
+			name:  "too much padding",
+			token: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.SECRETSIG===",
+			want:  false,
+		},
+		{
+			name:  "padding inside segment",
+			token: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIi=IjEifQ.SECRETSIG",
+			want:  false,
+		},
+		{
+			name:  "non base64url character",
+			token: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.SECRET+SIG",
+			want:  false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := looksLikeJWT(tt.token); got != tt.want {
+				t.Errorf("looksLikeJWT(%q) = %t, want %t", tt.token, got, tt.want)
+			}
+		})
 	}
 }
 

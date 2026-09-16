@@ -768,21 +768,23 @@ func assertComposeTopology(t *testing.T, env envConfig, projectDir string) {
 	}
 
 	var (
-		requiredService   = "storage"
+		requiredServices  = []string{"graphql", "auth", "storage"}
 		forbiddenServices = []string{"engine"}
 	)
 	if env.mode == "engine" {
-		requiredService = "engine"
+		requiredServices = []string{"graphql", "engine"}
 		forbiddenServices = []string{"auth", "storage"}
 	}
 
-	if _, ok := compose.Services[requiredService]; !ok {
-		t.Fatalf(
-			"generated compose topology does not match %s mode: service %q is missing (services: %v)",
-			env.mode,
-			requiredService,
-			slices.Sorted(maps.Keys(compose.Services)),
-		)
+	for _, service := range requiredServices {
+		if _, ok := compose.Services[service]; !ok {
+			t.Fatalf(
+				"generated compose topology does not match %s mode: service %q is missing (services: %v)",
+				env.mode,
+				service,
+				slices.Sorted(maps.Keys(compose.Services)),
+			)
+		}
 	}
 
 	for _, service := range forbiddenServices {
@@ -1158,10 +1160,11 @@ func assertStorageUserInsertPermission(t *testing.T, path string) {
 }
 
 // patchConfig disables email verification (so signup returns a session) and, in
-// engine mode, opts into experimental.nhost and strips the per-service
-// version/resources from the root auth/storage sections (which the single engine
-// binary rejects). The engine reads the same root sections the standalone
-// services do, so no config duplication is needed. It returns the admin secret.
+// engine mode, opts into experimental.nhost and strips explicit per-service
+// version/resources from the root auth/storage sections. Non-default overrides
+// are rejected once experimental.nhost is enabled; default-valued fields are
+// ignored. Stripping them keeps the scratch project from drifting into an
+// unsupported combination. It returns the admin secret.
 func patchConfig(t *testing.T, env envConfig, projectDir string) string {
 	t.Helper()
 
@@ -1193,10 +1196,10 @@ func patchConfig(t *testing.T, env envConfig, projectDir string) string {
 	setNested(cfg, false, "auth", "method", "emailPassword", "emailVerificationRequired")
 
 	if env.mode == "engine" {
-		// The single engine binary has one version and one resources block
-		// (experimental.nhost), so per-service version/resources for auth and
-		// storage are rejected. Strip them from the root sections the engine reads
-		// directly.
+		// Non-default per-service version/resources are rejected once
+		// experimental.nhost is enabled, while default-valued fields are ignored.
+		// Strip them so this scratch project cannot drift into an unsupported
+		// combination as defaults evolve.
 		for _, svc := range []string{"auth", "storage"} {
 			if m, ok := cfg[svc].(map[string]any); ok {
 				delete(m, "version")
