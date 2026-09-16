@@ -798,7 +798,7 @@ func getServices( //nolint:funlen,cyclop // Topology assembly necessarily select
 		}
 
 		if cfg.Ai != nil {
-			services["ai"] = ai(cfg)
+			services["ai"] = ai(cfg, subdomain, httpPort, useTLS)
 		}
 	}
 

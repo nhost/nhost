@@ -7,10 +7,13 @@ import (
 
 func ai(
 	cfg *model.ConfigConfig,
+	subdomain string,
+	httpPort uint,
+	useTLS bool,
 ) *Service {
 	storageURL, authService := "http://storage:5000/v1", "auth"
 	if engineEnabled(cfg) {
-		storageURL, authService = "http://engine:8080/storage/v1", "engine"
+		storageURL, authService = URL(subdomain, "storage", httpPort, useTLS)+"/v1", "engine"
 	}
 
 	envars := appconfig.AIEnv(

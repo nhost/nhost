@@ -48,6 +48,10 @@ func storage( //nolint:funlen
 		env[v.Name] = v.Value
 	}
 
+	// Keep the listener owned by compose so it cannot drift from the ingress
+	// and published container port when appconfig defaults change.
+	env["BIND"] = fmt.Sprintf(":%d", storagePort)
+
 	return &Service{
 		Image: "nhost/storage:" + *cfg.GetStorage().GetVersion(),
 		DependsOn: map[string]DependsOn{

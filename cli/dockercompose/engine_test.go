@@ -1,6 +1,7 @@
 package dockercompose //nolint:testpackage
 
 import (
+	"fmt"
 	"net/url"
 	"testing"
 
@@ -97,10 +98,10 @@ func expectedEngine() *Service {
 	}
 }
 
-// TestEngine pins the container shape. The environment is asserted separately
-// because appconfig.NhostEngineEnv owns it; what matters here is that the
-// engine is reachable on all three public service hosts with its mount prefix
-// prepended, and that it carries both bind mounts its bundled services need.
+// TestEngine pins the container shape. Most of the environment is owned by
+// appconfig.NhostEngineEnv, but BIND is asserted separately because compose
+// owns its coupling to the ingress and healthcheck port. The remaining shape
+// verifies all three public service hosts and the bundled services' bind mounts.
 func TestEngine(t *testing.T) {
 	t.Parallel()
 
@@ -114,6 +115,10 @@ func TestEngine(t *testing.T) {
 		cmpopts.IgnoreFields(Service{}, "Environment"),
 	); diff != "" {
 		t.Errorf("engine service mismatch (-want +got):\n%s", diff)
+	}
+
+	if got, want := got.Environment["BIND"], fmt.Sprintf(":%d", enginePort); got != want {
+		t.Errorf("engine BIND = %q, want %q", got, want)
 	}
 }
 
@@ -169,7 +174,8 @@ func TestEngineTopologyReplacesAuthAndStorage(t *testing.T) {
 
 	services := callGetServicesWithEngine(t)
 
-	if _, ok := services["engine"]; !ok {
+	engineService, ok := services["engine"]
+	if !ok {
 		t.Fatal("engine service missing when experimental.nhost is set")
 	}
 
@@ -202,9 +208,13 @@ func TestEngineTopologyReplacesAuthAndStorage(t *testing.T) {
 		t.Errorf("ai engine dependency condition = %q, want service_healthy", dependency.Condition)
 	}
 
-	if got, want := aiService.Environment["NHOST_STORAGE_URL"],
-		"http://engine:8080/storage/v1"; got != want {
-		t.Errorf("ai NHOST_STORAGE_URL = %q, want %q", got, want)
+	engineStorageURL, ok := engineService.Environment["NHOST_STORAGE_URL"]
+	if !ok {
+		t.Fatal("engine NHOST_STORAGE_URL missing")
+	}
+
+	if got := aiService.Environment["NHOST_STORAGE_URL"]; got != engineStorageURL {
+		t.Errorf("ai NHOST_STORAGE_URL = %q, engine NHOST_STORAGE_URL = %q", got, engineStorageURL)
 	}
 
 	// The engine owns the public graphql host, so hasura keeps only its console
