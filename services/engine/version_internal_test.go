@@ -43,22 +43,21 @@ func requiredPassthroughArgs(t *testing.T, service string, def serviceDef) []str
 	return args
 }
 
-// TestBundledServicesReportEngineVersion pins the version each bundled service
-// reports when it runs inside the engine.
+// TestBundledServicesReportEngineVersion pins the engine side of bundled
+// service version propagation. buildService must hand the engine build version
+// to every service's wrapper command so cmd.Root().Version resolves to it.
 //
-// The engine is one binary with one build version. The services it bundles no
-// longer link their own main packages, so the "-X main.Version" each service's
-// project.nix injects never reaches them here; services/engine/project.nix
-// injects the engine's main.Version instead, and buildService hands it to each
-// service's wrapper command. Auth, storage and constellation all read
-// cmd.Root().Version for their version endpoint and other controller-built
-// surfaces, so that hop is the only thing keeping those from going empty. The
-// engine itself emits one startup version line rather than one per service.
+// The engine is one binary with one build version. The services it bundles do
+// not link their own main packages, so the "-X main.Version" each service's
+// project.nix injects does not apply here; services/engine/project.nix injects
+// the engine's main.Version instead. Service-level command tests separately pin
+// the hop from cmd.Root().Version into each service's controller and version
+// endpoint. The engine itself emits one startup version line rather than one
+// per service.
 //
-// This is worth asserting because every way it breaks is silent: a mistyped
-// linker symbol still builds (storage shipped that way, injecting
-// controller.buildVersion while main.Version stayed empty), and a service
-// reintroducing its own package-level version var would compile and report "".
+// This assertion is necessary because a mistyped linker symbol is silently
+// ignored and still produces a binary, leaving the wrapper command's version
+// empty without a build failure.
 func TestBundledServicesReportEngineVersion(t *testing.T) {
 	t.Parallel()
 
