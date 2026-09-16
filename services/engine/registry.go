@@ -102,7 +102,8 @@ func serviceDefinitions() []registeredService {
 				skip: newSet(
 					"debug", "log-format-text", "bind-address",
 					"http-read-timeout", "http-write-timeout", "http-idle-timeout",
-					"profile-address", "admin-secret", "jwt-secret", "metadata-database-url",
+					"profile-address", "playground-graphql-endpoint",
+					"admin-secret", "jwt-secret", "metadata-database-url",
 					"cors-allowed-origins",
 				),
 				hidden: newSet(),

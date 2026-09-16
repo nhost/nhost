@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
@@ -71,7 +72,11 @@ func newRouterTestController(t *testing.T) *controller.Controller {
 // engine-mounted /v1/graphql routes that bypass that validator. Unlike the
 // hand-maintained buildServeRouter mirror, this catches drift between the
 // mirror and getRouter because it calls getRouter itself.
-func buildRealServeRouter(t *testing.T, ctrl *controller.Controller) *gin.Engine {
+func buildRealServeRouter(
+	t *testing.T,
+	ctrl *controller.Controller,
+	extraArgs ...string,
+) *gin.Engine {
 	t.Helper()
 	gin.SetMode(gin.TestMode)
 
@@ -99,14 +104,18 @@ func buildRealServeRouter(t *testing.T, ctrl *controller.Controller) *gin.Engine
 		},
 	}
 
-	err := cmd.Run(context.Background(), []string{
+	args := make([]string, 0, 7+len(extraArgs))
+	args = append(args,
 		"serve",
-		"--" + flagAdminSecret, routerTestAdminSecret,
+		"--"+flagAdminSecret, routerTestAdminSecret,
 		// jwt-secret is required by serveFlags; getRouter does not read it (the
 		// authenticator is injected) but the command will not run without it.
-		"--" + flagJWTSecret, `{"type":"HS256","key":"router-test-jwt-secret-32-bytes-long!"}`,
-		"--" + flagCORSAllowedOrigins, "https://app.example.com",
-	})
+		"--"+flagJWTSecret, `{"type":"HS256","key":"router-test-jwt-secret-32-bytes-long!"}`,
+		"--"+flagCORSAllowedOrigins, "https://app.example.com",
+	)
+	args = append(args, extraArgs...)
+
+	err := cmd.Run(context.Background(), args)
 	if err != nil {
 		t.Fatalf("running serve command to build router: %v", err)
 	}
@@ -116,6 +125,58 @@ func buildRealServeRouter(t *testing.T, ctrl *controller.Controller) *gin.Engine
 	}
 
 	return router
+}
+
+func TestGetRouter_PlaygroundUsesConfiguredGraphQLEndpoint(t *testing.T) {
+	const endpointEnv = "CONSTELLATION_PLAYGROUND_GRAPHQL_ENDPOINT"
+
+	t.Setenv(endpointEnv, "")
+
+	if err := os.Unsetenv(endpointEnv); err != nil {
+		t.Fatalf("unsetting %s: %v", endpointEnv, err)
+	}
+
+	tests := []struct {
+		name         string
+		extraArgs    []string
+		wantEndpoint string
+	}{
+		{
+			name: "standalone default",
+			extraArgs: []string{
+				"--" + flagEnablePlayground,
+			},
+			wantEndpoint: defaultPlaygroundGraphQLEndpoint,
+		},
+		{
+			name: "custom endpoint",
+			extraArgs: []string{
+				"--" + flagEnablePlayground,
+				"--" + flagPlaygroundGraphQLEndpoint, "/graphql/v1/graphql",
+			},
+			wantEndpoint: "/graphql/v1/graphql",
+		},
+	}
+
+	for _, tt := range tests { //nolint:paralleltest // subtests share isolated env state
+		t.Run(tt.name, func(t *testing.T) {
+			router := buildRealServeRouter(t, newRouterTestController(t), tt.extraArgs...)
+			req := httptest.NewRequest(http.MethodGet, "/", nil)
+			rec := httptest.NewRecorder()
+			router.ServeHTTP(rec, req)
+
+			if rec.Code != http.StatusOK {
+				t.Fatalf("GET / status = %d, want %d", rec.Code, http.StatusOK)
+			}
+
+			if !strings.Contains(rec.Body.String(), tt.wantEndpoint) {
+				t.Fatalf(
+					"playground response does not contain endpoint %q: %s",
+					tt.wantEndpoint, rec.Body.String(),
+				)
+			}
+		})
+	}
 }
 
 // TestGetRouter_GraphQLNotBlockedByValidator is the regression guarding the

@@ -182,6 +182,7 @@ All flags are also available as environment variables. The most common:
 | `--http-write-timeout` | `CONSTELLATION_HTTP_WRITE_TIMEOUT` | `5m0s` |
 | `--http-idle-timeout` | `CONSTELLATION_HTTP_IDLE_TIMEOUT` | `2m0s` |
 | `--enable-playground` | `CONSTELLATION_ENABLE_PLAYGROUND` | `false` |
+| `--playground-graphql-endpoint` | `CONSTELLATION_PLAYGROUND_GRAPHQL_ENDPOINT` | `/v1/graphql` |
 | `--debug` | `CONSTELLATION_DEBUG` | `false` |
 | `--log-format-text` | `CONSTELLATION_LOG_FORMAT_TEXT` | `false` — JSON logs by default |
 | `--dev-mode` | `CONSTELLATION_DEV_MODE` | `false` — returns raw connector errors; never enable in production |

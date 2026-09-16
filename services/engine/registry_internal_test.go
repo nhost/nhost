@@ -141,6 +141,7 @@ func TestSharedOverridesMatchServiceFlags(t *testing.T) {
 			"cors-allow-origins",
 		},
 		"graphql": {
+			"playground-graphql-endpoint",
 			"admin-secret",
 			"jwt-secret",
 			"metadata-database-url",
