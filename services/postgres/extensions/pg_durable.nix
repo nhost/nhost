@@ -2,7 +2,7 @@
 
 buildPGRXExtension rec {
   pname = "pg_durable";
-  version = "0.2.5";
+  version = "0.2.8";
 
   cargo-pgrx = pkgs.cargo-pgrx_0_16_1;
 
@@ -17,8 +17,8 @@ buildPGRXExtension rec {
     owner = "microsoft";
     repo = pname;
     rev = "v${version}";
-    hash = "sha256-BayklfKGK6mSHOqkO4OXVZ88WsXsREb3z7YfD2dAKow=";
+    hash = "sha256-khNR44xZbVVXd50BW3s3+xQlD2XyHW3suZJgQJWed3s=";
   };
 
-  cargoHash = "sha256-a1GezR7Dubn8d0pmVA3MCvLPrm+FrSZsNmymwPE+Iag=";
+  cargoHash = "sha256-rYNJai3Z7Ra9Y5GFRxvvz/IlDla00vRHfYmNqXeDOXk=";
 }
