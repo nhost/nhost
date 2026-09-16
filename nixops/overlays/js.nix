@@ -11,23 +11,27 @@
     # ...), forcing source rebuilds of huge dependency cones instead of
     # substituting them from cache.nixos.org.
     nodejs-slim = prev.nodejs-slim_24.overrideAttrs (oldAttrs: rec {
-      version = "24.20.0";
+      version = "24.21.0";
       src = prev.fetchurl {
         url = "https://nodejs.org/dist/v${version}/node-v${version}.tar.xz";
-        sha256 = "sha256-JzL8P1iN0zXNZ3nAaGT3zUJLsbX/mhdDBZpmxU+cpKE=";
+        sha256 = "sha256-pvVN77b9fIT0HboT1h546bTglhcSz2HylxXAX1ztlPw=";
       };
-      # nixpkgs pins Node 24.19.0 and carries two "update Ada to 4.0.0"
-      # fetchpatch2 patches as a bridge until Ada 4.x lands upstream. Node
-      # 24.20.0 already ships Ada 4.0.0, so both patches now fail with
-      # "reversed (or previously applied) patch detected". Drop them from the
-      # inherited patch set (match by commit hash in the fetched patch's name).
+      # Node 24.21.0 includes the OpenSSL test fix and changed context in the
+      # node --run fixture, so these inherited patches no longer apply.
       patches = builtins.filter (
         p:
-        !(builtins.any (h: prev.lib.hasInfix h (toString p)) [
-          "eb1a49b0aec9e05cbb59f093d38f0a92818b7de1"
-          "064e2eee1ec7b17c4bc6e36befc2935eee80d0f7"
+        !(builtins.any (marker: prev.lib.hasInfix marker (toString p)) [
+          "a37601c99d7bde9abb3b3ae57b2fb2bacd81ec9d"
+          "bin-sh-node-run-v22.patch"
         ])
       ) (oldAttrs.patches or [ ]);
+
+      # Preserve nixpkgs' /bin/sh fixture fix without relying on the changed
+      # surrounding line as patch context.
+      postPatch = (oldAttrs.postPatch or "") + ''
+        substituteInPlace test/fixtures/run-script/node_modules/.bin/positional-args \
+          --replace-fail '#!/bin/bash' '#!/bin/sh'
+      '';
 
       # nixpkgs runs the upstream `test-ci-js` suite during the build. Two tests
       # fail only inside the macOS Nix sandbox (they pass on Linux/hydra, where
@@ -46,26 +50,10 @@
       ) oldAttrs.checkFlags;
     });
 
-    nodejs = final.symlinkJoin {
-      name = "nodejs";
-      version = final.nhost.nodejs-slim.version;
-      paths = [
-        final.nhost.nodejs-slim
-        npm_11
-      ];
-
-      passthru = {
-        inherit (final.nhost.nodejs-slim)
-          version
-          python
-          meta
-          src
-          ;
-
-        pkgs = final.callPackage "${final.path}/pkgs/development/node-packages/default.nix" {
-          nodejs = final.nhost.nodejs;
-        };
-      };
+    # Node 24.21.0 already bundles npm 11.19.0. Reuse nixpkgs' standard
+    # nodejs wrapper to combine the slim runtime with its npm output.
+    nodejs = prev.nodejs_24.override {
+      nodejs-slim = final.nhost.nodejs-slim;
     };
 
     vercel =
@@ -74,64 +62,11 @@
         nodejs = final.nhost.nodejs;
       })."vercel-53.3.2";
 
-    npm_11 = final.stdenv.mkDerivation rec {
-      pname = "npm";
-      version = "11.19.0";
-      src = final.fetchurl {
-        url = "https://registry.npmjs.org/npm/-/npm-${version}.tgz";
-        sha256 = "sha256-Mel3D33HERmlhQk1OyeRdVeq8KybXvGgRl7n2OxnrnU=";
-      };
-      nativeBuildInputs = [ final.nhost.nodejs-slim.out ];
-      dontBuild = true;
-      installPhase = ''
-        mkdir -p $out/lib/node_modules/npm
-        cp -r . $out/lib/node_modules/npm
-        mkdir -p $out/bin
-        ln -s $out/lib/node_modules/npm/bin/npm-cli.js $out/bin/npm
-        ln -s $out/lib/node_modules/npm/bin/npx-cli.js $out/bin/npx
-        patchShebangs $out/lib/node_modules/npm/bin
-      '';
+    # pnpm 12 is a Rust rewrite, so the Node-specific pnpm 11 workarounds are
+    # no longer needed. Keep its Node passthru aligned with our pinned runtime.
+    pnpm = prev.pnpm_12.override {
+      nodejs-slim = final.nhost.nodejs-slim;
     };
-
-    pnpm =
-      (final.callPackage "${final.path}/pkgs/development/tools/pnpm/generic.nix" {
-        nodejs = final.nhost.nodejs;
-        version = "11.24.0";
-        hash = "sha256-0eqyQzFyZhzDahjshfzpP3cdsZYnFzKcwB7JwoJMok8=";
-      }).overrideAttrs
-        (oldAttrs: {
-          # In pnpm 11, bin/pnpm.cjs is a non-executable compatibility shim; the
-          # real entrypoint moved to bin/pnpm.mjs. Upstream generic.nix still
-          # symlinks to pnpm.cjs, which yields "permission denied" at runtime.
-          installPhase = ''
-            runHook preInstall
-
-            install -d $out/{bin,libexec}
-            cp -R . $out/libexec/pnpm
-            ln -s $out/libexec/pnpm/bin/pnpm.mjs $out/bin/pnpm
-            ln -s $out/libexec/pnpm/bin/pnpx.mjs $out/bin/pnpx
-
-            runHook postInstall
-          '';
-
-          # macOS-only: Node's worker_threads fd tracker (trackUnmanagedFds, on
-          # by default) races under pnpm's parallel workers and aborts the
-          # process ("File descriptor N opened in unmanaged mode" then
-          # SIGABRT/SIGKILL). pnpm churns fds via graceful-fs' EAGAIN retry loop;
-          # libuv recycles those numbers for internal pipes, and worker-exit
-          # cleanup then closes fds it doesn't own. Disable the tracker on pnpm's
-          # WorkerPool. The --replace-fail target is minified and pinned to this
-          # pnpm version; revisit it on the next pnpm bump. Remove once fixed
-          # upstream: https://github.com/NixOS/nixpkgs/issues/525627
-          postPatch =
-            (oldAttrs.postPatch or "")
-            + final.lib.optionalString final.stdenv.isDarwin ''
-              substituteInPlace dist/pnpm.mjs \
-                --replace-fail \
-                  'resourceLimits: this._workerResourceLimits' \
-                  'resourceLimits: this._workerResourceLimits, trackUnmanagedFds: false'
-            '';
-        });
 
     biome = final.biome.overrideAttrs (
       finalAttrs: previousAttrs: {
