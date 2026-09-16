@@ -173,6 +173,81 @@ func TestScrubberIgnoresShortValues(t *testing.T) {
 	}
 }
 
+func TestScrubberScrubsMultilineValues(t *testing.T) {
+	t.Parallel()
+
+	const secret = "-----BEGIN X-----\nAAAABBBBCCCCDDDD\nEEEEFFFFGGGGHHHH\n-----END X-----"
+
+	tests := []struct {
+		name  string
+		input string
+	}{
+		{
+			name:  "individual line",
+			input: "service log: AAAABBBBCCCCDDDD",
+		},
+		{
+			name:  "literal escaped newlines",
+			input: strings.ReplaceAll(secret, "\n", `\n`),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			var s scrubber
+			s.add(secret)
+
+			got := s.scrub(tt.input)
+			for line := range strings.SplitSeq(secret, "\n") {
+				if strings.Contains(got, line) {
+					t.Errorf("scrubber exposed registered line %q in %q", line, got)
+				}
+			}
+		})
+	}
+}
+
+func TestScrubberScrubsOverlappingValuesLongestFirst(t *testing.T) {
+	t.Parallel()
+
+	const (
+		shortValue = "abcdefghij"
+		longValue  = shortValue + "KLMNOPQR"
+		tail       = "KLMNOPQR"
+	)
+
+	tests := []struct {
+		name   string
+		values []string
+	}{
+		{
+			name:   "short value registered first",
+			values: []string{shortValue, longValue},
+		},
+		{
+			name:   "long value registered first",
+			values: []string{longValue, shortValue},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			var s scrubber
+			for _, value := range tt.values {
+				s.add(value)
+			}
+
+			if got := s.scrub(longValue); strings.Contains(got, tail) {
+				t.Errorf("scrubber exposed longer value tail %q in %q", tail, got)
+			}
+		})
+	}
+}
+
 func TestRedactOutputScrubsRawCLIAndServiceLogs(t *testing.T) {
 	t.Parallel()
 
