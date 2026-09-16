@@ -70,10 +70,9 @@ For non-owner policies, use the same session-variable comparison pattern against
 
 ## 3. Apply and refresh the typed frontend
 
-Set the same project name used to start this local stack, then start or re-run the backend so it applies the metadata:
+Start or re-run the backend so it applies the metadata:
 
 ```sh
-export NHOST_PROJECT_NAME=my-app
 (cd backend && nhost up)
 ```
 

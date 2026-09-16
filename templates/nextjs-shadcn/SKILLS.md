@@ -104,10 +104,9 @@ Add this entry to `backend/nhost/metadata/databases/default/tables/tables.yaml` 
 
 ### 4. Apply and refresh the typed frontend
 
-Set a stable project name once per shell, then start or re-run the local backend so it applies the migration and metadata:
+Start or re-run the local backend so it applies the migration and metadata:
 
 ```sh
-export NHOST_PROJECT_NAME=my-app
 (cd backend && nhost up)
 ```
 
@@ -184,10 +183,9 @@ For non-owner policies, use the same session-variable comparison pattern against
 
 ### 3. Apply and refresh the typed frontend
 
-Set the same project name used to start this local stack, then start or re-run the backend so it applies the metadata:
+Start or re-run the backend so it applies the metadata:
 
 ```sh
-export NHOST_PROJECT_NAME=my-app
 (cd backend && nhost up)
 ```
 
@@ -223,10 +221,9 @@ Rename the file and adapt the handler to the requested endpoint. Prefix shared h
 
 ### 2. Start the local runtime
 
-Set a stable project name once per shell, then start the backend from its directory:
+Start the backend from its directory:
 
 ```sh
-export NHOST_PROJECT_NAME=my-app
 (cd backend && nhost up)
 ```
 
@@ -243,11 +240,18 @@ curl 'https://local.functions.local.nhost.run/v1/hello?name=Nhost'
 Inspect function output and runtime errors through the CLI:
 
 ```sh
-export NHOST_PROJECT_NAME=my-app
 (cd backend && nhost logs functions)
 ```
 
-If the function needs environment variables, add local values to `backend/.secrets` and do not commit real secrets. If it needs third-party packages, add a `package.json` and a committed lockfile under `backend/functions/`, then restart `nhost up` so the runtime installs them.
+If the function needs environment variables, declare each one under `[[global.environment]]` in `backend/nhost/nhost.toml`. The functions container receives the system variables plus the names declared there, so a bare key in `backend/.secrets` never reaches `process.env`. Keep sensitive values in `backend/.secrets`, which is gitignored, and reference them from the config entry; do not commit real secrets:
+
+```toml
+[[global.environment]]
+name = 'MY_KEY'
+value = '{{ secrets.MY_KEY }}'
+```
+
+Restart `nhost up` after editing either file. For third-party packages, `backend/functions/package.json` and `backend/functions/package-lock.json` already exist: run `npm install <package>` from `backend/functions/`, then commit the updated `package-lock.json`. The running runtime reinstalls when the lockfile changes. Do not add a lockfile of another flavour beside it — the runtime installs from the first of `package-lock.json`, `pnpm-lock.yaml`, `yarn.lock`, so a `pnpm-lock.yaml` is ignored and the packages it declares are silently never installed.
 
 ## Refresh the project context
 

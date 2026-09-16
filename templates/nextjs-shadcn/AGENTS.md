@@ -20,10 +20,9 @@ Complete the one-time frontend setup first:
 
 Then use this loop for data-backed features:
 
-1. Start the backend in one terminal with a stable project name:
+1. Start the backend in one terminal:
 
    ```sh
-   export NHOST_PROJECT_NAME=my-app
    (cd backend && nhost up)
    ```
 
@@ -73,7 +72,9 @@ When building another user-owned feature, copy this end-to-end shape: reversible
 - Client-side GraphQL operations use the generated `graphql()` documents, `gqlRequest`, the browser `nhost` client, and TanStack Query.
 - Use absolute frontend imports through `@/` and merge class names with `cn()` from `@/lib/utils`.
 - Wrap network calls in explicit error handling so the UI fails gracefully when the backend is unavailable.
-- Never commit real values from `backend/.secrets` or frontend environment files.
+- Read the backend subdomain and region through `nhostSubdomain()` / `nhostRegion()` from `@/lib/nhost/env`. `NEXT_PUBLIC_NHOST_SUBDOMAIN` and `NEXT_PUBLIC_NHOST_REGION` are the only pair, shared by the browser and the server; do not add a server-only pair, which would let the two halves target different backends.
+- Next.js inlines `NEXT_PUBLIC_*` at build time, so those two variables must be set before `next build`; setting them on the running host has no effect and the build stays pointed at the local stack.
+- Never commit real values from `backend/.secrets` or frontend environment files. `frontend/.gitignore` ignores every `.env*` except `.env.example`, and the project-root `.gitignore` covers `.secrets` and `.nhost`.
 
 ## Key commands
 
@@ -92,4 +93,8 @@ From `frontend/`:
 
 ## Optional MCP bonus
 
-The optional `.mcp.json` can start the Nhost MCP server for assistants that support it. It is a bonus for live inspection only: setup, skills, codegen, and every required workflow work without MCP.
+The optional `.mcp.json` can start the Nhost MCP server for assistants that support it. Setup, skills, codegen, and every required workflow work without MCP.
+
+It sets `NHOST_MCP_CONFIG_FILE` to `backend/.nhost/mcp-nhost.toml`, resolved from the directory the client starts the server in, which is the project root. Do not swap that for a `cwd` key: clients drop it silently.
+
+Until that config file exists, the server runs on its built-in default, which grants the local admin secret, unrestricted queries and mutations, and metadata management. That bypasses row-level permissions, so it is not read-only inspection. Run `nhost mcp config` from `backend/` to scope it, and point it at a local project only.

@@ -4,22 +4,26 @@ import { handleNhostProxy } from '@/lib/nhost/server';
 const protectedRoutes = ['/protected'];
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {
-  const response = NextResponse.next();
   const path = request.nextUrl.pathname;
 
-  const session = await handleNhostProxy(request, response);
+  const { session, applySessionCookies } = await handleNhostProxy(request);
 
   const isProtectedRoute = protectedRoutes.some(
     (route) => path === route || path.startsWith(`${route}/`),
   );
 
   if (isProtectedRoute && !session) {
-    return NextResponse.redirect(new URL('/signin', request.url));
+    return applySessionCookies(
+      NextResponse.redirect(new URL('/signin', request.url)),
+    );
   }
 
-  return response;
+  // `{ request }` forwards the cookies `handleNhostProxy` refreshed, so Server
+  // Components on this request render with the new session instead of the one
+  // the browser sent.
+  return applySessionCookies(NextResponse.next({ request }));
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.svg).*)'],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|icon.svg).*)'],
 };

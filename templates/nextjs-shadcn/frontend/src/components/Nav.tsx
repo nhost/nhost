@@ -11,7 +11,7 @@ export default async function Nav() {
     <nav className="border-b">
       <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-3">
         <Link href="/" className="font-semibold">
-          Nhost + Next.js
+          Nhost + Next.js + shadcn/ui
         </Link>
 
         <div className="flex items-center gap-2">

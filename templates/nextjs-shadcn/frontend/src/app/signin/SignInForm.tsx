@@ -6,8 +6,11 @@ import { sendOTP, verifyOTP } from '@/app/signin/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { localMailboxURL } from '@/lib/nhost/env';
 
 type Step = 'email' | 'otp';
+
+const mailbox = localMailboxURL();
 
 export default function SignInForm() {
   const router = useRouter();
@@ -95,6 +98,21 @@ export default function SignInForm() {
         />
         <p className="text-muted-foreground text-sm">
           We sent a code to {email}.
+          {mailbox ? (
+            <>
+              {' '}
+              Running locally, so it never leaves your machine:{' '}
+              <a
+                href={mailbox}
+                target="_blank"
+                rel="noreferrer"
+                className="underline underline-offset-4"
+              >
+                open the local mailbox
+              </a>
+              .
+            </>
+          ) : null}
         </p>
       </div>
 

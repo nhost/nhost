@@ -3,7 +3,9 @@
     "nhost": {
       "command": "nhost",
       "args": ["mcp", "start"],
-      "cwd": "./backend"
+      "env": {
+        "NHOST_MCP_CONFIG_FILE": "backend/.nhost/mcp-nhost.toml"
+      }
     }
   }
 }

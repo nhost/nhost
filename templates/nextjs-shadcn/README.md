@@ -16,11 +16,10 @@ A full-stack, agent-ready starter created with `nhost create`:
 
 ```sh
 cd backend
-export NHOST_PROJECT_NAME=my-app
 nhost up
 ```
 
-Use a stable `NHOST_PROJECT_NAME` for this project. It namespaces the local containers and database volume so they do not collide with another project also stored in a `backend/` directory. Keep it set for `nhost up`, `nhost down`, and `nhost logs`.
+`nhost create` recorded this project's Docker Compose project name in `backend/nhost/project-name`. It namespaces the local containers and database volume so they do not collide with another project also stored in a `backend/` directory. Set `NHOST_PROJECT_NAME`, or pass `--project-name`, when you want to override it.
 
 The local stack includes the database, authentication, GraphQL API, storage, and functions runtime. Local sign-in emails are captured by the mail viewer instead of being sent.
 
@@ -40,19 +39,27 @@ Open <http://localhost:3000>. The home page reports GraphQL connectivity and lin
 The default environment points to the local backend:
 
 ```dotenv
-NHOST_SUBDOMAIN=local
-NHOST_REGION=local
 NEXT_PUBLIC_NHOST_SUBDOMAIN=local
 NEXT_PUBLIC_NHOST_REGION=local
 ```
 
-Use your project's subdomain and region when deploying to Nhost Cloud.
+Use your project's subdomain and region when deploying to Nhost Cloud. This one pair is the only backend configuration: the browser client and server components both read it through `frontend/src/lib/nhost/env.ts`, so they cannot end up pointing at different backends.
+
+Next.js inlines `NEXT_PUBLIC_*` values into the bundle at **build** time, not at runtime. Set both variables before `next build` — in your host's build environment, or as build arguments if you build a container image. Setting them on the running host has no effect, and a build that leaves them unset permanently targets the local stack. Such a build logs an error to that effect on startup.
+
+## Nhost dev tools
+
+While running `pnpm dev` a small Nhost tab sits flush against the edge of the screen. It only renders in development and never ships in a production build.
+
+Click it and the tab grows along the edge to reveal icon buttons for the local Dashboard, Hasura, Mailhog, and Preferences; hover an icon for its label. Drag the tab to dock it to any edge, and open Preferences to change its position, switch the toolbar between dark and light, or hide it for the current session.
+
+The toolbar lives in `frontend/src/components/dev-toolbar/`. To remove it from the project, delete that directory and its import in `frontend/src/app/layout.tsx`.
 
 ## Agent-ready development loop
 
 The primary workflow is local files plus the Nhost CLI:
 
-1. Start the backend with `NHOST_PROJECT_NAME` set: `(cd backend && nhost up)`.
+1. Start the backend: `(cd backend && nhost up)`.
 2. After any schema or GraphQL metadata change, run `(cd frontend && pnpm codegen)`.
 3. Prompt your LLM to build the feature. It should read `frontend/schema.graphql`, `AGENTS.md` or `CLAUDE.md`, and the matching workflow in `SKILLS.md` (or `.claude/skills/<name>/SKILL.md`) first.
 4. Review the implementation and run the relevant frontend checks.
@@ -128,4 +135,8 @@ If you want to keep the refresh token out of JavaScript, fetch and mutate only f
 
 ## Optional MCP integration
 
-The optional `.mcp.json` registers the Nhost MCP server for assistants that support live inspection. It is not required: the committed schema, generated types, skills, and every step in the primary development loop work without MCP.
+The optional `.mcp.json` registers the Nhost MCP server for assistants that support it. It is not required: the committed schema, generated types, skills, and every step in the primary development loop work without MCP.
+
+The entry sets `NHOST_MCP_CONFIG_FILE` to `backend/.nhost/mcp-nhost.toml`, resolved from the directory the client starts the server in, which is the project root. Do not rely on a `cwd` key instead: it is not part of the stdio server shape clients accept, so it is dropped silently.
+
+Until that config file exists, the server runs on its built-in default, which grants the local admin secret, unrestricted queries and mutations, and metadata management. The admin secret bypasses row-level permissions, so the assistant can read and write every row of the local database and change metadata. Run `nhost mcp config` from `backend/` to write a scoped `mcp-nhost.toml`, and point this server at a local project only.

@@ -2,10 +2,11 @@ import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import '@/app/globals.css';
 import { Providers } from '@/app/providers';
+import { NhostDevToolbar } from '@/components/dev-toolbar/NhostDevToolbar';
 import Nav from '@/components/Nav';
 
 export const metadata: Metadata = {
-  title: 'Nhost + Next.js',
+  title: 'Nhost + Next.js + shadcn/ui',
   description: 'A full-stack starter powered by Nhost, Next.js and shadcn/ui',
 };
 
@@ -17,6 +18,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <Nav />
           <main className="mx-auto max-w-4xl px-6 py-10">{children}</main>
         </Providers>
+        {process.env.NODE_ENV === 'development' && <NhostDevToolbar />}
       </body>
     </html>
   );

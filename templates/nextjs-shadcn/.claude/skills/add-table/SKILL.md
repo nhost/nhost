@@ -96,10 +96,9 @@ Add this entry to `backend/nhost/metadata/databases/default/tables/tables.yaml` 
 
 ## 4. Apply and refresh the typed frontend
 
-Set a stable project name once per shell, then start or re-run the local backend so it applies the migration and metadata:
+Start or re-run the local backend so it applies the migration and metadata:
 
 ```sh
-export NHOST_PROJECT_NAME=my-app
 (cd backend && nhost up)
 ```
 
