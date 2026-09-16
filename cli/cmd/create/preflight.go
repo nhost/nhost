@@ -7,12 +7,14 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 	"time"
 )
 
 const (
-	// dockerProbeTimeout bounds the two `docker` calls the preflight makes. A
-	// daemon that is starting up can take a few seconds to answer.
+	// dockerProbeTimeout bounds each `docker` call the preflight makes, and
+	// the context sweep as a whole. A daemon that is starting up can take a
+	// few seconds to answer.
 	dockerProbeTimeout = 10 * time.Second
 	// portProbeTimeout is how long a connection to a local port is given
 	// before it counts as nothing listening.
@@ -25,12 +27,17 @@ const (
 	frontendDevPort = 3000
 
 	configserverImageEnv = "NHOST_CONFIGSERVER_IMAGE"
+
+	// dockerDefaultContext is docker's built-in context, which points at
+	// whoever holds /var/run/docker.sock rather than at a named runtime.
+	dockerDefaultContext = "default"
 )
 
 //nolint:gochecknoglobals // Test seams for the docker probes.
 var (
-	dockerIsRunning = probeDocker
-	dockerHasImage  = probeImage
+	dockerIsRunning   = probeDocker
+	dockerHasImage    = probeImage
+	dockerLiveContext = probeLiveContext
 )
 
 // blocker is one reason `nhost create` will not start the servers, paired with
@@ -66,18 +73,32 @@ func dockerBlockers(ctx context.Context) []blocker {
 	if _, err := exec.LookPath("docker"); err != nil {
 		return []blocker{{
 			problem: "Docker is not installed, and the backend runs in containers.",
-			fix:     "Install Docker Desktop from https://docs.docker.com/get-docker/ and try again.",
+			fix: "Install Docker Desktop from https://docs.docker.com/get-docker/, " +
+				"or another runtime such as OrbStack, and try again.",
 		}}
 	}
 
-	if !dockerIsRunning(ctx) {
+	if dockerIsRunning(ctx) {
+		return nil
+	}
+
+	// A machine with two runtimes installed looks exactly like a dead daemon
+	// when the selected context points at the one that is off, which is what
+	// happens after moving from Docker Desktop to OrbStack.
+	if live := dockerLiveContext(ctx); live != "" {
 		return []blocker{{
-			problem: "Docker is installed but its daemon is not answering.",
-			fix:     "Start Docker Desktop (or your docker daemon) and try again.",
+			problem: fmt.Sprintf(
+				"Docker's selected context is not answering, but its %q context is.",
+				live,
+			),
+			fix: fmt.Sprintf("Switch to it with `docker context use %s` and try again.", live),
 		}}
 	}
 
-	return nil
+	return []blocker{{
+		problem: "Docker is installed but its daemon is not answering.",
+		fix:     "Start Docker Desktop, OrbStack, or your docker daemon and try again.",
+	}}
 }
 
 // configserverImageBlockers catches the failure a development build of the CLI
@@ -193,4 +214,47 @@ func probeImage(ctx context.Context, image string) bool {
 	defer cancel()
 
 	return exec.CommandContext(ctx, "docker", "image", "inspect", image).Run() == nil
+}
+
+// probeLiveContext names a configured docker context whose daemon answers.
+// Only reached once the selected one did not, so whatever it finds is a
+// runtime that is running and simply not the one docker is pointed at.
+func probeLiveContext(ctx context.Context) string {
+	ctx, cancel := context.WithTimeout(ctx, dockerProbeTimeout)
+	defer cancel()
+
+	out, err := exec.CommandContext(
+		ctx, "docker", "context", "ls", "--format", "{{.Name}}",
+	).Output()
+	if err != nil {
+		return ""
+	}
+
+	names := strings.Fields(string(out))
+	live := make([]string, 0, len(names))
+
+	for _, name := range names {
+		if exec.CommandContext(ctx, "docker", "--context", name, "info").Run() == nil {
+			live = append(live, name)
+		}
+	}
+
+	return pickLiveContext(live)
+}
+
+// pickLiveContext prefers a named context over "default", which is only ever
+// whoever owns /var/run/docker.sock. OrbStack symlinks that to its own socket,
+// so both answer and only the name tells you which runtime is running.
+func pickLiveContext(live []string) string {
+	for _, name := range live {
+		if name != dockerDefaultContext {
+			return name
+		}
+	}
+
+	if len(live) > 0 {
+		return live[0]
+	}
+
+	return ""
 }

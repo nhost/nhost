@@ -7,16 +7,23 @@ import (
 	"testing"
 )
 
-// stubDockerProbes restores the docker seams after a test mutates them.
+// stubDockerProbes restores the docker seams after a test mutates them, and
+// puts a context probe in place that finds nothing, so a test that does not
+// care about contexts gets the plain dead-daemon blocker.
 func stubDockerProbes(t *testing.T) {
 	t.Helper()
 
-	origRunning, origImage := dockerIsRunning, dockerHasImage
+	origRunning, origImage, origContext := dockerIsRunning, dockerHasImage, dockerLiveContext
 
 	t.Cleanup(func() {
 		dockerIsRunning = origRunning
 		dockerHasImage = origImage
+		dockerLiveContext = origContext
 	})
+
+	dockerLiveContext = func(_ context.Context) string {
+		return ""
+	}
 }
 
 func TestEnvPort(t *testing.T) {
@@ -195,5 +202,92 @@ func TestStartBlockersStopsAtDocker(t *testing.T) {
 
 	if !strings.Contains(blockers[0].problem, "not answering") {
 		t.Errorf("blocker = %q, want the daemon", blockers[0].problem)
+	}
+}
+
+// OrbStack symlinks /var/run/docker.sock to its own socket, so "default"
+// answers alongside "orbstack" and listing order alone would name the one that
+// says nothing about which runtime is up.
+func TestPickLiveContext(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		live []string
+		want string
+	}{
+		{name: "nothing answered", live: nil, want: ""},
+		{name: "only default", live: []string{"default"}, want: "default"},
+		{
+			name: "default first, named second",
+			live: []string{"default", "orbstack"},
+			want: "orbstack",
+		},
+		{name: "named only", live: []string{"colima"}, want: "colima"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := pickLiveContext(tt.live); got != tt.want {
+				t.Errorf("pickLiveContext(%v) = %q, want %q", tt.live, got, tt.want)
+			}
+		})
+	}
+}
+
+// Moving from Docker Desktop to OrbStack leaves the old context selected, so
+// the daemon looks dead while a perfectly good one answers next door. Saying
+// "start Docker" there sends you after the wrong thing.
+//
+//nolint:paralleltest // mutates package-level docker seams
+func TestDockerBlockersNamesALiveContext(t *testing.T) {
+	stubDockerProbes(t)
+
+	dockerIsRunning = func(_ context.Context) bool {
+		return false
+	}
+
+	dockerLiveContext = func(_ context.Context) string {
+		return "orbstack"
+	}
+
+	blockers := dockerBlockers(context.Background())
+
+	if len(blockers) != 1 {
+		t.Fatalf("blockers = %#v, want one", blockers)
+	}
+
+	if !strings.Contains(blockers[0].problem, "orbstack") {
+		t.Errorf("blocker does not name the live context: %q", blockers[0].problem)
+	}
+
+	if !strings.Contains(blockers[0].fix, "docker context use orbstack") {
+		t.Errorf("blocker does not say how to switch: %q", blockers[0].fix)
+	}
+}
+
+// With nothing answering anywhere, the fix has to cover the runtimes someone
+// might actually have rather than naming only Docker Desktop.
+//
+//nolint:paralleltest // mutates package-level docker seams
+func TestDockerBlockersWithNoLiveContext(t *testing.T) {
+	stubDockerProbes(t)
+
+	dockerIsRunning = func(_ context.Context) bool {
+		return false
+	}
+
+	blockers := dockerBlockers(context.Background())
+
+	if len(blockers) != 1 {
+		t.Fatalf("blockers = %#v, want one", blockers)
+	}
+
+	for _, want := range []string{"Docker Desktop", "OrbStack"} {
+		if !strings.Contains(blockers[0].fix, want) {
+			t.Errorf("fix does not mention %s: %q", want, blockers[0].fix)
+		}
 	}
 }

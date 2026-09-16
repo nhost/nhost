@@ -183,7 +183,7 @@ func confirmStart(ce *clienv.CliEnv, resolved choices, ask bool) (bool, error) {
 		return resolved.startNow, nil
 	}
 
-	return runConfirm(ce, "Start the backend and the frontend now?", true)
+	return runConfirm(ce, "Start backend and frontend?", true)
 }
 
 // installFrontendDependencies reports whether the frontend ended up with its
