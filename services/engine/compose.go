@@ -37,15 +37,13 @@ const (
 	flagCORSAllowedOrigins    = "cors-allowed-origins"
 	flagAuthCompatHosts       = "auth-compat-hosts"
 	flagMountPrefixHosts      = "mount-prefix-hosts"
-	// flagDisablePrefix builds the per-service opt-out flags via disableFlagName.
-	flagDisablePrefix = "disable-"
 )
 
 // disableFlagName is the engine flag that opts a service out of composition,
 // e.g. service "auth" => "disable-auth". It is the CLI counterpart of
 // prefixedEnv("disable", service).
 func disableFlagName(service string) string {
-	return flagDisablePrefix + service
+	return "disable-" + service
 }
 
 const (
