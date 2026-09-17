@@ -10,18 +10,18 @@ import { cn } from '@/lib/utils';
 
 export type StepState = 'ok' | 'pending' | 'error';
 
-const dot: Record<StepState, string> = {
+// Flat colour, with light coming off the live ones rather than modelled on
+// them. The unlit state gets no glow, which is the whole difference.
+const fill: Record<StepState, string> = {
   ok: 'bg-emerald-500',
   pending: 'bg-muted-foreground/40',
   error: 'bg-destructive',
 };
 
-// Only the live states pulse. A halo on every tile would be noise, and the
-// point of the pulse is that something is currently true, not merely filled in.
-const halo: Record<StepState, string> = {
-  ok: 'bg-emerald-500/70',
-  pending: '',
-  error: 'bg-destructive/70',
+const glow: Record<StepState, string | null> = {
+  ok: '16 185 129',
+  pending: null,
+  error: '239 68 68',
 };
 
 const label: Record<StepState, string> = {
@@ -31,25 +31,25 @@ const label: Record<StepState, string> = {
 };
 
 export function StatusDot({ state }: { state: StepState }) {
+  const halo = glow[state];
+
   return (
     <span
       role="img"
       aria-label={label[state]}
-      className="relative flex size-2.5 shrink-0"
+      className="relative flex size-2.5 shrink-0 items-center justify-center"
     >
-      {halo[state] ? (
+      {halo ? (
         <span
-          className={cn(
-            'absolute inline-flex size-full animate-ping rounded-full opacity-75',
-            halo[state],
-          )}
+          aria-hidden
+          className="absolute inset-0 rounded-full"
+          style={{ boxShadow: `0 0 4px 1px rgb(${halo} / 0.45)` }}
         />
       ) : null}
+
       <span
-        className={cn(
-          'relative inline-flex size-2.5 rounded-full ring-2 ring-background',
-          dot[state],
-        )}
+        aria-hidden
+        className={cn('relative size-2.5 rounded-full', fill[state])}
       />
     </span>
   );

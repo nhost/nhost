@@ -1,6 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import { type FormEvent, useId, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -47,6 +48,7 @@ const todosTable = localTableURL('todos');
 
 export function Todos() {
   const titleId = useId();
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [title, setTitle] = useState('');
 
@@ -61,6 +63,9 @@ export function Todos() {
     onSuccess: async () => {
       setTitle('');
       await queryClient.invalidateQueries({ queryKey: todosQueryKey });
+      // The status tiles above render on the server, so the first todo only
+      // lights the data one once those components run again.
+      router.refresh();
     },
   });
 
