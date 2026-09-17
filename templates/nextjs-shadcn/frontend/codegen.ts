@@ -8,6 +8,12 @@ const config: CodegenConfig = {
       preset: 'client',
       config: {
         useTypeImports: true,
+        scalars: {
+          citext: 'string',
+          jsonb: 'unknown',
+          timestamptz: 'string',
+          uuid: 'string',
+        },
       },
     },
   },

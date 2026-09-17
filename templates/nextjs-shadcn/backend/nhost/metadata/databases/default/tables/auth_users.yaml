@@ -11,11 +11,14 @@ configuration:
       custom_name: displayName
     email_verified:
       custom_name: emailVerified
+    new_email:
+      custom_name: newEmail
   custom_column_names:
     avatar_url: avatarUrl
     created_at: createdAt
     display_name: displayName
     email_verified: emailVerified
+    new_email: newEmail
   custom_name: users
   custom_root_fields:
     delete: deleteUsers
@@ -38,6 +41,7 @@ select_permissions:
         - email_verified
         - id
         - metadata
+        - new_email
       filter:
         id:
           _eq: X-Hasura-User-Id
