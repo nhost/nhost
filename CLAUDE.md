@@ -19,6 +19,7 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 ### CLI (`cli/`)
 
 - Go-based CLI for local development (`nhost dev`), project management, deployments, secrets, and MCP server
+- The CLI reference at `docs/src/content/docs/reference/cli/commands.mdx` is generated from the command tree. After changing a command or flag name, usage, or default text, regenerate it with `go run ./cli gen-docs > docs/src/content/docs/reference/cli/commands.mdx`; no CI job catches the drift
 
 ### Shared Libraries (`internal/lib/`)
 
