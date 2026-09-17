@@ -23,9 +23,19 @@ func TestWriteProjectName(t *testing.T) {
 	}{
 		{name: "plain name", project: "my-app", want: "my-app\n", wantErr: false},
 		{name: "name is lowercased", project: "My-App", want: "my-app\n", wantErr: false},
-		{name: "dots are dropped", project: "my.app", want: "myapp\n", wantErr: false},
+		// A dot becomes a dash so that my.app and myapp stay two projects.
+		{name: "dots become dashes", project: "my.app", want: "my-app\n", wantErr: false},
+		{name: "a dotless name is untouched", project: "myapp", want: "myapp\n", wantErr: false},
 		{name: "unusable name", project: "...", want: "", wantErr: true},
 		{name: "empty name", project: "", want: "", wantErr: true},
+		// Compose refuses a project name that does not start with a letter or
+		// digit, so the leading punctuation goes rather than reaching docker.
+		{name: "leading dash is trimmed", project: "-app", want: "app\n", wantErr: false},
+		{name: "leading underscore is trimmed", project: "_app", want: "app\n", wantErr: false},
+		{name: "leading dot is trimmed", project: ".app", want: "app\n", wantErr: false},
+		{name: "punctuation only is unusable", project: "--__", want: "", wantErr: true},
+		{name: "unicode only is unusable", project: "\u65e5\u672c\u8a9e", want: "", wantErr: true},
+		{name: "a leading digit is fine", project: "9lives", want: "9lives\n", wantErr: false},
 	}
 
 	for _, tt := range tests {
@@ -66,8 +76,13 @@ func TestProjectNameResolution(t *testing.T) {
 		name         string
 		fileContents string
 		env          string
+		folderEnv    string
 		args         []string
-		want         string
+		// fromParent runs the command from the directory holding the backend
+		// rather than from the backend itself, which is the only way the
+		// project-structure flags point anywhere but the working directory.
+		fromParent bool
+		want       string
 	}{
 		{
 			name:         "falls back to the working directory name",
@@ -104,6 +119,48 @@ func TestProjectNameResolution(t *testing.T) {
 			args:         []string{"--project-name", "from-flag"},
 			want:         "from-flag",
 		},
+		// The recorded name has to be read from the folder the flags name. It
+		// used to be read from ./nhost/project-name whatever they said, so
+		// running against a backend/ from its parent silently started a second
+		// set of containers and a second Postgres volume.
+		{
+			name:         "--nhost-folder is where the recorded name is read from",
+			fileContents: "my-app\n",
+			env:          "",
+			args: []string{
+				"--root-folder", "backend",
+				"--nhost-folder", filepath.Join("backend", "nhost"),
+			},
+			fromParent: true,
+			want:       "my-app",
+		},
+		{
+			name:         "NHOST_NHOST_FOLDER is where the recorded name is read from",
+			fileContents: "my-app\n",
+			env:          "",
+			folderEnv:    filepath.Join("backend", "nhost"),
+			fromParent:   true,
+			want:         "my-app",
+		},
+		{
+			name:         "--project-name still wins when the folder flags point at a recorded name",
+			fileContents: "my-app\n",
+			env:          "",
+			args: []string{
+				"--nhost-folder", filepath.Join("backend", "nhost"),
+				"--project-name", "from-flag",
+			},
+			fromParent: true,
+			want:       "from-flag",
+		},
+		{
+			name:         "NHOST_PROJECT_NAME still wins when the folder flags point at a recorded name",
+			fileContents: "my-app\n",
+			env:          "from-env",
+			args:         []string{"--nhost-folder", filepath.Join("backend", "nhost")},
+			fromParent:   true,
+			want:         "from-env",
+		},
 	}
 
 	for _, tt := range tests {
@@ -127,7 +184,15 @@ func TestProjectNameResolution(t *testing.T) {
 				t.Setenv("NHOST_PROJECT_NAME", tt.env)
 			}
 
-			t.Chdir(root)
+			if tt.folderEnv != "" {
+				t.Setenv("NHOST_NHOST_FOLDER", tt.folderEnv)
+			}
+
+			if tt.fromParent {
+				t.Chdir(filepath.Dir(root))
+			} else {
+				t.Chdir(root)
+			}
 
 			if got := resolveProjectName(t, tt.args); got != tt.want {
 				t.Fatalf("ProjectName() = %q, want %q", got, tt.want)
