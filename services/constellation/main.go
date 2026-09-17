@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 
+	serveutil "github.com/nhost/nhost/internal/lib/serve"
 	"github.com/nhost/nhost/services/constellation/cmd"
 	metadatacmd "github.com/nhost/nhost/services/constellation/cmd/metadata"
 	docs "github.com/urfave/cli-docs/v3"
@@ -61,6 +62,10 @@ func markdownDocs() *cli.Command {
 }
 
 func main() {
+	// SIGINT or SIGTERM cancels this context, which reaches serveutil.Run
+	// through the command action and triggers a graceful shutdown.
+	ctx := serveutil.SignalContext(context.Background())
+
 	app := &cli.Command{ //nolint:exhaustruct
 		Name:    "constellation",
 		Version: Version,
@@ -72,7 +77,7 @@ func main() {
 		},
 	}
 
-	if err := app.Run(context.Background(), os.Args); err != nil {
+	if err := app.Run(ctx, os.Args); err != nil {
 		log.Fatal(err)
 	}
 }
