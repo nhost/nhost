@@ -55,8 +55,25 @@ func TestProjectNameFileSourceLookup(t *testing.T) {
 			name:      "name is lowercased and sanitized",
 			contents:  "My.App\n",
 			writeFile: true,
-			want:      "myapp",
+			want:      "my-app",
 			wantFound: true,
+		},
+		// The file is committed, so it is hand-editable. A body compose would
+		// refuse has to fall through to the directory name rather than reach
+		// `docker compose -p` and fail there.
+		{
+			name:      "a leading dash is trimmed rather than passed to compose",
+			contents:  "-app\n",
+			writeFile: true,
+			want:      "app",
+			wantFound: true,
+		},
+		{
+			name:      "a body compose could never accept is not a source",
+			contents:  "--__\n",
+			writeFile: true,
+			want:      "",
+			wantFound: false,
 		},
 		{
 			name:      "only the first line is used",
