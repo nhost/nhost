@@ -97,7 +97,7 @@ Use those files and the `add-table` skill as the copy-me pattern for new user-ow
 
 An item is something you want to do, optionally somewhere in particular: *I want to go skateboarding*, or *I want to go skateboarding in Los Angeles, California*. The form is that sentence, and the location half is always there to fill in or leave empty.
 
-That is three columns rather than a category: `location` (nullable), `preposition`, and the `title` that was already there. An empty location box stores `NULL`, so there is one way to say "no particular place". The preposition is the user's pick from `in / at / from / on / with`, because no single word fits every case: you skate *in* a city, stay *at* a hotel, watch the lights *from* a hillside.
+That is three columns rather than a category: `location` (nullable), `preposition`, and the `title` that was already there. An empty location box stores `NULL`, so there is one way to say "no particular place". The preposition is the user's pick from `in / at / from` (`PREPOSITIONS` in `frontend/src/lib/want.ts`), because no single word fits every case: you skate *in* a city, stay *at* a hotel, watch the lights *from* a hillside.
 
 There is no check constraint on the preposition. It is a display word the app never branches on, and the list is the kind that grows, so it is narrowed in the UI where widening it costs nothing instead of in the database where it would cost a migration.
 
@@ -114,6 +114,9 @@ This is the part of the starter that shows a role other than `user`, and it is w
 
 - **The `public` role is the unauthenticated one.** Hasura answers a request carrying no token as `public`. Every other permission in this project filters by `X-Hasura-User-Id`; these are the ones that do not.
 - **Permissions filter through relationships.** `public_todos.yaml` requires `is_public` on the row *and*, through the `user` relationship, that the owner published their profile. `storage_files.yaml` repeats that condition through `todos`, because a relationship filter matches raw rows rather than applying the related table's own permission.
+- **`user` is not a weaker `public`.** Anyone can sign up, so every branch of the `user` rule that is not about the caller's own rows carries the same owner condition. A rule like a bare `todos: { is_public: true }` reads as "shared items only" but actually hands every signed-in account every attachment in the project, including those of owners who never published.
+- **Avatars follow the profile.** The avatar's file id *is* the user's id, so `storage_files.yaml` reaches the owner through the `avatarOwner` relationship and applies the same published-and-not-deleted test. Left unconditional, an avatar would stay readable after its owner unpublished, at a URL derivable from any user id that was ever public.
+- **Pointing at a file is a write, not just a read.** `todos.file_id` decides which file the rule above exposes, so the insert *and* update checks in `public_todos.yaml` require the file to be one you uploaded. Without that, anyone could attach someone else's private file to their own shared item and publish it.
 - **The page queries anonymously on purpose.** `/u/[id]` uses `createAnonymousClient()` from `frontend/src/lib/nhost/server.ts`, not the session client. Reading public data through the visitor's own session would have Hasura answer as `user`, whose row-level filter hides everyone else's rows, so the page would render empty for signed-in visitors and only for them.
 - **A missing page and a private one are the same 404.** Neither the page nor the permission distinguishes them, so the URL cannot be used to discover whether an account exists.
 - **Soft-deleted accounts drop out.** The `public` rule on `auth_users.yaml` also requires no `deletedAt`, so deleting an account takes its page down immediately even while published.
@@ -157,7 +160,13 @@ The template marks and restores accounts but never purges them. If you keep this
 
 Password resets and email changes send a real email, and locally the mail viewer catches it. The link goes to the auth service, which verifies the ticket and redirects back with a refresh token in the query string. `frontend/src/proxy.ts` redeems that token into the session cookie and redirects to the same page without it, so the page behind the link opens signed in and the token never lingers in history or the referer header.
 
-That is worth knowing before you add a page an auth email points at: the session is already there, so the page only has to do its job.
+Redemption is deliberately narrow: only a known ticket `type`, and only on the paths this app's own emails target — `/profile` and `/reset-password`, listed as `LINK_REDEMPTION_PATHS` in `frontend/src/lib/nhost/server.ts`. A proxy that redeemed any `?refreshToken=` on any page would let a crafted link sign a visitor into the attacker's account, and everything they wrote next would land there.
+
+So before you add a page an auth email points at: aim the email at one of those paths, or add the new path to that list. The session is then already there and the page only has to do its job.
+
+The reset flow leans on the same mechanism. Setting a password on an account that already has one normally requires the current password, which the server checks by reading `hasPassword` itself rather than trusting the form. Arriving through a reset link is the alternative proof, and the proxy records it as a short-lived `httpOnly` grant cookie when it redeems a `type=passwordReset` link.
+
+Where the app is deployed is configuration, not something read off the request: `redirectTo` is built from `NEXT_PUBLIC_APP_ORIGIN` (see `appOrigin` in `frontend/src/lib/nhost/env.ts`, and `frontend/.env.example`). A `Host` header is set by whoever sent the request, so deriving the origin from it would let anyone point somebody else's reset link at a host they control. Set it before `next build`, and keep the same origin in the backend's `auth.redirections.allowedUrls`.
 
 ## Where things live
 
@@ -166,7 +175,7 @@ backend/
   nhost/migrations/  database migrations
   nhost/metadata/    tracked tables, relationships, and permissions
   functions/         file-routed serverless functions (avatar.ts is the shipped example)
-  nhost.toml         backend configuration
+  nhost/nhost.toml   backend configuration
 frontend/
   schema.graphql     committed codegen input and LLM backend context
   src/gql/           committed generated GraphQL types and documents
@@ -186,6 +195,7 @@ Run these from `frontend/`:
 - `pnpm codegen` — dump the current user-role schema and regenerate types.
 - `pnpm codegen:types` — regenerate types from the committed schema without a backend.
 - `pnpm lint` / `pnpm format` — check or format with Biome.
+- `pnpm test` — run the Vitest suites covering the proxy, session cookies, and storage helpers.
 - `pnpm build` — create a production build.
 
 ## Session cookie security
