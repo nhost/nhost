@@ -146,7 +146,7 @@ One thing deliberately left out: auto-fetching a map image for a place. It needs
 
 Sign in and open `/profile` to see the rest of the stack in one place:
 
-- **Avatar** — click it, or drop an image on it, and the photo goes to the `avatar` serverless function, which resizes it to 512×512 and stores it in the `avatars` storage bucket. Reads are public, writes go only through the function.
+- **Avatar** — click it, or drop an image on it, and the photo goes to the `avatar` serverless function, which resizes it to 512×512 and stores it in the `avatars` storage bucket. Writes go only through the function. Reads follow the profile: strangers can load it once you publish, and your own view of it is fetched through a presigned URL so it works whether you have published or not.
 - **Display name** — a GraphQL mutation on your own `auth.users` row, allowed by row-level permissions.
 - **Email** — a change takes effect only after you confirm it from the new address; the pending state shows on the card.
 - **Password** — three flows, driven by whether one is set. Set a password if you only ever used codes, change it with the current one, or mail yourself a reset link.
@@ -160,11 +160,15 @@ The template marks and restores accounts but never purges them. If you keep this
 
 Password resets and email changes send a real email, and locally the mail viewer catches it. The link goes to the auth service, which verifies the ticket and redirects back with a refresh token in the query string. `frontend/src/proxy.ts` redeems that token into the session cookie and redirects to the same page without it, so the page behind the link opens signed in and the token never lingers in history or the referer header.
 
-Redemption is deliberately narrow: only a known ticket `type`, and only on the paths this app's own emails target — `/profile` and `/reset-password`, listed as `LINK_REDEMPTION_PATHS` in `frontend/src/lib/nhost/server.ts`. A proxy that redeemed any `?refreshToken=` on any page would let a crafted link sign a visitor into the attacker's account, and everything they wrote next would land there.
+Redemption is deliberately narrow: only a ticket `type` the auth service actually emits, only on the paths this app's own emails target — `/profile` and `/reset-password`, listed as `LINK_REDEMPTION_PATHS` in `frontend/src/lib/nhost/server.ts` — and only when it would not replace a session already signed in as somebody else. All three matter. A proxy that redeemed any `?refreshToken=` on any page would let a crafted link sign a visitor into the attacker's account, and everything they wrote next would land there; narrowing the paths alone still leaves that open on the two paths that remain, which is why the last condition is there.
+
+The parameters are stripped whenever they appear, not only when they were redeemed. A token the proxy declined was never spent, so it is still a live credential — leaving it in the address bar would park it in history and bookmarks for the month until it expires.
 
 So before you add a page an auth email points at: aim the email at one of those paths, or add the new path to that list. The session is then already there and the page only has to do its job.
 
-The reset flow leans on the same mechanism. Setting a password on an account that already has one normally requires the current password, which the server checks by reading `hasPassword` itself rather than trusting the form. Arriving through a reset link is the alternative proof, and the proxy records it as a short-lived `httpOnly` grant cookie when it redeems a `type=passwordReset` link.
+The reset flow leans on the same mechanism. Setting a password on an account that already has one normally requires the current password, which the server checks by reading `hasPassword` itself rather than trusting the form. Arriving through a reset link is the alternative, and the proxy records it as a short-lived `httpOnly` grant cookie when it redeems a `type=passwordReset` link. The cookie names the account the link signed in and is only honoured for that account, so a grant obtained for one account cannot be spent on another; it is cleared on sign-out and on every sign-in, and `/reset-password` offers a fresh link rather than a form once it has expired.
+
+Be precise about what that grant proves: this browser redeemed a reset link **for this account**. It is not proof of mailbox control. The session cookie is readable by JS (see below), so anyone already holding a live refresh token can mint a grant for their own account without an email ever being sent. Closing that gap means moving to the auth service's PKCE flow, where the redeemed `code` is bound to the ticket itself.
 
 Where the app is deployed is configuration, not something read off the request: `redirectTo` is built from `NEXT_PUBLIC_APP_ORIGIN` (see `appOrigin` in `frontend/src/lib/nhost/env.ts`, and `frontend/.env.example`). A `Host` header is set by whoever sent the request, so deriving the origin from it would let anyone point somebody else's reset link at a host they control. Set it before `next build`, and keep the same origin in the backend's `auth.redirections.allowedUrls`.
 

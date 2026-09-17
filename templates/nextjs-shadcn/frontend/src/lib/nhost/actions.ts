@@ -1,7 +1,7 @@
 'use server';
 
 import { redirect } from 'next/navigation';
-import { createNhostClient } from '@/lib/nhost/server';
+import { clearPasswordResetGrant, createNhostClient } from '@/lib/nhost/server';
 
 export async function signOut(): Promise<void> {
   try {
@@ -17,6 +17,11 @@ export async function signOut(): Promise<void> {
     console.error('Error signing out:', err);
     throw err;
   }
+
+  // The grant outlives the session it was issued under unless it is taken
+  // away here: it is a 15 minute exemption from re-authentication, and on a
+  // shared machine the next person to sign in would inherit it.
+  await clearPasswordResetGrant();
 
   redirect('/');
 }

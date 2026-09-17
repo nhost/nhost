@@ -3,7 +3,7 @@
 import type { ErrorResponse, Session } from '@nhost/nhost-js/auth';
 import type { FetchError } from '@nhost/nhost-js/fetch';
 import { appOrigin } from '@/lib/nhost/env';
-import { createNhostClient } from '@/lib/nhost/server';
+import { clearPasswordResetGrant, createNhostClient } from '@/lib/nhost/server';
 
 type ActionResult = { error?: string; success?: boolean; deleted?: boolean };
 
@@ -73,6 +73,11 @@ export async function verifyOTP(
     const response = await nhost.auth.verifySignInOTPEmail({ email, otp });
 
     if (response.body?.session) {
+      // Whoever signed in now did not follow the reset link that granted the
+      // exemption, even when it is the same person: a new sign-in starts with
+      // no claim to skip re-authentication.
+      await clearPasswordResetGrant();
+
       return { success: true, deleted: markedDeleted(response.body.session) };
     }
 
@@ -96,6 +101,8 @@ export async function signInWithPassword(
     const response = await nhost.auth.signInEmailPassword({ email, password });
 
     if (response.body?.session) {
+      await clearPasswordResetGrant();
+
       return { success: true, deleted: markedDeleted(response.body.session) };
     }
 
