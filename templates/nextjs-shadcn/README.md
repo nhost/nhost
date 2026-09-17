@@ -49,6 +49,14 @@ Use your project's subdomain and region when deploying to Nhost Cloud. This one 
 
 Next.js inlines `NEXT_PUBLIC_*` values into the bundle at **build** time, not at runtime. Set both variables before `next build` — in your host's build environment, or as build arguments if you build a container image. Setting them on the running host has no effect, and a build that leaves them unset permanently targets the local stack. Such a build logs an error to that effect on startup.
 
+## Nhost dev tools
+
+While running `pnpm dev` a small Nhost tab sits flush against the edge of the screen. It only renders in development and never ships in a production build.
+
+Click it and the tab grows along the edge to reveal icon buttons for the local Dashboard, Hasura, Mailhog, and Preferences; hover an icon for its label. Drag the tab to dock it to any edge, and open Preferences to change its position, switch the toolbar between dark and light, or hide it for the current session.
+
+The toolbar lives in `frontend/src/components/dev-toolbar/`. To remove it from the project, delete that directory and its import in `frontend/src/app/layout.tsx`.
+
 ## Agent-ready development loop
 
 The primary workflow is local files plus the Nhost CLI:

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import '@/app/globals.css';
 import { Providers } from '@/app/providers';
+import { NhostDevToolbar } from '@/components/dev-toolbar/NhostDevToolbar';
 import Nav from '@/components/Nav';
 import { applyStoredTheme } from '@/lib/theme';
 
@@ -37,6 +38,7 @@ export default function RootLayout({
           <main className="mx-auto max-w-4xl px-6 py-10">{children}</main>
           {modal}
         </Providers>
+        {process.env.NODE_ENV === 'development' && <NhostDevToolbar />}
       </body>
     </html>
   );
