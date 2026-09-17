@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { RestoreAccountCard } from '@/app/restore/RestoreAccountCard';
+import { RestoredCard } from '@/app/restore/RestoredCard';
 import { graphql } from '@/gql';
 import { gqlRequest } from '@/lib/graphql';
 import { createNhostClient } from '@/lib/nhost/server';
@@ -33,8 +34,29 @@ export default async function Restore() {
 
   const deletedAt = (user?.metadata as { deletedAt?: string } | null)
     ?.deletedAt;
+
+  // Restored in the database, while this browser's session still carries the
+  // mark - restored on another device, most likely, since restoring does not
+  // revoke the other sessions. Redirecting to `/profile` here would loop: the
+  // proxy reads the mark from the session rather than the database and would
+  // send them straight back, for as long as the access token stays valid. The
+  // card refreshes the session from a server action instead, which is where a
+  // cookie write belongs.
   if (!deletedAt) {
-    redirect('/profile');
+    return (
+      <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-2">
+          <h1 className="font-bold text-3xl tracking-tight">
+            Your account is restored
+          </h1>
+          <p className="text-muted-foreground">
+            Nothing was deleted. This device just needs to catch up.
+          </p>
+        </div>
+
+        <RestoredCard />
+      </div>
+    );
   }
 
   const purgeDate = new Date(
