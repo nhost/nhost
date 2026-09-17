@@ -29,9 +29,20 @@ func TestWriteProjectName(t *testing.T) {
 		{name: "unusable name", project: "...", want: "", wantErr: true},
 		{name: "empty name", project: "", want: "", wantErr: true},
 		// Compose refuses a project name that does not start with a letter or
-		// digit, so the leading punctuation goes rather than reaching docker.
-		{name: "leading dash is trimmed", project: "-app", want: "app\n", wantErr: false},
-		{name: "leading underscore is trimmed", project: "_app", want: "app\n", wantErr: false},
+		// digit. Trimming the lead into shape would have merged `_myapp` into a
+		// neighbouring `myapp` and quietly handed it that project's volume, so
+		// such a name is refused here and the user is told instead.
+		{name: "leading dash is unusable", project: "-app", want: "", wantErr: true},
+		{name: "leading underscore is unusable", project: "_app", want: "", wantErr: true},
+		{name: "a leading dash never joins myapp", project: "-myapp", want: "", wantErr: true},
+		{
+			name:    "a leading underscore never joins myapp",
+			project: "_myapp",
+			want:    "",
+			wantErr: true,
+		},
+		// A leading dot goes before the dot-to-dash mapping, so it neither
+		// becomes a dash nor makes the name unusable.
 		{name: "leading dot is trimmed", project: ".app", want: "app\n", wantErr: false},
 		{name: "punctuation only is unusable", project: "--__", want: "", wantErr: true},
 		{name: "unicode only is unusable", project: "\u65e5\u672c\u8a9e", want: "", wantErr: true},
