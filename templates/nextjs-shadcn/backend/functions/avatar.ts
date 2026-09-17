@@ -75,6 +75,17 @@ async function storeAvatar(
   return uploaded.ok;
 }
 
+// A missing file is the end state being asked for, so a 404 is a success: it
+// means someone already removed it, or there was never one to remove.
+async function removeStoredAvatar(fileId: string): Promise<boolean> {
+  const response = await fetch(`${storageURL}/files/${fileId}`, {
+    method: 'DELETE',
+    headers: { 'x-hasura-admin-secret': adminSecret },
+  });
+
+  return response.ok || response.status === 404;
+}
+
 async function setAvatarURL(userId: string, url: string): Promise<boolean> {
   const response = await fetch(graphqlURL, {
     method: 'POST',
@@ -106,6 +117,25 @@ export default async (req: Request, res: Response): Promise<void> => {
   const userId = await authenticatedUserID(req);
   if (!userId) {
     res.status(401).json({ error: 'sign in to change your avatar' });
+    return;
+  }
+
+  // Removal is a flag on this endpoint rather than a DELETE because the SDK's
+  // functions client only speaks POST.
+  if ((req.body as { remove?: unknown } | null)?.remove === true) {
+    if (!(await removeStoredAvatar(userId))) {
+      res.status(502).json({ error: 'removing the avatar failed' });
+      return;
+    }
+
+    // Emptied rather than nulled: auth's own column is NOT NULL, and an empty
+    // string is what the UI reads as "draw the initial instead".
+    if (!(await setAvatarURL(userId, ''))) {
+      res.status(502).json({ error: 'clearing the avatar URL failed' });
+      return;
+    }
+
+    res.status(200).json({ avatarUrl: '' });
     return;
   }
 

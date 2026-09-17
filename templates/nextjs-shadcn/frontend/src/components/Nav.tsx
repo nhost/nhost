@@ -1,6 +1,8 @@
 import Link from 'next/link';
+import { NextMark, NhostMark, ShadcnMark } from '@/components/BrandMarks';
+import { SignInLink } from '@/components/SignInLink';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { UserMenu } from '@/components/UserMenu';
-import { Button } from '@/components/ui/button';
 import { graphql } from '@/gql';
 import { gqlRequest } from '@/lib/graphql';
 import { createNhostClient } from '@/lib/nhost/server';
@@ -14,6 +16,18 @@ const GetNavProfile = graphql(`
     }
   }
 `);
+
+// Separates the marks without being read out as a word.
+function Cross() {
+  return (
+    <span
+      aria-hidden="true"
+      className="font-normal text-xl text-muted-foreground"
+    >
+      ×
+    </span>
+  );
+}
 
 export default async function Nav() {
   const nhost = await createNhostClient();
@@ -48,11 +62,21 @@ export default async function Nav() {
   return (
     <nav className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
       <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-3">
-        <Link href="/" className="font-semibold">
-          Nhost + Next.js + shadcn/ui
+        <Link
+          href="/"
+          aria-label="Nhost, Next.js and shadcn/ui: back to home"
+          className="flex items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <NhostMark />
+          <Cross />
+          <NextMark />
+          <Cross />
+          <ShadcnMark />
         </Link>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
+          <ThemeToggle />
+
           {user ? (
             <UserMenu
               email={user.email ?? ''}
@@ -60,9 +84,7 @@ export default async function Nav() {
               avatarUrl={profile.avatarUrl}
             />
           ) : (
-            <Button asChild size="sm">
-              <Link href="/signin">Sign in</Link>
-            </Button>
+            <SignInLink />
           )}
         </div>
       </div>

@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useId, useState } from 'react';
 import { TodoItem } from '@/app/protected/TodoItem';
+import { StatusDot } from '@/components/StatusTile';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -110,6 +111,11 @@ export function Todos() {
   const writeError =
     createTodo.error ?? updateTodo.error ?? deleteTodo.error ?? null;
 
+  // Whether the typed round trip has actually carried anything yet. It is a
+  // fact about these rows, so it is reported on the card that holds them
+  // rather than in a tile above that repeats what is already on screen.
+  const hasData = Boolean(todos.data?.todos.length);
+
   const handleSubmit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
     const newTitle = title.trim();
@@ -123,11 +129,24 @@ export function Todos() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Your todos</CardTitle>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <StatusDot state={hasData ? 'ok' : 'pending'} />
+          {hasData ? 'Typed data' : 'No data yet'}
+        </CardTitle>
         <CardDescription>
+          {hasData ? (
+            <>
+              Reading <code>todos</code> through a generated type and your own
+              row-level permissions.
+            </>
+          ) : (
+            <>
+              A per-user <code>todos</code> table with a typed query and
+              mutation is already wired up. Add one below.
+            </>
+          )}{' '}
           This view is rendered on the server and redirects to{' '}
-          <code>/signin</code> without a session. The rows themselves are
-          protected again by per-user GraphQL permissions.
+          <code>/signin</code> without a session.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">

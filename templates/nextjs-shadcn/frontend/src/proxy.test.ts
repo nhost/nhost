@@ -75,24 +75,40 @@ const expectPassthrough = (response: NextResponse): void => {
   expect(response.headers.get('location')).toBeNull();
 };
 
-const expectSignInRedirect = (response: NextResponse): void => {
+const expectSignInRedirect = (
+  response: NextResponse,
+  destination: string,
+): void => {
   expect(response.status).toBe(307);
-  expect(new URL(response.headers.get('location') ?? '').pathname).toBe(
-    '/signin',
-  );
+
+  const location = new URL(response.headers.get('location') ?? '');
+
+  expect(location.pathname).toBe('/signin');
+  // Carrying the destination is what sends them on to the page they asked for
+  // once they are through sign-in, rather than to the default one.
+  expect(location.searchParams.get('next')).toBe(destination);
 };
 
 describe('proxy access control', () => {
   it('redirects an anonymous request to a protected route', async () => {
     stubNhostProxy(null);
 
-    expectSignInRedirect(await proxy(request('/protected')));
+    expectSignInRedirect(await proxy(request('/protected')), '/protected');
   });
 
   it('redirects an anonymous request to a protected sub-route', async () => {
     stubNhostProxy(null);
 
-    expectSignInRedirect(await proxy(request('/protected/settings')));
+    expectSignInRedirect(
+      await proxy(request('/protected/settings')),
+      '/protected/settings',
+    );
+  });
+
+  it('carries the destination for every protected route', async () => {
+    stubNhostProxy(null);
+
+    expectSignInRedirect(await proxy(request('/profile')), '/profile');
   });
 
   it('does not gate routes that only share a protected prefix', async () => {
@@ -191,7 +207,7 @@ describe('proxy session cookie propagation', () => {
 
     const response = await proxy(request('/protected'));
 
-    expectSignInRedirect(response);
+    expectSignInRedirect(response, '/protected');
     expect(response.headers.getSetCookie()).toContainEqual(
       expect.stringContaining('nhostSession=;'),
     );

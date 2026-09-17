@@ -58,9 +58,10 @@ export function StatusDot({ state }: { state: StepState }) {
 /**
  * One tile in the home page grid.
  *
- * Deliberately not numbered: these are three things that are either true or
- * not, checked live on every render, rather than an ordered tutorial. The
- * action sits at the bottom so tiles line up next to each other.
+ * Deliberately not numbered: these are things that are either true or not,
+ * checked live on every render, rather than an ordered tutorial. The action
+ * sits at the bottom so tiles line up next to each other whatever length their
+ * text runs to.
  */
 export function StatusTile({
   state,
@@ -74,7 +75,7 @@ export function StatusTile({
   children?: ReactNode;
 }) {
   return (
-    <Card className="gap-4 transition-shadow hover:shadow-md">
+    <Card className="gap-3 py-4 transition-shadow hover:shadow-md">
       <CardHeader className="gap-1.5">
         <CardTitle className="flex items-center gap-2 text-base">
           <StatusDot state={state} />

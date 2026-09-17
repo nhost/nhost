@@ -117,6 +117,23 @@ export async function uploadAvatar(formData: FormData): Promise<ActionResult> {
   }
 }
 
+export async function removeAvatar(): Promise<ActionResult> {
+  const nhost = await createNhostClient();
+  if (!nhost.getUserSession()) {
+    return { error: 'Sign in to change your avatar.' };
+  }
+
+  try {
+    await nhost.functions.post('/avatar', { remove: true });
+    return { success: true };
+  } catch (err) {
+    const error = err as FetchError<{ error?: string }>;
+    return {
+      error: `Could not remove the avatar: ${error.body?.error ?? error.message}`,
+    };
+  }
+}
+
 export async function changeEmail(newEmail: string): Promise<ActionResult> {
   if (!newEmail) {
     return { error: 'An email address is required.' };

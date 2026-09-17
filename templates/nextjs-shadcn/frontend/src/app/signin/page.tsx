@@ -1,3 +1,5 @@
+import { SIGN_IN_DESCRIPTION, SIGN_IN_TITLE } from '@/app/signin/copy';
+import { signInDestination } from '@/app/signin/destination';
 import SignInForm from '@/app/signin/SignInForm';
 import {
   Card,
@@ -9,19 +11,27 @@ import {
 
 export const dynamic = 'force-dynamic';
 
-export default function SignIn() {
+/**
+ * `/signin` on its own: a direct load, a refresh, a shared link, or the
+ * redirect a protected page issues. Arriving from inside the app gets the
+ * modal in `@modal/(.)signin` instead, off the same URL and the same form.
+ */
+export default async function SignIn({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string | string[] }>;
+}) {
+  const { next } = await searchParams;
+
   return (
     <div className="mx-auto max-w-md">
       <Card>
         <CardHeader>
-          <CardTitle>Sign in</CardTitle>
-          <CardDescription>
-            Enter your email and we will send you a one-time code. No account is
-            needed — one is created the first time you sign in.
-          </CardDescription>
+          <CardTitle>{SIGN_IN_TITLE}</CardTitle>
+          <CardDescription>{SIGN_IN_DESCRIPTION}</CardDescription>
         </CardHeader>
         <CardContent>
-          <SignInForm />
+          <SignInForm next={signInDestination(next)} />
         </CardContent>
       </Card>
     </div>

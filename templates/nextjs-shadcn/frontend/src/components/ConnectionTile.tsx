@@ -2,21 +2,23 @@
 
 import { useState } from 'react';
 import { type ConnectionResult, testConnection } from '@/app/actions';
+import { useConnectionState } from '@/components/connection-state';
 import { StatusTile } from '@/components/StatusTile';
 import { Button } from '@/components/ui/button';
 
 export function ConnectionTile({ initial }: { initial: ConnectionResult }) {
-  const [result, setResult] = useState(initial);
   // The page measures the round trip on every render, so showing that number
   // at rest would make the tile read differently on each view for no reason.
-  // A timing is only worth printing when someone asked for one.
-  const [measured, setMeasured] = useState(false);
+  // A timing is only worth printing when someone asked for one, and once they
+  // have, it stays put while they move between views.
+  const { measured, setMeasured } = useConnectionState();
   const [isTesting, setIsTesting] = useState(false);
+
+  const result = measured ?? initial;
 
   const handleTest = async (): Promise<void> => {
     setIsTesting(true);
-    setResult(await testConnection());
-    setMeasured(true);
+    setMeasured(await testConnection());
     setIsTesting(false);
   };
 

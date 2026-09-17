@@ -2,7 +2,6 @@
 
 import { LogOut, User } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -14,20 +13,17 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { signOut } from '@/lib/nhost/actions';
 
-export function initials(displayName?: string | null, email?: string): string {
-  const source = displayName?.trim() || email || '';
-  const words = source.split(/[\s@._-]+/).filter(Boolean);
+/**
+ * The single character an avatar falls back to when there is no image.
+ *
+ * Spread rather than indexed, so a name starting with an emoji or any other
+ * astral character yields that character instead of half of its surrogate
+ * pair. Falls back to the email, which every account has.
+ */
+export function initial(displayName?: string | null, email?: string): string {
+  const [first] = [...(displayName?.trim() || email || '')];
 
-  if (words.length === 0) {
-    return '?';
-  }
-
-  const letters =
-    words.length > 1
-      ? `${words[0]?.[0] ?? ''}${words[1]?.[0] ?? ''}`
-      : (words[0]?.slice(0, 2) ?? '');
-
-  return letters.toUpperCase();
+  return first ? first.toUpperCase() : '?';
 }
 
 export function UserMenu({
@@ -39,8 +35,8 @@ export function UserMenu({
   displayName?: string | null;
   avatarUrl?: string | null;
 }) {
-  const router = useRouter();
-
+  // Leaves the same way signing in arrives: a full document load, so nothing
+  // rendered against the old session survives in the client router's cache.
   const handleSignOut = async (): Promise<void> => {
     try {
       await signOut();
@@ -49,20 +45,19 @@ export function UserMenu({
       return;
     }
 
-    router.push('/');
-    router.refresh();
+    window.location.replace('/');
   };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label="Open the account menu"
-        className="rounded-full outline-none ring-offset-2 ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
+        className="cursor-pointer rounded-full outline-none ring-offset-2 ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
       >
         <Avatar className="size-8 border">
           {avatarUrl ? <AvatarImage src={avatarUrl} alt="" /> : null}
           <AvatarFallback className="font-medium text-xs">
-            {initials(displayName, email)}
+            {initial(displayName, email)}
           </AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>

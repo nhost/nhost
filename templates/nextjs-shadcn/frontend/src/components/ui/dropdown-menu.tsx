@@ -4,10 +4,20 @@ import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu';
 import type * as React from 'react';
 import { cn } from '@/lib/utils';
 
-function DropdownMenu(
-  props: React.ComponentProps<typeof DropdownMenuPrimitive.Root>,
-) {
-  return <DropdownMenuPrimitive.Root data-slot="dropdown-menu" {...props} />;
+// Radix defaults a dropdown to modal, which locks the body while it is open
+// and takes the page's scrollbar away with it. A menu is not a dialog: the
+// page behind it stays scrollable, and its scrollbar stays put.
+function DropdownMenu({
+  modal = false,
+  ...props
+}: React.ComponentProps<typeof DropdownMenuPrimitive.Root>) {
+  return (
+    <DropdownMenuPrimitive.Root
+      data-slot="dropdown-menu"
+      modal={modal}
+      {...props}
+    />
+  );
 }
 
 function DropdownMenuTrigger(

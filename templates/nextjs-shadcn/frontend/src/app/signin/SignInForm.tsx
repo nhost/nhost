@@ -2,7 +2,6 @@
 
 import { REGEXP_ONLY_DIGITS } from 'input-otp';
 import { ArrowLeft } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import { type FormEvent, useId, useState } from 'react';
 import {
   hasPassword,
@@ -11,6 +10,7 @@ import {
   signInWithPassword,
   verifyOTP,
 } from '@/app/signin/actions';
+import { MailboxHint } from '@/components/MailboxHint';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -19,7 +19,6 @@ import {
   InputOTPSlot,
 } from '@/components/ui/input-otp';
 import { Label } from '@/components/ui/label';
-import { localMailboxURL } from '@/lib/nhost/env';
 
 // Matches the code length auth sends.
 const OTP_LENGTH = 6;
@@ -31,32 +30,7 @@ const OTP_SLOTS = Array.from({ length: OTP_LENGTH }, (_, index) => index);
 // creates the account.
 type Step = 'email' | 'password' | 'code' | 'reset-sent';
 
-const mailbox = localMailboxURL();
-
-function MailboxHint() {
-  if (!mailbox) {
-    return null;
-  }
-
-  return (
-    <>
-      {' '}
-      Running locally, so it never leaves your machine:{' '}
-      <a
-        href={mailbox}
-        target="_blank"
-        rel="noreferrer"
-        className="underline underline-offset-4"
-      >
-        open the local mailbox
-      </a>
-      .
-    </>
-  );
-}
-
-export default function SignInForm() {
-  const router = useRouter();
+export default function SignInForm({ next }: { next: string }) {
   const emailId = useId();
   const otpId = useId();
   const passwordId = useId();
@@ -68,9 +42,17 @@ export default function SignInForm() {
   const [error, setError] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
 
+  // A restore always wins over where they were headed: the account is only
+  // half back until that page has run.
+  //
+  // A full document load rather than a client navigation. Every Server
+  // Component here renders against the session, so all of them are stale the
+  // moment it changes, and the client router's cached route trees are stale
+  // with them. Handing the browser the URL throws that cache away instead of
+  // trying to invalidate it piece by piece; without this the sign-in modal
+  // stops opening for the rest of the session once you have signed out again.
   const finishSignIn = (deleted?: boolean): void => {
-    router.push(deleted ? '/restore' : '/protected');
-    router.refresh();
+    window.location.replace(deleted ? '/restore' : next);
   };
 
   const backToEmail = (): void => {

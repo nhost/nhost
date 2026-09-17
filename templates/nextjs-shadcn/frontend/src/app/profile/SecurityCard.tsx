@@ -1,8 +1,9 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { type FormEvent, useId, useState } from 'react';
+import { type FormEvent, type ReactNode, useId, useState } from 'react';
 import { changePassword, sendOwnPasswordReset } from '@/app/profile/actions';
+import { MailboxHint } from '@/components/MailboxHint';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -25,7 +26,7 @@ export function SecurityCard({ hasPassword }: { hasPassword: boolean }) {
   const [editing, setEditing] = useState(false);
   const [current, setCurrent] = useState('');
   const [password, setPassword] = useState('');
-  const [notice, setNotice] = useState<string | undefined>();
+  const [notice, setNotice] = useState<ReactNode>(null);
   const [error, setError] = useState<string | undefined>();
   const [isSaving, setIsSaving] = useState(false);
   const [isSendingReset, setIsSendingReset] = useState(false);
@@ -72,7 +73,12 @@ export function SecurityCard({ hasPassword }: { hasPassword: boolean }) {
       return;
     }
 
-    setNotice('Reset link sent. Check your email.');
+    setNotice(
+      <>
+        Reset link sent. Check your email.
+        <MailboxHint />
+      </>,
+    );
   };
 
   return (
@@ -81,8 +87,8 @@ export function SecurityCard({ hasPassword }: { hasPassword: boolean }) {
         <CardTitle>Password</CardTitle>
         <CardDescription>
           {hasPassword
-            ? 'You can sign in with either a password or an emailed code.'
-            : 'You sign in with an emailed code. Set a password to also sign in with one.'}
+            ? 'Sign in with this or an emailed code.'
+            : 'Set one to sign in without a code.'}
         </CardDescription>
       </CardHeader>
 

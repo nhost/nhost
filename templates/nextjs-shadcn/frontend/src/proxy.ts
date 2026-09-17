@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
+import { signInHref } from '@/app/signin/destination';
 import { handleNhostProxy, LINK_TOKEN_PARAM } from '@/lib/nhost/server';
 
 const protectedRoutes = ['/protected', '/profile'];
@@ -24,9 +25,13 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     (route) => path === route || path.startsWith(`${route}/`),
   );
 
+  // This runs before the page does, so it is the only redirect a signed-out
+  // visitor to a protected route ever sees. It carries where they were going,
+  // which is what sends them on after they sign in rather than dropping them
+  // on the default page.
   if (isProtectedRoute && !session) {
     return applySessionCookies(
-      NextResponse.redirect(new URL('/signin', request.url)),
+      NextResponse.redirect(new URL(signInHref(path), request.url)),
     );
   }
 

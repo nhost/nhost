@@ -85,16 +85,53 @@
   }
 }
 
+/* Scrolls, but without drawing a scrollbar for it. For panels inside a dialog,
+   where the bar is a line of chrome across content that is already framed.
+   Wheel, trackpad, keyboard and touch all still scroll it. */
+@utility no-scrollbar {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-  /* Hold the scrollbar's space whether or not the page needs one, so a short
-     page and a long one put the same content in the same place. */
-  html {
-    scrollbar-gutter: stable;
+  /* The page scrolls without drawing a bar for it, same as the panels inside
+     dialogs. This also replaces the scrollbar-gutter that used to hold the
+     bar's space: a bar that is never drawn cannot take width from the layout
+     in the first place, so a short page and a long one already line up, and
+     locking the page behind a dialog still shifts nothing. */
+  html,
+  body {
+    scrollbar-width: none;
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    display: none;
   }
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* Only while the theme is actually changing. Left on permanently, this would
+     put a lag on every hover and focus ring in the app, so the toggle adds the
+     class, flips the theme, and takes it off again. Anyone who has asked for
+     less motion gets the switch instantly instead. */
+  @media (prefers-reduced-motion: no-preference) {
+    .theme-transition,
+    .theme-transition *,
+    .theme-transition *::before,
+    .theme-transition *::after {
+      transition:
+        background-color 200ms ease,
+        border-color 200ms ease,
+        color 200ms ease,
+        fill 200ms ease;
+    }
   }
 }
