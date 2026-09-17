@@ -37,6 +37,22 @@ object_relationships:
   - name: bucket
     using:
       foreign_key_constraint_on: bucket_id
+  # The owner of an avatar, for the permissions below. It cannot go through
+  # `uploaded_by_user_id`: the avatar function uploads with the admin secret,
+  # which leaves that column null. What does identify the owner is the file id
+  # itself - `backend/functions/avatar.ts` stores one file per user keyed by
+  # their id, which is also what makes re-uploading replace the old avatar - so
+  # this is a manual relationship on that convention rather than a foreign key.
+  # It only means anything in the avatars bucket; every other file has a random
+  # id that matches no user.
+  - name: avatarOwner
+    using:
+      manual_configuration:
+        remote_table:
+          name: users
+          schema: auth
+        column_mapping:
+          id: id
 array_relationships:
   # The reverse of `todos.file_id`. Nothing queries files -> todos from the
   # app; it exists so the permissions below can ask "is the item holding this
@@ -95,8 +111,21 @@ select_permissions:
         - uploaded_by_user_id
       filter:
         _or:
-          - bucket_id:
-              _eq: avatars
+          # An avatar is readable by anyone exactly when its owner's profile is,
+          # which is the condition `auth_users.yaml` puts on the profile itself.
+          # Left unconditional, the avatar of someone who has unpublished or
+          # deleted stays world-readable forever, at a URL anyone can derive
+          # from a user id that was public once.
+          - _and:
+              - bucket_id:
+                  _eq: avatars
+              - avatarOwner:
+                  metadata:
+                    _contains:
+                      publicProfile: true
+                  _not:
+                    metadata:
+                      _has_key: deletedAt
           - todos:
               is_public:
                 _eq: true
@@ -107,6 +136,9 @@ select_permissions:
                 _not:
                   metadata:
                     _has_key: deletedAt
+  # Signing in is not a way around the rule above. Anyone can create an account,
+  # so every branch here that is not about the caller's own files repeats the
+  # owner condition the `public` role carries.
   - role: user
     permission:
       columns:
@@ -123,13 +155,33 @@ select_permissions:
         - uploaded_by_user_id
       filter:
         _or:
-          - bucket_id:
-              _eq: avatars
           - uploaded_by_user_id:
               _eq: X-Hasura-User-Id
+          - _and:
+              - bucket_id:
+                  _eq: avatars
+              - _or:
+                  # Your own avatar, which `uploaded_by_user_id` cannot match
+                  # because the avatar function uploads it as admin.
+                  - id:
+                      _eq: X-Hasura-User-Id
+                  - avatarOwner:
+                      metadata:
+                        _contains:
+                          publicProfile: true
+                      _not:
+                        metadata:
+                          _has_key: deletedAt
           - todos:
               is_public:
                 _eq: true
+              user:
+                metadata:
+                  _contains:
+                    publicProfile: true
+                _not:
+                  metadata:
+                    _has_key: deletedAt
 delete_permissions:
   - role: user
     permission:
