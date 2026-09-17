@@ -12,7 +12,11 @@ import (
 
 var (
 	errTemplateNotDirectory = errors.New("template path is not a directory")
-	gitLookPath             = exec.LookPath //nolint:gochecknoglobals // test seam for git availability
+	// Every template supplies a frontend app, and the scaffolding reads
+	// frontend/package.json to set the project name and to rewrite the
+	// package-manager commands in the docs.
+	errTemplateMissingFrontend = errors.New("template has no frontend/package.json")
+	gitLookPath                = exec.LookPath //nolint:gochecknoglobals // test seam for git availability
 )
 
 func fetchTemplate(
