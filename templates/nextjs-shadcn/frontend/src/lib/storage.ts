@@ -58,3 +58,29 @@ export const fileURL = (
 
   return transform ? withTransform(url, transform) : url;
 };
+
+/**
+ * Whether `avatarUrl` is the avatar this project stored for `userId`.
+ *
+ * `backend/functions/avatar.ts` keeps one file per user, keyed to their own
+ * id, so the URL it records is this project's `<storage>/files/<user id>` with
+ * a cache-busting query string on the end. An account that has never uploaded
+ * one carries the picture auth assigned at sign-up instead, which lives on
+ * another host and is nothing this project can presign.
+ *
+ * The two are read in completely different ways, which is why this exists: a
+ * stored avatar is private until its owner publishes their profile, so the
+ * owner's own view of it has to be fetched with their session, while the
+ * assigned one is a public URL that needs no such thing.
+ */
+export const isStoredAvatarURL = (
+  baseURL: string,
+  avatarUrl: string | null | undefined,
+  userId: string,
+): boolean => {
+  if (!avatarUrl) {
+    return false;
+  }
+
+  return avatarUrl.split('?')[0] === `${baseURL}/files/${userId}`;
+};

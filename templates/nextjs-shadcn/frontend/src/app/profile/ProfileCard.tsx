@@ -18,10 +18,12 @@ import { Label } from '@/components/ui/label';
 // The email lives in its own card: it is the sign-in credential rather than a
 // display detail, and its change flow is a conversation with the mailbox.
 export function ProfileCard({
+  userId,
   email,
   displayName,
   avatarUrl,
 }: {
+  userId: string;
   email: string;
   displayName?: string | null;
   avatarUrl?: string | null;
@@ -63,6 +65,7 @@ export function ProfileCard({
 
       <CardContent className="flex flex-col gap-6 sm:flex-row sm:items-center sm:gap-8">
         <AvatarPicker
+          userId={userId}
           email={email}
           displayName={displayName}
           avatarUrl={avatarUrl}

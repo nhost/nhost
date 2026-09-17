@@ -65,6 +65,7 @@ export async function ProfilePanel() {
   return (
     <div className="flex flex-col gap-4">
       <ProfileCard
+        userId={String(user.id)}
         email={user.email ?? ''}
         displayName={user.displayName}
         avatarUrl={user.avatarUrl}
