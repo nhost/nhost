@@ -20,6 +20,34 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
+// Engine-owned flag names. Naming them keeps the definitions in globalFlags
+// and the lookups in serveConfigFrom from drifting apart. Service-native flag
+// names (sharedOverridesFor, the registry skip sets) stay literal on purpose:
+// they belong to each service's own CLI, and some of them collide with these
+// names (graphql's admin-secret, jwt-secret, cors-allowed-origins) without
+// being the same flag.
+const (
+	flagBind                  = "bind"
+	flagDebug                 = "debug"
+	flagLogFormatText         = "log-format-text"
+	flagAdminSecret           = "admin-secret"
+	flagJWTSecret             = "jwt-secret"
+	flagDatabaseURL           = "database-url"
+	flagMigrationsDatabaseURL = "migrations-database-url"
+	flagCORSAllowedOrigins    = "cors-allowed-origins"
+	flagAuthCompatHosts       = "auth-compat-hosts"
+	flagMountPrefixHosts      = "mount-prefix-hosts"
+	// flagDisablePrefix builds the per-service opt-out flags via disableFlagName.
+	flagDisablePrefix = "disable-"
+)
+
+// disableFlagName is the engine flag that opts a service out of composition,
+// e.g. service "auth" => "disable-auth". It is the CLI counterpart of
+// prefixedEnv("disable", service).
+func disableFlagName(service string) string {
+	return flagDisablePrefix + service
+}
+
 const (
 	// defaultBind is the shared listener address used when --bind is not set.
 	defaultBind = ":8080"
@@ -74,54 +102,54 @@ func globalFlags() []cli.Flag {
 	// worth a hand-maintained flag count.
 	flags := []cli.Flag{ //nolint:prealloc
 		&cli.StringFlag{ //nolint:exhaustruct
-			Name:    "bind",
+			Name:    flagBind,
 			Usage:   "address the shared listener binds to",
 			Value:   defaultBind,
 			Sources: cli.EnvVars("BIND"),
 		},
 		&cli.BoolFlag{ //nolint:exhaustruct
-			Name:    "debug",
+			Name:    flagDebug,
 			Usage:   "enable debug logging",
 			Sources: cli.EnvVars("DEBUG"),
 		},
 		&cli.BoolFlag{ //nolint:exhaustruct
-			Name:    "log-format-text",
+			Name:    flagLogFormatText,
 			Usage:   "log in human-friendly text format instead of JSON",
 			Sources: cli.EnvVars("LOG_FORMAT_TEXT"),
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
-			Name:    "admin-secret",
+			Name:    flagAdminSecret,
 			Usage:   "Hasura admin secret shared by every service",
 			Sources: cli.EnvVars("ADMIN_SECRET"),
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
-			Name:    "jwt-secret",
+			Name:    flagJWTSecret,
 			Usage:   "Hasura GraphQL JWT secret shared by auth and graphql",
 			Sources: cli.EnvVars("JWT_SECRET"),
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
-			Name:    "database-url",
+			Name:    flagDatabaseURL,
 			Usage:   "PostgreSQL connection URL shared by auth and graphql",
 			Sources: cli.EnvVars("DATABASE_URL"),
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
-			Name:    "migrations-database-url",
+			Name:    flagMigrationsDatabaseURL,
 			Usage:   "PostgreSQL migrations connection URL shared by auth and storage",
 			Sources: cli.EnvVars("MIGRATIONS_DATABASE_URL"),
 		},
 		&cli.StringSliceFlag{ //nolint:exhaustruct
-			Name:    "cors-allowed-origins",
+			Name:    flagCORSAllowedOrigins,
 			Usage:   "origins permitted to make cross-origin requests, shared by storage and graphql",
 			Sources: cli.EnvVars("CORS_ALLOWED_ORIGINS"),
 		},
 		&cli.StringSliceFlag{ //nolint:exhaustruct
-			Name: "auth-compat-hosts",
+			Name: flagAuthCompatHosts,
 			Usage: "DNS hostnames where engine routes take precedence and other paths" +
 				" fall back to auth without the /auth prefix",
 			Sources: cli.EnvVars("AUTH_COMPAT_HOSTS"),
 		},
 		&cli.StringSliceFlag{ //nolint:exhaustruct
-			Name:    "mount-prefix-hosts",
+			Name:    flagMountPrefixHosts,
 			Usage:   "DNS hostnames where service mount prefixes are externally visible",
 			Sources: cli.EnvVars("MOUNT_PREFIX_HOSTS"),
 		},
@@ -131,7 +159,7 @@ func globalFlags() []cli.Flag {
 	// globals, keeping the surface "globals, then a disable flag per service".
 	for _, service := range serviceDefinitions() {
 		flags = append(flags, &cli.BoolFlag{ //nolint:exhaustruct
-			Name:     "disable-" + service.name,
+			Name:     disableFlagName(service.name),
 			Usage:    "do not run the " + service.name + " service",
 			Category: "services",
 			Sources:  cli.EnvVars(prefixedEnv("disable", service.name)),
@@ -166,20 +194,20 @@ func serveFlags() []cli.Flag {
 func serveConfigFrom(cmd *cli.Command) serveConfig {
 	disabled := make(map[string]bool, len(serviceOrder()))
 	for _, name := range serviceOrder() {
-		disabled[name] = cmd.Bool("disable-" + name)
+		disabled[name] = cmd.Bool(disableFlagName(name))
 	}
 
 	return serveConfig{
-		bind:             cmd.String("bind"),
-		debug:            cmd.Bool("debug"),
-		logFormatText:    cmd.Bool("log-format-text"),
-		adminSecret:      cmd.String("admin-secret"),
-		jwtSecret:        cmd.String("jwt-secret"),
-		databaseURL:      cmd.String("database-url"),
-		migrationsURL:    cmd.String("migrations-database-url"),
-		corsOrigins:      cmd.StringSlice("cors-allowed-origins"),
-		compatAuthHosts:  cmd.StringSlice("auth-compat-hosts"),
-		mountPrefixHosts: cmd.StringSlice("mount-prefix-hosts"),
+		bind:             cmd.String(flagBind),
+		debug:            cmd.Bool(flagDebug),
+		logFormatText:    cmd.Bool(flagLogFormatText),
+		adminSecret:      cmd.String(flagAdminSecret),
+		jwtSecret:        cmd.String(flagJWTSecret),
+		databaseURL:      cmd.String(flagDatabaseURL),
+		migrationsURL:    cmd.String(flagMigrationsDatabaseURL),
+		corsOrigins:      cmd.StringSlice(flagCORSAllowedOrigins),
+		compatAuthHosts:  cmd.StringSlice(flagAuthCompatHosts),
+		mountPrefixHosts: cmd.StringSlice(flagMountPrefixHosts),
 		disabled:         disabled,
 	}
 }
