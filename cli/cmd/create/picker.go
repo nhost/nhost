@@ -20,9 +20,15 @@ const (
 	// fallbackWidth is what lines are wrapped to when the terminal will not
 	// say how wide it is.
 	fallbackWidth = 80
-	// keyBufferSize holds the longest sequence a single key press produces,
-	// which is the three bytes of an arrow key.
-	keyBufferSize = 3
+	// keyBufferSize is large enough to hold the longest sequence a single key
+	// press produces. A plain arrow key is three bytes, but Delete is four
+	// (ESC [ 3 ~) and a modified arrow is six (ESC [ 1 ; 5 C), so a buffer of
+	// three splits those across reads and decodes the tail as further key
+	// presses.
+	keyBufferSize = 16
+	// csiArrowLen is the length of the arrow-key sequences the picker acts on,
+	// which is the least a read has to carry for one to be recognised.
+	csiArrowLen = 3
 )
 
 // errCancelled ends the command quietly when the user aborts a picker. Raw
@@ -135,7 +141,7 @@ func decodeKey(buf []byte) pickerAction {
 		return actionNone
 	}
 
-	if len(buf) >= keyBufferSize && buf[0] == keyEscape && buf[1] == '[' {
+	if len(buf) >= csiArrowLen && buf[0] == keyEscape && buf[1] == '[' {
 		switch buf[2] {
 		case 'A':
 			return actionUp

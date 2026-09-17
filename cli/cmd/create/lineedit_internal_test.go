@@ -2,6 +2,7 @@ package create
 
 import (
 	"bytes"
+	"errors"
 	"strings"
 	"testing"
 )
@@ -82,6 +83,55 @@ func TestApplyEdits(t *testing.T) {
 	}
 }
 
+// Every escape sequence has to be swallowed whole. Taking a fixed three bytes
+// left the tail of the longer ones in the answer, and the two SS3 forms landed
+// a name validateName accepts, so Home became "skate-appOH" without a word.
+func TestApplyEditsSwallowsWholeEscapeSequences(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		buf  string
+		want string
+	}{
+		{name: "left arrow", buf: "\x1b[D", want: "skate-app"},
+		{name: "delete", buf: "\x1b[3~", want: "skate-app"},
+		{name: "page up", buf: "\x1b[5~", want: "skate-app"},
+		{name: "home in application-cursor mode", buf: "\x1bOH", want: "skate-app"},
+		{name: "end in application-cursor mode", buf: "\x1bOF", want: "skate-app"},
+		{name: "ctrl-right", buf: "\x1b[1;5C", want: "skate-app"},
+		{name: "f5", buf: "\x1b[15~", want: "skate-app"},
+		{
+			name: "a sequence still leaves what follows it",
+			buf:  "\x1b[3~!",
+			want: "skate-app!",
+		},
+		{name: "a read cut off mid-sequence adds nothing", buf: "\x1b[1;", want: "skate-app"},
+		{name: "a read ending on the introducer adds nothing", buf: "\x1b[", want: "skate-app"},
+		{name: "a lone escape adds nothing", buf: "\x1b", want: "skate-app"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got, ended := applyEdits([]rune("skate-app"), []byte(tt.buf))
+
+			if string(got) != tt.want {
+				t.Errorf("applyEdits(%q) value = %q, want %q", tt.buf, string(got), tt.want)
+			}
+
+			if ended != editNone {
+				t.Errorf("applyEdits(%q) ended = %v, want %v", tt.buf, ended, editNone)
+			}
+
+			if err := validateName(string(got)); err != nil && tt.want == "skate-app" {
+				t.Errorf("applyEdits(%q) left an unusable name: %v", tt.buf, err)
+			}
+		})
+	}
+}
+
 func TestReadEditReportsAFailedRead(t *testing.T) {
 	t.Parallel()
 
@@ -94,13 +144,22 @@ func TestReadEditReportsAFailedRead(t *testing.T) {
 
 // The editor cannot draw a line the user types into without raw mode, so it
 // says so rather than half working, and promptLine falls back to asking plainly.
+//
+// It has to be errNoRawTerminal specifically: promptLine dispatches on
+// errors.Is, so any other error aborts `nhost create` instead of falling back.
+// stdin is pinned rather than inherited, because a test binary run under a pty
+// gets a real terminal and the raw loop then fails on the read instead.
+//
+//nolint:paralleltest // swaps os.Stdin
 func TestEditLineNeedsARawTerminal(t *testing.T) {
-	t.Parallel()
+	withStdin(t, "")
 
 	var output bytes.Buffer
 
-	if _, err := editLine(newTestEnv(&output), "Project name", "skate-app"); err == nil {
-		t.Error("editLine() without a terminal = nil error, want errNoRawTerminal")
+	if _, err := editLine(
+		newTestEnv(&output), "Project name", "skate-app",
+	); !errors.Is(err, errNoRawTerminal) {
+		t.Errorf("editLine() without a terminal = %v, want errNoRawTerminal", err)
 	}
 
 	if output.String() != "" {
