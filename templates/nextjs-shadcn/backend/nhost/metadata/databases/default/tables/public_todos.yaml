@@ -9,11 +9,23 @@ object_relationships:
     using:
       foreign_key_constraint_on: file_id
 insert_permissions:
+  # Owning the row is not enough: `file_id` points at a row in `storage.files`
+  # that this table's `public` rule then makes readable, so a row you own
+  # pointed at a file you do not own is how somebody else's private attachment
+  # gets published. The file half is the same check on insert and on update,
+  # because either one can be the step that attaches it.
   - role: user
     permission:
       check:
-        user_id:
-          _eq: X-Hasura-User-Id
+        _and:
+          - user_id:
+              _eq: X-Hasura-User-Id
+          - _or:
+              - file_id:
+                  _is_null: true
+              - file:
+                  uploaded_by_user_id:
+                    _eq: X-Hasura-User-Id
       set:
         user_id: X-Hasura-User-Id
       columns:
@@ -84,7 +96,16 @@ update_permissions:
       filter:
         user_id:
           _eq: X-Hasura-User-Id
-      check: null
+      check:
+        _and:
+          - user_id:
+              _eq: X-Hasura-User-Id
+          - _or:
+              - file_id:
+                  _is_null: true
+              - file:
+                  uploaded_by_user_id:
+                    _eq: X-Hasura-User-Id
 delete_permissions:
   - role: user
     permission:
