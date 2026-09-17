@@ -2,6 +2,8 @@
 
 Authoritative JS/TS rules for the entire monorepo. These rules apply to every JS/TS file across `dashboard/`, `packages/nhost-js/`, `services/functions/`, `docs/`, and `examples/`.
 
+**`templates/` is deliberately exempt from the tooling rules below.** A starter template is code shipped to users and is meant to behave exactly like the project `nhost create` generates for them, so it sits outside the pnpm workspace, outside Turbo, and outside the root Biome config: it owns its own `biome.json`, its own `pnpm-workspace.yaml`, and its own lockfile. That independence is what makes its `pnpm install --frozen-lockfile` check meaningful. The design guidance below (naming, typing, component structure, error handling) still reads as good advice for template code, but do not "fix" a template to satisfy a repo-wide tooling rule, and run its checks from inside the template. See `templates/README.md`.
+
 The document has three sections: **Repo-wide rules** apply everywhere; **Dashboard (React/Next.js)** layers on top in `dashboard/`; **SDK & Node** layers on top in `packages/nhost-js/` and `services/functions/`. Always load the relevant project's `CLAUDE.md` (e.g. `dashboard/CLAUDE.md`) for project-specific addenda that this document does not duplicate.
 
 ---
@@ -11,7 +13,7 @@ The document has three sections: **Repo-wide rules** apply everywhere; **Dashboa
 ### Tooling
 
 - **Package manager:** `pnpm` 12.3.4. Never `npm` or `yarn` — `settings.json` denies them.
-- **Linter/formatter:** **Biome** (config in root `biome.json` and `dashboard/biome.json`). Single quotes, space indentation, import sorting.
+- **Linter/formatter:** **Biome** (config in root `biome.json` and `dashboard/biome.json`; `templates/nextjs-shadcn/frontend/biome.json` is a third, independent `"root": true` config). Single quotes, space indentation, import sorting.
 - **Monorepo orchestration:** **Turbo** (`turbo.json`). Run tasks via `turbo run <task>`.
 - **Node ≥ 22** required.
 
