@@ -209,9 +209,27 @@ post_restore_sql() {
 	fi
 }
 
+# shellcheck disable=SC2329 # Called only by signal and exit trap handlers.
+stop_postgres() {
+	if [ -z "${POSTGRES_PID:-}" ] || ! kill -0 "$POSTGRES_PID" 2>/dev/null; then
+		return 0
+	fi
+
+	if [ ! -f "$PGDATA/postmaster.pid" ]; then
+		kill -TERM "$POSTGRES_PID" 2>/dev/null || true
+		wait "$POSTGRES_PID" 2>/dev/null || true
+		return 0
+	fi
+
+	# Fast mode disconnects clients, and --wait keeps PID 1 alive until the
+	# server has checkpointed and removed its PID file.
+	pg_ctl stop --pgdata="$PGDATA" --mode=fast --wait
+}
+
 # shellcheck disable=SC2329 # Invoked by the signal trap.
 shutdown_postgres() {
 	trap '' TERM INT
+	trap - EXIT
 	echo "Received shutdown signal, shutting down PostgreSQL..."
 
 	if [ -n "${IN_FLIGHT_PID:-}" ] && kill -0 "$IN_FLIGHT_PID" 2>/dev/null; then
@@ -220,29 +238,34 @@ shutdown_postgres() {
 		IN_FLIGHT_PID=
 	fi
 
-	if [ -z "${POSTGRES_PID:-}" ] || ! kill -0 "$POSTGRES_PID" 2>/dev/null; then
-		exit 0
-	fi
-
-	if [ ! -f "$PGDATA/postmaster.pid" ]; then
-		kill -TERM "$POSTGRES_PID" 2>/dev/null || true
-		wait "$POSTGRES_PID" 2>/dev/null || true
-		exit 0
-	fi
-
-	# Fast mode disconnects clients, and --wait keeps PID 1 alive until the
-	# server has checkpointed and removed its PID file.
-	if ! pg_ctl stop --pgdata="$PGDATA" --mode=fast --wait; then
+	if ! stop_postgres; then
 		echo "Failed to stop PostgreSQL cleanly" >&2
 		exit 1
 	fi
 	exit 0
 }
 
+# shellcheck disable=SC2329 # Invoked by the exit trap.
+shutdown_postgres_after_error() {
+	entrypoint_exit_code=$?
+	trap - EXIT
+
+	if [ "$entrypoint_exit_code" -ne 0 ] &&
+		[ -n "${POSTGRES_PID:-}" ] && kill -0 "$POSTGRES_PID" 2>/dev/null; then
+		echo "Entrypoint failed, shutting down PostgreSQL..." >&2
+		if ! stop_postgres; then
+			echo "Failed to stop PostgreSQL cleanly after entrypoint error" >&2
+		fi
+	fi
+
+	exit "$entrypoint_exit_code"
+}
+
 main() {
 	IN_FLIGHT_PID=
 	POSTGRES_PID=
 	trap shutdown_postgres TERM INT
+	trap shutdown_postgres_after_error EXIT
 
 	if [ -n "${PITR_BASEBACKUP:-}" ]; then
 		resolve_config

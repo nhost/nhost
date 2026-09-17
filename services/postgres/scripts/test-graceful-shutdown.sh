@@ -11,6 +11,11 @@ early_restart_logs=$(mktemp)
 early_init_file=$(mktemp)
 early_container="postgres-early-shutdown-$$"
 early_volume="postgres-early-shutdown-data-$$"
+failed_init_logs=$(mktemp)
+failed_init_restart_logs=$(mktemp)
+failed_init_file=$(mktemp)
+failed_init_container="postgres-failed-init-$$"
+failed_init_volume="postgres-failed-init-data-$$"
 client_log=$(mktemp)
 client_pid=
 
@@ -19,9 +24,10 @@ cleanup() {
         kill "$client_pid" 2>/dev/null || true
         wait "$client_pid" 2>/dev/null || true
     fi
-    docker rm -fv "$early_container" >/dev/null 2>&1 || true
-    docker volume rm -f "$early_volume" >/dev/null 2>&1 || true
-    rm -f "$restart_logs" "$early_restart_logs" "$early_init_file" "$client_log"
+    docker rm -fv "$early_container" "$failed_init_container" >/dev/null 2>&1 || true
+    docker volume rm -f "$early_volume" "$failed_init_volume" >/dev/null 2>&1 || true
+    rm -f "$restart_logs" "$early_restart_logs" "$early_init_file" \
+        "$failed_init_logs" "$failed_init_restart_logs" "$failed_init_file" "$client_log"
 }
 trap cleanup EXIT HUP INT TERM
 
@@ -271,3 +277,99 @@ if ! docker exec "$early_container" \
 fi
 
 echo "PostgreSQL stopped cleanly during initialization and completed initialization after restart"
+
+printf '%s\n' \
+    'CREATE TABLE failed_init_test_started (started boolean);' \
+    'SELECT 1 / 0;' >"$failed_init_file"
+chmod 644 "$failed_init_file"
+
+docker volume create "$failed_init_volume" >/dev/null
+docker create --name "$failed_init_container" \
+    --volume "$failed_init_volume:/var/lib/postgresql/data/pgdata" \
+    --entrypoint /nhost-init.sh \
+    "$image" >/dev/null
+docker cp "$init_script" "$failed_init_container:/nhost-init.sh"
+docker cp "$failed_init_file" "$failed_init_container:/initdb.d/0000-fail.sql"
+docker start "$failed_init_container" >/dev/null
+
+failed_init_stopped=false
+for _ in $(seq 1 120); do
+    failed_init_running=$(docker inspect --format '{{.State.Running}}' \
+        "$failed_init_container")
+    if [ "$failed_init_running" = false ]; then
+        failed_init_stopped=true
+        break
+    fi
+    sleep 0.5
+done
+
+docker logs "$failed_init_container" >"$failed_init_logs" 2>&1
+
+if [ "$failed_init_stopped" != true ]; then
+    echo "PostgreSQL did not stop after the fatal init SQL error" >&2
+    cat "$failed_init_logs" >&2
+    exit 1
+fi
+
+failed_init_exit_code=$(docker inspect --format '{{.State.ExitCode}}' \
+    "$failed_init_container")
+if [ "$failed_init_exit_code" = 0 ]; then
+    echo "The fatal init SQL error did not fail the entrypoint" >&2
+    cat "$failed_init_logs" >&2
+    exit 1
+fi
+
+if ! grep -q 'division by zero' "$failed_init_logs"; then
+    echo "The injected fatal init SQL error was not reported" >&2
+    cat "$failed_init_logs" >&2
+    exit 1
+fi
+
+failed_init_control_data=$(docker run --rm \
+    --volume "$failed_init_volume:/var/lib/postgresql/data/pgdata" \
+    --entrypoint pg_controldata \
+    "$image" /var/lib/postgresql/data/pgdata)
+failed_init_control_state=$(printf '%s\n' "$failed_init_control_data" |
+    sed -n 's/^Database cluster state:[[:space:]]*//p')
+if [ "$failed_init_control_state" != "shut down" ]; then
+    echo "Expected the cluster with failed init SQL to be shut down, got ${failed_init_control_state:-no control state}" >&2
+    printf '%s\n' "$failed_init_control_data" >&2
+    cat "$failed_init_logs" >&2
+    exit 1
+fi
+
+printf '%s\n' 'SELECT 1;' >"$failed_init_file"
+docker cp "$failed_init_file" "$failed_init_container:/initdb.d/0000-fail.sql"
+failed_init_log_lines=$(wc -l <"$failed_init_logs" | tr -d '[:space:]')
+failed_init_log_start=$((failed_init_log_lines + 1))
+docker start "$failed_init_container" >/dev/null
+
+failed_init_ready=false
+for _ in $(seq 1 120); do
+    if docker exec "$failed_init_container" pg_isready -q 2>/dev/null &&
+        docker logs "$failed_init_container" 2>&1 |
+        tail -n "+$failed_init_log_start" |
+            grep -q 'PostgreSQL initialization complete'; then
+        failed_init_ready=true
+        break
+    fi
+    sleep 0.5
+done
+
+docker logs "$failed_init_container" 2>&1 |
+    tail -n "+$failed_init_log_start" >"$failed_init_restart_logs"
+
+if [ "$failed_init_ready" != true ]; then
+    echo "PostgreSQL did not become ready after replacing the failing init SQL" >&2
+    cat "$failed_init_restart_logs" >&2
+    exit 1
+fi
+
+if grep -Eq 'database system was interrupted|automatic recovery in progress' \
+    "$failed_init_restart_logs"; then
+    echo "PostgreSQL performed crash recovery after the fatal init SQL error" >&2
+    cat "$failed_init_restart_logs" >&2
+    exit 1
+fi
+
+echo "PostgreSQL stopped cleanly after fatal init SQL and restarted without crash recovery"
