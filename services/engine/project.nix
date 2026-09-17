@@ -85,7 +85,8 @@ rec {
       ;
 
     # constellation relies on the experimental encoding/json v2; the engine
-    # links it, so the whole build must enable the experiment.
+    # links it, so the experiment also reaches auth and storage. Their standalone
+    # workflows (auth_checks.yaml and storage_checks.yaml) enable jsonv2 as well.
     preCheck = ''
       export GOEXPERIMENT=jsonv2
       export GIN_MODE=release
