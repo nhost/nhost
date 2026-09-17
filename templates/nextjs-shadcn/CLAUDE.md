@@ -34,7 +34,7 @@ Then use this loop for data-backed features:
    ```
 
 3. Prompt the LLM with the feature request. The LLM must read `frontend/schema.graphql`, this guide, and the relevant `.claude/skills/<name>/SKILL.md` before editing.
-4. Run the narrow frontend checks that match the change, such as `(cd frontend && pnpm lint)` and `(cd frontend && pnpm build)`.
+4. Run the narrow frontend checks that match the change, such as `(cd frontend && pnpm lint)`, `(cd frontend && pnpm test)` and `(cd frontend && pnpm build)`.
 
 The committed `frontend/schema.graphql` and `frontend/src/gql/` let an assistant understand and type-check the current data contract without installing another context service. Keep both artifacts in sync with backend changes.
 
@@ -99,7 +99,7 @@ Two paths, and the default is the direct one:
 - `backend/nhost/migrations/default/1700000000002_user_has_password/` adds `public.user_has_password`, tracked as the `hasPassword` computed field on `auth.users`, so the UI can tell "set a password" from "change password" without the hash ever leaving the database.
 - `backend/functions/auth-method.ts` answers, for one email address, which sign-in step to show. It needs the admin secret, so read the note in that file about what it does and does not reveal before copying the pattern.
 - `frontend/src/app/profile/` holds the server page plus `ProfileCard` (avatar, name, email), `SecurityCard` (password) and `DeleteAccountCard`; each is a client component calling a server action in `actions.ts`.
-- Account deletion is a soft delete: `deleteAccount` stamps `metadata.deletedAt` and signs out every session, and signing back in routes to `/restore`, which clears the mark. Update `metadata` with a read-merge-write `_set`; `_append` on a user whose metadata is JSON null produces an array and breaks sign-in.
+- Account deletion is a soft delete: `deleteAccount` stamps `metadata.deletedAt` and signs out every session, and signing back in routes to `/restore`, which clears the mark. The proxy enforces that everywhere, so a marked account reaches only `/restore` and `/signin` until it is restored; a new page needs no check of its own. Update `metadata` with a read-merge-write `_set`; `_append` on a user whose metadata is JSON null produces an array and breaks sign-in.
 - The template never purges. Erasing accounts once the grace period (`GRACE_DAYS` in `frontend/src/app/restore/page.tsx`) has passed is the project's responsibility, for example a scheduled job that hard-deletes users whose `metadata.deletedAt` is older than 30 days.
 
 ## Project conventions
@@ -111,9 +111,10 @@ Two paths, and the default is the direct one:
 - Client-side GraphQL operations use the generated `graphql()` documents, `gqlRequest`, the browser `nhost` client, and TanStack Query.
 - Use absolute frontend imports through `@/` and merge class names with `cn()` from `@/lib/utils`.
 - Wrap network calls in explicit error handling so the UI fails gracefully when the backend is unavailable.
-- Auth emails that link back into the app (password reset, email change) derive `redirectTo` from the request's own headers; see `appOrigin` in `frontend/src/app/profile/actions.ts`.
-- Those links come back as `?refreshToken=...`, which the proxy redeems into the session cookie before redirecting to the same URL without it. Any new page an auth email points at therefore already has a session; do not add a second redemption path.
+- Auth emails that link back into the app (password reset, email change) build `redirectTo` from `appOrigin()` in `@/lib/nhost/env`, which reads the configured `NEXT_PUBLIC_APP_ORIGIN`. Never derive it from `Host` or `X-Forwarded-Host`: the sender controls those, so it would let anyone aim someone else's reset link at a host they own.
+- Those links come back as `?refreshToken=...&type=...`, which the proxy redeems into the session cookie before redirecting to the same URL without them. It only does so for a known `type` on a path in `LINK_REDEMPTION_PATHS` (`/profile`, `/reset-password`) — redeeming anywhere would let a crafted link sign a visitor into somebody else's account. Point a new auth email at one of those paths, or add the path to that list; do not add a second redemption path.
 - Changing a password revokes the account's refresh tokens, so `changePassword` signs back in on the new password. Anything else that rotates credentials has to do the same or it logs out the person who just used it.
+- `changePassword` decides for itself whether re-authentication is needed: it reads `hasPassword` from the backend and requires `currentPassword` when the account has one, unless the proxy set the password-reset grant cookie while redeeming a `type=passwordReset` link. Never gate a sensitive action on an argument the client chooses to send.
 - Sign-in asks for the email first and then shows the step that account actually uses, so a new page must not assume a password exists. `hasPassword` is the flag for that.
 - Read the backend subdomain and region through `nhostSubdomain()` / `nhostRegion()` from `@/lib/nhost/env`. `NEXT_PUBLIC_NHOST_SUBDOMAIN` and `NEXT_PUBLIC_NHOST_REGION` are the only pair, shared by the browser and the server; do not add a server-only pair, which would let the two halves target different backends.
 - Next.js inlines `NEXT_PUBLIC_*` at build time, so those two variables must be set before `next build`; setting them on the running host has no effect and the build stays pointed at the local stack.
@@ -132,7 +133,7 @@ From `frontend/`:
 - `pnpm dev` starts the app at <http://localhost:3000>.
 - `pnpm codegen` refreshes `schema.graphql` and `src/gql/` from the running local backend.
 - `pnpm codegen:types` regenerates types offline from the committed schema.
-- `pnpm lint`, `pnpm format`, and `pnpm build` validate the app.
+- `pnpm lint`, `pnpm format`, `pnpm test`, and `pnpm build` validate the app.
 
 ## Optional MCP bonus
 
