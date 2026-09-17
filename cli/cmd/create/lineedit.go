@@ -182,15 +182,35 @@ func applyEdits(value []rune, buf []byte) ([]rune, editAction) {
 	return value, editNone
 }
 
-// escapeLen is how much of a buffer one escape sequence takes up. Only the
-// three-byte arrow keys are worth recognising, and a lone escape byte is a key
-// press of its own that the editor ignores.
+// escapeLen is how much of a buffer one escape sequence takes up. Both forms a
+// key press produces -- CSI, which is ESC '[', and SS3, which is ESC 'O' -- run
+// until a final byte in 0x40-0x7e, so their length is only found by scanning
+// for it. Assuming the three bytes of a plain arrow key instead left the tail
+// of every longer sequence in the answer: Delete (ESC [ 3 ~) added a '~', and
+// Home and End in application-cursor mode (ESC O H, ESC O F) added "OH" and
+// "OF", which validateName accepts, so the project was silently named after a
+// keystroke.
+//
+// A lone escape byte, an ESC that introduces neither form, and a sequence the
+// read cut short are all key presses of their own that the editor ignores.
 func escapeLen(buf []byte) int {
-	const arrowKeyLen = 3
+	// The byte after ESC that says which form this is, and the range the byte
+	// ending either form falls in.
+	const (
+		introducerLen = 2
+		finalByteMin  = 0x40
+		finalByteMax  = 0x7e
+	)
 
-	if len(buf) >= arrowKeyLen && buf[1] == '[' {
-		return arrowKeyLen
+	if len(buf) < introducerLen || (buf[1] != '[' && buf[1] != 'O') {
+		return 1
 	}
 
-	return 1
+	for i := introducerLen; i < len(buf); i++ {
+		if buf[i] >= finalByteMin && buf[i] <= finalByteMax {
+			return i + 1
+		}
+	}
+
+	return len(buf)
 }
