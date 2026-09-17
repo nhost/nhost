@@ -158,7 +158,7 @@ subscription getUnifiedDeploymentsSub(
 ) {
   unifiedDeployments(
     where: { appId: { _eq: $appId } }
-    order_by: { startedAt: desc }
+    order_by: { createdAt: desc }
     limit: $limit
     offset: $offset
   ) {
@@ -195,7 +195,7 @@ subscription LatestLiveUnifiedDeploymentSub($appId: uuid!) {
 query getUnifiedDeploymentByCommitSHA($appId: uuid!, $commitSHA: String!) {
   unifiedDeployments(
     where: { appId: { _eq: $appId }, commitSHA: { _eq: $commitSHA } }
-    order_by: { startedAt: desc }
+    order_by: { startedAt: desc_nulls_last }
     limit: 1
   ) {
     id
