@@ -17,6 +17,27 @@ export const nhostSubdomain = (): string =>
 export const nhostRegion = (): string =>
   process.env.NEXT_PUBLIC_NHOST_REGION || LOCAL;
 
+// Matches the `clientUrl` that `nhost create` writes into the generated
+// backend, so a local project works with nothing configured.
+const DEFAULT_APP_ORIGIN = 'http://localhost:3000';
+
+/**
+ * Where this app is deployed, for links that have to point back at it.
+ *
+ * Auth emails are the reason this exists. Their `redirectTo` cannot be taken
+ * from the request's own `Host` / `X-Forwarded-Host`, because those are set by
+ * whoever made the request: anyone who can reach the app can ask it to send
+ * somebody else a password-reset link pointing at a host they control. The
+ * auth service's `allowedUrls` is the backstop that rejects it, but relying on
+ * it means the day that list is widened for preview deployments, the leak
+ * opens. Configuration cannot be spoofed, so this is configuration.
+ *
+ * Same build-time rule as the pair above: set `NEXT_PUBLIC_APP_ORIGIN` before
+ * `next build`, not on the running host.
+ */
+export const appOrigin = (): string =>
+  process.env.NEXT_PUBLIC_APP_ORIGIN || DEFAULT_APP_ORIGIN;
+
 /**
  * URL of a service in the local stack, on the same hostname pattern `nhost up`
  * prints: <subdomain>.<service>.local.nhost.run over TLS.

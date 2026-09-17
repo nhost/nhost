@@ -1,4 +1,3 @@
-import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { DeleteAccountCard } from '@/app/profile/DeleteAccountCard';
 import { EmailCard } from '@/app/profile/EmailCard';
@@ -7,6 +6,7 @@ import { PublicProfileCard } from '@/app/profile/PublicProfileCard';
 import { SecurityCard } from '@/app/profile/SecurityCard';
 import { graphql } from '@/gql';
 import { gqlRequest } from '@/lib/graphql';
+import { appOrigin } from '@/lib/nhost/env';
 import { createNhostClient } from '@/lib/nhost/server';
 
 const GetProfile = graphql(`
@@ -56,14 +56,11 @@ export async function ProfilePanel() {
     redirect('/restore');
   }
 
-  // The shareable link has to carry the origin this request arrived on, since
-  // the template does not know where it is deployed. Read here rather than in
-  // the card, so the card can stay a client component without reaching for
-  // `window` and disagreeing with what the server rendered.
-  const requestHeaders = await headers();
-  const host =
-    requestHeaders.get('x-forwarded-host') ?? requestHeaders.get('host');
-  const proto = requestHeaders.get('x-forwarded-proto') ?? 'http';
+  // Read here rather than in the card, so the card can stay a client component
+  // without reaching for `window` and disagreeing with what the server
+  // rendered. Configured rather than read off this request's headers, for the
+  // reason `appOrigin` gives.
+  const origin = appOrigin();
 
   return (
     <div className="flex flex-col gap-4">
@@ -74,7 +71,7 @@ export async function ProfilePanel() {
       />
       <PublicProfileCard
         userId={String(user.id)}
-        origin={`${proto}://${host}`}
+        origin={origin}
         published={metadata?.publicProfile === true}
       />
       <EmailCard
