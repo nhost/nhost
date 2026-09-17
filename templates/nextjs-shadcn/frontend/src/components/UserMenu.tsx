@@ -2,7 +2,8 @@
 
 import { Globe, LogOut, User } from 'lucide-react';
 import Link from 'next/link';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { OwnAvatarImage } from '@/components/OwnAvatarImage';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,7 +60,7 @@ export function UserMenu({
         className="cursor-pointer rounded-full outline-none ring-offset-2 ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
       >
         <Avatar className="size-8 border">
-          {avatarUrl ? <AvatarImage src={avatarUrl} alt="" /> : null}
+          <OwnAvatarImage userId={userId} avatarUrl={avatarUrl} />
           <AvatarFallback className="font-medium text-xs">
             {initial(displayName, email)}
           </AvatarFallback>
