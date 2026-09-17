@@ -40,6 +40,10 @@ var templates = []template{ //nolint:gochecknoglobals
 		name:    "nextjs-shadcn",
 		display: "Next.js + shadcn/ui",
 	},
+	{
+		name:    "react-native",
+		display: "React Native (Expo)",
+	},
 }
 
 func lookupTemplate(name string) (template, bool) {
