@@ -1,3 +1,7 @@
+// Package create implements `nhost create`, which scaffolds a new Nhost
+// project: it resolves the template, project name, target directory and
+// package manager (from flags, or by asking), materialises the template
+// alongside a generated backend, and installs the frontend's dependencies.
 package create
 
 import (
@@ -150,9 +154,25 @@ func action(ctx context.Context, cmd *cli.Command) error {
 	tmpl, _ := lookupTemplate(resolved.template)
 
 	target := resolved.dir
+
+	// Whether the target is ours decides who cleans it up: a directory the user
+	// already had is never removed, however the create ends.
+	_, statErr := os.Stat(target)
+	createdTarget := errors.Is(statErr, os.ErrNotExist)
+
 	if err := os.MkdirAll(target, 0o755); err != nil { //nolint:mnd
 		return fmt.Errorf("failed to create %s: %w", target, err)
 	}
+
+	// os.Remove, not RemoveAll: it only succeeds on an empty directory, so a
+	// failure that left anything behind surfaces rather than being deleted.
+	success := false
+
+	defer func() {
+		if !success && createdTarget {
+			_ = os.Remove(target)
+		}
+	}()
 
 	// An interactive run closed its frame by saying this, under the answers it
 	// is made of, so it is only worth saying here when nothing was asked.
@@ -171,6 +191,8 @@ func action(ctx context.Context, cmd *cli.Command) error {
 	// project in the same shape --no-install would have, so the next steps have
 	// to include the install again.
 	resolved.installNow = installFrontendDependencies(ctx, ce, resolved, target)
+
+	success = true
 
 	printNextSteps(ce, resolved, cmd.Root().Version)
 
@@ -192,7 +214,7 @@ func installFrontendDependencies(
 
 	ce.Infoln("Installing frontend dependencies with %s...", resolved.packageManager)
 
-	if err := runInstall(
+	if err := runInstallFn(
 		ctx, resolved.packageManager, filepath.Join(target, "frontend"),
 	); err != nil {
 		ce.Warnln(
@@ -473,6 +495,10 @@ func validatePackageManager(pm string) error {
 		pm, strings.Join(packageManagers(), ", "),
 	)
 }
+
+// runInstallFn is the seam the install tests replace, so that the warn-rather
+// -than-fail contract can be exercised without a package manager on PATH.
+var runInstallFn = runInstall //nolint:gochecknoglobals // test seam for the install step
 
 func runInstall(ctx context.Context, pm, dir string) error {
 	cmd := exec.CommandContext(ctx, pm, "install")
