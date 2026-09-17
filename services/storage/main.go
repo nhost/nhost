@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	serveutil "github.com/nhost/nhost/internal/lib/serve"
 	"github.com/nhost/nhost/services/storage/cmd"
 	docs "github.com/urfave/cli-docs/v3"
 	"github.com/urfave/cli/v3"
@@ -60,6 +61,10 @@ func markdownDocs() *cli.Command {
 //go:generate oapi-codegen -config api/types.cfg.yaml controller/openapi.yaml
 //go:generate gqlgenc
 func main() {
+	// SIGINT or SIGTERM cancels this context, which reaches serveutil.Run
+	// through the command action and triggers a graceful shutdown.
+	ctx := serveutil.SignalContext(context.Background())
+
 	serveCmd := cmd.CommandServe()
 	app := &cli.Command{ //nolint:exhaustruct
 		Name:    "storage",
@@ -72,7 +77,7 @@ func main() {
 		Action: serveCmd.Action,
 	}
 
-	if err := app.Run(context.Background(), os.Args); err != nil {
+	if err := app.Run(ctx, os.Args); err != nil {
 		log.Fatal(err)
 	}
 }
