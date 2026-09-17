@@ -17,7 +17,6 @@ import (
 
 	"github.com/felixge/httpsnoop"
 	serveutil "github.com/nhost/nhost/internal/lib/serve"
-	"github.com/nhost/nhost/services/engine/internal/runner"
 	"github.com/urfave/cli/v3"
 )
 
@@ -860,7 +859,7 @@ func superviseShared(
 		ReadHeaderTimeout: readHeaderTimeout,
 	}
 
-	backgroundUnits := make([]runner.Service, 0, len(services))
+	backgroundUnits := make([]serveutil.SupervisedService, 0, len(services))
 
 	for _, m := range services {
 		backgroundUnits = append(backgroundUnits, func(ctx context.Context) error {
@@ -872,9 +871,9 @@ func superviseShared(
 		})
 	}
 
-	drainUnits := []runner.Service{httpServerUnit(server, logger)}
+	drainUnits := []serveutil.SupervisedService{httpServerUnit(server, logger)}
 
-	if err := runner.Supervise(
+	if err := serveutil.Supervise(
 		ctx, shutdownTierTimeout, drainUnits, backgroundUnits,
 	); err != nil {
 		return fmt.Errorf("running services: %w", err)
@@ -886,7 +885,7 @@ func superviseShared(
 // httpServerUnit adapts the shared HTTP server into a supervised unit: it
 // listens until the server fails or ctx is cancelled, then shuts the server
 // down gracefully.
-func httpServerUnit(server *http.Server, logger *slog.Logger) runner.Service {
+func httpServerUnit(server *http.Server, logger *slog.Logger) serveutil.SupervisedService {
 	return func(ctx context.Context) error {
 		errc := make(chan error, 1)
 
