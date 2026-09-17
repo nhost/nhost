@@ -340,6 +340,49 @@ func TestCreateRejectsTemplatePathThatIsNotADirectory(t *testing.T) {
 	assertNoStagingLeftovers(t, filepath.Join(workdir, "my-app"))
 }
 
+// A template without a frontend app is rejected against the path the user
+// typed. The scaffolding reads frontend/package.json several steps later, under
+// the staging directory, and that directory is removed on the way out - so the
+// failure used to name a path that no longer existed by the time anyone read
+// it.
+//
+//nolint:paralleltest // mutates process cwd via t.Chdir
+func TestCreateRejectsTemplatePathWithoutAFrontend(t *testing.T) {
+	workdir := t.TempDir()
+	templateDir := filepath.Join(workdir, "bare-template")
+
+	writeTestFile(t, filepath.Join(templateDir, "README.md"), "# no frontend\n")
+	t.Chdir(workdir)
+
+	var output bytes.Buffer
+
+	cmd := newTestRootCommand(t, &output)
+
+	err := cmd.Run(
+		context.Background(),
+		[]string{"nhost", "create", "--template-path", templateDir, "--no-install", "my-app"},
+	)
+	if err == nil {
+		t.Fatalf("create succeeded with a template that has no frontend\n%s", output.String())
+	}
+
+	if !errors.Is(err, errTemplateMissingFrontend) {
+		t.Errorf("error = %v, want errTemplateMissingFrontend", err)
+	}
+
+	if !strings.Contains(err.Error(), templateDir) {
+		t.Errorf("error %v does not name --template-path %s", err, templateDir)
+	}
+
+	// The staging path is an implementation detail and is gone by now, so it
+	// must not be what the user is pointed at.
+	if strings.Contains(err.Error(), stagingPrefix) {
+		t.Errorf("error %v names the staging directory", err)
+	}
+
+	assertNoStagingLeftovers(t, filepath.Join(workdir, "my-app"))
+}
+
 // `--template-path ~/templates/current`, where `current` is a symlink to the
 // real template, is ordinary developer setup for the flag's offline/dev
 // audience. filepath.WalkDir does not descend into a symlinked root, so the

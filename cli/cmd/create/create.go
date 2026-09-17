@@ -450,10 +450,17 @@ func addTemplate(
 	)
 }
 
-// localTemplateDir checks that a --template-path value is a directory and
-// resolves it to a real path. Resolving matters because filepath.WalkDir does
-// not follow a symlinked root, so a symlink to a template directory would
-// otherwise copy nothing and only fail later against the staging path.
+// localTemplateDir checks that a --template-path value is a directory holding a
+// template, and resolves it to a real path. Resolving matters because
+// filepath.WalkDir does not follow a symlinked root, so a symlink to a template
+// directory would otherwise copy nothing and only fail later against the
+// staging path.
+//
+// The frontend/package.json check is here, against the path the user gave,
+// because everything downstream of it names the staging directory instead: the
+// project name patch and the package-manager doc rewrite both read that file,
+// and the staging directory is deleted on the way out, so the failure arrived
+// as a path that no longer exists.
 func localTemplateDir(local string) (string, error) {
 	resolved, err := filepath.EvalSymlinks(local)
 	if err != nil {
@@ -467,6 +474,10 @@ func localTemplateDir(local string) (string, error) {
 
 	if !info.IsDir() {
 		return "", fmt.Errorf("--template-path %q: %w", local, errTemplateNotDirectory)
+	}
+
+	if !clienv.PathExists(filepath.Join(resolved, "frontend", "package.json")) {
+		return "", fmt.Errorf("--template-path %q: %w", local, errTemplateMissingFrontend)
 	}
 
 	return resolved, nil
