@@ -455,7 +455,7 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 				User:     new("smtpUser"),
 				Password: new("smtpPassword"),
 				Sender:   new("smtpSender"),
-				Host:     new("smtpHost"),
+				Host:     new("smtp.example.com"),
 				Port:     new(uint16(587)), //nolint:mnd
 				Secure:   new(true),
 				Method:   new("LOGIN"),
