@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
 )
 
@@ -468,6 +469,20 @@ func TestTableLookupForwardFKTarget(t *testing.T) {
 			wantSchema: "",
 			wantName:   "",
 		},
+		{
+			name:       "single column shared with a composite constraint",
+			table:      sharedColumnTable(),
+			fkColumns:  []string{"org_id"},
+			wantSchema: "public",
+			wantName:   "orgs",
+		},
+		{
+			name:       "composite constraint sharing a column",
+			table:      sharedColumnTable(),
+			fkColumns:  []string{"org_id", "user_id"},
+			wantSchema: "public",
+			wantName:   "org_users",
+		},
 	}
 
 	for _, tt := range tests {
@@ -487,6 +502,94 @@ func TestTableLookupForwardFKTarget(t *testing.T) {
 					"LookupForwardFKTarget() name = %q, want %q",
 					gotName, tt.wantName,
 				)
+			}
+		})
+	}
+}
+
+// sharedColumnTable mirrors the PostgreSQL introspection order (by constraint
+// name) for a table where org_id belongs to both a single-column and a
+// composite foreign key: orders_membership_fkey sorts before
+// orders_org_id_fkey.
+func sharedColumnTable() *introspection.Table {
+	return &introspection.Table{
+		Schema: "public",
+		Name:   "orders",
+		ForeignKeys: []introspection.ForeignKey{
+			{
+				Constraint:        "orders_membership_fkey",
+				ColumnName:        "user_id",
+				ForeignSchema:     "public",
+				ForeignTable:      "org_users",
+				ForeignColumnName: "id",
+			},
+			{
+				Constraint:        "orders_membership_fkey",
+				ColumnName:        "org_id",
+				ForeignSchema:     "public",
+				ForeignTable:      "org_users",
+				ForeignColumnName: "org_id",
+			},
+			{
+				Constraint:        "orders_org_id_fkey",
+				ColumnName:        "org_id",
+				ForeignSchema:     "public",
+				ForeignTable:      "orgs",
+				ForeignColumnName: "id",
+			},
+			{
+				Constraint:        "orders_user_id_fkey",
+				ColumnName:        "user_id",
+				ForeignSchema:     "public",
+				ForeignTable:      "org_users",
+				ForeignColumnName: "id",
+			},
+		},
+	}
+}
+
+func TestTableLookupForwardFK(t *testing.T) {
+	t.Parallel()
+
+	table := sharedColumnTable()
+
+	tests := []struct {
+		name      string
+		fkColumns []string
+		want      []introspection.ForeignKey
+	}{
+		{
+			name:      "single column prefers the single-column constraint",
+			fkColumns: []string{"org_id"},
+			want:      []introspection.ForeignKey{table.ForeignKeys[2]},
+		},
+		{
+			name:      "composite columns select the composite constraint",
+			fkColumns: []string{"org_id", "user_id"},
+			want: []introspection.ForeignKey{
+				table.ForeignKeys[1],
+				table.ForeignKeys[0],
+			},
+		},
+		{
+			name:      "unmatched column returns nil",
+			fkColumns: []string{"org_id", "missing"},
+			want:      nil,
+		},
+		{
+			name:      "empty returns nil",
+			fkColumns: nil,
+			want:      nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := table.LookupForwardFK(tt.fkColumns)
+			if diff := cmp.Diff(tt.want, got); diff != "" {
+				t.Errorf("LookupForwardFK() mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}

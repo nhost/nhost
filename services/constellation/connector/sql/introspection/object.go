@@ -125,6 +125,11 @@ type Column struct {
 
 // ForeignKey represents a foreign key relationship from a column to another table.
 type ForeignKey struct {
+	// Constraint identifies the constraint this column pair belongs to, so
+	// the columns of a multi-column foreign key can be grouped back
+	// together. PostgreSQL reports the constraint name; SQLite reports the
+	// PRAGMA foreign_key_list id.
+	Constraint string
 	// ColumnName is the column in the source table that holds the foreign
 	// key.
 	ColumnName string
@@ -237,38 +242,113 @@ func (t *Table) EnumColumns() (string, string, error) {
 	return valueCol, descCol, nil
 }
 
-// LookupForwardFKTarget walks fkColumns against t.ForeignKeys and returns the
-// shared (ForeignSchema, ForeignTable) all listed columns reference. It returns
-// empty strings when any column has no matching foreign key or when the listed
-// columns disagree on the target — both indicate a metadata/introspection
-// mismatch that callers treat as a misconfigured relationship.
-func (t *Table) LookupForwardFKTarget(fkColumns []string) (string, string) {
-	var (
-		schema string
-		name   string
-	)
+// LookupForwardFK returns the ForeignKey entries for fkColumns, in fkColumns
+// order. A constraint whose column set is exactly fkColumns wins; when no
+// constraint matches exactly, each column is paired with its first matching
+// entry. It returns nil when any column has no matching foreign key.
+func (t *Table) LookupForwardFK(fkColumns []string) []ForeignKey {
+	if len(fkColumns) == 0 {
+		return nil
+	}
+
+	if fks := t.exactForwardFK(fkColumns); fks != nil {
+		return fks
+	}
+
+	fks := make([]ForeignKey, 0, len(fkColumns))
 
 	for _, col := range fkColumns {
 		matched := false
 
 		for _, fk := range t.ForeignKeys {
-			if fk.ColumnName != col {
+			if fk.ColumnName == col {
+				fks = append(fks, fk)
+				matched = true
+
+				break
+			}
+		}
+
+		if !matched {
+			return nil
+		}
+	}
+
+	return fks
+}
+
+// exactForwardFK finds a single constraint whose columns are exactly
+// fkColumns. Introspection emits the entries of one constraint contiguously,
+// so a group is a run of entries sharing a non-empty Constraint.
+func (t *Table) exactForwardFK(fkColumns []string) []ForeignKey {
+	for start := 0; start < len(t.ForeignKeys); {
+		end := start + 1
+
+		for end < len(t.ForeignKeys) &&
+			t.ForeignKeys[end].Constraint != "" &&
+			t.ForeignKeys[end].Constraint == t.ForeignKeys[start].Constraint {
+			end++
+		}
+
+		group := t.ForeignKeys[start:end]
+		start = end
+
+		if fks := matchGroup(group, fkColumns); fks != nil {
+			return fks
+		}
+	}
+
+	return nil
+}
+
+func matchGroup(group []ForeignKey, fkColumns []string) []ForeignKey {
+	if len(group) != len(fkColumns) {
+		return nil
+	}
+
+	fks := make([]ForeignKey, 0, len(fkColumns))
+	used := make([]bool, len(group))
+
+	for _, col := range fkColumns {
+		matched := false
+
+		for i, fk := range group {
+			if used[i] || fk.ColumnName != col {
 				continue
 			}
 
-			if schema == "" && name == "" {
-				schema = fk.ForeignSchema
-				name = fk.ForeignTable
-			} else if fk.ForeignSchema != schema || fk.ForeignTable != name {
-				return "", ""
-			}
-
+			fks = append(fks, fk)
+			used[i] = true
 			matched = true
 
 			break
 		}
 
 		if !matched {
+			return nil
+		}
+	}
+
+	return fks
+}
+
+// LookupForwardFKTarget resolves fkColumns through LookupForwardFK and returns
+// the shared (ForeignSchema, ForeignTable) all listed columns reference. It
+// returns empty strings when any column has no matching foreign key or when
+// the listed columns disagree on the target — both indicate a
+// metadata/introspection mismatch that callers treat as a misconfigured
+// relationship.
+func (t *Table) LookupForwardFKTarget(fkColumns []string) (string, string) {
+	var (
+		schema string
+		name   string
+	)
+
+	for _, fk := range t.LookupForwardFK(fkColumns) {
+		if schema == "" && name == "" {
+			schema = fk.ForeignSchema
+			name = fk.ForeignTable
+		} else if fk.ForeignSchema != schema || fk.ForeignTable != name {
 			return "", ""
 		}
 	}
