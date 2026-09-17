@@ -1,0 +1,53 @@
+table:
+  name: users
+  schema: auth
+configuration:
+  column_config:
+    avatar_url:
+      custom_name: avatarUrl
+    created_at:
+      custom_name: createdAt
+    display_name:
+      custom_name: displayName
+    email_verified:
+      custom_name: emailVerified
+  custom_column_names:
+    avatar_url: avatarUrl
+    created_at: createdAt
+    display_name: displayName
+    email_verified: emailVerified
+  custom_name: users
+  custom_root_fields:
+    delete: deleteUsers
+    delete_by_pk: deleteUser
+    insert: insertUsers
+    insert_one: insertUser
+    select: users
+    select_aggregate: usersAggregate
+    select_by_pk: user
+    update: updateUsers
+    update_by_pk: updateUser
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - avatar_url
+        - created_at
+        - display_name
+        - email
+        - email_verified
+        - id
+        - metadata
+      filter:
+        id:
+          _eq: X-Hasura-User-Id
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - display_name
+        - metadata
+      filter:
+        id:
+          _eq: X-Hasura-User-Id
+      check: null
