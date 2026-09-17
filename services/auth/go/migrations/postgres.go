@@ -86,6 +86,9 @@ func ApplyPostgresMigration(
 	}
 
 	db := sql.OpenDB(connector)
+	// The pool is local to this call: nothing outside it uses db, and auth serves
+	// from its own pool built on the non-migrations connection string.
+	defer db.Close()
 
 	versionToMigrate, err := checkIfWeNeedToMigrate(ctx, db)
 	if err != nil {
@@ -99,6 +102,10 @@ func ApplyPostgresMigration(
 	if err != nil {
 		return fmt.Errorf("problem creating postgres driver: %w", err)
 	}
+	// WithInstance checks out a dedicated connection and holds it for the
+	// driver's lifetime. db.Close only closes idle connections, so without this
+	// that one stays open for the rest of the process.
+	defer driver.Close()
 
 	source, err := iofs.New(postgresMigrations, "postgres")
 	if err != nil {
