@@ -82,5 +82,14 @@ rec {
       version
       buildInputs
       ;
+
+    # Ownership marker for the MCP Registry: before accepting a publish it pulls
+    # the image referenced in server.json and requires this label to match the
+    # `name` field there. Keep both in sync with services/mcp/server.json.
+    config = {
+      Labels = {
+        "io.modelcontextprotocol.server.name" = "io.github.nhost/mcp";
+      };
+    };
   };
 }

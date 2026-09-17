@@ -53,6 +53,48 @@ jobs:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
+  publish-mcp-registry:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs:
+      - push-docker-hub
+
+    permissions:
+      id-token: write  # needed to mint the OIDC token mcp-publisher logs in with
+      contents: read
+
+    defaults:
+      run:
+        working-directory: services/mcp
+
+    steps:
+      - name: "Check out repository"
+        uses: actions/checkout@v7
+
+      - name: "Install mcp-publisher"
+        run: |
+          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
+
+      - name: "Set version in server.json"
+        run: |
+          export VERSION=${{ inputs.VERSION }}
+
+          jq --arg v "$VERSION" \
+            '.version = $v | .packages[0].identifier = "docker.io/nhost/mcp:" + $v' \
+            server.json > server.json.tmp
+          mv server.json.tmp server.json
+
+          cat server.json
+
+      - name: "Validate server.json"
+        run: ./mcp-publisher validate server.json
+
+      - name: "Authenticate to MCP registry"
+        run: ./mcp-publisher login github-oidc
+
+      - name: "Publish to MCP registry"
+        run: ./mcp-publisher publish
+
   push-docker-ecr:
     uses: ./.github/workflows/wf_docker_push_image_ecr.yaml
     needs:
