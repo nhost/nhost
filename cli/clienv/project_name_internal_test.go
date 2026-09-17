@@ -60,13 +60,29 @@ func TestProjectNameFileSourceLookup(t *testing.T) {
 		},
 		// The file is committed, so it is hand-editable. A body compose would
 		// refuse has to fall through to the directory name rather than reach
-		// `docker compose -p` and fail there.
+		// `docker compose -p` and fail there. It is not trimmed into shape:
+		// `-myapp` trimmed to `myapp` would silently join a sibling project
+		// already running under that name.
 		{
-			name:      "a leading dash is trimmed rather than passed to compose",
+			name:      "a leading dash is not a source",
 			contents:  "-app\n",
 			writeFile: true,
-			want:      "app",
-			wantFound: true,
+			want:      "",
+			wantFound: false,
+		},
+		{
+			name:      "a leading dash never joins the name it would trim to",
+			contents:  "-myapp\n",
+			writeFile: true,
+			want:      "",
+			wantFound: false,
+		},
+		{
+			name:      "a leading underscore never joins the name it would trim to",
+			contents:  "_myapp\n",
+			writeFile: true,
+			want:      "",
+			wantFound: false,
 		},
 		{
 			name:      "a body compose could never accept is not a source",
