@@ -7,6 +7,7 @@ import { config, proxy } from '@/proxy';
 vi.mock('@/lib/nhost/server', () => ({
   handleNhostProxy: vi.fn(),
   LINK_TOKEN_PARAM: 'refreshToken',
+  LINK_TYPE_PARAM: 'type',
 }));
 
 // Next.js compiles config.matcher into a full-path matcher. We approximate it
@@ -42,6 +43,11 @@ describe('proxy route matcher', () => {
 });
 
 const session = { accessToken: 'header.payload.signature' } as StoredSession;
+
+const deletedSession = {
+  accessToken: 'header.payload.signature',
+  user: { metadata: { deletedAt: '2024-01-01T00:00:00.000Z' } },
+} as unknown as StoredSession;
 
 const request = (path: string): NextRequest =>
   new NextRequest(`http://localhost:3000${path}`);
@@ -166,6 +172,45 @@ describe('proxy auth email links', () => {
     stubNhostProxy(session);
 
     expectPassthrough(await proxy(request('/reset-password')));
+  });
+});
+
+// The grace period is supposed to make an account unusable while it is pending
+// deletion, not just hide the profile page. Leaving the check to each page is
+// what let every route except `/profile` keep working normally.
+describe('proxy accounts marked for deletion', () => {
+  const expectRestoreRedirect = (response: NextResponse): void => {
+    expect(response.status).toBe(307);
+    expect(new URL(response.headers.get('location') ?? '').pathname).toBe(
+      '/restore',
+    );
+  };
+
+  it('sends a marked account to the restore screen from anywhere', async () => {
+    stubNhostProxy(deletedSession);
+
+    for (const path of ['/', '/protected', '/profile', '/u/someone']) {
+      expectRestoreRedirect(await proxy(request(path)));
+    }
+  });
+
+  it('leaves the restore screen and sign-in reachable', async () => {
+    stubNhostProxy(deletedSession);
+
+    expectPassthrough(await proxy(request('/restore')));
+    expectPassthrough(await proxy(request('/signin')));
+  });
+
+  it('does not gate an account that is not marked', async () => {
+    stubNhostProxy(session);
+
+    expectPassthrough(await proxy(request('/protected')));
+  });
+
+  it('does not gate an anonymous visitor', async () => {
+    stubNhostProxy(null);
+
+    expectPassthrough(await proxy(request('/')));
   });
 });
 
