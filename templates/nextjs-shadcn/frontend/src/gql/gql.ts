@@ -14,6 +14,7 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 type Documents = {
+    "\n  query HasTodos {\n    todos(limit: 1) {\n      id\n    }\n  }\n": typeof types.HasTodosDocument,
     "\n  mutation SetDisplayName($id: uuid!, $displayName: String!) {\n    updateUser(pk_columns: { id: $id }, _set: { displayName: $displayName }) {\n      id\n      displayName\n    }\n  }\n": typeof types.SetDisplayNameDocument,
     "\n  query GetUserMetadata($id: uuid!) {\n    user(id: $id) {\n      id\n      metadata\n    }\n  }\n": typeof types.GetUserMetadataDocument,
     "\n  mutation SetUserMetadata($id: uuid!, $metadata: jsonb!) {\n    updateUser(pk_columns: { id: $id }, _set: { metadata: $metadata }) {\n      id\n    }\n  }\n": typeof types.SetUserMetadataDocument,
@@ -24,6 +25,7 @@ type Documents = {
     "\n  query GetNavProfile($id: uuid!) {\n    user(id: $id) {\n      id\n      displayName\n      avatarUrl\n    }\n  }\n": typeof types.GetNavProfileDocument,
 };
 const documents: Documents = {
+    "\n  query HasTodos {\n    todos(limit: 1) {\n      id\n    }\n  }\n": types.HasTodosDocument,
     "\n  mutation SetDisplayName($id: uuid!, $displayName: String!) {\n    updateUser(pk_columns: { id: $id }, _set: { displayName: $displayName }) {\n      id\n      displayName\n    }\n  }\n": types.SetDisplayNameDocument,
     "\n  query GetUserMetadata($id: uuid!) {\n    user(id: $id) {\n      id\n      metadata\n    }\n  }\n": types.GetUserMetadataDocument,
     "\n  mutation SetUserMetadata($id: uuid!, $metadata: jsonb!) {\n    updateUser(pk_columns: { id: $id }, _set: { metadata: $metadata }) {\n      id\n    }\n  }\n": types.SetUserMetadataDocument,
@@ -48,6 +50,10 @@ const documents: Documents = {
  */
 export function graphql(source: string): unknown;
 
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query HasTodos {\n    todos(limit: 1) {\n      id\n    }\n  }\n"): (typeof documents)["\n  query HasTodos {\n    todos(limit: 1) {\n      id\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
