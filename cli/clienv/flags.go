@@ -50,6 +50,7 @@ func Flags() ([]cli.Flag, error) { //nolint:funlen
 	workingDir := "."
 	dotNhostFolder := filepath.Join(workingDir, ".nhost")
 	nhostFolder := filepath.Join(workingDir, "nhost")
+	paths := NewPathStructure(fullWorkingDir, workingDir, dotNhostFolder, nhostFolder)
 
 	return []cli.Flag{
 		&cli.StringFlag{ //nolint:exhaustruct
@@ -81,7 +82,7 @@ func Flags() ([]cli.Flag, error) { //nolint:funlen
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:        flagBranch,
-			Usage:       "Git branch name. If not set, it will be detected from the current git repository. This flag is used to dynamically create docker volumes for each branch. If you want to have a static volume name or if you are not using git, set this flag to a static value.", //nolint:lll
+			Usage:       "Branch name used to namespace this project's docker volumes (detected from git by default)",
 			Sources:     cli.EnvVars("BRANCH"),
 			Value:       branch,
 			DefaultText: "<current-git-branch>",
@@ -89,21 +90,21 @@ func Flags() ([]cli.Flag, error) { //nolint:funlen
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:     flagRootFolder,
-			Usage:    "Root folder of project\n\t",
+			Usage:    "Root folder of project",
 			Sources:  cli.EnvVars("NHOST_ROOT_FOLDER"),
 			Value:    workingDir,
 			Category: "Project structure",
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:     flagDotNhostFolder,
-			Usage:    "Path to .nhost folder\n\t",
+			Usage:    "Path to .nhost folder",
 			Sources:  cli.EnvVars("NHOST_DOT_NHOST_FOLDER"),
 			Value:    dotNhostFolder,
 			Category: "Project structure",
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:     flagNhostFolder,
-			Usage:    "Path to nhost folder\n\t",
+			Usage:    "Path to nhost folder",
 			Sources:  cli.EnvVars("NHOST_NHOST_FOLDER"),
 			Value:    nhostFolder,
 			Category: "Project structure",
@@ -112,8 +113,11 @@ func Flags() ([]cli.Flag, error) { //nolint:funlen
 			Name:        flagProjectName,
 			Usage:       "Project name",
 			Value:       filepath.Base(fullWorkingDir),
-			DefaultText: "<project-directory-name>",
-			Sources:     cli.EnvVars("NHOST_PROJECT_NAME"),
+			DefaultText: "<nhost/project-name or directory name>",
+			Sources: cli.NewValueSourceChain(
+				cli.EnvVar("NHOST_PROJECT_NAME"),
+				&projectNameFileSource{path: paths.ProjectNameFile()},
+			),
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:    flagLocalSubdomain,
