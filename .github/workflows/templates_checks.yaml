@@ -86,11 +86,17 @@ jobs:
 
       # npm, not pnpm: this is what the functions runtime installs, and the
       # template commits a package-lock.json for it.
+      #
+      # The compiler is invoked by path rather than through `npx`. A runner has
+      # no global TypeScript, and `npx tsc` answers that by downloading `tsc`
+      # from the registry - an unrelated squatted package that exits 1 with a
+      # riddle instead of a type error. By path, a missing dependency is an
+      # honest "No such file or directory" and nothing is ever fetched.
       - name: Type-check the serverless functions
         working-directory: templates/${{ matrix.template }}/backend/functions
         run: |
           npm ci
-          npx tsc --noEmit
+          ./node_modules/.bin/tsc --noEmit
 
       - name: Parse the backend metadata and the MCP config
         run: |
@@ -100,14 +106,26 @@ jobs:
           template = pathlib.Path(sys.argv[1])
           failed = False
 
+          # Counted, because `rglob` on a directory that is not there yields
+          # nothing and raises nothing. Renaming or moving the metadata would
+          # otherwise leave this step reporting success having read no rules at
+          # all - the same vacuous pass `check-agent-context.sh` guards against.
           metadata = template / "backend/nhost/metadata"
+          parsed = 0
           for path in sorted(metadata.rglob("*.yaml")):
+              parsed += 1
               try:
                   yaml.safe_load(path.read_text())
               except yaml.YAMLError as err:
                   print(f"::error file={path}::{err}")
                   failed = True
 
+          if parsed == 0:
+              print(f"::error::{metadata} holds no YAML to parse.")
+              failed = True
+
+          # Required of every template by templates/README.md, so its absence is
+          # a failure rather than a step to skip.
           mcp = template / ".mcp.json"
           if mcp.is_file():
               try:
@@ -115,7 +133,11 @@ jobs:
               except json.JSONDecodeError as err:
                   print(f"::error file={mcp}::{err}")
                   failed = True
+          else:
+              print(f"::error::{mcp} is missing.")
+              failed = True
 
+          print(f"parsed {parsed} metadata file(s)")
           sys.exit(1 if failed else 0)
           PY
 
