@@ -602,6 +602,45 @@ func TestRunInteractivePreselectsFlagChoices(t *testing.T) {
 
 // The create ends by saying what it made and where, so the commands under it
 // are read against a project that has been reported as created.
+// A development build is not the `nhost` on anyone's PATH. Telling the user to
+// run that one sends them to whatever release they installed, which knows
+// nothing of the project name file and names the compose project after the
+// directory, so the backend comes up as backend-* rather than as the project.
+func TestPrintNextStepsNamesTheBuildThatScaffolded(t *testing.T) {
+	t.Parallel()
+
+	exe, err := os.Executable()
+	if err != nil {
+		t.Fatalf("Executable: %v", err)
+	}
+
+	var output bytes.Buffer
+
+	printNextSteps(newTestEnv(&output), choices{
+		template:       defaultTemplate,
+		name:           "demo",
+		rel:            "demo",
+		packageManager: defaultPackageManager,
+		installNow:     true,
+	}, devVersion)
+
+	if !strings.Contains(output.String(), "cd demo/backend && "+exe+" up") {
+		t.Errorf("a dev build did not hand back itself:\n%s", output.String())
+	}
+}
+
+func TestNhostCommand(t *testing.T) {
+	t.Parallel()
+
+	if got := nhostCommand("1.51.0"); got != "nhost" {
+		t.Errorf("nhostCommand(release) = %q, want %q", got, "nhost")
+	}
+
+	if got := nhostCommand(devVersion); got == "nhost" {
+		t.Error("nhostCommand(dev) = \"nhost\", want the running executable")
+	}
+}
+
 func TestPrintNextStepsAnnouncesTheProject(t *testing.T) {
 	t.Parallel()
 
@@ -613,7 +652,7 @@ func TestPrintNextStepsAnnouncesTheProject(t *testing.T) {
 		rel:            "demo",
 		packageManager: defaultPackageManager,
 		installNow:     true,
-	})
+	}, "1.0.0")
 
 	if !strings.Contains(output.String(), "Created demo in ./demo") {
 		t.Errorf("the project was never announced:\n%s", output.String())
@@ -669,7 +708,7 @@ func TestPrintNextStepsUsesManagerScriptSyntax(t *testing.T) {
 				rel:            tt.rel,
 				packageManager: tt.packageManager,
 				installNow:     false,
-			})
+			}, "1.0.0")
 
 			if !strings.Contains(output.String(), tt.wantDev) {
 				t.Errorf("next steps missing %q:\n%s", tt.wantDev, output.String())

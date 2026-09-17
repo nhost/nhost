@@ -172,7 +172,7 @@ func action(ctx context.Context, cmd *cli.Command) error {
 	// to include the install again.
 	resolved.installNow = installFrontendDependencies(ctx, ce, resolved, target)
 
-	printNextSteps(ce, resolved)
+	printNextSteps(ce, resolved, cmd.Root().Version)
 
 	return nil
 }
@@ -503,12 +503,32 @@ func packageManagerScript(pm, script string) string {
 	return fmt.Sprintf("%s %s", pm, strings.Join(packageManagerArgs(pm, script), " "))
 }
 
-func printNextSteps(ce *clienv.CliEnv, resolved choices) {
+func printNextSteps(ce *clienv.CliEnv, resolved choices, version string) {
 	ce.Println("")
 	ce.Infoln("Created %s in %s", resolved.name, resolved.where())
 	ce.Println("")
 	ce.Println("Next steps:")
-	printStartCommands(ce, resolved)
+	printStartCommands(ce, resolved, nhostCommand(version))
+}
+
+// nhostCommand is how the next steps spell this CLI. A released build is on the
+// PATH under its own name, so `nhost` is what to say. A development build is
+// not: `nhost` there is whatever release the user installed, and one older than
+// the project name file names the compose project after the directory it runs
+// in, so the containers come up called backend-* rather than after the project.
+// A dev build names itself, so the commands handed back are the ones that were
+// just used to scaffold.
+func nhostCommand(version string) string {
+	if version != devVersion {
+		return "nhost"
+	}
+
+	exe, err := os.Executable()
+	if err != nil {
+		return "nhost"
+	}
+
+	return exe
 }
 
 // printStartCommands prints the two commands that bring the project up, in the
@@ -517,11 +537,11 @@ func printNextSteps(ce *clienv.CliEnv, resolved choices) {
 //
 // Running them is left to the user. They own the two processes either way, so
 // starting them here would only take away the terminal that stops them.
-func printStartCommands(ce *clienv.CliEnv, resolved choices) {
+func printStartCommands(ce *clienv.CliEnv, resolved choices, nhost string) {
 	devCommand := packageManagerScript(resolved.packageManager, "dev")
 
 	ce.Println("  1. Start the backend:")
-	ce.Println("       cd %s && nhost up", resolved.path("backend"))
+	ce.Println("       cd %s && %s up", resolved.path("backend"), nhost)
 	ce.Println("  2. In another terminal, start the frontend:")
 
 	if resolved.installNow {
