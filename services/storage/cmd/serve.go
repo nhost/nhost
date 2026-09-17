@@ -512,11 +512,16 @@ func NewService(
 	ctx context.Context,
 	cmd *cli.Command,
 	logger *slog.Logger,
-) (*serveutil.Service, error) {
+) (_ *serveutil.Service, err error) {
 	cleanups := &serveutil.Cleanups{}
 
-	keepResources := false
-	defer cleanups.Release(&keepResources)
+	// Release everything acquired so far if construction fails. On success the
+	// returned Service owns the cleanups and frees them through its Close.
+	defer func() {
+		if err != nil {
+			cleanups.Close()
+		}
+	}()
 
 	imageTransformer := newImageTransformer(ctx, cmd, logger)
 	cleanups.Add(imageTransformer.Shutdown)
@@ -556,8 +561,6 @@ func NewService(
 	if err != nil {
 		return nil, err
 	}
-
-	keepResources = true
 
 	return &serveutil.Service{
 		Handler:    handler,

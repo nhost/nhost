@@ -1,6 +1,7 @@
 package serve_test
 
 import (
+	"errors"
 	"reflect"
 	"sync"
 	"sync/atomic"
@@ -108,7 +109,21 @@ func TestCleanupsAddAfterCloseRunsImmediately(t *testing.T) {
 	}
 }
 
-func TestCleanupsReleaseRunsHooksInReverseOrderWhenNotKept(t *testing.T) {
+var errConstruction = errors.New("construction failed")
+
+// construct mirrors the fallible-construction pattern documented on Cleanups:
+// the named error result alone decides whether the acquired hooks are released.
+func construct(cleanups *serveutil.Cleanups, failure error) (err error) {
+	defer func() {
+		if err != nil {
+			cleanups.Close()
+		}
+	}()
+
+	return failure
+}
+
+func TestCleanupsConstructionFailureRunsHooksInReverseOrder(t *testing.T) {
 	t.Parallel()
 
 	var got []string
@@ -117,33 +132,29 @@ func TestCleanupsReleaseRunsHooksInReverseOrderWhenNotKept(t *testing.T) {
 	cleanups.Add(func() { got = append(got, "first") })
 	cleanups.Add(func() { got = append(got, "second") })
 
-	func() {
-		keep := false
-		defer cleanups.Release(&keep)
-	}()
+	if err := construct(cleanups, errConstruction); !errors.Is(err, errConstruction) {
+		t.Fatalf("construct() = %v; want %v", err, errConstruction)
+	}
 
 	want := []string{"second", "first"}
 	if !reflect.DeepEqual(got, want) {
-		t.Errorf("Release order = %v; want %v", got, want)
+		t.Errorf("release order = %v; want %v", got, want)
 	}
 }
 
-func TestCleanupsReleaseKeepsHooks(t *testing.T) {
+func TestCleanupsConstructionSuccessKeepsHooks(t *testing.T) {
 	t.Parallel()
 
 	called := false
 	cleanups := &serveutil.Cleanups{}
 	cleanups.Add(func() { called = true })
 
-	func() {
-		keep := false
-		defer cleanups.Release(&keep)
-
-		keep = true
-	}()
+	if err := construct(cleanups, nil); err != nil {
+		t.Fatalf("construct() = %v; want nil", err)
+	}
 
 	if called {
-		t.Error("Release ran a hook marked to keep")
+		t.Error("a hook ran despite construction succeeding")
 	}
 
 	cleanups.Close()

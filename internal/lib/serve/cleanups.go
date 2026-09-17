@@ -15,6 +15,24 @@ import (
 // It may therefore run concurrently with hooks that Close is still running.
 // Hooks must not call Close: Close blocks concurrent callers until its hooks
 // finish, so re-entering it from a hook deadlocks.
+//
+// A fallible construction sequence should release what it acquired on the way
+// out, and hand ownership to its caller only once it succeeds. Name the error
+// result and close on it, so the decision tracks the returned error itself
+// rather than a separate flag that can drift from it:
+//
+//	func New() (svc *Service, err error) {
+//		cleanups := &serve.Cleanups{}
+//
+//		defer func() {
+//			if err != nil {
+//				cleanups.Close()
+//			}
+//		}()
+//		// Acquire resources and add their release hooks.
+//
+//		return &Service{Close: cleanups.Close}, nil
+//	}
 type Cleanups struct {
 	mu       sync.Mutex
 	cleanups []func()
@@ -34,22 +52,6 @@ func (c *Cleanups) Add(cleanup func()) {
 
 	c.cleanups = append(c.cleanups, cleanup)
 	c.mu.Unlock()
-}
-
-// Release runs the registered hooks unless keep is true. Defer it immediately
-// after constructing the Cleanups and set keep on the success path, so a
-// fallible construction sequence releases everything it acquired on the way
-// out:
-//
-//	cleanups := &serve.Cleanups{}
-//	keep := false
-//	defer cleanups.Release(&keep)
-//	// Acquire resources and add their release hooks.
-//	keep = true
-func (c *Cleanups) Release(keep *bool) {
-	if !*keep {
-		c.Close()
-	}
 }
 
 // Close runs the registered release hooks in reverse order exactly once.
