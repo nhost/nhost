@@ -27,13 +27,16 @@ function markedDeleted(session: StoredSession | null): boolean {
 export async function proxy(request: NextRequest): Promise<NextResponse> {
   const path = request.nextUrl.pathname;
 
-  const { session, applySessionCookies, consumedLinkToken } =
-    await handleNhostProxy(request);
+  const { session, applySessionCookies } = await handleNhostProxy(request);
 
-  // The refresh token from an auth email is now in the session cookie, so
-  // bounce to the same page without it: query strings leak through history,
-  // bookmarks and the referer header.
-  if (consumedLinkToken) {
+  // A refresh token has no business staying in the address bar: query strings
+  // leak through history, bookmarks and the referer header.
+  //
+  // Whenever one is there, not only when it was redeemed. A token the proxy
+  // declined - wrong path, or a type no auth email sends - was never spent,
+  // which makes it a *live* credential sitting in the URL for the whole month
+  // until it expires, where a redeemed one has already been rotated away.
+  if (request.nextUrl.searchParams.has(LINK_TOKEN_PARAM)) {
     const clean = request.nextUrl.clone();
     clean.searchParams.delete(LINK_TOKEN_PARAM);
     clean.searchParams.delete(LINK_TYPE_PARAM);

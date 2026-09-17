@@ -8,7 +8,7 @@ import { appOrigin } from '@/lib/nhost/env';
 import {
   clearPasswordResetGrant,
   createNhostClient,
-  hasPasswordResetGrant,
+  passwordResetGrantUserId,
 } from '@/lib/nhost/server';
 
 type ActionResult = { error?: string; success?: boolean };
@@ -169,13 +169,18 @@ export async function changeEmail(newEmail: string): Promise<ActionResult> {
  * change has to boot whoever else was signed in. Without the sign-in that
  * follows, it also boots the person who just made the change.
  *
- * Taking over an account that already has a password needs one of two proofs,
- * and the server decides which it got. Knowing the current password is one:
- * `currentPassword` is verified by signing in with it, because Nhost's own
- * endpoint does not ask for it. Having just followed a reset link is the
- * other, and the proxy records that as a grant cookie when it redeems the
- * link - the client cannot claim it by leaving an argument out, which is what
- * made this bypassable before.
+ * Setting a password on an account that already has one needs one of two
+ * proofs, and the server decides which it got. Knowing the current password is
+ * one: `currentPassword` is verified by signing in with it, because Nhost's own
+ * endpoint does not ask for it. Having just followed a reset link is the other,
+ * and the proxy records that as a grant cookie when it redeems the link, so the
+ * client cannot claim it by leaving an argument out.
+ *
+ * The grant names the account it was issued for, and is only accepted for that
+ * account. Without the comparison it would mean no more than "some reset link
+ * was redeemed in this browser" - equally true of a browser that redeemed one
+ * for a *different* account, and spending that here would set this account's
+ * password on the strength of proof about somebody else's.
  */
 export async function changePassword(
   newPassword: string,
@@ -192,7 +197,8 @@ export async function changePassword(
     return { error: 'Sign in to change your password.' };
   }
 
-  const resetGrant = await hasPasswordResetGrant();
+  // A grant issued for somebody else is no grant at all.
+  const resetGrant = (await passwordResetGrantUserId()) === user.id;
 
   if (!resetGrant) {
     let accountHasPassword: boolean;

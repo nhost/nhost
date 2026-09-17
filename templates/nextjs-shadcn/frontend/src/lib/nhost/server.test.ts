@@ -103,6 +103,51 @@ describe('session cookie options', () => {
   });
 });
 
+const loadGrant = async (
+  nodeEnv: string,
+): Promise<{ name: string; options: { secure: boolean; maxAge: number } }> => {
+  vi.stubEnv('NODE_ENV', nodeEnv);
+  vi.resetModules();
+
+  const mod = await import('@/lib/nhost/server');
+
+  return {
+    name: mod.PASSWORD_RESET_GRANT_COOKIE,
+    options: mod.passwordResetGrantOptions,
+  };
+};
+
+// The grant is an exemption from re-authentication, so what bounds it is the
+// cookie's own contract rather than anything in the flow that reads it.
+describe('password reset grant cookie options', () => {
+  it('is httpOnly, scoped to the site, and short-lived', async () => {
+    const { options } = await loadGrant('development');
+
+    expect(options).toEqual({
+      httpOnly: true,
+      path: '/',
+      sameSite: 'lax',
+      secure: false,
+      maxAge: 15 * 60,
+    });
+  });
+
+  // `__Host-` pins the cookie to this exact host, so a sibling subdomain
+  // cannot plant one. The prefix requires Secure, which is why it is only
+  // taken in production - development serves plain http on localhost.
+  it('takes the __Host- prefix once it can be secure', async () => {
+    const production = await loadGrant('production');
+
+    expect(production.name).toBe('__Host-nhostPasswordResetGrant');
+    expect(production.options.secure).toBe(true);
+
+    const development = await loadGrant('development');
+
+    expect(development.name).toBe('nhostPasswordResetGrant');
+    expect(development.options.secure).toBe(false);
+  });
+});
+
 const proxyRequest = (cookie?: string): NextRequest =>
   new NextRequest(
     'http://localhost:3000/protected',
@@ -237,11 +282,12 @@ describe('proxy auth link redemption', () => {
   const linkRequest = (path: string, query: string): NextRequest =>
     new NextRequest(`http://localhost:3000${path}${query}`);
 
-  const refreshed = (): Record<string, unknown> => ({
-    accessToken: accessToken('link-user-id'),
+  const refreshed = (userId = 'link-user-id'): Record<string, unknown> => ({
+    accessToken: accessToken(userId),
     accessTokenExpiresIn: 900,
     refreshTokenId: 'link-refresh-token-id',
     refreshToken: 'link-refresh-token',
+    user: { id: userId },
   });
 
   it('redeems a token an auth email could have produced', async () => {
@@ -273,6 +319,11 @@ describe('proxy auth link redemption', () => {
       '?refreshToken=abc',
       '?refreshToken=abc&type=',
       '?refreshToken=abc&type=somethingElse',
+      // The `LinkType` spellings, which name the same things but are not what
+      // the verify redirect carries. Accepting these instead of the real ones
+      // is the mistake this pins down.
+      '?refreshToken=abc&type=emailVerify',
+      '?refreshToken=abc&type=signinPasswordless',
     ]) {
       const fetchStub = stubRefreshToken(200, refreshed());
 
@@ -285,9 +336,95 @@ describe('proxy auth link redemption', () => {
     }
   });
 
+  // Every ticket type `getTicketType` can put on the redirect, so a template
+  // that grows a magic-link or verification flow redeems the link rather than
+  // dropping the visitor on an anonymous page.
+  it('redeems every type the auth service actually emits', async () => {
+    for (const type of [
+      'emailConfirmChange',
+      'passwordlessEmail',
+      'passwordReset',
+      'verifyEmail',
+    ]) {
+      const fetchStub = stubRefreshToken(200, refreshed());
+
+      const { consumedLinkToken } = await handleNhostProxy(
+        linkRequest('/profile', `?refreshToken=abc&type=${type}`),
+      );
+
+      expect(consumedLinkToken, type).toBe(true);
+      expect(fetchStub).toHaveBeenCalledOnce();
+    }
+  });
+
+  // Narrowing redemption to the paths auth emails land on reduced login CSRF
+  // but did not end it: a crafted link on one of those paths would still swap
+  // a signed-in visitor's session for the attacker's, and the proxy would then
+  // strip the parameters so nothing was left to notice.
+  it('refuses a token for an account other than the one signed in', async () => {
+    vi.stubGlobal('console', { ...console, error: vi.fn() });
+
+    // Answers by which token was sent, because two different exchanges happen
+    // on this one request: the link's token, which must be refused, and then
+    // the visitor's own, which must still go through as it always does.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (_url: unknown, init: { body?: string }) => {
+        const sentLinkToken = String(init?.body ?? '').includes('"abc"');
+
+        return new Response(
+          JSON.stringify(
+            sentLinkToken
+              ? refreshed('somebody-else')
+              : {
+                  accessToken: accessToken('user-id'),
+                  accessTokenExpiresIn: 900,
+                  refreshTokenId: 'own-refresh-token-id',
+                  refreshToken: 'own-refresh-token',
+                  user: { id: 'user-id' },
+                },
+          ),
+          { status: 200, headers: { 'content-type': 'application/json' } },
+        );
+      }),
+    );
+
+    const request = new NextRequest(
+      'http://localhost:3000/profile?refreshToken=abc&type=emailConfirmChange',
+      { headers: { cookie: signedInCookie } },
+    );
+
+    const { session: result, applySessionCookies } =
+      await handleNhostProxy(request);
+
+    // The visitor is still themselves, on this request and on the response the
+    // browser will keep.
+    expect(result?.refreshToken).toBe('own-refresh-token');
+    expect(cookieSession(request.cookies)?.user?.id).toBe('user-id');
+    expect(
+      cookieSession(applySessionCookies(NextResponse.next()).cookies)?.user?.id,
+    ).toBe('user-id');
+  });
+
+  // The same link is how a signed-out visitor gets in, and how a signed-in one
+  // confirms their own email change, so neither may be refused.
+  it('redeems a token for the account already signed in', async () => {
+    stubRefreshToken(200, refreshed('user-id'));
+
+    const { consumedLinkToken } = await handleNhostProxy(
+      new NextRequest(
+        'http://localhost:3000/profile?refreshToken=abc&type=emailConfirmChange',
+        { headers: { cookie: signedInCookie } },
+      ),
+    );
+
+    expect(consumedLinkToken).toBe(true);
+  });
+
   // The grant is the server's own record that this browser followed a reset
   // link, and it is what `changePassword` accepts in place of the current
-  // password. Nothing the client sends can stand in for it.
+  // password. It names the account it was issued for, so it cannot be carried
+  // to a different one.
   it('grants a password reset only for a passwordReset link', async () => {
     stubRefreshToken(200, refreshed());
 
@@ -296,10 +433,31 @@ describe('proxy auth link redemption', () => {
     );
     const granted = applySessionCookies(NextResponse.next());
 
-    expect(granted.cookies.get(PASSWORD_RESET_GRANT_COOKIE)?.value).toBe('1');
-    expect(granted.headers.getSetCookie()).toContainEqual(
-      expect.stringContaining('HttpOnly'),
+    expect(granted.cookies.get(PASSWORD_RESET_GRANT_COOKIE)?.value).toBe(
+      'link-user-id',
     );
+  });
+
+  // Asserted against the grant's own Set-Cookie line rather than against the
+  // whole list: the session cookie is deliberately not httpOnly, so "some
+  // cookie on this response is HttpOnly" would pass while saying nothing about
+  // this one.
+  it('sets the grant with the flags that bound it', async () => {
+    stubRefreshToken(200, refreshed());
+
+    const { applySessionCookies } = await handleNhostProxy(
+      linkRequest('/reset-password', '?refreshToken=abc&type=passwordReset'),
+    );
+
+    const grant = applySessionCookies(NextResponse.next())
+      .headers.getSetCookie()
+      .find((line) => line.startsWith(`${PASSWORD_RESET_GRANT_COOKIE}=`));
+
+    expect(grant).toBeDefined();
+    expect(grant).toContain('HttpOnly');
+    expect(grant).toContain('Path=/');
+    expect(grant).toContain('SameSite=lax');
+    expect(grant).toContain('Max-Age=900');
   });
 
   it('grants nothing for an email-change link', async () => {
