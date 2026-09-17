@@ -20,20 +20,39 @@ import (
 // cannot hold and that nothing better can be done with than dropping it.
 var sanitizeNameDrop = regexp.MustCompile(`[^a-zA-Z0-9._-]`)
 
-// sanitizeName turns a project name into one docker compose accepts: lower
-// case, `[a-z0-9][a-z0-9_-]*`.
+// sanitizeName turns a project name into one docker compose accepts --
+// `[a-z0-9][a-z0-9_-]*` -- or into the empty string, which every caller treats
+// as a name it cannot use.
 //
-// A dot becomes a dash rather than being dropped, because dropping it merged
-// names that are different projects -- `my.app` and `myapp` both became
-// `myapp`, so two sibling projects shared one set of containers and one
-// Postgres volume. Compose also refuses a leading dash or underscore, so
-// anything before the first letter or digit goes; the empty string that leaves
-// for a name with nothing usable in it is what callers treat as unusable.
+// A dot becomes a dash rather than being dropped. Dropping it merged names that
+// are different projects: `my.app` and `myapp` both became `myapp`, so two
+// sibling projects shared one set of containers and one Postgres volume. The
+// mapping reduces those collisions rather than removing them -- no mapping into
+// compose's narrower alphabet can be one-to-one, and `my.app` and `my-app` now
+// land on the same `my-app`.
+//
+// A name that still leads with a dash or underscore is rejected rather than
+// trimmed into shape, because trimming merged `_myapp` into a neighbouring
+// `myapp` and quietly handed it that project's volume. Compose refuses such a
+// name anyway, so rejecting it turns silent sharing back into an error the
+// caller reports.
 func sanitizeName(name string) string {
 	lowered := strings.ToLower(sanitizeNameDrop.ReplaceAllString(name, ""))
-	lowered = strings.ReplaceAll(lowered, ".", "-")
 
-	return strings.TrimLeft(lowered, "-_")
+	// Leading dots go before the mapping below, so `.app` stays `app` rather
+	// than turning into a `-app` this function would then have to reject.
+	lowered = strings.ReplaceAll(strings.TrimLeft(lowered, "."), ".", "-")
+
+	if lowered == "" || !isComposeNameStart(lowered[0]) {
+		return ""
+	}
+
+	return lowered
+}
+
+// isComposeNameStart reports whether b can open a docker compose project name.
+func isComposeNameStart(b byte) bool {
+	return (b >= 'a' && b <= 'z') || (b >= '0' && b <= '9')
 }
 
 type CliEnv struct {
