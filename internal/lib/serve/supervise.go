@@ -14,9 +14,9 @@ var (
 	// so a panic surfaces as an ordinary joined error instead of crashing the whole
 	// process.
 	ErrServicePanic = errors.New("service panicked")
-	// errShutdownTimeout reports that a tier still had running services after its
+	// ErrShutdownTimeout reports that a tier still had running services after its
 	// shutdown grace period. Later tiers are still cancelled and awaited.
-	errShutdownTimeout = errors.New("service shutdown timed out")
+	ErrShutdownTimeout = errors.New("service shutdown timed out")
 )
 
 // SupervisedService is a long-running service: it blocks until its work is done
@@ -122,7 +122,7 @@ func shutdownTier(
 		case <-timer.C:
 			return append(errs, fmt.Errorf(
 				"%w: tier %d still has %d running service(s)",
-				errShutdownTimeout, tierIndex, remaining,
+				ErrShutdownTimeout, tierIndex, remaining,
 			))
 		}
 	}
