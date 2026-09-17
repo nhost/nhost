@@ -12,6 +12,9 @@ trap 'rm -rf "$temp_dir"' EXIT
 source_file="$temp_dir/plugins.md"
 target_file="$temp_dir/extensions.mdx"
 expected_file="$temp_dir/expected.mdx"
+reversed_target_file="$temp_dir/reversed-extensions.mdx"
+reversed_expected_file="$temp_dir/reversed-expected.mdx"
+error_file="$temp_dir/error.log"
 
 cat >"$source_file" <<'EOF'
 | Name | Version | Description |
@@ -41,3 +44,20 @@ EOF
 
 build_postgres_extensions "$source_file" "$target_file" >/dev/null
 diff -u "$expected_file" "$target_file"
+
+cat >"$reversed_target_file" <<'EOF'
+before
+{/*END GENERATED POSTGRES EXTENSIONS*/}
+stale content
+{/*BEGIN GENERATED POSTGRES EXTENSIONS*/}
+after
+EOF
+cp "$reversed_target_file" "$reversed_expected_file"
+
+if build_postgres_extensions "$source_file" "$reversed_target_file" >"$error_file" 2>&1; then
+	echo "expected reversed marker order to fail"
+	exit 1
+fi
+
+grep -Fq "end marker must follow its start marker" "$error_file"
+diff -u "$reversed_expected_file" "$reversed_target_file"

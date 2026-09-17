@@ -112,6 +112,15 @@ function build_postgres_extensions() {
 		return 1
 	fi
 
+	local start_marker_line
+	start_marker_line=$(grep -Fnx "$start_marker" "$target" | cut -d: -f1)
+	local end_marker_line
+	end_marker_line=$(grep -Fnx "$end_marker" "$target" | cut -d: -f1)
+	if ((end_marker_line <= start_marker_line)); then
+		echo "Error: generated Postgres extensions end marker must follow its start marker in '$target'"
+		return 1
+	fi
+
 	local temp_file
 	temp_file=$(mktemp)
 
