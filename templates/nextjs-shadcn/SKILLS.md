@@ -219,6 +219,8 @@ EOF
 
 Rename the file and adapt the handler to the requested endpoint. Prefix shared helper directories with `_`, such as `backend/functions/_utils/`, so they are not exposed as routes. Validate request bodies and headers before using them, return explicit HTTP status codes, and never log tokens or secrets.
 
+The project ships `backend/functions/avatar.ts` as a working reference: it authenticates the caller against the auth service, validates the body, and calls the storage API and GraphQL as admin through the `NHOST_*` environment variables the runtime provides. One constraint to design around: the runtime bundles each function with esbuild, and native modules do not survive bundling. sharp fails at runtime, which is why the avatar function resizes with pure-JS jimp; pick pure-JS dependencies for functions.
+
 ### 2. Start the local runtime
 
 Start the backend from its directory:

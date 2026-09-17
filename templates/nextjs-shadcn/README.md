@@ -34,7 +34,7 @@ pnpm install
 pnpm dev
 ```
 
-Open <http://localhost:3000>. The home page reports GraphQL connectivity and links to the email one-time-code sign-in flow and protected todos page.
+Open <http://localhost:3000>. The home page reports GraphQL connectivity and links to the sign-in flow, the protected todos page, and, once signed in, your profile.
 
 The default environment points to the local backend:
 
@@ -98,13 +98,25 @@ The starter ships a complete `public.todos` feature with per-user row permission
 
 Use those files and the `add-table` skill as the copy-me pattern for new user-owned features.
 
+## The profile page
+
+Sign in and open `/profile` to see the rest of the stack in one place:
+
+- **Avatar** — the browser sends the photo to the `avatar` serverless function, which resizes it to 512×512 and stores it in the `avatars` storage bucket. Reads are public, writes go only through the function.
+- **Display name** — a GraphQL mutation on your own `auth.users` row, allowed by row-level permissions.
+- **Email** — a change takes effect only after you confirm it from the new address; the pending state shows on the card.
+- **Password** — code sign-ins never set one, so set it here. After that the password tab on `/signin` and the forgot-password reset flow both work.
+- **Delete account** — a soft delete with a 30-day grace period. It stamps `metadata.deletedAt` and signs you out everywhere; signing back in offers to restore the account.
+
+The template marks and restores accounts but never purges them. If you keep this flow in a real product, schedule the actual erasure after the grace period yourself; a deletion request is only fulfilled once the data really goes away.
+
 ## Where things live
 
 ```text
 backend/
   nhost/migrations/  database migrations
   nhost/metadata/    tracked tables, relationships, and permissions
-  functions/         file-routed serverless functions
+  functions/         file-routed serverless functions (avatar.ts is the shipped example)
   nhost.toml         backend configuration
 frontend/
   schema.graphql     committed codegen input and LLM backend context
