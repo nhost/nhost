@@ -505,8 +505,7 @@ func NewService(
 ) (*serveutil.Service, error) {
 	cleanups := &serveutil.Cleanups{}
 
-	keepResources := false
-	defer cleanups.Release(&keepResources)
+	defer cleanups.Release(new(false))
 
 	metadataSource, err := newMetadataSource(ctx, cmd, logger)
 	if err != nil {
@@ -540,8 +539,6 @@ func NewService(
 	if err != nil {
 		return nil, fmt.Errorf("building HTTP router: %w", err)
 	}
-
-	keepResources = true
 
 	return &serveutil.Service{
 		Handler: router,
