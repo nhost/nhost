@@ -4,8 +4,9 @@ import { Camera, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { type ChangeEvent, type DragEvent, useRef, useState } from 'react';
 import { removeAvatar, uploadAvatar } from '@/app/profile/actions';
+import { OwnAvatarImage } from '@/components/OwnAvatarImage';
 import { initial } from '@/components/UserMenu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 
 // Mirrors the server action's cap; checking here avoids an upload that would
@@ -13,10 +14,12 @@ import { Button } from '@/components/ui/button';
 const MAX_AVATAR_BYTES = 4 * 1024 * 1024;
 
 export function AvatarPicker({
+  userId,
   email,
   displayName,
   avatarUrl,
 }: {
+  userId: string;
   email: string;
   displayName?: string | null;
   avatarUrl?: string | null;
@@ -106,7 +109,7 @@ export function AvatarPicker({
         }`}
       >
         <Avatar className="size-20 border">
-          {avatarUrl ? <AvatarImage src={avatarUrl} alt="" /> : null}
+          <OwnAvatarImage userId={userId} avatarUrl={avatarUrl} />
           <AvatarFallback className="text-3xl">
             {initial(displayName, email)}
           </AvatarFallback>
