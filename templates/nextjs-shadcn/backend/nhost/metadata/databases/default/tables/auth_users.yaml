@@ -30,9 +30,18 @@ configuration:
     select_by_pk: user
     update: updateUsers
     update_by_pk: updateUser
+computed_fields:
+  - name: hasPassword
+    definition:
+      function:
+        name: user_has_password
+        schema: public
+    comment: Whether the account can sign in with a password.
 select_permissions:
   - role: user
     permission:
+      computed_fields:
+        - hasPassword
       columns:
         - avatar_url
         - created_at
