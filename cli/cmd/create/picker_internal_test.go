@@ -2,6 +2,7 @@ package create
 
 import (
 	"bytes"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -10,35 +11,143 @@ func TestDecodeKey(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name string
-		buf  []byte
-		want pickerAction
+		name         string
+		buf          []byte
+		want         pickerAction
+		wantConsumed int
 	}{
-		{name: "arrow up", buf: []byte{keyEscape, '[', 'A'}, want: actionUp},
-		{name: "arrow down", buf: []byte{keyEscape, '[', 'B'}, want: actionDown},
-		{name: "arrow right is ignored", buf: []byte{keyEscape, '[', 'C'}, want: actionNone},
-		{name: "vim up", buf: []byte("k"), want: actionUp},
-		{name: "vim down", buf: []byte("j"), want: actionDown},
-		{name: "enter", buf: []byte("\r"), want: actionSelect},
-		{name: "newline", buf: []byte("\n"), want: actionSelect},
-		{name: "ctrl-c", buf: []byte{keyCtrlC}, want: actionCancel},
-		{name: "ctrl-d", buf: []byte{keyCtrlD}, want: actionCancel},
-		{name: "q", buf: []byte("q"), want: actionCancel},
+		{name: "arrow up", buf: []byte{keyEscape, '[', 'A'}, want: actionUp, wantConsumed: 3},
+		{name: "arrow down", buf: []byte{keyEscape, '[', 'B'}, want: actionDown, wantConsumed: 3},
+		{
+			name: "arrow right is ignored",
+			buf:  []byte{keyEscape, '[', 'C'}, want: actionNone, wantConsumed: 3,
+		},
+		// Delete and a modified arrow run past the three bytes of a plain
+		// arrow key. Measuring them is what keeps their tail from being
+		// decoded as further presses.
+		{
+			name: "delete is ignored whole",
+			buf:  []byte{keyEscape, '[', '3', '~'}, want: actionNone, wantConsumed: 4,
+		},
+		{
+			name: "ctrl-right is ignored whole",
+			buf:  []byte("\x1b[1;5C"), want: actionNone, wantConsumed: 6,
+		},
+		{name: "vim up", buf: []byte("k"), want: actionUp, wantConsumed: 1},
+		{name: "vim down", buf: []byte("j"), want: actionDown, wantConsumed: 1},
+		{name: "enter", buf: []byte("\r"), want: actionSelect, wantConsumed: 1},
+		{name: "newline", buf: []byte("\n"), want: actionSelect, wantConsumed: 1},
+		{name: "ctrl-c", buf: []byte{keyCtrlC}, want: actionCancel, wantConsumed: 1},
+		{name: "ctrl-d", buf: []byte{keyCtrlD}, want: actionCancel, wantConsumed: 1},
+		{name: "q", buf: []byte("q"), want: actionCancel, wantConsumed: 1},
 		// A terminal that delivers the escape byte on its own must not be
 		// read as a cancel, or an arrow key would abort the command.
-		{name: "lone escape", buf: []byte{keyEscape}, want: actionNone},
-		{name: "other letters", buf: []byte("x"), want: actionNone},
-		{name: "nothing read", buf: nil, want: actionNone},
+		{name: "lone escape", buf: []byte{keyEscape}, want: actionNone, wantConsumed: 1},
+		{name: "other letters", buf: []byte("x"), want: actionNone, wantConsumed: 1},
+		{name: "nothing read", buf: nil, want: actionNone, wantConsumed: 0},
+		// The first press of a burst is decoded without reaching into the one
+		// behind it.
+		{
+			name: "a burst decodes its first press only",
+			buf:  []byte("\x1b[B\r"), want: actionDown, wantConsumed: 3,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			if got := decodeKey(tt.buf); got != tt.want {
+			got, consumed := decodeKey(tt.buf)
+			if got != tt.want {
 				t.Errorf("decodeKey(%q) = %v, want %v", tt.buf, got, tt.want)
 			}
+
+			if consumed != tt.wantConsumed {
+				t.Errorf(
+					"decodeKey(%q) consumed %d bytes, want %d",
+					tt.buf, consumed, tt.wantConsumed,
+				)
+			}
 		})
+	}
+}
+
+// One read is not one key press. Holding an arrow key down, or pressing it and
+// enter in quick succession over a link that batches bytes, lands several
+// presses in a single read, and acting on the first while dropping the rest of
+// the buffer loses every press behind it -- the picker appears stuck, or eats
+// the enter that was meant to choose.
+func TestReadActionsAppliesEveryPressInOneRead(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name  string
+		input string
+		want  []pickerAction
+	}{
+		{name: "one arrow", input: "\x1b[B", want: []pickerAction{actionDown}},
+		{
+			name:  "two arrows in one read",
+			input: "\x1b[B\x1b[B",
+			want:  []pickerAction{actionDown, actionDown},
+		},
+		{
+			name:  "five arrows in one read",
+			input: strings.Repeat("\x1b[B", 5),
+			want: []pickerAction{
+				actionDown, actionDown, actionDown, actionDown, actionDown,
+			},
+		},
+		{
+			name:  "an arrow and the enter behind it",
+			input: "\x1b[B\r",
+			want:  []pickerAction{actionDown, actionSelect},
+		},
+		{
+			name:  "a longer sequence does not leave a tail",
+			input: "\x1b[3~\x1b[B",
+			want:  []pickerAction{actionNone, actionDown},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			buf := make([]byte, keyBufferSize)
+
+			got, err := readActions(strings.NewReader(tt.input), buf)
+			if err != nil {
+				t.Fatalf("readActions: %v", err)
+			}
+
+			if !slices.Equal(got, tt.want) {
+				t.Errorf("readActions(%q) = %v, want %v", tt.input, got, tt.want)
+			}
+		})
+	}
+}
+
+// The moves a burst carries have to land on the cursor, not just be decoded.
+func TestReadActionsMovesTheCursorOncePerPress(t *testing.T) {
+	t.Parallel()
+
+	const items = 4
+
+	buf := make([]byte, keyBufferSize)
+
+	actions, err := readActions(strings.NewReader(strings.Repeat("\x1b[B", 3)), buf)
+	if err != nil {
+		t.Fatalf("readActions: %v", err)
+	}
+
+	cursor := 0
+	for _, action := range actions {
+		cursor = moveSelection(cursor, action, items)
+	}
+
+	if cursor != 3 {
+		t.Errorf("cursor after three down presses in one read = %d, want 3", cursor)
 	}
 }
 
@@ -125,27 +234,12 @@ func TestRenderItems(t *testing.T) {
 	}
 }
 
-func TestReadAction(t *testing.T) {
+func TestReadActionsReportsAClosedTerminal(t *testing.T) {
 	t.Parallel()
 
 	buf := make([]byte, keyBufferSize)
 
-	got, err := readAction(strings.NewReader("\x1b[B"), buf)
-	if err != nil {
-		t.Fatalf("readAction: %v", err)
-	}
-
-	if got != actionDown {
-		t.Errorf("readAction() = %v, want %v", got, actionDown)
-	}
-}
-
-func TestReadActionReportsAClosedTerminal(t *testing.T) {
-	t.Parallel()
-
-	buf := make([]byte, keyBufferSize)
-
-	if _, err := readAction(strings.NewReader(""), buf); err == nil {
-		t.Error("readAction() error = nil, want a failure")
+	if _, err := readActions(strings.NewReader(""), buf); err == nil {
+		t.Error("readActions() error = nil, want a failure")
 	}
 }

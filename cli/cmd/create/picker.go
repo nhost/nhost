@@ -20,11 +20,13 @@ const (
 	// fallbackWidth is what lines are wrapped to when the terminal will not
 	// say how wide it is.
 	fallbackWidth = 80
-	// keyBufferSize is large enough to hold the longest sequence a single key
-	// press produces. A plain arrow key is three bytes, but Delete is four
-	// (ESC [ 3 ~) and a modified arrow is six (ESC [ 1 ; 5 C), so a buffer of
-	// three splits those across reads and decodes the tail as further key
-	// presses.
+	// keyBufferSize is how much of a burst one read takes in. One read is not
+	// one key press: autorepeat, a paste, or a link that batches bytes delivers
+	// several at once, and the longest single press is six bytes
+	// (ESC [ 1 ; 5 C). The buffer is only safe to widen because decodeKey
+	// reports how many bytes each press took and pickWithKeys applies every
+	// press the read carried; a read wider than the one key it acted on used to
+	// throw the rest of the burst away.
 	keyBufferSize = 16
 	// csiArrowLen is the length of the arrow-key sequences the picker acts on,
 	// which is the least a read has to carry for one to be recognised.
@@ -90,25 +92,27 @@ func pickWithKeys(
 	for {
 		renderItems(out, items, cursor, width)
 
-		action, err := readAction(os.Stdin, buf)
+		actions, err := readActions(os.Stdin, buf)
 		if err != nil {
 			return -1, err
 		}
 
-		switch action {
-		case actionSelect:
-			submitPick(out, pickerHeading(title), items[cursor], len(items), width)
+		for _, action := range actions {
+			switch action {
+			case actionSelect:
+				submitPick(out, pickerHeading(title), items[cursor], len(items), width)
 
-			return cursor, nil
-		case actionCancel:
-			eraseBlock(out, len(items)+1)
+				return cursor, nil
+			case actionCancel:
+				eraseBlock(out, len(items)+1)
 
-			// Not wrapped: only the framework's own exit sentinel reaches
-			// HandleExitCoder, and wrapping it would turn a clean cancel back
-			// into a printed error.
-			return -1, errCancelled //nolint:wrapcheck
-		case actionNone, actionUp, actionDown:
-			cursor = moveSelection(cursor, action, len(items))
+				// Not wrapped: only the framework's own exit sentinel reaches
+				// HandleExitCoder, and wrapping it would turn a clean cancel back
+				// into a printed error.
+				return -1, errCancelled //nolint:wrapcheck
+			case actionNone, actionUp, actionDown:
+				cursor = moveSelection(cursor, action, len(items))
+			}
 		}
 
 		moveUp(out, len(items)+1)
@@ -132,37 +136,45 @@ func submitPick(w io.Writer, heading string, chosen pickerItem, count, width int
 	)
 }
 
-// decodeKey maps the bytes a raw terminal delivers for one key press to the
-// action it stands for. A lone escape byte is ignored rather than treated as a
-// cancel, because a terminal that splits an arrow key across two reads would
-// otherwise abort the command.
-func decodeKey(buf []byte) pickerAction {
+// decodeKey maps the bytes a raw terminal delivers for the next key press to
+// the action it stands for, and reports how many bytes that press took so the
+// caller can go on to the one behind it. A lone escape byte is ignored rather
+// than treated as a cancel, because a terminal that splits an arrow key across
+// two reads would otherwise abort the command.
+//
+// An escape sequence is measured with escapeLen rather than assumed to be the
+// three bytes of a plain arrow key, so the tail of a longer one is stepped over
+// instead of being decoded as further presses.
+func decodeKey(buf []byte) (pickerAction, int) {
 	if len(buf) == 0 {
-		return actionNone
+		return actionNone, 0
 	}
 
-	if len(buf) >= csiArrowLen && buf[0] == keyEscape && buf[1] == '[' {
-		switch buf[2] {
-		case 'A':
-			return actionUp
-		case 'B':
-			return actionDown
-		default:
-			return actionNone
+	if buf[0] == keyEscape {
+		n := escapeLen(buf)
+		if n >= csiArrowLen && buf[1] == '[' {
+			switch buf[2] {
+			case 'A':
+				return actionUp, n
+			case 'B':
+				return actionDown, n
+			}
 		}
+
+		return actionNone, n
 	}
 
 	switch buf[0] {
 	case '\r', '\n':
-		return actionSelect
+		return actionSelect, 1
 	case 'k':
-		return actionUp
+		return actionUp, 1
 	case 'j':
-		return actionDown
+		return actionDown, 1
 	case keyCtrlC, keyCtrlD, 'q':
-		return actionCancel
+		return actionCancel, 1
 	default:
-		return actionNone
+		return actionNone, 1
 	}
 }
 
@@ -185,13 +197,25 @@ func moveSelection(cursor int, action pickerAction, count int) int {
 	return cursor
 }
 
-func readAction(r io.Reader, buf []byte) (pickerAction, error) {
+// readActions takes in one read and decodes every key press it carried. A read
+// that held a burst -- an arrow key repeated, or an arrow key and the enter
+// behind it -- yields one action per press, because acting on the first and
+// dropping the rest of the buffer loses the presses the user made.
+func readActions(r io.Reader, buf []byte) ([]pickerAction, error) {
 	n, err := r.Read(buf)
 	if err != nil {
-		return actionNone, fmt.Errorf("failed to read a key press: %w", err)
+		return nil, fmt.Errorf("failed to read a key press: %w", err)
 	}
 
-	return decodeKey(buf[:n]), nil
+	var actions []pickerAction
+
+	for read := buf[:n]; len(read) > 0; {
+		action, size := decodeKey(read)
+		actions = append(actions, action)
+		read = read[size:]
+	}
+
+	return actions, nil
 }
 
 // renderItems draws the list in place, one terminal row per item, and closes
