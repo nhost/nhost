@@ -37,7 +37,48 @@ object_relationships:
   - name: bucket
     using:
       foreign_key_constraint_on: bucket_id
+array_relationships:
+  # The reverse of `todos.file_id`. Nothing queries files -> todos from the
+  # app; it exists so the permissions below can ask "is the item holding this
+  # file public?" without that answer living on the file itself.
+  - name: todos
+    using:
+      foreign_key_constraint_on:
+        column: file_id
+        table:
+          name: todos
+          schema: public
+insert_permissions:
+  # Uploads go straight from the browser with the user's own token. The avatars
+  # bucket is deliberately not here: those writes go through a function with
+  # the admin secret because it resizes the image first, and letting the
+  # browser write that bucket directly would let it skip the resize.
+  - role: user
+    permission:
+      check:
+        bucket_id:
+          _eq: todo-attachments
+      set:
+        uploaded_by_user_id: X-Hasura-User-Id
+      columns:
+        - bucket_id
+        - etag
+        - id
+        - is_uploaded
+        - metadata
+        - mime_type
+        - name
+        - size
+        - uploaded_by_user_id
 select_permissions:
+  # An attachment is readable by anyone exactly when the item pointing at it is
+  # readable by anyone, so this repeats the condition in `public_todos.yaml`
+  # rather than trusting that table's permission: a relationship filter matches
+  # raw rows, it does not apply the related table's own rule.
+  #
+  # This is the one that fails dangerously. Widen it and every private
+  # attachment in the project becomes world-readable at once. There is a
+  # scripted check for it in the README.
   - role: public
     permission:
       columns:
@@ -53,8 +94,19 @@ select_permissions:
         - updated_at
         - uploaded_by_user_id
       filter:
-        bucket_id:
-          _eq: avatars
+        _or:
+          - bucket_id:
+              _eq: avatars
+          - todos:
+              is_public:
+                _eq: true
+              user:
+                metadata:
+                  _contains:
+                    publicProfile: true
+                _not:
+                  metadata:
+                    _has_key: deletedAt
   - role: user
     permission:
       columns:
@@ -70,5 +122,20 @@ select_permissions:
         - updated_at
         - uploaded_by_user_id
       filter:
-        bucket_id:
-          _eq: avatars
+        _or:
+          - bucket_id:
+              _eq: avatars
+          - uploaded_by_user_id:
+              _eq: X-Hasura-User-Id
+          - todos:
+              is_public:
+                _eq: true
+delete_permissions:
+  - role: user
+    permission:
+      filter:
+        _and:
+          - bucket_id:
+              _eq: todo-attachments
+          - uploaded_by_user_id:
+              _eq: X-Hasura-User-Id

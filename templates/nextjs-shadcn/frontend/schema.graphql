@@ -58,6 +58,15 @@ enum cursor_ordering {
   DESC
 }
 """
+unique or primary key constraints on table "storage.files"
+"""
+enum files_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  files_pkey
+}
+"""
 select columns of table "storage.files"
 """
 enum files_select_column {
@@ -105,6 +114,15 @@ enum files_select_column {
   column name
   """
   uploadedByUserId
+}
+"""
+placeholder for update columns of table "storage.files" (current role has no relevant permissions)
+"""
+enum files_update_column {
+  """
+  placeholder (do not use)
+  """
+  _PLACEHOLDER
 }
 """
 column ordering options
@@ -159,7 +177,27 @@ enum todos_select_column {
   """
   column name
   """
+  file_id
+  """
+  column name
+  """
   id
+  """
+  column name
+  """
+  is_public
+  """
+  column name
+  """
+  location
+  """
+  column name
+  """
+  preposition
+  """
+  column name
+  """
+  sort_order
   """
   column name
   """
@@ -177,6 +215,26 @@ enum todos_update_column {
   column name
   """
   completed
+  """
+  column name
+  """
+  file_id
+  """
+  column name
+  """
+  is_public
+  """
+  column name
+  """
+  location
+  """
+  column name
+  """
+  preposition
+  """
+  column name
+  """
+  sort_order
   """
   column name
   """
@@ -283,13 +341,68 @@ type files {
   mimeType: String
   name: String
   size: Int
+  """
+  An array relationship
+  """
+  todos(
+    """
+    distinct select on columns
+    """
+    distinct_on: [todos_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [todos_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: todos_bool_exp
+  ): [todos!]!
   updatedAt: timestamptz!
   uploadedByUserId: uuid
+}
+"""
+response of any mutation on the table "storage.files"
+"""
+type files_mutation_response {
+  """
+  number of rows affected by the mutation
+  """
+  affected_rows: Int!
+  """
+  data from the rows affected by the mutation
+  """
+  returning: [files!]!
 }
 """
 mutation root
 """
 type mutation_root {
+  """
+  delete single row from the table: "storage.files"
+  """
+  deleteFile(id: uuid!): files
+  """
+  delete data from the table: "storage.files"
+  """
+  deleteFiles(
+    """
+    filter the rows which have to be deleted
+    """
+    where: files_bool_exp!
+  ): files_mutation_response
   """
   delete data from the table: "todos"
   """
@@ -303,6 +416,34 @@ type mutation_root {
   delete single row from the table: "todos"
   """
   delete_todos_by_pk(id: uuid!): todos
+  """
+  insert a single row into the table: "storage.files"
+  """
+  insertFile(
+    """
+    the row to be inserted
+    """
+    object: files_insert_input!
+
+    """
+    upsert condition
+    """
+    on_conflict: files_on_conflict
+  ): files
+  """
+  insert data into the table: "storage.files"
+  """
+  insertFiles(
+    """
+    the rows to be inserted
+    """
+    objects: [files_insert_input!]!
+
+    """
+    upsert condition
+    """
+    on_conflict: files_on_conflict
+  ): files_mutation_response
   """
   insert data into the table: "todos"
   """
@@ -409,6 +550,11 @@ type mutation_root {
   """
   update_todos(
     """
+    increments the numeric columns with given value of the filtered values
+    """
+    _inc: todos_inc_input
+
+    """
     sets the columns of the filtered rows to the given values
     """
     _set: todos_set_input
@@ -422,6 +568,11 @@ type mutation_root {
   update single row of the table: "todos"
   """
   update_todos_by_pk(
+    """
+    increments the numeric columns with given value of the filtered values
+    """
+    _inc: todos_inc_input
+
     """
     sets the columns of the filtered rows to the given values
     """
@@ -514,7 +665,7 @@ type query_root {
     where: files_bool_exp
   ): [files!]!
   """
-  fetch data from the table: "todos"
+  An array relationship
   """
   todos(
     """
@@ -686,7 +837,7 @@ type subscription_root {
     where: files_bool_exp
   ): [files!]!
   """
-  fetch data from the table: "todos"
+  An array relationship
   """
   todos(
     """
@@ -796,8 +947,21 @@ columns and relationships of "todos"
 type todos {
   completed: Boolean!
   created_at: timestamptz!
+  """
+  An object relationship
+  """
+  file: files
+  file_id: uuid
   id: uuid!
+  is_public: Boolean!
+  location: String
+  preposition: String!
+  sort_order: Int!
   title: String!
+  """
+  An object relationship
+  """
+  user: users!
   user_id: uuid!
 }
 """
@@ -834,6 +998,35 @@ type users {
     path: String
   ): jsonb
   newEmail: citext
+  """
+  An array relationship
+  """
+  todos(
+    """
+    distinct select on columns
+    """
+    distinct_on: [todos_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [todos_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: todos_bool_exp
+  ): [todos!]!
 }
 """
 response of any mutation on the table "auth.users"
@@ -1080,8 +1273,23 @@ input files_bool_exp {
   mimeType: String_comparison_exp
   name: String_comparison_exp
   size: Int_comparison_exp
+  todos: todos_bool_exp
   updatedAt: timestamptz_comparison_exp
   uploadedByUserId: uuid_comparison_exp
+}
+"""
+input type for inserting data into table "storage.files"
+"""
+input files_insert_input {
+  bucketId: String
+  etag: String
+  id: uuid
+  isUploaded: Boolean
+  metadata: jsonb
+  mimeType: String
+  name: String
+  size: Int
+  todos: todos_arr_rel_insert_input
 }
 """
 order by max() on columns of table "storage.files"
@@ -1112,6 +1320,24 @@ input files_min_order_by {
   uploadedByUserId: order_by
 }
 """
+input type for inserting object relation for remote table "storage.files"
+"""
+input files_obj_rel_insert_input {
+  data: files_insert_input!
+  """
+  upsert condition
+  """
+  on_conflict: files_on_conflict
+}
+"""
+on_conflict condition type for table "storage.files"
+"""
+input files_on_conflict {
+  constraint: files_constraint!
+  update_columns: [files_update_column!]! = []
+  where: files_bool_exp
+}
+"""
 Ordering options when selecting data from "storage.files".
 """
 input files_order_by {
@@ -1125,6 +1351,7 @@ input files_order_by {
   mimeType: order_by
   name: order_by
   size: order_by
+  todos_aggregate: todos_aggregate_order_by
   updatedAt: order_by
   uploadedByUserId: order_by
 }
@@ -1252,6 +1479,38 @@ input timestamptz_comparison_exp {
   _nin: [timestamptz!]
 }
 """
+order by aggregate values of table "todos"
+"""
+input todos_aggregate_order_by {
+  avg: todos_avg_order_by
+  count: order_by
+  max: todos_max_order_by
+  min: todos_min_order_by
+  stddev: todos_stddev_order_by
+  stddev_pop: todos_stddev_pop_order_by
+  stddev_samp: todos_stddev_samp_order_by
+  sum: todos_sum_order_by
+  var_pop: todos_var_pop_order_by
+  var_samp: todos_var_samp_order_by
+  variance: todos_variance_order_by
+}
+"""
+input type for inserting array relation for remote table "todos"
+"""
+input todos_arr_rel_insert_input {
+  data: [todos_insert_input!]!
+  """
+  upsert condition
+  """
+  on_conflict: todos_on_conflict
+}
+"""
+order by avg() on columns of table "todos"
+"""
+input todos_avg_order_by {
+  sort_order: order_by
+}
+"""
 Boolean expression to filter rows from the table "todos". All fields are combined with a logical 'AND'.
 """
 input todos_bool_exp {
@@ -1260,16 +1519,61 @@ input todos_bool_exp {
   _or: [todos_bool_exp!]
   completed: Boolean_comparison_exp
   created_at: timestamptz_comparison_exp
+  file: files_bool_exp
+  file_id: uuid_comparison_exp
   id: uuid_comparison_exp
+  is_public: Boolean_comparison_exp
+  location: String_comparison_exp
+  preposition: String_comparison_exp
+  sort_order: Int_comparison_exp
   title: String_comparison_exp
+  user: users_bool_exp
   user_id: uuid_comparison_exp
+}
+"""
+input type for incrementing numeric columns in table "todos"
+"""
+input todos_inc_input {
+  sort_order: Int
 }
 """
 input type for inserting data into table "todos"
 """
 input todos_insert_input {
   completed: Boolean
+  file: files_obj_rel_insert_input
+  file_id: uuid
+  is_public: Boolean
+  location: String
+  preposition: String
+  sort_order: Int
   title: String
+}
+"""
+order by max() on columns of table "todos"
+"""
+input todos_max_order_by {
+  created_at: order_by
+  file_id: order_by
+  id: order_by
+  location: order_by
+  preposition: order_by
+  sort_order: order_by
+  title: order_by
+  user_id: order_by
+}
+"""
+order by min() on columns of table "todos"
+"""
+input todos_min_order_by {
+  created_at: order_by
+  file_id: order_by
+  id: order_by
+  location: order_by
+  preposition: order_by
+  sort_order: order_by
+  title: order_by
+  user_id: order_by
 }
 """
 on_conflict condition type for table "todos"
@@ -1285,8 +1589,15 @@ Ordering options when selecting data from "todos".
 input todos_order_by {
   completed: order_by
   created_at: order_by
+  file: files_order_by
+  file_id: order_by
   id: order_by
+  is_public: order_by
+  location: order_by
+  preposition: order_by
+  sort_order: order_by
   title: order_by
+  user: users_order_by
   user_id: order_by
 }
 """
@@ -1300,7 +1611,30 @@ input type for updating data in table "todos"
 """
 input todos_set_input {
   completed: Boolean
+  file_id: uuid
+  is_public: Boolean
+  location: String
+  preposition: String
+  sort_order: Int
   title: String
+}
+"""
+order by stddev() on columns of table "todos"
+"""
+input todos_stddev_order_by {
+  sort_order: order_by
+}
+"""
+order by stddev_pop() on columns of table "todos"
+"""
+input todos_stddev_pop_order_by {
+  sort_order: order_by
+}
+"""
+order by stddev_samp() on columns of table "todos"
+"""
+input todos_stddev_samp_order_by {
+  sort_order: order_by
 }
 """
 Streaming cursor of the table "todos"
@@ -1321,11 +1655,26 @@ Initial value of the column from where the streaming should start
 input todos_stream_cursor_value_input {
   completed: Boolean
   created_at: timestamptz
+  file_id: uuid
   id: uuid
+  is_public: Boolean
+  location: String
+  preposition: String
+  sort_order: Int
   title: String
   user_id: uuid
 }
+"""
+order by sum() on columns of table "todos"
+"""
+input todos_sum_order_by {
+  sort_order: order_by
+}
 input todos_updates {
+  """
+  increments the numeric columns with given value of the filtered values
+  """
+  _inc: todos_inc_input
   """
   sets the columns of the filtered rows to the given values
   """
@@ -1334,6 +1683,24 @@ input todos_updates {
   filter the rows which have to be updated
   """
   where: todos_bool_exp!
+}
+"""
+order by var_pop() on columns of table "todos"
+"""
+input todos_var_pop_order_by {
+  sort_order: order_by
+}
+"""
+order by var_samp() on columns of table "todos"
+"""
+input todos_var_samp_order_by {
+  sort_order: order_by
+}
+"""
+order by variance() on columns of table "todos"
+"""
+input todos_variance_order_by {
+  sort_order: order_by
 }
 """
 append existing jsonb value of filtered columns with new jsonb value
@@ -1357,6 +1724,7 @@ input users_bool_exp {
   id: uuid_comparison_exp
   metadata: jsonb_comparison_exp
   newEmail: citext_comparison_exp
+  todos: todos_bool_exp
 }
 """
 delete the field or element with specified path (for JSON arrays, negative integers count from the end)
@@ -1389,6 +1757,7 @@ input users_order_by {
   id: order_by
   metadata: order_by
   newEmail: order_by
+  todos_aggregate: todos_aggregate_order_by
 }
 """
 primary key columns input for table: auth.users

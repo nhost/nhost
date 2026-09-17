@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { PROFILE_DESCRIPTION, PROFILE_TITLE } from '@/app/profile/copy';
 import {
@@ -22,10 +22,14 @@ import {
  */
 export function ProfileModal({ children }: { children: ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
 
   return (
+    // Open follows the URL rather than waiting for the slot to unmount. A link
+    // inside the dialog that goes somewhere else is an ordinary thing to put
+    // here, and this is what makes the dialog answer to it.
     <Dialog
-      defaultOpen
+      open={pathname === '/profile'}
       onOpenChange={(open) => {
         if (!open) {
           router.back();

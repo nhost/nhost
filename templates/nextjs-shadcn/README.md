@@ -95,10 +95,57 @@ Do not hand-edit `schema.graphql`; refresh it from a running, fully applied loca
 The starter ships a complete `public.todos` feature with per-user row permissions:
 
 - `backend/nhost/migrations/default/1700000000000_init_todos/` creates and rolls back the table.
+- `backend/nhost/migrations/default/1700000000003_todo_location_and_sharing/` adds the optional location, the sharing flag, the attachment column, and the attachments bucket.
 - `backend/nhost/metadata/databases/default/tables/public_todos.yaml` tracks it, sets row ownership on insert, and limits operations to the current user.
 - `frontend/src/app/protected/Todos.tsx` defines typed `GetTodos` and `CreateTodo` documents, calls them through `@nhost/nhost-js`, and uses TanStack Query for loading, mutation, and cache invalidation.
 
 Use those files and the `add-table` skill as the copy-me pattern for new user-owned features.
+
+## "I want to…" and the shared list
+
+An item is something you want to do, optionally somewhere in particular: *I want to go skateboarding*, or *I want to go skateboarding in Los Angeles, California*. The form is that sentence, and the location half is always there to fill in or leave empty.
+
+That is three columns rather than a category: `location` (nullable), `preposition`, and the `title` that was already there. An empty location box stores `NULL`, so there is one way to say "no particular place". The preposition is the user's pick from `in / at / from / on / with`, because no single word fits every case: you skate *in* a city, stay *at* a hotel, watch the lights *from* a hillside.
+
+There is no check constraint on the preposition. It is a display word the app never branches on, and the list is the kind that grows, so it is narrowed in the UI where widening it costs nothing instead of in the database where it would cost a migration.
+
+Any item can carry a photo and be shared, with or without a location.
+
+Sharing takes two switches, and both have to be on:
+
+1. **The eye on the row** marks one place as shared. A crossed-out eye is private, which is the default.
+2. **Publish my profile**, on the profile page, gives those places a page at `/u/<your user id>`. The card shows the link and copies it.
+
+So nothing becomes public as a side effect of one click in one place, and unpublishing the profile retracts everything at once rather than just hiding the page.
+
+This is the part of the starter that shows a role other than `user`, and it is worth reading before you build your own public page:
+
+- **The `public` role is the unauthenticated one.** Hasura answers a request carrying no token as `public`. Every other permission in this project filters by `X-Hasura-User-Id`; these are the ones that do not.
+- **Permissions filter through relationships.** `public_todos.yaml` requires `is_public` on the row *and*, through the `user` relationship, that the owner published their profile. `storage_files.yaml` repeats that condition through `todos`, because a relationship filter matches raw rows rather than applying the related table's own permission.
+- **The page queries anonymously on purpose.** `/u/[id]` uses `createAnonymousClient()` from `frontend/src/lib/nhost/server.ts`, not the session client. Reading public data through the visitor's own session would have Hasura answer as `user`, whose row-level filter hides everyone else's rows, so the page would render empty for signed-in visitors and only for them.
+- **A missing page and a private one are the same 404.** Neither the page nor the permission distinguishes them, so the URL cannot be used to discover whether an account exists.
+- **Soft-deleted accounts drop out.** The `public` rule on `auth_users.yaml` also requires no `deletedAt`, so deleting an account takes its page down immediately even while published.
+
+The columns left off the `public` lists are the ones that cannot leak: the account's email and `metadata`, and `todos.user_id`.
+
+## Attachments, and the two ways to accept a file
+
+The starter uploads files in both of the ways Nhost supports, and the difference is the point:
+
+- **The avatar goes through a serverless function** holding the admin secret, because it has to be resized to 512×512 somewhere the browser cannot skip.
+- **A todo photo goes straight from the browser** to the storage API with the signed-in user's own token, in `frontend/src/app/protected/TodoAttachment.tsx`. No function and no admin secret: the `storage.files` insert permission for the `user` role is what allows it, and it allows only the `todo-attachments` bucket.
+
+The direct path is the ordinary one. Reach for a function when something has to happen that the client must not be trusted to do.
+
+Reads are governed the same way. `storage_files.yaml` makes a file readable by `public` when the item pointing at it is shared, which is a filter back through the `todos` relationship. An `<img>` tag sends no Authorization header, so storage always answers it as `public`: the photo on a shared item loads for everyone, and the same URL on a private one is a 404, with no presigned URL to expire. That rule is the one to be careful with, because widening it is how every private attachment becomes world-readable at once. Check it after changing it:
+
+```sh
+curl -o /dev/null -w '%{http_code}\n' "$STORAGE_URL/files/<id of a private item's photo>"
+```
+
+It must be 404 while the item is private and 200 once it is shared.
+
+One thing deliberately left out: auto-fetching a map image for a place. It needs geocoding and a tile renderer, and the keyless options are either donated infrastructure that a template should not aim thousands of installs at, or hobby endpoints that would break every new project the day they go away. Everything else needs an API key, which would stop this starter working the moment you clone it. It is a good first feature to add once you have picked a provider.
 
 ## The profile page
 

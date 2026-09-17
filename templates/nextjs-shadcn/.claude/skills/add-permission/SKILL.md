@@ -68,6 +68,34 @@ Permission fields have distinct purposes:
 
 For non-owner policies, use the same session-variable comparison pattern against the appropriate column. Do not expose an ownership column in insert or update `columns`; set it from the authenticated session instead.
 
+### Rules for a role other than `user`
+
+`public` is the role Hasura uses for a request with no token. A permission for
+it is how data becomes readable without signing in, and it is the permission
+most likely to leak something, so:
+
+- Gate on columns the owner controls. The shipped example needs two: the row
+  is flagged `todos.is_public`, and the owner set `metadata.publicProfile` from
+  their profile page. One switch alone exposes nothing, so nothing goes public
+  as a side effect of a single click.
+- Filter through a relationship when visibility belongs to a related row.
+  `public_todos.yaml` reaches the owner through `user`, and
+  `storage_files.yaml` reaches the item through `todos`.
+- Repeat the condition; do not lean on the related table's own permission. A
+  relationship filter matches raw rows. `storage_files.yaml` spells the whole
+  owner rule out again for that reason, and a shortcut there would leave every
+  private attachment readable.
+- Write a separate, shorter `columns` list. Do not reuse the `user` list. What
+  is left off is the whole protection: today that is `auth.users.email`,
+  `auth.users.metadata`, and `todos.user_id`.
+- Read that data with `createAnonymousClient()` from
+  `frontend/src/lib/nhost/server.ts`. The session client makes Hasura answer as
+  `user`, whose filter hides other people's rows, so the page breaks for
+  signed-in visitors and only for them.
+- Verify both directions after changing one of these. A private row must be
+  absent anonymously, and a shared one present. For an attachment that means
+  the file URL is a 404 before sharing and a 200 after.
+
 ## 3. Apply and refresh the typed frontend
 
 Start or re-run the backend so it applies the metadata:

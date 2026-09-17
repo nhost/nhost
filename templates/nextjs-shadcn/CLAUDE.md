@@ -57,12 +57,37 @@ when a workflow changes.
 The starter includes a working `public.todos` feature with row-level `user` permissions:
 
 - `backend/nhost/migrations/default/1700000000000_init_todos/` creates and rolls back the table.
+- `backend/nhost/migrations/default/1700000000003_todo_location_and_sharing/` adds `location`, `preposition`, `is_public`, `file_id`, and the `todo-attachments` bucket.
 - `backend/nhost/metadata/databases/default/tables/public_todos.yaml` tracks the table, presets row ownership on insert, and filters all operations to the current user.
 - `backend/nhost/metadata/databases/default/tables/tables.yaml` includes tracked table metadata files.
 - `frontend/src/app/protected/Todos.tsx` defines typed `GetTodos` and `CreateTodo` operations, sends them through `@nhost/nhost-js`, and manages request state with TanStack Query.
 - `frontend/src/lib/graphql.ts` is the typed request helper shared by data-backed UI.
 
 When building another user-owned feature, copy this end-to-end shape: reversible migration, tracked metadata with narrow role permissions, refreshed schema/types, typed operations, and TanStack Query integration. Do not bypass the ownership preset by accepting an owner ID from the browser.
+
+## Copy the shipped public-read pattern
+
+The same table is also the example of data readable without a session, which is a different problem from per-user data and is easy to get wrong. Two independent switches gate it, and both must be on:
+
+- `auth_users.yaml` exposes an account to `public` when `metadata.publicProfile` is true and there is no `deletedAt`. This is the master switch, set from the profile page.
+- `public_todos.yaml` gives the `public` role a select on rows that are `is_public` *and* whose owner, through the `user` relationship, satisfies the rule above.
+- `storage_files.yaml` repeats that whole condition through the `todos` relationship. It has to: a relationship filter matches raw rows, it does not apply the related table's permission.
+- `frontend/src/app/u/[id]/page.tsx` reads through `createAnonymousClient()`, never the session client.
+- `frontend/src/app/profile/actions.ts` sets the master switch with a read-merge-write, because `metadata` is one column shared with the soft-delete flow and a blind `_set` would drop `deletedAt`.
+
+Rules to keep when extending this:
+
+- Query public data with `createAnonymousClient()`. Using the session client makes Hasura answer as `user`, whose row filter hides other people's rows, so the page breaks for signed-in visitors only.
+- Put the visibility rule in the permission, not in a `where` clause. A page that filters by hand is a page that can forget.
+- Name the columns each role may read. Everything left off the `public` list is what cannot leak, today `auth.users.email`, `auth.users.metadata`, and `todos.user_id`.
+- After touching the `storage.files` select permission, confirm a private item's photo is a 404 anonymously and a shared one is a 200. Widening that rule exposes every private attachment at once.
+
+## Accepting file uploads
+
+Two paths, and the default is the direct one:
+
+- Straight from the browser with the user's own token, as in `frontend/src/app/protected/TodoAttachment.tsx`. The `storage.files` insert permission for the `user` role authorizes it and restricts it to one bucket. Use this unless there is a reason not to.
+- Through a serverless function with the admin secret, as in `backend/functions/avatar.ts`. Use this only when something must happen that the client cannot be trusted to do, such as resizing before storage.
 
 ## Copy the shipped profile pattern
 

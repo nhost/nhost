@@ -54,7 +54,10 @@ function DialogContent({
       >
         {children}
 
-        <DialogPrimitive.Close className="absolute top-4 right-4 cursor-pointer rounded-sm text-muted-foreground opacity-70 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        <DialogPrimitive.Close
+          data-slot="dialog-close"
+          className="absolute top-4 right-4 cursor-pointer rounded-sm text-muted-foreground opacity-70 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
           <X className="size-4" aria-hidden />
           <span className="sr-only">Close</span>
         </DialogPrimitive.Close>

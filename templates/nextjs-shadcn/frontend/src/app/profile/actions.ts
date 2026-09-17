@@ -231,6 +231,44 @@ export async function sendOwnPasswordReset(): Promise<ActionResult> {
   }
 }
 
+/**
+ * Publishes or unpublishes the profile at `/u/<id>`.
+ *
+ * This is the master switch the `public` role reads. While it is off that role
+ * cannot see the account, its shared items, or their photos, whatever is
+ * flagged on the individual rows, so turning it off is a complete retraction
+ * rather than just hiding the page.
+ *
+ * It goes through the same read-merge-write as the delete flow because they
+ * share one `metadata` column: a blind `_set` here would drop `deletedAt`.
+ */
+export async function setProfilePublished(
+  published: boolean,
+): Promise<ActionResult> {
+  const nhost = await createNhostClient();
+  const user = nhost.getUserSession()?.user;
+  if (!user) {
+    return { error: 'Sign in to change who can see your profile.' };
+  }
+
+  try {
+    const { publicProfile: _, ...metadata } = await userMetadata(
+      nhost,
+      user.id,
+    );
+    await gqlRequest(nhost, SetUserMetadata, {
+      id: user.id,
+      metadata: published ? { ...metadata, publicProfile: true } : metadata,
+    });
+
+    return { success: true };
+  } catch (err) {
+    return {
+      error: `Could not update your profile visibility: ${(err as Error).message}`,
+    };
+  }
+}
+
 export async function deleteAccount(): Promise<ActionResult> {
   const nhost = await createNhostClient();
   const session = nhost.getUserSession();

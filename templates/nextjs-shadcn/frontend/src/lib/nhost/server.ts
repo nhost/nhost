@@ -68,6 +68,28 @@ export async function createNhostClient(): Promise<NhostClient> {
   });
 }
 
+/**
+ * Creates an Nhost client that is never signed in.
+ *
+ * Public pages have to query as the `public` role no matter who is looking.
+ * `createNhostClient` would send the visitor's own token, Hasura would answer
+ * as `user`, and that role's row-level filter would hide every row belonging
+ * to somebody else: a signed-in visitor would get an empty page where a
+ * signed-out one gets the list. Reading public data through the session is the
+ * mistake this exists to make hard.
+ */
+export function createAnonymousClient(): NhostClient {
+  return createServerClient({
+    region: nhostRegion(),
+    subdomain: nhostSubdomain(),
+    storage: {
+      get: (): StoredSession | null => null,
+      set: () => {},
+      remove: () => {},
+    },
+  });
+}
+
 export type NhostProxyResult = {
   session: StoredSession | null;
   applySessionCookies: (response: NextResponse) => NextResponse;

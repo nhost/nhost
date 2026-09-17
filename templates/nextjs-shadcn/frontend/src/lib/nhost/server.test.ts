@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   cookieOptions,
+  createAnonymousClient,
   handleNhostProxy,
   parseSessionCookie,
   serializeSessionCookie,
@@ -222,5 +223,30 @@ describe('proxy session refresh', () => {
     expect(
       applySessionCookies(NextResponse.next()).headers.getSetCookie(),
     ).toEqual([]);
+  });
+});
+
+// Public pages query through this client so Hasura answers them as `public`.
+// If it ever picked a session up, a signed-in visitor would be answered as
+// `user` instead, and that role's row-level filter would hide every row
+// belonging to anybody else: the shared list would render empty for exactly
+// the people most likely to open it, and only for them.
+describe('anonymous client', () => {
+  it('has no session', () => {
+    expect(createAnonymousClient().getUserSession()).toBeNull();
+  });
+
+  it('stays anonymous even when a session is written into it', () => {
+    const client = createAnonymousClient();
+
+    client.sessionStorage.set({
+      accessToken: accessToken('user-id'),
+      accessTokenExpiresIn: 900,
+      refreshTokenId: 'refresh-token-id',
+      refreshToken: 'refresh-token',
+    });
+
+    expect(client.sessionStorage.get()).toBeNull();
+    expect(client.getUserSession()).toBeNull();
   });
 });

@@ -30,6 +30,14 @@ configuration:
     select_by_pk: user
     update: updateUsers
     update_by_pk: updateUser
+array_relationships:
+  - name: todos
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          name: todos
+          schema: public
 computed_fields:
   - name: hasPassword
     definition:
@@ -54,6 +62,24 @@ select_permissions:
       filter:
         id:
           _eq: X-Hasura-User-Id
+  # What a stranger sees on a shared list: enough to say whose it is, and no
+  # more. Publishing the profile is a deliberate act on the profile page, so
+  # this is the master switch: turn it off and `/u/<id>` is gone, whatever is
+  # flagged on the rows. The two sibling keys are ANDed, so a soft-deleted
+  # account disappears from here the moment it is stamped.
+  - role: public
+    permission:
+      columns:
+        - id
+        - display_name
+        - avatar_url
+      filter:
+        metadata:
+          _contains:
+            publicProfile: true
+        _not:
+          metadata:
+            _has_key: deletedAt
 update_permissions:
   - role: user
     permission:

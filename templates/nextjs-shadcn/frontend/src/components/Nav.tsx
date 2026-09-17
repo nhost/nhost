@@ -13,6 +13,7 @@ const GetNavProfile = graphql(`
       id
       displayName
       avatarUrl
+      metadata
     }
   }
 `);
@@ -34,12 +35,14 @@ export default async function Nav() {
   const session = nhost.getUserSession();
   const user = session?.user;
 
-  // The session's user claims only refresh with the token, so the avatar and
-  // name are read fresh; when the backend is unreachable the nav falls back to
-  // the claims rather than failing the whole page.
+  // The session's user claims only refresh with the token, so the avatar, the
+  // name and whether the profile is published are read fresh; when the backend
+  // is unreachable the nav falls back to the claims rather than failing the
+  // whole page.
   let profile = {
     displayName: user?.displayName,
     avatarUrl: user?.avatarUrl,
+    publicProfile: false,
   };
 
   if (user) {
@@ -49,9 +52,12 @@ export default async function Nav() {
       });
 
       if (fresh) {
+        const metadata = fresh.metadata as { publicProfile?: boolean } | null;
+
         profile = {
           displayName: fresh.displayName ?? profile.displayName,
           avatarUrl: fresh.avatarUrl ?? profile.avatarUrl,
+          publicProfile: metadata?.publicProfile === true,
         };
       }
     } catch {
@@ -79,9 +85,11 @@ export default async function Nav() {
 
           {user ? (
             <UserMenu
+              userId={user.id}
               email={user.email ?? ''}
               displayName={profile.displayName}
               avatarUrl={profile.avatarUrl}
+              publicProfile={profile.publicProfile}
             />
           ) : (
             <SignInLink />

@@ -1,6 +1,6 @@
 'use client';
 
-import { LogOut, User } from 'lucide-react';
+import { Globe, LogOut, User } from 'lucide-react';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -27,13 +27,17 @@ export function initial(displayName?: string | null, email?: string): string {
 }
 
 export function UserMenu({
+  userId,
   email,
   displayName,
   avatarUrl,
+  publicProfile,
 }: {
+  userId: string;
   email: string;
   displayName?: string | null;
   avatarUrl?: string | null;
+  publicProfile: boolean;
 }) {
   // Leaves the same way signing in arrives: a full document load, so nothing
   // rendered against the old session survives in the client router's cache.
@@ -78,6 +82,18 @@ export function UserMenu({
             Profile
           </Link>
         </DropdownMenuItem>
+
+        {/* Only once there is a page to see. While the profile is unpublished
+            this link would lead to the same 404 a stranger gets, which is a
+            confusing thing to find in your own account menu. */}
+        {publicProfile ? (
+          <DropdownMenuItem asChild>
+            <Link href={`/u/${userId}`}>
+              <Globe aria-hidden />
+              See public profile
+            </Link>
+          </DropdownMenuItem>
+        ) : null}
 
         <DropdownMenuItem variant="destructive" onSelect={handleSignOut}>
           <LogOut aria-hidden />
