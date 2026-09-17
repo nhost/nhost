@@ -502,11 +502,16 @@ func NewService(
 	ctx context.Context,
 	cmd *cli.Command,
 	logger *slog.Logger,
-) (*serveutil.Service, error) {
+) (_ *serveutil.Service, err error) {
 	cleanups := &serveutil.Cleanups{}
 
-	keepResources := false
-	defer cleanups.Release(&keepResources)
+	// Release everything acquired so far if construction fails. On success the
+	// returned Service owns the cleanups and frees them through its Close.
+	defer func() {
+		if err != nil {
+			cleanups.Close()
+		}
+	}()
 
 	metadataSource, err := newMetadataSource(ctx, cmd, logger)
 	if err != nil {
@@ -540,11 +545,6 @@ func NewService(
 	if err != nil {
 		return nil, fmt.Errorf("building HTTP router: %w", err)
 	}
-
-	// The service owns the cleanups from here on: Close releases them once the
-	// lifecycle ends, so the deferred Release must not tear them down on the way
-	// out of a successful construction.
-	keepResources = true
 
 	return &serveutil.Service{
 		Handler: router,
