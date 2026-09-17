@@ -30,6 +30,13 @@ type RunHooks struct {
 // hooks.ServeHTTP or a Background hook returns. Background failures are logged
 // before they trigger shutdown.
 //
+// Run deliberately does not use Supervise because standalone binaries retain
+// their existing lifecycle contract: background errors are logged and omitted
+// from the returned error; background panics are not recovered and crash the
+// process; one cancellation reaches every goroutine at once instead of following
+// tier order; Run imposes no teardown timeout; and it returns after hooks.Shutdown
+// without waiting for the background and HTTP goroutines.
+//
 // Run deliberately skips services without a Background hook. It does not call
 // Service.Shutdown, so callers retain control of resource-cleanup ordering.
 // Run returns an error without starting the lifecycle when hooks.ServeHTTP or
