@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"strings"
 	"syscall"
 	"testing"
 	"time"
@@ -217,7 +216,7 @@ func runWedgedSignalTestHelper(ctx context.Context) error {
 	writeSignalTestHelperLine("CANCELLED\n")
 
 	err := <-done
-	if err == nil || !strings.Contains(err.Error(), "tier 0 still has 1 running service(s)") {
+	if !errors.Is(err, serveutil.ErrShutdownTimeout) {
 		return errSignalWedgeResult
 	}
 
