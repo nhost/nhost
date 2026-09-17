@@ -33,10 +33,11 @@ func WriteProjectName(path, name string) error {
 	return nil
 }
 
-// projectNameFileSource resolves --project-name from the file WriteProjectName
-// produced. It ranks below NHOST_PROJECT_NAME and above the working directory
-// name, and stays silent when the file is missing, unreadable, or holds nothing
-// a compose project name can be built from.
+// projectNameFileSource reads the project name out of the file
+// WriteProjectName produced. Where it ranks is resolveProjectName's business,
+// not this type's: it only reports what the file holds, and stays silent when
+// the file is missing, unreadable, or holds nothing a compose project name can
+// be built from.
 type projectNameFileSource struct {
 	path string
 }
@@ -55,12 +56,4 @@ func (s *projectNameFileSource) Lookup() (string, bool) {
 	}
 
 	return name, true
-}
-
-func (s *projectNameFileSource) String() string {
-	return fmt.Sprintf("file %q", s.path)
-}
-
-func (s *projectNameFileSource) GoString() string {
-	return fmt.Sprintf("&projectNameFileSource{path:%q}", s.path)
 }
