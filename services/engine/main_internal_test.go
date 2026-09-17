@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nhost/nhost/services/engine/internal/runner"
+	serveutil "github.com/nhost/nhost/internal/lib/serve"
 )
 
 const (
@@ -203,11 +203,11 @@ func runWedgedSignalTestHelper(ctx context.Context) error {
 	}
 
 	go func() {
-		done <- runner.Supervise(
+		done <- serveutil.Supervise(
 			ctx,
 			signalTestTierTimeout,
-			[]runner.Service{stuck},
-			[]runner.Service{laterTier},
+			[]serveutil.SupervisedService{stuck},
+			[]serveutil.SupervisedService{laterTier},
 		)
 	}()
 
