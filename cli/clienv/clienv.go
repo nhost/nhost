@@ -16,9 +16,24 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
+// sanitizeNameDrop matches every character a docker compose project name
+// cannot hold and that nothing better can be done with than dropping it.
+var sanitizeNameDrop = regexp.MustCompile(`[^a-zA-Z0-9._-]`)
+
+// sanitizeName turns a project name into one docker compose accepts: lower
+// case, `[a-z0-9][a-z0-9_-]*`.
+//
+// A dot becomes a dash rather than being dropped, because dropping it merged
+// names that are different projects -- `my.app` and `myapp` both became
+// `myapp`, so two sibling projects shared one set of containers and one
+// Postgres volume. Compose also refuses a leading dash or underscore, so
+// anything before the first letter or digit goes; the empty string that leaves
+// for a name with nothing usable in it is what callers treat as unusable.
 func sanitizeName(name string) string {
-	re := regexp.MustCompile(`[^a-zA-Z0-9_-]`)
-	return strings.ToLower(re.ReplaceAllString(name, ""))
+	lowered := strings.ToLower(sanitizeNameDrop.ReplaceAllString(name, ""))
+	lowered = strings.ReplaceAll(lowered, ".", "-")
+
+	return strings.TrimLeft(lowered, "-_")
 }
 
 type CliEnv struct {
@@ -70,25 +85,50 @@ func FromCLI(cmd *cli.Command) *CliEnv {
 		panic(err)
 	}
 
+	path := NewPathStructure(
+		cwd,
+		cmd.String(flagRootFolder),
+		cmd.String(flagDotNhostFolder),
+		cmd.String(flagNhostFolder),
+	)
+
 	return &CliEnv{
-		stdout: cmd.Writer,
-		stderr: cmd.ErrWriter,
-		Path: NewPathStructure(
-			cwd,
-			cmd.String(flagRootFolder),
-			cmd.String(flagDotNhostFolder),
-			cmd.String(flagNhostFolder),
-		),
+		stdout:         cmd.Writer,
+		stderr:         cmd.ErrWriter,
+		Path:           path,
 		authURL:        cmd.String(flagAuthURL),
 		graphqlURL:     cmd.String(flagGraphqlURL),
 		oauth2ClientID: cmd.String(flagOAuth2ClientID),
 		pat:            cmd.String(flagPAT),
 		branch:         cmd.String(flagBranch),
-		projectName:    sanitizeName(cmd.String(flagProjectName)),
+		projectName:    resolveProjectName(cmd, path),
 		nhclient:       nil,
 		nhpublicclient: nil,
 		localSubdomain: cmd.String(flagLocalSubdomain),
 	}
+}
+
+// resolveProjectName picks the docker compose project name, in the order
+// --project-name, NHOST_PROJECT_NAME, the recorded nhost/project-name, and
+// finally the working directory name the flag defaults to.
+//
+// The recorded name is read here rather than as a flag ValueSource because a
+// source runs during parsing, before --nhost-folder is resolved, and so would
+// only ever find ./nhost/project-name. Reading it against the resolved path is
+// what lets `nhost up --nhost-folder backend/nhost` reach the same project the
+// backend directory records, instead of falling back to the directory name and
+// bringing up a second set of containers and a second Postgres volume.
+func resolveProjectName(cmd *cli.Command, path *PathStructure) string {
+	// IsSet covers both the flag and NHOST_PROJECT_NAME: a value taken from an
+	// env source marks the flag as set too.
+	if !cmd.IsSet(flagProjectName) {
+		src := &projectNameFileSource{path: path.ProjectNameFile()}
+		if name, found := src.Lookup(); found {
+			return name
+		}
+	}
+
+	return sanitizeName(cmd.String(flagProjectName))
 }
 
 func (ce *CliEnv) ProjectName() string {
