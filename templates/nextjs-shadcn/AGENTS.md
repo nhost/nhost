@@ -71,7 +71,9 @@ When building another user-owned feature, copy this end-to-end shape: reversible
 - `backend/nhost/metadata/databases/default/tables/auth_users.yaml` lets the `user` role read its own row and update only `display_name` and `metadata`. `avatar_url` is written by the function as admin, so users cannot point it anywhere.
 - `backend/nhost/migrations/default/1700000000001_avatars_bucket/` creates the bucket avatars land in; `storage_buckets.yaml` and `storage_files.yaml` track the storage tables and grant `public` read access to that bucket only.
 - `backend/functions/avatar.ts` authenticates the caller against auth, resizes with jimp, stores through the storage REST API, and updates `avatarUrl` over GraphQL. The local runtime bundles each function with esbuild and native modules do not survive that, so use pure-JS dependencies (jimp, not sharp) in functions.
-- `frontend/src/app/profile/` holds the server page plus one card per concern; each card is a client component calling a server action in `actions.ts`.
+- `backend/nhost/migrations/default/1700000000002_user_has_password/` adds `public.user_has_password`, tracked as the `hasPassword` computed field on `auth.users`, so the UI can tell "set a password" from "change password" without the hash ever leaving the database.
+- `backend/functions/auth-method.ts` answers, for one email address, which sign-in step to show. It needs the admin secret, so read the note in that file about what it does and does not reveal before copying the pattern.
+- `frontend/src/app/profile/` holds the server page plus `ProfileCard` (avatar, name, email), `SecurityCard` (password) and `DeleteAccountCard`; each is a client component calling a server action in `actions.ts`.
 - Account deletion is a soft delete: `deleteAccount` stamps `metadata.deletedAt` and signs out every session, and signing back in routes to `/restore`, which clears the mark. Update `metadata` with a read-merge-write `_set`; `_append` on a user whose metadata is JSON null produces an array and breaks sign-in.
 - The template never purges. Erasing accounts once the grace period (`GRACE_DAYS` in `frontend/src/app/restore/page.tsx`) has passed is the project's responsibility, for example a scheduled job that hard-deletes users whose `metadata.deletedAt` is older than 30 days.
 
@@ -85,6 +87,9 @@ When building another user-owned feature, copy this end-to-end shape: reversible
 - Use absolute frontend imports through `@/` and merge class names with `cn()` from `@/lib/utils`.
 - Wrap network calls in explicit error handling so the UI fails gracefully when the backend is unavailable.
 - Auth emails that link back into the app (password reset, email change) derive `redirectTo` from the request's own headers; see `appOrigin` in `frontend/src/app/profile/actions.ts`.
+- Those links come back as `?refreshToken=...`, which the proxy redeems into the session cookie before redirecting to the same URL without it. Any new page an auth email points at therefore already has a session; do not add a second redemption path.
+- Changing a password revokes the account's refresh tokens, so `changePassword` signs back in on the new password. Anything else that rotates credentials has to do the same or it logs out the person who just used it.
+- Sign-in asks for the email first and then shows the step that account actually uses, so a new page must not assume a password exists. `hasPassword` is the flag for that.
 - Read the backend subdomain and region through `nhostSubdomain()` / `nhostRegion()` from `@/lib/nhost/env`. `NEXT_PUBLIC_NHOST_SUBDOMAIN` and `NEXT_PUBLIC_NHOST_REGION` are the only pair, shared by the browser and the server; do not add a server-only pair, which would let the two halves target different backends.
 - Next.js inlines `NEXT_PUBLIC_*` at build time, so those two variables must be set before `next build`; setting them on the running host has no effect and the build stays pointed at the local stack.
 - Never commit real values from `backend/.secrets` or frontend environment files. `frontend/.gitignore` ignores every `.env*` except `.env.example`, and the project-root `.gitignore` covers `.secrets` and `.nhost`.

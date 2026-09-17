@@ -36,6 +36,8 @@ pnpm dev
 
 Open <http://localhost:3000>. The home page reports GraphQL connectivity and links to the sign-in flow, the protected todos page, and, once signed in, your profile.
 
+Sign-in asks for your email first and then shows the step that account uses: a password if one is set, otherwise a code sent by email. An address with no account gets a code too, and verifying it creates the account, so there is no separate sign-up form.
+
 The default environment points to the local backend:
 
 ```dotenv
@@ -102,13 +104,21 @@ Use those files and the `add-table` skill as the copy-me pattern for new user-ow
 
 Sign in and open `/profile` to see the rest of the stack in one place:
 
-- **Avatar** — the browser sends the photo to the `avatar` serverless function, which resizes it to 512×512 and stores it in the `avatars` storage bucket. Reads are public, writes go only through the function.
+- **Avatar** — click it, or drop an image on it, and the photo goes to the `avatar` serverless function, which resizes it to 512×512 and stores it in the `avatars` storage bucket. Reads are public, writes go only through the function.
 - **Display name** — a GraphQL mutation on your own `auth.users` row, allowed by row-level permissions.
 - **Email** — a change takes effect only after you confirm it from the new address; the pending state shows on the card.
-- **Password** — code sign-ins never set one, so set it here. After that the password tab on `/signin` and the forgot-password reset flow both work.
+- **Password** — three flows, driven by whether one is set. Set a password if you only ever used codes, change it with the current one, or mail yourself a reset link.
 - **Delete account** — a soft delete with a 30-day grace period. It stamps `metadata.deletedAt` and signs you out everywhere; signing back in offers to restore the account.
 
+Changing a password revokes every refresh token on the account, which is what should happen: it boots whoever else was signed in. The profile page signs you back in on the new password so it does not also boot you.
+
 The template marks and restores accounts but never purges them. If you keep this flow in a real product, schedule the actual erasure after the grace period yourself; a deletion request is only fulfilled once the data really goes away.
+
+## Emails, end to end
+
+Password resets and email changes send a real email, and locally the mail viewer catches it. The link goes to the auth service, which verifies the ticket and redirects back with a refresh token in the query string. `frontend/src/proxy.ts` redeems that token into the session cookie and redirects to the same page without it, so the page behind the link opens signed in and the token never lingers in history or the referer header.
+
+That is worth knowing before you add a page an auth email points at: the session is already there, so the page only has to do its job.
 
 ## Where things live
 
