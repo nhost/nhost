@@ -61,16 +61,17 @@ export function ProfileCard({
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-8">
+      <CardContent className="flex flex-col gap-6 sm:flex-row sm:items-center sm:gap-8">
         <AvatarPicker
           email={email}
           displayName={displayName}
           avatarUrl={avatarUrl}
         />
 
-        {/* As tall as the avatar and centred inside that, so the labelled
-            field sits level with the picture rather than riding above it. */}
-        <div className="flex flex-1 flex-col justify-center gap-5 sm:min-h-20">
+        {/* Centred against the whole avatar column, caption and all, rather
+            than against the picture alone, which left the field high and a
+            gap under it. */}
+        <div className="flex flex-1 flex-col gap-5">
           <form className="flex items-end gap-2" onSubmit={handleSaveName}>
             <div className="flex flex-1 flex-col gap-2">
               <Label htmlFor={nameId}>Display name</Label>

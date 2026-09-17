@@ -1,4 +1,4 @@
-import { NextStep } from '@/components/NextStep';
+import { NextSteps } from '@/components/NextSteps';
 import { PageHeader } from '@/components/PageHeader';
 import { StatusTiles } from '@/components/StatusTiles';
 import { createNhostClient } from '@/lib/nhost/server';
@@ -12,7 +12,7 @@ export default async function Home() {
     <div className="flex flex-col gap-8">
       <PageHeader />
       <StatusTiles />
-      {nhost.getUserSession() ? <NextStep /> : null}
+      {nhost.getUserSession() ? <NextSteps /> : null}
     </div>
   );
 }

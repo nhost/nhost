@@ -56,7 +56,7 @@ export function SecurityCard({ hasPassword }: { hasPassword: boolean }) {
     }
 
     reset();
-    setNotice(hasPassword ? 'Password changed.' : 'Password set.');
+    setNotice(hasPassword ? 'Password changed.' : 'Password added.');
     router.refresh();
   };
 
@@ -88,7 +88,7 @@ export function SecurityCard({ hasPassword }: { hasPassword: boolean }) {
         <CardDescription>
           {hasPassword
             ? 'Sign in with this or an emailed code.'
-            : 'Set one to sign in without a code.'}
+            : 'Add one to sign in without a code.'}
         </CardDescription>
       </CardHeader>
 
@@ -111,7 +111,9 @@ export function SecurityCard({ hasPassword }: { hasPassword: boolean }) {
             ) : null}
 
             <div className="flex flex-col gap-2">
-              <Label htmlFor={newId}>New password</Label>
+              <Label htmlFor={newId}>
+                {hasPassword ? 'New password' : 'Password'}
+              </Label>
               <Input
                 id={newId}
                 type="password"
@@ -140,7 +142,7 @@ export function SecurityCard({ hasPassword }: { hasPassword: boolean }) {
                   ? 'Saving…'
                   : hasPassword
                     ? 'Change password'
-                    : 'Set password'}
+                    : 'Add password'}
               </Button>
               <Button
                 type="button"
@@ -159,7 +161,7 @@ export function SecurityCard({ hasPassword }: { hasPassword: boolean }) {
               variant="outline"
               onClick={() => setEditing(true)}
             >
-              {hasPassword ? 'Change password' : 'Set a password'}
+              {hasPassword ? 'Change password' : 'Add a password'}
             </Button>
 
             {hasPassword ? (
