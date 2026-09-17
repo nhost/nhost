@@ -1,4 +1,4 @@
-package create //nolint:testpackage
+package create
 
 import (
 	"bytes"
@@ -428,6 +428,163 @@ func TestCreatedProjectsGetDistinctComposeProjectNames(t *testing.T) {
 	}
 }
 
+// Two names that differ only by a dot are two projects. Dropping the dot made
+// `my.app` and `myapp` resolve to one compose project, so the second `nhost up`
+// would attach to the first project's containers and Postgres volume.
+//
+//nolint:paralleltest // mutates process cwd via t.Chdir
+func TestCreatedProjectsWithDottedNamesDoNotShareAComposeProject(t *testing.T) {
+	workdir := t.TempDir()
+	templateDir := filepath.Join(workdir, "template")
+
+	writeTestFile(
+		t,
+		filepath.Join(templateDir, "frontend", "package.json"),
+		"{\n  \"name\": \"starter\"\n}\n",
+	)
+
+	t.Chdir(workdir)
+
+	var output bytes.Buffer
+
+	for _, name := range []string{"my.app", "myapp"} {
+		cmd := newTestRootCommand(t, &output)
+		if err := cmd.Run(
+			context.Background(),
+			[]string{"nhost", "create", "--template-path", templateDir, "--no-install", name},
+		); err != nil {
+			t.Fatalf("create %s: %v\n%s", name, err, output.String())
+		}
+	}
+
+	dotted := composeProjectName(t, filepath.Join(workdir, "my.app", "backend"))
+	plain := composeProjectName(t, filepath.Join(workdir, "myapp", "backend"))
+
+	if dotted == plain {
+		t.Fatalf(
+			"my.app and myapp both resolve to compose project %q, so they would share one Postgres volume",
+			dotted,
+		)
+	}
+
+	if dotted != "my-app" {
+		t.Errorf("project name in my.app/backend = %q, want %q", dotted, "my-app")
+	}
+
+	if plain != "myapp" {
+		t.Errorf("project name in myapp/backend = %q, want %q", plain, "myapp")
+	}
+}
+
+// An install that fails is a warning, not a failed create: the project is on
+// disk either way, so the command succeeds and the next steps tell the user to
+// run the install themselves.
+//
+//nolint:paralleltest // mutates process cwd and the runInstallFn test seam
+func TestCreateWarnsButSucceedsWhenInstallFails(t *testing.T) {
+	workdir := t.TempDir()
+	templateDir := filepath.Join(workdir, "template")
+
+	writeTestFile(
+		t,
+		filepath.Join(templateDir, "frontend", "package.json"),
+		"{\n  \"name\": \"starter\"\n}\n",
+	)
+
+	stubInstall(t, func(context.Context, string, string) error {
+		return errStubInstall
+	})
+
+	t.Chdir(workdir)
+
+	var output bytes.Buffer
+
+	cmd := newTestRootCommand(t, &output)
+	if err := cmd.Run(
+		context.Background(),
+		[]string{"nhost", "create", "--template-path", templateDir, "my-app"},
+	); err != nil {
+		t.Fatalf("create command = %v, want nil after a failed install\n%s", err, output.String())
+	}
+
+	got := output.String()
+
+	if !strings.Contains(got, "Could not install dependencies") {
+		t.Errorf("output missing the failed-install warning:\n%s", got)
+	}
+
+	// The frontend has no dependencies, so the next steps have to put the
+	// install back.
+	if !strings.Contains(got, "pnpm install && pnpm dev") {
+		t.Errorf("next steps missing `pnpm install && pnpm dev`:\n%s", got)
+	}
+}
+
+//nolint:paralleltest // mutates process cwd and the runInstallFn test seam
+func TestCreateOmitsInstallFromNextStepsAfterASuccessfulInstall(t *testing.T) {
+	workdir := t.TempDir()
+	templateDir := filepath.Join(workdir, "template")
+
+	writeTestFile(
+		t,
+		filepath.Join(templateDir, "frontend", "package.json"),
+		"{\n  \"name\": \"starter\"\n}\n",
+	)
+
+	var (
+		calledDir string
+		calledPM  string
+	)
+
+	stubInstall(t, func(_ context.Context, pm, dir string) error {
+		calledPM, calledDir = pm, dir
+
+		return nil
+	})
+
+	t.Chdir(workdir)
+
+	var output bytes.Buffer
+
+	cmd := newTestRootCommand(t, &output)
+	if err := cmd.Run(
+		context.Background(),
+		[]string{"nhost", "create", "--template-path", templateDir, "my-app"},
+	); err != nil {
+		t.Fatalf("create command: %v\n%s", err, output.String())
+	}
+
+	if calledPM != "pnpm" {
+		t.Errorf("install ran with package manager %q, want %q", calledPM, "pnpm")
+	}
+
+	if want := filepath.Join(workdir, "my-app", "frontend"); calledDir != want {
+		t.Errorf("install ran in %q, want %q", calledDir, want)
+	}
+
+	got := output.String()
+
+	if strings.Contains(got, "install &&") {
+		t.Errorf("next steps still ask for an install after one succeeded:\n%s", got)
+	}
+
+	if !strings.Contains(got, "pnpm dev") {
+		t.Errorf("next steps missing `pnpm dev`:\n%s", got)
+	}
+}
+
+var errStubInstall = errors.New("stub install failed")
+
+// stubInstall replaces the install step for one test.
+func stubInstall(t *testing.T, fn func(context.Context, string, string) error) {
+	t.Helper()
+
+	old := runInstallFn
+	runInstallFn = fn
+
+	t.Cleanup(func() { runInstallFn = old })
+}
+
 // composeProjectName reports the docker compose project name `nhost up` would
 // use in dir, resolving the global flags exactly as the real CLI does.
 func composeProjectName(t *testing.T, dir string) string {
@@ -659,20 +816,109 @@ func TestCreateCleansUpAfterGitFetchFailure(t *testing.T) {
 		}
 	}
 
-	// The target directory is created before the template is fetched, so a
-	// failure leaves it behind. What must not survive is anything in it: a
-	// half-scaffolded project is worse than an empty directory.
-	left, statErr := os.ReadDir(filepath.Join(workdir, "broken-app"))
-	if statErr != nil {
-		t.Fatalf("ReadDir(broken-app): %v", statErr)
-	}
-
-	if len(left) != 0 {
-		t.Fatalf("failed create left %d entries behind in broken-app", len(left))
+	// The target directory is created before the template is fetched, and a
+	// create that made it takes it back out again on the way out: a failed
+	// `nhost create foo` should not leave an empty foo/ to explain.
+	if _, statErr := os.Stat(filepath.Join(workdir, "broken-app")); !errors.Is(
+		statErr, os.ErrNotExist,
+	) {
+		t.Fatalf("failed create left broken-app behind: stat err = %v", statErr)
 	}
 
 	assertNoTemplateTempClones(t, tmpDir)
 	assertNoStagingLeftovers(t, filepath.Join(workdir, "broken-app"))
+}
+
+// `git sparse-checkout set` succeeds for a path that is not in the tree, so a
+// ref that predates the template gets all the way to the copy before anything
+// notices. That is what anyone pinning an older tag hits, so the error has to
+// name the template, the repo and the ref rather than a stat of a temp path.
+func TestCreateReportsATemplateMissingAtThatRef(t *testing.T) {
+	git := requireGit(t)
+	workdir := t.TempDir()
+
+	tmpDir := filepath.Join(workdir, "tmp")
+	if err := os.MkdirAll(tmpDir, 0o755); err != nil {
+		t.Fatalf("MkdirAll TMPDIR: %v", err)
+	}
+
+	t.Setenv("TMPDIR", tmpDir)
+
+	// A repo that carries a template, just not the one the CLI will ask for.
+	fixture := createNamedTemplateGitFixture(t, git, "template-branch", "some-other-template")
+	t.Chdir(workdir)
+
+	var output bytes.Buffer
+
+	cmd := newTestRootCommand(t, &output)
+
+	err := cmd.Run(
+		context.Background(),
+		[]string{
+			"nhost", "create",
+			"--templates-repo", "file://" + fixture,
+			"--templates-ref", "template-branch",
+			"--no-install",
+			"missing-template-app",
+		},
+	)
+	if err == nil {
+		t.Fatal("create command succeeded; want a missing-template failure")
+	}
+
+	msg := err.Error()
+	for _, want := range []string{defaultTemplate, fixture, "template-branch"} {
+		if !strings.Contains(msg, want) {
+			t.Errorf("error %q does not name %q", msg, want)
+		}
+	}
+
+	assertNoTemplateTempClones(t, tmpDir)
+	assertNoStagingLeftovers(t, filepath.Join(workdir, "missing-template-app"))
+}
+
+// A directory the user already had is theirs. A failed create empties it of
+// whatever it staged, but removing it would destroy work the command never
+// created.
+func TestCreateLeavesAPreExistingTargetDirectoryBehind(t *testing.T) {
+	git := requireGit(t)
+	workdir := t.TempDir()
+
+	tmpDir := filepath.Join(workdir, "tmp")
+	if err := os.MkdirAll(tmpDir, 0o755); err != nil {
+		t.Fatalf("MkdirAll TMPDIR: %v", err)
+	}
+
+	t.Setenv("TMPDIR", tmpDir)
+
+	fixture := createTemplateGitFixture(t, git, "template-branch")
+	t.Chdir(workdir)
+
+	target := filepath.Join(workdir, "mine")
+	writeTestFile(t, filepath.Join(target, "NOTES.md"), "my notes\n")
+
+	var output bytes.Buffer
+
+	cmd := newTestRootCommand(t, &output)
+
+	if err := cmd.Run(
+		context.Background(),
+		[]string{
+			"nhost", "create",
+			"--templates-repo", "file://" + fixture,
+			"--templates-ref", "missing-branch",
+			"--no-install",
+			"mine",
+		},
+	); err == nil {
+		t.Fatal("create command succeeded; want git fetch failure")
+	}
+
+	if got := readTestFile(t, filepath.Join(target, "NOTES.md")); got != "my notes\n" {
+		t.Fatalf("pre-existing file = %q, want %q", got, "my notes\n")
+	}
+
+	assertNoStagingLeftovers(t, target)
 }
 
 //nolint:paralleltest // mutates package-level gitLookPath test seam
@@ -977,6 +1223,25 @@ func requireGit(t *testing.T) string {
 func createTemplateGitFixture(t *testing.T, git string, branch string) string {
 	t.Helper()
 
+	return createNamedTemplateGitFixture(t, git, branch, defaultTemplate)
+}
+
+// createNamedTemplateGitFixture builds a templates repo holding exactly one
+// template, under the name given. Naming it lets a test build a repo that does
+// not carry the template the CLI will ask for.
+//
+// The fixture and the clone the CLI runs against it are both cut off from the
+// developer's own git config: a global commit.gpgsign, or a core.excludesFile
+// that happens to match, would otherwise fail the commit or quietly drop the
+// fixture's files.
+func createNamedTemplateGitFixture(
+	t *testing.T, git string, branch string, templateName string,
+) string {
+	t.Helper()
+
+	t.Setenv("GIT_CONFIG_GLOBAL", os.DevNull)
+	t.Setenv("GIT_CONFIG_SYSTEM", os.DevNull)
+
 	fixture := filepath.Join(t.TempDir(), "templates-repo")
 	if err := os.MkdirAll(fixture, 0o755); err != nil {
 		t.Fatalf("MkdirAll fixture: %v", err)
@@ -989,12 +1254,12 @@ func createTemplateGitFixture(t *testing.T, git string, branch string) string {
 
 	writeTestFile(
 		t,
-		filepath.Join(fixture, "templates", "nextjs-shadcn", "frontend", "package.json"),
+		filepath.Join(fixture, "templates", templateName, "frontend", "package.json"),
 		"{\n  \"name\": \"starter\",\n  \"version\": \"0.1.0\"\n}\n",
 	)
 	writeTestFile(
 		t,
-		filepath.Join(fixture, "templates", "nextjs-shadcn", "frontend", "src", "app.ts"),
+		filepath.Join(fixture, "templates", templateName, "frontend", "src", "app.ts"),
 		"export const ok = true\n",
 	)
 	runGit(t, git, fixture, "add", ".")
