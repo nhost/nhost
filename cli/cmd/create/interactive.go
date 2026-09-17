@@ -178,7 +178,7 @@ func runInteractive(
 	resolved := defaults
 
 	ce.Println("")
-	ce.Println("%s", openLine("Nhost"))
+	ce.Println("%s", openLine("Nhost Create"))
 
 	// The name comes first because it is the one answer that decides where the
 	// project lands, and because it is already filled in from the directory the
