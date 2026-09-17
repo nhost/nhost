@@ -65,28 +65,33 @@ strip_blank_edges() {
   '
 }
 
+# A template is a directory shipping a frontend app. Anything else under
+# templates/ is tooling, so it is neither checked nor counted.
+templates_checked=0
+
 for template in templates/*/; do
 	template=${template%/}
 
-	if [ -f "$template/AGENTS.md" ] || [ -f "$template/CLAUDE.md" ]; then
-		if [ ! -f "$template/AGENTS.md" ] || [ ! -f "$template/CLAUDE.md" ]; then
-			fail "$template ships only one of AGENTS.md and CLAUDE.md; it must ship both, byte-identical."
-		elif ! diff -u "$template/AGENTS.md" "$template/CLAUDE.md"; then
-			fail "$template/AGENTS.md and $template/CLAUDE.md have drifted apart; copy one over the other."
-		fi
+	[ -f "$template/frontend/package.json" ] || continue
+	templates_checked=$((templates_checked + 1))
+
+	# The bundle is mandatory, not opt-in. Checking only what happens to be
+	# there passes a template that ships no agent context at all, which is the
+	# one case where an agent has nothing to go on.
+	if [ ! -f "$template/AGENTS.md" ] || [ ! -f "$template/CLAUDE.md" ]; then
+		fail "$template must ship both AGENTS.md and CLAUDE.md, byte-identical."
+	elif ! diff -u "$template/AGENTS.md" "$template/CLAUDE.md"; then
+		fail "$template/AGENTS.md and $template/CLAUDE.md have drifted apart; copy one over the other."
 	fi
 
 	skills_doc=$template/SKILLS.md
 	skills_dir=$template/.claude/skills
-	if [ ! -f "$skills_doc" ] && [ ! -d "$skills_dir" ]; then
-		continue
-	fi
 	if [ ! -f "$skills_doc" ]; then
-		fail "$skills_dir ships skills but $skills_doc is missing; agents that do not read .claude/ would see none of them."
+		fail "$skills_doc is missing; agents that do not read .claude/ would see none of the template's workflows."
 		continue
 	fi
 	if [ ! -d "$skills_dir" ]; then
-		fail "$skills_doc exists but $skills_dir is missing; Claude Code would discover none of its workflows."
+		fail "$skills_dir is missing; Claude Code would discover none of the template's workflows."
 		continue
 	fi
 
@@ -125,8 +130,14 @@ for template in templates/*/; do
 	done < <(awk '/^## / { sub(/^## /, ""); print }' "$skills_doc")
 done
 
+# Without this the whole check passes vacuously when the glob matches nothing,
+# which is what a renamed or moved templates/ directory looks like.
+if [ "$templates_checked" -eq 0 ]; then
+	fail "no templates found under templates/*/; this guard checked nothing."
+fi
+
 if [ "$status" -eq 0 ]; then
-	echo "templates: agent-context files are consistent"
+	echo "templates: agent-context files are consistent ($templates_checked checked)"
 fi
 
 exit "$status"

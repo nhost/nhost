@@ -11,13 +11,25 @@ concurrency:
   group: ${{ github.workflow }}-${{ startsWith(github.event_name, 'pull_request') && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
   cancel-in-progress: ${{ startsWith(github.event_name, 'pull_request') }}
 
+# This workflow runs `pnpm install` and `next build`, so it executes lifecycle
+# scripts straight out of the pull request. `pull_request` rather than
+# `pull_request_target` is what keeps that off the repository's secrets; this
+# pins the token down to match.
+permissions:
+  contents: read
+
 jobs:
-  nextjs-shadcn:
+  frontend:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        # Add a template here when it lands, or it ships unchecked.
+        template: [nextjs-shadcn]
     defaults:
       run:
-        working-directory: templates/nextjs-shadcn/frontend
+        working-directory: templates/${{ matrix.template }}/frontend
     steps:
       - uses: actions/checkout@v7
 
@@ -29,7 +41,7 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-          cache-dependency-path: templates/nextjs-shadcn/frontend/pnpm-lock.yaml
+          cache-dependency-path: templates/${{ matrix.template }}/frontend/pnpm-lock.yaml
 
       # The template ships its own pnpm-workspace.yaml, so pnpm treats it as a
       # standalone workspace root instead of a member of the monorepo.
@@ -51,6 +63,61 @@ jobs:
       - run: pnpm test
 
       - run: pnpm build
+
+  # The other half of a template. Its functions are the example users copy, and
+  # they ship their own package.json and a strict tsconfig, so nothing else
+  # type-checks them. The metadata is what the permission rules live in, where a
+  # YAML typo silently changes who can read what.
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        template: [nextjs-shadcn]
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: templates/${{ matrix.template }}/backend/functions/package-lock.json
+
+      # npm, not pnpm: this is what the functions runtime installs, and the
+      # template commits a package-lock.json for it.
+      - name: Type-check the serverless functions
+        working-directory: templates/${{ matrix.template }}/backend/functions
+        run: |
+          npm ci
+          npx tsc --noEmit
+
+      - name: Parse the backend metadata and the MCP config
+        run: |
+          python3 - "templates/${{ matrix.template }}" <<'PY'
+          import json, pathlib, sys, yaml
+
+          template = pathlib.Path(sys.argv[1])
+          failed = False
+
+          metadata = template / "backend/nhost/metadata"
+          for path in sorted(metadata.rglob("*.yaml")):
+              try:
+                  yaml.safe_load(path.read_text())
+              except yaml.YAMLError as err:
+                  print(f"::error file={path}::{err}")
+                  failed = True
+
+          mcp = template / ".mcp.json"
+          if mcp.is_file():
+              try:
+                  json.loads(mcp.read_text())
+              except json.JSONDecodeError as err:
+                  print(f"::error file={mcp}::{err}")
+                  failed = True
+
+          sys.exit(1 if failed else 0)
+          PY
 
   # Cross-template, and deliberately without a `working-directory` default:
   # the guard walks every `templates/*/` from the repository root.
