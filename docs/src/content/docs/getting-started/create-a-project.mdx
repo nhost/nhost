@@ -1,0 +1,138 @@
+---
+title: Create a project from a template
+description: "Scaffold a full-stack Nhost project in one command with nhost create: backend config, a starter frontend, auth, GraphQL codegen, and context files your coding agent can read."
+keywords: ["nhost create", "template", "scaffold", "starter", "AGENTS.md", "CLAUDE.md", "MCP", "coding agent"]
+head:
+  - tag: title
+    content: "Create an Nhost Project from a Template | Nhost Docs"
+sidebar:
+  label: Create a Project
+---
+
+`nhost create` scaffolds a complete full-stack project in one command: a configured backend, a starter frontend wired to it, working authentication, and GraphQL code generation. Everything is generated locally, so you can run it before you have a cloud project.
+
+The quickstarts add Nhost to an app you already have. Use this instead when you are starting from nothing.
+
+## Create the project
+
+Run it from wherever you keep your projects:
+
+```bash Terminal
+nhost create
+```
+
+You are prompted for the project name, template, and package manager. The name you give the project is also the directory it is created in, so the default, `nhost-starter-app`, lands in `./nhost-starter-app`.
+
+To build into a directory you already made, name the project after it, at the prompt or up front. The names match, so nothing is nested inside it:
+
+```bash Terminal
+mkdir my-app && cd my-app
+nhost create --name my-app
+```
+
+Pass a directory to scaffold into exactly that, whatever the project ends up being called. It is created if it does not exist:
+
+```bash Terminal
+nhost create my-app
+```
+
+Or skip the prompts entirely:
+
+```bash Terminal
+nhost create my-app --template nextjs-shadcn --package-manager pnpm --yes
+```
+
+Files already in the target directory are left where they are. Create only stops if the template would land on top of something, and it names what clashed. A fresh `git init` is fine, but note that the template ships its own `README.md` and `.gitignore`, so a directory that already has either needs that file moved out of the way first. `--name` answers the name prompt up front, and without a directory argument it picks the directory too.
+
+Frontend dependencies are always installed. Pass `--no-install` to skip that, for instance when scaffolding in a container that has no network.
+
+## What you get
+
+In the directory you created it in:
+
+```
+backend/          nhost.toml, migrations, metadata, functions, .secrets, project-name
+frontend/         the template's app, with its own lockfile
+AGENTS.md         project context for coding agents
+CLAUDE.md         the same content, for Claude Code
+SKILLS.md         repeatable workflows, for any coding agent
+.claude/skills/   the same workflows, in the layout Claude Code loads
+.mcp.json         Nhost MCP server configuration
+README.md
+```
+
+The backend is the same layout [`nhost init`](/getting-started/local-development/cli) produces, with email OTP sign-in already enabled and the client URL pointed at your local frontend. The template is applied on top, so it can ship its own migrations and metadata.
+
+## Run it
+
+Create leaves the servers to you, so you own the processes and can stop them when you need to. Start them in two terminals:
+
+```bash Terminal
+cd backend
+nhost up
+```
+
+```bash Terminal
+cd frontend
+pnpm dev
+```
+
+The backend carries its own Docker Compose project name in `backend/nhost/project-name`, written when the project was created. It namespaces the local containers and the database volume, so two projects created this way never share one Postgres volume even though both backends sit in a directory called `backend`. Set `NHOST_PROJECT_NAME` or pass `--project-name` to override it, for instance to run [two copies of the same project](/platform/cli/multiple-projects).
+
+The app is on `http://localhost:3000` and sign-in works out of the box. Local emails, including the OTP codes, are captured by Mailhog rather than sent, and `nhost up` prints its URL.
+
+## Built for coding agents
+
+Every template ships context files so an agent understands the project without you explaining it.
+
+`AGENTS.md` and `CLAUDE.md` describe the stack, where the backend contract lives, and the rules worth not breaking. Most coding agents read `AGENTS.md` automatically at the start of a session, and Claude Code reads `CLAUDE.md`.
+
+`frontend/schema.graphql` is the committed GraphQL contract for the `user` role. It is both the codegen input and the file an agent should read before writing a data-backed feature, so it never has to introspect the endpoint.
+
+Templates also ship skills, the repeatable workflows for changing the project. They come in two forms with the same content: `SKILLS.md` holds all of them in one file that any agent can read, and `.claude/skills/<name>/SKILL.md` is the per-skill layout Claude Code loads on demand when a task matches.
+
+| Skill | What it does |
+| --- | --- |
+| `add-table` | Create a migration and track the new table |
+| `add-permission` | Add role permissions with row-level ownership |
+| `create-function` | Add a serverless function |
+| `refresh-context` | Re-dump the schema and regenerate types after a change |
+
+Both forms are plain markdown over CLI commands, so they work with any agent and without the MCP server. Copy `AGENTS.md` and `SKILLS.md` into an existing project to get the same context there.
+
+`.mcp.json` points at the [CLI MCP server](/platform/cli/mcp), which gives the agent live access to the project.
+
+Once the project exists, you can hand it straight to an agent:
+
+```bash Terminal
+claude "This is an Nhost and Next.js starter. Add a projects table that todos belong to, with permissions so users only see their own."
+```
+
+Re-run the `refresh-context` skill, or `nhost schema dump --subdomain local --role user -o frontend/schema.graphql`, after any migration so the committed contract stays current.
+
+## Available templates
+
+| Template | Stack |
+| --- | --- |
+| `nextjs-shadcn` | Next.js App Router, Tailwind CSS v4, shadcn/ui, email OTP auth |
+
+## Options
+
+| | |
+| --- | --- |
+| `--template`, `-t` | Template to scaffold. Defaults to `nextjs-shadcn`. |
+| `--name` | Project name, and the directory it lands in. Defaults to `nhost-starter-app`, or to the directory you pass. |
+| `--package-manager` | `pnpm`, `npm`, `bun`, or `yarn`. Defaults to `pnpm`. |
+| `--no-install` | Skip installing frontend dependencies. |
+| `--yes`, `--skip-prompts` | Accept defaults and skip all prompts. |
+| `--template-path` | Scaffold from a local template directory instead of fetching from GitHub. |
+
+Templates are fetched from the [nhost/nhost](https://github.com/nhost/nhost) repository at create time, at the tag your CLI was released from, so a new project always starts from the template that shipped with the CLI you are running. Dev builds of the CLI fetch from `main` instead.
+
+See the [CLI reference](/reference/cli/commands) for the full flag list.
+
+## Next steps
+
+- Follow a [tutorial](/getting-started/tutorials/nextjs/1-introduction) to build a todo manager step by step.
+- Read about [local development](/getting-started/local-development/cli) with the CLI.
+- Deploy the backend by connecting the project to [Nhost Cloud](https://app.nhost.io).
