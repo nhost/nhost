@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useId, useState } from 'react';
+import { TodoItem } from '@/app/protected/TodoItem';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -42,6 +43,26 @@ const CreateTodo = graphql(`
   }
 `);
 
+// The `user` role may only set title and completed, so the whole edit surface
+// goes through one mutation rather than one per field.
+const UpdateTodo = graphql(`
+  mutation UpdateTodo($id: uuid!, $changes: todos_set_input!) {
+    update_todos_by_pk(pk_columns: { id: $id }, _set: $changes) {
+      id
+      title
+      completed
+    }
+  }
+`);
+
+const DeleteTodo = graphql(`
+  mutation DeleteTodo($id: uuid!) {
+    delete_todos_by_pk(id: $id) {
+      id
+    }
+  }
+`);
+
 const todosQueryKey = ['todos'] as const;
 
 const todosTable = localTableURL('todos');
@@ -57,17 +78,37 @@ export function Todos() {
     queryFn: () => gqlRequest(nhost, GetTodos, {}),
   });
 
+  // Every mutation ends the same way: refetch the list, and re-render the
+  // server components so the status tiles above match what is on screen.
+  const settle = async (): Promise<void> => {
+    await queryClient.invalidateQueries({ queryKey: todosQueryKey });
+    router.refresh();
+  };
+
   const createTodo = useMutation({
     mutationFn: (newTitle: string) =>
       gqlRequest(nhost, CreateTodo, { title: newTitle }),
     onSuccess: async () => {
       setTitle('');
-      await queryClient.invalidateQueries({ queryKey: todosQueryKey });
-      // The status tiles above render on the server, so the first todo only
-      // lights the data one once those components run again.
-      router.refresh();
+      await settle();
     },
   });
+
+  const updateTodo = useMutation({
+    mutationFn: (variables: {
+      id: string;
+      changes: { title?: string; completed?: boolean };
+    }) => gqlRequest(nhost, UpdateTodo, variables),
+    onSuccess: settle,
+  });
+
+  const deleteTodo = useMutation({
+    mutationFn: (id: string) => gqlRequest(nhost, DeleteTodo, { id }),
+    onSuccess: settle,
+  });
+
+  const writeError =
+    createTodo.error ?? updateTodo.error ?? deleteTodo.error ?? null;
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
@@ -107,9 +148,9 @@ export function Todos() {
           </Button>
         </form>
 
-        {createTodo.error ? (
+        {writeError ? (
           <p className="text-destructive text-sm">
-            Could not create the todo: {createTodo.error.message}
+            Could not save that change: {writeError.message}
           </p>
         ) : null}
 
@@ -132,16 +173,28 @@ export function Todos() {
         {todos.data?.todos.length ? (
           <ul className="flex flex-col gap-2">
             {todos.data.todos.map((todo) => (
-              <li
+              <TodoItem
                 key={String(todo.id)}
-                className="flex items-center gap-3 rounded-md border p-3"
-              >
-                <span
-                  className={todo.completed ? 'line-through opacity-60' : ''}
-                >
-                  {todo.title}
-                </span>
-              </li>
+                todo={{
+                  id: String(todo.id),
+                  title: todo.title,
+                  completed: todo.completed,
+                }}
+                isBusy={updateTodo.isPending || deleteTodo.isPending}
+                onToggle={(completed) =>
+                  updateTodo.mutate({
+                    id: String(todo.id),
+                    changes: { completed },
+                  })
+                }
+                onRename={(newTitle) =>
+                  updateTodo.mutate({
+                    id: String(todo.id),
+                    changes: { title: newTitle },
+                  })
+                }
+                onDelete={() => deleteTodo.mutate(String(todo.id))}
+              />
             ))}
           </ul>
         ) : null}

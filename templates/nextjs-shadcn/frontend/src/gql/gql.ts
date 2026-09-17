@@ -20,6 +20,8 @@ type Documents = {
     "\n  query GetProfile($id: uuid!) {\n    user(id: $id) {\n      id\n      displayName\n      email\n      newEmail\n      emailVerified\n      avatarUrl\n      hasPassword\n      metadata\n    }\n  }\n": typeof types.GetProfileDocument,
     "\n  query GetTodos {\n    todos {\n      id\n      title\n      completed\n      created_at\n      user_id\n    }\n  }\n": typeof types.GetTodosDocument,
     "\n  mutation CreateTodo($title: String!) {\n    insert_todos_one(object: { title: $title }) {\n      id\n      title\n      completed\n      created_at\n      user_id\n    }\n  }\n": typeof types.CreateTodoDocument,
+    "\n  mutation UpdateTodo($id: uuid!, $changes: todos_set_input!) {\n    update_todos_by_pk(pk_columns: { id: $id }, _set: $changes) {\n      id\n      title\n      completed\n    }\n  }\n": typeof types.UpdateTodoDocument,
+    "\n  mutation DeleteTodo($id: uuid!) {\n    delete_todos_by_pk(id: $id) {\n      id\n    }\n  }\n": typeof types.DeleteTodoDocument,
     "\n  query GetDeletionMark($id: uuid!) {\n    user(id: $id) {\n      id\n      metadata\n    }\n  }\n": typeof types.GetDeletionMarkDocument,
     "\n  query GetNavProfile($id: uuid!) {\n    user(id: $id) {\n      id\n      displayName\n      avatarUrl\n    }\n  }\n": typeof types.GetNavProfileDocument,
     "\n  query HasTodos {\n    todos(limit: 1) {\n      id\n    }\n  }\n": typeof types.HasTodosDocument,
@@ -31,6 +33,8 @@ const documents: Documents = {
     "\n  query GetProfile($id: uuid!) {\n    user(id: $id) {\n      id\n      displayName\n      email\n      newEmail\n      emailVerified\n      avatarUrl\n      hasPassword\n      metadata\n    }\n  }\n": types.GetProfileDocument,
     "\n  query GetTodos {\n    todos {\n      id\n      title\n      completed\n      created_at\n      user_id\n    }\n  }\n": types.GetTodosDocument,
     "\n  mutation CreateTodo($title: String!) {\n    insert_todos_one(object: { title: $title }) {\n      id\n      title\n      completed\n      created_at\n      user_id\n    }\n  }\n": types.CreateTodoDocument,
+    "\n  mutation UpdateTodo($id: uuid!, $changes: todos_set_input!) {\n    update_todos_by_pk(pk_columns: { id: $id }, _set: $changes) {\n      id\n      title\n      completed\n    }\n  }\n": types.UpdateTodoDocument,
+    "\n  mutation DeleteTodo($id: uuid!) {\n    delete_todos_by_pk(id: $id) {\n      id\n    }\n  }\n": types.DeleteTodoDocument,
     "\n  query GetDeletionMark($id: uuid!) {\n    user(id: $id) {\n      id\n      metadata\n    }\n  }\n": types.GetDeletionMarkDocument,
     "\n  query GetNavProfile($id: uuid!) {\n    user(id: $id) {\n      id\n      displayName\n      avatarUrl\n    }\n  }\n": types.GetNavProfileDocument,
     "\n  query HasTodos {\n    todos(limit: 1) {\n      id\n    }\n  }\n": types.HasTodosDocument,
@@ -74,6 +78,14 @@ export function graphql(source: "\n  query GetTodos {\n    todos {\n      id\n  
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation CreateTodo($title: String!) {\n    insert_todos_one(object: { title: $title }) {\n      id\n      title\n      completed\n      created_at\n      user_id\n    }\n  }\n"): (typeof documents)["\n  mutation CreateTodo($title: String!) {\n    insert_todos_one(object: { title: $title }) {\n      id\n      title\n      completed\n      created_at\n      user_id\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation UpdateTodo($id: uuid!, $changes: todos_set_input!) {\n    update_todos_by_pk(pk_columns: { id: $id }, _set: $changes) {\n      id\n      title\n      completed\n    }\n  }\n"): (typeof documents)["\n  mutation UpdateTodo($id: uuid!, $changes: todos_set_input!) {\n    update_todos_by_pk(pk_columns: { id: $id }, _set: $changes) {\n      id\n      title\n      completed\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation DeleteTodo($id: uuid!) {\n    delete_todos_by_pk(id: $id) {\n      id\n    }\n  }\n"): (typeof documents)["\n  mutation DeleteTodo($id: uuid!) {\n    delete_todos_by_pk(id: $id) {\n      id\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
