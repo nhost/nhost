@@ -167,8 +167,7 @@ func waitForSignalHelper(cmd *exec.Cmd) error {
 }
 
 func runSignalTestHelper(mode string) error {
-	ctx, stop := signalContext()
-	defer stop()
+	ctx := serveutil.SignalContext(context.Background())
 
 	switch mode {
 	case signalTestOrdinary:
