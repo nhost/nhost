@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { restoreAccount } from '@/app/profile/actions';
 import SignOutButton from '@/components/SignOutButton';
@@ -14,8 +13,6 @@ import {
 } from '@/components/ui/card';
 
 export function RestoreAccountCard({ purgeDate }: { purgeDate: string }) {
-  const router = useRouter();
-
   const [error, setError] = useState<string | undefined>();
   const [isRestoring, setIsRestoring] = useState(false);
 
@@ -31,8 +28,12 @@ export function RestoreAccountCard({ purgeDate }: { purgeDate: string }) {
       return;
     }
 
-    router.push('/profile');
-    router.refresh();
+    // Leaves the same way signing out does: a full document load. The client
+    // router's cache still holds pages rendered while the account was marked
+    // for deletion, and routing to `/profile` would replay the cached copy of
+    // it, which redirects straight back here. The page then sits there looking
+    // stuck until something forces a real request.
+    window.location.replace('/profile');
   };
 
   return (

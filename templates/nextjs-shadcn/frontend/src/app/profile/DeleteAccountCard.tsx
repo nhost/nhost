@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { deleteAccount } from '@/app/profile/actions';
 import { Button } from '@/components/ui/button';
@@ -13,8 +12,6 @@ import {
 } from '@/components/ui/card';
 
 export function DeleteAccountCard() {
-  const router = useRouter();
-
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | undefined>();
   const [isDeleting, setIsDeleting] = useState(false);
@@ -31,8 +28,10 @@ export function DeleteAccountCard() {
       return;
     }
 
-    router.push('/');
-    router.refresh();
+    // A full document load for the same reason signing out uses one: this has
+    // just signed every device out, and nothing rendered against the old
+    // session should survive in the client router's cache.
+    window.location.replace('/');
   };
 
   return (
