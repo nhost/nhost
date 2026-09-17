@@ -155,22 +155,22 @@ func action(ctx context.Context, cmd *cli.Command) error {
 
 	target := resolved.dir
 
-	// Whether the target is ours decides who cleans it up: a directory the user
-	// already had is never removed, however the create ends.
-	_, statErr := os.Stat(target)
-	createdTarget := errors.Is(statErr, os.ErrNotExist)
+	// Which directories are ours decides who cleans them up: one the user
+	// already had is never removed, however the create ends. MkdirAll makes the
+	// missing parents too -- `nhost create projects/my-app` may be making
+	// projects/ as well -- so the topmost one it has to make is where the
+	// unwind stops.
+	madeRoot := topmostMissingDir(target)
 
 	if err := os.MkdirAll(target, 0o755); err != nil { //nolint:mnd
 		return fmt.Errorf("failed to create %s: %w", target, err)
 	}
 
-	// os.Remove, not RemoveAll: it only succeeds on an empty directory, so a
-	// failure that left anything behind surfaces rather than being deleted.
 	success := false
 
 	defer func() {
-		if !success && createdTarget {
-			_ = os.Remove(target)
+		if !success {
+			removeMadeDirs(target, madeRoot)
 		}
 	}()
 
@@ -197,6 +197,63 @@ func action(ctx context.Context, cmd *cli.Command) error {
 	printNextSteps(ce, resolved, cmd.Root().Version)
 
 	return nil
+}
+
+// topmostMissingDir is the highest directory os.MkdirAll would have to create
+// on the way to target, or "" when target is already there. It bounds what a
+// failed create may remove: everything from target up to it is this command's
+// doing, and everything above it was the user's already.
+func topmostMissingDir(target string) string {
+	highest := ""
+
+	for dir := target; ; {
+		// Only a directory that is definitely missing counts as ours. A stat
+		// that failed for any other reason leaves the unwind short rather than
+		// claiming a directory this command may not have made.
+		if _, err := os.Stat(dir); !errors.Is(err, os.ErrNotExist) {
+			break
+		}
+
+		highest = dir
+
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			break
+		}
+
+		dir = parent
+	}
+
+	return highest
+}
+
+// removeMadeDirs takes back the directories a failed create made, leaf first,
+// from target up to and including root.
+//
+// os.Remove, never RemoveAll: it only succeeds on an empty directory, so
+// anything left behind -- staged files, or work the user put there meanwhile --
+// stops the unwind and surfaces rather than being deleted.
+func removeMadeDirs(target, root string) {
+	if root == "" {
+		return
+	}
+
+	for dir := target; ; {
+		if err := os.Remove(dir); err != nil {
+			return
+		}
+
+		if dir == root {
+			return
+		}
+
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return
+		}
+
+		dir = parent
+	}
 }
 
 // installFrontendDependencies reports whether the frontend ended up with its

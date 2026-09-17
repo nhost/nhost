@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -32,6 +33,7 @@ func TestStageProjectLocalTemplate(t *testing.T) {
 	writeTestFile(t, filepath.Join(templateDir, "AGENTS.md"), "template guidance\n")
 
 	t.Chdir(workdir)
+	withStdin(t, "")
 
 	flags, err := clienv.Flags()
 	if err != nil {
@@ -826,7 +828,6 @@ func TestCreateCleansUpAfterGitFetchFailure(t *testing.T) {
 	}
 
 	assertNoTemplateTempClones(t, tmpDir)
-	assertNoStagingLeftovers(t, filepath.Join(workdir, "broken-app"))
 }
 
 // `git sparse-checkout set` succeeds for a path that is not in the tree, so a
@@ -866,15 +867,124 @@ func TestCreateReportsATemplateMissingAtThatRef(t *testing.T) {
 		t.Fatal("create command succeeded; want a missing-template failure")
 	}
 
+	// "was not found in" rather than the template name on its own: the name
+	// appears in the raw stat path too, so asserting on it alone would pass on
+	// exactly the bare `stat /tmp/.../templates/nextjs-shadcn` this message
+	// exists to replace.
 	msg := err.Error()
-	for _, want := range []string{defaultTemplate, fixture, "template-branch"} {
+	for _, want := range []string{
+		fmt.Sprintf("template %q was not found in", defaultTemplate),
+		fixture,
+		"template-branch",
+	} {
 		if !strings.Contains(msg, want) {
 			t.Errorf("error %q does not name %q", msg, want)
 		}
 	}
 
 	assertNoTemplateTempClones(t, tmpDir)
-	assertNoStagingLeftovers(t, filepath.Join(workdir, "missing-template-app"))
+}
+
+// A directory the user already had is theirs even when it is empty, which is
+// the only case the cleanup can actually observe: os.Remove refuses a
+// directory with anything in it, so a target holding a file survives whether
+// the guard is there or not. Without the guard,
+// `mkdir mine && nhost create mine` would delete the user's own mine/.
+func TestCreateLeavesAPreExistingEmptyTargetDirectoryBehind(t *testing.T) {
+	git := requireGit(t)
+	workdir := t.TempDir()
+
+	tmpDir := filepath.Join(workdir, "tmp")
+	if err := os.MkdirAll(tmpDir, 0o755); err != nil {
+		t.Fatalf("MkdirAll TMPDIR: %v", err)
+	}
+
+	t.Setenv("TMPDIR", tmpDir)
+
+	fixture := createTemplateGitFixture(t, git, "template-branch")
+	t.Chdir(workdir)
+
+	target := filepath.Join(workdir, "mine")
+	if err := os.MkdirAll(target, 0o755); err != nil {
+		t.Fatalf("MkdirAll target: %v", err)
+	}
+
+	var output bytes.Buffer
+
+	cmd := newTestRootCommand(t, &output)
+
+	if err := cmd.Run(
+		context.Background(),
+		[]string{
+			"nhost", "create",
+			"--templates-repo", "file://" + fixture,
+			"--templates-ref", "missing-branch",
+			"--no-install",
+			"mine",
+		},
+	); err == nil {
+		t.Fatal("create command succeeded; want git fetch failure")
+	}
+
+	if _, statErr := os.Stat(target); statErr != nil {
+		t.Fatalf("failed create deleted the user's own empty directory: %v", statErr)
+	}
+}
+
+// MkdirAll makes the missing parents on the way to the target, so a failed
+// `nhost create projects/my-app` has to take projects/ back too rather than
+// leave an empty one to explain. It stops at what it made: a parent the user
+// already had, or one holding anything else, stays.
+func TestCreateUnwindsTheParentsItMade(t *testing.T) {
+	git := requireGit(t)
+	workdir := t.TempDir()
+
+	tmpDir := filepath.Join(workdir, "tmp")
+	if err := os.MkdirAll(tmpDir, 0o755); err != nil {
+		t.Fatalf("MkdirAll TMPDIR: %v", err)
+	}
+
+	t.Setenv("TMPDIR", tmpDir)
+
+	fixture := createTemplateGitFixture(t, git, "template-branch")
+	t.Chdir(workdir)
+
+	// kept/ is the user's, so the unwind has to stop under it even though
+	// everything below kept/ was this command's doing.
+	kept := filepath.Join(workdir, "kept")
+	if err := os.MkdirAll(kept, 0o755); err != nil {
+		t.Fatalf("MkdirAll kept: %v", err)
+	}
+
+	var output bytes.Buffer
+
+	cmd := newTestRootCommand(t, &output)
+
+	if err := cmd.Run(
+		context.Background(),
+		[]string{
+			"nhost", "create",
+			"--templates-repo", "file://" + fixture,
+			"--templates-ref", "missing-branch",
+			"--no-install",
+			filepath.Join("kept", "projects", "my-app"),
+		},
+	); err == nil {
+		t.Fatal("create command succeeded; want git fetch failure")
+	}
+
+	for _, gone := range []string{
+		filepath.Join(kept, "projects", "my-app"),
+		filepath.Join(kept, "projects"),
+	} {
+		if _, statErr := os.Stat(gone); !errors.Is(statErr, os.ErrNotExist) {
+			t.Errorf("failed create left %s behind: stat err = %v", gone, statErr)
+		}
+	}
+
+	if _, statErr := os.Stat(kept); statErr != nil {
+		t.Fatalf("failed create removed a directory the user already had: %v", statErr)
+	}
 }
 
 // A directory the user already had is theirs. A failed create empties it of
@@ -919,6 +1029,85 @@ func TestCreateLeavesAPreExistingTargetDirectoryBehind(t *testing.T) {
 	}
 
 	assertNoStagingLeftovers(t, target)
+}
+
+func TestTopmostMissingDir(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+
+	existing := filepath.Join(root, "existing")
+	if err := os.MkdirAll(existing, 0o755); err != nil {
+		t.Fatalf("MkdirAll: %v", err)
+	}
+
+	tests := []struct {
+		name   string
+		target string
+		want   string
+	}{
+		{name: "an existing directory is nobody's to remove", target: existing, want: ""},
+		{
+			name:   "a missing leaf is its own root",
+			target: filepath.Join(existing, "leaf"),
+			want:   filepath.Join(existing, "leaf"),
+		},
+		{
+			name:   "the topmost missing parent is the root",
+			target: filepath.Join(existing, "a", "b", "c"),
+			want:   filepath.Join(existing, "a"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := topmostMissingDir(tt.target); got != tt.want {
+				t.Errorf("topmostMissingDir(%q) = %q, want %q", tt.target, got, tt.want)
+			}
+		})
+	}
+}
+
+// The unwind stops at the first directory that is not empty, so work the
+// command did not create is never removed.
+func TestRemoveMadeDirsStopsAtWhatItDidNotMake(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	madeRoot := filepath.Join(root, "a")
+	target := filepath.Join(madeRoot, "b", "c")
+
+	if err := os.MkdirAll(target, 0o755); err != nil {
+		t.Fatalf("MkdirAll: %v", err)
+	}
+
+	// Something of the user's next to the leaf stops the unwind at b/.
+	writeTestFile(t, filepath.Join(madeRoot, "b", "theirs.txt"), "theirs\n")
+
+	removeMadeDirs(target, madeRoot)
+
+	if _, err := os.Stat(target); !errors.Is(err, os.ErrNotExist) {
+		t.Errorf("empty leaf survived: stat err = %v", err)
+	}
+
+	if _, err := os.Stat(filepath.Join(madeRoot, "b", "theirs.txt")); err != nil {
+		t.Errorf("the unwind removed a directory holding the user's file: %v", err)
+	}
+}
+
+// Nothing is removed when MkdirAll had nothing to make.
+func TestRemoveMadeDirsKeepsAPreExistingTarget(t *testing.T) {
+	t.Parallel()
+
+	target := t.TempDir()
+
+	removeMadeDirs(target, "")
+
+	if _, err := os.Stat(target); err != nil {
+		t.Fatalf("removeMadeDirs removed a pre-existing target: %v", err)
+	}
 }
 
 //nolint:paralleltest // mutates package-level gitLookPath test seam
@@ -1194,6 +1383,13 @@ func TestCopyDirMakesReadOnlySourceWritable(t *testing.T) {
 
 func newTestRootCommand(t *testing.T, output *bytes.Buffer) *cli.Command {
 	t.Helper()
+
+	// `nhost create` prompts when both stdin and stdout are terminals, so a
+	// test run from one -- `go test` under script, `docker run -t`, an IDE
+	// runner -- would block on a question nobody answers until the test binary
+	// times out. Pointing stdin at a file is what makes these runs take the
+	// same path they take in CI.
+	withStdin(t, "")
 
 	flags, err := clienv.Flags()
 	if err != nil {
