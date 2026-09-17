@@ -50,6 +50,10 @@ export default async function trackForeignKeyRelations({
     trackedForeignKeyRelations,
   });
 
+  if (creatableRelationships.length === 0) {
+    return;
+  }
+
   const response = await fetch(`${appUrl}/v1/metadata`, {
     method: 'POST',
     headers: {

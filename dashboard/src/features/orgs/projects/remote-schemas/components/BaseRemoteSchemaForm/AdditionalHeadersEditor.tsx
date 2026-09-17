@@ -16,6 +16,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
 import { cn } from '@/lib/utils';
+import { getFieldArrayErrorMessage } from '@/utils/getFieldArrayErrorMessage';
 import type { BaseRemoteSchemaFormValues } from './BaseRemoteSchemaForm';
 
 export default function AdditionalHeadersEditor() {
@@ -131,9 +132,8 @@ export default function AdditionalHeadersEditor() {
           const currentValueType = getHeaderValueType(field.id);
           const headerErrors = errors?.definition?.headers?.at?.(index);
           const nameMessage = headerErrors?.name?.message;
-          const objectLevelMessage =
-            headerErrors?.message ?? headerErrors?.root?.message;
-          const combinedMessage = nameMessage ?? objectLevelMessage;
+          const combinedMessage =
+            nameMessage ?? getFieldArrayErrorMessage(headerErrors);
 
           return (
             <div key={field.id} className="grid grid-cols-9 items-center gap-4">

@@ -194,9 +194,6 @@ test('should create table with foreign key constraint', async ({
 
   await page.getByRole('button', { name: /add foreign key/i }).click();
 
-  await page.getByRole('combobox', { name: 'Column' }).first().click();
-  await page.getByRole('option', { name: /author_id/i }).click();
-
   // select reference schema
   await page.getByLabel('Schema').click();
   await page.getByRole('option', { name: /public/i }).click();
@@ -205,8 +202,12 @@ test('should create table with foreign key constraint', async ({
   await page.getByRole('combobox', { name: 'Table' }).click();
   await page.getByRole('option', { name: firstTableName, exact: true }).click();
 
-  await page.getByRole('combobox', { name: 'Column' }).last().click();
-  await page.getByRole('option', { name: /id/i }).click();
+  // the referenced key determines which column mappings are rendered
+  await page.getByRole('combobox', { name: 'Referenced key' }).click();
+  await page.getByRole('option', { name: /PRIMARY KEY .*\(id\)/ }).click();
+
+  await page.getByRole('combobox', { name: 'Local column for id' }).click();
+  await page.getByRole('option', { name: 'author_id', exact: true }).click();
 
   await page.getByRole('button', { name: /add/i }).click();
 

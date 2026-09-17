@@ -2,17 +2,15 @@ import type { QueryKey, UseQueryOptions } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
+import type { FetchTableIntrospectionOptions } from '@/features/orgs/projects/database/common/utils/fetchTableIntrospection';
 import { useTableType } from '@/features/orgs/projects/database/dataGrid/hooks/useTableType';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isNotEmptyValue } from '@/lib/utils';
-import type {
-  FetchTableSchemaOptions,
-  FetchTableSchemaReturnType,
-} from './fetchTableSchema';
+import type { FetchTableSchemaReturnType } from './fetchTableSchema';
 import fetchTableSchema from './fetchTableSchema';
 
 export interface UseTableSchemaQueryOptions
-  extends Partial<Omit<FetchTableSchemaOptions, 'tableType'>> {
+  extends Partial<Omit<FetchTableIntrospectionOptions, 'tableType'>> {
   /**
    * Props passed to the underlying query hook.
    */
