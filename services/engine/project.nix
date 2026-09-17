@@ -22,31 +22,40 @@ let
   # the assets those packages `go:embed` at compile time.
   src = fs.toSource {
     root = ../..;
-    fileset = fs.unions [
-      ../../go.mod
-      ../../go.sum
-      ../../vendor
-      ../../.golangci.yaml
-      ../../govulncheck.yaml
+    fileset =
+      fs.difference
+        (fs.unions [
+          ../../go.mod
+          ../../go.sum
+          ../../vendor
+          ../../.golangci.yaml
+          ../../govulncheck.yaml
 
-      (fs.fileFilter (f: f.hasExt "go") ./.)
-      (fs.fileFilter (f: f.hasExt "go") ../auth)
-      (fs.fileFilter (f: f.hasExt "go") ../storage)
-      (fs.fileFilter (f: f.hasExt "go") ../constellation)
+          (fs.fileFilter (f: f.hasExt "go") ./.)
+          (fs.fileFilter (f: f.hasExt "go") ../auth)
+          (fs.fileFilter (f: f.hasExt "go") ../storage)
+          (fs.fileFilter (f: f.hasExt "go") ../constellation)
 
-      # Shared internal libraries (Go + any embedded assets, e.g. hasura
-      # metadata) consumed across the services.
-      ../../internal/lib/oapi
-      ../../internal/lib/hasura/metadata
-      ../../internal/lib/syncmap
-      ../../internal/lib/serve
+          # Shared internal libraries (Go + any embedded assets, e.g. hasura
+          # metadata) consumed across the services.
+          ../../internal/lib/oapi
+          ../../internal/lib/hasura/metadata
+          ../../internal/lib/syncmap
+          ../../internal/lib/serve
 
-      # Compile-time embedded assets.
-      ../auth/email-templates
-      ../auth/go/migrations/postgres
-      ../storage/controller/openapi.yaml
-      ../storage/migrations/postgres
-    ];
+          # Compile-time embedded assets.
+          ../auth/email-templates
+          ../auth/go/migrations/postgres
+          ../storage/controller/openapi.yaml
+          ../storage/migrations/postgres
+        ])
+        (
+          fs.unions [
+            # Nested module with its own go.mod and an unvendored
+            # github.com/dgrijalva/jwt-go/v4 dependency.
+            ../storage/build/dev/jwt-gen
+          ]
+        );
   };
 
   tags = [ ];
