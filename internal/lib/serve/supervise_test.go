@@ -330,3 +330,55 @@ func TestSuperviseShutsDownTiersInOrder(t *testing.T) {
 		t.Fatal("Supervise did not return after ordered shutdown")
 	}
 }
+
+func TestSuperviseTimesOutStuckTierAndCancelsLaterTiers(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	stuckStarted := make(chan struct{})
+	releaseStuck := make(chan struct{})
+
+	var laterTierCancelled atomic.Bool
+
+	stuck := func(context.Context) error { //nolint:unparam // signature must match serveutil.SupervisedService
+		close(stuckStarted)
+		<-releaseStuck
+
+		return nil
+	}
+	laterTier := func(ctx context.Context) error { //nolint:unparam // signature must match serveutil.SupervisedService
+		<-ctx.Done()
+		laterTierCancelled.Store(true)
+
+		return nil
+	}
+
+	done := make(chan error, 1)
+	go func() {
+		// Use a short bound because testTierTimeout exceeds the one-second deadline and would fail the test.
+		done <- serveutil.Supervise(
+			ctx,
+			20*time.Millisecond,
+			[]serveutil.SupervisedService{stuck},
+			[]serveutil.SupervisedService{laterTier},
+		)
+	}()
+
+	<-stuckStarted
+	cancel()
+
+	select {
+	case err := <-done:
+		if !errors.Is(err, serveutil.ErrShutdownTimeout) {
+			t.Fatalf("supervise err = %v; want %v", err, serveutil.ErrShutdownTimeout)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("supervise did not return after the tier shutdown timeout")
+	}
+
+	if !laterTierCancelled.Load() {
+		t.Error("later tier was not cancelled after the earlier tier timed out")
+	}
+
+	close(releaseStuck)
+}
