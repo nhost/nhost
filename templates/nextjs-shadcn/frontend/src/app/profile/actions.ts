@@ -2,10 +2,14 @@
 
 import type { ErrorResponse } from '@nhost/nhost-js/auth';
 import type { FetchError } from '@nhost/nhost-js/fetch';
-import { headers } from 'next/headers';
 import { graphql } from '@/gql';
 import { gqlRequest } from '@/lib/graphql';
-import { createNhostClient } from '@/lib/nhost/server';
+import { appOrigin } from '@/lib/nhost/env';
+import {
+  clearPasswordResetGrant,
+  createNhostClient,
+  hasPasswordResetGrant,
+} from '@/lib/nhost/server';
 
 type ActionResult = { error?: string; success?: boolean };
 
@@ -32,6 +36,17 @@ const GetUserMetadata = graphql(`
   }
 `);
 
+// Whether the account has a password is the server's own fact, not something
+// the caller gets to assert. See `changePassword`.
+const GetHasPassword = graphql(`
+  query GetHasPassword($id: uuid!) {
+    user(id: $id) {
+      id
+      hasPassword
+    }
+  }
+`);
+
 // Deliberately a read-merge-write with _set rather than Hasura's _append /
 // _delete_key: those concatenate, and on a user whose metadata is JSON null
 // they produce an array instead of an object.
@@ -53,16 +68,6 @@ async function userMetadata(
     return metadata as Record<string, unknown>;
   }
   return {};
-}
-
-// Auth emails link back into the app, so redirect targets need this request's
-// own origin: the template does not know where it is deployed.
-async function appOrigin(): Promise<string> {
-  const requestHeaders = await headers();
-  const host =
-    requestHeaders.get('x-forwarded-host') ?? requestHeaders.get('host');
-  const proto = requestHeaders.get('x-forwarded-proto') ?? 'http';
-  return `${proto}://${host}`;
 }
 
 export async function updateDisplayName(
@@ -147,7 +152,7 @@ export async function changeEmail(newEmail: string): Promise<ActionResult> {
   try {
     await nhost.auth.changeUserEmail({
       newEmail,
-      options: { redirectTo: `${await appOrigin()}/profile` },
+      options: { redirectTo: `${appOrigin()}/profile` },
     });
     return { success: true };
   } catch (err) {
@@ -164,9 +169,13 @@ export async function changeEmail(newEmail: string): Promise<ActionResult> {
  * change has to boot whoever else was signed in. Without the sign-in that
  * follows, it also boots the person who just made the change.
  *
- * `currentPassword` is required once an account has a password. Nhost's own
- * endpoint does not ask for it (that is what elevated privileges are for), so
- * it is checked here by signing in with it first.
+ * Taking over an account that already has a password needs one of two proofs,
+ * and the server decides which it got. Knowing the current password is one:
+ * `currentPassword` is verified by signing in with it, because Nhost's own
+ * endpoint does not ask for it. Having just followed a reset link is the
+ * other, and the proxy records that as a grant cookie when it redeems the
+ * link - the client cannot claim it by leaving an argument out, which is what
+ * made this bypassable before.
  */
 export async function changePassword(
   newPassword: string,
@@ -177,19 +186,40 @@ export async function changePassword(
   }
 
   const nhost = await createNhostClient();
-  const email = nhost.getUserSession()?.user?.email;
-  if (!email) {
+  const user = nhost.getUserSession()?.user;
+  const email = user?.email;
+  if (!user || !email) {
     return { error: 'Sign in to change your password.' };
   }
 
-  if (currentPassword) {
+  const resetGrant = await hasPasswordResetGrant();
+
+  if (!resetGrant) {
+    let accountHasPassword: boolean;
     try {
-      await nhost.auth.signInEmailPassword({
-        email,
-        password: currentPassword,
+      const { user: row } = await gqlRequest(nhost, GetHasPassword, {
+        id: user.id,
       });
-    } catch {
-      return { error: 'That is not your current password.' };
+      accountHasPassword = row?.hasPassword === true;
+    } catch (err) {
+      return {
+        error: `Could not check the current password: ${(err as Error).message}`,
+      };
+    }
+
+    if (accountHasPassword) {
+      if (!currentPassword) {
+        return { error: 'Enter your current password to change it.' };
+      }
+
+      try {
+        await nhost.auth.signInEmailPassword({
+          email,
+          password: currentPassword,
+        });
+      } catch {
+        return { error: 'That is not your current password.' };
+      }
     }
   }
 
@@ -198,6 +228,12 @@ export async function changePassword(
   } catch (err) {
     const error = err as FetchError<ErrorResponse>;
     return { error: `Could not change the password: ${error.message}` };
+  }
+
+  // Spent only once it has actually been used, so a rejected password (too
+  // short, say) leaves the reset link still usable.
+  if (resetGrant) {
+    await clearPasswordResetGrant();
   }
 
   try {
@@ -222,7 +258,7 @@ export async function sendOwnPasswordReset(): Promise<ActionResult> {
   try {
     await nhost.auth.sendPasswordResetEmail({
       email,
-      options: { redirectTo: `${await appOrigin()}/reset-password` },
+      options: { redirectTo: `${appOrigin()}/reset-password` },
     });
     return { success: true };
   } catch (err) {
@@ -303,10 +339,28 @@ export async function restoreAccount(): Promise<ActionResult> {
   try {
     const { deletedAt: _, ...metadata } = await userMetadata(nhost, user.id);
     await gqlRequest(nhost, SetUserMetadata, { id: user.id, metadata });
-    return { success: true };
   } catch (err) {
     return {
       error: `Could not restore the account: ${(err as Error).message}`,
     };
   }
+
+  // The mark also rides in the session, and that copy is what the proxy reads
+  // to keep a deleted account on `/restore`. `refreshSession` would hand back
+  // the existing session while its access token is still valid, leaving the
+  // stale mark in place and bouncing every page straight back here, so force
+  // the refresh that reloads `metadata`.
+  const refreshToken = nhost.getUserSession()?.refreshToken;
+  if (refreshToken) {
+    try {
+      const { body } = await nhost.auth.refreshToken({ refreshToken });
+      nhost.sessionStorage.set(body);
+    } catch (err) {
+      // The account is restored either way; the session catches up on its own
+      // once the access token expires.
+      console.error('Could not refresh the session after restoring:', err);
+    }
+  }
+
+  return { success: true };
 }

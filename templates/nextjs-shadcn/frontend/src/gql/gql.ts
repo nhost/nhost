@@ -17,6 +17,7 @@ type Documents = {
     "\n  query GetProfile($id: uuid!) {\n    user(id: $id) {\n      id\n      displayName\n      email\n      newEmail\n      emailVerified\n      avatarUrl\n      hasPassword\n      metadata\n    }\n  }\n": typeof types.GetProfileDocument,
     "\n  mutation SetDisplayName($id: uuid!, $displayName: String!) {\n    updateUser(pk_columns: { id: $id }, _set: { displayName: $displayName }) {\n      id\n      displayName\n    }\n  }\n": typeof types.SetDisplayNameDocument,
     "\n  query GetUserMetadata($id: uuid!) {\n    user(id: $id) {\n      id\n      metadata\n    }\n  }\n": typeof types.GetUserMetadataDocument,
+    "\n  query GetHasPassword($id: uuid!) {\n    user(id: $id) {\n      id\n      hasPassword\n    }\n  }\n": typeof types.GetHasPasswordDocument,
     "\n  mutation SetUserMetadata($id: uuid!, $metadata: jsonb!) {\n    updateUser(pk_columns: { id: $id }, _set: { metadata: $metadata }) {\n      id\n    }\n  }\n": typeof types.SetUserMetadataDocument,
     "\n  query GetTodos {\n    todos(order_by: [{ sort_order: asc }, { created_at: desc }]) {\n      id\n      title\n      completed\n      location\n      preposition\n      is_public\n      sort_order\n      file_id\n      created_at\n      user_id\n    }\n  }\n": typeof types.GetTodosDocument,
     "\n  mutation CreateTodo(\n    $title: String!\n    $location: String\n    $preposition: String!\n    $sortOrder: Int!\n    $isPublic: Boolean!\n  ) {\n    insert_todos_one(\n      object: {\n        title: $title\n        location: $location\n        preposition: $preposition\n        sort_order: $sortOrder\n        is_public: $isPublic\n      }\n    ) {\n      id\n      title\n      completed\n      location\n      preposition\n      is_public\n      file_id\n      created_at\n      user_id\n    }\n  }\n": typeof types.CreateTodoDocument,
@@ -32,6 +33,7 @@ const documents: Documents = {
     "\n  query GetProfile($id: uuid!) {\n    user(id: $id) {\n      id\n      displayName\n      email\n      newEmail\n      emailVerified\n      avatarUrl\n      hasPassword\n      metadata\n    }\n  }\n": types.GetProfileDocument,
     "\n  mutation SetDisplayName($id: uuid!, $displayName: String!) {\n    updateUser(pk_columns: { id: $id }, _set: { displayName: $displayName }) {\n      id\n      displayName\n    }\n  }\n": types.SetDisplayNameDocument,
     "\n  query GetUserMetadata($id: uuid!) {\n    user(id: $id) {\n      id\n      metadata\n    }\n  }\n": types.GetUserMetadataDocument,
+    "\n  query GetHasPassword($id: uuid!) {\n    user(id: $id) {\n      id\n      hasPassword\n    }\n  }\n": types.GetHasPasswordDocument,
     "\n  mutation SetUserMetadata($id: uuid!, $metadata: jsonb!) {\n    updateUser(pk_columns: { id: $id }, _set: { metadata: $metadata }) {\n      id\n    }\n  }\n": types.SetUserMetadataDocument,
     "\n  query GetTodos {\n    todos(order_by: [{ sort_order: asc }, { created_at: desc }]) {\n      id\n      title\n      completed\n      location\n      preposition\n      is_public\n      sort_order\n      file_id\n      created_at\n      user_id\n    }\n  }\n": types.GetTodosDocument,
     "\n  mutation CreateTodo(\n    $title: String!\n    $location: String\n    $preposition: String!\n    $sortOrder: Int!\n    $isPublic: Boolean!\n  ) {\n    insert_todos_one(\n      object: {\n        title: $title\n        location: $location\n        preposition: $preposition\n        sort_order: $sortOrder\n        is_public: $isPublic\n      }\n    ) {\n      id\n      title\n      completed\n      location\n      preposition\n      is_public\n      file_id\n      created_at\n      user_id\n    }\n  }\n": types.CreateTodoDocument,
@@ -70,6 +72,10 @@ export function graphql(source: "\n  mutation SetDisplayName($id: uuid!, $displa
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query GetUserMetadata($id: uuid!) {\n    user(id: $id) {\n      id\n      metadata\n    }\n  }\n"): (typeof documents)["\n  query GetUserMetadata($id: uuid!) {\n    user(id: $id) {\n      id\n      metadata\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query GetHasPassword($id: uuid!) {\n    user(id: $id) {\n      id\n      hasPassword\n    }\n  }\n"): (typeof documents)["\n  query GetHasPassword($id: uuid!) {\n    user(id: $id) {\n      id\n      hasPassword\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

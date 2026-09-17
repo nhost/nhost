@@ -2,7 +2,7 @@
 
 import type { ErrorResponse, Session } from '@nhost/nhost-js/auth';
 import type { FetchError } from '@nhost/nhost-js/fetch';
-import { headers } from 'next/headers';
+import { appOrigin } from '@/lib/nhost/env';
 import { createNhostClient } from '@/lib/nhost/server';
 
 type ActionResult = { error?: string; success?: boolean; deleted?: boolean };
@@ -15,16 +15,6 @@ function markedDeleted(session: Session | null | undefined): boolean {
     | null
     | undefined;
   return Boolean(metadata?.deletedAt);
-}
-
-// Auth emails link back into the app, so redirect targets need this request's
-// own origin: the template does not know where it is deployed.
-async function appOrigin(): Promise<string> {
-  const requestHeaders = await headers();
-  const host =
-    requestHeaders.get('x-forwarded-host') ?? requestHeaders.get('host');
-  const proto = requestHeaders.get('x-forwarded-proto') ?? 'http';
-  return `${proto}://${host}`;
 }
 
 /**
@@ -124,7 +114,7 @@ export async function sendPasswordReset(email: string): Promise<ActionResult> {
     const nhost = await createNhostClient();
     await nhost.auth.sendPasswordResetEmail({
       email,
-      options: { redirectTo: `${await appOrigin()}/reset-password` },
+      options: { redirectTo: `${appOrigin()}/reset-password` },
     });
     return { success: true };
   } catch (err) {

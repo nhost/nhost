@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { localMailboxURL, nhostRegion, nhostSubdomain } from '@/lib/nhost/env';
+import {
+  appOrigin,
+  localMailboxURL,
+  nhostRegion,
+  nhostSubdomain,
+} from '@/lib/nhost/env';
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -42,6 +47,30 @@ describe('Nhost backend coordinates', () => {
 
     expect(nhostSubdomain()).toBe('local');
     expect(nhostRegion()).toBe('local');
+  });
+});
+
+// Auth emails point back at this origin. Reading it from the request's own
+// headers instead would let anyone who can reach the app aim somebody else's
+// password-reset link at a host they control, with only the backend's
+// allowedUrls glob standing in the way.
+describe('app origin', () => {
+  it('defaults to the dev server the generated backend allows', () => {
+    vi.stubEnv('NEXT_PUBLIC_APP_ORIGIN', undefined);
+
+    expect(appOrigin()).toBe('http://localhost:3000');
+  });
+
+  it('uses the configured origin', () => {
+    vi.stubEnv('NEXT_PUBLIC_APP_ORIGIN', 'https://app.example');
+
+    expect(appOrigin()).toBe('https://app.example');
+  });
+
+  it('treats an empty value as unset', () => {
+    vi.stubEnv('NEXT_PUBLIC_APP_ORIGIN', '');
+
+    expect(appOrigin()).toBe('http://localhost:3000');
   });
 });
 
