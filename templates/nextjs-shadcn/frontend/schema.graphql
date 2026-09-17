@@ -822,6 +822,10 @@ type users {
   displayName: String!
   email: citext
   emailVerified: Boolean!
+  """
+  Whether the account can sign in with a password.
+  """
+  hasPassword: Boolean
   id: uuid!
   metadata(
     """
@@ -1349,6 +1353,7 @@ input users_bool_exp {
   displayName: String_comparison_exp
   email: citext_comparison_exp
   emailVerified: Boolean_comparison_exp
+  hasPassword: Boolean_comparison_exp
   id: uuid_comparison_exp
   metadata: jsonb_comparison_exp
   newEmail: citext_comparison_exp
@@ -1380,6 +1385,7 @@ input users_order_by {
   displayName: order_by
   email: order_by
   emailVerified: order_by
+  hasPassword: order_by
   id: order_by
   metadata: order_by
   newEmail: order_by

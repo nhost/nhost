@@ -1,9 +1,7 @@
 import { redirect } from 'next/navigation';
-import { AvatarCard } from '@/app/profile/AvatarCard';
 import { DeleteAccountCard } from '@/app/profile/DeleteAccountCard';
-import { DisplayNameCard } from '@/app/profile/DisplayNameCard';
-import { EmailCard } from '@/app/profile/EmailCard';
-import { PasswordCard } from '@/app/profile/PasswordCard';
+import { ProfileCard } from '@/app/profile/ProfileCard';
+import { SecurityCard } from '@/app/profile/SecurityCard';
 import { graphql } from '@/gql';
 import { gqlRequest } from '@/lib/graphql';
 import { createNhostClient } from '@/lib/nhost/server';
@@ -19,6 +17,7 @@ const GetProfile = graphql(`
       newEmail
       emailVerified
       avatarUrl
+      hasPassword
       metadata
     }
   }
@@ -50,16 +49,20 @@ export default async function Profile() {
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold tracking-tight">Your profile</h1>
         <p className="text-muted-foreground">
-          Everything on this page runs through the backend: the avatar through a
+          Everything here runs through the backend: the avatar through a
           function and storage, the rest through auth and per-user GraphQL
           permissions.
         </p>
       </div>
 
-      <AvatarCard avatarUrl={user.avatarUrl} displayName={user.displayName} />
-      <DisplayNameCard displayName={user.displayName} />
-      <EmailCard email={user.email ?? ''} newEmail={user.newEmail} />
-      <PasswordCard />
+      <ProfileCard
+        email={user.email ?? ''}
+        emailVerified={user.emailVerified ?? false}
+        displayName={user.displayName}
+        newEmail={user.newEmail}
+        avatarUrl={user.avatarUrl}
+      />
+      <SecurityCard hasPassword={user.hasPassword ?? false} />
       <DeleteAccountCard />
     </div>
   );

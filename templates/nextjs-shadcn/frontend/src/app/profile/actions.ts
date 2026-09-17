@@ -139,24 +139,78 @@ export async function changeEmail(newEmail: string): Promise<ActionResult> {
   }
 }
 
+/**
+ * Sets or changes the password, then signs back in on the new one.
+ *
+ * Changing a password revokes every refresh token for the account, including
+ * the one behind the current session, which is what should happen: a password
+ * change has to boot whoever else was signed in. Without the sign-in that
+ * follows, it also boots the person who just made the change.
+ *
+ * `currentPassword` is required once an account has a password. Nhost's own
+ * endpoint does not ask for it (that is what elevated privileges are for), so
+ * it is checked here by signing in with it first.
+ */
 export async function changePassword(
   newPassword: string,
+  currentPassword?: string,
 ): Promise<ActionResult> {
   if (!newPassword) {
     return { error: 'A password is required.' };
   }
 
   const nhost = await createNhostClient();
-  if (!nhost.getUserSession()) {
+  const email = nhost.getUserSession()?.user?.email;
+  if (!email) {
     return { error: 'Sign in to change your password.' };
+  }
+
+  if (currentPassword) {
+    try {
+      await nhost.auth.signInEmailPassword({
+        email,
+        password: currentPassword,
+      });
+    } catch {
+      return { error: 'That is not your current password.' };
+    }
   }
 
   try {
     await nhost.auth.changeUserPassword({ newPassword });
-    return { success: true };
   } catch (err) {
     const error = err as FetchError<ErrorResponse>;
     return { error: `Could not change the password: ${error.message}` };
+  }
+
+  try {
+    await nhost.auth.signInEmailPassword({ email, password: newPassword });
+  } catch {
+    return {
+      error:
+        'Your password was changed, but this device was signed out. Sign in with the new password.',
+    };
+  }
+
+  return { success: true };
+}
+
+export async function sendOwnPasswordReset(): Promise<ActionResult> {
+  const nhost = await createNhostClient();
+  const email = nhost.getUserSession()?.user?.email;
+  if (!email) {
+    return { error: 'Sign in to reset your password.' };
+  }
+
+  try {
+    await nhost.auth.sendPasswordResetEmail({
+      email,
+      options: { redirectTo: `${await appOrigin()}/reset-password` },
+    });
+    return { success: true };
+  } catch (err) {
+    const error = err as FetchError<ErrorResponse>;
+    return { error: `Could not send the reset link: ${error.message}` };
   }
 }
 
