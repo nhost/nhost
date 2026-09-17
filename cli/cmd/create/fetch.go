@@ -69,6 +69,20 @@ func fetchTemplate(
 		)
 	}
 
+	// Checked here, against the template as fetched, for the same reason the
+	// local path is checked in localTemplateDir: everything downstream names
+	// the staging directory, so without this the failure arrives several steps
+	// later pointing at a path the user never chose and that no longer exists.
+	if !clienv.PathExists(filepath.Join(src, "frontend", "package.json")) {
+		return fmt.Errorf(
+			"template %q in %s at %s: %w",
+			tmpl.name,
+			repo,
+			ref,
+			errTemplateMissingFrontend,
+		)
+	}
+
 	if err := copyDir(src, staging); err != nil {
 		return fmt.Errorf("failed to copy fetched template %q: %w", tmpl.name, err)
 	}
