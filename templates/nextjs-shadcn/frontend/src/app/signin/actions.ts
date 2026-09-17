@@ -17,6 +17,44 @@ function markedDeleted(session: Session | null | undefined): boolean {
   return Boolean(metadata?.deletedAt);
 }
 
+// Auth emails link back into the app, so redirect targets need this request's
+// own origin: the template does not know where it is deployed.
+async function appOrigin(): Promise<string> {
+  const requestHeaders = await headers();
+  const host =
+    requestHeaders.get('x-forwarded-host') ?? requestHeaders.get('host');
+  const proto = requestHeaders.get('x-forwarded-proto') ?? 'http';
+  return `${proto}://${host}`;
+}
+
+/**
+ * Decides which second step the sign-in form shows for an address.
+ *
+ * Addresses with no password, and addresses with no account at all, both
+ * answer `false` and go down the emailed-code path, which is also how signing
+ * up works. See `backend/functions/auth-method.ts` for what that does and does
+ * not reveal.
+ */
+export async function hasPassword(email: string): Promise<boolean> {
+  if (!email) {
+    return false;
+  }
+
+  try {
+    const nhost = await createNhostClient();
+    const { body } = await nhost.functions.post<{ hasPassword?: boolean }>(
+      '/auth-method',
+      { email },
+    );
+
+    return typeof body === 'object' && body?.hasPassword === true;
+  } catch (err) {
+    // Fall back to the code path, which works for every account.
+    console.error('Could not look up the sign-in method:', err);
+    return false;
+  }
+}
+
 export async function sendOTP(email: string): Promise<ActionResult> {
   if (!email) {
     return { error: 'Email is required.' };
@@ -72,9 +110,8 @@ export async function signInWithPassword(
     }
 
     return { error: 'Could not sign in with that email and password.' };
-  } catch (err) {
-    const error = err as FetchError<ErrorResponse>;
-    return { error: `Could not sign in: ${error.message}` };
+  } catch {
+    return { error: 'Wrong email or password.' };
   }
 }
 
@@ -83,16 +120,11 @@ export async function sendPasswordReset(email: string): Promise<ActionResult> {
     return { error: 'Email is required.' };
   }
 
-  const requestHeaders = await headers();
-  const host =
-    requestHeaders.get('x-forwarded-host') ?? requestHeaders.get('host');
-  const proto = requestHeaders.get('x-forwarded-proto') ?? 'http';
-
   try {
     const nhost = await createNhostClient();
     await nhost.auth.sendPasswordResetEmail({
       email,
-      options: { redirectTo: `${proto}://${host}/reset-password` },
+      options: { redirectTo: `${await appOrigin()}/reset-password` },
     });
     return { success: true };
   } catch (err) {

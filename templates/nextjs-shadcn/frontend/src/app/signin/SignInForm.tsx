@@ -1,8 +1,10 @@
 'use client';
 
+import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useId, useState } from 'react';
 import {
+  hasPassword,
   sendOTP,
   sendPasswordReset,
   signInWithPassword,
@@ -13,8 +15,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { localMailboxURL } from '@/lib/nhost/env';
 
-type Method = 'otp' | 'password';
-type Step = 'credentials' | 'otp-sent' | 'reset' | 'reset-sent';
+// One address, then whichever second step that account actually uses. Nothing
+// asks the visitor to know whether they have a password, or whether they have
+// an account at all: an unknown address is sent a code, and verifying it
+// creates the account.
+type Step = 'email' | 'password' | 'code' | 'reset-sent';
 
 const mailbox = localMailboxURL();
 
@@ -46,57 +51,50 @@ export default function SignInForm() {
   const otpId = useId();
   const passwordId = useId();
 
-  const [method, setMethod] = useState<Method>('otp');
-  const [step, setStep] = useState<Step>('credentials');
+  const [step, setStep] = useState<Step>('email');
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
 
-  const switchMethod = (next: Method) => {
-    setMethod(next);
-    setStep('credentials');
-    setError(undefined);
-    setOtp('');
-    setPassword('');
-  };
-
-  const finishSignIn = (deleted?: boolean) => {
+  const finishSignIn = (deleted?: boolean): void => {
     router.push(deleted ? '/restore' : '/protected');
     router.refresh();
   };
 
-  const handleSendOTP = async (event: FormEvent): Promise<void> => {
-    event.preventDefault();
-    setIsLoading(true);
+  const backToEmail = (): void => {
+    setStep('email');
+    setOtp('');
+    setPassword('');
     setError(undefined);
-
-    const result = await sendOTP(email);
-    setIsLoading(false);
-
-    if (result.error) {
-      setError(result.error);
-      return;
-    }
-
-    setStep('otp-sent');
   };
 
-  const handleVerifyOTP = async (event: FormEvent): Promise<void> => {
+  const emailCode = async (): Promise<boolean> => {
+    const result = await sendOTP(email);
+
+    if (result.error) {
+      setError(result.error);
+      return false;
+    }
+
+    setStep('code');
+    return true;
+  };
+
+  const handleContinue = async (event: FormEvent): Promise<void> => {
     event.preventDefault();
     setIsLoading(true);
     setError(undefined);
 
-    const result = await verifyOTP(email, otp);
-
-    if (result.error) {
+    if (await hasPassword(email)) {
+      setStep('password');
       setIsLoading(false);
-      setError(result.error);
       return;
     }
 
-    finishSignIn(result.deleted);
+    await emailCode();
+    setIsLoading(false);
   };
 
   const handlePasswordSignIn = async (event: FormEvent): Promise<void> => {
@@ -115,8 +113,30 @@ export default function SignInForm() {
     finishSignIn(result.deleted);
   };
 
-  const handleSendReset = async (event: FormEvent): Promise<void> => {
+  const handleVerifyOTP = async (event: FormEvent): Promise<void> => {
     event.preventDefault();
+    setIsLoading(true);
+    setError(undefined);
+
+    const result = await verifyOTP(email, otp);
+
+    if (result.error) {
+      setIsLoading(false);
+      setError(result.error);
+      return;
+    }
+
+    finishSignIn(result.deleted);
+  };
+
+  const handleUseCodeInstead = async (): Promise<void> => {
+    setIsLoading(true);
+    setError(undefined);
+    await emailCode();
+    setIsLoading(false);
+  };
+
+  const handleSendReset = async (): Promise<void> => {
     setIsLoading(true);
     setError(undefined);
 
@@ -131,25 +151,78 @@ export default function SignInForm() {
     setStep('reset-sent');
   };
 
-  const emailField = (
-    <div className="flex flex-col gap-2">
-      <Label htmlFor={emailId}>Email</Label>
-      <Input
-        id={emailId}
-        name="email"
-        type="email"
-        autoComplete="email"
-        placeholder="you@example.com"
-        value={email}
-        onChange={(event) => setEmail(event.target.value)}
-        required
-      />
-    </div>
+  const errorLine = error ? (
+    <p className="text-destructive text-sm">{error}</p>
+  ) : null;
+
+  const backButton = (
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      disabled={isLoading}
+      onClick={backToEmail}
+      className="self-start px-2"
+    >
+      <ArrowLeft aria-hidden />
+      {email}
+    </Button>
   );
 
-  if (step === 'otp-sent') {
+  if (step === 'password') {
+    return (
+      <form onSubmit={handlePasswordSignIn} className="flex flex-col gap-4">
+        {backButton}
+
+        <div className="flex flex-col gap-2">
+          <Label htmlFor={passwordId}>Password</Label>
+          <Input
+            id={passwordId}
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            required
+            autoFocus
+          />
+        </div>
+
+        {errorLine}
+
+        <Button type="submit" disabled={isLoading || !password}>
+          {isLoading ? 'Signing in…' : 'Sign in'}
+        </Button>
+
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            disabled={isLoading}
+            onClick={handleUseCodeInstead}
+          >
+            Email me a code instead
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            disabled={isLoading}
+            onClick={handleSendReset}
+          >
+            Forgot password?
+          </Button>
+        </div>
+      </form>
+    );
+  }
+
+  if (step === 'code') {
     return (
       <form onSubmit={handleVerifyOTP} className="flex flex-col gap-4">
+        {backButton}
+
         <div className="flex flex-col gap-2">
           <Label htmlFor={otpId}>Verification code</Label>
           <Input
@@ -161,6 +234,7 @@ export default function SignInForm() {
             value={otp}
             onChange={(event) => setOtp(event.target.value)}
             required
+            autoFocus
           />
           <p className="text-muted-foreground text-sm">
             We sent a code to {email}.
@@ -168,25 +242,11 @@ export default function SignInForm() {
           </p>
         </div>
 
-        {error ? <p className="text-destructive text-sm">{error}</p> : null}
+        {errorLine}
 
-        <div className="flex gap-2">
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? 'Verifying…' : 'Verify'}
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            disabled={isLoading}
-            onClick={() => {
-              setStep('credentials');
-              setOtp('');
-              setError(undefined);
-            }}
-          >
-            Use a different email
-          </Button>
-        </div>
+        <Button type="submit" disabled={isLoading || !otp}>
+          {isLoading ? 'Verifying…' : 'Verify'}
+        </Button>
       </form>
     );
   }
@@ -198,116 +258,36 @@ export default function SignInForm() {
           If an account exists for {email}, a password reset link is on its way.
           <MailboxHint />
         </p>
-        <div>
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => switchMethod('password')}
-          >
-            Back to sign in
-          </Button>
-        </div>
+        {backButton}
       </div>
-    );
-  }
-
-  if (step === 'reset') {
-    return (
-      <form onSubmit={handleSendReset} className="flex flex-col gap-4">
-        {emailField}
-
-        {error ? <p className="text-destructive text-sm">{error}</p> : null}
-
-        <div className="flex gap-2">
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? 'Sending…' : 'Send reset link'}
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            disabled={isLoading}
-            onClick={() => switchMethod('password')}
-          >
-            Back
-          </Button>
-        </div>
-      </form>
     );
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex gap-2">
-        <Button
-          type="button"
-          size="sm"
-          variant={method === 'otp' ? 'default' : 'outline'}
-          onClick={() => switchMethod('otp')}
-        >
-          Email code
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant={method === 'password' ? 'default' : 'outline'}
-          onClick={() => switchMethod('password')}
-        >
-          Password
-        </Button>
+    <form onSubmit={handleContinue} className="flex flex-col gap-4">
+      <div className="flex flex-col gap-2">
+        <Label htmlFor={emailId}>Email</Label>
+        <Input
+          id={emailId}
+          name="email"
+          type="email"
+          autoComplete="email"
+          placeholder="you@example.com"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          required
+        />
       </div>
 
-      {method === 'otp' ? (
-        <form onSubmit={handleSendOTP} className="flex flex-col gap-4">
-          {emailField}
+      {errorLine}
 
-          {error ? <p className="text-destructive text-sm">{error}</p> : null}
+      <Button type="submit" disabled={isLoading || !email}>
+        {isLoading ? 'Checking…' : 'Continue'}
+      </Button>
 
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? 'Sending…' : 'Send code'}
-          </Button>
-        </form>
-      ) : (
-        <form onSubmit={handlePasswordSignIn} className="flex flex-col gap-4">
-          {emailField}
-
-          <div className="flex flex-col gap-2">
-            <Label htmlFor={passwordId}>Password</Label>
-            <Input
-              id={passwordId}
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              required
-            />
-          </div>
-
-          <p className="text-muted-foreground text-sm">
-            First time here? Sign in with an email code, then set a password on
-            your profile.
-          </p>
-
-          {error ? <p className="text-destructive text-sm">{error}</p> : null}
-
-          <div className="flex gap-2">
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Signing in…' : 'Sign in'}
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              disabled={isLoading}
-              onClick={() => {
-                setStep('reset');
-                setError(undefined);
-              }}
-            >
-              Forgot password?
-            </Button>
-          </div>
-        </form>
-      )}
-    </div>
+      <p className="text-muted-foreground text-sm">
+        New here? Continue with your email and we will send you a code.
+      </p>
+    </form>
   );
 }
