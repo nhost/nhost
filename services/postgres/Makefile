@@ -40,7 +40,7 @@ check-dry-run:  ## Returns the derivation of the check
 
 
 .PHONY: _check-pre
-_check-pre: check-pitr-container check-pitr-restart check-graceful-shutdown
+_check-pre: check-pitr-container check-pitr-restart check-graceful-shutdown check-extension-upgrades
 
 
 .PHONY: check-docker
@@ -62,6 +62,11 @@ check-pitr-restart:  ## Verify a promoted PITR target survives normal restart
 .PHONY: check-graceful-shutdown
 check-graceful-shutdown:  ## Verify PostgreSQL shuts down cleanly
 	./tests/test-graceful-shutdown.sh
+
+
+.PHONY: check-extension-upgrades
+check-extension-upgrades:  ## Verify extensions upgrade from the previous image
+	./scripts/test-extension-upgrades.sh
 
 
 .PHONY: _dev-env-build
