@@ -51,10 +51,13 @@ This repository is a monorepo that contains multiple packages and applications. 
 - `examples` - Various example projects
 - `internal/lib` - Shared Go libraries used across services
 - `packages/nhost-js` - The Nhost JavaScript/TypeScript SDK
+- `services/ai` - AI service providing auto-embeddings and multi-provider agents
 - `services/auth` - Nhost Authentication service
 - `services/constellation` - Nhost's GraphQL engine
-- `services/postgres` - Nhost's Postgres database service
+- `services/engine` - Unified single-process binary running auth, storage and constellation
 - `services/functions` - Local dev runtime for serverless functions
+- `services/mcp` - MCP server exposing Nhost's GraphQL API to AI assistants
+- `services/postgres` - Nhost's Postgres database service
 - `services/storage` - Nhost Storage service
 - `tools/codegen` - Internal code generation tool to build the SDK
 - `tools/govulncheck-wrapper` - Wrapper around govulncheck used in CI
