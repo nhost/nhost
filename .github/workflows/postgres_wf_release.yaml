@@ -84,4 +84,5 @@ jobs:
       ARTIFACT_SUFFIX: "-pg${{ matrix.postgresql }}"
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-      CONTAINER_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-central-1.amazonaws.com
+      CONTAINER_REGISTRY: >-
+        ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-central-1.amazonaws.com

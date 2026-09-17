@@ -18,7 +18,10 @@ on:
   merge_group:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ startsWith(github.event_name, 'pull_request') && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
+  group: >-
+    ${{ github.workflow }}-${{ startsWith(github.event_name, 'pull_request')
+    && format('pr-{0}', github.event.pull_request.number)
+    || format('push-{0}', github.sha) }}
   cancel-in-progress: ${{ startsWith(github.event_name, 'pull_request') }}
 
 jobs:
@@ -56,9 +59,14 @@ jobs:
     with:
       NAME: postgres
       PATH: services/postgres
-      OS_MATRIX: '["blacksmith-32vcpu-ubuntu-2404-arm", "blacksmith-8vcpu-ubuntu-2404"]'
-      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
-      VERSION: 0.0.0-dev # we use a fixed version here to avoid unnecessary rebuilds
+      OS_MATRIX: >-
+        ["blacksmith-32vcpu-ubuntu-2404-arm",
+        "blacksmith-8vcpu-ubuntu-2404"]
+      GIT_REF: >-
+        ${{ github.event_name == 'pull_request_target'
+        && github.event.pull_request.head.sha || github.sha }}
+      # Use a fixed version here to avoid unnecessary rebuilds.
+      VERSION: 0.0.0-dev
       DOCKER: true
       ENV: |
         POSTGRES_VERSION=${{ matrix.postgresql }}
@@ -84,7 +92,9 @@ jobs:
     with:
       NAME: postgres
       PATH: services/postgres
-      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+      GIT_REF: >-
+        ${{ github.event_name == 'pull_request_target'
+        && github.event.pull_request.head.sha || github.sha }}
       ENV: |
         POSTGRES_VERSION=${{ matrix.postgresql }}
     secrets:
