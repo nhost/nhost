@@ -8,12 +8,10 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
-	"os/signal"
-	"syscall"
 
+	serveutil "github.com/nhost/nhost/internal/lib/serve"
 	"github.com/urfave/cli/v3"
 	_ "go.uber.org/automaxprocs" // set GOMAXPROCS from the Linux container CPU quota
 )
@@ -22,35 +20,16 @@ import (
 var Version string
 
 func main() {
-	// realMain owns the signal context so its deferred stop() runs before the
-	// process exits; main only turns a returned error into a non-zero exit,
-	// keeping log.Fatal out of the way of the deferred cleanup.
-	if err := realMain(); err != nil {
-		log.Fatal(err)
-	}
-}
-
-func realMain() error {
 	// A single signal-aware context drives every selected service: SIGINT or
-	// SIGTERM cancels it, and Supervise propagates that into a graceful
-	// shutdown of all of them together.
-	ctx, stop := signalContext()
-	defer stop()
+	// SIGTERM cancels it, and Supervise propagates that into a graceful shutdown
+	// of all of them together. SignalContext keeps both signals captured for the
+	// whole sequence, so repeated termination signals cannot interrupt in-flight
+	// cleanup; bounded teardown tiers handle services that ignore cancellation.
+	ctx := serveutil.SignalContext(context.Background())
 
 	if err := newApp(Version).Run(ctx, os.Args); err != nil {
-		return fmt.Errorf("running engine: %w", err)
+		log.Fatal(err)
 	}
-
-	return nil
-}
-
-// signalContext keeps SIGINT and SIGTERM captured for the full graceful-shutdown
-// sequence. Repeated termination signals therefore cannot interrupt in-flight
-// cleanup; bounded teardown tiers handle services that ignore cancellation.
-func signalContext() (context.Context, context.CancelFunc) {
-	return signal.NotifyContext(
-		context.Background(), os.Interrupt, syscall.SIGTERM,
-	)
 }
 
 // newApp builds the top-level engine command. It carries the serve
