@@ -16,13 +16,8 @@ export default async function Protected() {
 
   return (
     <div className="flex flex-col gap-10">
-      <PageHeader title="Protected page">
-        Rendered on the server. It redirects to <code>/signin</code> when there
-        is no session.
-      </PageHeader>
-
+      <PageHeader />
       <StatusTiles />
-
       <Todos />
     </div>
   );

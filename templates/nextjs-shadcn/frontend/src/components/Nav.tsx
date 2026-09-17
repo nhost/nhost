@@ -46,20 +46,13 @@ export default async function Nav() {
   }
 
   return (
-    <nav className="border-b">
+    <nav className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
       <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-3">
         <Link href="/" className="font-semibold">
           Nhost + Next.js + shadcn/ui
         </Link>
 
         <div className="flex items-center gap-2">
-          <Button asChild variant="ghost" size="sm">
-            <Link href="/">Home</Link>
-          </Button>
-          <Button asChild variant="ghost" size="sm">
-            <Link href="/protected">Protected</Link>
-          </Button>
-
           {user ? (
             <UserMenu
               email={user.email ?? ''}

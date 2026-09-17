@@ -89,6 +89,11 @@
   * {
     @apply border-border outline-ring/50;
   }
+  /* Hold the scrollbar's space whether or not the page needs one, so a short
+     page and a long one put the same content in the same place. */
+  html {
+    scrollbar-gutter: stable;
+  }
   body {
     @apply bg-background text-foreground;
   }

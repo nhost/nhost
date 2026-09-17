@@ -125,7 +125,9 @@ export function Todos() {
       <CardHeader>
         <CardTitle>Your todos</CardTitle>
         <CardDescription>
-          These rows are protected by per-user GraphQL permissions.
+          This view is rendered on the server and redirects to{' '}
+          <code>/signin</code> without a session. The rows themselves are
+          protected again by per-user GraphQL permissions.
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
