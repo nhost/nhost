@@ -19,20 +19,47 @@ export function signInHref(destination: string): string {
   return `/signin?next=${encodeURIComponent(destination)}`;
 }
 
+// Any absolute URL will do: resolving `next` against it is what says whether
+// `next` stays on this site. `.invalid` is reserved by RFC 2606 and can never
+// be a real origin, so no `next` can be crafted to match it.
+const RESOLUTION_BASE = 'https://placeholder.invalid';
+
 /**
  * Where to go after signing in, from an untrusted `?next=`.
  *
- * Anything that is not a path on this site falls back to the default. The
- * `//` case is the one worth spelling out: a browser reads `//evil.example`
- * as another origin, so a bare "starts with a slash" check would hand someone
- * an open redirect off the back of your sign-in page.
+ * Anything that is not a path on this site falls back to the default. Deciding
+ * that takes the URL parser rather than a pattern, because the browser is what
+ * ultimately resolves this value and it reads more things as another origin
+ * than they look. `//evil.example` is the familiar one, but `/\evil.example`
+ * parses to the same URL, and tabs and newlines are stripped before parsing,
+ * so `/%09/evil.example` does too. Each of those passes a "starts with one
+ * slash but not two" check and leaves the site.
+ *
+ * So resolve it the way the browser will, and keep it only if it landed back
+ * here. What is returned is the original string rather than the parsed form: a
+ * value that resolves to this origin resolves to it again wherever it is used,
+ * and re-serializing would percent-encode a query string that callers
+ * round-trip through `signInHref`.
  */
 export function signInDestination(
   value: string | string[] | undefined,
 ): string {
   const next = Array.isArray(value) ? value[0] : value;
 
-  if (!next || !next.startsWith('/') || next.startsWith('//')) {
+  // A path, not merely same-origin: without this, `evil.example` would resolve
+  // to a relative path on this site and be kept.
+  if (!next?.startsWith('/')) {
+    return DEFAULT_DESTINATION;
+  }
+
+  let resolved: URL;
+  try {
+    resolved = new URL(next, RESOLUTION_BASE);
+  } catch {
+    return DEFAULT_DESTINATION;
+  }
+
+  if (resolved.origin !== RESOLUTION_BASE) {
     return DEFAULT_DESTINATION;
   }
 
