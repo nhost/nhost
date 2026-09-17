@@ -5,6 +5,7 @@ import {
   cookieOptions,
   createAnonymousClient,
   handleNhostProxy,
+  PASSWORD_RESET_GRANT_COOKIE,
   parseSessionCookie,
   serializeSessionCookie,
 } from '@/lib/nhost/server';
@@ -223,6 +224,137 @@ describe('proxy session refresh', () => {
     expect(
       applySessionCookies(NextResponse.next()).headers.getSetCookie(),
     ).toEqual([]);
+  });
+});
+
+// A refresh token on the query string signs whoever opens the link in. Auth
+// only ever puts one there on the redirect from its own verify endpoint, and
+// always alongside a `type`, so a redemption outside those conditions can only
+// be someone else's token: a link to any page carrying the attacker's token
+// would swap the visitor's session for theirs, and everything typed next would
+// be written into the attacker's account.
+describe('proxy auth link redemption', () => {
+  const linkRequest = (path: string, query: string): NextRequest =>
+    new NextRequest(`http://localhost:3000${path}${query}`);
+
+  const refreshed = (): Record<string, unknown> => ({
+    accessToken: accessToken('link-user-id'),
+    accessTokenExpiresIn: 900,
+    refreshTokenId: 'link-refresh-token-id',
+    refreshToken: 'link-refresh-token',
+  });
+
+  it('redeems a token an auth email could have produced', async () => {
+    const fetchStub = stubRefreshToken(200, refreshed());
+
+    const { session: result, consumedLinkToken } = await handleNhostProxy(
+      linkRequest('/reset-password', '?refreshToken=abc&type=passwordReset'),
+    );
+
+    expect(consumedLinkToken).toBe(true);
+    expect(fetchStub).toHaveBeenCalledOnce();
+    expect(result?.refreshToken).toBe('link-refresh-token');
+  });
+
+  it('ignores a token on a path no auth email points at', async () => {
+    const fetchStub = stubRefreshToken(200, refreshed());
+
+    const { session: result, consumedLinkToken } = await handleNhostProxy(
+      linkRequest('/protected', '?refreshToken=abc&type=passwordReset'),
+    );
+
+    expect(consumedLinkToken).toBe(false);
+    expect(result).toBeNull();
+    expect(fetchStub).not.toHaveBeenCalled();
+  });
+
+  it('ignores a token with no type, or a type auth never emits', async () => {
+    for (const query of [
+      '?refreshToken=abc',
+      '?refreshToken=abc&type=',
+      '?refreshToken=abc&type=somethingElse',
+    ]) {
+      const fetchStub = stubRefreshToken(200, refreshed());
+
+      const { consumedLinkToken } = await handleNhostProxy(
+        linkRequest('/reset-password', query),
+      );
+
+      expect(consumedLinkToken).toBe(false);
+      expect(fetchStub).not.toHaveBeenCalled();
+    }
+  });
+
+  // The grant is the server's own record that this browser followed a reset
+  // link, and it is what `changePassword` accepts in place of the current
+  // password. Nothing the client sends can stand in for it.
+  it('grants a password reset only for a passwordReset link', async () => {
+    stubRefreshToken(200, refreshed());
+
+    const { applySessionCookies } = await handleNhostProxy(
+      linkRequest('/reset-password', '?refreshToken=abc&type=passwordReset'),
+    );
+    const granted = applySessionCookies(NextResponse.next());
+
+    expect(granted.cookies.get(PASSWORD_RESET_GRANT_COOKIE)?.value).toBe('1');
+    expect(granted.headers.getSetCookie()).toContainEqual(
+      expect.stringContaining('HttpOnly'),
+    );
+  });
+
+  it('grants nothing for an email-change link', async () => {
+    stubRefreshToken(200, refreshed());
+
+    const { applySessionCookies } = await handleNhostProxy(
+      linkRequest('/profile', '?refreshToken=abc&type=emailConfirmChange'),
+    );
+
+    expect(
+      applySessionCookies(NextResponse.next()).cookies.get(
+        PASSWORD_RESET_GRANT_COOKIE,
+      ),
+    ).toBeUndefined();
+  });
+});
+
+// Next prefetches every <Link> in view through this same proxy, concurrently
+// with the real request. Refresh tokens rotate, so only one caller can win;
+// letting a prefetch race the document request is what turns an idle tab into
+// a spurious sign-out.
+describe('proxy session refresh on prefetch', () => {
+  const rotated = (): Record<string, unknown> => ({
+    accessToken: accessToken('user-id'),
+    accessTokenExpiresIn: 900,
+    refreshTokenId: 'rotated',
+    refreshToken: 'rotated-refresh-token',
+  });
+
+  it('does not rotate the refresh token for a prefetch', async () => {
+    const fetchStub = stubRefreshToken(200, rotated());
+
+    const { session: result, applySessionCookies } = await handleNhostProxy(
+      new NextRequest('http://localhost:3000/protected', {
+        headers: { cookie: signedInCookie, 'next-router-prefetch': '1' },
+      }),
+    );
+
+    expect(fetchStub).not.toHaveBeenCalled();
+    // Still the stored session, so access control decides the same way.
+    expect(result?.refreshToken).toBe(session.refreshToken);
+    expect(
+      applySessionCookies(NextResponse.next()).headers.getSetCookie(),
+    ).toEqual([]);
+  });
+
+  it('still refreshes a real navigation', async () => {
+    const fetchStub = stubRefreshToken(200, rotated());
+
+    const { session: result } = await handleNhostProxy(
+      proxyRequest(signedInCookie),
+    );
+
+    expect(fetchStub).toHaveBeenCalledOnce();
+    expect(result?.refreshToken).toBe('rotated-refresh-token');
   });
 });
 

@@ -1,8 +1,28 @@
+import type { StoredSession } from '@nhost/nhost-js/session';
 import { type NextRequest, NextResponse } from 'next/server';
 import { signInHref } from '@/app/signin/destination';
-import { handleNhostProxy, LINK_TOKEN_PARAM } from '@/lib/nhost/server';
+import {
+  handleNhostProxy,
+  LINK_TOKEN_PARAM,
+  LINK_TYPE_PARAM,
+} from '@/lib/nhost/server';
 
 const protectedRoutes = ['/protected', '/profile'];
+
+// Where an account marked for deletion is still allowed to go: the screen that
+// undoes the mark, and sign-in, which is how it leaves.
+const deletedAccountRoutes = ['/restore', '/signin'];
+
+// Set by `deleteAccount`, cleared by `restoreAccount`. Both go through
+// `metadata`, which rides along in the session, so this needs no query.
+function markedDeleted(session: StoredSession | null): boolean {
+  const metadata = session?.user?.metadata as
+    | { deletedAt?: string }
+    | null
+    | undefined;
+
+  return Boolean(metadata?.deletedAt);
+}
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {
   const path = request.nextUrl.pathname;
@@ -16,9 +36,24 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   if (consumedLinkToken) {
     const clean = request.nextUrl.clone();
     clean.searchParams.delete(LINK_TOKEN_PARAM);
-    clean.searchParams.delete('type');
+    clean.searchParams.delete(LINK_TYPE_PARAM);
 
     return applySessionCookies(NextResponse.redirect(clean));
+  }
+
+  // An account inside its grace period is not a usable account. Leaving this to
+  // each page meant only `/profile` enforced it, so the rest of the app stayed
+  // fully readable and writable by an account its owner had asked to delete.
+  if (
+    session &&
+    markedDeleted(session) &&
+    !deletedAccountRoutes.some(
+      (route) => path === route || path.startsWith(`${route}/`),
+    )
+  ) {
+    return applySessionCookies(
+      NextResponse.redirect(new URL('/restore', request.url)),
+    );
   }
 
   const isProtectedRoute = protectedRoutes.some(
