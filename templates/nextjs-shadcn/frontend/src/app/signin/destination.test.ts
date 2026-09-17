@@ -32,6 +32,25 @@ describe('signInDestination', () => {
     }
   });
 
+  // The forms that look like a path but are not. Each of these resolves to
+  // https://evil.example/ in a browser, and each one passes a "starts with one
+  // slash but not two" check, which is why this is decided by resolving the
+  // value rather than by matching its shape.
+  it('refuses the forms a URL parser reads as another origin', () => {
+    for (const hostile of [
+      '/\\evil.example',
+      '/\\\\evil.example',
+      '/\t/evil.example',
+      '/\n/evil.example',
+      '/\r/evil.example',
+    ]) {
+      expect(new URL(hostile, 'https://app.example').origin).toBe(
+        'https://evil.example',
+      );
+      expect(signInDestination(hostile)).toBe(DEFAULT_DESTINATION);
+    }
+  });
+
   it('takes the first value when the parameter is repeated', () => {
     expect(signInDestination(['/profile', '/protected'])).toBe('/profile');
     expect(signInDestination(['//evil.example', '/profile'])).toBe(
