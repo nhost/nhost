@@ -1,5 +1,6 @@
 'use client';
 
+import { REGEXP_ONLY_DIGITS } from 'input-otp';
 import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useId, useState } from 'react';
@@ -12,8 +13,17 @@ import {
 } from '@/app/signin/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from '@/components/ui/input-otp';
 import { Label } from '@/components/ui/label';
 import { localMailboxURL } from '@/lib/nhost/env';
+
+// Matches the code length auth sends.
+const OTP_LENGTH = 6;
+const OTP_SLOTS = Array.from({ length: OTP_LENGTH }, (_, index) => index);
 
 // One address, then whichever second step that account actually uses. Nothing
 // asks the visitor to know whether they have a password, or whether they have
@@ -113,20 +123,34 @@ export default function SignInForm() {
     finishSignIn(result.deleted);
   };
 
-  const handleVerifyOTP = async (event: FormEvent): Promise<void> => {
-    event.preventDefault();
+  // Submitting the moment the sixth digit lands is the whole point of a code
+  // this short, so the button below is only a fallback. Both paths come
+  // through here, and the guard keeps them from firing twice on one code.
+  const verify = async (code: string): Promise<void> => {
+    if (isLoading) {
+      return;
+    }
+
     setIsLoading(true);
     setError(undefined);
 
-    const result = await verifyOTP(email, otp);
+    const result = await verifyOTP(email, code);
 
     if (result.error) {
       setIsLoading(false);
       setError(result.error);
+      // Clearing the slots gives them somewhere to type and re-arms
+      // onComplete, which only fires on the way up to six.
+      setOtp('');
       return;
     }
 
     finishSignIn(result.deleted);
+  };
+
+  const handleVerifyOTP = async (event: FormEvent): Promise<void> => {
+    event.preventDefault();
+    await verify(otp);
   };
 
   const handleUseCodeInstead = async (): Promise<void> => {
@@ -225,17 +249,24 @@ export default function SignInForm() {
 
         <div className="flex flex-col gap-2">
           <Label htmlFor={otpId}>Verification code</Label>
-          <Input
+          <InputOTP
             id={otpId}
             name="otp"
-            inputMode="numeric"
+            maxLength={OTP_LENGTH}
+            pattern={REGEXP_ONLY_DIGITS}
             autoComplete="one-time-code"
-            placeholder="123456"
             value={otp}
-            onChange={(event) => setOtp(event.target.value)}
-            required
+            onChange={setOtp}
+            onComplete={verify}
+            disabled={isLoading}
             autoFocus
-          />
+          >
+            <InputOTPGroup>
+              {OTP_SLOTS.map((slot) => (
+                <InputOTPSlot key={`otp-slot-${slot}`} index={slot} />
+              ))}
+            </InputOTPGroup>
+          </InputOTP>
           <p className="text-muted-foreground text-sm">
             We sent a code to {email}.
             <MailboxHint />
@@ -244,7 +275,7 @@ export default function SignInForm() {
 
         {errorLine}
 
-        <Button type="submit" disabled={isLoading || !otp}>
+        <Button type="submit" disabled={isLoading || otp.length < OTP_LENGTH}>
           {isLoading ? 'Verifying…' : 'Verify'}
         </Button>
       </form>
