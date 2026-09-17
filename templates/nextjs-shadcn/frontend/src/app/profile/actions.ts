@@ -351,21 +351,46 @@ export async function restoreAccount(): Promise<ActionResult> {
     };
   }
 
-  // The mark also rides in the session, and that copy is what the proxy reads
-  // to keep a deleted account on `/restore`. `refreshSession` would hand back
-  // the existing session while its access token is still valid, leaving the
-  // stale mark in place and bouncing every page straight back here, so force
-  // the refresh that reloads `metadata`.
+  return syncRestoredSession();
+}
+
+/**
+ * Reloads the session so it stops carrying a deletion mark the database no
+ * longer has.
+ *
+ * The mark rides in the session as well as in the database, and the proxy
+ * reads the session's copy. `refreshSession` hands back the existing session
+ * untouched while its access token is still valid, so the stale mark would sit
+ * there for up to the token's lifetime - and every page would bounce to
+ * `/restore` for that whole window. Forcing the refresh is what reloads
+ * `metadata`.
+ *
+ * `/restore` offers this as a button because more than one device can hold a
+ * marked session: restoring on a laptop leaves a phone signed in with the old
+ * one, and only a request from that device can fix that device's cookie.
+ */
+export async function syncRestoredSession(): Promise<ActionResult> {
+  const nhost = await createNhostClient();
   const refreshToken = nhost.getUserSession()?.refreshToken;
-  if (refreshToken) {
-    try {
-      const { body } = await nhost.auth.refreshToken({ refreshToken });
-      nhost.sessionStorage.set(body);
-    } catch (err) {
-      // The account is restored either way; the session catches up on its own
-      // once the access token expires.
-      console.error('Could not refresh the session after restoring:', err);
-    }
+
+  if (!refreshToken) {
+    return { error: 'Sign in to restore your account.' };
+  }
+
+  try {
+    const { body } = await nhost.auth.refreshToken({ refreshToken });
+    nhost.sessionStorage.set(body);
+  } catch (err) {
+    // Reported rather than swallowed: until this succeeds the session still
+    // says the account is deleted, and the proxy acts on that. Two tabs both
+    // pressing the button is enough to land here, because the first rotates
+    // the refresh token the second is still holding.
+    console.error('Could not refresh the session after restoring:', err);
+
+    return {
+      error:
+        'Your account is restored, but this device is still signed in as deleted. Sign out and back in to finish.',
+    };
   }
 
   return { success: true };
