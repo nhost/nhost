@@ -31,9 +31,11 @@ const RESOLUTION_BASE = 'https://placeholder.invalid';
  * that takes the URL parser rather than a pattern, because the browser is what
  * ultimately resolves this value and it reads more things as another origin
  * than they look. `//evil.example` is the familiar one, but `/\evil.example`
- * parses to the same URL, and tabs and newlines are stripped before parsing,
- * so `/%09/evil.example` does too. Each of those passes a "starts with one
- * slash but not two" check and leaves the site.
+ * parses to the same URL, and a raw tab or newline is stripped before parsing,
+ * so the two characters `/` and a literal tab ahead of `/evil.example` do too.
+ * Percent-encoded they do not: `/%09/evil.example` stays a path on this site.
+ * Each of the reachable ones passes a "starts with one slash but not two"
+ * check and leaves the site.
  *
  * So resolve it the way the browser will, and keep it only if it landed back
  * here. What is returned is the original string rather than the parsed form: a

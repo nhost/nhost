@@ -1264,6 +1264,60 @@ func TestFetchTemplateGitNotInstalled(t *testing.T) {
 	}
 }
 
+// A template fetched from git gets the same layout check a local one does.
+// Without it a missing frontend surfaces several steps later, in a message
+// naming the staging directory - a path the user never chose, and one that has
+// been cleaned up by the time they read about it.
+func TestFetchTemplateMissingFrontend(t *testing.T) {
+	t.Parallel()
+
+	gitPath, err := exec.LookPath("git")
+	if err != nil {
+		t.Skip("git is not installed")
+	}
+
+	repo := t.TempDir()
+
+	backend := filepath.Join(repo, "templates", "no-frontend", "backend")
+
+	if mkErr := os.MkdirAll(backend, 0o755); mkErr != nil {
+		t.Fatalf("MkdirAll: %v", mkErr)
+	}
+
+	if wErr := os.WriteFile(filepath.Join(backend, "keep"), nil, 0o644); wErr != nil {
+		t.Fatalf("WriteFile: %v", wErr)
+	}
+
+	gitArgs := [][]string{
+		{"init", "--initial-branch=main"},
+		{"add", "."},
+		{
+			"-c", "user.email=t@example.com", "-c", "user.name=t",
+			"commit", "-m", "template",
+		},
+	}
+	for _, args := range gitArgs {
+		cmd := exec.Command(gitPath, args...)
+		cmd.Dir = repo
+
+		if out, runErr := cmd.CombinedOutput(); runErr != nil {
+			t.Fatalf("git %v: %v\n%s", args, runErr, out)
+		}
+	}
+
+	err = fetchTemplate(
+		context.Background(),
+		nil,
+		repo,
+		"main",
+		template{name: "no-frontend"},
+		t.TempDir(),
+	)
+	if !errors.Is(err, errTemplateMissingFrontend) {
+		t.Fatalf("error = %v, want errTemplateMissingFrontend", err)
+	}
+}
+
 func TestValidateName(t *testing.T) {
 	t.Parallel()
 
