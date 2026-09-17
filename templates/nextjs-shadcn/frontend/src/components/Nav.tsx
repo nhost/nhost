@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import SignOutButton from '@/components/SignOutButton';
+import { UserMenu } from '@/components/UserMenu';
 import { Button } from '@/components/ui/button';
 import { graphql } from '@/gql';
 import { gqlRequest } from '@/lib/graphql';
@@ -18,17 +18,28 @@ const GetNavProfile = graphql(`
 export default async function Nav() {
   const nhost = await createNhostClient();
   const session = nhost.getUserSession();
+  const user = session?.user;
 
-  // The session's user claims only refresh with the token, so the avatar is
-  // read fresh; when the backend is unreachable the nav falls back to them
-  // rather than failing the whole page.
-  let avatarUrl = session?.user?.avatarUrl;
-  if (session?.user) {
+  // The session's user claims only refresh with the token, so the avatar and
+  // name are read fresh; when the backend is unreachable the nav falls back to
+  // the claims rather than failing the whole page.
+  let profile = {
+    displayName: user?.displayName,
+    avatarUrl: user?.avatarUrl,
+  };
+
+  if (user) {
     try {
-      const { user } = await gqlRequest(nhost, GetNavProfile, {
-        id: session.user.id,
+      const { user: fresh } = await gqlRequest(nhost, GetNavProfile, {
+        id: user.id,
       });
-      avatarUrl = user?.avatarUrl ?? avatarUrl;
+
+      if (fresh) {
+        profile = {
+          displayName: fresh.displayName ?? profile.displayName,
+          avatarUrl: fresh.avatarUrl ?? profile.avatarUrl,
+        };
+      }
     } catch {
       // Keep the session's claims; the nav must not take the page down.
     }
@@ -49,23 +60,12 @@ export default async function Nav() {
             <Link href="/protected">Protected</Link>
           </Button>
 
-          {session ? (
-            <>
-              <Button asChild variant="ghost" size="sm">
-                <Link href="/profile" className="flex items-center gap-2">
-                  {avatarUrl ? (
-                    // biome-ignore lint/performance/noImgElement: tiny remote image whose host varies per environment
-                    <img
-                      src={avatarUrl}
-                      alt=""
-                      className="h-5 w-5 rounded-full border object-cover"
-                    />
-                  ) : null}
-                  Profile
-                </Link>
-              </Button>
-              <SignOutButton />
-            </>
+          {user ? (
+            <UserMenu
+              email={user.email ?? ''}
+              displayName={profile.displayName}
+              avatarUrl={profile.avatarUrl}
+            />
           ) : (
             <Button asChild size="sm">
               <Link href="/signin">Sign in</Link>
