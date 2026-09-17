@@ -54,6 +54,7 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 
 ### Tools (`tools/`)
 
+- `tools/betterleaks` - secret-scanning configuration, ignore list and per-rule tests, plus a wrapper that bakes them into the pinned `betterleaks` build from `nixops/overlays/go.nix`
 - `tools/codegen` - code generation utilities
 - `tools/ghactivity` - `gh` CLI extension (binary `gh-activity`, invoked as `gh activity ...`) that builds a markdown stand-up report of a user's GitHub PR/issue activity in an org over a time window
 - `tools/govulncheck-wrapper` - wrapper around `govulncheck` for the monorepo's vulnerability scanning workflow
@@ -63,7 +64,7 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 - Go services use Nix dev shells. Enter with: `nix develop .\#<project-name>` (e.g., `nix develop .\#auth`)
 - Each service has a `project.nix` and a `Makefile` that includes `build/makefiles/general.makefile`
 - Common Makefile targets: `make help`, `make develop`, `make check`, `make build`, `make build-docker-image`, `make dev-env-up`, `make dev-env-down`
-- JS/TS packages use pnpm 11.24.0 (not npm or yarn) with Turbo for orchestration
+- JS/TS packages use pnpm 12.3.4 (not npm or yarn) with Turbo for orchestration
 - Node >= 22 required
 
 ## Code Standards

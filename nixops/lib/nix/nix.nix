@@ -44,8 +44,7 @@
       # Names provided under `pkgs.nhost.*` that also exist as top-level
       # nixpkgs attrs: a bare `pkgs.<name>` reference silently picks the
       # unpinned nixpkgs version, so grep for those. Names with no nixpkgs
-      # counterpart (nhost-cli, npm_11, ...) fail evaluation loudly on their
-      # own.
+      # counterpart fail evaluation loudly on their own.
       shadowedNames = l.optionals (l.elem "nhost" overlayAttrs) (
         l.intersectLists (l.attrNames (import overlayFile pkgs pkgs).nhost) (l.attrNames pkgs)
       );

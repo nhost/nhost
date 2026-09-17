@@ -1,3 +1,9 @@
+## [functions@2.3.1] - 2026-09-16
+
+### 🐛 Bug Fixes
+
+- *(functions)* Add glibc dynamic loader to dev runtime image (#5006)
+
 ## [functions@2.2.0] - 2026-07-28
 
 ### 🚀 Features
