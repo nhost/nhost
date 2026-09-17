@@ -33,6 +33,9 @@ const (
 
 	defaultClientURL      = "http://localhost:3000"
 	defaultPackageManager = "pnpm"
+	// defaultProjectName is what a create that was told neither a name nor a
+	// directory calls the project, and so the directory it makes for it.
+	defaultProjectName = "nhost-starter-app"
 
 	// stagingPrefix names the directory the project is built in before it is
 	// moved into place. It sits inside the target, so the name has to be one
@@ -60,8 +63,11 @@ func Command() *cli.Command {
 		Action: action,
 		Flags: []cli.Flag{
 			&cli.StringFlag{ //nolint:exhaustruct
-				Name:  flagName,
-				Usage: "Project name, and the directory it lands in (default: the target directory's name)",
+				Name: flagName,
+				Usage: fmt.Sprintf(
+					"Project name, and the directory it lands in (default: %s, or [directory]'s name)",
+					defaultProjectName,
+				),
 				Value: "",
 			},
 			&cli.StringFlag{ //nolint:exhaustruct

@@ -142,10 +142,17 @@ func resolveChoices(cmd *cli.Command, interactive bool) (resolution, error) {
 		packageManager: cmd.IsSet(flagPackageManager),
 	}
 
-	// The directory the project lands in names it unless --name says otherwise,
-	// so the prompt has something to offer and --yes has something to use.
+	// The name the prompt offers, and the one --yes takes. A directory argument
+	// names the project after itself, because naming the directory is already
+	// saying where the project goes. Without one the target is wherever the
+	// command was run, and that is a name like "repos" or "Downloads" rather
+	// than a project's, so the starter's own name is the better offer.
 	if !given.name {
-		resolved.name = nameFromDir(dir)
+		if given.dir {
+			resolved.name = nameFromDir(dir)
+		} else {
+			resolved.name = defaultProjectName
+		}
 	}
 
 	if interactive && !cmd.Bool(flagYes) {

@@ -32,15 +32,15 @@ func TestResolveChoices(t *testing.T) {
 		wantInteractive bool
 		wantErr         error
 	}{
-		// No argument is the default: scaffold here, and let the directory
-		// name the project.
+		// Without a directory to name it after, the project is the starter's
+		// own name rather than whatever the user happens to be standing in.
 		{
-			name:        "no argument scaffolds into the current directory",
+			name:        "no argument takes the default name",
 			args:        []string{"--yes"},
 			interactive: true,
 			want: choices{
 				template:       defaultTemplate,
-				name:           "workspace",
+				name:           defaultProjectName,
 				rel:            "",
 				packageManager: defaultPackageManager,
 				installNow:     true,
@@ -53,8 +53,9 @@ func TestResolveChoices(t *testing.T) {
 			wantInteractive: false,
 			wantErr:         nil,
 		},
-		// A directory with nothing name-shaped in it leaves the project
-		// nameless, and without a prompt to fall back on that has to stop.
+		// A directory argument names the project, so one with nothing
+		// name-shaped in it leaves it nameless, and without a prompt to fall
+		// back on that has to stop.
 		{
 			name:            "non-interactive needs a usable name",
 			args:            []string{"./___"},

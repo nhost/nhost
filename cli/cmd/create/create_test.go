@@ -94,12 +94,12 @@ func TestStageProjectLocalTemplate(t *testing.T) {
 	assertNoStagingLeftovers(t, filepath.Join(workdir, "my-app"))
 }
 
-// Without an argument the project is built where the command runs, which is
-// the normal way in: make a directory, cd into it, create. Whatever is already
-// there and does not clash stays.
+// A project named after the directory it is being created in is built right
+// there rather than one level down: you made that directory for it. Whatever is
+// already there and does not clash stays.
 //
 //nolint:paralleltest // mutates process cwd via t.Chdir
-func TestCreateScaffoldsIntoTheCurrentDirectory(t *testing.T) {
+func TestCreateScaffoldsIntoTheDirectoryThatMatchesTheName(t *testing.T) {
 	workdir := t.TempDir()
 	templateDir := filepath.Join(workdir, "template")
 
@@ -119,10 +119,10 @@ func TestCreateScaffoldsIntoTheCurrentDirectory(t *testing.T) {
 
 	cmd := newTestRootCommand(t, &output)
 
-	if err := cmd.Run(
-		context.Background(),
-		[]string{"nhost", "create", "--template-path", templateDir, "--no-install"},
-	); err != nil {
+	if err := cmd.Run(context.Background(), []string{
+		"nhost", "create",
+		"--template-path", templateDir, "--no-install", "--name", "my-app",
+	}); err != nil {
 		t.Fatalf("create command: %v\n%s", err, output.String())
 	}
 
@@ -277,10 +277,10 @@ func TestCreateRefusesToLandOnExistingEntries(t *testing.T) {
 
 	cmd := newTestRootCommand(t, &output)
 
-	err := cmd.Run(
-		context.Background(),
-		[]string{"nhost", "create", "--template-path", templateDir, "--no-install"},
-	)
+	err := cmd.Run(context.Background(), []string{
+		"nhost", "create",
+		"--template-path", templateDir, "--no-install", "--name", "occupied",
+	})
 	if !errors.Is(err, errTargetConflict) {
 		t.Fatalf("create error = %v, want a conflict\n%s", err, output.String())
 	}

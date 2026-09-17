@@ -21,13 +21,13 @@ Run it from wherever you keep your projects:
 nhost create
 ```
 
-You are prompted for the project name, template, and package manager. The name you give the project is also the directory it is created in.
+You are prompted for the project name, template, and package manager. The name you give the project is also the directory it is created in, so the default, `nhost-starter-app`, lands in `./nhost-starter-app`.
 
-The name it offers is the current directory's own, so a directory you made and changed into already is the project's directory and nothing is nested inside it:
+To build into a directory you already made, name the project after it, at the prompt or up front. The names match, so nothing is nested inside it:
 
 ```bash Terminal
 mkdir my-app && cd my-app
-nhost create
+nhost create --name my-app
 ```
 
 Pass a directory to scaffold into exactly that, whatever the project ends up being called. It is created if it does not exist:
@@ -121,7 +121,7 @@ Re-run the `refresh-context` skill, or `nhost schema dump --subdomain local --ro
 | | |
 | --- | --- |
 | `--template`, `-t` | Template to scaffold. Defaults to `nextjs-shadcn`. |
-| `--name` | Project name. Defaults to the target directory's name. |
+| `--name` | Project name, and the directory it lands in. Defaults to `nhost-starter-app`, or to the directory you pass. |
 | `--package-manager` | `pnpm`, `npm`, `bun`, or `yarn`. Defaults to `pnpm`. |
 | `--no-install` | Skip installing frontend dependencies. |
 | `--yes`, `--skip-prompts` | Accept defaults and skip all prompts. |
