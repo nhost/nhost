@@ -8,7 +8,7 @@
  * You can import and use this package with:
  *
  * ```ts
- * import { createClient } from "@nhost/nhost-js/storage";
+ * import { createAPIClient } from "@nhost/nhost-js/storage";
  * ```
  *
  * ## Usage

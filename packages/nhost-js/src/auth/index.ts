@@ -8,7 +8,7 @@
  * You can import and use this package with:
  *
  * ```ts
- * import { createClient } from "@nhost/nhost-js/auth";
+ * import { createAPIClient } from "@nhost/nhost-js/auth";
  * ```
  *
  * ## Usage

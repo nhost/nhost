@@ -9,7 +9,7 @@ but you can also use it directly if you have a specific use case.
 # Import
 
 ```ts
-import { createClient } from "@nhost/nhost-js/graphql";
+import { createAPIClient } from "@nhost/nhost-js/graphql";
 ```
 
 # Usage
