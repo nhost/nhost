@@ -128,25 +128,114 @@ run_psql_file() {
 	fi
 }
 
-run_psql_file_all_databases() {
-	file=$1
+update_extension() {
+	database=$1
+	extension=$2
+	extension_update=$3
+	# BusyBox mktemp requires the template to end in XXXXXX.
+	update_log=$(mktemp -p /tmp/postgresql update-extension-log.XXXXXX) || return 1
+
+	# The one-statement file makes ALTER EXTENSION the first server command in
+	# this session while still letting psql quote the extension identifier.
+	if run_interruptibly env "PGOPTIONS=-c lc_messages=C" \
+		psql -X -q -b -U postgres -d "$database" \
+		-v ON_ERROR_STOP=1 -v extension="$extension" \
+		-f "$extension_update" >"$update_log" 2>&1; then
+		echo "Updating extension $extension in database $database"
+		cat "$update_log"
+		rm -f "$update_log"
+		return 0
+	fi
+
+	if grep -Fq "extension \"$extension\" does not exist" "$update_log"; then
+		rm -f "$update_log"
+		return 2
+	fi
+
+	echo "Updating extension $extension in database $database"
+	cat "$update_log" >&2
+	echo "WARNING: Failed to update extension $extension in database $database; continuing startup" >&2
+	rm -f "$update_log"
+	return 1
+}
+
+update_extensions() {
+	database=$1
+	extension_update=$2
+	extension_list=$(mktemp -p /tmp/postgresql extensions.XXXXXX) || return 1
+
+	# TimescaleDB must be updated before any other statement in a database that
+	# has its old version installed. An unconditional first attempt avoids
+	# loading that version merely to discover whether an update is needed.
+	if update_extension "$database" timescaledb "$extension_update"; then
+		:
+	else
+		update_status=$?
+		if [ "$update_status" -eq 1 ]; then
+			echo "WARNING: Skipping remaining extension updates in database $database after the TimescaleDB failure" >&2
+			rm -f "$extension_list"
+			return 0
+		fi
+	fi
+
+	if ! run_interruptibly psql -X -q -A -t -U postgres -d "$database" -v ON_ERROR_STOP=1 \
+		-o "$extension_list" \
+		-c "SELECT e.extname
+			FROM pg_extension AS e
+			JOIN pg_available_extensions AS ae ON ae.name = e.extname
+			WHERE e.extname <> 'timescaledb'
+				AND e.extversion <> ae.default_version
+			ORDER BY e.extname"; then
+		rm -f "$extension_list"
+		return 1
+	fi
+
+	while IFS= read -r extension; do
+		update_extension "$database" "$extension" "$extension_update" || true
+	done <"$extension_list"
+
+	rm -f "$extension_list"
+}
+
+update_extensions_all_databases() {
 	database_list=$(mktemp -p /tmp/postgresql databases.XXXXXX) || return 1
+	if ! extension_update=$(mktemp -p /tmp/postgresql update-extension.XXXXXX); then
+		rm -f "$database_list"
+		return 1
+	fi
+	if ! printf '%s\n' 'ALTER EXTENSION :"extension" UPDATE;' >"$extension_update"; then
+		rm -f "$database_list" "$extension_update"
+		return 1
+	fi
+
+	# The database catalog is read from postgres, so update TimescaleDB there
+	# before even the database-list query can load an old versioned library.
+	if update_extension postgres timescaledb "$extension_update"; then
+		:
+	else
+		update_status=$?
+		if [ "$update_status" -eq 1 ]; then
+			echo "WARNING: Skipping extension updates after the TimescaleDB failure in database postgres" >&2
+			rm -f "$database_list" "$extension_update"
+			return 0
+		fi
+	fi
 
 	if ! run_interruptibly psql -X -q -A -t -U postgres -d postgres -v ON_ERROR_STOP=1 \
 		-o "$database_list" \
 		-c "SELECT datname FROM pg_database WHERE datallowconn ORDER BY datname"; then
-		rm -f "$database_list"
+		rm -f "$database_list" "$extension_update"
 		return 1
 	fi
 
 	while IFS= read -r database; do
-		if ! run_psql_file "$database" "$file"; then
-			rm -f "$database_list"
+		if ! update_extensions "$database" "$extension_update"; then
+			rm -f "$database_list" "$extension_update"
 			return 1
 		fi
 	done <"$database_list"
 
-	rm -f "$database_list"
+	rm -f "$database_list" "$extension_update"
 }
 
 run_init_scripts() {
@@ -167,20 +256,14 @@ run_init_scripts() {
 run_nhost_scripts() {
 	echo "Running nhost's scripts"
 
+	update_extensions_all_databases || return 1
+
 	mkdir -p /tmp/postgresql/nhost.d || return 1
 	for f in /nhost.d/*; do
 		filename=$(basename "$f") || return 1
-
-		case "$filename" in
-		0002-update-extensions.sql)
-			run_psql_file_all_databases "$f" || return 1
-			;;
-		*)
-			rendered_file="/tmp/postgresql/nhost.d/$filename"
-			envsubst <"$f" >"$rendered_file" || return 1
-			run_psql_file "$POSTGRES_DB" "$rendered_file" || return 1
-			;;
-		esac
+		rendered_file="/tmp/postgresql/nhost.d/$filename"
+		envsubst <"$f" >"$rendered_file" || return 1
+		run_psql_file "$POSTGRES_DB" "$rendered_file" || return 1
 	done
 }
 
