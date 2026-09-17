@@ -1,12 +1,24 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { handleNhostProxy } from '@/lib/nhost/server';
+import { handleNhostProxy, LINK_TOKEN_PARAM } from '@/lib/nhost/server';
 
-const protectedRoutes = ['/protected'];
+const protectedRoutes = ['/protected', '/profile'];
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {
   const path = request.nextUrl.pathname;
 
-  const { session, applySessionCookies } = await handleNhostProxy(request);
+  const { session, applySessionCookies, consumedLinkToken } =
+    await handleNhostProxy(request);
+
+  // The refresh token from an auth email is now in the session cookie, so
+  // bounce to the same page without it: query strings leak through history,
+  // bookmarks and the referer header.
+  if (consumedLinkToken) {
+    const clean = request.nextUrl.clone();
+    clean.searchParams.delete(LINK_TOKEN_PARAM);
+    clean.searchParams.delete('type');
+
+    return applySessionCookies(NextResponse.redirect(clean));
+  }
 
   const isProtectedRoute = protectedRoutes.some(
     (route) => path === route || path.startsWith(`${route}/`),

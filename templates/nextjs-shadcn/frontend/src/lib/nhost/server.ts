@@ -71,7 +71,14 @@ export async function createNhostClient(): Promise<NhostClient> {
 export type NhostProxyResult = {
   session: StoredSession | null;
   applySessionCookies: (response: NextResponse) => NextResponse;
+  consumedLinkToken: boolean;
 };
+
+// Auth emails (password reset, email change) send the user to the verify
+// endpoint, which signs them in and redirects back with the refresh token in
+// the query string. Nothing else in the app picks that up, so without this the
+// whole link lands on a page with no session.
+export const LINK_TOKEN_PARAM = 'refreshToken';
 
 /**
  * Refreshes the Nhost session from the Next.js proxy.
@@ -91,36 +98,62 @@ export async function handleNhostProxy(
 ): Promise<NhostProxyResult> {
   const mutations: Array<(response: NextResponse) => void> = [];
 
+  const storage = {
+    get: (): StoredSession | null =>
+      parseSessionCookie(request.cookies.get(key)?.value || null),
+    set: (value: StoredSession) => {
+      const serialized = serializeSessionCookie(value);
+      request.cookies.set(key, serialized);
+      mutations.push((response) => {
+        response.cookies.set({
+          name: key,
+          value: serialized,
+          ...cookieOptions,
+        });
+      });
+    },
+    remove: () => {
+      request.cookies.delete(key);
+      mutations.push((response) => {
+        response.cookies.delete(key);
+      });
+    },
+  };
+
   const nhost = createServerClient({
     region: nhostRegion(),
     subdomain: nhostSubdomain(),
-    storage: {
-      get: (): StoredSession | null =>
-        parseSessionCookie(request.cookies.get(key)?.value || null),
-      set: (value: StoredSession) => {
-        const serialized = serializeSessionCookie(value);
-        request.cookies.set(key, serialized);
-        mutations.push((response) => {
-          response.cookies.set({
-            name: key,
-            value: serialized,
-            ...cookieOptions,
-          });
-        });
-      },
-      remove: () => {
-        request.cookies.delete(key);
-        mutations.push((response) => {
-          response.cookies.delete(key);
-        });
-      },
-    },
+    storage,
   });
 
-  const session = await nhost.refreshSession(60);
+  const linkToken = request.nextUrl.searchParams.get(LINK_TOKEN_PARAM);
+  let consumedLinkToken = false;
+  let session: StoredSession | null = null;
+
+  if (linkToken) {
+    try {
+      const { body } = await nhost.auth.refreshToken({
+        refreshToken: linkToken,
+      });
+      // Goes through sessionStorage rather than the backend directly so the
+      // access token is decoded into the stored shape the app reads.
+      nhost.sessionStorage.set(body);
+      session = nhost.sessionStorage.get();
+      consumedLinkToken = true;
+    } catch (err) {
+      // An expired or already-used link is normal; fall through and let the
+      // page handle an anonymous visitor.
+      console.error('Could not redeem the link token:', err);
+    }
+  }
+
+  if (!session) {
+    session = await nhost.refreshSession(60);
+  }
 
   return {
     session,
+    consumedLinkToken,
     applySessionCookies: (response) => {
       for (const mutate of mutations) {
         mutate(response);
