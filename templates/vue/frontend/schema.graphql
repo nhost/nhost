@@ -1,0 +1,466 @@
+schema {
+  query: query_root
+  mutation: mutation_root
+  subscription: subscription_root
+}
+scalar timestamptz
+scalar uuid
+"""
+ordering argument of a cursor
+"""
+enum cursor_ordering {
+  """
+  ascending ordering of the cursor
+  """
+  ASC
+  """
+  descending ordering of the cursor
+  """
+  DESC
+}
+"""
+column ordering options
+"""
+enum order_by {
+  """
+  in ascending order, nulls last
+  """
+  asc
+  """
+  in ascending order, nulls first
+  """
+  asc_nulls_first
+  """
+  in ascending order, nulls last
+  """
+  asc_nulls_last
+  """
+  in descending order, nulls first
+  """
+  desc
+  """
+  in descending order, nulls first
+  """
+  desc_nulls_first
+  """
+  in descending order, nulls last
+  """
+  desc_nulls_last
+}
+"""
+unique or primary key constraints on table "todos"
+"""
+enum todos_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  todos_pkey
+}
+"""
+select columns of table "todos"
+"""
+enum todos_select_column {
+  """
+  column name
+  """
+  completed
+  """
+  column name
+  """
+  created_at
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  title
+  """
+  column name
+  """
+  user_id
+}
+"""
+update columns of table "todos"
+"""
+enum todos_update_column {
+  """
+  column name
+  """
+  completed
+  """
+  column name
+  """
+  title
+}
+"""
+mutation root
+"""
+type mutation_root {
+  """
+  delete data from the table: "todos"
+  """
+  delete_todos(
+    """
+    filter the rows which have to be deleted
+    """
+    where: todos_bool_exp!
+  ): todos_mutation_response
+  """
+  delete single row from the table: "todos"
+  """
+  delete_todos_by_pk(id: uuid!): todos
+  """
+  insert data into the table: "todos"
+  """
+  insert_todos(
+    """
+    the rows to be inserted
+    """
+    objects: [todos_insert_input!]!
+
+    """
+    upsert condition
+    """
+    on_conflict: todos_on_conflict
+  ): todos_mutation_response
+  """
+  insert a single row into the table: "todos"
+  """
+  insert_todos_one(
+    """
+    the row to be inserted
+    """
+    object: todos_insert_input!
+
+    """
+    upsert condition
+    """
+    on_conflict: todos_on_conflict
+  ): todos
+  """
+  update data of the table: "todos"
+  """
+  update_todos(
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: todos_set_input
+
+    """
+    filter the rows which have to be updated
+    """
+    where: todos_bool_exp!
+  ): todos_mutation_response
+  """
+  update single row of the table: "todos"
+  """
+  update_todos_by_pk(
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: todos_set_input
+  pk_columns: todos_pk_columns_input!): todos
+  """
+  update multiples rows of table: "todos"
+  """
+  update_todos_many(
+    """
+    updates to execute, in order
+    """
+    updates: [todos_updates!]!
+  ): [todos_mutation_response]
+}
+type query_root {
+  """
+  fetch data from the table: "todos"
+  """
+  todos(
+    """
+    distinct select on columns
+    """
+    distinct_on: [todos_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [todos_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: todos_bool_exp
+  ): [todos!]!
+  """
+  fetch data from the table: "todos" using primary key columns
+  """
+  todos_by_pk(id: uuid!): todos
+}
+type subscription_root {
+  """
+  fetch data from the table: "todos"
+  """
+  todos(
+    """
+    distinct select on columns
+    """
+    distinct_on: [todos_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [todos_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: todos_bool_exp
+  ): [todos!]!
+  """
+  fetch data from the table: "todos" using primary key columns
+  """
+  todos_by_pk(id: uuid!): todos
+  """
+  fetch data from the table in a streaming manner: "todos"
+  """
+  todos_stream(
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [todos_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
+    where: todos_bool_exp
+  ): [todos!]!
+}
+"""
+columns and relationships of "todos"
+"""
+type todos {
+  completed: Boolean!
+  created_at: timestamptz!
+  id: uuid!
+  title: String!
+  user_id: uuid!
+}
+"""
+response of any mutation on the table "todos"
+"""
+type todos_mutation_response {
+  """
+  number of rows affected by the mutation
+  """
+  affected_rows: Int!
+  """
+  data from the rows affected by the mutation
+  """
+  returning: [todos!]!
+}
+"""
+Boolean expression to compare columns of type "Boolean". All fields are combined with logical 'AND'.
+"""
+input Boolean_comparison_exp {
+  _eq: Boolean
+  _gt: Boolean
+  _gte: Boolean
+  _in: [Boolean!]
+  _is_null: Boolean
+  _lt: Boolean
+  _lte: Boolean
+  _neq: Boolean
+  _nin: [Boolean!]
+}
+"""
+Boolean expression to compare columns of type "String". All fields are combined with logical 'AND'.
+"""
+input String_comparison_exp {
+  _eq: String
+  _gt: String
+  _gte: String
+  """
+  does the column match the given case-insensitive pattern
+  """
+  _ilike: String
+  _in: [String!]
+  """
+  does the column match the given POSIX regular expression, case insensitive
+  """
+  _iregex: String
+  _is_null: Boolean
+  """
+  does the column match the given pattern
+  """
+  _like: String
+  _lt: String
+  _lte: String
+  _neq: String
+  """
+  does the column NOT match the given case-insensitive pattern
+  """
+  _nilike: String
+  _nin: [String!]
+  """
+  does the column NOT match the given POSIX regular expression, case insensitive
+  """
+  _niregex: String
+  """
+  does the column NOT match the given pattern
+  """
+  _nlike: String
+  """
+  does the column NOT match the given POSIX regular expression, case sensitive
+  """
+  _nregex: String
+  """
+  does the column NOT match the given SQL regular expression
+  """
+  _nsimilar: String
+  """
+  does the column match the given POSIX regular expression, case sensitive
+  """
+  _regex: String
+  """
+  does the column match the given SQL regular expression
+  """
+  _similar: String
+}
+"""
+Boolean expression to compare columns of type "timestamptz". All fields are combined with logical 'AND'.
+"""
+input timestamptz_comparison_exp {
+  _eq: timestamptz
+  _gt: timestamptz
+  _gte: timestamptz
+  _in: [timestamptz!]
+  _is_null: Boolean
+  _lt: timestamptz
+  _lte: timestamptz
+  _neq: timestamptz
+  _nin: [timestamptz!]
+}
+"""
+Boolean expression to filter rows from the table "todos". All fields are combined with a logical 'AND'.
+"""
+input todos_bool_exp {
+  _and: [todos_bool_exp!]
+  _not: todos_bool_exp
+  _or: [todos_bool_exp!]
+  completed: Boolean_comparison_exp
+  created_at: timestamptz_comparison_exp
+  id: uuid_comparison_exp
+  title: String_comparison_exp
+  user_id: uuid_comparison_exp
+}
+"""
+input type for inserting data into table "todos"
+"""
+input todos_insert_input {
+  completed: Boolean
+  title: String
+}
+"""
+on_conflict condition type for table "todos"
+"""
+input todos_on_conflict {
+  constraint: todos_constraint!
+  update_columns: [todos_update_column!]! = []
+  where: todos_bool_exp
+}
+"""
+Ordering options when selecting data from "todos".
+"""
+input todos_order_by {
+  completed: order_by
+  created_at: order_by
+  id: order_by
+  title: order_by
+  user_id: order_by
+}
+"""
+primary key columns input for table: todos
+"""
+input todos_pk_columns_input {
+  id: uuid!
+}
+"""
+input type for updating data in table "todos"
+"""
+input todos_set_input {
+  completed: Boolean
+  title: String
+}
+"""
+Streaming cursor of the table "todos"
+"""
+input todos_stream_cursor_input {
+  """
+  Stream column input with initial value
+  """
+  initial_value: todos_stream_cursor_value_input!
+  """
+  cursor ordering
+  """
+  ordering: cursor_ordering
+}
+"""
+Initial value of the column from where the streaming should start
+"""
+input todos_stream_cursor_value_input {
+  completed: Boolean
+  created_at: timestamptz
+  id: uuid
+  title: String
+  user_id: uuid
+}
+input todos_updates {
+  """
+  sets the columns of the filtered rows to the given values
+  """
+  _set: todos_set_input
+  """
+  filter the rows which have to be updated
+  """
+  where: todos_bool_exp!
+}
+"""
+Boolean expression to compare columns of type "uuid". All fields are combined with logical 'AND'.
+"""
+input uuid_comparison_exp {
+  _eq: uuid
+  _gt: uuid
+  _gte: uuid
+  _in: [uuid!]
+  _is_null: Boolean
+  _lt: uuid
+  _lte: uuid
+  _neq: uuid
+  _nin: [uuid!]
+}

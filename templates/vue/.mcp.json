@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "nhost": {
+      "command": "nhost",
+      "args": ["mcp", "start"],
+      "env": {
+        "NHOST_MCP_CONFIG_FILE": "backend/.nhost/mcp-nhost.toml"
+      }
+    }
+  }
+}
