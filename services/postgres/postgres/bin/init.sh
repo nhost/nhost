@@ -18,20 +18,67 @@ run_interruptibly() {
 	return "$interruptible_exit_code"
 }
 
+write_init_state() {
+	printf '%s\n' "$1" >"$INIT_STATE_FILE.tmp"
+	mv "$INIT_STATE_FILE.tmp" "$INIT_STATE_FILE"
+}
+
 init_db() {
 	DATABASE_INITIALIZED=false
+	INIT_STATE_FILE="$PGDATA/.nhost-init-state"
+	INIT_CLUSTER_DIR="$PGDATA/.nhost-init-cluster"
+	mkdir -p "$PGDATA"
+
+	if [ ! -f "$INIT_STATE_FILE" ] && [ -f "$INIT_STATE_FILE.tmp" ]; then
+		mv "$INIT_STATE_FILE.tmp" "$INIT_STATE_FILE"
+	fi
+
+	if [ -f "$INIT_STATE_FILE" ]; then
+		initialization_state=$(cat "$INIT_STATE_FILE")
+		case "$initialization_state" in
+		in-progress)
+			echo "Restarting interrupted database initialization"
+			run_interruptibly find "$PGDATA" -mindepth 1 -maxdepth 1 \
+				! -name .nhost-init-state -exec rm -rf -- {} +
+			;;
+		complete)
+			if [ ! -f "$PGDATA/PG_VERSION" ]; then
+				echo "Database initialization is marked complete, but PG_VERSION is missing" >&2
+				return 1
+			fi
+			;;
+		*)
+			echo "Invalid database initialization state: $initialization_state" >&2
+			return 1
+			;;
+		esac
+	elif [ -f "$PGDATA/PG_VERSION" ]; then
+		# Volumes created by older images predate the initialization marker.
+		write_init_state complete
+	elif [ -n "$(find "$PGDATA" -mindepth 1 -maxdepth 1 -print -quit)" ]; then
+		echo "Database directory is not empty, but PG_VERSION is missing" >&2
+		return 1
+	fi
+
 	if [ ! -f "$PGDATA/PG_VERSION" ]; then
 		echo "Initializing database"
+		write_init_state in-progress
 		password_file=$(mktemp -p /tmp/postgresql postgres-password.XXXXXX)
 		chmod 600 "$password_file"
 		printf '%s\n' "$POSTGRES_PASSWORD" >"$password_file"
 
-		if ! run_interruptibly initdb --username="$POSTGRES_USER" --pwfile="$password_file"; then
+		if ! run_interruptibly initdb \
+			--pgdata="$INIT_CLUSTER_DIR" \
+			--username="$POSTGRES_USER" \
+			--pwfile="$password_file"; then
 			rm -f "$password_file"
 			return 1
 		fi
 
 		rm -f "$password_file"
+		run_interruptibly find "$INIT_CLUSTER_DIR" -mindepth 1 -maxdepth 1 \
+			-exec mv -- {} "$PGDATA" \;
+		rmdir "$INIT_CLUSTER_DIR"
 		DATABASE_INITIALIZED=true
 	fi
 	export DATABASE_INITIALIZED
@@ -85,7 +132,7 @@ wait_for_postgres_slow() {
 
 start_postgres() {
 	echo "Starting postgres"
-	chmod u=rwx,g=rx "$PGDATA"
+	chmod u=rwx,g=rx,o= "$PGDATA"
 	exec postgres \
 		-h 0.0.0.0 \
 		-p 5432 \
@@ -231,6 +278,7 @@ main() {
 
 	if [ "$DATABASE_INITIALIZED" = true ]; then
 		run_init_scripts
+		write_init_state complete
 	fi
 	run_nhost_scripts
 
