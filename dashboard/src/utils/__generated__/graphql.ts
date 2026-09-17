@@ -35891,7 +35891,7 @@ export const GetUnifiedDeploymentByCommitShaDocument = gql`
     query getUnifiedDeploymentByCommitSHA($appId: uuid!, $commitSHA: String!) {
   unifiedDeployments(
     where: {appId: {_eq: $appId}, commitSHA: {_eq: $commitSHA}}
-    order_by: {startedAt: desc_nulls_last}
+    order_by: {createdAt: desc}
     limit: 1
   ) {
     id
