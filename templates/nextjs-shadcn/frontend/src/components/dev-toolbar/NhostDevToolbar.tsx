@@ -1,14 +1,6 @@
 'use client';
 
-import {
-  EyeOff,
-  LayoutDashboard,
-  Mail,
-  Moon,
-  Settings,
-  Sun,
-  X,
-} from 'lucide-react';
+import { EyeOff, Mail, Moon, Settings, Sun, X } from 'lucide-react';
 import {
   type CSSProperties,
   type MouseEvent as ReactMouseEvent,
@@ -19,12 +11,12 @@ import {
   useRef,
   useState,
 } from 'react';
-import { HasuraLogo } from './HasuraLogo';
 import { NhostLogo } from './NhostLogo';
 import { clamp, nearestEdge } from './snap';
 import { Trapezoid } from './Trapezoid';
 import {
   type Edge,
+  isLocalBackend,
   localServiceUrls,
   type Theme,
   useToolbarSettings,
@@ -35,10 +27,12 @@ const NARROW = 32; // the thin (cross-edge) dimension of the tab
 const ICON = 24; // icon button hit area
 const GAP = 2; // gap between icon buttons, kept tiny for continuous hover
 const PAD = 18; // padding at the two ends of the strip
-const COLLAPSED = PAD * 2 + ICON; // shows only the Nhost handle
-const EXPANDED = PAD * 2 + 5 * ICON + 4 * GAP; // handle + four actions
+// The strip is always at full length; `HANDLE` is only the anchor the Nhost
+// mark is pinned to, which is what keeps the toolbar still when it is dragged
+// or the window is resized.
+const HANDLE = PAD * 2 + ICON;
+const STRIP = PAD * 2 + 3 * ICON + 2 * GAP; // Nhost, mail, preferences
 const SPRING_TAU = 0.085; // position smoothing time constant, seconds
-const SIZE_TAU = 0.055; // expand/collapse smoothing, a touch quicker
 
 function isVertical(edge: Edge) {
   return edge === 'left' || edge === 'right';
@@ -65,13 +59,11 @@ const VIEWPORT_MARGIN = 8;
 // The tab grows from the handle toward one far end: down on a vertical edge,
 // right on a horizontal one. These are the distances from the handle anchor to
 // the tab's near end (where the handle sits) and to its far end once expanded.
-const ANCHOR_NEAR = COLLAPSED / 2;
-const ANCHOR_FAR = EXPANDED - COLLAPSED / 2;
+const ANCHOR_NEAR = HANDLE / 2;
+const ANCHOR_FAR = STRIP - HANDLE / 2;
 
-// Clamp the handle anchor along the growth axis so both the near end and the
-// *expanded* far end clear the viewport by VIEWPORT_MARGIN. Reserving the
-// expanded length regardless of open state is what keeps the handle still:
-// there is always room to grow, so opening the menu never nudges it inward.
+// Clamp the handle anchor along the strip's axis so both ends clear the
+// viewport by VIEWPORT_MARGIN.
 function clampAnchor(
   edge: Edge,
   cx: number,
@@ -91,8 +83,8 @@ function clampAnchor(
 // Offset from the handle anchor to the tab's centre for the current size. The
 // handle stays pinned to the anchor while the body extends past it, so the
 // centre we position by moves half the extra length toward the far end.
-function growthOffset(edge: Edge, size: number) {
-  const shift = (size - COLLAPSED) / 2;
+function growthOffset(edge: Edge) {
+  const shift = (STRIP - HANDLE) / 2;
   return isVertical(edge) ? { dx: 0, dy: shift } : { dx: shift, dy: 0 };
 }
 
@@ -148,7 +140,10 @@ function palette(theme: Theme) {
 }
 
 export function NhostDevToolbar() {
-  if (process.env.NODE_ENV === 'production') {
+  // Two separate conditions on purpose. A production build must never carry
+  // it, and a development build pointed at a deployed backend has nothing for
+  // it to link to.
+  if (process.env.NODE_ENV === 'production' || !isLocalBackend()) {
     return null;
   }
   return <Toolbar />;
@@ -156,7 +151,6 @@ export function NhostDevToolbar() {
 
 function Toolbar() {
   const { ready, settings, update, hidden, setHidden } = useToolbarSettings();
-  const [open, setOpen] = useState(false);
   const [prefsOpen, setPrefsOpen] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [viewport, setViewport] = useState({ w: 0, h: 0 });
@@ -165,12 +159,12 @@ function Toolbar() {
   );
   const lastHover = useRef({ label: '', pos: 1 });
 
-  // Spring animation state: `cur` is what we render, eased toward the targets.
+  // Spring animation state: `cur` is what we render, eased toward the target.
   const [, force] = useReducer((n: number) => n + 1, 0);
-  const cur = useRef({ cx: 0, cy: 0, size: COLLAPSED });
+  const cur = useRef({ cx: 0, cy: 0 });
   const posTarget = useRef({ cx: 0, cy: 0 });
-  const sizeTarget = useRef(COLLAPSED);
   const raf = useRef(0);
+  const rootRef = useRef<HTMLDivElement>(null);
   const inited = useRef(false);
   const prefsRef = useRef(prefsOpen);
   prefsRef.current = prefsOpen;
@@ -185,18 +179,14 @@ function Toolbar() {
       last = now;
       const c = cur.current;
       const kPos = 1 - Math.exp(-dt / SPRING_TAU);
-      const kSize = 1 - Math.exp(-dt / SIZE_TAU);
       c.cx += (posTarget.current.cx - c.cx) * kPos;
       c.cy += (posTarget.current.cy - c.cy) * kPos;
-      c.size += (sizeTarget.current - c.size) * kSize;
       const settled =
         Math.abs(posTarget.current.cx - c.cx) < 0.3 &&
-        Math.abs(posTarget.current.cy - c.cy) < 0.3 &&
-        Math.abs(sizeTarget.current - c.size) < 0.3;
+        Math.abs(posTarget.current.cy - c.cy) < 0.3;
       if (settled) {
         c.cx = posTarget.current.cx;
         c.cy = posTarget.current.cy;
-        c.size = sizeTarget.current;
         raf.current = 0;
         force();
         return;
@@ -228,14 +218,32 @@ function Toolbar() {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setPrefsOpen(false);
-        setOpen(false);
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  // Drive the size and, unless dragging, the docked position toward their rest.
+  // Anything outside the toolbar dismisses the preferences. Tested against the
+  // whole root rather than the card alone, so the gear that opened it is
+  // inside too and its own click is not read as an outside one, which would
+  // close and reopen in the same gesture.
+  useEffect(() => {
+    if (!prefsOpen) {
+      return;
+    }
+
+    const onPointerDown = (event: PointerEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) {
+        setPrefsOpen(false);
+      }
+    };
+
+    window.addEventListener('pointerdown', onPointerDown);
+    return () => window.removeEventListener('pointerdown', onPointerDown);
+  }, [prefsOpen]);
+
+  // Drive the docked position toward its rest, unless a drag owns it.
   useEffect(() => {
     if (viewport.w === 0) {
       return;
@@ -253,19 +261,17 @@ function Toolbar() {
       viewport.w,
       viewport.h,
     );
-    sizeTarget.current = open ? EXPANDED : COLLAPSED;
     if (!dragging) {
       posTarget.current = anchor;
     }
     if (!inited.current) {
       inited.current = true;
-      cur.current = { cx: anchor.cx, cy: anchor.cy, size: COLLAPSED };
+      cur.current = { cx: anchor.cx, cy: anchor.cy };
       force();
       return;
     }
     animate();
   }, [
-    open,
     dragging,
     settings.edge,
     settings.offset,
@@ -292,7 +298,6 @@ function Toolbar() {
         ) {
           moved = true;
           setDragging(true);
-          setOpen(false);
           setPrefsOpen(false);
         }
         if (moved) {
@@ -337,24 +342,16 @@ function Toolbar() {
     }
   }, []);
 
-  const toggleMenu = useCallback(() => {
-    if (prefsRef.current) {
-      setPrefsOpen(false);
-    } else {
-      setOpen((value) => !value);
-    }
-  }, []);
-
   if (!ready || hidden || viewport.w === 0) {
     return null;
   }
 
   const vertical = isVertical(settings.edge);
   const urls = localServiceUrls();
-  const { cx, cy, size } = cur.current;
-  const growth = growthOffset(settings.edge, size);
-  const shellW = vertical ? NARROW : size;
-  const shellH = vertical ? size : NARROW;
+  const { cx, cy } = cur.current;
+  const growth = growthOffset(settings.edge);
+  const shellW = vertical ? NARROW : STRIP;
+  const shellH = vertical ? STRIP : NARROW;
   const colors = palette(settings.theme);
 
   const rootStyle: CSSProperties = {
@@ -368,33 +365,21 @@ function Toolbar() {
 
   const services = [
     {
-      key: 'dashboard',
-      label: 'Dashboard',
-      href: urls.dashboard,
-      icon: <LayoutDashboard size={13} />,
-    },
-    {
-      key: 'hasura',
-      label: 'Hasura',
-      href: urls.hasura,
-      icon: <HasuraLogo width={13} height={13} />,
-    },
-    {
       key: 'mailhog',
-      label: 'Mailhog',
+      label: 'Mail',
       href: urls.mailhog,
       icon: <Mail size={13} />,
     },
   ];
-  const tabIndex = open ? 0 : -1;
   if (hover) {
     lastHover.current = hover;
   }
-  const tooltipShown = hover !== null && open && !prefsOpen;
+  const tooltipShown = hover !== null && !prefsOpen;
   const onEnter = (label: string, pos: number) => setHover({ label, pos });
 
   return (
     <div
+      ref={rootRef}
       className="ndt-root"
       data-theme={settings.theme}
       data-edge={settings.edge}
@@ -414,20 +399,22 @@ function Toolbar() {
 
       <div
         className="ndt-strip"
-        data-open={open}
         onPointerDown={onDragStart}
         onClickCapture={swallowDraggedClick}
         onPointerLeave={() => setHover(null)}
       >
-        <button
-          type="button"
+        {/* The mark is the way to the dashboard now, rather than a switch that
+            reveals one. It keeps the `ndt-handle` class because that is the
+            anchor the strip is positioned from. */}
+        <a
           className="ndt-handle"
-          aria-label="Nhost dev tools"
-          aria-expanded={open}
-          onClick={toggleMenu}
+          href={urls.dashboard}
+          target="_blank"
+          rel="noreferrer"
+          onPointerEnter={() => onEnter('Dashboard', 0)}
         >
           <NhostLogo width={14} height={15} />
-        </button>
+        </a>
 
         {services.map((service, index) => (
           <a
@@ -436,9 +423,7 @@ function Toolbar() {
             href={service.href}
             target="_blank"
             rel="noreferrer"
-            tabIndex={tabIndex}
             onPointerEnter={() => onEnter(service.label, index + 1)}
-            style={{ transitionDelay: `${open ? index * 45 : 0}ms` }}
           >
             {service.icon}
           </a>
@@ -447,10 +432,8 @@ function Toolbar() {
         <button
           type="button"
           className="ndt-item"
-          tabIndex={tabIndex}
           onClick={() => setPrefsOpen((value) => !value)}
           onPointerEnter={() => onEnter('Preferences', services.length + 1)}
-          style={{ transitionDelay: `${open ? services.length * 45 : 0}ms` }}
         >
           <Settings size={13} />
         </button>
@@ -472,7 +455,6 @@ function Toolbar() {
         onClose={() => setPrefsOpen(false)}
         onHide={() => {
           setPrefsOpen(false);
-          setOpen(false);
           setHidden(true);
         }}
       />
@@ -659,15 +641,7 @@ const TOOLBAR_CSS = `
   color: var(--ndt-ink);
   cursor: pointer;
   text-decoration: none;
-  opacity: 0;
-  pointer-events: none;
-  transition:
-    opacity 0.3s ease,
-    color 0.2s ease-in-out;
-}
-.ndt-strip[data-open='true'] .ndt-item {
-  opacity: 1;
-  pointer-events: auto;
+  transition: color 0.2s ease-in-out;
 }
 .ndt-item:hover {
   color: var(--ndt-accent);

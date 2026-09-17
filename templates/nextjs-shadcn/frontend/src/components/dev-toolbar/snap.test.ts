@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { clamp, nearestEdge, OFFSET_MAX, OFFSET_MIN } from './snap';
-import { localServiceUrls } from './useToolbarSettings';
+import { isLocalBackend, localServiceUrls } from './useToolbarSettings';
 
 const VW = 1000;
 const VH = 800;
@@ -39,8 +39,31 @@ describe('localServiceUrls', () => {
   it('builds the local nhost.run URLs for each service', () => {
     expect(localServiceUrls()).toEqual({
       dashboard: 'https://local.dashboard.local.nhost.run',
-      hasura: 'https://local.hasura.local.nhost.run',
       mailhog: 'https://local.mailhog.local.nhost.run',
     });
+  });
+});
+
+// Everything the toolbar links to belongs to `nhost up`, so a development
+// build pointed at a deployed backend must not show it: those hostnames do not
+// resolve there.
+describe('isLocalBackend', () => {
+  const region = process.env['NEXT_PUBLIC_NHOST_REGION'];
+
+  afterEach(() => {
+    process.env['NEXT_PUBLIC_NHOST_REGION'] = region;
+  });
+
+  it('is true for the local stack, including when nothing is set', () => {
+    process.env['NEXT_PUBLIC_NHOST_REGION'] = 'local';
+    expect(isLocalBackend()).toBe(true);
+
+    process.env['NEXT_PUBLIC_NHOST_REGION'] = '';
+    expect(isLocalBackend()).toBe(true);
+  });
+
+  it('is false for a real region', () => {
+    process.env['NEXT_PUBLIC_NHOST_REGION'] = 'eu-central-1';
+    expect(isLocalBackend()).toBe(false);
   });
 });

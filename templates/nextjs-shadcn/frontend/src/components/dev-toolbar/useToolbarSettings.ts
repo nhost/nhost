@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { localServiceURL } from '@/lib/nhost/env';
+import { localServiceURL, nhostRegion } from '@/lib/nhost/env';
 
 export type Edge = 'left' | 'right' | 'top' | 'bottom';
 export type Theme = 'dark' | 'light';
@@ -17,6 +17,16 @@ export interface ToolbarSettings {
 
 const STORAGE_KEY = 'nhost-dev-toolbar';
 const HIDDEN_KEY = 'nhost-dev-toolbar-hidden';
+
+/**
+ * The way back once the toolbar has been hidden.
+ *
+ * Hiding it removes the only control that could bring it back, so without a
+ * second door the answer is "clear your session storage". `?nhost-devtools=true`
+ * clears the flag outright rather than overriding it for one render, so the
+ * toolbar stays up once the parameter is gone from the URL.
+ */
+const REVEAL_PARAM = 'nhost-devtools';
 
 export const DEFAULT_SETTINGS: ToolbarSettings = {
   edge: 'right',
@@ -46,7 +56,24 @@ export function useToolbarSettings() {
 
   useEffect(() => {
     setSettings(readSettings());
-    setHiddenState(window.sessionStorage.getItem(HIDDEN_KEY) === '1');
+
+    let stored = false;
+    try {
+      const revealed =
+        new URLSearchParams(window.location.search).get(REVEAL_PARAM) ===
+        'true';
+
+      if (revealed) {
+        window.sessionStorage.removeItem(HIDDEN_KEY);
+      } else {
+        stored = window.sessionStorage.getItem(HIDDEN_KEY) === '1';
+      }
+    } catch {
+      // Ignore storage failures (private mode, quota); showing the toolbar is
+      // the safer side to fail on, since it is only ever a development build.
+    }
+
+    setHiddenState(stored);
     setReady(true);
   }, []);
 
@@ -78,12 +105,23 @@ export function useToolbarSettings() {
   return { ready, settings, update, hidden, setHidden };
 }
 
+/**
+ * Whether the app is talking to a local stack.
+ *
+ * Everything the toolbar links to is part of `nhost up`, so against a real
+ * project those hostnames do not resolve. Being a development build is not
+ * enough on its own: running `pnpm dev` against a deployed backend is an
+ * ordinary thing to do, and the toolbar has nothing to offer there.
+ */
+export function isLocalBackend(): boolean {
+  return nhostRegion() === 'local';
+}
+
 // The hostname pattern lives in lib/nhost/env so the toolbar and the sign-in
 // page cannot end up pointing at different local stacks.
 export function localServiceUrls() {
   return {
     dashboard: localServiceURL('dashboard'),
-    hasura: localServiceURL('hasura'),
     mailhog: localServiceURL('mailhog'),
   };
 }
