@@ -49,6 +49,43 @@ func TestSuperviseCancelsPeersOnError(t *testing.T) {
 	}
 }
 
+func TestSuperviseCleanEarlyReturnTearsDownPeers(t *testing.T) {
+	t.Parallel()
+
+	var peerCancelled atomic.Bool
+
+	finished := func(_ context.Context) error { return nil }
+	peer := func(ctx context.Context) error { //nolint:unparam // signature must match serveutil.SupervisedService
+		<-ctx.Done()
+		peerCancelled.Store(true)
+
+		return nil
+	}
+
+	done := make(chan error, 1)
+	go func() {
+		done <- serveutil.Supervise(
+			context.Background(),
+			testTierTimeout,
+			[]serveutil.SupervisedService{finished},
+			[]serveutil.SupervisedService{peer},
+		)
+	}()
+
+	select {
+	case err := <-done:
+		if err != nil {
+			t.Errorf("Supervise err = %v; want nil", err)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("clean early return did not tear the engine down")
+	}
+
+	if !peerCancelled.Load() {
+		t.Error("peer was not cancelled after a sibling returned cleanly")
+	}
+}
+
 func TestSuperviseJoinsServiceErrors(t *testing.T) {
 	t.Parallel()
 
