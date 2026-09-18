@@ -52,6 +52,9 @@ in
       ''
         PG_URL="postgres://postgres@localhost:5432/local"
 
+        sh ${src}/checks/init-db.sh \
+          ${src}/postgres/bin/init.sh
+
         sh ${src}/checks/repair-collation.sh \
           ${src}/postgres/bin/repair-collation.sh
 
