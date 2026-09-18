@@ -1,16 +1,17 @@
 import { Bell } from 'lucide-react';
+import InviteNotification from '@/features/orgs/components/members/components/InboxPopover/InviteNotification';
+import PendingOrganizationRequestNotification from '@/features/orgs/components/members/components/InboxPopover/PendingOrganizationRequestNotification';
 import type {
   OrganizationMemberInvitesQuery,
   PostOrganizationRequestResponse,
 } from '@/generated/graphql';
-import InviteNotification from './InviteNotification';
-import PendingOrganizationRequestNotification from './PendingOrganizationRequestNotification';
 
 export interface NotificationsSectionProps {
   invites: OrganizationMemberInvitesQuery['organizationMemberInvites'];
   loading: boolean;
   pendingOrganizationRequest: PostOrganizationRequestResponse | null;
   onInviteAccepted: VoidFunction;
+  onContinueCheckout: VoidFunction;
 }
 
 export default function NotificationsSection({
@@ -18,6 +19,7 @@ export default function NotificationsSection({
   loading,
   pendingOrganizationRequest,
   onInviteAccepted,
+  onContinueCheckout,
 }: NotificationsSectionProps) {
   const isEmpty =
     !loading && invites.length === 0 && !pendingOrganizationRequest;
@@ -35,7 +37,11 @@ export default function NotificationsSection({
         </span>
       )}
 
-      {pendingOrganizationRequest && <PendingOrganizationRequestNotification />}
+      {pendingOrganizationRequest && (
+        <PendingOrganizationRequestNotification
+          onContinue={onContinueCheckout}
+        />
+      )}
 
       {invites.map((invite) => (
         <InviteNotification
