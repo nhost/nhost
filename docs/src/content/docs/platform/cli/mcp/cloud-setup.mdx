@@ -1,0 +1,314 @@
+---
+title: Cloud Setup
+description: >-
+  Point the CLI MCP server at Nhost Cloud so an AI assistant can query a cloud
+  project's data and manage your organizations and project configuration.
+keywords: ["MCP cloud", "Nhost Cloud", "PAT", "personal access token", "cloud-graphql-query", "remote project", "AI assistant"]
+head:
+  - tag: title
+    content: "Set Up the Nhost MCP Server for Nhost Cloud | Nhost Docs"
+sidebar:
+  label: Cloud Setup
+---
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+This guide points the Nhost CLI's MCP server at **Nhost Cloud**. It covers two kinds of access, and you can enable either or both:
+
+- **Platform access** — your organizations, projects, and project configuration, through the `cloud-graphql-query` tool. This is the dashboard's data, reachable from an assistant.
+- **Project access** — the data and schema of a specific cloud project, through `graphql-query`, `get-schema`, and optionally `manage-graphql`.
+
+The server itself still runs locally as a short-lived process, so this works whether or not you run a local stack. If you [develop without the CLI](/getting-started/cloud-development/dashboard), you need the CLI binary for this but nothing else — no Docker, no `nhost up`.
+
+:::caution
+Unlike the [local setup](/platform/cli/mcp/development-setup), this points an assistant at real data. Read [Scoping access](#scoping-access) before you configure a production project.
+:::
+
+## Prerequisites
+
+- The [Nhost CLI](/getting-started/local-development/cli#1-install-the-cli) installed, or `npx` if you'd rather not install it.
+- A project on [Nhost Cloud](https://app.nhost.io), and its subdomain and region.
+- An MCP-compatible client such as <a href="https://claude.com/product/claude-code" target="_blank" rel="noopener noreferrer">Claude Code</a> or <a href="https://cursor.com" target="_blank" rel="noopener noreferrer">Cursor</a>.
+
+## Let an AI assistant set it up
+
+Hand your assistant the onboarding file and it will walk you through the choices and write the configuration:
+
+<Tabs syncKey="assistant">
+<TabItem label="Claude Code">
+```bash Terminal
+curl -fsSL https://docs.nhost.io/install-mcp-cloud | claude
+```
+</TabItem>
+<TabItem label="Codex CLI">
+```bash Terminal
+curl -fsSL https://docs.nhost.io/install-mcp-cloud | codex exec -
+```
+</TabItem>
+<TabItem label="Gemini CLI">
+```bash Terminal
+curl -fsSL https://docs.nhost.io/install-mcp-cloud | gemini
+```
+</TabItem>
+<TabItem label="Cursor">
+Open Cursor's Agent chat and paste:
+
+```text
+Set up the Nhost MCP server against my Nhost Cloud project: https://docs.nhost.io/install-mcp-cloud
+```
+
+</TabItem>
+<TabItem label="Other">
+```bash Terminal
+curl -fsSL https://docs.nhost.io/install-mcp-cloud | <your-assistant-cli>
+```
+</TabItem>
+</Tabs>
+
+The manual steps follow.
+
+## Authenticate
+
+Platform access and project access authenticate differently.
+
+### Platform access
+
+The `[cloud]` section uses your CLI credentials. Sign in once:
+
+```bash Terminal
+nhost login
+```
+
+In an environment where an interactive login isn't possible, set `NHOST_PAT` instead to a personal access token created under **Personal Access Tokens** on your [account page](https://app.nhost.io/account):
+
+```bash Terminal
+export NHOST_PAT=nhp_...
+```
+
+The assistant then acts as you, with your permissions across every organization and project you can reach. Queries are always allowed when the section is present; mutations, which change project configuration, require `enable_mutations = true`.
+
+### Project access
+
+Each `[[projects]]` entry authenticates on its own, with either a PAT or an admin secret.
+
+**Use a PAT.** A project PAT belongs to a user of that project, so requests run under a role and your permission rules still apply. Create one through your project's Auth API with an authenticated user's access token:
+
+```bash Terminal
+curl -X POST https://<subdomain>.auth.<region>.nhost.run/v1/pat \
+  -H "Authorization: Bearer <access-token>" \
+  -H "Content-Type: application/json" \
+  -d '{"expiresAt":"2027-01-01T00:00:00Z","metadata":{"name":"mcp"}}'
+```
+
+You can also create one from your app with [`nhost.auth.createPAT()`](/reference/javascript/nhost-js/auth#createpat). If your project runs with [elevated permissions](/products/auth/elevated-permissions) set to `required`, the access token needs the elevated claim.
+
+**Or use an admin secret.** Your project's admin secret is listed as `NHOST_ADMIN_SECRET` under **Settings → Environment Variables** in the dashboard. It bypasses permissions entirely and is the only way to enable `manage_metadata`. Reserve it for projects that hold no real data.
+
+## Configure
+
+The server reads `.nhost/mcp-nhost.toml` from your project directory. Write it yourself, starting from something the assistant can't do damage with. Below, it can read both the platform and one project but change neither:
+
+```toml title=".nhost/mcp-nhost.toml"
+[cloud]
+enable_mutations = false
+
+[[projects]]
+subdomain = "my-app"
+region = "eu-central-1"
+description = "Production project for my app"
+pat = "$NHOST_PROJECT_PAT"
+allow_queries = ["*"]
+allow_mutations = []
+```
+
+`$NHOST_PROJECT_PAT` is interpolated from the environment when the server starts, which keeps the token out of the file. The syntax is `$VAR`, without braces — `${VAR}` is passed through literally and would be sent as the credential. See [Configuration](/platform/cli/mcp/configuration) for every option.
+
+The environment it reads is the server process's own, not yours, and an unset variable interpolates to an empty string rather than failing. [Passing the credentials through](#passing-the-credentials-through) is what puts the value there.
+
+A staging project you're happy for an assistant to change looks like this instead:
+
+```toml title=".nhost/mcp-nhost.toml"
+[[projects]]
+subdomain = "my-app-staging"
+region = "eu-central-1"
+description = "Staging project — safe to modify"
+admin_secret = "$NHOST_STAGING_ADMIN_SECRET"
+manage_metadata = true
+allow_queries = ["*"]
+allow_mutations = ["*"]
+```
+
+You can list as many projects as you like in one file. Give each a `description`, since that's what the assistant reads to decide which project a request belongs to. Being explicit here is what stops it reaching for production when you meant staging.
+
+### Generating it with the wizard
+
+`nhost mcp config` prompts for cloud access, local development access, and then each project, and writes the file for you:
+
+```bash Terminal
+nhost mcp config
+```
+
+It makes the widening choices that matter here on your behalf, so what it produces is not the read-only starting point above:
+
+- Answering yes to Nhost Cloud access writes `enable_mutations = true`. It never asks about mutations separately, so the assistant can change project configuration anywhere your account reaches.
+- Every project it configures gets `allow_queries = ["*"]` and `allow_mutations = ["*"]`. There's no prompt to narrow either one.
+
+The wizard prints the configuration and asks `Proceed? (y/N)` before saving. Against anything holding real data, read that preview, answer `n`, and write the file yourself — or let it save and then tighten the file, following [Scoping access](#scoping-access). It's a reasonable way to get the subdomains, regions, and credentials in place; the permissions are yours to set afterwards.
+
+## Register the server with your client
+
+Point your client at `nhost mcp start`.
+
+<Tabs syncKey="assistant">
+<TabItem label="Claude Code">
+```bash Terminal
+claude mcp add nhost nhost mcp start
+```
+</TabItem>
+<TabItem label="Codex CLI">
+```bash Terminal
+codex mcp add nhost -- nhost mcp start
+```
+</TabItem>
+<TabItem label="Gemini CLI">
+```bash Terminal
+gemini mcp add -s user nhost nhost mcp start
+```
+</TabItem>
+<TabItem label="Cursor">
+Add the following to your `mcpServers` configuration:
+
+```json
+{
+  "mcpServers": {
+    "nhost": {
+      "command": "nhost",
+      "args": ["mcp", "start"]
+    }
+  }
+}
+```
+
+</TabItem>
+</Tabs>
+
+### Passing the credentials through
+
+The registration above starts the server, but nothing in it supplies the `$VAR` values your configuration file reads. The server inherits the environment of the process your client spawns it from, so `export NHOST_PROJECT_PAT=...` only reaches it when you launch the client from that same shell — never for Cursor or another GUI client. Attach the variables to the server definition instead, replacing the entry you just created:
+
+<Tabs syncKey="assistant">
+<TabItem label="Claude Code">
+```bash Terminal
+claude mcp add nhost -e NHOST_PROJECT_PAT=<token> -- nhost mcp start
+```
+</TabItem>
+<TabItem label="Codex CLI">
+```bash Terminal
+codex mcp add nhost --env NHOST_PROJECT_PAT=<token> -- nhost mcp start
+```
+</TabItem>
+<TabItem label="Gemini CLI">
+```bash Terminal
+gemini mcp add -s user -e NHOST_PROJECT_PAT=<token> nhost nhost mcp start
+```
+</TabItem>
+<TabItem label="Cursor">
+Add an `env` object alongside `command` and `args`:
+
+```json
+{
+  "mcpServers": {
+    "nhost": {
+      "command": "nhost",
+      "args": ["mcp", "start"],
+      "env": {
+        "NHOST_PROJECT_PAT": "<token>"
+      }
+    }
+  }
+}
+```
+
+</TabItem>
+</Tabs>
+
+Repeat the flag or the key for every variable your configuration file names, `NHOST_PAT` and `NHOST_ADMIN_SECRET` included. `NHOST_MCP_CONFIG_FILE` goes here too, for clients that accept environment variables but not arguments.
+
+:::caution
+This moves the credential out of `mcp-nhost.toml` and into your client's configuration, where it sits in plain text. Prefer your client's user-level configuration over a project-local file such as `.cursor/mcp.json`, and keep either one out of version control. This is why the Gemini commands carry `-s user`: `gemini mcp add` defaults to `-s project`, which writes `.gemini/settings.json` into your working directory rather than `~/.gemini/settings.json`.
+
+Cursor can keep the value out of that file entirely: `envFile` points at an environment file whose variables are loaded for the server, so put it outside your repository (`"envFile": "${userHome}/.nhost/mcp.env"`) and only its path ends up in `mcp.json`. Cursor also interpolates `${env:NAME}` inside `env`, though that resolves against Cursor's own environment, which a GUI launch rarely inherits from your shell.
+:::
+
+### Without installing the CLI
+
+If you don't want the CLI on your `PATH`, run it through `npx`. Registration looks the same, with the command swapped:
+
+```bash Terminal
+claude mcp add nhost -- npx -y @nhost/cli@latest mcp start
+```
+
+Pin the version rather than tracking `@latest` if you want the server to behave the same tomorrow as it does today. Startup is slower than a local binary, because `npx` resolves the package on every launch.
+
+### Configuration outside a project directory
+
+The default config path is relative, so it resolves against whatever directory your client launches the server in. When you're not working inside an Nhost project, pass an absolute path:
+
+```bash Terminal
+claude mcp add nhost -- nhost mcp start --config-file=/absolute/path/to/mcp-nhost.toml
+```
+
+`NHOST_MCP_CONFIG_FILE` does the same thing for clients that let you set environment variables but not arguments.
+
+:::note
+With no config file at all, the server falls back to a local-project default. If an assistant reports only a `local` project when you expected cloud ones, the file isn't being found.
+:::
+
+## Verify
+
+Your client should list the `nhost` server. With `[cloud]` configured, `cloud-graphql-query` appears alongside the project tools. Ask the assistant to list your projects, or check the server directly:
+
+```bash Terminal
+echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"cloud-graphql-query","arguments":{"query":"{ apps { id subdomain name } }"}},"id":1}' | nhost mcp start
+```
+
+And that a project is reachable:
+
+```bash Terminal
+echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"get-schema","arguments":{"subdomain":"my-app","role":"user","summary":true}},"id":1}' | nhost mcp start
+```
+
+A tool list that looks right is not proof the credentials arrived. An unset variable interpolates to an empty string, so the server starts and advertises every tool either way, and the first call is where it surfaces. An authentication error against a project whose tools list correctly points at [the variables not reaching the server](#passing-the-credentials-through) rather than at the token.
+
+If either fails, see [Troubleshooting](/platform/cli/mcp/troubleshooting).
+
+## Scoping access
+
+`allow_queries` and `allow_mutations` are enforced by the MCP server itself, before a request reaches your project. They gate the `graphql-query` tool and hold even when the credential behind them could do more, which makes them the cheapest way to keep an assistant inside its lane:
+
+```toml title=".nhost/mcp-nhost.toml"
+[[projects]]
+subdomain = "my-blog"
+region = "eu-central-1"
+pat = "$NHOST_BLOG_PAT"
+allow_queries = ["getBlogs", "getComments"]
+allow_mutations = ["insertComment"]
+```
+
+Rules worth holding to:
+
+<Steps>
+
+1. **Start read-only.** `allow_mutations = []` on every project, then open up named mutations as you find you need them.
+2. **Prefer a PAT over an admin secret** anywhere real data lives, so permissions still apply. Better still, create the PAT for a user whose role is limited to what the assistant should see.
+3. **Leave `manage_metadata` off** except on projects you'd be happy to rebuild. It requires an admin secret and enables the `manage-graphql` tool, which reaches Hasura's management endpoints as admin — migrations and permission rules, but also arbitrary SQL and GraphQL against your data. `allow_queries` and `allow_mutations` don't cover that tool, so `allow_mutations = []` plus `manage_metadata = true` is not a read-only configuration.
+4. **Keep credentials out of the file.** Use `$VAR` interpolation and don't commit real tokens.
+5. **Name your projects clearly.** `description = "Production — do not modify"` is read by the assistant and does real work.
+
+</Steps>
+
+## Next steps
+
+- [Configuration](/platform/cli/mcp/configuration) — every option in `mcp-nhost.toml`.
+- [MCP Clients](/platform/cli/mcp/clients) — per-client configuration details.
+- [Nhost Cloud connector](/platform/cloud/mcp) — read-only platform access with no CLI at all.
+- [Overview](/platform/cli/mcp) — the full list of tools and resources.

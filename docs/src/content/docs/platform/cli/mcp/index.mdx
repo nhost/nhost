@@ -23,10 +23,12 @@ Not sure which one you need? See the [Backend MCP vs. CLI MCP comparison](/produ
 :::
 
 :::tip[Connect an AI assistant]
-Give your AI assistant the link <CopyText text="https://docs.nhost.io/install-mcp" /> and it will read the onboarding instructions and set up the MCP server for your local project.
+Give your AI assistant the link <CopyText text="https://docs.nhost.io/install-mcp" /> and it will read the onboarding instructions and set up the MCP server for your local project. For a project on Nhost Cloud, use <CopyText text="https://docs.nhost.io/install-mcp-cloud" /> instead.
 
-See [Development Setup](/platform/cli/mcp/development-setup#let-an-ai-assistant-set-it-up) for the per-client commands and the manual steps.
+See [Development Setup](/platform/cli/mcp/development-setup#let-an-ai-assistant-set-it-up) and [Cloud Setup](/platform/cli/mcp/cloud-setup) for the per-client commands and the manual steps.
 :::
+
+Not using the CLI at all? Nhost runs a hosted connector for the platform at <CopyText text="https://mcp.nhost.io" /> — see [Nhost Cloud connector](/platform/cloud/mcp). [Agentic workflows](/getting-started/agentic-workflows) compares all three setups.
 
 ## Overview
 
@@ -107,4 +109,4 @@ manage_metadata = true
 
 This allows the LLM to create migrations, manage permissions, and handle schema changes through the `manage-graphql` tool.
 
-For more details, see the [configuration](/platform/cli/mcp/configuration) page.
+For more details, see the [configuration](/platform/cli/mcp/configuration) page. For what these settings mean once an assistant is pointed at a project holding real data, see [Scoping access](/platform/cli/mcp/cloud-setup#scoping-access).
