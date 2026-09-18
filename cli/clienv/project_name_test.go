@@ -80,6 +80,25 @@ func TestWriteProjectName(t *testing.T) {
 	}
 }
 
+// A refused name comes back with the reason it was refused, and there are two
+// of them. `_myapp` has six usable characters and is turned away for the one it
+// starts with, so a message about having no usable characters described the
+// wrong name.
+func TestWriteProjectNameSaysWhyItRefusedTheName(t *testing.T) {
+	t.Parallel()
+
+	err := clienv.WriteProjectName(filepath.Join(t.TempDir(), "project-name"), "_myapp")
+	if err == nil {
+		t.Fatal("WriteProjectName(_myapp) error = nil, want a refusal")
+	}
+
+	for _, want := range []string{"start with a letter or number", `"_myapp"`} {
+		if !strings.Contains(err.Error(), want) {
+			t.Errorf("WriteProjectName(_myapp) error = %q, want it to mention %s", err, want)
+		}
+	}
+}
+
 // Subtests are serial: each one moves the process working directory and some
 // of them set NHOST_PROJECT_NAME.
 func TestProjectNameResolution(t *testing.T) {

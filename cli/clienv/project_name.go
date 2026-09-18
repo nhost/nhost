@@ -10,7 +10,12 @@ import (
 
 const projectNameFilePerm = 0o644
 
-var errUnusableProjectName = errors.New("project name has no usable characters")
+// errUnusableProjectName covers both reasons sanitizeName comes back empty: the
+// name holds nothing docker compose accepts, or what it does hold starts with a
+// character compose will not open a project name with.
+var errUnusableProjectName = errors.New(
+	"project name has no usable characters, or does not start with a letter or number",
+)
 
 // WriteProjectName records name at path as the docker compose project name for
 // this project. `nhost create` writes it into the generated backend so each
