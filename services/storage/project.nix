@@ -124,13 +124,6 @@ let
     vips
   ];
 
-  # vips forces external linking, so Darwin's cgo DNS objects need libresolv explicitly.
-  checkBuildInputs =
-    buildInputs
-    ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
-      pkgs.darwin.libresolv
-    ];
-
   nativeBuildInputs = with pkgs; [
     clang
     pkg-config
@@ -143,10 +136,10 @@ rec {
       submodule
       ldflags
       tags
+      buildInputs
       nativeBuildInputs
       checkDeps
       ;
-    buildInputs = checkBuildInputs;
 
     preCheck = ''
       export PGMIGRATE_TEST_DATABASE_REQUIRED=1
