@@ -153,7 +153,8 @@ func applyEdits(value []rune, buf []byte) ([]rune, editAction) {
 		case keyCtrlC, keyCtrlD:
 			return value, editCancel
 		case keyEscape:
-			i += escapeLen(buf[i:])
+			n, _ := escapeLen(buf[i:])
+			i += n
 
 			continue
 		case keyBackspace, keyBackspaceAlt:
@@ -182,18 +183,21 @@ func applyEdits(value []rune, buf []byte) ([]rune, editAction) {
 	return value, editNone
 }
 
-// escapeLen is how much of a buffer one escape sequence takes up. Both forms a
-// key press produces -- CSI, which is ESC '[', and SS3, which is ESC 'O' -- run
-// until a final byte in 0x40-0x7e, so their length is only found by scanning
-// for it. Assuming the three bytes of a plain arrow key instead left the tail
-// of every longer sequence in the answer: Delete (ESC [ 3 ~) added a '~', and
-// Home and End in application-cursor mode (ESC O H, ESC O F) added "OH" and
-// "OF", which validateName accepts, so the project was silently named after a
-// keystroke.
+// escapeLen is how much of a buffer one escape sequence takes up, and whether
+// the buffer held all of it. Both forms a key press produces -- CSI, which is
+// ESC '[', and SS3, which is ESC 'O' -- run until a final byte in 0x40-0x7e, so
+// their length is only found by scanning for it. Assuming the three bytes of a
+// plain arrow key instead left the tail of every longer sequence in the answer:
+// Delete (ESC [ 3 ~) added a '~', and Home and End in application-cursor mode
+// (ESC O H, ESC O F) added "OH" and "OF", which validateName accepts, so the
+// project was silently named after a keystroke.
 //
-// A lone escape byte, an ESC that introduces neither form, and a sequence the
-// read cut short are all key presses of their own that the editor ignores.
-func escapeLen(buf []byte) int {
+// A sequence the read cut short is reported incomplete, along with a trailing
+// ESC that has nothing behind it yet, so a caller that can wait for the rest of
+// it -- readActions -- knows to. A caller that cannot, applyEdits, takes the
+// length and ignores the press, as it does for a lone escape byte and for an
+// ESC that introduces neither form.
+func escapeLen(buf []byte) (int, bool) {
 	// The byte after ESC that says which form this is, and the range the byte
 	// ending either form falls in.
 	const (
@@ -202,15 +206,19 @@ func escapeLen(buf []byte) int {
 		finalByteMax  = 0x7e
 	)
 
-	if len(buf) < introducerLen || (buf[1] != '[' && buf[1] != 'O') {
-		return 1
+	if len(buf) < introducerLen {
+		return 1, false
+	}
+
+	if buf[1] != '[' && buf[1] != 'O' {
+		return 1, true
 	}
 
 	for i := introducerLen; i < len(buf); i++ {
 		if buf[i] >= finalByteMin && buf[i] <= finalByteMax {
-			return i + 1
+			return i + 1, true
 		}
 	}
 
-	return len(buf)
+	return len(buf), false
 }

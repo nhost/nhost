@@ -87,12 +87,12 @@ func pickWithKeys(
 
 	defer fmt.Fprint(out, "\x1b[?25h")
 
-	buf := make([]byte, keyBufferSize)
+	keys := newKeyReader(os.Stdin)
 
 	for {
 		renderItems(out, items, cursor, width)
 
-		actions, err := readActions(os.Stdin, buf)
+		actions, err := keys.readActions()
 		if err != nil {
 			return -1, err
 		}
@@ -151,7 +151,7 @@ func decodeKey(buf []byte) (pickerAction, int) {
 	}
 
 	if buf[0] == keyEscape {
-		n := escapeLen(buf)
+		n, _ := escapeLen(buf)
 		if n >= csiArrowLen && buf[1] == '[' {
 			switch buf[2] {
 			case 'A':
@@ -197,25 +197,69 @@ func moveSelection(cursor int, action pickerAction, count int) int {
 	return cursor
 }
 
-// readActions takes in one read and decodes every key press it carried. A read
-// that held a burst -- an arrow key repeated, or an arrow key and the enter
-// behind it -- yields one action per press, because acting on the first and
-// dropping the rest of the buffer loses the presses the user made.
-func readActions(r io.Reader, buf []byte) ([]pickerAction, error) {
-	n, err := r.Read(buf)
+// keyReader decodes the key presses a raw terminal delivers, holding on to a
+// read that ended part way through an escape sequence so the next one can
+// finish it. Without that, a burst long enough to cross the read boundary lost
+// the press the boundary fell inside: the truncated head was decoded as an
+// ignored press and thrown away, and the bytes that completed it arrived as two
+// more ignored presses on the read behind.
+type keyReader struct {
+	r   io.Reader
+	buf []byte
+	// held is how many bytes at the front of buf are the unfinished tail of the
+	// previous read, waiting for the rest of their sequence.
+	held int
+}
+
+func newKeyReader(r io.Reader) *keyReader {
+	return &keyReader{r: r, buf: make([]byte, keyBufferSize), held: 0}
+}
+
+// readActions takes in one read and decodes every key press it completed. A
+// read that held a burst -- an arrow key repeated, or an arrow key and the
+// enter behind it -- yields one action per press, because acting on the first
+// and dropping the rest of the buffer loses the presses the user made.
+func (kr *keyReader) readActions() ([]pickerAction, error) {
+	n, err := kr.r.Read(kr.buf[kr.held:])
 	if err != nil {
 		return nil, fmt.Errorf("failed to read a key press: %w", err)
 	}
 
+	read := kr.buf[:kr.held+n]
+	kr.held = 0
+
 	var actions []pickerAction
 
-	for read := buf[:n]; len(read) > 0; {
+	for len(read) > 0 {
+		if kr.hold(read) {
+			break
+		}
+
 		action, size := decodeKey(read)
 		actions = append(actions, action)
 		read = read[size:]
 	}
 
 	return actions, nil
+}
+
+// hold keeps an unfinished escape sequence for the next read to complete, and
+// reports whether it did. A sequence that has already filled the whole buffer
+// is not held: nothing a key press produces is that long, and waiting on bytes
+// there is no room for would leave the picker reading into a full buffer
+// forever.
+func (kr *keyReader) hold(read []byte) bool {
+	if read[0] != keyEscape || len(read) == len(kr.buf) {
+		return false
+	}
+
+	if _, complete := escapeLen(read); complete {
+		return false
+	}
+
+	kr.held = copy(kr.buf, read)
+
+	return true
 }
 
 // renderItems draws the list in place, one terminal row per item, and closes
