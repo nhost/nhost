@@ -1,11 +1,12 @@
 import type { ReactElement } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
+import { ContentPanel } from '@/components/layout/ContentPanel';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { ProjectViewWithState } from '@/features/orgs/layout/ProjectGuard';
 import { ProjectScope } from '@/features/orgs/layout/ProjectScope';
 import { EventsEmptyState } from '@/features/orgs/projects/events/common/components/EventsEmptyState';
 import { CronTriggersBrowserSidebar } from '@/features/orgs/projects/events/cron-triggers/components/CronTriggersBrowserSidebar';
 import { useGetCronTriggers } from '@/features/orgs/projects/events/cron-triggers/hooks/useGetCronTriggers';
+import { EventsArea } from '@/features/orgs/projects/events/layout';
 
 export default function CronTriggersPage() {
   const {
@@ -55,14 +56,16 @@ CronTriggersPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <AppLayout>
       <ProjectScope>
-        <ProjectViewWithState>
-          <div className="flex h-full">
-            <CronTriggersBrowserSidebar />
-            <div className="box flex w-full flex-auto flex-col overflow-x-hidden">
-              {page}
+        <EventsArea>
+          <ContentPanel>
+            <div className="flex h-full">
+              <CronTriggersBrowserSidebar />
+              <div className="box flex w-full flex-auto flex-col overflow-x-hidden">
+                {page}
+              </div>
             </div>
-          </div>
-        </ProjectViewWithState>
+          </ContentPanel>
+        </EventsArea>
       </ProjectScope>
     </AppLayout>
   );
