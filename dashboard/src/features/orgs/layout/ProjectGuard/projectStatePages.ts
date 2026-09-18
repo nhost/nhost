@@ -5,8 +5,10 @@ function toRoutes(pages: string[]): Set<string> {
 }
 
 const runningProjectPages = toRoutes([
-  'database',
   'database/browser/[dataSourceSlug]',
+  'database/browser/[dataSourceSlug]/editor',
+  'database/browser/[dataSourceSlug]/[schemaSlug]/tables/[tableSlug]',
+  'database/browser/[dataSourceSlug]/[schemaSlug]/functions/[functionOID]',
   'database/schema/[dataSourceSlug]',
   'graphql',
   'graphql/remote-schemas',
@@ -24,7 +26,7 @@ const runningProjectPages = toRoutes([
   'auth/users',
   'auth/oauth2-clients',
   'storage',
-  'storage/bucket/[bucketId]',
+  'storage/bucket/[...bucketId]',
   'ai/auto-embeddings',
   'ai/assistants',
   'ai/file-stores',
@@ -41,14 +43,15 @@ const sidebarSkeletonPages = toRoutes([
   'ai/assistants',
   'ai/file-stores',
   'storage',
-  'storage/bucket/[bucketId]',
+  'storage/bucket/[...bucketId]',
   'graphql/remote-schemas',
   'graphql/remote-schemas/[remoteSchemaSlug]',
   'graphql/actions',
   'graphql/actions/[actionSlug]',
   'graphql/actions/custom-types',
-  'database',
   'database/browser/[dataSourceSlug]',
+  'database/browser/[dataSourceSlug]/[schemaSlug]/tables/[tableSlug]',
+  'database/browser/[dataSourceSlug]/[schemaSlug]/functions/[functionOID]',
 ]);
 
 /**
@@ -62,7 +65,8 @@ export function requiresRunningProject(route: string): boolean {
 
 /**
  * Whether the project-state screen's skeleton should include a sidebar for the
- * given route, matching the layout the blocked page would have shown.
+ * given route. Only pages whose sidebar loads its contents from the project
+ * qualify — a static link sidebar has nothing to stand in for.
  */
 export function hasSidebarSkeleton(route: string): boolean {
   return sidebarSkeletonPages.has(route);
