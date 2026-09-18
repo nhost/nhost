@@ -89,13 +89,21 @@ jobs:
           rm mcp-publisher.tar.gz
 
       - name: "Set version in server.json"
+        env:
+          RELEASE_VERSION: ${{ inputs.VERSION }}
         run: |
-          export VERSION=${{ inputs.VERSION }}
+          VERSION="${RELEASE_VERSION#v}"
+          VERSION="${VERSION//\//_}"
+          IMAGE="docker.io/nhost/mcp:$VERSION"
 
-          jq --arg v "$VERSION" \
-            '.version = $v | .packages[0].identifier = "docker.io/nhost/mcp:" + $v' \
+          jq --arg v "$VERSION" --arg image "$IMAGE" \
+            '.version = $v | .packages[0].identifier = $image' \
             server.json > server.json.tmp
           mv server.json.tmp server.json
+
+          jq --exit-status --arg image "$IMAGE" \
+            '.packages[0].identifier == $image' \
+            server.json > /dev/null
 
           cat server.json
 
