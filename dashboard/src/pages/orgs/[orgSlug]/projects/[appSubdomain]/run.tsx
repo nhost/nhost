@@ -9,12 +9,12 @@ import { Container } from '@/components/layout/Container';
 import { Button } from '@/components/ui/v3/button';
 import { ServicesOutlinedIcon } from '@/components/ui/v3/icons/ServicesOutlinedIcon';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { ProjectViewWithState } from '@/features/orgs/layout/ProjectGuard';
 import { ProjectScope } from '@/features/orgs/layout/ProjectScope';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useRunServices } from '@/features/orgs/projects/common/hooks/useRunServices';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { RunArea } from '@/features/orgs/projects/run/layout';
 import { ServiceDrawerTitle } from '@/features/orgs/projects/services/components/ServiceDrawerTitle';
 import { ServiceForm } from '@/features/orgs/projects/services/components/ServiceForm';
 import { ServicesList } from '@/features/orgs/projects/services/components/ServicesList';
@@ -183,7 +183,7 @@ RunPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <AppLayout>
       <ProjectScope>
-        <ProjectViewWithState>{page}</ProjectViewWithState>
+        <RunArea>{page}</RunArea>
       </ProjectScope>
     </AppLayout>
   );
