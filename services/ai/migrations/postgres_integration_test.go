@@ -23,8 +23,6 @@ import (
 	"github.com/nhost/nhost/services/ai/migrations"
 )
 
-const defaultAIMigrationTestDSN = "postgres://postgres:postgres@localhost:5432/local?sslmode=disable"
-
 //nolint:paralleltest // These integration cases intentionally replace the shared AI schema serially.
 func TestPostgresMigrationIntegration(t *testing.T) {
 	database, dsn := openAIMigrationTestDatabase(t)
@@ -78,14 +76,21 @@ func TestPostgresMigrationIntegration(t *testing.T) {
 func openAIMigrationTestDatabase(t *testing.T) (*sql.DB, string) {
 	t.Helper()
 
-	adminDSN := os.Getenv("POSTGRES_CONNECTION")
-	if adminDSN == "" {
-		adminDSN = defaultAIMigrationTestDSN
+	adminDSN, canSkip, err := aiMigrationTestDatabaseConfiguration(
+		os.Getenv("POSTGRES_CONNECTION"),
+		os.Getenv("AI_MIGRATION_TEST_DATABASE_REQUIRED"),
+	)
+	if err != nil {
+		t.Fatalf("PostgreSQL integration test setup: %v", err)
 	}
 
 	adminDatabase, err := sql.Open("postgres", adminDSN)
 	if err != nil {
-		t.Skip("cannot open PostgreSQL integration server")
+		if canSkip {
+			t.Skipf("optional PostgreSQL integration server cannot be opened: %v", err)
+		}
+
+		t.Fatalf("opening required PostgreSQL integration server: %v", err)
 	}
 
 	if err := adminDatabase.PingContext(t.Context()); err != nil {
@@ -93,7 +98,11 @@ func openAIMigrationTestDatabase(t *testing.T) (*sql.DB, string) {
 			t.Logf("closing unreachable PostgreSQL integration server: %v", closeErr)
 		}
 
-		t.Skip("cannot reach PostgreSQL integration server")
+		if canSkip {
+			t.Skipf("optional PostgreSQL integration server cannot be reached: %v", err)
+		}
+
+		t.Fatalf("connecting to required PostgreSQL integration server: %v", err)
 	}
 
 	databaseName := randomAIMigrationTestDatabaseName(t)
