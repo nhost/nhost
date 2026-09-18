@@ -16,7 +16,7 @@ import (
 const (
 	schemaName                    = "ai"
 	postgresMigrationPath         = "postgres"
-	postgresSchemaCreateStatement = "CREATE SCHEMA IF NOT EXISTS ai"
+	postgresSchemaCreateStatement = "CREATE SCHEMA IF NOT EXISTS " + schemaName
 )
 
 //go:embed postgres/*.sql
