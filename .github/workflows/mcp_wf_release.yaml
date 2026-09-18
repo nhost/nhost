@@ -60,7 +60,8 @@ jobs:
       - push-docker-hub
 
     permissions:
-      id-token: write  # needed to mint the OIDC token mcp-publisher logs in with
+      # Needed to mint the OIDC token mcp-publisher logs in with.
+      id-token: write
       contents: read
 
     defaults:
@@ -71,22 +72,15 @@ jobs:
       - name: "Check out repository"
         uses: actions/checkout@v7
 
-      # Pinned rather than `releases/latest` so the same commit always publishes
-      # with the same tool. The checksum is the one upstream publishes in
-      # registry_${VERSION}_checksums.txt and is specific to this asset, so
-      # bumping the version means bumping the checksum too.
-      - name: "Install mcp-publisher"
-        env:
-          MCP_PUBLISHER_VERSION: "1.8.1"
-          MCP_PUBLISHER_SHA256: "a06c9096dcb9727c13555b6be26c7effa707b01f06a4c561ba7a3635443cf2cc"
-        run: |
-          curl -fsSL -o mcp-publisher.tar.gz \
-            "https://github.com/modelcontextprotocol/registry/releases/download/v$MCP_PUBLISHER_VERSION/mcp-publisher_linux_amd64.tar.gz"
-
-          echo "$MCP_PUBLISHER_SHA256  mcp-publisher.tar.gz" | sha256sum --check --strict
-
-          tar xzf mcp-publisher.tar.gz mcp-publisher
-          rm mcp-publisher.tar.gz
+      - name: Setup Nix with Cache
+        uses: ./.github/actions/setup-nix
+        with:
+          NAME: mcp-publisher
+          NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+          NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+          NIX_CACHE_SECRET_ACCESS_KEY: >-
+            ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Set version in server.json"
         env:
@@ -108,13 +102,13 @@ jobs:
           cat server.json
 
       - name: "Validate server.json"
-        run: ./mcp-publisher validate server.json
+        run: nix develop .#mcp-publisher -c mcp-publisher validate server.json
 
       - name: "Authenticate to MCP registry"
-        run: ./mcp-publisher login github-oidc
+        run: nix develop .#mcp-publisher -c mcp-publisher login github-oidc
 
       - name: "Publish to MCP registry"
-        run: ./mcp-publisher publish
+        run: nix develop .#mcp-publisher -c mcp-publisher publish
 
   push-docker-ecr:
     uses: ./.github/workflows/wf_docker_push_image_ecr.yaml
@@ -126,4 +120,5 @@ jobs:
       VERSION: ${{ inputs.VERSION }}
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-      CONTAINER_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-central-1.amazonaws.com
+      CONTAINER_REGISTRY: >-
+        ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-central-1.amazonaws.com
