@@ -55,7 +55,7 @@ jobs:
 
   publish-mcp-registry:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 30
     needs:
       - push-docker-hub
 
