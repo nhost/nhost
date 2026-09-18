@@ -2,8 +2,29 @@
 
 set -eu
 
+clear_pgdata() {
+	find "$PGDATA" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +
+}
+
 init_db() {
 	DATABASE_INITIALIZED=false
+	INIT_COMPLETE_FILE="$PGDATA/.nhost-initdb-complete"
+	INIT_IN_PROGRESS_FILE="$PGDATA/.nhost-initdb-in-progress"
+
+	if [ -f "$INIT_COMPLETE_FILE" ]; then
+		if [ ! -f "$PGDATA/PG_VERSION" ]; then
+			echo "Database initialization is marked complete, but PG_VERSION is missing" >&2
+			return 1
+		fi
+		rm -f "$INIT_IN_PROGRESS_FILE"
+	elif [ -f "$INIT_IN_PROGRESS_FILE" ]; then
+		echo "Restarting interrupted database initialization"
+		clear_pgdata
+	elif [ -f "$PGDATA/PG_VERSION" ]; then
+		# Volumes created by older images predate the initialization marker.
+		touch "$INIT_COMPLETE_FILE"
+	fi
+
 	if [ ! -f "$PGDATA/PG_VERSION" ]; then
 		echo "Initializing database"
 		password_file=$(mktemp -p /tmp/postgresql postgres-password.XXXXXX)
@@ -16,6 +37,7 @@ init_db() {
 		fi
 
 		rm -f "$password_file"
+		touch "$INIT_IN_PROGRESS_FILE"
 		DATABASE_INITIALIZED=true
 	fi
 	export DATABASE_INITIALIZED
@@ -93,15 +115,27 @@ run_psql_file() {
 
 run_init_scripts() {
 	echo "Running init scripts"
-	createdb -U postgres "$POSTGRES_DB"
+	createdb -U postgres "$POSTGRES_DB" || return 1
 
-	mkdir -p /tmp/postgresql/initdb.d
+	mkdir -p /tmp/postgresql/initdb.d || return 1
 	for f in /initdb.d/*; do
-		filename=$(basename "$f")
+		filename=$(basename "$f") || return 1
 		rendered_file="/tmp/postgresql/initdb.d/$filename"
-		envsubst <"$f" >"$rendered_file"
-		run_psql_file "$POSTGRES_DB" "$rendered_file"
+		envsubst <"$f" >"$rendered_file" || return 1
+		run_psql_file "$POSTGRES_DB" "$rendered_file" || return 1
 	done
+}
+
+cleanup_failed_init() {
+	echo "Database initialization failed; removing the incomplete cluster" >&2
+	if kill -0 "$POSTGRES_PID" 2>/dev/null; then
+		if ! pg_ctl stop --pgdata="$PGDATA" --mode=fast --wait; then
+			echo "Failed to stop PostgreSQL; keeping the incomplete cluster for cleanup on restart" >&2
+			return 1
+		fi
+		wait "$POSTGRES_PID" || true
+	fi
+	clear_pgdata
 }
 
 run_nhost_scripts() {
@@ -177,7 +211,12 @@ main() {
 	wait_for_postgres
 
 	if [ "$DATABASE_INITIALIZED" = true ]; then
-		run_init_scripts
+		if ! run_init_scripts; then
+			cleanup_failed_init
+			return 1
+		fi
+		touch "$INIT_COMPLETE_FILE"
+		rm -f "$INIT_IN_PROGRESS_FILE"
 	fi
 	run_nhost_scripts
 
