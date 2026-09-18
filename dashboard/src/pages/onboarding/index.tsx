@@ -454,10 +454,7 @@ export default function OnboardingPage() {
 
 OnboardingPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <AuthenticatedLayout
-      title="Onboarding - Welcome to Nhost"
-      withMainNav={false}
-    >
+    <AuthenticatedLayout title="Onboarding - Welcome to Nhost">
       {page}
     </AuthenticatedLayout>
   );

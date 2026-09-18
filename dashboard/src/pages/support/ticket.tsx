@@ -261,14 +261,19 @@ function TicketPage() {
                         <>
                           To set a higher priority, upgrade to a plan with an
                           SLA.{' '}
-                          <a
+                          <button
                             className="text-primary hover:underline"
-                            href="https://nhost.io/pricing"
-                            target="_blank"
-                            rel="noopener noreferrer"
+                            type="button"
+                            onClick={() =>
+                              window.open(
+                                'https://nhost.io/pricing',
+                                '_blank',
+                                'noopener,noreferrer',
+                              )
+                            }
                           >
                             View pricing
-                          </a>
+                          </button>
                         </>
                       ) : null
                     }
@@ -352,7 +357,7 @@ function TicketPage() {
 
 TicketPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <AuthenticatedLayout title="Help & Support | Nhost" withMainNav={false}>
+    <AuthenticatedLayout title="Help & Support | Nhost">
       {page}
     </AuthenticatedLayout>
   );
