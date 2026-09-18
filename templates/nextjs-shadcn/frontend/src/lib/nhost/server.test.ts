@@ -148,6 +148,64 @@ describe('password reset grant cookie options', () => {
   });
 });
 
+// Spending the grant is asserted against the header Next actually emits,
+// because the failure it guards against does not show up anywhere else: it is
+// not in what this module asks for, it is in what the ask turns into.
+// `cookies().delete()` builds a removal from only the options handed to it and
+// drops `secure`, and a browser discards a `__Host-` cookie that arrives
+// without it. That makes the removal a no-op in production - the one
+// environment that takes the prefix - while every development run and every
+// test of the options alone looks perfectly correct.
+const clearGrantHeader = async (nodeEnv: string): Promise<string> => {
+  vi.stubEnv('NODE_ENV', nodeEnv);
+  vi.resetModules();
+
+  const response = NextResponse.next();
+  vi.doMock('next/headers', () => ({
+    cookies: (): Promise<typeof response.cookies> =>
+      Promise.resolve(response.cookies),
+  }));
+
+  try {
+    await (await import('@/lib/nhost/server')).clearPasswordResetGrant();
+  } finally {
+    vi.doUnmock('next/headers');
+  }
+
+  return (
+    response.headers
+      .getSetCookie()
+      .find((line) => line.includes('nhostPasswordResetGrant')) ?? ''
+  );
+};
+
+describe('spending the password reset grant', () => {
+  it('emits a removal a browser accepts for a __Host- cookie', async () => {
+    const header = await clearGrantHeader('production');
+
+    expect(header).toContain(`${PASSWORD_RESET_GRANT_COOKIE}=;`);
+
+    // The assertion the whole case exists for. Without `Secure` the browser
+    // ignores the header outright and the exemption survives its own reset.
+    expect(header).toMatch(/;\s*Secure/i);
+
+    // `__Host-` also requires `Path=/` and forbids `Domain`.
+    expect(header).toMatch(/;\s*Path=\//i);
+    expect(header).not.toMatch(/Domain=/i);
+
+    expect(header).toMatch(/;\s*HttpOnly/i);
+    expect(header).toMatch(/Max-Age=0/i);
+  });
+
+  it('removes the unprefixed cookie in development', async () => {
+    const header = await clearGrantHeader('development');
+
+    expect(header).toContain('nhostPasswordResetGrant=;');
+    expect(header).not.toContain('__Host-');
+    expect(header).toMatch(/Max-Age=0/i);
+  });
+});
+
 const proxyRequest = (cookie?: string): NextRequest =>
   new NextRequest(
     'http://localhost:3000/protected',
