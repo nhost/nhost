@@ -1,8 +1,9 @@
 import { SiGithub } from '@icons-pack/react-simple-icons';
-import { Box } from 'lucide-react';
+import { Box, Plus } from 'lucide-react';
 import { useRouter } from 'next/router';
 import HeaderCombobox from '@/components/layout/Header/HeaderCombobox';
 import ProjectStatus from '@/components/layout/Header/ProjectStatus';
+import { CommandItem, CommandSeparator } from '@/components/ui/v3/command';
 import {
   Tooltip,
   TooltipContent,
@@ -12,7 +13,18 @@ import { ProjectStatusIndicator } from '@/features/orgs/components/common/Projec
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import type { ApplicationStatus } from '@/types/application';
 import { getProjectFeaturePagePath } from '@/utils/getProjectFeaturePagePath';
+
+// Fixed-size slot so the project name keeps its position when the current
+// status has no dot.
+function StatusIndicatorSlot({ status }: { status: ApplicationStatus }) {
+  return (
+    <span className="flex size-2 shrink-0 items-center justify-center">
+      <ProjectStatusIndicator status={status} />
+    </span>
+  );
+}
 
 export default function ProjectsComboBox() {
   const {
@@ -65,9 +77,9 @@ export default function ProjectsComboBox() {
     ),
   }));
 
-  const triggerLabel = selectedProjectFromUrl ? (
+  const selectedLabel = selectedProjectFromUrl ? (
     <div className="flex items-center gap-2">
-      <ProjectStatusIndicator status={appState} />
+      <StatusIndicatorSlot status={appState} />
       {selectedProjectFromUrl.name}
       {isGitHubConnected && (
         <Tooltip>
@@ -91,16 +103,41 @@ export default function ProjectsComboBox() {
     </div>
   ) : null;
 
+  const footerSlot = (
+    <>
+      <CommandSeparator className="mt-1" />
+      <CommandItem
+        forceMount
+        value="new-project"
+        onSelect={() => {
+          if (!orgSlug) {
+            return;
+          }
+
+          push(`/orgs/${orgSlug}/projects/new`);
+        }}
+      >
+        <Plus className="mr-2 h-4 w-4" />
+        New Project
+      </CommandItem>
+    </>
+  );
+
   return (
-    <div className="flex items-center gap-1">
-      <HeaderCombobox
-        options={options}
-        value={selectedProjectFromUrl?.subdomain ?? null}
-        triggerLabel={triggerLabel}
-        placeholder="Select a project"
-        searchPlaceholder="Select a project..."
-        onChange={handleProjectSelect}
-      />
-    </div>
+    <HeaderCombobox
+      options={options}
+      value={selectedProjectFromUrl?.subdomain ?? null}
+      placeholder="Select a project"
+      searchPlaceholder="Select a project..."
+      footerSlot={footerSlot}
+      linkHref={
+        selectedProjectFromUrl && orgSlug
+          ? `/orgs/${orgSlug}/projects/${selectedProjectFromUrl.subdomain}`
+          : undefined
+      }
+      linkContent={selectedLabel}
+      aria-label="Switch project"
+      onChange={handleProjectSelect}
+    />
   );
 }
