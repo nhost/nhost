@@ -168,6 +168,28 @@ describe('proxy auth email links', () => {
     ).toBe('email');
   });
 
+  // The dangerous case, and the one the redeemed-only strip missed. A token
+  // the proxy declined - wrong path, or a type no auth email sends - was never
+  // spent, so it is still a live credential. Leaving it in the address bar
+  // parks it in history and bookmarks for the month until it expires, where a
+  // redeemed one has at least been rotated away.
+  it('strips a token it refused to redeem', async () => {
+    stubNhostProxy(session, { consumedLinkToken: false });
+
+    const response = await proxy(
+      new NextRequest(
+        'http://localhost:3000/protected?refreshToken=abc&type=passwordReset',
+      ),
+    );
+
+    expect(response.status).toBe(307);
+
+    const location = new URL(response.headers.get('location') ?? '');
+    expect(location.pathname).toBe('/protected');
+    expect(location.searchParams.get('refreshToken')).toBeNull();
+    expect(location.searchParams.get('type')).toBeNull();
+  });
+
   it('does not redirect when there was no token to redeem', async () => {
     stubNhostProxy(session);
 
