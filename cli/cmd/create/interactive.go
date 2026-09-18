@@ -210,9 +210,10 @@ func runInteractive(
 		resolved.packageManager = packageManager
 	}
 
+	// The frame is left open on its last bar. What closes it is the progress
+	// line, which spins on the corner for as long as the create takes and
+	// settles there when it is done.
 	ce.Println("%s", barLine())
-	ce.Println("%s", closeLine("Creating "+resolved.name))
-	ce.Println("")
 
 	return resolved, nil
 }

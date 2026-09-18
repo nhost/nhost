@@ -1204,7 +1204,6 @@ func TestFetchTemplateGitNotInstalled(t *testing.T) {
 
 	err := fetchTemplate(
 		context.Background(),
-		nil,
 		"file:///tmp/templates",
 		"main",
 		template{name: "nextjs-shadcn"},

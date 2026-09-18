@@ -175,13 +175,18 @@ func action(ctx context.Context, cmd *cli.Command) error {
 	}()
 
 	// An interactive run closed its frame by saying this, under the answers it
-	// is made of, so it is only worth saying here when nothing was asked.
+	// is made of, so it is only worth saying here when nothing was asked. The
+	// same line is what the spinner animates, which is why the frame left it
+	// undrawn for this to own.
 	if !res.prompt {
 		ce.Infoln("Creating Nhost project %q from template %q", resolved.name, tmpl.name)
 	}
 
+	prog := newProgress(ce, res.prompt, "Creating "+resolved.name)
+	defer prog.stop()
+
 	if err := stageProject(
-		ctx, ce, cmd, tmpl, resolved.name, target, resolved.packageManager,
+		ctx, prog, cmd, tmpl, resolved.name, target, resolved.packageManager,
 	); err != nil {
 		return err
 	}
@@ -190,10 +195,13 @@ func action(ctx context.Context, cmd *cli.Command) error {
 	// the frontend has its dependencies. An install that failed leaves the
 	// project in the same shape --no-install would have, so the next steps have
 	// to include the install again.
-	resolved.installNow = installFrontendDependencies(ctx, ce, resolved, target)
+	resolved.installNow = installFrontendDependencies(ctx, ce, prog, resolved, target)
 
 	success = true
 
+	// Settle the closing line before the result is printed, so the frame is
+	// finished above what the create has to say rather than after it.
+	prog.stop()
 	printNextSteps(ce, resolved, cmd.Root().Version)
 
 	return nil
@@ -262,11 +270,21 @@ func removeMadeDirs(target, root string) {
 func installFrontendDependencies(
 	ctx context.Context,
 	ce *clienv.CliEnv,
+	prog progress,
 	resolved choices,
 	target string,
 ) bool {
 	if !resolved.installNow {
 		return false
+	}
+
+	// A package manager draws its own progress, on the same line a spinner is
+	// redrawing, so the spinner settles and hands the terminal over before the
+	// install starts. What it draws is worth the handover: this is the longest
+	// wait in a create, and the only one that reports how far along it is.
+	if prog.animating() {
+		prog.stop()
+		ce.Println("")
 	}
 
 	ce.Infoln("Installing frontend dependencies with %s...", resolved.packageManager)
@@ -287,7 +305,7 @@ func installFrontendDependencies(
 
 func stageProject(
 	ctx context.Context,
-	ce *clienv.CliEnv,
+	prog progress,
 	cmd *cli.Command,
 	tmpl template,
 	name, target, packageManager string,
@@ -315,7 +333,7 @@ func stageProject(
 		return fmt.Errorf("failed to scaffold backend: %w", err)
 	}
 
-	if err := addTemplate(ctx, ce, cmd, tmpl, staging); err != nil {
+	if err := addTemplate(ctx, prog, cmd, tmpl, staging); err != nil {
 		return err
 	}
 
@@ -396,7 +414,7 @@ func adoptStaging(staging, target string) error {
 
 func addTemplate(
 	ctx context.Context,
-	ce *clienv.CliEnv,
+	prog progress,
 	cmd *cli.Command,
 	tmpl template,
 	staging string,
@@ -407,7 +425,7 @@ func addTemplate(
 			return err
 		}
 
-		ce.Infoln("Using local template at %s", local)
+		prog.update("using local template at %s", local)
 
 		if err := copyDir(src, staging); err != nil {
 			return fmt.Errorf("failed to copy template: %w", err)
@@ -421,11 +439,10 @@ func addTemplate(
 		ref = defaultTemplatesRef(cmd.Root().Version)
 	}
 
-	ce.Infoln("Fetching template %q at %s...", tmpl.name, ref)
+	prog.update("fetching template %q at %s...", tmpl.name, ref)
 
 	return fetchTemplate(
 		ctx,
-		ce,
 		cmd.String(flagTemplatesRepo),
 		ref,
 		tmpl,
@@ -623,8 +640,11 @@ func nhostCommand(version string) string {
 func printStartCommands(ce *clienv.CliEnv, resolved choices, nhost string) {
 	devCommand := packageManagerScript(resolved.packageManager, "dev")
 
+	// Each step is a block with air around it: the two are run in different
+	// terminals, and the blank lines are what say where one ends.
 	ce.Println("  1. Start the backend:")
 	ce.Println("       cd %s && %s up", resolved.path("backend"), nhost)
+	ce.Println("")
 	ce.Println("  2. In another terminal, start the frontend:")
 
 	if resolved.installNow {
@@ -635,4 +655,6 @@ func printStartCommands(ce *clienv.CliEnv, resolved choices, nhost string) {
 			resolved.path("frontend"), resolved.packageManager, devCommand,
 		)
 	}
+
+	ce.Println("")
 }
