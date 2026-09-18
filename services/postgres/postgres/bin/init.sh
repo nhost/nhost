@@ -141,13 +141,13 @@ cleanup_failed_init() {
 run_nhost_scripts() {
 	echo "Running nhost's scripts"
 
-	mkdir -p /tmp/postgresql/nhost.d
+	mkdir -p /tmp/postgresql/nhost.d || return 1
 	for f in /nhost.d/*; do
-		filename=$(basename "$f")
+		filename=$(basename "$f") || return 1
 		rendered_file="/tmp/postgresql/nhost.d/$filename"
-		envsubst <"$f" >"$rendered_file"
+		envsubst <"$f" >"$rendered_file" || return 1
 
-		run_psql_file "$POSTGRES_DB" "$rendered_file"
+		run_psql_file "$POSTGRES_DB" "$rendered_file" || return 1
 	done
 }
 
@@ -225,7 +225,9 @@ main() {
 	if ! /bin/repair-collation.sh; then
 		echo "Collation repair failed; continuing PostgreSQL startup" >&2
 	fi
-	run_nhost_scripts
+	if ! run_nhost_scripts; then
+		echo "Nhost script execution failed; continuing PostgreSQL startup" >&2
+	fi
 
 	delete_core_dumps &
 
