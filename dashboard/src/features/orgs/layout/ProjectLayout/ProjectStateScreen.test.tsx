@@ -1,6 +1,6 @@
 import { setupServer } from 'msw/node';
 import { vi } from 'vitest';
-import ProjectStateScreen from '@/features/orgs/layout/OrgLayout/ProjectStateScreen';
+import ProjectStateScreen from '@/features/orgs/layout/ProjectLayout/ProjectStateScreen';
 import { mockMatchMediaValue } from '@/tests/mocks';
 import { getProjectStateQuery } from '@/tests/msw/mocks/graphql/getProjectQuery';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
