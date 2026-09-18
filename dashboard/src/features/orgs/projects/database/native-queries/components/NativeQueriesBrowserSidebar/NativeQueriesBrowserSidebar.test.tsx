@@ -5,6 +5,7 @@ import { toast } from 'react-hot-toast';
 import { NativeQueriesBrowserSidebar } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesBrowserSidebar';
 import { mockMatchMediaValue } from '@/tests/mocks';
 import {
+  fireEvent,
   queryClient,
   render,
   screen,
@@ -256,6 +257,13 @@ const nativeQuery = (rootFieldName: string): NativeQueryItem => ({
   returns: 'alpha_model',
 });
 
+function chooseOption(comboboxName: string, optionName: string) {
+  fireEvent.keyDown(screen.getByRole('combobox', { name: comboboxName }), {
+    key: 'Enter',
+  });
+  fireEvent.click(screen.getByRole('option', { name: optionName }));
+}
+
 type GuardedDrawerSurface =
   | 'create logical model'
   | 'edit logical model'
@@ -333,6 +341,29 @@ describe('NativeQueriesBrowserSidebar', () => {
 
   afterAll(() => server.close());
 
+  it('does not list default-source objects on an unknown source route', async () => {
+    mocks.router.query.dataSourceSlug = 'other';
+    render(<NativeQueriesBrowserSidebar />);
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole('combobox', { name: 'Data Source' }),
+      ).toBeEnabled(),
+    );
+    expect(
+      screen.getByRole('combobox', { name: 'Data Source' }),
+    ).toHaveTextContent('Select a data source');
+    expect(
+      screen.queryByRole('navigation', { name: 'Native queries navigation' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'New native query' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'New logical model' }),
+    ).not.toBeInTheDocument();
+  });
+
   it.each(guardedDrawerSurfaces)(
     'guards dirty Cancel and preserves the %s draft until discard',
     async (surface) => {
@@ -366,6 +397,29 @@ describe('NativeQueriesBrowserSidebar', () => {
       await waitFor(() => expect(description).not.toBeInTheDocument());
     },
   );
+
+  it('guards a route change while a drawer form is dirty', async () => {
+    const user = new TestUserEvent();
+    render(<NativeQueriesBrowserSidebar />);
+    const description = await openGuardedDrawer(user, 'edit logical model');
+    await user.clear(description);
+    await user.type(description, 'Dirty route draft');
+
+    let routeError: unknown;
+    await act(async () => {
+      try {
+        mocks.routeChangeStart?.();
+      } catch (error) {
+        routeError = error;
+      }
+    });
+    expect(routeError).toEqual(new Error('Unsaved changes'));
+
+    expect(
+      await screen.findByRole('dialog', { name: 'Unsaved changes' }),
+    ).toBeInTheDocument();
+    expect(description).toHaveValue('Dirty route draft');
+  });
 
   it.each(['edit native query', 'edit logical model'] as const)(
     'keeps a failed %s save dirty and retries the preserved draft',
@@ -487,17 +541,30 @@ describe('NativeQueriesBrowserSidebar', () => {
     await user.click(screen.getByRole('button', { name: 'New logical model' }));
     expect(screen.getByText('Create logical model')).toBeInTheDocument();
 
-    await user.type(screen.getByLabelText('Field 1 name'), 'id');
-    await user.click(screen.getByRole('button', { name: 'Create' }));
-    expect(await screen.findByText('Name is required.')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Name'), {
+      target: { value: 'author_result' },
+    });
+    fireEvent.change(screen.getByLabelText('Field 1 name'), {
+      target: { value: 'id' },
+    });
+    fireEvent.submit(
+      screen.getByRole('button', { name: 'Create' }).closest('form')!,
+    );
+    expect(
+      await screen.findByText('A logical model with this name already exists.'),
+    ).toBeInTheDocument();
     expect(mutationBodies).toHaveLength(0);
 
-    await user.type(screen.getByLabelText('Name'), 'new_result');
+    fireEvent.change(screen.getByLabelText('Name'), {
+      target: { value: 'new_result' },
+    });
     await user.click(
       screen.getByRole('combobox', { name: 'Field 1 scalar type' }),
     );
     await user.click(screen.getByRole('option', { name: 'uuid' }));
-    await user.click(screen.getByRole('button', { name: 'Create' }));
+    fireEvent.submit(
+      screen.getByRole('button', { name: 'Create' }).closest('form')!,
+    );
     await waitFor(() => expect(mutationBodies).toHaveLength(1));
     expect(mutationBodies[0].up[0]).toMatchObject({
       type: 'bulk_atomic',
@@ -567,9 +634,7 @@ describe('NativeQueriesBrowserSidebar', () => {
       await screen.findByText('Roles & Actions overview'),
     ).toBeInTheDocument();
     expect(
-      within(
-        screen.getByRole('row', { name: 'user Full permission' }),
-      ).getByRole('button'),
+      screen.getByRole('button', { name: 'user select: full access' }),
     ).toBeInTheDocument();
   });
 
@@ -582,16 +647,29 @@ describe('NativeQueriesBrowserSidebar', () => {
     expect(screen.getByText('Create native query')).toBeInTheDocument();
 
     const rootFieldName = await screen.findByLabelText('Root field name');
-    await user.type(rootFieldName, 'list_authors');
-    await user.click(screen.getByRole('button', { name: 'Create' }));
-    expect(await screen.findByText('SQL is required.')).toBeInTheDocument();
+    fireEvent.change(rootFieldName, {
+      target: { value: 'search_authors' },
+    });
+    fireEvent.submit(
+      screen.getByRole('button', { name: 'Create' }).closest('form')!,
+    );
+    expect(
+      await screen.findByText(
+        'A native query with this root field name already exists.',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText('SQL is required.')).toBeInTheDocument();
     expect(mutationBodies).toHaveLength(0);
 
-    await user.type(
-      screen.getByLabelText('SQL editor'),
-      'SELECT * FROM authors',
+    fireEvent.change(rootFieldName, {
+      target: { value: 'list_authors' },
+    });
+    fireEvent.change(screen.getByLabelText('SQL editor'), {
+      target: { value: 'SELECT * FROM authors' },
+    });
+    fireEvent.submit(
+      screen.getByRole('button', { name: 'Create' }).closest('form')!,
     );
-    await user.click(screen.getByRole('button', { name: 'Create' }));
 
     await waitFor(() => expect(mutationBodies).toHaveLength(1));
     expect(mutationBodies[0].up[0]).toMatchObject({
@@ -618,6 +696,114 @@ describe('NativeQueriesBrowserSidebar', () => {
     expect(
       screen.queryByRole('dialog', { name: 'Unsaved changes' }),
     ).not.toBeInTheDocument();
+  });
+
+  it('opens native query relationships in a drawer without navigating', async () => {
+    const user = new TestUserEvent();
+    render(<NativeQueriesBrowserSidebar />);
+
+    await screen.findByText('search_authors');
+    await user.click(
+      screen.getByRole('button', { name: 'Actions for search_authors' }),
+    );
+    await user.click(
+      screen.getByRole('menuitem', { name: 'Edit Relationships' }),
+    );
+
+    expect(
+      screen.getByText('Edit Relationships for', { exact: false }),
+    ).toBeInTheDocument();
+    expect(await screen.findByText('1 object · 1 array')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: 'Edit relationship featured_author',
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('related_authors')).toBeInTheDocument();
+    expect(screen.getAllByText('· 1 mapping(s)')).toHaveLength(2);
+    expect(mocks.router.push).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('button', { name: 'Relationship' }));
+    expect(
+      screen.getByRole('heading', { name: 'Create Relationship' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('1 object · 1 array')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Relationship Name'), {
+      target: { value: 'reports' },
+    });
+    chooseOption('Target Native Query', 'search_authors');
+    fireEvent.click(screen.getByRole('button', { name: 'Add New Mapping' }));
+    const relationshipForm = screen
+      .getByRole('button', { name: 'Create Relationship' })
+      .closest('form');
+    expect(relationshipForm).not.toBeNull();
+    if (relationshipForm) {
+      fireEvent.submit(relationshipForm);
+    }
+
+    await waitFor(() => expect(mutationBodies).toHaveLength(1));
+    const originalQuery =
+      hasuraMetadataFixture.metadata.sources[0].native_queries[0];
+    expect(mutationBodies).toEqual([
+      {
+        name: 'update_native_query_search_authors',
+        datasource: 'default',
+        up: [
+          {
+            type: 'bulk_atomic',
+            args: [
+              {
+                type: 'pg_untrack_native_query',
+                args: { source: 'default', root_field_name: 'search_authors' },
+              },
+              {
+                type: 'pg_track_native_query',
+                args: {
+                  ...originalQuery,
+                  source: 'default',
+                  object_relationships: [
+                    ...originalQuery.object_relationships,
+                    {
+                      name: 'reports',
+                      using: {
+                        column_mapping: { id: 'id' },
+                        insertion_order: null,
+                        remote_native_query: 'search_authors',
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+        ],
+        down: [
+          {
+            type: 'bulk_atomic',
+            args: [
+              {
+                type: 'pg_untrack_native_query',
+                args: { source: 'default', root_field_name: 'search_authors' },
+              },
+              {
+                type: 'pg_track_native_query',
+                args: { ...originalQuery, source: 'default' },
+              },
+            ],
+          },
+        ],
+      },
+    ]);
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('heading', { name: 'Create Relationship' }),
+      ).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.getByText('Edit Relationships for', { exact: false }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Back' })).toBeInTheDocument();
   });
 
   it('opens edit and delete flows for native queries', async () => {
