@@ -3,7 +3,6 @@
 set -eu
 
 clear_pgdata() {
-	mkdir -p "$PGDATA"
 	find "$PGDATA" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +
 }
 
@@ -28,14 +27,12 @@ init_db() {
 
 	if [ ! -f "$PGDATA/PG_VERSION" ]; then
 		echo "Initializing database"
-		clear_pgdata
 		password_file=$(mktemp -p /tmp/postgresql postgres-password.XXXXXX)
 		chmod 600 "$password_file"
 		printf '%s\n' "$POSTGRES_PASSWORD" >"$password_file"
 
 		if ! initdb --username="$POSTGRES_USER" --pwfile="$password_file"; then
 			rm -f "$password_file"
-			clear_pgdata
 			return 1
 		fi
 
