@@ -21,8 +21,11 @@ import (
 var sanitizeNameDrop = regexp.MustCompile(`[^a-zA-Z0-9._-]`)
 
 // sanitizeName turns a project name into one docker compose accepts --
-// `[a-z0-9][a-z0-9_-]*` -- or into the empty string, which every caller treats
-// as a name it cannot use.
+// `[a-z0-9][a-z0-9_-]*` -- or into the empty string when the name holds nothing
+// compose could be started from. What the empty string means is each caller's
+// to decide: WriteProjectName and projectNameFileSource.Lookup refuse a name
+// that sanitizes to it, while resolveProjectName passes the raw name on for
+// compose to refuse.
 //
 // A dot becomes a dash rather than being dropped. Dropping it merged names that
 // are different projects: `my.app` and `myapp` both became `myapp`, so two
@@ -31,11 +34,9 @@ var sanitizeNameDrop = regexp.MustCompile(`[^a-zA-Z0-9._-]`)
 // compose's narrower alphabet can be one-to-one, and `my.app` and `my-app` now
 // land on the same `my-app`.
 //
-// A name that still leads with a dash or underscore is rejected rather than
-// trimmed into shape, because trimming merged `_myapp` into a neighbouring
-// `myapp` and quietly handed it that project's volume. Compose refuses such a
-// name anyway, so rejecting it turns silent sharing back into an error the
-// caller reports.
+// A name that still leads with a dash or underscore comes back empty rather
+// than trimmed into shape, because trimming merged `_myapp` into a neighbouring
+// `myapp` and quietly handed it that project's volume.
 func sanitizeName(name string) string {
 	lowered := strings.ToLower(sanitizeNameDrop.ReplaceAllString(name, ""))
 
@@ -137,6 +138,13 @@ func FromCLI(cmd *cli.Command) *CliEnv {
 // what lets `nhost up --nhost-folder backend/nhost` reach the same project the
 // backend directory records, instead of falling back to the directory name and
 // bringing up a second set of containers and a second Postgres volume.
+//
+// A name sanitizeName can make nothing of is passed on raw instead of as the
+// empty string, because compose reads an empty -p as no -p at all: it names the
+// project after --project-directory and normalises that name by trimming the
+// very leading `_` and `-` this package refuses to trim, so a directory named
+// `_myapp` silently took over `myapp`'s containers and Postgres volume. Handing
+// compose the raw name gets the name refused out loud instead.
 func resolveProjectName(cmd *cli.Command, path *PathStructure) string {
 	// IsSet covers both the flag and NHOST_PROJECT_NAME: a value taken from an
 	// env source marks the flag as set too.
@@ -147,7 +155,12 @@ func resolveProjectName(cmd *cli.Command, path *PathStructure) string {
 		}
 	}
 
-	return sanitizeName(cmd.String(flagProjectName))
+	name := cmd.String(flagProjectName)
+	if sanitized := sanitizeName(name); sanitized != "" {
+		return sanitized
+	}
+
+	return name
 }
 
 func (ce *CliEnv) ProjectName() string {

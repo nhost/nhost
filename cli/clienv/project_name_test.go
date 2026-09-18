@@ -103,7 +103,10 @@ func TestWriteProjectNameSaysWhyItRefusedTheName(t *testing.T) {
 // of them set NHOST_PROJECT_NAME.
 func TestProjectNameResolution(t *testing.T) {
 	tests := []struct {
-		name         string
+		name string
+		// dir is what the working directory itself is called, which is the last
+		// thing the project name falls back to.
+		dir          string
 		fileContents string
 		env          string
 		folderEnv    string
@@ -120,6 +123,45 @@ func TestProjectNameResolution(t *testing.T) {
 			env:          "",
 			args:         nil,
 			want:         "backend",
+		},
+		// A name nothing usable can be made of reaches docker compose as it was
+		// given. Resolving it to the empty string handed compose `-p ""`, which
+		// compose reads as no project name at all: it names the project after
+		// the directory and trims the leading `_` itself, so `_myapp` took over
+		// the containers and Postgres volume of a sibling `myapp` instead of
+		// being refused.
+		{
+			name:         "a working directory compose would refuse is passed on whole",
+			dir:          "_myapp",
+			fileContents: "",
+			env:          "",
+			args:         nil,
+			want:         "_myapp",
+		},
+		{
+			name:         "a --project-name compose would refuse is passed on whole",
+			fileContents: "",
+			env:          "",
+			args:         []string{"--project-name", "-myapp"},
+			want:         "-myapp",
+		},
+		{
+			name:         "a NHOST_PROJECT_NAME compose would refuse is passed on whole",
+			fileContents: "",
+			env:          "\u65e5\u672c\u8a9e",
+			args:         nil,
+			want:         "\u65e5\u672c\u8a9e",
+		},
+		// The recorded name is refused where it is read, so an unusable one
+		// falls through to the directory -- and an unusable directory is still
+		// handed over whole rather than resolving to nothing.
+		{
+			name:         "an unusable recorded name falls back to the directory whole",
+			dir:          "_myapp",
+			fileContents: "_recorded\n",
+			env:          "",
+			args:         nil,
+			want:         "_myapp",
 		},
 		{
 			name:         "the recorded project name wins over the directory name",
@@ -195,7 +237,12 @@ func TestProjectNameResolution(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			root := filepath.Join(t.TempDir(), "backend")
+			dir := tt.dir
+			if dir == "" {
+				dir = "backend"
+			}
+
+			root := filepath.Join(t.TempDir(), dir)
 			if err := os.MkdirAll(filepath.Join(root, "nhost"), 0o755); err != nil {
 				t.Fatalf("create backend folder: %v", err)
 			}
