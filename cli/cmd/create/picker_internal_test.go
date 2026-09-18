@@ -114,9 +114,7 @@ func TestReadActionsAppliesEveryPressInOneRead(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			buf := make([]byte, keyBufferSize)
-
-			got, err := readActions(strings.NewReader(tt.input), buf)
+			got, err := newKeyReader(strings.NewReader(tt.input)).readActions()
 			if err != nil {
 				t.Fatalf("readActions: %v", err)
 			}
@@ -134,9 +132,9 @@ func TestReadActionsMovesTheCursorOncePerPress(t *testing.T) {
 
 	const items = 4
 
-	buf := make([]byte, keyBufferSize)
-
-	actions, err := readActions(strings.NewReader(strings.Repeat("\x1b[B", 3)), buf)
+	actions, err := newKeyReader(
+		strings.NewReader(strings.Repeat("\x1b[B", 3)),
+	).readActions()
 	if err != nil {
 		t.Fatalf("readActions: %v", err)
 	}
@@ -148,6 +146,64 @@ func TestReadActionsMovesTheCursorOncePerPress(t *testing.T) {
 
 	if cursor != 3 {
 		t.Errorf("cursor after three down presses in one read = %d, want 3", cursor)
+	}
+}
+
+// A burst longer than one read splits a key press across the boundary, and the
+// press the split falls inside has to survive it. Six arrows are 18 bytes: the
+// first read takes 16 and ends holding the bare ESC of the sixth, whose `[B`
+// arrives on the read behind it. That sixth press used to be lost three times
+// over -- the ESC decoded as an ignored press and the tail thrown away, then
+// `[` and `B` decoded as two more ignored presses -- leaving five moves where
+// the user made six.
+func TestReadActionsKeepsAPressSplitAcrossReads(t *testing.T) {
+	t.Parallel()
+
+	// More items than presses, so the moves cannot wrap around and land on a
+	// cursor a shorter run of them would also reach.
+	const (
+		presses = 6
+		items   = 10
+	)
+
+	if presses*csiArrowLen <= keyBufferSize {
+		t.Fatalf(
+			"%d arrows fit in one read of %d bytes, so nothing is split",
+			presses, keyBufferSize,
+		)
+	}
+
+	keys := newKeyReader(strings.NewReader(strings.Repeat("\x1b[B", presses)))
+
+	cursor := 0
+	moves := 0
+
+	for moves < presses {
+		// A read past the end of the burst fails, which is how a lost press
+		// shows up here: the moves never add up to the presses made.
+		actions, err := keys.readActions()
+		if err != nil {
+			t.Fatalf("readActions after %d of %d moves: %v", moves, presses, err)
+		}
+
+		for _, action := range actions {
+			if action == actionDown {
+				moves++
+			}
+
+			cursor = moveSelection(cursor, action, items)
+		}
+	}
+
+	if moves != presses {
+		t.Errorf("moves from %d arrows split across reads = %d, want %d", presses, moves, presses)
+	}
+
+	if cursor != presses {
+		t.Errorf(
+			"cursor after %d arrows split across reads = %d, want %d",
+			presses, cursor, presses,
+		)
 	}
 }
 
@@ -237,9 +293,7 @@ func TestRenderItems(t *testing.T) {
 func TestReadActionsReportsAClosedTerminal(t *testing.T) {
 	t.Parallel()
 
-	buf := make([]byte, keyBufferSize)
-
-	if _, err := readActions(strings.NewReader(""), buf); err == nil {
+	if _, err := newKeyReader(strings.NewReader("")).readActions(); err == nil {
 		t.Error("readActions() error = nil, want a failure")
 	}
 }
