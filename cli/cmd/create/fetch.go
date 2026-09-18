@@ -8,8 +8,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-
-	"github.com/nhost/nhost/cli/clienv"
 )
 
 var (
@@ -19,7 +17,6 @@ var (
 
 func fetchTemplate(
 	ctx context.Context,
-	_ *clienv.CliEnv,
 	repo string,
 	ref string,
 	tmpl template,
