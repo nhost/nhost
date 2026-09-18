@@ -170,7 +170,15 @@ export default function WorkOsProviderSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            title="WorkOS"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">WorkOS</h3>
+                <SettingsDocsLink
+                  href="https://docs.nhost.io/products/auth/providers/sign-in-workos"
+                  title="how to sign in users with WorkOS"
+                />
+              </span>
+            }
             description="Allow users to sign in with WorkOS."
             icon="/assets/brands/workos.svg"
             control={
@@ -221,11 +229,6 @@ export default function WorkOsProviderSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/providers/sign-in-workos"
-              title="how to sign in users with WorkOS"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

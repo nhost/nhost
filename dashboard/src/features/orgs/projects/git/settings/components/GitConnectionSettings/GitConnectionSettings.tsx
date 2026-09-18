@@ -3,7 +3,6 @@ import { useState } from 'react';
 import {
   SettingsCard,
   SettingsCardContent,
-  SettingsCardFooter,
   SettingsCardHeader,
   SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
@@ -55,7 +54,15 @@ export default function GitConnectionSettings() {
   return (
     <SettingsCard>
       <SettingsCardHeader
-        title="Git Repository"
+        title={
+          <span className="flex items-center gap-2">
+            <h3 className="font-semibold text-lg">Git Repository</h3>
+            <SettingsDocsLink
+              href="https://docs.nhost.io/platform/cloud/deployments"
+              title="Git Repository"
+            />
+          </span>
+        }
         description="Create Deployments for commits pushed to your Git repository."
       />
 
@@ -85,13 +92,6 @@ export default function GitConnectionSettings() {
           </div>
         )}
       </SettingsCardContent>
-
-      <SettingsCardFooter>
-        <SettingsDocsLink
-          href="https://docs.nhost.io/platform/cloud/deployments"
-          title="Git Repository"
-        />
-      </SettingsCardFooter>
 
       <AlertDialog
         open={isDisconnectDialogOpen}

@@ -21,7 +21,10 @@ import {
 import type { EnvironmentVariable } from '@/types/application';
 
 export interface EditEnvironmentVariableFormProps
-  extends Pick<BaseEnvironmentVariableFormProps, 'onCancel' | 'location'> {
+  extends Pick<
+    BaseEnvironmentVariableFormProps,
+    'onCancel' | 'onDirtyStateChange'
+  > {
   /**
    * The environment variable to edit.
    */

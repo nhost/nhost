@@ -4,6 +4,11 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { z } from 'zod';
+import {
+  SettingsCard,
+  SettingsCardContent,
+  SettingsCardFooter,
+} from '@/components/layout/SettingsCard';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Form,
@@ -79,13 +84,9 @@ export default function GeneralSettings() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <div className="flex w-full flex-col rounded-md border bg-background">
-          <div className="w-full border-b p-4 font-medium">
-            General Settings
-          </div>
-
-          <div className="flex w-full flex-col gap-4 p-4 sm:max-w-lg">
+      <SettingsCard asChild>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <SettingsCardContent className="sm:grid-cols-2">
             <FormField
               control={form.control}
               name="name"
@@ -100,7 +101,7 @@ export default function GeneralSettings() {
               )}
             />
 
-            <div className="flex flex-col gap-2">
+            <div className="space-y-2">
               <Label htmlFor="slug">Organization slug</Label>
               <div className="relative">
                 <Input
@@ -119,9 +120,9 @@ export default function GeneralSettings() {
                 </Button>
               </div>
             </div>
-          </div>
+          </SettingsCardContent>
 
-          <div className="flex justify-end gap-2 border-t p-2">
+          <SettingsCardFooter className="border-t-0">
             <ButtonWithLoading
               type="submit"
               disabled={!form.formState.isDirty}
@@ -129,9 +130,9 @@ export default function GeneralSettings() {
             >
               Save
             </ButtonWithLoading>
-          </div>
-        </div>
-      </form>
+          </SettingsCardFooter>
+        </form>
+      </SettingsCard>
     </Form>
   );
 }

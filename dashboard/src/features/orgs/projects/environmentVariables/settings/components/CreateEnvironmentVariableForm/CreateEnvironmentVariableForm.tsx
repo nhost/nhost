@@ -21,7 +21,10 @@ import {
 import { useTrackEvent } from '@/hooks/useTrackEvent';
 
 export interface CreateEnvironmentVariableFormProps
-  extends Pick<BaseEnvironmentVariableFormProps, 'onCancel' | 'location'> {
+  extends Pick<
+    BaseEnvironmentVariableFormProps,
+    'onCancel' | 'onDirtyStateChange'
+  > {
   /**
    * Function to be called when the form is submitted.
    */
@@ -131,7 +134,7 @@ export default function CreateEnvironmentVariableForm({
     <FormProvider {...form}>
       <BaseEnvironmentVariableForm
         mode="create"
-        submitButtonText="Create"
+        submitButtonText="Create variable"
         onSubmit={handleSubmit}
         {...props}
       />

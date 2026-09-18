@@ -120,7 +120,7 @@ function getConfirmationInput() {
 }
 
 function getDeleteButton() {
-  return screen.getByRole('button', { name: 'Delete Project' });
+  return screen.getByRole('button', { name: 'Delete project' });
 }
 
 function getCancelButton() {
@@ -239,7 +239,7 @@ describe('RemoveApplicationDialog', () => {
     });
     expect(mocks.track).toHaveBeenCalledWith('Project Deleted');
     await waitFor(() => {
-      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
     expect(mocks.push).toHaveBeenCalledWith('/orgs/example-org/projects');
     expect(mocks.triggerToast).toHaveBeenCalledWith('Example Project deleted');
@@ -267,7 +267,7 @@ describe('RemoveApplicationDialog', () => {
     await waitFor(() => {
       expect(getCancelButton()).toBeEnabled();
     });
-    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 
   it('releases the pending state when a custom handler fails', async () => {
@@ -289,6 +289,6 @@ describe('RemoveApplicationDialog', () => {
     await waitFor(() => {
       expect(getCancelButton()).toBeEnabled();
     });
-    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 });

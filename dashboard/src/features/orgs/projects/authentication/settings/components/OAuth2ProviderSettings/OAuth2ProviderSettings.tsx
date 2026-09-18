@@ -176,7 +176,15 @@ export default function OAuth2ProviderSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            title="OAuth2 Provider"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">OAuth2 Provider</h3>
+                <SettingsDocsLink
+                  href="https://docs.nhost.io/products/auth/oauth2-provider"
+                  title="OAuth2 Providers"
+                />
+              </span>
+            }
             description={
               <>
                 Enable the OAuth2 provider to allow third-party applications to
@@ -271,11 +279,6 @@ export default function OAuth2ProviderSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/oauth2-provider"
-              title="OAuth2 Providers"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

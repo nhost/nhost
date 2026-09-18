@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
-import { Dialog, DialogContent } from '@/components/ui/v3/dialog';
+import { AppDialog } from '@/components/layout/AppDialog';
 import CreateOrgDialog from '@/features/orgs/components/CreateOrgFormDialog/CreateOrgFormDialog';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
@@ -75,18 +75,22 @@ export default function TransferProjectDialog({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={handleTransferProjectDialogOpenChange}>
-        <DialogContent className="z-[9999] text-foreground sm:max-w-xl">
-          <TransferProjectDialogContent
-            onFinishOrgCreationCompleted={handleFinishOrgCreationCompleted}
-            onFinishOrgError={() => setPreventClose(false)}
-            onCreateNewOrg={handleCreateNewOrg}
-            onCancel={handleCancel}
-            selectedOrganizationId={selectedOrgId}
-            onOrganizationChange={setSelectedOrgId}
-          />
-        </DialogContent>
-      </Dialog>
+      <AppDialog
+        type="form"
+        open={open}
+        onOpenChange={handleTransferProjectDialogOpenChange}
+        title="Move the current project to a different organization."
+        contentClassName="z-[9999]"
+      >
+        <TransferProjectDialogContent
+          onFinishOrgCreationCompleted={handleFinishOrgCreationCompleted}
+          onFinishOrgError={() => setPreventClose(false)}
+          onCreateNewOrg={handleCreateNewOrg}
+          onCancel={handleCancel}
+          selectedOrganizationId={selectedOrgId}
+          onOrganizationChange={setSelectedOrgId}
+        />
+      </AppDialog>
       <CreateOrgDialog
         hideNewOrgButton
         isOpen={showCreateOrgModal}

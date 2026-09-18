@@ -1,6 +1,7 @@
 import { SiGithub } from '@icons-pack/react-simple-icons';
 import { Plus } from 'lucide-react';
 import { useRouter } from 'next/router';
+import { useState } from 'react';
 import HeaderCombobox from '@/components/layout/Header/HeaderCombobox';
 import ProjectStatus from '@/components/layout/Header/ProjectStatus';
 import {
@@ -8,8 +9,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
-import { ProjectStatusPill } from '@/features/orgs/components/common/ProjectStatusPill';
+import { ProjectStatusPillCompact } from '@/features/orgs/components/common/ProjectStatusPillCompact';
+import { CreateProjectLimitDialog } from '@/features/orgs/components/projects/CreateProjectLimitDialog';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
+import { useCreateProjectGate } from '@/features/orgs/projects/hooks/useCreateProjectGate';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { ApplicationStatus } from '@/types/application';
@@ -26,6 +29,8 @@ export default function ProjectsComboBox() {
   const { currentOrg: { slug: orgSlug, apps = [] } = {} } = useOrgs();
   const { project } = useProject();
   const isGitHubConnected = !!project?.githubRepository;
+  const { isBlocked, liveProjectSubdomain } = useCreateProjectGate();
+  const [showLimitDialog, setShowLimitDialog] = useState(false);
 
   const selectedProjectFromUrl = apps.find(
     (app) => app.subdomain === appSubdomain,
@@ -71,7 +76,7 @@ export default function ProjectsComboBox() {
                 </TooltipContent>
               </Tooltip>
             )}
-            <ProjectStatusPill status={rowStatus} />
+            <ProjectStatusPillCompact status={rowStatus} />
           </div>
         </div>
       ),
@@ -99,7 +104,7 @@ export default function ProjectsComboBox() {
           </TooltipContent>
         </Tooltip>
       )}
-      <ProjectStatusPill status={appState} />
+      <ProjectStatusPillCompact status={appState} />
       <ProjectStatus />
     </div>
   ) : null;
@@ -110,6 +115,11 @@ export default function ProjectsComboBox() {
         type="button"
         onClick={() => {
           if (!orgSlug) {
+            return;
+          }
+
+          if (isBlocked) {
+            setShowLimitDialog(true);
             return;
           }
 
@@ -124,22 +134,30 @@ export default function ProjectsComboBox() {
   );
 
   return (
-    <HeaderCombobox
-      options={options}
-      value={selectedProjectFromUrl?.subdomain ?? null}
-      triggerLabel={triggerLabel}
-      placeholder="Select a project"
-      searchPlaceholder="Select a project..."
-      footerSlot={footerSlot}
-      popoverContentClassName="w-[290px]"
-      linkHref={
-        selectedProjectFromUrl && orgSlug
-          ? `/orgs/${orgSlug}/projects/${selectedProjectFromUrl.subdomain}`
-          : undefined
-      }
-      linkContent={triggerLabel}
-      aria-label="Switch project"
-      onChange={handleProjectSelect}
-    />
+    <>
+      <HeaderCombobox
+        options={options}
+        value={selectedProjectFromUrl?.subdomain ?? null}
+        triggerLabel={triggerLabel}
+        placeholder="Select a project"
+        searchPlaceholder="Select a project..."
+        footerSlot={footerSlot}
+        popoverContentClassName="w-[290px]"
+        linkHref={
+          selectedProjectFromUrl && orgSlug
+            ? `/orgs/${orgSlug}/projects/${selectedProjectFromUrl.subdomain}`
+            : undefined
+        }
+        linkContent={triggerLabel}
+        aria-label="Switch project"
+        onChange={handleProjectSelect}
+      />
+      <CreateProjectLimitDialog
+        open={showLimitDialog}
+        onOpenChange={setShowLimitDialog}
+        orgSlug={orgSlug}
+        projectSubdomain={liveProjectSubdomain}
+      />
+    </>
   );
 }

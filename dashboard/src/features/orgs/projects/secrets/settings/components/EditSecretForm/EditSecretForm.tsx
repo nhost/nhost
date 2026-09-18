@@ -20,7 +20,7 @@ import type { Secret } from '@/types/application';
 import type { MakeRequired } from '@/types/common';
 
 export interface EditSecretFormProps
-  extends Pick<BaseSecretFormProps, 'onCancel'> {
+  extends Pick<BaseSecretFormProps, 'onCancel' | 'onDirtyStateChange'> {
   /**
    * The secret to edit.
    */

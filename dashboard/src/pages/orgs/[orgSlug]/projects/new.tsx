@@ -1,3 +1,4 @@
+import { Check, Info } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import type { FormEvent, ReactElement } from 'react';
@@ -5,15 +6,8 @@ import { useState } from 'react';
 import slugify from 'slugify';
 import { Container } from '@/components/layout/Container';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
-import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Input } from '@/components/ui/v3/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/v3/select';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { OrganizationLayout } from '@/features/orgs/layout/OrganizationLayout';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
@@ -27,20 +21,103 @@ import {
 } from '@/generated/graphql';
 import { useSubmitState } from '@/hooks/useSubmitState';
 import { analytics } from '@/lib/segment';
+import { cn } from '@/lib/utils';
 import { getErrorMessage } from '@/utils/getErrorMessage';
 
 type NewAppPageProps = {
   regions: PrefetchNewAppRegionsFragment[];
-  orgs: GetOrganizationsQuery['organizations'];
   preSelectedOrg: GetOrganizationsQuery['organizations'][0];
   preSelectedRegion: PrefetchNewAppRegionsFragment;
 };
 
-type OpenSelect = 'organization' | 'region' | null;
+interface RegionCardProps {
+  selected: boolean;
+  disabled: boolean;
+  name: string;
+  country: string;
+  code: string;
+  onSelect: () => void;
+  onHoverChange: (hovered: boolean) => void;
+}
+
+/** Selectable region card used by the region grid below. */
+function RegionCard({
+  selected,
+  disabled,
+  name,
+  country,
+  code,
+  onSelect,
+  onHoverChange,
+}: RegionCardProps) {
+  return (
+    // biome-ignore lint/a11y/useSemanticElements: custom radio-group option, not a native form control
+    <button
+      type="button"
+      role="radio"
+      aria-checked={selected}
+      disabled={disabled}
+      onClick={onSelect}
+      onMouseEnter={() => onHoverChange(true)}
+      onMouseLeave={() => onHoverChange(false)}
+      onFocus={() => onHoverChange(true)}
+      onBlur={() => onHoverChange(false)}
+      className={cn(
+        'flex w-full items-center gap-2.5 rounded-md border px-3 py-2.5 text-left transition-colors',
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+        'disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-border',
+        selected
+          ? 'border-primary bg-primary/[0.06]'
+          : 'border-border bg-background hover:border-primary',
+      )}
+    >
+      <Image
+        src={`/assets/flags/${code}.svg`}
+        alt={`${country} country flag`}
+        width={16}
+        height={12}
+        className="shrink-0"
+      />
+      <span className="min-w-0 flex-1">
+        <span className="block truncate font-medium text-foreground text-sm">
+          {name}
+        </span>
+        <span className="block truncate text-muted-foreground text-xs">
+          {country}
+        </span>
+      </span>
+      {disabled ? (
+        <span className="shrink-0 text-muted-foreground text-xs">Disabled</span>
+      ) : (
+        selected && <Check className="h-4 w-4 shrink-0 text-primary" />
+      )}
+    </button>
+  );
+}
+
+// Playful per-region greeting shown when hovering/selecting a region, matching the
+// Lovable reference design. Falls back to a generic greeting for any region not
+// listed here (e.g. new regions added after this list was written).
+const REGION_GREETINGS: Record<string, string> = {
+  frankfurt: "Hallo, wie geht's?",
+  london: "Hello. How's it going?",
+  mumbai: 'Namaste, kaise ho?',
+  'n. virginia': "Hey, how's it going?",
+  'north virginia': "Hey, how's it going?",
+  oregon: 'Hey there!',
+  'são paulo': 'Oi, tudo bem?',
+  'sao paulo': 'Oi, tudo bem?',
+  singapore: 'Hello, ready to build?',
+  sydney: "G'day, how are ya?",
+  stockholm: 'Hej, hur mår du?',
+};
+
+function getRegionGreeting(cityName: string) {
+  return REGION_GREETINGS[cityName.toLowerCase()] ?? 'Hello! Ready to build?';
+}
 
 export function NewProjectPageContent({
   regions,
-  orgs,
   preSelectedOrg,
   preSelectedRegion,
 }: NewAppPageProps) {
@@ -49,12 +126,11 @@ export function NewProjectPageContent({
   // form
   const [name, setName] = useState('');
 
-  const [selectedOrg, setSelectedOrg] = useState({
+  const selectedOrg = {
     id: preSelectedOrg.id,
     name: preSelectedOrg.name,
-    disabled: false,
     slug: preSelectedOrg.slug,
-  });
+  };
 
   const [selectedRegion, setSelectedRegion] = useState({
     id: preSelectedRegion.id,
@@ -63,20 +139,13 @@ export function NewProjectPageContent({
     code: preSelectedRegion.country.code,
   });
 
-  const [openSelect, setOpenSelect] = useState<OpenSelect>(null);
+  const [hoveredRegionId, setHoveredRegionId] = useState<string | null>(null);
 
   const { submitState, setSubmitState } = useSubmitState();
 
   const [insertApp] = useInsertOrgApplicationMutation();
 
   // options
-  const orgOptions = orgs.map((org) => ({
-    id: org.id,
-    name: `${org.name}`,
-    disabled: false,
-    slug: org.slug,
-  }));
-
   const regionOptions = regions.map((region) => ({
     id: region.id,
     name: region.city,
@@ -85,6 +154,10 @@ export function NewProjectPageContent({
     active: region.active,
     disabled: !region.active,
   }));
+
+  const previewRegion =
+    regionOptions.find((option) => option.id === hoveredRegionId) ??
+    regionOptions.find((option) => option.id === selectedRegion.id);
 
   async function handleCreateProject(event: FormEvent) {
     event.preventDefault();
@@ -172,23 +245,26 @@ export function NewProjectPageContent({
   }
 
   return (
-    <Container>
-      <form onSubmit={handleSubmit}>
-        <div className="mx-auto grid max-w-[760px] grid-flow-row gap-4 py-6 sm:py-14">
-          <h1 className="font-medium text-2xl">New Project</h1>
+    <div className="flex h-full flex-col overflow-auto bg-accent-background">
+      <div className="mx-auto flex w-full max-w-5xl flex-col px-5 pt-8 pb-16">
+        <h1 className="mb-6 font-semibold text-3xl">Create project</h1>
 
+        <form
+          onSubmit={handleSubmit}
+          className="grid w-full max-w-[760px] grid-flow-row gap-4"
+        >
           <div className="grid grid-flow-row gap-4">
             <div className="grid gap-1 sm:grid-cols-8 sm:items-center sm:gap-4 sm:py-3">
               <label
                 htmlFor="name"
                 className="font-medium text-sm+ sm:col-span-2"
               >
-                Project Name
+                Project name
               </label>
               <Input
                 id="name"
                 autoComplete="off"
-                placeholder="Project Name"
+                placeholder="Project name"
                 wrapperClassName="sm:col-span-6"
                 onChange={(event) => {
                   setSubmitState({
@@ -202,165 +278,61 @@ export function NewProjectPageContent({
               />
             </div>
 
-            <div className="grid gap-1 sm:grid-cols-8 sm:items-center sm:gap-4 sm:py-3">
-              <label
-                htmlFor="organization"
-                className="font-medium text-sm+ sm:col-span-2"
-              >
-                Organization
-              </label>
-              <Select
-                value={selectedOrg.id}
-                open={openSelect === 'organization'}
-                onOpenChange={(open) => {
-                  if (open) {
-                    setOpenSelect('organization');
-                    return;
-                  }
-
-                  setOpenSelect((current) =>
-                    current === 'organization' ? null : current,
-                  );
-                }}
-                onValueChange={(value) => {
-                  const orgInList = orgs.find(({ id }) => id === value)!;
-
-                  setSelectedOrg({
-                    id: orgInList.id,
-                    name: orgInList.name,
-                    disabled: false,
-                    slug: orgInList.slug,
-                  });
-                  setOpenSelect(null);
-                }}
-              >
-                <SelectTrigger
-                  id="organization"
-                  className="sm:col-span-6"
-                  onPointerDownCapture={() => {
-                    setOpenSelect((current) =>
-                      current === 'region' ? null : current,
-                    );
-                  }}
+            <div className="grid gap-1 sm:grid-cols-8 sm:gap-4 sm:py-3">
+              <span className="font-medium text-sm+ sm:col-span-2">Region</span>
+              <div className="sm:col-span-6">
+                <div
+                  role="radiogroup"
+                  aria-label="Region"
+                  className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3"
                 >
-                  <SelectValue placeholder="Select an organization">
-                    {selectedOrg.name}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent className="z-[10000]">
-                  {orgOptions.map((option) => (
-                    <SelectItem
-                      value={option.id}
+                  {regionOptions.map((option) => (
+                    <RegionCard
                       key={option.id}
-                      textValue={option.name}
-                    >
-                      <span className="inline-flex items-center gap-2">
-                        <span className="inline-block h-6 w-6 overflow-hidden rounded-md">
-                          <Image
-                            src="/logos/new.svg"
-                            alt="Nhost Logo"
-                            width={24}
-                            height={24}
-                          />
-                        </span>
+                      selected={option.id === selectedRegion.id}
+                      disabled={option.disabled}
+                      name={option.name}
+                      country={option.country}
+                      code={option.code}
+                      onSelect={() => {
+                        if (option.disabled) {
+                          return;
+                        }
 
-                        <span>{option.name}</span>
-                      </span>
-                    </SelectItem>
+                        setSelectedRegion({
+                          id: option.id,
+                          name: option.name,
+                          disabled: false,
+                          code: option.code,
+                        });
+                      }}
+                      onHoverChange={(hovered) =>
+                        setHoveredRegionId(hovered ? option.id : null)
+                      }
+                    />
                   ))}
-                </SelectContent>
-              </Select>
-            </div>
+                </div>
 
-            <div className="grid gap-1 sm:grid-cols-8 sm:items-center sm:gap-4 sm:py-3">
-              <label
-                htmlFor="region"
-                className="font-medium text-sm+ sm:col-span-2"
-              >
-                Region
-              </label>
-              <Select
-                value={selectedRegion.id}
-                open={openSelect === 'region'}
-                onOpenChange={(open) => {
-                  if (open) {
-                    setOpenSelect('region');
-                    return;
-                  }
-
-                  setOpenSelect((current) =>
-                    current === 'region' ? null : current,
-                  );
-                }}
-                onValueChange={(value) => {
-                  const regionInList = regions.find(({ id }) => id === value)!;
-                  setSelectedRegion({
-                    id: regionInList.id,
-                    name: regionInList.city,
-                    disabled: false,
-                    code: regionInList.country.code,
-                  });
-                  setOpenSelect(null);
-                }}
-              >
-                <SelectTrigger
-                  id="region"
-                  className="sm:col-span-6 [&>span]:line-clamp-none"
-                  onPointerDownCapture={() => {
-                    setOpenSelect((current) =>
-                      current === 'organization' ? null : current,
-                    );
-                  }}
-                >
-                  <SelectValue placeholder="Select Region">
-                    <span className="flex min-w-0 items-center gap-3">
+                {previewRegion && (
+                  <Alert className="mt-3 border-border bg-secondary-200">
+                    <Info className="h-4 w-4 text-muted-foreground" />
+                    <AlertTitle className="flex items-center gap-2">
                       <Image
-                        src={`/assets/flags/${selectedRegion.code}.svg`}
-                        alt={`${selectedRegion.name} country flag`}
+                        src={`/assets/flags/${previewRegion.code}.svg`}
+                        alt={`${previewRegion.country} country flag`}
                         width={16}
                         height={12}
                       />
-                      <span className="truncate">{selectedRegion.name}</span>
-                    </span>
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent className="z-[10000]">
-                  {regionOptions.map((option) => (
-                    <SelectItem
-                      value={option.id}
-                      key={option.id}
-                      textValue={option.name}
-                      disabled={option.disabled}
-                      className="py-2 [&>span:last-child]:block [&>span:last-child]:w-full"
-                    >
-                      <span className="grid w-full grid-cols-[auto_minmax(0,1fr)_auto] grid-rows-2 items-center gap-x-3">
-                        <span className="row-span-2 flex">
-                          <Image
-                            src={`/assets/flags/${option.code}.svg`}
-                            alt={`${option.country} country flag`}
-                            width={16}
-                            height={12}
-                          />
-                        </span>
-
-                        <span className="col-start-2 row-start-1 truncate font-medium text-sm leading-5">
-                          {option.name}
-                        </span>
-
-                        <span className="col-start-2 row-start-2 truncate text-muted-foreground text-xs leading-4">
-                          {option.country}
-                        </span>
-
-                        {option.disabled && (
-                          <span className="col-start-3 row-span-2 row-start-1 self-center pl-4 text-muted-foreground text-xs">
-                            Disabled
-                          </span>
-                        )}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                      {getRegionGreeting(previewRegion.name)}
+                    </AlertTitle>
+                    <AlertDescription>
+                      This is where your project&apos;s servers will physically
+                      run. Pick the one closest to where most of your users are
+                      for faster load times.
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
             </div>
           </div>
 
@@ -374,19 +346,26 @@ export function NewProjectPageContent({
             </Alert>
           )}
 
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline-emboss"
+              onClick={() => router.push(`/orgs/${selectedOrg.slug}/projects`)}
+            >
+              Cancel
+            </Button>
             <ButtonWithLoading
               type="submit"
               size="sm"
               loading={submitState.loading}
               id="create-app"
             >
-              Create Project
+              Create project
             </ButtonWithLoading>
           </div>
-        </div>
-      </form>
-    </Container>
+        </form>
+      </div>
+    </div>
   );
 }
 
@@ -414,16 +393,11 @@ export default function NewProjectPage() {
   const preSelectedRegion = regions.find((region) => region.active)!;
 
   return (
-    <div className="flex h-full w-full items-start justify-center p-4">
-      <div className="flex w-full max-w-4xl flex-col items-center justify-center space-y-8 overflow-hidden rounded-md">
-        <NewProjectPageContent
-          regions={regions}
-          orgs={orgs}
-          preSelectedOrg={preSelectedOrg}
-          preSelectedRegion={preSelectedRegion}
-        />
-      </div>
-    </div>
+    <NewProjectPageContent
+      regions={regions}
+      preSelectedOrg={preSelectedOrg}
+      preSelectedRegion={preSelectedRegion}
+    />
   );
 }
 

@@ -133,7 +133,15 @@ export default function GitHubProviderSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            title="GitHub"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">GitHub</h3>
+                <SettingsDocsLink
+                  href="https://docs.nhost.io/products/auth/providers/sign-in-github"
+                  title="how to sign in users with GitHub"
+                />
+              </span>
+            }
             description="Allow users to sign in with GitHub."
             icon={
               theme.palette.mode === 'dark'
@@ -174,11 +182,6 @@ export default function GitHubProviderSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/providers/sign-in-github"
-              title="how to sign in users with GitHub"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

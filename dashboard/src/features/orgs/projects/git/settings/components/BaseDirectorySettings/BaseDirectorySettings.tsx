@@ -85,7 +85,15 @@ export default function BaseDirectorySettings() {
       <Form onSubmit={handleBaseFolderChange}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Base Directory"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">Base Directory</h3>
+                <SettingsDocsLink
+                  href="https://docs.nhost.io/platform/cloud/deployments#base-directory"
+                  title="Base Directory"
+                />
+              </span>
+            }
             description={
               <>
                 The base directory is where the{' '}
@@ -114,11 +122,6 @@ export default function BaseDirectorySettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/platform/cloud/deployments#base-directory"
-              title="Base Directory"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty || !project?.automaticDeploys}

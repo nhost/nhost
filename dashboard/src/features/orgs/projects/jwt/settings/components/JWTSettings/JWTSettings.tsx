@@ -303,7 +303,17 @@ export default function JWTSettings() {
       <Form onSubmit={handleJWTSettingsChange}>
         <SettingsCard>
           <SettingsCardHeader
-            title="JSON Web Token Settings"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">
+                  JSON Web Token Settings
+                </h3>
+                <SettingsDocsLink
+                  href="https://docs.nhost.io/products/auth/jwt"
+                  title="JSON Web Token (JWT) Settings"
+                />
+              </span>
+            }
             description="Select how JSON Web Tokens (JWTs) are signed and verified."
           />
 
@@ -398,11 +408,6 @@ export default function JWTSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/jwt"
-              title="JSON Web Token (JWT) Settings"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

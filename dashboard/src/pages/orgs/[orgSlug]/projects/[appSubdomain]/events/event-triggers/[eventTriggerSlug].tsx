@@ -4,6 +4,7 @@ import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { EventsSectionContent } from '@/features/orgs/projects/events/common/components/EventsSectionContent';
 import { EventTriggersBrowserSidebar } from '@/features/orgs/projects/events/event-triggers/components/EventTriggersBrowserSidebar';
 import { EventTriggerView } from '@/features/orgs/projects/events/event-triggers/components/EventTriggerView';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -32,11 +33,10 @@ EventTriggerDetailsPage.getLayout = function getLayout(page: ReactElement) {
         className: 'flex h-full',
       }}
     >
-      <EventTriggersBrowserSidebar />
-
-      <div className="box flex w-full flex-auto flex-col overflow-x-hidden">
-        {page}
-      </div>
+      <EventsSectionContent
+        page={page}
+        sidebar={<EventTriggersBrowserSidebar />}
+      />
     </ProjectLayout>
   );
 };

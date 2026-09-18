@@ -131,7 +131,15 @@ export default function DiscordProviderSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Discord"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">Discord</h3>
+                <SettingsDocsLink
+                  href="https://docs.nhost.io/products/auth/providers/sign-in-discord"
+                  title="how to sign in users with Discord"
+                />
+              </span>
+            }
             description="Allow users to sign in with Discord."
             icon="/assets/brands/discord.svg"
             control={
@@ -168,11 +176,6 @@ export default function DiscordProviderSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/providers/sign-in-discord"
-              title="how to sign in users with Discord"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

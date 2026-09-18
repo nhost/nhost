@@ -83,6 +83,10 @@ module.exports = {
           hover: 'hsl(var(--destructive-hover))',
         },
         warning: 'hsl(var(--warning) / <alpha-value>)',
+        success: {
+          DEFAULT: 'hsl(var(--success))',
+          background: 'hsl(var(--success-background))',
+        },
         'sidebar-foreground': 'hsl(var(--sidebar-foreground))',
         'sidebar-section-title': 'hsl(var(--sidebar-section-title))',
         border: 'hsl(var(--border))',

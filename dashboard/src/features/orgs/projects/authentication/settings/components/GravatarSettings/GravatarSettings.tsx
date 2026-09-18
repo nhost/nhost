@@ -132,7 +132,15 @@ export default function GravatarSettings() {
       <Form onSubmit={handleGravatarSettingsChange}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Gravatar"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">Gravatar</h3>
+                <SettingsDocsLink
+                  href="https://docs.nhost.io/products/auth/gravatar"
+                  title="Gravatar"
+                />
+              </span>
+            }
             description="Use Gravatars for avatar URLs for users."
             control={
               <FormField
@@ -184,11 +192,6 @@ export default function GravatarSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/gravatar"
-              title="Gravatar"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

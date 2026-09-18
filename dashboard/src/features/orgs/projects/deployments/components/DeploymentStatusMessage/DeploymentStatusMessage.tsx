@@ -41,17 +41,29 @@ export default function DeploymentStatusMessage({
 
   const hasData = pipelineRun || deployment;
 
+  // Both branches below share the same soft, padded container: it's what
+  // visually separates the deployment info from the project name/region
+  // text sitting right above it in the card, rather than everything
+  // running together as plain text.
+  //
+  // bg-secondary-200 rather than bg-muted/40: --muted is 98% lightness in
+  // light mode (near white, same as the card background), so at 40% alpha
+  // it was essentially invisible there even though it read fine in dark
+  // mode. secondary-200 has real contrast against the card in both themes
+  // (92.4% light / 17.5% dark) without introducing a new one-off color.
   if (isInProgress || (hasData && !endedAt)) {
     return (
-      <span className="flex flex-row justify-start">
+      <div className="flex w-full flex-row items-center gap-2 rounded-md bg-secondary-200 px-2.5 py-2">
         <Avatar
           alt={`Avatar of ${userName}`}
           name={userName ?? undefined}
           src={avatarUrl}
-          className="mr-1 h-4 w-4 self-center"
+          className="h-4 w-4 shrink-0"
         />
-        <span className="self-center text-sm">{userName} updated just now</span>
-      </span>
+        <span className="min-w-0 flex-1 truncate text-sm">
+          {userName} updated just now
+        </span>
+      </div>
     );
   }
 
@@ -59,17 +71,20 @@ export default function DeploymentStatusMessage({
     const statusMessage = `deployed ${formatDistance(new Date(endedAt), new Date(), { addSuffix: true })}`;
 
     return (
-      <div className="relative flex flex-row">
+      <div className="flex w-full flex-row items-center gap-2 rounded-md bg-secondary-200 px-2.5 py-2">
         <Avatar
           alt={`Avatar of ${userName}`}
           name={userName ?? undefined}
           src={avatarUrl}
-          className="mt-1 mr-2 h-4 w-4"
+          className="h-4 w-4 shrink-0"
         />
-        <div className="flex flex-col">
-          <p className="line-clamp-1 break-all text-sm">{userName}</p>
-          <p className="text-muted-foreground text-xs">{statusMessage}</p>
-        </div>
+        {/* Username and "deployed X ago" on one line (was stacked on two):
+            the taller two-line version pushed the Live status pill further
+            down toward the bottom edge of the fixed-height card. */}
+        <p className="min-w-0 flex-1 truncate text-sm">
+          <span>{userName}</span>{' '}
+          <span className="text-muted-foreground">· {statusMessage}</span>
+        </p>
       </div>
     );
   }

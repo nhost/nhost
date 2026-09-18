@@ -152,7 +152,7 @@ function AuthSettingsSidebar() {
   const isFreeOrg = isPlatform && org?.plan?.isFree;
 
   return (
-    <aside className="h-full w-[240px] max-w-[240px] shrink-0 overflow-auto pt-14">
+    <aside className="h-full w-[240px] max-w-[240px] shrink-0 overflow-auto pt-6">
       <SectionSidebarNav ariaLabel="Auth settings navigation">
         <SectionSidebarGroup label="SIGN-IN">
           <SectionSidebarButton
@@ -504,9 +504,7 @@ function AuthCustomDomainSettings() {
   });
 
   if (shouldShowUpgrade) {
-    return (
-      <UpgradeBanner section="settings-custom-domains" icon={UserIcon} />
-    );
+    return <UpgradeBanner section="settings-custom-domains" icon={UserIcon} />;
   }
 
   if (error) {

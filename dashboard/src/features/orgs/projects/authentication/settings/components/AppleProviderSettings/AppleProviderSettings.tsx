@@ -170,7 +170,15 @@ export default function AppleProviderSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Apple"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">Apple</h3>
+                <SettingsDocsLink
+                  href="https://docs.nhost.io/products/auth/providers/sign-in-apple"
+                  title="how to sign in users with Apple"
+                />
+              </span>
+            }
             description="Allow users to sign in with Apple."
             icon={
               theme.palette.mode === 'dark'
@@ -246,11 +254,6 @@ export default function AppleProviderSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/providers/sign-in-apple"
-              title="how to sign in users with Apple"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

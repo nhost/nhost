@@ -179,7 +179,15 @@ export default function ContactPointsSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard className="gap-0">
           <SettingsCardHeader
-            title="Contact Points"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">Contact Points</h3>
+                <SettingsDocsLink
+                  href="https://docs.nhost.io/platform/cloud/metrics#configure-contact-points"
+                  title="Contact Points"
+                />
+              </span>
+            }
             description="Define the contact points where your notifications will be sent."
           />
 
@@ -197,11 +205,6 @@ export default function ContactPointsSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/platform/cloud/metrics#configure-contact-points"
-              title="Contact Points"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!form.formState.isDirty}

@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { useProjectStateChangePending } from '@/features/orgs/projects/common/hooks/useProjectStateChangePending';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { getUnpauseErrorMessage } from '@/features/orgs/utils/getUnpauseErrorMessage';
@@ -19,6 +20,8 @@ export default function useUnpauseProject() {
   const userData = useUserData();
   const track = useTrackEvent();
 
+  const { isPending, startPending, stopPending } = useProjectStateChangePending();
+
   const [unpauseApplication, { loading }] = useUnpauseApplicationMutation({
     variables: {
       appId: project?.id,
@@ -32,6 +35,8 @@ export default function useUnpauseProject() {
   });
 
   const handleTriggerUnpausing = useCallback(async () => {
+    startPending();
+
     await execPromiseWithErrorToast(
       async () => {
         await unpauseApplication({ variables: { appId: project?.id } });
@@ -45,9 +50,17 @@ export default function useUnpauseProject() {
         loadingMessage: 'Starting the project...',
         successMessage: 'The project has been started successfully.',
         errorMessage: getUnpauseErrorMessage,
+        onError: stopPending,
       },
     );
-  }, [unpauseApplication, project?.id, refetchProject, track]);
+  }, [
+    unpauseApplication,
+    project?.id,
+    refetchProject,
+    track,
+    startPending,
+    stopPending,
+  ]);
 
-  return { handleTriggerUnpausing, loading };
+  return { handleTriggerUnpausing, loading: loading || isPending };
 }

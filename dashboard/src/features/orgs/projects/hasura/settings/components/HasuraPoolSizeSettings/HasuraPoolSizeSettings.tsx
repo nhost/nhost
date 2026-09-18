@@ -108,7 +108,15 @@ export default function HasuraPoolSizeSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            title="HTTP Pool Size"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">HTTP Pool Size</h3>
+                <SettingsDocsLink
+                  href="https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/#events-http-pool-size"
+                  title="HTTP Pool Size"
+                />
+              </span>
+            }
             description="Set the maximum number of concurrent HTTP workers for event delivery."
           />
 
@@ -123,11 +131,6 @@ export default function HasuraPoolSizeSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/#events-http-pool-size"
-              title="HTTP Pool Size"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!isDirty}

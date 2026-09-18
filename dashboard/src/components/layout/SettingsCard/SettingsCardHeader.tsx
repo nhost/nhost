@@ -26,6 +26,15 @@ export interface SettingsCardHeaderProps
    * owned by the surrounding form (e.g. an RHF `FormSwitch`).
    */
   control?: React.ReactNode;
+  /**
+   * Additional classes for the left side (icon + title + description)
+   * wrapper. By default that side is `flex-1` and grows to fill all the
+   * room left by `actions`/`control`, so a long description wraps right up
+   * against them. Pass a max-width here (e.g. `sm:max-w-lg`) to cap it and
+   * guarantee real whitespace before the action, regardless of how the
+   * text wraps.
+   */
+  contentClassName?: string;
 }
 
 const SettingsCardHeader = React.forwardRef<
@@ -33,27 +42,36 @@ const SettingsCardHeader = React.forwardRef<
   SettingsCardHeaderProps
 >(
   (
-    { className, title, description, icon, actions, control, ...props },
+    {
+      className,
+      title,
+      description,
+      icon,
+      actions,
+      control,
+      contentClassName,
+      ...props
+    },
     ref,
   ) => (
     <div
       ref={ref}
       className={cn(
-        'grid grid-flow-col place-content-between gap-3 px-4',
+        'flex flex-col gap-3 px-6 sm:flex-row sm:items-center sm:justify-between',
         className,
       )}
       {...props}
     >
-      <div className="grid grid-flow-col gap-4">
+      <div className={cn('flex min-w-0 flex-1 gap-4', contentClassName)}>
         {typeof icon === 'string' ? (
-          <div className="flex items-center self-center justify-self-center align-middle">
+          <div className="flex shrink-0 items-center self-center justify-self-center align-middle">
             <Image src={icon} alt="" width={32} height={32} />
           </div>
         ) : (
           icon
         )}
 
-        <div className="grid grid-flow-row gap-1">
+        <div className="grid min-w-0 grid-flow-row gap-1">
           {typeof title === 'string' ? (
             <h3 className="font-semibold text-lg">{title}</h3>
           ) : (
@@ -67,7 +85,7 @@ const SettingsCardHeader = React.forwardRef<
       </div>
 
       {(actions || control) && (
-        <div className="flex items-center gap-3 self-center">
+        <div className="flex shrink-0 flex-wrap items-center gap-3">
           {actions}
           {control}
         </div>

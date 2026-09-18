@@ -118,7 +118,17 @@ export default function HasuraInferFunctionPermissionsSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Infer Function Permissions"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">
+                  Infer Function Permissions
+                </h3>
+                <SettingsDocsLink
+                  href="https://hasura.io/docs/2.0/deployment/graphql-engine-flags/reference/#infer-function-permissions"
+                  title="enabling or disabling Infer Function Permissions"
+                />
+              </span>
+            }
             description="Enable or disable infer function permissions."
             control={
               <FormField
@@ -136,11 +146,6 @@ export default function HasuraInferFunctionPermissionsSettings() {
           />
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://hasura.io/docs/2.0/deployment/graphql-engine-flags/reference/#infer-function-permissions"
-              title="enabling or disabling Infer Function Permissions"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!form.formState.isDirty}

@@ -1,10 +1,9 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
-import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import { DialogFooter } from '@/components/ui/v3/dialog';
 import {
   FormControl,
   FormField,
@@ -20,9 +19,8 @@ import {
   GetEnvironmentVariablesDocument,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
-import type { DialogFormProps } from '@/types/common';
 
-export interface EditJwtSecretFormProps extends DialogFormProps {
+export interface EditJwtSecretFormProps {
   /**
    * Initial JWT secret.
    */
@@ -69,7 +67,6 @@ export default function EditJwtSecretForm({
   onSubmit,
   onCancel,
   submitButtonText = 'Save',
-  location,
 }: EditJwtSecretFormProps) {
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
@@ -79,7 +76,6 @@ export default function EditJwtSecretForm({
     ...(!isPlatform ? { client: localMimirClient } : {}),
   });
 
-  const { onDirtyStateChange } = useDialog();
   const form = useForm<EditJwtSecretFormValues>({
     defaultValues: {
       jwtSecret,
@@ -89,13 +85,8 @@ export default function EditJwtSecretForm({
 
   const {
     control,
-    formState: { dirtyFields, isSubmitting },
+    formState: { isSubmitting },
   } = form;
-  const isDirty = Object.keys(dirtyFields).length > 0;
-
-  useEffect(() => {
-    onDirtyStateChange(isDirty, location);
-  }, [isDirty, location, onDirtyStateChange]);
 
   async function handleSubmit(values: EditJwtSecretFormValues) {
     const parsedJwtSecret = JSON.parse(values.jwtSecret);
@@ -127,33 +118,37 @@ export default function EditJwtSecretForm({
 
   return (
     <FormProvider {...form}>
-      <Form
-        onSubmit={handleSubmit}
-        className="flex flex-auto flex-col content-between overflow-hidden pb-4"
-      >
-        <div className="flex-auto overflow-y-auto px-6">
-          <FormField
-            control={control}
-            name="jwtSecret"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <Textarea
-                    {...field}
-                    autoFocus={!disabled}
-                    disabled={disabled}
-                    aria-label="JWT Secret"
-                    rows={4}
-                    className="font-mono text-sm"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+      <Form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <FormField
+          control={control}
+          name="jwtSecret"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Textarea
+                  {...field}
+                  autoFocus={!disabled}
+                  disabled={disabled}
+                  aria-label="JWT Secret"
+                  rows={4}
+                  className="font-mono text-sm"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-        <div className="grid flex-shrink-0 grid-flow-row gap-2 px-6 pt-4">
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline-emboss"
+            onClick={onCancel}
+            autoFocus={disabled}
+          >
+            {disabled ? 'Close' : 'Cancel'}
+          </Button>
+
           {!disabled && (
             <ButtonWithLoading
               loading={isSubmitting}
@@ -163,17 +158,7 @@ export default function EditJwtSecretForm({
               {submitButtonText}
             </ButtonWithLoading>
           )}
-
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            tabIndex={isDirty ? -1 : 0}
-            autoFocus={disabled}
-          >
-            {disabled ? 'Close' : 'Cancel'}
-          </Button>
-        </div>
+        </DialogFooter>
       </Form>
     </FormProvider>
   );

@@ -86,7 +86,15 @@ export default function DeploymentBranchSettings() {
       <Form onSubmit={handleDeploymentBranchChange}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Deployment Branch"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">Deployment Branch</h3>
+                <SettingsDocsLink
+                  href="https://docs.nhost.io/platform/cloud/deployments#deployment-branch"
+                  title="Deployment Branch"
+                />
+              </span>
+            }
             description="When automatic deploys are enabled, commits pushed to this branch will trigger a deployment. You can switch to a different branch here."
           />
 
@@ -107,11 +115,6 @@ export default function DeploymentBranchSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/platform/cloud/deployments#deployment-branch"
-              title="Deployment Branch"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty || !project?.automaticDeploys}

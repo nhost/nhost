@@ -120,7 +120,15 @@ export default function AllowedRedirectURLsSettings() {
       <Form onSubmit={handleAllowedRedirectURLsChange}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Allowed Redirect URLs"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">Allowed Redirect URLs</h3>
+                <SettingsDocsLink
+                  href="https://docs.nhost.io/products/auth/client_and_redirect_urls#allowed-redirect-urls"
+                  title="Allowed Redirect URLs"
+                />
+              </span>
+            }
             description="Allowed URLs where users can be redirected to after authentication. Separate multiple redirect URLs with comma."
           />
 
@@ -135,11 +143,6 @@ export default function AllowedRedirectURLsSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/client_and_redirect_urls#allowed-redirect-urls"
-              title="Allowed Redirect URLs"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

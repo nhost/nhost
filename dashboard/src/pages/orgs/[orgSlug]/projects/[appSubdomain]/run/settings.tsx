@@ -73,7 +73,7 @@ function RunSettingsSidebar() {
   const isFreeOrg = isPlatform && org?.plan?.isFree;
 
   return (
-    <aside className="h-full w-[280px] max-w-[280px] shrink-0 overflow-auto">
+    <aside className="h-full w-[280px] max-w-[280px] shrink-0 overflow-auto pt-6">
       <SectionSidebarNav ariaLabel="Run settings navigation">
         <SectionSidebarGroup label="CONNECTIVITY">
           <SectionSidebarButton

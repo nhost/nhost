@@ -2,13 +2,13 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { CogIcon, Lock, Pause, Play } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { type ReactElement, useEffect, useMemo } from 'react';
+import { type ReactElement, useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
-import { useDialog } from '@/components/common/DialogProvider';
 import { UpgradeBanner } from '@/components/common/UpgradeBanner';
 import { Form } from '@/components/form/Form';
 import { FormInput } from '@/components/form/FormInput';
+import { AppDialog } from '@/components/layout/AppDialog';
 import {
   SectionSidebarButton,
   SectionSidebarGroup,
@@ -16,15 +16,13 @@ import {
 } from '@/components/layout/SectionSidebar';
 import {
   SettingsCard,
-  SettingsCardContent,
-  SettingsCardFooter,
   SettingsCardHeader,
 } from '@/components/layout/SettingsCard';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { Alert } from '@/components/ui/v3/alert';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
-import { TransferProject } from '@/features/orgs/components/TransferProject';
 import { ProjectStatusPill } from '@/features/orgs/components/common/ProjectStatusPill';
+import { TransferProject } from '@/features/orgs/components/TransferProject';
 import { getProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { RemoveApplicationDialog } from '@/features/orgs/projects/common/components/RemoveApplicationDialog';
@@ -32,34 +30,24 @@ import { TOMLEditor } from '@/features/orgs/projects/common/components/settings/
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/useIsCurrentUserOwner';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { usePauseProject } from '@/features/orgs/projects/common/hooks/usePauseProject';
 import { useRunServices } from '@/features/orgs/projects/common/hooks/useRunServices';
+import { useUnpauseProject } from '@/features/orgs/projects/common/hooks/useUnpauseProject';
 import { EnvironmentVariablesSettings } from '@/features/orgs/projects/environmentVariables/settings/components/EnvironmentVariablesSettings';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { ResourcesForm } from '@/features/orgs/projects/resources/settings/components/ResourcesForm';
 import { SecretsSettings } from '@/features/orgs/projects/secrets/settings/components/SecretsSettings';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { getUnpauseErrorMessage } from '@/features/orgs/utils/getUnpauseErrorMessage';
+import { getLockedProjectErrorMessage } from '@/features/orgs/utils/getLockedProjectErrorMessage';
 import {
-  GetOrganizationsDocument,
   useBillingDeleteAppMutation,
-  usePauseApplicationMutation,
-  useUnpauseApplicationMutation,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
 import { useTrackEvent } from '@/hooks/useTrackEvent';
-import { useUserData } from '@/hooks/useUserData';
 import { ApplicationStatus } from '@/types/application';
-import { getErrorMessageSuffix } from '@/utils/databaseErrors';
 import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 import { slugifyString } from '@/utils/helpers';
-
-function getLockedProjectErrorMessage(genericMessage: string) {
-  return (error: Error): string => {
-    const lockReason = getErrorMessageSuffix(error, 'app is locked: ');
-    return lockReason ? `Project is locked: ${lockReason}` : genericMessage;
-  };
-}
 
 const projectNameValidationSchema = Yup.object({
   name: Yup.string()
@@ -202,12 +190,11 @@ function ComputeResourcesSettings({ isFree }: ComputeResourcesSettingsProps) {
 export default function SettingsGeneralPage() {
   const router = useRouter();
   const isPlatform = useIsPlatform();
-  const { openAlertDialog } = useDialog();
+  const [showPauseDialog, setShowPauseDialog] = useState(false);
 
   const isOwner = useIsCurrentUserOwner();
   const { currentOrg: org } = useOrgs();
-  const userData = useUserData();
-  const { project, loading, refetch: refetchProject } = useProject();
+  const { project, loading } = useProject();
   const { state } = useAppState();
   const track = useTrackEvent();
 
@@ -227,27 +214,11 @@ export default function SettingsGeneralPage() {
 
   const [updateApp] = useUpdateApplicationMutation();
   const [deleteApplication] = useBillingDeleteAppMutation();
-  const [pauseApplication, { loading: pauseApplicationLoading }] =
-    usePauseApplicationMutation({
-      variables: { appId: project?.id },
-      refetchQueries: [
-        {
-          query: GetOrganizationsDocument,
-          variables: { userId: userData?.id },
-        },
-      ],
-    });
+  const { handleTriggerPausing, loading: pauseApplicationLoading } =
+    usePauseProject();
 
-  const [unpauseApplication, { loading: unpauseApplicationLoading }] =
-    useUnpauseApplicationMutation({
-      variables: { appId: project?.id },
-      refetchQueries: [
-        {
-          query: GetOrganizationsDocument,
-          variables: { userId: userData?.id },
-        },
-      ],
-    });
+  const { handleTriggerUnpausing, loading: unpauseApplicationLoading } =
+    useUnpauseProject();
 
   const form = useForm<ProjectNameValidationSchema>({
     mode: 'onSubmit',
@@ -329,63 +300,37 @@ export default function SettingsGeneralPage() {
     );
   }
 
-  async function handlePauseApplication() {
-    await execPromiseWithErrorToast(
-      async () => {
-        await pauseApplication();
-        track('Project Paused', { reason: 'manual' });
-        await new Promise((resolve) => {
-          setTimeout(resolve, 1000);
-        });
-        await refetchProject();
-      },
-      {
-        loadingMessage: `Pausing ${project?.name}...`,
-        successMessage: `${project?.name} will be paused, but please note that it may take some time to complete the process.`,
-        errorMessage: getLockedProjectErrorMessage(
-          `An error occurred while trying to pause the project "${project?.name}". Please try again.`,
-        ),
-      },
-    );
-  }
-
-  async function handleTriggerUnpausing() {
-    await execPromiseWithErrorToast(
-      async () => {
-        await unpauseApplication();
-        track('Project Resumed');
-        await new Promise((resolve) => {
-          setTimeout(resolve, 1000);
-        });
-        await refetchProject();
-      },
-      {
-        loadingMessage: 'Starting the project...',
-        successMessage: 'The project has been started successfully.',
-        errorMessage: getUnpauseErrorMessage,
-      },
-    );
-  }
   const isPaused = state === ApplicationStatus.Paused;
   const isPausing = state === ApplicationStatus.Pausing;
   const isWakingUpOrRestoring =
     state === ApplicationStatus.Unpausing ||
     state === ApplicationStatus.Restoring;
-  const isWakingUp =
-    unpauseApplicationLoading || isPausing || isWakingUpOrRestoring;
+  // Only the real transient states get the animated tag. While the request is
+  // still on its way the state is unchanged, so showing the tag here would
+  // render a static "Paused" / "Live" pill instead. The button carries the
+  // spinner for that gap.
   // Covers every state where the project isn't fully running, so the "Wake
-  // up Project" card (and its animated tag) shows for the whole
-  // pause/pausing/waking-up/restoring cycle, not just Paused/Pausing.
+  // up Project" card shows for the whole pause/pausing/waking-up/restoring
+  // cycle, not just Paused/Pausing. The status tag next to each card's
+  // title (not this flag) is what shows the exact state to the user.
   const isPausedFamily = isPaused || isPausing || isWakingUpOrRestoring;
 
-  const pausedDisabled = !isPlatform || pauseApplicationLoading;
+  const pausedDisabled = !isPlatform;
 
-  const wakeUpDisabled = !isPlatform || unpauseApplicationLoading || isPausing;
+  const wakeUpDisabled = !isPlatform || isPausing;
   const { activeTab } = useGeneralSettingsTab();
 
   if (loading) {
     return <LoadingScreen />;
   }
+
+  const settingsTabTitles: Record<GeneralSettingsTab, string> = {
+    general: 'General',
+    'compute-resources': 'Compute Resources',
+    'environment-variables': 'Environment Variables',
+    secrets: 'Secrets',
+    editor: 'Configuration Editor',
+  };
 
   return (
     <SettingsLayout>
@@ -396,168 +341,214 @@ export default function SettingsGeneralPage() {
             : 'mx-auto w-full max-w-5xl px-5 py-4'
         }
       >
+        <h1 className="mb-6 font-semibold text-3xl">
+          {settingsTabTitles[activeTab]}
+        </h1>
+
         {activeTab === 'general' && (
           <div className="grid grid-flow-row gap-8">
             <FormProvider {...form}>
               <Form onSubmit={handleProjectNameChange}>
                 <SettingsCard>
+                  {/* Same shape as Delete Project: title on top, the
+                      field takes the spot description text would, and
+                      Save is pinned to the right via `control`. */}
                   <SettingsCardHeader
-                    title="Project Name"
-                    description="The name of the project."
+                    title={
+                      <div className="grid gap-2">
+                        <h3 className="font-semibold text-xl">Project Name</h3>
+
+                        <FormInput
+                          control={form.control}
+                          name="name"
+                          // A percentage width collapses here: every
+                          // wrapper between the header row and the input
+                          // sizes itself to fit its content, so "100%" has
+                          // no definite box to resolve against. A fixed
+                          // width sidesteps that.
+                          containerClassName="w-full sm:w-96"
+                        />
+                      </div>
+                    }
+                    control={
+                      <ButtonWithLoading
+                        type="submit"
+                        disabled={!formState.isDirty || !isPlatform}
+                        loading={formState.isSubmitting}
+                      >
+                        Save
+                      </ButtonWithLoading>
+                    }
                   />
-
-                  <SettingsCardContent className="lg:grid-cols-4">
-                    <FormInput
-                      control={form.control}
-                      name="name"
-                      label="Project Name"
-                      containerClassName="col-span-2"
-                    />
-                  </SettingsCardContent>
-
-                  <SettingsCardFooter>
-                    <ButtonWithLoading
-                      type="submit"
-                      disabled={!formState.isDirty || !isPlatform}
-                      loading={formState.isSubmitting}
-                      className="w-full sm:w-auto"
-                    >
-                      Save
-                    </ButtonWithLoading>
-                  </SettingsCardFooter>
                 </SettingsCard>
               </Form>
             </FormProvider>
 
-            {isPausedFamily ? (
-              <SettingsCard>
-                <SettingsCardHeader
-                  title="Wake up Project"
-                  description="Wake up your project to make it accessible again. Once reactivated, all features will be fully functional."
-                />
-
-                <SettingsCardFooter>
-                  {isWakingUp ? (
+            <SettingsCard>
+              <SettingsCardHeader
+                title={
+                  <span className="flex items-center gap-2">
+                    <h3 className="font-semibold text-xl">Availability</h3>
                     <ProjectStatusPill status={state} />
-                  ) : (
+                  </span>
+                }
+              />
+
+              <div className="grid grid-flow-row gap-4 px-6">
+                {isPausedFamily ? (
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="grid gap-1">
+                      <p className="font-medium">Wake up Project</p>
+                      <p className="text-muted-foreground text-sm">
+                        Wake up your project to make it accessible again. Once
+                        reactivated, all features will be fully functional.
+                      </p>
+                    </div>
+
                     <ButtonWithLoading
                       type="button"
                       variant="outline-emboss"
                       disabled={wakeUpDisabled}
+                      loading={unpauseApplicationLoading}
                       onClick={handleTriggerUnpausing}
                       className="w-full sm:w-auto"
                     >
                       <Play className="mr-2 h-4 w-4" />
                       Wake up
                     </ButtonWithLoading>
-                  )}
-                </SettingsCardFooter>
-              </SettingsCard>
-            ) : null}
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="grid gap-1">
+                      <p className="font-medium">Pause Project</p>
+                      <p className="text-muted-foreground text-sm">
+                        While your project is paused, it will not be accessible.
+                        You can wake it up anytime after.
+                      </p>
+                    </div>
 
-            {!isPausedFamily && (
-              <SettingsCard>
-                <SettingsCardHeader
-                  title="Pause Project"
-                  description="While your project is paused, it will not be accessible. You can wake it up anytime after."
-                />
+                    <ButtonWithLoading
+                      type="button"
+                      disabled={pausedDisabled}
+                      loading={pauseApplicationLoading}
+                      onClick={() => setShowPauseDialog(true)}
+                      variant="outline-emboss"
+                      className="w-full sm:w-auto"
+                    >
+                      <Pause className="mr-2 h-4 w-4" />
+                      Pause
+                    </ButtonWithLoading>
 
-                <SettingsCardFooter>
-                  <ButtonWithLoading
-                    type="button"
-                    disabled={pausedDisabled}
-                    loading={pauseApplicationLoading}
-                    onClick={() => {
-                      openAlertDialog({
-                        title: 'Pause Project?',
-                        payload: (
-                          <div className="flex flex-col gap-2">
-                            {showWarning ? (
-                              <Alert
-                                variant="warning"
-                                className="flex flex-col gap-3 text-left"
-                              >
-                                <div className="flex flex-col gap-2 lg:flex-row lg:justify-between">
-                                  <p className="flex items-start gap-1 font-semibold">
-                                    <span>!</span> Warning: This action will
-                                    delete all volume data for your Run
-                                    services.
-                                  </p>
-                                </div>
-                                <div className="flex flex-col gap-4">
-                                  <p>
-                                    Pausing this project will delete all
-                                    persistent volume data for your Run
-                                    services. No automatic backups are made.
-                                    Please backup your data manually to prevent
-                                    loss. Contact{' '}
-                                    <Link
-                                      href="/support"
-                                      target="_blank"
-                                      className="text-primary-text underline"
-                                      rel="noopener noreferrer"
-                                    >
-                                      support
-                                    </Link>{' '}
-                                    with any questions.
-                                  </p>
-                                </div>
-                              </Alert>
-                            ) : null}
-                            <p className="text-pretty">
-                              Are you sure you want to pause this project? It
-                              will not be accessible until you unpause it.
-                            </p>
-                          </div>
+                    <AppDialog
+                      type="confirm"
+                      open={showPauseDialog}
+                      onOpenChange={setShowPauseDialog}
+                      title="Pause Project?"
+                      primaryAction={{
+                        label: (
+                          <>
+                            <Pause className="mr-2 h-4 w-4" />
+                            Pause Project
+                          </>
                         ),
-                        props: {
-                          maxWidth: 'sm',
-                          onPrimaryAction: handlePauseApplication,
+                        onClick: () => {
+                          handleTriggerPausing();
+                          setShowPauseDialog(false);
                         },
-                      });
-                    }}
-                    variant="outline-emboss"
-                    className="w-full sm:w-auto"
-                  >
-                    <Pause className="mr-2 h-4 w-4" />
-                    Pause
-                  </ButtonWithLoading>
-                </SettingsCardFooter>
-              </SettingsCard>
-            )}
+                      }}
+                    >
+                      <div className="flex flex-col gap-2">
+                        {showWarning ? (
+                          <Alert
+                            variant="warning"
+                            className="flex flex-col gap-3 text-left"
+                          >
+                            <div className="flex flex-col gap-2 lg:flex-row lg:justify-between">
+                              <p className="flex items-start gap-1 font-semibold">
+                                <span>!</span> Warning: This action will delete
+                                all volume data for your Run services.
+                              </p>
+                            </div>
+                            <div className="flex flex-col gap-4">
+                              <p>
+                                Pausing this project will delete all persistent
+                                volume data for your Run services. No automatic
+                                backups are made. Please backup your data
+                                manually to prevent loss. Contact{' '}
+                                <Link
+                                  href="/support"
+                                  target="_blank"
+                                  className="text-primary-text underline"
+                                  rel="noopener noreferrer"
+                                >
+                                  support
+                                </Link>{' '}
+                                with any questions.
+                              </p>
+                            </div>
+                          </Alert>
+                        ) : null}
+                        <p className="text-pretty">
+                          Are you sure you want to pause this project? It will
+                          not be accessible until you unpause it.
+                        </p>
+                      </div>
+                    </AppDialog>
+                  </div>
+                )}
 
-            <TransferProject />
+                <div className="border-t pt-4">
+                  <TransferProject />
+                </div>
+              </div>
+            </SettingsCard>
 
             {isPlatform && (
               <SettingsCard>
                 <SettingsCardHeader
-                  title="Delete Project"
+                  // Caps the description column so it can't stretch edge
+                  // to edge and wrap right up against the Delete button.
+                  // This row pairs long body copy directly against the
+                  // action with no footer/divider between them, so it
+                  // needs a guaranteed gap here that other cards using this
+                  // same header don't.
+                  contentClassName="sm:max-w-lg"
+                  // Instance override, not the shared default: this
+                  // keeps Delete Project's title at the same size as
+                  // Availability and Project Name on this page, without
+                  // bumping the text-lg default every other settings card
+                  // in the app still uses for its title.
+                  title={
+                    <h3 className="font-semibold text-xl">Delete Project</h3>
+                  }
                   description="The project will be permanently deleted, including its database, metadata, files, etc. This action is irreversible and can not be undone."
+                  control={
+                    <>
+                      {!isOwner && (
+                        <p className="flex items-center gap-2 text-muted-foreground text-sm">
+                          <Lock className="h-4 w-4 shrink-0" />
+                          Only organization admins can delete this project.
+                        </p>
+                      )}
+                      <span
+                        className={!isOwner ? 'cursor-not-allowed' : undefined}
+                      >
+                        <RemoveApplicationDialog
+                          handler={handleDeleteApplication}
+                          trigger={
+                            <ButtonWithLoading
+                              type="button"
+                              disabled={!isOwner}
+                              variant="destructive"
+                            >
+                              Delete
+                            </ButtonWithLoading>
+                          }
+                        />
+                      </span>
+                    </>
+                  }
                 />
-
-                <SettingsCardFooter>
-                  {!isOwner && (
-                    <p className="flex items-center gap-2 text-muted-foreground text-sm sm:mr-auto">
-                      <Lock className="h-4 w-4 shrink-0" />
-                      Only organization admins can delete this project.
-                    </p>
-                  )}
-                  <span className={!isOwner ? 'cursor-not-allowed' : undefined}>
-                    <RemoveApplicationDialog
-                      handler={handleDeleteApplication}
-                      trigger={
-                        <ButtonWithLoading
-                          type="button"
-                          disabled={!isOwner}
-                          variant="destructive"
-                          className="w-full sm:w-auto"
-                        >
-                          Delete
-                        </ButtonWithLoading>
-                      }
-                    />
-                  </span>
-                </SettingsCardFooter>
               </SettingsCard>
             )}
           </div>

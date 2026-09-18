@@ -3,16 +3,8 @@ import { Plus, Send } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { AppDialog } from '@/components/layout/AppDialog';
 import { Button } from '@/components/ui/v3/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/v3/dialog';
 import {
   Form,
   FormControl,
@@ -125,86 +117,71 @@ export default function AddMemberDialog({
   };
 
   return (
-    <Dialog
-      open={inviteDialogOpen}
-      onOpenChange={(value) => {
-        form.reset();
-        setInviteDialogOpen(value);
-      }}
-    >
-      <DialogTrigger asChild>
-        <Button>
-          <div className="flex h-fit flex-row items-center justify-center space-x-2">
-            <Plus className="h-5 w-5" strokeWidth={2} />
-            <span>Add member</span>
-          </div>
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="text-foreground p-12 sm:max-w-xl">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <DialogHeader className="mb-4">
-              <DialogTitle className="text-foreground">
-                Add a member
-              </DialogTitle>
-              <DialogDescription>
-                Send invite over email (e.g. name@mycompany.com)
-              </DialogDescription>
-            </DialogHeader>
+    <>
+      <Button onClick={() => setInviteDialogOpen(true)}>
+        <div className="flex h-fit flex-row items-center justify-center space-x-2">
+          <Plus className="h-5 w-5" strokeWidth={2} />
+          <span>Add member</span>
+        </div>
+      </Button>
 
-            <div className="mb-8 flex flex-col gap-4">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type="email"
-                        placeholder="name@company.com"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="role"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Role</FormLabel>
-                    <FormControl>
-                      <RoleSelector
-                        value={field.value}
-                        onChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <DialogFooter>
-              <Button
-                variant="outline-emboss"
-                type="button"
-                onClick={handleDismissDialog}
-              >
-                Cancel
-              </Button>
-              <Button type="submit">
-                <div className="flex h-fit flex-row items-center justify-center space-x-2">
-                  <Send className="h-4 w-4" strokeWidth={2} />
-                  <span>Send</span>
-                </div>
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+      <Form {...form}>
+        <AppDialog
+          type="form"
+          open={inviteDialogOpen}
+          onOpenChange={(value) => {
+            form.reset();
+            setInviteDialogOpen(value);
+          }}
+          title="Add a member"
+          description="Send invite over email (e.g. name@mycompany.com)"
+          onCancel={handleDismissDialog}
+          onSubmit={form.handleSubmit(onSubmit)}
+          primaryAction={{
+            type: 'submit',
+            label: (
+              <div className="flex h-fit flex-row items-center justify-center space-x-2">
+                <Send className="h-4 w-4" strokeWidth={2} />
+                <span>Send</span>
+              </div>
+            ),
+          }}
+        >
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    type="email"
+                    placeholder="name@company.com"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="role"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Role</FormLabel>
+                <FormControl>
+                  <RoleSelector
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </AppDialog>
+      </Form>
+    </>
   );
 }

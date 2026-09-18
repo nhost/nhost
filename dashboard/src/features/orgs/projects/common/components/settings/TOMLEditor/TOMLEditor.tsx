@@ -143,8 +143,28 @@ export default function TOMLEditor() {
 
   return (
     <div className="flex min-h-[32rem] w-full flex-col overflow-hidden rounded-lg border bg-background">
-      <div className="flex w-full flex-col space-y-2 border-b p-4">
+      <div className="flex w-full flex-col items-start justify-between gap-3 border-b p-4 sm:flex-row sm:items-center">
         <h3 className="font-semibold text-lg">Configuration Editor</h3>
+
+        <div className="flex shrink-0 flex-wrap items-center gap-3">
+          <Button
+            type="button"
+            variant="outline-emboss"
+            disabled={loading || !isDirty}
+            onClick={handleRevert}
+          >
+            Revert changes
+          </Button>
+
+          <ButtonWithLoading
+            type="submit"
+            disabled={loading || !isDirty}
+            loading={isSaving}
+            onClick={handleSave}
+          >
+            Save
+          </ButtonWithLoading>
+        </div>
       </div>
       <div className="min-h-0 flex-1 overflow-auto">
         {loading ? (
@@ -159,26 +179,6 @@ export default function TOMLEditor() {
             onChange={onChange}
           />
         )}
-      </div>
-      <div className="grid w-full grid-flow-col justify-end gap-3 place-self-end border-t-1 px-4 py-3 md:justify-between">
-        <Button
-          type="button"
-          variant="outline"
-          disabled={loading || !isDirty}
-          onClick={handleRevert}
-        >
-          Revert changes
-        </Button>
-
-        <ButtonWithLoading
-          type="submit"
-          disabled={loading || !isDirty}
-          loading={isSaving}
-          className="justify-self-end"
-          onClick={handleSave}
-        >
-          Save
-        </ButtonWithLoading>
       </div>
     </div>
   );

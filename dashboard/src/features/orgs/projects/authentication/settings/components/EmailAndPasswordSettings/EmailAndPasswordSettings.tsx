@@ -133,7 +133,15 @@ export default function EmailAndPasswordSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Email and Password"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">Email and Password</h3>
+                <SettingsDocsLink
+                  href="https://docs.nhost.io/products/auth/sign-in-email-password"
+                  title="how to sign in users with email and password"
+                />
+              </span>
+            }
             description="Allow users to sign in with email and password."
             control={
               <Switch
@@ -169,11 +177,6 @@ export default function EmailAndPasswordSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/sign-in-email-password"
-              title="how to sign in users with email and password"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

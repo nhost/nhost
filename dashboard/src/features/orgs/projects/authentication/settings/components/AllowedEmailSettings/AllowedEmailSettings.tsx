@@ -153,7 +153,17 @@ export default function AllowedEmailDomainsSettings() {
       <Form onSubmit={handleAllowedEmailDomainsChange}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Allowed Emails and Domains"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">
+                  Allowed Emails and Domains
+                </h3>
+                <SettingsDocsLink
+                  href="https://docs.nhost.io/products/auth/restricting_emails_and_domains#allowed-emails-and-domains"
+                  title="Allowed Emails and Domains"
+                />
+              </span>
+            }
             description="Allow specific email addresses and domains to sign up."
             control={
               <FormField
@@ -193,11 +203,6 @@ export default function AllowedEmailDomainsSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/restricting_emails_and_domains#allowed-emails-and-domains"
-              title="Allowed Emails and Domains"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!isDirty}

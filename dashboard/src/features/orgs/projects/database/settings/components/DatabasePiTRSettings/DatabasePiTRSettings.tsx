@@ -40,7 +40,15 @@ export default function DatabasePiTRSettings() {
   return (
     <SettingsCard>
       <SettingsCardHeader
-        title="Point-in-Time Recovery"
+        title={
+          <span className="flex items-center gap-2">
+            <h3 className="font-semibold text-lg">Point-in-Time Recovery</h3>
+            <SettingsDocsLink
+              href="https://docs.nhost.io/products/database/backups#point-in-time-recovery"
+              title="enabling or disabling PiTR"
+            />
+          </span>
+        }
         description="Enable Point-in-Time Recovery (PiTR)."
         control={
           shouldShowSwitch ? (
@@ -68,11 +76,6 @@ export default function DatabasePiTRSettings() {
       </SettingsCardContent>
 
       <SettingsCardFooter>
-        <SettingsDocsLink
-          href="https://docs.nhost.io/products/database/backups#point-in-time-recovery"
-          title="enabling or disabling PiTR"
-        />
-
         <ButtonWithLoading
           type="button"
           disabled={isSwitchDisabled}

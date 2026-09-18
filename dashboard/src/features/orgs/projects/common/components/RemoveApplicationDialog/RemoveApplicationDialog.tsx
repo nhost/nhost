@@ -1,19 +1,18 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import router from 'next/router';
-import { type ReactElement, type ReactNode, useMemo, useState } from 'react';
+import {
+  cloneElement,
+  type ReactElement,
+  type ReactNode,
+  useMemo,
+  useState,
+} from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { FormCheckbox } from '@/components/form/FormCheckbox';
 import { FormInput } from '@/components/form/FormInput';
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/v3/alert-dialog';
-import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { AppDialog } from '@/components/layout/AppDialog';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Form } from '@/components/ui/v3/form';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
@@ -24,15 +23,16 @@ import {
 } from '@/generated/graphql';
 import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { useUserData } from '@/hooks/useUserData';
-import { cn, isEmptyValue } from '@/lib/utils';
+import { isEmptyValue } from '@/lib/utils';
 import { discordAnnounce } from '@/utils/discordAnnounce';
 import { triggerToast } from '@/utils/toast';
 
 export interface RemoveApplicationDialogProps {
   /**
-   * The element that opens the dialog.
+   * The element that opens the dialog. Click handling is added on top of
+   * whatever the element already does.
    */
-  trigger: ReactElement;
+  trigger: ReactElement<{ onClick?: () => void }>;
   /**
    * A custom function to run instead of the built-in project deletion flow.
    */
@@ -45,10 +45,6 @@ export interface RemoveApplicationDialogProps {
    * The description of the dialog.
    */
   description?: ReactNode;
-  /**
-   * Class name applied to the visible dialog panel.
-   */
-  className?: string;
 }
 
 interface DeleteProjectFormValues {
@@ -62,7 +58,6 @@ export default function RemoveApplicationDialog({
   handler,
   title,
   description,
-  className,
 }: RemoveApplicationDialogProps) {
   const { project } = useProject();
   const { currentOrg: org } = useOrgs();
@@ -180,96 +175,97 @@ export default function RemoveApplicationDialog({
   }
 
   return (
-    <AlertDialog open={open} onOpenChange={handleOpenChange}>
-      <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
+    <>
+      {cloneElement(trigger, {
+        onClick: () => {
+          trigger.props.onClick?.();
+          setOpen(true);
+        },
+      })}
 
-      <AlertDialogContent className="!bg-transparent !shadow-none !p-0 max-w-lg border-none">
-        <div
-          className={cn(
-            'w-full max-w-lg rounded-lg bg-paper p-6 text-left text-foreground',
-            className,
-          )}
-        >
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(handleDelete)}
-              className="flex flex-col gap-6"
-            >
-              <div className="flex flex-col gap-2">
-                <AlertDialogTitle>{title || 'Delete Project'}</AlertDialogTitle>
-
-                <AlertDialogDescription>
-                  {description ||
-                    'Are you sure you want to delete this project?'}
-                </AlertDialogDescription>
-
-                <p className="font-bold text-destructive text-sm">
-                  This cannot be undone.
-                </p>
-              </div>
-
-              <div className="flex flex-col gap-6 border-y py-6">
-                <FormCheckbox
-                  control={form.control}
-                  name="acknowledgeIrreversible"
-                  label="I understand this action cannot be undone"
-                  className="mt-0.5 self-start"
-                />
-
-                {isPaidPlan && (
-                  <FormCheckbox
-                    control={form.control}
-                    name="acknowledgeSubscription"
-                    label="I understand I need to delete the organization if I want to cancel the subscription"
-                    className="mt-0.5 self-start"
-                  />
-                )}
-              </div>
-
-              <FormInput
+      <AppDialog
+        type="form"
+        open={open}
+        onOpenChange={handleOpenChange}
+        title={title || 'Delete project'}
+        description={
+          <>
+            {description || 'Are you sure you want to delete this project?'}{' '}
+            <span className="text-destructive">This cannot be undone.</span>
+          </>
+        }
+      >
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(handleDelete)}
+            className="flex flex-col gap-6"
+          >
+            <div className="flex flex-col gap-3 rounded-lg border p-4">
+              <FormCheckbox
                 control={form.control}
-                name="confirmation"
-                autoComplete="off"
-                className="border-border font-mono"
-                disabled={!requiredProjectConfirmation}
-                label={
-                  requiredProjectConfirmation ? (
-                    <>
-                      Type{' '}
-                      <InlineCode className="max-w-full select-none whitespace-pre-wrap break-words text-sm">
-                        {requiredProjectConfirmation}
-                      </InlineCode>{' '}
-                      to confirm
-                    </>
-                  ) : (
-                    'Project confirmation is unavailable.'
-                  )
-                }
-                helperText={
-                  requiredProjectConfirmation
-                    ? undefined
-                    : 'A project name and organization name are required to enable deletion.'
-                }
+                name="acknowledgeIrreversible"
+                label="I understand this action cannot be undone"
+                className="mt-0.5 self-start"
               />
 
-              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                <AlertDialogCancel className="mt-0" disabled={loadingRemove}>
-                  Cancel
-                </AlertDialogCancel>
+              {isPaidPlan && (
+                <FormCheckbox
+                  control={form.control}
+                  name="acknowledgeSubscription"
+                  label="I understand I need to delete the organization if I want to cancel the subscription"
+                  className="mt-0.5 self-start"
+                />
+              )}
+            </div>
 
-                <ButtonWithLoading
-                  type="submit"
-                  variant="destructive"
-                  disabled={!canDeleteProject}
-                  loading={loadingRemove}
-                >
-                  Delete Project
-                </ButtonWithLoading>
-              </div>
-            </form>
-          </Form>
-        </div>
-      </AlertDialogContent>
-    </AlertDialog>
+            <FormInput
+              control={form.control}
+              name="confirmation"
+              autoComplete="off"
+              className="border-border font-mono"
+              disabled={!requiredProjectConfirmation}
+              label={
+                requiredProjectConfirmation ? (
+                  <>
+                    Type{' '}
+                    <InlineCode className="max-w-full select-none whitespace-pre-wrap break-words text-sm dark:bg-secondary-400">
+                      {requiredProjectConfirmation}
+                    </InlineCode>{' '}
+                    to confirm
+                  </>
+                ) : (
+                  'Project confirmation is unavailable.'
+                )
+              }
+              helperText={
+                requiredProjectConfirmation
+                  ? undefined
+                  : 'A project name and organization name are required to enable deletion.'
+              }
+            />
+
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <Button
+                type="button"
+                variant="outline-emboss"
+                disabled={loadingRemove}
+                onClick={() => handleOpenChange(false)}
+              >
+                Cancel
+              </Button>
+
+              <ButtonWithLoading
+                type="submit"
+                variant="destructive"
+                disabled={!canDeleteProject}
+                loading={loadingRemove}
+              >
+                Delete project
+              </ButtonWithLoading>
+            </div>
+          </form>
+        </Form>
+      </AppDialog>
+    </>
   );
 }

@@ -1,14 +1,18 @@
 import { EyeIcon, EyeOffIcon } from 'lucide-react';
-import { Fragment, useState } from 'react';
-import { useDialog } from '@/components/common/DialogProvider';
+import { useState } from 'react';
+import { AppDialog } from '@/components/layout/AppDialog';
 import {
   SettingsCard,
   SettingsCardContent,
-  SettingsCardFooter,
   SettingsCardHeader,
   SettingsDocsLink,
+  SettingsTable,
+  SettingsTableBody,
+  SettingsTableHeader,
+  SettingsTableRow,
 } from '@/components/layout/SettingsCard';
 import { Button } from '@/components/ui/v3/button';
+import { IconButton } from '@/components/ui/v3/icon-button';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import {
@@ -27,10 +31,10 @@ export default function SystemEnvironmentVariableSettings() {
   const appClient = useAppClient();
   const { project } = useProject();
   const isPlatform = useIsPlatform();
-  const { openDialog } = useDialog();
   const localMimirClient = useLocalMimirClient();
   const [showAdminSecret, setShowAdminSecret] = useState(false);
   const [showWebhookSecret, setShowWebhookSecret] = useState(false);
+  const [jwtSecretDialogOpen, setJwtSecretDialogOpen] = useState(false);
 
   const { data, error } = useGetEnvironmentVariablesQuery({
     variables: { appId: project?.id },
@@ -52,21 +56,7 @@ export default function SystemEnvironmentVariableSettings() {
   }
 
   function showViewJwtSecretModal() {
-    openDialog({
-      title: (
-        <span className="grid grid-flow-row">
-          <span>Auth JWT Secret</span>
-
-          <span className="text-muted-foreground text-sm">
-            This is the key used for generating JWTs. It&apos;s the same as
-            configured in Hasura.
-          </span>
-        </span>
-      ),
-      component: (
-        <EditJwtSecretForm disabled jwtSecret={stringifiedJwtSecrets} />
-      ),
-    });
+    setJwtSecretDialogOpen(true);
   }
 
   const systemEnvironmentVariables = [
@@ -96,128 +86,122 @@ export default function SystemEnvironmentVariableSettings() {
   return (
     <SettingsCard className="gap-0">
       <SettingsCardHeader
-        title="System Environment Variables"
+        title={
+          <span className="flex items-center gap-2">
+            <h3 className="font-semibold text-lg">
+              System Environment Variables
+            </h3>
+            <SettingsDocsLink
+              href="https://docs.nhost.io/platform/cloud/environment-variables#system-environment-variables"
+              title="System Environment Variables"
+            />
+          </span>
+        }
         description="System environment variables are automatically generated from the configuration file and your project's subdomain and region."
       />
 
-      <SettingsCardContent className="mt-2 mb-2.5 px-0">
-        <div className="grid grid-cols-3 gap-2 border-b-1 px-4 py-3">
-          <p className="font-medium">Variable Name</p>
-          <p className="font-medium lg:col-span-2">Value</p>
-        </div>
+      <SettingsCardContent className="mt-6 mb-2.5 px-0">
+        <SettingsTable>
+          <SettingsTableHeader className="grid grid-cols-3 gap-2">
+            <p className="font-bold">Variable Name</p>
+            <p className="font-bold lg:col-span-2">Value</p>
+          </SettingsTableHeader>
 
-        <div>
-          <div className="grid grid-cols-2 gap-2 px-4 lg:grid-cols-3">
-            <p>NHOST_ADMIN_SECRET</p>
+          <SettingsTableBody>
+            <SettingsTableRow className="grid grid-cols-2 gap-2 lg:grid-cols-3">
+              <p>NHOST_ADMIN_SECRET</p>
 
-            <div className="flex items-center gap-2 lg:col-span-2">
-              <p className="min-w-0 break-words">
-                {showAdminSecret ? (
-                  <InlineCode className="!text-sm whitespace-normal font-medium">
-                    {adminSecret}
-                  </InlineCode>
-                ) : (
-                  '●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●'
-                )}
-              </p>
+              <div className="flex items-center gap-2 lg:col-span-2">
+                <p className="min-w-0 break-words">
+                  {showAdminSecret ? (
+                    <InlineCode className="!text-sm whitespace-normal font-medium">
+                      {adminSecret}
+                    </InlineCode>
+                  ) : (
+                    '●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●'
+                  )}
+                </p>
 
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="shrink-0"
-                aria-label={
-                  showAdminSecret ? 'Hide Admin Secret' : 'Show Admin Secret'
-                }
-                onClick={() => setShowAdminSecret((show) => !show)}
+                <IconButton
+                  icon={showAdminSecret ? EyeOffIcon : EyeIcon}
+                  aria-label={
+                    showAdminSecret ? 'Hide Admin Secret' : 'Show Admin Secret'
+                  }
+                  onClick={() => setShowAdminSecret((show) => !show)}
+                />
+              </div>
+            </SettingsTableRow>
+
+            <SettingsTableRow className="grid grid-cols-2 gap-2 lg:grid-cols-3">
+              <p>NHOST_WEBHOOK_SECRET</p>
+
+              <div className="flex items-center gap-2 lg:col-span-2">
+                <p className="min-w-0 break-words">
+                  {showWebhookSecret ? (
+                    <InlineCode className="!text-sm whitespace-normal font-medium">
+                      {webhookSecret}
+                    </InlineCode>
+                  ) : (
+                    '●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●'
+                  )}
+                </p>
+
+                <IconButton
+                  icon={showWebhookSecret ? EyeOffIcon : EyeIcon}
+                  aria-label={
+                    showWebhookSecret
+                      ? 'Hide Webhook Secret'
+                      : 'Show Webhook Secret'
+                  }
+                  onClick={() => setShowWebhookSecret((show) => !show)}
+                />
+              </div>
+            </SettingsTableRow>
+
+            {systemEnvironmentVariables.map((environmentVariable) => (
+              <SettingsTableRow
+                key={environmentVariable.key}
+                className="grid grid-cols-2 gap-2 lg:grid-cols-3"
               >
-                {showAdminSecret ? (
-                  <EyeOffIcon className="h-5 w-5" />
-                ) : (
-                  <EyeIcon className="h-5 w-5" />
-                )}
-              </Button>
-            </div>
-          </div>
-          <div className="!my-4 border-t" />
-
-          <div className="grid grid-cols-2 gap-2 px-4 lg:grid-cols-3">
-            <p>NHOST_WEBHOOK_SECRET</p>
-
-            <div className="flex items-center gap-2 lg:col-span-2">
-              <p className="min-w-0 break-words">
-                {showWebhookSecret ? (
-                  <InlineCode className="!text-sm whitespace-normal font-medium">
-                    {webhookSecret}
-                  </InlineCode>
-                ) : (
-                  '●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●'
-                )}
-              </p>
-
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="shrink-0"
-                aria-label={
-                  showWebhookSecret
-                    ? 'Hide Webhook Secret'
-                    : 'Show Webhook Secret'
-                }
-                onClick={() => setShowWebhookSecret((show) => !show)}
-              >
-                {showWebhookSecret ? (
-                  <EyeOffIcon className="h-5 w-5" />
-                ) : (
-                  <EyeIcon className="h-5 w-5" />
-                )}
-              </Button>
-            </div>
-          </div>
-          <div className="!my-4 border-t" />
-
-          {systemEnvironmentVariables.map((environmentVariable, index) => (
-            <Fragment key={environmentVariable.key}>
-              <div className="grid grid-cols-2 gap-2 px-4 lg:grid-cols-3">
                 <p>{environmentVariable.key}</p>
 
                 <p className="truncate lg:col-span-2">
                   {environmentVariable.value}
                 </p>
+              </SettingsTableRow>
+            ))}
+
+            <SettingsTableRow className="grid grid-cols-2 justify-start lg:grid-cols-3">
+              <p>NHOST_JWT_SECRET</p>
+
+              <div className="grid grid-flow-row items-center justify-center gap-1.5 text-center md:grid-flow-col lg:col-span-2 lg:justify-start lg:text-left">
+                <Button
+                  type="button"
+                  variant="outline-emboss"
+                  size="sm"
+                  onClick={showViewJwtSecretModal}
+                >
+                  Show JWT Secret
+                </Button>
               </div>
-
-              {index !== systemEnvironmentVariables.length - 1 && (
-                <div className="!my-4 border-t" />
-              )}
-            </Fragment>
-          ))}
-          <div className="!mb-2.5 !mt-4 border-t" />
-
-          <div className="grid grid-cols-2 justify-start px-4 lg:grid-cols-3">
-            <p>NHOST_JWT_SECRET</p>
-
-            <div className="grid grid-flow-row items-center justify-center gap-1.5 text-center md:grid-flow-col lg:col-span-2 lg:justify-start lg:text-left">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="text-primary-main hover:bg-primary-highlight hover:text-primary-main"
-                onClick={showViewJwtSecretModal}
-              >
-                Show JWT Secret
-              </Button>
-            </div>
-          </div>
-        </div>
+            </SettingsTableRow>
+          </SettingsTableBody>
+        </SettingsTable>
       </SettingsCardContent>
 
-      <SettingsCardFooter>
-        <SettingsDocsLink
-          href="https://docs.nhost.io/platform/cloud/environment-variables#system-environment-variables"
-          title="System Environment Variables"
+      <AppDialog
+        type="form"
+        open={jwtSecretDialogOpen}
+        onOpenChange={setJwtSecretDialogOpen}
+        title="Auth JWT Secret"
+        description="This is the key used for generating JWTs. It's the same as configured in Hasura."
+      >
+        <EditJwtSecretForm
+          disabled
+          jwtSecret={stringifiedJwtSecrets}
+          onCancel={() => setJwtSecretDialogOpen(false)}
         />
-      </SettingsCardFooter>
+      </AppDialog>
     </SettingsCard>
   );
 }

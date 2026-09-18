@@ -141,7 +141,15 @@ export default function AuthServiceVersionSettings() {
       <Form onSubmit={handleAuthServiceVersionsChange}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Auth Version"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">Auth Version</h3>
+                <SettingsDocsLink
+                  href="https://github.com/nhost/hasura-auth/releases"
+                  title="the latest releases"
+                />
+              </span>
+            }
             description="The version of Auth to use."
           />
 
@@ -157,11 +165,6 @@ export default function AuthServiceVersionSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://github.com/nhost/hasura-auth/releases"
-              title="the latest releases"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

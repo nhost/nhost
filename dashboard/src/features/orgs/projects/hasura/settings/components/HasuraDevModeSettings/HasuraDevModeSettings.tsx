@@ -112,7 +112,15 @@ export default function HasuraDevModeSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Dev Mode"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">Dev Mode</h3>
+                <SettingsDocsLink
+                  href="https://hasura.io/learn/graphql/hasura-advanced/debugging/1-dev-mode/"
+                  title="enabling or disabling Dev Mode"
+                />
+              </span>
+            }
             description="Enable or disable Dev Mode."
             control={
               <FormField
@@ -130,11 +138,6 @@ export default function HasuraDevModeSettings() {
           />
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://hasura.io/learn/graphql/hasura-advanced/debugging/1-dev-mode/"
-              title="enabling or disabling Dev Mode"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!form.formState.isDirty}

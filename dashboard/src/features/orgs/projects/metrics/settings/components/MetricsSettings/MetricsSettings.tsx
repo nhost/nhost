@@ -129,7 +129,15 @@ export default function MetricsSettings() {
         <Form onSubmit={handleSubmit}>
           <SettingsCard>
             <SettingsCardHeader
-              title="Alerting"
+              title={
+                <span className="flex items-center gap-2">
+                  <h3 className="font-semibold text-lg">Alerting</h3>
+                  <SettingsDocsLink
+                    href="https://docs.nhost.io/platform/cloud/metrics#alerting"
+                    title="enabling or disabling Alerting"
+                  />
+                </span>
+              }
               description="Enable or disable Alerting."
               control={
                 <FormField
@@ -147,11 +155,6 @@ export default function MetricsSettings() {
             />
 
             <SettingsCardFooter>
-              <SettingsDocsLink
-                href="https://docs.nhost.io/platform/cloud/metrics#alerting"
-                title="enabling or disabling Alerting"
-              />
-
               <ButtonWithLoading
                 type="submit"
                 disabled={!alertingForm.formState.isDirty}

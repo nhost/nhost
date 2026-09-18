@@ -1,10 +1,6 @@
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
-import {
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/v3/dialog';
+import { DialogDescription } from '@/components/ui/v3/dialog';
 import type { FinishOrgCreationOnCompletedCb } from '@/features/orgs/hooks/useFinishOrganizationProcess/useFinishOrganizationProcess';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
@@ -67,11 +63,6 @@ function TransferProjectDialogContent({
 
   return (
     <>
-      <DialogHeader className="flex gap-2">
-        <DialogTitle>
-          Move the current project to a different organization.
-        </DialogTitle>
-      </DialogHeader>
       {showContent ? (
         <>
           <DialogDescription>

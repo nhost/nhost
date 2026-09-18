@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef, ReactElement, ReactNode } from 'react';
-import { ProjectSectionLayout } from '@/components/layout/ProjectSectionLayout';
 import ProjectLayout from './ProjectLayout';
+import ProjectSectionContent from './ProjectSectionContent';
 
 export interface ProjectLayoutOptions {
   /**
@@ -59,15 +59,14 @@ export function getProjectLayout(
   }
 
   const body = (
-    <ProjectSectionLayout
+    <ProjectSectionContent
+      page={page}
       navigation={navigation}
       sidebar={sidebar}
       navigationClassName={navigationClassName}
       bodyClassName={bodyClassName}
       contentClassName={contentClassName}
-    >
-      {page}
-    </ProjectSectionLayout>
+    />
   );
 
   return (

@@ -19,11 +19,9 @@ export default function AIRouteTabs() {
 
   const projectPath = `/orgs/${orgSlug}/projects/${appSubdomain}`;
   const isAssistantsActive =
-    router.route ===
-    '/orgs/[orgSlug]/projects/[appSubdomain]/ai/assistants';
+    router.route === '/orgs/[orgSlug]/projects/[appSubdomain]/ai/assistants';
   const isFileStoresActive =
-    router.route ===
-    '/orgs/[orgSlug]/projects/[appSubdomain]/ai/file-stores';
+    router.route === '/orgs/[orgSlug]/projects/[appSubdomain]/ai/file-stores';
   const isAutoEmbeddingsActive =
     router.route ===
     '/orgs/[orgSlug]/projects/[appSubdomain]/ai/auto-embeddings';

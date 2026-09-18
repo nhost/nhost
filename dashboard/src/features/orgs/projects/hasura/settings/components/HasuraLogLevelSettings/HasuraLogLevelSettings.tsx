@@ -118,7 +118,15 @@ export default function HasuraLogLevelSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Log Level"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">Log Level</h3>
+                <SettingsDocsLink
+                  href="https://hasura.io/docs/latest/deployment/logging/#logging-levels"
+                  title="Log Levels"
+                />
+              </span>
+            }
             description={
               <>
                 Setting a log-level will print all logs of priority greater than
@@ -146,11 +154,6 @@ export default function HasuraLogLevelSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://hasura.io/docs/latest/deployment/logging/#logging-levels"
-              title="Log Levels"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!isDirty}

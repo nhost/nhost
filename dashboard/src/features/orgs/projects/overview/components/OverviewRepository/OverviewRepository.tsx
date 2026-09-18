@@ -1,5 +1,12 @@
 import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
+import { Pencil } from 'lucide-react';
 import { NavLink } from '@/components/common/NavLink';
+import { dashboardNavItemIconClassName } from '@/components/layout/DashboardSidebar/DashboardSidebar';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
@@ -36,15 +43,23 @@ export default function OverviewRepository() {
             </span>
           </div>
 
-          <NavLink
-            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/settings`}
-            className="text-primary"
-            variant="ghost"
-            underline="none"
-            size="sm"
-          >
-            Edit
-          </NavLink>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <NavLink
+                href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/settings`}
+                variant="ghost"
+                underline="none"
+                size="icon"
+                aria-label="Edit"
+                className="group h-8 w-8 hover:bg-transparent"
+              >
+                <Pencil
+                  className={`h-4 w-4 transition-colors group-hover:text-primary-main ${dashboardNavItemIconClassName}`}
+                />
+              </NavLink>
+            </TooltipTrigger>
+            <TooltipContent>Edit</TooltipContent>
+          </Tooltip>
         </div>
       )}
     </section>

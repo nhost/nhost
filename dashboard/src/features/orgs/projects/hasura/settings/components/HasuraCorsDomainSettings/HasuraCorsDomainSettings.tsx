@@ -128,7 +128,15 @@ export default function HasuraCorsDomainSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Configure CORS"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">Configure CORS</h3>
+                <SettingsDocsLink
+                  href="https://hasura.io/docs/latest/deployment/graphql-engine-flags/config-examples/#configure-cors"
+                  title="CORS configuration"
+                />
+              </span>
+            }
             description="Allow requests from specific domains to access your GraphQL API. Disable this setting to allow requests from all domains."
             control={
               <FormField
@@ -158,11 +166,6 @@ export default function HasuraCorsDomainSettings() {
           )}
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://hasura.io/docs/latest/deployment/graphql-engine-flags/config-examples/#configure-cors"
-              title="CORS configuration"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!isDirty}

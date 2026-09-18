@@ -138,7 +138,17 @@ export default function HasuraServiceVersionSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Hasura GraphQL Engine Version"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">
+                  Hasura GraphQL Engine Version
+                </h3>
+                <SettingsDocsLink
+                  href="https://hub.docker.com/r/nhost/graphql-engine/tags"
+                  title="the latest releases"
+                />
+              </span>
+            }
             description="The version of the Hasura GraphQL Engine to use."
           />
 
@@ -154,11 +164,6 @@ export default function HasuraServiceVersionSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://hub.docker.com/r/nhost/graphql-engine/tags"
-              title="the latest releases"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

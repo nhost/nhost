@@ -122,7 +122,17 @@ export default function MFASettings() {
       <Form onSubmit={handleMFASettingsChange}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Multi-Factor Authentication"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">
+                  Multi-Factor Authentication
+                </h3>
+                <SettingsDocsLink
+                  href="https://docs.nhost.io/products/auth"
+                  title="Multi-Factor Authentication"
+                />
+              </span>
+            }
             description="Enable users to use MFA to sign in"
             control={
               <FormField
@@ -155,11 +165,6 @@ export default function MFASettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth"
-              title="Multi-Factor Authentication"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

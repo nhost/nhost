@@ -1,9 +1,9 @@
 import type { ReactElement, ReactNode } from 'react';
-import { ProjectSectionLayout } from '@/components/layout/ProjectSectionLayout';
 import {
   ProjectLayout,
   type ProjectLayoutOptions,
 } from '@/features/orgs/layout/ProjectLayout';
+import ProjectSectionContent from '@/features/orgs/layout/ProjectLayout/ProjectSectionContent';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import MetricsRouteTabs from '@/features/orgs/projects/metrics/layout/MetricsRouteTabs';
@@ -35,15 +35,14 @@ function MetricsSectionBody({
   const isFreeOrg = isPlatform && org?.plan?.isFree;
 
   return (
-    <ProjectSectionLayout
+    <ProjectSectionContent
+      page={page}
       navigation={isFreeOrg ? undefined : <MetricsRouteTabs />}
       sidebar={sidebar}
       navigationClassName={navigationClassName}
       bodyClassName={bodyClassName}
       contentClassName={contentClassName}
-    >
-      {page}
-    </ProjectSectionLayout>
+    />
   );
 }
 

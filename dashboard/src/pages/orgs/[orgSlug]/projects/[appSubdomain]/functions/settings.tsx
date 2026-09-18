@@ -76,7 +76,7 @@ function FunctionsSettingsSidebar() {
   const isFreeOrg = isPlatform && org?.plan?.isFree;
 
   return (
-    <aside className="h-full w-[240px] max-w-[240px] shrink-0 overflow-auto pt-14">
+    <aside className="h-full w-[240px] max-w-[240px] shrink-0 overflow-auto pt-6">
       <SectionSidebarNav ariaLabel="Functions settings navigation">
         <SectionSidebarGroup label="CONNECTIVITY">
           <SectionSidebarButton
@@ -112,9 +112,7 @@ function FunctionsCustomDomainSettings() {
   });
 
   if (shouldShowUpgrade) {
-    return (
-      <UpgradeBanner section="settings-custom-domains" icon={CodeIcon} />
-    );
+    return <UpgradeBanner section="settings-custom-domains" icon={CodeIcon} />;
   }
 
   if (error) {

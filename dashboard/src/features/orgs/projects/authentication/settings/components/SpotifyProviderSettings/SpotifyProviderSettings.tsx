@@ -131,7 +131,15 @@ export default function SpotifyProviderSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Spotify"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">Spotify</h3>
+                <SettingsDocsLink
+                  href="https://docs.nhost.io/products/auth/providers/sign-in-spotify"
+                  title="how to sign in users with Spotify"
+                />
+              </span>
+            }
             description="Allow users to sign in with Spotify."
             icon="/assets/brands/spotify.svg"
             control={
@@ -168,11 +176,6 @@ export default function SpotifyProviderSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/providers/sign-in-spotify"
-              title="how to sign in users with Spotify"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

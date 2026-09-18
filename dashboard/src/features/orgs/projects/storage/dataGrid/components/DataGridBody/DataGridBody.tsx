@@ -144,10 +144,13 @@ export default function DataGridBody<T extends UnknownDataGridRow>({
               width: totalColumnsWidth,
             }}
             className={cn(
-              'flex scroll-mt-10 border-b-1 border-b-transparent last:border-b-data-table-border-color',
+              // Plain horizontal dividers instead of zebra-striped rows:
+              // every row gets the same border, no background of its own,
+              // and a neutral hover instead of the old blue-tinted one.
+              'flex scroll-mt-10 border-b-1 border-b-data-table-border-color',
               isRowDisabled?.(row)
                 ? 'bg-data-cell-bg-disabled'
-                : 'odd:bg-data-cell-bg-odd even:bg-data-cell-bg hover:bg-data-cell-bg-hover',
+                : 'hover:bg-muted/60',
             )}
             role="row"
             onKeyDown={(event) => handleKeyDown(event, row.id)}

@@ -33,7 +33,7 @@ export default function EnvironmentVariablesSettings() {
   }
 
   return (
-    <div className="grid grid-flow-row gap-6">
+    <div className="grid grid-flow-row gap-8">
       <EnvironmentVariableSettings />
       <SystemEnvironmentVariableSettings />
     </div>

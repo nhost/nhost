@@ -289,7 +289,15 @@ export default function DatabaseServiceVersionSettings() {
       <Form onSubmit={handleDatabaseServiceVersionsChange}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Postgres Version"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">Postgres Version</h3>
+                <SettingsDocsLink
+                  href="https://hub.docker.com/r/nhost/postgres/tags"
+                  title="the latest releases"
+                />
+              </span>
+            }
             description="The version of Postgres to use."
             actions={
               shouldShowUpgradeLogs ? (
@@ -356,11 +364,6 @@ export default function DatabaseServiceVersionSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://hub.docker.com/r/nhost/postgres/tags"
-              title="the latest releases"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!isDirty}

@@ -85,7 +85,9 @@ function TransferProjectForm({
     );
 
   const createNewFormSelected = form.watch('organization') === CREATE_NEW_ORG;
-  const submitButtonText = createNewFormSelected ? 'Continue' : 'Transfer';
+  const submitButtonText = createNewFormSelected
+    ? 'Continue'
+    : 'Transfer project';
 
   const onSubmit = async (
     values: z.infer<typeof transferProjectFormSchema>,

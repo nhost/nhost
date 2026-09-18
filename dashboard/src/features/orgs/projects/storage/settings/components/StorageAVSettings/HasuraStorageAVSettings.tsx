@@ -117,7 +117,15 @@ export default function HasuraStorageAVSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Antivirus"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">Antivirus</h3>
+                <SettingsDocsLink
+                  href="https://docs.nhost.io/products/storage/antivirus#antivirus"
+                  title="enabling or disabling Antivirus"
+                />
+              </span>
+            }
             description="Enable or disable Antivirus."
             control={
               <FormField
@@ -135,11 +143,6 @@ export default function HasuraStorageAVSettings() {
           />
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/storage/antivirus#antivirus"
-              title="enabling or disabling Antivirus"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!form.formState.isDirty}

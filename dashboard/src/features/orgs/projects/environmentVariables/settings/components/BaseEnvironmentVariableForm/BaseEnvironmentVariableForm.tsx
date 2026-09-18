@@ -1,14 +1,13 @@
 import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import * as Yup from 'yup';
-import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { FormInput } from '@/components/form/FormInput';
 import { FormTextarea } from '@/components/form/FormTextarea';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
-import type { DialogFormProps } from '@/types/common';
+import { DialogFooter } from '@/components/ui/v3/dialog';
 
-export interface BaseEnvironmentVariableFormProps extends DialogFormProps {
+export interface BaseEnvironmentVariableFormProps {
   /**
    * Determines the mode of the form.
    *
@@ -29,6 +28,11 @@ export interface BaseEnvironmentVariableFormProps extends DialogFormProps {
    * @default 'Save'
    */
   submitButtonText?: string;
+  /**
+   * Called whenever the form's dirty state changes, so the surrounding
+   * `AppDialog` can warn before discarding unsaved changes.
+   */
+  onDirtyStateChange?: (isDirty: boolean) => void;
 }
 
 export const baseEnvironmentVariableFormValidationSchema = Yup.object({
@@ -78,9 +82,8 @@ export default function BaseEnvironmentVariableForm({
   onSubmit,
   onCancel,
   submitButtonText = 'Save',
-  location,
+  onDirtyStateChange,
 }: BaseEnvironmentVariableFormProps) {
-  const { onDirtyStateChange } = useDialog();
   const form = useFormContext<BaseEnvironmentVariableFormValues>();
 
   const {
@@ -93,46 +96,47 @@ export default function BaseEnvironmentVariableForm({
   const isDirty = Object.keys(dirtyFields).length > 0;
 
   useEffect(() => {
-    onDirtyStateChange(isDirty, location);
-  }, [isDirty, location, onDirtyStateChange]);
+    onDirtyStateChange?.(isDirty);
+  }, [isDirty, onDirtyStateChange]);
 
   return (
-    <div className="grid grid-flow-row gap-6 px-6 pb-6">
+    <div className="grid grid-flow-row gap-6">
       <p className="text-muted-foreground text-sm">
         Environment Variables are made available to all your services. All
         values are encrypted.
       </p>
 
-      <Form onSubmit={onSubmit} className="grid grid-flow-row gap-4">
-        <FormInput
-          control={control}
-          name="name"
-          label="Name"
-          placeholder="EXAMPLE_NAME"
-          autoComplete="off"
-          autoFocus={mode === 'create'}
-          disabled={mode === 'edit'}
-        />
+      <Form onSubmit={onSubmit} className="grid grid-flow-row gap-8">
+        <div className="grid grid-flow-row gap-4">
+          <FormInput
+            control={control}
+            name="name"
+            label="Name"
+            placeholder="EXAMPLE_NAME"
+            autoComplete="off"
+            autoFocus={mode === 'create'}
+            disabled={mode === 'edit'}
+          />
 
-        <FormTextarea
-          control={control}
-          name="value"
-          label="Value"
-          placeholder="Enter value"
-          className="min-h-32"
-          autoComplete="off"
-          autoFocus={mode === 'edit'}
-        />
+          <FormTextarea
+            control={control}
+            name="value"
+            label="Value"
+            placeholder="Enter value"
+            className="min-h-32"
+            autoComplete="off"
+            autoFocus={mode === 'edit'}
+          />
+        </div>
 
-        <div className="grid grid-flow-row gap-2">
-          <ButtonWithLoading type="submit" loading={isSubmitting}>
-            {submitButtonText}
-          </ButtonWithLoading>
-
+        <DialogFooter>
           <Button type="button" variant="outline-emboss" onClick={onCancel}>
             Cancel
           </Button>
-        </div>
+          <ButtonWithLoading type="submit" loading={isSubmitting}>
+            {submitButtonText}
+          </ButtonWithLoading>
+        </DialogFooter>
       </Form>
     </div>
   );

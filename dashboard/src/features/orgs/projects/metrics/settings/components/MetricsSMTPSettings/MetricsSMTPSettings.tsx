@@ -128,7 +128,15 @@ export default function MetricsSMTPSettings() {
       <Form onSubmit={handleEditSMTPSettings}>
         <SettingsCard>
           <SettingsCardHeader
-            title="SMTP Settings"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">SMTP Settings</h3>
+                <SettingsDocsLink
+                  href="https://docs.nhost.io/platform/cloud/metrics#smtp"
+                  title="SMTP Settings"
+                />
+              </span>
+            }
             description="Configure your SMTP settings to send emails as part of your alerting."
           />
 
@@ -177,11 +185,6 @@ export default function MetricsSMTPSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/platform/cloud/metrics#smtp"
-              title="SMTP Settings"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!isDirty}

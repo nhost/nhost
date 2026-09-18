@@ -1,4 +1,4 @@
-import { Download, Play } from 'lucide-react';
+import { Download, Play, PowerOff, ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
 import { Container } from '@/components/layout/Container';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
@@ -7,12 +7,13 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/v3/collapsible';
+import { ProjectStatusPill } from '@/features/orgs/components/common/ProjectStatusPill';
 import BackupList from '@/features/orgs/projects/backups/components/ScheduledBackupsContent/BackupList';
 import { useDownloadBackup } from '@/features/orgs/projects/backups/hooks/useDownloadBackup';
 import { useUnpauseProject } from '@/features/orgs/projects/common/hooks/useUnpauseProject';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { ProjectStatusPill } from '@/features/orgs/components/common/ProjectStatusPill';
+import UpgradeToProButton from '@/features/orgs/projects/overview/components/OverviewTopBar/UpgradeToProButton';
 import { useGetApplicationBackupsQuery } from '@/generated/graphql';
 import { ApplicationStatus } from '@/types/application';
 
@@ -51,24 +52,58 @@ export default function OverviewPausedState({
   const isTransientState = TRANSIENT_STATES.includes(state);
 
   return (
-    <Container>
-      <div className="mx-auto mt-12 flex w-full max-w-2xl flex-col items-center gap-4 rounded-lg border p-8 text-center">
+    <Container className="pt-0">
+      <div className="mx-auto mt-8 flex w-full max-w-2xl flex-col items-center gap-4 rounded-lg border p-8 text-center">
         {isTransientState ? (
           <ProjectStatusPill status={state} />
         ) : (
           <>
-            <h2 className="font-semibold text-lg">
+            <h2 className="font-semibold text-2xl">
               {project?.name} is paused
             </h2>
 
-            <ButtonWithLoading
-              loading={wakingUp}
-              onClick={handleTriggerUnpausing}
-              className="w-full sm:w-auto"
-            >
-              <Play className="mr-2 h-4 w-4" />
-              Wake up
-            </ButtonWithLoading>
+            {isFreeOrg && (
+              <div className="grid w-full gap-4 text-left">
+                <div className="flex items-start gap-3">
+                  <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
+                  <div className="grid gap-0.5">
+                    <p className="font-medium text-sm">Your data stays safe</p>
+                    <p className="text-muted-foreground text-sm">
+                      Nothing is deleted while this project is paused.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <PowerOff className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
+                  <div className="grid gap-0.5">
+                    <p className="font-medium text-sm">Services are offline</p>
+                    <p className="text-muted-foreground text-sm">
+                      Database, APIs, and storage return after a short warm up.
+                    </p>
+                  </div>
+                </div>
+
+                <p className="border-t pt-4 text-muted-foreground text-sm">
+                  Starter projects pause after one week of inactivity. Pro
+                  projects stay active and include daily backups.
+                </p>
+              </div>
+            )}
+
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+              <ButtonWithLoading
+                variant={isFreeOrg ? 'outline-emboss' : 'default'}
+                loading={wakingUp}
+                onClick={handleTriggerUnpausing}
+                className="w-full sm:w-auto"
+              >
+                <Play className="mr-2 h-4 w-4" />
+                Wake up
+              </ButtonWithLoading>
+
+              {isFreeOrg && <UpgradeToProButton />}
+            </div>
 
             {!loadingBackups && latestBackup && (
               <div className="mt-2 w-full border-t pt-4 text-left">
@@ -76,7 +111,8 @@ export default function OverviewPausedState({
                   <div>
                     <p className="font-medium text-sm">Export your data</p>
                     <p className="text-muted-foreground text-xs">
-                      Download the backup made when this project was paused.
+                      Download your latest database backup. Storage files are
+                      not included.
                     </p>
                   </div>
                   <ButtonWithLoading
@@ -87,7 +123,9 @@ export default function OverviewPausedState({
                     className="w-full sm:w-auto"
                   >
                     <Download className="mr-2 h-4 w-4" />
-                    {isFreeOrg ? 'Download backup' : 'Download the latest backup'}
+                    {isFreeOrg
+                      ? 'Download backup'
+                      : 'Download the latest backup'}
                   </ButtonWithLoading>
                 </div>
 

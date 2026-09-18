@@ -18,7 +18,7 @@ import { useInsertSecretMutation } from '@/generated/graphql';
 import type { MakeRequired } from '@/types/common';
 
 export interface CreateSecretFormProps
-  extends Pick<BaseSecretFormProps, 'onCancel'> {
+  extends Pick<BaseSecretFormProps, 'onCancel' | 'onDirtyStateChange'> {
   /**
    * Function to be called when the form is submitted.
    */
@@ -94,7 +94,7 @@ export default function CreateSecretForm({
     <FormProvider {...form}>
       <BaseSecretForm
         mode="create"
-        submitButtonText="Create"
+        submitButtonText="Create secret"
         onSubmit={handleSubmit}
         {...props}
       />

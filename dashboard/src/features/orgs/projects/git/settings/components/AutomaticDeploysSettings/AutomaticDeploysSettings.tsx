@@ -67,7 +67,15 @@ export default function AutomaticDeploysSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Automatic Deploys"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">Automatic Deploys</h3>
+                <SettingsDocsLink
+                  href="https://docs.nhost.io/platform/cloud/deployments"
+                  title="Automatic Deploys"
+                />
+              </span>
+            }
             description="When enabled, commits pushed to the deployment branch will automatically trigger a deployment. When disabled, deployments must be triggered manually via the CLI or GitHub Actions."
             control={
               <FormField
@@ -85,11 +93,6 @@ export default function AutomaticDeploysSettings() {
           />
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/platform/cloud/deployments"
-              title="Automatic Deploys"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

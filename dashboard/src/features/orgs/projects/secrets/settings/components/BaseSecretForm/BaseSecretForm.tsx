@@ -1,11 +1,11 @@
 import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import * as Yup from 'yup';
-import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { FormInput } from '@/components/form/FormInput';
 import { FormTextarea } from '@/components/form/FormTextarea';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import { DialogFooter } from '@/components/ui/v3/dialog';
 import type { MakeRequired } from '@/types/common';
 
 export interface BaseSecretFormProps {
@@ -29,6 +29,11 @@ export interface BaseSecretFormProps {
    * @default 'Save'
    */
   submitButtonText?: string;
+  /**
+   * Called whenever the form's dirty state changes, so the surrounding
+   * `AppDialog` can warn before discarding unsaved changes.
+   */
+  onDirtyStateChange?: (isDirty: boolean) => void;
 }
 
 export const baseSecretFormValidationSchema = Yup.object({
@@ -52,8 +57,8 @@ export default function BaseSecretForm({
   onSubmit,
   onCancel,
   submitButtonText = 'Save',
+  onDirtyStateChange,
 }: BaseSecretFormProps) {
-  const { onDirtyStateChange } = useDialog();
   const form = useFormContext<BaseSecretFormValues>();
 
   const {
@@ -67,7 +72,7 @@ export default function BaseSecretForm({
   const isDirty = Object.keys(dirtyFields).length > 0;
 
   useEffect(() => {
-    onDirtyStateChange(isDirty, 'dialog');
+    onDirtyStateChange?.(isDirty);
   }, [isDirty, onDirtyStateChange]);
 
   useEffect(() => {
@@ -75,34 +80,35 @@ export default function BaseSecretForm({
   }, [mode, setFocus]);
 
   return (
-    <div className="grid grid-flow-row gap-6 px-6 pb-6">
-      <Form onSubmit={onSubmit} className="grid grid-flow-row gap-4">
-        <FormInput
-          control={control}
-          name="name"
-          label="Name"
-          placeholder="EXAMPLE_NAME"
-          autoComplete="off"
-          disabled={mode === 'edit'}
-        />
+    <div className="grid grid-flow-row gap-6">
+      <Form onSubmit={onSubmit} className="grid grid-flow-row gap-8">
+        <div className="grid grid-flow-row gap-4">
+          <FormInput
+            control={control}
+            name="name"
+            label="Name"
+            placeholder="EXAMPLE_NAME"
+            autoComplete="off"
+            disabled={mode === 'edit'}
+          />
 
-        <FormTextarea
-          control={control}
-          name="value"
-          label="Value"
-          placeholder="Enter value"
-          className="min-h-32"
-        />
+          <FormTextarea
+            control={control}
+            name="value"
+            label="Value"
+            placeholder="Enter value"
+            className="min-h-32"
+          />
+        </div>
 
-        <div className="grid grid-flow-row gap-2">
-          <ButtonWithLoading type="submit" loading={isSubmitting}>
-            {submitButtonText}
-          </ButtonWithLoading>
-
+        <DialogFooter>
           <Button type="button" variant="outline-emboss" onClick={onCancel}>
             Cancel
           </Button>
-        </div>
+          <ButtonWithLoading type="submit" loading={isSubmitting}>
+            {submitButtonText}
+          </ButtonWithLoading>
+        </DialogFooter>
       </Form>
     </div>
   );

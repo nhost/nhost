@@ -9,8 +9,6 @@ import { usePollWhileTransitioning } from '@/features/orgs/projects/common/hooks
 import { OverviewPausedState } from '@/features/orgs/projects/overview/components/OverviewPausedState';
 import { isNotEmptyValue } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/application';
-import ProjectStateScreen from './ProjectStateScreen';
-import { requiresRunningProject } from './projectStatePages';
 
 function ProjectViewWithState({ children }: PropsWithChildren) {
   const {
@@ -77,14 +75,15 @@ function ProjectViewWithState({ children }: PropsWithChildren) {
       case ApplicationStatus.Paused:
       case ApplicationStatus.Unpausing:
       case ApplicationStatus.Restoring:
+        // Overview has no section tab bar of its own, so it's the only place
+        // this component still swaps the whole page. Every other section
+        // keeps its own tab bar/sidebar visible and gates just its content
+        // (see ProjectSectionContent), so this leaves the section render its
+        // own children here.
         if (isOnOverviewPage) {
           return <OverviewPausedState state={state} />;
         }
-        return requiresRunningProject(route) ? (
-          <ProjectStateScreen state={state} />
-        ) : (
-          children
-        );
+        return children;
       case ApplicationStatus.Live:
       case ApplicationStatus.Updating:
       case ApplicationStatus.Migrating:
@@ -92,7 +91,7 @@ function ProjectViewWithState({ children }: PropsWithChildren) {
       default:
         return <ApplicationUnknown />;
     }
-  }, [state, children, appSubdomain, isOnOverviewPage, route]);
+  }, [state, children, appSubdomain, isOnOverviewPage]);
 
   return projectPageContent;
 }

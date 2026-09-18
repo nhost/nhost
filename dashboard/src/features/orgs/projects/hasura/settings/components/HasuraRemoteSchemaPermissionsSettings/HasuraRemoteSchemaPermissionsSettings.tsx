@@ -118,7 +118,17 @@ export default function HasuraRemoteSchemaPermissionsSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Remote Schema Permissions"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">
+                  Remote Schema Permissions
+                </h3>
+                <SettingsDocsLink
+                  href="https://hasura.io/docs/latest/remote-schemas/auth/remote-schema-permissions/"
+                  title="enabling or disabling Remote Schema Permissions"
+                />
+              </span>
+            }
             description="Enable or disable remote schema permissions."
             control={
               <FormField
@@ -136,11 +146,6 @@ export default function HasuraRemoteSchemaPermissionsSettings() {
           />
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://hasura.io/docs/latest/remote-schemas/auth/remote-schema-permissions/"
-              title="enabling or disabling Remote Schema Permissions"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!form.formState.isDirty}

@@ -40,7 +40,7 @@ export default function OrgMembers() {
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-5 pb-16 pt-8">
         <div className="flex w-full flex-row items-center justify-between gap-2">
           <div className="flex flex-col gap-1">
-            <h1 className="text-2xl font-semibold">Members</h1>
+            <h1 className="font-semibold text-3xl">Members</h1>
             <p className="text-muted-foreground text-sm">
               People in {org?.name} can manage all projects within the
               organization.

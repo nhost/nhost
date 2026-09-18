@@ -1,3 +1,4 @@
+import { CREATE_PROJECT_LIMIT_MESSAGE } from '@/features/orgs/components/projects/CreateProjectLimitDialog';
 import {
   errorMessageIncludes,
   getErrorMessageSuffix,
@@ -19,7 +20,7 @@ export default function getCreateProjectErrorMessage(error: Error): string {
       'Starter plan can only have one project live at a time, please pause or delete your current free project and try again.',
     )
   ) {
-    return 'Your free organization already has a live project. Pause or delete it before creating another.';
+    return CREATE_PROJECT_LIMIT_MESSAGE;
   }
 
   if (

@@ -146,7 +146,17 @@ export default function UserCreationSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Controlling User Creation"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">
+                  Controlling User Creation
+                </h3>
+                <SettingsDocsLink
+                  href="https://docs.nhost.io/products/auth/controlling-user-creation"
+                  title="controlling user creation"
+                />
+              </span>
+            }
             description="Configure whether, when, and how users can register for your app."
           />
 
@@ -180,11 +190,6 @@ export default function UserCreationSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/controlling-user-creation"
-              title="controlling user creation"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

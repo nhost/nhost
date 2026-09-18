@@ -113,7 +113,15 @@ export default function HasuraConsoleSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Hasura Console"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">Hasura Console</h3>
+                <SettingsDocsLink
+                  href="https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/#enable-console"
+                  title="enabling or disabling the Hasura Console"
+                />
+              </span>
+            }
             description="Enable or disable the Hasura Console. This will enable or disable the Hasura Console on the dashboard as well."
             control={
               <FormField
@@ -131,11 +139,6 @@ export default function HasuraConsoleSettings() {
           />
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/#enable-console"
-              title="enabling or disabling the Hasura Console"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!form.formState.isDirty}

@@ -166,7 +166,15 @@ export default function SMSSettings() {
       <Form onSubmit={handleSMSSettingsChange}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Phone Number (SMS)"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">Phone Number (SMS)</h3>
+                <SettingsDocsLink
+                  href="https://docs.nhost.io/products/auth/otp/sms"
+                  title="how to sign in users with a phone number (SMS)"
+                />
+              </span>
+            }
             description="Allow users to sign in with Phone Number (SMS)."
             control={
               <FormField
@@ -236,11 +244,6 @@ export default function SMSSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/otp/sms"
-              title="how to sign in users with a phone number (SMS)"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

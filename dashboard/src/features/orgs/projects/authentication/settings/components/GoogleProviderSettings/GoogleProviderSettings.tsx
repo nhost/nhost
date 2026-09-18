@@ -154,7 +154,15 @@ export default function GoogleProviderSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Google"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">Google</h3>
+                <SettingsDocsLink
+                  href="https://docs.nhost.io/products/auth/providers/sign-in-google"
+                  title="how to sign in users with Google"
+                />
+              </span>
+            }
             description="Allow users to sign in with Google."
             icon="/assets/brands/google.svg"
             control={
@@ -211,11 +219,6 @@ export default function GoogleProviderSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/providers/sign-in-google"
-              title="how to sign in users with Google"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

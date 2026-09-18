@@ -142,7 +142,15 @@ export default function StorageServiceVersionSettings() {
       <Form onSubmit={handleStorageServiceVersionsChange}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Storage Version"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">Storage Version</h3>
+                <SettingsDocsLink
+                  href="https://github.com/nhost/hasura-storage/releases"
+                  title="the latest releases"
+                />
+              </span>
+            }
             description="The version of Storage to use."
           />
 
@@ -158,11 +166,6 @@ export default function StorageServiceVersionSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://github.com/nhost/hasura-storage/releases"
-              title="the latest releases"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

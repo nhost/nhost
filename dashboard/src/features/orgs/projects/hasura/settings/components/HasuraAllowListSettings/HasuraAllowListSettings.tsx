@@ -113,7 +113,15 @@ export default function HasuraAllowListSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Allow List"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">Allow List</h3>
+                <SettingsDocsLink
+                  href="https://hasura.io/learn/graphql/hasura-advanced/security/3-allow-list/"
+                  title="enabling or disabling Allow Lists"
+                />
+              </span>
+            }
             description="Safely allow a limited number of GraphQL queries, mutations and subscriptions for your project."
             control={
               <FormField
@@ -131,11 +139,6 @@ export default function HasuraAllowListSettings() {
           />
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://hasura.io/learn/graphql/hasura-advanced/security/3-allow-list/"
-              title="enabling or disabling Allow Lists"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!form.formState.isDirty}

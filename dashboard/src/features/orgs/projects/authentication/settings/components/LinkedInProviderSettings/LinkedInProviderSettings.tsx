@@ -131,7 +131,15 @@ export default function LinkedInProviderSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            title="LinkedIn"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">LinkedIn</h3>
+                <SettingsDocsLink
+                  href="https://docs.nhost.io/products/auth/providers/sign-in-linkedin"
+                  title="how to sign in users with LinkedIn"
+                />
+              </span>
+            }
             description="Allow users to sign in with LinkedIn."
             icon="/assets/brands/linkedin.svg"
             control={
@@ -168,11 +176,6 @@ export default function LinkedInProviderSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/providers/sign-in-linkedin"
-              title="how to sign in users with LinkedIn"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

@@ -1,12 +1,15 @@
 import { ArrowRight, Play, Plus } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { type MouseEvent, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import { ProjectStatusPill } from '@/features/orgs/components/common/ProjectStatusPill';
+import { CreateProjectLimitDialog } from '@/features/orgs/components/projects/CreateProjectLimitDialog';
 import { DeploymentStatusMessage } from '@/features/orgs/projects/deployments/components/DeploymentStatusMessage';
+import { useCreateProjectGate } from '@/features/orgs/projects/hooks/useCreateProjectGate';
+import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { getUnpauseErrorMessage } from '@/features/orgs/utils/getUnpauseErrorMessage';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import {
   GetOrganizationsDocument,
   type GetProjectsQuery,
@@ -170,18 +173,28 @@ interface ProjectGridProps {
 
 export default function ProjectsGrid({ projects }: ProjectGridProps) {
   const { org } = useCurrentOrg();
+  const { push } = useRouter();
+  const { isBlocked, liveProjectSubdomain } = useCreateProjectGate();
+  const [showLimitDialog, setShowLimitDialog] = useState(false);
+
+  function handleCreateProjectClick() {
+    if (isBlocked) {
+      setShowLimitDialog(true);
+      return;
+    }
+
+    push(`/orgs/${org?.slug}/projects/new`);
+  }
 
   return (
     <div className="mx-auto h-full overflow-auto bg-accent-background pb-16">
-      <div className="mx-auto flex w-full max-w-5xl flex-shrink-0 flex-row items-center justify-between gap-2 px-5 pb-4 pt-8">
-        <h1 className="text-2xl font-semibold">Projects</h1>
-        <Button asChild>
-          <Link href={`/orgs/${org?.slug}/projects/new`}>
-            <div className="flex h-fit flex-row items-center justify-center space-x-2">
-              <Plus className="h-5 w-5" strokeWidth={2} />
-              <span>Create project</span>
-            </div>
-          </Link>
+      <div className="mx-auto flex w-full max-w-5xl flex-shrink-0 flex-row items-center justify-between gap-2 px-5 pt-8 pb-4">
+        <h1 className="font-semibold text-3xl">Projects</h1>
+        <Button onClick={handleCreateProjectClick}>
+          <div className="flex h-fit flex-row items-center justify-center space-x-2">
+            <Plus className="h-5 w-5" strokeWidth={2} />
+            <span>Create project</span>
+          </div>
         </Button>
       </div>
       <div className="mx-auto grid w-full max-w-5xl grid-cols-1 gap-4 px-5 py-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -189,6 +202,12 @@ export default function ProjectsGrid({ projects }: ProjectGridProps) {
           <ProjectCard key={project.id} project={project} />
         ))}
       </div>
+      <CreateProjectLimitDialog
+        open={showLimitDialog}
+        onOpenChange={setShowLimitDialog}
+        orgSlug={org?.slug}
+        projectSubdomain={liveProjectSubdomain}
+      />
     </div>
   );
 }

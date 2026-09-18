@@ -94,7 +94,7 @@ function DatabaseSettingsSectionLabel({
   children,
 }: DatabaseSettingsSectionLabelProps) {
   return (
-    <p className="mt-[1.2rem] px-2 pb-1 text-[10px] font-normal uppercase tracking-[0.08em] text-muted-foreground first:mt-0 dark:text-sidebar-section-title">
+    <p className="mt-[1.2rem] px-2 pb-1 font-normal text-[10px] text-muted-foreground uppercase tracking-[0.08em] first:mt-0 dark:text-sidebar-section-title">
       {children}
     </p>
   );
@@ -107,7 +107,7 @@ function DatabaseSettingsSidebar() {
 
   return (
     <FeatureSidebar
-      className="w-[240px] max-w-[240px] border-r-0 md:pt-14"
+      className="w-[240px] max-w-[240px] border-r-0 md:pt-6"
       mobileBreakpoint="md"
       toggleIcon={<SettingsIcon className="h-4 w-4 text-white" />}
       toggleOffset="left-8"
@@ -117,12 +117,18 @@ function DatabaseSettingsSidebar() {
         className="flex h-full min-h-0 w-full flex-col items-stretch justify-start rounded-none bg-transparent p-2 text-muted-foreground"
       >
         <DatabaseSettingsSectionLabel>Engine</DatabaseSettingsSectionLabel>
-        <TabsTrigger value="version" className={databaseSettingsTabTriggerClassName}>
+        <TabsTrigger
+          value="version"
+          className={databaseSettingsTabTriggerClassName}
+        >
           Postgres version
         </TabsTrigger>
 
         <DatabaseSettingsSectionLabel>Storage</DatabaseSettingsSectionLabel>
-        <TabsTrigger value="capacity" className={databaseSettingsTabTriggerClassName}>
+        <TabsTrigger
+          value="capacity"
+          className={databaseSettingsTabTriggerClassName}
+        >
           Capacity
           {isFreeOrg && <ProTag />}
         </TabsTrigger>
@@ -138,7 +144,9 @@ function DatabaseSettingsSidebar() {
 
         {isPlatform && (
           <>
-            <DatabaseSettingsSectionLabel>Connectivity</DatabaseSettingsSectionLabel>
+            <DatabaseSettingsSectionLabel>
+              Connectivity
+            </DatabaseSettingsSectionLabel>
             <TabsTrigger
               value="public-access"
               className={databaseSettingsTabTriggerClassName}
@@ -153,7 +161,9 @@ function DatabaseSettingsSidebar() {
               {isFreeOrg && <ProTag />}
             </TabsTrigger>
 
-            <DatabaseSettingsSectionLabel>Security</DatabaseSettingsSectionLabel>
+            <DatabaseSettingsSectionLabel>
+              Security
+            </DatabaseSettingsSectionLabel>
             <TabsTrigger
               value="reset-password"
               className={databaseSettingsTabTriggerClassName}
@@ -247,7 +257,9 @@ function DatabasePointInTimeRecoverySettings() {
   const { org } = useCurrentOrg();
 
   if (org?.plan?.isFree) {
-    return <UpgradeBanner section="settings-point-in-time" icon={DatabaseIcon} />;
+    return (
+      <UpgradeBanner section="settings-point-in-time" icon={DatabaseIcon} />
+    );
   }
 
   return <DatabasePiTRSettings />;

@@ -120,7 +120,15 @@ export default function WebAuthnSettings() {
       <Form onSubmit={handleWebAuthnSettingsUpdate}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Security Keys"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">Security Keys</h3>
+                <SettingsDocsLink
+                  href="https://docs.nhost.io/products/auth/webauthn"
+                  title="how to sign in users with security keys"
+                />
+              </span>
+            }
             description="Allow users to sign in with security keys using WebAuthn."
             control={
               <FormField
@@ -138,11 +146,6 @@ export default function WebAuthnSettings() {
           />
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/webauthn"
-              title="how to sign in users with security keys"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

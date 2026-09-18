@@ -159,7 +159,17 @@ export default function BlockedEmailSettings() {
       <Form onSubmit={handleAllowedEmailDomainsChange}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Blocked Emails and Domains"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">
+                  Blocked Emails and Domains
+                </h3>
+                <SettingsDocsLink
+                  href="https://docs.nhost.io/products/auth/restricting_emails_and_domains#blocked-emails-and-domains"
+                  title="Blocked Emails and Domains"
+                />
+              </span>
+            }
             description="Block specific email addresses and domains to sign up."
             control={
               <FormField
@@ -199,11 +209,6 @@ export default function BlockedEmailSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/restricting_emails_and_domains#blocked-emails-and-domains"
-              title="Blocked Emails and Domains"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!isDirty}

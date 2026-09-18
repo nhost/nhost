@@ -5,26 +5,8 @@ import { IconButton } from '@/components/ui/v3/icon-button';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/v3/alert-dialog';
+import { AppDialog } from '@/components/layout/AppDialog';
 import { Badge } from '@/components/ui/v3/badge';
-import { Button, buttonVariants } from '@/components/ui/v3/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/v3/dialog';
 import {
   Form,
   FormControl,
@@ -147,8 +129,8 @@ export default function OrgInvite({ invite, isAdmin }: InviteProps) {
     <>
       <div className="flex w-full flex-row items-center justify-between gap-2">
         <div className="flex min-w-0 flex-row items-center gap-3">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-200 dark:bg-muted">
-            <Mail className="h-4 w-4 text-neutral-700 dark:text-muted-foreground" />
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted">
+            <Mail className="h-4 w-4 text-muted-foreground" />
           </div>
 
           <div className="flex min-w-0 flex-col">
@@ -223,107 +205,83 @@ export default function OrgInvite({ invite, isAdmin }: InviteProps) {
         </div>
       </div>
 
-      <AlertDialog
+      <AppDialog
+        type="confirm"
         open={confirmDeleteInviteDialogOpen}
         onOpenChange={setConfirmDeleteInviteDialogOpen}
-      >
-        <AlertDialogContent className="text-foreground p-12">
-          <AlertDialogHeader className="mb-8">
-            <AlertDialogTitle>Delete invite?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will delete the invite sent to{' '}
-              <strong className="font-semibold text-foreground">
-                {invite.email}
-              </strong>
-              . They won&apos;t be able to join {orgName} using this invite
-              anymore.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteInvite}
-              className={buttonVariants({ variant: 'destructive' })}
-              disabled={deleting}
-            >
-              {deleting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                'Delete invite'
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <Dialog
-        open={updateRoleDialogOpen}
-        onOpenChange={(value) => {
-          form.reset();
-          setUpdateRoleDialogOpen(value);
+        title="Delete invite?"
+        description={
+          <>
+            This will delete the invite sent to{' '}
+            <strong className="font-semibold text-foreground">
+              {invite.email}
+            </strong>
+            . They won&apos;t be able to join {orgName} using this invite
+            anymore.
+          </>
+        }
+        destructive
+        primaryAction={{
+          label: deleting ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            'Delete invite'
+          ),
+          onClick: handleDeleteInvite,
+          disabled: deleting,
         }}
-      >
-        <DialogContent className="text-foreground p-12 sm:max-w-xl">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onUpdateSubmit)}>
-              <DialogHeader className="mb-4">
-                <DialogTitle>Update invite</DialogTitle>
-                <DialogDescription>
-                  This will affect their permissions and access within the
-                  organization.
-                </DialogDescription>
-              </DialogHeader>
+      />
 
-              <div className="mb-8 flex flex-col gap-4">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  disabled
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="email"
-                          placeholder="name@company.com"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="role"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Role</FormLabel>
-                      <FormControl>
-                        <RoleSelector
-                          value={field.value}
-                          onChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <DialogFooter>
-                <Button
-                  variant="outline-emboss"
-                  type="button"
-                  onClick={handleDismissDialog}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit">Update</Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
+      <Form {...form}>
+        <AppDialog
+          type="form"
+          open={updateRoleDialogOpen}
+          onOpenChange={(value) => {
+            form.reset();
+            setUpdateRoleDialogOpen(value);
+          }}
+          title="Update invite"
+          description="This will affect their permissions and access within the organization."
+          onCancel={handleDismissDialog}
+          onSubmit={form.handleSubmit(onUpdateSubmit)}
+          primaryAction={{ type: 'submit', label: 'Update' }}
+        >
+          <FormField
+            control={form.control}
+            name="email"
+            disabled
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    type="email"
+                    placeholder="name@company.com"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="role"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Role</FormLabel>
+                <FormControl>
+                  <RoleSelector
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </AppDialog>
+      </Form>
     </>
   );
 }

@@ -1,8 +1,7 @@
-import { ArrowUpRight } from 'lucide-react';
 import type { ImageProps } from 'next/image';
 import Image from 'next/image';
 import Link from 'next/link';
-import type { HTMLAttributes, ReactElement } from 'react';
+import type { AnchorHTMLAttributes, HTMLAttributes, ReactElement } from 'react';
 import type { CardProps } from '@/features/orgs/projects/overview/types/cards';
 import { cn } from '@/lib/utils';
 
@@ -88,54 +87,69 @@ export default function OverviewCard({
 }: OverviewCardProps) {
   const imageSize = disableIconBackground ? 42 : 32;
 
-  return (
-    <div
-      className={cn(
-        'flex h-full flex-col place-content-between gap-6 rounded-lg border px-4 py-3 shadow-sm',
-        className,
-      )}
-      {...props}
-    >
-      <div className="flex flex-col gap-4">
-        <div
-          {...(slotProps.iconWrapper || {})}
-          className={cn(
-            disableIconBackground
-              ? 'inline-flex h-12 w-12 items-center'
-              : 'inline-flex h-12 w-12 items-center justify-center rounded-full border bg-background shadow-xl',
-            slotProps.iconWrapper?.className,
-          )}
-        >
-          {renderIcon({
-            icon,
-            lightIcon,
-            title,
-            iconIsComponent,
-            imageProps: {
-              width: imageSize,
-              height: imageSize,
-              ...slotProps.imgIcon,
-            },
-          })}
-        </div>
-        <div className="grid grid-flow-row gap-1">
-          <h3 className="font-bold text-lg">{title}</h3>
-          <p className="font-medium text-muted-foreground text-sm">
-            {description}
-          </p>
-        </div>
+  // The whole card is the click target (it links out to the docs page),
+  // so the hover state lives on the card's own border instead of on a
+  // separate "Learn more" link. When there's no link to send people to,
+  // it falls back to a plain, non-interactive div with no hover effect.
+  const cardClassName = cn(
+    'flex h-full flex-col place-content-between gap-6 rounded-lg border p-6 shadow-sm transition-colors',
+    link && 'hover:border-primary',
+    className,
+  );
+
+  const content = (
+    <div className="flex flex-col gap-4">
+      <div
+        {...(slotProps.iconWrapper || {})}
+        className={cn(
+          disableIconBackground
+            ? 'inline-flex h-12 w-12 items-center'
+            : 'inline-flex h-12 w-12 items-center justify-center rounded-full border bg-background shadow-xl',
+          slotProps.iconWrapper?.className,
+        )}
+      >
+        {renderIcon({
+          icon,
+          lightIcon,
+          title,
+          iconIsComponent,
+          imageProps: {
+            width: imageSize,
+            height: imageSize,
+            ...slotProps.imgIcon,
+          },
+        })}
       </div>
-      {link && (
-        <Link
-          href={link}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="grid grid-flow-col items-center justify-start gap-1 font-medium text-foreground/70 text-sm underline underline-offset-4 hover:text-primary"
-        >
-          Learn more
-          <ArrowUpRight className="h-4 w-4" />
-        </Link>
-      )}
+      <div className="grid grid-flow-row gap-1">
+        <h3 className="font-bold text-lg">{title}</h3>
+        <p className="font-medium text-muted-foreground text-sm">
+          {description}
+        </p>
+      </div>
+    </div>
+  );
+
+  if (link) {
+    return (
+      <Link
+        href={link}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={cardClassName}
+        // `props` is typed as HTMLAttributes<HTMLDivElement> (from CardProps,
+        // shared with the plain-div fallback below) but none of the actual
+        // card data passes div-specific event handlers, so this is a safe
+        // narrowing to satisfy Link's anchor-typed props.
+        {...(props as AnchorHTMLAttributes<HTMLAnchorElement>)}
+      >
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <div className={cardClassName} {...props}>
+      {content}
     </div>
   );
 }

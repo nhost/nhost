@@ -304,6 +304,8 @@ html.dark .graphiql-themed .graphiql-container {
     --destructive-foreground: 210 40% 98%;
     --destructive-hover: 350 100% 96%;
     --warning: 32 100% 57%;
+    --success: 163 94% 24%;
+    --success-background: 149 80% 90%;
     --border: 220 13.04% 90.98%;
     --input: 0 0% 83.1%;
     --ring: 216 100% 40%;
@@ -326,7 +328,11 @@ html.dark .graphiql-themed .graphiql-container {
     --data-cell-bg-disabled: 210, 8%, 85%;
     --data-table-border-color: 210, 16.7%, 92.9%;
     --primary-main: 216 100% 40.2%;
-    --table-selected: 216 100% 96.08%;
+    /* Matches the main nav's active-item background (bg-neutral-100 /
+       dark:bg-muted in DashboardSidebar) so every object-browser sidebar
+       (Database, Storage, Functions, Actions, Events, Remote Schemas)
+       highlights a selected item the same way the main nav does. */
+    --table-selected: 0 0% 96.1%;
     --default: 0 0% 98.04%;
     --primary-highlight: 216 100% 40.2% / 8%;
     --primary-gradient-from: 217.01 88.55% 44.51%;
@@ -374,6 +380,8 @@ html.dark .graphiql-themed .graphiql-container {
     --destructive-foreground: 210 40% 98%;
     --destructive-hover: 358.26 26.68% 22.03%;
     --warning: 32 100% 57%;
+    --success: 156 72% 67%;
+    --success-background: 164 86% 16%;
     --sidebar-foreground: 220 6.98% 91.57%;
     --sidebar-section-title: 204 2.2% 55.1%;
     --border: 214.29 5.43% 25.29%;
@@ -397,7 +405,7 @@ html.dark .graphiql-themed .graphiql-container {
     --data-cell-bg-disabled: 215, 12%, 19%;
     --data-table-border-color: 210, 13%, 21.2%;
     --primary-main: 217.8 100% 64%;
-    --table-selected: 216 31.65% 15.49%;
+    --table-selected: 214.4 7.2% 19%;
     --default: 216.92 23.64% 10.78%;
     --primary-highlight: 217.8 100% 64% / 16%;
     --primary-gradient-from: 216 86.67% 44.12%;

@@ -112,7 +112,15 @@ export default function ClientURLSettings() {
       <Form onSubmit={handleClientURLChange}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Client URL"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">Client URL</h3>
+                <SettingsDocsLink
+                  href="https://docs.nhost.io/products/auth/client_and_redirect_urls#client-url"
+                  title="Client URL"
+                />
+              </span>
+            }
             description="This should be the URL of your frontend app where users are redirected after authenticating."
           />
 
@@ -127,11 +135,6 @@ export default function ClientURLSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/client_and_redirect_urls#client-url"
-              title="Client URL"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

@@ -35,7 +35,7 @@ export default function BackupsSidebar() {
 
   return (
     <FeatureSidebar
-      className="w-[240px] max-w-[240px] border-r-0 md:pt-14"
+      className="w-[240px] max-w-[240px] border-r-0 md:pt-6"
       mobileBreakpoint="md"
       toggleIcon={<CloudIcon className="h-4 w-4 text-white" />}
       toggleOffset="left-8"

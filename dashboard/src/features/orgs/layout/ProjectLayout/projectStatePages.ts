@@ -7,7 +7,13 @@ function toRoutes(pages: string[]): Set<string> {
 const runningProjectPages = toRoutes([
   'database',
   'database/browser/[dataSourceSlug]',
+  'database/browser/[dataSourceSlug]/editor',
+  'database/browser/[dataSourceSlug]/[schemaSlug]/tables/[tableSlug]',
+  'database/browser/[dataSourceSlug]/[schemaSlug]/functions/[functionOID]',
   'database/schema/[dataSourceSlug]',
+  'database/backups',
+  'database/backups/import',
+  'database/backups/point-in-time',
   'graphql',
   'graphql/remote-schemas',
   'graphql/remote-schemas/[remoteSchemaSlug]',
@@ -24,31 +30,14 @@ const runningProjectPages = toRoutes([
   'auth/users',
   'auth/oauth2-clients',
   'storage',
-  'storage/bucket/[bucketId]',
+  'storage/bucket/[...bucketId]',
   'ai/auto-embeddings',
   'ai/assistants',
   'ai/file-stores',
+  'functions',
+  'functions/[...functionSlug]',
+  'run',
   'metrics',
-]);
-
-const sidebarSkeletonPages = toRoutes([
-  'events/event-triggers',
-  'events/event-triggers/[eventTriggerSlug]',
-  'events/cron-triggers',
-  'events/cron-triggers/[cronTriggerSlug]',
-  'events/one-offs',
-  'ai/auto-embeddings',
-  'ai/assistants',
-  'ai/file-stores',
-  'storage',
-  'storage/bucket/[bucketId]',
-  'graphql/remote-schemas',
-  'graphql/remote-schemas/[remoteSchemaSlug]',
-  'graphql/actions',
-  'graphql/actions/[actionSlug]',
-  'graphql/actions/custom-types',
-  'database',
-  'database/browser/[dataSourceSlug]',
 ]);
 
 /**
@@ -58,12 +47,4 @@ const sidebarSkeletonPages = toRoutes([
  */
 export function requiresRunningProject(route: string): boolean {
   return runningProjectPages.has(route);
-}
-
-/**
- * Whether the project-state screen's skeleton should include a sidebar for the
- * given route, matching the layout the blocked page would have shown.
- */
-export function hasSidebarSkeleton(route: string): boolean {
-  return sidebarSkeletonPages.has(route);
 }

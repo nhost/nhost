@@ -94,7 +94,7 @@ function GraphQLSettingsSidebar() {
   const isFreeOrg = org?.plan?.isFree;
 
   return (
-    <aside className="h-full w-[240px] max-w-[240px] shrink-0 overflow-auto pt-14">
+    <aside className="h-full w-[240px] max-w-[240px] shrink-0 overflow-auto pt-6">
       <SectionSidebarNav ariaLabel="GraphQL settings navigation">
         <SectionSidebarGroup label="ENGINE">
           <SectionSidebarButton

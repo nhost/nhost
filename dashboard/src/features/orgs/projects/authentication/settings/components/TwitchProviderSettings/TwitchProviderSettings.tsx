@@ -133,7 +133,15 @@ export default function TwitchProviderSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Twitch"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">Twitch</h3>
+                <SettingsDocsLink
+                  href="https://docs.nhost.io/products/auth/providers/sign-in-twitch"
+                  title="how to sign in users with Twitch"
+                />
+              </span>
+            }
             description="Allow users to sign in with Twitch."
             icon={
               theme.palette.mode === 'dark'
@@ -174,11 +182,6 @@ export default function TwitchProviderSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/providers/sign-in-twitch"
-              title="how to sign in users with Twitch"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

@@ -1,4 +1,6 @@
+import { useRouter } from 'next/router';
 import type { ComponentPropsWithoutRef, ReactNode } from 'react';
+import { useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 
 export interface ProjectSectionLayoutProps
@@ -20,21 +22,26 @@ export default function ProjectSectionLayout({
   sidebar,
   ...props
 }: ProjectSectionLayoutProps) {
+  const { asPath } = useRouter();
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  // This pane doesn't remount when switching between tabs on the same
+  // page (e.g. Settings' General <-> Environment Variables, which are
+  // just a `tab` query param on one page component), so without this its
+  // scroll position carries over from whatever tab you were on before,
+  // making the new tab open already scrolled past its own title. Reset
+  // it to the top on every route/tab change instead.
+  useEffect(() => {
+    contentRef.current?.scrollTo({ top: 0 });
+  }, [asPath]);
+
   return (
     <div
-      className={cn(
-        'flex h-full min-w-0 flex-col overflow-hidden',
-        className,
-      )}
+      className={cn('flex h-full min-w-0 flex-col overflow-hidden', className)}
       {...props}
     >
       {navigation && (
-        <div
-          className={cn(
-            'shrink-0 border-b px-4 py-3',
-            navigationClassName,
-          )}
-        >
+        <div className={cn('shrink-0 border-b px-4 py-3', navigationClassName)}>
           {navigation}
         </div>
       )}
@@ -47,8 +54,9 @@ export default function ProjectSectionLayout({
       >
         {sidebar}
         <div
+          ref={contentRef}
           className={cn(
-            'relative min-w-0 flex-1 overflow-y-auto pt-16',
+            'relative min-w-0 flex-1 overflow-y-auto pt-8 pb-8',
             contentClassName,
           )}
         >

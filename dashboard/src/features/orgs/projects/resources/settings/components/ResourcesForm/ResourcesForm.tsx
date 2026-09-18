@@ -8,6 +8,7 @@ import {
   SettingsCard,
   SettingsCardContent,
   SettingsCardHeader,
+  SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Spinner } from '@/components/ui/v3/spinner';
@@ -448,8 +449,24 @@ export default function ResourcesForm() {
       <Form onSubmit={handleConfirm}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Compute Resources"
-            description="Customize CPU and memory for the services in your project."
+            // No heading here on purpose: the page itself is already
+            // titled "Compute Resources" (the sidebar tab's h1), so a
+            // second "Compute Resources" heading right below it would
+            // just repeat it. The description takes the title slot
+            // instead, styled like the "Pause Project" row title on
+            // the General page (font-medium, full-opacity text), with
+            // the docs icon trailing the sentence. A <div>, not a <p>:
+            // SettingsDocsLink renders a <div> internally, which can't
+            // legally sit inside a <p>.
+            title={
+              <div className="flex items-center gap-2 font-medium">
+                Customize CPU and memory for the services in your project.
+                <SettingsDocsLink
+                  href="https://docs.nhost.io/platform/cloud/compute-resources"
+                  title="Compute Resources"
+                />
+              </div>
+            }
             control={
               <FormSwitch
                 control={form.control}

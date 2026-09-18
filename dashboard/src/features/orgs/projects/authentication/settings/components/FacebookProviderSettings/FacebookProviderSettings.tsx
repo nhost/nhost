@@ -131,7 +131,15 @@ export default function FacebookProviderSettings() {
       <Form onSubmit={handleSubmit}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Facebook"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">Facebook</h3>
+                <SettingsDocsLink
+                  href="https://docs.nhost.io/products/auth/providers/sign-in-facebook"
+                  title="how to sign in users with Facebook"
+                />
+              </span>
+            }
             description="Allow users to sign in with Facebook."
             icon="/assets/brands/facebook.svg"
             control={
@@ -168,11 +176,6 @@ export default function FacebookProviderSettings() {
           </SettingsCardContent>
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/providers/sign-in-facebook"
-              title="how to sign in users with Facebook"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

@@ -1,23 +1,27 @@
 import { NetworkStatus } from '@apollo/client';
-import { EllipsisVertical as DotsVerticalIcon, PlusIcon } from 'lucide-react';
-import { Fragment, useState } from 'react';
-import { twMerge } from 'tailwind-merge';
+import { Pencil, PlusIcon, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
+import { AppDialog } from '@/components/layout/AppDialog';
 import {
   SettingsCard,
   SettingsCardContent,
   SettingsCardHeader,
+  SettingsTable,
+  SettingsTableBody,
+  SettingsTableHeader,
+  SettingsTableRow,
 } from '@/components/layout/SettingsCard';
 import { Button } from '@/components/ui/v3/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/v3/dropdown-menu';
+import { IconButton } from '@/components/ui/v3/icon-button';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { Spinner } from '@/components/ui/v3/spinner';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -34,10 +38,19 @@ export default function SecretsSettings() {
   const { project } = useProject();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
-  const { openDialog, openAlertDialog } = useDialog();
-  const [openActionMenuSecret, setOpenActionMenuSecret] = useState<
-    string | undefined
-  >();
+  // Still used for the "Apply your changes" follow-up dialog on self-hosted
+  // (non-platform) projects, which stays on the old dialog system for now.
+  const { openDialog } = useDialog();
+
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [isCreateFormDirty, setIsCreateFormDirty] = useState(false);
+
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [isEditFormDirty, setIsEditFormDirty] = useState(false);
+  const [editingSecret, setEditingSecret] = useState<Secret | null>(null);
+
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingSecret, setDeletingSecret] = useState<Secret | null>(null);
 
   const { data, error, refetch, networkStatus } = useGetSecretsQuery({
     variables: { appId: project?.id },
@@ -96,43 +109,17 @@ export default function SecretsSettings() {
   }
 
   function handleOpenCreator() {
-    openDialog({
-      title: 'Create Secret',
-      component: <CreateSecretForm onSubmit={refetch} />,
-      props: {
-        titleProps: { className: '!pb-0' },
-        PaperProps: { className: 'gap-2 max-w-md' },
-      },
-    });
+    setCreateDialogOpen(true);
   }
 
   function handleOpenEditor(originalSecret: Secret) {
-    openDialog({
-      title: 'Edit Secret',
-      component: <EditSecretForm originalSecret={originalSecret} />,
-      props: {
-        titleProps: { className: '!pb-0' },
-        PaperProps: { className: 'gap-2 max-w-md' },
-      },
-    });
+    setEditingSecret(originalSecret);
+    setEditDialogOpen(true);
   }
 
   function handleConfirmDelete(originalSecret: Secret) {
-    openAlertDialog({
-      title: 'Delete Secret',
-      payload: (
-        <p>
-          Are you sure you want to delete the &quot;
-          <strong>{originalSecret.name}</strong>&quot; secret? This cannot be
-          undone.
-        </p>
-      ),
-      props: {
-        primaryButtonColor: 'error',
-        primaryButtonText: 'Delete',
-        onPrimaryAction: () => handleDeleteSecret(originalSecret),
-      },
-    });
+    setDeletingSecret(originalSecret);
+    setDeleteDialogOpen(true);
   }
 
   const secrets = data?.appSecrets || [];
@@ -141,7 +128,11 @@ export default function SecretsSettings() {
     <div className="grid grid-flow-row gap-6">
       <SettingsCard className="gap-0 pb-0">
         <SettingsCardHeader
-          title="Secrets"
+          // No title here (the page's own H1 already says "Secrets"), so
+          // the button stays vertically centered against the description
+          // instead of top-aligned against a title that doesn't exist.
+          contentClassName="sm:max-w-lg"
+          title={null}
           description={
             <span>
               To prevent exposing sensitive information, use secrets in your
@@ -152,87 +143,121 @@ export default function SecretsSettings() {
               in any configuration placeholder.
             </span>
           }
-        />
-
-        <SettingsCardContent
-          className={twMerge('my-2 px-0', secrets.length === 0 && 'gap-2')}
-        >
-          <div className="grid grid-cols-2 gap-2 border-b-1 px-4 py-3">
-            <p className="font-medium">Secret Name</p>
-          </div>
-
-          <div className="grid grid-flow-row gap-2">
-            {secrets.length > 0 && (
-              <div>
-                {secrets.map((secret, index) => (
-                  <Fragment key={secret.name}>
-                    <div className="relative grid grid-cols-2 gap-2 px-4 pr-12">
-                      <DropdownMenu
-                        open={openActionMenuSecret === secret.name}
-                        onOpenChange={(open) =>
-                          setOpenActionMenuSecret(
-                            open ? secret.name : undefined,
-                          )
-                        }
-                      >
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="absolute top-1/2 right-4 -translate-y-1/2"
-                          >
-                            <DotsVerticalIcon className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-
-                        <DropdownMenuContent align="end" className="w-32 p-0">
-                          <DropdownMenuItem
-                            className="flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
-                            onClick={() => {
-                              setOpenActionMenuSecret(undefined);
-                              handleOpenEditor(secret);
-                            }}
-                          >
-                            <span>Edit</span>
-                          </DropdownMenuItem>
-
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setOpenActionMenuSecret(undefined);
-                              handleConfirmDelete(secret);
-                            }}
-                            className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
-                          >
-                            <span>Delete</span>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                      <p className="truncate">{secret.name}</p>
-                    </div>
-
-                    <div
-                      className={twMerge(
-                        'border-t',
-                        index === secrets.length - 1 ? '!mt-4' : '!my-4',
-                      )}
-                    />
-                  </Fragment>
-                ))}
-              </div>
-            )}
-
+          control={
             <Button
               type="button"
-              variant="ghost"
-              className="mx-4 justify-self-start text-primary-main hover:bg-primary-highlight hover:text-primary-main"
+              variant="outline-emboss"
               onClick={handleOpenCreator}
             >
               <PlusIcon className="mr-2 h-4 w-4" />
               Create Secret
             </Button>
-          </div>
-        </SettingsCardContent>
+          }
+        />
+
+        {secrets.length > 0 && (
+          <SettingsCardContent className="mt-6 px-0">
+            <SettingsTable>
+              <SettingsTableHeader>
+                <p className="font-bold">Secret Name</p>
+              </SettingsTableHeader>
+
+              <SettingsTableBody>
+                {secrets.map((secret) => (
+                  <SettingsTableRow
+                    key={secret.name}
+                    className="flex items-center justify-between gap-2"
+                  >
+                    <p className="min-w-0 truncate">{secret.name}</p>
+
+                    <div className="flex shrink-0 items-center gap-1">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <IconButton
+                            icon={Pencil}
+                            aria-label="Edit"
+                            onClick={() => handleOpenEditor(secret)}
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent>Edit</TooltipContent>
+                      </Tooltip>
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <IconButton
+                            icon={Trash2}
+                            aria-label="Delete"
+                            onClick={() => handleConfirmDelete(secret)}
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent>Delete</TooltipContent>
+                      </Tooltip>
+                    </div>
+                  </SettingsTableRow>
+                ))}
+              </SettingsTableBody>
+            </SettingsTable>
+          </SettingsCardContent>
+        )}
+
+        <AppDialog
+          type="form"
+          open={createDialogOpen}
+          onOpenChange={setCreateDialogOpen}
+          title="Create Secret"
+          isDirty={isCreateFormDirty}
+        >
+          <CreateSecretForm
+            onCancel={() => setCreateDialogOpen(false)}
+            onDirtyStateChange={setIsCreateFormDirty}
+            onSubmit={async () => {
+              await refetch();
+              setCreateDialogOpen(false);
+            }}
+          />
+        </AppDialog>
+
+        <AppDialog
+          type="form"
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          title="Edit Secret"
+          isDirty={isEditFormDirty}
+        >
+          {editingSecret && (
+            <EditSecretForm
+              originalSecret={editingSecret}
+              onCancel={() => setEditDialogOpen(false)}
+              onDirtyStateChange={setIsEditFormDirty}
+              onSubmit={async () => setEditDialogOpen(false)}
+            />
+          )}
+        </AppDialog>
+
+        <AppDialog
+          type="confirm"
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          title="Delete Secret"
+          description={
+            deletingSecret && (
+              <>
+                Are you sure you want to delete the &quot;
+                <strong>{deletingSecret.name}</strong>&quot; secret? This
+                cannot be undone.
+              </>
+            )
+          }
+          destructive
+          primaryAction={{
+            label: 'Delete',
+            onClick: () => {
+              if (deletingSecret) {
+                handleDeleteSecret(deletingSecret);
+              }
+            },
+          }}
+        />
       </SettingsCard>
     </div>
   );

@@ -8,7 +8,7 @@ const SettingsCardFooter = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      'flex flex-col gap-4 border-t px-4 pt-3.5 sm:flex-row sm:items-center sm:justify-end sm:gap-2',
+      'flex flex-col gap-4 border-t px-6 pt-4 sm:flex-row sm:items-center sm:justify-end sm:gap-2',
       className,
     )}
     {...props}

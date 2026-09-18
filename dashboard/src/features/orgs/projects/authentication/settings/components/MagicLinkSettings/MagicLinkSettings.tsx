@@ -116,7 +116,15 @@ export default function MagicLinkSettings() {
       <Form onSubmit={handleMagicLinkSettingsUpdate}>
         <SettingsCard>
           <SettingsCardHeader
-            title="Magic Link"
+            title={
+              <span className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">Magic Link</h3>
+                <SettingsDocsLink
+                  href="https://docs.nhost.io/products/auth/sign-in-magic-link"
+                  title="how to sign in users with Magic Link"
+                />
+              </span>
+            }
             description="Allow users to sign in with a Magic Link."
             control={
               <FormField
@@ -134,11 +142,6 @@ export default function MagicLinkSettings() {
           />
 
           <SettingsCardFooter>
-            <SettingsDocsLink
-              href="https://docs.nhost.io/products/auth/sign-in-magic-link"
-              title="how to sign in users with Magic Link"
-            />
-
             <ButtonWithLoading
               type="submit"
               disabled={!formState.isDirty}

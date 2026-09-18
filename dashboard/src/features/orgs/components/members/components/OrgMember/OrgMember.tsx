@@ -5,27 +5,9 @@ import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/v3/alert-dialog';
+import { AppDialog } from '@/components/layout/AppDialog';
 import { Avatar } from '@/components/ui/v3/avatar';
 import { Badge } from '@/components/ui/v3/badge';
-import { Button, buttonVariants } from '@/components/ui/v3/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/v3/dialog';
 import {
   Form,
   FormControl,
@@ -187,7 +169,7 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
                 {member.user.displayName}
               </span>
               {isSelf && (
-                <Badge className="pointer-events-none h-5 shrink-0 bg-emerald-100 px-[6px] font-bold text-[10px] text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+                <Badge className="pointer-events-none h-5 shrink-0 bg-success-background px-[6px] font-bold text-[10px] text-success dark:bg-success-background/40">
                   You
                 </Badge>
               )}
@@ -252,102 +234,78 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
         </div>
       </div>
 
-      <AlertDialog
+      <AppDialog
+        type="confirm"
         open={confirmRemoveMemberDialogOpen}
         onOpenChange={setConfirmRemoveMemberDialogOpen}
-      >
-        <AlertDialogContent className="text-foreground p-12">
-          <AlertDialogHeader className="mb-8">
-            <AlertDialogTitle>Remove member?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will remove{' '}
-              <strong className="font-semibold text-foreground">
-                {member.user.displayName}
-              </strong>{' '}
-              ({member.user.email}) from {orgName}. They&apos;ll lose access
-              to every project in it.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleRemoveMemberFromOrg}
-              className={buttonVariants({ variant: 'destructive' })}
-            >
-              Remove member
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <Dialog
-        open={updateMemberRoleDialogOpen}
-        onOpenChange={(value) => {
-          form.reset();
-          setUpdateMemberRoleDialogOpen(value);
+        title="Remove member?"
+        description={
+          <>
+            This will remove{' '}
+            <strong className="font-semibold text-foreground">
+              {member.user.displayName}
+            </strong>{' '}
+            ({member.user.email}) from {orgName}. They&apos;ll lose access to
+            every project in it.
+          </>
+        }
+        destructive
+        primaryAction={{
+          label: 'Remove member',
+          onClick: handleRemoveMemberFromOrg,
         }}
-      >
-        <DialogContent className="text-foreground p-12 sm:max-w-xl">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onUpdateSubmit)}>
-              <DialogHeader className="mb-4">
-                <DialogTitle>Update member role</DialogTitle>
-                <DialogDescription>
-                  This will affect their permissions and access within the
-                  organization.
-                </DialogDescription>
-              </DialogHeader>
+      />
 
-              <div className="mb-8 flex flex-col gap-4">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  disabled
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="email"
-                          placeholder="name@company.com"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="role"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Role</FormLabel>
-                      <FormControl>
-                        <RoleSelector
-                          value={field.value}
-                          onChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <DialogFooter>
-                <Button
-                  variant="outline-emboss"
-                  type="button"
-                  onClick={handleDismissDialog}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit">Update</Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
+      <Form {...form}>
+        <AppDialog
+          type="form"
+          open={updateMemberRoleDialogOpen}
+          onOpenChange={(value) => {
+            form.reset();
+            setUpdateMemberRoleDialogOpen(value);
+          }}
+          title="Update member role"
+          description="This will affect their permissions and access within the organization."
+          onCancel={handleDismissDialog}
+          onSubmit={form.handleSubmit(onUpdateSubmit)}
+          primaryAction={{ type: 'submit', label: 'Update' }}
+        >
+          <FormField
+            control={form.control}
+            name="email"
+            disabled
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    type="email"
+                    placeholder="name@company.com"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="role"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Role</FormLabel>
+                <FormControl>
+                  <RoleSelector
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </AppDialog>
+      </Form>
     </>
   );
 }
