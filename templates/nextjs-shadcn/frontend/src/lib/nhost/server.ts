@@ -37,17 +37,31 @@ export const cookieOptions = {
 // proof of control of the account's mailbox. The session cookie is readable by
 // JS (see `cookieOptions`), so anyone already holding a live refresh token can
 // put it on a `?refreshToken=...&type=passwordReset` URL and mint a grant for
-// their own account without any email. That is a consequence of the
-// browser-readable session rather than of this cookie, and it is why the grant
-// is not described as mailbox proof anywhere. Closing it needs the auth
-// service's PKCE flow, whose redeemed `code` is bound to the ticket itself.
+// whatever account that token names, without any email.
+//
+// That deserves naming as the escalation it is, rather than filing away as a
+// consequence of the browser-readable session. A stolen session cannot
+// otherwise change the password: `changePassword` demands the current one
+// whenever the account has one. The grant path is precisely what upgrades a
+// stolen session into a permanent takeover, because changing the password
+// revokes every other refresh token and locks the real owner out. Closing it
+// needs the auth service's PKCE flow, whose redeemed `code` is bound to the
+// ticket itself.
 //
 // In production the name takes the `__Host-` prefix, which pins the cookie to
 // this exact host: a sibling subdomain cannot plant one with `Domain=`, and the
 // browser enforces `Secure` and `Path=/` on it. The prefix requires `Secure`,
 // so it is dropped in development, where the app is served over plain http on
-// localhost and has no sibling subdomains to be tossed one from. The session
-// cookie cannot do the same because the browser SDK owns its name.
+// localhost. Cookies ignore the port, so the development name can be planted by
+// anything else on localhost - but so can the session cookie, so this adds no
+// exposure the session does not already carry. The session cookie cannot take
+// the prefix at all, because the browser SDK owns its name.
+//
+// A `__Host-` cookie cannot be removed with `cookies().delete()`. Next builds a
+// deletion as a `set` carrying only the options handed to it, so the `Secure`
+// the prefix demands is absent and the browser ignores the header outright.
+// Anything here that takes the prefix has to be cleared by overwriting it, the
+// way `clearPasswordResetGrant` does.
 export const PASSWORD_RESET_GRANT_COOKIE =
   process.env.NODE_ENV === 'production'
     ? '__Host-nhostPasswordResetGrant'
@@ -84,15 +98,26 @@ export async function passwordResetGrantUserId(): Promise<string | null> {
 /**
  * Spends the grant, so one reset link sets one password.
  *
- * The path is repeated from `passwordResetGrantOptions` because a delete has to
- * match the cookie's path to remove it. Without it a server action running on a
- * nested route would emit a delete for that route's own path, the browser would
- * keep the cookie, and the exemption would outlive the reset it was for.
+ * An empty overwrite rather than `cookies().delete()`, because Next builds a
+ * deletion as a `set` carrying only the options it was handed, which drops
+ * `secure`. The browser ignores a `__Host-` cookie that arrives without it, so
+ * in production the delete was a no-op and the exemption outlived the reset it
+ * was issued for. Spreading the write options is what keeps `Secure` on the
+ * header; `maxAge: 0` is what expires it.
+ *
+ * Those options carry the path too, which a removal has to match. Without it a
+ * server action running on a nested route would emit a removal for that route's
+ * own path, and the browser would keep the cookie.
  */
 export async function clearPasswordResetGrant(): Promise<void> {
   const cookieStore = await cookies();
 
-  cookieStore.delete({ name: PASSWORD_RESET_GRANT_COOKIE, path: '/' });
+  cookieStore.set({
+    name: PASSWORD_RESET_GRANT_COOKIE,
+    value: '',
+    ...passwordResetGrantOptions,
+    maxAge: 0,
+  });
 }
 
 // Next's cookie APIs percent-encode on write and decode on read, so these two
