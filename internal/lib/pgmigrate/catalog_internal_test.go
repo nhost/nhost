@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"testing"
 
@@ -713,6 +714,144 @@ func TestCatalogPublishReturnsIntegrityErrors(t *testing.T) {
 			}
 		})
 	}
+}
+
+type memoryCatalogDatabase struct {
+	migrations map[uint]storedMigration
+}
+
+func newMemoryCatalogDatabase(migrations ...storedMigration) *memoryCatalogDatabase {
+	database := &memoryCatalogDatabase{migrations: make(map[uint]storedMigration, len(migrations))}
+	for _, migration := range migrations {
+		database.migrations[migration.version] = cloneStoredMigration(migration)
+	}
+
+	return database
+}
+
+func (d *memoryCatalogDatabase) exec(context.Context, string, ...any) error {
+	return nil
+}
+
+//nolint:cyclop // The in-memory test adapter dispatches the finite catalog query set.
+func (d *memoryCatalogDatabase) query(
+	_ context.Context,
+	query string,
+	args ...any,
+) (catalogRows, error) {
+	switch {
+	case strings.Contains(query, "predecessor.version,\n    migration.identifier"):
+		databaseVersion, ok := args[0].(int64)
+		if !ok {
+			return nil, fmt.Errorf(
+				"unexpected version argument %T: %w",
+				args[0],
+				errors.ErrUnsupported,
+			)
+		}
+
+		version, err := sourceVersion(databaseVersion)
+		if err != nil {
+			return nil, fmt.Errorf("converting queried version: %w", err)
+		}
+
+		migration, found := d.migrations[version]
+		if !found {
+			return &stubCatalogRows{}, nil
+		}
+
+		return rowsForStoredMigration(migration), nil
+	case strings.Contains(query, "WHERE archived_at IS NULL AND previous_id IS NULL"):
+		versions := make([]uint, 0, len(d.migrations))
+		for version, migration := range d.migrations {
+			if migration.previousVersion == nil {
+				versions = append(versions, version)
+			}
+		}
+
+		return rowsForVersions(versions, maximumChainRows), nil
+	case strings.Contains(query, "successor.archived_at IS NULL"):
+		databasePrevious, ok := args[0].(int64)
+		if !ok {
+			return nil, fmt.Errorf(
+				"unexpected previous version argument %T: %w",
+				args[0],
+				errors.ErrUnsupported,
+			)
+		}
+
+		previous, err := sourceVersion(databasePrevious)
+		if err != nil {
+			return nil, fmt.Errorf("converting queried previous version: %w", err)
+		}
+
+		versions := make([]uint, 0, len(d.migrations))
+		for version, migration := range d.migrations {
+			if migration.previousVersion != nil && *migration.previousVersion == previous {
+				versions = append(versions, version)
+			}
+		}
+
+		return rowsForVersions(versions, maximumChainRows), nil
+	case strings.Contains(query, "WHERE archived_at IS NULL\nORDER BY version\nLIMIT 1"):
+		versions := make([]uint, 0, len(d.migrations))
+		for version := range d.migrations {
+			versions = append(versions, version)
+		}
+
+		return rowsForVersions(versions, 1), nil
+	case strings.Contains(query, "WHERE archived_at IS NULL\nORDER BY version"):
+		versions := make([]uint, 0, len(d.migrations))
+		for version := range d.migrations {
+			versions = append(versions, version)
+		}
+
+		return rowsForVersions(versions, len(versions)), nil
+	default:
+		return nil, fmt.Errorf("unexpected catalog query: %w", errors.ErrUnsupported)
+	}
+}
+
+func rowsForStoredMigration(migration storedMigration) *stubCatalogRows {
+	var (
+		previousID any
+		previous   any
+	)
+	if migration.previousVersion != nil {
+		previousID = "00000000-0000-0000-0000-000000000001"
+
+		previous = int64(*migration.previousVersion)
+	}
+
+	return &stubCatalogRows{
+		rows: [][]any{{
+			int64(migration.version),
+			previousID,
+			previous,
+			migration.identifier,
+			migration.upSQL,
+			migration.downSQL,
+			migration.upChecksum,
+			migration.downChecksum,
+			migration.formatVersion,
+		}},
+	}
+}
+
+func rowsForVersions(versions []uint, limit int) *stubCatalogRows {
+	slices.Sort(versions)
+
+	if len(versions) > limit {
+		versions = versions[:limit]
+	}
+
+	rows := make([][]any, 0, len(versions))
+	for _, version := range versions {
+		// Test catalog versions are small constants and always fit PostgreSQL BIGINT.
+		rows = append(rows, []any{int64(version)})
+	}
+
+	return &stubCatalogRows{rows: rows}
 }
 
 type stubCatalogDatabase struct {
