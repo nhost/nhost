@@ -91,6 +91,7 @@ func TestCatalogBootstrapEnforcesDatabaseInvariants(t *testing.T) {
 	}
 
 	relation := catalogTestRelation(schema)
+	// catalogTestRelation quotes both identifiers before relation is interpolated into these statements.
 	root := testMigration(1, nil, "root")
 	child := testMigration(2, uintPointer(1), "child")
 
@@ -133,13 +134,14 @@ func TestCatalogBootstrapEnforcesDatabaseInvariants(t *testing.T) {
 			name:       "existing predecessor",
 			constraint: "schema_migration_catalog_previous_id_fkey",
 			run: func() error {
-				// pi-lens-ignore: go-sql-injection
+				query := fmt.Sprintf(
+					"UPDATE %s SET previous_id = gen_random_uuid() WHERE version = $1",
+					relation,
+				)
+
 				_, err := database.ExecContext(
 					t.Context(),
-					fmt.Sprintf(
-						"UPDATE %s SET previous_id = gen_random_uuid() WHERE version = $1",
-						relation,
-					),
+					query,
 					int64(2),
 				)
 				if err != nil {
@@ -153,13 +155,14 @@ func TestCatalogBootstrapEnforcesDatabaseInvariants(t *testing.T) {
 			name:       "complete archive metadata",
 			constraint: "schema_migration_catalog_archive_metadata_check",
 			run: func() error {
-				// pi-lens-ignore: go-sql-injection
+				query := fmt.Sprintf(
+					"UPDATE %s SET archived_at = CURRENT_TIMESTAMP WHERE version = $1",
+					relation,
+				)
+
 				_, err := database.ExecContext(
 					t.Context(),
-					fmt.Sprintf(
-						"UPDATE %s SET archived_at = CURRENT_TIMESTAMP WHERE version = $1",
-						relation,
-					),
+					query,
 					int64(2),
 				)
 				if err != nil {
@@ -173,10 +176,11 @@ func TestCatalogBootstrapEnforcesDatabaseInvariants(t *testing.T) {
 			name:       "nonempty up SQL",
 			constraint: "schema_migration_catalog_up_sql_nonempty",
 			run: func() error {
-				// pi-lens-ignore: go-sql-injection
+				query := fmt.Sprintf("UPDATE %s SET up_sql = $1 WHERE version = $2", relation)
+
 				_, err := database.ExecContext(
 					t.Context(),
-					fmt.Sprintf("UPDATE %s SET up_sql = $1 WHERE version = $2", relation),
+					query,
 					[]byte{},
 					int64(2),
 				)
@@ -191,10 +195,11 @@ func TestCatalogBootstrapEnforcesDatabaseInvariants(t *testing.T) {
 			name:       "nonempty down SQL",
 			constraint: "schema_migration_catalog_down_sql_nonempty",
 			run: func() error {
-				// pi-lens-ignore: go-sql-injection
+				query := fmt.Sprintf("UPDATE %s SET down_sql = $1 WHERE version = $2", relation)
+
 				_, err := database.ExecContext(
 					t.Context(),
-					fmt.Sprintf("UPDATE %s SET down_sql = $1 WHERE version = $2", relation),
+					query,
 					[]byte{},
 					int64(2),
 				)
@@ -209,10 +214,11 @@ func TestCatalogBootstrapEnforcesDatabaseInvariants(t *testing.T) {
 			name:       "up checksum length",
 			constraint: "schema_migration_catalog_up_sha256_length",
 			run: func() error {
-				// pi-lens-ignore: go-sql-injection
+				query := fmt.Sprintf("UPDATE %s SET up_sha256 = $1 WHERE version = $2", relation)
+
 				_, err := database.ExecContext(
 					t.Context(),
-					fmt.Sprintf("UPDATE %s SET up_sha256 = $1 WHERE version = $2", relation),
+					query,
 					[]byte("short"),
 					int64(2),
 				)
@@ -227,10 +233,11 @@ func TestCatalogBootstrapEnforcesDatabaseInvariants(t *testing.T) {
 			name:       "down checksum length",
 			constraint: "schema_migration_catalog_down_sha256_length",
 			run: func() error {
-				// pi-lens-ignore: go-sql-injection
+				query := fmt.Sprintf("UPDATE %s SET down_sha256 = $1 WHERE version = $2", relation)
+
 				_, err := database.ExecContext(
 					t.Context(),
-					fmt.Sprintf("UPDATE %s SET down_sha256 = $1 WHERE version = $2", relation),
+					query,
 					[]byte("short"),
 					int64(2),
 				)
@@ -245,10 +252,11 @@ func TestCatalogBootstrapEnforcesDatabaseInvariants(t *testing.T) {
 			name:       "restricted predecessor deletion",
 			constraint: "schema_migration_catalog_previous_id_fkey",
 			run: func() error {
-				// pi-lens-ignore: go-sql-injection
+				query := fmt.Sprintf("DELETE FROM %s WHERE version = $1", relation)
+
 				_, err := database.ExecContext(
 					t.Context(),
-					fmt.Sprintf("DELETE FROM %s WHERE version = $1", relation),
+					query,
 					int64(1),
 				)
 				if err != nil {
@@ -332,12 +340,17 @@ func TestCatalogPublicationIsIdempotentAndAcceptsFutureRows(t *testing.T) {
 	}
 
 	relation := catalogTestRelation(schema)
+	// catalogTestRelation quotes both identifiers before relation is interpolated into these statements.
 
 	var registeredAt string
-	// pi-lens-ignore: go-sql-injection
+
+	registeredAtQuery := fmt.Sprintf(
+		"SELECT registered_at::text FROM %s WHERE version = $1",
+		relation,
+	)
 	if err := database.QueryRowContext(
 		t.Context(),
-		fmt.Sprintf("SELECT registered_at::text FROM %s WHERE version = $1", relation),
+		registeredAtQuery,
 		int64(1),
 	).Scan(&registeredAt); err != nil {
 		t.Fatalf("querying registration time: %v", err)
@@ -356,10 +369,13 @@ func TestCatalogPublicationIsIdempotentAndAcceptsFutureRows(t *testing.T) {
 		t.Fatalf("publish(newer) error = %v", err)
 	}
 
-	// pi-lens-ignore: go-sql-injection
+	addFutureColumnQuery := fmt.Sprintf(
+		"ALTER TABLE %s ADD COLUMN future_metadata TEXT",
+		relation,
+	)
 	if _, err := database.ExecContext(
 		t.Context(),
-		fmt.Sprintf("ALTER TABLE %s ADD COLUMN future_metadata TEXT", relation),
+		addFutureColumnQuery,
 	); err != nil {
 		t.Fatalf("adding compatible future column: %v", err)
 	}
