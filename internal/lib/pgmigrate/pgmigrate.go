@@ -32,13 +32,17 @@ var (
 )
 
 // Migrate publishes the embedded migration bundle and migrates schema to the
-// bundle's maximum version. The caller context bounds setup and preflight, but
-// cancellation does not abort migration SQL after execution starts.
-// Post-execution catalog archival and connection cleanup each use a separate
-// five-second, cancellation-independent timeout before Migrate returns. The
-// caller owns the dedicated migration database; Migrate acquires and closes two
-// connections, resets the execution session before releasing it, and does not
-// close the pool. Sharing a long-lived application pool is unsupported.
+// bundle's maximum version. The schema argument scopes package-owned state and
+// catalog tables; Migrate does not change search_path, so migration bodies must
+// schema-qualify every application object they create or reference.
+//
+// The caller context bounds setup and preflight, but cancellation does not abort
+// migration SQL after execution starts. Post-execution catalog archival and
+// connection cleanup each use a separate five-second, cancellation-independent
+// timeout before Migrate returns. The caller owns the dedicated migration
+// database; Migrate acquires and closes two connections, resets the execution
+// session before releasing it, and does not close the pool. Sharing a long-lived
+// application pool is unsupported.
 func Migrate(
 	ctx context.Context,
 	logger *slog.Logger,

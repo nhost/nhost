@@ -452,6 +452,57 @@ func TestSlogAdapter(t *testing.T) {
 	}
 }
 
+func TestMigrateRunsUnqualifiedBodiesWithConfiguredSearchPath(t *testing.T) {
+	t.Parallel()
+
+	database := openCatalogTestDatabase(t)
+	migrationSchema := createCatalogTestSchema(t, database, "")
+	bodySchema := createCatalogTestSchema(t, database, migrationSchema+"_body")
+	migrationDatabase := searchPathDatabase{
+		database:   database,
+		searchPath: bodySchema,
+	}
+
+	const object = "unqualified_migration_object"
+
+	bundle := migrationFS(map[string]string{
+		"1_create_object.up.sql": "CREATE TABLE unqualified_migration_object " +
+			"(id INTEGER PRIMARY KEY);",
+		"1_create_object.down.sql": "DROP TABLE unqualified_migration_object;",
+	})
+	if err := Migrate(
+		t.Context(),
+		discardLogger(),
+		migrationDatabase,
+		bundle,
+		"migrations",
+		migrationSchema,
+	); err != nil {
+		t.Fatalf("Migrate(unqualified body) error = %v", err)
+	}
+
+	var (
+		foundInBodySchema      bool
+		foundInMigrationSchema bool
+	)
+	if err := database.QueryRowContext(
+		t.Context(),
+		"SELECT to_regclass($1) IS NOT NULL, to_regclass($2) IS NOT NULL",
+		pq.QuoteIdentifier(bodySchema)+"."+pq.QuoteIdentifier(object),
+		pq.QuoteIdentifier(migrationSchema)+"."+pq.QuoteIdentifier(object),
+	).Scan(&foundInBodySchema, &foundInMigrationSchema); err != nil {
+		t.Fatalf("locating object created by unqualified migration body: %v", err)
+	}
+
+	if !foundInBodySchema || foundInMigrationSchema {
+		t.Fatalf(
+			"unqualified migration object locations = (configured search path: %t, migration schema: %t), want (true, false)",
+			foundInBodySchema,
+			foundInMigrationSchema,
+		)
+	}
+}
+
 func TestMigrateResetsExecutionSessionBeforeReleasingConnection(t *testing.T) {
 	t.Parallel()
 
@@ -1145,6 +1196,36 @@ func TestMigrateWithRestrictedSchemaRole(t *testing.T) {
 	}
 
 	assertMigrationState(t, restricted, schema, 1, false)
+}
+
+type searchPathDatabase struct {
+	database   *sql.DB
+	searchPath string
+}
+
+func (d searchPathDatabase) Conn(ctx context.Context) (*sql.Conn, error) {
+	connection, err := d.database.Conn(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("acquiring configured search-path connection: %w", err)
+	}
+
+	if _, err := connection.ExecContext(
+		ctx,
+		"SELECT set_config('search_path', $1, false)",
+		d.searchPath,
+	); err != nil {
+		setErr := fmt.Errorf("configuring connection search path: %w", err)
+		if closeErr := connection.Close(); closeErr != nil {
+			return nil, errors.Join(
+				setErr,
+				fmt.Errorf("closing connection after search-path failure: %w", closeErr),
+			)
+		}
+
+		return nil, setErr
+	}
+
+	return connection, nil
 }
 
 type recordingMigrationSource struct {

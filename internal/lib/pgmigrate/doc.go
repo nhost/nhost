@@ -8,5 +8,9 @@
 // immutable; successfully downgraded or conflicting unapplied suffixes are
 // archived so a replacement release lineage can reuse their version sequence.
 //
+// The schema argument scopes package-owned migration state and catalog tables;
+// the package does not change search_path. Migration bodies must schema-qualify
+// every application object they create or reference.
+//
 // Callers own the dedicated migration database pool supplied to this package.
 package pgmigrate
