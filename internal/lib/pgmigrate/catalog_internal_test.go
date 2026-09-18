@@ -179,6 +179,10 @@ func TestCatalogActiveFutureComparisonProtectsAppliedRows(t *testing.T) {
 	editedBeta := testBundle(beta.migrations[0], editedBetaVersionTwo, beta.migrations[2])
 	rerootedVersionTwo := testBundle(testMigration(2, nil, "beta_name"))
 	previousStable := testBundle(testMigration(1, nil, "root"))
+	forkedStable := testBundle(
+		testMigration(1, nil, "root"),
+		testMigration(4, uintPointer(1), "stable_squashed"),
+	)
 
 	database := newMemoryCatalogDatabase(
 		storedMigrationFrom(beta.migrations[0]),
@@ -186,13 +190,24 @@ func TestCatalogActiveFutureComparisonProtectsAppliedRows(t *testing.T) {
 		storedMigrationFrom(beta.migrations[2]),
 	)
 
-	catalog, err := newCatalog(t.Context(), database, "app")
+	betaCatalog, err := newCatalog(t.Context(), database, "app")
 	if err != nil {
 		t.Fatalf("newCatalog() error = %v", err)
 	}
 
+	forkedDatabase := newMemoryCatalogDatabase(
+		storedMigrationFrom(forkedStable.migrations[0]),
+		storedMigrationFrom(forkedStable.migrations[1]),
+	)
+
+	forkedCatalog, err := newCatalog(t.Context(), forkedDatabase, "app")
+	if err != nil {
+		t.Fatalf("newCatalog() for forked lineage error = %v", err)
+	}
+
 	tests := []struct {
 		name           string
+		catalog        *catalog
 		local          *bundle
 		currentVersion int64
 		wantMatch      bool
@@ -228,6 +243,16 @@ func TestCatalogActiveFutureComparisonProtectsAppliedRows(t *testing.T) {
 			wantError:      true,
 			wantIssue: "active catalog version 2 belongs to a different lineage and is still applied; " +
 				"downgrade below version 2 with an image whose bundle maximum is <= 1 before deploying this bundle",
+		},
+		{
+			name:           "lower replacement after forked applied version",
+			catalog:        forkedCatalog,
+			local:          beta,
+			currentVersion: 4,
+			wantMatch:      false,
+			wantError:      true,
+			wantIssue: "active catalog version 4 belongs to a different lineage and is still applied; " +
+				"downgrade below version 4 with an image whose bundle maximum is <= 1 before deploying this bundle",
 		},
 		{
 			name:           "higher replacement after omitted applied versions",
@@ -279,7 +304,15 @@ func TestCatalogActiveFutureComparisonProtectsAppliedRows(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			matches, comparisonErr := catalog.activeFutureMatches(tt.local, tt.currentVersion)
+			catalogUnderTest := betaCatalog
+			if tt.catalog != nil {
+				catalogUnderTest = tt.catalog
+			}
+
+			matches, comparisonErr := catalogUnderTest.activeFutureMatches(
+				tt.local,
+				tt.currentVersion,
+			)
 			if (comparisonErr != nil) != tt.wantError {
 				t.Fatalf(
 					"activeFutureMatches() error = %v, want error %t",

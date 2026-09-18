@@ -207,7 +207,7 @@ func (c *catalog) reconcile(local *bundle, currentVersion int64) error {
 	return c.publish(local)
 }
 
-//nolint:funlen // One ordered scan preserves divergence precedence and its last-common-version state.
+//nolint:cyclop,funlen // One ordered scan preserves divergence precedence and its lineage state.
 func (c *catalog) activeFutureMatches(local *bundle, currentVersion int64) (bool, error) {
 	query := fmt.Sprintf(`
 SELECT version
@@ -221,11 +221,22 @@ ORDER BY version
 		return false, err
 	}
 
+	activeVersionSet := make(map[uint]struct{}, len(activeVersions))
+	for _, version := range activeVersions {
+		activeVersionSet[version] = struct{}{}
+	}
+
 	localByVersion := make(map[uint]*migration, len(local.migrations))
+	localAppliedVersionMissingFromCatalog := false
 
 	for index := range local.migrations {
 		migration := &local.migrations[index]
 		localByVersion[migration.version] = migration
+
+		_, active := activeVersionSet[migration.version]
+		if !active && !versionAfter(migration.version, currentVersion) {
+			localAppliedVersionMissingFromCatalog = true
+		}
 	}
 
 	var (
@@ -256,7 +267,7 @@ ORDER BY version
 		}
 
 		if !present {
-			if firstMissingAppliedVersion == nil && local.target > version {
+			if firstMissingAppliedVersion == nil {
 				missingVersion := version
 				firstMissingAppliedVersion = &missingVersion
 			}
@@ -277,7 +288,8 @@ ORDER BY version
 	}
 
 	// Defer this diagnostic so a later shared version can report its more specific mismatch first.
-	if firstMissingAppliedVersion != nil {
+	if firstMissingAppliedVersion != nil &&
+		(local.target > *firstMissingAppliedVersion || localAppliedVersionMissingFromCatalog) {
 		return false, appliedLineageDivergence(*firstMissingAppliedVersion, lastCommonVersion)
 	}
 
