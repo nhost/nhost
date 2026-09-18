@@ -95,9 +95,6 @@ type serveConfig struct {
 // use bare env vars (BIND, ADMIN_SECRET, ...) because the engine replaces the
 // individual service binaries rather than running alongside them.
 func globalFlags() []cli.Flag {
-	// A plain literal plus a trailing append is deliberately used over a
-	// capacity-hinted make(): this runs once at startup, so the presize is not
-	// worth a hand-maintained flag count.
 	flags := []cli.Flag{ //nolint:prealloc
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:    flagBind,
@@ -232,25 +229,29 @@ func sharedOverridesFor(service string, cfg serveConfig) []sharedOverride {
 	var out []sharedOverride
 
 	scalar := func(flag, value string) {
-		if value != "" {
-			out = append(out, sharedOverride{
-				flag:   flag,
-				values: []string{value},
-				// Current scalar overrides are secrets, URLs, or engine-owned defaults,
-				// all of which treat an explicitly empty native source as unconfigured.
-				preserveExplicitEmpty: emptyMeansUnconfigured,
-			})
+		if value == "" {
+			return
 		}
+
+		out = append(out, sharedOverride{
+			flag:   flag,
+			values: []string{value},
+			// Current scalar overrides are secrets, URLs, or engine-owned defaults,
+			// all of which treat an explicitly empty native source as unconfigured.
+			preserveExplicitEmpty: emptyMeansUnconfigured,
+		})
 	}
 
 	cors := func(flag string, preserveExplicitEmpty bool) {
-		if len(cfg.corsOrigins) > 0 {
-			out = append(out, sharedOverride{
-				flag:                  flag,
-				values:                cfg.corsOrigins,
-				preserveExplicitEmpty: preserveExplicitEmpty,
-			})
+		if len(cfg.corsOrigins) == 0 {
+			return
 		}
+
+		out = append(out, sharedOverride{
+			flag:                  flag,
+			values:                cfg.corsOrigins,
+			preserveExplicitEmpty: preserveExplicitEmpty,
+		})
 	}
 
 	switch service {
