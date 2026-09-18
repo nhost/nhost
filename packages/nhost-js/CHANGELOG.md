@@ -1,3 +1,29 @@
+## [@nhost/nhost-js@4.9.0] - 2026-09-18
+
+### 🚀 Features
+
+- *(auth)* Add SMS deanonymization and phone number changes (#4576)
+
+
+### 🐛 Bug Fixes
+
+- *(codegen)* Emit nullable schemas as `T | null` in the typescript plugin (#4916)
+- *(docs)* Correct submodule import in docstring examples (#5002)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Bump Go to 1.27 (#4887)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4744)
+- *(deps)* Update vulnerable dependencies (#4773)
+- *(deps)* Update vulnerable dependencies (#4815)
+- *(deps)* Update vulnerable dependencies (#4863)
+- *(deps)* Update vulnerable dependencies (#4973)
+
 ## [@nhost/nhost-js@4.8.0] - 2026-07-31
 
 ### 🚀 Features
