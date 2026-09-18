@@ -218,6 +218,10 @@ main() {
 		touch "$INIT_COMPLETE_FILE"
 		rm -f "$INIT_IN_PROGRESS_FILE"
 	fi
+
+	# Rebuild collation-dependent indexes only after the available collation
+	# version changes, before recording the new version.
+	/bin/repair-collation.sh
 	run_nhost_scripts
 
 	delete_core_dumps &
