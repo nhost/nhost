@@ -534,39 +534,62 @@ func TestMigrateResetsExecutionSessionBeforeReleasingConnection(t *testing.T) {
 		t.Fatalf("Migrate(session-scoped SET) error = %v", err)
 	}
 
-	connections := make([]*sql.Conn, 0, 2)
+	assertReleasedConnectionsReset(t, database, 2, initialApplicationName)
+}
+
+func TestMigrateCleansAbortedExecutionSession(t *testing.T) {
+	t.Parallel()
+
+	database := openCatalogTestDatabase(t)
+	database.SetMaxOpenConns(3)
+	database.SetMaxIdleConns(3)
+	schema := createCatalogTestSchema(t, database, "")
+
+	probeConnection, err := database.Conn(t.Context())
+	if err != nil {
+		t.Fatalf("acquiring independent cleanup probe connection: %v", err)
+	}
+
 	t.Cleanup(func() {
-		for _, connection := range connections {
-			if err := connection.Close(); err != nil {
-				t.Errorf("closing session reset probe connection: %v", err)
-			}
+		if closeErr := probeConnection.Close(); closeErr != nil {
+			t.Errorf("closing independent cleanup probe connection: %v", closeErr)
 		}
 	})
 
-	for range 2 {
-		connection, err := database.Conn(t.Context())
-		if err != nil {
-			t.Fatalf("acquiring session reset probe connection: %v", err)
-		}
-
-		connections = append(connections, connection)
-
-		var applicationName string
-		if err := connection.QueryRowContext(
-			t.Context(),
-			"SHOW application_name",
-		).Scan(&applicationName); err != nil {
-			t.Fatalf("reading released connection application_name: %v", err)
-		}
-
-		if applicationName != initialApplicationName {
-			t.Fatalf(
-				"released connection application_name = %q, want initial value %q",
-				applicationName,
-				initialApplicationName,
-			)
-		}
+	var initialApplicationName string
+	if err := probeConnection.QueryRowContext(
+		t.Context(),
+		"SHOW application_name",
+	).Scan(&initialApplicationName); err != nil {
+		t.Fatalf("reading initial application_name: %v", err)
 	}
+
+	bundle := migrationFS(map[string]string{
+		"1_fail_in_transaction.up.sql": "SET application_name TO 'pgmigrate_poisoned'; " +
+			"BEGIN; SELECT id FROM pgmigrate_missing_relation;",
+		"1_fail_in_transaction.down.sql": "SELECT 1;",
+	})
+
+	err = Migrate(
+		t.Context(),
+		discardLogger(),
+		database,
+		bundle,
+		"migrations",
+		schema,
+	)
+	if err == nil {
+		t.Fatal("Migrate(failed transaction body) error = nil")
+	}
+
+	// The upstream runner also reports its failed unlock from the aborted transaction;
+	// cleanup must still preserve the body error and restore the session.
+	if !strings.Contains(err.Error(), "pgmigrate_missing_relation") {
+		t.Fatalf("Migrate() error = %v, want original body failure", err)
+	}
+
+	assertOuterLockAvailableOnConnection(t, probeConnection, schema)
+	assertReleasedConnectionsReset(t, database, 2, initialApplicationName)
 }
 
 func TestMigrateHydratesExistingStateWithoutReplay(t *testing.T) {
@@ -1549,6 +1572,16 @@ func assertOuterLockAvailable(t *testing.T, database *sql.DB, schema string) {
 		}
 	}()
 
+	assertOuterLockAvailableOnConnection(t, connection, schema)
+}
+
+func assertOuterLockAvailableOnConnection(
+	t *testing.T,
+	connection *sql.Conn,
+	schema string,
+) {
+	t.Helper()
+
 	identifier := advisoryLockIdentifierForTest(t, connection, schema)
 
 	var acquired bool
@@ -1575,6 +1608,49 @@ func assertOuterLockAvailable(t *testing.T, database *sql.DB, schema string) {
 
 	if !unlocked {
 		t.Fatal("lock probe did not hold acquired lock")
+	}
+}
+
+func assertReleasedConnectionsReset(
+	t *testing.T,
+	database *sql.DB,
+	count int,
+	wantApplicationName string,
+) {
+	t.Helper()
+
+	connections := make([]*sql.Conn, 0, count)
+	t.Cleanup(func() {
+		for _, connection := range connections {
+			if err := connection.Close(); err != nil {
+				t.Errorf("closing session reset probe connection: %v", err)
+			}
+		}
+	})
+
+	for range count {
+		connection, err := database.Conn(t.Context())
+		if err != nil {
+			t.Fatalf("acquiring session reset probe connection: %v", err)
+		}
+
+		connections = append(connections, connection)
+
+		var applicationName string
+		if err := connection.QueryRowContext(
+			t.Context(),
+			"SHOW application_name",
+		).Scan(&applicationName); err != nil {
+			t.Fatalf("using released migration connection: %v", err)
+		}
+
+		if applicationName != wantApplicationName {
+			t.Fatalf(
+				"released connection application_name = %q, want initial value %q",
+				applicationName,
+				wantApplicationName,
+			)
+		}
 	}
 }
 

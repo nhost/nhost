@@ -169,6 +169,8 @@ func cleanupMigrationConnections(
 	cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), cleanupTimeout)
 	defer cancel()
 
+	executionRollbackErr := rollbackMigrationConnection(cleanupCtx, executionConnection)
+
 	var unlockErr error
 	if outerLock != nil {
 		unlockErr = outerLock.unlock(cleanupCtx)
@@ -180,6 +182,7 @@ func cleanupMigrationConnections(
 
 	if joined := errors.Join(
 		operationErr,
+		executionRollbackErr,
 		unlockErr,
 		executionResetErr,
 		sourceCloseErr,
@@ -691,6 +694,18 @@ func currentDatabase(ctx context.Context, connection *sql.Conn) (string, error) 
 	}
 
 	return name, nil
+}
+
+func rollbackMigrationConnection(ctx context.Context, connection *sql.Conn) error {
+	if connection == nil {
+		return nil
+	}
+
+	if _, err := connection.ExecContext(ctx, "ROLLBACK"); err != nil {
+		return fmt.Errorf("rolling back PostgreSQL migration execution connection: %w", err)
+	}
+
+	return nil
 }
 
 func resetMigrationConnection(ctx context.Context, connection *sql.Conn) error {
