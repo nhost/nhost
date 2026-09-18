@@ -2,13 +2,10 @@
 
 set -eu
 
-PSQL=${PSQL:-psql}
-XARGS=${XARGS:-xargs}
-
 repair_database() {
 	database=$1
 
-	"$PSQL" -X -q -b -U postgres -d "$database" -v ON_ERROR_STOP=1 <<'SQL'
+	psql -X -q -b -U postgres -d "$database" -v ON_ERROR_STOP=1 <<'SQL'
 SELECT
     datcollversion IS DISTINCT FROM pg_database_collation_actual_version(oid)
         AS collation_mismatch
@@ -40,7 +37,7 @@ repair_all_databases() {
 	database_file=$(mktemp "${TMPDIR:-/tmp/postgresql}/collation-databases.XXXXXX")
 	trap 'rm -f "$database_file"' EXIT HUP INT TERM
 
-	if ! "$PSQL" -X -q -A -t -0 -b -U postgres -d postgres -v ON_ERROR_STOP=1 \
+	if ! psql -X -q -A -t -0 -b -U postgres -d postgres -v ON_ERROR_STOP=1 \
 		-c '
 SELECT datname
 FROM pg_database
@@ -52,7 +49,7 @@ ORDER BY datname;
 		return 1
 	fi
 
-	if [ -s "$database_file" ] && ! "$XARGS" -0 -n 1 "$0" --database <"$database_file"; then
+	if [ -s "$database_file" ] && ! xargs -0 -n 1 "$0" --database <"$database_file"; then
 		echo "Failed to repair database collation versions" >&2
 		return 1
 	fi

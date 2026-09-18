@@ -45,7 +45,7 @@ chmod +x "$test_dir/psql"
 
 export REPAIR_TRACE="$test_dir/trace"
 repair_status=0
-PSQL="$test_dir/psql" TMPDIR="$test_dir" "$repair_script" \
+PATH="$test_dir:$PATH" TMPDIR="$test_dir" "$repair_script" \
 	>"$test_dir/stdout" 2>"$test_dir/stderr" || repair_status=$?
 if [ "$repair_status" -ne 1 ]; then
 	echo "repair returned $repair_status, expected 1" >&2
