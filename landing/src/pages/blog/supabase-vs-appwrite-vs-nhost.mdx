@@ -344,15 +344,15 @@ The differences that matter for most apps come down to CDN performance, image tr
 
 | Capability | Supabase | Appwrite | Nhost |
 | --- | --- | --- | --- |
-| Runtime | Deno 2.1, all regions | Node, Bun 1.4, Deno, Python, PHP, Ruby, Rust, and more | Node, plus any container via Run |
-| Deploy | CLI, dashboard, Management API | CLI, console, Git triggers | CLI, Git deploy |
+| Runtime | Deno 2.1, all regions | Node, Bun 1.4, Deno, Python, PHP, Ruby, Rust, and more | JavaScript and TypeScript, plus any container via Run |
+| Deploy | CLI, dashboard, Management API | CLI, console, Git triggers | Git push, CLI |
 | Language freedom | TypeScript/JavaScript | Wide | Narrow in Functions, unlimited in Run |
 
 **Appwrite's** runtime list is the widest of the three, and [Bun 1.4](#) landed on August 20th as both a function runtime and a build runtime for Appwrite Sites. It's the first Bun written in Rust rather than Zig; Appwrite's own numbers put builds 22% faster than Bun 1.3 on a Next.js app with 640 packages. Again: vendor benchmark, one workload, take it with a grain of salt.
 
 **Supabase's** counter-argument is that one runtime means one set of behaviors to learn. If your functions are webhooks and glue, this doesn't matter. If you have a Python ML step in your pipeline, it decides the whole thing.
 
-**Nhost** splits this into two products. Functions run JavaScript and TypeScript on Node, deploy by pushing to your deployment branch, and can be called directly or fired by database events. Anything that isn't JavaScript goes to Run, which deploys an arbitrary Docker container alongside the stack, in Go, Python, Rust or anything that builds into an image, billed per vCPU and memory allocated.
+**Nhost** splits this into two products. Functions run JavaScript and TypeScript, deploy automatically when you push to the connected GitHub repository, and handle HTTP endpoints, event triggers, cron triggers and one-off scheduled events. Anything that isn't JavaScript goes to Run, which deploys an arbitrary Docker container alongside the stack, in Go, Python, Rust or anything that builds into an image, billed per vCPU and memory allocated.
 
 Cold starts: measure them. I'm not publishing numbers from a free tier and pretending they generalize, and you shouldn't trust anyone who does. Hit your own function 20 times after five idle minutes and look at your own p95.
 
@@ -408,7 +408,7 @@ Both respect the session. An assistant's access to your data is limited to what 
 - Permission rules that are both role-based and data-aware, versioned alongside your migrations
 - Graphite: auto-embeddings and AI assistants scoped by the same permissions as your users
 - Run: deploy any Docker container alongside the backend, in any language
-- Dedicated compute allocated per service, sized per project
+- Single-tenant services rather than shared infrastructure
 
 ## So which one
 
