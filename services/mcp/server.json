@@ -27,10 +27,18 @@
     {
       "registryType": "oci",
       "identifier": "docker.io/nhost/mcp:0.2.0",
+      "runtimeHint": "docker",
       "transport": {
         "type": "streamable-http",
         "url": "http://localhost:3000/"
       },
+      "runtimeArguments": [
+        {
+          "type": "named",
+          "name": "-p",
+          "value": "3000:3000"
+        }
+      ],
       "environmentVariables": [
         {
           "name": "MCP_GRAPHQL_ENDPOINT",
