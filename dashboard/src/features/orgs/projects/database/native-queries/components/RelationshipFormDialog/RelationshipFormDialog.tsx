@@ -18,12 +18,12 @@ import {
 } from '@/components/ui/v3/dialog';
 import { Form } from '@/components/ui/v3/form';
 import { SelectItem, SelectSeparator } from '@/components/ui/v3/select';
+import { getGraphQLIdentifierSchema } from '@/features/orgs/projects/common/utils/getGraphQLIdentifierSchema';
+import type { NativeQueryRelationshipKind } from '@/features/orgs/projects/database/native-queries/types';
 import {
   columnMappingToFieldMappings,
   hasNativeQueryRelationshipName,
-  type NativeQueryRelationshipKind,
-} from '@/features/orgs/projects/database/native-queries/utils/nativeQueryRelationships';
-import { getGraphQLIdentifierSchema } from '@/features/orgs/projects/graphql/common/utils/getGraphQLIdentifierSchema';
+} from '@/features/orgs/projects/database/native-queries/utils/updateNativeQueryRelationship';
 import type {
   LogicalModelItem,
   NativeQueryItem,
@@ -31,39 +31,54 @@ import type {
   NativeQueryRelationshipUsingNativeQuery,
 } from '@/utils/hasura-api/generated/schemas';
 
-const relationshipSchema = z
-  .object({
-    name: getGraphQLIdentifierSchema(
-      'Relationship name',
-      'Relationship name is required.',
-    ),
-    kind: z.enum(['object', 'array']),
-    remoteNativeQuery: z.string().min(1, 'Select a target native query.'),
-    fieldMappings: z
-      .array(
-        z.object({
-          sourceField: z.string().min(1, 'Select a source field.'),
-          targetField: z.string().min(1, 'Select a target field.'),
-        }),
-      )
-      .min(1, 'Add at least one field mapping.'),
-    insertionOrder: z.enum(['before_parent', 'after_parent']).nullable(),
-  })
-  .superRefine((values, context) => {
-    const sourceFields = new Set<string>();
-    values.fieldMappings.forEach((mapping, index) => {
-      if (sourceFields.has(mapping.sourceField)) {
+function createRelationshipSchema(
+  query: NativeQueryItem,
+  originalName?: string,
+) {
+  return z
+    .object({
+      name: getGraphQLIdentifierSchema(
+        'Relationship name',
+        'Relationship name is required.',
+      ),
+      kind: z.enum(['object', 'array']),
+      remoteNativeQuery: z.string().min(1, 'Select a target native query.'),
+      fieldMappings: z
+        .array(
+          z.object({
+            sourceField: z.string().min(1, 'Select a source field.'),
+            targetField: z.string().min(1, 'Select a target field.'),
+          }),
+        )
+        .min(1, 'Add at least one field mapping.'),
+      insertionOrder: z.enum(['before_parent', 'after_parent']).nullable(),
+    })
+    .superRefine((values, context) => {
+      if (hasNativeQueryRelationshipName(query, values.name, originalName)) {
         context.addIssue({
           code: z.ZodIssueCode.custom,
-          path: ['fieldMappings', index, 'sourceField'],
-          message: 'Source fields must be unique.',
+          path: ['name'],
+          message: 'A relationship with this name already exists.',
         });
       }
-      sourceFields.add(mapping.sourceField);
-    });
-  });
 
-export type RelationshipFormValues = z.infer<typeof relationshipSchema>;
+      const sourceFields = new Set<string>();
+      values.fieldMappings.forEach((mapping, index) => {
+        if (sourceFields.has(mapping.sourceField)) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['fieldMappings', index, 'sourceField'],
+            message: 'Source fields must be unique.',
+          });
+        }
+        sourceFields.add(mapping.sourceField);
+      });
+    });
+}
+
+export type RelationshipFormValues = z.infer<
+  ReturnType<typeof createRelationshipSchema>
+>;
 
 interface EditableRelationshipWithKind {
   relationship: NativeQueryRelationship & {
@@ -114,7 +129,9 @@ function RelationshipForm({
   onClose,
 }: RelationshipFormProps) {
   const form = useForm<RelationshipFormValues>({
-    resolver: zodResolver(relationshipSchema),
+    resolver: zodResolver(
+      createRelationshipSchema(query, relationship?.relationship.name),
+    ),
     defaultValues: relationship
       ? {
           name: relationship.relationship.name,
@@ -182,21 +199,7 @@ function RelationshipForm({
       <Form {...form}>
         <form
           className="flex flex-col gap-5"
-          onSubmit={form.handleSubmit(async (nextValues) => {
-            if (
-              hasNativeQueryRelationshipName(
-                query,
-                nextValues.name,
-                relationship?.relationship.name,
-              )
-            ) {
-              form.setError('name', {
-                message: 'A relationship with this name already exists.',
-              });
-              return;
-            }
-            await onSubmit(nextValues);
-          })}
+          onSubmit={form.handleSubmit((values) => onSubmit(values))}
         >
           <FormInput
             control={control}
@@ -259,7 +262,6 @@ function RelationshipForm({
                       <span className="sr-only">Source field {index + 1}</span>
                     }
                     containerClassName="col-span-5"
-                    data-testid={`fieldMappings.${index}.sourceField`}
                   >
                     {sourceFieldNames.map((fieldName) => (
                       <SelectItem
@@ -292,7 +294,6 @@ function RelationshipForm({
                       <span className="sr-only">Target field {index + 1}</span>
                     }
                     containerClassName="col-span-4 col-start-8"
-                    data-testid={`fieldMappings.${index}.targetField`}
                     disabled={!targetModel}
                   >
                     {targetFieldNames.map((fieldName) => (
@@ -374,14 +375,12 @@ function RelationshipForm({
           setShowDiscardDialog(false);
           onClose();
         }}
-        // Keeps Escape from reaching the MUI drawer hosting this dialog.
-        onEscapeKeyDown={(event) => event.stopPropagation()}
       />
     </>
   );
 }
 
-export function RelationshipFormDialog({
+export default function RelationshipFormDialog({
   open,
   onOpenChange,
   query,
