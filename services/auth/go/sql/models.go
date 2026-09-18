@@ -112,15 +112,18 @@ type AuthSchemaMigration struct {
 }
 
 type AuthSchemaMigrationCatalog struct {
-	Version         int64
-	PreviousVersion pgtype.Int8
-	Identifier      string
-	UpSql           []byte
-	DownSql         []byte
-	UpSha256        []byte
-	DownSha256      []byte
-	FormatVersion   int32
-	RegisteredAt    pgtype.Timestamptz
+	ID             uuid.UUID
+	Version        int64
+	PreviousID     pgtype.UUID
+	Identifier     string
+	UpSql          []byte
+	DownSql        []byte
+	UpSha256       []byte
+	DownSha256     []byte
+	FormatVersion  int32
+	RegisteredAt   pgtype.Timestamptz
+	ArchivedAt     pgtype.Timestamptz
+	ArchiveBatchID pgtype.UUID
 }
 
 // User account information. Don't modify its structure as Hasura Auth relies on it to function properly.
