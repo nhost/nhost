@@ -17,15 +17,16 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
+import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { RelationshipFormDialog } from '@/features/orgs/projects/database/native-queries/components/RelationshipFormDialog';
 import { useGetNativeQueries } from '@/features/orgs/projects/database/native-queries/hooks/useGetNativeQueries';
 import { useNativeQueryMetadataMutation } from '@/features/orgs/projects/database/native-queries/hooks/useNativeQueryMetadataMutation';
+import type { NativeQueryRelationshipInput } from '@/features/orgs/projects/database/native-queries/types';
 import {
   addNativeQueryRelationship,
-  type NativeQueryRelationshipInput,
   removeNativeQueryRelationship,
   updateNativeQueryRelationship,
-} from '@/features/orgs/projects/database/native-queries/utils/nativeQueryRelationships';
+} from '@/features/orgs/projects/database/native-queries/utils/updateNativeQueryRelationship';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type {
   LogicalModelItem,
@@ -39,7 +40,6 @@ export interface NativeQueryRelationshipsProps {
   query: NativeQueryItem;
   queries: NativeQueryItem[];
   models: LogicalModelItem[];
-  source: string;
   getQueryHref?: (queryName: string) => string;
 }
 
@@ -110,14 +110,14 @@ function RelationshipTarget({
 
 export default function NativeQueryRelationships({
   query,
-  source,
   queries,
   models,
   getQueryHref,
 }: NativeQueryRelationshipsProps) {
   const { mutateAsync: updateNativeQuery, isPending } =
     useNativeQueryMetadataMutation({ type: 'edit' });
-  const { refetch: refetchNativeQueries } = useGetNativeQueries(source);
+  const { refetch: refetchNativeQueries } = useGetNativeQueries();
+  const { data: resourceVersion } = useGetMetadataResourceVersion();
   const [formOpen, setFormOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selected, setSelected] = useState<RelationshipWithKind | undefined>();
@@ -155,7 +155,7 @@ export default function NativeQueryRelationships({
         }
         const updated = transform(current);
         return updateNativeQuery({
-          source,
+          resourceVersion: resourceVersion!,
           original: current,
           args: {
             ...updated,

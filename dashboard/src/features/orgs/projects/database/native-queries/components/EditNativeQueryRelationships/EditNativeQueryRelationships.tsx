@@ -6,14 +6,12 @@ import { useGetLogicalModels } from '@/features/orgs/projects/database/native-qu
 import { useGetNativeQueries } from '@/features/orgs/projects/database/native-queries/hooks/useGetNativeQueries';
 
 interface EditNativeQueryRelationshipsProps {
-  source: string;
   queryName: string;
   onCancel?: VoidFunction;
 }
 
 export default function EditNativeQueryRelationships({
   queryName,
-  source,
   onCancel,
 }: EditNativeQueryRelationshipsProps) {
   const router = useRouter();
@@ -22,12 +20,12 @@ export default function EditNativeQueryRelationships({
     data: queries = [],
     isLoading: queriesLoading,
     error: queriesError,
-  } = useGetNativeQueries(source);
+  } = useGetNativeQueries();
   const {
     data: models = [],
     isLoading: modelsLoading,
     error: modelsError,
-  } = useGetLogicalModels(source);
+  } = useGetLogicalModels();
 
   const metadataError = queriesError ?? modelsError;
   if (metadataError) {
@@ -53,9 +51,8 @@ export default function EditNativeQueryRelationships({
             query={query}
             queries={queries}
             models={models}
-            source={source}
             getQueryHref={(targetQueryName) =>
-              `/orgs/${orgSlug}/projects/${appSubdomain}/database/native-queries/${encodeURIComponent(source)}/queries/${encodeURIComponent(targetQueryName)}`
+              `/orgs/${orgSlug}/projects/${appSubdomain}/database/native-queries/default/queries/${encodeURIComponent(targetQueryName)}`
             }
           />
         ) : (

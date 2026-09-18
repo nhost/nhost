@@ -4,7 +4,7 @@ import {
   fieldMappingsToColumnMapping,
   removeNativeQueryRelationship,
   updateNativeQueryRelationship,
-} from '@/features/orgs/projects/database/native-queries/utils/nativeQueryRelationships';
+} from '@/features/orgs/projects/database/native-queries/utils/updateNativeQueryRelationship';
 import type {
   NativeQueryItem,
   NativeQueryRelationship,

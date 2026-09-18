@@ -8,9 +8,11 @@ import { NativeQueryRelationships } from '@/features/orgs/projects/database/nati
 import { mockMatchMediaValue } from '@/tests/mocks';
 import {
   fireEvent,
+  mockPointerEvent,
   queryClient,
   render,
   screen,
+  TestUserEvent,
   waitFor,
   within,
 } from '@/tests/testUtils';
@@ -175,17 +177,19 @@ const server = setupServer(
   ),
 );
 
-const chooseOption = (comboboxName: string, optionName: string) => {
-  fireEvent.keyDown(screen.getByRole('combobox', { name: comboboxName }), {
-    key: 'Enter',
-  });
-  fireEvent.click(screen.getByRole('option', { name: optionName }));
-};
+async function chooseOption(
+  user: TestUserEvent,
+  comboboxName: string,
+  optionName: string,
+) {
+  await user.click(screen.getByRole('combobox', { name: comboboxName }));
+  await user.click(await screen.findByRole('option', { name: optionName }));
+}
 
-const fillMapping = () => {
-  chooseOption('Target Native Query', 'authors');
-  fireEvent.click(screen.getByRole('button', { name: 'Add New Mapping' }));
-};
+async function fillMapping(user: TestUserEvent) {
+  await chooseOption(user, 'Target Native Query', 'authors');
+  await user.click(screen.getByRole('button', { name: 'Add New Mapping' }));
+}
 
 function DrawerHarness() {
   const { openDrawer } = useDialog();
@@ -197,7 +201,6 @@ function DrawerHarness() {
           title: 'Edit Relationships',
           component: (
             <NativeQueryRelationships
-              source={selectedSource}
               query={query}
               queries={[query]}
               models={[model]}
@@ -287,6 +290,7 @@ describe('NativeQueryRelationships', () => {
       },
     });
     window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
+    mockPointerEvent();
   });
 
   beforeEach(() => {
@@ -321,12 +325,12 @@ describe('NativeQueryRelationships', () => {
 
   afterAll(() => server.close());
 
-  it('awaits one atomic migration on add and preserves all other native query data', async () => {
+  it('sends a single metadata request when adding and preserves other query config', async () => {
+    const user = new TestUserEvent();
     const completion = Promise.withResolvers<void>();
     requestState.migrationFinished = completion.promise;
     render(
       <NativeQueryRelationships
-        source={selectedSource}
         query={query}
         queries={[query]}
         models={[model]}
@@ -335,11 +339,10 @@ describe('NativeQueryRelationships', () => {
     expect(screen.getByText('2 object · 2 array')).toBeInTheDocument();
     expect(screen.getByText('manager')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Relationship' }));
-    fireEvent.change(screen.getByLabelText('Relationship Name'), {
-      target: { value: '_reports2' },
-    });
-    fillMapping();
+    await user.click(screen.getByRole('button', { name: 'Relationship' }));
+    await user.clear(screen.getByLabelText('Relationship Name'));
+    await user.type(screen.getByLabelText('Relationship Name'), '_reports2');
+    await fillMapping(user);
     fireEvent.submit(
       screen
         .getByRole('button', { name: 'Create Relationship' })
@@ -362,7 +365,7 @@ describe('NativeQueryRelationships', () => {
           },
         ]),
       ]);
-      expect(requestOrder).toEqual(['snapshot', 'snapshot', 'migration']);
+      expect(requestOrder).toEqual(['snapshot', 'migration']);
       expect(
         screen.getByRole('heading', { name: 'Create Relationship' }),
       ).toBeInTheDocument();
@@ -382,12 +385,7 @@ describe('NativeQueryRelationships', () => {
     );
     expect(screen.getByText('Relationship created.')).toBeInTheDocument();
     await waitFor(() =>
-      expect(requestOrder).toEqual([
-        'snapshot',
-        'snapshot',
-        'migration',
-        'snapshot',
-      ]),
+      expect(requestOrder).toEqual(['snapshot', 'migration', 'snapshot']),
     );
   });
 
@@ -410,7 +408,6 @@ describe('NativeQueryRelationships', () => {
 
       render(
         <NativeQueryRelationships
-          source={selectedSource}
           query={{
             ...query,
             object_relationships: [tableRelationship],
@@ -436,24 +433,23 @@ describe('NativeQueryRelationships', () => {
     },
   );
 
-  it('edits through one atomic migration while changing only the target relationship', async () => {
+  it('sends a single metadata request when editing and leaves other relationships untouched', async () => {
+    const user = new TestUserEvent();
     render(
       <NativeQueryRelationships
-        source={selectedSource}
         query={query}
         queries={[query]}
         models={[model]}
       />,
     );
-    fireEvent.click(
+    await user.click(
       screen.getByRole('button', { name: 'Edit relationship manager' }),
     );
     expect(
       screen.getByRole('combobox', { name: 'Target Native Query' }),
     ).toHaveTextContent('authors');
-    fireEvent.change(screen.getByLabelText('Relationship Name'), {
-      target: { value: 'lead2' },
-    });
+    await user.clear(screen.getByLabelText('Relationship Name'));
+    await user.type(screen.getByLabelText('Relationship Name'), 'lead2');
     fireEvent.submit(
       screen.getByRole('button', { name: 'Save Changes' }).closest('form')!,
     );
@@ -471,28 +467,23 @@ describe('NativeQueryRelationships', () => {
       ).not.toBeInTheDocument(),
     );
     await waitFor(() =>
-      expect(requestOrder).toEqual([
-        'snapshot',
-        'snapshot',
-        'migration',
-        'snapshot',
-      ]),
+      expect(requestOrder).toEqual(['snapshot', 'migration', 'snapshot']),
     );
   });
 
-  it('deletes through one atomic migration while preserving unaffected relationships', async () => {
+  it('sends a single metadata request when deleting and preserves unaffected relationships', async () => {
+    const user = new TestUserEvent();
     render(
       <NativeQueryRelationships
-        source={selectedSource}
         query={query}
         queries={[query]}
         models={[model]}
       />,
     );
-    fireEvent.click(
+    await user.click(
       screen.getByRole('button', { name: 'Delete relationship manager' }),
     );
-    fireEvent.click(
+    await user.click(
       screen.getByRole('button', { name: 'Delete relationship' }),
     );
 
@@ -506,12 +497,7 @@ describe('NativeQueryRelationships', () => {
       ).not.toBeInTheDocument(),
     );
     await waitFor(() =>
-      expect(requestOrder).toEqual([
-        'snapshot',
-        'snapshot',
-        'migration',
-        'snapshot',
-      ]),
+      expect(requestOrder).toEqual(['snapshot', 'migration', 'snapshot']),
     );
     expect(
       screen.getByRole('heading', { name: 'Relationships' }),
@@ -519,6 +505,7 @@ describe('NativeQueryRelationships', () => {
   });
 
   it('rebases the write on relationships added since the page rendered', async () => {
+    const user = new TestUserEvent();
     const externalRelationship = {
       name: 'external',
       using: {
@@ -537,16 +524,15 @@ describe('NativeQueryRelationships', () => {
 
     render(
       <NativeQueryRelationships
-        source={selectedSource}
         query={query}
         queries={[query]}
         models={[model]}
       />,
     );
-    fireEvent.click(
+    await user.click(
       screen.getByRole('button', { name: 'Delete relationship manager' }),
     );
-    fireEvent.click(
+    await user.click(
       screen.getByRole('button', { name: 'Delete relationship' }),
     );
 
@@ -558,20 +544,20 @@ describe('NativeQueryRelationships', () => {
   });
 
   it('reports a conflict when the native query no longer exists', async () => {
+    const user = new TestUserEvent();
     serverQuery = { ...query, root_field_name: 'renamed_elsewhere' };
 
     render(
       <NativeQueryRelationships
-        source={selectedSource}
         query={query}
         queries={[query]}
         models={[model]}
       />,
     );
-    fireEvent.click(
+    await user.click(
       screen.getByRole('button', { name: 'Delete relationship manager' }),
     );
-    fireEvent.click(
+    await user.click(
       screen.getByRole('button', { name: 'Delete relationship' }),
     );
 
@@ -585,20 +571,19 @@ describe('NativeQueryRelationships', () => {
   });
 
   it('keeps a failed relationship save dirty and retries the preserved draft', async () => {
+    const user = new TestUserEvent();
     requestState.migrationStatus = 500;
     render(
       <NativeQueryRelationships
-        source={selectedSource}
         query={query}
         queries={[query]}
         models={[model]}
       />,
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Relationship' }));
-    fireEvent.change(screen.getByLabelText('Relationship Name'), {
-      target: { value: 'reports' },
-    });
-    fillMapping();
+    await user.click(screen.getByRole('button', { name: 'Relationship' }));
+    await user.clear(screen.getByLabelText('Relationship Name'));
+    await user.type(screen.getByLabelText('Relationship Name'), 'reports');
+    await fillMapping(user);
     fireEvent.submit(
       screen
         .getByRole('button', { name: 'Create Relationship' })
@@ -606,7 +591,7 @@ describe('NativeQueryRelationships', () => {
     );
 
     expect(await screen.findByText('migration failed')).toBeInTheDocument();
-    expect(requestOrder).toEqual(['snapshot', 'snapshot', 'migration']);
+    expect(requestOrder).toEqual(['snapshot', 'migration']);
     expect(migrationBodies).toHaveLength(1);
     expect(
       screen.getByRole('heading', { name: 'Create Relationship' }),
@@ -615,11 +600,11 @@ describe('NativeQueryRelationships', () => {
     expect(screen.queryByText('Relationship created.')).not.toBeInTheDocument();
     const save = screen.getByRole('button', { name: 'Create Relationship' });
     expect(save).toBeEnabled();
-    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
     const confirmation = await screen.findByRole('alertdialog', {
       name: 'Unsaved changes',
     });
-    fireEvent.click(
+    await user.click(
       within(confirmation).getByRole('button', { name: 'Cancel' }),
     );
     await waitFor(() => expect(confirmation).not.toBeInTheDocument());
@@ -637,25 +622,25 @@ describe('NativeQueryRelationships', () => {
   });
 
   it('keeps a failed delete confirmation open without success refresh and permits retry', async () => {
+    const user = new TestUserEvent();
     requestState.migrationStatus = 500;
     render(
       <NativeQueryRelationships
-        source={selectedSource}
         query={query}
         queries={[query]}
         models={[model]}
       />,
     );
-    fireEvent.click(
+    await user.click(
       screen.getByRole('button', { name: 'Delete relationship manager' }),
     );
-    fireEvent.click(
+    await user.click(
       screen.getByRole('button', { name: 'Delete relationship' }),
     );
 
     expect(await screen.findByText('migration failed')).toBeInTheDocument();
-    expect(requestOrder).toEqual(['snapshot', 'snapshot', 'migration']);
-    expect(requestState.snapshotRequests).toBe(2);
+    expect(requestOrder).toEqual(['snapshot', 'migration']);
+    expect(requestState.snapshotRequests).toBe(1);
     expect(migrationBodies).toEqual([
       expectedMigration([unaffectedObjectRelationship]),
     ]);
@@ -670,7 +655,7 @@ describe('NativeQueryRelationships', () => {
     expect(deleteButton).toBeEnabled();
 
     requestState.migrationStatus = 200;
-    fireEvent.click(deleteButton);
+    await user.click(deleteButton);
     await waitFor(() =>
       expect(
         screen.queryByRole('heading', { name: 'Delete relationship?' }),
@@ -682,6 +667,7 @@ describe('NativeQueryRelationships', () => {
   });
 
   it('validates required and relationship names across both collections', async () => {
+    const user = new TestUserEvent();
     const queryWithArrayRelationship: NativeQueryItem = {
       ...query,
       array_relationships: [
@@ -697,13 +683,12 @@ describe('NativeQueryRelationships', () => {
     };
     render(
       <NativeQueryRelationships
-        source={selectedSource}
         query={queryWithArrayRelationship}
         queries={[queryWithArrayRelationship]}
         models={[model]}
       />,
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Relationship' }));
+    await user.click(screen.getByRole('button', { name: 'Relationship' }));
     fireEvent.submit(
       screen
         .getByRole('button', { name: 'Create Relationship' })
@@ -713,10 +698,9 @@ describe('NativeQueryRelationships', () => {
       await screen.findByText('Add at least one field mapping.'),
     ).toBeInTheDocument();
 
-    fireEvent.change(screen.getByLabelText('Relationship Name'), {
-      target: { value: 'reports' },
-    });
-    fillMapping();
+    await user.clear(screen.getByLabelText('Relationship Name'));
+    await user.type(screen.getByLabelText('Relationship Name'), 'reports');
+    await fillMapping(user);
     fireEvent.submit(
       screen
         .getByRole('button', { name: 'Create Relationship' })
@@ -729,18 +713,16 @@ describe('NativeQueryRelationships', () => {
 
   describe('inside the edit relationships drawer', () => {
     it('closes only the relationship dialog when pressing Escape', async () => {
+      const user = new TestUserEvent();
       render(<DrawerHarness />);
-      fireEvent.click(
+      await user.click(
         screen.getByRole('button', { name: 'Open relationships drawer' }),
       );
-      fireEvent.click(
+      await user.click(
         await screen.findByRole('button', { name: 'Relationship' }),
       );
 
-      fireEvent.keyDown(
-        screen.getByRole('dialog', { name: 'Create Relationship' }),
-        { key: 'Escape' },
-      );
+      await user.keyboard('{Escape}');
 
       await waitFor(() =>
         expect(
@@ -754,20 +736,18 @@ describe('NativeQueryRelationships', () => {
     });
 
     it('closes only the delete confirmation when pressing Escape', async () => {
+      const user = new TestUserEvent();
       render(<DrawerHarness />);
-      fireEvent.click(
+      await user.click(
         screen.getByRole('button', { name: 'Open relationships drawer' }),
       );
-      fireEvent.click(
+      await user.click(
         await screen.findByRole('button', {
           name: 'Delete relationship manager',
         }),
       );
 
-      fireEvent.keyDown(
-        screen.getByRole('alertdialog', { name: 'Delete relationship?' }),
-        { key: 'Escape' },
-      );
+      await user.keyboard('{Escape}');
 
       await waitFor(() =>
         expect(
@@ -782,11 +762,12 @@ describe('NativeQueryRelationships', () => {
     });
 
     it('keeps the dialog and drawer open when Escape rejects the discard confirmation', async () => {
+      const user = new TestUserEvent();
       render(<DrawerHarness />);
-      fireEvent.click(
+      await user.click(
         screen.getByRole('button', { name: 'Open relationships drawer' }),
       );
-      fireEvent.click(
+      await user.click(
         await screen.findByRole('button', { name: 'Relationship' }),
       );
       const relationshipDialog = screen.getByRole('dialog', {
@@ -794,16 +775,15 @@ describe('NativeQueryRelationships', () => {
       });
       const relationshipName =
         within(relationshipDialog).getByLabelText('Relationship Name');
-      fireEvent.change(relationshipName, {
-        target: { value: 'draft' },
-      });
+      await user.clear(relationshipName);
+      await user.type(relationshipName, 'draft');
 
-      fireEvent.keyDown(relationshipDialog, { key: 'Escape' });
+      await user.keyboard('{Escape}');
       const discardDialog = await screen.findByRole('alertdialog', {
         name: 'Unsaved changes',
       });
 
-      fireEvent.keyDown(discardDialog, { key: 'Escape' });
+      await user.keyboard('{Escape}');
 
       await waitFor(() => {
         expect(discardDialog).not.toBeInTheDocument();
@@ -818,7 +798,7 @@ describe('NativeQueryRelationships', () => {
       // The open modal dialog marks the drawer aria-hidden, so query by text.
       expect(screen.getByText('Relationships')).toBeInTheDocument();
 
-      fireEvent.keyDown(relationshipDialog, { key: 'Escape' });
+      await user.keyboard('{Escape}');
       const secondDiscardDialog = await screen.findByRole('alertdialog', {
         name: 'Unsaved changes',
       });

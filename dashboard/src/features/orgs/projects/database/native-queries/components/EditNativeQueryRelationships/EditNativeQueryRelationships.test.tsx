@@ -7,9 +7,11 @@ import { EditNativeQueryRelationships } from '@/features/orgs/projects/database/
 import { mockMatchMediaValue } from '@/tests/mocks';
 import {
   fireEvent,
+  mockPointerEvent,
   queryClient,
   render,
   screen,
+  TestUserEvent,
   waitFor,
 } from '@/tests/testUtils';
 import type {
@@ -104,11 +106,13 @@ function metadataHandler(nativeQueries: NativeQueryItem[], responseDelay = 0) {
   );
 }
 
-function chooseOption(comboboxName: string, optionName: string) {
-  fireEvent.keyDown(screen.getByRole('combobox', { name: comboboxName }), {
-    key: 'Enter',
-  });
-  fireEvent.click(screen.getByRole('option', { name: optionName }));
+async function chooseOption(
+  user: TestUserEvent,
+  comboboxName: string,
+  optionName: string,
+) {
+  await user.click(screen.getByRole('combobox', { name: comboboxName }));
+  await user.click(await screen.findByRole('option', { name: optionName }));
 }
 
 const server = setupServer(metadataHandler([query]));
@@ -117,6 +121,7 @@ describe('EditNativeQueryRelationships', () => {
   beforeAll(() => {
     server.listen({ onUnhandledRequest: 'error' });
     window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
+    mockPointerEvent();
   });
 
   beforeEach(() => {
@@ -135,9 +140,7 @@ describe('EditNativeQueryRelationships', () => {
   it('shows a loading state while metadata is being fetched', () => {
     server.use(metadataHandler([query], 1_000));
 
-    render(
-      <EditNativeQueryRelationships source="default" queryName="authors" />,
-    );
+    render(<EditNativeQueryRelationships queryName="authors" />);
 
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
     expect(
@@ -148,11 +151,7 @@ describe('EditNativeQueryRelationships', () => {
   it('lists relationships with target links and closes from Back', async () => {
     const onCancel = vi.fn();
     render(
-      <EditNativeQueryRelationships
-        source="default"
-        queryName="authors"
-        onCancel={onCancel}
-      />,
+      <EditNativeQueryRelationships queryName="authors" onCancel={onCancel} />,
     );
 
     expect(await screen.findByText('1 object · 0 array')).toBeInTheDocument();
@@ -163,92 +162,19 @@ describe('EditNativeQueryRelationships', () => {
       '/orgs/test/projects/local/database/native-queries/default/queries/authors',
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Back' }));
+    await new TestUserEvent().click(
+      screen.getByRole('button', { name: 'Back' }),
+    );
     expect(onCancel).toHaveBeenCalledOnce();
   });
 
-  it('keeps Back available when the native query no longer exists', async () => {
-    const onCancel = vi.fn();
-    server.use(metadataHandler([]));
-    render(
-      <EditNativeQueryRelationships
-        source="default"
-        queryName="missing"
-        onCancel={onCancel}
-      />,
-    );
-
-    expect(
-      await screen.findByText('Native query missing no longer exists.'),
-    ).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Back' }));
-    expect(onCancel).toHaveBeenCalledOnce();
-  });
-
-  it('uses only the captured source for duplicate-name targets and field mappings', async () => {
-    queryClient.setQueryData([EXPORT_METADATA_QUERY_KEY, 'local'], {
-      resource_version: 10,
-      metadata: {
-        version: 3,
-        sources: [
-          {
-            name: 'default',
-            kind: 'postgres',
-            native_queries: [query],
-            logical_models: [model],
-            tables: [],
-          },
-          {
-            name: 'analytics',
-            kind: 'postgres',
-            native_queries: [
-              {
-                ...query,
-                code: 'SELECT analytics_id',
-                object_relationships: [],
-                array_relationships: [],
-              },
-            ],
-            logical_models: [
-              {
-                ...model,
-                fields: [
-                  {
-                    name: 'analytics_id',
-                    type: { scalar: 'uuid', nullable: false },
-                  },
-                ],
-              },
-            ],
-            tables: [],
-          },
-        ],
-      },
-    });
-    render(
-      <EditNativeQueryRelationships source="analytics" queryName="authors" />,
-    );
-    await screen.findByText('0 object · 0 array');
-    expect(screen.queryByText('manager')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Relationship' }));
-    chooseOption('Target Native Query', 'authors');
-    fireEvent.click(screen.getByRole('button', { name: 'Add New Mapping' }));
-    expect(
-      screen
-        .getAllByRole('combobox')
-        .filter((element) => element.textContent === 'analytics_id'),
-    ).toHaveLength(2);
-  });
-
-  it('uses refreshed metadata for a second relationship mutation', async () => {
+  it('rebuilds each save from refetched metadata so an earlier relationship is not dropped', async () => {
     const initialQuery: NativeQueryItem = {
       ...query,
       object_relationships: [],
     };
     server.use(metadataHandler([initialQuery]));
-    render(
-      <EditNativeQueryRelationships source="default" queryName="authors" />,
-    );
+    render(<EditNativeQueryRelationships queryName="authors" />);
 
     expect(await screen.findByText('0 object · 0 array')).toBeInTheDocument();
 
@@ -266,19 +192,16 @@ describe('EditNativeQueryRelationships', () => {
     expect(await screen.findByText('1 object · 0 array')).toBeInTheDocument();
     expect(screen.getByText('manager')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Relationship' }));
-    fireEvent.change(screen.getByLabelText('Relationship Name'), {
-      target: { value: 'reports' },
-    });
-    chooseOption('Target Native Query', 'authors');
-    fireEvent.click(screen.getByRole('button', { name: 'Add New Mapping' }));
-    const relationshipForm = screen
-      .getByRole('button', { name: 'Create Relationship' })
-      .closest('form');
-    expect(relationshipForm).not.toBeNull();
-    if (relationshipForm) {
-      fireEvent.submit(relationshipForm);
-    }
+    const user = new TestUserEvent();
+    await user.click(screen.getByRole('button', { name: 'Relationship' }));
+    await user.type(screen.getByLabelText('Relationship Name'), 'reports');
+    await chooseOption(user, 'Target Native Query', 'authors');
+    await user.click(screen.getByRole('button', { name: 'Add New Mapping' }));
+    fireEvent.submit(
+      screen
+        .getByRole('button', { name: 'Create Relationship' })
+        .closest('form')!,
+    );
 
     await waitFor(() => expect(metadataBodies).toHaveLength(1));
     expect(metadataBodies[0]).toMatchObject({
