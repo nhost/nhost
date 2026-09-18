@@ -551,19 +551,16 @@ func pairForwardColumns(
 	parentCols := make([]string, 0, len(fkColumns))
 	targetCols := make([]string, 0, len(fkColumns))
 
-	for _, col := range fkColumns {
+	fks := parentTable.LookupForwardFK(fkColumns)
+
+	for i, col := range fkColumns {
 		parentCols = append(parentCols, col)
 
-		var matched string
-
-		for _, fk := range parentTable.ForeignKeys {
-			if fk.ColumnName == col {
-				matched = fk.ForeignColumnName
-				break
-			}
+		if i < len(fks) {
+			targetCols = append(targetCols, fks[i].ForeignColumnName)
+		} else {
+			targetCols = append(targetCols, "")
 		}
-
-		targetCols = append(targetCols, matched)
 	}
 
 	return parentCols, targetCols

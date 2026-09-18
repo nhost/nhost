@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
@@ -606,6 +607,7 @@ func getForeignKeys(
 		}
 
 		fks = append(fks, introspection.ForeignKey{
+			Constraint:        strconv.Itoa(id),
 			ColumnName:        from,
 			ForeignSchema:     "",
 			ForeignTable:      table,
