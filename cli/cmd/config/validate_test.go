@@ -3,6 +3,7 @@ package config_test
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -242,6 +243,131 @@ func expectedConfig() *model.ConfigConfig {
 			},
 		},
 	}
+}
+
+func TestValidateEnginePerServiceOverrides(t *testing.T) {
+	t.Parallel()
+
+	const engineOverrideError = "config is not valid: experimental.nhost is enabled: non-default " +
+		"auth.version and auth.resources.replicas, auth.resources.compute, auth.resources.autoscaler, " +
+		"non-default storage.version, and storage.resources are not supported; configure the engine " +
+		"version and sizing with experimental.nhost.version and experimental.nhost.resources; " +
+		"unsupported values: "
+
+	fixtureRoot := filepath.Join("testdata", "validate", "success")
+
+	rawConfig, err := os.ReadFile(filepath.Join(fixtureRoot, "nhost", "nhost.toml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tests := []struct {
+		name string
+		// authVersion and storageVersion replace the fixture's version keys. An empty
+		// value removes the key altogether, which is how a project leaves the version to
+		// the schema default.
+		authVersion    string
+		storageVersion string
+		extraSecrets   model.Secrets
+		expectedError  string
+	}{
+		{
+			name:           "rejects non-default versions",
+			authVersion:    "custom-auth",
+			storageVersion: "custom-storage",
+			expectedError: engineOverrideError +
+				"auth.version=\"custom-auth\", storage.version=\"custom-storage\"",
+		},
+		{
+			name:           "accepts schema-default versions",
+			authVersion:    "0.49.1",
+			storageVersion: "0.14.0",
+		},
+		{
+			name:           "accepts versions left to the schema default",
+			authVersion:    "",
+			storageVersion: "",
+		},
+		{
+			name:           "validates pre-fill input",
+			authVersion:    "{{ secrets.AUTH_VERSION }}",
+			storageVersion: "0.14.0",
+			extraSecrets: model.Secrets{
+				{Name: "AUTH_VERSION", Value: "0.49.1"},
+			},
+			expectedError: engineOverrideError + "auth.version=\"{{ secrets.AUTH_VERSION }}\"",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			nhostDir := t.TempDir()
+			configText := setServiceVersion(string(rawConfig), "0.20.0", test.authVersion)
+			configText = setServiceVersion(configText, "0.3.4", test.storageVersion)
+
+			configText += "\n[experimental.nhost]\n"
+			if err := os.WriteFile(
+				filepath.Join(nhostDir, "nhost.toml"),
+				[]byte(configText),
+				0o600,
+			); err != nil {
+				t.Fatal(err)
+			}
+
+			ce := clienv.New(
+				os.Stdout,
+				os.Stderr,
+				clienv.NewPathStructure(
+					".",
+					fixtureRoot,
+					filepath.Join(fixtureRoot, ".nhost"),
+					nhostDir,
+				),
+				"fakeauthurl",
+				"fakegraphqlurl",
+				"",
+				"",
+				"fakebranch",
+				"",
+				"local",
+			)
+
+			var secrets model.Secrets
+			if err := clienv.UnmarshalFile(ce.Path.Secrets(), &secrets, env.Unmarshal); err != nil {
+				t.Fatal(err)
+			}
+
+			_, err := config.Validate(ce, "local", append(secrets, test.extraSecrets...))
+			if test.expectedError == "" {
+				if err != nil {
+					t.Fatalf("expected config to be accepted: %v", err)
+				}
+
+				return
+			}
+
+			if err == nil {
+				t.Fatal("expected engine per-service overrides to be rejected")
+			}
+
+			if !strings.Contains(err.Error(), test.expectedError) {
+				t.Fatalf("unexpected error: %v", err)
+			}
+		})
+	}
+}
+
+// setServiceVersion rewrites the version key currently holding current, or removes the key
+// entirely when want is empty so that the schema default fills it.
+func setServiceVersion(configText, current, want string) string {
+	key := "version = '" + current + "'"
+	if want == "" {
+		return strings.ReplaceAll(configText, key+"\n", "")
+	}
+
+	return strings.ReplaceAll(configText, key, "version = '"+want+"'")
 }
 
 func TestValidate(t *testing.T) {

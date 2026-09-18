@@ -2,6 +2,7 @@ package dockercompose
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/be/services/mimir/schema/appconfig"
@@ -68,6 +69,10 @@ func auth( //nolint:funlen
 		env[v.Name] = v.Value
 	}
 
+	// Keep the listener owned by compose so it cannot drift from the ingress,
+	// healthcheck and published container port when appconfig defaults change.
+	env["AUTH_PORT"] = strconv.Itoa(authPort)
+
 	svc := &Service{
 		Image: "nhost/auth:" + *cfg.Auth.Version,
 		DependsOn: map[string]DependsOn{
@@ -83,7 +88,13 @@ func auth( //nolint:funlen
 		Environment: env,
 		ExtraHosts:  extraHosts,
 		HealthCheck: &HealthCheck{
-			Test:        []string{"CMD", "wget", "--spider", "-S", "http://localhost:4000/healthz"},
+			Test: []string{
+				"CMD",
+				"wget",
+				"--spider",
+				"-S",
+				fmt.Sprintf("http://localhost:%d/healthz", authPort),
+			},
 			Timeout:     "60s",
 			Interval:    "5s",
 			StartPeriod: "60s",
