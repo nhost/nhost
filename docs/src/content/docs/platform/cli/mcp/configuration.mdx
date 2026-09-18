@@ -166,11 +166,13 @@ enable_mutations = true
 subdomain = "my-app"
 region = "eu-central-1"
 description = "Production project"
-# Use ${VAR_NAME} syntax to interpolate environment variables
-admin_secret = "${NHOST_ADMIN_SECRET}"
+# Use $VAR_NAME syntax to interpolate environment variables
+admin_secret = "$NHOST_ADMIN_SECRET"
 allow_queries = ["*"]
 allow_mutations = ["*"]
 ```
+
+The syntax is `$VAR_NAME`, without braces. `${VAR_NAME}` is not expanded — it is passed through unchanged and would be used as the literal credential. Escape a literal dollar sign as `$$` or `\$`.
 
 ## Configuration Options Reference
 
