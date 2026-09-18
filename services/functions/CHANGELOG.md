@@ -1,3 +1,9 @@
+## [functions@2.3.2] - 2026-09-18
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Update to nodejs 24.21.0 and pnpm 12 (#5009)
+
 ## [functions@2.3.1] - 2026-09-16
 
 ### 🐛 Bug Fixes
