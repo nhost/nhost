@@ -191,6 +191,10 @@ export function createAnonymousClient(): NhostClient {
 export type NhostProxyResult = {
   session: StoredSession | null;
   applySessionCookies: (response: NextResponse) => NextResponse;
+  // Kept for the tests. The proxy strips the link parameters whenever they are
+  // present rather than only when it redeemed them, so nothing in the app reads
+  // this any more - but whether a token was actually spent is the difference
+  // between the redemption and refusal cases, which is worth asserting.
   consumedLinkToken: boolean;
 };
 
