@@ -182,9 +182,6 @@ func CheckVersions(
 		return fmt.Errorf("failed to get nhost client: %w", err)
 	}
 
-	// XXX(meh): Do not publish Engine rows in software_versions until a CLI
-	// release containing that enum value has shipped and been adopted. Older
-	// CLIs reject the entire response when strict enum decoding sees Engine.
 	swv, err := cl.GetSoftwareVersions(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get software versions: %w", err)
