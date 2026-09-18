@@ -19,7 +19,7 @@ func Command() *cli.Command {
 		Flags: []cli.Flag{
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagConfigFile,
-				Usage:   "Configuration file path. Defaults to $NHOST_DOT_NHOST_FOLDER/nhost-mcp.toml",
+				Usage:   "Configuration file path. Defaults to $NHOST_DOT_NHOST_FOLDER/mcp-nhost.toml",
 				Value:   "",
 				Sources: cli.EnvVars("NHOST_MCP_CONFIG_FILE"),
 			},
