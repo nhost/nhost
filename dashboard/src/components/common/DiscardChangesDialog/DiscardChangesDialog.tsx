@@ -22,7 +22,9 @@ export default function DiscardChangesDialog({
   open,
   onOpenChange,
   onDiscardChanges,
-  onEscapeKeyDown,
+  // Without this the Escape that closes this dialog also reaches the drawer or
+  // dialog hosting the form, closing both at once.
+  onEscapeKeyDown = (event) => event.stopPropagation(),
 }: DiscardChangesDialogProps) {
   const previouslyFocusedElementRef = useRef<HTMLElement | null>(null);
 

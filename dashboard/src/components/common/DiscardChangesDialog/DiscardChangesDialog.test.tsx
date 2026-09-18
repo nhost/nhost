@@ -39,7 +39,6 @@ function ControlledDialogs({
         open={confirmationOpen}
         onOpenChange={setConfirmationOpen}
         onDiscardChanges={onDiscardChanges}
-        onEscapeKeyDown={(event) => event.stopPropagation()}
       />
     </>
   );
