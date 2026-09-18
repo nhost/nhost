@@ -26,7 +26,7 @@ let
   ldflags = [ ];
 
   checkDeps = with pkgs; [
-    mockgen
+    nhost.mockgen
     nhost.postgresql_18
   ];
 
