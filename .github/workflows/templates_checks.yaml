@@ -110,9 +110,16 @@ jobs:
           # nothing and raises nothing. Renaming or moving the metadata would
           # otherwise leave this step reporting success having read no rules at
           # all - the same vacuous pass `check-agent-context.sh` guards against.
+          # Both suffixes: a `.yml` file left out of the glob would be skipped
+          # in silence, and the counter below could not catch it while the
+          # `.yaml` files around it still parse.
           metadata = template / "backend/nhost/metadata"
           parsed = 0
-          for path in sorted(metadata.rglob("*.yaml")):
+          for path in sorted(
+              p
+              for suffix in ("*.yaml", "*.yml")
+              for p in metadata.rglob(suffix)
+          ):
               parsed += 1
               try:
                   yaml.safe_load(path.read_text())
