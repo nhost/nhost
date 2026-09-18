@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { ResetPasswordForm } from '@/app/reset-password/ResetPasswordForm';
+import SignOutButton from '@/components/SignOutButton';
 import { Button } from '@/components/ui/button';
 import {
   createNhostClient,
@@ -30,23 +31,38 @@ export default async function ResetPassword() {
   // into something the visitor can act on.
   const grantUserId = await passwordResetGrantUserId();
 
+  // Two different things land here and they cannot be told apart from this
+  // request. The grant may have expired or been spent - but the proxy also
+  // refuses to redeem a link for an account other than the one already signed
+  // in, and a refusal issues no grant at all, so arriving as the wrong person
+  // looks identical to arriving too late.
+  //
+  // Naming only the expiry sent the second case round a loop: asking for
+  // another link produces one that is refused in exactly the same way, burning
+  // a fresh token each time, while the way out - signing out first - is not
+  // mentioned and lives behind the user menu. So the copy names both causes and
+  // the branch carries the escape.
   if (grantUserId !== session.user.id) {
     return (
       <div className="flex flex-col gap-8">
         <div className="flex flex-col gap-2">
           <h1 className="font-bold text-3xl tracking-tight">
-            This reset link has expired
+            This link cannot set a password
           </h1>
           <p className="text-muted-foreground">
-            Reset links can only set a password for a short while after they are
-            opened. Ask for a new one and follow it straight away.
+            It may have been used already, or opened too long ago - reset links
+            only set a password for a short while. It also happens when you are
+            signed in as a different account from the one the link was for,
+            because the link is refused rather than switching you over. Sign out
+            and open the link again, or ask for a new one.
           </p>
         </div>
 
-        <div>
+        <div className="flex flex-wrap items-center gap-3">
           <Button asChild>
             <Link href="/signin">Request a new link</Link>
           </Button>
+          <SignOutButton />
         </div>
       </div>
     );
