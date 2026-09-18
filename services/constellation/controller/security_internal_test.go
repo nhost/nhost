@@ -17,7 +17,6 @@ import (
 	sharedoapi "github.com/nhost/nhost/internal/lib/oapi"
 	"github.com/nhost/nhost/services/constellation/api"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
-	"github.com/nhost/nhost/services/constellation/internal/hasuraproxy"
 	"github.com/nhost/nhost/services/constellation/internal/jwt"
 	"github.com/nhost/nhost/services/constellation/internal/jwt/jwtconfig"
 	"github.com/nhost/nhost/services/constellation/metadata"
@@ -190,13 +189,8 @@ func TestMetadataAcceptsBulkArrayArgs(t *testing.T) {
 	))
 	defer upstream.Close()
 
-	proxy, err := hasuraproxy.New(upstream.URL, slog.New(slog.DiscardHandler))
-	if err != nil {
-		t.Fatalf("hasuraproxy.New: %v", err)
-	}
-
 	router := buildMetadataRouterWithJWTAuth(
-		t, proxy, nil,
+		t, testReverseProxy(t, upstream.URL), nil,
 		middleware.NewNoOpJWTAuthenticator(),
 	)
 
@@ -254,15 +248,10 @@ func TestMetadataExportProxiesWhenUpstreamConfigured(t *testing.T) {
 	))
 	defer upstream.Close()
 
-	proxy, err := hasuraproxy.New(upstream.URL, slog.New(slog.DiscardHandler))
-	if err != nil {
-		t.Fatalf("hasuraproxy.New: %v", err)
-	}
-
 	// Source is also wired with an old snapshot to prove the proxy result is
 	// returned, not the cached one.
 	router := buildMetadataRouterWithJWTAuth(
-		t, proxy,
+		t, testReverseProxy(t, upstream.URL),
 		&stubMetadataSource{
 			hasura:  []byte(`{"version":3,"sources":[]}`),
 			version: 1,
@@ -404,7 +393,7 @@ func emptyGinContext(t *testing.T) context.Context {
 func TestNewAuthFunc(t *testing.T) {
 	t.Parallel()
 
-	adminCredential := strings.Repeat("u", 16)
+	const secret = "unit-admin-secret" //nolint:gosec
 
 	jwtAuth := testJWTAuthenticator(t)
 	// signed once; the token claims default-role: admin so it would satisfy
@@ -439,14 +428,9 @@ func TestNewAuthFunc(t *testing.T) {
 			ctxFn: func(t *testing.T) context.Context {
 				t.Helper()
 
-				return sessionContext(
-					t,
-					adminCredential,
-					middleware.NewNoOpJWTAuthenticator(),
-					http.Header{
-						"X-Hasura-Admin-Secret": {adminCredential},
-					},
-				)
+				return sessionContext(t, secret, middleware.NewNoOpJWTAuthenticator(), http.Header{
+					"X-Hasura-Admin-Secret": {secret},
+				})
 			},
 			wantCode: "",
 		},
@@ -456,15 +440,10 @@ func TestNewAuthFunc(t *testing.T) {
 			ctxFn: func(t *testing.T) context.Context {
 				t.Helper()
 
-				return sessionContext(
-					t,
-					adminCredential,
-					middleware.NewNoOpJWTAuthenticator(),
-					http.Header{
-						"X-Hasura-Admin-Secret": {adminCredential},
-						"X-Hasura-Role":         {"user"},
-					},
-				)
+				return sessionContext(t, secret, middleware.NewNoOpJWTAuthenticator(), http.Header{
+					"X-Hasura-Admin-Secret": {secret},
+					"X-Hasura-Role":         {"user"},
+				})
 			},
 			wantCode: "",
 		},
@@ -474,7 +453,7 @@ func TestNewAuthFunc(t *testing.T) {
 			ctxFn: func(t *testing.T) context.Context {
 				t.Helper()
 
-				return sessionContext(t, adminCredential, jwtAuth, http.Header{
+				return sessionContext(t, secret, jwtAuth, http.Header{
 					"Authorization": {"Bearer " + adminJWT},
 				})
 			},
@@ -489,7 +468,7 @@ func TestNewAuthFunc(t *testing.T) {
 
 				return sessionContext(
 					t,
-					adminCredential,
+					secret,
 					middleware.NewNoOpJWTAuthenticator(),
 					http.Header{},
 				)
@@ -515,14 +494,9 @@ func TestNewAuthFunc(t *testing.T) {
 			ctxFn: func(t *testing.T) context.Context {
 				t.Helper()
 
-				return sessionContext(
-					t,
-					adminCredential,
-					middleware.NewNoOpJWTAuthenticator(),
-					http.Header{
-						"X-Hasura-Admin-Secret": {adminCredential},
-					},
-				)
+				return sessionContext(t, secret, middleware.NewNoOpJWTAuthenticator(), http.Header{
+					"X-Hasura-Admin-Secret": {secret},
+				})
 			},
 			wantCode: "",
 		},
@@ -534,7 +508,7 @@ func TestNewAuthFunc(t *testing.T) {
 
 				return sessionContext(
 					t,
-					adminCredential,
+					secret,
 					middleware.NewNoOpJWTAuthenticator(),
 					http.Header{},
 				)
@@ -548,14 +522,9 @@ func TestNewAuthFunc(t *testing.T) {
 			ctxFn: func(t *testing.T) context.Context {
 				t.Helper()
 
-				return sessionContext(
-					t,
-					adminCredential,
-					middleware.NewNoOpJWTAuthenticator(),
-					http.Header{
-						"X-Hasura-Admin-Secret": {adminCredential},
-					},
-				)
+				return sessionContext(t, secret, middleware.NewNoOpJWTAuthenticator(), http.Header{
+					"X-Hasura-Admin-Secret": {secret},
+				})
 			},
 			wantCode:   "unauthorized",
 			wantMsgSub: "unsupported security scheme",

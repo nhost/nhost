@@ -481,21 +481,9 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 	logger.InfoContext(ctx, cmd.Root().Name+" v"+cmd.Root().Version)
 	logFlags(ctx, logger, cmd)
 
-	var metadataSource metadata.Source
-	if metaDBURL := cmd.String(flagMetadataDatabaseURL); metaDBURL != "" {
-		databaseMetadataSource, err := source.NewDatabaseMetadataSource(
-			ctx,
-			metaDBURL,
-			time.Second,
-			logger,
-		)
-		if err != nil {
-			return fmt.Errorf("creating database metadata source: %w", err)
-		}
-
-		metadataSource = databaseMetadataSource
-	} else {
-		metadataSource = source.NewFileMetadataSource(cmd.String(flagMetadataPath))
+	metadataSource, store, err := newMetadataSource(ctx, cmd, logger)
+	if err != nil {
+		return fmt.Errorf("failed to create metadata source: %w", err)
 	}
 
 	defer metadataSource.Close()
@@ -525,6 +513,22 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 		hasuraProxy = proxy
 	}
 
+	// In database-store mode a configured proxy is only a per-op fallback for
+	// metadata ops with no native handler (actions, custom types, cron
+	// triggers, remote schemas). Those ops are forwarded to the upstream, which
+	// MUST share the same metadata database (hdb_catalog.hdb_metadata) as
+	// Constellation — otherwise native and proxied metadata diverge. The store
+	// reconciles its snapshot from the database after each proxied write.
+	if store != nil && hasuraProxy != nil {
+		logger.WarnContext(
+			ctx,
+			"database metadata store and Hasura upstream proxy are both active; "+
+				"unhandled metadata ops are forwarded to the upstream, which must "+
+				"share Constellation's metadata database. Set --"+flagHasuraUpstreamURL+
+				`="" to disable the proxy (unhandled ops then return not-supported).`,
+		)
+	}
+
 	ctrl, err := controller.New(
 		ctx,
 		cmd.Duration(flagSubscriptionPollInterval),
@@ -532,6 +536,7 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 		cmd.Bool(flagDevMode),
 		jwtAuth,
 		metadataSource,
+		store,
 		logger,
 		cmd.Root().Version,
 		hasuraProxy,
@@ -541,6 +546,66 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	return runServer(ctx, cmd, ctrl, jwtAuth, hasuraProxy, logger)
+}
+
+// dbStoreSource lets the in-process Store be the controller's metadata.Source
+// (mutations come from the Store, not the DB poller) while Close still
+// releases the underlying database connection pool.
+type dbStoreSource struct {
+	*source.Store
+
+	db *source.DatabaseMetadataSource
+	// stopListener cancels the cross-replica LISTEN/NOTIFY goroutine and its
+	// dedicated pgx connection. Tied to Close (not the serve/runServer ctx) so
+	// the listener is torn down deterministically on shutdown regardless of
+	// which goroutine triggered it.
+	stopListener context.CancelFunc
+}
+
+func (s dbStoreSource) Close() {
+	s.stopListener()
+	s.Store.Close()
+	s.db.Close()
+}
+
+func newMetadataSource( //nolint:ireturn // selected sources share the metadata.Source boundary.
+	ctx context.Context,
+	cmd *cli.Command,
+	logger *slog.Logger,
+) (metadata.Source, *source.Store, error) {
+	if metaDBURL := cmd.String(flagMetadataDatabaseURL); metaDBURL != "" {
+		dbSrc, err := source.NewDatabaseMetadataSource(
+			ctx,
+			metaDBURL,
+			time.Second,
+			logger,
+		)
+		if err != nil {
+			return nil, nil, fmt.Errorf("creating database metadata source: %w", err)
+		}
+
+		store, err := source.NewDatabaseBackedStore(ctx, dbSrc)
+		if err != nil {
+			dbSrc.Close()
+
+			return nil, nil, fmt.Errorf("bootstrapping metadata store: %w", err)
+		}
+
+		// Cross-replica metadata sync. A dedicated LISTEN/NOTIFY connection
+		// reloads the in-process snapshot whenever any replica — or a sidecar
+		// Hasura writing the shared hdb_metadata — announces a newer version.
+		// This replaces the legacy hdb_metadata poller, which is intentionally
+		// not wired in store-backed mode. The goroutine runs on its own
+		// cancellable context, cancelled by dbStoreSource.Close on shutdown —
+		// the parent ctx alone is not enough, since runServer cancels only a
+		// child of it, so the listener would otherwise outlive the server.
+		listenerCtx, stopListener := context.WithCancel(ctx)
+		go source.ListenAndReload(listenerCtx, metaDBURL, store, logger)
+
+		return dbStoreSource{Store: store, db: dbSrc, stopListener: stopListener}, store, nil
+	}
+
+	return source.NewFileMetadataSource(cmd.String(flagMetadataPath)), nil, nil
 }
 
 func runServer(

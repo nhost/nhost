@@ -1,0 +1,52 @@
+description: >-
+  bulk_atomic accepts only a narrow whitelist of child ops (relationship ops).
+  A non-whitelisted child (e.g. a permission or track op) is rejected up front
+  with not-supported, before anything is applied, and the path points at the
+  offending child index.
+source: >-
+  api-tests BulkAtomicSpec; parity case bulk_atomic_create_permissions_rejected;
+  bulk_atomic whitelist (bulk_apply.go)
+
+steps:
+  - description: Track author
+    query: {type: pg_track_table, args: {source: default, table: {schema: public, name: author}}}
+    status: 200
+    response: {message: success}
+
+  - description: bulk_atomic with a create-permission child is rejected
+    query:
+      type: bulk_atomic
+      args:
+        - type: pg_create_select_permission
+          args:
+            source: default
+            table: {schema: public, name: author}
+            role: user
+            permission:
+              columns: ['id']
+              filter: {}
+    status: 400
+    matchPath: true
+    response:
+      code: not-supported
+      path: $.args[0]
+
+  - description: bulk_atomic with a pg_track_table child is rejected
+    query:
+      type: bulk_atomic
+      args:
+        - type: pg_track_table
+          args: {source: default, table: {schema: public, name: article}}
+    status: 400
+    matchPath: true
+    response:
+      code: not-supported
+      path: $.args[0]
+
+  - description: The rejected atomic batch persisted nothing - article is untrackable now
+    query:
+      type: pg_track_table
+      args: {source: default, table: {schema: public, name: article}}
+    status: 200
+    response:
+      message: success

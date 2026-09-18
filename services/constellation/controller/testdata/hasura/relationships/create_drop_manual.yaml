@@ -1,0 +1,66 @@
+description: >-
+  Create and drop object/array relationships via manual_configuration (no FK
+  introspection needed → offline). FK-backed creation is metadata-only too, but
+  its FK-existence validation is LIVE (task #10).
+source: >-
+  tests-py/queries/v1/relationships/object_relationship_manual.yaml,
+  tests-py/queries/v1/relationships/array_relationship_manual.yaml
+
+steps:
+  - description: Track author
+    query: {type: pg_track_table, args: {source: default, table: {schema: public, name: author}}}
+    status: 200
+    response: {message: success}
+
+  - description: Track article
+    query: {type: pg_track_table, args: {source: default, table: {schema: public, name: article}}}
+    status: 200
+    response: {message: success}
+
+  - description: Create object relationship article.author (manual)
+    query:
+      type: pg_create_object_relationship
+      args:
+        source: default
+        table: {schema: public, name: article}
+        name: author
+        using:
+          manual_configuration:
+            remote_table: {schema: public, name: author}
+            column_mapping: {author_id: id}
+    status: 200
+    response: {message: success}
+
+  - description: Create array relationship author.articles (manual)
+    query:
+      type: pg_create_array_relationship
+      args:
+        source: default
+        table: {schema: public, name: author}
+        name: articles
+        using:
+          manual_configuration:
+            remote_table: {schema: public, name: article}
+            column_mapping: {id: author_id}
+    status: 200
+    response: {message: success}
+
+  - description: Drop object relationship article.author
+    query:
+      type: pg_drop_relationship
+      args:
+        source: default
+        table: {schema: public, name: article}
+        relationship: author
+    status: 200
+    response: {message: success}
+
+  - description: Drop array relationship author.articles
+    query:
+      type: pg_drop_relationship
+      args:
+        source: default
+        table: {schema: public, name: author}
+        relationship: articles
+    status: 200
+    response: {message: success}
