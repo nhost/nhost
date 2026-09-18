@@ -59,6 +59,7 @@ let
     nhost.mockgen
     nhost.oapi-codegen
     nhost.gqlgenc
+    nhost.postgresql_18
     vacuum-go
   ];
 
@@ -148,6 +149,31 @@ rec {
     buildInputs = checkBuildInputs;
 
     preCheck = ''
+      export PGMIGRATE_TEST_DATABASE_REQUIRED=1
+      export PGDATA="$TMPDIR/storage-postgres"
+      export PGMIGRATE_SOCKET_DIR="$(mktemp -d /tmp/storage-pgmigrate.XXXXXX)"
+
+      stop_storage_test_postgres() {
+        if test -f "$PGDATA/postmaster.pid"; then
+          pg_ctl -D "$PGDATA" -m fast -w stop
+        fi
+        rm -rf "$PGMIGRATE_SOCKET_DIR"
+      }
+      trap stop_storage_test_postgres EXIT INT TERM
+
+      initdb --auth=trust --no-locale --encoding=UTF8 -D "$PGDATA"
+      pg_ctl \
+        -D "$PGDATA" \
+        -l "$PGDATA/server.log" \
+        -o "-F -h ''' -k $PGMIGRATE_SOCKET_DIR" \
+        -w start || {
+        pg_ctl_status=$?
+        echo "pg_ctl start failed; server log follows:"
+        cat "$PGDATA/server.log" || true
+        exit "$pg_ctl_status"
+      }
+
+      export PGMIGRATE_TEST_DSN="host=$PGMIGRATE_SOCKET_DIR dbname=postgres sslmode=disable"
       export GIN_MODE=release
       export HASURA_AUTH_BEARER=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE5ODAwNTYxNTAsImh0dHBzOi8vaGFzdXJhLmlvL2p3dC9jbGFpbXMiOnsieC1oYXN1cmEtYWxsb3dlZC1yb2xlcyI6WyJhZG1pbiJdLCJ4LWhhc3VyYS1kZWZhdWx0LXJvbGUiOiJhZG1pbiIsIngtaGFzdXJhLXVzZXItaWQiOiJhYjViYTU4ZS05MzJhLTQwZGMtODdlOC03MzM5OTg3OTRlYzIiLCJ4LWhhc3VyYS11c2VyLWlzQW5vbnltb3VzIjoiZmFsc2UifSwiaWF0IjoxNjY0Njk2MTUwLCJpc3MiOiJoYXN1cmEtYXV0aCIsInN1YiI6ImFiNWJhNThlLTkzMmEtNDBkYy04N2U4LTczMzk5ODc5NGVjMiJ9.OMVYu-30oOuUNZeSbzhP0u0pq5bf-U2Z49LWkqr3hyc
       export TEST_S3_ACCESS_KEY=5a7bdb5f42c41e0622bf61d6e08d5537
@@ -159,6 +185,11 @@ rec {
         --ruleset ${src}/${submodule}/vacuum.yaml \
         --ignore-file ${src}/${submodule}/vacuum-ignore.yaml \
         ${src}/${submodule}/controller/openapi.yaml
+    '';
+
+    extraCheck = ''
+      stop_storage_test_postgres
+      trap - EXIT INT TERM
     '';
   };
 
