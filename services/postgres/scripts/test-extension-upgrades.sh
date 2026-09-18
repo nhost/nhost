@@ -119,9 +119,22 @@ wait_for_initialization "$new_container"
 assert_no_missing_timescaledb_error "$new_container"
 
 for database in postgres local; do
-    if ! docker logs "$new_container" 2>&1 |
-        grep -q "Updating extension timescaledb in database $database"; then
-        echo "TimescaleDB was not upgraded in database $database" >&2
+    if ! timescaledb_is_current=$(docker exec \
+        --env PGOPTIONS='-c timescaledb.disable_load=on' \
+        "$new_container" psql -X -qAt -U postgres -d "$database" \
+        -v ON_ERROR_STOP=1 \
+        -c "SELECT installed.extversion = available.default_version
+            FROM pg_extension AS installed
+            JOIN pg_available_extensions AS available
+                ON available.name = installed.extname
+            WHERE installed.extname = 'timescaledb'"); then
+        echo "Could not inspect TimescaleDB in database $database" >&2
+        docker logs "$new_container" >&2
+        exit 1
+    fi
+
+    if [ "$timescaledb_is_current" != t ]; then
+        echo "TimescaleDB was not upgraded to the default version in database $database" >&2
         docker logs "$new_container" >&2
         exit 1
     fi
