@@ -15,6 +15,7 @@ let
     fileset = fs.unions [
       ./postgres
       ./extensions
+      ./checks
       ./tests
       (fs.fileFilter (f: f.hasExt "nix") ./.)
       ./plugins.md
@@ -50,6 +51,9 @@ in
       }
       ''
         PG_URL="postgres://postgres@localhost:5432/local"
+
+        sh ${src}/checks/repair-collation.sh \
+          ${src}/postgres/bin/repair-collation.sh
 
         psql \
           -f ${src}/tests/plugins.sql --no-psqlrc -1 -v "ON_ERROR_STOP=1" \

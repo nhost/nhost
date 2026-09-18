@@ -69,7 +69,12 @@ case ${1:-} in
 		echo "usage: $0 --database <database>" >&2
 		exit 2
 	fi
-	repair_database "$2"
+	# xargs stops immediately when a child exits 255. Normalize every repair
+	# failure to 1 so it still invokes this mode for the remaining databases.
+	if ! repair_database "$2"; then
+		echo "Failed to repair a database collation version" >&2
+		exit 1
+	fi
 	;;
 *)
 	echo "usage: $0 [--database <database>]" >&2
