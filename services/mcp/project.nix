@@ -10,6 +10,11 @@ let
   created = "1970-01-01T00:00:00Z";
   submodule = "services/${name}";
 
+  # The MCP Registry proves we own the published image by pulling it and
+  # checking this label against the `name` in server.json. Derive it from that
+  # file so the two cannot drift apart.
+  mcpServerName = (builtins.fromJSON (builtins.readFile ./server.json)).name;
+
   fs = pkgs.lib.fileset;
 
   src = fs.toSource {
@@ -82,5 +87,11 @@ rec {
       version
       buildInputs
       ;
+
+    config = {
+      Labels = {
+        "io.modelcontextprotocol.server.name" = mcpServerName;
+      };
+    };
   };
 }
