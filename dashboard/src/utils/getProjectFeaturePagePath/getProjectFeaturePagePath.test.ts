@@ -16,9 +16,9 @@ test('should return static feature path for top-level pages', () => {
 test('should return full path for nested static pages', () => {
   expect(
     getProjectFeaturePagePath(
-      '/orgs/[orgSlug]/projects/[appSubdomain]/settings/authentication',
+      '/orgs/[orgSlug]/projects/[appSubdomain]/auth/settings',
     ),
-  ).toBe('/settings/authentication');
+  ).toBe('/auth/settings');
 });
 
 test('should truncate at the first dynamic segment after appSubdomain', () => {
