@@ -22,5 +22,9 @@ buildPGRXExtension rec {
     install -m 0444 \
       ${./pg_jsonschema--0.3.3--0.3.4.sql} \
       "$out/share/postgresql/extension/pg_jsonschema--0.3.3--0.3.4.sql"
+
+    ${pkgs.python3}/bin/python3 ${./check-pg-jsonschema-upgrade.py} \
+      "$out/share/postgresql/extension/pg_jsonschema--0.3.4.sql" \
+      "$out/share/postgresql/extension/pg_jsonschema--0.3.3--0.3.4.sql"
   '';
 }
