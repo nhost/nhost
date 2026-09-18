@@ -1,0 +1,110 @@
+---
+name: "engine: release on tag"
+# TEMP(delete-before-merge): branch-scoped publish path so we can cut a REAL
+# versioned engine image from a stack branch WITHOUT merging first.
+#
+# `on: push: tags` runs the workflow definition present AT THE TAGGED COMMIT
+# (unlike `on: release`, which ci_release.yaml uses — that always runs the
+# default branch's workflows and therefore needs the PR merged). Tagging any
+# commit that contains this file is enough to trigger it:
+#
+#     git tag engine@0.0.5 && git push origin engine@0.0.5
+#
+# The tag must stay in the engine@<semver> namespace. build/makefiles/
+# release.makefile derives TAG_PATTERN="^engine@\d+\.\d+\.\d+$" from the
+# project name and feeds it to git-cliff, so a tag outside that namespace is
+# invisible to changelog-next-version and the changelog: once the stack lands,
+# version computation would behave as if these releases never happened.
+#
+# Publishing a GitHub release named engine@<version> also pushes that tag, so
+# this workflow and ci_release.yaml's `engine:` job would otherwise both fire
+# and race: two concurrent publishes of the same image tag, one without bot
+# credentials and with BUMP_REFS disabled. The guard job below resolves that.
+# Official releases are only ever cut from main, so a tagged commit that is
+# already an ancestor of main belongs to ci_release.yaml and this path stands
+# down. While the stack is unmerged its commits are not on main, so dev tags
+# still publish. The guard makes the file inert the moment the stack lands,
+# rather than relying on remembering to delete it.
+on:
+  push:
+    tags:
+      - "engine@*"
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      should_release: ${{ steps.check.outputs.should_release }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - id: check
+        run: |
+          git fetch --no-tags --quiet origin +refs/heads/main:refs/remotes/origin/main
+          git rev-parse --verify --quiet "${GITHUB_SHA}^{commit}" >/dev/null \
+            || { echo "::error::${GITHUB_SHA} does not resolve to a commit"; exit 1; }
+
+          set +e
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+          rc=$?
+          set -e
+
+          case "$rc" in
+            0)
+              echo "should_release=false" >> "$GITHUB_OUTPUT"
+              echo "::notice::${GITHUB_SHA} is on main; ci_release.yaml owns this release"
+              ;;
+            1)
+              echo "should_release=true" >> "$GITHUB_OUTPUT"
+              echo "::notice::${GITHUB_SHA} is not on main; publishing from the stack branch"
+              ;;
+            *)
+              echo "::error::merge-base failed (exit $rc); refusing to guess"
+              exit "$rc"
+              ;;
+          esac
+
+  extract-version:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    needs: guard
+    if: needs.guard.outputs.should_release == 'true'
+    outputs:
+      version: ${{ steps.extract.outputs.version }}
+    steps:
+      - id: extract
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          if [[ ! "$TAG" =~ ^engine@[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Error: tag '$TAG' is not of the form engine@<major>.<minor>.<patch>" >&2
+            exit 1
+          fi
+          VERSION="${TAG##*@}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Releasing engine version: $VERSION"
+
+  release:
+    needs:
+      - guard
+      - extract-version
+    if: needs.guard.outputs.should_release == 'true'
+    uses: ./.github/workflows/engine_wf_release.yaml
+    with:
+      GIT_REF: ${{ github.sha }}
+      VERSION: ${{ needs.extract-version.outputs.version }}
+      BUMP_REFS: false
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+      NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
