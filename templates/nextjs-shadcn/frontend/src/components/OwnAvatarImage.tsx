@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { AvatarImage } from '@/components/ui/avatar';
 import { nhost } from '@/lib/nhost/client';
-import { isStoredAvatarURL } from '@/lib/storage';
+import { isStoredAvatarURL, withTransform } from '@/lib/storage';
 
 /**
  * The signed-in viewer's own avatar.
@@ -12,9 +12,9 @@ import { isStoredAvatarURL } from '@/lib/storage';
  * use one: an `<img>` sends no Authorization header, so storage answers it as
  * the `public` role, and that role may only read an avatar whose owner has
  * published their profile. The plain URL therefore works for strangers on
- * `/u/<id>` and 404s for the owner on their own pages - the wrong way round,
- * and it reads as an upload that silently failed, because the picker goes on
- * offering "Remove image" for a picture nobody can see.
+ * `/u/<id>` and 404s for an unpublished owner on their own pages - the wrong
+ * way round, and it reads as an upload that silently failed, because the picker
+ * goes on offering "Remove image" for a picture nobody can see.
  *
  * A presigned URL is fetched with the session instead. Storage answers that as
  * `user`, where the rule is simply that the file is your own, so it resolves
@@ -47,7 +47,14 @@ export function OwnAvatarImage({
     retry: false,
   });
 
-  const src = isStored ? presigned.data : avatarUrl;
+  // Asked for at three times the size it is drawn at, the way `FileThumbnail`
+  // does, so a dense screen stays sharp without pulling the whole 512px upload
+  // down to paint it at 32. Only the presigned URL is transformed: the picture
+  // auth assigns at sign-up is on another host, which has no such parameters.
+  const src = isStored
+    ? presigned.data &&
+      withTransform(presigned.data, { w: 96, q: 80, f: 'auto' })
+    : avatarUrl;
 
   // Nothing to draw until the signature arrives; the fallback initial shows
   // through in the meantime, which is what it is there for.
