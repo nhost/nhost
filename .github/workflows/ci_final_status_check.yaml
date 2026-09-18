@@ -54,11 +54,13 @@ jobs:
             echo "  - chore:  mark this pull request as a maintenance item"
             echo ""
             echo "Valid PKGs:"
-            echo "  - ai, auth, ci, cli, codegen, constellation, dashboard,"
-            echo "  - deps, docs, examples, functions,"
-            echo "  - ghactivity, govulncheck-wrapper, landing, mcp, nhost-js,"
-            echo "  - nixops, postgres, storage, observability, internal/lib,"
-            echo "  - stripe-graphql-js, templates"
+            # Derived from VALID_PKGS above so this list can't silently
+            # drift from the regex; the PR template bullet is the only
+            # other hand-maintained copy.
+            PKG_LIST="${VALID_PKGS//\\/}"
+            PKG_LIST="${PKG_LIST//|/, }"
+            fold -s -w 60 <<< "$PKG_LIST" \
+              | sed -e "s/[[:space:]]*$//" -e "s/^/  - /"
             echo ""
             echo "Examples:"
             echo "  - feat(cli): add new command for database migrations"
