@@ -8,10 +8,12 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
 	"github.com/nhost/nhost/cli/clienv"
+	"github.com/nhost/nhost/cli/dockercompose"
 	"github.com/urfave/cli/v3"
 )
 
@@ -476,6 +478,88 @@ func TestCreatedProjectsWithDottedNamesDoNotShareAComposeProject(t *testing.T) {
 	if plain != "myapp" {
 		t.Errorf("project name in myapp/backend = %q, want %q", plain, "myapp")
 	}
+}
+
+// The resolved name reaches docker compose as `-p <name>`, and an empty one is
+// not a refusal: compose reads `-p ""` as no project name at all, falls back to
+// naming the project after --project-directory, and normalises that name by
+// trimming the very leading `_` and `-` this CLI refuses to trim. A directory
+// named `_myapp` therefore came up as `myapp` and took over a sibling project's
+// containers and Postgres volume, where it used to be refused out loud. No
+// `nhost create` is needed to get there -- `nhost init` in such a directory is
+// enough -- so the argv is checked against the directory names themselves.
+//
+//nolint:paralleltest // mutates process cwd via t.Chdir and PATH via t.Setenv
+func TestComposeArgvNeverCarriesAnEmptyProjectName(t *testing.T) {
+	tests := []struct {
+		name string
+		dir  string
+		want string
+	}{
+		{name: "a name compose accepts", dir: "myapp", want: "myapp"},
+		{name: "a leading underscore", dir: "_myapp", want: "_myapp"},
+		{name: "a leading dash", dir: "-myapp", want: "-myapp"},
+		{name: "nothing compose can hold", dir: "\u65e5\u672c\u8a9e", want: "\u65e5\u672c\u8a9e"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			dir := filepath.Join(t.TempDir(), tt.dir)
+			if err := os.MkdirAll(dir, 0o755); err != nil {
+				t.Fatalf("MkdirAll: %v", err)
+			}
+
+			argv := dockerArgv(t, dir, composeProjectName(t, dir))
+
+			i := slices.Index(argv, "-p")
+			if i < 0 || i == len(argv)-1 {
+				t.Fatalf("docker argv carries no project name: %q", argv)
+			}
+
+			if argv[i+1] == "" {
+				t.Fatalf(
+					"docker argv in %s carries an empty -p, which leaves compose to name the project: %q",
+					tt.dir,
+					argv,
+				)
+			}
+
+			if argv[i+1] != tt.want {
+				t.Errorf("docker argv in %s carries -p %q, want %q", tt.dir, argv[i+1], tt.want)
+			}
+		})
+	}
+}
+
+// dockerArgv runs a docker compose command with a stub `docker` alone on PATH
+// and returns the argv it was handed, which is the only place the project name
+// can be seen as compose sees it. One line per argument keeps an argument that
+// is the empty string visible.
+func dockerArgv(t *testing.T, workingDir, projectName string) []string {
+	t.Helper()
+
+	binDir := t.TempDir()
+	argvFile := filepath.Join(binDir, "argv")
+	stub := filepath.Join(binDir, "docker")
+
+	writeTestFile(t, stub, fmt.Sprintf("#!/bin/sh\nprintf '%%s\\n' \"$@\" > %q\n", argvFile))
+
+	if err := os.Chmod(stub, 0o755); err != nil {
+		t.Fatalf("chmod docker stub: %v", err)
+	}
+
+	t.Setenv("PATH", binDir)
+
+	dc := dockercompose.New(
+		workingDir,
+		filepath.Join(workingDir, "docker-compose.yaml"),
+		projectName,
+	)
+	if err := dc.Wrapper(context.Background(), "config"); err != nil {
+		t.Fatalf("run docker compose through the stub: %v", err)
+	}
+
+	return strings.Split(strings.TrimSuffix(readTestFile(t, argvFile), "\n"), "\n")
 }
 
 // An install that fails is a warning, not a failed create: the project is on
