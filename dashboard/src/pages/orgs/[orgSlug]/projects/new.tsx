@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import type { FormEvent, ReactElement } from 'react';
 import { useState } from 'react';
 import slugify from 'slugify';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { Container } from '@/components/layout/Container';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
@@ -15,7 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/v3/select';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { OrganizationLayout } from '@/features/orgs/layout/OrganizationLayout';
+import { OrganizationScope } from '@/features/orgs/layout/OrganizationScope';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { getCreateProjectErrorMessage } from '@/features/orgs/utils/getCreateProjectErrorMessage';
@@ -428,5 +429,9 @@ export default function NewProjectPage() {
 }
 
 NewProjectPage.getLayout = function getLayout(page: ReactElement) {
-  return <OrganizationLayout>{page}</OrganizationLayout>;
+  return (
+    <AppLayout>
+      <OrganizationScope>{page}</OrganizationScope>
+    </AppLayout>
+  );
 };

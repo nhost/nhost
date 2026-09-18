@@ -1,7 +1,9 @@
 import { subMinutes } from 'date-fns';
 import { type ReactElement, useCallback, useState } from 'react';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { ProjectViewWithState } from '@/features/orgs/layout/ProjectGuard';
+import { ProjectScope } from '@/features/orgs/layout/ProjectScope';
 import { useProjectLogs } from '@/features/orgs/projects/hooks/useProjectLogs';
 import { LogsBody } from '@/features/orgs/projects/logs/components/LogsBody';
 import {
@@ -55,5 +57,11 @@ export default function LogsPage() {
 }
 
 LogsPage.getLayout = function getLayout(page: ReactElement) {
-  return <ProjectLayout>{page}</ProjectLayout>;
+  return (
+    <AppLayout>
+      <ProjectScope>
+        <ProjectViewWithState>{page}</ProjectViewWithState>
+      </ProjectScope>
+    </AppLayout>
+  );
 };
