@@ -46,7 +46,9 @@ Where `PKG` is:
 - `storage`: For changes to the Nhost Storage service
 - `observability`: For changes to the Nhost Observability managed service
 - `stripe-graphql-js`: For changes to the Stripe GraphQL JS SDK
-- `templates`: For changes to the starter templates used by `nhost create`
+- `templates`: For changes to the starter templates in `templates/`
+  (scaffolded by `nhost init --template`); other CLI changes, including
+  `cli/cmd/project/templates/`, still use `cli`
 
 Where `SUMMARY` is a short description of what the PR does.
 
