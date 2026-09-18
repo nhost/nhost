@@ -272,11 +272,20 @@ func TestSlogAdapter(t *testing.T) {
 		{
 			name:         "verbose diagnostics",
 			loggerLevel:  slog.LevelDebug,
-			format:       "Start buffering migration %d\n",
-			values:       []any{5},
+			format:       "Start buffering %v\n",
+			values:       []any{"migration 5"},
 			wantVerbose:  true,
 			wantLogLevel: "DEBUG",
 			wantMessage:  "Start buffering migration 5",
+		},
+		{
+			name:         "completion with verbose logging",
+			loggerLevel:  slog.LevelDebug,
+			format:       "Finished %v (read %v, ran %v)\n",
+			values:       []any{"migration 5", "1ms", "2ms"},
+			wantVerbose:  true,
+			wantLogLevel: "INFO",
+			wantMessage:  "Finished migration 5 (read 1ms, ran 2ms)",
 		},
 		{
 			name:         "error with verbose logging",
