@@ -35,6 +35,19 @@ export default async function Restore() {
   const deletedAt = (user?.metadata as { deletedAt?: string } | null)
     ?.deletedAt;
 
+  const sessionMark = (
+    session.user.metadata as { deletedAt?: string } | null | undefined
+  )?.deletedAt;
+
+  // Marked on neither side: an ordinary signed-in visitor who typed the URL or
+  // kept a bookmark. The proxy only sends anyone here while their session
+  // carries the mark, so this redirect cannot be bounced back. Without it they
+  // are told their account has just been restored and handed a button that
+  // rotates their refresh token for nothing.
+  if (!deletedAt && !sessionMark) {
+    redirect('/profile');
+  }
+
   // Restored in the database, while this browser's session still carries the
   // mark - restored on another device, most likely, since restoring does not
   // revoke the other sessions. Redirecting to `/profile` here would loop: the
