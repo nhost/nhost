@@ -29,6 +29,14 @@ would fail after deleting its contents. Files beside `PGDATA` also do not
 necessarily survive container recreation; test lifecycle changes against this
 layout rather than relying on a marker outside the mounted volume.
 
+## Extension upgrades
+
+Keep the startup catalog probe and TimescaleDB update in separate sessions.
+The startup catalog queries must set `timescaledb.disable_load=on` because an installed old
+version might reference a library that the new image no longer bundles, while
+`ALTER EXTENSION timescaledb UPDATE` must be the first command in a fresh
+session.
+
 ## Options
 
 Following env vars are available in the image (to be set in an Nhost cloud project via settings):

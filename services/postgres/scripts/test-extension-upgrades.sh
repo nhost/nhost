@@ -69,6 +69,20 @@ wait_for_initialization() {
     return 1
 }
 
+assert_no_missing_timescaledb_error() {
+    container=$1
+
+    if docker logs "$container" 2>&1 |
+        grep -Eq 'ERROR:[[:space:]]+extension "timescaledb" does not exist'; then
+        echo "TimescaleDB absence was logged as an error in $container" >&2
+        docker logs "$container" >&2
+        return 1
+    fi
+}
+
+wait_for_initialization "$source_container"
+assert_no_missing_timescaledb_error "$source_container"
+
 docker volume create "$volume" >/dev/null
 docker run -d --name "$old_container" \
     --env POSTGRES_DEV_INSECURE=1 \
@@ -102,6 +116,7 @@ docker run -d --name "$new_container" \
     --volume "$volume:/var/lib/postgresql/data/pgdata" \
     "$current_image" >/dev/null
 wait_for_initialization "$new_container"
+assert_no_missing_timescaledb_error "$new_container"
 
 for database in postgres local; do
     if ! docker logs "$new_container" 2>&1 |

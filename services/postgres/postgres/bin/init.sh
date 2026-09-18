@@ -137,19 +137,13 @@ update_extension() {
 
 	# The one-statement file makes ALTER EXTENSION the first server command in
 	# this session while still letting psql quote the extension identifier.
-	if run_interruptibly env "PGOPTIONS=-c lc_messages=C" \
-		psql -X -q -b -U postgres -d "$database" \
+	if run_interruptibly psql -X -q -b -U postgres -d "$database" \
 		-v ON_ERROR_STOP=1 -v extension="$extension" \
 		-f "$extension_update" >"$update_log" 2>&1; then
 		echo "Updating extension $extension in database $database"
 		cat "$update_log"
 		rm -f "$update_log"
 		return 0
-	fi
-
-	if grep -Fq "extension \"$extension\" does not exist" "$update_log"; then
-		rm -f "$update_log"
-		return 2
 	fi
 
 	echo "Updating extension $extension in database $database"
@@ -164,34 +158,29 @@ update_extensions() {
 	extension_update=$2
 	extension_list=$(mktemp -p /tmp/postgresql extensions.XXXXXX) || return 1
 
-	# TimescaleDB must be updated before any other statement in a database that
-	# has its old version installed. An unconditional first attempt avoids
-	# loading that version merely to discover whether an update is needed.
-	if update_extension "$database" timescaledb "$extension_update"; then
-		:
-	else
-		update_status=$?
-		if [ "$update_status" -eq 1 ]; then
-			echo "WARNING: Skipping remaining extension updates in database $database after the TimescaleDB failure" >&2
-			rm -f "$extension_list"
-			return 0
-		fi
-	fi
-
-	if ! run_interruptibly psql -X -q -A -t -U postgres -d "$database" -v ON_ERROR_STOP=1 \
+	# Discover outdated extensions in a throwaway session without loading a
+	# possibly unbundled TimescaleDB version. Its ALTER EXTENSION then remains
+	# the first command in a fresh session.
+	if ! run_interruptibly env "PGOPTIONS=${PGOPTIONS:+$PGOPTIONS }-c timescaledb.disable_load=on" \
+		psql -X -q -A -t -U postgres -d "$database" -v ON_ERROR_STOP=1 \
 		-o "$extension_list" \
 		-c "SELECT e.extname
 			FROM pg_extension AS e
 			JOIN pg_available_extensions AS ae ON ae.name = e.extname
-			WHERE e.extname <> 'timescaledb'
-				AND e.extversion <> ae.default_version
-			ORDER BY e.extname"; then
+			WHERE e.extversion <> ae.default_version
+			ORDER BY CASE WHEN e.extname = 'timescaledb' THEN 0 ELSE 1 END,
+				e.extname"; then
 		rm -f "$extension_list"
 		return 1
 	fi
 
 	while IFS= read -r extension; do
-		update_extension "$database" "$extension" "$extension_update" || true
+		if update_extension "$database" "$extension" "$extension_update"; then
+			:
+		elif [ "$extension" = timescaledb ]; then
+			echo "WARNING: Skipping remaining extension updates in database $database after the TimescaleDB failure" >&2
+			break
+		fi
 	done <"$extension_list"
 
 	rm -f "$extension_list"
@@ -208,20 +197,10 @@ update_extensions_all_databases() {
 		return 1
 	fi
 
-	# The database catalog is read from postgres, so update TimescaleDB there
-	# before even the database-list query can load an old versioned library.
-	if update_extension postgres timescaledb "$extension_update"; then
-		:
-	else
-		update_status=$?
-		if [ "$update_status" -eq 1 ]; then
-			echo "WARNING: Skipping extension updates after the TimescaleDB failure in database postgres" >&2
-			rm -f "$database_list" "$extension_update"
-			return 0
-		fi
-	fi
-
-	if ! run_interruptibly psql -X -q -A -t -U postgres -d postgres -v ON_ERROR_STOP=1 \
+	# The catalog database may itself contain an old TimescaleDB version whose
+	# library is no longer bundled, so keep it disabled while listing databases.
+	if ! run_interruptibly env "PGOPTIONS=${PGOPTIONS:+$PGOPTIONS }-c timescaledb.disable_load=on" \
+		psql -X -q -A -t -U postgres -d postgres -v ON_ERROR_STOP=1 \
 		-o "$database_list" \
 		-c "SELECT datname FROM pg_database WHERE datallowconn ORDER BY datname"; then
 		rm -f "$database_list" "$extension_update"
