@@ -1,3 +1,27 @@
+## [@nhost/dashboard@3.6.0] - 2026-09-18
+
+### 🚀 Features
+
+- *(dashboard)* Add last sign-in method badge (#4984)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Isolate project config errors (#4818)
+- *(dashboard)* Improve multiline text tooltip accessibility with keyboard (#4978)
+- *(dashboard)* Stop unscheduled deployments hiding the live one (#5023)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Bump Go to 1.27 (#4887)
+- *(dashboard)* Add native query and logical model metadata contracts (#4791)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4973)
+
 ## [@nhost/dashboard@3.5.3] - 2026-09-07
 
 ### 🐛 Bug Fixes
