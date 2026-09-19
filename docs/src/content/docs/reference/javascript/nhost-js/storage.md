@@ -792,6 +792,42 @@ optional h?: number;
 
 Maximum height, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are rejected with a 400 error.
 
+#### if-match?
+
+```ts
+optional if-match?: string;
+```
+
+Only return the file if the current ETag matches one of the values provided
+
+#### if-modified-since?
+
+```ts
+optional if-modified-since?: string;
+```
+
+Only return the file if it has been modified after the given date
+
+- Date in RFC 2822 format
+
+#### if-none-match?
+
+```ts
+optional if-none-match?: string;
+```
+
+Only return the file if the current ETag does not match any of the values provided
+
+#### if-unmodified-since?
+
+```ts
+optional if-unmodified-since?: string;
+```
+
+Only return the file if it has not been modified after the given date
+
+- Date in RFC 2822 format
+
 #### q?
 
 ```ts
@@ -842,6 +878,42 @@ optional h?: number;
 
 Maximum height, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are rejected with a 400 error.
 
+#### if-match?
+
+```ts
+optional if-match?: string;
+```
+
+Only return the file if the current ETag matches one of the values provided
+
+#### if-modified-since?
+
+```ts
+optional if-modified-since?: string;
+```
+
+Only return the file if it has been modified after the given date
+
+- Date in RFC 2822 format
+
+#### if-none-match?
+
+```ts
+optional if-none-match?: string;
+```
+
+Only return the file if the current ETag does not match any of the values provided
+
+#### if-unmodified-since?
+
+```ts
+optional if-unmodified-since?: string;
+```
+
+Only return the file if it has not been modified after the given date
+
+- Date in RFC 2822 format
+
 #### q?
 
 ```ts
@@ -849,6 +921,14 @@ optional q?: number;
 ```
 
 Image quality (1-100). Only applies to JPEG, WebP, AVIF and HEIC files
+
+#### Range?
+
+```ts
+optional Range?: string;
+```
+
+Range of bytes to retrieve from the file. Format: bytes=start-end
 
 #### w?
 

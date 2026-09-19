@@ -389,7 +389,19 @@ export interface ListOrphanedFilesResponse200 {
   
     @property f? (OutputImageFormat) - Output format for image files. Use 'auto' for content negotiation based on Accept header
   
-    *    Output format for image files. Use 'auto' for content negotiation based on Accept header*/
+    *    Output format for image files. Use 'auto' for content negotiation based on Accept header
+    @property if-match? (string) - Only return the file if the current ETag matches one of the values provided
+  
+    @property if-none-match? (string) - Only return the file if the current ETag does not match any of the values provided
+  
+    @property if-modified-since? (string) - Only return the file if it has been modified after the given date
+  
+    *    Date in RFC 2822 format
+    @property if-unmodified-since? (string) - Only return the file if it has not been modified after the given date
+  
+    *    Date in RFC 2822 format
+    @property Range? (string) - Range of bytes to retrieve from the file. Format: bytes=start-end
+  */
 export interface GetFileParams {
   /**
    * Image quality (1-100). Only applies to JPEG, WebP, AVIF and HEIC files
@@ -417,6 +429,33 @@ export interface GetFileParams {
     *    Output format for image files. Use 'auto' for content negotiation based on Accept header
    */
   f?: OutputImageFormat;
+  /**
+   * Only return the file if the current ETag matches one of the values provided
+  
+   */
+  'if-match'?: string;
+  /**
+   * Only return the file if the current ETag does not match any of the values provided
+  
+   */
+  'if-none-match'?: string;
+  /**
+   * Only return the file if it has been modified after the given date
+  
+    *    Date in RFC 2822 format
+   */
+  'if-modified-since'?: string;
+  /**
+   * Only return the file if it has not been modified after the given date
+  
+    *    Date in RFC 2822 format
+   */
+  'if-unmodified-since'?: string;
+  /**
+   * Range of bytes to retrieve from the file. Format: bytes=start-end
+  
+   */
+  Range?: string;
 }
 /**
  * Parameters for the getFileMetadataHeaders method.
@@ -430,7 +469,17 @@ export interface GetFileParams {
   
     @property f? (OutputImageFormat) - Output format for image files. Use 'auto' for content negotiation based on Accept header
   
-    *    Output format for image files. Use 'auto' for content negotiation based on Accept header*/
+    *    Output format for image files. Use 'auto' for content negotiation based on Accept header
+    @property if-match? (string) - Only return the file if the current ETag matches one of the values provided
+  
+    @property if-none-match? (string) - Only return the file if the current ETag does not match any of the values provided
+  
+    @property if-modified-since? (string) - Only return the file if it has been modified after the given date
+  
+    *    Date in RFC 2822 format
+    @property if-unmodified-since? (string) - Only return the file if it has not been modified after the given date
+  
+    *    Date in RFC 2822 format*/
 export interface GetFileMetadataHeadersParams {
   /**
    * Image quality (1-100). Only applies to JPEG, WebP, AVIF and HEIC files
@@ -458,6 +507,28 @@ export interface GetFileMetadataHeadersParams {
     *    Output format for image files. Use 'auto' for content negotiation based on Accept header
    */
   f?: OutputImageFormat;
+  /**
+   * Only return the file if the current ETag matches one of the values provided
+  
+   */
+  'if-match'?: string;
+  /**
+   * Only return the file if the current ETag does not match any of the values provided
+  
+   */
+  'if-none-match'?: string;
+  /**
+   * Only return the file if it has been modified after the given date
+  
+    *    Date in RFC 2822 format
+   */
+  'if-modified-since'?: string;
+  /**
+   * Only return the file if it has not been modified after the given date
+  
+    *    Date in RFC 2822 format
+   */
+  'if-unmodified-since'?: string;
 }
 
 export interface Client {
@@ -741,10 +812,42 @@ export const createAPIClient = (
     const url = encodedParameters
       ? `${baseURL}/files/${id}?${encodedParameters}`
       : `${baseURL}/files/${id}`;
+    // Header parameters declared by the operation. A caller-supplied header in
+    // `options.headers` overrides these, matching the query/body precedence.
+    const parameterHeaders: Record<string, string> = {};
+    if (params?.['if-match'] !== undefined && params?.['if-match'] !== null) {
+      parameterHeaders['if-match'] = String(params['if-match']);
+    }
+    if (
+      params?.['if-none-match'] !== undefined &&
+      params?.['if-none-match'] !== null
+    ) {
+      parameterHeaders['if-none-match'] = String(params['if-none-match']);
+    }
+    if (
+      params?.['if-modified-since'] !== undefined &&
+      params?.['if-modified-since'] !== null
+    ) {
+      parameterHeaders['if-modified-since'] = String(
+        params['if-modified-since'],
+      );
+    }
+    if (
+      params?.['if-unmodified-since'] !== undefined &&
+      params?.['if-unmodified-since'] !== null
+    ) {
+      parameterHeaders['if-unmodified-since'] = String(
+        params['if-unmodified-since'],
+      );
+    }
+    if (params?.['Range'] !== undefined && params?.['Range'] !== null) {
+      parameterHeaders['Range'] = String(params['Range']);
+    }
     const res = await fetch(url, {
       ...options,
       method: 'GET',
       headers: {
+        ...parameterHeaders,
         ...options?.headers,
       },
     });
@@ -789,10 +892,39 @@ export const createAPIClient = (
     const url = encodedParameters
       ? `${baseURL}/files/${id}?${encodedParameters}`
       : `${baseURL}/files/${id}`;
+    // Header parameters declared by the operation. A caller-supplied header in
+    // `options.headers` overrides these, matching the query/body precedence.
+    const parameterHeaders: Record<string, string> = {};
+    if (params?.['if-match'] !== undefined && params?.['if-match'] !== null) {
+      parameterHeaders['if-match'] = String(params['if-match']);
+    }
+    if (
+      params?.['if-none-match'] !== undefined &&
+      params?.['if-none-match'] !== null
+    ) {
+      parameterHeaders['if-none-match'] = String(params['if-none-match']);
+    }
+    if (
+      params?.['if-modified-since'] !== undefined &&
+      params?.['if-modified-since'] !== null
+    ) {
+      parameterHeaders['if-modified-since'] = String(
+        params['if-modified-since'],
+      );
+    }
+    if (
+      params?.['if-unmodified-since'] !== undefined &&
+      params?.['if-unmodified-since'] !== null
+    ) {
+      parameterHeaders['if-unmodified-since'] = String(
+        params['if-unmodified-since'],
+      );
+    }
     const res = await fetch(url, {
       ...options,
       method: 'HEAD',
       headers: {
+        ...parameterHeaders,
         ...options?.headers,
       },
     });

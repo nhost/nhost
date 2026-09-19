@@ -87,6 +87,18 @@ adminSecret: string;
 
 Hasura admin secret for elevated permissions (sets x-hasura-admin-secret header)
 
+#### allowInsecureHttp?
+
+```ts
+optional allowInsecureHttp?: boolean;
+```
+
+Permits sending the admin secret over cleartext HTTP to a non-loopback host.
+
+Defaults to `false`. Enable only on a trusted development network: the admin
+secret grants unrestricted database access and cleartext exposes it to
+anyone on the path.
+
 #### role?
 
 ```ts
@@ -157,6 +169,62 @@ status: number;
 
 HTTP status code of the response
 
+---
+
+## RequestScope
+
+The origin a credential middleware is allowed to write to.
+
+### Properties
+
+#### pathPrefix
+
+```ts
+readonly pathPrefix: string;
+```
+
+The scope's path, with trailing slashes stripped (e.g. `/v1/auth`).
+
+### Methods
+
+#### contains()
+
+```ts
+contains(url: string): boolean;
+```
+
+True when `url` is the same origin (scheme, host and port) as the scope.
+
+##### Parameters
+
+| Parameter | Type     |
+| --------- | -------- |
+| `url`     | `string` |
+
+##### Returns
+
+`boolean`
+
+#### permitsAdminSession()
+
+```ts
+permitsAdminSession(url: string, allowInsecureHttp: boolean): boolean;
+```
+
+True when the admin secret may be sent: same origin, and either HTTPS, a
+loopback host, or an explicit cleartext opt-in.
+
+##### Parameters
+
+| Parameter           | Type      |
+| ------------------- | --------- |
+| `url`               | `string`  |
+| `allowInsecureHttp` | `boolean` |
+
+##### Returns
+
+`boolean`
+
 # Type Aliases
 
 ## ChainFunction
@@ -213,24 +281,29 @@ This allows middleware to intercept and modify requests and responses.
 ## attachAccessTokenMiddleware()
 
 ```ts
-function attachAccessTokenMiddleware(storage: SessionStorage): ChainFunction;
+function attachAccessTokenMiddleware(
+  storage: SessionStorage,
+  serviceUrl: string,
+): ChainFunction;
 ```
 
 Creates a fetch middleware that adds the Authorization header with the current access token.
 
-This middleware:
-
-1. Gets the current session from storage
-2. Adds the authorization header with the access token to outgoing requests
+The token is written only for requests inside `serviceUrl`'s origin. A request
+that has left that origin has the stored bearer token stripped, so custom
+middleware that retargets a request cannot forward the user's access token to
+another host. An unrelated caller-supplied `Authorization` value is always
+preserved.
 
 This middleware should be used after the refresh middleware in the chain to
 ensure the most recent token is used.
 
 ### Parameters
 
-| Parameter | Type                                          | Description                                        |
-| --------- | --------------------------------------------- | -------------------------------------------------- |
-| `storage` | [`SessionStorage`](./session#sessionstorage) | Storage implementation for retrieving session data |
+| Parameter    | Type                                          | Description                                             |
+| ------------ | --------------------------------------------- | ------------------------------------------------------- |
+| `storage`    | [`SessionStorage`](./session#sessionstorage) | Storage implementation for retrieving session data      |
+| `serviceUrl` | `string`                                      | Base URL of the service this middleware is installed on |
 
 ### Returns
 
@@ -281,6 +354,31 @@ const loggingMiddleware: ChainFunction = (next) => {
 const enhancedFetch = createEnhancedFetch([loggingMiddleware]);
 const response = await enhancedFetch("https://api.example.com/data");
 ```
+
+---
+
+## requestScopeFromBaseUrl()
+
+```ts
+function requestScopeFromBaseUrl(baseUrl: string): RequestScope;
+```
+
+Builds a scope from a service base URL.
+
+An unparseable base URL yields a scope that permits nothing, so every check
+fails closed rather than silently disabling the origin restriction.
+
+### Parameters
+
+| Parameter | Type     | Description                                                              |
+| --------- | -------- | ------------------------------------------------------------------------ |
+| `baseUrl` | `string` | The service base URL (e.g. `https://abc.auth.eu-central-1.nhost.run/v1`) |
+
+### Returns
+
+[`RequestScope`](#requestscope)
+
+A scope that answers origin and transport-security questions
 
 ---
 
@@ -360,6 +458,7 @@ A middleware function that can be used in the fetch chain
 ```ts
 function withAdminSessionMiddleware(
   options: AdminSessionOptions,
+  serviceUrl: string,
 ): ChainFunction;
 ```
 
@@ -380,9 +479,10 @@ admin session configuration.
 
 ### Parameters
 
-| Parameter | Type                                          | Description                                                               |
-| --------- | --------------------------------------------- | ------------------------------------------------------------------------- |
-| `options` | [`AdminSessionOptions`](#adminsessionoptions) | Admin session options including admin secret, role, and session variables |
+| Parameter    | Type                                          | Description                                                               |
+| ------------ | --------------------------------------------- | ------------------------------------------------------------------------- |
+| `options`    | [`AdminSessionOptions`](#adminsessionoptions) | Admin session options including admin secret, role, and session variables |
+| `serviceUrl` | `string`                                      | -                                                                         |
 
 ### Returns
 

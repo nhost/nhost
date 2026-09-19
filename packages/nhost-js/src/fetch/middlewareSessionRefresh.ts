@@ -10,6 +10,7 @@ import type { Client } from '../auth';
 import { refreshSession } from '../session/refreshSession';
 import type { SessionStorage } from '../session/storage';
 import type { ChainFunction, FetchFunction } from './fetch';
+import { requestScopeFromBaseUrl } from './requestScope';
 
 /**
  * Creates a fetch middleware that automatically refreshes authentication tokens.
@@ -36,11 +37,18 @@ export const sessionRefreshMiddleware = (
 ): ChainFunction => {
   const { marginSeconds = 60 } = options || {};
 
+  // Resolve the auth origin and its exact token endpoint once. Matching the
+  // complete endpoint rather than a path suffix matters because this middleware
+  // also runs for storage, GraphQL and Functions, whose valid request paths may
+  // end in `/token` too, and because a custom auth URL need not use `/v1`.
+  const authScope = requestScopeFromBaseUrl(auth.baseURL);
+  const tokenPath = `${authScope.pathPrefix}/token`;
+
   // Create and return the chain function
   return (next: FetchFunction): FetchFunction =>
     async (url: string, options: RequestInit = {}): Promise<Response> => {
       // Skip token handling for certain requests
-      if (shouldSkipTokenHandling(url, options)) {
+      if (shouldSkipTokenHandling(url, options, authScope, tokenPath)) {
         return next(url, options);
       }
 
@@ -58,9 +66,16 @@ export const sessionRefreshMiddleware = (
  *
  * @param url - Request URL
  * @param options - Request options
+ * @param authScope - Origin scope of the auth service
+ * @param tokenPath - Exact path of the auth token endpoint
  * @returns True if token handling should be skipped, false otherwise
  */
-function shouldSkipTokenHandling(url: string, options: RequestInit): boolean {
+function shouldSkipTokenHandling(
+  url: string,
+  options: RequestInit,
+  authScope: ReturnType<typeof requestScopeFromBaseUrl>,
+  tokenPath: string,
+): boolean {
   const headers = new Headers(options.headers || {});
 
   // If Authorization header is explicitly set, skip token handling
@@ -68,10 +83,16 @@ function shouldSkipTokenHandling(url: string, options: RequestInit): boolean {
     return true;
   }
 
-  // If calling the token endpoint, skip to avoid infinite loops
-  if (url.endsWith('/v1/token')) {
-    return true;
+  // If calling this auth client's own token endpoint, skip to avoid infinite
+  // loops. Another service's `/token` path is a different endpoint and must
+  // still trigger a refresh.
+  if (!authScope.contains(url)) {
+    return false;
   }
 
-  return false;
+  try {
+    return new URL(url).pathname.replace(/\/+$/, '') === tokenPath;
+  } catch {
+    return false;
+  }
 }
