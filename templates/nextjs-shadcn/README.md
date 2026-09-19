@@ -8,7 +8,7 @@ A full-stack, agent-ready starter created with `nhost create`:
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org) >= 22 and [pnpm](https://pnpm.io)
+- [Node.js](https://nodejs.org) >= 22 and a package manager — the commands below use the one this project was created with
 - The [Nhost CLI](https://docs.nhost.io/platform/cli) (`nhost`)
 - Docker for the local backend
 
@@ -48,6 +48,10 @@ NEXT_PUBLIC_NHOST_REGION=local
 Use your project's subdomain and region when deploying to Nhost Cloud. This one pair is the only backend configuration: the browser client and server components both read it through `frontend/src/lib/nhost/env.ts`, so they cannot end up pointing at different backends.
 
 Next.js inlines `NEXT_PUBLIC_*` values into the bundle at **build** time, not at runtime. Set both variables before `next build` — in your host's build environment, or as build arguments if you build a container image. Setting them on the running host has no effect, and a build that leaves them unset permanently targets the local stack. Such a build logs an error to that effect on startup.
+
+## Before you deploy
+
+Put a rate limit in front of `/auth-method` (for example at your CDN or edge, keyed on client IP) before this sign-in page is reachable from the public internet. `hasPassword` in `frontend/src/app/signin/actions.ts` calls that function from the sign-in page — the most public page in the app — and it runs with the admin secret to look up whether an address has a password set. The response is bounded (an unknown address and a password-less account both answer the same way), but left unmetered it lets anyone run bulk lookups against a list of addresses. See the note at the top of `backend/functions/auth-method.ts`.
 
 ## Agent-ready development loop
 
@@ -121,7 +125,7 @@ This is the part of the starter that shows a role other than `user`, and it is w
 - **A missing page and a private one are the same 404.** Neither the page nor the permission distinguishes them, so the URL cannot be used to discover whether an account exists.
 - **Soft-deleted accounts drop out.** The `public` rule on `auth_users.yaml` also requires no `deletedAt`, so deleting an account takes its page down immediately even while published.
 
-The columns left off the `public` lists are the ones that cannot leak: the account's email and `metadata`, and `todos.user_id`.
+The columns left off the `public` lists are the ones that cannot leak: the account's email, `metadata` and `avatar_url`, and `todos.user_id`. `avatar_url` is left off because, for an account that never uploaded a photo, it holds the sign-up Gravatar URL, which embeds `md5(lowercase(email))`; the shared page serves the picture from `storage.files` instead, under the same published-and-not-deleted condition.
 
 ## Attachments, and the two ways to accept a file
 
@@ -131,6 +135,18 @@ The starter uploads files in both of the ways Nhost supports, and the difference
 - **A todo photo goes straight from the browser** to the storage API with the signed-in user's own token, in `frontend/src/app/protected/TodoAttachment.tsx`. No function and no admin secret: the `storage.files` insert permission for the `user` role is what allows it, and it allows only the `todo-attachments` bucket.
 
 The direct path is the ordinary one. Reach for a function when something has to happen that the client must not be trusted to do.
+
+That insert permission also has to stop a signed-in client from choosing a file id that is not theirs to choose. The client picks the file's `id`, and the avatar feature keys one file per account by that id, so an id equal to someone else's user id would let this path plant a `todo-attachments` row that a later avatar upload replaces in place, keeping its existing bucket and owner. `storage_files.yaml` blocks that by rejecting any insert whose `id` already names an account, through the `avatarOwner` relationship. Check it after changing that rule:
+
+```sh
+curl -o /dev/null -w '%{http_code}\n' -X POST "$STORAGE_URL/files" \
+  -H "Authorization: Bearer $USER_JWT" \
+  -F 'bucket-id=todo-attachments' \
+  -F "metadata[]={\"id\":\"<any other account's user id>\",\"name\":\"x.jpg\"}" \
+  -F 'file[]=@x.jpg'
+```
+
+It must not be 200/201 for an id that belongs to an existing account.
 
 Reads are governed the same way. `storage_files.yaml` makes a file readable by `public` when the item pointing at it is shared, which is a filter back through the `todos` relationship. An `<img>` tag sends no Authorization header, so storage always answers it as `public`: the photo on a shared item loads for everyone, and the same URL on a private one is a 404, with no presigned URL to expire. That rule is the one to be careful with, because widening it is how every private attachment becomes world-readable at once. Check it after changing it:
 
@@ -168,7 +184,7 @@ So before you add a page an auth email points at: aim the email at one of those 
 
 The reset flow leans on the same mechanism. Setting a password on an account that already has one normally requires the current password, which the server checks by reading `hasPassword` itself rather than trusting the form. Arriving through a reset link is the alternative, and the proxy records it as a short-lived `httpOnly` grant cookie when it redeems a `type=passwordReset` link. The cookie names the account the link signed in and is only honoured for that account, so a grant obtained for one account cannot be spent on another; it is cleared on sign-out and on every sign-in, and `/reset-password` offers a fresh link rather than a form once it has expired.
 
-Be precise about what that grant proves: this browser redeemed a reset link **for this account**. It is not proof of mailbox control. The session cookie is readable by JS (see below), so anyone already holding a live refresh token can mint a grant for their own account without an email ever being sent. Closing that gap means moving to the auth service's PKCE flow, where the redeemed `code` is bound to the ticket itself.
+Be precise about what that grant proves: this browser redeemed a reset link **for this account**. It is not proof of mailbox control. The session cookie is readable by JS (see below), so anyone already holding a live refresh token can mint a grant for whatever account that token names, without any email. Treat that as the escalation it is: a stolen session cannot otherwise change the password, because `changePassword` demands proof it does not carry — the current password when the account has one, or (through the same `requireCurrentPasswordProof` helper `changeEmail` uses) a fresh code emailed to the account when it does not — so the grant path is what turns a stolen session into a permanent takeover — changing the password revokes every other refresh token and locks the real owner out. Closing that gap means moving to the auth service's PKCE flow, where the redeemed `code` is bound to the ticket itself.
 
 Where the app is deployed is configuration, not something read off the request: `redirectTo` is built from `NEXT_PUBLIC_APP_ORIGIN` (see `appOrigin` in `frontend/src/lib/nhost/env.ts`, and `frontend/.env.example`). A `Host` header is set by whoever sent the request, so deriving the origin from it would let anyone point somebody else's reset link at a host they control. Set it before `next build`, and keep the same origin in the backend's `auth.redirections.allowedUrls`.
 
@@ -198,7 +214,7 @@ Run these from `frontend/`:
 - `pnpm dev` — start the development server.
 - `pnpm codegen` — dump the current user-role schema and regenerate types.
 - `pnpm codegen:types` — regenerate types from the committed schema without a backend.
-- `pnpm lint` / `pnpm format` — check or format with Biome.
+- `pnpm lint` — check with Biome. `pnpm format` — apply Biome's safe fixes (formatting, import sorting); it still exits non-zero if unfixable lint errors remain.
 - `pnpm test` — run the Vitest suites covering the proxy, session cookies, and storage helpers.
 - `pnpm build` — create a production build.
 

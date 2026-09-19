@@ -72,14 +72,16 @@ Read the surrounding package, not just the diff hunk. The diff tells you *what* 
 
 ## Mandatory post-change checks
 
-After every change to Go source files, before reporting work as complete, run from the repo root in this order:
+After every change to Go source files, before reporting work as complete, run from the repo root in this order, scoped to the project you touched (e.g. `cli`, `services/auth`) — this repo has a single root `go.mod`, so an unscoped `./...` also sweeps in every unrelated project, and CI itself scopes per-project (`nixops/lib/go/go.nix:143`: `golangci-lint run --timeout 600s ./${submodule}/...`):
 
-1. `golines -w --base-formatter=gofumpt .`
-2. `golangci-lint run --fix ./...`
+1. `golines -w --base-formatter=gofumpt <project>`
+2. `golangci-lint run --fix ./<project>/...`
 
-Run these from the project's Nix shell (e.g. `nix develop .#cli -c golangci-lint run --fix ./cli/...`). A `golangci-lint` on your `PATH` that was built with an older toolchain aborts with `the Go language version (go1.26) used to build golangci-lint is lower than the targeted Go version (1.27.0)` before linting anything.
+When the change touches `internal/lib/`, also run steps 1–2 against every project that imports it (currently `cli`, `services/auth`, `services/constellation`, `services/mcp`, `services/storage`), not just `internal/lib` itself, since lint fallout in those consumers would otherwise go uncaught until CI.
 
-Both commands operate on the whole project, not just the files you touched — this catches collateral fallout (import reorganisations, struct-field exhaustiveness, dead code). If either modifies files, re-stage them in the same commit. Treat any remaining `golangci-lint` finding as a blocker: either fix it or justify a targeted `//nolint:<linter>` with a comment.
+Run these from the project's Nix shell (e.g. `nix develop .#cli -c golangci-lint run --fix ./cli/...`; the same shell also covers `golines`). A `golangci-lint` on your `PATH` that was built with an older toolchain aborts with `the Go language version (go1.26) used to build golangci-lint is lower than the targeted Go version (1.27.0)` before linting anything.
+
+Both commands operate on the whole project you touched, not just the files you touched — this catches collateral fallout (import reorganisations, struct-field exhaustiveness, dead code). If either modifies files, re-stage them in the same commit. Treat any remaining `golangci-lint` finding as a blocker: either fix it or justify a targeted `//nolint:<linter>` with a comment.
 
 ---
 
