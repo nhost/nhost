@@ -6,6 +6,9 @@ import (
 	"errors"
 	"io/fs"
 	"log/slog"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/nhost/nhost/internal/lib/pgmigrate"
@@ -20,6 +23,130 @@ type migrationDatabaseStub struct{}
 
 func (*migrationDatabaseStub) Conn(context.Context) (*sql.Conn, error) {
 	return nil, sql.ErrConnDone
+}
+
+func TestPostgresMigrationBundle(t *testing.T) {
+	t.Parallel()
+
+	const wantTarget = 27
+
+	tests := []struct {
+		name string
+		fsys fs.FS
+	}{
+		{
+			name: "embedded bundle",
+			fsys: postgresMigrations,
+		},
+		{
+			name: "source directory",
+			fsys: os.DirFS("."),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			target, err := pgmigrate.ValidateBundle(tt.fsys, postgresMigrationPath)
+			if err != nil {
+				t.Fatalf("ValidateBundle() error = %v", err)
+			}
+
+			if target != wantTarget {
+				t.Fatalf("ValidateBundle() target = %d, want %d", target, wantTarget)
+			}
+		})
+	}
+}
+
+func TestPostgresMigrationBundleRejectsInvalidSourceFixtures(t *testing.T) {
+	t.Parallel()
+
+	const targetDownMigration = "00027_user_new_phone_number_index.down.sql"
+
+	tests := []struct {
+		name      string
+		mutate    func(*os.Root) error
+		wantIssue string
+	}{
+		{
+			name: "missing down migration",
+			mutate: func(root *os.Root) error {
+				return root.Remove(targetDownMigration)
+			},
+			wantIssue: "missing its down migration",
+		},
+		{
+			name: "blank down migration",
+			mutate: func(root *os.Root) error {
+				return root.WriteFile(targetDownMigration, []byte(" \n\t\r\n"), 0o600)
+			},
+			wantIssue: "must contain SQL beyond comments and whitespace",
+		},
+		{
+			name: "file excluded by embed glob",
+			mutate: func(root *os.Root) error {
+				return root.WriteFile("README.txt", []byte("not a migration"), 0o600)
+			},
+			wantIssue: "filename does not follow golang-migrate semantics",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			fixtureRoot := copyPostgresMigrationSource(t)
+			if err := tt.mutate(openPostgresMigrationSource(t, fixtureRoot)); err != nil {
+				t.Fatalf("mutate migration fixture: %v", err)
+			}
+
+			target, err := pgmigrate.ValidateBundle(os.DirFS(fixtureRoot), postgresMigrationPath)
+			if err == nil {
+				t.Fatalf("ValidateBundle() = (%d, nil), want error", target)
+			}
+
+			if target != 0 {
+				t.Errorf("ValidateBundle() target = %d, want 0 on error", target)
+			}
+
+			if !strings.Contains(err.Error(), tt.wantIssue) {
+				t.Fatalf("ValidateBundle() error = %q, want issue %q", err, tt.wantIssue)
+			}
+		})
+	}
+}
+
+func copyPostgresMigrationSource(t *testing.T) string {
+	t.Helper()
+
+	fixtureRoot := t.TempDir()
+	if err := os.CopyFS(
+		filepath.Join(fixtureRoot, postgresMigrationPath),
+		os.DirFS(postgresMigrationPath),
+	); err != nil {
+		t.Fatalf("copy postgres migration source: %v", err)
+	}
+
+	return fixtureRoot
+}
+
+func openPostgresMigrationSource(t *testing.T, fixtureRoot string) *os.Root {
+	t.Helper()
+
+	migrationRoot, err := os.OpenRoot(filepath.Join(fixtureRoot, postgresMigrationPath))
+	if err != nil {
+		t.Fatalf("open migration fixture root: %v", err)
+	}
+
+	t.Cleanup(func() {
+		if closeErr := migrationRoot.Close(); closeErr != nil {
+			t.Errorf("close migration fixture root: %v", closeErr)
+		}
+	})
+
+	return migrationRoot
 }
 
 func TestPostgresURLWithDefaultSSLMode(t *testing.T) {
