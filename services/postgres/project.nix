@@ -54,6 +54,9 @@ in
 
         sh ${src}/checks/repair-collation.sh \
           ${src}/postgres/bin/repair-collation.sh
+        PGHOST=localhost PGPORT=5432 \
+          sh ${src}/checks/repair-collation-integration.sh \
+            ${src}/postgres/bin/repair-collation.sh
 
         psql \
           -f ${src}/tests/plugins.sql --no-psqlrc -1 -v "ON_ERROR_STOP=1" \

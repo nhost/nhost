@@ -5,15 +5,29 @@ set -eu
 repair_database() {
 	database=$1
 
-	psql -X -q -b -U postgres -d "$database" -v ON_ERROR_STOP=1 <<'SQL'
-SELECT
-    datcollversion IS DISTINCT FROM pg_database_collation_actual_version(oid)
-        AS collation_mismatch
+	if ! collation_mismatch=$(psql -X -q -A -t -b -U postgres -d "$database" \
+		-v ON_ERROR_STOP=1 -c '
+SELECT datcollversion IS DISTINCT FROM pg_database_collation_actual_version(oid)
 FROM pg_database
-WHERE datname = current_database()
-\gset
+WHERE datname = current_database();
+'); then
+		echo "Failed to check the database collation version" >&2
+		return 1
+	fi
 
-\if :collation_mismatch
+	case $collation_mismatch in
+	f)
+		return 0
+		;;
+	t)
+		;;
+	*)
+		echo "Unexpected database collation mismatch result" >&2
+		return 1
+		;;
+	esac
+
+	if ! psql -X -q -b -U postgres -d "$database" -v ON_ERROR_STOP=1 <<'SQL'
 SELECT format(
     'Rebuilding collation-dependent indexes in database %I',
     current_database()
@@ -23,14 +37,23 @@ SELECT format(
 
 SELECT format('REINDEX DATABASE %I', current_database())
 \gexec
+SQL
+	then
+		echo "Failed to rebuild collation-dependent indexes" >&2
+		return 1
+	fi
 
+	if ! psql -X -q -b -U postgres -d "$database" -v ON_ERROR_STOP=1 <<'SQL'
 SELECT format(
     'ALTER DATABASE %I REFRESH COLLATION VERSION',
     current_database()
 )
 \gexec
-\endif
 SQL
+	then
+		echo "Failed to refresh the database collation version" >&2
+		return 1
+	fi
 }
 
 repair_all_databases() {
