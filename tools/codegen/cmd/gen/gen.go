@@ -2,10 +2,14 @@ package gen
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/nhost/nhost/tools/codegen/processor"
+	"github.com/nhost/nhost/tools/codegen/processor/golang"
 	"github.com/nhost/nhost/tools/codegen/processor/rust"
 	"github.com/nhost/nhost/tools/codegen/processor/typescript"
 	"github.com/pb33f/libopenapi"
@@ -16,6 +20,11 @@ const (
 	flagOpenAPIFile = "openapi-file"
 	flagOutputFile  = "output-file"
 	flagPlugin      = "plugin"
+)
+
+var (
+	errOutputPathEndsWithSeparator = errors.New("output path ends with a separator")
+	errUnsupportedPlugin           = errors.New("unsupported plugin")
 )
 
 func Command() *cli.Command {
@@ -38,7 +47,7 @@ func Command() *cli.Command {
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     flagPlugin,
-				Usage:    "Plugin to use. Supported: typescript, rust",
+				Usage:    "Plugin to use. Supported: typescript, rust, go",
 				Required: true,
 				Sources:  cli.EnvVars("PLUGIN"),
 			},
@@ -46,18 +55,49 @@ func Command() *cli.Command {
 	}
 }
 
+func newPlugin(pluginName, outputFile string) (processor.Plugin, error) { //nolint:ireturn
+	switch pluginName {
+	case "typescript":
+		return &typescript.Typescript{}, nil
+	case "rust":
+		return &rust.Rust{}, nil
+	case "go":
+		if strings.HasSuffix(outputFile, string(filepath.Separator)) {
+			return nil, fmt.Errorf(
+				"cannot infer Go package from output path %q: %w and does not name an output file; "+
+					"put the output file in a directory named after the package",
+				outputFile,
+				errOutputPathEndsWithSeparator,
+			)
+		}
+
+		packageName := filepath.Base(filepath.Dir(outputFile))
+
+		goPlugin, err := golang.New(packageName)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"cannot infer Go package from output path %q: directory component %q is not a valid Go package name; "+
+					"put the output file in a directory named after the package: %w",
+				outputFile,
+				packageName,
+				err,
+			)
+		}
+
+		return goPlugin, nil
+	default:
+		return nil, fmt.Errorf("%w: %s", errUnsupportedPlugin, pluginName)
+	}
+}
+
 func action(_ context.Context, c *cli.Command) error {
 	fmt.Println("Generating code...") //nolint:forbidigo
 
-	var p processor.Plugin
+	outputFile := c.String(flagOutputFile)
 
-	switch c.String(flagPlugin) {
-	case "typescript":
-		p = &typescript.Typescript{}
-	case "rust":
-		p = &rust.Rust{}
-	default:
-		return cli.Exit("unsupported plugin: "+c.String(flagPlugin), 1)
+	p, err := newPlugin(c.String(flagPlugin), outputFile)
+	if err != nil {
+		return cli.Exit(err.Error(), 1)
 	}
 
 	b, err := os.ReadFile(c.String(flagOpenAPIFile))
@@ -85,7 +125,7 @@ func action(_ context.Context, c *cli.Command) error {
 	}
 
 	f, err := os.OpenFile(
-		c.String(flagOutputFile),
+		outputFile,
 		os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
 		0o644, //nolint:mnd
 	)
@@ -98,7 +138,7 @@ func action(_ context.Context, c *cli.Command) error {
 		return cli.Exit(fmt.Sprintf("failed to write output: %v", err), 1)
 	}
 
-	fmt.Printf("Code generated successfully to %s\n", c.String(flagOutputFile)) //nolint:forbidigo
+	fmt.Printf("Code generated successfully to %s\n", outputFile) //nolint:forbidigo
 
 	return nil
 }
