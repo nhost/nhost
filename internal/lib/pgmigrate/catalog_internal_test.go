@@ -152,7 +152,7 @@ func TestCatalogBootstrapQuotesSchemaAndCreatesV1Constraints(t *testing.T) {
 	}
 }
 
-func TestCatalogActiveFutureComparisonProtectsAppliedRows(t *testing.T) {
+func TestCatalogFindsFirstActiveFutureDivergenceAndProtectsAppliedRows(t *testing.T) {
 	t.Parallel()
 
 	beta := testBundle(
@@ -178,6 +178,14 @@ func TestCatalogActiveFutureComparisonProtectsAppliedRows(t *testing.T) {
 	editedBetaVersionTwo.upSQL = []byte("SELECT 'edited up 2';")
 	editedBetaVersionTwo.upChecksum = sha256.Sum256(editedBetaVersionTwo.upSQL)
 	editedBeta := testBundle(beta.migrations[0], editedBetaVersionTwo, beta.migrations[2])
+	editedBetaVersionThree := testMigration(3, uintPointer(2), "beta_enabled")
+	editedBetaVersionThree.upSQL = []byte("SELECT 'edited up 3';")
+	editedBetaVersionThree.upChecksum = sha256.Sum256(editedBetaVersionThree.upSQL)
+	partiallyDivergentBeta := testBundle(
+		beta.migrations[0],
+		beta.migrations[1],
+		editedBetaVersionThree,
+	)
 	rerootedVersionTwo := testBundle(testMigration(2, nil, "beta_name"))
 	previousStable := testBundle(testMigration(1, nil, "root"))
 	forkedStable := testBundle(
@@ -211,7 +219,7 @@ func TestCatalogActiveFutureComparisonProtectsAppliedRows(t *testing.T) {
 		catalog        *catalog
 		local          *bundle
 		currentVersion int64
-		wantMatch      bool
+		wantDivergence *uint
 		wantError      bool
 		wantIssue      string
 	}{
@@ -219,28 +227,35 @@ func TestCatalogActiveFutureComparisonProtectsAppliedRows(t *testing.T) {
 			name:           "identical inactive suffix",
 			local:          beta,
 			currentVersion: 1,
-			wantMatch:      true,
+			wantDivergence: nil,
 			wantError:      false,
 		},
 		{
 			name:           "additive inactive suffix",
 			local:          additive,
 			currentVersion: 1,
-			wantMatch:      true,
+			wantDivergence: nil,
+			wantError:      false,
+		},
+		{
+			name:           "partially divergent inactive suffix",
+			local:          partiallyDivergentBeta,
+			currentVersion: 1,
+			wantDivergence: uintPointer(3),
 			wantError:      false,
 		},
 		{
 			name:           "replaceable inactive suffix",
 			local:          stable,
 			currentVersion: 1,
-			wantMatch:      false,
+			wantDivergence: uintPointer(2),
 			wantError:      false,
 		},
 		{
 			name:           "different applied lineage",
 			local:          stable,
 			currentVersion: 2,
-			wantMatch:      false,
+			wantDivergence: nil,
 			wantError:      true,
 			wantIssue: "active catalog version 2 belongs to a different lineage and is still applied; " +
 				"downgrade below version 2 with an image whose bundle maximum is <= 1 before deploying this bundle",
@@ -250,7 +265,7 @@ func TestCatalogActiveFutureComparisonProtectsAppliedRows(t *testing.T) {
 			catalog:        forkedCatalog,
 			local:          beta,
 			currentVersion: 4,
-			wantMatch:      false,
+			wantDivergence: nil,
 			wantError:      true,
 			wantIssue: "active catalog version 4 belongs to a different lineage and is still applied; " +
 				"downgrade below version 4 with an image whose bundle maximum is <= 1 before deploying this bundle",
@@ -259,7 +274,7 @@ func TestCatalogActiveFutureComparisonProtectsAppliedRows(t *testing.T) {
 			name:           "higher replacement after omitted applied versions",
 			local:          higherVersionSquash,
 			currentVersion: 3,
-			wantMatch:      false,
+			wantDivergence: nil,
 			wantError:      true,
 			wantIssue: "active catalog version 2 belongs to a different lineage and is still applied; " +
 				"downgrade below version 2 with an image whose bundle maximum is <= 1 before deploying this bundle",
@@ -268,7 +283,7 @@ func TestCatalogActiveFutureComparisonProtectsAppliedRows(t *testing.T) {
 			name:           "higher replacement with stored future suffix",
 			local:          higherVersionSquash,
 			currentVersion: 2,
-			wantMatch:      false,
+			wantDivergence: nil,
 			wantError:      true,
 			wantIssue: "active catalog version 2 belongs to a different lineage and is still applied; " +
 				"downgrade below version 2 with an image whose bundle maximum is <= 1 before deploying this bundle",
@@ -277,7 +292,7 @@ func TestCatalogActiveFutureComparisonProtectsAppliedRows(t *testing.T) {
 			name:           "different applied predecessor without common lineage",
 			local:          rerootedVersionTwo,
 			currentVersion: 2,
-			wantMatch:      false,
+			wantDivergence: nil,
 			wantError:      true,
 			wantIssue: "active catalog version 2 belongs to a different lineage and is still applied; " +
 				"the active and embedded bundles have no common lineage version, so pgmigrate cannot replace " +
@@ -288,7 +303,7 @@ func TestCatalogActiveFutureComparisonProtectsAppliedRows(t *testing.T) {
 			name:           "edited applied row",
 			local:          editedBeta,
 			currentVersion: 2,
-			wantMatch:      false,
+			wantDivergence: nil,
 			wantError:      true,
 			wantIssue:      "stored up SQL does not match embedded migration",
 		},
@@ -296,7 +311,7 @@ func TestCatalogActiveFutureComparisonProtectsAppliedRows(t *testing.T) {
 			name:           "newer applied rows needed for downgrade",
 			local:          previousStable,
 			currentVersion: 3,
-			wantMatch:      true,
+			wantDivergence: nil,
 			wantError:      false,
 		},
 	}
@@ -310,27 +325,31 @@ func TestCatalogActiveFutureComparisonProtectsAppliedRows(t *testing.T) {
 				catalogUnderTest = tt.catalog
 			}
 
-			matches, comparisonErr := catalogUnderTest.activeFutureMatches(
+			divergence, comparisonErr := catalogUnderTest.firstActiveFutureDivergence(
 				tt.local,
 				tt.currentVersion,
 			)
 			if (comparisonErr != nil) != tt.wantError {
 				t.Fatalf(
-					"activeFutureMatches() error = %v, want error %t",
+					"firstActiveFutureDivergence() error = %v, want error %t",
 					comparisonErr,
 					tt.wantError,
 				)
 			}
 
-			if matches != tt.wantMatch {
-				t.Fatalf("activeFutureMatches() = %t, want %t", matches, tt.wantMatch)
+			if !equalOptionalVersion(divergence, tt.wantDivergence) {
+				t.Fatalf(
+					"firstActiveFutureDivergence() = %v, want %v",
+					divergence,
+					tt.wantDivergence,
+				)
 			}
 
 			if tt.wantIssue != "" {
 				var integrityErr *IntegrityError
 				if !errors.As(comparisonErr, &integrityErr) {
 					t.Fatalf(
-						"activeFutureMatches() error = %v (%T), want *IntegrityError",
+						"firstActiveFutureDivergence() error = %v (%T), want *IntegrityError",
 						comparisonErr,
 						comparisonErr,
 					)
@@ -338,7 +357,7 @@ func TestCatalogActiveFutureComparisonProtectsAppliedRows(t *testing.T) {
 
 				if integrityErr.Issue != tt.wantIssue {
 					t.Fatalf(
-						"activeFutureMatches() issue = %q, want %q",
+						"firstActiveFutureDivergence() issue = %q, want %q",
 						integrityErr.Issue,
 						tt.wantIssue,
 					)
@@ -348,47 +367,76 @@ func TestCatalogActiveFutureComparisonProtectsAppliedRows(t *testing.T) {
 	}
 }
 
-func TestCatalogArchiveAfterUsesOneBatchForTheActiveSuffix(t *testing.T) {
+func TestCatalogArchiveSuffixUsesOneBatchAndRequestedBoundary(t *testing.T) {
 	t.Parallel()
 
-	var (
-		gotQuery string
-		gotArgs  []any
-	)
-
-	database := &stubCatalogDatabase{
-		execFunc: func(_ context.Context, query string, args ...any) error {
-			gotQuery = query
-
-			gotArgs = append([]any(nil), args...)
-
-			return nil
+	tests := []struct {
+		name       string
+		inclusive  bool
+		wantClause string
+	}{
+		{
+			name:       "after version",
+			inclusive:  false,
+			wantClause: "migration.archived_at IS NULL AND migration.version > $1",
+		},
+		{
+			name:       "from version",
+			inclusive:  true,
+			wantClause: "migration.archived_at IS NULL AND migration.version >= $1",
 		},
 	}
 
-	catalog, err := newCatalog(t.Context(), database, "app")
-	if err != nil {
-		t.Fatalf("newCatalog() error = %v", err)
-	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-	if err := catalog.archiveAfter(7); err != nil {
-		t.Fatalf("archiveAfter() error = %v", err)
-	}
+			var (
+				gotQuery string
+				gotArgs  []any
+			)
 
-	for _, fragment := range []string{
-		"WITH archive_batch AS MATERIALIZED",
-		"SELECT gen_random_uuid() AS id, CURRENT_TIMESTAMP AS archived_at",
-		"archived_at = archive_batch.archived_at",
-		"archive_batch_id = archive_batch.id",
-		"migration.archived_at IS NULL AND migration.version > $1",
-	} {
-		if !strings.Contains(gotQuery, fragment) {
-			t.Errorf("archiveAfter() query does not contain %q\n%s", fragment, gotQuery)
-		}
-	}
+			database := &stubCatalogDatabase{
+				execFunc: func(_ context.Context, query string, args ...any) error {
+					gotQuery = query
 
-	if len(gotArgs) != 1 || gotArgs[0] != int64(7) {
-		t.Fatalf("archiveAfter() arguments = %v, want [7]", gotArgs)
+					gotArgs = append([]any(nil), args...)
+
+					return nil
+				},
+			}
+
+			catalog, err := newCatalog(t.Context(), database, "app")
+			if err != nil {
+				t.Fatalf("newCatalog() error = %v", err)
+			}
+
+			if tt.inclusive {
+				err = catalog.archiveFrom(7)
+			} else {
+				err = catalog.archiveAfter(7)
+			}
+
+			if err != nil {
+				t.Fatalf("archive suffix error = %v", err)
+			}
+
+			for _, fragment := range []string{
+				"WITH archive_batch AS MATERIALIZED",
+				"SELECT gen_random_uuid() AS id, CURRENT_TIMESTAMP AS archived_at",
+				"archived_at = archive_batch.archived_at",
+				"archive_batch_id = archive_batch.id",
+				tt.wantClause,
+			} {
+				if !strings.Contains(gotQuery, fragment) {
+					t.Errorf("archive suffix query does not contain %q\n%s", fragment, gotQuery)
+				}
+			}
+
+			if len(gotArgs) != 1 || gotArgs[0] != int64(7) {
+				t.Fatalf("archive suffix arguments = %v, want [7]", gotArgs)
+			}
+		})
 	}
 }
 
