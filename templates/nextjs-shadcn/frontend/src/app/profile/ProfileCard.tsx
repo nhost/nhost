@@ -41,16 +41,20 @@ export function ProfileCard({
     event.preventDefault();
     setNameError(undefined);
     setIsSavingName(true);
+    try {
+      const result = await updateDisplayName(name);
+      if (result.error) {
+        setNameError(result.error);
+        return;
+      }
 
-    const result = await updateDisplayName(name);
-    setIsSavingName(false);
-
-    if (result.error) {
-      setNameError(result.error);
-      return;
+      router.refresh();
+    } catch (err) {
+      console.error('Could not save the display name:', err);
+      setNameError('The request did not reach the server. Try again.');
+    } finally {
+      setIsSavingName(false);
     }
-
-    router.refresh();
   };
 
   return (

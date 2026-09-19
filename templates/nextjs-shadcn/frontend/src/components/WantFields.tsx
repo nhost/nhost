@@ -2,7 +2,7 @@
 
 import { Eye, EyeOff, Plus, X } from 'lucide-react';
 import type { MouseEvent, ReactNode } from 'react';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { PREPOSITIONS, type Preposition } from '@/lib/want';
 
 /**
@@ -94,6 +94,7 @@ export function WantFields({
   autoFocus?: boolean;
 }) {
   const titleRef = useRef<HTMLInputElement>(null);
+  const [locationRevealed, setLocationRevealed] = useState(false);
 
   // The box looks like one text field, so clicking its padding or the words
   // printed in it has to land in the field the way it would in a real one.
@@ -138,7 +139,10 @@ export function WantFields({
       {want.location === null ? (
         <button
           type="button"
-          onClick={() => onChange({ ...want, location: '' })}
+          onClick={() => {
+            setLocationRevealed(true);
+            onChange({ ...want, location: '' });
+          }}
           disabled={disabled}
           className={`${inlineButton} ${quietButton}`}
         >
@@ -184,15 +188,18 @@ export function WantFields({
               placeholder="location"
               aria-label="Location"
               disabled={disabled}
-              // biome-ignore lint/a11y/noAutofocus: focus follows the click that revealed it
-              autoFocus
+              // biome-ignore lint/a11y/noAutofocus: only true for the render right after the click that revealed this field
+              autoFocus={locationRevealed}
               className={`${control} ${inCell} p-0 placeholder:text-muted-foreground/60`}
             />
           </AutoWidth>
 
           <button
             type="button"
-            onClick={() => onChange({ ...want, location: null })}
+            onClick={() => {
+              setLocationRevealed(false);
+              onChange({ ...want, location: null });
+            }}
             disabled={disabled}
             className={`${inlineButton} text-muted-foreground/60 hover:text-destructive focus-visible:text-foreground`}
           >

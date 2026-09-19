@@ -2,7 +2,11 @@
 
 import { useRouter } from 'next/navigation';
 import { type FormEvent, type ReactNode, useId, useState } from 'react';
-import { changePassword, sendOwnPasswordReset } from '@/app/profile/actions';
+import {
+  changePassword,
+  sendOwnPasswordReset,
+  sendReauthCode,
+} from '@/app/profile/actions';
 import { MailboxHint } from '@/components/MailboxHint';
 import { Button } from '@/components/ui/button';
 import {
@@ -30,12 +34,33 @@ export function SecurityCard({ hasPassword }: { hasPassword: boolean }) {
   const [error, setError] = useState<string | undefined>();
   const [isSaving, setIsSaving] = useState(false);
   const [isSendingReset, setIsSendingReset] = useState(false);
+  const [isSendingCode, setIsSendingCode] = useState(false);
+  const [codeSent, setCodeSent] = useState(false);
 
   const reset = (): void => {
     setEditing(false);
     setCurrent('');
     setPassword('');
     setError(undefined);
+    setCodeSent(false);
+  };
+
+  const handleSendCode = async (): Promise<void> => {
+    setError(undefined);
+    setIsSendingCode(true);
+    try {
+      const result = await sendReauthCode();
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      setCodeSent(true);
+    } catch (err) {
+      console.error('Could not send the code:', err);
+      setError('The request did not reach the server. Try again.');
+    } finally {
+      setIsSendingCode(false);
+    }
   };
 
   const handleSave = async (event: FormEvent): Promise<void> => {
@@ -43,42 +68,49 @@ export function SecurityCard({ hasPassword }: { hasPassword: boolean }) {
     setError(undefined);
     setNotice(undefined);
     setIsSaving(true);
+    try {
+      // Pass `current` unconditionally: gating it on `hasPassword` is the
+      // bug that shipped and was rejected before.
+      const result = await changePassword(password, current);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
 
-    const result = await changePassword(
-      password,
-      hasPassword ? current : undefined,
-    );
-    setIsSaving(false);
-
-    if (result.error) {
-      setError(result.error);
-      return;
+      reset();
+      setNotice(hasPassword ? 'Password changed.' : 'Password added.');
+      router.refresh();
+    } catch (err) {
+      console.error('Could not change the password:', err);
+      setError('The request did not reach the server. Try again.');
+    } finally {
+      setIsSaving(false);
     }
-
-    reset();
-    setNotice(hasPassword ? 'Password changed.' : 'Password added.');
-    router.refresh();
   };
 
   const handleSendReset = async (): Promise<void> => {
     setError(undefined);
     setNotice(undefined);
     setIsSendingReset(true);
+    try {
+      const result = await sendOwnPasswordReset();
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
 
-    const result = await sendOwnPasswordReset();
-    setIsSendingReset(false);
-
-    if (result.error) {
-      setError(result.error);
-      return;
+      setNotice(
+        <>
+          Reset link sent. Check your email.
+          <MailboxHint />
+        </>,
+      );
+    } catch (err) {
+      console.error('Could not send the reset link:', err);
+      setError('The request did not reach the server. Try again.');
+    } finally {
+      setIsSendingReset(false);
     }
-
-    setNotice(
-      <>
-        Reset link sent. Check your email.
-        <MailboxHint />
-      </>,
-    );
   };
 
   return (
@@ -95,9 +127,11 @@ export function SecurityCard({ hasPassword }: { hasPassword: boolean }) {
       <CardContent className="flex flex-col gap-3">
         {editing ? (
           <form className="flex flex-col gap-4" onSubmit={handleSave}>
-            {hasPassword ? (
-              <div className="flex flex-col gap-2">
-                <Label htmlFor={currentId}>Current password</Label>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor={currentId}>
+                {hasPassword ? 'Current password' : 'Code from your email'}
+              </Label>
+              {hasPassword ? (
                 <Input
                   id={currentId}
                   type="password"
@@ -107,8 +141,34 @@ export function SecurityCard({ hasPassword }: { hasPassword: boolean }) {
                   disabled={isSaving}
                   required
                 />
-              </div>
-            ) : null}
+              ) : (
+                <div className="flex gap-2">
+                  <Input
+                    id={currentId}
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    placeholder="123456"
+                    value={current}
+                    onChange={(event) => setCurrent(event.target.value)}
+                    disabled={isSaving}
+                    required
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleSendCode}
+                    disabled={isSaving || isSendingCode}
+                  >
+                    {isSendingCode
+                      ? 'Sending…'
+                      : codeSent
+                        ? 'Resend'
+                        : 'Send code'}
+                  </Button>
+                </div>
+              )}
+            </div>
 
             <div className="flex flex-col gap-2">
               <Label htmlFor={newId}>
@@ -133,9 +193,7 @@ export function SecurityCard({ hasPassword }: { hasPassword: boolean }) {
               <Button
                 type="submit"
                 disabled={
-                  isSaving ||
-                  password.length < MIN_PASSWORD_LENGTH ||
-                  (hasPassword && !current)
+                  isSaving || password.length < MIN_PASSWORD_LENGTH || !current
                 }
               >
                 {isSaving

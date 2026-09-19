@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { isStoredAvatarURL, withTransform } from '@/lib/storage';
+import {
+  type ImageTransform,
+  isStoredAvatarURL,
+  withTransform,
+} from '@/lib/storage';
 
 describe('withTransform', () => {
   it('starts a query string when there is not one', () => {
@@ -31,9 +35,11 @@ describe('withTransform', () => {
   });
 
   it('encodes values', () => {
-    expect(withTransform('https://s.example/v1/files/abc', { f: 'auto' })).toBe(
-      'https://s.example/v1/files/abc?f=auto',
-    );
+    expect(
+      withTransform('https://s.example/v1/files/abc', {
+        f: 'a b&q=1' as ImageTransform['f'],
+      }),
+    ).toBe('https://s.example/v1/files/abc?f=a%20b%26q%3D1');
   });
 });
 

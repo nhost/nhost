@@ -69,7 +69,9 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   // on the default page.
   if (isProtectedRoute && !session) {
     return applySessionCookies(
-      NextResponse.redirect(new URL(signInHref(path), request.url)),
+      NextResponse.redirect(
+        new URL(signInHref(`${path}${request.nextUrl.search}`), request.url),
+      ),
     );
   }
 

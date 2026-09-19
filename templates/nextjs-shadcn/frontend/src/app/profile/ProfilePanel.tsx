@@ -79,6 +79,7 @@ export async function ProfilePanel() {
         email={user.email ?? ''}
         emailVerified={user.emailVerified ?? false}
         newEmail={user.newEmail}
+        hasPassword={user.hasPassword ?? false}
       />
       <SecurityCard hasPassword={user.hasPassword ?? false} />
       <DeleteAccountCard />
