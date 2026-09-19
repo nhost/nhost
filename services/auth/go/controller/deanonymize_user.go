@@ -105,7 +105,7 @@ func (ctrl *Controller) DeanonymizeUser( //nolint:funlen
 		deleteRefreshTokens = true
 	case request.Body.SignInMethod == api.EmailPassword && ctrl.config.RequireEmailVerification:
 		ticket = generateTicket(TicketTypeVerifyEmail)
-		ticketExpiresAt = time.Now().Add(In30Days)
+		ticketExpiresAt = time.Now().Add(VerificationTicketTTL)
 		linkType = LinkTypeEmailVerify
 		templateName = notifications.TemplateNameEmailVerify
 		deleteRefreshTokens = true

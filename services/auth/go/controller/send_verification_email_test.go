@@ -6,8 +6,10 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/controller"
 	"github.com/nhost/nhost/services/auth/go/controller/mock"
@@ -496,6 +498,103 @@ func TestSendVerificationEmail(t *testing.T) { //nolint:maintidx
 			jwtTokenFn:        nil,
 			expectedJWT:       nil,
 			getControllerOpts: []getControllerOptsFunc{},
+		},
+
+		{
+			name: "reuses a recently sent ticket and refreshes its expiry",
+			config: func() *controller.Config {
+				cfg := getConfig()
+				cfg.RequireEmailVerification = true
+
+				return cfg
+			},
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByEmail(
+					gomock.Any(),
+					sql.Text("jane@acme.com"),
+				).Return(sql.AuthUser{
+					ID:            userID,
+					DisplayName:   "jane@acme.com",
+					EmailVerified: false,
+					Email:         sql.Text("jane@acme.com"),
+					Locale:        "en",
+					Ticket:        sql.Text("verifyEmail:55fa0d55-631c-490a-a744-b5feca4c22a1"),
+					TicketExpiresAt: sql.TimestampTz(
+						time.Now().Add(-5 * time.Minute).Add(720 * time.Hour),
+					),
+				}, nil)
+
+				mock.EXPECT().UpdateUserTicket(
+					gomock.Any(),
+					testhelpers.GomockCmpOpts(
+						sql.UpdateUserTicketParams{
+							ID: userID,
+							Ticket: sql.Text(
+								"verifyEmail:55fa0d55-631c-490a-a744-b5feca4c22a1",
+							),
+							TicketExpiresAt: sql.TimestampTz(
+								time.Now().Add(controller.VerificationTicketTTL),
+							),
+						},
+						testhelpers.FilterPathLast(
+							[]string{
+								".TicketExpiresAt",
+								"time()",
+							},
+							cmpopts.EquateApproxTime(time.Minute),
+						),
+						cmp.Transformer("time", func(x pgtype.Timestamptz) time.Time {
+							return x.Time
+						}),
+						cmp.Transformer("text", func(x pgtype.Text) string {
+							return x.String
+						}),
+					),
+				).Return(userID, nil)
+
+				return mock
+			},
+			request: api.SendVerificationEmailRequestObject{
+				Body: &api.SendVerificationEmailJSONRequestBody{
+					Email:   "jane@acme.com",
+					Options: nil,
+				},
+			},
+			expectedResponse: api.SendVerificationEmail200JSONResponse(api.OK),
+			jwtTokenFn:       nil,
+			expectedJWT:      nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withEmailer(func(ctrl *gomock.Controller) *mock.MockEmailer {
+					mock := mock.NewMockEmailer(ctrl)
+
+					// Compared exactly, without the cmpTicket/cmpLink relaxations
+					// used elsewhere: those only match the ticket type, which
+					// would pass even if a fresh ticket had been minted.
+					mock.EXPECT().SendEmail(
+						gomock.Any(),
+						"jane@acme.com",
+						"en",
+						notifications.TemplateNameEmailVerify,
+						testhelpers.GomockCmpOpts(
+							notifications.TemplateData{
+								Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=verifyEmail%3A55fa0d55-631c-490a-a744-b5feca4c22a1&type=emailVerify",
+								DisplayName: "jane@acme.com",
+								Email:       "jane@acme.com",
+								NewEmail:    "",
+								Ticket:      "verifyEmail:55fa0d55-631c-490a-a744-b5feca4c22a1",
+								RedirectTo:  "http://localhost:3000",
+								Locale:      "en",
+								ServerURL:   "https://local.auth.nhost.run",
+								ClientURL:   "http://localhost:3000",
+							},
+						),
+					).Return(nil)
+
+					return mock
+				}),
+			},
 		},
 	}
 

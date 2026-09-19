@@ -2,7 +2,6 @@ import { useRouter } from 'next/router';
 import { useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { saveLastSignInMethod } from '@/features/auth/SignIn/utils/lastSignInMethod';
-import { appendPkceId, generateAndStorePKCE } from '@/lib/pkce';
 import { isNotEmptyValue } from '@/lib/utils';
 import { useNhostClient } from '@/providers/nhost';
 import { getToastStyleProps } from '@/utils/constants/settings';
@@ -51,14 +50,9 @@ function useOnSignInWithEmailAndPasswordHandler({ onNeedsMfa }: Props) {
       if (isNotEmptyValue(error?.body)) {
         const errorCode = error.body.error;
         if (errorCode === 'unverified-user') {
-          const { challenge, id } = await generateAndStorePKCE();
-          await nhost.auth.sendVerificationEmail({
-            email,
-            codeChallenge: challenge,
-            options: {
-              redirectTo: appendPkceId(window.location.origin, id),
-            },
-          });
+          // Deliberately no send here: every failed sign-in used to fire
+          // another verification email, so a user retrying while they waited
+          // generated a burst of them. /email/verify offers an explicit resend.
           router.push(`/email/verify?email=${encodeURIComponent(email)}`);
           return;
         }

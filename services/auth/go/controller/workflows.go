@@ -1144,7 +1144,7 @@ func (wf *Workflows) SignupUserWithouthSession(
 	ticketExpiresAt := sql.TimestampTz(time.Now())
 	if sendConfirmationEmail {
 		ticket = sql.Text(generateTicket(TicketTypeVerifyEmail))
-		ticketExpiresAt = sql.TimestampTz(time.Now().Add(InAMonth))
+		ticketExpiresAt = sql.TimestampTz(time.Now().Add(VerificationTicketTTL))
 	}
 
 	if err := databaseWithoutSession(ticket, ticketExpiresAt, metadata, gravatarURL); err != nil {
