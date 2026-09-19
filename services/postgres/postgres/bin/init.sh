@@ -359,7 +359,7 @@ main() {
 	# Rebuild collation-dependent indexes only after the available collation
 	# version changes, before recording the new version. A failed rebuild must
 	# not make PostgreSQL unavailable to the operator who needs to repair it.
-	if ! /bin/repair-collation.sh; then
+	if ! run_interruptibly /bin/repair-collation.sh; then
 		echo "Collation repair failed; continuing PostgreSQL startup" >&2
 	fi
 	if ! run_nhost_scripts; then

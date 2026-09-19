@@ -3,7 +3,15 @@
 set -eu
 
 container=${1:-postgres-tests}
+script_dir=$(dirname "$0")
+script_dir=$(cd "$script_dir" >/dev/null && pwd)
+init_script="$script_dir/../postgres/bin/init.sh"
+repair_script="$script_dir/../postgres/bin/repair-collation.sh"
 restart_logs=$(mktemp)
+collation_restart_logs=$(mktemp)
+collation_delay_script=$(mktemp)
+collation_container="postgres-collation-shutdown-$$"
+collation_volume="postgres-collation-shutdown-data-$$"
 early_restart_logs=$(mktemp)
 early_init_file=$(mktemp)
 early_container="postgres-early-shutdown-$$"
@@ -15,8 +23,11 @@ cleanup() {
         kill "$client_pid" 2> /dev/null || true
         wait "$client_pid" 2> /dev/null || true
     fi
-    docker rm -fv "$early_container" > /dev/null 2>&1 || true
-    rm -f "$restart_logs" "$early_restart_logs" "$early_init_file" "$client_log"
+    docker rm -fv "$collation_container" "$early_container" >/dev/null 2>&1 || true
+    docker volume rm -f "$collation_volume" >/dev/null 2>&1 || true
+    rm -f "$restart_logs" "$collation_restart_logs" \
+        "$collation_delay_script" "$early_restart_logs" "$early_init_file" \
+        "$client_log"
 }
 trap cleanup EXIT HUP INT TERM
 
@@ -98,6 +109,149 @@ fi
 echo "PostgreSQL restarted without crash recovery"
 
 image=$(docker inspect --format '{{.Config.Image}}' "$container")
+
+cat >"$collation_delay_script" <<'EOF'
+#!/bin/sh
+
+set -eu
+
+PGAPPNAME=collation-repair-shutdown-test
+export PGAPPNAME
+
+echo "Collation repair shutdown test started"
+psql -X -q -b -U postgres -d local -v ON_ERROR_STOP=1 \
+    -c 'SELECT pg_sleep(60);' &
+repair_client_pid=$!
+wait "$repair_client_pid"
+EOF
+chmod 755 "$collation_delay_script"
+
+docker volume create "$collation_volume" >/dev/null
+docker create --name "$collation_container" \
+    --volume "$collation_volume:/var/lib/postgresql/data/pgdata" \
+    --entrypoint /nhost-init.sh \
+    "$image" >/dev/null
+docker cp "$init_script" "$collation_container:/nhost-init.sh"
+docker cp "$repair_script" "$collation_container:/bin/repair-collation.sh"
+docker start "$collation_container" >/dev/null
+
+collation_initialized=false
+for _ in $(seq 1 120); do
+    if docker exec "$collation_container" pg_isready -q 2>/dev/null &&
+        docker logs "$collation_container" 2>&1 |
+        grep -q 'PostgreSQL initialization complete'; then
+        collation_initialized=true
+        break
+    fi
+    sleep 0.5
+done
+
+if [ "$collation_initialized" != true ]; then
+    echo "PostgreSQL did not initialize before the collation repair shutdown test" >&2
+    docker logs "$collation_container" >&2
+    exit 1
+fi
+
+docker stop --timeout 10 "$collation_container" >/dev/null
+docker cp "$collation_delay_script" \
+    "$collation_container:/bin/repair-collation.sh"
+collation_log_lines=$(docker logs "$collation_container" 2>&1 | wc -l | tr -d '[:space:]')
+collation_log_start=$((collation_log_lines + 1))
+docker start "$collation_container" >/dev/null
+
+collation_repair_active=false
+for _ in $(seq 1 120); do
+    if docker exec "$collation_container" \
+        psql -qAt -U postgres -d local \
+        -c "SELECT count(*) FROM pg_stat_activity WHERE application_name = 'collation-repair-shutdown-test' AND state = 'active';" 2>/dev/null |
+        grep -qx 1; then
+        collation_repair_active=true
+        break
+    fi
+    sleep 0.5
+done
+
+if [ "$collation_repair_active" != true ]; then
+    echo "The delayed collation repair did not start before the shutdown test" >&2
+    docker logs "$collation_container" 2>&1 |
+        tail -n "+$collation_log_start" >&2
+    exit 1
+fi
+
+if docker logs "$collation_container" 2>&1 |
+    tail -n "+$collation_log_start" |
+    grep -q 'PostgreSQL initialization complete'; then
+    echo "PostgreSQL completed startup before the collation repair shutdown test" >&2
+    docker logs "$collation_container" 2>&1 |
+        tail -n "+$collation_log_start" >&2
+    exit 1
+fi
+
+docker stop --timeout 10 "$collation_container" >/dev/null
+collation_exit_code=$(docker inspect --format '{{.State.ExitCode}}' \
+    "$collation_container")
+if [ "$collation_exit_code" != 0 ]; then
+    echo "PostgreSQL exited with code $collation_exit_code during collation repair" >&2
+    docker logs "$collation_container" 2>&1 |
+        tail -n "+$collation_log_start" >&2
+    exit 1
+fi
+
+collation_control_data=$(docker run --rm \
+    --volume "$collation_volume:/var/lib/postgresql/data/pgdata" \
+    --entrypoint pg_controldata \
+    "$image" /var/lib/postgresql/data/pgdata)
+collation_control_state=$(printf '%s\n' "$collation_control_data" |
+    sed -n 's/^Database cluster state:[[:space:]]*//p')
+if [ "$collation_control_state" != "shut down" ]; then
+    echo "Expected the cluster interrupted during collation repair to be shut down, got ${collation_control_state:-no control state}" >&2
+    printf '%s\n' "$collation_control_data" >&2
+    docker logs "$collation_container" 2>&1 |
+        tail -n "+$collation_log_start" >&2
+    exit 1
+fi
+
+docker cp "$repair_script" "$collation_container:/bin/repair-collation.sh"
+collation_log_lines=$(docker logs "$collation_container" 2>&1 | wc -l | tr -d '[:space:]')
+collation_log_start=$((collation_log_lines + 1))
+docker start "$collation_container" >/dev/null
+
+collation_restart_ready=false
+for _ in $(seq 1 120); do
+    if docker exec "$collation_container" pg_isready -q 2>/dev/null &&
+        docker logs "$collation_container" 2>&1 |
+        tail -n "+$collation_log_start" |
+            grep -q 'PostgreSQL initialization complete'; then
+        collation_restart_ready=true
+        break
+    fi
+    sleep 0.5
+done
+
+docker logs "$collation_container" 2>&1 |
+    tail -n "+$collation_log_start" >"$collation_restart_logs"
+
+if [ "$collation_restart_ready" != true ]; then
+    echo "PostgreSQL did not restart after shutdown during collation repair" >&2
+    cat "$collation_restart_logs" >&2
+    exit 1
+fi
+
+if grep -Eq 'database system was interrupted|automatic recovery in progress' \
+    "$collation_restart_logs"; then
+    echo "PostgreSQL performed crash recovery after shutdown during collation repair" >&2
+    cat "$collation_restart_logs" >&2
+    exit 1
+fi
+
+if ! grep -q 'database system was shut down at' "$collation_restart_logs"; then
+    echo "PostgreSQL did not report a clean shutdown during collation repair" >&2
+    cat "$collation_restart_logs" >&2
+    exit 1
+fi
+
+echo "PostgreSQL stopped cleanly during collation repair and restarted without crash recovery"
+
 printf '%s\n' \
     'CREATE TABLE early_shutdown_test_ready (ready boolean);' \
     'SELECT pg_sleep(60);' > "$early_init_file"
