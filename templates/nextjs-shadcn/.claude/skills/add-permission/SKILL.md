@@ -87,7 +87,11 @@ most likely to leak something, so:
   private attachment readable.
 - Write a separate, shorter `columns` list. Do not reuse the `user` list. What
   is left off is the whole protection: today that is `auth.users.email`,
-  `auth.users.metadata`, and `todos.user_id`.
+  `auth.users.metadata`, `auth.users.avatar_url`, and `todos.user_id`.
+  `avatar_url` looks harmless but, for an account that never uploaded a photo,
+  holds the sign-up Gravatar URL, which embeds
+  `md5(lowercase(email))`; `/u/[id]` serves the picture from `storage.files`
+  under the same published-and-not-deleted condition instead.
 - Read that data with `createAnonymousClient()` from
   `frontend/src/lib/nhost/server.ts`. The session client makes Hasura answer as
   `user`, whose filter hides other people's rows, so the page breaks for

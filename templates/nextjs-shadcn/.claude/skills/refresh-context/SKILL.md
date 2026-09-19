@@ -9,6 +9,8 @@ Run this skill after any database migration or GraphQL metadata change, includin
 
 `frontend/schema.graphql` has two jobs: it is the input to GraphQL code generation, and it is the committed, current backend contract that an LLM should read before building data-backed features. Do not edit it by hand.
 
+The dump is scoped to the `user` role. A document executed with `createAnonymousClient()` — like `GetSharedList` in `frontend/src/app/u/[id]/page.tsx` — type-checks against this file even though it runs as `public`, so a field the `public` role cannot read still passes `pnpm codegen:types`. Before adding a field to such a document, check that role's column allowlist in `backend/nhost/metadata/databases/default/tables/` (see `auth_users.yaml`, `public_todos.yaml`) rather than trusting the offline type-check.
+
 ## Refresh schema and generated types
 
 From the project root, dump the schema visible to the `user` role, then regenerate TypeScript documents from that committed file:
