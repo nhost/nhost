@@ -1,0 +1,379 @@
+---
+title: Authentication and Sessions in a Rust CLI
+description: Add sign-up, sign-in, and a file-persisted session to a Rust notes CLI with the Nhost Rust SDK, so it stays authenticated across runs.
+keywords: ["Rust", "tokio", "CLI", "Nhost auth", "authentication", "session", "email password"]
+head:
+  - tag: title
+    content: "Rust Notes CLI Tutorial: Authentication | Nhost Docs"
+sidebar:
+  label: Authentication
+---
+
+In [Part 1](/getting-started/tutorials/rust/1-introduction) you scaffolded the
+CLI and wired up the Nhost client. A command-line tool runs, exits, and runs
+again — so to stay signed in between invocations we need to **persist the session
+to disk**. The Rust SDK makes this a one-liner.
+
+:::note
+This is **Part 2** of the [Notes CLI with Nhost and Rust](/getting-started/tutorials/rust/1-introduction)
+series.
+:::
+
+## Persist the session
+
+The client accepts a `storage` backend that it uses to save and load the
+session. The SDK ships `session::FileStorage`, which writes the session to a
+JSON file. Update `make_client` to use it:
+
+```rust title="src/main.rs"
+use std::path::PathBuf;
+
+use nhost::session::FileStorage;
+
+fn make_client() -> Result<Nhost> {
+    let path = session_path();
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+    Ok(Nhost::builder()
+        .subdomain(env("NHOST_SUBDOMAIN", "local"))
+        .region(env("NHOST_REGION", "local"))
+        .storage(Box::new(FileStorage::new(path)))
+        .build()?)
+}
+
+fn session_path() -> PathBuf {
+    if let Ok(p) = std::env::var("NHOST_NOTES_SESSION") {
+        return PathBuf::from(p);
+    }
+    let base = std::env::var("XDG_CONFIG_HOME")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| {
+            PathBuf::from(std::env::var("HOME").unwrap_or_default()).join(".config")
+        });
+    base.join("nhost-notes").join("session.json")
+}
+```
+
+With a `storage` backend configured, the SDK's middleware does the rest: after
+you sign in it saves the session, attaches the access token to every request,
+and refreshes the token in the background when it expires. Your commands never
+touch tokens directly.
+
+## Add the auth commands
+
+`whoami` already exists from Part 1. Add the three sign-in commands. Use
+`rpassword` to read passwords without echoing them or placing them in shell
+history and process listings:
+
+```bash Terminal
+cargo add rpassword
+```
+
+First extend the `Command` enum. The email remains a required positional
+argument, but the password does not become a command-line argument:
+
+```rust title="src/main.rs"
+#[derive(Subcommand)]
+enum Command {
+    /// Create an account (and sign in if email verification is off)
+    Signup { email: String },
+    /// Sign in with email and a securely supplied password
+    Login { email: String },
+    /// Sign out and clear the saved session
+    Logout,
+    /// Show the currently signed-in user
+    Whoami,
+}
+```
+
+Read the password from `NOTES_PASSWORD` when it is set, which supports scripts
+and CI. Otherwise, prompt without echoing when stdin is a terminal. A redirected
+stdin with no environment variable produces a clear error instead of hanging or
+reading a password visibly:
+
+```rust title="src/main.rs"
+use std::io::{self, IsTerminal};
+
+fn read_password() -> Result<String> {
+    if let Ok(password) = std::env::var("NOTES_PASSWORD") {
+        return Ok(password);
+    }
+    if !io::stdin().is_terminal() {
+        return Err("stdin is not a terminal; set NOTES_PASSWORD for non-interactive use".into());
+    }
+    Ok(rpassword::prompt_password("Password: ")?)
+}
+```
+
+Then add the handlers. The request types come from `nhost::auth`:
+
+```rust title="src/main.rs"
+use nhost::auth::{SignInEmailPasswordRequest, SignOutRequest, SignUpEmailPasswordRequest};
+
+async fn signup(client: &Nhost, email: &str, password: &str) -> Result<()> {
+    client
+        .auth
+        .sign_up_email_password(SignUpEmailPasswordRequest {
+            email: email.to_string(),
+            password: password.to_string(),
+            options: None,
+            code_challenge: None,
+        })
+        .await?;
+    if client.session()?.is_some() {
+        println!("signed up and logged in as {email}");
+    } else {
+        println!("signed up; verify your email, then `login`");
+    }
+    Ok(())
+}
+
+async fn login(client: &Nhost, email: &str, password: &str) -> Result<()> {
+    client
+        .auth
+        .sign_in_email_password(SignInEmailPasswordRequest {
+            email: email.to_string(),
+            password: password.to_string(),
+        })
+        .await?;
+    println!("logged in as {email}");
+    Ok(())
+}
+
+async fn logout(client: &Nhost) -> Result<()> {
+    if let Some(sess) = client.session()? {
+        let _ = client
+            .auth
+            .sign_out(SignOutRequest {
+                refresh_token: Some(sess.session.refresh_token),
+                all: None,
+            })
+            .await;
+    }
+    client.clear_session()?;
+    println!("logged out");
+    Ok(())
+}
+```
+
+`session` (used by the `whoami` you wrote in Part 1) reads the current session
+from storage without a network call. `clear_session` removes the cached file (a
+client-side sign out), while `sign_out` revokes the refresh token on the server.
+
+Wire the new commands into `run` — each auth arm reads the password before
+passing it to its handler:
+
+```rust title="src/main.rs"
+    match command {
+        Command::Signup { email } => {
+            let password = read_password()?;
+            signup(&client, &email, &password).await
+        }
+        Command::Login { email } => {
+            let password = read_password()?;
+            login(&client, &email, &password).await
+        }
+        Command::Logout => logout(&client).await,
+        Command::Whoami => whoami(&client),
+    }
+```
+
+## Enable email/password sign-up
+
+New projects require email verification by default. For a smooth CLI experience
+during development, you can allow users to sign in immediately after sign-up: in
+the local Nhost dashboard (`https://local.dashboard.local.nhost.run`) open
+**Settings → Sign-In methods** and, under **Email and Password**, disable
+*"Require verified emails"*. (Locally, verification emails are caught by Mailhog
+at `https://local.mailhog.local.nhost.run` if you'd rather click the link
+instead.)
+
+## The complete `src/main.rs`
+
+Here's the whole `src/main.rs` after Part 2. The collapsed sections are unchanged
+from Part 1; the highlighted lines are what this part added. Press **Copy** to
+grab the entire file at once.
+
+```rust title="src/main.rs" collapse={4-4,7-20,27-42,52-56,61-63,65-65,78-81,137-147} {1-3,5-6,21-26,43-51,57-60,64-64,66-77,82-136}
+use std::io::{self, IsTerminal};
+use std::path::PathBuf;
+
+use clap::{Parser, Subcommand};
+use nhost::auth::{SignInEmailPasswordRequest, SignOutRequest, SignUpEmailPasswordRequest};
+use nhost::session::FileStorage;
+use nhost::Nhost;
+
+type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+
+/// A note-taking CLI built on Nhost.
+#[derive(Parser)]
+#[command(name = "notes-cli", version, about)]
+struct Cli {
+    #[command(subcommand)]
+    command: Command,
+}
+
+#[derive(Subcommand)]
+enum Command {
+    /// Create an account (and sign in if email verification is off)
+    Signup { email: String },
+    /// Sign in with email and a securely supplied password
+    Login { email: String },
+    /// Sign out and clear the saved session
+    Logout,
+    /// Show the currently signed-in user
+    Whoami,
+}
+
+#[tokio::main]
+async fn main() {
+    let cli = Cli::parse();
+    if let Err(e) = run(cli.command).await {
+        eprintln!("error: {e}");
+        std::process::exit(1);
+    }
+}
+
+async fn run(command: Command) -> Result<()> {
+    let client = make_client()?;
+    match command {
+        Command::Signup { email } => {
+            let password = read_password()?;
+            signup(&client, &email, &password).await
+        }
+        Command::Login { email } => {
+            let password = read_password()?;
+            login(&client, &email, &password).await
+        }
+        Command::Logout => logout(&client).await,
+        Command::Whoami => whoami(&client),
+    }
+}
+
+fn make_client() -> Result<Nhost> {
+    let path = session_path();
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+    Ok(Nhost::builder()
+        .subdomain(env("NHOST_SUBDOMAIN", "local"))
+        .region(env("NHOST_REGION", "local"))
+        .storage(Box::new(FileStorage::new(path)))
+        .build()?)
+}
+
+fn session_path() -> PathBuf {
+    if let Ok(p) = std::env::var("NHOST_NOTES_SESSION") {
+        return PathBuf::from(p);
+    }
+    let base = std::env::var("XDG_CONFIG_HOME")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| {
+            PathBuf::from(std::env::var("HOME").unwrap_or_default()).join(".config")
+        });
+    base.join("nhost-notes").join("session.json")
+}
+
+fn env(key: &str, fallback: &str) -> String {
+    std::env::var(key).unwrap_or_else(|_| fallback.to_string())
+}
+
+fn read_password() -> Result<String> {
+    if let Ok(password) = std::env::var("NOTES_PASSWORD") {
+        return Ok(password);
+    }
+    if !io::stdin().is_terminal() {
+        return Err("stdin is not a terminal; set NOTES_PASSWORD for non-interactive use".into());
+    }
+    Ok(rpassword::prompt_password("Password: ")?)
+}
+
+async fn signup(client: &Nhost, email: &str, password: &str) -> Result<()> {
+    client
+        .auth
+        .sign_up_email_password(SignUpEmailPasswordRequest {
+            email: email.to_string(),
+            password: password.to_string(),
+            options: None,
+            code_challenge: None,
+        })
+        .await?;
+    if client.session()?.is_some() {
+        println!("signed up and logged in as {email}");
+    } else {
+        println!("signed up; verify your email, then `login`");
+    }
+    Ok(())
+}
+
+async fn login(client: &Nhost, email: &str, password: &str) -> Result<()> {
+    client
+        .auth
+        .sign_in_email_password(SignInEmailPasswordRequest {
+            email: email.to_string(),
+            password: password.to_string(),
+        })
+        .await?;
+    println!("logged in as {email}");
+    Ok(())
+}
+
+async fn logout(client: &Nhost) -> Result<()> {
+    if let Some(sess) = client.session()? {
+        let _ = client
+            .auth
+            .sign_out(SignOutRequest {
+                refresh_token: Some(sess.session.refresh_token),
+                all: None,
+            })
+            .await;
+    }
+    client.clear_session()?;
+    println!("logged out");
+    Ok(())
+}
+
+fn whoami(client: &Nhost) -> Result<()> {
+    match client.session()?.and_then(|s| s.session.user) {
+        Some(u) => {
+            println!("{} ({})", u.email.unwrap_or_default(), u.id);
+            Ok(())
+        }
+        None => Err("not logged in".into()),
+    }
+}
+```
+
+:::caution
+Do the **Enable email/password sign-up** step above before running `signup`. If
+*"Require verified emails"* is still on, `signup` lands in the verify-email
+branch and prints `signed up; verify your email, then login` instead of an
+active session — so `whoami` reports `not logged in` until you verify.
+:::
+
+## Try it
+
+```bash Terminal
+cargo run -- signup ada@example.com
+# Password: (input is hidden)
+cargo run -- whoami
+# ada@example.com (a1b2c3d4-...)
+
+cargo run -- logout
+cargo run -- whoami
+# error: not logged in
+
+cargo run -- login ada@example.com
+# Password: (input is hidden)
+```
+
+The session is written to `~/.config/nhost-notes/session.json`. Delete that file
+(or run `logout`) to sign out.
+
+## What's Next?
+
+You can sign in and the CLI remembers you. In
+[Part 3](/getting-started/tutorials/rust/3-graphql-operations) you'll create the
+`notes` schema with owner-scoped permissions and add the commands to create,
+list, and organise notes over GraphQL.
