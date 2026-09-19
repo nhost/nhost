@@ -23,7 +23,7 @@ The target is inferred from the maximum version in the embedded bundle, so calle
 
 ## Migration authoring and catalog lineages
 
-Migration directories must contain only paired `*.up.sql` and `*.down.sql` files accepted by `golang-migrate`. Every pair must use the same version and identifier, and both bodies must contain executable, non-whitespace SQL. Do not leave unrelated files or comment-only placeholders in a migration directory.
+Migration directories must contain only paired `*.up.sql` and `*.down.sql` files accepted by `golang-migrate`. Every pair must use the same version and identifier, and both bodies must contain content beyond SQL comments and whitespace. Do not leave unrelated files or comment-only placeholders in a migration directory.
 
 `<schema>.schema_migration_catalog` stores each migration under a random UUID, links it to its predecessor UUID, and preserves its identifier, exact up/down bytes, SHA-256 checksums, and format version. Partial unique indexes enforce one version, root, and successor in the active lineage. Archived rows remain in the same table with `archived_at` and `archive_batch_id`, so their UUID-linked historical lineage remains inspectable while their sequence numbers can be reused by the active lineage.
 

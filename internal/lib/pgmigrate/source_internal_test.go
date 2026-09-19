@@ -325,6 +325,30 @@ func TestCatalogSourceRejectsUnusableBodiesAsIntegrityErrors(t *testing.T) {
 			issue: "down migration body is blank",
 		},
 		{
+			name: "line-comment-only up body",
+			stored: mutateStored(valid, func(stored *storedMigration) {
+				stored.upSQL = []byte("-- placeholder\r\n-- still a placeholder")
+				checksum := sha256.Sum256(stored.upSQL)
+				stored.upChecksum = checksum[:]
+			}),
+			read: func(driver *catalogSource, version uint) (io.ReadCloser, string, error) {
+				return driver.ReadUp(version)
+			},
+			issue: "up migration body is blank",
+		},
+		{
+			name: "block-comment-only down body",
+			stored: mutateStored(valid, func(stored *storedMigration) {
+				stored.downSQL = []byte("/* outer /* nested */ placeholder */")
+				checksum := sha256.Sum256(stored.downSQL)
+				stored.downChecksum = checksum[:]
+			}),
+			read: func(driver *catalogSource, version uint) (io.ReadCloser, string, error) {
+				return driver.ReadDown(version)
+			},
+			issue: "down migration body is blank",
+		},
+		{
 			name: "short up checksum",
 			stored: mutateStored(valid, func(stored *storedMigration) {
 				stored.upChecksum = []byte("short")

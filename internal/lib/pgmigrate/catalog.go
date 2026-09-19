@@ -881,7 +881,7 @@ func validateStoredBody(
 	body []byte,
 	checksum []byte,
 ) error {
-	if len(bytes.TrimSpace(body)) == 0 {
+	if !containsMigrationSQL(body) {
 		return &IntegrityError{
 			Version: version,
 			Issue:   fmt.Sprintf("%s migration body is blank", direction),

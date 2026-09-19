@@ -1,7 +1,6 @@
 package pgmigrate
 
 import (
-	"bytes"
 	"crypto/sha256"
 	"fmt"
 	"io/fs"
@@ -145,7 +144,7 @@ func addMigrationFile(
 		}
 	}
 
-	if len(bytes.TrimSpace(body)) == 0 {
+	if !containsMigrationSQL(body) {
 		return &BundleError{
 			Path:  path.Join(migrationPath, name),
 			Issue: "migration body must contain non-whitespace SQL",

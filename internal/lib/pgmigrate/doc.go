@@ -1,6 +1,7 @@
 // Package pgmigrate validates and applies versioned PostgreSQL migration
-// bundles. The highest embedded version is inferred as the image target, and
-// every up body must have an executable down body with the same identifier.
+// bundles. The highest embedded version is inferred as the image target. Every
+// up body must have a down body with the same identifier, and each body must
+// contain content beyond SQL comments and whitespace.
 //
 // The database catalog retains exact SQL bytes and checksums so an older image
 // can downgrade migrations that it does not embed. Applied rows remain
