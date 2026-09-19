@@ -8,6 +8,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/nhost/nhost/cli/clienv"
 )
 
 var (

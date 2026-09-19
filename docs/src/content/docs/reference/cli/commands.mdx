@@ -21,7 +21,7 @@ nhost [GLOBAL OPTIONS] [command [COMMAND OPTIONS]] [ARGUMENTS...]
 
 | | |
 | --- | --- |
-| `--branch=""` | Branch name used to namespace this project's docker volumes (from git, "nogit" outside a repo). Default: `<current-git-branch>`. Env: `$BRANCH`. |
+| `--branch=""` | Branch name used to namespace this project's docker volumes (detected from git by default). Default: `<current-git-branch>`. Env: `$BRANCH`. |
 | `--dot-nhost-folder=""` | Path to .nhost folder. Default: `".nhost"`. Env: `$NHOST_DOT_NHOST_FOLDER`. |
 | `--help, -h` | show help. |
 | `--local-subdomain=""` | Local subdomain to reach the development environment. Default: `"local"`. Env: `$NHOST_LOCAL_SUBDOMAIN`. |
