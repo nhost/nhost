@@ -20,6 +20,8 @@ alter table public.todos
   add column sort_order integer not null default 0,
   add column file_id uuid references storage.files(id) on delete set null;
 
+create index on public.todos (file_id);
+
 -- Attachments are whatever the owner picked, so this bucket caps the upload
 -- itself rather than a processed result the way the avatars bucket does.
 insert into storage.buckets (id, min_upload_file_size, max_upload_file_size, cache_control)

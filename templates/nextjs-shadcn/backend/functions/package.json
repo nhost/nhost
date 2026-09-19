@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
+    "image-size": "^2.0.4",
     "jimp": "^1.6.0"
   },
   "devDependencies": {

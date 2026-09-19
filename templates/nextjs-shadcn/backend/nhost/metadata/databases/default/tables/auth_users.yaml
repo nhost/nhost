@@ -67,12 +67,19 @@ select_permissions:
   # this is the master switch: turn it off and `/u/<id>` is gone, whatever is
   # flagged on the rows. The two sibling keys are ANDed, so a soft-deleted
   # account disappears from here the moment it is stamped.
+  #
+  # `avatar_url` is deliberately not in this list. For an account that never
+  # uploaded a photo it holds the Gravatar URL assigned at sign-up, and that
+  # URL is `md5(lowercase(email))` - a reversible pseudonym for the address,
+  # harvestable in bulk because this filter has no per-id cap. `/u/<id>` gets
+  # the picture instead from `storage.files` (see `storage_files.yaml`'s
+  # `avatars` branch), which serves exactly the same published-and-not-deleted
+  # condition without ever naming the column that carries the hash.
   - role: public
     permission:
       columns:
         - id
         - display_name
-        - avatar_url
       filter:
         metadata:
           _contains:
