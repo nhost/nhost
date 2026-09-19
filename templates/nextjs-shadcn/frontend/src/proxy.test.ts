@@ -6,7 +6,6 @@ import { config, proxy } from '@/proxy';
 
 vi.mock('@/lib/nhost/server', () => ({
   handleNhostProxy: vi.fn(),
-  LINK_TOKEN_PARAM: 'refreshToken',
 }));
 
 // Next.js compiles config.matcher into a full-path matcher. We approximate it
@@ -23,6 +22,8 @@ describe('proxy route matcher', () => {
       '/signin',
       '/publications',
       '/public-profile',
+      '/api-docs',
+      '/iconasvg',
     ]) {
       expect(matcher.test(path)).toBe(true);
     }
@@ -51,7 +52,7 @@ const stubNhostProxy = (
   mutations: {
     request?: (request: NextRequest) => void;
     response?: (response: NextResponse) => void;
-    consumedLinkToken?: boolean;
+    clearLinkParams?: boolean;
   } = {},
 ): void => {
   vi.mocked(handleNhostProxy).mockImplementation(async (request) => {
@@ -59,7 +60,7 @@ const stubNhostProxy = (
 
     return {
       session: value,
-      consumedLinkToken: mutations.consumedLinkToken ?? false,
+      clearLinkParams: mutations.clearLinkParams ?? false,
       applySessionCookies: (response) => {
         mutations.response?.(response);
         return response;
@@ -131,12 +132,12 @@ describe('proxy access control', () => {
 });
 
 describe('proxy auth email links', () => {
-  it('redirects to the same page without the token once it is redeemed', async () => {
-    stubNhostProxy(session, { consumedLinkToken: true });
+  it('redirects to the same page without the code once it is redeemed', async () => {
+    stubNhostProxy(session, { clearLinkParams: true });
 
     const response = await proxy(
       new NextRequest(
-        'http://localhost:3000/reset-password?refreshToken=abc&type=passwordReset',
+        'http://localhost:3000/reset-password?code=abc&type=passwordReset',
       ),
     );
 
@@ -144,17 +145,15 @@ describe('proxy auth email links', () => {
 
     const location = new URL(response.headers.get('location') ?? '');
     expect(location.pathname).toBe('/reset-password');
-    expect(location.searchParams.get('refreshToken')).toBeNull();
+    expect(location.searchParams.get('code')).toBeNull();
     expect(location.searchParams.get('type')).toBeNull();
   });
 
   it('keeps unrelated query parameters on that redirect', async () => {
-    stubNhostProxy(session, { consumedLinkToken: true });
+    stubNhostProxy(session, { clearLinkParams: true });
 
     const response = await proxy(
-      new NextRequest(
-        'http://localhost:3000/profile?refreshToken=abc&tab=email',
-      ),
+      new NextRequest('http://localhost:3000/profile?code=abc&tab=email'),
     );
 
     expect(
@@ -162,7 +161,7 @@ describe('proxy auth email links', () => {
     ).toBe('email');
   });
 
-  it('does not redirect when there was no token to redeem', async () => {
+  it('does not redirect when there was no code to redeem', async () => {
     stubNhostProxy(session);
 
     expectPassthrough(await proxy(request('/reset-password')));

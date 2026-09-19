@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useId, useState } from 'react';
-import { changePassword } from '@/app/profile/actions';
+import { resetPassword } from '@/app/reset-password/actions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -24,7 +24,7 @@ export function ResetPasswordForm() {
     setError(undefined);
     setIsSaving(true);
 
-    const result = await changePassword(password);
+    const result = await resetPassword(password);
 
     if (result.error) {
       setIsSaving(false);

@@ -2,10 +2,10 @@
 
 import type { ErrorResponse } from '@nhost/nhost-js/auth';
 import type { FetchError } from '@nhost/nhost-js/fetch';
-import { headers } from 'next/headers';
 import { graphql } from '@/gql';
 import { gqlRequest } from '@/lib/graphql';
-import { createNhostClient } from '@/lib/nhost/server';
+import { beginLinkFlow, createNhostClient } from '@/lib/nhost/server';
+import { appOrigin } from '@/lib/origin';
 
 type ActionResult = { error?: string; success?: boolean };
 
@@ -32,6 +32,15 @@ const GetUserMetadata = graphql(`
   }
 `);
 
+const GetHasPassword = graphql(`
+  query GetHasPassword($id: uuid!) {
+    user(id: $id) {
+      id
+      hasPassword
+    }
+  }
+`);
+
 // Deliberately a read-merge-write with _set rather than Hasura's _append /
 // _delete_key: those concatenate, and on a user whose metadata is JSON null
 // they produce an array instead of an object.
@@ -53,16 +62,6 @@ async function userMetadata(
     return metadata as Record<string, unknown>;
   }
   return {};
-}
-
-// Auth emails link back into the app, so redirect targets need this request's
-// own origin: the template does not know where it is deployed.
-async function appOrigin(): Promise<string> {
-  const requestHeaders = await headers();
-  const host =
-    requestHeaders.get('x-forwarded-host') ?? requestHeaders.get('host');
-  const proto = requestHeaders.get('x-forwarded-proto') ?? 'http';
-  return `${proto}://${host}`;
 }
 
 export async function updateDisplayName(
@@ -148,6 +147,7 @@ export async function changeEmail(newEmail: string): Promise<ActionResult> {
     await nhost.auth.changeUserEmail({
       newEmail,
       options: { redirectTo: `${await appOrigin()}/profile` },
+      codeChallenge: await beginLinkFlow('emailChange'),
     });
     return { success: true };
   } catch (err) {
@@ -167,6 +167,15 @@ export async function changeEmail(newEmail: string): Promise<ActionResult> {
  * `currentPassword` is required once an account has a password. Nhost's own
  * endpoint does not ask for it (that is what elevated privileges are for), so
  * it is checked here by signing in with it first.
+ *
+ * Whether it is required is decided here, from `hasPassword` on the account,
+ * and not from whether the caller sent one. A server action is a public HTTP
+ * endpoint: leave that decision to the form and anyone can change the password
+ * of an account that has one by simply not sending the old one.
+ *
+ * Somebody who has forgotten their password does not come through here: they
+ * follow a reset link, and `app/reset-password/actions.ts` answers it against
+ * the account that link named rather than against this session.
  */
 export async function changePassword(
   newPassword: string,
@@ -177,12 +186,31 @@ export async function changePassword(
   }
 
   const nhost = await createNhostClient();
-  const email = nhost.getUserSession()?.user?.email;
-  if (!email) {
+  const account = nhost.getUserSession()?.user;
+  const email = account?.email;
+  if (!account || !email) {
     return { error: 'Sign in to change your password.' };
   }
 
-  if (currentPassword) {
+  let hasPassword = true;
+  try {
+    const { user } = await gqlRequest(nhost, GetHasPassword, {
+      id: account.id,
+    });
+    // Only an explicit `false` drops the requirement. A missing row means the
+    // query answered something this cannot read, and defaulting to "no
+    // password" there would waive the check for anyone who can make it answer
+    // nothing.
+    hasPassword = user?.hasPassword !== false;
+  } catch (err) {
+    return { error: `Could not check your account: ${(err as Error).message}` };
+  }
+
+  if (hasPassword) {
+    if (!currentPassword) {
+      return { error: 'Your current password is required.' };
+    }
+
     try {
       await nhost.auth.signInEmailPassword({
         email,
@@ -223,6 +251,7 @@ export async function sendOwnPasswordReset(): Promise<ActionResult> {
     await nhost.auth.sendPasswordResetEmail({
       email,
       options: { redirectTo: `${await appOrigin()}/reset-password` },
+      codeChallenge: await beginLinkFlow('passwordReset'),
     });
     return { success: true };
   } catch (err) {

@@ -1,18 +1,36 @@
-import { redirect } from 'next/navigation';
+import Link from 'next/link';
 import { ResetPasswordForm } from '@/app/reset-password/ResetPasswordForm';
-import { createNhostClient } from '@/lib/nhost/server';
+import { Card, CardContent } from '@/components/ui/card';
+import { readRecoveryToken } from '@/lib/nhost/server';
 
 export const dynamic = 'force-dynamic';
 
-// The reset email's verification link signs the user in and redirects here,
-// so by the time this page renders there is a session to change the password
-// under. Without one, the link was invalid or expired.
+// The reset link comes back with a one-time code, which the proxy exchanges
+// against the verifier this browser kept and sets aside as the recovery
+// cookie. No session is created: whoever was signed in here stays signed in,
+// and the new password goes to the account the link named.
 export default async function ResetPassword() {
-  const nhost = await createNhostClient();
-  const session = nhost.getUserSession();
+  if (!(await readRecoveryToken())) {
+    return (
+      <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-3xl font-bold tracking-tight">
+            This link cannot be used
+          </h1>
+          <p className="text-muted-foreground">
+            A reset link works once, and only in the browser that asked for it.
+          </p>
+        </div>
 
-  if (!session) {
-    redirect('/signin');
+        <Card>
+          <CardContent className="pt-6">
+            <Link className="underline" href="/signin">
+              Ask for a new reset link
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
@@ -22,7 +40,7 @@ export default async function ResetPassword() {
           Set a new password
         </h1>
         <p className="text-muted-foreground">
-          The reset link signed you in. Pick the new password now.
+          Pick the new password now. You will be signed in with it.
         </p>
       </div>
 
