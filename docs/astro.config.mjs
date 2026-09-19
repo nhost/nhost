@@ -191,6 +191,7 @@ export default defineConfig({
                     { slug: 'getting-started/quickstart/reactnative' },
                     { slug: 'getting-started/quickstart/yew' },
                     { slug: 'getting-started/quickstart/go' },
+                    { slug: 'getting-started/quickstart/fastapi' },
                   ],
                 },
                 {
@@ -349,6 +350,27 @@ export default defineConfig({
                         },
                         {
                           slug: 'getting-started/tutorials/go/5-functions-sharing',
+                        },
+                      ],
+                    },
+                    {
+                      label: 'Python (CLI)',
+                      collapsed: true,
+                      items: [
+                        {
+                          slug: 'getting-started/tutorials/python/1-introduction',
+                        },
+                        {
+                          slug: 'getting-started/tutorials/python/2-authentication',
+                        },
+                        {
+                          slug: 'getting-started/tutorials/python/3-graphql-operations',
+                        },
+                        {
+                          slug: 'getting-started/tutorials/python/4-file-uploads',
+                        },
+                        {
+                          slug: 'getting-started/tutorials/python/5-functions-sharing',
                         },
                       ],
                     },
@@ -922,6 +944,25 @@ export default defineConfig({
                             { slug: 'reference/go/nhost-go/session' },
                             { slug: 'reference/go/nhost-go/transport' },
                             { slug: 'reference/go/nhost-go/middleware' },
+                          ],
+                        },
+                      ],
+                    },
+                    {
+                      label: 'Python',
+                      collapsed: true,
+                      items: [
+                        {
+                          label: 'nhost-python',
+                          collapsed: true,
+                          items: [
+                            { slug: 'reference/python/nhost-python/main' },
+                            { slug: 'reference/python/nhost-python/auth' },
+                            { slug: 'reference/python/nhost-python/functions' },
+                            { slug: 'reference/python/nhost-python/graphql' },
+                            { slug: 'reference/python/nhost-python/storage' },
+                            { slug: 'reference/python/nhost-python/session' },
+                            { slug: 'reference/python/nhost-python/fetch' },
                           ],
                         },
                       ],
