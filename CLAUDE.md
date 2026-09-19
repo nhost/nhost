@@ -35,6 +35,13 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 
 - Client SDK providing auth, storage, GraphQL, and functions helpers. Builds to ESM, CJS, and UMD
 
+### Dev Toolbar (`packages/devtools/`)
+
+- `@nhost/devtools`, the development toolbar any Nhost project can add as a devDependency: a tab docked to a screen edge that opens links to the local Dashboard, Hasura and Mailhog
+- Two entry points: a framework-agnostic `mountNhostDevToolbar()` at the root, and a React wrapper at `@nhost/devtools/react`. `react` is an **optional** peer dependency, so the vanilla entry never pulls it in
+- Self-contained on purpose: it carries its own CSS and its own inlined icons, takes no runtime dependency beyond `tslib`, and reads no environment variables for configuration; the React wrapper's only env read is a `NODE_ENV === 'production'` guard. The backend is passed in as `subdomain`/`region` props, both defaulting to `local`
+- The React entry needs `'use client'` in its built output, which rollup strips and terser would drop from a banner. `vite.config.ts` writes it back in `generateBundle`; do not remove that plugin
+
 ### Documentation (`docs/`)
 
 - Astro-based documentation site
@@ -46,6 +53,13 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 - `examples/quickstarts/` - quick setup examples (Next.js, React, React Native)
 - `examples/tutorials/` - full tutorials (Next.js, Vue, React Native)
 - `examples/docker-compose/` - self-hosting reference
+
+### Templates (`templates/`)
+
+- Starter projects scaffolded by `nhost create`, one directory per template (currently `templates/nextjs-shadcn`)
+- A template is an **overlay**, not a whole project: the CLI generates `backend/` in-process with the same logic as `nhost init`, then lays the template directory on top, so a template only carries what it adds (its `frontend/` app, backend migrations and metadata, and the agent-context files)
+- Each `templates/*/frontend` is deliberately **outside** the root `pnpm-workspace.yaml` so it resolves published package versions exactly as a user's generated project does. It is a standalone workspace root with its own lockfile: run `pnpm install` from inside it, never `pnpm -r` from the repository root, which cannot reach it at any path
+- See `templates/README.md` for the maintainer invariants, the "adding a template" checklist, and how templates are delivered
 
 ### Build System (`build/`)
 

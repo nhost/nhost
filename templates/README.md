@@ -33,7 +33,7 @@ templates/<name>/
   CLAUDE.md AGENTS.md SKILLS.md .mcp.json README.md .gitignore
 ```
 
-`frontend/` is intentionally **outside** the pnpm workspace (it is not listed in the root `pnpm-workspace.yaml`) so it resolves published package versions, exactly like a user's generated project. It carries its own `pnpm-workspace.yaml`, which makes it a standalone workspace root, so manage its lockfile with a plain `pnpm install` from inside `frontend/`. Do **not** pass `--ignore-workspace`: that discards the template's own `pnpm-workspace.yaml`, and with it the `allowBuilds` entries that keep `pnpm install --frozen-lockfile` from failing with `ERR_PNPM_IGNORED_BUILDS` under pnpm 11.
+`frontend/` is intentionally **outside** the pnpm workspace (it is not listed in the root `pnpm-workspace.yaml`) so it resolves published package versions, exactly like a user's generated project. It carries its own `pnpm-workspace.yaml`, which makes it a standalone workspace root, so manage its lockfile with a plain `pnpm install` from inside `frontend/`. Do **not** pass `--ignore-workspace`: that discards the template's own `pnpm-workspace.yaml`, and with it the `allowBuilds` entries that keep `pnpm install --frozen-lockfile` from failing with `ERR_PNPM_IGNORED_BUILDS` under pnpm 12.3.4.
 
 ## Available templates
 
@@ -56,28 +56,34 @@ Build the template's frontend on its own:
 ```sh
 cd templates/nextjs-shadcn/frontend
 pnpm install
-pnpm lint && pnpm build
+pnpm codegen:types      # CI fails on any resulting diff under src/gql/
+pnpm lint && pnpm test && pnpm build
 ```
 
-CI installs with pnpm 11.1.0. Inside a template the global pnpm runs, not the version the root `package.json` pins, so verify with `npx pnpm@11.1.0 install --frozen-lockfile` before pushing: pnpm 11 fails on ignored build scripts where pnpm 10 only warns.
+CI installs with pnpm 12.3.4: [`templates_checks.yaml`](../.github/workflows/templates_checks.yaml) passes no `version:` to `pnpm/action-setup`, so the action resolves the `packageManager` field in the root `package.json`. Match that version locally when a lockfile change is involved, because the pnpm on your PATH inside a template is whatever is installed globally, not the pinned one.
 
 ## Maintainer invariants
 
 - A backend metadata overlay must include `backend/nhost/metadata/version.yaml`. Without it, `nhost up` skips applying the metadata (emitting only a warning), so the table is never tracked.
 - Row-level ownership must use an `X-Hasura-User-Id` insert column preset under the permission's `set:` field. Do not use an `auth.uid()` SQL default; clients must not supply the owner column themselves.
 - `.mcp.json` must not point the MCP server at the backend with a `cwd` key. `cwd` is not part of the stdio server shape clients accept, so it is dropped and `nhost mcp start` runs from the project root, where it finds no `mcp-nhost.toml` and silently falls back to a default granting the local admin secret plus full query, mutation, and metadata access. Set `NHOST_MCP_CONFIG_FILE` to `backend/.nhost/mcp-nhost.toml` under `env` instead.
-- A template must ship a project-root `.gitignore`. The generated `backend/.gitignore` (`.nhost`, `.secrets`) comes from `nhost init`, and `frontend/.gitignore` only covers the app directory, so nothing else protects a scaffolded project on its first `git add .`. Keep `.env*` ignored with a `!.env.example` negation in `frontend/.gitignore`: narrowing it to `.env*.local` leaves `.env` and `.env.production` — both loaded by Next.js — tracked.
+- A template must ship a project-root `.gitignore`. The generated `backend/.gitignore` (`.nhost`, `.secrets`) comes from `nhost init`, and `frontend/.gitignore` only covers the app directory, so nothing else protects a scaffolded project on its first `git add .`. Keep `.env*` ignored with a `!.env.example` negation in `frontend/.gitignore`: narrowing it to `.env*.local` leaves `.env` and `.env.production` — both loaded by Next.js — tracked. Every entry of the template-root `.gitignore` must have a matching skip entry (`skippedDirs`, `skippedPaths` or `skippedFile` in `cli/cmd/create/postprocess.go`); otherwise `--template-path` copies that artifact out of a maintainer's dirty checkout, and for `.secrets`/`.nhost` it silently overwrites the freshly scaffolded backend secrets and state.
 - `SKILLS.md` and `.claude/skills/*/SKILL.md` hold the same four workflows in two layouts: one file for any agent, and the per-skill directories Claude Code discovers. Change a workflow in both, the same way `AGENTS.md` and `CLAUDE.md` are kept identical. [`check-agent-context.sh`](check-agent-context.sh) enforces both halves — run it before pushing, and the `agent-context` job in [`templates_checks.yaml`](../.github/workflows/templates_checks.yaml) runs it on every PR. A `SKILL.md` body matches its `## <Title>` section of `SKILLS.md` once the YAML frontmatter and the `# Title` line are stripped and every `##` subheading is demoted to `###`; surrounding blank lines are not significant.
 - Write every package-manager command in the shipped Markdown as a literal `pnpm <script>`, where `<script>` is `install` or a script in `frontend/package.json`. `nhost create --package-manager <pm>` rewrites those commands (`retargetPackageManagerDocs` in `cli/cmd/create/postprocess.go`) so a project created with npm, bun, or yarn is not told to run pnpm and recreate the lockfile the CLI just removed. Other spellings — `pnpm run <script>`, `npx`, `pnpm --filter ...` — are left untouched and silently ship pnpm instructions to a non-pnpm project.
 - `frontend/schema.graphql` is both the graphql-codegen input and committed project context for LLMs. After starting the backend with `nhost up`, regenerate the SDL and generated types with `(cd frontend && pnpm codegen)` and commit both `schema.graphql` and `src/gql/`.
 - CI's primary offline guard runs `pnpm codegen:types` and requires no diff under committed `src/gql/`. Do not add `nhost schema dump --metadata` as an offline gate: it needs a resolvable database to determine column types. Verify SDL-versus-live-backend fidelity manually by running `nhost up` followed by `pnpm codegen` and reviewing the generated changes.
+- `templates_checks.yaml` uses plain `pull_request` on GitHub-hosted runners, where every other `*_checks.yaml` uses `pull_request_target` with `wf_detect_changes`, `check-permissions`, and blacksmith runners. That is deliberate, not an oversight: these jobs need no secret and no self-hosted runner, and `pull_request_target` would run a fork's code against a writable token to gain nothing. Leave it as it is.
+- `templates/*/frontend` is outside the root workspace, so `pnpm -r` misses it in every root-level dependency pass. Both scheduled jobs therefore give it its own step that runs from inside the directory: [`gen_schedule_update_deps.yaml`](../.github/workflows/gen_schedule_update_deps.yaml) for the routine refresh and [`gen_security_updates.yaml`](../.github/workflows/gen_security_updates.yaml) for advisory fixes. `pnpm audit-ci-templates` from the repository root is the matching audit; the `templates-audit` job runs it on every PR with `continue-on-error: true`, so advisories are visible but nothing is blocked. Promote it to a gate by deleting that line once the template lockfile reports clean. Adding a template means those steps pick it up automatically; moving a template's app out of `frontend/` means fixing all three globs.
 
 ## Adding a template
 
 1. Create `templates/<name>/` with a `frontend/` app + the root files (`AGENTS.md`, `CLAUDE.md`, `SKILLS.md`, `.mcp.json`, `README.md`, `.gitignore`). Copy `AGENTS.md`, `CLAUDE.md`, `SKILLS.md`, and `.claude/skills/` from an existing template and adapt the framework-specific parts; the four skills themselves are template-independent.
 2. Generate the lockfile: `cd templates/<name>/frontend && pnpm install`.
 3. Add an entry to the registry in `cli/cmd/create/registry.go`.
-4. Add the template's `frontend/` path to `.github/workflows/templates_checks.yaml`. The `agent-context` job needs no change — it globs `templates/*/`, so the new template's duplicated Markdown is checked as soon as it lands.
+4. Register the new directory in the three places scoped to one template rather than to `templates/**`:
+   - `.github/workflows/templates_checks.yaml` — a build job for the template's `frontend/` path. The `agent-context` job needs no change: it globs `templates/*/`, so the duplicated Markdown is checked as soon as it lands.
+   - `.github/workflows/cli_checks.yaml` — the `templates/<name>/**` path filter, so CLI checks rerun when the template the end-to-end scaffold test uses changes.
+   - `cli/project.nix` — the nix source set, so the template is inside the sandbox that test runs in. `cli/cmd/create/realtemplate_test.go` explains why both are needed.
 5. Add a row to [Available templates](#available-templates) above.
 
 ## How templates are delivered

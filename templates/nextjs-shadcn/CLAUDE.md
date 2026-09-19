@@ -34,7 +34,7 @@ Then use this loop for data-backed features:
    ```
 
 3. Prompt the LLM with the feature request. The LLM must read `frontend/schema.graphql`, this guide, and the relevant `.claude/skills/<name>/SKILL.md` before editing.
-4. Run the narrow frontend checks that match the change, such as `(cd frontend && pnpm lint)` and `(cd frontend && pnpm build)`.
+4. Run the narrow frontend checks that match the change, such as `(cd frontend && pnpm lint)`, `(cd frontend && pnpm test)`, and `(cd frontend && pnpm build)`.
 
 The committed `frontend/schema.graphql` and `frontend/src/gql/` let an assistant understand and type-check the current data contract without installing another context service. Keep both artifacts in sync with backend changes.
 
@@ -94,7 +94,7 @@ Two paths, and the default is the direct one:
 `/profile` exercises the parts of the stack todos does not:
 
 - `backend/nhost/metadata/databases/default/tables/auth_users.yaml` lets the `user` role read its own row and update only `display_name` and `metadata`. `avatar_url` is written by the function as admin, so users cannot point it anywhere.
-- `backend/nhost/migrations/default/1700000000001_avatars_bucket/` creates the bucket avatars land in; `storage_buckets.yaml` and `storage_files.yaml` track the storage tables and grant `public` read access to that bucket only.
+- `backend/nhost/migrations/default/1700000000001_avatars_bucket/` creates the bucket avatars land in; `storage_buckets.yaml` and `storage_files.yaml` track the storage tables, and `storage_files.yaml` alone grants `public` read to that bucket. `storage_buckets.yaml` deliberately carries no role select permission, so the avatars bucket cannot be enumerated through `bucket { files }`.
 - `backend/functions/avatar.ts` authenticates the caller against auth, resizes with jimp, stores through the storage REST API, and updates `avatarUrl` over GraphQL. The local runtime bundles each function with esbuild and native modules do not survive that, so use pure-JS dependencies (jimp, not sharp) in functions.
 - `backend/nhost/migrations/default/1700000000002_user_has_password/` adds `public.user_has_password`, tracked as the `hasPassword` computed field on `auth.users`, so the UI can tell "set a password" from "change password" without the hash ever leaving the database.
 - `backend/functions/auth-method.ts` answers, for one email address, which sign-in step to show. It needs the admin secret, so read the note in that file about what it does and does not reveal before copying the pattern.
@@ -111,8 +111,9 @@ Two paths, and the default is the direct one:
 - Client-side GraphQL operations use the generated `graphql()` documents, `gqlRequest`, the browser `nhost` client, and TanStack Query.
 - Use absolute frontend imports through `@/` and merge class names with `cn()` from `@/lib/utils`.
 - Wrap network calls in explicit error handling so the UI fails gracefully when the backend is unavailable.
-- Auth emails that link back into the app (password reset, email change) derive `redirectTo` from the request's own headers; see `appOrigin` in `frontend/src/app/profile/actions.ts`.
-- Those links come back as `?refreshToken=...`, which the proxy redeems into the session cookie before redirecting to the same URL without it. Any new page an auth email points at therefore already has a session; do not add a second redemption path.
+- Auth emails that link back into the app (password reset, email change) build `redirectTo` from `appOrigin()` in `frontend/src/lib/origin.ts`, which reads `APP_ORIGIN` and only falls back to the request's `Host` header in development; a new emailed link must call it rather than reading headers itself, or it reintroduces a link an attacker can point at a host they control.
+- Those links go out with a PKCE challenge whose verifier stays in an httpOnly cookie on the browser that asked for them, so they come back as `?code=...` and only that browser can spend one. The proxy exchanges the code and strips it from the URL; see `frontend/src/lib/nhost/pkce.ts`. Add a new emailed link and it goes through `beginLinkFlow` too, or it arrives as a refresh token in a query string, which is a session anybody can hand anybody.
+- An email-change code becomes the session. A password-reset code deliberately does not: its refresh token is parked in an httpOnly cookie that only `/reset-password` reads, so the new password lands on the account the link named even when the browser was already signed into a different one. `resetPassword` is therefore separate from `changePassword`, which is for someone who knows their current password.
 - Changing a password revokes the account's refresh tokens, so `changePassword` signs back in on the new password. Anything else that rotates credentials has to do the same or it logs out the person who just used it.
 - Sign-in asks for the email first and then shows the step that account actually uses, so a new page must not assume a password exists. `hasPassword` is the flag for that.
 - Read the backend subdomain and region through `nhostSubdomain()` / `nhostRegion()` from `@/lib/nhost/env`. `NEXT_PUBLIC_NHOST_SUBDOMAIN` and `NEXT_PUBLIC_NHOST_REGION` are the only pair, shared by the browser and the server; do not add a server-only pair, which would let the two halves target different backends.
@@ -132,7 +133,7 @@ From `frontend/`:
 - `pnpm dev` starts the app at <http://localhost:3000>.
 - `pnpm codegen` refreshes `schema.graphql` and `src/gql/` from the running local backend.
 - `pnpm codegen:types` regenerates types offline from the committed schema.
-- `pnpm lint`, `pnpm format`, and `pnpm build` validate the app.
+- `pnpm lint`, `pnpm format`, `pnpm test`, and `pnpm build` validate the app.
 
 ## Optional MCP bonus
 

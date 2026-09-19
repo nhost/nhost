@@ -8,7 +8,7 @@ A full-stack, agent-ready starter created with `nhost create`:
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org) >= 22 and [pnpm](https://pnpm.io)
+- [Node.js](https://nodejs.org) >= 22 and a package manager (npm, pnpm, yarn or bun)
 - The [Nhost CLI](https://docs.nhost.io/platform/cli) (`nhost`)
 - Docker for the local backend
 
@@ -53,7 +53,9 @@ Next.js inlines `NEXT_PUBLIC_*` values into the bundle at **build** time, not at
 
 While running `pnpm dev` a small Nhost tab sits flush against the edge of the screen. It only renders in development and never ships in a production build.
 
-Click it and the tab grows along the edge to reveal icon buttons for the local Dashboard, Hasura, Mailhog, and Preferences; hover an icon for its label. Drag the tab to dock it to any edge, and open Preferences to change its position, switch the toolbar between dark and light, or hide it for the current session.
+The tab carries icon buttons for the local Dashboard, Hasura, Mailhog, and Preferences; hover or focus one for its label. Drag the tab to dock it to any edge, and open Preferences to change its position, switch the toolbar between dark and light, or hide it for the current session.
+
+Hiding it takes away the only control that could bring it back, so the way back is the URL: load any page with `?nhost-devtools=true` and the toolbar returns for good, not just for that one page.
 
 The toolbar lives in `frontend/src/components/dev-toolbar/`. To remove it from the project, delete that directory and its import in `frontend/src/app/layout.tsx`.
 
@@ -194,13 +196,23 @@ Run these from `frontend/`:
 - `pnpm codegen` — dump the current user-role schema and regenerate types.
 - `pnpm codegen:types` — regenerate types from the committed schema without a backend.
 - `pnpm lint` / `pnpm format` — check or format with Biome.
+- `pnpm test` — run the unit tests.
 - `pnpm build` — create a production build.
 
 ## Session cookie security
 
-The session cookie holds the refresh token (30 day maxAge) and is intentionally set with `httpOnly: false`. The browser SDK in `frontend/src/lib/nhost/client.ts` reads it through `document.cookie` to make client-side GraphQL requests, so this trades XSS refresh-token exposure for client-side data fetching.
+The session cookie holds the refresh token (7 day maxAge) and is intentionally set with `httpOnly: false`. The browser SDK in `frontend/src/lib/nhost/client.ts` reads it through `document.cookie` to make client-side GraphQL requests, so this trades XSS refresh-token exposure for client-side data fetching.
+
+Two things keep that tradeoff bounded, and both are worth knowing before you widen either:
+
+- **A week, not a month.** A token JavaScript can read is a token an XSS can take, so how long a stolen one keeps working is the dial that stays turned down. It lives in `cookieOptions` in `frontend/src/lib/nhost/server.ts`.
+- **A baseline CSP**, in `frontend/next.config.ts`, alongside `Referrer-Policy` and `X-Content-Type-Options`. It bounds where injected script could send what it read: `connect-src` reaches this app and the four backend services this project is configured for, each origin spelled out one at a time rather than as `*.nhost.run` — a namespace anybody can get a subdomain in, so allowing it would let injected script post the readable session cookie to a project the attacker provisioned — and `frame-ancestors 'none'` keeps the app out of other people's frames. `script-src` still carries `'unsafe-inline'`, which is what Next's bootstrap needs without a per-request nonce, so treat it as a floor rather than a finished policy.
 
 If you want to keep the refresh token out of JavaScript, fetch and mutate only from server components and server actions, then set `httpOnly: true` in `frontend/src/lib/nhost/server.ts`. The same note lives next to the cookie options in that file.
+
+## Where the app thinks it lives
+
+Password-reset and email-change emails carry a link back into the app, so the app has to know its own origin. Set `APP_ORIGIN` wherever you deploy it (see `frontend/.env.example`). Outside development an unset `APP_ORIGIN` fails closed: `appOrigin()` throws, so the password-reset and email-change actions return their existing "could not send" error and `/profile` errors, rather than building the link from the request's `Host` header, which is whatever the client sent and would let anyone mail a real user a real reset link pointing at a host they control. The `Host` fallback exists only so `pnpm dev` works out of the box, and it is plain http there.
 
 ## Optional MCP integration
 
