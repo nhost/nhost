@@ -564,10 +564,15 @@ FROM %s AS catalog_row`,
 
 	wantIssue := "active catalog version 2 belongs to a different lineage and is still applied; " +
 		"downgrade below version 2 with an image whose bundle maximum is <= 1 before deploying this bundle"
-	if integrityErr.Version != 2 || integrityErr.Issue != wantIssue {
+
+	if integrityErr.Version == nil {
+		t.Fatal("reconcile(higher version squash) integrity error version = nil, want 2")
+	}
+
+	if *integrityErr.Version != 2 || integrityErr.Issue != wantIssue {
 		t.Fatalf(
 			"reconcile(higher version squash) integrity error = version %d, issue %q; want version 2, issue %q",
-			integrityErr.Version,
+			*integrityErr.Version,
 			integrityErr.Issue,
 			wantIssue,
 		)

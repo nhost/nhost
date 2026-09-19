@@ -418,7 +418,7 @@ func (c *catalog) publishMigration(query string, migration *migration) error {
 		}
 
 		return &IntegrityError{
-			Version: migration.version,
+			Version: new(migration.version),
 			Issue:   "published row is missing",
 			Cause:   nil,
 		}
@@ -429,7 +429,7 @@ func (c *catalog) publishMigration(query string, migration *migration) error {
 
 func catalogPublicationError(version uint, cause error) error {
 	return &IntegrityError{
-		Version: version,
+		Version: new(version),
 		Issue:   "cannot publish immutable catalog row",
 		Cause:   cause,
 	}
@@ -489,7 +489,7 @@ func migrationLineageDiffers(local migration, stored storedMigration) bool {
 func appliedLineageDivergence(version uint, lastCommonVersion *uint) error {
 	if lastCommonVersion == nil {
 		return &IntegrityError{
-			Version: version,
+			Version: new(version),
 			Issue: fmt.Sprintf(
 				"active catalog version %d belongs to a different lineage and is still applied; "+
 					"the active and embedded bundles have no common lineage version, so pgmigrate "+
@@ -503,7 +503,7 @@ func appliedLineageDivergence(version uint, lastCommonVersion *uint) error {
 	}
 
 	return &IntegrityError{
-		Version: version,
+		Version: new(version),
 		Issue: fmt.Sprintf(
 			"active catalog version %d belongs to a different lineage and is still applied; "+
 				"downgrade below version %d with an image whose bundle maximum is <= %d "+
@@ -518,7 +518,7 @@ func appliedLineageDivergence(version uint, lastCommonVersion *uint) error {
 
 func immutableFieldMismatch(version uint, field string) error {
 	return &IntegrityError{
-		Version: version,
+		Version: new(version),
 		Issue:   fmt.Sprintf("stored %s does not match embedded migration", field),
 		Cause:   nil,
 	}
@@ -575,7 +575,7 @@ WHERE migration.version = $1 AND migration.archived_at IS NULL
 
 		if rows.Next() {
 			return &IntegrityError{
-				Version: version,
+				Version: new(version),
 				Issue:   "catalog contains duplicate versions",
 				Cause:   nil,
 			}
@@ -609,7 +609,7 @@ func scanStoredMigration(rows catalogRows, requestedVersion uint) (storedMigrati
 		&got.formatVersion,
 	); err != nil {
 		return storedMigration{}, &IntegrityError{
-			Version: requestedVersion,
+			Version: new(requestedVersion),
 			Issue:   "cannot decode catalog row",
 			Cause:   err,
 		}
@@ -618,7 +618,7 @@ func scanStoredMigration(rows catalogRows, requestedVersion uint) (storedMigrati
 	convertedVersion, err := sourceVersion(storedVersion)
 	if err != nil {
 		return storedMigration{}, &IntegrityError{
-			Version: requestedVersion,
+			Version: new(requestedVersion),
 			Issue:   "catalog row has an invalid version",
 			Cause:   err,
 		}
@@ -628,7 +628,7 @@ func scanStoredMigration(rows catalogRows, requestedVersion uint) (storedMigrati
 
 	if previousID.Valid && !previousVersion.Valid {
 		return storedMigration{}, &IntegrityError{
-			Version: requestedVersion,
+			Version: new(requestedVersion),
 			Issue:   "references a missing predecessor row",
 			Cause:   nil,
 		}
@@ -638,7 +638,7 @@ func scanStoredMigration(rows catalogRows, requestedVersion uint) (storedMigrati
 		convertedPrevious, conversionErr := sourceVersion(previousVersion.Int64)
 		if conversionErr != nil {
 			return storedMigration{}, &IntegrityError{
-				Version: requestedVersion,
+				Version: new(requestedVersion),
 				Issue:   "catalog row has an invalid previous version",
 				Cause:   conversionErr,
 			}
@@ -699,7 +699,7 @@ LIMIT 2
 		return roots[0], nil
 	case maximumChainRows:
 		return 0, &IntegrityError{
-			Version: roots[1],
+			Version: new(roots[1]),
 			Issue:   "catalog contains multiple roots",
 			Cause:   nil,
 		}
@@ -723,7 +723,7 @@ LIMIT 1
 	}
 
 	return 0, &IntegrityError{
-		Version: versions[0],
+		Version: new(versions[0]),
 		Issue:   "catalog contains migrations but has no root",
 		Cause:   nil,
 	}
@@ -750,7 +750,7 @@ func (c *catalog) previous(version uint) (uint, error) {
 
 	if !found {
 		return 0, &IntegrityError{
-			Version: version,
+			Version: new(version),
 			Issue: fmt.Sprintf(
 				"references missing predecessor version %d",
 				*stored.previousVersion,
@@ -800,7 +800,7 @@ LIMIT 2
 		return successors[0], nil
 	default:
 		return 0, &IntegrityError{
-			Version: version,
+			Version: new(version),
 			Issue:   "catalog contains multiple successors",
 			Cause:   nil,
 		}
@@ -836,7 +836,7 @@ func (c *catalog) read(version uint, direction source.Direction) ([]byte, string
 func validateStoredMigration(version uint, stored storedMigration) error {
 	if stored.formatVersion != catalogFormatV1 {
 		return &IntegrityError{
-			Version: version,
+			Version: new(version),
 			Issue: fmt.Sprintf(
 				"unsupported catalog format version %d",
 				stored.formatVersion,
@@ -847,7 +847,7 @@ func validateStoredMigration(version uint, stored storedMigration) error {
 
 	if strings.TrimSpace(stored.identifier) == "" {
 		return &IntegrityError{
-			Version: version,
+			Version: new(version),
 			Issue:   "identifier is blank",
 			Cause:   nil,
 		}
@@ -868,7 +868,7 @@ func bodyForDirection(
 		return stored.downSQL, stored.downChecksum, nil
 	default:
 		return nil, nil, &IntegrityError{
-			Version: version,
+			Version: new(version),
 			Issue:   fmt.Sprintf("unsupported migration direction %q", direction),
 			Cause:   nil,
 		}
@@ -883,7 +883,7 @@ func validateStoredBody(
 ) error {
 	if !containsMigrationSQL(body) {
 		return &IntegrityError{
-			Version: version,
+			Version: new(version),
 			Issue:   fmt.Sprintf("%s migration body is blank", direction),
 			Cause:   nil,
 		}
@@ -891,7 +891,7 @@ func validateStoredBody(
 
 	if len(checksum) != sha256.Size {
 		return &IntegrityError{
-			Version: version,
+			Version: new(version),
 			Issue:   fmt.Sprintf("%s checksum has invalid length", direction),
 			Cause:   nil,
 		}
@@ -900,7 +900,7 @@ func validateStoredBody(
 	calculated := sha256.Sum256(body)
 	if !bytes.Equal(checksum, calculated[:]) {
 		return &IntegrityError{
-			Version: version,
+			Version: new(version),
 			Issue:   fmt.Sprintf("%s checksum does not match the migration body", direction),
 			Cause:   nil,
 		}
@@ -917,7 +917,7 @@ func (c *catalog) queryVersions(query string, args []any) ([]uint, error) {
 			var stored int64
 			if scanErr := rows.Scan(&stored); scanErr != nil {
 				return &IntegrityError{
-					Version: 0,
+					Version: nil,
 					Issue:   "cannot decode catalog chain",
 					Cause:   scanErr,
 				}
@@ -926,7 +926,7 @@ func (c *catalog) queryVersions(query string, args []any) ([]uint, error) {
 			version, conversionErr := sourceVersion(stored)
 			if conversionErr != nil {
 				return &IntegrityError{
-					Version: 0,
+					Version: nil,
 					Issue:   "catalog chain contains an invalid version",
 					Cause:   conversionErr,
 				}
@@ -946,7 +946,7 @@ func (c *catalog) queryVersions(query string, args []any) ([]uint, error) {
 
 func missingMigration(version uint) error {
 	return &IntegrityError{
-		Version: version,
+		Version: new(version),
 		Issue:   "catalog row is missing",
 		Cause:   nil,
 	}
@@ -955,7 +955,7 @@ func missingMigration(version uint) error {
 func catalogVersion(version uint) (int64, error) {
 	if uint64(version) > math.MaxInt64 {
 		return 0, &IntegrityError{
-			Version: version,
+			Version: new(version),
 			Issue:   "version cannot be represented by the PostgreSQL catalog",
 			Cause:   nil,
 		}

@@ -194,6 +194,54 @@ func TestPreflightSourceServesRunnerWithoutFurtherCatalogCalls(t *testing.T) {
 	}
 }
 
+func TestIntegrityErrorProducersDistinguishZeroFromNoVersion(t *testing.T) {
+	t.Parallel()
+
+	prepared := newPreflightSource(&recordingMigrationSource{})
+	prepared.seal()
+
+	version, versionlessErr := prepared.First()
+	if version != 0 {
+		t.Fatalf("sealed First() version = %d, want 0", version)
+	}
+
+	tests := []struct {
+		name        string
+		err         error
+		wantVersion *uint
+	}{
+		{
+			name:        "zero migration version",
+			err:         migrationPathError(0, "invalid path"),
+			wantVersion: uintPointer(0),
+		},
+		{
+			name:        "no applicable version",
+			err:         versionlessErr,
+			wantVersion: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			var integrityErr *IntegrityError
+			if !errors.As(tt.err, &integrityErr) {
+				t.Fatalf("error = %v (%T), want *IntegrityError", tt.err, tt.err)
+			}
+
+			if !equalOptionalVersion(integrityErr.Version, tt.wantVersion) {
+				t.Fatalf(
+					"IntegrityError.Version = %v, want %v",
+					integrityErr.Version,
+					tt.wantVersion,
+				)
+			}
+		})
+	}
+}
+
 func TestPreflightMigrationPathRejectsNonProgressingLinks(t *testing.T) {
 	t.Parallel()
 
@@ -739,10 +787,15 @@ func TestMigrateRejectsSquashedStableWhileBetaLineageIsApplied(t *testing.T) {
 
 	const wantIssue = "active catalog version 2 belongs to a different lineage and is still applied; " +
 		"downgrade below version 2 with an image whose bundle maximum is <= 1 before deploying this bundle"
-	if integrityErr.Version != 2 || integrityErr.Issue != wantIssue {
+
+	if integrityErr.Version == nil {
+		t.Fatal("Migrate() integrity error version = nil, want 2")
+	}
+
+	if *integrityErr.Version != 2 || integrityErr.Issue != wantIssue {
 		t.Fatalf(
 			"Migrate() integrity error = version %d, issue %q; want version 2, issue %q",
-			integrityErr.Version,
+			*integrityErr.Version,
 			integrityErr.Issue,
 			wantIssue,
 		)
@@ -792,10 +845,15 @@ func TestMigrateRejectsReplacementWithoutCommonLineage(t *testing.T) {
 		"the active and embedded bundles have no common lineage version, so pgmigrate cannot replace " +
 		"this lineage in place; keep using a compatible bundle or reinitialize the schema and explicitly " +
 		"migrate required data before deploying this bundle"
-	if integrityErr.Version != 1 || integrityErr.Issue != wantIssue {
+
+	if integrityErr.Version == nil {
+		t.Fatal("Migrate() integrity error version = nil, want 1")
+	}
+
+	if *integrityErr.Version != 1 || integrityErr.Issue != wantIssue {
 		t.Fatalf(
 			"Migrate() integrity error = version %d, issue %q; want version 1, issue %q",
-			integrityErr.Version,
+			*integrityErr.Version,
 			integrityErr.Issue,
 			wantIssue,
 		)

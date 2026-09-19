@@ -311,7 +311,7 @@ func readCleanMigrationState(driver *postgres.Postgres, schema string) (int, err
 
 	if currentVersion < migratedatabase.NilVersion {
 		return 0, &IntegrityError{
-			Version: 0,
+			Version: nil,
 			Issue: fmt.Sprintf(
 				"schema migration state contains unsupported version %d",
 				currentVersion,
@@ -412,7 +412,11 @@ func (s *preflightSource) First() (uint, error) {
 	}
 
 	if s.sealed {
-		return 0, migrationPathError(0, "first migration was not covered by preflight")
+		return 0, &IntegrityError{
+			Version: nil,
+			Issue:   "first migration was not covered by preflight",
+			Cause:   nil,
+		}
 	}
 
 	version, err := s.upstream.First()
@@ -856,7 +860,7 @@ func preflightBody(
 
 func migrationPathError(version uint, issue string) error {
 	return &IntegrityError{
-		Version: version,
+		Version: new(version),
 		Issue:   issue,
 		Cause:   nil,
 	}
