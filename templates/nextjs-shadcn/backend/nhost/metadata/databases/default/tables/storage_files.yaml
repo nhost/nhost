@@ -93,6 +93,17 @@ select_permissions:
         - size
         - updated_at
         - uploaded_by_user_id
+      # `file(id:)` and nothing else. Storage answers every `<img>` as `public`
+      # and looks the row up by id, so that is all this role needs, and it is
+      # the difference between "anyone can fetch this avatar" and "anyone can
+      # list every avatar". An avatar's file id is its owner's user id, so the
+      # list form is a dump of the user table. The columns stay as they are:
+      # storage's own metadata query selects all of them and the download fails
+      # outright if the role cannot read one.
+      query_root_fields:
+        - select_by_pk
+      subscription_root_fields:
+        - select_by_pk
       filter:
         _or:
           - bucket_id:
@@ -121,15 +132,36 @@ select_permissions:
         - size
         - updated_at
         - uploaded_by_user_id
+      # Restricted for the same reason as `public`. The avatars arm below
+      # matches every avatar, so leaving `files` reachable would let anyone who
+      # can sign up list them, and a list of avatars is a list of user ids.
+      # Being signed in is not a reason to hand over the user table. `file(id:)`
+      # still answers the `<img>` lookups, and the mutation roots are untouched,
+      # so upload and delete keep working.
+      query_root_fields:
+        - select_by_pk
+      subscription_root_fields:
+        - select_by_pk
       filter:
         _or:
           - bucket_id:
               _eq: avatars
           - uploaded_by_user_id:
               _eq: X-Hasura-User-Id
+          # The same owner conditions as the `public` arm. Without them a
+          # signed-in visitor keeps reading an attachment after its owner
+          # unpublished or soft-deleted, and unpublishing is meant to retract
+          # everything rather than only what strangers could see.
           - todos:
               is_public:
                 _eq: true
+              user:
+                metadata:
+                  _contains:
+                    publicProfile: true
+                _not:
+                  metadata:
+                    _has_key: deletedAt
 delete_permissions:
   - role: user
     permission:

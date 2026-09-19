@@ -9,11 +9,21 @@ object_relationships:
     using:
       foreign_key_constraint_on: file_id
 insert_permissions:
+  # `file_id` is checked through the `file` relationship, not just `user_id`:
+  # without that half a user can point one of their own shared items at
+  # somebody else's upload, and the `public` rule on `storage_files.yaml`
+  # would then serve that file to the world.
   - role: user
     permission:
       check:
         user_id:
           _eq: X-Hasura-User-Id
+        _or:
+          - file_id:
+              _is_null: true
+          - file:
+              uploaded_by_user_id:
+                _eq: X-Hasura-User-Id
       set:
         user_id: X-Hasura-User-Id
       columns:
@@ -84,7 +94,15 @@ update_permissions:
       filter:
         user_id:
           _eq: X-Hasura-User-Id
-      check: null
+      check:
+        user_id:
+          _eq: X-Hasura-User-Id
+        _or:
+          - file_id:
+              _is_null: true
+          - file:
+              uploaded_by_user_id:
+                _eq: X-Hasura-User-Id
 delete_permissions:
   - role: user
     permission:

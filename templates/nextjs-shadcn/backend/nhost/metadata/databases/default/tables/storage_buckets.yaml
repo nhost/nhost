@@ -37,6 +37,14 @@ configuration:
     update: updateBuckets
     update_by_pk: updateBucket
 array_relationships:
+  # hasura-storage owns this relationship and recreates it on every start with
+  # the admin secret, so removing it from this file does not remove it from the
+  # running backend. It is listed here only so the checked-in metadata matches
+  # what the server converges to. It is harmless because neither `public` nor
+  # `user` has a select permission on this table below: with no bucket select
+  # permission the `bucket`/`buckets` roots and any `bucket { files }` traversal
+  # are unreachable for those roles, so the relationship cannot be used to walk
+  # around the root-field restriction in `storage_files.yaml`.
   - name: files
     using:
       foreign_key_constraint_on:
@@ -44,32 +52,12 @@ array_relationships:
         table:
           name: files
           schema: storage
-select_permissions:
-  - role: public
-    permission:
-      columns:
-        - cache_control
-        - created_at
-        - download_expiration
-        - id
-        - max_upload_file_size
-        - min_upload_file_size
-        - presigned_urls_enabled
-        - updated_at
-      filter:
-        id:
-          _eq: avatars
-  - role: user
-    permission:
-      columns:
-        - cache_control
-        - created_at
-        - download_expiration
-        - id
-        - max_upload_file_size
-        - min_upload_file_size
-        - presigned_urls_enabled
-        - updated_at
-      filter:
-        id:
-          _eq: avatars
+# There is deliberately no `public` or `user` select permission on this table.
+# The template frontend never queries buckets, and hasura-storage reads bucket
+# metadata with the admin secret on both the download path
+# (`get_file_metadata_headers.go`) and the upload path (`upload_files.go`), so
+# admin-only select breaks neither the frontend nor storage. Do not add a
+# `public`/`user` select permission back: an avatar's file id is its owner's
+# user id, and any bucket read for those roles reopens `bucket { files }` as a
+# full dump of the avatars bucket regardless of the root-field restriction in
+# `storage_files.yaml`.
