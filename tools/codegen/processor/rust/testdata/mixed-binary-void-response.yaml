@@ -1,0 +1,16 @@
+openapi: "3.0.0"
+
+paths:
+  /download:
+    get:
+      operationId: download
+      responses:
+        "200":
+          description: File contents
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "204":
+          description: No file contents
