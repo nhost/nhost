@@ -1,11 +1,26 @@
 import type { Request, Response } from 'express';
+import { imageSize } from 'image-size';
 import { Jimp } from 'jimp';
 
 // The avatars bucket caps files at 1 MiB, which only has to fit this resized
-// output. The original photo is bounded by the runtime's 6 MB JSON body limit.
+// output. The runtime's 6 MB JSON body limit bounds the *encoded* request,
+// not the work this handler does with it: a small, deeply-compressed image
+// can still decode to a bitmap thousands of times larger than its byte size,
+// so MAX_ENCODED_BYTES and MAX_AVATAR_DIMENSION below bound the encoded input
+// and the decoded pixel count directly, ahead of Jimp.read ever allocating.
 // jimp over sharp because the functions runtime bundles each function with
 // esbuild, and native modules do not survive bundling; jimp is pure JS.
 const AVATAR_SIZE = 512;
+
+// Matches the frontend's own cap (AvatarPicker.tsx, actions.ts) so legitimate
+// uploads are unaffected; this endpoint is reachable directly, so the client
+// cap alone does not bound it.
+const MAX_ENCODED_BYTES = 4 * 1024 * 1024;
+
+// image-size only parses the header, so this runs before Jimp decodes any
+// pixels. Comfortably above real camera output, far below what would let a
+// tiny file expand into a multi-hundred-megabyte bitmap.
+const MAX_AVATAR_DIMENSION = 4096;
 
 const authURL = process.env.NHOST_AUTH_URL as string;
 const storageURL = process.env.NHOST_STORAGE_URL as string;
@@ -35,7 +50,68 @@ function decodeImage(body: unknown): Buffer | null {
     return null;
   }
 
-  return Buffer.from(image.replace(/^data:[^;]+;base64,/, ''), 'base64');
+  const decoded = Buffer.from(
+    image.replace(/^data:[^;]+;base64,/, ''),
+    'base64',
+  );
+  if (decoded.length === 0 || decoded.length > MAX_ENCODED_BYTES) {
+    return null;
+  }
+
+  return decoded;
+}
+
+// Reads only the header, so this runs ahead of Jimp.read and rejects a
+// pixel-bomb (a tiny, highly-compressed file that decodes to a bitmap far
+// larger than its byte size) before anything allocates the decoded bitmap.
+function plausibleDimensions(image: Buffer): boolean {
+  try {
+    const { width, height } = imageSize(image);
+    return (
+      width > 0 &&
+      height > 0 &&
+      width <= MAX_AVATAR_DIMENSION &&
+      height <= MAX_AVATAR_DIMENSION
+    );
+  } catch {
+    return false;
+  }
+}
+
+// Looked up as admin rather than assumed: `PUT /files/:id` replaces whatever
+// row already has that id and keeps its existing bucket, so PUTting blind
+// would silently overwrite a row that only happens to share this id - the
+// insert permission on `storage.files` stops a stranger from planting one on
+// purpose, but this is the second half of that guard, not a duplicate of it.
+async function existingAvatarFile(
+  fileId: string,
+): Promise<{ bucketId: string } | null> {
+  const response = await fetch(graphqlURL, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'x-hasura-admin-secret': adminSecret,
+    },
+    body: JSON.stringify({
+      query: `query ExistingAvatarFile($id: uuid!) {
+        file(id: $id) { bucketId }
+      }`,
+      variables: { id: fileId },
+    }),
+  });
+
+  const result = (await response.json()) as {
+    data?: { file?: { bucketId: string } | null };
+    errors?: unknown[];
+  };
+  if (!response.ok || result.errors) {
+    // A failed lookup is not the same as a confirmed-absent file: falling
+    // through to POST here is exactly the "unrelated error becomes a
+    // duplicate-key failure" bug this function exists to avoid.
+    throw new Error('avatar file lookup failed');
+  }
+
+  return result.data?.file ?? null;
 }
 
 // One file per user, keyed by their id: re-uploading replaces the previous
@@ -46,16 +122,29 @@ async function storeAvatar(
 ): Promise<boolean> {
   const blob = new Blob([avatar], { type: 'image/jpeg' });
 
-  const replace = new FormData();
-  replace.append('file', blob, 'avatar.jpg');
+  let existing: { bucketId: string } | null;
+  try {
+    existing = await existingAvatarFile(fileId);
+  } catch {
+    return false;
+  }
 
-  const replaced = await fetch(`${storageURL}/files/${fileId}`, {
-    method: 'PUT',
-    headers: { 'x-hasura-admin-secret': adminSecret },
-    body: replace,
-  });
-  if (replaced.ok) {
-    return true;
+  // A row under this id outside `avatars` is not a bucket this endpoint ever
+  // wrote to, so it is not this user's avatar to replace.
+  if (existing && existing.bucketId !== 'avatars') {
+    return false;
+  }
+
+  if (existing) {
+    const replace = new FormData();
+    replace.append('file', blob, 'avatar.jpg');
+
+    const replaced = await fetch(`${storageURL}/files/${fileId}`, {
+      method: 'PUT',
+      headers: { 'x-hasura-admin-secret': adminSecret },
+      body: replace,
+    });
+    return replaced.ok;
   }
 
   const upload = new FormData();
@@ -141,7 +230,12 @@ export default async (req: Request, res: Response): Promise<void> => {
 
   const image = decodeImage(req.body);
   if (!image) {
-    res.status(400).json({ error: 'send { "image": "<base64>" }' });
+    res.status(400).json({ error: 'send { "image": "<base64>" } under 4 MB' });
+    return;
+  }
+
+  if (!plausibleDimensions(image)) {
+    res.status(400).json({ error: 'the image dimensions are too large' });
     return;
   }
 

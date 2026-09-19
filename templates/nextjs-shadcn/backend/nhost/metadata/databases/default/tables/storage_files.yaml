@@ -71,9 +71,23 @@ insert_permissions:
   # browser write that bucket directly would let it skip the resize.
   - role: user
     permission:
+      # `id` stays client-settable below because hasura-storage always sends
+      # it, but the client also gets to pick any UUID it wants - including one
+      # that already belongs to a real account. Left unchecked, that id becomes
+      # a squat on `backend/functions/avatar.ts`'s "one avatar keyed by user
+      # id" convention: the admin-secret PUT that convention relies on keeps
+      # whatever bucket the row was already in, so the squatted row stays in
+      # `todo-attachments`, owned by the squatter, forever. The `avatarOwner`
+      # relationship is reused here (not the columns it selects, just its join)
+      # to reject any id that already names an account.
       check:
-        bucket_id:
-          _eq: todo-attachments
+        _and:
+          - bucket_id:
+              _eq: todo-attachments
+          - _not:
+              avatarOwner:
+                id:
+                  _is_null: false
       set:
         uploaded_by_user_id: X-Hasura-User-Id
       columns:
