@@ -277,6 +277,7 @@
               gh
               git-cliff
               gnused
+              nhost.mcp-publisher
               skopeo
 
               # cli
@@ -347,6 +348,12 @@
           cliff = pkgs.mkShell {
             buildInputs = with pkgs; [
               git-cliff
+            ];
+          };
+
+          mcp-publisher = pkgs.mkShell {
+            buildInputs = with pkgs; [
+              nhost.mcp-publisher
             ];
           };
 
@@ -458,6 +465,7 @@
           stripe-graphql-js = stripe-graphql-jsf.package;
           mcp = mcpf.package;
           mcp-docker-image = mcpf.dockerImage;
+          mcp-publisher = pkgs.nhost.mcp-publisher;
           nixops = nixopsf.package;
           nixops-docker-image = nixopsf.dockerImage;
           pi-agent = pkgs.nhost.pi-agent;
