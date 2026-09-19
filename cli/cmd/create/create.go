@@ -52,8 +52,12 @@ var errTargetConflict = errors.New("would overwrite existing files")
 // Command returns the `nhost create` command.
 func Command() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
-		Name:      "create",
-		Usage:     "Create a new Nhost project from a template",
+		Name: "create",
+		// The positional argument is in Usage because the generated reference
+		// (internal/lib/clidocs) renders Usage and nothing else, and this is the
+		// one command whose primary behaviour is that argument.
+		Usage: "Create a new Nhost project from a template, in [directory] when one is given, " +
+			"otherwise in a directory named after the project",
 		ArgsUsage: "[directory]",
 		Description: "Scaffolds into [directory] when one is given, otherwise into a " +
 			"directory named after the project, or into the current directory when " +
@@ -248,12 +252,16 @@ func stageProject(
 	}
 
 	if packageManager != defaultPackageManager {
-		// Best-effort: the pnpm lockfile is optional and the chosen manager
-		// regenerates its own on install. A missing file is not an error here.
-		if err := os.Remove(
-			filepath.Join(frontend, "pnpm-lock.yaml"),
-		); err != nil && !errors.Is(err, os.ErrNotExist) {
-			return fmt.Errorf("failed to remove pnpm-lock.yaml: %w", err)
+		// Best-effort: both files are pnpm's alone, and the chosen manager
+		// regenerates what it needs on install. A missing file is not an error
+		// here. pnpm-workspace.yaml goes with the lockfile because it carries
+		// pnpm-only settings that no other manager reads.
+		for _, file := range []string{"pnpm-lock.yaml", "pnpm-workspace.yaml"} {
+			if err := os.Remove(
+				filepath.Join(frontend, file),
+			); err != nil && !errors.Is(err, os.ErrNotExist) {
+				return fmt.Errorf("failed to remove %s: %w", file, err)
+			}
 		}
 
 		// Skipped for pnpm so the generated context files stay byte-identical to

@@ -524,6 +524,13 @@ func TestCreatePnpmLockfileByPackageManager(t *testing.T) {
 					filepath.Join(templateDir, "frontend", "pnpm-lock.yaml"),
 					"lockfileVersion: '9.0'\n",
 				)
+				// pnpm-workspace.yaml is pnpm's alone and is dropped together with
+				// the lockfile, so it rides the same fixture and expectation.
+				writeTestFile(
+					t,
+					filepath.Join(templateDir, "frontend", "pnpm-workspace.yaml"),
+					"packages:\n  - .\n",
+				)
 			}
 
 			t.Chdir(workdir)
@@ -547,17 +554,19 @@ func TestCreatePnpmLockfileByPackageManager(t *testing.T) {
 				t.Fatalf("create command: %v\n%s", err, output.String())
 			}
 
-			lockfile := filepath.Join(workdir, "my-app", "frontend", "pnpm-lock.yaml")
+			for _, pnpmFile := range []string{"pnpm-lock.yaml", "pnpm-workspace.yaml"} {
+				path := filepath.Join(workdir, "my-app", "frontend", pnpmFile)
 
-			_, statErr := os.Stat(lockfile)
-			switch {
-			case tt.wantLockfile && statErr != nil:
-				t.Fatalf("pnpm-lock.yaml was not kept for %s: %v", tt.packageManager, statErr)
-			case !tt.wantLockfile && !errors.Is(statErr, os.ErrNotExist):
-				t.Fatalf(
-					"pnpm-lock.yaml was not removed for %s: stat error = %v",
-					tt.packageManager, statErr,
-				)
+				_, statErr := os.Stat(path)
+				switch {
+				case tt.wantLockfile && statErr != nil:
+					t.Fatalf("%s was not kept for %s: %v", pnpmFile, tt.packageManager, statErr)
+				case !tt.wantLockfile && !errors.Is(statErr, os.ErrNotExist):
+					t.Fatalf(
+						"%s was not removed for %s: stat error = %v",
+						pnpmFile, tt.packageManager, statErr,
+					)
+				}
 			}
 
 			assertNoStagingLeftovers(t, filepath.Join(workdir, "my-app"))

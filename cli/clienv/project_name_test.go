@@ -104,6 +104,17 @@ func TestProjectNameResolution(t *testing.T) {
 			args:         []string{"--project-name", "from-flag"},
 			want:         "from-flag",
 		},
+		// The failure this guards against is silent: compose namespaces the
+		// containers and the Postgres volume from the project name, so reading
+		// it out of ./nhost while applying the config in another folder runs
+		// one project's stack against another project's database.
+		{
+			name:         "--nhost-folder moves where the recorded name is read from",
+			fileContents: "my-app\n",
+			env:          "",
+			args:         []string{"--nhost-folder", "elsewhere"},
+			want:         "other-app",
+		},
 	}
 
 	for _, tt := range tests {
@@ -121,6 +132,18 @@ func TestProjectNameResolution(t *testing.T) {
 				); err != nil {
 					t.Fatalf("write project name file: %v", err)
 				}
+			}
+
+			if err := os.MkdirAll(filepath.Join(root, "elsewhere"), 0o755); err != nil {
+				t.Fatalf("create alternate nhost folder: %v", err)
+			}
+
+			if err := os.WriteFile(
+				filepath.Join(root, "elsewhere", "project-name"),
+				[]byte("other-app\n"),
+				0o600,
+			); err != nil {
+				t.Fatalf("write alternate project name file: %v", err)
 			}
 
 			if tt.env != "" {

@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -50,6 +51,9 @@ func TestCreateScaffoldsRealLocalTemplate(t *testing.T) {
 		"backend/nhost/metadata/version.yaml",
 		"backend/nhost/migrations/default/1700000000000_init_todos/up.sql",
 		"frontend/codegen.ts",
+		// The documented first step of a scaffolded project is copying this to
+		// .env.local, so the artifact filter has to let it through.
+		"frontend/.env.example",
 		"frontend/schema.graphql",
 		"CLAUDE.md",
 		"AGENTS.md",
@@ -171,6 +175,16 @@ func TestCreateRetargetsRealTemplateDocs(t *testing.T) {
 	for _, want := range []string{"npm install", "npm run codegen", "npm run lint"} {
 		if !strings.Contains(agents, want) {
 			t.Errorf("AGENTS.md is missing %q", want)
+		}
+	}
+
+	// The template ships both pnpm files; an npm scaffold must leave neither,
+	// or `npm install` runs against pnpm's leftovers.
+	for _, pnpmFile := range []string{"pnpm-lock.yaml", "pnpm-workspace.yaml"} {
+		if _, err := os.Stat(
+			filepath.Join(projectDir, "frontend", pnpmFile),
+		); !errors.Is(err, os.ErrNotExist) {
+			t.Errorf("npm scaffold kept frontend/%s: %v", pnpmFile, err)
 		}
 	}
 }

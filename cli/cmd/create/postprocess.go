@@ -164,6 +164,60 @@ func retargetFile(path string, commands *regexp.Regexp, pm string) error {
 	return overwriteFile(path, out)
 }
 
+// skippedDirs, skippedPaths and skippedFile are the working-tree artifacts a
+// template directory collects locally and its own .gitignore keeps out of the
+// repository. --template-path copies a checkout rather than what git would
+// hand out, so without them a scaffold carries files the git-fetch path never
+// produces, and the end-to-end test exercises a tree no user would get. Every
+// entry of the template's own .gitignore is covered here (skippedDirs,
+// skippedPaths or skippedFile), so a new .gitignore entry has an obvious home.
+// .nhost and .secrets matter most: scaffoldBackend regenerates them before
+// copyDir runs, so a stray checkout copy would silently overwrite the fresh
+// admin/JWT/webhook secrets and the generated project state.
+//
+// None of these is ever a source directory, so depth does not matter.
+var skippedDirs = []string{ //nolint:gochecknoglobals
+	"node_modules", ".next", ".git", ".vercel", ".nhost",
+}
+
+// These two are ordinary words a route segment or a source directory may well
+// be called, so they match on the whole relative path, the way the template's
+// own .gitignore anchors them with a leading slash. Moving a template's app
+// out of frontend/ means updating them.
+var skippedPaths = []string{ //nolint:gochecknoglobals
+	"frontend/out", "frontend/coverage",
+}
+
+func skippedDir(rel string, name string) bool {
+	return slices.Contains(skippedDirs, name) ||
+		slices.Contains(skippedPaths, filepath.ToSlash(rel))
+}
+
+func skippedFile(name string) bool {
+	switch {
+	case name == "next-env.d.ts":
+		return true
+	case strings.HasSuffix(name, ".tsbuildinfo"):
+		return true
+	// .env.example is the one that ships: copying it to .env.local is every
+	// scaffolded project's documented first step. The prefix carries the dot so
+	// a source file such as .environment.ts is not swept up with it.
+	case name == ".env":
+		return true
+	case strings.HasPrefix(name, ".env.") && name != ".env.example":
+		return true
+	// scaffoldBackend writes a fresh backend/.secrets before copyDir runs, so a
+	// .secrets left in a --template-path checkout would truncate it back to the
+	// maintainer's local admin/JWT/webhook secrets.
+	case name == ".secrets":
+		return true
+	case name == ".DS_Store":
+		return true
+	default:
+		return false
+	}
+}
+
 // copyDir copies a local template directory tree into dst, skipping build and
 // VCS artifacts. Used by --template-path for offline/dev scaffolding.
 func copyDir(src, dst string) error {
@@ -194,8 +248,7 @@ func copyDir(src, dst string) error {
 		}
 
 		if d.IsDir() {
-			switch d.Name() {
-			case "node_modules", ".next", ".git":
+			if skippedDir(rel, d.Name()) {
 				return fs.SkipDir
 			}
 
@@ -203,6 +256,10 @@ func copyDir(src, dst string) error {
 				return fmt.Errorf("failed to create directory: %w", err)
 			}
 
+			return nil
+		}
+
+		if skippedFile(d.Name()) {
 			return nil
 		}
 
@@ -254,6 +311,13 @@ func copyFile(src string, dst *os.Root, rel string, mode os.FileMode) error {
 
 	if _, err := io.Copy(out, in); err != nil {
 		return fmt.Errorf("failed to copy %s: %w", target, err)
+	}
+
+	// io.Copy can return nil and the flush behind Close still fail, which is how
+	// a truncated file gets reported as a complete one and moved into the user's
+	// project. The defer stays for the paths that return before here.
+	if err := out.Close(); err != nil {
+		return fmt.Errorf("failed to write %s: %w", target, err)
 	}
 
 	return nil

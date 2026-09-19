@@ -630,6 +630,9 @@ func upErr(
 	downOnError bool,
 	err error,
 ) error {
+	// Printed here even though the returned error is printed again on the way
+	// out: the prompt below has to say what went wrong, and by the time the
+	// caller prints the error the user has already answered.
 	ce.Warnln("%s", err.Error())
 
 	// The prompt decides whether to tear the environment down, not whether

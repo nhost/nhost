@@ -94,8 +94,9 @@ func promptPick(ce *clienv.CliEnv, title string, items []pickerItem, defaultIdx 
 }
 
 // pickByNumber prints a numbered list and returns the index of the chosen
-// item, falling back to defaultIdx on an empty answer. It is what runs when
-// input is piped in rather than typed.
+// item, falling back to defaultIdx on an empty answer. It is the fallback for
+// a terminal the arrow-key picker cannot drive; piped input never reaches it,
+// because `action` only prompts at all when stdin and stdout are both TTYs.
 func pickByNumber(
 	ce *clienv.CliEnv,
 	title string,

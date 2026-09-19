@@ -35,6 +35,9 @@ type template struct {
 	display string
 }
 
+// noTemplate is what lookupTemplate reports alongside false.
+var noTemplate = template{name: "", display: ""} //nolint:gochecknoglobals
+
 var templates = []template{ //nolint:gochecknoglobals
 	{
 		name:    "nextjs-shadcn",
@@ -49,7 +52,7 @@ func lookupTemplate(name string) (template, bool) {
 		}
 	}
 
-	return template{}, false //nolint:exhaustruct
+	return noTemplate, false
 }
 
 func templateNames() []string {
