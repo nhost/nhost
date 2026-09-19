@@ -284,6 +284,13 @@ function redeemableLinkToken(request: NextRequest): string | null {
 // randomly signed out after leaving a tab idle. A prefetch reads the stored
 // session instead, which is enough to decide access for a response nobody is
 // looking at yet, and leaves rotation to the request that is really happening.
+//
+// This proxy is the *only* rotator, by design: the browser `nhost` client
+// (`@/lib/nhost/client`) is deliberately built without the SDK's own
+// auto-refresh middleware, so it never independently rotates this same
+// refresh token. Anyone re-enabling that middleware there reopens exactly the
+// race this function guards against, just with the browser as the second
+// rotator instead of a prefetch.
 function isPrefetch(request: NextRequest): boolean {
   // `2` is what the PPR runtime sends; `1` is the classic prefetch. Neither
   // arises in the template as it ships, but both do the moment somebody turns

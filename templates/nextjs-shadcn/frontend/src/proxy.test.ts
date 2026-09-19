@@ -117,6 +117,15 @@ describe('proxy access control', () => {
     expectSignInRedirect(await proxy(request('/profile')), '/profile');
   });
 
+  it('carries the query string along with the path', async () => {
+    stubNhostProxy(null);
+
+    expectSignInRedirect(
+      await proxy(request('/protected?tab=api')),
+      '/protected?tab=api',
+    );
+  });
+
   it('does not gate routes that only share a protected prefix', async () => {
     stubNhostProxy(null);
 

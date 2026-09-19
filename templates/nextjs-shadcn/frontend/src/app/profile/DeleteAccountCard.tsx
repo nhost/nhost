@@ -16,22 +16,40 @@ export function DeleteAccountCard() {
   const [error, setError] = useState<string | undefined>();
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleDelete = async () => {
+  const handleDelete = async (): Promise<void> => {
     setError(undefined);
     setIsDeleting(true);
+    try {
+      const result = await deleteAccount();
+      if (!result.success) {
+        setError(
+          result.error ?? 'The request did not reach the server. Try again.',
+        );
+        setIsDeleting(false);
+        return;
+      }
 
-    const result = await deleteAccount();
+      if (result.error) {
+        // The account is deleted and this device's session is already cleared;
+        // stay put so this warning is visible instead of redirecting it away
+        // unseen.
+        setError(result.error);
+        setIsDeleting(false);
+        return;
+      }
 
-    if (result.error) {
+      // A full document load for the same reason signing out uses one: this has
+      // just signed every device out, and nothing rendered against the old
+      // session should survive in the client router's cache. Deliberately not
+      // resetting isDeleting here: the button must stay disabled for the
+      // window.location.replace unload, or it re-enables a destructive action
+      // the page is about to leave anyway.
+      window.location.replace('/');
+    } catch (err) {
+      console.error('Could not delete the account:', err);
+      setError('The request did not reach the server. Try again.');
       setIsDeleting(false);
-      setError(result.error);
-      return;
     }
-
-    // A full document load for the same reason signing out uses one: this has
-    // just signed every device out, and nothing rendered against the old
-    // session should survive in the client router's cache.
-    window.location.replace('/');
   };
 
   return (
@@ -50,7 +68,7 @@ export function DeleteAccountCard() {
             <Button
               type="button"
               variant="destructive"
-              onClick={handleDelete}
+              onClick={() => void handleDelete()}
               disabled={isDeleting}
             >
               {isDeleting ? 'Deleting…' : 'Yes, delete my account'}

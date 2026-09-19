@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "biome check .",
-    "format": "biome format --write .",
+    "format": "biome check --write .",
     "codegen:schema": "nhost schema dump --subdomain local --role user -o schema.graphql",
     "codegen:types": "graphql-codegen --config codegen.ts",
     "codegen": "nhost schema dump --subdomain local --role user -o schema.graphql && graphql-codegen --config codegen.ts",
@@ -33,7 +33,7 @@
     "next": "^16.2.6",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "tailwind-merge": "^2.6.0"
+    "tailwind-merge": "^3.7.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.15",

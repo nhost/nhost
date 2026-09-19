@@ -41,8 +41,6 @@ const GetTodos = graphql(`
       is_public
       sort_order
       file_id
-      created_at
-      user_id
     }
   }
 `);
@@ -71,8 +69,6 @@ const CreateTodo = graphql(`
       preposition
       is_public
       file_id
-      created_at
-      user_id
     }
   }
 `);
@@ -170,8 +166,25 @@ export function Todos({
     onSuccess: settle,
   });
 
+  // Deleting the row does not delete its attachment, so the file half is
+  // cleaned up here rather than left to accumulate in the bucket forever. A
+  // failure of that second step is ignored: the row is already gone, and the
+  // file is then merely orphaned rather than blocking the delete the user
+  // asked for.
   const deleteTodo = useMutation({
-    mutationFn: (id: string) => gqlRequest(nhost, DeleteTodo, { id }),
+    mutationFn: async ({
+      id,
+      fileId,
+    }: {
+      id: string;
+      fileId: string | null;
+    }) => {
+      const result = await gqlRequest(nhost, DeleteTodo, { id });
+      if (fileId) {
+        await nhost.storage.deleteFile(fileId).catch(() => {});
+      }
+      return result;
+    },
     onSuccess: settle,
   });
 
@@ -335,17 +348,27 @@ export function Todos({
                     } satisfies Todo
                   }
                   isBusy={
-                    updateTodo.isPending ||
-                    deleteTodo.isPending ||
-                    reorderTodos.isPending
+                    reorderTodos.isPending ||
+                    (updateTodo.isPending &&
+                      updateTodo.variables?.id === String(todo.id)) ||
+                    (deleteTodo.isPending &&
+                      deleteTodo.variables?.id === String(todo.id))
                   }
                   canMoveUp={index > 0}
                   canMoveDown={index < items.length - 1}
                   onMove={(delta) => move(String(todo.id), delta)}
-                  onUpdate={(changes) =>
-                    updateTodo.mutate({ id: String(todo.id), changes })
+                  onUpdate={async (changes) => {
+                    await updateTodo.mutateAsync({
+                      id: String(todo.id),
+                      changes,
+                    });
+                  }}
+                  onDelete={() =>
+                    deleteTodo.mutate({
+                      id: String(todo.id),
+                      fileId: todo.file_id ? String(todo.file_id) : null,
+                    })
                   }
-                  onDelete={() => deleteTodo.mutate(String(todo.id))}
                 />
               ))}
             </ul>

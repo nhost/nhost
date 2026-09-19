@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { cache } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LocationTag } from '@/components/WantFields';
 import { graphql } from '@/gql';
@@ -18,13 +19,19 @@ export const dynamic = 'force-dynamic';
  * filter is written here, both live in the permissions. Nothing on this page
  * had to remember to exclude a private row, which is the point of putting the
  * rule in the backend rather than in a `where` clause a page could forget.
+ *
+ * `schema.graphql` is dumped for the `user` role, not `public`, so adding a
+ * field here (`avatarUrl`, `email`, `todos.user_id`, ...) can pass
+ * `pnpm codegen:types` while still being unreadable by the role this page
+ * actually runs as. Check the `public` column allowlist in
+ * `backend/nhost/metadata/` before adding one (see the refresh-context skill
+ * in `SKILLS.md`).
  */
 const GetSharedList = graphql(`
   query GetSharedList($id: uuid!) {
     user(id: $id) {
       id
       displayName
-      avatarUrl
       todos(order_by: [{ sort_order: asc }, { created_at: desc }]) {
         id
         title
@@ -40,19 +47,25 @@ const GetSharedList = graphql(`
 
 type PageProps = { params: Promise<{ id: string }> };
 
-async function sharedList(id: string) {
-  try {
-    const { user } = await gqlRequest(createAnonymousClient(), GetSharedList, {
-      id,
-    });
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-    return user;
-  } catch {
-    // An id that is not a uuid fails at the scalar, which is the same answer
-    // as a profile nobody published: there is no such page.
+// Memoized per request: `generateMetadata` and `SharedList` both call this
+// for the same `id` on every render, and without `cache` that is two
+// identical `GetSharedList` round trips instead of one.
+const sharedList = cache(async (id: string) => {
+  // Checked here rather than in a catch below, so a shape the `uuid` scalar
+  // would reject reads as "no such page" without also swallowing a backend
+  // that is merely down, which must not look like a missing page.
+  if (!UUID.test(id)) {
     return null;
   }
-}
+
+  const { user } = await gqlRequest(createAnonymousClient(), GetSharedList, {
+    id,
+  });
+
+  return user;
+});
 
 export async function generateMetadata({
   params,
@@ -90,8 +103,21 @@ export default async function SharedList({ params }: PageProps) {
     // rather than printed above a stranger's head.
     <div className="flex flex-col gap-14 pb-32">
       <header className="flex flex-col items-center gap-4 pt-6 text-center">
+        {/* Not `user.avatarUrl`: the `public` role cannot read that column,
+            because for an unpublished-avatar account it is a Gravatar URL that
+            embeds an md5 of the email (see `auth_users.yaml`). The stored
+            avatar, if any, is served straight from `storage.files` at this
+            convention path; an account that never uploaded one 404s here and
+            falls back to the initial, which is the intended look anyway. */}
         <Avatar className="size-24 ring-2 ring-border ring-offset-4 ring-offset-background">
-          {user.avatarUrl ? <AvatarImage src={user.avatarUrl} alt="" /> : null}
+          {/* Asked for at three times the size it is drawn at, the way
+              `FileThumbnail` does, so this loads sharp for anyone on this
+              public page instead of pulling the full 512px upload down to
+              paint a 96 CSS px circle. */}
+          <AvatarImage
+            src={fileURL(client, user.id, { w: 288, q: 80, f: 'auto' })}
+            alt=""
+          />
           <AvatarFallback className="text-2xl">
             {user.displayName.slice(0, 1).toUpperCase()}
           </AvatarFallback>

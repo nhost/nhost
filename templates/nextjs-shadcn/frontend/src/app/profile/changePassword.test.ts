@@ -19,10 +19,11 @@ const USER = 'user-id';
 
 const signInEmailPassword = vi.fn();
 const changeUserPassword = vi.fn();
+const verifySignInOTPEmail = vi.fn();
 
 const client = {
   getUserSession: () => ({ user: { id: USER, email: 'a@example.com' } }),
-  auth: { signInEmailPassword, changeUserPassword },
+  auth: { signInEmailPassword, changeUserPassword, verifySignInOTPEmail },
 };
 
 beforeEach(() => {
@@ -94,5 +95,48 @@ describe('changePassword and the password-reset grant', () => {
       password: 'the-old-one',
     });
     expect(changeUserPassword).toHaveBeenCalledOnce();
+  });
+
+  it('leaves the grant unspent when the change itself fails', async () => {
+    vi.mocked(passwordResetGrantUserId).mockResolvedValue(USER);
+    changeUserPassword.mockRejectedValue(new Error('password is too short'));
+
+    expect(await changePassword('short')).toEqual({
+      error: 'Could not change the password: password is too short',
+    });
+    // One reset link, one password - but only once one was actually set.
+    expect(clearPasswordResetGrant).not.toHaveBeenCalled();
+  });
+
+  it('asks for an emailed code when the account has no password yet', async () => {
+    vi.mocked(passwordResetGrantUserId).mockResolvedValue(null);
+    vi.mocked(gqlRequest).mockResolvedValue({
+      user: { id: USER, hasPassword: false },
+    } as never);
+
+    expect(await changePassword('a-new-password')).toEqual({
+      error: 'Enter the code we emailed you to confirm this change.',
+    });
+    expect(changeUserPassword).not.toHaveBeenCalled();
+  });
+
+  it('sets a first password once the emailed code checks out', async () => {
+    vi.mocked(passwordResetGrantUserId).mockResolvedValue(null);
+    vi.mocked(gqlRequest).mockResolvedValue({
+      user: { id: USER, hasPassword: false },
+    } as never);
+    verifySignInOTPEmail.mockResolvedValue({});
+    changeUserPassword.mockResolvedValue({});
+    signInEmailPassword.mockResolvedValue({});
+
+    expect(await changePassword('a-new-password', '123456')).toEqual({
+      success: true,
+    });
+    expect(verifySignInOTPEmail).toHaveBeenCalledWith({
+      email: 'a@example.com',
+      otp: '123456',
+    });
+    // Signs back in on the new password once, after the code check.
+    expect(signInEmailPassword).toHaveBeenCalledOnce();
   });
 });

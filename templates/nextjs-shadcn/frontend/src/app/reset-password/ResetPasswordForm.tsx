@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { type FormEvent, useId, useState } from 'react';
 import { changePassword } from '@/app/profile/actions';
 import { Button } from '@/components/ui/button';
@@ -12,7 +11,6 @@ import { Label } from '@/components/ui/label';
 const MIN_PASSWORD_LENGTH = 9;
 
 export function ResetPasswordForm() {
-  const router = useRouter();
   const passwordId = useId();
 
   const [password, setPassword] = useState('');
@@ -32,8 +30,12 @@ export function ResetPasswordForm() {
       return;
     }
 
-    router.push('/profile');
-    router.refresh();
+    // A full document load rather than a client navigation: changePassword
+    // rotates the session cookie, so every Server Component here would
+    // render against a stale session and the router's cached route trees
+    // with it. It also drops /reset-password from history so Back can't
+    // re-render it on the now-spent grant and show the expired-link error.
+    window.location.replace('/profile');
   };
 
   return (

@@ -72,6 +72,24 @@ describe('app origin', () => {
 
     expect(appOrigin()).toBe('http://localhost:3000');
   });
+
+  // Regression guard: Next.js inlines NEXT_PUBLIC_* at build time, so a
+  // production build that leaves this unset cannot be fixed at runtime. The
+  // build must fail loudly instead of silently shipping the localhost default.
+  it('warns on a production build with the origin unset', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('NEXT_PUBLIC_APP_ORIGIN', undefined);
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    vi.resetModules();
+    await import('@/lib/nhost/env');
+
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringContaining('NEXT_PUBLIC_APP_ORIGIN'),
+    );
+
+    errorSpy.mockRestore();
+  });
 });
 
 describe('local mailbox', () => {

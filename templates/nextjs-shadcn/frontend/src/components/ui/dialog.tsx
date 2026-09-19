@@ -22,9 +22,13 @@ function DialogClose(
 }
 
 /**
- * A dialog does lock the page behind it, unlike the dropdown menu. The layout
- * survives that because the page draws no scrollbar (see globals.css), so
- * taking scrolling away costs no width and nothing jumps sideways.
+ * A dialog does lock the page behind it, unlike the dropdown menu. Radix
+ * wraps DialogContent in react-remove-scroll-bar, which measures the native
+ * scrollbar's width and reapplies it as `margin-right` on body while locked.
+ * `html`'s own gutter reservation (globals.css) steps aside for exactly that
+ * duration - see the comment there for why - so the reservation just moves
+ * from `html` to `body` instead of adding a second one, and the content box
+ * stays the same width whether the dialog is open or not.
  *
  * On a phone it fills the screen instead of floating in the middle of it: at
  * that width a centred card is nearly the whole viewport anyway, and the strip

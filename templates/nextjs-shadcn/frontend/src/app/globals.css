@@ -3,6 +3,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  color-scheme: light;
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -25,6 +26,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -83,6 +85,33 @@
       opacity: 0;
     }
   }
+
+  /* Radix keeps a menu mounted until this finishes, so it also covers the
+     data-[state=closed] exit rather than just the open transition. */
+  --animate-dropdown-in: dropdown-in 150ms ease-out;
+  --animate-dropdown-out: dropdown-out 100ms ease-in;
+
+  @keyframes dropdown-in {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes dropdown-out {
+    from {
+      opacity: 1;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+  }
 }
 
 /* Scrolls, but without drawing a scrollbar for it. For panels inside a dialog,
@@ -100,20 +129,26 @@
   * {
     @apply border-border outline-ring/50;
   }
-  /* The page scrolls without drawing a bar for it, same as the panels inside
-     dialogs. This also replaces the scrollbar-gutter that used to hold the
-     bar's space: a bar that is never drawn cannot take width from the layout
-     in the first place, so a short page and a long one already line up, and
-     locking the page behind a dialog still shifts nothing. */
-  html,
-  body {
-    scrollbar-width: none;
+  /* Reserves the scrollbar's width whether or not it is drawn, so a short
+     page and a long one already line up. Unlike hiding the bar outright,
+     this keeps the position indicator and the drag-to-scroll affordance for
+     mouse users.
+
+     Suspended while a dialog holds the scroll lock (body[data-scroll-locked],
+     set by react-remove-scroll-bar via Radix Dialog): that library measures
+     the native scrollbar's width once at lock time and reapplies it as
+     `margin-right` on body. If this gutter stayed on `html` at the same
+     time, the two reservations would stack - body's margin-right on top of
+     html's already-narrowed content box - shifting centred content left by
+     half a scrollbar width and leaving `fixed inset-0` overlays short of the
+     true right edge (radix-ui/primitives#3251). Dropping the gutter for the
+     lock's duration leaves exactly one reservation active at a time, so the
+     content box is the same width locked or not and nothing moves when a
+     dialog opens. */
+  html:not(:has(body[data-scroll-locked])) {
+    scrollbar-gutter: stable;
   }
 
-  html::-webkit-scrollbar,
-  body::-webkit-scrollbar {
-    display: none;
-  }
   body {
     @apply bg-background text-foreground;
   }

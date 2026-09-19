@@ -24,6 +24,11 @@ function markedDeleted(session: Session | null | undefined): boolean {
  * answer `false` and go down the emailed-code path, which is also how signing
  * up works. See `backend/functions/auth-method.ts` for what that does and does
  * not reveal.
+ *
+ * This is a public, unauthenticated Server Action fronting that admin-secret
+ * function from the sign-in page. Put a rate limit in front of `/auth-method`
+ * (for example at the CDN/edge, keyed on client IP) before deploying this
+ * publicly — see "Before you deploy" in `README.md`.
  */
 export async function hasPassword(email: string): Promise<boolean> {
   if (!email) {

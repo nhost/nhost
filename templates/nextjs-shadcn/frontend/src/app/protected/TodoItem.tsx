@@ -42,11 +42,15 @@ export type TodoChanges = {
   file_id?: string | null;
 };
 
+// A resting opacity rather than opacity-0 + group-hover: Tailwind's hover
+// variants are gated behind a `(hover: hover)` capability query, so a
+// touch-only device would never reveal these controls at all even though
+// they stay tappable and one of them is destructive.
 const hiddenAction =
-  'text-muted-foreground opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100';
+  'text-muted-foreground opacity-60 transition-opacity hover:opacity-100 focus-visible:opacity-100 group-hover:opacity-100';
 
 const reorderArrow =
-  'flex h-4 items-center justify-center rounded-sm text-muted-foreground/50 opacity-0 outline-none transition hover:text-foreground focus-visible:opacity-100 focus-visible:ring-[2px] focus-visible:ring-ring/50 group-hover:opacity-100 disabled:pointer-events-none';
+  'flex h-4 items-center justify-center rounded-sm text-muted-foreground opacity-60 outline-none transition hover:text-foreground hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-[2px] focus-visible:ring-ring/50 group-hover:opacity-100 disabled:pointer-events-none';
 
 export function TodoItem({
   todo,
@@ -58,7 +62,7 @@ export function TodoItem({
   isBusy,
 }: {
   todo: Todo;
-  onUpdate: (changes: TodoChanges) => void;
+  onUpdate: (changes: TodoChanges) => Promise<void>;
   onDelete: () => void;
   onMove: (delta: -1 | 1) => void;
   canMoveUp: boolean;
@@ -103,11 +107,11 @@ export function TodoItem({
 
     // An empty box means no particular place, which the column stores as NULL
     // rather than as an empty string, so there is one way to say it.
-    onUpdate({
+    void onUpdate({
       title,
       preposition: draft.preposition,
       location: draft.location?.trim() || null,
-    });
+    }).catch(() => {});
     setIsEditing(false);
   };
 
@@ -212,7 +216,7 @@ export function TodoItem({
         <Checkbox
           checked={todo.completed}
           onCheckedChange={(checked) =>
-            onUpdate({ completed: checked === true })
+            void onUpdate({ completed: checked === true }).catch(() => {})
           }
           disabled={isBusy}
           aria-label={
@@ -308,7 +312,9 @@ export function TodoItem({
               type="button"
               size="icon"
               variant="ghost"
-              onClick={() => onUpdate({ is_public: !todo.isPublic })}
+              onClick={() =>
+                void onUpdate({ is_public: !todo.isPublic }).catch(() => {})
+              }
               disabled={isBusy}
               aria-pressed={todo.isPublic}
               className={todo.isPublic ? 'text-foreground' : hiddenAction}

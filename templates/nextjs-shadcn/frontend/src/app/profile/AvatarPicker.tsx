@@ -8,10 +8,7 @@ import { OwnAvatarImage } from '@/components/OwnAvatarImage';
 import { initial } from '@/components/UserMenu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-
-// Mirrors the server action's cap; checking here avoids an upload that would
-// only be rejected on the other side.
-const MAX_AVATAR_BYTES = 4 * 1024 * 1024;
+import { MAX_AVATAR_BYTES } from '@/lib/avatar';
 
 export function AvatarPicker({
   userId,
@@ -42,6 +39,8 @@ export function AvatarPicker({
       setError('That file is not an image.');
       return;
     }
+    // Checking here, against the same constant the server action imports,
+    // avoids an upload that would only be rejected on the other side.
     if (file.size > MAX_AVATAR_BYTES) {
       setError('The image is too large. Keep it under 4 MB.');
       return;
@@ -52,33 +51,42 @@ export function AvatarPicker({
 
     setError(undefined);
     setIsUploading(true);
-    const result = await uploadAvatar(formData);
-    setIsUploading(false);
-
-    if (fileInput.current) {
-      fileInput.current.value = '';
+    try {
+      const result = await uploadAvatar(formData);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      router.refresh();
+    } catch (err) {
+      console.error('Could not upload the avatar:', err);
+      setError(
+        'The upload did not reach the server. Try a smaller image, or try again.',
+      );
+    } finally {
+      setIsUploading(false);
+      if (fileInput.current) {
+        fileInput.current.value = '';
+      }
     }
-
-    if (result.error) {
-      setError(result.error);
-      return;
-    }
-
-    router.refresh();
   };
 
   const handleRemove = async (): Promise<void> => {
     setError(undefined);
     setIsRemoving(true);
-    const result = await removeAvatar();
-    setIsRemoving(false);
-
-    if (result.error) {
-      setError(result.error);
-      return;
+    try {
+      const result = await removeAvatar();
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      router.refresh();
+    } catch (err) {
+      console.error('Could not remove the avatar:', err);
+      setError('The request did not reach the server. Try again.');
+    } finally {
+      setIsRemoving(false);
     }
-
-    router.refresh();
   };
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>): void => {
@@ -109,7 +117,7 @@ export function AvatarPicker({
         }`}
       >
         <Avatar className="size-20 border">
-          <OwnAvatarImage userId={userId} avatarUrl={avatarUrl} />
+          <OwnAvatarImage userId={userId} avatarUrl={avatarUrl} size={80} />
           <AvatarFallback className="text-3xl">
             {initial(displayName, email)}
           </AvatarFallback>

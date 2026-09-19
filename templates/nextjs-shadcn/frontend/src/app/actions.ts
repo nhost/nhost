@@ -5,7 +5,6 @@ import { createNhostClient } from '@/lib/nhost/server';
 export type ConnectionResult = {
   ok: boolean;
   latencyMs: number;
-  error?: string;
 };
 
 /**
@@ -24,10 +23,8 @@ export async function testConnection(): Promise<ConnectionResult> {
 
     return { ok: true, latencyMs: Date.now() - started };
   } catch (err) {
-    return {
-      ok: false,
-      latencyMs: Date.now() - started,
-      error: (err as Error).message,
-    };
+    console.error('testConnection failed:', err);
+
+    return { ok: false, latencyMs: Date.now() - started };
   }
 }

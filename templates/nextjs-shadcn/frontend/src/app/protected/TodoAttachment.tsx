@@ -24,7 +24,7 @@ export function TodoAttachment({
   disabled,
 }: {
   fileId: string | null;
-  onChange: (fileId: string | null) => void;
+  onChange: (fileId: string | null) => Promise<void>;
   disabled: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -33,8 +33,9 @@ export function TodoAttachment({
 
   const busy = isBusy || disabled;
 
-  // Upload, point the row at the new file, then drop the old one. In that
-  // order a failure anywhere leaves an unreferenced file behind, which is
+  // Upload, point the row at the new file, then drop the old one, awaiting
+  // each step. If the row update rejects, the `deleteFile` call below never
+  // runs, so a failure anywhere leaves an unreferenced file behind, which is
   // harmless, rather than a row pointing at a file that is already gone.
   const handlePick = async (
     event: ChangeEvent<HTMLInputElement>,
@@ -60,7 +61,7 @@ export function TodoAttachment({
       }
 
       const previous = fileId;
-      onChange(uploaded);
+      await onChange(uploaded);
 
       if (previous) {
         await nhost.storage.deleteFile(previous);
@@ -81,7 +82,7 @@ export function TodoAttachment({
     setIsBusy(true);
 
     try {
-      onChange(null);
+      await onChange(null);
       await nhost.storage.deleteFile(fileId);
     } catch (err) {
       setError(`Could not remove that photo: ${(err as Error).message}`);

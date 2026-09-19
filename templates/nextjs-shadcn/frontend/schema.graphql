@@ -326,6 +326,10 @@ type files {
   """
   An object relationship
   """
+  avatarOwner: users
+  """
+  An object relationship
+  """
   bucket: buckets!
   bucketId: String!
   createdAt: timestamptz!
@@ -1263,6 +1267,7 @@ input files_bool_exp {
   _and: [files_bool_exp!]
   _not: files_bool_exp
   _or: [files_bool_exp!]
+  avatarOwner: users_bool_exp
   bucket: buckets_bool_exp
   bucketId: String_comparison_exp
   createdAt: timestamptz_comparison_exp
@@ -1341,6 +1346,7 @@ input files_on_conflict {
 Ordering options when selecting data from "storage.files".
 """
 input files_order_by {
+  avatarOwner: users_order_by
   bucket: buckets_order_by
   bucketId: order_by
   createdAt: order_by
