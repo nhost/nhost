@@ -47,6 +47,9 @@ jobs:
         include:
           - template: nextjs-shadcn
             compile: build
+          - template: react
+            check: typecheck
+            compile: build
           - template: react-native
             check: typecheck
     defaults:
@@ -123,6 +126,8 @@ jobs:
         include:
           - template: nextjs-shadcn
             functions: true
+          - template: react
+            functions: false
           - template: react-native
             functions: false
     steps:
