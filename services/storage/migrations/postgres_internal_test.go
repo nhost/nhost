@@ -25,6 +25,14 @@ var (
 	errCloseFailure     = errors.New("close failed")
 )
 
+func TestPostgresMigrationBundle(t *testing.T) {
+	t.Parallel()
+
+	if err := pgmigrate.ValidateBundle(postgresMigrations, postgresMigrationPath); err != nil {
+		t.Fatalf("ValidateBundle() error = %v", err)
+	}
+}
+
 //go:embed postgres/000001_create-initial-tables.*.sql
 var postgresMigrationsAtVersionOne embed.FS
 

@@ -37,7 +37,7 @@ func TestValidateBundle(t *testing.T) {
 				"migrations/1_first.up.sql":   &fstest.MapFile{Data: []byte("SELECT 1;")},
 				"migrations/1_first.down.sql": &fstest.MapFile{Data: []byte(" \n\t")},
 			},
-			wantIssue: "must contain non-whitespace SQL",
+			wantIssue: "must contain SQL beyond comments and whitespace",
 		},
 	}
 
