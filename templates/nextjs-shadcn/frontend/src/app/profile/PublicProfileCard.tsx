@@ -43,16 +43,20 @@ export function PublicProfileCard({
   const handleToggle = async (next: boolean): Promise<void> => {
     setError(undefined);
     setIsSaving(true);
+    try {
+      const result = await setProfilePublished(next);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
 
-    const result = await setProfilePublished(next);
-    setIsSaving(false);
-
-    if (result.error) {
-      setError(result.error);
-      return;
+      router.refresh();
+    } catch (err) {
+      console.error('Could not update the public profile setting:', err);
+      setError('The request did not reach the server. Try again.');
+    } finally {
+      setIsSaving(false);
     }
-
-    router.refresh();
   };
 
   const handleCopy = async (): Promise<void> => {
@@ -83,7 +87,7 @@ export function PublicProfileCard({
           <Checkbox
             id={publishId}
             checked={published}
-            onCheckedChange={(checked) => handleToggle(checked === true)}
+            onCheckedChange={(checked) => void handleToggle(checked === true)}
             disabled={isSaving}
           />
           <Label htmlFor={publishId} className="font-normal">

@@ -1,8 +1,8 @@
 'use client';
 
 import { BadgeAlert, BadgeCheck } from 'lucide-react';
-import { type FormEvent, useState } from 'react';
-import { changeEmail } from '@/app/profile/actions';
+import { type FormEvent, useId, useState } from 'react';
+import { changeEmail, sendReauthCode } from '@/app/profile/actions';
 import { MailboxHint } from '@/components/MailboxHint';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Tooltip,
   TooltipContent,
@@ -53,34 +54,66 @@ export function EmailCard({
   email,
   emailVerified,
   newEmail,
+  hasPassword,
 }: {
   email: string;
   emailVerified: boolean;
   newEmail?: string | null;
+  hasPassword: boolean;
 }) {
+  const currentId = useId();
   const [changing, setChanging] = useState(false);
   const [nextEmail, setNextEmail] = useState('');
-  const [requested, setRequested] = useState(false);
+  const [current, setCurrent] = useState('');
+  const [requestedEmail, setRequestedEmail] = useState('');
   const [error, setError] = useState<string | undefined>();
   const [isSaving, setIsSaving] = useState(false);
+  const [isSendingCode, setIsSendingCode] = useState(false);
+  const [codeSent, setCodeSent] = useState(false);
 
-  const pendingEmail = requested ? nextEmail : newEmail;
+  const pendingEmail = requestedEmail || newEmail;
+
+  const handleSendCode = async (): Promise<void> => {
+    setError(undefined);
+    setIsSendingCode(true);
+    try {
+      const result = await sendReauthCode();
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      setCodeSent(true);
+    } catch (err) {
+      console.error('Could not send the code:', err);
+      setError('The request did not reach the server. Try again.');
+    } finally {
+      setIsSendingCode(false);
+    }
+  };
 
   const handleChangeEmail = async (event: FormEvent): Promise<void> => {
     event.preventDefault();
     setError(undefined);
     setIsSaving(true);
+    try {
+      // Pass `current` unconditionally: gating it on `hasPassword` is the
+      // bug that shipped and was rejected before.
+      const result = await changeEmail(nextEmail, current);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
 
-    const result = await changeEmail(nextEmail);
-    setIsSaving(false);
-
-    if (result.error) {
-      setError(result.error);
-      return;
+      setRequestedEmail(nextEmail);
+      setNextEmail('');
+      setCurrent('');
+      setChanging(false);
+    } catch (err) {
+      console.error('Could not change the email:', err);
+      setError('The request did not reach the server. Try again.');
+    } finally {
+      setIsSaving(false);
     }
-
-    setRequested(true);
-    setChanging(false);
   };
 
   return (
@@ -96,7 +129,7 @@ export function EmailCard({
 
       <CardContent className="flex flex-col gap-2">
         {changing ? (
-          <form className="flex items-end gap-2" onSubmit={handleChangeEmail}>
+          <form className="flex flex-col gap-2" onSubmit={handleChangeEmail}>
             <Input
               type="email"
               autoComplete="email"
@@ -107,20 +140,69 @@ export function EmailCard({
               disabled={isSaving}
               autoFocus
             />
-            <Button type="submit" disabled={isSaving || !nextEmail}>
-              {isSaving ? 'Sending…' : 'Send confirmation'}
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              disabled={isSaving}
-              onClick={() => {
-                setChanging(false);
-                setError(undefined);
-              }}
-            >
-              Cancel
-            </Button>
+            <div className="flex flex-col gap-1">
+              <Label htmlFor={currentId}>
+                {hasPassword ? 'Current password' : 'Code from your email'}
+              </Label>
+              {hasPassword ? (
+                <Input
+                  id={currentId}
+                  type="password"
+                  autoComplete="current-password"
+                  value={current}
+                  onChange={(event) => setCurrent(event.target.value)}
+                  disabled={isSaving}
+                  required
+                />
+              ) : (
+                <div className="flex gap-2">
+                  <Input
+                    id={currentId}
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    placeholder="123456"
+                    value={current}
+                    onChange={(event) => setCurrent(event.target.value)}
+                    disabled={isSaving}
+                    required
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleSendCode}
+                    disabled={isSaving || isSendingCode}
+                  >
+                    {isSendingCode
+                      ? 'Sending…'
+                      : codeSent
+                        ? 'Resend'
+                        : 'Send code'}
+                  </Button>
+                </div>
+              )}
+            </div>
+            <div className="flex items-end gap-2">
+              <Button
+                type="submit"
+                disabled={isSaving || !nextEmail || !current}
+              >
+                {isSaving ? 'Sending…' : 'Send confirmation'}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                disabled={isSaving}
+                onClick={() => {
+                  setChanging(false);
+                  setCurrent('');
+                  setError(undefined);
+                  setCodeSent(false);
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
           </form>
         ) : (
           <div className="flex items-center gap-2">

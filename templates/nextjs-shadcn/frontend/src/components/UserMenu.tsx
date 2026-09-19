@@ -2,6 +2,7 @@
 
 import { Globe, LogOut, User } from 'lucide-react';
 import Link from 'next/link';
+import { useState } from 'react';
 import { OwnAvatarImage } from '@/components/OwnAvatarImage';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
@@ -40,17 +41,33 @@ export function UserMenu({
   avatarUrl?: string | null;
   publicProfile: boolean;
 }) {
+  const [signOutError, setSignOutError] = useState<string | undefined>();
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
   // Leaves the same way signing in arrives: a full document load, so nothing
   // rendered against the old session survives in the client router's cache.
-  const handleSignOut = async (): Promise<void> => {
+  //
+  // Keeps the dropdown open on failure (`event.preventDefault()`) so the error
+  // below has somewhere to render; Radix would otherwise close it as soon as
+  // the item is selected, taking any inline message with it.
+  const handleSignOut = async (event: Event): Promise<void> => {
+    event.preventDefault();
+    setSignOutError(undefined);
+    setIsSigningOut(true);
     try {
-      await signOut();
+      const result = await signOut();
+      if (result?.error) {
+        setSignOutError(result.error);
+        return;
+      }
+
+      window.location.replace('/');
     } catch (err) {
       console.error('Error signing out:', err);
-      return;
+      setSignOutError('The request did not reach the server. Try again.');
+    } finally {
+      setIsSigningOut(false);
     }
-
-    window.location.replace('/');
   };
 
   return (
@@ -96,10 +113,20 @@ export function UserMenu({
           </DropdownMenuItem>
         ) : null}
 
-        <DropdownMenuItem variant="destructive" onSelect={handleSignOut}>
+        <DropdownMenuItem
+          variant="destructive"
+          disabled={isSigningOut}
+          onSelect={(event) => void handleSignOut(event)}
+        >
           <LogOut aria-hidden />
-          Sign out
+          {isSigningOut ? 'Signing out…' : 'Sign out'}
         </DropdownMenuItem>
+
+        {signOutError ? (
+          <p role="alert" className="px-2 py-1.5 text-destructive text-xs">
+            {signOutError}
+          </p>
+        ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   );

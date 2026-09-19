@@ -77,3 +77,12 @@ if (
     'Nhost: NEXT_PUBLIC_NHOST_SUBDOMAIN and NEXT_PUBLIC_NHOST_REGION were unset when this build ran, so the app targets the local stack (local.*.local.nhost.run). Set both before `next build`; setting them at runtime has no effect.',
   );
 }
+
+if (
+  process.env.NODE_ENV === 'production' &&
+  !process.env.NEXT_PUBLIC_APP_ORIGIN
+) {
+  console.error(
+    'Nhost: NEXT_PUBLIC_APP_ORIGIN was unset when this build ran, so auth emails and the shared-list link point at http://localhost:3000. Set it before `next build`; setting it at runtime has no effect.',
+  );
+}

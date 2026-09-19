@@ -26,9 +26,12 @@ import { isStoredAvatarURL, withTransform } from '@/lib/storage';
 export function OwnAvatarImage({
   userId,
   avatarUrl,
+  size = 32,
 }: {
   userId: string;
   avatarUrl?: string | null;
+  /** CSS pixel size of the surrounding `Avatar`; keep it in sync with its `size-*` class. */
+  size?: number;
 }) {
   const isStored = isStoredAvatarURL(nhost.storage.baseURL, avatarUrl, userId);
 
@@ -49,11 +52,11 @@ export function OwnAvatarImage({
 
   // Asked for at three times the size it is drawn at, the way `FileThumbnail`
   // does, so a dense screen stays sharp without pulling the whole 512px upload
-  // down to paint it at 32. Only the presigned URL is transformed: the picture
+  // down to paint it small. Only the presigned URL is transformed: the picture
   // auth assigns at sign-up is on another host, which has no such parameters.
   const src = isStored
     ? presigned.data &&
-      withTransform(presigned.data, { w: 96, q: 80, f: 'auto' })
+      withTransform(presigned.data, { w: size * 3, q: 80, f: 'auto' })
     : avatarUrl;
 
   // Nothing to draw until the signature arrives; the fallback initial shows

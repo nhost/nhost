@@ -13,13 +13,21 @@ export function ConnectionTile({ initial }: { initial: ConnectionResult }) {
   // have, it stays put while they move between views.
   const { measured, setMeasured } = useConnectionState();
   const [isTesting, setIsTesting] = useState(false);
+  const [error, setError] = useState<string | undefined>();
 
   const result = measured ?? initial;
 
   const handleTest = async (): Promise<void> => {
+    setError(undefined);
     setIsTesting(true);
-    setMeasured(await testConnection());
-    setIsTesting(false);
+    try {
+      setMeasured(await testConnection());
+    } catch (err) {
+      console.error('testConnection failed:', err);
+      setError('The request did not reach the server. Try again.');
+    } finally {
+      setIsTesting(false);
+    }
   };
 
   return (
@@ -27,15 +35,22 @@ export function ConnectionTile({ initial }: { initial: ConnectionResult }) {
       state={result.ok ? 'ok' : 'error'}
       title={result.ok ? 'Backend connected' : 'Backend unreachable'}
       action={
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={handleTest}
-          disabled={isTesting}
-        >
-          {isTesting ? 'Testing…' : 'Test connection'}
-        </Button>
+        <div className="flex flex-col items-start gap-1">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => void handleTest()}
+            disabled={isTesting}
+          >
+            {isTesting ? 'Testing…' : 'Test connection'}
+          </Button>
+          {error ? (
+            <p role="alert" className="text-destructive text-sm">
+              {error}
+            </p>
+          ) : null}
+        </div>
       }
     >
       {result.ok ? (

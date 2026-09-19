@@ -3,6 +3,7 @@
 import type { ErrorResponse } from '@nhost/nhost-js/auth';
 import type { FetchError } from '@nhost/nhost-js/fetch';
 import { graphql } from '@/gql';
+import { MAX_AVATAR_BYTES } from '@/lib/avatar';
 import { gqlRequest } from '@/lib/graphql';
 import { appOrigin } from '@/lib/nhost/env';
 import {
@@ -12,11 +13,6 @@ import {
 } from '@/lib/nhost/server';
 
 type ActionResult = { error?: string; success?: boolean };
-
-// Base64 in a JSON body grows the payload by a third, and the functions
-// runtime rejects bodies over 6 MB, so the original photo is capped here. The
-// avatar function shrinks it far below this before storing.
-const MAX_AVATAR_BYTES = 4 * 1024 * 1024;
 
 const SetDisplayName = graphql(`
   mutation SetDisplayName($id: uuid!, $displayName: String!) {
@@ -139,14 +135,125 @@ export async function removeAvatar(): Promise<ActionResult> {
   }
 }
 
-export async function changeEmail(newEmail: string): Promise<ActionResult> {
+/**
+ * Proves the caller can act on this account right now: the current password
+ * when it has one, or a code just emailed to it when it does not.
+ *
+ * Shared by `changeEmail` and `changePassword` so the two credential-changing
+ * actions cannot drift: whichever one is updated, the other keeps asking for
+ * the same proof. An account with no password has none to prove, so a fresh
+ * `verifySignInOTPEmail` stands in - the same "this browser controls the
+ * mailbox" proof `changePassword`'s reset-link grant already relies on.
+ * Passing this unconditionally on a passwordless account would leave a stolen
+ * session (the cookie is JS-readable, see `cookieOptions` in `server.ts`) able
+ * to set a password and redirect the login email with nothing but the cookie -
+ * exactly the takeover this function exists to block for accounts that do have
+ * a password.
+ */
+async function requireCurrentPasswordProof(
+  nhost: Awaited<ReturnType<typeof createNhostClient>>,
+  userId: string,
+  email: string,
+  currentPassword: string | undefined,
+): Promise<{ error: string } | null> {
+  let accountHasPassword: boolean;
+  try {
+    const { user: row } = await gqlRequest(nhost, GetHasPassword, {
+      id: userId,
+    });
+    accountHasPassword = row?.hasPassword === true;
+  } catch (err) {
+    return {
+      error: `Could not check the current password: ${(err as Error).message}`,
+    };
+  }
+
+  if (!accountHasPassword) {
+    if (!currentPassword) {
+      return {
+        error: 'Enter the code we emailed you to confirm this change.',
+      };
+    }
+
+    try {
+      await nhost.auth.verifySignInOTPEmail({ email, otp: currentPassword });
+    } catch {
+      return { error: 'That code is not valid.' };
+    }
+
+    return null;
+  }
+
+  if (!currentPassword) {
+    return { error: 'Enter your current password to change it.' };
+  }
+
+  try {
+    await nhost.auth.signInEmailPassword({ email, password: currentPassword });
+  } catch {
+    return { error: 'That is not your current password.' };
+  }
+
+  return null;
+}
+
+/**
+ * Emails a one-time code to the signed-in account's own address.
+ *
+ * The only proof `requireCurrentPasswordProof` accepts from an account with no
+ * password: it always goes to the mailbox on file rather than one the caller
+ * supplies, so a stolen session cookie alone cannot produce it.
+ */
+export async function sendReauthCode(): Promise<ActionResult> {
+  const nhost = await createNhostClient();
+  const email = nhost.getUserSession()?.user?.email;
+  if (!email) {
+    return { error: 'Sign in to request a code.' };
+  }
+
+  try {
+    await nhost.auth.signInOTPEmail({ email });
+    return { success: true };
+  } catch (err) {
+    const error = err as FetchError<ErrorResponse>;
+    return { error: `Could not send the code: ${error.message}` };
+  }
+}
+
+/**
+ * Requests an email change, confirmed from the new address.
+ *
+ * A session alone is not enough: unlike a password change, this backend
+ * primitive notifies only the new address, never the old one, so a stolen
+ * session that could change the login email unchallenged would let its holder
+ * confirm from a mailbox they control and walk straight into "forgot
+ * password" - the same permanent takeover `changePassword` guards against.
+ * `requireCurrentPasswordProof` closes that the same way changing the
+ * password does.
+ */
+export async function changeEmail(
+  newEmail: string,
+  currentPassword?: string,
+): Promise<ActionResult> {
   if (!newEmail) {
     return { error: 'An email address is required.' };
   }
 
   const nhost = await createNhostClient();
-  if (!nhost.getUserSession()) {
+  const user = nhost.getUserSession()?.user;
+  const email = user?.email;
+  if (!user || !email) {
     return { error: 'Sign in to change your email.' };
+  }
+
+  const proofError = await requireCurrentPasswordProof(
+    nhost,
+    user.id,
+    email,
+    currentPassword,
+  );
+  if (proofError) {
+    return proofError;
   }
 
   try {
@@ -174,7 +281,10 @@ export async function changeEmail(newEmail: string): Promise<ActionResult> {
  * one: `currentPassword` is verified by signing in with it, because Nhost's own
  * endpoint does not ask for it. Having just followed a reset link is the other,
  * and the proxy records that as a grant cookie when it redeems the link, so the
- * client cannot claim it by leaving an argument out.
+ * client cannot claim it by leaving an argument out. An account with no
+ * password yet goes through `requireCurrentPasswordProof` instead, which reuses
+ * `currentPassword` to carry a one-time code from `sendReauthCode` rather than
+ * letting the change through unchallenged.
  *
  * The grant names the account it was issued for, and is only accepted for that
  * account. Without the comparison it would mean no more than "some reset link
@@ -201,31 +311,14 @@ export async function changePassword(
   const resetGrant = (await passwordResetGrantUserId()) === user.id;
 
   if (!resetGrant) {
-    let accountHasPassword: boolean;
-    try {
-      const { user: row } = await gqlRequest(nhost, GetHasPassword, {
-        id: user.id,
-      });
-      accountHasPassword = row?.hasPassword === true;
-    } catch (err) {
-      return {
-        error: `Could not check the current password: ${(err as Error).message}`,
-      };
-    }
-
-    if (accountHasPassword) {
-      if (!currentPassword) {
-        return { error: 'Enter your current password to change it.' };
-      }
-
-      try {
-        await nhost.auth.signInEmailPassword({
-          email,
-          password: currentPassword,
-        });
-      } catch {
-        return { error: 'That is not your current password.' };
-      }
+    const proofError = await requireCurrentPasswordProof(
+      nhost,
+      user.id,
+      email,
+      currentPassword,
+    );
+    if (proofError) {
+      return proofError;
     }
   }
 
@@ -330,7 +423,28 @@ export async function deleteAccount(): Promise<ActionResult> {
 
   // Every device is signed out; signing back in during the grace period is
   // what offers the restore.
-  await nhost.auth.signOut({ refreshToken: session.refreshToken, all: true });
+  try {
+    await nhost.auth.signOut({ refreshToken: session.refreshToken, all: true });
+  } catch (err) {
+    console.error('Could not sign out after deleting the account:', err);
+
+    // The session cookie carries its own snapshot of `metadata`, stale until
+    // the next token refresh, so leaving it in place here would let this
+    // device keep acting as a signed-in, deleted account until that refresh
+    // happens. `nhost.clearSession()` only touches local storage (see the
+    // SDK's `clearSession` doc comment) - it does not call the backend - so
+    // it succeeds even though the network call above just failed, and it is
+    // what actually signs this device out. Telling the user to sign out
+    // manually would retry the same rejected refresh token and fail the same
+    // way.
+    nhost.clearSession();
+
+    return {
+      success: true,
+      error:
+        'Your account is marked deleted, and this device has been signed out. Sign in again within 30 days to restore it.',
+    };
+  }
 
   return { success: true };
 }
