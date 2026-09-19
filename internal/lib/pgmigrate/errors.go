@@ -51,26 +51,28 @@ func (e *BundleError) Unwrap() error {
 	return e.Cause
 }
 
-// IntegrityError reports a migration catalog row that cannot be trusted or
-// does not agree with the immutable embedded bundle.
+// IntegrityError reports an integrity violation in the migration catalog,
+// persisted migration state, or preflight migration path that makes execution
+// unsafe. Version identifies the migration or requested target involved when
+// non-nil; it is nil when no migration version applies or one cannot be decoded.
 type IntegrityError struct {
-	Version uint
+	Version *uint
 	Issue   string
 	Cause   error
 }
 
 // Error implements error.
 func (e *IntegrityError) Error() string {
-	if e.Cause != nil {
-		return fmt.Sprintf(
-			"migration catalog integrity failure at version %d: %s: %v",
-			e.Version,
-			e.Issue,
-			e.Cause,
-		)
+	prefix := "migration integrity failure"
+	if e.Version != nil {
+		prefix = fmt.Sprintf("migration integrity failure at version %d", *e.Version)
 	}
 
-	return fmt.Sprintf("migration catalog integrity failure at version %d: %s", e.Version, e.Issue)
+	if e.Cause != nil {
+		return fmt.Sprintf("%s: %s: %v", prefix, e.Issue, e.Cause)
+	}
+
+	return fmt.Sprintf("%s: %s", prefix, e.Issue)
 }
 
 // Unwrap returns the underlying integrity failure, if any.
