@@ -35,7 +35,8 @@ jobs:
 
           VALID_TYPES="feat|fix|chore|release"
           # Keep in sync with the PKG list in .github/PULL_REQUEST_TEMPLATE.md
-          VALID_PKGS="ai|auth|ci|cli|codegen|constellation|dashboard|deps|docs|"
+          VALID_PKGS="ai|auth|ci|cli|codegen|constellation|dashboard|deps|"
+          VALID_PKGS+="devtools|docs|"
           VALID_PKGS+="examples|functions|ghactivity|govulncheck-wrapper|"
           VALID_PKGS+="internal\/lib|landing|mcp|nhost-js|nixops|"
           VALID_PKGS+="postgres|storage|observability|"
@@ -55,7 +56,7 @@ jobs:
             echo ""
             echo "Valid PKGs:"
             echo "  - ai, auth, ci, cli, codegen, constellation, dashboard,"
-            echo "  - deps, docs, examples, functions,"
+            echo "  - deps, devtools, docs, examples, functions,"
             echo "  - ghactivity, govulncheck-wrapper, landing, mcp, nhost-js,"
             echo "  - nixops, postgres, storage, observability, internal/lib,"
             echo "  - stripe-graphql-js, templates"
