@@ -167,6 +167,14 @@
             ;
         };
 
+        devtoolsf = import ./packages/devtools/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
         nhost-jsf = import ./packages/nhost-js/project.nix {
           inherit
             self
@@ -253,6 +261,7 @@
           jsontmpl = jsontmplf.check;
           mcp = mcpf.check;
           nhostclient = nhostclientf.check;
+          devtools = devtoolsf.check;
           nhost-js = nhost-jsf.check;
           stripe-graphql-js = stripe-graphql-jsf.check;
           nixops = nixopsf.check;
@@ -403,6 +412,7 @@
           jsontmpl = jsontmplf.devShell;
           mcp = mcpf.devShell;
           nhostclient = nhostclientf.devShell;
+          devtools = devtoolsf.devShell;
           nhost-js = nhost-jsf.devShell;
           stripe-graphql-js = stripe-graphql-jsf.devShell;
           nixops = nixopsf.devShell;
@@ -450,6 +460,7 @@
           landing-vercel-deploy-preview = landingf.vercelDeployPreview;
           landing-vercel-build-production = landingf.vercelBuildProduction;
           landing-vercel-deploy-production = landingf.vercelDeployProduction;
+          devtools = devtoolsf.package;
           nhost-js = nhost-jsf.package;
           stripe-graphql-js = stripe-graphql-jsf.package;
           mcp = mcpf.package;
