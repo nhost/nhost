@@ -202,6 +202,24 @@ func TestLoadBundleRejectsInvalidBundles(t *testing.T) {
 			path:      "migrations",
 			wantIssue: "must contain non-whitespace SQL",
 		},
+		{
+			name: "line-comment-only body",
+			fsys: migrationFS(map[string]string{
+				"1_first.up.sql":   "-- placeholder\r\n-- still a placeholder",
+				"1_first.down.sql": "SELECT 1;",
+			}),
+			path:      "migrations",
+			wantIssue: "must contain non-whitespace SQL",
+		},
+		{
+			name: "block-comment-only body",
+			fsys: migrationFS(map[string]string{
+				"1_first.up.sql":   "SELECT 1;",
+				"1_first.down.sql": "/* outer /* nested */ placeholder */",
+			}),
+			path:      "migrations",
+			wantIssue: "must contain non-whitespace SQL",
+		},
 	}
 
 	for _, tt := range tests {
