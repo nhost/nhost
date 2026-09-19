@@ -96,8 +96,10 @@ for template in templates/*/; do
 	fi
 
 	shipped_titles=""
+	skills_checked=0
 	for skill in "$skills_dir"/*/SKILL.md; do
 		[ -f "$skill" ] || continue
+		skills_checked=$((skills_checked + 1))
 
 		title=$(skill_title "$skill")
 		if [ -z "$title" ]; then
@@ -128,6 +130,14 @@ for template in templates/*/; do
 		printf '%s' "$shipped_titles" | grep -Fxq "$title" && continue
 		fail "$skills_doc documents \`## $title\` but no $skills_dir/*/SKILL.md ships it; Claude Code would not discover that workflow."
 	done < <(awk '/^## / { sub(/^## /, ""); print }' "$skills_doc")
+
+	# Same vacuous-pass hole as the outer templates_checked counter: an empty
+	# skills_dir and a SKILLS.md with no `## ` sections would otherwise pass
+	# with zero workflows checked, which is the one case an agent has nothing
+	# to go on.
+	if [ "$skills_checked" -eq 0 ]; then
+		fail "$skills_dir ships no */SKILL.md; this template's workflows are undiscoverable and this guard checked none of them."
+	fi
 done
 
 # Without this the whole check passes vacuously when the glob matches nothing,
