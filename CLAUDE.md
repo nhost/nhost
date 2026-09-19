@@ -47,6 +47,13 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 - `examples/tutorials/` - full tutorials (Next.js, Vue, React Native)
 - `examples/docker-compose/` - self-hosting reference
 
+### Starter Templates (`templates/`)
+
+- Starter projects the `nhost create` CLI command scaffolds. A template is an overlay applied to a generated backend: `nhost create` generates `backend/` in-process with the `nhost init` logic, then lays the template directory on top, so a template can add a frontend app, agent context files, and backend migrations and metadata
+- `templates/nextjs-shadcn` - Next.js 16 (App Router) + Tailwind v4 + shadcn/ui with email OTP auth. Its `frontend/` is deliberately **outside** the pnpm workspace and ships its own `pnpm-workspace.yaml`, lockfile and `biome.json`, so it resolves published package versions exactly like a user's generated project. Manage its lockfile with a plain `pnpm install` from inside `frontend/`, never `--ignore-workspace`
+- Every template ships the same guidance twice - `AGENTS.md` beside a byte-identical `CLAUDE.md`, and `SKILLS.md` beside one `.claude/skills/<name>/SKILL.md` per workflow. Nothing derives one copy from the other, so `templates/check-agent-context.sh` is what stops a scaffolded project shipping two copies that disagree. Run it after touching any of those files
+- `templates/README.md` is the maintainer doc: how a template is structured, the maintainer invariants, and how to add one
+
 ### Build System (`build/`)
 
 - `build/makefiles/general.makefile` - shared Makefile targets (help, develop, check, build, build-docker-image, dev-env-up/down)
@@ -81,6 +88,7 @@ Per-project `CLAUDE.md`s layer project-specific invariants on top of these — r
 
 - GitHub Actions workflows in `.github/workflows/`.
 - Separate check and release workflows per project (e.g., `auth_checks.yaml`, `auth_wf_release.yaml`).
+- `templates_checks.yaml` builds, lints, tests and type-checks the starter templates, and runs the agent-context drift guard. Unlike the other check workflows it uses `pull_request` rather than `pull_request_target`, because it runs `pnpm install` and `next build` on lifecycle scripts straight out of the PR.
 - Go services are built with Nix and packaged as Docker images.
 - JS/TS packages are built with Turbo.
 - Changelogs generated with `git-cliff`.

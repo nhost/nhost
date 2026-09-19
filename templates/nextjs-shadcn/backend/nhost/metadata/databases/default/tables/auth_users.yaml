@@ -1,0 +1,99 @@
+table:
+  name: users
+  schema: auth
+configuration:
+  column_config:
+    avatar_url:
+      custom_name: avatarUrl
+    created_at:
+      custom_name: createdAt
+    display_name:
+      custom_name: displayName
+    email_verified:
+      custom_name: emailVerified
+    new_email:
+      custom_name: newEmail
+  custom_column_names:
+    avatar_url: avatarUrl
+    created_at: createdAt
+    display_name: displayName
+    email_verified: emailVerified
+    new_email: newEmail
+  custom_name: users
+  custom_root_fields:
+    delete: deleteUsers
+    delete_by_pk: deleteUser
+    insert: insertUsers
+    insert_one: insertUser
+    select: users
+    select_aggregate: usersAggregate
+    select_by_pk: user
+    update: updateUsers
+    update_by_pk: updateUser
+array_relationships:
+  - name: todos
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          name: todos
+          schema: public
+computed_fields:
+  - name: hasPassword
+    definition:
+      function:
+        name: user_has_password
+        schema: public
+    comment: Whether the account can sign in with a password.
+select_permissions:
+  - role: user
+    permission:
+      computed_fields:
+        - hasPassword
+      columns:
+        - avatar_url
+        - created_at
+        - display_name
+        - email
+        - email_verified
+        - id
+        - metadata
+        - new_email
+      filter:
+        id:
+          _eq: X-Hasura-User-Id
+  # What a stranger sees on a shared list: enough to say whose it is, and no
+  # more. Publishing the profile is a deliberate act on the profile page, so
+  # this is the master switch: turn it off and `/u/<id>` is gone, whatever is
+  # flagged on the rows. The two sibling keys are ANDed, so a soft-deleted
+  # account disappears from here the moment it is stamped.
+  #
+  # `avatar_url` is deliberately not in this list. For an account that never
+  # uploaded a photo it holds the Gravatar URL assigned at sign-up, and that
+  # URL is `md5(lowercase(email))` - a reversible pseudonym for the address,
+  # harvestable in bulk because this filter has no per-id cap. `/u/<id>` gets
+  # the picture instead from `storage.files` (see `storage_files.yaml`'s
+  # `avatars` branch), which serves exactly the same published-and-not-deleted
+  # condition without ever naming the column that carries the hash.
+  - role: public
+    permission:
+      columns:
+        - id
+        - display_name
+      filter:
+        metadata:
+          _contains:
+            publicProfile: true
+        _not:
+          metadata:
+            _has_key: deletedAt
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - display_name
+        - metadata
+      filter:
+        id:
+          _eq: X-Hasura-User-Id
+      check: null
