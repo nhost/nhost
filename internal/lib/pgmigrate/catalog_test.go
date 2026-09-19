@@ -503,6 +503,103 @@ WHERE child.identifier = 'beta_enabled'
 	}
 }
 
+func TestCatalogReconcileArchivesOnlyDivergentFutureSuffix(t *testing.T) {
+	t.Parallel()
+
+	database := openCatalogTestDatabase(t)
+	schema := createCatalogTestSchema(t, database, "")
+	catalog := sqlCatalogForTest(t, database, schema)
+
+	if err := catalog.bootstrap(); err != nil {
+		t.Fatalf("bootstrap() error = %v", err)
+	}
+
+	published := testBundle(
+		testMigration(1, nil, "root"),
+		testMigration(2, uintPointer(1), "shared_future"),
+		testMigration(3, uintPointer(2), "beta_name"),
+		testMigration(4, uintPointer(3), "beta_enabled"),
+	)
+	if err := catalog.reconcile(published, -1); err != nil {
+		t.Fatalf("reconcile(published) error = %v", err)
+	}
+
+	relation := catalogTestRelation(schema)
+	registrationQuery := fmt.Sprintf(
+		`SELECT array_agg(registered_at::text ORDER BY version)
+FROM %s
+WHERE version <= 2 AND archived_at IS NULL`,
+		relation,
+	)
+
+	var registeredBefore pq.StringArray
+	if err := database.QueryRowContext(t.Context(), registrationQuery).Scan(
+		&registeredBefore,
+	); err != nil {
+		t.Fatalf("querying matching registration times before reconcile: %v", err)
+	}
+
+	replacement := testBundle(
+		published.migrations[0],
+		published.migrations[1],
+		testMigration(3, uintPointer(2), "stable_name"),
+		testMigration(4, uintPointer(3), "stable_enabled"),
+	)
+	if err := catalog.reconcile(replacement, 1); err != nil {
+		t.Fatalf("reconcile(replacement) error = %v", err)
+	}
+
+	var (
+		registeredAfter       pq.StringArray
+		matchingArchivedRows  int
+		divergentArchivedRows int
+		archiveBatches        int
+	)
+
+	stateQuery := "SELECT\n    array_agg(registered_at::text ORDER BY version) FILTER (\n        WHERE version <= 2 AND archived_at IS NULL\n    ),\n    count(*) FILTER (WHERE version <= 2 AND archived_at IS NOT NULL),\n    count(*) FILTER (WHERE version >= 3 AND archived_at IS NOT NULL),\n    count(DISTINCT archive_batch_id) FILTER (\n        WHERE version >= 3 AND archived_at IS NOT NULL\n    )\nFROM " + relation
+	if err := database.QueryRowContext(t.Context(), stateQuery).Scan(
+		&registeredAfter,
+		&matchingArchivedRows,
+		&divergentArchivedRows,
+		&archiveBatches,
+	); err != nil {
+		t.Fatalf("querying catalog state after divergent reconcile: %v", err)
+	}
+
+	if !slices.Equal(registeredAfter, registeredBefore) {
+		t.Fatalf(
+			"matching registered_at values changed from %v to %v",
+			registeredBefore,
+			registeredAfter,
+		)
+	}
+
+	if matchingArchivedRows != 0 {
+		t.Fatalf("archived matching rows = %d, want 0", matchingArchivedRows)
+	}
+
+	if divergentArchivedRows != 2 || archiveBatches != 1 {
+		t.Fatalf(
+			"divergent archive rows = %d in %d batches; want 2 in 1 batch",
+			divergentArchivedRows,
+			archiveBatches,
+		)
+	}
+
+	stored, found, err := catalog.migration(3)
+	if err != nil {
+		t.Fatalf("migration(3) error = %v", err)
+	}
+
+	if !found {
+		t.Fatal("migration(3) found = false")
+	}
+
+	if err := compareMigration(replacement.migrations[2], stored); err != nil {
+		t.Fatalf("active migration 3 does not match replacement: %v", err)
+	}
+}
+
 func TestCatalogReconcileRejectsHigherReplacementAfterOmittedAppliedVersions(t *testing.T) {
 	t.Parallel()
 

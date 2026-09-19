@@ -193,13 +193,13 @@ func (c *catalog) reconcile(local *bundle, currentVersion int64) error {
 		}
 	}
 
-	matches, err := c.activeFutureMatches(local, currentVersion)
+	firstDivergentVersion, err := c.firstActiveFutureDivergence(local, currentVersion)
 	if err != nil {
 		return err
 	}
 
-	if !matches {
-		if err := c.archiveAfter(currentVersion); err != nil {
+	if firstDivergentVersion != nil {
+		if err := c.archiveFrom(*firstDivergentVersion); err != nil {
 			return err
 		}
 	}
@@ -208,7 +208,10 @@ func (c *catalog) reconcile(local *bundle, currentVersion int64) error {
 }
 
 //nolint:cyclop,funlen // One ordered scan preserves divergence precedence and its lineage state.
-func (c *catalog) activeFutureMatches(local *bundle, currentVersion int64) (bool, error) {
+func (c *catalog) firstActiveFutureDivergence(
+	local *bundle,
+	currentVersion int64,
+) (*uint, error) {
 	query := fmt.Sprintf(`
 SELECT version
 FROM %s
@@ -218,7 +221,7 @@ ORDER BY version
 
 	activeVersions, err := c.queryVersions(query, nil)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
 	activeVersionSet := make(map[uint]struct{}, len(activeVersions))
@@ -240,25 +243,26 @@ ORDER BY version
 	}
 
 	var (
-		lastCommonVersion          *uint
-		firstMissingAppliedVersion *uint
-		futureMatches              = true
+		lastCommonVersion           *uint
+		firstMissingAppliedVersion  *uint
+		firstDivergentFutureVersion *uint
 	)
 
 	for _, version := range activeVersions {
 		stored, found, migrationErr := c.migration(version)
 		if migrationErr != nil {
-			return false, migrationErr
+			return nil, migrationErr
 		}
 
 		if !found {
-			return false, missingMigration(version)
+			return nil, missingMigration(version)
 		}
 
 		localMigration, present := localByVersion[version]
 		if versionAfter(version, currentVersion) {
 			if !present || !migrationMatches(*localMigration, stored) {
-				futureMatches = false
+				divergentVersion := version
+				firstDivergentFutureVersion = &divergentVersion
 
 				break
 			}
@@ -277,10 +281,10 @@ ORDER BY version
 
 		if err := compareMigration(*localMigration, stored); err != nil {
 			if migrationLineageDiffers(*localMigration, stored) {
-				return false, appliedLineageDivergence(version, lastCommonVersion)
+				return nil, appliedLineageDivergence(version, lastCommonVersion)
 			}
 
-			return false, err
+			return nil, err
 		}
 
 		commonVersion := version
@@ -290,10 +294,10 @@ ORDER BY version
 	// Defer this diagnostic so a later shared version can report its more specific mismatch first.
 	if firstMissingAppliedVersion != nil &&
 		(local.target > *firstMissingAppliedVersion || localAppliedVersionMissingFromCatalog) {
-		return false, appliedLineageDivergence(*firstMissingAppliedVersion, lastCommonVersion)
+		return nil, appliedLineageDivergence(*firstMissingAppliedVersion, lastCommonVersion)
 	}
 
-	return futureMatches, nil
+	return firstDivergentFutureVersion, nil
 }
 
 func versionAfter(version uint, currentVersion int64) bool {
@@ -305,6 +309,27 @@ func versionAfter(version uint, currentVersion int64) bool {
 }
 
 func (c *catalog) archiveAfter(version int64) error {
+	return c.archiveSuffix(version, false)
+}
+
+func (c *catalog) archiveFrom(version uint) error {
+	databaseVersion, err := catalogVersion(version)
+	if err != nil {
+		return fmt.Errorf("converting divergent catalog version: %w", err)
+	}
+
+	return c.archiveSuffix(databaseVersion, true)
+}
+
+func (c *catalog) archiveSuffix(version int64, inclusive bool) error {
+	comparison := ">"
+
+	boundary := "after"
+	if inclusive {
+		comparison = ">="
+		boundary = "from"
+	}
+
 	query := fmt.Sprintf(`
 WITH archive_batch AS MATERIALIZED (
     SELECT gen_random_uuid() AS id, CURRENT_TIMESTAMP AS archived_at
@@ -314,12 +339,13 @@ SET
     archived_at = archive_batch.archived_at,
     archive_batch_id = archive_batch.id
 FROM archive_batch
-WHERE migration.archived_at IS NULL AND migration.version > $1
-`, c.relation)
+WHERE migration.archived_at IS NULL AND migration.version %s $1
+`, c.relation, comparison)
 
 	if err := c.database.exec(c.ctx, query, version); err != nil {
 		return fmt.Errorf(
-			"archiving migration catalog suffix after version %d in schema %q: %w",
+			"archiving migration catalog suffix %s version %d in schema %q: %w",
+			boundary,
 			version,
 			c.schema,
 			err,
