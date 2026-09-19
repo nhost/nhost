@@ -32,6 +32,7 @@ Where `PKG` is:
 - `constellation`: For changes to the Constellation service
 - `dashboard`: For changes to the Nhost Dashboard
 - `deps`: For changes to dependencies
+- `devtools`: For changes to the Nhost development toolbar
 - `docs`: For changes to the documentation
 - `examples`: For changes to the examples
 - `functions`: For changes to the Nhost Functions service
