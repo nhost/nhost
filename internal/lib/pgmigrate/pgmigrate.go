@@ -32,10 +32,13 @@ var (
 )
 
 // Migrate publishes the embedded migration bundle and migrates schema to the
-// bundle's maximum version. The caller owns the dedicated migration
-// database; Migrate acquires and closes two connections, resets the execution
-// session before releasing it, and does not close the pool. Sharing a
-// long-lived application pool is unsupported.
+// bundle's maximum version. The caller context bounds setup and preflight, but
+// cancellation does not abort migration SQL after execution starts.
+// Post-execution catalog archival and connection cleanup each use a separate
+// five-second, cancellation-independent timeout before Migrate returns. The
+// caller owns the dedicated migration database; Migrate acquires and closes two
+// connections, resets the execution session before releasing it, and does not
+// close the pool. Sharing a long-lived application pool is unsupported.
 func Migrate(
 	ctx context.Context,
 	logger *slog.Logger,
@@ -245,16 +248,19 @@ func migrateUnderLock(
 		return fmt.Errorf("executing target migration: %w", err)
 	}
 
-	return archiveCatalogAfterTarget(catalogDriver.catalog, target)
+	return archiveCatalogAfterTarget(ctx, catalogDriver.catalog, target)
 }
 
-func archiveCatalogAfterTarget(catalog *catalog, target uint) error {
+func archiveCatalogAfterTarget(ctx context.Context, catalog *catalog, target uint) error {
 	targetVersion, err := catalogVersion(target)
 	if err != nil {
 		return fmt.Errorf("converting migration target for catalog archival: %w", err)
 	}
 
-	if err := catalog.archiveAfter(targetVersion); err != nil {
+	archiveCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), cleanupTimeout)
+	defer cancel()
+
+	if err := catalog.archiveAfter(archiveCtx, targetVersion); err != nil {
 		return fmt.Errorf("archiving unapplied migration catalog suffix: %w", err)
 	}
 
@@ -700,7 +706,7 @@ func closeMigrationConnection(connection *sql.Conn, purpose string) error {
 		return nil
 	}
 
-	if err := connection.Close(); err != nil {
+	if err := connection.Close(); err != nil && !errors.Is(err, sql.ErrConnDone) {
 		return fmt.Errorf("closing PostgreSQL migration %s connection: %w", purpose, err)
 	}
 

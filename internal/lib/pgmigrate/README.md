@@ -19,6 +19,8 @@ The caller must create the service schema before calling `Migrate` and must supp
 
 The library acquires and closes two dedicated `*sql.Conn` values per concurrent `Migrate` caller: one executes migrations and holds the advisory lock, while the other reads catalog bodies. Configure the migration pool for at least two connections per concurrent caller. Acquisition of the second connection is bounded and fails with pool guidance rather than hanging indefinitely when, for example, `MaxOpenConns(1)` is configured.
 
+The caller context bounds setup and preflight, but it is not a wall-clock bound for `Migrate`. Once migration SQL starts, caller cancellation or deadline expiry does not interrupt it. After execution, catalog archival ignores caller cancellation but has a five-second timeout, and connection cleanup has a separate five-second timeout. `Migrate` returns after those attempts and reports archival or cleanup failures. Configure PostgreSQL timeouts for the migration role when migration SQL itself needs an execution bound.
+
 The target is inferred from the maximum version in the embedded bundle, so callers do not maintain a duplicate latest-version constant. Existing `<schema>.schema_migrations` state is reused. After catalog bootstrap, the library reads the clean migration state, reconciles the active catalog lineage with the embedded bundle, and hydrates missing rows without replaying migration SQL. Dirty state is never forced, reconciled, or repaired; an operator must inspect the failed migration and recover it explicitly.
 
 ## Migration authoring and catalog lineages

@@ -308,8 +308,8 @@ func versionAfter(version uint, currentVersion int64) bool {
 	return uint64(version) > uint64(currentVersion)
 }
 
-func (c *catalog) archiveAfter(version int64) error {
-	return c.archiveSuffix(version, false)
+func (c *catalog) archiveAfter(ctx context.Context, version int64) error {
+	return c.archiveSuffix(ctx, version, false)
 }
 
 func (c *catalog) archiveFrom(version uint) error {
@@ -318,10 +318,10 @@ func (c *catalog) archiveFrom(version uint) error {
 		return fmt.Errorf("converting divergent catalog version: %w", err)
 	}
 
-	return c.archiveSuffix(databaseVersion, true)
+	return c.archiveSuffix(c.ctx, databaseVersion, true)
 }
 
-func (c *catalog) archiveSuffix(version int64, inclusive bool) error {
+func (c *catalog) archiveSuffix(ctx context.Context, version int64, inclusive bool) error {
 	comparison := ">"
 
 	boundary := "after"
@@ -342,7 +342,7 @@ FROM archive_batch
 WHERE migration.archived_at IS NULL AND migration.version %s $1
 `, c.relation, comparison)
 
-	if err := c.database.exec(c.ctx, query, version); err != nil {
+	if err := c.database.exec(ctx, query, version); err != nil {
 		return fmt.Errorf(
 			"archiving migration catalog suffix %s version %d in schema %q: %w",
 			boundary,
