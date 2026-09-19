@@ -16,6 +16,7 @@
 - "!include public_community_members.yaml"
 - "!include public_notifications.yaml"
 - "!include public_todos.yaml"
+- "!include public_webhook_events.yaml"
 - "!include storage_buckets.yaml"
 - "!include storage_files.yaml"
 - "!include storage_virus.yaml"
