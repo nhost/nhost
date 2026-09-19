@@ -1307,7 +1307,6 @@ func TestFetchTemplateMissingFrontend(t *testing.T) {
 
 	err = fetchTemplate(
 		context.Background(),
-		nil,
 		repo,
 		"main",
 		template{name: "no-frontend"},
