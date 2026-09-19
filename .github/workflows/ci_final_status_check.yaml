@@ -40,7 +40,7 @@ jobs:
           VALID_PKGS+="examples|functions|ghactivity|govulncheck-wrapper|"
           VALID_PKGS+="internal\/lib|landing|mcp|nhost-js|nixops|"
           VALID_PKGS+="postgres|storage|observability|"
-          VALID_PKGS+="stripe-graphql-js|templates"
+          VALID_PKGS+="stripe-graphql-js"
 
           TITLE_PATTERN="^(${VALID_TYPES})"
           TITLE_PATTERN+="\((${VALID_PKGS})\)\!?: .+"
@@ -59,7 +59,7 @@ jobs:
             echo "  - deps, devtools, docs, examples, functions,"
             echo "  - ghactivity, govulncheck-wrapper, landing, mcp, nhost-js,"
             echo "  - nixops, postgres, storage, observability, internal/lib,"
-            echo "  - stripe-graphql-js, templates"
+            echo "  - stripe-graphql-js"
             echo ""
             echo "Examples:"
             echo "  - feat(cli): add new command for database migrations"

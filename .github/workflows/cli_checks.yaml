@@ -37,10 +37,6 @@ on:
 
       # docs
       - "docs/**"
-
-      # nextjs-shadcn starter template (scaffolded by `nhost create`, exercised
-      # by TestCreateScaffoldsRealLocalTemplate)
-      - "templates/nextjs-shadcn/**"
   merge_group:
 
 concurrency:
@@ -72,7 +68,6 @@ jobs:
         services/constellation/**
         services/auth/email-templates/**
         docs/**
-        templates/nextjs-shadcn/**
 
   check-permissions:
     needs: [detect-changes]

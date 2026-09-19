@@ -54,13 +54,6 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 - `examples/tutorials/` - full tutorials (Next.js, Vue, React Native)
 - `examples/docker-compose/` - self-hosting reference
 
-### Templates (`templates/`)
-
-- Starter projects scaffolded by `nhost create`, one directory per template (currently `templates/nextjs-shadcn`)
-- A template is an **overlay**, not a whole project: the CLI generates `backend/` in-process with the same logic as `nhost init`, then lays the template directory on top, so a template only carries what it adds (its `frontend/` app, backend migrations and metadata, and the agent-context files)
-- Each `templates/*/frontend` is deliberately **outside** the root `pnpm-workspace.yaml` so it resolves published package versions exactly as a user's generated project does. It is a standalone workspace root with its own lockfile: run `pnpm install` from inside it, never `pnpm -r` from the repository root, which cannot reach it at any path
-- See `templates/README.md` for the maintainer invariants, the "adding a template" checklist, and how templates are delivered
-
 ### Build System (`build/`)
 
 - `build/makefiles/general.makefile` - shared Makefile targets (help, develop, check, build, build-docker-image, dev-env-up/down)
