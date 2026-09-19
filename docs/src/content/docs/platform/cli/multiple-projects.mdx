@@ -7,7 +7,11 @@ head:
     content: "Run Several Local Nhost Instances in Parallel | Nhost Docs"
 ---
 
-By default the name of the project is going to be the folder of the root of your project and it's goint to run on port 443 (https) and 5432 (postgres). If you need to run multiple projects or multiple instances of the same project at the same time you may need to override those. For instance:
+The docker compose project name is resolved in this order: an explicit `--project-name` flag or `NHOST_PROJECT_NAME` environment variable, then the name recorded in `<nhost-folder>/project-name` (`cli/clienv/clienv.go`), then, if neither is set, the name of the folder at the root of your project. It runs on port 443 (https) and 5432 (postgres) by default. If you need to run multiple projects or multiple instances of the same project at the same time you may need to override those. For instance:
+
+Projects scaffolded with `nhost create` already have a distinct name: the command writes it to the committed `nhost/project-name` file inside the generated backend (`cli/cmd/create/create.go`), so two projects created this way keep separate containers and database volumes without any extra flags. That file is checked into the project's repository, so the name travels with it — edit the file, or pass `--project-name`/`NHOST_PROJECT_NAME`, to change it. If that file exists but can't be read (wrong permissions, a dangling symlink, or similar), the CLI treats it as a hard error rather than silently falling back to the directory name, since doing so could point the project at a different, empty database volume with no other diagnostic (`cli/clienv/project_name.go`).
+
+The examples below cover the remaining case: two projects that don't have a recorded name, where ports and `--project-name` still need to be set by hand to run both at once.
 
 ```bash
 $ nhost up
