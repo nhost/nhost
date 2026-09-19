@@ -1,6 +1,6 @@
 'use client';
 
-import { EyeOff, Mail, Moon, Settings, Sun, X } from 'lucide-react';
+import { Database, EyeOff, Mail, Moon, Settings, Sun, X } from 'lucide-react';
 import {
   type CSSProperties,
   type MouseEvent as ReactMouseEvent,
@@ -31,7 +31,7 @@ const PAD = 18; // padding at the two ends of the strip
 // mark is pinned to, which is what keeps the toolbar still when it is dragged
 // or the window is resized.
 const HANDLE = PAD * 2 + ICON;
-const STRIP = PAD * 2 + 3 * ICON + 2 * GAP; // Nhost, mail, preferences
+const STRIP = PAD * 2 + 4 * ICON + 3 * GAP; // Nhost, Hasura, mail, preferences
 const SPRING_TAU = 0.085; // position smoothing time constant, seconds
 
 function isVertical(edge: Edge) {
@@ -89,7 +89,7 @@ function growthOffset(edge: Edge) {
 }
 
 // Position for the single shared tooltip, aligned with the hovered item at
-// strip position `pos` (0 is the handle, 1..4 the actions).
+// strip position `pos`, counting the handle as 0.
 function tooltipStyle(edge: Edge, pos: number): CSSProperties {
   const center = PAD + pos * (ICON + GAP) + ICON / 2;
   switch (edge) {
@@ -143,6 +143,13 @@ export function NhostDevToolbar() {
   // Two separate conditions on purpose. A production build must never carry
   // it, and a development build pointed at a deployed backend has nothing for
   // it to link to.
+  //
+  // The NODE_ENV check is what actually keeps the code out of a production
+  // bundle, not the guard around the import in `app/layout.tsx`: this file is a
+  // client component, so it stays registered in every page's client-reference
+  // manifest either way, and only this early return lets the bundler collapse
+  // the whole thing to `function () { return null }`. Removing it ships all of
+  // the below to users. Keep both.
   if (process.env.NODE_ENV === 'production' || !isLocalBackend()) {
     return null;
   }
@@ -166,8 +173,6 @@ function Toolbar() {
   const raf = useRef(0);
   const rootRef = useRef<HTMLDivElement>(null);
   const inited = useRef(false);
-  const prefsRef = useRef(prefsOpen);
-  prefsRef.current = prefsOpen;
 
   const animate = useCallback(() => {
     if (raf.current) {
@@ -285,9 +290,24 @@ function Toolbar() {
   // (toggle the menu, open a link), while a real drag repositions the tab and
   // its trailing click is swallowed so it does not also activate a button.
   const justDragged = useRef(false);
+  // A drag outlives the pointerdown that started it: its listeners live on the
+  // window and the click guard on a timer, so both are held here for an unmount
+  // that happens mid-gesture to undo.
+  const dragListeners = useRef<AbortController | null>(null);
+  const clickGuard = useRef(0);
+
+  useEffect(
+    () => () => {
+      dragListeners.current?.abort();
+      window.clearTimeout(clickGuard.current);
+    },
+    [],
+  );
+
   const onDragStart = useCallback(
     (event: ReactPointerEvent) => {
       const start = { x: event.clientX, y: event.clientY };
+      const listeners = new AbortController();
       let moved = false;
 
       const move = (ev: PointerEvent) => {
@@ -307,9 +327,8 @@ function Toolbar() {
       };
 
       const up = (ev: PointerEvent) => {
-        window.removeEventListener('pointermove', move);
-        window.removeEventListener('pointerup', up);
-        window.removeEventListener('pointercancel', up);
+        listeners.abort();
+        dragListeners.current = null;
         if (moved) {
           update(
             nearestEdge(
@@ -321,15 +340,17 @@ function Toolbar() {
           );
           setDragging(false);
           justDragged.current = true;
-          window.setTimeout(() => {
+          clickGuard.current = window.setTimeout(() => {
             justDragged.current = false;
           }, 150);
         }
       };
 
-      window.addEventListener('pointermove', move);
-      window.addEventListener('pointerup', up);
-      window.addEventListener('pointercancel', up);
+      const { signal } = listeners;
+      window.addEventListener('pointermove', move, { signal });
+      window.addEventListener('pointerup', up, { signal });
+      window.addEventListener('pointercancel', up, { signal });
+      dragListeners.current = listeners;
     },
     [update, animate],
   );
@@ -364,6 +385,12 @@ function Toolbar() {
   };
 
   const services = [
+    {
+      key: 'hasura',
+      label: 'Hasura',
+      href: urls.hasura,
+      icon: <Database size={13} />,
+    },
     {
       key: 'mailhog',
       label: 'Mail',
@@ -403,15 +430,21 @@ function Toolbar() {
         onClickCapture={swallowDraggedClick}
         onPointerLeave={() => setHover(null)}
       >
-        {/* The mark is the way to the dashboard now, rather than a switch that
-            reveals one. It keeps the `ndt-handle` class because that is the
-            anchor the strip is positioned from. */}
+        {/* `draggable={false}` on every anchor: a link is draggable by default,
+            so without it a mouse press on one starts the browser's own link
+            drag instead of moving the tab. `touch-action` covers touch and pen
+            only. The mark keeps `ndt-handle` because that is the anchor the
+            strip is positioned from. */}
         <a
           className="ndt-handle"
           href={urls.dashboard}
           target="_blank"
           rel="noreferrer"
+          draggable={false}
+          aria-label="Nhost Dashboard"
           onPointerEnter={() => onEnter('Dashboard', 0)}
+          onFocus={() => onEnter('Dashboard', 0)}
+          onBlur={() => setHover(null)}
         >
           <NhostLogo width={14} height={15} />
         </a>
@@ -423,7 +456,11 @@ function Toolbar() {
             href={service.href}
             target="_blank"
             rel="noreferrer"
+            draggable={false}
+            aria-label={service.label}
             onPointerEnter={() => onEnter(service.label, index + 1)}
+            onFocus={() => onEnter(service.label, index + 1)}
+            onBlur={() => setHover(null)}
           >
             {service.icon}
           </a>
@@ -432,8 +469,11 @@ function Toolbar() {
         <button
           type="button"
           className="ndt-item"
+          aria-label="Preferences"
           onClick={() => setPrefsOpen((value) => !value)}
           onPointerEnter={() => onEnter('Preferences', services.length + 1)}
+          onFocus={() => onEnter('Preferences', services.length + 1)}
+          onBlur={() => setHover(null)}
         >
           <Settings size={13} />
         </button>
@@ -442,6 +482,7 @@ function Toolbar() {
       <div
         className="ndt-tooltip"
         data-show={tooltipShown}
+        aria-hidden="true"
         style={tooltipStyle(settings.edge, lastHover.current.pos)}
       >
         {lastHover.current.label}
@@ -491,12 +532,11 @@ function Preferences({
   ];
 
   return (
-    <div
-      className="ndt-card"
-      data-open={open}
-      style={anchor}
-      aria-hidden={!open}
-    >
+    // `inert` rather than `aria-hidden`: the closed card is only faded out, and
+    // opacity does not take its eight controls out of the tab order or out of
+    // the accessibility tree. Every page of the app would otherwise collect
+    // that many invisible tab stops.
+    <div className="ndt-card" data-open={open} style={anchor} inert={!open}>
       <div className="ndt-card-head">
         <span className="ndt-card-title">Preferences</span>
         <button
@@ -589,6 +629,7 @@ const TOOLBAR_CSS = `
   gap: ${GAP}px;
   cursor: grab;
   touch-action: none;
+  user-select: none;
 }
 .ndt-root[data-dragging='true'] .ndt-strip {
   cursor: grabbing;

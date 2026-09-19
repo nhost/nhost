@@ -2,9 +2,13 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { localServiceURL, nhostRegion } from '@/lib/nhost/env';
+import { clamp, OFFSET_MAX, OFFSET_MIN } from './snap';
 
-export type Edge = 'left' | 'right' | 'top' | 'bottom';
-export type Theme = 'dark' | 'light';
+const EDGES = ['left', 'right', 'top', 'bottom'] as const;
+const THEMES = ['dark', 'light'] as const;
+
+export type Edge = (typeof EDGES)[number];
+export type Theme = (typeof THEMES)[number];
 
 export interface ToolbarSettings {
   // Which screen edge the tab docks to.
@@ -17,6 +21,16 @@ export interface ToolbarSettings {
 
 const STORAGE_KEY = 'nhost-dev-toolbar';
 const HIDDEN_KEY = 'nhost-dev-toolbar-hidden';
+
+/**
+ * Stamped into every stored payload and required to match on the way back in.
+ *
+ * Validation below rejects a field whose *type* changed, but not one whose
+ * meaning changed: turn `offset` from a percentage into pixels and every
+ * existing value stays a valid number and lands the tab somewhere absurd. Bump
+ * this in that case and the old payload is discarded instead.
+ */
+const SETTINGS_VERSION = 1;
 
 /**
  * The way back once the toolbar has been hidden.
@@ -34,15 +48,100 @@ export const DEFAULT_SETTINGS: ToolbarSettings = {
   theme: 'dark',
 };
 
-function readSettings(): ToolbarSettings {
+/**
+ * A stored payload turned back into settings, one field at a time.
+ *
+ * Everything here came out of a store the user can edit, so nothing is trusted:
+ * a bad field falls back to its default rather than failing the whole read, and
+ * `{"offset":"banana"}` used to reach the style attribute as `NaN` and put the
+ * tab off its edge. Takes the raw string so the malformed-JSON case is part of
+ * the same function.
+ */
+export function parseSettings(raw: unknown): ToolbarSettings {
+  if (typeof raw !== 'string') {
+    return DEFAULT_SETTINGS;
+  }
+
+  let parsed: unknown;
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      return DEFAULT_SETTINGS;
-    }
-    return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
+    parsed = JSON.parse(raw);
   } catch {
     return DEFAULT_SETTINGS;
+  }
+
+  if (typeof parsed !== 'object' || parsed === null) {
+    return DEFAULT_SETTINGS;
+  }
+
+  const stored = parsed as Record<string, unknown>;
+  if (stored['version'] !== SETTINGS_VERSION) {
+    return DEFAULT_SETTINGS;
+  }
+
+  const edge = stored['edge'];
+  const theme = stored['theme'];
+  const offset = stored['offset'];
+
+  return {
+    edge: EDGES.includes(edge as Edge) ? (edge as Edge) : DEFAULT_SETTINGS.edge,
+    theme: THEMES.includes(theme as Theme)
+      ? (theme as Theme)
+      : DEFAULT_SETTINGS.theme,
+    offset:
+      typeof offset === 'number' && Number.isFinite(offset)
+        ? clamp(offset, OFFSET_MIN, OFFSET_MAX)
+        : DEFAULT_SETTINGS.offset,
+  };
+}
+
+export function readSettings(): ToolbarSettings {
+  try {
+    return parseSettings(window.localStorage.getItem(STORAGE_KEY));
+  } catch {
+    return DEFAULT_SETTINGS;
+  }
+}
+
+export function writeSettings(settings: ToolbarSettings): void {
+  try {
+    window.localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ version: SETTINGS_VERSION, ...settings }),
+    );
+  } catch {
+    // Ignore storage failures (private mode, quota); state still applies.
+  }
+}
+
+// Whether this session asked for the toolbar to stay away, honouring the
+// reveal parameter described above.
+export function readHidden(): boolean {
+  try {
+    const revealed =
+      new URLSearchParams(window.location.search).get(REVEAL_PARAM) === 'true';
+
+    if (revealed) {
+      window.sessionStorage.removeItem(HIDDEN_KEY);
+      return false;
+    }
+
+    return window.sessionStorage.getItem(HIDDEN_KEY) === '1';
+  } catch {
+    // Ignore storage failures (private mode, quota); showing the toolbar is the
+    // safer side to fail on, since it is only ever a development build.
+    return false;
+  }
+}
+
+export function writeHidden(value: boolean): void {
+  try {
+    if (value) {
+      window.sessionStorage.setItem(HIDDEN_KEY, '1');
+    } else {
+      window.sessionStorage.removeItem(HIDDEN_KEY);
+    }
+  } catch {
+    // Ignore storage failures; the in-memory flag still applies.
   }
 }
 
@@ -56,50 +155,21 @@ export function useToolbarSettings() {
 
   useEffect(() => {
     setSettings(readSettings());
-
-    let stored = false;
-    try {
-      const revealed =
-        new URLSearchParams(window.location.search).get(REVEAL_PARAM) ===
-        'true';
-
-      if (revealed) {
-        window.sessionStorage.removeItem(HIDDEN_KEY);
-      } else {
-        stored = window.sessionStorage.getItem(HIDDEN_KEY) === '1';
-      }
-    } catch {
-      // Ignore storage failures (private mode, quota); showing the toolbar is
-      // the safer side to fail on, since it is only ever a development build.
-    }
-
-    setHiddenState(stored);
+    setHiddenState(readHidden());
     setReady(true);
   }, []);
 
   const update = useCallback((patch: Partial<ToolbarSettings>) => {
     setSettings((prev) => {
       const next = { ...prev, ...patch };
-      try {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      } catch {
-        // Ignore storage failures (private mode, quota); state still applies.
-      }
+      writeSettings(next);
       return next;
     });
   }, []);
 
   const setHidden = useCallback((value: boolean) => {
     setHiddenState(value);
-    try {
-      if (value) {
-        window.sessionStorage.setItem(HIDDEN_KEY, '1');
-      } else {
-        window.sessionStorage.removeItem(HIDDEN_KEY);
-      }
-    } catch {
-      // Ignore storage failures; the in-memory flag still applies.
-    }
+    writeHidden(value);
   }, []);
 
   return { ready, settings, update, hidden, setHidden };
@@ -122,6 +192,7 @@ export function isLocalBackend(): boolean {
 export function localServiceUrls() {
   return {
     dashboard: localServiceURL('dashboard'),
+    hasura: localServiceURL('hasura'),
     mailhog: localServiceURL('mailhog'),
   };
 }
