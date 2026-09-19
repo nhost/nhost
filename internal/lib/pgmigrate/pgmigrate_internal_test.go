@@ -57,6 +57,79 @@ func TestIsOnlyNoChange(t *testing.T) {
 	}
 }
 
+func TestArchiveCatalogAfterTargetUsesBoundedDetachedContext(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+
+	var (
+		archivalErr               error
+		archivalDeadlineRemaining time.Duration
+		hasArchivalDeadline       bool
+	)
+
+	database := &stubCatalogDatabase{
+		execFunc: func(executionCtx context.Context, _ string, _ ...any) error {
+			archivalErr = executionCtx.Err()
+
+			deadline, ok := executionCtx.Deadline()
+			hasArchivalDeadline = ok
+			archivalDeadlineRemaining = time.Until(deadline)
+
+			return executionCtx.Err()
+		},
+	}
+
+	catalog, err := newCatalog(ctx, database, "app")
+	if err != nil {
+		t.Fatalf("newCatalog() error = %v", err)
+	}
+
+	if err := archiveCatalogAfterTarget(ctx, catalog, 1); err != nil {
+		t.Fatalf("archiveCatalogAfterTarget() error = %v", err)
+	}
+
+	if !errors.Is(ctx.Err(), context.Canceled) {
+		t.Fatalf("caller context error = %v, want %v", ctx.Err(), context.Canceled)
+	}
+
+	if archivalErr != nil {
+		t.Fatalf("archival context error = %v, want nil", archivalErr)
+	}
+
+	if !hasArchivalDeadline {
+		t.Fatal("archival context has no deadline")
+	}
+
+	if archivalDeadlineRemaining <= 0 || archivalDeadlineRemaining > cleanupTimeout {
+		t.Fatalf(
+			"archival deadline remaining = %s, want within (0, %s]",
+			archivalDeadlineRemaining,
+			cleanupTimeout,
+		)
+	}
+}
+
+func TestCloseMigrationConnectionToleratesAlreadyClosedConnection(t *testing.T) {
+	t.Parallel()
+
+	database := openCatalogTestDatabase(t)
+
+	connection, err := database.Conn(t.Context())
+	if err != nil {
+		t.Fatalf("database.Conn() error = %v", err)
+	}
+
+	if err := connection.Close(); err != nil {
+		t.Fatalf("connection.Close() error = %v", err)
+	}
+
+	if err := closeMigrationConnection(connection, "already closed"); err != nil {
+		t.Fatalf("closeMigrationConnection() error = %v", err)
+	}
+}
+
 func TestMigrationDirection(t *testing.T) {
 	t.Parallel()
 
@@ -624,6 +697,48 @@ func TestMigrateSerializesConcurrentCallers(t *testing.T) {
 
 	assertMigrationState(t, database, schema, 3, false)
 	assertCatalogRowCount(t, database, schema, 3)
+	assertOuterLockAvailable(t, database, schema)
+	assertPoolReleased(t, database)
+}
+
+//nolint:paralleltest // This deadline-sensitive integration test intentionally runs serially.
+func TestMigrateCompletesAfterCallerDeadlineDuringExecution(t *testing.T) {
+	database := openCatalogTestDatabase(t)
+	database.SetMaxOpenConns(4)
+	schema := createCatalogTestSchema(t, database, "")
+	quotedSchema := pq.QuoteIdentifier(schema)
+	bundle := fstest.MapFS{
+		"migrations/1_deadline.up.sql": &fstest.MapFile{Data: fmt.Appendf(
+			nil,
+			"SELECT pg_sleep(1); CREATE TABLE %s.deadline_probe (id INTEGER);",
+			quotedSchema,
+		)},
+		"migrations/1_deadline.down.sql": &fstest.MapFile{Data: fmt.Appendf(
+			nil,
+			"DROP TABLE %s.deadline_probe;",
+			quotedSchema,
+		)},
+	}
+
+	ctx, cancel := context.WithTimeout(t.Context(), 500*time.Millisecond)
+	defer cancel()
+
+	if err := Migrate(
+		ctx,
+		discardLogger(),
+		database,
+		bundle,
+		"migrations",
+		schema,
+	); err != nil {
+		t.Fatalf("Migrate(deadline during execution) error = %v", err)
+	}
+
+	if !errors.Is(ctx.Err(), context.DeadlineExceeded) {
+		t.Fatalf("caller context error = %v, want %v", ctx.Err(), context.DeadlineExceeded)
+	}
+
+	assertMigrationState(t, database, schema, 1, false)
 	assertOuterLockAvailable(t, database, schema)
 	assertPoolReleased(t, database)
 }

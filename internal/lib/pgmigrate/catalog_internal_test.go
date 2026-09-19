@@ -414,7 +414,7 @@ func TestCatalogArchiveSuffixUsesOneBatchAndRequestedBoundary(t *testing.T) {
 			if tt.inclusive {
 				err = catalog.archiveFrom(7)
 			} else {
-				err = catalog.archiveAfter(7)
+				err = catalog.archiveAfter(t.Context(), 7)
 			}
 
 			if err != nil {
