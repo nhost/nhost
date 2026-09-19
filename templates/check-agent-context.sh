@@ -68,17 +68,21 @@ strip_blank_edges() {
 for template in templates/*/; do
 	template=${template%/}
 
-	if [ -f "$template/AGENTS.md" ] || [ -f "$template/CLAUDE.md" ]; then
-		if [ ! -f "$template/AGENTS.md" ] || [ ! -f "$template/CLAUDE.md" ]; then
-			fail "$template ships only one of AGENTS.md and CLAUDE.md; it must ship both, byte-identical."
-		elif ! diff -u "$template/AGENTS.md" "$template/CLAUDE.md"; then
-			fail "$template/AGENTS.md and $template/CLAUDE.md have drifted apart; copy one over the other."
-		fi
+	# Presence, not just consistency: a template shipping neither file used to
+	# pass here in silence, and templates/README.md requires both.
+	if [ ! -f "$template/AGENTS.md" ] || [ ! -f "$template/CLAUDE.md" ]; then
+		fail "$template must ship both AGENTS.md and CLAUDE.md, byte-identical; at least one is missing."
+	elif ! diff -u "$template/AGENTS.md" "$template/CLAUDE.md"; then
+		fail "$template/AGENTS.md and $template/CLAUDE.md have drifted apart; copy one over the other."
 	fi
 
 	skills_doc=$template/SKILLS.md
 	skills_dir=$template/.claude/skills
+	# Presence, not just consistency: a template shipping neither used to pass
+	# here in silence, and templates/README.md requires both SKILLS.md and
+	# .claude/skills/.
 	if [ ! -f "$skills_doc" ] && [ ! -d "$skills_dir" ]; then
+		fail "$template must ship both $skills_doc and $skills_dir; templates/README.md requires SKILLS.md and .claude/skills/, and neither is present."
 		continue
 	fi
 	if [ ! -f "$skills_doc" ]; then

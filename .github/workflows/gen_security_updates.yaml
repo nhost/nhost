@@ -87,6 +87,19 @@ jobs:
               exec pnpm dedupe || true
           '
 
+      - name: Apply pnpm security fixes to the templates
+        # Each templates/*/frontend is outside the root pnpm-workspace.yaml on
+        # purpose, so the `pnpm -r` above cannot reach it at any path. Same
+        # tolerance as that step: partial fixes still land.
+        run: |
+          nix develop .#security-updates -c bash -c '
+            set -u
+            for frontend in templates/*/frontend; do
+              echo "==> $frontend"
+              (cd "$frontend" && pnpm audit --fix=update && pnpm dedupe) || true
+            done
+          '
+
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v8
         with:
@@ -104,7 +117,7 @@ jobs:
             * **pnpm**: `pnpm audit --fix=update` per workspace lockfile (no overrides added).
             * **Go**: `go mod edit -require` for modules flagged by `govulncheck`, then `go mod tidy && go mod vendor`.
 
-            Anything still flagged after this PR will fail the regular CI checks (`govulncheck`, `audit-ci-recursive`) — fix manually.
+            Anything still flagged in the root workspaces will fail the regular CI checks (`govulncheck`, `audit-ci-recursive`) — fix manually. The template lockfiles are not in either of those, which is why they get their own step here; `audit-ci-templates` reports on them without gating.
           labels: |
             dependencies
             security

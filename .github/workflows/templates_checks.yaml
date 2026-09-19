@@ -1,5 +1,11 @@
 ---
 name: "templates: check and build"
+
+# Plain `pull_request` on GitHub-hosted runners, where every other *_checks.yaml
+# uses pull_request_target + check-permissions + blacksmith. Deliberate: nothing
+# here needs a secret or a self-hosted runner, and pull_request_target would run
+# a fork's code against a writable token for no gain. Recorded in
+# templates/README.md so it does not get "fixed" into the other shape.
 on:
   pull_request:
     paths:
@@ -51,6 +57,72 @@ jobs:
       - run: pnpm test
 
       - run: pnpm build
+
+      # NhostDevToolbar.tsx returns null before rendering anything when
+      # NODE_ENV is not development, and that in-component return is the only
+      # thing keeping the toolbar out of the production bundle. Hoisting it
+      # into layout.tsx would leave dev working and every test green while
+      # shipping the whole thing.
+      - name: Verify the dev toolbar is out of the production bundle
+        run: |
+          test -d .next/static
+          ! grep -rq ndt-root .next/static
+
+  # The template lockfile is in no pnpm workspace, so neither `audit-ci` nor
+  # `audit-ci-recursive` sees it.
+  templates-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Only the root manifest: audit-ci is a root devDependency and the
+      # template's own lockfile is what gets audited, not its node_modules.
+      - run: pnpm install --frozen-lockfile --filter . --ignore-scripts
+
+      # Advisory only: the template currently has open advisories, and a red
+      # check here would fail `ci: final status check` for every PR that
+      # touches templates/**. `continue-on-error` must stay at the step level:
+      # a job-level flag still reports the check run as failed, which the
+      # aggregator cancels the rest of CI over. Promote it to a gate by
+      # deleting continue-on-error once it reports clean.
+      - run: pnpm audit-ci-templates
+        continue-on-error: true
+
+  # backend/functions is its own npm project, outside every pnpm workspace and
+  # outside the job above's working directory, so nothing else typechecks it.
+  nextjs-shadcn-functions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: templates/nextjs-shadcn/backend/functions
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: >-
+            templates/nextjs-shadcn/backend/functions/package-lock.json
+
+      # The same install the functions runtime performs on a scaffolded project
+      # (`npm ci --no-workspaces --ignore-scripts`, see
+      # services/functions/nhost-install-deps.sh).
+      - run: npm ci --no-workspaces --ignore-scripts
+
+      - run: npm run typecheck
+
+      # node --test with native type stripping, no extra dependencies. Guards
+      # the avatar handler's pre-decode memory bounds against regressions.
+      - run: npm test
 
   # Cross-template, and deliberately without a `working-directory` default:
   # the guard walks every `templates/*/` from the repository root.

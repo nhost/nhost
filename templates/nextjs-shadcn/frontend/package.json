@@ -7,7 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "biome check .",
+    "lint": "biome check --error-on-warnings .",
     "format": "biome format --write .",
     "codegen:schema": "nhost schema dump --subdomain local --role user -o schema.graphql",
     "codegen:types": "graphql-codegen --config codegen.ts",

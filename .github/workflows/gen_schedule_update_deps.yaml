@@ -45,6 +45,24 @@ jobs:
             pnpm dedupe
           "
 
+      # Each templates/*/frontend is deliberately outside the root
+      # pnpm-workspace.yaml so it resolves published versions the way a user's
+      # generated project does. That is also why `pnpm update -r` above cannot
+      # reach it at any path, so it gets its own pass from inside the directory,
+      # against its own lockfile.
+      # Tolerant like the step above: one template failing must not discard the
+      # updates already made, which is what aborting here would do by skipping
+      # the pull request step entirely.
+      - name: Update template dependencies
+        run: |
+          nix develop -c bash -c '
+            set -u
+            for frontend in templates/*/frontend; do
+              echo "==> $frontend"
+              (cd "$frontend" && pnpm update && pnpm dedupe) || true
+            done
+          '
+
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v8
         with:
