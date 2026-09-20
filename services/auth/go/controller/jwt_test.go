@@ -584,7 +584,10 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 				mock := mock.NewMockDBClient(ctrl)
 				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
 				mock.EXPECT().GetUser(gomock.Any(), userID).Return(
-					sql.AuthUser{ActiveMfaType: sql.Text("totp")}, nil,
+					sql.AuthUser{
+						ActiveMfaType: sql.Text("totp"),
+						TotpSecret:    sql.Text("encrypted-secret"),
+					}, nil,
 				)
 
 				return mock
@@ -597,6 +600,28 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 				Code:    "unauthorized",
 				Message: "elevated claim required",
 			},
+		},
+
+		{
+			name: "BearerAuthElevated: elevated recommended, totp active but no secret",
+			elevation: controller.ElevationConfig{
+				Mode: "recommended", TOTPEnabled: true, WebauthnEnabled: true,
+			},
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				// ElevateTotp refuses this user with no-totp-secret, so it is
+				// not a factor and elevation must not be demanded over it.
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(
+					sql.AuthUser{ActiveMfaType: sql.Text("totp")}, nil,
+				)
+
+				return mock
+			},
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr:  nil,
 		},
 
 		{
@@ -672,7 +697,10 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				mock := mock.NewMockDBClient(ctrl)
 				mock.EXPECT().GetUser(gomock.Any(), userID).Return(
-					sql.AuthUser{ActiveMfaType: sql.Text("totp")}, nil,
+					sql.AuthUser{
+						ActiveMfaType: sql.Text("totp"),
+						TotpSecret:    sql.Text("encrypted-secret"),
+					}, nil,
 				)
 
 				return mock

@@ -531,7 +531,8 @@ func (j *JWTGetter) availableElevationMethods(
 			return nil, fmt.Errorf("error getting user: %w", err)
 		}
 
-		if user.ActiveMfaType.String == string(api.UserMfaRequestActiveMfaTypeTotp) {
+		if user.ActiveMfaType.String == string(api.UserMfaRequestActiveMfaTypeTotp) &&
+			user.TotpSecret.String != "" {
 			methods = append(methods, api.ElevationMethodTotp)
 		}
 	}

@@ -47,6 +47,7 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 	totpUser := sql.AuthUser{
 		ID:            userID,
 		ActiveMfaType: sql.Text("totp"),
+		TotpSecret:    sql.Text("encrypted-secret"),
 	}
 	plainUser := sql.AuthUser{ID: userID}
 
@@ -250,6 +251,34 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 			expectedJWT: nil,
 			getControllerOpts: []getControllerOptsFunc{
 				withElevationMode("required"),
+			},
+		},
+
+		{
+			name:   "totp active but no secret is not a usable factor",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				// ElevateTotp refuses this user with no-totp-secret, so
+				// advertising TOTP would demand an impossible elevation.
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(sql.AuthUser{
+					ID:            userID,
+					ActiveMfaType: sql.Text("totp"),
+				}, nil)
+
+				return mock
+			},
+			request: api.GetElevationMethodsRequestObject{},
+			expectedResponse: api.GetElevationMethods200JSONResponse{
+				ElevationRequired: false,
+				Methods:           []api.ElevationMethod{},
+			},
+			jwtTokenFn:  jwtTokenFn,
+			expectedJWT: nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withElevationMode("recommended"),
 			},
 		},
 

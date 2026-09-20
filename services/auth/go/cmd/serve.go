@@ -803,6 +803,7 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 			},
 			&cli.BoolFlag{ //nolint: exhaustruct
 				Name:     flagTOTPEnabled,
+				Aliases:  []string{"mfa-enabled"},
 				Usage:    "Enable TOTP as a second factor",
 				Category: "mfa",
 				Value:    false,
