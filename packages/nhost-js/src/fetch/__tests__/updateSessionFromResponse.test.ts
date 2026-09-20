@@ -54,6 +54,28 @@ const session: Session = {
   refreshToken: 'a1b2c3d4-c4b9-48e3-978a-d4d0f1d42e24',
 };
 
+// The already signed-in, not-yet-elevated session. Seeding it lets the negative
+// tests tell "the middleware ignored this response" apart from "the middleware
+// wiped the session", which an empty storage cannot distinguish.
+const nonElevatedAccessToken = createJWT({
+  sub: userId,
+  iat: 1700000000,
+  exp: 1700000900,
+  iss: 'hasura-auth',
+  'https://hasura.io/jwt/claims': {
+    'x-hasura-user-id': userId,
+    'x-hasura-default-role': 'user',
+    'x-hasura-allowed-roles': '{user,me}',
+  },
+});
+
+const existingSession: Session = {
+  accessToken: nonElevatedAccessToken,
+  accessTokenExpiresIn: 900,
+  refreshTokenId: '7f1c0b6e-0f1a-4d4e-9a0e-6f1b2c3d4e5f',
+  refreshToken: 'b2c3d4e5-0f1a-4d4e-9a0e-6f1b2c3d4e5f',
+};
+
 describe('updateSessionFromResponseMiddleware', () => {
   let storage: SessionStorage;
 
@@ -65,6 +87,7 @@ describe('updateSessionFromResponseMiddleware', () => {
     url: string,
     body: unknown,
     status = 200,
+    method = 'POST',
   ): Promise<Response> => {
     const next = () =>
       Promise.resolve(
@@ -74,7 +97,7 @@ describe('updateSessionFromResponseMiddleware', () => {
         }),
       );
     const middleware = updateSessionFromResponseMiddleware(storage);
-    return middleware(next)(url, { method: 'POST' });
+    return middleware(next)(url, { method });
   };
 
   test('persists the elevated session returned by /elevate/totp', async () => {
@@ -105,7 +128,7 @@ describe('updateSessionFromResponseMiddleware', () => {
     expect(storage.get()?.accessToken).toBe(accessToken);
   });
 
-  test('stores nothing for the /elevate/webauthn challenge response', async () => {
+  test('creates nothing for the /elevate/webauthn challenge response', async () => {
     await run('https://local.auth.local.nhost.run/v1/elevate/webauthn', {
       publicKey: { challenge: 'a-challenge' },
     });
@@ -113,19 +136,47 @@ describe('updateSessionFromResponseMiddleware', () => {
     expect(storage.get()).toBeNull();
   });
 
-  test('stores nothing for an error response from /elevate/totp', async () => {
+  test('leaves the signed-in session alone for the /elevate/webauthn challenge', async () => {
+    storage.set(existingSession);
+
+    await run('https://local.auth.local.nhost.run/v1/elevate/webauthn', {
+      publicKey: { challenge: 'a-challenge' },
+    });
+
+    expect(storage.get()?.accessToken).toBe(nonElevatedAccessToken);
+  });
+
+  test('leaves the signed-in session alone on an error from /elevate/totp', async () => {
+    storage.set(existingSession);
+
     await run(
       'https://local.auth.local.nhost.run/v1/elevate/totp',
       { error: 'invalid-totp', message: 'Invalid TOTP code', status: 401 },
       401,
     );
 
-    expect(storage.get()).toBeNull();
+    expect(storage.get()?.accessToken).toBe(nonElevatedAccessToken);
   });
 
-  test('stores nothing for session-shaped bodies from unrelated endpoints', async () => {
+  test('leaves the signed-in session alone for GET /elevate', async () => {
+    storage.set(existingSession);
+
+    // `/elevate` has no trailing slash, so the `/elevate/` check must skip it.
+    await run(
+      'https://local.auth.local.nhost.run/v1/elevate',
+      { elevationRequired: true, methods: ['totp'] },
+      200,
+      'GET',
+    );
+
+    expect(storage.get()?.accessToken).toBe(nonElevatedAccessToken);
+  });
+
+  test('leaves the signed-in session alone for session-shaped bodies from unrelated endpoints', async () => {
+    storage.set(existingSession);
+
     await run('https://local.auth.local.nhost.run/v1/user/mfa', { session });
 
-    expect(storage.get()).toBeNull();
+    expect(storage.get()?.accessToken).toBe(nonElevatedAccessToken);
   });
 });

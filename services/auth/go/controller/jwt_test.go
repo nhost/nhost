@@ -325,6 +325,15 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 	}
 
 	nonElevatedToken := signTestToken(t, signingGetter, userID, nil)
+
+	subjectlessToken, err := signingGetter.SignTokenWithClaims(
+		jwt.MapClaims{"flow": "signin", "state": "abc"},
+		time.Now().Add(time.Minute),
+	)
+	if err != nil {
+		t.Fatalf("failed to sign subjectless token: %v", err)
+	}
+
 	elevatedToken := signTestToken(t, signingGetter, userID, map[string]any{
 		"https://hasura.io/jwt/claims": map[string]any{
 			"x-hasura-allowed-roles":     []string{"me", "user", "editor"},
@@ -378,6 +387,40 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 			scheme:     "BearerAuth",
 			requestURL: nil,
 			expectErr:  nil,
+		},
+
+		{
+			name: "BearerAuthElevated: elevated recommended, token without a subject",
+			elevation: controller.ElevationConfig{
+				Mode: "recommended", TOTPEnabled: true, WebauthnEnabled: true,
+			},
+			// A provider state token is signed by this service and carries no
+			// sub, so an empty subject must never satisfy the elevated claim.
+			db:         mock.NewMockDBClient,
+			token:      subjectlessToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr: &oapi.AuthenticatorError{
+				Scheme:  "BearerAuthElevated",
+				Code:    "unauthorized",
+				Message: "error verifying elevated claim",
+			},
+		},
+
+		{
+			name: "BearerAuthElevated: elevated required, token without a subject",
+			elevation: controller.ElevationConfig{
+				Mode: "required", TOTPEnabled: true, WebauthnEnabled: true,
+			},
+			db:         mock.NewMockDBClient,
+			token:      subjectlessToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr: &oapi.AuthenticatorError{
+				Scheme:  "BearerAuthElevated",
+				Code:    "unauthorized",
+				Message: "error verifying elevated claim",
+			},
 		},
 
 		{

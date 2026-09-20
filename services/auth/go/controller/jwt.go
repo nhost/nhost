@@ -487,17 +487,17 @@ func (j *JWTGetter) verifyElevatedClaim(
 		return false, fmt.Errorf("error getting user id from subject: %w", err)
 	}
 
+	userID, err := uuid.Parse(u)
+	if err != nil {
+		return false, fmt.Errorf("error parsing user id: %w", err)
+	}
+
 	if j.GetCustomClaim(token, "x-hasura-auth-elevated") == u {
 		return true, nil
 	}
 
 	if !j.isElevatedClaimOptional(requestPath) {
 		return false, nil
-	}
-
-	userID, err := uuid.Parse(u)
-	if err != nil {
-		return false, fmt.Errorf("error parsing user id: %w", err)
 	}
 
 	methods, err := j.availableElevationMethods(ctx, userID)
@@ -558,7 +558,11 @@ func (j *JWTGetter) elevationRequired(methods []api.ElevationMethod) bool {
 		return false
 	case elevatedClaimRecommended:
 		return len(methods) > 0
+	case elevatedClaimRequired:
+		return true
 	default:
+		// verifyElevatedClaim denies on any mode it does not recognise, so an
+		// unset or unknown one fails closed too.
 		return true
 	}
 }
