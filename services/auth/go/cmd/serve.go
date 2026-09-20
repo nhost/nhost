@@ -111,7 +111,7 @@ const (
 	flagSMSDevOutputDir                          = "sms-dev-output-dir"
 	flagAnonymousUsersEnabled                    = "enable-anonymous-users"
 	flagTOTPEnabled                              = "totp-enabled"
-	flagMfaTotpIssuer                            = "mfa-totp-issuer"
+	flagTOTPIssuer                               = "totp-issuer"
 	flagGithubEnabled                            = "github-enabled"
 	flagGithubClientID                           = "github-client-id"
 	flagGithubClientSecret                       = "github-client-secret" //nolint:gosec
@@ -530,7 +530,13 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 					},
 					Default: "disabled",
 				},
-				Usage:    "Require x-hasura-auth-elevated claim to perform certain actions: create PATs, change email and/or password, enable/disable MFA and add security keys. If set to `recommended` the claim check is only performed if the user has a security key attached. If set to `required` the only action that won't require the claim is setting a security key for the first time.",
+				Usage: "Require x-hasura-auth-elevated claim to perform certain " +
+					"actions: create PATs, change email and/or password, set up " +
+					"TOTP and add security keys. If set to `recommended` the claim " +
+					"check is only performed if the user has a second factor " +
+					"attached. If set to `required` the only actions that won't " +
+					"require the claim are setting up a first second factor, " +
+					"either a security key or TOTP.",
 				Category: "security",
 				Sources:  cli.EnvVars("AUTH_REQUIRE_ELEVATED_CLAIM"),
 			},
@@ -805,16 +811,17 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Name:     flagTOTPEnabled,
 				Aliases:  []string{"mfa-enabled"},
 				Usage:    "Enable TOTP as a second factor",
-				Category: "mfa",
+				Category: "totp",
 				Value:    false,
 				Sources:  cli.EnvVars("AUTH_TOTP_ENABLED", "AUTH_MFA_ENABLED"),
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
-				Name:     flagMfaTotpIssuer,
-				Usage:    "Issuer for MFA TOTP",
-				Category: "mfa",
+				Name:     flagTOTPIssuer,
+				Aliases:  []string{"mfa-totp-issuer"},
+				Usage:    "Issuer for TOTP",
+				Category: "totp",
 				Value:    "auth",
-				Sources:  cli.EnvVars("AUTH_MFA_TOTP_ISSUER"),
+				Sources:  cli.EnvVars("AUTH_TOTP_ISSUER", "AUTH_MFA_TOTP_ISSUER"),
 			},
 			// GitHub provider flags
 			&cli.BoolFlag{ //nolint: exhaustruct
@@ -1587,7 +1594,7 @@ func getController(
 		hibp.NewClient(),
 		oauthProviders,
 		idTokenValidator,
-		controller.NewTotp(cmd.String(flagMfaTotpIssuer), time.Now),
+		controller.NewTotp(cmd.String(flagTOTPIssuer), time.Now),
 		encrypter,
 		cmd.Root().Version,
 	)

@@ -14,7 +14,7 @@ func (ctrl *Controller) ChangeUserMfa( //nolint:ireturn
 	logger := oapimw.LoggerFromContext(ctx)
 
 	if !ctrl.config.TOTPEnabled {
-		logger.WarnContext(ctx, "mfa disabled")
+		logger.WarnContext(ctx, "totp disabled")
 		return ctrl.sendError(ErrDisabledEndpoint), nil
 	}
 

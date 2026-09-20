@@ -198,8 +198,8 @@ export const ENV = {
   get AUTH_TOTP_ENABLED() {
     return castBooleanEnv('AUTH_TOTP_ENABLED', false);
   },
-  get AUTH_MFA_TOTP_ISSUER() {
-    return castStringEnv('AUTH_MFA_TOTP_ISSUER', 'hasura-auth');
+  get AUTH_TOTP_ISSUER() {
+    return castStringEnv('AUTH_TOTP_ISSUER', 'hasura-auth');
   },
 
   // TOKENS

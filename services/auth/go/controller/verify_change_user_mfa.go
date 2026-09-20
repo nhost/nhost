@@ -19,7 +19,7 @@ func (ctrl *Controller) postUserMfaDeactivate( //nolint:ireturn
 	logger.InfoContext(ctx, "deactivating mfa")
 
 	if user.ActiveMfaType.String != string(api.UserMfaRequestActiveMfaTypeTotp) {
-		logger.WarnContext(ctx, "user does not have totp mfa enabled")
+		logger.WarnContext(ctx, "user does not have totp enabled")
 		return ctrl.sendError(ErrDisabledMfaTotp)
 	}
 
@@ -62,7 +62,7 @@ func (ctrl *Controller) postUserMfaActivate( //nolint:ireturn
 	logger.InfoContext(ctx, "activating mfa")
 
 	if user.ActiveMfaType.String == string(api.UserMfaRequestActiveMfaTypeTotp) {
-		logger.WarnContext(ctx, "user already has totp mfa active")
+		logger.WarnContext(ctx, "user already has totp active")
 		return ctrl.sendError(ErrTotpAlreadyActive)
 	}
 
@@ -102,7 +102,7 @@ func (ctrl *Controller) VerifyChangeUserMfa( //nolint:ireturn
 	logger := oapimw.LoggerFromContext(ctx)
 
 	if !ctrl.config.TOTPEnabled {
-		logger.WarnContext(ctx, "mfa disabled")
+		logger.WarnContext(ctx, "totp disabled")
 		return ctrl.sendError(ErrDisabledEndpoint), nil
 	}
 
