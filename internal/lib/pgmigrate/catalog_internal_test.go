@@ -465,6 +465,70 @@ func TestCatalogBootstrapWrapsDatabaseError(t *testing.T) {
 	}
 }
 
+func TestCatalogQueryRowsWrapsDatabaseErrors(t *testing.T) {
+	t.Parallel()
+
+	cause := sql.ErrConnDone
+	tests := []struct {
+		name      string
+		queryErr  error
+		rowsErr   error
+		closeErr  error
+		wantError string
+	}{
+		{
+			name:      "query",
+			queryErr:  cause,
+			wantError: `reading migration catalog in schema "app"`,
+		},
+		{
+			name:      "iteration",
+			rowsErr:   cause,
+			wantError: `iterating migration catalog rows in schema "app"`,
+		},
+		{
+			name:      "close",
+			closeErr:  cause,
+			wantError: `closing migration catalog rows in schema "app"`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			database := &stubCatalogDatabase{
+				queryFunc: func(context.Context, string, ...any) (catalogRows, error) {
+					if tt.queryErr != nil {
+						return nil, tt.queryErr
+					}
+
+					return &stubCatalogRows{
+						err:      tt.rowsErr,
+						closeErr: tt.closeErr,
+					}, nil
+				},
+			}
+
+			catalog, err := newCatalog(t.Context(), database, "app")
+			if err != nil {
+				t.Fatalf("newCatalog() error = %v", err)
+			}
+
+			err = catalog.queryRows("SELECT 1", nil, func(catalogRows) error {
+				return nil
+			})
+			if !errors.Is(err, cause) {
+				t.Fatalf("queryRows() error = %v, want wrapped %v", err, cause)
+			}
+
+			if !strings.Contains(err.Error(), tt.wantError) {
+				t.Fatalf("queryRows() error = %q, want %q", err, tt.wantError)
+			}
+		})
+	}
+}
+
 //nolint:cyclop // One focused contract test checks every generated statement field and argument.
 func TestCatalogPublishUsesAscendingParameterizedRows(t *testing.T) {
 	t.Parallel()
