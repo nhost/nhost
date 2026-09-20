@@ -144,6 +144,13 @@ type JWTGetter struct {
 	jwks                 []api.JWK
 }
 
+// Values of AUTH_REQUIRE_ELEVATED_CLAIM.
+const (
+	elevatedClaimDisabled    = "disabled"
+	elevatedClaimRecommended = "recommended"
+	elevatedClaimRequired    = "required"
+)
+
 type ElevationConfig struct {
 	Mode            string
 	TOTPEnabled     bool
@@ -471,7 +478,7 @@ func (j *JWTGetter) verifyElevatedClaim(
 	token *jwt.Token,
 	requestPath string,
 ) (bool, error) {
-	if j.elevatedClaimMode == "disabled" {
+	if j.elevatedClaimMode == elevatedClaimDisabled {
 		return true, nil
 	}
 
@@ -505,10 +512,6 @@ func (j *JWTGetter) availableElevationMethods(
 	ctx context.Context,
 	userID uuid.UUID,
 ) ([]api.ElevationMethod, error) {
-	if j.elevatedClaimMode == "disabled" {
-		return nil, nil
-	}
-
 	var methods []api.ElevationMethod
 
 	if j.webauthnEnabled {
@@ -537,14 +540,26 @@ func (j *JWTGetter) availableElevationMethods(
 }
 
 func (j *JWTGetter) isElevatedClaimOptional(requestPath string) bool {
-	return j.elevatedClaimMode == "recommended" ||
+	return j.elevatedClaimMode == elevatedClaimRecommended ||
 		slices.Contains(
 			[]string{
 				"/user/webauthn/add",
 				"/user/webauthn/verify",
+				"/mfa/totp/generate",
 			},
 			requestPath,
 		)
+}
+
+func (j *JWTGetter) elevationRequired(methods []api.ElevationMethod) bool {
+	switch j.elevatedClaimMode {
+	case elevatedClaimDisabled:
+		return false
+	case elevatedClaimRecommended:
+		return len(methods) > 0
+	default:
+		return true
+	}
 }
 
 func (j *JWTGetter) MiddlewareFunc(

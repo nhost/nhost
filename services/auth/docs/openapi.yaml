@@ -57,7 +57,7 @@ paths:
   /elevate:
     get:
       summary: Get available elevation methods
-      description: Retrieve the methods the authenticated user can use to elevate their session. An empty list means no elevation is needed.
+      description: Retrieve whether the authenticated user needs to elevate their session and which methods they can use to do it.
       operationId: getElevationMethods
       tags:
         - security
@@ -2986,8 +2986,12 @@ components:
     ElevationMethodsResponse:
       type: object
       additionalProperties: false
-      description: "Elevation methods available to the user"
+      description: "Elevation status of the user"
       properties:
+        elevationRequired:
+          type: boolean
+          description: "Whether protected endpoints require an elevated session. When true and no methods are available, the user must set up a second factor first"
+          example: true
         methods:
           type: array
           description: "Methods the user can use to elevate their session"
@@ -2997,6 +3001,7 @@ components:
           items:
             $ref: "#/components/schemas/ElevationMethod"
       required:
+        - elevationRequired
         - methods
 
     ElevateTotpRequest:

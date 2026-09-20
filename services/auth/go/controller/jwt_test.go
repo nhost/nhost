@@ -532,6 +532,50 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 		},
 
 		{
+			name: "BearerAuthElevated: elevated required, no factor, generate totp secret",
+			elevation: controller.ElevationConfig{
+				Mode: "required", TOTPEnabled: true, WebauthnEnabled: true,
+			},
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				// Setting up a first factor is the one thing a user with none
+				// must be able to do, or every guarded route stays unreachable.
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(sql.AuthUser{}, nil)
+
+				return mock
+			},
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: &url.URL{Path: "/mfa/totp/generate"},
+			expectErr:  nil,
+		},
+
+		{
+			name: "BearerAuthElevated: elevated required, security key, generate totp secret",
+			elevation: controller.ElevationConfig{
+				Mode: "required", TOTPEnabled: true, WebauthnEnabled: true,
+			},
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				// A user who already has a factor must elevate with it before
+				// enrolling another one.
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(1), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(sql.AuthUser{}, nil)
+
+				return mock
+			},
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: &url.URL{Path: "/mfa/totp/generate"},
+			expectErr: &oapi.AuthenticatorError{
+				Scheme:  "BearerAuthElevated",
+				Code:    "unauthorized",
+				Message: "elevated claim required",
+			},
+		},
+
+		{
 			name: "BearerAuthElevated: elevated recommended, no security keys, totp active, claim not present",
 			elevation: controller.ElevationConfig{
 				Mode: "recommended", TOTPEnabled: true, WebauthnEnabled: true,

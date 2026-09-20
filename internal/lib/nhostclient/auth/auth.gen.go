@@ -1070,8 +1070,11 @@ type ElevateTotpRequest struct {
 // ElevationMethod Method that can be used to elevate a session
 type ElevationMethod string
 
-// ElevationMethodsResponse Elevation methods available to the user
+// ElevationMethodsResponse Elevation status of the user
 type ElevationMethodsResponse struct {
+	// ElevationRequired Whether protected endpoints require an elevated session. When true and no methods are available, the user must set up a second factor first
+	ElevationRequired bool `json:"elevationRequired"`
+
 	// Methods Methods the user can use to elevate their session
 	Methods []ElevationMethod `json:"methods"`
 }

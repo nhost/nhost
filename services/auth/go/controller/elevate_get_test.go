@@ -14,7 +14,7 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func TestGetElevationMethods(t *testing.T) {
+func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 	t.Parallel()
 
 	userID := uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB")
@@ -67,14 +67,17 @@ func TestGetElevationMethods(t *testing.T) {
 			},
 			request: api.GetElevationMethodsRequestObject{},
 			expectedResponse: api.GetElevationMethods200JSONResponse{
+				ElevationRequired: true,
 				Methods: []api.ElevationMethod{
 					api.ElevationMethodWebauthn,
 					api.ElevationMethodTotp,
 				},
 			},
-			jwtTokenFn:        jwtTokenFn,
-			expectedJWT:       nil,
-			getControllerOpts: []getControllerOptsFunc{},
+			jwtTokenFn:  jwtTokenFn,
+			expectedJWT: nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withElevationMode("recommended"),
+			},
 		},
 
 		{
@@ -90,11 +93,14 @@ func TestGetElevationMethods(t *testing.T) {
 			},
 			request: api.GetElevationMethodsRequestObject{},
 			expectedResponse: api.GetElevationMethods200JSONResponse{
-				Methods: []api.ElevationMethod{api.ElevationMethodWebauthn},
+				ElevationRequired: true,
+				Methods:           []api.ElevationMethod{api.ElevationMethodWebauthn},
 			},
-			jwtTokenFn:        jwtTokenFn,
-			expectedJWT:       nil,
-			getControllerOpts: []getControllerOptsFunc{},
+			jwtTokenFn:  jwtTokenFn,
+			expectedJWT: nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withElevationMode("recommended"),
+			},
 		},
 
 		{
@@ -110,11 +116,14 @@ func TestGetElevationMethods(t *testing.T) {
 			},
 			request: api.GetElevationMethodsRequestObject{},
 			expectedResponse: api.GetElevationMethods200JSONResponse{
-				Methods: []api.ElevationMethod{api.ElevationMethodTotp},
+				ElevationRequired: true,
+				Methods:           []api.ElevationMethod{api.ElevationMethodTotp},
 			},
-			jwtTokenFn:        jwtTokenFn,
-			expectedJWT:       nil,
-			getControllerOpts: []getControllerOptsFunc{},
+			jwtTokenFn:  jwtTokenFn,
+			expectedJWT: nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withElevationMode("recommended"),
+			},
 		},
 
 		{
@@ -130,11 +139,14 @@ func TestGetElevationMethods(t *testing.T) {
 			},
 			request: api.GetElevationMethodsRequestObject{},
 			expectedResponse: api.GetElevationMethods200JSONResponse{
-				Methods: []api.ElevationMethod{},
+				ElevationRequired: false,
+				Methods:           []api.ElevationMethod{},
 			},
-			jwtTokenFn:        jwtTokenFn,
-			expectedJWT:       nil,
-			getControllerOpts: []getControllerOptsFunc{},
+			jwtTokenFn:  jwtTokenFn,
+			expectedJWT: nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withElevationMode("recommended"),
+			},
 		},
 
 		{
@@ -155,11 +167,14 @@ func TestGetElevationMethods(t *testing.T) {
 			},
 			request: api.GetElevationMethodsRequestObject{},
 			expectedResponse: api.GetElevationMethods200JSONResponse{
-				Methods: []api.ElevationMethod{api.ElevationMethodTotp},
+				ElevationRequired: true,
+				Methods:           []api.ElevationMethod{api.ElevationMethodTotp},
 			},
-			jwtTokenFn:        jwtTokenFn,
-			expectedJWT:       nil,
-			getControllerOpts: []getControllerOptsFunc{},
+			jwtTokenFn:  jwtTokenFn,
+			expectedJWT: nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withElevationMode("recommended"),
+			},
 		},
 
 		{
@@ -180,28 +195,83 @@ func TestGetElevationMethods(t *testing.T) {
 			},
 			request: api.GetElevationMethodsRequestObject{},
 			expectedResponse: api.GetElevationMethods200JSONResponse{
-				Methods: []api.ElevationMethod{api.ElevationMethodWebauthn},
+				ElevationRequired: true,
+				Methods:           []api.ElevationMethod{api.ElevationMethodWebauthn},
 			},
-			jwtTokenFn:        jwtTokenFn,
-			expectedJWT:       nil,
-			getControllerOpts: []getControllerOptsFunc{},
+			jwtTokenFn:  jwtTokenFn,
+			expectedJWT: nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withElevationMode("recommended"),
+			},
 		},
 
 		{
-			name:   "elevation disabled answers empty without touching the database",
+			name:   "elevation disabled still reports what the user could elevate with",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
-				return mock.NewMockDBClient(ctrl)
+				// /elevate/totp works regardless of the mode, so the factor is
+				// genuinely available even though nothing demands it.
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(totpUser, nil)
+
+				return mock
 			},
 			request: api.GetElevationMethodsRequestObject{},
 			expectedResponse: api.GetElevationMethods200JSONResponse{
-				Methods: []api.ElevationMethod{},
+				ElevationRequired: false,
+				Methods:           []api.ElevationMethod{api.ElevationMethodTotp},
 			},
 			jwtTokenFn:  jwtTokenFn,
 			expectedJWT: nil,
 			getControllerOpts: []getControllerOptsFunc{
 				withElevationMode("disabled"),
 			},
+		},
+
+		{
+			name:   "elevation required but no factor set up yet",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(plainUser, nil)
+
+				return mock
+			},
+			request: api.GetElevationMethodsRequestObject{},
+			expectedResponse: api.GetElevationMethods200JSONResponse{
+				ElevationRequired: true,
+				Methods:           []api.ElevationMethod{},
+			},
+			jwtTokenFn:  jwtTokenFn,
+			expectedJWT: nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withElevationMode("required"),
+			},
+		},
+
+		{
+			name:   "unset mode fails closed, like the middleware",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(plainUser, nil)
+
+				return mock
+			},
+			request: api.GetElevationMethodsRequestObject{},
+			expectedResponse: api.GetElevationMethods200JSONResponse{
+				ElevationRequired: true,
+				Methods:           []api.ElevationMethod{},
+			},
+			jwtTokenFn:        jwtTokenFn,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
 		},
 
 		{
@@ -222,9 +292,11 @@ func TestGetElevationMethods(t *testing.T) {
 				Message: "Internal server error",
 				Status:  500,
 			},
-			jwtTokenFn:        jwtTokenFn,
-			expectedJWT:       nil,
-			getControllerOpts: []getControllerOptsFunc{},
+			jwtTokenFn:  jwtTokenFn,
+			expectedJWT: nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withElevationMode("recommended"),
+			},
 		},
 	}
 
