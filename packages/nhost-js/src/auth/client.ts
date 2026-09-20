@@ -863,10 +863,17 @@ export interface SignInIdTokenRequest {
 export type ElevationMethod = 'webauthn' | 'totp';
 
 /**
- * Elevation methods available to the user
+ * Elevation status of the user
+ @property elevationRequired (`boolean`) - Whether protected endpoints require an elevated session. When true and no methods are available, the user must set up a second factor first
+    *    Example - `true`
  @property methods (`ElevationMethod[]`) - Methods the user can use to elevate their session
     *    Example - `["webauthn","totp"]`*/
 export interface ElevationMethodsResponse {
+  /**
+   * Whether protected endpoints require an elevated session. When true and no methods are available, the user must set up a second factor first
+   *    Example - `true`
+   */
+  elevationRequired: boolean;
   /**
    * Methods the user can use to elevate their session
    *    Example - `["webauthn","totp"]`
@@ -2625,7 +2632,7 @@ export interface Client {
 
   /**
      Summary: Get available elevation methods
-     Retrieve the methods the authenticated user can use to elevate their session. An empty list means no elevation is needed.
+     Retrieve whether the authenticated user needs to elevate their session and which methods they can use to do it.
 
      This method may return different T based on the response code:
      - 200: ElevationMethodsResponse

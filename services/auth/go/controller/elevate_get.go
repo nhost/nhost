@@ -31,6 +31,7 @@ func (ctrl *Controller) GetElevationMethods( //nolint:ireturn
 	}
 
 	return api.GetElevationMethods200JSONResponse{
-		Methods: methods,
+		ElevationRequired: ctrl.wf.jwtGetter.elevationRequired(methods),
+		Methods:           methods,
 	}, nil
 }
