@@ -22,7 +22,7 @@ func (ctrl *Controller) VerifySignInMfaTotp( //nolint:ireturn
 		return ctrl.sendError(apiErr), nil
 	}
 
-	if user.ActiveMfaType.String != string(api.Totp) {
+	if user.ActiveMfaType.String != string(api.UserMfaRequestActiveMfaTypeTotp) {
 		logger.WarnContext(ctx, "user does not have totp mfa enabled")
 		return ctrl.sendError(ErrDisabledMfaTotp), nil
 	}

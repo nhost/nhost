@@ -145,8 +145,8 @@ type JWTGetter struct {
 }
 
 type ElevationConfig struct {
-	Mode string
-	TOTPEnabled bool
+	Mode            string
+	TOTPEnabled     bool
 	WebauthnEnabled bool
 }
 
@@ -501,18 +501,15 @@ func (j *JWTGetter) verifyElevatedClaim(
 	return len(methods) == 0, nil
 }
 
-type elevationMethod string
-
-const (
-	elevationWebauthn elevationMethod = "webauthn"
-	elevationTotp     elevationMethod = "totp"
-)
-
 func (j *JWTGetter) availableElevationMethods(
 	ctx context.Context,
 	userID uuid.UUID,
-) ([]elevationMethod, error) {
-	var methods []elevationMethod
+) ([]api.ElevationMethod, error) {
+	if j.elevatedClaimMode == "disabled" {
+		return nil, nil
+	}
+
+	var methods []api.ElevationMethod
 
 	if j.webauthnEnabled {
 		n, err := j.db.CountSecurityKeysUser(ctx, userID)
@@ -521,7 +518,7 @@ func (j *JWTGetter) availableElevationMethods(
 		}
 
 		if n > 0 {
-			methods = append(methods, elevationWebauthn)
+			methods = append(methods, api.ElevationMethodWebauthn)
 		}
 	}
 
@@ -530,9 +527,9 @@ func (j *JWTGetter) availableElevationMethods(
 		if err != nil {
 			return nil, fmt.Errorf("error getting user: %w", err)
 		}
-	
-		if user.ActiveMfaType.String == string(api.Totp) {
-			methods = append(methods, elevationTotp)
+
+		if user.ActiveMfaType.String == string(api.UserMfaRequestActiveMfaTypeTotp) {
+			methods = append(methods, api.ElevationMethodTotp)
 		}
 	}
 

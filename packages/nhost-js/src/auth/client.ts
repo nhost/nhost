@@ -858,6 +858,23 @@ export interface SignInIdTokenRequest {
 }
 
 /**
+ * Method that can be used to elevate a session
+ */
+export type ElevationMethod = 'webauthn' | 'totp';
+
+/**
+ * Elevation methods available to the user
+ @property methods (`ElevationMethod[]`) - Methods the user can use to elevate their session
+    *    Example - `["webauthn","totp"]`*/
+export interface ElevationMethodsResponse {
+  /**
+   * Methods the user can use to elevate their session
+   *    Example - `["webauthn","totp"]`
+   */
+  methods: ElevationMethod[];
+}
+
+/**
  * 
  @property otp (`string`) - One time password*/
 export interface ElevateTotpRequest {
@@ -2607,6 +2624,17 @@ export interface Client {
   getJWKs(options?: RequestInit): Promise<FetchResponse<JWKSet>>;
 
   /**
+     Summary: Get available elevation methods
+     Retrieve the methods the authenticated user can use to elevate their session. An empty list means no elevation is needed.
+
+     This method may return different T based on the response code:
+     - 200: ElevationMethodsResponse
+     */
+  getElevationMethods(
+    options?: RequestInit,
+  ): Promise<FetchResponse<ElevationMethodsResponse>>;
+
+  /**
      Summary: Elevate access for an already signed in user using FIDO2 Webauthn
      Generate a Webauthn challenge for elevating user permissions
 
@@ -3394,6 +3422,38 @@ export const createAPIClient = (
       status: res.status,
       headers: res.headers,
     } as FetchResponse<JWKSet>;
+  };
+
+  const getElevationMethods = async (
+    options?: RequestInit,
+  ): Promise<FetchResponse<ElevationMethodsResponse>> => {
+    const url = `${baseURL}/elevate`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'GET',
+      headers: {
+        ...options?.headers,
+      },
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: ElevationMethodsResponse = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<ElevationMethodsResponse>;
   };
 
   const elevateWebauthn = async (
@@ -5509,6 +5569,7 @@ export const createAPIClient = (
     baseURL,
     pushChainFunction,
     getJWKs,
+    getElevationMethods,
     elevateWebauthn,
     verifyElevateWebauthn,
     elevateTotp,

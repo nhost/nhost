@@ -137,6 +137,24 @@ func (e CredentialType) Valid() bool {
 	}
 }
 
+// Defines values for ElevationMethod.
+const (
+	ElevationMethodTotp     ElevationMethod = "totp"
+	ElevationMethodWebauthn ElevationMethod = "webauthn"
+)
+
+// Valid indicates whether the value is a known member of the ElevationMethod enum.
+func (e ElevationMethod) Valid() bool {
+	switch e {
+	case ElevationMethodTotp:
+		return true
+	case ElevationMethodWebauthn:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ErrorResponseError.
 const (
 	CannotSendSms                   ErrorResponseError = "cannot-send-sms"
@@ -397,16 +415,16 @@ func (e UserDeanonymizeRequestSignInMethod) Valid() bool {
 
 // Defines values for UserMfaRequestActiveMfaType.
 const (
-	Empty UserMfaRequestActiveMfaType = ""
-	Totp  UserMfaRequestActiveMfaType = "totp"
+	UserMfaRequestActiveMfaTypeEmpty UserMfaRequestActiveMfaType = ""
+	UserMfaRequestActiveMfaTypeTotp  UserMfaRequestActiveMfaType = "totp"
 )
 
 // Valid indicates whether the value is a known member of the UserMfaRequestActiveMfaType enum.
 func (e UserMfaRequestActiveMfaType) Valid() bool {
 	switch e {
-	case Empty:
+	case UserMfaRequestActiveMfaTypeEmpty:
 		return true
-	case Totp:
+	case UserMfaRequestActiveMfaTypeTotp:
 		return true
 	default:
 		return false
@@ -1040,6 +1058,15 @@ type CredentialType string
 type ElevateTotpRequest struct {
 	// Otp One time password
 	Otp string `json:"otp"`
+}
+
+// ElevationMethod Method that can be used to elevate a session
+type ElevationMethod string
+
+// ElevationMethodsResponse Elevation methods available to the user
+type ElevationMethodsResponse struct {
+	// Methods Methods the user can use to elevate their session
+	Methods []ElevationMethod `json:"methods"`
 }
 
 // ErrorResponse Standardized error response

@@ -144,6 +144,24 @@ func (e CredentialType) Valid() bool {
 	}
 }
 
+// Defines values for ElevationMethod.
+const (
+	ElevationMethodTotp     ElevationMethod = "totp"
+	ElevationMethodWebauthn ElevationMethod = "webauthn"
+)
+
+// Valid indicates whether the value is a known member of the ElevationMethod enum.
+func (e ElevationMethod) Valid() bool {
+	switch e {
+	case ElevationMethodTotp:
+		return true
+	case ElevationMethodWebauthn:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ErrorResponseError.
 const (
 	CannotSendSms                   ErrorResponseError = "cannot-send-sms"
@@ -404,16 +422,16 @@ func (e UserDeanonymizeRequestSignInMethod) Valid() bool {
 
 // Defines values for UserMfaRequestActiveMfaType.
 const (
-	Empty UserMfaRequestActiveMfaType = ""
-	Totp  UserMfaRequestActiveMfaType = "totp"
+	UserMfaRequestActiveMfaTypeEmpty UserMfaRequestActiveMfaType = ""
+	UserMfaRequestActiveMfaTypeTotp  UserMfaRequestActiveMfaType = "totp"
 )
 
 // Valid indicates whether the value is a known member of the UserMfaRequestActiveMfaType enum.
 func (e UserMfaRequestActiveMfaType) Valid() bool {
 	switch e {
-	case Empty:
+	case UserMfaRequestActiveMfaTypeEmpty:
 		return true
-	case Totp:
+	case UserMfaRequestActiveMfaTypeTotp:
 		return true
 	default:
 		return false
@@ -1047,6 +1065,15 @@ type CredentialType string
 type ElevateTotpRequest struct {
 	// Otp One time password
 	Otp string `json:"otp"`
+}
+
+// ElevationMethod Method that can be used to elevate a session
+type ElevationMethod string
+
+// ElevationMethodsResponse Elevation methods available to the user
+type ElevationMethodsResponse struct {
+	// Methods Methods the user can use to elevate their session
+	Methods []ElevationMethod `json:"methods"`
 }
 
 // ErrorResponse Standardized error response
@@ -2627,6 +2654,9 @@ type ClientInterface interface {
 	// GetOpenIDConfiguration request
 	GetOpenIDConfiguration(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetElevationMethods request
+	GetElevationMethods(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ElevateTotpWithBody request with any body
 	ElevateTotpWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -2925,6 +2955,18 @@ func (c *Client) GetOAuthAuthorizationServer(ctx context.Context, reqEditors ...
 
 func (c *Client) GetOpenIDConfiguration(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetOpenIDConfigurationRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetElevationMethods(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetElevationMethodsRequest(c.Server)
 	if err != nil {
 		return nil, err
 	}
@@ -4259,6 +4301,33 @@ func NewGetOpenIDConfigurationRequest(server string) (*http.Request, error) {
 	}
 
 	operationPath := fmt.Sprintf("/.well-known/openid-configuration")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetElevationMethodsRequest generates requests for GetElevationMethods
+func NewGetElevationMethodsRequest(server string) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/elevate")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -7175,6 +7244,9 @@ type ClientWithResponsesInterface interface {
 	// GetOpenIDConfigurationWithResponse request
 	GetOpenIDConfigurationWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetOpenIDConfigurationR, error)
 
+	// GetElevationMethodsWithResponse request
+	GetElevationMethodsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetElevationMethodsR, error)
+
 	// ElevateTotpWithBodyWithResponse request with any body
 	ElevateTotpWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ElevateTotpR, error)
 
@@ -7534,6 +7606,37 @@ func (r GetOpenIDConfigurationR) StatusCode() int {
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
 func (r GetOpenIDConfigurationR) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type GetElevationMethodsR struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *ElevationMethodsResponse
+	JSONDefault  *ErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r GetElevationMethodsR) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetElevationMethodsR) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetElevationMethodsR) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
@@ -9452,6 +9555,15 @@ func (c *ClientWithResponses) GetOpenIDConfigurationWithResponse(ctx context.Con
 	return ParseGetOpenIDConfigurationR(rsp)
 }
 
+// GetElevationMethodsWithResponse request returning *GetElevationMethodsR
+func (c *ClientWithResponses) GetElevationMethodsWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetElevationMethodsR, error) {
+	rsp, err := c.GetElevationMethods(ctx, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetElevationMethodsR(rsp)
+}
+
 // ElevateTotpWithBodyWithResponse request with arbitrary body returning *ElevateTotpR
 func (c *ClientWithResponses) ElevateTotpWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ElevateTotpR, error) {
 	rsp, err := c.ElevateTotpWithBody(ctx, contentType, body, reqEditors...)
@@ -10442,6 +10554,39 @@ func ParseGetOpenIDConfigurationR(rsp *http.Response) (*GetOpenIDConfigurationR,
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
 		var dest OAuth2ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetElevationMethodsR parses an HTTP response from a GetElevationMethodsWithResponse call
+func ParseGetElevationMethodsR(rsp *http.Response) (*GetElevationMethodsR, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetElevationMethodsR{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ElevationMethodsResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest ErrorResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
