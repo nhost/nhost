@@ -292,7 +292,7 @@ func TestVerifyChangeUserMfa(t *testing.T) { //nolint:maintidx
 			name: "mfa disabled",
 			config: func() *controller.Config {
 				cfg := getConfig()
-				cfg.MfaEnabled = false
+				cfg.TOTPEnabled = false
 
 				return cfg
 			},
