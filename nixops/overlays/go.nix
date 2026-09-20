@@ -49,6 +49,50 @@ rec {
     };
   };
 
+  mcp-publisher = final.nhost.buildGoModule rec {
+    pname = "mcp-publisher";
+    version = "1.8.1";
+
+    src = final.fetchFromGitHub {
+      owner = "modelcontextprotocol";
+      repo = "registry";
+      rev = "v${version}";
+      hash = "sha256-oFV7XCy3XtG7r7gdNvu8AQ6pxAy9RJMT2hQDa9o/E5Y=";
+    };
+
+    vendorHash = "sha256-VXlhv9dBLORtuwGdiyI9Gc4Jf9rQH90DU91knqFaRzA=";
+    subPackages = [ "cmd/publisher" ];
+    env.CGO_ENABLED = 0;
+
+    ldflags = [
+      "-s"
+      "-w"
+      "-X=main.Version=${version}"
+      "-X=main.GitCommit=v${version}"
+      "-X=main.BuildTime=1970-01-01T00:00:00Z"
+    ];
+
+    postInstall = ''
+      mv "$out/bin/publisher" "$out/bin/mcp-publisher"
+    '';
+
+    doCheck = false;
+    doInstallCheck = true;
+    installCheckPhase = ''
+      runHook preInstallCheck
+      "$out/bin/mcp-publisher" --version 2>&1 | grep -F "mcp-publisher ${version}"
+      runHook postInstallCheck
+    '';
+
+    meta = with final.lib; {
+      description = "CLI for publishing MCP servers to the official MCP Registry";
+      homepage = "https://github.com/modelcontextprotocol/registry";
+      license = licenses.asl20;
+      maintainers = [ "@nhost" ];
+      mainProgram = "mcp-publisher";
+    };
+  };
+
   mockgen = final.nhost.buildGoModule rec {
     pname = "mockgen";
     version = "0.6.0";
