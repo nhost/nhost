@@ -1,4 +1,4 @@
-import createEmptyTypeNode from '@/features/orgs/projects/database/native-queries/utils/createEmptyTypeNode';
+import { createEmptyTypeNode } from '@/features/orgs/projects/database/native-queries/utils/createEmptyTypeNode';
 
 describe('createEmptyTypeNode', () => {
   it('creates non-nullable empty scalar nodes', () => {

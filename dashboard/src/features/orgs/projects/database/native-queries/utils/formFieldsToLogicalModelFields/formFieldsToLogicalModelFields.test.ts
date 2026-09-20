@@ -1,4 +1,4 @@
-import formFieldsToLogicalModelFields from '@/features/orgs/projects/database/native-queries/utils/formFieldsToLogicalModelFields';
+import { formFieldsToLogicalModelFields } from '@/features/orgs/projects/database/native-queries/utils/formFieldsToLogicalModelFields';
 
 describe('formFieldsToLogicalModelFields', () => {
   it('preserves field names and trims descriptions only when serializing', () => {

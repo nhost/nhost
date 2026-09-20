@@ -4,7 +4,6 @@ import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
 
 const mocks = vi.hoisted(() => ({
   models: [] as Array<{ name: string }>,
-  sources: ['default'] as string[],
   mutateAsync: vi.fn(),
   router: {
     asPath: '/orgs/test-org/projects/test-app/database/native-queries/default',
@@ -17,12 +16,32 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('next/router', () => ({ useRouter: () => mocks.router }));
-vi.mock('@/features/orgs/projects/common/hooks/useGetDataSources', () => ({
-  useGetDataSources: () => ({ data: mocks.sources }),
+vi.mock('@/features/orgs/projects/common/hooks/useExportMetadata', () => ({
+  EXPORT_METADATA_QUERY_KEY: 'export-metadata',
+  useExportMetadata: () => ({
+    refetch: async () => ({
+      data: {
+        resource_version: 1,
+        metadata: {
+          version: 3,
+          sources: ['default'].map((name) => ({
+            name,
+            kind: 'postgres',
+            tables: [],
+            native_queries: [],
+            logical_models: mocks.models,
+          })),
+        },
+      },
+    }),
+  }),
 }));
 vi.mock(
   '@/features/orgs/projects/database/native-queries/hooks/useGetLogicalModels',
-  () => ({ useGetLogicalModels: () => ({ data: mocks.models }) }),
+  async (importOriginal) => ({
+    ...(await importOriginal<Record<string, unknown>>()),
+    useGetLogicalModels: () => ({ data: mocks.models }),
+  }),
 );
 vi.mock(
   '@/features/orgs/projects/database/native-queries/hooks/useLogicalModelMetadataMutation',
@@ -51,21 +70,15 @@ describe('CreateLogicalModelForm', () => {
 
   beforeEach(() => {
     mocks.models = [];
-    mocks.sources = ['default'];
     mocks.mutateAsync.mockReset().mockResolvedValue({ message: 'success' });
     mocks.router.push.mockReset().mockResolvedValue(true);
   });
 
   it('builds metadata, navigates, and closes after standalone creation', async () => {
-    mocks.sources = ['default', 'analytics'];
-    const onCancel = vi.fn();
+    const onSubmit = vi.fn();
     const user = new TestUserEvent();
-    render(<CreateLogicalModelForm onCancel={onCancel} />);
+    render(<CreateLogicalModelForm onSubmit={onSubmit} />);
 
-    const source = screen.getByRole('combobox', { name: 'Data Source' });
-    expect(source).toBeEnabled();
-    source.focus();
-    await user.keyboard('{Enter}{End}{Enter}');
     await fillForm(user, 'invoice_summary');
     await user.type(
       screen.getByLabelText('Description'),
@@ -75,7 +88,6 @@ describe('CreateLogicalModelForm', () => {
 
     await waitFor(() =>
       expect(mocks.mutateAsync).toHaveBeenCalledWith({
-        source: 'analytics',
         args: {
           name: 'invoice_summary',
           description: 'Invoice summary model',
@@ -89,32 +101,24 @@ describe('CreateLogicalModelForm', () => {
       }),
     );
     expect(mocks.router.push).toHaveBeenCalledWith(
-      '/orgs/test-org/projects/test-app/database/native-queries/analytics/models/invoice_summary',
+      '/orgs/test-org/projects/test-app/database/native-queries/default/models/invoice_summary',
     );
-    expect(onCancel).toHaveBeenCalledOnce();
+    expect(onSubmit).toHaveBeenCalledOnce();
   });
 
-  it('keeps embedded creation on its locked source and returns the new name', async () => {
-    mocks.sources = ['default', 'analytics'];
+  it('returns the new name without navigating when embedded', async () => {
     const onCreated = vi.fn();
     const user = new TestUserEvent();
-    render(
-      <CreateLogicalModelForm lockedSource="analytics" onCreated={onCreated} />,
-    );
-
-    expect(
-      screen.getByRole('combobox', { name: 'Data Source' }),
-    ).toBeDisabled();
-    expect(
-      screen.getByRole('combobox', { name: 'Data Source' }),
-    ).toHaveTextContent('analytics');
+    render(<CreateLogicalModelForm onCreated={onCreated} />);
 
     await fillForm(user, 'embedded_result');
     await user.click(screen.getByRole('button', { name: 'Create' }));
 
     await waitFor(() =>
       expect(mocks.mutateAsync).toHaveBeenCalledWith(
-        expect.objectContaining({ source: 'analytics' }),
+        expect.objectContaining({
+          args: expect.objectContaining({ name: 'embedded_result' }),
+        }),
       ),
     );
     expect(onCreated).toHaveBeenCalledWith('embedded_result');

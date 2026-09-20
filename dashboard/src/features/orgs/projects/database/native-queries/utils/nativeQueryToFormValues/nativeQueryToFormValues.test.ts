@@ -18,8 +18,7 @@ const original: NativeQueryItem = {
 
 describe('nativeQueryToFormValues', () => {
   it('maps optional metadata descriptions to stable form strings without trimming', () => {
-    expect(nativeQueryToFormValues(original, 'analytics')).toEqual({
-      source: 'analytics',
+    expect(nativeQueryToFormValues(original)).toEqual({
       rootFieldName: 'authors',
       description: '  Created outside the dashboard  ',
       returns: 'author_result',
@@ -34,10 +33,8 @@ describe('nativeQueryToFormValues', () => {
       ],
     });
     expect(
-      nativeQueryToFormValues(
-        { ...original, description: undefined },
-        'analytics',
-      ).description,
+      nativeQueryToFormValues({ ...original, description: undefined })
+        .description,
     ).toBe('');
   });
 });

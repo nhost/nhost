@@ -11,7 +11,6 @@ export interface NativeQueryArgumentFormValue {
 }
 
 export interface NativeQueryFormValues {
-  source: string;
   rootFieldName: string;
   description: string;
   returns: string;
@@ -20,7 +19,6 @@ export interface NativeQueryFormValues {
 }
 
 export interface NativeQueryDTO {
-  source: string;
   args: Omit<TrackNativeQueryArgs, 'source'>;
 }
 
@@ -50,7 +48,6 @@ export default function buildNativeQueryDTO(
   const normalizedDescription = values.description.trim();
 
   return {
-    source: values.source,
     args: {
       ...preservedOriginal,
       root_field_name: values.rootFieldName,

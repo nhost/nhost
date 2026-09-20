@@ -3,12 +3,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
 import { ExpandIcon, Plus } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
-import { z } from 'zod';
 import { DiscardChangesDialog } from '@/components/common/DiscardChangesDialog';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
-import { Checkbox } from '@/components/ui/v3/checkbox';
 import { Combobox } from '@/components/ui/v3/combobox';
 import { CommandItem } from '@/components/ui/v3/command';
 import {
@@ -19,141 +17,25 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/v3/dialog';
-import { FreeCombobox } from '@/components/ui/v3/free-combobox';
 import { Input } from '@/components/ui/v3/input';
 import { Label } from '@/components/ui/v3/label';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/v3/select';
-import { postgresTypeGroups } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
+  type BaseNativeQueryFormProps,
+  createNativeQueryFormSchema,
+  DEFAULT_VALUES,
+} from '@/features/orgs/projects/database/native-queries/components/BaseNativeQueryForm/BaseNativeQueryFormTypes';
 import { CreateLogicalModelForm } from '@/features/orgs/projects/database/native-queries/components/CreateLogicalModelForm';
-import { TypedFieldRow } from '@/features/orgs/projects/database/native-queries/components/TypedFieldRow';
-import { TypedFieldsSection } from '@/features/orgs/projects/database/native-queries/components/TypedFieldsSection';
+import { NativeQueryArgumentsSection } from '@/features/orgs/projects/database/native-queries/components/NativeQueryArgumentsSection';
 import type { NativeQueryFormValues } from '@/features/orgs/projects/database/native-queries/utils/buildNativeQueryDTO';
-import { getGraphQLIdentifierSchema } from '@/features/orgs/projects/graphql/common/utils/getGraphQLIdentifierSchema';
 import { useThemePreference } from '@/providers/Theme';
 
 export type { NativeQueryFormValues } from '@/features/orgs/projects/database/native-queries/utils/buildNativeQueryDTO';
 
-const postgresTypeOptions = postgresTypeGroups.map(
-  ({ group, label, value }) => ({
-    group,
-    label,
-    value: label,
-    keywords: [value],
-  }),
-);
-
-function createNativeQueryBaseSchema(
-  sourceOptions: string[],
-  logicalModelNames?: string[],
-) {
-  return z.object({
-    source: z
-      .string()
-      .min(1, 'Select a data source.')
-      .refine(
-        (source) => sourceOptions.includes(source),
-        'The selected data source is unavailable.',
-      ),
-    rootFieldName: getGraphQLIdentifierSchema(
-      'Root field name',
-      'Root field name is required.',
-    ),
-    description: z.string(),
-    returns: z
-      .string()
-      .trim()
-      .min(1, 'Select a return model.')
-      .refine(
-        (name) =>
-          logicalModelNames === undefined || logicalModelNames.includes(name),
-        'The selected logical model is unavailable.',
-      ),
-    code: z.string().trim().min(1, 'SQL is required.'),
-    arguments: z.array(
-      z.object({
-        name: getGraphQLIdentifierSchema(
-          'Argument name',
-          'Argument name is required.',
-        ),
-        type: z.string().trim().min(1, 'Select or enter an argument type.'),
-        nullable: z.boolean(),
-        description: z.string(),
-      }),
-    ),
-  });
-}
-
-export const createNativeQueryFormSchema = (
-  existingNames: string[],
-  originalName?: string,
-  sourceOptions: string[] = ['default'],
-  logicalModelNames?: string[],
-) =>
-  createNativeQueryBaseSchema(sourceOptions, logicalModelNames).superRefine(
-    (values, context) => {
-      if (
-        values.rootFieldName !== originalName &&
-        existingNames.includes(values.rootFieldName)
-      ) {
-        context.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ['rootFieldName'],
-          message: 'A native query with this root field name already exists.',
-        });
-      }
-
-      const names = new Set<string>();
-      values.arguments.forEach((argument, index) => {
-        if (names.has(argument.name)) {
-          context.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: ['arguments', index, 'name'],
-            message: 'Argument names must be unique.',
-          });
-        }
-        names.add(argument.name);
-      });
-    },
-  );
-
-const DEFAULT_VALUES: NativeQueryFormValues = {
-  source: 'default',
-  rootFieldName: '',
-  description: '',
-  returns: '',
-  code: '',
-  arguments: [],
-};
-
-export interface BaseNativeQueryFormProps {
-  values?: NativeQueryFormValues;
-  existingNames: string[];
-  originalName?: string;
-  logicalModelNames: string[];
-  sourceOptions: string[];
-  sourceDisabled?: boolean;
-  isPending: boolean;
-  onSourceChange?: (source: string) => void;
-  onSubmit: (values: NativeQueryFormValues) => Promise<void> | void;
-  onCancel: (event?: unknown) => void;
-  onDirtyChange?: (isDirty: boolean) => void;
-}
-
 export default function BaseNativeQueryForm({
   values = DEFAULT_VALUES,
-  existingNames,
   originalName,
   logicalModelNames,
-  sourceOptions,
-  sourceDisabled = false,
   isPending,
-  onSourceChange,
   onSubmit,
   onCancel,
   onDirtyChange,
@@ -161,29 +43,21 @@ export default function BaseNativeQueryForm({
   const { resolvedTheme } = useThemePreference();
   const editorTheme = resolvedTheme === 'light' ? githubLight : githubDark;
   const [returnsOpen, setReturnsOpen] = useState(false);
-  const [dialogSource, setDialogSource] = useState<string | null>(null);
+  const [isLogicalModelDialogOpen, setIsLogicalModelDialogOpen] =
+    useState(false);
   const [isEmbeddedLogicalModelDirty, setIsEmbeddedLogicalModelDirty] =
     useState(false);
   const [showEmbeddedDiscardDialog, setShowEmbeddedDiscardDialog] =
     useState(false);
-  const [localLogicalModelNames, setLocalLogicalModelNames] = useState<
-    string[]
-  >([]);
   const returnsTriggerRef = useRef<HTMLButtonElement>(null);
-  const pendingDialogSourceRef = useRef<string | null>(null);
-  const availableLogicalModelNames = [
-    ...new Set([...logicalModelNames, ...localLogicalModelNames]),
-  ].sort((left, right) => left.localeCompare(right));
+  const shouldOpenLogicalModelDialogRef = useRef(false);
+  const sortedLogicalModelNames = [...logicalModelNames].sort((left, right) =>
+    left.localeCompare(right),
+  );
   const form = useForm<NativeQueryFormValues>({
-    resolver: zodResolver(
-      createNativeQueryFormSchema(
-        existingNames,
-        originalName,
-        sourceOptions,
-        availableLogicalModelNames,
-      ),
-    ),
+    resolver: zodResolver(createNativeQueryFormSchema()),
     defaultValues: values,
+    reValidateMode: 'onSubmit',
   });
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -195,34 +69,6 @@ export default function BaseNativeQueryForm({
   });
   const { setValue } = form;
   const { isDirty } = form.formState;
-  const validationOptionsKey = useMemo(
-    () =>
-      JSON.stringify([
-        sourceOptions,
-        existingNames,
-        availableLogicalModelNames,
-      ]),
-    [availableLogicalModelNames, existingNames, sourceOptions],
-  );
-  const previousValidationOptionsKey = useRef(validationOptionsKey);
-
-  useEffect(() => {
-    if (previousValidationOptionsKey.current === validationOptionsKey) {
-      return;
-    }
-
-    previousValidationOptionsKey.current = validationOptionsKey;
-    void form.trigger();
-  }, [form, validationOptionsKey]);
-
-  useEffect(() => {
-    setLocalLogicalModelNames((names) => {
-      const pendingNames = names.filter(
-        (name) => !logicalModelNames.includes(name),
-      );
-      return pendingNames.length === names.length ? names : pendingNames;
-    });
-  }, [logicalModelNames]);
 
   useEffect(() => {
     const unsubscribe = form.subscribe({
@@ -240,7 +86,7 @@ export default function BaseNativeQueryForm({
   function closeLogicalModelDialog() {
     setIsEmbeddedLogicalModelDirty(false);
     setShowEmbeddedDiscardDialog(false);
-    setDialogSource(null);
+    setIsLogicalModelDialogOpen(false);
   }
 
   function requestLogicalModelDialogClose() {
@@ -260,53 +106,6 @@ export default function BaseNativeQueryForm({
       >
         <div className="flex min-h-0 flex-auto flex-col overflow-hidden px-6 pt-4 pb-4">
           <div className="grid shrink-0 gap-5 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="native-query-source">Data Source</Label>
-              <Controller
-                control={form.control}
-                name="source"
-                render={({ field }) => (
-                  <Select
-                    value={field.value}
-                    onValueChange={(source) => {
-                      if (source === field.value) {
-                        return;
-                      }
-
-                      field.onChange(source);
-                      setValue('returns', '', {
-                        shouldDirty: true,
-                        shouldValidate: true,
-                      });
-                      setLocalLogicalModelNames([]);
-                      onSourceChange?.(source);
-                    }}
-                    disabled={sourceDisabled || isPending}
-                  >
-                    <SelectTrigger
-                      id="native-query-source"
-                      className="min-w-[120px] max-w-60"
-                      aria-label="Data Source"
-                    >
-                      <SelectValue placeholder="Select a data source" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {sourceOptions.map((option) => (
-                        <SelectItem key={option} value={option}>
-                          {option}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {form.formState.errors.source && (
-                <p className="text-destructive text-sm">
-                  {form.formState.errors.source.message}
-                </p>
-              )}
-            </div>
-
             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="native-query-name">Root field name</Label>
               <Input
@@ -353,7 +152,7 @@ export default function BaseNativeQueryForm({
                         : undefined
                     }
                     value={field.value || null}
-                    options={availableLogicalModelNames.map((name) => ({
+                    options={sortedLogicalModelNames.map((name) => ({
                       value: name,
                       label: name,
                     }))}
@@ -365,14 +164,13 @@ export default function BaseNativeQueryForm({
                     onBlur={field.onBlur}
                     onChange={field.onChange}
                     onCloseAutoFocus={(event) => {
-                      const source = pendingDialogSourceRef.current;
-                      if (source === null) {
+                      if (!shouldOpenLogicalModelDialogRef.current) {
                         return;
                       }
 
                       event.preventDefault();
-                      pendingDialogSourceRef.current = null;
-                      setDialogSource(source);
+                      shouldOpenLogicalModelDialogRef.current = false;
+                      setIsLogicalModelDialogOpen(true);
                     }}
                     footerSlot={
                       <CommandItem
@@ -380,8 +178,7 @@ export default function BaseNativeQueryForm({
                         value="__native-query-create-logical-model__"
                         className="rounded-none border-t px-3 py-2"
                         onSelect={() => {
-                          pendingDialogSourceRef.current =
-                            form.getValues('source');
+                          shouldOpenLogicalModelDialogRef.current = true;
                           setReturnsOpen(false);
                         }}
                       >
@@ -466,89 +263,15 @@ export default function BaseNativeQueryForm({
             </div>
           </div>
 
-          <TypedFieldsSection
-            variant="argument"
+          <NativeQueryArgumentsSection
+            form={form}
+            fields={fields}
+            watchedArguments={watchedArguments}
             onAdd={() =>
               append({ name: '', type: '', nullable: false, description: '' })
             }
-          >
-            {fields.map((argument, index) => (
-              <TypedFieldRow
-                key={argument.id}
-                noun="Argument"
-                index={index}
-                nameInputProps={{
-                  ...form.register(`arguments.${index}.name`),
-                  placeholder: 'Name',
-                }}
-                descriptionInputProps={form.register(
-                  `arguments.${index}.description`,
-                )}
-                descriptionValue={watchedArguments[index]?.description}
-                nameError={
-                  form.formState.errors.arguments?.[index]?.name?.message
-                }
-                onRemove={() => remove(index)}
-                typeEditor={
-                  <>
-                    <Controller
-                      control={form.control}
-                      name={`arguments.${index}.type`}
-                      render={({ field, fieldState }) => {
-                        const errorId = `native-query-argument-${index + 1}-type-error`;
-
-                        return (
-                          <div className="min-w-0 space-y-1">
-                            <FreeCombobox
-                              aria-label={`Argument ${index + 1} type`}
-                              aria-invalid={fieldState.invalid}
-                              className="h-10"
-                              aria-describedby={
-                                fieldState.error ? errorId : undefined
-                              }
-                              value={field.value || null}
-                              options={postgresTypeOptions}
-                              placeholder="Select or enter a type"
-                              searchPlaceholder="Search types..."
-                              onChange={field.onChange}
-                            />
-                            {fieldState.error && (
-                              <p
-                                id={errorId}
-                                className="text-destructive text-sm"
-                              >
-                                {fieldState.error.message}
-                              </p>
-                            )}
-                          </div>
-                        );
-                      }}
-                    />
-                    <Controller
-                      control={form.control}
-                      name={`arguments.${index}.nullable`}
-                      render={({ field }) => {
-                        const id = `native-query-argument-${index + 1}-nullable`;
-
-                        return (
-                          <div className="flex h-10 items-center justify-center">
-                            <Checkbox
-                              id={id}
-                              aria-label={`Argument ${index + 1} nullable`}
-                              checked={field.value}
-                              onCheckedChange={(checked) =>
-                                field.onChange(checked === true)
-                              }
-                            />
-                          </div>
-                        );
-                      }}
-                    />
-                  </>
-                }
-              />
-            ))}
-          </TypedFieldsSection>
+            onRemove={remove}
+          />
         </div>
 
         <div className="grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t p-2">
@@ -571,7 +294,7 @@ export default function BaseNativeQueryForm({
       </form>
 
       <Dialog
-        open={dialogSource !== null}
+        open={isLogicalModelDialogOpen}
         onOpenChange={(open) => {
           if (!open) {
             requestLogicalModelDialogClose();
@@ -592,19 +315,11 @@ export default function BaseNativeQueryForm({
               Create the return type for this native query.
             </DialogDescription>
           </DialogHeader>
-          {dialogSource !== null && (
+          {isLogicalModelDialogOpen && (
             <CreateLogicalModelForm
-              logicalModelNames={availableLogicalModelNames}
-              lockedSource={dialogSource}
               onCancel={requestLogicalModelDialogClose}
               onCreated={(name) => {
-                setLocalLogicalModelNames((current) =>
-                  current.includes(name) ? current : [...current, name],
-                );
-                setValue('returns', name, {
-                  shouldDirty: true,
-                  shouldValidate: true,
-                });
+                setValue('returns', name, { shouldDirty: true });
                 closeLogicalModelDialog();
               }}
               onDirtyChange={setIsEmbeddedLogicalModelDirty}
@@ -616,8 +331,6 @@ export default function BaseNativeQueryForm({
         open={showEmbeddedDiscardDialog}
         onOpenChange={setShowEmbeddedDiscardDialog}
         onDiscardChanges={closeLogicalModelDialog}
-        // Keeps Escape from reaching the MUI drawer hosting this form.
-        onEscapeKeyDown={(event) => event.stopPropagation()}
       />
     </>
   );

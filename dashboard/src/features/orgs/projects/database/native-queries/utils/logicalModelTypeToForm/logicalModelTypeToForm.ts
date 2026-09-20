@@ -1,4 +1,4 @@
-import type { LogicalModelTypeNode } from '@/features/orgs/projects/database/native-queries/types/logicalModelTypeNode';
+import type { LogicalModelTypeNode } from '@/features/orgs/projects/database/native-queries/types';
 import type { LogicalModelType } from '@/utils/hasura-api/generated/schemas';
 
 export default function logicalModelTypeToForm(

@@ -1,4 +1,4 @@
-import logicalModelFieldsToForm from '@/features/orgs/projects/database/native-queries/utils/logicalModelFieldsToForm';
+import { logicalModelFieldsToForm } from '@/features/orgs/projects/database/native-queries/utils/logicalModelFieldsToForm';
 import type { LogicalModelField } from '@/utils/hasura-api/generated/schemas';
 
 describe('logicalModelFieldsToForm', () => {

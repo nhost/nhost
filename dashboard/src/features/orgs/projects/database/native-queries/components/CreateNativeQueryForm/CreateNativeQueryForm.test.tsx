@@ -19,7 +19,6 @@ const mocks = vi.hoisted(() => ({
     isLoading: false,
     error: null as Error | null,
   },
-  sources: ['default'] as string[],
   nativeMutateAsync: vi.fn(),
   logicalModelMutateAsync: vi.fn(),
   router: {
@@ -50,16 +49,39 @@ vi.mock('@uiw/react-codemirror', () => ({
     />
   ),
 }));
-vi.mock('@/features/orgs/projects/common/hooks/useGetDataSources', () => ({
-  useGetDataSources: () => ({ data: mocks.sources }),
+vi.mock('@/features/orgs/projects/common/hooks/useExportMetadata', () => ({
+  EXPORT_METADATA_QUERY_KEY: 'export-metadata',
+  useExportMetadata: () => ({
+    refetch: async () => ({
+      data: {
+        resource_version: 1,
+        metadata: {
+          version: 3,
+          sources: ['default'].map((name) => ({
+            name,
+            kind: 'postgres',
+            tables: [],
+            native_queries: mocks.queriesResult.data,
+            logical_models: mocks.modelsResult.data,
+          })),
+        },
+      },
+    }),
+  }),
 }));
 vi.mock(
   '@/features/orgs/projects/database/native-queries/hooks/useGetLogicalModels',
-  () => ({ useGetLogicalModels: () => mocks.modelsResult }),
+  async (importOriginal) => ({
+    ...(await importOriginal<Record<string, unknown>>()),
+    useGetLogicalModels: () => mocks.modelsResult,
+  }),
 );
 vi.mock(
   '@/features/orgs/projects/database/native-queries/hooks/useGetNativeQueries',
-  () => ({ useGetNativeQueries: () => mocks.queriesResult }),
+  async (importOriginal) => ({
+    ...(await importOriginal<Record<string, unknown>>()),
+    useGetNativeQueries: () => mocks.queriesResult,
+  }),
 );
 vi.mock(
   '@/features/orgs/projects/database/native-queries/hooks/useNativeQueryMetadataMutation',
@@ -111,7 +133,6 @@ describe('CreateNativeQueryForm', () => {
     mocks.queriesResult.data = [];
     mocks.queriesResult.isLoading = false;
     mocks.queriesResult.error = null;
-    mocks.sources = ['default'];
     mocks.nativeMutateAsync
       .mockReset()
       .mockResolvedValue({ message: 'success' });
@@ -123,7 +144,7 @@ describe('CreateNativeQueryForm', () => {
     mocks.router.push.mockReset().mockResolvedValue(true);
   });
 
-  it('waits for initial metadata without resetting the mounted draft on refetch', async () => {
+  it('shows the loading skeleton until metadata resolves', () => {
     mocks.modelsResult.isLoading = true;
     mocks.queriesResult.isLoading = true;
     const { rerender } = render(<CreateNativeQueryForm />);
@@ -131,39 +152,25 @@ describe('CreateNativeQueryForm', () => {
     expect(
       screen.getByRole('status', { name: 'Loading creation form' }),
     ).toBeInTheDocument();
+    expect(screen.queryByLabelText('Root field name')).not.toBeInTheDocument();
 
     mocks.modelsResult.data = [{ name: 'author_result' }];
     mocks.modelsResult.isLoading = false;
     mocks.queriesResult.isLoading = false;
     rerender(<CreateNativeQueryForm />);
 
-    await new TestUserEvent().type(
-      screen.getByLabelText('Root field name'),
-      'draft_name',
-    );
-    mocks.modelsResult.data = [
-      { name: 'author_result' },
-      { name: 'book_result' },
-    ];
-    rerender(<CreateNativeQueryForm />);
-
-    expect(screen.getByLabelText('Root field name')).toHaveValue('draft_name');
     expect(
-      screen.getByRole('combobox', { name: 'Returns logical model' }),
-    ).toHaveTextContent('author_result');
+      screen.queryByRole('status', { name: 'Loading creation form' }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Root field name')).toBeInTheDocument();
   });
 
   it('builds metadata, navigates, and closes after creation', async () => {
     mocks.modelsResult.data = [{ name: 'author_result' }];
-    mocks.sources = ['default', 'analytics'];
-    const onCancel = vi.fn();
+    const onSubmit = vi.fn();
     const user = new TestUserEvent();
-    render(<CreateNativeQueryForm onCancel={onCancel} />);
+    render(<CreateNativeQueryForm onSubmit={onSubmit} />);
 
-    const source = screen.getByRole('combobox', { name: 'Data Source' });
-    expect(source).toBeEnabled();
-    source.focus();
-    await user.keyboard('{Enter}{End}{Enter}');
     await user.click(
       screen.getByRole('combobox', { name: 'Returns logical model' }),
     );
@@ -173,7 +180,6 @@ describe('CreateNativeQueryForm', () => {
 
     await waitFor(() =>
       expect(mocks.nativeMutateAsync).toHaveBeenCalledWith({
-        source: 'analytics',
         args: {
           root_field_name: 'search_authors',
           type: 'query',
@@ -184,9 +190,9 @@ describe('CreateNativeQueryForm', () => {
       }),
     );
     expect(mocks.router.push).toHaveBeenCalledWith(
-      '/orgs/test-org/projects/test-app/database/native-queries/analytics/queries/search_authors',
+      '/orgs/test-org/projects/test-app/database/native-queries/default/queries/search_authors',
     );
-    expect(onCancel).toHaveBeenCalledOnce();
+    expect(onSubmit).toHaveBeenCalledOnce();
   });
 
   it('creates and selects a return model without losing the parent draft', async () => {
@@ -206,9 +212,11 @@ describe('CreateNativeQueryForm', () => {
     await waitFor(() =>
       expect(within(dialog).getByLabelText('Name')).toHaveFocus(),
     );
-    expect(
-      within(dialog).getByRole('combobox', { name: 'Data Source' }),
-    ).toBeDisabled();
+
+    mocks.logicalModelMutateAsync.mockImplementation(async () => {
+      mocks.modelsResult.data = [{ name: 'author_result' }];
+      return { message: 'success' };
+    });
 
     await fillLogicalModel(user, 'author_result');
     await user.click(within(dialog).getByRole('button', { name: 'Create' }));
@@ -219,7 +227,9 @@ describe('CreateNativeQueryForm', () => {
       ).not.toBeInTheDocument(),
     );
     expect(mocks.logicalModelMutateAsync).toHaveBeenCalledWith(
-      expect.objectContaining({ source: 'default' }),
+      expect.objectContaining({
+        args: expect.objectContaining({ name: 'author_result' }),
+      }),
     );
     expect(screen.getByLabelText('Root field name')).toHaveValue(
       'search_authors',

@@ -20,9 +20,6 @@ const mocks = vi.hoisted(() => ({
     isLoading: false,
     error: null as Error | null,
   },
-  sourcesResult: {
-    data: ['default'] as string[],
-  },
   nativeMutateAsync: vi.fn(),
   router: {
     query: {
@@ -60,16 +57,39 @@ vi.mock('@uiw/react-codemirror', () => ({
   ),
 }));
 
-vi.mock('@/features/orgs/projects/common/hooks/useGetDataSources', () => ({
-  useGetDataSources: () => mocks.sourcesResult,
+vi.mock('@/features/orgs/projects/common/hooks/useExportMetadata', () => ({
+  EXPORT_METADATA_QUERY_KEY: 'export-metadata',
+  useExportMetadata: () => ({
+    refetch: async () => ({
+      data: {
+        resource_version: 1,
+        metadata: {
+          version: 3,
+          sources: ['default'].map((name) => ({
+            name,
+            kind: 'postgres',
+            tables: [],
+            native_queries: mocks.queriesResult.data,
+            logical_models: mocks.modelsResult.data,
+          })),
+        },
+      },
+    }),
+  }),
 }));
 vi.mock(
   '@/features/orgs/projects/database/native-queries/hooks/useGetLogicalModels',
-  () => ({ useGetLogicalModels: () => mocks.modelsResult }),
+  async (importOriginal) => ({
+    ...(await importOriginal<Record<string, unknown>>()),
+    useGetLogicalModels: () => mocks.modelsResult,
+  }),
 );
 vi.mock(
   '@/features/orgs/projects/database/native-queries/hooks/useGetNativeQueries',
-  () => ({ useGetNativeQueries: () => mocks.queriesResult }),
+  async (importOriginal) => ({
+    ...(await importOriginal<Record<string, unknown>>()),
+    useGetNativeQueries: () => mocks.queriesResult,
+  }),
 );
 vi.mock(
   '@/features/orgs/projects/database/native-queries/hooks/useNativeQueryMetadataMutation',
@@ -116,7 +136,6 @@ describe('EditNativeQueryForm', () => {
     mocks.queriesResult.data = [];
     mocks.queriesResult.isLoading = false;
     mocks.queriesResult.error = null;
-    mocks.sourcesResult.data = ['default'];
     mocks.nativeMutateAsync.mockReset();
     mocks.nativeMutateAsync.mockResolvedValue({ message: 'success' });
     mocks.router.push.mockReset();
@@ -176,7 +195,6 @@ describe('EditNativeQueryForm', () => {
 
     await waitFor(() => expect(mocks.nativeMutateAsync).toHaveBeenCalledOnce());
     expect(mocks.nativeMutateAsync).toHaveBeenCalledWith({
-      source: 'default',
       original: editedQuery,
       args: expect.objectContaining({ code: 'SELECT id, name FROM authors' }),
     });
@@ -234,7 +252,6 @@ describe('EditNativeQueryForm', () => {
 
     await waitFor(() => expect(mocks.nativeMutateAsync).toHaveBeenCalledOnce());
     expect(mocks.nativeMutateAsync).toHaveBeenCalledWith({
-      source: 'default',
       original: describedQuery,
       args: {
         root_field_name: 'authors',

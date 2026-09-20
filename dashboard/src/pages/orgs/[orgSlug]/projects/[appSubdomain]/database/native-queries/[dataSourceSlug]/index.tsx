@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
+import { InlineCode } from '@/components/ui/v3/inline-code';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { NativeQueriesBrowserSidebar } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesBrowserSidebar';
@@ -9,8 +10,8 @@ import { NoLogicalModelsEmptyState } from '@/features/orgs/projects/database/nat
 import { useGetLogicalModels } from '@/features/orgs/projects/database/native-queries/hooks/useGetLogicalModels';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
-function NativeQueriesIndexContent({ source }: { source: string }) {
-  const { data: models = [], isLoading, error } = useGetLogicalModels(source);
+function NativeQueriesIndexContent() {
+  const { data: models = [], isLoading, error } = useGetLogicalModels();
 
   if (isLoading) {
     return <LoadingScreen />;
@@ -26,7 +27,7 @@ function NativeQueriesIndexContent({ source }: { source: string }) {
   }
 
   if (models.length === 0) {
-    return <NoLogicalModelsEmptyState source={source} />;
+    return <NoLogicalModelsEmptyState />;
   }
 
   return (
@@ -41,13 +42,25 @@ export default function NativeQueriesIndexPage() {
   const { project } = useProject();
   const isPlatform = useIsPlatform();
   const { dataSourceSlug } = useRouter().query;
-  const source = typeof dataSourceSlug === 'string' ? dataSourceSlug : '';
+
+  if (dataSourceSlug !== 'default') {
+    return (
+      <NativeQueriesEmptyState
+        title="Database not found"
+        description={
+          <span>
+            Database <InlineCode>{dataSourceSlug}</InlineCode> does not exist.
+          </span>
+        }
+      />
+    );
+  }
 
   if (isPlatform && !project?.config?.hasura.adminSecret) {
     return <LoadingScreen />;
   }
 
-  return <NativeQueriesIndexContent source={source} />;
+  return <NativeQueriesIndexContent />;
 }
 
 NativeQueriesIndexPage.getLayout = function getLayout(page: ReactElement) {

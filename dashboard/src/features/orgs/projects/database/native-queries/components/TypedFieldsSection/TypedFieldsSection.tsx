@@ -9,9 +9,9 @@ export type TypedFieldsVariant = 'field' | 'argument';
 export const TYPED_FIELDS_GRID_CLASS_NAMES: Record<TypedFieldsVariant, string> =
   {
     field:
-      'w-full grid-cols-[minmax(8.5rem,1fr)_minmax(7rem,0.8fr)_minmax(10.5rem,1.25fr)_5rem_6rem_4rem] min-w-[43.5rem]',
+      'w-full grid-cols-[minmax(8.5rem,1fr)_minmax(7rem,0.8fr)_minmax(8rem,1fr)_5rem_6rem_4rem] min-w-[41rem]',
     argument:
-      'w-full grid-cols-[minmax(11rem,1fr)_minmax(14rem,1.25fr)_5rem_6rem_4rem] min-w-[42rem]',
+      'w-full grid-cols-[minmax(11rem,1fr)_minmax(10rem,1fr)_5rem_6rem_4rem] min-w-[38rem]',
   };
 
 const SECTION_CONFIG: Record<
@@ -61,14 +61,14 @@ export default function TypedFieldsSection({
         {label}
       </h2>
 
-      <div className="relative mt-5 min-h-0 flex-1 overflow-y-auto pb-4">
+      <div className="relative mt-5 min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-4">
         <div
           data-testid={`${variant}-editor-region`}
           className="w-full overflow-x-auto pb-2"
         >
           <div
             data-testid={`${variant}-scroll-content`}
-            className="w-max min-w-full pr-1"
+            className="min-w-full pr-1"
           >
             <div
               className={cn(
