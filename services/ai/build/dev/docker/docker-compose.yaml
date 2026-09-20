@@ -67,8 +67,6 @@ services:
       AUTH_JWT_CUSTOM_CLAIMS: "{}"
       AUTH_LOCALE_ALLOWED_LOCALES: en
       AUTH_LOCALE_DEFAULT: en
-      AUTH_TOTP_ENABLED: "false"
-      AUTH_TOTP_ISSUER: ""
       AUTH_PASSWORD_HIBP_ENABLED: "false"
       AUTH_PASSWORD_MIN_LENGTH: "9"
       AUTH_PORT: "4000"
@@ -81,6 +79,8 @@ services:
       AUTH_SMTP_SECURE: "false"
       AUTH_SMTP_SENDER: hasura-auth@example.com
       AUTH_SMTP_USER: user
+      AUTH_TOTP_ENABLED: "false"
+      AUTH_TOTP_ISSUER: ""
       AUTH_USER_DEFAULT_ALLOWED_ROLES: user,me
       AUTH_USER_DEFAULT_ROLE: user
       HASURA_GRAPHQL_ADMIN_SECRET: nhost-admin-secret
