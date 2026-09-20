@@ -11,7 +11,7 @@ but you can also use it directly if you have a specific use case.
 You can import and use this package with:
 
 ```ts
-import { createClient } from "@nhost/nhost-js/auth";
+import { createAPIClient } from "@nhost/nhost-js/auth";
 ```
 
 # Usage
@@ -380,6 +380,33 @@ This method may return different T based on the response code:
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
+#### changeUserPhoneNumber()
+
+```ts
+changeUserPhoneNumber(body: UserPhoneNumberChangeRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
+```
+
+Summary: Change user phone number
+Request to change the authenticated user's phone number. A one-time password is sent
+via SMS to the new phone number; complete the change by calling
+`/user/phone-number/change/verify` with the OTP. The current `phone_number` is left
+unchanged until verification succeeds. Requires elevated permissions.
+
+This method may return different T based on the response code:
+
+- 200: OKResponse
+
+##### Parameters
+
+| Parameter  | Type                                                            |
+| ---------- | --------------------------------------------------------------- |
+| `body`     | [`UserPhoneNumberChangeRequest`](#userphonenumberchangerequest) |
+| `options?` | `RequestInit`                                                   |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+
 #### createPAT()
 
 ```ts
@@ -423,6 +450,32 @@ This method may return different T based on the response code:
 | ---------- | --------------------------------------------------- |
 | `body`     | [`UserDeanonymizeRequest`](#userdeanonymizerequest) |
 | `options?` | `RequestInit`                                       |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+
+#### deanonymizeUserSms()
+
+```ts
+deanonymizeUserSms(body: UserDeanonymizeSmsRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
+```
+
+Summary: Deanonymize an anonymous user with SMS OTP
+Convert an anonymous user to a regular user by adding a phone number. A one-time password is sent to the
+phone number; the user completes verification by calling `/signin/passwordless/sms/otp` with the OTP, which
+marks the phone number as verified and returns a session.
+
+This method may return different T based on the response code:
+
+- 200: OKResponse
+
+##### Parameters
+
+| Parameter  | Type                                                      |
+| ---------- | --------------------------------------------------------- |
+| `body`     | [`UserDeanonymizeSmsRequest`](#userdeanonymizesmsrequest) |
+| `options?` | `RequestInit`                                             |
 
 ##### Returns
 
@@ -474,6 +527,29 @@ This method may return different T based on the response code:
 ##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`PublicKeyCredentialRequestOptions`](#publickeycredentialrequestoptions)&gt;&gt;
+
+#### getElevationMethods()
+
+```ts
+getElevationMethods(options?: RequestInit): Promise<FetchResponse<ElevationMethodsResponse>>;
+```
+
+Summary: Get available elevation methods
+Retrieve whether the authenticated user needs to elevate their session and which methods they can use to do it.
+
+This method may return different T based on the response code:
+
+- 200: ElevationMethodsResponse
+
+##### Parameters
+
+| Parameter  | Type          |
+| ---------- | ------------- |
+| `options?` | `RequestInit` |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`ElevationMethodsResponse`](#elevationmethodsresponse)&gt;&gt;
 
 #### getJWKs()
 
@@ -1540,6 +1616,32 @@ This method may return different T based on the response code:
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
+#### verifyChangeUserPhoneNumber()
+
+```ts
+verifyChangeUserPhoneNumber(body: UserPhoneNumberChangeVerifyRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
+```
+
+Summary: Verify phone number change
+Complete a previously-requested phone number change by submitting the OTP that was
+sent via SMS. On success the staged phone number becomes the user's verified phone
+number. Requires elevated permissions.
+
+This method may return different T based on the response code:
+
+- 200: OKResponse
+
+##### Parameters
+
+| Parameter  | Type                                                                        |
+| ---------- | --------------------------------------------------------------------------- |
+| `body`     | [`UserPhoneNumberChangeVerifyRequest`](#userphonenumberchangeverifyrequest) |
+| `options?` | `RequestInit`                                                               |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+
 #### verifyElevateWebauthn()
 
 ```ts
@@ -1618,8 +1720,8 @@ This method may return different T based on the response code:
 verifySignInPasswordlessSms(body: SignInPasswordlessSmsOtpRequest, options?: RequestInit): Promise<FetchResponse<SignInPasswordlessSmsOtpResponse>>;
 ```
 
-Summary: Verify SMS OTP
-Complete passwordless SMS authentication by verifying the one-time password. Returns a session if validation is successful.
+Summary: Verify SMS OTP and complete authentication
+Complete passwordless SMS authentication by verifying the one-time password and returning a session.
 
 This method may return different T based on the response code:
 
@@ -1945,6 +2047,34 @@ otp: string;
 ```
 
 (`string`) - One time password
+
+---
+
+## ElevationMethodsResponse
+
+Elevation status of the user
+
+### Properties
+
+#### elevationRequired
+
+```ts
+elevationRequired: boolean;
+```
+
+(`boolean`) - Whether protected endpoints require an elevated session. When true and no methods are available, the user must set up a second factor first
+
+- Example - `true`
+
+#### methods
+
+```ts
+methods: ElevationMethod[];
+```
+
+(`ElevationMethod[]`) - Methods the user can use to elevate their session
+
+- Example - `["webauthn","totp"]`
 
 ---
 
@@ -4265,10 +4395,10 @@ locale: string;
 #### metadata
 
 ```ts
-metadata: Record<string, unknown>;
+metadata: Record<string, unknown> | null;
 ```
 
-(`Record<string, unknown>`) - Custom metadata associated with the user
+(`Record<string, unknown> | null`) - Custom metadata associated with the user
 
 - Example - `{"firstName":"John","lastName":"Smith"}`
 
@@ -4361,6 +4491,28 @@ signInMethod: UserDeanonymizeRequestSignInMethod;
 ```
 
 (`UserDeanonymizeRequestSignInMethod`) - Which sign-in method to use
+
+---
+
+## UserDeanonymizeSmsRequest
+
+### Properties
+
+#### options?
+
+```ts
+optional options?: SignUpOptions;
+```
+
+#### phoneNumber
+
+```ts
+phoneNumber: string;
+```
+
+(`string`) - Phone number of the user
+
+- Example - `"+123456789"`
 
 ---
 
@@ -4550,6 +4702,48 @@ optional options?: OptionsRedirectTo;
 
 ---
 
+## UserPhoneNumberChangeRequest
+
+### Properties
+
+#### newPhoneNumber
+
+```ts
+newPhoneNumber: string;
+```
+
+(`string`) - New phone number to bind to the user once verified via SMS OTP
+
+- Example - `"+123456789"`
+
+---
+
+## UserPhoneNumberChangeVerifyRequest
+
+### Properties
+
+#### newPhoneNumber
+
+```ts
+newPhoneNumber: string;
+```
+
+(`string`) - The phone number that was previously requested via /user/phone-number/change
+
+- Example - `"+123456789"`
+
+#### otp
+
+```ts
+otp: string;
+```
+
+(`string`) - One-time password received via SMS at the new phone number
+
+- Example - `"123456"`
+
+---
+
 ## VerifyAddSecurityKeyRequest
 
 ### Properties
@@ -4711,6 +4905,16 @@ type CredentialType = "public-key";
 ```
 
 The valid credential types
+
+---
+
+## ElevationMethod
+
+```ts
+type ElevationMethod = "webauthn" | "totp";
+```
+
+Method that can be used to elevate a session
 
 ---
 
