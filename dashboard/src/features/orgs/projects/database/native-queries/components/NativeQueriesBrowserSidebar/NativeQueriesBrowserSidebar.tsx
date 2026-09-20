@@ -1,6 +1,5 @@
 import { Plus, Search } from 'lucide-react';
 import dynamic from 'next/dynamic';
-import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { FormActivityIndicator } from '@/components/form/FormActivityIndicator';
@@ -8,31 +7,17 @@ import { FeatureSidebar } from '@/components/layout/FeatureSidebar';
 import { Button } from '@/components/ui/v3/button';
 import { Input } from '@/components/ui/v3/input';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/v3/select';
-import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
-import { useGetDataSources } from '@/features/orgs/projects/common/hooks/useGetDataSources';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { DeleteLogicalModelDialog } from '@/features/orgs/projects/database/native-queries/components/DeleteLogicalModelDialog';
-import { DeleteNativeQueryDialog } from '@/features/orgs/projects/database/native-queries/components/DeleteNativeQueryDialog';
 import { LogicalModelListItem } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesBrowserSidebar/LogicalModelListItem';
 import { NativeQueriesBrowserSidebarSkeleton } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesBrowserSidebar/NativeQueriesBrowserSidebarSkeleton';
 import { NativeQueryListItem } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesBrowserSidebar/NativeQueryListItem';
 import { useGetLogicalModels } from '@/features/orgs/projects/database/native-queries/hooks/useGetLogicalModels';
 import { useGetNativeQueries } from '@/features/orgs/projects/database/native-queries/hooks/useGetNativeQueries';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import type {
-  LogicalModelItem,
-  NativeQueryItem,
-} from '@/utils/hasura-api/generated/schemas';
 
 const CreateLogicalModelForm = dynamic(
   () =>
@@ -56,27 +41,13 @@ const CreateNativeQueryForm = dynamic(
   },
 );
 
-interface NativeQueriesBrowserSidebarContentProps {
-  source: string;
-}
-
-function NativeQueriesBrowserSidebarContent({
-  source,
-}: NativeQueriesBrowserSidebarContentProps) {
-  const modelsResult = useGetLogicalModels(source);
-  const queriesResult = useGetNativeQueries(source);
+function NativeQueriesBrowserSidebarContent() {
+  const modelsResult = useGetLogicalModels();
+  const queriesResult = useGetNativeQueries();
   const models = modelsResult.data ?? [];
   const queries = queriesResult.data ?? [];
   const { openDrawer } = useDialog();
   const [searchQuery, setSearchQuery] = useState('');
-  const [modelToDelete, setModelToDelete] = useState<LogicalModelItem | null>(
-    null,
-  );
-  const [deleteModelDialogOpen, setDeleteModelDialogOpen] = useState(false);
-  const [queryToDelete, setQueryToDelete] = useState<NativeQueryItem | null>(
-    null,
-  );
-  const [deleteQueryDialogOpen, setDeleteQueryDialogOpen] = useState(false);
 
   if (modelsResult.isLoading || queriesResult.isLoading) {
     return <NativeQueriesBrowserSidebarSkeleton />;
@@ -151,9 +122,7 @@ function NativeQueriesBrowserSidebarContent({
                       onClick={() =>
                         openDrawer({
                           title: 'Create native query',
-                          component: (
-                            <CreateNativeQueryForm initialSource={source} />
-                          ),
+                          component: <CreateNativeQueryForm />,
                         })
                       }
                     >
@@ -170,10 +139,6 @@ function NativeQueriesBrowserSidebarContent({
                   <NativeQueryListItem
                     key={query.root_field_name}
                     query={query}
-                    onDelete={(queryItem) => {
-                      setQueryToDelete(queryItem);
-                      setDeleteQueryDialogOpen(true);
-                    }}
                   />
                 ))
               ) : (
@@ -211,9 +176,7 @@ function NativeQueriesBrowserSidebarContent({
                       onClick={() =>
                         openDrawer({
                           title: 'Create logical model',
-                          component: (
-                            <CreateLogicalModelForm initialSource={source} />
-                          ),
+                          component: <CreateLogicalModelForm />,
                         })
                       }
                     >
@@ -227,14 +190,7 @@ function NativeQueriesBrowserSidebarContent({
             <div className="pt-2">
               {filteredModels.length > 0 ? (
                 filteredModels.map((model) => (
-                  <LogicalModelListItem
-                    key={model.name}
-                    model={model}
-                    onDelete={(modelItem) => {
-                      setModelToDelete(modelItem);
-                      setDeleteModelDialogOpen(true);
-                    }}
-                  />
+                  <LogicalModelListItem key={model.name} model={model} />
                 ))
               ) : (
                 <p className="px-2 py-1.5 text-muted-foreground text-xs">
@@ -247,17 +203,6 @@ function NativeQueriesBrowserSidebarContent({
           </section>
         </div>
       </nav>
-
-      <DeleteLogicalModelDialog
-        open={deleteModelDialogOpen}
-        setOpen={setDeleteModelDialogOpen}
-        model={modelToDelete}
-      />
-      <DeleteNativeQueryDialog
-        open={deleteQueryDialogOpen}
-        setOpen={setDeleteQueryDialogOpen}
-        query={queryToDelete}
-      />
     </div>
   );
 }
@@ -265,10 +210,6 @@ function NativeQueriesBrowserSidebarContent({
 export default function NativeQueriesBrowserSidebar() {
   const isPlatform = useIsPlatform();
   const { project } = useProject();
-  const router = useRouter();
-  const { dataSourceSlug, orgSlug, appSubdomain } = router.query;
-  const source = typeof dataSourceSlug === 'string' ? dataSourceSlug : '';
-  const { data: sources = [], isLoading, error } = useGetDataSources();
 
   if (isPlatform && !project?.config?.hasura.adminSecret) {
     return null;
@@ -276,44 +217,7 @@ export default function NativeQueriesBrowserSidebar() {
 
   return (
     <FeatureSidebar toggleOffset="left-8">
-      <div className="px-2 pb-3">
-        <Select
-          value={sources.includes(source) ? source : ''}
-          disabled={isLoading || !!error || sources.length === 0}
-          onValueChange={async (nextSource) => {
-            if (nextSource === source) {
-              return;
-            }
-            try {
-              await router.push(
-                `/orgs/${orgSlug}/projects/${appSubdomain}/database/native-queries/${encodeURIComponent(nextSource)}`,
-              );
-            } catch (navigationError) {
-              if (
-                navigationError instanceof Error &&
-                navigationError.message === 'Unsaved changes'
-              ) {
-                return;
-              }
-              console.error(navigationError);
-            }
-          }}
-        >
-          <SelectTrigger aria-label="Data Source">
-            <SelectValue placeholder="Select a data source" />
-          </SelectTrigger>
-          <SelectContent>
-            {sources.map((name) => (
-              <SelectItem key={name} value={name}>
-                {name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      {sources.includes(source) ? (
-        <NativeQueriesBrowserSidebarContent key={source} source={source} />
-      ) : null}
+      <NativeQueriesBrowserSidebarContent />
     </FeatureSidebar>
   );
 }

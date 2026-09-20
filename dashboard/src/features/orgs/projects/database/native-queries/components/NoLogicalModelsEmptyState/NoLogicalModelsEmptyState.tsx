@@ -3,11 +3,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Button } from '@/components/ui/v3/button';
 import { CreateLogicalModelForm } from '@/features/orgs/projects/database/native-queries/components/CreateLogicalModelForm';
 
-export default function NoLogicalModelsEmptyState({
-  source,
-}: {
-  source: string;
-}) {
+export default function NoLogicalModelsEmptyState() {
   const { openDrawer } = useDialog();
 
   return (
@@ -29,7 +25,7 @@ export default function NoLogicalModelsEmptyState({
           onClick={() =>
             openDrawer({
               title: 'Create logical model',
-              component: <CreateLogicalModelForm initialSource={source} />,
+              component: <CreateLogicalModelForm />,
             })
           }
         >

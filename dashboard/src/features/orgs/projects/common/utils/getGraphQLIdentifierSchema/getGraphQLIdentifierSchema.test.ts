@@ -1,4 +1,4 @@
-import { getGraphQLIdentifierSchema } from '@/features/orgs/projects/graphql/common/utils/getGraphQLIdentifierSchema';
+import { getGraphQLIdentifierSchema } from '@/features/orgs/projects/common/utils/getGraphQLIdentifierSchema';
 
 const schema = getGraphQLIdentifierSchema('Field name');
 

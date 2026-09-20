@@ -2,15 +2,12 @@ import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
-import { useGetDataSources } from '@/features/orgs/projects/common/hooks/useGetDataSources';
-import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import type {
   NativeQueryMutationType,
   NativeQueryMutationVariables,
 } from '@/features/orgs/projects/database/native-queries/hooks/useNativeQueryMetadataMutation/types';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { isEmptyValue } from '@/lib/utils';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 import type { SuccessResponse } from '@/utils/hasura-api/generated/schemas/successResponse';
 import createNativeQuery from './createNativeQuery';
@@ -53,8 +50,6 @@ export default function useNativeQueryMetadataMutation<
   const { project } = useProject();
   const adminApi = useAdminApiTarget();
   const isPlatform = useIsPlatform();
-  const { refetch: refetchResourceVersion } = useGetMetadataResourceVersion();
-  const { data: supportedSources = [] } = useGetDataSources();
   const queryClient = useQueryClient();
 
   return useMutation<
@@ -67,24 +62,8 @@ export default function useNativeQueryMetadataMutation<
         throw new Error('Project metadata connection is unavailable.');
       }
 
-      const { source } = variables;
-      if (isEmptyValue(source)) {
-        throw new Error('A data source is required.');
-      }
-      if (!supportedSources.includes(source)) {
-        throw new Error('The selected data source is unavailable.');
-      }
-
+      const { resourceVersion } = variables;
       const base = { adminSecret: adminApi.adminSecret } as const;
-
-      const { data: resourceVersion, error: resourceVersionError } =
-        await refetchResourceVersion();
-      if (resourceVersionError) {
-        throw resourceVersionError;
-      }
-      if (resourceVersion === undefined) {
-        throw new Error('Could not load the latest metadata version.');
-      }
 
       if (isPlatform) {
         const { appUrl } = adminApi;
@@ -95,7 +74,7 @@ export default function useNativeQueryMetadataMutation<
               ...base,
               appUrl,
               resourceVersion,
-              source,
+              source: 'default',
               args: (variables as NativeQueryMutationVariables<'add'>).args,
             });
           case 'edit': {
@@ -105,7 +84,7 @@ export default function useNativeQueryMetadataMutation<
               ...base,
               appUrl,
               resourceVersion,
-              source,
+              source: 'default',
               args: editVariables.args,
               original: editVariables.original,
             });
@@ -115,7 +94,7 @@ export default function useNativeQueryMetadataMutation<
               ...base,
               appUrl,
               resourceVersion,
-              source,
+              source: 'default',
               original: (variables as NativeQueryMutationVariables<'delete'>)
                 .original,
             });
@@ -128,7 +107,7 @@ export default function useNativeQueryMetadataMutation<
         case 'add':
           return createNativeQueryMigration({
             ...base,
-            source,
+            source: 'default',
             args: (variables as NativeQueryMutationVariables<'add'>).args,
           });
         case 'edit': {
@@ -136,7 +115,7 @@ export default function useNativeQueryMetadataMutation<
             variables as NativeQueryMutationVariables<'edit'>;
           return editNativeQueryMigration({
             ...base,
-            source,
+            source: 'default',
             args: editVariables.args,
             original: editVariables.original,
           });
@@ -144,7 +123,7 @@ export default function useNativeQueryMetadataMutation<
         case 'delete':
           return deleteNativeQueryMigration({
             ...base,
-            source,
+            source: 'default',
             original: (variables as NativeQueryMutationVariables<'delete'>)
               .original,
           });

@@ -1,6 +1,6 @@
 import { z } from 'zod';
+import { getGraphQLIdentifierSchema } from '@/features/orgs/projects/common/utils/getGraphQLIdentifierSchema';
 import type { ActionRelationship } from '@/features/orgs/projects/graphql/actions/utils/actionRelationships';
-import { getGraphQLIdentifierSchema } from '@/features/orgs/projects/graphql/common/utils/getGraphQLIdentifierSchema';
 
 const fieldMappingSchema = z.object({
   sourceField: z.string().min(1, { message: 'Source field is required' }),

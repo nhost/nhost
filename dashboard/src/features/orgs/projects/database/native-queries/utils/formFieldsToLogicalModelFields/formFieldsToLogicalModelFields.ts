@@ -1,5 +1,5 @@
-import type { LogicalModelFieldNode } from '@/features/orgs/projects/database/native-queries/types/logicalModelTypeNode';
-import formTypeToLogicalModelType from '@/features/orgs/projects/database/native-queries/utils/formTypeToLogicalModelType';
+import type { LogicalModelFieldNode } from '@/features/orgs/projects/database/native-queries/types';
+import { formTypeToLogicalModelType } from '@/features/orgs/projects/database/native-queries/utils/formTypeToLogicalModelType';
 import type { LogicalModelField } from '@/utils/hasura-api/generated/schemas';
 
 export default function formFieldsToLogicalModelFields(

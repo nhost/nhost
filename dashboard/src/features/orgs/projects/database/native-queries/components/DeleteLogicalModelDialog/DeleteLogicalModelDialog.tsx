@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router';
 import { useMemo } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
+import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { DeleteMetadataObjectDialog } from '@/features/orgs/projects/database/common/components/DeleteMetadataObjectDialog';
 import { useGetLogicalModels } from '@/features/orgs/projects/database/native-queries/hooks/useGetLogicalModels';
 import { useGetNativeQueries } from '@/features/orgs/projects/database/native-queries/hooks/useGetNativeQueries';
@@ -12,7 +13,7 @@ import type { LogicalModelItem } from '@/utils/hasura-api/generated/schemas';
 interface DeleteLogicalModelDialogProps {
   open: boolean;
   setOpen: (open: boolean) => void;
-  model: LogicalModelItem | null;
+  model: LogicalModelItem;
 }
 
 export default function DeleteLogicalModelDialog({
@@ -21,40 +22,35 @@ export default function DeleteLogicalModelDialog({
   model,
 }: DeleteLogicalModelDialogProps) {
   const router = useRouter();
-  const { orgSlug, appSubdomain, dataSourceSlug, modelSlug } = router.query;
-  const source =
-    typeof dataSourceSlug === 'string' ? dataSourceSlug : 'default';
+  const { orgSlug, appSubdomain, modelSlug } = router.query;
+  const { data: resourceVersion } = useGetMetadataResourceVersion();
   const { mutateAsync: deleteLogicalModel, isPending: isDeletingLogicalModel } =
     useLogicalModelMetadataMutation({ type: 'delete' });
-  const { data: logicalModels } = useGetLogicalModels(source);
-  const { data: nativeQueries } = useGetNativeQueries(source);
+  const { data: logicalModels } = useGetLogicalModels();
+  const { data: nativeQueries } = useGetNativeQueries();
 
   const dependents = useMemo(
     () =>
       getLogicalModelDependents({
-        name: model?.name ?? '',
+        name: model.name,
         logicalModels: logicalModels ?? [],
         nativeQueries: nativeQueries ?? [],
       }),
-    [model?.name, logicalModels, nativeQueries],
+    [model.name, logicalModels, nativeQueries],
   );
   const dependentsCount =
     dependents.nativeQueries.length + dependents.logicalModels.length;
 
-  const handleConfirm = async (): Promise<boolean> => {
-    if (!model) {
-      return false;
-    }
-    const submissionPath = router.asPath;
+  async function handleConfirm(): Promise<boolean> {
     const result = await execPromiseWithErrorToast(
       async () => {
-        await deleteLogicalModel({ source, original: model });
-        if (router.asPath !== submissionPath) {
-          return false;
-        }
+        await deleteLogicalModel({
+          resourceVersion: resourceVersion!,
+          original: model,
+        });
         if (modelSlug === model.name) {
           await router.push(
-            `/orgs/${orgSlug}/projects/${appSubdomain}/database/native-queries/${encodeURIComponent(source)}`,
+            `/orgs/${orgSlug}/projects/${appSubdomain}/database/native-queries/default`,
           );
         }
         return true;
@@ -66,7 +62,7 @@ export default function DeleteLogicalModelDialog({
       },
     );
     return result === true;
-  };
+  }
 
   return (
     <DeleteMetadataObjectDialog
@@ -74,7 +70,7 @@ export default function DeleteLogicalModelDialog({
       setOpen={setOpen}
       title="Delete Logical Model"
       noun="logical model"
-      name={model?.name}
+      name={model.name}
       isPending={isDeletingLogicalModel}
       onConfirm={handleConfirm}
       warning={

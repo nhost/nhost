@@ -8,13 +8,13 @@ export type NativeQueryMutationType = 'add' | 'edit' | 'delete';
 export type NativeQueryMutationArgs = Omit<TrackNativeQueryArgs, 'source'>;
 
 export interface NativeQueryMutationVariablesMap {
-  add: { source: string; args: NativeQueryMutationArgs };
+  add: { resourceVersion: number; args: NativeQueryMutationArgs };
   edit: {
-    source: string;
+    resourceVersion: number;
     args: NativeQueryMutationArgs;
     original: NativeQueryItem;
   };
-  delete: { source: string; original: NativeQueryItem };
+  delete: { resourceVersion: number; original: NativeQueryItem };
 }
 
 export type NativeQueryMutationVariables<T extends NativeQueryMutationType> =

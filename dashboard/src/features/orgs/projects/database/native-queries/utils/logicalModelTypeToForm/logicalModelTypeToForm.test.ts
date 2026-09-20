@@ -1,5 +1,5 @@
-import type { LogicalModelTypeNode } from '@/features/orgs/projects/database/native-queries/types/logicalModelTypeNode';
-import logicalModelTypeToForm from '@/features/orgs/projects/database/native-queries/utils/logicalModelTypeToForm';
+import type { LogicalModelTypeNode } from '@/features/orgs/projects/database/native-queries/types';
+import { logicalModelTypeToForm } from '@/features/orgs/projects/database/native-queries/utils/logicalModelTypeToForm';
 import type { LogicalModelType } from '@/utils/hasura-api/generated/schemas';
 
 describe('logicalModelTypeToForm', () => {

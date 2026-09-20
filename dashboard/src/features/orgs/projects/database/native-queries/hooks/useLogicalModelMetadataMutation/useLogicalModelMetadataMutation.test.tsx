@@ -3,15 +3,14 @@ import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
 import type { PropsWithChildren } from 'react';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
-import {
-  type LogicalModelMutationArgs,
-  useLogicalModelMetadataMutation,
-} from '@/features/orgs/projects/database/native-queries/hooks/useLogicalModelMetadataMutation';
+import { useLogicalModelMetadataMutation } from '@/features/orgs/projects/database/native-queries/hooks/useLogicalModelMetadataMutation';
+import type { LogicalModelMutationArgs } from '@/features/orgs/projects/database/native-queries/hooks/useLogicalModelMetadataMutation/types';
 import { queryClient, renderHook, waitFor } from '@/tests/testUtils';
 import type { LogicalModelItem } from '@/utils/hasura-api/generated/schemas';
 
 const API = 'https://local.hasura.local.nhost.run';
-const SOURCE = 'analytics';
+const SOURCE = 'default';
+const RESOURCE_VERSION = 40;
 const project = {
   subdomain: 'test-app',
   region: { name: 'us-east-1', domain: 'nhost.run' },
@@ -32,8 +31,6 @@ const original: LogicalModelItem = {
 const mocks = vi.hoisted(() => ({
   useProject: vi.fn(),
   useIsPlatform: vi.fn(),
-  refetch: vi.fn(),
-  supportedSources: ['analytics'] as string[],
 }));
 
 vi.mock('@/features/orgs/projects/hooks/useProject', () => ({
@@ -41,13 +38,6 @@ vi.mock('@/features/orgs/projects/hooks/useProject', () => ({
 }));
 vi.mock('@/features/orgs/projects/common/hooks/useIsPlatform', () => ({
   useIsPlatform: mocks.useIsPlatform,
-}));
-vi.mock(
-  '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion',
-  () => ({ useGetMetadataResourceVersion: () => ({ refetch: mocks.refetch }) }),
-);
-vi.mock('@/features/orgs/projects/common/hooks/useGetDataSources', () => ({
-  useGetDataSources: () => ({ data: mocks.supportedSources }),
 }));
 
 const migrationSuccess = { name: '0_update_native_query_metadata' };
@@ -126,7 +116,7 @@ const originalPermissionSteps =
 const cases = [
   {
     type: 'add' as const,
-    variables: { source: SOURCE, args },
+    variables: { source: SOURCE, resourceVersion: RESOURCE_VERSION, args },
     operationType: 'bulk_atomic',
     expectedArgs: [
       { type: 'pg_track_logical_model', args: { ...args, source: SOURCE } },
@@ -136,7 +126,12 @@ const cases = [
   },
   {
     type: 'edit' as const,
-    variables: { source: SOURCE, args, original },
+    variables: {
+      source: SOURCE,
+      resourceVersion: RESOURCE_VERSION,
+      args,
+      original,
+    },
     operationType: 'bulk',
     expectedArgs: [replacementStep, ...(permissionSteps ?? [])],
     expectedName: `update_logical_model_${original.name}`,
@@ -147,7 +142,7 @@ const cases = [
   },
   {
     type: 'delete' as const,
-    variables: { source: SOURCE, original },
+    variables: { source: SOURCE, resourceVersion: RESOURCE_VERSION, original },
     operationType: 'bulk_atomic',
     expectedArgs: [untrackOriginal],
     expectedName: `untrack_logical_model_${original.name}`,
@@ -177,8 +172,6 @@ describe('useLogicalModelMetadataMutation', () => {
     migrationFinished = undefined;
     mocks.useProject.mockReturnValue({ project });
     mocks.useIsPlatform.mockReturnValue(false);
-    mocks.supportedSources = [SOURCE];
-    mocks.refetch.mockReset().mockResolvedValue({ data: 91 });
   });
   afterEach(() => {
     server.resetHandlers();
@@ -215,7 +208,6 @@ describe('useLogicalModelMetadataMutation', () => {
         await waitFor(() => expect(migrationBodies).toHaveLength(1));
         expect(onSuccess).not.toHaveBeenCalled();
         expect(invalidate).not.toHaveBeenCalled();
-        expect(mocks.refetch).toHaveBeenCalledOnce();
         expect(migrationBodies).toEqual([
           {
             name: expectedName,
@@ -252,7 +244,11 @@ describe('useLogicalModelMetadataMutation', () => {
         result.current.mutateAsync(variables as never),
       ).resolves.toEqual({ message: 'success' });
       expect(metadataBodies).toEqual([
-        { type: operationType, resource_version: 91, args: expectedArgs },
+        {
+          type: operationType,
+          resource_version: RESOURCE_VERSION,
+          args: expectedArgs,
+        },
       ]);
       expect(migrationBodies).toEqual([]);
     },
@@ -272,7 +268,7 @@ describe('useLogicalModelMetadataMutation', () => {
     );
 
     await expect(
-      result.current.mutateAsync({ source: SOURCE, args }),
+      result.current.mutateAsync({ resourceVersion: RESOURCE_VERSION, args }),
     ).rejects.toThrow('metadata failed');
     expect(migrationBodies).toEqual([]);
     expect(onSuccess).not.toHaveBeenCalled();
@@ -292,7 +288,7 @@ describe('useLogicalModelMetadataMutation', () => {
     );
 
     await expect(
-      result.current.mutateAsync({ source: SOURCE, args }),
+      result.current.mutateAsync({ resourceVersion: RESOURCE_VERSION, args }),
     ).rejects.toThrow('migration failed');
     expect(migrationBodies).toHaveLength(1);
     expect(invalidate).not.toHaveBeenCalled();
@@ -300,44 +296,10 @@ describe('useLogicalModelMetadataMutation', () => {
 
     migrationStatus = 200;
     await expect(
-      result.current.mutateAsync({ source: SOURCE, args }),
+      result.current.mutateAsync({ resourceVersion: RESOURCE_VERSION, args }),
     ).resolves.toEqual(migrationSuccess);
     expect(migrationBodies).toHaveLength(2);
     expect(invalidate).toHaveBeenCalledOnce();
     expect(onSuccess).toHaveBeenCalledOnce();
   });
-
-  it('keeps the metadata version guard', async () => {
-    mocks.refetch.mockResolvedValue({ data: undefined });
-    const { result } = renderHook(
-      () => useLogicalModelMetadataMutation({ type: 'delete' }),
-      { wrapper },
-    );
-
-    await expect(
-      result.current.mutateAsync({ source: SOURCE, original }),
-    ).rejects.toThrow('Could not load the latest metadata version.');
-    expect(metadataBodies).toEqual([]);
-    expect(migrationBodies).toEqual([]);
-  });
-
-  it.each([
-    { source: '', message: 'A data source is required.' },
-    { source: 'missing', message: 'The selected data source is unavailable.' },
-  ])(
-    'rejects source "$source" before reading or writing metadata',
-    async ({ source, message }) => {
-      const { result } = renderHook(
-        () => useLogicalModelMetadataMutation({ type: 'add' }),
-        { wrapper },
-      );
-
-      await expect(
-        result.current.mutateAsync({ source, args }),
-      ).rejects.toThrow(message);
-      expect(mocks.refetch).not.toHaveBeenCalled();
-      expect(metadataBodies).toEqual([]);
-      expect(migrationBodies).toEqual([]);
-    },
-  );
 });

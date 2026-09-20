@@ -1,4 +1,1 @@
-export {
-  default as useGetLogicalModels,
-  selectLogicalModels,
-} from './useGetLogicalModels';
+export { default as useGetLogicalModels } from './useGetLogicalModels';

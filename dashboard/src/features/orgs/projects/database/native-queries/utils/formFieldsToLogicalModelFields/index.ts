@@ -1,1 +1,1 @@
-export { default } from './formFieldsToLogicalModelFields';
+export { default as formFieldsToLogicalModelFields } from './formFieldsToLogicalModelFields';

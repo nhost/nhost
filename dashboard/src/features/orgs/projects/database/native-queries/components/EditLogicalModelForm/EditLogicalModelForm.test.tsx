@@ -6,9 +6,6 @@ const mocks = vi.hoisted(() => ({
   modelsResult: {
     data: [] as Array<{ name: string }>,
   },
-  sourcesResult: {
-    data: ['default'] as string[],
-  },
   mutateAsync: vi.fn(),
   router: {
     query: { orgSlug: 'test-org', appSubdomain: 'test-app', modelSlug: '' },
@@ -20,12 +17,32 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock('next/router', () => ({ useRouter: () => mocks.router }));
 
-vi.mock('@/features/orgs/projects/common/hooks/useGetDataSources', () => ({
-  useGetDataSources: () => mocks.sourcesResult,
+vi.mock('@/features/orgs/projects/common/hooks/useExportMetadata', () => ({
+  EXPORT_METADATA_QUERY_KEY: 'export-metadata',
+  useExportMetadata: () => ({
+    refetch: async () => ({
+      data: {
+        resource_version: 1,
+        metadata: {
+          version: 3,
+          sources: ['default'].map((name) => ({
+            name,
+            kind: 'postgres',
+            tables: [],
+            native_queries: [],
+            logical_models: mocks.modelsResult.data,
+          })),
+        },
+      },
+    }),
+  }),
 }));
 vi.mock(
   '@/features/orgs/projects/database/native-queries/hooks/useGetLogicalModels',
-  () => ({ useGetLogicalModels: () => mocks.modelsResult }),
+  async (importOriginal) => ({
+    ...(await importOriginal<Record<string, unknown>>()),
+    useGetLogicalModels: () => mocks.modelsResult,
+  }),
 );
 vi.mock(
   '@/features/orgs/projects/database/native-queries/hooks/useLogicalModelMetadataMutation',
@@ -66,7 +83,6 @@ describe('EditLogicalModelForm', () => {
 
   beforeEach(() => {
     mocks.modelsResult.data = [{ name: 'invoice_line_item' }];
-    mocks.sourcesResult.data = ['default'];
     mocks.mutateAsync.mockReset();
     mocks.mutateAsync.mockResolvedValue({ message: 'success' });
     mocks.router.query.modelSlug = '';
@@ -120,7 +136,6 @@ describe('EditLogicalModelForm', () => {
 
     await waitFor(() =>
       expect(mocks.mutateAsync).toHaveBeenCalledWith({
-        source: 'default',
         original: describedModel,
         args: {
           name: describedModel.name,
@@ -158,7 +173,6 @@ describe('EditLogicalModelForm', () => {
 
     await waitFor(() =>
       expect(mocks.mutateAsync).toHaveBeenCalledWith({
-        source: 'default',
         original: model,
         args: {
           name: model.name,
@@ -187,7 +201,6 @@ describe('EditLogicalModelForm', () => {
 
     await waitFor(() =>
       expect(mocks.mutateAsync).toHaveBeenCalledWith({
-        source: 'default',
         original: describedModel,
         args: {
           name: describedModel.name,
@@ -207,7 +220,6 @@ describe('EditLogicalModelForm', () => {
 
     await waitFor(() =>
       expect(mocks.mutateAsync).toHaveBeenCalledWith({
-        source: 'default',
         original: describedModel,
         args: {
           name: describedModel.name,

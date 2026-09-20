@@ -167,8 +167,7 @@ describe('DeleteLogicalModelDialog', () => {
     ).toBeInTheDocument();
   });
 
-  it('lists dependents only from the selected source when names overlap', async () => {
-    mocks.router.query.dataSourceSlug = 'analytics';
+  it('lists dependents only from the default source when names overlap', async () => {
     server.use(
       metadataHandler({
         logicalModels: [],
@@ -242,10 +241,10 @@ describe('DeleteLogicalModelDialog', () => {
     renderDialog();
 
     expect(await screen.findByText(/still reference/)).toBeInTheDocument();
-    expect(screen.getByText('analytics_author')).toBeInTheDocument();
-    expect(screen.queryByText('same_query')).not.toBeInTheDocument();
-    expect(screen.getByText('invoice (owner)')).toBeInTheDocument();
-    expect(screen.queryByText('default_book')).not.toBeInTheDocument();
+    expect(screen.getByText('same_query')).toBeInTheDocument();
+    expect(screen.getByText('default_book (author)')).toBeInTheDocument();
+    expect(screen.queryByText('analytics_author')).not.toBeInTheDocument();
+    expect(screen.queryByText('invoice (owner)')).not.toBeInTheDocument();
   });
 
   it('keeps deletion available so the server stays the source of truth', async () => {

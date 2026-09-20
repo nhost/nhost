@@ -1,1 +1,1 @@
-export { default } from './logicalModelTypeToForm';
+export { default as logicalModelTypeToForm } from './logicalModelTypeToForm';

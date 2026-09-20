@@ -5,7 +5,6 @@ import { toast } from 'react-hot-toast';
 import { NativeQueriesBrowserSidebar } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesBrowserSidebar';
 import { mockMatchMediaValue } from '@/tests/mocks';
 import {
-  fireEvent,
   queryClient,
   render,
   screen,
@@ -334,29 +333,6 @@ describe('NativeQueriesBrowserSidebar', () => {
 
   afterAll(() => server.close());
 
-  it('does not list default-source objects on an unknown source route', async () => {
-    mocks.router.query.dataSourceSlug = 'other';
-    render(<NativeQueriesBrowserSidebar />);
-
-    await waitFor(() =>
-      expect(
-        screen.getByRole('combobox', { name: 'Data Source' }),
-      ).toBeEnabled(),
-    );
-    expect(
-      screen.getByRole('combobox', { name: 'Data Source' }),
-    ).toHaveTextContent('Select a data source');
-    expect(
-      screen.queryByRole('navigation', { name: 'Native queries navigation' }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: 'New native query' }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: 'New logical model' }),
-    ).not.toBeInTheDocument();
-  });
-
   it.each(guardedDrawerSurfaces)(
     'guards dirty Cancel and preserves the %s draft until discard',
     async (surface) => {
@@ -390,29 +366,6 @@ describe('NativeQueriesBrowserSidebar', () => {
       await waitFor(() => expect(description).not.toBeInTheDocument());
     },
   );
-
-  it('guards a route change while a drawer form is dirty', async () => {
-    const user = new TestUserEvent();
-    render(<NativeQueriesBrowserSidebar />);
-    const description = await openGuardedDrawer(user, 'edit logical model');
-    await user.clear(description);
-    await user.type(description, 'Dirty route draft');
-
-    let routeError: unknown;
-    await act(async () => {
-      try {
-        mocks.routeChangeStart?.();
-      } catch (error) {
-        routeError = error;
-      }
-    });
-    expect(routeError).toEqual(new Error('Unsaved changes'));
-
-    expect(
-      await screen.findByRole('dialog', { name: 'Unsaved changes' }),
-    ).toBeInTheDocument();
-    expect(description).toHaveValue('Dirty route draft');
-  });
 
   it.each(['edit native query', 'edit logical model'] as const)(
     'keeps a failed %s save dirty and retries the preserved draft',
@@ -534,30 +487,17 @@ describe('NativeQueriesBrowserSidebar', () => {
     await user.click(screen.getByRole('button', { name: 'New logical model' }));
     expect(screen.getByText('Create logical model')).toBeInTheDocument();
 
-    fireEvent.change(screen.getByLabelText('Name'), {
-      target: { value: 'author_result' },
-    });
-    fireEvent.change(screen.getByLabelText('Field 1 name'), {
-      target: { value: 'id' },
-    });
-    fireEvent.submit(
-      screen.getByRole('button', { name: 'Create' }).closest('form')!,
-    );
-    expect(
-      await screen.findByText('A logical model with this name already exists.'),
-    ).toBeInTheDocument();
+    await user.type(screen.getByLabelText('Field 1 name'), 'id');
+    await user.click(screen.getByRole('button', { name: 'Create' }));
+    expect(await screen.findByText('Name is required.')).toBeInTheDocument();
     expect(mutationBodies).toHaveLength(0);
 
-    fireEvent.change(screen.getByLabelText('Name'), {
-      target: { value: 'new_result' },
-    });
+    await user.type(screen.getByLabelText('Name'), 'new_result');
     await user.click(
       screen.getByRole('combobox', { name: 'Field 1 scalar type' }),
     );
     await user.click(screen.getByRole('option', { name: 'uuid' }));
-    fireEvent.submit(
-      screen.getByRole('button', { name: 'Create' }).closest('form')!,
-    );
+    await user.click(screen.getByRole('button', { name: 'Create' }));
     await waitFor(() => expect(mutationBodies).toHaveLength(1));
     expect(mutationBodies[0].up[0]).toMatchObject({
       type: 'bulk_atomic',
@@ -620,29 +560,16 @@ describe('NativeQueriesBrowserSidebar', () => {
     expect(screen.getByText('Create native query')).toBeInTheDocument();
 
     const rootFieldName = await screen.findByLabelText('Root field name');
-    fireEvent.change(rootFieldName, {
-      target: { value: 'search_authors' },
-    });
-    fireEvent.submit(
-      screen.getByRole('button', { name: 'Create' }).closest('form')!,
-    );
-    expect(
-      await screen.findByText(
-        'A native query with this root field name already exists.',
-      ),
-    ).toBeInTheDocument();
-    expect(screen.getByText('SQL is required.')).toBeInTheDocument();
+    await user.type(rootFieldName, 'list_authors');
+    await user.click(screen.getByRole('button', { name: 'Create' }));
+    expect(await screen.findByText('SQL is required.')).toBeInTheDocument();
     expect(mutationBodies).toHaveLength(0);
 
-    fireEvent.change(rootFieldName, {
-      target: { value: 'list_authors' },
-    });
-    fireEvent.change(screen.getByLabelText('SQL editor'), {
-      target: { value: 'SELECT * FROM authors' },
-    });
-    fireEvent.submit(
-      screen.getByRole('button', { name: 'Create' }).closest('form')!,
+    await user.type(
+      screen.getByLabelText('SQL editor'),
+      'SELECT * FROM authors',
     );
+    await user.click(screen.getByRole('button', { name: 'Create' }));
 
     await waitFor(() => expect(mutationBodies).toHaveLength(1));
     expect(mutationBodies[0].up[0]).toMatchObject({

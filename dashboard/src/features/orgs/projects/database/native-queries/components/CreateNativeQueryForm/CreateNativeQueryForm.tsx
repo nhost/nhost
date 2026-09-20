@@ -1,9 +1,9 @@
 import { useRouter } from 'next/router';
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Button } from '@/components/ui/v3/button';
 import { Skeleton } from '@/components/ui/v3/skeleton';
-import { useGetDataSources } from '@/features/orgs/projects/common/hooks/useGetDataSources';
+import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { BaseNativeQueryForm } from '@/features/orgs/projects/database/native-queries/components/BaseNativeQueryForm';
 import { useGetLogicalModels } from '@/features/orgs/projects/database/native-queries/hooks/useGetLogicalModels';
 import { useGetNativeQueries } from '@/features/orgs/projects/database/native-queries/hooks/useGetNativeQueries';
@@ -18,21 +18,20 @@ import type { DialogFormProps } from '@/types/common';
 const DIRTY_SOURCE_ID = 'create-native-query';
 
 export interface CreateNativeQueryFormProps extends DialogFormProps {
-  initialSource?: string;
+  onSubmit?: () => void;
   onCancel?: (event?: unknown) => void;
 }
 
 export default function CreateNativeQueryForm({
-  initialSource = 'default',
+  onSubmit,
   onCancel,
   location,
 }: CreateNativeQueryFormProps) {
   const router = useRouter();
   const { setDirtySource } = useDialog();
-  const [selectedSource, setSelectedSource] = useState(initialSource);
-  const modelsResult = useGetLogicalModels(selectedSource);
-  const queriesResult = useGetNativeQueries(selectedSource);
-  const { data: sourceNames = [] } = useGetDataSources();
+  const modelsResult = useGetLogicalModels();
+  const queriesResult = useGetNativeQueries();
+  const { data: resourceVersion } = useGetMetadataResourceVersion();
   const { mutateAsync: createNativeQuery, isPending } =
     useNativeQueryMetadataMutation({ type: 'add' });
   const reportDirtyState = useCallback(
@@ -41,7 +40,6 @@ export default function CreateNativeQueryForm({
   );
 
   const models = modelsResult.data ?? [];
-  const queries = queriesResult.data ?? [];
 
   if (modelsResult.isLoading || queriesResult.isLoading) {
     return (
@@ -72,7 +70,6 @@ export default function CreateNativeQueryForm({
   }
 
   const initialValues: NativeQueryFormValues = {
-    source: initialSource,
     rootFieldName: '',
     description: '',
     returns: models[0]?.name ?? '',
@@ -81,36 +78,36 @@ export default function CreateNativeQueryForm({
   };
 
   async function handleSubmit(nextValues: NativeQueryFormValues) {
-    const submissionPath = router.asPath;
     const result = await execPromiseWithErrorToast(
-      () => createNativeQuery(buildNativeQueryDTO(nextValues)),
+      () =>
+        createNativeQuery({
+          ...buildNativeQueryDTO(nextValues),
+          resourceVersion: resourceVersion!,
+        }),
       {
         loadingMessage: 'Creating native query...',
         successMessage: 'Native query created.',
         errorMessage: 'Could not create the native query.',
       },
     );
-    if (!result || router.asPath !== submissionPath) {
+    if (!result) {
       return;
     }
 
     reportDirtyState(false);
     const { orgSlug, appSubdomain } = router.query;
     await router.push(
-      `/orgs/${orgSlug}/projects/${appSubdomain}/database/native-queries/${encodeURIComponent(nextValues.source)}/queries/${encodeURIComponent(nextValues.rootFieldName)}`,
+      `/orgs/${orgSlug}/projects/${appSubdomain}/database/native-queries/default/queries/${encodeURIComponent(nextValues.rootFieldName)}`,
     );
-    onCancel?.();
+    onSubmit?.();
   }
 
   return (
     <div className="flex min-h-0 flex-1 flex-col text-foreground">
       <BaseNativeQueryForm
         values={initialValues}
-        existingNames={queries.map((query) => query.root_field_name)}
         logicalModelNames={models.map((model) => model.name)}
-        sourceOptions={sourceNames}
         isPending={isPending}
-        onSourceChange={setSelectedSource}
         onCancel={(event) => onCancel?.(event)}
         onDirtyChange={reportDirtyState}
         onSubmit={handleSubmit}

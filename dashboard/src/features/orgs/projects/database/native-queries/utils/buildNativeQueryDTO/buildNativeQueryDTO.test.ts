@@ -28,7 +28,6 @@ const original: NativeQueryItem = {
 };
 
 const editedValues = {
-  source: 'analytics',
   rootFieldName: 'renamed_authors',
   description: '  Updated author query  ',
   returns: 'author_result',
@@ -37,9 +36,8 @@ const editedValues = {
 };
 
 describe('buildNativeQueryDTO', () => {
-  it('splits the source from normalized operation arguments', () => {
+  it('normalizes operation arguments', () => {
     expect(buildNativeQueryDTO(editedValues)).toEqual({
-      source: 'analytics',
       args: {
         root_field_name: 'renamed_authors',
         type: 'query',
@@ -72,7 +70,6 @@ describe('buildNativeQueryDTO', () => {
         ],
       }),
     ).toEqual({
-      source: 'analytics',
       args: {
         root_field_name: 'renamed_authors',
         type: 'query',
@@ -98,7 +95,6 @@ describe('buildNativeQueryDTO', () => {
     );
 
     expect(result).toEqual({
-      source: 'analytics',
       args: {
         root_field_name: 'renamed_authors',
         type: 'query',

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { getGraphQLIdentifierSchema } from '@/features/orgs/projects/graphql/common/utils/getGraphQLIdentifierSchema';
+import { getGraphQLIdentifierSchema } from '@/features/orgs/projects/common/utils/getGraphQLIdentifierSchema';
 import { isNotEmptyValue } from '@/lib/utils';
 import type { RemoteFieldArguments } from '@/utils/hasura-api/generated/schemas';
 

@@ -1,5 +1,5 @@
-import formTypeToLogicalModelType from '@/features/orgs/projects/database/native-queries/utils/formTypeToLogicalModelType';
-import logicalModelTypeToForm from '@/features/orgs/projects/database/native-queries/utils/logicalModelTypeToForm';
+import { formTypeToLogicalModelType } from '@/features/orgs/projects/database/native-queries/utils/formTypeToLogicalModelType';
+import { logicalModelTypeToForm } from '@/features/orgs/projects/database/native-queries/utils/logicalModelTypeToForm';
 import type { LogicalModelType } from '@/utils/hasura-api/generated/schemas';
 
 describe('formTypeToLogicalModelType', () => {

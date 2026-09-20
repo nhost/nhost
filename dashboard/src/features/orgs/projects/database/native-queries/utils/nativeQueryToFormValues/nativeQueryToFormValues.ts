@@ -3,10 +3,8 @@ import type { NativeQueryItem } from '@/utils/hasura-api/generated/schemas';
 
 export default function nativeQueryToFormValues(
   query: NativeQueryItem,
-  source: string,
 ): NativeQueryFormValues {
   return {
-    source,
     rootFieldName: query.root_field_name,
     description: query.description ?? '',
     returns: query.returns,

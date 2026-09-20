@@ -1,4 +1,1 @@
-export {
-  default as useGetNativeQueries,
-  selectNativeQueries,
-} from './useGetNativeQueries';
+export { default as useGetNativeQueries } from './useGetNativeQueries';

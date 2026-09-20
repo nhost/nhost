@@ -4,13 +4,13 @@ import type {
   LogicalModelItem,
 } from '@/utils/hasura-api/generated/schemas';
 
-export const selectLogicalModels = (
-  data: ExportMetadataResponse,
-  sourceName: string,
-): LogicalModelItem[] =>
-  data.metadata.sources?.find((source) => source.name === sourceName)
-    ?.logical_models ?? [];
+function selectLogicalModels(data: ExportMetadataResponse): LogicalModelItem[] {
+  return (
+    data.metadata.sources?.find((source) => source.name === 'default')
+      ?.logical_models ?? []
+  );
+}
 
-export default function useGetLogicalModels(source: string) {
-  return useExportMetadata((data) => selectLogicalModels(data, source));
+export default function useGetLogicalModels() {
+  return useExportMetadata(selectLogicalModels);
 }

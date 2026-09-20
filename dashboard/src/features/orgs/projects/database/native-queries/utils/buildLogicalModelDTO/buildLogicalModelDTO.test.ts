@@ -2,7 +2,6 @@ import type { LogicalModelFormValues } from '@/features/orgs/projects/database/n
 import { buildLogicalModelDTO } from '@/features/orgs/projects/database/native-queries/utils/buildLogicalModelDTO';
 
 const describedValues: LogicalModelFormValues = {
-  source: 'analytics',
   name: 'invoice_summary',
   description: '  Invoice summary model  ',
   fields: [
@@ -28,9 +27,8 @@ const describedValues: LogicalModelFormValues = {
 };
 
 describe('buildLogicalModelDTO', () => {
-  it('splits the source from normalized operation arguments', () => {
+  it('normalizes operation arguments', () => {
     expect(buildLogicalModelDTO(describedValues)).toEqual({
-      source: 'analytics',
       args: {
         name: 'invoice_summary',
         description: 'Invoice summary model',
@@ -66,7 +64,6 @@ describe('buildLogicalModelDTO', () => {
         })),
       }),
     ).toEqual({
-      source: 'analytics',
       args: {
         name: 'invoice_summary',
         fields: [

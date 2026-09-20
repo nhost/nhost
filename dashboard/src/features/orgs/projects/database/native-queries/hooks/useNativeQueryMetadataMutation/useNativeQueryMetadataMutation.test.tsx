@@ -3,15 +3,14 @@ import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
 import type { PropsWithChildren } from 'react';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
-import {
-  type NativeQueryMutationArgs,
-  useNativeQueryMetadataMutation,
-} from '@/features/orgs/projects/database/native-queries/hooks/useNativeQueryMetadataMutation';
+import { useNativeQueryMetadataMutation } from '@/features/orgs/projects/database/native-queries/hooks/useNativeQueryMetadataMutation';
+import type { NativeQueryMutationArgs } from '@/features/orgs/projects/database/native-queries/hooks/useNativeQueryMetadataMutation/types';
 import { queryClient, renderHook, waitFor } from '@/tests/testUtils';
 import type { NativeQueryItem } from '@/utils/hasura-api/generated/schemas';
 
 const API = 'https://local.hasura.local.nhost.run';
-const SOURCE = 'analytics';
+const SOURCE = 'default';
+const RESOURCE_VERSION = 40;
 const project = {
   subdomain: 'test-app',
   region: { name: 'us-east-1', domain: 'nhost.run' },
@@ -57,8 +56,6 @@ const args: NativeQueryMutationArgs = {
 const mocks = vi.hoisted(() => ({
   useProject: vi.fn(),
   useIsPlatform: vi.fn(),
-  refetch: vi.fn(),
-  supportedSources: ['analytics'] as string[],
 }));
 
 vi.mock('@/features/orgs/projects/hooks/useProject', () => ({
@@ -66,15 +63,6 @@ vi.mock('@/features/orgs/projects/hooks/useProject', () => ({
 }));
 vi.mock('@/features/orgs/projects/common/hooks/useIsPlatform', () => ({
   useIsPlatform: mocks.useIsPlatform,
-}));
-vi.mock(
-  '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion',
-  () => ({ useGetMetadataResourceVersion: () => ({ refetch: mocks.refetch }) }),
-);
-vi.mock('@/features/orgs/projects/common/hooks/useGetDataSources', () => ({
-  useGetDataSources: () => ({
-    data: mocks.supportedSources,
-  }),
 }));
 
 const migrationSuccess = { name: '0_update_native_query_metadata' };
@@ -131,7 +119,7 @@ const restoreOriginal = {
 const cases = [
   {
     type: 'add' as const,
-    variables: { source: SOURCE, args },
+    variables: { source: SOURCE, resourceVersion: RESOURCE_VERSION, args },
     expectedArgs: [
       { type: 'pg_track_native_query', args: { ...args, source: SOURCE } },
     ],
@@ -140,7 +128,12 @@ const cases = [
   },
   {
     type: 'edit' as const,
-    variables: { source: SOURCE, args, original },
+    variables: {
+      source: SOURCE,
+      resourceVersion: RESOURCE_VERSION,
+      args,
+      original,
+    },
     expectedArgs: [
       untrackOriginal,
       { type: 'pg_track_native_query', args: { ...args, source: SOURCE } },
@@ -152,7 +145,7 @@ const cases = [
   },
   {
     type: 'delete' as const,
-    variables: { source: SOURCE, original },
+    variables: { source: SOURCE, resourceVersion: RESOURCE_VERSION, original },
     expectedArgs: [untrackOriginal],
     expectedName: `untrack_native_query_${original.root_field_name}`,
     expectedDown: [{ type: 'bulk_atomic', args: [restoreOriginal] }],
@@ -178,8 +171,6 @@ describe('useNativeQueryMetadataMutation', () => {
     migrationFinished = undefined;
     mocks.useProject.mockReturnValue({ project });
     mocks.useIsPlatform.mockReturnValue(false);
-    mocks.supportedSources = [SOURCE];
-    mocks.refetch.mockReset().mockResolvedValue({ data: 91 });
   });
   afterEach(() => {
     server.resetHandlers();
@@ -209,7 +200,6 @@ describe('useNativeQueryMetadataMutation', () => {
         await waitFor(() => expect(migrationBodies).toHaveLength(1));
         expect(onSuccess).not.toHaveBeenCalled();
         expect(invalidate).not.toHaveBeenCalled();
-        expect(mocks.refetch).toHaveBeenCalledOnce();
         expect(migrationBodies).toEqual([
           {
             name: expectedName,
@@ -230,28 +220,6 @@ describe('useNativeQueryMetadataMutation', () => {
     },
   );
 
-  it('fetches a fresh resource version for consecutive platform mutations', async () => {
-    mocks.useIsPlatform.mockReturnValue(true);
-    mocks.refetch
-      .mockResolvedValueOnce({ data: 91 })
-      .mockResolvedValueOnce({ data: 92 });
-    const { result } = renderHook(
-      () => useNativeQueryMetadataMutation({ type: 'add' }),
-      { wrapper },
-    );
-
-    await result.current.mutateAsync({ source: SOURCE, args });
-    await result.current.mutateAsync({ source: SOURCE, args });
-
-    expect(
-      metadataBodies.map(
-        (body) => (body as { resource_version: number }).resource_version,
-      ),
-    ).toEqual([91, 92]);
-    expect(mocks.refetch).toHaveBeenCalledTimes(2);
-    expect(migrationBodies).toEqual([]);
-  });
-
   it.each(cases)(
     'performs metadata only for platform $type',
     async ({ type, variables, expectedArgs }) => {
@@ -267,7 +235,7 @@ describe('useNativeQueryMetadataMutation', () => {
       expect(metadataBodies).toEqual([
         {
           type: 'bulk_atomic',
-          resource_version: 91,
+          resource_version: RESOURCE_VERSION,
           args: expectedArgs,
         },
       ]);
@@ -326,123 +294,8 @@ describe('useNativeQueryMetadataMutation', () => {
         result.current.mutateAsync(variables as never),
       ).resolves.toEqual(migrationSuccess);
       expect(migrationBodies).toHaveLength(2);
-      expect(mocks.refetch).toHaveBeenCalledTimes(2);
       expect(invalidate).toHaveBeenCalledOnce();
       expect(onSuccess).toHaveBeenCalledOnce();
-    },
-  );
-
-  it('rejects an empty source before reading or writing metadata', async () => {
-    const { result } = renderHook(
-      () => useNativeQueryMetadataMutation({ type: 'add' }),
-      { wrapper },
-    );
-
-    await expect(
-      result.current.mutateAsync({ source: '', args }),
-    ).rejects.toThrow('A data source is required.');
-    expect(mocks.refetch).not.toHaveBeenCalled();
-    expect(metadataBodies).toEqual([]);
-    expect(migrationBodies).toEqual([]);
-  });
-
-  it.each([
-    { source: 'missing', availability: 'missing' },
-    { source: 'mysql', availability: 'unsupported' },
-  ])(
-    'rejects a non-empty $availability source before platform or local side effects',
-    async ({ source }) => {
-      for (const isPlatform of [false, true]) {
-        mocks.useIsPlatform.mockReturnValue(isPlatform);
-        const onSuccess = vi.fn();
-        const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
-        const { result, unmount } = renderHook(
-          () =>
-            useNativeQueryMetadataMutation({
-              type: 'add',
-              mutationOptions: { onSuccess },
-            }),
-          { wrapper },
-        );
-
-        await expect(
-          result.current.mutateAsync({ source, args }),
-        ).rejects.toThrow('The selected data source is unavailable.');
-        expect(mocks.refetch).not.toHaveBeenCalled();
-        expect(metadataBodies).toEqual([]);
-        expect(migrationBodies).toEqual([]);
-        expect(onSuccess).not.toHaveBeenCalled();
-        expect(invalidate).not.toHaveBeenCalled();
-        unmount();
-      }
-    },
-  );
-
-  it.each([false, true])(
-    'blocks delete after the source is removed from refreshed metadata (platform: %s)',
-    async (isPlatform) => {
-      mocks.useIsPlatform.mockReturnValue(isPlatform);
-      const onSuccess = vi.fn();
-      const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
-      const { result, rerender } = renderHook(
-        () =>
-          useNativeQueryMetadataMutation({
-            type: 'delete',
-            mutationOptions: { onSuccess },
-          }),
-        { wrapper },
-      );
-
-      mocks.supportedSources = [];
-      rerender();
-
-      await expect(
-        result.current.mutateAsync({ source: SOURCE, original }),
-      ).rejects.toThrow('The selected data source is unavailable.');
-      expect(mocks.refetch).not.toHaveBeenCalled();
-      expect(metadataBodies).toEqual([]);
-      expect(migrationBodies).toEqual([]);
-      expect(onSuccess).not.toHaveBeenCalled();
-      expect(invalidate).not.toHaveBeenCalled();
-    },
-  );
-
-  it.each([false, true])(
-    'keeps the metadata version guard (platform: %s)',
-    async (isPlatform) => {
-      mocks.useIsPlatform.mockReturnValue(isPlatform);
-      mocks.refetch.mockResolvedValue({ data: undefined });
-      const { result } = renderHook(
-        () => useNativeQueryMetadataMutation({ type: 'delete' }),
-        { wrapper },
-      );
-
-      await expect(
-        result.current.mutateAsync({ source: SOURCE, original }),
-      ).rejects.toThrow('Could not load the latest metadata version.');
-      expect(metadataBodies).toEqual([]);
-      expect(migrationBodies).toEqual([]);
-    },
-  );
-
-  it.each([false, true])(
-    'rejects failed metadata refreshes even when stale version data exists (platform: %s)',
-    async (isPlatform) => {
-      mocks.useIsPlatform.mockReturnValue(isPlatform);
-      mocks.refetch.mockResolvedValue({
-        data: 91,
-        error: new Error('Metadata refresh failed'),
-      });
-      const { result } = renderHook(
-        () => useNativeQueryMetadataMutation({ type: 'delete' }),
-        { wrapper },
-      );
-
-      await expect(
-        result.current.mutateAsync({ source: SOURCE, original }),
-      ).rejects.toThrow('Metadata refresh failed');
-      expect(metadataBodies).toEqual([]);
-      expect(migrationBodies).toEqual([]);
     },
   );
 
@@ -463,7 +316,7 @@ describe('useNativeQueryMetadataMutation', () => {
 
     let settled = false;
     const mutation = result.current
-      .mutateAsync({ source: SOURCE, args })
+      .mutateAsync({ resourceVersion: RESOURCE_VERSION, args })
       .finally(() => {
         settled = true;
       });

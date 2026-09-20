@@ -4,13 +4,13 @@ import type {
   NativeQueryItem,
 } from '@/utils/hasura-api/generated/schemas';
 
-export const selectNativeQueries = (
-  data: ExportMetadataResponse,
-  sourceName: string,
-): NativeQueryItem[] =>
-  data.metadata.sources?.find((source) => source.name === sourceName)
-    ?.native_queries ?? [];
+function selectNativeQueries(data: ExportMetadataResponse): NativeQueryItem[] {
+  return (
+    data.metadata.sources?.find((source) => source.name === 'default')
+      ?.native_queries ?? []
+  );
+}
 
-export default function useGetNativeQueries(source: string) {
-  return useExportMetadata((data) => selectNativeQueries(data, source));
+export default function useGetNativeQueries() {
+  return useExportMetadata(selectNativeQueries);
 }

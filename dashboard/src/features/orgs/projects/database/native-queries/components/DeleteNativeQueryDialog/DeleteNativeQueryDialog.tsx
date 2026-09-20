@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
+import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { DeleteMetadataObjectDialog } from '@/features/orgs/projects/database/common/components/DeleteMetadataObjectDialog';
 import { useGetNativeQueries } from '@/features/orgs/projects/database/native-queries/hooks/useGetNativeQueries';
 import { useNativeQueryMetadataMutation } from '@/features/orgs/projects/database/native-queries/hooks/useNativeQueryMetadataMutation';
@@ -31,7 +32,7 @@ function getNativeQueryDependents(
 interface DeleteNativeQueryDialogProps {
   open: boolean;
   setOpen: (open: boolean) => void;
-  query: NativeQueryItem | null;
+  query: NativeQueryItem;
 }
 
 export default function DeleteNativeQueryDialog({
@@ -40,30 +41,26 @@ export default function DeleteNativeQueryDialog({
   query,
 }: DeleteNativeQueryDialogProps) {
   const router = useRouter();
-  const { orgSlug, appSubdomain, dataSourceSlug, querySlug } = router.query;
-  const source =
-    typeof dataSourceSlug === 'string' ? dataSourceSlug : 'default';
+  const { orgSlug, appSubdomain, querySlug } = router.query;
+  const { data: resourceVersion } = useGetMetadataResourceVersion();
   const { mutateAsync: deleteNativeQuery, isPending: isDeletingNativeQuery } =
     useNativeQueryMetadataMutation({ type: 'delete' });
-  const { data: nativeQueries = [] } = useGetNativeQueries(source);
-  const dependents = query
-    ? getNativeQueryDependents(nativeQueries, query.root_field_name)
-    : [];
+  const { data: nativeQueries = [] } = useGetNativeQueries();
+  const dependents = getNativeQueryDependents(
+    nativeQueries,
+    query.root_field_name,
+  );
 
-  const handleConfirm = async (): Promise<boolean> => {
-    if (!query) {
-      return false;
-    }
-    const submissionPath = router.asPath;
+  async function handleConfirm(): Promise<boolean> {
     const result = await execPromiseWithErrorToast(
       async () => {
-        await deleteNativeQuery({ source, original: query });
-        if (router.asPath !== submissionPath) {
-          return false;
-        }
+        await deleteNativeQuery({
+          resourceVersion: resourceVersion!,
+          original: query,
+        });
         if (querySlug === query.root_field_name) {
           await router.push(
-            `/orgs/${orgSlug}/projects/${appSubdomain}/database/native-queries/${encodeURIComponent(source)}`,
+            `/orgs/${orgSlug}/projects/${appSubdomain}/database/native-queries/default`,
           );
         }
         return true;
@@ -75,7 +72,7 @@ export default function DeleteNativeQueryDialog({
       },
     );
     return result === true;
-  };
+  }
 
   return (
     <DeleteMetadataObjectDialog
@@ -83,7 +80,7 @@ export default function DeleteNativeQueryDialog({
       setOpen={setOpen}
       title="Delete Native Query"
       noun="native query"
-      name={query?.root_field_name}
+      name={query.root_field_name}
       isPending={isDeletingNativeQuery}
       onConfirm={handleConfirm}
       warning={
