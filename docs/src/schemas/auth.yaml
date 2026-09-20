@@ -54,6 +54,29 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: "An error occurred while processing the request"
 
+  /elevate:
+    get:
+      summary: Get available elevation methods
+      description: Retrieve the methods the authenticated user can use to elevate their session. An empty list means no elevation is needed.
+      operationId: getElevationMethods
+      tags:
+        - security
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ElevationMethodsResponse"
+          description: Available elevation methods
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: An error occurred while processing the request
+
   /elevate/webauthn:
     post:
       summary: Elevate access for an already signed in user using FIDO2 Webauthn
@@ -2951,6 +2974,30 @@ components:
       required:
         - provider
         - idToken
+
+    ElevationMethod:
+      type: string
+      description: "Method that can be used to elevate a session"
+      enum:
+        - webauthn
+        - totp
+      example: "totp"
+
+    ElevationMethodsResponse:
+      type: object
+      additionalProperties: false
+      description: "Elevation methods available to the user"
+      properties:
+        methods:
+          type: array
+          description: "Methods the user can use to elevate their session"
+          example:
+            - "webauthn"
+            - "totp"
+          items:
+            $ref: "#/components/schemas/ElevationMethod"
+      required:
+        - methods
 
     ElevateTotpRequest:
       type: object

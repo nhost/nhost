@@ -806,7 +806,7 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Usage:    "Enable TOTP as a second factor",
 				Category: "mfa",
 				Value:    false,
-				Sources: cli.EnvVars("AUTH_TOTP_ENABLED", "AUTH_MFA_ENABLED"),
+				Sources:  cli.EnvVars("AUTH_TOTP_ENABLED", "AUTH_MFA_ENABLED"),
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagMfaTotpIssuer,
