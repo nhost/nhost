@@ -218,10 +218,18 @@ array_relationships:
 |---|---|---|
 | `foreign_key_constraint_on: <column>` (string) | ✅ | FK on this table. |
 | `foreign_key_constraint_on: { column, table }` | ✅ | FK on the remote table pointing back. |
-| `foreign_key_constraint_on: [col1, col2]` / `{ columns: […], table }` | ❌ | **Composite (multi-column) foreign keys are not parsed** — only a single-column string or a single `column` object are recognized. A composite form is silently dropped, yielding no relationship. Use `manual_configuration` with a multi-entry `column_mapping` instead. |
+| `foreign_key_constraint_on: [col1, col2]` / `{ columns: […], table }` | ✅ | Composite foreign keys are parsed and consumed. |
 | `using.manual_configuration` (`remote_table`, `column_mapping`) | ✅ | Multi-entry `column_mapping` forms a composite join key. |
 | `using.manual_configuration.insertion_order` (array rels) | ⚪ | Dropped. |
 | relationship `comment` | ⚪ | Dropped. |
+
+For every `foreign_key_constraint_on` form—single-column or composite,
+with the foreign key on either table—Constellation prefers one introspected
+foreign-key constraint whose column set exactly matches the configured column
+or columns. It preserves the configured order when pairing join columns. If no
+exact constraint is available, it falls back to the first introspected
+foreign-key match for each configured column. Every column must resolve, and
+parent-table forms must resolve to one target table.
 
 ### Remote relationships (table → other source / remote schema)
 
@@ -366,8 +374,9 @@ what Constellation serves.
   have "no effect," that is expected — Constellation never read it.
 - **`limit` on select permissions does nothing.** Enforce row caps another way.
 - **Pool tuning goes in the connection URL,** not `pool_settings`.
-- **Composite foreign keys** need `manual_configuration` with a multi-entry
-  `column_mapping`; the `foreign_key_constraint_on` array form is dropped.
+- **Composite `foreign_key_constraint_on` is supported** in both array and
+  `{ columns, table }` object forms; see [Relationships](#relationships) for
+  constraint-selection and fallback behavior.
 - **Schema `customization` is applied** — both source-level
   (`sources[].customization`) and remote-schema
   (`remote_schemas[].definition.customization`): root-field

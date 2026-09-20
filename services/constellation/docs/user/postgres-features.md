@@ -154,10 +154,16 @@ Alternative forms:
         org_id: id
 ```
 
-> **Composite foreign keys:** only a single-column `foreign_key_constraint_on` (a
-> bare column name or a single `{ column, table }` object) is recognized. A
-> multi-column form is silently dropped and yields no relationship — use
-> `manual_configuration` with a multi-entry `column_mapping` for composite keys.
+> **Single-column and composite foreign keys use the same constraint-selection
+> rule.** Use a column name or an array such as
+> `foreign_key_constraint_on: [organization_id, user_id]` when the foreign key
+> is on the parent table. When it is on the other table, use an object with
+> `column` or `columns` plus `table`. For every form, Constellation first looks
+> for one introspected constraint whose column set exactly matches the configured
+> column or columns and preserves the configured order when pairing the join. If
+> no exact constraint is available, it falls back to the first introspected
+> foreign-key match for each configured column. Every column must resolve, and
+> parent-table forms must resolve to one target table.
 
 ### Array relationships (one-to-many)
 

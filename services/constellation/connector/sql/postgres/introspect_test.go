@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/jackc/pgx/v5"
 	"go.uber.org/mock/gomock"
 
@@ -387,6 +388,113 @@ CREATE TABLE public.users (
 				want.name, got.NullsNotDistinct, want.nullsNotDistinct,
 			)
 		}
+	}
+}
+
+func TestIntrospect_ForeignKeySharedColumn(t *testing.T) {
+	t.Parallel()
+
+	pool := testdb.NewPostgres(t, `
+CREATE TABLE public.orgs (
+    id uuid PRIMARY KEY
+);
+CREATE TABLE public.org_users (
+    id uuid PRIMARY KEY,
+    org_id uuid NOT NULL REFERENCES public.orgs (id),
+    UNIQUE (id, org_id)
+);
+CREATE TABLE public.orders (
+    id uuid PRIMARY KEY,
+    org_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    CONSTRAINT orders_org_id_fkey FOREIGN KEY (org_id) REFERENCES public.orgs (id),
+    CONSTRAINT orders_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.org_users (id),
+    CONSTRAINT orders_membership_fkey
+        FOREIGN KEY (user_id, org_id) REFERENCES public.org_users (id, org_id)
+);
+`)
+
+	pgPool, err := postgres.Open(t.Context(), pool.Config().ConnConfig.ConnString())
+	if err != nil {
+		t.Fatalf("open pool: %v", err)
+	}
+
+	pg := postgres.NewClient(pgPool)
+	t.Cleanup(func() { pg.Close() })
+
+	objs, err := pg.Introspect(t.Context(), &metadata.DatabaseMetadata{
+		Name: "default",
+		Tables: []metadata.TableMetadata{
+			{Table: metadata.TableSource{Schema: "public", Name: "orgs"}},
+			{Table: metadata.TableSource{Schema: "public", Name: "org_users"}},
+			{Table: metadata.TableSource{Schema: "public", Name: "orders"}},
+		},
+	})
+	if err != nil {
+		t.Fatalf("introspect: %v", err)
+	}
+
+	orders, ok := objs.GetTable("public", "orders")
+	if !ok {
+		t.Fatal("introspection did not return public.orders")
+	}
+
+	wantFKs := []introspection.ForeignKey{
+		{
+			Constraint:        "orders_membership_fkey",
+			ColumnName:        "user_id",
+			ForeignSchema:     "public",
+			ForeignTable:      "org_users",
+			ForeignColumnName: "id",
+		},
+		{
+			Constraint:        "orders_membership_fkey",
+			ColumnName:        "org_id",
+			ForeignSchema:     "public",
+			ForeignTable:      "org_users",
+			ForeignColumnName: "org_id",
+		},
+		{
+			Constraint:        "orders_org_id_fkey",
+			ColumnName:        "org_id",
+			ForeignSchema:     "public",
+			ForeignTable:      "orgs",
+			ForeignColumnName: "id",
+		},
+		{
+			Constraint:        "orders_user_id_fkey",
+			ColumnName:        "user_id",
+			ForeignSchema:     "public",
+			ForeignTable:      "org_users",
+			ForeignColumnName: "id",
+		},
+	}
+
+	if diff := cmp.Diff(wantFKs, orders.ForeignKeys); diff != "" {
+		t.Fatalf("ForeignKeys mismatch (-want +got):\n%s", diff)
+	}
+
+	tests := []struct {
+		name      string
+		fkColumns []string
+		wantTable string
+	}{
+		{name: "single column", fkColumns: []string{"org_id"}, wantTable: "orgs"},
+		{name: "composite", fkColumns: []string{"user_id", "org_id"}, wantTable: "org_users"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			schema, table := orders.LookupForwardFKTarget(tt.fkColumns)
+			if schema != "public" || table != tt.wantTable {
+				t.Fatalf(
+					"LookupForwardFKTarget(%v) = %s.%s, want public.%s",
+					tt.fkColumns, schema, table, tt.wantTable,
+				)
+			}
+		})
 	}
 }
 
