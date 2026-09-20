@@ -191,7 +191,7 @@ func TestLoadBundleRejectsInvalidBundles(t *testing.T) {
 				"1_first.down.sql": "SELECT 1;",
 			}),
 			path:      "migrations",
-			wantIssue: "must contain non-whitespace SQL",
+			wantIssue: "must contain SQL beyond comments and whitespace",
 		},
 		{
 			name: "whitespace-only body",
@@ -200,7 +200,7 @@ func TestLoadBundleRejectsInvalidBundles(t *testing.T) {
 				"1_first.down.sql": " \n\t\r\n",
 			}),
 			path:      "migrations",
-			wantIssue: "must contain non-whitespace SQL",
+			wantIssue: "must contain SQL beyond comments and whitespace",
 		},
 		{
 			name: "line-comment-only body",
@@ -209,7 +209,7 @@ func TestLoadBundleRejectsInvalidBundles(t *testing.T) {
 				"1_first.down.sql": "SELECT 1;",
 			}),
 			path:      "migrations",
-			wantIssue: "must contain non-whitespace SQL",
+			wantIssue: "must contain SQL beyond comments and whitespace",
 		},
 		{
 			name: "block-comment-only body",
@@ -218,7 +218,7 @@ func TestLoadBundleRejectsInvalidBundles(t *testing.T) {
 				"1_first.down.sql": "/* outer /* nested */ placeholder */",
 			}),
 			path:      "migrations",
-			wantIssue: "must contain non-whitespace SQL",
+			wantIssue: "must contain SQL beyond comments and whitespace",
 		},
 	}
 

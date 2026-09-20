@@ -147,7 +147,7 @@ func addMigrationFile(
 	if !containsMigrationSQL(body) {
 		return &BundleError{
 			Path:  path.Join(migrationPath, name),
-			Issue: "migration body must contain non-whitespace SQL",
+			Issue: "migration body must contain SQL beyond comments and whitespace",
 			Cause: nil,
 		}
 	}
