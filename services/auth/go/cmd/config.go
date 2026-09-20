@@ -123,7 +123,7 @@ func getConfig(cmd *cli.Command) (controller.Config, error) { //nolint:funlen
 		SMSGenericHeaders:             cmd.String(flagSMSGenericHeaders),
 		SMSGenericTimeout:             cmd.Duration(flagSMSGenericTimeout),
 		SMSGenericBodyTemplate:        cmd.String(flagSMSGenericBodyTemplate),
-		MfaEnabled:                    cmd.Bool(flagMfaEnabled),
+		TOTPEnabled:                   cmd.Bool(flagTOTPEnabled),
 		ServerPrefix:                  cmd.String(flagAPIPrefix),
 		DisableAutoSignup:             cmd.Bool(flagDisableAutoSignup),
 		OAuth2ProviderEnabled:         cmd.Bool(flagOAuth2ProviderEnabled),

@@ -110,7 +110,7 @@ const (
 	flagSMSGenericBodyTemplate                   = "sms-generic-body-template"
 	flagSMSDevOutputDir                          = "sms-dev-output-dir"
 	flagAnonymousUsersEnabled                    = "enable-anonymous-users"
-	flagMfaEnabled                               = "mfa-enabled"
+	flagTOTPEnabled                              = "totp-enabled"
 	flagMfaTotpIssuer                            = "mfa-totp-issuer"
 	flagGithubEnabled                            = "github-enabled"
 	flagGithubClientID                           = "github-client-id"
@@ -802,11 +802,11 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Sources:  cli.EnvVars("AUTH_ANONYMOUS_USERS_ENABLED"),
 			},
 			&cli.BoolFlag{ //nolint: exhaustruct
-				Name:     flagMfaEnabled,
-				Usage:    "Enable MFA",
+				Name:     flagTOTPEnabled,
+				Usage:    "Enable TOTP as a second factor",
 				Category: "mfa",
 				Value:    false,
-				Sources:  cli.EnvVars("AUTH_MFA_ENABLED"),
+				Sources: cli.EnvVars("AUTH_TOTP_ENABLED", "AUTH_MFA_ENABLED"),
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagMfaTotpIssuer,

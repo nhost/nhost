@@ -13,7 +13,7 @@ func (ctrl *Controller) ElevateTotp( //nolint:ireturn
 ) (api.ElevateTotpResponseObject, error) {
 	logger := oapimw.LoggerFromContext(ctx)
 
-	if !ctrl.config.MfaEnabled {
+	if !ctrl.config.TOTPEnabled {
 		logger.WarnContext(ctx, "mfa disabled")
 		return ctrl.sendError(ErrDisabledEndpoint), nil
 	}
