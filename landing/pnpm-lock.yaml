@@ -78,6 +78,7 @@ overrides:
   js-yaml@<=4.3.1: '>=4.3.2 <5.0.0'
   browserslist@<=4.28.6: 4.28.7
   fflate@>=0.7.0 <0.7.5: '>=0.7.5 <0.8.0'
+  devalue@<5.9.2: '>=5.9.2'
 
 packageExtensionsChecksum: sha256-gRFeykwiwMfEE6etcYx6N48XwVeKzxbqNveL7KTQgSQ=
 
@@ -2119,14 +2120,14 @@ packages:
   next-plausible@3.12.5:
     resolution: {integrity: sha512-l1YMuTI9akb2u7z4hyTuxXpudy8KfSteRNXCYpWpnhAoBjaWQlv6sITai1TwcR7wWvVW8DFbLubvMQAsirAjcA==}
     peerDependencies:
-      next: '>=16.1.7'
+      next: '>=15.5.10'
       react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
       react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
   next-seo@5.15.0:
     resolution: {integrity: sha512-LGbcY91yDKGMb7YI+28n3g+RuChUkt6pXNpa8FkfKkEmNiJkeRDEXTnnjVtwT9FmMhG6NH8qwHTelGrlYm9rgg==}
     peerDependencies:
-      next: '>=16.1.7'
+      next: '>=15.5.10'
       react: '>=16.0.0'
       react-dom: '>=16.0.0'
 
@@ -2136,7 +2137,7 @@ packages:
     hasBin: true
     peerDependencies:
       '@next/env': '*'
-      next: '>=16.1.7'
+      next: '>=15.5.10'
 
   next@16.3.4:
     resolution: {integrity: sha512-/Ztf6CeRH+ejEXUrYtqI4gkS66eFIHuSwqi60RgcpWKodxFZx2/dqVCMKBwILfAHXQ+F1b1vAudgj3mnxqtoIA==}

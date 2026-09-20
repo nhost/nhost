@@ -78,6 +78,7 @@ overrides:
   js-yaml@<=4.3.1: '>=4.3.2 <5.0.0'
   browserslist@<=4.28.6: 4.28.7
   fflate@>=0.7.0 <0.7.5: '>=0.7.5 <0.8.0'
+  devalue@<5.9.2: '>=5.9.2'
 
 packageExtensionsChecksum: sha256-gRFeykwiwMfEE6etcYx6N48XwVeKzxbqNveL7KTQgSQ=
 
@@ -7305,7 +7306,7 @@ snapshots:
       '@babel/types': 7.29.8
       flow-enums-runtime: 0.0.6
       invariant: 2.2.4
-      metro-symbolicate: 0.82.5(supports-color@8.1.1)
+      metro-symbolicate: 0.82.5
       nullthrows: 1.1.1
       ob1: 0.82.5
       source-map: 0.5.7
@@ -7313,7 +7314,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  metro-symbolicate@0.82.5(supports-color@8.1.1):
+  metro-symbolicate@0.82.5:
     dependencies:
       flow-enums-runtime: 0.0.6
       invariant: 2.2.4
@@ -7321,8 +7322,6 @@ snapshots:
       nullthrows: 1.1.1
       source-map: 0.5.7
       vlq: 1.0.1
-    transitivePeerDependencies:
-      - supports-color
 
   metro-transform-plugins@0.82.5(supports-color@8.1.1):
     dependencies:
@@ -7387,7 +7386,7 @@ snapshots:
       metro-resolver: 0.82.5
       metro-runtime: 0.82.5
       metro-source-map: 0.82.5(supports-color@8.1.1)
-      metro-symbolicate: 0.82.5(supports-color@8.1.1)
+      metro-symbolicate: 0.82.5
       metro-transform-plugins: 0.82.5(supports-color@8.1.1)
       metro-transform-worker: 0.82.5(supports-color@8.1.1)
       mime-types: 2.1.35
