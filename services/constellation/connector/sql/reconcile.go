@@ -620,7 +620,7 @@ func dropIfForwardFKBroken(
 	objects *introspection.Objects,
 ) bool {
 	targetSchema, targetTable := parentIntrospected.LookupForwardFKTarget(fkColumns)
-	if targetSchema == "" || targetTable == "" {
+	if targetTable == "" {
 		inc.RecordRelationship(
 			ctx, logger,
 			dbName,

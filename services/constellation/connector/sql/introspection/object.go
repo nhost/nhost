@@ -127,8 +127,10 @@ type Column struct {
 type ForeignKey struct {
 	// Constraint identifies the constraint this column pair belongs to, so
 	// the columns of a multi-column foreign key can be grouped back
-	// together. PostgreSQL reports the constraint name; SQLite reports the
-	// PRAGMA foreign_key_list id.
+	// together. Drivers must emit all column pairs for each constraint and
+	// use a Constraint value only for entries belonging to that same
+	// constraint. PostgreSQL reports the constraint name; SQLite reports
+	// the PRAGMA foreign_key_list id.
 	Constraint string
 	// ColumnName is the column in the source table that holds the foreign
 	// key.
@@ -243,15 +245,16 @@ func (t *Table) EnumColumns() (string, string, error) {
 }
 
 // LookupForwardFK returns the ForeignKey entries for fkColumns, in fkColumns
-// order. A constraint whose column set is exactly fkColumns wins; when no
-// constraint matches exactly, each column is paired with its first matching
-// entry. It returns nil when any column has no matching foreign key.
+// order. A non-nil result contains exactly one entry per fkColumns element.
+// A constraint whose column set is exactly fkColumns wins; when no constraint
+// matches exactly, each column is paired with its first matching entry. It
+// returns nil when any column has no matching foreign key.
 func (t *Table) LookupForwardFK(fkColumns []string) []ForeignKey {
 	if len(fkColumns) == 0 {
 		return nil
 	}
 
-	if fks := t.exactForwardFK(fkColumns); fks != nil {
+	if fks := t.exactForwardFK(fkColumns, nil); fks != nil {
 		return fks
 	}
 
@@ -277,23 +280,68 @@ func (t *Table) LookupForwardFK(fkColumns []string) []ForeignKey {
 	return fks
 }
 
-// exactForwardFK finds a single constraint whose columns are exactly
-// fkColumns. Introspection emits the entries of one constraint contiguously,
-// so a group is a run of entries sharing a non-empty Constraint.
-func (t *Table) exactForwardFK(fkColumns []string) []ForeignKey {
-	for start := 0; start < len(t.ForeignKeys); {
-		end := start + 1
+// LookupExactForwardFKForTarget returns entries from one constraint whose
+// columns are exactly fkColumns and whose referenced table matches foreignSchema
+// and foreignTable. A non-nil result contains exactly one entry per fkColumns
+// element, in fkColumns order. It returns nil when no such constraint exists,
+// including when introspection provides no Constraint values. An empty
+// ForeignSchema is treated as the source table's schema, matching SQLite
+// introspection semantics.
+func (t *Table) LookupExactForwardFKForTarget(
+	fkColumns []string,
+	foreignSchema string,
+	foreignTable string,
+) []ForeignKey {
+	if len(fkColumns) == 0 {
+		return nil
+	}
 
-		for end < len(t.ForeignKeys) &&
-			t.ForeignKeys[end].Constraint != "" &&
-			t.ForeignKeys[end].Constraint == t.ForeignKeys[start].Constraint {
-			end++
+	return t.exactForwardFK(fkColumns, func(fk ForeignKey) bool {
+		schema := fk.ForeignSchema
+		if schema == "" {
+			schema = t.Schema
 		}
 
-		group := t.ForeignKeys[start:end]
-		start = end
+		return schema == foreignSchema && fk.ForeignTable == foreignTable
+	})
+}
 
-		if fks := matchGroup(group, fkColumns); fks != nil {
+// exactForwardFK finds a single constraint whose columns are exactly
+// fkColumns and whose entries all satisfy matchTarget when it is non-nil.
+func (t *Table) exactForwardFK(
+	fkColumns []string,
+	matchTarget func(ForeignKey) bool,
+) []ForeignKey {
+	groups := make(map[string][]ForeignKey)
+	constraints := make([]string, 0)
+
+	for _, fk := range t.ForeignKeys {
+		if fk.Constraint == "" {
+			continue
+		}
+
+		if _, exists := groups[fk.Constraint]; !exists {
+			constraints = append(constraints, fk.Constraint)
+		}
+
+		groups[fk.Constraint] = append(groups[fk.Constraint], fk)
+	}
+
+	for _, constraint := range constraints {
+		fks := matchGroup(groups[constraint], fkColumns)
+		if fks == nil {
+			continue
+		}
+
+		matchesTarget := true
+		for _, fk := range fks {
+			if matchTarget != nil && !matchTarget(fk) {
+				matchesTarget = false
+				break
+			}
+		}
+
+		if matchesTarget {
 			return fks
 		}
 	}

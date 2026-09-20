@@ -3,6 +3,7 @@ package sqlite
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -15,6 +16,10 @@ import (
 const (
 	sqliteTypeInt4 = "int4"
 	sqliteTypeInt2 = "int2"
+)
+
+var errImplicitForeignKeyPrimaryKey = errors.New(
+	"implicit foreign key does not match target primary key",
 )
 
 // Introspect returns the database objects (tables, columns, primary keys,
@@ -196,7 +201,7 @@ func introspectTable(
 		hasExplicitPKIndex = has
 	}
 
-	columns, pks, err := getColumnsAndPKs(ctx, q, tableName, hasExplicitPKIndex)
+	columnInfo, err := getColumnsAndPKs(ctx, q, tableName, hasExplicitPKIndex)
 	if err != nil {
 		return nil, fmt.Errorf("reading columns: %w", err)
 	}
@@ -228,8 +233,8 @@ func introspectTable(
 		Schema:                   "",
 		Name:                     tableName,
 		Comment:                  nil,
-		Columns:                  columns,
-		PrimaryKeys:              pks,
+		Columns:                  columnInfo.columns,
+		PrimaryKeys:              columnInfo.primaryKeys,
 		PrimaryKeyConstraintName: "",
 		ForeignKeys:              fks,
 		UniqueConstraints:        ucs,
@@ -386,6 +391,11 @@ type pkEntry struct {
 	order int
 }
 
+type tableColumnInfo struct {
+	columns     []introspection.Column
+	primaryKeys []string
+}
+
 // getColumnsAndPKs returns the column metadata and primary-key column list
 // for tableName by querying PRAGMA table_xinfo. The xinfo variant is used over
 // table_info so that hidden / generated columns are included.
@@ -406,12 +416,12 @@ type pkEntry struct {
 // always pass false.
 func getColumnsAndPKs(
 	ctx context.Context, q Querier, tableName string, hasExplicitPKIndex bool,
-) ([]introspection.Column, []string, error) {
+) (tableColumnInfo, error) {
 	query := "PRAGMA table_xinfo(" + core.QuoteIdentifier(tableName) + ")"
 
 	rows, err := q.QueryContext(ctx, query)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to query table_xinfo: %w", err)
+		return tableColumnInfo{}, fmt.Errorf("failed to query table_xinfo: %w", err)
 	}
 	defer rows.Close()
 
@@ -433,7 +443,7 @@ func getColumnsAndPKs(
 		)
 
 		if err := rows.Scan(&cid, &name, &colType, &notNull, &dfltValue, &pk, &hidden); err != nil {
-			return nil, nil, fmt.Errorf("failed to scan column: %w", err)
+			return tableColumnInfo{}, fmt.Errorf("failed to scan column: %w", err)
 		}
 
 		mappedType := mapSQLiteType(colType)
@@ -459,7 +469,7 @@ func getColumnsAndPKs(
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, nil, fmt.Errorf("error iterating columns: %w", err)
+		return tableColumnInfo{}, fmt.Errorf("error iterating columns: %w", err)
 	}
 
 	pks := make([]string, len(pkCols))
@@ -469,7 +479,46 @@ func getColumnsAndPKs(
 
 	markRowidAliasIdentity(columns, pks, declaredType, hasExplicitPKIndex)
 
-	return columns, pks, nil
+	return tableColumnInfo{
+		columns:     columns,
+		primaryKeys: pks,
+	}, nil
+}
+
+// getPrimaryKeys returns tableName's primary-key columns in declared order.
+// Rowid-alias detection does not affect this lookup because it only controls
+// column identity metadata.
+func getPrimaryKeys(
+	ctx context.Context, q Querier, tableName string,
+) ([]string, error) {
+	const query = `
+SELECT name
+FROM pragma_table_xinfo(?)
+WHERE pk > 0
+ORDER BY pk`
+
+	rows, err := q.QueryContext(ctx, query, tableName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query table_xinfo primary keys: %w", err)
+	}
+	defer rows.Close()
+
+	var primaryKeys []string
+
+	for rows.Next() {
+		var name string
+		if err := rows.Scan(&name); err != nil {
+			return nil, fmt.Errorf("failed to scan primary key column: %w", err)
+		}
+
+		primaryKeys = append(primaryKeys, name)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating primary key columns: %w", err)
+	}
+
+	return primaryKeys, nil
 }
 
 // markRowidAliasIdentity applies SQLite's rowid-alias rule in place against
@@ -563,11 +612,24 @@ func tableHasExplicitPKIndex(
 	return false, nil
 }
 
+// foreignKeyEntry is the raw shape of a PRAGMA foreign_key_list row needed by
+// getForeignKeys. The referenced column is nullable because SQLite leaves it
+// unset for REFERENCES clauses that implicitly target the parent primary key.
+type foreignKeyEntry struct {
+	id    int
+	seq   int
+	table string
+	from  string
+	to    sql.NullString
+}
+
 // getForeignKeys returns the outbound foreign keys declared on tableName via
 // PRAGMA foreign_key_list. PRAGMA foreign_key_list returns rows of (id, seq,
 // table, from, to, on_update, on_delete, match) — the Scan call below tracks
-// that exact column order. Only (from, table, to) are used; the action codes
-// are unused because the introspection model has no field for them today.
+// that exact column order. The id identifies the constraint, while seq positions
+// the column within that constraint and within the parent primary key for an
+// implicit reference. The on_update, on_delete, and match columns are unused
+// because the introspection model has no fields for them today.
 func getForeignKeys(
 	ctx context.Context, q Querier, tableName string,
 ) ([]introspection.ForeignKey, error) {
@@ -579,26 +641,22 @@ func getForeignKeys(
 	}
 	defer rows.Close()
 
-	var fks []introspection.ForeignKey
+	var entries []foreignKeyEntry
 
 	for rows.Next() {
 		var (
-			id        int
-			seq       int
-			table     string
-			from      string
-			to        string
+			entry     foreignKeyEntry
 			onUpdate  string
 			onDelete  string
 			matchRule string
 		)
 
 		if err := rows.Scan(
-			&id,
-			&seq,
-			&table,
-			&from,
-			&to,
+			&entry.id,
+			&entry.seq,
+			&entry.table,
+			&entry.from,
+			&entry.to,
 			&onUpdate,
 			&onDelete,
 			&matchRule,
@@ -606,17 +664,71 @@ func getForeignKeys(
 			return nil, fmt.Errorf("failed to scan foreign key: %w", err)
 		}
 
-		fks = append(fks, introspection.ForeignKey{
-			Constraint:        strconv.Itoa(id),
-			ColumnName:        from,
-			ForeignSchema:     "",
-			ForeignTable:      table,
-			ForeignColumnName: to,
-		})
+		entries = append(entries, entry)
 	}
 
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("error iterating foreign keys: %w", err)
+	}
+
+	return resolveForeignKeyEntries(ctx, q, tableName, entries)
+}
+
+// resolveForeignKeyEntries converts PRAGMA foreign_key_list rows into foreign
+// keys whose Constraint is the per-table PRAGMA id. When a row's `to` value is
+// NULL, seq selects the referenced table's primary-key column; those primary-key
+// lookups are cached per referenced table.
+func resolveForeignKeyEntries(
+	ctx context.Context,
+	q Querier,
+	tableName string,
+	entries []foreignKeyEntry,
+) ([]introspection.ForeignKey, error) {
+	primaryKeysByTable := make(map[string][]string)
+
+	var fks []introspection.ForeignKey
+
+	for _, entry := range entries {
+		foreignColumnName := entry.to.String
+
+		if !entry.to.Valid {
+			primaryKeys, ok := primaryKeysByTable[entry.table]
+			if !ok {
+				resolvedPrimaryKeys, err := getPrimaryKeys(ctx, q, entry.table)
+				if err != nil {
+					return nil, fmt.Errorf(
+						"reading primary key for implicit foreign key target %s: %w",
+						entry.table,
+						err,
+					)
+				}
+
+				primaryKeys = resolvedPrimaryKeys
+				primaryKeysByTable[entry.table] = primaryKeys
+			}
+
+			if entry.seq < 0 || entry.seq >= len(primaryKeys) {
+				return nil, fmt.Errorf(
+					"%w: foreign key %d on %s references position %d on %s, which has %d columns",
+					errImplicitForeignKeyPrimaryKey,
+					entry.id,
+					tableName,
+					entry.seq,
+					entry.table,
+					len(primaryKeys),
+				)
+			}
+
+			foreignColumnName = primaryKeys[entry.seq]
+		}
+
+		fks = append(fks, introspection.ForeignKey{
+			Constraint:        strconv.Itoa(entry.id),
+			ColumnName:        entry.from,
+			ForeignSchema:     "",
+			ForeignTable:      entry.table,
+			ForeignColumnName: foreignColumnName,
+		})
 	}
 
 	return fks, nil
