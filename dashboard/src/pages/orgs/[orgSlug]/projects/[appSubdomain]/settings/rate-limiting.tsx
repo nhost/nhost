@@ -22,7 +22,6 @@ export default function RateLimiting() {
   const { services, loading } = useGetRunServiceRateLimits();
 
   const {
-    hasuraDefaultValues,
     functionsDefaultValues,
     storageDefaultValues,
     loading: loadingBaseServices,
@@ -51,12 +50,6 @@ export default function RateLimiting() {
         </SettingsCardFooter>
       </SettingsCard>
       <AuthLimitingForm />
-      <RateLimitingForm
-        defaultValues={hasuraDefaultValues}
-        loading={loadingBaseServices}
-        serviceName="hasura"
-        title="Hasura"
-      />
       <RateLimitingForm
         defaultValues={storageDefaultValues}
         loading={loadingBaseServices}

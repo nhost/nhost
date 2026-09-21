@@ -151,6 +151,57 @@ const databaseSettingsTabChildren = toSettingsTabNodes(
   ],
 );
 
+const graphQLSettingsTabChildren = toSettingsTabNodes(
+  'project-graphql',
+  'graphql/settings',
+  [
+    {
+      slug: 'engine',
+      title: 'GraphQL Engine',
+      keywords: [
+        'graphql',
+        'settings',
+        'hasura',
+        'version',
+        'log level',
+        'enabled apis',
+        'pool size',
+      ],
+    },
+    {
+      slug: 'access-and-tooling',
+      title: 'GraphQL Access and Tooling',
+      keywords: [
+        'graphql',
+        'settings',
+        'cors',
+        'console',
+        'dev mode',
+        'allow list',
+        'remote schema permissions',
+        'infer function permissions',
+      ],
+    },
+    {
+      slug: 'custom-domain',
+      title: 'GraphQL Custom Domain',
+      keywords: ['graphql', 'settings', 'custom domain', 'hasura domain'],
+      gate: 'platform',
+    },
+    {
+      slug: 'rate-limiting',
+      title: 'GraphQL Rate Limiting',
+      keywords: [
+        'graphql',
+        'settings',
+        'rate limiting',
+        'rate limits',
+        'hasura',
+      ],
+    },
+  ],
+);
+
 // Exhaustive over nav-config's sub-page families, so adding a family there
 // fails to compile until the palette assigns its keywords.
 const subPageChildren: Record<
@@ -169,12 +220,19 @@ const subPageChildren: Record<
     },
     { settings: databaseSettingsTabChildren },
   ),
-  graphql: toSubPageNodes(projectSubPagesBySlug.graphql, 'project-graphql', {
-    playground: ['graphql', 'api', 'console'],
-    'remote-schemas': ['graphql', 'remote', 'schemas'],
-    actions: ['graphql', 'mutations', 'webhooks', 'custom types'],
-    metadata: ['graphql', 'metadata'],
-  }),
+  graphql: toSubPageNodes(
+    projectSubPagesBySlug.graphql,
+    'project-graphql',
+    {
+      playground: ['graphql', 'api', 'console'],
+      'remote-schemas': ['graphql', 'remote', 'schemas'],
+      actions: ['graphql', 'mutations', 'webhooks', 'custom types'],
+      metadata: ['graphql', 'metadata'],
+      console: ['graphql', 'hasura', 'console', 'graphql engine'],
+      settings: ['graphql', 'settings'],
+    },
+    { settings: graphQLSettingsTabChildren },
+  ),
   events: toSubPageNodes(projectSubPagesBySlug.events, 'project-events', {
     'event-triggers': ['events', 'webhooks'],
     'cron-triggers': ['events', 'scheduled'],
@@ -206,7 +264,6 @@ const settingsPageMeta: Record<
       'delete project',
     ],
   },
-  hasura: { keywords: ['settings', 'graphql engine', 'console'] },
   authentication: { keywords: ['settings', 'auth'] },
   jwt: { keywords: ['settings', 'tokens'] },
   'sign-in-methods': { keywords: ['settings', 'login'] },
@@ -286,7 +343,6 @@ const projectPageMeta: Record<
     keywords: ['triggers', 'cron', 'scheduled'],
     children: subPageChildren.events,
   },
-  hasura: { keywords: ['console', 'graphql engine'] },
   auth: {
     keywords: ['users', 'authentication'],
     children: subPageChildren.auth,
