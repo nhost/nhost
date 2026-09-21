@@ -1,7 +1,8 @@
 import type { ReactElement } from 'react';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { MembersList } from '@/features/orgs/components/members/components/MembersList';
 import { PendingInvites } from '@/features/orgs/components/members/components/PendingInvites';
-import { OrganizationLayout } from '@/features/orgs/layout/OrganizationLayout';
+import { OrganizationScope } from '@/features/orgs/layout/OrganizationScope';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 
 export default function OrgMembers() {
@@ -15,5 +16,9 @@ export default function OrgMembers() {
 }
 
 OrgMembers.getLayout = function getLayout(page: ReactElement) {
-  return <OrganizationLayout>{page}</OrganizationLayout>;
+  return (
+    <AppLayout>
+      <OrganizationScope>{page}</OrganizationScope>
+    </AppLayout>
+  );
 };

@@ -1,6 +1,8 @@
 import type { ReactElement } from 'react';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { ProjectViewWithState } from '@/features/orgs/layout/ProjectGuard';
+import { ProjectScope } from '@/features/orgs/layout/ProjectScope';
 import SchemaDiagram from '@/features/orgs/projects/database/schema-diagram/SchemaDiagram';
 
 export default function DatabaseSchemaDiagramPage() {
@@ -13,10 +15,16 @@ export default function DatabaseSchemaDiagramPage() {
 
 DatabaseSchemaDiagramPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout mainContainerProps={{ className: 'flex h-full' }}>
-      <div className="box flex w-full flex-auto flex-col overflow-hidden bg-default">
-        {page}
-      </div>
-    </ProjectLayout>
+    <AppLayout>
+      <ProjectScope>
+        <ProjectViewWithState>
+          <div className="flex h-full">
+            <div className="box flex w-full flex-auto flex-col overflow-hidden bg-default">
+              {page}
+            </div>
+          </div>
+        </ProjectViewWithState>
+      </ProjectScope>
+    </AppLayout>
   );
 };

@@ -1,0 +1,95 @@
+import Image from 'next/image';
+import { useRouter } from 'next/router';
+import { type PropsWithChildren, useEffect } from 'react';
+import Analytics from '@/components/analytics/analytics';
+import { Container } from '@/components/layout/Container';
+import { HighlightedText } from '@/components/presentational/HighlightedText';
+import { Spinner } from '@/components/ui/v3/spinner';
+import { TextLink } from '@/components/ui/v3/text-link';
+import { useIsHealthy } from '@/features/orgs/projects/common/hooks/useIsHealthy';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useAuth } from '@/providers/Auth';
+
+export default function AuthGuard({ children }: PropsWithChildren) {
+  const router = useRouter();
+  const isPlatform = useIsPlatform();
+
+  const { isAuthenticated, isLoading, isSigningOut } = useAuth();
+  const { isHealthy, isLoading: isHealthyLoading } = useIsHealthy();
+
+  useEffect(() => {
+    if (!isPlatform || isLoading || isAuthenticated) {
+      return;
+    }
+
+    router.push('/signin');
+  }, [isLoading, isAuthenticated, router, isPlatform]);
+
+  useEffect(() => {
+    if (isPlatform || !router.isReady) {
+      return;
+    }
+
+    if (
+      router.query.orgSlug === 'local' &&
+      router.query.appSubdomain === 'local'
+    ) {
+      return;
+    }
+
+    router.push('/orgs/local/projects/local');
+  }, [isPlatform, router]);
+
+  if (
+    (isPlatform && isLoading) ||
+    isSigningOut ||
+    (isPlatform && !isAuthenticated)
+  ) {
+    return null;
+  }
+
+  if (!isPlatform && !isHealthy && !isHealthyLoading) {
+    return (
+      <Container
+        rootClassName="h-full"
+        className="my-12 grid max-w-md grid-flow-row justify-center gap-2 text-center"
+      >
+        <div className="mx-auto">
+          <Image
+            src="/terminal-text.svg"
+            alt="Terminal with a green dot"
+            width={72}
+            height={72}
+          />
+        </div>
+
+        <h1 className="font-semibold text-2xl">Error Connecting</h1>
+
+        <p>
+          Did you forget to start{' '}
+          <HighlightedText className="font-mono">nhost up</HighlightedText>?
+          Please refer to the{' '}
+          <TextLink
+            href="https://docs.nhost.io/platform/cli/local-development"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            CLI documentation
+          </TextLink>{' '}
+          if you are having trouble starting your project.
+        </p>
+
+        <Spinner size="medium" wrapperClassName="gap-2">
+          Checking status...
+        </Spinner>
+      </Container>
+    );
+  }
+
+  return (
+    <>
+      <Analytics />
+      {children}
+    </>
+  );
+}
