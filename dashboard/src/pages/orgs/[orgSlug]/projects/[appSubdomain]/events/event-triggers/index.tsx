@@ -1,11 +1,12 @@
 import type { ReactElement } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
+import { ContentPanel } from '@/components/layout/ContentPanel';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { ProjectViewWithState } from '@/features/orgs/layout/ProjectGuard';
 import { ProjectScope } from '@/features/orgs/layout/ProjectScope';
 import { EventsEmptyState } from '@/features/orgs/projects/events/common/components/EventsEmptyState';
 import { EventTriggersBrowserSidebar } from '@/features/orgs/projects/events/event-triggers/components/EventTriggersBrowserSidebar';
 import { useGetEventTriggers } from '@/features/orgs/projects/events/event-triggers/hooks/useGetEventTriggers';
+import { EventsArea } from '@/features/orgs/projects/events/layout';
 
 export default function EventTriggersPage() {
   const {
@@ -55,14 +56,16 @@ EventTriggersPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <AppLayout>
       <ProjectScope>
-        <ProjectViewWithState>
-          <div className="flex h-full">
-            <EventTriggersBrowserSidebar />
-            <div className="box flex w-full flex-auto flex-col overflow-x-hidden bg-default">
-              {page}
+        <EventsArea>
+          <ContentPanel>
+            <div className="flex h-full">
+              <EventTriggersBrowserSidebar />
+              <div className="box flex w-full flex-auto flex-col overflow-x-hidden">
+                {page}
+              </div>
             </div>
-          </div>
-        </ProjectViewWithState>
+          </ContentPanel>
+        </EventsArea>
       </ProjectScope>
     </AppLayout>
   );
