@@ -73,6 +73,8 @@ describe('commandPaletteNavTree', () => {
     expect(byId.get('project-metrics-settings')?.breadcrumb).toEqual([
       'Metrics',
     ]);
+    expect(byId.get('project-ai-settings')?.breadcrumb).toEqual(['AI']);
+    expect(byId.get('project-ai-assistants')?.breadcrumb).toEqual(['AI']);
     expect(byId.get('project-database-settings')?.breadcrumb).toEqual([
       'Database',
     ]);
@@ -169,6 +171,18 @@ describe('commandPaletteNavTree', () => {
       path: 'auth/settings?tab=custom-domain',
       gate: 'platform',
     });
+  });
+
+  it('routes AI settings through the AI area', () => {
+    const byId = new Map(allNodes.map((node) => [node.id, node]));
+
+    expect(byId.get('project-ai-settings')).toMatchObject({
+      title: 'Settings',
+      path: 'ai/settings',
+      gate: 'settings',
+      keywords: expect.arrayContaining(['ai', 'settings']),
+    });
+    expect(byId.has('project-settings-ai')).toBe(false);
   });
 
   it('routes Metrics settings through the Metrics area', () => {

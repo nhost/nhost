@@ -4,18 +4,16 @@ import { type ReactElement, useMemo } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Alert } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
 import { FileStoresIcon } from '@/components/ui/v3/icons/FileStoresIcon';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
-import { AISidebar } from '@/features/orgs/layout/AISidebar';
-import { ProjectViewWithState } from '@/features/orgs/layout/ProjectGuard';
 import { ProjectScope } from '@/features/orgs/layout/ProjectScope';
 import { FileStoreForm } from '@/features/orgs/projects/ai/FileStoreForm';
 import { FileStoresList } from '@/features/orgs/projects/ai/FileStoresList';
 import type { GraphiteFileStore } from '@/features/orgs/projects/ai/file-stores/types';
+import { AIArea } from '@/features/orgs/projects/ai/layout';
 import { useIsFileStoreSupported } from '@/features/orgs/projects/common/hooks/useIsFileStoreSupported';
 import { useIsGraphiteEnabled } from '@/features/orgs/projects/common/hooks/useIsGraphiteEnabled';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -101,7 +99,7 @@ export default function FileStoresPage() {
           <p>
             To enable graphite, configure the service first in{' '}
             <Link
-              href={`/orgs/${slug}/projects/${project?.subdomain}/settings/ai`}
+              href={`/orgs/${slug}/projects/${project?.subdomain}/ai/settings`}
               rel="noopener noreferrer"
               className="text-primary hover:underline"
             >
@@ -180,14 +178,7 @@ FileStoresPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <AppLayout>
       <ProjectScope>
-        <ProjectViewWithState>
-          <div className="!bg-[#fafafa] dark:!bg-[#151a22] flex h-full w-full flex-row">
-            <AISidebar />
-            <div className="w-full overflow-auto">
-              <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
-            </div>
-          </div>
-        </ProjectViewWithState>
+        <AIArea>{page}</AIArea>
       </ProjectScope>
     </AppLayout>
   );

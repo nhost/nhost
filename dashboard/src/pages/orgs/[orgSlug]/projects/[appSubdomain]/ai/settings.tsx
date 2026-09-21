@@ -2,9 +2,9 @@ import type { ReactElement } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { ProjectViewWithState } from '@/features/orgs/layout/ProjectGuard';
 import { ProjectScope } from '@/features/orgs/layout/ProjectScope';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
+import { AIArea } from '@/features/orgs/projects/ai/layout';
 import { AISettings } from '@/features/orgs/projects/ai/settings/components';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
@@ -65,9 +65,11 @@ export default function AISettingsPage() {
   }
 
   return (
-    <div className="grid grid-flow-row gap-y-6">
-      <AISettings />
-    </div>
+    <SettingsLayout>
+      <div className="grid grid-flow-row gap-y-6">
+        <AISettings />
+      </div>
+    </SettingsLayout>
   );
 }
 
@@ -75,9 +77,7 @@ AISettingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <AppLayout>
       <ProjectScope>
-        <ProjectViewWithState>
-          <SettingsLayout>{page}</SettingsLayout>
-        </ProjectViewWithState>
+        <AIArea>{page}</AIArea>
       </ProjectScope>
     </AppLayout>
   );

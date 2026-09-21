@@ -425,9 +425,10 @@ const subPageChildren: Record<
     settings: ['metrics', 'settings', 'alerting', 'smtp'],
   }),
   ai: toSubPageNodes(projectSubPagesBySlug.ai, 'project-ai', {
-    'auto-embeddings': ['ai', 'embeddings'],
     assistants: ['ai', 'agents'],
     'file-stores': ['ai', 'files', 'vector'],
+    'auto-embeddings': ['ai', 'embeddings'],
+    settings: ['ai', 'settings', 'embeddings'],
   }),
 };
 
@@ -446,7 +447,6 @@ const settingsPageMeta: Record<
       'delete project',
     ],
   },
-  ai: { keywords: ['settings', 'embeddings'] },
 };
 
 // The project settings page's own `?tab=` entries.
@@ -528,7 +528,7 @@ const projectPageMeta: Record<
     children: subPageChildren.run,
   },
   ai: {
-    keywords: ['auto embeddings', 'embeddings'],
+    keywords: ['agents', 'file stores', 'auto embeddings', 'embeddings'],
     children: subPageChildren.ai,
   },
   deployments: {
