@@ -37,10 +37,11 @@ extracted from common error response formats.
 #### Constructor
 
 ```ts
-new FetchError<T>(
+new FetchError<T = unknown>(
    body: T,
    status: number,
-   headers: Headers): FetchError<T>;
+   headers: Headers
+): FetchError<T>;
 ```
 
 Creates a new FetchError instance
@@ -369,7 +370,7 @@ This middleware:
 
 1. Sets the x-hasura-admin-secret header, which grants full admin access to Hasura
 2. Optionally sets the x-hasura-role header if a role is provided
-3. Optionally sets additional x-hasura-\* headers for custom session variables
+3. Optionally sets additional x-hasura-* headers for custom session variables
 
 **Security Warning**: Never use this middleware in client-side code or expose
 the admin secret to end users. Admin secrets grant unrestricted access to your

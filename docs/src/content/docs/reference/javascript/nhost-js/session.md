@@ -538,7 +538,7 @@ Callback function type for session change subscriptions
 
 # Variables
 
-## DEFAULT_SESSION_KEY
+## DEFAULT\_SESSION\_KEY
 
 ```ts
 const DEFAULT_SESSION_KEY: "nhostSession" = "nhostSession";

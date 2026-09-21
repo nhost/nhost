@@ -52,6 +52,6 @@
     "prettier-plugin-tailwindcss": "^0.2.8",
     "remark-gfm": "^4.0.1",
     "tailwindcss": "^3.4.19",
-    "typescript": "5.8.3"
+    "typescript": "catalog:"
   }
 }
