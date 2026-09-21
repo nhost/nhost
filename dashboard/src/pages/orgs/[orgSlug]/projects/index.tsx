@@ -4,7 +4,7 @@ import type { ReactElement } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectsGrid } from '@/features/orgs/components/projects/projects-grid';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { OrganizationLayout } from '@/features/orgs/layout/OrganizationLayout';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useGetProjectsQuery } from '@/generated/graphql';
 
@@ -65,5 +65,5 @@ export default function OrgProjects() {
 }
 
 OrgProjects.getLayout = function getLayout(page: ReactElement) {
-  return <OrgLayout isOrgPage>{page}</OrgLayout>;
+  return <OrganizationLayout>{page}</OrganizationLayout>;
 };
