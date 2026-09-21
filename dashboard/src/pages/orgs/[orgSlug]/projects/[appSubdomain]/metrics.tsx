@@ -9,11 +9,11 @@ import { RetryableErrorBoundary } from '@/components/presentational/RetryableErr
 import { Button } from '@/components/ui/v3/button';
 import { Separator } from '@/components/ui/v3/separator';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { ProjectViewWithState } from '@/features/orgs/layout/ProjectGuard';
 import { ProjectScope } from '@/features/orgs/layout/ProjectScope';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { MetricsArea } from '@/features/orgs/projects/metrics/layout';
 import { copy } from '@/utils/copy';
 
 export default function MetricsPage() {
@@ -154,7 +154,7 @@ MetricsPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <AppLayout>
       <ProjectScope>
-        <ProjectViewWithState>{page}</ProjectViewWithState>
+        <MetricsArea>{page}</MetricsArea>
       </ProjectScope>
     </AppLayout>
   );

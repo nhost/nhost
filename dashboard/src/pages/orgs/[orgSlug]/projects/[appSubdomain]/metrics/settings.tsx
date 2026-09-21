@@ -1,12 +1,12 @@
 import type { ReactElement } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { ProjectViewWithState } from '@/features/orgs/layout/ProjectGuard';
 import { ProjectScope } from '@/features/orgs/layout/ProjectScope';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import { MetricsArea } from '@/features/orgs/projects/metrics/layout';
 import { MetricsSettings } from '@/features/orgs/projects/metrics/settings/components/MetricsSettings';
 import { useGetObservabilitySettingsQuery } from '@/generated/graphql';
 
@@ -36,9 +36,11 @@ export default function MetricsSettingsPage() {
   }
 
   return (
-    <div className="grid grid-flow-row gap-y-6">
-      <MetricsSettings />
-    </div>
+    <SettingsLayout>
+      <div className="grid grid-flow-row gap-y-6">
+        <MetricsSettings />
+      </div>
+    </SettingsLayout>
   );
 }
 
@@ -46,9 +48,7 @@ MetricsSettingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <AppLayout>
       <ProjectScope>
-        <ProjectViewWithState>
-          <SettingsLayout>{page}</SettingsLayout>
-        </ProjectViewWithState>
+        <MetricsArea>{page}</MetricsArea>
       </ProjectScope>
     </AppLayout>
   );

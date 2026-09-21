@@ -70,6 +70,9 @@ describe('commandPaletteNavTree', () => {
     expect(byId.get('project-deployments-settings')?.breadcrumb).toEqual([
       'Deployments',
     ]);
+    expect(byId.get('project-metrics-settings')?.breadcrumb).toEqual([
+      'Metrics',
+    ]);
     expect(byId.get('project-database-settings')?.breadcrumb).toEqual([
       'Database',
     ]);
@@ -166,6 +169,18 @@ describe('commandPaletteNavTree', () => {
       path: 'auth/settings?tab=custom-domain',
       gate: 'platform',
     });
+  });
+
+  it('routes Metrics settings through the Metrics area', () => {
+    const byId = new Map(allNodes.map((node) => [node.id, node]));
+
+    expect(byId.get('project-metrics-settings')).toMatchObject({
+      title: 'Settings',
+      path: 'metrics/settings',
+      gate: 'platform',
+      keywords: expect.arrayContaining(['metrics', 'settings']),
+    });
+    expect(byId.has('project-settings-observability')).toBe(false);
   });
 
   it('routes Deployments settings through the Deployments area', () => {
