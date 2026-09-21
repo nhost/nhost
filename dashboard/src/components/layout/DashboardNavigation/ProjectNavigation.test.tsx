@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
 import { vi } from 'vitest';
-import AppSidebar from '@/components/layout/AppSidebar/AppSidebar';
+import DashboardNavigation from '@/components/layout/DashboardNavigation/DashboardNavigation';
 import {
   getProjectUrl,
   isHiddenFromPalette,
@@ -60,7 +60,7 @@ function renderProjectNav({ platform, configServerUrl }: Environment) {
     query: { orgSlug: ORG_SLUG, appSubdomain: APP_SUBDOMAIN },
   });
 
-  render(<AppSidebar />);
+  render(<DashboardNavigation />);
 
   const nav = screen.getByRole('navigation', { name: 'Project navigation' });
 
@@ -82,7 +82,7 @@ afterEach(() => {
 // The command palette's catalog is the written-down list of project pages;
 // the sidebar is hand-laid JSX. Sections give it its own order, so the
 // comparison is by set.
-describe('ProjectNav agrees with the command palette catalog', () => {
+describe('ProjectNavigation agrees with the command palette catalog', () => {
   it.each(environments)('links every catalog page $label', (environment) => {
     const items = renderProjectNav(environment);
     const enabled = items.filter((item) => !item.disabled);

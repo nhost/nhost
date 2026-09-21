@@ -1,15 +1,20 @@
 import { Button } from '@/components/ui/v3/button';
-import { DialogTrigger } from '@/components/ui/v3/dialog';
-import NotificationCard from './NotificationCard';
+import NotificationCard from '@/features/orgs/components/members/components/InboxPopover/NotificationCard';
 
-export default function PendingOrganizationRequestNotification() {
+interface PendingOrganizationRequestNotificationProps {
+  onContinue: VoidFunction;
+}
+
+export default function PendingOrganizationRequestNotification({
+  onContinue,
+}: PendingOrganizationRequestNotificationProps) {
   return (
     <NotificationCard
       label="Pending organization request"
       actions={
-        <DialogTrigger asChild>
-          <Button size="sm">Continue</Button>
-        </DialogTrigger>
+        <Button size="sm" onClick={onContinue}>
+          Continue
+        </Button>
       }
     >
       You have previously tried to upgrade or create a new organization

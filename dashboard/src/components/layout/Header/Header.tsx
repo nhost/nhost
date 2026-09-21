@@ -5,13 +5,18 @@ import { twMerge } from 'tailwind-merge';
 
 import { useMediaQuery } from '@/components/common/useMediaQuery';
 import { AccountMenu } from '@/components/layout/AccountMenu';
+import { useUpgradePlanLink } from '@/components/layout/AccountMenu/useUpgradePlanLink';
+import { DashboardNavigationSheet } from '@/components/layout/DashboardNavigation';
+import HeaderNavigationSheet from '@/components/layout/Header/HeaderNavigationSheet';
+import MobileAccountMenu from '@/components/layout/Header/MobileAccountMenu';
 import SupportPopover from '@/components/layout/Header/SupportPopover';
-import { MobileNav } from '@/components/layout/MobileNav';
 import { Logo } from '@/components/presentational/Logo';
 import { Button } from '@/components/ui/v3/button';
-import { CommandPaletteTrigger } from '@/features/command-palette';
+import {
+  CommandPaletteIconTrigger,
+  CommandPaletteTrigger,
+} from '@/features/command-palette';
 import { InboxPopover } from '@/features/orgs/components/members/components/InboxPopover';
-import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 import HeaderNavigation from './HeaderNavigation';
 
@@ -20,20 +25,12 @@ export type HeaderProps = ComponentPropsWithoutRef<'header'>;
 export default function Header({ className, ...props }: HeaderProps) {
   const router = useRouter();
   const isDesktop = useMediaQuery('md');
-  const { org } = useCurrentOrg();
+  const hasRoomForSearchBox = useMediaQuery('lg');
+  const { isFreeOrganization, href: upgradeHref } = useUpgradePlanLink();
   const currentOrgSlug = getSingleQueryParam(router.query.orgSlug);
   const dashboardHref = currentOrgSlug
     ? `/orgs/${currentOrgSlug}/projects`
     : '/';
-  const isFreeOrg = org?.plan?.isFree;
-
-  function handleUpgradeClick() {
-    if (!org?.slug) {
-      return;
-    }
-
-    router.push(`/orgs/${org.slug}/billing?openUpgradeModal=true`);
-  }
 
   return (
     <header
@@ -43,38 +40,55 @@ export default function Header({ className, ...props }: HeaderProps) {
       )}
       {...props}
     >
-      <div className="flex min-w-0 items-center gap-2">
-        <Link
-          href={dashboardHref}
-          aria-label="Dashboard"
-          className="h-6 w-6 shrink-0"
-        >
-          <Logo className="mx-auto h-6 w-6 cursor-pointer" />
-        </Link>
+      <div
+        className={twMerge(
+          'flex min-w-0 items-center gap-2',
+          !isDesktop && 'flex-1',
+        )}
+      >
+        {isDesktop ? (
+          <Link
+            href={dashboardHref}
+            aria-label="Dashboard"
+            className="h-6 w-6 shrink-0"
+          >
+            <Logo className="mx-auto h-6 w-6 cursor-pointer" />
+          </Link>
+        ) : (
+          <DashboardNavigationSheet />
+        )}
 
-        <HeaderNavigation />
+        {isDesktop ? <HeaderNavigation /> : <HeaderNavigationSheet />}
       </div>
 
-      {isDesktop && (
-        <div className="flex flex-1 justify-center">
-          <CommandPaletteTrigger className="w-[28rem]" />
+      {hasRoomForSearchBox && (
+        <div className="flex min-w-0 flex-1 justify-center">
+          <CommandPaletteTrigger className="w-full max-w-[28rem]" />
         </div>
       )}
 
-      <div className="ml-auto flex min-w-0 shrink-0 justify-end">
-        <div className="hidden items-center gap-2 sm:flex">
-          {isFreeOrg && (
-            <Button onClick={handleUpgradeClick} size="xs" variant="outline">
-              Upgrade
-            </Button>
-          )}
+      <div className="ml-auto flex shrink-0 items-center justify-end gap-2">
+        {!hasRoomForSearchBox && <CommandPaletteIconTrigger />}
 
-          <InboxPopover />
-          <SupportPopover />
-          <AccountMenu />
-        </div>
+        {isDesktop ? (
+          <>
+            {isFreeOrganization && upgradeHref && (
+              <Button
+                onClick={() => router.push(upgradeHref)}
+                size="xs"
+                variant="outline"
+              >
+                Upgrade
+              </Button>
+            )}
 
-        <MobileNav className="shrink-0 sm:hidden" />
+            <InboxPopover />
+            <SupportPopover />
+            <AccountMenu />
+          </>
+        ) : (
+          <MobileAccountMenu />
+        )}
       </div>
     </header>
   );
