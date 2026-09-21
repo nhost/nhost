@@ -106,6 +106,7 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
+  typescript: 5.9.3
   esbuild@<=0.24.2: '>=0.25.0'
   vite@>=8.0.0 <8.0.6: '>=8.0.6'
   vite@>=7.0.0 <7.3.2: '>=7.3.2 <8.0.0'
@@ -114,7 +115,7 @@ overrides:
   body-parser@<1.20.3: '>=1.20.3'
   serve-static@<1.16.0: '>=1.16.0'
   express@<4.20.0: '>=4.20.0'
-  cookie@<0.7.0: '>=0.7.0'
+  cookie@<0.7.0: '>=0.7.0 <2'
   axios@>=1.0.0 <1.12.0: '>=1.12.0'
   send@<0.19.0: '>=0.19.0'
   js-yaml@>=4.0.0 <4.1.1: '>=4.1.1'
@@ -193,14 +194,14 @@ importers:
         specifier: 2.9.14
         version: 2.9.14
       typescript:
-        specifier: 5.8.3
-        version: 5.8.3
+        specifier: 5.9.3
+        version: 5.9.3
       vite:
         specifier: ^8.0.16
         version: 8.0.16
       vite-tsconfig-paths:
         specifier: ^6.1.1
-        version: 6.1.1(typescript@5.8.3)(vite@8.0.16)
+        version: 6.1.1(typescript@5.9.3)(vite@8.0.16)
       vitest:
         specifier: ^4.1.11
         version: 4.1.11(vite@8.0.16)
@@ -710,7 +711,7 @@ packages:
     deprecated: unmaintained
     hasBin: true
     peerDependencies:
-      typescript: ^5.0.0
+      typescript: 5.9.3
     peerDependenciesMeta:
       typescript:
         optional: true
@@ -722,8 +723,8 @@ packages:
     resolution: {integrity: sha512-BQqXRr4UoWI3UPFrtznCLykYHxwxWh53iCB57x092jPMjIlW1wnm3N895g5irpiXmnxUhREBB0n6+y8BHhs4nw==}
     hasBin: true
 
-  typescript@5.8.3:
-    resolution: {integrity: sha512-p1diW6TqL9L07nNxvRMM7hMMw4c5XOo/1ibL4aAIGmSAt9slTE1Xgw5KWuof2uTOvCg9BY7ZRi+GaF+7sfgPeQ==}
+  typescript@5.9.3:
+    resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
     engines: {node: '>=14.17'}
     hasBin: true
 
@@ -1248,9 +1249,9 @@ snapshots:
 
   tinyrainbow@3.1.0: {}
 
-  tsconfck@3.1.6(typescript@5.8.3):
+  tsconfck@3.1.6(typescript@5.9.3):
     optionalDependencies:
-      typescript: 5.8.3
+      typescript: 5.9.3
 
   tslib@2.8.1:
     optional: true
@@ -1264,13 +1265,13 @@ snapshots:
       '@turbo/windows-64': 2.9.14
       '@turbo/windows-arm64': 2.9.14
 
-  typescript@5.8.3: {}
+  typescript@5.9.3: {}
 
-  vite-tsconfig-paths@6.1.1(typescript@5.8.3)(vite@8.0.16):
+  vite-tsconfig-paths@6.1.1(typescript@5.9.3)(vite@8.0.16):
     dependencies:
       debug: 4.4.1
       globrex: 0.1.2
-      tsconfck: 3.1.6(typescript@5.8.3)
+      tsconfck: 3.1.6(typescript@5.9.3)
       vite: 8.0.16
     transitivePeerDependencies:
       - supports-color

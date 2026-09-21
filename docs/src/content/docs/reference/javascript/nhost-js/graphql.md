@@ -316,7 +316,7 @@ Add a middleware function to the fetch chain
 ##### Call Signature
 
 ```ts
-request<TResponseData, TVariables>(request: GraphQLRequest<TVariables>, options?: RequestInit): Promise<FetchResponse<GraphQLResponse<TResponseData>>>;
+request<TResponseData = unknown, TVariables = GraphQLVariables>(request: GraphQLRequest<TVariables>, options?: RequestInit): Promise<FetchResponse<GraphQLResponse<TResponseData>>>;
 ```
 
 Execute a GraphQL query operation
@@ -346,10 +346,11 @@ Promise with the GraphQL response and metadata
 ##### Call Signature
 
 ```ts
-request<TResponseData, TVariables>(
+request<TResponseData, TVariables = GraphQLVariables>(
    document: TypedDocumentNode<TResponseData, TVariables>,
    variables?: TVariables,
-   options?: RequestInit): Promise<FetchResponse<GraphQLResponse<TResponseData>>>;
+   options?: RequestInit
+): Promise<FetchResponse<GraphQLResponse<TResponseData>>>;
 ```
 
 Execute a GraphQL query operation using a typed document node

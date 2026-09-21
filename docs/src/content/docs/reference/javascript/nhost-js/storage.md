@@ -227,7 +227,8 @@ This method may return different T based on the response code:
 getFile(
    id: string,
    params?: GetFileParams,
-   options?: RequestInit): Promise<FetchResponse<Blob>>;
+   options?: RequestInit
+): Promise<FetchResponse<Blob>>;
 ```
 
 Summary: Download file
@@ -258,7 +259,8 @@ This method may return different T based on the response code:
 getFileMetadataHeaders(
    id: string,
    params?: GetFileMetadataHeadersParams,
-   options?: RequestInit): Promise<FetchResponse<void>>;
+   options?: RequestInit
+): Promise<FetchResponse<void>>;
 ```
 
 Summary: Check file information
@@ -423,7 +425,8 @@ Add a middleware function to the fetch chain
 replaceFile(
    id: string,
    body: ReplaceFileBody,
-   options?: RequestInit): Promise<FetchResponse<FileMetadata>>;
+   options?: RequestInit
+): Promise<FetchResponse<FileMetadata>>;
 ```
 
 Summary: Replace file
@@ -1075,13 +1078,7 @@ buildVersion: string;
 
 ```ts
 type OutputImageFormat =
-  | "auto"
-  | "same"
-  | "jpeg"
-  | "webp"
-  | "png"
-  | "avif"
-  | "heic";
+  "auto" | "same" | "jpeg" | "webp" | "png" | "avif" | "heic";
 ```
 
 Output format for image files. Use 'auto' for content negotiation based on Accept header
