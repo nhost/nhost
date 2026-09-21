@@ -5,8 +5,7 @@ import { NavLink } from '@/components/common/NavLink';
 import { AccountMenu } from '@/components/layout/AccountMenu';
 import { MobileNav } from '@/components/layout/MobileNav';
 import { Logo } from '@/components/presentational/Logo';
-import { AnnouncementsTray } from '@/features/orgs/components/members/components/AnnouncementsTray';
-import { NotificationsTray } from '@/features/orgs/components/members/components/NotificationsTray';
+import { InboxPopover } from '@/features/orgs/components/members/components/InboxPopover';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import HeaderNavigation from './HeaderNavigation';
 
@@ -30,9 +29,7 @@ export default function Header({ className, ...props }: HeaderProps) {
       <HeaderNavigation />
 
       <div className="ml-auto hidden shrink-0 grid-flow-col items-center gap-1 sm:grid">
-        <NotificationsTray />
-
-        <AnnouncementsTray />
+        <InboxPopover />
 
         {isPlatform && (
           <NavLink
