@@ -276,6 +276,7 @@ func getController(
 			Mode:            controllerOpts.elevationMode,
 			TOTPEnabled:     config.TOTPEnabled,
 			WebauthnEnabled: config.WebauthnEnabled,
+			OTPEmailEnabled: config.OTPEmailEnabled,
 		},
 		dbClient,
 		config.ServerURL.String(),
