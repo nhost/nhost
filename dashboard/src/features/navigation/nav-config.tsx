@@ -5,7 +5,6 @@ import {
 } from '@icons-pack/react-simple-icons';
 import {
   Sparkles as AIIcon,
-  CloudIcon,
   Code,
   DatabaseIcon,
   FileTextIcon,
@@ -102,13 +101,6 @@ export const projectPages = definePages([
     gate: 'platform',
   },
   {
-    name: 'Backups',
-    icon: <CloudIcon className="h-4 w-4" />,
-    route: 'backups',
-    slug: 'backups',
-    gate: 'platform',
-  },
-  {
     name: 'Logs',
     icon: <FileTextIcon className="h-4 w-4" />,
     route: 'logs',
@@ -136,7 +128,6 @@ export const projectSettingsPages = definePages([
     slug: 'compute-resources',
     route: 'compute-resources',
   },
-  { name: 'Database', slug: 'database', route: 'database' },
   { name: 'Hasura', slug: 'hasura', route: 'hasura' },
   {
     name: 'Authentication',
@@ -251,6 +242,23 @@ export const projectDatabasePages = definePages([
     name: 'Schema Navigator',
     slug: 'schema',
     route: 'database/schema/default',
+  },
+  {
+    name: 'SQL Console',
+    slug: 'sql-console',
+    route: 'database/browser/default/editor',
+  },
+  {
+    name: 'Backups',
+    slug: 'backups',
+    route: 'database/backups',
+    gate: 'platform',
+  },
+  {
+    name: 'Settings',
+    slug: 'settings',
+    route: 'database/settings',
+    gate: 'settings',
   },
 ]);
 

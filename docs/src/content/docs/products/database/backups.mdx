@@ -21,11 +21,11 @@ For details visit the [pricing page](https://nhost.io/pricing)
 
 ## Daily Backups
 
-All Pro and Team projects come with daily backups enabled with a 7-day retention by default. You can view, download and restore your project's backups by visiting the [Backups](https://app.nhost.io/orgs/_/projects/_/backups) section in your project's dashboard.
+All Pro and Team projects come with daily backups enabled with a 7-day retention by default. You can view, download and restore your project's backups by visiting the [Backups](https://app.nhost.io/orgs/_/projects/_/database/backups) section in your project's dashboard.
 
 ### Restoring a Backup
 
-To restore a backup, go to the [Backups](https://app.nhost.io/orgs/_/projects/_/backups) section in your project's dashboard, pick the backup you want to restore from and click on "Restore". Keep in mind this will wipe out all of the project's data prior to initiating the restore.
+To restore a backup, go to the [Backups](https://app.nhost.io/orgs/_/projects/_/database/backups) section in your project's dashboard, pick the backup you want to restore from and click on "Restore". Keep in mind this will wipe out all of the project's data prior to initiating the restore.
 
 ### Restoring a Backup on a Different Nhost Project
 
@@ -35,7 +35,7 @@ You can restore a daily backup directly onto another Nhost project from the dash
 Restoring wipes out all of the target project's data prior to initiating the restore.
 :::
 
-1. Go to the target project's [Backups](https://app.nhost.io/orgs/_/projects/_/backups) section and open the "Import Backup" tab.
+1. Go to the target project's [Backups](https://app.nhost.io/orgs/_/projects/_/database/backups) section and open the "Import Backup" tab.
 2. Select the source project you want to import a backup from. Only projects in the same organization and region are listed.
 3. The source project's daily backups are listed. Pick the backup you want and click "Import backup".
 
@@ -56,7 +56,7 @@ When using postgres tools like `psql`, `pg_dump` or `pg_restore` it is recommend
 
   ### Download the backup and uncompress it
 
-1. Go to the [Backups](https://app.nhost.io/orgs/_/projects/_/backups) section in your project's dashboard and download the backup you want.
+1. Go to the [Backups](https://app.nhost.io/orgs/_/projects/_/database/backups) section in your project's dashboard and download the backup you want.
   2. Uncompress it with `unzip` or similar tool
   3. You should see two files `globals.sql` and `database.custom`
 
@@ -162,7 +162,7 @@ You can configure Point-in-Time Recovery via the dashboard or using your `nhost.
 
 <Tabs>
  <TabItem label="Dashboard">
-  1. Go to the [Backups](https://app.nhost.io/orgs/_/projects/_/settings/database) section in your project's dashboard.
+  1. Go to the [database settings](https://app.nhost.io/orgs/_/projects/_/database/settings?tab=point-in-time) section in your project's dashboard.
   2. Enable "Point-in-Time Recovery"
 
   ![Point-in-Time Recovery](/images/database/backups/pitr-settings.png)
@@ -183,7 +183,7 @@ You can configure Point-in-Time Recovery via the dashboard or using your `nhost.
 To restore to a specific point in time:
 
 
-  Go to the [Backups](https://app.nhost.io/orgs/_/projects/_/backups) section in your project's dashboard and click on "Start Restore"
+  Go to the [Backups](https://app.nhost.io/orgs/_/projects/_/database/backups) section in your project's dashboard and click on "Start Restore"
 
   ![Point-in-Time Recovery](/images/database/backups/pitr-restore-1.png)
 
@@ -235,13 +235,13 @@ First, create a new project where we will restore the data into. The project wil
 
  ### Ensure database version is the same
 
-Go to settings -> database in both the new and the original projects and make sure the new project is running the same exact database version as the original project.
+Go to Database > Settings in both the new and the original projects and make sure the new project is running the same exact database version as the original project.
 
 
 
  ### Restore backup
 
-Finally, go to the new project's [Backups](https://app.nhost.io/orgs/_/projects/_/backups) section, navigate to "Import Backup" and select the original project. After this the steps are the same as restoring to a specific point in time on the same project.
+Finally, go to the new project's [Backups](https://app.nhost.io/orgs/_/projects/_/database/backups) section, navigate to "Import Backup" and select the original project. After this the steps are the same as restoring to a specific point in time on the same project.
 
  ![Point-in-Time Recovery import](/images/database/backups/pitr-import-1.png)
 
