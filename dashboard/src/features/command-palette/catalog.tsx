@@ -16,14 +16,14 @@ import {
 } from 'lucide-react';
 import type { ReactElement } from 'react';
 
-export type PageGate = 'platform' | 'settings';
+export type PaletteGate = 'platform' | 'settings';
 
 interface PageEntry<Slug extends string = string> {
   name: string;
   slug: Slug;
   route: string;
   icon?: ReactElement;
-  gate?: PageGate;
+  gate?: PaletteGate;
 }
 
 const definePages = <Slugs extends string>(
@@ -314,14 +314,14 @@ export const orgPages = definePages([
   { name: 'Billing', slug: 'billing', route: 'billing', gate: 'platform' },
 ]);
 
-export type NavGating = {
+export type PaletteGating = {
   isNotPlatform: boolean;
   shouldDisableSettings: boolean;
 };
 
-export const isPageGated = (
-  gate: PageGate | undefined,
-  gating: NavGating,
+export const isHiddenFromPalette = (
+  gate: PaletteGate | undefined,
+  gating: PaletteGating,
 ): boolean =>
   (gate === 'platform' && gating.isNotPlatform) ||
   (gate === 'settings' && gating.shouldDisableSettings);

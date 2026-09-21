@@ -1,16 +1,22 @@
 import { useMemo } from 'react';
+import {
+  isHiddenFromPalette,
+  type PaletteGating,
+} from '@/features/command-palette/catalog';
 import { isContainer } from '@/features/command-palette/lib/machine';
-import { commandPaletteNavTree } from '@/features/command-palette/nav-tree';
+import { commandPaletteTree } from '@/features/command-palette/tree';
 import type { CommandNode } from '@/features/command-palette/types';
-import { isPageGated, type NavGating } from '@/features/navigation/nav-config';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useSettingsDisabled } from '@/hooks/useSettingsDisabled';
 
 // Gates only children, so the root always survives filtering.
-const filterNavTree = (node: CommandNode, gating: NavGating): CommandNode => ({
+const filterNavTree = (
+  node: CommandNode,
+  gating: PaletteGating,
+): CommandNode => ({
   ...node,
   children: node.children
-    ?.filter((child) => !isPageGated(child.gate, gating))
+    ?.filter((child) => !isHiddenFromPalette(child.gate, gating))
     .map((child) => filterNavTree(child, gating))
     .filter((child) => child.path !== undefined || isContainer(child)),
 });
@@ -27,7 +33,7 @@ export function usePaletteTrees() {
   const settingsDisabled = useSettingsDisabled();
 
   return useMemo(() => {
-    const tree = filterNavTree(commandPaletteNavTree, {
+    const tree = filterNavTree(commandPaletteTree, {
       isNotPlatform: !platformEnabled,
       shouldDisableSettings: settingsDisabled,
     });
