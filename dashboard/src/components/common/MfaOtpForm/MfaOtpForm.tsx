@@ -14,9 +14,15 @@ interface Props {
   sendMfaOtp: (code: string) => Promise<unknown>;
   loading: boolean;
   requestNewMfaTicket?: () => Promise<unknown>;
+  placeholder?: string;
 }
 
-function MfaOtpForm({ sendMfaOtp, loading, requestNewMfaTicket }: Props) {
+function MfaOtpForm({
+  sendMfaOtp,
+  loading,
+  requestNewMfaTicket,
+  placeholder = 'Enter TOTP',
+}: Props) {
   const [otpValue, setOtpValue] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -71,7 +77,7 @@ function MfaOtpForm({ sendMfaOtp, loading, requestNewMfaTicket }: Props) {
       <Input
         ref={inputRef}
         value={otpValue}
-        placeholder="Enter TOTP"
+        placeholder={placeholder}
         className="!bg-transparent"
         disabled={isInputDisabled}
         onChange={handleChange}
