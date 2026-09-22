@@ -42,22 +42,26 @@ wait_for_postgres() {
 	done
 }
 
-wait_for_postgres_slow() {
-	echo "Waiting for postgres to start"
-	# wait for postgres to start
-	while ! pg_isready -q; do
-		# Check if postgres process is still running
-		if ! kill -0 "$POSTGRES_PID" 2>/dev/null; then
-			exit_code=0
-			wait "$POSTGRES_PID" || exit_code=$?
-			echo "PostgreSQL recovery process exited before becoming ready with code: $exit_code" >&2
-			if [ "$exit_code" -eq 0 ]; then
-				return 1
-			fi
-			return "$exit_code"
+wait_for_postgres_promotion() {
+	echo "Waiting for postgres to finish recovery and promote"
+	while kill -0 "$POSTGRES_PID" 2>/dev/null; do
+		in_recovery=
+		if in_recovery=$(
+			psql -X -q -A -t -U postgres -d postgres -v ON_ERROR_STOP=1 \
+				-c 'SELECT pg_is_in_recovery();' 2>/dev/null
+		) && [ "$in_recovery" = f ] && kill -0 "$POSTGRES_PID" 2>/dev/null; then
+			return 0
 		fi
 		sleep 10
 	done
+
+	exit_code=0
+	wait "$POSTGRES_PID" || exit_code=$?
+	echo "PostgreSQL recovery process exited before promotion with code: $exit_code" >&2
+	if [ "$exit_code" -eq 0 ]; then
+		return 1
+	fi
+	return "$exit_code"
 }
 
 start_postgres() {
@@ -151,7 +155,7 @@ main() {
 		if [ "$PITR_TARGET_ACTION" = "promote" ]; then
 			start_postgres &
 			POSTGRES_PID=$!
-			wait_for_postgres_slow
+			wait_for_postgres_promotion
 			post_restore_sql
 			pg_ctl stop
 		else
