@@ -2,42 +2,16 @@
 
 set -eu
 
-clear_pgdata() {
-	find "$PGDATA" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +
-}
-
 init_db() {
 	DATABASE_INITIALIZED=false
-	INIT_COMPLETE_FILE="$PGDATA/.nhost-initdb-complete"
-	INIT_IN_PROGRESS_FILE="$PGDATA/.nhost-initdb-in-progress"
-
-	if [ -f "$INIT_COMPLETE_FILE" ]; then
-		if [ ! -f "$PGDATA/PG_VERSION" ]; then
-			echo "Database initialization is marked complete, but PG_VERSION is missing" >&2
-			return 1
-		fi
-		rm -f "$INIT_IN_PROGRESS_FILE"
-	elif [ -f "$INIT_IN_PROGRESS_FILE" ]; then
-		echo "Restarting interrupted database initialization"
-		clear_pgdata
-	elif [ -f "$PGDATA/PG_VERSION" ]; then
-		# Volumes created by older images predate the initialization marker.
-		touch "$INIT_COMPLETE_FILE"
-	fi
 
 	if [ ! -f "$PGDATA/PG_VERSION" ]; then
 		echo "Initializing database"
-		password_file=$(mktemp -p /tmp/postgresql postgres-password.XXXXXX)
-		chmod 600 "$password_file"
-		printf '%s\n' "$POSTGRES_PASSWORD" >"$password_file"
-
-		if ! initdb --username="$POSTGRES_USER" --pwfile="$password_file"; then
-			rm -f "$password_file"
+		if ! printf '%s\n' "$POSTGRES_PASSWORD" |
+			initdb --username="$POSTGRES_USER" --pwfile=/dev/stdin; then
 			return 1
 		fi
 
-		rm -f "$password_file"
-		touch "$INIT_IN_PROGRESS_FILE"
 		DATABASE_INITIALIZED=true
 	fi
 	export DATABASE_INITIALIZED
@@ -74,16 +48,13 @@ wait_for_postgres_slow() {
 	while ! pg_isready -q; do
 		# Check if postgres process is still running
 		if ! kill -0 "$POSTGRES_PID" 2>/dev/null; then
-			# We try to start postgres normally in case postgres shutdowns
-			# instead of promoting the server to allow for the post_restore_sql to run
-			echo "PostgreSQL process (PID: $POSTGRES_PID) is no longer running. Starting postgres normally..."
-			rm -f "$PGDATA/recovery.signal"
-			rm -f "$PGDATA/postgresql.auto.conf"
-			start_postgres &
-			POSTGRES_PID=$!
-			echo "PostgreSQL restarted with PID: $POSTGRES_PID"
-			wait_for_postgres
-			return
+			exit_code=0
+			wait "$POSTGRES_PID" || exit_code=$?
+			echo "PostgreSQL recovery process exited before becoming ready with code: $exit_code" >&2
+			if [ "$exit_code" -eq 0 ]; then
+				return 1
+			fi
+			return "$exit_code"
 		fi
 		sleep 10
 	done
@@ -110,7 +81,7 @@ run_psql_file() {
 	database=$1
 	file=$2
 
-	psql -X -q -b -U postgres -d "$database" -v ON_ERROR_STOP=1 -f "$file"
+	psql -X -q -b -U postgres -d "$database" -f "$file"
 }
 
 run_init_scripts() {
@@ -124,18 +95,6 @@ run_init_scripts() {
 		envsubst <"$f" >"$rendered_file" || return 1
 		run_psql_file "$POSTGRES_DB" "$rendered_file" || return 1
 	done
-}
-
-cleanup_failed_init() {
-	echo "Database initialization failed; removing the incomplete cluster" >&2
-	if kill -0 "$POSTGRES_PID" 2>/dev/null; then
-		if ! pg_ctl stop --pgdata="$PGDATA" --mode=fast --wait; then
-			echo "Failed to stop PostgreSQL; keeping the incomplete cluster for cleanup on restart" >&2
-			return 1
-		fi
-		wait "$POSTGRES_PID" || true
-	fi
-	clear_pgdata
 }
 
 run_nhost_scripts() {
@@ -171,12 +130,16 @@ pitr_restore() {
 post_restore_sql() {
 	if [ -n "${PITR_POST_RESTORE_SQL_NO_DB:-}" ]; then
 		echo "Running post restore SQL without database connection"
-		psql -X -U postgres -v ON_ERROR_STOP=1 -c "$PITR_POST_RESTORE_SQL_NO_DB"
+		if ! psql -X -U postgres -c "$PITR_POST_RESTORE_SQL_NO_DB"; then
+			echo "Post-restore SQL without a database connection failed; continuing" >&2
+		fi
 	fi
 
 	if [ -n "${PITR_POST_RESTORE_SQL:-}" ]; then
 		echo "Running post restore SQL with database connection"
-		psql -X -U postgres -d "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c "$PITR_POST_RESTORE_SQL"
+		if ! psql -X -U postgres -d "$POSTGRES_DB" -c "$PITR_POST_RESTORE_SQL"; then
+			echo "Post-restore SQL with a database connection failed; continuing" >&2
+		fi
 	fi
 }
 
@@ -212,11 +175,8 @@ main() {
 
 	if [ "$DATABASE_INITIALIZED" = true ]; then
 		if ! run_init_scripts; then
-			cleanup_failed_init
-			return 1
+			echo "Initialization script execution failed; continuing PostgreSQL startup" >&2
 		fi
-		touch "$INIT_COMPLETE_FILE"
-		rm -f "$INIT_IN_PROGRESS_FILE"
 	fi
 
 	# Rebuild collation-dependent indexes only after the available collation
