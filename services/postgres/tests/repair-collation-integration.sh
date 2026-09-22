@@ -68,7 +68,8 @@ if [ "$available" != 1 ]; then
 	exit 1
 fi
 
-mismatch=$(psql_admin -A -t -v test_database="$test_database" <<'SQL'
+mismatch=$(
+	psql_admin -A -t -v test_database="$test_database" <<'SQL'
 SELECT datcollversion IS DISTINCT FROM pg_database_collation_actual_version(oid)
 FROM pg_database
 WHERE datname = :'test_database';
@@ -91,7 +92,8 @@ SQL
 sh "$repair_script" --database "$test_database" \
 	>"$test_dir/repaired-stdout" 2>"$test_dir/repaired-stderr"
 
-mismatch=$(psql_admin -A -t -v test_database="$test_database" <<'SQL'
+mismatch=$(
+	psql_admin -A -t -v test_database="$test_database" <<'SQL'
 SELECT datcollversion IS DISTINCT FROM pg_database_collation_actual_version(oid)
 FROM pg_database
 WHERE datname = :'test_database';
