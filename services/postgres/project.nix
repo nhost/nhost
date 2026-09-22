@@ -53,6 +53,8 @@ in
 
         sh ${src}/tests/pitr-promotion.sh \
           ${src}/postgres/bin/init.sh
+        sh ${src}/tests/pitr-restore.sh \
+          ${src}/postgres/bin/init.sh
         sh ${src}/tests/repair-collation.sh \
           ${src}/postgres/bin/repair-collation.sh
         PGHOST=localhost PGPORT=5432 \

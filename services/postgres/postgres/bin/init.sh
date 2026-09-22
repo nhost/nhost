@@ -114,20 +114,62 @@ run_nhost_scripts() {
 	done
 }
 
+pitr_preflight() {
+	echo "pitr_recover: checking backup storage and selector $PITR_BASEBACKUP"
+	pitr_backup_list=$(mktemp "${TMPDIR:-/tmp}/pitr-backup-list.XXXXXX") || return 1
+
+	if wal-g backup-list >"$pitr_backup_list"; then
+		:
+	else
+		status=$?
+		rm -f "$pitr_backup_list"
+		echo "pitr_recover: preflight failed while listing backups" >&2
+		return "$status"
+	fi
+
+	backup_available=false
+	if [ "$PITR_BASEBACKUP" = LATEST ]; then
+		if awk 'NR > 1 { found = 1 } END { exit !found }' "$pitr_backup_list"; then
+			backup_available=true
+		fi
+	elif awk -v requested="$PITR_BASEBACKUP" \
+		'NR > 1 && $1 == requested { found = 1 } END { exit !found }' \
+		"$pitr_backup_list"; then
+		backup_available=true
+	fi
+	rm -f "$pitr_backup_list" || return 1
+
+	if [ "$backup_available" != true ]; then
+		echo "pitr_recover: preflight failed: backup selector $PITR_BASEBACKUP is not available" >&2
+		return 1
+	fi
+}
+
 pitr_restore() {
+	pitr_preflight || return $?
+
+	# The preflight catches unreachable storage and unknown selectors, but the
+	# direct fetch is intentionally not atomic: a fetch failure can leave a
+	# partial PGDATA after the existing cluster has been removed.
 	echo "Cleaning up PGDATA"
-	rm -rf "$PGDATA"
+	rm -rf "$PGDATA" || return 1
 	echo "pitr_recover: fetching $PITR_BASEBACKUP"
-	wal-g backup-fetch "$PGDATA" "$PITR_BASEBACKUP"
+	if wal-g backup-fetch "$PGDATA" "$PITR_BASEBACKUP"; then
+		:
+	else
+		status=$?
+		echo "pitr_recover: backup-fetch failed after PGDATA was removed; PGDATA may be partial" >&2
+		return "$status"
+	fi
 	echo "pitr_recover: finished fetching  $PITR_BASEBACKUP"
 	echo "pitr_recover: setting recovery target to $PITR_RECOVERY_TARGET"
-	rm -f "$PGDATA/postgresql.auto.conf"
+	rm -f "$PGDATA/postgresql.auto.conf" || return 1
 	{
 		echo "recovery_target_time = '$PITR_RECOVERY_TARGET'"
 		echo "recovery_target_action = '$PITR_TARGET_ACTION'"
 		echo "recovery_target_timeline = '$PITR_TARGET_TIMELINE'"
 		echo "restore_command = 'wal-g wal-fetch \"%f\" \"%p\"'"
-	} >"$PGDATA/postgresql.auto.conf"
+	} >"$PGDATA/postgresql.auto.conf" || return 1
 	touch "$PGDATA/recovery.signal"
 }
 
