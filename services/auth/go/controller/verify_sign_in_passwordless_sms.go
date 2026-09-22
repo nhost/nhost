@@ -15,8 +15,8 @@ func (ctrl *Controller) VerifySignInPasswordlessSms( //nolint:ireturn
 	logger := oapimw.LoggerFromContext(ctx).
 		With(slog.String("phoneNumber", request.Body.PhoneNumber))
 
-	if !ctrl.config.SMSPasswordlessEnabled {
-		logger.WarnContext(ctx, "SMS passwordless signin is disabled")
+	if !ctrl.config.OTPSmsEnabled {
+		logger.WarnContext(ctx, "SMS OTP signin is disabled")
 		return ctrl.sendError(ErrDisabledEndpoint), nil
 	}
 

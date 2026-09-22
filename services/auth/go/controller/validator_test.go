@@ -54,7 +54,6 @@ func getConfig() *controller.Config {
 		OTPSmsEnabled:                            true,
 		TOTPEnabled:                              true,
 		ServerPrefix:                             "",
-		SMSPasswordlessEnabled:                   true,
 		SMSProvider:                              "twilio",
 		SMSTwilioAccountSid:                      "smsAccountSid",
 		SMSTwilioAuthToken:                       "smsAuthToken",

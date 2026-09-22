@@ -145,8 +145,6 @@ func TestElevateOTPSms(t *testing.T) { //nolint:maintidx
 		},
 
 		{
-			// getConfig leaves SMSPasswordlessEnabled on, so this also pins the
-			// separation: SMS passwordless sign-in does not imply SMS step-up.
 			name: "otp sms disabled",
 			config: func() *controller.Config {
 				c := getConfig()

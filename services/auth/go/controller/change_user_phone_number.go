@@ -14,8 +14,8 @@ func (ctrl *Controller) ChangeUserPhoneNumber( //nolint:ireturn
 	logger := oapimw.LoggerFromContext(ctx).
 		With(slog.String("newPhoneNumber", request.Body.NewPhoneNumber))
 
-	if !ctrl.config.SMSPasswordlessEnabled {
-		logger.WarnContext(ctx, "SMS passwordless is disabled")
+	if !ctrl.config.OTPSmsEnabled {
+		logger.WarnContext(ctx, "SMS OTP is disabled")
 		return ctrl.sendError(ErrDisabledEndpoint), nil
 	}
 
@@ -59,8 +59,8 @@ func (ctrl *Controller) VerifyChangeUserPhoneNumber( //nolint:ireturn
 	logger := oapimw.LoggerFromContext(ctx).
 		With(slog.String("newPhoneNumber", request.Body.NewPhoneNumber))
 
-	if !ctrl.config.SMSPasswordlessEnabled {
-		logger.WarnContext(ctx, "SMS passwordless is disabled")
+	if !ctrl.config.OTPSmsEnabled {
+		logger.WarnContext(ctx, "SMS OTP is disabled")
 		return ctrl.sendError(ErrDisabledEndpoint), nil
 	}
 

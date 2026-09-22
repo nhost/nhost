@@ -112,7 +112,6 @@ func getConfig(cmd *cli.Command) (controller.Config, error) { //nolint:funlen
 		WebauhtnAttestationTimeout:    cmd.Duration(flagWebauthnAttestationTimeout),
 		OTPEmailEnabled:               cmd.Bool(flagOTPEmailEnabled),
 		OTPSmsEnabled:                 cmd.Bool(flagOTPSmsEnabled),
-		SMSPasswordlessEnabled:        cmd.Bool(flagSMSPasswordlessEnabled),
 		SMSProvider:                   cmd.String(flagSMSProvider),
 		SMSTwilioAccountSid:           cmd.String(flagSMSTwilioAccountSid),
 		SMSTwilioAuthToken:            cmd.String(flagSMSTwilioAuthToken),
