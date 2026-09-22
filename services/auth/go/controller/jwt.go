@@ -540,17 +540,15 @@ func (j *JWTGetter) availableElevationMethods(
 		return nil, fmt.Errorf("error getting user: %w", err)
 	}
 
-	if j.totpEnabled &&
-		user.ActiveMfaType.String == string(api.UserMfaRequestActiveMfaTypeTotp) &&
-		user.TotpSecret.String != "" {
+	if j.totpEnabled && hasActiveTOTP(user) {
 		methods = append(methods, api.ElevationMethodTotp)
 	}
 
-	if j.otpEmailEnabled && user.Email.Valid && user.Email.String != "" {
+	if j.otpEmailEnabled && hasEmail(user) {
 		methods = append(methods, api.ElevationMethodOtpEmail)
 	}
 
-	if smsFactorUsable(j.otpSmsEnabled, user) {
+	if j.otpSmsEnabled && hasVerifiedPhoneNumber(user) {
 		methods = append(methods, api.ElevationMethodOtpSms)
 	}
 

@@ -28,7 +28,7 @@ func (ctrl *Controller) ElevateOTPSms( //nolint:ireturn
 		return ctrl.sendError(apiErr), nil
 	}
 
-	if !smsFactorUsable(ctrl.config.OTPSmsEnabled, user) {
+	if !hasVerifiedPhoneNumber(user) {
 		logger.WarnContext(ctx, "user has no usable SMS elevation factor")
 		return ctrl.sendError(ErrUserPhoneNumberNotFound), nil
 	}

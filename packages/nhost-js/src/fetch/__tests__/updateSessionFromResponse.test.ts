@@ -165,6 +165,22 @@ describe('updateSessionFromResponseMiddleware', () => {
     expect(storage.get()).toBeNull();
   });
 
+  test('leaves the signed-in session alone for the /elevate/otp/email OK response', async () => {
+    storage.set(existingSession);
+
+    await run('https://local.auth.local.nhost.run/v1/elevate/otp/email', 'OK');
+
+    expect(storage.get()?.accessToken).toBe(nonElevatedAccessToken);
+  });
+
+  test('leaves the signed-in session alone for the /elevate/otp/sms OK response', async () => {
+    storage.set(existingSession);
+
+    await run('https://local.auth.local.nhost.run/v1/elevate/otp/sms', 'OK');
+
+    expect(storage.get()?.accessToken).toBe(nonElevatedAccessToken);
+  });
+
   test('leaves the signed-in session alone for the /elevate/webauthn challenge', async () => {
     storage.set(existingSession);
 
