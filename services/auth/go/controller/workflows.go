@@ -510,6 +510,38 @@ func (wf *Workflows) VerifyEmailOTP(
 	return user, nil
 }
 
+func (wf *Workflows) VerifySMSOTP(
+	ctx context.Context,
+	phoneNumber string,
+	otp string,
+	logger *slog.Logger,
+) (sql.AuthUser, *APIError) {
+	user, status, err := wf.sms.CheckVerificationCode(ctx, phoneNumber, otp)
+	if err != nil {
+		return sql.AuthUser{}, smsVerificationError(ctx, err, logger)
+	}
+
+	switch status {
+	case sql.OTPStatusOK:
+	case sql.OTPStatusBurned:
+		logger.WarnContext(ctx, "sms otp burned after too many attempts")
+		return sql.AuthUser{}, ErrTooManyOTPAttempts
+	case sql.OTPStatusInvalid:
+		logger.WarnContext(ctx, "invalid OTP")
+		return sql.AuthUser{}, ErrInvalidOTP
+	default:
+		logger.ErrorContext(
+			ctx,
+			"unexpected SMS OTP verification status",
+			slog.String("status", status),
+		)
+
+		return sql.AuthUser{}, ErrInternalServerError
+	}
+
+	return user, nil
+}
+
 func pgtypeTextToOAPIEmail(pgemail pgtype.Text) *types.Email {
 	var email *types.Email
 	if pgemail.Valid {

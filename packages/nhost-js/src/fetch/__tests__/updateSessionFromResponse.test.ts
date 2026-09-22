@@ -137,6 +137,14 @@ describe('updateSessionFromResponseMiddleware', () => {
     expect(storage.get()?.accessToken).toBe(accessToken);
   });
 
+  test('persists the elevated session returned by /elevate/otp/sms/verify', async () => {
+    await run('https://local.auth.local.nhost.run/v1/elevate/otp/sms/verify', {
+      session,
+    });
+
+    expect(storage.get()?.accessToken).toBe(accessToken);
+  });
+
   test('creates nothing for the /elevate/webauthn challenge response', async () => {
     await run('https://local.auth.local.nhost.run/v1/elevate/webauthn', {
       publicKey: { challenge: 'a-challenge' },
@@ -147,6 +155,12 @@ describe('updateSessionFromResponseMiddleware', () => {
 
   test('creates nothing for the /elevate/otp/email OK response', async () => {
     await run('https://local.auth.local.nhost.run/v1/elevate/otp/email', 'OK');
+
+    expect(storage.get()).toBeNull();
+  });
+
+  test('creates nothing for the /elevate/otp/sms OK response', async () => {
+    await run('https://local.auth.local.nhost.run/v1/elevate/otp/sms', 'OK');
 
     expect(storage.get()).toBeNull();
   });
