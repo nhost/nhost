@@ -59,7 +59,7 @@ func (s *Service) HandleApproveTools(c *gin.Context) {
 		return
 	}
 
-	p, ok := s.newProviderForAgent(c, logger, agent)
+	p, ok := s.providerForAgent(c, logger, agent)
 	if !ok {
 		return
 	}
@@ -174,6 +174,7 @@ func (s *Service) resumeAfterApproval(
 	result, err := RunAgentLoop(
 		c.Request.Context(),
 		p,
+		agent.Model,
 		agent.Instructions,
 		allMessages,
 		registry,

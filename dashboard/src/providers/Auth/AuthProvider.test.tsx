@@ -184,6 +184,7 @@ describe('AuthProvider', () => {
     const renderGithubCallback = (
       query: NextRouter['query'],
       providerTokens: HttpResponseResolver,
+      { alreadySignedIn = false }: { alreadySignedIn?: boolean } = {},
     ) => {
       localStorage.setItem('nhost_pkce_verifier:pkce-1', 'verifier');
       mocks.useRouter.mockReturnValue({ ...mockRouter, query });
@@ -194,10 +195,15 @@ describe('AuthProvider', () => {
         ),
       );
 
+      const storage = new DummySessionStorage();
+      if (alreadySignedIn) {
+        storage.set(mockSession);
+      }
+
       const nhost = createServerClient({
         subdomain: 'local',
         region: 'local',
-        storage: new DummySessionStorage(),
+        storage,
       });
 
       const apolloClient = new ApolloClient({
@@ -304,6 +310,26 @@ describe('AuthProvider', () => {
         expect(screen.getByTestId('is-loading').textContent).toBe('false');
       });
       expect(screen.queryByText(providerTokensErrorMessage)).toBeNull();
+    });
+
+    it('records github as the last sign-in method when there was no session', async () => {
+      renderGithubCallback(baseQuery, () => HttpResponse.json({}));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('is-loading').textContent).toBe('false');
+      });
+      expect(localStorage.getItem('nhost_last_signin_method')).toBe('github');
+    });
+
+    it('leaves the last sign-in method untouched when github is only being connected', async () => {
+      renderGithubCallback(baseQuery, () => HttpResponse.json({}), {
+        alreadySignedIn: true,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('is-loading').textContent).toBe('false');
+      });
+      expect(localStorage.getItem('nhost_last_signin_method')).toBeNull();
     });
 
     it.each([

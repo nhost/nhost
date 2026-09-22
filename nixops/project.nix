@@ -26,12 +26,14 @@ let
   # `nativeBuildInputs` referenced by every `project.nix` in the repo,
   # plus the per-devShell extras (e.g. `go-migrate` from auth, `certbot-*`
   # from cli) and the root `flake.nix` devShell extras (`gh`, `git-cliff`,
-  # `gnused`, `nixfmt`), so a single `nix build .#nixops` warms the cache
+  # `gnused`, `mcp-publisher`, `nixfmt`), so a single
+  # `nix build .#nixops` warms the cache
   # for every project's dev-shell and `make check`.
   buildInputs =
     (with pkgs; [
       nhost.biome
       bash
+      nhost.betterleaks
       bun
       cacert
       nhost.certbot-full
@@ -56,6 +58,7 @@ let
       jq
       kubectl
       lychee
+      nhost.mcp-publisher
       nhost.mockgen
       nhost.nhost-cli
       nixfmt
@@ -65,13 +68,6 @@ let
       pkg-config
       nhost.playwright-driver
       nhost.pnpm
-      nhost.postgresql_14-client
-      nhost.postgresql_15
-      nhost.postgresql_15-client
-      nhost.postgresql_16
-      nhost.postgresql_16-client
-      nhost.postgresql_17
-      nhost.postgresql_17-client
       nhost.postgresql_18
       nhost.postgresql_18-client
       python312Packages.certbot-dns-route53

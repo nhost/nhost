@@ -15,13 +15,6 @@ import (
 	"github.com/nhost/nhost/services/ai/hasura"
 )
 
-// Sentinel errors for API key configuration.
-var (
-	ErrAnthropicKeyNotConfigured = errors.New("anthropic API key not configured")
-	ErrOpenAIKeyNotConfigured    = errors.New("openai API key not configured")
-	ErrGoogleKeyNotConfigured    = errors.New("google API key not configured")
-)
-
 var (
 	errSessionNotFound = errors.New("session not found")
 	errAgentNotFound   = errors.New("agent not found")
@@ -100,7 +93,7 @@ func (s *Service) HandleStreamMessage(c *gin.Context) {
 		return
 	}
 
-	p, ok := s.newProviderForAgent(c, logger, agent)
+	p, ok := s.providerForAgent(c, logger, agent)
 	if !ok {
 		return
 	}
@@ -109,15 +102,15 @@ func (s *Service) HandleStreamMessage(c *gin.Context) {
 	if err != nil {
 		logger.ErrorContext(
 			c.Request.Context(), "failed to load messages",
-			slog.String("session_id", sessionID), slog.String(errorKey, err.Error()),
+			slog.String("session_id", sessionID), slog.String("error", err.Error()),
 		)
-		c.JSON(http.StatusInternalServerError, gin.H{errorKey: "failed to load messages"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load messages"})
 
 		return
 	}
 
 	if hasPendingApprovals(messages) {
-		c.JSON(http.StatusConflict, gin.H{errorKey: "session has pending tool approvals"})
+		c.JSON(http.StatusConflict, gin.H{"error": "session has pending tool approvals"})
 		return
 	}
 
@@ -153,9 +146,9 @@ func (s *Service) persistUserMessageOrRespond(
 	if err != nil {
 		logger.ErrorContext(
 			c.Request.Context(), "failed to persist user message",
-			slog.String("session_id", sessionID), slog.String(errorKey, err.Error()),
+			slog.String("session_id", sessionID), slog.String("error", err.Error()),
 		)
-		c.JSON(http.StatusInternalServerError, gin.H{errorKey: "failed to persist message"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to persist message"})
 
 		return false
 	}
@@ -163,36 +156,32 @@ func (s *Service) persistUserMessageOrRespond(
 	return true
 }
 
-// newProviderForAgent resolves the API key and constructs a provider for the
-// given agent. On failure it writes the response and returns false.
-func (s *Service) newProviderForAgent( //nolint:ireturn,nolintlint
+// providerForAgent validates the agent's model and resolves its configured
+// provider. On failure it writes the response and returns false.
+func (s *Service) providerForAgent( //nolint:ireturn,nolintlint
 	c *gin.Context,
 	logger *slog.Logger,
 	agent *hasura.GetAgent_AiAgent,
 ) (provider.Provider, bool) {
-	apiKey, err := s.getAPIKey(agent.Provider)
-	if err != nil {
+	if err := provider.ValidateModel(agent.Model); err != nil {
 		logger.ErrorContext(
-			c.Request.Context(), "failed to get API key",
-			slog.String("provider", string(agent.Provider)), slog.String(errorKey, err.Error()),
+			c.Request.Context(), "invalid agent model",
+			slog.String("agent_id", agent.ID),
+			slog.String("model", agent.Model),
+			slog.String("error", err.Error()),
 		)
-		c.JSON(http.StatusBadRequest, gin.H{errorKey: "provider not available"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid agent model"})
 
 		return nil, false
 	}
 
-	newProvider := providerFactory(provider.NewProvider)
-	if s.newProvider != nil {
-		newProvider = s.newProvider
-	}
-
-	p, err := newProvider(c.Request.Context(), agent.Provider, apiKey, agent.Model)
-	if err != nil {
+	p, ok := s.providers[agent.Provider]
+	if !ok {
 		logger.ErrorContext(
-			c.Request.Context(), "failed to create provider",
-			slog.String("provider", string(agent.Provider)), slog.String(errorKey, err.Error()),
+			c.Request.Context(), "provider not configured",
+			slog.String("provider", agent.Provider),
 		)
-		c.JSON(http.StatusBadRequest, gin.H{errorKey: "provider not available"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "provider not available"})
 
 		return nil, false
 	}
@@ -203,18 +192,18 @@ func (s *Service) newProviderForAgent( //nolint:ireturn,nolintlint
 func parseStreamRequest(c *gin.Context) (string, string, bool) {
 	sid := c.Param("sessionID")
 	if sid == "" {
-		c.JSON(http.StatusBadRequest, gin.H{errorKey: "session ID is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "session ID is required"})
 		return "", "", false
 	}
 
 	var req sendMessageRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{errorKey: "invalid request body"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
 		return "", "", false
 	}
 
 	if req.Message == "" {
-		c.JSON(http.StatusBadRequest, gin.H{errorKey: "message is required"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "message is required"})
 		return "", "", false
 	}
 
@@ -326,6 +315,7 @@ func (s *Service) streamAndPersist(
 	result, err := RunAgentLoop(
 		c.Request.Context(),
 		p,
+		agent.Model,
 		agent.Instructions,
 		messages,
 		registry,
@@ -336,19 +326,19 @@ func (s *Service) streamAndPersist(
 		logger.ErrorContext(
 			c.Request.Context(),
 			"agent loop error",
-			slog.String(errorKey, err.Error()),
+			slog.String("error", err.Error()),
 		)
 
 		if len(result.Messages) > 0 {
 			if perr := s.persistMessages(persistCtx, sessionID, result.Messages); perr != nil {
 				logger.ErrorContext(
 					persistCtx, "failed to persist partial messages",
-					slog.String(errorKey, perr.Error()),
+					slog.String("error", perr.Error()),
 				)
 			}
 		}
 
-		_ = writer.WriteEvent(errorKey, "internal error")
+		_ = writer.WriteEvent("error", "internal error")
 		writer.Flush()
 
 		return
@@ -370,10 +360,10 @@ func (s *Service) completeLoop(
 		logger.ErrorContext(
 			persistCtx,
 			"failed to persist messages",
-			slog.String(errorKey, err.Error()),
+			slog.String("error", err.Error()),
 		)
 
-		_ = writer.WriteEvent(errorKey, "failed to persist messages")
+		_ = writer.WriteEvent("error", "failed to persist messages")
 		writer.Flush()
 
 		return
@@ -417,10 +407,10 @@ func (s *Service) sendApprovalRequired(
 	if err != nil {
 		logger.ErrorContext(
 			ctx, "failed to marshal approval payload",
-			slog.String(errorKey, err.Error()),
+			slog.String("error", err.Error()),
 		)
 
-		_ = writer.WriteEvent(errorKey, "internal error")
+		_ = writer.WriteEvent("error", "internal error")
 		writer.Flush()
 
 		return
@@ -434,31 +424,6 @@ func setSSEHeaders(c *gin.Context) {
 	c.Header("Content-Type", "text/event-stream")
 	c.Header("Cache-Control", "no-cache")
 	c.Header("Connection", "keep-alive")
-}
-
-func (s *Service) getAPIKey(providerName provider.Name) (string, error) {
-	switch providerName {
-	case provider.ProviderAnthropic:
-		if s.providers.AnthropicKey == "" {
-			return "", ErrAnthropicKeyNotConfigured
-		}
-
-		return s.providers.AnthropicKey, nil
-	case provider.ProviderOpenAI:
-		if s.providers.OpenAIKey == "" {
-			return "", ErrOpenAIKeyNotConfigured
-		}
-
-		return s.providers.OpenAIKey, nil
-	case provider.ProviderGoogle:
-		if s.providers.GoogleKey == "" {
-			return "", ErrGoogleKeyNotConfigured
-		}
-
-		return s.providers.GoogleKey, nil
-	default:
-		return "", provider.UnknownProviderError{Provider: providerName}
-	}
 }
 
 func (s *Service) buildToolRegistry(
@@ -477,7 +442,7 @@ func (s *Service) buildToolRegistry(
 	if err := json.Unmarshal(agent.ToolsConfig, &config); err != nil {
 		logger.WarnContext(
 			ctx, "failed to parse tools config",
-			slog.String(errorKey, err.Error()),
+			slog.String("error", err.Error()),
 		)
 
 		return registry, nil
@@ -503,7 +468,7 @@ func registerOrLog(
 		logger.WarnContext(
 			ctx, "failed to register tool",
 			slog.String("tool", t.Definition().Name),
-			slog.String(errorKey, err.Error()),
+			slog.String("error", err.Error()),
 		)
 	}
 }
@@ -537,9 +502,9 @@ func (s *Service) registerWebSearch(
 
 	switch searchProvider {
 	case "brave":
-		apiKey = s.providers.BraveKey
+		apiKey = s.tools.BraveKey
 	case "tavily":
-		apiKey = s.providers.TavilyKey
+		apiKey = s.tools.TavilyKey
 	}
 
 	if apiKey == "" {
@@ -619,7 +584,7 @@ func (s *Service) connectMCPServers(
 	if err != nil {
 		logger.WarnContext(
 			ctx, "failed to marshal mcp_servers config",
-			slog.String(errorKey, err.Error()),
+			slog.String("error", err.Error()),
 		)
 
 		return nil
@@ -629,7 +594,7 @@ func (s *Service) connectMCPServers(
 	if err := json.Unmarshal(raw, &parsed); err != nil {
 		logger.WarnContext(
 			ctx, "failed to parse mcp_servers config",
-			slog.String(errorKey, err.Error()),
+			slog.String("error", err.Error()),
 		)
 
 		return nil
@@ -643,7 +608,7 @@ func (s *Service) connectMCPServers(
 	if err := mcpMgr.Connect(ctx, servers, logger); err != nil {
 		logger.ErrorContext(
 			ctx, "failed to connect to MCP servers",
-			slog.String(errorKey, err.Error()),
+			slog.String("error", err.Error()),
 		)
 		mcpMgr.Close()
 
@@ -659,7 +624,7 @@ func (s *Service) connectMCPServers(
 			logger.WarnContext(
 				ctx, "skipping duplicate MCP tool",
 				slog.String("tool", t.Definition().Name),
-				slog.String(errorKey, err.Error()),
+				slog.String("error", err.Error()),
 			)
 		}
 	}
@@ -815,8 +780,8 @@ func handleAuthError(c *gin.Context, logger *slog.Logger, err error) {
 		msg = "forbidden"
 	}
 
-	logger.WarnContext(c.Request.Context(), msg, slog.String(errorKey, err.Error()))
-	c.JSON(status, gin.H{errorKey: msg})
+	logger.WarnContext(c.Request.Context(), msg, slog.String("error", err.Error()))
+	c.JSON(status, gin.H{"error": msg})
 }
 
 func handleLoadError(c *gin.Context, logger *slog.Logger, err error) {
@@ -824,21 +789,21 @@ func handleLoadError(c *gin.Context, logger *slog.Logger, err error) {
 	case errors.Is(err, errSessionNotFound):
 		logger.WarnContext(
 			c.Request.Context(), "session not found",
-			slog.String(errorKey, err.Error()),
+			slog.String("error", err.Error()),
 		)
-		c.JSON(http.StatusNotFound, gin.H{errorKey: "session not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "session not found"})
 	case errors.Is(err, errAgentNotFound):
 		logger.WarnContext(
 			c.Request.Context(), "agent not found",
-			slog.String(errorKey, err.Error()),
+			slog.String("error", err.Error()),
 		)
-		c.JSON(http.StatusNotFound, gin.H{errorKey: "agent not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "agent not found"})
 	default:
 		logger.ErrorContext(
 			c.Request.Context(), "failed to load session agent",
-			slog.String(errorKey, err.Error()),
+			slog.String("error", err.Error()),
 		)
-		c.JSON(http.StatusInternalServerError, gin.H{errorKey: "internal error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
 	}
 }
 

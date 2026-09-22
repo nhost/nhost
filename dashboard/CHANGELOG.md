@@ -1,3 +1,14 @@
+## [@nhost/dashboard@3.5.3] - 2026-09-07
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Require typed confirmation to delete projects and orgs  (#4949)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Update schema in biome.json (#4939)
+
 ## [@nhost/dashboard@3.5.2] - 2026-09-03
 
 ### 🐛 Bug Fixes

@@ -1,6 +1,7 @@
 package agents
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/go-cmp/cmp"
 	"github.com/nhost/nhost/services/ai/agents/mock"
 	"github.com/nhost/nhost/services/ai/agents/provider"
 	providermock "github.com/nhost/nhost/services/ai/agents/provider/mock"
@@ -314,11 +316,12 @@ func TestResumeAfterApprovalPersistsToolResultsOnLoopError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 
 	approvedTool := toolmock.NewMockTool(ctrl)
+	approvedDefinition := provider.ToolDefinition{
+		Name: "approved_tool", Description: "", Parameters: nil,
+	}
 	approvedTool.EXPECT().
 		Definition().
-		Return(provider.ToolDefinition{
-			Name: "approved_tool", Description: "", Parameters: nil,
-		}).
+		Return(approvedDefinition).
 		AnyTimes()
 	approvedTool.EXPECT().
 		Execute(gomock.Any(), gomock.Any(), gomock.Any()).
@@ -329,10 +332,42 @@ func TestResumeAfterApprovalPersistsToolResultsOnLoopError(t *testing.T) {
 
 	// Provider returns an error event so RunAgentLoop fails on its first
 	// iteration, after processDecisions has already executed approved_tool.
+	wantRequest := provider.StreamRequest{
+		Model:        "test-model",
+		SystemPrompt: "be helpful",
+		Messages: []provider.Message{
+			priorMessages[0],
+			priorMessages[1],
+			{
+				Role:       provider.RoleTool,
+				Content:    "approved-tool-output",
+				ToolCalls:  nil,
+				ToolCallID: approvedCall.ID,
+				ToolName:   approvedCall.Name,
+			},
+			{
+				Role:       provider.RoleTool,
+				Content:    "Tool call denied by user",
+				ToolCalls:  nil,
+				ToolCallID: deniedCall.ID,
+				ToolName:   deniedCall.Name,
+			},
+		},
+		Tools: []provider.ToolDefinition{approvedDefinition},
+	}
 	p := providermock.NewMockProvider(ctrl)
 	p.EXPECT().
-		StreamResponse(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-		Return(eventChan(provider.NewErrorEvent(errProviderStreamUp)))
+		StreamResponse(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(
+			_ context.Context,
+			got provider.StreamRequest,
+		) <-chan provider.Event {
+			if diff := cmp.Diff(wantRequest, got); diff != "" {
+				t.Errorf("StreamRequest mismatch (-want +got):\n%s", diff)
+			}
+
+			return eventChan(provider.NewErrorEvent(errProviderStreamUp))
+		})
 
 	mockHasura := mock.NewMockhasuraClient(ctrl)
 
@@ -358,7 +393,7 @@ func TestResumeAfterApprovalPersistsToolResultsOnLoopError(t *testing.T) {
 	w := &fakeWriter{events: nil}
 
 	agent := &hasura.GetAgent_AiAgent{
-		ID: "agent-1", Instructions: "be helpful",
+		ID: "agent-1", Instructions: "be helpful", Model: "test-model",
 	}
 
 	decisions := []toolDecision{

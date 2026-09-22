@@ -409,99 +409,242 @@ func TestConvertHasuraMessages(t *testing.T) {
 	})
 }
 
-func TestGetAPIKey(t *testing.T) {
+func TestProviderForAgent(t *testing.T) {
 	t.Parallel()
 
-	s := &Service{
-		providers: ProviderConfig{
-			AnthropicKey: "ak",
-			OpenAIKey:    "ok",
-			GoogleKey:    "gk",
-		},
-	}
-
 	cases := []struct {
-		name     string
-		provider provider.Name
-		wantKey  string
-		wantErr  bool
+		name           string
+		provider       string
+		model          string
+		configured     bool
+		wantOK         bool
+		wantError      string
+		wantLogMessage string
+		wantLogAttrs   []string
 	}{
-		{name: "anthropic", provider: provider.ProviderAnthropic, wantKey: "ak"},
-		{name: "openai", provider: provider.ProviderOpenAI, wantKey: "ok"},
-		{name: "google", provider: provider.ProviderGoogle, wantKey: "gk"},
-		{name: "unknown", provider: "unknown", wantErr: true},
+		{
+			name:           "configured provider",
+			provider:       "anthropic",
+			model:          "test-model",
+			configured:     true,
+			wantOK:         true,
+			wantError:      "",
+			wantLogMessage: "",
+			wantLogAttrs:   nil,
+		},
+		{
+			name:           "configured dotted/dashed provider",
+			provider:       "gateway.primary-test",
+			model:          "provider/model",
+			configured:     true,
+			wantOK:         true,
+			wantError:      "",
+			wantLogMessage: "",
+			wantLogAttrs:   nil,
+		},
+		{
+			name:           "provider not configured",
+			provider:       "openai",
+			model:          "test-model",
+			configured:     false,
+			wantOK:         false,
+			wantError:      "provider not available",
+			wantLogMessage: "provider not configured",
+			wantLogAttrs:   []string{"provider=openai"},
+		},
+		{
+			name:           "unknown provider",
+			provider:       "unknown",
+			model:          "test-model",
+			configured:     false,
+			wantOK:         false,
+			wantError:      "provider not available",
+			wantLogMessage: "provider not configured",
+			wantLogAttrs:   []string{"provider=unknown"},
+		},
+		{
+			name:           "empty model",
+			provider:       "anthropic",
+			model:          "",
+			configured:     true,
+			wantOK:         false,
+			wantError:      "invalid agent model",
+			wantLogMessage: "invalid agent model",
+			wantLogAttrs: []string{
+				"agent_id=agent-id",
+				`model=""`,
+				`error="model must not be empty"`,
+			},
+		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			key, err := s.getAPIKey(tc.provider)
-			if tc.wantErr {
-				if err == nil {
-					t.Error("expected error")
+			ctrl := gomock.NewController(t)
+			wantProvider := providermock.NewMockProvider(ctrl)
+
+			providers := provider.Registry{}
+			if tc.configured {
+				providers[tc.provider] = wantProvider
+			}
+
+			s := &Service{providers: providers}
+			recorder := httptest.NewRecorder()
+			c := gin.CreateTestContextOnly(recorder, gin.New())
+			c.Request = httptest.NewRequest(http.MethodPost, "/", nil)
+
+			var logBuffer bytes.Buffer
+
+			logger := slog.New(slog.NewTextHandler(&logBuffer, nil))
+			agent := &hasura.GetAgent_AiAgent{
+				CreatedAt:    time.Time{},
+				Description:  "",
+				ID:           "agent-id",
+				Instructions: "",
+				Model:        tc.model,
+				Name:         "test agent",
+				Provider:     tc.provider,
+				ToolsConfig:  nil,
+				UpdatedAt:    time.Time{},
+				UserID:       nil,
+			}
+
+			gotProvider, ok := s.providerForAgent(c, logger, agent)
+			if ok != tc.wantOK {
+				t.Fatalf("providerForAgent() ok = %t, want %t", ok, tc.wantOK)
+			}
+
+			if tc.wantOK {
+				if gotProvider != wantProvider {
+					t.Error("providerForAgent() returned an unexpected provider")
+				}
+
+				if logBuffer.Len() != 0 {
+					t.Errorf("providerForAgent() logged on success: %s", logBuffer.String())
 				}
 
 				return
 			}
 
-			if err != nil {
-				t.Fatalf("unexpected error: %v", err)
+			if gotProvider != nil {
+				t.Error("providerForAgent() returned a provider on failure")
 			}
 
-			if key != tc.wantKey {
-				t.Errorf("expected key %q, got %q", tc.wantKey, key)
+			if recorder.Code != http.StatusBadRequest {
+				t.Fatalf("status = %d, want %d", recorder.Code, http.StatusBadRequest)
+			}
+
+			var response struct {
+				Error string `json:"error"`
+			}
+			if err := json.Unmarshal(recorder.Body.Bytes(), &response); err != nil {
+				t.Fatalf("unmarshal response: %v", err)
+			}
+
+			if response.Error != tc.wantError {
+				t.Errorf("error = %q, want %q", response.Error, tc.wantError)
+			}
+
+			logs := logBuffer.String()
+			if !strings.Contains(logs, `msg="`+tc.wantLogMessage+`"`) {
+				t.Errorf("logs do not contain message %q: %s", tc.wantLogMessage, logs)
+			}
+
+			for _, attr := range tc.wantLogAttrs {
+				if !strings.Contains(logs, attr) {
+					t.Errorf("logs do not contain attribute %q: %s", attr, logs)
+				}
 			}
 		})
 	}
 }
 
-func TestGetAPIKeyNotConfigured(t *testing.T) {
+func TestOpenAICompatibleProviderFailureIsSafeForLogsAndSSE(t *testing.T) {
 	t.Parallel()
 
-	s := &Service{
-		providers: ProviderConfig{
-			AnthropicKey: "",
-			OpenAIKey:    "",
-			GoogleKey:    "",
-		},
+	const (
+		configuredURLMarker    = "configured-url-marker"
+		configuredHeaderMarker = "configured-header-marker"
+	)
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		http.Error(
+			w,
+			configuredURLMarker+" "+configuredHeaderMarker,
+			http.StatusBadGateway,
+		)
+	}))
+	t.Cleanup(server.Close)
+
+	raw := `[{"name":"openai_compatible","type":"openai_chat_completions",` +
+		`"configuration":{"base_url":"` + server.URL + `/` + configuredURLMarker +
+		`","headers":{"X-Credential-Marker":"` + configuredHeaderMarker + `"}}}]`
+
+	registry, _, err := provider.BuildConfiguredProviders(t.Context(), raw)
+	if err != nil {
+		t.Fatalf("build configured providers: %v", err)
 	}
 
-	cases := []struct {
-		name     string
-		provider provider.Name
-		wantErr  error
-	}{
-		{
-			name:     "anthropic not configured",
-			provider: provider.ProviderAnthropic,
-			wantErr:  ErrAnthropicKeyNotConfigured,
-		},
-		{
-			name:     "openai not configured",
-			provider: provider.ProviderOpenAI,
-			wantErr:  ErrOpenAIKeyNotConfigured,
-		},
-		{
-			name:     "google not configured",
-			provider: provider.ProviderGoogle,
-			wantErr:  ErrGoogleKeyNotConfigured,
-		},
+	service := &Service{providers: registry}
+	recorder := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(recorder)
+	c.Request = httptest.NewRequest(http.MethodPost, "/", nil)
+
+	var logBuffer bytes.Buffer
+
+	logger := slog.New(slog.NewTextHandler(&logBuffer, nil))
+	agent := &hasura.GetAgent_AiAgent{
+		CreatedAt:    time.Time{},
+		Description:  "",
+		ID:           "agent-id",
+		Instructions: "",
+		Model:        "provider/model",
+		Name:         "test agent",
+		Provider:     "openai_compatible",
+		ToolsConfig:  nil,
+		UpdatedAt:    time.Time{},
+		UserID:       nil,
 	}
 
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+	p, ok := service.providerForAgent(c, logger, agent)
+	if !ok {
+		t.Fatal("providerForAgent() returned false")
+	}
 
-			_, err := s.getAPIKey(tc.provider)
-			if err == nil {
-				t.Fatal("expected error")
-			}
+	messages := []provider.Message{
+		{
+			Role:       provider.RoleUser,
+			Content:    "hello",
+			ToolCalls:  nil,
+			ToolCallID: "",
+			ToolName:   "",
+		},
+	}
+	service.streamAndPersist(c, logger, p, agent, messages, "session-id")
 
-			if !errors.Is(err, tc.wantErr) {
-				t.Errorf("expected %v, got %v", tc.wantErr, err)
-			}
-		})
+	logs := logBuffer.String()
+	for _, marker := range []string{configuredURLMarker, configuredHeaderMarker} {
+		if strings.Contains(logs, marker) {
+			t.Errorf("logs contain configured marker %q: %s", marker, logs)
+		}
+
+		if strings.Contains(recorder.Body.String(), marker) {
+			t.Errorf(
+				"SSE response contains configured marker %q: %s",
+				marker,
+				recorder.Body.String(),
+			)
+		}
+	}
+
+	if !strings.Contains(logs, "chat completions provider request failed: HTTP status 502") {
+		t.Errorf("logs do not contain sanitized provider status: %s", logs)
+	}
+
+	if !strings.Contains(recorder.Body.String(), "event: error\ndata: internal error\n\n") {
+		t.Errorf("SSE response does not contain fixed internal error: %s", recorder.Body.String())
 	}
 }
 

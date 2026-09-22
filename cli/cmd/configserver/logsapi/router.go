@@ -11,8 +11,8 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
-	coderws "github.com/coder/websocket"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 	nhhandler "github.com/nhost/be/lib/graphql/handler"
 	"github.com/nhost/nhost/cli/cmd/configserver/logsapi/generated"
 )
@@ -92,11 +92,9 @@ func AddRoutes(
 	srv.AddTransport(transport.Websocket{ //nolint:exhaustruct
 		KeepAlivePingInterval: wsKeepAlivePingPeriod,
 		Implementation: originCheckedWebsocket{
-			// coder verifies origins itself; disable that so checkWebSocketOrigin
-			// stays the single authoritative check.
-			inner: transport.CoderWebsocketImplementation{
-				AcceptOptions: coderws.AcceptOptions{ //nolint:exhaustruct
-					InsecureSkipVerify: true,
+			inner: transport.GorillaWebsocketImplementation{ //nolint:staticcheck
+				Upgrader: websocket.Upgrader{ //nolint:exhaustruct
+					CheckOrigin: func(*http.Request) bool { return true },
 				},
 			},
 			checkOrigin: checkWebSocketOrigin,

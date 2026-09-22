@@ -77,7 +77,7 @@ function ProjectViewWithState({ children }: PropsWithChildren) {
       case ApplicationStatus.Unpausing:
       case ApplicationStatus.Restoring:
         return requiresRunningProject(route) ? (
-          <ProjectStateScreen state={state} />
+          <ProjectStateScreen />
         ) : (
           children
         );

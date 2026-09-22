@@ -11,6 +11,7 @@ services:
     command:
       - serve
     environment:
+      AGENT_PROVIDERS: "${AGENT_PROVIDERS:-[]}"
       AI_BASE_URL: http://ai:8090
       AI_WEBHOOK_SECRET: ai-secret
       HASURA_GRAPHQL_ADMIN_SECRET: nhost-admin-secret

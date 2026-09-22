@@ -153,7 +153,7 @@ in
         "POSTGRES_USER=postgres"
         "POSTGRES_PASSWORD=postgres"
         "PGHOST=/run/postgresql"
-        "PG_MAJOR=16"
+        "PG_MAJOR=${pkgs.lib.versions.major postgres.version}"
         "JIT=on"
         "MAX_CONNECTIONS=100"
         "SHARED_BUFFERS=128MB"

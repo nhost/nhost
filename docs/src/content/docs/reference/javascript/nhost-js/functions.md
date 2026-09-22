@@ -11,7 +11,7 @@ but you can also use it directly if you have a specific use case.
 You can import and use this package with:
 
 ```ts
-import { createClient } from "@nhost/nhost-js/functions";
+import { createAPIClient } from "@nhost/nhost-js/functions";
 ```
 
 # Usage
@@ -145,14 +145,14 @@ baseURL: string;
 #### fetch()
 
 ```ts
-fetch<T>(path: string, options?: RequestInit): Promise<FetchResponse<T>>;
+fetch<T = unknown>(path: string, options?: RequestInit): Promise<FetchResponse<T>>;
 ```
 
 Execute a request to a serverless function
 The response body will be automatically parsed based on the content type into the following types:
 
 - Object if the response is application/json
-- string text string if the response is text/\*
+- string text string if the response is text/*
 - Blob if the response is any other type
 
 ##### Type Parameters
@@ -177,10 +177,11 @@ Promise with the function response and metadata.
 #### post()
 
 ```ts
-post<T>(
+post<T = unknown>(
    path: string,
    body?: unknown,
-   options?: RequestInit): Promise<FetchResponse<T>>;
+   options?: RequestInit
+): Promise<FetchResponse<T>>;
 ```
 
 Executes a POST request to a serverless function with a JSON body

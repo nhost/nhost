@@ -11,3 +11,7 @@ From `services/ai`:
 3. Stop the environment with `make dev-env-down` when finished.
 
 Go dependencies belong in the repository root `go.mod` and `vendor/`. After changing dependencies, run `go mod tidy` and `go mod vendor` from the repository root.
+
+## Hasura client generation
+
+Generate the Hasura client only against a clean, migrated live development schema. Nix's Git-flake source excludes new untracked files, so mark new source and migration files with `git add -N <paths>` (or stage them) before building the image.

@@ -1,5 +1,13 @@
+const { spawnSync } = require('node:child_process');
 const { createHash } = require('node:crypto');
-const { readFileSync } = require('node:fs');
+const {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} = require('node:fs');
+const { tmpdir } = require('node:os');
 const { join } = require('node:path');
 
 const SCRIPT = join(__dirname, '..', 'nhost-install-deps.sh');
@@ -9,7 +17,7 @@ const SCRIPT = join(__dirname, '..', 'nhost-install-deps.sh');
 // pinned. On an intentional edit: update this hash AND copy the file to the
 // other repo so the two stay in sync.
 const WANT_CHECKSUM =
-  'ba2449e5479dc519ae665f8e12acfe2ece34ea210fba4e8de291780469a4ba72';
+  'fc3fe6f2e1362b73af293ed2eb8e0d2b945d5fd68137f38bc7e373b7676a78c0';
 
 describe('shared install library (parity with nhost/be services/cd)', () => {
   test('checksum is in sync with nhost/be', () => {
@@ -20,10 +28,15 @@ describe('shared install library (parity with nhost/be services/cd)', () => {
   test('runs a frozen, workspace-isolated install for each manager', () => {
     const script = readFileSync(SCRIPT, 'utf8');
 
-    expect(script.match(/npm ci --/)).not.toBeNull();
-    expect(script).toMatch(/npm ci .*--ignore-scripts/);
+    // npm is pinned through corepack: the npm 10 bundled with Node 22 runs a
+    // file:/git dependency's prepare script despite --ignore-scripts.
+    expect(script).toMatch(
+      /corepack "npm@\$NHOST_NPM_SPEC" ci .*--no-workspaces.*--ignore-scripts/,
+    );
     expect(script).toMatch(/pnpm install .*--ignore-scripts/);
-    expect(script).toMatch(/yarn install .*--ignore-scripts/);
+    expect(script).toMatch(
+      /corepack "yarn@\$NHOST_YARN_CLASSIC_SPEC" install .*--frozen-lockfile.*--ignore-scripts/,
+    );
   });
 
   test('rejects Yarn Berry before bootstrapping corepack', () => {
@@ -36,14 +49,200 @@ describe('shared install library (parity with nhost/be services/cd)', () => {
     expect(guardIndex).not.toBe(-1);
     expect(corepackIndex).not.toBe(-1);
     expect(guardIndex).toBeLessThan(corepackIndex);
-    expect(script).toContain('(detected via packageManager)');
+    expect(script).toContain(
+      '(detected via packageManager or devEngines.packageManager)',
+    );
     expect(script).toContain('(detected via yarn.lock)');
     expect(script).toContain('Yarn 0 is not supported');
   });
 
+  // Runs nhost_install_deps against a throwaway project, stubbing out the
+  // package managers so nothing is fetched. Returns the corepack argv the npm
+  // or yarn branch would have executed (one line per arg, followed by
+  // YARN_IGNORE_PATH and COREPACK_ENABLE_STRICT), plus stderr and the exit
+  // status.
+  function runInstaller(files) {
+    const root = mkdtempSync(join(tmpdir(), 'nhost-yarn-'));
+    try {
+      const workDir = join(root, 'functions');
+      mkdirSync(workDir);
+      for (const [name, contents] of Object.entries(files)) {
+        writeFileSync(join(workDir, name), contents);
+      }
+
+      const opts = {
+        cwd: workDir,
+        env: { ...process.env, HOME: root, WORK_DIR: workDir },
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe'],
+      };
+      const argv = [
+        '-c',
+        `
+        . "$1"
+        mkdir() { :; }
+        corepack() {
+          [ "$1" = enable ] && return 0
+          printf '%s\\n' "$@" "$YARN_IGNORE_PATH" "$COREPACK_ENABLE_STRICT"
+        }
+        nhost_install_deps
+      `,
+        'installer-test',
+        SCRIPT,
+      ];
+
+      const result = spawnSync('sh', argv, opts);
+      if (result.error) throw result.error;
+
+      return {
+        status: result.status,
+        stdout: result.stdout,
+        stderr: result.stderr,
+      };
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  }
+
+  const PINNED_CLASSIC_ARGV = [
+    'yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610',
+    'install',
+    '--frozen-lockfile',
+    '--ignore-scripts',
+    '1',
+    '0',
+  ];
+
+  const PINNED_NPM_ARGV = [
+    'npm@11.13.0+sha1.1af5ccf2fc595e4ede1f46f4e6cda78cee0d7458',
+    'ci',
+    '--no-workspaces',
+    '--ignore-scripts',
+    '1',
+    '0',
+  ];
+
+  test('a package-lock.json project installs through the pinned npm spec', () => {
+    // The npm 10 bundled with Node 22 runs a file:/git dependency's prepare
+    // script despite --ignore-scripts; the pin makes corepack run npm 11.
+    const { status, stdout } = runInstaller({
+      'package.json': '{"name":"fn"}',
+      'package-lock.json': '{}',
+    });
+
+    expect(status).toBe(0);
+    expect(stdout.trim().split('\n')).toEqual(PINNED_NPM_ARGV);
+  });
+
+  test('the npm pin still runs when packageManager names another manager', () => {
+    // COREPACK_ENABLE_STRICT=0 is what keeps corepack from refusing
+    // `corepack npm@X` here; the trailing "0" asserts it reached corepack.
+    const { status, stdout } = runInstaller({
+      'package.json': '{"name":"fn","packageManager":"pnpm@9.15.0"}',
+      'package-lock.json': '{}',
+    });
+
+    expect(status).toBe(0);
+    expect(stdout.trim().split('\n')).toEqual(PINNED_NPM_ARGV);
+  });
+
+  test('a yarn.lock project installs through the pinned Yarn Classic spec', () => {
+    // The pin plus YARN_IGNORE_PATH is what stops any manifest in the tree --
+    // including a Berry-selecting parent -- from getting corepack to pick Berry.
+    const { status, stdout } = runInstaller({
+      'package.json': '{"name":"fn"}',
+      'yarn.lock': '# yarn lockfile v1\n',
+    });
+
+    expect(status).toBe(0);
+    expect(stdout.trim().split('\n')).toEqual(PINNED_CLASSIC_ARGV);
+  });
+
+  test.each([
+    ['object', '{"name":"yarn","version":"4.9.1"}'],
+    ['array', '[{"name":"yarn","version":"4.9.1"}]'],
+  ])(
+    'rejects Berry from devEngines.packageManager (%s form)',
+    (_form, decl) => {
+      const { status, stderr } = runInstaller({
+        'package.json': `{"name":"fn","devEngines":{"packageManager":${decl}}}`,
+        'yarn.lock': '# yarn lockfile v1\n',
+      });
+
+      expect(status).not.toBe(0);
+      expect(stderr).toMatch(/Yarn Berry is not supported/);
+    },
+  );
+
+  // devEngines.packageManager.version is a semver range by spec, so a ranged
+  // Classic pin must not be mistaken for Berry.
+  test.each(['^1.22.19', '>=1.22.0', '1.x'])(
+    'installs a Classic project pinned by a devEngines range (%s)',
+    (version) => {
+      const { status, stdout, stderr } = runInstaller({
+        'package.json': `{"name":"fn","devEngines":{"packageManager":{"name":"yarn","version":"${version}"}}}`,
+        'yarn.lock': '# yarn lockfile v1\n',
+      });
+
+      expect(stderr).not.toMatch(/Yarn Berry is not supported/);
+      expect(status).toBe(0);
+      expect(stdout.trim().split('\n')).toEqual(PINNED_CLASSIC_ARGV);
+    },
+  );
+
+  // npm strips a BOM and installs, so the manifest probe must not reject one.
+  test('tolerates a BOM-prefixed package.json', () => {
+    const { status, stdout, stderr } = runInstaller({
+      'package.json': '\uFEFF{"name":"fn"}',
+      'yarn.lock': '# yarn lockfile v1\n',
+    });
+
+    expect(stderr).not.toMatch(/refusing to guess/);
+    expect(status).toBe(0);
+    expect(stdout.trim().split('\n')).toEqual(PINNED_CLASSIC_ARGV);
+  });
+
+  // A Berry lockfile is unusable by the Classic pin whatever the manifest
+  // declares, so the clear error must win over a third-party lockfile error.
+  test('rejects a Berry yarn.lock despite a Classic packageManager', () => {
+    const { status, stderr } = runInstaller({
+      'package.json': '{"name":"fn","packageManager":"yarn@1.22.22"}',
+      'yarn.lock': '__metadata:\n  version: 8\n',
+    });
+
+    expect(status).not.toBe(0);
+    expect(stderr).toMatch(/detected via yarn\.lock/);
+  });
+
+  // pnpm bakes a pnpmfileChecksum into the lockfile when the project ships a
+  // .pnpmfile.cjs, then refuses a frozen install once hooks are disabled.
+  test('rejects a pnpm project whose lockfile pins hook config', () => {
+    const { status, stderr } = runInstaller({
+      'package.json': '{"name":"fn"}',
+      'pnpm-lock.yaml':
+        "lockfileVersion: '9.0'\npnpmfileChecksum: sha256-abc\n",
+    });
+
+    expect(status).not.toBe(0);
+    expect(stderr).toMatch(
+      /pnpm hook files \(\.pnpmfile\.cjs\) are not supported/,
+    );
+  });
+
+  test('fails closed on an unparseable package.json', () => {
+    const { status, stderr } = runInstaller({
+      'package.json': '{ this is not json',
+      'yarn.lock': '# yarn lockfile v1\n',
+    });
+
+    expect(status).not.toBe(0);
+    expect(stderr).toMatch(/refusing to guess the package manager/);
+    expect(stderr).not.toMatch(/SyntaxError/);
+  });
+
   test('dev express major matches the cd wrapper (NHOST_EXPRESS_VERSION)', () => {
     const script = readFileSync(SCRIPT, 'utf8');
-    const pinned = script.match(/^NHOST_EXPRESS_VERSION=(\S+)/m);
+    const pinned = script.match(/^(?:export )?NHOST_EXPRESS_VERSION=(\S+)/m);
     expect(pinned).not.toBeNull();
 
     const declared = require('../package.json').devDependencies.express;

@@ -339,6 +339,7 @@
           "PrimaryKeyConstraintName": "users_pkey",
           "ForeignKeys": [
             {
+              "Constraint": "users_default_role_fkey",
               "ColumnName": "default_role",
               "ForeignSchema": "auth",
               "ForeignTable": "roles",
@@ -466,12 +467,14 @@
           "PrimaryKeyConstraintName": "refresh_tokens_pkey",
           "ForeignKeys": [
             {
+              "Constraint": "refresh_tokens_type_fkey",
               "ColumnName": "type",
               "ForeignSchema": "auth",
               "ForeignTable": "refresh_token_types",
               "ForeignColumnName": "value"
             },
             {
+              "Constraint": "refresh_tokens_user_id_fkey",
               "ColumnName": "user_id",
               "ForeignSchema": "auth",
               "ForeignTable": "users",
@@ -644,6 +647,7 @@
           "PrimaryKeyConstraintName": "user_security_keys_pkey",
           "ForeignKeys": [
             {
+              "Constraint": "user_security_keys_user_id_fkey",
               "ColumnName": "user_id",
               "ForeignSchema": "auth",
               "ForeignTable": "users",
@@ -820,12 +824,14 @@
           "PrimaryKeyConstraintName": "user_providers_pkey",
           "ForeignKeys": [
             {
+              "Constraint": "user_providers_provider_id_fkey",
               "ColumnName": "provider_id",
               "ForeignSchema": "auth",
               "ForeignTable": "providers",
               "ForeignColumnName": "id"
             },
             {
+              "Constraint": "user_providers_user_id_fkey",
               "ColumnName": "user_id",
               "ForeignSchema": "auth",
               "ForeignTable": "users",
@@ -958,12 +964,14 @@
           "PrimaryKeyConstraintName": "user_roles_pkey",
           "ForeignKeys": [
             {
+              "Constraint": "user_roles_role_fkey",
               "ColumnName": "role",
               "ForeignSchema": "auth",
               "ForeignTable": "roles",
               "ForeignColumnName": "role"
             },
             {
+              "Constraint": "user_roles_user_id_fkey",
               "ColumnName": "user_id",
               "ForeignSchema": "auth",
               "ForeignTable": "users",
@@ -1038,6 +1046,7 @@
           "PrimaryKeyConstraintName": "artists_pkey",
           "ForeignKeys": [
             {
+              "Constraint": "artists_created_by_fkey",
               "ColumnName": "created_by",
               "ForeignSchema": "auth",
               "ForeignTable": "users",
@@ -1214,12 +1223,14 @@
           "PrimaryKeyConstraintName": "department_files_pkey",
           "ForeignKeys": [
             {
+              "Constraint": "department_files_department_id_fkey",
               "ColumnName": "department_id",
               "ForeignSchema": "public",
               "ForeignTable": "departments",
               "ForeignColumnName": "id"
             },
             {
+              "Constraint": "department_files_file_id_fkey",
               "ColumnName": "file_id",
               "ForeignSchema": "storage",
               "ForeignTable": "files",
@@ -1360,6 +1371,7 @@
           "PrimaryKeyConstraintName": "kb_entries_pkey",
           "ForeignKeys": [
             {
+              "Constraint": "kb_entries_uploader_id_fkey",
               "ColumnName": "uploader_id",
               "ForeignSchema": "auth",
               "ForeignTable": "users",
@@ -1422,12 +1434,14 @@
           "PrimaryKeyConstraintName": "kb_entry_departments_pkey",
           "ForeignKeys": [
             {
+              "Constraint": "kb_entry_departments_department_id_fkey",
               "ColumnName": "department_id",
               "ForeignSchema": "public",
               "ForeignTable": "departments",
               "ForeignColumnName": "id"
             },
             {
+              "Constraint": "kb_entry_departments_kb_entry_id_fkey",
               "ColumnName": "kb_entry_id",
               "ForeignSchema": "public",
               "ForeignTable": "kb_entries",
@@ -1563,12 +1577,14 @@
           "PrimaryKeyConstraintName": "news_pkey",
           "ForeignKeys": [
             {
+              "Constraint": "news_author_id_fkey",
               "ColumnName": "author_id",
               "ForeignSchema": "auth",
               "ForeignTable": "users",
               "ForeignColumnName": "id"
             },
             {
+              "Constraint": "news_department_id_fkey",
               "ColumnName": "department_id",
               "ForeignSchema": "public",
               "ForeignTable": "departments",
@@ -1963,18 +1979,21 @@
           "PrimaryKeyConstraintName": "user_departments_pkey",
           "ForeignKeys": [
             {
+              "Constraint": "user_departments_department_id_fkey",
               "ColumnName": "department_id",
               "ForeignSchema": "public",
               "ForeignTable": "departments",
               "ForeignColumnName": "id"
             },
             {
+              "Constraint": "user_departments_role_fkey",
               "ColumnName": "role",
               "ForeignSchema": "public",
               "ForeignTable": "department_roles",
               "ForeignColumnName": "value"
             },
             {
+              "Constraint": "user_departments_user_id_fkey",
               "ColumnName": "user_id",
               "ForeignSchema": "auth",
               "ForeignTable": "users",
@@ -2366,6 +2385,7 @@
           "PrimaryKeyConstraintName": "files_pkey",
           "ForeignKeys": [
             {
+              "Constraint": "files_bucket_id_fkey",
               "ColumnName": "bucket_id",
               "ForeignSchema": "storage",
               "ForeignTable": "buckets",
@@ -2480,6 +2500,7 @@
           "PrimaryKeyConstraintName": "virus_pkey",
           "ForeignKeys": [
             {
+              "Constraint": "virus_file_id_fkey",
               "ColumnName": "file_id",
               "ForeignSchema": "storage",
               "ForeignTable": "files",

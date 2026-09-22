@@ -1,5 +1,10 @@
 ## CHANGELOG
 
+### main
+
+- Updated PostgreSQL to 18.6
+- Dropped support for PostgreSQL 16 and 17
+
 ### {16.14,17.10,18.4}-20260610-1
 
 - Updated postgres to 16.14, 17.10 and 18.4
