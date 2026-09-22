@@ -174,18 +174,27 @@ pitr_restore() {
 }
 
 post_restore_sql() {
+	post_restore_sql_failed=false
+
 	if [ -n "${PITR_POST_RESTORE_SQL_NO_DB:-}" ]; then
 		echo "Running post restore SQL without database connection"
 		if ! psql -X -U postgres -c "$PITR_POST_RESTORE_SQL_NO_DB"; then
-			echo "Post-restore SQL without a database connection failed; continuing" >&2
+			echo "Post-restore SQL without a database connection failed" >&2
+			post_restore_sql_failed=true
 		fi
 	fi
 
 	if [ -n "${PITR_POST_RESTORE_SQL:-}" ]; then
 		echo "Running post restore SQL with database connection"
-		if ! psql -X -U postgres -d "$POSTGRES_DB" -c "$PITR_POST_RESTORE_SQL"; then
-			echo "Post-restore SQL with a database connection failed; continuing" >&2
+		if ! psql -X -U postgres -d "$POSTGRES_DB" \
+			-c "$PITR_POST_RESTORE_SQL"; then
+			echo "Post-restore SQL with a database connection failed" >&2
+			post_restore_sql_failed=true
 		fi
+	fi
+
+	if [ "$post_restore_sql_failed" = true ]; then
+		return 1
 	fi
 }
 
@@ -198,8 +207,13 @@ main() {
 			start_postgres &
 			POSTGRES_PID=$!
 			wait_for_postgres_promotion
-			post_restore_sql
+			post_restore_status=0
+			post_restore_sql || post_restore_status=$?
 			pg_ctl stop
+			wait "$POSTGRES_PID"
+			if [ "$post_restore_status" -ne 0 ]; then
+				return "$post_restore_status"
+			fi
 		else
 			start_postgres
 		fi
