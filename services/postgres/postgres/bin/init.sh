@@ -85,7 +85,7 @@ run_psql_file() {
 	database=$1
 	file=$2
 
-	psql -X -q -b -U postgres -d "$database" -f "$file"
+	psql -X -q -b -U postgres -d "$database" -v ON_ERROR_STOP=1 -f "$file"
 }
 
 run_init_scripts() {
