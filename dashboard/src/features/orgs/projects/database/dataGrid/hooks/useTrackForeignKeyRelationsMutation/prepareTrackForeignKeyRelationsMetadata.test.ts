@@ -62,7 +62,7 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
         },
         name: 'author',
         using: {
-          foreign_key_constraint_on: 'author_id',
+          foreign_key_constraint_on: ['author_id'],
         },
       },
     });
@@ -78,7 +78,7 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
         },
         using: {
           foreign_key_constraint_on: {
-            column: 'author_id',
+            columns: ['author_id'],
             table: {
               name: 'books',
               schema: TEST_SCHEMA,
@@ -122,7 +122,7 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
           schema: TEST_SCHEMA,
         },
         using: {
-          foreign_key_constraint_on: 'id',
+          foreign_key_constraint_on: ['id'],
         },
       },
     });
@@ -138,7 +138,7 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
         },
         using: {
           foreign_key_constraint_on: {
-            column: 'id',
+            columns: ['id'],
             table: {
               name: 'books',
               schema: TEST_SCHEMA,
