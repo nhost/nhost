@@ -10,6 +10,7 @@ import type {
   DatabaseColumn,
   ForeignKeyRelation,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { areStrArraysEqualOrdered } from '@/lib/utils';
 import ForeignKeyEditorRow from './ForeignKeyEditorRow';
 
 export default function ForeignKeyEditorSection() {
@@ -25,26 +26,28 @@ export default function ForeignKeyEditorSection() {
 
   function validateDuplicateRelation(values: BaseForeignKeyFormValues) {
     const isRelationDuplicate = fields.some((field) => {
+      // SAFETY: useFieldArray widens entries to FieldArrayWithId; this array
+      // is only ever appended to with ForeignKeyRelation values.
       const {
         id,
-        columnName,
+        columns: fieldColumns,
         referencedSchema,
         referencedTable,
-        referencedColumn,
+        referencedColumns,
       } = field as unknown as ForeignKeyRelation;
 
       return (
-        values.columnName === columnName &&
+        areStrArraysEqualOrdered(values.columns, fieldColumns) &&
         values.referencedSchema === referencedSchema &&
         values.referencedTable === referencedTable &&
-        values.referencedColumn === referencedColumn &&
+        areStrArraysEqualOrdered(values.referencedColumns, referencedColumns) &&
         values.id !== id
       );
     });
 
     if (isRelationDuplicate) {
       throw new Error(
-        `This foreign key relation already exists: ${values.columnName} → ${values.referencedSchema}.${values.referencedTable}.${values.referencedColumn}`,
+        `This foreign key relation already exists: ${values.columns.join(', ')} → ${values.referencedSchema}.${values.referencedTable}.${values.referencedColumns.join(', ')}`,
       );
     }
   }
@@ -68,6 +71,9 @@ export default function ForeignKeyEditorSection() {
           onEdit={() => {
             openDialog({
               title: 'Edit Foreign Key Relation',
+              props: {
+                PaperProps: { className: 'max-w-xl' },
+              },
               component: (
                 <EditForeignKeyForm
                   foreignKeyRelation={fields[index] as ForeignKeyRelation}
@@ -108,6 +114,9 @@ export default function ForeignKeyEditorSection() {
                 </span>
               </span>
             ),
+            props: {
+              PaperProps: { className: 'max-w-xl' },
+            },
             component: (
               <CreateForeignKeyForm
                 availableColumns={columns.map((column, index) =>

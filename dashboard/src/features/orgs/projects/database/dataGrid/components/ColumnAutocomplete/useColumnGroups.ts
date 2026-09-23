@@ -37,9 +37,9 @@ export default function useColumnGroups({
 }: UseColumnGroupsOptions) {
   const { columns, foreignKeyRelations } = tableData || {};
 
-  const columnTargetMap = foreignKeyRelations?.reduce(
+  const constraintTargetMap = foreignKeyRelations?.reduce(
     (map, currentRelation) =>
-      map.set(currentRelation.columnName, {
+      map.set(JSON.stringify(currentRelation.columns), {
         schema: currentRelation.referencedSchema || 'public',
         table: currentRelation.referencedTable,
       }),
@@ -73,6 +73,8 @@ export default function useColumnGroups({
       schema: string;
       table: string;
       column: string;
+      constraintColumns: string[];
+      resolveTargetFromForeignKey: boolean;
       name: string;
     }[]
   >((relationships, currentRelationship) => {
@@ -87,6 +89,8 @@ export default function useColumnGroups({
             schema: manual_configuration.remote_table?.schema || 'public',
             table: manual_configuration.remote_table?.name,
             column,
+            constraintColumns: [column],
+            resolveTargetFromForeignKey: false,
             name: currentRelationship.name,
           })),
         ];
@@ -105,19 +109,15 @@ export default function useColumnGroups({
         // A composite FK still points at a single table, so its first
         // column is enough to build the one option for this relationship.
         const [column] = constraintColumns;
-        // columnTargetMap is only reliable when the column is the whole
-        // FK; a composite's first column may also belong to another FK.
-        const referencedTable =
-          constraintColumns.length === 1
-            ? columnTargetMap?.get(column)
-            : undefined;
 
         return [
           ...relationships,
           {
-            schema: referencedTable?.schema ?? selectedSchema,
-            table: referencedTable?.table ?? selectedTable,
+            schema: selectedSchema,
+            table: selectedTable,
             column,
+            constraintColumns,
+            resolveTargetFromForeignKey: true,
             name: currentRelationship.name,
           },
         ];
@@ -125,9 +125,10 @@ export default function useColumnGroups({
 
       if (!isSameTable && isNotEmptyValue(foreign_key_constraint_on)) {
         const { table } = foreign_key_constraint_on;
-        const [column] = getForeignKeyConstraintColumns(
+        const constraintColumns = getForeignKeyConstraintColumns(
           foreign_key_constraint_on,
         );
+        const [column] = constraintColumns;
 
         return [
           ...relationships,
@@ -135,6 +136,8 @@ export default function useColumnGroups({
             schema: table?.schema ?? 'public',
             table: table?.name ?? '',
             column,
+            constraintColumns,
+            resolveTargetFromForeignKey: false,
             name: currentRelationship.name,
           },
         ];
@@ -154,6 +157,11 @@ export default function useColumnGroups({
           schema: relationship.schema,
           table: relationship.table,
           column: relationship.column,
+          ...(relationship.resolveTargetFromForeignKey
+            ? constraintTargetMap?.get(
+                JSON.stringify(relationship.constraintColumns),
+              ) || {}
+            : {}),
           name: relationship.name,
         },
       },

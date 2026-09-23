@@ -50,10 +50,10 @@ describe('prepareCreateTableQuery', () => {
       foreignKeyRelations: [
         {
           name: 'test_table_author_id_fkey',
-          columnName: 'author_id',
+          columns: ['author_id'],
           referencedSchema: 'public',
           referencedTable: 'authors',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -69,6 +69,48 @@ describe('prepareCreateTableQuery', () => {
     expect(transaction).toHaveLength(1);
     expect(transaction[0].args.sql).toBe(
       'CREATE TABLE public.test_table (id uuid NOT NULL, name text NOT NULL, author_id uuid NOT NULL, PRIMARY KEY (id), FOREIGN KEY (author_id) REFERENCES public.authors (id) ON UPDATE RESTRICT ON DELETE RESTRICT);',
+    );
+  });
+
+  it('should prepare a query with a composite foreign key', () => {
+    const table: DatabaseTable = {
+      name: 'test_table',
+      columns: [
+        {
+          name: 'id',
+          type: 'uuid',
+        },
+        {
+          name: 'tenant_id',
+          type: 'uuid',
+        },
+        {
+          name: 'author_id',
+          type: 'uuid',
+        },
+      ],
+      foreignKeyRelations: [
+        {
+          name: 'test_table_tenant_id_author_id_fkey',
+          columns: ['tenant_id', 'author_id'],
+          referencedSchema: 'public',
+          referencedTable: 'authors',
+          referencedColumns: ['tenant_id', 'id'],
+          updateAction: 'RESTRICT',
+          deleteAction: 'RESTRICT',
+        },
+      ],
+      primaryKey: ['id'],
+    };
+
+    const transaction = prepareCreateTableQuery({
+      dataSource: 'default',
+      schema: 'public',
+      table,
+    });
+    expect(transaction).toHaveLength(1);
+    expect(transaction[0].args.sql).toBe(
+      'CREATE TABLE public.test_table (id uuid NOT NULL, tenant_id uuid NOT NULL, author_id uuid NOT NULL, PRIMARY KEY (id), FOREIGN KEY (tenant_id,author_id) REFERENCES public.authors (tenant_id,id) ON UPDATE RESTRICT ON DELETE RESTRICT);',
     );
   });
 

@@ -7,10 +7,10 @@ import { RemoveButton } from './RemoveButton';
 interface FormData {
   columns: Array<{ name: string; type: string }>;
   foreignKeyRelations: Array<{
-    columnName: string;
+    columns: string[];
     referencedSchema: string;
     referencedTable: string;
-    referencedColumn: string;
+    referencedColumns: string[];
   }>;
   primaryKeyIndices: string[];
   identityColumnIndex: number | null;
@@ -53,10 +53,10 @@ describe('RemoveButton onClick', () => {
     ],
     foreignKeyRelations: [
       {
-        columnName: 'name',
+        columns: ['name'],
         referencedSchema: 'public',
         referencedTable: 'users',
-        referencedColumn: 'username',
+        referencedColumns: ['username'],
       },
     ],
     primaryKeyIndices: ['0', '1'],
@@ -83,10 +83,10 @@ describe('RemoveButton onClick', () => {
     expect(formValues!.primaryKeyIndices).toEqual(['0', '1']);
     expect(formValues!.foreignKeyRelations).toEqual([
       {
-        columnName: 'name',
+        columns: ['name'],
         referencedSchema: 'public',
         referencedTable: 'users',
-        referencedColumn: 'username',
+        referencedColumns: ['username'],
       },
     ]);
     expect(formValues!.identityColumnIndex).toBe(1);

@@ -22,10 +22,22 @@ const orderItemsTableData = {
   ...makeTableData(['tenant_id', 'order_id']),
   foreignKeyRelations: [
     {
-      columnName: 'order_id',
+      columns: ['order_id'],
       referencedSchema: 'public',
       referencedTable: 'orders',
-      referencedColumn: 'id',
+      referencedColumns: ['id'],
+    },
+  ],
+} as FetchTableReturnType;
+
+const compositeOrderItemsTableData = {
+  ...makeTableData(['tenant_id', 'order_id']),
+  foreignKeyRelations: [
+    {
+      columns: ['tenant_id', 'order_id'],
+      referencedSchema: 'public',
+      referencedTable: 'orders',
+      referencedColumns: ['tenant_id', 'id'],
     },
   ],
 } as FetchTableReturnType;
@@ -224,7 +236,45 @@ describe('useAsyncValue', () => {
     ]);
   });
 
-  it('does not match composite object metadata against a singular foreign key relation', async () => {
+  it('resolves a composite object relationship through its foreign key relation', async () => {
+    const metadata = makeMetadata('object_relationships', {
+      name: 'order',
+      using: {
+        foreign_key_constraint_on: ['tenant_id', 'order_id'],
+      },
+    });
+    const { result, rerender } = renderHook((props) => useAsyncValue(props), {
+      initialProps: {
+        selectedSchema: 'public',
+        selectedTable: 'order_items',
+        initialValue: 'order.total',
+        isTableLoading: false,
+        isMetadataLoading: false,
+        tableData: compositeOrderItemsTableData,
+        metadata,
+      },
+    });
+
+    rerender({
+      selectedSchema: 'public',
+      selectedTable: 'orders',
+      initialValue: 'order.total',
+      isTableLoading: false,
+      isMetadataLoading: false,
+      tableData: makeTableData(['total']) as FetchTableReturnType,
+      metadata,
+    });
+
+    await waitFor(() => {
+      expect(result.current.initialized).toBe(true);
+    });
+    expect(result.current.selectedColumn).toMatchObject({ value: 'total' });
+    expect(result.current.selectedRelationships).toEqual([
+      { schema: 'public', table: 'orders', name: 'order' },
+    ]);
+  });
+
+  it('does not match a single column relationship against a composite foreign key', async () => {
     const { result } = renderHook(() =>
       useAsyncValue({
         selectedSchema: 'public',
@@ -232,12 +282,10 @@ describe('useAsyncValue', () => {
         initialValue: 'order.total',
         isTableLoading: false,
         isMetadataLoading: false,
-        tableData: orderItemsTableData,
+        tableData: compositeOrderItemsTableData,
         metadata: makeMetadata('object_relationships', {
           name: 'order',
-          using: {
-            foreign_key_constraint_on: ['tenant_id', 'order_id'],
-          },
+          using: { foreign_key_constraint_on: 'order_id' },
         }),
       }),
     );

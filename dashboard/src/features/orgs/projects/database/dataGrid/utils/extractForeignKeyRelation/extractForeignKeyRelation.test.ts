@@ -11,6 +11,23 @@ describe('extractForeignKeyRelation', () => {
     ).toBe(null);
   });
 
+  test('should extract every column of a composite foreign key', () => {
+    expect(
+      extractForeignKeyRelation(
+        'table_composite_fkey',
+        'FOREIGN KEY (tenant_id, "accountId") REFERENCES auth.accounts(tenant_id, id) ON UPDATE CASCADE ON DELETE RESTRICT',
+      ),
+    ).toMatchObject({
+      name: 'table_composite_fkey',
+      columns: ['tenant_id', 'accountId'],
+      referencedSchema: 'auth',
+      referencedTable: 'accounts',
+      referencedColumns: ['tenant_id', 'id'],
+      updateAction: 'CASCADE',
+      deleteAction: 'RESTRICT',
+    });
+  });
+
   test('should extract data from a raw foreign key constraint', () => {
     expect(
       extractForeignKeyRelation(
@@ -19,10 +36,10 @@ describe('extractForeignKeyRelation', () => {
       ),
     ).toMatchObject({
       name: 'table_id_fkey',
-      columnName: 'user_id',
+      columns: ['user_id'],
       referencedSchema: 'auth',
       referencedTable: 'users',
-      referencedColumn: 'id',
+      referencedColumns: ['id'],
       updateAction: 'RESTRICT',
       deleteAction: 'RESTRICT',
     });
@@ -34,10 +51,10 @@ describe('extractForeignKeyRelation', () => {
       ),
     ).toMatchObject({
       name: 'table_id_fkey',
-      columnName: 'user_id',
+      columns: ['user_id'],
       referencedSchema: 'auth',
       referencedTable: 'users',
-      referencedColumn: 'id',
+      referencedColumns: ['id'],
       updateAction: 'CASCADE',
       deleteAction: 'CASCADE',
     });
@@ -49,10 +66,10 @@ describe('extractForeignKeyRelation', () => {
       ),
     ).toMatchObject({
       name: 'table_id_fkey',
-      columnName: 'user_id',
+      columns: ['user_id'],
       referencedSchema: 'auth',
       referencedTable: 'users',
-      referencedColumn: 'id',
+      referencedColumns: ['id'],
       updateAction: 'SET DEFAULT',
       deleteAction: 'SET NULL',
     });
@@ -65,10 +82,10 @@ describe('extractForeignKeyRelation', () => {
       ),
     ).toMatchObject({
       name: 'table_id_fkey',
-      columnName: 'userId',
+      columns: ['userId'],
       referencedSchema: null,
       referencedTable: 'users',
-      referencedColumn: 'id',
+      referencedColumns: ['id'],
       updateAction: 'RESTRICT',
       deleteAction: 'RESTRICT',
     });
@@ -81,10 +98,10 @@ describe('extractForeignKeyRelation', () => {
       ),
     ).toMatchObject({
       name: 'table_id_fkey',
-      columnName: 'user_id',
+      columns: ['user_id'],
       referencedSchema: null,
       referencedTable: 'users',
-      referencedColumn: 'id',
+      referencedColumns: ['id'],
       updateAction: 'RESTRICT',
       deleteAction: 'RESTRICT',
     });
@@ -98,10 +115,10 @@ describe('extractForeignKeyRelation', () => {
       ),
     ).toMatchObject({
       name: 'table_id_fkey',
-      columnName: 'user_id',
+      columns: ['user_id'],
       referencedSchema: null,
       referencedTable: 'users',
-      referencedColumn: 'id',
+      referencedColumns: ['id'],
       updateAction: 'RESTRICT',
       deleteAction: 'NO ACTION',
     });
@@ -113,10 +130,10 @@ describe('extractForeignKeyRelation', () => {
       ),
     ).toMatchObject({
       name: 'table_id_fkey',
-      columnName: 'user_id',
+      columns: ['user_id'],
       referencedSchema: null,
       referencedTable: 'users',
-      referencedColumn: 'id',
+      referencedColumns: ['id'],
       updateAction: 'NO ACTION',
       deleteAction: 'RESTRICT',
     });
@@ -128,10 +145,10 @@ describe('extractForeignKeyRelation', () => {
       ),
     ).toMatchObject({
       name: 'table_id_fkey',
-      columnName: 'user_id',
+      columns: ['user_id'],
       referencedSchema: null,
       referencedTable: 'users',
-      referencedColumn: 'id',
+      referencedColumns: ['id'],
       updateAction: 'NO ACTION',
       deleteAction: 'NO ACTION',
     });
