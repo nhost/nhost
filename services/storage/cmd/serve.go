@@ -61,6 +61,16 @@ const (
 	flagImageTransformerWorkers  = "image-transformer-workers"
 	flagImageTransformerMaxDim   = "image-transformer-max-dimension"
 	flagImageTransformerMaxBlur  = "image-transformer-max-blur-sigma"
+
+	// serviceName identifies storage in the shared serve runtime's logs and errors.
+	serviceName = "storage"
+	// readHeaderTimeout bounds how long the listener waits for request headers.
+	// The remaining HTTP deadlines stay off so large file uploads and downloads
+	// are not aborted mid-transfer.
+	readHeaderTimeout = 5 * time.Second
+	// shutdownTimeout bounds the listener drain and the libvips teardown that
+	// follows it once the process context is cancelled.
+	shutdownTimeout = 30 * time.Second
 )
 
 func getCORSOptions(cmd *cli.Command) oapimw.CORSOptions {
@@ -455,11 +465,11 @@ func CommandServe() *cli.Command { //nolint:funlen
 	}
 }
 
-func startPprofServer(ctx context.Context, bind string, logger *slog.Logger) {
-	if bind == "" {
-		return
-	}
-
+// registerVipsDebugHandler adds storage's libvips memory report to
+// http.DefaultServeMux, alongside the pprof handlers registered there by the
+// net/http/pprof blank import. The shared serve runtime exposes that mux on
+// Options.DebugAddr, so the route is reachable only when pprof is enabled.
+func registerVipsDebugHandler() {
 	http.HandleFunc("/debug/vips", func(w http.ResponseWriter, _ *http.Request) {
 		var stats vips.MemoryStats
 		vips.ReadVipsMemStats(&stats)
@@ -467,20 +477,6 @@ func startPprofServer(ctx context.Context, bind string, logger *slog.Logger) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(stats) //nolint:errcheck
 	})
-
-	logger.InfoContext(ctx, "starting pprof server", slog.String("bind", bind))
-
-	pprofServer := &http.Server{ //nolint:exhaustruct
-		Addr:              bind,
-		Handler:           http.DefaultServeMux,
-		ReadHeaderTimeout: 5 * time.Second, //nolint:mnd
-	}
-
-	go func() {
-		if err := pprofServer.ListenAndServe(); err != nil {
-			logger.ErrorContext(ctx, "pprof server failed", slog.String("error", err.Error()))
-		}
-	}()
 }
 
 func serve(ctx context.Context, cmd *cli.Command) error {
@@ -488,14 +484,36 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 	logger.InfoContext(ctx, cmd.Root().Name+" v"+cmd.Root().Version)
 	serveutil.LogFlags(ctx, logger, cmd)
 
-	svc, err := NewService(ctx, cmd, logger)
-	if err != nil {
-		return err
+	pprofBind := cmd.String(flagPprofBind)
+	if pprofBind != "" {
+		registerVipsDebugHandler()
 	}
 
-	defer svc.Shutdown()
-
-	return runServer(ctx, cmd, svc, logger)
+	// Run's errors already name the service and the lifecycle phase that failed.
+	//nolint:wrapcheck // adding a prefix here would only repeat that context.
+	return serveutil.Run(
+		ctx,
+		serveutil.Options{
+			Logger:    logger,
+			Addr:      cmd.String(flagBind),
+			DebugAddr: pprofBind,
+			HTTP: serveutil.HTTPTimeouts{
+				ReadHeader: readHeaderTimeout,
+				Read:       0,
+				Write:      0,
+				Idle:       0,
+			},
+			ShutdownTimeout: shutdownTimeout,
+			Compose:         nil,
+		},
+		serveutil.Definition{
+			Name:   serviceName,
+			Prefix: "",
+			Build: func(ctx context.Context, logger *slog.Logger) (*serveutil.Service, error) {
+				return NewService(ctx, cmd, logger)
+			},
+		},
+	)
 }
 
 // NewService builds storage's serving surface: the HTTP handler and the image
@@ -565,7 +583,7 @@ func NewService(
 	return &serveutil.Service{
 		Handler:    handler,
 		Background: nil,
-		Close:      cleanups.Close,
+		Close:      serveutil.CloseFunc(cleanups.Close),
 	}, nil
 }
 
@@ -590,51 +608,5 @@ func newImageTransformer(
 		workers,
 		cmd.Int(flagImageTransformerMaxDim),
 		cmd.Float(flagImageTransformerMaxBlur),
-	)
-}
-
-func runServer(
-	ctx context.Context,
-	cmd *cli.Command,
-	svc *serveutil.Service,
-	logger *slog.Logger,
-) error {
-	server := &http.Server{ //nolint:exhaustruct
-		Addr:              cmd.String(flagBind),
-		Handler:           svc.Handler,
-		ReadHeaderTimeout: 5 * time.Second, //nolint:mnd
-	}
-
-	// Shutdown errors retain storage's established log-and-return-nil behavior.
-	//nolint:wrapcheck // Run can only return the local shutdown callback's error.
-	return serveutil.Run(
-		ctx,
-		logger,
-		serveutil.RunHooks{
-			Start: func(lifecycleCtx context.Context) {
-				startPprofServer(lifecycleCtx, cmd.String(flagPprofBind), logger)
-			},
-			ServeHTTP: func(lifecycleCtx context.Context) {
-				logger.InfoContext(lifecycleCtx, "starting server")
-
-				if err := server.ListenAndServe(); err != nil {
-					logger.ErrorContext(
-						lifecycleCtx, "server failed", slog.String("error", err.Error()),
-					)
-				}
-			},
-			Shutdown: func(_ context.Context) error {
-				logger.InfoContext(ctx, "shutting down server")
-
-				if err := server.Shutdown(ctx); err != nil {
-					logger.ErrorContext(
-						ctx, "problem shutting down server", slog.String("error", err.Error()),
-					)
-				}
-
-				return nil
-			},
-		},
-		svc,
 	)
 }

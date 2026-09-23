@@ -19,15 +19,16 @@ var (
 	ErrShutdownTimeout = errors.New("service shutdown timed out")
 )
 
-// SupervisedService is a long-running service: it blocks until its work is done
-// or the context is cancelled, then returns. A nil error means a clean shutdown.
-type SupervisedService func(ctx context.Context) error
+// supervisedService is a long-running unit of work: it blocks until its work is
+// done or the context is cancelled, then returns. A nil error means a clean
+// shutdown.
+type supervisedService func(ctx context.Context) error
 
-// Supervise starts every service in every tier concurrently. The moment ctx is
+// supervise starts every service in every tier concurrently. The moment ctx is
 // cancelled or any service returns — whether with an error or cleanly — shutdown
 // begins in tier order: the first tier's context is cancelled and its services
 // receive tierTimeout to return before the next tier is cancelled. With one tier,
-// all services are cancelled and awaited together as before.
+// all services are cancelled and awaited together.
 //
 // The returned error joins the (non-nil) errors from every service that returns.
 // If a tier exceeds tierTimeout, the result includes a shutdown-timeout error
@@ -35,10 +36,10 @@ type SupervisedService func(ctx context.Context) error
 // A stuck service goroutine may remain alive until process exit. The process
 // supervisor's termination grace period remains the ultimate shutdown bound and
 // must allow enough time for every tier when graceful completion is required.
-func Supervise(
+func supervise(
 	ctx context.Context,
 	tierTimeout time.Duration,
-	tiers ...[]SupervisedService,
+	tiers ...[]supervisedService,
 ) error {
 	serviceCount := 0
 	for _, services := range tiers {
@@ -137,7 +138,7 @@ func shutdownTier(
 	return errs
 }
 
-func runService(ctx context.Context, svc SupervisedService) (err error) {
+func runService(ctx context.Context, svc supervisedService) (err error) {
 	defer func() {
 		if recovered := recover(); recovered != nil {
 			err = fmt.Errorf(

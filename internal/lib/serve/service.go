@@ -2,49 +2,84 @@ package serve
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 )
 
-// Service is a constructed, ready-to-serve service, decoupled from the HTTP
-// server and process lifecycle. Splitting a service into these parts lets it
-// run standalone (wrapped in its own *http.Server) or be composed with other
-// services behind a single shared listener by the engine binary.
+// Service is a constructed, ready-to-serve service: its HTTP surface, its
+// optional long-lived background work, and the release of the resources it
+// acquired while being built.
+//
+// A service owns what it builds and nothing else. Run owns the process
+// lifecycle: the listener, the order in which the parts are cancelled, and when
+// Close is called. Keeping the split here lets the same service run standalone
+// in its own binary or composed with others behind one shared listener.
 type Service struct {
-	// Handler serves the service's HTTP routes. When composed under a shared
-	// listener it is mounted beneath the service's path prefix.
+	// Handler serves the service's HTTP routes. When composed with other
+	// services it is mounted beneath the service's path prefix, so it keeps
+	// serving the paths it expects. It is nil for a service with no HTTP
+	// surface.
 	Handler http.Handler
 
-	// Background runs the service's long-lived background work (controller
-	// loops, worker pools). When ctx is cancelled, it must return without
-	// depending on Close to unblock. Lifecycle callers may invoke Close before
-	// Background returns, so it must tolerate concurrent resource cleanup. It
-	// is nil for services with no background work.
+	// Background runs the service's long-lived work (controller loops, worker
+	// pools). Run cancels it only after the listener has drained, so the
+	// service's own resources remain available for its whole lifetime. It must
+	// return once ctx is cancelled. It is nil for a service with no background
+	// work.
 	Background func(ctx context.Context) error
 
-	// Close releases resources acquired while building the service (database
-	// pools, JWT key sets, image transformers). Lifecycle callers may invoke it
-	// before Background returns, so it must be idempotent and safe to run
-	// concurrently with Background. Cleanups provides both properties for a
-	// collection of release hooks. It is nil when there is nothing to release.
-	Close func()
+	// Close releases the resources acquired while building the service (database
+	// pools, JWT key sets, image transformers). Run calls it once, after
+	// Background has returned, with a context bounded by Options.ShutdownTimeout.
+	//
+	// The single case where Close can still overlap Background is a service that
+	// ignored cancellation for longer than the shutdown budget allows: Run stops
+	// waiting and proceeds, leaving the abandoned goroutine running. Close must
+	// therefore stay idempotent and safe to call concurrently with Background.
+	// Cleanups provides both properties. It is nil when there is nothing to
+	// release.
+	Close func(ctx context.Context) error
 }
 
-// RunBackground delegates to Background when defined; that hook may return
-// before ctx is cancelled, and an early nil return reports successful completion
-// to the caller. Without a hook, it blocks until ctx is cancelled and returns nil.
-func (s *Service) RunBackground(ctx context.Context) error {
-	if s.Background == nil {
-		<-ctx.Done()
+// Definition is one service's entry in a Run call: what it is called, where it
+// is mounted, and how to build it.
+//
+// Build is the service's constructor. It receives the process context, so a
+// slow dial or migration can be interrupted by a termination signal, and a
+// logger already tagged with Name. Run calls it once, in definition order, and
+// takes ownership of the returned Service: if a later Build fails, Run releases
+// everything already built, in reverse.
+type Definition struct {
+	// Name identifies the service in log records, in the errors Run returns, and
+	// in the logger handed to Build.
+	Name string
+
+	// Prefix is the path namespace the service is mounted under when its handler
+	// is composed with others, e.g. "/auth". It must be empty or start with "/".
+	// A single service mounted at the empty prefix is served directly, without a
+	// router in front of it.
+	Prefix string
+
+	// Build constructs the service. Returning an error releases every service
+	// built before it; returning a nil Service without an error is a programming
+	// error that Run reports rather than dereferences.
+	Build func(ctx context.Context, logger *slog.Logger) (*Service, error)
+}
+
+// Mounted pairs a built service with the name and prefix its Definition gave
+// it. Options.Compose receives one per service, in definition order.
+type Mounted struct {
+	Name    string
+	Prefix  string
+	Service *Service
+}
+
+// CloseFunc adapts a release function that neither fails nor observes a
+// deadline, such as Cleanups.Close, to the Service.Close hook.
+func CloseFunc(release func()) func(context.Context) error {
+	return func(context.Context) error {
+		release()
 
 		return nil
-	}
-
-	return s.Background(ctx)
-}
-
-// Shutdown releases the service's resources if it defined a Close hook.
-func (s *Service) Shutdown() {
-	if s.Close != nil {
-		s.Close()
 	}
 }

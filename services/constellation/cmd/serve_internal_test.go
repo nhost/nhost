@@ -6,13 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"net/http"
 	"slices"
 	"strings"
 	"testing"
 	"time"
 
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
+	serveutil "github.com/nhost/nhost/internal/lib/serve"
 	"github.com/nhost/nhost/services/constellation/controller"
 	"github.com/urfave/cli/v3"
 )
@@ -275,10 +275,10 @@ func TestGetMaxGraphQLRequestBodyBytesFromEnv(t *testing.T) {
 	}
 }
 
-func runNewHTTPServer(t *testing.T, args []string) (*http.Server, error) {
+func runHTTPTimeouts(t *testing.T, args []string) (serveutil.HTTPTimeouts, error) {
 	t.Helper()
 
-	return runNewHTTPServerWithFlags(
+	return runHTTPTimeoutsWithFlags(
 		t,
 		serverFlagsWithoutEnvVarsForTest(
 			t,
@@ -290,23 +290,23 @@ func runNewHTTPServer(t *testing.T, args []string) (*http.Server, error) {
 	)
 }
 
-func runNewHTTPServerWithFlags(
+func runHTTPTimeoutsWithFlags(
 	t *testing.T,
 	flags []cli.Flag,
 	args []string,
-) (*http.Server, error) {
+) (serveutil.HTTPTimeouts, error) {
 	t.Helper()
 
 	var (
-		gotServer *http.Server
-		gotErr    error
+		gotTimeouts serveutil.HTTPTimeouts
+		gotErr      error
 	)
 
 	cmd := &cli.Command{
 		Name:  "serve",
 		Flags: flags,
 		Action: func(_ context.Context, cmd *cli.Command) error {
-			gotServer, gotErr = newHTTPServer(cmd, http.NewServeMux())
+			gotTimeouts, gotErr = httpTimeouts(cmd)
 
 			return nil
 		},
@@ -316,10 +316,10 @@ func runNewHTTPServerWithFlags(
 		t.Fatalf("running cli: %v", err)
 	}
 
-	return gotServer, gotErr
+	return gotTimeouts, gotErr
 }
 
-func TestNewHTTPServerConfig(t *testing.T) {
+func TestHTTPTimeoutsConfig(t *testing.T) {
 	t.Parallel()
 
 	const (
@@ -330,21 +330,20 @@ func TestNewHTTPServerConfig(t *testing.T) {
 	)
 
 	tests := []struct {
-		name           string
-		args           []string
-		wantRead       time.Duration
-		wantReadHeader time.Duration
-		wantWrite      time.Duration
-		wantIdle       time.Duration
-		wantErrText    string
+		name        string
+		args        []string
+		want        serveutil.HTTPTimeouts
+		wantErrText string
 	}{
 		{
-			name:           "default timeouts",
-			args:           nil,
-			wantRead:       defaultHTTPReadTimeout,
-			wantReadHeader: maxHTTPReadHeaderTimeout,
-			wantWrite:      defaultHTTPWriteTimeout,
-			wantIdle:       defaultHTTPIdleTimeout,
+			name: "default timeouts",
+			args: nil,
+			want: serveutil.HTTPTimeouts{
+				ReadHeader: maxHTTPReadHeaderTimeout,
+				Read:       defaultHTTPReadTimeout,
+				Write:      defaultHTTPWriteTimeout,
+				Idle:       defaultHTTPIdleTimeout,
+			},
 		},
 		{
 			name: "explicit positive timeouts",
@@ -353,20 +352,24 @@ func TestNewHTTPServerConfig(t *testing.T) {
 				"--" + flagHTTPWriteTimeout, customWriteTimeout.String(),
 				"--" + flagHTTPIdleTimeout, customIdleTimeout.String(),
 			},
-			wantRead:       customReadTimeout,
-			wantReadHeader: maxHTTPReadHeaderTimeout,
-			wantWrite:      customWriteTimeout,
-			wantIdle:       customIdleTimeout,
+			want: serveutil.HTTPTimeouts{
+				ReadHeader: maxHTTPReadHeaderTimeout,
+				Read:       customReadTimeout,
+				Write:      customWriteTimeout,
+				Idle:       customIdleTimeout,
+			},
 		},
 		{
 			name: "short read timeout also caps header reads",
 			args: []string{
 				"--" + flagHTTPReadTimeout, shortReadTimeout.String(),
 			},
-			wantRead:       shortReadTimeout,
-			wantReadHeader: shortReadTimeout,
-			wantWrite:      defaultHTTPWriteTimeout,
-			wantIdle:       defaultHTTPIdleTimeout,
+			want: serveutil.HTTPTimeouts{
+				ReadHeader: shortReadTimeout,
+				Read:       shortReadTimeout,
+				Write:      defaultHTTPWriteTimeout,
+				Idle:       defaultHTTPIdleTimeout,
+			},
 		},
 		{
 			name:        "zero read timeout rejected",
@@ -389,7 +392,7 @@ func TestNewHTTPServerConfig(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			server, err := runNewHTTPServer(t, tt.args)
+			got, err := runHTTPTimeouts(t, tt.args)
 			if tt.wantErrText != "" {
 				if err == nil {
 					t.Fatalf("expected error containing %q", tt.wantErrText)
@@ -403,33 +406,17 @@ func TestNewHTTPServerConfig(t *testing.T) {
 			}
 
 			if err != nil {
-				t.Fatalf("newHTTPServer unexpected error: %v", err)
+				t.Fatalf("httpTimeouts unexpected error: %v", err)
 			}
 
-			if server.ReadTimeout != tt.wantRead {
-				t.Errorf("ReadTimeout = %s; want %s", server.ReadTimeout, tt.wantRead)
-			}
-
-			if server.ReadHeaderTimeout != tt.wantReadHeader {
-				t.Errorf(
-					"ReadHeaderTimeout = %s; want %s",
-					server.ReadHeaderTimeout,
-					tt.wantReadHeader,
-				)
-			}
-
-			if server.WriteTimeout != tt.wantWrite {
-				t.Errorf("WriteTimeout = %s; want %s", server.WriteTimeout, tt.wantWrite)
-			}
-
-			if server.IdleTimeout != tt.wantIdle {
-				t.Errorf("IdleTimeout = %s; want %s", server.IdleTimeout, tt.wantIdle)
+			if got != tt.want {
+				t.Errorf("httpTimeouts() = %+v; want %+v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestNewHTTPServerConfigFromEnv(t *testing.T) {
+func TestHTTPTimeoutsConfigFromEnv(t *testing.T) {
 	const (
 		envReadTimeout  = 45 * time.Second
 		envWriteTimeout = 2 * time.Minute
@@ -440,7 +427,7 @@ func TestNewHTTPServerConfigFromEnv(t *testing.T) {
 	t.Setenv("CONSTELLATION_HTTP_WRITE_TIMEOUT", envWriteTimeout.String())
 	t.Setenv("CONSTELLATION_HTTP_IDLE_TIMEOUT", envIdleTimeout.String())
 
-	server, err := runNewHTTPServerWithFlags(
+	got, err := runHTTPTimeoutsWithFlags(
 		t,
 		serverFlagsByNameForTest(
 			t,
@@ -451,27 +438,17 @@ func TestNewHTTPServerConfigFromEnv(t *testing.T) {
 		nil,
 	)
 	if err != nil {
-		t.Fatalf("newHTTPServer unexpected error: %v", err)
+		t.Fatalf("httpTimeouts unexpected error: %v", err)
 	}
 
-	if server.ReadTimeout != envReadTimeout {
-		t.Errorf("ReadTimeout = %s; want %s", server.ReadTimeout, envReadTimeout)
+	want := serveutil.HTTPTimeouts{
+		ReadHeader: maxHTTPReadHeaderTimeout,
+		Read:       envReadTimeout,
+		Write:      envWriteTimeout,
+		Idle:       envIdleTimeout,
 	}
-
-	if server.ReadHeaderTimeout != maxHTTPReadHeaderTimeout {
-		t.Errorf(
-			"ReadHeaderTimeout = %s; want %s",
-			server.ReadHeaderTimeout,
-			maxHTTPReadHeaderTimeout,
-		)
-	}
-
-	if server.WriteTimeout != envWriteTimeout {
-		t.Errorf("WriteTimeout = %s; want %s", server.WriteTimeout, envWriteTimeout)
-	}
-
-	if server.IdleTimeout != envIdleTimeout {
-		t.Errorf("IdleTimeout = %s; want %s", server.IdleTimeout, envIdleTimeout)
+	if got != want {
+		t.Errorf("httpTimeouts() = %+v; want %+v", got, want)
 	}
 }
 

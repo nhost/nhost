@@ -66,6 +66,10 @@ const (
 	defaultHTTPIdleTimeout   = 120 * time.Second
 	maxHTTPReadHeaderTimeout = 5 * time.Second
 	shutdownTimeout          = 30 * time.Second
+
+	// serviceName identifies constellation in the shared serve runtime's logs
+	// and errors.
+	serviceName = "constellation"
 )
 
 var errFlagMustBeGreaterThanZero = errors.New("must be greater than 0")
@@ -482,14 +486,31 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 	logger.InfoContext(ctx, cmd.Root().Name+" v"+cmd.Root().Version)
 	serveutil.LogFlags(ctx, logger, cmd)
 
-	svc, err := NewService(ctx, cmd, logger)
+	timeouts, err := httpTimeouts(cmd)
 	if err != nil {
 		return err
 	}
 
-	defer svc.Shutdown()
-
-	return runServer(ctx, cmd, svc, logger)
+	// Run's errors already name the service and the lifecycle phase that failed.
+	//nolint:wrapcheck // adding a prefix here would only repeat that context.
+	return serveutil.Run(
+		ctx,
+		serveutil.Options{
+			Logger:          logger,
+			Addr:            cmd.String(flagBindAddress),
+			DebugAddr:       cmd.String(flagProfileAddress),
+			HTTP:            timeouts,
+			ShutdownTimeout: shutdownTimeout,
+			Compose:         nil,
+		},
+		serveutil.Definition{
+			Name:   serviceName,
+			Prefix: "",
+			Build: func(ctx context.Context, logger *slog.Logger) (*serveutil.Service, error) {
+				return NewService(ctx, cmd, logger)
+			},
+		},
+	)
 }
 
 // NewService builds constellation's serving surface: the HTTP handler, the
@@ -555,7 +576,7 @@ func NewService(
 
 			return nil
 		},
-		Close: cleanups.Close,
+		Close: serveutil.CloseFunc(cleanups.Close),
 	}, nil
 }
 
@@ -636,92 +657,30 @@ func newHasuraProxy(cmd *cli.Command, logger *slog.Logger) (http.Handler, error)
 	return proxy, nil
 }
 
-func runServer(
-	ctx context.Context,
-	cmd *cli.Command,
-	svc *serveutil.Service,
-	logger *slog.Logger,
-) error {
-	server, err := newHTTPServer(cmd, svc.Handler)
-	if err != nil {
-		return fmt.Errorf("configuring HTTP server: %w", err)
-	}
-
-	var profileServer *http.Server
-
-	// The shutdown callback already adds the service-specific call-site context.
-	//nolint:wrapcheck // Preserve that established error without adding a redundant prefix.
-	return serveutil.Run(
-		ctx,
-		logger,
-		serveutil.RunHooks{
-			Start: func(lifecycleCtx context.Context) {
-				profileServer = startProfileServer(
-					lifecycleCtx, cmd.String(flagProfileAddress), logger,
-				)
-			},
-			ServeHTTP: func(lifecycleCtx context.Context) {
-				logger.InfoContext(
-					lifecycleCtx, "starting server", slog.String("address", server.Addr),
-				)
-
-				if err := server.ListenAndServe(); err != nil {
-					logger.WarnContext(lifecycleCtx, err.Error())
-				}
-			},
-			Shutdown: func(lifecycleCtx context.Context) error {
-				logger.WarnContext(lifecycleCtx, "shutting down server")
-
-				shutdownCtx, shutdownCancel := context.WithTimeout(
-					context.Background(),
-					shutdownTimeout,
-				)
-				defer shutdownCancel()
-
-				if profileServer != nil {
-					if err := profileServer.Shutdown( //nolint:contextcheck // parent ctx is cancelled
-						shutdownCtx,
-					); err != nil {
-						return fmt.Errorf("failed to shutdown profiling server: %w", err)
-					}
-				}
-
-				if err := server.Shutdown( //nolint:contextcheck // parent ctx is cancelled
-					shutdownCtx,
-				); err != nil {
-					return fmt.Errorf("failed to shutdown server: %w", err)
-				}
-
-				return nil
-			},
-		},
-		svc,
-	)
-}
-
-func newHTTPServer(cmd *cli.Command, handler http.Handler) (*http.Server, error) {
+// httpTimeouts resolves the listener deadlines from the configured flags. The
+// read-header deadline is capped so a generous read timeout still leaves a
+// tight slowloris guard on the header read itself.
+func httpTimeouts(cmd *cli.Command) (serveutil.HTTPTimeouts, error) {
 	readTimeout, err := positiveDurationFlag(cmd, flagHTTPReadTimeout)
 	if err != nil {
-		return nil, err
+		return serveutil.HTTPTimeouts{}, err
 	}
 
 	writeTimeout, err := positiveDurationFlag(cmd, flagHTTPWriteTimeout)
 	if err != nil {
-		return nil, err
+		return serveutil.HTTPTimeouts{}, err
 	}
 
 	idleTimeout, err := positiveDurationFlag(cmd, flagHTTPIdleTimeout)
 	if err != nil {
-		return nil, err
+		return serveutil.HTTPTimeouts{}, err
 	}
 
-	return &http.Server{ //nolint:exhaustruct
-		Addr:              cmd.String(flagBindAddress),
-		Handler:           handler,
-		ReadHeaderTimeout: min(readTimeout, maxHTTPReadHeaderTimeout),
-		ReadTimeout:       readTimeout,
-		WriteTimeout:      writeTimeout,
-		IdleTimeout:       idleTimeout,
+	return serveutil.HTTPTimeouts{
+		ReadHeader: min(readTimeout, maxHTTPReadHeaderTimeout),
+		Read:       readTimeout,
+		Write:      writeTimeout,
+		Idle:       idleTimeout,
 	}, nil
 }
 
@@ -732,38 +691,4 @@ func positiveDurationFlag(cmd *cli.Command, name string) (time.Duration, error) 
 	}
 
 	return value, nil
-}
-
-// startProfileServer starts a pprof profiling server if profileAddr is non-empty.
-// Note: the _ "net/http/pprof" import registers handlers on http.DefaultServeMux
-// at import time. The main server must not use DefaultServeMux to avoid
-// exposing pprof endpoints unintentionally.
-func startProfileServer(
-	ctx context.Context,
-	profileAddr string,
-	logger *slog.Logger,
-) *http.Server {
-	if profileAddr == "" {
-		return nil
-	}
-
-	profileServer := &http.Server{ //nolint:exhaustruct
-		Addr:              profileAddr,
-		Handler:           http.DefaultServeMux,
-		ReadHeaderTimeout: maxHTTPReadHeaderTimeout,
-	}
-
-	go func() {
-		logger.InfoContext(
-			ctx, "starting profiling server", slog.String("address", profileAddr),
-		)
-
-		if err := profileServer.ListenAndServe(); err != nil {
-			logger.WarnContext(
-				ctx, "profiling server stopped", slog.String("error", err.Error()),
-			)
-		}
-	}()
-
-	return profileServer
 }

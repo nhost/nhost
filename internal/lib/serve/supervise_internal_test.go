@@ -1,4 +1,4 @@
-package serve_test
+package serve
 
 import (
 	"context"
@@ -8,8 +8,6 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
-
-	serveutil "github.com/nhost/nhost/internal/lib/serve"
 )
 
 const testTierTimeout = 2 * time.Second
@@ -37,11 +35,11 @@ func TestSuperviseCancelsPeersOnError(t *testing.T) {
 		return nil
 	}
 
-	err := serveutil.Supervise(
-		context.Background(), testTierTimeout, []serveutil.SupervisedService{failing, peer},
+	err := supervise(
+		context.Background(), testTierTimeout, []supervisedService{failing, peer},
 	)
 	if !errors.Is(err, wantErr) {
-		t.Errorf("Supervise err = %v; want %v", err, wantErr)
+		t.Errorf("supervise err = %v; want %v", err, wantErr)
 	}
 
 	if !peerCancelled.Load() {
@@ -55,7 +53,7 @@ func TestSuperviseCleanEarlyReturnTearsDownPeers(t *testing.T) {
 	var peerCancelled atomic.Bool
 
 	finished := func(_ context.Context) error { return nil }
-	peer := func(ctx context.Context) error { //nolint:unparam // signature must match serveutil.SupervisedService
+	peer := func(ctx context.Context) error { //nolint:unparam // signature must match supervisedService
 		<-ctx.Done()
 		peerCancelled.Store(true)
 
@@ -64,18 +62,18 @@ func TestSuperviseCleanEarlyReturnTearsDownPeers(t *testing.T) {
 
 	done := make(chan error, 1)
 	go func() {
-		done <- serveutil.Supervise(
+		done <- supervise(
 			context.Background(),
 			testTierTimeout,
-			[]serveutil.SupervisedService{finished},
-			[]serveutil.SupervisedService{peer},
+			[]supervisedService{finished},
+			[]supervisedService{peer},
 		)
 	}()
 
 	select {
 	case err := <-done:
 		if err != nil {
-			t.Errorf("Supervise err = %v; want nil", err)
+			t.Errorf("supervise err = %v; want nil", err)
 		}
 	case <-time.After(2 * time.Second):
 		t.Fatal("clean early return did not tear the engine down")
@@ -92,7 +90,7 @@ func TestSuperviseJoinsServiceErrors(t *testing.T) {
 	var ready sync.WaitGroup
 	ready.Add(2)
 
-	failingService := func(serviceErr error) serveutil.SupervisedService {
+	failingService := func(serviceErr error) supervisedService {
 		return func(_ context.Context) error {
 			ready.Done()
 			ready.Wait()
@@ -101,14 +99,14 @@ func TestSuperviseJoinsServiceErrors(t *testing.T) {
 		}
 	}
 
-	err := serveutil.Supervise(context.Background(), testTierTimeout, []serveutil.SupervisedService{
+	err := supervise(context.Background(), testTierTimeout, []supervisedService{
 		failingService(errBoom),
 		failingService(errOther),
 	})
 
 	for _, wantErr := range []error{errBoom, errOther} {
 		if !errors.Is(err, wantErr) {
-			t.Errorf("serveutil.Supervise err = %v; want joined error to contain %v", err, wantErr)
+			t.Errorf("serveutil.supervise err = %v; want joined error to contain %v", err, wantErr)
 		}
 	}
 }
@@ -131,15 +129,15 @@ func TestSuperviseRecoversPanickingService(t *testing.T) {
 
 	// A panicking service must surface as a joined error rather than crash the
 	// whole process, and its siblings must still be torn down gracefully.
-	err := serveutil.Supervise(
-		context.Background(), testTierTimeout, []serveutil.SupervisedService{panicking, peer},
+	err := supervise(
+		context.Background(), testTierTimeout, []supervisedService{panicking, peer},
 	)
-	if !errors.Is(err, serveutil.ErrServicePanic) {
-		t.Errorf("Supervise err = %v; want %v", err, serveutil.ErrServicePanic)
+	if !errors.Is(err, ErrServicePanic) {
+		t.Errorf("supervise err = %v; want %v", err, ErrServicePanic)
 	}
 
 	if !strings.Contains(err.Error(), "TestSuperviseRecoversPanickingService") {
-		t.Errorf("Supervise err = %v; want panic stack with test function", err)
+		t.Errorf("supervise err = %v; want panic stack with test function", err)
 	}
 
 	if !peerCancelled.Load() {
@@ -154,7 +152,7 @@ func TestSuperviseShutsDownOnContextCancel(t *testing.T) {
 
 	var started atomic.Int32
 
-	svc := func(ctx context.Context) error { //nolint:unparam // signature must match serveutil.SupervisedService
+	svc := func(ctx context.Context) error { //nolint:unparam // signature must match supervisedService
 		started.Add(1)
 		<-ctx.Done()
 
@@ -163,7 +161,7 @@ func TestSuperviseShutsDownOnContextCancel(t *testing.T) {
 
 	done := make(chan error, 1)
 	go func() {
-		done <- serveutil.Supervise(ctx, testTierTimeout, []serveutil.SupervisedService{svc, svc})
+		done <- supervise(ctx, testTierTimeout, []supervisedService{svc, svc})
 	}()
 
 	// Give both services a moment to start, then trigger shutdown.
@@ -183,10 +181,10 @@ func TestSuperviseShutsDownOnContextCancel(t *testing.T) {
 	select {
 	case err := <-done:
 		if err != nil {
-			t.Errorf("Supervise err = %v; want nil on clean shutdown", err)
+			t.Errorf("supervise err = %v; want nil on clean shutdown", err)
 		}
 	case <-time.After(2 * time.Second):
-		t.Fatal("Supervise did not return after context cancellation")
+		t.Fatal("supervise did not return after context cancellation")
 	}
 }
 
@@ -212,7 +210,7 @@ func TestSuperviseFailureInLaterTierStopsAllAndReturnsErrors(t *testing.T) {
 
 		return errBoom
 	}
-	laterPeer := func(ctx context.Context) error { //nolint:unparam // signature must match serveutil.SupervisedService
+	laterPeer := func(ctx context.Context) error { //nolint:unparam // signature must match supervisedService
 		<-ctx.Done()
 		laterPeerCancelled.Store(true)
 
@@ -221,11 +219,11 @@ func TestSuperviseFailureInLaterTierStopsAllAndReturnsErrors(t *testing.T) {
 
 	done := make(chan error, 1)
 	go func() {
-		done <- serveutil.Supervise(
+		done <- supervise(
 			context.Background(),
 			testTierTimeout,
-			[]serveutil.SupervisedService{tierZero},
-			[]serveutil.SupervisedService{laterFailure, laterPeer},
+			[]supervisedService{tierZero},
+			[]supervisedService{laterFailure, laterPeer},
 		)
 	}()
 
@@ -233,7 +231,7 @@ func TestSuperviseFailureInLaterTierStopsAllAndReturnsErrors(t *testing.T) {
 	case err := <-done:
 		for _, wantErr := range []error{errBoom, errOther} {
 			if !errors.Is(err, wantErr) {
-				t.Errorf("Supervise err = %v; want joined error to contain %v", err, wantErr)
+				t.Errorf("supervise err = %v; want joined error to contain %v", err, wantErr)
 			}
 		}
 	case <-time.After(2 * time.Second):
@@ -258,7 +256,7 @@ func TestSuperviseShutsDownTiersInOrder(t *testing.T) {
 	drainerCancelled := make(chan struct{})
 	allowDrainerReturn := make(chan struct{})
 
-	drainer := func(ctx context.Context) error { //nolint:unparam // signature must match serveutil.SupervisedService
+	drainer := func(ctx context.Context) error { //nolint:unparam // signature must match supervisedService
 		close(drainerStarted)
 		<-ctx.Done()
 		close(drainerCancelled)
@@ -270,7 +268,7 @@ func TestSuperviseShutsDownTiersInOrder(t *testing.T) {
 	dependencyStarted := make(chan struct{})
 	dependencyCancelled := make(chan struct{})
 
-	dependency := func(ctx context.Context) error { //nolint:unparam // signature must match serveutil.SupervisedService
+	dependency := func(ctx context.Context) error { //nolint:unparam // signature must match supervisedService
 		close(dependencyStarted)
 		<-ctx.Done()
 		close(dependencyCancelled)
@@ -280,11 +278,11 @@ func TestSuperviseShutsDownTiersInOrder(t *testing.T) {
 
 	done := make(chan error, 1)
 	go func() {
-		done <- serveutil.Supervise(
+		done <- supervise(
 			ctx,
 			testTierTimeout,
-			[]serveutil.SupervisedService{drainer},
-			[]serveutil.SupervisedService{dependency},
+			[]supervisedService{drainer},
+			[]supervisedService{dependency},
 		)
 	}()
 
@@ -324,10 +322,10 @@ func TestSuperviseShutsDownTiersInOrder(t *testing.T) {
 	select {
 	case err := <-done:
 		if err != nil {
-			t.Errorf("Supervise err = %v; want nil on clean shutdown", err)
+			t.Errorf("supervise err = %v; want nil on clean shutdown", err)
 		}
 	case <-time.After(2 * time.Second):
-		t.Fatal("Supervise did not return after ordered shutdown")
+		t.Fatal("supervise did not return after ordered shutdown")
 	}
 }
 
@@ -340,13 +338,13 @@ func TestSuperviseTimesOutStuckTierAndCancelsLaterTiers(t *testing.T) {
 
 	var laterTierCancelled atomic.Bool
 
-	stuck := func(context.Context) error { //nolint:unparam // signature must match serveutil.SupervisedService
+	stuck := func(context.Context) error { //nolint:unparam // signature must match supervisedService
 		close(stuckStarted)
 		<-releaseStuck
 
 		return nil
 	}
-	laterTier := func(ctx context.Context) error { //nolint:unparam // signature must match serveutil.SupervisedService
+	laterTier := func(ctx context.Context) error { //nolint:unparam // signature must match supervisedService
 		<-ctx.Done()
 		laterTierCancelled.Store(true)
 
@@ -356,11 +354,11 @@ func TestSuperviseTimesOutStuckTierAndCancelsLaterTiers(t *testing.T) {
 	done := make(chan error, 1)
 	go func() {
 		// Use a short bound because testTierTimeout exceeds the one-second deadline and would fail the test.
-		done <- serveutil.Supervise(
+		done <- supervise(
 			ctx,
 			20*time.Millisecond,
-			[]serveutil.SupervisedService{stuck},
-			[]serveutil.SupervisedService{laterTier},
+			[]supervisedService{stuck},
+			[]supervisedService{laterTier},
 		)
 	}()
 
@@ -369,8 +367,8 @@ func TestSuperviseTimesOutStuckTierAndCancelsLaterTiers(t *testing.T) {
 
 	select {
 	case err := <-done:
-		if !errors.Is(err, serveutil.ErrShutdownTimeout) {
-			t.Fatalf("supervise err = %v; want %v", err, serveutil.ErrShutdownTimeout)
+		if !errors.Is(err, ErrShutdownTimeout) {
+			t.Fatalf("supervise err = %v; want %v", err, ErrShutdownTimeout)
 		}
 	case <-time.After(time.Second):
 		t.Fatal("supervise did not return after the tier shutdown timeout")

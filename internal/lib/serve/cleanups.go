@@ -5,11 +5,13 @@ import (
 	"sync"
 )
 
-// Cleanups collects release hooks acquired while constructing a service.
+// Cleanups collects release hooks acquired while constructing a service, and is
+// what a Definition.Build uses to assemble the Service.Close it hands back.
 // Add and Close are safe to call concurrently from multiple lifecycle paths.
 // Close runs hooks registered before cleanup starts in reverse acquisition
 // order exactly once. Together, these properties make the collection's cleanup
-// idempotent and safe to invoke concurrently.
+// idempotent and safe to invoke concurrently, which is what Service.Close
+// requires of a service whose background work overran the shutdown budget.
 //
 // A hook added after cleanup starts runs immediately on Add's calling goroutine.
 // It may therefore run concurrently with hooks that Close is still running.
@@ -31,7 +33,7 @@ import (
 //		}()
 //		// Acquire resources and add their release hooks.
 //
-//		return &Service{Close: cleanups.Close}, nil
+//		return &Service{Close: serve.CloseFunc(cleanups.Close)}, nil
 //	}
 type Cleanups struct {
 	mu       sync.Mutex
