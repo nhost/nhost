@@ -100,29 +100,92 @@ export const MATERIALIZED_VIEW_COLUMN_DEFINITION_QUERY = `
 `;
 
 /**
- * SQL template for fetching constraint definitions from a table.
+ * SQL template for fetching constraint definitions and eligible standalone
+ * unique indexes from a table.
  *
  * Uses positional pg-format parameters:
  *   %1$ = schema name (identifier)
  *   %2$ = table name (identifier)
  *
  * Returns: constraint name, type, definition, and column name for each
- * constraint on the table, plus the referenced key name for foreign keys.
- * A foreign key's CONINDID is the referenced table's unique index it depends
- * on, and a primary key or unique constraint shares its index's name.
+ * constraint or eligible standalone unique index on the table, plus the
+ * referenced key name for foreign keys. A foreign key's CONINDID is the
+ * referenced table's unique index it depends on, and a primary key or unique
+ * constraint shares its index's name.
  */
-export const CONSTRAINT_DEFINITION_QUERY = `SELECT ROW_TO_JSON(TABLE_DATA) FROM (\
-  SELECT CON.CONNAME AS CONSTRAINT_NAME, CON.CONTYPE AS CONSTRAINT_TYPE, PG_GET_CONSTRAINTDEF(CON.OID) AS CONSTRAINT_DEFINITION, ATTR.ATTNAME AS COLUMN_NAME, REF_INDEX.RELNAME AS REFERENCED_KEY_NAME\
-  FROM PG_CONSTRAINT CON
-  INNER JOIN PG_NAMESPACE NSP
-    ON NSP.OID = CON.CONNAMESPACE
-  CROSS JOIN LATERAL UNNEST(CON.CONKEY) AK(K)
-  INNER JOIN PG_ATTRIBUTE ATTR
-    ON ATTR.ATTRELID = CON.CONRELID
-    AND ATTR.ATTNUM = AK.K
-  LEFT JOIN PG_CLASS REF_INDEX
-    ON CON.CONTYPE = 'f'
-    AND REF_INDEX.OID = CON.CONINDID
-  WHERE CON.CONRELID = '%1$I.%2$I'::REGCLASS
-  ORDER BY CON.CONTYPE
-) TABLE_DATA`;
+export const CONSTRAINT_DEFINITION_QUERY = `
+  SELECT ROW_TO_JSON(TABLE_DATA) FROM (
+    SELECT
+      KEY_DATA.CONSTRAINT_NAME,
+      KEY_DATA.CONSTRAINT_TYPE,
+      KEY_DATA.CONSTRAINT_DEFINITION,
+      KEY_DATA.COLUMN_NAME,
+      KEY_DATA.REFERENCED_KEY_NAME
+    FROM (
+      SELECT
+        CON.CONNAME AS CONSTRAINT_NAME,
+        CON.CONTYPE AS CONSTRAINT_TYPE,
+        PG_GET_CONSTRAINTDEF(CON.OID) AS CONSTRAINT_DEFINITION,
+        ATTR.ATTNAME AS COLUMN_NAME,
+        REF_INDEX.RELNAME AS REFERENCED_KEY_NAME
+      FROM PG_CONSTRAINT CON
+      INNER JOIN PG_NAMESPACE NSP
+        ON NSP.OID = CON.CONNAMESPACE
+      CROSS JOIN LATERAL UNNEST(CON.CONKEY) AK(K)
+      INNER JOIN PG_ATTRIBUTE ATTR
+        ON ATTR.ATTRELID = CON.CONRELID
+        AND ATTR.ATTNUM = AK.K
+      LEFT JOIN PG_CLASS REF_INDEX
+        ON CON.CONTYPE = 'f'
+        AND REF_INDEX.OID = CON.CONINDID
+      WHERE CON.CONRELID = '%1$I.%2$I'::REGCLASS
+
+      UNION ALL
+
+      SELECT
+        INDEX_DATA.CONSTRAINT_NAME,
+        'i'::"char" AS CONSTRAINT_TYPE,
+        INDEX_DATA.CONSTRAINT_DEFINITION,
+        INDEX_COLUMN.COLUMN_NAME,
+        NULL AS REFERENCED_KEY_NAME
+      FROM (
+        SELECT
+          INDEX_CLASS.RELNAME AS CONSTRAINT_NAME,
+          'UNIQUE (' || STRING_AGG(
+            QUOTE_IDENT(ATTR.ATTNAME),
+            ', ' ORDER BY INDEX_KEY.ORDINALITY
+          ) || ')' AS CONSTRAINT_DEFINITION,
+          ARRAY_AGG(
+            ATTR.ATTNAME ORDER BY INDEX_KEY.ORDINALITY
+          ) AS COLUMN_NAMES
+        FROM PG_INDEX IND
+        INNER JOIN PG_CLASS INDEX_CLASS
+          ON INDEX_CLASS.OID = IND.INDEXRELID
+        CROSS JOIN LATERAL UNNEST(IND.INDKEY) WITH ORDINALITY
+          INDEX_KEY(ATTNUM, ORDINALITY)
+        INNER JOIN PG_ATTRIBUTE ATTR
+          ON ATTR.ATTRELID = IND.INDRELID
+          AND ATTR.ATTNUM = INDEX_KEY.ATTNUM
+        WHERE IND.INDRELID = '%1$I.%2$I'::REGCLASS
+          AND INDEX_KEY.ORDINALITY <= IND.INDNKEYATTS
+          AND IND.INDISUNIQUE
+          AND IND.INDPRED IS NULL
+          AND IND.INDEXPRS IS NULL
+          AND IND.INDISVALID
+          AND IND.INDISREADY
+          AND NOT EXISTS (
+            SELECT 1
+            FROM PG_CONSTRAINT INDEX_CONSTRAINT
+            WHERE INDEX_CONSTRAINT.CONINDID = IND.INDEXRELID
+              AND INDEX_CONSTRAINT.CONTYPE IN ('p', 'u')
+          )
+        GROUP BY IND.INDEXRELID, INDEX_CLASS.RELNAME
+      ) INDEX_DATA
+      CROSS JOIN LATERAL UNNEST(INDEX_DATA.COLUMN_NAMES)
+        INDEX_COLUMN(COLUMN_NAME)
+    ) KEY_DATA
+    ORDER BY
+      CASE WHEN KEY_DATA.CONSTRAINT_TYPE = 'i' THEN 1 ELSE 0 END,
+      KEY_DATA.CONSTRAINT_TYPE
+  ) TABLE_DATA
+`;
