@@ -1,0 +1,74 @@
+import { useFormContext, useWatch } from 'react-hook-form';
+import { FormSelect } from '@/components/form/FormSelect';
+import { SelectItem } from '@/components/ui/v3/select';
+import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
+import type { BaseForeignKeySchemaValues } from './BaseForeignKeyForm';
+
+export default function ReferencedKeySelect() {
+  const { control, setValue, getValues } =
+    useFormContext<BaseForeignKeySchemaValues>();
+  const referencedSchema = useWatch({ name: 'referencedSchema' });
+  const referencedTable = useWatch({ name: 'referencedTable' });
+
+  const { data: tableData, status } = useTableSchemaQuery(
+    [`${referencedSchema}.${referencedTable}`],
+    {
+      schema: referencedSchema,
+      table: referencedTable,
+      queryOptions: { enabled: !!referencedSchema && !!referencedTable },
+    },
+  );
+
+  const candidateKeys = tableData?.candidateKeys ?? [];
+
+  const helperText =
+    referencedSchema &&
+    referencedTable &&
+    !candidateKeys.length &&
+    status === 'success'
+      ? `There are no primary or unique keys in the ${referencedSchema}.${referencedTable} table.`
+      : 'Only the primary and unique keys of the referenced table are listed here.';
+
+  return (
+    <FormSelect
+      control={control}
+      name="referencedKeyName"
+      label="Referenced key"
+      placeholder="Select a primary or unique key"
+      disabled={
+        !referencedSchema || !referencedTable || candidateKeys.length === 0
+      }
+      helperText={helperText}
+      helperTextClassName="text-xs break-normal"
+      contentClassName="z-[1400]"
+      containerClassName="min-w-0"
+      className="border-border [&>span]:line-clamp-none [&>span]:min-w-0 [&>span]:truncate"
+      transform={{
+        in: (value: string) => value ?? '',
+        out: (value: string) => {
+          const candidate = candidateKeys.find(({ name }) => name === value);
+
+          // Radix emits an empty onValueChange while reconciling a selection
+          // that was set programmatically, which would otherwise wipe a
+          // prefilled key and its column mappings.
+          if (!candidate) {
+            return getValues('referencedKeyName');
+          }
+
+          setValue('referencedColumns', candidate.columns);
+          setValue(
+            'columns',
+            candidate.columns.map(() => ''),
+          );
+          return value;
+        },
+      }}
+    >
+      {candidateKeys.map(({ name, isPrimary, columns }) => (
+        <SelectItem value={name} key={name}>
+          {`${isPrimary ? 'PRIMARY KEY' : 'UNIQUE'} ${name} (${columns.join(', ')})`}
+        </SelectItem>
+      ))}
+    </FormSelect>
+  );
+}

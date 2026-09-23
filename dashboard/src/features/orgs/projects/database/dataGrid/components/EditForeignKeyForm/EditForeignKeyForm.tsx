@@ -1,9 +1,10 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import type * as Yup from 'yup';
 import { Alert } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
+import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import type {
   BaseForeignKeyFormProps,
   BaseForeignKeyFormValues,
@@ -13,6 +14,7 @@ import {
   baseForeignKeyValidationSchema,
 } from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm';
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { areStrArraysEqualOrdered } from '@/lib/utils';
 
 export interface EditForeignKeyFormProps
   extends Pick<
@@ -24,10 +26,6 @@ export interface EditForeignKeyFormProps
    */
   foreignKeyRelation: ForeignKeyRelation;
   /**
-   * Column selected by default.
-   */
-  selectedColumn?: string;
-  /**
    * Function to be called when the form is submitted.
    */
   onSubmit?: (values: BaseForeignKeyFormValues) => Promise<void> | void;
@@ -35,21 +33,22 @@ export interface EditForeignKeyFormProps
 
 export default function EditForeignKeyForm({
   foreignKeyRelation,
-  selectedColumn,
   onSubmit,
   ...props
 }: EditForeignKeyFormProps) {
   const [error, setError] = useState<Error | null>(null);
+  const referencedSchema = foreignKeyRelation.referencedSchema || 'public';
+  const { referencedTable, referencedColumns } = foreignKeyRelation;
 
   const form = useForm<Yup.InferType<typeof baseForeignKeyValidationSchema>>({
     defaultValues: {
       id: foreignKeyRelation.id,
       name: foreignKeyRelation.name,
-      columnName: selectedColumn || foreignKeyRelation.columnName,
-      referencedSchema: foreignKeyRelation.referencedSchema || 'public',
-      referencedTable: foreignKeyRelation.referencedTable,
-      referencedColumn: foreignKeyRelation.referencedColumn,
-
+      columns: foreignKeyRelation.columns,
+      referencedSchema,
+      referencedTable,
+      referencedKeyName: '',
+      referencedColumns,
       updateAction: foreignKeyRelation.updateAction,
       deleteAction: foreignKeyRelation.deleteAction,
     },
@@ -57,7 +56,27 @@ export default function EditForeignKeyForm({
     resolver: yupResolver(baseForeignKeyValidationSchema),
   });
 
-  const disableOriginColumn = Boolean(selectedColumn);
+  const { resetField } = form;
+  const { data: referencedTableData } = useTableSchemaQuery(
+    [`${referencedSchema}.${referencedTable}`],
+    {
+      schema: referencedSchema,
+      table: referencedTable,
+      queryOptions: { enabled: !!referencedSchema && !!referencedTable },
+    },
+  );
+
+  useEffect(() => {
+    const candidateKey = referencedTableData?.candidateKeys.find(
+      ({ columns }) => areStrArraysEqualOrdered(columns, referencedColumns),
+    );
+
+    if (candidateKey) {
+      // Seed it as the field's default rather than a value change, so the
+      // resolved key does not count as an unsaved edit.
+      resetField('referencedKeyName', { defaultValue: candidateKey.name });
+    }
+  }, [referencedTableData, referencedColumns, resetField]);
 
   async function handleSubmit(values: BaseForeignKeyFormValues) {
     setError(null);
@@ -100,7 +119,6 @@ export default function EditForeignKeyForm({
       <BaseForeignKeyForm
         submitButtonText="Save"
         onSubmit={handleSubmit}
-        disableOriginColumn={disableOriginColumn}
         {...props}
       />
     </FormProvider>
