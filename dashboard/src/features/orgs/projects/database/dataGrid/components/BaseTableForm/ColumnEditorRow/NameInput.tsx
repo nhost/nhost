@@ -10,7 +10,7 @@ export function NameInput({ index }: FieldArrayInputProps) {
   const foreignKeyRelations = getValues(`foreignKeyRelations`);
   const originalForeignKeyRelationIndex = foreignKeyRelations.findIndex(
     (relation: ForeignKeyRelation) =>
-      relation.columnName === originalColumnName,
+      relation.columns.includes(originalColumnName),
   );
 
   const primaryKeyIndices: string[] = useWatch({ name: 'primaryKeyIndices' });
@@ -36,8 +36,11 @@ export function NameInput({ index }: FieldArrayInputProps) {
       onChange={(event) => {
         if (originalForeignKeyRelationIndex > -1) {
           setValue(
-            `foreignKeyRelations.${originalForeignKeyRelationIndex}.columnName`,
-            event.target.value,
+            `foreignKeyRelations.${originalForeignKeyRelationIndex}.columns`,
+            foreignKeyRelations[originalForeignKeyRelationIndex].columns.map(
+              (column: string) =>
+                column === originalColumnName ? event.target.value : column,
+            ),
           );
         }
       }}

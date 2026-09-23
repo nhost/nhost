@@ -88,6 +88,7 @@ export default async function fetchTableSchema({
         return {
           columns: [],
           foreignKeyRelations: [],
+          candidateKeys: [],
           error: null,
           metadata: { schema, table, schemaNotFound, tableNotFound },
         };
@@ -100,6 +101,7 @@ export default async function fetchTableSchema({
         return {
           columns: [],
           foreignKeyRelations: [],
+          candidateKeys: [],
           error: null,
           metadata: { schema, table, columnsNotFound: true },
         };
@@ -117,11 +119,8 @@ export default async function fetchTableSchema({
   const [, ...rawColumns] = responseData[0].result;
   const [, ...rawConstraints] = responseData[1].result;
 
-  const { columns, foreignKeyRelations } = normalizeTableConstraints(
-    rawColumns,
-    rawConstraints,
-    schema,
-  );
+  const { columns, foreignKeyRelations, candidateKeys } =
+    normalizeTableConstraints(rawColumns, rawConstraints, schema);
 
-  return { columns, foreignKeyRelations, error: null };
+  return { columns, foreignKeyRelations, candidateKeys, error: null };
 }

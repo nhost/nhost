@@ -15,7 +15,6 @@ export default function ReferencedTableSelect({
   options,
 }: ReferencedTableSelectProps) {
   const { control, setValue } = useFormContext<BaseForeignKeySchemaValues>();
-  const columnName = useWatch({ name: 'columnName' });
   const referencedSchema = useWatch({ name: 'referencedSchema' });
 
   const availableTablesInSelectedSchema = options
@@ -28,12 +27,15 @@ export default function ReferencedTableSelect({
       name="referencedTable"
       label="Table"
       placeholder="Select a table"
-      disabled={!columnName || !referencedSchema}
+      disabled={!referencedSchema}
       contentClassName="z-[1400]"
+      className="border-border"
       transform={{
         in: (value: string) => value ?? '',
         out: (value: string) => {
-          setValue('referencedColumn', '');
+          setValue('referencedKeyName', '');
+          setValue('referencedColumns', []);
+          setValue('columns', []);
           return value;
         },
       }}

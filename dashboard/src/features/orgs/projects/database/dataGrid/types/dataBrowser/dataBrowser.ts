@@ -411,18 +411,28 @@ export type PostgresReferentialAction =
   | 'SET DEFAULT';
 
 /**
- * Represents a foreign key in a table.
+ * Represents a foreign key in a table. `columns` and `referencedColumns` are
+ * positionally paired: `columns[i]` references `referencedColumns[i]`.
  */
 export interface ForeignKeyRelation {
   id?: string;
   name?: string;
-  columnName: string;
+  columns: string[];
   referencedSchema?: string | null;
   referencedTable: string;
-  referencedColumn: string;
+  referencedColumns: string[];
   updateAction: PostgresReferentialAction;
   deleteAction: PostgresReferentialAction;
   oneToOne?: boolean;
+}
+
+/**
+ * A primary key or unique constraint a foreign key can reference.
+ */
+export interface CandidateKey {
+  name: string;
+  isPrimary: boolean;
+  columns: string[];
 }
 
 /**

@@ -86,9 +86,6 @@ test('should create table with multiple foreign keys, then edit by removing one 
 
   await page.getByRole('button', { name: /add foreign key/i }).click();
 
-  await page.getByRole('combobox', { name: 'Column' }).first().click();
-  await page.getByRole('option', { name: /author_id/i }).click();
-
   await page.getByLabel('Schema').click();
   await page.getByRole('option', { name: /public/i }).click();
 
@@ -97,8 +94,11 @@ test('should create table with multiple foreign keys, then edit by removing one 
     .getByRole('option', { name: firstRefTableName, exact: true })
     .click();
 
-  await page.getByRole('combobox', { name: 'Column' }).last().click();
-  await page.getByRole('option', { name: /id/i }).click();
+  await page.getByRole('combobox', { name: 'Referenced key' }).click();
+  await page.getByRole('option', { name: /PRIMARY KEY .*\(id\)/ }).click();
+
+  await page.getByRole('combobox', { name: 'Local column for id' }).click();
+  await page.getByRole('option', { name: 'author_id', exact: true }).click();
 
   await page.getByRole('button', { name: /add/i }).click();
 
@@ -113,9 +113,6 @@ test('should create table with multiple foreign keys, then edit by removing one 
   // Add second foreign key (publisher_id -> secondRefTableName)
   await page.getByRole('button', { name: /add foreign key/i }).click();
 
-  await page.getByRole('combobox', { name: 'Column' }).first().click();
-  await page.getByRole('option', { name: /publisher_id/i }).click();
-
   await page.getByLabel('Schema').click();
   await page.getByRole('option', { name: /public/i }).click();
 
@@ -124,8 +121,11 @@ test('should create table with multiple foreign keys, then edit by removing one 
     .getByRole('option', { name: secondRefTableName, exact: true })
     .click();
 
-  await page.getByRole('combobox', { name: 'Column' }).last().click();
-  await page.getByRole('option', { name: /id/i }).click();
+  await page.getByRole('combobox', { name: 'Referenced key' }).click();
+  await page.getByRole('option', { name: /PRIMARY KEY .*\(id\)/ }).click();
+
+  await page.getByRole('combobox', { name: 'Local column for id' }).click();
+  await page.getByRole('option', { name: 'publisher_id', exact: true }).click();
 
   await page.getByRole('button', { name: /add/i }).click();
 
@@ -176,9 +176,6 @@ test('should create table with multiple foreign keys, then edit by removing one 
 
   await page.getByRole('button', { name: /add foreign key/i }).click();
 
-  await page.getByRole('combobox', { name: 'Column' }).first().click();
-  await page.getByRole('option', { name: /category_id/i }).click();
-
   await page.getByLabel('Schema').click();
   await page.getByRole('option', { name: /public/i }).click();
 
@@ -187,8 +184,11 @@ test('should create table with multiple foreign keys, then edit by removing one 
     .getByRole('option', { name: thirdRefTableName, exact: true })
     .click();
 
-  await page.getByRole('combobox', { name: 'Column' }).last().click();
-  await page.getByRole('option', { name: /id/i }).click();
+  await page.getByRole('combobox', { name: 'Referenced key' }).click();
+  await page.getByRole('option', { name: /PRIMARY KEY .*\(id\)/ }).click();
+
+  await page.getByRole('combobox', { name: 'Local column for id' }).click();
+  await page.getByRole('option', { name: 'category_id', exact: true }).click();
 
   await page.getByRole('button', { name: /add/i }).click();
 
@@ -263,9 +263,6 @@ test('should create table with multiple foreign keys pointing to the same column
 
   await page.getByRole('button', { name: /add foreign key/i }).click();
 
-  await page.getByRole('combobox', { name: 'Column' }).first().click();
-  await page.getByRole('option', { name: /primary_address_id/i }).click();
-
   await page.getByLabel('Schema').click();
   await page.getByRole('option', { name: /public/i }).click();
 
@@ -274,8 +271,13 @@ test('should create table with multiple foreign keys pointing to the same column
     .getByRole('option', { name: addressTableName, exact: true })
     .click();
 
-  await page.getByRole('combobox', { name: 'Column' }).last().click();
-  await page.getByRole('option', { name: /id/i }).click();
+  await page.getByRole('combobox', { name: 'Referenced key' }).click();
+  await page.getByRole('option', { name: /PRIMARY KEY .*\(id\)/ }).click();
+
+  await page.getByRole('combobox', { name: 'Local column for id' }).click();
+  await page
+    .getByRole('option', { name: 'primary_address_id', exact: true })
+    .click();
 
   await page.getByRole('button', { name: /add/i }).click();
 
@@ -289,9 +291,6 @@ test('should create table with multiple foreign keys pointing to the same column
 
   await page.getByRole('button', { name: /add foreign key/i }).click();
 
-  await page.getByRole('combobox', { name: 'Column' }).first().click();
-  await page.getByRole('option', { name: /secondary_address_id/i }).click();
-
   await page.getByLabel('Schema').click();
   await page.getByRole('option', { name: /public/i }).click();
 
@@ -300,8 +299,13 @@ test('should create table with multiple foreign keys pointing to the same column
     .getByRole('option', { name: addressTableName, exact: true })
     .click();
 
-  await page.getByRole('combobox', { name: 'Column' }).last().click();
-  await page.getByRole('option', { name: /id/i }).click();
+  await page.getByRole('combobox', { name: 'Referenced key' }).click();
+  await page.getByRole('option', { name: /PRIMARY KEY .*\(id\)/ }).click();
+
+  await page.getByRole('combobox', { name: 'Local column for id' }).click();
+  await page
+    .getByRole('option', { name: 'secondary_address_id', exact: true })
+    .click();
 
   await page.getByRole('button', { name: /add/i }).click();
 
@@ -325,5 +329,107 @@ test('should create table with multiple foreign keys pointing to the same column
 
   await expect(
     page.getByRole('link', { name: userTableName, exact: true }),
+  ).toBeVisible();
+});
+
+test('should create table with a composite foreign key', async ({
+  authenticatedNhostPage: page,
+}) => {
+  await page.getByRole('button', { name: /new table/i }).click();
+  await expect(page.getByText(/create a new table/i)).toBeVisible();
+
+  const departmentTableName = snakeCase(faker.lorem.words(2));
+
+  await prepareTable({
+    page,
+    name: departmentTableName,
+    primaryKeys: ['region_code', 'dept_code'],
+    columns: [
+      { name: 'region_code', type: 'text' },
+      { name: 'dept_code', type: 'text' },
+      { name: 'label', type: 'text' },
+    ],
+  });
+
+  // The form seeds `id` as the primary key, so it has to be deselected for the
+  // referenced key to be the composite (region_code, dept_code) one.
+  await page.getByLabel('Primary Key').click();
+  await page.getByRole('option', { name: 'id', exact: true }).click();
+  await page.getByText('Create a New Table').click();
+  await expect(page.locator('div[data-testid="id"]')).not.toBeVisible();
+
+  await page.getByRole('button', { name: /create/i }).click();
+
+  await page.waitForURL(
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/tables/${departmentTableName}`,
+  );
+
+  await page.getByRole('button', { name: /new table/i }).click();
+  await expect(page.getByText(/create a new table/i)).toBeVisible();
+
+  const employeeTableName = snakeCase(faker.lorem.words(2));
+
+  await prepareTable({
+    page,
+    name: employeeTableName,
+    primaryKeys: [],
+    columns: [
+      { name: 'region_code', type: 'text' },
+      { name: 'dept_code', type: 'text' },
+      { name: 'full_name', type: 'text' },
+    ],
+  });
+
+  await page.getByRole('button', { name: /add foreign key/i }).click();
+
+  await page.getByLabel('Schema').click();
+  await page.getByRole('option', { name: /public/i }).click();
+
+  await page.getByRole('combobox', { name: 'Table' }).click();
+  await page
+    .getByRole('option', { name: departmentTableName, exact: true })
+    .click();
+
+  await page.getByRole('combobox', { name: 'Referenced key' }).click();
+  await page
+    .getByRole('option', { name: /PRIMARY KEY .*\(region_code, dept_code\)/ })
+    .click();
+
+  await page
+    .getByRole('combobox', { name: 'Local column for region_code' })
+    .click();
+  await page.getByRole('option', { name: 'region_code', exact: true }).click();
+
+  await page
+    .getByRole('combobox', { name: 'Local column for dept_code' })
+    .click();
+  await page.getByRole('option', { name: 'dept_code', exact: true }).click();
+
+  await page.getByRole('button', { name: /add/i }).click();
+
+  await expect(
+    page.getByTestId('foreignKeyFormSubmitButton'),
+  ).not.toBeVisible();
+
+  await expect(
+    page.getByText('region_code, dept_code', { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(`public.${departmentTableName}.region_code, dept_code`, {
+      exact: true,
+    }),
+  ).toBeVisible();
+
+  await page.getByRole('button', { name: /create/i }).click();
+
+  await expect(page.getByText(/error:/i)).not.toBeVisible();
+  await expect(page.getByText(/create a new table/i)).not.toBeVisible();
+
+  await page.waitForURL(
+    `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/public/tables/${employeeTableName}`,
+  );
+
+  await expect(
+    page.getByRole('link', { name: employeeTableName, exact: true }),
   ).toBeVisible();
 });

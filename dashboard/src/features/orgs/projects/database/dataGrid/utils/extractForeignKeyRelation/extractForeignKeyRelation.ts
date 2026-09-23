@@ -2,6 +2,7 @@ import type {
   ForeignKeyRelation,
   PostgresReferentialAction,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { formatForeignKeyColumns } from '@/features/orgs/projects/database/dataGrid/utils/formatForeignKeyColumns';
 
 /**
  * Extracts foreign key relation data from a raw foreign key constraint. This
@@ -26,9 +27,9 @@ export default function extractForeignKeyRelation(
 
   const [
     ,
-    columnName,
+    columns,
     referencedTablePath,
-    referencedColumn,
+    referencedColumns,
     updateAction,
     deleteAction,
   ] = matches;
@@ -42,12 +43,14 @@ export default function extractForeignKeyRelation(
 
   return {
     name,
-    columnName: columnName.replace(/(^\(|\)$)/gi, '').replaceAll('"', ''),
+    columns: formatForeignKeyColumns(
+      columns.replace(/(^\(|\)$)/gi, '').replaceAll('"', ''),
+    ),
     referencedSchema,
     referencedTable: referencedTable.replaceAll('"', ''),
-    referencedColumn: referencedColumn
-      .replace(/(^\(|\)$)/gi, '')
-      .replaceAll('"', ''),
+    referencedColumns: formatForeignKeyColumns(
+      referencedColumns.replace(/(^\(|\)$)/gi, '').replaceAll('"', ''),
+    ),
     updateAction:
       (updateAction?.replace('ON UPDATE ', '') as PostgresReferentialAction) ||
       'NO ACTION',
