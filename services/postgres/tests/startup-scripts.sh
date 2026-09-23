@@ -53,19 +53,29 @@ if [ -z "$file" ]; then
 	exit 1
 fi
 
-if grep -Fq forced_sql_error "$file"; then
-	echo "forced SQL error" >&2
-	if [ "$on_error_stop" = true ]; then
-		exit 3
-	fi
-fi
+while IFS= read -r statement || [ -n "$statement" ]; do
+	case $statement in
+	*forced_sql_error*)
+		echo "forced SQL error" >&2
+		if [ "$on_error_stop" = true ]; then
+			exit 3
+		fi
+		;;
+	*)
+		printf '%s\n' "$statement" >>"$PSQL_STATEMENTS_TRACE"
+		;;
+	esac
+done <"$file"
 EOF
 chmod +x "$test_dir/bin/psql"
 
 cat >"$test_dir/failing.sql" <<'EOF'
-SELECT 1;
+SELECT before_error;
 SELECT forced_sql_error;
-SELECT 2;
+SELECT after_error;
+EOF
+cat >"$test_dir/next.sql" <<'EOF'
+SELECT next_file;
 EOF
 
 PATH="$test_dir/bin:$PATH"
@@ -74,6 +84,7 @@ export PGDATA="$test_dir/pgdata"
 export POSTGRES_DB=local
 export SERVER_AVAILABLE_TRACE="$test_dir/server-available"
 export SERVER_STOP="$test_dir/server-stop"
+export PSQL_STATEMENTS_TRACE="$test_dir/statements"
 mkdir -p "$PGDATA"
 
 helper_status=0
@@ -83,10 +94,15 @@ if [ "$helper_status" -eq 0 ]; then
 	echo "run_psql_file did not report the SQL error" >&2
 	exit 1
 fi
+if grep -Fq 'SELECT after_error;' "$PSQL_STATEMENTS_TRACE"; then
+	echo "recurring SQL continued past the error" >&2
+	exit 1
+fi
+: >"$PSQL_STATEMENTS_TRACE"
 
-# Exercise the actual startup guard with a live stand-in for PostgreSQL. The
-# Nhost step observes that the server remains available after the init SQL
-# failure, then allows the stand-in to exit cleanly.
+# Exercise the startup guards with a live stand-in for PostgreSQL. First-boot
+# SQL continues within and after the failing file; recurring SQL fails fast.
+# The Nhost step still observes an available server before the stand-in exits.
 init_db() {
 	DATABASE_INITIALIZED=true
 	export DATABASE_INITIALIZED
@@ -109,13 +125,15 @@ wait_for_postgres() {
 }
 
 run_init_scripts() {
-	run_psql_file "$POSTGRES_DB" "$test_dir/failing.sql"
+	run_psql_file "$POSTGRES_DB" "$test_dir/failing.sql" continue_on_sql_error &&
+		run_psql_file "$POSTGRES_DB" "$test_dir/next.sql" continue_on_sql_error
 }
 
 run_nhost_scripts() {
 	kill -0 "$POSTGRES_PID"
 	: >"$SERVER_AVAILABLE_TRACE"
 	: >"$SERVER_STOP"
+	run_psql_file "$POSTGRES_DB" "$test_dir/failing.sql"
 }
 
 delete_core_dumps() {
@@ -124,9 +142,19 @@ delete_core_dumps() {
 
 (main) >"$test_dir/main-stdout" 2>"$test_dir/main-stderr"
 
-grep -Fq \
-	"Initialization script execution failed; continuing PostgreSQL startup" \
+if grep -Fq 'Initialization script execution failed' "$test_dir/main-stderr"; then
+	echo "first-boot SQL error unexpectedly aborted initialization" >&2
+	exit 1
+fi
+grep -Fq 'forced SQL error' "$test_dir/main-stderr"
+grep -Fq 'Nhost script execution failed; continuing PostgreSQL startup' \
 	"$test_dir/main-stderr"
+grep -Fq 'SELECT after_error;' "$PSQL_STATEMENTS_TRACE"
+grep -Fq 'SELECT next_file;' "$PSQL_STATEMENTS_TRACE"
+if [ "$(grep -Fc 'SELECT after_error;' "$PSQL_STATEMENTS_TRACE")" -ne 1 ]; then
+	echo "recurring SQL did not stop at the error" >&2
+	exit 1
+fi
 if [ ! -f "$SERVER_AVAILABLE_TRACE" ]; then
 	echo "startup did not continue with PostgreSQL available" >&2
 	exit 1

@@ -85,7 +85,11 @@ run_psql_file() {
 	database=$1
 	file=$2
 
-	psql -X -q -b -U postgres -d "$database" -v ON_ERROR_STOP=1 -f "$file"
+	if [ "${3:-}" = continue_on_sql_error ]; then
+		psql -X -q -b -U postgres -d "$database" -f "$file"
+	else
+		psql -X -q -b -U postgres -d "$database" -v ON_ERROR_STOP=1 -f "$file"
+	fi
 }
 
 run_init_scripts() {
@@ -97,7 +101,9 @@ run_init_scripts() {
 		filename=$(basename "$f") || return 1
 		rendered_file="/tmp/postgresql/initdb.d/$filename"
 		envsubst <"$f" >"$rendered_file" || return 1
-		run_psql_file "$POSTGRES_DB" "$rendered_file" || return 1
+		# SQL errors are logged by psql; keep processing first-boot setup files.
+		# PG_VERSION prevents automatic retries, so operators must repair missing setup.
+		run_psql_file "$POSTGRES_DB" "$rendered_file" continue_on_sql_error || return 1
 	done
 }
 
