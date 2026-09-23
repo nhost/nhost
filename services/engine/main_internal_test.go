@@ -5,6 +5,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
+	"net/http"
 	"os"
 	"os/exec"
 	"syscall"
@@ -18,7 +20,7 @@ const (
 	signalTestHelperEnv       = "NHOST_ENGINE_SIGNAL_TEST_HELPER"
 	signalTestOrdinary        = "ordinary"
 	signalTestWedged          = "wedged"
-	signalTestTierTimeout     = 50 * time.Millisecond
+	signalTestShutdownTimeout = 50 * time.Millisecond
 	signalTestDrainDuration   = 3 * time.Second
 	signalTestSecondSignalGap = 100 * time.Millisecond
 	signalTestProcessTimeout  = 5 * time.Second
@@ -189,23 +191,36 @@ func runWedgedSignalTestHelper(ctx context.Context) error {
 	stuckStarted := make(chan struct{})
 	done := make(chan error, 1)
 
-	stuck := func(context.Context) error {
-		close(stuckStarted)
+	// A background loop that never returns must not keep the process alive: the
+	// shared runtime bounds the tier and moves on.
+	wedged := serveutil.Definition{
+		Name:   "wedged",
+		Prefix: "",
+		Build: func(context.Context, *slog.Logger) (*serveutil.Service, error) {
+			return &serveutil.Service{
+				Handler: http.NotFoundHandler(),
+				Background: func(context.Context) error {
+					close(stuckStarted)
 
-		select {}
-	}
-	laterTier := func(ctx context.Context) error {
-		<-ctx.Done()
-
-		return nil
+					select {}
+				},
+				Close: nil,
+			}, nil
+		},
 	}
 
 	go func() {
-		done <- serveutil.Supervise(
+		done <- serveutil.Run(
 			ctx,
-			signalTestTierTimeout,
-			[]serveutil.SupervisedService{stuck},
-			[]serveutil.SupervisedService{laterTier},
+			serveutil.Options{
+				Logger:          slog.New(slog.DiscardHandler),
+				Addr:            "127.0.0.1:0",
+				DebugAddr:       "",
+				HTTP:            serveutil.HTTPTimeouts{ReadHeader: 0, Read: 0, Write: 0, Idle: 0},
+				ShutdownTimeout: signalTestShutdownTimeout,
+				Compose:         nil,
+			},
+			wedged,
 		)
 	}()
 
