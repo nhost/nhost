@@ -118,8 +118,23 @@ function parsePermissionRule(
   }
 
   if (currentKey === '_and' || currentKey === '_or') {
-    const children = (value as Record<string, unknown>[]).flatMap((item) =>
-      parsePermissionRule(item, columnPrefix),
+    const children = (value as Record<string, unknown>[]).flatMap(
+      (item): RuleNode[] => {
+        const nodes = parsePermissionRule(item, columnPrefix);
+
+        if (currentKey === '_and' || nodes.length === 1) {
+          return nodes;
+        }
+
+        return [
+          {
+            type: 'group',
+            id: uuidv4(),
+            operator: '_implicit',
+            children: nodes,
+          },
+        ];
+      },
     );
 
     return [

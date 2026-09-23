@@ -48,9 +48,10 @@ Lives in `dashboard/`. Stack: React 19, TypeScript, Next.js (file-system routing
 
 ### Imports
 
-- **Absolute imports only**, via the `@/` alias (configured in `tsconfig.json`). Example: `import Button from '@/components/ui/v3/button';`.
-- **No relative imports** (`../`, `./`) — Biome enforces this.
-- Group imports: React → external libraries → absolute imports → absolute type imports.
+- Use **absolute imports via `@/`** for imports outside the current directory (configured in `tsconfig.json`). Example: `import Button from '@/components/ui/v3/button';`.
+- **Sibling imports may use `./...`**. Example: `import ConditionRow from './ConditionRow';`. Preserve existing sibling imports when making unrelated changes.
+- **No parent-directory imports** (`../...`) — Biome enforces this.
+- Group imports: React → external libraries → absolute imports → absolute type imports → sibling imports.
 - Type-only imports use `import type { Foo } from '@/types'`.
 - Imports from `@testing-library/react*` are restricted — use `@/tests/testUtils`.
 

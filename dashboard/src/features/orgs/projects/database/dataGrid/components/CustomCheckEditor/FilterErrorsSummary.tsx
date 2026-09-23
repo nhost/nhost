@@ -1,4 +1,5 @@
 import { useFormContext } from 'react-hook-form';
+import { useCustomCheckMode } from '@/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/CustomCheckModeProvider';
 import {
   isConditionNode,
   isExistsNode,
@@ -6,7 +7,6 @@ import {
   isRelationshipNode,
   type RuleNode,
 } from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils';
-import { useCustomCheckMode } from './CustomCheckModeProvider';
 
 export interface FilterErrorsSummaryProps {
   name: string;
@@ -16,6 +16,7 @@ interface CollectedError {
   path: string;
   message: string;
   type?: string;
+  handledInline: boolean;
 }
 
 function nodeHeader(node: unknown): string {
@@ -47,6 +48,7 @@ function collect(
   tree: unknown,
   prefix: string[],
   out: CollectedError[],
+  handledInline = false,
 ): void {
   if (!errors || typeof errors !== 'object') {
     return;
@@ -61,6 +63,7 @@ function collect(
       path,
       message: record.message,
       type: typeof record.type === 'string' ? record.type : undefined,
+      handledInline,
     });
   }
 
@@ -70,16 +73,21 @@ function collect(
     }
 
     if (key === 'root') {
-      collect(value, tree, prefix, out);
+      collect(value, tree, prefix, out, handledInline);
       continue;
     }
 
     if (key === 'children' && Array.isArray(value)) {
       const treeChildren = (tree as { children?: unknown[] })?.children ?? [];
-      for (let i = 0; i < value.length; i += 1) {
-        if (value[i]) {
-          collect(value[i], treeChildren[i], prefix, out);
-        }
+      for (const [index, childError] of Object.entries(value)) {
+        const isArrayRoot = index === 'root';
+        collect(
+          childError,
+          isArrayRoot ? tree : treeChildren[Number(index)],
+          prefix,
+          out,
+          isArrayRoot,
+        );
       }
       continue;
     }
@@ -100,7 +108,7 @@ function collect(
       continue;
     }
 
-    collect(value, tree, prefix, out);
+    collect(value, tree, prefix, out, key === 'children');
   }
 }
 
@@ -117,7 +125,9 @@ export default function FilterErrorsSummary({
   collect(errors[name], getValues(name), [], collected);
 
   const visible =
-    mode === 'json' ? collected : collected.filter(({ path }) => !path);
+    mode === 'json'
+      ? collected
+      : collected.filter(({ path, handledInline }) => !path && !handledInline);
 
   if (visible.length === 0) {
     return null;
@@ -125,13 +135,14 @@ export default function FilterErrorsSummary({
 
   return (
     <ul className="mb-2 list-disc pl-5 text-destructive text-sm" role="alert">
-      {visible.map(({ path, message, type }) => {
+      {visible.map(({ path, message, type }, index) => {
         const displayMessage =
           mode === 'json' && type === 'no-serialization-collisions'
             ? `${message} Switch to Visual to find and remove the duplicate.`
             : message;
         return (
-          <li key={`${path}:${message}`}>
+          // biome-ignore lint/suspicious/noArrayIndexKey: stateless error rows need to distinguish identical messages
+          <li key={`${message}-${index}`}>
             {path ? (
               <>
                 <span className="font-medium">{path}</span>: {displayMessage}

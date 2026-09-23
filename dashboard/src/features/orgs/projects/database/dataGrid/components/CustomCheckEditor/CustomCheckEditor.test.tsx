@@ -4,6 +4,12 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { vi } from 'vitest';
 import * as Yup from 'yup';
 import { filterValidationSchema } from '@/features/orgs/projects/common/utils/permissions/validationSchemas/basePermissionValidationSchema';
+import CustomCheckEditor from '@/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/CustomCheckEditor';
+import {
+  type CustomCheckEditorMode,
+  CustomCheckModeProvider,
+} from '@/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/CustomCheckModeProvider';
+import CustomCheckModeToggle from '@/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/CustomCheckModeToggle';
 import type { HasuraOperator } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type {
   ConditionNode,
@@ -23,12 +29,6 @@ import {
   TestUserEvent,
   waitFor,
 } from '@/tests/testUtils';
-import CustomCheckEditor from './CustomCheckEditor';
-import {
-  type CustomCheckEditorMode,
-  CustomCheckModeProvider,
-} from './CustomCheckModeProvider';
-import CustomCheckModeToggle from './CustomCheckModeToggle';
 
 const mocks = vi.hoisted(() => ({
   useRouter: vi.fn(),
@@ -89,7 +89,7 @@ function TestWrapper({
   return (
     <FormProvider {...form}>
       <CustomCheckModeProvider defaultMode={mode}>
-        {mode === 'json' && withValidation ? (
+        {withValidation ? (
           <button type="button" onClick={() => form.trigger()}>
             validate
           </button>
@@ -152,6 +152,7 @@ describe('CustomCheckEditor', () => {
 
   afterEach(() => {
     server.resetHandlers();
+    vi.restoreAllMocks();
   });
 
   afterAll(() => {
@@ -188,6 +189,183 @@ describe('CustomCheckEditor', () => {
 
       expect(screen.getByRole('textbox')).toBeInTheDocument();
       expect(screen.queryByText('title')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('validation error display', () => {
+    it('shows a nested empty-group error only inside the offending visual group', async () => {
+      render(
+        <TestWrapper
+          defaultValues={{
+            rule: group('_or', [
+              group('_and', []),
+              condition('title', '_eq', 'foo'),
+            ]),
+          }}
+          withValidation
+        >
+          <CustomCheckEditor {...defaultProps} />
+        </TestWrapper>,
+      );
+
+      expect(await screen.findByText('title')).toBeInTheDocument();
+      const user = new TestUserEvent();
+      await user.click(screen.getByRole('button', { name: 'validate' }));
+
+      await waitFor(() => {
+        expect(
+          screen.getAllByText('Add a condition or remove this empty group.'),
+        ).toHaveLength(1);
+      });
+      expect(screen.getByText('AND').closest('.group-node')).toContainElement(
+        screen.getByRole('alert'),
+      );
+    });
+
+    it('shows a nested empty-group error in the JSON summary', async () => {
+      render(
+        <TestWrapper
+          defaultValues={{
+            rule: group('_or', [
+              group('_and', []),
+              condition('title', '_eq', 'foo'),
+            ]),
+          }}
+          mode="json"
+          withValidation
+        >
+          <CustomCheckEditor {...defaultProps} />
+        </TestWrapper>,
+      );
+
+      const user = new TestUserEvent();
+      await user.click(screen.getByRole('button', { name: 'validate' }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('listitem')).toHaveTextContent(
+          'Add a condition or remove this empty group.',
+        );
+      });
+      expect(
+        screen.getAllByText('Add a condition or remove this empty group.'),
+      ).toHaveLength(1);
+    });
+
+    it('renders repeated JSON errors without duplicate keys', async () => {
+      const consoleError = vi.spyOn(console, 'error');
+
+      render(
+        <TestWrapper
+          defaultValues={{
+            rule: group('_or', [
+              group('_and', []),
+              group('_or', []),
+              condition('title', '_eq', 'foo'),
+            ]),
+          }}
+          mode="json"
+          withValidation
+        >
+          <CustomCheckEditor {...defaultProps} />
+        </TestWrapper>,
+      );
+
+      const user = new TestUserEvent();
+      await user.click(screen.getByRole('button', { name: 'validate' }));
+
+      await waitFor(() => {
+        expect(screen.getAllByRole('listitem')).toHaveLength(2);
+      });
+      expect(
+        screen.getAllByText('Add a condition or remove this empty group.'),
+      ).toHaveLength(2);
+      expect(consoleError).not.toHaveBeenCalledWith(
+        expect.stringContaining('same key'),
+        expect.any(String),
+      );
+    });
+
+    it('renders repeated errors without duplicate keys after switching from Visual to JSON', async () => {
+      const consoleError = vi.spyOn(console, 'error');
+
+      render(
+        <TestWrapper
+          defaultValues={{
+            rule: group('_or', [
+              group('_and', []),
+              group('_or', []),
+              condition('title', '_eq', 'foo'),
+            ]),
+          }}
+          withValidation
+        >
+          <HarnessWithToggle />
+        </TestWrapper>,
+      );
+
+      expect(await screen.findByText('title')).toBeInTheDocument();
+      const user = new TestUserEvent();
+      await user.click(screen.getByRole('button', { name: 'validate' }));
+      await user.click(screen.getByRole('button', { name: /json/i }));
+
+      await waitFor(() => {
+        expect(screen.getAllByRole('listitem')).toHaveLength(2);
+      });
+      expect(
+        screen.getAllByText('Add a condition or remove this empty group.'),
+      ).toHaveLength(2);
+      expect(consoleError).not.toHaveBeenCalledWith(
+        expect.stringContaining('same key'),
+        expect.any(String),
+      );
+    });
+
+    it('keeps the empty-root error in the visual summary', async () => {
+      render(
+        <TestWrapper
+          defaultValues={{ rule: group('_implicit', []) }}
+          withValidation
+        >
+          <CustomCheckEditor {...defaultProps} />
+        </TestWrapper>,
+      );
+
+      const user = new TestUserEvent();
+      await user.click(screen.getByRole('button', { name: 'validate' }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('listitem')).toHaveTextContent(
+          'Please add at least one rule, or choose "Without any checks".',
+        );
+      });
+    });
+
+    it('keeps serialization collision errors in the visual summary', async () => {
+      render(
+        <TestWrapper
+          defaultValues={{
+            rule: group('_implicit', [
+              condition('title', '_eq', 'foo'),
+              condition('title', '_eq', 'bar'),
+            ]),
+          }}
+          withValidation
+        >
+          <CustomCheckEditor {...defaultProps} />
+        </TestWrapper>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getAllByText('title')).toHaveLength(2);
+      });
+      const user = new TestUserEvent();
+      await user.click(screen.getByRole('button', { name: 'validate' }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('listitem')).toHaveTextContent(
+          /Column "title".*appears more than once/,
+        );
+      });
     });
   });
 
