@@ -56,10 +56,14 @@ export default function normalizeTableConstraints(
       }
     }
 
-    if (
-      (constraintType === 'p' || constraintType === 'u') &&
-      !candidateKeyMap.has(constraintName)
-    ) {
+    const isConstraintCandidateKey =
+      constraintType === 'p' || constraintType === 'u';
+    const isIndexCandidateKey = constraintType === 'i';
+    const shouldSetCandidateKey =
+      isConstraintCandidateKey ||
+      (isIndexCandidateKey && !candidateKeyMap.has(constraintName));
+
+    if (shouldSetCandidateKey) {
       // Row order from UNNEST(CONKEY) is not reliable, so the column order is
       // taken from the constraint definition (`PRIMARY KEY (a, b)`).
       const definitionColumns = /\(([^)]*)\)/.exec(
@@ -122,20 +126,9 @@ export default function normalizeTableConstraints(
     .sort((a, b) => a.ordinal_position - b.ordinal_position);
 
   const candidateKeys = Array.from(candidateKeyMap.values());
-  const candidateKeyColumnSets = [
-    ...candidateKeys.map(({ columns: keyColumns }) => keyColumns),
-    // A unique index without a backing constraint is invisible to the
-    // constraint query, so a uniquely indexed column that belongs to no
-    // constraint is a key of its own.
-    ...columns
-      .filter(
-        ({ is_unique, unique_constraints, primary_constraints }) =>
-          is_unique &&
-          !unique_constraints.length &&
-          !primary_constraints.length,
-      )
-      .map(({ column_name }) => [column_name]),
-  ];
+  const candidateKeyColumnSets = candidateKeys.map(
+    ({ columns: keyColumns }) => keyColumns,
+  );
 
   const foreignKeyRelations = allForeignKeyRelations.reduce(
     (accumulator, foreignKeyRelation) => {
