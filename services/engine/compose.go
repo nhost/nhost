@@ -57,9 +57,6 @@ const (
 	// shutdownTimeout bounds the graceful shutdown of the shared server once the
 	// process context is cancelled.
 	shutdownTimeout = 30 * time.Second
-	// shutdownTierTimeout lets the server report its own shutdown timeout before
-	// supervision advances, while keeping every shutdown tier bounded.
-	shutdownTierTimeout = shutdownTimeout + 5*time.Second
 	// defaultAuthAPIPrefix preserves the standard Nhost auth /v1 route surface
 	// when auth is embedded behind the engine's /auth mount.
 	defaultAuthAPIPrefix = "/v1"
@@ -359,42 +356,51 @@ func flagHasNonEmptyValue(cmd *cli.Command, name string) bool {
 	return false
 }
 
-// mounted pairs a built service with the metadata needed to route, run, and
-// shut it down under the shared lifecycle.
-type mounted struct {
-	name   string
-	prefix string
-	svc    *serveutil.Service
-}
-
 // runServe composes the enabled services behind one shared listener and runs
-// them under ctx. Each service handler is mounted beneath its path prefix, and
-// each background loop and the shared HTTP server run as supervised units.
-// Mounted resources are released when supervision returns; after a tier timeout,
-// cleanup may overlap the abandoned background loop as permitted by Service.
+// them under ctx. The shared serve runtime owns the lifecycle: it builds each
+// service, mounts its handler beneath the engine's path prefix, and drives
+// shutdown in order — the listener drains first, then the background loops are
+// cancelled, then each service releases its resources in reverse build order.
 func runServe(ctx context.Context, cmd *cli.Command, version string) error {
 	cfg := serveConfigFrom(cmd)
 	logger := serveutil.NewLogger(cfg.debug, cfg.logFormatText)
 
 	logStartup(ctx, logger, cmd, version)
 
-	services, err := buildAll(
-		ctx, serviceRegistry(), serviceOrder(), cmd, version, logger, cfg,
+	definitions := enabledDefinitions(
+		ctx, serviceRegistry(), serviceOrder(), cmd, version, cfg, logger,
 	)
-	if err != nil {
-		return err
-	}
-	// A timed-out Background goroutine may still be running here. Service.Close
-	// explicitly permits concurrent cleanup, and its cleanup collection is
-	// idempotent, so releasing mounted resources remains safe in that broken state.
-	defer shutdownMounted(services)
-
-	mux, err := newMux(services, cfg.compatAuthHosts, cfg.mountPrefixHosts, logger)
-	if err != nil {
-		return fmt.Errorf("building shared router: %w", err)
+	if len(definitions) == 0 {
+		return errAllServicesDisabled
 	}
 
-	return superviseShared(ctx, cfg, mux, services, logger)
+	// Run's errors already name the service and the lifecycle phase that failed.
+	//nolint:wrapcheck // adding a prefix here would only repeat that context.
+	return serveutil.Run(
+		ctx,
+		serveutil.Options{
+			Logger:    logger,
+			Addr:      cfg.bind,
+			DebugAddr: "",
+			// The read, write and idle timeouts are intentionally left unbounded:
+			// they would abort slow large uploads, truncate long-lived GraphQL
+			// responses, or close keep-alive connections; the cloud load balancer
+			// owns those limits. Only ReadHeaderTimeout is kept, as a cheap
+			// slowloris guard that bounds the header read without limiting upload
+			// or response duration.
+			HTTP: serveutil.HTTPTimeouts{
+				ReadHeader: readHeaderTimeout,
+				Read:       0,
+				Write:      0,
+				Idle:       0,
+			},
+			ShutdownTimeout: shutdownTimeout,
+			Compose: func(services []serveutil.Mounted) (http.Handler, error) {
+				return newMux(services, cfg.compatAuthHosts, cfg.mountPrefixHosts, logger)
+			},
+		},
+		definitions...,
+	)
 }
 
 // logStartup identifies the engine before service construction can emit logs or
@@ -405,27 +411,22 @@ func logStartup(ctx context.Context, logger *slog.Logger, cmd *cli.Command, vers
 	serveutil.LogFlags(ctx, logger, cmd)
 }
 
-// buildAll constructs each enabled service in mount order. Until every service
-// is built, it retains ownership and shuts down partial results in reverse
-// construction order on failure. A successful return transfers cleanup
-// ownership to the caller.
-func buildAll(
+// enabledDefinitions turns every service not opted out of with
+// --disable-<service> into a serve definition, in stable mount order. Each
+// definition defers to buildService, so a service's own CLI still parses its
+// prefixed flags and the engine still injects the shared globals; the shared
+// runtime only decides when that construction runs and what happens to the
+// result.
+func enabledDefinitions(
 	ctx context.Context,
 	reg map[string]serviceDef,
 	order []string,
 	cmd *cli.Command,
 	version string,
-	logger *slog.Logger,
 	cfg serveConfig,
-) ([]mounted, error) {
-	services := make([]mounted, 0, len(order))
-	ownershipTransferred := false
-
-	defer func() {
-		if !ownershipTransferred {
-			shutdownMounted(services)
-		}
-	}()
+	logger *slog.Logger,
+) []serveutil.Definition {
+	definitions := make([]serveutil.Definition, 0, len(order))
 
 	for _, name := range order {
 		if cfg.disabled[name] {
@@ -436,35 +437,16 @@ func buildAll(
 
 		def := reg[name]
 
-		svc, err := buildService(ctx, def, name, cmd, version, logger, cfg)
-		if err != nil {
-			return nil, fmt.Errorf("initializing %s: %w", name, err)
-		}
-
-		services = append(
-			services, mounted{name: name, prefix: def.prefix, svc: svc},
-		)
-
-		logger.InfoContext(
-			ctx, "mounted service",
-			slog.String("service", name),
-			slog.String("prefix", def.prefix),
-		)
+		definitions = append(definitions, serveutil.Definition{
+			Name:   name,
+			Prefix: def.prefix,
+			Build: func(ctx context.Context, logger *slog.Logger) (*serveutil.Service, error) {
+				return buildService(ctx, def, name, cmd, version, logger, cfg)
+			},
+		})
 	}
 
-	if len(services) == 0 {
-		return nil, errAllServicesDisabled
-	}
-
-	ownershipTransferred = true
-
-	return services, nil
-}
-
-func shutdownMounted(services []mounted) {
-	for _, service := range slices.Backward(services) {
-		service.svc.Shutdown()
-	}
+	return definitions
 }
 
 var (
@@ -530,7 +512,7 @@ func relaxRequiredForSkipped(flags []cli.Flag, skip map[string]bool) []string {
 // dispatch directly to auth without changing the request path. A root /healthz
 // reports engine liveness.
 func newMux(
-	services []mounted,
+	services []serveutil.Mounted,
 	compatAuthHosts []string,
 	mountPrefixHosts []string,
 	logger *slog.Logger,
@@ -550,12 +532,12 @@ func newMux(
 	)
 
 	for _, m := range services {
-		handler := mountHandler(m.prefix, mountPrefixHostSet, m.svc.Handler)
-		mux.Handle(m.prefix+"/", handler)
-		mountedRoutes = append(mountedRoutes, mountedRoute{prefix: m.prefix, handler: handler})
+		handler := mountHandler(m.Prefix, mountPrefixHostSet, m.Service.Handler)
+		mux.Handle(m.Prefix+"/", handler)
+		mountedRoutes = append(mountedRoutes, mountedRoute{prefix: m.Prefix, handler: handler})
 
-		if m.name == "auth" {
-			authHandler = m.svc.Handler
+		if m.Name == "auth" {
+			authHandler = m.Service.Handler
 		}
 	}
 
@@ -863,92 +845,4 @@ func buildService(
 	}
 
 	return built, nil
-}
-
-// superviseShared runs every service's background loop and the shared HTTP
-// server concurrently. On shutdown the HTTP server drains first while service
-// dependencies remain available, then the background loops are cancelled.
-func superviseShared(
-	ctx context.Context,
-	cfg serveConfig,
-	handler http.Handler,
-	services []mounted,
-	logger *slog.Logger,
-) error {
-	// The read, write and idle timeouts are intentionally left unbounded: they
-	// would abort slow large uploads, truncate long-lived GraphQL responses, or
-	// close keep-alive connections; the cloud load balancer owns those limits.
-	// Only ReadHeaderTimeout is kept, as a cheap slowloris guard that bounds the
-	// header read without limiting upload or response duration.
-	server := &http.Server{ //nolint:exhaustruct
-		Addr:              cfg.bind,
-		Handler:           handler,
-		ReadHeaderTimeout: readHeaderTimeout,
-	}
-
-	backgroundUnits := make([]serveutil.SupervisedService, 0, len(services))
-
-	for _, m := range services {
-		backgroundUnits = append(backgroundUnits, func(ctx context.Context) error {
-			if err := m.svc.RunBackground(ctx); err != nil {
-				return fmt.Errorf("%s background: %w", m.name, err)
-			}
-
-			return nil
-		})
-	}
-
-	drainUnits := []serveutil.SupervisedService{httpServerUnit(server, logger)}
-
-	if err := serveutil.Supervise(
-		ctx, shutdownTierTimeout, drainUnits, backgroundUnits,
-	); err != nil {
-		return fmt.Errorf("running services: %w", err)
-	}
-
-	return nil
-}
-
-// httpServerUnit adapts the shared HTTP server into a supervised unit: it
-// listens until the server fails or ctx is cancelled, then shuts the server
-// down gracefully.
-func httpServerUnit(server *http.Server, logger *slog.Logger) serveutil.SupervisedService {
-	return func(ctx context.Context) error {
-		errc := make(chan error, 1)
-
-		go func() {
-			logger.InfoContext(
-				ctx, "starting shared server", slog.String("address", server.Addr),
-			)
-
-			err := server.ListenAndServe()
-			if errors.Is(err, http.ErrServerClosed) {
-				err = nil
-			}
-
-			errc <- err
-		}()
-
-		select {
-		case err := <-errc:
-			if err != nil {
-				return fmt.Errorf("shared server failed: %w", err)
-			}
-
-			return nil
-		case <-ctx.Done():
-			logger.InfoContext(ctx, "shutting down shared server")
-
-			shutdownCtx, cancel := context.WithTimeout(
-				context.Background(), shutdownTimeout,
-			)
-			defer cancel()
-
-			if err := server.Shutdown(shutdownCtx); err != nil { //nolint:contextcheck
-				return fmt.Errorf("shutting down shared server: %w", err)
-			}
-
-			return nil
-		}
-	}
 }

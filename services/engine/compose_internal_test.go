@@ -21,7 +21,6 @@ import (
 )
 
 var (
-	errTestBackground      = errors.New("background failed")
 	errTestServiceBuild    = errors.New("service build failed")
 	errHijackerUnavailable = errors.New("http.Hijacker unavailable")
 )
@@ -42,7 +41,7 @@ func echoService() *serveutil.Service {
 
 func mustNewMux(
 	t *testing.T,
-	services []mounted,
+	services []serveutil.Mounted,
 	compatAuthHosts []string,
 	mountPrefixHosts []string,
 ) http.Handler {
@@ -61,10 +60,10 @@ func mustNewMux(
 func TestNewMuxRoutesEnginePathsAndCompatAuthHosts(t *testing.T) {
 	t.Parallel()
 
-	mux := mustNewMux(t, []mounted{
-		{name: "auth", prefix: "/auth", svc: echoService()},
-		{name: "storage", prefix: "/storage", svc: echoService()},
-		{name: "graphql", prefix: "/graphql", svc: echoService()},
+	mux := mustNewMux(t, []serveutil.Mounted{
+		{Name: "auth", Prefix: "/auth", Service: echoService()},
+		{Name: "storage", Prefix: "/storage", Service: echoService()},
+		{Name: "graphql", Prefix: "/graphql", Service: echoService()},
 	}, []string{
 		"hasura-auth-service",
 		"",
@@ -308,7 +307,10 @@ func TestEngineDefaultsAuthToV1OnRealMux(t *testing.T) {
 					}
 
 					mux := mustNewMux(
-						t, []mounted{{name: "auth", prefix: def.prefix, svc: svc}}, nil, nil,
+						t,
+						[]serveutil.Mounted{{Name: "auth", Prefix: def.prefix, Service: svc}},
+						nil,
+						nil,
 					)
 
 					for _, route := range []struct {
@@ -388,7 +390,7 @@ func TestEngineDefaultsGraphQLPlaygroundEndpointOnRealMux(t *testing.T) {
 		}
 
 		mux := mustNewMux(
-			t, []mounted{{name: "graphql", prefix: def.prefix, svc: svc}}, nil, nil,
+			t, []serveutil.Mounted{{Name: "graphql", Prefix: def.prefix, Service: svc}}, nil, nil,
 		)
 		recorder := httptest.NewRecorder()
 		request := httptest.NewRequest(http.MethodGet, "/graphql/", nil)
@@ -455,8 +457,8 @@ func TestNewMuxCompatAuthHostDoesNotRewriteRedirect(t *testing.T) {
 			http.Redirect(w, r, "/v1/verify", http.StatusTemporaryRedirect)
 		},
 	)}
-	mux := mustNewMux(t, []mounted{
-		{name: "auth", prefix: "/auth", svc: auth},
+	mux := mustNewMux(t, []serveutil.Mounted{
+		{Name: "auth", Prefix: "/auth", Service: auth},
 	}, []string{"hasura-auth-service"}, []string{"hasura-auth-service"})
 
 	recorder := httptest.NewRecorder()
@@ -473,9 +475,9 @@ func TestNewMuxCompatAuthHostDoesNotRewriteRedirect(t *testing.T) {
 func TestNewMuxCompatAuthHostsWithAuthDisabled(t *testing.T) {
 	t.Parallel()
 
-	mux := mustNewMux(t, []mounted{
-		{name: "storage", prefix: "/storage", svc: echoService()},
-		{name: "graphql", prefix: "/graphql", svc: echoService()},
+	mux := mustNewMux(t, []serveutil.Mounted{
+		{Name: "storage", Prefix: "/storage", Service: echoService()},
+		{Name: "graphql", Prefix: "/graphql", Service: echoService()},
 	}, []string{"hasura-auth-service"}, nil)
 
 	tests := []struct {
@@ -545,7 +547,7 @@ func TestNewMuxSkipsMalformedCompatAuthHosts(t *testing.T) {
 			var logs bytes.Buffer
 
 			mux, err := newMux(
-				[]mounted{{name: "auth", prefix: "/auth", svc: echoService()}},
+				[]serveutil.Mounted{{Name: "auth", Prefix: "/auth", Service: echoService()}},
 				[]string{tc.host, "valid-auth.example"},
 				nil,
 				slog.New(slog.NewTextHandler(&logs, nil)),
@@ -579,9 +581,9 @@ func TestNewMuxReturnsErrorForCompatAuthHostConflict(t *testing.T) {
 	t.Parallel()
 
 	_, err := newMux(
-		[]mounted{
-			{name: "storage", prefix: "hasura-auth-service", svc: echoService()},
-			{name: "auth", prefix: "/auth", svc: echoService()},
+		[]serveutil.Mounted{
+			{Name: "storage", Prefix: "hasura-auth-service", Service: echoService()},
+			{Name: "auth", Prefix: "/auth", Service: echoService()},
 		},
 		[]string{"hasura-auth-service"},
 		nil,
@@ -618,11 +620,11 @@ func assertRedirectPrefixPreserved(t *testing.T, host string) {
 		c.Status(http.StatusOK)
 	})
 
-	mux := mustNewMux(t, []mounted{
+	mux := mustNewMux(t, []serveutil.Mounted{
 		{
-			name:   "storage",
-			prefix: "/storage",
-			svc:    &serveutil.Service{Handler: router},
+			Name:    "storage",
+			Prefix:  "/storage",
+			Service: &serveutil.Service{Handler: router},
 		},
 	}, nil, []string{"nhost-engine-service"})
 
@@ -656,11 +658,11 @@ func TestNewMuxLeavesRedirectUnprefixedByDefault(t *testing.T) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/v1/files", http.StatusTemporaryRedirect)
 	})
-	mux := mustNewMux(t, []mounted{
+	mux := mustNewMux(t, []serveutil.Mounted{
 		{
-			name:   "storage",
-			prefix: "/storage",
-			svc:    &serveutil.Service{Handler: handler},
+			Name:    "storage",
+			Prefix:  "/storage",
+			Service: &serveutil.Service{Handler: handler},
 		},
 	}, nil, nil)
 
@@ -736,11 +738,11 @@ func TestNewMuxRewritesOnlyRootRelativeRedirects(t *testing.T) {
 					w.WriteHeader(tc.secondStatus)
 				}
 			})
-			mux := mustNewMux(t, []mounted{
+			mux := mustNewMux(t, []serveutil.Mounted{
 				{
-					name:   "storage",
-					prefix: "/storage",
-					svc:    &serveutil.Service{Handler: handler},
+					Name:    "storage",
+					Prefix:  "/storage",
+					Service: &serveutil.Service{Handler: handler},
 				},
 			}, nil, []string{"nhost-engine-service"})
 
@@ -775,11 +777,11 @@ func TestNewMuxPreservesFlusher(t *testing.T) {
 
 		flusher.Flush()
 	})
-	mux := mustNewMux(t, []mounted{
+	mux := mustNewMux(t, []serveutil.Mounted{
 		{
-			name:   "graphql",
-			prefix: "/graphql",
-			svc:    &serveutil.Service{Handler: handler},
+			Name:    "graphql",
+			Prefix:  "/graphql",
+			Service: &serveutil.Service{Handler: handler},
 		},
 	}, nil, nil)
 
@@ -853,11 +855,11 @@ func assertNewMuxPreservesHijacker(t *testing.T, mountPrefixHosts []string) {
 		hijackResult <- errors.Join(writeErr, flushErr, closeErr)
 	})
 
-	mux := mustNewMux(t, []mounted{
+	mux := mustNewMux(t, []serveutil.Mounted{
 		{
-			name:   "graphql",
-			prefix: "/graphql",
-			svc:    &serveutil.Service{Handler: handler},
+			Name:    "graphql",
+			Prefix:  "/graphql",
+			Service: &serveutil.Service{Handler: handler},
 		},
 	}, nil, mountPrefixHosts)
 
@@ -909,38 +911,6 @@ func assertNewMuxPreservesHijacker(t *testing.T, mountPrefixHosts []string) {
 		}
 	case <-time.After(2 * time.Second):
 		t.Fatal("handler did not complete WebSocket upgrade")
-	}
-}
-
-func TestSuperviseSharedAttributesBackgroundErrors(t *testing.T) {
-	t.Parallel()
-
-	service := &serveutil.Service{
-		Handler: http.NotFoundHandler(),
-		Background: func(context.Context) error {
-			return errTestBackground
-		},
-		Close: nil,
-	}
-
-	err := superviseShared(
-		context.Background(),
-		serveConfig{bind: "127.0.0.1:0"},
-		http.NotFoundHandler(),
-		[]mounted{{name: "auth", prefix: "/auth", svc: service}},
-		slog.New(slog.DiscardHandler),
-	)
-	if err == nil {
-		t.Fatal("superviseShared() error = nil, want background failure")
-	}
-
-	if !errors.Is(err, errTestBackground) {
-		t.Fatalf("superviseShared() error = %v, want wrapped %v", err, errTestBackground)
-	}
-
-	const want = "running services: auth background: background failed"
-	if err.Error() != want {
-		t.Fatalf("superviseShared() error = %q, want %q", err, want)
 	}
 }
 
@@ -1015,9 +985,9 @@ func lifecycleDef(
 			return &serveutil.Service{
 				Handler:    http.NotFoundHandler(),
 				Background: nil,
-				Close: func() {
+				Close: serveutil.CloseFunc(func() {
 					*closed = append(*closed, name)
-				},
+				}),
 			}, nil
 		},
 		skip:   newSet(),
@@ -1025,70 +995,38 @@ func lifecycleDef(
 	}
 }
 
-func TestBuildAll(t *testing.T) {
+func TestEnabledDefinitions(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name          string
-		order         []string
-		disabled      map[string]bool
-		failAt        string
-		wantAttempted []string
-		wantMounted   []string
-		wantClosed    []string
-		wantErr       error
-		wantErrText   string
+		name         string
+		order        []string
+		disabled     map[string]bool
+		wantNames    []string
+		wantPrefixes []string
 	}{
 		{
-			name:          "failure closes preceding service exactly once",
-			order:         []string{"first", "second"},
-			failAt:        "second",
-			wantAttempted: []string{"first", "second"},
-			wantMounted:   nil,
-			wantClosed:    []string{"first"},
-			wantErr:       errTestServiceBuild,
-			wantErrText:   "initializing second: running second command: service build failed",
+			name:         "every service gets a definition in mount order",
+			order:        serviceOrder(),
+			disabled:     nil,
+			wantNames:    serviceOrder(),
+			wantPrefixes: []string{"/auth", "/storage", "/graphql"},
 		},
 		{
-			name:          "failure closes in reverse construction order",
-			order:         []string{"first", "second", "third"},
-			failAt:        "third",
-			wantAttempted: []string{"first", "second", "third"},
-			wantMounted:   nil,
-			wantClosed:    []string{"second", "first"},
-			wantErr:       errTestServiceBuild,
-			wantErrText:   "initializing third: running third command: service build failed",
+			name:         "disabled service is skipped",
+			order:        serviceOrder(),
+			disabled:     map[string]bool{"storage": true},
+			wantNames:    []string{"auth", "graphql"},
+			wantPrefixes: []string{"/auth", "/graphql"},
 		},
 		{
-			name:  "all services disabled",
+			name:  "all services disabled leaves nothing to run",
 			order: serviceOrder(),
 			disabled: map[string]bool{
 				"auth": true, "storage": true, "graphql": true,
 			},
-			wantAttempted: nil,
-			wantMounted:   nil,
-			wantClosed:    nil,
-			wantErr:       errAllServicesDisabled,
-			wantErrText:   errAllServicesDisabled.Error(),
-		},
-		{
-			name:          "disabled service is skipped",
-			order:         serviceOrder(),
-			disabled:      map[string]bool{"storage": true},
-			wantAttempted: []string{"auth", "graphql"},
-			wantMounted:   []string{"auth", "graphql"},
-			wantClosed:    nil,
-			wantErr:       nil,
-			wantErrText:   "",
-		},
-		{
-			name:          "success transfers cleanup ownership",
-			order:         serviceOrder(),
-			wantAttempted: serviceOrder(),
-			wantMounted:   serviceOrder(),
-			wantClosed:    nil,
-			wantErr:       nil,
-			wantErrText:   "",
+			wantNames:    nil,
+			wantPrefixes: nil,
 		},
 	}
 
@@ -1096,49 +1034,55 @@ func TestBuildAll(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			var (
-				attempted []string
-				closed    []string
-			)
+			var attempted, closed []string
 
 			registry := make(map[string]serviceDef, len(tc.order))
 			for _, name := range tc.order {
-				registry[name] = lifecycleDef(name, &attempted, &closed, tc.failAt)
+				registry[name] = lifecycleDef(name, &attempted, &closed, "")
 			}
 
-			got, err := buildAll(
+			definitions := enabledDefinitions(
 				context.Background(), registry, tc.order, &cli.Command{}, "test",
-				slog.New(slog.DiscardHandler), serveConfig{disabled: tc.disabled},
+				serveConfig{disabled: tc.disabled}, slog.New(slog.DiscardHandler),
 			)
-			if !errors.Is(err, tc.wantErr) {
-				t.Fatalf("buildAll() error = %v, want wrapped %v", err, tc.wantErr)
+
+			gotNames := make([]string, 0, len(definitions))
+			gotPrefixes := make([]string, 0, len(definitions))
+
+			for _, definition := range definitions {
+				gotNames = append(gotNames, definition.Name)
+				gotPrefixes = append(gotPrefixes, definition.Prefix)
 			}
 
-			if tc.wantErrText != "" && err.Error() != tc.wantErrText {
-				t.Fatalf("buildAll() error = %q, want %q", err, tc.wantErrText)
+			if !slices.Equal(gotNames, tc.wantNames) {
+				t.Errorf("definition names = %v, want %v", gotNames, tc.wantNames)
 			}
 
-			if err == nil {
-				t.Cleanup(func() {
-					shutdownMounted(got)
-				})
+			if !slices.Equal(gotPrefixes, tc.wantPrefixes) {
+				t.Errorf("definition prefixes = %v, want %v", gotPrefixes, tc.wantPrefixes)
 			}
 
-			mountedNames := make([]string, 0, len(got))
-			for _, service := range got {
-				mountedNames = append(mountedNames, service.name)
+			// Each definition must defer to buildService, which is what actually
+			// reparses the service's flags and injects the shared globals.
+			for _, definition := range definitions {
+				service, err := definition.Build(
+					context.Background(), slog.New(slog.DiscardHandler),
+				)
+				if err != nil {
+					t.Fatalf("Build(%s): %v", definition.Name, err)
+				}
+
+				if err := service.Close(context.Background()); err != nil {
+					t.Fatalf("Close(%s): %v", definition.Name, err)
+				}
 			}
 
-			if !slices.Equal(attempted, tc.wantAttempted) {
-				t.Errorf("construction attempts = %v, want %v", attempted, tc.wantAttempted)
+			if !slices.Equal(attempted, tc.wantNames) {
+				t.Errorf("construction attempts = %v, want %v", attempted, tc.wantNames)
 			}
 
-			if !slices.Equal(mountedNames, tc.wantMounted) {
-				t.Errorf("mounted services = %v, want %v", mountedNames, tc.wantMounted)
-			}
-
-			if !slices.Equal(closed, tc.wantClosed) {
-				t.Errorf("closed services = %v, want %v", closed, tc.wantClosed)
+			if !slices.Equal(closed, tc.wantNames) {
+				t.Errorf("closed services = %v, want %v", closed, tc.wantNames)
 			}
 		})
 	}
