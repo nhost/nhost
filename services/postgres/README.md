@@ -6,6 +6,12 @@ See [plugins.md](./plugins.md). Changes to this manifest also regenerate
 `docs/src/content/docs/products/database/extensions.mdx`; follow the
 [documentation regeneration instructions](../../docs/README.md#generated-documentation).
 
+## Temporary files in the image
+
+The entrypoint runs as the `postgres` user (UID 999). The image's `/tmp` is
+root-owned and not writable by that user; use `/tmp/postgresql` for image-side
+temporary files. PITR preflight defaults there unless `TMPDIR` is explicitly set.
+
 ## Options
 
 Following env vars are available in the image (to be set in an Nhost cloud project via settings):

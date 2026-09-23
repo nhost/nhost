@@ -57,6 +57,7 @@ EOF
 chmod +x "$test_dir/bin/wal-g"
 
 export PATH="$test_dir/bin:$PATH"
+export TMPDIR="$test_dir"
 export PGDATA="$test_dir/pgdata"
 export PITR_RECOVERY_TARGET='2026-01-02 03:04:05+00'
 export PITR_TARGET_ACTION=shutdown

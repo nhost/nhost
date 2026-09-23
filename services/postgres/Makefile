@@ -39,10 +39,19 @@ check-dry-run:  ## Returns the derivation of the check
 	@nix build --dry-run --json .\#checks.$(ARCH)-$(OS).postgres | jq -r '.[].outputs.out'
 
 
+.PHONY: _check-pre
+_check-pre: check-pitr-container
+
+
 .PHONY: check-docker
 check-docker:  ## Run check in the development environment
 	docker exec -it postgres-tests psql -U postgres \
 		-f /tests/plugins.sql --no-psqlrc -1 -d local -v "ON_ERROR_STOP=1"
+
+
+.PHONY: check-pitr-container
+check-pitr-container:  ## Verify PITR preflight uses the image's writable temp directory
+	./tests/pitr-restore-container.sh
 
 
 .PHONY: _dev-env-build

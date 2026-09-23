@@ -116,7 +116,7 @@ run_nhost_scripts() {
 
 pitr_preflight() {
 	echo "pitr_recover: checking backup storage and selector $PITR_BASEBACKUP"
-	pitr_backup_list=$(mktemp "${TMPDIR:-/tmp}/pitr-backup-list.XXXXXX") || return 1
+	pitr_backup_list=$(mktemp "${TMPDIR:-/tmp/postgresql}/pitr-backup-list.XXXXXX") || return 1
 
 	if wal-g backup-list >"$pitr_backup_list"; then
 		:
