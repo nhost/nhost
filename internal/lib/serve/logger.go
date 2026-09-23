@@ -1,10 +1,19 @@
-// Package serve holds runtime helpers shared by the Nhost service binaries
-// (auth, storage, constellation) and the unified engine binary: logger
-// construction, startup flag logging with secret redaction, and related
-// lifecycle glue. `Service` is the constructed HTTP/background/cleanup
-// abstraction, while `SupervisedService` is the function type consumed by
-// `Supervise`, the ordered multi-service supervisor. It exists so these concerns
-// are defined once instead of being copy-pasted into every service's cmd package.
+// Package serve holds the process runtime shared by the Nhost service binaries
+// (auth, storage, constellation) and the unified engine binary, so these
+// concerns are defined once instead of copy-pasted into every cmd package.
+//
+// Run is the entry point: it takes one or more Definition values, builds each
+// into a Service, serves their handlers behind a shared listener, and tears the
+// whole process down in order. A Service owns only what it built — its handler,
+// its background work, and the release of its own dependencies — while Run owns
+// the lifecycle around them. Cleanups is the collection a constructor uses to
+// accumulate that release, and MountByPrefix is the default way handlers are
+// composed. SignalContext supplies the cancellation Run responds to; the
+// package never installs signal handlers itself.
+//
+// The package also holds the logging every binary shares: NewLogger for the
+// handler configuration and LogFlags for startup flag records with secrets
+// redacted.
 package serve
 
 import (

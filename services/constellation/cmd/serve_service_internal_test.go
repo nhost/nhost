@@ -33,9 +33,22 @@ func TestNewServiceShutdownReleasesSQLiteConnector(t *testing.T) {
 		t.Fatal("NewService opened 0 SQLite descriptors, want at least 1")
 	}
 
-	svc.Shutdown()
+	closeService(t, svc)
 	requireNoSQLiteDescriptors(t, databasePath)
-	t.Logf("SQLite descriptors: constructed=%d, after Shutdown=0", openDescriptors)
+	t.Logf("SQLite descriptors: constructed=%d, after Close=0", openDescriptors)
+}
+
+// closeService releases a constructed service the way serve.Run does, with a
+// context bounded by the shutdown budget.
+func closeService(t *testing.T, svc *serveutil.Service) {
+	t.Helper()
+
+	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+	defer cancel()
+
+	if err := svc.Close(ctx); err != nil {
+		t.Fatalf("Close: %v", err)
+	}
 }
 
 func TestNewServiceRouterFailureReleasesSQLiteConnector(t *testing.T) {
@@ -52,7 +65,7 @@ func TestNewServiceRouterFailureReleasesSQLiteConnector(t *testing.T) {
 		"0",
 	)
 	if svc != nil {
-		svc.Shutdown()
+		closeService(t, svc)
 		t.Fatal("NewService with an invalid body limit returned a service")
 	}
 
@@ -87,15 +100,15 @@ func TestNewServiceBackgroundThenShutdownReleasesSQLiteConnectorOnce(t *testing.
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	if err := svc.RunBackground(ctx); err != nil {
-		t.Fatalf("RunBackground: %v", err)
+	if err := svc.Background(ctx); err != nil {
+		t.Fatalf("Background: %v", err)
 	}
 
 	requireNoSQLiteDescriptors(t, databasePath)
-	svc.Shutdown()
+	closeService(t, svc)
 	requireNoSQLiteDescriptors(t, databasePath)
 	t.Logf(
-		"SQLite descriptors: constructed=%d, after Background=0, after Shutdown=0",
+		"SQLite descriptors: constructed=%d, after Background=0, after Close=0",
 		openDescriptors,
 	)
 }

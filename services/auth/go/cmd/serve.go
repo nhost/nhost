@@ -195,7 +195,18 @@ const (
 	flagOAuth2ProviderCIMDAllowInsecureTransport = "oauth2-provider-cimd-allow-insecure-transport"
 )
 
-const defaultSMSGenericTimeout = 10 * time.Second
+const (
+	defaultSMSGenericTimeout = 10 * time.Second
+	// serviceName identifies auth in the shared serve runtime's logs and errors.
+	serviceName = "auth"
+	// readHeaderTimeout bounds how long the listener waits for request headers.
+	// The remaining HTTP deadlines stay off so large uploads and long-lived
+	// responses are not aborted mid-flight.
+	readHeaderTimeout = 5 * time.Second
+	// shutdownTimeout bounds the listener drain and the release of auth's
+	// database pool once the process context is cancelled.
+	shutdownTimeout = 30 * time.Second
+)
 
 func CommandServe() *cli.Command { //nolint:funlen,maintidx
 	return &cli.Command{ //nolint: exhaustruct
@@ -1597,14 +1608,31 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 	logger.InfoContext(ctx, cmd.Root().Name+" v"+cmd.Root().Version)
 	serveutil.LogFlags(ctx, logger, cmd)
 
-	svc, err := NewService(ctx, cmd, logger)
-	if err != nil {
-		return err
-	}
-
-	defer svc.Shutdown()
-
-	return runServer(ctx, cmd, svc, logger)
+	// Run's errors already name the service and the lifecycle phase that failed.
+	//nolint:wrapcheck // adding a prefix here would only repeat that context.
+	return serveutil.Run(
+		ctx,
+		serveutil.Options{
+			Logger:    logger,
+			Addr:      ":" + cmd.String(flagPort),
+			DebugAddr: "",
+			HTTP: serveutil.HTTPTimeouts{
+				ReadHeader: readHeaderTimeout,
+				Read:       0,
+				Write:      0,
+				Idle:       0,
+			},
+			ShutdownTimeout: shutdownTimeout,
+			Compose:         nil,
+		},
+		serveutil.Definition{
+			Name:   serviceName,
+			Prefix: "",
+			Build: func(ctx context.Context, logger *slog.Logger) (*serveutil.Service, error) {
+				return NewService(ctx, cmd, logger)
+			},
+		},
+	)
 }
 
 // NewService builds auth's serving surface: the HTTP handler and the database
@@ -1653,54 +1681,6 @@ func NewService(
 	return &serveutil.Service{
 		Handler:    handler,
 		Background: nil,
-		Close:      cleanups.Close,
+		Close:      serveutil.CloseFunc(cleanups.Close),
 	}, nil
-}
-
-func runServer(
-	ctx context.Context,
-	cmd *cli.Command,
-	svc *serveutil.Service,
-	logger *slog.Logger,
-) error {
-	server := &http.Server{ //nolint:exhaustruct
-		Addr:              ":" + cmd.String(flagPort),
-		Handler:           svc.Handler,
-		ReadHeaderTimeout: 5 * time.Second, //nolint:mnd
-	}
-
-	// The shutdown callback already adds the service-specific call-site context.
-	//nolint:wrapcheck // Preserve that established error without adding a redundant prefix.
-	return serveutil.Run(
-		ctx,
-		logger,
-		serveutil.RunHooks{
-			Start: nil,
-			ServeHTTP: func(_ context.Context) {
-				logger.InfoContext(
-					ctx, "starting server", slog.String("port", cmd.String(flagPort)),
-				)
-
-				if err := server.ListenAndServe(); err != nil &&
-					!errors.Is(err, http.ErrServerClosed) {
-					logger.ErrorContext(ctx, "server failed", slog.String("error", err.Error()))
-				}
-			},
-			Shutdown: func(_ context.Context) error {
-				logger.InfoContext(ctx, "shutting down server")
-
-				shutdownCtx, shutdownCancel := context.WithTimeout(
-					context.Background(), 30*time.Second, //nolint:mnd
-				)
-				defer shutdownCancel()
-
-				if err := server.Shutdown(shutdownCtx); err != nil { //nolint:contextcheck
-					return fmt.Errorf("failed to shutdown server: %w", err)
-				}
-
-				return nil
-			},
-		},
-		svc,
-	)
 }
