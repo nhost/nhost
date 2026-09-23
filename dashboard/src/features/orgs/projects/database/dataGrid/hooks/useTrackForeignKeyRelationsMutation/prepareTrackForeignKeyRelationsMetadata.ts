@@ -128,8 +128,7 @@ export default async function prepareTrackForeignKeyRelationsMetadata({
             schema,
           },
           using: {
-            foreign_key_constraint_on:
-              columns.length === 1 ? columns[0] : columns,
+            foreign_key_constraint_on: columns,
           },
         },
       };
@@ -148,22 +147,13 @@ export default async function prepareTrackForeignKeyRelationsMetadata({
             schema: newForeignKeyRelation.referencedSchema!,
           },
           using: {
-            foreign_key_constraint_on:
-              columns.length === 1
-                ? {
-                    column: columns[0],
-                    table: {
-                      name: table,
-                      schema,
-                    },
-                  }
-                : {
-                    columns,
-                    table: {
-                      name: table,
-                      schema,
-                    },
-                  },
+            foreign_key_constraint_on: {
+              columns,
+              table: {
+                name: table,
+                schema,
+              },
+            },
           },
         },
       };
