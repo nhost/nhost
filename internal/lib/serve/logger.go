@@ -6,8 +6,7 @@
 // into a Service, serves their handlers behind a shared listener, and tears the
 // whole process down in order. A Service owns only what it built — its handler,
 // its background work, and the release of its own dependencies — while Run owns
-// the lifecycle around them. Cleanups is the collection a constructor uses to
-// accumulate that release, and MountByPrefix is the default way handlers are
+// the lifecycle around them. MountByPrefix is the default way handlers are
 // composed. SignalContext supplies the cancellation Run responds to; the
 // package never installs signal handlers itself.
 //

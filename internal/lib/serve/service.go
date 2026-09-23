@@ -32,11 +32,11 @@ type Service struct {
 	// pools, JWT key sets, image transformers). Run calls it once, after
 	// Background has returned, with a context bounded by Options.ShutdownTimeout.
 	//
-	// The single case where Close can still overlap Background is a service that
-	// ignored cancellation for longer than the shutdown budget allows: Run stops
-	// waiting and proceeds, leaving the abandoned goroutine running. Close must
-	// therefore stay idempotent and safe to call concurrently with Background.
-	// Cleanups provides both properties. It is nil when there is nothing to
+	// Run calls it exactly once, so it need not guard against a second call. The
+	// single case where it can still overlap Background is a service that ignored
+	// cancellation for longer than the shutdown budget allows: Run stops waiting
+	// and proceeds, leaving the abandoned goroutine running, so each released
+	// resource must tolerate concurrent use. It is nil when there is nothing to
 	// release.
 	Close func(ctx context.Context) error
 }
@@ -75,7 +75,7 @@ type Mounted struct {
 }
 
 // CloseFunc adapts a release function that neither fails nor observes a
-// deadline, such as Cleanups.Close, to the Service.Close hook.
+// deadline, such as a connection pool's Close, to the Service.Close hook.
 func CloseFunc(release func()) func(context.Context) error {
 	return func(context.Context) error {
 		release()
