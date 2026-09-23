@@ -1646,22 +1646,18 @@ func NewService(
 	cmd *cli.Command,
 	logger *slog.Logger,
 ) (_ *serveutil.Service, err error) {
-	cleanups := &serveutil.Cleanups{}
-
-	// Release everything acquired so far if construction fails. On success the
-	// returned Service owns the cleanups and frees them through its Close.
-	defer func() {
-		if err != nil {
-			cleanups.Close()
-		}
-	}()
-
 	pool, err := getDBPool(ctx, cmd)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create database pool: %w", err)
 	}
 
-	cleanups.Add(pool.Close)
+	// Release the pool if the rest of construction fails. On success the returned
+	// Service owns it and frees it through its Close.
+	defer func() {
+		if err != nil {
+			pool.Close()
+		}
+	}()
 
 	encrypter, err := crypto.NewEncrypterFromString(cmd.String(flagEncryptionKey))
 	if err != nil {
@@ -1681,6 +1677,6 @@ func NewService(
 	return &serveutil.Service{
 		Handler:    handler,
 		Background: nil,
-		Close:      serveutil.CloseFunc(cleanups.Close),
+		Close:      serveutil.CloseFunc(pool.Close),
 	}, nil
 }

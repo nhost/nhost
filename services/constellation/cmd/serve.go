@@ -524,29 +524,30 @@ func NewService(
 	cmd *cli.Command,
 	logger *slog.Logger,
 ) (_ *serveutil.Service, err error) {
-	cleanups := &serveutil.Cleanups{}
-
-	// Release everything acquired so far if construction fails. On success the
-	// returned Service owns the cleanups and frees them through its Close.
-	defer func() {
-		if err != nil {
-			cleanups.Close()
-		}
-	}()
-
+	// Each acquired resource is released again if a later step fails; on success
+	// the returned Service owns them all and frees them through its Close, which
+	// must mirror these defers in the same reverse order.
 	metadataSource, err := newMetadataSource(ctx, cmd, logger)
 	if err != nil {
 		return nil, err
 	}
 
-	cleanups.Add(metadataSource.Close)
+	defer func() {
+		if err != nil {
+			metadataSource.Close()
+		}
+	}()
 
 	jwtAuth, err := initJWTAuth(ctx, cmd, logger)
 	if err != nil {
 		return nil, fmt.Errorf("initializing JWT auth: %w", err)
 	}
 
-	cleanups.Add(jwtAuth.Close)
+	defer func() {
+		if err != nil {
+			jwtAuth.Close()
+		}
+	}()
 
 	hasuraProxy, err := newHasuraProxy(cmd, logger)
 	if err != nil {
@@ -560,7 +561,15 @@ func NewService(
 		return nil, err
 	}
 
-	cleanups.Add(ctrl.Close)
+	// Controller.Close releases connectors under its own uncancelled context on
+	// purpose: by the time shutdown reaches it the lifecycle context is already
+	// cancelled, and threading that in would skip the connector drain.
+	//nolint:contextcheck // releasing must outlive the cancelled lifecycle context
+	defer func() {
+		if err != nil {
+			ctrl.Close()
+		}
+	}()
 
 	router, err := getRouter(ctx, cmd, ctrl, jwtAuth, hasuraProxy, logger)
 	if err != nil {
@@ -576,7 +585,13 @@ func NewService(
 
 			return nil
 		},
-		Close: serveutil.CloseFunc(cleanups.Close),
+		// Mirrors the construction defers above in the same reverse order.
+		//nolint:contextcheck // releasing must outlive the cancelled lifecycle context
+		Close: serveutil.CloseFunc(func() {
+			ctrl.Close()
+			jwtAuth.Close()
+			metadataSource.Close()
+		}),
 	}, nil
 }
 

@@ -531,18 +531,15 @@ func NewService(
 	cmd *cli.Command,
 	logger *slog.Logger,
 ) (_ *serveutil.Service, err error) {
-	cleanups := &serveutil.Cleanups{}
+	imageTransformer := newImageTransformer(ctx, cmd, logger)
 
-	// Release everything acquired so far if construction fails. On success the
-	// returned Service owns the cleanups and frees them through its Close.
+	// Tear libvips down again if the rest of construction fails. On success the
+	// returned Service owns the transformer and frees it through its Close.
 	defer func() {
 		if err != nil {
-			cleanups.Close()
+			imageTransformer.Shutdown()
 		}
 	}()
-
-	imageTransformer := newImageTransformer(ctx, cmd, logger)
-	cleanups.Add(imageTransformer.Shutdown)
 
 	contentStorage := getContentStorage(
 		ctx,
@@ -583,7 +580,7 @@ func NewService(
 	return &serveutil.Service{
 		Handler:    handler,
 		Background: nil,
-		Close:      serveutil.CloseFunc(cleanups.Close),
+		Close:      serveutil.CloseFunc(imageTransformer.Shutdown),
 	}, nil
 }
 
