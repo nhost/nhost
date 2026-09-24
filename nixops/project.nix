@@ -68,6 +68,11 @@ let
       pkg-config
       nhost.playwright-driver
       nhost.pnpm
+      nhost.postgresql_14-client
+      nhost.postgresql_15-client
+      nhost.postgresql_16-client
+      nhost.postgresql_17
+      nhost.postgresql_17-client
       nhost.postgresql_18
       nhost.postgresql_18-client
       python312Packages.certbot-dns-route53
