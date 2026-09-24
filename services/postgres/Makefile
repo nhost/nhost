@@ -61,7 +61,7 @@ check-pitr-restart:  ## Verify a promoted PITR target survives normal restart
 
 .PHONY: check-graceful-shutdown
 check-graceful-shutdown:  ## Verify PostgreSQL shuts down cleanly
-	./scripts/test-graceful-shutdown.sh
+	./tests/test-graceful-shutdown.sh
 
 
 .PHONY: _dev-env-build
