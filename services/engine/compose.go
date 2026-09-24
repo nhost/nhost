@@ -1,0 +1,954 @@
+package main
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"io"
+	"log/slog"
+	"net"
+	"net/http"
+	"net/url"
+	"reflect"
+	"regexp"
+	"slices"
+	"strings"
+	"time"
+
+	"github.com/felixge/httpsnoop"
+	serveutil "github.com/nhost/nhost/internal/lib/serve"
+	"github.com/urfave/cli/v3"
+)
+
+// Engine-owned flag names. Naming them keeps the definitions in globalFlags
+// and the lookups in serveConfigFrom from drifting apart. Service-native flag
+// names (sharedOverridesFor, the registry skip sets) stay literal on purpose:
+// they belong to each service's own CLI, and some of them collide with these
+// names (graphql's admin-secret, jwt-secret, cors-allowed-origins) without
+// being the same flag.
+const (
+	flagBind                  = "bind"
+	flagDebug                 = "debug"
+	flagLogFormatText         = "log-format-text"
+	flagAdminSecret           = "admin-secret"
+	flagJWTSecret             = "jwt-secret"
+	flagDatabaseURL           = "database-url"
+	flagMigrationsDatabaseURL = "migrations-database-url"
+	flagCORSAllowedOrigins    = "cors-allowed-origins"
+	flagAuthCompatHosts       = "auth-compat-hosts"
+	flagMountPrefixHosts      = "mount-prefix-hosts"
+)
+
+// disableFlagName is the engine flag that opts a service out of composition,
+// e.g. service "auth" => "disable-auth". It is the CLI counterpart of
+// prefixedEnv("disable", service).
+func disableFlagName(service string) string {
+	return "disable-" + service
+}
+
+const (
+	// defaultBind is the shared listener address used when --bind is not set.
+	defaultBind = ":8080"
+	// maxDNSHostnameLength is the RFC 1035 maximum hostname length.
+	maxDNSHostnameLength = 253
+	// readHeaderTimeout bounds how long the shared server waits for request
+	// headers, mirroring the per-service standalone servers.
+	readHeaderTimeout = 5 * time.Second
+	// shutdownTimeout bounds the graceful shutdown of the shared server once the
+	// process context is cancelled.
+	shutdownTimeout = 30 * time.Second
+	// shutdownTierTimeout lets the server report its own shutdown timeout before
+	// supervision advances, while keeping every shutdown tier bounded.
+	shutdownTierTimeout = shutdownTimeout + 5*time.Second
+	// defaultAuthAPIPrefix preserves the standard Nhost auth /v1 route surface
+	// when auth is embedded behind the engine's /auth mount.
+	defaultAuthAPIPrefix = "/v1"
+	// defaultGraphQLPlaygroundEndpoint points Constellation's playground at the
+	// GraphQL route exposed through the engine's /graphql mount.
+	defaultGraphQLPlaygroundEndpoint = "/graphql/v1/graphql"
+)
+
+// serveConfig holds the engine-level configuration for the serve command.
+// Process-level settings (listener, logger, HTTP timeouts) configure the engine
+// directly; cross-cutting values from global flags are injected into each
+// service that consumes them. disabled records the services opted out of with
+// --disable-<service>.
+type serveConfig struct {
+	bind          string
+	debug         bool
+	logFormatText bool
+
+	adminSecret      string
+	jwtSecret        string
+	databaseURL      string
+	migrationsURL    string
+	corsOrigins      []string
+	compatAuthHosts  []string
+	mountPrefixHosts []string
+
+	disabled map[string]bool
+}
+
+// globalFlags defines the engine's shared flag surface. These consolidate the
+// settings common to every service: the listener, logging, shared secrets,
+// database URLs, and CORS origins, plus the --disable-<service> opt-outs. They
+// use bare env vars (BIND, ADMIN_SECRET, ...) because the engine replaces the
+// individual service binaries rather than running alongside them.
+func globalFlags() []cli.Flag {
+	flags := []cli.Flag{ //nolint:prealloc
+		&cli.StringFlag{ //nolint:exhaustruct
+			Name:    flagBind,
+			Usage:   "address the shared listener binds to",
+			Value:   defaultBind,
+			Sources: cli.EnvVars("BIND"),
+		},
+		&cli.BoolFlag{ //nolint:exhaustruct
+			Name:    flagDebug,
+			Usage:   "enable debug logging",
+			Sources: cli.EnvVars("DEBUG"),
+		},
+		&cli.BoolFlag{ //nolint:exhaustruct
+			Name:    flagLogFormatText,
+			Usage:   "log in human-friendly text format instead of JSON",
+			Sources: cli.EnvVars("LOG_FORMAT_TEXT"),
+		},
+		&cli.StringFlag{ //nolint:exhaustruct
+			Name:    flagAdminSecret,
+			Usage:   "Hasura admin secret shared by every service",
+			Sources: cli.EnvVars("ADMIN_SECRET"),
+		},
+		&cli.StringFlag{ //nolint:exhaustruct
+			Name:    flagJWTSecret,
+			Usage:   "Hasura GraphQL JWT secret shared by auth and graphql",
+			Sources: cli.EnvVars("JWT_SECRET"),
+		},
+		&cli.StringFlag{ //nolint:exhaustruct
+			Name:    flagDatabaseURL,
+			Usage:   "PostgreSQL connection URL shared by auth and graphql",
+			Sources: cli.EnvVars("DATABASE_URL"),
+		},
+		&cli.StringFlag{ //nolint:exhaustruct
+			Name:    flagMigrationsDatabaseURL,
+			Usage:   "PostgreSQL migrations connection URL shared by auth and storage",
+			Sources: cli.EnvVars("MIGRATIONS_DATABASE_URL"),
+		},
+		&cli.StringSliceFlag{ //nolint:exhaustruct
+			Name:    flagCORSAllowedOrigins,
+			Usage:   "origins permitted to make cross-origin requests, shared by storage and graphql",
+			Sources: cli.EnvVars("CORS_ALLOWED_ORIGINS"),
+		},
+		&cli.StringSliceFlag{ //nolint:exhaustruct
+			Name: flagAuthCompatHosts,
+			Usage: "DNS hostnames where engine routes take precedence and other paths" +
+				" fall back to auth without the /auth prefix",
+			Sources: cli.EnvVars("AUTH_COMPAT_HOSTS"),
+		},
+		&cli.StringSliceFlag{ //nolint:exhaustruct
+			Name:    flagMountPrefixHosts,
+			Usage:   "DNS hostnames where service mount prefixes are externally visible",
+			Sources: cli.EnvVars("MOUNT_PREFIX_HOSTS"),
+		},
+	}
+
+	// Append one --disable-<service> opt-out per service after the shared
+	// globals, keeping the surface "globals, then a disable flag per service".
+	for _, service := range serviceDefinitions() {
+		flags = append(flags, &cli.BoolFlag{ //nolint:exhaustruct
+			Name:     disableFlagName(service.name),
+			Usage:    "do not run the " + service.name + " service",
+			Category: "services",
+			Sources:  cli.EnvVars(prefixedEnv("disable", service.name)),
+		})
+	}
+
+	return flags
+}
+
+// serveFlags is the full flag surface of the serve command: the shared globals
+// followed by every service's prefixed passthrough flags.
+func serveFlags() []cli.Flag {
+	flags := globalFlags()
+
+	for _, service := range serviceDefinitions() {
+		flags = append(
+			flags,
+			servicePrefixedFlags(
+				service.name,
+				service.def.command().Flags,
+				service.def.skip,
+				service.def.hidden,
+			)...,
+		)
+	}
+
+	return flags
+}
+
+// serveConfigFrom reads the engine-level configuration from the parsed serve
+// command.
+func serveConfigFrom(cmd *cli.Command) serveConfig {
+	disabled := make(map[string]bool, len(serviceOrder()))
+	for _, name := range serviceOrder() {
+		disabled[name] = cmd.Bool(disableFlagName(name))
+	}
+
+	return serveConfig{
+		bind:             cmd.String(flagBind),
+		debug:            cmd.Bool(flagDebug),
+		logFormatText:    cmd.Bool(flagLogFormatText),
+		adminSecret:      cmd.String(flagAdminSecret),
+		jwtSecret:        cmd.String(flagJWTSecret),
+		databaseURL:      cmd.String(flagDatabaseURL),
+		migrationsURL:    cmd.String(flagMigrationsDatabaseURL),
+		corsOrigins:      cmd.StringSlice(flagCORSAllowedOrigins),
+		compatAuthHosts:  cmd.StringSlice(flagAuthCompatHosts),
+		mountPrefixHosts: cmd.StringSlice(flagMountPrefixHosts),
+		disabled:         disabled,
+	}
+}
+
+// sharedOverride is a shared value destined for one of a service's flags. values
+// holds a single element for scalar flags and one element per entry for slice
+// flags. preserveExplicitEmpty records flags for which an explicitly empty
+// native source is itself meaningful configuration.
+type sharedOverride struct {
+	flag                  string
+	values                []string
+	preserveExplicitEmpty bool
+}
+
+// sharedOverridesFor returns the shared values that should fill the named
+// service's flags. Only non-empty shared values are candidates; whether each is
+// actually applied (service-wins precedence) is decided by applySharedConfig.
+func sharedOverridesFor(service string, cfg serveConfig) []sharedOverride {
+	const (
+		emptyMeansUnconfigured = false
+		emptyMeansDenyAll      = true
+	)
+
+	var out []sharedOverride
+
+	scalar := func(flag, value string) {
+		if value == "" {
+			return
+		}
+
+		out = append(out, sharedOverride{
+			flag:   flag,
+			values: []string{value},
+			// Current scalar overrides are secrets, URLs, or engine-owned defaults,
+			// all of which treat an explicitly empty native source as unconfigured.
+			preserveExplicitEmpty: emptyMeansUnconfigured,
+		})
+	}
+
+	cors := func(flag string, preserveExplicitEmpty bool) {
+		if len(cfg.corsOrigins) == 0 {
+			return
+		}
+
+		out = append(out, sharedOverride{
+			flag:                  flag,
+			values:                cfg.corsOrigins,
+			preserveExplicitEmpty: preserveExplicitEmpty,
+		})
+	}
+
+	switch service {
+	case "auth":
+		scalar("api-prefix", defaultAuthAPIPrefix)
+		scalar("hasura-admin-secret", cfg.adminSecret)
+		scalar("hasura-graphql-jwt-secret", cfg.jwtSecret)
+		scalar("postgres", cfg.databaseURL)
+		scalar("postgres-migrations", cfg.migrationsURL)
+	case "storage":
+		scalar("hasura-graphql-admin-secret", cfg.adminSecret)
+		scalar("postgres-migrations-source", cfg.migrationsURL)
+		cors("cors-allow-origins", emptyMeansUnconfigured)
+	case "graphql":
+		scalar("playground-graphql-endpoint", defaultGraphQLPlaygroundEndpoint)
+		scalar("admin-secret", cfg.adminSecret)
+		scalar("jwt-secret", cfg.jwtSecret)
+		scalar("metadata-database-url", cfg.databaseURL)
+		// Constellation defines an explicitly empty CORS source as deny-all;
+		// see services/constellation/cmd/serve.go's cors-allowed-origins flag.
+		cors("cors-allowed-origins", emptyMeansDenyAll)
+	}
+
+	return out
+}
+
+// applySharedConfig injects shared values onto a service's parsed command.
+// Consolidated flags are not re-exposed under service prefixes, so their only
+// operator-controlled inputs are the native service sources. Source provenance
+// matters: a default is never an override, a non-empty source always is, and an
+// explicitly empty source is an override only where the service defines it as
+// meaningful (currently graphql CORS deny-all). Empty secrets, URLs, and storage
+// CORS sources remain unconfigured and are filled by the shared value.
+func applySharedConfig(cmd *cli.Command, service string, cfg serveConfig) error {
+	for _, o := range sharedOverridesFor(service, cfg) {
+		if flagHasOperatorValue(cmd, o.flag, o.preserveExplicitEmpty) {
+			continue
+		}
+
+		for _, v := range o.values {
+			if err := cmd.Set(o.flag, v); err != nil {
+				return fmt.Errorf(
+					"applying shared config to %s flag %q: %w", service, o.flag, err,
+				)
+			}
+		}
+	}
+
+	return nil
+}
+
+// flagHasOperatorValue reports whether a shared-config target was explicitly
+// configured rather than merely resolving to its flag default. Registry tests
+// pin each target's concrete type to StringFlag or StringSliceFlag; their
+// exported Sources chains preserve the raw value and presence for this tri-state.
+func flagHasOperatorValue(cmd *cli.Command, name string, preserveExplicitEmpty bool) bool {
+	for _, flag := range cmd.Flags {
+		if !slices.Contains(flag.Names(), name) {
+			continue
+		}
+
+		var (
+			sourceValue string
+			sourceSet   bool
+		)
+
+		switch typed := flag.(type) {
+		case *cli.StringFlag:
+			sourceValue, sourceSet = typed.Sources.Lookup()
+		case *cli.StringSliceFlag:
+			sourceValue, sourceSet = typed.Sources.Lookup()
+		}
+
+		if sourceSet {
+			return sourceValue != "" || preserveExplicitEmpty
+		}
+
+		// Consolidated flags cannot arrive as service CLI arguments in the
+		// engine, but retain correct semantics for direct command use and tests.
+		return cmd.IsSet(name) && (preserveExplicitEmpty || flagHasNonEmptyValue(cmd, name))
+	}
+
+	return false
+}
+
+// flagHasNonEmptyValue reports whether a shared-config target contains a usable
+// resolved value. The registry tests pin shared targets to scalar and slice
+// flags. It is intentionally separate from source provenance: required secrets
+// and URLs must still reject an explicitly empty source after injection.
+func flagHasNonEmptyValue(cmd *cli.Command, name string) bool {
+	for _, flag := range cmd.Flags {
+		if !slices.Contains(flag.Names(), name) {
+			continue
+		}
+
+		if classifyFlag(flag) == kindSlice {
+			return slices.ContainsFunc(cmd.StringSlice(name), func(value string) bool {
+				return value != ""
+			})
+		}
+
+		return cmd.String(name) != ""
+	}
+
+	return false
+}
+
+// mounted pairs a built service with the metadata needed to route, run, and
+// shut it down under the shared lifecycle.
+type mounted struct {
+	name   string
+	prefix string
+	svc    *serveutil.Service
+}
+
+// runServe composes the enabled services behind one shared listener and runs
+// them under ctx. Each service handler is mounted beneath its path prefix, and
+// each background loop and the shared HTTP server run as supervised units.
+// Mounted resources are released when supervision returns; after a tier timeout,
+// cleanup may overlap the abandoned background loop as permitted by Service.
+func runServe(ctx context.Context, cmd *cli.Command, version string) error {
+	cfg := serveConfigFrom(cmd)
+	logger := serveutil.NewLogger(cfg.debug, cfg.logFormatText)
+
+	logStartup(ctx, logger, cmd, version)
+
+	services, err := buildAll(
+		ctx, serviceRegistry(), serviceOrder(), cmd, version, logger, cfg,
+	)
+	if err != nil {
+		return err
+	}
+	// A timed-out Background goroutine may still be running here. Service.Close
+	// explicitly permits concurrent cleanup, and its cleanup collection is
+	// idempotent, so releasing mounted resources remains safe in that broken state.
+	defer shutdownMounted(services)
+
+	mux, err := newMux(services, cfg.compatAuthHosts, cfg.mountPrefixHosts, logger)
+	if err != nil {
+		return fmt.Errorf("building shared router: %w", err)
+	}
+
+	return superviseShared(ctx, cfg, mux, services, logger)
+}
+
+// logStartup identifies the engine before service construction can emit logs or
+// fail, then records the resolved engine-visible configuration with secrets
+// redacted by the shared serve logger.
+func logStartup(ctx context.Context, logger *slog.Logger, cmd *cli.Command, version string) {
+	logger.InfoContext(ctx, "engine v"+version)
+	serveutil.LogFlags(ctx, logger, cmd)
+}
+
+// buildAll constructs each enabled service in mount order. Until every service
+// is built, it retains ownership and shuts down partial results in reverse
+// construction order on failure. A successful return transfers cleanup
+// ownership to the caller.
+func buildAll(
+	ctx context.Context,
+	reg map[string]serviceDef,
+	order []string,
+	cmd *cli.Command,
+	version string,
+	logger *slog.Logger,
+	cfg serveConfig,
+) ([]mounted, error) {
+	services := make([]mounted, 0, len(order))
+	ownershipTransferred := false
+
+	defer func() {
+		if !ownershipTransferred {
+			shutdownMounted(services)
+		}
+	}()
+
+	for _, name := range order {
+		if cfg.disabled[name] {
+			logger.InfoContext(ctx, "service disabled", slog.String("service", name))
+
+			continue
+		}
+
+		def := reg[name]
+
+		svc, err := buildService(ctx, def, name, cmd, version, logger, cfg)
+		if err != nil {
+			return nil, fmt.Errorf("initializing %s: %w", name, err)
+		}
+
+		services = append(
+			services, mounted{name: name, prefix: def.prefix, svc: svc},
+		)
+
+		logger.InfoContext(
+			ctx, "mounted service",
+			slog.String("service", name),
+			slog.String("prefix", def.prefix),
+		)
+	}
+
+	if len(services) == 0 {
+		return nil, errAllServicesDisabled
+	}
+
+	ownershipTransferred = true
+
+	return services, nil
+}
+
+func shutdownMounted(services []mounted) {
+	for _, service := range slices.Backward(services) {
+		service.svc.Shutdown()
+	}
+}
+
+var (
+	// errAllServicesDisabled is returned when every service was turned off with
+	// a --disable-<service> flag, leaving the engine with nothing to run.
+	errAllServicesDisabled = errors.New("all services disabled; nothing to run")
+	// errServiceNotBuilt is returned when a service's command ran without
+	// constructing its serve.Service (which should never happen once its action
+	// runs), guarding against a nil dereference downstream.
+	errServiceNotBuilt = errors.New("service was not constructed")
+	// errMissingRequired is returned when a service flag the engine consolidates
+	// into a global is required by the service but was filled by neither the
+	// global nor the service's own environment.
+	errMissingRequired = errors.New("required value not provided")
+	// errCompatAuthRouteRegistration converts ServeMux's documented configuration
+	// panic into a clean startup error.
+	errCompatAuthRouteRegistration = errors.New("registering compat auth route")
+)
+
+// relaxRequiredForSkipped clears the Required bit on the service's own flags
+// that the engine consolidates into globals (those in skip), and returns their
+// names. Those values are injected after parsing by applySharedConfig, so
+// urfave's parse-time required check would otherwise fail before the engine
+// can fill them. buildService re-validates the returned flags once the global
+// has been applied, so "must be provided" is still enforced — by the engine
+// rather than the sub-CLI. Only skipped flags are touched; a flag the user
+// must supply per-service keeps its own required check. The flags come from a
+// freshly built command (def.command()), so mutating them is safe.
+func relaxRequiredForSkipped(flags []cli.Flag, skip map[string]bool) []string {
+	var relaxed []string
+
+	for _, f := range flags {
+		if !skip[f.Names()[0]] {
+			continue
+		}
+
+		rf, ok := f.(cli.RequiredFlag)
+		if !ok || !rf.IsRequired() {
+			continue
+		}
+
+		v := reflect.ValueOf(f)
+		if v.Kind() != reflect.Pointer || v.IsNil() {
+			continue
+		}
+
+		field := v.Elem().FieldByName("Required")
+		if field.IsValid() && field.CanSet() && field.Kind() == reflect.Bool {
+			field.SetBool(false)
+
+			relaxed = append(relaxed, f.Names()[0])
+		}
+	}
+
+	return relaxed
+}
+
+// newMux builds the shared request router: each service is mounted beneath its
+// path prefix with the prefix stripped before dispatch, so the service handler
+// keeps serving its own native paths. Root-relative redirects regain the prefix
+// only on hosts where that mount path is externally visible. On compat auth
+// hosts, engine mount prefixes and /healthz take precedence; all other paths
+// dispatch directly to auth without changing the request path. A root /healthz
+// reports engine liveness.
+func newMux(
+	services []mounted,
+	compatAuthHosts []string,
+	mountPrefixHosts []string,
+	logger *slog.Logger,
+) (http.Handler, error) {
+	type mountedRoute struct {
+		prefix  string
+		handler http.Handler
+	}
+
+	var (
+		mux                = http.NewServeMux()
+		authHandler        http.Handler
+		mountedRoutes      = make([]mountedRoute, 0, len(services))
+		mountPrefixHostSet = normalizedDNSHostSet(
+			mountPrefixHosts, logger, "mount prefix",
+		)
+	)
+
+	for _, m := range services {
+		handler := mountHandler(m.prefix, mountPrefixHostSet, m.svc.Handler)
+		mux.Handle(m.prefix+"/", handler)
+		mountedRoutes = append(mountedRoutes, mountedRoute{prefix: m.prefix, handler: handler})
+
+		if m.name == "auth" {
+			authHandler = m.svc.Handler
+		}
+	}
+
+	healthHandler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = io.WriteString(w, "ok")
+	})
+	mux.Handle("/healthz", healthHandler)
+
+	if authHandler != nil {
+		for _, host := range normalizeCompatAuthHosts(compatAuthHosts, logger) {
+			for _, route := range mountedRoutes {
+				if err := registerMuxHandler(
+					mux, host+route.prefix+"/", route.handler,
+				); err != nil {
+					return nil, err
+				}
+			}
+
+			if err := registerMuxHandler(mux, host+"/healthz", healthHandler); err != nil {
+				return nil, err
+			}
+
+			if err := registerMuxHandler(mux, host+"/", authHandler); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return normalizeRequestHostHandler(mux), nil
+}
+
+func normalizeRequestHostHandler(handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		host := normalizeRequestHost(r.Host)
+		if host == r.Host {
+			handler.ServeHTTP(w, r)
+
+			return
+		}
+
+		request := r.Clone(r.Context())
+		request.Host = host
+		handler.ServeHTTP(w, request)
+	})
+}
+
+func normalizeRequestHost(requestHost string) string {
+	host, port, err := net.SplitHostPort(requestHost)
+	if err != nil {
+		return strings.ToLower(strings.TrimSuffix(requestHost, "."))
+	}
+
+	normalizedHost := strings.ToLower(strings.TrimSuffix(host, "."))
+	if normalizedHost == host {
+		return requestHost
+	}
+
+	return net.JoinHostPort(normalizedHost, port)
+}
+
+var dnsHostLabel = regexp.MustCompile(`^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$`)
+
+func normalizeCompatAuthHosts(hosts []string, logger *slog.Logger) []string {
+	return normalizeDNSHosts(hosts, logger, "auth compatibility")
+}
+
+func normalizedDNSHostSet(
+	hosts []string, logger *slog.Logger, purpose string,
+) map[string]struct{} {
+	normalized := make(map[string]struct{}, len(hosts))
+	for _, host := range normalizeDNSHosts(hosts, logger, purpose) {
+		normalized[host] = struct{}{}
+	}
+
+	return normalized
+}
+
+func normalizeDNSHosts(hosts []string, logger *slog.Logger, purpose string) []string {
+	normalized := make([]string, 0, len(hosts))
+	seen := make(map[string]struct{}, len(hosts))
+
+	for _, value := range hosts {
+		host := strings.ToLower(strings.TrimSpace(value))
+		if host == "" {
+			continue
+		}
+
+		if !validDNSHost(host) {
+			logger.Warn(
+				"skipping invalid "+purpose+" host",
+				slog.String("host", value),
+				slog.String("reason", "expected a DNS hostname without a scheme, port, or path"),
+			)
+
+			continue
+		}
+
+		if _, exists := seen[host]; exists {
+			continue
+		}
+
+		seen[host] = struct{}{}
+		normalized = append(normalized, host)
+	}
+
+	return normalized
+}
+
+func validDNSHost(host string) bool {
+	if len(host) > maxDNSHostnameLength {
+		return false
+	}
+
+	for label := range strings.SplitSeq(host, ".") {
+		if !dnsHostLabel.MatchString(label) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func registerMuxHandler(mux *http.ServeMux, pattern string, handler http.Handler) (
+	err error,
+) {
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			err = fmt.Errorf(
+				"%w %q: %v", errCompatAuthRouteRegistration, pattern, recovered,
+			)
+		}
+	}()
+
+	mux.Handle(pattern, handler)
+
+	return nil
+}
+
+// mountHandler keeps the underlying writer's optional interfaces intact while
+// restoring root-relative redirect prefixes for clients that address the engine
+// through a mount-prefix host.
+func mountHandler(
+	prefix string, mountPrefixHosts map[string]struct{}, handler http.Handler,
+) http.Handler {
+	stripped := http.StripPrefix(prefix, handler)
+	if len(mountPrefixHosts) == 0 {
+		return stripped
+	}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		wroteFinalHeader := false
+		wrapped := httpsnoop.Wrap(w, httpsnoop.Hooks{
+			Header: nil,
+			WriteHeader: func(next httpsnoop.WriteHeaderFunc) httpsnoop.WriteHeaderFunc {
+				return func(code int) {
+					if !wroteFinalHeader && code >= http.StatusOK {
+						if requestHostInSet(r.Host, mountPrefixHosts) {
+							rewriteRedirectLocation(w.Header(), prefix, code)
+						}
+
+						wroteFinalHeader = true
+					}
+
+					next(code)
+				}
+			},
+			Write: func(next httpsnoop.WriteFunc) httpsnoop.WriteFunc {
+				return func(body []byte) (int, error) {
+					wroteFinalHeader = true
+
+					return next(body)
+				}
+			},
+			Flush: func(next httpsnoop.FlushFunc) httpsnoop.FlushFunc {
+				return func() {
+					wroteFinalHeader = true
+
+					next()
+				}
+			},
+			CloseNotify: nil,
+			Hijack:      nil,
+			ReadFrom: func(next httpsnoop.ReadFromFunc) httpsnoop.ReadFromFunc {
+				return func(src io.Reader) (int64, error) {
+					n, err := next(src)
+					if n > 0 {
+						wroteFinalHeader = true
+					}
+
+					return n, err
+				}
+			},
+			Push: nil,
+		})
+
+		stripped.ServeHTTP(wrapped, r)
+	})
+}
+
+func requestHostInSet(requestHost string, hosts map[string]struct{}) bool {
+	host := requestHost
+	if parsedHost, _, err := net.SplitHostPort(requestHost); err == nil {
+		host = parsedHost
+	}
+
+	_, ok := hosts[host]
+
+	return ok
+}
+
+func rewriteRedirectLocation(header http.Header, prefix string, code int) {
+	if code < http.StatusMultipleChoices || code >= http.StatusBadRequest {
+		return
+	}
+
+	location := header.Get("Location")
+	if !strings.HasPrefix(location, "/") {
+		return
+	}
+
+	parsed, err := url.Parse(location)
+	if err != nil || parsed.IsAbs() || parsed.Host != "" {
+		return
+	}
+
+	if parsed.Path == prefix || strings.HasPrefix(parsed.Path, prefix+"/") {
+		return
+	}
+
+	header.Set("Location", prefix+location)
+}
+
+// buildService parses one service's prefixed flags back through its own CLI (so
+// env sources, defaults, and validation behave exactly as standalone), injects
+// the shared engine config into any flags the service left unset, and
+// constructs its serve.Service.
+func buildService(
+	ctx context.Context,
+	def serviceDef,
+	name string,
+	cmd *cli.Command,
+	version string,
+	logger *slog.Logger,
+	cfg serveConfig,
+) (*serveutil.Service, error) {
+	serveCmd := def.command()
+	args := servicePassthroughArgs(name, cmd, serveCmd.Flags, def.skip)
+
+	// A service's own flag may be both consolidated into an engine global (in
+	// def.skip) and marked Required by the service. urfave enforces Required
+	// during parse, before the Action runs, so it would fail before
+	// applySharedConfig can inject the global value. Relax Required on those
+	// flags for the engine's wrapper command and re-validate below, once the
+	// global has been applied — the "must be provided" guarantee is preserved,
+	// just enforced by the engine instead of the sub-CLI. Non-skipped Required
+	// flags (values the user must supply per-service) keep their parse-time check.
+	relaxed := relaxRequiredForSkipped(serveCmd.Flags, def.skip)
+
+	var built *serveutil.Service
+
+	app := &cli.Command{ //nolint:exhaustruct
+		Name:    name,
+		Version: version,
+		Usage:   serveCmd.Usage,
+		Flags:   serveCmd.Flags,
+		Action: func(ctx context.Context, c *cli.Command) error {
+			// Runs after urfave's parse-time required-check, but that check has
+			// already been neutralized for these flags by relaxRequiredForSkipped
+			// above (it cleared their Required bit before app.Run). So injecting
+			// globals here is not "too late": applySharedConfig fills the skipped
+			// flags, then the loop below re-enforces "must be provided" — moving
+			// the guarantee from the sub-CLI to the engine, post-injection.
+			if err := applySharedConfig(c, name, cfg); err != nil {
+				return err
+			}
+
+			for _, fname := range relaxed {
+				if !c.IsSet(fname) || !flagHasNonEmptyValue(c, fname) {
+					return fmt.Errorf(
+						"%s: required value %q was not set by a shared global"+
+							" or the service's own environment: %w",
+						name, fname, errMissingRequired,
+					)
+				}
+			}
+
+			svc, err := def.newService(ctx, c, logger)
+			if err != nil {
+				return err
+			}
+
+			built = svc
+
+			return nil
+		},
+	}
+
+	if err := app.Run(ctx, append([]string{name}, args...)); err != nil {
+		return nil, fmt.Errorf("running %s command: %w", name, err)
+	}
+
+	if built == nil {
+		return nil, fmt.Errorf("%s: %w", name, errServiceNotBuilt)
+	}
+
+	return built, nil
+}
+
+// superviseShared runs every service's background loop and the shared HTTP
+// server concurrently. On shutdown the HTTP server drains first while service
+// dependencies remain available, then the background loops are cancelled.
+func superviseShared(
+	ctx context.Context,
+	cfg serveConfig,
+	handler http.Handler,
+	services []mounted,
+	logger *slog.Logger,
+) error {
+	// The read, write and idle timeouts are intentionally left unbounded: they
+	// would abort slow large uploads, truncate long-lived GraphQL responses, or
+	// close keep-alive connections; the cloud load balancer owns those limits.
+	// Only ReadHeaderTimeout is kept, as a cheap slowloris guard that bounds the
+	// header read without limiting upload or response duration.
+	server := &http.Server{ //nolint:exhaustruct
+		Addr:              cfg.bind,
+		Handler:           handler,
+		ReadHeaderTimeout: readHeaderTimeout,
+	}
+
+	backgroundUnits := make([]serveutil.SupervisedService, 0, len(services))
+
+	for _, m := range services {
+		backgroundUnits = append(backgroundUnits, func(ctx context.Context) error {
+			if err := m.svc.RunBackground(ctx); err != nil {
+				return fmt.Errorf("%s background: %w", m.name, err)
+			}
+
+			return nil
+		})
+	}
+
+	drainUnits := []serveutil.SupervisedService{httpServerUnit(server, logger)}
+
+	if err := serveutil.Supervise(
+		ctx, shutdownTierTimeout, drainUnits, backgroundUnits,
+	); err != nil {
+		return fmt.Errorf("running services: %w", err)
+	}
+
+	return nil
+}
+
+// httpServerUnit adapts the shared HTTP server into a supervised unit: it
+// listens until the server fails or ctx is cancelled, then shuts the server
+// down gracefully.
+func httpServerUnit(server *http.Server, logger *slog.Logger) serveutil.SupervisedService {
+	return func(ctx context.Context) error {
+		errc := make(chan error, 1)
+
+		go func() {
+			logger.InfoContext(
+				ctx, "starting shared server", slog.String("address", server.Addr),
+			)
+
+			err := server.ListenAndServe()
+			if errors.Is(err, http.ErrServerClosed) {
+				err = nil
+			}
+
+			errc <- err
+		}()
+
+		select {
+		case err := <-errc:
+			if err != nil {
+				return fmt.Errorf("shared server failed: %w", err)
+			}
+
+			return nil
+		case <-ctx.Done():
+			logger.InfoContext(ctx, "shutting down shared server")
+
+			shutdownCtx, cancel := context.WithTimeout(
+				context.Background(), shutdownTimeout,
+			)
+			defer cancel()
+
+			if err := server.Shutdown(shutdownCtx); err != nil { //nolint:contextcheck
+				return fmt.Errorf("shutting down shared server: %w", err)
+			}
+
+			return nil
+		}
+	}
+}

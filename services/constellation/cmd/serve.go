@@ -34,6 +34,7 @@ const (
 	flagLogFormatTEXT                = "log-format-text"
 	flagBindAddress                  = "bind-address"
 	flagEnablePlayground             = "enable-playground"
+	flagPlaygroundGraphQLEndpoint    = "playground-graphql-endpoint"
 	flagMetadataPath                 = "metadata-path"
 	flagAdminSecret                  = "admin-secret"
 	flagJWTSecret                    = "jwt-secret"
@@ -61,11 +62,12 @@ const (
 	// migrations / bulk run_sql still pass, but not unbounded.
 	defaultHasuraProxyRequestBodyLimitBytes int64 = 100 * 1024 * 1024
 
-	defaultHTTPReadTimeout   = 30 * time.Second
-	defaultHTTPWriteTimeout  = 5 * time.Minute
-	defaultHTTPIdleTimeout   = 120 * time.Second
-	maxHTTPReadHeaderTimeout = 5 * time.Second
-	shutdownTimeout          = 30 * time.Second
+	defaultPlaygroundGraphQLEndpoint = "/v1/graphql"
+	defaultHTTPReadTimeout           = 30 * time.Second
+	defaultHTTPWriteTimeout          = 5 * time.Minute
+	defaultHTTPIdleTimeout           = 120 * time.Second
+	maxHTTPReadHeaderTimeout         = 5 * time.Second
+	shutdownTimeout                  = 30 * time.Second
 )
 
 var errFlagMustBeGreaterThanZero = errors.New("must be greater than 0")
@@ -94,6 +96,13 @@ func serverFlags() []cli.Flag { //nolint:funlen // long flag list; splitting har
 			Usage:    "enable graphql playground (under /v1)",
 			Category: "server",
 			Sources:  cli.EnvVars("CONSTELLATION_ENABLE_PLAYGROUND"),
+		},
+		&cli.StringFlag{ //nolint:exhaustruct
+			Name:     flagPlaygroundGraphQLEndpoint,
+			Usage:    "GraphQL endpoint used by the playground for queries and subscriptions",
+			Value:    defaultPlaygroundGraphQLEndpoint,
+			Category: "server",
+			Sources:  cli.EnvVars("CONSTELLATION_PLAYGROUND_GRAPHQL_ENDPOINT"),
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:     flagBindAddress,
@@ -397,7 +406,7 @@ func getRouter(
 	})
 
 	if cmd.Bool(flagEnablePlayground) {
-		router.GET("/", playgroundHandler("/v1/graphql"))
+		router.GET("/", playgroundHandler(cmd.String(flagPlaygroundGraphQLEndpoint)))
 	}
 
 	maxBodyBytes, err := getMaxGraphQLRequestBodyBytes(cmd)
