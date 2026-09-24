@@ -18,29 +18,35 @@
       '';
 
   # Guard against reintroducing unpinned toolchains: everything Nhost pins
-  # lives under `pkgs.nhost.*` (see nixops/overlays/). The overlay may export
-  # only `nhost`; another top-level attr could shadow nixpkgs build inputs
-  # (go, nodejs, rustc, ...), tainting packages and defeating cache.nixos.org.
-  # References to nixpkgs attrs that `pkgs.nhost.*` shadows must go through the
-  # namespace, or they silently resolve to nixpkgs' unpinned versions.
+  # lives under `pkgs.nhost.*` (see nixops/overlays/). The overlay must not
+  # export anything else — shadowing global nixpkgs attrs (go, nodejs, ...)
+  # taints every nixpkgs package that builds with them, defeating
+  # cache.nixos.org. And references to nixpkgs attrs that `pkgs.nhost.*`
+  # shadows must go through the namespace, or they silently resolve to
+  # nixpkgs' unpinned versions.
   checkPinnedToolchains =
     {
       src,
-      overlay,
     }:
     let
       l = pkgs.lib // builtins;
-      overlayResult = overlay pkgs pkgs;
-      overlayAttrs = l.attrNames overlayResult;
-      unexpectedAttrs = l.subtractLists [ "nhost" ] overlayAttrs;
-      missingAttrs = l.subtractLists overlayAttrs [ "nhost" ];
+
+      # flake.nix wires (only) this composed overlay into nixpkgs, so an
+      # overlay file not reachable from it cannot taint anything. Overlays are
+      # plain functions: applying one and inspecting its attr names is exact,
+      # and laziness keeps it cheap (no attr values are forced).
+      overlayFile = "${src}/nixops/overlays/default.nix";
+
+      overlayAttrs = l.optionals (l.pathExists overlayFile) (l.attrNames (import overlayFile pkgs pkgs));
+
+      overlayViolations = l.remove "nhost" overlayAttrs;
 
       # Names provided under `pkgs.nhost.*` that also exist as top-level
       # nixpkgs attrs: a bare `pkgs.<name>` reference silently picks the
       # unpinned nixpkgs version, so grep for those. Names with no nixpkgs
       # counterpart fail evaluation loudly on their own.
       shadowedNames = l.optionals (l.elem "nhost" overlayAttrs) (
-        l.intersectLists (l.attrNames overlayResult.nhost) (l.attrNames pkgs)
+        l.intersectLists (l.attrNames (import overlayFile pkgs pkgs).nhost) (l.attrNames pkgs)
       );
 
       namesAlt = l.concatStringsSep "|" shadowedNames;
@@ -52,16 +58,9 @@
       ];
     in
     pkgs.runCommand "check-pinned-toolchains" { } ''
-      ${l.optionalString (unexpectedAttrs != [ ] || missingAttrs != [ ]) ''
-        echo "Nhost overlay must export only nhost:" >&2
-        ${l.optionalString (unexpectedAttrs != [ ]) ''
-          echo "unexpected attrs:" >&2
-          printf '  %s\n' ${l.escapeShellArgs unexpectedAttrs} >&2
-        ''}
-        ${l.optionalString (missingAttrs != [ ]) ''
-          echo "missing required attrs:" >&2
-          printf '  %s\n' ${l.escapeShellArgs missingAttrs} >&2
-        ''}
+      ${l.optionalString (overlayViolations != [ ]) ''
+        echo "the nixpkgs overlay must only export the nhost namespace; found extra attrs:" >&2
+        printf '  %s\n' ${l.escapeShellArgs overlayViolations} >&2
         exit 1
       ''}
 
