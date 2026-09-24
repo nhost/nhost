@@ -1,4 +1,5 @@
 {
+  self,
   pkgs,
   nix2containerPkgs,
   nixops-lib,
@@ -83,9 +84,9 @@ let
       vale
       nhost.wal-g
     ])
-    ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
+    ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [
     ]
-    ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
+    ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
       pkgs.apple-sdk_14
     ];
 
@@ -151,6 +152,7 @@ in
           root = ../.;
           fileset = fs.fileFilter (f: f.hasExt "nix") ../.;
         };
+        overlay = self.overlays.default;
       })
     ];
   };

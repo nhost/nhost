@@ -92,7 +92,7 @@ in
         pkgs.nhost.wal-g
         pkgs.cacert
       ]
-      ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
+      ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [
         pkgs.busybox
       ];
       pathsToLink = [
