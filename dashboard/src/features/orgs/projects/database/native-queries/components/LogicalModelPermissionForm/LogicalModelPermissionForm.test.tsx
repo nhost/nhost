@@ -6,14 +6,7 @@ import permissionVariablesQuery from '@/tests/msw/mocks/graphql/permissionVariab
 import hasuraMetadataQuery from '@/tests/msw/mocks/rest/hasuraMetadataQuery';
 import tableQuery from '@/tests/msw/mocks/rest/tableQuery';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
-import {
-  fireEvent,
-  mockPointerEvent,
-  render,
-  screen,
-  TestUserEvent,
-  waitFor,
-} from '@/tests/testUtils';
+import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
 import type {
   LogicalModelItem,
   LogicalModelSelectPermission,
@@ -90,11 +83,14 @@ describe('LogicalModelPermissionForm validation', () => {
     process.env.NEXT_PUBLIC_NHOST_CONFIGSERVER_URL =
       'https://local.graphql.local.nhost.run/v1';
     server.listen({ onUnhandledRequest: 'error' });
+    Element.prototype.scrollIntoView = vi.fn();
+    Element.prototype.hasPointerCapture = vi.fn(() => false);
+    Element.prototype.releasePointerCapture = vi.fn();
+    Element.prototype.setPointerCapture = vi.fn();
     window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
   });
 
   beforeEach(() => {
-    mockPointerEvent();
     mocks.useRouter.mockReturnValue({
       basePath: '',
       pathname: '/orgs/xyz/projects/test-project',
@@ -146,9 +142,7 @@ describe('LogicalModelPermissionForm validation', () => {
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 
       await user.click(screen.getByRole('checkbox', { name: 'name' }));
-      fireEvent.submit(
-        screen.getByRole('button', { name: 'Save' }).closest('form')!,
-      );
+      await user.click(screen.getByRole('button', { name: 'Save' }));
       await waitFor(() =>
         expect(savePermission).toHaveBeenCalledWith(
           expect.objectContaining({
@@ -182,7 +176,7 @@ describe('LogicalModelPermissionForm validation', () => {
     await user.click(screen.getByRole('checkbox', { name: 'name' }));
     const save = screen.getByRole('button', { name: 'Save' });
     expect(save).toBeEnabled();
-    fireEvent.submit(save.closest('form')!);
+    await user.click(save);
     await waitFor(() =>
       expect(savePermission).toHaveBeenCalledWith(
         expect.objectContaining({
