@@ -1,3 +1,19 @@
+## [functions@2.3.2] - 2026-09-24
+
+### 🐛 Bug Fixes
+
+- *(functions)* Pin npm 11 in shared dependency installer (#5014)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Update to nodejs 24.21.0 and pnpm 12 (#5009)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4998)
+
 ## [functions@2.3.1] - 2026-09-16
 
 ### 🐛 Bug Fixes
