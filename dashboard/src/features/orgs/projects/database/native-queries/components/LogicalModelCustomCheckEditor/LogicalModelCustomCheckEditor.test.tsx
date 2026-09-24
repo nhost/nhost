@@ -3,7 +3,9 @@ import { setupServer } from 'msw/node';
 import { FormProvider, type Resolver, useForm } from 'react-hook-form';
 import type { HasuraOperator } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import {
+  type ConditionNode,
   type GroupNode,
+  type LogicalOperator,
   serializeNode,
   wrapPermissionsInAGroup,
 } from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils';
@@ -20,7 +22,7 @@ import permissionVariablesQuery from '@/tests/msw/mocks/graphql/permissionVariab
 import hasuraMetadataQuery from '@/tests/msw/mocks/rest/hasuraMetadataQuery';
 import tableQuery from '@/tests/msw/mocks/rest/tableQuery';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
-import { render, screen, TestUserEvent } from '@/tests/testUtils';
+import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
 import type { LogicalModelItem } from '@/utils/hasura-api/generated/schemas';
 
 const profile: LogicalModelItem = {
@@ -89,6 +91,28 @@ function emptyGroup(): GroupNode {
     operator: '_implicit',
     children: [],
   };
+}
+
+function conditionNode(
+  column: string,
+  operator: HasuraOperator = '_eq',
+  value: unknown = 'value',
+): ConditionNode {
+  return {
+    type: 'condition',
+    id: `condition-${column}`,
+    column,
+    operator,
+    value,
+  };
+}
+
+function group(
+  operator: LogicalOperator,
+  children: GroupNode['children'],
+  id = `group-${operator}`,
+): GroupNode {
+  return { type: 'group', id, operator, children };
 }
 
 function withoutIds(value: unknown): unknown {
@@ -182,7 +206,10 @@ describe('LogicalModelCustomCheckEditor', () => {
     });
   });
 
-  afterEach(() => server.resetHandlers());
+  afterEach(() => {
+    server.resetHandlers();
+    vi.restoreAllMocks();
+  });
   afterAll(() => server.close());
 
   it('offers exists when no scalar fields are selectable', async () => {
@@ -360,6 +387,127 @@ describe('LogicalModelCustomCheckEditor', () => {
         name: 'Logical model comparison field',
       }),
     ).toHaveTextContent('id');
+  });
+
+  describe('validation error display', () => {
+    const emptyGroupMessage = 'Add a condition or remove this empty group.';
+
+    it('shows a nested empty-group error only inside the offending visual group', async () => {
+      const user = new TestUserEvent();
+      const onSubmit = vi.fn();
+      render(
+        <TestForm
+          filter={group(
+            '_or',
+            [group('_and', []), conditionNode('id')],
+            'root',
+          )}
+          onSubmit={onSubmit}
+        />,
+      );
+
+      await user.click(screen.getByRole('button', { name: 'Save' }));
+
+      await waitFor(() => {
+        expect(screen.getAllByText(emptyGroupMessage)).toHaveLength(1);
+      });
+      expect(screen.getByText('AND').closest('.group-node')).toContainElement(
+        screen.getByRole('alert'),
+      );
+      expect(onSubmit).not.toHaveBeenCalled();
+    });
+
+    it('shows a nested empty-group error in the JSON summary', async () => {
+      const user = new TestUserEvent();
+      render(
+        <TestForm
+          filter={group(
+            '_or',
+            [group('_and', []), conditionNode('id')],
+            'root',
+          )}
+        />,
+      );
+
+      await user.click(screen.getByRole('button', { name: 'JSON' }));
+      await user.click(screen.getByRole('button', { name: 'Save' }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('listitem')).toHaveTextContent(
+          emptyGroupMessage,
+        );
+      });
+      expect(screen.getAllByText(emptyGroupMessage)).toHaveLength(1);
+    });
+
+    it('renders repeated errors without duplicate keys after switching from Visual to JSON', async () => {
+      const user = new TestUserEvent();
+      const consoleError = vi.spyOn(console, 'error');
+      render(
+        <TestForm
+          filter={group(
+            '_or',
+            [group('_and', []), group('_or', []), conditionNode('id')],
+            'root',
+          )}
+        />,
+      );
+
+      await user.click(screen.getByRole('button', { name: 'Save' }));
+      await user.click(screen.getByRole('button', { name: 'JSON' }));
+
+      await waitFor(() => {
+        expect(screen.getAllByRole('listitem')).toHaveLength(2);
+      });
+      expect(screen.getAllByText(emptyGroupMessage)).toHaveLength(2);
+      expect(consoleError).not.toHaveBeenCalledWith(
+        expect.stringContaining('same key'),
+        expect.any(String),
+      );
+    });
+
+    it('keeps the empty-root error in the visual summary only', async () => {
+      const emptyRootMessage =
+        'Please add at least one rule, or choose "Without any checks".';
+      const user = new TestUserEvent();
+      render(
+        <TestForm filter={group('_implicit', [group('_and', [])], 'root')} />,
+      );
+
+      await user.click(screen.getByRole('button', { name: 'Save' }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('listitem')).toHaveTextContent(
+          emptyRootMessage,
+        );
+      });
+      expect(screen.getAllByText(emptyRootMessage)).toHaveLength(1);
+    });
+
+    it('keeps serialization collision errors in the visual summary', async () => {
+      const user = new TestUserEvent();
+      render(
+        <TestForm
+          filter={group(
+            '_implicit',
+            [
+              conditionNode('id', '_eq', 'foo'),
+              { ...conditionNode('id', '_eq', 'bar'), id: 'duplicate' },
+            ],
+            'root',
+          )}
+        />,
+      );
+
+      await user.click(screen.getByRole('button', { name: 'Save' }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('listitem')).toHaveTextContent(
+          /Column "id".*appears more than once/,
+        );
+      });
+      expect(screen.getAllByText(/appears more than once/)).toHaveLength(1);
+    });
   });
 
   it('uses the normalized scalar operator family on every render', async () => {
