@@ -7,6 +7,7 @@ import { EditLogicalModelPermissionsForm } from '@/features/orgs/projects/databa
 import { mockMatchMediaValue } from '@/tests/mocks';
 import permissionVariablesQuery from '@/tests/msw/mocks/graphql/permissionVariablesQuery';
 import {
+  mockScrollIntoViewAndPointerCapture,
   queryClient,
   render,
   screen,
@@ -200,10 +201,7 @@ describe('EditLogicalModelPermissionsForm', () => {
         print.error();
       },
     });
-    Element.prototype.scrollIntoView = vi.fn();
-    Element.prototype.hasPointerCapture = vi.fn(() => false);
-    Element.prototype.releasePointerCapture = vi.fn();
-    Element.prototype.setPointerCapture = vi.fn();
+    mockScrollIntoViewAndPointerCapture();
     window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
   });
 
