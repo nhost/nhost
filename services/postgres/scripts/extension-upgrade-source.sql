@@ -49,6 +49,21 @@ $$;
 CREATE EXTENSION timescaledb;
 \connect local
 
+-- pg_search 0.24 can be installed without vector, but 0.25 requires it.
+-- Exercise that existing-volume upgrade independently from the database
+-- where vector was already installed.
+CREATE DATABASE pg_search_without_vector;
+\connect pg_search_without_vector
+CREATE EXTENSION pg_search;
+DO $$
+BEGIN
+    IF EXISTS (SELECT FROM pg_extension WHERE extname = 'vector') THEN
+        RAISE EXCEPTION 'pg_search upgrade source unexpectedly has vector installed';
+    END IF;
+END;
+$$;
+\connect local
+
 -- Keep one deliberately un-upgradeable extension outside the database checked
 -- by plugins.sql so the entrypoint's observable, non-fatal failure policy is
 -- exercised without weakening the real-upgrade assertions.
