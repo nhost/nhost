@@ -44,6 +44,12 @@ directory in the check fileset, so changes to those files trigger CI checks.
 Git-backed flake evaluations omit new, untracked files; use
 `git add -N <paths>` to make them visible before running checks.
 
+When checking pgrx toolchain changes on a small Linux builder (for example,
+a 6 GiB Lima VM), build `packages.aarch64-linux.postgres-pg18` and
+`packages.x86_64-linux.postgres-pg18` sequentially. Parallel full builds,
+especially x86_64 through QEMU, can exhaust RAM and stall in swap while
+compiling pg_search.
+
 ## Options
 
 Following env vars are available in the image (to be set in an Nhost cloud project via settings):
