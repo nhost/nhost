@@ -8,6 +8,8 @@
 - Updated PostgreSQL 17 overlay pin to 17.11
 - Updated PostgreSQL to 18.6
 - Dropped support for PostgreSQL 16 and 17
+- On startup, outdated extensions are now upgraded in every database that accepts connections (excluding invalid databases), including `postgres` and `template1` when connectable, rather than only `POSTGRES_DB`. If `pg_search` needs an upgrade, its `vector` dependency is installed first if missing.
+- TimescaleDB upgrades first in a fresh session. Failed extension upgrades log a warning without stopping startup; a TimescaleDB failure skips further upgrades in that database. Failed database inspections also log a warning and skip that database.
 - Updated extensions:
   - hypopg: 1.4.2 → 1.4.3
   - pg_cron: 1.6.7 → 1.6.8
