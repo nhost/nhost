@@ -15,7 +15,6 @@ let
     fileset = fs.unions [
       ./postgres
       ./extensions
-      ./scripts
       ./tests
       (fs.fileFilter (f: f.hasExt "nix") ./.)
       ./plugins.md

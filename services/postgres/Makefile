@@ -56,7 +56,7 @@ check-pitr-container:  ## Verify PITR preflight uses the image's writable temp d
 
 .PHONY: check-graceful-shutdown
 check-graceful-shutdown:  ## Verify PostgreSQL shuts down cleanly
-	./scripts/test-graceful-shutdown.sh
+	./tests/test-graceful-shutdown.sh
 
 
 .PHONY: _dev-env-build
