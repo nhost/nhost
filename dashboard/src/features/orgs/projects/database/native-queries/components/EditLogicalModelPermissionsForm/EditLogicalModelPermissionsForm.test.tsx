@@ -418,38 +418,42 @@ describe('EditLogicalModelPermissionsForm', () => {
     });
   });
 
-  it.each(['add', 'edit', 'delete'] as const)(
-    'waits for the local %s migration before showing success and leaving the editor',
-    async (type) => {
+  it.each([
+    {
+      type: 'add',
+      role: 'public',
+      message: 'Select permission created.',
+      disabledWhilePending: ['Save'],
+    },
+    {
+      type: 'edit',
+      role: 'viewer',
+      message: 'Select permission updated.',
+      disabledWhilePending: ['Save', 'Delete Permissions'],
+    },
+  ])(
+    'waits for the local $type migration before showing success and leaving the editor',
+    async ({ role, message, disabledWhilePending }) => {
       const user = new TestUserEvent();
       const completion = Promise.withResolvers<void>();
       migrationFinished = completion.promise;
       await renderForm();
       const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
-      const role = type === 'add' ? 'public' : 'viewer';
-      await user.click(
-        getPermissionButton(type === 'add' ? 'public' : 'viewer'),
-      );
+      await user.click(getPermissionButton(role));
 
       const save = screen.getByRole('button', { name: 'Save' });
-      const deletePermissions = screen.queryByRole('button', {
-        name: 'Delete Permissions',
-      });
+      const pendingButtons = disabledWhilePending.map((name) =>
+        screen.getByRole('button', { name }),
+      );
       try {
-        if (type === 'delete') {
-          await user.click(deletePermissions!);
-          await user.click(screen.getByRole('button', { name: 'Delete' }));
-        } else {
-          await user.click(screen.getByRole('checkbox', { name: 'id' }));
-          expect(save).toBeEnabled();
-          await user.click(save);
-        }
+        await user.click(screen.getByRole('checkbox', { name: 'id' }));
+        expect(save).toBeEnabled();
+        await user.click(save);
         await waitFor(() => expect(migrationBodies).toHaveLength(1));
         expect(invalidate).not.toHaveBeenCalled();
         expect(screen.getByLabelText('Role:')).toHaveTextContent(role);
-        expect(save).toBeDisabled();
-        if (deletePermissions) {
-          expect(deletePermissions).toBeDisabled();
+        for (const button of pendingButtons) {
+          expect(button).toBeDisabled();
         }
         expect(
           screen.queryByText(/Select permission (created|updated|deleted)\./),
@@ -462,16 +466,49 @@ describe('EditLogicalModelPermissionsForm', () => {
       }
 
       await screen.findByRole('heading', { name: 'Roles & Actions overview' });
-      expect(
-        screen.getByText(
-          `Select permission ${type === 'add' ? 'created' : type === 'edit' ? 'updated' : 'deleted'}.`,
-        ),
-      ).toBeInTheDocument();
+      expect(screen.getByText(message)).toBeInTheDocument();
       expect(invalidate).toHaveBeenCalledExactlyOnceWith({
         queryKey: [EXPORT_METADATA_QUERY_KEY, project.subdomain],
       });
     },
   );
+
+  it('waits for the local delete migration before showing success and leaving the editor', async () => {
+    const user = new TestUserEvent();
+    const completion = Promise.withResolvers<void>();
+    migrationFinished = completion.promise;
+    await renderForm();
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
+    await user.click(getPermissionButton('viewer'));
+
+    const save = screen.getByRole('button', { name: 'Save' });
+    const deletePermissions = screen.getByRole('button', {
+      name: 'Delete Permissions',
+    });
+    try {
+      await user.click(deletePermissions);
+      await user.click(screen.getByRole('button', { name: 'Delete' }));
+      await waitFor(() => expect(migrationBodies).toHaveLength(1));
+      expect(invalidate).not.toHaveBeenCalled();
+      expect(screen.getByLabelText('Role:')).toHaveTextContent('viewer');
+      expect(save).toBeDisabled();
+      expect(deletePermissions).toBeDisabled();
+      expect(
+        screen.queryByText(/Select permission (created|updated|deleted)\./),
+      ).toBeNull();
+      expect(
+        screen.queryByRole('heading', { name: 'Roles & Actions overview' }),
+      ).toBeNull();
+    } finally {
+      completion.resolve();
+    }
+
+    await screen.findByRole('heading', { name: 'Roles & Actions overview' });
+    expect(screen.getByText('Select permission deleted.')).toBeInTheDocument();
+    expect(invalidate).toHaveBeenCalledExactlyOnceWith({
+      queryKey: [EXPORT_METADATA_QUERY_KEY, project.subdomain],
+    });
+  });
 
   it('creates and deletes permissions and resets to the roles view on reopen', async () => {
     const user = new TestUserEvent();
