@@ -1,6 +1,10 @@
 import userEvent from '@testing-library/user-event';
 import RoleActionSwitcher from '@/components/common/RoleActionSwitcher/RoleActionSwitcher';
-import { render, screen } from '@/tests/testUtils';
+import {
+  mockScrollIntoViewAndPointerCapture,
+  render,
+  screen,
+} from '@/tests/testUtils';
 
 interface RenderSwitcherOptions {
   actionDisabled?: boolean;
@@ -32,10 +36,7 @@ function renderSwitcher({
 }
 
 beforeAll(() => {
-  Element.prototype.scrollIntoView = vi.fn();
-  Element.prototype.hasPointerCapture = vi.fn(() => false);
-  Element.prototype.releasePointerCapture = vi.fn();
-  Element.prototype.setPointerCapture = vi.fn();
+  mockScrollIntoViewAndPointerCapture();
 });
 
 describe('RoleActionSwitcher', () => {
