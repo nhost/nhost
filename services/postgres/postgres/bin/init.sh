@@ -9,6 +9,17 @@ wait_for_interruptible() {
 		interruptible_exit_code=$?
 	fi
 
+	# Docker's TERM to PID 1 interrupts the shell's wait, not its child.
+	# During first-boot SQL, reap the command before continuing.
+	if [ "${SHUTDOWN_REQUESTED:-false}" = true ] &&
+		[ "$interruptible_exit_code" -gt 128 ]; then
+		if wait "$IN_FLIGHT_PID"; then
+			interruptible_exit_code=0
+		else
+			interruptible_exit_code=$?
+		fi
+	fi
+
 	IN_FLIGHT_PID=
 	return "$interruptible_exit_code"
 }
@@ -274,6 +285,15 @@ stop_postgres() {
 
 # shellcheck disable=SC2329 # Invoked by the signal trap.
 shutdown_postgres() {
+	if [ "${INIT_SCRIPTS_RUNNING:-false}" = true ]; then
+		# Do not cancel psql midway through first-boot SQL. A stop timeout or
+		# hard kill can still interrupt it; no automatic replay is safe.
+		SHUTDOWN_REQUESTED=true
+		trap '' TERM INT
+		echo "Shutdown requested; finishing first-boot SQL before stopping PostgreSQL"
+		return 0
+	fi
+
 	trap '' TERM INT
 	trap - EXIT
 	echo "Received shutdown signal, shutting down PostgreSQL..."
@@ -310,6 +330,8 @@ shutdown_postgres_after_error() {
 main() {
 	IN_FLIGHT_PID=
 	POSTGRES_PID=
+	INIT_SCRIPTS_RUNNING=false
+	SHUTDOWN_REQUESTED=false
 	trap shutdown_postgres TERM INT
 	trap shutdown_postgres_after_error EXIT
 
@@ -338,6 +360,9 @@ main() {
 	fi
 
 	init_db
+	if [ "$DATABASE_INITIALIZED" = true ]; then
+		INIT_SCRIPTS_RUNNING=true
+	fi
 	resolve_config
 
 	# we delete just in case. This file is usually removed by postgres
@@ -353,6 +378,10 @@ main() {
 	if [ "$DATABASE_INITIALIZED" = true ]; then
 		if ! run_init_scripts; then
 			echo "Initialization script execution failed; continuing PostgreSQL startup" >&2
+		fi
+		INIT_SCRIPTS_RUNNING=false
+		if [ "$SHUTDOWN_REQUESTED" = true ]; then
+			shutdown_postgres
 		fi
 	fi
 
