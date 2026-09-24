@@ -219,6 +219,6 @@ fi
 
 docker exec -i "$new_container" \
     psql -X -U postgres -d local -v ON_ERROR_STOP=1 -1 -f - \
-    <"$script_dir/../tests/plugins.sql"
+    <"$script_dir/plugins.sql"
 
 echo "PostgreSQL upgraded extensions from $previous_image"

@@ -37,6 +37,13 @@ version might reference a library that the new image no longer bundles, while
 `ALTER EXTENSION timescaledb UPDATE` must be the first command in a fresh
 session.
 
+## Tests
+
+Keep check scripts and fixtures under `tests/`: `project.nix` includes this
+directory in the check fileset, so changes to those files trigger CI checks.
+Git-backed flake evaluations omit new, untracked files; use
+`git add -N <paths>` to make them visible before running checks.
+
 ## Options
 
 Following env vars are available in the image (to be set in an Nhost cloud project via settings):

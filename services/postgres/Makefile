@@ -61,7 +61,7 @@ check-graceful-shutdown:  ## Verify PostgreSQL shuts down cleanly
 
 .PHONY: check-extension-upgrades
 check-extension-upgrades:  ## Verify extensions upgrade from the previous image
-	./scripts/test-extension-upgrades.sh
+	./tests/test-extension-upgrades.sh
 
 
 .PHONY: _dev-env-build
