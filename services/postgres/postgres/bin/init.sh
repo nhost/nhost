@@ -135,11 +135,24 @@ update_extension() {
 	# BusyBox mktemp requires the template to end in XXXXXX.
 	update_log=$(mktemp -p /tmp/postgresql update-extension-log.XXXXXX) || return 1
 
+	# pg_search 0.25 requires vector, but the previous image allowed pg_search
+	# without it. Install the missing dependency before updating that extension.
+	can_update=true
+	if [ "$extension" = pg_search ]; then
+		if ! run_interruptibly psql -X -q -b -U postgres -d "$database" \
+			-v ON_ERROR_STOP=1 -c 'CREATE EXTENSION IF NOT EXISTS vector;' \
+			>"$update_log" 2>&1; then
+			can_update=false
+		fi
+	fi
+
 	# The one-statement file makes ALTER EXTENSION the first server command in
-	# this session while still letting psql quote the extension identifier.
-	if run_interruptibly psql -X -q -b -U postgres -d "$database" \
-		-v ON_ERROR_STOP=1 -v extension="$extension" \
-		-f "$extension_update" >"$update_log" 2>&1; then
+	# its own session (required by TimescaleDB) while still letting psql quote
+	# the extension identifier.
+	if [ "$can_update" = true ] &&
+		run_interruptibly psql -X -q -b -U postgres -d "$database" \
+			-v ON_ERROR_STOP=1 -v extension="$extension" \
+			-f "$extension_update" >>"$update_log" 2>&1; then
 		echo "Updating extension $extension in database $database"
 		cat "$update_log"
 		rm -f "$update_log"

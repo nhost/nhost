@@ -140,6 +140,25 @@ for database in postgres local; do
     fi
 done
 
+if ! pg_search_dependencies_current=$(docker exec "$new_container" \
+    psql -X -qAt -U postgres -d pg_search_without_vector \
+    -v ON_ERROR_STOP=1 \
+    -c "SELECT count(*) = 2
+            AND bool_and(installed.extversion = available.default_version)
+        FROM pg_extension AS installed
+        JOIN pg_available_extensions AS available
+            ON available.name = installed.extname
+        WHERE installed.extname IN ('pg_search', 'vector')"); then
+    echo "Could not inspect pg_search and vector after the upgrade" >&2
+    docker logs "$new_container" >&2
+    exit 1
+fi
+if [ "$pg_search_dependencies_current" != t ]; then
+    echo "pg_search and vector were not installed at their default versions in pg_search_without_vector" >&2
+    docker logs "$new_container" >&2
+    exit 1
+fi
+
 if ! docker logs "$new_container" 2>&1 |
     grep -q 'WARNING: Failed to update extension ip4r in database extension_update_failure; continuing startup'; then
     echo "The non-fatal extension update failure was not reported" >&2
