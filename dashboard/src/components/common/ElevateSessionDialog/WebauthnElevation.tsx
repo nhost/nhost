@@ -1,11 +1,11 @@
 import { startAuthentication } from '@simplewebauthn/browser';
+import { AlertCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { toast } from 'react-hot-toast';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useUserData } from '@/hooks/useUserData';
 import { useNhostClient } from '@/providers/nhost';
-import { getToastStyleProps } from '@/utils/constants/settings';
 
 interface Props {
   onElevated: () => void;
@@ -15,9 +15,11 @@ function WebauthnElevation({ onElevated }: Props) {
   const nhost = useNhostClient();
   const user = useUserData();
   const [isVerifying, setIsVerifying] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   async function verify() {
     setIsVerifying(true);
+    setError(null);
 
     try {
       const { body } = await nhost.auth.elevateWebauthn();
@@ -27,10 +29,10 @@ function WebauthnElevation({ onElevated }: Props) {
         credential,
       });
       onElevated();
-    } catch (error) {
-      toast.error(
-        error?.message || 'Could not verify your security key.',
-        getToastStyleProps(),
+    } catch (err) {
+      setError(
+        err?.message ||
+          'Make sure your security key is connected and try again.',
       );
       setIsVerifying(false);
     }
@@ -43,16 +45,23 @@ function WebauthnElevation({ onElevated }: Props) {
 
   if (isVerifying) {
     return (
-      <Spinner size="small" wrapperClassName="gap-2">
-        Waiting for your security key...
+      <Spinner size="xs" wrapperClassName="flex-row justify-center gap-1.5">
+        <span className="text-muted-foreground text-xs">
+          Waiting for your security key...
+        </span>
       </Spinner>
     );
   }
 
   return (
-    <Button onClick={verify} className="w-full">
-      Try again
-    </Button>
+    <>
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Couldn&apos;t verify your security key</AlertTitle>
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
+      <Button onClick={verify}>Try again</Button>
+    </>
   );
 }
 

@@ -8,9 +8,11 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/v3/dialog';
+import { useUserData } from '@/hooks/useUserData';
 
 interface Props {
   open: boolean;
@@ -21,17 +23,24 @@ interface Props {
 
 const descriptions: Record<ElevationMethod, string> = {
   webauthn: 'Confirm your identity with your security key to continue.',
-  totp: 'Enter the code from your authenticator app to continue.',
-  'otp-email': 'Enter the code we sent to your email address to continue.',
-  'otp-sms': 'Enter the code we sent to your phone number to continue.',
+  totp: 'Enter the 6-digit code from your authenticator app to continue.',
+  'otp-email': 'Enter the 6-digit code we sent to your email address.',
+  'otp-sms': 'Enter the 6-digit code we sent to your phone number.',
 };
 
 function ElevateSessionDialog({ open, methods, onCancel, onElevated }: Props) {
+  const user = useUserData();
   const [method, setMethod] = useState<ElevationMethod | null>(null);
 
   useEffect(() => {
     setMethod(methods.length === 1 ? methods[0] : null);
   }, [methods]);
+
+  const destinations: Partial<Record<ElevationMethod, string | undefined>> = {
+    'otp-email': user?.email,
+    'otp-sms': user?.phoneNumber,
+  };
+  const destination = method ? destinations[method] : undefined;
 
   return (
     <Dialog
@@ -46,9 +55,18 @@ function ElevateSessionDialog({ open, methods, onCancel, onElevated }: Props) {
         <DialogHeader>
           <DialogTitle>Verify it&apos;s you</DialogTitle>
           <DialogDescription>
-            {method
-              ? descriptions[method]
-              : 'Choose how you want to verify your identity to continue.'}
+            {!method &&
+              'Choose how you want to verify your identity to continue.'}
+            {method && !destination && descriptions[method]}
+            {destination && (
+              <>
+                Enter the 6-digit code we sent to{' '}
+                <span className="font-medium text-foreground">
+                  {destination}
+                </span>
+                .
+              </>
+            )}
           </DialogDescription>
         </DialogHeader>
 
@@ -65,13 +83,13 @@ function ElevateSessionDialog({ open, methods, onCancel, onElevated }: Props) {
                 <Button
                   key={availableMethod}
                   variant="outline"
-                  className="h-auto justify-start gap-3 py-3"
+                  className="h-auto justify-start gap-3 whitespace-normal py-3 text-left"
                   onClick={() => setMethod(availableMethod)}
                 >
                   <Icon className="h-4 w-4 shrink-0" />
-                  <span className="grid grid-flow-row justify-items-start">
+                  <span className="grid grid-flow-row">
                     <span className="font-medium">{label}</span>
-                    <span className="text-muted-foreground text-xs">
+                    <span className="font-normal text-muted-foreground text-xs">
                       {description}
                     </span>
                   </span>
@@ -88,9 +106,11 @@ function ElevateSessionDialog({ open, methods, onCancel, onElevated }: Props) {
         )}
 
         {method && methods.length > 1 && (
-          <Button variant="ghost" onClick={() => setMethod(null)}>
-            Use another method
-          </Button>
+          <DialogFooter className="gap-2 sm:flex sm:flex-col sm:space-x-0">
+            <Button variant="outline" onClick={() => setMethod(null)}>
+              Use another method
+            </Button>
+          </DialogFooter>
         )}
       </DialogContent>
     </Dialog>

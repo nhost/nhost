@@ -78,6 +78,8 @@ function MfaOtpForm({
         ref={inputRef}
         value={otpValue}
         placeholder={placeholder}
+        inputMode="numeric"
+        autoComplete="one-time-code"
         className="!bg-transparent"
         disabled={isInputDisabled}
         onChange={handleChange}
