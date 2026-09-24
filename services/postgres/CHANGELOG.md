@@ -14,6 +14,7 @@
   - pg_ivm: 1.14 → 1.15
   - pg_jsonschema: 0.3.3 → 0.3.4
   - pg_search: 0.24.0 → 0.25.9
+    - Breaking change: pg_search now requires pgvector (`vector`). Existing `CREATE EXTENSION pg_search;` migrations must use `CREATE EXTENSION pg_search CASCADE;` or create `vector` first when replayed on a fresh database.
   - pg_squeeze: 1.9.1 → 1.9.4
   - pgmq: 1.11.1 → 1.13.0
   - pgrouting: 4.0.1 → 4.0.2

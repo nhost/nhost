@@ -391,14 +391,16 @@ pg_search is a Postgres extension that enables full text search over heap tables
 
 ### Managing
 
-To install the extension you can create a migration with the following contents:
+pg_search 0.25+ requires pgvector (`vector`). To install both extensions in a fresh database, create a migration with the following contents:
 
 ```sql
 SET ROLE postgres;
-CREATE EXTENSION pg_search;
+CREATE EXTENSION pg_search CASCADE;
 ```
 
-To uninstall it, you can use the following migration:
+`CASCADE` installs `vector` if it is not already installed. Dropping pg_search does not remove `vector`.
+
+To uninstall pg_search, you can use the following migration:
 
 ```sql
 SET ROLE postgres;
