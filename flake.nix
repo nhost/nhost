@@ -458,6 +458,12 @@
           nixops = nixopsf.package;
           nixops-docker-image = nixopsf.dockerImage;
           pi-agent = pkgs.nhost.pi-agent;
+          postgres-pg16 = postgresf.packages.pg16-package;
+          postgres-pg16-docker-image = postgresf.packages.pg16-docker-image;
+          postgres-pg16-as-dir = postgresf.packages.pg16-as-dir;
+          postgres-pg17 = postgresf.packages.pg17-package;
+          postgres-pg17-docker-image = postgresf.packages.pg17-docker-image;
+          postgres-pg17-as-dir = postgresf.packages.pg17-as-dir;
           postgres-pg18 = postgresf.packages.pg18-package;
           postgres-pg18-docker-image = postgresf.packages.pg18-docker-image;
           postgres-pg18-as-dir = postgresf.packages.pg18-as-dir;

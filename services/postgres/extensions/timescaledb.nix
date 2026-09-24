@@ -1,11 +1,27 @@
 {
   buildPGXSExtension,
   pkgs,
+  postgresql,
   ...
 }:
+let
+  # latest supported version for PostgreSQL 14
+  pg14Config = {
+    version = "2.19.3";
+    hash = "sha256-CMK9snkMXsXqmq3f1hTDYCduL0arwM7XyIg4xq6UfR8=";
+  };
+
+  pgLatestConfig = {
+    version = "2.27.2";
+    hash = "sha256-/z8qr+56svxnUrnmh0uetPPttXdc1B8aDKZ5mtZpTt4=";
+  };
+
+  isPostgres15 = pkgs.lib.versionAtLeast postgresql.version "15";
+  config = if isPostgres15 then pgLatestConfig else pg14Config;
+in
 buildPGXSExtension rec {
   pname = "timescaledb-apache";
-  version = "2.27.2";
+  version = config.version;
 
   nativeBuildInputs = [ pkgs.cmake ];
   buildInputs = [
@@ -17,7 +33,7 @@ buildPGXSExtension rec {
     owner = "timescale";
     repo = "timescaledb";
     rev = version;
-    hash = "sha256-/z8qr+56svxnUrnmh0uetPPttXdc1B8aDKZ5mtZpTt4=";
+    hash = config.hash;
   };
 
   cmakeFlags = [
