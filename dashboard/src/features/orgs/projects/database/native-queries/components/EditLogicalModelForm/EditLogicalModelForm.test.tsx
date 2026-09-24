@@ -89,27 +89,33 @@ describe('EditLogicalModelForm', () => {
     mocks.router.push.mockReset().mockResolvedValue(true);
   });
 
-  it.each(['invoice_summary', 'another_model'])(
-    'navigates after a rename only when editing the routed model (%s)',
-    async (modelSlug) => {
-      mocks.router.query.modelSlug = modelSlug;
-      const user = new TestUserEvent();
-      render(<EditLogicalModelForm model={describedModel} />);
-      await user.clear(screen.getByLabelText('Name'));
-      await user.type(screen.getByLabelText('Name'), 'renamed_summary');
-      await user.click(screen.getByRole('button', { name: 'Save' }));
-      await waitFor(() => expect(mocks.mutateAsync).toHaveBeenCalledOnce());
-      if (modelSlug === describedModel.name) {
-        await waitFor(() =>
-          expect(mocks.router.push).toHaveBeenCalledWith(
-            '/orgs/test-org/projects/test-app/database/native-queries/default/models/renamed_summary',
-          ),
-        );
-      } else {
-        expect(mocks.router.push).not.toHaveBeenCalled();
-      }
-    },
-  );
+  it('navigates to the renamed model when editing the routed model', async () => {
+    mocks.router.query.modelSlug = describedModel.name;
+    const user = new TestUserEvent();
+    render(<EditLogicalModelForm model={describedModel} />);
+    await user.clear(screen.getByLabelText('Name'));
+    await user.type(screen.getByLabelText('Name'), 'renamed_summary');
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => expect(mocks.mutateAsync).toHaveBeenCalledOnce());
+    await waitFor(() =>
+      expect(mocks.router.push).toHaveBeenCalledWith(
+        '/orgs/test-org/projects/test-app/database/native-queries/default/models/renamed_summary',
+      ),
+    );
+  });
+
+  it('does not navigate after renaming a model that is not routed', async () => {
+    mocks.router.query.modelSlug = 'another_model';
+    const user = new TestUserEvent();
+    render(<EditLogicalModelForm model={describedModel} />);
+    await user.clear(screen.getByLabelText('Name'));
+    await user.type(screen.getByLabelText('Name'), 'renamed_summary');
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => expect(mocks.mutateAsync).toHaveBeenCalledOnce());
+    expect(mocks.router.push).not.toHaveBeenCalled();
+  });
 
   it('prefills and updates the entity description independently of field descriptions', async () => {
     const user = new TestUserEvent();
