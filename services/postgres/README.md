@@ -12,6 +12,23 @@ The entrypoint runs as the `postgres` user (UID 999). The image's `/tmp` is
 root-owned and not writable by that user; use `/tmp/postgresql` for image-side
 temporary files. PITR preflight defaults there unless `TMPDIR` is explicitly set.
 
+## First-boot shutdown
+
+On a new cluster, SIGTERM after `initdb` succeeds is deferred until PostgreSQL
+starts and `/initdb.d` first-boot SQL finishes, then PostgreSQL stops cleanly.
+This only helps when startup and SQL finish within Docker's stop timeout;
+SIGKILL, OOM, a timeout, or a fatal script failure can still leave a partially
+initialized cluster. `PG_VERSION` alone does not prove the SQL finished, and
+first-boot SQL is not automatically replayed on restart (it may be
+non-idempotent). Inspect or restore interrupted clusters manually; the
+entrypoint never deletes unknown data to retry them.
+SQL statement errors retain the existing continue-on-error behavior.
+
+The CLI mounts its volume directly at `PGDATA`, so removing `PGDATA` itself
+would fail after deleting its contents. Files beside `PGDATA` also do not
+necessarily survive container recreation; test lifecycle changes against this
+layout rather than relying on a marker outside the mounted volume.
+
 ## Options
 
 Following env vars are available in the image (to be set in an Nhost cloud project via settings):

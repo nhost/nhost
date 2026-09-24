@@ -12,9 +12,14 @@ collation_restart_logs=$(mktemp)
 collation_tmp_dir=$(mktemp -d)
 collation_container="postgres-collation-shutdown-$$"
 collation_volume="postgres-collation-shutdown-data-$$"
+startup_restart_logs=$(mktemp)
+startup_server_script=$(mktemp)
+startup_container="postgres-startup-shutdown-$$"
+startup_volume="postgres-startup-shutdown-data-$$"
 early_restart_logs=$(mktemp)
 early_init_file=$(mktemp)
 early_container="postgres-early-shutdown-$$"
+early_volume="postgres-early-shutdown-data-$$"
 client_log=$(mktemp)
 client_pid=
 
@@ -23,9 +28,10 @@ cleanup() {
         kill "$client_pid" 2> /dev/null || true
         wait "$client_pid" 2> /dev/null || true
     fi
-    docker rm -fv "$collation_container" "$early_container" >/dev/null 2>&1 || true
-    docker volume rm -f "$collation_volume" >/dev/null 2>&1 || true
+    docker rm -fv "$collation_container" "$startup_container" "$early_container" >/dev/null 2>&1 || true
+    docker volume rm -f "$collation_volume" "$startup_volume" "$early_volume" >/dev/null 2>&1 || true
     rm -f "$restart_logs" "$collation_restart_logs" \
+        "$startup_restart_logs" "$startup_server_script" \
         "$early_restart_logs" "$early_init_file" "$client_log"
     rm -rf "$collation_tmp_dir"
 }
@@ -283,16 +289,115 @@ fi
 
 echo "PostgreSQL stopped cleanly during collation repair and restarted without crash recovery"
 
+# Delay the first server start so TERM reliably arrives after initdb but
+# before PostgreSQL is up or any first-boot SQL has begun.
+cat > "$startup_server_script" <<'SH'
+#!/bin/sh
+sleep 4
+exec /bin/postgres "$@"
+SH
+chmod 755 "$startup_server_script"
+# The image has no /usr/local/bin; prepend /tmp to override only postgres.
+docker volume create "$startup_volume" >/dev/null
+docker create --name "$startup_container" \
+    --volume "$startup_volume:/var/lib/postgresql/data/pgdata" \
+    --env PATH=/tmp:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+    --entrypoint /nhost-init.sh \
+    "$image" >/dev/null
+docker cp "$init_script" "$startup_container:/nhost-init.sh"
+docker cp "$startup_server_script" "$startup_container:/tmp/postgres"
+docker start "$startup_container" >/dev/null
+
+startup_waiting=false
+for _ in $(seq 1 120); do
+    if docker logs "$startup_container" 2>&1 |
+        grep -q 'Waiting for postgres to start'; then
+        startup_waiting=true
+        break
+    fi
+    sleep 0.1
+done
+
+if [ "$startup_waiting" != true ]; then
+    echo "PostgreSQL did not reach the first-boot readiness wait" >&2
+    docker logs "$startup_container" >&2
+    exit 1
+fi
+
+if docker exec "$startup_container" /bin/pg_isready -q 2>/dev/null ||
+    docker logs "$startup_container" 2>&1 | grep -q 'Running init scripts'; then
+    echo "PostgreSQL was already ready before the startup shutdown test" >&2
+    docker logs "$startup_container" >&2
+    exit 1
+fi
+
+docker stop --timeout 30 "$startup_container" >/dev/null
+startup_exit_code=$(docker inspect --format '{{.State.ExitCode}}' "$startup_container")
+if [ "$startup_exit_code" != 0 ] ||
+    ! docker logs "$startup_container" 2>&1 |
+    grep -q 'Shutdown requested; finishing first-boot SQL before stopping PostgreSQL'; then
+    echo "PostgreSQL did not defer TERM until after first-boot SQL (exit: $startup_exit_code)" >&2
+    docker logs "$startup_container" >&2
+    exit 1
+fi
+
+if ! docker logs "$startup_container" 2>&1 | grep -q 'Running init scripts' ||
+    ! docker logs "$startup_container" 2>&1 | grep -q 'Received shutdown signal, shutting down PostgreSQL' ||
+    docker logs "$startup_container" 2>&1 | grep -q 'PostgreSQL initialization complete'; then
+    echo "First-boot SQL did not finish before the deferred shutdown" >&2
+    docker logs "$startup_container" >&2
+    exit 1
+fi
+
+startup_log_lines=$(docker logs "$startup_container" 2>&1 | wc -l | tr -d '[:space:]')
+startup_log_start=$((startup_log_lines + 1))
+docker start "$startup_container" >/dev/null
+
+startup_restart_ready=false
+for _ in $(seq 1 120); do
+    if docker exec "$startup_container" pg_isready -q 2>/dev/null &&
+        docker logs "$startup_container" 2>&1 |
+        tail -n "+$startup_log_start" |
+        grep -q 'PostgreSQL initialization complete'; then
+        startup_restart_ready=true
+        break
+    fi
+    sleep 0.5
+done
+
+docker logs "$startup_container" 2>&1 |
+    tail -n "+$startup_log_start" >"$startup_restart_logs"
+if [ "$startup_restart_ready" != true ] ||
+    grep -Eq 'database system was interrupted|automatic recovery in progress' "$startup_restart_logs" ||
+    ! grep -q 'database system was shut down at' "$startup_restart_logs" ||
+    grep -q 'Initializing database' "$startup_restart_logs" ||
+    ! docker exec "$startup_container" psql -qAt -U postgres -d local \
+    -c "SELECT EXISTS (SELECT FROM pg_roles WHERE rolname = 'nhost_admin') AND
+        EXISTS (SELECT FROM pg_roles WHERE rolname = 'nhost_hasura');" |
+    grep -qx t; then
+    echo "First-boot database or roles missing after shutdown during startup" >&2
+    cat "$startup_restart_logs" >&2
+    exit 1
+fi
+
+echo "PostgreSQL deferred TERM before server readiness, finished first-boot SQL and restarted cleanly"
+
 printf '%s\n' \
     'CREATE TABLE early_shutdown_test_ready (ready boolean);' \
-    'SELECT pg_sleep(60);' > "$early_init_file"
+    'SELECT pg_sleep(8);' \
+    'SELECT * FROM first_boot_missing_table;' \
+    'CREATE TABLE early_shutdown_test_after (ready boolean);' > "$early_init_file"
 chmod 644 "$early_init_file"
 
-# Docker Desktop may not share host temporary directories with its VM, so copy
-# the delay script into the stopped container instead of bind-mounting it.
+# Match the CLI volume layout: PGDATA itself is a mount point. Copy the entrypoint
+# so this test exercises the working tree even when the image is older.
+docker volume create "$early_volume" >/dev/null
 docker create --name "$early_container" \
-    --volume /var/lib/postgresql \
+    --volume "$early_volume:/var/lib/postgresql/data/pgdata" \
+    --entrypoint /nhost-init.sh \
     "$image" > /dev/null
+docker cp "$init_script" "$early_container:/nhost-init.sh"
+# Docker Desktop may not share host temporary directories with its VM.
 docker cp "$early_init_file" "$early_container:/initdb.d/0001-delay.sql"
 docker start "$early_container" > /dev/null
 
@@ -335,11 +440,34 @@ if docker logs "$early_container" 2>&1 | grep -q 'PostgreSQL initialization comp
     exit 1
 fi
 
-docker stop --timeout 10 "$early_container" > /dev/null
+# Prove TERM arrives while psql is in the delayed statement, not after it.
+if ! docker exec "$early_container" psql -qAt -U postgres -d local \
+    -c "SELECT count(*) FROM pg_stat_activity WHERE query LIKE 'SELECT pg_sleep(8)%' AND state = 'active';" |
+    grep -qx 1; then
+    echo "The delayed first-boot SQL was not active at shutdown" >&2
+    docker logs "$early_container" >&2
+    exit 1
+fi
+
+docker stop --timeout 30 "$early_container" > /dev/null
 early_exit_code=$(docker inspect --format '{{.State.ExitCode}}' "$early_container")
 
 if [ "$early_exit_code" != 0 ]; then
     echo "PostgreSQL exited with code $early_exit_code during early shutdown" >&2
+    docker logs "$early_container" >&2
+    exit 1
+fi
+
+if ! docker logs "$early_container" 2>&1 |
+    grep -q 'Shutdown requested; finishing first-boot SQL before stopping PostgreSQL'; then
+    echo "PostgreSQL did not defer shutdown during first-boot SQL" >&2
+    docker logs "$early_container" >&2
+    exit 1
+fi
+
+if ! docker logs "$early_container" 2>&1 |
+    grep -q 'relation "first_boot_missing_table" does not exist'; then
+    echo "First-boot SQL errors were not reported" >&2
     docker logs "$early_container" >&2
     exit 1
 fi
@@ -380,4 +508,20 @@ if ! grep -q 'database system was shut down at' "$early_restart_logs"; then
     exit 1
 fi
 
-echo "PostgreSQL stopped during initialization without crash recovery"
+if grep -q 'Initializing database' "$early_restart_logs" ||
+    ! docker exec "$early_container" psql -qAt -U postgres -d local \
+    -c "SELECT to_regclass('public.early_shutdown_test_after') IS NOT NULL AND
+        EXISTS (SELECT FROM pg_roles WHERE rolname = 'nhost_admin') AND
+        EXISTS (SELECT FROM pg_roles WHERE rolname = 'nhost_hasura') AND
+        EXISTS (SELECT FROM pg_roles WHERE rolname = 'nhost_auth_admin') AND
+        EXISTS (SELECT FROM pg_roles WHERE rolname = 'nhost_storage_admin') AND
+        to_regnamespace('auth') IS NOT NULL AND
+        to_regnamespace('storage') IS NOT NULL AND
+        to_regnamespace('hdb_catalog') IS NOT NULL;" |
+    grep -qx t; then
+    echo "First-boot SQL did not finish during graceful shutdown" >&2
+    cat "$early_restart_logs" >&2
+    exit 1
+fi
+
+echo "PostgreSQL finished first-boot SQL on TERM within the stop timeout and restarted without crash recovery"
