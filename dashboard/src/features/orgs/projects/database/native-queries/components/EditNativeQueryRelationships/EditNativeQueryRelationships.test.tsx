@@ -6,8 +6,6 @@ import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks
 import { EditNativeQueryRelationships } from '@/features/orgs/projects/database/native-queries/components/EditNativeQueryRelationships';
 import { mockMatchMediaValue } from '@/tests/mocks';
 import {
-  fireEvent,
-  mockPointerEvent,
   queryClient,
   render,
   screen,
@@ -121,7 +119,10 @@ describe('EditNativeQueryRelationships', () => {
   beforeAll(() => {
     server.listen({ onUnhandledRequest: 'error' });
     window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
-    mockPointerEvent();
+    Element.prototype.scrollIntoView = vi.fn();
+    Element.prototype.hasPointerCapture = vi.fn(() => false);
+    Element.prototype.releasePointerCapture = vi.fn();
+    Element.prototype.setPointerCapture = vi.fn();
   });
 
   beforeEach(() => {
@@ -197,10 +198,8 @@ describe('EditNativeQueryRelationships', () => {
     await user.type(screen.getByLabelText('Relationship Name'), 'reports');
     await chooseOption(user, 'Target Native Query', 'authors');
     await user.click(screen.getByRole('button', { name: 'Add New Mapping' }));
-    fireEvent.submit(
-      screen
-        .getByRole('button', { name: 'Create Relationship' })
-        .closest('form')!,
+    await user.click(
+      screen.getByRole('button', { name: 'Create Relationship' }),
     );
 
     await waitFor(() => expect(metadataBodies).toHaveLength(1));
