@@ -44,6 +44,13 @@ directory in the check fileset, so changes to those files trigger CI checks.
 Git-backed flake evaluations omit new, untracked files; use
 `git add -N <paths>` to make them visible before running checks.
 
+The PostgreSQL Nix check runs `tests/test_pg_jsonschema_upgrade.py` with
+Python's `unittest`. For pg_jsonschema checker changes, also build a Linux
+`postgres-pg18` package to exercise `postInstall` against generated SQL.
+pgrx inserts comments between SQL tokens;
+after stripping them, equivalent definitions can differ in whitespace next to
+parentheses or commas, so normalization must account for punctuation spacing.
+
 When checking pgrx toolchain changes on a small Linux builder (for example,
 a 6 GiB Lima VM), build `packages.aarch64-linux.postgres-pg18` and
 `packages.x86_64-linux.postgres-pg18` sequentially. Parallel full builds,
