@@ -72,6 +72,10 @@ copies of the database, but it is not atomic: a later fetch failure destroys the
 old cluster and may leave a partial restore. The preflight therefore reduces
 obvious failures; it does not guarantee that the backup can be downloaded.
 
+SIGTERM during a PITR restore stops PostgreSQL cleanly but exits non-zero;
+the restore is incomplete and must be retried rather than starting the partial
+cluster normally. A completed shutdown-target restore still exits zero.
+
 Following settings are available in the image but not directly configurable:
 
 ```
