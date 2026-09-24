@@ -1,12 +1,5 @@
 final: prev:
 let
-  rust_1_96 = final.rust-bin.stable."1.96.1".minimal;
-
-  rustPlatform_1_96 = final.makeRustPlatform {
-    cargo = rust_1_96;
-    rustc = rust_1_96;
-  };
-
   # https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/rust/cargo-pgrx/default.nix
   mkCargoPgrx =
     {
@@ -14,7 +7,7 @@ let
       hash,
       cargoHash,
     }:
-    rustPlatform_1_96.buildRustPackage rec {
+    final.rustPlatform.buildRustPackage rec {
       pname = "cargo-pgrx";
       inherit version cargoHash;
 
@@ -182,8 +175,6 @@ rec {
       cp ${postgresql_18}/bin/pg_restore $out/bin/
     '';
   };
-
-  inherit rustPlatform_1_96;
 
   cargo-pgrx_0_19_0 = mkCargoPgrx {
     version = "0.19.0";

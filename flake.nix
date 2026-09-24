@@ -16,8 +16,6 @@
     flake-utils.url = "github:numtide/flake-utils";
     nix2container.url = "github:nlewo/nix2container";
     nix2container.inputs.nixpkgs.follows = "nixpkgs";
-    rust-overlay.url = "github:oxalica/rust-overlay";
-    rust-overlay.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =
@@ -26,40 +24,10 @@
       nixpkgs,
       flake-utils,
       nix2container,
-      rust-overlay,
     }:
-    let
-      nhostOverlay = import ./nixops/overlays/default.nix;
-      rustOverlay = rust-overlay.overlays.default;
-
-      # Declare each applied overlay and its permitted top-level surface
-      # together so a component cannot be composed without also being checked.
-      overlayComponents = [
-        {
-          name = "rust-overlay";
-          overlay = rustOverlay;
-          allowedAttrs = [
-            "latest"
-            "lib"
-            "rust-bin"
-            "rustChannelOf"
-            "rustChannelOfTargets"
-            "rustChannels"
-          ];
-        }
-        {
-          name = "Nhost";
-          overlay = nhostOverlay;
-          allowedAttrs = [ "nhost" ];
-          requiredAttrs = [ "nhost" ];
-        }
-      ];
-    in
     {
       lib = import ./nixops/lib/lib.nix;
-      overlays.default = nixpkgs.lib.composeManyExtensions (
-        map (component: component.overlay) overlayComponents
-      );
+      overlays.default = import ./nixops/overlays/default.nix;
     }
     // flake-utils.lib.eachDefaultSystem (
       system:
@@ -219,7 +187,6 @@
             pkgs
             nix2containerPkgs
             nixops-lib
-            overlayComponents
             ;
         };
 
