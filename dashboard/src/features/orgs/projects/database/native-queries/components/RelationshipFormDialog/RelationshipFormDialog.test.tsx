@@ -1,13 +1,6 @@
 import { RelationshipFormDialog } from '@/features/orgs/projects/database/native-queries/components/RelationshipFormDialog';
 import { mockMatchMediaValue } from '@/tests/mocks';
-import {
-  fireEvent,
-  mockPointerEvent,
-  render,
-  screen,
-  TestUserEvent,
-  waitFor,
-} from '@/tests/testUtils';
+import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
 import type {
   LogicalModelItem,
   NativeQueryItem,
@@ -75,7 +68,10 @@ async function fillRequiredRelationshipFields(user: TestUserEvent) {
 describe('RelationshipFormDialog', () => {
   beforeAll(() => {
     window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
-    mockPointerEvent();
+    Element.prototype.scrollIntoView = vi.fn();
+    Element.prototype.hasPointerCapture = vi.fn(() => false);
+    Element.prototype.releasePointerCapture = vi.fn();
+    Element.prototype.setPointerCapture = vi.fn();
   });
 
   beforeEach(() => {
@@ -124,10 +120,8 @@ describe('RelationshipFormDialog', () => {
       await user.clear(screen.getByLabelText('Relationship Name'));
       await user.type(screen.getByLabelText('Relationship Name'), name);
       await fillRequiredRelationshipFields(user);
-      fireEvent.submit(
-        screen
-          .getByRole('button', { name: 'Create Relationship' })
-          .closest('form')!,
+      await user.click(
+        screen.getByRole('button', { name: 'Create Relationship' }),
       );
 
       await waitFor(() =>
@@ -171,10 +165,8 @@ describe('RelationshipFormDialog', () => {
         await user.type(screen.getByLabelText('Relationship Name'), name);
       }
       await fillRequiredRelationshipFields(user);
-      fireEvent.submit(
-        screen
-          .getByRole('button', { name: 'Create Relationship' })
-          .closest('form')!,
+      await user.click(
+        screen.getByRole('button', { name: 'Create Relationship' }),
       );
 
       expect(await screen.findByText(message)).toBeInTheDocument();
@@ -194,10 +186,8 @@ describe('RelationshipFormDialog', () => {
       arrayRelationship.name,
     );
     await fillRequiredRelationshipFields(user);
-    fireEvent.submit(
-      screen
-        .getByRole('button', { name: 'Create Relationship' })
-        .closest('form')!,
+    await user.click(
+      screen.getByRole('button', { name: 'Create Relationship' }),
     );
 
     expect(
@@ -214,9 +204,7 @@ describe('RelationshipFormDialog', () => {
         onSubmit={onSubmit}
       />,
     );
-    fireEvent.submit(
-      screen.getByRole('button', { name: 'Save Changes' }).closest('form')!,
-    );
+    await user.click(screen.getByRole('button', { name: 'Save Changes' }));
 
     await waitFor(() =>
       expect(onSubmit).toHaveBeenCalledWith(
@@ -231,6 +219,7 @@ describe('RelationshipFormDialog', () => {
       it.each([undefined, null, 'before_parent', 'after_parent'] as const)(
         'submits insertion order %s with the omission default',
         async (insertionOrder) => {
+          const user = new TestUserEvent();
           const onSubmit = vi.fn().mockResolvedValue(undefined);
           const originalRelationship = {
             name: 'manager',
@@ -258,10 +247,8 @@ describe('RelationshipFormDialog', () => {
               onSubmit={onSubmit}
             />,
           );
-          fireEvent.submit(
-            screen
-              .getByRole('button', { name: 'Save Changes' })
-              .closest('form')!,
+          await user.click(
+            screen.getByRole('button', { name: 'Save Changes' }),
           );
 
           await waitFor(() =>

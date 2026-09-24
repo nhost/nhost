@@ -7,8 +7,6 @@ import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks
 import { NativeQueryRelationships } from '@/features/orgs/projects/database/native-queries/components/NativeQueryRelationships';
 import { mockMatchMediaValue } from '@/tests/mocks';
 import {
-  fireEvent,
-  mockPointerEvent,
   queryClient,
   render,
   screen,
@@ -290,7 +288,10 @@ describe('NativeQueryRelationships', () => {
       },
     });
     window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
-    mockPointerEvent();
+    Element.prototype.scrollIntoView = vi.fn();
+    Element.prototype.hasPointerCapture = vi.fn(() => false);
+    Element.prototype.releasePointerCapture = vi.fn();
+    Element.prototype.setPointerCapture = vi.fn();
   });
 
   beforeEach(() => {
@@ -343,10 +344,8 @@ describe('NativeQueryRelationships', () => {
     await user.clear(screen.getByLabelText('Relationship Name'));
     await user.type(screen.getByLabelText('Relationship Name'), '_reports2');
     await fillMapping(user);
-    fireEvent.submit(
-      screen
-        .getByRole('button', { name: 'Create Relationship' })
-        .closest('form')!,
+    await user.click(
+      screen.getByRole('button', { name: 'Create Relationship' }),
     );
 
     try {
@@ -450,9 +449,7 @@ describe('NativeQueryRelationships', () => {
     ).toHaveTextContent('authors');
     await user.clear(screen.getByLabelText('Relationship Name'));
     await user.type(screen.getByLabelText('Relationship Name'), 'lead2');
-    fireEvent.submit(
-      screen.getByRole('button', { name: 'Save Changes' }).closest('form')!,
-    );
+    await user.click(screen.getByRole('button', { name: 'Save Changes' }));
 
     await waitFor(() => expect(migrationBodies).toHaveLength(1));
     expect(migrationBodies).toEqual([
@@ -584,10 +581,8 @@ describe('NativeQueryRelationships', () => {
     await user.clear(screen.getByLabelText('Relationship Name'));
     await user.type(screen.getByLabelText('Relationship Name'), 'reports');
     await fillMapping(user);
-    fireEvent.submit(
-      screen
-        .getByRole('button', { name: 'Create Relationship' })
-        .closest('form')!,
+    await user.click(
+      screen.getByRole('button', { name: 'Create Relationship' }),
     );
 
     expect(await screen.findByText('migration failed')).toBeInTheDocument();
@@ -610,7 +605,7 @@ describe('NativeQueryRelationships', () => {
     await waitFor(() => expect(confirmation).not.toBeInTheDocument());
 
     requestState.migrationStatus = 200;
-    fireEvent.submit(save.closest('form')!);
+    await user.click(save);
     await waitFor(() =>
       expect(
         screen.queryByLabelText('Relationship Name'),
@@ -689,10 +684,8 @@ describe('NativeQueryRelationships', () => {
       />,
     );
     await user.click(screen.getByRole('button', { name: 'Relationship' }));
-    fireEvent.submit(
-      screen
-        .getByRole('button', { name: 'Create Relationship' })
-        .closest('form')!,
+    await user.click(
+      screen.getByRole('button', { name: 'Create Relationship' }),
     );
     expect(
       await screen.findByText('Add at least one field mapping.'),
@@ -701,10 +694,8 @@ describe('NativeQueryRelationships', () => {
     await user.clear(screen.getByLabelText('Relationship Name'));
     await user.type(screen.getByLabelText('Relationship Name'), 'reports');
     await fillMapping(user);
-    fireEvent.submit(
-      screen
-        .getByRole('button', { name: 'Create Relationship' })
-        .closest('form')!,
+    await user.click(
+      screen.getByRole('button', { name: 'Create Relationship' }),
     );
     expect(
       await screen.findByText('A relationship with this name already exists.'),

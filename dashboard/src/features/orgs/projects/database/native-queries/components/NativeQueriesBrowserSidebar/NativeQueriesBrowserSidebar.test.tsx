@@ -5,7 +5,6 @@ import { toast } from 'react-hot-toast';
 import { NativeQueriesBrowserSidebar } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesBrowserSidebar';
 import { mockMatchMediaValue } from '@/tests/mocks';
 import {
-  fireEvent,
   queryClient,
   render,
   screen,
@@ -257,11 +256,13 @@ const nativeQuery = (rootFieldName: string): NativeQueryItem => ({
   returns: 'alpha_model',
 });
 
-function chooseOption(comboboxName: string, optionName: string) {
-  fireEvent.keyDown(screen.getByRole('combobox', { name: comboboxName }), {
-    key: 'Enter',
-  });
-  fireEvent.click(screen.getByRole('option', { name: optionName }));
+async function chooseOption(
+  user: TestUserEvent,
+  comboboxName: string,
+  optionName: string,
+) {
+  await user.click(screen.getByRole('combobox', { name: comboboxName }));
+  await user.click(await screen.findByRole('option', { name: optionName }));
 }
 
 type GuardedDrawerSurface =
@@ -313,6 +314,9 @@ describe('NativeQueriesBrowserSidebar', () => {
       },
     });
     Element.prototype.scrollIntoView = vi.fn();
+    Element.prototype.hasPointerCapture = vi.fn(() => false);
+    Element.prototype.releasePointerCapture = vi.fn();
+    Element.prototype.setPointerCapture = vi.fn();
     window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
   });
 
@@ -659,18 +663,13 @@ describe('NativeQueriesBrowserSidebar', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('1 object · 1 array')).toBeInTheDocument();
 
-    fireEvent.change(screen.getByLabelText('Relationship Name'), {
-      target: { value: 'reports' },
-    });
-    chooseOption('Target Native Query', 'search_authors');
-    fireEvent.click(screen.getByRole('button', { name: 'Add New Mapping' }));
-    const relationshipForm = screen
-      .getByRole('button', { name: 'Create Relationship' })
-      .closest('form');
-    expect(relationshipForm).not.toBeNull();
-    if (relationshipForm) {
-      fireEvent.submit(relationshipForm);
-    }
+    await user.clear(screen.getByLabelText('Relationship Name'));
+    await user.type(screen.getByLabelText('Relationship Name'), 'reports');
+    await chooseOption(user, 'Target Native Query', 'search_authors');
+    await user.click(screen.getByRole('button', { name: 'Add New Mapping' }));
+    await user.click(
+      screen.getByRole('button', { name: 'Create Relationship' }),
+    );
 
     await waitFor(() => expect(mutationBodies).toHaveLength(1));
     const originalQuery =
