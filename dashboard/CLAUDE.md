@@ -26,7 +26,7 @@ pnpm test                    # Run lint + all vitests
 pnpm test:vitest             # Run all vitests (unit/integration tests)
 pnpm test:watch              # Run vitests in watch mode
 vitest run <file>           # Run a single test file
-vitest run --reporter=verbose src/features/orgs/layout/OrganizationLayout/OrganizationGuard.test.tsx  # Run specific test with verbose output
+vitest run --reporter=verbose src/features/orgs/layout/OrganizationGuard/OrganizationGuard.test.tsx  # Run specific test with verbose output
 ```
 
 Run Vitest with `dashboard/` as the working directory so it loads
