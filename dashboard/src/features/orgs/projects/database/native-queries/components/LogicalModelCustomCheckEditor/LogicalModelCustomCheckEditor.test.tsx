@@ -20,13 +20,7 @@ import permissionVariablesQuery from '@/tests/msw/mocks/graphql/permissionVariab
 import hasuraMetadataQuery from '@/tests/msw/mocks/rest/hasuraMetadataQuery';
 import tableQuery from '@/tests/msw/mocks/rest/tableQuery';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
-import {
-  fireEvent,
-  mockPointerEvent,
-  render,
-  screen,
-  TestUserEvent,
-} from '@/tests/testUtils';
+import { render, screen, TestUserEvent } from '@/tests/testUtils';
 import type { LogicalModelItem } from '@/utils/hasura-api/generated/schemas';
 
 const profile: LogicalModelItem = {
@@ -155,11 +149,14 @@ describe('LogicalModelCustomCheckEditor', () => {
     process.env.NEXT_PUBLIC_NHOST_CONFIGSERVER_URL =
       'https://local.graphql.local.nhost.run/v1';
     server.listen();
+    Element.prototype.scrollIntoView = vi.fn();
+    Element.prototype.hasPointerCapture = vi.fn(() => false);
+    Element.prototype.releasePointerCapture = vi.fn();
+    Element.prototype.setPointerCapture = vi.fn();
     window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
   });
 
   beforeEach(() => {
-    mockPointerEvent();
     mocks.useRouter.mockReturnValue({
       basePath: '',
       pathname: '/orgs/xyz/projects/test-project',
@@ -315,9 +312,7 @@ describe('LogicalModelCustomCheckEditor', () => {
     const user = new TestUserEvent();
     render(<TestForm filter={condition('id', '_eq', null)} />);
 
-    fireEvent.submit(
-      screen.getByRole('button', { name: 'Save' }).closest('form')!,
-    );
+    await user.click(screen.getByRole('button', { name: 'Save' }));
     expect(
       await screen.findByText('Please enter a value.'),
     ).toBeInTheDocument();
@@ -329,11 +324,10 @@ describe('LogicalModelCustomCheckEditor', () => {
   });
 
   it('shows a column comparison validation error inline in Visual mode', async () => {
+    const user = new TestUserEvent();
     render(<TestForm filter={condition('id', '_ceq', null)} />);
 
-    fireEvent.submit(
-      screen.getByRole('button', { name: 'Save' }).closest('form')!,
-    );
+    await user.click(screen.getByRole('button', { name: 'Save' }));
 
     expect(
       await screen.findByText('Please enter a value.'),
@@ -341,11 +335,10 @@ describe('LogicalModelCustomCheckEditor', () => {
   });
 
   it('shows a missing column validation error inline', async () => {
+    const user = new TestUserEvent();
     render(<TestForm filter={condition('', '_eq', 'value')} />);
 
-    fireEvent.submit(
-      screen.getByRole('button', { name: 'Save' }).closest('form')!,
-    );
+    await user.click(screen.getByRole('button', { name: 'Save' }));
 
     expect(
       await screen.findByText('Please select a column.'),

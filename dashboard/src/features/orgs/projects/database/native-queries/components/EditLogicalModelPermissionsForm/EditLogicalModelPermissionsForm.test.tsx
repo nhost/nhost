@@ -7,8 +7,6 @@ import { EditLogicalModelPermissionsForm } from '@/features/orgs/projects/databa
 import { mockMatchMediaValue } from '@/tests/mocks';
 import permissionVariablesQuery from '@/tests/msw/mocks/graphql/permissionVariablesQuery';
 import {
-  fireEvent,
-  mockPointerEvent,
   queryClient,
   render,
   screen,
@@ -210,7 +208,6 @@ describe('EditLogicalModelPermissionsForm', () => {
   });
 
   beforeEach(() => {
-    mockPointerEvent();
     logicalModels = [model];
     queryClient.clear();
     migrationBodies = [];
@@ -342,9 +339,7 @@ describe('EditLogicalModelPermissionsForm', () => {
     await user.click(getPermissionButton('user'));
 
     await user.click(screen.getByRole('checkbox', { name: 'name' }));
-    fireEvent.submit(
-      screen.getByRole('button', { name: 'Save' }).closest('form')!,
-    );
+    await user.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitForSavedPermission({
       source: 'default',
@@ -378,9 +373,7 @@ describe('EditLogicalModelPermissionsForm', () => {
     ).toHaveTextContent('id');
 
     await user.click(screen.getByRole('checkbox', { name: 'name' }));
-    fireEvent.submit(
-      screen.getByRole('button', { name: 'Save' }).closest('form')!,
-    );
+    await user.click(screen.getByRole('button', { name: 'Save' }));
     await waitForSavedPermission({
       source: 'default',
       name: model.name,
@@ -407,7 +400,7 @@ describe('EditLogicalModelPermissionsForm', () => {
     await user.paste('{"_and":[]}');
     const save = screen.getByRole('button', { name: 'Save' });
     expect(save).toBeEnabled();
-    fireEvent.submit(save.closest('form')!);
+    await user.click(save);
     expect(
       await screen.findByText(/please add at least one rule/i),
     ).toBeInTheDocument();
@@ -416,9 +409,7 @@ describe('EditLogicalModelPermissionsForm', () => {
     const nextFilter = { id: { _eq: 'X-Hasura-User-Id' } };
     await user.clear(jsonEditor);
     await user.paste(JSON.stringify(nextFilter));
-    fireEvent.submit(
-      screen.getByRole('button', { name: 'Save' }).closest('form')!,
-    );
+    await user.click(screen.getByRole('button', { name: 'Save' }));
     await waitForSavedPermission({
       source: 'default',
       name: model.name,
@@ -451,7 +442,7 @@ describe('EditLogicalModelPermissionsForm', () => {
         } else {
           await user.click(screen.getByRole('checkbox', { name: 'id' }));
           expect(save).toBeEnabled();
-          fireEvent.submit(save.closest('form')!);
+          await user.click(save);
         }
         await waitFor(() => expect(migrationBodies).toHaveLength(1));
         expect(invalidate).not.toHaveBeenCalled();
@@ -487,9 +478,7 @@ describe('EditLogicalModelPermissionsForm', () => {
     const view = await renderForm();
     await user.click(getPermissionButton('public'));
     await user.click(screen.getByRole('button', { name: 'Select All' }));
-    fireEvent.submit(
-      screen.getByRole('button', { name: 'Save' }).closest('form')!,
-    );
+    await user.click(screen.getByRole('button', { name: 'Save' }));
     await waitForSavedPermission({
       source: 'default',
       name: model.name,
