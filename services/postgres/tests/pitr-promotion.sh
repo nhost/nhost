@@ -5,12 +5,17 @@ set -eu
 init_script=${1:?"usage: $0 <init-script>"}
 test_dir=$(mktemp -d "${TMPDIR:-/tmp}/pitr-promotion-test.XXXXXX")
 server_pid=
+main_pid=
 
 cleanup() {
 	trap - EXIT HUP INT TERM
 	if [ -n "$server_pid" ]; then
 		kill "$server_pid" 2>/dev/null || true
 		wait "$server_pid" 2>/dev/null || true
+	fi
+	if [ -n "$main_pid" ]; then
+		kill "$main_pid" 2>/dev/null || true
+		wait "$main_pid" 2>/dev/null || true
 	fi
 	rm -rf "$test_dir"
 }
@@ -57,6 +62,13 @@ case $sql in
 'SELECT mark_restored();')
 	printf '%s\n' post-restore >>"$PSQL_TRACE"
 	;;
+'SELECT block_post_restore();')
+	printf '%s\n' post-restore-blocking >>"$PSQL_TRACE"
+	: >"$PSQL_BLOCKED"
+	while :; do
+		"$REAL_SLEEP" 0.1
+	done
+	;;
 'SELECT fail_without_database();')
 	printf '%s\n' post-restore-no-db >>"$PSQL_TRACE"
 	exit 3
@@ -78,6 +90,7 @@ EOF
 chmod +x "$test_dir/bin/psql" "$test_dir/bin/sleep"
 
 real_sleep=$(command -v sleep)
+export REAL_SLEEP="$real_sleep"
 "$real_sleep" 60 &
 server_pid=$!
 
@@ -109,12 +122,21 @@ cat >"$test_dir/bin/pg_ctl" <<'EOF'
 
 set -eu
 
-if [ "$#" -ne 1 ] || [ "$1" != stop ]; then
+if [ "$#" -eq 1 ] && [ "$1" = stop ]; then
+	printf '%s\n' stop-requested >>"$PSQL_TRACE"
+elif [ "$#" -eq 4 ] && [ "$1" = stop ] &&
+	[ "$2" = "--pgdata=$PGDATA" ] && [ "$3" = --mode=fast ] &&
+	[ "$4" = --wait ]; then
+	printf '%s\n' fast-stop-requested >>"$PSQL_TRACE"
+else
 	echo "unexpected pg_ctl arguments: $*" >&2
 	exit 1
 fi
-printf '%s\n' stop-requested >>"$PSQL_TRACE"
 : >"$SERVER_STOP"
+# Model pg_ctl --wait: the server must have finished stopping before return.
+while [ -f "$PGDATA/postmaster.pid" ]; do
+	"$REAL_SLEEP" 0.01
+done
 EOF
 chmod +x "$test_dir/bin/pg_ctl"
 
@@ -127,10 +149,12 @@ pitr_restore() {
 }
 
 start_postgres() {
+	: >"$PGDATA/postmaster.pid"
 	while [ ! -f "$SERVER_STOP" ]; do
 		"$real_sleep" 0.01
 	done
 	printf '%s\n' server-stopped >>"$PSQL_TRACE"
+	rm -f "$PGDATA/postmaster.pid"
 }
 
 wait_for_postgres_promotion() {
@@ -139,6 +163,8 @@ wait_for_postgres_promotion() {
 
 : >"$PSQL_TRACE"
 export SERVER_STOP="$test_dir/server-stop"
+export PGDATA="$test_dir/pgdata"
+mkdir -p "$PGDATA"
 export PITR_BASEBACKUP=LATEST
 export PITR_TARGET_ACTION=promote
 export PITR_POST_RESTORE_SQL_NO_DB='SELECT fail_without_database();'
@@ -166,4 +192,45 @@ stop-requested
 server-stopped
 EOF
 
+diff -u "$test_dir/expected-trace" "$PSQL_TRACE"
+
+# TERM during post-restore SQL must stop the server without reporting success.
+rm -f "$SERVER_STOP"
+: >"$PSQL_TRACE"
+export PSQL_BLOCKED="$test_dir/psql-blocked"
+unset PITR_POST_RESTORE_SQL_NO_DB
+export PITR_POST_RESTORE_SQL='SELECT block_post_restore();'
+(main) >"$test_dir/interrupt-stdout" 2>"$test_dir/interrupt-stderr" &
+main_pid=$!
+blocked=false
+for _ in $(seq 1 100); do
+	if [ -f "$PSQL_BLOCKED" ]; then
+		blocked=true
+		break
+	fi
+	if ! kill -0 "$main_pid" 2>/dev/null; then
+		break
+	fi
+	"$real_sleep" 0.05
+done
+if [ "$blocked" != true ]; then
+	echo "PITR did not reach blocking post-restore SQL" >&2
+	cat "$test_dir/interrupt-stderr" >&2
+	exit 1
+fi
+
+kill -TERM "$main_pid"
+promotion_status=0
+wait "$main_pid" || promotion_status=$?
+main_pid=
+if [ "$promotion_status" -ne 143 ]; then
+	echo "TERM during PITR returned $promotion_status instead of 143" >&2
+	cat "$test_dir/interrupt-stderr" >&2
+	exit 1
+fi
+cat >"$test_dir/expected-trace" <<'EOF'
+post-restore-blocking
+fast-stop-requested
+server-stopped
+EOF
 diff -u "$test_dir/expected-trace" "$PSQL_TRACE"

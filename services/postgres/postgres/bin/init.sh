@@ -308,7 +308,7 @@ shutdown_postgres() {
 		echo "Failed to stop PostgreSQL cleanly" >&2
 		exit 1
 	fi
-	exit 0
+	exit "$SHUTDOWN_EXIT_CODE"
 }
 
 # shellcheck disable=SC2329 # Invoked by the exit trap.
@@ -332,10 +332,13 @@ main() {
 	POSTGRES_PID=
 	INIT_SCRIPTS_RUNNING=false
 	SHUTDOWN_REQUESTED=false
+	SHUTDOWN_EXIT_CODE=0
 	trap shutdown_postgres TERM INT
 	trap shutdown_postgres_after_error EXIT
 
 	if [ -n "${PITR_BASEBACKUP:-}" ]; then
+		# A stopped one-shot restore has not completed, even if PostgreSQL stops cleanly.
+		SHUTDOWN_EXIT_CODE=143
 		resolve_config
 		pitr_restore
 

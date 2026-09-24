@@ -77,6 +77,10 @@ then stops PostgreSQL, so a normal start on the same `PGDATA` retains the
 selected point in time. `PITR_TARGET_ACTION=shutdown` is available for explicit
 recovery workflows, but a normal start after shutdown can replay past the target.
 
+SIGTERM during a PITR restore stops PostgreSQL cleanly but exits non-zero;
+the restore is incomplete and must be retried rather than starting the partial
+cluster normally. A completed shutdown-target restore still exits zero.
+
 Following settings are available in the image but not directly configurable:
 
 ```
