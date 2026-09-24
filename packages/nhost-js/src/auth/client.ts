@@ -368,7 +368,7 @@ export interface ErrorResponse {
 /**
  *
  */
-export type IdTokenProvider = string;
+export type IdTokenProvider = 'apple' | 'google';
 
 /**
  * JSON Web Key for JWT verification
@@ -429,16 +429,14 @@ export interface JWKSet {
 
 /**
  * 
- @property provider (`string`) - 
-    *    Pattern - ^(apple|google|c:[a-z0-9][a-z0-9-]{0,38}[a-z0-9])$
+ @property provider (`IdTokenProvider`) - 
  @property idToken (`string`) - Apple ID token
  @property nonce? (`string`) - Nonce used during sign in process*/
 export interface LinkIdTokenRequest {
   /**
    *
-   *    Pattern - ^(apple|google|c:[a-z0-9][a-z0-9-]{0,38}[a-z0-9])$
    */
-  provider: string;
+  provider: IdTokenProvider;
   /**
    * Apple ID token
    */
@@ -836,17 +834,15 @@ export interface SignInEmailPasswordResponse {
 
 /**
  * 
- @property provider (`string`) - 
-    *    Pattern - ^(apple|google|c:[a-z0-9][a-z0-9-]{0,38}[a-z0-9])$
+ @property provider (`IdTokenProvider`) - 
  @property idToken (`string`) - Apple ID token
  @property nonce? (`string`) - Nonce used during sign in process
  @property options? (`SignUpOptions`) - */
 export interface SignInIdTokenRequest {
   /**
    *
-   *    Pattern - ^(apple|google|c:[a-z0-9][a-z0-9-]{0,38}[a-z0-9])$
    */
-  provider: string;
+  provider: IdTokenProvider;
   /**
    * Apple ID token
    */
@@ -1087,17 +1083,15 @@ export interface SignUpPasswordlessSmsRequest {
 
 /**
  * 
- @property provider (`string`) - 
-    *    Pattern - ^(apple|google|c:[a-z0-9][a-z0-9-]{0,38}[a-z0-9])$
+ @property provider (`IdTokenProvider`) - 
  @property idToken (`string`) - Apple or Google ID token
  @property nonce? (`string`) - Nonce used during sign in process
  @property options? (`SignUpOptions`) - */
 export interface SignUpIdTokenRequest {
   /**
    *
-   *    Pattern - ^(apple|google|c:[a-z0-9][a-z0-9-]{0,38}[a-z0-9])$
    */
-  provider: string;
+  provider: IdTokenProvider;
   /**
    * Apple or Google ID token
    */
@@ -2147,7 +2141,23 @@ export type RedirectToQuery = string;
 /**
  *
  */
-export type SignInProvider = string;
+export type SignInProvider =
+  | 'apple'
+  | 'github'
+  | 'google'
+  | 'linkedin'
+  | 'discord'
+  | 'spotify'
+  | 'twitch'
+  | 'gitlab'
+  | 'bitbucket'
+  | 'workos'
+  | 'azuread'
+  | 'entraid'
+  | 'strava'
+  | 'facebook'
+  | 'windowslive'
+  | 'twitter';
 
 /**
  * Ticket

@@ -48,7 +48,7 @@ func (ctrl *Controller) LinkIdToken( //nolint:ireturn,revive
 	if _, apiErr := ctrl.wf.InsertUserProvider(
 		ctx,
 		userID,
-		req.Body.Provider,
+		string(req.Body.Provider),
 		profile.ProviderUserID,
 		logger,
 	); apiErr != nil {

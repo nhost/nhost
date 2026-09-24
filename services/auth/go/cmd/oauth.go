@@ -5,51 +5,52 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/providers"
 	"github.com/urfave/cli/v3"
 )
 
 //nolint:cyclop
-func getDefaultScopes(providerName string) []string {
+func getDefaultScopes(providerName api.SignInProvider) []string {
 	switch providerName {
-	case providers.GoogleID:
+	case api.SignInProviderGoogle:
 		return providers.DefaultGoogleScopes
-	case providers.DiscordID:
+	case api.SignInProviderDiscord:
 		return providers.DefaultDiscordScopes
-	case providers.GithubID:
+	case api.SignInProviderGithub:
 		return providers.DefaultGithubScopes
-	case providers.AppleID:
+	case api.SignInProviderApple:
 		return providers.DefaultAppleScopes
-	case providers.LinkedinID:
+	case api.SignInProviderLinkedin:
 		return providers.DefaultLinkedInScopes
-	case providers.SpotifyID:
+	case api.SignInProviderSpotify:
 		return providers.DefaultSpotifyScopes
-	case providers.TwitchID:
+	case api.SignInProviderTwitch:
 		return providers.DefaultTwitchScopes
-	case providers.GitlabID:
+	case api.SignInProviderGitlab:
 		return providers.DefaultGitlabScopes
-	case providers.BitbucketID:
+	case api.SignInProviderBitbucket:
 		return providers.DefaultBitbucketScopes
-	case providers.WorkosID:
+	case api.SignInProviderWorkos:
 		return providers.DefaultWorkOSScopes
-	case providers.AzureadID:
+	case api.SignInProviderAzuread:
 		return providers.DefaultAzureadScopes
-	case providers.EntraidID:
+	case api.SignInProviderEntraid:
 		return providers.DefaultEntraIDScopes
-	case providers.FacebookID:
+	case api.SignInProviderFacebook:
 		return providers.DefaultFacebookScopes
-	case providers.WindowsliveID:
+	case api.SignInProviderWindowslive:
 		return providers.DefaultWindowsliveScopes
-	case providers.StravaID:
+	case api.SignInProviderStrava:
 		return providers.DefaultStravaScopes
-	case providers.TwitterID:
+	case api.SignInProviderTwitter:
 		return []string{}
 	default:
 		panic("Unknown OAuth2 provider: " + providerName)
 	}
 }
 
-func getScopes(provider string, scopes []string) []string {
+func getScopes(provider api.SignInProvider, scopes []string) []string {
 	// clean the scopes in case of empty string
 	var cleanedScopes []string
 
@@ -75,23 +76,23 @@ func getOauth2Providers(
 	providersMap := make(providers.Map)
 
 	if cmd.Bool(flagGoogleEnabled) {
-		providersMap[providers.GoogleID] = providers.NewGoogleProvider(
+		providersMap["google"] = providers.NewGoogleProvider(
 			cmd.String(flagGoogleClientID),
 			cmd.String(flagGoogleClientSecret),
 			cmd.String(flagServerURL),
-			getScopes(providers.GoogleID, cmd.StringSlice(flagGoogleScope)),
+			getScopes(api.SignInProviderGoogle, cmd.StringSlice(flagGoogleScope)),
 		)
 	}
 
 	if cmd.Bool(flagGithubEnabled) {
-		providersMap[providers.GithubID] = providers.NewGithubProvider(
+		providersMap["github"] = providers.NewGithubProvider(
 			cmd.String(flagGithubClientID),
 			cmd.String(flagGithubClientSecret),
 			cmd.String(flagServerURL),
 			cmd.String(flagGithubAuthorizationURL),
 			cmd.String(flagGithubTokenURL),
 			cmd.String(flagGithubUserProfileURL),
-			getScopes(providers.GithubID, cmd.StringSlice(flagGithubScope)),
+			getScopes(api.SignInProviderGithub, cmd.StringSlice(flagGithubScope)),
 		)
 	}
 
@@ -106,12 +107,12 @@ func getOauth2Providers(
 			return nil, fmt.Errorf("failed to generate Apple client secret: %w", err)
 		}
 
-		providersMap[providers.AppleID], err = providers.NewAppleProvider(
+		providersMap["apple"], err = providers.NewAppleProvider(
 			ctx,
 			cmd.String(flagAppleClientID),
 			clientSecret,
 			cmd.String(flagServerURL),
-			getScopes(providers.AppleID, cmd.StringSlice(flagAppleScope)),
+			getScopes(api.SignInProviderApple, cmd.StringSlice(flagAppleScope)),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create Apple provider: %w", err)
@@ -119,65 +120,65 @@ func getOauth2Providers(
 	}
 
 	if cmd.Bool(flagLinkedInEnabled) {
-		providersMap[providers.LinkedinID] = providers.NewLinkedInProvider(
+		providersMap["linkedin"] = providers.NewLinkedInProvider(
 			cmd.String(flagLinkedInClientID),
 			cmd.String(flagLinkedInClientSecret),
 			cmd.String(flagServerURL),
-			getScopes(providers.LinkedinID, cmd.StringSlice(flagLinkedInScope)),
+			getScopes(api.SignInProviderLinkedin, cmd.StringSlice(flagLinkedInScope)),
 		)
 	}
 
 	if cmd.Bool(flagDiscordEnabled) {
-		providersMap[providers.DiscordID] = providers.NewDiscordProvider(
+		providersMap["discord"] = providers.NewDiscordProvider(
 			cmd.String(flagDiscordClientID),
 			cmd.String(flagDiscordClientSecret),
 			cmd.String(flagServerURL),
-			getScopes(providers.DiscordID, cmd.StringSlice(flagDiscordScope)),
+			getScopes(api.SignInProviderDiscord, cmd.StringSlice(flagDiscordScope)),
 		)
 	}
 
 	if cmd.Bool(flagSpotifyEnabled) {
-		providersMap[providers.SpotifyID] = providers.NewSpotifyProvider(
+		providersMap["spotify"] = providers.NewSpotifyProvider(
 			cmd.String(flagSpotifyClientID),
 			cmd.String(flagSpotifyClientSecret),
 			cmd.String(flagServerURL),
-			getScopes(providers.SpotifyID, cmd.StringSlice(flagSpotifyScope)),
+			getScopes(api.SignInProviderSpotify, cmd.StringSlice(flagSpotifyScope)),
 		)
 	}
 
 	if cmd.Bool(flagTwitchEnabled) {
-		providersMap[providers.TwitchID] = providers.NewTwitchProvider(
+		providersMap["twitch"] = providers.NewTwitchProvider(
 			cmd.String(flagTwitchClientID),
 			cmd.String(flagTwitchClientSecret),
 			cmd.String(flagServerURL),
-			getScopes(providers.TwitchID, cmd.StringSlice(flagTwitchScope)),
+			getScopes(api.SignInProviderTwitch, cmd.StringSlice(flagTwitchScope)),
 		)
 	}
 
 	if cmd.Bool(flagGitlabEnabled) {
-		providersMap[providers.GitlabID] = providers.NewGitlabProvider(
+		providersMap["gitlab"] = providers.NewGitlabProvider(
 			cmd.String(flagGitlabClientID),
 			cmd.String(flagGitlabClientSecret),
 			cmd.String(flagServerURL),
-			getScopes(providers.GitlabID, cmd.StringSlice(flagGitlabScope)),
+			getScopes(api.SignInProviderGitlab, cmd.StringSlice(flagGitlabScope)),
 		)
 	}
 
 	if cmd.Bool(flagBitbucketEnabled) {
-		providersMap[providers.BitbucketID] = providers.NewBitbucketProvider(
+		providersMap["bitbucket"] = providers.NewBitbucketProvider(
 			cmd.String(flagBitbucketClientID),
 			cmd.String(flagBitbucketClientSecret),
 			cmd.String(flagServerURL),
-			getScopes(providers.BitbucketID, cmd.StringSlice(flagBitbucketScope)),
+			getScopes(api.SignInProviderBitbucket, cmd.StringSlice(flagBitbucketScope)),
 		)
 	}
 
 	if cmd.Bool(flagWorkosEnabled) {
-		providersMap[providers.WorkosID] = providers.NewWorkosProvider(
+		providersMap["workos"] = providers.NewWorkosProvider(
 			cmd.String(flagWorkosClientID),
 			cmd.String(flagWorkosClientSecret),
 			cmd.String(flagServerURL),
-			getScopes(providers.WorkosID, cmd.StringSlice(flagWorkosScope)),
+			getScopes(api.SignInProviderWorkos, cmd.StringSlice(flagWorkosScope)),
 			cmd.String(flagWorkosDefaultOrganization),
 			cmd.String(flagWorkosDefaultConnection),
 			cmd.String(flagWorkosDefaultDomain),
@@ -189,54 +190,54 @@ func getOauth2Providers(
 			ctx, "AzureAD provider is deprecated, use EntraID provider instead",
 		)
 
-		providersMap[providers.AzureadID] = providers.NewAzureadProvider(
+		providersMap["azuread"] = providers.NewAzureadProvider(
 			cmd.String(flagAzureadClientID),
 			cmd.String(flagAzureadClientSecret),
 			cmd.String(flagServerURL),
 			cmd.String(flagAzureadTenant),
-			getScopes(providers.AzureadID, cmd.StringSlice(flagAzureadScope)),
+			getScopes(api.SignInProviderAzuread, cmd.StringSlice(flagAzureadScope)),
 		)
 	}
 
 	if cmd.Bool(flagEntraIDEnabled) {
-		providersMap[providers.EntraidID] = providers.NewEntraIDProvider(
+		providersMap["entraid"] = providers.NewEntraIDProvider(
 			cmd.String(flagEntraIDClientID),
 			cmd.String(flagEntraIDClientSecret),
 			cmd.String(flagServerURL),
 			cmd.String(flagEntraIDTenant),
-			getScopes(providers.EntraidID, cmd.StringSlice(flagEntraIDScope)),
+			getScopes(api.SignInProviderEntraid, cmd.StringSlice(flagEntraIDScope)),
 		)
 	}
 
 	if cmd.Bool(flagFacebookEnabled) {
-		providersMap[providers.FacebookID] = providers.NewFacebookProvider(
+		providersMap["facebook"] = providers.NewFacebookProvider(
 			cmd.String(flagFacebookClientID),
 			cmd.String(flagFacebookClientSecret),
 			cmd.String(flagServerURL),
-			getScopes(providers.FacebookID, cmd.StringSlice(flagFacebookScope)),
+			getScopes(api.SignInProviderFacebook, cmd.StringSlice(flagFacebookScope)),
 		)
 	}
 
 	if cmd.Bool(flagWindowsliveEnabled) {
-		providersMap[providers.WindowsliveID] = providers.NewWindowsliveProvider(
+		providersMap["windowslive"] = providers.NewWindowsliveProvider(
 			cmd.String(flagWindowsliveClientID),
 			cmd.String(flagWindowsliveClientSecret),
 			cmd.String(flagServerURL),
-			getScopes(providers.WindowsliveID, cmd.StringSlice(flagWindowsliveScope)),
+			getScopes(api.SignInProviderWindowslive, cmd.StringSlice(flagWindowsliveScope)),
 		)
 	}
 
 	if cmd.Bool(flagStravaEnabled) {
-		providersMap[providers.StravaID] = providers.NewStravaProvider(
+		providersMap["strava"] = providers.NewStravaProvider(
 			cmd.String(flagStravaClientID),
 			cmd.String(flagStravaClientSecret),
 			cmd.String(flagServerURL),
-			getScopes(providers.StravaID, cmd.StringSlice(flagStravaScope)),
+			getScopes(api.SignInProviderStrava, cmd.StringSlice(flagStravaScope)),
 		)
 	}
 
 	if cmd.Bool(flagTwitterEnabled) {
-		providersMap[providers.TwitterID] = providers.NewTwitterProvider(
+		providersMap["twitter"] = providers.NewTwitterProvider(
 			cmd.String(flagTwitterConsumerKey),
 			cmd.String(flagTwitterConsumerSecret),
 			cmd.String(flagServerURL),

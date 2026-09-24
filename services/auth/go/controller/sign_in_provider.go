@@ -95,14 +95,14 @@ func (ctrl *Controller) SignInProvider( //nolint:ireturn
 	req api.SignInProviderRequestObject,
 ) (api.SignInProviderResponseObject, error) {
 	logger := oapimw.LoggerFromContext(ctx).
-		With(slog.String("provider", req.Provider))
+		With(slog.String("provider", string(req.Provider)))
 
 	redirectTo, apiErr := ctrl.getSigninProviderValidateRequest(ctx, req, logger)
 	if apiErr != nil {
 		return ctrl.sendError(apiErr), nil
 	}
 
-	provider := ctrl.Providers.Get(req.Provider)
+	provider := ctrl.Providers.Get(string(req.Provider))
 	if provider == nil {
 		logger.ErrorContext(ctx, "provider not enabled")
 		return ctrl.sendRedirectError(redirectTo, ErrDisabledEndpoint), nil

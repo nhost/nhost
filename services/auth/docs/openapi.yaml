@@ -2410,7 +2410,9 @@ components:
     IdTokenProvider:
       type: string
       additionalProperties: false
-      pattern: '^(apple|google|c:[a-z0-9][a-z0-9-]{0,38}[a-z0-9])$'
+      enum:
+        - apple
+        - google
 
     JWK:
       type: object
@@ -3743,7 +3745,23 @@ components:
       description: The name of the social provider
       schema:
         type: string
-        pattern: '^(apple|azuread|bitbucket|discord|entraid|facebook|github|gitlab|google|linkedin|spotify|strava|twitch|twitter|windowslive|workos|c:[a-z0-9][a-z0-9-]{0,38}[a-z0-9])$'
+        enum:
+          - apple
+          - github
+          - google
+          - linkedin
+          - discord
+          - spotify
+          - twitch
+          - gitlab
+          - bitbucket
+          - workos
+          - azuread
+          - entraid
+          - strava
+          - facebook
+          - windowslive
+          - twitter
 
     TicketQuery:
       in: query
