@@ -12,6 +12,7 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
+	"github.com/lib/pq"
 )
 
 const schemaName = "auth"
@@ -72,10 +73,22 @@ func ApplyPostgresMigration(
 		postgresURL += "?sslmode=disable"
 	}
 
-	db, err := sql.Open("postgres", postgresURL)
+	// Connect through pq's Connector rather than sql.Open. pq's Driver does not
+	// implement driver.DriverContext, so sql.Open would wrap it in database/sql's
+	// dsnConnector, whose Connect discards the context and dials synchronously.
+	// That makes the connection attempt uninterruptible, so a termination signal
+	// arriving while migrations run is ignored until the TCP connect times out --
+	// long past a typical orchestrator's grace period. Connector.Connect passes
+	// the context down to the dial instead.
+	connector, err := pq.NewConnector(postgresURL)
 	if err != nil {
 		return fmt.Errorf("problem connecting to postgres: %w", err)
 	}
+
+	db := sql.OpenDB(connector)
+	// The pool is local to this call: nothing outside it uses db, and auth serves
+	// from its own pool built on the non-migrations connection string.
+	defer db.Close()
 
 	versionToMigrate, err := checkIfWeNeedToMigrate(ctx, db)
 	if err != nil {
@@ -89,6 +102,10 @@ func ApplyPostgresMigration(
 	if err != nil {
 		return fmt.Errorf("problem creating postgres driver: %w", err)
 	}
+	// WithInstance checks out a dedicated connection and holds it for the
+	// driver's lifetime. db.Close only closes idle connections, so without this
+	// that one stays open for the rest of the process.
+	defer driver.Close()
 
 	source, err := iofs.New(postgresMigrations, "postgres")
 	if err != nil {
