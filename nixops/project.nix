@@ -84,9 +84,9 @@ let
       vale
       nhost.wal-g
     ])
-    ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
+    ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [
     ]
-    ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
+    ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
       pkgs.apple-sdk_14
     ];
 
