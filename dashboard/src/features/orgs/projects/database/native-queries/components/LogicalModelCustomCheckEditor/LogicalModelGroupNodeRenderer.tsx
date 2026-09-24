@@ -71,7 +71,8 @@ export default function LogicalModelGroupNodeRenderer({
   });
   const group = useWatch({ name }) as GroupNode | undefined;
   const children: RuleNode[] = group?.children ?? [];
-  const { error: groupError } = getFieldState(name, formState);
+  const { error: childrenError } = getFieldState(`${name}.children`, formState);
+  const errorMessage = childrenError?.root?.message ?? childrenError?.message;
 
   return (
     <div
@@ -93,10 +94,6 @@ export default function LogicalModelGroupNodeRenderer({
         >
           <X className="h-4 w-4" />
         </button>
-      ) : null}
-
-      {groupError?.message ? (
-        <p className="mb-2 text-destructive text-sm">{groupError.message}</p>
       ) : null}
 
       <div className="flex flex-col gap-2">
@@ -159,6 +156,12 @@ export default function LogicalModelGroupNodeRenderer({
           );
         })}
       </div>
+
+      {errorMessage ? (
+        <p className="mt-2 text-destructive text-sm" role="alert">
+          {errorMessage}
+        </p>
+      ) : null}
 
       <div className="mt-3">
         <LogicalModelAddNodeButton

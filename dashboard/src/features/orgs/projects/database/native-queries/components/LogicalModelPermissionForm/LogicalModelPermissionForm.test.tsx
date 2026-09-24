@@ -129,6 +129,27 @@ describe('LogicalModelPermissionForm validation', () => {
       label: '_is_null',
       filter: { id: { _is_null: true } },
     },
+    {
+      label: 'compound _or alternative',
+      filter: {
+        _or: [
+          {
+            id: { _eq: 'X-Hasura-User-Id' },
+            profile: { active: { _eq: true } },
+          },
+          { name: { _eq: 'public' } },
+        ],
+      },
+    },
+    {
+      label: 'multi-operator _or alternative',
+      filter: {
+        _or: [
+          { name: { _ilike: '%a%', _neq: 'b' } },
+          { id: { _eq: 'X-Hasura-User-Id' } },
+        ],
+      },
+    },
   ])(
     'opens a stored $label filter in Visual and round-trips it',
     async ({ filter }) => {
