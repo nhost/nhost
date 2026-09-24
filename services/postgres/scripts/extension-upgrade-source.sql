@@ -71,3 +71,27 @@ CREATE DATABASE extension_update_failure;
 \connect extension_update_failure
 CREATE EXTENSION ip4r;
 UPDATE pg_extension SET extversion = '0' WHERE extname = 'ip4r';
+\connect local
+
+-- An interrupted DROP DATABASE leaves datallowconn true but cannot be opened.
+-- It sorts ahead of local, so discovery must skip it without blocking upgrades.
+CREATE DATABASE aaa_invalid;
+UPDATE pg_database SET datconnlimit = -2 WHERE datname = 'aaa_invalid';
+
+-- A connectable database can still fail discovery. Keep later databases moving.
+CREATE DATABASE aaa_inspect_failure;
+\connect aaa_inspect_failure
+CREATE VIEW public.pg_extension AS SELECT 1 AS extname;
+ALTER DATABASE aaa_inspect_failure SET search_path = public, pg_catalog;
+\connect local
+
+-- A literal database name with '=' must not be parsed as libpq connection info.
+CREATE DATABASE "app=old";
+\connect dbname=app=old
+-- Install the real old version: rewriting extversion after a default install
+-- leaves 1.8 objects behind, which makes the 1.7-to-1.8 update fail.
+CREATE EXTENSION hstore VERSION '1.7';
+\connect local
+
+-- The Nhost SQL must run even when an earlier database cannot be inspected.
+ALTER ROLE nhost_auth_admin RESET search_path;
