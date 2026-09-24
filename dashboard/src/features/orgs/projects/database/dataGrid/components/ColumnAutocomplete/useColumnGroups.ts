@@ -113,6 +113,8 @@ export default function useColumnGroups({
         return [
           ...relationships,
           {
+            // Fallback only: the final map resolves the referenced table from
+            // constraintTargetMap, keyed by the full column list.
             schema: selectedSchema,
             table: selectedTable,
             column,
