@@ -2,13 +2,7 @@ import { useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { type Mock, vi } from 'vitest';
 import * as useProject from '@/features/orgs/projects/hooks/useProject';
-import {
-  mockPointerEvent,
-  render,
-  screen,
-  TestUserEvent,
-  waitFor,
-} from '@/tests/testUtils';
+import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
 import ConditionValue from './ConditionValue';
 import * as useCustomCheckEditor from './useCustomCheckEditor';
 
@@ -77,8 +71,6 @@ const mockPermissionsData = {
 
 describe('ConditionValue', () => {
   beforeEach(() => {
-    mockPointerEvent();
-
     mockUseCustomCheckEditor.mockReturnValue({
       schema: 'public',
       table: 'users',

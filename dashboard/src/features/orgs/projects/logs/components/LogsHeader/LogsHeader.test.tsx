@@ -1,8 +1,7 @@
 import { mockApplication } from '@/tests/mocks';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import {
-  fireEvent,
-  mockPointerEvent,
+  mockScrollIntoViewAndPointerCapture,
   render,
   screen,
   TestUserEvent,
@@ -38,7 +37,7 @@ Object.defineProperty(HTMLElement.prototype, 'getBoundingClientRect', {
   })),
 });
 
-mockPointerEvent();
+mockScrollIntoViewAndPointerCapture();
 
 vi.mock('@/features/orgs/projects/hooks/useProject', async () => ({
   useProject: () => ({ project: mockApplication }),
@@ -73,9 +72,7 @@ describe('LogsHeader', () => {
         onRefetch={onRefetchMock}
       />,
     );
-    await TestUserEvent.fireClickEvent(
-      await screen.findByTestId('ServicePicker')
-    );
+    await user.click(await screen.findByTestId('ServicePicker'));
 
     const runBillingOption = await screen.findByRole('option', {
       name: 'run-service',
@@ -92,7 +89,7 @@ describe('LogsHeader', () => {
     onSubmitMock.mockReset();
 
     await user.type(regexInput, 'Random text');
-    fireEvent.submit(regexInput.closest('form')!);
+    await user.click(screen.getByRole('button', { name: 'Search' }));
     await waitFor(() => {
       expect(onSubmitMock).toHaveBeenCalledTimes(1);
     });

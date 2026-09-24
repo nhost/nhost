@@ -1,14 +1,6 @@
 import { vi } from 'vitest';
-import {
-  mockPointerEvent,
-  render,
-  screen,
-  TestUserEvent,
-  waitFor,
-} from '@/tests/testUtils';
+import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
 import DataBrowserSidebar from './DataBrowserSidebar';
-
-mockPointerEvent();
 
 const DIRTY_MESSAGE =
   'You have unsaved local changes. Are you sure you want to discard them?';

@@ -6,8 +6,7 @@ import { mockMatchMediaValue, mockRouter } from '@/tests/mocks';
 import { getProjectQuery } from '@/tests/msw/mocks/graphql/getProjectQuery';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import {
-  fireEvent,
-  mockPointerEvent,
+  mockScrollIntoViewAndPointerCapture,
   queryClient,
   render,
   screen,
@@ -22,7 +21,7 @@ Object.defineProperty(window, 'matchMedia', {
   value: vi.fn().mockImplementation(mockMatchMediaValue),
 });
 
-mockPointerEvent();
+mockScrollIntoViewAndPointerCapture();
 
 const mocks = vi.hoisted(() => ({
   useRouter: vi.fn(),
@@ -385,11 +384,7 @@ describe('ComputedFieldsSection', () => {
       expect(functionCombobox).toHaveTextContent('compute_full_name');
     });
 
-    const form = screen.getByRole('button', { name: 'Add' }).closest('form');
-    if (!form) {
-      throw new Error('expected Add button to be inside a form');
-    }
-    fireEvent.submit(form);
+    await user.click(screen.getByRole('button', { name: 'Add' }));
 
     await waitFor(() => {
       expect(capturedMigration).not.toBeNull();

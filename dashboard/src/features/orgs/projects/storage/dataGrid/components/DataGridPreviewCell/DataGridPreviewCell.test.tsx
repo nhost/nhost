@@ -40,6 +40,7 @@ describe('DataGridPreviewCell and FilePreviewDialog Fallbacks', () => {
   });
 
   it('FilePreviewDialog falls back to getFile when getFilePresignedURL fails', async () => {
+    const user = new TestUserEvent();
     const getFilePresignedURLMock = vi
       .fn()
       .mockRejectedValue(new Error('Presigned URLs disabled'));
@@ -73,7 +74,7 @@ describe('DataGridPreviewCell and FilePreviewDialog Fallbacks', () => {
 
     // Open preview dialog (images are previewable)
     const button = screen.getByRole('button');
-    await TestUserEvent.fireClickEvent(button);
+    await user.click(button);
 
     // Verify it tries to get presigned URL first, then falls back to getFile with admin secret
     await waitFor(() => {
@@ -98,6 +99,7 @@ describe('DataGridPreviewCell and FilePreviewDialog Fallbacks', () => {
   });
 
   it('DataGridPreviewCell handleOpenPreview falls back to getFile and opens in new tab for non-previewable files', async () => {
+    const user = new TestUserEvent();
     const getFilePresignedURLMock = vi
       .fn()
       .mockRejectedValue(new Error('Presigned URLs disabled'));
@@ -134,7 +136,7 @@ describe('DataGridPreviewCell and FilePreviewDialog Fallbacks', () => {
 
     // Click button to open the PDF (non-previewable type)
     const button = screen.getByRole('button');
-    await TestUserEvent.fireClickEvent(button);
+    await user.click(button);
 
     // Verify fallback download and window.open is called with local blob URL
     await waitFor(() => {

@@ -33,7 +33,7 @@ import {
 } from '@/tests/msw/mocks/graphql/restoreApplicationDatabase';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import {
-  mockPointerEvent,
+  mockScrollIntoViewAndPointerCapture,
   render,
   screen,
   TestUserEvent,
@@ -49,7 +49,7 @@ function TestComponent() {
   );
 }
 
-mockPointerEvent();
+mockScrollIntoViewAndPointerCapture();
 
 Object.defineProperty(window, 'matchMedia', {
   writable: true,

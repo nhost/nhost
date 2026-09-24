@@ -115,6 +115,7 @@ When adding a new feature page, check whether it needs to be registered in each 
 
 - **Runner:** Vitest. Globals (`describe`, `it`, `expect`, `beforeEach`, etc.) are provided — do not import them.
 - **Component testing:** React Testing Library. Use `render()` and `screen` from `@/tests/testUtils`.
+- **Interactions:** use `TestUserEvent` from `@/tests/testUtils` (user-event). Use `fireEvent` only when user events can't express the test.
 - **API mocking:** MSW (Mock Service Worker). Mock responses, not components. Mocking hooks like `useRouter` is acceptable.
 - **Async assertions:** `waitFor()`.
 - **Next.js router:** mock with `vi.mock('next/router', ...)`.

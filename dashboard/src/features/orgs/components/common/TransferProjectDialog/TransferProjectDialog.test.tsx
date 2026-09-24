@@ -14,7 +14,7 @@ import { prefetchNewAppQuery } from '@/tests/msw/mocks/graphql/prefetchNewAppQue
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import {
   createGraphqlMockResolver,
-  mockPointerEvent,
+  mockScrollIntoViewAndPointerCapture,
   queryClient,
   render,
   screen,
@@ -33,7 +33,7 @@ const mocks = vi.hoisted(() => ({
   push: vi.fn(),
 }));
 
-mockPointerEvent();
+mockScrollIntoViewAndPointerCapture();
 
 const getUseRouterObject = (session_id?: string) => ({
   basePath: '',
@@ -144,7 +144,7 @@ describe('TransferProjectDialog', () => {
     const submitButton = await screen.findByText('Continue');
     expect(submitButton).toHaveTextContent('Continue');
 
-    await TestUserEvent.fireClickEvent(submitButton);
+    await user.click(submitButton);
 
     await waitFor(() => {
       expect(submitButton).not.toBeInTheDocument();
@@ -153,7 +153,7 @@ describe('TransferProjectDialog', () => {
     const newOrgTitle = await screen.findByText('New Organization');
     expect(newOrgTitle).toBeInTheDocument();
     const closeButton = await screen.findByText('Close');
-    await TestUserEvent.fireClickEvent(closeButton);
+    await user.click(closeButton);
     await waitFor(() => {
       expect(newOrgTitle).not.toBeInTheDocument();
     });
@@ -168,6 +168,7 @@ describe('TransferProjectDialog', () => {
   });
 
   test(`transfer dialog opens automatically when there is a session_id and selects the ${newOrg.name} from the dropdown`, async () => {
+    const user = new TestUserEvent();
     mocks.useRouter.mockImplementation(() => getUseRouterObject('session_id'));
     server.use(getProjectQuery);
     server.use(getOrganization);
@@ -189,7 +190,7 @@ describe('TransferProjectDialog', () => {
 
     const closeButton = await screen.findByText('Close');
 
-    await TestUserEvent.fireClickEvent(closeButton);
+    await user.click(closeButton);
 
     await waitFor(() => {});
     expect(closeButton).toBeInTheDocument();

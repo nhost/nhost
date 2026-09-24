@@ -23,7 +23,7 @@ import hasuraMetadataQuery from '@/tests/msw/mocks/rest/hasuraMetadataQuery';
 import tableQuery from '@/tests/msw/mocks/rest/tableQuery';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import {
-  mockPointerEvent,
+  mockScrollIntoViewAndPointerCapture,
   render,
   screen,
   TestUserEvent,
@@ -124,7 +124,7 @@ describe('CustomCheckEditor', () => {
   });
 
   beforeEach(() => {
-    mockPointerEvent();
+    mockScrollIntoViewAndPointerCapture();
     mocks.useRouter.mockReturnValue({
       basePath: '',
       pathname: '/orgs/xyz/projects/test-project',
@@ -371,6 +371,7 @@ describe('CustomCheckEditor', () => {
 
   describe('json editor errors', () => {
     it('typing malformed JSON shows "Invalid JSON"', async () => {
+      const user = new TestUserEvent();
       render(
         <TestWrapper
           defaultValues={{
@@ -383,7 +384,8 @@ describe('CustomCheckEditor', () => {
       );
 
       const textarea = screen.getByRole('textbox') as HTMLTextAreaElement;
-      await TestUserEvent.fireTypeEvent(textarea, '{not valid json');
+      await user.clear(textarea);
+      await user.paste('{not valid json');
 
       await waitFor(() => {
         expect(screen.getByRole('alert')).toHaveTextContent('Invalid JSON');

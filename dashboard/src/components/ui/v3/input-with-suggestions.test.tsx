@@ -4,14 +4,7 @@ import {
   type InputSuggestion,
   InputWithSuggestions,
 } from '@/components/ui/v3/input-with-suggestions';
-import {
-  mockPointerEvent,
-  render,
-  screen,
-  TestUserEvent,
-} from '@/tests/testUtils';
-
-mockPointerEvent();
+import { render, screen, TestUserEvent } from '@/tests/testUtils';
 
 const SUGGESTIONS: InputSuggestion[] = [
   { label: 'now()', value: 'now()' },
