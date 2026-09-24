@@ -1,3 +1,9 @@
+## [auth@0.53.0] - 2026-09-24
+
+### 🚀 Features
+
+- *(postgres)* Update postgres to 18.6 and drop support for 16 and 17 (#5020)
+
 ## [auth@0.52.0] - 2026-09-15
 
 ### 🚀 Features
