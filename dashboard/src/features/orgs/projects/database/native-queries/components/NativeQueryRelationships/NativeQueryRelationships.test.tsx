@@ -7,6 +7,7 @@ import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks
 import { NativeQueryRelationships } from '@/features/orgs/projects/database/native-queries/components/NativeQueryRelationships';
 import { mockMatchMediaValue } from '@/tests/mocks';
 import {
+  mockScrollIntoViewAndPointerCapture,
   queryClient,
   render,
   screen,
@@ -288,10 +289,7 @@ describe('NativeQueryRelationships', () => {
       },
     });
     window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
-    Element.prototype.scrollIntoView = vi.fn();
-    Element.prototype.hasPointerCapture = vi.fn(() => false);
-    Element.prototype.releasePointerCapture = vi.fn();
-    Element.prototype.setPointerCapture = vi.fn();
+    mockScrollIntoViewAndPointerCapture();
   });
 
   beforeEach(() => {

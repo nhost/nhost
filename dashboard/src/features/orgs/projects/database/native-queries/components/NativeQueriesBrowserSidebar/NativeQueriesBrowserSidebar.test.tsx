@@ -5,6 +5,7 @@ import { toast } from 'react-hot-toast';
 import { NativeQueriesBrowserSidebar } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesBrowserSidebar';
 import { mockMatchMediaValue } from '@/tests/mocks';
 import {
+  mockScrollIntoViewAndPointerCapture,
   queryClient,
   render,
   screen,
@@ -313,10 +314,7 @@ describe('NativeQueriesBrowserSidebar', () => {
         print.error();
       },
     });
-    Element.prototype.scrollIntoView = vi.fn();
-    Element.prototype.hasPointerCapture = vi.fn(() => false);
-    Element.prototype.releasePointerCapture = vi.fn();
-    Element.prototype.setPointerCapture = vi.fn();
+    mockScrollIntoViewAndPointerCapture();
     window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
   });
 

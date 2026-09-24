@@ -1,6 +1,12 @@
 import { RelationshipFormDialog } from '@/features/orgs/projects/database/native-queries/components/RelationshipFormDialog';
 import { mockMatchMediaValue } from '@/tests/mocks';
-import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
+import {
+  mockScrollIntoViewAndPointerCapture,
+  render,
+  screen,
+  TestUserEvent,
+  waitFor,
+} from '@/tests/testUtils';
 import type {
   LogicalModelItem,
   NativeQueryItem,
@@ -68,10 +74,7 @@ async function fillRequiredRelationshipFields(user: TestUserEvent) {
 describe('RelationshipFormDialog', () => {
   beforeAll(() => {
     window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
-    Element.prototype.scrollIntoView = vi.fn();
-    Element.prototype.hasPointerCapture = vi.fn(() => false);
-    Element.prototype.releasePointerCapture = vi.fn();
-    Element.prototype.setPointerCapture = vi.fn();
+    mockScrollIntoViewAndPointerCapture();
   });
 
   beforeEach(() => {
