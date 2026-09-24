@@ -75,3 +75,15 @@ The user enters the OTP code received via email:
 :::note
 A user account is created the first time an email is used with OTP.
 :::
+
+## Elevate a Session
+
+When email OTP is enabled, signed-in users can also use it to [elevate their session](/products/auth/elevated-permissions) before performing sensitive actions. The code is sent to the email address of the signed-in user using the same `signin-otp` template:
+
+```js
+await nhost.auth.elevateOTPEmail();
+
+await nhost.auth.verifyElevateOTPEmail({
+  otp: '123456',
+});
+```

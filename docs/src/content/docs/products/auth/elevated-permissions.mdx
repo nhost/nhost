@@ -1,15 +1,16 @@
 ---
 title: Elevated Permissions
-description: Require step-up re-authentication with a security key before sensitive actions using an elevated session claim.
-keywords: ["elevated permissions", "step-up authentication", "MFA", "multi-factor", "security", "re-authentication", "sensitive actions"]
+description: Require step-up re-authentication with a security key, TOTP, or a one-time password sent by email or SMS before sensitive actions using an elevated session claim.
+keywords: ["elevated permissions", "step-up authentication", "MFA", "multi-factor", "TOTP", "OTP", "security key", "security", "re-authentication", "sensitive actions"]
 head:
   - tag: title
     content: "Step-Up Authentication for Sensitive Actions | Nhost Docs"
 sidebar:
   label: Elevated Permissions
 ---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-In some scenarios you may want to add an extra layer of security to perform certain actions or view certain data. For instance, you may wish to allow users to view their profile information after authenticating but you may want to require users to confirm changes to their profile by performing an extra validation step with a [security key](/products/auth/webauthn#add-a-security-key).
+In some scenarios you may want to add an extra layer of security to perform certain actions or view certain data. For instance, you may wish to allow users to view their profile information after authenticating but require them to confirm changes to their profile by performing an extra verification step, such as touching a [security key](/products/auth/webauthn#add-a-security-key), entering a code from their [authenticator app](/products/auth/mfa), or entering a one-time password sent to their email or phone.
 
 ![overview-flow](/images/auth/elevated-permissions/overview.png)
 
@@ -17,15 +18,99 @@ This is accomplished by adding the claim `x-hasura-auth-elevated: $user-id` to t
 
 It is important to keep in mind the claim is added to the access token so, for as long as you have that access token, you will have elevated access. Once the access token is renewed (due to expiration or any other reason), the claim will be lost and a new security challenge will be required to add it back.
 
-# API Endpoints and SDK components
+## Elevation methods
 
-To implement this functionality [auth](/products/auth) [0.26.0](https://github.com/nhost/hasura-auth/releases/tag/0.26.0) introduces the new endpoint [/elevate/webauthn](/reference/auth/post-elevate-webauthn). This endpoint works the same way as [/signin/webauthn](/reference/auth/post-signin-webauthn) but it requires an Authorization header with a valid token to add the elevated claim to.
+A signed-in user can elevate their session with any of the following methods. A method is only available when it is enabled for the project **and** the user has set it up:
 
-In addition, a few methods and components have also been added to simplify it's usage:
+| Method | Enabled with | Available to the user when |
+|---|---|---|
+| `webauthn` | `auth.method.webauthn.enabled` | They have at least one [security key](/products/auth/webauthn) registered |
+| `totp` | `auth.totp.enabled` | They have activated [TOTP](/products/auth/mfa) on their account |
+| `otp-email` | `auth.method.otp.email.enabled` | They have an email address |
+| `otp-sms` | `auth.method.otp.sms.enabled` | They have a verified phone number |
 
-- [nhost.auth.elevateWebauthn](/reference/javascript/nhost-js/auth#elevatewebauthn)
+Every method ends with the same result: a new session whose access token carries the `x-hasura-auth-elevated` claim. The JavaScript SDK stores that session automatically, so subsequent requests made with the same client use the elevated token.
 
-# Protecting your data
+:::note
+Enabling `auth.method.otp.email` or `auth.method.otp.sms` also enables the corresponding passwordless sign-in method. Email OTP elevation uses the same `signin-otp` [email template](/products/auth/email-templates) as email OTP sign-in.
+:::
+
+### Discovering available methods
+
+Use [`GET /elevate`](/reference/auth/get-elevate) to find out whether the current user needs to elevate their session and which methods they can use:
+
+```js
+const { body } = await nhost.auth.getElevationMethods();
+// {
+//   elevationRequired: true,
+//   methods: ['webauthn', 'totp', 'otp-email']
+// }
+```
+
+- `elevationRequired` tells you whether the [protected auth endpoints](#protecting-auth-data) will require an elevated session for this user under the current mode.
+- `methods` lists the methods the user can use right now.
+
+If `elevationRequired` is `true` and `methods` is empty, the user has to set up a second factor before they can perform any protected action.
+
+### Elevating a session
+
+<Tabs>
+  <TabItem label="Security key">
+  ```js
+  import { startAuthentication } from '@simplewebauthn/browser';
+
+  const response = await nhost.auth.elevateWebauthn();
+
+  const credential = await startAuthentication({
+    optionsJSON: response.body,
+  });
+
+  await nhost.auth.verifyElevateWebauthn({ credential });
+  ```
+  </TabItem>
+  <TabItem label="TOTP">
+  ```js
+  await nhost.auth.elevateTotp({
+    otp: '123456',
+  });
+  ```
+  </TabItem>
+  <TabItem label="Email OTP">
+  ```js
+  // Send a one-time password to the user's email address
+  await nhost.auth.elevateOTPEmail();
+
+  await nhost.auth.verifyElevateOTPEmail({
+    otp: '123456',
+  });
+  ```
+  </TabItem>
+  <TabItem label="SMS OTP">
+  ```js
+  await nhost.auth.elevateOTPSms();
+
+  await nhost.auth.verifyElevateOTPSms({
+    otp: '123456',
+  });
+  ```
+  </TabItem>
+</Tabs>
+
+All elevation endpoints require an `Authorization` header with a valid access token for the user being elevated. 
+
+### API endpoints and SDK methods
+
+| Method | Endpoints | SDK |
+|---|---|---|
+| Discovery | [`GET /elevate`](/reference/auth/get-elevate) | [`getElevationMethods`](/reference/javascript/nhost-js/auth#getelevationmethods) |
+| Security key | [`POST /elevate/webauthn`](/reference/auth/post-elevate-webauthn), [`POST /elevate/webauthn/verify`](/reference/auth/post-elevate-webauthn-verify) | [`elevateWebauthn`](/reference/javascript/nhost-js/auth#elevatewebauthn), [`verifyElevateWebauthn`](/reference/javascript/nhost-js/auth#verifyelevatewebauthn) |
+| TOTP | [`POST /elevate/totp`](/reference/auth/post-elevate-totp) | [`elevateTotp`](/reference/javascript/nhost-js/auth#elevatetotp) |
+| Email OTP | [`POST /elevate/otp/email`](/reference/auth/post-elevate-otp-email), [`POST /elevate/otp/email/verify`](/reference/auth/post-elevate-otp-email-verify) | [`elevateOTPEmail`](/reference/javascript/nhost-js/auth#elevateotpemail), [`verifyElevateOTPEmail`](/reference/javascript/nhost-js/auth#verifyelevateotpemail) |
+| SMS OTP | [`POST /elevate/otp/sms`](/reference/auth/post-elevate-otp-sms), [`POST /elevate/otp/sms/verify`](/reference/auth/post-elevate-otp-sms-verify) | [`elevateOTPSms`](/reference/javascript/nhost-js/auth#elevateotpsms), [`verifyElevateOTPSms`](/reference/javascript/nhost-js/auth#verifyelevateotpsms) |
+
+All `/elevate/*` endpoints are subject to the brute-force [rate limit](/platform/cloud/rate-limits). Requesting an OTP also counts against the email or SMS rate limit respectively.
+
+## Protecting your data
 
 You can use the claim `x-hasura-auth-elevated` in exactly the same way you would normally use `X-Hasura-User-Id` for added security. For instance, the following permissions would allow users to see their data without any extra security:
 
@@ -35,34 +120,39 @@ While the following permissions would require them first to elevate their access
 
 ![example-update-permissions](/images/auth/elevated-permissions/update.png)
 
-# Protecting Auth data
+## Protecting Auth data
 
-Some user information needs to be changed via Auth's API rather than via graphql mutations. These endpoints are:
+Some user information needs to be changed via Auth's API rather than via GraphQL mutations. These endpoints are:
 
 - [/user/password](/reference/auth/post-user-password) for changing passwords
 - [/user/email/change](/reference/auth/post-user-email-change) for changing emails
 - [/user/phone-number/change](/reference/auth/post-user-phone-number-change) and [/user/phone-number/change/verify](/reference/auth/post-user-phone-number-change-verify) for changing phone numbers
-- [/user/mfa](/reference/auth/post-user-mfa) for enabling or disabling MFA
-- [/user/webauthn/add](/reference/auth/post-user-webauthn-add) for adding security keys
+- [/mfa/totp/generate](/reference/auth/get-mfa-totp-generate) for setting up TOTP
+- [/user/webauthn/add](/reference/auth/post-user-webauthn-add) and [/user/webauthn/verify](/reference/auth/post-user-webauthn-verify) for adding security keys
 - [/pat](/reference/auth/post-pat) for PAT creation
+- [/link/idtoken](/reference/auth/post-link-idtoken) for linking an identity provider account
 
 To protect these endpoints and require the elevated claim you can use the following configuration option:
 
-```toml
+```toml title="nhost.toml"
 [auth.elevatedPrivileges]
 mode = 'required'
 ```
 
-The mode can be one of `disabled` (default), `required`, `recommended`.
+The mode can be one of `disabled` (default), `recommended`, `required`.
 
-In `disabled` mode the elevated claim isn't required in any of the options above. This is the default behavior.
+In `disabled` mode the elevated claim isn't required for any of the endpoints above. This is the default behavior.
 
-In `required` mode, all of the endpoints above will require an access token with the elevated claim. There is only one exception to this rule. If the user has no security key, adding the first security key won't require the elevated claim. However, as the rest of the endpoints do require it, the user won't be able to perform any changes until it adds a security key and gets an access token with the elevated claim. Adding extra security keys after the first one has been added will require the elevated claim. Removing security keys always requires the elevated claim.
-
-In `recommended` mode, the elevated claim is only required if the user has a security key configured. If a user doesn't have a security key the elevated claim won't be required to perform the actions described above. If the user has one or more keys the elevated claims will be required. This mode provides flexibility for the users to choose if they want the extra security or not.
+In `recommended` mode, the elevated claim is only required if the user has at least one [elevation method](#elevation-methods) available. Users with no available method can perform the actions above without elevating. This mode lets users opt into the extra security by setting up a second factor.
 
 :::caution
-If you are allowing users to perform changes to auth data directly by performing graphql mutations (i.e. deleting security keys), don't forget to update the permissions to match the desired behavior.
+In `recommended` mode, email OTP and SMS OTP count as available methods too. If you enable `auth.method.otp.email`, every user with an email address will have to elevate before performing the actions above, which effectively behaves like `required` mode for them.
+:::
+
+In `required` mode, all of the endpoints above require an access token with the elevated claim. The only exception is setting up a first factor: if the user has no elevation method available, they can register a security key (`/user/webauthn/add` and `/user/webauthn/verify`) or start TOTP setup (`/mfa/totp/generate`) without the elevated claim. Every other endpoint still requires it, so such a user can't perform any other protected action until they set up a factor and elevate their session. Once the user has any method available, setting up additional factors requires the elevated claim as well.
+
+:::caution
+If you are allowing users to perform changes to auth data directly by performing GraphQL mutations (i.e. deleting security keys), don't forget to update the permissions to match the desired behavior.
 :::
 
 ## Example
@@ -85,7 +175,7 @@ Note that after elevating permissions the secret note is added and the elevated 
 
 ### Updating profile information
 
-In addition, to demonstrate the new `auth.elevatedPrivileges` setting, we have set it to `required` in this example requiring elevated access to perform certain changes. For instance, if you try to change your password you will first have to elevate your access:
+In addition, to demonstrate the `auth.elevatedPrivileges` setting, we have set it to `required` in this example requiring elevated access to perform certain changes. For instance, if you try to change your password you will first have to elevate your access:
 
 ![change password](/images/auth/elevated-permissions/password.png)
 
