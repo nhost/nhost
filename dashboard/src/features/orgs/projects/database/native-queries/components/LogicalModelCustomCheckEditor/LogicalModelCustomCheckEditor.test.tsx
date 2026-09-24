@@ -22,7 +22,13 @@ import permissionVariablesQuery from '@/tests/msw/mocks/graphql/permissionVariab
 import hasuraMetadataQuery from '@/tests/msw/mocks/rest/hasuraMetadataQuery';
 import tableQuery from '@/tests/msw/mocks/rest/tableQuery';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
-import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
+import {
+  mockScrollIntoViewAndPointerCapture,
+  render,
+  screen,
+  TestUserEvent,
+  waitFor,
+} from '@/tests/testUtils';
 import type { LogicalModelItem } from '@/utils/hasura-api/generated/schemas';
 
 const profile: LogicalModelItem = {
@@ -173,10 +179,7 @@ describe('LogicalModelCustomCheckEditor', () => {
     process.env.NEXT_PUBLIC_NHOST_CONFIGSERVER_URL =
       'https://local.graphql.local.nhost.run/v1';
     server.listen();
-    Element.prototype.scrollIntoView = vi.fn();
-    Element.prototype.hasPointerCapture = vi.fn(() => false);
-    Element.prototype.releasePointerCapture = vi.fn();
-    Element.prototype.setPointerCapture = vi.fn();
+    mockScrollIntoViewAndPointerCapture();
     window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
   });
 

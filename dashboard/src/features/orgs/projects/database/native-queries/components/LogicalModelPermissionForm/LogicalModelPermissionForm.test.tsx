@@ -83,10 +83,6 @@ describe('LogicalModelPermissionForm validation', () => {
     process.env.NEXT_PUBLIC_NHOST_CONFIGSERVER_URL =
       'https://local.graphql.local.nhost.run/v1';
     server.listen({ onUnhandledRequest: 'error' });
-    Element.prototype.scrollIntoView = vi.fn();
-    Element.prototype.hasPointerCapture = vi.fn(() => false);
-    Element.prototype.releasePointerCapture = vi.fn();
-    Element.prototype.setPointerCapture = vi.fn();
     window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
   });
 
