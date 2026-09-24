@@ -166,6 +166,57 @@ if ! docker logs "$new_container" 2>&1 |
     exit 1
 fi
 
+if ! docker logs "$new_container" 2>&1 |
+    grep -q 'WARNING: Failed to inspect extensions in database aaa_inspect_failure; continuing startup'; then
+    echo "A database-specific inspection failure was not reported" >&2
+    docker logs "$new_container" >&2
+    exit 1
+fi
+
+if ! invalid_database_skipped=$(docker exec "$new_container" \
+    psql -X -qAt -U postgres -d postgres -v ON_ERROR_STOP=1 \
+    -c "SELECT datallowconn AND datconnlimit = -2 FROM pg_database WHERE datname = 'aaa_invalid'"); then
+    echo "Could not inspect the invalid upgrade source database" >&2
+    exit 1
+fi
+if [ "$invalid_database_skipped" != t ] ||
+    docker logs "$new_container" 2>&1 | grep -q 'Failed to inspect extensions in database aaa_invalid'; then
+    echo "The invalid database was not excluded from extension discovery" >&2
+    docker logs "$new_container" >&2
+    exit 1
+fi
+
+if ! hstore_is_current=$(docker exec --env 'PGDATABASE=app=old' "$new_container" \
+    psql -X -qAt -U postgres -v ON_ERROR_STOP=1 \
+    -c "SELECT installed.extversion = available.default_version
+        FROM pg_extension AS installed
+        JOIN pg_available_extensions AS available ON available.name = installed.extname
+        WHERE installed.extname = 'hstore'"); then
+    echo "Could not inspect hstore in app=old" >&2
+    docker logs "$new_container" >&2
+    exit 1
+fi
+if [ "$hstore_is_current" != t ] ||
+    ! docker logs "$new_container" 2>&1 | grep -q 'Updating extension hstore in database app=old'; then
+    echo "hstore was not upgraded in the database named app=old" >&2
+    docker logs "$new_container" >&2
+    exit 1
+fi
+
+if ! search_path_restored=$(docker exec "$new_container" \
+    psql -X -qAt -U postgres -d local -v ON_ERROR_STOP=1 \
+    -c "SELECT 'search_path=public' = ANY(rolconfig)
+        FROM pg_roles WHERE rolname = 'nhost_auth_admin'"); then
+    echo "Could not inspect nhost_auth_admin settings" >&2
+    exit 1
+fi
+if [ "$search_path_restored" != t ] ||
+    docker logs "$new_container" 2>&1 | grep -q 'Nhost script execution failed'; then
+    echo "Nhost SQL was skipped or failed after the extension inspection failure" >&2
+    docker logs "$new_container" >&2
+    exit 1
+fi
+
 docker exec -i "$new_container" \
     psql -X -U postgres -d local -v ON_ERROR_STOP=1 -1 -f - \
     <"$script_dir/../tests/plugins.sql"

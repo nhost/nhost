@@ -139,7 +139,7 @@ update_extension() {
 	# without it. Install the missing dependency before updating that extension.
 	can_update=true
 	if [ "$extension" = pg_search ]; then
-		if ! run_interruptibly psql -X -q -b -U postgres -d "$database" \
+		if ! run_interruptibly env "PGDATABASE=$database" psql -X -q -b -U postgres \
 			-v ON_ERROR_STOP=1 -c 'CREATE EXTENSION IF NOT EXISTS vector;' \
 			>"$update_log" 2>&1; then
 			can_update=false
@@ -150,7 +150,7 @@ update_extension() {
 	# its own session (required by TimescaleDB) while still letting psql quote
 	# the extension identifier.
 	if [ "$can_update" = true ] &&
-		run_interruptibly psql -X -q -b -U postgres -d "$database" \
+		run_interruptibly env "PGDATABASE=$database" psql -X -q -b -U postgres \
 			-v ON_ERROR_STOP=1 -v extension="$extension" \
 			-f "$extension_update" >>"$update_log" 2>&1; then
 		echo "Updating extension $extension in database $database"
@@ -169,13 +169,15 @@ update_extension() {
 update_extensions() {
 	database=$1
 	extension_update=$2
-	extension_list=$(mktemp -p /tmp/postgresql extensions.XXXXXX) || return 1
+	# Distinguish global temp-file failures from a database-specific inspection failure.
+	extension_list=$(mktemp -p /tmp/postgresql extensions.XXXXXX) || return 2
 
 	# Discover outdated extensions in a throwaway session without loading a
 	# possibly unbundled TimescaleDB version. Its ALTER EXTENSION then remains
 	# the first command in a fresh session.
-	if ! run_interruptibly env "PGOPTIONS=${PGOPTIONS:+$PGOPTIONS }-c timescaledb.disable_load=on" \
-		psql -X -q -A -t -U postgres -d "$database" -v ON_ERROR_STOP=1 \
+	if ! run_interruptibly env "PGDATABASE=$database" \
+		"PGOPTIONS=${PGOPTIONS:+$PGOPTIONS }-c timescaledb.disable_load=on" \
+		psql -X -q -A -t -U postgres -v ON_ERROR_STOP=1 \
 		-o "$extension_list" \
 		-c "SELECT e.extname
 			FROM pg_extension AS e
@@ -215,19 +217,30 @@ update_extensions_all_databases() {
 	if ! run_interruptibly env "PGOPTIONS=${PGOPTIONS:+$PGOPTIONS }-c timescaledb.disable_load=on" \
 		psql -X -q -A -t -U postgres -d postgres -v ON_ERROR_STOP=1 \
 		-o "$database_list" \
-		-c "SELECT datname FROM pg_database WHERE datallowconn ORDER BY datname"; then
+		-c "SELECT datname FROM pg_database WHERE datallowconn AND datconnlimit <> -2 ORDER BY datname"; then
 		rm -f "$database_list" "$extension_update"
 		return 1
 	fi
 
+	upgrade_failed=false
 	while IFS= read -r database; do
-		if ! update_extensions "$database" "$extension_update"; then
-			rm -f "$database_list" "$extension_update"
-			return 1
+		if update_extensions "$database" "$extension_update"; then
+			:
+		else
+			case $? in
+			1)
+				echo "WARNING: Failed to inspect extensions in database $database; continuing startup" >&2
+				;;
+			*)
+				upgrade_failed=true
+				break
+				;;
+			esac
 		fi
 	done <"$database_list"
 
 	rm -f "$database_list" "$extension_update"
+	[ "$upgrade_failed" = false ]
 }
 
 run_init_scripts() {
@@ -248,7 +261,9 @@ run_init_scripts() {
 run_nhost_scripts() {
 	echo "Running nhost's scripts"
 
-	update_extensions_all_databases || return 1
+	if ! update_extensions_all_databases; then
+		echo "WARNING: Failed to prepare extension upgrades; continuing Nhost SQL" >&2
+	fi
 
 	mkdir -p /tmp/postgresql/nhost.d || return 1
 	for f in /nhost.d/*; do
