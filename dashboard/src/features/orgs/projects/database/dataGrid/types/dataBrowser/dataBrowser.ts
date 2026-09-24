@@ -9,6 +9,7 @@ import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGr
 import type {
   ComputedFieldItem,
   ExportMetadataResponseMetadataSourcesItemFunctionsItem,
+  ForeignKeyConstraintOn,
 } from '@/utils/hasura-api/generated/schemas';
 
 /**
@@ -50,15 +51,7 @@ export interface HasuraMetadataRelationship {
         schema: string;
       };
     };
-    foreign_key_constraint_on?:
-      | string
-      | {
-          column: string;
-          table: {
-            name: string;
-            schema: string;
-          };
-        };
+    foreign_key_constraint_on?: ForeignKeyConstraintOn;
   };
 }
 

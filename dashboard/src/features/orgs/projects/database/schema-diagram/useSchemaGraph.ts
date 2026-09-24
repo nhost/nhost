@@ -1,11 +1,13 @@
 import type { Edge, Node } from '@xyflow/react';
 import { useMemo } from 'react';
+import { getForeignKeyConstraintColumns } from '@/features/orgs/projects/database/common/utils/getForeignKeyConstraintColumns';
 import type {
   HasuraMetadataRelationship,
   HasuraMetadataTable,
   TableLikeObject,
   TableLikeObjectType,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { isFKConstraintOnSameTable } from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
 import type { ExportMetadataResponseMetadataSourcesItemFunctionsItem } from '@/utils/hasura-api/generated/schemas';
 import { computeNodeHeight, layoutNodes, TABLE_NODE_WIDTH } from './layout';
 import { tableHasAnyPermission } from './permissionState';
@@ -345,14 +347,20 @@ function relMatchesFk(
   const using = rel.using;
   if (using.foreign_key_constraint_on !== undefined) {
     const fkc = using.foreign_key_constraint_on;
-    if (side === 'object') {
-      return typeof fkc === 'string' && fkc === fk.fromColumn;
+    // Edges are per column, so a composite constraint matches each of its
+    // member columns.
+    const matchesColumn = getForeignKeyConstraintColumns(fkc).includes(
+      fk.fromColumn,
+    );
+    if (isFKConstraintOnSameTable(fkc)) {
+      return side === 'object' && matchesColumn;
     }
+
     return (
-      typeof fkc === 'object' &&
-      fkc.column === fk.fromColumn &&
-      fkc.table.schema === fk.fromSchema &&
-      fkc.table.name === fk.fromTable
+      side === 'array' &&
+      matchesColumn &&
+      fkc.table?.schema === fk.fromSchema &&
+      fkc.table?.name === fk.fromTable
     );
   }
   const manual = using.manual_configuration;
