@@ -132,8 +132,24 @@ describe('RelationshipFormDialog', () => {
     },
   );
 
+  it('blocks an empty relationship name with the shared message', async () => {
+    const user = new TestUserEvent();
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    render(<RelationshipFormDialog {...formProps} open onSubmit={onSubmit} />);
+
+    await user.clear(screen.getByLabelText('Relationship Name'));
+    await fillRequiredRelationshipFields(user);
+    await user.click(
+      screen.getByRole('button', { name: 'Create Relationship' }),
+    );
+
+    expect(
+      await screen.findByText('Relationship name is required.'),
+    ).toBeInTheDocument();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
   it.each([
-    ['', 'Relationship name is required.'],
     [' ', 'Relationship name must start with a letter or underscore.'],
     [
       ' relationship',
@@ -160,10 +176,8 @@ describe('RelationshipFormDialog', () => {
         <RelationshipFormDialog {...formProps} open onSubmit={onSubmit} />,
       );
 
-      if (name) {
-        await user.clear(screen.getByLabelText('Relationship Name'));
-        await user.type(screen.getByLabelText('Relationship Name'), name);
-      }
+      await user.clear(screen.getByLabelText('Relationship Name'));
+      await user.type(screen.getByLabelText('Relationship Name'), name);
       await fillRequiredRelationshipFields(user);
       await user.click(
         screen.getByRole('button', { name: 'Create Relationship' }),
@@ -213,57 +227,70 @@ describe('RelationshipFormDialog', () => {
     );
   });
 
-  describe.each(['object', 'array'] as const)(
-    'editing an %s relationship',
-    (kind) => {
-      it.each([undefined, null, 'before_parent', 'after_parent'] as const)(
-        'submits insertion order %s with the omission default',
-        async (insertionOrder) => {
-          const user = new TestUserEvent();
-          const onSubmit = vi.fn().mockResolvedValue(undefined);
-          const originalRelationship = {
-            name: 'manager',
-            using: {
-              column_mapping: { id: 'id' },
-              remote_native_query: 'authors',
-              ...(insertionOrder === undefined
-                ? {}
-                : { insertion_order: insertionOrder }),
-            },
-          } satisfies NativeQueryRelationship;
-          const originalQuery: NativeQueryItem = {
-            ...query,
-            object_relationships:
-              kind === 'object' ? [originalRelationship] : [],
-            array_relationships: kind === 'array' ? [originalRelationship] : [],
-          };
-          render(
-            <RelationshipFormDialog
-              {...formProps}
-              open
-              query={originalQuery}
-              queries={[originalQuery]}
-              relationship={{ relationship: originalRelationship, kind }}
-              onSubmit={onSubmit}
-            />,
-          );
-          await user.click(
-            screen.getByRole('button', { name: 'Save Changes' }),
-          );
+  describe.each([
+    { kind: 'object', relationshipsKey: 'object_relationships' },
+    { kind: 'array', relationshipsKey: 'array_relationships' },
+  ] as const)('editing an $kind relationship', ({ kind, relationshipsKey }) => {
+    it.each([
+      { label: 'omitted', storedInsertionOrder: {}, expected: null },
+      {
+        label: 'null',
+        storedInsertionOrder: { insertion_order: null },
+        expected: null,
+      },
+      {
+        label: 'before_parent',
+        storedInsertionOrder: { insertion_order: 'before_parent' },
+        expected: 'before_parent',
+      },
+      {
+        label: 'after_parent',
+        storedInsertionOrder: { insertion_order: 'after_parent' },
+        expected: 'after_parent',
+      },
+    ] as const)(
+      'submits insertion order $label with the omission default',
+      async ({ storedInsertionOrder, expected }) => {
+        const user = new TestUserEvent();
+        const onSubmit = vi.fn().mockResolvedValue(undefined);
+        const originalRelationship = {
+          name: 'manager',
+          using: {
+            column_mapping: { id: 'id' },
+            remote_native_query: 'authors',
+            ...storedInsertionOrder,
+          },
+        } satisfies NativeQueryRelationship;
+        const originalQuery: NativeQueryItem = {
+          ...query,
+          object_relationships: [],
+          array_relationships: [],
+          [relationshipsKey]: [originalRelationship],
+        };
+        render(
+          <RelationshipFormDialog
+            {...formProps}
+            open
+            query={originalQuery}
+            queries={[originalQuery]}
+            relationship={{ relationship: originalRelationship, kind }}
+            onSubmit={onSubmit}
+          />,
+        );
+        await user.click(screen.getByRole('button', { name: 'Save Changes' }));
 
-          await waitFor(() =>
-            expect(onSubmit).toHaveBeenCalledWith({
-              name: 'manager',
-              kind,
-              remoteNativeQuery: 'authors',
-              fieldMappings: [{ sourceField: 'id', targetField: 'id' }],
-              insertionOrder: insertionOrder ?? null,
-            }),
-          );
-        },
-      );
-    },
-  );
+        await waitFor(() =>
+          expect(onSubmit).toHaveBeenCalledWith({
+            name: 'manager',
+            kind,
+            remoteNativeQuery: 'authors',
+            fieldMappings: [{ sourceField: 'id', targetField: 'id' }],
+            insertionOrder: expected,
+          }),
+        );
+      },
+    );
+  });
 
   it('guards dirty drafts and resets whenever the dialog reopens', async () => {
     const user = new TestUserEvent();
