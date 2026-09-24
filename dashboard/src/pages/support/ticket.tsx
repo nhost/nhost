@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/v3/multi-select';
 import { SelectItem } from '@/components/ui/v3/select';
 import { Separator } from '@/components/ui/v3/separator';
+import { TextLink } from '@/components/ui/v3/text-link';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
   type GetOrganizationsQuery,
@@ -261,14 +262,9 @@ function TicketPage() {
                         <>
                           To set a higher priority, upgrade to a plan with an
                           SLA.{' '}
-                          <a
-                            className="text-primary hover:underline"
-                            href="https://nhost.io/pricing"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
+                          <TextLink href="https://nhost.io/pricing" external>
                             View pricing
-                          </a>
+                          </TextLink>
                         </>
                       ) : null
                     }
@@ -352,7 +348,7 @@ function TicketPage() {
 
 TicketPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <AuthenticatedLayout title="Help & Support | Nhost" withMainNav={false}>
+    <AuthenticatedLayout title="Help & Support | Nhost">
       {page}
     </AuthenticatedLayout>
   );
