@@ -1,5 +1,9 @@
 import { vi } from 'vitest';
 import type { FetchTableReturnType } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
+import type {
+  FetchMetadataReturnType,
+  HasuraMetadataRelationship,
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { renderHook, waitFor } from '@/tests/testUtils';
 import useAsyncValue from './useAsyncValue';
 
@@ -13,6 +17,37 @@ const makeTableData = (
     udt_name: 'text',
   })),
 });
+
+const orderItemsTableData = {
+  ...makeTableData(['tenant_id', 'order_id']),
+  foreignKeyRelations: [
+    {
+      columnName: 'order_id',
+      referencedSchema: 'public',
+      referencedTable: 'orders',
+      referencedColumn: 'id',
+    },
+  ],
+} as FetchTableReturnType;
+
+function makeMetadata(
+  relationshipType: 'object_relationships' | 'array_relationships',
+  relationship: HasuraMetadataRelationship,
+  table = { schema: 'public', name: 'order_items' },
+): FetchMetadataReturnType {
+  return {
+    resourceVersion: 1,
+    tables: [
+      {
+        table,
+        configuration: {},
+        ...(relationshipType === 'object_relationships'
+          ? { object_relationships: [relationship] }
+          : { array_relationships: [relationship] }),
+      },
+    ],
+  };
+}
 
 describe('useAsyncValue', () => {
   it('initializes immediately when initialValue is empty string', async () => {
@@ -152,6 +187,132 @@ describe('useAsyncValue', () => {
       );
     });
   });
+
+  it('resolves a single-column object relationship through its foreign key relation', async () => {
+    const metadata = makeMetadata('object_relationships', {
+      name: 'order',
+      using: { foreign_key_constraint_on: 'order_id' },
+    });
+    const { result, rerender } = renderHook((props) => useAsyncValue(props), {
+      initialProps: {
+        selectedSchema: 'public',
+        selectedTable: 'order_items',
+        initialValue: 'order.total',
+        isTableLoading: false,
+        isMetadataLoading: false,
+        tableData: orderItemsTableData,
+        metadata,
+      },
+    });
+
+    rerender({
+      selectedSchema: 'public',
+      selectedTable: 'orders',
+      initialValue: 'order.total',
+      isTableLoading: false,
+      isMetadataLoading: false,
+      tableData: makeTableData(['total']) as FetchTableReturnType,
+      metadata,
+    });
+
+    await waitFor(() => {
+      expect(result.current.initialized).toBe(true);
+    });
+    expect(result.current.selectedColumn).toMatchObject({ value: 'total' });
+    expect(result.current.selectedRelationships).toEqual([
+      { schema: 'public', table: 'orders', name: 'order' },
+    ]);
+  });
+
+  it('does not match composite object metadata against a singular foreign key relation', async () => {
+    const { result } = renderHook(() =>
+      useAsyncValue({
+        selectedSchema: 'public',
+        selectedTable: 'order_items',
+        initialValue: 'order.total',
+        isTableLoading: false,
+        isMetadataLoading: false,
+        tableData: orderItemsTableData,
+        metadata: makeMetadata('object_relationships', {
+          name: 'order',
+          using: {
+            foreign_key_constraint_on: ['tenant_id', 'order_id'],
+          },
+        }),
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.initialized).toBe(true);
+    });
+    expect(result.current.selectedColumn).toBeNull();
+    expect(result.current.selectedRelationships).toEqual([]);
+  });
+
+  it.each([
+    [
+      'single-column',
+      {
+        column: 'order_id',
+        table: { schema: 'logistics', name: 'shipments' },
+      },
+    ],
+    [
+      'composite',
+      {
+        columns: ['tenant_id', 'order_id'],
+        table: { schema: 'logistics', name: 'shipments' },
+      },
+    ],
+  ] satisfies [
+    string,
+    NonNullable<
+      HasuraMetadataRelationship['using']['foreign_key_constraint_on']
+    >,
+  ][])(
+    'resolves a %s array relationship through its metadata table',
+    async (_name, foreignKeyConstraintOn) => {
+      const metadata = makeMetadata(
+        'array_relationships',
+        {
+          name: 'shipments',
+          using: { foreign_key_constraint_on: foreignKeyConstraintOn },
+        },
+        { schema: 'public', name: 'orders' },
+      );
+      const { result, rerender } = renderHook((props) => useAsyncValue(props), {
+        initialProps: {
+          selectedSchema: 'public',
+          selectedTable: 'orders',
+          initialValue: 'shipments.tracking_number',
+          isTableLoading: false,
+          isMetadataLoading: false,
+          tableData: makeTableData(['id']) as FetchTableReturnType,
+          metadata,
+        },
+      });
+
+      rerender({
+        selectedSchema: 'logistics',
+        selectedTable: 'shipments',
+        initialValue: 'shipments.tracking_number',
+        isTableLoading: false,
+        isMetadataLoading: false,
+        tableData: makeTableData(['tracking_number']) as FetchTableReturnType,
+        metadata,
+      });
+
+      await waitFor(() => {
+        expect(result.current.initialized).toBe(true);
+      });
+      expect(result.current.selectedColumn).toMatchObject({
+        value: 'tracking_number',
+      });
+      expect(result.current.selectedRelationships).toEqual([
+        { schema: 'logistics', table: 'shipments', name: 'shipments' },
+      ]);
+    },
+  );
 
   it('does not call onInitialized when initialValue is empty', async () => {
     const onInitialized = vi.fn();
