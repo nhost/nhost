@@ -143,33 +143,41 @@ describe('EditNativeQueryForm', () => {
     mocks.router.query.querySlug = '';
   });
 
-  it.each(['authors', 'other_query'])(
-    'navigates after a rename only when editing the routed query (%s)',
-    async (querySlug) => {
-      mocks.router.query.querySlug = querySlug;
-      mocks.modelsResult.data = [{ name: 'author_result' }];
-      const user = new TestUserEvent();
-      render(<EditNativeQueryForm query={editedQuery} />);
-      await user.clear(screen.getByLabelText('Root field name'));
-      await user.type(
-        screen.getByLabelText('Root field name'),
-        'renamed_authors',
-      );
-      await user.click(screen.getByRole('button', { name: 'Save' }));
-      await waitFor(() =>
-        expect(mocks.nativeMutateAsync).toHaveBeenCalledOnce(),
-      );
-      if (querySlug === editedQuery.root_field_name) {
-        await waitFor(() =>
-          expect(mocks.router.push).toHaveBeenCalledWith(
-            '/orgs/test-org/projects/test-app/database/native-queries/default/queries/renamed_authors',
-          ),
-        );
-      } else {
-        expect(mocks.router.push).not.toHaveBeenCalled();
-      }
-    },
-  );
+  it('navigates to the renamed query when editing the routed query', async () => {
+    mocks.router.query.querySlug = editedQuery.root_field_name;
+    mocks.modelsResult.data = [{ name: 'author_result' }];
+    const user = new TestUserEvent();
+    render(<EditNativeQueryForm query={editedQuery} />);
+    await user.clear(screen.getByLabelText('Root field name'));
+    await user.type(
+      screen.getByLabelText('Root field name'),
+      'renamed_authors',
+    );
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => expect(mocks.nativeMutateAsync).toHaveBeenCalledOnce());
+    await waitFor(() =>
+      expect(mocks.router.push).toHaveBeenCalledWith(
+        '/orgs/test-org/projects/test-app/database/native-queries/default/queries/renamed_authors',
+      ),
+    );
+  });
+
+  it('does not navigate after renaming a query that is not routed', async () => {
+    mocks.router.query.querySlug = 'other_query';
+    mocks.modelsResult.data = [{ name: 'author_result' }];
+    const user = new TestUserEvent();
+    render(<EditNativeQueryForm query={editedQuery} />);
+    await user.clear(screen.getByLabelText('Root field name'));
+    await user.type(
+      screen.getByLabelText('Root field name'),
+      'renamed_authors',
+    );
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => expect(mocks.nativeMutateAsync).toHaveBeenCalledOnce());
+    expect(mocks.router.push).not.toHaveBeenCalled();
+  });
 
   it('marks an expanded SQL edit dirty and submits it from the edit form', async () => {
     mocks.modelsResult.data = [{ name: 'author_result' }];
@@ -272,10 +280,7 @@ describe('EditNativeQueryForm', () => {
     });
   });
 
-  it.each([
-    ['cleared', ''],
-    ['whitespace-only', '   '],
-  ])('omits a %s description on edit', async (_, value) => {
+  it('omits a cleared description on edit', async () => {
     const describedQuery: NativeQueryItem = {
       ...editedQuery,
       description: 'Stale external description',
@@ -285,9 +290,25 @@ describe('EditNativeQueryForm', () => {
     render(<EditNativeQueryForm query={describedQuery} />);
 
     await user.clear(screen.getByLabelText('Description'));
-    if (value) {
-      await user.type(screen.getByLabelText('Description'), value);
-    }
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => expect(mocks.nativeMutateAsync).toHaveBeenCalledOnce());
+    const submittedArgs = mocks.nativeMutateAsync.mock.calls[0]?.[0].args;
+    expect(submittedArgs).not.toHaveProperty('comment');
+    expect(submittedArgs).not.toHaveProperty('description');
+  });
+
+  it('omits a whitespace-only description on edit', async () => {
+    const describedQuery: NativeQueryItem = {
+      ...editedQuery,
+      description: 'Stale external description',
+    };
+    mocks.modelsResult.data = [{ name: 'author_result' }];
+    const user = new TestUserEvent();
+    render(<EditNativeQueryForm query={describedQuery} />);
+
+    await user.clear(screen.getByLabelText('Description'));
+    await user.type(screen.getByLabelText('Description'), '   ');
     await user.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(() => expect(mocks.nativeMutateAsync).toHaveBeenCalledOnce());

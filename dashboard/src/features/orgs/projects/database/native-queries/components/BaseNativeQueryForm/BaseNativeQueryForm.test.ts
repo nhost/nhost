@@ -74,11 +74,9 @@ describe('createNativeQueryFormSchema', () => {
     const result = await createNativeQueryFormSchema().safeParseAsync(input);
 
     expect(result.success).toBe(false);
-    if (!result.success) {
-      expect(result.error.issues).toContainEqual(
-        expect.objectContaining({ path }),
-      );
-    }
+    expect(result.error?.issues).toContainEqual(
+      expect.objectContaining({ path }),
+    );
   });
 
   it('rejects duplicate argument names', async () => {

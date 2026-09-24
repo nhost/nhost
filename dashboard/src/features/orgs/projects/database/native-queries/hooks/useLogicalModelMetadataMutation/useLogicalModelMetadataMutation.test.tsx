@@ -112,15 +112,19 @@ const originalPermissionSteps =
     type: 'pg_create_logical_model_select_permission',
     args: { source: SOURCE, name: original.name, role, permission },
   })) ?? [];
+const trackReplacement = {
+  type: 'pg_track_logical_model',
+  args: { ...args, source: SOURCE },
+};
+const editSteps = [replacementStep, ...(permissionSteps ?? [])];
 
 const cases = [
   {
     type: 'add' as const,
     variables: { source: SOURCE, resourceVersion: RESOURCE_VERSION, args },
     operationType: 'bulk_atomic',
-    expectedArgs: [
-      { type: 'pg_track_logical_model', args: { ...args, source: SOURCE } },
-    ],
+    expectedArgs: [trackReplacement],
+    expectedUp: [{ type: 'bulk_atomic', args: [trackReplacement] }],
     expectedName: `track_logical_model_${args.name}`,
     expectedDown: [{ type: 'bulk_atomic', args: [untrackReplacement] }],
   },
@@ -133,7 +137,8 @@ const cases = [
       original,
     },
     operationType: 'bulk',
-    expectedArgs: [replacementStep, ...(permissionSteps ?? [])],
+    expectedArgs: editSteps,
+    expectedUp: editSteps,
     expectedName: `update_logical_model_${original.name}`,
     expectedDown: [
       { type: 'bulk_atomic', args: [untrackReplacement, restoreOriginal] },
@@ -145,6 +150,7 @@ const cases = [
     variables: { source: SOURCE, resourceVersion: RESOURCE_VERSION, original },
     operationType: 'bulk_atomic',
     expectedArgs: [untrackOriginal],
+    expectedUp: [{ type: 'bulk_atomic', args: [untrackOriginal] }],
     expectedName: `untrack_logical_model_${original.name}`,
     expectedDown: [
       { type: 'bulk_atomic', args: [restoreOriginal] },
@@ -182,14 +188,7 @@ describe('useLogicalModelMetadataMutation', () => {
 
   it.each(cases)(
     'executes local $type as one awaited migration and invalidates the cache',
-    async ({
-      type,
-      variables,
-      operationType,
-      expectedArgs,
-      expectedName,
-      expectedDown,
-    }) => {
+    async ({ type, variables, expectedUp, expectedName, expectedDown }) => {
       const onSuccess = vi.fn();
       const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
       const { result } = renderHook(
@@ -212,10 +211,7 @@ describe('useLogicalModelMetadataMutation', () => {
           {
             name: expectedName,
             datasource: SOURCE,
-            up:
-              operationType === 'bulk_atomic'
-                ? [{ type: 'bulk_atomic', args: expectedArgs }]
-                : expectedArgs,
+            up: expectedUp,
             down: expectedDown,
           },
         ]);
