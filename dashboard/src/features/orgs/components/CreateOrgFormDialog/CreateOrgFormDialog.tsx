@@ -284,8 +284,9 @@ export default function CreateOrgDialog({
   const user = useUserData();
   const isPlatform = useIsPlatform();
   const [open, setOpen] = useState(false);
+  // The header keeps this dialog mounted, so only fetch once it is opened.
   const { data, loading, error } = usePrefetchNewAppQuery({
-    skip: !user || !isPlatform,
+    skip: !user || !isPlatform || !(isOpen ?? open),
   });
   const [createOrganizationRequest] = useCreateOrganizationRequestMutation();
   const [stripeClientSecret, setStripeClientSecret] = useState('');
