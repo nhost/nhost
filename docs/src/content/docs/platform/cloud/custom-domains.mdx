@@ -18,7 +18,10 @@ The following examples assume we are configuring custom domains at `*.custom-dom
 
 <Tabs>
   <TabItem label="Dashboard">
-    Follow the instructions in the Custom Domain section of your project's settings:
+    Open the custom-domain settings for the service you want to configure:
+
+    - **PostgreSQL:** [Database → Settings → Custom Domain](https://app.nhost.io/orgs/_/projects/_/database/settings?tab=custom-domain).
+    - **Auth, GraphQL, Functions, and Run:** [Settings → Custom Domains](https://app.nhost.io/orgs/_/projects/_/settings/custom-domains).
 
     1. Add a CNAME record in your DNS provider for each of the services you want a custom domain for, and click "Verify". The verification might take a few seconds to succeed.
     2. Once the verification succeeds, click "Save" to update your project.
