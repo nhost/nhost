@@ -4,14 +4,7 @@ import { vi } from 'vitest';
 
 import { CommandPaletteProvider } from '@/features/command-palette/components/CommandPaletteProvider';
 import { mockMatchMediaValue } from '@/tests/mocks';
-import {
-  fireEvent,
-  mockPointerEvent,
-  render,
-  screen,
-  waitFor,
-  within,
-} from '@/tests/testUtils';
+import { render, screen, waitFor, within } from '@/tests/testUtils';
 
 const push = vi.fn();
 const openWindow = vi.fn();
@@ -166,7 +159,6 @@ beforeEach(() => {
   });
   window.open = openWindow;
   openWindow.mockReset();
-  mockPointerEvent();
   window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
   window.requestAnimationFrame = (callback) => {
     callback(0);
@@ -214,11 +206,7 @@ describe('CommandPaletteProvider', () => {
     const backdrop = dialog.parentElement;
     expect(backdrop).not.toBeNull();
 
-    fireEvent.pointerDown(backdrop as HTMLElement, {
-      button: 0,
-      ctrlKey: false,
-      pointerType: 'mouse',
-    });
+    await user.click(backdrop as HTMLElement);
 
     await waitFor(() => {
       expect(

@@ -8,8 +8,7 @@ import {
   HASURA_API_URL,
 } from '@/tests/msw/mocks/rest/exportActionsMetadataQuery';
 import {
-  fireEvent,
-  mockPointerEvent,
+  mockScrollIntoViewAndPointerCapture,
   queryClient,
   render,
   screen,
@@ -122,19 +121,11 @@ async function fillWebhook(user: TestUserEvent) {
   return webhook;
 }
 
-function submitActionForm() {
-  const form = document.getElementById('action-form');
-  if (!form) {
-    throw new Error('expected the action form to be in the document');
-  }
-  fireEvent.submit(form);
-}
-
 describe('CreateActionForm', () => {
   beforeAll(() => server.listen());
 
   beforeEach(() => {
-    mockPointerEvent();
+    mockScrollIntoViewAndPointerCapture();
     migrationBody = null;
     mocks.push.mockClear();
     queryClient.clear();
@@ -159,7 +150,7 @@ describe('CreateActionForm', () => {
     render(<CreateActionForm />);
 
     await fillWebhook(user);
-    submitActionForm();
+    await user.click(screen.getByRole('button', { name: 'Create' }));
 
     await waitFor(() => expect(migrationBody).not.toBeNull());
 
@@ -194,7 +185,7 @@ describe('CreateActionForm', () => {
     render(<CreateActionForm />);
 
     await fillWebhook(user);
-    submitActionForm();
+    await user.click(screen.getByRole('button', { name: 'Create' }));
 
     expect(
       await screen.findByText('migration rejected by server'),
@@ -225,7 +216,7 @@ describe('CreateActionForm', () => {
     await waitFor(() => expect(kindSelect).toBeDisabled());
 
     await fillWebhook(user);
-    submitActionForm();
+    await user.click(screen.getByRole('button', { name: 'Create' }));
 
     await waitFor(() => expect(migrationBody).not.toBeNull());
 

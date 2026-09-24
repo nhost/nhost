@@ -1,13 +1,6 @@
 import { vi } from 'vitest';
-import {
-  mockPointerEvent,
-  render,
-  screen,
-  TestUserEvent,
-} from '@/tests/testUtils';
+import { render, screen, TestUserEvent } from '@/tests/testUtils';
 import CustomGraphQLRootFieldsSection from './CustomGraphQLRootFieldsSection';
-
-mockPointerEvent();
 
 const mocks = vi.hoisted(() => ({
   useTableCustomizationQuery: vi.fn(),
@@ -166,8 +159,10 @@ describe('CustomGraphQLRootFieldsSection', () => {
       'insert_userProfile_one (default)',
     );
 
-    TestUserEvent.fireTypeEvent(customTableInput, 'userProfileCustom');
-    TestUserEvent.fireTypeEvent(selectAggregateField, 'custom_select_field');
+    await user.clear(customTableInput);
+    await user.type(customTableInput, 'userProfileCustom');
+    await user.clear(selectAggregateField);
+    await user.type(selectAggregateField, 'custom_select_field');
 
     await user.click(screen.getByRole('button', { name: 'Make camelCase' }));
 

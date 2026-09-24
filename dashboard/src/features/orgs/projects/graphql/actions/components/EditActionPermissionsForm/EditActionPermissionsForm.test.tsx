@@ -9,7 +9,6 @@ import {
   HASURA_API_URL,
 } from '@/tests/msw/mocks/rest/exportActionsMetadataQuery';
 import {
-  mockPointerEvent,
   queryClient,
   render,
   screen,
@@ -64,7 +63,6 @@ describe('EditActionPermissionsForm', () => {
   beforeAll(() => server.listen());
 
   beforeEach(() => {
-    mockPointerEvent();
     migrationBody = null;
     queryClient.clear();
     mocks.useRouter.mockReturnValue({

@@ -3,7 +3,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { vi } from 'vitest';
 import type * as Yup from 'yup';
 import {
-  mockPointerEvent,
+  mockScrollIntoViewAndPointerCapture,
   render,
   screen,
   TestUserEvent,
@@ -14,7 +14,7 @@ import BaseTableForm, {
   baseTableValidationSchema,
 } from './BaseTableForm';
 
-mockPointerEvent();
+mockScrollIntoViewAndPointerCapture();
 
 Object.defineProperty(HTMLElement.prototype, 'getBoundingClientRect', {
   value: vi.fn(() => ({
@@ -156,9 +156,7 @@ describe('BaseTableForm', () => {
       0,
       user,
     );
-    TestUserEvent.fireClickEvent(
-      screen.getByRole('button', { name: /Add Column/ }),
-    );
+    await user.click(screen.getByRole('button', { name: /Add Column/ }));
 
     await fillColumnForm(
       {
@@ -170,9 +168,7 @@ describe('BaseTableForm', () => {
       user,
     );
 
-    await TestUserEvent.fireClickEvent(
-      screen.getByRole('button', { name: /Add Column/ }),
-    );
+    await user.click(screen.getByRole('button', { name: /Add Column/ }));
 
     await fillColumnForm(
       {
@@ -185,10 +181,8 @@ describe('BaseTableForm', () => {
       user,
     );
 
-    await TestUserEvent.fireClickEvent(screen.getByText('Add Primary Key'));
-    await TestUserEvent.fireClickEvent(
-      screen.getByRole('option', { name: 'id' }),
-    );
+    await user.click(screen.getByText('Add Primary Key'));
+    await user.click(screen.getByRole('option', { name: 'id' }));
 
     expect(screen.getByTestId('id')).toBeInTheDocument();
     expect(screen.getByTestId('columns.0.isNullable')).toBeDisabled();
@@ -244,9 +238,7 @@ describe('BaseTableForm', () => {
     await user.type(searchInput, 'user');
     await user.click(screen.getByRole('option', { name: 'username' }));
     await user.keyboard('{Escape}');
-    await TestUserEvent.fireClickEvent(
-      screen.getByRole('button', { name: 'Save' }),
-    );
+    await user.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(() => expect(mocks.onSubmit).toHaveBeenCalledTimes(1));
     expect(mocks.onSubmit.mock.calls[0][0].primaryKeyIndices).toStrictEqual([
@@ -270,9 +262,7 @@ describe('BaseTableForm', () => {
       0,
       user,
     );
-    TestUserEvent.fireClickEvent(
-      screen.getByRole('button', { name: /Add Column/ }),
-    );
+    await user.click(screen.getByRole('button', { name: /Add Column/ }));
 
     await fillColumnForm(
       {
@@ -284,13 +274,11 @@ describe('BaseTableForm', () => {
       user,
     );
 
-    TestUserEvent.fireClickEvent(screen.getByLabelText('Identity'));
+    await user.click(screen.getByLabelText('Identity'));
     expect(
       screen.getByRole('option', { name: 'identity_column' }),
     ).toBeInTheDocument();
-    TestUserEvent.fireClickEvent(
-      screen.getByRole('option', { name: 'identity_column' }),
-    );
+    await user.click(screen.getByRole('option', { name: 'identity_column' }));
 
     expect(screen.getByRole('combobox', { name: 'Identity' }).textContent).toBe(
       'identity_column',
@@ -416,43 +404,35 @@ describe('BaseTableForm', () => {
   });
 
   it('should add a new empty row with the Add Column button', async () => {
+    const user = new TestUserEvent();
     render(<TestTableFormWrapper />);
-    TestUserEvent.fireClickEvent(
-      screen.getByRole('button', { name: /Add Column/ }),
-    );
+    await user.click(screen.getByRole('button', { name: /Add Column/ }));
 
     expect(screen.getAllByPlaceholderText('Enter name')).toHaveLength(2);
 
-    TestUserEvent.fireClickEvent(
-      screen.getByRole('button', { name: /Add Column/ }),
-    );
+    await user.click(screen.getByRole('button', { name: /Add Column/ }));
 
-    TestUserEvent.fireClickEvent(
-      screen.getByRole('button', { name: /Add Column/ }),
-    );
+    await user.click(screen.getByRole('button', { name: /Add Column/ }));
     expect(screen.getAllByPlaceholderText('Enter name')).toHaveLength(4);
   });
 
   it('the remove column button is disabled if it is the only column', async () => {
+    const user = new TestUserEvent();
     render(<TestTableFormWrapper />);
     expect(screen.getByTestId('remove-column-0')).toBeDisabled();
-    TestUserEvent.fireClickEvent(
-      screen.getByRole('button', { name: /Add Column/ }),
-    );
+    await user.click(screen.getByRole('button', { name: /Add Column/ }));
 
-    TestUserEvent.fireClickEvent(
-      screen.getByRole('button', { name: /Add Column/ }),
-    );
+    await user.click(screen.getByRole('button', { name: /Add Column/ }));
 
     expect(screen.getByTestId('remove-column-0')).not.toBeDisabled();
     expect(screen.getByTestId('remove-column-1')).not.toBeDisabled();
     expect(screen.getByTestId('remove-column-2')).not.toBeDisabled();
 
-    TestUserEvent.fireClickEvent(screen.getByTestId('remove-column-1'));
+    await user.click(screen.getByTestId('remove-column-1'));
     expect(screen.getByTestId('remove-column-0')).not.toBeDisabled();
     expect(screen.getByTestId('remove-column-1')).not.toBeDisabled();
 
-    TestUserEvent.fireClickEvent(screen.getByTestId('remove-column-1'));
+    await user.click(screen.getByTestId('remove-column-1'));
 
     expect(screen.getByTestId('remove-column-0')).toBeDisabled();
   });
@@ -481,7 +461,7 @@ describe('BaseTableForm', () => {
       user,
     );
 
-    await TestUserEvent.fireClickEvent(screen.getByTestId('columns.0.comment'));
+    await user.click(screen.getByTestId('columns.0.comment'));
     expect(
       screen.getByPlaceholderText('Add a comment for the column'),
     ).toBeInTheDocument();
@@ -495,9 +475,7 @@ describe('BaseTableForm', () => {
       screen.queryByPlaceholderText('Add a comment for the column'),
     ).not.toBeInTheDocument();
 
-    TestUserEvent.fireClickEvent(
-      screen.getByRole('button', { name: /Add Column/ }),
-    );
+    await user.click(screen.getByRole('button', { name: /Add Column/ }));
 
     await fillColumnForm(
       {
@@ -509,9 +487,7 @@ describe('BaseTableForm', () => {
       user,
     );
 
-    TestUserEvent.fireClickEvent(
-      screen.getByRole('button', { name: /Add Column/ }),
-    );
+    await user.click(screen.getByRole('button', { name: /Add Column/ }));
     await fillColumnForm(
       {
         columnName: 'identity_column',
@@ -522,25 +498,21 @@ describe('BaseTableForm', () => {
       user,
     );
 
-    await TestUserEvent.fireClickEvent(screen.getByText('Add Primary Key'));
+    await user.click(screen.getByText('Add Primary Key'));
 
-    await TestUserEvent.fireClickEvent(
-      screen.getByRole('option', { name: 'id' }),
-    );
+    await user.click(screen.getByRole('option', { name: 'id' }));
 
     expect(screen.getByTestId('id')).toBeInTheDocument();
 
-    TestUserEvent.fireClickEvent(screen.getByLabelText('Identity'));
+    await user.click(screen.getByLabelText('Identity'));
     expect(
       screen.getByRole('option', { name: 'identity_column' }),
     ).toBeInTheDocument();
-    TestUserEvent.fireClickEvent(
-      screen.getByRole('option', { name: 'identity_column' }),
-    );
+    await user.click(screen.getByRole('option', { name: 'identity_column' }));
 
     expect(screen.getByText('Save')).toBeInTheDocument();
 
-    await TestUserEvent.fireClickEvent(screen.getByText('Save'));
+    await user.click(screen.getByText('Save'));
 
     expect(screen.getByText('Save')).not.toBeDisabled();
 
@@ -603,13 +575,14 @@ describe('BaseTableForm', () => {
     // <form> and clicking Cancel would submit the form.
     expect(cancelButton).toHaveAttribute('type', 'button');
 
-    await TestUserEvent.fireClickEvent(cancelButton);
+    await user.click(cancelButton);
 
     expect(mocks.onSubmit).not.toHaveBeenCalled();
     expect(mocks.onCancel).toHaveBeenCalledTimes(1);
   });
 
   it('should call onCancel without triggering form submission on an untouched form', async () => {
+    const user = new TestUserEvent();
     render(<TestTableFormWrapper />);
 
     const cancelButton = screen.getByRole('button', { name: 'Cancel' });
@@ -617,7 +590,7 @@ describe('BaseTableForm', () => {
     // <form> and clicking Cancel would submit the form.
     expect(cancelButton).toHaveAttribute('type', 'button');
 
-    await TestUserEvent.fireClickEvent(cancelButton);
+    await user.click(cancelButton);
 
     expect(mocks.onSubmit).not.toHaveBeenCalled();
     expect(mocks.onCancel).toHaveBeenCalledTimes(1);
@@ -632,9 +605,7 @@ describe('BaseTableForm', () => {
 
     await user.type(screen.getByTestId('tableNameInput'), 'a'.repeat(64));
 
-    await TestUserEvent.fireClickEvent(
-      screen.getByRole('button', { name: 'Save' }),
-    );
+    await user.click(screen.getByRole('button', { name: 'Save' }));
 
     expect(
       await screen.findByText('Table name must be at most 63 characters.'),
@@ -649,9 +620,7 @@ describe('BaseTableForm', () => {
     await user.type(screen.getByTestId('tableNameInput'), 'valid_table');
     await user.type(screen.getByTestId('columns.0.name'), 'a'.repeat(64));
 
-    await TestUserEvent.fireClickEvent(
-      screen.getByRole('button', { name: 'Save' }),
-    );
+    await user.click(screen.getByRole('button', { name: 'Save' }));
 
     expect(
       await screen.findByText('Column name must be at most 63 characters.'),
@@ -677,7 +646,7 @@ describe('BaseTableForm', () => {
       user,
     );
 
-    await TestUserEvent.fireClickEvent(screen.getByText('Save'));
+    await user.click(screen.getByText('Save'));
 
     expect(mocks.onSubmit.mock.calls[0][0].columns[0].defaultValue).toBe(
       "'version()'",
@@ -702,7 +671,7 @@ describe('BaseTableForm', () => {
       user,
     );
 
-    await TestUserEvent.fireClickEvent(screen.getByText('Save'));
+    await user.click(screen.getByText('Save'));
 
     expect(mocks.onSubmit.mock.calls[0][0].columns[0].defaultValue).toBe("''");
   });

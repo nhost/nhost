@@ -21,7 +21,7 @@ import { getProjectStateQuery } from '@/tests/msw/mocks/graphql/getProjectQuery'
 import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import {
-  mockPointerEvent,
+  mockScrollIntoViewAndPointerCapture,
   queryClient,
   render,
   screen,
@@ -174,7 +174,7 @@ beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 beforeEach(() => {
   vi.stubEnv('NEXT_PUBLIC_NHOST_PLATFORM', 'true');
   window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
-  mockPointerEvent();
+  mockScrollIntoViewAndPointerCapture();
   setProject(BROKEN_SUBDOMAIN);
   mocks.useRouter.mockReturnValue(mockRouter);
   server.use(
