@@ -35,9 +35,7 @@
         pkgs = import nixpkgs {
           inherit system;
           config.allowUnfree = true;
-          overlays = [
-            (import ./nixops/overlays/default.nix)
-          ];
+          overlays = [ self.overlays.default ];
         };
 
         nix2containerPkgs = nix2container.packages.${system};
@@ -185,6 +183,7 @@
 
         nixopsf = import ./nixops/project.nix {
           inherit
+            self
             pkgs
             nix2containerPkgs
             nixops-lib
