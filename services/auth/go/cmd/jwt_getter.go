@@ -57,6 +57,7 @@ func getJWTGetter(cmd *cli.Command, db controller.DBClient) (*controller.JWTGett
 			Mode:            cmd.String(flagRequireElevatedClaim),
 			TOTPEnabled:     cmd.Bool(flagTOTPEnabled),
 			WebauthnEnabled: cmd.Bool(flagWebauthnEnabled),
+			OTPEmailEnabled: cmd.Bool(flagOTPEmailEnabled),
 		},
 		db,
 		cmd.String(flagServerURL),
