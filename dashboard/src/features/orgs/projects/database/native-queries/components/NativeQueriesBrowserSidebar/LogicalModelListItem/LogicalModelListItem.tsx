@@ -1,4 +1,4 @@
-import { Shapes, SquarePen, Trash2 } from 'lucide-react';
+import { Shapes, SquarePen, Trash2, Users } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
@@ -8,6 +8,17 @@ import { InlineCode } from '@/components/ui/v3/inline-code';
 import { DeleteLogicalModelDialog } from '@/features/orgs/projects/database/native-queries/components/DeleteLogicalModelDialog';
 import { NativeQueriesSidebarListItem } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesBrowserSidebar/NativeQueriesSidebarListItem';
 import type { LogicalModelItem } from '@/utils/hasura-api/generated/schemas';
+
+const EditLogicalModelPermissionsForm = dynamic(
+  () =>
+    import(
+      '@/features/orgs/projects/database/native-queries/components/EditLogicalModelPermissionsForm'
+    ).then((mod) => mod.EditLogicalModelPermissionsForm),
+  {
+    ssr: false,
+    loading: () => <FormActivityIndicator />,
+  },
+);
 
 const EditLogicalModelForm = dynamic(
   () =>
@@ -29,7 +40,7 @@ export default function LogicalModelListItem({
 }: LogicalModelListItemProps) {
   const router = useRouter();
   const { orgSlug, appSubdomain, modelSlug } = router.query;
-  const { openDrawer } = useDialog();
+  const { openDrawer, closeDrawer } = useDialog();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   function handleEdit() {
@@ -47,6 +58,30 @@ export default function LogicalModelListItem({
     });
   }
 
+  function handleEditPermissions() {
+    openDrawer({
+      title: (
+        <span className="inline-grid grid-flow-col items-center gap-2">
+          Permissions for
+          <InlineCode className="!text-sm+ font-normal">
+            {model.name}
+          </InlineCode>
+          logical model
+        </span>
+      ),
+      component: (
+        <EditLogicalModelPermissionsForm
+          source="default"
+          logicalModelName={model.name}
+          onCancel={closeDrawer}
+        />
+      ),
+      props: {
+        PaperProps: { className: 'lg:w-[65%] lg:max-w-7xl' },
+      },
+    });
+  }
+
   return (
     <>
       <NativeQueriesSidebarListItem
@@ -60,6 +95,11 @@ export default function LogicalModelListItem({
             icon: <SquarePen className="size-4" />,
             label: 'Edit logical model',
             onSelect: handleEdit,
+          },
+          {
+            icon: <Users className="size-4" />,
+            label: 'Edit permissions',
+            onSelect: handleEditPermissions,
           },
           {
             icon: <Trash2 className="size-4" />,
