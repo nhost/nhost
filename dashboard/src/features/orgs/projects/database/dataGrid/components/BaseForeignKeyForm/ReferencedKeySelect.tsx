@@ -44,24 +44,26 @@ export default function ReferencedKeySelect() {
       containerClassName="min-w-0"
       className="border-border [&>span]:line-clamp-none [&>span]:min-w-0 [&>span]:truncate"
       transform={{
-        in: (value: string) => value ?? '',
-        out: (value: string) => {
-          const candidate = candidateKeys.find(({ name }) => name === value);
+        in: (value: string) => value,
+        // Radix emits an empty onValueChange while reconciling a selection
+        // that was set programmatically, which would otherwise wipe a
+        // prefilled key.
+        // See https://github.com/radix-ui/primitives/issues/3135
+        out: (value: string) =>
+          value === '' ? getValues('referencedKeyName') : value,
+      }}
+      onChange={(value) => {
+        const candidate = candidateKeys.find(({ name }) => name === value);
 
-          // Radix emits an empty onValueChange while reconciling a selection
-          // that was set programmatically, which would otherwise wipe a
-          // prefilled key and its column mappings.
-          if (!candidate) {
-            return getValues('referencedKeyName');
-          }
+        if (!candidate) {
+          return;
+        }
 
-          setValue('referencedColumns', candidate.columns);
-          setValue(
-            'columns',
-            candidate.columns.map(() => ''),
-          );
-          return value;
-        },
+        setValue('referencedColumns', candidate.columns);
+        setValue(
+          'columns',
+          candidate.columns.map(() => ''),
+        );
       }}
     >
       {candidateKeys.map(({ name, isPrimary, columns }) => (

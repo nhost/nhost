@@ -30,14 +30,10 @@ export default function ReferencedTableSelect({
       disabled={!referencedSchema}
       contentClassName="z-[1400]"
       className="border-border"
-      transform={{
-        in: (value: string) => value ?? '',
-        out: (value: string) => {
-          setValue('referencedKeyName', '');
-          setValue('referencedColumns', []);
-          setValue('columns', []);
-          return value;
-        },
+      onChange={() => {
+        setValue('referencedKeyName', '');
+        setValue('referencedColumns', []);
+        setValue('columns', []);
       }}
     >
       {availableTablesInSelectedSchema.map((name) => (
