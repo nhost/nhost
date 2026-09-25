@@ -11,10 +11,13 @@ current_image=$(docker inspect --format '{{.Config.Image}}' "$source_container")
 old_container="postgres-extension-upgrade-old-$$"
 new_container="postgres-extension-upgrade-new-$$"
 volume="postgres-extension-upgrade-data-$$"
+no_postgres_old="postgres-extension-upgrade-no-postgres-old-$$"
+no_postgres_new="postgres-extension-upgrade-no-postgres-new-$$"
+no_postgres_volume="postgres-extension-upgrade-no-postgres-data-$$"
 
 cleanup() {
-    docker rm -fv "$old_container" "$new_container" >/dev/null 2>&1 || true
-    docker volume rm -f "$volume" >/dev/null 2>&1 || true
+    docker rm -fv "$old_container" "$new_container" "$no_postgres_old" "$no_postgres_new" >/dev/null 2>&1 || true
+    docker volume rm -f "$volume" "$no_postgres_volume" >/dev/null 2>&1 || true
 }
 trap cleanup EXIT HUP INT TERM
 
@@ -80,6 +83,26 @@ assert_no_missing_timescaledb_error() {
     fi
 }
 
+stop_source_container() {
+    container=$1
+
+    # The previous entrypoint forwards TERM to a wrapper shell instead of the
+    # postmaster, so stop PostgreSQL directly to leave a clean upgrade source.
+    docker exec "$container" \
+        pg_ctl stop --pgdata=/var/lib/postgresql/data/pgdata --mode=fast --wait \
+        >/dev/null 2>&1 || true
+    for _ in $(seq 1 120); do
+        if [ "$(docker inspect --format '{{.State.Running}}' "$container")" = false ]; then
+            docker rm -v "$container" >/dev/null
+            return 0
+        fi
+        sleep 0.5
+    done
+    echo "The source container did not stop after PostgreSQL shut down" >&2
+    docker logs "$container" >&2
+    return 1
+}
+
 wait_for_initialization "$source_container"
 assert_no_missing_timescaledb_error "$source_container"
 
@@ -93,23 +116,7 @@ wait_for_source_initialization "$old_container"
 docker exec -i "$old_container" \
     psql -X -U postgres -d local -v ON_ERROR_STOP=1 -f - <"$upgrade_source"
 
-# The previous entrypoint forwards TERM to a wrapper shell instead of the
-# postmaster, so stop PostgreSQL directly to leave a clean upgrade source.
-docker exec "$old_container" \
-    pg_ctl stop --pgdata=/var/lib/postgresql/data/pgdata --mode=fast --wait \
-    >/dev/null 2>&1 || true
-for _ in $(seq 1 120); do
-    if [ "$(docker inspect --format '{{.State.Running}}' "$old_container")" = false ]; then
-        break
-    fi
-    sleep 0.5
-done
-if [ "$(docker inspect --format '{{.State.Running}}' "$old_container")" != false ]; then
-    echo "The source container did not stop after PostgreSQL shut down" >&2
-    docker logs "$old_container" >&2
-    exit 1
-fi
-docker rm -v "$old_container" >/dev/null
+stop_source_container "$old_container"
 
 docker run -d --name "$new_container" \
     --env POSTGRES_DEV_INSECURE=1 \
@@ -238,6 +245,49 @@ if [ "$search_path_restored" != t ] ||
 fi
 
 docker exec -i "$new_container" \
+    psql -X -U postgres -d local -v ON_ERROR_STOP=1 -1 -f - \
+    <"$script_dir/plugins.sql"
+
+# This source cannot use the main fixture: it deliberately installs
+# TimescaleDB in the postgres maintenance database.
+docker volume create "$no_postgres_volume" >/dev/null
+docker run -d --name "$no_postgres_old" \
+    --env POSTGRES_DEV_INSECURE=1 \
+    --volume "$no_postgres_volume:/var/lib/postgresql/data/pgdata" \
+    "$previous_image" >/dev/null
+wait_for_source_initialization "$no_postgres_old"
+
+docker exec -i "$no_postgres_old" \
+    psql -X -U postgres -d local -v ON_ERROR_STOP=1 -f - <<'SQL'
+CREATE EXTENSION timescaledb;
+CREATE EXTENSION hstore VERSION '1.7';
+CREATE TABLE upgrade_check (time timestamptz NOT NULL);
+SELECT create_hypertable('upgrade_check', 'time');
+SQL
+docker exec "$no_postgres_old" \
+    psql -X -U postgres -d local -v ON_ERROR_STOP=1 -c 'DROP DATABASE postgres;'
+stop_source_container "$no_postgres_old"
+
+docker run -d --name "$no_postgres_new" \
+    --env POSTGRES_DEV_INSECURE=1 \
+    --volume "$no_postgres_volume:/var/lib/postgresql/data/pgdata" \
+    "$current_image" >/dev/null
+wait_for_initialization "$no_postgres_new"
+
+if docker logs "$no_postgres_new" 2>&1 |
+    grep -Eq 'Failed to prepare extension upgrades|Nhost script execution failed'; then
+    echo "Extension upgrades or Nhost SQL failed without a postgres database" >&2
+    docker logs "$no_postgres_new" >&2
+    exit 1
+fi
+
+# Querying the hypertable also catches a TimescaleDB SQL version that still
+# references a library removed from the new image.
+docker exec "$no_postgres_new" \
+    psql -X -qAt -U postgres -d local -v ON_ERROR_STOP=1 \
+    -c 'SELECT count(*) FROM upgrade_check' | grep -qx 0
+
+docker exec -i "$no_postgres_new" \
     psql -X -U postgres -d local -v ON_ERROR_STOP=1 -1 -f - \
     <"$script_dir/plugins.sql"
 
