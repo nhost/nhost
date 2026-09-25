@@ -59,6 +59,12 @@ describe('normalizeTableConstraints', () => {
         'owner_id',
         'FOREIGN KEY (owner_id) REFERENCES owners(id) ON UPDATE CASCADE ON DELETE SET NULL',
       ),
+      constraintRow(
+        'orders_owner_id_idx',
+        'i',
+        'owner_id',
+        'UNIQUE (owner_id)',
+      ),
     ].map((constraint) => JSON.stringify(constraint));
 
     const result = normalizeTableConstraints(
@@ -144,6 +150,50 @@ describe('normalizeTableConstraints', () => {
     ]);
   });
 
+  it('keeps a standalone unique index as the referenced key name', () => {
+    const rawColumns = [
+      columnRow('external_id', 1, { is_unique: true }),
+      columnRow('parent_external_id', 2),
+    ].map((column) => JSON.stringify(column));
+    const rawConstraints = [
+      {
+        ...constraintRow(
+          'orders_parent_external_id_fkey',
+          'f',
+          'parent_external_id',
+          'FOREIGN KEY (parent_external_id) REFERENCES orders(external_id)',
+        ),
+        referenced_key_name: 'orders_external_id_idx',
+      },
+      {
+        ...constraintRow(
+          'orders_external_id_idx',
+          'i',
+          'external_id',
+          'UNIQUE (external_id)',
+        ),
+        referenced_key_name: null,
+      },
+    ].map((constraint) => JSON.stringify(constraint));
+
+    const result = normalizeTableConstraints(
+      rawColumns,
+      rawConstraints,
+      'public',
+    );
+
+    expect(result.foreignKeyRelations[0].referencedKeyName).toBe(
+      'orders_external_id_idx',
+    );
+    expect(result.candidateKeys).toEqual([
+      {
+        name: 'orders_external_id_idx',
+        isPrimary: false,
+        columns: ['external_id'],
+      },
+    ]);
+  });
+
   it('returns candidate keys with the column order from the constraint definition', () => {
     const rawColumns = [
       columnRow('tenant_id', 1, { is_primary: true }),
@@ -181,4 +231,100 @@ describe('normalizeTableConstraints', () => {
       { name: 'orders_email_key', isPrimary: false, columns: ['email'] },
     ]);
   });
+
+  it.each([
+    {
+      name: 'a standalone single-column unique index',
+      columns: [columnRow('email', 1, { is_unique: true })],
+      constraints: [
+        constraintRow('orders_email_idx', 'i', 'email', 'UNIQUE (email)'),
+      ],
+      expected: [
+        {
+          name: 'orders_email_idx',
+          isPrimary: false,
+          columns: ['email'],
+        },
+      ],
+    },
+    {
+      name: 'a standalone composite unique index in index key order',
+      columns: [columnRow('tenant_id', 1), columnRow('external_id', 2)],
+      constraints: [
+        constraintRow(
+          'orders_tenant_external_idx',
+          'i',
+          'external_id',
+          'UNIQUE (tenant_id, external_id)',
+        ),
+        constraintRow(
+          'orders_tenant_external_idx',
+          'i',
+          'tenant_id',
+          'UNIQUE (tenant_id, external_id)',
+        ),
+      ],
+      expected: [
+        {
+          name: 'orders_tenant_external_idx',
+          isPrimary: false,
+          columns: ['tenant_id', 'external_id'],
+        },
+      ],
+    },
+    {
+      name: 'a constraint-backed index exactly once with the constraint winning',
+      columns: [columnRow('tenant_id', 1), columnRow('email', 2)],
+      constraints: [
+        constraintRow(
+          'orders_email_key',
+          'i',
+          'tenant_id',
+          'UNIQUE (tenant_id, email)',
+        ),
+        constraintRow('orders_email_key', 'u', 'email', 'UNIQUE (email)'),
+      ],
+      expected: [
+        {
+          name: 'orders_email_key',
+          isPrimary: false,
+          columns: ['email'],
+        },
+      ],
+    },
+  ])(
+    'returns $name as a candidate key',
+    ({ columns, constraints, expected }) => {
+      const result = normalizeTableConstraints(
+        columns.map((column) => JSON.stringify(column)),
+        constraints.map((constraint) => JSON.stringify(constraint)),
+        'public',
+      );
+
+      expect(result.candidateKeys).toEqual(expected);
+    },
+  );
+
+  it.each(['partial', 'expression'])(
+    'does not return a %s unique index omitted by introspection',
+    () => {
+      const result = normalizeTableConstraints(
+        [JSON.stringify(columnRow('email', 1, { is_unique: true }))],
+        [
+          JSON.stringify(
+            constraintRow(
+              'orders_email_fkey',
+              'f',
+              'email',
+              'FOREIGN KEY (email) REFERENCES owners(email) ON UPDATE NO ACTION ON DELETE NO ACTION',
+            ),
+          ),
+        ],
+        'public',
+      );
+
+      expect(result.candidateKeys).toEqual([]);
+      expect(result.foreignKeyRelations[0].oneToOne).toBe(false);
+    },
+  );
 });
