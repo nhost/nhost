@@ -5,6 +5,7 @@ import {
   serializeNode,
   wrapPermissionsInAGroup,
 } from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils';
+import { postgresTypeGroups } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
 import validationSchema from '@/features/orgs/projects/database/native-queries/components/LogicalModelPermissionForm/validationSchema';
 import {
   normalizeLogicalModelScalar,
@@ -12,13 +13,6 @@ import {
 } from '@/features/orgs/projects/database/native-queries/utils/logicalModelPermissionFilter';
 import type { LogicalModelItem } from '@/utils/hasura-api/generated/schemas';
 
-const profile: LogicalModelItem = {
-  name: 'profile',
-  fields: [
-    { name: 'active', type: { scalar: 'boolean', nullable: false } },
-    { name: 'displayName', type: { scalar: 'text', nullable: true } },
-  ],
-};
 const author: LogicalModelItem = {
   name: 'author',
   fields: [
@@ -39,11 +33,8 @@ const author: LogicalModelItem = {
   ],
 };
 
-function fields(
-  model: LogicalModelItem = author,
-  models: LogicalModelItem[] = [author, profile],
-) {
-  return resolveLogicalModelFieldDescriptors(model, models);
+function fields(model: LogicalModelItem = author) {
+  return resolveLogicalModelFieldDescriptors(model);
 }
 
 function permissionValues(filter: GroupNode, rowCheckType = 'custom') {
@@ -76,32 +67,19 @@ function condition(
 }
 
 describe('resolveLogicalModelFieldDescriptors', () => {
-  it('returns scalar leaves as selectable and references as traversal-only', () => {
-    const result = fields();
-
-    expect(
-      result.descriptors
-        .filter(({ kind, selectable }) => kind === 'scalar' && selectable)
-        .map(({ path }) => path),
-    ).toEqual([
-      'id',
-      'bio',
-      'metadata',
-      'profile.active',
-      'profile.displayName',
+  it('returns only the model’s own scalar fields', () => {
+    expect(fields()).toEqual([
+      { name: 'id', nullable: false, scalar: 'uuid' },
+      { name: 'bio', nullable: true, scalar: 'character varying' },
+      { name: 'metadata', nullable: true, scalar: 'json' },
     ]);
-    expect(
-      result.descriptors
-        .filter(({ kind, selectable }) => kind === 'object' && !selectable)
-        .map(({ path }) => path),
-    ).toEqual(['profile']);
-    expect(result.issues).toEqual([{ code: 'array', path: 'tags' }]);
   });
 
-  it('excludes arrays and unresolved references', () => {
+  it('skips array and object fields, even when an object has no referenced model', () => {
     const model: LogicalModelItem = {
       name: 'result',
       fields: [
+        { name: 'value', type: { scalar: 'text', nullable: false } },
         {
           name: 'tags',
           type: {
@@ -109,125 +87,51 @@ describe('resolveLogicalModelFieldDescriptors', () => {
             nullable: false,
           },
         },
-        {
-          name: 'missing',
-          type: { logical_model: 'absent', nullable: false },
-        },
+        { name: 'missing', type: { logical_model: 'absent', nullable: false } },
       ],
     };
 
-    const result = fields(model, [model]);
-
-    expect(result.descriptors).toEqual([]);
-    expect(result.issues).toEqual([
-      { code: 'array', path: 'tags' },
-      {
-        code: 'unresolved-reference',
-        path: 'missing',
-        reference: 'absent',
-      },
+    expect(fields(model)).toEqual([
+      { name: 'value', nullable: false, scalar: 'text' },
     ]);
   });
 
-  it('resolves references per branch and stops cycles', () => {
-    const left: LogicalModelItem = {
-      name: 'left',
-      fields: [
-        { name: 'value', type: { scalar: 'text', nullable: false } },
-        {
-          name: 'right',
-          type: { logical_model: 'right', nullable: false },
-        },
-      ],
-    };
-    const right: LogicalModelItem = {
-      name: 'right',
-      fields: [
-        { name: 'value', type: { scalar: 'text', nullable: false } },
-        {
-          name: 'left',
-          type: { logical_model: 'left', nullable: false },
-        },
-      ],
-    };
-    const root: LogicalModelItem = {
-      name: 'root',
-      fields: [
-        { name: 'first', type: { logical_model: 'left', nullable: false } },
-        { name: 'second', type: { logical_model: 'left', nullable: false } },
-      ],
-    };
-
-    const result = fields(root, [root, left, right]);
-    expect(
-      result.descriptors
-        .filter(({ kind, selectable }) => kind === 'scalar' && selectable)
-        .map(({ path }) => path),
-    ).toEqual([
-      'first.value',
-      'first.right.value',
-      'second.value',
-      'second.right.value',
-    ]);
-    expect(result.issues).toEqual([
-      { code: 'cycle', path: 'first.right.left', reference: 'left' },
-      { code: 'cycle', path: 'second.right.left', reference: 'left' },
-    ]);
-  });
-
-  it('excludes unsafe, duplicate, and dotted names', () => {
+  it('does not traverse references, including cycles', () => {
     const model: LogicalModelItem = {
-      name: 'unsafe',
+      name: 'result',
       fields: [
-        { name: '__proto__', type: { scalar: 'text', nullable: false } },
-        { name: 'constructor', type: { scalar: 'text', nullable: false } },
-        { name: '_and', type: { scalar: 'text', nullable: false } },
-        { name: 'a.b', type: { scalar: 'text', nullable: false } },
-        { name: 'same', type: { scalar: 'text', nullable: false } },
-        { name: 'same', type: { scalar: 'uuid', nullable: false } },
+        { name: 'id', type: { scalar: 'integer', nullable: false } },
+        { name: 'self', type: { logical_model: 'result', nullable: false } },
       ],
     };
 
-    const result = fields(model, [model]);
+    expect(fields(model)).toEqual([
+      { name: 'id', nullable: false, scalar: 'integer' },
+    ]);
+  });
 
-    expect(result.descriptors).toEqual([]);
-    expect(result.issues).toEqual([
-      { code: 'unsafe-name', path: '__proto__' },
-      { code: 'unsafe-name', path: 'constructor' },
-      { code: 'unsafe-name', path: '_and' },
-      { code: 'dotted-name', path: 'a.b' },
-      { code: 'duplicate-field', path: 'same' },
-      { code: 'duplicate-field', path: 'same' },
+  it('includes fields with valid leading underscores', () => {
+    const model: LogicalModelItem = {
+      name: 'result',
+      fields: [{ name: '_private', type: { scalar: 'text', nullable: false } }],
+    };
+
+    expect(fields(model)).toEqual([
+      { name: '_private', nullable: false, scalar: 'text' },
     ]);
   });
 });
 
 describe('logical-model permission validation', () => {
-  it('accepts canonical nested objects and shared value conventions losslessly', async () => {
+  it('accepts root scalar conditions and shared value conventions losslessly', async () => {
     const stored = {
-      profile: { active: { _is_null: true } },
       id: {
         _in: 'X-Hasura-Allowed-Ids',
         _nin: 'X-Hasura-Blocked-Ids',
       },
+      bio: { _is_null: true },
     };
     const tree = wrapPermissionsInAGroup(stored);
-    const relationship = tree.children.find(
-      (child) => child.type === 'relationship',
-    );
-    expect(relationship).toMatchObject({
-      relationship: 'profile',
-      child: {
-        children: [
-          {
-            type: 'condition',
-            column: 'active',
-            operator: '_is_null',
-            value: 'true',
-          },
-        ],
-      },
-    });
 
     await expect(
       validationSchema.validate(permissionValues(tree)),
@@ -266,10 +170,12 @@ describe('logical-model permission validation', () => {
 describe('logical-model scalar normalization', () => {
   it.each([
     ['text', 'text'],
+    ['TEXT', 'text'],
     ['character varying', 'varchar'],
+    ['CHARACTER VARYING', 'varchar'],
     ['character', 'bpchar'],
-    ['citext', 'text'],
-    ['json', 'jsonb'],
+    ['citext', 'citext'],
+    ['json', 'json'],
     ['jsonb', 'jsonb'],
     ['custom_scalar', 'custom_scalar'],
   ])('normalizes %s to %s before selecting operators', (raw, normalized) => {
@@ -278,4 +184,24 @@ describe('logical-model scalar normalization', () => {
       getAvailableOperators(normalized),
     );
   });
+
+  const TABLE_UDT_NAME_OVERRIDES: Readonly<Record<string, string>> = {
+    'character varying': 'varchar',
+  };
+  const TABLE_OPERATOR_PARITY_CASES = [
+    ...postgresTypeGroups.map(({ label, value }) => ({
+      label,
+      tableUdtName: TABLE_UDT_NAME_OVERRIDES[label] ?? value,
+    })),
+    { label: 'citext', tableUdtName: 'citext' },
+  ];
+
+  it.each(TABLE_OPERATOR_PARITY_CASES)(
+    'matches table operators for $label',
+    ({ label, tableUdtName }) => {
+      expect(getAvailableOperators(normalizeLogicalModelScalar(label))).toEqual(
+        getAvailableOperators(tableUdtName),
+      );
+    },
+  );
 });

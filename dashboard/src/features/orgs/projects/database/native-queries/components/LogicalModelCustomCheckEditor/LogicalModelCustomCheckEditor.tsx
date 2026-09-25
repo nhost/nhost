@@ -7,13 +7,13 @@ import {
 } from '@/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/CustomCheckModeProvider';
 import FilterErrorsSummary from '@/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/FilterErrorsSummary';
 import JsonRuleEditor from '@/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/JsonRuleEditor';
-import type { LogicalModelFieldResolution } from '@/features/orgs/projects/database/native-queries/utils/logicalModelPermissionFilter';
+import type { LogicalModelFieldDescriptor } from '@/features/orgs/projects/database/native-queries/utils/logicalModelPermissionFilter';
 import { cn } from '@/lib/utils';
 import LogicalModelVisualRuleEditor from './LogicalModelVisualRuleEditor';
 
 export interface LogicalModelCustomCheckEditorProps {
   name: string;
-  fields: LogicalModelFieldResolution;
+  fields: LogicalModelFieldDescriptor[];
 }
 
 export function LogicalModelCustomCheckEditor({

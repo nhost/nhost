@@ -90,7 +90,6 @@ export default function EditLogicalModelPermissionsForm({
         key={`${source}:${selectedRole}`}
         source={source}
         model={model}
-        models={models}
         role={selectedRole}
         availableRoles={availableRoles}
         location={location}

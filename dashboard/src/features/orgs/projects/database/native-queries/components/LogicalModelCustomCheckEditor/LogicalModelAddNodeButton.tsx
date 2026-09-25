@@ -1,4 +1,4 @@
-import { Columns, Group, Plus, Workflow } from 'lucide-react';
+import { Columns, Group, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Button } from '@/components/ui/v3/button';
@@ -31,18 +31,7 @@ export default function LogicalModelAddNodeButton({
   label = 'Add check',
 }: LogicalModelAddNodeButtonProps) {
   const [open, setOpen] = useState(false);
-  const { fields, pathPrefix } = useLogicalModelCustomCheckEditor();
-  const directDescriptors = fields.descriptors.filter((descriptor) => {
-    const parts = descriptor.path.split('.');
-    return (
-      parts.length === pathPrefix.length + 1 &&
-      pathPrefix.every((part, index) => parts[index] === part)
-    );
-  });
-  const columns = directDescriptors.filter(({ selectable }) => selectable);
-  const relationships = directDescriptors.filter(
-    ({ kind, selectable }) => kind === 'object' && !selectable,
-  );
+  const { fields } = useLogicalModelCustomCheckEditor();
 
   function addColumn(column: string) {
     onSelectNode({
@@ -51,21 +40,6 @@ export default function LogicalModelAddNodeButton({
       column,
       operator: '_eq',
       value: null,
-    });
-    setOpen(false);
-  }
-
-  function addRelationship(relationship: string) {
-    onSelectNode({
-      type: 'relationship',
-      id: uuidv4(),
-      relationship,
-      child: {
-        type: 'group',
-        id: uuidv4(),
-        operator: '_and',
-        children: [],
-      },
     });
     setOpen(false);
   }
@@ -131,40 +105,19 @@ export default function LogicalModelAddNodeButton({
                 exists
               </CommandItem>
             </CommandGroup>
-            {columns.length > 0 ? (
+            {fields.length > 0 ? (
               <CommandGroup heading="Fields">
-                {columns.map((field) => (
+                {fields.map((field) => (
                   <CommandItem
-                    key={field.path}
-                    value={field.path}
+                    key={field.name}
+                    value={field.name}
                     onSelect={() => addColumn(field.name)}
                   >
                     <Columns className="mr-2 h-4 w-4 text-muted-foreground" />
                     <span className="truncate">{field.name}</span>
-                    {field.scalar ? (
-                      <code className="ml-auto rounded bg-primary px-1 font-mono text-white text-xs">
-                        {field.scalar}
-                      </code>
-                    ) : null}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            ) : null}
-            {relationships.length > 0 ? (
-              <CommandGroup heading="Relationships">
-                {relationships.map((field) => (
-                  <CommandItem
-                    key={field.path}
-                    value={field.path}
-                    onSelect={() => addRelationship(field.name)}
-                  >
-                    <Workflow className="mr-2 h-4 w-4 text-muted-foreground" />
-                    <span className="truncate">{field.name}</span>
-                    {field.logicalModel ? (
-                      <code className="ml-auto rounded bg-primary px-1 font-mono text-white text-xs">
-                        {field.logicalModel}
-                      </code>
-                    ) : null}
+                    <code className="ml-auto rounded bg-primary px-1 font-mono text-white text-xs">
+                      {field.scalar}
+                    </code>
                   </CommandItem>
                 ))}
               </CommandGroup>

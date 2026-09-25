@@ -12,13 +12,6 @@ import type {
   LogicalModelSelectPermission,
 } from '@/utils/hasura-api/generated/schemas';
 
-const profile: LogicalModelItem = {
-  name: 'profile',
-  fields: [
-    { name: 'active', type: { scalar: 'boolean', nullable: false } },
-    { name: 'displayName', type: { scalar: 'text', nullable: true } },
-  ],
-};
 const model: LogicalModelItem = {
   name: 'author',
   fields: [
@@ -67,7 +60,6 @@ function renderForm(permission: LogicalModelSelectPermission) {
         ...model,
         select_permissions: [{ role: 'user', permission }],
       }}
-      models={[model, profile]}
       role="user"
       availableRoles={['user']}
       onRoleChange={vi.fn()}
@@ -116,11 +108,50 @@ describe('LogicalModelPermissionForm validation', () => {
   afterEach(() => server.resetHandlers());
   afterAll(() => server.close());
 
+  it('saves an unrestricted filter when switching off a stored custom check', async () => {
+    const user = new TestUserEvent();
+    const savePermission = renderForm({
+      columns: ['id'],
+      filter: { id: { _eq: 'X-Hasura-User-Id' } },
+    });
+
+    await user.click(screen.getByLabelText('Without any checks'));
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() =>
+      expect(savePermission).toHaveBeenCalledWith(
+        expect.objectContaining({
+          args: expect.objectContaining({
+            permission: { columns: ['id'], filter: {} },
+          }),
+        }),
+      ),
+    );
+  });
+
+  it('serializes the tree when selecting a custom check', async () => {
+    const user = new TestUserEvent();
+    const savePermission = renderForm({ columns: ['id'], filter: {} });
+    const filter = { id: { _eq: 'X-Hasura-User-Id' } };
+
+    await user.click(screen.getByLabelText('With custom check'));
+    await user.click(screen.getByRole('button', { name: 'JSON' }));
+    await user.clear(screen.getByRole('textbox'));
+    await user.paste(JSON.stringify(filter));
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() =>
+      expect(savePermission).toHaveBeenCalledWith(
+        expect.objectContaining({
+          args: expect.objectContaining({
+            permission: { columns: ['id'], filter },
+          }),
+        }),
+      ),
+    );
+  });
+
   it.each([
-    {
-      label: 'nested object',
-      filter: { profile: { active: { _eq: true } } },
-    },
     {
       label: '_is_null',
       filter: { id: { _is_null: true } },
@@ -131,7 +162,7 @@ describe('LogicalModelPermissionForm validation', () => {
         _or: [
           {
             id: { _eq: 'X-Hasura-User-Id' },
-            profile: { active: { _eq: true } },
+            name: { _eq: 'private' },
           },
           { name: { _eq: 'public' } },
         ],

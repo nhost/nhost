@@ -3,14 +3,14 @@ import { useFormContext, useWatch } from 'react-hook-form';
 import { v4 as uuidv4 } from 'uuid';
 import { CustomCheckEditorContext } from '@/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/useCustomCheckEditor';
 import type { GroupNode } from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils';
-import type { LogicalModelFieldResolution } from '@/features/orgs/projects/database/native-queries/utils/logicalModelPermissionFilter';
+import type { LogicalModelFieldDescriptor } from '@/features/orgs/projects/database/native-queries/utils/logicalModelPermissionFilter';
 import LogicalModelAddNodeButton from './LogicalModelAddNodeButton';
 import LogicalModelGroupNodeRenderer from './LogicalModelGroupNodeRenderer';
 import { LogicalModelCustomCheckEditorContext } from './useLogicalModelCustomCheckEditor';
 
 interface LogicalModelVisualRuleEditorProps {
   name: string;
-  fields: LogicalModelFieldResolution;
+  fields: LogicalModelFieldDescriptor[];
 }
 
 function emptyGroup(): GroupNode {
@@ -41,7 +41,7 @@ export default function LogicalModelVisualRuleEditor({
 }: LogicalModelVisualRuleEditorProps) {
   const { setValue, resetField } = useFormContext();
   const filter = useWatch({ name }) as GroupNode | undefined;
-  const contextValue = useMemo(() => ({ fields, pathPrefix: [] }), [fields]);
+  const contextValue = useMemo(() => ({ fields }), [fields]);
 
   function handleRootRemove() {
     resetField(name, { defaultValue: emptyGroup() });
