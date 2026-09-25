@@ -1,15 +1,13 @@
 import { createContext, useContext } from 'react';
-import type { LogicalModelFieldResolution } from '@/features/orgs/projects/database/native-queries/utils/logicalModelPermissionFilter';
+import type { LogicalModelFieldDescriptor } from '@/features/orgs/projects/database/native-queries/utils/logicalModelPermissionFilter';
 
 export interface LogicalModelCustomCheckEditorValue {
-  fields: LogicalModelFieldResolution;
-  pathPrefix: readonly string[];
+  fields: LogicalModelFieldDescriptor[];
 }
 
 export const LogicalModelCustomCheckEditorContext =
   createContext<LogicalModelCustomCheckEditorValue>({
-    fields: { descriptors: [], issues: [] },
-    pathPrefix: [],
+    fields: [],
   });
 
 export default function useLogicalModelCustomCheckEditor() {

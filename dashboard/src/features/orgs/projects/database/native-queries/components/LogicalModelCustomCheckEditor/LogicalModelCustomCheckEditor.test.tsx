@@ -31,13 +31,6 @@ import {
 } from '@/tests/testUtils';
 import type { LogicalModelItem } from '@/utils/hasura-api/generated/schemas';
 
-const profile: LogicalModelItem = {
-  name: 'profile',
-  fields: [
-    { name: 'active', type: { scalar: 'boolean', nullable: false } },
-    { name: 'displayName', type: { scalar: 'citext', nullable: false } },
-  ],
-};
 const model: LogicalModelItem = {
   name: 'author',
   fields: [
@@ -46,7 +39,7 @@ const model: LogicalModelItem = {
     { name: 'profile', type: { logical_model: 'profile', nullable: true } },
   ],
 };
-const fields = resolveLogicalModelFieldDescriptors(model, [model, profile]);
+const fields = resolveLogicalModelFieldDescriptors(model);
 const server = setupServer(
   tokenQuery,
   tableQuery,
@@ -137,11 +130,11 @@ function withoutIds(value: unknown): unknown {
 
 function TestForm({
   filter,
-  fieldResolution = fields,
+  fieldDescriptors = fields,
   onSubmit = vi.fn(),
 }: {
   filter: GroupNode;
-  fieldResolution?: ReturnType<typeof resolveLogicalModelFieldDescriptors>;
+  fieldDescriptors?: ReturnType<typeof resolveLogicalModelFieldDescriptors>;
   onSubmit?: (values: TestValues) => void;
 }) {
   const form = useForm<TestValues>({
@@ -161,7 +154,7 @@ function TestForm({
           <LogicalModelCustomCheckModeToggle />
           <LogicalModelCustomCheckEditor
             name="filter"
-            fields={fieldResolution}
+            fields={fieldDescriptors}
           />
           <button type="submit">Save</button>
           <output data-testid="filter-tree">
@@ -232,9 +225,7 @@ describe('LogicalModelCustomCheckEditor', () => {
     render(
       <TestForm
         filter={emptyGroup()}
-        fieldResolution={resolveLogicalModelFieldDescriptors(arrayModel, [
-          arrayModel,
-        ])}
+        fieldDescriptors={resolveLogicalModelFieldDescriptors(arrayModel)}
       />,
     );
 
@@ -242,30 +233,53 @@ describe('LogicalModelCustomCheckEditor', () => {
     expect(screen.getByText('exists', { exact: true })).toBeInTheDocument();
   });
 
-  it('adds a relationship as an empty group and offers its fields inside', async () => {
+  it('offers only root scalar fields in the add menu', async () => {
     const user = new TestUserEvent();
     render(<TestForm filter={condition('id')} />);
 
-    await user.click(screen.getAllByRole('button', { name: 'Add' })[0]);
-    await user.click(await screen.findByRole('option', { name: /profile/ }));
-
-    const tree = JSON.parse(
-      screen.getByTestId('filter-tree').textContent ?? '{}',
-    );
-    expect(withoutIds(tree.children[1])).toEqual({
-      type: 'relationship',
-      relationship: 'profile',
-      child: { type: 'group', operator: '_and', children: [] },
-    });
-
-    const [nestedAdd] = screen.getAllByRole('button', { name: 'Add' });
-    await user.click(nestedAdd);
+    await user.click(screen.getByRole('button', { name: 'Add' }));
     expect(
-      await screen.findByRole('option', { name: /displayName/ }),
+      await screen.findByRole('option', { name: /id/ }),
     ).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: /bio/ })).toBeInTheDocument();
     expect(
       screen.queryByRole('option', { name: /profile/ }),
     ).not.toBeInTheDocument();
+    expect(screen.queryByText('Relationships')).not.toBeInTheDocument();
+  });
+
+  it('shows a JSON nested field as non-editable and lets it be deleted', async () => {
+    const user = new TestUserEvent();
+    render(<TestForm filter={condition('id')} />);
+
+    await user.click(screen.getByRole('button', { name: 'JSON' }));
+    await user.clear(screen.getByRole('textbox'));
+    await user.paste(JSON.stringify({ profile: { active: { _eq: true } } }));
+    await user.click(screen.getByRole('button', { name: 'Visual' }));
+
+    expect(
+      screen.getByText(
+        /Nested fields aren't supported in logical model permissions/,
+      ),
+    ).toHaveTextContent('profile');
+    expect(
+      screen.queryByRole('combobox', { name: 'Logical model field' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Delete nested field' }),
+    ).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole('button', { name: 'Delete nested field' }),
+    );
+    expect(
+      screen.queryByText(/Nested fields aren't supported/),
+    ).not.toBeInTheDocument();
+    expect(
+      serializeNode(
+        JSON.parse(screen.getByTestId('filter-tree').textContent ?? '{}'),
+      ),
+    ).toEqual({});
   });
 
   it('uses the shared table editor inside exists', async () => {
@@ -316,15 +330,12 @@ describe('LogicalModelCustomCheckEditor', () => {
     expect(screen.getByRole('option', { name: 'id' })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'bio' })).toBeInTheDocument();
     expect(
-      screen.getByRole('option', { name: 'profile.active' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('option', { name: 'profile.displayName' }),
-    ).toBeInTheDocument();
+      screen.queryByRole('option', { name: /profile/ }),
+    ).not.toBeInTheDocument();
     expect(
       screen.queryByRole('option', { name: /title/i }),
     ).not.toBeInTheDocument();
-    await user.click(screen.getByRole('option', { name: 'profile.active' }));
+    await user.click(screen.getByRole('option', { name: 'bio' }));
 
     const tree = JSON.parse(
       screen.getByTestId('filter-tree').textContent ?? '{}',
@@ -332,7 +343,7 @@ describe('LogicalModelCustomCheckEditor', () => {
     expect(tree.children[0]).toMatchObject({
       type: 'condition',
       operator: '_ceq',
-      value: ['$', 'profile.active'],
+      value: ['$', 'bio'],
     });
     const reparsed = wrapPermissionsInAGroup(serializeNode(tree));
     expect(withoutIds(reparsed)).toEqual(withoutIds(tree));

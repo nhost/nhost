@@ -30,24 +30,9 @@ export default function LogicalModelConditionRow({
   onRemove,
 }: LogicalModelConditionRowProps) {
   const { control, setValue, clearErrors } = useFormContext();
-  const { fields, pathPrefix } = useLogicalModelCustomCheckEditor();
+  const { fields } = useLogicalModelCustomCheckEditor();
   const condition = useWatch({ name }) as ConditionNode | undefined;
-  const fullPath = [...pathPrefix, condition?.column ?? '']
-    .filter(Boolean)
-    .join('.');
-  const descriptor = fields.descriptors.find(
-    (item) => item.selectable && item.path === fullPath,
-  );
-  const selectableFields = fields.descriptors.filter((item) => {
-    if (!item.selectable) {
-      return false;
-    }
-    const parts = item.path.split('.');
-    return (
-      parts.length === pathPrefix.length + 1 &&
-      pathPrefix.every((part, index) => parts[index] === part)
-    );
-  });
+  const descriptor = fields.find((item) => item.name === condition?.column);
   return (
     <div className="mt-4 flex flex-col gap-1 space-y-1 overflow-x-hidden rounded-md p-1 transition-colors focus-within:bg-accent/50 hover:bg-accent/50 xl:grid xl:grid-flow-row xl:grid-cols-[320px_160px_minmax(100px,_1fr)_40px] xl:space-y-0 xl:overflow-x-visible">
       <FormField
@@ -75,8 +60,8 @@ export default function LogicalModelConditionRow({
                   <SelectValue placeholder="Select field..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {selectableFields.map((item) => (
-                    <SelectItem key={item.path} value={item.name}>
+                  {fields.map((item) => (
+                    <SelectItem key={item.name} value={item.name}>
                       {item.name}
                     </SelectItem>
                   ))}

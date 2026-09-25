@@ -35,7 +35,6 @@ export interface LogicalModelPermissionFormValues {
 interface LogicalModelPermissionFormProps extends DialogFormProps {
   source: string;
   model: LogicalModelItem;
-  models: LogicalModelItem[];
   role: string;
   availableRoles: string[];
   onRoleChange: (role: string) => void;
@@ -72,7 +71,6 @@ function defaultValues(
 export default function LogicalModelPermissionForm({
   source,
   model,
-  models,
   role,
   availableRoles,
   onRoleChange,
@@ -92,8 +90,8 @@ export default function LogicalModelPermissionForm({
     editMutation.isPending ||
     deleteMutation.isPending;
   const fields = useMemo(
-    () => resolveLogicalModelFieldDescriptors(model, models),
-    [model, models],
+    () => resolveLogicalModelFieldDescriptors(model),
+    [model],
   );
   const form = useForm<LogicalModelPermissionFormValues>({
     resolver: yupResolver(
@@ -142,7 +140,10 @@ export default function LogicalModelPermissionForm({
       permission: {
         ...(permission ?? {}),
         columns: values.columns,
-        filter: values.filter ? serializeNode(values.filter) : {},
+        filter:
+          values.rowCheckType === 'custom'
+            ? serializeNode(values.filter as GroupNode)
+            : {},
       },
       ...(existingPermission?.comment !== undefined
         ? { comment: existingPermission.comment }

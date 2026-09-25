@@ -3,7 +3,6 @@ export { default as LogicalModelComparisonFieldPicker } from './LogicalModelComp
 export { default as LogicalModelConditionRow } from './LogicalModelConditionRow';
 export * from './LogicalModelCustomCheckEditor';
 export { default as LogicalModelGroupNodeRenderer } from './LogicalModelGroupNodeRenderer';
-export { default as LogicalModelRelationshipNodeRenderer } from './LogicalModelRelationshipNodeRenderer';
 export * from './LogicalModelVisualRuleEditor';
 export { default as LogicalModelVisualRuleEditor } from './LogicalModelVisualRuleEditor';
 export * from './useLogicalModelCustomCheckEditor';

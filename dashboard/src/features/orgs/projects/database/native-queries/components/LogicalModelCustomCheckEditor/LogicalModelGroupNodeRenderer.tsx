@@ -1,10 +1,11 @@
-import { X } from 'lucide-react';
+import { Trash2, X } from 'lucide-react';
 import {
   useFieldArray,
   useFormContext,
   useFormState,
   useWatch,
 } from 'react-hook-form';
+import { Button } from '@/components/ui/v3/button';
 import ExistsNodeRenderer from '@/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/ExistsNodeRenderer';
 import InvalidNodeRenderer from '@/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/InvalidNodeRenderer';
 import LogicalOperatorBadge from '@/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/LogicalOperatorBadge';
@@ -15,7 +16,6 @@ import type {
 import { cn } from '@/lib/utils';
 import LogicalModelAddNodeButton from './LogicalModelAddNodeButton';
 import LogicalModelConditionRow from './LogicalModelConditionRow';
-import LogicalModelRelationshipNodeRenderer from './LogicalModelRelationshipNodeRenderer';
 
 const depthBackgrounds = [
   'bg-secondary-100',
@@ -137,12 +137,25 @@ export default function LogicalModelGroupNodeRenderer({
 
           if (child.type === 'relationship') {
             return (
-              <LogicalModelRelationshipNodeRenderer
+              <div
                 key={field.id}
-                name={childName}
-                depth={depth + 1}
-                onRemove={() => remove(index)}
-              />
+                className="mt-4 flex items-center gap-2 rounded-md border border-destructive/60 bg-destructive/5 px-3 py-2 text-destructive text-sm"
+              >
+                <span className="flex-1">
+                  {child.relationship}: Nested fields aren't supported in
+                  logical model permissions
+                </span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="text-destructive"
+                  onClick={() => remove(index)}
+                  aria-label="Delete nested field"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             );
           }
 

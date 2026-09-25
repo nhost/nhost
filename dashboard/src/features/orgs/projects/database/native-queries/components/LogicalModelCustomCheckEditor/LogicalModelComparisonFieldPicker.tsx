@@ -14,13 +14,11 @@ export default function LogicalModelComparisonFieldPicker({
   const { control, setValue, clearErrors } = useFormContext();
   const { fields } = useLogicalModelCustomCheckEditor();
   const { field, fieldState } = useController({ name, control });
-  const options = fields.descriptors
-    .filter((descriptor) => descriptor.selectable)
-    .map((descriptor) => ({
-      value: descriptor.path,
-      label: descriptor.path,
-      keywords: descriptor.scalar ? [descriptor.scalar] : undefined,
-    }));
+  const options = fields.map((descriptor) => ({
+    value: descriptor.name,
+    label: descriptor.name,
+    keywords: [descriptor.scalar],
+  }));
 
   return (
     <Combobox
