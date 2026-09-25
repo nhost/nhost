@@ -25,7 +25,7 @@ NEW_SETTINGS = {
     "log_temp_files": ("LOG_TEMP_FILES", "-1", False),
     "shared_preload_libraries": (
         "SHARED_PRELOAD_LIBRARIES",
-        "pg_stat_statements,pg_cron,timescaledb,pg_squeeze,pg_search,pg_durable,pg_ivm",
+        "pg_stat_statements,pg_cron,timescaledb,pg_squeeze,pg_search",
         True,
     ),
     "pg_stat_statements.max": ("PG_STAT_STATEMENTS_MAX", "5000", False),
