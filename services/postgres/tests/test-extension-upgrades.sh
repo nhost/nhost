@@ -118,6 +118,26 @@ docker run -d --name "$new_container" \
 wait_for_initialization "$new_container"
 assert_no_missing_timescaledb_error "$new_container"
 
+if docker logs "$new_container" 2>&1 | grep -q 'Collation repair failed'; then
+    echo "Collation repair failed before the TimescaleDB upgrade" >&2
+    docker logs "$new_container" >&2
+    exit 1
+fi
+
+if ! collation_repaired=$(docker exec "$new_container" \
+    psql -X -qAt -U postgres -d local -v ON_ERROR_STOP=1 \
+    -c "SELECT datcollversion = pg_database_collation_actual_version(oid)
+        FROM pg_database WHERE datname = 'local'"); then
+    echo "Could not inspect the collation version in local" >&2
+    docker logs "$new_container" >&2
+    exit 1
+fi
+if [ "$collation_repaired" != t ]; then
+    echo "Collation repair did not refresh local on the upgrade boot" >&2
+    docker logs "$new_container" >&2
+    exit 1
+fi
+
 for database in postgres local; do
     if ! timescaledb_is_current=$(docker exec \
         --env PGOPTIONS='-c timescaledb.disable_load=on' \

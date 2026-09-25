@@ -509,7 +509,9 @@ main() {
 	# Rebuild collation-dependent indexes only after the available collation
 	# version changes, before recording the new version. A failed rebuild must
 	# not make PostgreSQL unavailable to the operator who needs to repair it.
-	if ! run_interruptibly /bin/repair-collation.sh; then
+	# The old TimescaleDB library may no longer be bundled until its upgrade below.
+	if ! run_interruptibly env "PGOPTIONS=${PGOPTIONS:+$PGOPTIONS }-c timescaledb.disable_load=on" \
+		/bin/repair-collation.sh; then
 		echo "Collation repair failed; continuing PostgreSQL startup" >&2
 	fi
 	if ! run_nhost_scripts; then

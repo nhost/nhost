@@ -93,5 +93,9 @@ CREATE DATABASE "app=old";
 CREATE EXTENSION hstore VERSION '1.7';
 \connect local
 
+-- Simulate a collation library upgrade while TimescaleDB still references the
+-- old library. The new image must repair local before upgrading extensions.
+UPDATE pg_database SET datcollversion = '0' WHERE datname = 'local';
+
 -- The Nhost SQL must run even when an earlier database cannot be inspected.
 ALTER ROLE nhost_auth_admin RESET search_path;

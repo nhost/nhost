@@ -32,8 +32,9 @@ layout rather than relying on a marker outside the mounted volume.
 ## Extension upgrades
 
 Keep the startup catalog probe and TimescaleDB update in separate sessions.
-The startup catalog queries must set `timescaledb.disable_load=on` because an installed old
-version might reference a library that the new image no longer bundles, while
+Collation repair and startup catalog queries before the upgrade must set
+`timescaledb.disable_load=on` because an installed old version might reference
+a library that the new image no longer bundles, while
 `ALTER EXTENSION timescaledb UPDATE` must be the first command in a fresh
 session.
 
