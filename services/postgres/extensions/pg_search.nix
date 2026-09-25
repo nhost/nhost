@@ -47,9 +47,6 @@ buildPGRXExtension rec {
   cargoHash = "sha256-K0jAg5A8jr9Ip9BXL8KLdSwPLkgR4Rp9grlWfRcDuAI=";
 
   preBuild = ''
-    # The release build uses LTO and exceeds 6 GiB with the default eight jobs.
-    export NIX_BUILD_CORES=2
-
     export LINDERA_CACHE=$TMPDIR/lindera-cache
     mkdir -p $LINDERA_CACHE/${linderaVersion}
     cp ${linderaIpadic}     $LINDERA_CACHE/${linderaVersion}/mecab-ipadic-2.7.0-20250920.tar.gz

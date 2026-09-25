@@ -55,7 +55,18 @@ When checking pgrx toolchain changes on a small Linux builder (for example,
 a 6 GiB Lima VM), build `packages.aarch64-linux.postgres-pg18` and
 `packages.x86_64-linux.postgres-pg18` sequentially. Parallel full builds,
 especially x86_64 through QEMU, can exhaust RAM and stall in swap while
-compiling pg_search.
+compiling pg_search. Its release build uses LTO and can exceed 6 GiB when
+running eight build jobs. Nix uses the builder's configured core count (or
+all available cores when set to 0), so limit jobs on memory-constrained
+builders at invocation time, for example from the repository root:
+
+```sh
+nix build --cores 2 --max-jobs 1 .#packages.aarch64-linux.postgres-pg18
+```
+
+For the image target, from `services/postgres` use
+`make build-docker-image docker-build-options='--cores 2 --max-jobs 1'`.
+On larger builders, leave the core count uncapped.
 
 ## Options
 
