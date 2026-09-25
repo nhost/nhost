@@ -7,8 +7,6 @@ script_dir=$(dirname "$0")
 script_dir=$(cd "$script_dir" >/dev/null && pwd)
 upgrade_source="$script_dir/extension-upgrade-source.sql"
 current_image=$(docker inspect --format '{{.Config.Image}}' "$source_container")
-# Keep extension integration tests opt-in when the production image omits these preloads.
-test_preload_libraries=pg_stat_statements,pg_cron,timescaledb,pg_squeeze,pg_search,pg_durable,pg_ivm
 if [ -n "${POSTGRES_UPGRADE_FROM_IMAGE:-}" ]; then
     previous_image=$POSTGRES_UPGRADE_FROM_IMAGE
 else
@@ -131,7 +129,6 @@ stop_source_container "$old_container"
 
 docker run -d --name "$new_container" \
     --env POSTGRES_DEV_INSECURE=1 \
-    --env "SHARED_PRELOAD_LIBRARIES=$test_preload_libraries" \
     --volume "$volume:/var/lib/postgresql/data/pgdata" \
     "$current_image" >/dev/null
 wait_for_initialization "$new_container"
@@ -282,7 +279,6 @@ stop_source_container "$no_postgres_old"
 
 docker run -d --name "$no_postgres_new" \
     --env POSTGRES_DEV_INSECURE=1 \
-    --env "SHARED_PRELOAD_LIBRARIES=$test_preload_libraries" \
     --volume "$no_postgres_volume:/var/lib/postgresql/data/pgdata" \
     "$current_image" >/dev/null
 wait_for_initialization "$no_postgres_new"
