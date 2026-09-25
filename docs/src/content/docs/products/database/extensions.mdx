@@ -258,6 +258,8 @@ SET ROLE postgres;
 DROP EXTENSION vector;
 ```
 
+pg_search 0.25+ depends on `vector`, so this migration fails while pg_search is installed (including when an upgrade installed `vector` for pg_search). If you intend to remove both extensions, first review and explicitly drop any dependent BM25 indexes, then drop pg_search before dropping `vector`. Do not use `DROP EXTENSION vector CASCADE;` as a shortcut: it also drops pg_search and its dependent BM25 indexes.
+
 ### Resources
 
 - [GitHub](https://github.com/pgvector/pgvector)
