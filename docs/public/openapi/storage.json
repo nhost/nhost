@@ -1658,7 +1658,8 @@
           "url": {
             "type": "string",
             "description": "The presigned URL for file operations.",
-            "example": "https://storage.example.com/files/abc123?signature=xyz"
+            "example": "https://storage.example.com/files/abc123?signature=xyz",
+            "x-nhost-sensitive": true
           },
           "expiration": {
             "type": "integer",

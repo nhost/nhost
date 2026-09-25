@@ -24,6 +24,12 @@ export type SimpleObjectStatusCode = 0 | 1 | 2;
 
 
 /**
+ * Integer status of the object.
+ */
+export type SimpleObjectStatusInt = 0 | 1 | 2;
+
+
+/**
  * Some people just want to see the world burn.
  */
 export type SimpleObjectStatusMixed = 0 | "One" | true;
@@ -60,7 +66,7 @@ export interface SimpleObjectNested {
  @property createdAt (`string`) - Timestamp when the file was created.
     *    Example - `"2023-01-15T12:34:56Z"`
     *    Format - date-time
- @property metadata (`Record<string, unknown>`) - Custom metadata associated with the file.
+ @property metadata (`Record<string, unknown> | null`) - Custom metadata associated with the file.
     *    Example - `{"alt":"Profile picture","category":"avatar"}`
  @property requiredNullableMetadata (`Record<string, unknown> | null`) - Always-present metadata that may be null.
  @property requiredNullableString (`string | null`) - Always-present string that may be null.
@@ -76,6 +82,8 @@ export interface SimpleObjectNested {
  @property status? (`SimpleObjectStatus`) - Status of the object.
     *    Example - `"active"`
  @property statusCode? (`SimpleObjectStatusCode`) - Status code of the object.
+    *    Example - `0`
+ @property statusInt? (`SimpleObjectStatusInt`) - Integer status of the object.
     *    Example - `0`
  @property statusMixed? (`SimpleObjectStatusMixed`) - Some people just want to see the world burn.
     *    Example - `0`
@@ -107,7 +115,7 @@ export interface SimpleObject {
    * Custom metadata associated with the file.
     *    Example - `{"alt":"Profile picture","category":"avatar"}`
    */
-  metadata: Record<string, unknown>,
+  metadata: Record<string, unknown> | null,
   /**
    * Always-present metadata that may be null.
    */
@@ -159,6 +167,11 @@ export interface SimpleObject {
     *    Example - `0`
    */
   statusCode?: SimpleObjectStatusCode,
+  /**
+   * Integer status of the object.
+    *    Example - `0`
+   */
+  statusInt?: SimpleObjectStatusInt,
   /**
    * Some people just want to see the world burn.
     *    Example - `0`
