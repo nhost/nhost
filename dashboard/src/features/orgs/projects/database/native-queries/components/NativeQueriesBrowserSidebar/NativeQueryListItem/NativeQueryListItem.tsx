@@ -1,4 +1,4 @@
-import { DatabaseSearchIcon, SquarePen, Trash2 } from 'lucide-react';
+import { Anchor, DatabaseSearchIcon, SquarePen, Trash2 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
@@ -8,6 +8,17 @@ import { InlineCode } from '@/components/ui/v3/inline-code';
 import { DeleteNativeQueryDialog } from '@/features/orgs/projects/database/native-queries/components/DeleteNativeQueryDialog';
 import { NativeQueriesSidebarListItem } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesBrowserSidebar/NativeQueriesSidebarListItem';
 import type { NativeQueryItem } from '@/utils/hasura-api/generated/schemas';
+
+const EditNativeQueryRelationships = dynamic(
+  () =>
+    import(
+      '@/features/orgs/projects/database/native-queries/components/EditNativeQueryRelationships/EditNativeQueryRelationships'
+    ),
+  {
+    ssr: false,
+    loading: () => <FormActivityIndicator />,
+  },
+);
 
 const EditNativeQueryForm = dynamic(
   () =>
@@ -47,6 +58,26 @@ export default function NativeQueryListItem({
     });
   }
 
+  function handleEditRelationships() {
+    openDrawer({
+      title: (
+        <span className="inline-grid grid-flow-col items-center gap-2">
+          Edit Relationships for
+          <InlineCode className="!text-sm+ font-normal">
+            {query.root_field_name}
+          </InlineCode>
+          native query
+        </span>
+      ),
+      component: (
+        <EditNativeQueryRelationships queryName={query.root_field_name} />
+      ),
+      props: {
+        PaperProps: { className: 'overflow-hidden' },
+      },
+    });
+  }
+
   return (
     <>
       <NativeQueriesSidebarListItem
@@ -60,6 +91,11 @@ export default function NativeQueryListItem({
             icon: <SquarePen className="size-4" />,
             label: 'Edit native query',
             onSelect: handleEdit,
+          },
+          {
+            icon: <Anchor className="size-4" />,
+            label: 'Edit Relationships',
+            onSelect: handleEditRelationships,
           },
           {
             icon: <Trash2 className="size-4" />,
