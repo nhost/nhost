@@ -1,0 +1,58 @@
+openapi: "3.0.0"
+
+paths:
+  /headers:
+    get:
+      operationId: headerValues
+      parameters:
+        - name: x-first-json
+          in: header
+          required: true
+          content:
+            application/json:
+              schema:
+                type: string
+        - name: x-second-json
+          in: header
+          required: true
+          content:
+            application/json:
+              schema:
+                type: boolean
+        - name: x-count
+          in: header
+          required: true
+          schema:
+            type: integer
+        - name: x-number
+          in: header
+          required: true
+          schema:
+            type: number
+        - name: x-enabled
+          in: header
+          required: true
+          schema:
+            type: boolean
+        - name: x-mode
+          in: header
+          required: true
+          schema:
+            type: string
+            enum: [0, "one", true]
+      responses:
+        "204":
+          description: Success
+
+  /redirect:
+    get:
+      operationId: headerOnlyRedirect
+      parameters:
+        - name: x-redirect-token
+          in: header
+          required: false
+          schema:
+            type: string
+      responses:
+        "302":
+          description: Redirect
