@@ -301,14 +301,15 @@ This is a limitation of pg_durable: the extension does not register its `df.inst
 
 ### Managing
 
-Nhost preloads pg_durable and configures its background worker for your project database. The extension does not grant access to `PUBLIC`. To enable it and allow workflows submitted through Nhost GraphQL, create a migration that grants access to the `nhost_hasura` database role:
+Nhost preloads pg_durable and configures its background worker for your project database. The extension does not grant access to `PUBLIC`. To enable it for workflows submitted through Nhost GraphQL, create this migration:
 
 ```sql
 SET ROLE postgres;
 CREATE EXTENSION pg_durable;
-SELECT df.grant_usage('nhost_hasura');
 RESET ROLE;
 ```
+
+In Nhost databases, `nhost_hasura` inherits membership in `postgres`, which owns the `df` objects. It already has full access to pg_durable, so `df.grant_usage('nhost_hasura')` would be redundant. In particular, it can execute `df.http()` and `df.http_multipart()` without an HTTP-specific grant and bypasses row-level security on `df.instances`, `df.nodes`, and `df.vars`: it can see and change workflows submitted by other roles.
 
 After the migration commits, the `df.*` functions exist, but the background worker initializes asynchronously. During the first 1–5 seconds, calls can fail with:
 
@@ -318,9 +319,9 @@ pg_durable background worker not yet initialized — try again in a moment
 
 Retry the call after a short delay.
 
-Nhost leaves `pg_durable.enable_superuser_instances` at its secure default of `off`. Workflows must therefore be submitted by a non-superuser role with `LOGIN`, because the background worker reconnects as the role captured by `df.start()`. Do not submit as `postgres` or `nhost_admin`; both are superusers and `df.start()` rejects them. The `nhost_hasura` role used by Nhost GraphQL is a non-superuser `LOGIN` role.
+Nhost leaves `pg_durable.enable_superuser_instances` at its default of `off`. Workflows must therefore be submitted by a non-superuser role with `LOGIN`, because the background worker reconnects as the role captured by `df.start()`. Do not submit as `postgres` or `nhost_admin`; both are superusers and `df.start()` rejects them. The `nhost_hasura` role used by Nhost GraphQL is a non-superuser `LOGIN` role, but it can `SET ROLE postgres`; this setting does not restrict the SQL its workflows can run.
 
-For a service that connects directly to PostgreSQL, use a dedicated, least-privileged login role in the installation migration. For example:
+To enforce per-role isolation and HTTP opt-in, submit workflows through a direct PostgreSQL connection as a dedicated login role that is not a member of `postgres`, rather than through Nhost GraphQL as `nhost_hasura`. For example, create a least-privileged role in the installation migration:
 
 ```sql
 SET ROLE postgres;
@@ -339,14 +340,14 @@ Configure authentication for the role through your normal secrets workflow rathe
 
 ### HTTP egress and access control
 
-Nhost builds pg_durable with the `http-allow-all` feature, enabling unrestricted HTTP destinations. `df.http()` and `df.http_multipart()` can contact any HTTP or HTTPS destination reachable from PostgreSQL. However, build-time HTTP support does not grant SQL access automatically. Fresh pg_durable installations revoke execution of both HTTP functions from `PUBLIC`, and the general grant above does not include them. A database administrator must explicitly opt a role into HTTP egress:
+Nhost builds pg_durable with the `http-allow-all` feature, enabling unrestricted HTTP destinations. `df.http()` and `df.http_multipart()` can contact any HTTP or HTTPS destination reachable from PostgreSQL. Fresh pg_durable installations revoke execution of both HTTP functions from `PUBLIC`. For roles that do not inherit `postgres`, `df.grant_usage` without `include_http => true` does not grant HTTP execution; a database administrator must explicitly opt them into HTTP egress:
 
 ```sql
 SET ROLE postgres;
 SELECT df.grant_usage('app_role', include_http => true);
 ```
 
-Equivalent direct `GRANT EXECUTE` statements can grant either HTTP function more narrowly. Do not grant HTTP execution to roles that do not require outbound network access.
+Equivalent direct `GRANT EXECUTE` statements can grant either HTTP function more narrowly. Do not grant HTTP execution to roles that do not require outbound network access. Workflows submitted through Nhost GraphQL run as `nhost_hasura`, which inherits HTTP execution from `postgres`; they can always make HTTP requests without this grant.
 
 To uninstall the extension, use the following migration:
 
