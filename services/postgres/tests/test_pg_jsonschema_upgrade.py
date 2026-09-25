@@ -75,7 +75,8 @@ class UpgradeCheckerTests(unittest.TestCase):
                 result = self.check(install_sql().replace(original, changed))
                 self.assertEqual(result.returncode, 1)
                 self.assertIn(f"{name}_wrapper differs", result.stderr)
-                self.assertIn("CREATE OR REPLACE FUNCTION", result.stderr)
+                self.assertIn("Once 0.3.4 has shipped, do not edit", result.stderr)
+                self.assertIn("new extension SQL version", result.stderr)
 
     def test_volatility_drift_is_rejected(self):
         result = self.check(install_sql().replace("IMMUTABLE", "STABLE", 1))
@@ -93,6 +94,10 @@ class UpgradeCheckerTests(unittest.TestCase):
         result = self.check(install_sql(), "")
         self.assertEqual(result.returncode, 1)
         self.assertIn("upgrade script is out of date", result.stderr)
+        self.assertIn("Once 0.3.4 has shipped, do not edit", result.stderr)
+        self.assertIn("new extension SQL version", result.stderr)
+        self.assertIn("--- ", result.stderr)
+        self.assertIn("+++ ", result.stderr)
 
 
 if __name__ == "__main__":
