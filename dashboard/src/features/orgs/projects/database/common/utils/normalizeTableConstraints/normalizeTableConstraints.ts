@@ -38,6 +38,7 @@ export default function normalizeTableConstraints(
       constraint_type: constraintType,
       constraint_name: constraintName,
       constraint_definition: constraintDefinition,
+      referenced_key_name: referencedKeyName,
     } = constraint;
 
     if (constraintType === 'f' && !foreignKeyRelationMap.has(constraintName)) {
@@ -50,6 +51,7 @@ export default function normalizeTableConstraints(
         foreignKeyRelationMap.set(constraintName, {
           ...foreignKeyRelation,
           referencedSchema: foreignKeyRelation.referencedSchema || schema,
+          referencedKeyName: referencedKeyName ?? undefined,
         });
       }
     }

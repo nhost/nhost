@@ -5,8 +5,7 @@ import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/ho
 import type { BaseForeignKeySchemaValues } from './BaseForeignKeyForm';
 
 export default function ReferencedKeySelect() {
-  const { control, setValue, getValues } =
-    useFormContext<BaseForeignKeySchemaValues>();
+  const { control, setValue } = useFormContext<BaseForeignKeySchemaValues>();
   const referencedSchema = useWatch({ name: 'referencedSchema' });
   const referencedTable = useWatch({ name: 'referencedTable' });
 
@@ -43,15 +42,6 @@ export default function ReferencedKeySelect() {
       contentClassName="z-[1400]"
       containerClassName="min-w-0"
       className="border-border [&>span]:line-clamp-none [&>span]:min-w-0 [&>span]:truncate"
-      transform={{
-        in: (value: string) => value,
-        // Radix emits an empty onValueChange while reconciling a selection
-        // that was set programmatically, which would otherwise wipe a
-        // prefilled key.
-        // See https://github.com/radix-ui/primitives/issues/3135
-        out: (value: string) =>
-          value === '' ? getValues('referencedKeyName') : value,
-      }}
       onChange={(value) => {
         const candidate = candidateKeys.find(({ name }) => name === value);
 

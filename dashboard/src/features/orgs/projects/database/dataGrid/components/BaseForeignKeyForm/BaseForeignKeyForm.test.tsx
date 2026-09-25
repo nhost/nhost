@@ -222,15 +222,13 @@ describe('BaseForeignKeyForm', () => {
         expect.objectContaining({
           columns: ['county_region', 'county_code'],
           referencedColumns: ['region', 'code'],
+          referencedKeyName: 'county_region_code_key',
           referencedSchema: 'public',
           referencedTable: 'county',
           oneToOne: false,
         }),
       );
     });
-    expect(mocks.onSubmit.mock.calls[0][0]).not.toHaveProperty(
-      'referencedKeyName',
-    );
   });
 
   it('round-trips oneToOne for a member of a composite primary key', async () => {
