@@ -50,7 +50,7 @@ in
         ];
       }
       ''
-        python3 -m unittest discover -s ${src}/tests -p test_pg_jsonschema_upgrade.py -v
+        python3 -m unittest discover -s ${src}/tests -p 'test_*.py' -v
 
         PG_URL="postgres://postgres@localhost:5432/local"
 

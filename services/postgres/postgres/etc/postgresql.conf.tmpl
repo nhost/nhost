@@ -225,7 +225,7 @@ synchronous_commit = $SYNCHRONOUS_COMMIT                # synchronization level;
 #full_page_writes = on                  # recover from partial page writes
 #wal_log_hints = off                    # also do full page writes of non-critical updates
                                         # (change requires restart)
-#wal_compression = off                  # enables compression of full-page writes;
+wal_compression = $WAL_COMPRESSION        # enables compression of full-page writes;
                                         # off, pglz, lz4, zstd, or on
 #wal_init_zero = on                     # zero-fill new WAL files
 #wal_recycle = on                       # recycle WAL files
@@ -316,7 +316,7 @@ max_wal_senders = $MAX_WAL_SENDERS # max number of walsender processes
 max_replication_slots = $MAX_REPLICATION_SLOTS # max number of replication slots
                                 # (change requires restart)
 #wal_keep_size = 0              # in megabytes; 0 disables
-#max_slot_wal_keep_size = -1    # in megabytes; -1 disables
+max_slot_wal_keep_size = $MAX_SLOT_WAL_KEEP_SIZE # in megabytes; -1 disables
 #wal_sender_timeout = 60s       # in milliseconds; 0 disables
 #track_commit_timestamp = off   # collect timestamp of transaction commit
                                 # (change requires restart)
@@ -520,7 +520,7 @@ jit = $JIT				                # allow JIT compilation
                                         #   fatal
                                         #   panic (effectively off)
 
-#log_min_duration_statement = -1        # -1 is disabled, 0 logs all statements
+log_min_duration_statement = $LOG_MIN_DURATION_STATEMENT # -1 is disabled, 0 logs all statements
                                         # and their durations, > 0 logs only
                                         # statements running at least this number
                                         # of milliseconds
@@ -551,7 +551,7 @@ jit = $JIT				                # allow JIT compilation
 #debug_print_rewritten = off
 #debug_print_plan = off
 #debug_pretty_print = on
-#log_autovacuum_min_duration = 10min    # log autovacuum activity;
+log_autovacuum_min_duration = $LOG_AUTOVACUUM_MIN_DURATION # log autovacuum activity;
                                         # -1 disables, 0 logs all actions and
                                         # their durations, > 0 logs only
                                         # actions running at least this number
@@ -597,7 +597,7 @@ jit = $JIT				                # allow JIT compilation
                                         # -1 means print in full, 0 disables
 #log_statement = 'none'                 # none, ddl, mod, all
 #log_replication_commands = off
-#log_temp_files = -1                    # log temporary files equal or larger
+log_temp_files = $LOG_TEMP_FILES        # log temporary files equal or larger
                                         # than the specified size in kilobytes;
                                         # -1 disables, 0 logs all temp files
 #log_timezone = 'GMT'
@@ -744,7 +744,8 @@ track_io_timing = $TRACK_IO_TIMING
 
 #local_preload_libraries = ''
 #session_preload_libraries = ''
-shared_preload_libraries = 'pg_stat_statements,pg_cron,timescaledb,pg_squeeze,pg_search,pg_durable'
+# Keep extensions that require shared preload in this list (not every bundled extension has a library).
+shared_preload_libraries = '$SHARED_PRELOAD_LIBRARIES'
 #jit_provider = 'llvmjit'               # JIT library to use
 
 # - Other Defaults -
@@ -819,6 +820,16 @@ shared_preload_libraries = 'pg_stat_statements,pg_cron,timescaledb,pg_squeeze,pg
 
 # Add settings for extensions here
 cron.database_name = '$POSTGRES_DB'
+cron.timezone = '$CRON_TIMEZONE'
+cron.max_running_jobs = $CRON_MAX_RUNNING_JOBS
+cron.log_run = $CRON_LOG_RUN
+pg_stat_statements.max = $PG_STAT_STATEMENTS_MAX
+pg_stat_statements.track = '$PG_STAT_STATEMENTS_TRACK'
+pg_stat_statements.track_planning = $PG_STAT_STATEMENTS_TRACK_PLANNING
 pg_durable.database = '$POSTGRES_DB'
 pg_durable.worker_role = '$POSTGRES_USER'
-timescaledb.telemetry_level=off
+pg_durable.max_user_connections = $PG_DURABLE_MAX_USER_CONNECTIONS
+pg_durable.retention_days = $PG_DURABLE_RETENTION_DAYS
+pg_durable.log_workflow_sql = $PG_DURABLE_LOG_WORKFLOW_SQL
+timescaledb.max_background_workers = $TIMESCALEDB_MAX_BACKGROUND_WORKERS
+timescaledb.telemetry_level = off
