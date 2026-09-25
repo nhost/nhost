@@ -54,6 +54,29 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: "An error occurred while processing the request"
 
+  /elevate:
+    get:
+      summary: Get available elevation methods
+      description: Retrieve whether the authenticated user needs to elevate their session and which methods they can use to do it.
+      operationId: getElevationMethods
+      tags:
+        - security
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ElevationMethodsResponse"
+          description: Available elevation methods
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: An error occurred while processing the request
+
   /elevate/webauthn:
     post:
       summary: Elevate access for an already signed in user using FIDO2 Webauthn
@@ -93,6 +116,37 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/SignInWebauthnVerifyRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionPayload"
+          description: >-
+            Elevated successfully
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: An error occurred while processing the request
+
+  /elevate/totp:
+    post:
+      summary: Elevate access for an already signed in user using TOTP MFA
+      description: Verify a TOTP code to elevate the permissions of an already signed in user
+      operationId: elevateTotp
+      tags:
+        - security
+      security:
+        - BearerAuth: []
+      requestBody:
+        description: TOTP code for elevation verification
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ElevateTotpRequest"
         required: true
       responses:
         "200":
@@ -2920,6 +2974,45 @@ components:
       required:
         - provider
         - idToken
+
+    ElevationMethod:
+      type: string
+      description: "Method that can be used to elevate a session"
+      enum:
+        - webauthn
+        - totp
+      example: "totp"
+
+    ElevationMethodsResponse:
+      type: object
+      additionalProperties: false
+      description: "Elevation status of the user"
+      properties:
+        elevationRequired:
+          type: boolean
+          description: "Whether protected endpoints require an elevated session. When true and no methods are available, the user must set up a second factor first"
+          example: true
+        methods:
+          type: array
+          description: "Methods the user can use to elevate their session"
+          example:
+            - "webauthn"
+            - "totp"
+          items:
+            $ref: "#/components/schemas/ElevationMethod"
+      required:
+        - elevationRequired
+        - methods
+
+    ElevateTotpRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        otp:
+          type: string
+          description: One time password
+      required:
+        - otp
 
     SignInMfaTotpRequest:
       type: object

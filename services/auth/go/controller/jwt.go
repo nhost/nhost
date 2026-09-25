@@ -138,15 +138,30 @@ type JWTGetter struct {
 	customClaimer        CustomClaimer
 	accessTokenExpiresIn time.Duration
 	elevatedClaimMode    string
+	totpEnabled          bool
+	webauthnEnabled      bool
 	db                   DBClient
 	jwks                 []api.JWK
+}
+
+// Values of AUTH_REQUIRE_ELEVATED_CLAIM.
+const (
+	elevatedClaimDisabled    = "disabled"
+	elevatedClaimRecommended = "recommended"
+	elevatedClaimRequired    = "required"
+)
+
+type ElevationConfig struct {
+	Mode            string
+	TOTPEnabled     bool
+	WebauthnEnabled bool
 }
 
 func NewJWTGetter(
 	jwtSecretb []byte,
 	accessTokenExpiresIn time.Duration,
 	customClaimer CustomClaimer,
-	elevatedClaimMode string,
+	elevation ElevationConfig,
 	db DBClient,
 	defaultIssuer string,
 ) (*JWTGetter, error) {
@@ -166,7 +181,9 @@ func NewJWTGetter(
 		method:               method,
 		customClaimer:        customClaimer,
 		accessTokenExpiresIn: accessTokenExpiresIn,
-		elevatedClaimMode:    elevatedClaimMode,
+		elevatedClaimMode:    elevation.Mode,
+		totpEnabled:          elevation.TOTPEnabled,
+		webauthnEnabled:      elevation.WebauthnEnabled,
 		db:                   db,
 		jwks:                 jwks,
 	}, nil
@@ -461,7 +478,7 @@ func (j *JWTGetter) verifyElevatedClaim(
 	token *jwt.Token,
 	requestPath string,
 ) (bool, error) {
-	if j.elevatedClaimMode == "disabled" {
+	if j.elevatedClaimMode == elevatedClaimDisabled {
 		return true, nil
 	}
 
@@ -470,36 +487,84 @@ func (j *JWTGetter) verifyElevatedClaim(
 		return false, fmt.Errorf("error getting user id from subject: %w", err)
 	}
 
-	if j.isElevatedClaimOptional(requestPath) {
-		userID, err := uuid.Parse(u)
-		if err != nil {
-			return false, fmt.Errorf("error parsing user id: %w", err)
-		}
+	userID, err := uuid.Parse(u)
+	if err != nil {
+		return false, fmt.Errorf("error parsing user id: %w", err)
+	}
 
+	if j.GetCustomClaim(token, "x-hasura-auth-elevated") == u {
+		return true, nil
+	}
+
+	if !j.isElevatedClaimOptional(requestPath) {
+		return false, nil
+	}
+
+	methods, err := j.availableElevationMethods(ctx, userID)
+	if err != nil {
+		return false, err
+	}
+
+	return len(methods) == 0, nil
+}
+
+func (j *JWTGetter) availableElevationMethods(
+	ctx context.Context,
+	userID uuid.UUID,
+) ([]api.ElevationMethod, error) {
+	var methods []api.ElevationMethod
+
+	if j.webauthnEnabled {
 		n, err := j.db.CountSecurityKeysUser(ctx, userID)
 		if err != nil {
-			return false, fmt.Errorf("error checking if user has security keys: %w", err)
+			return nil, fmt.Errorf("error checking if user has security keys: %w", err)
 		}
 
-		if n == 0 {
-			return true, nil
+		if n > 0 {
+			methods = append(methods, api.ElevationMethodWebauthn)
 		}
 	}
 
-	elevatedClaim := j.GetCustomClaim(token, "x-hasura-auth-elevated")
+	if j.totpEnabled {
+		user, err := j.db.GetUser(ctx, userID)
+		if err != nil {
+			return nil, fmt.Errorf("error getting user: %w", err)
+		}
 
-	return elevatedClaim == u, nil
+		if user.ActiveMfaType.String == string(api.UserMfaRequestActiveMfaTypeTotp) &&
+			user.TotpSecret.String != "" {
+			methods = append(methods, api.ElevationMethodTotp)
+		}
+	}
+
+	return methods, nil
 }
 
 func (j *JWTGetter) isElevatedClaimOptional(requestPath string) bool {
-	return j.elevatedClaimMode == "recommended" ||
+	return j.elevatedClaimMode == elevatedClaimRecommended ||
 		slices.Contains(
 			[]string{
 				"/user/webauthn/add",
 				"/user/webauthn/verify",
+				"/mfa/totp/generate",
 			},
 			requestPath,
 		)
+}
+
+func (j *JWTGetter) elevationRequired(methods []api.ElevationMethod) bool {
+	switch j.elevatedClaimMode {
+	case elevatedClaimDisabled:
+		return false
+	case elevatedClaimRecommended:
+		return len(methods) > 0
+	case elevatedClaimRequired:
+		return true
+	default:
+		// verifyElevatedClaim denies on any mode it does not recognise, so an
+		// unset or unknown one fails closed too.
+		return true
+	}
 }
 
 func (j *JWTGetter) MiddlewareFunc(

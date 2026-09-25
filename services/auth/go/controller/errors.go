@@ -222,6 +222,14 @@ func (response ErrorResponse) VisitVerifyElevateWebauthnResponse(w http.Response
 	return response.visit(w)
 }
 
+func (response ErrorResponse) VisitElevateTotpResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitGetElevationMethodsResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
 func (response ErrorResponse) VisitAddSecurityKeyResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
