@@ -37,6 +37,11 @@ version might reference a library that the new image no longer bundles, while
 `ALTER EXTENSION timescaledb UPDATE` must be the first command in a fresh
 session.
 
+Extension SQL versions that have shipped are immutable. If the pg_jsonschema
+checker fails after a source-pin bump, pin a revision with matching generated
+SQL or introduce a new extension SQL version and upgrade step so existing
+volumes receive the change.
+
 ## Tests
 
 Keep check scripts and fixtures under `tests/`: `project.nix` includes this
