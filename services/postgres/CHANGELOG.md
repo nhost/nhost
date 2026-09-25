@@ -16,7 +16,7 @@
   - pg_ivm: 1.14 → 1.15
   - pg_jsonschema: 0.4.0-rc1 (SQL 0.3.3) → 0.3.4-unstable-2026-08-03 (post-v0.3.4 commit d08e4dea; SQL 0.3.4; bundled 0.3.3 → 0.3.4 upgrade script)
   - pg_search: 0.24.0 → 0.25.9
-    - Breaking change: pg_search now requires pgvector (`vector`). Existing `CREATE EXTENSION pg_search;` migrations must use `CREATE EXTENSION pg_search CASCADE;` or create `vector` first when replayed on a fresh database.
+    - Breaking change: pg_search now requires pgvector (`vector`). For fresh database replays, change existing `CREATE EXTENSION pg_search;` migrations to `CREATE EXTENSION pg_search CASCADE;` or precede them with `CREATE EXTENSION IF NOT EXISTS vector;`. Change any later `CREATE EXTENSION vector;` migration to `CREATE EXTENSION IF NOT EXISTS vector;`, since `CASCADE` or an earlier migration may already have installed it. On existing volumes, the new image's startup upgrade also installs `vector` if it is missing when upgrading pg_search.
   - pg_squeeze: 1.9.1 → 1.9.4
   - pgmq: 1.11.1 → 1.13.0
   - pgrouting: 4.0.1 → 4.0.2

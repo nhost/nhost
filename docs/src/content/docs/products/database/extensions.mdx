@@ -248,8 +248,10 @@ To install the extension you can create a migration with the following contents:
 
 ```sql
 SET ROLE postgres;
-CREATE EXTENSION vector;
+CREATE EXTENSION IF NOT EXISTS vector;
 ```
+
+pg_search 0.25+ may already have installed `vector` through `CASCADE` or the image's startup upgrade, so this migration works when `vector` is already present.
 
 To uninstall it, you can use the following migration:
 
