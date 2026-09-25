@@ -26,7 +26,6 @@ import {
   render,
   screen,
   TestUserEvent,
-  waitFor,
   within,
 } from '@/tests/testUtils';
 import { ApplicationStatus } from '@/types/application';
@@ -144,22 +143,19 @@ function TestHarness() {
   );
 }
 
+// The header shows the selected project as a link to its overview, with the
+// switcher itself as an icon-only combobox next to it.
 async function expectProjectSwitcher(selectedProjectName: string) {
   const banner = await screen.findByRole('banner');
-  const switcher = await waitFor(() => {
-    const match = within(banner)
-      .getAllByRole('combobox')
-      .find(({ textContent }) => textContent?.includes(selectedProjectName));
 
-    if (!match) {
-      throw new Error(`Could not find the ${selectedProjectName} switcher`);
-    }
-
-    return match;
-  });
+  expect(
+    await within(banner).findByRole('link', { name: selectedProjectName }),
+  ).toBeVisible();
 
   const user = new TestUserEvent();
-  await user.click(switcher);
+  await user.click(
+    within(banner).getByRole('combobox', { name: 'Switch project' }),
+  );
   expect(
     await screen.findByRole('option', { name: /Healthy project/ }),
   ).toBeVisible();

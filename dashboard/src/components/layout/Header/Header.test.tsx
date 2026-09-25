@@ -32,8 +32,8 @@ vi.mock('@/components/layout/MobileNav', () => ({
   MobileNav: () => <div>Mobile nav</div>,
 }));
 
-vi.mock('@/components/layout/Header/BreadcrumbNav', () => ({
-  default: () => <nav>Breadcrumbs</nav>,
+vi.mock('@/components/layout/Header/HeaderNavigation', () => ({
+  default: () => <nav>Header navigation</nav>,
 }));
 
 vi.mock(

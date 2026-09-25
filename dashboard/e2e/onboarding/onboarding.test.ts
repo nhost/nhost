@@ -6,7 +6,7 @@ import {
   deleteOrganization,
   fillStripeCheckout,
   getOrgSlugFromUrl,
-  gotoOrgPageViaSwitcher,
+  gotoOrgPage,
   gotoUrl,
   loginWithFreeUser,
   selectOrgByName,
@@ -92,8 +92,7 @@ test('should be able to upgrade an organization', async () => {
   await gotoUrl(page, '/', { expectRedirect: true });
   const newOrgSlug = await selectOrgByName(page, organizationName);
 
-  await gotoOrgPageViaSwitcher(page, 'Billing');
-  await page.waitForURL(`**/orgs/${newOrgSlug}/billing`);
+  await gotoOrgPage(page, newOrgSlug, 'billing');
 
   await expect(
     page.getByRole('heading', { name: 'Subscription plan' }),
