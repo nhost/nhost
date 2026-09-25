@@ -79,6 +79,7 @@ _dev-env-up:
 	docker run -d --name postgres-tests \
 		-v $(shell pwd)/tests:/tests:ro -p 5432:5432 \
 		-e POSTGRES_DEV_INSECURE=1 \
+		-e SHARED_PRELOAD_LIBRARIES=pg_stat_statements,pg_cron,timescaledb,pg_squeeze,pg_search,pg_durable,pg_ivm \
 		--health-cmd="pg_isready -U postgres -d postgres -q" \
 		nhost/postgres:$(VERSION)
 

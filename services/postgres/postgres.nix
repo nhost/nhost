@@ -182,7 +182,7 @@ in
         "WAL_LEVEL=replica"
         "MAX_WAL_SENDERS=10"
         "MAX_REPLICATION_SLOTS=10"
-        "SHARED_PRELOAD_LIBRARIES=pg_stat_statements,pg_cron,timescaledb,pg_squeeze,pg_search,pg_durable,pg_ivm"
+        "SHARED_PRELOAD_LIBRARIES=pg_stat_statements,pg_cron,timescaledb,pg_squeeze,pg_search"
         "PG_STAT_STATEMENTS_MAX=5000"
         "PG_STAT_STATEMENTS_TRACK=top"
         "PG_STAT_STATEMENTS_TRACK_PLANNING=off"
