@@ -3,11 +3,20 @@
 set -eu
 
 source_container=${1:-postgres-tests}
-previous_image=${POSTGRES_UPGRADE_FROM_IMAGE:-nhost/postgres:18.4-20260610-1}
 script_dir=$(dirname "$0")
 script_dir=$(cd "$script_dir" >/dev/null && pwd)
 upgrade_source="$script_dir/extension-upgrade-source.sql"
 current_image=$(docker inspect --format '{{.Config.Image}}' "$source_container")
+if [ -n "${POSTGRES_UPGRADE_FROM_IMAGE:-}" ]; then
+    previous_image=$POSTGRES_UPGRADE_FROM_IMAGE
+else
+    pg_major=$(docker exec "$source_container" printenv PG_MAJOR)
+    case "$pg_major" in
+        17) previous_image=nhost/postgres:17.10-20260610-1 ;;
+        18) previous_image=nhost/postgres:18.4-20260610-1 ;;
+        *) echo "No upgrade source image for PostgreSQL $pg_major" >&2; exit 1 ;;
+    esac
+fi
 old_container="postgres-extension-upgrade-old-$$"
 new_container="postgres-extension-upgrade-new-$$"
 volume="postgres-extension-upgrade-data-$$"
