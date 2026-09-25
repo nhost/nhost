@@ -1,10 +1,9 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import type * as Yup from 'yup';
 import { Alert } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
-import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import type {
   BaseForeignKeyFormProps,
   BaseForeignKeyFormValues,
@@ -14,7 +13,6 @@ import {
   baseForeignKeyValidationSchema,
 } from '@/features/orgs/projects/database/dataGrid/components/BaseForeignKeyForm';
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { areStrArraysEqualOrdered } from '@/lib/utils';
 
 export interface EditForeignKeyFormProps
   extends Pick<
@@ -47,7 +45,7 @@ export default function EditForeignKeyForm({
       columns: foreignKeyRelation.columns,
       referencedSchema,
       referencedTable,
-      referencedKeyName: '',
+      referencedKeyName: foreignKeyRelation.referencedKeyName ?? '',
       referencedColumns,
       updateAction: foreignKeyRelation.updateAction,
       deleteAction: foreignKeyRelation.deleteAction,
@@ -55,28 +53,6 @@ export default function EditForeignKeyForm({
     reValidateMode: 'onSubmit',
     resolver: yupResolver(baseForeignKeyValidationSchema),
   });
-
-  const { resetField } = form;
-  const { data: referencedTableData } = useTableSchemaQuery(
-    [`${referencedSchema}.${referencedTable}`],
-    {
-      schema: referencedSchema,
-      table: referencedTable,
-      queryOptions: { enabled: !!referencedSchema && !!referencedTable },
-    },
-  );
-
-  useEffect(() => {
-    const candidateKey = referencedTableData?.candidateKeys.find(
-      ({ columns }) => areStrArraysEqualOrdered(columns, referencedColumns),
-    );
-
-    if (candidateKey) {
-      // Seed it as the field's default rather than a value change, so the
-      // resolved key does not count as an unsaved edit.
-      resetField('referencedKeyName', { defaultValue: candidateKey.name });
-    }
-  }, [referencedTableData, referencedColumns, resetField]);
 
   async function handleSubmit(values: BaseForeignKeyFormValues) {
     setError(null);

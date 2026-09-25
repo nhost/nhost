@@ -421,6 +421,11 @@ export interface ForeignKeyRelation {
   referencedSchema?: string | null;
   referencedTable: string;
   referencedColumns: string[];
+  /**
+   * Name of the referenced table's primary key, unique constraint or unique
+   * index that the foreign key depends on.
+   */
+  referencedKeyName?: string;
   updateAction: PostgresReferentialAction;
   deleteAction: PostgresReferentialAction;
   oneToOne?: boolean;
