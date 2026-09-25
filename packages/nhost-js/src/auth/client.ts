@@ -860,7 +860,7 @@ export interface SignInIdTokenRequest {
 /**
  * Method that can be used to elevate a session
  */
-export type ElevationMethod = 'webauthn' | 'totp' | 'otp-email';
+export type ElevationMethod = 'webauthn' | 'totp' | 'otp-email' | 'otp-sms';
 
 /**
  * Elevation status of the user
@@ -895,6 +895,16 @@ export interface ElevateTotpRequest {
  * 
  @property otp (`string`) - One time password*/
 export interface ElevateOTPEmailVerifyRequest {
+  /**
+   * One time password
+   */
+  otp: string;
+}
+
+/**
+ * 
+ @property otp (`string`) - One time password*/
+export interface ElevateOTPSmsVerifyRequest {
   /**
    * One time password
    */
@@ -2708,6 +2718,27 @@ export interface Client {
   ): Promise<FetchResponse<SessionPayload>>;
 
   /**
+     Summary: Request a one-time password by SMS to elevate an already signed in user
+     Send a one-time password to the signed in user's verified phone number to start elevation
+
+     This method may return different T based on the response code:
+     - 200: OKResponse
+     */
+  elevateOTPSms(options?: RequestInit): Promise<FetchResponse<OKResponse>>;
+
+  /**
+     Summary: Elevate access for an already signed in user using a one-time password sent by SMS
+     Verify a one-time password sent by SMS to elevate the permissions of an already signed in user
+
+     This method may return different T based on the response code:
+     - 200: SessionPayload
+     */
+  verifyElevateOTPSms(
+    body: ElevateOTPSmsVerifyRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<SessionPayload>>;
+
+  /**
      Summary: Health check (GET)
      Verify if the authentication service is operational using GET method
 
@@ -3631,6 +3662,71 @@ export const createAPIClient = (
     options?: RequestInit,
   ): Promise<FetchResponse<SessionPayload>> => {
     const url = `${baseURL}/elevate/otp/email/verify`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: SessionPayload = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<SessionPayload>;
+  };
+
+  const elevateOTPSms = async (
+    options?: RequestInit,
+  ): Promise<FetchResponse<OKResponse>> => {
+    const url = `${baseURL}/elevate/otp/sms`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'POST',
+      headers: {
+        ...options?.headers,
+      },
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OKResponse>;
+  };
+
+  const verifyElevateOTPSms = async (
+    body: ElevateOTPSmsVerifyRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<SessionPayload>> => {
+    const url = `${baseURL}/elevate/otp/sms/verify`;
     const res = await fetch(url, {
       ...options,
       method: 'POST',
@@ -5678,6 +5774,8 @@ export const createAPIClient = (
     elevateTotp,
     elevateOTPEmail,
     verifyElevateOTPEmail,
+    elevateOTPSms,
+    verifyElevateOTPSms,
     healthCheckGet,
     healthCheckHead,
     linkIdToken,

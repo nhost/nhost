@@ -37,6 +37,7 @@ func (ctrl *Controller) PostChangeEnv(c *gin.Context) { //nolint:funlen,cyclop
 	ctrl.wf.jwtGetter.totpEnabled = ctrl.config.TOTPEnabled
 	ctrl.wf.jwtGetter.webauthnEnabled = ctrl.config.WebauthnEnabled
 	ctrl.wf.jwtGetter.otpEmailEnabled = ctrl.config.OTPEmailEnabled
+	ctrl.wf.jwtGetter.otpSmsEnabled = ctrl.config.OTPSmsEnabled
 
 	if ctrl.config.CustomClaims == "" { //nolint:nestif
 		ctrl.wf.jwtGetter.customClaimer = nil

@@ -30,7 +30,7 @@ describe('user/phone-number/change', () => {
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
-      AUTH_SMS_PASSWORDLESS_ENABLED: true,
+      AUTH_OTP_SMS_ENABLED: true,
     });
 
     await request
@@ -255,9 +255,9 @@ describe('user/phone-number/change', () => {
     expect(rows[0].new_phone_number).toBe(stagedPhoneNumber);
   });
 
-  it('rejects when SMS passwordless is disabled', async () => {
+  it('rejects when SMS OTP is disabled', async () => {
     await request.post('/change-env').send({
-      AUTH_SMS_PASSWORDLESS_ENABLED: false,
+      AUTH_OTP_SMS_ENABLED: false,
     });
 
     await request

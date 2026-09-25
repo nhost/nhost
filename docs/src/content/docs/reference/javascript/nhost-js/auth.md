@@ -504,6 +504,29 @@ This method may return different T based on the response code:
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
+#### elevateOTPSms()
+
+```ts
+elevateOTPSms(options?: RequestInit): Promise<FetchResponse<"OK">>;
+```
+
+Summary: Request a one-time password by SMS to elevate an already signed in user
+Send a one-time password to the signed in user's verified phone number to start elevation
+
+This method may return different T based on the response code:
+
+- 200: OKResponse
+
+##### Parameters
+
+| Parameter  | Type          |
+| ---------- | ------------- |
+| `options?` | `RequestInit` |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+
 #### elevateTotp()
 
 ```ts
@@ -1689,6 +1712,30 @@ This method may return different T based on the response code:
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
 
+#### verifyElevateOTPSms()
+
+```ts
+verifyElevateOTPSms(body: ElevateOTPSmsVerifyRequest, options?: RequestInit): Promise<FetchResponse<SessionPayload>>;
+```
+
+Summary: Elevate access for an already signed in user using a one-time password sent by SMS
+Verify a one-time password sent by SMS to elevate the permissions of an already signed in user
+
+This method may return different T based on the response code:
+
+- 200: SessionPayload
+
+##### Parameters
+
+| Parameter  | Type                                                        |
+| ---------- | ----------------------------------------------------------- |
+| `body`     | [`ElevateOTPSmsVerifyRequest`](#elevateotpsmsverifyrequest) |
+| `options?` | `RequestInit`                                               |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
+
 #### verifyElevateWebauthn()
 
 ```ts
@@ -2084,6 +2131,20 @@ Indicates if the credential is a resident key
 ---
 
 ## ElevateOTPEmailVerifyRequest
+
+### Properties
+
+#### otp
+
+```ts
+otp: string;
+```
+
+(`string`) - One time password
+
+---
+
+## ElevateOTPSmsVerifyRequest
 
 ### Properties
 
@@ -4972,7 +5033,7 @@ The valid credential types
 ## ElevationMethod
 
 ```ts
-type ElevationMethod = "webauthn" | "totp" | "otp-email";
+type ElevationMethod = "webauthn" | "totp" | "otp-email" | "otp-sms";
 ```
 
 Method that can be used to elevate a session
