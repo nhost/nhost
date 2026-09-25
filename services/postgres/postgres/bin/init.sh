@@ -212,12 +212,16 @@ update_extensions_all_databases() {
 		return 1
 	fi
 
-	# The catalog database may itself contain an old TimescaleDB version whose
-	# library is no longer bundled, so keep it disabled while listing databases.
-	if ! run_interruptibly env "PGOPTIONS=${PGOPTIONS:+$PGOPTIONS }-c timescaledb.disable_load=on" \
-		psql -X -q -A -t -U postgres -d postgres -v ON_ERROR_STOP=1 \
+	# The application database must be reachable for Nhost SQL. It may contain
+	# an old TimescaleDB version whose library is no longer bundled, so disable
+	# the loader while listing databases from it.
+	if ! run_interruptibly env "PGDATABASE=$POSTGRES_DB" \
+		"PGOPTIONS=${PGOPTIONS:+$PGOPTIONS }-c timescaledb.disable_load=on" \
+		psql -X -q -A -t -U postgres -v ON_ERROR_STOP=1 \
 		-o "$database_list" \
 		-c "SELECT datname FROM pg_database WHERE datallowconn AND datconnlimit <> -2 ORDER BY datname"; then
+		# Preserve the application-database upgrade if catalog discovery fails.
+		update_extensions "$POSTGRES_DB" "$extension_update" || :
 		rm -f "$database_list" "$extension_update"
 		return 1
 	fi
