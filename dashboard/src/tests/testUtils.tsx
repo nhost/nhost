@@ -209,6 +209,33 @@ export class TestUserEvent {
     );
   }
 
+  async hover(element: Element) {
+    await waitFor(
+      async () => {
+        await this.user.hover(element);
+      },
+      { timeout: 10000 },
+    );
+  }
+
+  async unhover(element: Element) {
+    await waitFor(
+      async () => {
+        await this.user.unhover(element);
+      },
+      { timeout: 10000 },
+    );
+  }
+
+  async pointer(input: Parameters<UserEvent['pointer']>[0]) {
+    await waitFor(
+      async () => {
+        await this.user.pointer(input);
+      },
+      { timeout: 10000 },
+    );
+  }
+
   async type(element: Element, value: string, options?: TypeOptions) {
     await waitFor(
       async () => {

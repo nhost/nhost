@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   CartesianGrid,
@@ -57,6 +58,11 @@ interface ChartMouseEvent {
 // Ignore drag selections shorter than this — prevents accidental hairline
 // zooms from a near-zero drag distance.
 const MIN_ZOOM_RANGE_MS = 10_000;
+
+// Recharts portals the tooltip and the legend into the same wrapper as
+// absolutely positioned siblings without a z-index, so the legend (mounted
+// later) would otherwise paint over the tooltip.
+const TOOLTIP_WRAPPER_STYLE: CSSProperties = { zIndex: 20 };
 
 export default function MetricChart({
   data,
@@ -343,6 +349,7 @@ export default function MetricChart({
               <ChartTooltip
                 cursor={!pinned}
                 active={pinned ? false : undefined}
+                wrapperStyle={TOOLTIP_WRAPPER_STYLE}
                 content={tooltipContent}
               />
               <ChartLegend content={renderLegend} />
