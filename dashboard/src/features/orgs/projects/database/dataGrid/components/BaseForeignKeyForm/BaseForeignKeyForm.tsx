@@ -14,6 +14,7 @@ import type {
   ForeignKeyRelation,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { computeForeignKeyOneToOne } from '@/features/orgs/projects/database/dataGrid/utils/computeForeignKeyOneToOne';
+import { getCandidateKeyColumnSets } from '@/features/orgs/projects/database/dataGrid/utils/getCandidateKeyColumnSets';
 import type { DialogFormProps } from '@/types/common';
 import ReferencedKeySelect from './ReferencedKeySelect';
 import ReferencedSchemaSelect from './ReferencedSchemaSelect';
@@ -69,35 +70,6 @@ export type BaseForeignKeySchemaValues = Yup.InferType<
 >;
 
 const DIRTY_SOURCE_ID = 'base-foreign-keyform';
-
-/**
- * Candidate keys of the local table as the form knows them: the primary key,
- * every named unique constraint, and uniquely indexed columns that belong to
- * no constraint, which is also how introspection derives them.
- */
-function getCandidateKeyColumnSets(columns: DatabaseColumn[] = []): string[][] {
-  const namedConstraints = new Map<string, string[]>();
-
-  columns.forEach(({ name, uniqueConstraints }) => {
-    uniqueConstraints?.forEach((constraintName) => {
-      namedConstraints.set(constraintName, [
-        ...(namedConstraints.get(constraintName) ?? []),
-        name,
-      ]);
-    });
-  });
-
-  return [
-    columns.filter(({ isPrimary }) => isPrimary).map(({ name }) => name),
-    ...namedConstraints.values(),
-    ...columns
-      .filter(
-        ({ isPrimary, isUnique, uniqueConstraints }) =>
-          isUnique && !isPrimary && !uniqueConstraints?.length,
-      )
-      .map(({ name }) => [name]),
-  ];
-}
 
 export default function BaseForeignKeyForm({
   availableColumns,

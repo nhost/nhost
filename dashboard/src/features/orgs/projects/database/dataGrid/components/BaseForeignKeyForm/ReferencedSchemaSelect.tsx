@@ -34,15 +34,11 @@ export default function ReferencedSchemaSelect({
       autoFocus={autoFocus}
       className="border-border"
       contentClassName="z-[1400]"
-      transform={{
-        in: (value: string) => value ?? '',
-        out: (value: string) => {
-          setValue('referencedTable', '');
-          setValue('referencedKeyName', '');
-          setValue('referencedColumns', []);
-          setValue('columns', []);
-          return value;
-        },
+      onChange={() => {
+        setValue('referencedTable', '');
+        setValue('referencedKeyName', '');
+        setValue('referencedColumns', []);
+        setValue('columns', []);
       }}
     >
       {availableSchemas.map((name) => (
