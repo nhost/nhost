@@ -1,0 +1,71 @@
+openapi: "3.0.0"
+info:
+  title: Python non-returning response import coverage
+  version: "1.0.0"
+paths:
+  /error-uuid:
+    get:
+      operationId: getErrorUUID
+      responses:
+        "204":
+          description: Success
+        "500":
+          description: UUID error
+          content:
+            application/json:
+              schema:
+                type: string
+                format: uuid
+  /plain-date:
+    get:
+      operationId: getPlainDate
+      responses:
+        "200":
+          description: Plain date
+          content:
+            text/plain:
+              schema:
+                type: string
+                format: date
+  /plain-datetime:
+    get:
+      operationId: getPlainDatetime
+      responses:
+        "200":
+          description: Plain datetime
+          content:
+            text/plain:
+              schema:
+                type: string
+                format: date-time
+  /plain-uri:
+    get:
+      operationId: getPlainURI
+      responses:
+        "200":
+          description: Plain URI
+          content:
+            text/plain:
+              schema:
+                type: string
+                format: uri
+  /binary:
+    get:
+      operationId: getBinary
+      responses:
+        "200":
+          description: Binary response
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+components:
+  schemas:
+    Marker:
+      type: object
+      properties:
+        value:
+          type: string
+      required:
+        - value

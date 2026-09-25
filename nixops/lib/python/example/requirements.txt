@@ -1,0 +1,4 @@
+# Runtime dependencies. The shared check scans this file for advisories, so it
+# must list at least one package: osv-scanner treats a lock file with no
+# packages as an error rather than a clean result.
+six==1.17.0

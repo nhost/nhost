@@ -35,6 +35,7 @@ let
   checkDeps = with pkgs; [
     cargo
     clippy
+    python3
     rustc
   ];
 
