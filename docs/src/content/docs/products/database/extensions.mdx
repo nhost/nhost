@@ -338,6 +338,10 @@ RESET ROLE;
 
 Configure authentication for the role through your normal secrets workflow rather than committing credentials in a migration. Grant it only the additional table and function privileges required by its workflow SQL.
 
+:::caution
+For security, Nhost disables pg_durable's SQL-step logging by default (`PG_DURABLE_LOG_WORKFLOW_SQL=off` sets `pg_durable.log_workflow_sql` to `off`). This prevents the worker from logging SQL after `{var}` substitution, but it does **not** disable all logging: submitted `df.start()` statements and final workflow results, including HTTP response bodies, can still appear in the Database logs available to project members with log access. Keep credentials out of workflow definitions and results, and do not assume `df.setvar()` makes secrets safe to include in logged statements or results.
+:::
+
 ### HTTP egress and access control
 
 Nhost builds pg_durable with the `http-allow-all` feature, enabling unrestricted HTTP destinations. `df.http()` and `df.http_multipart()` can contact any HTTP or HTTPS destination reachable from PostgreSQL. Fresh pg_durable installations revoke execution of both HTTP functions from `PUBLIC`. For roles that do not inherit `postgres`, `df.grant_usage` without `include_http => true` does not grant HTTP execution; a database administrator must explicitly opt them into HTTP egress:
