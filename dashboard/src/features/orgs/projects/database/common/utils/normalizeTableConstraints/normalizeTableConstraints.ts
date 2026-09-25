@@ -98,13 +98,14 @@ export default function normalizeTableConstraints(
     }
   });
 
+  const allForeignKeyRelations = Array.from(foreignKeyRelationMap.values());
+
   const columns = rawColumns
     .map((rawColumn) => {
       const column = JSON.parse(rawColumn);
-      const foreignKeyRelation = Array.from(
-        foreignKeyRelationMap.values(),
-      ).find(({ columns: relationColumns }) =>
-        relationColumns.includes(column.column_name),
+      const foreignKeyRelation = allForeignKeyRelations.find(
+        ({ columns: relationColumns }) =>
+          relationColumns.includes(column.column_name),
       );
 
       return {
@@ -134,7 +135,7 @@ export default function normalizeTableConstraints(
       .map(({ column_name }) => [column_name]),
   ];
 
-  const foreignKeyRelations = Array.from(foreignKeyRelationMap.values()).reduce(
+  const foreignKeyRelations = allForeignKeyRelations.reduce(
     (accumulator, foreignKeyRelation) => {
       const relationColumns = columns.filter(({ column_name }) =>
         foreignKeyRelation.columns.includes(column_name),
