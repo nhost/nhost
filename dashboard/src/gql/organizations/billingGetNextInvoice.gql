@@ -5,6 +5,5 @@ query billingGetNextInvoice($organizationID: uuid!) {
       Amount
     }
     AmountDue
-    PeriodEnd
   }
 }

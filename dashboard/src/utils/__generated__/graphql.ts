@@ -31273,6 +31273,14 @@ export type UpdateUserDisplayNameMutationVariables = Exact<{
 
 export type UpdateUserDisplayNameMutation = { __typename?: 'mutation_root', updateUser?: { __typename?: 'users', id: any, displayName: string } | null };
 
+export type GetBillingMetricsQueryVariables = Exact<{
+  organizationID: Scalars['uuid'];
+  from: Scalars['timestamptz'];
+}>;
+
+
+export type GetBillingMetricsQuery = { __typename?: 'query_root', billingReports: Array<{ __typename?: 'billing_reports', appID: any, type: Billing_Report_Type_Enum, value: number, reportEnds: any }>, billingResources: Array<{ __typename?: 'billing_resources', appID: any, functionsAmount: number, customDomains: number, persistentVolume: number, pitr: number }>, billingDedicatedComputes: Array<{ __typename?: 'billing_dedicated_compute', appID: any, totalMillicores: number }> };
+
 export type GetAiSettingsQueryVariables = Exact<{
   appId: Scalars['uuid'];
 }>;
@@ -31916,7 +31924,7 @@ export type BillingGetNextInvoiceQueryVariables = Exact<{
 }>;
 
 
-export type BillingGetNextInvoiceQuery = { __typename?: 'query_root', billingGetNextInvoice?: { __typename?: 'InvoiceSummary', AmountDue: any, PeriodEnd: any, items: Array<{ __typename?: 'InvoiceItem', Description: string, Amount: any }> } | null };
+export type BillingGetNextInvoiceQuery = { __typename?: 'query_root', billingGetNextInvoice?: { __typename?: 'InvoiceSummary', AmountDue: any, items: Array<{ __typename?: 'InvoiceItem', Description: string, Amount: any }> } | null };
 
 export type BillingMigrateProjectToOrganizationMutationVariables = Exact<{
   appID: Scalars['uuid'];
@@ -33116,6 +33124,62 @@ export function useUpdateUserDisplayNameMutation(baseOptions?: Apollo.MutationHo
 export type UpdateUserDisplayNameMutationHookResult = ReturnType<typeof useUpdateUserDisplayNameMutation>;
 export type UpdateUserDisplayNameMutationResult = Apollo.MutationResult<UpdateUserDisplayNameMutation>;
 export type UpdateUserDisplayNameMutationOptions = Apollo.BaseMutationOptions<UpdateUserDisplayNameMutation, UpdateUserDisplayNameMutationVariables>;
+export const GetBillingMetricsDocument = gql`
+    query getBillingMetrics($organizationID: uuid!, $from: timestamptz!) {
+  billingReports(
+    where: {organizationID: {_eq: $organizationID}, reportEnds: {_gte: $from}}
+    order_by: {reportEnds: asc}
+  ) {
+    appID
+    type
+    value
+    reportEnds
+  }
+  billingResources(where: {organizationID: {_eq: $organizationID}}) {
+    appID
+    functionsAmount
+    customDomains
+    persistentVolume
+    pitr
+  }
+  billingDedicatedComputes(where: {organizationID: {_eq: $organizationID}}) {
+    appID
+    totalMillicores
+  }
+}
+    `;
+
+/**
+ * __useGetBillingMetricsQuery__
+ *
+ * To run a query within a React component, call `useGetBillingMetricsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetBillingMetricsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetBillingMetricsQuery({
+ *   variables: {
+ *      organizationID: // value for 'organizationID'
+ *      from: // value for 'from'
+ *   },
+ * });
+ */
+export function useGetBillingMetricsQuery(baseOptions: Apollo.QueryHookOptions<GetBillingMetricsQuery, GetBillingMetricsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetBillingMetricsQuery, GetBillingMetricsQueryVariables>(GetBillingMetricsDocument, options);
+      }
+export function useGetBillingMetricsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetBillingMetricsQuery, GetBillingMetricsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetBillingMetricsQuery, GetBillingMetricsQueryVariables>(GetBillingMetricsDocument, options);
+        }
+export type GetBillingMetricsQueryHookResult = ReturnType<typeof useGetBillingMetricsQuery>;
+export type GetBillingMetricsLazyQueryHookResult = ReturnType<typeof useGetBillingMetricsLazyQuery>;
+export type GetBillingMetricsQueryResult = Apollo.QueryResult<GetBillingMetricsQuery, GetBillingMetricsQueryVariables>;
+export function refetchGetBillingMetricsQuery(variables: GetBillingMetricsQueryVariables) {
+      return { query: GetBillingMetricsDocument, variables: variables }
+    }
 export const GetAiSettingsDocument = gql`
     query GetAISettings($appId: uuid!) {
   config(appID: $appId, resolve: false) {
@@ -36881,7 +36945,6 @@ export const BillingGetNextInvoiceDocument = gql`
       Amount
     }
     AmountDue
-    PeriodEnd
   }
 }
     `;
