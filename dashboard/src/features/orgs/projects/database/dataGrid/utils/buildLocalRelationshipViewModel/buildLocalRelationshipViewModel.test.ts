@@ -59,10 +59,10 @@ describe('buildLocalRelationshipViewModel (pg_suggest_relationships)', () => {
       dataSource: 'default',
       foreignKeyRelations: [
         {
-          columnName: 'tenant_id, order_id',
+          columns: ['tenant_id', 'order_id'],
           referencedSchema: 'public',
           referencedTable: 'orders',
-          referencedColumn: 'tenant_id, id',
+          referencedColumns: ['tenant_id', 'id'],
           updateAction: 'NO ACTION',
           deleteAction: 'NO ACTION',
         },
@@ -89,10 +89,10 @@ describe('buildLocalRelationshipViewModel (pg_suggest_relationships)', () => {
       dataSource: 'default',
       foreignKeyRelations: [
         {
-          columnName: 'order_id, tenant_id',
+          columns: ['order_id', 'tenant_id'],
           referencedSchema: 'public',
           referencedTable: 'orders',
-          referencedColumn: 'id, tenant_id',
+          referencedColumns: ['id', 'tenant_id'],
           updateAction: 'NO ACTION',
           deleteAction: 'NO ACTION',
         },

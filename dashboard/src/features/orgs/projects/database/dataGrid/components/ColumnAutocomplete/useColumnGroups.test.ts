@@ -13,10 +13,16 @@ const tableData = {
   ] as FetchTableSchemaReturnType['columns'],
   foreignKeyRelations: [
     {
-      columnName: 'tenant_id',
+      columns: ['tenant_id'],
       referencedSchema: 'public',
       referencedTable: 'orders',
-      referencedColumn: 'tenant_id',
+      referencedColumns: ['tenant_id'],
+    },
+    {
+      columns: ['tenant_id', 'order_id'],
+      referencedSchema: 'public',
+      referencedTable: 'orders',
+      referencedColumns: ['tenant_id', 'id'],
     },
   ],
 } as FetchTableSchemaReturnType;
@@ -74,7 +80,7 @@ describe('useColumnGroups', () => {
     });
   });
 
-  it('does not resolve a composite object constraint against a singular foreign key relation', () => {
+  it('resolves a composite object constraint against its foreign key relation', () => {
     const relationships = getRelationships(
       makeMetadata('object_relationships', {
         name: 'order',
@@ -90,7 +96,7 @@ describe('useColumnGroups', () => {
       metadata: {
         target: {
           schema: 'public',
-          table: 'order_items',
+          table: 'orders',
           column: 'tenant_id',
         },
       },

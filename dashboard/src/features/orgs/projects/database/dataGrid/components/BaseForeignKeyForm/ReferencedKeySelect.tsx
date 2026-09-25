@@ -4,9 +4,8 @@ import { SelectItem } from '@/components/ui/v3/select';
 import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import type { BaseForeignKeySchemaValues } from './BaseForeignKeyForm';
 
-export default function ReferencedColumnSelect() {
-  const { control } = useFormContext<BaseForeignKeySchemaValues>();
-  const columnName = useWatch({ name: 'columnName' });
+export default function ReferencedKeySelect() {
+  const { control, setValue } = useFormContext<BaseForeignKeySchemaValues>();
   const referencedSchema = useWatch({ name: 'referencedSchema' });
   const referencedTable = useWatch({ name: 'referencedTable' });
 
@@ -19,41 +18,47 @@ export default function ReferencedColumnSelect() {
     },
   );
 
-  const { columns } = tableData || { columns: [] };
-
-  const availableColumnsInSelectedTable = columns
-    .filter(
-      ({ is_primary: isPrimary, is_unique: isUnique }) => isPrimary || isUnique,
-    )
-    .map(({ column_name: availableColumnName }) => availableColumnName);
+  const candidateKeys = tableData?.candidateKeys ?? [];
 
   const helperText =
     referencedSchema &&
     referencedTable &&
-    !availableColumnsInSelectedTable.length &&
+    !candidateKeys.length &&
     status === 'success'
-      ? `There are no available columns in the ${referencedSchema}.${referencedTable} table.`
+      ? `There are no primary or unique keys in the ${referencedSchema}.${referencedTable} table.`
       : 'Only the primary and unique keys of the referenced table are listed here.';
 
   return (
     <FormSelect
       control={control}
-      name="referencedColumn"
-      label="Column"
-      placeholder="Select a column"
+      name="referencedKeyName"
+      label="Referenced key"
+      placeholder="Select a primary or unique key"
       disabled={
-        !columnName ||
-        !referencedSchema ||
-        !referencedTable ||
-        availableColumnsInSelectedTable.length === 0
+        !referencedSchema || !referencedTable || candidateKeys.length === 0
       }
       helperText={helperText}
       helperTextClassName="text-xs break-normal"
       contentClassName="z-[1400]"
+      containerClassName="min-w-0"
+      className="border-border [&>span]:line-clamp-none [&>span]:min-w-0 [&>span]:truncate"
+      onChange={(value) => {
+        const candidate = candidateKeys.find(({ name }) => name === value);
+
+        if (!candidate) {
+          return;
+        }
+
+        setValue('referencedColumns', candidate.columns);
+        setValue(
+          'columns',
+          candidate.columns.map(() => ''),
+        );
+      }}
     >
-      {availableColumnsInSelectedTable.map((name) => (
+      {candidateKeys.map(({ name, isPrimary, columns }) => (
         <SelectItem value={name} key={name}>
-          {name}
+          {`${isPrimary ? 'PRIMARY KEY' : 'UNIQUE'} ${name} (${columns.join(', ')})`}
         </SelectItem>
       ))}
     </FormSelect>
