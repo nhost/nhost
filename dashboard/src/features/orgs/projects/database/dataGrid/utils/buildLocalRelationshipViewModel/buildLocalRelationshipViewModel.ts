@@ -1,12 +1,18 @@
+import { getForeignKeyConstraintColumns } from '@/features/orgs/projects/database/common/utils/getForeignKeyConstraintColumns';
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import {
+  isFKConstraintOnSameTable,
   isUsingForeignKeyConstraint,
   isUsingManualConfiguration,
 } from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
 import type { LocalRelationshipViewModel } from '@/features/orgs/projects/database/dataGrid/types/relationships/relationships';
 import { formatEndpoint } from '@/features/orgs/projects/database/dataGrid/utils/formatEndpoint';
 import { formatForeignKeyColumns } from '@/features/orgs/projects/database/dataGrid/utils/formatForeignKeyColumns';
-import { areStrArraysEqual, isEmptyValue, isNotEmptyValue } from '@/lib/utils';
+import {
+  areStrArraysEqualOrdered,
+  isEmptyValue,
+  isNotEmptyValue,
+} from '@/lib/utils';
 import type {
   ArrayRelationshipItem,
   ObjectRelationshipItem,
@@ -58,27 +64,13 @@ export default function buildLocalRelationshipViewModel({
   } else if (isUsingForeignKeyConstraint(using)) {
     const { foreign_key_constraint_on: foreignKeyConstraintOn } = using;
     if (type === 'Object') {
-      if (typeof foreignKeyConstraintOn === 'string') {
-        localColumns = [foreignKeyConstraintOn];
-
-        const matchingRelation = foreignKeyRelations.find(
-          (relation) => relation.columnName === foreignKeyConstraintOn,
-        );
-
-        if (matchingRelation) {
-          remoteTableSchema = matchingRelation.referencedSchema ?? tableSchema;
-          remoteTableName = matchingRelation.referencedTable;
-          remoteColumns = formatForeignKeyColumns(
-            matchingRelation.referencedColumn,
-          );
-        }
-      } else if (Array.isArray(foreignKeyConstraintOn)) {
-        localColumns = foreignKeyConstraintOn;
+      if (isFKConstraintOnSameTable(foreignKeyConstraintOn)) {
+        localColumns = getForeignKeyConstraintColumns(foreignKeyConstraintOn);
 
         const matchingRelation = foreignKeyRelations.find((relation) =>
-          areStrArraysEqual(
+          areStrArraysEqualOrdered(
             formatForeignKeyColumns(relation.columnName),
-            foreignKeyConstraintOn,
+            localColumns,
           ),
         );
 
@@ -97,14 +89,8 @@ export default function buildLocalRelationshipViewModel({
         );
       }
 
-      if ('column' in foreignKeyConstraintOn) {
-        remoteColumns = isNotEmptyValue(foreignKeyConstraintOn.column)
-          ? [foreignKeyConstraintOn.column]
-          : [];
-        remoteTableSchema = foreignKeyConstraintOn.table?.schema ?? tableSchema;
-        remoteTableName = foreignKeyConstraintOn.table?.name ?? '';
-      } else if ('columns' in foreignKeyConstraintOn) {
-        remoteColumns = foreignKeyConstraintOn.columns ?? [];
+      if (!isFKConstraintOnSameTable(foreignKeyConstraintOn)) {
+        remoteColumns = getForeignKeyConstraintColumns(foreignKeyConstraintOn);
         remoteTableSchema = foreignKeyConstraintOn.table?.schema ?? tableSchema;
         remoteTableName = foreignKeyConstraintOn.table?.name ?? '';
       }
@@ -125,7 +111,7 @@ export default function buildLocalRelationshipViewModel({
           suggestionTo?.table?.schema === remoteTableSchema &&
           suggestionTo?.table?.name === remoteTableName;
 
-        const isSameToColumns = areStrArraysEqual(
+        const isSameToColumns = areStrArraysEqualOrdered(
           suggestionTo?.columns ?? [],
           remoteColumns,
         );

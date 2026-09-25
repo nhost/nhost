@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 import type { FetchTableSchemaReturnType } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
+import { getForeignKeyConstraintColumns } from '@/features/orgs/projects/database/common/utils/getForeignKeyConstraintColumns';
+import { getForeignKeyConstraintTable } from '@/features/orgs/projects/database/common/utils/getForeignKeyConstraintTable';
 import type {
   FetchMetadataReturnType,
   HasuraMetadataTable,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { areStrArraysEqualOrdered } from '@/lib/utils';
 import type { AutocompleteOption } from './types';
 
 export interface UseAsyncValueOptions {
@@ -200,19 +203,21 @@ export default function useAsyncValue({
       return;
     }
 
-    // In some cases the metadata already contains the schema and table name
-    if (metadataConstraint && typeof metadataConstraint !== 'string') {
+    const metadataConstraintTable =
+      getForeignKeyConstraintTable(metadataConstraint);
+
+    if (metadataConstraintTable) {
       setAsyncTablePath(
-        `${metadataConstraint.table.schema || 'public'}.${
-          metadataConstraint.table.name
+        `${metadataConstraintTable.schema || 'public'}.${
+          metadataConstraintTable.name
         }`,
       );
 
       setSelectedRelationships((currentRelationships) => [
         ...currentRelationships,
         {
-          schema: metadataConstraint.table.schema || 'public',
-          table: metadataConstraint.table.name,
+          schema: metadataConstraintTable.schema || 'public',
+          table: metadataConstraintTable.name,
           name: nextPath,
         },
       ]);
@@ -238,11 +243,14 @@ export default function useAsyncValue({
           );
         }
 
-        if (typeof foreign_key_constraint_on === 'string') {
-          return foreign_key_constraint_on === normalizedColumnName;
+        if (!foreign_key_constraint_on) {
+          return false;
         }
 
-        return foreign_key_constraint_on?.column === normalizedColumnName;
+        return areStrArraysEqualOrdered(
+          [normalizedColumnName],
+          getForeignKeyConstraintColumns(foreign_key_constraint_on),
+        );
       },
     );
 

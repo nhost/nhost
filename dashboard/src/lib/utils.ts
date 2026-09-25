@@ -39,6 +39,16 @@ export function areStrArraysEqual(arr1: string[], arr2: string[]) {
   return set1.size === set2.size && [...set1].every((col) => set2.has(col));
 }
 
+/**
+ * Order-sensitive counterpart of `areStrArraysEqual`. Use it for positionally
+ * paired column lists, where `(a, b)` and `(b, a)` are different constraints.
+ */
+export function areStrArraysEqualOrdered(arr1: string[], arr2: string[]) {
+  return (
+    arr1.length === arr2.length && arr1.every((item, i) => item === arr2[i])
+  );
+}
+
 export function isJSONString(str: string) {
   try {
     JSON.parse(str);
