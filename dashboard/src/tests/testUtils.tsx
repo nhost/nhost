@@ -256,4 +256,4 @@ export function expectFullTextRendered(text: string) {
 }
 
 export * from '@testing-library/react';
-export { render, waitForElementToBeRemoved };
+export { Providers, render, waitForElementToBeRemoved };
