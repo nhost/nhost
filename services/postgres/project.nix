@@ -51,6 +51,18 @@ in
       ''
         PG_URL="postgres://postgres@localhost:5432/local"
 
+        sh ${src}/tests/pitr-promotion.sh \
+          ${src}/postgres/bin/init.sh
+        sh ${src}/tests/pitr-restore.sh \
+          ${src}/postgres/bin/init.sh
+        sh ${src}/tests/startup-scripts.sh \
+          ${src}/postgres/bin/init.sh
+        sh ${src}/tests/repair-collation.sh \
+          ${src}/postgres/bin/repair-collation.sh
+        PGHOST=localhost PGPORT=5432 \
+          sh ${src}/tests/repair-collation-integration.sh \
+            ${src}/postgres/bin/repair-collation.sh
+
         psql \
           -f ${src}/tests/plugins.sql --no-psqlrc -1 -v "ON_ERROR_STOP=1" \
           "$PG_URL"

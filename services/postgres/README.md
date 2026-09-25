@@ -6,6 +6,12 @@ See [plugins.md](./plugins.md). Changes to this manifest also regenerate
 `docs/src/content/docs/products/database/extensions.mdx`; follow the
 [documentation regeneration instructions](../../docs/README.md#generated-documentation).
 
+## Temporary files in the image
+
+The entrypoint runs as the `postgres` user (UID 999). The image's `/tmp` is
+root-owned and not writable by that user; use `/tmp/postgresql` for image-side
+temporary files. PITR preflight defaults there unless `TMPDIR` is explicitly set.
+
 ## Options
 
 Following env vars are available in the image (to be set in an Nhost cloud project via settings):
@@ -35,6 +41,19 @@ MAX_WAL_SENDERS=10
 MAX_REPLICATION_SLOTS=10
 TRACK_IO_TIMING=off
 ```
+
+### PITR restore safety
+
+When `PITR_BASEBACKUP` is set, startup first uses `wal-g backup-list` to check
+that backup storage is reachable and that the requested backup is listed. For
+the symbolic `LATEST` selector, the check only confirms that at least one backup
+is available. If this preflight fails, the existing `PGDATA` is preserved.
+
+After a successful preflight, startup removes `PGDATA` and runs
+`wal-g backup-fetch` directly into that path. This avoids requiring space for two
+copies of the database, but it is not atomic: a later fetch failure destroys the
+old cluster and may leave a partial restore. The preflight therefore reduces
+obvious failures; it does not guarantee that the backup can be downloaded.
 
 Following settings are available in the image but not directly configurable:
 
