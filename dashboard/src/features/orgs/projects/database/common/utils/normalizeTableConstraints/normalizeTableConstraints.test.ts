@@ -101,6 +101,49 @@ describe('normalizeTableConstraints', () => {
     ]);
   });
 
+  it('keeps the referenced key name of each foreign key', () => {
+    const rawColumns = [
+      columnRow('account_id', 1),
+      columnRow('owner_id', 2),
+    ].map((column) => JSON.stringify(column));
+    const rawConstraints = [
+      {
+        ...constraintRow(
+          'orders_account_id_fkey',
+          'f',
+          'account_id',
+          'FOREIGN KEY (account_id) REFERENCES accounts(id)',
+        ),
+        referenced_key_name: 'accounts_pkey',
+      },
+      {
+        ...constraintRow(
+          'orders_owner_id_fkey',
+          'f',
+          'owner_id',
+          'FOREIGN KEY (owner_id) REFERENCES owners(id)',
+        ),
+        referenced_key_name: null,
+      },
+    ].map((constraint) => JSON.stringify(constraint));
+
+    const result = normalizeTableConstraints(
+      rawColumns,
+      rawConstraints,
+      'public',
+    );
+
+    expect(
+      result.foreignKeyRelations.map(({ name, referencedKeyName }) => [
+        name,
+        referencedKeyName,
+      ]),
+    ).toEqual([
+      ['orders_account_id_fkey', 'accounts_pkey'],
+      ['orders_owner_id_fkey', undefined],
+    ]);
+  });
+
   it('returns candidate keys with the column order from the constraint definition', () => {
     const rawColumns = [
       columnRow('tenant_id', 1, { is_primary: true }),

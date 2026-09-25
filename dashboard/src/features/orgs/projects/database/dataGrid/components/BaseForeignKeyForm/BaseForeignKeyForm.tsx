@@ -111,7 +111,7 @@ export default function BaseForeignKeyForm({
 
   return (
     <Form
-      onSubmit={({ referencedKeyName, ...values }) =>
+      onSubmit={(values) =>
         handleExternalSubmit({
           ...values,
           oneToOne: computeForeignKeyOneToOne(
