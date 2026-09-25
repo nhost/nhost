@@ -1,0 +1,293 @@
+---
+title: Get up and running with Nhost and FastAPI
+description: "Build a Python + FastAPI backend with Nhost: install the async Python SDK, sign users in, and read and write their private notes over GraphQL."
+keywords: ["Python", "FastAPI", "async", "quickstart", "Nhost SDK", "GraphQL", "authentication", "backend integration"]
+head:
+  - tag: title
+    content: "Python + FastAPI Quickstart Guide | Nhost Docs"
+sidebar:
+  label: FastAPI (Python)
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+The Nhost Python SDK (`nhost`) is an async-first client for Nhost's Auth,
+Storage, GraphQL, and Functions services. This quickstart wires it into a
+[FastAPI](https://fastapi.tiangolo.com) service that signs a user in and reads
+and writes their private **notes** over GraphQL — the server-side counterpart to
+the JavaScript quickstarts.
+
+### Create Project
+
+If you haven't, please create a project through the [Nhost Dashboard](https://app.nhost.io).
+
+### Setup Database
+
+Navigate to the **SQL Editor** of the database and run the following SQL to
+create a `notes` table. Each note belongs to a user (`user_id` references the
+built-in `auth.users` table).
+
+```sql SQL Editor
+CREATE TABLE notes (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  title      text NOT NULL,
+  content    text NOT NULL DEFAULT '',
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+```
+
+:::caution
+Make sure the option `Track this` is enabled.
+:::
+
+### Permissions
+
+Select the new `notes` table and click **Edit Permissions** to give the `user`
+role access to its own rows. This is the core of Nhost's authorization model:
+the database enforces per-user isolation, so your service never has to.
+
+- **insert** — allow the `user` role to insert `title` and `content`, and add a
+  **column preset** so `user_id` is set from the session:
+  `user_id = X-Hasura-User-Id`. (Never let clients choose `user_id`.)
+- **select** — allow the `user` role to read `id, title, content, created_at`
+  with the **row filter** `{ "user_id": { "_eq": "X-Hasura-User-Id" } }` so each
+  user only ever sees their own notes.
+
+### Setup the Application
+
+Create a project and install the dependencies. The SDK targets Python 3.11+.
+
+<Tabs>
+  <TabItem label="uv">
+```bash Terminal
+uv init my-fastapi-app
+cd my-fastapi-app
+
+# nhost is not on PyPI yet, so depend on the repository revision for now. Once
+# published, use: uv add nhost fastapi "uvicorn[standard]"
+uv add "nhost @ git+https://github.com/nhost/nhost.git@c2a676ab7eb6c28082dd1412cd49055073c70635#subdirectory=packages/nhost-python" fastapi "uvicorn[standard]"
+```
+  </TabItem>
+  <TabItem label="pip">
+```bash Terminal
+mkdir my-fastapi-app && cd my-fastapi-app
+python -m venv .venv && source .venv/bin/activate
+
+# nhost is not on PyPI yet, so depend on the repository revision for now. Once
+# published, use: pip install nhost fastapi "uvicorn[standard]"
+pip install "nhost @ git+https://github.com/nhost/nhost.git@c2a676ab7eb6c28082dd1412cd49055073c70635#subdirectory=packages/nhost-python" fastapi "uvicorn[standard]"
+```
+  </TabItem>
+</Tabs>
+
+### Configure the Nhost client and read and write notes
+
+Create one `httpx.AsyncClient` in the FastAPI
+[lifespan](https://fastapi.tiangolo.com/advanced/events/) so requests share its
+connection pool, but create an Nhost client with request-scoped session storage
+for each caller. `/signin` returns that caller's tokens. The caller then sends
+its access token as `Authorization: Bearer <token>`; the dependency below
+forwards only that request's credentials, so concurrent users never share
+session state.
+
+<Tabs>
+  <TabItem label="main.py">
+```python
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+from typing import Annotated, cast
+
+import httpx
+from fastapi import Depends, FastAPI, Header, HTTPException, Request
+from nhost import (
+    HTTPError,
+    MemoryStorage,
+    NhostClient,
+    create_server_client,
+    with_middleware,
+)
+from nhost.auth import SignInEmailPasswordRequest
+from nhost.fetch import with_headers_middleware
+from pydantic import BaseModel
+
+NHOST_SUBDOMAIN = "<subdomain>"
+NHOST_REGION = "<region>"
+
+# `user_id` is filled in by the column preset, so we only send title + content.
+INSERT_NOTE = """
+mutation ($title: String!, $content: String!) {
+  insert_notes_one(object: {title: $title, content: $content}) { id }
+}
+"""
+
+# The row filter on `notes` scopes this to the signed-in user automatically.
+LIST_NOTES = "query { notes(order_by: {created_at: desc}) { id title content } }"
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    # Reuse only the connection pool. Never put a user session on app.state.
+    async with httpx.AsyncClient() as http:
+        app.state.http = http
+        yield
+
+
+app = FastAPI(lifespan=lifespan)
+
+
+class SignIn(BaseModel):
+    email: str
+    password: str
+
+
+class Tokens(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+
+
+class NewNote(BaseModel):
+    title: str
+    content: str = ""
+
+
+class NoteId(BaseModel):
+    id: str
+
+
+class Note(NoteId):
+    title: str
+    content: str
+
+
+class InsertNoteData(BaseModel):
+    insert_notes_one: NoteId | None
+
+
+class ListNotesData(BaseModel):
+    notes: list[Note]
+
+
+def shared_http(request: Request) -> httpx.AsyncClient:
+    return cast(httpx.AsyncClient, request.app.state.http)
+
+
+async def authenticated_nhost(
+    request: Request,
+    authorization: Annotated[str | None, Header()] = None,
+) -> AsyncIterator[NhostClient]:
+    scheme, _, credentials = (authorization or "").partition(" ")
+    if scheme.casefold() != "bearer" or not credentials.strip():
+        raise HTTPException(
+            status_code=401,
+            detail="missing bearer token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    bearer = f"Bearer {credentials.strip()}"
+    # MemoryStorage belongs to this request only. The explicit header is kept by
+    # the SDK middleware and applied to this request's Nhost service calls.
+    async with create_server_client(
+        subdomain=NHOST_SUBDOMAIN,
+        region=NHOST_REGION,
+        session_storage=MemoryStorage(),
+        http_client=shared_http(request),
+        configure=(
+            with_middleware(
+                (with_headers_middleware({"Authorization": bearer}),)
+            ),
+        ),
+    ) as nhost:
+        yield nhost
+
+
+@app.post("/signin")
+async def signin(request: Request, body: SignIn) -> Tokens:
+    # Sign-in also gets isolated storage; its captured session is never shared.
+    async with create_server_client(
+        subdomain=NHOST_SUBDOMAIN,
+        region=NHOST_REGION,
+        session_storage=MemoryStorage(),
+        http_client=shared_http(request),
+    ) as nhost:
+        try:
+            response = await nhost.auth.sign_in_email_password(
+                body=SignInEmailPasswordRequest(
+                    email=body.email,
+                    password=body.password,
+                )
+            )
+        except HTTPError as error:
+            raise HTTPException(status_code=error.status, detail=str(error)) from error
+
+        session = response.body.session
+        if session is None:
+            raise HTTPException(status_code=401, detail="sign-in returned no session")
+        return Tokens(
+            access_token=session.access_token,
+            refresh_token=session.refresh_token,
+        )
+
+
+@app.post("/notes")
+async def create_note(
+    body: NewNote,
+    nhost: Annotated[NhostClient, Depends(authenticated_nhost)],
+) -> NoteId:
+    result = await nhost.graphql.request(
+        INSERT_NOTE,
+        variables={"title": body.title, "content": body.content},
+        response_type=InsertNoteData,
+    )
+    if result.body.data is None or result.body.data.insert_notes_one is None:
+        raise HTTPException(status_code=502, detail="Nhost returned no inserted note")
+    return result.body.data.insert_notes_one
+
+
+@app.get("/notes")
+async def list_notes(
+    nhost: Annotated[NhostClient, Depends(authenticated_nhost)],
+) -> list[Note]:
+    result = await nhost.graphql.request(LIST_NOTES, response_type=ListNotesData)
+    if result.body.data is None:
+        raise HTTPException(status_code=502, detail="Nhost returned no notes data")
+    return result.body.data.notes
+```
+  </TabItem>
+</Tabs>
+
+:::note
+`create_server_client` deliberately requires explicit session storage and does
+not refresh a process-global session. This stateless service accepts a bearer
+token on every protected request; the calling application is responsible for
+refreshing its own token. If you keep sessions server-side instead, back
+`SessionStorageBackend` with an encrypted store and scope each instance by an
+unguessable user session id. `create_client` is for single-user applications
+such as scripts and CLIs, not a shared server singleton.
+:::
+
+### The end
+
+Replace `NHOST_SUBDOMAIN` and `NHOST_REGION` with your project's values (or use
+`"local"` for both with a local backend). Run your service with
+`uv run uvicorn main:app --reload` (or `uvicorn main:app --reload` inside the pip
+virtualenv), then:
+
+```bash Terminal
+TOKENS=$(curl -sS -X POST localhost:8000/signin \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"user@example.com","password":"..."}')
+ACCESS_TOKEN=$(printf '%s' "$TOKENS" | jq -r .access_token)
+
+curl -X POST localhost:8000/notes \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{"title":"Hello","content":"My first note"}'
+curl localhost:8000/notes -H "Authorization: Bearer $ACCESS_TOKEN"
+```
+
+## Related resources
+
+- [`nhost-python` SDK reference](/reference/python/nhost-python/main) — the full API for auth, storage, GraphQL, and functions.
+- [Notes CLI tutorial](/getting-started/tutorials/python/1-introduction) — a five-part walkthrough that builds a complete notes CLI exercising auth, GraphQL, Storage (attachments), and Functions (export).
+- [webhook-receiver example](https://github.com/nhost/nhost/tree/main/examples/demos/webhook-receiver) — a runnable FastAPI service that verifies HMAC-signed webhooks and records them over GraphQL, packaged to deploy on [Nhost Run](/products/run).
