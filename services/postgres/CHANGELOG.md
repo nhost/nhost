@@ -8,15 +8,14 @@
 - Updated PostgreSQL 17 overlay pin to 17.11
 - Updated PostgreSQL to 18.6
 - Dropped support for PostgreSQL 16 and 17
-- On startup, outdated extensions are now upgraded in every database that accepts connections (excluding invalid databases), including `postgres` and `template1` when connectable, rather than only `POSTGRES_DB`. If `pg_search` needs an upgrade, its `vector` dependency is installed first if missing.
-- TimescaleDB upgrades first in a fresh session. Failed extension upgrades log a warning without stopping startup; a TimescaleDB failure skips further upgrades in that database. Failed database inspections also log a warning and skip that database.
+- Installed extensions now upgrade automatically when PostgreSQL starts. If an upgrade fails, startup continues and logs a warning.
 - Updated extensions:
   - hypopg: 1.4.2 → 1.4.3
   - pg_cron: 1.6.7 → 1.6.8
   - pg_ivm: 1.14 → 1.15
-  - pg_jsonschema: 0.4.0-rc1 (SQL 0.3.3) → 0.3.4-unstable-2026-08-03 (post-v0.3.4 commit d08e4dea; SQL 0.3.4; bundled 0.3.3 → 0.3.4 upgrade script)
+  - pg_jsonschema (SQL): 0.3.3 → 0.3.4
   - pg_search: 0.24.0 → 0.25.9
-    - Breaking change: pg_search now requires pgvector (`vector`). For fresh database replays, change existing `CREATE EXTENSION pg_search;` migrations to `CREATE EXTENSION pg_search CASCADE;` or precede them with `CREATE EXTENSION IF NOT EXISTS vector;`. Change any later `CREATE EXTENSION vector;` migration to `CREATE EXTENSION IF NOT EXISTS vector;`, since `CASCADE` or an earlier migration may already have installed it. On existing volumes, the new image's startup upgrade also installs `vector` if it is missing when upgrading pg_search.
+    - Breaking change: pg_search now needs pgvector (`vector`) in the `public` schema. Install or move `vector` there before installing or upgrading pg_search. If your migrations also install `vector`, use `CREATE EXTENSION IF NOT EXISTS vector SCHEMA public;`.
   - pg_squeeze: 1.9.1 → 1.9.4
   - pgmq: 1.11.1 → 1.13.0
   - pgrouting: 4.0.1 → 4.0.2
