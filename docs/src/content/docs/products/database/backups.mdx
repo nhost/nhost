@@ -17,6 +17,10 @@ In addition, for projects with critical data or those requiring precise recovery
 
 Something important to note is that backups don't include your storage files. A backup will include all of your files metadata and permissions but not the files themselves. Similarly, Run services' data (if any) is not included in our managed backups.
 
+:::caution
+Because pg_durable does not register its workflow tables for logical dumps, daily backups and manual `pg_dump` backups do not include pg_durable workflow state. Restoring or importing one loses workflows and can leave orphaned engine data behind. This is a limitation of the [pg_durable extension](/products/database/extensions#pg_durable), not of point-in-time recovery, which uses physical backups and preserves workflow state.
+:::
+
 For details visit the [pricing page](https://nhost.io/pricing)
 
 ## Daily Backups

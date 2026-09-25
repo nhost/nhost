@@ -295,6 +295,10 @@ DROP EXTENSION pg_cron;
 
 pg_durable provides SQL-native durable orchestrations that persist their state in PostgreSQL and resume after crashes, restarts, and failovers.
 
+:::caution
+This is a limitation of pg_durable: the extension does not register its `df.instances`, `df.nodes`, and `df.vars` tables for logical dumps, so their data is excluded from `pg_dump`. Nhost daily backups, manual `pg_dump`/`pg_restore`, and daily-backup imports into another project therefore do **not** preserve pg_durable workflows. Restoring one loses workflow definitions, status, results, and variables. Engine data in `_duroxide` can still be restored, leaving orphaned engine rows; the background worker can also conflict with `pg_restore` while recreating those objects. [Point-in-time recovery](/products/database/backups#point-in-time-recovery) uses physical backups and preserves workflow state.
+:::
+
 ### Managing
 
 Nhost preloads pg_durable and configures its background worker for your project database. The extension does not grant access to `PUBLIC`. To enable it and allow workflows submitted through Nhost GraphQL, create a migration that grants access to the `nhost_hasura` database role:
