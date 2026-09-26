@@ -29,7 +29,7 @@
     "audit-ci": "^6.6.1",
     "turbo": "2.9.14",
     "typescript": "catalog:",
-    "vite": "^8.0.16",
+    "vite": "^8.3.1",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.11"
   },

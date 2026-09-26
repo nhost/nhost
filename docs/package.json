@@ -20,14 +20,14 @@
     "@astrojs/markdown-remark": "^7.3.1",
     "@astrojs/sitemap": "^3.7.4",
     "@astrojs/starlight": "^0.41.11",
-    "@astrojs/vercel": "^11.0.10",
+    "@astrojs/vercel": "^11.0.11",
     "@babel/parser": "^7.29.9",
     "@expressive-code/plugin-line-numbers": "^0.41.7",
-    "@lucide/astro": "^1.47.0",
+    "@lucide/astro": "^1.48.0",
     "@readme/openapi-parser": "^6.3.1",
     "@resvg/resvg-js": "^2.6.2",
     "asciinema-player": "^3.17.0",
-    "astro": "^7.3.3",
+    "astro": "^7.3.5",
     "github-slugger": "^2.0.0",
     "glob": "^13.0.6",
     "gray-matter": "^4.0.3",
@@ -43,9 +43,9 @@
   },
   "devDependencies": {
     "linkinator": "^7.6.1",
-    "prettier": "^3.9.8",
+    "prettier": "^3.9.9",
     "typedoc": "^0.28.20",
     "typedoc-plugin-markdown": "^4.13.1",
-    "vite": "^8.3.0"
+    "vite": "^8.3.1"
   }
 }
