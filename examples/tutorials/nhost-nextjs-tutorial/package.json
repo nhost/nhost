@@ -14,14 +14,14 @@
   },
   "dependencies": {
     "@nhost/nhost-js": "workspace:^",
-    "next": "^16.3.4",
+    "next": "^16.3.6",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },
   "devDependencies": {
-    "@types/node": "^20.19.37",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
+    "@types/node": "^20.19.43",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "typescript": "catalog:"
   }
 }
