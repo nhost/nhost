@@ -1,3 +1,16 @@
+## [storage@0.15.1] - 2026-09-24
+
+### 🐛 Bug Fixes
+
+- *(docs)* Align specs with reality (#4632)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Bump flake, bump nodejs and tooling (#4894)
+- *(nixops)* Bump Go to 1.27 (#4887)
+- *(nixops)* Harden validation of the exported Nhost overlay and minor deprecation fixes (#5069)
+
 ## [storage@0.15.0] - 2026-06-29
 
 ### 🚀 Features
