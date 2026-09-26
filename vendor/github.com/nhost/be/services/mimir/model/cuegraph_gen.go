@@ -22377,6 +22377,8 @@ type ConfigPostgresSettings struct {
 	MaintenanceWorkMem *string `json:"maintenanceWorkMem" toml:"maintenanceWorkMem"`
 	// Target fraction of the checkpoint interval over which to spread writes.
 	CheckpointCompletionTarget *float64 `json:"checkpointCompletionTarget" toml:"checkpointCompletionTarget"`
+	// Maximum time between automatic checkpoints (PostgreSQL accepts time units).
+	CheckpointTimeout *string `json:"checkpointTimeout" toml:"checkpointTimeout"`
 	// Memory used for write-ahead log buffers.
 	WalBuffers *string `json:"walBuffers" toml:"walBuffers"`
 	// Compress full-page images in the write-ahead log.
@@ -22446,6 +22448,9 @@ func (o *ConfigPostgresSettings) MarshalJSON() ([]byte, error) {
 	}
 	if o.CheckpointCompletionTarget != nil {
 		m["checkpointCompletionTarget"] = o.CheckpointCompletionTarget
+	}
+	if o.CheckpointTimeout != nil {
+		m["checkpointTimeout"] = o.CheckpointTimeout
 	}
 	if o.WalBuffers != nil {
 		m["walBuffers"] = o.WalBuffers
@@ -22562,6 +22567,13 @@ func (o *ConfigPostgresSettings) GetCheckpointCompletionTarget() *float64 {
 		o = &ConfigPostgresSettings{}
 	}
 	return o.CheckpointCompletionTarget
+}
+
+func (o *ConfigPostgresSettings) GetCheckpointTimeout() *string {
+	if o == nil {
+		o = &ConfigPostgresSettings{}
+	}
+	return o.CheckpointTimeout
 }
 
 func (o *ConfigPostgresSettings) GetWalBuffers() *string {
@@ -22745,6 +22757,8 @@ type ConfigPostgresSettingsUpdateInput struct {
 	IsSetMaintenanceWorkMem            bool                                         `json:"-"`
 	CheckpointCompletionTarget         *float64                                     `json:"checkpointCompletionTarget,omitempty" toml:"checkpointCompletionTarget,omitempty"`
 	IsSetCheckpointCompletionTarget    bool                                         `json:"-"`
+	CheckpointTimeout                  *string                                      `json:"checkpointTimeout,omitempty" toml:"checkpointTimeout,omitempty"`
+	IsSetCheckpointTimeout             bool                                         `json:"-"`
 	WalBuffers                         *string                                      `json:"walBuffers,omitempty" toml:"walBuffers,omitempty"`
 	IsSetWalBuffers                    bool                                         `json:"-"`
 	WalCompression                     *string                                      `json:"walCompression,omitempty" toml:"walCompression,omitempty"`
@@ -22901,6 +22915,23 @@ func (o *ConfigPostgresSettingsUpdateInput) UnmarshalGQL(v interface{}) error {
 			o.CheckpointCompletionTarget = &x
 		}
 		o.IsSetCheckpointCompletionTarget = true
+	}
+	if v, ok := m["checkpointTimeout"]; ok {
+		if v == nil {
+			o.CheckpointTimeout = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.CheckpointTimeout = &x
+		}
+		o.IsSetCheckpointTimeout = true
 	}
 	if v, ok := m["walBuffers"]; ok {
 		if v == nil {
@@ -23354,6 +23385,13 @@ func (o *ConfigPostgresSettingsUpdateInput) GetCheckpointCompletionTarget() *flo
 	return o.CheckpointCompletionTarget
 }
 
+func (o *ConfigPostgresSettingsUpdateInput) GetCheckpointTimeout() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsUpdateInput{}
+	}
+	return o.CheckpointTimeout
+}
+
 func (o *ConfigPostgresSettingsUpdateInput) GetWalBuffers() *string {
 	if o == nil {
 		o = &ConfigPostgresSettingsUpdateInput{}
@@ -23544,6 +23582,9 @@ func (s *ConfigPostgresSettings) Update(v *ConfigPostgresSettingsUpdateInput) {
 	if v.IsSetCheckpointCompletionTarget || v.CheckpointCompletionTarget != nil {
 		s.CheckpointCompletionTarget = v.CheckpointCompletionTarget
 	}
+	if v.IsSetCheckpointTimeout || v.CheckpointTimeout != nil {
+		s.CheckpointTimeout = v.CheckpointTimeout
+	}
 	if v.IsSetWalBuffers || v.WalBuffers != nil {
 		s.WalBuffers = v.WalBuffers
 	}
@@ -23639,6 +23680,7 @@ type ConfigPostgresSettingsInsertInput struct {
 	EffectiveCacheSize            *string                                      `json:"effectiveCacheSize,omitempty" toml:"effectiveCacheSize,omitempty"`
 	MaintenanceWorkMem            *string                                      `json:"maintenanceWorkMem,omitempty" toml:"maintenanceWorkMem,omitempty"`
 	CheckpointCompletionTarget    *float64                                     `json:"checkpointCompletionTarget,omitempty" toml:"checkpointCompletionTarget,omitempty"`
+	CheckpointTimeout             *string                                      `json:"checkpointTimeout,omitempty" toml:"checkpointTimeout,omitempty"`
 	WalBuffers                    *string                                      `json:"walBuffers,omitempty" toml:"walBuffers,omitempty"`
 	WalCompression                *string                                      `json:"walCompression,omitempty" toml:"walCompression,omitempty"`
 	DefaultStatisticsTarget       *int32                                       `json:"defaultStatisticsTarget,omitempty" toml:"defaultStatisticsTarget,omitempty"`
@@ -23705,6 +23747,13 @@ func (o *ConfigPostgresSettingsInsertInput) GetCheckpointCompletionTarget() *flo
 		o = &ConfigPostgresSettingsInsertInput{}
 	}
 	return o.CheckpointCompletionTarget
+}
+
+func (o *ConfigPostgresSettingsInsertInput) GetCheckpointTimeout() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsInsertInput{}
+	}
+	return o.CheckpointTimeout
 }
 
 func (o *ConfigPostgresSettingsInsertInput) GetWalBuffers() *string {
@@ -23882,6 +23931,7 @@ func (s *ConfigPostgresSettings) Insert(v *ConfigPostgresSettingsInsertInput) {
 	s.EffectiveCacheSize = v.EffectiveCacheSize
 	s.MaintenanceWorkMem = v.MaintenanceWorkMem
 	s.CheckpointCompletionTarget = v.CheckpointCompletionTarget
+	s.CheckpointTimeout = v.CheckpointTimeout
 	s.WalBuffers = v.WalBuffers
 	s.WalCompression = v.WalCompression
 	s.DefaultStatisticsTarget = v.DefaultStatisticsTarget
@@ -23930,6 +23980,7 @@ func (s *ConfigPostgresSettings) Clone() *ConfigPostgresSettings {
 	v.EffectiveCacheSize = s.EffectiveCacheSize
 	v.MaintenanceWorkMem = s.MaintenanceWorkMem
 	v.CheckpointCompletionTarget = s.CheckpointCompletionTarget
+	v.CheckpointTimeout = s.CheckpointTimeout
 	v.WalBuffers = s.WalBuffers
 	v.WalCompression = s.WalCompression
 	v.DefaultStatisticsTarget = s.DefaultStatisticsTarget
@@ -23970,6 +24021,7 @@ type ConfigPostgresSettingsComparisonExp struct {
 	EffectiveCacheSize            *ConfigStringComparisonExp                     `json:"effectiveCacheSize,omitempty"`
 	MaintenanceWorkMem            *ConfigStringComparisonExp                     `json:"maintenanceWorkMem,omitempty"`
 	CheckpointCompletionTarget    *ConfigFloatComparisonExp                      `json:"checkpointCompletionTarget,omitempty"`
+	CheckpointTimeout             *ConfigStringComparisonExp                     `json:"checkpointTimeout,omitempty"`
 	WalBuffers                    *ConfigStringComparisonExp                     `json:"walBuffers,omitempty"`
 	WalCompression                *ConfigStringComparisonExp                     `json:"walCompression,omitempty"`
 	DefaultStatisticsTarget       *ConfigInt32ComparisonExp                      `json:"defaultStatisticsTarget,omitempty"`
@@ -24023,6 +24075,9 @@ func (exp *ConfigPostgresSettingsComparisonExp) Matches(o *ConfigPostgresSetting
 		return false
 	}
 	if o.CheckpointCompletionTarget != nil && !exp.CheckpointCompletionTarget.Matches(*o.CheckpointCompletionTarget) {
+		return false
+	}
+	if o.CheckpointTimeout != nil && !exp.CheckpointTimeout.Matches(*o.CheckpointTimeout) {
 		return false
 	}
 	if o.WalBuffers != nil && !exp.WalBuffers.Matches(*o.WalBuffers) {

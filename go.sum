@@ -408,6 +408,8 @@ github.com/nhost/be v0.0.0-20260812080400-60cdbaa04069 h1:4pubgSZfuM5/RmKHPgARDl
 github.com/nhost/be v0.0.0-20260812080400-60cdbaa04069/go.mod h1:Psaf6ivp2abvzNlTnmBUVrv5jKfb60/amvL15IxWKK8=
 github.com/nhost/be v0.0.0-20260925165944-a9e3fbaf36b6 h1:YNP6pxClnBMtLRcnVa9HheiZ4jAla+9G3vQ0aO21qC0=
 github.com/nhost/be v0.0.0-20260925165944-a9e3fbaf36b6/go.mod h1:MDQvQ0bHs17YRCnxuz+lbgpd0BCBjv1ZQNhDpzlz4LM=
+github.com/nhost/be v0.0.0-20260926100344-9fdfd23d7a12 h1:uLKHEQgrwFg9f9H6+XL5xhrD9RfsJ6bu5JEQ6SvWfVI=
+github.com/nhost/be v0.0.0-20260926100344-9fdfd23d7a12/go.mod h1:MDQvQ0bHs17YRCnxuz+lbgpd0BCBjv1ZQNhDpzlz4LM=
 github.com/oapi-codegen/nullable v1.1.0 h1:eAh8JVc5430VtYVnq00Hrbpag9PFRGWLjxR1/3KntMs=
 github.com/oapi-codegen/nullable v1.1.0/go.mod h1:KUZ3vUzkmEKY90ksAmit2+5juDIhIZhfDl+0PwOQlFY=
 github.com/oapi-codegen/runtime v1.4.1 h1:9nwLoI+KrWxzbBcp0jO/R8uXqbik/HUyCvPeU68Y/qo=

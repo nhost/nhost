@@ -567,6 +567,7 @@ type ComplexityRoot struct {
 	ConfigPostgresSettings struct {
 		ArchiveTimeout                func(childComplexity int) int
 		CheckpointCompletionTarget    func(childComplexity int) int
+		CheckpointTimeout             func(childComplexity int) int
 		DefaultStatisticsTarget       func(childComplexity int) int
 		EffectiveCacheSize            func(childComplexity int) int
 		EffectiveIOConcurrency        func(childComplexity int) int
@@ -2605,6 +2606,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.ComplexityRoot.ConfigPostgresSettings.CheckpointCompletionTarget(childComplexity), true
+	case "ConfigPostgresSettings.checkpointTimeout":
+		if e.ComplexityRoot.ConfigPostgresSettings.CheckpointTimeout == nil {
+			break
+		}
+
+		return e.ComplexityRoot.ConfigPostgresSettings.CheckpointTimeout(childComplexity), true
 	case "ConfigPostgresSettings.defaultStatisticsTarget":
 		if e.ComplexityRoot.ConfigPostgresSettings.DefaultStatisticsTarget == nil {
 			break
@@ -7631,6 +7638,10 @@ type ConfigPostgresSettings {
     """
     checkpointCompletionTarget: Float
     """
+    Maximum time between automatic checkpoints (PostgreSQL accepts time units).
+    """
+    checkpointTimeout: String
+    """
     Memory used for write-ahead log buffers.
     """
     walBuffers: String
@@ -7735,6 +7746,7 @@ input ConfigPostgresSettingsUpdateInput {
     effectiveCacheSize: String
     maintenanceWorkMem: String
     checkpointCompletionTarget: Float
+    checkpointTimeout: String
     walBuffers: String
     walCompression: String
     defaultStatisticsTarget: ConfigInt32
@@ -7768,6 +7780,7 @@ input ConfigPostgresSettingsInsertInput {
     effectiveCacheSize: String
     maintenanceWorkMem: String
     checkpointCompletionTarget: Float
+    checkpointTimeout: String
     walBuffers: String
     walCompression: String
     defaultStatisticsTarget: ConfigInt32
@@ -7804,6 +7817,7 @@ input ConfigPostgresSettingsComparisonExp {
     effectiveCacheSize: ConfigStringComparisonExp
     maintenanceWorkMem: ConfigStringComparisonExp
     checkpointCompletionTarget: ConfigFloatComparisonExp
+    checkpointTimeout: ConfigStringComparisonExp
     walBuffers: ConfigStringComparisonExp
     walCompression: ConfigStringComparisonExp
     defaultStatisticsTarget: ConfigInt32ComparisonExp
@@ -10111,6 +10125,8 @@ func (ec *executionContext) childFields_ConfigPostgresSettings(ctx context.Conte
 		return ec.fieldContext_ConfigPostgresSettings_maintenanceWorkMem(ctx, field)
 	case "checkpointCompletionTarget":
 		return ec.fieldContext_ConfigPostgresSettings_checkpointCompletionTarget(ctx, field)
+	case "checkpointTimeout":
+		return ec.fieldContext_ConfigPostgresSettings_checkpointTimeout(ctx, field)
 	case "walBuffers":
 		return ec.fieldContext_ConfigPostgresSettings_walBuffers(ctx, field)
 	case "walCompression":
@@ -19475,6 +19491,29 @@ func (ec *executionContext) _ConfigPostgresSettings_checkpointCompletionTarget(c
 }
 func (ec *executionContext) fieldContext_ConfigPostgresSettings_checkpointCompletionTarget(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	return graphql.NewScalarFieldContext("ConfigPostgresSettings", field, false, false, errors.New("field of type Float does not have child fields"))
+}
+
+func (ec *executionContext) _ConfigPostgresSettings_checkpointTimeout(ctx context.Context, field graphql.CollectedField, obj *model.ConfigPostgresSettings) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return ec.fieldContext_ConfigPostgresSettings_checkpointTimeout(ctx, field)
+		},
+		func(ctx context.Context) (any, error) {
+			return obj.CheckpointTimeout, nil
+		},
+		nil,
+		func(ctx context.Context, selections ast.SelectionSet, v *string) graphql.Marshaler {
+			return ec.marshalOString2ᚖstring(ctx, selections, v)
+		},
+		true,
+		false,
+	)
+}
+func (ec *executionContext) fieldContext_ConfigPostgresSettings_checkpointTimeout(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	return graphql.NewScalarFieldContext("ConfigPostgresSettings", field, false, false, errors.New("field of type String does not have child fields"))
 }
 
 func (ec *executionContext) _ConfigPostgresSettings_walBuffers(ctx context.Context, field graphql.CollectedField, obj *model.ConfigPostgresSettings) (ret graphql.Marshaler) {
@@ -34531,7 +34570,7 @@ func (ec *executionContext) unmarshalInputConfigPostgresSettingsComparisonExp(ct
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "jit", "maxConnections", "sharedBuffers", "effectiveCacheSize", "maintenanceWorkMem", "checkpointCompletionTarget", "walBuffers", "walCompression", "defaultStatisticsTarget", "randomPageCost", "effectiveIOConcurrency", "workMem", "hugePages", "minWalSize", "maxWalSize", "maxWorkerProcesses", "maxParallelWorkersPerGather", "maxParallelWorkers", "maxParallelMaintenanceWorkers", "walLevel", "maxWalSenders", "maxReplicationSlots", "maxSlotWalKeepSize", "archiveTimeout", "trackIoTiming", "logMinDurationStatement", "logAutovacuumMinDuration", "logTempFiles", "sharedPreloadLibraries", "extensions"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "jit", "maxConnections", "sharedBuffers", "effectiveCacheSize", "maintenanceWorkMem", "checkpointCompletionTarget", "checkpointTimeout", "walBuffers", "walCompression", "defaultStatisticsTarget", "randomPageCost", "effectiveIOConcurrency", "workMem", "hugePages", "minWalSize", "maxWalSize", "maxWorkerProcesses", "maxParallelWorkersPerGather", "maxParallelWorkers", "maxParallelMaintenanceWorkers", "walLevel", "maxWalSenders", "maxReplicationSlots", "maxSlotWalKeepSize", "archiveTimeout", "trackIoTiming", "logMinDurationStatement", "logAutovacuumMinDuration", "logTempFiles", "sharedPreloadLibraries", "extensions"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -34601,6 +34640,13 @@ func (ec *executionContext) unmarshalInputConfigPostgresSettingsComparisonExp(ct
 				return it, err
 			}
 			it.CheckpointCompletionTarget = data
+		case "checkpointTimeout":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("checkpointTimeout"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CheckpointTimeout = data
 		case "walBuffers":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("walBuffers"))
 			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
@@ -35316,7 +35362,7 @@ func (ec *executionContext) unmarshalInputConfigPostgresSettingsInsertInput(ctx 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"jit", "maxConnections", "sharedBuffers", "effectiveCacheSize", "maintenanceWorkMem", "checkpointCompletionTarget", "walBuffers", "walCompression", "defaultStatisticsTarget", "randomPageCost", "effectiveIOConcurrency", "workMem", "hugePages", "minWalSize", "maxWalSize", "maxWorkerProcesses", "maxParallelWorkersPerGather", "maxParallelWorkers", "maxParallelMaintenanceWorkers", "walLevel", "maxWalSenders", "maxReplicationSlots", "maxSlotWalKeepSize", "archiveTimeout", "trackIoTiming", "logMinDurationStatement", "logAutovacuumMinDuration", "logTempFiles", "sharedPreloadLibraries", "extensions"}
+	fieldsInOrder := [...]string{"jit", "maxConnections", "sharedBuffers", "effectiveCacheSize", "maintenanceWorkMem", "checkpointCompletionTarget", "checkpointTimeout", "walBuffers", "walCompression", "defaultStatisticsTarget", "randomPageCost", "effectiveIOConcurrency", "workMem", "hugePages", "minWalSize", "maxWalSize", "maxWorkerProcesses", "maxParallelWorkersPerGather", "maxParallelWorkers", "maxParallelMaintenanceWorkers", "walLevel", "maxWalSenders", "maxReplicationSlots", "maxSlotWalKeepSize", "archiveTimeout", "trackIoTiming", "logMinDurationStatement", "logAutovacuumMinDuration", "logTempFiles", "sharedPreloadLibraries", "extensions"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -35365,6 +35411,13 @@ func (ec *executionContext) unmarshalInputConfigPostgresSettingsInsertInput(ctx 
 				return it, err
 			}
 			it.CheckpointCompletionTarget = data
+		case "checkpointTimeout":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("checkpointTimeout"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CheckpointTimeout = data
 		case "walBuffers":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("walBuffers"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
@@ -42978,6 +43031,11 @@ func (ec *executionContext) _ConfigPostgresSettings(ctx context.Context, sel ast
 			}
 		case "checkpointCompletionTarget":
 			out.Values[i] = ec._ConfigPostgresSettings_checkpointCompletionTarget(ctx, field, obj)
+			if out.Values[i] == graphql.RequiredNull {
+				out.Invalids++
+			}
+		case "checkpointTimeout":
+			out.Values[i] = ec._ConfigPostgresSettings_checkpointTimeout(ctx, field, obj)
 			if out.Values[i] == graphql.RequiredNull {
 				out.Invalids++
 			}

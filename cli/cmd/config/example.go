@@ -428,6 +428,7 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 				EffectiveCacheSize:            new("4GB"),
 				MaintenanceWorkMem:            new("64MB"),
 				CheckpointCompletionTarget:    new(float64(0.9)),
+				CheckpointTimeout:             new("5min"),
 				WalBuffers:                    new("-1"),
 				WalCompression:                new("off"),
 				DefaultStatisticsTarget:       new(int32(100)),

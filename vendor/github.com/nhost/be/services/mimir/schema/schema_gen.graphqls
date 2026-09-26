@@ -3491,6 +3491,10 @@ type ConfigPostgresSettings {
     """
     checkpointCompletionTarget: Float
     """
+    Maximum time between automatic checkpoints (PostgreSQL accepts time units).
+    """
+    checkpointTimeout: String
+    """
     Memory used for write-ahead log buffers.
     """
     walBuffers: String
@@ -3595,6 +3599,7 @@ input ConfigPostgresSettingsUpdateInput {
     effectiveCacheSize: String
     maintenanceWorkMem: String
     checkpointCompletionTarget: Float
+    checkpointTimeout: String
     walBuffers: String
     walCompression: String
     defaultStatisticsTarget: ConfigInt32
@@ -3628,6 +3633,7 @@ input ConfigPostgresSettingsInsertInput {
     effectiveCacheSize: String
     maintenanceWorkMem: String
     checkpointCompletionTarget: Float
+    checkpointTimeout: String
     walBuffers: String
     walCompression: String
     defaultStatisticsTarget: ConfigInt32
@@ -3664,6 +3670,7 @@ input ConfigPostgresSettingsComparisonExp {
     effectiveCacheSize: ConfigStringComparisonExp
     maintenanceWorkMem: ConfigStringComparisonExp
     checkpointCompletionTarget: ConfigFloatComparisonExp
+    checkpointTimeout: ConfigStringComparisonExp
     walBuffers: ConfigStringComparisonExp
     walCompression: ConfigStringComparisonExp
     defaultStatisticsTarget: ConfigInt32ComparisonExp
