@@ -271,6 +271,8 @@ pg_search 0.25+ depends on `vector`, so this migration fails while pg_search is 
 
 pg_cron is a simple cron-based job scheduler for PostgreSQL (10 or higher) that runs inside the database as an extension. It uses the same syntax as regular cron, but it allows you to schedule PostgreSQL commands directly from the database. You can also use '[1-59] seconds' to schedule a job based on an interval.
 
+Preload `pg_cron` via `postgres.settings.sharedPreloadLibraries` to run scheduled jobs.
+
 ### Managing
 
 To install the extension you can create a migration with the following contents:
@@ -301,7 +303,10 @@ This is a limitation of pg_durable: the extension does not register its `df.inst
 
 ### Managing
 
-Nhost preloads pg_durable and configures its background worker for your project database. The extension does not grant access to `PUBLIC`. To enable it for workflows submitted through Nhost GraphQL, create this migration:
+Preload `pg_durable` via `postgres.settings.sharedPreloadLibraries` for its
+background worker; the Cloud default list omits it. The extension does not
+grant access to `PUBLIC`. To enable it for workflows submitted through Nhost
+GraphQL, create this migration:
 
 ```sql
 SET ROLE postgres;
@@ -395,6 +400,10 @@ DROP EXTENSION pg_hashids;
 
 The pg_ivm module provides Incremental View Maintenance (IVM) feature for PostgreSQL.
 
+Preload `pg_ivm` via `postgres.settings.sharedPreloadLibraries` for incremental
+view maintenance across sessions; the Cloud default list omits it. Alternatively,
+preload it in each session with `session_preload_libraries`.
+
 Incremental View Maintenance (IVM) is a way to make materialized views up-to-date in which only incremental changes are computed and applied on views rather than recomputing the contents from scratch as REFRESH MATERIALIZED VIEW does. IVM can update materialized views more efficiently than recomputation when only small parts of the view are changed.
 
 ### Managing
@@ -470,6 +479,8 @@ DROP EXTENSION pg_repack;
 
 pg_search is a Postgres extension that enables full text search over heap tables using the BM25 algorithm. It is built on top of Tantivy, the Rust-based alternative to Apache Lucene, using pgrx.
 
+Preload `pg_search` via `postgres.settings.sharedPreloadLibraries` before using BM25 search.
+
 ### Managing
 
 pg_search 0.25+ requires pgvector (`vector`). To install both extensions in a fresh database, create a migration with the following contents:
@@ -497,6 +508,8 @@ DROP EXTENSION pg_search;
 
 PostgreSQL extension that removes unused space from a table and optionally sorts tuples according to particular index (as if CLUSTER command was executed concurrently with regular reads / writes). In fact we try to replace pg_repack extension.
 
+Preload `pg_squeeze` via `postgres.settings.sharedPreloadLibraries` before installing it.
+
 ### Managing
 
 To install the extension you can create a migration with the following contents:
@@ -522,6 +535,8 @@ DROP EXTENSION pg_squeeze;
 
 The pg_stat_statements module provides a means for tracking planning and execution statistics of all SQL statements executed by a server.
 
+Preload `pg_stat_statements` via `postgres.settings.sharedPreloadLibraries` to collect statistics across sessions.
+
 ### Managing
 
 To install the extension you can create a migration with the following contents:
@@ -545,6 +560,8 @@ DROP EXTENSION pg_stat_statements;
 ## timescaledb
 
 TimescaleDB is an open-source database designed to make SQL scalable for time-series data. It is engineered up from PostgreSQL and packaged as a PostgreSQL extension, providing automatic partitioning across time and space (partitioning key), as well as full SQL support.
+
+Preload `timescaledb` via `postgres.settings.sharedPreloadLibraries` for its background workers.
 
 ### Managing
 

@@ -764,6 +764,11 @@ type StorageVirus struct {
 	UserSession []byte
 }
 
+type TestbackupMyTable struct {
+	ID   int32
+	Text pgtype.Text
+}
+
 type UnifiedDeployment struct {
 	ID                  uuid.UUID
 	AppID               uuid.UUID

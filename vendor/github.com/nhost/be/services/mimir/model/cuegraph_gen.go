@@ -21805,6 +21805,37 @@ func (exp *ConfigPostgresPitrComparisonExp) Matches(o *ConfigPostgresPitr) bool 
 	return true
 }
 
+type ConfigPostgresPreloadLibraryComparisonExp struct {
+	Eq  *string  `json:"_eq,omitempty"`
+	Neq *string  `json:"_neq,omitempty"`
+	In  []string `json:"_in,omitempty"`
+	Nin []string `json:"_nin,omitempty"`
+}
+
+func (exp *ConfigPostgresPreloadLibraryComparisonExp) Matches(o string) bool {
+	if exp == nil {
+		return true
+	}
+
+	if exp.Eq != nil && *exp.Eq != o {
+		return false
+	}
+
+	if exp.Neq != nil && *exp.Neq == o {
+		return false
+	}
+
+	if exp.In != nil && !contains(exp.In, o) {
+		return false
+	}
+
+	if exp.Nin != nil && contains(exp.Nin, o) {
+		return false
+	}
+
+	return true
+}
+
 // Resources for the service
 type ConfigPostgresResources struct {
 	// CPU and memory allocation.
@@ -22348,6 +22379,8 @@ type ConfigPostgresSettings struct {
 	CheckpointCompletionTarget *float64 `json:"checkpointCompletionTarget" toml:"checkpointCompletionTarget"`
 	// Memory used for write-ahead log buffers.
 	WalBuffers *string `json:"walBuffers" toml:"walBuffers"`
+	// Compress full-page images in the write-ahead log.
+	WalCompression *string `json:"walCompression" toml:"walCompression"`
 	// Default sample size for table statistics.
 	DefaultStatisticsTarget *int32 `json:"defaultStatisticsTarget" toml:"defaultStatisticsTarget"`
 	// Planner's estimated cost of a non-sequential disk page fetch.
@@ -22376,10 +22409,22 @@ type ConfigPostgresSettings struct {
 	MaxWalSenders *int32 `json:"maxWalSenders" toml:"maxWalSenders"`
 	// Maximum number of replication slots.
 	MaxReplicationSlots *int32 `json:"maxReplicationSlots" toml:"maxReplicationSlots"`
+	// Maximum WAL retained by replication slots; -1 disables the limit.
+	MaxSlotWalKeepSize *string `json:"maxSlotWalKeepSize" toml:"maxSlotWalKeepSize"`
 	// Force a WAL segment switch after this many seconds.
 	ArchiveTimeout *int32 `json:"archiveTimeout" toml:"archiveTimeout"`
 	// Collect timing statistics for disk I/O.
 	TrackIoTiming *string `json:"trackIoTiming" toml:"trackIoTiming"`
+	// Minimum statement duration to log; -1 disables logging.
+	LogMinDurationStatement *string `json:"logMinDurationStatement" toml:"logMinDurationStatement"`
+	// Minimum autovacuum duration to log; -1 disables logging.
+	LogAutovacuumMinDuration *string `json:"logAutovacuumMinDuration" toml:"logAutovacuumMinDuration"`
+	// Minimum temporary file size to log; -1 disables logging.
+	LogTempFiles *string `json:"logTempFiles" toml:"logTempFiles"`
+	// Libraries to load, in order, when PostgreSQL starts.
+	SharedPreloadLibraries []string `json:"sharedPreloadLibraries,omitempty" toml:"sharedPreloadLibraries,omitempty"`
+	// Settings for PostgreSQL extensions.
+	Extensions *ConfigPostgresSettingsExtensions `json:"extensions,omitempty" toml:"extensions,omitempty"`
 }
 
 func (o *ConfigPostgresSettings) MarshalJSON() ([]byte, error) {
@@ -22404,6 +22449,9 @@ func (o *ConfigPostgresSettings) MarshalJSON() ([]byte, error) {
 	}
 	if o.WalBuffers != nil {
 		m["walBuffers"] = o.WalBuffers
+	}
+	if o.WalCompression != nil {
+		m["walCompression"] = o.WalCompression
 	}
 	if o.DefaultStatisticsTarget != nil {
 		m["defaultStatisticsTarget"] = o.DefaultStatisticsTarget
@@ -22447,11 +22495,29 @@ func (o *ConfigPostgresSettings) MarshalJSON() ([]byte, error) {
 	if o.MaxReplicationSlots != nil {
 		m["maxReplicationSlots"] = o.MaxReplicationSlots
 	}
+	if o.MaxSlotWalKeepSize != nil {
+		m["maxSlotWalKeepSize"] = o.MaxSlotWalKeepSize
+	}
 	if o.ArchiveTimeout != nil {
 		m["archiveTimeout"] = o.ArchiveTimeout
 	}
 	if o.TrackIoTiming != nil {
 		m["trackIoTiming"] = o.TrackIoTiming
+	}
+	if o.LogMinDurationStatement != nil {
+		m["logMinDurationStatement"] = o.LogMinDurationStatement
+	}
+	if o.LogAutovacuumMinDuration != nil {
+		m["logAutovacuumMinDuration"] = o.LogAutovacuumMinDuration
+	}
+	if o.LogTempFiles != nil {
+		m["logTempFiles"] = o.LogTempFiles
+	}
+	if o.SharedPreloadLibraries != nil {
+		m["sharedPreloadLibraries"] = o.SharedPreloadLibraries
+	}
+	if o.Extensions != nil {
+		m["extensions"] = o.Extensions
 	}
 	return json.Marshal(m)
 }
@@ -22503,6 +22569,13 @@ func (o *ConfigPostgresSettings) GetWalBuffers() *string {
 		o = &ConfigPostgresSettings{}
 	}
 	return o.WalBuffers
+}
+
+func (o *ConfigPostgresSettings) GetWalCompression() *string {
+	if o == nil {
+		o = &ConfigPostgresSettings{}
+	}
+	return o.WalCompression
 }
 
 func (o *ConfigPostgresSettings) GetDefaultStatisticsTarget() *int32 {
@@ -22603,6 +22676,13 @@ func (o *ConfigPostgresSettings) GetMaxReplicationSlots() *int32 {
 	return o.MaxReplicationSlots
 }
 
+func (o *ConfigPostgresSettings) GetMaxSlotWalKeepSize() *string {
+	if o == nil {
+		o = &ConfigPostgresSettings{}
+	}
+	return o.MaxSlotWalKeepSize
+}
+
 func (o *ConfigPostgresSettings) GetArchiveTimeout() *int32 {
 	if o == nil {
 		o = &ConfigPostgresSettings{}
@@ -22617,53 +22697,102 @@ func (o *ConfigPostgresSettings) GetTrackIoTiming() *string {
 	return o.TrackIoTiming
 }
 
+func (o *ConfigPostgresSettings) GetLogMinDurationStatement() *string {
+	if o == nil {
+		o = &ConfigPostgresSettings{}
+	}
+	return o.LogMinDurationStatement
+}
+
+func (o *ConfigPostgresSettings) GetLogAutovacuumMinDuration() *string {
+	if o == nil {
+		o = &ConfigPostgresSettings{}
+	}
+	return o.LogAutovacuumMinDuration
+}
+
+func (o *ConfigPostgresSettings) GetLogTempFiles() *string {
+	if o == nil {
+		o = &ConfigPostgresSettings{}
+	}
+	return o.LogTempFiles
+}
+
+func (o *ConfigPostgresSettings) GetSharedPreloadLibraries() []string {
+	if o == nil {
+		o = &ConfigPostgresSettings{}
+	}
+	return o.SharedPreloadLibraries
+}
+
+func (o *ConfigPostgresSettings) GetExtensions() *ConfigPostgresSettingsExtensions {
+	if o == nil {
+		return nil
+	}
+	return o.Extensions
+}
+
 type ConfigPostgresSettingsUpdateInput struct {
-	Jit                                *string  `json:"jit,omitempty" toml:"jit,omitempty"`
-	IsSetJit                           bool     `json:"-"`
-	MaxConnections                     *int32   `json:"maxConnections,omitempty" toml:"maxConnections,omitempty"`
-	IsSetMaxConnections                bool     `json:"-"`
-	SharedBuffers                      *string  `json:"sharedBuffers,omitempty" toml:"sharedBuffers,omitempty"`
-	IsSetSharedBuffers                 bool     `json:"-"`
-	EffectiveCacheSize                 *string  `json:"effectiveCacheSize,omitempty" toml:"effectiveCacheSize,omitempty"`
-	IsSetEffectiveCacheSize            bool     `json:"-"`
-	MaintenanceWorkMem                 *string  `json:"maintenanceWorkMem,omitempty" toml:"maintenanceWorkMem,omitempty"`
-	IsSetMaintenanceWorkMem            bool     `json:"-"`
-	CheckpointCompletionTarget         *float64 `json:"checkpointCompletionTarget,omitempty" toml:"checkpointCompletionTarget,omitempty"`
-	IsSetCheckpointCompletionTarget    bool     `json:"-"`
-	WalBuffers                         *string  `json:"walBuffers,omitempty" toml:"walBuffers,omitempty"`
-	IsSetWalBuffers                    bool     `json:"-"`
-	DefaultStatisticsTarget            *int32   `json:"defaultStatisticsTarget,omitempty" toml:"defaultStatisticsTarget,omitempty"`
-	IsSetDefaultStatisticsTarget       bool     `json:"-"`
-	RandomPageCost                     *float64 `json:"randomPageCost,omitempty" toml:"randomPageCost,omitempty"`
-	IsSetRandomPageCost                bool     `json:"-"`
-	EffectiveIOConcurrency             *int32   `json:"effectiveIOConcurrency,omitempty" toml:"effectiveIOConcurrency,omitempty"`
-	IsSetEffectiveIOConcurrency        bool     `json:"-"`
-	WorkMem                            *string  `json:"workMem,omitempty" toml:"workMem,omitempty"`
-	IsSetWorkMem                       bool     `json:"-"`
-	HugePages                          *string  `json:"hugePages,omitempty" toml:"hugePages,omitempty"`
-	IsSetHugePages                     bool     `json:"-"`
-	MinWalSize                         *string  `json:"minWalSize,omitempty" toml:"minWalSize,omitempty"`
-	IsSetMinWalSize                    bool     `json:"-"`
-	MaxWalSize                         *string  `json:"maxWalSize,omitempty" toml:"maxWalSize,omitempty"`
-	IsSetMaxWalSize                    bool     `json:"-"`
-	MaxWorkerProcesses                 *int32   `json:"maxWorkerProcesses,omitempty" toml:"maxWorkerProcesses,omitempty"`
-	IsSetMaxWorkerProcesses            bool     `json:"-"`
-	MaxParallelWorkersPerGather        *int32   `json:"maxParallelWorkersPerGather,omitempty" toml:"maxParallelWorkersPerGather,omitempty"`
-	IsSetMaxParallelWorkersPerGather   bool     `json:"-"`
-	MaxParallelWorkers                 *int32   `json:"maxParallelWorkers,omitempty" toml:"maxParallelWorkers,omitempty"`
-	IsSetMaxParallelWorkers            bool     `json:"-"`
-	MaxParallelMaintenanceWorkers      *int32   `json:"maxParallelMaintenanceWorkers,omitempty" toml:"maxParallelMaintenanceWorkers,omitempty"`
-	IsSetMaxParallelMaintenanceWorkers bool     `json:"-"`
-	WalLevel                           *string  `json:"walLevel,omitempty" toml:"walLevel,omitempty"`
-	IsSetWalLevel                      bool     `json:"-"`
-	MaxWalSenders                      *int32   `json:"maxWalSenders,omitempty" toml:"maxWalSenders,omitempty"`
-	IsSetMaxWalSenders                 bool     `json:"-"`
-	MaxReplicationSlots                *int32   `json:"maxReplicationSlots,omitempty" toml:"maxReplicationSlots,omitempty"`
-	IsSetMaxReplicationSlots           bool     `json:"-"`
-	ArchiveTimeout                     *int32   `json:"archiveTimeout,omitempty" toml:"archiveTimeout,omitempty"`
-	IsSetArchiveTimeout                bool     `json:"-"`
-	TrackIoTiming                      *string  `json:"trackIoTiming,omitempty" toml:"trackIoTiming,omitempty"`
-	IsSetTrackIoTiming                 bool     `json:"-"`
+	Jit                                *string                                      `json:"jit,omitempty" toml:"jit,omitempty"`
+	IsSetJit                           bool                                         `json:"-"`
+	MaxConnections                     *int32                                       `json:"maxConnections,omitempty" toml:"maxConnections,omitempty"`
+	IsSetMaxConnections                bool                                         `json:"-"`
+	SharedBuffers                      *string                                      `json:"sharedBuffers,omitempty" toml:"sharedBuffers,omitempty"`
+	IsSetSharedBuffers                 bool                                         `json:"-"`
+	EffectiveCacheSize                 *string                                      `json:"effectiveCacheSize,omitempty" toml:"effectiveCacheSize,omitempty"`
+	IsSetEffectiveCacheSize            bool                                         `json:"-"`
+	MaintenanceWorkMem                 *string                                      `json:"maintenanceWorkMem,omitempty" toml:"maintenanceWorkMem,omitempty"`
+	IsSetMaintenanceWorkMem            bool                                         `json:"-"`
+	CheckpointCompletionTarget         *float64                                     `json:"checkpointCompletionTarget,omitempty" toml:"checkpointCompletionTarget,omitempty"`
+	IsSetCheckpointCompletionTarget    bool                                         `json:"-"`
+	WalBuffers                         *string                                      `json:"walBuffers,omitempty" toml:"walBuffers,omitempty"`
+	IsSetWalBuffers                    bool                                         `json:"-"`
+	WalCompression                     *string                                      `json:"walCompression,omitempty" toml:"walCompression,omitempty"`
+	IsSetWalCompression                bool                                         `json:"-"`
+	DefaultStatisticsTarget            *int32                                       `json:"defaultStatisticsTarget,omitempty" toml:"defaultStatisticsTarget,omitempty"`
+	IsSetDefaultStatisticsTarget       bool                                         `json:"-"`
+	RandomPageCost                     *float64                                     `json:"randomPageCost,omitempty" toml:"randomPageCost,omitempty"`
+	IsSetRandomPageCost                bool                                         `json:"-"`
+	EffectiveIOConcurrency             *int32                                       `json:"effectiveIOConcurrency,omitempty" toml:"effectiveIOConcurrency,omitempty"`
+	IsSetEffectiveIOConcurrency        bool                                         `json:"-"`
+	WorkMem                            *string                                      `json:"workMem,omitempty" toml:"workMem,omitempty"`
+	IsSetWorkMem                       bool                                         `json:"-"`
+	HugePages                          *string                                      `json:"hugePages,omitempty" toml:"hugePages,omitempty"`
+	IsSetHugePages                     bool                                         `json:"-"`
+	MinWalSize                         *string                                      `json:"minWalSize,omitempty" toml:"minWalSize,omitempty"`
+	IsSetMinWalSize                    bool                                         `json:"-"`
+	MaxWalSize                         *string                                      `json:"maxWalSize,omitempty" toml:"maxWalSize,omitempty"`
+	IsSetMaxWalSize                    bool                                         `json:"-"`
+	MaxWorkerProcesses                 *int32                                       `json:"maxWorkerProcesses,omitempty" toml:"maxWorkerProcesses,omitempty"`
+	IsSetMaxWorkerProcesses            bool                                         `json:"-"`
+	MaxParallelWorkersPerGather        *int32                                       `json:"maxParallelWorkersPerGather,omitempty" toml:"maxParallelWorkersPerGather,omitempty"`
+	IsSetMaxParallelWorkersPerGather   bool                                         `json:"-"`
+	MaxParallelWorkers                 *int32                                       `json:"maxParallelWorkers,omitempty" toml:"maxParallelWorkers,omitempty"`
+	IsSetMaxParallelWorkers            bool                                         `json:"-"`
+	MaxParallelMaintenanceWorkers      *int32                                       `json:"maxParallelMaintenanceWorkers,omitempty" toml:"maxParallelMaintenanceWorkers,omitempty"`
+	IsSetMaxParallelMaintenanceWorkers bool                                         `json:"-"`
+	WalLevel                           *string                                      `json:"walLevel,omitempty" toml:"walLevel,omitempty"`
+	IsSetWalLevel                      bool                                         `json:"-"`
+	MaxWalSenders                      *int32                                       `json:"maxWalSenders,omitempty" toml:"maxWalSenders,omitempty"`
+	IsSetMaxWalSenders                 bool                                         `json:"-"`
+	MaxReplicationSlots                *int32                                       `json:"maxReplicationSlots,omitempty" toml:"maxReplicationSlots,omitempty"`
+	IsSetMaxReplicationSlots           bool                                         `json:"-"`
+	MaxSlotWalKeepSize                 *string                                      `json:"maxSlotWalKeepSize,omitempty" toml:"maxSlotWalKeepSize,omitempty"`
+	IsSetMaxSlotWalKeepSize            bool                                         `json:"-"`
+	ArchiveTimeout                     *int32                                       `json:"archiveTimeout,omitempty" toml:"archiveTimeout,omitempty"`
+	IsSetArchiveTimeout                bool                                         `json:"-"`
+	TrackIoTiming                      *string                                      `json:"trackIoTiming,omitempty" toml:"trackIoTiming,omitempty"`
+	IsSetTrackIoTiming                 bool                                         `json:"-"`
+	LogMinDurationStatement            *string                                      `json:"logMinDurationStatement,omitempty" toml:"logMinDurationStatement,omitempty"`
+	IsSetLogMinDurationStatement       bool                                         `json:"-"`
+	LogAutovacuumMinDuration           *string                                      `json:"logAutovacuumMinDuration,omitempty" toml:"logAutovacuumMinDuration,omitempty"`
+	IsSetLogAutovacuumMinDuration      bool                                         `json:"-"`
+	LogTempFiles                       *string                                      `json:"logTempFiles,omitempty" toml:"logTempFiles,omitempty"`
+	IsSetLogTempFiles                  bool                                         `json:"-"`
+	SharedPreloadLibraries             []string                                     `json:"sharedPreloadLibraries,omitempty" toml:"sharedPreloadLibraries,omitempty"`
+	IsSetSharedPreloadLibraries        bool                                         `json:"-"`
+	Extensions                         *ConfigPostgresSettingsExtensionsUpdateInput `json:"extensions,omitempty" toml:"extensions,omitempty"`
+	IsSetExtensions                    bool                                         `json:"-"`
 }
 
 func (o *ConfigPostgresSettingsUpdateInput) UnmarshalGQL(v interface{}) error {
@@ -22789,6 +22918,23 @@ func (o *ConfigPostgresSettingsUpdateInput) UnmarshalGQL(v interface{}) error {
 			o.WalBuffers = &x
 		}
 		o.IsSetWalBuffers = true
+	}
+	if v, ok := m["walCompression"]; ok {
+		if v == nil {
+			o.WalCompression = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.WalCompression = &x
+		}
+		o.IsSetWalCompression = true
 	}
 	if v, ok := m["defaultStatisticsTarget"]; ok {
 		if v == nil {
@@ -23028,6 +23174,23 @@ func (o *ConfigPostgresSettingsUpdateInput) UnmarshalGQL(v interface{}) error {
 		}
 		o.IsSetMaxReplicationSlots = true
 	}
+	if v, ok := m["maxSlotWalKeepSize"]; ok {
+		if v == nil {
+			o.MaxSlotWalKeepSize = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.MaxSlotWalKeepSize = &x
+		}
+		o.IsSetMaxSlotWalKeepSize = true
+	}
 	if v, ok := m["archiveTimeout"]; ok {
 		if v == nil {
 			o.ArchiveTimeout = nil
@@ -23061,6 +23224,82 @@ func (o *ConfigPostgresSettingsUpdateInput) UnmarshalGQL(v interface{}) error {
 			o.TrackIoTiming = &x
 		}
 		o.IsSetTrackIoTiming = true
+	}
+	if v, ok := m["logMinDurationStatement"]; ok {
+		if v == nil {
+			o.LogMinDurationStatement = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.LogMinDurationStatement = &x
+		}
+		o.IsSetLogMinDurationStatement = true
+	}
+	if v, ok := m["logAutovacuumMinDuration"]; ok {
+		if v == nil {
+			o.LogAutovacuumMinDuration = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.LogAutovacuumMinDuration = &x
+		}
+		o.IsSetLogAutovacuumMinDuration = true
+	}
+	if v, ok := m["logTempFiles"]; ok {
+		if v == nil {
+			o.LogTempFiles = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.LogTempFiles = &x
+		}
+		o.IsSetLogTempFiles = true
+	}
+	if v, ok := m["sharedPreloadLibraries"]; ok {
+		if v != nil {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var l []string
+			if err := json.Unmarshal(b, &l); err != nil {
+				return err
+			}
+			o.SharedPreloadLibraries = l
+		}
+		o.IsSetSharedPreloadLibraries = true
+	}
+	if x, ok := m["extensions"]; ok {
+		if x != nil {
+			t := &ConfigPostgresSettingsExtensionsUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Extensions = t
+		}
+		o.IsSetExtensions = true
 	}
 
 	return nil
@@ -23120,6 +23359,13 @@ func (o *ConfigPostgresSettingsUpdateInput) GetWalBuffers() *string {
 		o = &ConfigPostgresSettingsUpdateInput{}
 	}
 	return o.WalBuffers
+}
+
+func (o *ConfigPostgresSettingsUpdateInput) GetWalCompression() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsUpdateInput{}
+	}
+	return o.WalCompression
 }
 
 func (o *ConfigPostgresSettingsUpdateInput) GetDefaultStatisticsTarget() *int32 {
@@ -23220,6 +23466,13 @@ func (o *ConfigPostgresSettingsUpdateInput) GetMaxReplicationSlots() *int32 {
 	return o.MaxReplicationSlots
 }
 
+func (o *ConfigPostgresSettingsUpdateInput) GetMaxSlotWalKeepSize() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsUpdateInput{}
+	}
+	return o.MaxSlotWalKeepSize
+}
+
 func (o *ConfigPostgresSettingsUpdateInput) GetArchiveTimeout() *int32 {
 	if o == nil {
 		o = &ConfigPostgresSettingsUpdateInput{}
@@ -23232,6 +23485,41 @@ func (o *ConfigPostgresSettingsUpdateInput) GetTrackIoTiming() *string {
 		o = &ConfigPostgresSettingsUpdateInput{}
 	}
 	return o.TrackIoTiming
+}
+
+func (o *ConfigPostgresSettingsUpdateInput) GetLogMinDurationStatement() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsUpdateInput{}
+	}
+	return o.LogMinDurationStatement
+}
+
+func (o *ConfigPostgresSettingsUpdateInput) GetLogAutovacuumMinDuration() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsUpdateInput{}
+	}
+	return o.LogAutovacuumMinDuration
+}
+
+func (o *ConfigPostgresSettingsUpdateInput) GetLogTempFiles() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsUpdateInput{}
+	}
+	return o.LogTempFiles
+}
+
+func (o *ConfigPostgresSettingsUpdateInput) GetSharedPreloadLibraries() []string {
+	if o == nil {
+		o = &ConfigPostgresSettingsUpdateInput{}
+	}
+	return o.SharedPreloadLibraries
+}
+
+func (o *ConfigPostgresSettingsUpdateInput) GetExtensions() *ConfigPostgresSettingsExtensionsUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Extensions
 }
 
 func (s *ConfigPostgresSettings) Update(v *ConfigPostgresSettingsUpdateInput) {
@@ -23258,6 +23546,9 @@ func (s *ConfigPostgresSettings) Update(v *ConfigPostgresSettingsUpdateInput) {
 	}
 	if v.IsSetWalBuffers || v.WalBuffers != nil {
 		s.WalBuffers = v.WalBuffers
+	}
+	if v.IsSetWalCompression || v.WalCompression != nil {
+		s.WalCompression = v.WalCompression
 	}
 	if v.IsSetDefaultStatisticsTarget || v.DefaultStatisticsTarget != nil {
 		s.DefaultStatisticsTarget = v.DefaultStatisticsTarget
@@ -23301,38 +23592,77 @@ func (s *ConfigPostgresSettings) Update(v *ConfigPostgresSettingsUpdateInput) {
 	if v.IsSetMaxReplicationSlots || v.MaxReplicationSlots != nil {
 		s.MaxReplicationSlots = v.MaxReplicationSlots
 	}
+	if v.IsSetMaxSlotWalKeepSize || v.MaxSlotWalKeepSize != nil {
+		s.MaxSlotWalKeepSize = v.MaxSlotWalKeepSize
+	}
 	if v.IsSetArchiveTimeout || v.ArchiveTimeout != nil {
 		s.ArchiveTimeout = v.ArchiveTimeout
 	}
 	if v.IsSetTrackIoTiming || v.TrackIoTiming != nil {
 		s.TrackIoTiming = v.TrackIoTiming
 	}
+	if v.IsSetLogMinDurationStatement || v.LogMinDurationStatement != nil {
+		s.LogMinDurationStatement = v.LogMinDurationStatement
+	}
+	if v.IsSetLogAutovacuumMinDuration || v.LogAutovacuumMinDuration != nil {
+		s.LogAutovacuumMinDuration = v.LogAutovacuumMinDuration
+	}
+	if v.IsSetLogTempFiles || v.LogTempFiles != nil {
+		s.LogTempFiles = v.LogTempFiles
+	}
+	if v.IsSetSharedPreloadLibraries || v.SharedPreloadLibraries != nil {
+		if v.SharedPreloadLibraries == nil {
+			s.SharedPreloadLibraries = nil
+		} else {
+			s.SharedPreloadLibraries = make([]string, len(v.SharedPreloadLibraries))
+			for i, e := range v.SharedPreloadLibraries {
+				s.SharedPreloadLibraries[i] = e
+			}
+		}
+	}
+	if v.IsSetExtensions || v.Extensions != nil {
+		if v.Extensions == nil {
+			s.Extensions = nil
+		} else {
+			if s.Extensions == nil {
+				s.Extensions = &ConfigPostgresSettingsExtensions{}
+			}
+			s.Extensions.Update(v.Extensions)
+		}
+	}
 }
 
 type ConfigPostgresSettingsInsertInput struct {
-	Jit                           *string  `json:"jit,omitempty" toml:"jit,omitempty"`
-	MaxConnections                *int32   `json:"maxConnections,omitempty" toml:"maxConnections,omitempty"`
-	SharedBuffers                 *string  `json:"sharedBuffers,omitempty" toml:"sharedBuffers,omitempty"`
-	EffectiveCacheSize            *string  `json:"effectiveCacheSize,omitempty" toml:"effectiveCacheSize,omitempty"`
-	MaintenanceWorkMem            *string  `json:"maintenanceWorkMem,omitempty" toml:"maintenanceWorkMem,omitempty"`
-	CheckpointCompletionTarget    *float64 `json:"checkpointCompletionTarget,omitempty" toml:"checkpointCompletionTarget,omitempty"`
-	WalBuffers                    *string  `json:"walBuffers,omitempty" toml:"walBuffers,omitempty"`
-	DefaultStatisticsTarget       *int32   `json:"defaultStatisticsTarget,omitempty" toml:"defaultStatisticsTarget,omitempty"`
-	RandomPageCost                *float64 `json:"randomPageCost,omitempty" toml:"randomPageCost,omitempty"`
-	EffectiveIOConcurrency        *int32   `json:"effectiveIOConcurrency,omitempty" toml:"effectiveIOConcurrency,omitempty"`
-	WorkMem                       *string  `json:"workMem,omitempty" toml:"workMem,omitempty"`
-	HugePages                     *string  `json:"hugePages,omitempty" toml:"hugePages,omitempty"`
-	MinWalSize                    *string  `json:"minWalSize,omitempty" toml:"minWalSize,omitempty"`
-	MaxWalSize                    *string  `json:"maxWalSize,omitempty" toml:"maxWalSize,omitempty"`
-	MaxWorkerProcesses            *int32   `json:"maxWorkerProcesses,omitempty" toml:"maxWorkerProcesses,omitempty"`
-	MaxParallelWorkersPerGather   *int32   `json:"maxParallelWorkersPerGather,omitempty" toml:"maxParallelWorkersPerGather,omitempty"`
-	MaxParallelWorkers            *int32   `json:"maxParallelWorkers,omitempty" toml:"maxParallelWorkers,omitempty"`
-	MaxParallelMaintenanceWorkers *int32   `json:"maxParallelMaintenanceWorkers,omitempty" toml:"maxParallelMaintenanceWorkers,omitempty"`
-	WalLevel                      *string  `json:"walLevel,omitempty" toml:"walLevel,omitempty"`
-	MaxWalSenders                 *int32   `json:"maxWalSenders,omitempty" toml:"maxWalSenders,omitempty"`
-	MaxReplicationSlots           *int32   `json:"maxReplicationSlots,omitempty" toml:"maxReplicationSlots,omitempty"`
-	ArchiveTimeout                *int32   `json:"archiveTimeout,omitempty" toml:"archiveTimeout,omitempty"`
-	TrackIoTiming                 *string  `json:"trackIoTiming,omitempty" toml:"trackIoTiming,omitempty"`
+	Jit                           *string                                      `json:"jit,omitempty" toml:"jit,omitempty"`
+	MaxConnections                *int32                                       `json:"maxConnections,omitempty" toml:"maxConnections,omitempty"`
+	SharedBuffers                 *string                                      `json:"sharedBuffers,omitempty" toml:"sharedBuffers,omitempty"`
+	EffectiveCacheSize            *string                                      `json:"effectiveCacheSize,omitempty" toml:"effectiveCacheSize,omitempty"`
+	MaintenanceWorkMem            *string                                      `json:"maintenanceWorkMem,omitempty" toml:"maintenanceWorkMem,omitempty"`
+	CheckpointCompletionTarget    *float64                                     `json:"checkpointCompletionTarget,omitempty" toml:"checkpointCompletionTarget,omitempty"`
+	WalBuffers                    *string                                      `json:"walBuffers,omitempty" toml:"walBuffers,omitempty"`
+	WalCompression                *string                                      `json:"walCompression,omitempty" toml:"walCompression,omitempty"`
+	DefaultStatisticsTarget       *int32                                       `json:"defaultStatisticsTarget,omitempty" toml:"defaultStatisticsTarget,omitempty"`
+	RandomPageCost                *float64                                     `json:"randomPageCost,omitempty" toml:"randomPageCost,omitempty"`
+	EffectiveIOConcurrency        *int32                                       `json:"effectiveIOConcurrency,omitempty" toml:"effectiveIOConcurrency,omitempty"`
+	WorkMem                       *string                                      `json:"workMem,omitempty" toml:"workMem,omitempty"`
+	HugePages                     *string                                      `json:"hugePages,omitempty" toml:"hugePages,omitempty"`
+	MinWalSize                    *string                                      `json:"minWalSize,omitempty" toml:"minWalSize,omitempty"`
+	MaxWalSize                    *string                                      `json:"maxWalSize,omitempty" toml:"maxWalSize,omitempty"`
+	MaxWorkerProcesses            *int32                                       `json:"maxWorkerProcesses,omitempty" toml:"maxWorkerProcesses,omitempty"`
+	MaxParallelWorkersPerGather   *int32                                       `json:"maxParallelWorkersPerGather,omitempty" toml:"maxParallelWorkersPerGather,omitempty"`
+	MaxParallelWorkers            *int32                                       `json:"maxParallelWorkers,omitempty" toml:"maxParallelWorkers,omitempty"`
+	MaxParallelMaintenanceWorkers *int32                                       `json:"maxParallelMaintenanceWorkers,omitempty" toml:"maxParallelMaintenanceWorkers,omitempty"`
+	WalLevel                      *string                                      `json:"walLevel,omitempty" toml:"walLevel,omitempty"`
+	MaxWalSenders                 *int32                                       `json:"maxWalSenders,omitempty" toml:"maxWalSenders,omitempty"`
+	MaxReplicationSlots           *int32                                       `json:"maxReplicationSlots,omitempty" toml:"maxReplicationSlots,omitempty"`
+	MaxSlotWalKeepSize            *string                                      `json:"maxSlotWalKeepSize,omitempty" toml:"maxSlotWalKeepSize,omitempty"`
+	ArchiveTimeout                *int32                                       `json:"archiveTimeout,omitempty" toml:"archiveTimeout,omitempty"`
+	TrackIoTiming                 *string                                      `json:"trackIoTiming,omitempty" toml:"trackIoTiming,omitempty"`
+	LogMinDurationStatement       *string                                      `json:"logMinDurationStatement,omitempty" toml:"logMinDurationStatement,omitempty"`
+	LogAutovacuumMinDuration      *string                                      `json:"logAutovacuumMinDuration,omitempty" toml:"logAutovacuumMinDuration,omitempty"`
+	LogTempFiles                  *string                                      `json:"logTempFiles,omitempty" toml:"logTempFiles,omitempty"`
+	SharedPreloadLibraries        []string                                     `json:"sharedPreloadLibraries,omitempty" toml:"sharedPreloadLibraries,omitempty"`
+	Extensions                    *ConfigPostgresSettingsExtensionsInsertInput `json:"extensions,omitempty" toml:"extensions,omitempty"`
 }
 
 func (o *ConfigPostgresSettingsInsertInput) GetJit() *string {
@@ -23382,6 +23712,13 @@ func (o *ConfigPostgresSettingsInsertInput) GetWalBuffers() *string {
 		o = &ConfigPostgresSettingsInsertInput{}
 	}
 	return o.WalBuffers
+}
+
+func (o *ConfigPostgresSettingsInsertInput) GetWalCompression() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsInsertInput{}
+	}
+	return o.WalCompression
 }
 
 func (o *ConfigPostgresSettingsInsertInput) GetDefaultStatisticsTarget() *int32 {
@@ -23482,6 +23819,13 @@ func (o *ConfigPostgresSettingsInsertInput) GetMaxReplicationSlots() *int32 {
 	return o.MaxReplicationSlots
 }
 
+func (o *ConfigPostgresSettingsInsertInput) GetMaxSlotWalKeepSize() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsInsertInput{}
+	}
+	return o.MaxSlotWalKeepSize
+}
+
 func (o *ConfigPostgresSettingsInsertInput) GetArchiveTimeout() *int32 {
 	if o == nil {
 		o = &ConfigPostgresSettingsInsertInput{}
@@ -23496,6 +23840,41 @@ func (o *ConfigPostgresSettingsInsertInput) GetTrackIoTiming() *string {
 	return o.TrackIoTiming
 }
 
+func (o *ConfigPostgresSettingsInsertInput) GetLogMinDurationStatement() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsInsertInput{}
+	}
+	return o.LogMinDurationStatement
+}
+
+func (o *ConfigPostgresSettingsInsertInput) GetLogAutovacuumMinDuration() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsInsertInput{}
+	}
+	return o.LogAutovacuumMinDuration
+}
+
+func (o *ConfigPostgresSettingsInsertInput) GetLogTempFiles() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsInsertInput{}
+	}
+	return o.LogTempFiles
+}
+
+func (o *ConfigPostgresSettingsInsertInput) GetSharedPreloadLibraries() []string {
+	if o == nil {
+		o = &ConfigPostgresSettingsInsertInput{}
+	}
+	return o.SharedPreloadLibraries
+}
+
+func (o *ConfigPostgresSettingsInsertInput) GetExtensions() *ConfigPostgresSettingsExtensionsInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Extensions
+}
+
 func (s *ConfigPostgresSettings) Insert(v *ConfigPostgresSettingsInsertInput) {
 	s.Jit = v.Jit
 	s.MaxConnections = v.MaxConnections
@@ -23504,6 +23883,7 @@ func (s *ConfigPostgresSettings) Insert(v *ConfigPostgresSettingsInsertInput) {
 	s.MaintenanceWorkMem = v.MaintenanceWorkMem
 	s.CheckpointCompletionTarget = v.CheckpointCompletionTarget
 	s.WalBuffers = v.WalBuffers
+	s.WalCompression = v.WalCompression
 	s.DefaultStatisticsTarget = v.DefaultStatisticsTarget
 	s.RandomPageCost = v.RandomPageCost
 	s.EffectiveIOConcurrency = v.EffectiveIOConcurrency
@@ -23518,8 +23898,24 @@ func (s *ConfigPostgresSettings) Insert(v *ConfigPostgresSettingsInsertInput) {
 	s.WalLevel = v.WalLevel
 	s.MaxWalSenders = v.MaxWalSenders
 	s.MaxReplicationSlots = v.MaxReplicationSlots
+	s.MaxSlotWalKeepSize = v.MaxSlotWalKeepSize
 	s.ArchiveTimeout = v.ArchiveTimeout
 	s.TrackIoTiming = v.TrackIoTiming
+	s.LogMinDurationStatement = v.LogMinDurationStatement
+	s.LogAutovacuumMinDuration = v.LogAutovacuumMinDuration
+	s.LogTempFiles = v.LogTempFiles
+	if v.SharedPreloadLibraries != nil {
+		s.SharedPreloadLibraries = make([]string, len(v.SharedPreloadLibraries))
+		for i, e := range v.SharedPreloadLibraries {
+			s.SharedPreloadLibraries[i] = e
+		}
+	}
+	if v.Extensions != nil {
+		if s.Extensions == nil {
+			s.Extensions = &ConfigPostgresSettingsExtensions{}
+		}
+		s.Extensions.Insert(v.Extensions)
+	}
 }
 
 func (s *ConfigPostgresSettings) Clone() *ConfigPostgresSettings {
@@ -23535,6 +23931,7 @@ func (s *ConfigPostgresSettings) Clone() *ConfigPostgresSettings {
 	v.MaintenanceWorkMem = s.MaintenanceWorkMem
 	v.CheckpointCompletionTarget = s.CheckpointCompletionTarget
 	v.WalBuffers = s.WalBuffers
+	v.WalCompression = s.WalCompression
 	v.DefaultStatisticsTarget = s.DefaultStatisticsTarget
 	v.RandomPageCost = s.RandomPageCost
 	v.EffectiveIOConcurrency = s.EffectiveIOConcurrency
@@ -23549,38 +23946,54 @@ func (s *ConfigPostgresSettings) Clone() *ConfigPostgresSettings {
 	v.WalLevel = s.WalLevel
 	v.MaxWalSenders = s.MaxWalSenders
 	v.MaxReplicationSlots = s.MaxReplicationSlots
+	v.MaxSlotWalKeepSize = s.MaxSlotWalKeepSize
 	v.ArchiveTimeout = s.ArchiveTimeout
 	v.TrackIoTiming = s.TrackIoTiming
+	v.LogMinDurationStatement = s.LogMinDurationStatement
+	v.LogAutovacuumMinDuration = s.LogAutovacuumMinDuration
+	v.LogTempFiles = s.LogTempFiles
+	if s.SharedPreloadLibraries != nil {
+		v.SharedPreloadLibraries = make([]string, len(s.SharedPreloadLibraries))
+		copy(v.SharedPreloadLibraries, s.SharedPreloadLibraries)
+	}
+	v.Extensions = s.Extensions.Clone()
 	return v
 }
 
 type ConfigPostgresSettingsComparisonExp struct {
-	And                           []*ConfigPostgresSettingsComparisonExp `json:"_and,omitempty"`
-	Not                           *ConfigPostgresSettingsComparisonExp   `json:"_not,omitempty"`
-	Or                            []*ConfigPostgresSettingsComparisonExp `json:"_or,omitempty"`
-	Jit                           *ConfigStringComparisonExp             `json:"jit,omitempty"`
-	MaxConnections                *ConfigInt32ComparisonExp              `json:"maxConnections,omitempty"`
-	SharedBuffers                 *ConfigStringComparisonExp             `json:"sharedBuffers,omitempty"`
-	EffectiveCacheSize            *ConfigStringComparisonExp             `json:"effectiveCacheSize,omitempty"`
-	MaintenanceWorkMem            *ConfigStringComparisonExp             `json:"maintenanceWorkMem,omitempty"`
-	CheckpointCompletionTarget    *ConfigFloatComparisonExp              `json:"checkpointCompletionTarget,omitempty"`
-	WalBuffers                    *ConfigStringComparisonExp             `json:"walBuffers,omitempty"`
-	DefaultStatisticsTarget       *ConfigInt32ComparisonExp              `json:"defaultStatisticsTarget,omitempty"`
-	RandomPageCost                *ConfigFloatComparisonExp              `json:"randomPageCost,omitempty"`
-	EffectiveIOConcurrency        *ConfigInt32ComparisonExp              `json:"effectiveIOConcurrency,omitempty"`
-	WorkMem                       *ConfigStringComparisonExp             `json:"workMem,omitempty"`
-	HugePages                     *ConfigStringComparisonExp             `json:"hugePages,omitempty"`
-	MinWalSize                    *ConfigStringComparisonExp             `json:"minWalSize,omitempty"`
-	MaxWalSize                    *ConfigStringComparisonExp             `json:"maxWalSize,omitempty"`
-	MaxWorkerProcesses            *ConfigInt32ComparisonExp              `json:"maxWorkerProcesses,omitempty"`
-	MaxParallelWorkersPerGather   *ConfigInt32ComparisonExp              `json:"maxParallelWorkersPerGather,omitempty"`
-	MaxParallelWorkers            *ConfigInt32ComparisonExp              `json:"maxParallelWorkers,omitempty"`
-	MaxParallelMaintenanceWorkers *ConfigInt32ComparisonExp              `json:"maxParallelMaintenanceWorkers,omitempty"`
-	WalLevel                      *ConfigStringComparisonExp             `json:"walLevel,omitempty"`
-	MaxWalSenders                 *ConfigInt32ComparisonExp              `json:"maxWalSenders,omitempty"`
-	MaxReplicationSlots           *ConfigInt32ComparisonExp              `json:"maxReplicationSlots,omitempty"`
-	ArchiveTimeout                *ConfigInt32ComparisonExp              `json:"archiveTimeout,omitempty"`
-	TrackIoTiming                 *ConfigStringComparisonExp             `json:"trackIoTiming,omitempty"`
+	And                           []*ConfigPostgresSettingsComparisonExp         `json:"_and,omitempty"`
+	Not                           *ConfigPostgresSettingsComparisonExp           `json:"_not,omitempty"`
+	Or                            []*ConfigPostgresSettingsComparisonExp         `json:"_or,omitempty"`
+	Jit                           *ConfigStringComparisonExp                     `json:"jit,omitempty"`
+	MaxConnections                *ConfigInt32ComparisonExp                      `json:"maxConnections,omitempty"`
+	SharedBuffers                 *ConfigStringComparisonExp                     `json:"sharedBuffers,omitempty"`
+	EffectiveCacheSize            *ConfigStringComparisonExp                     `json:"effectiveCacheSize,omitempty"`
+	MaintenanceWorkMem            *ConfigStringComparisonExp                     `json:"maintenanceWorkMem,omitempty"`
+	CheckpointCompletionTarget    *ConfigFloatComparisonExp                      `json:"checkpointCompletionTarget,omitempty"`
+	WalBuffers                    *ConfigStringComparisonExp                     `json:"walBuffers,omitempty"`
+	WalCompression                *ConfigStringComparisonExp                     `json:"walCompression,omitempty"`
+	DefaultStatisticsTarget       *ConfigInt32ComparisonExp                      `json:"defaultStatisticsTarget,omitempty"`
+	RandomPageCost                *ConfigFloatComparisonExp                      `json:"randomPageCost,omitempty"`
+	EffectiveIOConcurrency        *ConfigInt32ComparisonExp                      `json:"effectiveIOConcurrency,omitempty"`
+	WorkMem                       *ConfigStringComparisonExp                     `json:"workMem,omitempty"`
+	HugePages                     *ConfigStringComparisonExp                     `json:"hugePages,omitempty"`
+	MinWalSize                    *ConfigStringComparisonExp                     `json:"minWalSize,omitempty"`
+	MaxWalSize                    *ConfigStringComparisonExp                     `json:"maxWalSize,omitempty"`
+	MaxWorkerProcesses            *ConfigInt32ComparisonExp                      `json:"maxWorkerProcesses,omitempty"`
+	MaxParallelWorkersPerGather   *ConfigInt32ComparisonExp                      `json:"maxParallelWorkersPerGather,omitempty"`
+	MaxParallelWorkers            *ConfigInt32ComparisonExp                      `json:"maxParallelWorkers,omitempty"`
+	MaxParallelMaintenanceWorkers *ConfigInt32ComparisonExp                      `json:"maxParallelMaintenanceWorkers,omitempty"`
+	WalLevel                      *ConfigStringComparisonExp                     `json:"walLevel,omitempty"`
+	MaxWalSenders                 *ConfigInt32ComparisonExp                      `json:"maxWalSenders,omitempty"`
+	MaxReplicationSlots           *ConfigInt32ComparisonExp                      `json:"maxReplicationSlots,omitempty"`
+	MaxSlotWalKeepSize            *ConfigStringComparisonExp                     `json:"maxSlotWalKeepSize,omitempty"`
+	ArchiveTimeout                *ConfigInt32ComparisonExp                      `json:"archiveTimeout,omitempty"`
+	TrackIoTiming                 *ConfigStringComparisonExp                     `json:"trackIoTiming,omitempty"`
+	LogMinDurationStatement       *ConfigStringComparisonExp                     `json:"logMinDurationStatement,omitempty"`
+	LogAutovacuumMinDuration      *ConfigStringComparisonExp                     `json:"logAutovacuumMinDuration,omitempty"`
+	LogTempFiles                  *ConfigStringComparisonExp                     `json:"logTempFiles,omitempty"`
+	SharedPreloadLibraries        *ConfigPostgresPreloadLibraryComparisonExp     `json:"sharedPreloadLibraries,omitempty"`
+	Extensions                    *ConfigPostgresSettingsExtensionsComparisonExp `json:"extensions,omitempty"`
 }
 
 func (exp *ConfigPostgresSettingsComparisonExp) Matches(o *ConfigPostgresSettings) bool {
@@ -23589,7 +24002,10 @@ func (exp *ConfigPostgresSettingsComparisonExp) Matches(o *ConfigPostgresSetting
 	}
 
 	if o == nil {
-		o = &ConfigPostgresSettings{}
+		o = &ConfigPostgresSettings{
+			SharedPreloadLibraries: []string{},
+			Extensions:             &ConfigPostgresSettingsExtensions{},
+		}
 	}
 	if o.Jit != nil && !exp.Jit.Matches(*o.Jit) {
 		return false
@@ -23610,6 +24026,9 @@ func (exp *ConfigPostgresSettingsComparisonExp) Matches(o *ConfigPostgresSetting
 		return false
 	}
 	if o.WalBuffers != nil && !exp.WalBuffers.Matches(*o.WalBuffers) {
+		return false
+	}
+	if o.WalCompression != nil && !exp.WalCompression.Matches(*o.WalCompression) {
 		return false
 	}
 	if o.DefaultStatisticsTarget != nil && !exp.DefaultStatisticsTarget.Matches(*o.DefaultStatisticsTarget) {
@@ -23654,10 +24073,1222 @@ func (exp *ConfigPostgresSettingsComparisonExp) Matches(o *ConfigPostgresSetting
 	if o.MaxReplicationSlots != nil && !exp.MaxReplicationSlots.Matches(*o.MaxReplicationSlots) {
 		return false
 	}
+	if o.MaxSlotWalKeepSize != nil && !exp.MaxSlotWalKeepSize.Matches(*o.MaxSlotWalKeepSize) {
+		return false
+	}
 	if o.ArchiveTimeout != nil && !exp.ArchiveTimeout.Matches(*o.ArchiveTimeout) {
 		return false
 	}
 	if o.TrackIoTiming != nil && !exp.TrackIoTiming.Matches(*o.TrackIoTiming) {
+		return false
+	}
+	if o.LogMinDurationStatement != nil && !exp.LogMinDurationStatement.Matches(*o.LogMinDurationStatement) {
+		return false
+	}
+	if o.LogAutovacuumMinDuration != nil && !exp.LogAutovacuumMinDuration.Matches(*o.LogAutovacuumMinDuration) {
+		return false
+	}
+	if o.LogTempFiles != nil && !exp.LogTempFiles.Matches(*o.LogTempFiles) {
+		return false
+	}
+	{
+		found := false
+		for _, o := range o.SharedPreloadLibraries {
+			if exp.SharedPreloadLibraries.Matches(o) {
+				found = true
+				break
+			}
+		}
+		if !found && exp.SharedPreloadLibraries != nil {
+			return false
+		}
+	}
+	if !exp.Extensions.Matches(o.Extensions) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+// Settings for PostgreSQL extensions.
+type ConfigPostgresSettingsExtensions struct {
+	PgStatStatements *ConfigPostgresSettingsExtensionsPgStatStatements `json:"pgStatStatements,omitempty" toml:"pgStatStatements,omitempty"`
+
+	Cron *ConfigPostgresSettingsExtensionsCron `json:"cron,omitempty" toml:"cron,omitempty"`
+
+	PgDurable *ConfigPostgresSettingsExtensionsPgDurable `json:"pgDurable,omitempty" toml:"pgDurable,omitempty"`
+
+	Timescaledb *ConfigPostgresSettingsExtensionsTimescaledb `json:"timescaledb,omitempty" toml:"timescaledb,omitempty"`
+}
+
+func (o *ConfigPostgresSettingsExtensions) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.PgStatStatements != nil {
+		m["pgStatStatements"] = o.PgStatStatements
+	}
+	if o.Cron != nil {
+		m["cron"] = o.Cron
+	}
+	if o.PgDurable != nil {
+		m["pgDurable"] = o.PgDurable
+	}
+	if o.Timescaledb != nil {
+		m["timescaledb"] = o.Timescaledb
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigPostgresSettingsExtensions) GetPgStatStatements() *ConfigPostgresSettingsExtensionsPgStatStatements {
+	if o == nil {
+		return nil
+	}
+	return o.PgStatStatements
+}
+
+func (o *ConfigPostgresSettingsExtensions) GetCron() *ConfigPostgresSettingsExtensionsCron {
+	if o == nil {
+		return nil
+	}
+	return o.Cron
+}
+
+func (o *ConfigPostgresSettingsExtensions) GetPgDurable() *ConfigPostgresSettingsExtensionsPgDurable {
+	if o == nil {
+		return nil
+	}
+	return o.PgDurable
+}
+
+func (o *ConfigPostgresSettingsExtensions) GetTimescaledb() *ConfigPostgresSettingsExtensionsTimescaledb {
+	if o == nil {
+		return nil
+	}
+	return o.Timescaledb
+}
+
+type ConfigPostgresSettingsExtensionsUpdateInput struct {
+	PgStatStatements      *ConfigPostgresSettingsExtensionsPgStatStatementsUpdateInput `json:"pgStatStatements,omitempty" toml:"pgStatStatements,omitempty"`
+	IsSetPgStatStatements bool                                                         `json:"-"`
+	Cron                  *ConfigPostgresSettingsExtensionsCronUpdateInput             `json:"cron,omitempty" toml:"cron,omitempty"`
+	IsSetCron             bool                                                         `json:"-"`
+	PgDurable             *ConfigPostgresSettingsExtensionsPgDurableUpdateInput        `json:"pgDurable,omitempty" toml:"pgDurable,omitempty"`
+	IsSetPgDurable        bool                                                         `json:"-"`
+	Timescaledb           *ConfigPostgresSettingsExtensionsTimescaledbUpdateInput      `json:"timescaledb,omitempty" toml:"timescaledb,omitempty"`
+	IsSetTimescaledb      bool                                                         `json:"-"`
+}
+
+func (o *ConfigPostgresSettingsExtensionsUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if x, ok := m["pgStatStatements"]; ok {
+		if x != nil {
+			t := &ConfigPostgresSettingsExtensionsPgStatStatementsUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.PgStatStatements = t
+		}
+		o.IsSetPgStatStatements = true
+	}
+	if x, ok := m["cron"]; ok {
+		if x != nil {
+			t := &ConfigPostgresSettingsExtensionsCronUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Cron = t
+		}
+		o.IsSetCron = true
+	}
+	if x, ok := m["pgDurable"]; ok {
+		if x != nil {
+			t := &ConfigPostgresSettingsExtensionsPgDurableUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.PgDurable = t
+		}
+		o.IsSetPgDurable = true
+	}
+	if x, ok := m["timescaledb"]; ok {
+		if x != nil {
+			t := &ConfigPostgresSettingsExtensionsTimescaledbUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Timescaledb = t
+		}
+		o.IsSetTimescaledb = true
+	}
+
+	return nil
+}
+
+func (o *ConfigPostgresSettingsExtensionsUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigPostgresSettingsExtensionsUpdateInput) GetPgStatStatements() *ConfigPostgresSettingsExtensionsPgStatStatementsUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.PgStatStatements
+}
+
+func (o *ConfigPostgresSettingsExtensionsUpdateInput) GetCron() *ConfigPostgresSettingsExtensionsCronUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Cron
+}
+
+func (o *ConfigPostgresSettingsExtensionsUpdateInput) GetPgDurable() *ConfigPostgresSettingsExtensionsPgDurableUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.PgDurable
+}
+
+func (o *ConfigPostgresSettingsExtensionsUpdateInput) GetTimescaledb() *ConfigPostgresSettingsExtensionsTimescaledbUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Timescaledb
+}
+
+func (s *ConfigPostgresSettingsExtensions) Update(v *ConfigPostgresSettingsExtensionsUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetPgStatStatements || v.PgStatStatements != nil {
+		if v.PgStatStatements == nil {
+			s.PgStatStatements = nil
+		} else {
+			if s.PgStatStatements == nil {
+				s.PgStatStatements = &ConfigPostgresSettingsExtensionsPgStatStatements{}
+			}
+			s.PgStatStatements.Update(v.PgStatStatements)
+		}
+	}
+	if v.IsSetCron || v.Cron != nil {
+		if v.Cron == nil {
+			s.Cron = nil
+		} else {
+			if s.Cron == nil {
+				s.Cron = &ConfigPostgresSettingsExtensionsCron{}
+			}
+			s.Cron.Update(v.Cron)
+		}
+	}
+	if v.IsSetPgDurable || v.PgDurable != nil {
+		if v.PgDurable == nil {
+			s.PgDurable = nil
+		} else {
+			if s.PgDurable == nil {
+				s.PgDurable = &ConfigPostgresSettingsExtensionsPgDurable{}
+			}
+			s.PgDurable.Update(v.PgDurable)
+		}
+	}
+	if v.IsSetTimescaledb || v.Timescaledb != nil {
+		if v.Timescaledb == nil {
+			s.Timescaledb = nil
+		} else {
+			if s.Timescaledb == nil {
+				s.Timescaledb = &ConfigPostgresSettingsExtensionsTimescaledb{}
+			}
+			s.Timescaledb.Update(v.Timescaledb)
+		}
+	}
+}
+
+type ConfigPostgresSettingsExtensionsInsertInput struct {
+	PgStatStatements *ConfigPostgresSettingsExtensionsPgStatStatementsInsertInput `json:"pgStatStatements,omitempty" toml:"pgStatStatements,omitempty"`
+	Cron             *ConfigPostgresSettingsExtensionsCronInsertInput             `json:"cron,omitempty" toml:"cron,omitempty"`
+	PgDurable        *ConfigPostgresSettingsExtensionsPgDurableInsertInput        `json:"pgDurable,omitempty" toml:"pgDurable,omitempty"`
+	Timescaledb      *ConfigPostgresSettingsExtensionsTimescaledbInsertInput      `json:"timescaledb,omitempty" toml:"timescaledb,omitempty"`
+}
+
+func (o *ConfigPostgresSettingsExtensionsInsertInput) GetPgStatStatements() *ConfigPostgresSettingsExtensionsPgStatStatementsInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.PgStatStatements
+}
+
+func (o *ConfigPostgresSettingsExtensionsInsertInput) GetCron() *ConfigPostgresSettingsExtensionsCronInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Cron
+}
+
+func (o *ConfigPostgresSettingsExtensionsInsertInput) GetPgDurable() *ConfigPostgresSettingsExtensionsPgDurableInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.PgDurable
+}
+
+func (o *ConfigPostgresSettingsExtensionsInsertInput) GetTimescaledb() *ConfigPostgresSettingsExtensionsTimescaledbInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Timescaledb
+}
+
+func (s *ConfigPostgresSettingsExtensions) Insert(v *ConfigPostgresSettingsExtensionsInsertInput) {
+	if v.PgStatStatements != nil {
+		if s.PgStatStatements == nil {
+			s.PgStatStatements = &ConfigPostgresSettingsExtensionsPgStatStatements{}
+		}
+		s.PgStatStatements.Insert(v.PgStatStatements)
+	}
+	if v.Cron != nil {
+		if s.Cron == nil {
+			s.Cron = &ConfigPostgresSettingsExtensionsCron{}
+		}
+		s.Cron.Insert(v.Cron)
+	}
+	if v.PgDurable != nil {
+		if s.PgDurable == nil {
+			s.PgDurable = &ConfigPostgresSettingsExtensionsPgDurable{}
+		}
+		s.PgDurable.Insert(v.PgDurable)
+	}
+	if v.Timescaledb != nil {
+		if s.Timescaledb == nil {
+			s.Timescaledb = &ConfigPostgresSettingsExtensionsTimescaledb{}
+		}
+		s.Timescaledb.Insert(v.Timescaledb)
+	}
+}
+
+func (s *ConfigPostgresSettingsExtensions) Clone() *ConfigPostgresSettingsExtensions {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigPostgresSettingsExtensions{}
+	v.PgStatStatements = s.PgStatStatements.Clone()
+	v.Cron = s.Cron.Clone()
+	v.PgDurable = s.PgDurable.Clone()
+	v.Timescaledb = s.Timescaledb.Clone()
+	return v
+}
+
+type ConfigPostgresSettingsExtensionsComparisonExp struct {
+	And              []*ConfigPostgresSettingsExtensionsComparisonExp               `json:"_and,omitempty"`
+	Not              *ConfigPostgresSettingsExtensionsComparisonExp                 `json:"_not,omitempty"`
+	Or               []*ConfigPostgresSettingsExtensionsComparisonExp               `json:"_or,omitempty"`
+	PgStatStatements *ConfigPostgresSettingsExtensionsPgStatStatementsComparisonExp `json:"pgStatStatements,omitempty"`
+	Cron             *ConfigPostgresSettingsExtensionsCronComparisonExp             `json:"cron,omitempty"`
+	PgDurable        *ConfigPostgresSettingsExtensionsPgDurableComparisonExp        `json:"pgDurable,omitempty"`
+	Timescaledb      *ConfigPostgresSettingsExtensionsTimescaledbComparisonExp      `json:"timescaledb,omitempty"`
+}
+
+func (exp *ConfigPostgresSettingsExtensionsComparisonExp) Matches(o *ConfigPostgresSettingsExtensions) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensions{
+			PgStatStatements: &ConfigPostgresSettingsExtensionsPgStatStatements{},
+			Cron:             &ConfigPostgresSettingsExtensionsCron{},
+			PgDurable:        &ConfigPostgresSettingsExtensionsPgDurable{},
+			Timescaledb:      &ConfigPostgresSettingsExtensionsTimescaledb{},
+		}
+	}
+	if !exp.PgStatStatements.Matches(o.PgStatStatements) {
+		return false
+	}
+	if !exp.Cron.Matches(o.Cron) {
+		return false
+	}
+	if !exp.PgDurable.Matches(o.PgDurable) {
+		return false
+	}
+	if !exp.Timescaledb.Matches(o.Timescaledb) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigPostgresSettingsExtensionsCron struct {
+	// Time zone used for job schedules.
+	Timezone *string `json:"timezone" toml:"timezone"`
+	// Maximum concurrent jobs.
+	MaxRunningJobs *int32 `json:"maxRunningJobs" toml:"maxRunningJobs"`
+	// Record job runs.
+	LogRun *string `json:"logRun" toml:"logRun"`
+}
+
+func (o *ConfigPostgresSettingsExtensionsCron) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Timezone != nil {
+		m["timezone"] = o.Timezone
+	}
+	if o.MaxRunningJobs != nil {
+		m["maxRunningJobs"] = o.MaxRunningJobs
+	}
+	if o.LogRun != nil {
+		m["logRun"] = o.LogRun
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigPostgresSettingsExtensionsCron) GetTimezone() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsCron{}
+	}
+	return o.Timezone
+}
+
+func (o *ConfigPostgresSettingsExtensionsCron) GetMaxRunningJobs() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsCron{}
+	}
+	return o.MaxRunningJobs
+}
+
+func (o *ConfigPostgresSettingsExtensionsCron) GetLogRun() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsCron{}
+	}
+	return o.LogRun
+}
+
+type ConfigPostgresSettingsExtensionsCronUpdateInput struct {
+	Timezone            *string `json:"timezone,omitempty" toml:"timezone,omitempty"`
+	IsSetTimezone       bool    `json:"-"`
+	MaxRunningJobs      *int32  `json:"maxRunningJobs,omitempty" toml:"maxRunningJobs,omitempty"`
+	IsSetMaxRunningJobs bool    `json:"-"`
+	LogRun              *string `json:"logRun,omitempty" toml:"logRun,omitempty"`
+	IsSetLogRun         bool    `json:"-"`
+}
+
+func (o *ConfigPostgresSettingsExtensionsCronUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["timezone"]; ok {
+		if v == nil {
+			o.Timezone = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Timezone = &x
+		}
+		o.IsSetTimezone = true
+	}
+	if v, ok := m["maxRunningJobs"]; ok {
+		if v == nil {
+			o.MaxRunningJobs = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x int32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.MaxRunningJobs = &x
+		}
+		o.IsSetMaxRunningJobs = true
+	}
+	if v, ok := m["logRun"]; ok {
+		if v == nil {
+			o.LogRun = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.LogRun = &x
+		}
+		o.IsSetLogRun = true
+	}
+
+	return nil
+}
+
+func (o *ConfigPostgresSettingsExtensionsCronUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigPostgresSettingsExtensionsCronUpdateInput) GetTimezone() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsCronUpdateInput{}
+	}
+	return o.Timezone
+}
+
+func (o *ConfigPostgresSettingsExtensionsCronUpdateInput) GetMaxRunningJobs() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsCronUpdateInput{}
+	}
+	return o.MaxRunningJobs
+}
+
+func (o *ConfigPostgresSettingsExtensionsCronUpdateInput) GetLogRun() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsCronUpdateInput{}
+	}
+	return o.LogRun
+}
+
+func (s *ConfigPostgresSettingsExtensionsCron) Update(v *ConfigPostgresSettingsExtensionsCronUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetTimezone || v.Timezone != nil {
+		s.Timezone = v.Timezone
+	}
+	if v.IsSetMaxRunningJobs || v.MaxRunningJobs != nil {
+		s.MaxRunningJobs = v.MaxRunningJobs
+	}
+	if v.IsSetLogRun || v.LogRun != nil {
+		s.LogRun = v.LogRun
+	}
+}
+
+type ConfigPostgresSettingsExtensionsCronInsertInput struct {
+	Timezone       *string `json:"timezone,omitempty" toml:"timezone,omitempty"`
+	MaxRunningJobs *int32  `json:"maxRunningJobs,omitempty" toml:"maxRunningJobs,omitempty"`
+	LogRun         *string `json:"logRun,omitempty" toml:"logRun,omitempty"`
+}
+
+func (o *ConfigPostgresSettingsExtensionsCronInsertInput) GetTimezone() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsCronInsertInput{}
+	}
+	return o.Timezone
+}
+
+func (o *ConfigPostgresSettingsExtensionsCronInsertInput) GetMaxRunningJobs() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsCronInsertInput{}
+	}
+	return o.MaxRunningJobs
+}
+
+func (o *ConfigPostgresSettingsExtensionsCronInsertInput) GetLogRun() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsCronInsertInput{}
+	}
+	return o.LogRun
+}
+
+func (s *ConfigPostgresSettingsExtensionsCron) Insert(v *ConfigPostgresSettingsExtensionsCronInsertInput) {
+	s.Timezone = v.Timezone
+	s.MaxRunningJobs = v.MaxRunningJobs
+	s.LogRun = v.LogRun
+}
+
+func (s *ConfigPostgresSettingsExtensionsCron) Clone() *ConfigPostgresSettingsExtensionsCron {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigPostgresSettingsExtensionsCron{}
+	v.Timezone = s.Timezone
+	v.MaxRunningJobs = s.MaxRunningJobs
+	v.LogRun = s.LogRun
+	return v
+}
+
+type ConfigPostgresSettingsExtensionsCronComparisonExp struct {
+	And            []*ConfigPostgresSettingsExtensionsCronComparisonExp `json:"_and,omitempty"`
+	Not            *ConfigPostgresSettingsExtensionsCronComparisonExp   `json:"_not,omitempty"`
+	Or             []*ConfigPostgresSettingsExtensionsCronComparisonExp `json:"_or,omitempty"`
+	Timezone       *ConfigStringComparisonExp                           `json:"timezone,omitempty"`
+	MaxRunningJobs *ConfigInt32ComparisonExp                            `json:"maxRunningJobs,omitempty"`
+	LogRun         *ConfigStringComparisonExp                           `json:"logRun,omitempty"`
+}
+
+func (exp *ConfigPostgresSettingsExtensionsCronComparisonExp) Matches(o *ConfigPostgresSettingsExtensionsCron) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsCron{}
+	}
+	if o.Timezone != nil && !exp.Timezone.Matches(*o.Timezone) {
+		return false
+	}
+	if o.MaxRunningJobs != nil && !exp.MaxRunningJobs.Matches(*o.MaxRunningJobs) {
+		return false
+	}
+	if o.LogRun != nil && !exp.LogRun.Matches(*o.LogRun) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigPostgresSettingsExtensionsPgDurable struct {
+	// Maximum concurrent workflow SQL connections.
+	MaxUserConnections *int32 `json:"maxUserConnections" toml:"maxUserConnections"`
+	// Days to retain completed workflow instances.
+	RetentionDays *int32 `json:"retentionDays" toml:"retentionDays"`
+	// Log substituted workflow SQL, which may contain secrets.
+	LogWorkflowSql *string `json:"logWorkflowSql" toml:"logWorkflowSql"`
+}
+
+func (o *ConfigPostgresSettingsExtensionsPgDurable) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.MaxUserConnections != nil {
+		m["maxUserConnections"] = o.MaxUserConnections
+	}
+	if o.RetentionDays != nil {
+		m["retentionDays"] = o.RetentionDays
+	}
+	if o.LogWorkflowSql != nil {
+		m["logWorkflowSql"] = o.LogWorkflowSql
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigPostgresSettingsExtensionsPgDurable) GetMaxUserConnections() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsPgDurable{}
+	}
+	return o.MaxUserConnections
+}
+
+func (o *ConfigPostgresSettingsExtensionsPgDurable) GetRetentionDays() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsPgDurable{}
+	}
+	return o.RetentionDays
+}
+
+func (o *ConfigPostgresSettingsExtensionsPgDurable) GetLogWorkflowSql() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsPgDurable{}
+	}
+	return o.LogWorkflowSql
+}
+
+type ConfigPostgresSettingsExtensionsPgDurableUpdateInput struct {
+	MaxUserConnections      *int32  `json:"maxUserConnections,omitempty" toml:"maxUserConnections,omitempty"`
+	IsSetMaxUserConnections bool    `json:"-"`
+	RetentionDays           *int32  `json:"retentionDays,omitempty" toml:"retentionDays,omitempty"`
+	IsSetRetentionDays      bool    `json:"-"`
+	LogWorkflowSql          *string `json:"logWorkflowSql,omitempty" toml:"logWorkflowSql,omitempty"`
+	IsSetLogWorkflowSql     bool    `json:"-"`
+}
+
+func (o *ConfigPostgresSettingsExtensionsPgDurableUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["maxUserConnections"]; ok {
+		if v == nil {
+			o.MaxUserConnections = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x int32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.MaxUserConnections = &x
+		}
+		o.IsSetMaxUserConnections = true
+	}
+	if v, ok := m["retentionDays"]; ok {
+		if v == nil {
+			o.RetentionDays = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x int32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.RetentionDays = &x
+		}
+		o.IsSetRetentionDays = true
+	}
+	if v, ok := m["logWorkflowSql"]; ok {
+		if v == nil {
+			o.LogWorkflowSql = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.LogWorkflowSql = &x
+		}
+		o.IsSetLogWorkflowSql = true
+	}
+
+	return nil
+}
+
+func (o *ConfigPostgresSettingsExtensionsPgDurableUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigPostgresSettingsExtensionsPgDurableUpdateInput) GetMaxUserConnections() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsPgDurableUpdateInput{}
+	}
+	return o.MaxUserConnections
+}
+
+func (o *ConfigPostgresSettingsExtensionsPgDurableUpdateInput) GetRetentionDays() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsPgDurableUpdateInput{}
+	}
+	return o.RetentionDays
+}
+
+func (o *ConfigPostgresSettingsExtensionsPgDurableUpdateInput) GetLogWorkflowSql() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsPgDurableUpdateInput{}
+	}
+	return o.LogWorkflowSql
+}
+
+func (s *ConfigPostgresSettingsExtensionsPgDurable) Update(v *ConfigPostgresSettingsExtensionsPgDurableUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetMaxUserConnections || v.MaxUserConnections != nil {
+		s.MaxUserConnections = v.MaxUserConnections
+	}
+	if v.IsSetRetentionDays || v.RetentionDays != nil {
+		s.RetentionDays = v.RetentionDays
+	}
+	if v.IsSetLogWorkflowSql || v.LogWorkflowSql != nil {
+		s.LogWorkflowSql = v.LogWorkflowSql
+	}
+}
+
+type ConfigPostgresSettingsExtensionsPgDurableInsertInput struct {
+	MaxUserConnections *int32  `json:"maxUserConnections,omitempty" toml:"maxUserConnections,omitempty"`
+	RetentionDays      *int32  `json:"retentionDays,omitempty" toml:"retentionDays,omitempty"`
+	LogWorkflowSql     *string `json:"logWorkflowSql,omitempty" toml:"logWorkflowSql,omitempty"`
+}
+
+func (o *ConfigPostgresSettingsExtensionsPgDurableInsertInput) GetMaxUserConnections() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsPgDurableInsertInput{}
+	}
+	return o.MaxUserConnections
+}
+
+func (o *ConfigPostgresSettingsExtensionsPgDurableInsertInput) GetRetentionDays() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsPgDurableInsertInput{}
+	}
+	return o.RetentionDays
+}
+
+func (o *ConfigPostgresSettingsExtensionsPgDurableInsertInput) GetLogWorkflowSql() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsPgDurableInsertInput{}
+	}
+	return o.LogWorkflowSql
+}
+
+func (s *ConfigPostgresSettingsExtensionsPgDurable) Insert(v *ConfigPostgresSettingsExtensionsPgDurableInsertInput) {
+	s.MaxUserConnections = v.MaxUserConnections
+	s.RetentionDays = v.RetentionDays
+	s.LogWorkflowSql = v.LogWorkflowSql
+}
+
+func (s *ConfigPostgresSettingsExtensionsPgDurable) Clone() *ConfigPostgresSettingsExtensionsPgDurable {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigPostgresSettingsExtensionsPgDurable{}
+	v.MaxUserConnections = s.MaxUserConnections
+	v.RetentionDays = s.RetentionDays
+	v.LogWorkflowSql = s.LogWorkflowSql
+	return v
+}
+
+type ConfigPostgresSettingsExtensionsPgDurableComparisonExp struct {
+	And                []*ConfigPostgresSettingsExtensionsPgDurableComparisonExp `json:"_and,omitempty"`
+	Not                *ConfigPostgresSettingsExtensionsPgDurableComparisonExp   `json:"_not,omitempty"`
+	Or                 []*ConfigPostgresSettingsExtensionsPgDurableComparisonExp `json:"_or,omitempty"`
+	MaxUserConnections *ConfigInt32ComparisonExp                                 `json:"maxUserConnections,omitempty"`
+	RetentionDays      *ConfigInt32ComparisonExp                                 `json:"retentionDays,omitempty"`
+	LogWorkflowSql     *ConfigStringComparisonExp                                `json:"logWorkflowSql,omitempty"`
+}
+
+func (exp *ConfigPostgresSettingsExtensionsPgDurableComparisonExp) Matches(o *ConfigPostgresSettingsExtensionsPgDurable) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsPgDurable{}
+	}
+	if o.MaxUserConnections != nil && !exp.MaxUserConnections.Matches(*o.MaxUserConnections) {
+		return false
+	}
+	if o.RetentionDays != nil && !exp.RetentionDays.Matches(*o.RetentionDays) {
+		return false
+	}
+	if o.LogWorkflowSql != nil && !exp.LogWorkflowSql.Matches(*o.LogWorkflowSql) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigPostgresSettingsExtensionsPgStatStatements struct {
+	// Maximum distinct statements tracked.
+	Max *int32 `json:"max" toml:"max"`
+	// Which statements to track.
+	Track *string `json:"track" toml:"track"`
+	// Track planning time.
+	TrackPlanning *string `json:"trackPlanning" toml:"trackPlanning"`
+}
+
+func (o *ConfigPostgresSettingsExtensionsPgStatStatements) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.Max != nil {
+		m["max"] = o.Max
+	}
+	if o.Track != nil {
+		m["track"] = o.Track
+	}
+	if o.TrackPlanning != nil {
+		m["trackPlanning"] = o.TrackPlanning
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigPostgresSettingsExtensionsPgStatStatements) GetMax() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsPgStatStatements{}
+	}
+	return o.Max
+}
+
+func (o *ConfigPostgresSettingsExtensionsPgStatStatements) GetTrack() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsPgStatStatements{}
+	}
+	return o.Track
+}
+
+func (o *ConfigPostgresSettingsExtensionsPgStatStatements) GetTrackPlanning() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsPgStatStatements{}
+	}
+	return o.TrackPlanning
+}
+
+type ConfigPostgresSettingsExtensionsPgStatStatementsUpdateInput struct {
+	Max                *int32  `json:"max,omitempty" toml:"max,omitempty"`
+	IsSetMax           bool    `json:"-"`
+	Track              *string `json:"track,omitempty" toml:"track,omitempty"`
+	IsSetTrack         bool    `json:"-"`
+	TrackPlanning      *string `json:"trackPlanning,omitempty" toml:"trackPlanning,omitempty"`
+	IsSetTrackPlanning bool    `json:"-"`
+}
+
+func (o *ConfigPostgresSettingsExtensionsPgStatStatementsUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["max"]; ok {
+		if v == nil {
+			o.Max = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x int32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Max = &x
+		}
+		o.IsSetMax = true
+	}
+	if v, ok := m["track"]; ok {
+		if v == nil {
+			o.Track = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.Track = &x
+		}
+		o.IsSetTrack = true
+	}
+	if v, ok := m["trackPlanning"]; ok {
+		if v == nil {
+			o.TrackPlanning = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.TrackPlanning = &x
+		}
+		o.IsSetTrackPlanning = true
+	}
+
+	return nil
+}
+
+func (o *ConfigPostgresSettingsExtensionsPgStatStatementsUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigPostgresSettingsExtensionsPgStatStatementsUpdateInput) GetMax() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsPgStatStatementsUpdateInput{}
+	}
+	return o.Max
+}
+
+func (o *ConfigPostgresSettingsExtensionsPgStatStatementsUpdateInput) GetTrack() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsPgStatStatementsUpdateInput{}
+	}
+	return o.Track
+}
+
+func (o *ConfigPostgresSettingsExtensionsPgStatStatementsUpdateInput) GetTrackPlanning() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsPgStatStatementsUpdateInput{}
+	}
+	return o.TrackPlanning
+}
+
+func (s *ConfigPostgresSettingsExtensionsPgStatStatements) Update(v *ConfigPostgresSettingsExtensionsPgStatStatementsUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetMax || v.Max != nil {
+		s.Max = v.Max
+	}
+	if v.IsSetTrack || v.Track != nil {
+		s.Track = v.Track
+	}
+	if v.IsSetTrackPlanning || v.TrackPlanning != nil {
+		s.TrackPlanning = v.TrackPlanning
+	}
+}
+
+type ConfigPostgresSettingsExtensionsPgStatStatementsInsertInput struct {
+	Max           *int32  `json:"max,omitempty" toml:"max,omitempty"`
+	Track         *string `json:"track,omitempty" toml:"track,omitempty"`
+	TrackPlanning *string `json:"trackPlanning,omitempty" toml:"trackPlanning,omitempty"`
+}
+
+func (o *ConfigPostgresSettingsExtensionsPgStatStatementsInsertInput) GetMax() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsPgStatStatementsInsertInput{}
+	}
+	return o.Max
+}
+
+func (o *ConfigPostgresSettingsExtensionsPgStatStatementsInsertInput) GetTrack() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsPgStatStatementsInsertInput{}
+	}
+	return o.Track
+}
+
+func (o *ConfigPostgresSettingsExtensionsPgStatStatementsInsertInput) GetTrackPlanning() *string {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsPgStatStatementsInsertInput{}
+	}
+	return o.TrackPlanning
+}
+
+func (s *ConfigPostgresSettingsExtensionsPgStatStatements) Insert(v *ConfigPostgresSettingsExtensionsPgStatStatementsInsertInput) {
+	s.Max = v.Max
+	s.Track = v.Track
+	s.TrackPlanning = v.TrackPlanning
+}
+
+func (s *ConfigPostgresSettingsExtensionsPgStatStatements) Clone() *ConfigPostgresSettingsExtensionsPgStatStatements {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigPostgresSettingsExtensionsPgStatStatements{}
+	v.Max = s.Max
+	v.Track = s.Track
+	v.TrackPlanning = s.TrackPlanning
+	return v
+}
+
+type ConfigPostgresSettingsExtensionsPgStatStatementsComparisonExp struct {
+	And           []*ConfigPostgresSettingsExtensionsPgStatStatementsComparisonExp `json:"_and,omitempty"`
+	Not           *ConfigPostgresSettingsExtensionsPgStatStatementsComparisonExp   `json:"_not,omitempty"`
+	Or            []*ConfigPostgresSettingsExtensionsPgStatStatementsComparisonExp `json:"_or,omitempty"`
+	Max           *ConfigInt32ComparisonExp                                        `json:"max,omitempty"`
+	Track         *ConfigStringComparisonExp                                       `json:"track,omitempty"`
+	TrackPlanning *ConfigStringComparisonExp                                       `json:"trackPlanning,omitempty"`
+}
+
+func (exp *ConfigPostgresSettingsExtensionsPgStatStatementsComparisonExp) Matches(o *ConfigPostgresSettingsExtensionsPgStatStatements) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsPgStatStatements{}
+	}
+	if o.Max != nil && !exp.Max.Matches(*o.Max) {
+		return false
+	}
+	if o.Track != nil && !exp.Track.Matches(*o.Track) {
+		return false
+	}
+	if o.TrackPlanning != nil && !exp.TrackPlanning.Matches(*o.TrackPlanning) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigPostgresSettingsExtensionsTimescaledb struct {
+	// Maximum number of background workers.
+	MaxBackgroundWorkers *int32 `json:"maxBackgroundWorkers" toml:"maxBackgroundWorkers"`
+}
+
+func (o *ConfigPostgresSettingsExtensionsTimescaledb) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.MaxBackgroundWorkers != nil {
+		m["maxBackgroundWorkers"] = o.MaxBackgroundWorkers
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigPostgresSettingsExtensionsTimescaledb) GetMaxBackgroundWorkers() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsTimescaledb{}
+	}
+	return o.MaxBackgroundWorkers
+}
+
+type ConfigPostgresSettingsExtensionsTimescaledbUpdateInput struct {
+	MaxBackgroundWorkers      *int32 `json:"maxBackgroundWorkers,omitempty" toml:"maxBackgroundWorkers,omitempty"`
+	IsSetMaxBackgroundWorkers bool   `json:"-"`
+}
+
+func (o *ConfigPostgresSettingsExtensionsTimescaledbUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["maxBackgroundWorkers"]; ok {
+		if v == nil {
+			o.MaxBackgroundWorkers = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x int32
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.MaxBackgroundWorkers = &x
+		}
+		o.IsSetMaxBackgroundWorkers = true
+	}
+
+	return nil
+}
+
+func (o *ConfigPostgresSettingsExtensionsTimescaledbUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigPostgresSettingsExtensionsTimescaledbUpdateInput) GetMaxBackgroundWorkers() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsTimescaledbUpdateInput{}
+	}
+	return o.MaxBackgroundWorkers
+}
+
+func (s *ConfigPostgresSettingsExtensionsTimescaledb) Update(v *ConfigPostgresSettingsExtensionsTimescaledbUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetMaxBackgroundWorkers || v.MaxBackgroundWorkers != nil {
+		s.MaxBackgroundWorkers = v.MaxBackgroundWorkers
+	}
+}
+
+type ConfigPostgresSettingsExtensionsTimescaledbInsertInput struct {
+	MaxBackgroundWorkers *int32 `json:"maxBackgroundWorkers,omitempty" toml:"maxBackgroundWorkers,omitempty"`
+}
+
+func (o *ConfigPostgresSettingsExtensionsTimescaledbInsertInput) GetMaxBackgroundWorkers() *int32 {
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsTimescaledbInsertInput{}
+	}
+	return o.MaxBackgroundWorkers
+}
+
+func (s *ConfigPostgresSettingsExtensionsTimescaledb) Insert(v *ConfigPostgresSettingsExtensionsTimescaledbInsertInput) {
+	s.MaxBackgroundWorkers = v.MaxBackgroundWorkers
+}
+
+func (s *ConfigPostgresSettingsExtensionsTimescaledb) Clone() *ConfigPostgresSettingsExtensionsTimescaledb {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigPostgresSettingsExtensionsTimescaledb{}
+	v.MaxBackgroundWorkers = s.MaxBackgroundWorkers
+	return v
+}
+
+type ConfigPostgresSettingsExtensionsTimescaledbComparisonExp struct {
+	And                  []*ConfigPostgresSettingsExtensionsTimescaledbComparisonExp `json:"_and,omitempty"`
+	Not                  *ConfigPostgresSettingsExtensionsTimescaledbComparisonExp   `json:"_not,omitempty"`
+	Or                   []*ConfigPostgresSettingsExtensionsTimescaledbComparisonExp `json:"_or,omitempty"`
+	MaxBackgroundWorkers *ConfigInt32ComparisonExp                                   `json:"maxBackgroundWorkers,omitempty"`
+}
+
+func (exp *ConfigPostgresSettingsExtensionsTimescaledbComparisonExp) Matches(o *ConfigPostgresSettingsExtensionsTimescaledb) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigPostgresSettingsExtensionsTimescaledb{}
+	}
+	if o.MaxBackgroundWorkers != nil && !exp.MaxBackgroundWorkers.Matches(*o.MaxBackgroundWorkers) {
 		return false
 	}
 
