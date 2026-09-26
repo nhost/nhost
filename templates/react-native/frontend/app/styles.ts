@@ -1,0 +1,55 @@
+import { StyleSheet } from 'react-native';
+
+export const styles = StyleSheet.create({
+  screen: {
+    flexGrow: 1,
+    padding: 20,
+    gap: 16,
+    backgroundColor: '#ffffff',
+  },
+  title: { fontSize: 26, fontWeight: '700', color: '#0f172a' },
+  muted: { color: '#64748b', lineHeight: 20 },
+  card: {
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 12,
+    padding: 16,
+    gap: 12,
+  },
+  cardTitle: { fontSize: 18, fontWeight: '600', color: '#0f172a' },
+  label: { fontWeight: '600', color: '#0f172a' },
+  input: {
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+  },
+  button: {
+    backgroundColor: '#0f172a',
+    borderRadius: 8,
+    padding: 14,
+    alignItems: 'center',
+  },
+  buttonText: { color: '#ffffff', fontWeight: '600' },
+  linkButton: {
+    backgroundColor: '#0f172a',
+    borderRadius: 8,
+    padding: 14,
+    textAlign: 'center',
+    color: '#ffffff',
+    fontWeight: '600',
+    overflow: 'hidden',
+  },
+  link: { color: '#2563eb', fontWeight: '600', paddingVertical: 8 },
+  error: { color: '#dc2626' },
+  todoRow: {
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
+  },
+  todoText: { color: '#0f172a' },
+  todoDone: { color: '#94a3b8', textDecorationLine: 'line-through' },
+});
