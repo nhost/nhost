@@ -70,25 +70,46 @@ func FromCLI(cmd *cli.Command) *CliEnv {
 		panic(err)
 	}
 
+	path := NewPathStructure(
+		cwd,
+		cmd.String(flagRootFolder),
+		cmd.String(flagDotNhostFolder),
+		cmd.String(flagNhostFolder),
+	)
+
 	return &CliEnv{
-		stdout: cmd.Writer,
-		stderr: cmd.ErrWriter,
-		Path: NewPathStructure(
-			cwd,
-			cmd.String(flagRootFolder),
-			cmd.String(flagDotNhostFolder),
-			cmd.String(flagNhostFolder),
-		),
+		stdout:         cmd.Writer,
+		stderr:         cmd.ErrWriter,
+		Path:           path,
 		authURL:        cmd.String(flagAuthURL),
 		graphqlURL:     cmd.String(flagGraphqlURL),
 		oauth2ClientID: cmd.String(flagOAuth2ClientID),
 		pat:            cmd.String(flagPAT),
 		branch:         cmd.String(flagBranch),
-		projectName:    sanitizeName(cmd.String(flagProjectName)),
+		projectName:    sanitizeName(projectNameFor(cmd, path)),
 		nhclient:       nil,
 		nhpublicclient: nil,
 		localSubdomain: cmd.String(flagLocalSubdomain),
 	}
+}
+
+// projectNameFor resolves --project-name against the project structure the
+// other flags just chose.
+//
+// It cannot be a value source on the flag itself: Flags() runs before the
+// command line is parsed, so such a source can only ever read ./nhost, and a
+// run with --nhost-folder elsewhere would namespace its containers and its
+// Postgres volume from one project while applying the config of another.
+func projectNameFor(cmd *cli.Command, path *PathStructure) string {
+	if cmd.IsSet(flagProjectName) {
+		return cmd.String(flagProjectName)
+	}
+
+	if name, ok := (&projectNameFileSource{path: path.ProjectNameFile()}).Lookup(); ok {
+		return name
+	}
+
+	return cmd.String(flagProjectName)
 }
 
 func (ce *CliEnv) ProjectName() string {

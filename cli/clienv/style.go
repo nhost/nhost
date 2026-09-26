@@ -4,6 +4,7 @@ package clienv
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 	"syscall"
@@ -40,6 +41,13 @@ var promptMessage = lipgloss.NewStyle().
 	Foreground(ANSIColorCyan).
 	Bold(true).
 	Render
+
+// Stdout is the writer commands print to. Callers that need byte-level
+// control over what reaches the terminal, like the escape sequences an
+// interactive picker writes, use it instead of the Println helpers.
+func (ce *CliEnv) Stdout() io.Writer {
+	return ce.stdout
+}
 
 func (ce *CliEnv) Println(msg string, a ...any) {
 	if _, err := fmt.Fprintln(ce.stdout, fmt.Sprintf(msg, a...)); err != nil {
