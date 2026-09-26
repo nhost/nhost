@@ -54,7 +54,17 @@ backup-fetch)
 	;;
 esac
 EOF
-chmod +x "$test_dir/bin/wal-g"
+cat >"$test_dir/bin/date" <<'EOF'
+#!/bin/sh
+set -eu
+case "$*" in
+'-u +%s') echo 1000 ;;
+'-u -d 2099-01-02 03:04:05+00 +%s') echo 2000 ;;
+'-u -d 2026-01-02 03:04:05+00 +%s') echo 500 ;;
+*) exit 1 ;;
+esac
+EOF
+chmod +x "$test_dir/bin/wal-g" "$test_dir/bin/date"
 
 export PATH="$test_dir/bin:$PATH"
 export TMPDIR="$test_dir"
@@ -136,6 +146,43 @@ backup-list
 backup-fetch $PGDATA LATEST
 EOF
 diff -u "$test_dir/expected-trace" "$WALG_TRACE"
+
+# Importing to another project uses a future timestamp to replay available WAL.
+# Do not configure an unreachable recovery_target_time or gate on wal-show.
+reset_pgdata
+export PITR_BASEBACKUP=LATEST PITR_TARGET_ACTION=promote
+export PITR_RECOVERY_TARGET='2099-01-02 03:04:05+00'
+pitr_restore
+[ -f "$PGDATA/recovery.signal" ]
+if grep -Eq '^recovery_target_time[[:space:]]*=' "$PGDATA/postgresql.auto.conf"; then
+	echo "future target configured recovery_target_time" >&2
+	exit 1
+fi
+if grep -q pitr_recover "$PGDATA/postgresql.auto.conf"; then
+	echo "unexpected pitr_recover in restore config" >&2
+	exit 1
+fi
+grep -Fq "restore_command = '/bin/wal-fetch.sh" "$PGDATA/postgresql.auto.conf"
+cat >"$test_dir/expected-trace" <<EOF
+backup-list
+backup-fetch $PGDATA LATEST
+EOF
+diff -u "$test_dir/expected-trace" "$WALG_TRACE"
+
+# Timestamp recovery remains strict for past targets and shutdown actions.
+reset_pgdata
+export PITR_RECOVERY_TARGET='2026-01-02 03:04:05+00'
+pitr_restore
+grep -Fq "recovery_target_time = '$PITR_RECOVERY_TARGET'" "$PGDATA/postgresql.auto.conf"
+cat >"$test_dir/expected-trace" <<EOF
+backup-list
+backup-fetch $PGDATA LATEST
+EOF
+diff -u "$test_dir/expected-trace" "$WALG_TRACE"
+reset_pgdata
+export PITR_RECOVERY_TARGET='2099-01-02 03:04:05+00' PITR_TARGET_ACTION=shutdown
+pitr_restore
+grep -Fq "recovery_target_time = '$PITR_RECOVERY_TARGET'" "$PGDATA/postgresql.auto.conf"
 
 # Preflight cannot make a direct restore atomic. A fetch failure after the
 # successful listing is destructive and can leave a partial PGDATA.

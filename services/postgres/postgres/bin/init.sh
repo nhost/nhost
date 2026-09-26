@@ -151,8 +151,28 @@ pitr_preflight() {
 	fi
 }
 
+# Import jobs request a time in the future to mean "replay available WAL".
+# PostgreSQL cannot reach that time and fails recovery at the end of the archive.
+# Only use end-of-WAL recovery for promotion: other PITR targets remain strict.
+pitr_restore_to_end_of_wal() {
+	[ "$PITR_TARGET_ACTION" = promote ] || return 1
+
+	# BusyBox date accepts SQL-style timestamps, but not ISO T/Z or fractional
+	# seconds. If it cannot parse the target, leave interpretation to PostgreSQL.
+	date_target=$(printf '%s\n' "$PITR_RECOVERY_TARGET" |
+		sed -E 's/T/ /; s/\.[0-9]+([+-][0-9][0-9](:?[0-9][0-9])?|Z)?$/\1/; s/Z$/+00:00/')
+	target_seconds=$(date -u -d "$date_target" +%s 2>/dev/null) || return 1
+	now_seconds=$(date -u +%s) || return 1
+	[ "$target_seconds" -ge "$now_seconds" ]
+}
+
 pitr_restore() {
 	pitr_preflight || return $?
+	PITR_RESTORE_TO_END_OF_WAL=false
+	if pitr_restore_to_end_of_wal; then
+		PITR_RESTORE_TO_END_OF_WAL=true
+		echo "pitr_recover: future target $PITR_RECOVERY_TARGET; replaying available WAL"
+	fi
 
 	# The preflight catches unreachable storage and unknown selectors, but the
 	# direct fetch is intentionally not atomic: a fetch failure can leave a
@@ -168,13 +188,19 @@ pitr_restore() {
 		return "$status"
 	fi
 	echo "pitr_recover: finished fetching  $PITR_BASEBACKUP"
-	echo "pitr_recover: setting recovery target to $PITR_RECOVERY_TARGET"
+	if [ "$PITR_RESTORE_TO_END_OF_WAL" = false ]; then
+		echo "pitr_recover: setting recovery target to $PITR_RECOVERY_TARGET"
+	else
+		echo "pitr_recover: promoting at end of available WAL (not at $PITR_RECOVERY_TARGET)"
+	fi
 	rm -f "$PGDATA/postgresql.auto.conf" || return 1
 	{
-		echo "recovery_target_time = '$PITR_RECOVERY_TARGET'"
+		if [ "$PITR_RESTORE_TO_END_OF_WAL" = false ]; then
+			echo "recovery_target_time = '$PITR_RECOVERY_TARGET'"
+		fi
 		echo "recovery_target_action = '$PITR_TARGET_ACTION'"
 		echo "recovery_target_timeline = '$PITR_TARGET_TIMELINE'"
-		echo "restore_command = 'wal-g wal-fetch \"%f\" \"%p\"'"
+		echo "restore_command = '/bin/wal-fetch.sh \"%f\" \"%p\"'"
 	} >"$PGDATA/postgresql.auto.conf" || return 1
 	touch "$PGDATA/recovery.signal"
 }
