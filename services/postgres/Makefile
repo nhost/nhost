@@ -45,8 +45,13 @@ _check-pre: check-pitr-container check-graceful-shutdown check-extension-upgrade
 
 .PHONY: check-docker
 check-docker:  ## Run checks in the development environment
+	# The pg_durable HTTP worker must be able to verify HTTPS certificates.
+	docker exec -it postgres-tests sh -c 'test -s "$${SSL_CERT_FILE:?}"'
 	docker exec -it postgres-tests psql -U postgres \
 		-f /tests/plugins.sql --no-psqlrc -1 -d local -v "ON_ERROR_STOP=1"
+	# Do not add -1: the readiness procedure commits between worker-state polls.
+	docker exec -it postgres-tests psql -U postgres \
+		-f /tests/pg_durable_http.sql --no-psqlrc -d local -v "ON_ERROR_STOP=1"
 
 
 .PHONY: check-pitr-container

@@ -148,6 +148,7 @@ in
         "LANGUAGE=en_US.UTF-8"
         "LANG=en_US.UTF-8"
         "LC_ALL=en_US.UTF-8"
+        "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
         "PGDATA=/var/lib/postgresql/data/pgdata"
         "POSTGRES_DB=local"
         "POSTGRES_USER=postgres"
