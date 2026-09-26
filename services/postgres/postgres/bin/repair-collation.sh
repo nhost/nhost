@@ -56,28 +56,61 @@ SQL
 	fi
 }
 
+# shellcheck disable=SC2329 # Invoked by the signal and exit traps.
+cleanup_repair() {
+	repair_exit_code=$?
+	trap - EXIT HUP INT TERM
+
+	if [ -n "${repair_pid:-}" ]; then
+		kill -TERM "$repair_pid" 2>/dev/null || true
+		wait "$repair_pid" 2>/dev/null || true
+	fi
+	rm -f "${database_file:-}"
+
+	exit "$repair_exit_code"
+}
+
+wait_for_repair() {
+	if wait "$repair_pid"; then
+		repair_exit_code=0
+	else
+		repair_exit_code=$?
+	fi
+	repair_pid=
+
+	return "$repair_exit_code"
+}
+
 repair_all_databases() {
 	database_file=$(mktemp "${TMPDIR:-/tmp/postgresql}/collation-databases.XXXXXX")
-	trap 'rm -f "$database_file"' EXIT HUP INT TERM
+	repair_pid=
+	trap cleanup_repair EXIT
+	trap 'exit 129' HUP
+	trap 'exit 130' INT
+	trap 'exit 143' TERM
 
-	if ! psql -X -q -A -t -0 -b -U postgres -d postgres -v ON_ERROR_STOP=1 \
+	psql -X -q -A -t -0 -b -U postgres -d postgres -v ON_ERROR_STOP=1 \
 		-c '
 SELECT datname
 FROM pg_database
 WHERE datallowconn
   AND datcollversion IS DISTINCT FROM pg_database_collation_actual_version(oid)
 ORDER BY datname;
-' >"$database_file"; then
+' >"$database_file" &
+	repair_pid=$!
+	if ! wait_for_repair; then
 		echo "Failed to list databases with collation version mismatches" >&2
 		return 1
 	fi
 
-	if [ -s "$database_file" ] && ! xargs -0 -n 1 "$0" --database <"$database_file"; then
-		echo "Failed to repair database collation versions" >&2
-		return 1
+	if [ -s "$database_file" ]; then
+		xargs -0 -n 1 "$0" --database <"$database_file" &
+		repair_pid=$!
+		if ! wait_for_repair; then
+			echo "Failed to repair database collation versions" >&2
+			return 1
+		fi
 	fi
-
-	rm -f "$database_file"
 }
 
 case ${1:-} in

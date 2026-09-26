@@ -2,6 +2,7 @@
 
 ### main
 
+- Improved graceful shutdown during database startup and point-in-time recovery.
 - Improved startup and PITR recovery safety and error handling
 - Reindex before refreshing changed collation versions; keep PostgreSQL running if setup or repair fails
 - Updated PostgreSQL 17 overlay pin to 17.11

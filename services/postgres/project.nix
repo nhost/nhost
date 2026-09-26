@@ -55,6 +55,8 @@ in
           ${src}/postgres/bin/init.sh
         sh ${src}/tests/pitr-restore.sh \
           ${src}/postgres/bin/init.sh
+        sh ${src}/tests/wal-fetch.sh \
+          ${src}/postgres/bin/wal-fetch.sh
         sh ${src}/tests/startup-scripts.sh \
           ${src}/postgres/bin/init.sh
         sh ${src}/tests/repair-collation.sh \
