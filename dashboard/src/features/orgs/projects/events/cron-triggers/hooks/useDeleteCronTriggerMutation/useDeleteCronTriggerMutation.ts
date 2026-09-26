@@ -2,9 +2,12 @@ import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
+import type { SuccessResponse } from '@/utils/hasura-api/generated/schemas';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 import deleteCronTrigger from './deleteCronTrigger';
+import deleteCronTriggerMigration from './deleteCronTriggerMigration';
 
 export interface DeleteCronTriggerMutationVariables {
   /**
@@ -18,7 +21,7 @@ export interface UseDeleteCronTriggerMutationOptions {
    * Props passed to the underlying mutation hook.
    */
   mutationOptions?: MutationOptions<
-    MetadataOperation200,
+    MetadataOperation200 | SuccessResponse,
     unknown,
     DeleteCronTriggerMutationVariables
   >;
@@ -35,10 +38,11 @@ export default function useDeleteCronTriggerMutation({
 }: UseDeleteCronTriggerMutationOptions = {}) {
   const { project } = useProject();
   const adminApi = useAdminApiTarget();
+  const isPlatform = useIsPlatform();
   const queryClient = useQueryClient();
 
   const mutation = useMutation<
-    MetadataOperation200,
+    MetadataOperation200 | SuccessResponse,
     unknown,
     DeleteCronTriggerMutationVariables
   >(
@@ -47,7 +51,10 @@ export default function useDeleteCronTriggerMutation({
 
       const adminSecret = adminApi!.adminSecret;
 
-      return deleteCronTrigger({
+      const mutationFn = isPlatform
+        ? deleteCronTrigger
+        : deleteCronTriggerMigration;
+      return mutationFn({
         args: {
           name: variables.cronTriggerName,
         },

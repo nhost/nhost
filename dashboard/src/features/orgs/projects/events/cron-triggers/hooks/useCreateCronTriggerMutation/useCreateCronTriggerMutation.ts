@@ -2,10 +2,15 @@ import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import type { CreateCronTriggerArgs } from '@/utils/hasura-api/generated/schemas';
+import type {
+  CreateCronTriggerArgs,
+  SuccessResponse,
+} from '@/utils/hasura-api/generated/schemas';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
 import createCronTrigger from './createCronTrigger';
+import createCronTriggerMigration from './createCronTriggerMigration';
 
 export interface CreateCronTriggerMutationVariables {
   /**
@@ -19,7 +24,7 @@ export interface UseCreateCronTriggerMutationOptions {
    * Props passed to the underlying mutation hook.
    */
   mutationOptions?: MutationOptions<
-    MetadataOperation200,
+    MetadataOperation200 | SuccessResponse,
     unknown,
     CreateCronTriggerMutationVariables
   >;
@@ -36,10 +41,11 @@ export default function useCreateCronTriggerMutation({
 }: UseCreateCronTriggerMutationOptions = {}) {
   const { project } = useProject();
   const adminApi = useAdminApiTarget();
+  const isPlatform = useIsPlatform();
   const queryClient = useQueryClient();
 
   const mutation = useMutation<
-    MetadataOperation200,
+    MetadataOperation200 | SuccessResponse,
     unknown,
     CreateCronTriggerMutationVariables
   >(
@@ -48,7 +54,10 @@ export default function useCreateCronTriggerMutation({
 
       const adminSecret = adminApi!.adminSecret;
 
-      return createCronTrigger({
+      const mutationFn = isPlatform
+        ? createCronTrigger
+        : createCronTriggerMigration;
+      return mutationFn({
         args: variables.args,
         appUrl,
         adminSecret,

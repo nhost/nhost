@@ -8,22 +8,35 @@
 import type { AddComputedFieldStep } from './addComputedFieldStep';
 import type { AddRemoteSchemaPermissionsStep } from './addRemoteSchemaPermissionsStep';
 import type { AddRemoteSchemaStep } from './addRemoteSchemaStep';
+import type { ClearMetadataOperation } from './clearMetadataOperation';
 import type { CreateActionPermissionStep } from './createActionPermissionStep';
 import type { CreateActionStep } from './createActionStep';
+import type { CreateArrayRelationshipStep } from './createArrayRelationshipStep';
+import type { CreateCronTriggerStep } from './createCronTriggerStep';
 import type { CreateEventTriggerStep } from './createEventTriggerStep';
 import type { CreateFunctionPermissionStep } from './createFunctionPermissionStep';
 import type { CreateLogicalModelSelectPermissionStep } from './createLogicalModelSelectPermissionStep';
+import type { CreateObjectRelationshipStep } from './createObjectRelationshipStep';
+import type { CreateRemoteRelationshipStep } from './createRemoteRelationshipStep';
+import type { DeleteCronTriggerOperation } from './deleteCronTriggerOperation';
 import type { DeleteEventTriggerStep } from './deleteEventTriggerStep';
+import type { DeleteRemoteRelationshipStep } from './deleteRemoteRelationshipStep';
+import type { DeleteRemoteSchemaRemoteRelationshipOperation } from './deleteRemoteSchemaRemoteRelationshipOperation';
 import type { DropActionOperation } from './dropActionOperation';
 import type { DropActionPermissionStep } from './dropActionPermissionStep';
 import type { DropComputedFieldStep } from './dropComputedFieldStep';
 import type { DropFunctionPermissionStep } from './dropFunctionPermissionStep';
+import type { DropInconsistentMetadataOperation } from './dropInconsistentMetadataOperation';
 import type { DropLogicalModelSelectPermissionStep } from './dropLogicalModelSelectPermissionStep';
+import type { DropRelationshipStep } from './dropRelationshipStep';
 import type { DropRemoteSchemaPermissionsStep } from './dropRemoteSchemaPermissionsStep';
 import type { NativeQueryAtomicMigrationStep } from './nativeQueryAtomicMigrationStep';
+import type { RemoteSchemaRemoteRelationshipOperation } from './remoteSchemaRemoteRelationshipOperation';
 import type { RemoveRemoteSchemaStep } from './removeRemoteSchemaStep';
+import type { RenameRelationshipStep } from './renameRelationshipStep';
 import type { ReplaceMetadataOperation } from './replaceMetadataOperation';
 import type { SetCustomTypesStep } from './setCustomTypesStep';
+import type { SetFunctionCustomizationOperation } from './setFunctionCustomizationOperation';
 import type { SetTableCustomizationStep } from './setTableCustomizationStep';
 import type { SetTableIsEnumStep } from './setTableIsEnumStep';
 import type { TrackFunctionStep } from './trackFunctionStep';
@@ -39,6 +52,19 @@ import type { UpdateRemoteSchemaStep } from './updateRemoteSchemaStep';
 
 export type MigrationStep =
   | ReplaceMetadataOperation
+  | ClearMetadataOperation
+  | DropInconsistentMetadataOperation
+  | CreateCronTriggerStep
+  | DeleteCronTriggerOperation
+  | CreateObjectRelationshipStep
+  | CreateArrayRelationshipStep
+  | DropRelationshipStep
+  | RenameRelationshipStep
+  | CreateRemoteRelationshipStep
+  | DeleteRemoteRelationshipStep
+  | SetFunctionCustomizationOperation
+  | RemoteSchemaRemoteRelationshipOperation
+  | DeleteRemoteSchemaRemoteRelationshipOperation
   | SetTableIsEnumStep
   | SetTableCustomizationStep
   | AddRemoteSchemaPermissionsStep

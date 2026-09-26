@@ -82,6 +82,7 @@ When creating a new feature page, check whether it needs to be added to:
 
 ### Helpers and references
 
+- Metadata mutations must branch on `useIsPlatform()`: platform calls use `metadataOperation`, local calls use a sibling `*Migration.ts` with `executeMigration` so the CLI exports changes to `nhost/metadata/`. Metadata-only requests can use `down: []`; the CLI stores metadata as exported files, not SQL migrations. Keep metadata reads, reloads, and event execution/history operations on their existing endpoints.
 - Use `execPromiseWithErrorToast` from `@/features/orgs/utils/execPromiseWithErrorToast` for mutations / async operations that should show loading/success/error toasts. It takes a promise callback and `{ loadingMessage, successMessage, errorMessage }`.
 - When using table data hooks, use `useTableSchemaQuery` if you only need column definitions or foreign key relations (no row data). Use `useTableQuery` only when you also need row data (e.g. for a data grid).
 - For mutations, use `isPending` (not the deprecated `isLoading`) for status checks.

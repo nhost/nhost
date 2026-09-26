@@ -2,12 +2,17 @@ import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas';
+import type {
+  MetadataOperation200,
+  SuccessResponse,
+} from '@/utils/hasura-api/generated/schemas';
 import dropInconsistentMetadata from './dropInconsistentMetadata';
+import dropInconsistentMetadataMigration from './dropInconsistentMetadataMigration';
 
 export type UseDropInconsistentMetadataMutationOptions = MutationOptions<
-  MetadataOperation200,
+  MetadataOperation200 | SuccessResponse,
   unknown
 >;
 
@@ -22,13 +27,17 @@ export default function useDropInconsistentMetadataMutation(
 ) {
   const { project } = useProject();
   const adminApi = useAdminApiTarget();
+  const isPlatform = useIsPlatform();
   const queryClient = useQueryClient();
 
   const mutation = useMutation(
     () => {
       const appUrl = adminApi!.appUrl;
 
-      return dropInconsistentMetadata({
+      const mutationFn = isPlatform
+        ? dropInconsistentMetadata
+        : dropInconsistentMetadataMigration;
+      return mutationFn({
         appUrl,
         adminSecret: adminApi!.adminSecret,
       });

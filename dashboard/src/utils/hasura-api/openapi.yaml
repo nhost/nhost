@@ -1737,6 +1737,20 @@ components:
     MigrationStep:
       oneOf:
         - $ref: "#/components/schemas/ReplaceMetadataOperation"
+        - $ref: "#/components/schemas/ClearMetadataOperation"
+        - $ref: "#/components/schemas/DropInconsistentMetadataOperation"
+        - $ref: "#/components/schemas/CreateCronTriggerStep"
+        - $ref: "#/components/schemas/DeleteCronTriggerOperation"
+        - $ref: "#/components/schemas/CreateObjectRelationshipStep"
+        - $ref: "#/components/schemas/CreateArrayRelationshipStep"
+        - $ref: "#/components/schemas/DropRelationshipStep"
+        - $ref: "#/components/schemas/RenameRelationshipStep"
+        - $ref: "#/components/schemas/CreateRemoteRelationshipStep"
+        - $ref: "#/components/schemas/DeleteRemoteRelationshipStep"
+        - $ref: "#/components/schemas/SetFunctionCustomizationOperation"
+        - $ref: "#/components/schemas/RemoteSchemaRemoteRelationshipOperation"
+        - $ref:
+            "#/components/schemas/DeleteRemoteSchemaRemoteRelationshipOperation"
         - $ref: "#/components/schemas/SetTableIsEnumStep"
         - $ref: "#/components/schemas/SetTableCustomizationStep"
         - $ref: "#/components/schemas/AddRemoteSchemaPermissionsStep"
