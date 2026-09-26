@@ -336,6 +336,8 @@ import (
 		maintenanceWorkMem: string | *"64MB"
 		// Target fraction of the checkpoint interval over which to spread writes.
 		checkpointCompletionTarget: number | *0.9
+		// Maximum time between automatic checkpoints (PostgreSQL accepts time units).
+		checkpointTimeout: string | *"5min"
 		// Memory used for write-ahead log buffers.
 		walBuffers: string | *"-1"
 		// Compress full-page images in the write-ahead log.

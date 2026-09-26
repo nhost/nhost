@@ -104,19 +104,19 @@ MAX_REPLICATION_SLOTS=10
 TRACK_IO_TIMING=off
 ```
 
-### Additional image settings
+### Additional configurable settings
 
-The following settings are configurable through image environment variables,
-**not** through first-class Nhost Cloud project settings yet. The entrypoint
-renders `/tmp/postgresql/postgresql.conf` from these variables at startup;
-changes require a container restart (and PostgreSQL applies some settings only
-at restart). Keep image defaults unless the workload needs a different value.
+The following image environment variables are also configurable in Nhost Cloud
+under `postgres.settings` (or `postgres.settings.extensions` for extension
+settings). The entrypoint renders `/tmp/postgresql/postgresql.conf` from these
+variables at startup; changes require a container restart. Keep image defaults
+unless the workload needs a different value.
 
 | Environment variable | Default | PostgreSQL setting / purpose |
 | --- | --- | --- |
 | `WAL_COMPRESSION` | `off` | `wal_compression`: reduce WAL volume at a CPU cost; confirm the chosen codec is supported by the image. |
 | `MAX_SLOT_WAL_KEEP_SIZE` | `-1` | `max_slot_wal_keep_size`: limit WAL retained by replication slots (in MB); a finite limit may invalidate a lagging slot/replica. |
-| `CHECKPOINT_TIMEOUT` | `5min` | `checkpoint_timeout`: time between automatic checkpoints. Already an image override; not a Cloud setting. |
+| `CHECKPOINT_TIMEOUT` | `5min` | `checkpoint_timeout`: maximum time between automatic checkpoints. |
 | `LOG_MIN_DURATION_STATEMENT` | `-1` | `log_min_duration_statement`: log slow statements; `-1` disables (milliseconds if unitless). |
 | `LOG_AUTOVACUUM_MIN_DURATION` | `10min` | `log_autovacuum_min_duration`: log slow autovacuum activity; `-1` disables. |
 | `LOG_TEMP_FILES` | `-1` | `log_temp_files`: log temporary files over a threshold; `-1` disables (kilobytes if unitless). |
@@ -132,7 +132,9 @@ at restart). Keep image defaults unless the workload needs a different value.
 | `PG_DURABLE_LOG_WORKFLOW_SQL` | `off` | `pg_durable.log_workflow_sql`: substituted SQL may contain secrets; opt in only when needed. Overrides the extension's `on` default. |
 | `TIMESCALEDB_MAX_BACKGROUND_WORKERS` | `16` | `timescaledb.max_background_workers`: TimescaleDB job-worker cap; budget against `MAX_WORKER_PROCESSES` and other extensions. |
 
-Preloading an extension does not run `CREATE EXTENSION`. For pg_squeeze on
+Cloud's default `sharedPreloadLibraries` list omits `pg_durable` and `pg_ivm`;
+include them explicitly if your project uses them. Preloading an extension does
+not run `CREATE EXTENSION`. For pg_squeeze on
 PostgreSQL 18, set `WAL_LEVEL=logical` before using its logical-decoding based
 squeeze operations; the image defaults to `replica`.
 

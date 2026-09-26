@@ -201,6 +201,7 @@ func PostgresEnv( //nolint:funlen
 		}...)
 
 		settings := config.GetPostgres().GetSettings()
+		env = appendPostgresSetting(env, "CHECKPOINT_TIMEOUT", settings.GetCheckpointTimeout())
 		env = appendPostgresSetting(env, "WAL_COMPRESSION", settings.GetWalCompression())
 		env = appendPostgresSetting(env, "MAX_SLOT_WAL_KEEP_SIZE", settings.GetMaxSlotWalKeepSize())
 		env = appendPostgresSetting(

@@ -21,6 +21,7 @@ sharedBuffers = '128MB'
 effectiveCacheSize = '4GB'
 maintenanceWorkMem = '64MB'
 checkpointCompletionTarget = 0.9
+checkpointTimeout = '5min'
 walBuffers = '-1'
 walCompression = 'off'
 defaultStatisticsTarget = 100
@@ -82,8 +83,8 @@ maxBackgroundWorkers = 16
   not install its extension in a database; see [available extensions](/products/database/extensions).
 - **WAL and replication:** A finite `maxSlotWalKeepSize` can invalidate a
   lagging replication slot. `archiveTimeout` is measured in seconds.
-  `CHECKPOINT_TIMEOUT` is an image environment variable; Cloud exposes
-  `checkpointCompletionTarget`, not `checkpointTimeout`.
+  `checkpointTimeout` sets the maximum interval between automatic checkpoints;
+  `checkpointCompletionTarget` controls how much of that interval a checkpoint uses.
 - **Logging:** Slow-statement logs may contain sensitive SQL.
   `extensions.pgDurable.logWorkflowSql` defaults to `off` because substituted
   workflow SQL may contain secrets.

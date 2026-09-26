@@ -482,6 +482,7 @@ Configuration for postgres service
 | `effectiveCacheSize` | `string` | `"4GB"` | Planner estimate of memory available for disk caching. |
 | `maintenanceWorkMem` | `string` | `"64MB"` | Memory used for maintenance operations such as VACUUM. |
 | `checkpointCompletionTarget` | `number` | `0.9` | Target fraction of the checkpoint interval over which to spread writes. |
+| `checkpointTimeout` | `string` | `"5min"` | Maximum time between automatic checkpoints (PostgreSQL accepts time units). |
 | `walBuffers` | `string` | `"-1"` | Memory used for write-ahead log buffers. |
 | `walCompression` | `string` | `"off"` | Compress full-page images in the write-ahead log. |
 | `defaultStatisticsTarget` | `int32` | `100` | Default sample size for table statistics. |
