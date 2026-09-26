@@ -82,7 +82,7 @@ func generateStreamField(
 				),
 			},
 			{
-				Name:        "where",
+				Name:        where,
 				Description: "filter the rows returned",
 				Type:        graph.NewNamedType(customTableName + "_bool_exp"),
 			},

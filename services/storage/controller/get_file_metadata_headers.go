@@ -34,7 +34,7 @@ func (ctrl *Controller) getFileMetadata(
 	bucketMetadata, apiErr := ctrl.metadataStorage.GetBucketByID(
 		ctx,
 		fileMetadata.BucketId,
-		http.Header{"x-hasura-admin-secret": []string{ctrl.hasuraAdminSecret}},
+		http.Header{xHasuraAdminSecret: []string{ctrl.hasuraAdminSecret}},
 	)
 	if apiErr != nil {
 		return api.FileMetadata{}, BucketMetadata{}, apiErr

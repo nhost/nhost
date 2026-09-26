@@ -115,3 +115,8 @@ func New(
 		logger,
 	}
 }
+
+// Repeated header names.
+const (
+	xHasuraAdminSecret = "x-hasura-admin-secret" //nolint:gosec // G101: HTTP header name, not a credential
+)

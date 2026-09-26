@@ -393,8 +393,8 @@ func (r *renamer) rewriteRoots(s *graph.Schema) {
 		name *string
 	}{
 		{kind: "Query", name: s.QueryType},
-		{kind: "Mutation", name: s.MutationType},
-		{kind: "Subscription", name: s.SubscriptionType},
+		{kind: mutation, name: s.MutationType},
+		{kind: subscription, name: s.SubscriptionType},
 	}
 
 	for _, root := range roots {
@@ -480,3 +480,9 @@ func (r *renamer) rewriteDefinitionNames(s *graph.Schema, rootNames map[string]s
 		t.Name = r.typeName(t.Name)
 	}
 }
+
+// GraphQL root operation type names.
+const (
+	mutation     = "Mutation"
+	subscription = "Subscription"
+)

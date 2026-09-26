@@ -113,7 +113,7 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 			},
 			RateLimit: &model.ConfigRateLimit{
 				Limit:    100,
-				Interval: "15m",
+				Interval: defaultInterval,
 			},
 		},
 		Functions: &model.ConfigFunctions{
@@ -136,7 +136,7 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 			},
 			RateLimit: &model.ConfigRateLimit{
 				Limit:    100,
-				Interval: "15m",
+				Interval: defaultInterval,
 			},
 		},
 		Auth: &model.ConfigAuth{
@@ -168,9 +168,9 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 				Autoscaler: nil,
 			},
 			Redirections: &model.ConfigAuthRedirections{
-				ClientUrl: new("https://example.com"),
+				ClientUrl: new(exampleURL),
 				AllowedUrls: []string{
-					"https://example.com",
+					exampleURL,
 				},
 			},
 			SignUp: &model.ConfigAuthSignUp{
@@ -245,7 +245,7 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 						ClientId:   new("clientid"),
 						KeyId:      new("keyid"),
 						TeamId:     new("teamid"),
-						Scope:      []string{"scope"},
+						Scope:      []string{scope},
 						PrivateKey: new("privatekey"),
 						Audience:   new("audience"),
 					},
@@ -263,7 +263,7 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 					Discord: &model.ConfigStandardOauthProviderWithScope{
 						Enabled:      new(true),
 						ClientId:     new("clientid"),
-						Scope:        []string{"scope"},
+						Scope:        []string{scope},
 						ClientSecret: new("clientsecret"),
 						Audience:     new("audience"),
 					},
@@ -276,56 +276,56 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 					Facebook: &model.ConfigStandardOauthProviderWithScope{
 						Enabled:      new(true),
 						ClientId:     new("clientid"),
-						Scope:        []string{"scope"},
+						Scope:        []string{scope},
 						ClientSecret: new("clientsecret"),
 						Audience:     new("audience"),
 					},
 					Github: &model.ConfigStandardOauthProviderWithScope{
 						Enabled:      new(true),
 						ClientId:     new("clientid"),
-						Scope:        []string{"scope"},
+						Scope:        []string{scope},
 						ClientSecret: new("clientsecret"),
 						Audience:     new("audience"),
 					},
 					Gitlab: &model.ConfigStandardOauthProviderWithScope{
 						Enabled:      new(true),
 						ClientId:     new("clientid"),
-						Scope:        []string{"scope"},
+						Scope:        []string{scope},
 						ClientSecret: new("clientsecret"),
 						Audience:     new("audience"),
 					},
 					Google: &model.ConfigStandardOauthProviderWithScope{
 						Enabled:      new(true),
 						ClientId:     new("clientid"),
-						Scope:        []string{"scope"},
+						Scope:        []string{scope},
 						ClientSecret: new("clientsecret"),
 						Audience:     new("audience"),
 					},
 					Linkedin: &model.ConfigStandardOauthProviderWithScope{
 						Enabled:      new(true),
 						ClientId:     new("clientid"),
-						Scope:        []string{"scope"},
+						Scope:        []string{scope},
 						ClientSecret: new("clientsecret"),
 						Audience:     new("audience"),
 					},
 					Spotify: &model.ConfigStandardOauthProviderWithScope{
 						Enabled:      new(true),
 						ClientId:     new("clientid"),
-						Scope:        []string{"scope"},
+						Scope:        []string{scope},
 						ClientSecret: new("clientsecret"),
 						Audience:     new("audience"),
 					},
 					Strava: &model.ConfigStandardOauthProviderWithScope{
 						Enabled:      new(true),
 						ClientId:     new("clientid"),
-						Scope:        []string{"scope"},
+						Scope:        []string{scope},
 						ClientSecret: new("clientsecret"),
 						Audience:     new("audience"),
 					},
 					Twitch: &model.ConfigStandardOauthProviderWithScope{
 						Enabled:      new(true),
 						ClientId:     new("clientid"),
-						Scope:        []string{"scope"},
+						Scope:        []string{scope},
 						ClientSecret: new("clientsecret"),
 						Audience:     new("audience"),
 					},
@@ -337,7 +337,7 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 					Windowslive: &model.ConfigStandardOauthProviderWithScope{
 						Enabled:      new(true),
 						ClientId:     new("clientid"),
-						Scope:        []string{"scope"},
+						Scope:        []string{scope},
 						ClientSecret: new("clientsecret"),
 						Audience:     new("audience"),
 					},
@@ -355,7 +355,7 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 						Id:   new("example.com"),
 						Name: new("name"),
 						Origins: []string{
-							"https://example.com",
+							exampleURL,
 						},
 					},
 					Attestation: &model.ConfigAuthMethodWebauthnAttestation{
@@ -386,7 +386,7 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 				},
 				Global: &model.ConfigRateLimit{
 					Limit:    100,
-					Interval: "15m",
+					Interval: defaultInterval,
 				},
 				Oauth2Server: &model.ConfigRateLimit{
 					Limit:    100,
@@ -487,7 +487,7 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 			},
 			RateLimit: &model.ConfigRateLimit{
 				Limit:    100,
-				Interval: "15m",
+				Interval: defaultInterval,
 			},
 		},
 		Observability: &model.ConfigObservability{
@@ -559,7 +559,7 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 				Version: new("0.1.0"),
 				Settings: &model.ConfigConstellationSettings{
 					CorsAllowedOrigins: []string{
-						"https://example.com",
+						exampleURL,
 					},
 					Debug:                    new(false),
 					DevMode:                  new(false),
@@ -587,3 +587,10 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 
 	return nil
 }
+
+// Repeated string literals used across example config.
+const (
+	defaultInterval = "15m"
+	exampleURL      = "https://example.com"
+	scope           = "scope"
+)

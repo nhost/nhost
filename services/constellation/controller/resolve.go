@@ -552,7 +552,7 @@ func (c *Controller) executeConnectors(
 	for connName, selections := range fieldsByConnector {
 		connector := state.connectors[connName]
 		if connector == nil {
-			return nil, []map[string]any{{"message": "no connector found"}}
+			return nil, []map[string]any{{messageKey: "no connector found"}}
 		}
 
 		execOp, execFragments := buildConnectorOperation(
@@ -659,7 +659,7 @@ func (c *Controller) resolveRemoteRelationships(
 // errorResponse builds a GraphQLResponse with a single error message.
 func errorResponse(msg string) *GraphQLResponse {
 	return &GraphQLResponse{
-		Errors:      []map[string]any{{"message": msg}},
+		Errors:      []map[string]any{{messageKey: msg}},
 		rawResponse: nil,
 		Data:        nil,
 	}
@@ -756,7 +756,7 @@ func formatGQLErrors(errs gqlerror.List) []map[string]any {
 	result := make([]map[string]any, len(errs))
 	for i, err := range errs {
 		m := map[string]any{
-			"message": err.Message,
+			messageKey: err.Message,
 		}
 		if len(err.Locations) > 0 {
 			m["locations"] = err.Locations

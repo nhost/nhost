@@ -126,23 +126,23 @@ func generateEnumTypes( //nolint:funlen
 			),
 			Fields: []*graph.InputField{
 				{
-					Name: "_eq",
+					Name: eq,
 					Type: graph.NewNamedType(customTableName + "_enum"),
 				},
 				{
-					Name: "_in",
+					Name: opIn,
 					Type: graph.NewListType(graph.NewNonNullType(customTableName + "_enum")),
 				},
 				{
-					Name: "_is_null",
+					Name: isNull,
 					Type: graph.NewNamedType("Boolean"),
 				},
 				{
-					Name: "_neq",
+					Name: neq,
 					Type: graph.NewNamedType(customTableName + "_enum"),
 				},
 				{
-					Name: "_nin",
+					Name: nin,
 					Type: graph.NewListType(graph.NewNonNullType(customTableName + "_enum")),
 				},
 			},

@@ -42,7 +42,7 @@ func getSMTPEmailer(
 	switch cmd.String(flagSMTPAuthMethod) {
 	case "LOGIN":
 		auth = notifications.LoginAuth(user, password, host)
-	case "PLAIN":
+	case plain:
 		auth = notifications.PlainAuth("", user, password, host)
 	case "CRAM-MD5":
 		auth = smtp.CRAMMD5Auth(user, password)
@@ -120,13 +120,13 @@ func getSMS( //nolint:ireturn
 
 	provider := strings.ToLower(cmd.String(flagSMSProvider))
 	if provider == "" {
-		provider = "twilio" // Default to Twilio for backward compatibility
+		provider = twilio // Default to Twilio for backward compatibility
 	}
 
 	switch provider {
 	case "modica":
 		return getModicaSMS(cmd, templates, db, logger)
-	case "twilio":
+	case twilio:
 		return getTwilioSMS(cmd, templates, db, logger)
 	case "generic":
 		return getGenericSMS(cmd, templates, db, logger)

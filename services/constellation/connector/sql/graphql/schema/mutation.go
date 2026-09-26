@@ -287,7 +287,7 @@ func generateJSONBInputTypes( //nolint:funlen
 			deleteAtPathFields = append(deleteAtPathFields, &graph.InputField{ //nolint:exhaustruct
 				Name:        columnName,
 				Description: colDescription,
-				Type:        graph.NewListType(graph.NewNonNullType("String")),
+				Type:        graph.NewListType(graph.NewNonNullType(scalarString)),
 			})
 
 			deleteElemFields = append(deleteElemFields, &graph.InputField{ //nolint:exhaustruct
@@ -299,7 +299,7 @@ func generateJSONBInputTypes( //nolint:funlen
 			deleteKeyFields = append(deleteKeyFields, &graph.InputField{ //nolint:exhaustruct
 				Name:        columnName,
 				Description: colDescription,
-				Type:        graph.NewNamedType("String"),
+				Type:        graph.NewNamedType(scalarString),
 			})
 		}
 	}
@@ -459,7 +459,7 @@ func generateOnConflictTypes( //nolint:funlen
 					DefaultValue: &emptyArrayDefault,
 				},
 				{
-					Name: "where",
+					Name: where,
 					Type: graph.NewNamedType(customTableName + "_bool_exp"),
 				},
 			},

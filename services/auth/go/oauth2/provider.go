@@ -26,7 +26,7 @@ const (
 // Hasura mutation) should use this same set so behaviour is consistent
 // regardless of how the client was registered.
 func DefaultScopes() []string {
-	return []string{"openid", "profile", "email", "phone", "offline_access", "graphql"}
+	return []string{openid, "profile", scopeEmail, "phone", "offline_access", "graphql"}
 }
 
 type Config struct {

@@ -76,7 +76,7 @@ func (ctrl *Controller) SignInProvider( //nolint:ireturn
 				Metadata:     req.Params.Metadata,
 				RedirectTo:   new(redirectTo.String()),
 			},
-			"state":         req.Params.State,
+			stateKey:        req.Params.State,
 			"flow":          providers.FlowSignin,
 			"codeChallenge": req.Params.CodeChallenge,
 		},

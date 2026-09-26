@@ -33,7 +33,7 @@ func (p *Provider) ValidateAuthorizeRequest(
 		)
 
 		return "", &Error{
-			Err:         "invalid_request",
+			Err:         invalidRequest,
 			Description: "Invalid redirect_uri",
 		}
 	}
@@ -79,12 +79,12 @@ func (p *Provider) resolveClient(
 			slog.String("client_id", clientID),
 		)
 
-		return client, &Error{Err: "invalid_client", Description: "Unknown client"}
+		return client, &Error{Err: invalidClient, Description: unknownClient}
 	}
 
 	if err != nil {
 		logger.ErrorContext(ctx, "error getting OAuth2 client", logError(err))
-		return client, &Error{Err: "server_error", Description: "Internal server error"}
+		return client, &Error{Err: serverError, Description: internalServerError}
 	}
 
 	return client, nil
@@ -101,7 +101,7 @@ func (p *Provider) validateAuthorizeParams(
 		}
 	}
 
-	requestedScopes := []string{"openid"}
+	requestedScopes := []string{openid}
 	if params.Scope != nil && *params.Scope != "" {
 		requestedScopes = strings.Split(*params.Scope, " ")
 	}
@@ -109,7 +109,7 @@ func (p *Provider) validateAuthorizeParams(
 	for _, s := range requestedScopes {
 		if !isScopeAllowed(s, client.Scopes) {
 			return nil, &Error{
-				Err:         "invalid_scope",
+				Err:         invalidScope,
 				Description: fmt.Sprintf("Scope %q not allowed for this client", s),
 			}
 		}
@@ -117,7 +117,7 @@ func (p *Provider) validateAuthorizeParams(
 
 	if msg := validateGraphQLScopeCombination(requestedScopes); msg != "" {
 		return nil, &Error{
-			Err:         "invalid_scope",
+			Err:         invalidScope,
 			Description: msg,
 		}
 	}
@@ -125,7 +125,7 @@ func (p *Provider) validateAuthorizeParams(
 	if !client.ClientSecretHash.Valid &&
 		(params.CodeChallenge == nil || *params.CodeChallenge == "") {
 		return nil, &Error{
-			Err:         "invalid_request",
+			Err:         invalidRequest,
 			Description: "PKCE code_challenge is required for public clients",
 		}
 	}
@@ -160,7 +160,7 @@ func (p *Provider) createAuthRequest(
 	})
 	if err != nil {
 		logger.ErrorContext(ctx, "error inserting OAuth2 auth request", logError(err))
-		return "", &Error{Err: "server_error", Description: "Internal server error"}
+		return "", &Error{Err: serverError, Description: internalServerError}
 	}
 
 	loginURL := p.config.LoginURL

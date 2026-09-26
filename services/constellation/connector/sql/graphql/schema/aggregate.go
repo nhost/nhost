@@ -107,7 +107,7 @@ func generateAggregateFieldsType(
 ) {
 	aggregateFieldsFields := []*graph.Field{
 		{
-			Name: "count",
+			Name: count,
 			Type: graph.NewNonNullType("Int"),
 			Arguments: []*graph.Argument{
 				{
@@ -117,7 +117,7 @@ func generateAggregateFieldsType(
 					),
 				},
 				{
-					Name: "distinct",
+					Name: distinct,
 					Type: graph.NewNamedType("Boolean"),
 				},
 			},
@@ -480,7 +480,7 @@ func generateAggregateOrderByTypes( //nolint:funlen
 
 	aggregateOrderByFields := []*graph.InputField{
 		{
-			Name: "count",
+			Name: count,
 			Type: graph.NewNamedType("order_by"),
 		},
 	}
@@ -748,7 +748,7 @@ func generateAggregateBoolExpTypes( //nolint:funlen
 
 	aggregateBoolExpFields := []*graph.InputField{
 		{
-			Name: "count",
+			Name: count,
 			Type: graph.NewNamedType(customTableName + "_aggregate_bool_exp_count"),
 		},
 	}
@@ -770,7 +770,7 @@ func generateAggregateBoolExpTypes( //nolint:funlen
 		for _, colName := range booleanColumns {
 			boolAndEnumValues = append(boolAndEnumValues, &graph.EnumValue{ //nolint:exhaustruct
 				Name:        colName,
-				Description: "column name",
+				Description: columnNameLabel,
 			})
 		}
 
@@ -792,7 +792,7 @@ func generateAggregateBoolExpTypes( //nolint:funlen
 		for _, colName := range booleanColumns {
 			boolOrEnumValues = append(boolOrEnumValues, &graph.EnumValue{ //nolint:exhaustruct
 				Name:        colName,
-				Description: "column name",
+				Description: columnNameLabel,
 			})
 		}
 
@@ -814,7 +814,7 @@ func generateAggregateBoolExpTypes( //nolint:funlen
 			Name: customTableName + "_aggregate_bool_exp_bool_and",
 			Fields: []*graph.InputField{
 				{
-					Name: "arguments",
+					Name: argumentsKey,
 					Type: graph.NewNonNullType(
 						fmt.Sprintf(
 							"%s_select_column_%s_aggregate_bool_exp_bool_and_arguments_columns",
@@ -824,15 +824,15 @@ func generateAggregateBoolExpTypes( //nolint:funlen
 					),
 				},
 				{
-					Name: "distinct",
+					Name: distinct,
 					Type: graph.NewNamedType("Boolean"),
 				},
 				{
-					Name: "filter",
+					Name: filter,
 					Type: graph.NewNamedType(customTableName + "_bool_exp"),
 				},
 				{
-					Name: "predicate",
+					Name: predicate,
 					Type: graph.NewNonNullType(caps.comparisonExpName("Boolean")),
 				},
 			},
@@ -842,7 +842,7 @@ func generateAggregateBoolExpTypes( //nolint:funlen
 			Name: customTableName + "_aggregate_bool_exp_bool_or",
 			Fields: []*graph.InputField{
 				{
-					Name: "arguments",
+					Name: argumentsKey,
 					Type: graph.NewNonNullType(
 						fmt.Sprintf(
 							"%s_select_column_%s_aggregate_bool_exp_bool_or_arguments_columns",
@@ -852,15 +852,15 @@ func generateAggregateBoolExpTypes( //nolint:funlen
 					),
 				},
 				{
-					Name: "distinct",
+					Name: distinct,
 					Type: graph.NewNamedType("Boolean"),
 				},
 				{
-					Name: "filter",
+					Name: filter,
 					Type: graph.NewNamedType(customTableName + "_bool_exp"),
 				},
 				{
-					Name: "predicate",
+					Name: predicate,
 					Type: graph.NewNonNullType(caps.comparisonExpName("Boolean")),
 				},
 			},
@@ -871,19 +871,19 @@ func generateAggregateBoolExpTypes( //nolint:funlen
 		Name: customTableName + "_aggregate_bool_exp_count",
 		Fields: []*graph.InputField{
 			{
-				Name: "arguments",
+				Name: argumentsKey,
 				Type: graph.NewListType(graph.NewNonNullType(customTableName + "_select_column")),
 			},
 			{
-				Name: "distinct",
+				Name: distinct,
 				Type: graph.NewNamedType("Boolean"),
 			},
 			{
-				Name: "filter",
+				Name: filter,
 				Type: graph.NewNamedType(customTableName + "_bool_exp"),
 			},
 			{
-				Name: "predicate",
+				Name: predicate,
 				Type: graph.NewNonNullType(caps.comparisonExpName("Int")),
 			},
 		},
