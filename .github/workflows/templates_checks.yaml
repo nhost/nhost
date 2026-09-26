@@ -52,6 +52,11 @@ jobs:
             compile: build
           - template: react-native
             check: typecheck
+          # svelte-check, not tsc: it type-checks components as well as
+          # modules.
+          - template: svelte
+            check: check
+            compile: build
           - template: vue
             check: typecheck
             compile: build
@@ -132,6 +137,8 @@ jobs:
           - template: react
             functions: false
           - template: react-native
+            functions: false
+          - template: svelte
             functions: false
           - template: vue
             functions: false
