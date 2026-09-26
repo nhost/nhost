@@ -1,0 +1,85 @@
+table:
+  name: buckets
+  schema: storage
+configuration:
+  column_config:
+    cache_control:
+      custom_name: cacheControl
+    created_at:
+      custom_name: createdAt
+    download_expiration:
+      custom_name: downloadExpiration
+    max_upload_file_size:
+      custom_name: maxUploadFileSize
+    min_upload_file_size:
+      custom_name: minUploadFileSize
+    presigned_urls_enabled:
+      custom_name: presignedUrlsEnabled
+    updated_at:
+      custom_name: updatedAt
+  custom_column_names:
+    cache_control: cacheControl
+    created_at: createdAt
+    download_expiration: downloadExpiration
+    max_upload_file_size: maxUploadFileSize
+    min_upload_file_size: minUploadFileSize
+    presigned_urls_enabled: presignedUrlsEnabled
+    updated_at: updatedAt
+  custom_name: buckets
+  custom_root_fields:
+    delete: deleteBuckets
+    delete_by_pk: deleteBucket
+    insert: insertBuckets
+    insert_one: insertBucket
+    select: buckets
+    select_aggregate: bucketsAggregate
+    select_by_pk: bucket
+    update: updateBuckets
+    update_by_pk: updateBucket
+array_relationships:
+  - name: files
+    using:
+      foreign_key_constraint_on:
+        column: bucket_id
+        table:
+          name: files
+          schema: storage
+select_permissions:
+  # Every bucket the template creates (see the migrations under
+  # 1700000000001_avatars_bucket and 1700000000003_todo_location_and_sharing)
+  # has to be listed here. `storage.files.bucket_id` is NOT NULL, so a query
+  # that selects `files { bucket { ... } } ` for a file in a bucket missing
+  # from this filter gets a permission-denied null on a non-null field, which
+  # GraphQL propagates into a null parent.
+  - role: public
+    permission:
+      columns:
+        - cache_control
+        - created_at
+        - download_expiration
+        - id
+        - max_upload_file_size
+        - min_upload_file_size
+        - presigned_urls_enabled
+        - updated_at
+      filter:
+        id:
+          _in:
+            - avatars
+            - todo-attachments
+  - role: user
+    permission:
+      columns:
+        - cache_control
+        - created_at
+        - download_expiration
+        - id
+        - max_upload_file_size
+        - min_upload_file_size
+        - presigned_urls_enabled
+        - updated_at
+      filter:
+        id:
+          _in:
+            - avatars
+            - todo-attachments

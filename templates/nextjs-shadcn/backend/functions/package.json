@@ -1,0 +1,14 @@
+{
+  "name": "functions",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "image-size": "^2.0.4",
+    "jimp": "^1.6.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.10.9",
+    "typescript": "^5.9.3"
+  }
+}

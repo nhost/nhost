@@ -1,0 +1,207 @@
+table:
+  name: files
+  schema: storage
+configuration:
+  column_config:
+    bucket_id:
+      custom_name: bucketId
+    created_at:
+      custom_name: createdAt
+    is_uploaded:
+      custom_name: isUploaded
+    mime_type:
+      custom_name: mimeType
+    updated_at:
+      custom_name: updatedAt
+    uploaded_by_user_id:
+      custom_name: uploadedByUserId
+  custom_column_names:
+    bucket_id: bucketId
+    created_at: createdAt
+    is_uploaded: isUploaded
+    mime_type: mimeType
+    updated_at: updatedAt
+    uploaded_by_user_id: uploadedByUserId
+  custom_name: files
+  custom_root_fields:
+    delete: deleteFiles
+    delete_by_pk: deleteFile
+    insert: insertFiles
+    insert_one: insertFile
+    select: files
+    select_aggregate: filesAggregate
+    select_by_pk: file
+    update: updateFiles
+    update_by_pk: updateFile
+object_relationships:
+  - name: bucket
+    using:
+      foreign_key_constraint_on: bucket_id
+  # The owner of an avatar, for the permissions below. It cannot go through
+  # `uploaded_by_user_id`: the avatar function uploads with the admin secret,
+  # which leaves that column null. What does identify the owner is the file id
+  # itself - `backend/functions/avatar.ts` stores one file per user keyed by
+  # their id, which is also what makes re-uploading replace the old avatar - so
+  # this is a manual relationship on that convention rather than a foreign key.
+  # It only means anything in the avatars bucket; every other file has a random
+  # id that matches no user.
+  - name: avatarOwner
+    using:
+      manual_configuration:
+        remote_table:
+          name: users
+          schema: auth
+        column_mapping:
+          id: id
+array_relationships:
+  # The reverse of `todos.file_id`. Nothing queries files -> todos from the
+  # app; it exists so the permissions below can ask "is the item holding this
+  # file public?" without that answer living on the file itself.
+  - name: todos
+    using:
+      foreign_key_constraint_on:
+        column: file_id
+        table:
+          name: todos
+          schema: public
+insert_permissions:
+  # Uploads go straight from the browser with the user's own token. The avatars
+  # bucket is deliberately not here: those writes go through a function with
+  # the admin secret because it resizes the image first, and letting the
+  # browser write that bucket directly would let it skip the resize.
+  - role: user
+    permission:
+      # `id` stays client-settable below because hasura-storage always sends
+      # it, but the client also gets to pick any UUID it wants - including one
+      # that already belongs to a real account. Left unchecked, that id becomes
+      # a squat on `backend/functions/avatar.ts`'s "one avatar keyed by user
+      # id" convention: the admin-secret PUT that convention relies on keeps
+      # whatever bucket the row was already in, so the squatted row stays in
+      # `todo-attachments`, owned by the squatter, forever. The `avatarOwner`
+      # relationship is reused here (not the columns it selects, just its join)
+      # to reject any id that already names an account.
+      check:
+        _and:
+          - bucket_id:
+              _eq: todo-attachments
+          - _not:
+              avatarOwner:
+                id:
+                  _is_null: false
+      set:
+        uploaded_by_user_id: X-Hasura-User-Id
+      columns:
+        - bucket_id
+        - etag
+        - id
+        - is_uploaded
+        - metadata
+        - mime_type
+        - name
+        - size
+        - uploaded_by_user_id
+select_permissions:
+  # An attachment is readable by anyone exactly when the item pointing at it is
+  # readable by anyone, so this repeats the condition in `public_todos.yaml`
+  # rather than trusting that table's permission: a relationship filter matches
+  # raw rows, it does not apply the related table's own rule.
+  #
+  # This is the one that fails dangerously. Widen it and every private
+  # attachment in the project becomes world-readable at once. There is a
+  # scripted check for it in the README.
+  - role: public
+    permission:
+      columns:
+        - bucket_id
+        - created_at
+        - etag
+        - id
+        - is_uploaded
+        - metadata
+        - mime_type
+        - name
+        - size
+        - updated_at
+        - uploaded_by_user_id
+      filter:
+        _or:
+          # An avatar is readable by anyone exactly when its owner's profile is,
+          # which is the condition `auth_users.yaml` puts on the profile itself.
+          # Left unconditional, the avatar of someone who has unpublished or
+          # deleted stays world-readable forever, at a URL anyone can derive
+          # from a user id that was public once.
+          - _and:
+              - bucket_id:
+                  _eq: avatars
+              - avatarOwner:
+                  metadata:
+                    _contains:
+                      publicProfile: true
+                  _not:
+                    metadata:
+                      _has_key: deletedAt
+          - todos:
+              is_public:
+                _eq: true
+              user:
+                metadata:
+                  _contains:
+                    publicProfile: true
+                _not:
+                  metadata:
+                    _has_key: deletedAt
+  # Signing in is not a way around the rule above. Anyone can create an account,
+  # so every branch here that is not about the caller's own files repeats the
+  # owner condition the `public` role carries.
+  - role: user
+    permission:
+      columns:
+        - bucket_id
+        - created_at
+        - etag
+        - id
+        - is_uploaded
+        - metadata
+        - mime_type
+        - name
+        - size
+        - updated_at
+        - uploaded_by_user_id
+      filter:
+        _or:
+          - uploaded_by_user_id:
+              _eq: X-Hasura-User-Id
+          - _and:
+              - bucket_id:
+                  _eq: avatars
+              - _or:
+                  # Your own avatar, which `uploaded_by_user_id` cannot match
+                  # because the avatar function uploads it as admin.
+                  - id:
+                      _eq: X-Hasura-User-Id
+                  - avatarOwner:
+                      metadata:
+                        _contains:
+                          publicProfile: true
+                      _not:
+                        metadata:
+                          _has_key: deletedAt
+          - todos:
+              is_public:
+                _eq: true
+              user:
+                metadata:
+                  _contains:
+                    publicProfile: true
+                _not:
+                  metadata:
+                    _has_key: deletedAt
+delete_permissions:
+  - role: user
+    permission:
+      filter:
+        _and:
+          - bucket_id:
+              _eq: todo-attachments
+          - uploaded_by_user_id:
+              _eq: X-Hasura-User-Id
