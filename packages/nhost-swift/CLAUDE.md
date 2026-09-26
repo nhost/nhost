@@ -65,9 +65,9 @@ This package is a SwiftPM library package exposing the public module `Nhost`.
   path mutation is an explicitly requested legacy account migration.
 - GraphQL file-cache recovery must enumerate hidden files: atomic temporary artifacts intentionally start with `.` and must be removed after interrupted writes.
 - Canonical GraphQL cache directory identities must be stable before and after directory creation; normalize resolved paths as directory URLs so Foundation's trailing-slash representation cannot split the process registry.
-- Unsigned SwiftPM tests cover Keychain and file-lock primitives, while signed
-  NeoGym simulator/device acceptance proves app/widget access-group and App Group
-  entitlement interoperability.
+- Unsigned SwiftPM tests cover Keychain and file-lock primitives; signed
+  host-app/extension simulator or device acceptance must prove shared Keychain
+  access-group and App Group entitlement interoperability.
 - README ```swift code blocks are executable documentation: each must appear
 verbatim (modulo indentation and `import`lines) in`Tests/NhostIntegrationTests/ReadmeExamplesTests.swift`, which runs them against
 the local backend; `testReadmeSwiftCodeBlocksAppearVerbatimInThisFile` enforces

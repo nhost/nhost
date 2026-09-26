@@ -381,6 +381,9 @@ extension GraphQLCacheCoordinator {
         decoder: @Sendable () -> JSONDecoder,
         options: GraphQLCacheRequestOptions
     ) async throws -> NhostResponse<GraphQLResponse<ResponseData>> {
+        if let maximumAge = options.maximumAge, !maximumAge.isFinite || maximumAge < 0 {
+            throw GraphQLCacheError.invalidConfiguration("maximumAge must be finite and nonnegative")
+        }
         let prepared = try await prepare(
             graphQLRequest: graphQLRequest,
             headers: headers,
@@ -390,7 +393,8 @@ extension GraphQLCacheCoordinator {
             responseType,
             prepared: prepared,
             decoder: decoder,
-            requirement: .fresh
+            requirement: .freshOrStale,
+            maximumAge: options.maximumAge
         )
     }
 

@@ -95,8 +95,74 @@ extension GraphQLCachePolicyTests {
             _ = try await expiredClient.request(
                 CacheBoolData.self,
                 query: self.query,
-                cacheOptions: GraphQLCacheRequestOptions(policy: .cacheOnly)
+                cacheOptions: GraphQLCacheRequestOptions(policy: .cacheOnly, maximumAge: 5)
             )
+        }
+        let calls = await queue.callCount()
+        XCTAssertEqual(calls, 0)
+    }
+
+    func testCacheOnlyAcceptsConfiguredStaleWindowAndOptionalMaximumAgeWithoutNetwork() async throws {
+        let store = CachePolicyStore()
+        let seedQueue = CacheResponseQueue([.response(success(ok: true))])
+        let seedClient = makeClient(queue: seedQueue, store: store, clock: now)
+        _ = try await seedClient.request(
+            CacheBoolData.self,
+            query: query,
+            cacheOptions: GraphQLCacheRequestOptions(policy: .cacheFirst)
+        )
+
+        let queue = CacheResponseQueue([])
+        let eligible = makeClient(
+            queue: queue, store: store, freshnessTTL: 5, staleInterval: 20,
+            clock: now.addingTimeInterval(25)
+        )
+        let cached = try await eligible.request(
+            CacheBoolData.self,
+            query: query,
+            cacheOptions: GraphQLCacheRequestOptions(policy: .cacheOnly)
+        )
+        XCTAssertEqual(cached.body.data?.ok, true)
+        let atMaximumAge = try await eligible.request(
+            CacheBoolData.self,
+            query: query,
+            cacheOptions: GraphQLCacheRequestOptions(policy: .cacheOnly, maximumAge: 25)
+        )
+        XCTAssertEqual(atMaximumAge.body.data?.ok, true)
+        await assertCacheError(.expired) {
+            _ = try await eligible.request(
+                CacheBoolData.self,
+                query: self.query,
+                cacheOptions: GraphQLCacheRequestOptions(policy: .cacheOnly, maximumAge: 24)
+            )
+        }
+
+        let expired = makeClient(
+            queue: queue, store: store, freshnessTTL: 5, staleInterval: 20,
+            clock: now.addingTimeInterval(25.001)
+        )
+        await assertCacheError(.expired) {
+            _ = try await expired.request(
+                CacheBoolData.self,
+                query: self.query,
+                cacheOptions: GraphQLCacheRequestOptions(policy: .cacheOnly, maximumAge: 1_000)
+            )
+        }
+        let calls = await queue.callCount()
+        XCTAssertEqual(calls, 0)
+    }
+
+    func testCacheOnlyRejectsInvalidMaximumAgeWithoutNetwork() async {
+        let queue = CacheResponseQueue([])
+        let client = makeClient(queue: queue, store: CachePolicyStore())
+        for age in [-1.0, .infinity, .nan] {
+            await assertCacheError(.invalidConfiguration("maximumAge must be finite and nonnegative")) {
+                _ = try await client.request(
+                    CacheBoolData.self,
+                    query: self.query,
+                    cacheOptions: GraphQLCacheRequestOptions(policy: .cacheOnly, maximumAge: age)
+                )
+            }
         }
         let calls = await queue.callCount()
         XCTAssertEqual(calls, 0)

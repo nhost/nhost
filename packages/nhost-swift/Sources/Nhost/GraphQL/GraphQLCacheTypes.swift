@@ -6,9 +6,9 @@ public enum GraphQLCachePolicy: Sendable, Equatable {
     /// Uses the legacy request path and performs no cache initialization, clock,
     /// store, classifier, resolver, prune, touch, or diagnostic work.
     case networkOnly
-    /// Returns only a fresh, compatible cached value. Read and validation
-    /// failures are surfaced as their corresponding ``GraphQLCacheError`` and
-    /// no network call is made; LRU touch persistence is best effort after a hit.
+    /// Returns a compatible entry within the configured fresh-plus-stale window
+    /// without network I/O. An optional per-request maximum age can tighten this
+    /// bound. Cache failures are surfaced; LRU touch persistence is best effort.
     case cacheOnly
     /// Returns a fresh compatible value or performs one legacy network request.
     /// Cache-side failures recover as misses and successful writes are best effort.
@@ -26,15 +26,21 @@ public struct GraphQLCacheRequestOptions: Sendable, Equatable {
     public let policy: GraphQLCachePolicy
     public let namespace: String?
     public let tags: Set<String>
+    /// For cache-only reads, reject entries older than this many seconds since
+    /// their last successful write. Nil uses the configured fresh-plus-stale
+    /// window; a larger value cannot extend that window. Ignored by other policies.
+    public let maximumAge: TimeInterval?
 
     public init(
         policy: GraphQLCachePolicy = .networkOnly,
         namespace: String? = nil,
-        tags: Set<String> = []
+        tags: Set<String> = [],
+        maximumAge: TimeInterval? = nil
     ) {
         self.policy = policy
         self.namespace = namespace
         self.tags = tags
+        self.maximumAge = maximumAge
     }
 }
 

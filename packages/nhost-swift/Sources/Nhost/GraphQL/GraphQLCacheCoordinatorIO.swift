@@ -225,13 +225,15 @@ extension GraphQLCacheCoordinator {
         _ responseType: ResponseData.Type,
         prepared: PreparedRequest,
         decoder: @Sendable () -> JSONDecoder,
-        requirement: CacheReadRequirement
+        requirement: CacheReadRequirement,
+        maximumAge: TimeInterval? = nil
     ) async throws -> NhostResponse<GraphQLResponse<ResponseData>> {
         try await cachedResponse(
             responseType,
             prepared: prepared,
             decoder: decoder,
-            requirement: requirement
+            requirement: requirement,
+            maximumAge: maximumAge
         ).response
     }
 
@@ -239,7 +241,8 @@ extension GraphQLCacheCoordinator {
         _ responseType: ResponseData.Type,
         prepared: PreparedRequest,
         decoder: @Sendable () -> JSONDecoder,
-        requirement: CacheReadRequirement
+        requirement: CacheReadRequirement,
+        maximumAge: TimeInterval? = nil
     ) async throws -> GraphQLCachedResponse<ResponseData> {
         try Task.checkCancellation()
         let rawEntry: GraphQLCacheEntry
@@ -276,6 +279,9 @@ extension GraphQLCacheCoordinator {
             guard configuration.isFresh(age: age) || configuration.isStaleEligible(age: age) else {
                 throw GraphQLCacheError.expired
             }
+        }
+        if let maximumAge, age > maximumAge {
+            throw GraphQLCacheError.expired
         }
 
         let response: NhostResponse<GraphQLResponse<ResponseData>>

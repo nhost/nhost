@@ -247,12 +247,32 @@ Select behavior per request with `GraphQLCacheRequestOptions`; `namespace` and
 `tags` add invalidation/key dimensions but can never replace authorization,
 endpoint, operation, query, or variables isolation.
 
-| Policy          | Behavior                                                                                                               |
-| --------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `.networkOnly`  | Legacy network behavior and no cache work. This is always the default.                                                 |
-| `.cacheOnly`    | Returns a fresh, compatible entry without network I/O; every cache-side failure is thrown.                             |
-| `.cacheFirst`   | Returns a fresh compatible entry, otherwise makes one network request and caches an eligible success best-effort.      |
-| `.networkFirst` | Makes one network request first and falls back within the fresh-plus-stale window **only** for `FetchError.transport`. |
+| Policy          | Behavior                                                                                                          |
+| --------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `.networkOnly`  | Always uses the network; this is the default.                                                                    |
+| `.cacheOnly`    | Reads the exact cached response within the configured fresh-plus-stale window; never uses the network.           |
+| `.cacheFirst`   | Uses a fresh cached response, otherwise makes a network request and caches an eligible success best-effort.      |
+| `.networkFirst` | Makes a network request first; uses fresh-or-stale cache only for `FetchError.transport`.                        |
+
+For example, if a client configures a 5-minute freshness TTL and a **7-day
+additional stale interval**:
+
+| Age since last write | `.cacheOnly` (default) | `.cacheOnly` with `maximumAge: 300` |
+| -------------------- | ---------------------- | ----------------------------------- |
+| 2 minutes            | Returns it             | Returns it                          |
+| 1 day                | Returns it             | Throws `GraphQLCacheError.expired`   |
+| 8 days               | Throws `GraphQLCacheError.expired` | Throws `GraphQLCacheError.expired` |
+
+`maximumAge` is an optional number of seconds since the last successful write.
+It can require a newer entry (for example, `maximumAge: 300` means at most five
+minutes old), but **cannot extend** the configured fresh-plus-stale window.
+Negative or non-finite values are invalid. The cache key still requires the
+same query, variables, namespace, tags, and protected user scope. `.cacheOnly`
+never contacts the server, even when the cache misses or expires. Despite the
+name `staleIfErrorInterval`, no network error is required for `.cacheOnly` to
+read an entry within that window. To get current data afterward, issue a separate
+network request or use `staleWhileRevalidate`. The SDK defaults are 5 minutes
+fresh plus 24 hours stale unless the client configures different intervals.
 
 ```swift
 let cachedUsers = try await nhost.graphql.request(
@@ -291,9 +311,9 @@ print(cachedUsers.body.data?.users ?? [])
 print(offlineUsers.body.data?.users ?? [])
 ```
 
-`.cacheOnly` throws `GraphQLCacheError` for an unconfigured cache, a miss, an
-expired or decoder-incompatible entry, an ineligible operation, key/scope or
-configuration failure, store failure, or authorization scope change. A mutation,
+`.cacheOnly` throws `GraphQLCacheError` for an unconfigured cache, a miss,
+an expired or decoder-incompatible entry, an ineligible operation, key/scope
+or configuration failure, store failure, or authorization scope change. A mutation,
 subscription, malformed document, or ambiguous multi-operation document is
 ineligible. Network-capable policies bypass caching for ineligible operations or
 an unavailable cache setup and retain legacy network behavior.
@@ -319,8 +339,9 @@ emit one fresh-or-stale `.cached` value immediately, performs exactly one refres
 and then emits `.fresh`. With no eligible cached value it emits only `.fresh`.
 The refresh error is delivered unchanged after any cached emission. Passing
 `.networkOnly`, using an unconfigured/opaque-fetch client, or selecting an
-ineligible operation produces one uncached fresh network value; `.cacheOnly` does
-not suppress the refresh performed by this separate streaming API.
+ineligible operation produces one uncached fresh network value; `.cacheOnly`
+does not suppress the refresh performed by this separate streaming API. Use a
+single-response `request` with `.cacheOnly` for a read without network I/O.
 
 Each emission includes `GraphQLCacheMetadata`: source, creation and last-write
 times, age, expiry state, stored HTTP status, and a sanitized persistence outcome
@@ -725,9 +746,9 @@ print(sharedNhost.serviceURLs.auth)
 ```
 
 Unsigned SwiftPM tests prove atomic Keychain and file-lock primitives but cannot
-prove entitlement interoperability. The signed NeoGym simulator/device harness
-is the acceptance test that its app and widget can open the same access-group
-item and App Group container.
+prove entitlement interoperability. A signed host app and extension must verify
+on simulator/device that both can open the same access-group item and App Group
+container.
 
 ### Unreleased source migration
 

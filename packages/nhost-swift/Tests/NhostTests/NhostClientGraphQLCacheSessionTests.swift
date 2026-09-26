@@ -3,6 +3,32 @@ import XCTest
 @testable import Nhost
 
 extension NhostClientGraphQLCacheTests {
+    func testCacheOnlyDoesNotReturnAnotherManagedUsersData() async throws {
+        let store = FactoryCacheStore()
+        let original = serverClient(
+            session: try session(subject: "cache-user-a"),
+            store: store, transport: FactoryGraphQLTransport()
+        )
+        try await seed(original)
+        let otherTransport = FactoryGraphQLTransport()
+        let other = serverClient(
+            session: try session(subject: "cache-user-b"),
+            store: store, transport: otherTransport
+        )
+        do {
+            _ = try await other.graphql.request(
+                CacheBoolData.self,
+                query: query,
+                cacheOptions: GraphQLCacheRequestOptions(policy: .cacheOnly)
+            )
+            XCTFail("a different user's cache must be inaccessible")
+        } catch {
+            XCTAssertEqual(error as? GraphQLCacheError, .miss)
+        }
+        let calls = await otherTransport.callCount()
+        XCTAssertEqual(calls, 0)
+    }
+
     func testSignOutPasswordChangeAndClearSessionPurgePreviousManagedScope() async throws {
         let stored = try session(subject: "purged-user")
         let store = FactoryCacheStore()
