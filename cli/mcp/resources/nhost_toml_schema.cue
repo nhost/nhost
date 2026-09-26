@@ -338,6 +338,8 @@ import (
 		checkpointCompletionTarget: number | *0.9
 		// Memory used for write-ahead log buffers.
 		walBuffers: string | *"-1"
+		// Compress full-page images in the write-ahead log.
+		walCompression: string | *"off"
 		// Default sample size for table statistics.
 		defaultStatisticsTarget: int32 | *100
 		// Planner's estimated cost of a non-sequential disk page fetch.
@@ -366,10 +368,52 @@ import (
 		maxWalSenders: int32 | *10
 		// Maximum number of replication slots.
 		maxReplicationSlots: int32 | *10
+		// Maximum WAL retained by replication slots; -1 disables the limit.
+		maxSlotWalKeepSize: string | *"-1"
 		// Force a WAL segment switch after this many seconds.
 		archiveTimeout: int32 & >=300 & <=1073741823 | *300
 		// Collect timing statistics for disk I/O.
 		trackIoTiming: "on" | *"off"
+		// Minimum statement duration to log; -1 disables logging.
+		logMinDurationStatement: string | *"-1"
+		// Minimum autovacuum duration to log; -1 disables logging.
+		logAutovacuumMinDuration: string | *"10min"
+		// Minimum temporary file size to log; -1 disables logging.
+		logTempFiles: string | *"-1"
+		// Libraries to load, in order, when PostgreSQL starts.
+		sharedPreloadLibraries: [...#PostgresPreloadLibrary] | *["pg_stat_statements", "pg_cron", "timescaledb", "pg_squeeze", "pg_search"]
+		_validateSharedPreloadLibrariesUnique: list.UniqueItems(sharedPreloadLibraries) & true @cuegraph(skip)
+		// Settings for PostgreSQL extensions.
+		extensions: {
+			pgStatStatements: {
+				// Maximum distinct statements tracked.
+				max: int32 | *5000
+				// Which statements to track.
+				track: "top" | "all" | "none" | *"top"
+				// Track planning time.
+				trackPlanning: "on" | *"off"
+			}
+			cron: {
+				// Time zone used for job schedules.
+				timezone: string | *"GMT"
+				// Maximum concurrent jobs.
+				maxRunningJobs: int32 | *32
+				// Record job runs.
+				logRun: "off" | *"on"
+			}
+			pgDurable: {
+				// Maximum concurrent workflow SQL connections.
+				maxUserConnections: int32 | *10
+				// Days to retain completed workflow instances.
+				retentionDays: int32 | *30
+				// Log substituted workflow SQL, which may contain secrets.
+				logWorkflowSql: "on" | *"off"
+			}
+			timescaledb: {
+				// Maximum number of background workers.
+				maxBackgroundWorkers: int32 | *16
+			}
+		}
 
 		// if pitr is on we need walLevel to set to replica or logical
 		_validateWalLevelIsLogicalOrReplicaIfPitrIsEnabled: ( pitr == _|_ | walLevel == "replica" | walLevel == "logical") & true @cuegraph(skip)
@@ -381,6 +425,8 @@ import (
 		retention: uint8 & 7
 	}
 }
+
+#PostgresPreloadLibrary: "pg_stat_statements" | "pg_cron" | "timescaledb" | "pg_squeeze" | "pg_search" | "pg_durable" | "pg_ivm"
 
 // Configuration for auth service
 // You can find more information about the configuration here:

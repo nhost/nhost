@@ -199,7 +199,83 @@ func PostgresEnv( //nolint:funlen
 				SecretName: "",
 			},
 		}...)
+
+		settings := config.GetPostgres().GetSettings()
+		env = appendPostgresSetting(env, "WAL_COMPRESSION", settings.GetWalCompression())
+		env = appendPostgresSetting(env, "MAX_SLOT_WAL_KEEP_SIZE", settings.GetMaxSlotWalKeepSize())
+		env = appendPostgresSetting(
+			env,
+			"LOG_MIN_DURATION_STATEMENT",
+			settings.GetLogMinDurationStatement(),
+		)
+		env = appendPostgresSetting(
+			env,
+			"LOG_AUTOVACUUM_MIN_DURATION",
+			settings.GetLogAutovacuumMinDuration(),
+		)
+		env = appendPostgresSetting(env, "LOG_TEMP_FILES", settings.GetLogTempFiles())
+
+		if libraries := settings.GetSharedPreloadLibraries(); libraries != nil {
+			env = append(env, EnvVar{
+				Name:       "SHARED_PRELOAD_LIBRARIES",
+				Value:      Stringify(libraries),
+				IsSecret:   false,
+				SecretName: "",
+			})
+		}
+
+		extensions := settings.GetExtensions()
+		if extensions != nil {
+			env = append(env, postgresExtensionEnv(extensions)...)
+		}
 	}
 
 	return env, nil
+}
+
+func appendPostgresSetting[T any](env []EnvVar, name string, value *T) []EnvVar {
+	if value == nil {
+		return env
+	}
+
+	return append(
+		env,
+		EnvVar{Name: name, Value: Stringify(*value), IsSecret: false, SecretName: ""},
+	)
+}
+
+func postgresExtensionEnv(extensions *model.ConfigPostgresSettingsExtensions) []EnvVar {
+	env := []EnvVar{}
+
+	if s := extensions.GetPgStatStatements(); s != nil {
+		env = appendPostgresSetting(env, "PG_STAT_STATEMENTS_MAX", s.GetMax())
+		env = appendPostgresSetting(env, "PG_STAT_STATEMENTS_TRACK", s.GetTrack())
+		env = appendPostgresSetting(env, "PG_STAT_STATEMENTS_TRACK_PLANNING", s.GetTrackPlanning())
+	}
+
+	if s := extensions.GetCron(); s != nil {
+		env = appendPostgresSetting(env, "CRON_TIMEZONE", s.GetTimezone())
+		env = appendPostgresSetting(env, "CRON_MAX_RUNNING_JOBS", s.GetMaxRunningJobs())
+		env = appendPostgresSetting(env, "CRON_LOG_RUN", s.GetLogRun())
+	}
+
+	if s := extensions.GetPgDurable(); s != nil {
+		env = appendPostgresSetting(
+			env,
+			"PG_DURABLE_MAX_USER_CONNECTIONS",
+			s.GetMaxUserConnections(),
+		)
+		env = appendPostgresSetting(env, "PG_DURABLE_RETENTION_DAYS", s.GetRetentionDays())
+		env = appendPostgresSetting(env, "PG_DURABLE_LOG_WORKFLOW_SQL", s.GetLogWorkflowSql())
+	}
+
+	if s := extensions.GetTimescaledb(); s != nil {
+		env = appendPostgresSetting(
+			env,
+			"TIMESCALEDB_MAX_BACKGROUND_WORKERS",
+			s.GetMaxBackgroundWorkers(),
+		)
+	}
+
+	return env
 }

@@ -3372,6 +3372,15 @@ input ConfigPostgresPitrComparisonExp {
     retention: ConfigUint8ComparisonExp
 }
 
+scalar ConfigPostgresPreloadLibrary
+
+input ConfigPostgresPreloadLibraryComparisonExp {
+    _eq: ConfigPostgresPreloadLibrary
+    _neq: ConfigPostgresPreloadLibrary
+    _in: [ConfigPostgresPreloadLibrary!]
+    _nin: [ConfigPostgresPreloadLibrary!]
+}
+
 """
 Resources for the service
 """
@@ -3486,6 +3495,10 @@ type ConfigPostgresSettings {
     """
     walBuffers: String
     """
+    Compress full-page images in the write-ahead log.
+    """
+    walCompression: String
+    """
     Default sample size for table statistics.
     """
     defaultStatisticsTarget: ConfigInt32
@@ -3542,6 +3555,10 @@ type ConfigPostgresSettings {
     """
     maxReplicationSlots: ConfigInt32
     """
+    Maximum WAL retained by replication slots; -1 disables the limit.
+    """
+    maxSlotWalKeepSize: String
+    """
     Force a WAL segment switch after this many seconds.
     """
     archiveTimeout: ConfigInt32
@@ -3549,6 +3566,26 @@ type ConfigPostgresSettings {
     Collect timing statistics for disk I/O.
     """
     trackIoTiming: String
+    """
+    Minimum statement duration to log; -1 disables logging.
+    """
+    logMinDurationStatement: String
+    """
+    Minimum autovacuum duration to log; -1 disables logging.
+    """
+    logAutovacuumMinDuration: String
+    """
+    Minimum temporary file size to log; -1 disables logging.
+    """
+    logTempFiles: String
+    """
+    Libraries to load, in order, when PostgreSQL starts.
+    """
+    sharedPreloadLibraries: [ConfigPostgresPreloadLibrary!]
+    """
+    Settings for PostgreSQL extensions.
+    """
+    extensions: ConfigPostgresSettingsExtensions
 }
 
 input ConfigPostgresSettingsUpdateInput {
@@ -3559,6 +3596,7 @@ input ConfigPostgresSettingsUpdateInput {
     maintenanceWorkMem: String
     checkpointCompletionTarget: Float
     walBuffers: String
+    walCompression: String
     defaultStatisticsTarget: ConfigInt32
     randomPageCost: Float
     effectiveIOConcurrency: ConfigInt32
@@ -3573,8 +3611,14 @@ input ConfigPostgresSettingsUpdateInput {
     walLevel: String
     maxWalSenders: ConfigInt32
     maxReplicationSlots: ConfigInt32
+    maxSlotWalKeepSize: String
     archiveTimeout: ConfigInt32
     trackIoTiming: String
+    logMinDurationStatement: String
+    logAutovacuumMinDuration: String
+    logTempFiles: String
+        sharedPreloadLibraries: [ConfigPostgresPreloadLibrary!]
+    extensions: ConfigPostgresSettingsExtensionsUpdateInput
 }
 
 input ConfigPostgresSettingsInsertInput {
@@ -3585,6 +3629,7 @@ input ConfigPostgresSettingsInsertInput {
     maintenanceWorkMem: String
     checkpointCompletionTarget: Float
     walBuffers: String
+    walCompression: String
     defaultStatisticsTarget: ConfigInt32
     randomPageCost: Float
     effectiveIOConcurrency: ConfigInt32
@@ -3599,8 +3644,14 @@ input ConfigPostgresSettingsInsertInput {
     walLevel: String
     maxWalSenders: ConfigInt32
     maxReplicationSlots: ConfigInt32
+    maxSlotWalKeepSize: String
     archiveTimeout: ConfigInt32
     trackIoTiming: String
+    logMinDurationStatement: String
+    logAutovacuumMinDuration: String
+    logTempFiles: String
+        sharedPreloadLibraries: [ConfigPostgresPreloadLibrary!]
+    extensions: ConfigPostgresSettingsExtensionsInsertInput
 }
 
 input ConfigPostgresSettingsComparisonExp {
@@ -3614,6 +3665,7 @@ input ConfigPostgresSettingsComparisonExp {
     maintenanceWorkMem: ConfigStringComparisonExp
     checkpointCompletionTarget: ConfigFloatComparisonExp
     walBuffers: ConfigStringComparisonExp
+    walCompression: ConfigStringComparisonExp
     defaultStatisticsTarget: ConfigInt32ComparisonExp
     randomPageCost: ConfigFloatComparisonExp
     effectiveIOConcurrency: ConfigInt32ComparisonExp
@@ -3628,8 +3680,202 @@ input ConfigPostgresSettingsComparisonExp {
     walLevel: ConfigStringComparisonExp
     maxWalSenders: ConfigInt32ComparisonExp
     maxReplicationSlots: ConfigInt32ComparisonExp
+    maxSlotWalKeepSize: ConfigStringComparisonExp
     archiveTimeout: ConfigInt32ComparisonExp
     trackIoTiming: ConfigStringComparisonExp
+    logMinDurationStatement: ConfigStringComparisonExp
+    logAutovacuumMinDuration: ConfigStringComparisonExp
+    logTempFiles: ConfigStringComparisonExp
+    sharedPreloadLibraries: ConfigPostgresPreloadLibraryComparisonExp
+    extensions: ConfigPostgresSettingsExtensionsComparisonExp
+}
+
+"""
+Settings for PostgreSQL extensions.
+"""
+type ConfigPostgresSettingsExtensions {
+    """
+
+    """
+    pgStatStatements: ConfigPostgresSettingsExtensionsPgStatStatements
+    """
+
+    """
+    cron: ConfigPostgresSettingsExtensionsCron
+    """
+
+    """
+    pgDurable: ConfigPostgresSettingsExtensionsPgDurable
+    """
+
+    """
+    timescaledb: ConfigPostgresSettingsExtensionsTimescaledb
+}
+
+input ConfigPostgresSettingsExtensionsUpdateInput {
+    pgStatStatements: ConfigPostgresSettingsExtensionsPgStatStatementsUpdateInput
+    cron: ConfigPostgresSettingsExtensionsCronUpdateInput
+    pgDurable: ConfigPostgresSettingsExtensionsPgDurableUpdateInput
+    timescaledb: ConfigPostgresSettingsExtensionsTimescaledbUpdateInput
+}
+
+input ConfigPostgresSettingsExtensionsInsertInput {
+    pgStatStatements: ConfigPostgresSettingsExtensionsPgStatStatementsInsertInput
+    cron: ConfigPostgresSettingsExtensionsCronInsertInput
+    pgDurable: ConfigPostgresSettingsExtensionsPgDurableInsertInput
+    timescaledb: ConfigPostgresSettingsExtensionsTimescaledbInsertInput
+}
+
+input ConfigPostgresSettingsExtensionsComparisonExp {
+    _and: [ConfigPostgresSettingsExtensionsComparisonExp!]
+    _not: ConfigPostgresSettingsExtensionsComparisonExp
+    _or: [ConfigPostgresSettingsExtensionsComparisonExp!]
+    pgStatStatements: ConfigPostgresSettingsExtensionsPgStatStatementsComparisonExp
+    cron: ConfigPostgresSettingsExtensionsCronComparisonExp
+    pgDurable: ConfigPostgresSettingsExtensionsPgDurableComparisonExp
+    timescaledb: ConfigPostgresSettingsExtensionsTimescaledbComparisonExp
+}
+
+"""
+
+"""
+type ConfigPostgresSettingsExtensionsCron {
+    """
+    Time zone used for job schedules.
+    """
+    timezone: String
+    """
+    Maximum concurrent jobs.
+    """
+    maxRunningJobs: ConfigInt32
+    """
+    Record job runs.
+    """
+    logRun: String
+}
+
+input ConfigPostgresSettingsExtensionsCronUpdateInput {
+    timezone: String
+    maxRunningJobs: ConfigInt32
+    logRun: String
+}
+
+input ConfigPostgresSettingsExtensionsCronInsertInput {
+    timezone: String
+    maxRunningJobs: ConfigInt32
+    logRun: String
+}
+
+input ConfigPostgresSettingsExtensionsCronComparisonExp {
+    _and: [ConfigPostgresSettingsExtensionsCronComparisonExp!]
+    _not: ConfigPostgresSettingsExtensionsCronComparisonExp
+    _or: [ConfigPostgresSettingsExtensionsCronComparisonExp!]
+    timezone: ConfigStringComparisonExp
+    maxRunningJobs: ConfigInt32ComparisonExp
+    logRun: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigPostgresSettingsExtensionsPgDurable {
+    """
+    Maximum concurrent workflow SQL connections.
+    """
+    maxUserConnections: ConfigInt32
+    """
+    Days to retain completed workflow instances.
+    """
+    retentionDays: ConfigInt32
+    """
+    Log substituted workflow SQL, which may contain secrets.
+    """
+    logWorkflowSql: String
+}
+
+input ConfigPostgresSettingsExtensionsPgDurableUpdateInput {
+    maxUserConnections: ConfigInt32
+    retentionDays: ConfigInt32
+    logWorkflowSql: String
+}
+
+input ConfigPostgresSettingsExtensionsPgDurableInsertInput {
+    maxUserConnections: ConfigInt32
+    retentionDays: ConfigInt32
+    logWorkflowSql: String
+}
+
+input ConfigPostgresSettingsExtensionsPgDurableComparisonExp {
+    _and: [ConfigPostgresSettingsExtensionsPgDurableComparisonExp!]
+    _not: ConfigPostgresSettingsExtensionsPgDurableComparisonExp
+    _or: [ConfigPostgresSettingsExtensionsPgDurableComparisonExp!]
+    maxUserConnections: ConfigInt32ComparisonExp
+    retentionDays: ConfigInt32ComparisonExp
+    logWorkflowSql: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigPostgresSettingsExtensionsPgStatStatements {
+    """
+    Maximum distinct statements tracked.
+    """
+    max: ConfigInt32
+    """
+    Which statements to track.
+    """
+    track: String
+    """
+    Track planning time.
+    """
+    trackPlanning: String
+}
+
+input ConfigPostgresSettingsExtensionsPgStatStatementsUpdateInput {
+    max: ConfigInt32
+    track: String
+    trackPlanning: String
+}
+
+input ConfigPostgresSettingsExtensionsPgStatStatementsInsertInput {
+    max: ConfigInt32
+    track: String
+    trackPlanning: String
+}
+
+input ConfigPostgresSettingsExtensionsPgStatStatementsComparisonExp {
+    _and: [ConfigPostgresSettingsExtensionsPgStatStatementsComparisonExp!]
+    _not: ConfigPostgresSettingsExtensionsPgStatStatementsComparisonExp
+    _or: [ConfigPostgresSettingsExtensionsPgStatStatementsComparisonExp!]
+    max: ConfigInt32ComparisonExp
+    track: ConfigStringComparisonExp
+    trackPlanning: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigPostgresSettingsExtensionsTimescaledb {
+    """
+    Maximum number of background workers.
+    """
+    maxBackgroundWorkers: ConfigInt32
+}
+
+input ConfigPostgresSettingsExtensionsTimescaledbUpdateInput {
+    maxBackgroundWorkers: ConfigInt32
+}
+
+input ConfigPostgresSettingsExtensionsTimescaledbInsertInput {
+    maxBackgroundWorkers: ConfigInt32
+}
+
+input ConfigPostgresSettingsExtensionsTimescaledbComparisonExp {
+    _and: [ConfigPostgresSettingsExtensionsTimescaledbComparisonExp!]
+    _not: ConfigPostgresSettingsExtensionsTimescaledbComparisonExp
+    _or: [ConfigPostgresSettingsExtensionsTimescaledbComparisonExp!]
+    maxBackgroundWorkers: ConfigInt32ComparisonExp
 }
 
 """

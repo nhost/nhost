@@ -7,37 +7,22 @@ head:
     content: "Tuning PostgreSQL Settings via nhost.toml | Nhost Docs"
 ---
 
-Postgres configuration can be tweaked to customize the **runtime behavior**, **performance**, and **operational** aspects of your Postgres server instance.
+Configure PostgreSQL in `nhost.toml` under `[postgres.settings]`. Use
+`nhost config example` to see the full project configuration, including
+Postgres version and resources.
 
-:::caution
-Making changes should be done with caution, especially in a production
-  environment, as incorrect settings can affect the stability and performance of
-  Postgres.
-:::
-
-### Configuration Example
-
-To configure your Postgres instance, simply add the relevant settings under `[postgres.settings]` in your project's `nhost.toml` file.
+## Settings
 
 ```toml title="nhost.toml"
-[postgres]
-version = '14-20230312-1'
-
-[postgres.resources.compute]
-cpu = 2000
-memory = 4096
-
-[postgres.resources.storage]
-capacity = 20
-
 [postgres.settings]
-jit = 'off'
+jit = 'on'
 maxConnections = 100
 sharedBuffers = '128MB'
 effectiveCacheSize = '4GB'
 maintenanceWorkMem = '64MB'
 checkpointCompletionTarget = 0.9
 walBuffers = '-1'
+walCompression = 'off'
 defaultStatisticsTarget = 100
 randomPageCost = 4.0
 effectiveIOConcurrency = 1
@@ -52,9 +37,59 @@ maxParallelMaintenanceWorkers = 2
 walLevel = 'replica'
 maxWalSenders = 10
 maxReplicationSlots = 10
-trackIoTiming = 'on'
+maxSlotWalKeepSize = '-1'
+archiveTimeout = 300
+trackIoTiming = 'off'
+logMinDurationStatement = '-1'
+logAutovacuumMinDuration = '10min'
+logTempFiles = '-1'
+sharedPreloadLibraries = [
+  'pg_stat_statements',
+  'pg_cron',
+  'timescaledb',
+  'pg_squeeze',
+  'pg_search'
+]
+
+[postgres.settings.extensions.pgStatStatements]
+max = 5000
+track = 'top'
+trackPlanning = 'off'
+
+[postgres.settings.extensions.cron]
+timezone = 'GMT'
+maxRunningJobs = 32
+logRun = 'on'
+
+[postgres.settings.extensions.pgDurable]
+maxUserConnections = 10
+retentionDays = 30
+logWorkflowSql = 'off'
+
+[postgres.settings.extensions.timescaledb]
+maxBackgroundWorkers = 16
 ```
 
-### Resources
+## Operational notes
 
-- [Official documentation](https://www.postgresql.org/docs/14/runtime-config.html) from Postgres
+- **Restart and downtime:** Changing any setting under `postgres.settings`,
+  including extension settings, restarts PostgreSQL and causes a short period
+  of database downtime. Plan changes accordingly.
+- **Preloaded libraries:** `sharedPreloadLibraries` replaces the entire list.
+  The Cloud default is `pg_stat_statements`, `pg_cron`, `timescaledb`,
+  `pg_squeeze`, and `pg_search`. Keep all libraries your project needs when overriding the
+  list, and use a Postgres image that contains them. Preloading a library does
+  not install its extension in a database; see [available extensions](/products/database/extensions).
+- **WAL and replication:** A finite `maxSlotWalKeepSize` can invalidate a
+  lagging replication slot. `archiveTimeout` is measured in seconds.
+  `CHECKPOINT_TIMEOUT` is an image environment variable; Cloud exposes
+  `checkpointCompletionTarget`, not `checkpointTimeout`.
+- **Logging:** Slow-statement logs may contain sensitive SQL.
+  `extensions.pgDurable.logWorkflowSql` defaults to `off` because substituted
+  workflow SQL may contain secrets.
+- **Background workers:** Budget `extensions.timescaledb.maxBackgroundWorkers`
+  alongside `maxWorkerProcesses` and other extensions.
+
+See the [configuration reference](/reference/configuration/#postgressettings)
+for field types and defaults, and [PostgreSQL server configuration](https://www.postgresql.org/docs/current/runtime-config.html)
+for the underlying database settings.
