@@ -2,12 +2,12 @@
 
 buildPGXSExtension rec {
   pname = "pg_cron";
-  version = "1.6.7";
+  version = "1.6.8";
 
   src = pkgs.fetchFromGitHub {
     owner = "citusdata";
     repo = pname;
     rev = "v${version}";
-    hash = "sha256-oQjaQeIEMbg5pipY8tT4I7bNdyDOwcr/ZJikqgcEZOs=";
+    hash = "sha256-i5bgIFBjpb2KVUk9eABz7CpP+AwlgKAPQI0vNPd7Eb8=";
   };
 }
