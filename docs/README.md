@@ -54,6 +54,14 @@ keywords: [keyword1, keyword2]
 ---
 ```
 
+### Links in `.mdx`
+
+MDX disables CommonMark autolinks, so `<https://example.com>` is parsed as JSX and fails the
+build with ``Unexpected character after `<`, expected a valid JSX tag``. Write
+`[https://example.com](https://example.com)` instead: it renders the same, compiles, and —
+unlike a bare URL — is not rewritten into an autolink by markdown formatters that enforce
+"no bare URLs" (markdownlint MD034). Plain `.md` pages are unaffected.
+
 ### Adding to Sidebar
 
 The sidebar is configured in `astro.config.mjs` using `starlightSidebarTopics`. Add new pages to the appropriate section.

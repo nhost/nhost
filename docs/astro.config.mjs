@@ -33,6 +33,8 @@ export default defineConfig({
     // follows the redirect, so `curl -fsSL https://docs.nhost.io/install-mcp | claude`
     // still works.
     '/install-mcp': '/install-mcp.md',
+    // Same arrangement for the cloud onboarding file.
+    '/install-mcp-cloud': '/install-mcp-cloud.md',
     // Short, memorable entry point to the human-facing MCP overview.
     '/mcp': '/platform/cli/mcp',
     // Renamed during the GraphQL docs neutralization, so existing links and
@@ -106,7 +108,7 @@ export default defineConfig({
             '- Every project is addressed by a `subdomain` and a `region`, which together form service URLs such as `https://{subdomain}.auth.{region}.nhost.run/v1`.',
             '- The GraphQL API is generated from your Postgres schema, with role-based permissions declared as metadata rather than written in application code.',
             "- Two engines can serve that API. Constellation is Nhost's own GraphQL engine, a Hasura-compatible drop-in replacement that runs the same traffic on around 90% less memory. It is alpha and opt-in today: enabled per project through an `[experimental.constellation]` block in `nhost.toml`, running alongside Hasura rather than replacing it, and set to become the default over time. Both engines expose the same API, so these docs say 'the GraphQL API' rather than naming an engine.",
-            "- Nhost has two MCP servers. The Backend MCP Server exposes a project's own GraphQL API to assistants, authenticating end users through Nhost Auth so every operation runs with that user's permissions. The CLI MCP server runs locally, authenticates as you, and manages local and Nhost Cloud projects; its Cloud schema is linked below.",
+            "- Nhost has two MCP servers. The Backend MCP Server exposes a project's own GraphQL API to assistants, authenticating end users through Nhost Auth so every operation runs with that user's permissions. The CLI MCP server runs locally, authenticates as you, and manages local and Nhost Cloud projects; its Cloud schema is linked below. Nhost also hosts a Backend MCP instance for the Nhost Cloud platform at https://mcp.nhost.io, which any OAuth2-capable MCP client can add as a remote connector for read-only access to the user's own organizations, projects and deployments.",
             '- The `@nhost/nhost-js` SDK is the primary client and wraps auth, storage, GraphQL and functions in a single client.',
             '- The Auth and Storage REST APIs have machine-readable OpenAPI specs; see the optional links below rather than inferring endpoints from prose.',
           ].join('\n'),
@@ -196,6 +198,14 @@ export default defineConfig({
                   collapsed: false,
                   items: [{ slug: 'getting-started/local-development/cli' }],
                 },
+                {
+                  label: 'Cloud Development',
+                  collapsed: false,
+                  items: [
+                    { slug: 'getting-started/cloud-development/dashboard' },
+                  ],
+                },
+                { slug: 'getting-started/agentic-workflows' },
                 {
                   label: 'Tutorials',
                   collapsed: false,
@@ -712,6 +722,7 @@ export default defineConfig({
                     { slug: 'platform/cloud/custom-domains' },
                     { slug: 'platform/cloud/rate-limits' },
                     { slug: 'platform/cloud/tls' },
+                    { slug: 'platform/cloud/mcp' },
                     { slug: 'platform/cloud/billing' },
                   ],
                 },
@@ -732,6 +743,7 @@ export default defineConfig({
                       items: [
                         { slug: 'platform/cli/mcp' },
                         { slug: 'platform/cli/mcp/development-setup' },
+                        { slug: 'platform/cli/mcp/cloud-setup' },
                         { slug: 'platform/cli/mcp/configuration' },
                         { slug: 'platform/cli/mcp/clients' },
                         { slug: 'platform/cli/mcp/troubleshooting' },
