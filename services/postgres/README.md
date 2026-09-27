@@ -142,9 +142,8 @@ The image and Cloud defaults match whether or not `[postgres.settings]` exists.
 Both omit `pg_durable` and `pg_ivm`; include either in
 `sharedPreloadLibraries` (or `SHARED_PRELOAD_LIBRARIES` for the image) alongside
 all other required libraries if you use it. Preloading an extension does not
-run `CREATE EXTENSION`. For pg_squeeze on
-PostgreSQL 18, set `WAL_LEVEL=logical` before using its logical-decoding based
-squeeze operations; the image defaults to `replica`.
+run `CREATE EXTENSION`. For pg_squeeze, set `WAL_LEVEL=logical` before using
+its logical-decoding based squeeze operations; the image defaults to `replica`.
 
 ### PITR restore safety
 
