@@ -120,7 +120,7 @@ unless the workload needs a different value.
 | `LOG_MIN_DURATION_STATEMENT` | `-1` | `log_min_duration_statement`: log slow statements; `-1` disables (milliseconds if unitless). |
 | `LOG_AUTOVACUUM_MIN_DURATION` | `10min` | `log_autovacuum_min_duration`: log slow autovacuum activity; `-1` disables. |
 | `LOG_TEMP_FILES` | `-1` | `log_temp_files`: log temporary files over a threshold; `-1` disables (kilobytes if unitless). |
-| `SHARED_PRELOAD_LIBRARIES` | `pg_stat_statements,pg_cron,timescaledb,pg_squeeze,pg_search,pg_durable,pg_ivm` | Shared libraries loaded at PostgreSQL startup. Keep required modules when overriding; not every bundled extension has a preloadable library. |
+| `SHARED_PRELOAD_LIBRARIES` | `pg_stat_statements,pg_cron,timescaledb,pg_squeeze,pg_search` | Shared libraries loaded at PostgreSQL startup. Keep required modules when overriding; not every bundled extension has a preloadable library. |
 | `PG_STAT_STATEMENTS_MAX` | `5000` | `pg_stat_statements.max`: maximum distinct statements tracked; uses shared memory. |
 | `PG_STAT_STATEMENTS_TRACK` | `top` | `pg_stat_statements.track`: `top`, `all` (includes nested statements), or `none`. |
 | `PG_STAT_STATEMENTS_TRACK_PLANNING` | `off` | `pg_stat_statements.track_planning`: track planning time; can add overhead. |
@@ -132,9 +132,11 @@ unless the workload needs a different value.
 | `PG_DURABLE_LOG_WORKFLOW_SQL` | `off` | `pg_durable.log_workflow_sql`: substituted SQL may contain secrets; opt in only when needed. Overrides the extension's `on` default. |
 | `TIMESCALEDB_MAX_BACKGROUND_WORKERS` | `16` | `timescaledb.max_background_workers`: TimescaleDB job-worker cap; budget against `MAX_WORKER_PROCESSES` and other extensions. |
 
-Cloud's default `sharedPreloadLibraries` list omits `pg_durable` and `pg_ivm`;
-include them explicitly if your project uses them. Preloading an extension does
-not run `CREATE EXTENSION`. For pg_squeeze on
+The image and Cloud defaults match whether or not `[postgres.settings]` exists.
+Both omit `pg_durable` and `pg_ivm`; include either in
+`sharedPreloadLibraries` (or `SHARED_PRELOAD_LIBRARIES` for the image) alongside
+all other required libraries if you use it. Preloading an extension does not
+run `CREATE EXTENSION`. For pg_squeeze on
 PostgreSQL 18, set `WAL_LEVEL=logical` before using its logical-decoding based
 squeeze operations; the image defaults to `replica`.
 

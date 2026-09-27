@@ -25,7 +25,7 @@ NEW_SETTINGS = {
     "log_temp_files": ("LOG_TEMP_FILES", "-1", False),
     "shared_preload_libraries": (
         "SHARED_PRELOAD_LIBRARIES",
-        "pg_stat_statements,pg_cron,timescaledb,pg_squeeze,pg_search,pg_durable,pg_ivm",
+        "pg_stat_statements,pg_cron,timescaledb,pg_squeeze,pg_search",
         True,
     ),
     "pg_stat_statements.max": ("PG_STAT_STATEMENTS_MAX", "5000", False),
@@ -65,6 +65,17 @@ class ImageSettingsTests(unittest.TestCase):
                     Template(template).substitute(DEFAULTS | {variable: override}),
                     f"'{override}'" if quoted else override,
                 )
+
+    def test_preload_libraries_opt_in(self):
+        default = NEW_SETTINGS["shared_preload_libraries"][1]
+        opt_in = f"{default},pg_durable,pg_ivm"
+        self.assertEqual(DEFAULTS["SHARED_PRELOAD_LIBRARIES"], default)
+        self.assertEqual(
+            Template(ASSIGNMENTS["shared_preload_libraries"]).substitute(
+                DEFAULTS | {"SHARED_PRELOAD_LIBRARIES": opt_in}
+            ),
+            f"'{opt_in}'",
+        )
 
     def test_checkpoint_timeout_has_default(self):
         self.assertEqual(DEFAULTS["CHECKPOINT_TIMEOUT"], "5min")

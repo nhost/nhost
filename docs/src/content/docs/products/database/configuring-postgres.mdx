@@ -84,10 +84,12 @@ maxBackgroundWorkers = 16
   including extension settings, restarts PostgreSQL and causes a short period
   of database downtime. Plan changes accordingly.
 - **Preloaded libraries:** `sharedPreloadLibraries` replaces the entire list.
-  The Cloud default is `pg_stat_statements`, `pg_cron`, `timescaledb`,
-  `pg_squeeze`, and `pg_search`. Keep all libraries your project needs when overriding the
-  list, and use a Postgres image that contains them. Preloading a library does
-  not install its extension in a database; see [available extensions](/products/database/extensions).
+  Both the image and Cloud defaults are `pg_stat_statements`, `pg_cron`,
+  `timescaledb`, `pg_squeeze`, and `pg_search`, whether or not
+  `[postgres.settings]` exists. Add `pg_durable` and/or `pg_ivm` explicitly if
+  you use them; keep every required library when overriding the list. Use an
+  image that contains them. Preloading a library does not install its extension
+  in a database; see [available extensions](/products/database/extensions).
 - **WAL and replication:** A finite `maxSlotWalKeepSize` can invalidate a
   lagging replication slot. `archiveTimeout` is measured in seconds.
   `checkpointTimeout` sets the maximum interval between automatic checkpoints;
