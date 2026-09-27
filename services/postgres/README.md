@@ -132,6 +132,12 @@ unless the workload needs a different value.
 | `PG_DURABLE_LOG_WORKFLOW_SQL` | `off` | `pg_durable.log_workflow_sql`: substituted SQL may contain secrets; opt in only when needed. Overrides the extension's `on` default. |
 | `TIMESCALEDB_MAX_BACKGROUND_WORKERS` | `16` | `timescaledb.max_background_workers`: TimescaleDB job-worker cap; budget against `MAX_WORKER_PROCESSES` and other extensions. |
 
+Enabling `LOG_MIN_DURATION_STATEMENT` can log sensitive query text and bind
+parameters, especially pg_durable workflow variables, even with
+`PG_DURABLE_LOG_WORKFLOW_SQL=off` (which only disables pg_durable's own worker
+SQL traces). PostgreSQL error-statement logging can also record sensitive SQL;
+treat these logs as sensitive when queries or workflows handle secrets.
+
 The image and Cloud defaults match whether or not `[postgres.settings]` exists.
 Both omit `pg_durable` and `pg_ivm`; include either in
 `sharedPreloadLibraries` (or `SHARED_PRELOAD_LIBRARIES` for the image) alongside
