@@ -53,6 +53,63 @@ jobs:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
+  publish-mcp-registry:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs:
+      - push-docker-hub
+
+    permissions:
+      # Needed to mint the OIDC token mcp-publisher logs in with.
+      id-token: write
+      contents: read
+
+    defaults:
+      run:
+        working-directory: services/mcp
+
+    steps:
+      - name: "Check out repository"
+        uses: actions/checkout@v7
+
+      - name: Setup Nix with Cache
+        uses: ./.github/actions/setup-nix
+        with:
+          NAME: mcp-publisher
+          NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+          NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+          NIX_CACHE_SECRET_ACCESS_KEY: >-
+            ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Set version in server.json"
+        env:
+          RELEASE_VERSION: ${{ inputs.VERSION }}
+        run: |
+          VERSION="${RELEASE_VERSION#v}"
+          VERSION="${VERSION//\//_}"
+          IMAGE="docker.io/nhost/mcp:$VERSION"
+
+          jq --arg v "$VERSION" --arg image "$IMAGE" \
+            '.version = $v | .packages[0].identifier = $image' \
+            server.json > server.json.tmp
+          mv server.json.tmp server.json
+
+          jq --exit-status --arg image "$IMAGE" \
+            '.packages[0].identifier == $image' \
+            server.json > /dev/null
+
+          cat server.json
+
+      - name: "Validate server.json"
+        run: nix develop .#mcp-publisher -c mcp-publisher validate server.json
+
+      - name: "Authenticate to MCP registry"
+        run: nix develop .#mcp-publisher -c mcp-publisher login github-oidc
+
+      - name: "Publish to MCP registry"
+        run: nix develop .#mcp-publisher -c mcp-publisher publish
+
   push-docker-ecr:
     uses: ./.github/workflows/wf_docker_push_image_ecr.yaml
     needs:
@@ -63,4 +120,5 @@ jobs:
       VERSION: ${{ inputs.VERSION }}
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-      CONTAINER_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-central-1.amazonaws.com
+      CONTAINER_REGISTRY: >-
+        ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-central-1.amazonaws.com

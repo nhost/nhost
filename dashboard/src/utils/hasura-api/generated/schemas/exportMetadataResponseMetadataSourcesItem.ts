@@ -7,6 +7,8 @@
  */
 import type { ExportMetadataResponseMetadataSourcesItemFunctionsItem } from './exportMetadataResponseMetadataSourcesItemFunctionsItem';
 import type { ExportMetadataResponseMetadataSourcesItemTablesItem } from './exportMetadataResponseMetadataSourcesItemTablesItem';
+import type { LogicalModelItem } from './logicalModelItem';
+import type { NativeQueryItem } from './nativeQueryItem';
 
 export type ExportMetadataResponseMetadataSourcesItem = {
   /** Name of the data source */
@@ -17,5 +19,7 @@ export type ExportMetadataResponseMetadataSourcesItem = {
   tables?: ExportMetadataResponseMetadataSourcesItemTablesItem[];
   /** List of functions in the data source */
   functions?: ExportMetadataResponseMetadataSourcesItemFunctionsItem[];
+  logical_models?: LogicalModelItem[];
+  native_queries?: NativeQueryItem[];
   [key: string]: unknown;
 };

@@ -12,7 +12,7 @@ import permissionVariablesQuery from '@/tests/msw/mocks/graphql/permissionVariab
 import { hasuraColumnMetadataQuery } from '@/tests/msw/mocks/rest/hasuraMetadataQuery';
 import tableQuery from '@/tests/msw/mocks/rest/tableQuery';
 import {
-  mockPointerEvent,
+  mockScrollIntoViewAndPointerCapture,
   render,
   screen,
   TestUserEvent,
@@ -20,7 +20,7 @@ import {
 } from '@/tests/testUtils';
 import RowPermissionsSection from './RowPermissionsSection';
 
-mockPointerEvent();
+mockScrollIntoViewAndPointerCapture();
 
 const mocks = vi.hoisted(() => ({
   useRouter: vi.fn(),
@@ -175,56 +175,55 @@ describe('RowPermissionsSection', () => {
   });
 
   it('should show validation errors when condition has no value', async () => {
+    const user = new TestUserEvent();
     mocks.useRouter.mockImplementation(() => getRouter());
     renderRowPermissionsSection({ action: 'insert' });
 
-    await TestUserEvent.fireClickEvent(
-      screen.getByLabelText('With custom check'),
-    );
+    await user.click(screen.getByLabelText('With custom check'));
     expect(screen.getByLabelText('With custom check')).toBeChecked();
 
     expect(await screen.findByText('Add check')).toBeInTheDocument();
 
-    await TestUserEvent.fireClickEvent(screen.getByText('Add check'));
+    await user.click(screen.getByText('Add check'));
 
     const idOption = await screen.findByText('id');
-    await TestUserEvent.fireClickEvent(idOption);
+    await user.click(idOption);
 
-    await TestUserEvent.fireClickEvent(screen.getByTestId('submitButton'));
+    await user.click(screen.getByTestId('submitButton'));
     expect(
       await screen.findByText('Please enter a value.'),
     ).toBeInTheDocument();
   });
   it('should clear errors when operator changes', async () => {
+    const user = new TestUserEvent();
     mocks.useRouter.mockImplementation(() => getRouter());
     renderRowPermissionsSection({ action: 'insert' });
 
-    await TestUserEvent.fireClickEvent(
-      screen.getByLabelText('With custom check'),
-    );
+    await user.click(screen.getByLabelText('With custom check'));
     expect(screen.getByLabelText('With custom check')).toBeChecked();
 
     expect(await screen.findByText('Add check')).toBeInTheDocument();
 
-    await TestUserEvent.fireClickEvent(screen.getByText('Add check'));
+    await user.click(screen.getByText('Add check'));
 
     const idOption = await screen.findByText('id');
-    await TestUserEvent.fireClickEvent(idOption);
+    await user.click(idOption);
 
-    await TestUserEvent.fireClickEvent(screen.getByTestId('submitButton'));
+    await user.click(screen.getByTestId('submitButton'));
     expect(
       await screen.findByText('Please enter a value.'),
     ).toBeInTheDocument();
 
-    await TestUserEvent.fireClickEvent(screen.getByText('_eq'));
+    await user.click(screen.getByText('_eq'));
 
-    await TestUserEvent.fireClickEvent(screen.getByText('_is_null'));
+    await user.click(screen.getByText('_is_null'));
 
     expect(screen.getByText('Is null?')).toBeInTheDocument();
     expect(screen.queryByText('Please enter a value.')).not.toBeInTheDocument();
   });
 
   it('should show duplicate condition error when the same column and operator appear twice', async () => {
+    const user = new TestUserEvent();
     mocks.useRouter.mockImplementation(() => getRouter());
     renderRowPermissionsSection(
       { action: 'select' },
@@ -253,7 +252,7 @@ describe('RowPermissionsSection', () => {
       },
     );
 
-    await TestUserEvent.fireClickEvent(screen.getByTestId('submitButton'));
+    await user.click(screen.getByTestId('submitButton'));
 
     await waitFor(() => {
       expect(

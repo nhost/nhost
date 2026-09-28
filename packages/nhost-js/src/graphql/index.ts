@@ -6,7 +6,7 @@
  * ## Import
  *
  * ```ts
- * import { createClient } from "@nhost/nhost-js/graphql";
+ * import { createAPIClient } from "@nhost/nhost-js/graphql";
  * ```
  *
  * ## Usage

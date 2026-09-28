@@ -1,6 +1,6 @@
 # How to generate emails for a new locale
 
-The emails are made using (`react.email`)[https://react.email/] and they can be edited and previewd running the
+The emails are made using [`react.email`](https://react.email/) and they can be edited and previewed running the
 following command at the root of the repo:
 
 ```sh

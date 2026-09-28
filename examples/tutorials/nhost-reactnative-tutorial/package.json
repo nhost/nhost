@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "@types/react": "~19.1.17",
-    "typescript": "~5.9.3"
+    "typescript": "catalog:"
   },
   "private": true
 }

@@ -74,7 +74,7 @@ interface RenderDialogOptions {
   projectName?: string | null;
 }
 
-function renderDialog({
+async function renderDialog({
   handler,
   isPaidPlan = false,
   organizationName = 'Example Org',
@@ -108,7 +108,7 @@ function renderDialog({
     />,
   );
 
-  fireEvent.click(
+  await new TestUserEvent().click(
     screen.getByRole('button', { name: 'Open project deletion' }),
   );
 
@@ -125,6 +125,11 @@ function getDeleteButton() {
 
 function getCancelButton() {
   return screen.getByRole('button', { name: 'Cancel' });
+}
+
+async function typeConfirmation(user: TestUserEvent, value: string) {
+  await user.clear(getConfirmationInput());
+  await user.type(getConfirmationInput(), value);
 }
 
 async function acknowledgeIrreversibleAction(user: TestUserEvent) {
@@ -149,22 +154,16 @@ describe('RemoveApplicationDialog', () => {
   });
 
   it('requires the exact token and irreversible acknowledgment on a free plan', async () => {
-    renderDialog();
+    await renderDialog();
     const user = new TestUserEvent();
 
     expect(getDeleteButton()).toBeDisabled();
 
-    await TestUserEvent.fireTypeEvent(
-      getConfirmationInput(),
-      'Example Org/Example project',
-    );
+    await typeConfirmation(user, 'Example Org/Example project');
     await acknowledgeIrreversibleAction(user);
     expect(getDeleteButton()).toBeDisabled();
 
-    await TestUserEvent.fireTypeEvent(
-      getConfirmationInput(),
-      'Example Org/Example Project',
-    );
+    await typeConfirmation(user, 'Example Org/Example Project');
     expect(getDeleteButton()).toBeEnabled();
 
     await acknowledgeIrreversibleAction(user);
@@ -172,13 +171,10 @@ describe('RemoveApplicationDialog', () => {
   });
 
   it('also retains the paid-subscription acknowledgment on a paid plan', async () => {
-    renderDialog({ isPaidPlan: true });
+    await renderDialog({ isPaidPlan: true });
     const user = new TestUserEvent();
 
-    await TestUserEvent.fireTypeEvent(
-      getConfirmationInput(),
-      'Example Org/Example Project',
-    );
+    await typeConfirmation(user, 'Example Org/Example Project');
     await acknowledgeIrreversibleAction(user);
     expect(getDeleteButton()).toBeDisabled();
 
@@ -200,7 +196,7 @@ describe('RemoveApplicationDialog', () => {
   ])(
     'fails closed when a required name is missing or empty: %j',
     async ({ organizationName, projectName }) => {
-      renderDialog({ organizationName, projectName });
+      await renderDialog({ organizationName, projectName });
 
       expect(
         screen.getByText('Project confirmation is unavailable.'),
@@ -222,13 +218,10 @@ describe('RemoveApplicationDialog', () => {
   );
 
   it('preserves the default mutation success side effects', async () => {
-    renderDialog();
+    await renderDialog();
     const user = new TestUserEvent();
 
-    await TestUserEvent.fireTypeEvent(
-      getConfirmationInput(),
-      'Example Org/Example Project',
-    );
+    await typeConfirmation(user, 'Example Org/Example Project');
     await acknowledgeIrreversibleAction(user);
     await user.click(getDeleteButton());
 
@@ -249,13 +242,10 @@ describe('RemoveApplicationDialog', () => {
     mocks.deleteApplication.mockRejectedValue(new Error('network error'));
     mocks.discordAnnounce.mockRejectedValue(new Error('webhook unreachable'));
 
-    renderDialog();
+    await renderDialog();
     const user = new TestUserEvent();
 
-    await TestUserEvent.fireTypeEvent(
-      getConfirmationInput(),
-      'Example Org/Example Project',
-    );
+    await typeConfirmation(user, 'Example Org/Example Project');
     await acknowledgeIrreversibleAction(user);
     await user.click(getDeleteButton());
 
@@ -273,13 +263,10 @@ describe('RemoveApplicationDialog', () => {
   it('releases the pending state when a custom handler fails', async () => {
     const error = new Error('handler failed');
     const handler = vi.fn().mockRejectedValue(error);
-    renderDialog({ handler });
+    await renderDialog({ handler });
     const user = new TestUserEvent();
 
-    await TestUserEvent.fireTypeEvent(
-      getConfirmationInput(),
-      'Example Org/Example Project',
-    );
+    await typeConfirmation(user, 'Example Org/Example Project');
     await acknowledgeIrreversibleAction(user);
     await user.click(getDeleteButton());
 

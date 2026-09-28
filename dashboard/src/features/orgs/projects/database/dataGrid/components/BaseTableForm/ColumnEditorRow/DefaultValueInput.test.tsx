@@ -1,13 +1,6 @@
 import { FormProvider, useForm, useWatch } from 'react-hook-form';
-import {
-  mockPointerEvent,
-  render,
-  screen,
-  TestUserEvent,
-} from '@/tests/testUtils';
+import { render, screen, TestUserEvent } from '@/tests/testUtils';
 import DefaultValueInput from './DefaultValueInput';
-
-mockPointerEvent();
 
 interface WrapperProps {
   type?: string | null;

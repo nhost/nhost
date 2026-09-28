@@ -1,18 +1,33 @@
 name: 'Check Permissions'
-description: "Fail if the PR author lacks write permissions and the 'safe_to_test' label is not present"
+description: >-
+  Fail if the PR author lacks write permissions and the 'safe_to_test' label
+  is not present
 
 runs:
   using: 'composite'
   steps:
     - shell: bash
+      env:
+        AUTHOR_ASSOCIATION: >-
+          ${{ github.event.pull_request.author_association }}
       run: |
         echo "github.event_name: ${{ github.event_name }}"
-        echo "github.event.pull_request.author_association: ${{ github.event.pull_request.author_association }}"
-    - name: "Fail if the PR author lacks write permission and the 'safe_to_test' label is not present"
+        echo "github.event.pull_request.author_association: ${AUTHOR_ASSOCIATION}"
+    - name: >-
+        Fail if the PR author lacks write permission and the 'safe_to_test'
+        label is not present
       if: >-
         github.event_name == 'pull_request_target' &&
-        ! contains(github.event.pull_request.labels.*.name, 'safe_to_test') &&
-        ! contains(fromJson('["nhost-helper-bot[bot]"]'), github.event.pull_request.user.login)
+        ! contains(
+          github.event.pull_request.labels.*.name,
+          'safe_to_test'
+        ) &&
+        ! contains(
+          fromJson(
+            '["dependabot[bot]", "nhost-helper-bot[bot]"]'
+          ),
+          github.event.pull_request.user.login
+        )
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
@@ -20,15 +35,22 @@ runs:
         PR_USER: ${{ github.event.pull_request.user.login }}
       run: |
         set -euo pipefail
-        permission=$(gh api "repos/${REPO}/collaborators/${PR_USER}/permission" --jq '.permission')
+        permission=$(
+          gh api \
+            "repos/${REPO}/collaborators/${PR_USER}/permission" \
+            --jq '.permission'
+        )
         echo "Resolved repository permission for ${PR_USER}: ${permission}"
         case "${permission}" in
           admin | maintain | write)
-            echo "Author has write or higher permission; allowing checks to run."
+            echo "Author has write or higher permission;" \
+              "allowing checks to run."
             ;;
           *)
-            echo "::error::Author '${PR_USER}' has '${permission}' permission, which is below write."
-            echo "A maintainer must review the PR and add the 'safe_to_test' label to run secret-bearing checks."
+            echo "::error::Author '${PR_USER}' has '${permission}'" \
+              "permission, which is below write."
+            echo "A maintainer must review the PR and add the" \
+              "'safe_to_test' label to run secret-bearing checks."
             exit 1
             ;;
         esac

@@ -4,7 +4,6 @@ import { vi } from 'vitest';
 import type { LogsFilterFormValues } from '@/features/orgs/projects/logs/components/LogsHeader';
 import { mockApplication } from '@/tests/mocks';
 import {
-  mockPointerEvent,
   render,
   screen,
   TestUserEvent,
@@ -12,8 +11,6 @@ import {
 } from '@/tests/testUtils';
 import { subMinutes } from 'date-fns';
 import LogsRangeSelector from './LogsRangeSelector';
-
-mockPointerEvent();
 
 vi.mock('@/features/orgs/projects/hooks/useProject', async () => ({
   useProject: () => ({ project: mockApplication }),

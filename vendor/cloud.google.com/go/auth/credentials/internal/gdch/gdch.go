@@ -15,23 +15,24 @@
 package gdch
 
 import (
+	"bytes"
 	"context"
-	"crypto/rsa"
+	"crypto"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
-	"net/url"
 	"os"
-	"strings"
 	"time"
 
 	"cloud.google.com/go/auth"
 	"cloud.google.com/go/auth/internal"
 	"cloud.google.com/go/auth/internal/credsfile"
 	"cloud.google.com/go/auth/internal/jwt"
+	"github.com/googleapis/gax-go/v2/internallog"
 )
 
 const (
@@ -51,6 +52,7 @@ var (
 type Options struct {
 	STSAudience string
 	Client      *http.Client
+	Logger      *slog.Logger
 }
 
 // NewTokenProvider returns a [cloud.google.com/go/auth.TokenProvider] from a
@@ -62,7 +64,7 @@ func NewTokenProvider(f *credsfile.GDCHServiceAccountFile, o *Options) (auth.Tok
 	if o.STSAudience == "" {
 		return nil, errors.New("credentials: STSAudience must be set for the GDCH auth flows")
 	}
-	pk, err := internal.ParseKey([]byte(f.PrivateKey))
+	signer, err := internal.ParseKey([]byte(f.PrivateKey))
 	if err != nil {
 		return nil, err
 	}
@@ -75,10 +77,11 @@ func NewTokenProvider(f *credsfile.GDCHServiceAccountFile, o *Options) (auth.Tok
 		serviceIdentity: fmt.Sprintf("system:serviceaccount:%s:%s", f.Project, f.Name),
 		tokenURL:        f.TokenURL,
 		aud:             o.STSAudience,
-		pk:              pk,
+		signer:          signer,
 		pkID:            f.PrivateKeyID,
 		certPool:        certPool,
 		client:          o.Client,
+		logger:          internallog.New(o.Logger),
 	}
 	return tp, nil
 }
@@ -97,11 +100,12 @@ type gdchProvider struct {
 	serviceIdentity string
 	tokenURL        string
 	aud             string
-	pk              *rsa.PrivateKey
+	signer          crypto.Signer
 	pkID            string
 	certPool        *x509.CertPool
 
 	client *http.Client
+	logger *slog.Logger
 }
 
 func (g gdchProvider) Token(ctx context.Context) (*auth.Token, error) {
@@ -116,30 +120,39 @@ func (g gdchProvider) Token(ctx context.Context) (*auth.Token, error) {
 		Exp: exp.Unix(),
 	}
 	h := jwt.Header{
-		Algorithm: jwt.HeaderAlgRSA256,
+		Algorithm: jwt.HeaderAlgES256,
 		Type:      jwt.HeaderType,
-		KeyID:     string(g.pkID),
+		KeyID:     g.pkID,
 	}
-	payload, err := jwt.EncodeJWS(&h, &claims, g.pk)
+	payload, err := jwt.EncodeJWS(&h, &claims, g.signer)
 	if err != nil {
 		return nil, err
 	}
-	v := url.Values{}
-	v.Set("grant_type", GrantType)
-	v.Set("audience", g.aud)
-	v.Set("requested_token_type", requestTokenType)
-	v.Set("subject_token", payload)
-	v.Set("subject_token_type", subjectTokenType)
 
-	req, err := http.NewRequestWithContext(ctx, "POST", g.tokenURL, strings.NewReader(v.Encode()))
+	v := map[string]string{
+		"grant_type":           GrantType,
+		"audience":             g.aud,
+		"requested_token_type": requestTokenType,
+		"subject_token":        payload,
+		"subject_token_type":   subjectTokenType,
+	}
+
+	r, err := json.Marshal(v)
+	if err != nil {
+		return nil, fmt.Errorf("credentials: cannot marshal token request: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", g.tokenURL, bytes.NewReader(r))
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Content-Type", "application/json")
+	g.logger.DebugContext(ctx, "gdch token request", "request", internallog.HTTPRequest(req, r))
 	resp, body, err := internal.DoRequest(g.client, req)
 	if err != nil {
 		return nil, fmt.Errorf("credentials: cannot fetch token: %w", err)
 	}
+	g.logger.DebugContext(ctx, "gdch token response", "response", internallog.HTTPResponse(resp, body))
 	if c := resp.StatusCode; c < http.StatusOK || c > http.StatusMultipleChoices {
 		return nil, &auth.Error{
 			Response: resp,
@@ -181,4 +194,5 @@ func addCertToTransport(hc *http.Client, certPool *x509.CertPool) {
 	trans.TLSClientConfig = &tls.Config{
 		RootCAs: certPool,
 	}
+	hc.Transport = trans
 }

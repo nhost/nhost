@@ -1,3 +1,12 @@
+## [cli@1.51.1] - 2026-09-16
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.51.0
+- *(cli)* Change cli_wf_release runner so provenance check doesn't … (#4994)
+- *(functions)* Bump references to 2.3.0
+- *(functions)* Bump references to 2.3.1
+
 ## [cli@1.51.0] - 2026-09-12
 
 ### 🚀 Features

@@ -35,9 +35,7 @@
         pkgs = import nixpkgs {
           inherit system;
           config.allowUnfree = true;
-          overlays = [
-            (import ./nixops/overlays/default.nix)
-          ];
+          overlays = [ self.overlays.default ];
         };
 
         nix2containerPkgs = nix2container.packages.${system};
@@ -92,6 +90,14 @@
         };
 
         govulncheck-wrapperf = import ./tools/govulncheck-wrapper/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
+        betterleaksf = import ./tools/betterleaks/project.nix {
           inherit
             self
             pkgs
@@ -177,6 +183,7 @@
 
         nixopsf = import ./nixops/project.nix {
           inherit
+            self
             pkgs
             nix2containerPkgs
             nixops-lib
@@ -230,6 +237,7 @@
         checks = {
           ai = aif.check;
           auth = authf.check;
+          betterleaks = betterleaksf.check;
           cli = clif.check;
           codegen = codegenf.check;
           constellation = constellationf.check;
@@ -259,6 +267,7 @@
               gh
               git-cliff
               gnused
+              nhost.mcp-publisher
               skopeo
 
               # cli
@@ -332,6 +341,12 @@
             ];
           };
 
+          mcp-publisher = pkgs.mkShell {
+            buildInputs = with pkgs; [
+              nhost.mcp-publisher
+            ];
+          };
+
           pnpm = pkgs.mkShell {
             buildInputs = with pkgs; [
               nhost.nodejs
@@ -372,6 +387,7 @@
 
           ai = aif.devShell;
           auth = authf.devShell;
+          betterleaks = betterleaksf.devShell;
           cli = clif.devShell;
           codegen = codegenf.devShell;
           constellation = constellationf.devShell;
@@ -399,6 +415,7 @@
           ai-docker-image = aif.dockerImage;
           auth = authf.package;
           auth-docker-image = authf.dockerImage;
+          betterleaks = betterleaksf.package;
           cli = clif.package;
           cli-multiplatform = clif.cli-multiplatform;
           cli-npm = clif.cli-npm;
@@ -436,12 +453,10 @@
           stripe-graphql-js = stripe-graphql-jsf.package;
           mcp = mcpf.package;
           mcp-docker-image = mcpf.dockerImage;
+          mcp-publisher = pkgs.nhost.mcp-publisher;
           nixops = nixopsf.package;
           nixops-docker-image = nixopsf.dockerImage;
           pi-agent = pkgs.nhost.pi-agent;
-          postgres-pg16 = postgresf.packages.pg16-package;
-          postgres-pg16-docker-image = postgresf.packages.pg16-docker-image;
-          postgres-pg16-as-dir = postgresf.packages.pg16-as-dir;
           postgres-pg17 = postgresf.packages.pg17-package;
           postgres-pg17-docker-image = postgresf.packages.pg17-docker-image;
           postgres-pg17-as-dir = postgresf.packages.pg17-as-dir;

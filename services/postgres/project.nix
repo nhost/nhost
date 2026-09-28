@@ -35,7 +35,6 @@ let
 
   mkAsDir = image: pkgs.runCommand "image-as-dir" { } "${image.copyTo}/bin/copy-to dir:$out";
 
-  pg16 = mkPostgres pkgs.nhost.postgresql_16;
   pg17 = mkPostgres pkgs.nhost.postgresql_17;
   pg18 = mkPostgres pkgs.nhost.postgresql_18;
 in
@@ -84,9 +83,6 @@ in
   };
 
   packages = rec {
-    pg16-package = pg16.package;
-    pg16-docker-image = pg16.dockerImage;
-    pg16-as-dir = mkAsDir pg16-docker-image;
     pg17-package = pg17.package;
     pg17-docker-image = pg17.dockerImage;
     pg17-as-dir = mkAsDir pg17-docker-image;

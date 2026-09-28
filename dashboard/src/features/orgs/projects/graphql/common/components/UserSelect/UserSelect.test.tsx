@@ -1,7 +1,7 @@
 import UserSelect from '@/features/orgs/projects/graphql/common/components/UserSelect/UserSelect';
 import {
   act,
-  mockPointerEvent,
+  mockScrollIntoViewAndPointerCapture,
   render,
   screen,
   TestUserEvent,
@@ -32,7 +32,7 @@ vi.mock('@/generated/graphql', async (importOriginal) => {
   };
 });
 
-mockPointerEvent();
+mockScrollIntoViewAndPointerCapture();
 
 const usersResponse = {
   data: {

@@ -494,6 +494,7 @@ func populateForeignKeys( //nolint:funlen
 	query := `
 		SELECT
 			ct.relname AS table_name,
+			r.conname AS constraint_name,
 			ac.attname AS column_name,
 			cftn.nspname AS foreign_schema,
 			cft.relname AS foreign_table_name,
@@ -523,6 +524,7 @@ func populateForeignKeys( //nolint:funlen
 	for rows.Next() {
 		var (
 			tableName         string
+			constraintName    string
 			columnName        string
 			foreignSchema     string
 			foreignTableName  string
@@ -530,7 +532,7 @@ func populateForeignKeys( //nolint:funlen
 		)
 
 		if err := rows.Scan(
-			&tableName, &columnName,
+			&tableName, &constraintName, &columnName,
 			&foreignSchema, &foreignTableName, &foreignColumnName,
 		); err != nil {
 			return fmt.Errorf("failed to scan foreign key row: %w", err)
@@ -538,6 +540,7 @@ func populateForeignKeys( //nolint:funlen
 
 		if table, exists := tableMap[tableName]; exists {
 			table.ForeignKeys = append(table.ForeignKeys, introspection.ForeignKey{
+				Constraint:        constraintName,
 				ColumnName:        columnName,
 				ForeignSchema:     foreignSchema,
 				ForeignTable:      foreignTableName,

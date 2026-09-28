@@ -32,7 +32,7 @@ export default function GroupNodeRenderer({
   maxDepth,
   onRemove,
 }: GroupNodeRendererProps) {
-  const { control } = useFormContext();
+  const { control, getFieldState, formState } = useFormContext();
   const { fields, append, remove } = useFieldArray({
     control,
     name: `${name}.children`,
@@ -40,6 +40,8 @@ export default function GroupNodeRenderer({
 
   const children: (RuleNode & { id: string })[] =
     useWatch({ name: `${name}.children` }) ?? [];
+  const { error: childrenError } = getFieldState(`${name}.children`, formState);
+  const errorMessage = childrenError?.root?.message ?? childrenError?.message;
 
   function handleAddNode(node: RuleNode) {
     append(node);
@@ -129,6 +131,12 @@ export default function GroupNodeRenderer({
           );
         })}
       </div>
+
+      {errorMessage && (
+        <p className="mt-2 text-destructive text-sm" role="alert">
+          {errorMessage}
+        </p>
+      )}
 
       <div className="mt-3">
         <AddNodeButton
