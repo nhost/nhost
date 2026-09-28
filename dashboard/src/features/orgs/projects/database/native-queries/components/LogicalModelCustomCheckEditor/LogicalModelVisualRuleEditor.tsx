@@ -3,7 +3,7 @@ import { useFormContext, useWatch } from 'react-hook-form';
 import { v4 as uuidv4 } from 'uuid';
 import { CustomCheckEditorContext } from '@/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/useCustomCheckEditor';
 import type { GroupNode } from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils';
-import type { LogicalModelFieldDescriptor } from '@/features/orgs/projects/database/native-queries/utils/logicalModelPermissionFilter';
+import type { LogicalModelFieldDescriptor } from '@/features/orgs/projects/database/native-queries/utils/logicalModelPermissionUtils';
 import LogicalModelAddNodeButton from './LogicalModelAddNodeButton';
 import LogicalModelGroupNodeRenderer from './LogicalModelGroupNodeRenderer';
 import { LogicalModelCustomCheckEditorContext } from './useLogicalModelCustomCheckEditor';

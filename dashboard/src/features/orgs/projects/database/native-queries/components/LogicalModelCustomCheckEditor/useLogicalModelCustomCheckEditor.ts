@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import type { LogicalModelFieldDescriptor } from '@/features/orgs/projects/database/native-queries/utils/logicalModelPermissionFilter';
+import type { LogicalModelFieldDescriptor } from '@/features/orgs/projects/database/native-queries/utils/logicalModelPermissionUtils';
 
 export interface LogicalModelCustomCheckEditorValue {
   fields: LogicalModelFieldDescriptor[];

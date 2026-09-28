@@ -14,7 +14,7 @@ import {
 } from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils';
 import { useLogicalModelPermissionMutation } from '@/features/orgs/projects/database/native-queries/hooks/useLogicalModelPermissionMutation';
 import type { LogicalModelPermissionArgs } from '@/features/orgs/projects/database/native-queries/hooks/useLogicalModelPermissionMutation/types';
-import { resolveLogicalModelFieldDescriptors } from '@/features/orgs/projects/database/native-queries/utils/logicalModelPermissionFilter';
+import { resolveLogicalModelFieldDescriptors } from '@/features/orgs/projects/database/native-queries/utils/logicalModelPermissionUtils';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { isNotEmptyValue } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
@@ -33,7 +33,6 @@ export interface LogicalModelPermissionFormValues {
 }
 
 interface LogicalModelPermissionFormProps extends DialogFormProps {
-  source: string;
   model: LogicalModelItem;
   role: string;
   availableRoles: string[];
@@ -69,7 +68,6 @@ function defaultValues(
 }
 
 export default function LogicalModelPermissionForm({
-  source,
   model,
   role,
   availableRoles,
@@ -149,7 +147,7 @@ export default function LogicalModelPermissionForm({
         ? { comment: existingPermission.comment }
         : {}),
     };
-    const base = { source, resourceVersion: resourceVersion! };
+    const base = { resourceVersion: resourceVersion! };
     const save = existingPermission
       ? () =>
           editMutation.mutateAsync({
@@ -166,12 +164,8 @@ export default function LogicalModelPermissionForm({
         onCancel();
       },
       {
-        loadingMessage: existingPermission
-          ? 'Updating select permission...'
-          : 'Creating select permission...',
-        successMessage: existingPermission
-          ? 'Select permission updated.'
-          : 'Select permission created.',
+        loadingMessage: 'Saving select permission...',
+        successMessage: 'Select permission saved.',
         errorMessage: 'Could not save the select permission.',
       },
     );
@@ -185,7 +179,6 @@ export default function LogicalModelPermissionForm({
     await execPromiseWithErrorToast(
       async () => {
         await deleteMutation.mutateAsync({
-          source,
           resourceVersion: resourceVersion!,
           name: model.name,
           role,

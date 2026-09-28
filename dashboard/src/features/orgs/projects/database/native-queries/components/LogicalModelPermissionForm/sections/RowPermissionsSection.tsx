@@ -8,7 +8,7 @@ import {
   LogicalModelCustomCheckModeToggle,
 } from '@/features/orgs/projects/database/native-queries/components/LogicalModelCustomCheckEditor';
 import type { LogicalModelPermissionFormValues } from '@/features/orgs/projects/database/native-queries/components/LogicalModelPermissionForm/LogicalModelPermissionForm';
-import type { LogicalModelFieldDescriptor } from '@/features/orgs/projects/database/native-queries/utils/logicalModelPermissionFilter';
+import type { LogicalModelFieldDescriptor } from '@/features/orgs/projects/database/native-queries/utils/logicalModelPermissionUtils';
 import PermissionSettingsSection from './PermissionSettingsSection';
 
 export interface RowPermissionsSectionProps {

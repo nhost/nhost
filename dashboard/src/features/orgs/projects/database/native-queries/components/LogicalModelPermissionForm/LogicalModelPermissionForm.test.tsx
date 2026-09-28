@@ -1,4 +1,7 @@
+import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
+import { act } from 'react';
+import { toast } from 'react-hot-toast';
 import LogicalModelPermissionForm from '@/features/orgs/projects/database/native-queries/components/LogicalModelPermissionForm/LogicalModelPermissionForm';
 import { mockMatchMediaValue } from '@/tests/mocks';
 import { getProjectQuery } from '@/tests/msw/mocks/graphql/getProjectQuery';
@@ -6,10 +9,18 @@ import permissionVariablesQuery from '@/tests/msw/mocks/graphql/permissionVariab
 import hasuraMetadataQuery from '@/tests/msw/mocks/rest/hasuraMetadataQuery';
 import tableQuery from '@/tests/msw/mocks/rest/tableQuery';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
-import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
+import {
+  mockScrollIntoViewAndPointerCapture,
+  render,
+  screen,
+  TestUserEvent,
+  waitFor,
+} from '@/tests/testUtils';
 import type {
+  CreateLogicalModelSelectPermissionArgs,
   LogicalModelItem,
   LogicalModelSelectPermission,
+  MigrationRequest,
 } from '@/utils/hasura-api/generated/schemas';
 
 const model: LogicalModelItem = {
@@ -20,20 +31,48 @@ const model: LogicalModelItem = {
     { name: 'profile', type: { logical_model: 'profile', nullable: true } },
   ],
 };
+
+let migrationBodies: MigrationRequest[] = [];
+let migrationFinished: Promise<void> | undefined;
+let releaseMigration: VoidFunction | undefined;
+
 const server = setupServer(
   tokenQuery,
   tableQuery,
   hasuraMetadataQuery,
   getProjectQuery,
   permissionVariablesQuery,
+  http.post(
+    'https://local.hasura.local.nhost.run/apis/migrate',
+    async ({ request }) => {
+      migrationBodies.push((await request.json()) as MigrationRequest);
+      await migrationFinished;
+      return HttpResponse.json({ name: '0_update_native_query_metadata' });
+    },
+  ),
 );
-const mocks = vi.hoisted(() => ({
-  useRouter: vi.fn(),
-  mutateAsync: vi.fn(),
-}));
 
-vi.mock('next/router', () => ({
-  useRouter: mocks.useRouter,
+vi.mock('next/router', async () => {
+  const { mockRouter } = await import('@/tests/mocks');
+  return {
+    useRouter: () => ({
+      ...mockRouter,
+      query: { ...mockRouter.query, dataSourceSlug: 'default' },
+    }),
+  };
+});
+vi.mock('@/features/orgs/projects/hooks/useProject', () => ({
+  useProject: () => ({
+    project: {
+      subdomain: 'test-project',
+      region: 'local',
+      config: { hasura: { adminSecret: 'secret' } },
+    },
+    loading: false,
+  }),
+}));
+vi.mock('@/features/orgs/projects/common/hooks/useIsPlatform', () => ({
+  useIsPlatform: () => false,
 }));
 vi.mock(
   '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion',
@@ -41,76 +80,119 @@ vi.mock(
     useGetMetadataResourceVersion: () => ({ data: 244 }),
   }),
 );
-vi.mock(
-  '@/features/orgs/projects/database/native-queries/hooks/useLogicalModelPermissionMutation',
-  () => ({
-    useLogicalModelPermissionMutation: () => ({
-      mutateAsync: mocks.mutateAsync,
-      isPending: false,
-    }),
-  }),
-);
 
-function renderForm(permission: LogicalModelSelectPermission) {
+function renderForm(
+  permission?: LogicalModelSelectPermission,
+  comment?: string,
+) {
+  const onCancel = vi.fn();
+  const onRoleChange = vi.fn();
   render(
     // biome-ignore lint/a11y/useValidAriaRole: This component's role prop names a permission role, not an ARIA role.
     <LogicalModelPermissionForm
-      source="default"
       model={{
         ...model,
-        select_permissions: [{ role: 'user', permission }],
+        select_permissions: permission
+          ? [{ role: 'user', permission, comment }]
+          : undefined,
       }}
       role="user"
-      availableRoles={['user']}
-      onRoleChange={vi.fn()}
-      onCancel={vi.fn()}
+      availableRoles={['user', 'auditor']}
+      onRoleChange={onRoleChange}
+      onCancel={onCancel}
     />,
   );
-  return mocks.mutateAsync;
+  return { onCancel, onRoleChange };
 }
 
-describe('LogicalModelPermissionForm validation', () => {
+function holdMigration() {
+  const { promise, resolve } = Promise.withResolvers<void>();
+  migrationFinished = promise;
+  releaseMigration = resolve;
+  return resolve;
+}
+
+async function waitForSavedPermission(
+  expectedArgs: CreateLogicalModelSelectPermissionArgs,
+) {
+  await waitFor(() =>
+    expect(migrationBodies.at(-1)?.up.at(-1)).toEqual({
+      type: 'pg_create_logical_model_select_permission',
+      args: expectedArgs,
+    }),
+  );
+}
+
+describe('LogicalModelPermissionForm', () => {
   beforeAll(() => {
     process.env.NEXT_PUBLIC_ENV = 'dev';
     process.env.NEXT_PUBLIC_NHOST_CONFIGSERVER_URL =
       'https://local.graphql.local.nhost.run/v1';
     server.listen({ onUnhandledRequest: 'error' });
+    mockScrollIntoViewAndPointerCapture();
     window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
   });
 
   beforeEach(() => {
-    mocks.useRouter.mockReturnValue({
-      basePath: '',
-      pathname: '/orgs/xyz/projects/test-project',
-      route: '/orgs/[orgSlug]/projects/[appSubdomain]',
-      asPath: '/orgs/xyz/projects/test-project',
-      isLocaleDomain: false,
-      isReady: true,
-      isPreview: false,
-      query: {
-        orgSlug: 'xyz',
-        appSubdomain: 'test-project',
-        dataSourceSlug: 'default',
-      },
-      push: vi.fn(),
-      replace: vi.fn(),
-      reload: vi.fn(),
-      back: vi.fn(),
-      prefetch: vi.fn(),
-      beforePopState: vi.fn(),
-      events: { on: vi.fn(), off: vi.fn(), emit: vi.fn() },
-      isFallback: false,
-      forward: vi.fn(),
-    });
-    mocks.mutateAsync.mockReset().mockResolvedValue({ message: 'success' });
+    migrationBodies = [];
+    migrationFinished = undefined;
+    releaseMigration = undefined;
   });
 
-  afterEach(() => server.resetHandlers());
+  afterEach(() => {
+    releaseMigration?.();
+    server.resetHandlers();
+    act(() => toast.remove());
+  });
+
   afterAll(() => server.close());
+
+  it('shows the stored fields and custom check of the role', () => {
+    renderForm({
+      columns: ['id'],
+      filter: { id: { _eq: 'X-Hasura-User-Id' } },
+    });
+
+    expect(screen.getByLabelText('Role:')).toHaveTextContent('user');
+    const actionSwitcher = screen.getByLabelText('Action:');
+    expect(actionSwitcher).toBeDisabled();
+    expect(actionSwitcher).toHaveTextContent('Select');
+    expect(screen.getByRole('checkbox', { name: 'id' })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'name' })).not.toBeChecked();
+    expect(screen.getByLabelText('With custom check')).toBeChecked();
+    expect(
+      screen.getByRole('button', { name: 'Select All' }),
+    ).toBeInTheDocument();
+  });
+
+  it('selects every field for a wildcard permission', () => {
+    renderForm({ columns: '*', filter: {} });
+
+    expect(screen.getByRole('checkbox', { name: 'id' })).toBeChecked();
+    expect(screen.getByRole('checkbox', { name: 'name' })).toBeChecked();
+    expect(screen.getByLabelText('Without any checks')).toBeChecked();
+    expect(
+      screen.getByRole('button', { name: 'Deselect All' }),
+    ).toBeInTheDocument();
+  });
+
+  it('disables Save until the permission changes and again after reverting', async () => {
+    const user = new TestUserEvent();
+    renderForm({ columns: '*', filter: {} });
+
+    const save = screen.getByRole('button', { name: 'Save' });
+    expect(save).toBeDisabled();
+
+    await user.click(screen.getByLabelText('With custom check'));
+    expect(save).toBeEnabled();
+
+    await user.click(screen.getByLabelText('Without any checks'));
+    expect(save).toBeDisabled();
+  });
 
   it('saves an unrestricted filter when switching off a stored custom check', async () => {
     const user = new TestUserEvent();
-    const savePermission = renderForm({
+    renderForm({
       columns: ['id'],
       filter: { id: { _eq: 'X-Hasura-User-Id' } },
     });
@@ -118,37 +200,43 @@ describe('LogicalModelPermissionForm validation', () => {
     await user.click(screen.getByLabelText('Without any checks'));
     await user.click(screen.getByRole('button', { name: 'Save' }));
 
-    await waitFor(() =>
-      expect(savePermission).toHaveBeenCalledWith(
-        expect.objectContaining({
-          args: expect.objectContaining({
-            permission: { columns: ['id'], filter: {} },
-          }),
-        }),
-      ),
-    );
+    await waitForSavedPermission({
+      source: 'default',
+      name: model.name,
+      role: 'user',
+      permission: { columns: ['id'], filter: {} },
+    });
   });
 
-  it('serializes the tree when selecting a custom check', async () => {
+  it('validates the JSON custom check and saves the serialized filter', async () => {
     const user = new TestUserEvent();
-    const savePermission = renderForm({ columns: ['id'], filter: {} });
-    const filter = { id: { _eq: 'X-Hasura-User-Id' } };
+    renderForm({ columns: ['id'], filter: {} });
 
     await user.click(screen.getByLabelText('With custom check'));
     await user.click(screen.getByRole('button', { name: 'JSON' }));
-    await user.clear(screen.getByRole('textbox'));
+    const jsonEditor = screen.getByRole('textbox');
+    await user.clear(jsonEditor);
+    await user.paste('{');
+    expect(screen.getByText('Invalid JSON')).toBeInTheDocument();
+
+    await user.clear(jsonEditor);
+    await user.paste('{"_and":[]}');
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+    expect(
+      await screen.findByText(/please add at least one rule/i),
+    ).toBeInTheDocument();
+    expect(migrationBodies).toEqual([]);
+
+    const filter = { id: { _eq: 'X-Hasura-User-Id' } };
+    await user.clear(jsonEditor);
     await user.paste(JSON.stringify(filter));
     await user.click(screen.getByRole('button', { name: 'Save' }));
-
-    await waitFor(() =>
-      expect(savePermission).toHaveBeenCalledWith(
-        expect.objectContaining({
-          args: expect.objectContaining({
-            permission: { columns: ['id'], filter },
-          }),
-        }),
-      ),
-    );
+    await waitForSavedPermission({
+      source: 'default',
+      name: model.name,
+      role: 'user',
+      permission: { columns: ['id'], filter },
+    });
   });
 
   it.each([
@@ -181,7 +269,7 @@ describe('LogicalModelPermissionForm validation', () => {
     'opens a stored $label filter in Visual and round-trips it',
     async ({ filter }) => {
       const user = new TestUserEvent();
-      const savePermission = renderForm({ columns: ['id'], filter });
+      renderForm({ columns: ['id'], filter });
 
       expect(screen.getByRole('button', { name: 'Visual' })).toHaveAttribute(
         'aria-pressed',
@@ -191,26 +279,19 @@ describe('LogicalModelPermissionForm validation', () => {
 
       await user.click(screen.getByRole('checkbox', { name: 'name' }));
       await user.click(screen.getByRole('button', { name: 'Save' }));
-      await waitFor(() =>
-        expect(savePermission).toHaveBeenCalledWith(
-          expect.objectContaining({
-            source: 'default',
-            resourceVersion: 244,
-            args: expect.objectContaining({
-              name: model.name,
-              role: 'user',
-              permission: { columns: ['id', 'name'], filter },
-            }),
-          }),
-        ),
-      );
+      await waitForSavedPermission({
+        source: 'default',
+        name: model.name,
+        role: 'user',
+        permission: { columns: ['id', 'name'], filter },
+      });
     },
   );
 
   it('opens an outer column comparison in Visual and saves it', async () => {
     const user = new TestUserEvent();
     const filter = { id: { _ceq: ['id'] } };
-    const savePermission = renderForm({ columns: ['id'], filter });
+    renderForm({ columns: ['id'], filter });
 
     const visual = screen.getByRole('button', { name: 'Visual' });
     expect(visual).toBeEnabled();
@@ -225,18 +306,131 @@ describe('LogicalModelPermissionForm validation', () => {
     const save = screen.getByRole('button', { name: 'Save' });
     expect(save).toBeEnabled();
     await user.click(save);
+    await waitForSavedPermission({
+      source: 'default',
+      name: model.name,
+      role: 'user',
+      permission: { columns: ['id', 'name'], filter },
+    });
+  });
+
+  it('preserves unedited permission settings and comment when editing', async () => {
+    const user = new TestUserEvent();
+    const permission = {
+      columns: ['id'],
+      filter: { id: { _ceq: ['id'] } },
+      limit: 25,
+      allow_aggregations: true,
+      computed_fields: ['display_name'],
+      query_root_fields: ['select'],
+      subscription_root_fields: ['select'],
+    };
+    renderForm(permission, 'Preserve this permission comment.');
+
+    await user.click(screen.getByRole('checkbox', { name: 'name' }));
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitForSavedPermission({
+      source: 'default',
+      name: model.name,
+      role: 'user',
+      comment: 'Preserve this permission comment.',
+      permission: { ...permission, columns: ['id', 'name'] },
+    });
+  });
+
+  it('saves a permission for a role that does not have one yet', async () => {
+    const user = new TestUserEvent();
+    const { onCancel } = renderForm();
+
+    expect(
+      screen.queryByRole('button', { name: 'Delete Permissions' }),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('checkbox', { name: 'id' }));
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitForSavedPermission({
+      source: 'default',
+      name: model.name,
+      role: 'user',
+      permission: { columns: ['id'], filter: {} },
+    });
+    expect(
+      await screen.findByText('Select permission saved.'),
+    ).toBeInTheDocument();
+    expect(onCancel).toHaveBeenCalledOnce();
+  });
+
+  it('disables Save and Delete Permissions until the save finishes', async () => {
+    const user = new TestUserEvent();
+    const release = holdMigration();
+    const { onCancel } = renderForm({ columns: '*', filter: {} });
+    const save = screen.getByRole('button', { name: 'Save' });
+    const deletePermissions = screen.getByRole('button', {
+      name: 'Delete Permissions',
+    });
+
+    await user.click(screen.getByRole('checkbox', { name: 'id' }));
+    await user.click(save);
+    await waitFor(() => expect(migrationBodies).toHaveLength(1));
+
+    expect(save).toBeDisabled();
+    expect(deletePermissions).toBeDisabled();
+    expect(onCancel).not.toHaveBeenCalled();
+
+    release();
+
+    expect(
+      await screen.findByText('Select permission saved.'),
+    ).toBeInTheDocument();
+    expect(onCancel).toHaveBeenCalledOnce();
+  });
+
+  it('disables Delete Permissions until the delete finishes', async () => {
+    const user = new TestUserEvent();
+    const release = holdMigration();
+    const { onCancel } = renderForm({ columns: '*', filter: {} });
+    const deletePermissions = screen.getByRole('button', {
+      name: 'Delete Permissions',
+    });
+
+    await user.click(deletePermissions);
+    await user.click(screen.getByRole('button', { name: 'Delete' }));
+    await waitFor(() => expect(migrationBodies).toHaveLength(1));
+
+    expect(deletePermissions).toBeDisabled();
+    expect(onCancel).not.toHaveBeenCalled();
+
+    release();
+
+    expect(
+      await screen.findByText('Select permission deleted.'),
+    ).toBeInTheDocument();
+    expect(onCancel).toHaveBeenCalledOnce();
+  });
+
+  it('guards dirty Cancel and confirmed role switching', async () => {
+    const user = new TestUserEvent();
+    const { onCancel, onRoleChange } = renderForm({ columns: '*', filter: {} });
+
+    await user.click(screen.getByRole('button', { name: 'Deselect All' }));
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.getByText(/unsaved local changes/i)).toBeInTheDocument();
+    await user.keyboard('{Escape}');
     await waitFor(() =>
-      expect(savePermission).toHaveBeenCalledWith(
-        expect.objectContaining({
-          source: 'default',
-          resourceVersion: 244,
-          args: expect.objectContaining({
-            name: model.name,
-            role: 'user',
-            permission: { columns: ['id', 'name'], filter },
-          }),
-        }),
-      ),
+      expect(
+        screen.queryByRole('dialog', { name: 'Unsaved changes' }),
+      ).not.toBeInTheDocument(),
     );
+    expect(onCancel).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('combobox', { name: 'Role:' }));
+    await user.click(screen.getByRole('option', { name: 'auditor' }));
+    expect(screen.getByText(/unsaved local changes/i)).toBeInTheDocument();
+    expect(onRoleChange).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('button', { name: 'Discard' }));
+    expect(onRoleChange).toHaveBeenCalledExactlyOnceWith('auditor');
   });
 });

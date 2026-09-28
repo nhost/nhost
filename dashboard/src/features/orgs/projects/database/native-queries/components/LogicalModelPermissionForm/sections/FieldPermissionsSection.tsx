@@ -51,7 +51,7 @@ export default function FieldPermissionsSection({
         control={control}
         name="columns"
         render={({ field }) => (
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="flex flex-row flex-wrap items-center justify-start gap-6">
             {model.fields.map((modelField) => {
               const checked = field.value.includes(modelField.name);
               const id = `logical-model-field-${modelField.name}`;

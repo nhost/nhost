@@ -15,7 +15,7 @@ import type { ConditionNode } from '@/features/orgs/projects/database/dataGrid/u
 import {
   isLogicalModelColumnComparisonOperator,
   normalizeLogicalModelScalar,
-} from '@/features/orgs/projects/database/native-queries/utils/logicalModelPermissionFilter';
+} from '@/features/orgs/projects/database/native-queries/utils/logicalModelPermissionUtils';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import LogicalModelComparisonFieldPicker from './LogicalModelComparisonFieldPicker';
 import useLogicalModelCustomCheckEditor from './useLogicalModelCustomCheckEditor';

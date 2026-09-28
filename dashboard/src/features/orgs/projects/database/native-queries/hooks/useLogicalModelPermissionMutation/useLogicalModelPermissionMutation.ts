@@ -1,5 +1,6 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/router';
 import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -50,6 +51,9 @@ export default function useLogicalModelPermissionMutation<
   const adminApi = useAdminApiTarget();
   const isPlatform = useIsPlatform();
   const queryClient = useQueryClient();
+  const {
+    query: { dataSourceSlug },
+  } = useRouter();
 
   return useMutation<
     LogicalModelPermissionMutationResponse,
@@ -61,8 +65,11 @@ export default function useLogicalModelPermissionMutation<
         throw new Error('Project metadata connection is unavailable.');
       }
 
-      const { source, resourceVersion } = variables;
-      const base = { adminSecret: adminApi.adminSecret, source } as const;
+      const { resourceVersion } = variables;
+      const base = {
+        adminSecret: adminApi.adminSecret,
+        source: dataSourceSlug as string,
+      } as const;
 
       if (isPlatform) {
         const { appUrl } = adminApi;

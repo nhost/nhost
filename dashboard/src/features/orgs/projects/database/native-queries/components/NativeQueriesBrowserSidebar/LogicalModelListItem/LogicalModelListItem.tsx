@@ -71,7 +71,6 @@ export default function LogicalModelListItem({
       ),
       component: (
         <EditLogicalModelPermissionsForm
-          source="default"
           logicalModelName={model.name}
           onCancel={closeDrawer}
         />

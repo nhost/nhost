@@ -12,18 +12,15 @@ export type LogicalModelPermissionMutationType = 'add' | 'edit' | 'delete';
 
 export interface LogicalModelPermissionMutationVariablesMap {
   add: {
-    source: string;
     resourceVersion: number;
     args: LogicalModelPermissionArgs;
   };
   edit: {
-    source: string;
     resourceVersion: number;
     args: LogicalModelPermissionArgs;
     original: LogicalModelSelectPermission;
   };
   delete: {
-    source: string;
     resourceVersion: number;
     name: string;
     role: string;

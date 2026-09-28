@@ -19,14 +19,14 @@ export default function LogicalModelComparisonFieldPicker({
     label: descriptor.name,
     keywords: [descriptor.scalar],
   }));
+  // this array can either be ['$', 'fieldName'] or ['fieldName']
+  const selectedField = Array.isArray(field.value)
+    ? field.value.at(-1)
+    : field.value;
 
   return (
     <Combobox
-      value={
-        // this array can either be ['$', 'fieldName'] or ['fieldName']
-        (Array.isArray(field.value) ? field.value.slice(-1)[0] : field.value) ??
-        null
-      }
+      value={selectedField ?? null}
       onChange={(path) => {
         setValue(name, ['$', path], {
           shouldDirty: true,

@@ -7,7 +7,7 @@ import {
 } from '@/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/CustomCheckModeProvider';
 import FilterErrorsSummary from '@/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/FilterErrorsSummary';
 import JsonRuleEditor from '@/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/JsonRuleEditor';
-import type { LogicalModelFieldDescriptor } from '@/features/orgs/projects/database/native-queries/utils/logicalModelPermissionFilter';
+import type { LogicalModelFieldDescriptor } from '@/features/orgs/projects/database/native-queries/utils/logicalModelPermissionUtils';
 import { cn } from '@/lib/utils';
 import LogicalModelVisualRuleEditor from './LogicalModelVisualRuleEditor';
 
@@ -34,15 +34,19 @@ export function LogicalModelCustomCheckEditor({
   );
 }
 
+function getModeButtonClassName(isActive: boolean) {
+  return cn(
+    'h-7 px-2.5 text-xs',
+    isActive
+      ? 'bg-background shadow-sm hover:bg-background'
+      : 'text-muted-foreground hover:bg-transparent hover:text-foreground',
+  );
+}
+
 export function LogicalModelCustomCheckModeToggle() {
   const { mode, setMode } = useCustomCheckMode();
-  const options: Array<{
-    value: CustomCheckEditorMode;
-    label: string;
-  }> = [
-    { value: 'builder', label: 'Visual' },
-    { value: 'json', label: 'JSON' },
-  ];
+  const isBuilderMode = mode === 'builder';
+  const isJsonMode = mode === 'json';
 
   return (
     <div className="flex items-center gap-2">
@@ -51,27 +55,26 @@ export function LogicalModelCustomCheckModeToggle() {
         aria-label="Editor mode"
         className="inline-flex items-center gap-0.5 rounded-md border border-border bg-muted p-0.5"
       >
-        {options.map(({ value, label }) => {
-          const isActive = mode === value;
-          return (
-            <Button
-              key={value}
-              type="button"
-              aria-pressed={isActive}
-              variant="ghost"
-              size="sm"
-              className={cn(
-                'h-7 px-2.5 text-xs',
-                isActive
-                  ? 'bg-background shadow-sm hover:bg-background'
-                  : 'text-muted-foreground hover:bg-transparent hover:text-foreground',
-              )}
-              onClick={() => setMode(value)}
-            >
-              {label}
-            </Button>
-          );
-        })}
+        <Button
+          type="button"
+          aria-pressed={isBuilderMode}
+          variant="ghost"
+          size="sm"
+          className={getModeButtonClassName(isBuilderMode)}
+          onClick={() => setMode('builder')}
+        >
+          Visual
+        </Button>
+        <Button
+          type="button"
+          aria-pressed={isJsonMode}
+          variant="ghost"
+          size="sm"
+          className={getModeButtonClassName(isJsonMode)}
+          onClick={() => setMode('json')}
+        >
+          JSON
+        </Button>
       </fieldset>
     </div>
   );

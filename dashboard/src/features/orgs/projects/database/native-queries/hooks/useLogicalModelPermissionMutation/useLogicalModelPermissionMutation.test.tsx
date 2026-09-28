@@ -3,7 +3,10 @@ import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
 import type { PropsWithChildren } from 'react';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
-import { useLogicalModelPermissionMutation } from '@/features/orgs/projects/database/native-queries/hooks/useLogicalModelPermissionMutation';
+import {
+  type LogicalModelPermissionMutationType,
+  useLogicalModelPermissionMutation,
+} from '@/features/orgs/projects/database/native-queries/hooks/useLogicalModelPermissionMutation';
 import type { LogicalModelPermissionArgs } from '@/features/orgs/projects/database/native-queries/hooks/useLogicalModelPermissionMutation/types';
 import { queryClient, renderHook, waitFor } from '@/tests/testUtils';
 
@@ -31,6 +34,9 @@ const mocks = vi.hoisted(() => ({
   useIsPlatform: vi.fn(),
 }));
 
+vi.mock('next/router', () => ({
+  useRouter: () => ({ query: { dataSourceSlug: 'default' } }),
+}));
 vi.mock('@/features/orgs/projects/hooks/useProject', () => ({
   useProject: mocks.useProject,
 }));
@@ -102,7 +108,6 @@ function wrapper({ children }: PropsWithChildren) {
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 }
-
 const original = { columns: ['id'], filter: {} };
 const SOURCE = 'default';
 const RESOURCE_VERSION = 244;
@@ -118,45 +123,23 @@ const restoreStep = {
   type: 'pg_create_logical_model_select_permission',
   args: { ...args, source: SOURCE, permission: original },
 };
-const cases = [
-  {
-    source: SOURCE,
-    type: 'add' as const,
-    variables: { source: SOURCE, resourceVersion: RESOURCE_VERSION, args },
-    expectedArgs: [createStep],
-    expectedName: `create_logical_model_select_permission_${args.name}_${args.role}`,
-    expectedDown: [dropStep],
-  },
-  {
-    source: SOURCE,
-    type: 'edit' as const,
-    variables: {
-      source: SOURCE,
-      resourceVersion: RESOURCE_VERSION,
-      args,
-      original,
-    },
-    expectedArgs: [dropStep, createStep],
-    expectedName: `update_logical_model_select_permission_${args.name}_${args.role}`,
-    expectedDown: [dropStep, restoreStep],
-  },
-  {
-    source: SOURCE,
-    type: 'delete' as const,
-    variables: {
-      source: SOURCE,
-      resourceVersion: RESOURCE_VERSION,
-      name: args.name,
-      role: args.role,
-      original,
-    },
-    expectedArgs: [dropStep],
-    expectedName: `drop_logical_model_select_permission_${args.name}_${args.role}`,
-    expectedDown: [restoreStep],
-  },
-];
 
 const metadataQueryKey = [EXPORT_METADATA_QUERY_KEY, project.subdomain];
+
+function renderMutation<T extends LogicalModelPermissionMutationType>(
+  type: T,
+  onSuccess = vi.fn(),
+) {
+  const { result } = renderHook(
+    () =>
+      useLogicalModelPermissionMutation({
+        type,
+        mutationOptions: { onSuccess },
+      }),
+    { wrapper },
+  );
+  return result;
+}
 
 describe('useLogicalModelPermissionMutation', () => {
   beforeAll(() =>
@@ -189,136 +172,117 @@ describe('useLogicalModelPermissionMutation', () => {
   });
   afterAll(() => server.close());
 
-  it.each(cases)(
-    'executes local $source $type as ordered direct migration steps and waits before success/invalidation',
-    async ({
-      source,
-      type,
-      variables,
-      expectedArgs,
-      expectedName,
-      expectedDown,
-    }) => {
+  describe('local (migrations API)', () => {
+    it('creates a permission with a rollback that drops it', async () => {
+      const result = renderMutation('add');
+
+      await expect(
+        result.current.mutateAsync({ resourceVersion: RESOURCE_VERSION, args }),
+      ).resolves.toEqual(migrationSuccess);
+
+      expect(requestOrder).toEqual(['migration']);
+      expect(migrationBodies).toEqual([
+        {
+          name: 'create_logical_model_select_permission_author_result_user',
+          datasource: SOURCE,
+          up: [createStep],
+          down: [dropStep],
+        },
+      ]);
+    });
+
+    it('updates a permission by re-creating it, with a rollback that restores the original', async () => {
+      const result = renderMutation('edit');
+
+      await expect(
+        result.current.mutateAsync({
+          resourceVersion: RESOURCE_VERSION,
+          args,
+          original,
+        }),
+      ).resolves.toEqual(migrationSuccess);
+
+      expect(requestOrder).toEqual(['migration']);
+      expect(migrationBodies).toEqual([
+        {
+          name: 'update_logical_model_select_permission_author_result_user',
+          datasource: SOURCE,
+          up: [dropStep, createStep],
+          down: [dropStep, restoreStep],
+        },
+      ]);
+    });
+
+    it('deletes a permission with a rollback that restores the original', async () => {
+      const result = renderMutation('delete');
+
+      await expect(
+        result.current.mutateAsync({
+          resourceVersion: RESOURCE_VERSION,
+          name: args.name,
+          role: args.role,
+          original,
+        }),
+      ).resolves.toEqual(migrationSuccess);
+
+      expect(requestOrder).toEqual(['migration']);
+      expect(migrationBodies).toEqual([
+        {
+          name: 'drop_logical_model_select_permission_author_result_user',
+          datasource: SOURCE,
+          up: [dropStep],
+          down: [restoreStep],
+        },
+      ]);
+    });
+
+    it('waits for the migration before calling onSuccess and invalidating the metadata', async () => {
       const onSuccess = vi.fn();
       const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
-      const { result } = renderHook(
-        () =>
-          useLogicalModelPermissionMutation({
-            type,
-            mutationOptions: { onSuccess },
-          }),
-        { wrapper },
-      );
+      const result = renderMutation('edit', onSuccess);
       const completion = Promise.withResolvers<void>();
       migrationFinished = completion.promise;
-      const mutation = result.current.mutateAsync(variables as never);
+      const mutation = result.current.mutateAsync({
+        resourceVersion: RESOURCE_VERSION,
+        args,
+        original,
+      });
 
       try {
         await waitFor(() => expect(migrationBodies).toHaveLength(1));
         expect(onSuccess).not.toHaveBeenCalled();
         expect(invalidate).not.toHaveBeenCalled();
-        expect(requestOrder).toEqual(['migration']);
-        expect(metadataBodies).toEqual([]);
-        expect(migrationBodies).toEqual([
-          {
-            name: expectedName,
-            datasource: source,
-            up: expectedArgs,
-            down: expectedDown,
-          },
-        ]);
       } finally {
         completion.resolve();
         await expect(mutation).resolves.toEqual(migrationSuccess);
       }
+
       expect(onSuccess).toHaveBeenCalledOnce();
       expect(onSuccess.mock.calls[0][0]).toEqual(migrationSuccess);
       expect(invalidate).toHaveBeenCalledExactlyOnceWith({
         queryKey: metadataQueryKey,
       });
-      expect(requestOrder).toEqual(['migration']);
-    },
-  );
+    });
 
-  it.each(cases)(
-    'performs fresh ordinary bulk metadata only for platform $source $type',
-    async ({ type, variables, expectedArgs }) => {
-      mocks.useIsPlatform.mockReturnValue(true);
-      const { result } = renderHook(
-        () => useLogicalModelPermissionMutation({ type }),
-        { wrapper },
-      );
-
-      await expect(
-        result.current.mutateAsync(variables as never),
-      ).resolves.toEqual({ message: 'success' });
-
-      expect(requestOrder).toEqual(['metadata']);
-      expect(metadataBodies.filter((body) => body.type === 'bulk')).toEqual([
-        {
-          type: 'bulk',
-          resource_version: RESOURCE_VERSION,
-          args: expectedArgs,
-        },
-      ]);
-      expect(migrationBodies).toEqual([]);
-    },
-  );
-
-  it.each(cases)(
-    'does not migrate, invalidate, or call success for platform metadata failure on $type',
-    async ({ type, variables }) => {
-      mocks.useIsPlatform.mockReturnValue(true);
-      metadataStatus = 500;
-      const onSuccess = vi.fn();
-      const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
-      const { result } = renderHook(
-        () =>
-          useLogicalModelPermissionMutation({
-            type,
-            mutationOptions: { onSuccess },
-          }),
-        { wrapper },
-      );
-
-      await expect(
-        result.current.mutateAsync(variables as never),
-      ).rejects.toThrow('metadata failed');
-      expect(requestOrder).toEqual(['metadata']);
-      expect(migrationBodies).toEqual([]);
-      expect(invalidate).not.toHaveBeenCalled();
-      expect(onSuccess).not.toHaveBeenCalled();
-    },
-  );
-
-  it.each(cases)(
-    'surfaces local $type failure without invalidating and permits an explicit retry',
-    async ({ type, variables }) => {
+    it('surfaces a failed migration without invalidating and permits an explicit retry', async () => {
       migrationStatus = 500;
       const onSuccess = vi.fn();
       const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
-      const { result } = renderHook(
-        () =>
-          useLogicalModelPermissionMutation({
-            type,
-            mutationOptions: { onSuccess },
-          }),
-        { wrapper },
-      );
+      const result = renderMutation('edit', onSuccess);
+      const variables = { resourceVersion: RESOURCE_VERSION, args, original };
 
-      await expect(
-        result.current.mutateAsync(variables as never),
-      ).rejects.toThrow('migration failed');
-      expect(requestOrder).toEqual(['migration']);
+      await expect(result.current.mutateAsync(variables)).rejects.toThrow(
+        'migration failed',
+      );
       expect(migrationBodies).toHaveLength(1);
       expect(metadataBodies).toEqual([]);
       expect(invalidate).not.toHaveBeenCalled();
       expect(onSuccess).not.toHaveBeenCalled();
 
       migrationStatus = 200;
-      await expect(
-        result.current.mutateAsync(variables as never),
-      ).resolves.toEqual(migrationSuccess);
+      await expect(result.current.mutateAsync(variables)).resolves.toEqual(
+        migrationSuccess,
+      );
       expect(migrationBodies).toHaveLength(2);
       expect(migrationBodies[1]).toEqual(migrationBodies[0]);
       expect(requestOrder).toEqual(['migration', 'migration']);
@@ -326,6 +290,95 @@ describe('useLogicalModelPermissionMutation', () => {
         queryKey: metadataQueryKey,
       });
       expect(onSuccess).toHaveBeenCalledOnce();
-    },
-  );
+    });
+  });
+
+  describe('platform (metadata API)', () => {
+    beforeEach(() => {
+      mocks.useIsPlatform.mockReturnValue(true);
+    });
+
+    it('creates a permission in one bulk request', async () => {
+      const result = renderMutation('add');
+
+      await expect(
+        result.current.mutateAsync({ resourceVersion: RESOURCE_VERSION, args }),
+      ).resolves.toEqual({ message: 'success' });
+
+      expect(requestOrder).toEqual(['metadata']);
+      expect(metadataBodies).toEqual([
+        {
+          type: 'bulk',
+          resource_version: RESOURCE_VERSION,
+          args: [createStep],
+        },
+      ]);
+      expect(migrationBodies).toEqual([]);
+    });
+
+    it('updates a permission by dropping and re-creating it in one bulk request', async () => {
+      const result = renderMutation('edit');
+
+      await expect(
+        result.current.mutateAsync({
+          resourceVersion: RESOURCE_VERSION,
+          args,
+          original,
+        }),
+      ).resolves.toEqual({ message: 'success' });
+
+      expect(requestOrder).toEqual(['metadata']);
+      expect(metadataBodies).toEqual([
+        {
+          type: 'bulk',
+          resource_version: RESOURCE_VERSION,
+          args: [dropStep, createStep],
+        },
+      ]);
+      expect(migrationBodies).toEqual([]);
+    });
+
+    it('deletes a permission in one bulk request', async () => {
+      const result = renderMutation('delete');
+
+      await expect(
+        result.current.mutateAsync({
+          resourceVersion: RESOURCE_VERSION,
+          name: args.name,
+          role: args.role,
+          original,
+        }),
+      ).resolves.toEqual({ message: 'success' });
+
+      expect(requestOrder).toEqual(['metadata']);
+      expect(metadataBodies).toEqual([
+        {
+          type: 'bulk',
+          resource_version: RESOURCE_VERSION,
+          args: [dropStep],
+        },
+      ]);
+      expect(migrationBodies).toEqual([]);
+    });
+
+    it('does not migrate, invalidate or call onSuccess when the metadata request fails', async () => {
+      metadataStatus = 500;
+      const onSuccess = vi.fn();
+      const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
+      const result = renderMutation('edit', onSuccess);
+
+      await expect(
+        result.current.mutateAsync({
+          resourceVersion: RESOURCE_VERSION,
+          args,
+          original,
+        }),
+      ).rejects.toThrow('metadata failed');
+
+      expect(requestOrder).toEqual(['metadata']);
+      expect(migrationBodies).toEqual([]);
+      expect(invalidate).not.toHaveBeenCalled();
+      expect(onSuccess).not.toHaveBeenCalled();
+    });
+  });
 });

@@ -15,7 +15,7 @@ import {
   LogicalModelCustomCheckModeToggle,
 } from '@/features/orgs/projects/database/native-queries/components/LogicalModelCustomCheckEditor';
 import validationSchema from '@/features/orgs/projects/database/native-queries/components/LogicalModelPermissionForm/validationSchema';
-import { resolveLogicalModelFieldDescriptors } from '@/features/orgs/projects/database/native-queries/utils/logicalModelPermissionFilter';
+import { resolveLogicalModelFieldDescriptors } from '@/features/orgs/projects/database/native-queries/utils/logicalModelPermissionUtils';
 import { mockMatchMediaValue } from '@/tests/mocks';
 import { getProjectQuery } from '@/tests/msw/mocks/graphql/getProjectQuery';
 import permissionVariablesQuery from '@/tests/msw/mocks/graphql/permissionVariablesQuery';

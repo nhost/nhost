@@ -13,7 +13,6 @@ import type { DialogFormProps } from '@/types/common';
 import type { LogicalModelSelectPermission } from '@/utils/hasura-api/generated/schemas';
 
 export interface EditLogicalModelPermissionsFormProps extends DialogFormProps {
-  source: string;
   logicalModelName: string;
   onCancel?: VoidFunction;
 }
@@ -36,7 +35,6 @@ function getPermissionAccess(
 }
 
 export default function EditLogicalModelPermissionsForm({
-  source,
   logicalModelName,
   onCancel,
   location,
@@ -87,8 +85,7 @@ export default function EditLogicalModelPermissionsForm({
   if (selectedRole) {
     return (
       <LogicalModelPermissionForm
-        key={`${source}:${selectedRole}`}
-        source={source}
+        key={selectedRole}
         model={model}
         role={selectedRole}
         availableRoles={availableRoles}
