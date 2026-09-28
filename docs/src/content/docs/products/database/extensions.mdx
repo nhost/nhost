@@ -304,8 +304,7 @@ This is a limitation of pg_durable: the extension does not register its `df.inst
 ### Managing
 
 Preload `pg_durable` via `postgres.settings.sharedPreloadLibraries` for its
-background worker; both the image and Cloud defaults omit it. Include it
-alongside the other required libraries. The extension does not grant access to
+background worker. The extension does not grant access to
 `PUBLIC`. To enable it for workflows submitted through Nhost GraphQL, create
 this migration:
 
@@ -402,8 +401,7 @@ DROP EXTENSION pg_hashids;
 The pg_ivm module provides Incremental View Maintenance (IVM) feature for PostgreSQL.
 
 Preload `pg_ivm` via `postgres.settings.sharedPreloadLibraries` for incremental
-view maintenance across sessions; both the image and Cloud defaults omit it.
-Include it alongside the other required libraries. Alternatively, preload it in
+view maintenance across sessions. Alternatively, preload it in
 each session with `session_preload_libraries`.
 
 Incremental View Maintenance (IVM) is a way to make materialized views up-to-date in which only incremental changes are computed and applied on views rather than recomputing the contents from scratch as REFRESH MATERIALIZED VIEW does. IVM can update materialized views more efficiently than recomputation when only small parts of the view are changed.
