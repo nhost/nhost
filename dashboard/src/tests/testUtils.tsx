@@ -40,6 +40,7 @@ import { ThemePreferenceProvider } from '@/providers/Theme';
 import { mockRouter, mockSession } from '@/tests/mocks';
 import { createEmotionCache } from '@/utils/createEmotionCache';
 import { DummySessionStorage } from '@/utils/nhost';
+import { TOASTER_CLASS_NAME } from '@/utils/toast/toaster';
 import nhostGraphQLLink from './msw/mocks/graphql/nhostGraphQLLink';
 
 // Client-side cache, shared for the whole session of the user in the browser.
@@ -119,7 +120,10 @@ function Providers({ children }: PropsWithChildren) {
             <NhostProvider nhost={nhost}>
               <ApolloProvider client={mockClient}>
                 <AuthProvider>
-                  <Toaster position="bottom-center" />
+                  <Toaster
+                    position="bottom-center"
+                    containerClassName={TOASTER_CLASS_NAME}
+                  />
                   <ThemeProvider theme={theme}>
                     <ThemePreferenceProvider>
                       <DialogProvider>{children}</DialogProvider>

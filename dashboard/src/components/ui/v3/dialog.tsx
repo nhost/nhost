@@ -3,6 +3,7 @@ import { X } from 'lucide-react';
 import * as React from 'react';
 
 import { cn } from '@/lib/utils';
+import { isInsideToaster } from '@/utils/toast/toaster';
 
 const Dialog = DialogPrimitive.Root;
 
@@ -45,6 +46,7 @@ const DialogContent = React.forwardRef<
       disableOutsideClick,
       hideCloseButton,
       closeButtonClassName,
+      onInteractOutside,
       ...props
     },
     ref,
@@ -57,12 +59,14 @@ const DialogContent = React.forwardRef<
             'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 relative z-50 grid w-full max-w-lg gap-4 bg-background p-6 shadow-lg duration-200 data-[state=closed]:animate-out data-[state=open]:animate-in sm:rounded-lg md:w-full',
             className,
           )}
-          onInteractOutside={
-            disableOutsideClick
-              ? (e) => e.preventDefault()
-              : props.onInteractOutside
-          }
           {...props}
+          onInteractOutside={(event) => {
+            if (disableOutsideClick || isInsideToaster(event.target)) {
+              event.preventDefault();
+              return;
+            }
+            onInteractOutside?.(event);
+          }}
         >
           {children}
           {!hideCloseButton && (
