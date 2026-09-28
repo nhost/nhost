@@ -8,7 +8,6 @@ import (
 	"net/http"
 	_ "net/http/pprof" //nolint:gosec
 	"runtime"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -61,22 +60,12 @@ const (
 	flagImageTransformerWorkers  = "image-transformer-workers"
 	flagImageTransformerMaxDim   = "image-transformer-max-dimension"
 	flagImageTransformerMaxBlur  = "image-transformer-max-blur-sigma"
-
-	// serviceName identifies storage in the shared serve runtime's logs and errors.
-	serviceName = "storage"
-	// readHeaderTimeout bounds how long the listener waits for request headers.
-	// The remaining HTTP deadlines stay off so large file uploads and downloads
-	// are not aborted mid-transfer.
-	readHeaderTimeout = 5 * time.Second
-	// shutdownTimeout bounds the listener drain and the libvips teardown that
-	// follows it once the process context is cancelled.
-	shutdownTimeout = 30 * time.Second
 )
 
-func getCORSOptions(cmd *cli.Command) oapimw.CORSOptions {
+func corsOptions(allowedOrigins []string, allowCredentials bool) oapimw.CORSOptions {
 	return oapimw.CORSOptions{
 		AllowOriginFunc:  nil,
-		AllowedOrigins:   cmd.StringSlice(flagCorsAllowOrigins),
+		AllowedOrigins:   allowedOrigins,
 		AllowedMethods:   []string{"GET", "PUT", "POST", "HEAD", "DELETE"},
 		AllowHeadersFunc: nil,
 		AllowedHeaders: []string{
@@ -101,11 +90,11 @@ func getCORSOptions(cmd *cli.Command) oapimw.CORSOptions {
 			"Last-Modified",
 			"X-Error",
 		},
-		AllowCredentials: cmd.Bool(flagCorsAllowCredentials),
+		AllowCredentials: allowCredentials,
 		// Conditionally required: the shared CORS middleware is fail-closed and
 		// rejects allow-all origins combined with credentials, so without this
 		// flag NewRouter would error at startup for any deployment that runs the
-		// default ["*"] origins together with --cors-allow-credentials. Because
+		// default ["*"] origins together with credentials. Because
 		// both AllowedOrigins and AllowCredentials are config-driven here,
 		// deployments with explicit origins are unaffected; the flag only
 		// preserves boot for the legacy allow-all + credentials combination.
@@ -115,39 +104,37 @@ func getCORSOptions(cmd *cli.Command) oapimw.CORSOptions {
 	}
 }
 
-func configureMiddleware(cmd *cli.Command, router *gin.Engine, logger *slog.Logger) {
+func configureMiddleware(opts Options, router *gin.Engine, logger *slog.Logger) {
 	// Always set standard security headers on every response. Not behind a flag.
 	router.Use(securityheaders.New())
 
-	if cmd.Bool(flagCDNCacheControl) {
+	if opts.CDNCacheControl {
 		logger.InfoContext(context.Background(), "enabling cdn-cache-control middleware")
 		router.Use(cdncachecontrol.New())
 	}
 
-	if cmd.String(flagFastlyService) != "" {
+	if opts.FastlyService != "" {
 		logger.InfoContext(context.Background(), "enabling fastly middleware")
-		router.Use(
-			fastly.New(cmd.String(flagFastlyService), cmd.String(flagFastlyKey), logger),
-		)
+		router.Use(fastly.New(opts.FastlyService, opts.FastlyKey, logger))
 	}
 }
 
 func getHandler(
-	cmd *cli.Command,
+	opts Options,
 	metadataStorage controller.MetadataStorage,
 	contentStorage controller.ContentStorage,
 	imageTransformer *image.Transformer,
 	logger *slog.Logger,
 ) (http.Handler, error) {
-	av, err := getAv(cmd.String(flagClamavServer))
+	av, err := getAv(opts.ClamavServer)
 	if err != nil {
 		return nil, fmt.Errorf("problem trying to get av: %w", err)
 	}
 
 	ctrl := controller.New(
-		cmd.String(flagPublicURL),
-		cmd.String(flagAPIRootPrefix),
-		cmd.String(flagHasuraAdminSecret),
+		opts.PublicURL,
+		opts.APIRootPrefix,
+		opts.HasuraAdminSecret,
 		metadataStorage,
 		contentStorage,
 		imageTransformer,
@@ -164,9 +151,9 @@ func getHandler(
 
 	router, mw, err := oapi.NewRouter(
 		swagger,
-		cmd.String(flagAPIRootPrefix),
-		middleware.AuthenticationFunc(cmd.String(flagHasuraAdminSecret)),
-		getCORSOptions(cmd),
+		opts.APIRootPrefix,
+		middleware.AuthenticationFunc(opts.HasuraAdminSecret),
+		corsOptions(opts.CORSAllowOrigins, opts.CORSAllowCredentials),
 		logger,
 	)
 	if err != nil {
@@ -177,13 +164,13 @@ func getHandler(
 		c.String(http.StatusOK, "ok")
 	})
 
-	configureMiddleware(cmd, router, logger)
+	configureMiddleware(opts, router, logger)
 
 	api.RegisterHandlersWithOptions(
 		router,
 		handler,
 		api.GinServerOptions{
-			BaseURL:      cmd.String(flagAPIRootPrefix),
+			BaseURL:      opts.APIRootPrefix,
 			Middlewares:  []api.MiddlewareFunc{mw},
 			ErrorHandler: oapi.RecordError,
 		},
@@ -197,28 +184,26 @@ func getMetadataStorage(endpoint string) *metadata.Hasura {
 }
 
 func getContentStorage(
-	ctx context.Context,
-	s3Endpoint, region, s3AccessKey, s3SecretKey, bucket, rootFolder string,
-	disableHTTPS bool,
-	logger *slog.Logger,
-) *storage.S3 {
+	ctx context.Context, opts Options, logger *slog.Logger,
+) (*storage.S3, error) {
 	var (
 		cfg aws.Config
 		err error
 	)
 
+	region := opts.S3Region
 	if region == "" {
 		region = "no-region"
 	}
 
-	if s3AccessKey != "" && s3SecretKey != "" {
+	if opts.S3AccessKey != "" && opts.S3SecretKey != "" {
 		logger.InfoContext(ctx, "Using static aws credentials")
 
 		cfg, err = config.LoadDefaultConfig(
 			ctx,
 			config.WithRegion(region),
 			config.WithCredentialsProvider(
-				credentials.NewStaticCredentialsProvider(s3AccessKey, s3SecretKey, ""),
+				credentials.NewStaticCredentialsProvider(opts.S3AccessKey, opts.S3SecretKey, ""),
 			),
 		)
 	} else {
@@ -228,45 +213,35 @@ func getContentStorage(
 	}
 
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("loading S3 configuration: %w", err)
 	}
 
 	client := s3.NewFromConfig(
 		cfg,
 		func(o *s3.Options) {
-			o.BaseEndpoint = aws.String(s3Endpoint)
+			o.BaseEndpoint = aws.String(opts.S3Endpoint)
 			o.UsePathStyle = true
-			o.EndpointOptions.DisableHTTPS = disableHTTPS
+			o.EndpointOptions.DisableHTTPS = opts.S3DisableHTTPS
 		},
 	)
-	st := storage.NewS3(client, bucket, rootFolder, s3Endpoint, logger)
 
-	return st
+	return storage.NewS3(client, opts.S3Bucket, opts.S3RootFolder, opts.S3Endpoint, logger), nil
 }
 
-func applyMigrations(
-	ctx context.Context,
-	postgresMigrations bool,
-	postgresSource string,
-	hasuraMetadata bool,
-	hasuraEndpoint string,
-	hasuraSecret string,
-	hasuraDBName string,
-	logger *slog.Logger,
-) error {
-	if postgresMigrations {
+func applyMigrations(ctx context.Context, opts Options, logger *slog.Logger) error {
+	if opts.ApplyPostgresMigrations {
 		logger.InfoContext(ctx, "applying postgres migrations")
 
-		if err := migrations.ApplyPostgresMigration(postgresSource); err != nil {
+		if err := migrations.ApplyPostgresMigration(opts.PostgresMigrationsSource); err != nil {
 			return fmt.Errorf("problem applying postgres migrations: %w", err)
 		}
 	}
 
-	if hasuraMetadata {
+	if opts.ApplyHasuraMetadata {
 		logger.InfoContext(ctx, "applying hasura metadata")
 
 		if err := migrations.ApplyHasuraMetadata(
-			ctx, hasuraEndpoint, hasuraSecret, hasuraDBName, logger,
+			ctx, opts.HasuraEndpoint, opts.HasuraAdminSecret, opts.HasuraDBName, logger,
 		); err != nil {
 			return fmt.Errorf("problem applying hasura metadata: %w", err)
 		}
@@ -467,8 +442,8 @@ func CommandServe() *cli.Command { //nolint:funlen
 
 // registerVipsDebugHandler adds storage's libvips memory report to
 // http.DefaultServeMux, alongside the pprof handlers registered there by the
-// net/http/pprof blank import. The shared serve runtime exposes that mux on
-// Options.DebugAddr, so the route is reachable only when pprof is enabled.
+// net/http/pprof blank import. The shared serve runtime exposes that mux through
+// serveutil.DebugListen, so the route is reachable only when pprof is enabled.
 func registerVipsDebugHandler() {
 	http.HandleFunc("/debug/vips", func(w http.ResponseWriter, _ *http.Request) {
 		var stats vips.MemoryStats
@@ -484,54 +459,52 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 	logger.InfoContext(ctx, cmd.Root().Name+" v"+cmd.Root().Version)
 	serveutil.LogFlags(ctx, logger, cmd)
 
-	pprofBind := cmd.String(flagPprofBind)
-	if pprofBind != "" {
+	opts := optionsFromCommand(cmd)
+
+	manager := serveutil.NewManager(logger)
+	manager.Add(serveutil.Definition{
+		Name: "storage",
+		Build: func(ctx context.Context, logger *slog.Logger) (*serveutil.Service, error) {
+			return NewService(ctx, opts, logger)
+		},
+	})
+
+	// The listener keeps only the default read-header deadline, so large file
+	// uploads and downloads are not aborted mid-transfer.
+	listeners := []serveutil.Listener{serveutil.Listen(cmd.String(flagBind))}
+
+	if pprofBind := cmd.String(flagPprofBind); pprofBind != "" {
 		registerVipsDebugHandler()
+
+		listeners = append(listeners, serveutil.DebugListen(pprofBind))
 	}
 
 	// Run's errors already name the service and the lifecycle phase that failed.
 	//nolint:wrapcheck // adding a prefix here would only repeat that context.
-	return serveutil.Run(
-		ctx,
-		serveutil.Options{
-			Logger:    logger,
-			Addr:      cmd.String(flagBind),
-			DebugAddr: pprofBind,
-			HTTP: serveutil.HTTPTimeouts{
-				ReadHeader: readHeaderTimeout,
-				Read:       0,
-				Write:      0,
-				Idle:       0,
-			},
-			ShutdownTimeout: shutdownTimeout,
-			Compose:         nil,
-		},
-		serveutil.Definition{
-			Name:   serviceName,
-			Prefix: "",
-			Build: func(ctx context.Context, logger *slog.Logger) (*serveutil.Service, error) {
-				return NewService(ctx, cmd, logger)
-			},
-		},
-	)
+	return manager.Run(ctx, listeners...)
 }
 
-// NewService builds storage's serving surface: the HTTP handler and the image
-// transformer. Storage has no long-lived background loop, so Background is nil:
+// NewService builds storage's serving surface from opts, which it validates
+// first: the HTTP handler and the image transformer. Storage has no long-lived background loop, so Background is nil:
 // the transformer bounds concurrency with a semaphore rather than worker
 // goroutines. Close calls Transformer.Shutdown, which tears down process-global
 // libvips state and is not re-entrant: image.NewTransformer cannot restart libvips
 // afterward. Close must therefore run exactly once, after all in-flight requests
 // have drained. NewService is consumed both by the standalone serve command and
 // by the engine unified binary, which mounts the handler behind a shared listener.
-// Its construction and cleanup error paths are integration-only because they
-// require the storage service's PostgreSQL, S3, and Hasura environment.
+// Past validation, its construction and cleanup error paths are
+// integration-only because they require the storage service's PostgreSQL, S3,
+// and Hasura environment.
 func NewService(
 	ctx context.Context,
-	cmd *cli.Command,
+	opts Options,
 	logger *slog.Logger,
 ) (_ *serveutil.Service, err error) {
-	imageTransformer := newImageTransformer(ctx, cmd, logger)
+	if err := opts.Validate(); err != nil {
+		return nil, err
+	}
+
+	imageTransformer := newImageTransformer(ctx, opts, logger)
 
 	// Tear libvips down again if the rest of construction fails. On success the
 	// returned Service owns the transformer and frees it through its Close.
@@ -541,37 +514,19 @@ func NewService(
 		}
 	}()
 
-	contentStorage := getContentStorage(
-		ctx,
-		cmd.String(flagS3Endpoint),
-		cmd.String(flagS3Region),
-		cmd.String(flagS3AccessKey),
-		cmd.String(flagS3SecretKey),
-		cmd.String(flagS3Bucket),
-		cmd.String(flagS3RootFolder),
-		cmd.Bool(flagS3DisableHTTPS),
-		logger,
-	)
-
-	if err := applyMigrations(
-		ctx,
-		cmd.Bool(flagPostgresMigrations),
-		cmd.String(flagPostgresMigrationsSource),
-		cmd.Bool(flagHasuraMetadata),
-		cmd.String(flagHasuraEndpoint),
-		cmd.String(flagHasuraAdminSecret),
-		cmd.String(flagHasuraDBName),
-		logger,
-	); err != nil {
+	contentStorage, err := getContentStorage(ctx, opts, logger)
+	if err != nil {
 		return nil, err
 	}
 
-	metadataStorage := getMetadataStorage(
-		cmd.String(flagHasuraEndpoint) + "/graphql",
-	)
+	if err := applyMigrations(ctx, opts, logger); err != nil {
+		return nil, err
+	}
+
+	metadataStorage := getMetadataStorage(opts.HasuraEndpoint + "/graphql")
 
 	handler, err := getHandler( //nolint:contextcheck
-		cmd, metadataStorage, contentStorage, imageTransformer, logger,
+		opts, metadataStorage, contentStorage, imageTransformer, logger,
 	)
 	if err != nil {
 		return nil, err
@@ -588,10 +543,10 @@ func NewService(
 // to 2×GOMAXPROCS when it is not explicitly configured.
 func newImageTransformer(
 	ctx context.Context,
-	cmd *cli.Command,
+	opts Options,
 	logger *slog.Logger,
 ) *image.Transformer {
-	workers := cmd.Int(flagImageTransformerWorkers)
+	workers := opts.ImageTransformerWorkers
 	if workers <= 0 {
 		workers = 2 * runtime.GOMAXPROCS(0) //nolint:mnd
 		logger.InfoContext(
@@ -603,7 +558,7 @@ func newImageTransformer(
 
 	return image.NewTransformer(
 		workers,
-		cmd.Int(flagImageTransformerMaxDim),
-		cmd.Float(flagImageTransformerMaxBlur),
+		opts.ImageTransformerMaxDimension,
+		opts.ImageTransformerMaxBlurSigma,
 	)
 }

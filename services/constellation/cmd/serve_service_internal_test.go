@@ -12,10 +12,7 @@ import (
 	"testing"
 
 	serveutil "github.com/nhost/nhost/internal/lib/serve"
-	"github.com/urfave/cli/v3"
 )
-
-const serviceTestJWTConfig = `{"type":"HS256","key":"service-test-jwt-secret-32-bytes-long"}`
 
 func TestNewServiceShutdownReleasesSQLiteConnector(t *testing.T) {
 	t.Parallel()
@@ -23,7 +20,7 @@ func TestNewServiceShutdownReleasesSQLiteConnector(t *testing.T) {
 	metadataPath, databasePath := newServiceTestSQLiteMetadata(t)
 	requireNoSQLiteDescriptors(t, databasePath)
 
-	svc, err := runNewService(t, metadataPath, "")
+	svc, err := newTestService(t, metadataPath)
 	if err != nil {
 		t.Fatalf("NewService: %v", err)
 	}
@@ -51,34 +48,28 @@ func closeService(t *testing.T, svc *serveutil.Service) {
 	}
 }
 
-func TestNewServiceRouterFailureReleasesSQLiteConnector(t *testing.T) {
+// NewService validates its Options before acquiring anything, so an invalid one
+// opens no connector that would then need releasing.
+func TestNewServiceInvalidConfigOpensNothing(t *testing.T) {
 	t.Parallel()
 
 	metadataPath, databasePath := newServiceTestSQLiteMetadata(t)
 	requireNoSQLiteDescriptors(t, databasePath)
 
-	svc, err := runNewService(
-		t,
-		metadataPath,
-		"",
-		"--"+flagGraphQLRequestBodyLimitBytes,
-		"0",
-	)
+	opts := serviceTestOptions(metadataPath)
+	opts.GraphQLRequestBodyLimitBytes = 0
+
+	svc, err := NewService(context.Background(), opts, slog.New(slog.DiscardHandler))
 	if svc != nil {
 		closeService(t, svc)
 		t.Fatal("NewService with an invalid body limit returned a service")
 	}
 
-	if err == nil {
-		t.Fatal("NewService with an invalid body limit returned no error")
-	}
-
-	if !strings.Contains(err.Error(), flagGraphQLRequestBodyLimitBytes) {
-		t.Fatalf("NewService error = %q, want %s", err, flagGraphQLRequestBodyLimitBytes)
+	if !errors.Is(err, errGraphQLBodyLimitNotPositive) {
+		t.Fatalf("NewService error = %v, want wrapping %v", err, errGraphQLBodyLimitNotPositive)
 	}
 
 	requireNoSQLiteDescriptors(t, databasePath)
-	t.Log("SQLite descriptors: after getRouter failure=0")
 }
 
 func TestNewServiceBackgroundThenShutdownReleasesSQLiteConnectorOnce(t *testing.T) {
@@ -87,7 +78,7 @@ func TestNewServiceBackgroundThenShutdownReleasesSQLiteConnectorOnce(t *testing.
 	metadataPath, databasePath := newServiceTestSQLiteMetadata(t)
 	requireNoSQLiteDescriptors(t, databasePath)
 
-	svc, err := runNewService(t, metadataPath, "")
+	svc, err := newTestService(t, metadataPath)
 	if err != nil {
 		t.Fatalf("NewService: %v", err)
 	}
@@ -113,44 +104,21 @@ func TestNewServiceBackgroundThenShutdownReleasesSQLiteConnectorOnce(t *testing.
 	)
 }
 
-func runNewService(
-	t *testing.T,
-	metadataPath string,
-	hasuraUpstreamURL string,
-	extraArgs ...string,
-) (*serveutil.Service, error) {
+// newTestService builds constellation over the SQLite metadata at
+// metadataPath, with the Hasura proxy disabled.
+func newTestService(t *testing.T, metadataPath string) (*serveutil.Service, error) {
 	t.Helper()
 
-	var svc *serveutil.Service
-
-	cmd := &cli.Command{
-		Name:  "serve",
-		Flags: serveFlags(),
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			var err error
-
-			svc, err = NewService(ctx, cmd, slog.New(slog.DiscardHandler))
-
-			return err
-		},
-	}
-
-	args := make([]string, 0, 9+len(extraArgs))
-	args = append(
-		args,
-		"serve",
-		"--"+flagMetadataPath, metadataPath,
-		"--"+flagAdminSecret, "service-test-admin-secret",
-		"--"+flagJWTSecret, serviceTestJWTConfig,
-		"--"+flagHasuraUpstreamURL, hasuraUpstreamURL,
+	return NewService(
+		context.Background(), serviceTestOptions(metadataPath), slog.New(slog.DiscardHandler),
 	)
-	args = append(args, extraArgs...)
+}
 
-	if err := cmd.Run(context.Background(), args); err != nil {
-		return nil, fmt.Errorf("running serve command: %w", err)
-	}
+func serviceTestOptions(metadataPath string) Options {
+	opts := validTestOptions()
+	opts.MetadataPath = metadataPath
 
-	return svc, nil
+	return opts
 }
 
 func newServiceTestSQLiteMetadata(t *testing.T) (string, string) {

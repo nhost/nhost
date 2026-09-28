@@ -160,7 +160,6 @@ const (
 	flagWorkosDefaultOrganization                = "workos-default-organization"
 	flagWorkosDefaultConnection                  = "workos-default-connection"
 	flagWorkosDefaultDomain                      = "workos-default-domain"
-	flagWorkosScope                              = "workos-scope"
 	flagAzureadEnabled                           = "azuread-enabled"
 	flagAzureadClientID                          = "azuread-client-id"
 	flagAzureadClientSecret                      = "azuread-client-secret" //nolint:gosec
@@ -197,15 +196,6 @@ const (
 
 const (
 	defaultSMSGenericTimeout = 10 * time.Second
-	// serviceName identifies auth in the shared serve runtime's logs and errors.
-	serviceName = "auth"
-	// readHeaderTimeout bounds how long the listener waits for request headers.
-	// The remaining HTTP deadlines stay off so large uploads and long-lived
-	// responses are not aborted mid-flight.
-	readHeaderTimeout = 5 * time.Second
-	// shutdownTimeout bounds the listener drain and the release of auth's
-	// database pool once the process context is cancelled.
-	shutdownTimeout = 30 * time.Second
 )
 
 func CommandServe() *cli.Command { //nolint:funlen,maintidx
@@ -318,16 +308,7 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 			&cli.GenericFlag{ //nolint: exhaustruct
 				Name: flagGravatarDefault,
 				Value: &EnumValue{ //nolint: exhaustruct
-					Enum: []string{
-						"blank",
-						"identicon",
-						"monsterid",
-						"wavatar",
-						"retro",
-						"robohash",
-						"mp",
-						"404",
-					},
+					Enum:    gravatarDefaults(),
 					Default: "blank",
 				},
 				Usage:    "Gravatar default",
@@ -337,12 +318,7 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 			&cli.GenericFlag{ //nolint: exhaustruct
 				Name: flagGravatarRating,
 				Value: &EnumValue{ //nolint: exhaustruct
-					Enum: []string{
-						"g",
-						"pg",
-						"r",
-						"x",
-					},
+					Enum:    gravatarRatings(),
 					Default: "g",
 				},
 				Usage:    "Gravatar rating",
@@ -422,11 +398,7 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 			&cli.GenericFlag{ //nolint: exhaustruct
 				Name: flagSMTPAuthMethod,
 				Value: &EnumValue{ //nolint: exhaustruct
-					Enum: []string{
-						"LOGIN",
-						"PLAIN",
-						"CRAM-MD5",
-					},
+					Enum:    smtpAuthMethods(),
 					Default: "PLAIN",
 				},
 				Usage:    "SMTP Authentication method",
@@ -535,11 +507,7 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 			&cli.GenericFlag{ //nolint: exhaustruct
 				Name: flagRequireElevatedClaim,
 				Value: &EnumValue{ //nolint: exhaustruct
-					Enum: []string{
-						"disabled",
-						"recommended",
-						"required",
-					},
+					Enum:    elevatedClaimSettings(),
 					Default: "disabled",
 				},
 				Usage:    "Require x-hasura-auth-elevated claim to perform certain actions: create PATs, change email and/or password, enable/disable MFA and add security keys. If set to `recommended` the claim check is only performed if the user has a security key attached. If set to `required` the only action that won't require the claim is setting a security key for the first time.",
@@ -1370,12 +1338,12 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 	}
 }
 
-func getRateLimiter(cmd *cli.Command, logger *slog.Logger) gin.HandlerFunc {
+func getRateLimiter(opts Options, logger *slog.Logger) gin.HandlerFunc {
 	var store ratelimit.Store
-	if cmd.String(flagRateLimitMemcacheServer) != "" {
+	if opts.RateLimit.MemcacheServer != "" {
 		store = ratelimit.NewMemcacheStore(
-			memcache.New(cmd.String(flagRateLimitMemcacheServer)),
-			cmd.String(flagRateLimitMemcachePrefix),
+			memcache.New(opts.RateLimit.MemcacheServer),
+			opts.RateLimit.MemcachePrefix,
 			logger.WithGroup("rate-limit-memcache"),
 		)
 	} else {
@@ -1383,27 +1351,27 @@ func getRateLimiter(cmd *cli.Command, logger *slog.Logger) gin.HandlerFunc {
 	}
 
 	return ratelimit.RateLimit(
-		cmd.String(flagAPIPrefix),
-		cmd.Int(flagRateLimitGlobalBurst),
-		cmd.Duration(flagRateLimitGlobalInterval),
-		cmd.Int(flagRateLimitEmailBurst),
-		cmd.Duration(flagRateLimitEmailInterval),
-		cmd.Bool(flagRateLimitEmailIsGlobal),
-		cmd.Bool(flagEmailSigninEmailVerifiedRequired),
-		cmd.Int(flagRateLimitSMSBurst),
-		cmd.Duration(flagRateLimitSMSInterval),
-		cmd.Int(flagRateLimitBruteForceBurst),
-		cmd.Duration(flagRateLimitBruteForceInterval),
-		cmd.Int(flagRateLimitSignupsBurst),
-		cmd.Duration(flagRateLimitSignupsInterval),
-		cmd.Int(flagRateLimitOAuth2ServerBurst),
-		cmd.Duration(flagRateLimitOAuth2ServerInterval),
+		opts.APIPrefix,
+		opts.RateLimit.Global.Burst,
+		opts.RateLimit.Global.Interval,
+		opts.RateLimit.Email.Burst,
+		opts.RateLimit.Email.Interval,
+		opts.RateLimit.EmailIsGlobal,
+		opts.RequireEmailVerification,
+		opts.RateLimit.SMS.Burst,
+		opts.RateLimit.SMS.Interval,
+		opts.RateLimit.BruteForce.Burst,
+		opts.RateLimit.BruteForce.Interval,
+		opts.RateLimit.Signups.Burst,
+		opts.RateLimit.Signups.Interval,
+		opts.RateLimit.OAuth2Server.Burst,
+		opts.RateLimit.OAuth2Server.Interval,
 		store,
 	)
 }
 
 func getDependencies( //nolint:ireturn
-	ctx context.Context, cmd *cli.Command, db *sql.Queries, logger *slog.Logger,
+	ctx context.Context, opts Options, db *sql.Queries, logger *slog.Logger,
 ) (
 	controller.Emailer,
 	controller.SMSer,
@@ -1411,25 +1379,25 @@ func getDependencies( //nolint:ireturn
 	*oidc.IDTokenValidatorProviders,
 	error,
 ) {
-	emailer, templates, err := getEmailer(cmd, logger)
+	emailer, templates, err := getEmailer(opts, logger)
 	if err != nil {
 		return nil, nil, nil, nil, fmt.Errorf("problem creating emailer: %w", err)
 	}
 
-	sms, err := getSMS(cmd, templates, db, logger)
+	sms, err := getSMS(opts, templates, db, logger)
 	if err != nil {
 		return nil, nil, nil, nil, fmt.Errorf("problem creating SMS client: %w", err)
 	}
 
-	jwtGetter, err := getJWTGetter(cmd, db)
+	jwtGetter, err := getJWTGetter(opts, db)
 	if err != nil {
 		return nil, nil, nil, nil, fmt.Errorf("problem creating jwt getter: %w", err)
 	}
 
 	idTokenValidator, err := oidc.NewIDTokenValidatorProviders(
 		ctx,
-		cmd.StringSlice(flagAppleAudience),
-		cmd.StringSlice(flagGoogleAudience),
+		opts.Providers.Apple.Audience,
+		opts.Providers.Google.Audience,
 		nil,
 	)
 	if err != nil {
@@ -1461,12 +1429,12 @@ func getCORSOptions() oapimw.CORSOptions {
 
 func getHandler(
 	ctx context.Context,
-	cmd *cli.Command,
+	opts Options,
 	db *sql.Queries,
 	encrypter *crypto.Encrypter,
 	logger *slog.Logger,
 ) (http.Handler, error) {
-	ctrl, jwtGetter, err := getController(ctx, cmd, db, encrypter, logger)
+	ctrl, jwtGetter, err := getController(ctx, opts, db, encrypter, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -1480,7 +1448,7 @@ func getHandler(
 
 	router, mw, err := oapi.NewRouter( //nolint:contextcheck
 		swagger,
-		cmd.String(flagAPIPrefix),
+		opts.APIPrefix,
 		jwtGetter.MiddlewareFunc,
 		getCORSOptions(),
 		logger,
@@ -1489,32 +1457,32 @@ func getHandler(
 		return nil, fmt.Errorf("failed to create router: %w", err)
 	}
 
-	if cmd.String(flagTurnstileSecret) != "" {
+	if opts.TurnstileSecret != "" {
 		router.Use(middleware.Turnstile( //nolint:contextcheck
-			cmd.String(flagTurnstileSecret), cmd.String(flagAPIPrefix),
+			opts.TurnstileSecret, opts.APIPrefix,
 		))
 	}
 
-	if cmd.Bool(flagRateLimitEnable) {
-		router.Use(getRateLimiter(cmd, logger)) //nolint:contextcheck
+	if opts.RateLimit.Enabled {
+		router.Use(getRateLimiter(opts, logger)) //nolint:contextcheck
 	}
 
 	api.RegisterHandlersWithOptions(
 		router,
 		handler,
 		api.GinServerOptions{
-			BaseURL:      cmd.String(flagAPIPrefix),
+			BaseURL:      opts.APIPrefix,
 			Middlewares:  []api.MiddlewareFunc{mw},
 			ErrorHandler: oapi.RecordError,
 		},
 	)
 
-	if cmd.Bool(flagEnableChangeEnv) {
-		router.POST(cmd.String(flagAPIPrefix)+"/change-env", ctrl.PostChangeEnv)
+	if opts.EnableChangeEnv {
+		router.POST(opts.APIPrefix+"/change-env", ctrl.PostChangeEnv)
 	}
 
 	// for backwards compatibility we keep these two endpoints without the prefix
-	if cmd.String(flagAPIPrefix) != "" {
+	if opts.APIPrefix != "" {
 		router.GET("/healthz", func(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{"status": "ok"})
 		})
@@ -1526,32 +1494,14 @@ func getHandler(
 	return router, nil
 }
 
-func validateOauth2ProviderConfig(cmd *cli.Command, jwtGetter *controller.JWTGetter) error {
-	if cmd.Bool(flagOAuth2ProviderEnabled) {
-		if !jwtGetter.IsRSA() {
-			return errors.New( //nolint:err113
-				"OAuth2 provider requires HASURA_GRAPHQL_JWT_SECRET to be configured " +
-					"with an RSA algorithm (RS256, RS384, or RS512)",
-			)
-		}
-
-		if cmd.String(flagOAuth2ProviderLoginURL) == "" && cmd.String(flagClientURL) == "" {
-			return errors.New( //nolint:err113
-				"OAuth2 provider requires AUTH_OAUTH2_PROVIDER_LOGIN_URL or AUTH_CLIENT_URL to be set",
-			)
-		}
-
-		if cmd.Int(flagOAuth2ProviderAccessTokenTTL) <= 0 {
-			return errors.New( //nolint:err113
-				"OAuth2 provider access token TTL must be a positive number of seconds",
-			)
-		}
-
-		if cmd.Int(flagOAuth2ProviderRefreshTokenTTL) <= 0 {
-			return errors.New( //nolint:err113
-				"OAuth2 provider refresh token TTL must be a positive number of seconds",
-			)
-		}
+// validateOauth2ProviderConfig checks what Options.Validate cannot: the
+// OAuth2 provider signs its tokens with the JWT secret, so it needs an RSA one.
+func validateOauth2ProviderConfig(opts Options, jwtGetter *controller.JWTGetter) error {
+	if opts.OAuth2Provider.Enabled && !jwtGetter.IsRSA() {
+		return errors.New( //nolint:err113
+			"OAuth2 provider requires HASURA_GRAPHQL_JWT_SECRET to be configured " +
+				"with an RSA algorithm (RS256, RS384, or RS512)",
+		)
 	}
 
 	return nil
@@ -1559,27 +1509,27 @@ func validateOauth2ProviderConfig(cmd *cli.Command, jwtGetter *controller.JWTGet
 
 func getController(
 	ctx context.Context,
-	cmd *cli.Command,
+	opts Options,
 	db *sql.Queries,
 	encrypter *crypto.Encrypter,
 	logger *slog.Logger,
 ) (*controller.Controller, *controller.JWTGetter, error) {
-	config, err := getConfig(cmd)
+	config, err := getConfig(opts)
 	if err != nil {
 		return nil, nil, fmt.Errorf("problem creating config: %w", err)
 	}
 
-	emailer, smsClient, jwtGetter, idTokenValidator, err := getDependencies(ctx, cmd, db, logger)
+	emailer, smsClient, jwtGetter, idTokenValidator, err := getDependencies(ctx, opts, db, logger)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	oauthProviders, err := getOauth2Providers(ctx, cmd, logger)
+	oauthProviders, err := getOauth2Providers(ctx, opts, logger)
 	if err != nil {
 		return nil, nil, fmt.Errorf("problem creating oauth providers: %w", err)
 	}
 
-	if err := validateOauth2ProviderConfig(cmd, jwtGetter); err != nil {
+	if err := validateOauth2ProviderConfig(opts, jwtGetter); err != nil {
 		return nil, nil, err
 	}
 
@@ -1592,9 +1542,9 @@ func getController(
 		hibp.NewClient(),
 		oauthProviders,
 		idTokenValidator,
-		controller.NewTotp(cmd.String(flagMfaTotpIssuer), time.Now),
+		controller.NewTotp(opts.MFA.TOTPIssuer, time.Now),
 		encrypter,
-		cmd.Root().Version,
+		opts.Version,
 	)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create controller: %w", err)
@@ -1608,45 +1558,39 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 	logger.InfoContext(ctx, cmd.Root().Name+" v"+cmd.Root().Version)
 	serveutil.LogFlags(ctx, logger, cmd)
 
+	manager := serveutil.NewManager(logger)
+	manager.Add(serveutil.Definition{
+		Name: "auth",
+		Build: func(ctx context.Context, logger *slog.Logger) (*serveutil.Service, error) {
+			return NewService(ctx, optionsFromCommand(cmd), logger)
+		},
+	})
+
+	// The listener keeps only the default read-header deadline, so large uploads
+	// and long-lived responses are not aborted mid-flight.
+	//
 	// Run's errors already name the service and the lifecycle phase that failed.
 	//nolint:wrapcheck // adding a prefix here would only repeat that context.
-	return serveutil.Run(
-		ctx,
-		serveutil.Options{
-			Logger:    logger,
-			Addr:      ":" + cmd.String(flagPort),
-			DebugAddr: "",
-			HTTP: serveutil.HTTPTimeouts{
-				ReadHeader: readHeaderTimeout,
-				Read:       0,
-				Write:      0,
-				Idle:       0,
-			},
-			ShutdownTimeout: shutdownTimeout,
-			Compose:         nil,
-		},
-		serveutil.Definition{
-			Name:   serviceName,
-			Prefix: "",
-			Build: func(ctx context.Context, logger *slog.Logger) (*serveutil.Service, error) {
-				return NewService(ctx, cmd, logger)
-			},
-		},
-	)
+	return manager.Run(ctx, serveutil.Listen(":"+cmd.String(flagPort)))
 }
 
-// NewService builds auth's serving surface: the HTTP handler and the database
-// pool it owns. Auth has no long-lived background loop, so Background is nil
-// and Close releases the pool. It is consumed both by the standalone serve
-// command and by the engine unified binary, which mounts the handler
-// behind a shared listener. Its construction and cleanup error paths are
+// NewService builds auth's serving surface from opts, which it validates
+// before connecting to anything: the HTTP handler and the database pool it
+// owns. Auth has no long-lived background loop, so Background is nil and Close
+// releases the pool. It is consumed both by the standalone serve command and
+// by the engine unified binary, which mounts the handler behind a shared
+// listener. Past validation, its construction and cleanup error paths are
 // integration-only because they require a live PostgreSQL database.
 func NewService(
 	ctx context.Context,
-	cmd *cli.Command,
+	opts Options,
 	logger *slog.Logger,
 ) (_ *serveutil.Service, err error) {
-	pool, err := getDBPool(ctx, cmd)
+	if err := opts.Validate(); err != nil {
+		return nil, err
+	}
+
+	pool, err := getDBPool(ctx, opts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create database pool: %w", err)
 	}
@@ -1659,17 +1603,17 @@ func NewService(
 		}
 	}()
 
-	encrypter, err := crypto.NewEncrypterFromString(cmd.String(flagEncryptionKey))
+	encrypter, err := crypto.NewEncrypterFromString(opts.EncryptionKey)
 	if err != nil {
 		return nil, fmt.Errorf("problem creating encrypter: %w", err)
 	}
 
 	db := sql.New(pool)
-	if err := applyMigrations(ctx, cmd, db, encrypter, logger); err != nil {
+	if err := applyMigrations(ctx, opts, db, encrypter, logger); err != nil {
 		return nil, fmt.Errorf("failed to apply migrations: %w", err)
 	}
 
-	handler, err := getHandler(ctx, cmd, db, encrypter, logger)
+	handler, err := getHandler(ctx, opts, db, encrypter, logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create server: %w", err)
 	}

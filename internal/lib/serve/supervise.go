@@ -5,147 +5,184 @@ import (
 	"errors"
 	"fmt"
 	"runtime/debug"
+	"strings"
 	"sync"
-	"time"
 )
 
 var (
-	// ErrServicePanic wraps a value recovered from a panicking supervised service,
-	// so a panic surfaces as an ordinary joined error instead of crashing the whole
-	// process.
+	// ErrServicePanic wraps a value recovered from a panicking part of the
+	// process, so a panic surfaces as an ordinary joined error instead of
+	// crashing every service sharing the process.
 	ErrServicePanic = errors.New("service panicked")
-	// ErrShutdownTimeout reports that a tier still had running services after its
-	// shutdown grace period. Later tiers are still cancelled and awaited.
+	// ErrShutdownTimeout reports that the shutdown budget ran out while some part
+	// of the process was still stopping. That part is abandoned and the remaining
+	// shutdown steps still run, with whatever budget is left, which may be none.
 	ErrShutdownTimeout = errors.New("service shutdown timed out")
 )
 
-// supervisedService is a long-running unit of work: it blocks until its work is
-// done or the context is cancelled, then returns. A nil error means a clean
-// shutdown.
-type supervisedService func(ctx context.Context) error
+// unit is one supervised part of a running process: a listener or a service's
+// background work.
+type unit struct {
+	// name identifies the unit in the errors the group returns.
+	name string
+	// run blocks until the unit's work ends, either because stop asked it to or
+	// because it finished or failed on its own.
+	run func() error
+	// stop asks run to return and waits, within ctx, for the unit's own shutdown
+	// to complete. It may be called after run has already returned.
+	stop func(ctx context.Context) error
+}
 
-// supervise starts every service in every tier concurrently. The moment ctx is
-// cancelled or any service returns — whether with an error or cleanly — shutdown
-// begins in tier order: the first tier's context is cancelled and its services
-// receive tierTimeout to return before the next tier is cancelled. With one tier,
-// all services are cancelled and awaited together.
-//
-// The returned error joins the (non-nil) errors from every service that returns.
-// If a tier exceeds tierTimeout, the result includes a shutdown-timeout error
-// naming the tier and its remaining service count, then proceeds to later tiers.
-// A stuck service goroutine may remain alive until process exit. The process
-// supervisor's termination grace period remains the ultimate shutdown bound and
-// must allow enough time for every tier when graceful completion is required.
-func supervise(
-	ctx context.Context,
-	tierTimeout time.Duration,
-	tiers ...[]supervisedService,
-) error {
-	serviceCount := 0
-	for _, services := range tiers {
-		serviceCount += len(services)
+// group runs units in tiers. Every unit starts at once; shutdown stops the
+// tiers one after another, so an earlier tier can keep relying on a later one
+// while it winds down.
+type group struct {
+	tiers   [][]unit
+	results []chan result
+
+	// returned is closed as soon as any unit's run returns.
+	returned     chan struct{}
+	returnedOnce sync.Once
+}
+
+// result reports that one half of a unit, its run or its stop, has returned.
+type result struct {
+	unit int
+	stop bool
+	err  error
+}
+
+// startGroup starts every unit of every tier.
+func startGroup(tiers ...[]unit) *group {
+	g := &group{
+		tiers:        tiers,
+		results:      make([]chan result, len(tiers)),
+		returned:     make(chan struct{}),
+		returnedOnce: sync.Once{},
 	}
 
-	if serviceCount == 0 {
-		return nil
-	}
+	for tier, units := range tiers {
+		// Room for both halves of every unit, so neither ever blocks on a
+		// shutdown that already gave up on it.
+		g.results[tier] = make(chan result, 2*len(units)) //nolint:mnd // run and stop
 
-	// Parent cancellation initiates the ordered sequence below rather than
-	// reaching every tier at once. WithoutCancel preserves values for services
-	// while making each tier's explicit cancellation its only shutdown signal.
-	baseCtx := context.WithoutCancel(ctx)
-
-	cancels := make([]context.CancelFunc, len(tiers))
-	results := make([]chan error, len(tiers))
-	errs := make([][]error, len(tiers))
-
-	shutdown := make(chan struct{})
-
-	var shutdownOnce sync.Once
-
-	triggerShutdown := func() {
-		shutdownOnce.Do(func() { close(shutdown) })
-	}
-
-	for tierIndex, services := range tiers {
-		tierCtx, cancel := context.WithCancel(baseCtx)
-		cancels[tierIndex] = cancel
-		results[tierIndex] = make(chan error, len(services))
-
-		for _, svc := range services {
+		for index, u := range units {
 			go func() {
-				// Any service returning tears down the rest: a crashed service
-				// must not leave the others running headless in the same process.
-				defer triggerShutdown()
+				// Any unit returning stops the rest: a crashed listener or loop
+				// must not leave its peers running headless in the same process.
+				defer g.returnedOnce.Do(func() { close(g.returned) })
 
-				results[tierIndex] <- runService(tierCtx, svc)
+				err := protect(u.run)
+				if err != nil {
+					err = fmt.Errorf("%s: %w", u.name, err)
+				}
+
+				g.results[tier] <- result{unit: index, stop: false, err: err}
 			}()
 		}
 	}
 
-	select {
-	case <-ctx.Done():
-	case <-shutdown:
-	}
-
-	for tierIndex, services := range tiers {
-		errs[tierIndex] = shutdownTier(
-			tierIndex, len(services), tierTimeout, cancels[tierIndex], results[tierIndex],
-		)
-	}
-
-	joined := make([]error, 0, serviceCount)
-	for _, tierErrs := range errs {
-		joined = append(joined, tierErrs...)
-	}
-
-	return errors.Join(joined...)
+	return g
 }
 
-func shutdownTier(
-	tierIndex int,
-	serviceCount int,
-	tierTimeout time.Duration,
-	cancel context.CancelFunc,
-	results <-chan error,
-) []error {
-	cancel()
+// stopped is closed once any unit has returned on its own, which is the signal
+// to shut the whole group down.
+func (g *group) stopped() <-chan struct{} {
+	return g.returned
+}
 
-	timer := time.NewTimer(tierTimeout)
-	remaining := serviceCount
-	errs := make([]error, 0, serviceCount)
+// shutdown stops the tiers in order, each one fully before the next, all within
+// ctx. A tier still stopping when ctx ends is reported as ErrShutdownTimeout and
+// abandoned; the later tiers are still asked to stop, but with no budget left
+// they are not waited for. The result joins every error the units returned.
+func (g *group) shutdown(ctx context.Context) error {
+	errs := make([]error, 0, len(g.tiers))
 
-	for remaining > 0 {
-		select {
-		case err := <-results:
-			errs = append(errs, err)
-			remaining--
-		case <-timer.C:
-			return append(errs, fmt.Errorf(
-				"%w: tier %d still has %d running service(s)",
-				ErrShutdownTimeout, tierIndex, remaining,
-			))
-		}
+	for tier := range g.tiers {
+		errs = append(errs, g.shutdownTier(ctx, tier)...)
 	}
 
-	if !timer.Stop() {
-		select {
-		case <-timer.C:
-		default:
+	return errors.Join(errs...)
+}
+
+func (g *group) shutdownTier(ctx context.Context, tier int) []error {
+	units := g.tiers[tier]
+	results := g.results[tier]
+
+	for index, u := range units {
+		go func() {
+			err := protect(func() error { return u.stop(ctx) })
+			if err != nil {
+				err = fmt.Errorf("stopping %s: %w", u.name, err)
+			}
+
+			results <- result{unit: index, stop: true, err: err}
+		}()
+	}
+
+	ran := make([]bool, len(units))
+	stopped := make([]bool, len(units))
+
+	var errs []error
+
+	for pending := 2 * len(units); pending > 0; pending-- { //nolint:mnd // run and stop
+		r, ok := receive(ctx, results)
+		if !ok {
+			return append(errs, stillStopping(units, ran, stopped))
+		}
+
+		if r.stop {
+			stopped[r.unit] = true
+		} else {
+			ran[r.unit] = true
+		}
+
+		if r.err != nil {
+			errs = append(errs, r.err)
 		}
 	}
 
 	return errs
 }
 
-func runService(ctx context.Context, svc supervisedService) (err error) {
+// receive returns the next result, preferring one that is already queued over
+// an expired ctx, so a unit that had already returned when the budget ran out
+// is not reported as stuck.
+func receive(ctx context.Context, results <-chan result) (result, bool) {
+	select {
+	case r := <-results:
+		return r, true
+	default:
+	}
+
+	select {
+	case r := <-results:
+		return r, true
+	case <-ctx.Done():
+		return result{unit: 0, stop: false, err: nil}, false
+	}
+}
+
+func stillStopping(units []unit, ran, stopped []bool) error {
+	var names []string
+
+	for index, u := range units {
+		if !ran[index] || !stopped[index] {
+			names = append(names, u.name)
+		}
+	}
+
+	return fmt.Errorf("%w: %s still stopping", ErrShutdownTimeout, strings.Join(names, ", "))
+}
+
+// protect runs fn, turning a panic into an ErrServicePanic carrying the
+// recovered value and the stack it was raised from.
+func protect(fn func() error) (err error) {
 	defer func() {
 		if recovered := recover(); recovered != nil {
-			err = fmt.Errorf(
-				"%w: %v\n%s", ErrServicePanic, recovered, debug.Stack(),
-			)
+			err = fmt.Errorf("%w: %v\n%s", ErrServicePanic, recovered, debug.Stack())
 		}
 	}()
 
-	return svc(ctx)
+	return fn()
 }
