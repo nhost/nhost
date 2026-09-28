@@ -191,11 +191,11 @@ jobs:
               throw new Error(`Timed out waiting for ${what}`);
             }
 
-            // The final status check fails fast on the old gate failures and
-            // then cancels every other in-progress run for this SHA, which
-            // would include the re-runs below. Stop it first. A run still
-            // waiting for fork approval ('action_required') isn't running
-            // and will see the re-runs once a maintainer approves it.
+            // An in-progress final status check is about to fail on the old
+            // gate failures, and a run can't be re-run until it completes, so
+            // stop it now and re-run it after the checks. A run still waiting
+            // for fork approval ('action_required') isn't running; once a
+            // maintainer approves it, it sees the re-runs.
             let { final } = await latestRuns();
             if (final && final.status !== 'completed') {
               core.info(`Cancelling in-progress final status check #${final.id}`);
