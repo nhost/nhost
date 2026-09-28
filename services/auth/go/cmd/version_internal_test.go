@@ -28,7 +28,7 @@ func TestGetHandlerUsesCommandVersion(t *testing.T) {
 
 			handler, err = getHandler(
 				ctx,
-				optionsFromCommand(cmd),
+				OptionsFromCommand(cmd),
 				nil,
 				nil,
 				slog.New(slog.DiscardHandler),

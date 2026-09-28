@@ -27,7 +27,7 @@ func TestGetHandlerUsesCommandVersion(t *testing.T) {
 			var err error
 
 			handler, err = getHandler( //nolint:contextcheck // getHandler has no context parameter.
-				optionsFromCommand(cmd),
+				OptionsFromCommand(cmd),
 				nil,
 				nil,
 				nil,

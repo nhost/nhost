@@ -460,7 +460,7 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 	logger.InfoContext(ctx, cmd.Root().Name+" v"+cmd.Root().Version)
 	serveutil.LogFlags(ctx, logger, cmd)
 
-	opts := optionsFromCommand(cmd)
+	opts := OptionsFromCommand(cmd)
 
 	debugAddr := cmd.String(flagPprofBind)
 	if debugAddr != "" {

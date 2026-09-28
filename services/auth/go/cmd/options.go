@@ -398,11 +398,13 @@ func rateLimitBucketFromCommand(cmd *cli.Command, burst, interval string) RateLi
 	return RateLimitBucket{Burst: cmd.Int(burst), Interval: cmd.Duration(interval)}
 }
 
-// optionsFromCommand maps the serve command's flags onto Options. It does not
-// validate; NewService does.
+// OptionsFromCommand maps the serve command's flags onto Options. It does not
+// validate; NewService does. The standalone serve command and the engine both
+// use it, so a service's flags, env vars and defaults resolve the same way in
+// either.
 //
 //nolint:funlen // one assignment per flag; splitting would only scatter them
-func optionsFromCommand(cmd *cli.Command) Options {
+func OptionsFromCommand(cmd *cli.Command) Options {
 	smtpPort := uint16(cmd.Uint(flagSMTPPort)) //nolint:gosec // was truncated the same way before
 
 	return Options{

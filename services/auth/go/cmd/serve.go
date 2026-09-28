@@ -1572,7 +1572,7 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 	}, serveutil.Definition{
 		Name: "auth", Prefix: "",
 		Build: func(ctx context.Context, logger *slog.Logger) (*serveutil.Service, error) {
-			return NewService(ctx, optionsFromCommand(cmd), logger)
+			return NewService(ctx, OptionsFromCommand(cmd), logger)
 		},
 	})
 }

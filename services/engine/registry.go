@@ -13,11 +13,24 @@ import (
 )
 
 // newServiceFunc builds a service's ready-to-serve surface (handler, background
-// work, cleanup) from its parsed command. It matches the exported NewService of
-// each service's cmd package.
+// work, cleanup) from its parsed command.
 type newServiceFunc func(
 	ctx context.Context, cmd *cli.Command, logger *slog.Logger,
 ) (*serveutil.Service, error)
+
+// fromCommand adapts a service's exported OptionsFromCommand and NewService
+// into a newServiceFunc: the service's own CLI still resolves its flags, and
+// the engine only hands the resulting Options to its constructor.
+func fromCommand[O any](
+	options func(*cli.Command) O,
+	newService func(context.Context, O, *slog.Logger) (*serveutil.Service, error),
+) newServiceFunc {
+	return func(
+		ctx context.Context, cmd *cli.Command, logger *slog.Logger,
+	) (*serveutil.Service, error) {
+		return newService(ctx, options(cmd), logger)
+	}
+}
 
 // serviceDef describes how the engine composes one service: the URL prefix it
 // is mounted behind on the shared listener, the command used to parse its
@@ -70,7 +83,7 @@ func serviceDefinitions() []registeredService {
 			def: serviceDef{
 				prefix:     "/auth",
 				command:    authcmd.CommandServe,
-				newService: authcmd.NewService,
+				newService: fromCommand(authcmd.OptionsFromCommand, authcmd.NewService),
 				skip: newSet(
 					"debug", "log-format-text", "port", "api-prefix",
 					"hasura-admin-secret", "hasura-graphql-jwt-secret",
@@ -84,7 +97,7 @@ func serviceDefinitions() []registeredService {
 			def: serviceDef{
 				prefix:     "/storage",
 				command:    storagecmd.CommandServe,
-				newService: storagecmd.NewService,
+				newService: fromCommand(storagecmd.OptionsFromCommand, storagecmd.NewService),
 				skip: newSet(
 					"debug", "log-format-text", "bind", "pprof-bind",
 					"hasura-graphql-admin-secret", "postgres-migrations-source",
@@ -96,9 +109,12 @@ func serviceDefinitions() []registeredService {
 		{
 			name: "graphql",
 			def: serviceDef{
-				prefix:     "/graphql",
-				command:    constellationcmd.CommandServe,
-				newService: constellationcmd.NewService,
+				prefix:  "/graphql",
+				command: constellationcmd.CommandServe,
+				newService: fromCommand(
+					constellationcmd.OptionsFromCommand,
+					constellationcmd.NewService,
+				),
 				skip: newSet(
 					"debug", "log-format-text", "bind-address",
 					"http-read-timeout", "http-write-timeout", "http-idle-timeout",

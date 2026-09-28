@@ -210,7 +210,7 @@ func runOptionsFromCommand(t *testing.T, args ...string) Options {
 		Version: "1.2.3",
 		Flags:   flags,
 		Action: func(_ context.Context, cmd *cli.Command) error {
-			opts = optionsFromCommand(cmd)
+			opts = OptionsFromCommand(cmd)
 
 			return nil
 		},
@@ -319,7 +319,7 @@ func TestOptionsFromCommandMapsEveryFlag(t *testing.T) {
 	t.Parallel()
 
 	// Known to stay zero whatever the flags say, preserving behavior from
-	// before Options. Both are TODOs in optionsFromCommand; drop
+	// before Options. Both are TODOs in OptionsFromCommand; drop
 	// them from this list once fixed:
 	//   - the attestation timeout flag is an IntFlag of milliseconds that has
 	//     always been read as a duration, which yields 0 and leaves the
