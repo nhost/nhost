@@ -11,12 +11,9 @@ Configure PostgreSQL in `nhost.toml` under `[postgres.settings]`. Use
 `nhost config example` to see the full project configuration, including
 Postgres version and resources.
 
-Before using `walCompression`, `maxSlotWalKeepSize`, `logMinDurationStatement`,
-`logAutovacuumMinDuration`, `logTempFiles`, `sharedPreloadLibraries`, or any
-`extensions.*` setting, upgrade `postgres.version` to a Postgres image that
-supports them (the latest available image for your PostgreSQL major version).
-Older images accept these configuration keys but do not apply their values to
-PostgreSQL. `checkpointTimeout` works on older images.
+For settings compatibility, set `postgres.version` to the latest supported
+Postgres image for your PostgreSQL major version. Older images may accept
+settings without applying them.
 
 ## Settings
 
