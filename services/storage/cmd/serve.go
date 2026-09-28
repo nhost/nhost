@@ -443,7 +443,7 @@ func CommandServe() *cli.Command { //nolint:funlen
 // registerVipsDebugHandler adds storage's libvips memory report to
 // http.DefaultServeMux, alongside the pprof handlers registered there by the
 // net/http/pprof blank import. The shared serve runtime exposes that mux through
-// serveutil.DebugListen, so the route is reachable only when pprof is enabled.
+// Options.DebugAddr, so the route is reachable only when pprof is enabled.
 func registerVipsDebugHandler() {
 	http.HandleFunc("/debug/vips", func(w http.ResponseWriter, _ *http.Request) {
 		var stats vips.MemoryStats
@@ -461,27 +461,28 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 
 	opts := optionsFromCommand(cmd)
 
-	manager := serveutil.NewManager(logger)
-	manager.Add(serveutil.Definition{
-		Name: "storage",
+	debugAddr := cmd.String(flagPprofBind)
+	if debugAddr != "" {
+		registerVipsDebugHandler()
+	}
+
+	// Only the default read-header deadline applies, so large uploads and
+	// downloads are not aborted mid-transfer.
+	// Run's errors already name the service and the lifecycle phase that failed.
+	//nolint:wrapcheck // adding a prefix here would only repeat that context.
+	return serveutil.Run(ctx, serveutil.Options{
+		Logger:          logger,
+		Addr:            cmd.String(flagBind),
+		HTTP:            serveutil.HTTPTimeouts{ReadHeader: 0, Read: 0, Write: 0, Idle: 0},
+		DebugAddr:       debugAddr,
+		ShutdownTimeout: 0,
+		Compose:         nil,
+	}, serveutil.Definition{
+		Name: "storage", Prefix: "",
 		Build: func(ctx context.Context, logger *slog.Logger) (*serveutil.Service, error) {
 			return NewService(ctx, opts, logger)
 		},
 	})
-
-	// The listener keeps only the default read-header deadline, so large file
-	// uploads and downloads are not aborted mid-transfer.
-	listeners := []serveutil.Listener{serveutil.Listen(cmd.String(flagBind))}
-
-	if pprofBind := cmd.String(flagPprofBind); pprofBind != "" {
-		registerVipsDebugHandler()
-
-		listeners = append(listeners, serveutil.DebugListen(pprofBind))
-	}
-
-	// Run's errors already name the service and the lifecycle phase that failed.
-	//nolint:wrapcheck // adding a prefix here would only repeat that context.
-	return manager.Run(ctx, listeners...)
 }
 
 // NewService builds storage's serving surface from opts, which it validates

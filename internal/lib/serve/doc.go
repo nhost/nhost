@@ -1,19 +1,11 @@
-// Package serve holds the process runtime shared by the Nhost service binaries
-// (auth, storage, constellation) and the unified engine binary, so these
-// concerns are defined once instead of copy-pasted into every cmd package.
+// Package serve owns the shared process runtime for the Nhost service binaries
+// and the unified engine. Run builds Definitions, composes their handlers on
+// one public HTTP listener, runs background work, then drains the listener,
+// cancels background work and closes services in reverse order within one
+// shutdown budget. The optional debug address serves http.DefaultServeMux on
+// a separate best-effort listener. Each Service owns only its own resources.
 //
-// A Manager is the entry point: each service is added to it as a Definition, a
-// name plus a BuildFunc, and Manager.Run builds them, serves their handlers on
-// one or more listeners, runs their background work, and tears the whole
-// process down in order within a single shutdown budget. A Service owns only
-// what it built — its handler, its background work, and the release of its own
-// dependencies — while the Manager owns the lifecycle around them. How several
-// handlers share a listener is the caller's decision, given through
-// WithHandler. The package never installs signal handlers: Run responds to
-// cancellation of the context it is given, and the caller's main decides what
-// cancels it, typically signal.NotifyContext on SIGINT and SIGTERM.
-//
-// The package also holds the logging every binary shares: NewLogger for the
-// handler configuration and LogFlags for startup flag records with secrets
-// redacted.
+// The package never installs signal handlers: Run responds to cancellation of
+// its context, and the caller decides what cancels it. NewLogger and LogFlags
+// provide shared startup logging with secrets redacted.
 package serve
