@@ -383,21 +383,29 @@ func TestRunReleasesAlreadyBuiltServicesOnFailure(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name  string
-		build func(context.Context, *slog.Logger) (*serveutil.Service, error)
-		want  error
+		name       string
+		build      func(context.Context, *slog.Logger) (*serveutil.Service, error)
+		want       error
+		wantDetail string
 	}{
 		{
-			"build error",
-			func(context.Context, *slog.Logger) (*serveutil.Service, error) { return nil, errBuild },
-			errBuild,
+			name:  "build error",
+			build: func(context.Context, *slog.Logger) (*serveutil.Service, error) { return nil, errBuild },
+			want:  errBuild,
 		},
 		{
-			"nil service",
-			func(context.Context, *slog.Logger) (*serveutil.Service, error) {
+			name: "nil service",
+			build: func(context.Context, *slog.Logger) (*serveutil.Service, error) {
 				return nil, nil //nolint:nilnil // deliberate invalid build result
 			},
-			nil,
+		},
+		{
+			name: "build panic",
+			build: func(context.Context, *slog.Logger) (*serveutil.Service, error) {
+				panic("graphql constructor panic")
+			},
+			want:       serveutil.ErrServicePanic,
+			wantDetail: "graphql constructor panic",
 		},
 	}
 	for _, tt := range tests {
@@ -409,7 +417,13 @@ func TestRunReleasesAlreadyBuiltServicesOnFailure(t *testing.T) {
 			err := serveutil.Run(t.Context(), runOptions(freeAddr(t)),
 				serveutil.Definition{Name: "auth", Build: recorded(&rec, "auth")},
 				serveutil.Definition{Name: "storage", Build: recorded(&rec, "storage")},
-				serveutil.Definition{Name: "graphql", Build: tt.build},
+				serveutil.Definition{
+					Name: "graphql",
+					Build: func(ctx context.Context, logger *slog.Logger) (*serveutil.Service, error) {
+						rec.record("build:graphql")
+						return tt.build(ctx, logger)
+					},
+				},
 			)
 			if err == nil || !strings.Contains(err.Error(), "building graphql") {
 				t.Fatalf("Run() err = %v; want building graphql", err)
@@ -419,15 +433,17 @@ func TestRunReleasesAlreadyBuiltServicesOnFailure(t *testing.T) {
 				t.Errorf("Run() err = %v; want %v", err, tt.want)
 			}
 
+			if tt.wantDetail != "" && !strings.Contains(err.Error(), tt.wantDetail) {
+				t.Errorf("Run() err = %v; want %q", err, tt.wantDetail)
+			}
+
 			if want := []string{
 				"build:auth",
 				"build:storage",
+				"build:graphql",
 				"close:storage",
 				"close:auth",
-			}; !slices.Equal(
-				rec.snapshot(),
-				want,
-			) {
+			}; !slices.Equal(rec.snapshot(), want) {
 				t.Errorf("events = %v; want %v", rec.snapshot(), want)
 			}
 		})
@@ -437,22 +453,53 @@ func TestRunReleasesAlreadyBuiltServicesOnFailure(t *testing.T) {
 func TestRunReleasesOnComposeFailure(t *testing.T) {
 	t.Parallel()
 
-	var rec recorder
-
-	opts := runOptions(freeAddr(t))
-	opts.Compose = func([]serveutil.Mounted) (http.Handler, error) { return nil, errCompose }
-
-	err := serveutil.Run(
-		t.Context(),
-		opts,
-		serveutil.Definition{Name: "auth", Build: recorded(&rec, "auth")},
-	)
-	if !errors.Is(err, errCompose) {
-		t.Fatalf("Run() err = %v; want %v", err, errCompose)
+	tests := []struct {
+		name       string
+		want       error
+		panicValue string
+	}{
+		{name: "compose error", want: errCompose},
+		{name: "compose panic", want: serveutil.ErrServicePanic, panicValue: "route conflict"},
 	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-	if want := []string{"build:auth", "close:auth"}; !slices.Equal(rec.snapshot(), want) {
-		t.Errorf("events = %v; want %v", rec.snapshot(), want)
+			var rec recorder
+
+			opts := runOptions(freeAddr(t))
+			opts.Compose = func([]serveutil.Mounted) (http.Handler, error) {
+				rec.record("compose")
+
+				if tt.panicValue != "" {
+					panic(tt.panicValue)
+				}
+
+				return nil, errCompose
+			}
+
+			err := serveutil.Run(t.Context(), opts,
+				serveutil.Definition{Name: "auth", Build: recorded(&rec, "auth")},
+				serveutil.Definition{Name: "storage", Build: recorded(&rec, "storage")},
+			)
+			if !errors.Is(err, tt.want) {
+				t.Fatalf("Run() err = %v; want %v", err, tt.want)
+			}
+
+			if !strings.Contains(err.Error(), "composing handler for listener "+opts.Addr) {
+				t.Errorf("Run() err = %v; want listener Compose context", err)
+			}
+
+			if tt.panicValue != "" && !strings.Contains(err.Error(), tt.panicValue) {
+				t.Errorf("Run() err = %v; want panic value %q", err, tt.panicValue)
+			}
+
+			if want := []string{
+				"build:auth", "build:storage", "compose", "close:storage", "close:auth",
+			}; !slices.Equal(rec.snapshot(), want) {
+				t.Errorf("events = %v; want %v", rec.snapshot(), want)
+			}
+		})
 	}
 }
 

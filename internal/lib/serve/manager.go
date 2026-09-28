@@ -42,7 +42,7 @@ type Options struct {
 // drains the public listener before cancelling background work and closes each
 // service once, in reverse order, within one shared budget. A step exceeding
 // the budget is reported as ErrShutdownTimeout instead of hanging the process.
-// Panics in supervised work and Close become ErrServicePanic.
+// Panics in Build, Compose, supervised work, and Close become ErrServicePanic.
 func Run(ctx context.Context, opts Options, definitions ...Definition) error {
 	if err := validate(opts, definitions); err != nil {
 		return err
@@ -120,10 +120,18 @@ func validate(opts Options, definitions []Definition) error {
 func buildAll(ctx context.Context, opts Options, definitions []Definition) ([]Mounted, error) {
 	services := make([]Mounted, 0, len(definitions))
 	for _, definition := range definitions {
-		service, err := definition.Build(
-			ctx,
-			opts.Logger.With(slog.String("service", definition.Name)),
-		)
+		var service *Service
+
+		err := protect(func() error {
+			var buildErr error
+
+			service, buildErr = definition.Build(
+				ctx,
+				opts.Logger.With(slog.String("service", definition.Name)),
+			)
+
+			return buildErr
+		})
 		if err == nil && service == nil {
 			err = errServiceNotBuilt
 		}
@@ -156,7 +164,15 @@ func prepareUnits(ctx context.Context, opts Options, services []Mounted) (tiers,
 		compose = onlyHandler
 	}
 
-	handler, err := compose(services)
+	var handler http.Handler
+
+	err := protect(func() error {
+		var composeErr error
+
+		handler, composeErr = compose(services)
+
+		return composeErr
+	})
 	if err != nil {
 		return tiers{}, fmt.Errorf("composing handler for listener %s: %w", opts.Addr, err)
 	}
