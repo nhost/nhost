@@ -83,6 +83,7 @@ Per-project `CLAUDE.md`s layer project-specific invariants on top of these — r
 - Go services are built with Nix and packaged as Docker images.
 - JS/TS packages are built with Turbo.
 - Changelogs generated with `git-cliff`.
+- Secret-bearing `pull_request_target` checks are gated by `.github/actions/check-permissions`: authors with write access pass; anyone else needs a maintainer to add the `safe_to_test` label, which `ci_safe_to_test.yaml` turns into a `safe-to-test` commit status on the head SHA at label time and then re-runs the checks. Approval is per commit — a new push needs a new label. To merge `main` in, click Update branch *before* adding the label.
 
 ## Review Guidelines
 

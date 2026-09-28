@@ -35,7 +35,7 @@ the copy on the PR head, so a PR **can** add a fingerprint to suppress its own
 reviewed false positive in the same PR. The merge only adds; a PR cannot drop
 or empty a base suppression. The cost is that a PR can suppress one of its own
 findings, so a reviewer must read the `.betterleaksignore` diff — the scan is
-gated by `check-permissions` (write access or the `safe_to_test` label).
+gated by `check-permissions` (write access, or a maintainer approving the exact head commit with the `safe_to_test` label).
 
 CI fails only on findings whose validation status is `valid` (the validator
 confirmed the secret is live) or `none` (the rule has no validator). A rotated
