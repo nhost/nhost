@@ -22,7 +22,7 @@ const projectDatabasePages: Option[] = [
   {
     label: 'Native Queries',
     value: 'native-queries',
-    route: 'database/native-queries',
+    route: 'database/native-queries/default',
   },
 ];
 

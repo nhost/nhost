@@ -1,7 +1,6 @@
-import NativeQueriesLandingPage from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/database/native-queries';
 import NativeQueriesIndexPage from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/database/native-queries/[dataSourceSlug]';
 import { mockMatchMediaValue } from '@/tests/mocks';
-import { render, screen, waitFor } from '@/tests/testUtils';
+import { render, screen } from '@/tests/testUtils';
 
 const mocks = vi.hoisted(() => ({
   router: {
@@ -40,16 +39,6 @@ describe('native-query source routes', () => {
     mocks.router.query.dataSourceSlug = '';
     mocks.router.push.mockReset().mockResolvedValue(true);
     mocks.router.replace.mockReset().mockResolvedValue(true);
-  });
-
-  it('redirects the landing route to the default source', async () => {
-    render(<NativeQueriesLandingPage />);
-
-    await waitFor(() =>
-      expect(mocks.router.replace).toHaveBeenCalledWith(
-        '/orgs/test/projects/local/database/native-queries/default',
-      ),
-    );
   });
 
   it('never falls back from an explicit unknown source URL', async () => {
