@@ -172,11 +172,12 @@ jobs:
               const latest = [...byWorkflow.values()];
               return {
                 gated: latest.filter(
-                  (r) => r.event === 'pull_request_target' && workflowPath(r) !== SELF,
+                  (r) =>
+                    r.event === 'pull_request_target' &&
+                    workflowPath(r) !== SELF &&
+                    workflowPath(r) !== FINAL,
                 ),
-                final: latest.find(
-                  (r) => r.event === 'pull_request' && workflowPath(r) === FINAL,
-                ),
+                final: latest.find((r) => workflowPath(r) === FINAL),
               };
             }
 

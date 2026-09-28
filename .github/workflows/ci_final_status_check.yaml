@@ -2,7 +2,7 @@
 name: "ci: final status check"
 
 on:
-  pull_request:
+  pull_request_target:
   merge_group:
 
 concurrency:
@@ -26,7 +26,7 @@ jobs:
     steps:
       - name: Validate PR title
         if: >-
-          github.event_name == 'pull_request' &&
+          github.event_name == 'pull_request_target' &&
           !startsWith(github.event.pull_request.title, 'release(')
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
@@ -100,7 +100,10 @@ jobs:
                 },
               );
               const toCancel = workflows.filter(
-                (r) => r.id !== thisRunId && !r.name.startsWith('nixops:'),
+                (r) =>
+                  r.id !== thisRunId &&
+                  !r.name.startsWith('nixops:') &&
+                  r.name !== 'ci: safe to test',
               );
               if (toCancel.length === 0) {
                 core.info('No other in-progress workflow runs to cancel.');
