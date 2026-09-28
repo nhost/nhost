@@ -454,7 +454,7 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 		return err
 	}
 
-	opts := optionsFromCommand(cmd)
+	opts := OptionsFromCommand(cmd)
 
 	// Run's errors already name the service and the lifecycle phase that failed.
 	//nolint:wrapcheck // adding a prefix here would only repeat that context.

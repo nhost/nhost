@@ -113,9 +113,11 @@ func (o Options) Validate() error {
 	return nil
 }
 
-// optionsFromCommand maps the serve command's flags onto Options. It does not
-// validate; NewService does.
-func optionsFromCommand(cmd *cli.Command) Options {
+// OptionsFromCommand maps the serve command's flags onto Options. It does not
+// validate; NewService does. The standalone serve command and the engine both
+// use it, so a service's flags, env vars and defaults resolve the same way in
+// either.
+func OptionsFromCommand(cmd *cli.Command) Options {
 	return Options{
 		Version:                          cmd.Root().Version,
 		AdminSecret:                      cmd.String(flagAdminSecret),

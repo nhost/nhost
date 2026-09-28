@@ -44,7 +44,7 @@ func TestNewServiceControllerUsesCommandVersion(t *testing.T) {
 
 		ctrl, err = newServiceController(
 			ctx,
-			optionsFromCommand(cmd),
+			OptionsFromCommand(cmd),
 			middleware.NewNoOpJWTAuthenticator(),
 			&versionMetadataSource{},
 			slog.New(slog.DiscardHandler),

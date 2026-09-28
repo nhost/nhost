@@ -161,7 +161,7 @@ func runConfigFromCommand(t *testing.T, flags []cli.Flag, args ...string) Option
 		Version: "v-test",
 		Flags:   flags,
 		Action: func(_ context.Context, cmd *cli.Command) error {
-			opts = optionsFromCommand(cmd)
+			opts = OptionsFromCommand(cmd)
 
 			return nil
 		},
@@ -215,7 +215,7 @@ func TestOptionsFromCommandDefaults(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("optionsFromCommand() = %+v\nwant %+v", got, want)
+		t.Fatalf("OptionsFromCommand() = %+v\nwant %+v", got, want)
 	}
 
 	if err := got.Validate(); err != nil {
@@ -264,7 +264,7 @@ func TestOptionsFromCommandFlags(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("optionsFromCommand() = %+v\nwant %+v", got, want)
+		t.Fatalf("OptionsFromCommand() = %+v\nwant %+v", got, want)
 	}
 }
 
