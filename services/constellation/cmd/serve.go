@@ -471,7 +471,7 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 // binary, which mounts the handler behind a shared listener and runs the
 // background loop under the shared process lifecycle. It validates opts first.
 //
-//nolint:funlen // each acquisition sits next to its rollback; splitting separates them
+//nolint:funlen // keeps acquisition and release of serving resources together
 func NewService(
 	ctx context.Context,
 	opts Options,
@@ -481,52 +481,55 @@ func NewService(
 		return nil, err
 	}
 
-	// Each acquired resource is released again if a later step fails; on success
-	// the returned Service owns them all and frees them through its Close, which
-	// must mirror these defers in the same reverse order.
-	metadataSource, err := newMetadataSource(ctx, opts, logger)
+	var (
+		metadataSource metadata.Source
+		jwtAuth        *jwt.Authenticator
+		ctrl           *controller.Controller
+	)
+
+	// Release acquired resources newest first on construction failure or shutdown.
+	// Controller.Close drains connectors under its own uncancelled context.
+	//nolint:contextcheck // releasing must outlive the cancelled lifecycle context
+	release := func() {
+		if ctrl != nil {
+			ctrl.Close()
+		}
+
+		if jwtAuth != nil {
+			jwtAuth.Close()
+		}
+
+		if metadataSource != nil {
+			metadataSource.Close()
+		}
+	}
+	defer func() {
+		if err != nil {
+			release()
+		}
+	}()
+
+	metadataSource, err = newMetadataSource(ctx, opts, logger)
 	if err != nil {
 		return nil, err
 	}
 
-	defer func() {
-		if err != nil {
-			metadataSource.Close()
-		}
-	}()
-
-	jwtAuth, err := initJWTAuth(ctx, opts.JWTSecret, logger)
+	jwtAuth, err = initJWTAuth(ctx, opts.JWTSecret, logger)
 	if err != nil {
 		return nil, fmt.Errorf("initializing JWT auth: %w", err)
 	}
-
-	defer func() {
-		if err != nil {
-			jwtAuth.Close()
-		}
-	}()
 
 	hasuraProxy, err := newHasuraProxy(opts.HasuraUpstreamURL, logger)
 	if err != nil {
 		return nil, err
 	}
 
-	ctrl, err := newServiceController(
+	ctrl, err = newServiceController(
 		ctx, opts, jwtAuth, metadataSource, logger, hasuraProxy,
 	)
 	if err != nil {
 		return nil, err
 	}
-
-	// Controller.Close releases connectors under its own uncancelled context on
-	// purpose: by the time shutdown reaches it the lifecycle context is already
-	// cancelled, and threading that in would skip the connector drain.
-	//nolint:contextcheck // releasing must outlive the cancelled lifecycle context
-	defer func() {
-		if err != nil {
-			ctrl.Close()
-		}
-	}()
 
 	router, err := getRouter(ctx, opts, ctrl, jwtAuth, hasuraProxy, logger)
 	if err != nil {
@@ -542,13 +545,7 @@ func NewService(
 
 			return nil
 		},
-		// Mirrors the construction defers above in the same reverse order.
-		//nolint:contextcheck // releasing must outlive the cancelled lifecycle context
-		Close: serveutil.CloseFunc(func() {
-			ctrl.Close()
-			jwtAuth.Close()
-			metadataSource.Close()
-		}),
+		Close: serveutil.CloseFunc(release),
 	}, nil
 }
 
