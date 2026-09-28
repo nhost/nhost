@@ -1558,20 +1558,23 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 	logger.InfoContext(ctx, cmd.Root().Name+" v"+cmd.Root().Version)
 	serveutil.LogFlags(ctx, logger, cmd)
 
-	manager := serveutil.NewManager(logger)
-	manager.Add(serveutil.Definition{
-		Name: "auth",
+	// The listener keeps only the default read-header deadline, so large uploads
+	// and long-lived responses are not aborted mid-flight.
+	// Run's errors already name the service and the lifecycle phase that failed.
+	//nolint:wrapcheck // adding a prefix here would only repeat that context.
+	return serveutil.Run(ctx, serveutil.Options{
+		Logger:          logger,
+		Addr:            ":" + cmd.String(flagPort),
+		HTTP:            serveutil.HTTPTimeouts{ReadHeader: 0, Read: 0, Write: 0, Idle: 0},
+		DebugAddr:       "",
+		ShutdownTimeout: 0,
+		Compose:         nil,
+	}, serveutil.Definition{
+		Name: "auth", Prefix: "",
 		Build: func(ctx context.Context, logger *slog.Logger) (*serveutil.Service, error) {
 			return NewService(ctx, optionsFromCommand(cmd), logger)
 		},
 	})
-
-	// The listener keeps only the default read-header deadline, so large uploads
-	// and long-lived responses are not aborted mid-flight.
-	//
-	// Run's errors already name the service and the lifecycle phase that failed.
-	//nolint:wrapcheck // adding a prefix here would only repeat that context.
-	return manager.Run(ctx, serveutil.Listen(":"+cmd.String(flagPort)))
 }
 
 // NewService builds auth's serving surface from opts, which it validates

@@ -64,9 +64,9 @@ func markdownDocs() *cli.Command {
 func main() {
 	// Signal handling is process-wide, so it lives here rather than in the
 	// shared serve library. SIGINT or SIGTERM cancels ctx, which reaches the
-	// serve Manager through the command action and triggers a graceful
+	// shared serve Run through the command action and triggers a graceful
 	// shutdown. The handler stays registered until stop, so a second signal
-	// cannot kill the process mid-shutdown; the Manager's shutdown budget bounds
+	// cannot kill the process mid-shutdown; Run's shutdown budget bounds
 	// how long that takes instead.
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 

@@ -447,25 +447,21 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 
 	opts := optionsFromCommand(cmd)
 
-	manager := serveutil.NewManager(logger, serveutil.WithShutdownTimeout(shutdownTimeout))
-	manager.Add(serveutil.Definition{
-		Name: "constellation",
+	// Run's errors already name the service and the lifecycle phase that failed.
+	//nolint:wrapcheck // adding a prefix here would only repeat that context.
+	return serveutil.Run(ctx, serveutil.Options{
+		Logger:          logger,
+		Addr:            cmd.String(flagBindAddress),
+		HTTP:            timeouts,
+		DebugAddr:       cmd.String(flagProfileAddress),
+		ShutdownTimeout: shutdownTimeout,
+		Compose:         nil,
+	}, serveutil.Definition{
+		Name: "constellation", Prefix: "",
 		Build: func(ctx context.Context, logger *slog.Logger) (*serveutil.Service, error) {
 			return NewService(ctx, opts, logger)
 		},
 	})
-
-	listeners := []serveutil.Listener{
-		serveutil.Listen(cmd.String(flagBindAddress), serveutil.WithTimeouts(timeouts)),
-	}
-
-	if profileAddr := cmd.String(flagProfileAddress); profileAddr != "" {
-		listeners = append(listeners, serveutil.DebugListen(profileAddr))
-	}
-
-	// Run's errors already name the service and the lifecycle phase that failed.
-	//nolint:wrapcheck // adding a prefix here would only repeat that context.
-	return manager.Run(ctx, listeners...)
 }
 
 // NewService builds constellation's serving surface from opts: the HTTP
