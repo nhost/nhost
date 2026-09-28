@@ -14,6 +14,7 @@ import { CacheProvider, type EmotionCache } from '@emotion/react';
 import { THEME_STORAGE_KEY } from '@/utils/constants/common';
 import { createEmotionCache } from '@/utils/createEmotionCache';
 import { nhost } from '@/utils/nhost';
+import { TOASTER_CLASS_NAME } from '@/utils/toast/toaster';
 import '@fontsource/inter';
 import '@fontsource/inter/500.css';
 import '@fontsource/inter/600.css';
@@ -63,6 +64,7 @@ function MyApp({
               {/* z-index above the z-[9999] dialogs and z-[10000] popovers */}
               <Toaster
                 position="bottom-center"
+                containerClassName={TOASTER_CLASS_NAME}
                 containerStyle={{ zIndex: 10001 }}
               />
               <ThemeProvider storageKey={THEME_STORAGE_KEY}>
