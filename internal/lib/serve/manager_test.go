@@ -731,8 +731,14 @@ func TestRunIgnoresDebugBindFailure(t *testing.T) {
 		ctx,
 		opts,
 		serveutil.Definition{
-			Name:  "auth",
-			Build: fixed(&serveutil.Service{Handler: http.NotFoundHandler()}),
+			Name: "auth",
+			Build: fixed(
+				&serveutil.Service{
+					Handler: http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+						_, _ = io.WriteString(w, "public-ok")
+					}),
+				},
+			),
 		},
 	)
 	getWhenReady(t, "http://"+opts.Addr+"/")
@@ -751,6 +757,16 @@ func TestRunIgnoresDebugBindFailure(t *testing.T) {
 		}
 
 		time.Sleep(time.Millisecond)
+	}
+
+	if body, err := get(t.Context(), "http://"+opts.Addr+"/"); err != nil || body != "public-ok" {
+		t.Fatalf("public API after debug bind failure: body = %q, err = %v", body, err)
+	}
+
+	select {
+	case err := <-done:
+		t.Fatalf("debug bind stopped Run after the public API served: %v", err)
+	default:
 	}
 
 	cancel()
