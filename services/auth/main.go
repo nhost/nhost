@@ -4,8 +4,9 @@ import (
 	"context"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 
-	serveutil "github.com/nhost/nhost/internal/lib/serve"
 	"github.com/nhost/nhost/services/auth/go/cmd"
 	docs "github.com/urfave/cli-docs/v3"
 	"github.com/urfave/cli/v3"
@@ -59,9 +60,13 @@ func markdownDocs() *cli.Command {
 //go:generate oapi-codegen -config go/api/server.cfg.yaml docs/openapi.yaml
 //go:generate oapi-codegen -config go/api/types.cfg.yaml docs/openapi.yaml
 func main() {
-	// SIGINT or SIGTERM cancels this context, which reaches serveutil.Run
-	// through the command action and triggers a graceful shutdown.
-	ctx := serveutil.SignalContext(context.Background())
+	// Signal handling is process-wide, so it lives here rather than in the
+	// shared serve library. SIGINT or SIGTERM cancels ctx, which reaches the
+	// serve Manager through the command action and triggers a graceful
+	// shutdown. The handler stays registered until stop, so a second signal
+	// cannot kill the process mid-shutdown; the Manager's shutdown budget bounds
+	// how long that takes instead.
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 
 	serveCmd := cmd.CommandServe()
 	app := &cli.Command{ //nolint:exhaustruct
@@ -75,7 +80,13 @@ func main() {
 		Action: serveCmd.Action,
 	}
 
-	if err := app.Run(ctx, os.Args); err != nil {
+	err := app.Run(ctx, os.Args)
+
+	// Called directly rather than deferred: log.Fatal exits through os.Exit,
+	// which skips deferred calls.
+	stop()
+
+	if err != nil {
 		log.Fatal(err)
 	}
 }

@@ -1,18 +1,3 @@
-// Package serve holds the process runtime shared by the Nhost service binaries
-// (auth, storage, constellation) and the unified engine binary, so these
-// concerns are defined once instead of copy-pasted into every cmd package.
-//
-// Run is the entry point: it takes one or more Definition values, builds each
-// into a Service, serves their handlers behind a shared listener, and tears the
-// whole process down in order. A Service owns only what it built — its handler,
-// its background work, and the release of its own dependencies — while Run owns
-// the lifecycle around them. MountByPrefix is the default way handlers are
-// composed. SignalContext supplies the cancellation Run responds to; the
-// package never installs signal handlers itself.
-//
-// The package also holds the logging every binary shares: NewLogger for the
-// handler configuration and LogFlags for startup flag records with secrets
-// redacted.
 package serve
 
 import (

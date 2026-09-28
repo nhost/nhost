@@ -1,11 +1,8 @@
 package cmd
 
 import (
-	"bytes"
 	"context"
 	"errors"
-	"fmt"
-	"log/slog"
 	"slices"
 	"strings"
 	"testing"
@@ -13,88 +10,38 @@ import (
 
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	serveutil "github.com/nhost/nhost/internal/lib/serve"
-	"github.com/nhost/nhost/services/constellation/controller"
 	"github.com/urfave/cli/v3"
 )
 
-// runGetCorsOptions drives getCorsOptions through a real cli.Command so the
-// flag is resolved exactly as it is at runtime. When args contains the
-// --cors-allowed-origins flag the slice is populated; otherwise the flag stays
-// unset and getCorsOptions sees a nil slice (the deny-all default path). The
-// captured log buffer lets callers assert on the startup warning.
-func runGetCorsOptions(
-	t *testing.T,
-	args []string,
-) (oapimw.CORSOptions, *bytes.Buffer, error) {
-	t.Helper()
-
-	var (
-		buf     bytes.Buffer
-		gotOpts oapimw.CORSOptions
-		gotErr  error
-	)
-
-	logger := slog.New(slog.NewJSONHandler(&buf, &slog.HandlerOptions{
-		Level: slog.LevelInfo,
-	}))
-
-	cmd := &cli.Command{
-		Name:  "serve",
-		Flags: serverFlags(),
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			gotOpts, gotErr = getCorsOptions(ctx, cmd, logger)
-
-			return nil
-		},
-	}
-
-	if err := cmd.Run(context.Background(), append([]string{"serve"}, args...)); err != nil {
-		t.Fatalf("running cli: %v", err)
-	}
-
-	return gotOpts, &buf, gotErr
-}
-
-func TestGetCorsOptions(t *testing.T) {
+func TestCorsOptions(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name string
-		args []string
+		name    string
+		origins []string
 		// wantErr, when non-nil, is the sentinel the returned error must wrap.
 		wantErr error
 		// wantOrigins is the expected AllowedOrigins; checked only when wantErr
 		// is nil.
 		wantOrigins []string
-		// wantWarn asserts whether the deny-all startup warning fired.
-		wantWarn bool
 	}{
 		{
-			name:        "flag unset denies all cross-origin and warns",
-			args:        nil,
+			name:        "no origins denies all cross-origin",
+			origins:     nil,
 			wantErr:     nil,
 			wantOrigins: []string{},
-			wantWarn:    true,
 		},
 		{
-			name: "wildcard with credentials is rejected",
-			args: []string{
-				"--" + flagCORSAllowedOrigins,
-				"*",
-			},
+			name:        "wildcard with credentials is rejected",
+			origins:     []string{"*"},
 			wantErr:     oapimw.ErrWildcardWithCredentials,
 			wantOrigins: nil,
-			wantWarn:    false,
 		},
 		{
-			name: "explicit origins are accepted without warning",
-			args: []string{
-				"--" + flagCORSAllowedOrigins, "https://app.example.com",
-				"--" + flagCORSAllowedOrigins, "https://admin.example.com",
-			},
+			name:        "explicit origins are accepted",
+			origins:     []string{"https://app.example.com", "https://admin.example.com"},
 			wantErr:     nil,
 			wantOrigins: []string{"https://app.example.com", "https://admin.example.com"},
-			wantWarn:    false,
 		},
 	}
 
@@ -102,7 +49,7 @@ func TestGetCorsOptions(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			opts, buf, err := runGetCorsOptions(t, tt.args)
+			opts, err := corsOptions(tt.origins)
 
 			if tt.wantErr != nil {
 				assertWildcardError(t, err, tt.wantErr)
@@ -111,24 +58,20 @@ func TestGetCorsOptions(t *testing.T) {
 			}
 
 			if err != nil {
-				t.Fatalf("getCorsOptions unexpected error: %v", err)
+				t.Fatalf("corsOptions unexpected error: %v", err)
 			}
 
 			assertSafeDefaultOpts(t, opts, tt.wantOrigins)
-			assertDenyAllWarning(t, buf.String(), tt.wantWarn)
 		})
 	}
 }
 
-func TestGetCorsOptionsAllowHeadersFunc(t *testing.T) {
+func TestCorsOptionsAllowHeadersFunc(t *testing.T) {
 	t.Parallel()
 
-	opts, _, err := runGetCorsOptions(
-		t,
-		[]string{"--" + flagCORSAllowedOrigins, "https://app.example.com"},
-	)
+	opts, err := corsOptions([]string{"https://app.example.com"})
 	if err != nil {
-		t.Fatalf("getCorsOptions unexpected error: %v", err)
+		t.Fatalf("corsOptions unexpected error: %v", err)
 	}
 
 	if opts.AllowHeadersFunc == nil {
@@ -157,121 +100,6 @@ func TestGetCorsOptionsAllowHeadersFunc(t *testing.T) {
 				t.Errorf("AllowHeadersFunc(%q) = %v; want %v", tc.header, got, tc.want)
 			}
 		})
-	}
-}
-
-func runGetMaxGraphQLRequestBodyBytes(t *testing.T, args []string) (int64, error) {
-	t.Helper()
-
-	return runGetMaxGraphQLRequestBodyBytesWithFlags(
-		t,
-		serverFlagsWithoutEnvVarsForTest(t, flagGraphQLRequestBodyLimitBytes),
-		args,
-	)
-}
-
-func runGetMaxGraphQLRequestBodyBytesWithFlags(
-	t *testing.T,
-	flags []cli.Flag,
-	args []string,
-) (int64, error) {
-	t.Helper()
-
-	var (
-		gotLimit int64
-		gotErr   error
-	)
-
-	cmd := &cli.Command{
-		Name:  "serve",
-		Flags: flags,
-		Action: func(_ context.Context, cmd *cli.Command) error {
-			gotLimit, gotErr = getMaxGraphQLRequestBodyBytes(cmd)
-
-			return nil
-		},
-	}
-
-	if err := cmd.Run(context.Background(), append([]string{"serve"}, args...)); err != nil {
-		t.Fatalf("running cli: %v", err)
-	}
-
-	return gotLimit, gotErr
-}
-
-func TestGetMaxGraphQLRequestBodyBytes(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name        string
-		args        []string
-		wantLimit   int64
-		wantErrText string
-	}{
-		{
-			name:      "default",
-			args:      nil,
-			wantLimit: controller.DefaultMaxGraphQLRequestBodyBytes,
-		},
-		{
-			name:      "explicit positive limit",
-			args:      []string{"--" + flagGraphQLRequestBodyLimitBytes, "1024"},
-			wantLimit: 1024,
-		},
-		{
-			name:        "zero rejected",
-			args:        []string{"--" + flagGraphQLRequestBodyLimitBytes, "0"},
-			wantErrText: flagGraphQLRequestBodyLimitBytes,
-		},
-		{
-			name:        "negative rejected",
-			args:        []string{"--" + flagGraphQLRequestBodyLimitBytes, "-1"},
-			wantErrText: flagGraphQLRequestBodyLimitBytes,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			gotLimit, err := runGetMaxGraphQLRequestBodyBytes(t, tt.args)
-			if tt.wantErrText != "" {
-				if err == nil {
-					t.Fatalf("expected error containing %q", tt.wantErrText)
-				}
-
-				if !strings.Contains(err.Error(), tt.wantErrText) {
-					t.Fatalf("error %q does not contain %q", err, tt.wantErrText)
-				}
-
-				return
-			}
-
-			if err != nil {
-				t.Fatalf("getMaxGraphQLRequestBodyBytes unexpected error: %v", err)
-			}
-
-			if gotLimit != tt.wantLimit {
-				t.Errorf("limit = %d; want %d", gotLimit, tt.wantLimit)
-			}
-		})
-	}
-}
-
-func TestGetMaxGraphQLRequestBodyBytesFromEnv(t *testing.T) {
-	t.Setenv("CONSTELLATION_GRAPHQL_REQUEST_BODY_LIMIT_BYTES", "2048")
-
-	gotLimit, err := runGetMaxGraphQLRequestBodyBytesWithFlags(
-		t,
-		serverFlagsByNameForTest(t, flagGraphQLRequestBodyLimitBytes),
-		nil,
-	)
-	if err != nil {
-		t.Fatalf("getMaxGraphQLRequestBodyBytes unexpected error: %v", err)
-	}
-
-	if gotLimit != 2048 {
-		t.Errorf("limit = %d; want %d", gotLimit, 2048)
 	}
 }
 
@@ -495,11 +323,15 @@ func clearFlagSourcesForTest(t *testing.T, flag cli.Flag) {
 	t.Helper()
 
 	switch typedFlag := flag.(type) {
+	case *cli.BoolFlag:
+		typedFlag.Sources = cli.ValueSourceChain{}
 	case *cli.Int64Flag:
 		typedFlag.Sources = cli.ValueSourceChain{}
 	case *cli.DurationFlag:
 		typedFlag.Sources = cli.ValueSourceChain{}
 	case *cli.StringFlag:
+		typedFlag.Sources = cli.ValueSourceChain{}
+	case *cli.StringSliceFlag:
 		typedFlag.Sources = cli.ValueSourceChain{}
 	default:
 		t.Fatalf("clearing env sources for %v: unsupported flag type %T", flag.Names(), flag)
@@ -507,16 +339,17 @@ func clearFlagSourcesForTest(t *testing.T, flag cli.Flag) {
 }
 
 // assertWildcardError checks the validation-error path: the returned error must
-// wrap the expected sentinel and name the flag so operators know what to fix.
+// wrap the expected sentinel and name the setting so operators know what to
+// fix.
 func assertWildcardError(t *testing.T, err, want error) {
 	t.Helper()
 
 	if !errors.Is(err, want) {
-		t.Fatalf("getCorsOptions error = %v; want wrapping %v", err, want)
+		t.Fatalf("corsOptions error = %v; want wrapping %v", err, want)
 	}
 
-	if !strings.Contains(err.Error(), flagCORSAllowedOrigins) {
-		t.Errorf("error %q does not name flag %q", err, flagCORSAllowedOrigins)
+	if !strings.Contains(err.Error(), "CORSAllowedOrigins") {
+		t.Errorf("error %q does not name CORSAllowedOrigins", err)
 	}
 }
 
@@ -530,7 +363,7 @@ func assertSafeDefaultOpts(t *testing.T, opts oapimw.CORSOptions, wantOrigins []
 		t.Errorf("AllowedOrigins is nil; want non-nil (nil would allow all origins)")
 	}
 
-	if got := opts.AllowedOrigins; !equalStrings(got, wantOrigins) {
+	if got := opts.AllowedOrigins; !slices.Equal(got, wantOrigins) {
 		t.Errorf("AllowedOrigins = %v; want %v", got, wantOrigins)
 	}
 
@@ -539,48 +372,16 @@ func assertSafeDefaultOpts(t *testing.T, opts oapimw.CORSOptions, wantOrigins []
 	}
 }
 
-// assertDenyAllWarning verifies the startup deny-all warning fires exactly when
-// expected and names the flag operators must set.
-func assertDenyAllWarning(t *testing.T, logOutput string, wantWarn bool) {
-	t.Helper()
-
-	gotWarn := strings.Contains(logOutput, "all cross-origin requests will be denied")
-	if gotWarn != wantWarn {
-		t.Errorf("deny-all warning fired = %v; want %v (log: %q)", gotWarn, wantWarn, logOutput)
-	}
-
-	if wantWarn && !strings.Contains(logOutput, flagCORSAllowedOrigins) {
-		t.Errorf("deny-all warning does not name flag %q: %q", flagCORSAllowedOrigins, logOutput)
-	}
-}
-
-func equalStrings(a, b []string) bool {
-	if len(a) != len(b) {
-		return false
-	}
-
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-
-	return true
-}
-
 // the CORS preflight must permit every method that can be proxied to Hasura.
 // The previous hardcoded {GET, POST, OPTIONS} silently broke browser
 // preflights against Hasura REST endpoints (PUT/PATCH/DELETE) and HEAD
 // liveness probes.
-func TestGetCorsOptionsAllowsProxiedMethods(t *testing.T) {
+func TestCorsOptionsAllowsProxiedMethods(t *testing.T) {
 	t.Parallel()
 
-	opts, _, err := runGetCorsOptions(
-		t,
-		[]string{"--" + flagCORSAllowedOrigins, "https://app.example.com"},
-	)
+	opts, err := corsOptions([]string{"https://app.example.com"})
 	if err != nil {
-		t.Fatalf("getCorsOptions unexpected error: %v", err)
+		t.Fatalf("corsOptions unexpected error: %v", err)
 	}
 
 	for _, method := range []string{
@@ -593,143 +394,5 @@ func TestGetCorsOptionsAllowsProxiedMethods(t *testing.T) {
 				method, opts.AllowedMethods,
 			)
 		}
-	}
-}
-
-func runHasuraUpstreamURL(
-	t *testing.T,
-	flags []cli.Flag,
-	args []string,
-) (string, error) {
-	t.Helper()
-
-	var gotURL string
-
-	cmd := &cli.Command{
-		Name:  "serve",
-		Flags: flags,
-		Action: func(_ context.Context, cmd *cli.Command) error {
-			gotURL = cmd.String(flagHasuraUpstreamURL)
-
-			return nil
-		},
-	}
-
-	if err := cmd.Run(context.Background(), append([]string{"serve"}, args...)); err != nil {
-		return gotURL, fmt.Errorf("running cli: %w", err)
-	}
-
-	return gotURL, nil
-}
-
-func TestHasuraUpstreamURLDefaultAndDisable(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name string
-		args []string
-		want string
-	}{
-		{
-			name: "default targets Nhost sidecar",
-			args: nil,
-			want: defaultHasuraUpstreamURL,
-		},
-		{
-			name: "explicit empty disables proxy",
-			args: []string{"--" + flagHasuraUpstreamURL, ""},
-			want: "",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			gotURL, err := runHasuraUpstreamURL(
-				t,
-				serverFlagsWithoutEnvVarsForTest(t, flagHasuraUpstreamURL),
-				tt.args,
-			)
-			if err != nil {
-				t.Fatalf("running cli: %v", err)
-			}
-
-			if gotURL != tt.want {
-				t.Errorf("hasura upstream URL = %q; want %q", gotURL, tt.want)
-			}
-		})
-	}
-}
-
-func TestHasuraUpstreamURLEmptyEnvDisablesProxy(t *testing.T) {
-	t.Setenv("CONSTELLATION_HASURA_UPSTREAM_URL", "")
-
-	gotURL, err := runHasuraUpstreamURL(
-		t,
-		serverFlagsByNameForTest(t, flagHasuraUpstreamURL),
-		nil,
-	)
-	if err != nil {
-		t.Fatalf("running cli: %v", err)
-	}
-
-	if gotURL != "" {
-		t.Errorf("hasura upstream URL from empty env = %q; want empty", gotURL)
-	}
-}
-
-// a negative --hasura-proxy-request-body-limit-bytes used to silently disable
-// the cap (same observable behaviour as `0`) because the runtime guard only
-// checked `> 0`. The flag now has a Validator that surfaces the
-// misconfiguration at startup rather than letting a typo accidentally disable
-// a security cap.
-func TestHasuraProxyBodyLimitRejectsNegative(t *testing.T) {
-	t.Parallel()
-
-	cmd := &cli.Command{
-		Name: "serve",
-		Flags: serverFlagsWithoutEnvVarsForTest(
-			t, flagHasuraProxyRequestBodyLimitBytes,
-		),
-		Action: func(context.Context, *cli.Command) error { return nil },
-	}
-
-	err := cmd.Run(context.Background(), []string{
-		"serve",
-		"--" + flagHasuraProxyRequestBodyLimitBytes, "-1",
-	})
-	if err == nil {
-		t.Fatal("expected error for negative limit; got nil")
-	}
-
-	if !strings.Contains(err.Error(), flagHasuraProxyRequestBodyLimitBytes) {
-		t.Errorf("error %q does not name the flag", err)
-	}
-
-	if !strings.Contains(err.Error(), ">= 0") {
-		t.Errorf("error %q does not document the constraint", err)
-	}
-}
-
-// And the zero case still passes — it's the documented way to disable the
-// cap and must remain accepted.
-func TestHasuraProxyBodyLimitAcceptsZero(t *testing.T) {
-	t.Parallel()
-
-	cmd := &cli.Command{
-		Name: "serve",
-		Flags: serverFlagsWithoutEnvVarsForTest(
-			t, flagHasuraProxyRequestBodyLimitBytes,
-		),
-		Action: func(context.Context, *cli.Command) error { return nil },
-	}
-
-	err := cmd.Run(context.Background(), []string{
-		"serve",
-		"--" + flagHasuraProxyRequestBodyLimitBytes, "0",
-	})
-	if err != nil {
-		t.Fatalf("zero must be accepted (disables the cap), got %v", err)
 	}
 }

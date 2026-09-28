@@ -6,22 +6,21 @@ import (
 	"slices"
 
 	"github.com/nhost/nhost/services/auth/go/controller"
-	"github.com/urfave/cli/v3"
 )
 
-func getConfig(cmd *cli.Command) (controller.Config, error) { //nolint:funlen
-	serverURL, err := url.Parse(cmd.String(flagServerURL))
+func getConfig(opts Options) (controller.Config, error) { //nolint:funlen
+	serverURL, err := url.Parse(opts.ServerURL)
 	if err != nil {
 		return controller.Config{}, fmt.Errorf("problem parsing server url: %w", err)
 	}
 
-	clientURL, err := url.Parse(cmd.String(flagClientURL))
+	clientURL, err := url.Parse(opts.ClientURL)
 	if err != nil {
 		return controller.Config{}, fmt.Errorf("problem parsing client url: %w", err)
 	}
 
-	allowedRedirectURLs := make([]string, 0, len(cmd.StringSlice(flagAllowRedirectURLs)))
-	for _, u := range cmd.StringSlice(flagAllowRedirectURLs) {
+	allowedRedirectURLs := make([]string, 0, len(opts.AllowedRedirectURLs))
+	for _, u := range opts.AllowedRedirectURLs {
 		if u == "" {
 			continue
 		}
@@ -29,8 +28,8 @@ func getConfig(cmd *cli.Command) (controller.Config, error) { //nolint:funlen
 		allowedRedirectURLs = append(allowedRedirectURLs, u)
 	}
 
-	defaultRole := cmd.String(flagDefaultRole)
-	allowedRoles := cmd.StringSlice(flagDefaultAllowedRoles)
+	defaultRole := opts.DefaultRole
+	allowedRoles := slices.Clone(opts.DefaultAllowedRoles)
 
 	allowedRoles = slices.DeleteFunc(allowedRoles, func(s string) bool { return s == "" })
 	if !slices.Contains(allowedRoles, defaultRole) {
@@ -39,8 +38,8 @@ func getConfig(cmd *cli.Command) (controller.Config, error) { //nolint:funlen
 
 	allowedRoles = slices.DeleteFunc(allowedRoles, func(s string) bool { return s == "" })
 
-	defaultLocale := cmd.String(flagDefaultLocale)
-	allowedLocales := cmd.StringSlice(flagAllowedLocales)
+	defaultLocale := opts.DefaultLocale
+	allowedLocales := slices.Clone(opts.AllowedLocales)
 
 	allowedLocales = slices.DeleteFunc(allowedLocales, func(s string) bool { return s == "" })
 	if !slices.Contains(allowedLocales, defaultLocale) {
@@ -49,90 +48,88 @@ func getConfig(cmd *cli.Command) (controller.Config, error) { //nolint:funlen
 
 	allowedLocales = slices.DeleteFunc(allowedLocales, func(s string) bool { return s == "" })
 
-	allowedDomains := cmd.StringSlice(flagAllowedEmailDomains)
+	allowedDomains := slices.Clone(opts.AllowedEmailDomains)
 	allowedDomains = slices.DeleteFunc(allowedDomains, func(s string) bool { return s == "" })
-	blockedDomains := cmd.StringSlice(flagBlockedEmailDomains)
+	blockedDomains := slices.Clone(opts.BlockedEmailDomains)
 	blockedDomains = slices.DeleteFunc(blockedDomains, func(s string) bool { return s == "" })
-	allowedEmails := cmd.StringSlice(flagAllowedEmails)
+	allowedEmails := slices.Clone(opts.AllowedEmails)
 	allowedEmails = slices.DeleteFunc(allowedEmails, func(s string) bool { return s == "" })
-	blockedEmails := cmd.StringSlice(flagBlockedEmails)
+	blockedEmails := slices.Clone(opts.BlockedEmails)
 	blockedEmails = slices.DeleteFunc(blockedEmails, func(s string) bool { return s == "" })
 
-	webauhtnRPID := cmd.String(flagWebauthnRPID)
+	webauhtnRPID := opts.Webauthn.RPID
 	if webauhtnRPID == "" {
 		webauhtnRPID = clientURL.Hostname()
 	}
 
-	webauhtnRPName := cmd.String(flagWebauhtnRPName)
+	webauhtnRPName := opts.Webauthn.RPName
 	if webauhtnRPName == "" {
 		webauhtnRPName = webauhtnRPID
 	}
 
-	webauhtnRPOrigins := cmd.StringSlice(flagWebauthnRPOrigins)
+	webauhtnRPOrigins := slices.Clone(opts.Webauthn.RPOrigins)
 
 	webauhtnRPOrigins = slices.DeleteFunc(webauhtnRPOrigins, func(s string) bool { return s == "" })
-	if !slices.Contains(webauhtnRPOrigins, cmd.String(flagClientURL)) {
-		webauhtnRPOrigins = append(webauhtnRPOrigins, cmd.String(flagClientURL))
+	if !slices.Contains(webauhtnRPOrigins, opts.ClientURL) {
+		webauhtnRPOrigins = append(webauhtnRPOrigins, opts.ClientURL)
 	}
 
 	return controller.Config{
-		AnonymousUsersEnabled:         cmd.Bool(flagAnonymousUsersEnabled),
-		HasuraGraphqlURL:              cmd.String(flagGraphqlURL),
-		HasuraAdminSecret:             cmd.String(flagHasuraAdminSecret),
-		AllowedEmailDomains:           allowedDomains,
-		AllowedEmails:                 allowedEmails,
-		AllowedRedirectURLs:           allowedRedirectURLs,
-		BlockedEmailDomains:           blockedDomains,
-		BlockedEmails:                 blockedEmails,
-		ClientURL:                     clientURL,
-		CustomClaims:                  cmd.String(flagCustomClaims),
-		CustomClaimsDefaults:          cmd.String(flagCustomClaimsDefaults),
-		ConcealErrors:                 cmd.Bool(flagConcealErrors),
-		DisableSignup:                 cmd.Bool(flagDisableSignup),
-		DisableNewUsers:               cmd.Bool(flagDisableNewUsers),
-		DefaultAllowedRoles:           allowedRoles,
-		DefaultRole:                   defaultRole,
-		DefaultLocale:                 defaultLocale,
-		AllowedLocales:                allowedLocales,
-		GravatarEnabled:               cmd.Bool(flagGravatarEnabled),
-		GravatarDefault:               cmd.String(flagGravatarDefault),
-		GravatarRating:                cmd.String(flagGravatarRating),
-		PasswordMinLength:             cmd.Int(flagPasswordMinLength),
-		PasswordHIBPEnabled:           cmd.Bool(flagPasswordHIBPEnabled),
-		RefreshTokenExpiresIn:         cmd.Int(flagRefreshTokenExpiresIn),
-		AccessTokenExpiresIn:          cmd.Int(flagAccessTokensExpiresIn),
-		JWTSecret:                     cmd.String(flagHasuraGraphqlJWTSecret),
-		RequireEmailVerification:      cmd.Bool(flagEmailSigninEmailVerifiedRequired),
-		ServerURL:                     serverURL,
-		EmailPasswordlessEnabled:      cmd.Bool(flagEmailPasswordlessEnabled),
-		WebauthnEnabled:               cmd.Bool(flagWebauthnEnabled),
-		WebauthnRPID:                  webauhtnRPID,
-		WebauthnRPName:                webauhtnRPName,
-		WebauthnRPOrigins:             webauhtnRPOrigins,
-		WebauhtnAttestationTimeout:    cmd.Duration(flagWebauthnAttestationTimeout),
-		OTPEmailEnabled:               cmd.Bool(flagOTPEmailEnabled),
-		SMSPasswordlessEnabled:        cmd.Bool(flagSMSPasswordlessEnabled),
-		SMSProvider:                   cmd.String(flagSMSProvider),
-		SMSTwilioAccountSid:           cmd.String(flagSMSTwilioAccountSid),
-		SMSTwilioAuthToken:            cmd.String(flagSMSTwilioAuthToken),
-		SMSTwilioMessagingServiceID:   cmd.String(flagSMSTwilioMessagingServiceID),
-		SMSModicaUsername:             cmd.String(flagSMSModicaUsername),
-		SMSModicaPassword:             cmd.String(flagSMSModicaPassword),
-		SMSGenericURL:                 cmd.String(flagSMSGenericURL),
-		SMSGenericContentType:         cmd.String(flagSMSGenericContentType),
-		SMSGenericHeaders:             cmd.String(flagSMSGenericHeaders),
-		SMSGenericTimeout:             cmd.Duration(flagSMSGenericTimeout),
-		SMSGenericBodyTemplate:        cmd.String(flagSMSGenericBodyTemplate),
-		MfaEnabled:                    cmd.Bool(flagMfaEnabled),
-		ServerPrefix:                  cmd.String(flagAPIPrefix),
-		DisableAutoSignup:             cmd.Bool(flagDisableAutoSignup),
-		OAuth2ProviderEnabled:         cmd.Bool(flagOAuth2ProviderEnabled),
-		OAuth2ProviderLoginURL:        cmd.String(flagOAuth2ProviderLoginURL),
-		OAuth2ProviderAccessTokenTTL:  cmd.Int(flagOAuth2ProviderAccessTokenTTL),
-		OAuth2ProviderRefreshTokenTTL: cmd.Int(flagOAuth2ProviderRefreshTokenTTL),
-		OAuth2ProviderCIMDEnabled:     cmd.Bool(flagOAuth2ProviderCIMDEnabled),
-		OAuth2ProviderCIMDAllowInsecureTransport: cmd.Bool(
-			flagOAuth2ProviderCIMDAllowInsecureTransport,
-		),
+		AnonymousUsersEnabled:                    opts.AnonymousUsersEnabled,
+		HasuraGraphqlURL:                         opts.HasuraGraphqlURL,
+		HasuraAdminSecret:                        opts.HasuraAdminSecret,
+		AllowedEmailDomains:                      allowedDomains,
+		AllowedEmails:                            allowedEmails,
+		AllowedRedirectURLs:                      allowedRedirectURLs,
+		BlockedEmailDomains:                      blockedDomains,
+		BlockedEmails:                            blockedEmails,
+		ClientURL:                                clientURL,
+		CustomClaims:                             opts.JWT.CustomClaims,
+		CustomClaimsDefaults:                     opts.JWT.CustomClaimsDefaults,
+		ConcealErrors:                            opts.ConcealErrors,
+		DisableSignup:                            opts.DisableSignup,
+		DisableNewUsers:                          opts.DisableNewUsers,
+		DefaultAllowedRoles:                      allowedRoles,
+		DefaultRole:                              defaultRole,
+		DefaultLocale:                            defaultLocale,
+		AllowedLocales:                           allowedLocales,
+		GravatarEnabled:                          opts.Gravatar.Enabled,
+		GravatarDefault:                          opts.Gravatar.Default,
+		GravatarRating:                           opts.Gravatar.Rating,
+		PasswordMinLength:                        opts.PasswordMinLength,
+		PasswordHIBPEnabled:                      opts.PasswordHIBPEnabled,
+		RefreshTokenExpiresIn:                    opts.JWT.RefreshTokenExpiresIn,
+		AccessTokenExpiresIn:                     opts.JWT.AccessTokenExpiresIn,
+		JWTSecret:                                opts.JWT.Secret,
+		RequireEmailVerification:                 opts.RequireEmailVerification,
+		ServerURL:                                serverURL,
+		EmailPasswordlessEnabled:                 opts.EmailPasswordlessEnabled,
+		WebauthnEnabled:                          opts.Webauthn.Enabled,
+		WebauthnRPID:                             webauhtnRPID,
+		WebauthnRPName:                           webauhtnRPName,
+		WebauthnRPOrigins:                        webauhtnRPOrigins,
+		WebauhtnAttestationTimeout:               opts.Webauthn.AttestationTimeout,
+		OTPEmailEnabled:                          opts.OTPEmailEnabled,
+		SMSPasswordlessEnabled:                   opts.SMS.PasswordlessEnabled,
+		SMSProvider:                              opts.SMS.Provider,
+		SMSTwilioAccountSid:                      opts.SMS.Twilio.AccountSID,
+		SMSTwilioAuthToken:                       opts.SMS.Twilio.AuthToken,
+		SMSTwilioMessagingServiceID:              opts.SMS.Twilio.MessagingServiceID,
+		SMSModicaUsername:                        opts.SMS.Modica.Username,
+		SMSModicaPassword:                        opts.SMS.Modica.Password,
+		SMSGenericURL:                            opts.SMS.Generic.URL,
+		SMSGenericContentType:                    opts.SMS.Generic.ContentType,
+		SMSGenericHeaders:                        opts.SMS.Generic.Headers,
+		SMSGenericTimeout:                        opts.SMS.Generic.Timeout,
+		SMSGenericBodyTemplate:                   opts.SMS.Generic.BodyTemplate,
+		MfaEnabled:                               opts.MFA.Enabled,
+		ServerPrefix:                             opts.APIPrefix,
+		DisableAutoSignup:                        opts.DisableAutoSignup,
+		OAuth2ProviderEnabled:                    opts.OAuth2Provider.Enabled,
+		OAuth2ProviderLoginURL:                   opts.OAuth2Provider.LoginURL,
+		OAuth2ProviderAccessTokenTTL:             opts.OAuth2Provider.AccessTokenTTL,
+		OAuth2ProviderRefreshTokenTTL:            opts.OAuth2Provider.RefreshTokenTTL,
+		OAuth2ProviderCIMDEnabled:                opts.OAuth2Provider.CIMDEnabled,
+		OAuth2ProviderCIMDAllowInsecureTransport: opts.OAuth2Provider.CIMDAllowInsecureTransport,
 	}, nil
 }

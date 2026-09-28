@@ -4,379 +4,278 @@ import (
 	"context"
 	"errors"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
 )
 
-const testTierTimeout = 2 * time.Second
+const testShutdownBudget = 2 * time.Second
 
 var (
 	errBoom  = errors.New("boom")
-	errOther = errors.New("other service failed")
+	errOther = errors.New("other unit failed")
 )
 
-func TestSuperviseCancelsPeersOnError(t *testing.T) {
-	t.Parallel()
-
-	wantErr := errBoom
-
-	var peerCancelled atomic.Bool
-
-	failing := func(_ context.Context) error {
-		return wantErr
-	}
-
-	peer := func(ctx context.Context) error {
-		<-ctx.Done()
-		peerCancelled.Store(true)
-
-		return nil
-	}
-
-	err := supervise(
-		context.Background(), testTierTimeout, []supervisedService{failing, peer},
-	)
-	if !errors.Is(err, wantErr) {
-		t.Errorf("supervise err = %v; want %v", err, wantErr)
-	}
-
-	if !peerCancelled.Load() {
-		t.Error("peer service was not cancelled when its sibling failed")
-	}
-}
-
-func TestSuperviseCleanEarlyReturnTearsDownPeers(t *testing.T) {
-	t.Parallel()
-
-	var peerCancelled atomic.Bool
-
-	finished := func(_ context.Context) error { return nil }
-	peer := func(ctx context.Context) error { //nolint:unparam // signature must match supervisedService
-		<-ctx.Done()
-		peerCancelled.Store(true)
-
-		return nil
-	}
-
-	done := make(chan error, 1)
-	go func() {
-		done <- supervise(
-			context.Background(),
-			testTierTimeout,
-			[]supervisedService{finished},
-			[]supervisedService{peer},
-		)
-	}()
-
-	select {
-	case err := <-done:
-		if err != nil {
-			t.Errorf("supervise err = %v; want nil", err)
-		}
-	case <-time.After(2 * time.Second):
-		t.Fatal("clean early return did not tear the engine down")
-	}
-
-	if !peerCancelled.Load() {
-		t.Error("peer was not cancelled after a sibling returned cleanly")
-	}
-}
-
-func TestSuperviseJoinsServiceErrors(t *testing.T) {
-	t.Parallel()
-
-	var ready sync.WaitGroup
-	ready.Add(2)
-
-	failingService := func(serviceErr error) supervisedService {
-		return func(_ context.Context) error {
-			ready.Done()
-			ready.Wait()
-
-			return serviceErr
-		}
-	}
-
-	err := supervise(context.Background(), testTierTimeout, []supervisedService{
-		failingService(errBoom),
-		failingService(errOther),
-	})
-
-	for _, wantErr := range []error{errBoom, errOther} {
-		if !errors.Is(err, wantErr) {
-			t.Errorf("serveutil.supervise err = %v; want joined error to contain %v", err, wantErr)
-		}
-	}
-}
-
-func TestSuperviseRecoversPanickingService(t *testing.T) {
-	t.Parallel()
-
-	var peerCancelled atomic.Bool
-
-	panicking := func(_ context.Context) error {
-		panic("boom")
-	}
-
-	peer := func(ctx context.Context) error {
-		<-ctx.Done()
-		peerCancelled.Store(true)
-
-		return nil
-	}
-
-	// A panicking service must surface as a joined error rather than crash the
-	// whole process, and its siblings must still be torn down gracefully.
-	err := supervise(
-		context.Background(), testTierTimeout, []supervisedService{panicking, peer},
-	)
-	if !errors.Is(err, ErrServicePanic) {
-		t.Errorf("supervise err = %v; want %v", err, ErrServicePanic)
-	}
-
-	if !strings.Contains(err.Error(), "TestSuperviseRecoversPanickingService") {
-		t.Errorf("supervise err = %v; want panic stack with test function", err)
-	}
-
-	if !peerCancelled.Load() {
-		t.Error("peer service was not cancelled when its sibling panicked")
-	}
-}
-
-func TestSuperviseShutsDownOnContextCancel(t *testing.T) {
-	t.Parallel()
-
+// ctxUnit adapts a function that runs until its context is cancelled into a
+// unit whose stop cancels that context.
+func ctxUnit(name string, fn func(ctx context.Context) error) unit {
 	ctx, cancel := context.WithCancel(context.Background())
 
-	var started atomic.Int32
+	return unit{
+		name: name,
+		run:  func() error { return fn(ctx) },
+		stop: func(context.Context) error {
+			cancel()
 
-	svc := func(ctx context.Context) error { //nolint:unparam // signature must match supervisedService
-		started.Add(1)
-		<-ctx.Done()
-
-		return nil
-	}
-
-	done := make(chan error, 1)
-	go func() {
-		done <- supervise(ctx, testTierTimeout, []supervisedService{svc, svc})
-	}()
-
-	// Give both services a moment to start, then trigger shutdown.
-	deadline := time.After(2 * time.Second)
-
-	for started.Load() < 2 {
-		select {
-		case <-deadline:
-			t.Fatal("services did not start in time")
-		default:
-			time.Sleep(time.Millisecond)
-		}
-	}
-
-	cancel()
-
-	select {
-	case err := <-done:
-		if err != nil {
-			t.Errorf("supervise err = %v; want nil on clean shutdown", err)
-		}
-	case <-time.After(2 * time.Second):
-		t.Fatal("supervise did not return after context cancellation")
+			return nil
+		},
 	}
 }
 
-func TestSuperviseFailureInLaterTierStopsAllAndReturnsErrors(t *testing.T) {
-	t.Parallel()
+func untilCancelled(ctx context.Context) error {
+	<-ctx.Done()
 
-	tierZeroStarted := make(chan struct{})
+	return nil
+}
 
-	var (
-		tierZeroCancelled  atomic.Bool
-		laterPeerCancelled atomic.Bool
-	)
+// runGroup starts the tiers, waits for any unit to return, and shuts the group
+// down within budget.
+func runGroup(t *testing.T, budget time.Duration, tiers ...[]unit) error {
+	t.Helper()
 
-	tierZero := func(ctx context.Context) error {
-		close(tierZeroStarted)
-		<-ctx.Done()
-		tierZeroCancelled.Store(true)
-
-		return errOther
-	}
-	laterFailure := func(_ context.Context) error {
-		<-tierZeroStarted
-
-		return errBoom
-	}
-	laterPeer := func(ctx context.Context) error { //nolint:unparam // signature must match supervisedService
-		<-ctx.Done()
-		laterPeerCancelled.Store(true)
-
-		return nil
-	}
-
-	done := make(chan error, 1)
-	go func() {
-		done <- supervise(
-			context.Background(),
-			testTierTimeout,
-			[]supervisedService{tierZero},
-			[]supervisedService{laterFailure, laterPeer},
-		)
-	}()
+	g := startGroup(tiers...)
 
 	select {
-	case err := <-done:
-		for _, wantErr := range []error{errBoom, errOther} {
-			if !errors.Is(err, wantErr) {
-				t.Errorf("supervise err = %v; want joined error to contain %v", err, wantErr)
+	case <-g.stopped():
+	case <-time.After(testShutdownBudget):
+		t.Fatal("no unit returned on its own")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), budget)
+	defer cancel()
+
+	return g.shutdown(ctx)
+}
+
+func TestGroupReturningUnitStopsPeers(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		run     func(context.Context) error
+		wantErr error
+	}{
+		{
+			name:    "a failing unit",
+			run:     func(context.Context) error { return errBoom },
+			wantErr: errBoom,
+		},
+		{
+			name:    "a unit returning cleanly",
+			run:     func(context.Context) error { return nil },
+			wantErr: nil,
+		},
+		{
+			name:    "a panicking unit",
+			run:     func(context.Context) error { panic("boom") },
+			wantErr: ErrServicePanic,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			var peerStopped atomic.Bool
+
+			peer := ctxUnit("peer", func(ctx context.Context) error {
+				<-ctx.Done()
+				peerStopped.Store(true)
+
+				return nil
+			})
+
+			err := runGroup(t, testShutdownBudget, []unit{ctxUnit("returning", tt.run), peer})
+
+			if tt.wantErr == nil && err != nil {
+				t.Errorf("shutdown err = %v; want nil", err)
 			}
-		}
-	case <-time.After(2 * time.Second):
-		t.Fatal("later-tier failure did not stop the supervisor")
-	}
 
-	if !tierZeroCancelled.Load() {
-		t.Error("tier-zero service was not cancelled after later-tier failure")
-	}
+			if tt.wantErr != nil && !errors.Is(err, tt.wantErr) {
+				t.Errorf("shutdown err = %v; want %v", err, tt.wantErr)
+			}
 
-	if !laterPeerCancelled.Load() {
-		t.Error("later-tier peer was not cancelled after its sibling failed")
+			if tt.wantErr != nil && !strings.Contains(err.Error(), "returning: ") {
+				t.Errorf("shutdown err = %q; want it to name the unit", err)
+			}
+
+			if !peerStopped.Load() {
+				t.Error("peer unit was not stopped when its sibling returned")
+			}
+		})
 	}
 }
 
-func TestSuperviseShutsDownTiersInOrder(t *testing.T) {
+func TestGroupJoinsErrorsAcrossTiers(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithCancel(context.Background())
+	err := runGroup(
+		t,
+		testShutdownBudget,
+		[]unit{ctxUnit("first", func(context.Context) error { return errBoom })},
+		[]unit{ctxUnit("second", func(ctx context.Context) error {
+			<-ctx.Done()
 
-	drainerStarted := make(chan struct{})
-	drainerCancelled := make(chan struct{})
+			return errOther
+		})},
+	)
+
+	if !errors.Is(err, errBoom) || !errors.Is(err, errOther) {
+		t.Errorf("shutdown err = %v; want both %v and %v", err, errBoom, errOther)
+	}
+}
+
+func TestGroupReportsStopFailures(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		stop    func(context.Context) error
+		wantErr error
+	}{
+		{
+			name:    "an error",
+			stop:    func(context.Context) error { return errBoom },
+			wantErr: errBoom,
+		},
+		{
+			name:    "a panic",
+			stop:    func(context.Context) error { panic("boom") },
+			wantErr: ErrServicePanic,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			stopping := unit{
+				name: "listener",
+				run:  func() error { return nil },
+				stop: tt.stop,
+			}
+
+			err := runGroup(t, testShutdownBudget, []unit{stopping})
+			if !errors.Is(err, tt.wantErr) {
+				t.Fatalf("shutdown err = %v; want %v", err, tt.wantErr)
+			}
+
+			if !strings.Contains(err.Error(), "stopping listener") {
+				t.Errorf("shutdown err = %q; want it to name the unit", err)
+			}
+		})
+	}
+}
+
+func TestGroupShutsDownTiersInOrder(t *testing.T) {
+	t.Parallel()
+
+	drainerStopped := make(chan struct{})
 	allowDrainerReturn := make(chan struct{})
+	dependencyStopped := make(chan struct{})
 
-	drainer := func(ctx context.Context) error { //nolint:unparam // signature must match supervisedService
-		close(drainerStarted)
+	drainer := ctxUnit("drainer", func(ctx context.Context) error {
 		<-ctx.Done()
-		close(drainerCancelled)
+		close(drainerStopped)
 		<-allowDrainerReturn
 
 		return nil
-	}
-
-	dependencyStarted := make(chan struct{})
-	dependencyCancelled := make(chan struct{})
-
-	dependency := func(ctx context.Context) error { //nolint:unparam // signature must match supervisedService
-		close(dependencyStarted)
+	})
+	dependency := ctxUnit("dependency", func(ctx context.Context) error {
 		<-ctx.Done()
-		close(dependencyCancelled)
+		close(dependencyStopped)
 
 		return nil
-	}
+	})
+
+	g := startGroup([]unit{drainer}, []unit{dependency})
 
 	done := make(chan error, 1)
 	go func() {
-		done <- supervise(
-			ctx,
-			testTierTimeout,
-			[]supervisedService{drainer},
-			[]supervisedService{dependency},
-		)
+		ctx, cancel := context.WithTimeout(context.Background(), testShutdownBudget)
+		defer cancel()
+
+		done <- g.shutdown(ctx)
 	}()
 
-	for name, started := range map[string]<-chan struct{}{
-		"drainer":    drainerStarted,
-		"dependency": dependencyStarted,
-	} {
-		select {
-		case <-started:
-		case <-time.After(2 * time.Second):
-			t.Fatalf("%s did not start in time", name)
-		}
-	}
-
-	cancel()
-
 	select {
-	case <-drainerCancelled:
-	case <-time.After(2 * time.Second):
-		t.Fatal("draining tier was not cancelled in time")
+	case <-drainerStopped:
+	case <-time.After(testShutdownBudget):
+		t.Fatal("first tier was not stopped in time")
 	}
 
 	select {
-	case <-dependencyCancelled:
-		t.Fatal("dependency tier was cancelled before draining tier returned")
-	default:
+	case <-dependencyStopped:
+		t.Fatal("second tier was stopped before the first tier returned")
+	case <-time.After(20 * time.Millisecond):
 	}
 
 	close(allowDrainerReturn)
 
 	select {
-	case <-dependencyCancelled:
-	case <-time.After(2 * time.Second):
-		t.Fatal("dependency tier was not cancelled after draining tier returned")
+	case <-dependencyStopped:
+	case <-time.After(testShutdownBudget):
+		t.Fatal("second tier was not stopped after the first tier returned")
 	}
 
 	select {
 	case err := <-done:
 		if err != nil {
-			t.Errorf("supervise err = %v; want nil on clean shutdown", err)
+			t.Errorf("shutdown err = %v; want nil on a clean shutdown", err)
 		}
-	case <-time.After(2 * time.Second):
-		t.Fatal("supervise did not return after ordered shutdown")
+	case <-time.After(testShutdownBudget):
+		t.Fatal("shutdown did not return after the ordered shutdown")
 	}
 }
 
-func TestSuperviseTimesOutStuckTierAndCancelsLaterTiers(t *testing.T) {
+func TestGroupAbandonsStuckTierAndStillStopsLaterTiers(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	stuckStarted := make(chan struct{})
 	releaseStuck := make(chan struct{})
+	defer close(releaseStuck)
 
-	var laterTierCancelled atomic.Bool
+	var laterStopped atomic.Bool
 
-	stuck := func(context.Context) error { //nolint:unparam // signature must match supervisedService
-		close(stuckStarted)
+	stuck := ctxUnit("stuck", func(context.Context) error {
 		<-releaseStuck
 
 		return nil
+	})
+	finished := ctxUnit("finished", func(context.Context) error { return nil })
+	later := ctxUnit("later", untilCancelled)
+	stopLater := later.stop
+	later.stop = func(ctx context.Context) error {
+		laterStopped.Store(true)
+
+		return stopLater(ctx)
 	}
-	laterTier := func(ctx context.Context) error { //nolint:unparam // signature must match supervisedService
-		<-ctx.Done()
-		laterTierCancelled.Store(true)
 
-		return nil
+	err := runGroup(t, 20*time.Millisecond, []unit{stuck, finished}, []unit{later})
+	if !errors.Is(err, ErrShutdownTimeout) {
+		t.Fatalf("shutdown err = %v; want %v", err, ErrShutdownTimeout)
 	}
 
-	done := make(chan error, 1)
-	go func() {
-		// Use a short bound because testTierTimeout exceeds the one-second deadline and would fail the test.
-		done <- supervise(
-			ctx,
-			20*time.Millisecond,
-			[]supervisedService{stuck},
-			[]supervisedService{laterTier},
-		)
-	}()
+	if msg := err.Error(); !strings.Contains(msg, "stuck still stopping") {
+		t.Errorf("shutdown err = %q; want it to name only the stuck unit", msg)
+	}
 
-	<-stuckStarted
-	cancel()
-
-	select {
-	case err := <-done:
-		if !errors.Is(err, ErrShutdownTimeout) {
-			t.Fatalf("supervise err = %v; want %v", err, ErrShutdownTimeout)
+	// With the budget spent, the later tier is asked to stop but not waited for.
+	deadline := time.Now().Add(testShutdownBudget)
+	for !laterStopped.Load() {
+		if time.Now().After(deadline) {
+			t.Fatal("later tier was not asked to stop after the earlier tier timed out")
 		}
-	case <-time.After(time.Second):
-		t.Fatal("supervise did not return after the tier shutdown timeout")
-	}
 
-	if !laterTierCancelled.Load() {
-		t.Error("later tier was not cancelled after the earlier tier timed out")
+		time.Sleep(time.Millisecond)
 	}
-
-	close(releaseStuck)
 }

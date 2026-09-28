@@ -66,10 +66,6 @@ const (
 	defaultHTTPIdleTimeout   = 120 * time.Second
 	maxHTTPReadHeaderTimeout = 5 * time.Second
 	shutdownTimeout          = 30 * time.Second
-
-	// serviceName identifies constellation in the shared serve runtime's logs
-	// and errors.
-	serviceName = "constellation"
 )
 
 var errFlagMustBeGreaterThanZero = errors.New("must be greater than 0")
@@ -188,20 +184,6 @@ func serverFlags() []cli.Flag { //nolint:funlen // long flag list; splitting har
 			Sources: cli.EnvVars(
 				"CONSTELLATION_HASURA_PROXY_REQUEST_BODY_LIMIT_BYTES",
 			),
-			// Reject negative values explicitly. The runtime guard only checks
-			// `> 0`, so a negative value would silently disable the cap (same
-			// behaviour as 0) but with no operator-visible signal. Surfacing it
-			// at startup turns a silent misconfiguration into a loud error.
-			Validator: func(v int64) error {
-				if v < 0 {
-					return fmt.Errorf( //nolint:err113
-						"%s must be >= 0 (0 disables the limit), got %d",
-						flagHasuraProxyRequestBodyLimitBytes, v,
-					)
-				}
-
-				return nil
-			},
 		},
 	}
 }
@@ -278,17 +260,12 @@ func allowRequestHeader(name string) bool {
 	}
 }
 
-// getCorsOptions builds the CORS configuration from the configured
-// allowed-origins flag. An empty allow-list is the safe default: no origin
-// matches, so no Access-Control-Allow-Origin is emitted and credentialed
-// cross-origin reads are denied. A configured allow-all origin combined with
-// credentials is rejected rather than silently reflecting arbitrary origins.
-func getCorsOptions(
-	ctx context.Context,
-	cmd *cli.Command,
-	logger *slog.Logger,
-) (oapimw.CORSOptions, error) {
-	allowedOrigins := cmd.StringSlice(flagCORSAllowedOrigins)
+// corsOptions builds the CORS configuration from the allowed origins. An empty
+// allow-list is the safe default: no origin matches, so no
+// Access-Control-Allow-Origin is emitted and credentialed cross-origin reads
+// are denied. An allow-all origin combined with credentials is rejected rather
+// than silently reflecting arbitrary origins.
+func corsOptions(allowedOrigins []string) (oapimw.CORSOptions, error) {
 	if allowedOrigins == nil {
 		// A non-nil, empty slice denies all cross-origin requests; a nil slice
 		// would instead reflect every origin, which is not the safe default.
@@ -311,24 +288,7 @@ func getCorsOptions(
 
 	if err := opts.Validate(); err != nil {
 		return oapimw.CORSOptions{}, fmt.Errorf(
-			"invalid CORS configuration (set %s to explicit origins): %w",
-			flagCORSAllowedOrigins,
-			err,
-		)
-	}
-
-	// Warn once at startup when the resolved allow-list is empty: this is the
-	// fail-safe deny-all default, but it silently breaks deployments that
-	// relied on the previous permissive "*" CORS, so operators get an
-	// actionable signal naming the flag. Only the genuine empty-deny-all case
-	// warrants the warning; an AllowOriginFunc would gate origins dynamically
-	// and is intentionally left to the caller.
-	if opts.AllowOriginFunc == nil && len(opts.AllowedOrigins) == 0 {
-		logger.WarnContext(
-			ctx,
-			"CORS: no allowed origins configured; all cross-origin requests will be denied",
-			slog.String("flag", flagCORSAllowedOrigins),
-			slog.String("env", "CONSTELLATION_CORS_ALLOWED_ORIGINS"),
+			"invalid CORSAllowedOrigins (set explicit origins): %w", err,
 		)
 	}
 
@@ -346,15 +306,25 @@ func playgroundHandler(path string) gin.HandlerFunc {
 //nolint:funlen // assembles the full HTTP wiring; splitting fragments the topology
 func getRouter(
 	ctx context.Context,
-	cmd *cli.Command,
+	opts Options,
 	ctrl *controller.Controller,
 	jwtAuth middleware.JWTAuthenticator,
 	hasuraProxy http.Handler,
 	logger *slog.Logger,
 ) (*gin.Engine, error) {
-	corsOpts, err := getCorsOptions(ctx, cmd, logger)
+	corsOpts, err := corsOptions(opts.CORSAllowedOrigins)
 	if err != nil {
 		return nil, err
+	}
+
+	// Warn once at startup when the allow-list is empty: this is the fail-safe
+	// deny-all default, but it silently breaks deployments that relied on the
+	// previous permissive "*" CORS.
+	if len(corsOpts.AllowedOrigins) == 0 {
+		logger.WarnContext(
+			ctx,
+			"CORS: no allowed origins configured; all cross-origin requests will be denied",
+		)
 	}
 
 	spec, err := api.GetSpec()
@@ -377,9 +347,9 @@ func getRouter(
 	// logger/tracing middleware (so it can enrich the request logger) and before
 	// per-route OpenAPI validation (so NewAuthFunc can authorize against the
 	// resolved session).
-	router.Use(middleware.Session(cmd.String(flagAdminSecret), jwtAuth)) //nolint:contextcheck
+	router.Use(middleware.Session(opts.AdminSecret, jwtAuth)) //nolint:contextcheck
 
-	proxyBodyLimit := cmd.Int64(flagHasuraProxyRequestBodyLimitBytes)
+	proxyBodyLimit := opts.HasuraProxyRequestBodyLimitBytes
 
 	handler := api.NewStrictHandler(ctrl, nil)
 	api.RegisterHandlersWithOptions(router, handler, api.GinServerOptions{
@@ -400,17 +370,12 @@ func getRouter(
 		ErrorHandler: oapi.RecordError,
 	})
 
-	if cmd.Bool(flagEnablePlayground) {
+	if opts.EnablePlayground {
 		router.GET("/", playgroundHandler("/v1/graphql"))
 	}
 
-	maxBodyBytes, err := getMaxGraphQLRequestBodyBytes(cmd)
-	if err != nil {
-		return nil, err
-	}
-
 	//nolint:contextcheck // handler uses per-request contexts; startup ctx must not be captured.
-	postHandler := ctrl.HandlerPostWithMaxBodyBytes(maxBodyBytes)
+	postHandler := ctrl.HandlerPostWithMaxBodyBytes(opts.GraphQLRequestBodyLimitBytes)
 	router.POST("/v1/graphql", postHandler)
 	router.GET("/v1/graphql", ctrl.HandlerGet)
 
@@ -443,26 +408,15 @@ func getRouter(
 	return router, nil
 }
 
-func getMaxGraphQLRequestBodyBytes(cmd *cli.Command) (int64, error) {
-	maxBodyBytes := cmd.Int64(flagGraphQLRequestBodyLimitBytes)
-	if maxBodyBytes <= 0 {
-		return 0, fmt.Errorf(
-			"%s: %w", flagGraphQLRequestBodyLimitBytes, errFlagMustBeGreaterThanZero,
-		)
-	}
-
-	return maxBodyBytes, nil
-}
-
 // initJWTAuth builds a JWT authenticator from the configured secrets. At least
 // one JWT secret is required: an empty configuration is a fatal
 // misconfiguration, not a request to disable authentication. Starting with
 // authentication silently disabled would be an unsafe posture, so this fails
 // loudly instead.
 func initJWTAuth(
-	ctx context.Context, cmd *cli.Command, logger *slog.Logger,
+	ctx context.Context, secret string, logger *slog.Logger,
 ) (*jwt.Authenticator, error) {
-	jwtCfg, err := jwtconfig.ParseConfig([]string{cmd.String(flagJWTSecret)})
+	jwtCfg, err := jwtconfig.ParseConfig([]string{secret})
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse jwt config: %w", err)
 	}
@@ -471,7 +425,7 @@ func initJWTAuth(
 	if err != nil {
 		if errors.Is(err, jwt.ErrNoSecrets) {
 			return nil, fmt.Errorf(
-				"at least one jwt secret must be configured via %s: %w", flagJWTSecret, err,
+				"at least one jwt secret must be configured in JWTSecret: %w", err,
 			)
 		}
 
@@ -491,43 +445,50 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 		return err
 	}
 
+	opts := optionsFromCommand(cmd)
+
+	manager := serveutil.NewManager(logger, serveutil.WithShutdownTimeout(shutdownTimeout))
+	manager.Add(serveutil.Definition{
+		Name: "constellation",
+		Build: func(ctx context.Context, logger *slog.Logger) (*serveutil.Service, error) {
+			return NewService(ctx, opts, logger)
+		},
+	})
+
+	listeners := []serveutil.Listener{
+		serveutil.Listen(cmd.String(flagBindAddress), serveutil.WithTimeouts(timeouts)),
+	}
+
+	if profileAddr := cmd.String(flagProfileAddress); profileAddr != "" {
+		listeners = append(listeners, serveutil.DebugListen(profileAddr))
+	}
+
 	// Run's errors already name the service and the lifecycle phase that failed.
 	//nolint:wrapcheck // adding a prefix here would only repeat that context.
-	return serveutil.Run(
-		ctx,
-		serveutil.Options{
-			Logger:          logger,
-			Addr:            cmd.String(flagBindAddress),
-			DebugAddr:       cmd.String(flagProfileAddress),
-			HTTP:            timeouts,
-			ShutdownTimeout: shutdownTimeout,
-			Compose:         nil,
-		},
-		serveutil.Definition{
-			Name:   serviceName,
-			Prefix: "",
-			Build: func(ctx context.Context, logger *slog.Logger) (*serveutil.Service, error) {
-				return NewService(ctx, cmd, logger)
-			},
-		},
-	)
+	return manager.Run(ctx, listeners...)
 }
 
-// NewService builds constellation's serving surface: the HTTP handler, the
-// background controller loop, and the cleanup of the resources it acquires
-// (controller state, metadata source, JWT authenticator). It is consumed both
-// by the standalone serve command and by the engine unified binary, which
-// mounts the handler behind a shared listener and runs the background loop under the
-// shared process lifecycle.
+// NewService builds constellation's serving surface from opts: the HTTP
+// handler, the background controller loop, and the cleanup of the resources it
+// acquires (controller state, metadata source, JWT authenticator). It is
+// consumed both by the standalone serve command and by the engine unified
+// binary, which mounts the handler behind a shared listener and runs the
+// background loop under the shared process lifecycle. It validates opts first.
+//
+//nolint:funlen // each acquisition sits next to its rollback; splitting separates them
 func NewService(
 	ctx context.Context,
-	cmd *cli.Command,
+	opts Options,
 	logger *slog.Logger,
 ) (_ *serveutil.Service, err error) {
+	if err := opts.Validate(); err != nil {
+		return nil, err
+	}
+
 	// Each acquired resource is released again if a later step fails; on success
 	// the returned Service owns them all and frees them through its Close, which
 	// must mirror these defers in the same reverse order.
-	metadataSource, err := newMetadataSource(ctx, cmd, logger)
+	metadataSource, err := newMetadataSource(ctx, opts, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -538,7 +499,7 @@ func NewService(
 		}
 	}()
 
-	jwtAuth, err := initJWTAuth(ctx, cmd, logger)
+	jwtAuth, err := initJWTAuth(ctx, opts.JWTSecret, logger)
 	if err != nil {
 		return nil, fmt.Errorf("initializing JWT auth: %w", err)
 	}
@@ -549,13 +510,13 @@ func NewService(
 		}
 	}()
 
-	hasuraProxy, err := newHasuraProxy(cmd, logger)
+	hasuraProxy, err := newHasuraProxy(opts.HasuraUpstreamURL, logger)
 	if err != nil {
 		return nil, err
 	}
 
 	ctrl, err := newServiceController(
-		ctx, cmd, jwtAuth, metadataSource, logger, hasuraProxy,
+		ctx, opts, jwtAuth, metadataSource, logger, hasuraProxy,
 	)
 	if err != nil {
 		return nil, err
@@ -571,7 +532,7 @@ func NewService(
 		}
 	}()
 
-	router, err := getRouter(ctx, cmd, ctrl, jwtAuth, hasuraProxy, logger)
+	router, err := getRouter(ctx, opts, ctrl, jwtAuth, hasuraProxy, logger)
 	if err != nil {
 		return nil, fmt.Errorf("building HTTP router: %w", err)
 	}
@@ -597,7 +558,7 @@ func NewService(
 
 func newServiceController(
 	ctx context.Context,
-	cmd *cli.Command,
+	opts Options,
 	jwtAuth middleware.JWTAuthenticator,
 	metadataSource metadata.Source,
 	logger *slog.Logger,
@@ -605,13 +566,13 @@ func newServiceController(
 ) (*controller.Controller, error) {
 	ctrl, err := controller.New(
 		ctx,
-		cmd.Duration(flagSubscriptionPollInterval),
-		cmd.String(flagAdminSecret),
-		cmd.Bool(flagDevMode),
+		opts.SubscriptionPollInterval,
+		opts.AdminSecret,
+		opts.DevMode,
 		jwtAuth,
 		metadataSource,
 		logger,
-		cmd.Root().Version,
+		opts.Version,
 		hasuraProxy,
 	)
 	if err != nil {
@@ -621,25 +582,24 @@ func newServiceController(
 	return ctrl, nil
 }
 
-// newMetadataSource builds the metadata source from the configured flags: a
-// PostgreSQL-backed source when a metadata database URL is set, otherwise the
-// file-backed source. The caller owns the returned source and must Close it.
+// newMetadataSource builds the metadata source from opts: a PostgreSQL-backed
+// source when a metadata database URL is set, otherwise the file-backed
+// source. The caller owns the returned source and must Close it.
 // The interface return is intentional; the concrete implementation varies.
 //
 //nolint:ireturn // interface return is intentional; see doc comment
 func newMetadataSource(
 	ctx context.Context,
-	cmd *cli.Command,
+	opts Options,
 	logger *slog.Logger,
 ) (metadata.Source, error) {
-	metaDBURL := cmd.String(flagMetadataDatabaseURL)
-	if metaDBURL == "" {
-		return source.NewFileMetadataSource(cmd.String(flagMetadataPath)), nil
+	if opts.MetadataDatabaseURL == "" {
+		return source.NewFileMetadataSource(opts.MetadataPath), nil
 	}
 
 	databaseMetadataSource, err := source.NewDatabaseMetadataSource(
 		ctx,
-		metaDBURL,
+		opts.MetadataDatabaseURL,
 		time.Second,
 		logger,
 	)
@@ -651,22 +611,21 @@ func newMetadataSource(
 }
 
 // newHasuraProxy builds the Hasura upstream proxy, or returns a nil handler
-// when the upstream URL is explicitly empty. The proxy is used both as the
+// when the upstream URL is empty. The proxy is used both as the
 // NoRoute fallback (any path Constellation does not serve natively) and as the
 // per-op fallback inside the /v1/metadata dispatcher (any metadata op not yet
 // migrated). The default URL targets the Nhost Hasura sidecar so compatibility
 // routes proxy in normal side-by-side deployments; a nil proxy makes
 // unimplemented routes return 404 and unknown metadata ops return
 // `not-supported`.
-func newHasuraProxy(cmd *cli.Command, logger *slog.Logger) (http.Handler, error) {
-	upstream := cmd.String(flagHasuraUpstreamURL)
+func newHasuraProxy(upstream string, logger *slog.Logger) (http.Handler, error) {
 	if upstream == "" {
 		return nil, nil //nolint:nilnil // nil handler is a valid "proxy disabled" result
 	}
 
 	proxy, err := hasuraproxy.New(upstream, logger)
 	if err != nil {
-		return nil, fmt.Errorf("invalid %s: %w", flagHasuraUpstreamURL, err)
+		return nil, fmt.Errorf("invalid HasuraUpstreamURL: %w", err)
 	}
 
 	return proxy, nil
