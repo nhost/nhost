@@ -40,7 +40,7 @@ check-dry-run:  ## Returns the derivation of the check
 
 
 .PHONY: _check-pre
-_check-pre: check-pitr-container
+_check-pre: check-pitr-container check-pitr-restart
 
 
 .PHONY: check-docker
@@ -52,6 +52,11 @@ check-docker:  ## Run check in the development environment
 .PHONY: check-pitr-container
 check-pitr-container:  ## Verify PITR preflight uses the image's writable temp directory
 	./tests/pitr-restore-container.sh
+
+
+.PHONY: check-pitr-restart
+check-pitr-restart:  ## Verify a promoted PITR target survives normal restart
+	./tests/pitr-restart-container.sh
 
 
 .PHONY: _dev-env-build

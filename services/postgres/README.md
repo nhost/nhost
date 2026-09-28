@@ -55,6 +55,11 @@ copies of the database, but it is not atomic: a later fetch failure destroys the
 old cluster and may leave a partial restore. The preflight therefore reduces
 obvious failures; it does not guarantee that the backup can be downloaded.
 
+PITR restores promote at the recovery target by default. The restore entrypoint
+then stops PostgreSQL, so a normal start on the same `PGDATA` retains the
+selected point in time. `PITR_TARGET_ACTION=shutdown` is available for explicit
+recovery workflows, but a normal start after shutdown can replay past the target.
+
 Following settings are available in the image but not directly configurable:
 
 ```
@@ -64,6 +69,6 @@ RESTORE_COMMAND=wal-g wal-fetch %f %p
 CHECKPOINT_TIMEOUT=5min
 SYNCHRONOUS_COMMIT=on
 HOT_STANDBY=on
-PITR_TARGET_ACTION=shutdown
+PITR_TARGET_ACTION=promote
 PITR_TARGET_TIMELINE=latest
 ```
