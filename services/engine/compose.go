@@ -362,7 +362,7 @@ func runServe(ctx context.Context, cmd *cli.Command, version string) error {
 	logStartup(ctx, logger, cmd, version)
 
 	definitions := enabledDefinitions(
-		ctx, serviceRegistry(), serviceOrder(), cmd, version, cfg, logger,
+		ctx, serviceRegistry(), serviceOrder(), cmd, cfg, logger,
 	)
 	if len(definitions) == 0 {
 		return errAllServicesDisabled
@@ -417,7 +417,6 @@ func enabledDefinitions(
 	reg map[string]serviceDef,
 	order []string,
 	cmd *cli.Command,
-	version string,
 	cfg serveConfig,
 	logger *slog.Logger,
 ) []serveutil.Definition {
@@ -436,7 +435,7 @@ func enabledDefinitions(
 			Name:   name,
 			Prefix: def.prefix,
 			Build: func(ctx context.Context, logger *slog.Logger) (*serveutil.Service, error) {
-				return buildService(ctx, def, name, cmd, version, logger, cfg)
+				return buildService(ctx, def, name, cmd, logger, cfg)
 			},
 		})
 	}
@@ -782,7 +781,6 @@ func buildService(
 	def serviceDef,
 	name string,
 	cmd *cli.Command,
-	version string,
 	logger *slog.Logger,
 	cfg serveConfig,
 ) (*serveutil.Service, error) {
@@ -796,10 +794,9 @@ func buildService(
 	var built *serveutil.Service
 
 	app := &cli.Command{ //nolint:exhaustruct
-		Name:    name,
-		Version: version,
-		Usage:   serveCmd.Usage,
-		Flags:   serveCmd.Flags,
+		Name:  name,
+		Usage: serveCmd.Usage,
+		Flags: serveCmd.Flags,
 		Action: func(ctx context.Context, c *cli.Command) error {
 			// Inject the globals, then enforce "must be provided" for the flags
 			// relaxRequiredForSkipped relaxed.
@@ -828,6 +825,8 @@ func buildService(
 		},
 	}
 
+	// Running under the serve Action's context makes the engine command the
+	// wrapper's root, so each service reads the engine's build version.
 	if err := app.Run(ctx, append([]string{name}, args...)); err != nil {
 		return nil, fmt.Errorf("running %s command: %w", name, err)
 	}
