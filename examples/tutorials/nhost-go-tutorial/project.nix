@@ -22,12 +22,15 @@ let
     ];
   };
 
-  # docs_snippets_test.go compiles the programs published on the tutorial pages,
-  # so those pages are inputs to this check. They sit outside the module, so the
-  # test is told where they are.
-  tutorialPages = fs.toSource {
-    root = ../../../docs/src/content/docs/getting-started/tutorials/go;
-    fileset = ../../../docs/src/content/docs/getting-started/tutorials/go;
+  # docs_snippets_test.go compiles the programs published on the tutorial pages
+  # and the Go quickstart, so those pages are inputs to this check. They sit
+  # outside the module, so the test is told where they are.
+  gettingStartedPages = fs.toSource {
+    root = ../../../docs/src/content/docs/getting-started;
+    fileset = fs.unions [
+      ../../../docs/src/content/docs/getting-started/quickstart/go.mdx
+      ../../../docs/src/content/docs/getting-started/tutorials/go
+    ];
   };
 
   moduleSrc = fs.toSource {
@@ -75,7 +78,7 @@ in
     submodule = ".";
 
     impureEnvVars = {
-      NHOST_GO_TUTORIAL_PAGES = "${tutorialPages}";
+      NHOST_GO_GETTING_STARTED_PAGES = "${gettingStartedPages}";
     };
   };
 }
