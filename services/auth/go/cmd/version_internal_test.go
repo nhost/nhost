@@ -20,15 +20,15 @@ func TestGetHandlerUsesCommandVersion(t *testing.T) {
 
 	serveCommand := CommandServe()
 	app := &cli.Command{
-		Name:    "storage",
+		Name:    "auth",
 		Version: commandVersion,
 		Flags:   serveCommand.Flags,
-		Action: func(_ context.Context, cmd *cli.Command) error {
+		Action: func(ctx context.Context, cmd *cli.Command) error {
 			var err error
 
-			handler, err = getHandler( //nolint:contextcheck // getHandler has no context parameter.
+			handler, err = getHandler(
+				ctx,
 				OptionsFromCommand(cmd),
-				nil,
 				nil,
 				nil,
 				slog.New(slog.DiscardHandler),
@@ -41,16 +41,12 @@ func TestGetHandlerUsesCommandVersion(t *testing.T) {
 	if err := app.Run(
 		t.Context(),
 		[]string{
-			"storage",
-			"--postgres-migrations-source=unused",
-			"--api-root-prefix=",
-			"--clamav-server=",
-			"--hasura-graphql-admin-secret=",
-			"--cors-allow-origins=*",
-			"--cors-allow-credentials=false",
-			"--fastly-service=",
-			"--fastly-key=",
-			"--cdn-cache-control=false",
+			"auth",
+			"--encryption-key=unused",
+			"--smtp-host=postmark",
+			"--client-url=https://app.example.com",
+			"--server-url=https://auth.example.com",
+			`--hasura-graphql-jwt-secret={"type":"HS256","key":"version-test-jwt-secret-32-bytes-long"}`,
 		},
 	); err != nil {
 		t.Fatalf("running command: %v", err)
@@ -65,13 +61,13 @@ func TestGetHandlerUsesCommandVersion(t *testing.T) {
 	}
 
 	var body struct {
-		BuildVersion string `json:"buildVersion"`
+		Version string `json:"version"`
 	}
 	if err := json.Unmarshal(response.Body.Bytes(), &body); err != nil {
 		t.Fatalf("unmarshalling response: %v", err)
 	}
 
-	if body.BuildVersion != commandVersion {
-		t.Errorf("buildVersion = %q, want %q", body.BuildVersion, commandVersion)
+	if body.Version != commandVersion {
+		t.Errorf("version = %q, want %q", body.Version, commandVersion)
 	}
 }

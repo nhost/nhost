@@ -124,6 +124,8 @@ rec {
       ;
 
     preCheck = ''
+      export GOEXPERIMENT=jsonv2
+
       echo "➜ Checking OpenAPI spec..."
       vacuum lint \
         -dqb -n info \
@@ -156,25 +158,33 @@ rec {
       ++ checkDeps
       ++ buildInputs
       ++ nativeBuildInputs;
+
+    shellHook = "export GOEXPERIMENT=jsonv2";
   };
 
-  package = nixops-lib.go.package {
-    inherit
-      name
-      description
-      version
-      src
-      submodule
-      ldflags
-      buildInputs
-      nativeBuildInputs
-      ;
+  package =
+    (nixops-lib.go.package {
+      inherit
+        name
+        description
+        version
+        src
+        submodule
+        ldflags
+        buildInputs
+        nativeBuildInputs
+        ;
 
-    postInstall = ''
-      mkdir $out/share
-      cp -rv ${src}/${submodule}/email-templates $out/share/email-templates
-    '';
-  };
+      postInstall = ''
+        mkdir $out/share
+        cp -rv ${src}/${submodule}/email-templates $out/share/email-templates
+      '';
+    }).overrideAttrs
+      (old: {
+        env = (old.env or { }) // {
+          GOEXPERIMENT = "jsonv2";
+        };
+      });
 
   dockerImage = nixops-lib.go.docker-image {
     inherit

@@ -30,6 +30,7 @@ jobs:
             services/ai,
             services/auth,
             services/constellation,
+            services/engine,
             services/functions,
             services/mcp,
             services/storage,

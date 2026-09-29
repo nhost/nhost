@@ -28,6 +28,7 @@ func validTestOptions() Options {
 		HasuraUpstreamURL:                "",
 		HasuraProxyRequestBodyLimitBytes: defaultHasuraProxyRequestBodyLimitBytes,
 		EnablePlayground:                 false,
+		PlaygroundGraphQLEndpoint:        defaultPlaygroundGraphQLEndpoint,
 		DevMode:                          false,
 	}
 }
@@ -160,7 +161,7 @@ func runConfigFromCommand(t *testing.T, flags []cli.Flag, args ...string) Option
 		Version: "v-test",
 		Flags:   flags,
 		Action: func(_ context.Context, cmd *cli.Command) error {
-			opts = optionsFromCommand(cmd)
+			opts = OptionsFromCommand(cmd)
 
 			return nil
 		},
@@ -209,11 +210,12 @@ func TestOptionsFromCommandDefaults(t *testing.T) {
 		HasuraUpstreamURL:                defaultHasuraUpstreamURL,
 		HasuraProxyRequestBodyLimitBytes: defaultHasuraProxyRequestBodyLimitBytes,
 		EnablePlayground:                 false,
+		PlaygroundGraphQLEndpoint:        defaultPlaygroundGraphQLEndpoint,
 		DevMode:                          false,
 	}
 
 	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("optionsFromCommand() = %+v\nwant %+v", got, want)
+		t.Fatalf("OptionsFromCommand() = %+v\nwant %+v", got, want)
 	}
 
 	if err := got.Validate(); err != nil {
@@ -238,6 +240,7 @@ func TestOptionsFromCommandFlags(t *testing.T) {
 		"--"+flagHasuraUpstreamURL, "",
 		"--"+flagHasuraProxyRequestBodyLimitBytes, "0",
 		"--"+flagEnablePlayground,
+		"--"+flagPlaygroundGraphQLEndpoint, "/graphql/v1/graphql",
 		"--"+flagDevMode,
 	)
 
@@ -256,11 +259,12 @@ func TestOptionsFromCommandFlags(t *testing.T) {
 		HasuraUpstreamURL:                "",
 		HasuraProxyRequestBodyLimitBytes: 0,
 		EnablePlayground:                 true,
+		PlaygroundGraphQLEndpoint:        "/graphql/v1/graphql",
 		DevMode:                          true,
 	}
 
 	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("optionsFromCommand() = %+v\nwant %+v", got, want)
+		t.Fatalf("OptionsFromCommand() = %+v\nwant %+v", got, want)
 	}
 }
 
