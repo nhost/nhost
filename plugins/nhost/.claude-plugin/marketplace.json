@@ -1,0 +1,15 @@
+{
+  "name": "nhost",
+  "description": "Official Nhost plugin for AI coding agents.",
+  "owner": {
+    "name": "Nhost",
+    "url": "https://nhost.io"
+  },
+  "plugins": [
+    {
+      "name": "nhost",
+      "source": "./",
+      "description": "Build apps on Nhost: Postgres, GraphQL permissions, Auth, Storage and Functions, with the Nhost CLI MCP server."
+    }
+  ]
+}

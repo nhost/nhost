@@ -1,0 +1,25 @@
+{
+  "name": "nhost",
+  "displayName": "Nhost",
+  "version": "0.1.0",
+  "description": "Build apps on Nhost: Postgres, GraphQL with role-based permissions, Auth, Storage and Functions. Skills for setup, database and permissions, auth, storage, functions and frontend integration, plus the Nhost CLI MCP server for schema, queries, migrations and docs search.",
+  "author": {
+    "name": "Nhost",
+    "url": "https://nhost.io"
+  },
+  "homepage": "https://docs.nhost.io",
+  "repository": "https://github.com/nhost/nhost-plugin",
+  "license": "MIT",
+  "keywords": [
+    "nhost",
+    "backend",
+    "postgres",
+    "graphql",
+    "auth",
+    "storage",
+    "serverless",
+    "mcp"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json"
+}

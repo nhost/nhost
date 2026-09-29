@@ -1,0 +1,14 @@
+# Security policy
+
+## Reporting a vulnerability
+
+Please don't open a public issue for security problems.
+
+Report them privately through GitHub's private vulnerability reporting: go to the [Security tab](https://github.com/nhost/nhost-plugin/security) and choose **Report a vulnerability**. If you can't use GitHub, email security@nhost.io.
+
+This covers the plugin itself: the skills, the manifests and the MCP configuration. For vulnerabilities in the Nhost CLI, the MCP server or the Nhost platform, follow the [nhost/nhost security policy](https://github.com/nhost/nhost/security/policy).
+
+## Scope notes
+
+- The plugin contains only instructions and configuration. It holds no secrets. The only software it starts is the Nhost CLI's MCP server, which `npx` downloads from npm.
+- A skill instruction that could lead an agent to write insecure code, such as exposing an admin secret or granting overly broad permissions, is a valid security report.
