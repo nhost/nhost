@@ -60,8 +60,10 @@ type Options struct {
 	// upstream. 0 disables the cap.
 	HasuraProxyRequestBodyLimitBytes int64
 
-	// EnablePlayground serves the GraphQL playground at /.
-	EnablePlayground bool
+	// EnablePlayground serves the GraphQL playground at /, which sends its
+	// queries and subscriptions to PlaygroundGraphQLEndpoint.
+	EnablePlayground          bool
+	PlaygroundGraphQLEndpoint string
 	// DevMode returns raw connector and database errors to clients. It leaks
 	// schema and data, so it is for development only.
 	DevMode bool
@@ -111,9 +113,11 @@ func (o Options) Validate() error {
 	return nil
 }
 
-// optionsFromCommand maps the serve command's flags onto Options. It does not
-// validate; NewService does.
-func optionsFromCommand(cmd *cli.Command) Options {
+// OptionsFromCommand maps the serve command's flags onto Options. It does not
+// validate; NewService does. The standalone serve command and the engine both
+// use it, so a service's flags, env vars and defaults resolve the same way in
+// either.
+func OptionsFromCommand(cmd *cli.Command) Options {
 	return Options{
 		Version:                          cmd.Root().Version,
 		AdminSecret:                      cmd.String(flagAdminSecret),
@@ -126,6 +130,7 @@ func optionsFromCommand(cmd *cli.Command) Options {
 		HasuraUpstreamURL:                cmd.String(flagHasuraUpstreamURL),
 		HasuraProxyRequestBodyLimitBytes: cmd.Int64(flagHasuraProxyRequestBodyLimitBytes),
 		EnablePlayground:                 cmd.Bool(flagEnablePlayground),
+		PlaygroundGraphQLEndpoint:        cmd.String(flagPlaygroundGraphQLEndpoint),
 		DevMode:                          cmd.Bool(flagDevMode),
 	}
 }

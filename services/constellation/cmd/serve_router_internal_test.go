@@ -143,6 +143,44 @@ func TestGetRouter_WarnsWhenNoCORSOrigins(t *testing.T) {
 	}
 }
 
+func TestGetRouter_PlaygroundUsesConfiguredGraphQLEndpoint(t *testing.T) {
+	t.Parallel()
+
+	for _, tt := range []struct {
+		name     string
+		endpoint string
+	}{
+		{name: "standalone default", endpoint: defaultPlaygroundGraphQLEndpoint},
+		{name: "engine mount", endpoint: "/graphql/v1/graphql"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			opts := validTestOptions()
+			opts.EnablePlayground = true
+			opts.PlaygroundGraphQLEndpoint = tt.endpoint
+
+			router := buildRouterWithOptions(
+				t, newRouterTestController(t), opts, slog.New(slog.DiscardHandler),
+			)
+			req := httptest.NewRequest(http.MethodGet, "/", nil)
+			rec := httptest.NewRecorder()
+			router.ServeHTTP(rec, req)
+
+			if rec.Code != http.StatusOK {
+				t.Fatalf("GET / status = %d, want %d", rec.Code, http.StatusOK)
+			}
+
+			if !strings.Contains(rec.Body.String(), tt.endpoint) {
+				t.Fatalf(
+					"playground response does not contain endpoint %q: %s",
+					tt.endpoint, rec.Body.String(),
+				)
+			}
+		})
+	}
+}
+
 // TestGetRouter_GraphQLNotBlockedByValidator is the regression guarding the
 // load-bearing invariant the buildServeRouter mirror cannot cover: the
 // embedded OpenAPI spec INCLUDES POST/GET /v1/graphql (with a required

@@ -36,6 +36,10 @@ func (r *mutationResolver) replaceConfig(
 
 	newApp.Config.Insert(&input)
 
+	if err := r.schema.ValidateConfigMutation(newApp.Config, &input); err != nil {
+		return nil, fmt.Errorf("failed to validate config mutation: %w", err)
+	}
+
 	if _, err := newApp.ResolveConfig(r.schema, true); err != nil {
 		return nil, err
 	}

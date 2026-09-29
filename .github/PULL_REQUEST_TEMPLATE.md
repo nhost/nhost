@@ -24,6 +24,7 @@ Where `TYPE` is:
 
 Where `PKG` is:
 
+- `ai`: For changes to the Nhost AI service
 - `auth`: For changes to the Nhost Auth service
 - `ci`: For general changes to the build and/or CI/CD pipeline
 - `cli`: For changes to the Nhost CLI
@@ -32,11 +33,13 @@ Where `PKG` is:
 - `dashboard`: For changes to the Nhost Dashboard
 - `deps`: For changes to dependencies
 - `docs`: For changes to the documentation
+- `engine`: For changes to the Nhost Engine service
 - `examples`: For changes to the examples
 - `functions`: For changes to the Nhost Functions service
 - `ghactivity`: For changes to the gh-activity CLI extension
 - `govulncheck-wrapper`: For changes to the govulncheck wrapper tool
 - `internal/lib`: For changes to Nhost's common libraries (internal)
+- `landing`: For changes to the Nhost landing page
 - `mcp`: For changes to the Nhost MCP server
 - `nhost-js`: For changes to the Nhost JavaScript SDK
 - `nixops`: For changes to the NixOps
