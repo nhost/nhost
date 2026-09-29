@@ -363,6 +363,7 @@ function renderGenerics(generics) {
 // ---------------------------------------------------------------------------
 
 function fnSignature(name, fn, { isMethod = false } = {}) {
+  fn = asyncTraitSugar(fn);
   const g = renderGenerics(fn.generics);
   const header = fn.header ?? {};
   const kw =
@@ -375,6 +376,91 @@ function fnSignature(name, fn, { isMethod = false } = {}) {
   });
   const out = fn.sig?.output ? ` -> ${renderType(fn.sig.output)}` : '';
   return `${kw}fn ${rustIdentifier(name)}${g.params}(${inputs.join(', ')})${out}${g.where}`;
+}
+
+// `#[async_trait]` rewrites `async fn f(&self, x: &str) -> T` into
+// `fn f<'life0, 'life1, 'async_trait>(&'life0 self, x: &'life1 str)
+//  -> Pin<Box<dyn Future<Output = T> + Send + 'async_trait>>` plus outlives
+// bounds, and rustdoc records that expansion. Show the declaration a reader
+// writes instead: the lifetimes and bounds are the macro's, and the `Send`
+// difference between native and browser targets is already carried by the
+// trait's own bounds. That includes the `Self: Sync` the macro adds to a
+// provided method whose trait names `Sync` only through another supertrait.
+const ASYNC_TRAIT_LIFETIME = "'async_trait";
+
+function asyncTraitSugar(fn) {
+  const params = fn.generics?.params ?? [];
+  if (!params.some((p) => p.name === ASYNC_TRAIT_LIFETIME)) return fn;
+  const output = futureOutput(fn.sig?.output);
+  if (output === undefined) return fn;
+
+  const macroLifetime = (name) =>
+    name === ASYNC_TRAIT_LIFETIME || /^'life\d+$/.test(name ?? '');
+  const withoutMacroLifetime = (ty) => {
+    if (ty && 'borrowed_ref' in ty && macroLifetime(ty.borrowed_ref.lifetime)) {
+      return { borrowed_ref: { ...ty.borrowed_ref, lifetime: null } };
+    }
+    return ty;
+  };
+  const wherePredicates = (fn.generics.where_predicates ?? [])
+    .map((w) => {
+      if ('lifetime_predicate' in w) {
+        return macroLifetime(w.lifetime_predicate.lifetime) ? null : w;
+      }
+      if ('bound_predicate' in w) {
+        const onSelf = w.bound_predicate.type?.generic === 'Self';
+        const bounds = (w.bound_predicate.bounds ?? []).filter(
+          (b) =>
+            !('outlives' in b && macroLifetime(b.outlives)) &&
+            !(onSelf && lastPathSegment(b.trait_bound?.trait?.path) === 'Sync'),
+        );
+        return bounds.length
+          ? { bound_predicate: { ...w.bound_predicate, bounds } }
+          : null;
+      }
+      return w;
+    })
+    .filter(Boolean);
+
+  return {
+    ...fn,
+    header: { ...fn.header, is_async: true },
+    generics: {
+      ...fn.generics,
+      params: params.filter((p) => !macroLifetime(p.name)),
+      where_predicates: wherePredicates,
+    },
+    sig: {
+      ...fn.sig,
+      inputs: (fn.sig.inputs ?? []).map(([argName, ty]) => [
+        argName,
+        withoutMacroLifetime(ty),
+      ]),
+      output,
+    },
+  };
+}
+
+// The `T` of `Pin<Box<dyn Future<Output = T> ..>>`, `null` for `()`, or
+// `undefined` when `ty` is not that shape.
+function futureOutput(ty) {
+  const arg = (t, segment) => {
+    const p = t && 'resolved_path' in t ? t.resolved_path : null;
+    if (lastPathSegment(p?.path) !== segment) return undefined;
+    const first = p.args?.angle_bracketed?.args?.[0];
+    return first && 'type' in first ? first.type : undefined;
+  };
+  const boxed = arg(arg(ty, 'Pin'), 'Box');
+  const future = boxed?.dyn_trait?.traits?.find(
+    (tr) => lastPathSegment(tr.trait.path) === 'Future',
+  );
+  const constraint = future?.trait.args?.angle_bracketed?.constraints?.find(
+    (c) => c.name === 'Output',
+  );
+  const out = constraint?.binding?.equality;
+  if (!out) return undefined;
+  const outType = out.type ?? out;
+  return 'tuple' in outType && outType.tuple.length === 0 ? null : outType;
 }
 
 function renderSelf(ty) {
