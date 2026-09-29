@@ -65,7 +65,7 @@ impl Client {
         }))
     }
 
-    fn with_middleware(&self, mw: Arc<dyn http::Middleware>) -> Self {
+    pub(crate) fn with_middleware(&self, mw: Arc<dyn http::Middleware>) -> Self {
         let mut scoped_middleware = self.scoped_middleware.clone();
         scoped_middleware.push(mw);
         let middleware = scoped_middleware

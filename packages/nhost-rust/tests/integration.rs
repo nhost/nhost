@@ -3,13 +3,18 @@
 //! Every test here is `#[ignore]`d so that a run without a backend reports them
 //! as ignored rather than as a green pass.
 
-use nhost::{auth, storage, Nhost};
+use nhost::{auth, session, storage, Nhost};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 fn local_client() -> Nhost {
     // The local dev backend serves a valid, publicly-trusted Let's Encrypt cert
     // for *.local.nhost.run, so the default TLS trust store verifies it.
-    Nhost::new("local", "local").expect("static local project configuration is valid")
+    Nhost::builder()
+        .subdomain("local")
+        .region("local")
+        .session_store(session::MemoryStore::default())
+        .build()
+        .expect("static local project configuration is valid")
 }
 
 fn unique(prefix: &str) -> String {
@@ -37,6 +42,7 @@ async fn integration_signup_decodes_role() {
 
     let stored = client
         .session()
+        .await
         .expect("session lookup")
         .expect("session after signup");
     let role = stored

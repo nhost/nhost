@@ -4,7 +4,7 @@ use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
 use nhost::auth::{SignInEmailPasswordRequest, SignOutRequest, SignUpEmailPasswordRequest};
-use nhost::session::FileStorage;
+use nhost::session::FileStore;
 use nhost::storage::{FilePart, UploadFileMetadata, UploadFilesBody};
 use nhost::Nhost;
 use serde_json::{json, Value};
@@ -145,7 +145,7 @@ async fn run(command: Command) -> Result<()> {
             signup(&client, &email, &password).await
         }
         Command::Logout => logout(&client).await,
-        Command::Whoami => whoami(&client),
+        Command::Whoami => whoami(&client).await,
 
         Command::New {
             title,
@@ -203,7 +203,7 @@ fn make_client() -> Result<Nhost> {
     Ok(Nhost::builder()
         .subdomain(env("NHOST_SUBDOMAIN", "local"))
         .region(env("NHOST_REGION", "local"))
-        .storage(Box::new(FileStorage::new(path)))
+        .session_store(FileStore::new(path))
         .build()?)
 }
 
@@ -283,7 +283,7 @@ async fn signup(client: &Nhost, email: &str, password: &str) -> Result<()> {
             code_challenge: None,
         })
         .await?;
-    if client.session()?.is_some() {
+    if client.session().await?.is_some() {
         println!("signed up and logged in as {email}");
     } else {
         println!("signed up; verify your email, then `login`");
@@ -292,7 +292,7 @@ async fn signup(client: &Nhost, email: &str, password: &str) -> Result<()> {
 }
 
 async fn logout(client: &Nhost) -> Result<()> {
-    if let Some(sess) = client.session()? {
+    if let Some(sess) = client.session().await? {
         let _ = client
             .auth
             .sign_out(SignOutRequest {
@@ -301,13 +301,13 @@ async fn logout(client: &Nhost) -> Result<()> {
             })
             .await;
     }
-    client.clear_session()?;
+    client.clear_session().await?;
     println!("logged out");
     Ok(())
 }
 
-fn whoami(client: &Nhost) -> Result<()> {
-    match client.session()?.and_then(|s| s.session.user) {
+async fn whoami(client: &Nhost) -> Result<()> {
+    match client.session().await?.and_then(|s| s.session.user) {
         Some(u) => {
             println!("{} ({})", u.email.unwrap_or_default(), u.id);
             Ok(())

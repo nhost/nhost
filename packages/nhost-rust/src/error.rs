@@ -305,9 +305,15 @@ pub enum Error {
     #[error("configuration error: {0}")]
     Config(String),
 
-    /// A session-storage backend failed (file/localStorage I/O).
-    #[error("session storage error: {0}")]
-    Storage(String),
+    /// A session store failed. Holds the store's own error, which can be
+    /// downcast (for example to [`std::io::Error`] from `FileStore`).
+    #[error("session store failed: {0}")]
+    Storage(crate::session::BoxError),
+
+    /// A session method was called on a client built without a session store
+    /// (see [`crate::NhostBuilder::session_store`]).
+    #[error("client has no session store (see NhostBuilder::session_store)")]
+    NoSessionStore,
 
     /// A transport-level error from reqwest.
     #[error(transparent)]

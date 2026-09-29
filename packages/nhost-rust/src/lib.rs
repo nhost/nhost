@@ -29,7 +29,7 @@
 
 #![warn(missing_docs)]
 // On wasm32 the session store is single-threaded and its Arc wraps deliberately
-// !Send state (see `session::SessionStorage`), so silence the lint only there.
+// !Send state (see `session::SessionManager`), so silence the lint only there.
 #![cfg_attr(
     all(feature = "wasm", target_arch = "wasm32"),
     allow(clippy::arc_with_non_send_sync)
@@ -38,7 +38,7 @@
 // Targeting wasm32 without the `wasm` feature builds cleanly and then fails at
 // runtime in three separate ways: the clock is `std::time`, whose
 // `SystemTime::now()` panics on wasm32, so the first token-expiry check aborts;
-// `LocalStorage` is not compiled, so nothing persists the session; and
+// `LocalStorageStore` is not compiled, so nothing persists the session; and
 // `web-sys` is absent. Refuse the build instead of shipping that.
 #[cfg(all(target_arch = "wasm32", not(feature = "wasm")))]
 compile_error!(

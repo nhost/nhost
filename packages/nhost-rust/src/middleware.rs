@@ -7,7 +7,7 @@
 
 use crate::auth;
 use crate::http::{self as nhost_http, Middleware};
-use crate::session::{self, SessionStorage};
+use crate::session::{self, SessionManager};
 use http::Extensions;
 use reqwest::header::{HeaderName, HeaderValue, AUTHORIZATION};
 use reqwest::{Request, Response};
@@ -31,7 +31,7 @@ type MwUnitResult = reqwest_middleware::Result<()>;
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum HeaderPriority {
-    /// A bearer token read from session storage.
+    /// A bearer token read from the session store.
     Session,
     /// A default configured on [`crate::NhostBuilder`].
     Default,
@@ -132,18 +132,83 @@ fn is_loopback_host(host: &str) -> bool {
         .is_ok_and(|address| address.is_loopback())
 }
 
-/// Attaches `Authorization: Bearer <token>` from the stored session, unless the
-/// request already carries one. Runs after [`SessionRefresh`].
+/// Which session a request acts with, as chosen by
+/// [`Nhost::with_user_id`](crate::Nhost::with_user_id) and
+/// [`Nhost::with_access_token`](crate::Nhost::with_access_token). It travels in
+/// the request's extensions, so every middleware and the session capture in
+/// [`crate::http::send`] see the same choice.
+#[derive(Clone, Debug, Default)]
+pub(crate) struct SessionScope {
+    /// The user whose stored session the request uses.
+    pub(crate) user_id: Option<String>,
+    /// A token the caller supplied. It is attached as-is and never stored,
+    /// refreshed or replaced by a session from the response.
+    pub(crate) access_token: Option<String>,
+}
+
+impl SessionScope {
+    pub(crate) fn of(ext: &Extensions) -> Self {
+        ext.get::<Self>().cloned().unwrap_or_default()
+    }
+}
+
+/// Records a [`SessionScope`] choice on each request. Installed first on a
+/// scoped client, so every later middleware sees it.
+pub(crate) struct ScopeSession {
+    pub(crate) user_id: Option<String>,
+    pub(crate) access_token: Option<String>,
+}
+
+#[cfg_attr(not(target_arch = "wasm32"), async_trait::async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait::async_trait(?Send))]
+impl Middleware for ScopeSession {
+    async fn handle(&self, req: Request, ext: &mut Extensions, next: Next<'_>) -> MwResult {
+        let scope = ext.get_or_insert_default::<SessionScope>();
+        if self.user_id.is_some() {
+            scope.user_id.clone_from(&self.user_id);
+        }
+        if self.access_token.is_some() {
+            scope.access_token.clone_from(&self.access_token);
+        }
+        next.run(req, ext).await
+    }
+}
+
+/// Attaches `Authorization: Bearer <token>` unless the request already carries
+/// one. The token is the caller's own
+/// ([`Nhost::with_access_token`](crate::Nhost::with_access_token)), or else that
+/// of the stored session the request selects
+/// ([`Nhost::with_user_id`](crate::Nhost::with_user_id)). Runs after
+/// [`SessionRefresh`]. If the session store cannot be read, the request fails.
 ///
 /// The token is written only for requests inside `service_url`'s origin. A
-/// request that has left that origin has the stored bearer stripped, so a
+/// request that has left that origin has that bearer stripped, so a
 /// retargeting middleware cannot forward the user's access token to another
 /// host; an unrelated caller-supplied `Authorization` value is preserved.
 pub struct AttachToken {
-    /// The store the access token is read from.
-    pub storage: SessionStorage,
+    /// The sessions the access token is read from, or `None` for a client
+    /// without a session store, which attaches only a caller's own token.
+    pub sessions: Option<SessionManager>,
     /// The base URL of the service this middleware is installed on.
     pub service_url: String,
+}
+
+impl AttachToken {
+    async fn token(&self, scope: &SessionScope) -> reqwest_middleware::Result<Option<String>> {
+        if let Some(access_token) = &scope.access_token {
+            return Ok(Some(access_token.clone()));
+        }
+        let Some(sessions) = &self.sessions else {
+            return Ok(None);
+        };
+        let stored = sessions
+            .get(scope.user_id.as_deref())
+            .await
+            .map_err(|error| reqwest_middleware::Error::Middleware(anyhow::Error::new(error)))?;
+        Ok(stored
+            .map(|session| session.session.access_token)
+            .filter(|access_token| !access_token.is_empty()))
+    }
 }
 
 #[cfg_attr(not(target_arch = "wasm32"), async_trait::async_trait)]
@@ -151,27 +216,21 @@ pub struct AttachToken {
 impl Middleware for AttachToken {
     async fn handle(&self, mut req: Request, ext: &mut Extensions, next: Next<'_>) -> MwResult {
         // A missing or unparseable service URL fails closed: no token is written
-        // and any stored bearer already on the request is stripped.
+        // and any bearer this middleware would attach is stripped.
         let scope = RequestScope::from_base_url(&self.service_url);
         let in_scope = scope.is_some_and(|scope| scope.contains(req.url()));
         let has_authorization = req.headers().contains_key(AUTHORIZATION);
-
-        if in_scope && has_authorization {
+        if in_scope == has_authorization {
+            // In scope with a header the caller set, or off-origin with nothing
+            // to strip.
             return next.run(req, ext).await;
         }
 
-        let stored = self
-            .storage
-            .get()
-            .map_err(|error| reqwest_middleware::Error::Middleware(anyhow::Error::new(error)))?;
-        let Some(session) = stored else {
+        let Some(access_token) = self.token(&SessionScope::of(ext)).await? else {
             return next.run(req, ext).await;
         };
-        if session.session.access_token.is_empty() {
-            return next.run(req, ext).await;
-        }
 
-        let bearer = format!("Bearer {}", session.session.access_token);
+        let bearer = format!("Bearer {access_token}");
         if in_scope {
             set_prioritized_header(
                 &mut req,
@@ -185,17 +244,23 @@ impl Middleware for AttachToken {
             .get(AUTHORIZATION)
             .is_some_and(|value| value.as_bytes() == bearer.as_bytes())
         {
-            // Off-origin and carrying exactly the stored token: strip it. An
+            // Off-origin and carrying exactly this token: strip it. An
             // unrelated caller-supplied value is left untouched.
             req.headers_mut().remove(AUTHORIZATION);
         }
+
         next.run(req, ext).await
     }
 }
 
-/// Refreshes the session before a request when the token is near expiry. Skips
-/// requests that already carry an Authorization header and this client's exact
-/// auth refresh endpoint.
+/// Refreshes the session the request selects
+/// ([`Nhost::with_user_id`](crate::Nhost::with_user_id)) before the request when
+/// its token is near expiry. Skips requests that already carry an Authorization
+/// header or a caller's own token
+/// ([`Nhost::with_access_token`](crate::Nhost::with_access_token)), and this
+/// client's exact auth refresh endpoint. A failed refresh request lets the
+/// request go ahead with the stored token; a session store that cannot be read
+/// or updated fails the request.
 ///
 /// Prefer a middleware-free [`auth::Client`] here: refreshing through a client
 /// that carries this middleware relies on the refresh-endpoint check to avoid
@@ -203,8 +268,8 @@ impl Middleware for AttachToken {
 pub struct SessionRefresh {
     /// The client used to call the refresh endpoint.
     pub auth: Arc<auth::Client>,
-    /// The store the refresh token is read from and the new session written to.
-    pub storage: SessionStorage,
+    /// The sessions the refresh token is read from and the new session written to.
+    pub sessions: SessionManager,
     /// Seconds before expiry at which to refresh; `0` always refreshes. Negative
     /// or unrepresentably large values fail the request with a configuration error.
     pub margin: i64,
@@ -219,18 +284,26 @@ impl Middleware for SessionRefresh {
         // after the stored token has already rotated. A custom `from_clients`
         // pipeline can also hang if `refresh_auth` carries `SessionRefresh` whose
         // guarded auth base differs from `refresh_auth`'s base, because it re-enters
-        // refresh while the storage lock is held. Compare the complete,
+        // refresh while the refresh lock is held. Compare the complete,
         // normalized endpoint rather than its path suffix: this middleware also
         // runs for storage, GraphQL and Functions, whose valid request paths may
         // end in `/token` too.
         let is_refresh_endpoint = nhost_http::append_path(&self.auth.base_url, &["token"])
             .is_ok_and(|url| url.as_str() == req.url().as_str());
-        if !req.headers().contains_key(AUTHORIZATION) && !is_refresh_endpoint {
-            session::refresh_session(&self.auth, &self.storage, self.margin)
-                .await
-                .map_err(|error| {
-                    reqwest_middleware::Error::Middleware(anyhow::Error::new(error))
-                })?;
+        // A caller's own token is theirs to refresh; it is never a stored session.
+        let scope = SessionScope::of(ext);
+        if !req.headers().contains_key(AUTHORIZATION)
+            && !is_refresh_endpoint
+            && scope.access_token.is_none()
+        {
+            session::refresh_session(
+                &self.auth,
+                &self.sessions,
+                scope.user_id.as_deref(),
+                self.margin,
+            )
+            .await
+            .map_err(|error| reqwest_middleware::Error::Middleware(anyhow::Error::new(error)))?;
         }
         next.run(req, ext).await
     }
@@ -307,6 +380,13 @@ impl std::fmt::Debug for AdminSessionOptions {
 
 /// Attaches `x-hasura-admin-secret` (plus optional role and session variables).
 ///
+/// A request carrying a caller's own token
+/// ([`Nhost::with_access_token`](crate::Nhost::with_access_token)) fails instead:
+/// the GraphQL engine checks the admin secret before the token, so it would run
+/// as admin and silently ignore the user it was meant for. To act as a user
+/// with the admin secret, set [`AdminSessionOptions::role`] and
+/// [`AdminSessionOptions::session_variables`].
+///
 /// Security warning: never use in client-side code — it grants admin access.
 pub struct AdminSession {
     /// The admin secret, role and session variables to send.
@@ -322,6 +402,14 @@ pub struct AdminSession {
 #[cfg_attr(target_arch = "wasm32", async_trait::async_trait(?Send))]
 impl Middleware for AdminSession {
     async fn handle(&self, mut req: Request, ext: &mut Extensions, next: Next<'_>) -> MwResult {
+        if SessionScope::of(ext).access_token.is_some() {
+            return Err(reqwest_middleware::Error::Middleware(anyhow::anyhow!(
+                "a request with a caller's access token cannot also carry the admin secret, \
+                 which the GraphQL engine would let override it; use a client without \
+                 the admin secret"
+            )));
+        }
+
         // Fail closed: an unparseable service URL, a different origin, or
         // cleartext to a non-loopback host all withhold every admin header.
         let permitted = RequestScope::from_base_url(&self.service_url).is_some_and(|scope| {

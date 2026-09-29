@@ -7,7 +7,8 @@
 
 use crate::auth::Session;
 use crate::error::Error;
-use crate::session::SessionStorage;
+use crate::middleware::SessionScope;
+use crate::session::SessionManager;
 use bytes::Bytes;
 use reqwest::header::HeaderMap;
 use std::sync::Arc;
@@ -108,7 +109,7 @@ pub(crate) struct BufferedResponse {
 /// such as GraphQL give body-level errors precedence over the HTTP status.
 pub(crate) async fn send_buffered(
     mut request: RequestBuilder,
-    sink: Option<&SessionStorage>,
+    sink: Option<&SessionManager>,
 ) -> Result<BufferedResponse, Error> {
     // `build_split` does not carry the middleware extension map into the built
     // reqwest request. Preserve it explicitly, as RequestBuilder::send does.
@@ -123,7 +124,12 @@ pub(crate) async fn send_buffered(
     let success = response.status().is_success();
     let status = response.status().as_u16();
     let headers = response.headers().clone();
-    let bytes = read_and_apply_session(response, &path, success, sink).await;
+    // A request made with a caller's own token acts for someone whose session
+    // this client does not hold, so it leaves the store alone.
+    let scope = SessionScope::of(&extensions);
+    let sink = sink.filter(|_| scope.access_token.is_none());
+    let bytes =
+        read_and_apply_session(response, &path, success, sink, scope.user_id.as_deref()).await;
 
     Ok(BufferedResponse {
         status,
@@ -157,7 +163,7 @@ pub(crate) enum SendOutcome {
 /// Sends a request while preserving whether a 2xx response was observed.
 pub(crate) async fn send_phased(
     request: RequestBuilder,
-    sink: Option<&SessionStorage>,
+    sink: Option<&SessionManager>,
 ) -> SendOutcome {
     let response = match send_buffered(request, sink).await {
         Ok(response) => response,
@@ -191,11 +197,12 @@ async fn read_and_apply_session(
     response: reqwest::Response,
     path: &str,
     success: bool,
-    sink: Option<&SessionStorage>,
+    sink: Option<&SessionManager>,
+    user_id: Option<&str>,
 ) -> Result<Bytes, Error> {
     let body = response.bytes().await?;
     if let Some(sink) = sink {
-        apply_session_response(path, success, &body, sink)?;
+        apply_session_response(path, success, &body, sink, user_id).await?;
     }
     Ok(body)
 }
@@ -214,7 +221,7 @@ async fn read_and_apply_session(
 /// takes precedence because local credentials may remain persisted.
 pub async fn send(
     request: RequestBuilder,
-    sink: Option<&SessionStorage>,
+    sink: Option<&SessionManager>,
 ) -> Result<(u16, HeaderMap, Bytes), Error> {
     match send_phased(request, sink).await {
         SendOutcome::Accepted {
@@ -231,27 +238,30 @@ pub async fn send(
     }
 }
 
-/// Applies a completed auth response to the session store.
-fn apply_session_response(
+/// Applies a completed auth response to the session store: a new session is
+/// stored under its own user, and signing out or changing the password clears
+/// the session of the user the request selected.
+async fn apply_session_response(
     path: &str,
     success: bool,
     body: &Bytes,
-    storage: &SessionStorage,
+    storage: &SessionManager,
+    user_id: Option<&str>,
 ) -> Result<(), Error> {
     if path.ends_with("/signout") || (success && path.ends_with("/user/password")) {
-        return storage.remove();
+        return storage.remove(user_id).await;
     }
     if success {
-        capture_session(body, storage)?;
+        capture_session(body, storage).await?;
     }
     Ok(())
 }
 
 /// Extracts a session from a successful auth response body and stores it.
 /// A no-op when the body carries no session.
-fn capture_session(body: &Bytes, storage: &SessionStorage) -> Result<(), Error> {
+async fn capture_session(body: &Bytes, storage: &SessionManager) -> Result<(), Error> {
     match extract_session(body) {
-        Some(session) => storage.set(session),
+        Some(session) => storage.set(session).await,
         None => Ok(()),
     }
 }

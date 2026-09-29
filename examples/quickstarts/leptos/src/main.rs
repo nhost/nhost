@@ -11,6 +11,7 @@
 use leptos::prelude::*;
 use leptos::task::spawn_local;
 use nhost::auth::{SignInEmailPasswordRequest, SignOutRequest};
+use nhost::session::{LocalStorageStore, MemoryStore};
 use nhost::Nhost;
 use serde::Deserialize;
 use std::rc::Rc;
@@ -37,17 +38,24 @@ struct MoviesData {
 }
 
 /// Builds a client pointed at the local example backend (`./dev-env.sh up`).
-/// For a cloud project, pass your own `subdomain`/`region` here (or use
-/// `Nhost::builder()` to override the per-service URLs).
+/// For a cloud project, pass your own `subdomain`/`region` here (or use the
+/// builder's `*_url` methods to override the per-service URLs).
 fn make_client() -> Nhost {
-    // `new` validates the project fields and the derived service URLs; the
-    // literals below are valid, so this cannot fail at runtime.
-    Nhost::new("local", "local").expect("local/local is a valid project")
+    let builder = Nhost::builder().subdomain("local").region("local");
+    // Keep the session in localStorage so it survives a page reload. Browsers
+    // can disable it, so fall back to memory rather than failing to start.
+    let builder = match LocalStorageStore::new() {
+        Some(store) => builder.session_store(store),
+        None => builder.session_store(MemoryStore::default()),
+    };
+    // `build` validates the project fields and the derived service URLs; the
+    // literals above are valid, so this cannot fail at runtime.
+    builder.build().expect("local/local is a valid project")
 }
 
 /// Renders a human-readable label for the current session.
-fn session_label(client: &Nhost) -> String {
-    match client.session() {
+async fn session_label(client: &Nhost) -> String {
+    match client.session().await {
         Ok(Some(s)) => match s.session.user.and_then(|u| u.email) {
             Some(email) => format!("Signed in as {email}"),
             None => "Signed in".to_string(),
@@ -84,7 +92,11 @@ fn load_movies(
 fn App() -> impl IntoView {
     let client = Rc::new(make_client());
 
-    let (session, set_session) = signal(session_label(&client));
+    let (session, set_session) = signal(String::new());
+    {
+        let client = Rc::clone(&client);
+        spawn_local(async move { set_session.set(session_label(&client).await) });
+    }
     let (email, set_email) = signal(String::new());
     let (password, set_password) = signal(String::new());
     let (status, set_status) = signal(String::new());
@@ -109,7 +121,7 @@ fn App() -> impl IntoView {
                     .await
                 {
                     Ok(_) => {
-                        set_session.set(session_label(&client));
+                        set_session.set(session_label(&client).await);
                         set_status.set(String::new());
                     }
                     Err(e) => set_status.set(format!("Sign-in failed: {e}")),
@@ -125,6 +137,7 @@ fn App() -> impl IntoView {
             spawn_local(async move {
                 let refresh_token = client
                     .session()
+                    .await
                     .ok()
                     .flatten()
                     .map(|s| s.session.refresh_token);
@@ -135,8 +148,8 @@ fn App() -> impl IntoView {
                         all: None,
                     })
                     .await;
-                let _ = client.clear_session();
-                set_session.set(session_label(&client));
+                let _ = client.clear_session().await;
+                set_session.set(session_label(&client).await);
             });
         }
     };

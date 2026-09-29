@@ -4,7 +4,7 @@ use nhost::http::Middleware;
 use nhost::middleware::{
     AdminSessionOptions, AttachToken, HeaderPriority, SessionRefresh, SetHeaders,
 };
-use nhost::session::SessionStorage;
+use nhost::session::SessionManager;
 use nhost::{auth, functions, graphql, session, storage, Error, Nhost};
 use reqwest::header::{HeaderMap, HeaderValue};
 use serde::{Serialize, Serializer};
@@ -109,17 +109,18 @@ impl StoredSessionBackend {
     }
 }
 
-impl session::Backend for StoredSessionBackend {
-    fn get(&self) -> Result<Option<session::StoredSession>, Error> {
+#[async_trait::async_trait]
+impl session::SessionStore for StoredSessionBackend {
+    async fn load(&self) -> Result<Option<session::StoredSession>, session::BoxError> {
         Ok(self.session.lock().unwrap().clone())
     }
 
-    fn set(&self, value: &session::StoredSession) -> Result<(), Error> {
+    async fn save(&self, value: &session::StoredSession) -> Result<(), session::BoxError> {
         *self.session.lock().unwrap() = Some(value.clone());
         Ok(())
     }
 
-    fn remove(&self) -> Result<(), Error> {
+    async fn delete(&self) -> Result<(), session::BoxError> {
         *self.session.lock().unwrap() = None;
         Ok(())
     }
@@ -134,35 +135,19 @@ struct CountingBackend {
     removes: AtomicUsize,
 }
 
-/// Lets a test keep a handle on the counters while the client owns the backend.
-struct SharedCountingBackend(Arc<CountingBackend>);
-
-impl session::Backend for SharedCountingBackend {
-    fn get(&self) -> Result<Option<session::StoredSession>, Error> {
-        self.0.get()
-    }
-
-    fn set(&self, value: &session::StoredSession) -> Result<(), Error> {
-        self.0.set(value)
-    }
-
-    fn remove(&self) -> Result<(), Error> {
-        self.0.remove()
-    }
-}
-
-impl session::Backend for CountingBackend {
-    fn get(&self) -> Result<Option<session::StoredSession>, Error> {
+#[async_trait::async_trait]
+impl session::SessionStore for CountingBackend {
+    async fn load(&self) -> Result<Option<session::StoredSession>, session::BoxError> {
         Ok(self.session.lock().unwrap().clone())
     }
 
-    fn set(&self, value: &session::StoredSession) -> Result<(), Error> {
+    async fn save(&self, value: &session::StoredSession) -> Result<(), session::BoxError> {
         self.sets.fetch_add(1, Ordering::Relaxed);
         *self.session.lock().unwrap() = Some(value.clone());
         Ok(())
     }
 
-    fn remove(&self) -> Result<(), Error> {
+    async fn delete(&self) -> Result<(), session::BoxError> {
         self.removes.fetch_add(1, Ordering::Relaxed);
         *self.session.lock().unwrap() = None;
         Ok(())
@@ -195,23 +180,24 @@ impl FailingStorage {
     }
 }
 
-impl session::Backend for FailingStorage {
-    fn get(&self) -> Result<Option<session::StoredSession>, Error> {
+#[async_trait::async_trait]
+impl session::SessionStore for FailingStorage {
+    async fn load(&self) -> Result<Option<session::StoredSession>, session::BoxError> {
         self.reads.fetch_add(1, Ordering::Relaxed);
         match self.operation {
-            FailingStorageOperation::Read => Err(Error::Storage("read failed".to_string())),
+            FailingStorageOperation::Read => Err("read failed".into()),
             FailingStorageOperation::Remove => Ok(None),
         }
     }
 
-    fn set(&self, _value: &session::StoredSession) -> Result<(), Error> {
+    async fn save(&self, _value: &session::StoredSession) -> Result<(), session::BoxError> {
         Ok(())
     }
 
-    fn remove(&self) -> Result<(), Error> {
+    async fn delete(&self) -> Result<(), session::BoxError> {
         match self.operation {
             FailingStorageOperation::Read => Ok(()),
-            FailingStorageOperation::Remove => Err(Error::Storage("remove failed".to_string())),
+            FailingStorageOperation::Remove => Err("remove failed".into()),
         }
     }
 }
@@ -229,16 +215,17 @@ impl Serialize for FailingSerialize {
     }
 }
 
-impl session::Backend for FailingSetStorage {
-    fn get(&self) -> Result<Option<session::StoredSession>, Error> {
+#[async_trait::async_trait]
+impl session::SessionStore for FailingSetStorage {
+    async fn load(&self) -> Result<Option<session::StoredSession>, session::BoxError> {
         Ok(None)
     }
 
-    fn set(&self, _value: &session::StoredSession) -> Result<(), Error> {
-        Err(Error::Storage("write failed".to_string()))
+    async fn save(&self, _value: &session::StoredSession) -> Result<(), session::BoxError> {
+        Err("write failed".into())
     }
 
-    fn remove(&self) -> Result<(), Error> {
+    async fn delete(&self) -> Result<(), session::BoxError> {
         Ok(())
     }
 }
@@ -905,7 +892,6 @@ async fn generated_clients_encode_dots_only_path_parameters() {
         .await;
     let client = Nhost::builder()
         .storage_url(format!("{}/v1", server.uri()))
-        .without_session_management()
         .build()
         .unwrap();
 
@@ -1095,13 +1081,13 @@ fn jwt_decode_preserves_representable_expiry_boundaries() {
 #[cfg(all(feature = "wasm", not(target_arch = "wasm32")))]
 #[test]
 fn native_wasm_feature_retains_file_storage() {
-    let storage = session::FileStorage::new(std::env::temp_dir().join("nhost-session.json"));
-    let _: &dyn session::Backend = &storage;
+    let storage = session::FileStore::new(std::env::temp_dir().join("nhost-session.json"));
+    let _: &dyn session::SessionStore = &storage;
 }
 
 #[cfg(unix)]
-#[test]
-fn file_storage_keeps_the_refresh_token_private() {
+#[tokio::test]
+async fn file_storage_keeps_the_refresh_token_private() {
     use std::os::unix::fs::PermissionsExt;
 
     let dir = std::env::temp_dir().join(format!(
@@ -1112,8 +1098,8 @@ fn file_storage_keeps_the_refresh_token_private() {
     let _ = std::fs::remove_dir_all(&dir);
     let path = dir.join("nested").join("session.json");
 
-    let storage = session::SessionStorage::new(Box::new(session::FileStorage::new(path.clone())));
-    storage.set(session_with(&token(900))).unwrap();
+    let storage = session::SessionManager::new(session::FileStore::new(path.clone()));
+    storage.set(session_with(&token(900))).await.unwrap();
 
     let mode = std::fs::metadata(&path).unwrap().permissions().mode() & 0o777;
     assert_eq!(
@@ -1134,7 +1120,7 @@ fn file_storage_keeps_the_refresh_token_private() {
     // A file left behind by an older version at a wider mode must be narrowed
     // rather than kept, since OpenOptions::mode only applies on creation.
     std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o644)).unwrap();
-    storage.set(session_with(&token(900))).unwrap();
+    storage.set(session_with(&token(900))).await.unwrap();
     let mode = std::fs::metadata(&path).unwrap().permissions().mode() & 0o777;
     assert_eq!(
         mode, 0o600,
@@ -1145,11 +1131,20 @@ fn file_storage_keeps_the_refresh_token_private() {
 }
 
 #[test]
-fn server_mode_requires_storage() {
-    assert!(Nhost::builder().server().build().is_err());
+fn admin_secret_cannot_be_combined_with_a_session_store() {
+    let error = Nhost::builder()
+        .admin_secret("secret")
+        .session_store(session::MemoryStore::default())
+        .build()
+        .err()
+        .expect("admin secret with session storage must be rejected");
+    assert!(
+        matches!(&error, Error::Config(message) if message.contains("admin secret")),
+        "unexpected error: {error}"
+    );
+    assert!(Nhost::builder().admin_secret("secret").build().is_ok());
     assert!(Nhost::builder()
-        .server()
-        .storage(Box::<session::MemoryStorage>::default())
+        .session_store(session::MemoryStore::default())
         .build()
         .is_ok());
 }
@@ -1244,7 +1239,6 @@ async fn builder_admin_secret_is_isolated_from_auth_requests() {
     let client = Nhost::builder()
         .auth_url(server.uri())
         .graphql_url(server.uri())
-        .without_session_management()
         .admin_secret("admin-secret")
         .build()
         .unwrap();
@@ -1285,7 +1279,6 @@ async fn builder_admin_session_identity_reaches_graphql_requests() {
 
     let client = Nhost::builder()
         .graphql_url(server.uri())
-        .without_session_management()
         .admin(AdminSessionOptions {
             admin_secret: "admin-secret".to_string(),
             role: Some("support".to_string()),
@@ -1316,7 +1309,6 @@ async fn admin_session_variable_role_overrides_declared_role() {
 
     let client = Nhost::builder()
         .graphql_url(server.uri())
-        .without_session_management()
         .admin(AdminSessionOptions {
             admin_secret: "admin-secret".to_string(),
             role: Some("declared-role".to_string()),
@@ -1350,7 +1342,6 @@ async fn builder_role_and_headers_reach_graphql_and_auth_requests() {
     let client = Nhost::builder()
         .auth_url(server.uri())
         .graphql_url(server.uri())
-        .without_session_management()
         .role("editor")
         .headers(HashMap::from([(
             "x-builder-map".to_string(),
@@ -1378,53 +1369,6 @@ async fn builder_role_and_headers_reach_graphql_and_auth_requests() {
 }
 
 #[tokio::test]
-async fn server_mode_attaches_expired_token_without_refreshing() {
-    let server = MockServer::start().await;
-    let stale = token(-60);
-    let refreshed = token(900);
-    Mock::given(method("POST"))
-        .and(path("/token"))
-        .respond_with(ResponseTemplate::new(200).set_body_json(session_with(&refreshed)))
-        .mount(&server)
-        .await;
-    Mock::given(method("POST"))
-        .and(path("/"))
-        .respond_with(ResponseTemplate::new(200).set_body_json(json!({"data": {"ok": true}})))
-        .mount(&server)
-        .await;
-
-    let client = Nhost::builder()
-        .auth_url(server.uri())
-        .graphql_url(server.uri())
-        .storage(Box::<session::MemoryStorage>::default())
-        .server()
-        .build()
-        .unwrap();
-    client.sessions.set(session_with(&stale)).unwrap();
-
-    client
-        .graphql
-        .query("query { ok }")
-        .send::<serde_json::Value>()
-        .await
-        .unwrap();
-
-    let requests = server.received_requests().await.unwrap();
-    assert_eq!(
-        requests
-            .iter()
-            .filter(|request| request.url.path() == "/token")
-            .count(),
-        0
-    );
-    assert_eq!(requests.len(), 1);
-    assert_eq!(
-        requests[0].headers["authorization"],
-        format!("Bearer {stale}")
-    );
-}
-
-#[tokio::test]
 async fn builder_zero_refresh_margin_refreshes_valid_session() {
     let server = MockServer::start().await;
     let stale = token(120);
@@ -1448,11 +1392,16 @@ async fn builder_zero_refresh_margin_refreshes_valid_session() {
     let client = Nhost::builder()
         .auth_url(server.uri())
         .graphql_url(server.uri())
-        .storage(Box::<session::MemoryStorage>::default())
+        .session_store(session::MemoryStore::default())
         .refresh_margin(0)
         .build()
         .unwrap();
-    client.sessions.set(session_with(&stale)).unwrap();
+    client
+        .session_manager()
+        .unwrap()
+        .set(session_with(&stale))
+        .await
+        .unwrap();
 
     let response = client
         .graphql
@@ -1475,7 +1424,6 @@ fn mock_client(server: &MockServer) -> Nhost {
     Nhost::builder()
         .graphql_url(server.uri())
         .functions_url(server.uri())
-        .without_session_management()
         .build()
         .unwrap()
 }
@@ -1492,10 +1440,15 @@ async fn sign_out_clears_session_even_when_request_fails() {
     let backend = Arc::new(CountingBackend::default());
     let client = Nhost::builder()
         .auth_url(server.uri())
-        .storage(Box::new(SharedCountingBackend(Arc::clone(&backend))))
+        .session_store(Arc::clone(&backend))
         .build()
         .unwrap();
-    client.sessions.set(session_with(&token(900))).unwrap();
+    client
+        .session_manager()
+        .unwrap()
+        .set(session_with(&token(900)))
+        .await
+        .unwrap();
     backend.removes.store(0, Ordering::Relaxed);
 
     let error = client
@@ -1508,7 +1461,7 @@ async fn sign_out_clears_session_even_when_request_fails() {
         .unwrap_err();
 
     assert_eq!(error.status(), Some(500));
-    assert!(client.session().unwrap().is_none());
+    assert!(client.session().await.unwrap().is_none());
     assert_eq!(backend.removes.load(Ordering::Relaxed), 1);
 }
 
@@ -1524,7 +1477,7 @@ async fn sign_out_storage_error_takes_precedence_over_http_error() {
 
     let client = Nhost::builder()
         .auth_url(server.uri())
-        .storage(Box::new(FailingStorage::remove()))
+        .session_store(FailingStorage::remove())
         .build()
         .unwrap();
 
@@ -1537,7 +1490,7 @@ async fn sign_out_storage_error_takes_precedence_over_http_error() {
         .await
         .unwrap_err();
 
-    assert!(matches!(error, Error::Storage(ref message) if message == "remove failed"));
+    assert!(matches!(error, Error::Storage(ref message) if message.to_string() == "remove failed"));
     server.verify().await;
 }
 
@@ -1559,10 +1512,15 @@ async fn sign_out_redirect_clears_session_from_original_request_path() {
 
     let client = Nhost::builder()
         .auth_url(server.uri())
-        .storage(Box::<session::MemoryStorage>::default())
+        .session_store(session::MemoryStore::default())
         .build()
         .unwrap();
-    client.sessions.set(session_with(&token(900))).unwrap();
+    client
+        .session_manager()
+        .unwrap()
+        .set(session_with(&token(900)))
+        .await
+        .unwrap();
 
     client
         .auth
@@ -1573,7 +1531,7 @@ async fn sign_out_redirect_clears_session_from_original_request_path() {
         .await
         .unwrap();
 
-    assert!(client.session().unwrap().is_none());
+    assert!(client.session().await.unwrap().is_none());
 }
 
 #[tokio::test]
@@ -1588,10 +1546,15 @@ async fn successful_password_change_clears_session() {
     let backend = Arc::new(CountingBackend::default());
     let client = Nhost::builder()
         .auth_url(server.uri())
-        .storage(Box::new(SharedCountingBackend(Arc::clone(&backend))))
+        .session_store(Arc::clone(&backend))
         .build()
         .unwrap();
-    client.sessions.set(session_with(&token(900))).unwrap();
+    client
+        .session_manager()
+        .unwrap()
+        .set(session_with(&token(900)))
+        .await
+        .unwrap();
     backend.removes.store(0, Ordering::Relaxed);
 
     client
@@ -1603,7 +1566,7 @@ async fn successful_password_change_clears_session() {
         .await
         .unwrap();
 
-    assert!(client.session().unwrap().is_none());
+    assert!(client.session().await.unwrap().is_none());
     assert_eq!(backend.removes.load(Ordering::Relaxed), 1);
 }
 
@@ -1618,13 +1581,15 @@ async fn failed_password_change_preserves_session() {
 
     let client = Nhost::builder()
         .auth_url(server.uri())
-        .storage(Box::<session::MemoryStorage>::default())
+        .session_store(session::MemoryStore::default())
         .build()
         .unwrap();
     let original_access_token = token(900);
     client
-        .sessions
+        .session_manager()
+        .unwrap()
         .set(session_with(&original_access_token))
+        .await
         .unwrap();
 
     let error = client
@@ -1638,7 +1603,13 @@ async fn failed_password_change_preserves_session() {
 
     assert_eq!(error.status(), Some(401));
     assert_eq!(
-        client.session().unwrap().unwrap().session.access_token,
+        client
+            .session()
+            .await
+            .unwrap()
+            .unwrap()
+            .session
+            .access_token,
         original_access_token
     );
 }
@@ -1655,7 +1626,7 @@ async fn session_capture_stores_enveloped_session() {
         .mount(&server)
         .await;
 
-    let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
+    let sessions = SessionManager::new(session::MemoryStore::default());
     let auth = auth::Client::new(server.uri(), reqwest::Client::new(), Vec::new())
         .with_session_capture(sessions.clone());
 
@@ -1668,7 +1639,7 @@ async fn session_capture_stores_enveloped_session() {
         .unwrap();
 
     assert!(response.body.session.is_some());
-    let stored = sessions.get().unwrap().unwrap();
+    let stored = sessions.get(None).await.unwrap().unwrap();
     assert_eq!(stored.session.access_token, access_token);
     assert_eq!(stored.decoded_token.sub.as_deref(), Some("user-1"));
 }
@@ -1686,7 +1657,7 @@ async fn session_capture_stores_bare_session_without_user() {
         .mount(&server)
         .await;
 
-    let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
+    let sessions = SessionManager::new(session::MemoryStore::default());
     let auth = auth::Client::new(server.uri(), reqwest::Client::new(), Vec::new())
         .with_session_capture(sessions.clone());
 
@@ -1698,7 +1669,7 @@ async fn session_capture_stores_bare_session_without_user() {
         .unwrap();
 
     assert!(response.body.user.is_none());
-    let stored = sessions.get().unwrap().unwrap();
+    let stored = sessions.get(None).await.unwrap().unwrap();
     assert_eq!(stored.session.access_token, access_token);
     assert_eq!(stored.decoded_token.sub.as_deref(), Some("user-1"));
 }
@@ -1713,7 +1684,7 @@ async fn session_capture_stores_bare_session_from_non_allowlisted_auth_path() {
         .mount(&server)
         .await;
 
-    let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
+    let sessions = SessionManager::new(session::MemoryStore::default());
     let auth = auth::Client::new(server.uri(), reqwest::Client::new(), Vec::new())
         .with_session_capture(sessions.clone());
 
@@ -1729,7 +1700,7 @@ async fn session_capture_stores_bare_session_from_non_allowlisted_auth_path() {
         .unwrap_err();
 
     assert!(matches!(error, Error::Json(_)));
-    let stored = sessions.get().unwrap().unwrap();
+    let stored = sessions.get(None).await.unwrap().unwrap();
     assert_eq!(stored.session.access_token, access_token);
     assert_eq!(stored.decoded_token.sub.as_deref(), Some("user-1"));
 }
@@ -1747,8 +1718,11 @@ async fn session_capture_leaves_store_untouched_for_mfa_challenge() {
         .mount(&server)
         .await;
 
-    let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
-    sessions.set(session_with(&original_access_token)).unwrap();
+    let sessions = SessionManager::new(session::MemoryStore::default());
+    sessions
+        .set(session_with(&original_access_token))
+        .await
+        .unwrap();
     let auth = auth::Client::new(server.uri(), reqwest::Client::new(), Vec::new())
         .with_session_capture(sessions.clone());
 
@@ -1763,7 +1737,13 @@ async fn session_capture_leaves_store_untouched_for_mfa_challenge() {
     assert!(response.body.session.is_none());
     assert!(response.body.mfa.is_some());
     assert_eq!(
-        sessions.get().unwrap().unwrap().session.access_token,
+        sessions
+            .get(None)
+            .await
+            .unwrap()
+            .unwrap()
+            .session
+            .access_token,
         original_access_token
     );
 }
@@ -1786,8 +1766,11 @@ async fn session_capture_mfa_null_session_does_not_fall_through_to_bare_fields()
         .mount(&server)
         .await;
 
-    let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
-    sessions.set(session_with(&original_access_token)).unwrap();
+    let sessions = SessionManager::new(session::MemoryStore::default());
+    sessions
+        .set(session_with(&original_access_token))
+        .await
+        .unwrap();
     let auth = auth::Client::new(server.uri(), reqwest::Client::new(), Vec::new())
         .with_session_capture(sessions.clone());
 
@@ -1802,7 +1785,13 @@ async fn session_capture_mfa_null_session_does_not_fall_through_to_bare_fields()
     assert!(response.body.session.is_none());
     assert!(response.body.mfa.is_some());
     assert_eq!(
-        sessions.get().unwrap().unwrap().session.access_token,
+        sessions
+            .get(None)
+            .await
+            .unwrap()
+            .unwrap()
+            .session
+            .access_token,
         original_access_token
     );
 }
@@ -1820,8 +1809,11 @@ async fn session_capture_leaves_store_untouched_for_non_success_response() {
         .mount(&server)
         .await;
 
-    let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
-    sessions.set(session_with(&original_access_token)).unwrap();
+    let sessions = SessionManager::new(session::MemoryStore::default());
+    sessions
+        .set(session_with(&original_access_token))
+        .await
+        .unwrap();
     let auth = auth::Client::new(server.uri(), reqwest::Client::new(), Vec::new())
         .with_session_capture(sessions.clone());
 
@@ -1834,7 +1826,13 @@ async fn session_capture_leaves_store_untouched_for_non_success_response() {
 
     assert_eq!(error.status(), Some(401));
     assert_eq!(
-        sessions.get().unwrap().unwrap().session.access_token,
+        sessions
+            .get(None)
+            .await
+            .unwrap()
+            .unwrap()
+            .session
+            .access_token,
         original_access_token
     );
 }
@@ -1852,7 +1850,7 @@ async fn session_capture_propagates_storage_errors() {
 
     let client = Nhost::builder()
         .auth_url(server.uri())
-        .storage(Box::new(FailingSetStorage))
+        .session_store(FailingSetStorage)
         .build()
         .unwrap();
     let error = client
@@ -1864,8 +1862,8 @@ async fn session_capture_propagates_storage_errors() {
         .await
         .unwrap_err();
 
-    assert!(matches!(error, Error::Storage(ref message) if message == "write failed"));
-    assert!(client.session().unwrap().is_none());
+    assert!(matches!(error, Error::Storage(ref message) if message.to_string() == "write failed"));
+    assert!(client.session().await.unwrap().is_none());
 }
 
 #[tokio::test]
@@ -1893,11 +1891,7 @@ async fn storage_head_error_uses_only_non_blank_x_error_header() {
             .mount(&server)
             .await;
 
-        let client = Nhost::builder()
-            .storage_url(server.uri())
-            .without_session_management()
-            .build()
-            .unwrap();
+        let client = Nhost::builder().storage_url(server.uri()).build().unwrap();
         let error = client
             .storage
             .get_file_metadata_headers("abc", None)
@@ -1931,11 +1925,7 @@ async fn storage_error_body_message_takes_precedence_over_x_error_header() {
         .mount(&server)
         .await;
 
-    let client = Nhost::builder()
-        .storage_url(server.uri())
-        .without_session_management()
-        .build()
-        .unwrap();
+    let client = Nhost::builder().storage_url(server.uri()).build().unwrap();
     let error = client.storage.get_file("abc", None).await.unwrap_err();
 
     assert_eq!(error.status(), Some(403));
@@ -1956,11 +1946,7 @@ async fn storage_not_modified_preserves_status_and_headers() {
         .mount(&server)
         .await;
 
-    let client = Nhost::builder()
-        .storage_url(server.uri())
-        .without_session_management()
-        .build()
-        .unwrap();
+    let client = Nhost::builder().storage_url(server.uri()).build().unwrap();
     let response = client
         .storage
         .get_file(
@@ -2509,7 +2495,6 @@ async fn functions_paths_are_appended_and_encoded() {
         .await;
     let client = Nhost::builder()
         .functions_url(format!("{}/v1", server.uri()))
-        .without_session_management()
         .build()
         .unwrap();
 
@@ -2740,7 +2725,6 @@ async fn scoped_role_overrides_builder_role() {
 
     let client = Nhost::builder()
         .graphql_url(server.uri())
-        .without_session_management()
         .role("builder")
         .build()
         .unwrap();
@@ -2763,11 +2747,7 @@ async fn typed_header_overrides_scoped_header() {
         .mount(&server)
         .await;
 
-    let client = Nhost::builder()
-        .storage_url(server.uri())
-        .without_session_management()
-        .build()
-        .unwrap();
+    let client = Nhost::builder().storage_url(server.uri()).build().unwrap();
     let scoped = client.storage.with_headers(HashMap::from([(
         "if-none-match".to_string(),
         "scoped".to_string(),
@@ -2795,7 +2775,6 @@ async fn scoped_header_overrides_builder_header() {
 
     let client = Nhost::builder()
         .storage_url(server.uri())
-        .without_session_management()
         .header("if-none-match", "builder")
         .build()
         .unwrap();
@@ -2821,7 +2800,6 @@ async fn typed_header_overrides_builder_header() {
 
     let client = Nhost::builder()
         .storage_url(server.uri())
-        .without_session_management()
         .header("if-none-match", "builder")
         .build()
         .unwrap();
@@ -2849,7 +2827,6 @@ async fn typed_header_wins_over_scoped_and_builder_headers() {
 
     let client = Nhost::builder()
         .storage_url(server.uri())
-        .without_session_management()
         .header("if-none-match", "builder")
         .build()
         .unwrap();
@@ -2953,10 +2930,15 @@ async fn scoped_authorization_wins_and_suppresses_session_refresh() {
     let client = Nhost::builder()
         .auth_url(server.uri())
         .graphql_url(server.uri())
-        .storage(Box::<session::MemoryStorage>::default())
+        .session_store(session::MemoryStore::default())
         .build()
         .unwrap();
-    client.sessions.set(session_with(&token(-60))).unwrap();
+    client
+        .session_manager()
+        .unwrap()
+        .set(session_with(&token(-60)))
+        .await
+        .unwrap();
 
     let data: serde_json::Value = client
         .graphql
@@ -3001,10 +2983,15 @@ async fn scoped_authorization_suppresses_refresh_for_all_clients() {
 
         let client = Nhost::builder()
             .auth_url(server.uri())
-            .storage(Box::<session::MemoryStorage>::default())
+            .session_store(session::MemoryStore::default())
             .build()
             .unwrap();
-        client.sessions.set(session_with(&token(-60))).unwrap();
+        client
+            .session_manager()
+            .unwrap()
+            .set(session_with(&token(-60)))
+            .await
+            .unwrap();
         client
             .auth
             .with_headers(HashMap::from([(
@@ -3043,10 +3030,15 @@ async fn scoped_authorization_suppresses_refresh_for_all_clients() {
         let client = Nhost::builder()
             .auth_url(server.uri())
             .storage_url(server.uri())
-            .storage(Box::<session::MemoryStorage>::default())
+            .session_store(session::MemoryStore::default())
             .build()
             .unwrap();
-        client.sessions.set(session_with(&token(-60))).unwrap();
+        client
+            .session_manager()
+            .unwrap()
+            .set(session_with(&token(-60)))
+            .await
+            .unwrap();
         client
             .storage
             .with_headers(HashMap::from([(
@@ -3085,10 +3077,15 @@ async fn scoped_authorization_suppresses_refresh_for_all_clients() {
         let client = Nhost::builder()
             .auth_url(server.uri())
             .graphql_url(server.uri())
-            .storage(Box::<session::MemoryStorage>::default())
+            .session_store(session::MemoryStore::default())
             .build()
             .unwrap();
-        client.sessions.set(session_with(&token(-60))).unwrap();
+        client
+            .session_manager()
+            .unwrap()
+            .set(session_with(&token(-60)))
+            .await
+            .unwrap();
         let _: serde_json::Value = client
             .graphql
             .with_headers(HashMap::from([(
@@ -3128,10 +3125,15 @@ async fn scoped_authorization_suppresses_refresh_for_all_clients() {
         let client = Nhost::builder()
             .auth_url(server.uri())
             .functions_url(server.uri())
-            .storage(Box::<session::MemoryStorage>::default())
+            .session_store(session::MemoryStore::default())
             .build()
             .unwrap();
-        client.sessions.set(session_with(&token(-60))).unwrap();
+        client
+            .session_manager()
+            .unwrap()
+            .set(session_with(&token(-60)))
+            .await
+            .unwrap();
         client
             .functions
             .with_headers(HashMap::from([(
@@ -3171,11 +3173,16 @@ async fn builder_authorization_wins_and_suppresses_session_refresh() {
     let client = Nhost::builder()
         .auth_url(server.uri())
         .graphql_url(server.uri())
-        .storage(Box::<session::MemoryStorage>::default())
+        .session_store(session::MemoryStore::default())
         .header("authorization", "Bearer builder-default")
         .build()
         .unwrap();
-    client.sessions.set(session_with(&token(-60))).unwrap();
+    client
+        .session_manager()
+        .unwrap()
+        .set(session_with(&token(-60)))
+        .await
+        .unwrap();
 
     let data: serde_json::Value = client.graphql.query("query { ok }").send().await.unwrap();
     assert_eq!(data["ok"], true);
@@ -3204,10 +3211,15 @@ async fn request_authorization_wins_and_suppresses_session_refresh() {
     let client = Nhost::builder()
         .auth_url(server.uri())
         .functions_url(server.uri())
-        .storage(Box::<session::MemoryStorage>::default())
+        .session_store(session::MemoryStore::default())
         .build()
         .unwrap();
-    client.sessions.set(session_with(&token(-60))).unwrap();
+    client
+        .session_manager()
+        .unwrap()
+        .set(session_with(&token(-60)))
+        .await
+        .unwrap();
 
     let body = client
         .functions
@@ -3276,7 +3288,7 @@ async fn from_clients_can_express_builder_default_header_priority() {
         .await;
 
     let http = reqwest::Client::new();
-    let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
+    let sessions = SessionManager::new(session::MemoryStore::default());
     let middleware: Vec<Arc<dyn Middleware>> = vec![Arc::new(SetHeaders {
         headers: HashMap::from([("x-priority".to_string(), "default".to_string())]),
         priority: HeaderPriority::Default,
@@ -3287,7 +3299,7 @@ async fn from_clients_can_express_builder_default_header_priority() {
         storage::Client::new(server.uri(), http.clone(), middleware.clone()),
         graphql::Client::new(server.uri(), http.clone(), middleware.clone()),
         functions::Client::new(server.uri(), http, middleware),
-        sessions,
+        Some(sessions),
     );
 
     let data: serde_json::Value = client
@@ -3303,8 +3315,8 @@ async fn from_clients_can_express_builder_default_header_priority() {
     assert_eq!(data["ok"], true);
 }
 
-#[test]
-fn invalid_admin_secret_returns_config_error_without_exposing_value() {
+#[tokio::test]
+async fn invalid_admin_secret_returns_config_error_without_exposing_value() {
     assert_config_error_without(
         Nhost::builder().admin_secret("s3cret\n").build(),
         "x-hasura-admin-secret",
@@ -3398,11 +3410,11 @@ async fn from_clients_shares_store_and_applies_middleware() {
         .await;
 
     let http = reqwest::Client::new();
-    let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
-    sessions.set(session_with(&access_token)).unwrap();
+    let sessions = SessionManager::new(session::MemoryStore::default());
+    sessions.set(session_with(&access_token)).await.unwrap();
 
     let middleware: Vec<Arc<dyn Middleware>> = vec![Arc::new(AttachToken {
-        storage: sessions.clone(),
+        sessions: Some(sessions.clone()),
         service_url: server.uri(),
     })];
 
@@ -3413,12 +3425,18 @@ async fn from_clients_shares_store_and_applies_middleware() {
         storage::Client::new(server.uri(), http.clone(), middleware.clone()),
         graphql::Client::new(server.uri(), http.clone(), middleware.clone()),
         functions::Client::new(server.uri(), http, middleware),
-        sessions.clone(),
+        Some(sessions.clone()),
     );
 
     // The store handed to the constructor is the one the client reports.
     assert_eq!(
-        client.session().unwrap().unwrap().session.access_token,
+        client
+            .session()
+            .await
+            .unwrap()
+            .unwrap()
+            .session
+            .access_token,
         access_token
     );
 
@@ -3436,13 +3454,13 @@ async fn zero_and_negative_expiries_are_rejected_before_scheduling() {
         let body = base64::engine::general_purpose::URL_SAFE_NO_PAD
             .encode(serde_json::to_vec(&payload).unwrap());
         let invalid = format!("aaa.{body}.sig");
-        let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
+        let sessions = SessionManager::new(session::MemoryStore::default());
 
         assert!(matches!(
-            sessions.set(session_with(&invalid)),
+            sessions.set(session_with(&invalid)).await,
             Err(Error::InvalidToken(_))
         ));
-        assert!(sessions.get().unwrap().is_none());
+        assert!(sessions.get(None).await.unwrap().is_none());
     }
     assert!(server.received_requests().await.unwrap().is_empty());
 }
@@ -3455,11 +3473,11 @@ async fn representable_far_future_expiry_is_safely_scheduled() {
     let body = base64::engine::general_purpose::URL_SAFE_NO_PAD
         .encode(serde_json::to_vec(&payload).unwrap());
     let access_token = format!("aaa.{body}.sig");
-    let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
+    let sessions = SessionManager::new(session::MemoryStore::default());
 
-    sessions.set(session_with(&access_token)).unwrap();
+    sessions.set(session_with(&access_token)).await.unwrap();
     let auth = auth::Client::new(server.uri(), reqwest::Client::new(), Vec::new());
-    assert!(session::refresh_session(&auth, &sessions, 60)
+    assert!(session::refresh_session(&auth, &sessions, None, 60)
         .await
         .unwrap()
         .is_some());
@@ -3489,12 +3507,12 @@ async fn issuer_lifetime_caps_huge_advertised_lifetime() {
         .await;
 
     let auth = auth::Client::new(server.uri(), reqwest::Client::new(), Vec::new());
-    let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
+    let sessions = SessionManager::new(session::MemoryStore::default());
     let mut raw = session_with(&expired);
     raw.access_token_expires_in = 9_220_000_000_000_000;
-    sessions.set(raw).unwrap();
+    sessions.set(raw).await.unwrap();
 
-    let returned = session::refresh_session(&auth, &sessions, 901)
+    let returned = session::refresh_session(&auth, &sessions, None, 901)
         .await
         .unwrap()
         .unwrap();
@@ -3537,10 +3555,15 @@ async fn issuer_lifetime_prevents_expired_bearer_attachment() {
     let client = Nhost::builder()
         .auth_url(server.uri())
         .graphql_url(server.uri())
-        .storage(Box::<session::MemoryStorage>::default())
+        .session_store(session::MemoryStore::default())
         .build()
         .unwrap();
-    client.sessions.set(session_with(&expiring)).unwrap();
+    client
+        .session_manager()
+        .unwrap()
+        .set(session_with(&expiring))
+        .await
+        .unwrap();
 
     let data: serde_json::Value = client.graphql.query("query { ok }").send().await.unwrap();
     assert_eq!(data["ok"], true);
@@ -3565,11 +3588,11 @@ async fn iatless_token_under_fast_clock_refreshes_once_without_looping() {
         .await;
 
     let auth = auth::Client::new(server.uri(), reqwest::Client::new(), Vec::new());
-    let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
-    sessions.set(session_with(&fast_clock_token)).unwrap();
+    let sessions = SessionManager::new(session::MemoryStore::default());
+    sessions.set(session_with(&fast_clock_token)).await.unwrap();
 
     for _ in 0..5 {
-        assert!(session::refresh_session(&auth, &sessions, 60)
+        assert!(session::refresh_session(&auth, &sessions, None, 60)
             .await
             .unwrap()
             .is_some());
@@ -3600,7 +3623,7 @@ async fn server_issued_session_survives_large_clock_skew_in_both_directions() {
             .mount(&server)
             .await;
 
-        let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
+        let sessions = SessionManager::new(session::MemoryStore::default());
         let auth = auth::Client::new(server.uri(), reqwest::Client::new(), Vec::new())
             .with_session_capture(sessions.clone());
         auth.sign_in_email_password(auth::SignInEmailPasswordRequest {
@@ -3611,10 +3634,16 @@ async fn server_issued_session_survives_large_clock_skew_in_both_directions() {
         .unwrap();
 
         assert_eq!(
-            sessions.get().unwrap().unwrap().session.access_token,
+            sessions
+                .get(None)
+                .await
+                .unwrap()
+                .unwrap()
+                .session
+                .access_token,
             access_token
         );
-        assert!(session::refresh_session(&auth, &sessions, 60)
+        assert!(session::refresh_session(&auth, &sessions, None, 60)
             .await
             .unwrap()
             .is_some());
@@ -3622,24 +3651,27 @@ async fn server_issued_session_survives_large_clock_skew_in_both_directions() {
     }
 }
 
-#[test]
-fn invalid_access_token_lifetimes_are_rejected() {
+#[tokio::test]
+async fn invalid_access_token_lifetimes_are_rejected() {
     let access_token = token(900);
     for lifetime in [i64::MIN, -1, 0, i64::MAX] {
-        let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
+        let sessions = SessionManager::new(session::MemoryStore::default());
         let mut raw = session_with(&access_token);
         raw.access_token_expires_in = lifetime;
-        assert!(matches!(sessions.set(raw), Err(Error::InvalidToken(_))));
+        assert!(matches!(
+            sessions.set(raw).await,
+            Err(Error::InvalidToken(_))
+        ));
     }
 }
 
-#[test]
-fn unrepresentable_issuer_lifetime_is_rejected() {
+#[tokio::test]
+async fn unrepresentable_issuer_lifetime_is_rejected() {
     let access_token = token_with_claims(Some(i64::MIN / 1000), i64::MAX / 1000);
-    let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
+    let sessions = SessionManager::new(session::MemoryStore::default());
 
     assert!(matches!(
-        sessions.set(session_with(&access_token)),
+        sessions.set(session_with(&access_token)).await,
         Err(Error::InvalidToken(_))
     ));
 }
@@ -3648,11 +3680,11 @@ fn unrepresentable_issuer_lifetime_is_rejected() {
 async fn extreme_refresh_margin_returns_a_config_error() {
     let server = MockServer::start().await;
     let auth = auth::Client::new(server.uri(), reqwest::Client::new(), Vec::new());
-    let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
-    sessions.set(session_with(&token(900))).unwrap();
+    let sessions = SessionManager::new(session::MemoryStore::default());
+    sessions.set(session_with(&token(900))).await.unwrap();
 
     assert_config_error(
-        session::refresh_session(&auth, &sessions, i64::MAX).await,
+        session::refresh_session(&auth, &sessions, None, i64::MAX).await,
         "refresh margin",
     );
     assert!(server.received_requests().await.unwrap().is_empty());
@@ -3683,15 +3715,15 @@ async fn persisted_extreme_expiry_is_redecoded_before_scheduling() {
             decoded_token: session::decode_user_session(&expired).unwrap(),
         };
         stored.decoded_token.exp = Some(persisted_exp);
-        let sessions = SessionStorage::new(Box::new(StoredSessionBackend::new(stored)));
+        let sessions = SessionManager::new(StoredSessionBackend::new(stored));
 
-        let returned = session::refresh_session(&auth, &sessions, 60)
+        let returned = session::refresh_session(&auth, &sessions, None, 60)
             .await
             .unwrap()
             .unwrap();
         assert_eq!(returned.session.access_token, refreshed);
         assert_eq!(
-            sessions.get().unwrap().unwrap().decoded_token.exp,
+            sessions.get(None).await.unwrap().unwrap().decoded_token.exp,
             session::decode_user_session(&refreshed).unwrap().exp
         );
     }
@@ -3717,10 +3749,15 @@ async fn refresh_session_persists_once_and_requests_once() {
     let backend = Arc::new(CountingBackend::default());
     let client = Nhost::builder()
         .auth_url(server.uri())
-        .storage(Box::new(SharedCountingBackend(Arc::clone(&backend))))
+        .session_store(Arc::clone(&backend))
         .build()
         .unwrap();
-    client.sessions.set(session_with(&token(-60))).unwrap();
+    client
+        .session_manager()
+        .unwrap()
+        .set(session_with(&token(-60)))
+        .await
+        .unwrap();
     backend.sets.store(0, Ordering::Relaxed);
 
     client.refresh_session().await.unwrap().unwrap();
@@ -3750,10 +3787,15 @@ async fn refresh_session_persists_rotated_refresh_token() {
 
     let client = Nhost::builder()
         .auth_url(server.uri())
-        .storage(Box::<session::MemoryStorage>::default())
+        .session_store(session::MemoryStore::default())
         .build()
         .unwrap();
-    client.sessions.set(session_with(&token(-60))).unwrap();
+    client
+        .session_manager()
+        .unwrap()
+        .set(session_with(&token(-60)))
+        .await
+        .unwrap();
 
     let refreshed_session = client.refresh_session().await.unwrap().unwrap();
 
@@ -3761,7 +3803,7 @@ async fn refresh_session_persists_rotated_refresh_token() {
         refreshed_session.session.refresh_token,
         "rotated-refresh-token"
     );
-    let persisted = client.session().unwrap().unwrap();
+    let persisted = client.session().await.unwrap().unwrap();
     assert_eq!(persisted.session.refresh_token_id, "rotated-id");
     assert_eq!(persisted.session.refresh_token, "rotated-refresh-token");
 }
@@ -3790,9 +3832,9 @@ async fn generated_and_session_refresh_requests_do_not_drift() {
     .await
     .unwrap();
 
-    let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
-    sessions.set(session_with(&token(-60))).unwrap();
-    session::refresh_session(&auth, &sessions, 60)
+    let sessions = SessionManager::new(session::MemoryStore::default());
+    sessions.set(session_with(&token(-60))).await.unwrap();
+    session::refresh_session(&auth, &sessions, None, 60)
         .await
         .unwrap()
         .unwrap();
@@ -3828,10 +3870,15 @@ async fn refresh_session_does_not_retry_after_token_is_accepted() {
 
     let client = Nhost::builder()
         .auth_url(server.uri())
-        .storage(Box::<session::MemoryStorage>::default())
+        .session_store(session::MemoryStore::default())
         .build()
         .unwrap();
-    client.sessions.set(session_with(&token(-60))).unwrap();
+    client
+        .session_manager()
+        .unwrap()
+        .set(session_with(&token(-60)))
+        .await
+        .unwrap();
 
     let result = client.refresh_session().await;
 
@@ -3853,10 +3900,15 @@ async fn refresh_session_does_not_retry_an_undecodable_200() {
 
         let client = Nhost::builder()
             .auth_url(server.uri())
-            .storage(Box::<session::MemoryStorage>::default())
+            .session_store(session::MemoryStore::default())
             .build()
             .unwrap();
-        client.sessions.set(session_with(&token(-60))).unwrap();
+        client
+            .session_manager()
+            .unwrap()
+            .set(session_with(&token(-60)))
+            .await
+            .unwrap();
 
         let result = client.refresh_session().await;
 
@@ -3893,10 +3945,10 @@ async fn refresh_session_does_not_retry_a_body_read_failure_after_200() {
         reqwest::Client::new(),
         vec![Arc::new(AttemptCounter(attempts.clone()))],
     );
-    let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
-    sessions.set(session_with(&token(-60))).unwrap();
+    let sessions = SessionManager::new(session::MemoryStore::default());
+    sessions.set(session_with(&token(-60))).await.unwrap();
 
-    let result = session::refresh_session(&auth, &sessions, 60).await;
+    let result = session::refresh_session(&auth, &sessions, None, 60).await;
 
     server.join().unwrap();
     assert!(matches!(result, Err(Error::Http(_))));
@@ -3915,15 +3967,20 @@ async fn refresh_session_unauthorized_clears_the_stored_session() {
 
     let client = Nhost::builder()
         .auth_url(server.uri())
-        .storage(Box::<session::MemoryStorage>::default())
+        .session_store(session::MemoryStore::default())
         .build()
         .unwrap();
-    client.sessions.set(session_with(&token(-60))).unwrap();
+    client
+        .session_manager()
+        .unwrap()
+        .set(session_with(&token(-60)))
+        .await
+        .unwrap();
 
     let result = client.refresh_session().await;
 
     assert!(matches!(result, Ok(None)));
-    assert!(client.session().unwrap().is_none());
+    assert!(client.session().await.unwrap().is_none());
 }
 
 #[tokio::test]
@@ -3937,13 +3994,15 @@ async fn refresh_session_retries_when_token_is_not_accepted() {
 
     let client = Nhost::builder()
         .auth_url(server.uri())
-        .storage(Box::<session::MemoryStorage>::default())
+        .session_store(session::MemoryStore::default())
         .build()
         .unwrap();
     let original_access_token = token(-60);
     client
-        .sessions
+        .session_manager()
+        .unwrap()
         .set(session_with(&original_access_token))
+        .await
         .unwrap();
 
     let result = client.refresh_session().await;
@@ -3955,7 +4014,13 @@ async fn refresh_session_retries_when_token_is_not_accepted() {
         .all(|request| request.url.path() == "/token"));
     assert!(matches!(result, Ok(None)));
     assert_eq!(
-        client.session().unwrap().unwrap().session.access_token,
+        client
+            .session()
+            .await
+            .unwrap()
+            .unwrap()
+            .session
+            .access_token,
         original_access_token
     );
 }
@@ -3971,18 +4036,27 @@ async fn refresh_session_soft_failure_with_zero_margin_keeps_expired_session() {
         .await;
 
     let auth = auth::Client::new(server.uri(), reqwest::Client::new(), Vec::new());
-    let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
+    let sessions = SessionManager::new(session::MemoryStore::default());
     let original_access_token = token(-60);
-    sessions.set(session_with(&original_access_token)).unwrap();
+    sessions
+        .set(session_with(&original_access_token))
+        .await
+        .unwrap();
 
-    let returned = session::refresh_session(&auth, &sessions, 0)
+    let returned = session::refresh_session(&auth, &sessions, None, 0)
         .await
         .unwrap()
         .unwrap();
 
     assert_eq!(returned.session.access_token, original_access_token);
     assert_eq!(
-        sessions.get().unwrap().unwrap().session.access_token,
+        sessions
+            .get(None)
+            .await
+            .unwrap()
+            .unwrap()
+            .session
+            .access_token,
         original_access_token
     );
 }
@@ -3998,18 +4072,27 @@ async fn refresh_session_soft_failure_inside_margin_keeps_valid_session() {
         .await;
 
     let auth = auth::Client::new(server.uri(), reqwest::Client::new(), Vec::new());
-    let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
+    let sessions = SessionManager::new(session::MemoryStore::default());
     let original_access_token = token(30);
-    sessions.set(session_with(&original_access_token)).unwrap();
+    sessions
+        .set(session_with(&original_access_token))
+        .await
+        .unwrap();
 
-    let returned = session::refresh_session(&auth, &sessions, 60)
+    let returned = session::refresh_session(&auth, &sessions, None, 60)
         .await
         .unwrap()
         .unwrap();
 
     assert_eq!(returned.session.access_token, original_access_token);
     assert_eq!(
-        sessions.get().unwrap().unwrap().session.access_token,
+        sessions
+            .get(None)
+            .await
+            .unwrap()
+            .unwrap()
+            .session
+            .access_token,
         original_access_token
     );
 }
@@ -4026,10 +4109,10 @@ async fn refresh_session_retries_connection_refused() {
         reqwest::Client::new(),
         vec![Arc::new(AttemptCounter(attempts.clone()))],
     );
-    let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
-    sessions.set(session_with(&token(-60))).unwrap();
+    let sessions = SessionManager::new(session::MemoryStore::default());
+    sessions.set(session_with(&token(-60))).await.unwrap();
 
-    let result = session::refresh_session(&auth, &sessions, 60).await;
+    let result = session::refresh_session(&auth, &sessions, None, 60).await;
 
     assert!(matches!(result, Ok(None)));
     assert_eq!(attempts.load(Ordering::Relaxed), 2);
@@ -4044,10 +4127,10 @@ async fn refresh_session_retries_dns_failure() {
         reqwest,
         vec![Arc::new(AttemptCounter(attempts.clone()))],
     );
-    let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
-    sessions.set(session_with(&token(-60))).unwrap();
+    let sessions = SessionManager::new(session::MemoryStore::default());
+    sessions.set(session_with(&token(-60))).await.unwrap();
 
-    let result = session::refresh_session(&auth, &sessions, 60).await;
+    let result = session::refresh_session(&auth, &sessions, None, 60).await;
 
     assert!(matches!(result, Ok(None)));
     assert_eq!(attempts.load(Ordering::Relaxed), 2);
@@ -4072,10 +4155,10 @@ async fn refresh_session_retries_timeout() {
         reqwest,
         vec![Arc::new(AttemptCounter(attempts.clone()))],
     );
-    let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
-    sessions.set(session_with(&token(-60))).unwrap();
+    let sessions = SessionManager::new(session::MemoryStore::default());
+    sessions.set(session_with(&token(-60))).await.unwrap();
 
-    let result = session::refresh_session(&auth, &sessions, 60).await;
+    let result = session::refresh_session(&auth, &sessions, None, 60).await;
 
     assert!(matches!(result, Ok(None)));
     assert_eq!(attempts.load(Ordering::Relaxed), 2);
@@ -4103,10 +4186,15 @@ async fn public_auth_refresh_token_does_not_trigger_recursive_pre_refresh() {
 
     let client = Nhost::builder()
         .auth_url(server.uri())
-        .storage(Box::<session::MemoryStorage>::default())
+        .session_store(session::MemoryStore::default())
         .build()
         .unwrap();
-    client.sessions.set(session_with(&token(-60))).unwrap();
+    client
+        .session_manager()
+        .unwrap()
+        .set(session_with(&token(-60)))
+        .await
+        .unwrap();
 
     let response = tokio::time::timeout(
         std::time::Duration::from_secs(2),
@@ -4147,10 +4235,15 @@ async fn functions_token_path_still_refreshes_the_session() {
     let client = Nhost::builder()
         .auth_url(auth_server.uri())
         .functions_url(functions_server.uri())
-        .storage(Box::<session::MemoryStorage>::default())
+        .session_store(session::MemoryStore::default())
         .build()
         .unwrap();
-    client.sessions.set(session_with(&token(-60))).unwrap();
+    client
+        .session_manager()
+        .unwrap()
+        .set(session_with(&token(-60)))
+        .await
+        .unwrap();
 
     let response = client
         .functions
@@ -4160,7 +4253,13 @@ async fn functions_token_path_still_refreshes_the_session() {
 
     assert_eq!(response.body["ok"], true);
     assert_eq!(
-        client.session().unwrap().unwrap().session.access_token,
+        client
+            .session()
+            .await
+            .unwrap()
+            .unwrap()
+            .session
+            .access_token,
         refreshed
     );
 }
@@ -4203,10 +4302,15 @@ async fn same_origin_auth_and_storage_token_paths_still_refresh_the_session() {
     let client = Nhost::builder()
         .auth_url(server.uri())
         .storage_url(server.uri())
-        .storage(Box::<session::MemoryStorage>::default())
+        .session_store(session::MemoryStore::default())
         .build()
         .unwrap();
-    client.sessions.set(session_with(&token(-60))).unwrap();
+    client
+        .session_manager()
+        .unwrap()
+        .set(session_with(&token(-60)))
+        .await
+        .unwrap();
 
     client
         .auth
@@ -4223,11 +4327,22 @@ async fn same_origin_auth_and_storage_token_paths_still_refresh_the_session() {
         .await
         .unwrap();
 
-    client.sessions.set(session_with(&token(-60))).unwrap();
+    client
+        .session_manager()
+        .unwrap()
+        .set(session_with(&token(-60)))
+        .await
+        .unwrap();
     client.storage.delete_file("token").await.unwrap();
 
     assert_eq!(
-        client.session().unwrap().unwrap().session.access_token,
+        client
+            .session()
+            .await
+            .unwrap()
+            .unwrap()
+            .session
+            .access_token,
         refreshed
     );
 }
@@ -4254,19 +4369,19 @@ async fn session_refresh_middleware_refreshes_before_a_request() {
         .await;
 
     let http = reqwest::Client::new();
-    let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
-    sessions.set(session_with(&token(-60))).unwrap();
+    let sessions = SessionManager::new(session::MemoryStore::default());
+    sessions.set(session_with(&token(-60))).await.unwrap();
 
     // The refresh middleware gets a bare auth client, as `Nhost::builder` does.
     let refresh_auth = Arc::new(auth::Client::new(server.uri(), http.clone(), Vec::new()));
     let middleware: Vec<Arc<dyn Middleware>> = vec![
         Arc::new(SessionRefresh {
             auth: refresh_auth.clone(),
-            storage: sessions.clone(),
+            sessions: sessions.clone(),
             margin: nhost::DEFAULT_REFRESH_MARGIN_SECONDS,
         }),
         Arc::new(AttachToken {
-            storage: sessions.clone(),
+            sessions: Some(sessions.clone()),
             service_url: server.uri(),
         }),
     ];
@@ -4278,7 +4393,7 @@ async fn session_refresh_middleware_refreshes_before_a_request() {
         storage::Client::new(server.uri(), http.clone(), middleware.clone()),
         graphql::Client::new(format!("{}/graphql", server.uri()), http, middleware),
         functions::Client::new(server.uri(), reqwest::Client::new(), Vec::new()),
-        sessions,
+        Some(sessions),
     );
 
     let data: serde_json::Value = client.graphql.query("query { ok }").send().await.unwrap();
@@ -4311,17 +4426,17 @@ async fn concurrent_requests_share_one_session_refresh() {
         .await;
 
     let http = reqwest::Client::new();
-    let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
-    sessions.set(session_with(&token(-60))).unwrap();
+    let sessions = SessionManager::new(session::MemoryStore::default());
+    sessions.set(session_with(&token(-60))).await.unwrap();
     let refresh_auth = Arc::new(auth::Client::new(server.uri(), http.clone(), Vec::new()));
     let middleware: Vec<Arc<dyn Middleware>> = vec![
         Arc::new(SessionRefresh {
             auth: refresh_auth.clone(),
-            storage: sessions.clone(),
+            sessions: sessions.clone(),
             margin: nhost::DEFAULT_REFRESH_MARGIN_SECONDS,
         }),
         Arc::new(AttachToken {
-            storage: sessions.clone(),
+            sessions: Some(sessions.clone()),
             service_url: server.uri(),
         }),
     ];
@@ -4332,7 +4447,7 @@ async fn concurrent_requests_share_one_session_refresh() {
         storage::Client::new(server.uri(), http.clone(), middleware.clone()),
         graphql::Client::new(format!("{}/graphql", server.uri()), http, middleware),
         functions::Client::new(server.uri(), reqwest::Client::new(), Vec::new()),
-        sessions,
+        Some(sessions),
     ));
 
     let requests: Vec<_> = (0..8)
@@ -4360,13 +4475,13 @@ async fn concurrent_requests_share_one_session_refresh() {
 }
 
 #[tokio::test]
-async fn session_storage_read_error_fails_request_without_sending_it() {
+async fn session_store_read_error_fails_request_without_sending_it() {
     let server = MockServer::start().await;
     let reads = Arc::new(AtomicUsize::new(0));
     let client = Nhost::builder()
         .auth_url(server.uri())
         .graphql_url(server.uri())
-        .storage(Box::new(FailingStorage::read(reads.clone())))
+        .session_store(FailingStorage::read(reads.clone()))
         .build()
         .unwrap();
 
@@ -4378,38 +4493,13 @@ async fn session_storage_read_error_fails_request_without_sending_it() {
         .unwrap_err();
 
     assert!(matches!(err, Error::Middleware(_)));
-    assert!(err.to_string().contains("session storage error"));
+    assert!(err.to_string().contains("session store failed"));
     assert_eq!(reads.load(Ordering::Relaxed), 1);
     assert!(server.received_requests().await.unwrap().is_empty());
 }
 
 #[tokio::test]
-async fn server_mode_storage_read_error_fails_request() {
-    let server = MockServer::start().await;
-    let reads = Arc::new(AtomicUsize::new(0));
-    let client = Nhost::builder()
-        .auth_url(server.uri())
-        .graphql_url(server.uri())
-        .storage(Box::new(FailingStorage::read(reads.clone())))
-        .server()
-        .build()
-        .unwrap();
-
-    let err = client
-        .graphql
-        .query("query { ok }")
-        .send::<serde_json::Value>()
-        .await
-        .unwrap_err();
-
-    assert!(matches!(err, Error::Middleware(_)));
-    assert!(err.to_string().contains("session storage error"));
-    assert_eq!(reads.load(Ordering::Relaxed), 1);
-    assert!(server.received_requests().await.unwrap().is_empty());
-}
-
-#[tokio::test]
-async fn caller_authorization_skips_failed_session_storage_read() {
+async fn caller_authorization_skips_failed_session_store_read() {
     let server = MockServer::start().await;
     Mock::given(method("POST"))
         .and(path("/echo"))
@@ -4422,7 +4512,7 @@ async fn caller_authorization_skips_failed_session_storage_read() {
     let client = Nhost::builder()
         .auth_url(server.uri())
         .functions_url(server.uri())
-        .storage(Box::new(FailingStorage::read(reads.clone())))
+        .session_store(FailingStorage::read(reads.clone()))
         .build()
         .unwrap();
 
@@ -4450,10 +4540,10 @@ async fn caller_authorization_skips_failed_session_storage_read() {
 async fn refresh_session_does_not_retry_storage_read_errors() {
     let server = MockServer::start().await;
     let reads = Arc::new(AtomicUsize::new(0));
-    let storage = SessionStorage::new(Box::new(FailingStorage::read(reads.clone())));
+    let storage = SessionManager::new(FailingStorage::read(reads.clone()));
     let auth = auth::Client::new(server.uri(), reqwest::Client::new(), Vec::new());
 
-    let err = session::refresh_session(&auth, &storage, 60)
+    let err = session::refresh_session(&auth, &storage, None, 60)
         .await
         .unwrap_err();
 
@@ -4512,13 +4602,13 @@ async fn attach_token_writes_the_bearer_inside_the_service_origin() {
         .mount(&server)
         .await;
 
-    let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
-    sessions.set(session_with(&access_token)).unwrap();
+    let sessions = SessionManager::new(session::MemoryStore::default());
+    sessions.set(session_with(&access_token)).await.unwrap();
     let client = functions::Client::new(
         server.uri(),
         reqwest::Client::new(),
         vec![Arc::new(AttachToken {
-            storage: sessions.clone(),
+            sessions: Some(sessions.clone()),
             service_url: server.uri(),
         })],
     );
@@ -4537,8 +4627,8 @@ async fn attach_token_is_withheld_after_middleware_moves_the_request_off_origin(
         .await;
 
     let access_token = token(900);
-    let sessions = SessionStorage::new(Box::<session::MemoryStorage>::default());
-    sessions.set(session_with(&access_token)).unwrap();
+    let sessions = SessionManager::new(session::MemoryStore::default());
+    sessions.set(session_with(&access_token)).await.unwrap();
 
     // The service URL is a different origin from the one the request ends up at.
     let service_url = "https://functions.invalid/v1".to_string();
@@ -4548,7 +4638,7 @@ async fn attach_token_is_withheld_after_middleware_moves_the_request_off_origin(
         vec![
             Arc::new(RetargetTo(format!("{}/anything", elsewhere.uri()))) as Arc<dyn Middleware>,
             Arc::new(AttachToken {
-                storage: sessions.clone(),
+                sessions: Some(sessions.clone()),
                 service_url,
             }) as Arc<dyn Middleware>,
         ],
@@ -4649,19 +4739,20 @@ fn scratch_dir(label: &str) -> std::path::PathBuf {
 /// reported and left alone. Deleting it and answering `Ok(None)` would turn a
 /// transient problem into permanent, silent loss of the session.
 #[cfg(not(target_arch = "wasm32"))]
-#[test]
-fn file_storage_reports_a_corrupt_file_without_deleting_it() {
+#[tokio::test]
+async fn file_storage_reports_a_corrupt_file_without_deleting_it() {
     let dir = scratch_dir("corrupt");
     let path = dir.join("session.json");
     std::fs::write(&path, b"{not json").unwrap();
 
-    let storage = session::FileStorage::new(path.clone());
+    let storage = session::FileStore::new(path.clone());
 
-    let error = <session::FileStorage as session::Backend>::get(&storage)
+    let error = session::SessionStore::load(&storage)
+        .await
         .expect_err("a corrupt session file must be reported");
     assert!(
-        matches!(error, Error::Storage(_)),
-        "corrupt file error = {error:?}, want Error::Storage"
+        error.to_string().contains("session.json"),
+        "corrupt file error = {error}, want one naming the file"
     );
 
     assert_eq!(
@@ -4673,12 +4764,13 @@ fn file_storage_reports_a_corrupt_file_without_deleting_it() {
 
 /// Absence is not corruption: no file means no session, which is not an error.
 #[cfg(not(target_arch = "wasm32"))]
-#[test]
-fn file_storage_reports_a_missing_file_as_no_session() {
+#[tokio::test]
+async fn file_storage_reports_a_missing_file_as_no_session() {
     let dir = scratch_dir("missing");
-    let storage = session::FileStorage::new(dir.join("session.json"));
+    let storage = session::FileStore::new(dir.join("session.json"));
 
-    assert!(<session::FileStorage as session::Backend>::get(&storage)
+    assert!(session::SessionStore::load(&storage)
+        .await
         .expect("a missing file is not an error")
         .is_none());
 }
@@ -4687,16 +4779,16 @@ fn file_storage_reports_a_missing_file_as_no_session() {
 /// scratch files behind. Writing in place would truncate the previous session
 /// first, so an interrupted write left a file that no longer parsed.
 #[cfg(not(target_arch = "wasm32"))]
-#[test]
-fn file_storage_write_is_atomic_and_leaves_no_temporary_files() {
+#[tokio::test]
+async fn file_storage_write_is_atomic_and_leaves_no_temporary_files() {
     let dir = scratch_dir("atomic");
     let path = dir.join("session.json");
-    let storage = session::SessionStorage::new(Box::new(session::FileStorage::new(path.clone())));
+    let storage = session::SessionManager::new(session::FileStore::new(path.clone()));
 
-    storage.set(session_with(&token(900))).unwrap();
+    storage.set(session_with(&token(900))).await.unwrap();
     let first = std::fs::read(&path).unwrap();
 
-    storage.set(session_with(&token(1800))).unwrap();
+    storage.set(session_with(&token(1800))).await.unwrap();
     let second = std::fs::read(&path).unwrap();
 
     assert_ne!(first, second, "the second write must replace the first");
@@ -4722,15 +4814,15 @@ fn file_storage_write_is_atomic_and_leaves_no_temporary_files() {
 /// only ever replaced by a rename that happens after the new contents are
 /// written, so a write that cannot start leaves the previous session readable.
 #[cfg(unix)]
-#[test]
-fn file_storage_failed_write_preserves_the_previous_session() {
+#[tokio::test]
+async fn file_storage_failed_write_preserves_the_previous_session() {
     use std::os::unix::fs::PermissionsExt;
 
     let dir = scratch_dir("readonly");
     let path = dir.join("session.json");
-    let storage = session::SessionStorage::new(Box::new(session::FileStorage::new(path.clone())));
+    let storage = session::SessionManager::new(session::FileStore::new(path.clone()));
 
-    storage.set(session_with(&token(900))).unwrap();
+    storage.set(session_with(&token(900))).await.unwrap();
     let before = std::fs::read(&path).unwrap();
 
     // Deny writes to the directory so the temporary file cannot be created.
@@ -4739,13 +4831,14 @@ fn file_storage_failed_write_preserves_the_previous_session() {
     readonly.set_mode(0o500);
     std::fs::set_permissions(&dir, readonly).unwrap();
 
-    let result = storage.set(session_with(&token(1800)));
+    let result = storage.set(session_with(&token(1800))).await;
 
     std::fs::set_permissions(&dir, original).unwrap();
 
+    let error = result.expect_err("a write that cannot create its temporary file must be reported");
     assert!(
-        result.is_err(),
-        "a write that cannot create its temporary file must be reported"
+        matches!(&error, Error::Storage(inner) if inner.downcast_ref::<std::io::Error>().is_some()),
+        "the store's I/O error must be kept for downcasting, got {error:?}"
     );
     assert_eq!(
         std::fs::read(&path).unwrap(),
@@ -4760,36 +4853,20 @@ struct RemoveFailsBackend {
     removes: AtomicUsize,
 }
 
-impl session::Backend for RemoveFailsBackend {
-    fn get(&self) -> Result<Option<session::StoredSession>, Error> {
+#[async_trait::async_trait]
+impl session::SessionStore for RemoveFailsBackend {
+    async fn load(&self) -> Result<Option<session::StoredSession>, session::BoxError> {
         Ok(self.session.lock().unwrap().clone())
     }
 
-    fn set(&self, value: &session::StoredSession) -> Result<(), Error> {
+    async fn save(&self, value: &session::StoredSession) -> Result<(), session::BoxError> {
         *self.session.lock().unwrap() = Some(value.clone());
         Ok(())
     }
 
-    fn remove(&self) -> Result<(), Error> {
+    async fn delete(&self) -> Result<(), session::BoxError> {
         self.removes.fetch_add(1, Ordering::Relaxed);
-        Err(Error::Storage("session store is read-only".to_string()))
-    }
-}
-
-/// Lets a test hold the counters while the storage owns the backend.
-struct SharedRemoveFailsBackend(Arc<RemoveFailsBackend>);
-
-impl session::Backend for SharedRemoveFailsBackend {
-    fn get(&self) -> Result<Option<session::StoredSession>, Error> {
-        self.0.get()
-    }
-
-    fn set(&self, value: &session::StoredSession) -> Result<(), Error> {
-        self.0.set(value)
-    }
-
-    fn remove(&self) -> Result<(), Error> {
-        self.0.remove()
+        Err("session store is read-only".into())
     }
 }
 
@@ -4810,14 +4887,14 @@ async fn refresh_session_reports_failure_to_clear_a_rejected_session() {
         session: Mutex::new(None),
         removes: AtomicUsize::new(0),
     });
-    let sessions = SessionStorage::new(Box::new(SharedRemoveFailsBackend(backend.clone())));
+    let sessions = SessionManager::new(backend.clone());
     // Already expired: a session merely inside the refresh margin is a soft
     // failure that keeps the existing session, so it never reaches the clear.
-    sessions.set(session_with(&token(-10))).unwrap();
+    sessions.set(session_with(&token(-10))).await.unwrap();
 
     let auth = auth::Client::new(server.uri(), reqwest::Client::new(), Vec::new());
 
-    let error = session::refresh_session(&auth, &sessions, 60)
+    let error = session::refresh_session(&auth, &sessions, None, 60)
         .await
         .expect_err("a failure to clear a rejected session must be reported");
 
@@ -4828,5 +4905,741 @@ async fn refresh_session_reports_failure_to_clear_a_rejected_session() {
     assert!(
         backend.removes.load(Ordering::Relaxed) >= 1,
         "the rejected session must have been cleared"
+    );
+}
+
+// --- Sessions keyed by user --------------------------------------------------
+
+fn user_token(user_id: &str, in_secs: i64) -> String {
+    let exp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs() as i64
+        + in_secs;
+    let body = base64::engine::general_purpose::URL_SAFE_NO_PAD
+        .encode(serde_json::to_vec(&json!({ "exp": exp, "sub": user_id })).unwrap());
+    format!("aaa.{body}.sig")
+}
+
+fn user_session(user_id: &str, in_secs: i64, refresh_token: &str) -> auth::Session {
+    auth::Session {
+        refresh_token: refresh_token.to_string(),
+        ..session_with(&user_token(user_id, in_secs))
+    }
+}
+
+async fn stored(session: auth::Session) -> session::StoredSession {
+    let store = SessionManager::new(session::MemoryStore::default());
+    store.set(session).await.unwrap();
+    store.get(None).await.unwrap().unwrap()
+}
+
+#[tokio::test]
+async fn stored_session_user_id_prefers_the_auth_user_over_the_token_subject() {
+    let mut raw = user_session("from-token", 900, "rt");
+    assert_eq!(stored(raw.clone()).await.user_id(), Some("from-token"));
+
+    let mut user: auth::User = serde_json::from_value(json!({
+        "id": "from-user",
+        "avatarUrl": "",
+        "createdAt": "2026-01-01T00:00:00Z",
+        "defaultRole": "user",
+        "displayName": "",
+        "email": "ada@example.com",
+        "emailVerified": true,
+        "isAnonymous": false,
+        "locale": "en",
+        "metadata": {},
+        "phoneNumberVerified": false,
+        "roles": ["user"],
+        "activeMfaType": null,
+        "phoneNumber": null
+    }))
+    .unwrap();
+    raw.user = Some(user.clone());
+    assert_eq!(stored(raw.clone()).await.user_id(), Some("from-user"));
+
+    user.id = String::new();
+    raw.user = Some(user);
+    assert_eq!(stored(raw).await.user_id(), Some("from-token"));
+}
+
+#[tokio::test]
+async fn single_session_stores_only_return_and_remove_their_own_user() {
+    let dir = scratch_dir("single-user");
+    let backends: Vec<Box<dyn session::SessionStore>> = vec![
+        Box::<session::MemoryStore>::default(),
+        Box::new(session::FileStore::new(dir.join("session.json"))),
+    ];
+    for backend in backends {
+        let store = SessionManager::new(backend);
+        store.set(user_session("ada", 900, "rt")).await.unwrap();
+
+        assert!(store.get(None).await.unwrap().is_some());
+        assert!(store.get(Some("ada")).await.unwrap().is_some());
+        assert!(store.get(Some("bob")).await.unwrap().is_none());
+
+        store.remove(Some("bob")).await.unwrap();
+        assert!(
+            store.get(Some("ada")).await.unwrap().is_some(),
+            "removing another user's session must keep this one"
+        );
+
+        store.remove(Some("ada")).await.unwrap();
+        assert!(store.get(None).await.unwrap().is_none());
+    }
+}
+
+#[tokio::test]
+async fn multi_user_memory_store_keeps_users_apart() {
+    let store = SessionManager::multi_user(session::MultiUserMemoryStore::default());
+    store.set(user_session("ada", 900, "rt-ada")).await.unwrap();
+    store.set(user_session("bob", 900, "rt-bob")).await.unwrap();
+
+    let refresh_token = |session: Option<session::StoredSession>| {
+        session.map(|session| session.session.refresh_token)
+    };
+    assert_eq!(
+        refresh_token(store.get(Some("ada")).await.unwrap()).as_deref(),
+        Some("rt-ada")
+    );
+    assert_eq!(
+        refresh_token(store.get(Some("bob")).await.unwrap()).as_deref(),
+        Some("rt-bob")
+    );
+    assert!(
+        store.get(None).await.unwrap().is_none(),
+        "a request naming no user must get no one's session"
+    );
+
+    store.remove(Some("ada")).await.unwrap();
+    assert!(store.get(Some("ada")).await.unwrap().is_none());
+    assert!(store.get(Some("bob")).await.unwrap().is_some());
+
+    let error = store.set(user_session("", 900, "rt")).await.unwrap_err();
+    assert!(
+        matches!(error, Error::Storage(_)),
+        "unexpected error: {error}"
+    );
+}
+
+#[tokio::test]
+async fn session_methods_without_a_session_store_report_it() {
+    let client = Nhost::builder().build().unwrap();
+    assert!(client.session_manager().is_none());
+    assert!(matches!(client.session().await, Err(Error::NoSessionStore)));
+    assert!(matches!(
+        client.refresh_session().await,
+        Err(Error::NoSessionStore)
+    ));
+    assert!(matches!(
+        client.clear_session().await,
+        Err(Error::NoSessionStore)
+    ));
+}
+
+#[tokio::test]
+async fn without_a_session_store_sign_in_stores_nothing_and_sends_no_token() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/signin/email-password"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "session": user_session("ada", 900, "rt"),
+        })))
+        .mount(&server)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/graphql"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({"data": {"ok": true}})))
+        .mount(&server)
+        .await;
+
+    let client = Nhost::builder()
+        .auth_url(server.uri())
+        .graphql_url(format!("{}/graphql", server.uri()))
+        .build()
+        .unwrap();
+    client
+        .auth
+        .sign_in_email_password(auth::SignInEmailPasswordRequest {
+            email: "ada@example.com".to_string(),
+            password: "password".to_string(),
+        })
+        .await
+        .unwrap();
+    client
+        .graphql
+        .query("query { ok }")
+        .send::<serde_json::Value>()
+        .await
+        .unwrap();
+
+    let requests = server.received_requests().await.unwrap();
+    let graphql = requests
+        .iter()
+        .find(|request| request.url.path() == "/graphql")
+        .unwrap();
+    assert!(!graphql.headers.contains_key("authorization"));
+}
+
+#[tokio::test]
+async fn with_user_id_attaches_that_users_session() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/graphql"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({"data": {"ok": true}})))
+        .mount(&server)
+        .await;
+
+    let client = Nhost::builder()
+        .auth_url(server.uri())
+        .graphql_url(format!("{}/graphql", server.uri()))
+        .multi_user_session_store(session::MultiUserMemoryStore::default())
+        .build()
+        .unwrap();
+    let ada = user_session("ada", 900, "rt-ada");
+    let bob = user_session("bob", 900, "rt-bob");
+    let sessions = client.session_manager().unwrap();
+    sessions.set(ada.clone()).await.unwrap();
+    sessions.set(bob.clone()).await.unwrap();
+
+    for handle in [
+        client.with_user_id("ada"),
+        client.with_user_id("bob"),
+        client.with_user_id("ada").with_user_id("bob"),
+    ] {
+        handle
+            .graphql
+            .query("query { ok }")
+            .send::<serde_json::Value>()
+            .await
+            .unwrap();
+    }
+    client
+        .graphql
+        .query("query { ok }")
+        .send::<serde_json::Value>()
+        .await
+        .unwrap();
+
+    let authorization: Vec<Option<String>> = server
+        .received_requests()
+        .await
+        .unwrap()
+        .iter()
+        .map(|request| {
+            request
+                .headers
+                .get("authorization")
+                .map(|value| value.to_str().unwrap().to_string())
+        })
+        .collect();
+    assert_eq!(
+        authorization,
+        vec![
+            Some(format!("Bearer {}", ada.access_token)),
+            Some(format!("Bearer {}", bob.access_token)),
+            Some(format!("Bearer {}", bob.access_token)),
+            None,
+        ]
+    );
+
+    assert_eq!(
+        client
+            .with_user_id("bob")
+            .session()
+            .await
+            .unwrap()
+            .map(|session| session.session.refresh_token)
+            .as_deref(),
+        Some("rt-bob")
+    );
+    client.with_user_id("ada").clear_session().await.unwrap();
+    assert!(sessions.get(Some("ada")).await.unwrap().is_none());
+    assert!(sessions.get(Some("bob")).await.unwrap().is_some());
+}
+
+#[tokio::test]
+async fn with_access_token_is_attached_as_is_and_never_stored_or_refreshed() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/signout"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!("OK")))
+        .mount(&server)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/signin/email-password"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "session": user_session("bob", 900, "rt-bob"),
+        })))
+        .mount(&server)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/graphql"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({"data": {"ok": true}})))
+        .mount(&server)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/token"))
+        .respond_with(ResponseTemplate::new(500))
+        .expect(0)
+        .mount(&server)
+        .await;
+
+    let client = Nhost::builder()
+        .auth_url(server.uri())
+        .graphql_url(format!("{}/graphql", server.uri()))
+        .session_store(session::MemoryStore::default())
+        .build()
+        .unwrap();
+    // An expired stored session would be refreshed if the handle used it.
+    let stored_session = user_session("ada", -60, "rt-ada");
+    client
+        .session_manager()
+        .unwrap()
+        .set(stored_session.clone())
+        .await
+        .unwrap();
+
+    let caller = client.with_access_token("caller-token");
+    caller
+        .graphql
+        .query("query { ok }")
+        .send::<serde_json::Value>()
+        .await
+        .unwrap();
+    caller
+        .auth
+        .sign_in_email_password(auth::SignInEmailPasswordRequest {
+            email: "bob@example.com".to_string(),
+            password: "password".to_string(),
+        })
+        .await
+        .unwrap();
+    caller
+        .auth
+        .sign_out(auth::SignOutRequest {
+            refresh_token: None,
+            all: None,
+        })
+        .await
+        .unwrap();
+
+    for request in server.received_requests().await.unwrap() {
+        assert_eq!(
+            request.headers["authorization"],
+            "Bearer caller-token",
+            "{} did not carry the caller's token",
+            request.url.path()
+        );
+    }
+    assert_eq!(
+        client
+            .session()
+            .await
+            .unwrap()
+            .map(|session| session.session.refresh_token)
+            .as_deref(),
+        Some("rt-ada"),
+        "the caller's requests must leave the stored session alone"
+    );
+}
+
+#[tokio::test]
+async fn with_access_token_on_an_admin_client_fails_data_requests() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/.well-known/jwks.json"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({ "keys": [] })))
+        .mount(&server)
+        .await;
+
+    let client = Nhost::builder()
+        .auth_url(server.uri())
+        .graphql_url(format!("{}/graphql", server.uri()))
+        .admin_secret("secret")
+        .build()
+        .unwrap();
+    let caller = client.with_access_token("caller-token");
+
+    let error = caller
+        .graphql
+        .query("query { ok }")
+        .send::<serde_json::Value>()
+        .await
+        .unwrap_err();
+    assert!(
+        error.to_string().contains("admin secret"),
+        "unexpected error: {error}"
+    );
+
+    // Auth never gets the admin secret, so the caller's token is unambiguous.
+    caller.auth.get_jw_ks().await.unwrap();
+    let requests = server.received_requests().await.unwrap();
+    assert_eq!(requests.len(), 1, "the GraphQL request must not be sent");
+    assert_eq!(requests[0].headers["authorization"], "Bearer caller-token");
+}
+
+#[tokio::test]
+async fn rejected_refresh_keeps_a_session_another_process_rotated() {
+    let server = MockServer::start().await;
+    let rotated = user_session("ada", 900, "rt-rotated");
+    let sessions = SessionManager::new(session::MemoryStore::default());
+    sessions
+        .set(user_session("ada", -60, "rt-old"))
+        .await
+        .unwrap();
+
+    // Both attempts are rejected, and while the retry is in flight another
+    // process exchanges the old token and stores the rotated session.
+    let other_process = sessions.clone();
+    let rotated_for_other = rotated.clone();
+    let attempts = AtomicUsize::new(0);
+    Mock::given(method("POST"))
+        .and(path("/token"))
+        .respond_with(move |_: &wiremock::Request| {
+            if attempts.fetch_add(1, Ordering::Relaxed) == 1 {
+                futures_block_on_set(other_process.clone(), rotated_for_other.clone());
+            }
+            ResponseTemplate::new(401).set_body_json(json!({
+                "error": "invalid-refresh-token",
+                "message": "Invalid or expired refresh token",
+                "status": 401
+            }))
+        })
+        .mount(&server)
+        .await;
+
+    let auth = auth::Client::new(server.uri(), reqwest::Client::new(), Vec::new());
+    let result = session::refresh_session(&auth, &sessions, None, 60)
+        .await
+        .unwrap();
+
+    assert_eq!(
+        result
+            .map(|session| session.session.refresh_token)
+            .as_deref(),
+        Some("rt-rotated")
+    );
+    assert_eq!(
+        sessions
+            .get(None)
+            .await
+            .unwrap()
+            .map(|session| session.session.refresh_token)
+            .as_deref(),
+        Some("rt-rotated"),
+        "the newer session must not be cleared"
+    );
+}
+
+/// Stores `session` from inside a synchronous wiremock responder.
+fn futures_block_on_set(store: SessionManager, session: auth::Session) {
+    std::thread::spawn(move || {
+        tokio::runtime::Builder::new_current_thread()
+            .build()
+            .unwrap()
+            .block_on(store.set(session))
+            .unwrap();
+    })
+    .join()
+    .unwrap();
+}
+
+#[tokio::test]
+async fn rejected_refresh_clears_the_session_it_rejected() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/token"))
+        .respond_with(ResponseTemplate::new(401).set_body_json(json!({
+            "error": "invalid-refresh-token",
+            "message": "Invalid or expired refresh token",
+            "status": 401
+        })))
+        .mount(&server)
+        .await;
+    let sessions = SessionManager::multi_user(session::MultiUserMemoryStore::default());
+    sessions
+        .set(user_session("ada", -60, "rt-ada"))
+        .await
+        .unwrap();
+    sessions
+        .set(user_session("bob", -60, "rt-bob"))
+        .await
+        .unwrap();
+
+    let auth = auth::Client::new(server.uri(), reqwest::Client::new(), Vec::new());
+    assert!(session::refresh_session(&auth, &sessions, Some("ada"), 60)
+        .await
+        .unwrap()
+        .is_none());
+
+    assert!(sessions.get(Some("ada")).await.unwrap().is_none());
+    assert!(
+        sessions.get(Some("bob")).await.unwrap().is_some(),
+        "another user's session must survive"
+    );
+}
+
+#[tokio::test]
+async fn concurrent_refreshes_collapse_per_session_and_run_per_user() {
+    let server = MockServer::start().await;
+    for user in ["ada", "bob"] {
+        Mock::given(method("POST"))
+            .and(path("/token"))
+            .and(body_json(json!({ "refreshToken": format!("rt-{user}") })))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .set_body_json(user_session(user, 900, &format!("rt-{user}-2")))
+                    .set_delay(std::time::Duration::from_millis(100)),
+            )
+            .expect(1)
+            .mount(&server)
+            .await;
+    }
+    let sessions = SessionManager::multi_user(session::MultiUserMemoryStore::default());
+    sessions
+        .set(user_session("ada", -60, "rt-ada"))
+        .await
+        .unwrap();
+    sessions
+        .set(user_session("bob", -60, "rt-bob"))
+        .await
+        .unwrap();
+    let auth = Arc::new(auth::Client::new(
+        server.uri(),
+        reqwest::Client::new(),
+        Vec::new(),
+    ));
+
+    let refreshes: Vec<_> = (0..8)
+        .map(|i| {
+            let (auth, sessions) = (auth.clone(), sessions.clone());
+            let user = if i % 2 == 0 { "ada" } else { "bob" };
+            tokio::spawn(async move {
+                session::refresh_session(&auth, &sessions, Some(user), 60)
+                    .await
+                    .unwrap()
+                    .unwrap()
+                    .session
+                    .refresh_token
+            })
+        })
+        .collect();
+    for (i, refresh) in refreshes.into_iter().enumerate() {
+        let user = if i % 2 == 0 { "ada" } else { "bob" };
+        assert_eq!(refresh.await.unwrap(), format!("rt-{user}-2"));
+    }
+    // Each mock expects exactly one call; dropping the server verifies it.
+}
+
+#[tokio::test]
+async fn concurrent_callers_share_a_failed_refresh_instead_of_repeating_it() {
+    let server = MockServer::start().await;
+    let attempts = Arc::new(AtomicUsize::new(0));
+    let counted = attempts.clone();
+    Mock::given(method("POST"))
+        .and(path("/token"))
+        .respond_with(move |_: &wiremock::Request| {
+            counted.fetch_add(1, Ordering::Relaxed);
+            ResponseTemplate::new(503).set_delay(std::time::Duration::from_millis(100))
+        })
+        .mount(&server)
+        .await;
+    let sessions = SessionManager::new(session::MemoryStore::default());
+    sessions.set(user_session("ada", -60, "rt")).await.unwrap();
+    let auth = Arc::new(auth::Client::new(
+        server.uri(),
+        reqwest::Client::new(),
+        Vec::new(),
+    ));
+
+    let refreshes: Vec<_> = (0..6)
+        .map(|_| {
+            let (auth, sessions) = (auth.clone(), sessions.clone());
+            tokio::spawn(async move { session::refresh_session(&auth, &sessions, None, 60).await })
+        })
+        .collect();
+    for refresh in refreshes {
+        assert!(refresh.await.unwrap().unwrap().is_none());
+    }
+
+    // One request per attempt round (the first try and its retry), not per
+    // caller.
+    assert_eq!(attempts.load(Ordering::Relaxed), 2);
+    assert!(
+        sessions.get(None).await.unwrap().is_some(),
+        "a failed refresh keeps the session"
+    );
+}
+
+/// A store that relies on the trait's default `delete_if_refresh_token`.
+#[derive(Default)]
+struct DefaultConditionalDelete {
+    session: Mutex<Option<session::StoredSession>>,
+}
+
+#[async_trait::async_trait]
+impl session::SessionStore for DefaultConditionalDelete {
+    async fn load(&self) -> Result<Option<session::StoredSession>, session::BoxError> {
+        Ok(self.session.lock().unwrap().clone())
+    }
+
+    async fn save(&self, value: &session::StoredSession) -> Result<(), session::BoxError> {
+        *self.session.lock().unwrap() = Some(value.clone());
+        Ok(())
+    }
+
+    async fn delete(&self) -> Result<(), session::BoxError> {
+        *self.session.lock().unwrap() = None;
+        Ok(())
+    }
+}
+
+#[tokio::test]
+async fn delete_if_refresh_token_deletes_only_the_rejected_session() {
+    let stores: Vec<Box<dyn session::SessionStore>> = vec![
+        Box::<DefaultConditionalDelete>::default(),
+        Box::<session::MemoryStore>::default(),
+    ];
+    for store in stores {
+        let newer = stored(user_session("ada", 900, "rt-new")).await;
+        store.save(&newer).await.unwrap();
+
+        let kept = store.delete_if_refresh_token("rt-old").await.unwrap();
+        assert_eq!(
+            kept.map(|session| session.session.refresh_token).as_deref(),
+            Some("rt-new"),
+            "a session with another refresh token is returned"
+        );
+        assert!(store.load().await.unwrap().is_some(), "and kept");
+
+        assert!(store
+            .delete_if_refresh_token("rt-new")
+            .await
+            .unwrap()
+            .is_none());
+        assert!(
+            store.load().await.unwrap().is_none(),
+            "the rejected session is deleted"
+        );
+
+        assert!(store
+            .delete_if_refresh_token("rt-new")
+            .await
+            .unwrap()
+            .is_none());
+    }
+}
+
+#[tokio::test]
+async fn multi_user_delete_if_refresh_token_deletes_only_the_rejected_session() {
+    let store = session::MultiUserMemoryStore::default();
+    let ada = stored(user_session("ada", 900, "rt-ada")).await;
+    let bob = stored(user_session("bob", 900, "rt-bob")).await;
+    session::MultiUserSessionStore::save(&store, "ada", &ada)
+        .await
+        .unwrap();
+    session::MultiUserSessionStore::save(&store, "bob", &bob)
+        .await
+        .unwrap();
+
+    let kept = session::MultiUserSessionStore::delete_if_refresh_token(&store, "ada", "rt-old")
+        .await
+        .unwrap();
+    assert_eq!(
+        kept.map(|session| session.session.refresh_token).as_deref(),
+        Some("rt-ada")
+    );
+
+    assert!(
+        session::MultiUserSessionStore::delete_if_refresh_token(&store, "ada", "rt-ada")
+            .await
+            .unwrap()
+            .is_none()
+    );
+    assert!(session::MultiUserSessionStore::load(&store, "ada")
+        .await
+        .unwrap()
+        .is_none());
+    assert!(
+        session::MultiUserSessionStore::load(&store, "bob")
+            .await
+            .unwrap()
+            .is_some(),
+        "another user's session is untouched"
+    );
+}
+
+/// Records which deletion the SDK asked for, so a test can tell the atomic
+/// conditional delete from a plain one.
+#[derive(Default)]
+struct DeletionRecorder {
+    session: Mutex<Option<session::StoredSession>>,
+    deletes: AtomicUsize,
+    conditional_deletes: Mutex<Vec<String>>,
+}
+
+#[async_trait::async_trait]
+impl session::SessionStore for DeletionRecorder {
+    async fn load(&self) -> Result<Option<session::StoredSession>, session::BoxError> {
+        Ok(self.session.lock().unwrap().clone())
+    }
+
+    async fn save(&self, value: &session::StoredSession) -> Result<(), session::BoxError> {
+        *self.session.lock().unwrap() = Some(value.clone());
+        Ok(())
+    }
+
+    async fn delete(&self) -> Result<(), session::BoxError> {
+        self.deletes.fetch_add(1, Ordering::Relaxed);
+        *self.session.lock().unwrap() = None;
+        Ok(())
+    }
+
+    async fn delete_if_refresh_token(
+        &self,
+        refresh_token: &str,
+    ) -> Result<Option<session::StoredSession>, session::BoxError> {
+        self.conditional_deletes
+            .lock()
+            .unwrap()
+            .push(refresh_token.to_string());
+        *self.session.lock().unwrap() = None;
+        Ok(None)
+    }
+}
+
+#[tokio::test]
+async fn rejected_refresh_clears_the_session_through_the_conditional_delete() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/token"))
+        .respond_with(ResponseTemplate::new(401).set_body_json(json!({"message": "unauthorized"})))
+        .mount(&server)
+        .await;
+
+    let store = Arc::new(DeletionRecorder::default());
+    let sessions = SessionManager::new(Arc::clone(&store));
+    sessions
+        .set(user_session("ada", -60, "rt-old"))
+        .await
+        .unwrap();
+
+    let auth = auth::Client::new(server.uri(), reqwest::Client::new(), Vec::new());
+    let result = session::refresh_session(&auth, &sessions, None, 60)
+        .await
+        .unwrap();
+
+    assert!(result.is_none());
+    assert_eq!(
+        *store.conditional_deletes.lock().unwrap(),
+        vec!["rt-old".to_string()],
+        "the store must be asked to delete the rejected token's session"
+    );
+    assert_eq!(
+        store.deletes.load(Ordering::Relaxed),
+        0,
+        "an unconditional delete could remove a newer session"
     );
 }

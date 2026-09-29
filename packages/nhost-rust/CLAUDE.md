@@ -93,12 +93,53 @@ code for crate conventions.
   `reqwest::Client` + an ordered `Vec<Arc<dyn Middleware>>`. Middleware is
   request-side only (attach token, refresh, role/headers/admin).
 - **Persisted credentials are owner-only.** `StoredSession` serializes the
-  long-lived refresh token, so `FileStorage` writes `0o600` and creates parent
+  long-lived refresh token, so `FileStore` writes `0o600` and creates parent
   directories `0o700`, matching the Nhost CLI (`cli/clienv/wf_marshal.go`). Set
   the mode when the file is opened, never with a later `chmod`, which would
   leave the token briefly readable; and keep narrowing files that already exist,
   because `OpenOptions::mode` only applies on creation. Pinned by
   `file_storage_keeps_the_refresh_token_private` in `tests/unit.rs`.
+- **Two store traits; the SDK owns session selection.** `SessionStore`
+  (one session: `MemoryStore`, `FileStore`, `LocalStorageStore`) and
+  `MultiUserSessionStore` (keyed by user ID: `MultiUserMemoryStore`) are plain
+  async key-value traits (`load`/`save`/`delete`, plus
+  `delete_if_refresh_token` with a load-compare-delete default) returning
+  `BoxError`, which `SessionManager` wraps as `Error::Storage`. They are
+  separate types, not one trait with an `Option` user, so the rule that a
+  request naming no user gets no session from a multi-user store lives once in
+  `SessionManager` instead of in every implementation: it never calls a
+  multi-user store for `None`, filters a single store's session by the selected
+  user, and saves multi-user sessions under `StoredSession::user_id()`
+  (`user.id`, else the JWT `sub`). Both traits are implemented for `Arc<T>` and
+  `Box<T>` (the `forward_stores!` macro). The traits share one definition across
+  targets through the `MaybeSendSync` supertrait (`Send + Sync` natively, empty
+  on browser wasm) plus `cfg_attr`'d `async_trait`; `async_trait` is re-exported
+  from `session` for implementers. Native `async fn` in traits is not an option
+  because the manager holds stores as `dyn`. `Nhost::with_user_id` / `with_access_token` return handles whose
+  service clients carry a leading `ScopeSession` middleware (via the clients'
+  `pub(crate) with_middleware`, emitted by the codegen template for auth and
+  storage), which records a `SessionScope` in the request `Extensions`.
+  `SessionRefresh`, `AttachToken`, `AdminSession` and the capture in
+  `http::send_buffered` (which reads the extensions back after the request) all
+  act on that one value. A caller's access token is attached as-is and skips
+  refresh and capture; `AdminSession` fails such a request, and `build()`
+  rejects an admin secret with a session store, because the GraphQL engine
+  would let the admin secret override the user. Without a session store the
+  client has no `SessionRefresh`, no capture, and `AttachToken` with
+  `sessions: None` (it still attaches a caller's token); the session methods
+  return `Error::NoSessionStore`.
+- **Refresh is single-flight per session and rotation-safe.** `SessionManager`
+  keeps a `RefreshCall` per refresh token being exchanged. The first caller
+  performs the refresh while holding its lock and records a `RefreshOutcome`;
+  callers queued on it report that outcome instead of repeating the request or
+  resubmitting a token the service already rotated. After a final `401`,
+  `remove_rejected` calls the store's `delete_if_refresh_token`, which clears
+  the session only if it still holds the rejected refresh token, and otherwise
+  returns the newer session another process stored; never a plain `delete`.
+  Pinned by `rejected_refresh_keeps_a_session_another_process_rotated`,
+  `rejected_refresh_clears_the_session_through_the_conditional_delete`,
+  `concurrent_refreshes_collapse_per_session_and_run_per_user` and
+  `concurrent_callers_share_a_failed_refresh_instead_of_repeating_it`.
 - **Session updates are NOT middleware.** A browser `reqwest::Response` cannot
   be rebuilt from buffered bytes, so the JS SDK's response-sniffing middleware
   is impossible on wasm. Instead `crate::http::send` buffers the response and,
@@ -132,7 +173,7 @@ code for crate conventions.
   `Nhost::refresh_session`. A custom `from_clients` refresh client must remain
   middleware-free; configure required default headers on its underlying
   `reqwest::Client`. Refreshes serialize via a `tokio::sync::Mutex` in
-  `SessionStorage`.
+  `SessionManager`.
   `SessionRefresh` still skips the exact normalized `<auth base>/token` URL
   because the public `auth::Client::refresh_token` method itself passes through
   the middleware. Without the guard, a direct call with an expired session first
@@ -169,11 +210,12 @@ code for crate conventions.
   `with_session_capture(sessions)` to enable the auth client's response-driven
   session updates. `service_url` is public so callers can derive validated
   cloud/local URLs.
-- **`Backend` returns `Result`** (`Error::Storage` on file/localStorage I/O);
-  don't silently swallow errors. Persisted `decodedToken` values are a cache,
-  not an authority: `SessionStorage::get` re-decodes the access token so refresh
+- **Stores return `Result`** (`Error::Storage` on file/localStorage I/O,
+  keeping the store's error for downcasting); don't silently swallow errors.
+  Persisted `decodedToken` values are a cache,
+  not an authority: `SessionManager::get` re-decodes the access token so refresh
   scheduling, SDK session accessors, and reserialization agree even when a
-  built-in or custom backend returns edited persisted JSON. Session storage
+  built-in or custom store returns edited persisted JSON. Session storage
   requires an integer `exp` after the Unix epoch and a positive,
   millisecond-representable `accessTokenExpiresIn`. Absolute client time is not
   used to reject a server-issued expiry because clock skew is indistinguishable
@@ -187,8 +229,8 @@ code for crate conventions.
   accepted refresh without `iat`, the deadline is receipt-anchored to the
   advertised lifetime so the clock mismatch cannot hot-loop. The advertised
   cap prevents a slow clock from creating a never-refresh schedule.
-  Invalid tokens surface `Error::InvalidToken` through `SessionStorage::get`.
-  A `Backend::get` failure fails the request
+  Invalid tokens surface `Error::InvalidToken` through `SessionManager::get`.
+  A store `load` failure fails the request
   (`Error::Middleware` wrapping `Error::Storage`) in both `SessionRefresh` and
   `AttachToken`. Refresh retries are phase-based rather than error-variant-based:
   once a 2xx refresh response is observed, body-read, decode, and storage
@@ -199,13 +241,13 @@ code for crate conventions.
   token. A response lost after the server commits is indistinguishable from a
   pre-acceptance transport failure, and a proxy 5xx cannot reveal whether the
   origin committed; both remain retryable and require a server-side rotation
-  grace window to close safely. On browser builds, `detect_storage`
-  falls back to `MemoryStorage` when a `localStorage` handle cannot be obtained at
-  construction; if an obtained handle's later `get_item` call fails (for example,
+  grace window to close safely. On browser builds, `LocalStorageStore::new()` returns
+  `None` when a `localStorage` handle cannot be obtained, and the app picks a
+  fallback; if an obtained handle's later `get_item` call fails (for example,
   access is revoked), that read does reach this error path.
 - **`Error` is a real, non-exhaustive enum** (`Api(Box<ApiError>)`,
   `GraphQl(Box<GraphqlOperationError>)`, `InvalidToken`, `Config`, `Storage`,
-  `Http`, `Middleware`, `Json`). The SDK-owned `Error` and `Service` enums, and
+  `NoSessionStore`, `Http`, `Middleware`, `Json`). The SDK-owned `Error` and `Service` enums, and
   the `ApiError`, `GraphqlOperationError`, `GraphqlError`, `GraphqlResponse<T>`,
   and `http::Response<T>` output/error structs are deliberately
   `#[non_exhaustive]`: new failure modes, services, protocol fields, and
@@ -304,23 +346,23 @@ code for crate conventions.
   (the last two are feature-gated in 0.13 and used by generated clients).
 - The `wasm` feature targets the browser (`wasm32-unknown-unknown`). The wasm
   `reqwest::Client` state is `Send + Sync`; only its futures are `!Send`. The
-  sole `!Send` state is `web_sys::Storage` in `LocalStorage`, so
+  sole `!Send` state is `web_sys::Storage` in `LocalStorageStore`, so
   `session.rs` has a **`#[cfg(all(feature = "wasm", target_arch = "wasm32"))]
-  unsafe impl Send + Sync for SessionStorage`** (sound: wasm32 is
+  unsafe impl Send + Sync for SessionManager`** (sound: wasm32 is
   single-threaded). The target gate is essential because Cargo features also
   apply to native builds. This lets every middleware/client satisfy
   `Middleware: Send + Sync` on both targets and keeps the cfg-splits minimal:
-  - `Backend`/`ChangeCallback` drop `Send + Sync` only under
-    `all(feature = "wasm", target_arch = "wasm32")`;
+  - `SessionStore`/`MultiUserSessionStore` drop `Send + Sync` (through
+    `MaybeSendSync`) only under `all(feature = "wasm", target_arch = "wasm32")`;
   - `#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]` on every
     `Middleware` impl (matching reqwest-middleware);
-  - `std::time` → `web_time`; `FileStorage` is gated off only on
+  - `std::time` → `web_time`; `FileStore` is gated off only on
     wasm32-with-`wasm` and remains available to callers on native builds with the
-    `wasm` feature enabled. `LocalStorage`
+    `wasm` feature enabled. `LocalStorageStore`
     (`cfg(all(feature = "wasm", target_arch = "wasm32"))`, key `"nhostSession"`)
-    is gated on there. `detect_storage` returns `LocalStorage` on
-    wasm32-with-`wasm` and `MemoryStorage` in every other configuration; it never
-    selects `FileStorage`;
+    is gated on there. There is no default store on any target: a client
+    manages sessions only when given one with `session_store` or
+    `multi_user_session_store`;
   - crate-level `#![cfg_attr(all(feature = "wasm", target_arch = "wasm32"),
     allow(clippy::arc_with_non_send_sync))]`.
 - getrandom on browser wasm: the target-specific dependency enables its
@@ -379,7 +421,8 @@ code for crate conventions.
   `with_role`/`with_headers`).
   When changing middleware header precedence, test against `AttachToken` and
   `AdminSession`, not just `SetRole`/`SetHeaders`: they write headers too, and
-  `without_session_management()` in a test hides both. Give copied-crate mutation
+  a client built without a session store (or without an admin secret) in a
+  test hides them. Give copied-crate mutation
   tests an isolated `CARGO_TARGET_DIR`; sharing the production target can make a
   later production command execute a scratch-built test binary until a forced
   rebuild.
