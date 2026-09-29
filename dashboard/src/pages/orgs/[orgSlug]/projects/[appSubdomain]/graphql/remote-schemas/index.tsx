@@ -2,7 +2,7 @@ import type { ReactElement } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
-import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
+import { GraphQLArea } from '@/features/orgs/projects/graphql/layout';
 import { RemoteSchemaBrowserSidebar } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaBrowserSidebar';
 import { RemoteSchemaEmptyState } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaEmptyState';
 import { useGetRemoteSchemas } from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemas';
@@ -41,14 +41,14 @@ RemoteSchemasPage.getLayout = function getLayout(page: ReactElement) {
   return (
     <AppLayout>
       <ProjectScope>
-        <ProjectStateGate>
+        <GraphQLArea>
           <div className="flex h-full">
             <RemoteSchemaBrowserSidebar />
-            <div className="flex w-full flex-auto flex-col overflow-x-hidden bg-background-default">
+            <div className="flex w-full flex-auto flex-col overflow-x-hidden">
               {page}
             </div>
           </div>
-        </ProjectStateGate>
+        </GraphQLArea>
       </ProjectScope>
     </AppLayout>
   );
