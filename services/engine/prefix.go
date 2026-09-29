@@ -19,6 +19,24 @@ const (
 	kindSlice
 )
 
+// prefixedScalarFlag distinguishes an explicit CLI value from a value loaded
+// by the embedded string flag's PostParse from the environment.
+type prefixedScalarFlag struct {
+	*cli.StringFlag
+
+	explicit bool
+}
+
+func (f *prefixedScalarFlag) Set(name, value string) error {
+	if err := f.StringFlag.Set(name, value); err != nil {
+		return fmt.Errorf("setting prefixed scalar flag %q: %w", name, err)
+	}
+
+	f.explicit = true
+
+	return nil
+}
+
 // classifyFlag reduces any urfave flag type to one of three shapes using the
 // generic DocGeneration interfaces, so the engine does not have to enumerate
 // every concrete flag type (String, Int, Duration, Generic, ...). Multi-value
@@ -123,9 +141,12 @@ func servicePrefixedFlags(
 				Sources: env, Hidden: hide, DefaultText: defaultText,
 			})
 		case kindScalar:
-			out = append(out, &cli.StringFlag{ //nolint:exhaustruct
-				Name: pname, Usage: usage, Category: category,
-				Sources: env, Hidden: hide, DefaultText: defaultText,
+			out = append(out, &prefixedScalarFlag{
+				StringFlag: &cli.StringFlag{ //nolint:exhaustruct
+					Name: pname, Usage: usage, Category: category,
+					Sources: env, Hidden: hide, DefaultText: defaultText,
+				},
+				explicit: false,
 			})
 		}
 	}
@@ -162,9 +183,28 @@ func servicePassthroughArgs(
 				args = append(args, "--"+name, v)
 			}
 		case kindScalar:
-			args = append(args, "--"+name, cmd.String(pname))
+			value := cmd.String(pname)
+			if value == "" && !explicitPrefixedScalar(cmd, pname) {
+				continue
+			}
+
+			args = append(args, "--"+name, value)
 		}
 	}
 
 	return args
+}
+
+// An empty prefixed env value is not a native CLI override: native non-string
+// flags ignore it, while native strings may read a differently named env var.
+func explicitPrefixedScalar(cmd *cli.Command, name string) bool {
+	for _, flag := range cmd.Flags {
+		if flag.Names()[0] == name {
+			scalar, ok := flag.(*prefixedScalarFlag)
+
+			return ok && scalar.explicit
+		}
+	}
+
+	return false
 }
