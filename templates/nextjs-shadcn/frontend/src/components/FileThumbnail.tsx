@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Dialog,
@@ -8,8 +8,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { nhost } from '@/lib/nhost/client';
-import { withTransform } from '@/lib/storage';
+import { useStoredFileURL } from '@/lib/useStoredFile';
 
 /**
  * Over a photo the dialog's usual close button disappears into whatever it
@@ -32,15 +31,20 @@ const closeOverPhoto = [
 /**
  * A stored image, shown to the person who owns it, and openable at full size.
  *
- * It has to be a presigned URL rather than the plain file URL, because an
- * `<img>` sends no Authorization header: storage answers it as the `public`
- * role, and that role can only read an attachment once its item is shared. The
- * plain URL therefore works on the public page and 404s here, on the owner's
- * own private rows, which is the wrong way round.
+ * It cannot be the plain file URL, because an `<img>` sends no Authorization
+ * header: storage answers it as the `public` role, and that role can only read
+ * an attachment once its item is shared. The plain URL therefore works on the
+ * public page and 404s here, on the owner's own private rows, which is the
+ * wrong way round.
  *
- * The bucket's `download_expiration` is short, so the URL is refetched rather
- * than cached for long. The image itself is already loaded by then; the expiry
- * only matters for a tab left open across a re-render.
+ * So the bytes are fetched with the session and drawn from a blob URL. See
+ * `useStoredFileURL` for why that rather than a presigned URL: the short answer
+ * is that a presigned URL is unique per mint, so every view misses the CDN.
+ *
+ * The thumbnail and the full-size image are two separate fetches, because they
+ * are two different resources at the edge - a 96px WebP is not a crop of the
+ * full-resolution one. The full-size fetch is held back until the dialog opens,
+ * so merely listing items never pulls whole photos down.
  */
 export function FileThumbnail({
   fileId,
@@ -51,41 +55,39 @@ export function FileThumbnail({
   alt: string;
   className?: string;
 }) {
-  const url = useQuery({
-    queryKey: ['file-url', fileId],
-    queryFn: async () => {
-      const { body } = await nhost.storage.getFilePresignedURL(fileId);
-
-      return body.url;
-    },
-    staleTime: 20_000,
-    retry: false,
-  });
+  const [isOpen, setIsOpen] = useState(false);
 
   // Asked for at three times the size it is drawn at, so it stays sharp on a
   // dense screen while still arriving as a kilobyte or two rather than as the
   // whole photo.
+  const thumbnailURL = useStoredFileURL(fileId, { w: 96, q: 80, f: 'webp' });
+
+  // Its own size, only bounded: no width is asked for, so storage sends the
+  // full resolution, and `q`/`f` shave the bytes off the encoding rather than
+  // off the picture.
+  const fullURL = useStoredFileURL(
+    fileId,
+    { q: 85, f: 'webp' },
+    { enabled: isOpen },
+  );
+
   const thumbnail = (
     <Avatar className={className}>
-      {url.data ? (
-        <AvatarImage
-          src={withTransform(url.data, { w: 96, q: 80, f: 'auto' })}
-          alt=""
-          className="object-cover"
-        />
+      {thumbnailURL ? (
+        <AvatarImage src={thumbnailURL} alt="" className="object-cover" />
       ) : null}
       <AvatarFallback className="rounded-[inherit]" />
     </Avatar>
   );
 
-  // Nothing to open until the URL has arrived, and a button that does nothing
-  // should not look like one.
-  if (!url.data) {
+  // Nothing to open until the thumbnail has arrived, and a button that does
+  // nothing should not look like one.
+  if (!thumbnailURL) {
     return thumbnail;
   }
 
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger
         aria-label={`Open ${alt}`}
         className="cursor-pointer rounded-[inherit] outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
@@ -100,12 +102,12 @@ export function FileThumbnail({
         className={`gap-0 overflow-hidden p-0 sm:w-fit sm:max-w-[90vw] ${closeOverPhoto}`}
       >
         <DialogTitle className="sr-only">{alt}</DialogTitle>
-        {/* Its own size, only bounded: no width is asked for, so storage sends
-            the full resolution, and `q`/`f` shave the bytes off the encoding
-            rather than off the picture. */}
-        {/* biome-ignore lint/performance/noImgElement: next/image would need `images.remotePatterns` for a storage host that is only known from the build-time env pair, and there is nothing for it to optimise on a URL that expires in seconds */}
+        {/* The thumbnail stands in until the full-size fetch lands, so opening
+            the dialog shows the picture immediately rather than an empty panel
+            that fills in. */}
+        {/* biome-ignore lint/performance/noImgElement: next/image cannot optimise a blob: URL, whose bytes storage has already resized and re-encoded */}
         <img
-          src={withTransform(url.data, { q: 85, f: 'auto' })}
+          src={fullURL ?? thumbnailURL}
           alt={alt}
           className="block h-auto max-h-[85vh] w-auto max-w-full"
         />
