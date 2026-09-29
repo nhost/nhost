@@ -59,7 +59,7 @@ const (
 )
 
 // serveConfig holds the engine-level configuration for the serve command.
-// Process-level settings (listener, logger, HTTP timeouts) configure the engine
+// Process-level settings (listener, logger, routing hosts) configure the engine
 // directly; cross-cutting values from global flags are injected into each
 // service that consumes them. disabled records the services opted out of with
 // --disable-<service>.
@@ -81,8 +81,8 @@ type serveConfig struct {
 
 // globalFlags defines the engine's shared flag surface. These consolidate the
 // settings common to every service: the listener, logging, shared secrets,
-// database URLs, and CORS origins, plus the --disable-<service> opt-outs. They
-// use bare env vars (BIND, ADMIN_SECRET, ...) because the engine replaces the
+// database URLs, and CORS origins, plus the routing host lists and the
+// --disable-<service> opt-outs. They use bare env vars (BIND, ADMIN_SECRET, ...) because the engine replaces the
 // individual service binaries rather than running alongside them.
 func globalFlags() []cli.Flag {
 	flags := []cli.Flag{ //nolint:prealloc
@@ -351,9 +351,10 @@ func flagHasNonEmptyValue(cmd *cli.Command, name string) bool {
 
 // runServe composes the enabled services behind one shared listener and runs
 // them under ctx. The shared serve runtime owns the lifecycle: it builds each
-// service, mounts its handler beneath the engine's path prefix, and drives
-// shutdown in order — the listener drains first, then the background loops are
-// cancelled, then each service releases its resources in reverse build order.
+// service in order, hands them to newMux to mount beneath their path prefixes,
+// and drives shutdown within one budget — the listener drains first, then the
+// background loops are cancelled, then each service releases its resources in
+// reverse build order.
 func runServe(ctx context.Context, cmd *cli.Command, version string) error {
 	cfg := serveConfigFrom(cmd)
 	logger := serveutil.NewLogger(cfg.debug, cfg.logFormatText)
@@ -560,6 +561,9 @@ func newMux(
 	return normalizeRequestHostHandler(mux), nil
 }
 
+// normalizeRequestHostHandler hands handler a request whose Host is lowercased
+// and stripped of a trailing dot, so ServeMux host patterns and the redirect
+// host check match however the client spelled the name.
 func normalizeRequestHostHandler(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		host := normalizeRequestHost(r.Host)
@@ -651,6 +655,8 @@ func validDNSHost(host string) bool {
 	return true
 }
 
+// registerMuxHandler registers a compat-host route, returning ServeMux's
+// conflicting-pattern panic as errCompatAuthRouteRegistration.
 func registerMuxHandler(mux *http.ServeMux, pattern string, handler http.Handler) (
 	err error,
 ) {
@@ -667,9 +673,10 @@ func registerMuxHandler(mux *http.ServeMux, pattern string, handler http.Handler
 	return nil
 }
 
-// mountHandler keeps the underlying writer's optional interfaces intact while
-// restoring root-relative redirect prefixes for clients that address the engine
-// through a mount-prefix host.
+// mountHandler strips prefix before the service sees the request. On a
+// mount-prefix host it also restores the prefix on root-relative redirects,
+// wrapping the writer with httpsnoop so its optional interfaces (Flusher,
+// Hijacker, ReaderFrom) stay intact for streaming and WebSocket responses.
 func mountHandler(
 	prefix string, mountPrefixHosts map[string]struct{}, handler http.Handler,
 ) http.Handler {
@@ -679,6 +686,8 @@ func mountHandler(
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Location is only rewritten on the final status: 1xx informational
+		// headers pass through, and once the body starts the headers are sent.
 		wroteFinalHeader := false
 		wrapped := httpsnoop.Wrap(w, httpsnoop.Hooks{
 			Header: nil,
@@ -739,6 +748,8 @@ func requestHostInSet(requestHost string, hosts map[string]struct{}) bool {
 	return ok
 }
 
+// rewriteRedirectLocation prepends prefix to a 3xx root-relative Location that
+// does not already carry it. Absolute and scheme-relative URLs are left alone.
 func rewriteRedirectLocation(header http.Header, prefix string, code int) {
 	if code < http.StatusMultipleChoices || code >= http.StatusBadRequest {
 		return
@@ -762,9 +773,10 @@ func rewriteRedirectLocation(header http.Header, prefix string, code int) {
 }
 
 // buildService parses one service's prefixed flags back through its own CLI (so
-// env sources, defaults, and validation behave exactly as standalone), injects
-// the shared engine config into any flags the service left unset, and
-// constructs its serve.Service.
+// env sources, defaults, and validation behave as standalone, except that
+// required consolidated flags are checked after injection), injects the shared
+// engine config into any flags the service left unset, and constructs its
+// serve.Service.
 func buildService(
 	ctx context.Context,
 	def serviceDef,
@@ -777,14 +789,8 @@ func buildService(
 	serveCmd := def.command()
 	args := servicePassthroughArgs(name, cmd, serveCmd.Flags, def.skip)
 
-	// A service's own flag may be both consolidated into an engine global (in
-	// def.skip) and marked Required by the service. urfave enforces Required
-	// during parse, before the Action runs, so it would fail before
-	// applySharedConfig can inject the global value. Relax Required on those
-	// flags for the engine's wrapper command and re-validate below, once the
-	// global has been applied — the "must be provided" guarantee is preserved,
-	// just enforced by the engine instead of the sub-CLI. Non-skipped Required
-	// flags (values the user must supply per-service) keep their parse-time check.
+	// Required consolidated flags would fail urfave's parse-time check before
+	// the Action can inject the global; the Action re-checks them instead.
 	relaxed := relaxRequiredForSkipped(serveCmd.Flags, def.skip)
 
 	var built *serveutil.Service
@@ -795,12 +801,8 @@ func buildService(
 		Usage:   serveCmd.Usage,
 		Flags:   serveCmd.Flags,
 		Action: func(ctx context.Context, c *cli.Command) error {
-			// Runs after urfave's parse-time required-check, but that check has
-			// already been neutralized for these flags by relaxRequiredForSkipped
-			// above (it cleared their Required bit before app.Run). So injecting
-			// globals here is not "too late": applySharedConfig fills the skipped
-			// flags, then the loop below re-enforces "must be provided" — moving
-			// the guarantee from the sub-CLI to the engine, post-injection.
+			// Inject the globals, then enforce "must be provided" for the flags
+			// relaxRequiredForSkipped relaxed.
 			if err := applySharedConfig(c, name, cfg); err != nil {
 				return err
 			}

@@ -71,10 +71,10 @@ Ordinarily a service's resources are released only after its background loop has
 stopped, so cleanup never races live background work. The one exception is a
 background loop that overran the budget: its abandoned goroutine can then overlap
 that service's cleanup. This is an intentional last-resort path for an already
-broken service — the composed service contract requires cleanup to be
-concurrency-safe and idempotent with a live background loop, so the engine
-releases resources and returns the timeout error rather than leaving later
-cleanups stranded.
+broken service — the shared service contract requires a service's cleanup to
+tolerate that overlap (it still runs exactly once), so the engine releases
+resources and returns the timeout error rather than leaving later cleanups
+stranded.
 
 ## Services and routing
 
@@ -266,11 +266,14 @@ auth or storage.
 
 > Note: each service's own `--port` / `--bind` / `--debug` flags are not
 > re-exposed — the shared listener and shared logger govern instead. The engine
-> also owns the shared HTTP server and profiling surface, so
+> also owns the shared HTTP server and runs no profiling listener, so
 > `--graphql-http-read-timeout`, `--graphql-http-write-timeout`,
 > `--graphql-http-idle-timeout`, `--graphql-profile-address`, and
 > `--storage-pprof-bind` are rejected at startup rather than accepted and
-> ignored.
+> ignored. `--graphql-playground-graphql-endpoint` does not exist either: the
+> engine points the playground at `/graphql/v1/graphql`, its GraphQL route
+> behind the mount, and `CONSTELLATION_PLAYGROUND_GRAPHQL_ENDPOINT` remains the
+> override, as `AUTH_API_PREFIX` does for auth.
 
 ## Build and run
 
