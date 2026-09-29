@@ -20,8 +20,12 @@ import cycle arises.
 
 ## Conventions
 
-- Pure stdlib: the SDK adds no external module dependencies, so it adds
-  nothing to the root `go.mod`, `go.sum`, or `vendor/`.
+- Own module: `github.com/nhost/nhost/packages/nhost-go` has its own `go.mod`
+  so `go get` fetches only this directory (the root module is too large for
+  the module proxy's zip limit). Its `go` directive tracks the root module's;
+  bump both together. Tags for it take the form `packages/nhost-go/vX.Y.Z`.
+- Pure stdlib: the SDK has no external module dependencies, so it has no
+  `go.sum` and no `vendor/`.
 - Constructors are `New*` (`nhost.New`, `NewServerClient`, `NewBareClient`,
   `<svc>.NewClient`), not `Create*`.
 - Methods are `context.Context`-first. REST and Functions calls return
@@ -54,10 +58,11 @@ import cycle arises.
   nice field names.
 - Response-reading middleware (`UpdateSessionFromResponse`) restores `resp.Body`
   after reading so downstream decoding still works.
-- Builds run in vendor mode (`GOFLAGS=-mod=vendor`) against the committed
-  dependencies of the single root module, `github.com/nhost/nhost`, which
-  targets Go 1.26.0. Only `gen.sh`'s `go run tools/codegen` fallback uses
-  `GOFLAGS=-mod=mod` to execute the generator.
+- Nothing in the root module imports the SDK. The in-repo users, the
+  cat-uploader demo and the notes tutorial, are modules of their own whose
+  `go.mod` replaces the SDK with this directory, so an SDK change needs no
+  `go mod vendor` anywhere. Only `gen.sh`'s `go run tools/codegen` fallback
+  uses `GOFLAGS=-mod=mod` to execute the generator.
 
 ## Example and tutorial relationship
 

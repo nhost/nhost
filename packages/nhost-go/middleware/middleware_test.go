@@ -95,7 +95,7 @@ func TestAttachAccessToken(t *testing.T) {
 	t.Parallel()
 
 	store := session.NewStorage(&fakeBackend{
-		sess: &session.StoredSession{Session: auth.Session{AccessToken: "tok"}},
+		sess: &session.StoredSession{AccessToken: "tok"},
 	})
 
 	req := newReq(t, "https://x/v1/graphql")
@@ -127,7 +127,7 @@ func TestAttachAccessTokenScopeURLs(t *testing.T) {
 	t.Parallel()
 
 	store := session.NewStorage(&fakeBackend{
-		sess: &session.StoredSession{Session: auth.Session{AccessToken: "tok"}},
+		sess: &session.StoredSession{AccessToken: "tok"},
 	})
 	tests := []struct {
 		name           string
@@ -216,7 +216,7 @@ func TestCredentialMiddlewareStripsOwnCredentialsOutsideOrigin(t *testing.T) {
 	t.Parallel()
 
 	store := session.NewStorage(&fakeBackend{
-		sess: &session.StoredSession{Session: auth.Session{AccessToken: "tok"}},
+		sess: &session.StoredSession{AccessToken: "tok"},
 	})
 	accessTokenRequest := newReq(t, "https://other.example/v1/graphql")
 	accessTokenRequest.Header.Set("Authorization", "Bearer tok")
@@ -437,7 +437,7 @@ func TestCredentialsAreNotForwardedAcrossHosts(t *testing.T) {
 	defer origin.Close()
 
 	store := session.NewStorage(&fakeBackend{
-		sess: &session.StoredSession{Session: auth.Session{AccessToken: "tok"}},
+		sess: &session.StoredSession{AccessToken: "tok"},
 	})
 	client := transport.NewHTTPClient(
 		origin.Client(),
@@ -476,7 +476,7 @@ func TestCredentialsAreNotForwardedAcrossHosts(t *testing.T) {
 func TestUpdateSessionFromResponseSignout(t *testing.T) {
 	t.Parallel()
 
-	fb := &fakeBackend{sess: &session.StoredSession{Session: auth.Session{AccessToken: "tok"}}}
+	fb := &fakeBackend{sess: &session.StoredSession{AccessToken: "tok"}}
 	store := session.NewStorage(fb)
 
 	run(
@@ -554,7 +554,7 @@ func TestUpdateSessionFromResponseIgnoresNonAuthRequests(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			original := &session.StoredSession{Session: auth.Session{AccessToken: "original"}}
+			original := &session.StoredSession{AccessToken: "original"}
 			backend := &fakeBackend{sess: original}
 			store := session.NewStorage(backend)
 			body := io.NopCloser(bytes.NewBufferString(
@@ -624,7 +624,8 @@ func TestSessionRefreshDoesNotTreatFunctionTokenPathAsAuthToken(t *testing.T) {
 	defer refreshServer.Close()
 
 	store := session.NewStorage(&fakeBackend{sess: &session.StoredSession{
-		Session:      auth.Session{AccessToken: "expired", RefreshToken: "refresh"},
+		AccessToken:  "expired",
+		RefreshToken: "refresh",
 		DecodedToken: session.DecodedToken{Exp: 1},
 	}})
 	authClient := auth.NewClient(refreshServer.URL+"/v1", refreshServer.Client())
@@ -663,7 +664,8 @@ func TestSessionRefreshSkipsAuthTokenEndpoint(t *testing.T) {
 	defer refreshServer.Close()
 
 	store := session.NewStorage(&fakeBackend{sess: &session.StoredSession{
-		Session:      auth.Session{AccessToken: "expired", RefreshToken: "refresh"},
+		AccessToken:  "expired",
+		RefreshToken: "refresh",
 		DecodedToken: session.DecodedToken{Exp: 1},
 	}})
 	authClient := auth.NewClient(refreshServer.URL+"/v1", refreshServer.Client())

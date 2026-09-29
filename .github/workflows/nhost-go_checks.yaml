@@ -12,11 +12,10 @@ on:
       - "nixops/**"
       - "build/**"
 
-      # common go
+      # common go (go.mod: the SDK must target the root module's Go version)
       - ".golangci.yaml"
+      - "govulncheck.yaml"
       - "go.mod"
-      - "go.sum"
-      - "vendor/**"
 
       # codegen
       - "tools/codegen/**"
@@ -52,9 +51,8 @@ jobs:
         nixops/**
         build/**
         .golangci.yaml
+        govulncheck.yaml
         go.mod
-        go.sum
-        vendor/**
         tools/codegen/**
         packages/nhost-go/**
         packages/backend-sdk-tests/**

@@ -3,8 +3,6 @@ package session
 import (
 	"testing"
 	"time"
-
-	"github.com/nhost/nhost/packages/nhost-go/auth"
 )
 
 func TestNeedsRefresh(t *testing.T) {
@@ -92,7 +90,7 @@ func TestNeedsRefresh(t *testing.T) {
 			backend := &MemoryStorage{}
 			if tt.hasSession {
 				if err := backend.Set(StoredSession{
-					Session:      auth.Session{RefreshToken: "refresh-token"},
+					RefreshToken: "refresh-token",
 					DecodedToken: DecodedToken{Exp: tt.exp},
 				}); err != nil {
 					t.Fatalf("seed session: %v", err)
