@@ -1,5 +1,7 @@
 import type { ReactElement } from 'react';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { AppLayout } from '@/components/layout/AppLayout';
+import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
+import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
 import { TOMLEditor } from '@/features/orgs/projects/common/components/settings/TOMLEditor';
 
 export default function TOMLEditorPage() {
@@ -8,12 +10,12 @@ export default function TOMLEditorPage() {
 
 TOMLEditorPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout
-      mainContainerProps={{
-        className: 'flex flex-col h-full overflow-auto',
-      }}
-    >
-      {page}
-    </ProjectLayout>
+    <AppLayout>
+      <ProjectScope>
+        <ProjectStateGate>
+          <div className="flex h-full flex-col overflow-auto">{page}</div>
+        </ProjectStateGate>
+      </ProjectScope>
+    </AppLayout>
   );
 };

@@ -14,7 +14,7 @@ import {
   waitFor,
 } from '@/tests/testUtils';
 import { ApplicationStatus } from '@/types/application';
-import ProjectViewWithState from './ProjectViewWithState';
+import ProjectStateGate from './ProjectStateGate';
 
 const mocks = vi.hoisted(() => ({
   useRouter: vi.fn(),
@@ -76,9 +76,9 @@ const getUseRouterObject = (
 
 function TestComponent() {
   return (
-    <ProjectViewWithState>
+    <ProjectStateGate>
       <h1>Application content</h1>
-    </ProjectViewWithState>
+    </ProjectStateGate>
   );
 }
 
@@ -100,7 +100,7 @@ function StatefulChild() {
 
 const server = setupServer(tokenQuery);
 
-describe('ProjectViewWithState', () => {
+describe('ProjectStateGate', () => {
   beforeAll(() => {
     process.env.NEXT_PUBLIC_NHOST_PLATFORM = 'true';
     process.env.NEXT_PUBLIC_ENV = 'production';
@@ -299,9 +299,9 @@ describe('ProjectViewWithState', () => {
     server.use(getProjectStateQuery([{ stateId: ApplicationStatus.Live }]));
 
     render(
-      <ProjectViewWithState>
+      <ProjectStateGate>
         <StatefulChild />
-      </ProjectViewWithState>,
+      </ProjectStateGate>,
     );
 
     const user = new TestUserEvent();
@@ -338,9 +338,9 @@ describe('ProjectViewWithState', () => {
     );
 
     render(
-      <ProjectViewWithState>
+      <ProjectStateGate>
         <StatefulChild />
-      </ProjectViewWithState>,
+      </ProjectStateGate>,
     );
 
     expect(
@@ -364,9 +364,9 @@ describe('ProjectViewWithState', () => {
     );
 
     render(
-      <ProjectViewWithState>
+      <ProjectStateGate>
         <StatefulChild />
-      </ProjectViewWithState>,
+      </ProjectStateGate>,
     );
 
     expect(
@@ -378,7 +378,7 @@ describe('ProjectViewWithState', () => {
     expect(statefulChildMountCount).toBe(0);
   });
 
-  it('should clear the query cache on unmount', async () => {
+  it('leaves the query cache alone on unmount', async () => {
     const clearSpy = vi.spyOn(queryClient, 'clear');
     mocks.useRouter.mockImplementation(() => getUseRouterObject());
     server.use(getProjectQuery);
@@ -387,10 +387,8 @@ describe('ProjectViewWithState', () => {
     const { unmount } = render(<TestComponent />);
     await screen.findByText('Application content');
 
-    expect(clearSpy).not.toHaveBeenCalled();
-
     unmount();
 
-    expect(clearSpy).toHaveBeenCalledOnce();
+    expect(clearSpy).not.toHaveBeenCalled();
   });
 });

@@ -1,6 +1,5 @@
-import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
-import { type PropsWithChildren, useEffect, useMemo } from 'react';
+import { type PropsWithChildren, useMemo } from 'react';
 import { Alert } from '@/components/ui/v3/alert';
 import { ApplicationProvisioning } from '@/features/orgs/projects/common/components/ApplicationProvisioning';
 import { ApplicationUnknown } from '@/features/orgs/projects/common/components/ApplicationUnknown';
@@ -11,19 +10,11 @@ import { ApplicationStatus } from '@/types/application';
 import ProjectStateScreen from './ProjectStateScreen';
 import { requiresRunningProject } from './projectStatePages';
 
-function ProjectViewWithState({ children }: PropsWithChildren) {
+function ProjectStateGate({ children }: PropsWithChildren) {
   const {
     query: { appSubdomain },
     route,
   } = useRouter();
-
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    return () => {
-      queryClient.clear();
-    };
-  }, [queryClient]);
 
   const { state } = useAppState();
 
@@ -93,4 +84,4 @@ function ProjectViewWithState({ children }: PropsWithChildren) {
   return projectPageContent;
 }
 
-export default ProjectViewWithState;
+export default ProjectStateGate;

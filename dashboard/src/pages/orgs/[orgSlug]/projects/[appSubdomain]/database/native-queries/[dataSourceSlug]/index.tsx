@@ -1,8 +1,10 @@
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { InlineCode } from '@/components/ui/v3/inline-code';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
+import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { NativeQueriesBrowserSidebar } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesBrowserSidebar';
 import { NativeQueriesEmptyState } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesEmptyState';
@@ -65,11 +67,17 @@ export default function NativeQueriesIndexPage() {
 
 NativeQueriesIndexPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <OrgLayout mainContainerProps={{ className: 'flex h-full' }}>
-      <NativeQueriesBrowserSidebar />
-      <div className="flex w-full flex-auto flex-col overflow-x-hidden bg-background">
-        {page}
-      </div>
-    </OrgLayout>
+    <AppLayout>
+      <ProjectScope>
+        <ProjectStateGate>
+          <div className="flex h-full">
+            <NativeQueriesBrowserSidebar />
+            <div className="flex w-full flex-auto flex-col overflow-x-hidden bg-background">
+              {page}
+            </div>
+          </div>
+        </ProjectStateGate>
+      </ProjectScope>
+    </AppLayout>
   );
 };

@@ -1,6 +1,8 @@
 import type { ReactElement } from 'react';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
+import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
 import { Bucket } from '@/features/orgs/projects/storage/components/Bucket';
 import { StorageLayout } from '@/features/orgs/projects/storage/components/StorageLayout';
 
@@ -16,12 +18,14 @@ export default function StoragePage() {
 
 StoragePage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout
-      mainContainerProps={{
-        className: 'flex h-full',
-      }}
-    >
-      <StorageLayout>{page}</StorageLayout>
-    </ProjectLayout>
+    <AppLayout>
+      <ProjectScope>
+        <ProjectStateGate>
+          <div className="flex h-full">
+            <StorageLayout>{page}</StorageLayout>
+          </div>
+        </ProjectStateGate>
+      </ProjectScope>
+    </AppLayout>
   );
 };
