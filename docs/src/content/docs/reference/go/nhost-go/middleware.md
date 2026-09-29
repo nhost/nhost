@@ -16,6 +16,19 @@ const DefaultMarginSeconds = 60
 DefaultMarginSeconds is the default number of seconds before expiry at which
 the session-refresh middleware refreshes the access token.
 
+```go
+var ErrAccessTokenWithAdminSession = errors.New(
+	"a request with a per-request access token cannot use an admin session",
+)
+```
+
+ErrAccessTokenWithAdminSession fails a request made with
+[session.WithAccessToken] through the admin-session middleware. The GraphQL
+engine gives the admin secret precedence over a token, so sending both would
+run the request as admin and silently ignore the user it was meant for. To act
+as a user with the admin secret, set AdminSessionOptions.Role and
+SessionVariables instead.
+
 ## Functions
 
 ### `AttachAccessToken`
@@ -24,10 +37,12 @@ the session-refresh middleware refreshes the access token.
 func AttachAccessToken(storage *session.Storage, serviceURL string) transport.Middleware
 ```
 
-AttachAccessToken attaches "Authorization: Bearer &lt;access_token&gt;" from the
-stored session to requests for serviceURL. It should run after the refresh
-middleware so the freshest token is used, and skips requests that already
-carry an Authorization header.
+AttachAccessToken attaches "Authorization: Bearer &lt;access_token&gt;" to requests
+for serviceURL. The token is the one set on the request context with
+[session.WithAccessToken], or else that of the stored session the context
+selects ([session.WithUserID]); storage may be nil when there is no session
+storage. It should run after the refresh middleware so the freshest token is
+used, and skips requests that already carry an Authorization header.
 
 ### `SessionRefresh`
 
@@ -39,9 +54,11 @@ func SessionRefresh(
 ) transport.Middleware
 ```
 
-SessionRefresh refreshes the session before a request when the token is near
-expiry. It skips requests that already carry an Authorization header and the
-token endpoint itself (to avoid recursively refreshing during a refresh).
+SessionRefresh refreshes the session the request selects (see
+[session.WithUserID]) before the request when its token is near expiry. It
+skips requests that already carry an Authorization header or a per-request
+token ([session.WithAccessToken]), and the token endpoint itself (to avoid
+recursively refreshing during a refresh).
 
 ### `UpdateSessionFromResponse`
 
@@ -50,8 +67,11 @@ func UpdateSessionFromResponse(storage *session.Storage, authURL string) transpo
 ```
 
 UpdateSessionFromResponse persists session data returned by auth endpoints
-under authURL and clears it on sign-out. It reads and then restores the
-response body so downstream decoding still works.
+under authURL, keyed by the session's user, and on sign-out clears the session
+the request selects (see [session.WithUserID]). Requests made with a
+per-request token ([session.WithAccessToken]) act for a caller whose session
+the client does not hold, so they leave storage alone. It reads and then
+restores the response body so downstream decoding still works.
 
 ### `WithAdminSession`
 
@@ -61,12 +81,14 @@ func WithAdminSession(options AdminSessionOptions, serviceURL string) transport.
 
 WithAdminSession attaches x-hasura-admin-secret and optional role/session
 variables to requests for serviceURL. Admin sessions are only sent over HTTPS
-or to a loopback development server unless AllowInsecureHTTP is enabled.
+or to a loopback development server unless AllowInsecureHTTP is enabled. A
+request carrying a per-request token ([session.WithAccessToken]) fails with
+[ErrAccessTokenWithAdminSession] instead of being sent with both.
 
 ### `WithHeaders`
 
 ```go
-func WithHeaders(defaultHeaders map[string]string) transport.Middleware
+func WithHeaders(defaultHeaders http.Header) transport.Middleware
 ```
 
 WithHeaders attaches default headers, preserving any request-specific values.

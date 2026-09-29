@@ -31,13 +31,13 @@ CREATE TABLE public.note_collaborators (
 );
 ```
 
-Track it, then create **both** relationships **before** setting the filters
+Track it, then create **both** relationships **before** setting the custom checks
 below (Database → each table → **Relationships**):
 
 - a `collaborators` **array** relationship on `notes` → `note_collaborators`, and
 - a `note` **object** relationship on `note_collaborators` → `notes`.
 
-Order matters and the names matter: the `notes` filters reference
+Order matters and the names matter: the `notes` custom checks reference
 `collaborators` and the `note_collaborators` check references `note`, so if a
 relationship is missing or mis-named the permission won't save
 (`"collaborators" does not exist` / `"note" does not exist`).
@@ -45,7 +45,7 @@ relationship is missing or mis-named the permission won't save
 Now update the `notes` permissions so collaborators can see and edit shared
 notes — this is the one place the owner-only rule opens up:
 
-- **notes → select** filter — owner **or** any collaborator:
+- **notes → select** custom check — owner **or** any collaborator:
 
   ```json
   { "_or": [
@@ -53,7 +53,7 @@ notes — this is the one place the owner-only rule opens up:
       { "collaborators": { "user_id": { "_eq": "X-Hasura-User-Id" } } }
   ]}
   ```
-- **notes → update** filter — owner **or** an `editor` collaborator:
+- **notes → update** custom check — owner **or** an `editor` collaborator:
 
   ```json
   { "_or": [
@@ -74,8 +74,8 @@ actions — `insert`, `select`, `update`, and `delete`:
   and without it you hit the opaque
   `expected one of the values ['_PLACEHOLDER'] for type
   'note_collaborators_update_column'`.
-- Use `{ "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } }` as the `insert`
-  check and the `select` / `update` / `delete` filter.
+- Use the custom check `{ "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } }`
+  for `insert`, `select`, `update` and `delete`.
 
 Add the commands (the owner shares by the collaborator's user id, defaulting to
 viewer). `share` takes an optional positional `ROLE`:
@@ -285,8 +285,9 @@ func rootCmd() *cli.Command {
 			command.Usage = "Generate the autocompletion script for the specified shell"
 		},
 		Before: func(ctx context.Context, _ *cli.Command) (context.Context, error) {
-			client = newClient()
-			return ctx, nil
+			var err error
+			client, err = newClient()
+			return ctx, err
 		},
 		Action: commandHelp,
 	}
@@ -317,8 +318,8 @@ func rootCmd() *cli.Command {
 	root.Commands = append(root.Commands, &cli.Command{
 		Name:  "whoami",
 		Usage: "Show the currently signed-in user",
-		Action: withArgs(func(_ context.Context, _ *cli.Command, _ []string) error {
-			return cmdWhoami(client)
+		Action: withArgs(func(ctx context.Context, _ *cli.Command, _ []string) error {
+			return cmdWhoami(ctx, client)
 		}),
 	})
 
@@ -467,12 +468,11 @@ func silenceUsage(cmd *cli.Command) {
 
 // newClient builds the Nhost client. The client middleware attaches the access
 // token to every request and refreshes it automatically once we sign in.
-func newClient() *nhost.Client {
-	return nhost.New(nhost.Options{
-		Subdomain: env("NHOST_SUBDOMAIN", "local"),
-		Region:    env("NHOST_REGION", "local"),
-		Storage:   &session.FileStorage{Path: sessionPath()},
-	})
+func newClient() (*nhost.Client, error) {
+	return nhost.New(
+		nhost.WithProject(env("NHOST_SUBDOMAIN", "local"), env("NHOST_REGION", "local")),
+		nhost.WithSessionStorage(&session.FileStorage{Path: sessionPath()}),
+	)
 }
 
 func sessionPath() string {
@@ -510,7 +510,7 @@ func cmdSignup(ctx context.Context, c *nhost.Client, email, password string) err
 	}, nil); err != nil {
 		return err
 	}
-	sess, err := c.Session()
+	sess, err := c.Session(ctx)
 	if err != nil {
 		return fmt.Errorf("reading session after sign up: %w", err)
 	}
@@ -534,7 +534,7 @@ func cmdLogin(ctx context.Context, c *nhost.Client, email, password string) erro
 }
 
 func cmdLogout(ctx context.Context, c *nhost.Client) error {
-	s, err := c.Session()
+	s, err := c.Session(ctx)
 	if err != nil {
 		return fmt.Errorf("reading session: %w", err)
 	}
@@ -542,15 +542,15 @@ func cmdLogout(ctx context.Context, c *nhost.Client) error {
 		rt := s.RefreshToken
 		_, _, _ = c.Auth.SignOut(ctx, auth.SignOutRequest{RefreshToken: &rt}, nil)
 	}
-	if err := c.ClearSession(); err != nil {
+	if err := c.ClearSession(ctx); err != nil {
 		return fmt.Errorf("clearing session: %w", err)
 	}
 	fmt.Println("logged out")
 	return nil
 }
 
-func cmdWhoami(c *nhost.Client) error {
-	s, err := c.Session()
+func cmdWhoami(ctx context.Context, c *nhost.Client) error {
+	s, err := c.Session(ctx)
 	if err != nil {
 		return fmt.Errorf("reading session: %w", err)
 	}

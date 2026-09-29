@@ -41,9 +41,9 @@ the `user` role:
 
 - **note_attachments** — gate through the parent note. Check columns `note_id`
   and `file_id` for both `insert` and `select` (without them the insert
-  permission allows zero columns and `attach` is rejected), then use
-  `{ "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } }` as the `insert`
-  check and the `select` / `delete` filter.
+  permission allows zero columns and `attach` is rejected), then use the
+  custom check `{ "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } }` for
+  `insert`, `select` and `delete`.
 - **storage.files** — set these under **Storage → Permissions** (Nhost's UI for
   the `storage.files` table permissions), where **Upload** is the `insert`
   permission and **Download** is the `select` permission. Leave Replace / Delete
@@ -51,15 +51,15 @@ the `user` role:
   - **Upload** — allow it for `user` and enable *Prefill
     `uploaded_by_user_id` with `X-Hasura-User-Id`* so every upload is stamped
     with its uploader. Without this stamp the column stays `NULL`, the Download
-    filter below never matches, and `download` 404s with `file not found` even
+    custom check below never matches, and `download` 404s with `file not found` even
     though `attach` succeeded.
   - **Download** — a user should see a file if they uploaded it **or** it's
     attached to a note they can see. This clause traverses a `noteAttachments`
     array relationship on `storage.files`, which lives in the **Database** UI —
     so add it there **first** under **Database → `storage` schema → `files` →
-    Relationships**, otherwise the row filter won't save
+    Relationships**, otherwise the custom check won't save
     (`"noteAttachments" does not exist`). Then, back in **Storage → Permissions**
-    for the Download action, filter on the **database column**
+    for the Download action, write the check on the **database column**
     `uploaded_by_user_id` (the `uploadedByUserId` GraphQL alias errors on save
     with `"uploadedByUserId" does not exist`):
 
@@ -203,8 +203,9 @@ func rootCmd() *cli.Command {
 			command.Usage = "Generate the autocompletion script for the specified shell"
 		},
 		Before: func(ctx context.Context, _ *cli.Command) (context.Context, error) {
-			client = newClient()
-			return ctx, nil
+			var err error
+			client, err = newClient()
+			return ctx, err
 		},
 		Action: commandHelp,
 	}
@@ -235,8 +236,8 @@ func rootCmd() *cli.Command {
 	root.Commands = append(root.Commands, &cli.Command{
 		Name:  "whoami",
 		Usage: "Show the currently signed-in user",
-		Action: withArgs(func(_ context.Context, _ *cli.Command, _ []string) error {
-			return cmdWhoami(client)
+		Action: withArgs(func(ctx context.Context, _ *cli.Command, _ []string) error {
+			return cmdWhoami(ctx, client)
 		}),
 	})
 
@@ -355,12 +356,11 @@ func silenceUsage(cmd *cli.Command) {
 
 // newClient builds the Nhost client. The client middleware attaches the access
 // token to every request and refreshes it automatically once we sign in.
-func newClient() *nhost.Client {
-	return nhost.New(nhost.Options{
-		Subdomain: env("NHOST_SUBDOMAIN", "local"),
-		Region:    env("NHOST_REGION", "local"),
-		Storage:   &session.FileStorage{Path: sessionPath()},
-	})
+func newClient() (*nhost.Client, error) {
+	return nhost.New(
+		nhost.WithProject(env("NHOST_SUBDOMAIN", "local"), env("NHOST_REGION", "local")),
+		nhost.WithSessionStorage(&session.FileStorage{Path: sessionPath()}),
+	)
 }
 
 func sessionPath() string {
@@ -398,7 +398,7 @@ func cmdSignup(ctx context.Context, c *nhost.Client, email, password string) err
 	}, nil); err != nil {
 		return err
 	}
-	sess, err := c.Session()
+	sess, err := c.Session(ctx)
 	if err != nil {
 		return fmt.Errorf("reading session after sign up: %w", err)
 	}
@@ -422,7 +422,7 @@ func cmdLogin(ctx context.Context, c *nhost.Client, email, password string) erro
 }
 
 func cmdLogout(ctx context.Context, c *nhost.Client) error {
-	s, err := c.Session()
+	s, err := c.Session(ctx)
 	if err != nil {
 		return fmt.Errorf("reading session: %w", err)
 	}
@@ -430,15 +430,15 @@ func cmdLogout(ctx context.Context, c *nhost.Client) error {
 		rt := s.RefreshToken
 		_, _, _ = c.Auth.SignOut(ctx, auth.SignOutRequest{RefreshToken: &rt}, nil)
 	}
-	if err := c.ClearSession(); err != nil {
+	if err := c.ClearSession(ctx); err != nil {
 		return fmt.Errorf("clearing session: %w", err)
 	}
 	fmt.Println("logged out")
 	return nil
 }
 
-func cmdWhoami(c *nhost.Client) error {
-	s, err := c.Session()
+func cmdWhoami(ctx context.Context, c *nhost.Client) error {
+	s, err := c.Session(ctx)
 	if err != nil {
 		return fmt.Errorf("reading session: %w", err)
 	}

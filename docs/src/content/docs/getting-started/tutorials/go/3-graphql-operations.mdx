@@ -1,7 +1,7 @@
 ---
 title: Notes and GraphQL in a Go CLI
 description: Model a notes schema with owner-scoped Hasura permissions and drive it from a Go CLI using GraphQL queries and mutations with the Nhost Go SDK.
-keywords: ["Go", "CLI", "Nhost GraphQL", "Hasura permissions", "mutations", "queries", "row-level security"]
+keywords: ["Go", "CLI", "Nhost GraphQL", "Hasura permissions", "mutations", "queries", "custom checks"]
 head:
   - tag: title
     content: "Go Notes CLI Tutorial: GraphQL Operations | Nhost Docs"
@@ -82,12 +82,19 @@ as `"noteTags" does not exist` or `"note" does not exist`.
 
 By default a tracked table has no permissions — nobody can read or write it.
 Open each table's **Edit Permissions** and grant the `user` role owner-scoped
-access. The pattern is the same everywhere: writes set `user_id` from the
-session, reads and writes are filtered to the caller's own rows.
+access. The pattern is the same everywhere: a **column preset** sets `user_id`
+from the session, and a **custom check** limits each action to the caller's own
+rows. The GraphQL engine applies them to every request, using the user ID in
+the caller's access token.
+
+To add a custom check, choose **With custom check** under the action's row
+permissions and build the rule. The checks below are written in Hasura's JSON
+form: `{ "user_id": { "_eq": "X-Hasura-User-Id" } }` is the rule `user_id`
+`_eq` `X-Hasura-User-Id`.
 
 :::note
 Track any relationship a permission references **before** you save that
-permission. A filter or check naming a relationship that isn't tracked yet fails
+permission. A custom check naming a relationship that isn't tracked yet fails
 to save, and the dashboard shows a generic `Error: Unknown error occurred.`
 instead of naming the missing relationship.
 :::
@@ -98,7 +105,7 @@ instead of naming the missing relationship.
   `updated_at` unchecked. For `select`, check those same data columns **plus
   `id`** (a mutation that returns `{ id }` needs `id` in the select permission).
   For `update`, check the same editable columns (`notebooks`: `name`; `tags`:
-  `name`, `color`) so edits take effect. Use the **row filter**
+  `name`, `color`) so edits take effect. Use the **custom check**
   `{ "user_id": { "_eq": "X-Hasura-User-Id" } }` for `select` / `update` /
   `delete`.
 - **notes** — for `insert`, check `title`, `content`, `notebook_id`,
@@ -106,9 +113,9 @@ instead of naming the missing relationship.
   check those columns **plus `id` and `updated_at`** — the list query sorts by
   `updated_at`, and Hasura only lets you `order_by` columns the `select`
   permission exposes. For `update`, check the editable columns (`title`,
-  `content`, `notebook_id`, `is_pinned`, `is_archived`). Use the **row filter**
+  `content`, `notebook_id`, `is_pinned`, `is_archived`). Use the **custom check**
   `{ "user_id": { "_eq": "X-Hasura-User-Id" } }` for `select` / `update` /
-  `delete`. Finally, for `insert` add a **check** that a supplied `notebook_id`
+  `delete`. Finally, for `insert` add a custom check that a supplied `notebook_id`
   belongs to the caller so a note can't be filed into someone else's notebook:
 
   ```json
@@ -120,12 +127,12 @@ instead of naming the missing relationship.
 - **note_tags** — gate it through the parent note. Check columns `note_id` and
   `tag_id` for **both** `insert` and `select` (there's no `user_id` preset — a
   `note_tags` row has no `user_id` column; ownership comes from the parent
-  note). For `insert` use the check
-  `{ "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } }`, and the same as
-  the `select` / `delete` filter.
+  note). Use the custom check
+  `{ "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } }` for `insert`,
+  `select` and `delete`.
 
 :::tip
-A row permission can only compare against the *session* user. If you also want
+A custom check can only compare against the *session* user. If you also want
 to stop a note being **moved** into another user's notebook on update, enforce
 `notebook.user_id = notes.user_id` with a `BEFORE INSERT OR UPDATE` trigger that
 verifies the parent notebook's owner matches the note's owner.
@@ -212,8 +219,9 @@ func noteLs(ctx context.Context, c *nhost.Client) error {
 }
 ```
 
-The `notes` query has no `where user_id` clause — it doesn't need one. The row
-filter you configured means the database only ever returns the caller's rows. It
+The `notes` query has no `where user_id` clause — it doesn't need one. The
+custom check you configured means the GraphQL engine only ever returns the
+caller's rows. It
 does still list **archived** notes, since the query doesn't filter
 `is_archived` — so `archive` looks like it has no effect. Add
 `where: {is_archived: {_eq: false}}` to the query to hide them.
@@ -393,8 +401,9 @@ func rootCmd() *cli.Command {
 			command.Usage = "Generate the autocompletion script for the specified shell"
 		},
 		Before: func(ctx context.Context, _ *cli.Command) (context.Context, error) {
-			client = newClient()
-			return ctx, nil
+			var err error
+			client, err = newClient()
+			return ctx, err
 		},
 		Action: commandHelp,
 	}
@@ -425,8 +434,8 @@ func rootCmd() *cli.Command {
 	root.Commands = append(root.Commands, &cli.Command{
 		Name:  "whoami",
 		Usage: "Show the currently signed-in user",
-		Action: withArgs(func(_ context.Context, _ *cli.Command, _ []string) error {
-			return cmdWhoami(client)
+		Action: withArgs(func(ctx context.Context, _ *cli.Command, _ []string) error {
+			return cmdWhoami(ctx, client)
 		}),
 	})
 
@@ -527,12 +536,11 @@ func silenceUsage(cmd *cli.Command) {
 
 // newClient builds the Nhost client. The client middleware attaches the access
 // token to every request and refreshes it automatically once we sign in.
-func newClient() *nhost.Client {
-	return nhost.New(nhost.Options{
-		Subdomain: env("NHOST_SUBDOMAIN", "local"),
-		Region:    env("NHOST_REGION", "local"),
-		Storage:   &session.FileStorage{Path: sessionPath()},
-	})
+func newClient() (*nhost.Client, error) {
+	return nhost.New(
+		nhost.WithProject(env("NHOST_SUBDOMAIN", "local"), env("NHOST_REGION", "local")),
+		nhost.WithSessionStorage(&session.FileStorage{Path: sessionPath()}),
+	)
 }
 
 func sessionPath() string {
@@ -570,7 +578,7 @@ func cmdSignup(ctx context.Context, c *nhost.Client, email, password string) err
 	}, nil); err != nil {
 		return err
 	}
-	sess, err := c.Session()
+	sess, err := c.Session(ctx)
 	if err != nil {
 		return fmt.Errorf("reading session after sign up: %w", err)
 	}
@@ -594,7 +602,7 @@ func cmdLogin(ctx context.Context, c *nhost.Client, email, password string) erro
 }
 
 func cmdLogout(ctx context.Context, c *nhost.Client) error {
-	s, err := c.Session()
+	s, err := c.Session(ctx)
 	if err != nil {
 		return fmt.Errorf("reading session: %w", err)
 	}
@@ -602,15 +610,15 @@ func cmdLogout(ctx context.Context, c *nhost.Client) error {
 		rt := s.RefreshToken
 		_, _, _ = c.Auth.SignOut(ctx, auth.SignOutRequest{RefreshToken: &rt}, nil)
 	}
-	if err := c.ClearSession(); err != nil {
+	if err := c.ClearSession(ctx); err != nil {
 		return fmt.Errorf("clearing session: %w", err)
 	}
 	fmt.Println("logged out")
 	return nil
 }
 
-func cmdWhoami(c *nhost.Client) error {
-	s, err := c.Session()
+func cmdWhoami(ctx context.Context, c *nhost.Client) error {
+	s, err := c.Session(ctx)
 	if err != nil {
 		return fmt.Errorf("reading session: %w", err)
 	}

@@ -21,24 +21,22 @@ series.
 
 ## Persist the session
 
-The client accepts a `Storage` backend that it uses to save and load the
-session. The SDK ships `session.FileStorage`, which writes the session to a JSON
-file with `0600` permissions. Update `newClient` to use it:
+`nhost.WithSessionStorage` sets the backend the client saves and loads the
+session with. Part 1 used `session.MemoryStorage`, which forgets the session
+when the CLI exits. `session.FileStorage` writes it to a JSON file with `0600`
+permissions instead. Update `newClient` to use it:
 
 ```go title="main.go"
 import (
 	// ...existing imports...
 	"path/filepath"
-
-	"github.com/nhost/nhost/packages/nhost-go/session"
 )
 
-func newClient() *nhost.Client {
-	return nhost.New(nhost.Options{
-		Subdomain: env("NHOST_SUBDOMAIN", "local"),
-		Region:    env("NHOST_REGION", "local"),
-		Storage:   &session.FileStorage{Path: sessionPath()},
-	})
+func newClient() (*nhost.Client, error) {
+	return nhost.New(
+		nhost.WithProject(env("NHOST_SUBDOMAIN", "local"), env("NHOST_REGION", "local")),
+		nhost.WithSessionStorage(&session.FileStorage{Path: sessionPath()}),
+	)
 }
 
 // sessionPath is where the signed-in session is cached between runs.
@@ -54,9 +52,9 @@ func sessionPath() string {
 }
 ```
 
-With a `Storage` backend configured, the SDK's middleware does the rest: after
-you sign in it saves the session, attaches the access token to every request,
-and refreshes the token in the background when it expires. Your commands never
+With session storage configured, the SDK's middleware does the rest: after you
+sign in it saves the session, attaches the access token to every request, and
+refreshes the token when it expires. Your commands never
 touch tokens directly.
 
 ## Add the auth commands
@@ -76,7 +74,7 @@ func cmdSignup(ctx context.Context, c *nhost.Client, email, password string) err
 	}, nil); err != nil {
 		return err
 	}
-	sess, err := c.Session()
+	sess, err := c.Session(ctx)
 	if err != nil {
 		return fmt.Errorf("reading session after sign up: %w", err)
 	}
@@ -100,7 +98,7 @@ func cmdLogin(ctx context.Context, c *nhost.Client, email, password string) erro
 }
 
 func cmdLogout(ctx context.Context, c *nhost.Client) error {
-	s, err := c.Session()
+	s, err := c.Session(ctx)
 	if err != nil {
 		return fmt.Errorf("reading session: %w", err)
 	}
@@ -108,7 +106,7 @@ func cmdLogout(ctx context.Context, c *nhost.Client) error {
 		rt := s.RefreshToken
 		_, _, _ = c.Auth.SignOut(ctx, auth.SignOutRequest{RefreshToken: &rt}, nil)
 	}
-	if err := c.ClearSession(); err != nil {
+	if err := c.ClearSession(ctx); err != nil {
 		return fmt.Errorf("clearing session: %w", err)
 	}
 	fmt.Println("logged out")
@@ -210,8 +208,9 @@ func rootCmd() *cli.Command {
 			command.Usage = "Generate the autocompletion script for the specified shell"
 		},
 		Before: func(ctx context.Context, _ *cli.Command) (context.Context, error) {
-			client = newClient()
-			return ctx, nil
+			var err error
+			client, err = newClient()
+			return ctx, err
 		},
 		Action: commandHelp,
 	}
@@ -242,8 +241,8 @@ func rootCmd() *cli.Command {
 	root.Commands = append(root.Commands, &cli.Command{
 		Name:  "whoami",
 		Usage: "Show the currently signed-in user",
-		Action: withArgs(func(_ context.Context, _ *cli.Command, _ []string) error {
-			return cmdWhoami(client)
+		Action: withArgs(func(ctx context.Context, _ *cli.Command, _ []string) error {
+			return cmdWhoami(ctx, client)
 		}),
 	})
 
@@ -298,12 +297,11 @@ func silenceUsage(cmd *cli.Command) {
 
 // newClient builds the Nhost client. The client middleware attaches the access
 // token to every request and refreshes it automatically once we sign in.
-func newClient() *nhost.Client {
-	return nhost.New(nhost.Options{
-		Subdomain: env("NHOST_SUBDOMAIN", "local"),
-		Region:    env("NHOST_REGION", "local"),
-		Storage:   &session.FileStorage{Path: sessionPath()},
-	})
+func newClient() (*nhost.Client, error) {
+	return nhost.New(
+		nhost.WithProject(env("NHOST_SUBDOMAIN", "local"), env("NHOST_REGION", "local")),
+		nhost.WithSessionStorage(&session.FileStorage{Path: sessionPath()}),
+	)
 }
 
 func sessionPath() string {
@@ -331,7 +329,7 @@ func cmdSignup(ctx context.Context, c *nhost.Client, email, password string) err
 	}, nil); err != nil {
 		return err
 	}
-	sess, err := c.Session()
+	sess, err := c.Session(ctx)
 	if err != nil {
 		return fmt.Errorf("reading session after sign up: %w", err)
 	}
@@ -355,7 +353,7 @@ func cmdLogin(ctx context.Context, c *nhost.Client, email, password string) erro
 }
 
 func cmdLogout(ctx context.Context, c *nhost.Client) error {
-	s, err := c.Session()
+	s, err := c.Session(ctx)
 	if err != nil {
 		return fmt.Errorf("reading session: %w", err)
 	}
@@ -363,15 +361,15 @@ func cmdLogout(ctx context.Context, c *nhost.Client) error {
 		rt := s.RefreshToken
 		_, _, _ = c.Auth.SignOut(ctx, auth.SignOutRequest{RefreshToken: &rt}, nil)
 	}
-	if err := c.ClearSession(); err != nil {
+	if err := c.ClearSession(ctx); err != nil {
 		return fmt.Errorf("clearing session: %w", err)
 	}
 	fmt.Println("logged out")
 	return nil
 }
 
-func cmdWhoami(c *nhost.Client) error {
-	s, err := c.Session()
+func cmdWhoami(ctx context.Context, c *nhost.Client) error {
+	s, err := c.Session(ctx)
 	if err != nil {
 		return fmt.Errorf("reading session: %w", err)
 	}
