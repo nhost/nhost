@@ -86,9 +86,6 @@ jobs:
             exit 1
           fi
 
-          # Authors with write access (and the bots trusted by
-          # check-permissions) already pass the gate, so there is nothing to
-          # approve or re-run.
           case "${PR_USER}" in
             "dependabot[bot]" | "nhost-helper-bot[bot]")
               echo "needed=false" >> "$GITHUB_OUTPUT"
@@ -156,7 +153,6 @@ jobs:
             const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
             const workflowPath = (run) => run.path.split('@')[0];
 
-            // Newest run of every workflow for the approved SHA.
             async function latestRuns() {
               const runs = await github.paginate(
                 github.rest.actions.listWorkflowRunsForRepo,
@@ -206,7 +202,6 @@ jobs:
               ));
             }
 
-            // A run can only be re-run once it has completed.
             const { gated } = await waitFor(
               (r) => r.gated.every((run) => run.status === 'completed'),
               'in-progress checks to finish',
