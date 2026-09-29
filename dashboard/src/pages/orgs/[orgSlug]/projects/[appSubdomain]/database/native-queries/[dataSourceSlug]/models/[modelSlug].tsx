@@ -1,7 +1,9 @@
 import type { ReactElement } from 'react';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
+import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { LogicalModelDetails } from '@/features/orgs/projects/database/native-queries/components/LogicalModelDetails';
 import { NativeQueriesBrowserSidebar } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesBrowserSidebar';
@@ -24,11 +26,17 @@ export default function LogicalModelDetailsPage() {
 
 LogicalModelDetailsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <OrgLayout mainContainerProps={{ className: 'flex h-full' }}>
-      <NativeQueriesBrowserSidebar />
-      <div className="flex w-full flex-auto flex-col overflow-x-hidden bg-background">
-        {page}
-      </div>
-    </OrgLayout>
+    <AppLayout>
+      <ProjectScope>
+        <ProjectStateGate>
+          <div className="flex h-full">
+            <NativeQueriesBrowserSidebar />
+            <div className="flex w-full flex-auto flex-col overflow-x-hidden bg-background">
+              {page}
+            </div>
+          </div>
+        </ProjectStateGate>
+      </ProjectScope>
+    </AppLayout>
   );
 };
