@@ -41,6 +41,7 @@ let
 
           ../../internal/lib/oapi
           ../../internal/lib/hasura/metadata
+          ../../internal/lib/serve
         ])
         (
           fs.unions [

@@ -17,6 +17,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/nhost/nhost/internal/lib/oapi"
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
+	serveutil "github.com/nhost/nhost/internal/lib/serve"
 	"github.com/nhost/nhost/services/constellation/api"
 	"github.com/nhost/nhost/services/constellation/controller"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
@@ -183,20 +184,6 @@ func serverFlags() []cli.Flag { //nolint:funlen // long flag list; splitting har
 			Sources: cli.EnvVars(
 				"CONSTELLATION_HASURA_PROXY_REQUEST_BODY_LIMIT_BYTES",
 			),
-			// Reject negative values explicitly. The runtime guard only checks
-			// `> 0`, so a negative value would silently disable the cap (same
-			// behaviour as 0) but with no operator-visible signal. Surfacing it
-			// at startup turns a silent misconfiguration into a loud error.
-			Validator: func(v int64) error {
-				if v < 0 {
-					return fmt.Errorf( //nolint:err113
-						"%s must be >= 0 (0 disables the limit), got %d",
-						flagHasuraProxyRequestBodyLimitBytes, v,
-					)
-				}
-
-				return nil
-			},
 		},
 	}
 }
@@ -273,17 +260,12 @@ func allowRequestHeader(name string) bool {
 	}
 }
 
-// getCorsOptions builds the CORS configuration from the configured
-// allowed-origins flag. An empty allow-list is the safe default: no origin
-// matches, so no Access-Control-Allow-Origin is emitted and credentialed
-// cross-origin reads are denied. A configured allow-all origin combined with
-// credentials is rejected rather than silently reflecting arbitrary origins.
-func getCorsOptions(
-	ctx context.Context,
-	cmd *cli.Command,
-	logger *slog.Logger,
-) (oapimw.CORSOptions, error) {
-	allowedOrigins := cmd.StringSlice(flagCORSAllowedOrigins)
+// corsOptions builds the CORS configuration from the allowed origins. An empty
+// allow-list is the safe default: no origin matches, so no
+// Access-Control-Allow-Origin is emitted and credentialed cross-origin reads
+// are denied. An allow-all origin combined with credentials is rejected rather
+// than silently reflecting arbitrary origins.
+func corsOptions(allowedOrigins []string) (oapimw.CORSOptions, error) {
 	if allowedOrigins == nil {
 		// A non-nil, empty slice denies all cross-origin requests; a nil slice
 		// would instead reflect every origin, which is not the safe default.
@@ -306,24 +288,7 @@ func getCorsOptions(
 
 	if err := opts.Validate(); err != nil {
 		return oapimw.CORSOptions{}, fmt.Errorf(
-			"invalid CORS configuration (set %s to explicit origins): %w",
-			flagCORSAllowedOrigins,
-			err,
-		)
-	}
-
-	// Warn once at startup when the resolved allow-list is empty: this is the
-	// fail-safe deny-all default, but it silently breaks deployments that
-	// relied on the previous permissive "*" CORS, so operators get an
-	// actionable signal naming the flag. Only the genuine empty-deny-all case
-	// warrants the warning; an AllowOriginFunc would gate origins dynamically
-	// and is intentionally left to the caller.
-	if opts.AllowOriginFunc == nil && len(opts.AllowedOrigins) == 0 {
-		logger.WarnContext(
-			ctx,
-			"CORS: no allowed origins configured; all cross-origin requests will be denied",
-			slog.String("flag", flagCORSAllowedOrigins),
-			slog.String("env", "CONSTELLATION_CORS_ALLOWED_ORIGINS"),
+			"invalid CORSAllowedOrigins (set explicit origins): %w", err,
 		)
 	}
 
@@ -341,15 +306,25 @@ func playgroundHandler(path string) gin.HandlerFunc {
 //nolint:funlen // assembles the full HTTP wiring; splitting fragments the topology
 func getRouter(
 	ctx context.Context,
-	cmd *cli.Command,
+	opts Options,
 	ctrl *controller.Controller,
 	jwtAuth middleware.JWTAuthenticator,
 	hasuraProxy http.Handler,
 	logger *slog.Logger,
 ) (*gin.Engine, error) {
-	corsOpts, err := getCorsOptions(ctx, cmd, logger)
+	corsOpts, err := corsOptions(opts.CORSAllowedOrigins)
 	if err != nil {
 		return nil, err
+	}
+
+	// Warn once at startup when the allow-list is empty: this is the fail-safe
+	// deny-all default, but it silently breaks deployments that relied on the
+	// previous permissive "*" CORS.
+	if len(corsOpts.AllowedOrigins) == 0 {
+		logger.WarnContext(
+			ctx,
+			"CORS: no allowed origins configured; all cross-origin requests will be denied",
+		)
 	}
 
 	spec, err := api.GetSpec()
@@ -372,9 +347,9 @@ func getRouter(
 	// logger/tracing middleware (so it can enrich the request logger) and before
 	// per-route OpenAPI validation (so NewAuthFunc can authorize against the
 	// resolved session).
-	router.Use(middleware.Session(cmd.String(flagAdminSecret), jwtAuth)) //nolint:contextcheck
+	router.Use(middleware.Session(opts.AdminSecret, jwtAuth)) //nolint:contextcheck
 
-	proxyBodyLimit := cmd.Int64(flagHasuraProxyRequestBodyLimitBytes)
+	proxyBodyLimit := opts.HasuraProxyRequestBodyLimitBytes
 
 	handler := api.NewStrictHandler(ctrl, nil)
 	api.RegisterHandlersWithOptions(router, handler, api.GinServerOptions{
@@ -395,17 +370,12 @@ func getRouter(
 		ErrorHandler: oapi.RecordError,
 	})
 
-	if cmd.Bool(flagEnablePlayground) {
+	if opts.EnablePlayground {
 		router.GET("/", playgroundHandler("/v1/graphql"))
 	}
 
-	maxBodyBytes, err := getMaxGraphQLRequestBodyBytes(cmd)
-	if err != nil {
-		return nil, err
-	}
-
 	//nolint:contextcheck // handler uses per-request contexts; startup ctx must not be captured.
-	postHandler := ctrl.HandlerPostWithMaxBodyBytes(maxBodyBytes)
+	postHandler := ctrl.HandlerPostWithMaxBodyBytes(opts.GraphQLRequestBodyLimitBytes)
 	router.POST("/v1/graphql", postHandler)
 	router.GET("/v1/graphql", ctrl.HandlerGet)
 
@@ -438,26 +408,15 @@ func getRouter(
 	return router, nil
 }
 
-func getMaxGraphQLRequestBodyBytes(cmd *cli.Command) (int64, error) {
-	maxBodyBytes := cmd.Int64(flagGraphQLRequestBodyLimitBytes)
-	if maxBodyBytes <= 0 {
-		return 0, fmt.Errorf(
-			"%s: %w", flagGraphQLRequestBodyLimitBytes, errFlagMustBeGreaterThanZero,
-		)
-	}
-
-	return maxBodyBytes, nil
-}
-
 // initJWTAuth builds a JWT authenticator from the configured secrets. At least
 // one JWT secret is required: an empty configuration is a fatal
 // misconfiguration, not a request to disable authentication. Starting with
 // authentication silently disabled would be an unsafe posture, so this fails
 // loudly instead.
 func initJWTAuth(
-	ctx context.Context, cmd *cli.Command, logger *slog.Logger,
+	ctx context.Context, secret string, logger *slog.Logger,
 ) (*jwt.Authenticator, error) {
-	jwtCfg, err := jwtconfig.ParseConfig([]string{cmd.String(flagJWTSecret)})
+	jwtCfg, err := jwtconfig.ParseConfig([]string{secret})
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse jwt config: %w", err)
 	}
@@ -466,7 +425,7 @@ func initJWTAuth(
 	if err != nil {
 		if errors.Is(err, jwt.ErrNoSecrets) {
 			return nil, fmt.Errorf(
-				"at least one jwt secret must be configured via %s: %w", flagJWTSecret, err,
+				"at least one jwt secret must be configured in JWTSecret: %w", err,
 			)
 		}
 
@@ -477,162 +436,218 @@ func initJWTAuth(
 }
 
 func serve(ctx context.Context, cmd *cli.Command) error {
-	logger := getLogger(cmd.Bool(flagDebug), cmd.Bool(flagLogFormatTEXT))
+	logger := serveutil.NewLogger(cmd.Bool(flagDebug), cmd.Bool(flagLogFormatTEXT))
 	logger.InfoContext(ctx, cmd.Root().Name+" v"+cmd.Root().Version)
-	logFlags(ctx, logger, cmd)
+	serveutil.LogFlags(ctx, logger, cmd)
 
-	var metadataSource metadata.Source
-	if metaDBURL := cmd.String(flagMetadataDatabaseURL); metaDBURL != "" {
-		databaseMetadataSource, err := source.NewDatabaseMetadataSource(
-			ctx,
-			metaDBURL,
-			time.Second,
-			logger,
-		)
-		if err != nil {
-			return fmt.Errorf("creating database metadata source: %w", err)
-		}
-
-		metadataSource = databaseMetadataSource
-	} else {
-		metadataSource = source.NewFileMetadataSource(cmd.String(flagMetadataPath))
-	}
-
-	defer metadataSource.Close()
-
-	jwtAuth, err := initJWTAuth(ctx, cmd, logger)
+	timeouts, err := httpTimeouts(cmd)
 	if err != nil {
-		return fmt.Errorf("initializing JWT auth: %w", err)
+		return err
 	}
 
-	defer jwtAuth.Close()
+	opts := optionsFromCommand(cmd)
 
-	// Hasura upstream proxy. Used both as the NoRoute fallback (any path
-	// Constellation does not serve natively) and as the per-op fallback
-	// inside the /v1/metadata dispatcher (any metadata op not yet migrated).
-	// The default URL targets the Nhost Hasura sidecar so compatibility routes
-	// proxy in normal side-by-side deployments. A nil proxy means the resolved
-	// flag/env value was explicitly set empty — unimplemented routes return 404
-	// and unknown metadata ops return `not-supported`.
-	var hasuraProxy http.Handler
+	// Run's errors already name the service and the lifecycle phase that failed.
+	//nolint:wrapcheck // adding a prefix here would only repeat that context.
+	return serveutil.Run(ctx, serveutil.Options{
+		Logger:          logger,
+		Addr:            cmd.String(flagBindAddress),
+		HTTP:            timeouts,
+		DebugAddr:       cmd.String(flagProfileAddress),
+		ShutdownTimeout: shutdownTimeout,
+		Compose:         nil,
+	}, serveutil.Definition{
+		Name: "constellation", Prefix: "",
+		Build: func(ctx context.Context, logger *slog.Logger) (*serveutil.Service, error) {
+			return NewService(ctx, opts, logger)
+		},
+	})
+}
 
-	if upstream := cmd.String(flagHasuraUpstreamURL); upstream != "" {
-		proxy, err := hasuraproxy.New(upstream, logger)
-		if err != nil {
-			return fmt.Errorf("invalid %s: %w", flagHasuraUpstreamURL, err)
+// NewService builds constellation's serving surface from opts: the HTTP
+// handler, the background controller loop, and the cleanup of the resources it
+// acquires (controller state, metadata source, JWT authenticator). It is
+// consumed both by the standalone serve command and by the engine unified
+// binary, which mounts the handler behind a shared listener and runs the
+// background loop under the shared process lifecycle. It validates opts first.
+//
+//nolint:funlen // keeps acquisition and release of serving resources together
+func NewService(
+	ctx context.Context,
+	opts Options,
+	logger *slog.Logger,
+) (_ *serveutil.Service, err error) {
+	if err := opts.Validate(); err != nil {
+		return nil, err
+	}
+
+	var (
+		metadataSource metadata.Source
+		jwtAuth        *jwt.Authenticator
+		ctrl           *controller.Controller
+	)
+
+	// Release acquired resources newest first on construction failure or shutdown.
+	// Controller.Close drains connectors under its own uncancelled context.
+	//nolint:contextcheck // releasing must outlive the cancelled lifecycle context
+	release := func() {
+		if ctrl != nil {
+			ctrl.Close()
 		}
 
-		hasuraProxy = proxy
+		if jwtAuth != nil {
+			jwtAuth.Close()
+		}
+
+		if metadataSource != nil {
+			metadataSource.Close()
+		}
+	}
+	defer func() {
+		if err != nil {
+			release()
+		}
+	}()
+
+	metadataSource, err = newMetadataSource(ctx, opts, logger)
+	if err != nil {
+		return nil, err
 	}
 
+	jwtAuth, err = initJWTAuth(ctx, opts.JWTSecret, logger)
+	if err != nil {
+		return nil, fmt.Errorf("initializing JWT auth: %w", err)
+	}
+
+	hasuraProxy, err := newHasuraProxy(opts.HasuraUpstreamURL, logger)
+	if err != nil {
+		return nil, err
+	}
+
+	ctrl, err = newServiceController(
+		ctx, opts, jwtAuth, metadataSource, logger, hasuraProxy,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	router, err := getRouter(ctx, opts, ctrl, jwtAuth, hasuraProxy, logger)
+	if err != nil {
+		return nil, fmt.Errorf("building HTTP router: %w", err)
+	}
+
+	return &serveutil.Service{
+		Handler: router,
+		Background: func(ctx context.Context) error {
+			logger.InfoContext(ctx, "starting controller")
+			ctrl.Run(ctx, logger)
+			logger.WarnContext(ctx, "controller has stopped")
+
+			return nil
+		},
+		Close: serveutil.CloseFunc(release),
+	}, nil
+}
+
+func newServiceController(
+	ctx context.Context,
+	opts Options,
+	jwtAuth middleware.JWTAuthenticator,
+	metadataSource metadata.Source,
+	logger *slog.Logger,
+	hasuraProxy http.Handler,
+) (*controller.Controller, error) {
 	ctrl, err := controller.New(
 		ctx,
-		cmd.Duration(flagSubscriptionPollInterval),
-		cmd.String(flagAdminSecret),
-		cmd.Bool(flagDevMode),
+		opts.SubscriptionPollInterval,
+		opts.AdminSecret,
+		opts.DevMode,
 		jwtAuth,
 		metadataSource,
 		logger,
-		cmd.Root().Version,
+		opts.Version,
 		hasuraProxy,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to create controller: %w", err)
+		return nil, fmt.Errorf("failed to create controller: %w", err)
 	}
 
-	return runServer(ctx, cmd, ctrl, jwtAuth, hasuraProxy, logger)
+	return ctrl, nil
 }
 
-func runServer(
+// newMetadataSource builds the metadata source from opts: a PostgreSQL-backed
+// source when a metadata database URL is set, otherwise the file-backed
+// source. The caller owns the returned source and must Close it.
+// The interface return is intentional; the concrete implementation varies.
+//
+//nolint:ireturn // interface return is intentional; see doc comment
+func newMetadataSource(
 	ctx context.Context,
-	cmd *cli.Command,
-	ctrl *controller.Controller,
-	jwtAuth middleware.JWTAuthenticator,
-	hasuraProxy http.Handler,
+	opts Options,
 	logger *slog.Logger,
-) error {
-	router, err := getRouter(ctx, cmd, ctrl, jwtAuth, hasuraProxy, logger)
-	if err != nil {
-		return fmt.Errorf("building HTTP router: %w", err)
+) (metadata.Source, error) {
+	if opts.MetadataDatabaseURL == "" {
+		return source.NewFileMetadataSource(opts.MetadataPath), nil
 	}
 
-	server, err := newHTTPServer(cmd, router)
-	if err != nil {
-		return fmt.Errorf("configuring HTTP server: %w", err)
-	}
-
-	ctx, cancel := context.WithCancel(ctx)
-
-	profileServer := startProfileServer(ctx, cmd.String(flagProfileAddress), logger)
-
-	go func() {
-		defer cancel()
-
-		logger.InfoContext(ctx, "starting controller")
-		ctrl.Run(ctx, logger)
-		logger.WarnContext(ctx, "controller has stopped")
-	}()
-
-	go func() {
-		defer cancel()
-
-		logger.InfoContext(ctx, "starting server", slog.String("address", server.Addr))
-
-		if err := server.ListenAndServe(); err != nil {
-			logger.WarnContext(ctx, err.Error())
-		}
-	}()
-
-	<-ctx.Done()
-
-	logger.WarnContext(ctx, "shutting down server")
-
-	shutdownCtx, shutdownCancel := context.WithTimeout(
-		context.Background(),
-		shutdownTimeout,
+	databaseMetadataSource, err := source.NewDatabaseMetadataSource(
+		ctx,
+		opts.MetadataDatabaseURL,
+		time.Second,
+		logger,
 	)
-	defer shutdownCancel()
-
-	if profileServer != nil {
-		if err := profileServer.Shutdown( //nolint:contextcheck // parent ctx is cancelled
-			shutdownCtx,
-		); err != nil {
-			return fmt.Errorf("failed to shutdown profiling server: %w", err)
-		}
+	if err != nil {
+		return nil, fmt.Errorf("creating database metadata source: %w", err)
 	}
 
-	if err := server.Shutdown( //nolint:contextcheck // parent ctx is cancelled
-		shutdownCtx,
-	); err != nil {
-		return fmt.Errorf("failed to shutdown server: %w", err)
-	}
-
-	return nil
+	return databaseMetadataSource, nil
 }
 
-func newHTTPServer(cmd *cli.Command, handler http.Handler) (*http.Server, error) {
+// newHasuraProxy builds the Hasura upstream proxy, or returns a nil handler
+// when the upstream URL is empty. The proxy is used both as the
+// NoRoute fallback (any path Constellation does not serve natively) and as the
+// per-op fallback inside the /v1/metadata dispatcher (any metadata op not yet
+// migrated). The default URL targets the Nhost Hasura sidecar so compatibility
+// routes proxy in normal side-by-side deployments; a nil proxy makes
+// unimplemented routes return 404 and unknown metadata ops return
+// `not-supported`.
+func newHasuraProxy(upstream string, logger *slog.Logger) (http.Handler, error) {
+	if upstream == "" {
+		return nil, nil //nolint:nilnil // nil handler is a valid "proxy disabled" result
+	}
+
+	proxy, err := hasuraproxy.New(upstream, logger)
+	if err != nil {
+		return nil, fmt.Errorf("invalid HasuraUpstreamURL: %w", err)
+	}
+
+	return proxy, nil
+}
+
+// httpTimeouts resolves the listener deadlines from the configured flags. The
+// read-header deadline is capped so a generous read timeout still leaves a
+// tight slowloris guard on the header read itself.
+func httpTimeouts(cmd *cli.Command) (serveutil.HTTPTimeouts, error) {
 	readTimeout, err := positiveDurationFlag(cmd, flagHTTPReadTimeout)
 	if err != nil {
-		return nil, err
+		return serveutil.HTTPTimeouts{}, err
 	}
 
 	writeTimeout, err := positiveDurationFlag(cmd, flagHTTPWriteTimeout)
 	if err != nil {
-		return nil, err
+		return serveutil.HTTPTimeouts{}, err
 	}
 
 	idleTimeout, err := positiveDurationFlag(cmd, flagHTTPIdleTimeout)
 	if err != nil {
-		return nil, err
+		return serveutil.HTTPTimeouts{}, err
 	}
 
-	return &http.Server{ //nolint:exhaustruct
-		Addr:              cmd.String(flagBindAddress),
-		Handler:           handler,
-		ReadHeaderTimeout: min(readTimeout, maxHTTPReadHeaderTimeout),
-		ReadTimeout:       readTimeout,
-		WriteTimeout:      writeTimeout,
-		IdleTimeout:       idleTimeout,
+	return serveutil.HTTPTimeouts{
+		ReadHeader: min(readTimeout, maxHTTPReadHeaderTimeout),
+		Read:       readTimeout,
+		Write:      writeTimeout,
+		Idle:       idleTimeout,
 	}, nil
 }
 
@@ -643,38 +658,4 @@ func positiveDurationFlag(cmd *cli.Command, name string) (time.Duration, error) 
 	}
 
 	return value, nil
-}
-
-// startProfileServer starts a pprof profiling server if profileAddr is non-empty.
-// Note: the _ "net/http/pprof" import registers handlers on http.DefaultServeMux
-// at import time. The main server must not use DefaultServeMux to avoid
-// exposing pprof endpoints unintentionally.
-func startProfileServer(
-	ctx context.Context,
-	profileAddr string,
-	logger *slog.Logger,
-) *http.Server {
-	if profileAddr == "" {
-		return nil
-	}
-
-	profileServer := &http.Server{ //nolint:exhaustruct
-		Addr:              profileAddr,
-		Handler:           http.DefaultServeMux,
-		ReadHeaderTimeout: maxHTTPReadHeaderTimeout,
-	}
-
-	go func() {
-		logger.InfoContext(
-			ctx, "starting profiling server", slog.String("address", profileAddr),
-		)
-
-		if err := profileServer.ListenAndServe(); err != nil {
-			logger.WarnContext(
-				ctx, "profiling server stopped", slog.String("error", err.Error()),
-			)
-		}
-	}()
-
-	return profileServer
 }
