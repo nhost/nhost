@@ -53,7 +53,7 @@ func TestLoadConfigRequiresAdminSecret(t *testing.T) {
 func TestAdminSecretReachesStorage(t *testing.T) {
 	t.Parallel()
 
-	const adminSecret = "nhost-admin-secret" //nolint:gosec // Test fixture, not a real credential.
+	const adminSecret = "nhost-admin-secret"
 
 	seen := make(chan string, 1)
 	storageService := httptest.NewServer(
