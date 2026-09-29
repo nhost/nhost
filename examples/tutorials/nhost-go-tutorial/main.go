@@ -103,9 +103,11 @@ func rootCmd() *cli.Command { //nolint:funlen,maintidx
 			command.Usage = "Generate the autocompletion script for the specified shell"
 		},
 		Before: func(ctx context.Context, _ *cli.Command) (context.Context, error) {
-			client = newClient()
+			var err error
 
-			return ctx, nil
+			client, err = newClient()
+
+			return ctx, err
 		},
 		Action: commandHelp,
 		Commands: []*cli.Command{
@@ -135,8 +137,8 @@ func rootCmd() *cli.Command { //nolint:funlen,maintidx
 			{
 				Name:  "whoami",
 				Usage: "Show the currently signed-in user",
-				Action: withArgs(func(_ context.Context, _ *cli.Command, _ []string) error {
-					return cmdWhoami(client)
+				Action: withArgs(func(ctx context.Context, _ *cli.Command, _ []string) error {
+					return cmdWhoami(ctx, client)
 				}),
 			},
 			{
@@ -445,12 +447,16 @@ func silenceUsage(cmd *cli.Command) {
 	}
 }
 
-func newClient() *nhost.Client {
-	return nhost.New(nhost.Options{ //nolint:exhaustruct
-		Subdomain: env("NHOST_SUBDOMAIN", "local"),
-		Region:    env("NHOST_REGION", "local"),
-		Storage:   &session.FileStorage{Path: sessionPath()},
-	})
+func newClient() (*nhost.Client, error) {
+	client, err := nhost.New(
+		nhost.WithProject(env("NHOST_SUBDOMAIN", "local"), env("NHOST_REGION", "local")),
+		nhost.WithSessionStorage(&session.FileStorage{Path: sessionPath()}),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("create Nhost client: %w", err)
+	}
+
+	return client, nil
 }
 
 func sessionPath() string {
@@ -501,7 +507,7 @@ func cmdSignup(ctx context.Context, c *nhost.Client, email, password string) err
 		return fmt.Errorf("sign up: %w", err)
 	}
 
-	sess, err := c.Session()
+	sess, err := c.Session(ctx)
 	if err != nil {
 		return fmt.Errorf("reading session after sign up: %w", err)
 	}
@@ -516,7 +522,7 @@ func cmdSignup(ctx context.Context, c *nhost.Client, email, password string) err
 }
 
 func cmdLogout(ctx context.Context, c *nhost.Client) error {
-	s, err := c.Session()
+	s, err := c.Session(ctx)
 	if err != nil {
 		return fmt.Errorf("reading session: %w", err)
 	}
@@ -532,7 +538,7 @@ func cmdLogout(ctx context.Context, c *nhost.Client) error {
 		)
 	}
 
-	if err := c.ClearSession(); err != nil {
+	if err := c.ClearSession(ctx); err != nil {
 		return fmt.Errorf("clearing session: %w", err)
 	}
 
@@ -541,8 +547,8 @@ func cmdLogout(ctx context.Context, c *nhost.Client) error {
 	return nil
 }
 
-func cmdWhoami(c *nhost.Client) error {
-	s, err := c.Session()
+func cmdWhoami(ctx context.Context, c *nhost.Client) error {
+	s, err := c.Session(ctx)
 	if err != nil {
 		return fmt.Errorf("reading session: %w", err)
 	}

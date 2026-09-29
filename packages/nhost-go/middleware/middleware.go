@@ -6,6 +6,7 @@ package middleware
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,6 +14,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 
 	"github.com/nhost/nhost/packages/nhost-go/auth"
@@ -25,6 +27,16 @@ import (
 const DefaultMarginSeconds = 60
 
 var errInvalidServiceURL = errors.New("invalid service URL: expected an HTTP(S) URL with a host")
+
+// ErrAccessTokenWithAdminSession fails a request made with
+// [session.WithAccessToken] through the admin-session middleware. The GraphQL
+// engine gives the admin secret precedence over a token, so sending both would
+// run the request as admin and silently ignore the user it was meant for. To act
+// as a user with the admin secret, set AdminSessionOptions.Role and
+// SessionVariables instead.
+var ErrAccessTokenWithAdminSession = errors.New(
+	"a request with a per-request access token cannot use an admin session",
+)
 
 type requestScope struct {
 	scheme     string
@@ -80,10 +92,32 @@ func (s requestScope) logWithheldAdminSecret(
 	)
 }
 
-// AttachAccessToken attaches "Authorization: Bearer <access_token>" from the
-// stored session to requests for serviceURL. It should run after the refresh
-// middleware so the freshest token is used, and skips requests that already
-// carry an Authorization header.
+// requestAccessToken returns the token a request authenticates with: the one
+// set by [session.WithAccessToken], or else that of the stored session the
+// request selects. storage may be nil, for a client without session storage.
+func requestAccessToken(ctx context.Context, storage *session.Storage) (string, error) {
+	if accessToken, ok := session.AccessTokenFromContext(ctx); ok {
+		return accessToken, nil
+	}
+
+	if storage == nil {
+		return "", nil
+	}
+
+	s, err := storage.Get(ctx)
+	if err != nil || s == nil {
+		return "", err //nolint:wrapcheck // Caller-supplied backend error.
+	}
+
+	return s.AccessToken, nil
+}
+
+// AttachAccessToken attaches "Authorization: Bearer <access_token>" to requests
+// for serviceURL. The token is the one set on the request context with
+// [session.WithAccessToken], or else that of the stored session the context
+// selects ([session.WithUserID]); storage may be nil when there is no session
+// storage. It should run after the refresh middleware so the freshest token is
+// used, and skips requests that already carry an Authorization header.
 func AttachAccessToken(storage *session.Storage, serviceURL string) transport.Middleware {
 	scope, scopeErr := newRequestScope(serviceURL)
 
@@ -101,15 +135,15 @@ func AttachAccessToken(storage *session.Storage, serviceURL string) transport.Mi
 				// A storage failure is logged rather than failing the request:
 				// the request proceeds unauthenticated and the server decides,
 				// matching how SessionRefresh treats a failed refresh.
-				s, err := storage.Get()
+				accessToken, err := requestAccessToken(req.Context(), storage)
 				if err != nil {
 					slog.Warn(
 						"error reading session; sending request without a token",
 						"error", err,
 					)
-				} else if s != nil && s.AccessToken != "" {
+				} else if accessToken != "" {
 					req = req.Clone(req.Context())
-					req.Header.Set("Authorization", "Bearer "+s.AccessToken)
+					req.Header.Set("Authorization", "Bearer "+accessToken)
 				}
 
 				return next.RoundTrip(req)
@@ -122,7 +156,7 @@ func AttachAccessToken(storage *session.Storage, serviceURL string) transport.Mi
 			// Off-origin: strip only a header this middleware could have set.
 			// When the session cannot be read the header is left alone, since
 			// it can only be one the caller supplied.
-			s, err := storage.Get()
+			accessToken, err := requestAccessToken(req.Context(), storage)
 			if err != nil {
 				slog.Warn(
 					"error reading session; leaving the caller's Authorization header",
@@ -132,9 +166,8 @@ func AttachAccessToken(storage *session.Storage, serviceURL string) transport.Mi
 				return next.RoundTrip(req)
 			}
 
-			if s != nil &&
-				s.AccessToken != "" &&
-				req.Header.Get("Authorization") == "Bearer "+s.AccessToken {
+			if accessToken != "" &&
+				req.Header.Get("Authorization") == "Bearer "+accessToken {
 				req = req.Clone(req.Context())
 				req.Header.Del("Authorization")
 			}
@@ -144,9 +177,11 @@ func AttachAccessToken(storage *session.Storage, serviceURL string) transport.Mi
 	}
 }
 
-// SessionRefresh refreshes the session before a request when the token is near
-// expiry. It skips requests that already carry an Authorization header and the
-// token endpoint itself (to avoid recursively refreshing during a refresh).
+// SessionRefresh refreshes the session the request selects (see
+// [session.WithUserID]) before the request when its token is near expiry. It
+// skips requests that already carry an Authorization header or a per-request
+// token ([session.WithAccessToken]), and the token endpoint itself (to avoid
+// recursively refreshing during a refresh).
 func SessionRefresh(
 	authClient *auth.Client,
 	storage *session.Storage,
@@ -162,7 +197,9 @@ func SessionRefresh(
 
 			isAuthTokenRequest := authScope.contains(req.URL) &&
 				req.URL.Path == authScope.pathPrefix+"/token"
-			if req.Header.Get("Authorization") == "" && !isAuthTokenRequest {
+			_, hasRequestToken := session.AccessTokenFromContext(req.Context())
+
+			if req.Header.Get("Authorization") == "" && !hasRequestToken && !isAuthTokenRequest {
 				if _, err := session.RefreshSession(
 					req.Context(), authClient, storage, marginSeconds,
 				); err != nil {
@@ -244,7 +281,11 @@ func sessionAction(scope requestScope, reqURL *url.URL) sessionResponseAction {
 	return sessionResponseIgnore
 }
 
-func storeSessionFromResponse(storage *session.Storage, resp *http.Response) {
+func storeSessionFromResponse(
+	ctx context.Context,
+	storage *session.Storage,
+	resp *http.Response,
+) {
 	data, readErr := io.ReadAll(resp.Body)
 	if closeErr := resp.Body.Close(); closeErr != nil {
 		slog.Debug("error closing auth response body", "error", closeErr)
@@ -260,34 +301,42 @@ func storeSessionFromResponse(storage *session.Storage, resp *http.Response) {
 		return
 	}
 
-	if err := storage.Set(*s); err != nil {
+	if err := storage.Set(ctx, *s); err != nil {
 		slog.Warn("error storing session from response", "error", err)
 	}
 }
 
-func removeSession(storage *session.Storage) {
-	if err := storage.Remove(); err != nil {
+func removeSession(ctx context.Context, storage *session.Storage) {
+	if err := storage.Remove(ctx); err != nil {
 		slog.Warn("error clearing stored session", "error", err)
 	}
 }
 
-func updateSession(storage *session.Storage, action sessionResponseAction, resp *http.Response) {
+func updateSession(
+	ctx context.Context,
+	storage *session.Storage,
+	action sessionResponseAction,
+	resp *http.Response,
+) {
 	switch action {
 	case sessionResponseRemove:
-		removeSession(storage)
+		removeSession(ctx, storage)
 	case sessionResponseRemoveOnSuccess:
 		if resp.StatusCode < http.StatusMultipleChoices {
-			removeSession(storage)
+			removeSession(ctx, storage)
 		}
 	case sessionResponseStore:
-		storeSessionFromResponse(storage, resp)
+		storeSessionFromResponse(ctx, storage, resp)
 	case sessionResponseIgnore:
 	}
 }
 
 // UpdateSessionFromResponse persists session data returned by auth endpoints
-// under authURL and clears it on sign-out. It reads and then restores the
-// response body so downstream decoding still works.
+// under authURL, keyed by the session's user, and on sign-out clears the session
+// the request selects (see [session.WithUserID]). Requests made with a
+// per-request token ([session.WithAccessToken]) act for a caller whose session
+// the client does not hold, so they leave storage alone. It reads and then
+// restores the response body so downstream decoding still works.
 func UpdateSessionFromResponse(storage *session.Storage, authURL string) transport.Middleware {
 	scope, scopeErr := newRequestScope(authURL)
 
@@ -303,7 +352,9 @@ func UpdateSessionFromResponse(storage *session.Storage, authURL string) transpo
 				return resp, err //nolint:wrapcheck
 			}
 
-			updateSession(storage, sessionAction(scope, req.URL), resp)
+			if _, ok := session.AccessTokenFromContext(req.Context()); !ok {
+				updateSession(req.Context(), storage, sessionAction(scope, req.URL), resp)
+			}
 
 			return resp, nil
 		})
@@ -328,18 +379,20 @@ func WithRole(role string) transport.Middleware {
 // The caller is responsible for not supplying credentials: default headers are
 // intentionally unscoped and are reapplied when the HTTP client follows a
 // redirect. Use the scoped access-token or admin-session middleware for secrets.
-func WithHeaders(defaultHeaders map[string]string) transport.Middleware {
+func WithHeaders(defaultHeaders http.Header) transport.Middleware {
+	defaultHeaders = defaultHeaders.Clone()
+
 	return func(next http.RoundTripper) http.RoundTripper {
 		return transport.RoundTripFunc(func(req *http.Request) (*http.Response, error) {
 			out := req
 
-			for key, value := range defaultHeaders {
-				if out.Header.Get(key) == "" {
+			for key, values := range defaultHeaders {
+				if len(values) > 0 && len(out.Header.Values(key)) == 0 {
 					if out == req {
 						out = req.Clone(req.Context())
 					}
 
-					out.Header.Set(key, value)
+					out.Header[http.CanonicalHeaderKey(key)] = slices.Clone(values)
 				}
 			}
 
@@ -364,7 +417,9 @@ type AdminSessionOptions struct {
 
 // WithAdminSession attaches x-hasura-admin-secret and optional role/session
 // variables to requests for serviceURL. Admin sessions are only sent over HTTPS
-// or to a loopback development server unless AllowInsecureHTTP is enabled.
+// or to a loopback development server unless AllowInsecureHTTP is enabled. A
+// request carrying a per-request token ([session.WithAccessToken]) fails with
+// [ErrAccessTokenWithAdminSession] instead of being sent with both.
 func WithAdminSession(options AdminSessionOptions, serviceURL string) transport.Middleware {
 	scope, scopeErr := newRequestScope(serviceURL)
 
@@ -374,12 +429,17 @@ func WithAdminSession(options AdminSessionOptions, serviceURL string) transport.
 				return nil, scopeErr
 			}
 
+			ctx := req.Context()
+			if _, ok := session.AccessTokenFromContext(ctx); ok {
+				return nil, ErrAccessTokenWithAdminSession
+			}
+
 			if !scope.permitsAdminSession(req.URL, options.AllowInsecureHTTP) {
 				scope.logWithheldAdminSecret(req.URL, options)
 
 				if options.AdminSecret != "" &&
 					req.Header.Get("x-hasura-admin-secret") == options.AdminSecret {
-					req = req.Clone(req.Context())
+					req = req.Clone(ctx)
 					req.Header.Del("x-hasura-admin-secret")
 				}
 
@@ -393,7 +453,7 @@ func WithAdminSession(options AdminSessionOptions, serviceURL string) transport.
 				}
 
 				if out == req {
-					out = req.Clone(req.Context())
+					out = req.Clone(ctx)
 				}
 
 				out.Header.Set(key, value)

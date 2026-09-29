@@ -74,14 +74,14 @@ func TestStorageSetGetRemove(t *testing.T) {
 	token := makeToken(t, map[string]any{"exp": 9999999999, "sub": "u"})
 	store := session.NewStorage(&session.MemoryStorage{})
 
-	if err := store.Set(auth.Session{
+	if err := store.Set(t.Context(), auth.Session{
 		AccessToken:  token,
 		RefreshToken: "r",
 	}); err != nil {
 		t.Fatalf("set: %v", err)
 	}
 
-	got, err := store.Get()
+	got, err := store.Get(t.Context())
 	if err != nil || got == nil || got.AccessToken != token {
 		t.Fatalf("get after set failed: err=%v", err)
 	}
@@ -90,11 +90,11 @@ func TestStorageSetGetRemove(t *testing.T) {
 		t.Fatalf("decoded token not derived on set: sub=%q", got.DecodedToken.Sub)
 	}
 
-	if err := store.Remove(); err != nil {
+	if err := store.Remove(t.Context()); err != nil {
 		t.Fatalf("remove: %v", err)
 	}
 
-	if got, err := store.Get(); err != nil || got != nil {
+	if got, err := store.Get(t.Context()); err != nil || got != nil {
 		t.Fatalf("session after remove = (%#v, %v), want (nil, nil)", got, err)
 	}
 }

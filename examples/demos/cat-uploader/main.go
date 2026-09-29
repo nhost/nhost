@@ -281,28 +281,27 @@ func main() {
 	// admin secret rather than signing in as a user — the same pattern the
 	// serverless-function examples use.
 	//
-	// NewBareClient, not New: this process holds no user session, so the
-	// refresh and token-attachment middleware would have nothing to act on, and
-	// New documents that its client must not be shared across users in a
-	// server. The admin middleware is the entire pipeline here.
+	// No session storage: this process holds no user session. New rejects the
+	// admin secret combined with session storage anyway, since the admin secret
+	// would silently take precedence over any user's token.
 	//
 	// AllowInsecureHTTP is required because inside the Nhost stack this service
 	// reaches storage over plain HTTP at http://storage:5000/v1; the SDK
 	// otherwise withholds the secret from a cleartext request to a non-loopback
 	// host. Never enable it for a client that leaves the internal network.
-	client := nhost.NewBareClient(nhost.Options{ //nolint:exhaustruct
-		Subdomain:  cfg.subdomain,
-		Region:     cfg.region,
-		AuthURL:    cfg.authURL,
-		StorageURL: cfg.storageURL,
-		HTTPClient: httpClient,
-		Configure: []nhost.ConfigureFunc{
-			nhost.WithAdminSession(middleware.AdminSessionOptions{ //nolint:exhaustruct
-				AdminSecret:       cfg.adminSecret,
-				AllowInsecureHTTP: true,
-			}),
-		},
-	})
+	client, err := nhost.New(
+		nhost.WithProject(cfg.subdomain, cfg.region),
+		nhost.WithAuthURL(cfg.authURL),
+		nhost.WithStorageURL(cfg.storageURL),
+		nhost.WithHTTPClient(httpClient),
+		nhost.WithAdminSecret(middleware.AdminSessionOptions{ //nolint:exhaustruct
+			AdminSecret:       cfg.adminSecret,
+			AllowInsecureHTTP: true,
+		}),
+	)
+	if err != nil {
+		log.Fatalf("create Nhost client: %v", err)
+	}
 
 	srv := &server{
 		cfg:         cfg,

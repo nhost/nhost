@@ -25,21 +25,28 @@ type countingBackend struct {
 	removes  atomic.Int32
 }
 
-func (b *countingBackend) Get() (*session.StoredSession, error) {
-	return b.delegate.Get() //nolint:wrapcheck // Delegating to the real backend.
+func (b *countingBackend) Get(
+	ctx context.Context,
+	userID string,
+) (*session.StoredSession, error) {
+	return b.delegate.Get(ctx, userID) //nolint:wrapcheck // Delegating to the real backend.
 }
 
-func (b *countingBackend) Set(value session.StoredSession) error {
-	return b.delegate.Set(value) //nolint:wrapcheck // Delegating to the real backend.
+func (b *countingBackend) Set(ctx context.Context, value session.StoredSession) error {
+	return b.delegate.Set(ctx, value) //nolint:wrapcheck // Delegating to the real backend.
 }
 
-func (b *countingBackend) Remove() error {
+func (b *countingBackend) Remove(ctx context.Context, userID string) error {
 	b.removes.Add(1)
 
-	return b.delegate.Remove() //nolint:wrapcheck // Delegating to the real backend.
+	return b.delegate.Remove(ctx, userID) //nolint:wrapcheck // Delegating to the real backend.
 }
 
-func waitGroupWithin(t *testing.T, waitGroup *sync.WaitGroup, timeout time.Duration) {
+// goroutineTimeout bounds how long a test waits for its goroutines, so a
+// deadlocked refresh fails the test instead of hanging it.
+const goroutineTimeout = time.Second
+
+func waitGroupWithin(t *testing.T, waitGroup *sync.WaitGroup) {
 	t.Helper()
 
 	done := make(chan struct{})
@@ -50,8 +57,8 @@ func waitGroupWithin(t *testing.T, waitGroup *sync.WaitGroup, timeout time.Durat
 
 	select {
 	case <-done:
-	case <-time.After(timeout):
-		t.Fatalf("goroutines did not finish within %s", timeout)
+	case <-time.After(goroutineTimeout):
+		t.Fatalf("goroutines did not finish within %s", goroutineTimeout)
 	}
 }
 
@@ -70,7 +77,7 @@ func seedSession(t *testing.T, expiry int64) (*session.Storage, auth.Session) {
 	}
 
 	store := session.NewStorage(&session.MemoryStorage{})
-	if err := store.Set(value); err != nil {
+	if err := store.Set(t.Context(), value); err != nil {
 		t.Fatalf("seed session: %v", err)
 	}
 
@@ -137,7 +144,7 @@ func TestRefreshSessionHappyPath(t *testing.T) {
 		t.Fatalf("token endpoint hits = %d, want 1", hits.Load())
 	}
 
-	stored, err := store.Get()
+	stored, err := store.Get(t.Context())
 	if err != nil || stored == nil || stored.RefreshToken != "rotated-refresh-token" {
 		t.Fatalf("stored session = %#v, err=%v", stored, err)
 	}
@@ -283,7 +290,7 @@ func TestRefreshSessionExpiredNetworkError(t *testing.T) {
 		t.Fatalf("session = %#v, want nil for expired access token", got)
 	}
 
-	stored, err := store.Get()
+	stored, err := store.Get(t.Context())
 	if err != nil || stored == nil || stored.AccessToken != original.AccessToken {
 		t.Fatalf("stored session changed: %#v, err=%v", stored, err)
 	}
@@ -332,7 +339,7 @@ func TestRefreshSessionCollapsesConcurrentCalls(t *testing.T) {
 	}
 
 	close(start)
-	waitGroupWithin(t, &waitGroup, time.Second)
+	waitGroupWithin(t, &waitGroup)
 
 	if hits.Load() != 1 {
 		t.Fatalf("token endpoint hits = %d, want 1", hits.Load())
@@ -355,7 +362,7 @@ func TestRefreshSessionUnauthorizedNotifiesOnceForConcurrentCallers(t *testing.T
 	backend := &countingBackend{delegate: &session.MemoryStorage{}}
 
 	store := session.NewStorage(backend)
-	if err := store.Set(auth.Session{
+	if err := store.Set(t.Context(), auth.Session{
 		AccessToken:  tokenWithExpiry(t, time.Now().Add(30*time.Second).Unix()),
 		RefreshToken: "old-refresh-token",
 	}); err != nil {
@@ -396,7 +403,7 @@ func TestRefreshSessionUnauthorizedNotifiesOnceForConcurrentCallers(t *testing.T
 	}
 
 	close(start)
-	waitGroupWithin(t, &waitGroup, time.Second)
+	waitGroupWithin(t, &waitGroup)
 
 	for index := range callers {
 		if errs[index] != nil {
@@ -569,10 +576,13 @@ type failingBackend struct {
 	removes atomic.Int32
 }
 
-func (b *failingBackend) Get() (*session.StoredSession, error) { return nil, b.err }
-func (b *failingBackend) Set(session.StoredSession) error      { return b.err }
+func (b *failingBackend) Get(context.Context, string) (*session.StoredSession, error) {
+	return nil, b.err
+}
 
-func (b *failingBackend) Remove() error {
+func (b *failingBackend) Set(context.Context, session.StoredSession) error { return b.err }
+
+func (b *failingBackend) Remove(context.Context, string) error {
 	b.removes.Add(1)
 
 	return b.err
@@ -666,17 +676,20 @@ type readableRemoveFailsBackend struct {
 	removes   atomic.Int32
 }
 
-func (b *readableRemoveFailsBackend) Get() (*session.StoredSession, error) {
+func (b *readableRemoveFailsBackend) Get(
+	context.Context,
+	string,
+) (*session.StoredSession, error) {
 	return b.session, nil
 }
 
-func (b *readableRemoveFailsBackend) Set(value session.StoredSession) error {
+func (b *readableRemoveFailsBackend) Set(_ context.Context, value session.StoredSession) error {
 	b.session = &value
 
 	return nil
 }
 
-func (b *readableRemoveFailsBackend) Remove() error {
+func (b *readableRemoveFailsBackend) Remove(context.Context, string) error {
 	b.removes.Add(1)
 
 	return b.removeErr
@@ -692,7 +705,7 @@ func assertStoredSession(
 ) {
 	t.Helper()
 
-	stored, err := store.Get()
+	stored, err := store.Get(t.Context())
 	if err != nil {
 		t.Fatalf("read stored session: %v", err)
 	}
@@ -705,5 +718,145 @@ func assertStoredSession(
 	if present && (stored.AccessToken != original.AccessToken ||
 		stored.RefreshToken != original.RefreshToken) {
 		t.Fatalf("stored session changed: %#v", stored)
+	}
+}
+
+// TestRefreshSessionKeepsSessionRotatedElsewhere covers two processes sharing a
+// session store. The auth service rotates the refresh token on every refresh,
+// so when both refresh the same session the loser's token is rejected. The
+// loser must not then clear the store, which by now holds the winner's valid
+// session: that would sign the user out of both.
+func TestRefreshSessionKeepsSessionRotatedElsewhere(t *testing.T) {
+	t.Parallel()
+
+	backend := &session.MemoryStorage{}
+	store := session.NewStorage(backend)
+
+	if err := store.Set(t.Context(), auth.Session{
+		AccessToken:  tokenWithExpiry(t, time.Now().Add(30*time.Second).Unix()),
+		RefreshToken: "old-refresh-token",
+	}); err != nil {
+		t.Fatalf("seed session: %v", err)
+	}
+
+	rotated, err := session.ToStoredSession(auth.Session{
+		AccessToken:  tokenWithExpiry(t, time.Now().Add(time.Hour).Unix()),
+		RefreshToken: "rotated-elsewhere",
+	})
+	if err != nil {
+		t.Fatalf("build rotated session: %v", err)
+	}
+
+	var hits atomic.Int32
+
+	server := httptest.NewServer(
+		http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			// The other process wins the race while this one's retry is in
+			// flight: its session lands in the store, then this refresh token
+			// is rejected.
+			if hits.Add(1) == 2 {
+				if err := backend.Set(request.Context(), rotated); err != nil {
+					t.Errorf("store the other process's session: %v", err)
+				}
+			}
+
+			http.Error(writer, "refresh token rejected", http.StatusUnauthorized)
+		}),
+	)
+	defer server.Close()
+
+	got, err := session.RefreshSession(
+		t.Context(), auth.NewClient(server.URL, server.Client()), store, refreshMarginSeconds,
+	)
+	if err != nil {
+		t.Fatalf("RefreshSession() error = %v, want nil", err)
+	}
+
+	if got == nil || got.RefreshToken != "rotated-elsewhere" {
+		t.Fatalf("RefreshSession() session = %#v, want the one refreshed elsewhere", got)
+	}
+
+	stored, err := store.Get(t.Context())
+	if err != nil || stored == nil || stored.RefreshToken != "rotated-elsewhere" {
+		t.Fatalf("stored session = (%#v, %v), want it kept", stored, err)
+	}
+
+	if hits.Load() != 2 {
+		t.Fatalf("token endpoint hits = %d, want 2", hits.Load())
+	}
+}
+
+// TestRefreshSessionRefreshesEachUserIndependently checks that single-flight
+// collapses concurrent refreshes of one user's session but never merges two
+// users: each gets its own new session.
+func TestRefreshSessionRefreshesEachUserIndependently(t *testing.T) {
+	t.Parallel()
+
+	users := []string{"user-1", "user-2"}
+	store := session.NewStorage(&session.MultiUserMemoryStorage{})
+
+	for _, userID := range users {
+		if err := store.Set(t.Context(), auth.Session{
+			AccessToken: makeToken(t, map[string]any{
+				"exp": time.Now().Add(30 * time.Second).Unix(),
+				"sub": userID,
+			}),
+			RefreshToken: "old-" + userID,
+		}); err != nil {
+			t.Fatalf("seed %s: %v", userID, err)
+		}
+	}
+
+	var hits atomic.Int32
+
+	server := httptest.NewServer(
+		http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			hits.Add(1)
+			time.Sleep(50 * time.Millisecond)
+
+			var body auth.RefreshTokenRequest
+			if err := json.NewDecoder(request.Body).Decode(&body); err != nil {
+				t.Errorf("decode request: %v", err)
+			}
+
+			userID := strings.TrimPrefix(body.RefreshToken, "old-")
+			writeAuthSession(t, writer, auth.Session{
+				AccessToken: makeToken(t, map[string]any{
+					"exp": time.Now().Add(time.Hour).Unix(),
+					"sub": userID,
+				}),
+				RefreshToken: "new-" + userID,
+			})
+		}),
+	)
+	defer server.Close()
+
+	const callersPerUser = 10
+
+	client := auth.NewClient(server.URL, server.Client())
+	start := make(chan struct{})
+
+	var waitGroup sync.WaitGroup
+
+	for _, userID := range users {
+		for range callersPerUser {
+			waitGroup.Go(func() {
+				<-start
+
+				ctx := session.WithUserID(t.Context(), userID)
+
+				got, err := session.RefreshSession(ctx, client, store, refreshMarginSeconds)
+				if err != nil || got == nil || got.RefreshToken != "new-"+userID {
+					t.Errorf("%s refresh = (%#v, %v), want its own new session", userID, got, err)
+				}
+			})
+		}
+	}
+
+	close(start)
+	waitGroupWithin(t, &waitGroup)
+
+	if hits.Load() != int32(len(users)) {
+		t.Fatalf("token endpoint hits = %d, want one per user (%d)", hits.Load(), len(users))
 	}
 }

@@ -26,16 +26,35 @@ import cycle arises.
   bump both together. Tags for it take the form `packages/nhost-go/vX.Y.Z`.
 - Pure stdlib: the SDK has no external module dependencies, so it has no
   `go.sum` and no `vendor/`.
-- Constructors are `New*` (`nhost.New`, `NewServerClient`, `NewBareClient`,
-  `<svc>.NewClient`), not `Create*`.
+- One constructor, `nhost.New(opts ...Option) (*Client, error)`, configured with
+  `With*` options (`WithProject`, `WithAuthURL`…, `WithHTTPClient`,
+  `WithHTTPHeaders`, `WithSessionStorage`, `WithAdminSecret`,
+  `WithMiddleware`). Options only record values; `New` validates them and
+  builds the middleware in a fixed order, so option order never changes the
+  pipeline. `New` rejects `WithAdminSecret` with `WithSessionStorage`: the
+  GraphQL engine gives the admin secret precedence over a JWT, so the user
+  would be silently ignored. Service clients are `<svc>.NewClient`.
+- Sessions are keyed by user. `session.Backend` is
+  `Get(ctx, userID)`/`Set(ctx, value)`/`Remove(ctx, userID)`; `Set` keys by
+  `StoredSession.UserID()` (the response's user, else the token `sub` — both
+  from the auth server, so unverified reads are fine there). A request picks
+  its user with `session.WithUserID(ctx, id)`; `""` means "none named", which
+  single-session backends (`MemoryStorage`, `FileStorage`) answer with their
+  one session and multi-user ones (`MultiUserMemoryStorage`) answer with
+  nothing. `session.WithAccessToken(ctx, token)` authenticates one request
+  with a caller's token: attached as-is, never stored, refreshed, or captured
+  from the response, and rejected by the admin middleware. Never key storage
+  by a caller-supplied token's claims.
 - Methods are `context.Context`-first. REST and Functions calls return
   `(value, *transport.Response, error)`; GraphQL `Request` decodes into a typed
   destination and returns `(*transport.Response, error)`, while generic
   `graphql.Execute[T]` retains the three-value form.
 - Request middleware is an `http.RoundTripper` decorator (`transport.Middleware`)
   installed on each service's `http.Client.Transport` via `transport.NewHTTPClient`.
-  There is no post-construction `PushChainFunction`; `nhost.build` collects
-  middleware into a `Config` first, then constructs the clients.
+  There is no post-construction `PushChainFunction`; `New` assembles each
+  service's pipeline (refresh → session capture (auth only) → admin secret
+  (data services) or access token → default headers → `WithMiddleware`) and
+  then constructs the clients.
 - Credential middleware is scoped to the service URL supplied to its
   constructor. A malformed service URL fails the request instead of silently
   disabling origin checks. Scheme-less custom URLs normalize to HTTP for
@@ -46,13 +65,16 @@ import cycle arises.
 - Admin sessions are attached only over HTTPS or to loopback services unless
   `AdminSessionOptions.AllowInsecureHTTP` explicitly permits cleartext on a
   trusted development network. They are installed only on data services.
-- Session capture is installed only on the auth client via `Config.UseAuth`. It
+- Session capture is installed only on the auth client. It
   matches the four singleton endpoints (`/signout`, `/user/password`, `/token`,
   `/token/exchange`) exactly, and `/signin/` and `/signup/` by prefix because
   those have per-method suffixes such as `/signin/email-password` -- do not
-  "tighten" those two into exact matches. Refresh uses the bare `RefreshClient`,
-  collapses concurrent refreshes into a single flight, and guards reentrancy by
-  storage identity.
+  "tighten" those two into exact matches. Refresh uses a bare internal auth
+  client, collapses concurrent refreshes of one session (keyed by its refresh
+  token) into a single flight, and guards reentrancy by storage identity. The
+  auth service rotates the refresh token on every refresh, so on a 401 the
+  session is cleared only if the store still holds the rejected token;
+  otherwise another process refreshed it first and its session is kept.
 - Generated files carry `// Code generated ... DO NOT EDIT.` so golangci-lint
   auto-skips them; the plugin still applies Go initialisms (ID/URL/JSON) for
   nice field names.

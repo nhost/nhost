@@ -11,6 +11,7 @@ import (
 
 	nhost "github.com/nhost/nhost/packages/nhost-go"
 	"github.com/nhost/nhost/packages/nhost-go/auth"
+	"github.com/nhost/nhost/packages/nhost-go/session"
 )
 
 // These tests require a local Nhost backend (`./dev-env.sh up`) and only run
@@ -35,15 +36,25 @@ func randomEmail(t *testing.T) string {
 	return "ada-" + hex.EncodeToString(buf) + "@example.com"
 }
 
-func localClient() *nhost.Client {
-	return nhost.New(nhost.Options{Subdomain: "local", Region: "local"})
+func localClient(t *testing.T) *nhost.Client {
+	t.Helper()
+
+	client, err := nhost.New(
+		nhost.WithProject("local", "local"),
+		nhost.WithSessionStorage(&session.MemoryStorage{}),
+	)
+	if err != nil {
+		t.Fatalf("nhost.New: %v", err)
+	}
+
+	return client
 }
 
 func TestIntegrationSignUpDecodesRole(t *testing.T) {
 	t.Parallel()
 	requireBackend(t)
 
-	client := localClient()
+	client := localClient(t)
 	ctx := context.Background()
 
 	if _, _, err := client.Auth.SignUpEmailPassword(ctx, auth.SignUpEmailPasswordRequest{
@@ -53,7 +64,7 @@ func TestIntegrationSignUpDecodesRole(t *testing.T) {
 		t.Fatalf("signup: %v", err)
 	}
 
-	stored, err := client.Session()
+	stored, err := client.Session(ctx)
 	if err != nil {
 		t.Fatalf("read session after signup: %v", err)
 	}
@@ -72,7 +83,7 @@ func TestIntegrationGraphQLTypename(t *testing.T) {
 	t.Parallel()
 	requireBackend(t)
 
-	client := localClient()
+	client := localClient(t)
 
 	var data struct {
 		TypeName string `json:"__typename"`
@@ -97,7 +108,7 @@ func TestIntegrationFunctionsEcho(t *testing.T) {
 	t.Parallel()
 	requireBackend(t)
 
-	client := localClient()
+	client := localClient(t)
 
 	body, _, err := client.Functions.Post(
 		context.Background(), "/echo", map[string]any{"message": "hello"}, nil,

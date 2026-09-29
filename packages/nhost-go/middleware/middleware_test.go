@@ -32,15 +32,18 @@ type fakeBackend struct {
 	removeErr error
 }
 
-func (f *fakeBackend) Get() (*session.StoredSession, error) { return f.sess, f.getErr }
-func (f *fakeBackend) Set(v session.StoredSession) error {
+func (f *fakeBackend) Get(context.Context, string) (*session.StoredSession, error) {
+	return f.sess, f.getErr
+}
+
+func (f *fakeBackend) Set(_ context.Context, v session.StoredSession) error {
 	f.setCalls++
 	f.sess = &v
 
 	return f.setErr
 }
 
-func (f *fakeBackend) Remove() error {
+func (f *fakeBackend) Remove(context.Context, string) error {
 	f.removed = true
 	f.sess = nil
 
@@ -284,9 +287,9 @@ func TestWithHeaders(t *testing.T) {
 
 	req := newReq(t, "https://x/v1/graphql")
 	req.Header.Set("X-Keep", "existing")
-	seen := run(t, middleware.WithHeaders(map[string]string{
-		"X-Default": "default",
-		"X-Keep":    "override",
+	seen := run(t, middleware.WithHeaders(http.Header{
+		"X-Default": {"default"},
+		"X-Keep":    {"override"},
 	}), req)
 
 	if got := seen.Header.Get("X-Default"); got != "default" {
@@ -735,5 +738,214 @@ func TestAttachAccessTokenKeepsCallerHeaderWhenStorageFails(t *testing.T) {
 
 	if got := seen.Header.Get("Authorization"); got != "Bearer caller-supplied" {
 		t.Fatalf("Authorization = %q, want the caller's own header preserved", got)
+	}
+}
+
+func withContext(req *http.Request, wrap func(context.Context) context.Context) *http.Request {
+	return req.WithContext(wrap(req.Context()))
+}
+
+// withCallerToken marks a request as made on behalf of a caller that sent its
+// own token.
+func withCallerToken(ctx context.Context) context.Context {
+	return session.WithAccessToken(ctx, "caller")
+}
+
+// TestAttachAccessTokenFromRequestContext covers a client without session
+// storage: the only token it can send is one the caller put on the context.
+func TestAttachAccessTokenFromRequestContext(t *testing.T) {
+	t.Parallel()
+
+	mw := middleware.AttachAccessToken(nil, "https://x/v1")
+
+	seen := run(t, mw, withContext(newReq(t, "https://x/v1/graphql"), withCallerToken))
+	if got := seen.Header.Get("Authorization"); got != "Bearer caller" {
+		t.Fatalf("Authorization = %q, want the request's token", got)
+	}
+
+	seen = run(t, mw, newReq(t, "https://x/v1/graphql"))
+	if got := seen.Header.Get("Authorization"); got != "" {
+		t.Fatalf("Authorization = %q, want none without storage or a request token", got)
+	}
+
+	// The request token is scoped like a stored one: stripped off-origin.
+	req := withContext(newReq(t, "https://other.example/v1/graphql"), withCallerToken)
+	req.Header.Set("Authorization", "Bearer caller")
+
+	seen = run(t, mw, req)
+	if got := seen.Header.Get("Authorization"); got != "" {
+		t.Fatalf("off-origin Authorization = %q, want empty", got)
+	}
+}
+
+func TestAttachAccessTokenPrefersRequestToken(t *testing.T) {
+	t.Parallel()
+
+	store := session.NewStorage(&fakeBackend{
+		sess: &session.StoredSession{AccessToken: "stored"},
+	})
+
+	seen := run(
+		t,
+		middleware.AttachAccessToken(store, "https://x/v1"),
+		withContext(newReq(t, "https://x/v1/graphql"), withCallerToken),
+	)
+	if got := seen.Header.Get("Authorization"); got != "Bearer caller" {
+		t.Fatalf("Authorization = %q, want the request's token over the stored one", got)
+	}
+}
+
+// TestAttachAccessTokenUsesTheSelectedUser is the multi-user server case: one
+// client, one store, and the context picks whose session a request carries.
+func TestAttachAccessTokenUsesTheSelectedUser(t *testing.T) {
+	t.Parallel()
+
+	backend := &session.MultiUserMemoryStorage{}
+	for _, userID := range []string{"user-1", "user-2"} {
+		if err := backend.Set(t.Context(), session.StoredSession{
+			AccessToken:  "token-of-" + userID,
+			DecodedToken: session.DecodedToken{Sub: userID},
+		}); err != nil {
+			t.Fatalf("seed %s: %v", userID, err)
+		}
+	}
+
+	mw := middleware.AttachAccessToken(session.NewStorage(backend), "https://x/v1")
+
+	seen := run(t, mw, withContext(newReq(t, "https://x/v1/graphql"),
+		func(ctx context.Context) context.Context { return session.WithUserID(ctx, "user-2") }))
+	if got := seen.Header.Get("Authorization"); got != "Bearer token-of-user-2" {
+		t.Fatalf("Authorization = %q, want user-2's token", got)
+	}
+
+	seen = run(t, mw, newReq(t, "https://x/v1/graphql"))
+	if got := seen.Header.Get("Authorization"); got != "" {
+		t.Fatalf("Authorization = %q, want none for a request that names no user", got)
+	}
+}
+
+func TestSessionRefreshSkipsRequestToken(t *testing.T) {
+	t.Parallel()
+
+	// The stored session has no expiry, so any refresh attempt would run and
+	// fail against the unreachable auth client; the request token skips it.
+	backend := &countingGets{sess: &session.StoredSession{RefreshToken: "r"}}
+	authClient := auth.NewClient("https://unused.invalid/v1", nil)
+
+	run(
+		t,
+		middleware.SessionRefresh(authClient, session.NewStorage(backend), 60),
+		withContext(newReq(t, "https://x/v1/graphql"), withCallerToken),
+	)
+
+	if backend.gets.Load() != 0 {
+		t.Fatalf("session store reads = %d, want none for a request token", backend.gets.Load())
+	}
+}
+
+// countingGets counts reads so a test can assert a middleware never consulted
+// the store.
+type countingGets struct {
+	fakeBackend
+
+	gets atomic.Int32
+}
+
+func (c *countingGets) Get(ctx context.Context, userID string) (*session.StoredSession, error) {
+	c.gets.Add(1)
+
+	return c.fakeBackend.Get(ctx, userID)
+}
+
+// TestUpdateSessionFromResponseIgnoresRequestToken: a request made with a
+// caller's own token acts for a session the client does not hold, so neither
+// its sign-out nor a session in its response may touch storage.
+func TestUpdateSessionFromResponseIgnoresRequestToken(t *testing.T) {
+	t.Parallel()
+
+	fb := &fakeBackend{sess: &session.StoredSession{AccessToken: "stored"}}
+	mw := middleware.UpdateSessionFromResponse(session.NewStorage(fb), "https://x/v1")
+
+	run(t, mw, withContext(newReq(t, "https://x/v1/signout"), withCallerToken))
+
+	if fb.removed {
+		t.Fatal("a request-token sign-out removed the stored session")
+	}
+
+	body, err := json.Marshal(map[string]any{
+		"session": auth.Session{AccessToken: makeToken(t), RefreshToken: "r"},
+	})
+	if err != nil {
+		t.Fatalf("marshal body: %v", err)
+	}
+
+	next := transport.RoundTripFunc(func(_ *http.Request) (*http.Response, error) {
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Header:     http.Header{},
+			Body:       io.NopCloser(bytes.NewReader(body)),
+		}, nil
+	})
+
+	resp, err := mw(next).RoundTrip(
+		withContext(newReq(t, "https://x/v1/token"), withCallerToken),
+	)
+	if err != nil {
+		t.Fatalf("chain error: %v", err)
+	}
+
+	if err := resp.Body.Close(); err != nil {
+		t.Fatalf("close body: %v", err)
+	}
+
+	if fb.setCalls != 0 {
+		t.Fatalf("session stored %d times from a request-token response, want 0", fb.setCalls)
+	}
+}
+
+// TestWithAdminSessionRejectsRequestToken: the engine gives the admin secret
+// precedence, so a request meant to run as a user must fail rather than go out
+// with both credentials and run as admin.
+func TestWithAdminSessionRejectsRequestToken(t *testing.T) {
+	t.Parallel()
+
+	nextCalled := false
+	next := transport.RoundTripFunc(func(*http.Request) (*http.Response, error) {
+		nextCalled = true
+
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Header:     http.Header{},
+			Body:       http.NoBody,
+		}, nil
+	})
+
+	resp, err := middleware.WithAdminSession(
+		middleware.AdminSessionOptions{AdminSecret: "secret"},
+		"https://x/v1",
+	)(next).RoundTrip(withContext(newReq(t, "https://x/v1/graphql"), withCallerToken))
+	if resp != nil {
+		_ = resp.Body.Close()
+	}
+
+	if !errors.Is(err, middleware.ErrAccessTokenWithAdminSession) {
+		t.Fatalf("RoundTrip error = %v, want ErrAccessTokenWithAdminSession", err)
+	}
+
+	if nextCalled {
+		t.Fatal("the request was sent")
+	}
+}
+
+func TestWithHeadersKeepsEveryValue(t *testing.T) {
+	t.Parallel()
+
+	defaults := http.Header{"X-Multi": {"a", "b"}}
+	mw := middleware.WithHeaders(defaults)
+	defaults.Set("X-Multi", "mutated")
+
+	seen := run(t, mw, newReq(t, "https://x/v1/graphql"))
+	if got := seen.Header.Values("X-Multi"); len(got) != 2 || got[0] != "a" || got[1] != "b" {
+		t.Fatalf("X-Multi = %q, want [a b] as configured", got)
 	}
 }

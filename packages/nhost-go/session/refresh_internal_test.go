@@ -89,7 +89,7 @@ func TestNeedsRefresh(t *testing.T) {
 
 			backend := &MemoryStorage{}
 			if tt.hasSession {
-				if err := backend.Set(StoredSession{
+				if err := backend.Set(t.Context(), StoredSession{
 					RefreshToken: "refresh-token",
 					DecodedToken: DecodedToken{Exp: tt.exp},
 				}); err != nil {
@@ -97,7 +97,9 @@ func TestNeedsRefresh(t *testing.T) {
 				}
 			}
 
-			stored, refresh, expired, err := NewStorage(backend).needsRefresh(tt.margin)
+			stored, refresh, expired, err := NewStorage(
+				backend,
+			).needsRefresh(t.Context(), tt.margin)
 			if err != nil {
 				t.Fatalf("needsRefresh: %v", err)
 			}

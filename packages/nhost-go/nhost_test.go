@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -72,270 +74,392 @@ func TestGenerateServiceURL(t *testing.T) {
 	}
 }
 
-func TestConfigUseAuthAppliesOnlyToAuth(t *testing.T) {
-	t.Parallel()
-
-	type observedRequest struct {
-		path   string
-		header string
-	}
-
-	observed := make(chan observedRequest, 2)
-
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		observed <- observedRequest{path: req.URL.Path, header: req.Header.Get("X-Auth-Only")}
-
-		w.Header().Set("Content-Type", "application/json")
-
-		body := []byte(`{}`)
-		if req.URL.Path == "/auth/v1/healthz" {
-			body = []byte(`"OK"`)
-		}
-
-		if _, err := w.Write(body); err != nil {
-			t.Errorf("write response: %v", err)
-		}
-	}))
-	defer server.Close()
-
-	client := nhost.NewBareClient(nhost.Options{
-		AuthURL:      server.URL + "/auth/v1",
-		StorageURL:   server.URL + "/storage/v1",
-		GraphQLURL:   server.URL + "/graphql/v1",
-		FunctionsURL: server.URL + "/functions/v1",
-		HTTPClient:   server.Client(),
-		Configure: []nhost.ConfigureFunc{
-			func(config *nhost.Config) {
-				config.UseAuth(func(next http.RoundTripper) http.RoundTripper {
-					return transport.RoundTripFunc(func(req *http.Request) (*http.Response, error) {
-						req = req.Clone(req.Context())
-						req.Header.Set("X-Auth-Only", "yes")
-
-						return next.RoundTrip(req)
-					})
-				})
-			},
-		},
-	})
-
-	if _, _, err := client.Auth.HealthCheckGet(context.Background(), nil); err != nil {
-		t.Fatalf("auth health check: %v", err)
-	}
-
-	if _, _, err := client.Functions.Call(
-		context.Background(),
-		"echo",
-		http.MethodGet,
-		nil,
-		nil,
-	); err != nil {
-		t.Fatalf("functions call: %v", err)
-	}
-
-	gotAuth := <-observed
-	if gotAuth.path != "/auth/v1/healthz" || gotAuth.header != "yes" {
-		t.Fatalf("auth request = %+v, want auth-only header", gotAuth)
-	}
-
-	gotFunctions := <-observed
-	if gotFunctions.path != "/functions/v1/echo" || gotFunctions.header != "" {
-		t.Fatalf("functions request = %+v, want no auth-only header", gotFunctions)
+// serviceOptions points all four services at server, under /auth, /storage,
+// /graphql and /functions.
+func serviceOptions(server *httptest.Server) []nhost.Option {
+	return []nhost.Option{
+		nhost.WithAuthURL(server.URL + "/auth"),
+		nhost.WithStorageURL(server.URL + "/storage"),
+		nhost.WithGraphQLURL(server.URL + "/graphql"),
+		nhost.WithFunctionsURL(server.URL + "/functions"),
+		nhost.WithHTTPClient(server.Client()),
 	}
 }
 
-func TestConfigUseDataServicesNeverHitsAuth(t *testing.T) {
-	t.Parallel()
+func newClient(t *testing.T, opts ...nhost.Option) *nhost.Client {
+	t.Helper()
 
-	type observedRequest struct {
-		path        string
-		adminSecret string
+	client, err := nhost.New(opts...)
+	if err != nil {
+		t.Fatalf("nhost.New: %v", err)
 	}
 
-	observed := make(chan observedRequest, 5)
+	return client
+}
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		got := observedRequest{
-			path:        req.URL.Path,
-			adminSecret: req.Header.Get("x-hasura-admin-secret"),
-		}
-		select {
-		case observed <- got:
-		default:
-			t.Errorf("unexpected extra request: %+v", got)
-		}
+// writeCanned answers the one request each test makes to every service.
+func writeCanned(t *testing.T, w http.ResponseWriter, req *http.Request) {
+	t.Helper()
 
-		w.Header().Set("Content-Type", "application/json")
+	body, ok := map[string]string{
+		"/auth/healthz":    `"OK"`,
+		"/auth/user":       `{}`,
+		"/storage/version": `{"buildVersion":"test"}`,
+		"/graphql":         `{"data":{}}`,
+		"/functions/echo":  `{}`,
+	}[req.URL.Path]
+	if !ok {
+		t.Errorf("unexpected request path %q", req.URL.Path)
+		w.WriteHeader(http.StatusNotFound)
 
-		responses := map[string]string{
-			"/auth/v1/healthz":    `"OK"`,
-			"/storage/v1/version": `{"buildVersion":"test"}`,
-			"/graphql/v1":         `{"data":{}}`,
-			"/functions/v1/echo":  `{}`,
-		}
+		return
+	}
 
-		body, ok := responses[req.URL.Path]
-		if !ok {
-			t.Errorf("unexpected request path %q", req.URL.Path)
-			w.WriteHeader(http.StatusNotFound)
+	w.Header().Set("Content-Type", "application/json")
 
-			return
-		}
+	if _, err := w.Write([]byte(body)); err != nil {
+		t.Errorf("write response: %v", err)
+	}
+}
 
-		if _, err := w.Write([]byte(body)); err != nil {
-			t.Errorf("write response: %v", err)
-		}
-	}))
-	defer server.Close()
+// callEveryService makes one request to each service.
+func callEveryService(t *testing.T, client *nhost.Client) {
+	t.Helper()
 
-	adminCredential := t.Name()
-	adminMiddleware := middleware.WithAdminSession(
-		middleware.AdminSessionOptions{AdminSecret: adminCredential},
-		server.URL,
+	ctx := t.Context()
+
+	if _, _, err := client.Auth.HealthCheckGet(ctx, nil); err != nil {
+		t.Fatalf("auth health check: %v", err)
+	}
+
+	if _, _, err := client.Storage.GetVersion(ctx, nil); err != nil {
+		t.Fatalf("storage version: %v", err)
+	}
+
+	if _, err := client.GraphQL.Request(ctx, "query { __typename }", nil, nil); err != nil {
+		t.Fatalf("graphql request: %v", err)
+	}
+
+	if _, _, err := client.Functions.Call(ctx, "echo", http.MethodGet, nil, nil); err != nil {
+		t.Fatalf("functions call: %v", err)
+	}
+}
+
+func TestNewRejectsInvalidOptions(t *testing.T) {
+	t.Parallel()
+
+	admin := nhost.WithAdminSecret(middleware.AdminSessionOptions{AdminSecret: "secret"})
+
+	tests := []struct {
+		name string
+		opts []nhost.Option
+		want error
+	}{
+		{
+			name: "project without a region",
+			opts: []nhost.Option{nhost.WithProject("demo", "")},
+			want: nhost.ErrInvalidProject,
+		},
+		{
+			name: "project without a subdomain",
+			opts: []nhost.Option{nhost.WithProject("", "eu-central-1")},
+			want: nhost.ErrInvalidProject,
+		},
+		{
+			name: "non-HTTP service URL",
+			opts: []nhost.Option{nhost.WithGraphQLURL("ftp://example.com/v1")},
+			want: nhost.ErrInvalidServiceURL,
+		},
+		{
+			name: "service URL without a host",
+			opts: []nhost.Option{nhost.WithAuthURL("https:///v1")},
+			want: nhost.ErrInvalidServiceURL,
+		},
+		{
+			name: "nil session storage",
+			opts: []nhost.Option{nhost.WithSessionStorage(nil)},
+			want: nhost.ErrNilSessionStorage,
+		},
+		{
+			name: "empty admin secret",
+			opts: []nhost.Option{nhost.WithAdminSecret(middleware.AdminSessionOptions{})},
+			want: nhost.ErrEmptyAdminSecret,
+		},
+		{
+			name: "admin secret with session storage",
+			opts: []nhost.Option{admin, nhost.WithSessionStorage(&session.MemoryStorage{})},
+			want: nhost.ErrAdminSecretWithSessionStorage,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			client, err := nhost.New(tt.opts...)
+			if !errors.Is(err, tt.want) {
+				t.Fatalf("New() error = %v, want %v", err, tt.want)
+			}
+
+			if client != nil {
+				t.Fatal("New() returned a client alongside the error")
+			}
+		})
+	}
+}
+
+func TestNewTargetsTheProject(t *testing.T) {
+	t.Parallel()
+
+	client := newClient(t,
+		nhost.WithProject("demo", "eu-central-1"),
+		nhost.WithAuthURL("https://auth.example.com/v1"),
 	)
 
-	client := nhost.NewBareClient(nhost.Options{
-		AuthURL:      server.URL + "/auth/v1",
-		StorageURL:   server.URL + "/storage/v1",
-		GraphQLURL:   server.URL + "/graphql/v1",
-		FunctionsURL: server.URL + "/functions/v1",
-		HTTPClient:   server.Client(),
-		Configure: []nhost.ConfigureFunc{
-			func(config *nhost.Config) {
-				config.UseDataServices(adminMiddleware)
-			},
-		},
-	})
-
-	ctx := context.Background()
-	if _, _, err := client.Auth.HealthCheckGet(ctx, nil); err != nil {
-		t.Fatalf("auth health check: %v", err)
+	if got := client.Auth.BaseURL; got != "https://auth.example.com/v1" {
+		t.Errorf("auth URL = %q, want the override", got)
 	}
 
-	if _, _, err := client.Storage.GetVersion(ctx, nil); err != nil {
-		t.Fatalf("storage version: %v", err)
-	}
-
-	if _, err := client.GraphQL.Request(ctx, "query { __typename }", nil, nil); err != nil {
-		t.Fatalf("graphql request: %v", err)
-	}
-
-	if _, _, err := client.Functions.Call(ctx, "echo", http.MethodGet, nil, nil); err != nil {
-		t.Fatalf("functions call: %v", err)
-	}
-
-	expected := []observedRequest{
-		{path: "/auth/v1/healthz", adminSecret: ""},
-		{path: "/storage/v1/version", adminSecret: adminCredential},
-		{path: "/graphql/v1", adminSecret: adminCredential},
-		{path: "/functions/v1/echo", adminSecret: adminCredential},
-	}
-
-	for _, want := range expected {
-		if got := <-observed; got != want {
-			t.Errorf("request = %+v, want %+v", got, want)
-		}
-	}
-
-	select {
-	case got := <-observed:
-		t.Errorf("unexpected extra request: %+v", got)
-	default:
+	if got := client.GraphQL.URL; got != "https://demo.graphql.eu-central-1.nhost.run/v1" {
+		t.Errorf("graphql URL = %q, want the project's", got)
 	}
 }
 
-func TestWithAdminSessionNeverHitsAuth(t *testing.T) {
+func TestWithHTTPHeadersAppliesToEveryService(t *testing.T) {
 	t.Parallel()
 
-	type observedRequest struct {
-		path        string
-		adminSecret string
-	}
-
-	observed := make(chan observedRequest, 4)
-	recordRequest := func(got observedRequest) {
-		select {
-		case observed <- got:
-		default:
-			t.Errorf("unexpected extra request: %+v", got)
-		}
-	}
+	seen := make(chan string, 4)
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		recordRequest(observedRequest{
-			path:        req.URL.Path,
-			adminSecret: req.Header.Get("x-hasura-admin-secret"),
-		})
+		seen <- req.URL.Path + " " + req.Header.Get("X-Tenant")
 
-		w.Header().Set("Content-Type", "application/json")
+		writeCanned(t, w, req)
+	}))
+	defer server.Close()
 
-		responses := map[string]string{
-			"/auth/v1/healthz":    `"OK"`,
-			"/storage/v1/version": `{"buildVersion":"test"}`,
-			"/graphql/v1":         `{"data":{}}`,
-			"/functions/v1/echo":  `{}`,
+	client := newClient(t, append(
+		serviceOptions(server),
+		nhost.WithHTTPHeaders(http.Header{"X-Tenant": {"acme"}}),
+	)...)
+
+	callEveryService(t, client)
+
+	for _, want := range []string{
+		"/auth/healthz acme", "/storage/version acme", "/graphql acme", "/functions/echo acme",
+	} {
+		if got := <-seen; got != want {
+			t.Errorf("request = %q, want %q", got, want)
 		}
+	}
+}
 
-		body, ok := responses[req.URL.Path]
-		if !ok {
-			t.Errorf("unexpected request path %q", req.URL.Path)
-			w.WriteHeader(http.StatusNotFound)
+func TestWithAdminSecretNeverHitsAuth(t *testing.T) {
+	t.Parallel()
 
-			return
-		}
+	seen := make(chan string, 4)
 
-		if _, err := w.Write([]byte(body)); err != nil {
-			t.Errorf("write response: %v", err)
-		}
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		seen <- req.URL.Path + " " + req.Header.Get("x-hasura-admin-secret")
+
+		writeCanned(t, w, req)
 	}))
 	defer server.Close()
 
 	adminCredential := t.Name()
+	client := newClient(t, append(
+		serviceOptions(server),
+		nhost.WithAdminSecret(middleware.AdminSessionOptions{AdminSecret: adminCredential}),
+	)...)
 
-	client := nhost.NewBareClient(nhost.Options{
-		AuthURL:      server.URL + "/auth/v1",
-		StorageURL:   server.URL + "/storage/v1",
-		GraphQLURL:   server.URL + "/graphql/v1",
-		FunctionsURL: server.URL + "/functions/v1",
-		HTTPClient:   server.Client(),
-		Configure: []nhost.ConfigureFunc{
-			nhost.WithAdminSession(middleware.AdminSessionOptions{AdminSecret: adminCredential}),
-		},
-	})
+	callEveryService(t, client)
 
-	ctx := context.Background()
-	if _, _, err := client.Auth.HealthCheckGet(ctx, nil); err != nil {
-		t.Fatalf("auth health check: %v", err)
+	for _, want := range []string{
+		"/auth/healthz ",
+		"/storage/version " + adminCredential,
+		"/graphql " + adminCredential,
+		"/functions/echo " + adminCredential,
+	} {
+		if got := <-seen; got != want {
+			t.Errorf("request = %q, want %q", got, want)
+		}
+	}
+}
+
+// TestAdminClientRejectsRequestToken: on data services a caller's token and the
+// admin secret would both be sent and the request would run as admin, so it
+// fails; auth never gets the admin secret, so a token there is unambiguous.
+func TestAdminClientRejectsRequestToken(t *testing.T) {
+	t.Parallel()
+
+	seen := make(chan string, 1)
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		seen <- req.URL.Path + " " + req.Header.Get("Authorization")
+
+		writeCanned(t, w, req)
+	}))
+	defer server.Close()
+
+	client := newClient(t, append(
+		serviceOptions(server),
+		nhost.WithAdminSecret(middleware.AdminSessionOptions{AdminSecret: "secret"}),
+	)...)
+
+	ctx := session.WithAccessToken(t.Context(), "caller")
+
+	_, err := client.GraphQL.Request(ctx, "query { __typename }", nil, nil)
+	if !errors.Is(err, middleware.ErrAccessTokenWithAdminSession) {
+		t.Fatalf("graphql error = %v, want ErrAccessTokenWithAdminSession", err)
 	}
 
-	if _, _, err := client.Storage.GetVersion(ctx, nil); err != nil {
-		t.Fatalf("storage version: %v", err)
+	if _, _, err := client.Auth.GetUser(ctx, nil); err != nil {
+		t.Fatalf("auth get user: %v", err)
 	}
 
+	if got := <-seen; got != "/auth/user Bearer caller" {
+		t.Fatalf("auth request = %q, want the caller's token", got)
+	}
+}
+
+// TestClientWithoutSessionStorage is the quickstart's server: one client, no
+// stored sessions, and each request carrying its caller's token.
+func TestClientWithoutSessionStorage(t *testing.T) {
+	t.Parallel()
+
+	seen := make(chan string, 2)
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		seen <- req.Header.Get("Authorization")
+
+		if req.URL.Path == "/auth/signin/email-password" {
+			w.Header().Set("Content-Type", "application/json")
+
+			if err := json.NewEncoder(w).Encode(auth.SignInEmailPasswordResponse{
+				Session: &auth.Session{
+					AccessToken:  testAccessToken(t, time.Now().Add(time.Hour).Unix()),
+					RefreshToken: "refresh-token",
+				},
+			}); err != nil {
+				t.Errorf("encode sign-in response: %v", err)
+			}
+
+			return
+		}
+
+		writeCanned(t, w, req)
+	}))
+	defer server.Close()
+
+	client := newClient(t, serviceOptions(server)...)
+
+	signedIn, _, err := client.Auth.SignInEmailPassword(t.Context(),
+		auth.SignInEmailPasswordRequest{Email: "ada@example.com", Password: "secret"}, nil)
+	if err != nil || signedIn.Session == nil {
+		t.Fatalf("sign in = (%#v, %v), want the session returned to the caller", signedIn, err)
+	}
+
+	<-seen
+
+	if _, err := client.Session(t.Context()); !errors.Is(err, nhost.ErrNoSessionStorage) {
+		t.Fatalf("Session() error = %v, want ErrNoSessionStorage", err)
+	}
+
+	ctx := session.WithAccessToken(t.Context(), signedIn.Session.AccessToken)
 	if _, err := client.GraphQL.Request(ctx, "query { __typename }", nil, nil); err != nil {
 		t.Fatalf("graphql request: %v", err)
 	}
 
-	if _, _, err := client.Functions.Call(ctx, "echo", http.MethodGet, nil, nil); err != nil {
-		t.Fatalf("functions call: %v", err)
+	if got := <-seen; got != "Bearer "+signedIn.Session.AccessToken {
+		t.Fatalf("graphql Authorization = %q, want the request's token", got)
 	}
+}
 
-	expected := []observedRequest{
-		{path: "/auth/v1/healthz", adminSecret: ""},
-		{path: "/storage/v1/version", adminSecret: adminCredential},
-		{path: "/graphql/v1", adminSecret: adminCredential},
-		{path: "/functions/v1/echo", adminSecret: adminCredential},
+// TestClientServesManyUsers is the multi-user server: one client over one
+// store, each sign-in stored under its user, and the context picking the
+// session each request carries.
+func TestClientServesManyUsers(t *testing.T) {
+	t.Parallel()
+
+	tokens := map[string]string{
+		"user-1": testUserAccessToken(t, "user-1", time.Now().Add(time.Hour).Unix()),
+		"user-2": testUserAccessToken(t, "user-2", time.Now().Add(time.Hour).Unix()),
 	}
+	seen := make(chan string, 1)
 
-	for _, want := range expected {
-		if got := <-observed; got != want {
-			t.Errorf("request = %+v, want %+v", got, want)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		if req.URL.Path != "/auth/signin/email-password" {
+			seen <- req.Header.Get("Authorization")
+
+			writeCanned(t, w, req)
+
+			return
+		}
+
+		var body auth.SignInEmailPasswordRequest
+		if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
+			t.Errorf("decode sign-in: %v", err)
+		}
+
+		userID := strings.TrimSuffix(body.Email, "@example.com")
+
+		w.Header().Set("Content-Type", "application/json")
+
+		if err := json.NewEncoder(w).Encode(auth.SignInEmailPasswordResponse{
+			Session: &auth.Session{
+				AccessToken:  tokens[userID],
+				RefreshToken: "refresh-" + userID,
+				User:         &auth.User{ID: userID},
+			},
+		}); err != nil {
+			t.Errorf("encode sign-in response: %v", err)
+		}
+	}))
+	defer server.Close()
+
+	client := newClient(t, append(
+		serviceOptions(server),
+		nhost.WithSessionStorage(&session.MultiUserMemoryStorage{}),
+	)...)
+
+	for userID := range tokens {
+		if _, _, err := client.Auth.SignInEmailPassword(
+			t.Context(),
+			auth.SignInEmailPasswordRequest{
+				Email:    userID + "@example.com",
+				Password: "secret",
+			},
+			nil,
+		); err != nil {
+			t.Fatalf("sign in %s: %v", userID, err)
 		}
 	}
 
-	select {
-	case got := <-observed:
-		t.Errorf("unexpected extra request: %+v", got)
-	default:
+	for userID, token := range tokens {
+		ctx := session.WithUserID(t.Context(), userID)
+		if _, err := client.GraphQL.Request(ctx, "query { __typename }", nil, nil); err != nil {
+			t.Fatalf("graphql as %s: %v", userID, err)
+		}
+
+		if got := <-seen; got != "Bearer "+token {
+			t.Errorf("%s request Authorization = %q, want its own token", userID, got)
+		}
+	}
+
+	if _, err := client.GraphQL.Request(t.Context(), "query { __typename }", nil, nil); err != nil {
+		t.Fatalf("graphql without a user: %v", err)
+	}
+
+	if got := <-seen; got != "" {
+		t.Errorf("request naming no user sent Authorization %q, want none", got)
+	}
+
+	if err := client.ClearSession(session.WithUserID(t.Context(), "user-1")); err != nil {
+		t.Fatalf("clear user-1: %v", err)
+	}
+
+	if got, err := client.Session(session.WithUserID(t.Context(), "user-2")); err != nil ||
+		got == nil {
+		t.Fatalf("user-2 session after clearing user-1 = (%#v, %v), want it kept", got, err)
 	}
 }
 
@@ -385,33 +509,25 @@ func TestWithMiddlewareOrdering(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := nhost.New(nhost.Options{
-		AuthURL:    server.URL + "/auth",
-		StorageURL: server.URL + "/storage",
-		HTTPClient: server.Client(),
-		Storage:    &session.MemoryStorage{},
-		Configure: []nhost.ConfigureFunc{
-			nhost.WithMiddleware(func(next http.RoundTripper) http.RoundTripper {
-				return transport.RoundTripFunc(func(req *http.Request) (*http.Response, error) {
-					recordEvent(event{
-						stage:         "middleware",
-						authorization: req.Header.Get("Authorization"),
-					})
+	backend := &session.MemoryStorage{}
+	seedSession(t, backend, oldAccessToken, "old-refresh-token")
 
-					return next.RoundTrip(req)
+	client := newClient(t, append(
+		serviceOptions(server),
+		nhost.WithSessionStorage(backend),
+		nhost.WithMiddleware(func(next http.RoundTripper) http.RoundTripper {
+			return transport.RoundTripFunc(func(req *http.Request) (*http.Response, error) {
+				recordEvent(event{
+					stage:         "middleware",
+					authorization: req.Header.Get("Authorization"),
 				})
-			}),
-		},
-	})
 
-	if err := client.SessionStorage.Set(auth.Session{
-		AccessToken:  oldAccessToken,
-		RefreshToken: "old-refresh-token",
-	}); err != nil {
-		t.Fatalf("seed session: %v", err)
-	}
+				return next.RoundTrip(req)
+			})
+		}),
+	)...)
 
-	if _, _, err := client.Storage.GetVersion(context.Background(), nil); err != nil {
+	if _, _, err := client.Storage.GetVersion(t.Context(), nil); err != nil {
 		t.Fatalf("storage version: %v", err)
 	}
 
@@ -438,96 +554,43 @@ func TestWithMiddlewareOrdering(t *testing.T) {
 func TestClientSessionAccessors(t *testing.T) {
 	t.Parallel()
 
-	client := nhost.NewBareClient(nhost.Options{Storage: &session.MemoryStorage{}})
+	backend := &session.MemoryStorage{}
+	client := newClient(t, nhost.WithSessionStorage(backend))
 
-	got, err := client.Session()
+	got, err := client.Session(t.Context())
 	if err != nil || got != nil {
 		t.Fatalf("initial session = (%#v, %v), want (nil, nil)", got, err)
 	}
 
-	if err := client.SessionStorage.Set(auth.Session{
-		AccessToken:  testAccessToken(t, time.Now().Add(time.Hour).Unix()),
-		RefreshToken: "refresh-token",
-	}); err != nil {
-		t.Fatalf("set session: %v", err)
-	}
+	seedSession(t, backend, testAccessToken(t, time.Now().Add(time.Hour).Unix()), "refresh-token")
 
-	got, err = client.Session()
+	got, err = client.Session(t.Context())
 	if err != nil || got == nil || got.RefreshToken != "refresh-token" {
 		t.Fatalf("stored session = (%#v, %v), want refresh-token", got, err)
 	}
 
-	if err := client.ClearSession(); err != nil {
+	if err := client.ClearSession(t.Context()); err != nil {
 		t.Fatalf("clear session: %v", err)
 	}
 
-	got, err = client.Session()
+	got, err = client.Session(t.Context())
 	if err != nil || got != nil {
 		t.Fatalf("cleared session = (%#v, %v), want (nil, nil)", got, err)
 	}
-}
 
-func TestNewServerClientRequiresStorage(t *testing.T) {
-	t.Parallel()
-
-	if _, err := nhost.NewServerClient(nhost.Options{}); err == nil {
-		t.Fatal("expected error when storage is nil")
+	bare := newClient(t)
+	if err := bare.ClearSession(t.Context()); !errors.Is(err, nhost.ErrNoSessionStorage) {
+		t.Fatalf("ClearSession() without storage = %v, want ErrNoSessionStorage", err)
 	}
 
-	if _, err := nhost.NewServerClient(nhost.Options{
-		Storage: &session.MemoryStorage{},
-	}); err != nil {
-		t.Fatalf("unexpected error with storage: %v", err)
+	if _, err := bare.RefreshSession(t.Context(), 0); !errors.Is(err, nhost.ErrNoSessionStorage) {
+		t.Fatalf("RefreshSession() without storage = %v, want ErrNoSessionStorage", err)
 	}
 }
 
-func TestConstructorsProvideBareRefreshClient(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name      string
-		construct func() (*nhost.Client, error)
-	}{
-		{
-			name: "app client",
-			construct: func() (*nhost.Client, error) {
-				return nhost.New(nhost.Options{}), nil
-			},
-		},
-		{
-			name: "server client",
-			construct: func() (*nhost.Client, error) {
-				return nhost.NewServerClient(nhost.Options{Storage: &session.MemoryStorage{}})
-			},
-		},
-		{
-			name: "bare client",
-			construct: func() (*nhost.Client, error) {
-				return nhost.NewBareClient(nhost.Options{}), nil
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			client, err := tt.construct()
-			if err != nil {
-				t.Fatalf("construct client: %v", err)
-			}
-
-			if client.RefreshClient == nil {
-				t.Fatal("RefreshClient is nil")
-			}
-
-			if client.RefreshClient == client.Auth {
-				t.Fatal("RefreshClient aliases the middleware-wrapped Auth client")
-			}
-		})
-	}
-}
-
+// TestRefreshSessionUsesBareClientWithCustomAuthURL checks an explicit refresh
+// reaches the configured auth URL through a client without session middleware:
+// no Authorization header, one request, one write of the rotated session.
 func TestRefreshSessionUsesBareClientWithCustomAuthURL(t *testing.T) {
 	t.Parallel()
 
@@ -565,20 +628,14 @@ func TestRefreshSessionUsesBareClientWithCustomAuthURL(t *testing.T) {
 	defer server.Close()
 
 	backend := &countingSetBackend{delegate: &session.MemoryStorage{}}
-	client := nhost.New(nhost.Options{
-		AuthURL:    server.URL + "/v1/auth",
-		HTTPClient: server.Client(),
-		Storage:    backend,
-	})
-
-	if err := client.SessionStorage.Set(auth.Session{
-		AccessToken:  oldAccessToken,
-		RefreshToken: "old-refresh-token",
-	}); err != nil {
-		t.Fatalf("seed session: %v", err)
-	}
-
+	seedSession(t, backend, oldAccessToken, "old-refresh-token")
 	backend.sets.Store(0)
+
+	client := newClient(t,
+		nhost.WithAuthURL(server.URL+"/v1/auth"),
+		nhost.WithHTTPClient(server.Client()),
+		nhost.WithSessionStorage(backend),
+	)
 
 	type refreshResult struct {
 		session *session.StoredSession
@@ -587,7 +644,7 @@ func TestRefreshSessionUsesBareClientWithCustomAuthURL(t *testing.T) {
 
 	resultChannel := make(chan refreshResult, 1)
 	go func() {
-		got, err := client.RefreshSession(context.Background(), nhost.DefaultRefreshMarginSeconds)
+		got, err := client.RefreshSession(t.Context(), nhost.DefaultRefreshMarginSeconds)
 		resultChannel <- refreshResult{session: got, err: err}
 	}()
 
@@ -624,26 +681,51 @@ type countingSetBackend struct {
 	sets     atomic.Int32
 }
 
-func (b *countingSetBackend) Get() (*session.StoredSession, error) {
-	return b.delegate.Get() //nolint:wrapcheck // Delegating to the real backend.
+func (b *countingSetBackend) Get(
+	ctx context.Context,
+	userID string,
+) (*session.StoredSession, error) {
+	return b.delegate.Get(ctx, userID) //nolint:wrapcheck // Delegating to the real backend.
 }
 
-func (b *countingSetBackend) Set(value session.StoredSession) error {
+func (b *countingSetBackend) Set(ctx context.Context, value session.StoredSession) error {
 	b.sets.Add(1)
 
-	return b.delegate.Set(value) //nolint:wrapcheck // Delegating to the real backend.
+	return b.delegate.Set(ctx, value) //nolint:wrapcheck // Delegating to the real backend.
 }
 
-func (b *countingSetBackend) Remove() error {
-	return b.delegate.Remove() //nolint:wrapcheck // Delegating to the real backend.
+func (b *countingSetBackend) Remove(ctx context.Context, userID string) error {
+	return b.delegate.Remove(ctx, userID) //nolint:wrapcheck // Delegating to the real backend.
+}
+
+func seedSession(t *testing.T, backend session.Backend, accessToken, refreshToken string) {
+	t.Helper()
+
+	stored, err := session.ToStoredSession(auth.Session{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	})
+	if err != nil {
+		t.Fatalf("build stored session: %v", err)
+	}
+
+	if err := backend.Set(t.Context(), stored); err != nil {
+		t.Fatalf("seed session: %v", err)
+	}
 }
 
 func testAccessToken(t *testing.T, expiry int64) string {
 	t.Helper()
 
+	return testUserAccessToken(t, "user-1", expiry)
+}
+
+func testUserAccessToken(t *testing.T, userID string, expiry int64) string {
+	t.Helper()
+
 	header := base64.RawURLEncoding.EncodeToString([]byte(`{"alg":"HS256","typ":"JWT"}`))
 
-	payload, err := json.Marshal(map[string]any{"exp": expiry, "sub": "user-1"})
+	payload, err := json.Marshal(map[string]any{"exp": expiry, "sub": userID})
 	if err != nil {
 		t.Fatalf("marshal token payload: %v", err)
 	}
