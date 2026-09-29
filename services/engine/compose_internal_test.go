@@ -70,7 +70,8 @@ func TestNewMuxRoutesEnginePathsAndCompatAuthHosts(t *testing.T) {
 		"hasura-auth-service",
 		"",
 		" hasura-auth-service ",
-		"hasura-auth-service.nhost-project.svc.cluster.local",
+		"hasura-auth-service.nhost-project.svc.cluster.local.",
+		".",
 	}, nil)
 
 	tests := []struct {
@@ -538,6 +539,7 @@ func TestNewMuxSkipsMalformedCompatAuthHosts(t *testing.T) {
 		{name: "scheme", host: "http://hasura-auth-service"},
 		{name: "path", host: "hasura-auth-service/auth"},
 		{name: "empty DNS label", host: "hasura-auth-service..svc"},
+		{name: "multiple trailing dots", host: "hasura-auth-service.."},
 		{name: "over-length DNS label", host: strings.Repeat("a", 64) + ".example"},
 		{name: "over-length hostname", host: strings.Repeat("a", 254)},
 	}
@@ -599,22 +601,48 @@ func TestNewMuxReturnsErrorForCompatAuthHostConflict(t *testing.T) {
 func TestNewMuxPreservesRedirectPrefix(t *testing.T) {
 	t.Parallel()
 
-	// The root-anchored form names the same host as the bare one, so a client
-	// that fully qualifies the service name must have the prefix restored too.
-	for _, host := range []string{
-		"nhost-engine-service:8080",
-		"nhost-engine-service.:8080",
-		"Nhost-Engine-Service:8080",
-	} {
-		t.Run(host, func(t *testing.T) {
+	tests := []struct {
+		name           string
+		host           string
+		configuredHost string
+	}{
+		{
+			name:           "bare host",
+			host:           "nhost-engine-service:8080",
+			configuredHost: "nhost-engine-service",
+		},
+		{
+			name:           "root-anchored request",
+			host:           "nhost-engine-service.:8080",
+			configuredHost: "nhost-engine-service",
+		},
+		{
+			name:           "mixed-case request",
+			host:           "Nhost-Engine-Service:8080",
+			configuredHost: "nhost-engine-service",
+		},
+		{
+			name:           "root-anchored config",
+			host:           "nhost-engine-service:8080",
+			configuredHost: "nhost-engine-service.",
+		},
+		{
+			name:           "root-anchored config and request",
+			host:           "nhost-engine-service.:8080",
+			configuredHost: "nhost-engine-service.",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			assertRedirectPrefixPreserved(t, host)
+			assertRedirectPrefixPreserved(t, tc.host, tc.configuredHost)
 		})
 	}
 }
 
-func assertRedirectPrefixPreserved(t *testing.T, host string) {
+func assertRedirectPrefixPreserved(t *testing.T, host, configuredHost string) {
 	t.Helper()
 
 	router := gin.New()
@@ -628,7 +656,7 @@ func assertRedirectPrefixPreserved(t *testing.T, host string) {
 			Prefix:  "/storage",
 			Service: &serveutil.Service{Handler: router},
 		},
-	}, nil, []string{"nhost-engine-service"})
+	}, nil, []string{configuredHost})
 
 	redirect := httptest.NewRecorder()
 	request := httptest.NewRequest(http.MethodGet, "/storage/v1/files/", nil)
