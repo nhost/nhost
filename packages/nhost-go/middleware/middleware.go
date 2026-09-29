@@ -285,31 +285,40 @@ func storeSessionFromResponse(
 	ctx context.Context,
 	storage *session.Storage,
 	resp *http.Response,
-) {
+) error {
 	data, readErr := io.ReadAll(resp.Body)
 	if closeErr := resp.Body.Close(); closeErr != nil {
 		slog.Debug("error closing auth response body", "error", closeErr)
 	}
 
 	resp.Body = io.NopCloser(bytes.NewReader(data))
-	if readErr != nil || len(data) == 0 {
-		return
+
+	if readErr != nil {
+		return fmt.Errorf("read the auth response: %w", readErr)
+	}
+
+	if len(data) == 0 {
+		return nil
 	}
 
 	s := extractSession(data)
 	if s == nil || s.AccessToken == "" || s.RefreshToken == "" {
-		return
+		return nil
 	}
 
 	if err := storage.Set(ctx, *s); err != nil {
-		slog.Warn("error storing session from response", "error", err)
+		return fmt.Errorf("store the session from the auth response: %w", err)
 	}
+
+	return nil
 }
 
-func removeSession(ctx context.Context, storage *session.Storage) {
+func removeSession(ctx context.Context, storage *session.Storage) error {
 	if err := storage.Remove(ctx); err != nil {
-		slog.Warn("error clearing stored session", "error", err)
+		return fmt.Errorf("clear the stored session: %w", err)
 	}
+
+	return nil
 }
 
 func updateSession(
@@ -317,18 +326,20 @@ func updateSession(
 	storage *session.Storage,
 	action sessionResponseAction,
 	resp *http.Response,
-) {
+) error {
 	switch action {
 	case sessionResponseRemove:
-		removeSession(ctx, storage)
+		return removeSession(ctx, storage)
 	case sessionResponseRemoveOnSuccess:
 		if resp.StatusCode < http.StatusMultipleChoices {
-			removeSession(ctx, storage)
+			return removeSession(ctx, storage)
 		}
 	case sessionResponseStore:
-		storeSessionFromResponse(ctx, storage, resp)
+		return storeSessionFromResponse(ctx, storage, resp)
 	case sessionResponseIgnore:
 	}
+
+	return nil
 }
 
 // UpdateSessionFromResponse persists session data returned by auth endpoints
@@ -337,6 +348,11 @@ func updateSession(
 // per-request token ([session.WithAccessToken]) act for a caller whose session
 // the client does not hold, so they leave storage alone. It reads and then
 // restores the response body so downstream decoding still works.
+//
+// If the backend fails to store or clear the session, the request fails with
+// that error even though the auth service succeeded. Otherwise a sign-in would
+// report success while nothing was saved, and the next request would run as
+// whoever was stored before, or as nobody.
 func UpdateSessionFromResponse(storage *session.Storage, authURL string) transport.Middleware {
 	scope, scopeErr := newRequestScope(authURL)
 
@@ -352,8 +368,19 @@ func UpdateSessionFromResponse(storage *session.Storage, authURL string) transpo
 				return resp, err //nolint:wrapcheck
 			}
 
-			if _, ok := session.AccessTokenFromContext(req.Context()); !ok {
-				updateSession(req.Context(), storage, sessionAction(scope, req.URL), resp)
+			if _, ok := session.AccessTokenFromContext(req.Context()); ok {
+				return resp, nil
+			}
+
+			action := sessionAction(scope, req.URL)
+			if err := updateSession(req.Context(), storage, action, resp); err != nil {
+				// RoundTripper contract: a returned error comes with no response,
+				// so its body is closed here.
+				if closeErr := resp.Body.Close(); closeErr != nil {
+					slog.Debug("error closing auth response body", "error", closeErr)
+				}
+
+				return nil, err
 			}
 
 			return resp, nil

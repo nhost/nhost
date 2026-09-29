@@ -540,6 +540,121 @@ func TestUpdateSessionFromResponseStoresAndRestoresBody(t *testing.T) {
 	}
 }
 
+// trackedBody records whether the middleware closed a response body it did not
+// hand back.
+type trackedBody struct {
+	io.Reader
+
+	closed bool
+}
+
+func (b *trackedBody) Close() error {
+	b.closed = true
+
+	return nil
+}
+
+var errStoreWrite = errors.New("session store is read-only")
+
+func TestUpdateSessionFromResponseFailsWhenStorageFails(t *testing.T) {
+	t.Parallel()
+
+	sessionBody, err := json.Marshal(map[string]any{
+		"session": auth.Session{AccessToken: makeToken(t), RefreshToken: "r"},
+	})
+	if err != nil {
+		t.Fatalf("marshal body: %v", err)
+	}
+
+	tests := []struct {
+		name    string
+		path    string
+		backend *fakeBackend
+	}{
+		{
+			name:    "sign-in response cannot be stored",
+			path:    "/signin/email-password",
+			backend: &fakeBackend{setErr: errStoreWrite},
+		},
+		{
+			name:    "refreshed session cannot be stored",
+			path:    "/token",
+			backend: &fakeBackend{setErr: errStoreWrite},
+		},
+		{
+			name: "session cannot be cleared on sign-out",
+			path: "/signout",
+			backend: &fakeBackend{
+				sess:      &session.StoredSession{AccessToken: "tok"},
+				removeErr: errStoreWrite,
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			body := &trackedBody{Reader: bytes.NewReader(sessionBody)}
+			next := transport.RoundTripFunc(func(_ *http.Request) (*http.Response, error) {
+				return &http.Response{
+					StatusCode: http.StatusOK,
+					Header:     http.Header{},
+					Body:       body,
+				}, nil
+			})
+
+			//nolint:bodyclose // The response must be nil; the middleware closes its body.
+			resp, err := middleware.UpdateSessionFromResponse(
+				session.NewStorage(tc.backend),
+				"https://x/v1",
+			)(next).RoundTrip(newReq(t, "https://x/v1"+tc.path))
+			if !errors.Is(err, errStoreWrite) {
+				t.Fatalf("error = %v, want the storage error", err)
+			}
+
+			if resp != nil {
+				t.Fatalf("response = %v, want nil alongside the error", resp)
+			}
+
+			if !body.closed {
+				t.Fatal("response body was not closed")
+			}
+		})
+	}
+}
+
+func TestUpdateSessionFromResponseKeepsSessionOnFailedPasswordChange(t *testing.T) {
+	t.Parallel()
+
+	fb := &fakeBackend{
+		sess:      &session.StoredSession{AccessToken: "tok"},
+		removeErr: errStoreWrite,
+	}
+
+	next := transport.RoundTripFunc(func(_ *http.Request) (*http.Response, error) {
+		return &http.Response{
+			StatusCode: http.StatusUnauthorized,
+			Header:     http.Header{},
+			Body:       io.NopCloser(strings.NewReader(`{}`)),
+		}, nil
+	})
+
+	resp, err := middleware.UpdateSessionFromResponse(session.NewStorage(fb), "https://x/v1")(next).
+		RoundTrip(newReq(t, "https://x/v1/user/password"))
+	if err != nil {
+		t.Fatalf("error = %v, want the auth response returned as-is", err)
+	}
+
+	if err := resp.Body.Close(); err != nil {
+		t.Fatalf("close body: %v", err)
+	}
+
+	if fb.removed {
+		t.Fatal("a rejected password change must not clear the session")
+	}
+}
+
 func TestUpdateSessionFromResponseIgnoresNonAuthRequests(t *testing.T) {
 	t.Parallel()
 
