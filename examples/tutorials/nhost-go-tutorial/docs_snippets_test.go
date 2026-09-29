@@ -9,8 +9,8 @@ import (
 	"testing"
 )
 
-// TestTutorialSnippetsCompile builds the full program on each tutorial page
-// against the SDK in this tree.
+// TestTutorialSnippetsCompile builds the full program on each tutorial page,
+// and on the Go quickstart, against the SDK in this tree.
 //
 // The pages are prose, so nothing otherwise stops them describing an API that
 // no longer exists: renaming Client.GetUserSession to Client.Session left all
@@ -20,14 +20,16 @@ import (
 func TestTutorialSnippetsCompile(t *testing.T) {
 	t.Parallel()
 
-	// The getting-started pages that teach this example. Each one ends with a
-	// complete program, which is what a reader copies.
+	// The getting-started pages with Go programs, relative to that section.
+	// Each one ends with a complete program, which is what a reader copies. The
+	// quickstart's program needs only the SDK, so this module builds it too.
 	tutorialPages := []string{
-		"1-introduction.mdx",
-		"2-authentication.mdx",
-		"3-graphql-operations.mdx",
-		"4-file-uploads.mdx",
-		"5-functions-sharing.mdx",
+		"quickstart/go.mdx",
+		"tutorials/go/1-introduction.mdx",
+		"tutorials/go/2-authentication.mdx",
+		"tutorials/go/3-graphql-operations.mdx",
+		"tutorials/go/4-file-uploads.mdx",
+		"tutorials/go/5-functions-sharing.mdx",
 	}
 
 	goFencePattern := regexp.MustCompile("(?s)```go[^\n]*\n(.*?)```")
@@ -39,7 +41,7 @@ func TestTutorialSnippetsCompile(t *testing.T) {
 
 	// The pages live outside this module. The Nix check builds from a copy of
 	// the module alone, so it passes their location in.
-	docsDir := os.Getenv("NHOST_GO_TUTORIAL_PAGES")
+	docsDir := os.Getenv("NHOST_GO_GETTING_STARTED_PAGES")
 	if docsDir == "" {
 		docsDir = filepath.Join(
 			"..",
@@ -50,8 +52,6 @@ func TestTutorialSnippetsCompile(t *testing.T) {
 			"content",
 			"docs",
 			"getting-started",
-			"tutorials",
-			"go",
 		)
 	}
 
