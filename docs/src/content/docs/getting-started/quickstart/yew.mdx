@@ -41,16 +41,24 @@ Make sure the option `Track this` is enabled.
 
 ### Permissions
 
-Select the new `notes` table and click **Edit Permissions** to give the `user`
-role access to its own rows. This is the core of Nhost's authorization model:
-the database enforces per-user isolation, so your app never has to.
+The GraphQL engine checks every request against the permissions of the
+caller's role, using the user ID in their access token. Select the `notes`
+table, click **Edit Permissions**, and set these for the `user` role:
 
-- **insert** — allow the `user` role to insert `title` and `content`, and add a
-  **column preset** so `user_id` is set from the session:
-  `user_id = X-Hasura-User-Id`. (Never let clients choose `user_id`.)
-- **select** — allow the `user` role to read `id, title, content, created_at`
-  with the **row filter** `{ "user_id": { "_eq": "X-Hasura-User-Id" } }` so each
-  user only ever sees their own notes.
+- **insert**: under **Column insert permissions**, select `title` and
+  `content`. Under **Column presets**, set `user_id` to `X-Hasura-User-Id`, so
+  each note belongs to the user who created it.
+- **select**: under **Row select permissions**, choose **With custom check**
+  and add the rule `user_id` `_eq` `X-Hasura-User-Id`. Under **Column select
+  permissions**, select `id`, `title`, `content` and `created_at`.
+
+### Create a user
+
+The app signs users in with an email and password, so create one to sign in
+as: open **Auth**, click **Create User**, and enter an email (for example
+`user@example.com`) and a password.
+New projects only let users sign in once their email is verified, so open the
+new user and tick **Verified** next to their email.
 
 Because `notes` requires a session, the app loads them **after** the user signs
 in — there's no public data to show beforehand.
@@ -72,7 +80,7 @@ rustup target add wasm32-unknown-unknown
 
 Add the SDK with its browser feature enabled, alongside Yew and the async glue.
 The `nhost` crate is not yet published on crates.io, so install it from the
-Nhost repository at the commit used by this guide.
+Nhost repository.
 
 ```bash Terminal
 cargo add yew --features csr
@@ -84,7 +92,7 @@ cargo add console_error_panic_hook
 
 # default-features = false drops the native rustls-tls backend (the browser
 # handles TLS); the `wasm` feature enables the browser-compatible pipeline and
-# the localStorage-backed session store.
+# the localStorage session store.
 cargo add nhost --git https://github.com/nhost/nhost.git \
   --no-default-features --features wasm
 ```
@@ -107,7 +115,7 @@ default branch, because `nhost` is not on crates.io yet. It therefore tracks
 `main` rather than a fixed release; add a `rev` or `tag` if you need a
 reproducible build. Once `nhost` is published, replace its `git` key with
 `version = "<current published version>"`, or rerun the command without `--git`
-and `--rev` to let `cargo add` select the current release.
+to let `cargo add` select the current release.
 
 ### Configure the Nhost client, sign in, and manage notes
 
@@ -129,6 +137,7 @@ and `--rev` to let `cargo add` select the current release.
   <TabItem label="src/main.rs">
 ```rust
 use nhost::auth::SignInEmailPasswordRequest;
+use nhost::session::{LocalStorageStore, MemoryStore};
 use nhost::Nhost;
 use serde::Deserialize;
 use serde_json::{json, Value};
@@ -136,7 +145,7 @@ use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
 
-// The row filter on `notes` scopes this to the signed-in user automatically.
+// The custom check on `notes` scopes this to the signed-in user automatically.
 const LIST_NOTES: &str = "query { notes(order_by: {created_at: desc}) { id title content } }";
 
 // `user_id` is filled in by the column preset, so we only send title + content.
@@ -163,9 +172,16 @@ struct NotesData {
 // them, so it returns `Result` — it fails if you leave the placeholders below
 // in place.
 fn make_client() -> Nhost {
-    Nhost::builder()
-        .subdomain("<subdomain>")
-        .region("<region>")
+    let builder = Nhost::builder().subdomain("<subdomain>").region("<region>");
+    // Keep the session in localStorage so it survives a page reload. Without a
+    // session store the client keeps no session, and requests after sign-in
+    // would carry no token. Browsers can disable localStorage, so fall back to
+    // memory rather than failing to start.
+    let builder = match LocalStorageStore::new() {
+        Some(store) => builder.session_store(store),
+        None => builder.session_store(MemoryStore::default()),
+    };
+    builder
         .build()
         .expect("subdomain and region must be a valid Nhost project")
 }
@@ -201,11 +217,10 @@ fn app() -> Html {
             spawn_local(async move {
                 match client.auth.sign_in_email_password(req).await {
                     Ok(_) => {
-                        // The session is captured by middleware and persisted in
-                        // localStorage; subsequent requests attach and refresh it.
+                        // The client saved the session in localStorage; later
+                        // requests attach its token and refresh it.
                         status.set("Signed in".to_string());
-                        if let Ok(data) =
-                            client.graphql.query(LIST_NOTES).send::<NotesData>().await
+                        if let Ok(data) = client.graphql.query(LIST_NOTES).send::<NotesData>().await
                         {
                             notes.set(data.notes);
                         }

@@ -41,25 +41,25 @@ the `user` role:
 
 - **note_attachments** — gate through the parent note. Check columns `note_id`
   and `file_id` for both `insert` and `select` (without them the insert
-  permission allows zero columns and `attach` is rejected), then use
-  `{ "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } }` as the `insert`
-  check and the `select` / `delete` filter.
+  permission allows zero columns and `attach` is rejected), then use the
+  custom check `{ "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } }` for
+  `insert`, `select` and `delete`.
 - **storage.files** — set these under **Storage → Permissions** (Nhost's UI for
   the `storage.files` table permissions), where **Upload** is the `insert`
-  permission and **Download** is the `select` permission. Leave Replace / Delete
-  as-is for this tutorial.
+  permission, **Download** the `select` permission and **Delete** the `delete`
+  permission. Leave Replace as-is for this tutorial.
   - **Upload** — allow it for `user` and enable *Prefill
     `uploaded_by_user_id` with `X-Hasura-User-Id`* so every upload is stamped
     with its uploader. Without this stamp the column stays `NULL`, the Download
-    filter below never matches, and `download` 404s with `file not found` even
+    custom check below never matches, and `download` 404s with `file not found` even
     though `attach` succeeded.
   - **Download** — a user should see a file if they uploaded it **or** it's
     attached to a note they can see. This clause traverses a `noteAttachments`
     array relationship on `storage.files`, which lives in the **Database** UI —
     so add it there **first** under **Database → `storage` schema → `files` →
-    Relationships**, otherwise the row filter won't save
+    Relationships**, otherwise the custom check won't save
     (`"noteAttachments" does not exist`). Then, back in **Storage → Permissions**
-    for the Download action, filter on the **database column**
+    for the Download action, write the check on the **database column**
     `uploaded_by_user_id` (the `uploadedByUserId` GraphQL alias errors on save
     with `"uploadedByUserId" does not exist`):
 
@@ -69,13 +69,18 @@ the `user` role:
         { "noteAttachments": { "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } } }
     ]}
     ```
+  - **Delete** — allow it for `user` with the custom check
+    `{ "uploaded_by_user_id": { "_eq": "X-Hasura-User-Id" } }`, so users can
+    delete what they uploaded. `attach` needs it to clean up when linking fails.
 
 ## Upload a file
 
 `storage.upload_files` takes the bucket, one `FilePart` per file — its filename,
 contents, and an optional MIME type — and per-file metadata. It returns the
 processed files, including the new file's `id`, which we then link to the note.
-Add a `BUCKET` constant for the bucket id you created above:
+If linking fails, say because the note isn't yours, `attach` deletes the upload
+again so it isn't left in Storage with nothing pointing at it. Add a `BUCKET`
+constant for the bucket id you created above:
 
 Every auth and storage method returns an `http::Response<T>`: the decoded
 payload in `body`, plus the `status` and `headers` that came with it. Reach for
@@ -117,14 +122,24 @@ async fn attach(client: &Nhost, note_id: &str, file: &str) -> Result<()> {
         .id
         .clone();
 
-    gql(
+    let linked = gql(
         client,
         "mutation Attach($noteId: uuid!, $fileId: uuid!) {
             insert_note_attachments_one(object: {note_id: $noteId, file_id: $fileId}) { file_id }
         }",
         json!({ "noteId": note_id, "fileId": file_id }),
     )
-    .await?;
+    .await;
+    if let Err(err) = linked {
+        // Don't leave the upload in Storage with nothing pointing at it.
+        if let Err(delete_err) = client.storage.delete_file(&file_id).await {
+            return Err(format!(
+                "{err}; deleting uploaded file {file_id} also failed: {delete_err}"
+            )
+            .into());
+        }
+        return Err(err);
+    }
     println!("attached {} (file {}) to {}", name, file_id, note_id);
     Ok(())
 }
@@ -166,13 +181,13 @@ Here's the whole `src/main.rs` after Part 4. Collapsed sections are unchanged fr
 earlier parts; highlighted lines are what this part added. Press **Copy** to grab
 the entire file.
 
-```rust title="src/main.rs" collapse={1-6,8-9,12-45,50-78,81-274} {7-7,10-11,46-49,79-80,275-324}
+```rust title="src/main.rs" collapse={1-6,8-9,12-45,50-78,81-276} {7-7,10-11,46-49,79-80,277-336}
 use std::io::{self, IsTerminal};
 use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
 use nhost::auth::{SignInEmailPasswordRequest, SignOutRequest, SignUpEmailPasswordRequest};
-use nhost::session::FileStorage;
+use nhost::session::FileStore;
 use nhost::storage::{FilePart, UploadFileMetadata, UploadFilesBody};
 use nhost::Nhost;
 use serde_json::{json, Value};
@@ -239,7 +254,7 @@ async fn run(command: Command) -> Result<()> {
             login(&client, &email, &password).await
         }
         Command::Logout => logout(&client).await,
-        Command::Whoami => whoami(&client),
+        Command::Whoami => whoami(&client).await,
         Command::New { title, content } => note_new(&client, &title, content.as_deref()).await,
         Command::Ls => note_ls(&client).await,
         Command::Pin { id } => note_set(&client, &id, json!({ "is_pinned": true })).await,
@@ -258,7 +273,7 @@ fn make_client() -> Result<Nhost> {
     Ok(Nhost::builder()
         .subdomain(env("NHOST_SUBDOMAIN", "local"))
         .region(env("NHOST_REGION", "local"))
-        .storage(Box::new(FileStorage::new(path)))
+        .session_store(FileStore::new(path))
         .build()?)
 }
 
@@ -289,7 +304,7 @@ fn read_password() -> Result<String> {
 }
 
 async fn signup(client: &Nhost, email: &str, password: &str) -> Result<()> {
-    client
+    let response = client
         .auth
         .sign_up_email_password(SignUpEmailPasswordRequest {
             email: email.to_string(),
@@ -298,7 +313,9 @@ async fn signup(client: &Nhost, email: &str, password: &str) -> Result<()> {
             code_challenge: None,
         })
         .await?;
-    if client.session()?.is_some() {
+    // Sign-up returns no session while the email is unverified, so check the
+    // response rather than whatever session is already stored.
+    if response.body.session.is_some() {
         println!("signed up and logged in as {email}");
     } else {
         println!("signed up; verify your email, then `login`");
@@ -319,7 +336,7 @@ async fn login(client: &Nhost, email: &str, password: &str) -> Result<()> {
 }
 
 async fn logout(client: &Nhost) -> Result<()> {
-    if let Some(sess) = client.session()? {
+    if let Some(sess) = client.session().await? {
         let _ = client
             .auth
             .sign_out(SignOutRequest {
@@ -328,13 +345,13 @@ async fn logout(client: &Nhost) -> Result<()> {
             })
             .await;
     }
-    client.clear_session()?;
+    client.clear_session().await?;
     println!("logged out");
     Ok(())
 }
 
-fn whoami(client: &Nhost) -> Result<()> {
-    match client.session()?.and_then(|s| s.session.user) {
+async fn whoami(client: &Nhost) -> Result<()> {
+    match client.session().await?.and_then(|s| s.session.user) {
         Some(u) => {
             println!("{} ({})", u.email.unwrap_or_default(), u.id);
             Ok(())
@@ -473,14 +490,24 @@ async fn attach(client: &Nhost, note_id: &str, file: &str) -> Result<()> {
         .id
         .clone();
 
-    gql(
+    let linked = gql(
         client,
         "mutation Attach($noteId: uuid!, $fileId: uuid!) {
             insert_note_attachments_one(object: {note_id: $noteId, file_id: $fileId}) { file_id }
         }",
         json!({ "noteId": note_id, "fileId": file_id }),
     )
-    .await?;
+    .await;
+    if let Err(err) = linked {
+        // Don't leave the upload in Storage with nothing pointing at it.
+        if let Err(delete_err) = client.storage.delete_file(&file_id).await {
+            return Err(format!(
+                "{err}; deleting uploaded file {file_id} also failed: {delete_err}"
+            )
+            .into());
+        }
+        return Err(err);
+    }
     println!("attached {} (file {}) to {}", name, file_id, note_id);
     Ok(())
 }

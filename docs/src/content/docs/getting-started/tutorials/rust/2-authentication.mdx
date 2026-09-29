@@ -21,14 +21,15 @@ series.
 
 ## Persist the session
 
-The client accepts a `storage` backend that it uses to save and load the
-session. The SDK ships `session::FileStorage`, which writes the session to a
-JSON file. Update `make_client` to use it:
+`session_store` sets where the client saves and loads the session. Part 1 used
+`session::MemoryStore`, which forgets the session when the CLI exits.
+`session::FileStore` writes it to a JSON file that only your user can read
+instead. Update `make_client` to use it:
 
 ```rust title="src/main.rs"
 use std::path::PathBuf;
 
-use nhost::session::FileStorage;
+use nhost::session::FileStore;
 
 fn make_client() -> Result<Nhost> {
     let path = session_path();
@@ -38,7 +39,7 @@ fn make_client() -> Result<Nhost> {
     Ok(Nhost::builder()
         .subdomain(env("NHOST_SUBDOMAIN", "local"))
         .region(env("NHOST_REGION", "local"))
-        .storage(Box::new(FileStorage::new(path)))
+        .session_store(FileStore::new(path))
         .build()?)
 }
 
@@ -55,10 +56,10 @@ fn session_path() -> PathBuf {
 }
 ```
 
-With a `storage` backend configured, the SDK's middleware does the rest: after
-you sign in it saves the session, attaches the access token to every request,
-and refreshes the token in the background when it expires. Your commands never
-touch tokens directly.
+With a session store configured, the SDK does the rest: after you sign in it
+saves the session, attaches the access token to every request, and refreshes
+the token when it is about to expire. Your commands never touch tokens
+directly.
 
 ## Add the auth commands
 
@@ -112,7 +113,7 @@ Then add the handlers. The request types come from `nhost::auth`:
 use nhost::auth::{SignInEmailPasswordRequest, SignOutRequest, SignUpEmailPasswordRequest};
 
 async fn signup(client: &Nhost, email: &str, password: &str) -> Result<()> {
-    client
+    let response = client
         .auth
         .sign_up_email_password(SignUpEmailPasswordRequest {
             email: email.to_string(),
@@ -121,7 +122,9 @@ async fn signup(client: &Nhost, email: &str, password: &str) -> Result<()> {
             code_challenge: None,
         })
         .await?;
-    if client.session()?.is_some() {
+    // Sign-up returns no session while the email is unverified, so check the
+    // response rather than whatever session is already stored.
+    if response.body.session.is_some() {
         println!("signed up and logged in as {email}");
     } else {
         println!("signed up; verify your email, then `login`");
@@ -142,7 +145,7 @@ async fn login(client: &Nhost, email: &str, password: &str) -> Result<()> {
 }
 
 async fn logout(client: &Nhost) -> Result<()> {
-    if let Some(sess) = client.session()? {
+    if let Some(sess) = client.session().await? {
         let _ = client
             .auth
             .sign_out(SignOutRequest {
@@ -151,15 +154,18 @@ async fn logout(client: &Nhost) -> Result<()> {
             })
             .await;
     }
-    client.clear_session()?;
+    client.clear_session().await?;
     println!("logged out");
     Ok(())
 }
 ```
 
 `session` (used by the `whoami` you wrote in Part 1) reads the current session
-from storage without a network call. `clear_session` removes the cached file (a
-client-side sign out), while `sign_out` revokes the refresh token on the server.
+from the session store without a network call. `Ok(None)` means nobody is
+signed in; an error means the store could not be read, so an unreadable session
+file is never mistaken for a signed-out user. `clear_session` removes the saved
+file (a client-side sign out), while `sign_out` revokes the refresh token on the
+server.
 
 Wire the new commands into `run` — each auth arm reads the password before
 passing it to its handler:
@@ -175,7 +181,7 @@ passing it to its handler:
             login(&client, &email, &password).await
         }
         Command::Logout => logout(&client).await,
-        Command::Whoami => whoami(&client),
+        Command::Whoami => whoami(&client).await,
     }
 ```
 
@@ -185,9 +191,10 @@ New projects require email verification by default. For a smooth CLI experience
 during development, you can allow users to sign in immediately after sign-up: in
 the local Nhost dashboard (`https://local.dashboard.local.nhost.run`) open
 **Settings → Sign-In methods** and, under **Email and Password**, disable
-*"Require verified emails"*. (Locally, verification emails are caught by Mailhog
-at `https://local.mailhog.local.nhost.run` if you'd rather click the link
-instead.)
+**Require Verified Emails**. Locally, settings changes take effect the next time
+the backend starts, so run `nhost up` again to apply it. (Verification emails
+are caught by Mailhog at `https://local.mailhog.local.nhost.run` if you'd rather
+click the link instead.)
 
 ## The complete `src/main.rs`
 
@@ -195,13 +202,13 @@ Here's the whole `src/main.rs` after Part 2. The collapsed sections are unchange
 from Part 1; the highlighted lines are what this part added. Press **Copy** to
 grab the entire file at once.
 
-```rust title="src/main.rs" collapse={4-4,7-20,27-42,52-56,61-63,65-65,78-81,137-147} {1-3,5-6,21-26,43-51,57-60,64-64,66-77,82-136}
+```rust title="src/main.rs" collapse={4-4,7-20,27-42,52-56,61-63,65-65,78-81,139-149} {1-3,5-6,21-26,43-51,57-60,64-64,66-77,82-138}
 use std::io::{self, IsTerminal};
 use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
 use nhost::auth::{SignInEmailPasswordRequest, SignOutRequest, SignUpEmailPasswordRequest};
-use nhost::session::FileStorage;
+use nhost::session::FileStore;
 use nhost::Nhost;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
@@ -247,7 +254,7 @@ async fn run(command: Command) -> Result<()> {
             login(&client, &email, &password).await
         }
         Command::Logout => logout(&client).await,
-        Command::Whoami => whoami(&client),
+        Command::Whoami => whoami(&client).await,
     }
 }
 
@@ -259,7 +266,7 @@ fn make_client() -> Result<Nhost> {
     Ok(Nhost::builder()
         .subdomain(env("NHOST_SUBDOMAIN", "local"))
         .region(env("NHOST_REGION", "local"))
-        .storage(Box::new(FileStorage::new(path)))
+        .session_store(FileStore::new(path))
         .build()?)
 }
 
@@ -290,7 +297,7 @@ fn read_password() -> Result<String> {
 }
 
 async fn signup(client: &Nhost, email: &str, password: &str) -> Result<()> {
-    client
+    let response = client
         .auth
         .sign_up_email_password(SignUpEmailPasswordRequest {
             email: email.to_string(),
@@ -299,7 +306,9 @@ async fn signup(client: &Nhost, email: &str, password: &str) -> Result<()> {
             code_challenge: None,
         })
         .await?;
-    if client.session()?.is_some() {
+    // Sign-up returns no session while the email is unverified, so check the
+    // response rather than whatever session is already stored.
+    if response.body.session.is_some() {
         println!("signed up and logged in as {email}");
     } else {
         println!("signed up; verify your email, then `login`");
@@ -320,7 +329,7 @@ async fn login(client: &Nhost, email: &str, password: &str) -> Result<()> {
 }
 
 async fn logout(client: &Nhost) -> Result<()> {
-    if let Some(sess) = client.session()? {
+    if let Some(sess) = client.session().await? {
         let _ = client
             .auth
             .sign_out(SignOutRequest {
@@ -329,13 +338,13 @@ async fn logout(client: &Nhost) -> Result<()> {
             })
             .await;
     }
-    client.clear_session()?;
+    client.clear_session().await?;
     println!("logged out");
     Ok(())
 }
 
-fn whoami(client: &Nhost) -> Result<()> {
-    match client.session()?.and_then(|s| s.session.user) {
+async fn whoami(client: &Nhost) -> Result<()> {
+    match client.session().await?.and_then(|s| s.session.user) {
         Some(u) => {
             println!("{} ({})", u.email.unwrap_or_default(), u.id);
             Ok(())
@@ -347,7 +356,7 @@ fn whoami(client: &Nhost) -> Result<()> {
 
 :::caution
 Do the **Enable email/password sign-up** step above before running `signup`. If
-*"Require verified emails"* is still on, `signup` lands in the verify-email
+**Require Verified Emails** is still on, `signup` lands in the verify-email
 branch and prints `signed up; verify your email, then login` instead of an
 active session — so `whoami` reports `not logged in` until you verify.
 :::
