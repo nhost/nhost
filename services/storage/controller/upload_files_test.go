@@ -275,6 +275,7 @@ func TestUploadFile(t *testing.T) {
 				nil,
 				av,
 				logger,
+				"",
 			)
 
 			resp, err := ctrl.UploadFiles(
@@ -369,6 +370,7 @@ func TestUploadFiles_FileTooBig(t *testing.T) {
 		nil,
 		av,
 		logger,
+		"",
 	)
 
 	resp, err := ctrl.UploadFiles(
