@@ -19,6 +19,13 @@ struct AdminSession
 
 Attaches `x-hasura-admin-secret` (plus optional role and session variables).
 
+A request carrying a caller's own token
+(`Nhost::with_access_token`) fails instead:
+the GraphQL engine checks the admin secret before the token, so it would run
+as admin and silently ignore the user it was meant for. To act as a user
+with the admin secret, set `AdminSessionOptions::role` and
+`AdminSessionOptions::session_variables`.
+
 Security warning: never use in client-side code — it grants admin access.
 
 #### Fields
@@ -61,11 +68,15 @@ caller-controlled session-variable map visible. Those variables are sent as
 struct AttachToken
 ```
 
-Attaches `Authorization: Bearer <token>` from the stored session, unless the
-request already carries one. Runs after `SessionRefresh`.
+Attaches `Authorization: Bearer <token>` unless the request already carries
+one. The token is the caller's own
+(`Nhost::with_access_token`), or else that
+of the stored session the request selects
+(`Nhost::with_user_id`). Runs after
+`SessionRefresh`. If the session store cannot be read, the request fails.
 
 The token is written only for requests inside `service_url`'s origin. A
-request that has left that origin has the stored bearer stripped, so a
+request that has left that origin has that bearer stripped, so a
 retargeting middleware cannot forward the user's access token to another
 host; an unrelated caller-supplied `Authorization` value is preserved.
 
@@ -73,7 +84,7 @@ host; an unrelated caller-supplied `Authorization` value is preserved.
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `storage` | `SessionStorage` | The store the access token is read from. |
+| `sessions` | `Option<SessionManager>` | The sessions the access token is read from, or `None` for a client without a session store, which attaches only a caller's own token. |
 | `service_url` | `String` | The base URL of the service this middleware is installed on. |
 
 ### `SessionRefresh`
@@ -82,9 +93,14 @@ host; an unrelated caller-supplied `Authorization` value is preserved.
 struct SessionRefresh
 ```
 
-Refreshes the session before a request when the token is near expiry. Skips
-requests that already carry an Authorization header and this client's exact
-auth refresh endpoint.
+Refreshes the session the request selects
+(`Nhost::with_user_id`) before the request when
+its token is near expiry. Skips requests that already carry an Authorization
+header or a caller's own token
+(`Nhost::with_access_token`), and this
+client's exact auth refresh endpoint. A failed refresh request lets the
+request go ahead with the stored token; a session store that cannot be read
+or updated fails the request.
 
 Prefer a middleware-free `auth::Client` here: refreshing through a client
 that carries this middleware relies on the refresh-endpoint check to avoid
@@ -95,7 +111,7 @@ recursing into itself.
 | Field | Type | Description |
 | --- | --- | --- |
 | `auth` | `Arc<auth::Client>` | The client used to call the refresh endpoint. |
-| `storage` | `SessionStorage` | The store the refresh token is read from and the new session written to. |
+| `sessions` | `SessionManager` | The sessions the refresh token is read from and the new session written to. |
 | `margin` | `i64` | Seconds before expiry at which to refresh; `0` always refreshes. Negative or unrepresentably large values fail the request with a configuration error. |
 
 ### `SetHeaders`
@@ -148,7 +164,7 @@ at the position matching their intended precedence.
 
 | Variant | Description |
 | --- | --- |
-| `Session` | A bearer token read from session storage. |
+| `Session` | A bearer token read from the session store. |
 | `Default` | A default configured on `crate::NhostBuilder`. |
 | `Admin` | An admin-session role or session variable. |
 | `Scoped` | A header configured on a scoped client clone. |

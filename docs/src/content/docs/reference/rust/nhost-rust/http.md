@@ -30,7 +30,7 @@ middleware stack (the first entry runs first on the way out).
 ### `send`
 
 ```rust
-async fn send(request: reqwest_middleware::RequestBuilder, sink: Option<&SessionStorage>) -> Result<(u16, http::HeaderMap, bytes::Bytes), Error>
+async fn send(request: reqwest_middleware::RequestBuilder, sink: Option<&SessionManager>) -> Result<(u16, http::HeaderMap, bytes::Bytes), Error>
 ```
 
 Sends a request through the middleware chain and buffers the full response.

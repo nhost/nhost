@@ -176,21 +176,29 @@ The HTTP response headers carrying the GraphQL failure.
 struct Nhost
 ```
 
-Unified, cheaply-shareable access to the Nhost services.
+Unified access to the Nhost services.
 
 Build one with `Nhost::builder` (or `Nhost::new` for a cloud project);
 `Nhost::from_clients` takes pre-built clients for full control over the
 request pipeline.
 
+A client manages sessions only when it is built with a session store
+(`NhostBuilder::session_store` or
+`NhostBuilder::multi_user_session_store`): it then stores the session from each
+sign-in, attaches its access token and refreshes it. Which session a request
+uses is chosen per handle: `Nhost::with_user_id` selects a stored user's
+session, and `Nhost::with_access_token` sends a token the caller supplied.
+Both return a cheap handle sharing this client's connection pool and
+configuration, so a server builds one client at startup.
+
 #### Fields
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `auth` | `auth::Client` | Auth service: sign-up and sign-in (password, OTP, magic link, WebAuthn, OAuth providers), MFA, PATs, user and JWK endpoints. The only client that captures sessions into `sessions`, and the only one where the [admin middleware](NhostBuilder::admin) is never installed. Arbitrary defaults from `NhostBuilder::header` and headers on an `auth::Client::with_headers` clone still apply, including an explicitly configured `x-hasura-admin-secret`. |
+| `auth` | `auth::Client` | Auth service: sign-up and sign-in (password, OTP, magic link, WebAuthn, OAuth providers), MFA, PATs, user and JWK endpoints. The only client that captures sessions into the session store, and the only one where the [admin middleware](NhostBuilder::admin) is never installed. Arbitrary defaults from `NhostBuilder::header` and headers on an `auth::Client::with_headers` clone still apply, including an explicitly configured `x-hasura-admin-secret`. |
 | `storage` | `storage::Client` | Storage service: file upload, download, replace and delete, metadata (including presigned URLs and image transformations), plus the admin-only consistency endpoints. |
 | `graphql` | `graphql::Client` | GraphQL endpoint: `query(..).variable(..).send::<T>()`, decoding `data` into your own types and mapping `errors` to `Error::GraphQl`. |
 | `functions` | `functions::Client` | Functions service: typed `get`/`post` helpers for your project's serverless functions, or `functions::Client::request` for full control. |
-| `sessions` | `SessionStorage` | The session store shared by every client and the session middleware: read it with `Nhost::session`. |
 
 #### Methods
 
@@ -205,7 +213,7 @@ Starts configuring a client.
 ##### `from_clients`
 
 ```rust
-fn from_clients(auth: auth::Client, refresh_auth: Arc<auth::Client>, storage: storage::Client, graphql: graphql::Client, functions: functions::Client, sessions: SessionStorage) -> Self
+fn from_clients(auth: auth::Client, refresh_auth: Arc<auth::Client>, storage: storage::Client, graphql: graphql::Client, functions: functions::Client, sessions: Option<SessionManager>) -> Self
 ```
 
 Assembles a client from pre-built service clients.
@@ -214,7 +222,8 @@ This is reserved for advanced use cases — for typical usage prefer
 `Nhost::builder`, which wires the session middleware for you. The
 caller owns each client's middleware stack, must supply a dedicated,
 middleware-free `refresh_auth` client without session capture, and must
-pass the same `sessions` store that the session middleware was built with.
+pass the same `sessions` store that the session middleware was built with
+(`None` for a client that manages no sessions).
 Otherwise `Nhost::session` and the middleware will disagree or a refresh
 response may be written twice. A `refresh_auth` client carrying
 `SessionRefresh` can recursively acquire the session refresh lock and hang
@@ -233,11 +242,11 @@ headers on the underlying `reqwest::Client` shared with `refresh_auth`.
 use std::sync::Arc;
 use nhost::http::Middleware;
 use nhost::middleware::{AttachToken, SessionRefresh};
-use nhost::session::{self, SessionStorage};
+use nhost::session::{MemoryStore, SessionManager};
 use nhost::{auth, functions, graphql, service_url, storage, Nhost, Service};
 
 let http = reqwest::Client::new();
-let sessions = SessionStorage::new(session::detect_storage());
+let sessions = SessionManager::new(MemoryStore::default());
 let url = |svc| {
     service_url(svc, Some("abcdefgh"), Some("eu-central-1"), None)
         .expect("valid project configuration")
@@ -249,11 +258,11 @@ let refresh_auth = Arc::new(auth::Client::new(url(Service::Auth), http.clone(), 
 let middleware: Vec<Arc<dyn Middleware>> = vec![
     Arc::new(SessionRefresh {
         auth: refresh_auth.clone(),
-        storage: sessions.clone(),
+        sessions: sessions.clone(),
         margin: nhost::DEFAULT_REFRESH_MARGIN_SECONDS,
     }),
     Arc::new(AttachToken {
-        storage: sessions.clone(),
+        sessions: Some(sessions.clone()),
         service_url: url(Service::Auth),
     }),
 ];
@@ -265,7 +274,7 @@ let client = Nhost::from_clients(
     storage::Client::new(url(Service::Storage), http.clone(), middleware.clone()),
     graphql::Client::new(url(Service::Graphql), http.clone(), middleware.clone()),
     functions::Client::new(url(Service::Functions), http, middleware),
-    sessions,
+    Some(sessions),
 );
 ```
 
@@ -275,8 +284,8 @@ let client = Nhost::from_clients(
 fn new(subdomain: impl Into<String>, region: impl Into<String>) -> Result<Self, Error>
 ```
 
-A cloud client for `subdomain`/`region` with default (client-side)
-session management. For anything else, use `Nhost::builder`.
+A cloud client for `subdomain`/`region` without session management. For
+anything else, including a session store, use `Nhost::builder`.
 
 ###### Errors
 
@@ -284,13 +293,66 @@ Returns `Error::Config` when either project field is empty, contains
 characters other than ASCII letters, digits, or hyphens, or produces an
 invalid derived service URL.
 
+##### `with_user_id`
+
+```rust
+fn with_user_id(&self, user_id: impl Into<String>) -> Self
+```
+
+Returns a handle whose requests use the stored session of `user_id`. It is
+how a server built with a
+`multi_user_session_store` says
+which user a request is for.
+The handle shares this client's connection pool and configuration.
+
+`user_id` must come from something the caller has already verified, such
+as its own authenticated cookie session. Never take it from an access
+token a client sent: the SDK does not verify its claims, so a forged
+token could select another user's stored session.
+
+Without a user ID, a request uses the one session of a `SessionStore`
+and no session of a `MultiUserSessionStore`. With one, a
+`SessionStore`'s session is used only if it is that user's.
+
+##### `with_access_token`
+
+```rust
+fn with_access_token(&self, access_token: impl Into<String>) -> Self
+```
+
+Returns a handle whose requests authenticate with `access_token`, for a
+server acting on behalf of a caller that sent its own token. The token is
+attached as-is: it is never stored, refreshed or replaced by a session
+from a response, and the client's session store is left alone. The
+handle shares this client's connection pool and configuration.
+
+On a client built with an admin secret, Storage, GraphQL and Functions
+requests from this handle fail, because the GraphQL engine would let the
+admin secret override the token.
+
+##### `session_manager`
+
+```rust
+fn session_manager(&self) -> Option<&SessionManager>
+```
+
+The sessions the client and its middleware share, or `None` for a client
+without a session store. Use it to store a session obtained elsewhere,
+or to read another user's session directly.
+
 ##### `session`
 
 ```rust
-fn session(&self) -> Result<Option<StoredSession>, Error>
+async fn session(&self) -> Result<Option<StoredSession>, Error>
 ```
 
-The current stored session, if any.
+The stored session this handle selects (see `Nhost::with_user_id`), if
+any.
+
+###### Errors
+
+Returns `Error::NoSessionStore` for a client without a session store,
+or `Error::Storage` if the store cannot be read.
 
 ##### `refresh_session`
 
@@ -298,20 +360,31 @@ The current stored session, if any.
 async fn refresh_session(&self) -> Result<Option<StoredSession>, Error>
 ```
 
-Refreshes the session if it is near expiry, using the stored refresh
-token. Returns the (possibly unchanged) session.
+Refreshes the session this handle selects if it is near expiry, using
+its stored refresh token. Returns the (possibly unchanged) session.
 
 The refresh uses the dedicated auth client supplied at construction,
 without the public `Nhost::auth` client's session capture.
 `session::refresh_session` is therefore the sole owner of the store write.
 
+###### Errors
+
+Returns `Error::NoSessionStore` for a client without a session store;
+see `session::refresh_session` for the rest.
+
 ##### `clear_session`
 
 ```rust
-fn clear_session(&self) -> Result<(), Error>
+async fn clear_session(&self) -> Result<(), Error>
 ```
 
-Clears the stored session (client-side sign-out).
+Clears the stored session this handle selects, without a sign-out
+request.
+
+###### Errors
+
+Returns `Error::NoSessionStore` for a client without a session store,
+or `Error::Storage` if the store cannot be cleared.
 
 ### `NhostBuilder`
 
@@ -375,13 +448,37 @@ fn functions_url(self, url: impl Into<String>) -> Self
 Overrides the functions service URL. `Self::build` validates it as an
 append-safe HTTP(S) URL and removes trailing slashes.
 
-##### `storage`
+##### `session_store`
 
 ```rust
-fn storage(self, backend: Box<dyn Backend>) -> Self
+fn session_store(self, store: impl SessionStore + 'static) -> Self
 ```
 
-Sets the session storage backend (defaults to in-memory / localStorage).
+Enables session management for one user, keeping the session in
+`store`: the client stores the session from each sign-in, attaches its
+access token to every request and refreshes it before it expires.
+Without a session store the client keeps no sessions, and requests carry
+only a token the caller supplies with `Nhost::with_access_token`.
+
+Use `session::MemoryStore` or `FileStore`, or
+`LocalStorageStore` in the browser. It replaces any
+`multi_user_session_store`, and cannot
+be combined with an admin secret.
+
+##### `multi_user_session_store`
+
+```rust
+fn multi_user_session_store(self, store: impl MultiUserSessionStore + 'static) -> Self
+```
+
+Enables session management for many users, keeping their sessions in
+`store`, for a server that signs users in. Each request names its user
+with `Nhost::with_user_id`; one that names none sends no token.
+
+Use `session::MultiUserMemoryStore` in one process, or your own
+`MultiUserSessionStore` shared by replicas. It replaces any
+`session_store`, and cannot be combined with an
+admin secret.
 
 ##### `http_client`
 
@@ -428,7 +525,11 @@ fn admin_secret(self, secret: impl Into<String>) -> Self
 
 Enables the admin secret on storage/graphql/functions. **Never use in
 client-side code** — it grants full admin access. `Self::build` rejects
-a secret that cannot be encoded in an HTTP header.
+a secret that cannot be encoded in an HTTP header, and rejects combining
+it with a session store: the GraphQL engine
+checks the admin secret before a user's token, so every request would run
+as admin and silently ignore the user. Use two clients, or act as a user
+with `admin`'s role and session variables.
 
 ##### `admin`
 
@@ -439,25 +540,6 @@ fn admin(self, options: AdminSessionOptions) -> Self
 Enables an admin session with full options (role, session variables).
 `Self::build` rejects any option that cannot be encoded as its
 corresponding HTTP header.
-
-##### `server`
-
-```rust
-fn server(self) -> Self
-```
-
-Server mode: attach the token but never auto-refresh. Requires an
-explicit per-request `storage` to avoid sharing one
-session across users.
-
-##### `without_session_management`
-
-```rust
-fn without_session_management(self) -> Self
-```
-
-Disables all session middleware (token attach + refresh). You manage
-auth headers yourself (or via `role`/`admin`).
 
 ##### `refresh_margin`
 
@@ -494,8 +576,8 @@ Builds the `Nhost` client.
 
 Returns `Error::Config` for incomplete, empty, or invalid cloud-project
 fields, invalid service URLs, invalid default or admin header names or
-values, an invalid refresh margin, or server mode without an explicit
-storage backend.
+values, an invalid refresh margin, or an admin secret combined with
+a session store.
 
 #### Trait implementations
 
@@ -522,7 +604,8 @@ Downstream matches must include a wildcard arm.
 | `GraphQl(Box<GraphqlOperationError>)` | A GraphQL response carried a non-empty `errors` array, regardless of its HTTP status, or `crate::graphql::Operation::send` received no data. The structured errors, partial data, status, and headers are preserved in the payload. |
 | `InvalidToken(String)` | An access token could not be decoded. |
 | `Config(String)` | A caller-supplied value was invalid at the client boundary (for example, client configuration, a service URL, or a multipart MIME type). |
-| `Storage(String)` | A session-storage backend failed (file/localStorage I/O). |
+| `Storage(BoxError)` | A session store failed. Holds the store's own error, which can be downcast (for example to `std::io::Error` from `FileStore`). |
+| `NoSessionStore` | A session method was called on a client built without a session store (see `crate::NhostBuilder::session_store`). |
 | `Http(reqwest::Error)` | A transport-level error from reqwest. |
 | `Middleware(anyhow::Error)` | An error raised by a middleware in the chain. |
 | `Json(serde_json::Error)` | A (de)serialization error. |

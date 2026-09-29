@@ -128,7 +128,7 @@ yourself.
 ##### `with_session_capture`
 
 ```rust
-fn with_session_capture(self, sessions: SessionStorage) -> Self
+fn with_session_capture(self, sessions: SessionManager) -> Self
 ```
 
 Captures a session from every successful response that carries one into

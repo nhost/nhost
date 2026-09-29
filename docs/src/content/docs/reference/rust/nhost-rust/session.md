@@ -9,6 +9,10 @@ backends, and token refresh.
 adding a `DecodedToken` with the parsed JWT payload so Hasura claims,
 roles, and session variables are available without manually decoding it.
 
+## Re-exports
+
+- `async_trait` *(proc_attribute)* — re-exported from [`async_trait::async_trait`](https://docs.rs/async-trait/0.1.89/).
+
 ## Functions
 
 ### `decode_user_session`
@@ -21,24 +25,22 @@ Decodes the payload of a JWT access token. Hasura claims encoded as
 PostgreSQL array literals (e.g. `{user,me}`) are converted into arrays,
 mirroring the JS SDK.
 
-### `detect_storage`
-
-```rust
-fn detect_storage() -> Box<dyn Backend>
-```
-
-Returns the default backend for the current environment: `localStorage` in
-the browser (when available), otherwise an in-memory store. See
-`LocalStorage`'s sensitive-data warning; callers can select an explicit
-backend with `crate::NhostBuilder::storage`.
-
 ### `refresh_session`
 
 ```rust
-async fn refresh_session(auth: &auth::Client, storage: &SessionStorage, margin: i64) -> Result<Option<StoredSession>, Error>
+async fn refresh_session(auth: &auth::Client, sessions: &SessionManager, user_id: Option<&str>, margin: i64) -> Result<Option<StoredSession>, Error>
 ```
 
-Refreshes the session if it is close to expiry.
+Refreshes the session `user_id` selects (see `SessionManager`) if it is close to
+expiry.
+
+Concurrent refreshes of the same session, from any number of clients sharing
+`sessions`, collapse into one request; different users refresh independently.
+The auth service rotates the refresh token on every refresh, so when several
+processes share a store, a slower process's refresh is rejected with `401`
+after a faster one has stored the rotated session. The session is then
+cleared only if the store still holds the rejected refresh token; otherwise
+the newer session is returned.
 
 With a nonzero margin, an expired session's refresh request is retried once
 only when no 2xx response was observed. If both requests fail, this returns
@@ -46,7 +48,7 @@ only when no 2xx response was observed. If both requests fail, this returns
 status `401`, which clears the store; a failure to clear it is returned
 rather than reported as a sign-out. `Ok(None)` also means
 there was no session to refresh; it does not by itself mean the store is
-empty, so call `SessionStorage::get` (or `crate::Nhost::session`) to
+empty, so call `SessionManager::get` (or `crate::Nhost::session`) to
 distinguish those cases. From `crate::middleware::SessionRefresh`, a
 retained session lets the request continue and
 `crate::middleware::AttachToken` can attach its existing, possibly expired
@@ -102,18 +104,18 @@ read by the other.
 
 - `Default`
 
-### `FileStorage`
+### `FileStore`
 
 **Availability:** Native targets with the default features; not available on browser wasm.
 
 ```rust
-struct FileStorage
+struct FileStore
 ```
 
-JSON-file backed session backend, useful for CLIs and local scripts.
+Session store in a JSON file, for a CLI or a local script.
 
 Not available on wasm32, which has no filesystem: the browser persists
-sessions through `LocalStorage` instead. This is deliberately keyed on the
+sessions through `LocalStorageStore` instead. This is deliberately keyed on the
 target rather than on the `wasm` feature, so the type is absent wherever a
 file cannot actually be written.
 
@@ -126,7 +128,7 @@ write renames a freshly created file into place, a file left at a wider mode
 by an earlier version is replaced rather than reused. A parent directory
 *created* here is `0o700`; a directory that already exists is left as it is,
 so point this at a private path rather than relying on it to tighten one.
-Other platforms inherit the default permissions, so avoid this backend on
+Other platforms inherit the default permissions, so avoid this store on
 shared storage there.
 
 ###### Durability
@@ -134,7 +136,7 @@ shared storage there.
 Writes are atomic: the session is written to a temporary file in the same
 directory, flushed, and renamed over the destination, so a concurrent reader
 or an interrupted write never observes a partial file. A file that cannot be
-parsed is reported as `Error::Storage` and left in place — it may still
+parsed is reported as an error and left in place — it may still
 hold a usable refresh token, so it is never deleted to manufacture a clean
 "no session" result.
 
@@ -146,23 +148,23 @@ hold a usable refresh token, so it is never deleted to manufacture a clean
 fn new(path: impl Into<PathBuf>) -> Self
 ```
 
-Creates a backend for `path`; parent directories are created on the first
+Creates a store for `path`; parent directories are created on the first
 write attempt rather than during construction, so they persist even if
 that write then fails.
 
 #### Trait implementations
 
-- `Backend`
+- `SessionStore`
 
-### `LocalStorage`
+### `LocalStorageStore`
 
 **Availability:** Browser wasm only (`wasm` feature on `wasm32`).
 
 ```rust
-struct LocalStorage
+struct LocalStorageStore
 ```
 
-Browser `localStorage`-backed session store (the default on the web). Uses
+Session store in the browser's `localStorage`, holding one session. Uses
 the same `"nhostSession"` key as `@nhost/nhost-js`, so a session persisted
 by either SDK on the same origin is interoperable.
 
@@ -171,7 +173,7 @@ by either SDK on the same origin is interoperable.
 The persisted `StoredSession` includes the long-lived refresh token.
 `localStorage` is readable by any script on the origin, so an XSS can expose
 a durable credential. Applications with a stricter threat model should pass
-an explicit backend through `crate::NhostBuilder::storage`.
+a different store to `crate::NhostBuilder::session_store`.
 
 #### Methods
 
@@ -186,69 +188,113 @@ unavailable (e.g. no `window`, or storage disabled).
 
 #### Trait implementations
 
-- `Backend`
+- `SessionStore`
 
-### `MemoryStorage`
+### `MemoryStore`
 
 ```rust
-struct MemoryStorage
+struct MemoryStore
 ```
 
-In-memory session backend (the default). Because a single instance is
-process-wide, do not share one between users in a server context.
+In-memory store holding one session, for a CLI, a script or a test.
+
+It is not shared across processes and is cleared when the process exits. A
+server acting for many users uses `MultiUserMemoryStore` or its own
+`MultiUserSessionStore` instead.
 
 #### Trait implementations
 
-- `Backend`
 - `Default`
+- `SessionStore`
 
-### `SessionStorage`
+### `MultiUserMemoryStore`
 
 ```rust
-struct SessionStorage
+struct MultiUserMemoryStore
 ```
 
-Wraps a `Backend`, decoding tokens on set. Cheaply cloneable (shares one
-backend).
+In-memory store holding one session per user, for a server that signs users
+in and keeps their sessions for them.
+
+Sessions live only in this process; replicas that share sessions need a
+`MultiUserSessionStore` of their own, such as one on Redis.
+
+#### Trait implementations
+
+- `Default`
+- `MultiUserSessionStore`
+
+### `SessionManager`
+
+```rust
+struct SessionManager
+```
+
+Manages the sessions in a store: picks the one a request selects, decodes
+tokens, and schedules and coordinates refreshes. Cheaply cloneable (shares
+one store).
+
+The builder creates one from the store passed to
+`NhostBuilder::session_store` or
+`NhostBuilder::multi_user_session_store`;
+build one yourself only to assemble clients with
+`Nhost::from_clients`.
+
+`user_id` is the user a request selected with
+`Nhost::with_user_id`, or `None` when it named
+none. With a `SessionStore`, `None` selects its one session and a user ID
+selects it only if it is that user's. With a `MultiUserSessionStore`,
+`None` selects nothing.
 
 #### Methods
 
 ##### `new`
 
 ```rust
-fn new(backend: Box<dyn Backend>) -> Self
+fn new(store: impl SessionStore + 'static) -> Self
 ```
 
-Takes ownership of a backend without reading it; persisted data is loaded
-and canonicalized when `Self::get` is called.
+Manages the one session in `store`, without reading it; persisted data
+is loaded and canonicalized when `Self::get` is called.
+
+##### `multi_user`
+
+```rust
+fn multi_user(store: impl MultiUserSessionStore + 'static) -> Self
+```
+
+Manages the sessions of many users in `store`, without reading it.
 
 ##### `get`
 
 ```rust
-fn get(&self) -> Result<Option<StoredSession>, Error>
+async fn get(&self, user_id: Option<&str>) -> Result<Option<StoredSession>, Error>
 ```
 
-Reads the session and re-decodes its access token so persisted
-`decodedToken` cache values cannot diverge from the public result.
+Reads the session `user_id` selects and re-decodes its access token so
+persisted `decodedToken` cache values cannot diverge from the public
+result.
 
 ##### `set`
 
 ```rust
-fn set(&self, value: Session) -> Result<(), Error>
+async fn set(&self, value: Session) -> Result<(), Error>
 ```
 
-Stores a raw auth session, enriching it into a stored session. The access
-token must contain a positive integer `exp` claim representable as
-milliseconds and `accessTokenExpiresIn` must be a positive duration
-representable as milliseconds.
+Stores a raw auth session under its user, enriching it into a stored
+session. The access token must contain a positive integer `exp` claim
+representable as milliseconds and `accessTokenExpiresIn` must be a
+positive duration representable as milliseconds. With a
+`MultiUserSessionStore`, a session without a user ID fails with
+`Error::Storage`.
 
 ##### `remove`
 
 ```rust
-fn remove(&self) -> Result<(), Error>
+async fn remove(&self, user_id: Option<&str>) -> Result<(), Error>
 ```
 
-Deletes the persisted session and clears its refresh schedule.
+Deletes the session `user_id` selects and clears its refresh schedule.
 
 ### `StoredSession`
 
@@ -272,55 +318,201 @@ a session into logs.
 | Field | Type | Description |
 | --- | --- | --- |
 | `session` | `Session` | The raw auth response, flattened into the persisted object for JS SDK interoperability. |
-| `decoded_token` | `DecodedToken` | A persisted cache of the access-token claims. `SessionStorage::get` re-decodes the token instead of trusting this value after deserialization. |
+| `decoded_token` | `DecodedToken` | A persisted cache of the access-token claims. `SessionManager::get` re-decodes the token instead of trusting this value after deserialization. |
+
+#### Methods
+
+##### `user_id`
+
+```rust
+fn user_id(&self) -> Option<&str>
+```
+
+The ID of the user this session belongs to: the auth service's `user.id`,
+or the access token's `sub` claim when the response carried no user. A
+`MultiUserSessionStore` saves the session under it.
 
 ## Traits
 
-### `Backend`
+### `MaybeSendSync`
 
 **Target variants:** Declarations are shown for native targets with default features. Browser wasm differences are noted where they occur.
 
 ```rust
-trait Backend: Send + Sync
+trait MaybeSendSync: Send + Sync
 ```
 
-**Browser wasm:** The `Backend` declaration omits the native `Send + Sync` bounds:
+**Browser wasm:** The `MaybeSendSync` declaration omits the native `Send + Sync` bounds:
 
 ```rust
-trait Backend
+trait MaybeSendSync
 ```
 
-A backend persisting a single `StoredSession`.
+`Send + Sync` on native targets, and no bound in the browser (`wasm32` with
+the `wasm` feature), whose storage handles are `!Send`. Implemented for every
+type that satisfies it.
 
-**Additional browser wasm documentation:** On a wasm32 target with the
-`wasm` feature, the Send + Sync bounds are dropped because browser storage
-handles are !Send; `SessionStorage` re-asserts them for middleware bounds.
+### `MultiUserSessionStore`
+
+```rust
+trait MultiUserSessionStore: MaybeSendSync
+```
+
+Where a server keeps the sessions of the users it acts for, keyed by user
+ID. Pass one to
+`NhostBuilder::multi_user_session_store`.
+
+A request names its user with
+`Nhost::with_user_id`. The SDK never asks the
+store about a request that names none, so such a request sends no token
+rather than someone else's. Sessions are saved under the user the auth
+service returned them for.
+
+Built in: `MultiUserMemoryStore`, for one process. Replicas that share
+sessions implement this over a shared store:
+
+```rust
+use nhost::session::{async_trait, BoxError, MultiUserSessionStore, StoredSession};
+use std::collections::HashMap;
+use std::sync::Mutex;
+
+/// Stands in for a Redis or database client.
+#[derive(Default)]
+struct SharedStore {
+    rows: Mutex<HashMap<String, String>>,
+}
+
+#[async_trait]
+impl MultiUserSessionStore for SharedStore {
+    async fn load(&self, user_id: &str) -> Result<Option<StoredSession>, BoxError> {
+        let rows = self.rows.lock().unwrap();
+        Ok(rows.get(user_id).map(|json| serde_json::from_str(json)).transpose()?)
+    }
+
+    async fn save(&self, user_id: &str, session: &StoredSession) -> Result<(), BoxError> {
+        let json = serde_json::to_string(session)?;
+        self.rows.lock().unwrap().insert(user_id.to_string(), json);
+        Ok(())
+    }
+
+    async fn delete(&self, user_id: &str) -> Result<(), BoxError> {
+        self.rows.lock().unwrap().remove(user_id);
+        Ok(())
+    }
+}
+```
 
 #### Required / provided methods
 
-##### `get`
+##### `load`
 
 ```rust
-fn get(&self) -> Result<Option<StoredSession>, Error>
+async fn load(&self, user_id: &str) -> Result<Option<StoredSession>, BoxError>
 ```
 
-Loads the current session, returning `None` when no session is persisted.
+Loads `user_id`'s session, or `None` when there is none.
 
-##### `set`
+##### `save`
 
 ```rust
-fn set(&self, value: &StoredSession) -> Result<(), Error>
+async fn save(&self, user_id: &str, session: &StoredSession) -> Result<(), BoxError>
 ```
 
-Replaces the persisted session with `value`.
+Saves `session` as `user_id`'s, replacing any session already stored
+for them.
 
-##### `remove`
+##### `delete`
 
 ```rust
-fn remove(&self) -> Result<(), Error>
+async fn delete(&self, user_id: &str) -> Result<(), BoxError>
 ```
 
-Deletes the persisted session; built-in backends treat absence as success.
+Deletes `user_id`'s session. Deleting when there is none succeeds.
+
+##### `delete_if_refresh_token`
+
+```rust
+async fn delete_if_refresh_token(&self, user_id: &str, refresh_token: &str) -> Result<Option<StoredSession>, BoxError>
+```
+
+Deletes `user_id`'s session if it still holds `refresh_token`, and
+otherwise returns the session it holds.
+
+The SDK calls this after the auth service rejected `refresh_token`. The
+auth service rotates the refresh token on every refresh, so a replica
+sharing the store may have refreshed first and saved a newer session,
+which must survive. The default loads, compares and deletes in separate
+calls, so a session saved between them is deleted; a store that can do
+this in one atomic step (a Redis script, a conditional `DELETE`) should
+override it.
+
+### `SessionStore`
+
+```rust
+trait SessionStore: MaybeSendSync
+```
+
+Where a client acting for one user keeps its session: a CLI, a script, a
+test or a browser tab. Pass one to
+`NhostBuilder::session_store`.
+
+A store only loads, saves and deletes the session; the SDK decides which
+requests get it. Built in: `MemoryStore`, `FileStore` and, in the
+browser, `LocalStorageStore`. The methods are async so a store can live in a
+remote service without blocking the runtime.
+
+#### Required / provided methods
+
+##### `load`
+
+```rust
+async fn load(&self) -> Result<Option<StoredSession>, BoxError>
+```
+
+Loads the session, or `None` when there is none.
+
+##### `save`
+
+```rust
+async fn save(&self, session: &StoredSession) -> Result<(), BoxError>
+```
+
+Saves `session`, replacing any session already stored.
+
+##### `delete`
+
+```rust
+async fn delete(&self) -> Result<(), BoxError>
+```
+
+Deletes the session. Deleting when there is none succeeds.
+
+##### `delete_if_refresh_token`
+
+```rust
+async fn delete_if_refresh_token(&self, refresh_token: &str) -> Result<Option<StoredSession>, BoxError>
+```
+
+Deletes the session if it still holds `refresh_token`, and otherwise
+returns the session it holds.
+
+The SDK calls this after the auth service rejected `refresh_token`. The
+auth service rotates the refresh token on every refresh, so a process
+sharing the store may have refreshed first and saved a newer session,
+which must survive. The default loads, compares and deletes in separate
+calls, so a session saved between them is deleted; a store that can do
+this in one atomic step should override it.
+
+## Type Aliases
+
+### `BoxError`
+
+```rust
+type BoxError = Box<dyn Error + Send + Sync>
+```
+
+The error a session store returns. The SDK reports it as
+`Error::Storage`, which keeps it so it can be downcast.
 
 ## Constants
 

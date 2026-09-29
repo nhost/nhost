@@ -145,7 +145,8 @@ Downstream matches must include a wildcard arm.
 | `GraphQl(Box<GraphqlOperationError>)` | A GraphQL response carried a non-empty `errors` array, regardless of its HTTP status, or `crate::graphql::Operation::send` received no data. The structured errors, partial data, status, and headers are preserved in the payload. |
 | `InvalidToken(String)` | An access token could not be decoded. |
 | `Config(String)` | A caller-supplied value was invalid at the client boundary (for example, client configuration, a service URL, or a multipart MIME type). |
-| `Storage(String)` | A session-storage backend failed (file/localStorage I/O). |
+| `Storage(BoxError)` | A session store failed. Holds the store's own error, which can be downcast (for example to `std::io::Error` from `FileStore`). |
+| `NoSessionStore` | A session method was called on a client built without a session store (see `crate::NhostBuilder::session_store`). |
 | `Http(reqwest::Error)` | A transport-level error from reqwest. |
 | `Middleware(anyhow::Error)` | An error raised by a middleware in the chain. |
 | `Json(serde_json::Error)` | A (de)serialization error. |
