@@ -167,9 +167,9 @@ The engine is one binary with one version, injected at build time as
 
 The bundled services no longer link their own `main` packages, so the version
 they report is the engine's — not the auth, storage, or constellation release
-each was built from. The engine hands its version to every service's wrapper
-command, and each service uses it for its version endpoint and other surfaces
-built from its controller:
+each was built from. Each service's wrapper inherits the engine command as its
+root and reads that version for its version endpoint and other surfaces built
+from its controller:
 
 | Endpoint | Reports |
 |----------|---------|
@@ -186,11 +186,11 @@ triage, client compatibility checks — sees engine versions once a deployment
 moves to the engine.
 
 `TestBundledServicesReportEngineVersion` pins the engine side of this wiring:
-`buildService` hands the engine's build version to each service wrapper command,
-where `cmd.Root().Version` resolves to it. Service-level command tests separately
-pin the hop from that root-command version into each controller and version
-endpoint. This coverage matters because a mistyped linker symbol is silently
-ignored and still produces a binary with an empty version.
+`buildService` runs each service wrapper with the engine `serve` command's context,
+so `cmd.Root()` is the engine command and its `Version` is the engine's build
+version. Service-level command tests separately pin the hop from that root-command
+version into each controller and version endpoint. A mistyped linker symbol is
+silently ignored and still produces a binary with an empty version.
 
 ## Configuration
 

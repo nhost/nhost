@@ -43,21 +43,12 @@ func requiredPassthroughArgs(t *testing.T, service string, def serviceDef) []str
 	return args
 }
 
-// TestBundledServicesReportEngineVersion pins the engine side of bundled
-// service version propagation. buildService must hand the engine build version
-// to every service's wrapper command so cmd.Root().Version resolves to it.
-//
-// The engine is one binary with one build version. The services it bundles do
-// not link their own main packages, so the "-X main.Version" each service's
-// project.nix injects does not apply here; services/engine/project.nix injects
-// the engine's main.Version instead. Service-level command tests separately pin
-// the hop from cmd.Root().Version into each service's controller and version
-// endpoint. The engine itself emits one startup version line rather than one
-// per service.
-//
-// This assertion is necessary because a mistyped linker symbol is silently
-// ignored and still produces a binary, leaving the wrapper command's version
-// empty without a build failure.
+// TestBundledServicesReportEngineVersion pins the engine command lineage used
+// by bundled services: buildService runs under the serve Action's context, so
+// cmd.Root().Version comes from the engine command rather than the wrapper.
+// The services do not link their own main packages; the engine's project.nix
+// supplies main.Version. Service command tests separately pin the hop from
+// Root().Version into each controller and version endpoint.
 func TestBundledServicesReportEngineVersion(t *testing.T) {
 	t.Parallel()
 
@@ -74,28 +65,35 @@ func TestBundledServicesReportEngineVersion(t *testing.T) {
 
 			got := "<newService was never called>"
 
+			var commandPath string
+
 			def := rs.def
 			def.newService = func(
 				_ context.Context, cmd *cli.Command, _ *slog.Logger,
 			) (*serveutil.Service, error) {
 				got = cmd.Root().Version
+				commandPath = cmd.FullName()
 
 				return &serveutil.Service{}, nil
 			}
 
-			prefixed := servicePrefixedFlags(
-				rs.name, def.command().Flags, def.skip, def.hidden,
-			)
+			app := newApp(engineVersionUnderTest)
+			app.Commands[0].Action = func(ctx context.Context, cmd *cli.Command) error {
+				_, err := buildService(
+					ctx, def, rs.name, cmd, slog.New(slog.DiscardHandler), cfg,
+				)
 
-			runParsed(t, prefixed, requiredPassthroughArgs(t, rs.name, def),
-				func(cmd *cli.Command) {
-					if _, err := buildService(
-						context.Background(), def, rs.name, cmd,
-						engineVersionUnderTest, slog.New(slog.DiscardHandler), cfg,
-					); err != nil {
-						t.Fatalf("buildService: %v", err)
-					}
-				})
+				return err
+			}
+
+			args := append([]string{"engine", "serve"}, requiredPassthroughArgs(t, rs.name, def)...)
+			if err := app.Run(context.Background(), args); err != nil {
+				t.Fatalf("engine serve: %v", err)
+			}
+
+			if want := "engine serve " + rs.name; commandPath != want {
+				t.Errorf("%s command path = %q, want %q", rs.name, commandPath, want)
+			}
 
 			if got != engineVersionUnderTest {
 				t.Errorf(
@@ -108,9 +106,8 @@ func TestBundledServicesReportEngineVersion(t *testing.T) {
 	}
 }
 
-// TestEngineAppCarriesBuildVersion covers the hop before that one: the value
-// main.Version receives from the linker has to reach the command tree, since
-// that is what buildService later passes to every bundled service.
+// TestEngineAppCarriesBuildVersion checks that the engine command tree holds
+// the version injected into main.Version at link time.
 func TestEngineAppCarriesBuildVersion(t *testing.T) {
 	t.Parallel()
 

@@ -301,7 +301,7 @@ func TestEngineDefaultsAuthToV1OnRealMux(t *testing.T) {
 				t, prefixed, []string{"--auth-encryption-key", "test-key"},
 				func(cmd *cli.Command) {
 					svc, err := buildService(
-						context.Background(), def, "auth", cmd, "test",
+						context.Background(), def, "auth", cmd,
 						slog.New(slog.DiscardHandler), serveConfig{},
 					)
 					if err != nil {
@@ -381,7 +381,7 @@ func TestEngineDefaultsGraphQLPlaygroundEndpointOnRealMux(t *testing.T) {
 	)
 	runParsed(t, prefixed, []string{"--graphql-enable-playground"}, func(cmd *cli.Command) {
 		svc, err := buildService(
-			context.Background(), def, "graphql", cmd, "test",
+			context.Background(), def, "graphql", cmd,
 			slog.New(slog.DiscardHandler), serveConfig{
 				adminSecret: "test-admin-secret",
 				jwtSecret:   "test-jwt-secret",
@@ -1044,7 +1044,7 @@ func TestEnabledDefinitions(t *testing.T) {
 			}
 
 			definitions := enabledDefinitions(
-				context.Background(), registry, tc.order, &cli.Command{}, "test",
+				context.Background(), registry, tc.order, &cli.Command{},
 				serveConfig{disabled: tc.disabled}, slog.New(slog.DiscardHandler),
 			)
 
@@ -1163,7 +1163,7 @@ func TestBuildServiceFillsRequiredConsolidatedFlag(t *testing.T) {
 
 	svc, err := buildService(
 		context.Background(), def, "graphql", &cli.Command{},
-		"test", slog.New(slog.DiscardHandler), cfg,
+		slog.New(slog.DiscardHandler), cfg,
 	)
 	if err != nil {
 		t.Fatalf("buildService: %v (required consolidated flag not filled by global)", err)
@@ -1298,7 +1298,7 @@ func TestBuildServiceSharedConfigPrecedence(t *testing.T) {
 
 			svc, err := buildService(
 				context.Background(), def, "storage", &cli.Command{},
-				"test", slog.New(slog.DiscardHandler), tc.cfg,
+				slog.New(slog.DiscardHandler), tc.cfg,
 			)
 			if err != nil {
 				t.Fatalf("buildService: %v", err)
@@ -1335,9 +1335,8 @@ func TestBuildServiceEmptyPrefixedAuthEnvMatchesStandalone(t *testing.T) {
 			var standalone authcmd.Options
 
 			app := &cli.Command{
-				Name:    "auth",
-				Version: "test",
-				Flags:   authcmd.CommandServe().Flags,
+				Name:  "auth",
+				Flags: authcmd.CommandServe().Flags,
 				Action: func(_ context.Context, cmd *cli.Command) error {
 					standalone = authcmd.OptionsFromCommand(cmd)
 
@@ -1366,7 +1365,7 @@ func TestBuildServiceEmptyPrefixedAuthEnvMatchesStandalone(t *testing.T) {
 				t, servicePrefixedFlags("auth", def.command().Flags, def.skip, def.hidden), nil,
 				func(cmd *cli.Command) {
 					if _, err := buildService(
-						context.Background(), def, "auth", cmd, "test",
+						context.Background(), def, "auth", cmd,
 						slog.New(slog.DiscardHandler), serveConfig{},
 					); err != nil {
 						t.Fatalf("buildService: %v", err)
@@ -1480,7 +1479,7 @@ func TestBuildServiceRealCORSSourcePrecedence(t *testing.T) {
 
 			svc, err := buildService(
 				context.Background(), def, tc.service, &cli.Command{},
-				"test", slog.New(slog.DiscardHandler), tc.cfg,
+				slog.New(slog.DiscardHandler), tc.cfg,
 			)
 			if err != nil {
 				t.Fatalf("buildService: %v", err)
@@ -1516,7 +1515,7 @@ func TestBuildServiceRealEmptySecretSource(t *testing.T) {
 
 		_, err := buildService(
 			context.Background(), def, "storage", &cli.Command{},
-			"test", slog.New(slog.DiscardHandler), serveConfig{
+			slog.New(slog.DiscardHandler), serveConfig{
 				adminSecret: "shared-secret", migrationsURL: "postgres://shared/db",
 			},
 		)
@@ -1556,7 +1555,7 @@ func TestBuildServiceRealEmptySecretSource(t *testing.T) {
 
 		_, err := buildService(
 			context.Background(), def, "storage", &cli.Command{},
-			"test", slog.New(slog.DiscardHandler),
+			slog.New(slog.DiscardHandler),
 			serveConfig{migrationsURL: "postgres://shared/db"},
 		)
 		if !errors.Is(err, errMissingRequired) {
@@ -1609,7 +1608,7 @@ func TestBuildServiceErrorsWhenRequiredConsolidatedFlagUnset(t *testing.T) {
 
 			_, err := buildService(
 				context.Background(), def, "graphql", &cli.Command{},
-				"test", slog.New(slog.DiscardHandler), cfg,
+				slog.New(slog.DiscardHandler), cfg,
 			)
 			if !errors.Is(err, errMissingRequired) {
 				t.Fatalf("err = %v, want errMissingRequired", err)
