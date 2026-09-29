@@ -274,7 +274,7 @@ async fn login(client: &Nhost, email: &str, password: &str) -> Result<()> {
 }
 
 async fn signup(client: &Nhost, email: &str, password: &str) -> Result<()> {
-    client
+    let response = client
         .auth
         .sign_up_email_password(SignUpEmailPasswordRequest {
             email: email.to_string(),
@@ -283,7 +283,9 @@ async fn signup(client: &Nhost, email: &str, password: &str) -> Result<()> {
             code_challenge: None,
         })
         .await?;
-    if client.session().await?.is_some() {
+    // Sign-up returns no session while the email is unverified, so check the
+    // response rather than whatever session is already stored.
+    if response.body.session.is_some() {
         println!("signed up and logged in as {email}");
     } else {
         println!("signed up; verify your email, then `login`");
@@ -607,14 +609,24 @@ async fn attach(client: &Nhost, note_id: &str, file: &str) -> Result<()> {
         .ok_or("upload failed")?
         .id
         .clone();
-    gql(
+    let linked = gql(
         client,
         "mutation Attach($noteId: uuid!, $fileId: uuid!) {
             insert_note_attachments_one(object: {note_id: $noteId, file_id: $fileId}) { file_id }
         }",
         json!({ "noteId": note_id, "fileId": file_id }),
     )
-    .await?;
+    .await;
+    if let Err(err) = linked {
+        // Don't leave the upload in Storage with nothing pointing at it.
+        if let Err(delete_err) = client.storage.delete_file(&file_id).await {
+            return Err(format!(
+                "{err}; deleting uploaded file {file_id} also failed: {delete_err}"
+            )
+            .into());
+        }
+        return Err(err);
+    }
     println!("attached {} (file {}) to {}", name, file_id, note_id);
     Ok(())
 }
@@ -627,7 +639,7 @@ async fn download(client: &Nhost, file_id: &str, out_path: &str) -> Result<()> {
 }
 
 async fn share(client: &Nhost, note_id: &str, user_id: &str, role: &str) -> Result<()> {
-    gql(
+    let data = gql(
         client,
         "mutation Share($noteId: uuid!, $userId: uuid!, $role: String!) {
             insert_note_collaborators_one(
@@ -638,12 +650,17 @@ async fn share(client: &Nhost, note_id: &str, user_id: &str, role: &str) -> Resu
         json!({ "noteId": note_id, "userId": user_id, "role": role }),
     )
     .await?;
+    // Re-sharing a note you don't own updates nothing, so Hasura returns null
+    // rather than an error.
+    if data["insert_note_collaborators_one"].is_null() {
+        return Err("note not found or not permitted".into());
+    }
     println!("shared {} with {} as {}", note_id, user_id, role);
     Ok(())
 }
 
 async fn unshare(client: &Nhost, note_id: &str, user_id: &str) -> Result<()> {
-    gql(
+    let data = gql(
         client,
         "mutation Unshare($noteId: uuid!, $userId: uuid!) {
             delete_note_collaborators_by_pk(note_id: $noteId, user_id: $userId) { note_id }
@@ -651,6 +668,9 @@ async fn unshare(client: &Nhost, note_id: &str, user_id: &str) -> Result<()> {
         json!({ "noteId": note_id, "userId": user_id }),
     )
     .await?;
+    if data["delete_note_collaborators_by_pk"].is_null() {
+        return Err("note not shared with that user, or not permitted".into());
+    }
     println!("unshared {} from {}", note_id, user_id);
     Ok(())
 }
