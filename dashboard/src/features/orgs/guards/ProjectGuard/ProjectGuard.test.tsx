@@ -188,8 +188,19 @@ describe('ProjectGuard', () => {
     },
     {
       description:
-        'should redirect to 404 if we are not on platform and on a the backups page',
-      route: '/orgs/[orgSlug]/projects/[appSubdomain]/backups',
+        'should redirect to 404 if we are not on platform and on the database backups page',
+      route: '/orgs/[orgSlug]/projects/[appSubdomain]/database/backups',
+    },
+    {
+      description:
+        'should redirect to 404 if we are not on platform and on the point-in-time backups page',
+      route:
+        '/orgs/[orgSlug]/projects/[appSubdomain]/database/backups/point-in-time',
+    },
+    {
+      description:
+        'should redirect to 404 if we are not on platform and on the backup import page',
+      route: '/orgs/[orgSlug]/projects/[appSubdomain]/database/backups/import',
     },
     {
       description:
@@ -232,8 +243,19 @@ describe('ProjectGuard', () => {
     },
     {
       description:
-        'should not redirect to 404 if we are on platform and on the backups page',
-      route: '/orgs/[orgSlug]/projects/[appSubdomain]/backups',
+        'should not redirect to 404 if we are on platform and on the database backups page',
+      route: '/orgs/[orgSlug]/projects/[appSubdomain]/database/backups',
+    },
+    {
+      description:
+        'should not redirect to 404 if we are on platform and on the point-in-time backups page',
+      route:
+        '/orgs/[orgSlug]/projects/[appSubdomain]/database/backups/point-in-time',
+    },
+    {
+      description:
+        'should not redirect to 404 if we are on platform and on the backup import page',
+      route: '/orgs/[orgSlug]/projects/[appSubdomain]/database/backups/import',
     },
     {
       description:
