@@ -93,19 +93,10 @@ described below.
 | storage   | `/storage`  | `/storage/v1/files`    | `/v1/files`            |
 | graphql   | `/graphql`  | `/graphql/v1`          | `/v1`                  |
 
-Other containers on the same network reach enabled services through these
-internal base URLs:
-
-| Service | Internal base URL |
-|---------|-------------------|
-| auth | `http://engine:8080/auth/v1` |
-| storage | `http://engine:8080/storage/v1` |
-| graphql | `http://engine:8080/graphql/v1` |
-
-The engine intentionally does not advertise the standalone service aliases
-`hasura-auth-service`, `hasura-storage-service`, or `constellation-service`,
-because those names imply ports and unprefixed routes that its shared listener
-does not serve.
+Use these prefixes with the hostname and port assigned to the listener by
+your deployment; the engine binary does not configure network aliases. To
+preserve unprefixed auth routes on legacy hostnames, use `--auth-compat-hosts`
+(see below).
 
 The engine also serves `GET /healthz` for liveness. On a legacy auth
 compatibility host this remains the **engine's** liveness endpoint, not auth's
