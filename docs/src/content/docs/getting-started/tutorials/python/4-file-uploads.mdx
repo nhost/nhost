@@ -1,0 +1,443 @@
+---
+title: File Attachments with Nhost Storage in Python
+description: Upload note attachments to Nhost Storage from a Python CLI, link them to notes over GraphQL, and download them again with the Nhost Python SDK.
+keywords: ["Python", "CLI", "Nhost Storage", "file upload", "download", "buckets", "SDK"]
+head:
+  - tag: title
+    content: "Python Notes CLI Tutorial: File Attachments | Nhost Docs"
+sidebar:
+  label: Attachments
+---
+
+Notes are more useful with files attached. In this part you'll upload a file to
+**Nhost Storage**, record the link in the database, and download it again.
+
+:::note
+This is **Part 4** of the [Notes CLI with Nhost and Python](/getting-started/tutorials/python/1-introduction)
+series.
+:::
+
+## Add a bucket and a join table
+
+Run this in the **SQL Editor**. It creates a `notes` storage bucket and a
+`note_attachments` table that links a note to an uploaded file (Nhost's Storage
+metadata lives in the tracked `storage.files` table).
+
+```sql SQL Editor
+INSERT INTO storage.buckets (id) VALUES ('notes') ON CONFLICT DO NOTHING;
+
+CREATE TABLE public.note_attachments (
+  note_id uuid NOT NULL REFERENCES public.notes (id) ON DELETE CASCADE,
+  file_id uuid NOT NULL REFERENCES storage.files (id) ON DELETE CASCADE,
+  PRIMARY KEY (note_id, file_id)
+);
+```
+
+Track `note_attachments`, then open its **Relationships** tab and add the two
+foreign-key relationships Nhost suggests: `file`
+(`public.note_attachments.file_id → storage.files.id`) and `note`
+(`public.note_attachments.note_id → public.notes.id`). Then set permissions for
+the `user` role:
+
+- **note_attachments** — gate through the parent note. Check columns `note_id`
+  and `file_id` for both `insert` and `select` (without them the insert
+  permission allows zero columns and `attach` is rejected), then use
+  `{ "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } }` as the `insert`
+  check and the `select` / `delete` filter.
+- **storage.files** — set these under **Storage → Permissions** (Nhost's UI for
+  the `storage.files` table permissions), where **Upload** is the `insert`
+  permission and **Download** is the `select` permission. Leave Replace / Delete
+  as-is for this tutorial.
+  - **Upload** — allow it for `user` and enable *Prefill
+    `uploaded_by_user_id` with `X-Hasura-User-Id`* so every upload is stamped
+    with its uploader. Without this stamp the column stays `NULL`, the Download
+    filter below never matches, and `download` 404s with `file not found` even
+    though `attach` succeeded.
+  - **Download** — a user should see a file if they uploaded it **or** it's
+    attached to a note they can see. This clause traverses a `noteAttachments`
+    array relationship on `storage.files`, which lives in the **Database** UI —
+    so add it there **first** under **Database → `storage` schema → `files` →
+    Relationships**, otherwise the row filter won't save
+    (`"noteAttachments" does not exist`). Then, back in **Storage → Permissions**
+    for the Download action, filter on the **database column**
+    `uploaded_by_user_id` (the `uploadedByUserId` GraphQL alias errors on save
+    with `"uploadedByUserId" does not exist`):
+
+    ```json
+    { "_or": [
+        { "uploaded_by_user_id": { "_eq": "X-Hasura-User-Id" } },
+        { "noteAttachments": { "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } } }
+    ]}
+    ```
+
+## Upload a file
+
+The `storage.upload` convenience method takes the raw bytes plus keyword-only
+bucket and per-file metadata arguments. It returns the processed files,
+including the new file's `id`, which we then link to the note. Add a `BUCKET`
+constant for the bucket id you created above:
+
+```python title="main.py"
+from pathlib import Path
+
+from nhost.storage import UploadFileMetadata
+
+BUCKET = "notes"
+
+
+async def cmd_attach(nhost, note_id: str, file: str) -> None:
+    raw = Path(file).read_bytes()
+    name = Path(file).name
+    up = await nhost.storage.upload(
+        [raw],
+        bucket_id=BUCKET,
+        metadata=[UploadFileMetadata(name=name)],
+    )
+    if not up.body.processed_files:
+        raise SystemExit("upload failed")
+    file_id = up.body.processed_files[0].id
+
+    await gql(
+        nhost,
+        """
+        mutation Attach($noteId: uuid!, $fileId: uuid!) {
+          insert_note_attachments_one(object: {note_id: $noteId, file_id: $fileId}) { file_id }
+        }""",
+        {"noteId": note_id, "fileId": file_id},
+    )
+    print(f"attached {name} (file {file_id}) to {note_id}")
+```
+
+## Download a file
+
+`storage.get_file` returns the file's bytes. Write them wherever the user asked:
+
+```python title="main.py"
+async def cmd_download(nhost, file_id: str, out_path: str) -> None:
+    resp = await nhost.storage.get_file(file_id)
+    Path(out_path).write_bytes(resp.body)
+    print(f"wrote {len(resp.body)} bytes to {out_path}")
+```
+
+Register both commands as flat Typer verbs:
+
+```python title="main.py"
+@app.command("attach")
+def attach(note_id: str, file: str) -> None:
+    """Upload a file and attach it to a note."""
+    run(lambda nhost: cmd_attach(nhost, note_id, file))
+
+
+@app.command("download")
+def download(file_id: str, out_path: str) -> None:
+    """Download a file by id."""
+    run(lambda nhost: cmd_download(nhost, file_id, out_path))
+```
+
+## The complete `main.py`
+
+Here's the whole `main.py` after Part 4. Press **Copy** to grab the entire file at once.
+
+```python title="main.py"
+import asyncio
+import getpass
+import os
+from pathlib import Path
+from typing import Optional
+
+import typer
+
+from nhost import FileStorage, NhostError, create_client
+from nhost.auth import (
+    SignInEmailPasswordRequest,
+    SignOutRequest,
+    SignUpEmailPasswordRequest,
+)
+from nhost.storage import UploadFileMetadata
+
+BUCKET = "notes"
+
+app = typer.Typer(
+    name="notes-cli",
+    help="Nhost notes CLI",
+    add_completion=False,
+    no_args_is_help=True,
+)
+
+
+def session_path() -> Path:
+    override = os.environ.get("NHOST_NOTES_SESSION")
+    if override:
+        return Path(override)
+    base = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
+    return base / "nhost-notes" / "session.json"
+
+
+def make_client():
+    return create_client(
+        subdomain=os.environ.get("NHOST_SUBDOMAIN", "local"),
+        region=os.environ.get("NHOST_REGION", "local"),
+        session_storage=FileStorage(session_path()),
+    )
+
+
+def run(coro) -> None:
+    async def runner() -> None:
+        async with make_client() as nhost:
+            try:
+                await coro(nhost)
+            except NhostError as exc:
+                raise SystemExit(f"error: {exc}") from exc
+
+    asyncio.run(runner())
+
+
+async def gql(nhost, query: str, variables: dict | None = None) -> dict:
+    resp = await nhost.graphql.request(query, variables=variables)
+    return resp.body.data or {}
+
+
+async def cmd_signup(nhost, email: str, password: str) -> None:
+    await nhost.auth.sign_up_email_password(
+        body=SignUpEmailPasswordRequest(email=email, password=password)
+    )
+    if await nhost.get_session() is not None:
+        print("signed up and logged in as", email)
+    else:
+        print("signed up; verify your email, then `login`")
+
+
+async def cmd_login(nhost, email: str, password: str) -> None:
+    await nhost.auth.sign_in_email_password(
+        body=SignInEmailPasswordRequest(email=email, password=password)
+    )
+    print("logged in as", email)
+
+
+async def cmd_logout(nhost) -> None:
+    session = await nhost.get_session()
+    if session is not None:
+        await nhost.auth.sign_out(body=SignOutRequest(refresh_token=session.refresh_token))
+    await nhost.clear_session()
+    print("logged out")
+
+
+async def cmd_whoami(nhost) -> None:
+    session = await nhost.get_session()
+    if session is None or session.user is None:
+        raise SystemExit("not logged in")
+    print(f"{session.user.email} ({session.user.id})")
+
+
+async def cmd_note_new(nhost, title: str, content: str | None) -> None:
+    obj: dict = {"title": title, "content": content or ""}
+    data = await gql(
+        nhost,
+        """
+        mutation NewNote($obj: notes_insert_input!) {
+          insert_notes_one(object: $obj) { id }
+        }""",
+        {"obj": obj},
+    )
+    print("created", data["insert_notes_one"]["id"])
+
+
+async def cmd_note_ls(nhost) -> None:
+    data = await gql(
+        nhost,
+        """
+        query {
+          notes(order_by: [{is_pinned: desc}, {updated_at: desc}]) {
+            id title is_pinned
+          }
+        }""",
+    )
+    notes = data.get("notes", [])
+    if not notes:
+        print("(no notes)")
+        return
+    for n in notes:
+        pin = "*" if n["is_pinned"] else " "
+        print(f"{pin} {n['id']}  {n['title']}")
+
+
+async def update_note(nhost, note_id: str, set_: dict) -> None:
+    data = await gql(
+        nhost,
+        """
+        mutation UpdateNote($id: uuid!, $set: notes_set_input!) {
+          update_notes_by_pk(pk_columns: {id: $id}, _set: $set) { id }
+        }""",
+        {"id": note_id, "set": set_},
+    )
+    if not data.get("update_notes_by_pk"):
+        raise SystemExit("note not found or not permitted")
+    print("updated", note_id)
+
+
+async def upsert_tag(nhost, name: str) -> str:
+    data = await gql(
+        nhost,
+        """
+        mutation UpsertTag($name: String!) {
+          insert_tags_one(
+            object: {name: $name}
+            on_conflict: {constraint: tags_user_id_name_key, update_columns: [name]}
+          ) { id }
+        }""",
+        {"name": name},
+    )
+    return data["insert_tags_one"]["id"]
+
+
+async def cmd_note_tag(nhost, note_id: str, tag_name: str) -> None:
+    tag_id = await upsert_tag(nhost, tag_name)
+    await gql(
+        nhost,
+        """
+        mutation TagNote($noteId: uuid!, $tagId: uuid!) {
+          insert_note_tags_one(
+            object: {note_id: $noteId, tag_id: $tagId}
+            on_conflict: {constraint: note_tags_pkey, update_columns: []}
+          ) { note_id }
+        }""",
+        {"noteId": note_id, "tagId": tag_id},
+    )
+    print(f"tagged {note_id} with #{tag_name}")
+
+
+async def cmd_attach(nhost, note_id: str, file: str) -> None:
+    raw = Path(file).read_bytes()
+    name = Path(file).name
+    up = await nhost.storage.upload(
+        [raw],
+        bucket_id=BUCKET,
+        metadata=[UploadFileMetadata(name=name)],
+    )
+    if not up.body.processed_files:
+        raise SystemExit("upload failed")
+    file_id = up.body.processed_files[0].id
+
+    await gql(
+        nhost,
+        """
+        mutation Attach($noteId: uuid!, $fileId: uuid!) {
+          insert_note_attachments_one(object: {note_id: $noteId, file_id: $fileId}) { file_id }
+        }""",
+        {"noteId": note_id, "fileId": file_id},
+    )
+    print(f"attached {name} (file {file_id}) to {note_id}")
+
+
+async def cmd_download(nhost, file_id: str, out_path: str) -> None:
+    resp = await nhost.storage.get_file(file_id)
+    Path(out_path).write_bytes(resp.body)
+    print(f"wrote {len(resp.body)} bytes to {out_path}")
+
+
+def read_password() -> str:
+    password = os.environ.get("NOTES_PASSWORD")
+    if password:
+        return password
+    return getpass.getpass("Password: ")
+
+
+@app.command("signup")
+def signup(email: str) -> None:
+    """Create an account (and sign in if email verification is off)."""
+    password = read_password()
+    run(lambda nhost: cmd_signup(nhost, email, password))
+
+
+@app.command("login")
+def login(email: str) -> None:
+    """Sign in with email and a securely supplied password."""
+    password = read_password()
+    run(lambda nhost: cmd_login(nhost, email, password))
+
+
+@app.command("logout")
+def logout() -> None:
+    """Sign out and clear the saved session."""
+    run(cmd_logout)
+
+
+@app.command("whoami")
+def whoami() -> None:
+    """Show the currently signed-in user."""
+    run(cmd_whoami)
+
+
+@app.command("new")
+def note_new(title: str, content: Optional[str] = typer.Argument(None)) -> None:
+    """Create a note."""
+    run(lambda nhost: cmd_note_new(nhost, title, content))
+
+
+@app.command("ls")
+def note_ls() -> None:
+    """List your notes."""
+    run(cmd_note_ls)
+
+
+@app.command("pin")
+def note_pin(id: str) -> None:
+    """Pin a note."""
+    run(lambda nhost: update_note(nhost, id, {"is_pinned": True}))
+
+
+@app.command("archive")
+def note_archive(id: str) -> None:
+    """Archive a note."""
+    run(lambda nhost: update_note(nhost, id, {"is_archived": True}))
+
+
+@app.command("tag")
+def note_tag(note_id: str, tag_name: str) -> None:
+    """Tag a note (creates the tag if needed)."""
+    run(lambda nhost: cmd_note_tag(nhost, note_id, tag_name))
+
+
+@app.command("attach")
+def attach(note_id: str, file: str) -> None:
+    """Upload a file and attach it to a note."""
+    run(lambda nhost: cmd_attach(nhost, note_id, file))
+
+
+@app.command("download")
+def download(file_id: str, out_path: str) -> None:
+    """Download a file by id."""
+    run(lambda nhost: cmd_download(nhost, file_id, out_path))
+
+
+def main() -> None:
+    app()
+
+
+if __name__ == "__main__":
+    main()
+```
+
+## Try it
+
+```bash Terminal
+python main.py new "Design doc"
+
+# attach any file you have on disk — create a quick sample if you need one
+echo "notes CLI attachment demo" > diagram.txt
+python main.py attach <noteId> ./diagram.txt
+# attached diagram.txt (file <fileId>) to <noteId>
+
+python main.py download <fileId> ./out.txt
+# wrote 26 bytes to ./out.txt
+```
+
+Because Storage access is governed by the same `storage.files` permissions, a
+different user can't download your file even with its ID — the request is denied
+by the backend.
+
+## What's Next?
+
+Files are attached and access-controlled. In the final
+[Part 5](/getting-started/tutorials/python/5-functions-sharing) you'll call a
+serverless function to export a note and share notes with other users.

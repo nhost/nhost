@@ -1,0 +1,592 @@
+---
+title: Serverless Functions and Sharing in Python
+description: Share notes with collaborators and export them with a serverless function, tying Auth, GraphQL, and Storage together, from a Python CLI on the Nhost Python SDK.
+keywords: ["Python", "CLI", "Nhost Functions", "serverless", "sharing", "collaborators", "permissions"]
+head:
+  - tag: title
+    content: "Python Notes CLI Tutorial: Functions & Sharing | Nhost Docs"
+sidebar:
+  label: Functions & Sharing
+---
+
+To finish the series you'll let users **share** notes with each other, then add
+an **export** command backed by a serverless function that ties Auth, GraphQL,
+and Storage together in a single call.
+
+:::note
+This is **Part 5** of the [Notes CLI with Nhost and Python](/getting-started/tutorials/python/1-introduction)
+series.
+:::
+
+## Share a note with a collaborator
+
+Add a `note_collaborators` table in the **SQL Editor**:
+
+```sql SQL Editor
+CREATE TABLE public.note_collaborators (
+  note_id uuid NOT NULL REFERENCES public.notes (id) ON DELETE CASCADE,
+  user_id uuid NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
+  role    text NOT NULL DEFAULT 'viewer' CHECK (role IN ('viewer', 'editor')),
+  PRIMARY KEY (note_id, user_id)
+);
+```
+
+Track it, then create **both** relationships **before** setting the filters
+below (Database → each table → **Relationships**):
+
+- a `collaborators` **array** relationship on `notes` → `note_collaborators`, and
+- a `note` **object** relationship on `note_collaborators` → `notes`.
+
+Order matters and the names matter: the `notes` filters reference
+`collaborators` and the `note_collaborators` check references `note`, so if a
+relationship is missing or mis-named the permission won't save
+(`"collaborators" does not exist` / `"note" does not exist`).
+
+Now update the `notes` permissions so collaborators can see and edit shared
+notes — this is the one place the owner-only rule opens up:
+
+- **notes → select** filter — owner **or** any collaborator:
+
+  ```json
+  { "_or": [
+      { "user_id": { "_eq": "X-Hasura-User-Id" } },
+      { "collaborators": { "user_id": { "_eq": "X-Hasura-User-Id" } } }
+  ]}
+  ```
+- **notes → update** filter — owner **or** an `editor` collaborator:
+
+  ```json
+  { "_or": [
+      { "user_id": { "_eq": "X-Hasura-User-Id" } },
+      { "collaborators": { "_and": [
+          { "user_id": { "_eq": "X-Hasura-User-Id" } },
+          { "role": { "_eq": "editor" } }
+      ]}}
+  ]}
+  ```
+
+For **note_collaborators**, let a note's owner manage shares. This needs **four**
+actions — `insert`, `select`, `update`, and `delete`:
+
+- Check columns `note_id`, `user_id`, and `role` for `insert`, `select`, **and**
+  `update`. The `update` permission on `role` is easy to miss but required: the
+  `share` command below upserts with `on_conflict: { update_columns: [role] }`,
+  and without it you hit the opaque
+  `expected one of the values ['_PLACEHOLDER'] for type
+  'note_collaborators_update_column'`.
+- Use `{ "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } }` as the `insert`
+  check and the `select` / `update` / `delete` filter.
+
+Add the command (the owner shares by the collaborator's user id):
+
+```python title="main.py"
+async def cmd_share(nhost, note_id: str, user_id: str, role: str) -> None:
+    await gql(
+        nhost,
+        """
+        mutation Share($noteId: uuid!, $userId: uuid!, $role: String!) {
+          insert_note_collaborators_one(
+            object: {note_id: $noteId, user_id: $userId, role: $role}
+            on_conflict: {constraint: note_collaborators_pkey, update_columns: [role]}
+          ) { note_id role }
+        }""",
+        {"noteId": note_id, "userId": user_id, "role": role},
+    )
+    print(f"shared {note_id} with {user_id} as {role}")
+
+
+async def cmd_unshare(nhost, note_id: str, user_id: str) -> None:
+    await gql(
+        nhost,
+        """
+        mutation Unshare($noteId: uuid!, $userId: uuid!) {
+          delete_note_collaborators_by_pk(note_id: $noteId, user_id: $userId) { note_id }
+        }""",
+        {"noteId": note_id, "userId": user_id},
+    )
+    print(f"unshared {note_id} from {user_id}")
+```
+
+Register both — `share` takes an optional `role` positional that defaults to
+`viewer`, `unshare` just the two ids. `unshare` deletes the collaborator row,
+which the owner's `delete` permission on `note_collaborators` already allows:
+
+```python title="main.py"
+@app.command("share")
+def share(note_id: str, user_id: str, role: str = typer.Argument("viewer")) -> None:
+    """Share a note with another user."""
+    run(lambda nhost: cmd_share(nhost, note_id, user_id, role))
+
+
+@app.command("unshare")
+def unshare(note_id: str, user_id: str) -> None:
+    """Remove a collaborator from a note."""
+    run(lambda nhost: cmd_unshare(nhost, note_id, user_id))
+```
+
+:::note
+`export` is the one step that needs the function actually *running* — every part
+until now used only the dashboard and the CLI. Your local backend serves the
+`functions/` directory automatically: as long as `nhost up` is running,
+`functions/notes/export.ts` is live at
+`https://local.functions.local.nhost.run/v1/notes/export`. Save the file and the
+local runtime hot-reloads it — there's no deploy step.
+:::
+
+## The export function
+
+Serverless functions run on your backend. Create `functions/notes/export.ts` in
+the `functions/` directory that `nhost init` scaffolded in Part 1 — file-based
+routing maps it to `/v1/notes/export` (see the
+[Functions docs](/products/functions)). It reads the caller's notes over
+GraphQL, renders Markdown, and uploads the result to Storage — **forwarding the
+caller's token**, so Hasura permissions and Storage rules apply exactly as they
+do in the CLI:
+
+```typescript title="functions/notes/export.ts"
+import type { Request, Response } from "express";
+import { createClient } from "@nhost/nhost-js";
+
+const nhost = createClient({
+  region: process.env.NHOST_REGION,
+  subdomain: process.env.NHOST_SUBDOMAIN,
+});
+
+export default async (req: Request, res: Response) => {
+  const authorization = req.headers.authorization ?? "";
+  if (!authorization) {
+    return res.status(401).json({ error: "Missing Authorization header" });
+  }
+
+  const { body } = await nhost.graphql.request<{ notes: { title: string; content: string }[] }>(
+    { query: `query { notes(order_by: {updated_at: desc}) { title content } }` },
+    { headers: { Authorization: authorization } },
+  );
+
+  const notes = body.data?.notes ?? [];
+  const document =
+    `# Notes export\n\n_${notes.length} note(s)_\n\n` +
+    notes.map((n) => `# ${n.title || "Untitled"}\n\n${n.content}`).join("\n\n---\n\n");
+
+  const fileName = `export-${Date.now()}.md`;
+  const upload = await nhost.storage.uploadFiles(
+    { "bucket-id": "notes", "file[]": [new File([document], fileName, { type: "text/markdown" })] },
+    { headers: { Authorization: authorization } },
+  );
+
+  const file = upload.body.processedFiles?.[0];
+  res.status(200).json({ fileId: file?.id, fileName, noteCount: notes.length });
+};
+```
+
+The function imports `@nhost/nhost-js`, and the functions runtime bundles each
+function with esbuild against the `functions/` project's own dependencies — so
+install the SDK there (the `functions/` directory `nhost init` scaffolded in
+Part 1) or the build fails with `Could not resolve "@nhost/nhost-js"`. Pin the
+v5 prerelease that `export.ts` targets — npm's `latest` is still the v4 line,
+which lacks the `createClient` API the function uses:
+
+```bash Terminal
+cd functions
+npm install @nhost/nhost-js@5.0.0-beta11
+```
+
+## Call it from the CLI
+
+`functions.post` sends an authenticated `POST` — the SDK attaches your token, so
+the function receives it in the `Authorization` header:
+
+```python title="main.py"
+import json
+
+
+async def cmd_export(nhost) -> None:
+    resp = await nhost.functions.post("/notes/export", json={})
+    print(json.dumps(resp.body, indent=2))
+```
+
+Register it as a flat `export` command:
+
+```python title="main.py"
+@app.command("export")
+def export() -> None:
+    """Export your notes via a serverless function."""
+    run(cmd_export)
+```
+
+## The complete `main.py`
+
+Here's the whole `main.py` after Part 5 — the finished CLI. Press **Copy** to grab the entire file at once.
+
+```python title="main.py"
+import asyncio
+import getpass
+import json
+import os
+from pathlib import Path
+from typing import Optional
+
+import typer
+
+from nhost import FileStorage, NhostError, create_client
+from nhost.auth import (
+    SignInEmailPasswordRequest,
+    SignOutRequest,
+    SignUpEmailPasswordRequest,
+)
+from nhost.storage import UploadFileMetadata
+
+BUCKET = "notes"
+
+app = typer.Typer(
+    name="notes-cli",
+    help="Nhost notes CLI",
+    add_completion=False,
+    no_args_is_help=True,
+)
+
+
+def session_path() -> Path:
+    override = os.environ.get("NHOST_NOTES_SESSION")
+    if override:
+        return Path(override)
+    base = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
+    return base / "nhost-notes" / "session.json"
+
+
+def make_client():
+    return create_client(
+        subdomain=os.environ.get("NHOST_SUBDOMAIN", "local"),
+        region=os.environ.get("NHOST_REGION", "local"),
+        session_storage=FileStorage(session_path()),
+    )
+
+
+def run(coro) -> None:
+    async def runner() -> None:
+        async with make_client() as nhost:
+            try:
+                await coro(nhost)
+            except NhostError as exc:
+                raise SystemExit(f"error: {exc}") from exc
+
+    asyncio.run(runner())
+
+
+async def gql(nhost, query: str, variables: dict | None = None) -> dict:
+    resp = await nhost.graphql.request(query, variables=variables)
+    return resp.body.data or {}
+
+
+async def cmd_signup(nhost, email: str, password: str) -> None:
+    await nhost.auth.sign_up_email_password(
+        body=SignUpEmailPasswordRequest(email=email, password=password)
+    )
+    if await nhost.get_session() is not None:
+        print("signed up and logged in as", email)
+    else:
+        print("signed up; verify your email, then `login`")
+
+
+async def cmd_login(nhost, email: str, password: str) -> None:
+    await nhost.auth.sign_in_email_password(
+        body=SignInEmailPasswordRequest(email=email, password=password)
+    )
+    print("logged in as", email)
+
+
+async def cmd_logout(nhost) -> None:
+    session = await nhost.get_session()
+    if session is not None:
+        await nhost.auth.sign_out(body=SignOutRequest(refresh_token=session.refresh_token))
+    await nhost.clear_session()
+    print("logged out")
+
+
+async def cmd_whoami(nhost) -> None:
+    session = await nhost.get_session()
+    if session is None or session.user is None:
+        raise SystemExit("not logged in")
+    print(f"{session.user.email} ({session.user.id})")
+
+
+async def cmd_note_new(nhost, title: str, content: str | None) -> None:
+    obj: dict = {"title": title, "content": content or ""}
+    data = await gql(
+        nhost,
+        """
+        mutation NewNote($obj: notes_insert_input!) {
+          insert_notes_one(object: $obj) { id }
+        }""",
+        {"obj": obj},
+    )
+    print("created", data["insert_notes_one"]["id"])
+
+
+async def cmd_note_ls(nhost) -> None:
+    data = await gql(
+        nhost,
+        """
+        query {
+          notes(order_by: [{is_pinned: desc}, {updated_at: desc}]) {
+            id title is_pinned
+          }
+        }""",
+    )
+    notes = data.get("notes", [])
+    if not notes:
+        print("(no notes)")
+        return
+    for n in notes:
+        pin = "*" if n["is_pinned"] else " "
+        print(f"{pin} {n['id']}  {n['title']}")
+
+
+async def update_note(nhost, note_id: str, set_: dict) -> None:
+    data = await gql(
+        nhost,
+        """
+        mutation UpdateNote($id: uuid!, $set: notes_set_input!) {
+          update_notes_by_pk(pk_columns: {id: $id}, _set: $set) { id }
+        }""",
+        {"id": note_id, "set": set_},
+    )
+    if not data.get("update_notes_by_pk"):
+        raise SystemExit("note not found or not permitted")
+    print("updated", note_id)
+
+
+async def upsert_tag(nhost, name: str) -> str:
+    data = await gql(
+        nhost,
+        """
+        mutation UpsertTag($name: String!) {
+          insert_tags_one(
+            object: {name: $name}
+            on_conflict: {constraint: tags_user_id_name_key, update_columns: [name]}
+          ) { id }
+        }""",
+        {"name": name},
+    )
+    return data["insert_tags_one"]["id"]
+
+
+async def cmd_note_tag(nhost, note_id: str, tag_name: str) -> None:
+    tag_id = await upsert_tag(nhost, tag_name)
+    await gql(
+        nhost,
+        """
+        mutation TagNote($noteId: uuid!, $tagId: uuid!) {
+          insert_note_tags_one(
+            object: {note_id: $noteId, tag_id: $tagId}
+            on_conflict: {constraint: note_tags_pkey, update_columns: []}
+          ) { note_id }
+        }""",
+        {"noteId": note_id, "tagId": tag_id},
+    )
+    print(f"tagged {note_id} with #{tag_name}")
+
+
+async def cmd_attach(nhost, note_id: str, file: str) -> None:
+    raw = Path(file).read_bytes()
+    name = Path(file).name
+    up = await nhost.storage.upload(
+        [raw],
+        bucket_id=BUCKET,
+        metadata=[UploadFileMetadata(name=name)],
+    )
+    if not up.body.processed_files:
+        raise SystemExit("upload failed")
+    file_id = up.body.processed_files[0].id
+
+    await gql(
+        nhost,
+        """
+        mutation Attach($noteId: uuid!, $fileId: uuid!) {
+          insert_note_attachments_one(object: {note_id: $noteId, file_id: $fileId}) { file_id }
+        }""",
+        {"noteId": note_id, "fileId": file_id},
+    )
+    print(f"attached {name} (file {file_id}) to {note_id}")
+
+
+async def cmd_download(nhost, file_id: str, out_path: str) -> None:
+    resp = await nhost.storage.get_file(file_id)
+    Path(out_path).write_bytes(resp.body)
+    print(f"wrote {len(resp.body)} bytes to {out_path}")
+
+
+async def cmd_share(nhost, note_id: str, user_id: str, role: str) -> None:
+    await gql(
+        nhost,
+        """
+        mutation Share($noteId: uuid!, $userId: uuid!, $role: String!) {
+          insert_note_collaborators_one(
+            object: {note_id: $noteId, user_id: $userId, role: $role}
+            on_conflict: {constraint: note_collaborators_pkey, update_columns: [role]}
+          ) { note_id role }
+        }""",
+        {"noteId": note_id, "userId": user_id, "role": role},
+    )
+    print(f"shared {note_id} with {user_id} as {role}")
+
+
+async def cmd_unshare(nhost, note_id: str, user_id: str) -> None:
+    await gql(
+        nhost,
+        """
+        mutation Unshare($noteId: uuid!, $userId: uuid!) {
+          delete_note_collaborators_by_pk(note_id: $noteId, user_id: $userId) { note_id }
+        }""",
+        {"noteId": note_id, "userId": user_id},
+    )
+    print(f"unshared {note_id} from {user_id}")
+
+
+async def cmd_export(nhost) -> None:
+    resp = await nhost.functions.post("/notes/export", json={})
+    print(json.dumps(resp.body, indent=2))
+
+
+def read_password() -> str:
+    password = os.environ.get("NOTES_PASSWORD")
+    if password:
+        return password
+    return getpass.getpass("Password: ")
+
+
+@app.command("signup")
+def signup(email: str) -> None:
+    """Create an account (and sign in if email verification is off)."""
+    password = read_password()
+    run(lambda nhost: cmd_signup(nhost, email, password))
+
+
+@app.command("login")
+def login(email: str) -> None:
+    """Sign in with email and a securely supplied password."""
+    password = read_password()
+    run(lambda nhost: cmd_login(nhost, email, password))
+
+
+@app.command("logout")
+def logout() -> None:
+    """Sign out and clear the saved session."""
+    run(cmd_logout)
+
+
+@app.command("whoami")
+def whoami() -> None:
+    """Show the currently signed-in user."""
+    run(cmd_whoami)
+
+
+@app.command("new")
+def note_new(title: str, content: Optional[str] = typer.Argument(None)) -> None:
+    """Create a note."""
+    run(lambda nhost: cmd_note_new(nhost, title, content))
+
+
+@app.command("ls")
+def note_ls() -> None:
+    """List your notes."""
+    run(cmd_note_ls)
+
+
+@app.command("pin")
+def note_pin(id: str) -> None:
+    """Pin a note."""
+    run(lambda nhost: update_note(nhost, id, {"is_pinned": True}))
+
+
+@app.command("archive")
+def note_archive(id: str) -> None:
+    """Archive a note."""
+    run(lambda nhost: update_note(nhost, id, {"is_archived": True}))
+
+
+@app.command("tag")
+def note_tag(note_id: str, tag_name: str) -> None:
+    """Tag a note (creates the tag if needed)."""
+    run(lambda nhost: cmd_note_tag(nhost, note_id, tag_name))
+
+
+@app.command("attach")
+def attach(note_id: str, file: str) -> None:
+    """Upload a file and attach it to a note."""
+    run(lambda nhost: cmd_attach(nhost, note_id, file))
+
+
+@app.command("download")
+def download(file_id: str, out_path: str) -> None:
+    """Download a file by id."""
+    run(lambda nhost: cmd_download(nhost, file_id, out_path))
+
+
+@app.command("share")
+def share(note_id: str, user_id: str, role: str = typer.Argument("viewer")) -> None:
+    """Share a note with another user."""
+    run(lambda nhost: cmd_share(nhost, note_id, user_id, role))
+
+
+@app.command("unshare")
+def unshare(note_id: str, user_id: str) -> None:
+    """Remove a collaborator from a note."""
+    run(lambda nhost: cmd_unshare(nhost, note_id, user_id))
+
+
+@app.command("export")
+def export() -> None:
+    """Export your notes via a serverless function."""
+    run(cmd_export)
+
+
+def main() -> None:
+    app()
+
+
+if __name__ == "__main__":
+    main()
+```
+
+## Try it
+
+```bash Terminal
+# You need a second user to share with. Create one in its own session file so it
+# doesn't overwrite yours, then read back its id (<otherUserId> is a UUID, not an
+# email):
+NHOST_NOTES_SESSION=/tmp/bob.json python main.py signup bob@example.com
+NHOST_NOTES_SESSION=/tmp/bob.json python main.py whoami   # bob@example.com (<otherUserId>)
+
+# back as yourself, share a note with bob (role defaults to viewer if omitted)
+python main.py share <noteId> <otherUserId> editor
+
+# ...and revoke it
+python main.py unshare <noteId> <otherUserId>
+
+# export your notes to a Markdown file in Storage
+python main.py export
+# { "fileId": "...", "fileName": "export-1737045.md", "noteCount": 3 }
+
+python main.py download <fileId> ./notes.md
+```
+
+## What you built
+
+You now have a working notes CLI that exercises every core Nhost product:
+
+- **Auth** with a persisted session that survives between runs
+- **GraphQL** CRUD protected by owner-scoped row permissions
+- **Storage** for attachments, access-controlled by the same rules
+- **Functions** that reuse the caller's identity to combine products server-side
+
+You can extend it with `show`, `edit` / `mv` / `rm`,
+`notebook new`, `tag ls`, and richer output using the same patterns you've
+applied here.
+
+## Where to go next
+
+- Explore the [`nhost-python` SDK reference](/reference/python/nhost-python/main)
+- Read up on [Permissions](/products/database) and [Storage](/products/storage)
+- Add [event triggers](/products/database) to react to new notes, or a
+  [cron](/products/functions) job that exports nightly

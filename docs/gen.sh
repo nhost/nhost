@@ -162,6 +162,35 @@ function build_rustdoc() {
 	node rustdoc-to-md.mjs "$DOC_JSON" "$DOCS_DIR" "$WASM_DOC_JSON"
 }
 
+function build_pydoc() {
+	echo "⚒️⚒️⚒️ Building Python SDK documentation..."
+
+	DOCS_DIR=$(pwd)/src/content/docs/reference/python/nhost-python
+	SCRIPT=$(pwd)/pydoc-to-md.py
+	PY_PKG=../packages/nhost-python
+
+	if [ ! -d "$PY_PKG" ]; then
+		echo "⚒️⚒️⚒️ Skipping Python SDK documentation (SDK source unavailable at $PY_PKG)"
+		return
+	fi
+
+	# The docs check provides python3 plus the SDK's runtime dependencies. Local
+	# checkouts may instead use the SDK's uv environment. An import failure is a
+	# generator failure unless that fallback completes successfully; never leave
+	# stale committed pages behind while reporting success.
+	if PYTHONPATH="$PY_PKG/src" python3 -c "import nhost" >/dev/null 2>&1; then
+		PYTHONPATH="$PY_PKG/src" python3 "$SCRIPT" "$DOCS_DIR"
+	elif command -v uv >/dev/null 2>&1; then
+		if ! (cd "$PY_PKG" && uv run python "$SCRIPT" "$DOCS_DIR"); then
+			echo "Error: Python SDK documentation generation failed with uv" >&2
+			return 1
+		fi
+	else
+		echo "Error: cannot import nhost from $PY_PKG/src and uv is unavailable; refusing to report success with stale Python reference pages" >&2
+		return 1
+	fi
+}
+
 function build_cli_docs() {
 	echo "⚒️⚒️⚒️ Building CLI documentation..."
 	# `cli gen-docs` emits the final MDX directly (badge/<div> wrappers and
@@ -195,5 +224,6 @@ build_schemas
 build_graphql_schemas
 build_typedoc
 build_rustdoc
+build_pydoc
 build_cli_docs
 build_config_reference

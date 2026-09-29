@@ -40,6 +40,9 @@ let
       ./conftest.py
       ./src
       ./tests
+      ../../docs/src/content/docs/getting-started/index.mdx
+      ../../docs/src/content/docs/getting-started/quickstart/fastapi.mdx
+      ../../docs/src/content/docs/getting-started/tutorials/python
       ../../services/auth/docs/openapi.yaml
       ../../services/storage/controller/openapi.yaml
     ];
