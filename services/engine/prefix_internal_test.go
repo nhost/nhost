@@ -193,6 +193,57 @@ func TestServicePassthroughArgsFromRenamedEnv(t *testing.T) {
 	})
 }
 
+func TestServicePassthroughArgsEmptyScalar(t *testing.T) {
+	tests := []struct {
+		name string
+		env  string
+		args []string
+		want []string
+	}{
+		{
+			name: "empty environment is ignored",
+			env:  "",
+			want: nil,
+		},
+		{
+			name: "explicit empty CLI value is forwarded over empty environment",
+			env:  "",
+			args: []string{"--auth-api-prefix", ""},
+			want: []string{"--api-prefix", ""},
+		},
+		{
+			name: "explicit empty CLI value overrides nonempty environment",
+			env:  "/v1",
+			args: []string{"--auth-api-prefix", ""},
+			want: []string{"--api-prefix", ""},
+		},
+		{
+			name: "nonempty environment is forwarded",
+			env:  "/v1",
+			want: []string{"--api-prefix", "/v1"},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv("AUTH_API_PREFIX", tc.env)
+
+			src := []cli.Flag{&cli.StringFlag{Name: "api-prefix"}}
+			runParsed(
+				t,
+				servicePrefixedFlags("auth", src, nil, nil),
+				tc.args,
+				func(cmd *cli.Command) {
+					got := servicePassthroughArgs("auth", cmd, src, nil)
+					if !slices.Equal(got, tc.want) {
+						t.Fatalf("passthrough args = %q, want %q", got, tc.want)
+					}
+				},
+			)
+		})
+	}
+}
+
 func TestServicePassthroughArgsOmitsUnset(t *testing.T) {
 	t.Parallel()
 

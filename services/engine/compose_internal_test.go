@@ -16,7 +16,9 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/go-cmp/cmp"
 	serveutil "github.com/nhost/nhost/internal/lib/serve"
+	authcmd "github.com/nhost/nhost/services/auth/go/cmd"
 	"github.com/urfave/cli/v3"
 )
 
@@ -1308,6 +1310,72 @@ func TestBuildServiceSharedConfigPrecedence(t *testing.T) {
 
 			if !slices.Equal(got, tc.want) {
 				t.Fatalf("%s = %v, want %v", tc.flag, got, tc.want)
+			}
+		})
+	}
+}
+
+func TestBuildServiceEmptyPrefixedAuthEnvMatchesStandalone(t *testing.T) {
+	tests := []struct {
+		name string
+		env  string
+	}{
+		{"empty uint", "AUTH_SMTP_PORT"},
+		{"empty enum", "AUTH_GRAVATAR_DEFAULT"},
+		{"empty duration", "AUTH_SMS_GENERIC_TIMEOUT"},
+		{"empty renamed string", "AUTH_DEFAULT_ROLE"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv("AUTH_ENCRYPTION_KEY", "k")
+			t.Setenv("AUTH_USER_DEFAULT_ROLE", "member")
+			t.Setenv(tc.env, "")
+
+			var standalone authcmd.Options
+
+			app := &cli.Command{
+				Name:    "auth",
+				Version: "test",
+				Flags:   authcmd.CommandServe().Flags,
+				Action: func(_ context.Context, cmd *cli.Command) error {
+					standalone = authcmd.OptionsFromCommand(cmd)
+
+					return nil
+				},
+			}
+			if err := app.Run(context.Background(), []string{
+				"auth", "--api-prefix", defaultAuthAPIPrefix,
+			}); err != nil {
+				t.Fatalf("parsing standalone auth flags: %v", err)
+			}
+
+			def := serviceRegistry()["auth"]
+
+			var engine authcmd.Options
+
+			def.newService = func(
+				_ context.Context, cmd *cli.Command, _ *slog.Logger,
+			) (*serveutil.Service, error) {
+				engine = authcmd.OptionsFromCommand(cmd)
+
+				return echoService(), nil
+			}
+
+			runParsed(
+				t, servicePrefixedFlags("auth", def.command().Flags, def.skip, def.hidden), nil,
+				func(cmd *cli.Command) {
+					if _, err := buildService(
+						context.Background(), def, "auth", cmd, "test",
+						slog.New(slog.DiscardHandler), serveConfig{},
+					); err != nil {
+						t.Fatalf("buildService: %v", err)
+					}
+				},
+			)
+
+			if diff := cmp.Diff(standalone, engine); diff != "" {
+				t.Fatalf("auth Options differ from standalone (-standalone +engine):\n%s", diff)
 			}
 		})
 	}
