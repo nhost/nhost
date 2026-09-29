@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from '@/components/ui/v3/select';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { OrganizationLayout } from '@/features/orgs/layout/OrganizationLayout';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { getCreateProjectErrorMessage } from '@/features/orgs/utils/getCreateProjectErrorMessage';
@@ -428,5 +428,5 @@ export default function NewProjectPage() {
 }
 
 NewProjectPage.getLayout = function getLayout(page: ReactElement) {
-  return <OrgLayout isOrgPage>{page}</OrgLayout>;
+  return <OrganizationLayout>{page}</OrganizationLayout>;
 };

@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { AISettings } from '@/features/orgs/projects/ai/settings/components';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -71,10 +71,10 @@ export default function AISettingsPage() {
 
 AISettingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <OrgLayout>
+    <ProjectLayout>
       <SettingsLayout>
         <div className="mx-auto w-full max-w-5xl px-5 py-4">{page}</div>
       </SettingsLayout>
-    </OrgLayout>
+    </ProjectLayout>
   );
 };
