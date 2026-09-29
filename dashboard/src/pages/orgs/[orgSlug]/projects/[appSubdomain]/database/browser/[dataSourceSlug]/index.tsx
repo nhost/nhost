@@ -5,10 +5,10 @@ import { RetryableErrorBoundary } from '@/components/presentational/RetryableErr
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
-import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
 import { DataBrowserSidebar } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserSidebar';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
+import { DatabaseArea } from '@/features/orgs/projects/database/layout';
 
 function DataBrowserDatabaseDetailsContent() {
   const {
@@ -66,14 +66,14 @@ DataBrowserDatabaseDetailsPage.getLayout = function getLayout(
   return (
     <AppLayout>
       <ProjectScope>
-        <ProjectStateGate>
+        <DatabaseArea>
           <div className="flex h-full">
             <DataBrowserSidebar />
-            <div className="box flex w-full flex-auto flex-col overflow-x-hidden bg-default">
+            <div className="box flex w-full flex-auto flex-col overflow-x-hidden">
               {page}
             </div>
           </div>
-        </ProjectStateGate>
+        </DatabaseArea>
       </ProjectScope>
     </AppLayout>
   );
