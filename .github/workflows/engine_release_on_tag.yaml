@@ -18,8 +18,8 @@ name: "engine: release on tag"
 #
 # Publishing a GitHub release named engine@<version> also pushes that tag, so
 # this workflow and ci_release.yaml's `engine:` job would otherwise both fire
-# and race: two concurrent publishes of the same image tag, one without bot
-# credentials and with BUMP_REFS disabled. The guard job below resolves that.
+# and race: two concurrent publishes of the same image tag. The guard job
+# below resolves that.
 # Official releases are only ever cut from main, so a tagged commit that is
 # already an ancestor of main belongs to ci_release.yaml and this path stands
 # down. While the stack is unmerged its commits are not on main, so dev tags
@@ -99,7 +99,6 @@ jobs:
     with:
       GIT_REF: ${{ github.sha }}
       VERSION: ${{ needs.extract-version.outputs.version }}
-      BUMP_REFS: false
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
