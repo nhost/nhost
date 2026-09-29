@@ -205,6 +205,10 @@ enum todos_select_column {
   """
   column name
   """
+  updated_at
+  """
+  column name
+  """
   user_id
 }
 """
@@ -962,6 +966,7 @@ type todos {
   preposition: String!
   sort_order: Int!
   title: String!
+  updated_at: timestamptz!
   """
   An object relationship
   """
@@ -1533,6 +1538,7 @@ input todos_bool_exp {
   preposition: String_comparison_exp
   sort_order: Int_comparison_exp
   title: String_comparison_exp
+  updated_at: timestamptz_comparison_exp
   user: users_bool_exp
   user_id: uuid_comparison_exp
 }
@@ -1566,6 +1572,7 @@ input todos_max_order_by {
   preposition: order_by
   sort_order: order_by
   title: order_by
+  updated_at: order_by
   user_id: order_by
 }
 """
@@ -1579,6 +1586,7 @@ input todos_min_order_by {
   preposition: order_by
   sort_order: order_by
   title: order_by
+  updated_at: order_by
   user_id: order_by
 }
 """
@@ -1603,6 +1611,7 @@ input todos_order_by {
   preposition: order_by
   sort_order: order_by
   title: order_by
+  updated_at: order_by
   user: users_order_by
   user_id: order_by
 }
@@ -1668,6 +1677,7 @@ input todos_stream_cursor_value_input {
   preposition: String
   sort_order: Int
   title: String
+  updated_at: timestamptz
   user_id: uuid
 }
 """

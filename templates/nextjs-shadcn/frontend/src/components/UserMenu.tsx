@@ -101,8 +101,8 @@ export function UserMenu({
           </Link>
         </DropdownMenuItem>
 
-        {/* Only once there is a page to see. While the profile is unpublished
-            this link would lead to the same 404 a stranger gets, which is a
+        {/* Only while there is a page to see. With the page turned off this
+            link would lead to the same 404 a stranger gets, which is a
             confusing thing to find in your own account menu. */}
         {publicProfile ? (
           <DropdownMenuItem asChild>

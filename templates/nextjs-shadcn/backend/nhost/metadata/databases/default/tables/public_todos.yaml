@@ -49,15 +49,17 @@ select_permissions:
         - sort_order
         - file_id
         - created_at
+        - updated_at
         - user_id
       filter:
         user_id:
           _eq: X-Hasura-User-Id
   # Anyone, signed in or not, and it takes both switches: the row is flagged
-  # shared, and its owner has published their profile. Unpublishing the profile
-  # therefore takes the rows back too, rather than only hiding the page while
-  # the API still answers for them. The owner half is the same condition as the
-  # `public` rule in `auth_users.yaml`, reached here through the relationship.
+  # shared, and its owner has not turned their public profile off. Turning
+  # the profile off takes the rows back too, rather than only hiding the page
+  # while the API still answers for them. The owner half is the same opt-out
+  # condition as the `public` rule in `auth_users.yaml`, reached here through
+  # the relationship; see there for why absence means public.
   #
   # `user_id` is off the column list because a shared list has no use for it,
   # and the columns a role cannot read are the ones it cannot leak.
@@ -72,16 +74,19 @@ select_permissions:
         - sort_order
         - file_id
         - created_at
+        - updated_at
       filter:
         is_public:
           _eq: true
         user:
-          metadata:
-            _contains:
-              publicProfile: true
-          _not:
-            metadata:
-              _has_key: deletedAt
+          _and:
+            - _not:
+                metadata:
+                  _contains:
+                    publicProfile: false
+            - _not:
+                metadata:
+                  _has_key: deletedAt
 update_permissions:
   - role: user
     permission:

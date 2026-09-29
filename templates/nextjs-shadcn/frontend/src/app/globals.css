@@ -170,3 +170,28 @@
     }
   }
 }
+
+/* The tick that replaces the sync spinner once a write has landed. It
+   overshoots slightly on the way in, which is what makes it read as an answer
+   rather than as another thing appearing. Anyone who has asked for less motion
+   gets the tick with no animation at all. */
+@keyframes sync-settle {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.18);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-\[sync-settle_360ms_ease-out\] {
+    animation: none;
+  }
+}

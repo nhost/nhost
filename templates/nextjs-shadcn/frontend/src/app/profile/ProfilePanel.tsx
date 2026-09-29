@@ -8,6 +8,7 @@ import { graphql } from '@/gql';
 import { gqlRequest } from '@/lib/graphql';
 import { appOrigin } from '@/lib/nhost/env';
 import { createNhostClient } from '@/lib/nhost/server';
+import { isProfilePublic } from '@/lib/profile';
 
 const GetProfile = graphql(`
   query GetProfile($id: uuid!) {
@@ -48,10 +49,7 @@ export async function ProfilePanel() {
     redirect('/signin');
   }
 
-  const metadata = user.metadata as {
-    deletedAt?: string;
-    publicProfile?: boolean;
-  } | null;
+  const metadata = user.metadata as { deletedAt?: string } | null;
   if (metadata?.deletedAt) {
     redirect('/restore');
   }
@@ -73,7 +71,7 @@ export async function ProfilePanel() {
       <PublicProfileCard
         userId={String(user.id)}
         origin={origin}
-        published={metadata?.publicProfile === true}
+        published={isProfilePublic(metadata)}
       />
       <EmailCard
         email={user.email ?? ''}

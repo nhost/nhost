@@ -1,15 +1,32 @@
 'use client';
 
-import { ImageUp, Loader2, X } from 'lucide-react';
+import { ImageUp, Loader2, Pencil, Plus, Trash2 } from 'lucide-react';
 import { type ChangeEvent, useRef, useState } from 'react';
 import { FileThumbnail } from '@/components/FileThumbnail';
-import { Button } from '@/components/ui/button';
+import { RowPlaceholder } from '@/components/RowPlaceholder';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  ROW_MEDIA,
+  ROW_MEDIA_SLOT,
+  ROW_PLACEHOLDER,
+} from '@/components/WantSentence';
 import { nhost } from '@/lib/nhost/client';
 
 const BUCKET = 'todo-attachments';
 
 /**
- * One photo on a todo.
+ * The photo on a todo, and the only way to change it.
+ *
+ * It is the media slot itself rather than a control living somewhere else on
+ * the row: the picture is the thing being edited, so the pen belongs on the
+ * picture. That also means a row has no separate "edit" mode to enter before
+ * its photo can be touched - the slot is always live, whether or not there is
+ * anything in it yet.
  *
  * Unlike the avatar, this goes straight from the browser to the storage API
  * with the signed-in user's own token. No serverless function and no admin
@@ -20,16 +37,22 @@ const BUCKET = 'todo-attachments';
  */
 export function TodoAttachment({
   fileId,
+  index,
+  alt,
   onChange,
+  onError,
   disabled,
 }: {
   fileId: string | null;
+  /** Row position, which sets the phase of the placeholder hatch. */
+  index: number;
+  alt: string;
   onChange: (fileId: string | null) => Promise<void>;
+  onError: (message: string | undefined) => void;
   disabled: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isBusy, setIsBusy] = useState(false);
-  const [error, setError] = useState<string | undefined>();
 
   const busy = isBusy || disabled;
 
@@ -46,7 +69,7 @@ export function TodoAttachment({
       return;
     }
 
-    setError(undefined);
+    onError(undefined);
     setIsBusy(true);
 
     try {
@@ -67,7 +90,7 @@ export function TodoAttachment({
         await nhost.storage.deleteFile(previous);
       }
     } catch (err) {
-      setError(`Could not attach that photo: ${(err as Error).message}`);
+      onError(`Could not attach that photo: ${(err as Error).message}`);
     } finally {
       setIsBusy(false);
     }
@@ -78,69 +101,91 @@ export function TodoAttachment({
       return;
     }
 
-    setError(undefined);
+    onError(undefined);
     setIsBusy(true);
 
     try {
       await onChange(null);
       await nhost.storage.deleteFile(fileId);
     } catch (err) {
-      setError(`Could not remove that photo: ${(err as Error).message}`);
+      onError(`Could not remove that photo: ${(err as Error).message}`);
     } finally {
       setIsBusy(false);
     }
   };
 
+  const pick = (): void => inputRef.current?.click();
+
+  // The overlay that reveals on hover, shared by both states below.
+  const overlay =
+    'absolute inset-0 flex cursor-pointer items-center justify-center rounded-lg opacity-0 outline-none transition-opacity focus-visible:opacity-100 hover:opacity-100 disabled:cursor-not-allowed data-[state=open]:opacity-100 [@media(hover:none)]:opacity-100';
+
   return (
-    <div className="flex flex-col gap-1">
-      <div className="flex items-center gap-2">
-        {fileId ? (
-          <FileThumbnail
-            fileId={fileId}
-            alt="The photo on this item"
-            className="size-9 rounded-md border"
-          />
-        ) : null}
+    <div className={`relative ${ROW_MEDIA_SLOT}`}>
+      {fileId ? (
+        <FileThumbnail fileId={fileId} alt={alt} className={ROW_MEDIA} />
+      ) : (
+        <div className={`${ROW_MEDIA} overflow-hidden`}>
+          <RowPlaceholder index={index} className={ROW_PLACEHOLDER} />
+        </div>
+      )}
 
-        <Button
-          type="button"
-          size="sm"
-          variant="ghost"
-          onClick={() => inputRef.current?.click()}
-          disabled={busy}
-        >
-          {isBusy ? (
-            <Loader2 className="animate-spin" aria-hidden />
-          ) : (
-            <ImageUp aria-hidden />
-          )}
-          {fileId ? 'Replace photo' : 'Add photo'}
-        </Button>
-
-        {fileId ? (
-          <Button
-            type="button"
-            size="icon"
-            variant="ghost"
-            onClick={handleRemove}
+      {/* An empty slot has exactly one thing it can do, so it does it: a plus,
+          and the file picker. A menu with a single item in it is a question
+          with one answer. A slot with a picture in it has three, so that one
+          gets the pen and the menu. */}
+      {fileId ? (
+        <DropdownMenu>
+          <DropdownMenuTrigger
             disabled={busy}
-            className="text-muted-foreground hover:text-destructive"
+            aria-label={`Change the photo on ${alt}`}
+            className={`${overlay} bg-background/70 [@media(hover:none)]:bg-transparent`}
           >
-            <X aria-hidden />
-            <span className="sr-only">Remove the photo</span>
-          </Button>
-        ) : null}
+            {busy ? (
+              <Loader2 className="size-4 animate-spin" aria-hidden />
+            ) : (
+              <Pencil className="size-4" aria-hidden />
+            )}
+          </DropdownMenuTrigger>
 
-        <input
-          ref={inputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handlePick}
-        />
-      </div>
+          <DropdownMenuContent align="start" className="min-w-40">
+            <DropdownMenuItem onSelect={pick}>
+              <ImageUp aria-hidden />
+              Replace photo
+            </DropdownMenuItem>
 
-      {error ? <p className="text-destructive text-xs">{error}</p> : null}
+            <DropdownMenuItem
+              variant="destructive"
+              onSelect={() => void handleRemove()}
+            >
+              <Trash2 aria-hidden />
+              Remove photo
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ) : (
+        <button
+          type="button"
+          onClick={pick}
+          disabled={busy}
+          aria-label={`Add a photo to ${alt}`}
+          className={`${overlay} bg-background/50 text-muted-foreground [@media(hover:none)]:bg-transparent`}
+        >
+          {busy ? (
+            <Loader2 className="size-4 animate-spin" aria-hidden />
+          ) : (
+            <Plus className="size-5" aria-hidden />
+          )}
+        </button>
+      )}
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handlePick}
+      />
     </div>
   );
 }

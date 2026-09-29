@@ -5,7 +5,12 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 
-const STEPS_KEY = 'next-steps-visited';
+// Keyed by account, not just by browser. These ticks are about what *this
+// account* has seen, and a browser outlives the account it first signed into:
+// with one shared key, signing up for a second account showed its owner a
+// checklist already crossed off from somebody else's session - which is the
+// one moment the checklist exists for.
+const stepsKey = (userId: string): string => `next-steps-visited:${userId}`;
 
 const steps = [
   {
@@ -22,9 +27,9 @@ const steps = [
   },
 ];
 
-function read(): string[] {
+function read(userId: string): string[] {
   try {
-    const stored = localStorage.getItem(STEPS_KEY);
+    const stored = localStorage.getItem(stepsKey(userId));
     return stored ? (JSON.parse(stored) as string[]) : [];
   } catch {
     return [];
@@ -44,17 +49,19 @@ function read(): string[] {
  * know what this browser has already seen and guessing would mean a first
  * paint that hydration then disagrees with.
  */
-export function NextSteps() {
+export function NextSteps({ userId }: { userId: string }) {
   const [visited, setVisited] = useState<string[]>([]);
 
-  useEffect(() => setVisited(read()), []);
+  // Re-read when the account changes, so signing out and into another one on
+  // the same browser starts that account's checklist from nothing.
+  useEffect(() => setVisited(read(userId)), [userId]);
 
   const visit = (href: string): void => {
-    const next = [...new Set([...read(), href])];
+    const next = [...new Set([...read(userId), href])];
     setVisited(next);
 
     try {
-      localStorage.setItem(STEPS_KEY, JSON.stringify(next));
+      localStorage.setItem(stepsKey(userId), JSON.stringify(next));
     } catch {
       // Private browsing can refuse storage; the link still works.
     }

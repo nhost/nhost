@@ -188,9 +188,12 @@ it is how data becomes readable without signing in, and it is the permission
 most likely to leak something, so:
 
 - Gate on columns the owner controls. The shipped example needs two: the row
-  is flagged `todos.is_public`, and the owner set `metadata.publicProfile` from
-  their profile page. One switch alone exposes nothing, so nothing goes public
-  as a side effect of a single click.
+  is flagged `todos.is_public`, and the owner has not turned their page off
+  from their profile page. That second switch is an *opt-out* - the page is on
+  by default - so the filter tests `_not ... _contains false` on
+  `metadata.publicProfile` rather than `_contains true`. One switch alone
+  exposes nothing: an item stays private until its eye is on, so nothing goes
+  public as a side effect of a single click.
 - Filter through a relationship when visibility belongs to a related row.
   `public_todos.yaml` reaches the owner through `user`, and
   `storage_files.yaml` reaches the item through `todos`.
@@ -204,7 +207,7 @@ most likely to leak something, so:
   `avatar_url` looks harmless but, for an account that never uploaded a photo,
   holds the sign-up Gravatar URL, which embeds
   `md5(lowercase(email))`; `/u/[id]` serves the picture from `storage.files`
-  under the same published-and-not-deleted condition instead.
+  under the same public-and-not-deleted condition instead.
 - Read that data with `createAnonymousClient()` from
   `frontend/src/lib/nhost/server.ts`. The session client makes Hasura answer as
   `user`, whose filter hides other people's rows, so the page breaks for
