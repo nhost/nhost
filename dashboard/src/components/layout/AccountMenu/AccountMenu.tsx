@@ -13,7 +13,7 @@ function AccountMenu() {
 
       <PopoverContent align="end" className="mt-1 w-full max-w-xs p-0">
         <AccountMenuUserInfo />
-        <AccountMenuContent onAccountSettingsClick={() => setOpen(false)} />
+        <AccountMenuContent onNavigate={() => setOpen(false)} />
       </PopoverContent>
     </Popover>
   );
