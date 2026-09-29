@@ -13,11 +13,9 @@ runs:
       run: |
         echo "github.event_name: ${{ github.event_name }}"
         echo "github.event.pull_request.author_association: ${AUTHOR_ASSOCIATION}"
-    # Approval is bound to a commit, not to the PR: adding the 'safe_to_test'
-    # label runs .github/workflows/ci_safe_to_test.yaml, which records a
-    # 'safe-to-test' commit status on the head SHA at label time (created by
-    # nhost-helper-bot, whose key never reaches jobs running PR code) and
-    # re-runs these checks. Any later push produces a SHA without that status.
+    # The 'safe-to-test' status is set by ci_safe_to_test.yaml when a
+    # maintainer adds the 'safe_to_test' label. Only nhost-helper-bot's counts:
+    # its key never reaches jobs running PR code.
     - name: >-
         Fail if the PR author lacks write permission and the head commit is
         not approved

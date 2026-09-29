@@ -88,8 +88,9 @@ this directory.
 
 Commit and push — CI re-runs and the finding is gone. You can do this in the
 **same PR**; no separate PR needed. If you don't have write access, the new
-commit needs a maintainer to add `safe_to_test` again before the scan runs. (The one exception is a change to
-`betterleaks.toml` itself, which only takes effect once merged.)
+commit needs a maintainer to add `safe_to_test` again before the scan runs.
+(The one exception is a change to `betterleaks.toml` itself, which only takes
+effect once merged.)
 
 ### Ignoring a finding (`.betterleaksignore`)
 
