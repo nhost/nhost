@@ -65,8 +65,11 @@ The "complete `src/main.rs`" listings in the Rust tutorials use Expressive Code'
 unkeyed `{...}` range marking what that part added. The ranges are derived by
 diffing each listing against the previous part's, so they are only correct for
 the listing they were computed from: **recompute them whenever a listing
-changes.** Nothing in CI validates them, and a stale range is worse than none
-because it hides new code or highlights unchanged code.
+changes**, with `make docs-ranges` in `examples/tutorials/nhost-rust-tutorial`.
+A stale range is worse than none because it hides new code or highlights
+unchanged code, so that example's Nix check fails on one; it also compiles each
+part's complete listing against the SDK (`make docs-snippets` runs both
+locally).
 
 Note `collapse` silently drops a bare line number — a single line must be written
 as a range, e.g. `3-3`, not `3`.

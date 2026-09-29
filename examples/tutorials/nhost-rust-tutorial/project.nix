@@ -19,6 +19,9 @@ let
       ./Cargo.lock
       ./src
       ./README.md
+      ./docs_snippets.py
+      # The tutorial pages, whose programs the check compiles.
+      ../../../docs/src/content/docs/getting-started/tutorials/rust
       # The SDK sources the path dependency points at. `include` in the SDK's
       # Cargo.toml names README.md, so it has to be here too.
       ../../../packages/nhost-rust/Cargo.toml
@@ -48,5 +51,22 @@ in
     # The crate has no tests of its own; clippy --all-targets already compiles
     # every target, which is what this check exists to prove.
     runTests = false;
+
+    checkDeps = [ pkgs.python3 ];
+
+    # The pages end each part with the complete src/main.rs, and nothing else
+    # compiles those. Build each as an extra binary of this crate, against its
+    # lockfile, and check the collapse/highlight ranges still match the diff
+    # between consecutive parts. See docs_snippets.py.
+    extraCheck = ''
+      pages=../../../docs/src/content/docs/getting-started/tutorials/rust
+
+      echo "➜ Checking the tutorial pages' collapse/highlight ranges"
+      python3 docs_snippets.py "$pages" ranges
+
+      echo "➜ Compiling the tutorial pages' programs"
+      python3 docs_snippets.py "$pages" extract src/bin
+      cargo clippy --offline --locked --bins -- -D warnings
+    '';
   };
 }

@@ -33,3 +33,14 @@ backend-down:  ## Stop the notes backend.
 check-local:  ## Run the same fmt + clippy the nix check runs.
 	cargo fmt --check
 	cargo clippy --locked --all-targets -- -D warnings
+
+.PHONY: docs-snippets
+docs-snippets:  ## Compile the tutorial pages' programs and check their ranges.
+	python3 docs_snippets.py $(ROOT_DIR)/docs/src/content/docs/getting-started/tutorials/rust ranges
+	rm -rf src/bin
+	python3 docs_snippets.py $(ROOT_DIR)/docs/src/content/docs/getting-started/tutorials/rust extract src/bin
+	cargo clippy --locked --bins -- -D warnings; status=$$?; rm -rf src/bin; exit $$status
+
+.PHONY: docs-ranges
+docs-ranges:  ## Recompute the tutorial pages' collapse/highlight ranges.
+	python3 docs_snippets.py $(ROOT_DIR)/docs/src/content/docs/getting-started/tutorials/rust ranges --write
