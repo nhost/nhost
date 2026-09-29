@@ -42,7 +42,8 @@ for serviceURL. The token is the one set on the request context with
 [session.WithAccessToken], or else that of the stored session the context
 selects ([session.WithUserID]); storage may be nil when there is no session
 storage. It should run after the refresh middleware so the freshest token is
-used, and skips requests that already carry an Authorization header.
+used, and skips requests that already carry an Authorization header. If the
+session store cannot be read, the request fails.
 
 ### `SessionRefresh`
 
@@ -58,7 +59,9 @@ SessionRefresh refreshes the session the request selects (see
 [session.WithUserID]) before the request when its token is near expiry. It
 skips requests that already carry an Authorization header or a per-request
 token ([session.WithAccessToken]), and the token endpoint itself (to avoid
-recursively refreshing during a refresh).
+recursively refreshing during a refresh). If the refresh itself fails
+([session.ErrRefreshFailed]) the request goes ahead with the stored token; if
+the session store cannot be read or updated, the request fails.
 
 ### `UpdateSessionFromResponse`
 

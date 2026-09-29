@@ -28,6 +28,16 @@ var ErrInvalidToken = errors.New("invalid access token format")
 ErrInvalidToken is returned when an access token cannot be decoded.
 
 ```go
+var ErrRefreshFailed = errors.New("session refresh failed")
+```
+
+ErrRefreshFailed marks a [RefreshSession] error from the refresh itself: the
+auth service could not be reached, rejected the request, or the refresh
+re-entered itself through a misconfigured auth client. The stored session is
+unchanged, so a caller may carry on and let the server decide. Any other
+error comes from the session store, which could not be read or updated.
+
+```go
 var ErrSessionWithoutUserID = errors.New("session has no user ID to store it under")
 ```
 
@@ -365,7 +375,8 @@ session and returns (nil, nil) — unless the store by then holds a session with
 a different refresh token, which another process refreshed first, in which
 case that session is returned. Any other final error is returned; if the
 access token is still valid, the existing session is returned with that error
-so callers may keep using it while handling the refresh failure.
+so callers may keep using it while handling the refresh failure. Errors from
+the refresh itself wrap [ErrRefreshFailed]; the rest come from the store.
 
 The supplied authClient must be bare: its HTTP transport must not include
 session-refresh middleware. A reentrancy guard prevents a misconfigured
