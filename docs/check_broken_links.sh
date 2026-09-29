@@ -50,10 +50,10 @@ done
 results="$(mktemp)"
 trap 'rm -f "$results"' EXIT
 
-# Run with the JSON reporter so we get a single machine-readable summary
-# instead of ~700 per-link "OK" lines. Progress/errors still stream to
-# stderr. `set +e` so a non-zero exit (broken links found) doesn't abort
-# before we print the summary below.
+# Run with the JSON reporter so we get a single machine-readable report
+# instead of ~700 interleaved per-link lines; link_report.mjs renders it.
+# Progress/errors still stream to stderr. `set +e` so a non-zero exit (broken
+# links found) doesn't abort before we print the summary below.
 set +e
 pnpm exec linkinator dist/client/ \
   --recurse \
@@ -66,38 +66,21 @@ pnpm exec linkinator dist/client/ \
 linkinator_status=$?
 set -e
 
-# Strip any preamble (e.g. a pnpm lockfile warning) printed before the JSON
-# object so jq sees valid JSON. linkinator's JSON reporter emits a single
-# top-level object, so slice from the first line that starts with '{'.
-sed -i -n '/^{/,$p' "$results"
-
-if ! jq -e . "$results" >/dev/null 2>&1; then
-  echo "❌ Could not parse linkinator output as JSON. Raw output:" >&2
-  cat "$results" >&2
-  exit "${linkinator_status:-1}"
+# Report the links, and fail on broken ones or on an unreadable report. Node
+# does the parsing (and skips linkinator's preamble) because it is already the
+# toolchain this check runs under: the previous `jq` pipeline was never in the
+# check sandbox, so its "command not found" was caught by a `2>/dev/null`
+# parse guard that then exited with linkinator's status -- reporting a
+# perfectly valid report as unparseable, and passing whenever linkinator
+# itself passed.
+if ! node ./link_report.mjs "$results"; then
+  exit 1
 fi
 
-total="$(jq '.links | length' "$results")"
-skipped="$(jq '[.links[] | select(.state == "SKIPPED")] | length' "$results")"
-broken="$(jq '[.links[] | select(.state == "BROKEN")] | length' "$results")"
-
-echo
-echo "Checked ${total} links (${skipped} skipped)."
-
-if [[ "$broken" -eq 0 ]]; then
-  echo "✅ No broken links found."
-  exit 0
+# No broken links in the report, so a non-zero linkinator exit means it failed
+# for a reason the report cannot show (a crash, an unusable flag). Surface it
+# rather than passing on an incomplete crawl.
+if [[ "$linkinator_status" -ne 0 ]]; then
+  echo "❌ linkinator exited ${linkinator_status} but reported no broken links." >&2
+  exit "$linkinator_status"
 fi
-
-echo
-echo "❌ ${broken} broken link(s), grouped by the page they appear on:"
-echo
-# For each source page, list the broken target URLs with their status code.
-jq -r '
-  [.links[] | select(.state == "BROKEN")]
-  | group_by(.parent)[]
-  | "📄 \(.[0].parent // "(unknown source)")",
-    (.[] | "     [\(.status // 0)] \(.url)")
-' "$results"
-
-exit 1
