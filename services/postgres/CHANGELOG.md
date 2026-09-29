@@ -1,6 +1,6 @@
 ## CHANGELOG
 
-### main
+### {17.11,18.6}-20260930-1
 
 - Improved graceful shutdown during database startup and point-in-time recovery.
 - Improved startup and PITR recovery safety and error handling
@@ -14,7 +14,7 @@
   - pg_cron: 1.6.7 → 1.6.8
   - pg_ivm: 1.14 → 1.15
   - pg_jsonschema (SQL): 0.3.3 → 0.3.4
-  - pg_search: 0.24.0 → 0.25.9
+  - pg_search: 0.24.0 → 0.25.11
     - Breaking change: pg_search now needs pgvector (`vector`) in the `public` schema. Install or move `vector` there before installing or upgrading pg_search. If your migrations also install `vector`, use `CREATE EXTENSION IF NOT EXISTS vector SCHEMA public;`.
   - pg_squeeze: 1.9.1 → 1.9.4
   - pgmq: 1.11.1 → 1.13.0

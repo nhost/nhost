@@ -21,7 +21,7 @@ let
 in
 buildPGRXExtension rec {
   pname = "pg_search";
-  version = "0.25.9";
+  version = "0.25.11";
 
   cargo-pgrx = pkgs.nhost.cargo-pgrx_0_19_0;
 
@@ -41,10 +41,10 @@ buildPGRXExtension rec {
     owner = "paradedb";
     repo = "paradedb";
     rev = "v${version}";
-    hash = "sha256-FPRsbSjsY4w4I9AuSzOUDIlniTah6tmnOvL46ooX29o=";
+    hash = "sha256-VIn7tMLfTZWippr97/poVZ8skEgUZFqwc9e08bwZiTM=";
   };
 
-  cargoHash = "sha256-K0jAg5A8jr9Ip9BXL8KLdSwPLkgR4Rp9grlWfRcDuAI=";
+  cargoHash = "sha256-m8DZgfRRUq9xO1sQBF1PEcHom5RruFRuPiXxcgtxoxA=";
 
   preBuild = ''
     export LINDERA_CACHE=$TMPDIR/lindera-cache

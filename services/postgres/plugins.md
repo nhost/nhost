@@ -36,7 +36,7 @@
 | pg_logicalinspect|1.0|functions to inspect logical decoding components|
 | pg_prewarm|1.2|prewarm relation data|
 | pg_repack|1.5.3|Reorganize tables in PostgreSQL databases with minimal locks|
-| pg_search|0.25.9|pg_search: Full text search for PostgreSQL using BM25|
+| pg_search|0.25.11|pg_search: Full text search for PostgreSQL using BM25|
 | pg_squeeze|1.9|A tool to remove unused space from a relation.|
 | pg_stat_statements|1.12|track planning and execution statistics of all SQL statements executed|
 | pg_surgery|1.0|extension to perform surgery on a damaged relation|
