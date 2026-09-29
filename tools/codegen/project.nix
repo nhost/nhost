@@ -22,6 +22,7 @@ let
       (fs.fileFilter (f: f.hasExt "go") ./.)
       (fs.fileFilter (f: f.hasExt "tmpl") ./.)
       ./processor/testdata
+      ./processor/golang/testdata
       ./processor/rust/testdata
     ];
   };
