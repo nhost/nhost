@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 /**
  * What a shared page offers when nothing has been shared on it yet.
  *
@@ -34,13 +36,25 @@ const QUOTES = [
  * visit and this is a new quotation on every refresh - with none of what a
  * client component would have cost here, which is shipping the list to the
  * browser and showing the first one for a frame before swapping it.
+ *
+ * `action` is the way out, and only the owner of the page is given one: a
+ * stranger reading somebody else's empty list has nothing to do about it, and
+ * a link inviting them to would be an invitation to the wrong page.
  */
-export function EmptyList() {
+export function EmptyList({ action }: { action?: ReactNode }) {
   const quote = QUOTES[Math.floor(Math.random() * QUOTES.length)] ?? QUOTES[0];
 
   return (
     <div className="flex flex-col items-center gap-5 px-6 py-16 text-center">
-      <p className="text-muted-foreground text-sm">Nothing here yet.</p>
+      {/* A clear line between the statement and the way out of it, rather
+          than the two stacked as one block. They are not the same kind of
+          thing: one reports, the other offers. Collapses to nothing when
+          there is no `action`, since the gap then has no second child to
+          separate it from. */}
+      <div className="flex flex-col items-center gap-4">
+        <p className="text-muted-foreground text-sm">Nothing here yet.</p>
+        {action}
+      </div>
 
       <figure className="flex max-w-sm flex-col gap-2">
         <blockquote className="text-pretty text-muted-foreground/70 text-sm italic">
