@@ -16,7 +16,7 @@ import type { Apps } from '@/generated/graphql';
 import { isEmptyValue } from '@/lib/utils';
 import type { ExportMetadataResponse } from '@/utils/hasura-api/generated/schemas';
 
-const editorRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/editor`;
+const editorRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/console/default`;
 const projectMetadataUrl = `https://${TEST_PROJECT_SUBDOMAIN}.hasura.eu-central-1.staging.nhost.run/v1/metadata`;
 const e2eTriggerNamePattern = /^e2e_/;
 
