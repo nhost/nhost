@@ -117,9 +117,9 @@ export default function EditRemoteSchemaPermissionsForm({
         <InfoAlert>
           To configure permissions, enable remote schema permissions first in{' '}
           <TextLink
-            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings/hasura`}
+            href={`/orgs/${org?.slug}/projects/${project?.subdomain}/graphql/settings?tab=access-and-tooling`}
           >
-            Hasura Settings.
+            GraphQL Settings.
           </TextLink>
         </InfoAlert>
       </div>

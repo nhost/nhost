@@ -68,8 +68,8 @@ html.dark .graphiql-themed .graphiql-container {
   @apply m-0 rounded-none !important;
 }
 
-.graphiql-container .graphiql-plugin-visible .graphiql-session {
-  @apply pl-0 !important;
+.graphiql-container .graphiql-session {
+  @apply p-0 !important;
 }
 
 .graphiql-container .graphiql-doc-explorer {

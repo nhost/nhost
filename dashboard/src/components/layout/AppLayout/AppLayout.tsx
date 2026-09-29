@@ -36,7 +36,7 @@ export default function AppLayout({ children, ...props }: AppLayoutProps) {
       <div className="flex min-h-0 flex-1">
         <AppSidebar />
 
-        <main className="relative flex min-w-0 flex-1 flex-col overflow-y-auto bg-accent-background">
+        <main className="relative flex min-w-0 flex-1 flex-col overflow-y-auto bg-accent-background [scrollbar-gutter:stable]">
           <RetryableErrorBoundary
             errorMessageProps={{ className: 'flex flex-col items-center' }}
             resetKeys={[router.asPath]}

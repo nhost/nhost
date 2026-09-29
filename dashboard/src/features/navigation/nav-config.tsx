@@ -1,6 +1,5 @@
 import {
   SiGraphql as GraphQLIcon,
-  SiHasura as HasuraIcon,
   SiDocker as ServicesIcon,
 } from '@icons-pack/react-simple-icons';
 import {
@@ -55,12 +54,6 @@ export const projectPages = definePages([
     icon: <Zap className="h-4 w-4" />,
     route: 'events/event-triggers',
     slug: 'events',
-  },
-  {
-    name: 'Hasura',
-    icon: <HasuraIcon className="h-4 w-4" />,
-    route: 'hasura',
-    slug: 'hasura',
   },
   {
     name: 'Auth',
@@ -123,7 +116,6 @@ export const projectPages = definePages([
 
 export const projectSettingsPages = definePages([
   { name: 'General', slug: 'general', route: '' },
-  { name: 'Hasura', slug: 'hasura', route: 'hasura' },
   {
     name: 'Authentication',
     slug: 'authentication',
@@ -186,6 +178,17 @@ export const projectGraphQLPages = definePages([
     name: 'Metadata',
     slug: 'metadata',
     route: 'graphql/metadata',
+  },
+  {
+    name: 'Console',
+    slug: 'console',
+    route: 'graphql/console',
+  },
+  {
+    name: 'Settings',
+    slug: 'settings',
+    route: 'graphql/settings',
+    gate: 'settings',
   },
 ]);
 

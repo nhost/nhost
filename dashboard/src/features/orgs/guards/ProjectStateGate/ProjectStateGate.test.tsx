@@ -148,7 +148,9 @@ describe('ProjectStateGate', () => {
 
   it('should render the application in pausing state with overlay', async () => {
     mocks.useRouter.mockImplementation(() =>
-      getUseRouterObject('/orgs/[orgSlug]/projects/[appSubdomain]/hasura'),
+      getUseRouterObject(
+        '/orgs/[orgSlug]/projects/[appSubdomain]/graphql/console',
+      ),
     );
     server.use(getProjectQuery);
     server.use(getProjectStateQuery([{ stateId: ApplicationStatus.Pausing }]));
@@ -161,7 +163,9 @@ describe('ProjectStateGate', () => {
 
   it('should render the application in unpausing state with overlay', async () => {
     mocks.useRouter.mockImplementation(() =>
-      getUseRouterObject('/orgs/[orgSlug]/projects/[appSubdomain]/hasura'),
+      getUseRouterObject(
+        '/orgs/[orgSlug]/projects/[appSubdomain]/graphql/console',
+      ),
     );
     server.use(getProjectQuery);
     server.use(
@@ -176,7 +180,9 @@ describe('ProjectStateGate', () => {
 
   it('should render the application in paused state with overlay', async () => {
     mocks.useRouter.mockImplementation(() =>
-      getUseRouterObject('/orgs/[orgSlug]/projects/[appSubdomain]/hasura'),
+      getUseRouterObject(
+        '/orgs/[orgSlug]/projects/[appSubdomain]/graphql/console',
+      ),
     );
     server.use(getProjectQuery);
     server.use(
@@ -199,7 +205,9 @@ describe('ProjectStateGate', () => {
 
   it('should show the free project limit message when the limit is exceeded', async () => {
     mocks.useRouter.mockImplementation(() =>
-      getUseRouterObject('/orgs/[orgSlug]/projects/[appSubdomain]/hasura'),
+      getUseRouterObject(
+        '/orgs/[orgSlug]/projects/[appSubdomain]/graphql/console',
+      ),
     );
     mocks.useAppPausedReason.mockReturnValue({
       isLocked: false,
@@ -272,7 +280,9 @@ describe('ProjectStateGate', () => {
 
   it('should render the application in restoring state with overlay', async () => {
     mocks.useRouter.mockImplementation(() =>
-      getUseRouterObject('/orgs/[orgSlug]/projects/[appSubdomain]/hasura'),
+      getUseRouterObject(
+        '/orgs/[orgSlug]/projects/[appSubdomain]/graphql/console',
+      ),
     );
     server.use(getProjectQuery);
     server.use(

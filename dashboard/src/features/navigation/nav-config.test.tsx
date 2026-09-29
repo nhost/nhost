@@ -4,6 +4,7 @@ import {
   isPageGated,
   orgPages,
   projectDatabasePages,
+  projectGraphQLPages,
   projectPages,
   projectSubPagesBySlug,
 } from '@/features/navigation/nav-config';
@@ -24,7 +25,6 @@ describe('navigation nav-config', () => {
       'database',
       'graphql',
       'events',
-      'hasura',
       'auth',
       'storage',
       'functions',
@@ -42,7 +42,7 @@ describe('navigation nav-config', () => {
       '/orgs/nhost/projects/dashboard',
     );
     expect(getSettingsPageRoute({ route: '' })).toBe('settings');
-    expect(getSettingsPageRoute({ route: 'hasura' })).toBe('settings/hasura');
+    expect(getSettingsPageRoute({ route: 'jwt' })).toBe('settings/jwt');
   });
 
   it('gates platform and settings pages', () => {
@@ -81,6 +81,17 @@ describe('navigation nav-config', () => {
     expect(
       projectDatabasePages.find((page) => page.slug === 'sql-console')?.route,
     ).toBe('database/console/default');
+  });
+
+  it('keeps GraphQL sub-pages in route-tab order', () => {
+    expect(projectGraphQLPages.map((page) => page.slug)).toEqual([
+      'playground',
+      'remote-schemas',
+      'actions',
+      'metadata',
+      'console',
+      'settings',
+    ]);
   });
 
   it('exposes project sub-page families used by command palette', () => {
