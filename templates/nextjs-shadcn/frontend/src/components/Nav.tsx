@@ -6,6 +6,7 @@ import { UserMenu } from '@/components/UserMenu';
 import { graphql } from '@/gql';
 import { gqlRequest } from '@/lib/graphql';
 import { createNhostClient } from '@/lib/nhost/server';
+import { isProfilePublic } from '@/lib/profile';
 
 const GetNavProfile = graphql(`
   query GetNavProfile($id: uuid!) {
@@ -36,13 +37,14 @@ export default async function Nav() {
   const user = session?.user;
 
   // The session's user claims only refresh with the token, so the avatar, the
-  // name and whether the profile is published are read fresh; when the backend
+  // name and whether the profile is public are read fresh; when the backend
   // is unreachable the nav falls back to the claims rather than failing the
-  // whole page.
+  // whole page. That fallback covers the setting too - the claims carry a
+  // stale copy of `metadata`, which still beats assuming an answer.
   let profile = {
     displayName: user?.displayName,
     avatarUrl: user?.avatarUrl,
-    publicProfile: false,
+    publicProfile: isProfilePublic(user?.metadata),
   };
 
   if (user) {
@@ -52,12 +54,10 @@ export default async function Nav() {
       });
 
       if (fresh) {
-        const metadata = fresh.metadata as { publicProfile?: boolean } | null;
-
         profile = {
           displayName: fresh.displayName ?? profile.displayName,
           avatarUrl: fresh.avatarUrl ?? profile.avatarUrl,
-          publicProfile: metadata?.publicProfile === true,
+          publicProfile: isProfilePublic(fresh.metadata),
         };
       }
     } catch {

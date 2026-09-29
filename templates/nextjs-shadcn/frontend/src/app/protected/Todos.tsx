@@ -4,13 +4,15 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Globe, TableProperties } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useState, useTransition } from 'react';
+import { setProfilePublished } from '@/app/profile/actions';
 import {
   type Todo,
   type TodoChanges,
   TodoItem,
 } from '@/app/protected/TodoItem';
 import { StatusDot } from '@/components/StatusTile';
+import { SyncIndicator } from '@/components/SyncIndicator';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -20,6 +22,12 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { type WantDraft, WantFields } from '@/components/WantFields';
+import {
+  LIST_CAPTION,
+  ROW_ACTIONS_WIDTH,
+  ROW_LEADING_OFFSET,
+  ROW_TRAILING,
+} from '@/components/WantSentence';
 import { graphql } from '@/gql';
 import type { Todos_Updates } from '@/gql/graphql';
 import { gqlRequest } from '@/lib/graphql';
@@ -41,6 +49,7 @@ const GetTodos = graphql(`
       is_public
       sort_order
       file_id
+      updated_at
     }
   }
 `);
@@ -69,6 +78,7 @@ const CreateTodo = graphql(`
       preposition
       is_public
       file_id
+      updated_at
     }
   }
 `);
@@ -86,6 +96,7 @@ const UpdateTodo = graphql(`
       preposition
       is_public
       file_id
+      updated_at
     }
   }
 `);
@@ -128,10 +139,25 @@ export function Todos({
 }) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const [, startTransition] = useTransition();
   const [draft, setDraft] = useState(emptyDraft);
-  // Private unless you say otherwise, and it resets with the rest of the form
-  // so sharing one item never quietly becomes the default for the next.
-  const [shareNew, setShareNew] = useState(false);
+  // Shared unless you say otherwise. A list nobody can see is the less useful
+  // half of the feature, and the public page is on by default, so the two
+  // defaults now agree: what you write goes on the page unless you say not to.
+  // The eye on the compose field is where you say not to, before it is added.
+  //
+  // Deliberately not reset once an item is added. Whether you are writing a
+  // public list or a private one is a fact about the sitting, not about the
+  // one row; putting the eye back to its default after every add meant someone
+  // adding five private items had to turn it off five times, and the fifth is
+  // the one they would forget.
+  const [shareNew, setShareNew] = useState(true);
+  // At most one row may be asking to be deleted, so the answer lives here
+  // rather than in each row: opening the question on a second row, or turning
+  // away to edit a third, closes the one already open.
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(
+    null,
+  );
 
   const todos = useQuery({
     queryKey: todosQueryKey,
@@ -139,7 +165,8 @@ export function Todos({
   });
 
   // Every mutation ends the same way: refetch the list, and re-render the
-  // server components so the status tiles above match what is on screen.
+  // server component above this one, which is what re-reads whether the public
+  // page is on and so whether the rows carry an eye at all.
   const settle = async (): Promise<void> => {
     await queryClient.invalidateQueries({ queryKey: todosQueryKey });
     router.refresh();
@@ -155,7 +182,6 @@ export function Todos({
     }) => gqlRequest(nhost, CreateTodo, variables),
     onSuccess: async () => {
       setDraft(emptyDraft);
-      setShareNew(false);
       await settle();
     },
   });
@@ -185,7 +211,10 @@ export function Todos({
       }
       return result;
     },
-    onSuccess: settle,
+    onSuccess: async () => {
+      setConfirmingDeleteId(null);
+      await settle();
+    },
   });
 
   const reorderTodos = useMutation({
@@ -194,7 +223,35 @@ export function Todos({
     onSuccess: settle,
   });
 
+  // Same switch as the profile page's, reachable from here because this is
+  // where its being off is felt: with the page off there is no eye on any row.
+  const turnPageOn = useMutation({
+    mutationFn: async (): Promise<void> => {
+      const result = await setProfilePublished(true);
+      if (result.error) {
+        throw new Error(result.error);
+      }
+    },
+    // `router.refresh()` rather than a query invalidation: the flag is read by
+    // the server component above this one, so re-rendering it is what brings
+    // the eye back on every row. In a transition so React keeps the list on
+    // screen while that happens instead of flashing it through a pending
+    // state, which read as the page jumping about.
+    onSuccess: () => startTransition(() => router.refresh()),
+  });
+
+  // Anything that writes. The attachment's own upload is not here because the
+  // row update it triggers is, so the line still spins for the part that
+  // reaches the database.
+  const isSyncing =
+    createTodo.isPending ||
+    updateTodo.isPending ||
+    deleteTodo.isPending ||
+    reorderTodos.isPending ||
+    turnPageOn.isPending;
+
   const writeError =
+    turnPageOn.error ??
     createTodo.error ??
     updateTodo.error ??
     deleteTodo.error ??
@@ -240,7 +297,6 @@ export function Todos({
   // fact about these rows, so it is reported on the card that holds them
   // rather than in a tile above that repeats what is already on screen.
   const hasData = items.length > 0;
-  const sharedCount = items.filter((todo) => todo.is_public).length;
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
@@ -266,9 +322,14 @@ export function Todos({
   };
 
   return (
-    <>
+    // The card and the two lines under it are one block. Left as siblings of
+    // the page's own column they were spaced like separate sections of the
+    // page, which put a gap under the card wide enough to read as the end of
+    // it - and the lines below then looked like a footer rather than like a
+    // report on the thing directly above them.
+    <div className="flex flex-col gap-2">
       <Card>
-        <CardHeader>
+        <CardHeader className="border-b">
           <CardTitle className="flex items-center gap-2 text-base">
             <StatusDot state={hasData ? 'ok' : 'pending'} />
             {hasData ? 'Typed data' : 'No data yet'}
@@ -288,22 +349,98 @@ export function Todos({
             Anything you want to do, and where, if anywhere in particular.
           </CardDescription>
         </CardHeader>
+
         <CardContent className="flex flex-col gap-4">
-          {/* The sentence is the form. */}
-          <form className="flex items-stretch gap-2" onSubmit={handleSubmit}>
+          {/* The same caption the public page puts above the same list, so the
+              two read as one thing seen from two sides - and a heading for the
+              field below, which had none.
+
+              It is also where the link to your own page belongs. Reaching it
+              is a fact about the account rather than about how many rows are
+              shared, and out in the card's header it had nothing to sit
+              against and read as floating above the corner of the card. */}
+          {/* `items-end`, so the caption and the button rest on one bottom
+              edge rather than on a shared centre. The button is twice the
+              caption's height, so centred it left more air under the words
+              than under the button - and the two gaps below this row, one
+              above the field and one above Add, visibly disagreed about how
+              far apart the two rows were. */}
+          <div
+            className={`mb-2 flex items-end justify-between gap-4 ${ROW_LEADING_OFFSET} ${ROW_TRAILING}`}
+          >
+            {/* Aligning the boxes is not the same as aligning what you see.
+                `text-xs` wraps a 12px font in a 16px line box, so 2px of
+                half-leading sits under the letters, and the descender space
+                below that is room uppercase text never uses. Together they
+                left the caption floating about 4px above the button's bottom
+                edge, which is exactly how much wider the gap beneath it read.
+                `leading-none` takes back the half-leading and the nudge takes
+                back the descender - measured rather than guessed, which is why
+                it is 2px and not a round number. */}
+            <h2 className={`${LIST_CAPTION} translate-y-[2px] leading-none`}>
+              Want todo list
+            </h2>
+
+            {profilePublished ? (
+              <Button asChild size="sm" variant="outline">
+                <Link href={`/u/${userId}`}>
+                  <Globe aria-hidden />
+                  View public profile
+                </Link>
+              </Button>
+            ) : (
+              /* Turns the page on from here rather than sending you to the
+                 profile to find the switch. The eye is missing from every row
+                 while the page is off, so this is both the explanation and the
+                 fix, in the place where the absence is noticed. */
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => turnPageOn.mutate()}
+                disabled={turnPageOn.isPending}
+              >
+                <Globe aria-hidden />
+                {turnPageOn.isPending ? 'Turning on…' : 'Turn on public page'}
+              </Button>
+            )}
+          </div>
+
+          {/* The sentence is the form. Offset by the reorder gutter and its
+              gap, which is what puts the field's left edge exactly on the left
+              edge of the pictures in the list below it - and padded at the
+              other end by exactly what a row is, so the two ends line up as
+              well as the one. */}
+          <form
+            className={`flex items-stretch gap-4 ${ROW_LEADING_OFFSET} ${ROW_TRAILING}`}
+            onSubmit={handleSubmit}
+          >
+            {/* No `visibility` while the public page is off: there is nothing
+                for the new item to be shared *to*, so offering the choice at
+                the moment of writing would be offering a setting that cannot
+                take effect. */}
             <WantFields
               want={draft}
               onChange={setDraft}
-              visibility={{
-                isPublic: shareNew,
-                onToggle: () => setShareNew((shared) => !shared),
-              }}
+              visibility={
+                profilePublished
+                  ? {
+                      isPublic: shareNew,
+                      onToggle: () => setShareNew((shared) => !shared),
+                    }
+                  : undefined
+              }
               disabled={createTodo.isPending}
             />
+            {/* As wide as a row's own controls, and no wider, which is what
+                puts its right edge on theirs and the field's right edge on the
+                stamps'. The narrower padding is what lets the longer label fit
+                that width, so the button does not resize - and take the field
+                with it - for as long as the request is in flight. */}
             <Button
               type="submit"
               disabled={createTodo.isPending || !draft.title.trim()}
-              className="h-auto shrink-0"
+              className={`h-auto shrink-0 px-1 ${ROW_ACTIONS_WIDTH}`}
             >
               {createTodo.isPending ? 'Adding…' : 'Add'}
             </Button>
@@ -326,13 +463,16 @@ export function Todos({
           ) : null}
 
           {!todos.isPending && items.length === 0 ? (
-            <p className="text-muted-foreground text-sm">
+            <p className="px-6 py-12 text-center text-muted-foreground text-sm">
               Nothing here yet. What do you want to do?
             </p>
           ) : null}
 
+          {/* The gap keeps the pictures from stacking into one continuous
+              strip: flush against each other they read as a single column of
+              image rather than as one picture per row. */}
           {items.length ? (
-            <ul className="flex flex-col">
+            <ul className="flex flex-col gap-1">
               {items.map((todo, index) => (
                 <TodoItem
                   key={String(todo.id)}
@@ -345,6 +485,9 @@ export function Todos({
                       location: todo.location ?? null,
                       isPublic: todo.is_public,
                       fileId: todo.file_id ? String(todo.file_id) : null,
+                      updatedAt: todo.updated_at
+                        ? String(todo.updated_at)
+                        : null,
                     } satisfies Todo
                   }
                   isBusy={
@@ -354,8 +497,13 @@ export function Todos({
                     (deleteTodo.isPending &&
                       deleteTodo.variables?.id === String(todo.id))
                   }
+                  index={index}
                   canMoveUp={index > 0}
                   canMoveDown={index < items.length - 1}
+                  canShare={profilePublished}
+                  isConfirmingDelete={confirmingDeleteId === String(todo.id)}
+                  onConfirmDelete={() => setConfirmingDeleteId(String(todo.id))}
+                  onCancelDelete={() => setConfirmingDeleteId(null)}
                   onMove={(delta) => move(String(todo.id), delta)}
                   onUpdate={async (changes) => {
                     await updateTodo.mutateAsync({
@@ -373,56 +521,32 @@ export function Todos({
               ))}
             </ul>
           ) : null}
-
-          {/* A statement and a button rather than a sentence with a link in it.
-            Two underlined links stacked here read as one paragraph and get
-            skipped, so the thing worth doing is the only thing shaped like a
-            control. */}
-          {sharedCount ? (
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
-              <p className="text-muted-foreground text-sm">
-                {sharedCount === 1 ? '1 item is' : `${sharedCount} items are`}{' '}
-                shared
-                {profilePublished
-                  ? ', and anyone with the link can see them.'
-                  : ', but nobody can see them yet.'}
-              </p>
-
-              <Button
-                asChild
-                size="sm"
-                variant={profilePublished ? 'outline' : 'default'}
-              >
-                <Link href={profilePublished ? `/u/${userId}` : '/profile'}>
-                  {profilePublished ? (
-                    <>
-                      <Globe aria-hidden />
-                      View public profile
-                    </>
-                  ) : (
-                    'Publish your profile'
-                  )}
-                </Link>
-              </Button>
-            </div>
-          ) : null}
         </CardContent>
       </Card>
 
-      {/* Outside the card on purpose. It is a local tool, not part of the
-        feature, and stacking it under the sharing line as a second underlined
-        sentence made both look like the same thing and got both ignored. */}
-      {todosTable ? (
-        <a
-          href={todosTable}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex items-center gap-1.5 self-start px-1 text-muted-foreground/60 text-xs transition-colors hover:text-foreground"
-        >
-          <TableProperties className="size-3.5" aria-hidden />
-          See these rows unfiltered in the dashboard
-        </a>
-      ) : null}
-    </>
+      {/* Both outside the card on purpose. Neither is part of the feature: one
+          reports on it and the other is a local tool, and stacking either
+          inside made it read as another row of the list.
+
+          The dashboard link takes the left because it is a standing offer and
+          reads as a sentence; the sync line keeps the right, under the stamps
+          it is the newest of - the whole column now says when something was
+          written, ending with the one just written. */}
+      <div className="flex items-center justify-between gap-4 px-1">
+        {todosTable ? (
+          <a
+            href={todosTable}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 text-muted-foreground/60 text-xs transition-colors hover:text-foreground"
+          >
+            <TableProperties className="size-3.5" aria-hidden />
+            See these rows unfiltered in the dashboard
+          </a>
+        ) : null}
+
+        <SyncIndicator isSyncing={isSyncing} className="ml-auto" />
+      </div>
+    </div>
   );
 }

@@ -126,30 +126,36 @@ select_permissions:
       filter:
         _or:
           # An avatar is readable by anyone exactly when its owner's profile is,
-          # which is the condition `auth_users.yaml` puts on the profile itself.
-          # Left unconditional, the avatar of someone who has unpublished or
-          # deleted stays world-readable forever, at a URL anyone can derive
-          # from a user id that was public once.
+          # which is the condition `auth_users.yaml` puts on the profile itself
+          # - an opt-out, so absence of the flag means readable and only the
+          # literal `false` withdraws it. Left unconditional, the avatar of
+          # someone who has turned their profile off or deleted it stays
+          # world-readable forever, at a URL anyone can derive from a user id
+          # that was public once.
           - _and:
               - bucket_id:
                   _eq: avatars
               - avatarOwner:
-                  metadata:
-                    _contains:
-                      publicProfile: true
-                  _not:
-                    metadata:
-                      _has_key: deletedAt
+                  _and:
+                    - _not:
+                        metadata:
+                          _contains:
+                            publicProfile: false
+                    - _not:
+                        metadata:
+                          _has_key: deletedAt
           - todos:
               is_public:
                 _eq: true
               user:
-                metadata:
-                  _contains:
-                    publicProfile: true
-                _not:
-                  metadata:
-                    _has_key: deletedAt
+                _and:
+                  - _not:
+                      metadata:
+                        _contains:
+                          publicProfile: false
+                  - _not:
+                      metadata:
+                        _has_key: deletedAt
   # Signing in is not a way around the rule above. Anyone can create an account,
   # so every branch here that is not about the caller's own files repeats the
   # owner condition the `public` role carries.
@@ -180,22 +186,26 @@ select_permissions:
                   - id:
                       _eq: X-Hasura-User-Id
                   - avatarOwner:
-                      metadata:
-                        _contains:
-                          publicProfile: true
-                      _not:
-                        metadata:
-                          _has_key: deletedAt
+                      _and:
+                        - _not:
+                            metadata:
+                              _contains:
+                                publicProfile: false
+                        - _not:
+                            metadata:
+                              _has_key: deletedAt
           - todos:
               is_public:
                 _eq: true
               user:
-                metadata:
-                  _contains:
-                    publicProfile: true
-                _not:
-                  metadata:
-                    _has_key: deletedAt
+                _and:
+                  - _not:
+                      metadata:
+                        _contains:
+                          publicProfile: false
+                  - _not:
+                      metadata:
+                        _has_key: deletedAt
 delete_permissions:
   - role: user
     permission:

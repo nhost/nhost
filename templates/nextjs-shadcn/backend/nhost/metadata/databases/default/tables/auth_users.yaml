@@ -63,10 +63,21 @@ select_permissions:
         id:
           _eq: X-Hasura-User-Id
   # What a stranger sees on a shared list: enough to say whose it is, and no
-  # more. Publishing the profile is a deliberate act on the profile page, so
-  # this is the master switch: turn it off and `/u/<id>` is gone, whatever is
-  # flagged on the rows. The two sibling keys are ANDed, so a soft-deleted
-  # account disappears from here the moment it is stamped.
+  # more. This is the master switch: turn it off and `/u/<id>` is gone,
+  # whatever is flagged on the rows. A soft-deleted account drops out of here
+  # the moment it is stamped.
+  #
+  # It is an *opt-out*, which is why the test reads `_not ... _contains false`
+  # rather than `_contains true`. A scaffolded project should have a working
+  # public page as soon as somebody signs in, so the absence of the flag means
+  # public and only the literal `false` withdraws it. `frontend/src/lib/
+  # profile.ts` states the same rule for the UI; this one enforces it.
+  #
+  # A fresh account's `metadata` is JSON `null` rather than SQL NULL - Nhost
+  # auth marshals an absent value to the literal `null` - and `'null'::jsonb`
+  # contains nothing, yielding false rather than NULL, so a brand new account
+  # passes both tests. A row holding SQL NULL would fail them and read as
+  # private, which is the safe way round for that edge case to break.
   #
   # `avatar_url` is deliberately not in this list. For an account that never
   # uploaded a photo it holds the Gravatar URL assigned at sign-up, and that
@@ -75,18 +86,31 @@ select_permissions:
   # the picture instead from `storage.files` (see `storage_files.yaml`'s
   # `avatars` branch), which serves exactly the same published-and-not-deleted
   # condition without ever naming the column that carries the hash.
+  #
+  # `created_at` is here for the "Since Sep 2026" line under the name, which
+  # is the one thing on a stranger's page that says whether it is a page worth
+  # trusting. Worth stating what that costs: the page prints a month, but the
+  # column answers to the microsecond, and anyone querying the API directly
+  # gets that precision. It is not a secret - it is the moment the account was
+  # made - but it is a distinguisher, so an account created in the same second
+  # as another is correlatable across the two. Acceptable for a starter's
+  # public profile; if it is not for yours, drop the column and compute a
+  # coarser value in a Postgres function exposed as a computed field.
   - role: public
     permission:
       columns:
         - id
         - display_name
+        - created_at
       filter:
-        metadata:
-          _contains:
-            publicProfile: true
-        _not:
-          metadata:
-            _has_key: deletedAt
+        _and:
+          - _not:
+              metadata:
+                _contains:
+                  publicProfile: false
+          - _not:
+              metadata:
+                _has_key: deletedAt
 update_permissions:
   - role: user
     permission:

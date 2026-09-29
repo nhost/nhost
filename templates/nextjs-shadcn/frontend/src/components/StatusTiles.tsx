@@ -30,7 +30,7 @@ export async function StatusTiles() {
         action={
           session ? (
             <Button asChild variant="outline" size="sm">
-              <Link href="/profile">Your profile</Link>
+              <Link href="/profile">Edit profile</Link>
             </Button>
           ) : (
             <SignInLink variant="outline" />

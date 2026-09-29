@@ -69,17 +69,21 @@ When building another user-owned feature, copy this end-to-end shape: reversible
 
 The same table is also the example of data readable without a session, which is a different problem from per-user data and is easy to get wrong. Two independent switches gate it, and both must be on:
 
-- `auth_users.yaml` exposes an account to `public` when `metadata.publicProfile` is true and there is no `deletedAt`. This is the master switch, set from the profile page.
+- `auth_users.yaml` exposes an account to `public` when `metadata.publicProfile` is **not** `false` and there is no `deletedAt`. This is the master switch, and it is an opt-out: the page is on by default, so the absence of the flag means public and only the literal `false` withdraws it. A fresh account's `metadata` is JSON `null` rather than SQL NULL, and `'null'::jsonb` contains nothing, so it passes.
 - `public_todos.yaml` gives the `public` role a select on rows that are `is_public` *and* whose owner, through the `user` relationship, satisfies the rule above.
 - `storage_files.yaml` repeats that whole condition through the `todos` relationship. It has to: a relationship filter matches raw rows, it does not apply the related table's permission.
 - `frontend/src/app/u/[id]/page.tsx` reads through `createAnonymousClient()`, never the session client.
-- `frontend/src/app/profile/actions.ts` sets the master switch with a read-merge-write, because `metadata` is one column shared with the soft-delete flow and a blind `_set` would drop `deletedAt`.
+- `frontend/src/lib/profile.ts` is the UI's copy of the same rule. Read the flag through `isProfilePublic` rather than comparing it by hand, so the default lives in one place.
+- `frontend/src/app/profile/actions.ts` sets the master switch with a read-merge-write, because `metadata` is one column shared with the soft-delete flow and a blind `_set` would drop `deletedAt`. Turning the page off writes `publicProfile: false`; turning it on deletes the key rather than writing `true`.
 
 Rules to keep when extending this:
 
 - Query public data with `createAnonymousClient()`. Using the session client makes Hasura answer as `user`, whose row filter hides other people's rows, so the page breaks for signed-in visitors only.
 - Put the visibility rule in the permission, not in a `where` clause. A page that filters by hand is a page that can forget.
-- Name the columns each role may read. Everything left off the `public` list is what cannot leak, today `auth.users.email`, `auth.users.metadata`, `auth.users.avatar_url`, and `todos.user_id`. `avatar_url` is excluded even though it looks harmless: for an account that never uploaded a photo it holds the Gravatar URL assigned at sign-up, which embeds `md5(lowercase(email))` - a bulk-harvestable pseudonym for the address. `/u/[id]` gets the picture instead from `storage.files`, which already serves it under the same published-and-not-deleted condition.
+- Name the columns each role may read. Everything left off the `public` list is what cannot leak, today `auth.users.email`, `auth.users.metadata`, `auth.users.avatar_url`, and `todos.user_id`. `avatar_url` is excluded even though it looks harmless: for an account that never uploaded a photo it holds the Gravatar URL assigned at sign-up, which embeds `md5(lowercase(email))` - a bulk-harvestable pseudonym for the address. `/u/[id]` gets the picture instead from `storage.files`, which already serves it under the same public-and-not-deleted condition.
+- Weigh a column's precision, not just whether it is a secret. `auth.users.created_at` is on the `public` list so the page can print "Since Sep 2026", but the column answers to the microsecond and the role gets that whether the page renders it or not. It is the one entry in that list making a trade rather than stating an obvious fact; if the trade is wrong for your project, drop the column and expose a coarser value as a computed field.
+- `schema.graphql` is dumped for the `user` role, so a field readable there can still be unreadable as `public`. Adding one to `/u/[id]`'s query type-checks and then fails at runtime - check the `public` column list in `backend/nhost/metadata/` first.
+- Do not offer a sharing control while the page is off. `TodoItem`'s eye and `WantFields`' visibility toggle are left out entirely in that state, because a control whose only effect is on a page that does not answer misreports what it did.
 - After touching the `storage.files` select permission, confirm a private item's photo is a 404 anonymously and a shared one is a 200. Widening that rule exposes every private attachment at once.
 
 ## Accepting file uploads

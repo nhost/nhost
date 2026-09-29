@@ -109,23 +109,28 @@ Any item can carry a photo and be shared, with or without a location.
 
 Sharing takes two switches, and both have to be on:
 
-1. **The eye on the row** marks one place as shared. A crossed-out eye is private, which is the default.
-2. **Publish my profile**, on the profile page, gives those places a page at `/u/<your user id>`. The card shows the link and copies it.
+1. **Your public page**, at `/u/<your user id>`, is **on by default**. The profile page shows the link, copies it, and is where you turn the page off. Turning it off is a complete retraction: the `public` role stops seeing the account, its shared items and their photos all at once, rather than the page merely being hidden while the API still answers.
+2. **The eye on the row** marks one place as shared. A crossed-out eye is private, which is the default for every item.
 
-So nothing becomes public as a side effect of one click in one place, and unpublishing the profile retracts everything at once rather than just hiding the page.
+So the page exists from the first sign-in, but it is empty until you share something: nothing becomes public as a side effect of one click in one place. While the page is off the eye is not rendered at all, because a control whose only effect is on a page that does not answer is a control that lies about what it did.
+
+The stored value is an *opt-out*. Turning the page off writes `metadata.publicProfile = false`; turning it back on removes the key rather than writing `true`, so "never touched this setting" and "turned it back on" stay one state instead of two that can drift. Every permission below therefore tests `_not ... _contains false` rather than `_contains true`, and `frontend/src/lib/profile.ts` is the same rule for the UI.
 
 This is the part of the starter that shows a role other than `user`, and it is worth reading before you build your own public page:
 
 - **The `public` role is the unauthenticated one.** Hasura answers a request carrying no token as `public`. Every other permission in this project filters by `X-Hasura-User-Id`; these are the ones that do not.
-- **Permissions filter through relationships.** `public_todos.yaml` requires `is_public` on the row *and*, through the `user` relationship, that the owner published their profile. `storage_files.yaml` repeats that condition through `todos`, because a relationship filter matches raw rows rather than applying the related table's own permission.
-- **`user` is not a weaker `public`.** Anyone can sign up, so every branch of the `user` rule that is not about the caller's own rows carries the same owner condition. A rule like a bare `todos: { is_public: true }` reads as "shared items only" but actually hands every signed-in account every attachment in the project, including those of owners who never published.
-- **Avatars follow the profile.** The avatar's file id *is* the user's id, so `storage_files.yaml` reaches the owner through the `avatarOwner` relationship and applies the same published-and-not-deleted test. Left unconditional, an avatar would stay readable after its owner unpublished, at a URL derivable from any user id that was ever public.
+- **Permissions filter through relationships.** `public_todos.yaml` requires `is_public` on the row *and*, through the `user` relationship, that the owner has not turned their page off. `storage_files.yaml` repeats that condition through `todos`, because a relationship filter matches raw rows rather than applying the related table's own permission.
+- **`user` is not a weaker `public`.** Anyone can sign up, so every branch of the `user` rule that is not about the caller's own rows carries the same owner condition. A rule like a bare `todos: { is_public: true }` reads as "shared items only" but actually hands every signed-in account every attachment in the project, including those of owners whose page is off.
+- **Avatars follow the profile.** The avatar's file id *is* the user's id, so `storage_files.yaml` reaches the owner through the `avatarOwner` relationship and applies the same public-and-not-deleted test. Left unconditional, an avatar would stay readable after its owner turned their page off, at a URL derivable from any user id that was ever public.
 - **Pointing at a file is a write, not just a read.** `todos.file_id` decides which file the rule above exposes, so the insert *and* update checks in `public_todos.yaml` require the file to be one you uploaded. Without that, anyone could attach someone else's private file to their own shared item and publish it.
 - **The page queries anonymously on purpose.** `/u/[id]` uses `createAnonymousClient()` from `frontend/src/lib/nhost/server.ts`, not the session client. Reading public data through the visitor's own session would have Hasura answer as `user`, whose row-level filter hides everyone else's rows, so the page would render empty for signed-in visitors and only for them.
 - **A missing page and a private one are the same 404.** Neither the page nor the permission distinguishes them, so the URL cannot be used to discover whether an account exists.
-- **Soft-deleted accounts drop out.** The `public` rule on `auth_users.yaml` also requires no `deletedAt`, so deleting an account takes its page down immediately even while published.
+- **Soft-deleted accounts drop out.** The `public` rule on `auth_users.yaml` also requires no `deletedAt`, so deleting an account takes its page down immediately even while the page is on.
+- **A fresh account passes the test.** Nhost auth writes JSON `null` into `metadata`, not SQL NULL, and `'null'::jsonb` contains nothing - so the containment test is false rather than NULL and a brand new account reads as public. A row holding SQL NULL would read as private instead, which is the safe way round for that edge case to break.
 
-The columns left off the `public` lists are the ones that cannot leak: the account's email, `metadata` and `avatar_url`, and `todos.user_id`. `avatar_url` is left off because, for an account that never uploaded a photo, it holds the sign-up Gravatar URL, which embeds `md5(lowercase(email))`; the shared page serves the picture from `storage.files` instead, under the same published-and-not-deleted condition.
+The columns left off the `public` lists are the ones that cannot leak: the account's email, `metadata` and `avatar_url`, and `todos.user_id`. `avatar_url` is left off because, for an account that never uploaded a photo, it holds the sign-up Gravatar URL, which embeds `md5(lowercase(email))`; the shared page serves the picture from `storage.files` instead, under the same public-and-not-deleted condition.
+
+`created_at` **is** on the list, for the "Since Sep 2026" line under the name, and it is the one entry worth weighing before you copy this. The page prints a month; the column answers to the microsecond, and a role that can select it gets the full value however the page chooses to render it. That is not a secret, but it is a distinguisher — two accounts created in the same second are correlatable. If that trade is wrong for your project, take the column off the `public` list and expose a coarser value through a Postgres function as a computed field instead.
 
 ## Attachments, and the two ways to accept a file
 
@@ -148,7 +153,7 @@ curl -o /dev/null -w '%{http_code}\n' -X POST "$STORAGE_URL/files" \
 
 It must not be 200/201 for an id that belongs to an existing account.
 
-Reads are governed the same way. `storage_files.yaml` makes a file readable by `public` when the item pointing at it is shared, which is a filter back through the `todos` relationship. An `<img>` tag sends no Authorization header, so storage always answers it as `public`: the photo on a shared item loads for everyone, and the same URL on a private one is a 404, with no presigned URL to expire. That rule is the one to be careful with, because widening it is how every private attachment becomes world-readable at once. Check it after changing it:
+Reads are governed the same way. `storage_files.yaml` makes a file readable by `public` when the item pointing at it is shared, which is a filter back through the `todos` relationship. An `<img>` tag sends no Authorization header, so storage always answers it as `public`: the photo on a shared item loads for everyone, and the same URL on a private one is a 404. That is why the owner's own view of a private photo goes through `useStoredFileURL`, which fetches the bytes with the session's Authorization header and draws them from a blob URL — one stable URL per file and size, so the CDN caches it and revalidates against that header, where a pre-signed URL is unique per mint and misses the cache every time. That rule is the one to be careful with, because widening it is how every private attachment becomes world-readable at once. Check it after changing it:
 
 ```sh
 curl -o /dev/null -w '%{http_code}\n' "$STORAGE_URL/files/<id of a private item's photo>"
@@ -162,7 +167,7 @@ One thing deliberately left out: auto-fetching a map image for a place. It needs
 
 Sign in and open `/profile` to see the rest of the stack in one place:
 
-- **Avatar** — click it, or drop an image on it, and the photo goes to the `avatar` serverless function, which resizes it to 512×512 and stores it in the `avatars` storage bucket. Writes go only through the function. Reads follow the profile: strangers can load it once you publish, and your own view of it is fetched through a presigned URL so it works whether you have published or not.
+- **Avatar** — click it, or drop an image on it, and the photo goes to the `avatar` serverless function, which resizes it to 512×512 and stores it in the `avatars` storage bucket. Writes go only through the function. Reads follow the profile: strangers can load it while your page is on, and your own view of it is fetched with your session so it works either way.
 - **Display name** — a GraphQL mutation on your own `auth.users` row, allowed by row-level permissions.
 - **Email** — a change takes effect only after you confirm it from the new address; the pending state shows on the card.
 - **Password** — three flows, driven by whether one is set. Set a password if you only ever used codes, change it with the current one, or mail yourself a reset link.

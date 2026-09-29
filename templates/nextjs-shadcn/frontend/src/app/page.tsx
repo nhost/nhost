@@ -7,12 +7,13 @@ export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   const nhost = await createNhostClient();
+  const user = nhost.getUserSession()?.user;
 
   return (
     <div className="flex flex-col gap-8">
       <PageHeader />
       <StatusTiles />
-      {nhost.getUserSession() ? <NextSteps /> : null}
+      {user ? <NextSteps userId={user.id} /> : null}
     </div>
   );
 }

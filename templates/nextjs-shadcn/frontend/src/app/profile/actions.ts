@@ -367,12 +367,19 @@ export async function sendOwnPasswordReset(): Promise<ActionResult> {
 }
 
 /**
- * Publishes or unpublishes the profile at `/u/<id>`.
+ * Turns the profile at `/u/<id>` on or off.
  *
  * This is the master switch the `public` role reads. While it is off that role
  * cannot see the account, its shared items, or their photos, whatever is
  * flagged on the individual rows, so turning it off is a complete retraction
  * rather than just hiding the page.
+ *
+ * The stored value is an opt-out: turning it off writes `publicProfile: false`
+ * and turning it back on *removes* the key rather than writing `true`. That
+ * asymmetry is deliberate - it keeps "never touched this setting" and
+ * "deliberately turned it back on" as the same state, so there is one
+ * representation of public rather than two that can drift apart. See
+ * `@/lib/profile` and the matching filters in `backend/nhost/metadata/`.
  *
  * It goes through the same read-merge-write as the delete flow because they
  * share one `metadata` column: a blind `_set` here would drop `deletedAt`.
@@ -393,7 +400,7 @@ export async function setProfilePublished(
     );
     await gqlRequest(nhost, SetUserMetadata, {
       id: user.id,
-      metadata: published ? { ...metadata, publicProfile: true } : metadata,
+      metadata: published ? metadata : { ...metadata, publicProfile: false },
     });
 
     return { success: true };
