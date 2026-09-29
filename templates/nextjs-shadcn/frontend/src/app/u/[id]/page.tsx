@@ -1,4 +1,6 @@
+import { ArrowRight } from 'lucide-react';
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { cache } from 'react';
 import { EmptyList } from '@/components/EmptyList';
@@ -19,7 +21,7 @@ import {
 } from '@/components/WantSentence';
 import { graphql } from '@/gql';
 import { gqlRequest } from '@/lib/graphql';
-import { createAnonymousClient } from '@/lib/nhost/server';
+import { createAnonymousClient, createNhostClient } from '@/lib/nhost/server';
 import { fileURL } from '@/lib/storage';
 
 export const dynamic = 'force-dynamic';
@@ -123,6 +125,15 @@ export default async function SharedList({ params }: PageProps) {
     notFound();
   }
 
+  // Identity only - never the data. The list above is still read through
+  // `createAnonymousClient()`, because asking as `user` would have Hasura
+  // apply the owner's row filter and hide everybody else's rows; this reads
+  // the session purely to answer "is this page mine", which decides whether
+  // the empty state offers a way to fill it. A visitor with no session gets
+  // `null` here and the page renders exactly as it did before.
+  const viewer = (await createNhostClient()).getUserSession()?.user;
+  const isOwner = viewer?.id === user.id;
+
   const client = createAnonymousClient();
 
   return (
@@ -188,7 +199,44 @@ export default async function SharedList({ params }: PageProps) {
                 either by a stranger following a link early or by the owner
                 checking what the link shows, so it says only that the list is
                 empty - who it is empty for is not this page's business. */}
-            {user.todos.length === 0 ? <EmptyList /> : null}
+            {user.todos.length === 0 ? (
+              <EmptyList
+                action={
+                  isOwner ? (
+                    /* The arrow leads rather than trails, so the eye meets
+                       the direction before the words and the whole thing
+                       reads as a way out of an empty page. It is
+                       `aria-hidden`; the link already says where it goes.
+
+                       No underline and no full-strength foreground, so it
+                       sits quietly on an otherwise empty card rather than
+                       being the brightest thing on the page. Between them
+                       that is the whole usual signal that this is a link
+                       gone, so the hover has to carry it: the words come up
+                       to full strength and the arrow inches toward them. At
+                       rest the arrow and the italic are what set the line
+                       apart from the one above it.
+
+                       A transition rather than a keyframed drift. The motion
+                       only has to say "this is a control and you are on it",
+                       which a 2px nudge on hover says as well as anything
+                       moving on its own - and it costs no `@keyframes`, no
+                       reduced-motion opt-out, and nothing running when the
+                       page is just sitting there. */
+                    <Link
+                      href="/protected"
+                      className="group inline-flex items-center gap-1.5 text-muted-foreground text-sm italic transition-colors hover:text-foreground"
+                    >
+                      <ArrowRight
+                        className="size-3.5 transition-transform group-hover:translate-x-0.5"
+                        aria-hidden
+                      />
+                      Add something
+                    </Link>
+                  ) : undefined
+                }
+              />
+            ) : null}
 
             <ul className="flex flex-col">
               {user.todos.map((todo, index) => (
