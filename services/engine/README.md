@@ -289,9 +289,9 @@ nix build .#engine
 nix build .#engine-docker-image
 ```
 
-From the module (needs the engine dev shell for `vips` + `GOEXPERIMENT=jsonv2`):
+From the repository root (needs the engine dev shell for `vips` + `GOEXPERIMENT=jsonv2`):
 
 ```sh
-nix develop .#engine
-go build ./services/engine
+nix develop .#engine -c go build -o /tmp/engine -ldflags "-X main.Version=dev" ./services/engine
+/tmp/engine --version
 ```
