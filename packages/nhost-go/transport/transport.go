@@ -20,6 +20,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -86,8 +87,8 @@ func Chain(base http.RoundTripper, middleware ...Middleware) http.RoundTripper {
 		base = http.DefaultTransport
 	}
 
-	for i := len(middleware) - 1; i >= 0; i-- {
-		base = middleware[i](base)
+	for _, mw := range slices.Backward(middleware) {
+		base = mw(base)
 	}
 
 	return base

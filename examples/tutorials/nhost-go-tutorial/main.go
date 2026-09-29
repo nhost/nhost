@@ -154,7 +154,13 @@ func rootCmd() *cli.Command { //nolint:funlen,maintidx
 					},
 				},
 				Action: withArgs(func(ctx context.Context, cmd *cli.Command, args []string) error {
-					return noteNew(ctx, client, args[0], cmd.String("content"), cmd.String("notebook"))
+					return noteNew(
+						ctx,
+						client,
+						args[0],
+						cmd.String("content"),
+						cmd.String("notebook"),
+					)
 				}),
 			},
 			{
@@ -262,16 +268,20 @@ func rootCmd() *cli.Command { //nolint:funlen,maintidx
 						Name:      "new",
 						Usage:     "Create a notebook",
 						Arguments: commandArguments("NAME", 1, 1),
-						Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
-							return notebookNew(ctx, client, args[0])
-						}),
+						Action: withArgs(
+							func(ctx context.Context, _ *cli.Command, args []string) error {
+								return notebookNew(ctx, client, args[0])
+							},
+						),
 					},
 					{
 						Name:  "ls",
 						Usage: "List your notebooks",
-						Action: withArgs(func(ctx context.Context, _ *cli.Command, _ []string) error {
-							return notebookLs(ctx, client)
-						}),
+						Action: withArgs(
+							func(ctx context.Context, _ *cli.Command, _ []string) error {
+								return notebookLs(ctx, client)
+							},
+						),
 					},
 				},
 			},
@@ -283,9 +293,11 @@ func rootCmd() *cli.Command { //nolint:funlen,maintidx
 					{
 						Name:  "ls",
 						Usage: "List your tags",
-						Action: withArgs(func(ctx context.Context, _ *cli.Command, _ []string) error {
-							return tagLs(ctx, client)
-						}),
+						Action: withArgs(
+							func(ctx context.Context, _ *cli.Command, _ []string) error {
+								return tagLs(ctx, client)
+							},
+						),
 					},
 					{
 						Name:      "new",
@@ -298,25 +310,31 @@ func rootCmd() *cli.Command { //nolint:funlen,maintidx
 								Value: "#808080",
 							},
 						},
-						Action: withArgs(func(ctx context.Context, cmd *cli.Command, args []string) error {
-							return tagNew(ctx, client, args[0], cmd.String("color"))
-						}),
+						Action: withArgs(
+							func(ctx context.Context, cmd *cli.Command, args []string) error {
+								return tagNew(ctx, client, args[0], cmd.String("color"))
+							},
+						),
 					},
 					{
 						Name:      "add",
 						Usage:     "Add a tag to a note (creates the tag if needed)",
 						Arguments: commandArguments("NOTE_ID TAG_NAME", twoArgs, twoArgs),
-						Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
-							return noteTag(ctx, client, args[0], args[1])
-						}),
+						Action: withArgs(
+							func(ctx context.Context, _ *cli.Command, args []string) error {
+								return noteTag(ctx, client, args[0], args[1])
+							},
+						),
 					},
 					{
 						Name:      "rm",
 						Usage:     "Remove a tag from a note",
 						Arguments: commandArguments("NOTE_ID TAG_NAME", twoArgs, twoArgs),
-						Action: withArgs(func(ctx context.Context, _ *cli.Command, args []string) error {
-							return noteUntag(ctx, client, args[0], args[1])
-						}),
+						Action: withArgs(
+							func(ctx context.Context, _ *cli.Command, args []string) error {
+								return noteUntag(ctx, client, args[0], args[1])
+							},
+						),
 					},
 				},
 			},

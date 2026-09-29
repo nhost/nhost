@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nhost/nhost/packages/nhost-go/auth"
 	"github.com/nhost/nhost/packages/nhost-go/session"
 )
 
@@ -19,10 +18,8 @@ func TestFileStorageRoundTrip(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "nested", "session.json")
 	backend := &session.FileStorage{Path: path}
 	value := session.StoredSession{
-		Session: auth.Session{
-			AccessToken:  "access-token",
-			RefreshToken: "refresh-token",
-		},
+		AccessToken:  "access-token",
+		RefreshToken: "refresh-token",
 		DecodedToken: session.DecodedToken{Exp: 12345, Sub: "user-1"},
 	}
 
@@ -93,7 +90,8 @@ func TestFileStorageConcurrentGetSet(t *testing.T) {
 
 	backend := &session.FileStorage{Path: filepath.Join(dir, "session.json")}
 	if err := backend.Set(session.StoredSession{
-		Session:      auth.Session{AccessToken: "access-0", RefreshToken: "refresh-0"},
+		AccessToken:  "access-0",
+		RefreshToken: "refresh-0",
 		DecodedToken: session.DecodedToken{Exp: 1},
 	}); err != nil {
 		t.Fatalf("seed session: %v", err)
@@ -118,10 +116,8 @@ func TestFileStorageConcurrentGetSet(t *testing.T) {
 			for operation := range operations {
 				if index%2 == 0 {
 					if err := backend.Set(session.StoredSession{
-						Session: auth.Session{
-							AccessToken:  fmt.Sprintf("access-%d-%d", index, operation),
-							RefreshToken: fmt.Sprintf("refresh-%d-%d", index, operation),
-						},
+						AccessToken:  fmt.Sprintf("access-%d-%d", index, operation),
+						RefreshToken: fmt.Sprintf("refresh-%d-%d", index, operation),
 						DecodedToken: session.DecodedToken{Exp: int64(operation + 1)},
 					}); err != nil {
 						t.Errorf("concurrent Set() = %v", err)
@@ -173,10 +169,8 @@ func TestFileStorageSetReportsWriteFailure(t *testing.T) {
 	backend := &session.FileStorage{Path: filepath.Join(blocker, "session.json")}
 
 	err := backend.Set(session.StoredSession{
-		Session: auth.Session{
-			AccessToken:  "access-token",
-			RefreshToken: "refresh-token",
-		},
+		AccessToken:  "access-token",
+		RefreshToken: "refresh-token",
 	})
 	if err == nil {
 		t.Fatal("Set() = nil, want a write error")

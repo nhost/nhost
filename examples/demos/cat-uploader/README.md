@@ -71,10 +71,10 @@ curl -s -X POST 'http://localhost:8080/upload?count=3' | jq
 
 ## Run as an Nhost Run service
 
-The CLI doesn't build images, so build it first. This example belongs to the
-repository's single root Go module and builds against its committed `vendor/`
-tree. The build context must therefore be the repository root so Docker can
-include the root `go.mod`, `go.sum`, and `vendor/`:
+The CLI doesn't build images, so build it first. This example is its own Go
+module, and its `go.mod` points the SDK at `packages/nhost-go` in this
+repository. The build context must therefore be the repository root so Docker
+can include the SDK:
 
 ```sh
 # from the repository root

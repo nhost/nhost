@@ -158,13 +158,11 @@ func TestResponseErrorWrapsPartialDataDecodeError(t *testing.T) {
 	client := graphql.NewClient(srv.URL, srv.Client())
 	_, err := client.Request(context.Background(), "query { count }", nil, &result)
 
-	var responseErr *graphql.ResponseError
-	if !errors.As(err, &responseErr) {
+	if _, ok := errors.AsType[*graphql.ResponseError](err); !ok {
 		t.Fatalf("expected *graphql.ResponseError, got %T (%v)", err, err)
 	}
 
-	var decodeErr *graphql.DecodeError
-	if !errors.As(err, &decodeErr) {
+	if _, ok := errors.AsType[*graphql.DecodeError](err); !ok {
 		t.Fatalf("expected wrapped *graphql.DecodeError, got %T (%v)", err, err)
 	}
 }
@@ -295,8 +293,7 @@ func TestRequestDecodeError(t *testing.T) {
 	client := graphql.NewClient(srv.URL, srv.Client())
 	response, err := client.Request(context.Background(), "query { count }", nil, &result)
 
-	var decodeErr *graphql.DecodeError
-	if !errors.As(err, &decodeErr) {
+	if _, ok := errors.AsType[*graphql.DecodeError](err); !ok {
 		t.Fatalf("expected *graphql.DecodeError, got %T (%v)", err, err)
 	}
 
@@ -304,8 +301,7 @@ func TestRequestDecodeError(t *testing.T) {
 		t.Fatalf("status = %d", response.Status)
 	}
 
-	var typeErr *json.UnmarshalTypeError
-	if !errors.As(err, &typeErr) {
+	if _, ok := errors.AsType[*json.UnmarshalTypeError](err); !ok {
 		t.Fatalf("expected wrapped *json.UnmarshalTypeError, got %T (%v)", err, err)
 	}
 }
