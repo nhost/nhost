@@ -3,14 +3,16 @@ import Link from 'next/link';
 import { type ReactElement, useMemo } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
+import { AppLayout } from '@/components/layout/AppLayout';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Alert } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
 import { FileStoresIcon } from '@/components/ui/v3/icons/FileStoresIcon';
 import { Spinner } from '@/components/ui/v3/spinner';
+import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
+import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { AISidebar } from '@/features/orgs/layout/AISidebar';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { FileStoreForm } from '@/features/orgs/projects/ai/FileStoreForm';
 import { FileStoresList } from '@/features/orgs/projects/ai/FileStoresList';
 import type { GraphiteFileStore } from '@/features/orgs/projects/ai/file-stores/types';
@@ -176,16 +178,17 @@ export default function FileStoresPage() {
 
 FileStoresPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout
-      mainContainerProps={{
-        className:
-          'flex flex-row w-full h-full !bg-[#fafafa] dark:!bg-[#151a22]',
-      }}
-    >
-      <AISidebar />
-      <div className="w-full overflow-auto">
-        <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
-      </div>
-    </ProjectLayout>
+    <AppLayout>
+      <ProjectScope>
+        <ProjectStateGate>
+          <div className="!bg-[#fafafa] dark:!bg-[#151a22] flex h-full w-full flex-row">
+            <AISidebar />
+            <div className="w-full overflow-auto">
+              <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
+            </div>
+          </div>
+        </ProjectStateGate>
+      </ProjectScope>
+    </AppLayout>
   );
 };

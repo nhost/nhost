@@ -11,12 +11,6 @@ import { DashboardSidebar } from '@/components/layout/DashboardSidebar';
  * The create-project page should show organization navigation.
  */
 const PROJECT_ROUTE = '/orgs/[orgSlug]/projects/[appSubdomain]';
-const ORGANIZATION_ROUTE = '/orgs/[orgSlug]';
-
-/** The sidebar belongs to every route scoped to an organization. */
-export function hasAppSidebar(pathname: string) {
-  return pathname.startsWith(ORGANIZATION_ROUTE);
-}
 
 export default function AppSidebar() {
   const { pathname } = useRouter();

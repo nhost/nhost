@@ -1,5 +1,7 @@
 import type { ReactElement } from 'react';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { AppLayout } from '@/components/layout/AppLayout';
+import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
+import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
 import { ImportExportMetadataCard } from '@/features/orgs/projects/graphql/metadata/components/ImportExportMetadataCard';
 import { MetadataStatusCard } from '@/features/orgs/projects/graphql/metadata/components/MetadataStatusCard';
 import { ReloadMetadataCard } from '@/features/orgs/projects/graphql/metadata/components/ReloadMetadataCard';
@@ -28,12 +30,14 @@ export default function MetadataPage() {
 
 MetadataPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ProjectLayout
-      mainContainerProps={{
-        className: 'flex flex-1 bg-background-default',
-      }}
-    >
-      <div className="mx-auto w-full max-w-5xl px-10">{page}</div>
-    </ProjectLayout>
+    <AppLayout>
+      <ProjectScope>
+        <ProjectStateGate>
+          <div className="flex min-h-full bg-background-default">
+            <div className="mx-auto w-full max-w-5xl px-10">{page}</div>
+          </div>
+        </ProjectStateGate>
+      </ProjectScope>
+    </AppLayout>
   );
 };

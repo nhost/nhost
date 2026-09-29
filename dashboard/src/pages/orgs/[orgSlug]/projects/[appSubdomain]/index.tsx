@@ -1,5 +1,7 @@
 import type { ReactElement } from 'react';
-import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
+import { AppLayout } from '@/components/layout/AppLayout';
+import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
+import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
 import { ApplicationLive } from '@/features/orgs/projects/common/components/ApplicationLive';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
@@ -17,5 +19,11 @@ export default function AppIndexPage() {
 }
 
 AppIndexPage.getLayout = function getLayout(page: ReactElement) {
-  return <ProjectLayout>{page}</ProjectLayout>;
+  return (
+    <AppLayout>
+      <ProjectScope>
+        <ProjectStateGate>{page}</ProjectStateGate>
+      </ProjectScope>
+    </AppLayout>
+  );
 };
