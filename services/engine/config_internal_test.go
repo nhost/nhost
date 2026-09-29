@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"errors"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/urfave/cli/v3"
@@ -42,6 +44,86 @@ func authFlags() []cli.Flag {
 		&cli.StringFlag{Name: "hasura-graphql-jwt-secret"},
 		&cli.StringFlag{Name: "postgres", Value: "default-dsn"},
 		&cli.StringFlag{Name: "postgres-migrations"},
+	}
+}
+
+func TestServeRejectsSkippedPrefixedEnvironment(t *testing.T) {
+	tests := []struct {
+		name   string
+		env    string
+		value  string
+		reject bool
+	}{
+		{name: "graphql timeout", env: "GRAPHQL_HTTP_READ_TIMEOUT", value: "30s", reject: true},
+		{name: "graphql profile", env: "GRAPHQL_PROFILE_ADDRESS", value: ":6061", reject: true},
+		{name: "storage profiling", env: "STORAGE_PPROF_BIND", value: ":6060", reject: true},
+		{
+			name:   "auth skipped database",
+			env:    "AUTH_POSTGRES",
+			value:  "postgres://example",
+			reject: true,
+		},
+		{name: "empty skipped source", env: "GRAPHQL_HTTP_WRITE_TIMEOUT", value: "", reject: true},
+		{name: "native auth listener", env: "AUTH_PORT", value: "4001", reject: false},
+		{name: "native auth debug", env: "AUTH_DEBUG", value: "true", reject: false},
+		{name: "native auth log format", env: "AUTH_LOG_FORMAT_TEXT", value: "true", reject: false},
+		{
+			name:   "native graphql timeout",
+			env:    "CONSTELLATION_HTTP_READ_TIMEOUT",
+			value:  "30s",
+			reject: false,
+		},
+		{
+			name:   "native graphql listener",
+			env:    "CONSTELLATION_BIND_ADDRESS",
+			value:  ":8081",
+			reject: false,
+		},
+		{name: "native storage profiling", env: "BIND_PPROF", value: ":6060", reject: false},
+		{
+			name:   "native auth route override",
+			env:    "AUTH_API_PREFIX",
+			value:  "/custom",
+			reject: false,
+		},
+		{
+			name:   "engine routing global",
+			env:    "AUTH_COMPAT_HOSTS",
+			value:  "auth.example.com",
+			reject: false,
+		},
+		{
+			name:   "forwarded option",
+			env:    "AUTH_CLIENT_URL",
+			value:  "https://example.com",
+			reject: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv(tc.env, tc.value)
+
+			err := newApp("test").Run(context.Background(), []string{
+				"engine", "serve", "--disable-auth", "--disable-storage", "--disable-graphql",
+			})
+			if tc.reject {
+				if !errors.Is(err, errUnsupportedPrefixedEnv) ||
+					!strings.Contains(err.Error(), tc.env) {
+					t.Fatalf("serve error = %v, want rejection of %s", err, tc.env)
+				}
+
+				if tc.value != "" && strings.Contains(err.Error(), tc.value) {
+					t.Fatalf("serve error leaked value of %s: %v", tc.env, err)
+				}
+
+				return
+			}
+
+			if !errors.Is(err, errAllServicesDisabled) {
+				t.Fatalf("serve error = %v, want errAllServicesDisabled", err)
+			}
+		})
 	}
 }
 

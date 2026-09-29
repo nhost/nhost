@@ -224,8 +224,12 @@ matching env var: `--auth-*` / `AUTH_*`, `--storage-*` / `STORAGE_*`, and
 `--auth-client-url` (`AUTH_CLIENT_URL`). These are forwarded verbatim to the
 service's own CLI, which keeps authority over their types, defaults, and
 validation. No prefixed flags are currently accepted but hidden from `--help`;
-a prefixed option the engine does not re-expose is rejected rather than silently
-ignored.
+the `--<service>-*` command-line forms and engine-prefixed `<SERVICE>_*`
+environment forms without a flag are rejected rather than silently ignored.
+A service's own env vars for engine-owned settings (for example `AUTH_PORT`,
+`CONSTELLATION_HTTP_READ_TIMEOUT`, and `BIND_PPROF`) are still ignored, not
+rejected. The native `AUTH_API_PREFIX` environment variable still overrides the
+engine's auth route default (see below).
 
 `--auth-compat-hosts` (`AUTH_COMPAT_HOSTS`) is an engine routing global despite
 its `auth-` prefix. The shared router consumes it; it is not forwarded to auth's
@@ -260,7 +264,8 @@ auth or storage.
 > also owns the shared HTTP server and runs no profiling listener, so
 > `--graphql-http-read-timeout`, `--graphql-http-write-timeout`,
 > `--graphql-http-idle-timeout`, `--graphql-profile-address`, and
-> `--storage-pprof-bind` are rejected at startup rather than accepted and
+> `--storage-pprof-bind` (and their engine-prefixed env forms) are rejected at
+> startup rather than accepted and ignored. Their native service env vars are
 > ignored. `--graphql-playground-graphql-endpoint` does not exist either: the
 > engine points the playground at `/graphql/v1/graphql`, its GraphQL route
 > behind the mount, and `CONSTELLATION_PLAYGROUND_GRAPHQL_ENDPOINT` remains the

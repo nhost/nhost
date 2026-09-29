@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"reflect"
 	"regexp"
 	"slices"
@@ -356,6 +357,10 @@ func flagHasNonEmptyValue(cmd *cli.Command, name string) bool {
 // background loops are cancelled, then each service releases its resources in
 // reverse build order.
 func runServe(ctx context.Context, cmd *cli.Command, version string) error {
+	if err := rejectSkippedPrefixedEnv(); err != nil {
+		return err
+	}
+
 	cfg := serveConfigFrom(cmd)
 	logger := serveutil.NewLogger(cfg.debug, cfg.logFormatText)
 
@@ -396,6 +401,36 @@ func runServe(ctx context.Context, cmd *cli.Command, version string) error {
 		},
 		definitions...,
 	)
+}
+
+// rejectSkippedPrefixedEnv catches engine-prefixed settings without a flag,
+// while leaving native service env sources alone (even when their names collide).
+func rejectSkippedPrefixedEnv() error {
+	for _, service := range serviceDefinitions() {
+		for _, flag := range service.def.command().Flags {
+			name := flag.Names()[0]
+			if !service.def.skip[name] {
+				continue
+			}
+
+			env := prefixedEnv(service.name, name)
+			if source, ok := flag.(cli.DocGenerationFlag); ok &&
+				slices.Contains(source.GetEnvVars(), env) {
+				continue
+			}
+
+			if _, set := os.LookupEnv(env); set {
+				return fmt.Errorf(
+					"%w %s: no engine flag for %s (native service env vars for engine-owned settings are ignored)",
+					errUnsupportedPrefixedEnv,
+					env,
+					name,
+				)
+			}
+		}
+	}
+
+	return nil
 }
 
 // logStartup identifies the engine before service construction can emit logs or
@@ -444,6 +479,8 @@ func enabledDefinitions(
 }
 
 var (
+	// errUnsupportedPrefixedEnv reports a skipped prefixed option in the environment.
+	errUnsupportedPrefixedEnv = errors.New("unsupported engine-prefixed environment variable")
 	// errAllServicesDisabled is returned when every service was turned off with
 	// a --disable-<service> flag, leaving the engine with nothing to run.
 	errAllServicesDisabled = errors.New("all services disabled; nothing to run")
