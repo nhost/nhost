@@ -94,7 +94,10 @@ Sessions:
   keyed by user, and every request refreshes and attaches the session its
   context selects. `MemoryStorage` and `FileStorage` hold one session (CLIs,
   scripts); `MultiUserMemoryStorage` or your own `Backend` (Redis, SQL) hold
-  one per user, selected with `session.WithUserID(ctx, id)`.
+  one per user, selected with `session.WithUserID(ctx, id)`. A backend shared
+  by replicas should also implement `session.ConditionalRemover`, so a session
+  whose refresh token was rejected is cleared only if another replica has not
+  already stored a newer one.
 - `WithAdminSecret(options)` — trusted server code. Cannot be combined with
   session storage, and a request carrying `session.WithAccessToken` fails
   rather than send both credentials.

@@ -332,3 +332,70 @@ func TestStoredSessionUserID(t *testing.T) {
 		t.Fatalf("UserID() = %q, want the session user's ID", got)
 	}
 }
+
+type conditionalBackend interface {
+	session.Backend
+	session.ConditionalRemover
+}
+
+// TestRemoveIfRefreshToken pins the built-in backends' conditional removal: a
+// session holding another refresh token is returned and kept, one holding the
+// rejected token is removed, and another user's session is never touched.
+func TestRemoveIfRefreshToken(t *testing.T) {
+	t.Parallel()
+
+	backends := map[string]func(t *testing.T) conditionalBackend{
+		"memory": func(*testing.T) conditionalBackend { return &session.MemoryStorage{} },
+		"file": func(t *testing.T) conditionalBackend {
+			t.Helper()
+
+			return &session.FileStorage{Path: filepath.Join(t.TempDir(), "session.json")}
+		},
+		"multi-user": func(*testing.T) conditionalBackend {
+			return &session.MultiUserMemoryStorage{}
+		},
+	}
+
+	for name, newBackend := range backends {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			checkRemoveIfRefreshToken(t, newBackend(t))
+		})
+	}
+}
+
+func checkRemoveIfRefreshToken(t *testing.T, backend conditionalBackend) {
+	t.Helper()
+
+	if err := backend.Set(t.Context(), sessionOf("user-1", "refresh-new")); err != nil {
+		t.Fatalf("set: %v", err)
+	}
+
+	kept, err := backend.RemoveIfRefreshToken(t.Context(), "user-1", "refresh-old")
+	if err != nil || kept == nil || kept.RefreshToken != "refresh-new" {
+		t.Fatalf("stale token: (%#v, %v), want the newer session returned", kept, err)
+	}
+
+	kept, err = backend.RemoveIfRefreshToken(t.Context(), "user-2", "refresh-new")
+	if err != nil || kept != nil {
+		t.Fatalf("another user: (%#v, %v), want (nil, nil)", kept, err)
+	}
+
+	if got, err := backend.Get(t.Context(), "user-1"); err != nil || got == nil {
+		t.Fatalf("session after non-matching removals = (%#v, %v), want kept", got, err)
+	}
+
+	kept, err = backend.RemoveIfRefreshToken(t.Context(), "user-1", "refresh-new")
+	if err != nil || kept != nil {
+		t.Fatalf("rejected token: (%#v, %v), want (nil, nil)", kept, err)
+	}
+
+	if got, err := backend.Get(t.Context(), "user-1"); err != nil || got != nil {
+		t.Fatalf("session after removal = (%#v, %v), want (nil, nil)", got, err)
+	}
+
+	kept, err = backend.RemoveIfRefreshToken(t.Context(), "user-1", "refresh-new")
+	if err != nil || kept != nil {
+		t.Fatalf("nothing stored: (%#v, %v), want (nil, nil)", kept, err)
+	}
+}

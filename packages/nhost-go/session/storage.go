@@ -68,6 +68,48 @@ type Backend interface {
 	Remove(ctx context.Context, userID string) error
 }
 
+// ConditionalRemover is implemented by a [Backend] that can remove a session
+// only if it still holds a given refresh token, in one atomic step.
+//
+// The auth service rotates the refresh token on every refresh, so after it
+// rejects one, another process sharing the backend may already have stored the
+// refreshed session, which must survive. Without this interface [Storage]
+// reads, compares and removes in separate calls, and a session stored between
+// them is removed. A backend shared by several processes (Redis, a database)
+// should implement it with a script or a conditional DELETE; the built-in
+// backends implement it too.
+//
+// RemoveIfRefreshToken removes the session userID selects (as in Get and
+// Remove) if its refresh token is refreshToken. Otherwise it removes nothing
+// and returns the session userID selects, or nil when there is none.
+type ConditionalRemover interface {
+	RemoveIfRefreshToken(
+		ctx context.Context, userID, refreshToken string,
+	) (*StoredSession, error)
+}
+
+// keepUnlessRefreshToken returns a copy of the session in *slot if it is
+// selected and holds another refresh token, and empties the slot if it holds
+// refreshToken: [ConditionalRemover] for the in-memory backends, whose caller
+// holds the lock.
+func keepUnlessRefreshToken(
+	slot **StoredSession, userID, refreshToken string,
+) *StoredSession {
+	if !selects(*slot, userID) {
+		return nil
+	}
+
+	if (*slot).RefreshToken == refreshToken {
+		*slot = nil
+
+		return nil
+	}
+
+	cp := **slot
+
+	return &cp
+}
+
 // selects reports whether a single-session backend's stored session answers a
 // request for userID.
 func selects(stored *StoredSession, userID string) bool {
@@ -114,6 +156,15 @@ func (m *MemoryStorage) Remove(_ context.Context, userID string) error {
 	}
 
 	return nil
+}
+
+func (m *MemoryStorage) RemoveIfRefreshToken(
+	_ context.Context, userID, refreshToken string,
+) (*StoredSession, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	return keepUnlessRefreshToken(&m.session, userID, refreshToken), nil
 }
 
 // MultiUserMemoryStorage is an in-memory backend holding one session per user,
@@ -164,6 +215,27 @@ func (m *MultiUserMemoryStorage) Remove(_ context.Context, userID string) error 
 	delete(m.sessions, userID)
 
 	return nil
+}
+
+func (m *MultiUserMemoryStorage) RemoveIfRefreshToken(
+	_ context.Context, userID, refreshToken string,
+) (*StoredSession, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	stored, ok := m.sessions[userID]
+	if userID == "" || !ok {
+		return nil, nil //nolint:nilnil // (nil, nil) means "no session stored".
+	}
+
+	slot := &stored
+
+	kept := keepUnlessRefreshToken(&slot, userID, refreshToken)
+	if slot == nil {
+		delete(m.sessions, userID)
+	}
+
+	return kept, nil
 }
 
 // FileStorage is a JSON-file backend holding a single session, useful for CLIs
@@ -281,11 +353,40 @@ func (f *FileStorage) Remove(_ context.Context, userID string) error {
 		}
 	}
 
+	return f.remove()
+}
+
+// remove deletes the file; the caller holds the lock.
+func (f *FileStorage) remove() error {
 	if err := os.Remove(f.Path); err != nil && !os.IsNotExist(err) {
 		return &StorageError{Op: OpRemove, Path: f.Path, Err: err}
 	}
 
 	return nil
+}
+
+// RemoveIfRefreshToken is atomic among the goroutines sharing this FileStorage.
+// Processes sharing the file are not coordinated.
+func (f *FileStorage) RemoveIfRefreshToken(
+	_ context.Context, userID, refreshToken string,
+) (*StoredSession, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	stored, err := f.read()
+	if err != nil {
+		return nil, err
+	}
+
+	if !selects(stored, userID) {
+		return nil, nil //nolint:nilnil // (nil, nil) means "no session stored".
+	}
+
+	if stored.RefreshToken != refreshToken {
+		return stored, nil
+	}
+
+	return nil, f.remove()
 }
 
 type refreshCall struct {
@@ -349,7 +450,9 @@ func (s *Storage) finishRefresh(
 // rejected. If the stored session now carries a different refresh token,
 // another process refreshed it in the meantime (the auth service rotates the
 // token on every refresh, so the loser of that race is always rejected), and
-// that session is returned and kept rather than signing the user out.
+// that session is returned and kept rather than signing the user out. A backend
+// implementing [ConditionalRemover] does the comparison and the removal in one
+// step; otherwise they are separate calls.
 //
 // A backend read failure is reported as an error rather than as "absent", so a
 // caller never concludes the user was already signed out because the store was
@@ -357,28 +460,27 @@ func (s *Storage) finishRefresh(
 func (s *Storage) removeRejected(
 	ctx context.Context,
 	rejectedRefreshToken string,
-) (*StoredSession, bool, error) {
+) (*StoredSession, error) {
 	s.refreshMu.Lock()
 	defer s.refreshMu.Unlock()
 
+	if remover, ok := s.backend.(ConditionalRemover); ok {
+		//nolint:wrapcheck // Caller-supplied backend error.
+		return remover.RemoveIfRefreshToken(
+			ctx, UserIDFromContext(ctx), rejectedRefreshToken,
+		)
+	}
+
 	current, err := s.Get(ctx)
 	if err != nil {
-		return nil, false, err
+		return nil, err
 	}
 
-	if current == nil {
-		return nil, false, nil
+	if current == nil || current.RefreshToken != rejectedRefreshToken {
+		return current, nil
 	}
 
-	if current.RefreshToken != rejectedRefreshToken {
-		return current, false, nil
-	}
-
-	if err := s.Remove(ctx); err != nil {
-		return nil, true, err
-	}
-
-	return nil, true, nil
+	return nil, s.Remove(ctx)
 }
 
 // Get returns the session ctx selects from the backend. It returns (nil, nil)

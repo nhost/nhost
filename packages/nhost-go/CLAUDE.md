@@ -74,7 +74,12 @@ import cycle arises.
   token) into a single flight, and guards reentrancy by storage identity. The
   auth service rotates the refresh token on every refresh, so on a 401 the
   session is cleared only if the store still holds the rejected token;
-  otherwise another process refreshed it first and its session is kept.
+  otherwise another process refreshed it first and its session is kept. That
+  check-and-remove goes through the optional `session.ConditionalRemover`
+  when the backend implements it (all built-ins do), so a shared backend can
+  make it atomic; otherwise it is `Get`, compare, `Remove`. Pinned by
+  `TestRefreshSessionKeepsSessionRotatedElsewhere` (both paths) and
+  `TestRefreshSessionClearsRejectedSessionThroughConditionalRemover`.
 - Generated files carry `// Code generated ... DO NOT EDIT.` so golangci-lint
   auto-skips them; the plugin still applies Go initialisms (ID/URL/JSON) for
   nice field names.

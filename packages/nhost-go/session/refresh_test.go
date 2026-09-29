@@ -741,8 +741,33 @@ func assertStoredSession(
 func TestRefreshSessionKeepsSessionRotatedElsewhere(t *testing.T) {
 	t.Parallel()
 
+	// The same race through a backend's ConditionalRemover and through the
+	// read-compare-remove fallback for a backend without one.
+	backends := map[string]func(*session.MemoryStorage) session.Backend{
+		"conditional": func(memory *session.MemoryStorage) session.Backend { return memory },
+		"fallback": func(memory *session.MemoryStorage) session.Backend {
+			return plainBackend{memory}
+		},
+	}
+
+	for name, wrap := range backends {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			testRefreshSessionKeepsSessionRotatedElsewhere(t, wrap)
+		})
+	}
+}
+
+// plainBackend hides every method but Backend's, such as RemoveIfRefreshToken.
+type plainBackend struct{ session.Backend }
+
+func testRefreshSessionKeepsSessionRotatedElsewhere(
+	t *testing.T, wrap func(*session.MemoryStorage) session.Backend,
+) {
+	t.Helper()
+
 	backend := &session.MemoryStorage{}
-	store := session.NewStorage(backend)
+	store := session.NewStorage(wrap(backend))
 
 	if err := store.Set(t.Context(), auth.Session{
 		AccessToken:  tokenWithExpiry(t, time.Now().Add(30*time.Second).Unix()),
@@ -870,5 +895,76 @@ func TestRefreshSessionRefreshesEachUserIndependently(t *testing.T) {
 
 	if hits.Load() != int32(len(users)) {
 		t.Fatalf("token endpoint hits = %d, want one per user (%d)", hits.Load(), len(users))
+	}
+}
+
+// removeRecordingBackend is a MemoryStorage that records which removal the SDK
+// asked for, so a test can tell the atomic conditional removal from a plain one.
+type removeRecordingBackend struct {
+	*session.MemoryStorage
+
+	removes            atomic.Int32
+	conditionalRemoves atomic.Int32
+}
+
+func (b *removeRecordingBackend) Remove(ctx context.Context, userID string) error {
+	b.removes.Add(1)
+
+	return b.MemoryStorage.Remove(ctx, userID) //nolint:wrapcheck // Delegating to the real backend.
+}
+
+func (b *removeRecordingBackend) RemoveIfRefreshToken(
+	ctx context.Context, userID, refreshToken string,
+) (*session.StoredSession, error) {
+	b.conditionalRemoves.Add(1)
+
+	//nolint:wrapcheck // Delegating to the real backend.
+	return b.MemoryStorage.RemoveIfRefreshToken(ctx, userID, refreshToken)
+}
+
+// TestRefreshSessionClearsRejectedSessionThroughConditionalRemover checks that
+// a backend able to remove a session atomically is asked to: a plain Remove
+// after a separate read could delete a session another process just stored.
+func TestRefreshSessionClearsRejectedSessionThroughConditionalRemover(t *testing.T) {
+	t.Parallel()
+
+	backend := &removeRecordingBackend{
+		MemoryStorage:      &session.MemoryStorage{},
+		removes:            atomic.Int32{},
+		conditionalRemoves: atomic.Int32{},
+	}
+	store := session.NewStorage(backend)
+
+	if err := store.Set(t.Context(), auth.Session{
+		AccessToken:  tokenWithExpiry(t, time.Now().Add(30*time.Second).Unix()),
+		RefreshToken: "old-refresh-token",
+	}); err != nil {
+		t.Fatalf("seed session: %v", err)
+	}
+
+	server := httptest.NewServer(
+		http.HandlerFunc(func(writer http.ResponseWriter, _ *http.Request) {
+			http.Error(writer, "refresh token rejected", http.StatusUnauthorized)
+		}),
+	)
+	defer server.Close()
+
+	got, err := session.RefreshSession(
+		t.Context(), auth.NewClient(server.URL, server.Client()), store, refreshMarginSeconds,
+	)
+	if err != nil || got != nil {
+		t.Fatalf("RefreshSession() = (%#v, %v), want (nil, nil)", got, err)
+	}
+
+	if n := backend.conditionalRemoves.Load(); n != 1 {
+		t.Errorf("RemoveIfRefreshToken calls = %d, want 1", n)
+	}
+
+	if n := backend.removes.Load(); n != 0 {
+		t.Errorf("Remove calls = %d, want 0: it could delete a newer session", n)
+	}
+
+	if stored, err := store.Get(t.Context()); err != nil || stored != nil {
+		t.Fatalf("stored session = (%#v, %v), want it cleared", stored, err)
 	}
 }

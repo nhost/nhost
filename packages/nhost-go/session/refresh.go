@@ -220,10 +220,7 @@ func RefreshSession(
 	attempt, isAttempt := errors.AsType[*refreshAttemptError](err)
 
 	if isAPIErr && isAttempt && apiErr.Status == unauthorized {
-		current, removed, removeErr := storage.removeRejected(ctx, attempt.refreshToken)
-		if removed {
-			slog.Debug("refresh token rejected; clearing session", "error", err)
-		}
+		current, removeErr := storage.removeRejected(ctx, attempt.refreshToken)
 
 		// The refresh token was rejected, so the stored session is unusable.
 		// If it could not be cleared, say so rather than reporting a clean
@@ -237,6 +234,8 @@ func RefreshSession(
 
 			return current, nil
 		}
+
+		slog.Debug("refresh token rejected; cleared session", "error", err)
 
 		return nil, nil //nolint:nilnil
 	}
