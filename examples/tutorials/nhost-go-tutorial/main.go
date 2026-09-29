@@ -934,7 +934,14 @@ func cmdAttach(ctx context.Context, c *nhost.Client, noteID, file string) error 
 		mutation Attach($noteId: uuid!, $fileId: uuid!) {
 			insert_note_attachments_one(object: {note_id: $noteId, file_id: $fileId}) { file_id }
 		}`, graphql.Variables{"noteId": noteID, "fileId": fileID}, nil); err != nil {
-		return fmt.Errorf("attach file: %w", err)
+		err = fmt.Errorf("attach file: %w", err)
+
+		// Don't leave the upload in Storage with nothing pointing at it.
+		if _, _, delErr := c.Storage.DeleteFile(ctx, fileID, nil); delErr != nil {
+			return errors.Join(err, fmt.Errorf("delete uploaded file %s: %w", fileID, delErr))
+		}
+
+		return err
 	}
 
 	fmt.Fprintf(os.Stdout, "attached %s (file %s) to %s\n", name, fileID, noteID)

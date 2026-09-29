@@ -259,7 +259,7 @@ Register it on the root command, plus add the `encoding/json` import:
 
 Here's the whole `main.go` after Part 5 — the finished CLI. Collapsed sections are unchanged from earlier parts; the highlighted lines are what this part added. Press **Copy** to grab the entire file at once.
 
-```go title="main.go" collapse={1-4,6-146,177-475} {5-5,147-176,476-530}
+```go title="main.go" collapse={1-4,6-146,177-479} {5-5,147-176,480-534}
 package main
 
 import (
@@ -718,6 +718,10 @@ func cmdAttach(ctx context.Context, c *nhost.Client, noteID, file string) error 
 		mutation Attach($noteId: uuid!, $fileId: uuid!) {
 			insert_note_attachments_one(object: {note_id: $noteId, file_id: $fileId}) { file_id }
 		}`, graphql.Variables{"noteId": noteID, "fileId": fileID}, nil); err != nil {
+		// Don't leave the upload in Storage with nothing pointing at it.
+		if _, _, delErr := c.Storage.DeleteFile(ctx, fileID, nil); delErr != nil {
+			return errors.Join(err, fmt.Errorf("delete uploaded file %s: %w", fileID, delErr))
+		}
 		return err
 	}
 	fmt.Printf("attached %s (file %s) to %s\n", name, fileID, noteID)

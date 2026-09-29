@@ -46,8 +46,8 @@ the `user` role:
   `insert`, `select` and `delete`.
 - **storage.files** — set these under **Storage → Permissions** (Nhost's UI for
   the `storage.files` table permissions), where **Upload** is the `insert`
-  permission and **Download** is the `select` permission. Leave Replace / Delete
-  as-is for this tutorial.
+  permission, **Download** the `select` permission and **Delete** the `delete`
+  permission. Leave Replace as-is for this tutorial.
   - **Upload** — allow it for `user` and enable *Prefill
     `uploaded_by_user_id` with `X-Hasura-User-Id`* so every upload is stamped
     with its uploader. Without this stamp the column stays `NULL`, the Download
@@ -69,12 +69,17 @@ the `user` role:
         { "noteAttachments": { "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } } }
     ]}
     ```
+  - **Delete** — allow it for `user` with the custom check
+    `{ "uploaded_by_user_id": { "_eq": "X-Hasura-User-Id" } }`, so users can
+    delete what they uploaded. `attach` needs it to clean up when linking fails.
 
 ## Upload a file
 
 `Storage.UploadFiles` takes the bucket, the raw bytes, and per-file metadata. It
 returns the processed files, including the new file's `ID`, which we then link to
-the note. Add a `bucket` constant for the bucket id you created above:
+the note. If linking fails, say because the note isn't yours, `attach` deletes
+the upload again so it isn't left in Storage with nothing pointing at it. Add a
+`bucket` constant for the bucket id you created above:
 
 ```go title="main.go"
 import "github.com/nhost/nhost/packages/nhost-go/storage"
@@ -105,6 +110,10 @@ func cmdAttach(ctx context.Context, c *nhost.Client, noteID, file string) error 
 		mutation Attach($noteId: uuid!, $fileId: uuid!) {
 			insert_note_attachments_one(object: {note_id: $noteId, file_id: $fileId}) { file_id }
 		}`, graphql.Variables{"noteId": noteID, "fileId": fileID}, nil); err != nil {
+		// Don't leave the upload in Storage with nothing pointing at it.
+		if _, _, delErr := c.Storage.DeleteFile(ctx, fileID, nil); delErr != nil {
+			return errors.Join(err, fmt.Errorf("delete uploaded file %s: %w", fileID, delErr))
+		}
 		return err
 	}
 	fmt.Printf("attached %s (file %s) to %s\n", name, fileID, noteID)
@@ -156,7 +165,7 @@ Register both as top-level commands in `rootCmd`:
 
 Here's the whole `main.go` after Part 4. Collapsed sections are unchanged from earlier parts; the highlighted lines are what this part added. Press **Copy** to grab the entire file at once.
 
-```go title="main.go" collapse={1-15,20-127,146-402} {16-16,18-19,128-145,403-444}
+```go title="main.go" collapse={1-15,20-127,146-402} {16-16,18-19,128-145,403-448}
 package main
 
 import (
@@ -584,6 +593,10 @@ func cmdAttach(ctx context.Context, c *nhost.Client, noteID, file string) error 
 		mutation Attach($noteId: uuid!, $fileId: uuid!) {
 			insert_note_attachments_one(object: {note_id: $noteId, file_id: $fileId}) { file_id }
 		}`, graphql.Variables{"noteId": noteID, "fileId": fileID}, nil); err != nil {
+		// Don't leave the upload in Storage with nothing pointing at it.
+		if _, _, delErr := c.Storage.DeleteFile(ctx, fileID, nil); delErr != nil {
+			return errors.Join(err, fmt.Errorf("delete uploaded file %s: %w", fileID, delErr))
+		}
 		return err
 	}
 	fmt.Printf("attached %s (file %s) to %s\n", name, fileID, noteID)
