@@ -1,6 +1,6 @@
 ## CHANGELOG
 
-### {17.11,18.6}-20260930-1
+### main
 
 - Improved graceful shutdown during database startup and point-in-time recovery.
 - Improved startup and PITR recovery safety and error handling
