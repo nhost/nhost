@@ -1,0 +1,86 @@
+openapi: "3.0.0"
+info:
+  title: Python response-only import coverage
+  version: "1.0.0"
+paths:
+  /untyped-inline:
+    get:
+      operationId: getUntypedInline
+      responses:
+        "200":
+          description: Untyped object
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+  /untyped-reference:
+    get:
+      operationId: getUntypedReference
+      responses:
+        "200":
+          description: Referenced untyped object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UntypedResponse"
+  /untyped-array:
+    get:
+      operationId: getUntypedArray
+      responses:
+        "200":
+          description: Array of untyped objects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+  /binary-array:
+    get:
+      operationId: getBinaryArray
+      responses:
+        "200":
+          description: Array of binary values
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  format: binary
+  /uuid:
+    get:
+      operationId: getUUID
+      responses:
+        "200":
+          description: UUID value
+          content:
+            application/json:
+              schema:
+                type: string
+                format: uuid
+  /date:
+    get:
+      operationId: getDate
+      responses:
+        "200":
+          description: Date value
+          content:
+            application/json:
+              schema:
+                type: string
+                format: date
+components:
+  schemas:
+    Marker:
+      type: object
+      properties:
+        value:
+          type: string
+      required:
+        - value
+    UntypedResponse:
+      type: object
+      additionalProperties: true
