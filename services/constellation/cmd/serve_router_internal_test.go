@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bytes"
 	"context"
 	"encoding/json/jsontext"
 	"log/slog"
@@ -15,7 +16,6 @@ import (
 	"github.com/nhost/nhost/services/constellation/controller"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	"github.com/nhost/nhost/services/constellation/graph"
-	"github.com/urfave/cli/v3"
 )
 
 const routerTestAdminSecret = "router-test-admin-secret"
@@ -64,8 +64,8 @@ func newRouterTestController(t *testing.T) *controller.Controller {
 	return ctrl
 }
 
-// buildRealServeRouter drives the production getRouter through a real
-// cli.Command so the test exercises the exact middleware wiring serve() uses:
+// buildRealServeRouter drives the production getRouter so the test exercises
+// the exact middleware wiring NewService uses:
 // the per-route validatorMW + CaptureRawBody installed via
 // RegisterHandlersWithOptions over the full embedded spec, plus the
 // engine-mounted /v1/graphql routes that bypass that validator. Unlike the
@@ -73,42 +73,29 @@ func newRouterTestController(t *testing.T) *controller.Controller {
 // mirror and getRouter because it calls getRouter itself.
 func buildRealServeRouter(t *testing.T, ctrl *controller.Controller) *gin.Engine {
 	t.Helper()
+
+	opts := validTestOptions()
+	opts.AdminSecret = routerTestAdminSecret
+
+	return buildRouterWithOptions(t, ctrl, opts, slog.New(slog.DiscardHandler))
+}
+
+func buildRouterWithOptions(
+	t *testing.T, ctrl *controller.Controller, opts Options, logger *slog.Logger,
+) *gin.Engine {
+	t.Helper()
 	gin.SetMode(gin.TestMode)
 
-	var router *gin.Engine
-
-	cmd := &cli.Command{
-		Name:  "serve",
-		Flags: serveFlags(),
-		Action: func(ctx context.Context, cmd *cli.Command) error {
-			built, err := getRouter(
-				ctx,
-				cmd,
-				ctrl,
-				middleware.NewNoOpJWTAuthenticator(),
-				nil, // no hasura proxy: unhandled routes 404, validator-gated routes 401
-				slog.New(slog.DiscardHandler),
-			)
-			if err != nil {
-				return err
-			}
-
-			router = built
-
-			return nil
-		},
-	}
-
-	err := cmd.Run(context.Background(), []string{
-		"serve",
-		"--" + flagAdminSecret, routerTestAdminSecret,
-		// jwt-secret is required by serveFlags; getRouter does not read it (the
-		// authenticator is injected) but the command will not run without it.
-		"--" + flagJWTSecret, `{"type":"HS256","key":"router-test-jwt-secret-32-bytes-long!"}`,
-		"--" + flagCORSAllowedOrigins, "https://app.example.com",
-	})
+	router, err := getRouter(
+		context.Background(),
+		opts,
+		ctrl,
+		middleware.NewNoOpJWTAuthenticator(),
+		nil, // no hasura proxy: unhandled routes 404, validator-gated routes 401
+		logger,
+	)
 	if err != nil {
-		t.Fatalf("running serve command to build router: %v", err)
+		t.Fatalf("getRouter: %v", err)
 	}
 
 	if router == nil {
@@ -116,6 +103,44 @@ func buildRealServeRouter(t *testing.T, ctrl *controller.Controller) *gin.Engine
 	}
 
 	return router
+}
+
+// The empty allow-list is the fail-safe default, but it silently breaks
+// deployments that relied on the previous permissive "*" CORS, so getRouter
+// warns about it exactly once at startup.
+func TestGetRouter_WarnsWhenNoCORSOrigins(t *testing.T) {
+	t.Parallel()
+
+	const warning = "all cross-origin requests will be denied"
+
+	for _, tt := range []struct {
+		name         string
+		origins      []string
+		wantWarnings int
+	}{
+		{name: "no origins", origins: nil, wantWarnings: 1},
+		{name: "explicit origins", origins: []string{"https://app.example.com"}, wantWarnings: 0},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			var buf bytes.Buffer
+
+			opts := validTestOptions()
+			opts.CORSAllowedOrigins = tt.origins
+
+			buildRouterWithOptions(
+				t, newRouterTestController(t), opts, slog.New(slog.NewTextHandler(&buf, nil)),
+			)
+
+			if got := strings.Count(buf.String(), warning); got != tt.wantWarnings {
+				t.Errorf(
+					"deny-all warning logged %d times, want %d (log: %q)",
+					got, tt.wantWarnings, buf.String(),
+				)
+			}
+		})
+	}
 }
 
 // TestGetRouter_GraphQLNotBlockedByValidator is the regression guarding the

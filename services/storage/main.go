@@ -4,6 +4,8 @@ import (
 	"context"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/nhost/nhost/services/storage/cmd"
 	docs "github.com/urfave/cli-docs/v3"
@@ -60,6 +62,14 @@ func markdownDocs() *cli.Command {
 //go:generate oapi-codegen -config api/types.cfg.yaml controller/openapi.yaml
 //go:generate gqlgenc
 func main() {
+	// Signal handling is process-wide, so it lives here rather than in the
+	// shared serve library. SIGINT or SIGTERM cancels ctx, which reaches the
+	// shared serve Run through the command action and triggers a graceful
+	// shutdown. The handler stays registered until stop, so a second signal
+	// cannot kill the process mid-shutdown; Run's shutdown budget bounds
+	// how long that takes instead.
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+
 	serveCmd := cmd.CommandServe()
 	app := &cli.Command{ //nolint:exhaustruct
 		Name:    "storage",
@@ -72,7 +82,13 @@ func main() {
 		Action: serveCmd.Action,
 	}
 
-	if err := app.Run(context.Background(), os.Args); err != nil {
+	err := app.Run(ctx, os.Args)
+
+	// Called directly rather than deferred: log.Fatal exits through os.Exit,
+	// which skips deferred calls.
+	stop()
+
+	if err != nil {
 		log.Fatal(err)
 	}
 }

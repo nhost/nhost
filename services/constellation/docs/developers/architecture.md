@@ -26,7 +26,7 @@ state := c.state.Load()
 
 ### Reload protocol
 
-When `metadata.Source.Watch` emits a new metadata, `Controller.Run` (`controller/controller.go:372`) calls `buildState` to construct a fresh `controllerState` and then `swapState`:
+When `metadata.Source.Watch` emits a new metadata, `Controller.Run` (`controller/controller.go`) calls `buildState` to construct a fresh `controllerState` and then `swapState`:
 
 ```go
 oldState := c.state.Swap(newState)
@@ -34,16 +34,22 @@ oldState := c.state.Swap(newState)
 go func() {
     shutdownCtx, cancel := context.WithTimeout(ctx, shutdownTimeout) // 30s
     defer cancel()
-    oldState.shutdown(shutdownCtx)
-    oldState.closeConnectors()
+
+    oldState.release(shutdownCtx)
+
+    if c.closed.Load() {
+        newState.release(shutdownCtx)
+    }
 }()
 ```
 
-The new state goes live immediately. Old state shutdown happens on a background goroutine with a 30-second budget:
+The new state goes live immediately. Old state release happens on a background goroutine with a 30-second budget. `controllerState.release` runs at most once per state, guarded by a `sync.Once`, and does:
 
 1. `close(oldState.done)` — signals every WebSocket connection holding this snapshot to wind down.
 2. `Handler.Shutdown(ctx)` on every per-DB subscription handler — terminates cohort polling.
 3. `Close()` on every connector — releases pgxpool, closes go-sqlite3 DB, etc.
+
+`Controller.Close` marks the controller closed and releases the current state; it is safe to call more than once and concurrently with `Run`. When `Run` returns it releases the current state too, and the once-guard keeps that from closing connectors twice. The `c.closed` check in `swapState` covers a reload racing `Close`: `Close` may have released the state that was current before the swap, so the goroutine also releases the new one rather than leaving it live with nothing to close it.
 
 `HandlerGet` (the WebSocket entry) wires `state.done` to `context.CancelCause(errMetadataReloaded)` so a reload propagates as a context cancellation rather than an abrupt close (`controller/handlers.go:94`).
 
