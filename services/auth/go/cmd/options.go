@@ -105,7 +105,7 @@ type Options struct {
 
 	RateLimit RateLimitOptions
 	// TurnstileSecret, when set, requires a Cloudflare Turnstile token on
-	// sign-up requests.
+	// sign-up, passwordless and OTP sign-in, and password-reset requests.
 	TurnstileSecret string
 
 	// ConcealErrors hides error details that would reveal whether an account
@@ -284,7 +284,7 @@ type TwitterOptions struct {
 // server. It requires an RSA JWT secret.
 type OAuth2ProviderOptions struct {
 	Enabled bool
-	// LoginURL defaults to ClientURL.
+	// LoginURL is the consent/login UI; it defaults to ClientURL + "/oauth2/login".
 	LoginURL string
 	// AccessTokenTTL and RefreshTokenTTL are in seconds.
 	AccessTokenTTL  int

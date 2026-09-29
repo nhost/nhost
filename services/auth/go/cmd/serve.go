@@ -1558,13 +1558,13 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 	logger.InfoContext(ctx, cmd.Root().Name+" v"+cmd.Root().Version)
 	serveutil.LogFlags(ctx, logger, cmd)
 
-	// The listener keeps only the default read-header deadline, so large uploads
-	// and long-lived responses are not aborted mid-flight.
 	// Run's errors already name the service and the lifecycle phase that failed.
 	//nolint:wrapcheck // adding a prefix here would only repeat that context.
 	return serveutil.Run(ctx, serveutil.Options{
-		Logger:          logger,
-		Addr:            ":" + cmd.String(flagPort),
+		Logger: logger,
+		Addr:   ":" + cmd.String(flagPort),
+		// Only the default read-header deadline applies, so large uploads and
+		// long-lived responses are not aborted mid-flight.
 		HTTP:            serveutil.HTTPTimeouts{ReadHeader: 0, Read: 0, Write: 0, Idle: 0},
 		DebugAddr:       "",
 		ShutdownTimeout: 0,

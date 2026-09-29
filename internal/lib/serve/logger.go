@@ -60,7 +60,8 @@ func NewLogger(debug bool, formatText bool) *slog.Logger {
 // The generic terms (pass, token, secret, key, license, postgres, client-id,
 // client-secret) catch whole families of flags. The remaining entries name a
 // single flag each, because no general term describes them without also
-// matching unrelated flags:
+// matching unrelated flags. The last two match as substrings, so prefixed forms
+// such as the engine's auth-sms-generic-headers are covered too:
 //
 //   - database-url: the engine's shared runtime Postgres DSN.
 //   - migrations-database-url: the engine's shared migrations Postgres DSN.

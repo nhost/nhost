@@ -67,8 +67,10 @@ type Options struct {
 	DevMode bool
 }
 
-// Validate reports every setting NewService would reject, so a caller running
-// several services can check all of them before building any.
+// Validate reports the settings NewService would reject before parsing or
+// connecting to anything, so a caller running several services can check all
+// of them before building any. A malformed JWTSecret or HasuraUpstreamURL, and
+// an unreachable metadata database, are still only reported by NewService.
 func (o Options) Validate() error {
 	var errs []error
 

@@ -105,8 +105,9 @@ func serverUnit(
 }
 
 // debugUnit serves the process-global mux only on the opt-in debug address.
-// A failed bind is logged but does not stop the main listener; the unit remains
-// supervised until normal shutdown so no process runs headless by mistake.
+// It is best-effort: a failed bind or serve error is logged, and run then waits
+// for stop instead of returning, because any supervised unit returning shuts
+// the whole group down. The main listener keeps serving either way.
 func debugUnit(ctx context.Context, addr string, logger *slog.Logger) unit {
 	server := &http.Server{ //nolint:exhaustruct // net/http type; unset fields keep their documented defaults
 		Addr:              addr,

@@ -14,7 +14,7 @@ import (
 
 const testJWTSecret = `{"type":"HS256","key":"config-test-jwt-secret-32-bytes-long"}`
 
-// validTestOptions returns a Options that passes Validate, for tests to adjust.
+// validTestOptions returns Options that pass Validate, for tests to adjust.
 func validTestOptions() Options {
 	return Options{
 		Version:                          "test",

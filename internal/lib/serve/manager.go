@@ -23,17 +23,24 @@ var (
 
 // Options configures the shared HTTP listener and the process lifecycle.
 type Options struct {
+	// Logger is required. Each Build receives it tagged with the service name.
 	Logger *slog.Logger
-	Addr   string
-	HTTP   HTTPTimeouts
+	// Addr is the required address of the public listener, e.g. ":8080".
+	Addr string
+	// HTTP sets the public listener's timeouts; see HTTPTimeouts for defaults.
+	HTTP HTTPTimeouts
 	// DebugAddr, if nonempty, serves http.DefaultServeMux on a separate,
 	// best-effort listener. Never expose this address publicly.
 	DebugAddr string
 	// ShutdownTimeout is one budget for listener drain, background cancellation,
-	// and resource release. Non-positive values default to thirty seconds.
+	// and resource release. Non-positive values default to thirty seconds. A
+	// startup failure gets a fresh budget of the same length to release the
+	// services already built.
 	ShutdownTimeout time.Duration
-	// Compose receives the built services in definition order. If nil, Run
-	// serves the only non-nil Handler directly.
+	// Compose builds the public listener's handler from the built services, in
+	// definition order. It is called once, after every Build succeeds; an error
+	// or a nil handler releases the services. If nil, Run serves the only
+	// non-nil Handler directly.
 	Compose func([]Mounted) (http.Handler, error)
 }
 
