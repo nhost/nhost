@@ -127,6 +127,31 @@ which is not an error; it must return a non-nil error only when the session
 could not be read, so that a backend outage is never mistaken for a signed
 out user. Remove treats an absent session as success.
 
+### `ConditionalRemover`
+
+```go
+type ConditionalRemover interface {
+	RemoveIfRefreshToken(
+		ctx context.Context, userID, refreshToken string,
+	) (*StoredSession, error)
+}
+```
+
+ConditionalRemover is implemented by a [Backend] that can remove a session
+only if it still holds a given refresh token, in one atomic step.
+
+The auth service rotates the refresh token on every refresh, so after it
+rejects one, another process sharing the backend may already have stored the
+refreshed session, which must survive. Without this interface [Storage]
+reads, compares and removes in separate calls, and a session stored between
+them is removed. A backend shared by several processes (Redis, a database)
+should implement it with a script or a conditional DELETE; the built-in
+backends implement it too.
+
+RemoveIfRefreshToken removes the session userID selects (as in Get and
+Remove) if its refresh token is refreshToken. Otherwise it removes nothing
+and returns the session userID selects, or nil when there is none.
+
 ### `DecodedToken`
 
 ```go
@@ -192,6 +217,17 @@ func (f *FileStorage) Get(_ context.Context, userID string) (*StoredSession, err
 func (f *FileStorage) Remove(_ context.Context, userID string) error
 ```
 
+#### `RemoveIfRefreshToken`
+
+```go
+func (f *FileStorage) RemoveIfRefreshToken(
+	_ context.Context, userID, refreshToken string,
+) (*StoredSession, error)
+```
+
+RemoveIfRefreshToken is atomic among the goroutines sharing this FileStorage.
+Processes sharing the file are not coordinated.
+
 #### `Set`
 
 ```go
@@ -221,6 +257,14 @@ func (m *MemoryStorage) Get(_ context.Context, userID string) (*StoredSession, e
 
 ```go
 func (m *MemoryStorage) Remove(_ context.Context, userID string) error
+```
+
+#### `RemoveIfRefreshToken`
+
+```go
+func (m *MemoryStorage) RemoveIfRefreshToken(
+	_ context.Context, userID, refreshToken string,
+) (*StoredSession, error)
 ```
 
 #### `Set`
@@ -254,6 +298,14 @@ func (m *MultiUserMemoryStorage) Get(_ context.Context, userID string) (*StoredS
 
 ```go
 func (m *MultiUserMemoryStorage) Remove(_ context.Context, userID string) error
+```
+
+#### `RemoveIfRefreshToken`
+
+```go
+func (m *MultiUserMemoryStorage) RemoveIfRefreshToken(
+	_ context.Context, userID, refreshToken string,
+) (*StoredSession, error)
 ```
 
 #### `Set`
