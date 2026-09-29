@@ -818,41 +818,88 @@ func TestSessionRefreshSkips(t *testing.T) {
 
 var errBackendUnavailable = errors.New("session store unavailable")
 
-// TestAttachAccessTokenToleratesStorageFailure pins the deliberate choice that a
-// session store failure degrades to an unauthenticated request rather than
-// failing every call: the server then decides, matching how SessionRefresh
-// already treats a failed refresh.
-func TestAttachAccessTokenToleratesStorageFailure(t *testing.T) {
+// runExpectingError runs req through mw and returns the chain's error, failing
+// the test if the request reached the next round tripper.
+func runExpectingError(t *testing.T, mw transport.Middleware, req *http.Request) error {
+	t.Helper()
+
+	next := transport.RoundTripFunc(func(*http.Request) (*http.Response, error) {
+		t.Fatal("request was sent")
+
+		return nil, nil //nolint:nilnil // Unreachable after t.Fatal.
+	})
+
+	//nolint:bodyclose // The request is never sent, so there is no response.
+	resp, err := mw(next).RoundTrip(req)
+	if resp != nil {
+		t.Fatalf("response = %v, want nil alongside the error", resp)
+	}
+
+	return err //nolint:wrapcheck // The test inspects the chain's own error.
+}
+
+func TestAttachAccessTokenFailsWhenStorageFails(t *testing.T) {
 	t.Parallel()
 
-	store := session.NewStorage(&fakeBackend{getErr: errBackendUnavailable})
+	offOrigin := newReq(t, "https://other.example/v1/echo")
+	offOrigin.Header.Set("Authorization", "Bearer caller-supplied")
 
-	seen := run(
-		t,
-		middleware.AttachAccessToken(store, "https://x/v1"),
-		newReq(t, "https://x/v1/echo"),
-	)
+	for name, req := range map[string]*http.Request{
+		"service request":                  newReq(t, "https://x/v1/echo"),
+		"off-origin request with a header": offOrigin,
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 
-	if got := seen.Header.Get("Authorization"); got != "" {
-		t.Fatalf("Authorization = %q, want no header when the session is unreadable", got)
+			store := session.NewStorage(&fakeBackend{getErr: errBackendUnavailable})
+
+			err := runExpectingError(t, middleware.AttachAccessToken(store, "https://x/v1"), req)
+			if !errors.Is(err, errBackendUnavailable) {
+				t.Fatalf("error = %v, want the storage error", err)
+			}
+		})
 	}
 }
 
-// TestAttachAccessTokenKeepsCallerHeaderWhenStorageFails covers the off-origin
-// branch: with the session unreadable the middleware cannot tell whether the
-// header is one it set, and a caller-supplied credential must survive.
-func TestAttachAccessTokenKeepsCallerHeaderWhenStorageFails(t *testing.T) {
+func TestSessionRefreshFailsWhenStorageFails(t *testing.T) {
 	t.Parallel()
 
 	store := session.NewStorage(&fakeBackend{getErr: errBackendUnavailable})
+	authClient := auth.NewClient("https://auth.example/v1", http.DefaultClient)
 
-	req := newReq(t, "https://other.example/v1/echo")
-	req.Header.Set("Authorization", "Bearer caller-supplied")
+	err := runExpectingError(
+		t,
+		middleware.SessionRefresh(authClient, store, 60),
+		newReq(t, "https://x/v1/graphql"),
+	)
+	if !errors.Is(err, errBackendUnavailable) {
+		t.Fatalf("error = %v, want the storage error", err)
+	}
+}
 
-	seen := run(t, middleware.AttachAccessToken(store, "https://x/v1"), req)
+func TestSessionRefreshContinuesWhenRefreshFails(t *testing.T) {
+	t.Parallel()
 
-	if got := seen.Header.Get("Authorization"); got != "Bearer caller-supplied" {
-		t.Fatalf("Authorization = %q, want the caller's own header preserved", got)
+	authServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer authServer.Close()
+
+	backend := &fakeBackend{sess: &session.StoredSession{
+		AccessToken:  "expired",
+		RefreshToken: "refresh",
+		DecodedToken: session.DecodedToken{Exp: 1},
+	}}
+	authClient := auth.NewClient(authServer.URL+"/v1", authServer.Client())
+
+	run(
+		t,
+		middleware.SessionRefresh(authClient, session.NewStorage(backend), 60),
+		newReq(t, "https://x/v1/graphql"),
+	)
+
+	if backend.removed || backend.setCalls != 0 {
+		t.Fatalf("session changed: removed=%v setCalls=%d", backend.removed, backend.setCalls)
 	}
 }
 

@@ -286,6 +286,10 @@ func TestRefreshSessionExpiredNetworkError(t *testing.T) {
 		t.Fatal("expected network error")
 	}
 
+	if !errors.Is(err, session.ErrRefreshFailed) {
+		t.Fatalf("error = %v, want it to wrap ErrRefreshFailed", err)
+	}
+
 	if got != nil {
 		t.Fatalf("session = %#v, want nil for expired access token", got)
 	}
@@ -613,6 +617,10 @@ func TestRefreshSessionSurfacesStorageReadFailure(t *testing.T) {
 		t.Fatalf("RefreshSession() error = %v, want it to wrap %v", err, errStoreUnavailable)
 	}
 
+	if errors.Is(err, session.ErrRefreshFailed) {
+		t.Fatalf("error = %v, a storage failure must not look like a failed refresh", err)
+	}
+
 	if got != nil {
 		t.Fatalf("RefreshSession() session = %#v, want nil", got)
 	}
@@ -658,6 +666,10 @@ func TestRefreshSessionReportsFailureToClearRejectedSession(t *testing.T) {
 
 	if !errors.Is(err, errStoreReadOnly) {
 		t.Fatalf("RefreshSession() error = %v, want it to wrap %v", err, errStoreReadOnly)
+	}
+
+	if errors.Is(err, session.ErrRefreshFailed) {
+		t.Fatalf("error = %v, a storage failure must not look like a failed refresh", err)
 	}
 
 	if got != nil {

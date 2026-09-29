@@ -13,7 +13,16 @@ import (
 
 const unauthorized = 401
 
-var errRefreshReentrant = errors.New("session refresh is already in progress on this call path")
+// ErrRefreshFailed marks a [RefreshSession] error from the refresh itself: the
+// auth service could not be reached, rejected the request, or the refresh
+// re-entered itself through a misconfigured auth client. The stored session is
+// unchanged, so a caller may carry on and let the server decide. Any other
+// error comes from the session store, which could not be read or updated.
+var ErrRefreshFailed = errors.New("session refresh failed")
+
+var errRefreshReentrant = fmt.Errorf(
+	"%w: a refresh is already in progress on this call path", ErrRefreshFailed,
+)
 
 type refreshContextKey struct{}
 
@@ -28,6 +37,8 @@ type refreshAttemptError struct {
 func (e *refreshAttemptError) Error() string { return e.err.Error() }
 
 func (e *refreshAttemptError) Unwrap() error { return e.err }
+
+func (e *refreshAttemptError) Is(target error) bool { return target == ErrRefreshFailed }
 
 // needsRefresh reports (session, needsRefresh, sessionExpired) for the current
 // stored session given a margin (seconds before expiry to refresh). A backend
@@ -181,7 +192,8 @@ func performRefresh(
 // a different refresh token, which another process refreshed first, in which
 // case that session is returned. Any other final error is returned; if the
 // access token is still valid, the existing session is returned with that error
-// so callers may keep using it while handling the refresh failure.
+// so callers may keep using it while handling the refresh failure. Errors from
+// the refresh itself wrap [ErrRefreshFailed]; the rest come from the store.
 //
 // The supplied authClient must be bare: its HTTP transport must not include
 // session-refresh middleware. A reentrancy guard prevents a misconfigured

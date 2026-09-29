@@ -117,7 +117,8 @@ func requestAccessToken(ctx context.Context, storage *session.Storage) (string, 
 // [session.WithAccessToken], or else that of the stored session the context
 // selects ([session.WithUserID]); storage may be nil when there is no session
 // storage. It should run after the refresh middleware so the freshest token is
-// used, and skips requests that already carry an Authorization header.
+// used, and skips requests that already carry an Authorization header. If the
+// session store cannot be read, the request fails.
 func AttachAccessToken(storage *session.Storage, serviceURL string) transport.Middleware {
 	scope, scopeErr := newRequestScope(serviceURL)
 
@@ -132,16 +133,15 @@ func AttachAccessToken(storage *session.Storage, serviceURL string) transport.Mi
 					return next.RoundTrip(req)
 				}
 
-				// A storage failure is logged rather than failing the request:
-				// the request proceeds unauthenticated and the server decides,
-				// matching how SessionRefresh treats a failed refresh.
+				// An unreadable store fails the request: sending it without a
+				// token would run it as nobody, and the caller could not tell
+				// that from being signed out.
 				accessToken, err := requestAccessToken(req.Context(), storage)
 				if err != nil {
-					slog.Warn(
-						"error reading session; sending request without a token",
-						"error", err,
-					)
-				} else if accessToken != "" {
+					return nil, fmt.Errorf("read the stored session: %w", err)
+				}
+
+				if accessToken != "" {
 					req = req.Clone(req.Context())
 					req.Header.Set("Authorization", "Bearer "+accessToken)
 				}
@@ -154,16 +154,11 @@ func AttachAccessToken(storage *session.Storage, serviceURL string) transport.Mi
 			}
 
 			// Off-origin: strip only a header this middleware could have set.
-			// When the session cannot be read the header is left alone, since
-			// it can only be one the caller supplied.
+			// Without the session there is no telling whether this one is, so
+			// the request fails rather than risk carrying a token off-origin.
 			accessToken, err := requestAccessToken(req.Context(), storage)
 			if err != nil {
-				slog.Warn(
-					"error reading session; leaving the caller's Authorization header",
-					"error", err,
-				)
-
-				return next.RoundTrip(req)
+				return nil, fmt.Errorf("read the stored session: %w", err)
 			}
 
 			if accessToken != "" &&
@@ -181,7 +176,9 @@ func AttachAccessToken(storage *session.Storage, serviceURL string) transport.Mi
 // [session.WithUserID]) before the request when its token is near expiry. It
 // skips requests that already carry an Authorization header or a per-request
 // token ([session.WithAccessToken]), and the token endpoint itself (to avoid
-// recursively refreshing during a refresh).
+// recursively refreshing during a refresh). If the refresh itself fails
+// ([session.ErrRefreshFailed]) the request goes ahead with the stored token; if
+// the session store cannot be read or updated, the request fails.
 func SessionRefresh(
 	authClient *auth.Client,
 	storage *session.Storage,
@@ -200,10 +197,16 @@ func SessionRefresh(
 			_, hasRequestToken := session.AccessTokenFromContext(req.Context())
 
 			if req.Header.Get("Authorization") == "" && !hasRequestToken && !isAuthTokenRequest {
-				if _, err := session.RefreshSession(
-					req.Context(), authClient, storage, marginSeconds,
-				); err != nil {
+				_, err := session.RefreshSession(req.Context(), authClient, storage, marginSeconds)
+
+				switch {
+				case err == nil:
+				case errors.Is(err, session.ErrRefreshFailed):
+					// The stored session is unchanged; the server decides
+					// whether its token is still good.
 					slog.Debug("session refresh failed; continuing", "error", err)
+				default:
+					return nil, fmt.Errorf("refresh the session: %w", err)
 				}
 			}
 
