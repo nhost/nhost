@@ -38,17 +38,19 @@ The plugin starts the Nhost CLI's MCP server with `npx -y @nhost/cli@latest mcp 
 
 ### Claude Code
 
-```
-/plugin marketplace add nhost/nhost-plugin
-/plugin install nhost@nhost
+```bash
+claude plugin marketplace add nhost/nhost --sparse .claude-plugin plugins/nhost
+claude plugin install nhost@nhost
 ```
 
 ### Codex
 
 ```bash
-codex plugin marketplace add nhost/nhost-plugin
+codex plugin marketplace add nhost/nhost --sparse .agents/plugins --sparse plugins/nhost
 codex plugin add nhost@nhost
 ```
+
+The `--sparse` options download only the plugin, not the whole `nhost/nhost` repository.
 
 To add only the MCP server, without the skills, use `codex mcp add nhost -- nhost mcp start`.
 
@@ -84,7 +86,7 @@ To report a vulnerability, see [SECURITY.md](SECURITY.md).
 
 - Docs: https://docs.nhost.io
 - Discord: https://discord.com/invite/9V7Qb2U
-- Issues: https://github.com/nhost/nhost-plugin/issues
+- Issues: https://github.com/nhost/nhost/issues
 
 ## License
 

@@ -7,7 +7,7 @@
     "url": "https://nhost.io"
   },
   "homepage": "https://docs.nhost.io",
-  "repository": "https://github.com/nhost/nhost-plugin",
+  "repository": "https://github.com/nhost/nhost",
   "license": "MIT",
   "keywords": [
     "nhost",

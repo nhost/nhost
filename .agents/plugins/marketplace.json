@@ -5,7 +5,7 @@
       "name": "nhost",
       "source": {
         "source": "local",
-        "path": "./"
+        "path": "./plugins/nhost"
       },
       "policy": {
         "installation": "AVAILABLE",

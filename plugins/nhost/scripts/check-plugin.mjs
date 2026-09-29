@@ -5,6 +5,8 @@ import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
 const root = new URL("..", import.meta.url).pathname;
+// The marketplace files live at the nhost/nhost repository root and point at plugins/nhost.
+const repoRoot = join(root, "..", "..");
 const errors = [];
 const fail = (msg) => errors.push(msg);
 
@@ -12,8 +14,13 @@ const readJson = (p) => JSON.parse(readFileSync(join(root, p), "utf8"));
 
 const claude = readJson(".claude-plugin/plugin.json");
 const codex = readJson(".codex-plugin/plugin.json");
-readJson(".claude-plugin/marketplace.json");
-readJson(".agents/plugins/marketplace.json");
+const readRootJson = (p) => JSON.parse(readFileSync(join(repoRoot, p), "utf8"));
+const claudeMarket = readRootJson(".claude-plugin/marketplace.json");
+const codexMarket = readRootJson(".agents/plugins/marketplace.json");
+const claudeEntry = claudeMarket.plugins?.find((p) => p.name === "nhost");
+const codexEntry = codexMarket.plugins?.find((p) => p.name === "nhost");
+if (claudeEntry?.source !== "./plugins/nhost") fail("root .claude-plugin/marketplace.json must list nhost with source ./plugins/nhost");
+if (codexEntry?.source?.path !== "./plugins/nhost") fail("root .agents/plugins/marketplace.json must list nhost with source.path ./plugins/nhost");
 const mcp = readJson(".mcp.json");
 
 if (!mcp.mcpServers || typeof mcp.mcpServers !== "object") fail(".mcp.json must use the mcpServers wrapper");
