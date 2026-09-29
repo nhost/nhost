@@ -66,16 +66,17 @@ func TestAdminSecretReachesStorage(t *testing.T) {
 	)
 	t.Cleanup(storageService.Close)
 
-	client := nhost.NewBareClient(nhost.Options{
-		StorageURL: storageService.URL + "/v1",
-		HTTPClient: storageService.Client(),
-		Configure: []nhost.ConfigureFunc{
-			nhost.WithAdminSession(middleware.AdminSessionOptions{
-				AdminSecret:       adminSecret,
-				AllowInsecureHTTP: true,
-			}),
-		},
-	})
+	client, err := nhost.New(
+		nhost.WithStorageURL(storageService.URL+"/v1"),
+		nhost.WithHTTPClient(storageService.Client()),
+		nhost.WithAdminSecret(middleware.AdminSessionOptions{
+			AdminSecret:       adminSecret,
+			AllowInsecureHTTP: true,
+		}),
+	)
+	if err != nil {
+		t.Fatalf("create Nhost client: %v", err)
+	}
 
 	if _, _, err := client.Storage.GetVersion(t.Context(), nil); err != nil {
 		t.Fatalf("storage request: %v", err)

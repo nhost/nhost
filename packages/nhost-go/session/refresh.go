@@ -17,12 +17,27 @@ var errRefreshReentrant = errors.New("session refresh is already in progress on 
 
 type refreshContextKey struct{}
 
+// refreshAttemptError records which refresh token a failed refresh exchanged,
+// so a rejection clears that session and not one another process has since
+// stored in its place.
+type refreshAttemptError struct {
+	refreshToken string
+	err          error
+}
+
+func (e *refreshAttemptError) Error() string { return e.err.Error() }
+
+func (e *refreshAttemptError) Unwrap() error { return e.err }
+
 // needsRefresh reports (session, needsRefresh, sessionExpired) for the current
 // stored session given a margin (seconds before expiry to refresh). A backend
 // read failure is returned rather than reported as "no session", so an
 // unreadable store never silently looks like a signed out user.
-func (s *Storage) needsRefresh(marginSeconds int) (*StoredSession, bool, bool, error) {
-	session, err := s.Get()
+func (s *Storage) needsRefresh(
+	ctx context.Context,
+	marginSeconds int,
+) (*StoredSession, bool, bool, error) {
+	session, err := s.Get(ctx)
 	if err != nil {
 		return nil, false, false, err
 	}
@@ -62,7 +77,7 @@ func refreshOnce(
 	storage *Storage,
 	marginSeconds int,
 ) (*StoredSession, error) {
-	session, needs, sessionExpired, err := storage.needsRefresh(marginSeconds)
+	session, needs, sessionExpired, err := storage.needsRefresh(ctx, marginSeconds)
 	if err != nil {
 		return nil, fmt.Errorf("reading stored session: %w", err)
 	}
@@ -79,7 +94,7 @@ func refreshOnce(
 		return sessionOnRefreshError(session, sessionExpired), errRefreshReentrant
 	}
 
-	call, leader := storage.beginRefresh()
+	call, leader := storage.beginRefresh(session.RefreshToken)
 	if !leader {
 		select {
 		case <-call.done:
@@ -87,7 +102,7 @@ func refreshOnce(
 		case <-ctx.Done():
 			// A read failure here leaves session nil, which yields no session
 			// below; the context error is the one worth reporting.
-			session, _, sessionExpired, _ = storage.needsRefresh(marginSeconds)
+			session, _, sessionExpired, _ = storage.needsRefresh(ctx, marginSeconds)
 
 			return sessionOnRefreshError(session, sessionExpired), fmt.Errorf(
 				"waiting for in-progress session refresh: %w", ctx.Err(),
@@ -101,7 +116,7 @@ func refreshOnce(
 	)
 
 	defer func() {
-		storage.finishRefresh(call, result, refreshErr)
+		storage.finishRefresh(session.RefreshToken, call, result, refreshErr)
 	}()
 
 	result, refreshErr = performRefresh(ctx, authClient, storage, marginSeconds)
@@ -117,7 +132,7 @@ func performRefresh(
 ) (*StoredSession, error) {
 	// Another refresh may have completed between the first check and this call
 	// becoming the in-flight leader.
-	session, needs, sessionExpired, err := storage.needsRefresh(marginSeconds)
+	session, needs, sessionExpired, err := storage.needsRefresh(ctx, marginSeconds)
 	if err != nil {
 		return nil, fmt.Errorf("reading stored session: %w", err)
 	}
@@ -138,18 +153,19 @@ func performRefresh(
 		nil,
 	)
 	if err != nil {
-		return sessionOnRefreshError(session, sessionExpired), fmt.Errorf(
-			"refreshing session token: %w", err,
-		)
+		return sessionOnRefreshError(session, sessionExpired), &refreshAttemptError{
+			refreshToken: session.RefreshToken,
+			err:          fmt.Errorf("refreshing session token: %w", err),
+		}
 	}
 
-	if err := storage.Set(refreshed); err != nil {
+	if err := storage.Set(ctx, refreshed); err != nil {
 		return sessionOnRefreshError(session, sessionExpired), fmt.Errorf(
 			"storing refreshed session: %w", err,
 		)
 	}
 
-	out, err := storage.Get()
+	out, err := storage.Get(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("reading refreshed session: %w", err)
 	}
@@ -157,13 +173,15 @@ func performRefresh(
 	return out, nil
 }
 
-// RefreshSession refreshes the session if it is close to expiry and collapses
-// concurrent attempts into one request. A marginSeconds value of zero forces a
-// refresh. It retries once on failure. If the refresh token is rejected with
-// 401 it clears the stored session and returns (nil, nil). Any other final
-// error is returned; if the access token is still valid, the existing session
-// is returned with that error so callers may keep using it while handling the
-// refresh failure.
+// RefreshSession refreshes the session ctx selects (see [WithUserID]) if it is
+// close to expiry, collapsing concurrent attempts on the same session into one
+// request. A marginSeconds value of zero forces a refresh. It retries once on
+// failure. If the refresh token is rejected with 401 it clears the stored
+// session and returns (nil, nil) — unless the store by then holds a session with
+// a different refresh token, which another process refreshed first, in which
+// case that session is returned. Any other final error is returned; if the
+// access token is still valid, the existing session is returned with that error
+// so callers may keep using it while handling the refresh failure.
 //
 // The supplied authClient must be bare: its HTTP transport must not include
 // session-refresh middleware. A reentrancy guard prevents a misconfigured
@@ -186,9 +204,11 @@ func RefreshSession(
 		return session, nil
 	}
 
-	var apiErr *transport.APIError
-	if errors.As(err, &apiErr) && apiErr.Status == unauthorized {
-		removed, removeErr := storage.removeIfPresent()
+	apiErr, isAPIErr := errors.AsType[*transport.APIError](err)
+	attempt, isAttempt := errors.AsType[*refreshAttemptError](err)
+
+	if isAPIErr && isAttempt && apiErr.Status == unauthorized {
+		current, removed, removeErr := storage.removeRejected(ctx, attempt.refreshToken)
 		if removed {
 			slog.Debug("refresh token rejected; clearing session", "error", err)
 		}
@@ -198,6 +218,12 @@ func RefreshSession(
 		// sign-out while a dead session stays behind.
 		if removeErr != nil {
 			return nil, fmt.Errorf("clearing rejected session: %w", removeErr)
+		}
+
+		if current != nil {
+			slog.Debug("refresh token rejected, but the session was refreshed elsewhere")
+
+			return current, nil
 		}
 
 		return nil, nil //nolint:nilnil

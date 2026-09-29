@@ -49,6 +49,18 @@ type StoredSession struct {
 	DecodedToken DecodedToken `json:"decodedToken"`
 }
 
+// UserID returns the ID of the user the session belongs to: the user returned
+// with the session, or else the subject of its access token. A [Backend] keys
+// sessions by it. Both come from the auth service's own response, so reading
+// them without verifying the token is safe here.
+func (s StoredSession) UserID() string {
+	if s.User != nil && s.User.ID != "" {
+		return s.User.ID
+	}
+
+	return s.DecodedToken.Sub
+}
+
 func decodeBase64URL(segment string) ([]byte, error) {
 	if pad := len(segment) % 4; pad != 0 { //nolint:mnd
 		segment += strings.Repeat("=", 4-pad) //nolint:mnd
