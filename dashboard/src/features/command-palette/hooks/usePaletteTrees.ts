@@ -1,12 +1,8 @@
 import { useMemo } from 'react';
-
-import {
-  isPageGated,
-  type NavGating,
-} from '@/components/layout/MainNav/nav-config';
 import { isContainer } from '@/features/command-palette/lib/machine';
 import { commandPaletteNavTree } from '@/features/command-palette/nav-tree';
 import type { CommandNode } from '@/features/command-palette/types';
+import { isPageGated, type NavGating } from '@/features/navigation/nav-config';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useSettingsDisabled } from '@/hooks/useSettingsDisabled';
 
