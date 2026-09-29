@@ -32,6 +32,7 @@ var (
 	errNotLoggedIn     = errors.New("not logged in")
 	errNoteNotFound    = errors.New("note not found")
 	errNotePermission  = errors.New("note not found or not permitted")
+	errNotShared       = errors.New("note not shared with that user, or not permitted")
 	errCreateNote      = errors.New("could not create note")
 	errCreateNotebook  = errors.New("could not create notebook")
 	errCreateTag       = errors.New("could not create tag")
@@ -496,23 +497,21 @@ func cmdLogin(ctx context.Context, c *nhost.Client, email, password string) erro
 }
 
 func cmdSignup(ctx context.Context, c *nhost.Client, email, password string) error {
-	if _, _, err := c.Auth.SignUpEmailPassword(
+	res, _, err := c.Auth.SignUpEmailPassword(
 		ctx,
 		auth.SignUpEmailPasswordRequest{ //nolint:exhaustruct
 			Email:    email,
 			Password: password,
 		},
 		nil,
-	); err != nil {
+	)
+	if err != nil {
 		return fmt.Errorf("sign up: %w", err)
 	}
 
-	sess, err := c.Session(ctx)
-	if err != nil {
-		return fmt.Errorf("reading session after sign up: %w", err)
-	}
-
-	if sess != nil {
+	// Sign-up returns no session while the email is unverified. Reading the
+	// stored session instead would report whoever was signed in before.
+	if res.Session != nil {
 		fmt.Fprintln(os.Stdout, "signed up and logged in as", email)
 	} else {
 		fmt.Fprintln(os.Stdout, "signed up; verify your email, then `login`")
@@ -958,15 +957,31 @@ func cmdDownload(ctx context.Context, c *nhost.Client, fileID, outPath string) e
 	return nil
 }
 
+// collaboratorKey is the part of a note_collaborators row the share mutations
+// return; a null one means nothing was changed.
+type collaboratorKey struct {
+	NoteID string `json:"note_id"`
+}
+
 func cmdShare(ctx context.Context, c *nhost.Client, noteID, userID, role string) error {
+	var data struct {
+		Share *collaboratorKey `json:"insert_note_collaborators_one"`
+	}
+
 	if _, err := c.GraphQL.Request(ctx, `
 		mutation Share($noteId: uuid!, $userId: uuid!, $role: String!) {
 			insert_note_collaborators_one(
 				object: {note_id: $noteId, user_id: $userId, role: $role}
 				on_conflict: {constraint: note_collaborators_pkey, update_columns: [role]}
 			) { note_id role }
-		}`, graphql.Variables{"noteId": noteID, "userId": userID, "role": role}, nil); err != nil {
+		}`, graphql.Variables{"noteId": noteID, "userId": userID, "role": role}, &data); err != nil {
 		return fmt.Errorf("share note: %w", err)
+	}
+
+	// Re-sharing a note you don't own updates nothing, so Hasura returns null
+	// rather than an error.
+	if data.Share == nil {
+		return errNotePermission
 	}
 
 	fmt.Fprintf(os.Stdout, "shared %s with %s as %s\n", noteID, userID, role)
@@ -975,11 +990,19 @@ func cmdShare(ctx context.Context, c *nhost.Client, noteID, userID, role string)
 }
 
 func cmdUnshare(ctx context.Context, c *nhost.Client, noteID, userID string) error {
+	var data struct {
+		Share *collaboratorKey `json:"delete_note_collaborators_by_pk"`
+	}
+
 	if _, err := c.GraphQL.Request(ctx, `
 		mutation Unshare($noteId: uuid!, $userId: uuid!) {
 			delete_note_collaborators_by_pk(note_id: $noteId, user_id: $userId) { note_id }
-		}`, graphql.Variables{"noteId": noteID, "userId": userID}, nil); err != nil {
+		}`, graphql.Variables{"noteId": noteID, "userId": userID}, &data); err != nil {
 		return fmt.Errorf("unshare note: %w", err)
+	}
+
+	if data.Share == nil {
+		return errNotShared
 	}
 
 	fmt.Fprintf(os.Stdout, "unshared %s from %s\n", noteID, userID)

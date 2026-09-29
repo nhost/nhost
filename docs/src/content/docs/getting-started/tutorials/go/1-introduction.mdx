@@ -78,7 +78,7 @@ working through the parts below first.
 
 ## Prerequisites
 
-- **Go 1.26+** installed on your machine
+- **Go 1.27+** installed on your machine
 - Basic knowledge of Go
 - [Docker](https://docs.docker.com/get-docker/) — the local Nhost stack runs in containers
 - The **Nhost CLI**
@@ -112,8 +112,8 @@ nhost up     # starts the local backend with Docker
 
 `nhost up` prints the URLs for your local services. The one you'll use most is
 the **Dashboard** at `https://local.dashboard.local.nhost.run`, where you'll
-configure auth, permissions, and storage in later parts. Leave `nhost up`
-running in its own terminal.
+configure auth, permissions, and storage in later parts. The backend keeps
+running in the background until you run `nhost down`.
 
 :::note
 `nhost login` is only needed if you later want to pull config from — or deploy
@@ -311,7 +311,8 @@ Your local backend is live and the CLI compiles. In
 sign-in, and a persisted session so the CLI remembers who you are between runs.
 
 :::tip
-Keep `nhost up` running in its own terminal throughout the series, and open the
-local dashboard at `https://local.dashboard.local.nhost.run` to configure the
-backend as you go.
+Keep the backend running throughout the series, and open the local dashboard at
+`https://local.dashboard.local.nhost.run` to configure it as you go. If you
+stop it with `nhost down`, `nhost up` brings it back with your data and
+settings.
 :::

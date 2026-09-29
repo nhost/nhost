@@ -82,27 +82,45 @@ viewer). `share` takes an optional positional `ROLE`:
 
 ```go title="main.go"
 func cmdShare(ctx context.Context, c *nhost.Client, noteID, userID, role string) error {
+	var data struct {
+		Share *struct {
+			NoteID string `json:"note_id"`
+		} `json:"insert_note_collaborators_one"`
+	}
 	_, err := c.GraphQL.Request(ctx, `
 		mutation Share($noteId: uuid!, $userId: uuid!, $role: String!) {
 			insert_note_collaborators_one(
 				object: {note_id: $noteId, user_id: $userId, role: $role}
 				on_conflict: {constraint: note_collaborators_pkey, update_columns: [role]}
 			) { note_id role }
-		}`, graphql.Variables{"noteId": noteID, "userId": userID, "role": role}, nil)
+		}`, graphql.Variables{"noteId": noteID, "userId": userID, "role": role}, &data)
 	if err != nil {
 		return err
+	}
+	// Re-sharing a note you don't own updates nothing, so Hasura returns null
+	// rather than an error.
+	if data.Share == nil {
+		return errors.New("note not found or not permitted")
 	}
 	fmt.Printf("shared %s with %s as %s\n", noteID, userID, role)
 	return nil
 }
 
 func cmdUnshare(ctx context.Context, c *nhost.Client, noteID, userID string) error {
+	var data struct {
+		Share *struct {
+			NoteID string `json:"note_id"`
+		} `json:"delete_note_collaborators_by_pk"`
+	}
 	_, err := c.GraphQL.Request(ctx, `
 		mutation Unshare($noteId: uuid!, $userId: uuid!) {
 			delete_note_collaborators_by_pk(note_id: $noteId, user_id: $userId) { note_id }
-		}`, graphql.Variables{"noteId": noteID, "userId": userID}, nil)
+		}`, graphql.Variables{"noteId": noteID, "userId": userID}, &data)
 	if err != nil {
 		return err
+	}
+	if data.Share == nil {
+		return errors.New("note not shared with that user, or not permitted")
 	}
 	fmt.Printf("unshared %s from %s\n", noteID, userID)
 	return nil
@@ -138,10 +156,8 @@ deletes the collaborator row, which the owner's `delete` permission on
 ```
 
 :::note
-`export` is the one step that needs the function actually *running* — every part
-until now used only the dashboard and the CLI. Your local backend serves the
-`functions/` directory automatically: as long as `nhost up` is running,
-`functions/notes/export.ts` is live at
+Your local backend serves the `functions/` directory automatically: while it is
+running, `functions/notes/export.ts` is live at
 `https://local.functions.local.nhost.run/v1/notes/export`. Save the file and the
 local runtime hot-reloads it — there's no deploy step.
 :::
@@ -201,8 +217,14 @@ which lacks the `createClient` API the function uses:
 
 ```bash Terminal
 cd functions
-npm install @nhost/nhost-js@5.0.0-beta11
+npm install --package-lock-only --save-exact @nhost/nhost-js@5.0.0-beta11
 ```
+
+`--package-lock-only` records the dependency in `package.json` and
+`package-lock.json` without installing it yourself: the functions runtime sees
+the new lockfile, installs it, and rebuilds the function. (`functions/node_modules`
+belongs to the runtime's container, so on Linux a plain `npm install` fails
+with `EACCES`.)
 
 ## Call it from the CLI
 
@@ -237,7 +259,7 @@ Register it on the root command, plus add the `encoding/json` import:
 
 Here's the whole `main.go` after Part 5 — the finished CLI. Collapsed sections are unchanged from earlier parts; the highlighted lines are what this part added. Press **Copy** to grab the entire file at once.
 
-```go title="main.go"
+```go title="main.go" collapse={1-4,6-146,177-475} {5-5,147-176,476-530}
 package main
 
 import (
@@ -504,17 +526,15 @@ type noteSummary struct {
 }
 
 func cmdSignup(ctx context.Context, c *nhost.Client, email, password string) error {
-	if _, _, err := c.Auth.SignUpEmailPassword(ctx, auth.SignUpEmailPasswordRequest{
+	res, _, err := c.Auth.SignUpEmailPassword(ctx, auth.SignUpEmailPasswordRequest{
 		Email:    email,
 		Password: password,
-	}, nil); err != nil {
+	}, nil)
+	if err != nil {
 		return err
 	}
-	sess, err := c.Session(ctx)
-	if err != nil {
-		return fmt.Errorf("reading session after sign up: %w", err)
-	}
-	if sess != nil {
+	// Sign-up returns no session while the email is unverified.
+	if res.Session != nil {
 		fmt.Println("signed up and logged in as", email)
 	} else {
 		fmt.Println("signed up; verify your email, then `login`")
@@ -717,27 +737,45 @@ func cmdDownload(ctx context.Context, c *nhost.Client, fileID, outPath string) e
 }
 
 func cmdShare(ctx context.Context, c *nhost.Client, noteID, userID, role string) error {
+	var data struct {
+		Share *struct {
+			NoteID string `json:"note_id"`
+		} `json:"insert_note_collaborators_one"`
+	}
 	_, err := c.GraphQL.Request(ctx, `
 		mutation Share($noteId: uuid!, $userId: uuid!, $role: String!) {
 			insert_note_collaborators_one(
 				object: {note_id: $noteId, user_id: $userId, role: $role}
 				on_conflict: {constraint: note_collaborators_pkey, update_columns: [role]}
 			) { note_id role }
-		}`, graphql.Variables{"noteId": noteID, "userId": userID, "role": role}, nil)
+		}`, graphql.Variables{"noteId": noteID, "userId": userID, "role": role}, &data)
 	if err != nil {
 		return err
+	}
+	// Re-sharing a note you don't own updates nothing, so Hasura returns null
+	// rather than an error.
+	if data.Share == nil {
+		return errors.New("note not found or not permitted")
 	}
 	fmt.Printf("shared %s with %s as %s\n", noteID, userID, role)
 	return nil
 }
 
 func cmdUnshare(ctx context.Context, c *nhost.Client, noteID, userID string) error {
+	var data struct {
+		Share *struct {
+			NoteID string `json:"note_id"`
+		} `json:"delete_note_collaborators_by_pk"`
+	}
 	_, err := c.GraphQL.Request(ctx, `
 		mutation Unshare($noteId: uuid!, $userId: uuid!) {
 			delete_note_collaborators_by_pk(note_id: $noteId, user_id: $userId) { note_id }
-		}`, graphql.Variables{"noteId": noteID, "userId": userID}, nil)
+		}`, graphql.Variables{"noteId": noteID, "userId": userID}, &data)
 	if err != nil {
 		return err
+	}
+	if data.Share == nil {
+		return errors.New("note not shared with that user, or not permitted")
 	}
 	fmt.Printf("unshared %s from %s\n", noteID, userID)
 	return nil
@@ -766,12 +804,21 @@ NHOST_NOTES_SESSION=/tmp/bob.json go run . whoami   # bob@example.com (<otherUse
 # back as yourself, share a note with bob (role defaults to viewer if omitted)
 go run . share <noteId> <otherUserId> editor
 
-# ...and revoke it
+# bob now sees the note, and as an editor can change it
+NHOST_NOTES_SESSION=/tmp/bob.json go run . ls
+NHOST_NOTES_SESSION=/tmp/bob.json go run . pin <noteId>
+
+# ...and revoke it; bob's list is empty again
 go run . unshare <noteId> <otherUserId>
+NHOST_NOTES_SESSION=/tmp/bob.json go run . ls   # (no notes)
 
 # export your notes to a Markdown file in Storage
 go run . export
-# { "fileId": "...", "fileName": "export-1737045.md", "noteCount": 3 }
+# {
+#   "fileId": "...",
+#   "fileName": "export-1737045123456.md",
+#   "noteCount": 3
+# }
 
 go run . download <fileId> ./notes.md
 ```

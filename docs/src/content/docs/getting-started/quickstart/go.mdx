@@ -53,6 +53,14 @@ table, click **Edit Permissions**, and set these for the `user` role:
   and add the rule `user_id` `_eq` `X-Hasura-User-Id`. Under **Column select
   permissions**, select `id`, `title`, `content` and `created_at`.
 
+### Create a user
+
+The service signs users in with an email and password, so create one to sign
+in as: open **Auth**, click **Create User**, and enter an email (for example
+`user@example.com`) and a password.
+New projects only let users sign in once their email is verified, so open the
+new user and tick **Verified** next to their email.
+
 ### Setup the Application
 
 Create a module and install the SDK.
@@ -214,7 +222,7 @@ the JSON response:
 ```bash Terminal
 curl -X POST localhost:8080/signin \
   -H 'Content-Type: application/json' \
-  -d '{"email":"user@example.com","password":"..."}'
+  -d '{"email":"user@example.com","password":"<password>"}'
 
 export TOKEN="<accessToken from the response>"
 curl -X POST localhost:8080/notes \

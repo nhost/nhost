@@ -156,7 +156,7 @@ Register both as top-level commands in `rootCmd`:
 
 Here's the whole `main.go` after Part 4. Collapsed sections are unchanged from earlier parts; the highlighted lines are what this part added. Press **Copy** to grab the entire file at once.
 
-```go title="main.go"
+```go title="main.go" collapse={1-15,20-127,146-402} {16-16,18-19,128-145,403-444}
 package main
 
 import (
@@ -392,17 +392,15 @@ type noteSummary struct {
 }
 
 func cmdSignup(ctx context.Context, c *nhost.Client, email, password string) error {
-	if _, _, err := c.Auth.SignUpEmailPassword(ctx, auth.SignUpEmailPasswordRequest{
+	res, _, err := c.Auth.SignUpEmailPassword(ctx, auth.SignUpEmailPasswordRequest{
 		Email:    email,
 		Password: password,
-	}, nil); err != nil {
+	}, nil)
+	if err != nil {
 		return err
 	}
-	sess, err := c.Session(ctx)
-	if err != nil {
-		return fmt.Errorf("reading session after sign up: %w", err)
-	}
-	if sess != nil {
+	// Sign-up returns no session while the email is unverified.
+	if res.Session != nil {
 		fmt.Println("signed up and logged in as", email)
 	} else {
 		fmt.Println("signed up; verify your email, then `login`")
