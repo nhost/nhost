@@ -77,7 +77,7 @@ let
       clang
       pkg-config
     ])
-    ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
+    ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
       pkgs.apple-sdk_14
     ];
 in
