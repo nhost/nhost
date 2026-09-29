@@ -56,8 +56,7 @@ when a workflow changes.
 
 The starter includes a working `public.todos` feature with row-level `user` permissions:
 
-- `backend/nhost/migrations/default/1700000000000_init_todos/` creates and rolls back the table.
-- `backend/nhost/migrations/default/1700000000003_todo_location_and_sharing/` adds `location`, `preposition`, `is_public`, `file_id`, and the `todo-attachments` bucket.
+- `backend/nhost/migrations/default/1700000000000_init_todos/` creates and rolls back the whole feature in one step: the table (`location`, `preposition`, `is_public`, `sort_order`, `file_id`, `created_at`, `updated_at`), the `user_id` and `file_id` indexes, the `touch_updated_at` trigger, and the `todo-attachments` bucket. Keep it one migration when extending the starter — there is no deployed history to preserve, and the finished shape of the table should be readable in one file.
 - `backend/nhost/metadata/databases/default/tables/public_todos.yaml` tracks the table, presets row ownership on insert, and filters all operations to the current user.
 - `backend/nhost/metadata/databases/default/tables/tables.yaml` includes tracked table metadata files.
 - `frontend/src/app/protected/Todos.tsx` defines typed `GetTodos` and `CreateTodo` operations, sends them through `@nhost/nhost-js`, and manages request state with TanStack Query.

@@ -90,8 +90,7 @@ Do not hand-edit `schema.graphql`; refresh it from a running, fully applied loca
 
 The starter ships a complete `public.todos` feature with per-user row permissions:
 
-- `backend/nhost/migrations/default/1700000000000_init_todos/` creates and rolls back the table.
-- `backend/nhost/migrations/default/1700000000003_todo_location_and_sharing/` adds the optional location, the sharing flag, the attachment column, and the attachments bucket.
+- `backend/nhost/migrations/default/1700000000000_init_todos/` creates and rolls back the whole feature in one step: the table with its optional location, sharing flag and attachment column, the two indexes, the `updated_at` trigger, and the attachments bucket. One migration rather than a sequence of alters, because a starter has no deployed history to preserve — a reader should be able to see the finished shape of the table in one file.
 - `backend/nhost/metadata/databases/default/tables/public_todos.yaml` tracks it, sets row ownership on insert, and limits operations to the current user.
 - `frontend/src/app/protected/Todos.tsx` defines typed `GetTodos` and `CreateTodo` documents, calls them through `@nhost/nhost-js`, and uses TanStack Query for loading, mutation, and cache invalidation.
 
