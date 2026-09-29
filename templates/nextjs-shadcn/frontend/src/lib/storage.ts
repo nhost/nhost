@@ -20,9 +20,8 @@ export type ImageTransform = {
 
 /**
  * Appends transform parameters, keeping whatever query string is already
- * there. A presigned URL carries its signature that way, and the signature
- * does not cover these, so a private image can be resized the same as a public
- * one.
+ * there - the avatar function records its file with a cache-busting query
+ * string, so this cannot assume it is starting one.
  */
 export const withTransform = (
   url: string,
@@ -66,12 +65,13 @@ export const fileURL = (
  * id, so the URL it records is this project's `<storage>/files/<user id>` with
  * a cache-busting query string on the end. An account that has never uploaded
  * one carries the picture auth assigned at sign-up instead, which lives on
- * another host and is nothing this project can presign.
+ * another host and is nothing this project's storage knows about.
  *
  * The two are read in completely different ways, which is why this exists: a
  * stored avatar is private until its owner publishes their profile, so the
- * owner's own view of it has to be fetched with their session, while the
- * assigned one is a public URL that needs no such thing.
+ * owner's own view of it has to be fetched with their session (see
+ * `useStoredFileURL`), while the assigned one is a public URL on another host
+ * that needs no such thing.
  */
 export const isStoredAvatarURL = (
   baseURL: string,

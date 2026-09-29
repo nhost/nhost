@@ -12,17 +12,16 @@ describe('withTransform', () => {
     );
   });
 
-  // A presigned URL carries its signature in the query string. The signature
-  // does not cover these parameters, which is what lets a private image be
-  // resized the same way a public one is, but they have to be appended rather
-  // than replace what is already there.
+  // The avatar function records its file with a cache-busting query string, so
+  // a transform has to be appended to what is already there rather than
+  // replace it.
   it('keeps an existing query string', () => {
     expect(
-      withTransform('https://s.example/v1/files/abc?X-Sig=xyz', {
+      withTransform('https://s.example/v1/files/abc?updatedAt=123', {
         w: 96,
         q: 80,
       }),
-    ).toBe('https://s.example/v1/files/abc?X-Sig=xyz&w=96&q=80');
+    ).toBe('https://s.example/v1/files/abc?updatedAt=123&w=96&q=80');
   });
 
   it('leaves the URL alone when nothing was asked for', () => {
@@ -45,9 +44,9 @@ describe('withTransform', () => {
 
 // Which of the two kinds of avatar URL this is decides how it can be read at
 // all: a stored one is private until the profile is published, so the owner's
-// own view of it has to be presigned. Getting this wrong is what made a
-// freshly uploaded picture render as a blank initial for the person who had
-// just uploaded it.
+// own view of it has to be fetched with their session. Getting this wrong is
+// what made a freshly uploaded picture render as a blank initial for the
+// person who had just uploaded it.
 describe('isStoredAvatarURL', () => {
   const base = 'https://s.example/v1';
   const userId = '2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24';
@@ -66,8 +65,8 @@ describe('isStoredAvatarURL', () => {
     ).toBe(true);
   });
 
-  // Auth assigns this at sign-up. Presigning it would ask this project's
-  // storage for a file that was never there.
+  // Auth assigns this at sign-up. Fetching it through this project's storage
+  // would ask for a file that was never there.
   it('rejects a picture on another host', () => {
     expect(
       isStoredAvatarURL(base, 'https://gravatar.example/avatar/abc', userId),

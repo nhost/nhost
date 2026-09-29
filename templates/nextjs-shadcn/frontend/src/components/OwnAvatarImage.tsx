@@ -1,27 +1,37 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
 import { AvatarImage } from '@/components/ui/avatar';
 import { nhost } from '@/lib/nhost/client';
-import { isStoredAvatarURL, withTransform } from '@/lib/storage';
+import { isStoredAvatarURL } from '@/lib/storage';
+import { useStoredFileURL } from '@/lib/useStoredFile';
 
 /**
  * The signed-in viewer's own avatar.
  *
  * It cannot be the plain file URL, for the same reason `FileThumbnail` cannot
  * use one: an `<img>` sends no Authorization header, so storage answers it as
- * the `public` role, and that role may only read an avatar whose owner has
- * published their profile. The plain URL therefore works for strangers on
- * `/u/<id>` and 404s for an unpublished owner on their own pages - the wrong
- * way round, and it reads as an upload that silently failed, because the picker
- * goes on offering "Remove image" for a picture nobody can see.
+ * the `public` role, and that role may only read an avatar whose owner leaves
+ * their page on. The plain URL therefore 404s for an owner who has turned
+ * their page off, on their own pages, while still working for strangers on
+ * `/u/<id>` - the wrong way round, and it reads as an upload that silently
+ * failed, because the picker goes on offering "Remove image" for a picture
+ * nobody can see.
  *
- * A presigned URL is fetched with the session instead. Storage answers that as
- * `user`, where the rule is simply that the file is your own, so it resolves
- * whether or not the profile is published.
+ * The file is fetched with the session instead and drawn from a blob URL.
+ * Storage answers that as `user`, where the rule is simply that the file is
+ * your own, so it resolves whether the page is on or off - and unlike a
+ * presigned URL it stays one cacheable URL per size at the edge. See
+ * `useStoredFileURL`.
  *
- * Only a file this project stored is presigned. The picture auth assigns at
- * sign-up lives on another host, needs no signature, and is rendered as it is.
+ * Nothing is drawn unless this project stored it. The picture auth assigns at
+ * sign-up is a Gravatar URL built from an md5 of the email, requested with
+ * `d=blank` - and for the overwhelming majority of addresses, which have no
+ * Gravatar, that returns a transparent 138-byte PNG with a 200. Rendering it
+ * "worked", so the fallback initial never got its turn and every new account
+ * showed an empty circle where its letter should be.
+ *
+ * Leaving it out is also one fewer request to a third party carrying a hash of
+ * the user's email on every page that draws an avatar.
  */
 export function OwnAvatarImage({
   userId,
@@ -35,35 +45,25 @@ export function OwnAvatarImage({
 }) {
   const isStored = isStoredAvatarURL(nhost.storage.baseURL, avatarUrl, userId);
 
-  // Keyed by the stored URL rather than by the user alone: the avatar function
-  // puts an `updatedAt` on it, so uploading a new picture changes the key and
-  // the URL signed for the previous one is not served out of the cache.
-  const presigned = useQuery({
-    queryKey: ['own-avatar-url', userId, avatarUrl],
-    queryFn: async () => {
-      const { body } = await nhost.storage.getFilePresignedURL(userId);
-
-      return body.url;
-    },
-    enabled: isStored,
-    staleTime: 20_000,
-    retry: false,
-  });
-
   // Asked for at three times the size it is drawn at, the way `FileThumbnail`
   // does, so a dense screen stays sharp without pulling the whole 512px upload
-  // down to paint it small. Only the presigned URL is transformed: the picture
-  // auth assigns at sign-up is on another host, which has no such parameters.
-  const src = isStored
-    ? presigned.data &&
-      withTransform(presigned.data, { w: size * 3, q: 80, f: 'auto' })
-    : avatarUrl;
+  // down to paint it small.
+  //
+  // The avatar function stores one file per user under their own id, so the
+  // recorded URL is what distinguishes a new picture from the one it replaced;
+  // passing it as the version is what stops the old blob being reused.
+  const storedURL = useStoredFileURL(
+    isStored ? userId : null,
+    { w: size * 3, q: 80, f: 'webp' },
+    { version: avatarUrl },
+  );
 
-  // Nothing to draw until the signature arrives; the fallback initial shows
-  // through in the meantime, which is what it is there for.
-  if (!src) {
+  // Nothing to draw until the bytes arrive, and nothing at all for an account
+  // that never uploaded one; the fallback initial shows through in both cases,
+  // which is what it is there for.
+  if (!isStored || !storedURL) {
     return null;
   }
 
-  return <AvatarImage src={src} alt="" />;
+  return <AvatarImage src={storedURL} alt="" />;
 }
