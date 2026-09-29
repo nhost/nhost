@@ -10,7 +10,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/v3/sheet';
-import { CommandPaletteTrigger } from '@/features/command-palette';
 import CreateOrgDialog from '@/features/orgs/components/CreateOrgFormDialog/CreateOrgFormDialog';
 import { cn } from '@/lib/utils';
 import NavTree from './NavTree';
@@ -73,16 +72,8 @@ export default function MainNav({ container }: MainNavProps) {
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex h-12 w-full shrink-0 items-center gap-1 bg-background px-2 py-1">
-          <CommandPaletteTrigger
-            className="h-8 min-w-0 flex-1 px-[4px]"
-            onClick={() => setOpen(false)}
-          />
-          <Button
-            variant="ghost"
-            className="flex sm:hidden"
-            onClick={() => setOpen(false)}
-          >
+        <div className="flex h-12 w-full shrink-0 items-center justify-end bg-background px-2 py-1 sm:hidden">
+          <Button variant="ghost" onClick={() => setOpen(false)}>
             <X className="h-5 w-5" />
           </Button>
         </div>
