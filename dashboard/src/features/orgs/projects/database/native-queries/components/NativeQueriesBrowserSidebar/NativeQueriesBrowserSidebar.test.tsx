@@ -5,6 +5,7 @@ import { toast } from 'react-hot-toast';
 import { NativeQueriesBrowserSidebar } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesBrowserSidebar';
 import { mockMatchMediaValue } from '@/tests/mocks';
 import {
+  mockScrollIntoViewAndPointerCapture,
   queryClient,
   render,
   screen,
@@ -256,6 +257,15 @@ const nativeQuery = (rootFieldName: string): NativeQueryItem => ({
   returns: 'alpha_model',
 });
 
+async function chooseOption(
+  user: TestUserEvent,
+  comboboxName: string,
+  optionName: string,
+) {
+  await user.click(screen.getByRole('combobox', { name: comboboxName }));
+  await user.click(await screen.findByRole('option', { name: optionName }));
+}
+
 type GuardedDrawerSurface =
   | 'create logical model'
   | 'edit logical model'
@@ -304,7 +314,7 @@ describe('NativeQueriesBrowserSidebar', () => {
         print.error();
       },
     });
-    Element.prototype.scrollIntoView = vi.fn();
+    mockScrollIntoViewAndPointerCapture();
     window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
   });
 
@@ -618,6 +628,109 @@ describe('NativeQueriesBrowserSidebar', () => {
     expect(
       screen.queryByRole('dialog', { name: 'Unsaved changes' }),
     ).not.toBeInTheDocument();
+  });
+
+  it('opens native query relationships in a drawer without navigating', async () => {
+    const user = new TestUserEvent();
+    render(<NativeQueriesBrowserSidebar />);
+
+    await screen.findByText('search_authors');
+    await user.click(
+      screen.getByRole('button', { name: 'Actions for search_authors' }),
+    );
+    await user.click(
+      screen.getByRole('menuitem', { name: 'Edit Relationships' }),
+    );
+
+    expect(
+      screen.getByText('Edit Relationships for', { exact: false }),
+    ).toBeInTheDocument();
+    expect(await screen.findByText('1 object · 1 array')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: 'Edit relationship featured_author',
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('related_authors')).toBeInTheDocument();
+    expect(screen.getAllByText('· 1 mapping(s)')).toHaveLength(2);
+    expect(mocks.router.push).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('button', { name: 'Relationship' }));
+    expect(
+      screen.getByRole('heading', { name: 'Create Relationship' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('1 object · 1 array')).toBeInTheDocument();
+
+    await user.clear(screen.getByLabelText('Relationship Name'));
+    await user.type(screen.getByLabelText('Relationship Name'), 'reports');
+    await chooseOption(user, 'Target Native Query', 'search_authors');
+    await user.click(screen.getByRole('button', { name: 'Add New Mapping' }));
+    await user.click(
+      screen.getByRole('button', { name: 'Create Relationship' }),
+    );
+
+    await waitFor(() => expect(mutationBodies).toHaveLength(1));
+    const originalQuery =
+      hasuraMetadataFixture.metadata.sources[0].native_queries[0];
+    expect(mutationBodies).toEqual([
+      {
+        name: 'update_native_query_search_authors',
+        datasource: 'default',
+        up: [
+          {
+            type: 'bulk_atomic',
+            args: [
+              {
+                type: 'pg_untrack_native_query',
+                args: { source: 'default', root_field_name: 'search_authors' },
+              },
+              {
+                type: 'pg_track_native_query',
+                args: {
+                  ...originalQuery,
+                  source: 'default',
+                  object_relationships: [
+                    ...originalQuery.object_relationships,
+                    {
+                      name: 'reports',
+                      using: {
+                        column_mapping: { id: 'id' },
+                        insertion_order: null,
+                        remote_native_query: 'search_authors',
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+        ],
+        down: [
+          {
+            type: 'bulk_atomic',
+            args: [
+              {
+                type: 'pg_untrack_native_query',
+                args: { source: 'default', root_field_name: 'search_authors' },
+              },
+              {
+                type: 'pg_track_native_query',
+                args: { ...originalQuery, source: 'default' },
+              },
+            ],
+          },
+        ],
+      },
+    ]);
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('heading', { name: 'Create Relationship' }),
+      ).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.getByText('Edit Relationships for', { exact: false }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Back' })).toBeInTheDocument();
   });
 
   it('opens edit and delete flows for native queries', async () => {

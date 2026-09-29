@@ -8,3 +8,18 @@ export interface LogicalModelFieldNode {
   type: LogicalModelTypeNode;
   description: string;
 }
+
+export type NativeQueryRelationshipKind = 'object' | 'array';
+
+export interface NativeQueryRelationshipFieldMapping {
+  sourceField: string;
+  targetField: string;
+}
+
+export interface NativeQueryRelationshipInput {
+  name: string;
+  kind: NativeQueryRelationshipKind;
+  remoteNativeQuery: string;
+  fieldMappings: NativeQueryRelationshipFieldMapping[];
+  insertionOrder: 'before_parent' | 'after_parent' | null;
+}
