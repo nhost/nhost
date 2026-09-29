@@ -1,0 +1,44 @@
+openapi: "3.0.0"
+
+paths:
+  /json:
+    post:
+      operationId: optionalJsonBody
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OptionalJSONBody"
+      responses:
+        "204":
+          description: Accepted without a response body
+
+  /form:
+    post:
+      operationId: optionalFormBody
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/OptionalFormBody"
+      responses:
+        "204":
+          description: Accepted without a response body
+
+components:
+  schemas:
+    OptionalJSONBody:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+
+    OptionalFormBody:
+      type: object
+      properties:
+        token:
+          type: string
+      required:
+        - token
