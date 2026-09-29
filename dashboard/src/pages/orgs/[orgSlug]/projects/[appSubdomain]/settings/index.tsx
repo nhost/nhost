@@ -18,7 +18,7 @@ import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { Alert } from '@/components/ui/v3/alert';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { TransferProject } from '@/features/orgs/components/TransferProject';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { RemoveApplicationDialog } from '@/features/orgs/projects/common/components/RemoveApplicationDialog';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
@@ -336,10 +336,10 @@ export default function SettingsGeneralPage() {
 
 SettingsGeneralPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <OrgLayout>
+    <ProjectLayout>
       <SettingsLayout>
         <div className="mx-auto w-full max-w-5xl px-5 py-4">{page}</div>
       </SettingsLayout>
-    </OrgLayout>
+    </ProjectLayout>
   );
 };

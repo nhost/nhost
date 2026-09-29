@@ -29,7 +29,7 @@ import {
   within,
 } from '@/tests/testUtils';
 import { ApplicationStatus } from '@/types/application';
-import OrgLayout from './OrgLayout';
+import ProjectLayout from './ProjectLayout';
 
 const mocks = vi.hoisted(() => ({ useRouter: vi.fn() }));
 vi.mock('next/router', async () => ({
@@ -136,9 +136,9 @@ function ProjectContent() {
 function TestHarness() {
   return (
     <TreeNavStateProvider>
-      <OrgLayout>
+      <ProjectLayout>
         <ProjectContent />
-      </OrgLayout>
+      </ProjectLayout>
     </TreeNavStateProvider>
   );
 }
@@ -203,7 +203,7 @@ afterEach(() => {
 
 afterAll(() => server.close());
 
-describe('OrgLayout', () => {
+describe('ProjectLayout', () => {
   it('keeps navigation available and recovers when another project has a config error', async () => {
     const { rerender } = render(<TestHarness />);
 

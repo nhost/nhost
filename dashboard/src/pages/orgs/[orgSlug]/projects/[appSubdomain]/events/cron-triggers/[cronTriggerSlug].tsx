@@ -2,7 +2,7 @@ import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { CronTriggersBrowserSidebar } from '@/features/orgs/projects/events/cron-triggers/components/CronTriggersBrowserSidebar';
 import { CronTriggerView } from '@/features/orgs/projects/events/cron-triggers/components/CronTriggerView';
@@ -27,7 +27,7 @@ export default function CronTriggerDetailsPage() {
 
 CronTriggerDetailsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <OrgLayout
+    <ProjectLayout
       mainContainerProps={{
         className: 'flex h-full',
       }}
@@ -37,6 +37,6 @@ CronTriggerDetailsPage.getLayout = function getLayout(page: ReactElement) {
       <div className="box flex w-full flex-auto flex-col overflow-x-hidden">
         {page}
       </div>
-    </OrgLayout>
+    </ProjectLayout>
   );
 };

@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { ApplicationLive } from '@/features/orgs/projects/common/components/ApplicationLive';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
@@ -17,5 +17,5 @@ export default function AppIndexPage() {
 }
 
 AppIndexPage.getLayout = function getLayout(page: ReactElement) {
-  return <OrgLayout>{page}</OrgLayout>;
+  return <ProjectLayout>{page}</ProjectLayout>;
 };

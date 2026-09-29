@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { RemoteSchemaBrowserSidebar } from '@/features/orgs/projects/remote-schemas/components/RemoteSchemaBrowserSidebar';
@@ -28,7 +28,7 @@ export default function RemoteSchemaDetailsPage() {
 
 RemoteSchemaDetailsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <OrgLayout
+    <ProjectLayout
       mainContainerProps={{
         className: 'flex h-full',
       }}
@@ -38,6 +38,6 @@ RemoteSchemaDetailsPage.getLayout = function getLayout(page: ReactElement) {
       <div className="flex w-full flex-auto flex-col overflow-x-hidden bg-background-default">
         {page}
       </div>
-    </OrgLayout>
+    </ProjectLayout>
   );
 };

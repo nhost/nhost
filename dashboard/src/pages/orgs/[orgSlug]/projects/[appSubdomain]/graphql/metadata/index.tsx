@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { ImportExportMetadataCard } from '@/features/orgs/projects/graphql/metadata/components/ImportExportMetadataCard';
 import { MetadataStatusCard } from '@/features/orgs/projects/graphql/metadata/components/MetadataStatusCard';
 import { ReloadMetadataCard } from '@/features/orgs/projects/graphql/metadata/components/ReloadMetadataCard';
@@ -28,12 +28,12 @@ export default function MetadataPage() {
 
 MetadataPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <OrgLayout
+    <ProjectLayout
       mainContainerProps={{
         className: 'flex flex-1 bg-background-default',
       }}
     >
       <div className="mx-auto w-full max-w-5xl px-10">{page}</div>
-    </OrgLayout>
+    </ProjectLayout>
   );
 };

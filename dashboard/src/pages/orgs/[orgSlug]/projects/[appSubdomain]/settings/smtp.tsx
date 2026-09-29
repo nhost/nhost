@@ -8,7 +8,7 @@ import {
   SelectValue,
 } from '@/components/ui/v3/select';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import DeleteSMTPSettings from '@/features/orgs/projects/authentication/settings/components/DeleteSMTPSettings/DeleteSMTPSettings';
 import { PostmarkSettings } from '@/features/orgs/projects/authentication/settings/components/PostmarkSettings';
@@ -83,10 +83,10 @@ export default function SMTPSettingsPage() {
 
 SMTPSettingsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <OrgLayout>
+    <ProjectLayout>
       <SettingsLayout>
         <div className="mx-auto w-full max-w-5xl px-5 py-4">{page}</div>
       </SettingsLayout>
-    </OrgLayout>
+    </ProjectLayout>
   );
 };

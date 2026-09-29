@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { AllowedEmailSettings } from '@/features/orgs/projects/authentication/settings/components/AllowedEmailSettings';
 import { AllowedRedirectURLsSettings } from '@/features/orgs/projects/authentication/settings/components/AllowedRedirectURLsSettings';
@@ -61,10 +61,10 @@ export default function SettingsAuthenticationPage() {
 
 SettingsAuthenticationPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <OrgLayout>
+    <ProjectLayout>
       <SettingsLayout>
         <div className="mx-auto w-full max-w-5xl px-5 py-4">{page}</div>
       </SettingsLayout>
-    </OrgLayout>
+    </ProjectLayout>
   );
 };

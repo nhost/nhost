@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { AISidebar } from '@/features/orgs/layout/AISidebar';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { AssistantForm } from '@/features/orgs/projects/ai/AssistantForm';
 import { AssistantsList } from '@/features/orgs/projects/ai/AssistantsList';
 import type { Assistant } from '@/features/orgs/projects/ai/assistants/types';
@@ -190,7 +190,7 @@ export default function AssistantsPage() {
 
 AssistantsPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <OrgLayout
+    <ProjectLayout
       mainContainerProps={{
         className:
           'flex flex-row w-full h-full !bg-[#fafafa] dark:!bg-[#151a22]',
@@ -200,6 +200,6 @@ AssistantsPage.getLayout = function getLayout(page: ReactElement) {
       <div className="w-full overflow-auto">
         <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
       </div>
-    </OrgLayout>
+    </ProjectLayout>
   );
 };
