@@ -15,9 +15,9 @@ const stepsKey = (userId: string): string => `next-steps-visited:${userId}`;
 const steps = [
   {
     href: '/profile',
-    lead: 'Visit',
+    lead: 'Edit',
     link: 'your profile',
-    trail: ' to update name, image, and password',
+    trail: ' to change your name, picture, and password',
   },
   {
     href: '/protected',
