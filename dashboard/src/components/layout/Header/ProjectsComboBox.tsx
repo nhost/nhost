@@ -15,6 +15,7 @@ import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { ApplicationStatus } from '@/types/application';
 import { getProjectFeaturePagePath } from '@/utils/getProjectFeaturePagePath';
+import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 
 // Fixed-size slot so the project name keeps its position when the current
 // status has no dot.
@@ -27,11 +28,8 @@ function StatusIndicatorSlot({ status }: { status: ApplicationStatus }) {
 }
 
 export default function ProjectsComboBox() {
-  const {
-    query: { appSubdomain },
-    pathname,
-    push,
-  } = useRouter();
+  const { query, pathname, push } = useRouter();
+  const { appSubdomain } = query;
 
   const { state: appState } = useAppState();
   const { currentOrg: { slug: orgSlug, apps = [] } = {} } = useOrgs();
@@ -44,7 +42,15 @@ export default function ProjectsComboBox() {
 
   const handleProjectSelect = (subdomain: string) => {
     const featurePath = getProjectFeaturePagePath(pathname);
-    push(`/orgs/${orgSlug}/projects/${subdomain}${featurePath}`);
+    const tab = getSingleQueryParam(query.tab);
+    // A tab only applies to the page it was set on; when a dynamic segment was
+    // stripped (e.g. a function detail page), we land on a different page.
+    const isSamePage = !pathname.split('[appSubdomain]')[1]?.includes('[');
+
+    const search =
+      tab && isSamePage ? `?${new URLSearchParams({ tab }).toString()}` : '';
+
+    push(`/orgs/${orgSlug}/projects/${subdomain}${featurePath}${search}`);
   };
 
   const options = apps.map((app) => ({

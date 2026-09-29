@@ -1,10 +1,4 @@
-import type { ReactElement } from 'react';
-import { AppLayout } from '@/components/layout/AppLayout';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { ProjectScope } from '@/features/orgs/guards/ProjectScope';
-import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
-import { SettingsGuard } from '@/features/orgs/guards/SettingsGuard';
-import { SettingsArea } from '@/features/orgs/projects/common/components/settings/SettingsArea';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { EnvironmentVariableSettings } from '@/features/orgs/projects/environmentVariables/settings/components/EnvironmentVariableSettings';
 import { SystemEnvironmentVariableSettings } from '@/features/orgs/projects/environmentVariables/settings/components/SystemEnvironmentVariableSettings';
@@ -12,7 +6,7 @@ import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimi
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useGetEnvironmentVariablesQuery } from '@/generated/graphql';
 
-export default function EnvironmentVariablesPage() {
+export default function EnvironmentVariablesSettings() {
   const { project, loading: loadingProject } = useProject();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
@@ -45,17 +39,3 @@ export default function EnvironmentVariablesPage() {
     </div>
   );
 }
-
-EnvironmentVariablesPage.getLayout = function getLayout(page: ReactElement) {
-  return (
-    <AppLayout>
-      <ProjectScope>
-        <ProjectStateGate>
-          <SettingsGuard>
-            <SettingsArea>{page}</SettingsArea>
-          </SettingsGuard>
-        </ProjectStateGate>
-      </ProjectScope>
-    </AppLayout>
-  );
-};
