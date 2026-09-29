@@ -65,13 +65,13 @@ func flagDefaultText(f cli.Flag) string {
 }
 
 // prefixedName is the engine-level flag name for a service's native flag, e.g.
-// service "auth" + flag "api-prefix" => "auth-api-prefix".
+// service "auth" + flag "client-url" => "auth-client-url".
 func prefixedName(service, name string) string {
 	return service + "-" + name
 }
 
 // prefixedEnv is the engine-level env var for a service's native flag, e.g.
-// service "auth" + flag "api-prefix" => "AUTH_API_PREFIX".
+// service "auth" + flag "client-url" => "AUTH_CLIENT_URL".
 func prefixedEnv(service, name string) string {
 	return strings.ToUpper(service + "_" + strings.ReplaceAll(name, "-", "_"))
 }
@@ -134,8 +134,8 @@ func servicePrefixedFlags(
 }
 
 // servicePassthroughArgs turns the prefixed flags the caller actually set back
-// into the service's native argument list (e.g. "--auth-api-prefix /x" =>
-// ["--api-prefix", "/x"]). Only flags set on the engine command are forwarded,
+// into the service's native argument list (e.g. "--auth-client-url https://x"
+// => ["--client-url", "https://x"]). Only flags set on the engine command are forwarded,
 // so the service's own defaults and env sources still apply to the rest, and
 // engine globals fill any remaining shared values via applySharedConfig.
 func servicePassthroughArgs(

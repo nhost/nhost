@@ -56,8 +56,8 @@ type serviceDef struct {
 	// skip lists the service's native flag names the engine does not re-expose
 	// as prefixed flags. They are fed by an engine global (shared secrets,
 	// database URLs, and CORS) or are engine-owned composition settings (auth's
-	// route prefix, the shared listener and logger, HTTP timeouts, and profiling
-	// listeners).
+	// route prefix, graphql's playground endpoint, the shared listener and
+	// logger, HTTP timeouts, and profiling listeners).
 	skip map[string]bool
 	// hidden lists native flag names still accepted as prefixed passthrough but
 	// hidden from help, to keep low-level tuning out of the default surface.
