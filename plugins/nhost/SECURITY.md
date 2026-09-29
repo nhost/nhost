@@ -6,7 +6,7 @@ Please don't open a public issue for security problems.
 
 Email **security@nhost.io**. You can also report privately through GitHub: go to the [nhost/nhost Security tab](https://github.com/nhost/nhost/security) and choose **Report a vulnerability**.
 
-This covers the plugin itself: the skills, the manifests and the MCP configuration. The same channel covers the Nhost CLI, the MCP server and the Nhost platform; see the [nhost/nhost security policy](https://github.com/nhost/nhost/security/policy).
+This covers the plugin itself: the skills, the manifests and the MCP configuration. For the Nhost CLI, the MCP server and the Nhost platform, see the [nhost/nhost security policy](https://github.com/nhost/nhost/security/policy).
 
 ## Scope notes
 
