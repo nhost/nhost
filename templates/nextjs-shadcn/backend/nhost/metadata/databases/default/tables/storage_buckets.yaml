@@ -46,7 +46,7 @@ array_relationships:
           schema: storage
 select_permissions:
   # Every bucket the template creates (see the migrations under
-  # 1700000000001_avatars_bucket and 1700000000003_todo_location_and_sharing)
+  # 1700000000000_init_todos and 1700000000001_avatars_bucket)
   # has to be listed here. `storage.files.bucket_id` is NOT NULL, so a query
   # that selects `files { bucket { ... } } ` for a file in a bucket missing
   # from this filter gets a permission-denied null on a non-null field, which
