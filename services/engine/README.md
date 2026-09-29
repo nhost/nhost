@@ -41,7 +41,13 @@ options.
 ## Shutdown
 
 SIGINT or SIGTERM starts an ordered, three-step shutdown, driven by the shared
-serve runtime. The shared HTTP listener stops accepting work and drains
+serve runtime. The same shutdown starts if the public listener stops (including
+a bind or serve failure) or any service's background loop returns. A failure in
+one of these parts stops all bundled services and makes the engine exit non-zero
+with the error; a background loop returning nil also stops them, but the engine
+exits zero if shutdown completes without error.
+
+The shared HTTP listener stops accepting work and drains
 in-flight requests while service background loops and their dependencies remain
 available. The background loops are cancelled next. Only once they have stopped
 does each service release its resources, in reverse of the order they were
