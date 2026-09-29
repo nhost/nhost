@@ -614,7 +614,7 @@ func normalizeDNSHosts(hosts []string, logger *slog.Logger, purpose string) []st
 	seen := make(map[string]struct{}, len(hosts))
 
 	for _, value := range hosts {
-		host := strings.ToLower(strings.TrimSpace(value))
+		host := strings.TrimSuffix(strings.ToLower(strings.TrimSpace(value)), ".")
 		if host == "" {
 			continue
 		}
