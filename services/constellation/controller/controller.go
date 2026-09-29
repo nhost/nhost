@@ -282,8 +282,9 @@ func buildState(
 }
 
 // Run consumes metadata updates from the source and reloads state. It returns
-// when the source channel closes or ctx is cancelled. In serve.go the
-// deferred cancel() ensures the rest of the process shuts down.
+// when the source channel closes or ctx is cancelled, releasing the current
+// state. NewService runs it as the service's Background, so an early return
+// makes serve.Run shut the rest of the process down.
 func (c *Controller) Run(
 	ctx context.Context,
 	logger *slog.Logger,
@@ -311,8 +312,9 @@ func (c *Controller) Run(
 	}
 }
 
-// swapState atomically replaces the current state and shuts down the
-// old one in the background.
+// swapState atomically replaces the current state and releases the old one
+// in the background. If Close ran meanwhile, it releases the new state too, so
+// a reload racing Close cannot leave a state that nothing will release.
 func (c *Controller) swapState(
 	ctx context.Context, newState *controllerState, logger *slog.Logger,
 ) {

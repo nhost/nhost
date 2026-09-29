@@ -466,13 +466,13 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 		registerVipsDebugHandler()
 	}
 
-	// Only the default read-header deadline applies, so large uploads and
-	// downloads are not aborted mid-transfer.
 	// Run's errors already name the service and the lifecycle phase that failed.
 	//nolint:wrapcheck // adding a prefix here would only repeat that context.
 	return serveutil.Run(ctx, serveutil.Options{
-		Logger:          logger,
-		Addr:            cmd.String(flagBind),
+		Logger: logger,
+		Addr:   cmd.String(flagBind),
+		// Only the default read-header deadline applies, so large uploads and
+		// downloads are not aborted mid-transfer.
 		HTTP:            serveutil.HTTPTimeouts{ReadHeader: 0, Read: 0, Write: 0, Idle: 0},
 		DebugAddr:       debugAddr,
 		ShutdownTimeout: 0,
@@ -486,16 +486,17 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 }
 
 // NewService builds storage's serving surface from opts, which it validates
-// first: the HTTP handler and the image transformer. Storage has no long-lived background loop, so Background is nil:
-// the transformer bounds concurrency with a semaphore rather than worker
-// goroutines. Close calls Transformer.Shutdown, which tears down process-global
-// libvips state and is not re-entrant: image.NewTransformer cannot restart libvips
-// afterward. Close must therefore run exactly once, after all in-flight requests
-// have drained. NewService is consumed both by the standalone serve command and
-// by the engine unified binary, which mounts the handler behind a shared listener.
-// Past validation, its construction and cleanup error paths are
-// integration-only because they require the storage service's PostgreSQL, S3,
-// and Hasura environment.
+// first: the HTTP handler and the image transformer. Storage has no long-lived
+// background loop, so Background is nil: the transformer bounds concurrency
+// with a semaphore rather than worker goroutines. Close calls
+// Transformer.Shutdown, which tears down process-global libvips state and is
+// not re-entrant: image.NewTransformer cannot restart libvips afterward. Close
+// must therefore run exactly once, after all in-flight requests have drained,
+// which serve.Run guarantees. NewService is consumed both by the standalone
+// serve command and by the engine unified binary, which mounts the handler
+// behind a shared listener. Past validation, its construction and cleanup
+// error paths are integration-only because they require the storage service's
+// PostgreSQL, S3, and Hasura environment.
 func NewService(
 	ctx context.Context,
 	opts Options,

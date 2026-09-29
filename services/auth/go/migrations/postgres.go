@@ -87,7 +87,7 @@ func ApplyPostgresMigration(
 
 	db := sql.OpenDB(connector)
 	// The pool is local to this call: nothing outside it uses db, and auth serves
-	// from its own pool built on the non-migrations connection string.
+	// from its own pgx pool.
 	defer db.Close()
 
 	versionToMigrate, err := checkIfWeNeedToMigrate(ctx, db)

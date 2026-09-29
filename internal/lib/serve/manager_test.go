@@ -20,8 +20,11 @@ import (
 
 const (
 	testShutdownBudget = 2 * time.Second
+	// testReturnDeadline bounds how long a test waits for Run to return.
 	testReturnDeadline = 10 * time.Second
-	debugRoute         = "/debug/serve-run-test"
+	// debugRoute names a route no other test uses, because registering on
+	// http.DefaultServeMux is process-global and panics on a repeat registration.
+	debugRoute = "/debug/serve-run-test"
 )
 
 var (
@@ -97,6 +100,8 @@ func freeAddr(t *testing.T) string {
 	return addr
 }
 
+// recorded builds a service that echoes its name and the request path, and
+// records its build and close events.
 func recorded(
 	rec *recorder,
 	name string,
@@ -122,6 +127,7 @@ func fixed(
 	return func(context.Context, *slog.Logger) (*serveutil.Service, error) { return service, nil }
 }
 
+// byPrefix mounts every handler beneath "/<name>", stripping the prefix.
 func byPrefix(services []serveutil.Mounted) (http.Handler, error) {
 	mux := http.NewServeMux()
 	for _, service := range services {
@@ -136,6 +142,8 @@ func byPrefix(services []serveutil.Mounted) (http.Handler, error) {
 	return mux, nil
 }
 
+// runAsync runs Run in the background and returns the channel its result
+// arrives on.
 func runAsync(
 	ctx context.Context,
 	opts serveutil.Options,
@@ -270,6 +278,7 @@ func TestRunComposesInDefinitionOrderAndDrainsBeforeClose(t *testing.T) {
 	done := runAsync(ctx, opts,
 		serveutil.Definition{Name: "auth", Build: recorded(&rec, "auth")},
 		serveutil.Definition{Name: "storage", Build: recorded(&rec, "storage")},
+		// A service without a handler is still passed to Compose.
 		serveutil.Definition{Name: "worker", Build: fixed(&serveutil.Service{
 			Handler:    nil,
 			Background: func(ctx context.Context) error { <-ctx.Done(); rec.record("background-stop:worker"); return nil },
@@ -291,6 +300,8 @@ func TestRunComposesInDefinitionOrderAndDrainsBeforeClose(t *testing.T) {
 		t.Errorf("compose order = %v; want %v", composed, want)
 	}
 
+	// Resources are released only once background work has stopped, and in
+	// reverse build order.
 	if want := []string{
 		"build:auth",
 		"build:storage",
@@ -613,7 +624,8 @@ func TestRunSharesOneShutdownBudget(t *testing.T) {
 		ctx,
 		opts,
 		serveutil.Definition{Name: "graphql", Build: fixed(&serveutil.Service{
-			Handler:    http.NotFoundHandler(),
+			Handler: http.NotFoundHandler(),
+			// Ignores cancellation, so it uses up the whole budget.
 			Background: func(context.Context) error { <-release; return nil },
 			Close:      func(ctx context.Context) error { closeCtxErr <- ctx.Err(); return nil },
 		})},
@@ -634,6 +646,7 @@ func TestRunSharesOneShutdownBudget(t *testing.T) {
 		t.Errorf("shutdown took %v; budget %v", elapsed, budget)
 	}
 
+	// With the budget spent, Close is still called but no longer waited for.
 	select {
 	case ctxErr := <-closeCtxErr:
 		if !errors.Is(ctxErr, context.DeadlineExceeded) {
@@ -647,6 +660,7 @@ func TestRunSharesOneShutdownBudget(t *testing.T) {
 func TestRunReportsListenerFailure(t *testing.T) {
 	t.Parallel()
 
+	// Hold the port so the listener cannot bind it.
 	held, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
@@ -667,6 +681,7 @@ func TestRunReportsListenerFailure(t *testing.T) {
 		t.Fatalf("Run() err = %v; want %q", err, want)
 	}
 
+	// The failed listener must still leave the built service released.
 	if want := []string{"build:auth", "close:auth"}; !slices.Equal(rec.snapshot(), want) {
 		t.Errorf("events = %v; want %v", rec.snapshot(), want)
 	}
@@ -710,6 +725,9 @@ func TestRunAppliesHTTPTimeouts(t *testing.T) {
 	}
 }
 
+// TestMain registers the debug route once per test binary. Registration cannot
+// live in the test itself: http.DefaultServeMux is process-global and panics on
+// a repeat registration, which a -count greater than one would trigger.
 func TestMain(m *testing.M) {
 	http.HandleFunc(
 		debugRoute,
@@ -745,6 +763,7 @@ func TestRunServesDebugMuxSeparately(t *testing.T) {
 		t.Errorf("debug body = %q", body)
 	}
 
+	// The public listener must not expose the debug routes.
 	if body := getWhenReady(t, "http://"+opts.Addr+debugRoute); body != "auth:"+debugRoute {
 		t.Errorf("public body = %q", body)
 	}
@@ -759,6 +778,7 @@ func TestRunServesDebugMuxSeparately(t *testing.T) {
 func TestRunIgnoresDebugBindFailure(t *testing.T) {
 	t.Parallel()
 
+	// Hold the port so the debug listener cannot bind it.
 	held, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
@@ -838,6 +858,8 @@ func TestCloseFuncAdaptsAPlainRelease(t *testing.T) {
 	}
 }
 
+// getWhenReady polls url until the listener accepts a connection, then returns
+// the response body. It fails the test if the server never comes up.
 func getWhenReady(t *testing.T, url string) string {
 	t.Helper()
 

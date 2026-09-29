@@ -84,8 +84,11 @@ type Options struct {
 	ImageTransformerMaxBlurSigma float64
 }
 
-// Validate reports every setting NewService would reject, so a caller running
-// several services can check all of them before building any.
+// Validate reports the settings NewService would reject before connecting to
+// anything, so a caller running several services can check all of them before
+// building any. Settings that can only be checked against a live dependency,
+// such as the migrations database or the Hasura endpoint, fail later, if at
+// all.
 func (o Options) Validate() error {
 	var errs []error
 

@@ -17,10 +17,12 @@ type Service struct {
 	// only after the listener drains. It may be nil.
 	Background func(ctx context.Context) error
 
-	// Close releases resources after Background has returned, exactly once,
-	// within the shared shutdown budget. If Background ignores cancellation
-	// past the budget, Close may overlap the abandoned goroutine; resources
-	// must tolerate concurrent use in that exceptional case. It may be nil.
+	// Close releases the service's resources exactly once: after Background
+	// has returned, within the shared shutdown budget, or, when startup fails
+	// after this service was built, without Background ever having run. If
+	// Background ignores cancellation past the budget, Close may overlap the
+	// abandoned goroutine; resources must tolerate concurrent use in that
+	// exceptional case. It may be nil.
 	Close func(ctx context.Context) error
 }
 
