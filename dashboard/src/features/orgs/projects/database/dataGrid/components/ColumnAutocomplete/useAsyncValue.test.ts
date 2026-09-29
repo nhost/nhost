@@ -249,70 +249,52 @@ describe('useAsyncValue', () => {
     expect(result.current.selectedRelationships).toEqual([]);
   });
 
-  it.each([
-    [
-      'single-column',
+  it('resolves an array relationship through the table named by its constraint', async () => {
+    const metadata = makeMetadata(
+      'array_relationships',
       {
-        column: 'order_id',
-        table: { schema: 'logistics', name: 'shipments' },
-      },
-    ],
-    [
-      'composite',
-      {
-        columns: ['tenant_id', 'order_id'],
-        table: { schema: 'logistics', name: 'shipments' },
-      },
-    ],
-  ] satisfies [
-    string,
-    NonNullable<
-      HasuraMetadataRelationship['using']['foreign_key_constraint_on']
-    >,
-  ][])(
-    'resolves a %s array relationship through its metadata table',
-    async (_name, foreignKeyConstraintOn) => {
-      const metadata = makeMetadata(
-        'array_relationships',
-        {
-          name: 'shipments',
-          using: { foreign_key_constraint_on: foreignKeyConstraintOn },
+        name: 'shipments',
+        using: {
+          foreign_key_constraint_on: {
+            table: { schema: 'logistics', name: 'shipments' },
+            columns: ['tenant_id', 'order_id'],
+          },
         },
-        { schema: 'public', name: 'orders' },
-      );
-      const { result, rerender } = renderHook((props) => useAsyncValue(props), {
-        initialProps: {
-          selectedSchema: 'public',
-          selectedTable: 'orders',
-          initialValue: 'shipments.tracking_number',
-          isTableLoading: false,
-          isMetadataLoading: false,
-          tableData: makeTableData(['id']) as FetchTableReturnType,
-          metadata,
-        },
-      });
-
-      rerender({
-        selectedSchema: 'logistics',
-        selectedTable: 'shipments',
+      },
+      { schema: 'public', name: 'orders' },
+    );
+    const { result, rerender } = renderHook((props) => useAsyncValue(props), {
+      initialProps: {
+        selectedSchema: 'public',
+        selectedTable: 'orders',
         initialValue: 'shipments.tracking_number',
         isTableLoading: false,
         isMetadataLoading: false,
-        tableData: makeTableData(['tracking_number']) as FetchTableReturnType,
+        tableData: makeTableData(['id']) as FetchTableReturnType,
         metadata,
-      });
+      },
+    });
 
-      await waitFor(() => {
-        expect(result.current.initialized).toBe(true);
-      });
-      expect(result.current.selectedColumn).toMatchObject({
-        value: 'tracking_number',
-      });
-      expect(result.current.selectedRelationships).toEqual([
-        { schema: 'logistics', table: 'shipments', name: 'shipments' },
-      ]);
-    },
-  );
+    rerender({
+      selectedSchema: 'logistics',
+      selectedTable: 'shipments',
+      initialValue: 'shipments.tracking_number',
+      isTableLoading: false,
+      isMetadataLoading: false,
+      tableData: makeTableData(['tracking_number']) as FetchTableReturnType,
+      metadata,
+    });
+
+    await waitFor(() => {
+      expect(result.current.initialized).toBe(true);
+    });
+    expect(result.current.selectedColumn).toMatchObject({
+      value: 'tracking_number',
+    });
+    expect(result.current.selectedRelationships).toEqual([
+      { schema: 'logistics', table: 'shipments', name: 'shipments' },
+    ]);
+  });
 
   it('does not call onInitialized when initialValue is empty', async () => {
     const onInitialized = vi.fn();
