@@ -40,39 +40,36 @@ options.
 
 ## Shutdown
 
-SIGINT or SIGTERM starts an ordered, three-phase shutdown, driven by the shared
-serve runtime. The shared HTTP listener stops accepting work and gets up to 30
-seconds to drain while service background loops and their dependencies remain
+SIGINT or SIGTERM starts an ordered, three-step shutdown, driven by the shared
+serve runtime. The shared HTTP listener stops accepting work and drains
+in-flight requests while service background loops and their dependencies remain
 available. The background loops are cancelled next. Only once they have stopped
 does each service release its resources, in reverse of the order they were
 built.
 
-The two supervised phases each have a 35-second bound — the 30-second shutdown
-budget plus five seconds of headroom, so a listener can report its own drain
-timeout before its phase is abandoned. A phase that overruns produces a joined
-error naming it and the number of services still running, and the next phase is
-still cancelled instead of being stranded. The release phase has its own
-30-second bound and names the service that overran it. Fully wedged, those
-internal bounds add up to about 100 seconds.
+All three steps share one 30-second budget. A step still running when the
+budget is spent is reported instead of waited for: the process exits non-zero
+with an error that names the listener, background loop or service that did not
+finish, and the steps after it still run rather than being stranded. A fully
+wedged shutdown therefore ends after about 30 seconds.
 
 The deployment platform's termination grace period is the real process bound.
-Kubernetes' default 30-second grace and `docker stop`'s default 10 seconds issue
-SIGKILL before even the first 35-second bound can expire. The engine's bounds
-change the final outcome only when the external grace is long enough (for
-example, systemd's typical 90 seconds, a configured `docker stop -t`, or a
-bare-metal process). Regardless of external grace, the ordered design ensures
-that reaching an internal bound advances shutdown to the next phase; when the
-process has enough time, it also provides a diagnosable non-zero exit.
+Kubernetes' default 30-second grace can issue SIGKILL just as the budget expires,
+and `docker stop`'s default 10 seconds issues it well before. The engine's budget
+changes the final outcome only when the external grace is longer (for example,
+systemd's typical 90 seconds, a configured `docker stop -t`, or a bare-metal
+process); then it guarantees shutdown ends with a diagnosable exit instead of
+hanging.
 
 Repeated SIGINT or SIGTERM signals remain captured during graceful shutdown.
 They do not abort an ordinary drain or in-flight auth/storage cleanup; a service
-that ignores cancellation is escaped through the phase bound rather than a
-second signal. If the external grace is shorter, the platform's eventual
-SIGKILL remains the hard stop.
+that ignores cancellation is escaped through the budget rather than a second
+signal. If the external grace is shorter, the platform's eventual SIGKILL
+remains the hard stop.
 
 Ordinarily a service's resources are released only after its background loop has
 stopped, so cleanup never races live background work. The one exception is a
-background loop that overran its bound: its abandoned goroutine can then overlap
+background loop that overran the budget: its abandoned goroutine can then overlap
 that service's cleanup. This is an intentional last-resort path for an already
 broken service — the composed service contract requires cleanup to be
 concurrency-safe and idempotent with a live background loop, so the engine

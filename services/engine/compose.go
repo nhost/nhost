@@ -13,7 +13,6 @@ import (
 	"regexp"
 	"slices"
 	"strings"
-	"time"
 
 	"github.com/felixge/httpsnoop"
 	serveutil "github.com/nhost/nhost/internal/lib/serve"
@@ -51,12 +50,6 @@ const (
 	defaultBind = ":8080"
 	// maxDNSHostnameLength is the RFC 1035 maximum hostname length.
 	maxDNSHostnameLength = 253
-	// readHeaderTimeout bounds how long the shared server waits for request
-	// headers, mirroring the per-service standalone servers.
-	readHeaderTimeout = 5 * time.Second
-	// shutdownTimeout bounds the graceful shutdown of the shared server once the
-	// process context is cancelled.
-	shutdownTimeout = 30 * time.Second
 	// defaultAuthAPIPrefix preserves the standard Nhost auth /v1 route surface
 	// when auth is embedded behind the engine's /auth mount.
 	defaultAuthAPIPrefix = "/v1"
@@ -385,16 +378,17 @@ func runServe(ctx context.Context, cmd *cli.Command, version string) error {
 			// The read, write and idle timeouts are intentionally left unbounded:
 			// they would abort slow large uploads, truncate long-lived GraphQL
 			// responses, or close keep-alive connections; the cloud load balancer
-			// owns those limits. Only ReadHeaderTimeout is kept, as a cheap
-			// slowloris guard that bounds the header read without limiting upload
-			// or response duration.
+			// owns those limits. A zero ReadHeader keeps the library's 5-second
+			// default, a cheap slowloris guard that bounds the header read without
+			// limiting upload or response duration, as the standalone servers do.
 			HTTP: serveutil.HTTPTimeouts{
-				ReadHeader: readHeaderTimeout,
+				ReadHeader: 0,
 				Read:       0,
 				Write:      0,
 				Idle:       0,
 			},
-			ShutdownTimeout: shutdownTimeout,
+			// Zero uses the library's 30-second shutdown budget.
+			ShutdownTimeout: 0,
 			Compose: func(services []serveutil.Mounted) (http.Handler, error) {
 				return newMux(services, cfg.compatAuthHosts, cfg.mountPrefixHosts, logger)
 			},
@@ -453,10 +447,6 @@ var (
 	// errAllServicesDisabled is returned when every service was turned off with
 	// a --disable-<service> flag, leaving the engine with nothing to run.
 	errAllServicesDisabled = errors.New("all services disabled; nothing to run")
-	// errServiceNotBuilt is returned when a service's command ran without
-	// constructing its serve.Service (which should never happen once its action
-	// runs), guarding against a nil dereference downstream.
-	errServiceNotBuilt = errors.New("service was not constructed")
 	// errMissingRequired is returned when a service flag the engine consolidates
 	// into a global is required by the service but was filled by neither the
 	// global nor the service's own environment.
@@ -840,9 +830,7 @@ func buildService(
 		return nil, fmt.Errorf("running %s command: %w", name, err)
 	}
 
-	if built == nil {
-		return nil, fmt.Errorf("%s: %w", name, errServiceNotBuilt)
-	}
-
+	// A nil built (the action never ran) is reported by serve.Run, which
+	// rejects a Build that returns neither a service nor an error.
 	return built, nil
 }

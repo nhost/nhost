@@ -104,7 +104,7 @@ rec {
     goTestFlags = "-race";
 
     # The shared check only selects the engine submodule. Keep the shared serve
-    # library, including the process supervisor, together in one lint/test leg.
+    # library, which owns the process lifecycle, together in one lint/test leg.
     extraCheck = ''
       echo "➜ Running golangci-lint for shared serve library"
       golangci-lint run \

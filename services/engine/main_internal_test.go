@@ -29,7 +29,7 @@ const (
 var (
 	errSignalHelperTimeout = errors.New("timed out waiting for signal helper")
 	errSignalHelperMode    = errors.New("unknown signal helper mode")
-	errSignalWedgeResult   = errors.New("wedge did not produce the expected tier timeout")
+	errSignalWedgeResult   = errors.New("wedge did not produce the expected shutdown timeout")
 )
 
 func TestSignalContextShutdownScenarios(t *testing.T) {
@@ -61,7 +61,7 @@ func TestSignalContextShutdownScenarios(t *testing.T) {
 			wantFinal:    "DRAINED",
 		},
 		{
-			name:      "wedged service escapes through tier bound",
+			name:      "wedged service escapes through the shutdown budget",
 			mode:      signalTestWedged,
 			wantFinal: "WEDGE_ESCAPED",
 		},
@@ -193,7 +193,7 @@ func runWedgedSignalTestHelper(ctx context.Context) error {
 	done := make(chan error, 1)
 
 	// A background loop that never returns must not keep the process alive: the
-	// shared runtime bounds the tier and moves on.
+	// shared runtime gives up on it once the shutdown budget is spent.
 	wedged := serveutil.Definition{
 		Name:   "wedged",
 		Prefix: "",
