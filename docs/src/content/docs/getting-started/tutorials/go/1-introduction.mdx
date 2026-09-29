@@ -23,7 +23,7 @@ the end you'll have a `notes` CLI that can:
 - **Authenticate** — sign up, sign in, and stay signed in across runs with a
   persisted session (`login` / `logout` / `whoami`)
 - **Manage notes** — create, list, edit, tag, and organise notes into notebooks
-  over GraphQL, with per-user permissions enforced by the database
+  over GraphQL, with per-user permissions enforced by the GraphQL engine
 - **Attach files** — upload attachments to Nhost Storage and download them again
 - **Export & share** — call a serverless function to export notes and share a
   note with another user
@@ -152,6 +152,7 @@ import (
 	"github.com/urfave/cli/v3"
 
 	nhost "github.com/nhost/nhost/packages/nhost-go"
+	"github.com/nhost/nhost/packages/nhost-go/session"
 )
 
 var (
@@ -183,8 +184,9 @@ func rootCmd() *cli.Command {
 			command.Usage = "Generate the autocompletion script for the specified shell"
 		},
 		Before: func(ctx context.Context, _ *cli.Command) (context.Context, error) {
-			client = newClient()
-			return ctx, nil
+			var err error
+			client, err = newClient()
+			return ctx, err
 		},
 		Action: commandHelp,
 	}
@@ -192,8 +194,8 @@ func rootCmd() *cli.Command {
 	root.Commands = append(root.Commands, &cli.Command{
 		Name:  "whoami",
 		Usage: "Show the currently signed-in user",
-		Action: withArgs(func(_ context.Context, _ *cli.Command, _ []string) error {
-			return cmdWhoami(client)
+		Action: withArgs(func(ctx context.Context, _ *cli.Command, _ []string) error {
+			return cmdWhoami(ctx, client)
 		}),
 	})
 
@@ -250,13 +252,15 @@ func silenceUsage(cmd *cli.Command) {
 	}
 }
 
-// newClient builds the Nhost client. The client middleware attaches the access
-// token to every request and refreshes it automatically once we sign in.
-func newClient() *nhost.Client {
-	return nhost.New(nhost.Options{
-		Subdomain: env("NHOST_SUBDOMAIN", "local"),
-		Region:    env("NHOST_REGION", "local"),
-	})
+// newClient builds the Nhost client. With session storage, the client saves the
+// session when we sign in, then attaches the access token to every request and
+// refreshes it automatically. MemoryStorage forgets it when the CLI exits;
+// Part 2 saves it to disk instead.
+func newClient() (*nhost.Client, error) {
+	return nhost.New(
+		nhost.WithProject(env("NHOST_SUBDOMAIN", "local"), env("NHOST_REGION", "local")),
+		nhost.WithSessionStorage(&session.MemoryStorage{}),
+	)
 }
 
 func env(key, fallback string) string {
@@ -266,8 +270,8 @@ func env(key, fallback string) string {
 	return fallback
 }
 
-func cmdWhoami(c *nhost.Client) error {
-	s, err := c.Session()
+func cmdWhoami(ctx context.Context, c *nhost.Client) error {
+	s, err := c.Session(ctx)
 	if err != nil {
 		return fmt.Errorf("reading session: %w", err)
 	}

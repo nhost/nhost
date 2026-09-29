@@ -42,18 +42,16 @@ Make sure the option `Track this` is enabled.
 
 ### Permissions
 
-Select the new `notes` table and click **Edit Permissions** to give the `user`
-role access to its own rows. This is the core of Nhost's authorization model:
-the database enforces per-user isolation from the claims in each caller's
-access token. Your service must keep that token scoped to the caller, but it
-does not need to duplicate the row filters.
+The GraphQL engine checks every request against the permissions of the
+caller's role, using the user ID in their access token. Select the `notes`
+table, click **Edit Permissions**, and set these for the `user` role:
 
-- **insert** — allow the `user` role to insert `title` and `content`, and add a
-  **column preset** so `user_id` is set from the session:
-  `user_id = X-Hasura-User-Id`. (Never let clients choose `user_id`.)
-- **select** — allow the `user` role to read `id, title, content, created_at`
-  with the **row filter** `{ "user_id": { "_eq": "X-Hasura-User-Id" } }` so each
-  user only ever sees their own notes.
+- **insert**: under **Column insert permissions**, select `title` and
+  `content`. Under **Column presets**, set `user_id` to `X-Hasura-User-Id`, so
+  each note belongs to the user who created it.
+- **select**: under **Row select permissions**, choose **With custom check**
+  and add the rule `user_id` `_eq` `X-Hasura-User-Id`. Under **Column select
+  permissions**, select `id`, `title`, `content` and `created_at`.
 
 ### Setup the Application
 
@@ -68,17 +66,10 @@ go get github.com/nhost/nhost/packages/nhost-go
 
 ### Configure the Nhost client and read and write notes
 
-Build a server client for each incoming request. `/signin` returns an access
-token, and `/notes` requires that token in the `Authorization` header. Each
-client gets its own in-memory session backend, so the SDK attaches only that
-caller's token when it sends the GraphQL request.
-
-:::caution
-Never share a client created by `nhost.New` between users in a server. Its
-in-memory session store would make every request run as the last user who
-signed in, allowing one caller to read or write another user's rows. Use
-`NewServerClient` with an explicit per-request or per-user session backend.
-:::
+The service creates one Nhost client at startup. `/signin` returns an access
+token, and `/notes` expects it back in the `Authorization` header.
+`session.WithAccessToken` sends that token with the handler's GraphQL requests,
+so they run with the caller's permissions.
 
 <Tabs>
   <TabItem label="main.go">
@@ -96,7 +87,7 @@ import (
 	"github.com/nhost/nhost/packages/nhost-go/session"
 )
 
-// The row filter on `notes` scopes this to the authenticated user automatically.
+// The custom check on `notes` returns only the caller's own notes.
 const listNotesQuery = `query {
   notes(order_by: {created_at: desc}) {
     id
@@ -105,29 +96,33 @@ const listNotesQuery = `query {
   }
 }`
 
-// `user_id` is filled in by the column preset, so we only send title + content.
+// The column preset fills in `user_id`, so we only send the title and content.
 const insertNoteMutation = `mutation ($title: String!, $content: String!) {
   insert_notes_one(object: {title: $title, content: $content}) {
     id
+    title
+    content
   }
 }`
 
-type graphQLID struct {
-	ID string `json:"id"`
-}
-
 type note struct {
-	ID      string `json:"id"`
+	ID      string `json:"id,omitempty"`
 	Title   string `json:"title"`
 	Content string `json:"content"`
 }
 
-type insertNoteVariables struct {
-	Title   string `json:"title"`
-	Content string `json:"content"`
-}
+var client *nhost.Client
 
 func main() {
+	var err error
+
+	// Replace <subdomain> and <region> with your project's values. For a local
+	// backend, use "local" for both.
+	client, err = nhost.New(nhost.WithProject("<subdomain>", "<region>"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	http.HandleFunc("POST /signin", signIn)
 	http.HandleFunc("POST /notes", requireUser(createNote))
 	http.HandleFunc("GET /notes", requireUser(listNotes))
@@ -136,122 +131,64 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
-func newServerClient(backend session.Backend) (*nhost.Client, error) {
-	// Replace <subdomain> and <region> with your project's values. For a local
-	// backend, use Subdomain: "local", Region: "local".
-	return nhost.NewServerClient(nhost.Options{
-		Subdomain: "<subdomain>",
-		Region:    "<region>",
-		Storage:   backend,
-	})
-}
-
 func signIn(w http.ResponseWriter, r *http.Request) {
-	client, err := newServerClient(&session.MemoryStorage{})
-	if err != nil {
-		http.Error(w, "create Nhost client: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	var body struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	}
+	var body auth.SignInEmailPasswordRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	result, _, err := client.Auth.SignInEmailPassword(
-		r.Context(),
-		auth.SignInEmailPasswordRequest{
-			Email:    body.Email,
-			Password: body.Password,
-		},
-		nil,
-	)
+	result, _, err := client.Auth.SignInEmailPassword(r.Context(), body, nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
-	if result.Session == nil || result.Session.AccessToken == "" {
-		http.Error(w, "sign-in did not return a session", http.StatusUnauthorized)
+	if result.Session == nil {
+		http.Error(w, "sign-in needs another step, such as MFA", http.StatusUnauthorized)
 		return
 	}
 
 	writeJSON(w, map[string]string{"accessToken": result.Session.AccessToken})
 }
 
-func requireUser(
-	next func(http.ResponseWriter, *http.Request, *nhost.Client),
-) http.HandlerFunc {
+// requireUser makes the caller's access token the credential for the Nhost
+// requests the handler sends.
+func requireUser(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		accessToken, ok := bearerToken(r)
-		if !ok {
+		token, ok := strings.CutPrefix(r.Header.Get("Authorization"), "Bearer ")
+		if !ok || token == "" {
 			http.Error(w, "missing Authorization: Bearer <access token> header", http.StatusUnauthorized)
 			return
 		}
 
-		backend := &session.MemoryStorage{}
-		backend.Set(session.StoredSession{
-			Session: auth.Session{AccessToken: accessToken},
-		})
-		client, err := newServerClient(backend)
-		if err != nil {
-			http.Error(w, "create Nhost client: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		next(w, r, client)
+		next(w, r.WithContext(session.WithAccessToken(r.Context(), token)))
 	}
 }
 
-func bearerToken(r *http.Request) (string, bool) {
-	scheme, token, ok := strings.Cut(strings.TrimSpace(r.Header.Get("Authorization")), " ")
-	token = strings.TrimSpace(token)
-
-	return token, ok && strings.EqualFold(scheme, "Bearer") && token != ""
-}
-
-func createNote(w http.ResponseWriter, r *http.Request, client *nhost.Client) {
-	var body struct {
-		Title   string `json:"title"`
-		Content string `json:"content"`
-	}
+func createNote(w http.ResponseWriter, r *http.Request) {
+	var body note
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	var data struct {
-		Note *graphQLID `json:"insert_notes_one"`
+		Note note `json:"insert_notes_one"`
 	}
-
-	_, err := client.GraphQL.Request(
-		r.Context(),
-		insertNoteMutation,
-		insertNoteVariables{Title: body.Title, Content: body.Content},
-		&data,
-	)
-	if err != nil {
+	variables := note{Title: body.Title, Content: body.Content}
+	if _, err := client.GraphQL.Request(r.Context(), insertNoteMutation, variables, &data); err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
-		return
-	}
-	if data.Note == nil {
-		http.Error(w, "insert did not return a note", http.StatusBadGateway)
 		return
 	}
 
 	writeJSON(w, data.Note)
 }
 
-func listNotes(w http.ResponseWriter, r *http.Request, client *nhost.Client) {
+func listNotes(w http.ResponseWriter, r *http.Request) {
 	var data struct {
 		Notes []note `json:"notes"`
 	}
-
-	_, err := client.GraphQL.Request(r.Context(), listNotesQuery, nil, &data)
-	if err != nil {
+	if _, err := client.GraphQL.Request(r.Context(), listNotesQuery, nil, &data); err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
 		return
 	}
@@ -291,4 +228,4 @@ curl localhost:8080/notes -H "Authorization: Bearer $TOKEN"
 
 - [`nhost-go` SDK reference](/reference/go/nhost-go/main) — the full API for auth, storage, GraphQL, and functions.
 - [Notes CLI tutorial](/getting-started/tutorials/go/1-introduction) — a five-part walkthrough that builds a complete notes CLI exercising auth, GraphQL, Storage (attachments), and Functions (export).
-- [cat-uploader example](https://github.com/nhost/nhost/tree/main/examples/demos/cat-uploader) — a runnable HTTP service that signs in as a service user and uploads to Storage, packaged to deploy on [Nhost Run](/products/run).
+- [cat-uploader example](https://github.com/nhost/nhost/tree/main/examples/demos/cat-uploader) — a runnable HTTP service that uploads to Storage with the admin secret, packaged to deploy on [Nhost Run](/products/run).
