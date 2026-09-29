@@ -73,6 +73,11 @@ per-request token ([session.WithAccessToken]) act for a caller whose session
 the client does not hold, so they leave storage alone. It reads and then
 restores the response body so downstream decoding still works.
 
+If the backend fails to store or clear the session, the request fails with
+that error even though the auth service succeeded. Otherwise a sign-in would
+report success while nothing was saved, and the next request would run as
+whoever was stored before, or as nobody.
+
 ### `WithAdminSession`
 
 ```go
