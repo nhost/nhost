@@ -7,12 +7,20 @@ import (
 
 func ai(
 	cfg *model.ConfigConfig,
+	subdomain string,
+	httpPort uint,
+	useTLS bool,
 ) *Service {
+	storageURL, authService := "http://storage:5000/v1", "auth"
+	if engineEnabled(cfg) {
+		storageURL, authService = URL(subdomain, "storage", httpPort, useTLS)+"/v1", "engine"
+	}
+
 	envars := appconfig.AIEnv(
 		cfg,
 		"http://graphql:8080/v1/graphql",
 		"postgres://postgres@postgres:5432/local?sslmode=disable",
-		"http://storage:5000/v1",
+		storageURL,
 		"",
 	)
 
@@ -30,7 +38,7 @@ func ai(
 			"postgres": {
 				Condition: "service_healthy",
 			},
-			"auth": {
+			authService: {
 				Condition: "service_healthy",
 			},
 		},

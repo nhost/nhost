@@ -14,7 +14,10 @@ func graphql( //nolint:funlen
 	useTLS bool,
 	httpPort, port uint,
 ) (*Service, error) {
-	constellationEnabled := cfg.GetExperimental().GetConstellation() != nil
+	// The engine always runs constellation as its GraphQL engine, so either way
+	// constellation takes over the public graphql host and hasura keeps only its
+	// console routes.
+	constellationEnabled := cfg.GetExperimental().GetConstellation() != nil || engineEnabled(cfg)
 
 	envars, err := appconfig.HasuraEnv(
 		cfg,

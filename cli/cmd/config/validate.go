@@ -134,8 +134,16 @@ func Validate(
 		return nil, fmt.Errorf("failed to create schema: %w", err)
 	}
 
+	// Preserve the explicit file and overlay fields so defaults added by Fill do
+	// not count as user-requested engine overrides.
+	configInput := cfg
+
 	cfg, err = appconfig.SecretsResolver(cfg, secrets, schema.Fill)
 	if err != nil {
+		return nil, fmt.Errorf("failed to validate config: %w", err)
+	}
+
+	if err := schema.ValidateConfigMutation(cfg, configInput); err != nil {
 		return nil, fmt.Errorf("failed to validate config: %w", err)
 	}
 
@@ -191,6 +199,10 @@ func ValidateRemote(
 
 	cfgSecrets, err := appconfig.SecretsResolver(cfg, secrets, schema.Fill)
 	if err != nil {
+		return nil, nil, fmt.Errorf("failed to validate config: %w", err)
+	}
+
+	if err := schema.ValidateConfigMutation(cfgSecrets, cfg); err != nil {
 		return nil, nil, fmt.Errorf("failed to validate config: %w", err)
 	}
 

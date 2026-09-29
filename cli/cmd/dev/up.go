@@ -272,23 +272,7 @@ func restart(
 ) error {
 	ce.Infoln("Restarting services to reapply metadata if needed...")
 
-	args := []string{"restart"}
-
-	if _, ok := composeFile.Services["storage"]; ok {
-		args = append(args, "storage")
-	}
-
-	if _, ok := composeFile.Services["auth"]; ok {
-		args = append(args, "auth")
-	}
-
-	if _, ok := composeFile.Services["ai"]; ok {
-		args = append(args, "ai")
-	}
-
-	if _, ok := composeFile.Services["functions"]; ok {
-		args = append(args, "functions")
-	}
+	args := append([]string{"restart"}, restartServiceNames(composeFile)...)
 
 	if err := dc.Wrapper(ctx, args...); err != nil {
 		return fmt.Errorf("failed to restart services: %w", err)
@@ -302,6 +286,17 @@ func restart(
 	}
 
 	return nil
+}
+
+func restartServiceNames(composeFile *dockercompose.ComposeFile) []string {
+	services := make([]string, 0, len(composeFile.Services))
+	for _, name := range []string{"storage", "auth", "engine", "ai", "functions"} {
+		if _, ok := composeFile.Services[name]; ok {
+			services = append(services, name)
+		}
+	}
+
+	return services
 }
 
 func reload(

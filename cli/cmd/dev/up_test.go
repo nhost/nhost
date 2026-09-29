@@ -1,10 +1,57 @@
 package dev //nolint:testpackage
 
 import (
+	"slices"
 	"testing"
 
 	"github.com/nhost/nhost/cli/dockercompose"
 )
+
+func TestRestartServiceNames(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		services map[string]*dockercompose.Service
+		expected []string
+	}{
+		{
+			name: "standalone services",
+			services: map[string]*dockercompose.Service{
+				"auth":      nil,
+				"storage":   nil,
+				"ai":        nil,
+				"functions": nil,
+				"graphql":   nil,
+			},
+			expected: []string{"storage", "auth", "ai", "functions"},
+		},
+		{
+			name: "engine services",
+			services: map[string]*dockercompose.Service{
+				"engine":    nil,
+				"ai":        nil,
+				"functions": nil,
+				"graphql":   nil,
+			},
+			expected: []string{"engine", "ai", "functions"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			composeFile := &dockercompose.ComposeFile{
+				Services: tt.services,
+				Volumes:  nil,
+			}
+			if got := restartServiceNames(composeFile); !slices.Equal(got, tt.expected) {
+				t.Errorf("restartServiceNames() = %v, want %v", got, tt.expected)
+			}
+		})
+	}
+}
 
 func TestParseRunServiceOverride(t *testing.T) { //nolint:dupl
 	t.Parallel()

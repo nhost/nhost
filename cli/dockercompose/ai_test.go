@@ -55,13 +55,13 @@ func TestAI(t *testing.T) {
 	cases := []struct {
 		name     string
 		cfg      func() *model.ConfigConfig
-		useTlS   bool
+		useTLS   bool
 		expected func() *Service
 	}{
 		{
 			name:     "success",
 			cfg:      getConfig,
-			useTlS:   false,
+			useTLS:   false,
 			expected: expectedAI,
 		},
 	}
@@ -70,7 +70,7 @@ func TestAI(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := ai(tc.cfg())
+			got := ai(tc.cfg(), "dev", 1337, tc.useTLS)
 			if diff := cmp.Diff(tc.expected(), got); diff != "" {
 				t.Error(diff)
 			}
