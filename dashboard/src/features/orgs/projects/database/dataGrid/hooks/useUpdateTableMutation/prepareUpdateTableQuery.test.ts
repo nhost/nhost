@@ -22,8 +22,7 @@ const originalColumns: DatabaseColumn[] = [
 ];
 
 describe('prepareUpdateTableQuery', () => {
-  test('should drop removed and add new multi-column unique constraints', () => {
-    // a+b is kept, c is single-column (owned by the column), d+e is removed.
+  it('should drop removed and add new multi-column unique constraints', () => {
     const columns: DatabaseColumn[] = [
       { id: 'a', name: 'a', type: 'text', uniqueConstraints: ['t_a_b_key'] },
       { id: 'b', name: 'b', type: 'text', uniqueConstraints: ['t_a_b_key'] },
@@ -57,7 +56,7 @@ describe('prepareUpdateTableQuery', () => {
     ]);
   });
 
-  test('unticking Unique only drops single-column unique constraints', () => {
+  it('unticking Unique only drops single-column unique constraints', () => {
     const columns: DatabaseColumn[] = [
       { id: 'b', name: 'b', type: 'text', uniqueConstraints: ['t_b_c_key'] },
       {
@@ -88,7 +87,7 @@ describe('prepareUpdateTableQuery', () => {
     ]);
   });
 
-  test('should prepare a query for renaming the table', () => {
+  it('should prepare a query for renaming the table', () => {
     const updatedTable: DatabaseTable = {
       name: 'test_table_renamed',
       primaryKey: ['id'],
@@ -123,7 +122,7 @@ describe('prepareUpdateTableQuery', () => {
     );
   });
 
-  test('should prepare a query for adding a column', () => {
+  it('should prepare a query for adding a column', () => {
     const updatedTable: DatabaseTable = {
       name: 'test_table',
       primaryKey: ['id'],
@@ -159,7 +158,7 @@ describe('prepareUpdateTableQuery', () => {
     );
   });
 
-  test('should prepare a query for removing a column', () => {
+  it('should prepare a query for removing a column', () => {
     const updatedTable: DatabaseTable = {
       name: 'test_table',
       primaryKey: ['id'],
@@ -189,7 +188,7 @@ describe('prepareUpdateTableQuery', () => {
     );
   });
 
-  test('should prepare a query for updating a column', () => {
+  it('should prepare a query for updating a column', () => {
     const updatedTable: DatabaseTable = {
       name: 'test_table',
       primaryKey: ['id'],
@@ -230,7 +229,7 @@ describe('prepareUpdateTableQuery', () => {
     );
   });
 
-  test('should prepare a query for adding a foreign key', () => {
+  it('should prepare a query for adding a foreign key', () => {
     const updatedTable: DatabaseTable = {
       name: 'test_table',
       primaryKey: ['id'],
@@ -274,7 +273,7 @@ describe('prepareUpdateTableQuery', () => {
     );
   });
 
-  test('should prepare a query for removing a foreign key', () => {
+  it('should prepare a query for removing a foreign key', () => {
     const updatedTable: DatabaseTable = {
       name: 'test_table',
       primaryKey: ['id'],
@@ -319,7 +318,7 @@ describe('prepareUpdateTableQuery', () => {
     );
   });
 
-  test('should prepare a query for updating a foreign key', () => {
+  it('should prepare a query for updating a foreign key', () => {
     const updatedTable: DatabaseTable = {
       name: 'test_table',
       primaryKey: ['id'],
@@ -377,7 +376,7 @@ describe('prepareUpdateTableQuery', () => {
     );
   });
 
-  test('should not modify primary keys when they are the same', () => {
+  it('should not modify primary keys when they are the same', () => {
     const originalColumnsWithPK: DatabaseColumn[] = [
       {
         id: 'id',
@@ -429,7 +428,7 @@ describe('prepareUpdateTableQuery', () => {
     expect(primaryKeyQueries).toHaveLength(0);
   });
 
-  test('should handle primary key changes from single to composite', () => {
+  it('should handle primary key changes from single to composite', () => {
     const originalColumnsWithPK: DatabaseColumn[] = [
       {
         id: 'id',
@@ -489,7 +488,7 @@ describe('prepareUpdateTableQuery', () => {
     );
   });
 
-  test('should handle removing primary key entirely', () => {
+  it('should handle removing primary key entirely', () => {
     const originalColumnsWithPK: DatabaseColumn[] = [
       {
         id: 'id',
@@ -543,7 +542,7 @@ describe('prepareUpdateTableQuery', () => {
     expect(dropConstraintQuery).toBeDefined();
     expect(addPrimaryKeyQuery).toBeUndefined();
   });
-  test('should prepare a query for adding comment to with the old table name', () => {
+  it('should prepare a query for adding comment to with the old table name', () => {
     const updatedTable: DatabaseTable = {
       name: 'test_table_renamed',
       primaryKey: ['id'],
@@ -579,7 +578,7 @@ describe('prepareUpdateTableQuery', () => {
     );
   });
 
-  test('should prepare a query for adding comment to the table', () => {
+  it('should prepare a query for adding comment to the table', () => {
     const updatedTable: DatabaseTable = {
       name: 'test_table',
       primaryKey: ['id'],

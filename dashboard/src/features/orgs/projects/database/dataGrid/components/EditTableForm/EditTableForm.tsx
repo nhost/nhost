@@ -61,8 +61,7 @@ export default function EditTableForm({
   const foreignKeyRelations = data?.foreignKeyRelations;
   const candidateKeys = data?.candidateKeys;
 
-  // A column whose only keys span several columns is not unique on its own, so
-  // its Unique box stays clear, matching what unticking it would be able to drop.
+  // Not unique on its own if every key it belongs to spans several columns.
   const dataGridColumns = (columns || []).map((column) => {
     const normalizedColumn = normalizeDatabaseColumn(column);
     const keys = (candidateKeys ?? []).filter(({ columns: keyColumns }) =>
@@ -132,8 +131,7 @@ export default function EditTableForm({
         (column) => column.isIdentity,
       );
 
-      // Columns list only UNIQUE constraints, so this skips the primary key
-      // and bare unique indexes, neither of which can be dropped as one.
+      // Skips the primary key and bare unique indexes, which aren't UNIQUE constraints.
       const uniqueConstraintNames = new Set(
         dataGridColumns.flatMap(
           ({ uniqueConstraints }) => uniqueConstraints ?? [],

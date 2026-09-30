@@ -41,8 +41,6 @@ export function RemoveButton({ index, onClick }: RemoveButtonProps) {
 
         setValue('primaryKeyIndices', updatedPrimaryKeyIndices);
 
-        // A unique key losing a column is a different constraint, so drop it;
-        // the rest shift down with the columns after the removed one.
         setValue(
           'uniqueKeys',
           uniqueKeys

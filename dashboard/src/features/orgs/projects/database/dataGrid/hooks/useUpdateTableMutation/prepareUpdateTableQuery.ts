@@ -79,9 +79,7 @@ export default function prepareUpdateTableQuery({
     );
   }
 
-  // A multi-column UNIQUE constraint is listed on each of its columns, so a
-  // repeated name marks one. Those are managed through `uniqueKeys`; a column's
-  // own Unique checkbox only owns its single-column constraints.
+  // A multi-column constraint is listed on each of its columns, so its name repeats.
   const originalUniqueConstraintNames = originalColumns.flatMap(
     ({ uniqueConstraints }) => uniqueConstraints ?? [],
   );
@@ -194,8 +192,7 @@ export default function prepareUpdateTableQuery({
     );
   }
 
-  // Multi-column UNIQUE constraints run after foreign key drops that may depend
-  // on them, and before foreign key creates that may reference them.
+  // Between the foreign key drops and creates, which may depend on these.
   const keptUniqueKeyNames = new Set(
     updatedTable.uniqueKeys?.map(({ name }) => name),
   );
