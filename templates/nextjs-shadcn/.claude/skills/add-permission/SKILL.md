@@ -15,7 +15,7 @@ Edit the existing role entry when one is present; do not create two entries for 
 
 ## 2. Add the required permission shapes
 
-The following `user` permissions show the four supported operations for a table owned through `user_id`. Replace the column names with the table's real columns and keep writable columns as narrow as possible.
+The following `user` permissions show the four supported operations for a table owned through `user_id`, which is the per-user shape. A table shared by a group filters through a membership relationship instead; the `add-table` skill writes that shape out in full, and the rules below about column lists and session variables apply to it unchanged. Replace the column names with the table's real columns and keep writable columns as narrow as possible.
 
 ```yaml
 insert_permissions:
@@ -70,9 +70,13 @@ For non-owner policies, use the same session-variable comparison pattern against
 
 ### Rules for a role other than `user`
 
-`public` is the role Hasura uses for a request with no token. A permission for
-it is how data becomes readable without signing in, and it is the permission
-most likely to leak something, so:
+**Skip this if nothing in your product is readable without signing in.** It is
+the longest part of this skill and it exists because a `public` permission is
+the one most likely to leak something, not because every project needs one.
+
+`public` is the role Hasura uses for a request with no token. The rules below
+generalise; the shipped shared-profile feature is only the illustration they are
+drawn from, and a different public surface would gate on different switches:
 
 - Gate on columns the owner controls. The shipped example needs two: the row
   is flagged `todos.is_public`, and the owner has not turned their page off
