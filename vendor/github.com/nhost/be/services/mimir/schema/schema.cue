@@ -248,7 +248,7 @@ import (
 	// Releases:
 	//
 	// https://github.com/nhost/hasura-storage/releases
-	version: string | *"0.14.0"
+	version: string | *"0.15.1"
 
 	// Networking (custom domains at the moment) are not allowed as we need to do further
 	// configurations in the CDN. We will enable it again in the future.
@@ -297,7 +297,7 @@ import (
 #Postgres: {
 	// Version of postgres, you can see available versions in the URL below:
 	// https://hub.docker.com/r/nhost/postgres/tags
-	version: string | *"14.20-20251217-1"
+	version: string | *"18.6-20260930-1"
 
 	// Resources for the service
 	resources: {
@@ -440,7 +440,7 @@ import (
 	// Releases:
 	//
 	// https://github.com/nhost/hasura-auth/releases
-	version: string | *"0.49.1"
+	version: string | *"0.52.0"
 
 	// Resources for the service
 	resources?: #Resources
@@ -938,7 +938,7 @@ import (
 #Constellation: {
 	// Version of constellation, you can see available versions in the URL below:
 	// https://hub.docker.com/r/nhost/constellation/tags
-	version: string | *"0.1.0"
+	version: string | *"0.7.1"
 
 	// Advanced configuration settings for the service.
 	settings?: {
@@ -962,7 +962,7 @@ import (
 
 #AI: {
 	// Version of the service image to deploy.
-	version: string | *"0.8.1"
+	version: string | *"0.9.0"
 	// Compute resources and scaling for the service.
 	resources: {
 		// CPU and memory allocation.

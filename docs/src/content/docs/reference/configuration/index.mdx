@@ -153,7 +153,7 @@ Configuration for auth service
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `version` | `string` | `"0.49.1"` | Version of auth, you can see available versions in the URL below: https://hub.docker.com/r/nhost/hasura-auth/tags Releases: https://github.com/nhost/hasura-auth/releases |
+| `version` | `string` | `"0.52.0"` | Version of auth, you can see available versions in the URL below: https://hub.docker.com/r/nhost/hasura-auth/tags Releases: https://github.com/nhost/hasura-auth/releases |
 | `resources?` | [`Resources`](#resources) |  | Resources for the service |
 | `elevatedPrivileges` | object |  | Settings for elevated-privilege operations. |
 | `redirections` | object |  | Allowed post-authentication redirect URLs. |
@@ -449,7 +449,7 @@ Configuration for postgres service
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `version` | `string` | `"14.20-20251217-1"` | Version of postgres, you can see available versions in the URL below: https://hub.docker.com/r/nhost/postgres/tags |
+| `version` | `string` | `"18.6-20260930-1"` | Version of postgres, you can see available versions in the URL below: https://hub.docker.com/r/nhost/postgres/tags |
 | `resources` | object |  | Resources for the service |
 | `settings?` | object |  | Advanced configuration settings for the service. |
 | `pitr?` | object |  | Point-in-time recovery settings. |
@@ -570,7 +570,7 @@ Configuration for storage service
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `version` | `string` | `"0.14.0"` | Version of storage service, you can see available versions in the URL below: https://hub.docker.com/r/nhost/hasura-storage/tags Releases: https://github.com/nhost/hasura-storage/releases |
+| `version` | `string` | `"0.15.1"` | Version of storage service, you can see available versions in the URL below: https://hub.docker.com/r/nhost/hasura-storage/tags Releases: https://github.com/nhost/hasura-storage/releases |
 | `resources?` | [`Resources`](#resources) `{networking?: null}` |  | Networking (custom domains at the moment) are not allowed as we need to do further configurations in the CDN. We will enable it again in the future. |
 | `antivirus?` | object |  | Antivirus scanning for uploaded files. |
 | `imageTransformer?` | object |  | Bounds applied to on-the-fly image transformations to keep a single request from exhausting the service's memory/CPU. Omit to use the storage service's built-in defaults. |
@@ -599,7 +599,7 @@ Configuration for storage service
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `version` | `string` | `"0.8.1"` | Version of the service image to deploy. |
+| `version` | `string` | `"0.9.0"` | Version of the service image to deploy. |
 | `resources` | object |  | Compute resources and scaling for the service. |
 | `openai` | object |  | OpenAI API configuration. |
 | `autoEmbeddings` | object |  | Automatic embeddings generation settings. |
@@ -874,7 +874,7 @@ Resource configuration for a service
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `version` | `string` | `"0.1.0"` | Version of constellation, you can see available versions in the URL below: https://hub.docker.com/r/nhost/constellation/tags |
+| `version` | `string` | `"0.7.1"` | Version of constellation, you can see available versions in the URL below: https://hub.docker.com/r/nhost/constellation/tags |
 | `settings?` | object |  | Advanced configuration settings for the service. |
 
 #### `Constellation.settings`

@@ -451,7 +451,9 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 				LogMinDurationStatement:       new("-1"),
 				LogAutovacuumMinDuration:      new("10min"),
 				LogTempFiles:                  new("-1"),
-				SharedPreloadLibraries:        nil,
+				SharedPreloadLibraries: []string{
+					"pg_stat_statements", "pg_cron", "timescaledb", "pg_squeeze", "pg_search",
+				},
 				Extensions: &model.ConfigPostgresSettingsExtensions{
 					PgStatStatements: &model.ConfigPostgresSettingsExtensionsPgStatStatements{
 						Max:           new(int32(5000)),
