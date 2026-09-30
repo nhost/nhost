@@ -17,20 +17,6 @@ Decode the payload of a JWT access token into a `DecodedToken`.
 Hasura claims encoded as PostgreSQL array literals (e.g. ``{user,me}``) are
 converted into Python lists, mirroring the JS SDK.
 
-### `refresh_session`
-
-```python
-async def refresh_session(auth: AuthClient, storage: SessionStorage, margin_seconds: int = 60) -> StoredSession | None
-```
-
-Refresh the session if it is close to expiry.
-
-Retries once on transient failure; clears the stored session and returns
-``None`` if the refresh token is rejected with 401.
-
-Supply a bare auth client without session-refresh middleware. The internal
-reentry guard is a deadlock safety net, not a supported reentrancy mechanism.
-
 ### `to_stored_session`
 
 ```python
@@ -64,160 +50,300 @@ declared fields, including processed Hasura claims, remain visible.
 | `sub` | `str \| None` |
 | `hasura_claims` | `dict[str, Any] \| None` |
 
-### `FileStorage`
+### `FileStore`
 
 ```python
-class FileStorage:
+class FileStore:
     def __init__(path: str | Path) -> None
 ```
 
-JSON-file session storage for CLIs and local scripts.
+Keeps one session in a JSON file, for CLIs and local scripts.
 
 File operations run in worker threads so they do not block the event loop.
-Writes are atomic and use owner-only permissions. ``~`` in ``path`` is
-expanded when the backend is constructed.
-
-#### Methods
-
-##### `get`
-
-```python
-async def get(self) -> StoredSession | None
-```
-
-##### `remove`
-
-```python
-async def remove(self) -> None
-```
-
-##### `set`
-
-```python
-async def set(self, value: StoredSession) -> None
-```
-
-### `MemoryStorage`
-
-```python
-class MemoryStorage:
-    def __init__() -> None
-```
-
-In-memory session storage. The default backend.
-
-Not shared across processes and cleared when the process exits. Do not
-share one instance between users in a server process; create a scoped
-backend per request or user instead.
-
-#### Methods
-
-##### `get`
-
-```python
-async def get(self) -> StoredSession | None
-```
-
-##### `remove`
-
-```python
-async def remove(self) -> None
-```
-
-##### `set`
-
-```python
-async def set(self, value: StoredSession) -> None
-```
-
-### `SessionStorage`
-
-```python
-class SessionStorage:
-    def __init__(storage: SessionStorageBackend) -> None
-```
-
-Decode access tokens and persist sessions through a backend.
+Writes are atomic and the file is readable only by its owner. ``~`` in
+``path`` is expanded when the store is constructed. Operations from one
+process are serialized; processes sharing the file are not coordinated.
 
 #### Properties
 
-##### `backend`
+##### `path`
 
 ```python
 @property
-def backend(self) -> SessionStorageBackend
+def path(self) -> Path
 ```
 
-Return the backend used as the weak refresh-lock mapping key.
+The file the session is kept in.
 
 #### Methods
 
-##### `get`
+##### `delete`
 
 ```python
-async def get(self) -> StoredSession | None
+async def delete(self) -> None
 ```
 
-Return a session with decoded claims re-derived from its access token.
-
-Persisted ``decoded_token`` data is derived state and is never trusted.
-A malformed access token raises `ValueError`, matching `set`.
-
-##### `remove`
+##### `delete_if_refresh_token`
 
 ```python
-async def remove(self) -> None
+async def delete_if_refresh_token(self, refresh_token: str) -> StoredSession | None
 ```
 
-##### `set`
+##### `load`
 
 ```python
-async def set(self, value: Session) -> None
+async def load(self) -> StoredSession | None
 ```
 
-Store an auth `Session`, re-deriving its decoded token.
-
-### `SessionStorageBackend`
+##### `save`
 
 ```python
-class SessionStorageBackend(Protocol):
+async def save(self, session: StoredSession) -> None
+```
+
+### `MemoryStore`
+
+```python
+class MemoryStore:
+    def __init__() -> None
+```
+
+Keeps one session in memory, for a process acting for one user.
+
+Not shared across processes and gone when the process exits.
+
+#### Methods
+
+##### `delete`
+
+```python
+async def delete(self) -> None
+```
+
+##### `delete_if_refresh_token`
+
+```python
+async def delete_if_refresh_token(self, refresh_token: str) -> StoredSession | None
+```
+
+##### `load`
+
+```python
+async def load(self) -> StoredSession | None
+```
+
+##### `save`
+
+```python
+async def save(self, session: StoredSession) -> None
+```
+
+### `MultiUserMemoryStore`
+
+```python
+class MultiUserMemoryStore:
+    def __init__() -> None
+```
+
+Keeps many users' sessions in memory, for a server running as one process.
+
+Replicas that share sessions need a `MultiUserSessionStore` over a
+shared store instead.
+
+#### Methods
+
+##### `delete`
+
+```python
+async def delete(self, user_id: str) -> None
+```
+
+##### `delete_if_refresh_token`
+
+```python
+async def delete_if_refresh_token(self, user_id: str, refresh_token: str) -> StoredSession | None
+```
+
+##### `load`
+
+```python
+async def load(self, user_id: str) -> StoredSession | None
+```
+
+##### `save`
+
+```python
+async def save(self, user_id: str, session: StoredSession) -> None
+```
+
+### `MultiUserSessionStore`
+
+```python
+class MultiUserSessionStore(Protocol):
     def __init__(*args, **kwargs)
 ```
 
-Asynchronous interface for persisting one `StoredSession`.
+Where a server keeps the sessions of the users it acts for, keyed by user ID.
 
-Backend instances are weak-mapping keys for in-process refresh locking, so
-implementations must remain hashable, have stable equality semantics, and
-support weak references.
+A request names its user with `nhost.Nhost.with_user_id`. The SDK never
+asks the store about a request that names none, so such a request sends no
+token rather than someone else's. Sessions are saved under the user the auth
+service returned them for.
+
+#### Methods
+
+##### `delete`
+
+```python
+async def delete(self, user_id: str) -> None
+```
+
+Delete ``user_id``'s session. Deleting when there is none succeeds.
+
+##### `load`
+
+```python
+async def load(self, user_id: str) -> StoredSession | None
+```
+
+Load ``user_id``'s session, or return ``None`` when there is none.
+
+##### `save`
+
+```python
+async def save(self, user_id: str, session: StoredSession) -> None
+```
+
+Save ``session`` as ``user_id``'s, replacing any stored for them.
+
+### `NoSessionStoreError`
+
+```python
+class NoSessionStoreError(NhostError):
+    def __init__() -> None
+```
+
+Raised when a session method is called on a client without a session store.
+
+### `SessionManager`
+
+```python
+class SessionManager:
+    def __init__(*, session_store: SessionStore | None = None, multi_user_session_store: MultiUserSessionStore | None = None) -> None
+```
+
+Loads, saves and refreshes the sessions in one store.
+
+``Nhost`` builds one from ``session_store=`` or ``multi_user_session_store=``
+and shares it with its middleware and every handle made from it
+(`nhost.Nhost.session_manager`). Use it directly to store a session
+obtained elsewhere, or to read another user's session.
+
+Methods that select a session take a ``user_id``. Without one, they use the
+one session of a `SessionStore` and no session of a
+`MultiUserSessionStore`. With one, a `SessionStore`'s session
+is used only if it is that user's.
 
 #### Methods
 
 ##### `get`
 
 ```python
-async def get(self) -> StoredSession | None
+async def get(self, user_id: str | None = None) -> StoredSession | None
 ```
+
+Return the stored session ``user_id`` selects, if any.
+
+The decoded token is derived again from the access token rather than
+trusted from storage.
+
+##### `refresh`
+
+```python
+async def refresh(self, auth: AuthClient, *, user_id: str | None = None, margin_seconds: int = 60) -> StoredSession | None
+```
+
+Refresh the session ``user_id`` selects if it expires within the margin.
+
+Returns the (possibly unchanged) session. ``auth`` must be an auth client
+without session middleware, so this is the only thing that stores the
+refreshed session.
+
+Concurrent refreshes of one session, from any handle sharing this
+manager, collapse into one request that finishes even if every caller
+waiting for it is cancelled; different users refresh independently. If
+the refresh fails and the session has not expired yet, it is returned
+unchanged. An expired session's refresh is retried once; if that fails
+too, this returns ``None``, and a ``401`` from the auth service also
+deletes the session, unless the store has meanwhile been given a session
+with another refresh token (another process refreshed first), which is
+returned instead. Store failures raise `SessionStoreError`, and
+are never retried.
 
 ##### `remove`
 
 ```python
-async def remove(self) -> None
+async def remove(self, user_id: str | None = None) -> None
 ```
+
+Delete the stored session ``user_id`` selects, if any.
 
 ##### `set`
 
 ```python
-async def set(self, value: StoredSession) -> None
+async def set(self, session: Session) -> None
 ```
 
-### `SessionStorageError`
+Store an auth `Session` under the user it is for.
+
+With a `MultiUserSessionStore`, a session that names no user
+raises `ValueError`.
+
+### `SessionStore`
 
 ```python
-class SessionStorageError(NhostError):
-    def __init__(operation: str, path: Path, error: Exception) -> None
+class SessionStore(Protocol):
+    def __init__(*args, **kwargs)
 ```
 
-Raised when a persistent session backend cannot read or update state.
+Where a client acting for one user keeps its session.
+
+#### Methods
+
+##### `delete`
+
+```python
+async def delete(self) -> None
+```
+
+Delete the session. Deleting when there is none succeeds.
+
+##### `load`
+
+```python
+async def load(self) -> StoredSession | None
+```
+
+Load the session, or return ``None`` when there is none.
+
+##### `save`
+
+```python
+async def save(self, session: StoredSession) -> None
+```
+
+Save ``session``, replacing any session already stored.
+
+### `SessionStoreError`
+
+```python
+class SessionStoreError(NhostError):
+    def __init__(operation: str, error: Exception) -> None
+```
+
+Raised when a session store cannot load, save or delete a session.
+
+The store's own exception is kept as ``error`` and as ``__cause__``.
 
 ### `StoredSession`
 
@@ -244,3 +370,17 @@ session for persistence, so do not serialize a session into logs.
 | `refresh_token` | `str` |
 | `user` | `User \| None` |
 | `decoded_token` | `DecodedToken` |
+
+#### Properties
+
+##### `user_id`
+
+```python
+@property
+def user_id(self) -> str | None
+```
+
+The ID of the user this session is for, or ``None`` if it names none.
+
+Read from ``user``, or from the access token's ``sub`` claim when the
+auth service omitted the user.

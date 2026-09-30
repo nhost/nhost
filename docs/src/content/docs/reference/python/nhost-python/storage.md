@@ -242,6 +242,16 @@ Args:
 Returns:
     FetchResponse[UploadFilesResponse201]: The HTTP response.
 
+##### `with_middleware`
+
+```python
+def with_middleware(self, *middleware: Middleware) -> Self
+```
+
+Return a copy of this client that runs ``middleware`` before its own.
+
+The copy shares this client's HTTP client and never closes it.
+
 ### `DeleteBrokenMetadataResponse200`
 
 ```python
@@ -726,6 +736,16 @@ Args:
 
 Returns:
     FetchResponse[UploadFilesResponse201]: The HTTP response.
+
+##### `with_middleware`
+
+```python
+def with_middleware(self, *middleware: Middleware) -> Self
+```
+
+Return a copy of this client that runs ``middleware`` before its own.
+
+The copy shares this client's HTTP client and never closes it.
 
 ### `UpdateFileMetadata`
 

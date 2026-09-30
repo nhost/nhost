@@ -49,6 +49,16 @@ async def request(self, query: str, *, response_type: type[Any] | TypeAdapter[An
 
 Execute an operation and optionally validate its ``data`` value.
 
+##### `with_middleware`
+
+```python
+def with_middleware(self, *middleware: Middleware) -> Self
+```
+
+Return a copy of this client that runs ``middleware`` before its own.
+
+The copy shares this client's HTTP client and never closes it.
+
 ### `GraphQLError`
 
 ```python

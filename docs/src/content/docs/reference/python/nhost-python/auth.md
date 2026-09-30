@@ -1148,6 +1148,16 @@ Args:
 Returns:
     FetchResponse[str]: The HTTP response.
 
+##### `with_middleware`
+
+```python
+def with_middleware(self, *middleware: Middleware) -> Self
+```
+
+Return a copy of this client that runs ``middleware`` before its own.
+
+The copy shares this client's HTTP client and never closes it.
+
 ### `AuthenticationExtensionsClientOutputs`
 
 ```python
@@ -2298,6 +2308,16 @@ Args:
 
 Returns:
     FetchResponse[str]: The HTTP response.
+
+##### `with_middleware`
+
+```python
+def with_middleware(self, *middleware: Middleware) -> Self
+```
+
+Return a copy of this client that runs ``middleware`` before its own.
+
+The copy shares this client's HTTP client and never closes it.
 
 ### `CreatePATRequest`
 

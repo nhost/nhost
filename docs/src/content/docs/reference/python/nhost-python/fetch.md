@@ -15,14 +15,17 @@ attachment, and role/header injection are implemented.
 ### `attach_access_token_middleware`
 
 ```python
-def attach_access_token_middleware(storage: SessionStorage, service_url: str) -> Middleware
+def attach_access_token_middleware(sessions: SessionManager | None, service_url: str) -> Middleware
 ```
 
-Attach the stored access token only within the configured service origin.
+Attach the request's access token only within the configured service origin.
 
-Should run after the refresh middleware so the freshest token is used. A
-caller-supplied authorization header is preserved unless it is the stored
-bearer token on a request that has moved outside the service origin.
+The token is the caller's own (``Nhost.with_access_token``), or else that of
+the stored session the request selects (``Nhost.with_user_id``). Should run
+after the refresh middleware so the freshest token is used. A caller-supplied
+authorization header is preserved unless it is that token on a request that
+has moved outside the service origin. If the session store cannot be read,
+the request fails with `SessionStoreError`.
 
 ### `create_fetch_pipeline`
 
@@ -53,13 +56,24 @@ every service exposes the same decoding contract.
 ### `session_refresh_middleware`
 
 ```python
-def session_refresh_middleware(auth: AuthClient, storage: SessionStorage, margin_seconds: int = 60) -> Middleware
+def session_refresh_middleware(auth: AuthClient, sessions: SessionManager, margin_seconds: int = 60) -> Middleware
 ```
 
-Refresh the session before a request when the token is near expiry.
+Refresh the request's session before sending when its token is near expiry.
 
-Skips requests that already carry an ``Authorization`` header and the token
-endpoint itself (to avoid recursively refreshing during a refresh).
+Skips requests that already carry an ``Authorization`` header or a caller's
+own token, and the token endpoint itself (to avoid recursively refreshing
+during a refresh). ``auth`` must be an auth client without session
+middleware. A refresh that fails leaves the request to go out with the
+session it has; a session store that fails fails the request.
+
+### `session_scope_middleware`
+
+```python
+def session_scope_middleware(scope: SessionScope) -> Middleware
+```
+
+Record ``scope`` on each request. Installed first on a scoped handle.
 
 ### `to_file_part`
 
@@ -97,15 +111,20 @@ Decimals use strings to preserve precision; and Enums use their values.
 ### `update_session_from_response_middleware`
 
 ```python
-def update_session_from_response_middleware(storage: SessionStorage, auth_url: str) -> Middleware
+def update_session_from_response_middleware(sessions: SessionManager, auth_url: str) -> Middleware
 ```
 
-Persist session data returned by auth endpoints, and clear it on sign-out.
+Store session data returned by auth endpoints, and clear it on sign-out.
 
 Handles ``/signout`` (remove), a successful ``/user/password`` change
 (remove, since the server revokes refresh tokens), and session-bearing
 responses from ``/token``, ``/token/exchange``, ``/signin/*`` and
-``/signup/*`` under the configured auth origin and path prefix.
+``/signup/*`` under the configured auth origin and path prefix. Sessions
+are stored under the user they are for; a sign-out removes the session the
+request selects. Requests made with a caller's own token leave the store
+alone. If the store cannot be updated, the request fails with
+`SessionStoreError` rather than reporting a sign-in or
+sign-out that did not stick.
 
 ### `with_admin_session_middleware`
 
@@ -156,13 +175,14 @@ class AdminSessionOptions:
 Admin session configuration.
 
 **Security warning:** never use in untrusted/client code — the admin secret
-grants unrestricted database access.
+grants unrestricted database access. ``secret`` is left out of the ``repr``
+so that logging the options does not leak it.
 
 #### Fields
 
 | Field | Type |
 | --- | --- |
-| `admin_secret` | `str` |
+| `secret` | `str` |
 | `role` | `str \| None` |
 | `session_variables` | `dict[str, str]` |
 | `allow_insecure_http` | `bool` |
@@ -274,6 +294,35 @@ def request(self) -> httpx.Request
 ```
 
 The request which produced the invalid response.
+
+### `SessionScope`
+
+```python
+class SessionScope:
+```
+
+Which session a request acts with, as a scoped ``Nhost`` handle chose it.
+
+It travels in the request's extensions, so every middleware sees the same
+choice. ``access_token`` is a token the caller supplied: it is attached
+as-is and never stored, refreshed or replaced by a session from the
+response.
+
+#### Fields
+
+| Field | Type |
+| --- | --- |
+| `user_id` | `str \| None` |
+| `access_token` | `str \| None` |
+
+#### Methods
+
+##### `of`
+
+```python
+@classmethod
+def of(request: httpx.Request) -> SessionScope
+```
 
 ### `UploadFile`
 

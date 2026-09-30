@@ -60,3 +60,13 @@ Invoke a function with a JSON ``POST`` request.
 Raises:
     ValueError: If ``path`` is absolute or escapes the Functions base path.
     NhostError: If the Functions base URL or ``path`` is not a valid URL.
+
+##### `with_middleware`
+
+```python
+def with_middleware(self, *middleware: Middleware) -> Self
+```
+
+Return a copy of this client that runs ``middleware`` before its own.
+
+The copy shares this client's HTTP client and never closes it.
