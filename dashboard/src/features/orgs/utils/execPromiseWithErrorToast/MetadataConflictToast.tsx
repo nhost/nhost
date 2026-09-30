@@ -9,22 +9,21 @@ import {
 } from '@/components/ui/v3/tooltip';
 import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdminApiTarget';
 import { useExportMetadata } from '@/features/orgs/projects/common/hooks/useExportMetadata';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import BaseErrorToast from './BaseErrorToast';
 
 function getConflictMessage({
   isFetchDisabled,
-  hasFetchError,
+  isError,
 }: {
   isFetchDisabled: boolean;
-  hasFetchError: boolean;
+  isError: boolean;
 }): string {
   if (isFetchDisabled) {
     return 'Fetching metadata is unavailable here. Open the project and reload the page to fetch its metadata.';
   }
 
-  if (hasFetchError) {
+  if (isError) {
     return 'Try again. If the problem persists, reload the page.';
   }
 
@@ -40,15 +39,13 @@ export default function MetadataConflictToast({
   toastId,
   error,
 }: MetadataConflictToastProps) {
-  const { loading: loadingProject } = useProject();
   const adminApi = useAdminApiTarget();
   const { refetch, isFetching, isError } = useExportMetadata((data) => data, {
     enabled: false,
   });
 
-  const isFetchDisabled = loadingProject || !adminApi;
-  const hasFetchError = !isFetchDisabled && isError;
-  const fetchLabel = hasFetchError ? 'Try again' : 'Fetch metadata';
+  const isFetchDisabled = !adminApi;
+  const fetchLabel = isError ? 'Try again' : 'Fetch metadata';
 
   const fetchMetadata = async () => {
     const { isSuccess } = await refetch();
@@ -96,11 +93,9 @@ export default function MetadataConflictToast({
       <div className="min-w-0 flex-grow space-y-1">
         <div className="flex items-center gap-2">
           <h3 className="font-semibold">
-            {hasFetchError
-              ? 'Couldn’t fetch metadata'
-              : 'Metadata is out of date'}
+            {isError ? 'Couldn’t fetch metadata' : 'Metadata is out of date'}
           </h3>
-          {!hasFetchError && (
+          {!isError && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
@@ -119,7 +114,7 @@ export default function MetadataConflictToast({
           )}
         </div>
         <p className="text-sm text-white/80">
-          {getConflictMessage({ isFetchDisabled, hasFetchError })}
+          {getConflictMessage({ isFetchDisabled, isError })}
         </p>
       </div>
     </BaseErrorToast>
