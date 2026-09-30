@@ -11,6 +11,14 @@ Use this skill when adding a model or changing the database schema. Run commands
 
 Choose a snake_case table name. Create a timestamped directory with both migration directions:
 
+That is the rule for a **new** table, and for every change to a project that has
+already been deployed. Editing a migration in place is only safe while no
+environment has run it: before your first deploy, adding a column to the
+starter's own table belongs in that table's existing migration, which is what
+`AGENTS.md` means by keeping the todos table to one file. After a deploy, every
+change is a new migration, that table included - one another environment has
+already applied cannot be rewritten.
+
 ```sh
 timestamp="$(date +%s)000"
 migration="backend/nhost/migrations/default/${timestamp}_create_notes"
