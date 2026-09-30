@@ -315,12 +315,9 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
     (initialValues: Record<string, unknown>) => {
       const clonedValues = { ...initialValues };
       memoizedMetadata.forEach((column) => {
-        if (
-          column.isIdentity ||
-          column.isGenerated ||
-          (column.isPrimary && column.defaultValue != null) ||
-          column.defaultValue?.toLowerCase().includes('nextval')
-        ) {
+        const isKey = column.isPrimary || column.isUnique;
+
+        if (column.isIdentity || (isKey && column.defaultValue)) {
           delete clonedValues[column.id];
         }
       });

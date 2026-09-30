@@ -119,7 +119,6 @@ describe('Clone row', () => {
   async function openClone(
     columns: NormalizedQueryDataRow[],
     row: Record<string, string>,
-    constraints: object[] = [],
   ) {
     server.use(
       http.post(
@@ -145,7 +144,7 @@ describe('Clone row', () => {
           }
 
           if (sql.includes('INFORMATION_SCHEMA.COLUMNS')) {
-            return HttpResponse.json([tuples(columns), tuples(constraints)]);
+            return HttpResponse.json([tuples(columns), tuples([])]);
           }
 
           return HttpResponse.json([
@@ -163,61 +162,51 @@ describe('Clone row', () => {
     await screen.findByRole('button', { name: 'Insert' }, { timeout: 5000 });
   }
 
-  it('preserves values of columns in a unique constraint', async () => {
+  it('keeps primary and unique columns without defaults', async () => {
     await openClone(
       [
-        makeColumn({ column_name: 'club_id', is_unique: true }),
-        makeColumn({ column_name: 'user_id', is_unique: true }),
+        makeColumn({ column_name: 'id', is_primary: true }),
+        makeColumn({ column_name: 'code', is_unique: true }),
       ],
-      { club_id: 'club', user_id: 'user' },
-      ['club_id', 'user_id'].map((column_name) => ({
-        column_name,
-        constraint_name: 'records_club_id_user_id_key',
-        constraint_type: 'u',
-      })),
+      { id: '1', code: 'A' },
     );
 
-    expect(screen.getByLabelText(/^club_id/)).toHaveValue('club');
-    expect(screen.getByLabelText(/^user_id/)).toHaveValue('user');
+    expect(screen.getByLabelText(/^id/)).toHaveValue('1');
+    expect(screen.getByLabelText(/^code/)).toHaveValue('A');
   });
 
-  it('preserves a primary key without a default', async () => {
-    await openClone([makeColumn({ is_primary: true })], { col: 'value' });
+  it('clears primary and unique columns with defaults', async () => {
+    await openClone(
+      [
+        makeColumn({
+          column_name: 'id',
+          is_primary: true,
+          column_default: 'gen_random_uuid()',
+        }),
+        makeColumn({
+          column_name: 'code',
+          is_unique: true,
+          column_default: 'gen_random_uuid()',
+        }),
+      ],
+      { id: '1', code: 'A' },
+    );
 
-    expect(screen.getByLabelText(/^col/)).toHaveValue('value');
+    expect(screen.getByLabelText(/^id/)).toHaveValue('');
+    expect(screen.getByLabelText(/^code/)).toHaveValue('');
   });
 
-  it('preserves a non-key column with a default', async () => {
+  it('clears identity columns', async () => {
+    await openClone([makeColumn({ is_identity: 'YES' })], { col: '1' });
+
+    expect(screen.getByLabelText(/^col/)).toHaveValue('');
+  });
+
+  it('keeps non-key columns with defaults', async () => {
     await openClone([makeColumn({ column_default: "'PENDING'::text" })], {
       col: 'APPROVED',
     });
 
     expect(screen.getByLabelText(/^col/)).toHaveValue('APPROVED');
-  });
-
-  it('resets a primary key with a default', async () => {
-    await openClone(
-      [makeColumn({ is_primary: true, column_default: 'gen_random_uuid()' })],
-      { col: 'value' },
-    );
-
-    expect(screen.getByLabelText(/^col/)).toHaveValue('');
-  });
-
-  it('resets an identity primary key', async () => {
-    await openClone([makeColumn({ is_primary: true, is_identity: 'YES' })], {
-      col: 'value',
-    });
-
-    expect(screen.getByLabelText(/^col/)).toHaveValue('');
-  });
-
-  it('resets a sequence-backed column', async () => {
-    await openClone(
-      [makeColumn({ column_default: "nextval('records_col_seq'::regclass)" })],
-      { col: 'value' },
-    );
-
-    expect(screen.getByLabelText(/^col/)).toHaveValue('');
   });
 });
