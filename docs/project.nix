@@ -47,6 +47,7 @@ let
       # GraphQL schemas gen.sh publishes into public/graphql.
       ../cli/mcp/resources/cloud_schema.graphql
       ../cli/mcp/resources/cloud_schema-with-mutations.graphql
+      ../services/postgres/plugins.md
       ../packages/nhost-js/tsconfig.json
       ../build/configs/tsconfig/library.json
       ../build/configs/tsconfig/base.json

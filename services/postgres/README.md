@@ -2,7 +2,9 @@
 
 ## Plugins
 
-See [plugins.md](./plugins.md).
+See [plugins.md](./plugins.md). Changes to this manifest also regenerate
+`docs/src/content/docs/products/database/extensions.mdx`; follow the
+[documentation regeneration instructions](../../docs/README.md#generated-documentation).
 
 ## Options
 
