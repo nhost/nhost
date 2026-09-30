@@ -48,6 +48,10 @@ var templates = []template{ //nolint:gochecknoglobals
 		name:    "react",
 		display: "React (Vite)",
 	},
+	{
+		name:    "vue",
+		display: "Vue (Vite)",
+	},
 }
 
 func lookupTemplate(name string) (template, bool) {

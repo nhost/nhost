@@ -52,6 +52,9 @@ jobs:
             compile: build
           - template: react-native
             check: typecheck
+          - template: vue
+            check: typecheck
+            compile: build
     defaults:
       run:
         working-directory: templates/${{ matrix.template }}/frontend
@@ -129,6 +132,8 @@ jobs:
           - template: react
             functions: false
           - template: react-native
+            functions: false
+          - template: vue
             functions: false
     steps:
       - uses: actions/checkout@v7
