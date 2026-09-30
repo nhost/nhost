@@ -50,8 +50,8 @@ directory in the check fileset, so changes to those files trigger CI checks.
 Git-backed flake evaluations omit new, untracked files; use
 `git add -N <paths>` to make them visible before running checks.
 
-The PostgreSQL Nix check runs `tests/test_pg_jsonschema_upgrade.py` with
-Python's `unittest`. For pg_jsonschema checker changes, also build a Linux
+The PostgreSQL Nix check runs the `tests/test_*.py` suite with Python's
+`unittest`. For pg_jsonschema checker changes, also build a Linux
 `postgres-pg18` package to exercise `postInstall` against generated SQL.
 pgrx inserts comments between SQL tokens;
 after stripping them, equivalent definitions can differ in whitespace next to
@@ -76,7 +76,7 @@ On larger builders, leave the core count uncapped.
 
 ## Options
 
-Following env vars are available in the image (to be set in an Nhost cloud project via settings):
+These image environment variables are also mapped to Nhost Cloud project settings:
 
 ```
 ARCHIVE_TIMEOUT=300
@@ -103,6 +103,47 @@ MAX_WAL_SENDERS=10
 MAX_REPLICATION_SLOTS=10
 TRACK_IO_TIMING=off
 ```
+
+### Additional configurable settings
+
+The following image environment variables are also configurable in Nhost Cloud
+under `postgres.settings` (or `postgres.settings.extensions` for extension
+settings). The entrypoint renders `/tmp/postgresql/postgresql.conf` from these
+variables at startup; changes require a container restart. Keep image defaults
+unless the workload needs a different value.
+
+| Environment variable | Default | PostgreSQL setting / purpose |
+| --- | --- | --- |
+| `WAL_COMPRESSION` | `off` | `wal_compression`: reduce WAL volume at a CPU cost; confirm the chosen codec is supported by the image. |
+| `MAX_SLOT_WAL_KEEP_SIZE` | `-1` | `max_slot_wal_keep_size`: limit WAL retained by replication slots (in MB); a finite limit may invalidate a lagging slot/replica. |
+| `CHECKPOINT_TIMEOUT` | `5min` | `checkpoint_timeout`: maximum time between automatic checkpoints. |
+| `LOG_MIN_DURATION_STATEMENT` | `-1` | `log_min_duration_statement`: log slow statements; `-1` disables (milliseconds if unitless). |
+| `LOG_AUTOVACUUM_MIN_DURATION` | `10min` | `log_autovacuum_min_duration`: log slow autovacuum activity; `-1` disables. |
+| `LOG_TEMP_FILES` | `-1` | `log_temp_files`: log temporary files over a threshold; `-1` disables (kilobytes if unitless). |
+| `SHARED_PRELOAD_LIBRARIES` | `pg_stat_statements,pg_cron,timescaledb,pg_squeeze,pg_search` | Shared libraries loaded at PostgreSQL startup. Keep required modules when overriding; not every bundled extension has a preloadable library. |
+| `PG_STAT_STATEMENTS_MAX` | `5000` | `pg_stat_statements.max`: maximum distinct statements tracked; uses shared memory. |
+| `PG_STAT_STATEMENTS_TRACK` | `top` | `pg_stat_statements.track`: `top`, `all` (includes nested statements), or `none`. |
+| `PG_STAT_STATEMENTS_TRACK_PLANNING` | `off` | `pg_stat_statements.track_planning`: track planning time; can add overhead. |
+| `CRON_TIMEZONE` | `GMT` | `cron.timezone`: timezone used for job schedules. |
+| `CRON_MAX_RUNNING_JOBS` | `32` | `cron.max_running_jobs`: concurrent job limit; account for connections/background workers. |
+| `CRON_LOG_RUN` | `on` | `cron.log_run`: record job runs; `cron.job_run_details` is not automatically pruned. |
+| `PG_DURABLE_MAX_USER_CONNECTIONS` | `10` | `pg_durable.max_user_connections`: concurrent workflow SQL execution connections. |
+| `PG_DURABLE_RETENTION_DAYS` | `30` | `pg_durable.retention_days`: days to retain terminal workflow instances. |
+| `PG_DURABLE_LOG_WORKFLOW_SQL` | `off` | `pg_durable.log_workflow_sql`: substituted SQL may contain secrets; opt in only when needed. Overrides the extension's `on` default. |
+| `TIMESCALEDB_MAX_BACKGROUND_WORKERS` | `16` | `timescaledb.max_background_workers`: TimescaleDB job-worker cap; budget against `MAX_WORKER_PROCESSES` and other extensions. |
+
+Enabling `LOG_MIN_DURATION_STATEMENT` can log sensitive query text and bind
+parameters, especially pg_durable workflow variables, even with
+`PG_DURABLE_LOG_WORKFLOW_SQL=off` (which only disables pg_durable's own worker
+SQL traces). PostgreSQL error-statement logging can also record sensitive SQL;
+treat these logs as sensitive when queries or workflows handle secrets.
+
+The image and Cloud defaults match whether or not `[postgres.settings]` exists.
+Both omit `pg_durable` and `pg_ivm`; include either in
+`sharedPreloadLibraries` (or `SHARED_PRELOAD_LIBRARIES` for the image) alongside
+all other required libraries if you use it. Preloading an extension does not
+run `CREATE EXTENSION`. For pg_squeeze, set `WAL_LEVEL=logical` before using
+its logical-decoding based squeeze operations; the image defaults to `replica`.
 
 ### PITR restore safety
 
@@ -132,7 +173,6 @@ Following settings are available in the image but not directly configurable:
 ARCHIVE_MODE=off
 ARCHIVE_COMMAND=wal-g wal-push %p
 RESTORE_COMMAND=wal-g wal-fetch %f %p
-CHECKPOINT_TIMEOUT=5min
 SYNCHRONOUS_COMMIT=on
 HOT_STANDBY=on
 PITR_TARGET_ACTION=promote

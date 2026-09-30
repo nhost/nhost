@@ -129,6 +129,7 @@ stop_source_container "$old_container"
 
 docker run -d --name "$new_container" \
     --env POSTGRES_DEV_INSECURE=1 \
+    --env SHARED_PRELOAD_LIBRARIES=pg_stat_statements,pg_cron,timescaledb,pg_squeeze,pg_search,pg_durable,pg_ivm \
     --volume "$volume:/var/lib/postgresql/data/pgdata" \
     "$current_image" >/dev/null
 wait_for_initialization "$new_container"
@@ -279,6 +280,7 @@ stop_source_container "$no_postgres_old"
 
 docker run -d --name "$no_postgres_new" \
     --env POSTGRES_DEV_INSECURE=1 \
+    --env SHARED_PRELOAD_LIBRARIES=pg_stat_statements,pg_cron,timescaledb,pg_squeeze,pg_search,pg_durable,pg_ivm \
     --volume "$no_postgres_volume:/var/lib/postgresql/data/pgdata" \
     "$current_image" >/dev/null
 wait_for_initialization "$no_postgres_new"
