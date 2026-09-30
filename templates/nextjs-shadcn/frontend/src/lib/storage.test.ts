@@ -43,8 +43,9 @@ describe('withTransform', () => {
 });
 
 // Which of the two kinds of avatar URL this is decides how it can be read at
-// all: a stored one is private until the profile is published, so the owner's
-// own view of it has to be fetched with their session. Getting this wrong is
+// all: a stored one is only as readable as its owner's page, which is on by
+// default and which they can turn off, so the owner's own view of it has to be
+// fetched with their session to work either way round. Getting this wrong is
 // what made a freshly uploaded picture render as a blank initial for the
 // person who had just uploaded it.
 describe('isStoredAvatarURL', () => {

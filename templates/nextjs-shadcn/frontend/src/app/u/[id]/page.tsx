@@ -1,4 +1,4 @@
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, User } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -41,12 +41,25 @@ export const dynamic = 'force-dynamic';
  * actually runs as. Check the `public` column allowlist in
  * `backend/nhost/metadata/` before adding one (see the refresh-context skill
  * in `SKILLS.md`).
+ *
+ * `publicDisplayName`, not `displayName`, and that is not a style choice. Nhost
+ * auth defaults `display_name` to the address the account signed up with, so
+ * the raw column is the owner's email until they set a name over it - and this
+ * page is served to anybody. The `public` role is therefore granted a computed
+ * field that withholds any name still shaped like an address, so it is NULL for
+ * an account that never chose one. It tests the shape rather than comparing
+ * against the current address because changing an email leaves the previous one
+ * behind in `display_name`, where an equality test cannot see it; the
+ * function's own comment in `backend/nhost/migrations/default/
+ * 1700000000002_auth_user_computed_fields/up.sql` has the detail. Selecting
+ * `displayName` here would type-check, because the schema dump above is taken
+ * as `user`, and then fail at request time as `public`. Do not "restore" it.
  */
 const GetSharedList = graphql(`
   query GetSharedList($id: uuid!) {
     user(id: $id) {
       id
-      displayName
+      publicDisplayName
       createdAt
       todos(order_by: [{ sort_order: asc }, { created_at: desc }]) {
         id
@@ -109,10 +122,18 @@ export async function generateMetadata({
     return { title: 'Not found' };
   }
 
-  return {
-    title: user.displayName,
-    description: `What ${user.displayName} wants to do.`,
-  };
+  // Nothing identifying when the owner never set a name: the title is the one
+  // part of a page that follows it into a tab, a bookmark and a shared link,
+  // so it must not be the place the withheld email comes back.
+  return user.publicDisplayName
+    ? {
+        title: user.publicDisplayName,
+        description: `What ${user.publicDisplayName} wants to do.`,
+      }
+    : {
+        title: 'Want todo list',
+        description: 'A shared list of things somebody wants to do.',
+      };
 }
 
 export default async function SharedList({ params }: PageProps) {
@@ -134,6 +155,17 @@ export default async function SharedList({ params }: PageProps) {
   const viewer = (await createNhostClient()).getUserSession()?.user;
   const isOwner = viewer?.id === user.id;
 
+  // NULL whenever the owner never set a name of their own (see the document
+  // above). The page then has no person to name and says so by omission rather
+  // than by printing a placeholder nobody chose.
+  const name = user.publicDisplayName;
+
+  // Exactly one `h1` either way. With a name the heading is the person and the
+  // list below is a section of their page; without one there is no person to
+  // head the page with, so the list itself becomes the page's subject. Same
+  // element position and same styling in both cases - only the level moves.
+  const Caption = name ? 'h2' : 'h1';
+
   const client = createAnonymousClient();
 
   return (
@@ -148,7 +180,9 @@ export default async function SharedList({ params }: PageProps) {
             URL that embeds an md5 of the email (see `auth_users.yaml`). The stored
             avatar, if any, is served straight from `storage.files` at this
             convention path; an account that never uploaded one 404s here and
-            falls back to the initial, which is the intended look anyway. */}
+            falls back to whatever the fallback below resolves to - an initial
+            when there is a name to take one from, the glyph when there is
+            not - which is the intended look anyway. */}
         <Avatar className="size-24 ring-2 ring-border ring-offset-4 ring-offset-background">
           {/* Asked for at three times the size it is drawn at, the way
               `FileThumbnail` does, so this loads sharp for anyone on this
@@ -158,15 +192,24 @@ export default async function SharedList({ params }: PageProps) {
             src={fileURL(client, user.id, { w: 288, q: 80, f: 'auto' })}
             alt=""
           />
+          {/* A letter only when there is a name to take one from. With no
+              name the fallback is a glyph, never an initial derived from
+              anything else: the `public` role cannot read `email`, and the
+              point of withholding it is lost the moment its first character
+              is printed here instead. */}
           <AvatarFallback className="text-2xl">
-            {user.displayName.slice(0, 1).toUpperCase()}
+            {name ? (
+              name.slice(0, 1).toUpperCase()
+            ) : (
+              <User className="size-10 text-muted-foreground" aria-hidden />
+            )}
           </AvatarFallback>
         </Avatar>
 
         <div className="flex flex-col items-center gap-1">
-          <h1 className="font-medium text-xl tracking-tight">
-            {user.displayName}
-          </h1>
+          {name ? (
+            <h1 className="font-medium text-xl tracking-tight">{name}</h1>
+          ) : null}
 
           {/* Month and year, never the day. It is here to say the account is
               not one made this morning to impersonate somebody, and a month
@@ -185,7 +228,7 @@ export default async function SharedList({ params }: PageProps) {
       {/* Outside the card, the way a caption sits above the thing it names.
           Inside it, it was one more row in a list of rows. */}
       <section className="flex flex-col gap-3">
-        <h2 className={`px-1 ${LIST_CAPTION}`}>Want todo list</h2>
+        <Caption className={`px-1 ${LIST_CAPTION}`}>Want todo list</Caption>
 
         {/* The same card the owner sees their own list in, so a visitor and the
             person who wrote the list are looking at one thing rather than two

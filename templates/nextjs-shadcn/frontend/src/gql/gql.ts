@@ -26,7 +26,7 @@ type Documents = {
     "\n  mutation DeleteTodo($id: uuid!) {\n    delete_todos_by_pk(id: $id) {\n      id\n    }\n  }\n": typeof types.DeleteTodoDocument,
     "\n  query GetProfileVisibility($id: uuid!) {\n    user(id: $id) {\n      id\n      metadata\n    }\n  }\n": typeof types.GetProfileVisibilityDocument,
     "\n  query GetDeletionMark($id: uuid!) {\n    user(id: $id) {\n      id\n      metadata\n    }\n  }\n": typeof types.GetDeletionMarkDocument,
-    "\n  query GetSharedList($id: uuid!) {\n    user(id: $id) {\n      id\n      displayName\n      createdAt\n      todos(order_by: [{ sort_order: asc }, { created_at: desc }]) {\n        id\n        title\n        completed\n        location\n        preposition\n        sort_order\n        file_id\n        updated_at\n      }\n    }\n  }\n": typeof types.GetSharedListDocument,
+    "\n  query GetSharedList($id: uuid!) {\n    user(id: $id) {\n      id\n      publicDisplayName\n      createdAt\n      todos(order_by: [{ sort_order: asc }, { created_at: desc }]) {\n        id\n        title\n        completed\n        location\n        preposition\n        sort_order\n        file_id\n        updated_at\n      }\n    }\n  }\n": typeof types.GetSharedListDocument,
     "\n  query GetNavProfile($id: uuid!) {\n    user(id: $id) {\n      id\n      displayName\n      avatarUrl\n      metadata\n    }\n  }\n": typeof types.GetNavProfileDocument,
 };
 const documents: Documents = {
@@ -42,7 +42,7 @@ const documents: Documents = {
     "\n  mutation DeleteTodo($id: uuid!) {\n    delete_todos_by_pk(id: $id) {\n      id\n    }\n  }\n": types.DeleteTodoDocument,
     "\n  query GetProfileVisibility($id: uuid!) {\n    user(id: $id) {\n      id\n      metadata\n    }\n  }\n": types.GetProfileVisibilityDocument,
     "\n  query GetDeletionMark($id: uuid!) {\n    user(id: $id) {\n      id\n      metadata\n    }\n  }\n": types.GetDeletionMarkDocument,
-    "\n  query GetSharedList($id: uuid!) {\n    user(id: $id) {\n      id\n      displayName\n      createdAt\n      todos(order_by: [{ sort_order: asc }, { created_at: desc }]) {\n        id\n        title\n        completed\n        location\n        preposition\n        sort_order\n        file_id\n        updated_at\n      }\n    }\n  }\n": types.GetSharedListDocument,
+    "\n  query GetSharedList($id: uuid!) {\n    user(id: $id) {\n      id\n      publicDisplayName\n      createdAt\n      todos(order_by: [{ sort_order: asc }, { created_at: desc }]) {\n        id\n        title\n        completed\n        location\n        preposition\n        sort_order\n        file_id\n        updated_at\n      }\n    }\n  }\n": types.GetSharedListDocument,
     "\n  query GetNavProfile($id: uuid!) {\n    user(id: $id) {\n      id\n      displayName\n      avatarUrl\n      metadata\n    }\n  }\n": types.GetNavProfileDocument,
 };
 
@@ -111,7 +111,7 @@ export function graphql(source: "\n  query GetDeletionMark($id: uuid!) {\n    us
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query GetSharedList($id: uuid!) {\n    user(id: $id) {\n      id\n      displayName\n      createdAt\n      todos(order_by: [{ sort_order: asc }, { created_at: desc }]) {\n        id\n        title\n        completed\n        location\n        preposition\n        sort_order\n        file_id\n        updated_at\n      }\n    }\n  }\n"): (typeof documents)["\n  query GetSharedList($id: uuid!) {\n    user(id: $id) {\n      id\n      displayName\n      createdAt\n      todos(order_by: [{ sort_order: asc }, { created_at: desc }]) {\n        id\n        title\n        completed\n        location\n        preposition\n        sort_order\n        file_id\n        updated_at\n      }\n    }\n  }\n"];
+export function graphql(source: "\n  query GetSharedList($id: uuid!) {\n    user(id: $id) {\n      id\n      publicDisplayName\n      createdAt\n      todos(order_by: [{ sort_order: asc }, { created_at: desc }]) {\n        id\n        title\n        completed\n        location\n        preposition\n        sort_order\n        file_id\n        updated_at\n      }\n    }\n  }\n"): (typeof documents)["\n  query GetSharedList($id: uuid!) {\n    user(id: $id) {\n      id\n      publicDisplayName\n      createdAt\n      todos(order_by: [{ sort_order: asc }, { created_at: desc }]) {\n        id\n        title\n        completed\n        location\n        preposition\n        sort_order\n        file_id\n        updated_at\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

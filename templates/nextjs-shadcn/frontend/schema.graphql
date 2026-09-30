@@ -513,7 +513,8 @@ type mutation_root {
     sets the columns of the filtered rows to the given values
     """
     _set: users_set_input
-  pk_columns: users_pk_columns_input!): users
+    pk_columns: users_pk_columns_input!
+  ): users
   """
   update data of the table: "auth.users"
   """
@@ -585,7 +586,8 @@ type mutation_root {
     sets the columns of the filtered rows to the given values
     """
     _set: todos_set_input
-  pk_columns: todos_pk_columns_input!): todos
+    pk_columns: todos_pk_columns_input!
+  ): todos
   """
   update multiples rows of table: "todos"
   """
@@ -1007,6 +1009,10 @@ type users {
     path: String
   ): jsonb
   newEmail: citext
+  """
+  The display name, but only once its owner has set one of their own.
+  """
+  publicDisplayName: String
   """
   An array relationship
   """
@@ -1740,6 +1746,7 @@ input users_bool_exp {
   id: uuid_comparison_exp
   metadata: jsonb_comparison_exp
   newEmail: citext_comparison_exp
+  publicDisplayName: String_comparison_exp
   todos: todos_bool_exp
 }
 """
@@ -1773,6 +1780,7 @@ input users_order_by {
   id: order_by
   metadata: order_by
   newEmail: order_by
+  publicDisplayName: order_by
   todos_aggregate: todos_aggregate_order_by
 }
 """
