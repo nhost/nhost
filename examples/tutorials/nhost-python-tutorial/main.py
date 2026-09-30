@@ -3,8 +3,9 @@
 Demonstrates the SDK end to end against the "notes" quickstart backend:
 
     Auth      — login/logout/whoami, session persisted to a JSON file
-                (session middleware attaches + refreshes the token automatically)
-    GraphQL   — notes, notebooks and tags CRUD (permissions enforced by Hasura)
+                (the SDK attaches and refreshes the token automatically)
+    GraphQL   — notes, notebooks and tags CRUD (permissions enforced by the
+                GraphQL engine)
     Storage   — attach/download files in the "notes" bucket
     Functions — `export` calls the notes/export serverless function
 
@@ -83,10 +84,12 @@ async def cmd_login(nhost: Nhost, email: str, password: str) -> None:
 
 
 async def cmd_signup(nhost: Nhost, email: str, password: str) -> None:
-    await nhost.auth.sign_up_email_password(
+    response = await nhost.auth.sign_up_email_password(
         body=SignUpEmailPasswordRequest(email=email, password=password)
     )
-    if await nhost.get_session() is not None:
+    # Check this response, not the store: it may still hold someone else's
+    # session, and sign-up returns none until the email is verified.
+    if response.body.session is not None:
         print("signed up and logged in as", email)
     else:
         print("signed up; verify your email, then `login`")
@@ -330,14 +333,27 @@ async def cmd_attach(nhost: Nhost, note_id: str, file: str) -> None:
     if not up.body.processed_files:
         raise SystemExit("upload failed")
     file_id = up.body.processed_files[0].id
-    await gql(
-        nhost,
-        """
-        mutation Attach($noteId: uuid!, $fileId: uuid!) {
-          insert_note_attachments_one(object: {note_id: $noteId, file_id: $fileId}) { file_id }
-        }""",
-        {"noteId": note_id, "fileId": file_id},
-    )
+    error = None
+    try:
+        data = await gql(
+            nhost,
+            """
+            mutation Attach($noteId: uuid!, $fileId: uuid!) {
+              insert_note_attachments_one(object: {note_id: $noteId, file_id: $fileId}) { file_id }
+            }""",
+            {"noteId": note_id, "fileId": file_id},
+        )
+        if not data.get("insert_note_attachments_one"):
+            error = "note not found or not permitted"
+    except NhostError as exc:
+        error = f"error: {exc}"
+    if error is not None:
+        # Don't leave the upload in Storage with nothing pointing at it.
+        try:
+            await nhost.storage.delete_file(file_id)
+        except NhostError as exc:
+            error += f"; deleting uploaded file {file_id} also failed: {exc}"
+        raise SystemExit(error)
     print(f"attached {name} (file {file_id}) to {note_id}")
 
 
@@ -353,7 +369,7 @@ async def cmd_share(
     user_id: str,
     role: str,
 ) -> None:
-    await gql(
+    data = await gql(
         nhost,
         """
         mutation Share($noteId: uuid!, $userId: uuid!, $role: String!) {
@@ -364,11 +380,13 @@ async def cmd_share(
         }""",
         {"noteId": note_id, "userId": user_id, "role": role},
     )
+    if not data.get("insert_note_collaborators_one"):
+        raise SystemExit("note not found or not permitted")
     print(f"shared {note_id} with {user_id} as {role}")
 
 
 async def cmd_unshare(nhost: Nhost, note_id: str, user_id: str) -> None:
-    await gql(
+    data = await gql(
         nhost,
         """
         mutation Unshare($noteId: uuid!, $userId: uuid!) {
@@ -376,6 +394,8 @@ async def cmd_unshare(nhost: Nhost, note_id: str, user_id: str) -> None:
         }""",
         {"noteId": note_id, "userId": user_id},
     )
+    if not data.get("delete_note_collaborators_by_pk"):
+        raise SystemExit("note not shared with that user, or not permitted")
     print(f"unshared {note_id} from {user_id}")
 
 
