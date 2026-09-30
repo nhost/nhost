@@ -1,7 +1,7 @@
 import ErrorToast from '@/features/orgs/utils/execPromiseWithErrorToast/ErrorToast';
 import { render, screen } from '@/tests/testUtils';
 
-test('should render the provided error message', () => {
+it('should render the provided error message', () => {
   const errorMessage =
     'An error occurred while updating the service. Please try again.';
   render(
@@ -17,7 +17,7 @@ test('should render the provided error message', () => {
   expect(screen.getByText(errorMessage)).toBeInTheDocument();
 });
 
-test('should render the fallback text when the message is empty', () => {
+it('should render the fallback text when the message is empty', () => {
   render(
     <ErrorToast toastId="empty-error" errorMessage="" error={new Error()} />,
   );
@@ -27,7 +27,7 @@ test('should render the fallback text when the message is empty', () => {
   ).toBeInTheDocument();
 });
 
-test('should render the metadata conflict toast for a metadata conflict error', () => {
+it('should render the metadata conflict toast for a metadata conflict error', () => {
   render(
     <ErrorToast
       toastId="metadata-conflict"
