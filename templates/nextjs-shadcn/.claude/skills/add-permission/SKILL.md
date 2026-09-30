@@ -89,12 +89,23 @@ most likely to leak something, so:
   owner rule out again for that reason, and a shortcut there would leave every
   private attachment readable.
 - Write a separate, shorter `columns` list. Do not reuse the `user` list. What
-  is left off is the whole protection: today that is `auth.users.email`,
-  `auth.users.metadata`, `auth.users.avatar_url`, and `todos.user_id`.
-  `avatar_url` looks harmless but, for an account that never uploaded a photo,
-  holds the sign-up Gravatar URL, which embeds
-  `md5(lowercase(email))`; `/u/[id]` serves the picture from `storage.files`
-  under the same public-and-not-deleted condition instead.
+  is left off is the whole protection: among the columns withheld today are
+  `auth.users.email`, `auth.users.display_name`, `auth.users.metadata`,
+  `auth.users.avatar_url`, and `todos.user_id`.
+- Two of those look harmless and are not, for the same reason: both quietly
+  contain the email address. `avatar_url`, for an account that never uploaded a
+  photo, holds the sign-up Gravatar URL, which embeds `md5(lowercase(email))`.
+  `display_name` is worse - Nhost auth defaults it to the address itself, in
+  plaintext, so `{ users { displayName } }` as `public` would return the
+  project's address book.
+- Prefer replacing a withheld column with a computed field over dropping it.
+  Neither of those two is simply gone: `/u/[id]` serves the picture from
+  `storage.files` under the same public-and-not-deleted condition, and the name
+  comes from the `publicDisplayName` computed field, which returns
+  `display_name` only when it is plainly something its owner typed. Test the
+  *shape* of such a value, not its equality with the thing you are hiding -
+  changing an email moves `email` and leaves the previous address sitting in
+  `display_name`, where no equality test against the current one can catch it.
 - Read that data with `createAnonymousClient()` from
   `frontend/src/lib/nhost/server.ts`. The session client makes Hasura answer as
   `user`, whose filter hides other people's rows, so the page breaks for
