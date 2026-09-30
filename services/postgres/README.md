@@ -29,6 +29,51 @@ would fail after deleting its contents. Files beside `PGDATA` also do not
 necessarily survive container recreation; test lifecycle changes against this
 layout rather than relying on a marker outside the mounted volume.
 
+## Extension upgrades
+
+Keep the startup catalog probe and TimescaleDB update in separate sessions.
+Collation repair and startup catalog queries before the upgrade must set
+`timescaledb.disable_load=on` because an installed old version might reference
+a library that the new image no longer bundles, while
+`ALTER EXTENSION timescaledb UPDATE` must be the first command in a fresh
+session.
+
+Extension SQL versions that have shipped are immutable. If the pg_jsonschema
+checker fails after a source-pin bump, pin a revision with matching generated
+SQL or introduce a new extension SQL version and upgrade step so existing
+volumes receive the change.
+
+## Tests
+
+Keep check scripts and fixtures under `tests/`: `project.nix` includes this
+directory in the check fileset, so changes to those files trigger CI checks.
+Git-backed flake evaluations omit new, untracked files; use
+`git add -N <paths>` to make them visible before running checks.
+
+The PostgreSQL Nix check runs `tests/test_pg_jsonschema_upgrade.py` with
+Python's `unittest`. For pg_jsonschema checker changes, also build a Linux
+`postgres-pg18` package to exercise `postInstall` against generated SQL.
+pgrx inserts comments between SQL tokens;
+after stripping them, equivalent definitions can differ in whitespace next to
+parentheses or commas, so normalization must account for punctuation spacing.
+
+When checking pgrx toolchain changes on a small Linux builder (for example,
+a 6 GiB Lima VM), build `packages.aarch64-linux.postgres-pg18` and
+`packages.x86_64-linux.postgres-pg18` sequentially. Parallel full builds,
+especially x86_64 through QEMU, can exhaust RAM and stall in swap while
+compiling pg_search. Its release build uses LTO and can exceed 6 GiB when
+running eight build jobs. Nix uses the builder's configured core count (or
+all available cores when set to 0), so limit jobs on memory-constrained
+builders at invocation time, for example from the repository root:
+
+```sh
+nix build --cores 2 --max-jobs 1 .#packages.aarch64-linux.postgres-pg18
+```
+
+For the image target, from `services/postgres` use
+`make build-docker-image docker-build-options='--cores 2 --max-jobs 1'`.
+On larger builders, leave the core count uncapped.
+
 ## Options
 
 Following env vars are available in the image (to be set in an Nhost cloud project via settings):

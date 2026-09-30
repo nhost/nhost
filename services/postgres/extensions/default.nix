@@ -8,7 +8,7 @@ let
 
   buildPGRXExtension =
     attrs:
-    (pkgs.buildPgrxExtension) (
+    pkgs.buildPgrxExtension (
       attrs
       // {
         postgresql = postgres;

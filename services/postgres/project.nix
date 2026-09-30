@@ -46,9 +46,12 @@ in
         nativeBuildInputs = with pkgs; [
           nhost.postgresql_18
           diffutils
+          python3
         ];
       }
       ''
+        python3 -m unittest discover -s ${src}/tests -p test_pg_jsonschema_upgrade.py -v
+
         PG_URL="postgres://postgres@localhost:5432/local"
 
         sh ${src}/tests/pitr-promotion.sh \
