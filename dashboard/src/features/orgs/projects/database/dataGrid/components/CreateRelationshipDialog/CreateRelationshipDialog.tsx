@@ -10,6 +10,7 @@ import { isRemoteSchemaRelationshipFormValues } from '@/features/orgs/projects/d
 import { prepareLocalRelationshipDTO } from '@/features/orgs/projects/database/dataGrid/utils/prepareLocalRelationshipDTO';
 import { prepareRemoteSchemaRelationshipDTO } from '@/features/orgs/projects/database/dataGrid/utils/prepareRemoteSchemaRelationshipDTO';
 import { prepareRemoteSourceRelationshipDTO } from '@/features/orgs/projects/database/dataGrid/utils/prepareRemoteSourceRelationshipDTO';
+import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { triggerToast } from '@/utils/toast';
 
 interface CreateRelationshipDialogProps {
@@ -38,38 +39,39 @@ export default function CreateRelationshipDialog({
       return;
     }
 
-    try {
-      const toReferenceSource = values.toReference.source;
+    await execPromiseWithErrorToast(
+      async () => {
+        const toReferenceSource = values.toReference.source;
 
-      if (isRemoteSchemaRelationshipFormValues(values)) {
-        const args = prepareRemoteSchemaRelationshipDTO(values);
-        await createRemoteRelationship({
-          resourceVersion,
-          args,
-        });
-      } else if (toReferenceSource !== source) {
-        const args = prepareRemoteSourceRelationshipDTO(values);
-        await createRemoteRelationship({
-          resourceVersion,
-          args,
-        });
-      } else {
-        const args = prepareLocalRelationshipDTO(values);
-        await createLocalRelationship({
-          resourceVersion,
-          args,
-          type: values.relationshipType,
-        });
-      }
-      triggerToast('Relationship created successfully.');
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : 'Failed to create relationship.';
-      triggerToast(`Error: ${message}`);
-      throw error;
-    }
+        if (isRemoteSchemaRelationshipFormValues(values)) {
+          const args = prepareRemoteSchemaRelationshipDTO(values);
+          await createRemoteRelationship({
+            resourceVersion,
+            args,
+          });
+        } else if (toReferenceSource !== source) {
+          const args = prepareRemoteSourceRelationshipDTO(values);
+          await createRemoteRelationship({
+            resourceVersion,
+            args,
+          });
+        } else {
+          const args = prepareLocalRelationshipDTO(values);
+          await createLocalRelationship({
+            resourceVersion,
+            args,
+            type: values.relationshipType,
+          });
+        }
+
+        setOpen(false);
+      },
+      {
+        loadingMessage: 'Creating relationship...',
+        successMessage: 'Relationship created successfully.',
+        errorMessage: 'Failed to create relationship.',
+      },
+    );
   };
 
   return (
