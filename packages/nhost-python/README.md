@@ -247,6 +247,13 @@ Responses with `application/json` or a structured `+json` media type are parsed
 as JSON; `text/*` becomes `str`; other content remains `bytes`. Passing
 `json=None` explicitly sends JSON `null`.
 
+## Logging
+
+The SDK logs to the `nhost` logger and its children (`nhost.session`,
+`nhost.fetch`), for example when a refresh is retried, and prints nothing
+unless your application configures logging, such as with
+`logging.basicConfig()`.
+
 ## Generated API
 
 `src/nhost/auth/client.py` and `src/nhost/storage/client.py` are generated from

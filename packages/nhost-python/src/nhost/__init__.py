@@ -18,6 +18,7 @@ Example:
 
 from __future__ import annotations
 
+import logging
 from importlib.metadata import PackageNotFoundError, version
 
 from .auth import AuthClient
@@ -50,6 +51,12 @@ try:
     __version__ = version("nhost")
 except PackageNotFoundError:  # Running directly from an unpackaged source tree.
     __version__ = "0+unknown"
+
+
+# A library leaves logging output to the application. Without a handler here,
+# Python's last-resort handler would print the SDK's warnings to stderr in any
+# program that has not configured logging, such as a CLI.
+logging.getLogger("nhost").addHandler(logging.NullHandler())
 
 __all__ = [
     "AdminSessionOptions",

@@ -15,6 +15,8 @@ import os
 import re
 import socket
 import stat
+import subprocess
+import sys
 import threading
 import time
 from collections.abc import Callable, Coroutine
@@ -2629,3 +2631,22 @@ async def test_local_backend_graphql_integration() -> None:
 
     assert response.status == httpx.codes.OK
     assert response.body.data == {"__typename": "query_root"}
+
+
+def test_sdk_logs_nothing_unless_the_application_configures_logging() -> None:
+    # Run in a fresh interpreter: pytest installs its own logging handlers,
+    # which would hide Python's last-resort handler.
+    program = (
+        "import logging, nhost\n"
+        "logging.getLogger('nhost.session').warning('error refreshing session')\n"
+        "logging.basicConfig()\n"
+        "logging.getLogger('nhost.session').warning('configured')\n"
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", program],
+        capture_output=True,
+        check=True,
+        env={**os.environ, "PYTHONPATH": str(Path(__file__).parents[1] / "src")},
+        text=True,
+    )
+    assert result.stderr == "WARNING:nhost.session:configured\n"
