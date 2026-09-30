@@ -37,7 +37,18 @@ jobs:
       fail-fast: false
       matrix:
         # Add a template here when it lands, or it ships unchecked.
-        template: [nextjs-shadcn]
+        #
+        # `check` is the template's type-checker and `compile` its build, and
+        # a template declares whichever of the two it actually has. A Next.js
+        # build type-checks on its own way through, so it needs no separate
+        # check; an Expo app has no build to run in CI, so it only
+        # type-checks. Declaring them here keeps that difference visible in
+        # the matrix instead of buried in each template's package.json.
+        include:
+          - template: nextjs-shadcn
+            compile: build
+          - template: react-native
+            check: typecheck
     defaults:
       run:
         working-directory: templates/${{ matrix.template }}/frontend
@@ -75,7 +86,23 @@ jobs:
 
       - run: pnpm test
 
-      - run: pnpm build
+      # Declaring neither would leave this job reporting success having
+      # neither type-checked nor built anything.
+      - name: Check the matrix says how this template compiles
+        if: ${{ !matrix.check && !matrix.compile }}
+        run: |
+          echo "::error::${{ matrix.template }} declares neither check nor" \
+            "compile in the frontend matrix, so nothing would type-check or" \
+            "build it."
+          exit 1
+
+      - name: Type-check
+        if: matrix.check
+        run: pnpm ${{ matrix.check }}
+
+      - name: Build
+        if: matrix.compile
+        run: pnpm ${{ matrix.compile }}
 
   # The other half of a template. Its functions are the example users copy, and
   # they ship their own package.json and a strict tsconfig, so nothing else
@@ -89,16 +116,27 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        template: [nextjs-shadcn]
+        # `functions` says whether this template ships serverless functions to
+        # type-check. It is a declaration, not a discovery: the step below
+        # fails when the tree and the flag disagree, so a template that grows
+        # a functions/ directory cannot quietly stop being type-checked.
+        include:
+          - template: nextjs-shadcn
+            functions: true
+          - template: react-native
+            functions: false
     steps:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
 
+      # The cache is keyed on a lockfile, and setup-node fails outright when
+      # the path resolves to nothing, so a template without functions asks
+      # for no cache at all.
       - uses: actions/setup-node@v7
         with:
           node-version: 22
-          cache: npm
+          cache: ${{ matrix.functions && 'npm' || '' }}
           cache-dependency-path: templates/${{ matrix.template }}/backend/functions/package-lock.json
 
       # npm, not pnpm: this is what the functions runtime installs, and the
@@ -110,8 +148,19 @@ jobs:
       # riddle instead of a type error. By path, a missing dependency is an
       # honest "No such file or directory" and nothing is ever fetched.
       - name: Type-check the serverless functions
-        working-directory: templates/${{ matrix.template }}/backend/functions
+        working-directory: templates/${{ matrix.template }}/backend
         run: |
+          if [ "${{ matrix.functions }}" != "true" ]; then
+            if [ -d functions ]; then
+              echo "::error::${{ matrix.template }} ships backend/functions," \
+                "but the backend matrix declares functions: false, so they" \
+                "would never be type-checked."
+              exit 1
+            fi
+            echo "${{ matrix.template }} ships no serverless functions"
+            exit 0
+          fi
+          cd functions
           npm ci
           ./node_modules/.bin/tsc --noEmit
 
