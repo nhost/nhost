@@ -440,6 +440,13 @@ def test_extract_session_without_user_field() -> None:
     assert _extract_session({"error": "nope"}) is None
 
 
+def test_admin_session_options_repr_leaves_out_the_secret() -> None:
+    options = AdminSessionOptions(secret="ADMIN-SECRET-XYZ", role="admin")
+    assert "ADMIN-SECRET-XYZ" not in repr(options)
+    assert "ADMIN-SECRET-XYZ" not in str(options)
+    assert "role='admin'" in repr(options)
+
+
 @pytest.mark.parametrize(
     ("service_url", "request_url", "allow_insecure_http", "should_send"),
     [

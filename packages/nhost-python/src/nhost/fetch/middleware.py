@@ -286,10 +286,11 @@ class AdminSessionOptions:
     """Admin session configuration.
 
     **Security warning:** never use in untrusted/client code — the admin secret
-    grants unrestricted database access.
+    grants unrestricted database access. ``secret`` is left out of the ``repr``
+    so that logging the options does not leak it.
     """
 
-    secret: str
+    secret: str = field(repr=False)
     role: str | None = None
     session_variables: dict[str, str] = field(default_factory=dict)
     allow_insecure_http: bool = False
