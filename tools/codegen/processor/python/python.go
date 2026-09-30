@@ -705,6 +705,7 @@ func pythonClientReservedNames() map[string]string {
 		"aclose":            `generated Client method "aclose"`,
 		"add_middleware":    `generated Client method "add_middleware"`,
 		"base_url":          `generated Client attribute "base_url"`,
+		"with_middleware":   `generated Client method "with_middleware"`,
 	}
 }
 
