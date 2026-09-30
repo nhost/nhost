@@ -5,7 +5,7 @@ export const article = {
   description:
     'I built the same small app on the free tiers of Supabase, Appwrite and Nhost, in the dashboards rather than the docs, and wrote down where they actually differ on data models, permissions, auth, and APIs.',
   image: '/images/blog/supabase-vs-appwrite/cover.png',
-  date: '2026-09-18',
+  date: '2026-10-02',
   seoTitle: 'Supabase vs Appwrite vs Nhost: Hands-On Comparison (2026)',
   seoDescription:
     'I built the same app in all three. How they differ on data models, permissions, auth and APIs, tested in the dashboards rather than copied from the docs.',
@@ -22,11 +22,11 @@ export const article = {
 
 export default (props) => <BlogPostLayout article={article} {...props} />
 
-I picked a bad week to write this. It's September, and all three platforms ship constantly. Launch weeks, init weeks, a major release landing mid-draft, so a comparison like this has a shelf life. I'll try to keep it updated.
+I picked a bad month to write this. It's October, and all three platforms have been shipping consistently. Launches happen, new releases ship, and sometimes a major release lands right in the middle of writing a draft. Comparisons like this have a shelf life.
 
-So here's what this is: a hands-on comparison of Supabase, Appwrite and Nhost, from building the same small app three times. All three on free plans, all three through the dashboards rather than the CLI. Serious builders lean on the CLI, I know, but the dashboard is where most people form their first opinion of a platform, so that's the lens I'm using.
+So here's what this is: a hands-on comparison in October 2026 of Supabase, Appwrite and Nhost, from building the same small app three times. All three on free plans, all three through the dashboards rather than the CLI. Serious builders lean on the CLI, I know, but the dashboard is where most people form their first opinion of a platform, so that's the lens I'm using.
 
-I work at Nhost, but I've tried to keep this as neutral as I can: the same test, run the same way, reported the same way for each, with screenshots. Where I'm repeating a vendor's own claim rather than something I checked myself, I say so.
+I work at Nhost, but I've tried to keep this as neutral as possible by running the same test across the board. I intend to be transparent, so I'll mention when I'm repeating a vendor's claims rather than something I checked myself.
 
 ## TL;DR
 
@@ -34,7 +34,7 @@ I work at Nhost, but I've tried to keep this as neutral as I can: the same test,
 
 **Appwrite** is the better fit for developers who prefer a more traditional backend-as-a-service (BaaS) experience: you work through SDKs and APIs, on a platform that abstracts away most of the infrastructure and database details.
 
-**Nhost** suits teams who want Postgres they own, an API generated on top of it, and access rules enforced by the platform rather than written into application code. That last part is what holds up in agentic workflows: whatever is asking for the data, human or model, the same rules decide what comes back.
+**Nhost** suits teams who want Postgres they own, a GraphQL API generated on top of it, and access rules enforced at the data layer rather than scattered across application code. That last part matters even more in agentic workflows: whether the request comes from a human, an application, or an AI agent, the same authorization rules determine what data can be accessed.
 
 ## Supabase vs Appwrite vs Nhost Overview
 
@@ -49,20 +49,20 @@ I work at Nhost, but I've tried to keep this as neutral as I can: the same test,
 ## What each one actually is, in one picture
 
 ```text
-SUPABASE              APPWRITE 2.0              NHOST
-========              ============              =====
+ SUPABASE              APPWRITE 2.0                NHOST
+ ========              ============                =====
 
-  your app              your app                 your app
-     |                     |                        |
- PostgREST /           Appwrite API            GraphQL API
- Auth / Storage            |                        |
-     |            +--------+--------+               |
-  POSTGRES      TablesDB  Docs   Vectors         POSTGRES
-(the product)   (managed by Appwrite)         (the product)
+ your app                your app                your app
+     |                       |                       |
+ PostgREST /            Appwrite API            GraphQL API
+Auth / Storage               |                       |
+     |              +--------+--------+              |
+  POSTGRES        TablesDB  Docs   Vectors        POSTGRES
+(the product)      (managed by Appwrite)        (the product)
 
                   ...and off to the side,
                   no Appwrite in the path:
-                       NATIVE PG / MySQL
+                     NATIVE PG / MySQL
 ```
 
 **Supabase** is Postgres with services generated around it. PostgREST exposes your tables as REST, auth users live in an `auth` schema, storage keeps file metadata in a table. Permissions are row-level security policies: SQL that sits in the database and runs on every query, whatever issued it.
@@ -71,7 +71,7 @@ SUPABASE              APPWRITE 2.0              NHOST
 
 **Nhost** is Postgres with a GraphQL API generated from the schema. One endpoint serves queries, mutations and subscriptions, and the client introspects the types. Permissions are per-role rules stored as metadata rather than SQL, and Auth, Storage and Functions read the same session variables, so one rule covers a query, a subscription and a file download.
 
-![Supabase, Appwrite and Nhost dashboards side by side.](/images/blog/supabase-vs-appwrite/dashboards-side-by-side.png)
+![Supabase, Appwrite and Nhost dashboards side by side.](/images/blog/supabase-vs-appwrite/dashboard-comparison.png)
 
 ## Data modeling
 
