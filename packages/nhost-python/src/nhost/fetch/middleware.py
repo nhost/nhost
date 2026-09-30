@@ -289,7 +289,7 @@ class AdminSessionOptions:
     grants unrestricted database access.
     """
 
-    admin_secret: str
+    secret: str
     role: str | None = None
     session_variables: dict[str, str] = field(default_factory=dict)
     allow_insecure_http: bool = False
@@ -310,7 +310,7 @@ def with_admin_session_middleware(options: AdminSessionOptions, service_url: str
 
             headers = request.headers
             if "x-hasura-admin-secret" not in headers:
-                headers["x-hasura-admin-secret"] = options.admin_secret
+                headers["x-hasura-admin-secret"] = options.secret
             if options.role and "x-hasura-role" not in headers:
                 headers["x-hasura-role"] = options.role
             for key, value in options.session_variables.items():

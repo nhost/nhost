@@ -162,7 +162,7 @@ notes = await caller.graphql.request("query { notes { id } }")
 import os
 from nhost import AdminSessionOptions, Nhost
 
-admin = Nhost(admin=AdminSessionOptions(admin_secret=os.environ["HASURA_ADMIN_SECRET"]))
+admin = Nhost(admin=AdminSessionOptions(secret=os.environ["HASURA_ADMIN_SECRET"]))
 ```
 
 The admin secret is sent to Storage, GraphQL and Functions. It cannot be

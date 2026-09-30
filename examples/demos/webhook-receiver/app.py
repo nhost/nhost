@@ -102,7 +102,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         subdomain=_env("NHOST_SUBDOMAIN", "local"),
         region=_env("NHOST_REGION", "local"),
         graphql_url=_env("NHOST_GRAPHQL_URL"),
-        admin=AdminSessionOptions(admin_secret=ADMIN_SECRET),
+        admin=AdminSessionOptions(secret=ADMIN_SECRET),
     ) as client:
         app.state.nhost = client
         yield

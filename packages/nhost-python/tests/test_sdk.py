@@ -466,7 +466,7 @@ async def test_admin_session_respects_origin_and_transport_security(
         return httpx.Response(200, json={})
 
     options = AdminSessionOptions(
-        admin_secret="ADMIN-SECRET-XYZ",
+        secret="ADMIN-SECRET-XYZ",
         role="admin",
         session_variables={"user-id": "user-123"},
         allow_insecure_http=allow_insecure_http,
