@@ -75,7 +75,7 @@ var rustReservedTypeNames = map[string]struct{}{ //nolint:gochecknoglobals
 	"Result":         {},
 	"Self":           {},
 	"Serialize":      {},
-	"SessionStorage": {},
+	"SessionManager": {},
 	"SetHeaders":     {},
 	"SetRole":        {},
 	"String":         {},

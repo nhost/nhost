@@ -372,7 +372,7 @@ func TestRustRender(t *testing.T) {
 				"pub struct ResultTypeType",
 				"pub struct SelfType",
 				"pub struct SerializeType",
-				"pub struct SessionStorageType",
+				"pub struct SessionManagerType",
 				"pub struct SetHeadersType",
 				"pub struct SetRoleType",
 				"pub struct StringType",

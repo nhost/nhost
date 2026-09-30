@@ -13,7 +13,7 @@
 use crate::error::Error;
 use crate::http::{self, Response};
 use crate::middleware::{HeaderPriority, SetHeaders, SetRole};
-use crate::session::SessionStorage;
+use crate::session::SessionManager;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;

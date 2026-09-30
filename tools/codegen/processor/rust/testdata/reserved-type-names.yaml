@@ -96,7 +96,7 @@ components:
       properties:
         value:
           type: string
-    SessionStorage:
+    SessionManager:
       type: object
       properties:
         value:

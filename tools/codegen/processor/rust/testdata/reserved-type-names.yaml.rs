@@ -11,7 +11,7 @@
 use crate::error::Error;
 use crate::http::{self, Response};
 use crate::middleware::{HeaderPriority, SetHeaders, SetRole};
-use crate::session::SessionStorage;
+use crate::session::SessionManager;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -185,7 +185,7 @@ pub struct SerializeType {
 
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SessionStorageType {
+pub struct SessionManagerType {
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub value: Option<String>,
 }
@@ -239,7 +239,7 @@ pub struct Client {
     scoped_middleware: Vec<Arc<dyn http::Middleware>>,
     // Set only on the auth client: a successful response's session is captured
     // into storage by `http::send`.
-    session_sink: Option<SessionStorage>,
+    session_sink: Option<SessionManager>,
 }
 
 impl Client {
@@ -268,10 +268,10 @@ impl Client {
     /// Captures a session from every successful response that carries one into
     /// `sessions`. This replaces the JS SDK's response-sniffing middleware,
     /// which cannot work on wasm; only the auth service returns sessions.
-    // Not `const`: the runtime's SessionStorage is not const-constructible, and
+    // Not `const`: the runtime's SessionManager is not const-constructible, and
     // a const fn here would over-constrain the public API.
     #[allow(clippy::missing_const_for_fn)]
-    pub fn with_session_capture(mut self, sessions: SessionStorage) -> Self {
+    pub fn with_session_capture(mut self, sessions: SessionManager) -> Self {
         self.session_sink = Some(sessions);
         self
     }
@@ -293,7 +293,7 @@ impl Client {
         }))
     }
 
-    fn with_middleware(&self, mw: Arc<dyn http::Middleware>) -> Self {
+    pub(crate) fn with_middleware(&self, mw: Arc<dyn http::Middleware>) -> Self {
         let mut scoped_middleware = self.scoped_middleware.clone();
         scoped_middleware.push(mw);
         let middleware = scoped_middleware

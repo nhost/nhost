@@ -8,13 +8,13 @@ The Rust generator emits API code but not the hand-written crate modules that ho
 
 1. `error::Error` provides `Config(String)` and accepts both `serde_json::Error` and `reqwest::Error` through `From`. Generated multipart code uses `Config` for caller-provided invalid MIME types, while other `?` expressions preserve serialization and request-building failures.
 2. `http::Response<T>` exposes `body: T`, `status: S`, and `headers: reqwest::header::HeaderMap`. The status type `S` must match the first tuple element returned by `http::send`; both `u16` (used by the Nhost Rust SDK) and `reqwest::StatusCode` satisfy the generated uses.
-3. `http::send(RequestBuilder, Option<&SessionStorage>)` is async and returns `Result<(S, HeaderMap, B), Error>`, where `S` is the type of `Response::status` and `B` is exactly `bytes::Bytes`. Binary responses are moved into `Response::body` without conversion, so unlike `S` this element has no permitted alternatives: `Vec<u8>` does not compile.
+3. `http::send(RequestBuilder, Option<&SessionManager>)` is async and returns `Result<(S, HeaderMap, B), Error>`, where `S` is the type of `Response::status` and `B` is exactly `bytes::Bytes`. Binary responses are moved into `Response::body` without conversion, so unlike `S` this element has no permitted alternatives: `Vec<u8>` does not compile.
 4. `http::append_path(&str, &[&str]) -> Result<url::Url, Error>` appends the generated path segments and is accessible from the generated module.
 5. `http::build_client(reqwest::Client, &[Arc<dyn Middleware>]) -> ClientWithMiddleware` builds the middleware-aware client retained by the generated client.
 6. `http::ClientWithMiddleware::request<U: reqwest::IntoUrl>(reqwest::Method, U) -> reqwest::RequestBuilder` accepts the `url::Url` returned by `append_path` and starts each generated request.
 7. `http::Middleware` is object-safe because generated clients store `Arc<dyn Middleware>` values.
 8. `middleware::HeaderPriority` has a `Scoped` variant. `middleware::SetRole { role: String, priority: HeaderPriority }` and `middleware::SetHeaders { headers: HashMap<String, String>, priority: HeaderPriority }` implement `http::Middleware`; all fields must be constructible by the generated module, which sets `priority` to `HeaderPriority::Scoped`.
-9. `session::SessionStorage` implements `Clone` and can be passed to `http::send` by shared reference.
+9. `session::SessionManager` implements `Clone` and can be passed to `http::send` by shared reference.
 
 The executable reference for this contract is the minimal crate in [`processor/rust/testdata/compile-fixture`](processor/rust/testdata/compile-fixture). `TestRustGeneratedOutputCompiles` copies that crate, renders every shared and Rust-specific OpenAPI fixture into it, and runs `cargo check`, rustdoc tests, and Clippy. The test skips when Cargo is unavailable so Go-only development remains supported; the codegen Nix check includes Cargo, rustc, and Clippy so CI always enforces the contract. Changes to generated runtime requirements must update both the compile fixture and this list.
 

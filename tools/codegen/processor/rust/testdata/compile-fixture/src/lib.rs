@@ -37,7 +37,7 @@ pub mod error {
 
 pub mod session {
     #[derive(Clone)]
-    pub struct SessionStorage;
+    pub struct SessionManager;
 }
 
 pub mod custom_types {
@@ -49,7 +49,7 @@ pub mod http {
     use std::sync::Arc;
 
     use crate::error::Error;
-    use crate::session::SessionStorage;
+    use crate::session::SessionManager;
 
     pub struct Response<T> {
         pub body: T,
@@ -99,7 +99,7 @@ pub mod http {
 
     pub async fn send(
         _request: reqwest::RequestBuilder,
-        _session_sink: Option<&SessionStorage>,
+        _session_sink: Option<&SessionManager>,
     ) -> Result<
         (
             reqwest::StatusCode,
