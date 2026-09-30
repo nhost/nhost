@@ -1059,55 +1059,129 @@ type ConfigPostgresResourcesUpdateInput struct {
 }
 
 type ConfigPostgresSettings struct {
-	ArchiveTimeout                *string  `json:"archiveTimeout,omitempty"`
-	CheckpointCompletionTarget    *float64 `json:"checkpointCompletionTarget,omitempty"`
-	DefaultStatisticsTarget       *string  `json:"defaultStatisticsTarget,omitempty"`
-	EffectiveCacheSize            *string  `json:"effectiveCacheSize,omitempty"`
-	EffectiveIOConcurrency        *string  `json:"effectiveIOConcurrency,omitempty"`
-	HugePages                     *string  `json:"hugePages,omitempty"`
-	Jit                           *string  `json:"jit,omitempty"`
-	MaintenanceWorkMem            *string  `json:"maintenanceWorkMem,omitempty"`
-	MaxConnections                *string  `json:"maxConnections,omitempty"`
-	MaxParallelMaintenanceWorkers *string  `json:"maxParallelMaintenanceWorkers,omitempty"`
-	MaxParallelWorkers            *string  `json:"maxParallelWorkers,omitempty"`
-	MaxParallelWorkersPerGather   *string  `json:"maxParallelWorkersPerGather,omitempty"`
-	MaxReplicationSlots           *string  `json:"maxReplicationSlots,omitempty"`
-	MaxWalSenders                 *string  `json:"maxWalSenders,omitempty"`
-	MaxWalSize                    *string  `json:"maxWalSize,omitempty"`
-	MaxWorkerProcesses            *string  `json:"maxWorkerProcesses,omitempty"`
-	MinWalSize                    *string  `json:"minWalSize,omitempty"`
-	RandomPageCost                *float64 `json:"randomPageCost,omitempty"`
-	SharedBuffers                 *string  `json:"sharedBuffers,omitempty"`
-	TrackIoTiming                 *string  `json:"trackIoTiming,omitempty"`
-	WalBuffers                    *string  `json:"walBuffers,omitempty"`
-	WalLevel                      *string  `json:"walLevel,omitempty"`
-	WorkMem                       *string  `json:"workMem,omitempty"`
+	ArchiveTimeout                *string                           `json:"archiveTimeout,omitempty"`
+	CheckpointCompletionTarget    *float64                          `json:"checkpointCompletionTarget,omitempty"`
+	CheckpointTimeout             *string                           `json:"checkpointTimeout,omitempty"`
+	DefaultStatisticsTarget       *string                           `json:"defaultStatisticsTarget,omitempty"`
+	EffectiveCacheSize            *string                           `json:"effectiveCacheSize,omitempty"`
+	EffectiveIOConcurrency        *string                           `json:"effectiveIOConcurrency,omitempty"`
+	Extensions                    *ConfigPostgresSettingsExtensions `json:"extensions,omitempty"`
+	HugePages                     *string                           `json:"hugePages,omitempty"`
+	Jit                           *string                           `json:"jit,omitempty"`
+	LogAutovacuumMinDuration      *string                           `json:"logAutovacuumMinDuration,omitempty"`
+	LogMinDurationStatement       *string                           `json:"logMinDurationStatement,omitempty"`
+	LogTempFiles                  *string                           `json:"logTempFiles,omitempty"`
+	MaintenanceWorkMem            *string                           `json:"maintenanceWorkMem,omitempty"`
+	MaxConnections                *string                           `json:"maxConnections,omitempty"`
+	MaxParallelMaintenanceWorkers *string                           `json:"maxParallelMaintenanceWorkers,omitempty"`
+	MaxParallelWorkers            *string                           `json:"maxParallelWorkers,omitempty"`
+	MaxParallelWorkersPerGather   *string                           `json:"maxParallelWorkersPerGather,omitempty"`
+	MaxReplicationSlots           *string                           `json:"maxReplicationSlots,omitempty"`
+	MaxSlotWalKeepSize            *string                           `json:"maxSlotWalKeepSize,omitempty"`
+	MaxWalSenders                 *string                           `json:"maxWalSenders,omitempty"`
+	MaxWalSize                    *string                           `json:"maxWalSize,omitempty"`
+	MaxWorkerProcesses            *string                           `json:"maxWorkerProcesses,omitempty"`
+	MinWalSize                    *string                           `json:"minWalSize,omitempty"`
+	RandomPageCost                *float64                          `json:"randomPageCost,omitempty"`
+	SharedBuffers                 *string                           `json:"sharedBuffers,omitempty"`
+	SharedPreloadLibraries        []string                          `json:"sharedPreloadLibraries,omitempty"`
+	TrackIoTiming                 *string                           `json:"trackIoTiming,omitempty"`
+	WalBuffers                    *string                           `json:"walBuffers,omitempty"`
+	WalCompression                *string                           `json:"walCompression,omitempty"`
+	WalLevel                      *string                           `json:"walLevel,omitempty"`
+	WorkMem                       *string                           `json:"workMem,omitempty"`
+}
+
+type ConfigPostgresSettingsExtensions struct {
+	Cron             *ConfigPostgresSettingsExtensionsCron             `json:"cron,omitempty"`
+	PgDurable        *ConfigPostgresSettingsExtensionsPgDurable        `json:"pgDurable,omitempty"`
+	PgStatStatements *ConfigPostgresSettingsExtensionsPgStatStatements `json:"pgStatStatements,omitempty"`
+	Timescaledb      *ConfigPostgresSettingsExtensionsTimescaledb      `json:"timescaledb,omitempty"`
+}
+
+type ConfigPostgresSettingsExtensionsCron struct {
+	LogRun         *string `json:"logRun,omitempty"`
+	MaxRunningJobs *string `json:"maxRunningJobs,omitempty"`
+	Timezone       *string `json:"timezone,omitempty"`
+}
+
+type ConfigPostgresSettingsExtensionsCronUpdateInput struct {
+	LogRun         *string `json:"logRun,omitempty"`
+	MaxRunningJobs *string `json:"maxRunningJobs,omitempty"`
+	Timezone       *string `json:"timezone,omitempty"`
+}
+
+type ConfigPostgresSettingsExtensionsPgDurable struct {
+	LogWorkflowSQL     *string `json:"logWorkflowSql,omitempty"`
+	MaxUserConnections *string `json:"maxUserConnections,omitempty"`
+	RetentionDays      *string `json:"retentionDays,omitempty"`
+}
+
+type ConfigPostgresSettingsExtensionsPgDurableUpdateInput struct {
+	LogWorkflowSQL     *string `json:"logWorkflowSql,omitempty"`
+	MaxUserConnections *string `json:"maxUserConnections,omitempty"`
+	RetentionDays      *string `json:"retentionDays,omitempty"`
+}
+
+type ConfigPostgresSettingsExtensionsPgStatStatements struct {
+	Max           *string `json:"max,omitempty"`
+	Track         *string `json:"track,omitempty"`
+	TrackPlanning *string `json:"trackPlanning,omitempty"`
+}
+
+type ConfigPostgresSettingsExtensionsPgStatStatementsUpdateInput struct {
+	Max           *string `json:"max,omitempty"`
+	Track         *string `json:"track,omitempty"`
+	TrackPlanning *string `json:"trackPlanning,omitempty"`
+}
+
+type ConfigPostgresSettingsExtensionsTimescaledb struct {
+	MaxBackgroundWorkers *string `json:"maxBackgroundWorkers,omitempty"`
+}
+
+type ConfigPostgresSettingsExtensionsTimescaledbUpdateInput struct {
+	MaxBackgroundWorkers *string `json:"maxBackgroundWorkers,omitempty"`
+}
+
+type ConfigPostgresSettingsExtensionsUpdateInput struct {
+	Cron             *ConfigPostgresSettingsExtensionsCronUpdateInput             `json:"cron,omitempty"`
+	PgDurable        *ConfigPostgresSettingsExtensionsPgDurableUpdateInput        `json:"pgDurable,omitempty"`
+	PgStatStatements *ConfigPostgresSettingsExtensionsPgStatStatementsUpdateInput `json:"pgStatStatements,omitempty"`
+	Timescaledb      *ConfigPostgresSettingsExtensionsTimescaledbUpdateInput      `json:"timescaledb,omitempty"`
 }
 
 type ConfigPostgresSettingsUpdateInput struct {
-	ArchiveTimeout                *string  `json:"archiveTimeout,omitempty"`
-	CheckpointCompletionTarget    *float64 `json:"checkpointCompletionTarget,omitempty"`
-	DefaultStatisticsTarget       *string  `json:"defaultStatisticsTarget,omitempty"`
-	EffectiveCacheSize            *string  `json:"effectiveCacheSize,omitempty"`
-	EffectiveIOConcurrency        *string  `json:"effectiveIOConcurrency,omitempty"`
-	HugePages                     *string  `json:"hugePages,omitempty"`
-	Jit                           *string  `json:"jit,omitempty"`
-	MaintenanceWorkMem            *string  `json:"maintenanceWorkMem,omitempty"`
-	MaxConnections                *string  `json:"maxConnections,omitempty"`
-	MaxParallelMaintenanceWorkers *string  `json:"maxParallelMaintenanceWorkers,omitempty"`
-	MaxParallelWorkers            *string  `json:"maxParallelWorkers,omitempty"`
-	MaxParallelWorkersPerGather   *string  `json:"maxParallelWorkersPerGather,omitempty"`
-	MaxReplicationSlots           *string  `json:"maxReplicationSlots,omitempty"`
-	MaxWalSenders                 *string  `json:"maxWalSenders,omitempty"`
-	MaxWalSize                    *string  `json:"maxWalSize,omitempty"`
-	MaxWorkerProcesses            *string  `json:"maxWorkerProcesses,omitempty"`
-	MinWalSize                    *string  `json:"minWalSize,omitempty"`
-	RandomPageCost                *float64 `json:"randomPageCost,omitempty"`
-	SharedBuffers                 *string  `json:"sharedBuffers,omitempty"`
-	TrackIoTiming                 *string  `json:"trackIoTiming,omitempty"`
-	WalBuffers                    *string  `json:"walBuffers,omitempty"`
-	WalLevel                      *string  `json:"walLevel,omitempty"`
-	WorkMem                       *string  `json:"workMem,omitempty"`
+	ArchiveTimeout                *string                                      `json:"archiveTimeout,omitempty"`
+	CheckpointCompletionTarget    *float64                                     `json:"checkpointCompletionTarget,omitempty"`
+	CheckpointTimeout             *string                                      `json:"checkpointTimeout,omitempty"`
+	DefaultStatisticsTarget       *string                                      `json:"defaultStatisticsTarget,omitempty"`
+	EffectiveCacheSize            *string                                      `json:"effectiveCacheSize,omitempty"`
+	EffectiveIOConcurrency        *string                                      `json:"effectiveIOConcurrency,omitempty"`
+	Extensions                    *ConfigPostgresSettingsExtensionsUpdateInput `json:"extensions,omitempty"`
+	HugePages                     *string                                      `json:"hugePages,omitempty"`
+	Jit                           *string                                      `json:"jit,omitempty"`
+	LogAutovacuumMinDuration      *string                                      `json:"logAutovacuumMinDuration,omitempty"`
+	LogMinDurationStatement       *string                                      `json:"logMinDurationStatement,omitempty"`
+	LogTempFiles                  *string                                      `json:"logTempFiles,omitempty"`
+	MaintenanceWorkMem            *string                                      `json:"maintenanceWorkMem,omitempty"`
+	MaxConnections                *string                                      `json:"maxConnections,omitempty"`
+	MaxParallelMaintenanceWorkers *string                                      `json:"maxParallelMaintenanceWorkers,omitempty"`
+	MaxParallelWorkers            *string                                      `json:"maxParallelWorkers,omitempty"`
+	MaxParallelWorkersPerGather   *string                                      `json:"maxParallelWorkersPerGather,omitempty"`
+	MaxReplicationSlots           *string                                      `json:"maxReplicationSlots,omitempty"`
+	MaxSlotWalKeepSize            *string                                      `json:"maxSlotWalKeepSize,omitempty"`
+	MaxWalSenders                 *string                                      `json:"maxWalSenders,omitempty"`
+	MaxWalSize                    *string                                      `json:"maxWalSize,omitempty"`
+	MaxWorkerProcesses            *string                                      `json:"maxWorkerProcesses,omitempty"`
+	MinWalSize                    *string                                      `json:"minWalSize,omitempty"`
+	RandomPageCost                *float64                                     `json:"randomPageCost,omitempty"`
+	SharedBuffers                 *string                                      `json:"sharedBuffers,omitempty"`
+	SharedPreloadLibraries        []string                                     `json:"sharedPreloadLibraries,omitempty"`
+	TrackIoTiming                 *string                                      `json:"trackIoTiming,omitempty"`
+	WalBuffers                    *string                                      `json:"walBuffers,omitempty"`
+	WalCompression                *string                                      `json:"walCompression,omitempty"`
+	WalLevel                      *string                                      `json:"walLevel,omitempty"`
+	WorkMem                       *string                                      `json:"workMem,omitempty"`
 }
 
 type ConfigPostgresUpdateInput struct {
