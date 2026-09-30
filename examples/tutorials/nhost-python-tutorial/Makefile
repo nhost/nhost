@@ -39,3 +39,17 @@ check-local:  ## Run the same checks the nix check runs.
 	ruff format --check main.py test_main.py
 	mypy main.py
 	pytest -rs test_main.py
+
+PAGES=$(ROOT_DIR)/docs/src/content/docs/getting-started/tutorials/python
+
+.PHONY: docs-snippets
+docs-snippets:  ## Lint and type-check the tutorial pages' programs and check their ranges.
+	python3 docs_snippets.py $(PAGES) ranges
+	rm -rf docs_parts
+	python3 docs_snippets.py $(PAGES) extract docs_parts
+	ruff check docs_parts && ruff format --check docs_parts && mypy docs_parts/*.py; \
+		status=$$?; rm -rf docs_parts; exit $$status
+
+.PHONY: docs-ranges
+docs-ranges:  ## Recompute the tutorial pages' collapse/highlight ranges.
+	python3 docs_snippets.py $(PAGES) ranges --write

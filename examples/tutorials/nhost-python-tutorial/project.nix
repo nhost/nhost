@@ -31,6 +31,9 @@ let
       ./ruff.toml
       ./mypy.ini
       ./README.md
+      ./docs_snippets.py
+      # The tutorial pages, whose programs the check type-checks.
+      ../../../docs/src/content/docs/getting-started/tutorials/python
       ../../../packages/nhost-python/pyproject.toml
       ../../../packages/nhost-python/src
     ];
@@ -60,5 +63,22 @@ in
     # Import the SDK from source, the way the example's editable install
     # (-e ../../../packages/nhost-python in requirements.txt) resolves it.
     pythonPath = "packages/nhost-python/src";
+
+    # The pages end each part with the complete main.py, and nothing else
+    # checks those. Lint and type-check each with the same settings as
+    # main.py, and check the collapse/highlight ranges still match the diff
+    # between consecutive parts. See docs_snippets.py.
+    extraCheck = ''
+      pages=../../../docs/src/content/docs/getting-started/tutorials/python
+
+      echo "➜ Checking the tutorial pages' collapse/highlight ranges"
+      python3 docs_snippets.py "$pages" ranges
+
+      echo "➜ Checking the tutorial pages' programs"
+      python3 docs_snippets.py "$pages" extract docs_parts
+      ruff check docs_parts
+      ruff format --check docs_parts
+      mypy docs_parts/*.py
+    '';
   };
 }
