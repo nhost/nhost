@@ -53,6 +53,17 @@ let
       # auth email templates (embedded into the CLI binary by `nhost init`)
       ../services/auth/email-templates
 
+      # starter templates (embedded into the CLI binary by `nhost init
+      # --template`). The fileset is not git-aware, so a developer's
+      # node_modules and .next are cut out explicitly; maybeMissing keeps the
+      # build working when they were never installed.
+      ../templates/embed.go
+      ../templates/embed_test.go
+      (fs.difference ../templates/nextjs (fs.unions [
+        (fs.maybeMissing ../templates/nextjs/frontend/node_modules)
+        (fs.maybeMissing ../templates/nextjs/frontend/.next)
+      ]))
+
       # docs
       ../docs/embed.go
       (fs.fileFilter (f: f.hasExt "mdx") ../docs/src/content/docs)
@@ -113,6 +124,14 @@ rec {
 
       echo "➜ Getting access token"
       export NHOST_ACCESS_TOKEN=$(bash ${src}/cli/get_access_token.sh)
+    '';
+
+    # the templates package sits outside ./cli, so the shared check never
+    # tests it; its test is what catches a file missing from the embed
+    # directives
+    extraCheck = ''
+      echo "➜ Running starter template tests"
+      richgo test -v ./templates/...
     '';
   };
 
