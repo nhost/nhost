@@ -19,7 +19,6 @@ import type { BaseTableFormValues } from './BaseTableForm';
 
 type UniqueKey = NonNullable<BaseTableFormValues['uniqueKeys']>[number];
 
-// An existing constraint's name, or the one a new constraint will get.
 const displayName = ({ name, newName }: UniqueKey) => name ?? newName;
 
 interface UniqueKeyDialogValues {
@@ -31,7 +30,6 @@ interface UniqueKeyDialogProps {
   columnNames: string[];
   defaultValues: UniqueKeyDialogValues;
   submitButtonText: string;
-  // Both are injected by the dialog provider, which closes the dialog.
   onSubmit?: (values: UniqueKeyDialogValues) => void;
   onCancel?: VoidFunction;
 }
@@ -141,8 +139,7 @@ export default function UniqueKeysSection() {
                 fields[index].columnIndices,
               )
             ) {
-              // Without `name` it is recreated: the old one is dropped and
-              // the new one added under `newName`.
+              // Without `name` the old constraint is dropped and this one added.
               update(index, { newName, columnIndices });
             }
           }}
