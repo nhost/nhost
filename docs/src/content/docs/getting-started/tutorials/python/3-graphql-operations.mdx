@@ -1,7 +1,7 @@
 ---
 title: Notes and GraphQL in a Python CLI
 description: Model a notes schema with owner-scoped Hasura permissions and drive it from a Python CLI using GraphQL queries and mutations with the Nhost Python SDK.
-keywords: ["Python", "CLI", "Nhost GraphQL", "Hasura permissions", "mutations", "queries", "row-level security"]
+keywords: ["Python", "CLI", "Nhost GraphQL", "Hasura permissions", "mutations", "queries", "custom checks"]
 head:
   - tag: title
     content: "Python Notes CLI Tutorial: GraphQL Operations | Nhost Docs"
@@ -22,8 +22,8 @@ series.
 
 Open the **SQL Editor** (**Database → SQL Editor** in the local Nhost dashboard
 at `https://local.dashboard.local.nhost.run`) and
-run the following. It creates three tables — `notebooks` (folders), `notes`, and `tags` — plus a `note_tags`
-join table, and a trigger that keeps `updated_at` current.
+run the following. It creates two tables, `notes` and `tags`, plus a `note_tags`
+join table and a trigger that keeps `updated_at` current.
 
 ```sql SQL Editor
 CREATE OR REPLACE FUNCTION public.set_updated_at()
@@ -31,18 +31,9 @@ RETURNS TRIGGER AS $$
 BEGIN NEW.updated_at = now(); RETURN NEW; END;
 $$ LANGUAGE plpgsql;
 
-CREATE TABLE public.notebooks (
-  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id    uuid NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
-  name       text NOT NULL,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now()
-);
-
 CREATE TABLE public.notes (
   id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id     uuid NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
-  notebook_id uuid REFERENCES public.notebooks (id) ON DELETE SET NULL,
   title       text NOT NULL DEFAULT '',
   content     text NOT NULL DEFAULT '',
   is_pinned   boolean NOT NULL DEFAULT false,
@@ -72,9 +63,8 @@ CREATE TRIGGER set_notes_updated_at BEFORE UPDATE ON public.notes
 Make sure **Track this** is enabled for each table so it's exposed over GraphQL.
 Then open each table's **Relationships** tab and track the foreign-key
 relationships Nhost suggests. The Part 3 queries and permissions reference these
-by name, so set them exactly: on `notes`, the object relationship to `notebooks`
-as `notebook` and the array relationship to `note_tags` as `noteTags` (Nhost
-suggests `note_tags`, so rename it); on `note_tags`, the object relationship to
+by name, so set them exactly: on `notes`, the array relationship to `note_tags`
+as `noteTags` (Nhost suggests `note_tags`, so rename it); on `note_tags`, the object relationship to
 `notes` as `note` and the one to `tags` as `tag`. A name mismatch surfaces later
 as `"noteTags" does not exist` or `"note" does not exist`.
 
@@ -82,54 +72,44 @@ as `"noteTags" does not exist` or `"note" does not exist`.
 
 By default a tracked table has no permissions — nobody can read or write it.
 Open each table's **Edit Permissions** and grant the `user` role owner-scoped
-access. The pattern is the same everywhere: writes set `user_id` from the
-session, reads and writes are filtered to the caller's own rows.
+access. The pattern is the same everywhere: a **column preset** sets `user_id`
+from the session, and a **custom check** limits each action to the caller's own
+rows. The GraphQL engine applies them to every request, using the user ID in
+the caller's access token.
+
+To add a custom check, choose **With custom check** under the action's row
+permissions and build the rule. The checks below are written in Hasura's JSON
+form: `{ "user_id": { "_eq": "X-Hasura-User-Id" } }` is the rule `user_id`
+`_eq` `X-Hasura-User-Id`.
 
 :::note
 Track any relationship a permission references **before** you save that
-permission. A filter or check naming a relationship that isn't tracked yet fails
+permission. A custom check naming a relationship that isn't tracked yet fails
 to save, and the dashboard shows a generic `Error: Unknown error occurred.`
 instead of naming the missing relationship.
 :::
 
-- **notebooks / tags** — for `insert`, check the data columns (`notebooks`:
-  `name`; `tags`: `name`, `color`) and add a **column preset**
-  `user_id = X-Hasura-User-Id`; leave `id`, `user_id`, `created_at`,
-  `updated_at` unchecked. For `select`, check those same data columns **plus
-  `id`** (a mutation that returns `{ id }` needs `id` in the select permission).
-  For `update`, check the same editable columns (`notebooks`: `name`; `tags`:
-  `name`, `color`) so edits take effect. Use the **row filter**
+- **tags** — for `insert`, check `name` and `color` and add a **column preset**
+  `user_id = X-Hasura-User-Id`; leave `id` and `user_id` unchecked. For
+  `select`, check those same columns **plus `id`** (a mutation that returns
+  `{ id }` needs `id` in the select permission). For `update`, check `name` and
+  `color` so edits take effect. Use the **custom check**
   `{ "user_id": { "_eq": "X-Hasura-User-Id" } }` for `select` / `update` /
   `delete`.
-- **notes** — for `insert`, check `title`, `content`, `notebook_id`,
-  `is_pinned`, `is_archived` and add the `user_id` column preset. For `select`,
+- **notes** — for `insert`, check `title`, `content`, `is_pinned`,
+  `is_archived` and add the `user_id` column preset. For `select`,
   check those columns **plus `id` and `updated_at`** — the list query sorts by
   `updated_at`, and Hasura only lets you `order_by` columns the `select`
   permission exposes. For `update`, check the editable columns (`title`,
-  `content`, `notebook_id`, `is_pinned`, `is_archived`). Use the **row filter**
+  `content`, `is_pinned`, `is_archived`). Use the **custom check**
   `{ "user_id": { "_eq": "X-Hasura-User-Id" } }` for `select` / `update` /
-  `delete`. Finally, for `insert` add a **check** that a supplied `notebook_id`
-  belongs to the caller so a note can't be filed into someone else's notebook:
-
-  ```json
-  { "_or": [
-      { "notebook_id": { "_is_null": true } },
-      { "notebook": { "user_id": { "_eq": "X-Hasura-User-Id" } } }
-  ]}
-  ```
+  `delete`.
 - **note_tags** — gate it through the parent note. Check columns `note_id` and
   `tag_id` for **both** `insert` and `select` (there's no `user_id` preset — a
   `note_tags` row has no `user_id` column; ownership comes from the parent
-  note). For `insert` use the check
-  `{ "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } }`, and the same as
-  the `select` / `delete` filter.
-
-:::tip
-A row permission can only compare against the *session* user. If you also want
-to stop a note being **moved** into another user's notebook on update, enforce
-`notebook.user_id = notes.user_id` with a `BEFORE INSERT OR UPDATE` trigger that
-verifies the parent notebook's owner matches the note's owner.
-:::
+  note). Use the custom check
+  `{ "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } }` for `insert`,
+  `select` and `delete`.
 
 ## A GraphQL helper
 
@@ -137,7 +117,7 @@ Every command runs a query or mutation, so add a small helper. `request` raises
 on GraphQL errors, and the decoded `data` is a plain dict:
 
 ```python title="main.py"
-async def gql(nhost, query: str, variables: dict | None = None) -> dict:
+async def gql(nhost: Nhost, query: str, variables: dict[str, Any] | None = None) -> dict[str, Any]:
     resp = await nhost.graphql.request(query, variables=variables)
     return resp.body.data or {}
 ```
@@ -148,8 +128,8 @@ async def gql(nhost, query: str, variables: dict | None = None) -> dict:
 schema. Notice we never send `user_id` — the permission preset fills it in.
 
 ```python title="main.py"
-async def cmd_note_new(nhost, title: str, content: str | None) -> None:
-    obj: dict = {"title": title, "content": content or ""}
+async def cmd_note_new(nhost: Nhost, title: str, content: str | None) -> None:
+    obj: dict[str, Any] = {"title": title, "content": content or ""}
     data = await gql(
         nhost,
         """
@@ -161,7 +141,7 @@ async def cmd_note_new(nhost, title: str, content: str | None) -> None:
     print("created", data["insert_notes_one"]["id"])
 
 
-async def cmd_note_ls(nhost) -> None:
+async def cmd_note_ls(nhost: Nhost) -> None:
     data = await gql(
         nhost,
         """
@@ -180,17 +160,20 @@ async def cmd_note_ls(nhost) -> None:
         print(f"{pin} {n['id']}  {n['title']}")
 ```
 
-The `notes` query has no `where user_id` clause — it doesn't need one. The row
-filter you configured means the database only ever returns the caller's rows.
+The `notes` query has no `where user_id` clause — it doesn't need one. The
+custom check you configured means the GraphQL engine only ever returns the
+caller's rows. It does still list **archived** notes, since the query doesn't filter
+`is_archived` — so `archive` looks like it has no effect. Add
+`where: {is_archived: {_eq: false}}` to the query to hide them.
 
 ## Update, tag, and organise
 
-Updates go through `update_notes_by_pk`. One helper covers edit, pin, archive,
-and move; an empty primary-key result means the row doesn't exist *or* isn't
-yours:
+Updates go through `update_notes_by_pk`. One helper covers pin and archive here,
+and edit and move in the full CLI; a null result means the row doesn't exist
+*or* isn't yours:
 
 ```python title="main.py"
-async def update_note(nhost, note_id: str, set_: dict) -> None:
+async def update_note(nhost: Nhost, note_id: str, set_: dict[str, Any]) -> None:
     data = await gql(
         nhost,
         """
@@ -209,7 +192,7 @@ tag (unique per `user_id, name`) instead of failing, then `insert_note_tags_one`
 links it to the note:
 
 ```python title="main.py"
-async def upsert_tag(nhost, name: str) -> str:
+async def upsert_tag(nhost: Nhost, name: str) -> str:
     data = await gql(
         nhost,
         """
@@ -221,10 +204,10 @@ async def upsert_tag(nhost, name: str) -> str:
         }""",
         {"name": name},
     )
-    return data["insert_tags_one"]["id"]
+    return str(data["insert_tags_one"]["id"])
 
 
-async def cmd_note_tag(nhost, note_id: str, tag_name: str) -> None:
+async def cmd_note_tag(nhost: Nhost, note_id: str, tag_name: str) -> None:
     tag_id = await upsert_tag(nhost, tag_name)
     await gql(
         nhost,
@@ -249,7 +232,7 @@ helper:
 
 ```python title="main.py"
 @app.command("new")
-def note_new(title: str, content: Optional[str] = typer.Argument(None)) -> None:
+def note_new(title: str, content: str | None = typer.Argument(None)) -> None:
     """Create a note."""
     run(lambda nhost: cmd_note_new(nhost, title, content))
 
@@ -280,18 +263,21 @@ def note_tag(note_id: str, tag_name: str) -> None:
 
 ## The complete `main.py`
 
-Here's the whole `main.py` after Part 3. Press **Copy** to grab the entire file at once.
+Here's the whole `main.py` after Part 3. Collapsed sections are unchanged from
+earlier parts; highlighted lines are what this part added. Press **Copy** to grab
+the entire file.
 
-```python title="main.py"
+```python title="main.py" collapse={1-5,7-51,57-88,166-200,231-236} {6-6,52-56,89-165,201-230}
 import asyncio
 import getpass
 import os
+from collections.abc import Awaitable, Callable
 from pathlib import Path
-from typing import Optional
+from typing import Any
 
 import typer
 
-from nhost import FileStorage, NhostError, create_client
+from nhost import FileStore, Nhost, NhostError
 from nhost.auth import (
     SignInEmailPasswordRequest,
     SignOutRequest,
@@ -314,15 +300,15 @@ def session_path() -> Path:
     return base / "nhost-notes" / "session.json"
 
 
-def make_client():
-    return create_client(
+def make_client() -> Nhost:
+    return Nhost(
         subdomain=os.environ.get("NHOST_SUBDOMAIN", "local"),
         region=os.environ.get("NHOST_REGION", "local"),
-        session_storage=FileStorage(session_path()),
+        session_store=FileStore(session_path()),
     )
 
 
-def run(coro) -> None:
+def run(coro: Callable[[Nhost], Awaitable[None]]) -> None:
     async def runner() -> None:
         async with make_client() as nhost:
             try:
@@ -333,29 +319,31 @@ def run(coro) -> None:
     asyncio.run(runner())
 
 
-async def gql(nhost, query: str, variables: dict | None = None) -> dict:
+async def gql(nhost: Nhost, query: str, variables: dict[str, Any] | None = None) -> dict[str, Any]:
     resp = await nhost.graphql.request(query, variables=variables)
     return resp.body.data or {}
 
 
-async def cmd_signup(nhost, email: str, password: str) -> None:
-    await nhost.auth.sign_up_email_password(
+async def cmd_signup(nhost: Nhost, email: str, password: str) -> None:
+    response = await nhost.auth.sign_up_email_password(
         body=SignUpEmailPasswordRequest(email=email, password=password)
     )
-    if await nhost.get_session() is not None:
+    # Check this response, not the store: it may still hold someone else's
+    # session, and sign-up returns none until the email is verified.
+    if response.body.session is not None:
         print("signed up and logged in as", email)
     else:
         print("signed up; verify your email, then `login`")
 
 
-async def cmd_login(nhost, email: str, password: str) -> None:
+async def cmd_login(nhost: Nhost, email: str, password: str) -> None:
     await nhost.auth.sign_in_email_password(
         body=SignInEmailPasswordRequest(email=email, password=password)
     )
     print("logged in as", email)
 
 
-async def cmd_logout(nhost) -> None:
+async def cmd_logout(nhost: Nhost) -> None:
     session = await nhost.get_session()
     if session is not None:
         await nhost.auth.sign_out(body=SignOutRequest(refresh_token=session.refresh_token))
@@ -363,15 +351,15 @@ async def cmd_logout(nhost) -> None:
     print("logged out")
 
 
-async def cmd_whoami(nhost) -> None:
+async def cmd_whoami(nhost: Nhost) -> None:
     session = await nhost.get_session()
     if session is None or session.user is None:
         raise SystemExit("not logged in")
     print(f"{session.user.email} ({session.user.id})")
 
 
-async def cmd_note_new(nhost, title: str, content: str | None) -> None:
-    obj: dict = {"title": title, "content": content or ""}
+async def cmd_note_new(nhost: Nhost, title: str, content: str | None) -> None:
+    obj: dict[str, Any] = {"title": title, "content": content or ""}
     data = await gql(
         nhost,
         """
@@ -383,7 +371,7 @@ async def cmd_note_new(nhost, title: str, content: str | None) -> None:
     print("created", data["insert_notes_one"]["id"])
 
 
-async def cmd_note_ls(nhost) -> None:
+async def cmd_note_ls(nhost: Nhost) -> None:
     data = await gql(
         nhost,
         """
@@ -402,7 +390,7 @@ async def cmd_note_ls(nhost) -> None:
         print(f"{pin} {n['id']}  {n['title']}")
 
 
-async def update_note(nhost, note_id: str, set_: dict) -> None:
+async def update_note(nhost: Nhost, note_id: str, set_: dict[str, Any]) -> None:
     data = await gql(
         nhost,
         """
@@ -416,7 +404,7 @@ async def update_note(nhost, note_id: str, set_: dict) -> None:
     print("updated", note_id)
 
 
-async def upsert_tag(nhost, name: str) -> str:
+async def upsert_tag(nhost: Nhost, name: str) -> str:
     data = await gql(
         nhost,
         """
@@ -428,10 +416,10 @@ async def upsert_tag(nhost, name: str) -> str:
         }""",
         {"name": name},
     )
-    return data["insert_tags_one"]["id"]
+    return str(data["insert_tags_one"]["id"])
 
 
-async def cmd_note_tag(nhost, note_id: str, tag_name: str) -> None:
+async def cmd_note_tag(nhost: Nhost, note_id: str, tag_name: str) -> None:
     tag_id = await upsert_tag(nhost, tag_name)
     await gql(
         nhost,
@@ -481,7 +469,7 @@ def whoami() -> None:
 
 
 @app.command("new")
-def note_new(title: str, content: Optional[str] = typer.Argument(None)) -> None:
+def note_new(title: str, content: str | None = typer.Argument(None)) -> None:
     """Create a note."""
     run(lambda nhost: cmd_note_new(nhost, title, content))
 
@@ -523,7 +511,7 @@ if __name__ == "__main__":
 ```bash Terminal
 python main.py new "Shopping" "buy milk"
 python main.py ls
-# * 7f3a...  Shopping
+#   7f3a...  Shopping
 
 python main.py tag 7f3a... urgent
 ```

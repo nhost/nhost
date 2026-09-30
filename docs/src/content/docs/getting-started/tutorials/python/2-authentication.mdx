@@ -21,14 +21,15 @@ series.
 
 ## Persist the session
 
-The client accepts a `session_storage` backend that it uses to save and load
-the session. The SDK ships `FileStorage`, which writes the session to a JSON
-file. Update `make_client` to use it:
+`session_store` sets where the client saves and loads the session. Part 1 used
+`MemoryStore`, which forgets the session when the CLI exits. `FileStore` writes
+it to a JSON file that only your user can read instead. Update `make_client` to
+use it:
 
 ```python title="main.py"
 from pathlib import Path
 
-from nhost import FileStorage, create_client
+from nhost import FileStore, Nhost, NhostError
 
 
 def session_path() -> Path:
@@ -39,18 +40,18 @@ def session_path() -> Path:
     return base / "nhost-notes" / "session.json"
 
 
-def make_client():
-    return create_client(
+def make_client() -> Nhost:
+    return Nhost(
         subdomain=os.environ.get("NHOST_SUBDOMAIN", "local"),
         region=os.environ.get("NHOST_REGION", "local"),
-        session_storage=FileStorage(session_path()),
+        session_store=FileStore(session_path()),
     )
 ```
 
-With a `session_storage` backend configured, the SDK's middleware does the
-rest: after you sign in it saves the session, attaches the access token to every
-request, and refreshes the token in the background when it expires. Your
-commands never touch tokens directly.
+With a session store configured, the SDK does the rest: after you sign in it
+saves the session, attaches the access token to every request, and refreshes
+the token when it is about to expire. Your commands never touch tokens
+directly.
 
 ## Add the auth commands
 
@@ -66,24 +67,26 @@ from nhost.auth import (
 )
 
 
-async def cmd_signup(nhost, email: str, password: str) -> None:
-    await nhost.auth.sign_up_email_password(
+async def cmd_signup(nhost: Nhost, email: str, password: str) -> None:
+    response = await nhost.auth.sign_up_email_password(
         body=SignUpEmailPasswordRequest(email=email, password=password)
     )
-    if await nhost.get_session() is not None:
+    # Check this response, not the store: it may still hold someone else's
+    # session, and sign-up returns none until the email is verified.
+    if response.body.session is not None:
         print("signed up and logged in as", email)
     else:
         print("signed up; verify your email, then `login`")
 
 
-async def cmd_login(nhost, email: str, password: str) -> None:
+async def cmd_login(nhost: Nhost, email: str, password: str) -> None:
     await nhost.auth.sign_in_email_password(
         body=SignInEmailPasswordRequest(email=email, password=password)
     )
     print("logged in as", email)
 
 
-async def cmd_logout(nhost) -> None:
+async def cmd_logout(nhost: Nhost) -> None:
     session = await nhost.get_session()
     if session is not None:
         await nhost.auth.sign_out(body=SignOutRequest(refresh_token=session.refresh_token))
@@ -92,9 +95,15 @@ async def cmd_logout(nhost) -> None:
 ```
 
 `get_session` (used by the `cmd_whoami` you wrote in Part 1) reads the
-current session from storage without a network call. `clear_session` removes the
-cached file (a client-side sign out), while `sign_out` revokes the refresh token
-on the server.
+current session from the session store without a network call. `None` means
+nobody is signed in; if the store can't be read it raises `SessionStoreError`,
+so an unreadable session file is never mistaken for a signed-out user.
+`clear_session` removes the saved file (a client-side sign out), while
+`sign_out` revokes the refresh token on the server.
+
+`cmd_signup` checks the session in the sign-up response rather than calling
+`get_session`: the store may still hold whoever was signed in before, and
+sign-up returns no session until the new user verifies their email.
 
 Register each command with a `@app.command(...)` decorator. Typer turns the
 email parameter into a positional argument and generates `--help`. Read the
@@ -139,23 +148,27 @@ New projects require email verification by default. For a smooth CLI experience
 during development, you can allow users to sign in immediately after sign-up: in
 the local Nhost dashboard (`https://local.dashboard.local.nhost.run`) open
 **Settings → Sign-In methods** and, under **Email and Password**, disable
-*"Require verified emails"*. (Locally, verification emails are caught by Mailhog
-at `https://local.mailhog.local.nhost.run` if you'd rather click the link
-instead.)
+**Require Verified Emails**. Locally, settings changes take effect the next time
+the backend starts, so run `nhost up` again to apply it. (Verification emails
+are caught by Mailhog at `https://local.mailhog.local.nhost.run` if you'd rather
+click the link instead.)
 
 ## The complete `main.py`
 
-Here's the whole `main.py` after Part 2. Press **Copy** to grab the entire file at once.
+Here's the whole `main.py` after Part 2. The collapsed sections are unchanged
+from Part 1; the highlighted lines are what this part added. Press **Copy** to
+grab the entire file at once.
 
-```python title="main.py"
+```python title="main.py" collapse={1-1,3-4,6-8,15-23,30-35,37-50,78-82,110-123} {2-2,5-5,9-14,24-29,36-36,51-77,83-109}
 import asyncio
 import getpass
 import os
+from collections.abc import Awaitable, Callable
 from pathlib import Path
 
 import typer
 
-from nhost import FileStorage, NhostError, create_client
+from nhost import FileStore, Nhost, NhostError
 from nhost.auth import (
     SignInEmailPasswordRequest,
     SignOutRequest,
@@ -178,15 +191,15 @@ def session_path() -> Path:
     return base / "nhost-notes" / "session.json"
 
 
-def make_client():
-    return create_client(
+def make_client() -> Nhost:
+    return Nhost(
         subdomain=os.environ.get("NHOST_SUBDOMAIN", "local"),
         region=os.environ.get("NHOST_REGION", "local"),
-        session_storage=FileStorage(session_path()),
+        session_store=FileStore(session_path()),
     )
 
 
-def run(coro) -> None:
+def run(coro: Callable[[Nhost], Awaitable[None]]) -> None:
     async def runner() -> None:
         async with make_client() as nhost:
             try:
@@ -197,24 +210,26 @@ def run(coro) -> None:
     asyncio.run(runner())
 
 
-async def cmd_signup(nhost, email: str, password: str) -> None:
-    await nhost.auth.sign_up_email_password(
+async def cmd_signup(nhost: Nhost, email: str, password: str) -> None:
+    response = await nhost.auth.sign_up_email_password(
         body=SignUpEmailPasswordRequest(email=email, password=password)
     )
-    if await nhost.get_session() is not None:
+    # Check this response, not the store: it may still hold someone else's
+    # session, and sign-up returns none until the email is verified.
+    if response.body.session is not None:
         print("signed up and logged in as", email)
     else:
         print("signed up; verify your email, then `login`")
 
 
-async def cmd_login(nhost, email: str, password: str) -> None:
+async def cmd_login(nhost: Nhost, email: str, password: str) -> None:
     await nhost.auth.sign_in_email_password(
         body=SignInEmailPasswordRequest(email=email, password=password)
     )
     print("logged in as", email)
 
 
-async def cmd_logout(nhost) -> None:
+async def cmd_logout(nhost: Nhost) -> None:
     session = await nhost.get_session()
     if session is not None:
         await nhost.auth.sign_out(body=SignOutRequest(refresh_token=session.refresh_token))
@@ -222,7 +237,7 @@ async def cmd_logout(nhost) -> None:
     print("logged out")
 
 
-async def cmd_whoami(nhost) -> None:
+async def cmd_whoami(nhost: Nhost) -> None:
     session = await nhost.get_session()
     if session is None or session.user is None:
         raise SystemExit("not logged in")
@@ -283,6 +298,7 @@ The `signup` and `login` commands prompt for the password without echoing it:
 
 ```bash Terminal
 python main.py signup ada@example.com
+# Password: (input is hidden)
 python main.py whoami
 # ada@example.com (a1b2c3d4-...)
 
@@ -291,6 +307,7 @@ python main.py whoami
 # not logged in
 
 python main.py login ada@example.com
+# Password: (input is hidden)
 ```
 
 The session is written to `~/.config/nhost-notes/session.json`. Delete that file

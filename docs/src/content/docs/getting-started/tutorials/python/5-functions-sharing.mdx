@@ -31,13 +31,13 @@ CREATE TABLE public.note_collaborators (
 );
 ```
 
-Track it, then create **both** relationships **before** setting the filters
+Track it, then create **both** relationships **before** setting the custom checks
 below (Database → each table → **Relationships**):
 
 - a `collaborators` **array** relationship on `notes` → `note_collaborators`, and
 - a `note` **object** relationship on `note_collaborators` → `notes`.
 
-Order matters and the names matter: the `notes` filters reference
+Order matters and the names matter: the `notes` custom checks reference
 `collaborators` and the `note_collaborators` check references `note`, so if a
 relationship is missing or mis-named the permission won't save
 (`"collaborators" does not exist` / `"note" does not exist`).
@@ -45,7 +45,7 @@ relationship is missing or mis-named the permission won't save
 Now update the `notes` permissions so collaborators can see and edit shared
 notes — this is the one place the owner-only rule opens up:
 
-- **notes → select** filter — owner **or** any collaborator:
+- **notes → select** custom check — owner **or** any collaborator:
 
   ```json
   { "_or": [
@@ -53,7 +53,7 @@ notes — this is the one place the owner-only rule opens up:
       { "collaborators": { "user_id": { "_eq": "X-Hasura-User-Id" } } }
   ]}
   ```
-- **notes → update** filter — owner **or** an `editor` collaborator:
+- **notes → update** custom check — owner **or** an `editor` collaborator:
 
   ```json
   { "_or": [
@@ -74,14 +74,14 @@ actions — `insert`, `select`, `update`, and `delete`:
   and without it you hit the opaque
   `expected one of the values ['_PLACEHOLDER'] for type
   'note_collaborators_update_column'`.
-- Use `{ "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } }` as the `insert`
-  check and the `select` / `update` / `delete` filter.
+- Use the custom check `{ "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } }`
+  for `insert`, `select`, `update` and `delete`.
 
 Add the command (the owner shares by the collaborator's user id):
 
 ```python title="main.py"
-async def cmd_share(nhost, note_id: str, user_id: str, role: str) -> None:
-    await gql(
+async def cmd_share(nhost: Nhost, note_id: str, user_id: str, role: str) -> None:
+    data = await gql(
         nhost,
         """
         mutation Share($noteId: uuid!, $userId: uuid!, $role: String!) {
@@ -92,11 +92,13 @@ async def cmd_share(nhost, note_id: str, user_id: str, role: str) -> None:
         }""",
         {"noteId": note_id, "userId": user_id, "role": role},
     )
+    if not data.get("insert_note_collaborators_one"):
+        raise SystemExit("note not found or not permitted")
     print(f"shared {note_id} with {user_id} as {role}")
 
 
-async def cmd_unshare(nhost, note_id: str, user_id: str) -> None:
-    await gql(
+async def cmd_unshare(nhost: Nhost, note_id: str, user_id: str) -> None:
+    data = await gql(
         nhost,
         """
         mutation Unshare($noteId: uuid!, $userId: uuid!) {
@@ -104,6 +106,8 @@ async def cmd_unshare(nhost, note_id: str, user_id: str) -> None:
         }""",
         {"noteId": note_id, "userId": user_id},
     )
+    if not data.get("delete_note_collaborators_by_pk"):
+        raise SystemExit("note not shared with that user, or not permitted")
     print(f"unshared {note_id} from {user_id}")
 ```
 
@@ -127,7 +131,7 @@ def unshare(note_id: str, user_id: str) -> None:
 :::note
 `export` is the one step that needs the function actually *running* — every part
 until now used only the dashboard and the CLI. Your local backend serves the
-`functions/` directory automatically: as long as `nhost up` is running,
+`functions/` directory automatically: while the backend is running,
 `functions/notes/export.ts` is live at
 `https://local.functions.local.nhost.run/v1/notes/export`. Save the file and the
 local runtime hot-reloads it — there's no deploy step.
@@ -141,22 +145,26 @@ routing maps it to `/v1/notes/export` (see the
 [Functions docs](/products/functions)). It reads the caller's notes over
 GraphQL, renders Markdown, and uploads the result to Storage — **forwarding the
 caller's token**, so Hasura permissions and Storage rules apply exactly as they
-do in the CLI:
+do in the CLI. It creates a server client and its in-memory session storage for
+each request, so a session returned by a future SDK call cannot be reused by
+another caller:
 
 ```typescript title="functions/notes/export.ts"
 import type { Request, Response } from "express";
-import { createClient } from "@nhost/nhost-js";
-
-const nhost = createClient({
-  region: process.env.NHOST_REGION,
-  subdomain: process.env.NHOST_SUBDOMAIN,
-});
+import { createServerClient } from "@nhost/nhost-js";
+import { MemoryStorage } from "@nhost/nhost-js/session";
 
 export default async (req: Request, res: Response) => {
   const authorization = req.headers.authorization ?? "";
   if (!authorization) {
     return res.status(401).json({ error: "Missing Authorization header" });
   }
+
+  const nhost = createServerClient({
+    region: process.env.NHOST_REGION,
+    subdomain: process.env.NHOST_SUBDOMAIN,
+    storage: new MemoryStorage(),
+  });
 
   const { body } = await nhost.graphql.request<{ notes: { title: string; content: string }[] }>(
     { query: `query { notes(order_by: {updated_at: desc}) { title content } }` },
@@ -184,12 +192,18 @@ function with esbuild against the `functions/` project's own dependencies — so
 install the SDK there (the `functions/` directory `nhost init` scaffolded in
 Part 1) or the build fails with `Could not resolve "@nhost/nhost-js"`. Pin the
 v5 prerelease that `export.ts` targets — npm's `latest` is still the v4 line,
-which lacks the `createClient` API the function uses:
+which lacks the `createServerClient` API the function uses:
 
 ```bash Terminal
 cd functions
-npm install @nhost/nhost-js@5.0.0-beta11
+npm install --package-lock-only --save-exact @nhost/nhost-js@5.0.0-beta11
 ```
+
+`--package-lock-only` records the dependency in `package.json` and
+`package-lock.json` without installing it yourself: the functions runtime sees
+the new lockfile, installs it, and rebuilds the function. (`functions/node_modules`
+belongs to the runtime's container, so on Linux a plain `npm install` fails
+with `EACCES`.)
 
 ## Call it from the CLI
 
@@ -200,7 +214,7 @@ the function receives it in the `Authorization` header:
 import json
 
 
-async def cmd_export(nhost) -> None:
+async def cmd_export(nhost: Nhost) -> None:
     resp = await nhost.functions.post("/notes/export", json={})
     print(json.dumps(resp.body, indent=2))
 ```
@@ -216,19 +230,22 @@ def export() -> None:
 
 ## The complete `main.py`
 
-Here's the whole `main.py` after Part 5 — the finished CLI. Press **Copy** to grab the entire file at once.
+Here's the whole `main.py` after Part 5 — the finished CLI. Collapsed sections
+are unchanged from earlier parts; highlighted lines are what this part added.
+Press **Copy** to grab the entire file.
 
-```python title="main.py"
+```python title="main.py" collapse={1-2,4-213,250-324,343-348} {3-3,214-249,325-342}
 import asyncio
 import getpass
 import json
 import os
+from collections.abc import Awaitable, Callable
 from pathlib import Path
-from typing import Optional
+from typing import Any
 
 import typer
 
-from nhost import FileStorage, NhostError, create_client
+from nhost import FileStore, Nhost, NhostError
 from nhost.auth import (
     SignInEmailPasswordRequest,
     SignOutRequest,
@@ -254,15 +271,15 @@ def session_path() -> Path:
     return base / "nhost-notes" / "session.json"
 
 
-def make_client():
-    return create_client(
+def make_client() -> Nhost:
+    return Nhost(
         subdomain=os.environ.get("NHOST_SUBDOMAIN", "local"),
         region=os.environ.get("NHOST_REGION", "local"),
-        session_storage=FileStorage(session_path()),
+        session_store=FileStore(session_path()),
     )
 
 
-def run(coro) -> None:
+def run(coro: Callable[[Nhost], Awaitable[None]]) -> None:
     async def runner() -> None:
         async with make_client() as nhost:
             try:
@@ -273,29 +290,31 @@ def run(coro) -> None:
     asyncio.run(runner())
 
 
-async def gql(nhost, query: str, variables: dict | None = None) -> dict:
+async def gql(nhost: Nhost, query: str, variables: dict[str, Any] | None = None) -> dict[str, Any]:
     resp = await nhost.graphql.request(query, variables=variables)
     return resp.body.data or {}
 
 
-async def cmd_signup(nhost, email: str, password: str) -> None:
-    await nhost.auth.sign_up_email_password(
+async def cmd_signup(nhost: Nhost, email: str, password: str) -> None:
+    response = await nhost.auth.sign_up_email_password(
         body=SignUpEmailPasswordRequest(email=email, password=password)
     )
-    if await nhost.get_session() is not None:
+    # Check this response, not the store: it may still hold someone else's
+    # session, and sign-up returns none until the email is verified.
+    if response.body.session is not None:
         print("signed up and logged in as", email)
     else:
         print("signed up; verify your email, then `login`")
 
 
-async def cmd_login(nhost, email: str, password: str) -> None:
+async def cmd_login(nhost: Nhost, email: str, password: str) -> None:
     await nhost.auth.sign_in_email_password(
         body=SignInEmailPasswordRequest(email=email, password=password)
     )
     print("logged in as", email)
 
 
-async def cmd_logout(nhost) -> None:
+async def cmd_logout(nhost: Nhost) -> None:
     session = await nhost.get_session()
     if session is not None:
         await nhost.auth.sign_out(body=SignOutRequest(refresh_token=session.refresh_token))
@@ -303,15 +322,15 @@ async def cmd_logout(nhost) -> None:
     print("logged out")
 
 
-async def cmd_whoami(nhost) -> None:
+async def cmd_whoami(nhost: Nhost) -> None:
     session = await nhost.get_session()
     if session is None or session.user is None:
         raise SystemExit("not logged in")
     print(f"{session.user.email} ({session.user.id})")
 
 
-async def cmd_note_new(nhost, title: str, content: str | None) -> None:
-    obj: dict = {"title": title, "content": content or ""}
+async def cmd_note_new(nhost: Nhost, title: str, content: str | None) -> None:
+    obj: dict[str, Any] = {"title": title, "content": content or ""}
     data = await gql(
         nhost,
         """
@@ -323,7 +342,7 @@ async def cmd_note_new(nhost, title: str, content: str | None) -> None:
     print("created", data["insert_notes_one"]["id"])
 
 
-async def cmd_note_ls(nhost) -> None:
+async def cmd_note_ls(nhost: Nhost) -> None:
     data = await gql(
         nhost,
         """
@@ -342,7 +361,7 @@ async def cmd_note_ls(nhost) -> None:
         print(f"{pin} {n['id']}  {n['title']}")
 
 
-async def update_note(nhost, note_id: str, set_: dict) -> None:
+async def update_note(nhost: Nhost, note_id: str, set_: dict[str, Any]) -> None:
     data = await gql(
         nhost,
         """
@@ -356,7 +375,7 @@ async def update_note(nhost, note_id: str, set_: dict) -> None:
     print("updated", note_id)
 
 
-async def upsert_tag(nhost, name: str) -> str:
+async def upsert_tag(nhost: Nhost, name: str) -> str:
     data = await gql(
         nhost,
         """
@@ -368,10 +387,10 @@ async def upsert_tag(nhost, name: str) -> str:
         }""",
         {"name": name},
     )
-    return data["insert_tags_one"]["id"]
+    return str(data["insert_tags_one"]["id"])
 
 
-async def cmd_note_tag(nhost, note_id: str, tag_name: str) -> None:
+async def cmd_note_tag(nhost: Nhost, note_id: str, tag_name: str) -> None:
     tag_id = await upsert_tag(nhost, tag_name)
     await gql(
         nhost,
@@ -387,7 +406,7 @@ async def cmd_note_tag(nhost, note_id: str, tag_name: str) -> None:
     print(f"tagged {note_id} with #{tag_name}")
 
 
-async def cmd_attach(nhost, note_id: str, file: str) -> None:
+async def cmd_attach(nhost: Nhost, note_id: str, file: str) -> None:
     raw = Path(file).read_bytes()
     name = Path(file).name
     up = await nhost.storage.upload(
@@ -399,25 +418,38 @@ async def cmd_attach(nhost, note_id: str, file: str) -> None:
         raise SystemExit("upload failed")
     file_id = up.body.processed_files[0].id
 
-    await gql(
-        nhost,
-        """
-        mutation Attach($noteId: uuid!, $fileId: uuid!) {
-          insert_note_attachments_one(object: {note_id: $noteId, file_id: $fileId}) { file_id }
-        }""",
-        {"noteId": note_id, "fileId": file_id},
-    )
+    error = None
+    try:
+        data = await gql(
+            nhost,
+            """
+            mutation Attach($noteId: uuid!, $fileId: uuid!) {
+              insert_note_attachments_one(object: {note_id: $noteId, file_id: $fileId}) { file_id }
+            }""",
+            {"noteId": note_id, "fileId": file_id},
+        )
+        if not data.get("insert_note_attachments_one"):
+            error = "note not found or not permitted"
+    except NhostError as exc:
+        error = f"error: {exc}"
+    if error is not None:
+        # Don't leave the upload in Storage with nothing pointing at it.
+        try:
+            await nhost.storage.delete_file(file_id)
+        except NhostError as exc:
+            error += f"; deleting uploaded file {file_id} also failed: {exc}"
+        raise SystemExit(error)
     print(f"attached {name} (file {file_id}) to {note_id}")
 
 
-async def cmd_download(nhost, file_id: str, out_path: str) -> None:
+async def cmd_download(nhost: Nhost, file_id: str, out_path: str) -> None:
     resp = await nhost.storage.get_file(file_id)
     Path(out_path).write_bytes(resp.body)
     print(f"wrote {len(resp.body)} bytes to {out_path}")
 
 
-async def cmd_share(nhost, note_id: str, user_id: str, role: str) -> None:
-    await gql(
+async def cmd_share(nhost: Nhost, note_id: str, user_id: str, role: str) -> None:
+    data = await gql(
         nhost,
         """
         mutation Share($noteId: uuid!, $userId: uuid!, $role: String!) {
@@ -428,11 +460,13 @@ async def cmd_share(nhost, note_id: str, user_id: str, role: str) -> None:
         }""",
         {"noteId": note_id, "userId": user_id, "role": role},
     )
+    if not data.get("insert_note_collaborators_one"):
+        raise SystemExit("note not found or not permitted")
     print(f"shared {note_id} with {user_id} as {role}")
 
 
-async def cmd_unshare(nhost, note_id: str, user_id: str) -> None:
-    await gql(
+async def cmd_unshare(nhost: Nhost, note_id: str, user_id: str) -> None:
+    data = await gql(
         nhost,
         """
         mutation Unshare($noteId: uuid!, $userId: uuid!) {
@@ -440,10 +474,12 @@ async def cmd_unshare(nhost, note_id: str, user_id: str) -> None:
         }""",
         {"noteId": note_id, "userId": user_id},
     )
+    if not data.get("delete_note_collaborators_by_pk"):
+        raise SystemExit("note not shared with that user, or not permitted")
     print(f"unshared {note_id} from {user_id}")
 
 
-async def cmd_export(nhost) -> None:
+async def cmd_export(nhost: Nhost) -> None:
     resp = await nhost.functions.post("/notes/export", json={})
     print(json.dumps(resp.body, indent=2))
 
@@ -482,7 +518,7 @@ def whoami() -> None:
 
 
 @app.command("new")
-def note_new(title: str, content: Optional[str] = typer.Argument(None)) -> None:
+def note_new(title: str, content: str | None = typer.Argument(None)) -> None:
     """Create a note."""
     run(lambda nhost: cmd_note_new(nhost, title, content))
 
@@ -561,12 +597,21 @@ NHOST_NOTES_SESSION=/tmp/bob.json python main.py whoami   # bob@example.com (<ot
 # back as yourself, share a note with bob (role defaults to viewer if omitted)
 python main.py share <noteId> <otherUserId> editor
 
-# ...and revoke it
+# bob now sees the note, and as an editor can change it
+NHOST_NOTES_SESSION=/tmp/bob.json python main.py ls
+NHOST_NOTES_SESSION=/tmp/bob.json python main.py pin <noteId>
+
+# ...and revoke it; bob's list is empty again
 python main.py unshare <noteId> <otherUserId>
+NHOST_NOTES_SESSION=/tmp/bob.json python main.py ls   # (no notes)
 
 # export your notes to a Markdown file in Storage
 python main.py export
-# { "fileId": "...", "fileName": "export-1737045.md", "noteCount": 3 }
+# {
+#   "fileId": "...",
+#   "fileName": "export-1737045123456.md",
+#   "noteCount": 3
+# }
 
 python main.py download <fileId> ./notes.md
 ```

@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from nhost import NhostClient, create_client, create_nhost_client, create_server_client
+from nhost import Nhost
 
 _REPO_ROOT = Path(__file__).parents[3]
 _DOCS = (
@@ -32,14 +32,10 @@ _BODY_METHODS = {
 # version kept passing while checking nothing.
 _ASYNC_SESSION_METHODS = {
     name
-    for name, _ in inspect.getmembers(NhostClient, inspect.iscoroutinefunction)
+    for name, _ in inspect.getmembers(Nhost, inspect.iscoroutinefunction)
     if not name.startswith("_")
 }
-_CLIENT_FACTORIES: dict[str, Callable[..., object]] = {
-    "create_client": create_client,
-    "create_nhost_client": create_nhost_client,
-    "create_server_client": create_server_client,
-}
+_CLIENT_FACTORIES: dict[str, Callable[..., object]] = {"Nhost": Nhost}
 _FACTORY_PARAMETERS = {
     name: inspect.signature(factory).parameters for name, factory in _CLIENT_FACTORIES.items()
 }
@@ -60,6 +56,11 @@ def _snippets() -> Iterator[object]:
             yield pytest.param(match.group(1), id=f"{path.stem}-{index}")
 
 
+def _is_complete(source: str) -> bool:
+    """A tutorial part's whole main.py, or the quickstart's FastAPI app."""
+    return "def main(" in source or "FastAPI(" in source
+
+
 def _validate_sdk_calls(source: str) -> None:
     tree = ast.parse(source)
     parents = {child: parent for parent in ast.walk(tree) for child in ast.iter_child_nodes(parent)}
@@ -73,7 +74,10 @@ def _validate_sdk_calls(source: str) -> None:
         if isinstance(node, (ast.Import, ast.ImportFrom)):
             names = {alias.name for alias in node.names}
             assert "NhostClientOptions" not in names
-            if "NhostError" in names:
+            # A snippet that adds to an earlier one may show a whole import line
+            # whose names are used elsewhere in the file; only a complete
+            # program has to use everything it imports.
+            if "NhostError" in names and _is_complete(source):
                 assert "NhostError" in loaded_names, "NhostError must be used when imported"
 
         if not isinstance(node, ast.Call):
@@ -128,6 +132,13 @@ def test_async_session_methods_were_discovered() -> None:
     assert "clear_session" in _ASYNC_SESSION_METHODS
 
 
+def test_snippets_were_found() -> None:
+    """A fence pattern that stopped matching would check nothing."""
+    ids = {param.id for param in _snippets()}  # type: ignore[attr-defined]
+    assert any(i.startswith("fastapi-") for i in ids)
+    assert sum(i.startswith("5-functions-sharing-") for i in ids) > 1
+
+
 @pytest.mark.parametrize("source", list(_snippets()))
 def test_python_tutorial_snippet_uses_current_sdk(source: str) -> None:
     """Keep parseable snippets free of SDK call shapes that previously drifted."""
@@ -152,6 +163,10 @@ def test_python_tutorial_snippet_imports_exist(source: str) -> None:
         pytest.param("from nhost import create_api_client", id="create-api-client"),
         pytest.param("from nhost.session import detect_storage", id="detect-storage"),
         pytest.param("from nhost.fetch import ChainFunction", id="chain-function"),
+        pytest.param("from nhost import create_client", id="create-client"),
+        pytest.param("from nhost import NhostClient", id="nhost-client"),
+        pytest.param("from nhost import MemoryStorage", id="memory-storage"),
+        pytest.param("from nhost import FileStorage", id="file-storage"),
     ),
 )
 def test_removed_sdk_imports_are_rejected(source: str) -> None:
@@ -164,27 +179,22 @@ def test_removed_sdk_imports_are_rejected(source: str) -> None:
     ("source", "message"),
     (
         pytest.param(
-            "create_client(NhostClientOptions())",
-            "create_client accepts keyword arguments only",
-            id="create-client-positional-options",
+            "Nhost(NhostClientOptions())",
+            "Nhost accepts keyword arguments only",
+            id="nhost-positional-options",
         ),
         pytest.param(
-            "create_server_client(storage=MemoryStorage())",
-            "create_server_client got unexpected keyword arguments: ['storage']",
-            id="create-server-client-storage",
+            "Nhost(session_storage=MemoryStorage())",
+            "Nhost got unexpected keyword arguments: ['session_storage']",
+            id="nhost-session-storage",
         ),
         pytest.param(
-            "create_nhost_client(NhostClientOptions())",
-            "create_nhost_client accepts keyword arguments only",
-            id="create-nhost-client-positional-options",
+            "Nhost(configure=[with_admin_session(options)])",
+            "Nhost got unexpected keyword arguments: ['configure']",
+            id="nhost-configure",
         ),
         pytest.param(
-            "create_server_client()",
-            "create_server_client is missing required keyword arguments: ['session_storage']",
-            id="create-server-client-missing-session-storage",
-        ),
-        pytest.param(
-            "from nhost import NhostError",
+            "from nhost import NhostError\n\ndef main() -> None: ...",
             "NhostError must be used when imported",
             id="unused-nhost-error",
         ),

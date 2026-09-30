@@ -41,25 +41,25 @@ the `user` role:
 
 - **note_attachments** — gate through the parent note. Check columns `note_id`
   and `file_id` for both `insert` and `select` (without them the insert
-  permission allows zero columns and `attach` is rejected), then use
-  `{ "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } }` as the `insert`
-  check and the `select` / `delete` filter.
+  permission allows zero columns and `attach` is rejected), then use the
+  custom check `{ "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } }` for
+  `insert`, `select` and `delete`.
 - **storage.files** — set these under **Storage → Permissions** (Nhost's UI for
   the `storage.files` table permissions), where **Upload** is the `insert`
-  permission and **Download** is the `select` permission. Leave Replace / Delete
-  as-is for this tutorial.
+  permission, **Download** the `select` permission and **Delete** the `delete`
+  permission. Leave Replace as-is for this tutorial.
   - **Upload** — allow it for `user` and enable *Prefill
     `uploaded_by_user_id` with `X-Hasura-User-Id`* so every upload is stamped
     with its uploader. Without this stamp the column stays `NULL`, the Download
-    filter below never matches, and `download` 404s with `file not found` even
+    custom check below never matches, and `download` 404s with `file not found` even
     though `attach` succeeded.
   - **Download** — a user should see a file if they uploaded it **or** it's
     attached to a note they can see. This clause traverses a `noteAttachments`
     array relationship on `storage.files`, which lives in the **Database** UI —
     so add it there **first** under **Database → `storage` schema → `files` →
-    Relationships**, otherwise the row filter won't save
+    Relationships**, otherwise the custom check won't save
     (`"noteAttachments" does not exist`). Then, back in **Storage → Permissions**
-    for the Download action, filter on the **database column**
+    for the Download action, write the check on the **database column**
     `uploaded_by_user_id` (the `uploadedByUserId` GraphQL alias errors on save
     with `"uploadedByUserId" does not exist`):
 
@@ -69,13 +69,18 @@ the `user` role:
         { "noteAttachments": { "note": { "user_id": { "_eq": "X-Hasura-User-Id" } } } }
     ]}
     ```
+  - **Delete** — allow it for `user` with the custom check
+    `{ "uploaded_by_user_id": { "_eq": "X-Hasura-User-Id" } }`, so users can
+    delete what they uploaded. `attach` needs it to clean up when linking fails.
 
 ## Upload a file
 
 The `storage.upload` convenience method takes the raw bytes plus keyword-only
 bucket and per-file metadata arguments. It returns the processed files,
-including the new file's `id`, which we then link to the note. Add a `BUCKET`
-constant for the bucket id you created above:
+including the new file's `id`, which we then link to the note. If linking fails,
+say because the note isn't yours, `attach` deletes the upload again so it isn't
+left in Storage with nothing pointing at it. Add a `BUCKET` constant for the
+bucket id you created above:
 
 ```python title="main.py"
 from pathlib import Path
@@ -85,7 +90,7 @@ from nhost.storage import UploadFileMetadata
 BUCKET = "notes"
 
 
-async def cmd_attach(nhost, note_id: str, file: str) -> None:
+async def cmd_attach(nhost: Nhost, note_id: str, file: str) -> None:
     raw = Path(file).read_bytes()
     name = Path(file).name
     up = await nhost.storage.upload(
@@ -97,14 +102,27 @@ async def cmd_attach(nhost, note_id: str, file: str) -> None:
         raise SystemExit("upload failed")
     file_id = up.body.processed_files[0].id
 
-    await gql(
-        nhost,
-        """
-        mutation Attach($noteId: uuid!, $fileId: uuid!) {
-          insert_note_attachments_one(object: {note_id: $noteId, file_id: $fileId}) { file_id }
-        }""",
-        {"noteId": note_id, "fileId": file_id},
-    )
+    error = None
+    try:
+        data = await gql(
+            nhost,
+            """
+            mutation Attach($noteId: uuid!, $fileId: uuid!) {
+              insert_note_attachments_one(object: {note_id: $noteId, file_id: $fileId}) { file_id }
+            }""",
+            {"noteId": note_id, "fileId": file_id},
+        )
+        if not data.get("insert_note_attachments_one"):
+            error = "note not found or not permitted"
+    except NhostError as exc:
+        error = f"error: {exc}"
+    if error is not None:
+        # Don't leave the upload in Storage with nothing pointing at it.
+        try:
+            await nhost.storage.delete_file(file_id)
+        except NhostError as exc:
+            error += f"; deleting uploaded file {file_id} also failed: {exc}"
+        raise SystemExit(error)
     print(f"attached {name} (file {file_id}) to {note_id}")
 ```
 
@@ -113,7 +131,7 @@ async def cmd_attach(nhost, note_id: str, file: str) -> None:
 `storage.get_file` returns the file's bytes. Write them wherever the user asked:
 
 ```python title="main.py"
-async def cmd_download(nhost, file_id: str, out_path: str) -> None:
+async def cmd_download(nhost: Nhost, file_id: str, out_path: str) -> None:
     resp = await nhost.storage.get_file(file_id)
     Path(out_path).write_bytes(resp.body)
     print(f"wrote {len(resp.body)} bytes to {out_path}")
@@ -136,18 +154,21 @@ def download(file_id: str, out_path: str) -> None:
 
 ## The complete `main.py`
 
-Here's the whole `main.py` after Part 4. Press **Copy** to grab the entire file at once.
+Here's the whole `main.py` after Part 4. Collapsed sections are unchanged from
+earlier parts; highlighted lines are what this part added. Press **Copy** to grab
+the entire file.
 
-```python title="main.py"
+```python title="main.py" collapse={1-15,19-170,213-275,288-293} {16-18,171-212,276-287}
 import asyncio
 import getpass
 import os
+from collections.abc import Awaitable, Callable
 from pathlib import Path
-from typing import Optional
+from typing import Any
 
 import typer
 
-from nhost import FileStorage, NhostError, create_client
+from nhost import FileStore, Nhost, NhostError
 from nhost.auth import (
     SignInEmailPasswordRequest,
     SignOutRequest,
@@ -173,15 +194,15 @@ def session_path() -> Path:
     return base / "nhost-notes" / "session.json"
 
 
-def make_client():
-    return create_client(
+def make_client() -> Nhost:
+    return Nhost(
         subdomain=os.environ.get("NHOST_SUBDOMAIN", "local"),
         region=os.environ.get("NHOST_REGION", "local"),
-        session_storage=FileStorage(session_path()),
+        session_store=FileStore(session_path()),
     )
 
 
-def run(coro) -> None:
+def run(coro: Callable[[Nhost], Awaitable[None]]) -> None:
     async def runner() -> None:
         async with make_client() as nhost:
             try:
@@ -192,29 +213,31 @@ def run(coro) -> None:
     asyncio.run(runner())
 
 
-async def gql(nhost, query: str, variables: dict | None = None) -> dict:
+async def gql(nhost: Nhost, query: str, variables: dict[str, Any] | None = None) -> dict[str, Any]:
     resp = await nhost.graphql.request(query, variables=variables)
     return resp.body.data or {}
 
 
-async def cmd_signup(nhost, email: str, password: str) -> None:
-    await nhost.auth.sign_up_email_password(
+async def cmd_signup(nhost: Nhost, email: str, password: str) -> None:
+    response = await nhost.auth.sign_up_email_password(
         body=SignUpEmailPasswordRequest(email=email, password=password)
     )
-    if await nhost.get_session() is not None:
+    # Check this response, not the store: it may still hold someone else's
+    # session, and sign-up returns none until the email is verified.
+    if response.body.session is not None:
         print("signed up and logged in as", email)
     else:
         print("signed up; verify your email, then `login`")
 
 
-async def cmd_login(nhost, email: str, password: str) -> None:
+async def cmd_login(nhost: Nhost, email: str, password: str) -> None:
     await nhost.auth.sign_in_email_password(
         body=SignInEmailPasswordRequest(email=email, password=password)
     )
     print("logged in as", email)
 
 
-async def cmd_logout(nhost) -> None:
+async def cmd_logout(nhost: Nhost) -> None:
     session = await nhost.get_session()
     if session is not None:
         await nhost.auth.sign_out(body=SignOutRequest(refresh_token=session.refresh_token))
@@ -222,15 +245,15 @@ async def cmd_logout(nhost) -> None:
     print("logged out")
 
 
-async def cmd_whoami(nhost) -> None:
+async def cmd_whoami(nhost: Nhost) -> None:
     session = await nhost.get_session()
     if session is None or session.user is None:
         raise SystemExit("not logged in")
     print(f"{session.user.email} ({session.user.id})")
 
 
-async def cmd_note_new(nhost, title: str, content: str | None) -> None:
-    obj: dict = {"title": title, "content": content or ""}
+async def cmd_note_new(nhost: Nhost, title: str, content: str | None) -> None:
+    obj: dict[str, Any] = {"title": title, "content": content or ""}
     data = await gql(
         nhost,
         """
@@ -242,7 +265,7 @@ async def cmd_note_new(nhost, title: str, content: str | None) -> None:
     print("created", data["insert_notes_one"]["id"])
 
 
-async def cmd_note_ls(nhost) -> None:
+async def cmd_note_ls(nhost: Nhost) -> None:
     data = await gql(
         nhost,
         """
@@ -261,7 +284,7 @@ async def cmd_note_ls(nhost) -> None:
         print(f"{pin} {n['id']}  {n['title']}")
 
 
-async def update_note(nhost, note_id: str, set_: dict) -> None:
+async def update_note(nhost: Nhost, note_id: str, set_: dict[str, Any]) -> None:
     data = await gql(
         nhost,
         """
@@ -275,7 +298,7 @@ async def update_note(nhost, note_id: str, set_: dict) -> None:
     print("updated", note_id)
 
 
-async def upsert_tag(nhost, name: str) -> str:
+async def upsert_tag(nhost: Nhost, name: str) -> str:
     data = await gql(
         nhost,
         """
@@ -287,10 +310,10 @@ async def upsert_tag(nhost, name: str) -> str:
         }""",
         {"name": name},
     )
-    return data["insert_tags_one"]["id"]
+    return str(data["insert_tags_one"]["id"])
 
 
-async def cmd_note_tag(nhost, note_id: str, tag_name: str) -> None:
+async def cmd_note_tag(nhost: Nhost, note_id: str, tag_name: str) -> None:
     tag_id = await upsert_tag(nhost, tag_name)
     await gql(
         nhost,
@@ -306,7 +329,7 @@ async def cmd_note_tag(nhost, note_id: str, tag_name: str) -> None:
     print(f"tagged {note_id} with #{tag_name}")
 
 
-async def cmd_attach(nhost, note_id: str, file: str) -> None:
+async def cmd_attach(nhost: Nhost, note_id: str, file: str) -> None:
     raw = Path(file).read_bytes()
     name = Path(file).name
     up = await nhost.storage.upload(
@@ -318,18 +341,31 @@ async def cmd_attach(nhost, note_id: str, file: str) -> None:
         raise SystemExit("upload failed")
     file_id = up.body.processed_files[0].id
 
-    await gql(
-        nhost,
-        """
-        mutation Attach($noteId: uuid!, $fileId: uuid!) {
-          insert_note_attachments_one(object: {note_id: $noteId, file_id: $fileId}) { file_id }
-        }""",
-        {"noteId": note_id, "fileId": file_id},
-    )
+    error = None
+    try:
+        data = await gql(
+            nhost,
+            """
+            mutation Attach($noteId: uuid!, $fileId: uuid!) {
+              insert_note_attachments_one(object: {note_id: $noteId, file_id: $fileId}) { file_id }
+            }""",
+            {"noteId": note_id, "fileId": file_id},
+        )
+        if not data.get("insert_note_attachments_one"):
+            error = "note not found or not permitted"
+    except NhostError as exc:
+        error = f"error: {exc}"
+    if error is not None:
+        # Don't leave the upload in Storage with nothing pointing at it.
+        try:
+            await nhost.storage.delete_file(file_id)
+        except NhostError as exc:
+            error += f"; deleting uploaded file {file_id} also failed: {exc}"
+        raise SystemExit(error)
     print(f"attached {name} (file {file_id}) to {note_id}")
 
 
-async def cmd_download(nhost, file_id: str, out_path: str) -> None:
+async def cmd_download(nhost: Nhost, file_id: str, out_path: str) -> None:
     resp = await nhost.storage.get_file(file_id)
     Path(out_path).write_bytes(resp.body)
     print(f"wrote {len(resp.body)} bytes to {out_path}")
@@ -369,7 +405,7 @@ def whoami() -> None:
 
 
 @app.command("new")
-def note_new(title: str, content: Optional[str] = typer.Argument(None)) -> None:
+def note_new(title: str, content: str | None = typer.Argument(None)) -> None:
     """Create a note."""
     run(lambda nhost: cmd_note_new(nhost, title, content))
 
