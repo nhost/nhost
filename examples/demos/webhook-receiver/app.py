@@ -2,7 +2,7 @@
 
 A FastAPI service that accepts webhooks from a third-party system, verifies the
 HMAC-SHA256 signature, and records each event in Nhost via a GraphQL mutation.
-It talks to Nhost server-to-server using the admin secret (``with_admin_session``),
+It talks to Nhost server-to-server using the admin secret (``admin=``),
 which is the typical pattern for a trusted backend integration.
 
 Designed to run as an Nhost Run service; see the accompanying README.
@@ -23,13 +23,7 @@ from typing import Any, cast
 import httpx
 from fastapi import FastAPI, Header, HTTPException, Request
 
-from nhost import (
-    AdminSessionOptions,
-    NhostClient,
-    NhostError,
-    create_nhost_client,
-    with_admin_session,
-)
+from nhost import AdminSessionOptions, Nhost, NhostError
 
 MAX_BODY_BYTES = 1 << 20
 SHA256_HEX_LENGTH = hashlib.sha256().digest_size * 2
@@ -104,11 +98,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     endpoint (e.g. ``http://graphql:8080/v1``); on a laptop it can be left unset
     and ``subdomain``/``region`` are used instead.
     """
-    async with create_nhost_client(
+    async with Nhost(
         subdomain=_env("NHOST_SUBDOMAIN", "local"),
         region=_env("NHOST_REGION", "local"),
         graphql_url=_env("NHOST_GRAPHQL_URL"),
-        configure=[with_admin_session(AdminSessionOptions(admin_secret=ADMIN_SECRET))],
+        admin=AdminSessionOptions(admin_secret=ADMIN_SECRET),
     ) as client:
         app.state.nhost = client
         yield
@@ -177,7 +171,7 @@ async def receive_webhook(
         "event_type": str(event.get("type", "unknown")),
         "payload": event,
     }
-    nhost = cast(NhostClient, request.app.state.nhost)
+    nhost = cast(Nhost, request.app.state.nhost)
     try:
         result = await nhost.graphql.request(INSERT_EVENT, variables={"object": obj})
     except (NhostError, httpx.HTTPError) as exc:

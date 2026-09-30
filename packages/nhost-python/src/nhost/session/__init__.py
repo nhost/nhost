@@ -1,24 +1,29 @@
 """Session management for the Nhost Python SDK."""
 
-from .refresh import refresh_session
+from .manager import DEFAULT_REFRESH_MARGIN_SECONDS, SessionManager
 from .session import DecodedToken, StoredSession, decode_user_session, to_stored_session
-from .storage import SessionStorage
-from .storage_backend import (
-    FileStorage,
-    MemoryStorage,
-    SessionStorageBackend,
-    SessionStorageError,
+from .stores import (
+    FileStore,
+    MemoryStore,
+    MultiUserMemoryStore,
+    MultiUserSessionStore,
+    NoSessionStoreError,
+    SessionStore,
+    SessionStoreError,
 )
 
 __all__ = [
+    "DEFAULT_REFRESH_MARGIN_SECONDS",
     "DecodedToken",
-    "FileStorage",
-    "MemoryStorage",
-    "SessionStorage",
-    "SessionStorageBackend",
-    "SessionStorageError",
+    "FileStore",
+    "MemoryStore",
+    "MultiUserMemoryStore",
+    "MultiUserSessionStore",
+    "NoSessionStoreError",
+    "SessionManager",
+    "SessionStore",
+    "SessionStoreError",
     "StoredSession",
     "decode_user_session",
-    "refresh_session",
     "to_stored_session",
 ]

@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+import copy
 from collections.abc import Mapping, Sequence
-from typing import Any, Generic, TypeVar, overload
+from typing import Any, Generic, Self, TypeVar, overload
 
 import httpx
 from pydantic import BaseModel, ConfigDict, TypeAdapter, ValidationError
@@ -97,6 +98,17 @@ class Client:
         """Append HTTP middleware and rebuild the request pipeline."""
         self._middleware.append(middleware)
         self._fetch = create_fetch_pipeline(self._http, self._middleware)
+
+    def with_middleware(self, *middleware: Middleware) -> Self:
+        """Return a copy of this client that runs ``middleware`` before its own.
+
+        The copy shares this client's HTTP client and never closes it.
+        """
+        scoped = copy.copy(self)
+        scoped._middleware = [*middleware, *self._middleware]
+        scoped._owns_http_client = False
+        scoped._fetch = create_fetch_pipeline(scoped._http, scoped._middleware)
+        return scoped
 
     @overload
     async def request(

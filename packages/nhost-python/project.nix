@@ -122,7 +122,7 @@ in
         | tee "$TMPDIR/integration-doctests.log"
       # Positive canary: the known backend doctest must execute and pass.
       grep -qF \
-        'src/nhost/nhost.py::nhost.nhost.create_client PASSED' \
+        'src/nhost/nhost.py::nhost.nhost.Nhost PASSED' \
         "$TMPDIR/integration-doctests.log" \
         || (echo "❌ backend doctest canary did not pass" && exit 1)
 

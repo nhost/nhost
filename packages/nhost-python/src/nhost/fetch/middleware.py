@@ -21,7 +21,7 @@ from . import FetchFunction, Middleware
 if TYPE_CHECKING:
     from ..auth.client import Client as AuthClient
     from ..auth.client import Session
-    from ..session.storage import SessionStorage
+    from ..session.manager import SessionManager
 
 logger = logging.getLogger("nhost.fetch")
 
@@ -64,14 +64,62 @@ def _is_loopback_host(host: str) -> bool:
         return False
 
 
-def attach_access_token_middleware(storage: SessionStorage, service_url: str) -> Middleware:
-    """Attach the stored access token only within the configured service origin.
+@dataclass(frozen=True, slots=True)
+class SessionScope:
+    """Which session a request acts with, as a scoped ``Nhost`` handle chose it.
 
-    Should run after the refresh middleware so the freshest token is used. A
-    caller-supplied authorization header is preserved unless it is the stored
-    bearer token on a request that has moved outside the service origin.
+    It travels in the request's extensions, so every middleware sees the same
+    choice. ``access_token`` is a token the caller supplied: it is attached
+    as-is and never stored, refreshed or replaced by a session from the
+    response.
+    """
+
+    user_id: str | None = None
+    access_token: str | None = None
+
+    @classmethod
+    def of(cls, request: httpx.Request) -> SessionScope:
+        scope = request.extensions.get(_SCOPE_EXTENSION)
+        return scope if isinstance(scope, SessionScope) else _NO_SCOPE
+
+
+_SCOPE_EXTENSION = "nhost.session_scope"
+_NO_SCOPE = SessionScope()
+
+
+def session_scope_middleware(scope: SessionScope) -> Middleware:
+    """Record ``scope`` on each request. Installed first on a scoped handle."""
+
+    def chain(next_fetch: FetchFunction) -> FetchFunction:
+        async def fetch(request: httpx.Request) -> httpx.Response:
+            request.extensions[_SCOPE_EXTENSION] = scope
+            return await next_fetch(request)
+
+        return fetch
+
+    return chain
+
+
+def attach_access_token_middleware(sessions: SessionManager | None, service_url: str) -> Middleware:
+    """Attach the request's access token only within the configured service origin.
+
+    The token is the caller's own (``Nhost.with_access_token``), or else that of
+    the stored session the request selects (``Nhost.with_user_id``). Should run
+    after the refresh middleware so the freshest token is used. A caller-supplied
+    authorization header is preserved unless it is that token on a request that
+    has moved outside the service origin. If the session store cannot be read,
+    the request fails with :class:`~nhost.session.SessionStoreError`.
     """
     scope = _RequestScope.from_base_url(service_url)
+
+    async def token_for(request: httpx.Request) -> str | None:
+        session_scope = SessionScope.of(request)
+        if session_scope.access_token is not None:
+            return session_scope.access_token
+        if sessions is None:
+            return None
+        session = await sessions.get(session_scope.user_id)
+        return session.access_token if session is not None and session.access_token else None
 
     def chain(next_fetch: FetchFunction) -> FetchFunction:
         async def fetch(request: httpx.Request) -> httpx.Response:
@@ -80,11 +128,11 @@ def attach_access_token_middleware(storage: SessionStorage, service_url: str) ->
             if (in_scope and has_authorization) or (not in_scope and not has_authorization):
                 return await next_fetch(request)
 
-            session = await storage.get()
-            if session is None or not session.access_token:
+            token = await token_for(request)
+            if token is None:
                 return await next_fetch(request)
 
-            authorization = f"Bearer {session.access_token}"
+            authorization = f"Bearer {token}"
             if in_scope:
                 request.headers["Authorization"] = authorization
             elif request.headers.get("Authorization") == authorization:
@@ -98,28 +146,34 @@ def attach_access_token_middleware(storage: SessionStorage, service_url: str) ->
 
 def session_refresh_middleware(
     auth: AuthClient,
-    storage: SessionStorage,
+    sessions: SessionManager,
     margin_seconds: int = _DEFAULT_MARGIN_SECONDS,
 ) -> Middleware:
-    """Refresh the session before a request when the token is near expiry.
+    """Refresh the request's session before sending when its token is near expiry.
 
-    Skips requests that already carry an ``Authorization`` header and the token
-    endpoint itself (to avoid recursively refreshing during a refresh).
+    Skips requests that already carry an ``Authorization`` header or a caller's
+    own token, and the token endpoint itself (to avoid recursively refreshing
+    during a refresh). ``auth`` must be an auth client without session
+    middleware. A refresh that fails leaves the request to go out with the
+    session it has; a session store that fails fails the request.
     """
-    # Runtime lazy import: refresh -> auth would close the import cycle at module
-    # load time, so import it only when the middleware actually runs.
-    from ..session.refresh import refresh_session  # noqa: PLC0415
-
     auth_scope = _RequestScope.from_base_url(auth.base_url)
     auth_token_path = f"{auth_scope.path_prefix}/token"
 
     def chain(next_fetch: FetchFunction) -> FetchFunction:
         async def fetch(request: httpx.Request) -> httpx.Response:
+            session_scope = SessionScope.of(request)
             is_auth_token_request = (
                 auth_scope.contains(request.url) and request.url.path == auth_token_path
             )
-            if "Authorization" not in request.headers and not is_auth_token_request:
-                await refresh_session(auth, storage, margin_seconds)
+            if (
+                session_scope.access_token is None
+                and "Authorization" not in request.headers
+                and not is_auth_token_request
+            ):
+                await sessions.refresh(
+                    auth, user_id=session_scope.user_id, margin_seconds=margin_seconds
+                )
             return await next_fetch(request)
 
         return fetch
@@ -132,27 +186,33 @@ def _extract_session(body: object) -> Session | None:
 
     if not isinstance(body, Mapping):
         return None
-    if "session" in body:
-        raw = body["session"]
-        return Session.model_validate(raw) if raw else None
-    # No explicit ``session`` wrapper: the body may itself be a raw session
-    # (e.g. a direct ``/token`` refresh response). We can't key off ``user``
-    # being present — the Go auth service serialises it with ``omitempty`` and
-    # omits the field entirely when the user has no profile — so let pydantic
-    # validate the required fields instead.
+    # A body the auth client cannot decode fails there, as ResponseDecodeError.
     try:
+        if "session" in body:
+            raw = body["session"]
+            return Session.model_validate(raw) if raw else None
+        # No explicit ``session`` wrapper: the body may itself be a raw session
+        # (e.g. a direct ``/token`` refresh response). We can't key off ``user``
+        # being present — the Go auth service serialises it with ``omitempty``
+        # and omits the field entirely when the user has no profile — so let
+        # pydantic validate the required fields instead.
         return Session.model_validate(body)
     except ValidationError:
         return None
 
 
-def update_session_from_response_middleware(storage: SessionStorage, auth_url: str) -> Middleware:
-    """Persist session data returned by auth endpoints, and clear it on sign-out.
+def update_session_from_response_middleware(sessions: SessionManager, auth_url: str) -> Middleware:
+    """Store session data returned by auth endpoints, and clear it on sign-out.
 
     Handles ``/signout`` (remove), a successful ``/user/password`` change
     (remove, since the server revokes refresh tokens), and session-bearing
     responses from ``/token``, ``/token/exchange``, ``/signin/*`` and
-    ``/signup/*`` under the configured auth origin and path prefix.
+    ``/signup/*`` under the configured auth origin and path prefix. Sessions
+    are stored under the user they are for; a sign-out removes the session the
+    request selects. Requests made with a caller's own token leave the store
+    alone. If the store cannot be updated, the request fails with
+    :class:`~nhost.session.SessionStoreError` rather than reporting a sign-in or
+    sign-out that did not stick.
     """
     auth_scope = _RequestScope.from_base_url(auth_url)
     prefix = auth_scope.path_prefix
@@ -160,33 +220,31 @@ def update_session_from_response_middleware(storage: SessionStorage, auth_url: s
     def chain(next_fetch: FetchFunction) -> FetchFunction:
         async def fetch(request: httpx.Request) -> httpx.Response:
             response = await next_fetch(request)
-            try:
-                if not auth_scope.contains(request.url):
-                    return response
+            session_scope = SessionScope.of(request)
+            if session_scope.access_token is not None or not auth_scope.contains(request.url):
+                return response
 
-                path = request.url.path
-                if path == f"{prefix}/signout":
-                    await storage.remove()
-                    return response
-                if path == f"{prefix}/user/password" and response.is_success:
-                    await storage.remove()
-                    return response
-                is_session_response = (
-                    path == f"{prefix}/token"
-                    or path.startswith(f"{prefix}/token/exchange")
-                    or path.startswith(f"{prefix}/signin/")
-                    or path.startswith(f"{prefix}/signup/")
-                )
-                if is_session_response and response.is_success:
-                    try:
-                        body = response.json()
-                    except (ValueError, UnicodeDecodeError):
-                        body = None
-                    session = _extract_session(body)
-                    if session is not None and session.access_token and session.refresh_token:
-                        await storage.set(session)
-            except Exception:  # noqa: BLE001 - middleware must not break the response
-                logger.warning("error in session response middleware", exc_info=True)
+            path = request.url.path
+            if path == f"{prefix}/signout" or (
+                path == f"{prefix}/user/password" and response.is_success
+            ):
+                await sessions.remove(session_scope.user_id)
+                return response
+
+            is_session_response = (
+                path == f"{prefix}/token"
+                or path.startswith(f"{prefix}/token/exchange")
+                or path.startswith(f"{prefix}/signin/")
+                or path.startswith(f"{prefix}/signup/")
+            )
+            if is_session_response and response.is_success:
+                try:
+                    body = response.json()
+                except (ValueError, UnicodeDecodeError):
+                    body = None
+                session = _extract_session(body)
+                if session is not None and session.access_token and session.refresh_token:
+                    await sessions.set(session)
             return response
 
         return fetch
@@ -268,8 +326,10 @@ def with_admin_session_middleware(options: AdminSessionOptions, service_url: str
 
 __all__ = [
     "AdminSessionOptions",
+    "SessionScope",
     "attach_access_token_middleware",
     "session_refresh_middleware",
+    "session_scope_middleware",
     "update_session_from_response_middleware",
     "with_admin_session_middleware",
     "with_headers_middleware",

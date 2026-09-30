@@ -9,7 +9,7 @@ service. It:
 3. records each event in Nhost via a GraphQL mutation.
 
 It talks to Nhost server-to-server using the **admin secret**
-(`with_admin_session`) — the typical pattern for a trusted backend integration —
+(`Nhost(admin=AdminSessionOptions(...))`) — the typical pattern for a trusted backend integration —
 so no user session is involved.
 
 ## Endpoints

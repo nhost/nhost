@@ -26,12 +26,21 @@ architecture of `packages/nhost-js` and `packages/nhost-swift`.
 - `auth/client.py`, `storage/client.py` — GENERATED (see below). Hand-written
   `facade.py` modules add convenience names without modifying generated identifiers.
 - `graphql/`, `functions/` — hand-written clients.
-- `session/` — `StoredSession`/`DecodedToken` + JWT decode, storage backends
-  (`MemoryStorage` default, `FileStorage`), the `SessionStorage` wrapper, and
-  async `refresh_session` (serialized with an asyncio lock).
-- `nhost.py` — `NhostClient` + `create_client` / `create_server_client` /
-  `create_nhost_client` factories and configuration functions. Session refreshes use a
-  dedicated bare auth client; never add user-facing or session middleware to that client.
+- `session/` — `StoredSession`/`DecodedToken` + JWT decode (`session.py`), the
+  `SessionStore`/`MultiUserSessionStore` protocols and the built-in `MemoryStore`,
+  `FileStore` and `MultiUserMemoryStore` (`stores.py`), and `SessionManager`
+  (`manager.py`), which selects the session a request's user names, refreshes with
+  single-flight per refresh token, and deletes a rejected session only if it still
+  holds the rejected token.
+- `nhost.py` — the `Nhost` class (keyword-only arguments) and its scoped handles
+  (`with_user_id`, `with_access_token`). A handle's choice travels in each request's
+  `httpx` extensions (`SessionScope`), set by a middleware prepended to copies of
+  the service clients (`with_middleware`). No store means no session management;
+  an admin secret cannot be combined with a store or a caller's token. Session
+  refreshes use a dedicated bare auth client; never add user-facing or session
+  middleware to that client.
+- Session store failures fail the request (`SessionStoreError`); never log and
+  continue.
 
 ## Generated code
 

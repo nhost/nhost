@@ -62,6 +62,17 @@ class StoredSession(Session):
 
     decoded_token: DecodedToken = Field(alias="decodedToken")
 
+    @property
+    def user_id(self) -> str | None:
+        """The ID of the user this session is for, or ``None`` if it names none.
+
+        Read from ``user``, or from the access token's ``sub`` claim when the
+        auth service omitted the user.
+        """
+        if self.user is not None and self.user.id:
+            return self.user.id
+        return self.decoded_token.sub
+
 
 StoredSession.model_rebuild()
 

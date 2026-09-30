@@ -6,12 +6,10 @@ middleware pipeline.
 
 Example:
     >>> import asyncio
-    >>> from nhost import create_client
+    >>> from nhost import Nhost
     >>>
     >>> async def main() -> None:
-    ...     async with create_client(
-    ...         subdomain="my-project", region="eu-central-1"
-    ...     ) as nhost:
+    ...     async with Nhost(subdomain="my-project", region="eu-central-1") as nhost:
     ...         result = await nhost.graphql.request("query { __typename }")
     ...         print(result.body.data)
     >>>
@@ -33,26 +31,17 @@ from .fetch import (
     UploadFile,
 )
 from .graphql import GraphQLExecutionError
-from .nhost import (
-    ClientConfiguration,
-    ConfigureContext,
-    NhostClient,
-    create_client,
-    create_nhost_client,
-    create_server_client,
-    generate_service_url,
-    with_admin_session,
-    with_client_side_session_middleware,
-    with_middleware,
-    with_server_side_session_middleware,
-)
+from .nhost import Nhost, generate_service_url
 from .session import (
     DecodedToken,
-    FileStorage,
-    MemoryStorage,
-    SessionStorage,
-    SessionStorageBackend,
-    SessionStorageError,
+    FileStore,
+    MemoryStore,
+    MultiUserMemoryStore,
+    MultiUserSessionStore,
+    NoSessionStoreError,
+    SessionManager,
+    SessionStore,
+    SessionStoreError,
     StoredSession,
 )
 from .storage import StorageClient
@@ -65,31 +54,25 @@ except PackageNotFoundError:  # Running directly from an unpackaged source tree.
 __all__ = [
     "AdminSessionOptions",
     "AuthClient",
-    "Middleware",
-    "ClientConfiguration",
-    "ConfigureContext",
     "DecodedToken",
     "FetchResponse",
+    "FileStore",
     "GraphQLExecutionError",
     "HTTPError",
+    "MemoryStore",
+    "Middleware",
+    "MultiUserMemoryStore",
+    "MultiUserSessionStore",
+    "Nhost",
     "NhostError",
+    "NoSessionStoreError",
     "ResponseDecodeError",
-    "FileStorage",
-    "MemoryStorage",
-    "NhostClient",
-    "SessionStorage",
-    "SessionStorageBackend",
-    "SessionStorageError",
+    "SessionManager",
+    "SessionStore",
+    "SessionStoreError",
     "StorageClient",
     "StoredSession",
     "UploadFile",
     "__version__",
-    "create_client",
-    "create_nhost_client",
-    "create_server_client",
     "generate_service_url",
-    "with_admin_session",
-    "with_middleware",
-    "with_client_side_session_middleware",
-    "with_server_side_session_middleware",
 ]

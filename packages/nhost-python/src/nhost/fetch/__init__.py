@@ -260,8 +260,10 @@ class ResponseDecodeError(NhostError):
 # defined when middleware (transitively) imports back from this package.
 from .middleware import (  # noqa: E402
     AdminSessionOptions,
+    SessionScope,
     attach_access_token_middleware,
     session_refresh_middleware,
+    session_scope_middleware,
     update_session_from_response_middleware,
     with_admin_session_middleware,
     with_headers_middleware,
@@ -274,6 +276,7 @@ __all__ = [
     "Middleware",
     "NhostError",
     "ResponseDecodeError",
+    "SessionScope",
     "FetchFunction",
     "FetchResponse",
     "UploadFile",
@@ -281,6 +284,7 @@ __all__ = [
     "create_fetch_pipeline",
     "decode_json",
     "session_refresh_middleware",
+    "session_scope_middleware",
     "to_file_part",
     "to_json",
     "to_jsonable",

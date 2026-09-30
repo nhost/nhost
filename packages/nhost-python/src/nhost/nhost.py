@@ -1,10 +1,10 @@
-"""Top-level Nhost client and factory functions."""
+"""The Nhost client."""
 
 from __future__ import annotations
 
+import copy
 import re
-from collections.abc import Callable, Sequence
-from dataclasses import dataclass
+from collections.abc import Sequence
 from typing import Any, Literal, cast
 
 import httpx
@@ -16,18 +16,24 @@ from . import storage as storage_module
 from .fetch import (
     AdminSessionOptions,
     Middleware,
+    SessionScope,
     attach_access_token_middleware,
     session_refresh_middleware,
+    session_scope_middleware,
     update_session_from_response_middleware,
     with_admin_session_middleware,
 )
-from .session import MemoryStorage, SessionStorage, SessionStorageBackend, StoredSession
-from .session.refresh import refresh_session
+from .session import (
+    DEFAULT_REFRESH_MARGIN_SECONDS,
+    MultiUserSessionStore,
+    NoSessionStoreError,
+    SessionManager,
+    SessionStore,
+    StoredSession,
+)
 
 ServiceType = Literal["auth", "storage", "graphql", "functions"]
-ClientConfiguration = Callable[["ConfigureContext"], None]
 
-_DEFAULT_REFRESH_MARGIN_SECONDS = 60
 _DEFAULT_HTTP_TIMEOUT = httpx.Timeout(connect=10.0, read=300.0, write=300.0, pool=60.0)
 _CLOUD_HOST_LABEL = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?")
 
@@ -83,84 +89,6 @@ def generate_service_url(
     return f"https://{subdomain}.{service_type}.{region}.nhost.run/v1"
 
 
-@dataclass(slots=True)
-class ConfigureContext:
-    """Clients and session storage passed to a configuration callback."""
-
-    auth: auth_module.AuthClient
-    refresh_auth: auth_module.AuthClient
-    storage: storage_module.StorageClient
-    graphql: graphql_module.Client
-    functions: functions_module.Client
-    session_storage: SessionStorage
-
-
-def _attach_access_token_to_each_service(ctx: ConfigureContext) -> None:
-    ctx.auth.add_middleware(attach_access_token_middleware(ctx.session_storage, ctx.auth.base_url))
-    ctx.storage.add_middleware(
-        attach_access_token_middleware(ctx.session_storage, ctx.storage.base_url)
-    )
-    ctx.graphql.add_middleware(
-        attach_access_token_middleware(ctx.session_storage, ctx.graphql.base_url)
-    )
-    ctx.functions.add_middleware(
-        attach_access_token_middleware(ctx.session_storage, ctx.functions.base_url)
-    )
-
-
-def with_client_side_session_middleware(ctx: ConfigureContext) -> None:
-    """Enable automatic refresh, token attachment, and session capture."""
-    _apply(
-        ctx,
-        [
-            session_refresh_middleware(ctx.refresh_auth, ctx.session_storage),
-            update_session_from_response_middleware(ctx.session_storage, ctx.auth.base_url),
-        ],
-    )
-    _attach_access_token_to_each_service(ctx)
-
-
-def with_server_side_session_middleware(ctx: ConfigureContext) -> None:
-    """Enable token attachment and session capture without automatic refresh."""
-    _apply(
-        ctx,
-        [update_session_from_response_middleware(ctx.session_storage, ctx.auth.base_url)],
-    )
-    _attach_access_token_to_each_service(ctx)
-
-
-def with_admin_session(options: AdminSessionOptions) -> ClientConfiguration:
-    """Apply admin credentials to Storage, GraphQL, and Functions requests.
-
-    Never use an admin secret in client-side code.
-    """
-
-    def configure(ctx: ConfigureContext) -> None:
-        ctx.storage.add_middleware(with_admin_session_middleware(options, ctx.storage.base_url))
-        ctx.graphql.add_middleware(with_admin_session_middleware(options, ctx.graphql.base_url))
-        ctx.functions.add_middleware(with_admin_session_middleware(options, ctx.functions.base_url))
-
-    return configure
-
-
-def with_middleware(middleware: Sequence[Middleware]) -> ClientConfiguration:
-    """Apply custom HTTP middleware to every service client."""
-    chain = list(middleware)
-
-    def configure(ctx: ConfigureContext) -> None:
-        _apply(ctx, chain)
-
-    return configure
-
-
-def _apply(ctx: ConfigureContext, chain: Sequence[Middleware]) -> None:
-    for middleware in chain:
-        ctx.auth.add_middleware(middleware)
-        ctx.storage.add_middleware(middleware)
-        ctx.graphql.add_middleware(middleware)
-        ctx.functions.add_middleware(middleware)
-
-
 class _PerRequestTimeoutClient:
     """Apply an SDK timeout while delegating transport ownership to another client."""
 
@@ -180,143 +108,39 @@ class _PerRequestTimeoutClient:
         return await self._client.send(request, **kwargs)
 
 
-class NhostClient:
-    """Unified asynchronous access to Nhost services and session state."""
+class Nhost:
+    """Asynchronous access to Nhost's Auth, Storage, GraphQL and Functions services.
 
-    def __init__(
-        self,
-        auth: auth_module.AuthClient,
-        refresh_auth: auth_module.AuthClient,
-        storage: storage_module.StorageClient,
-        graphql: graphql_module.Client,
-        functions: functions_module.Client,
-        session_storage: SessionStorage,
-        http_client: httpx.AsyncClient,
-        *,
-        owns_http: bool = True,
-    ) -> None:
-        self.auth = auth
-        self._refresh_auth = refresh_auth
-        self.storage = storage
-        self.graphql = graphql
-        self.functions = functions
-        self.session_storage = session_storage
-        self._http = http_client
-        self._owns_http = owns_http
+    Every argument is a keyword. Services are addressed by ``subdomain`` and
+    ``region`` (together), by an explicit ``*_url`` per service, or, with
+    neither, by the local development environment.
 
-    async def get_session(self) -> StoredSession | None:
-        """Return the current session, if one is stored."""
-        return await self.session_storage.get()
+    A client manages sessions only when given a store: ``session_store`` for a
+    client acting for one user (a CLI, a script, a test), or
+    ``multi_user_session_store`` for a server acting for many, which says which
+    user each request is for with :meth:`with_user_id`. Its requests then get the
+    stored access token, refreshed before it expires, and sign-in and sign-out
+    responses update the store. Without a store, requests carry no user token
+    unless the caller supplies one with :meth:`with_access_token`.
 
-    async def refresh_session(
-        self, margin_seconds: int = _DEFAULT_REFRESH_MARGIN_SECONDS
-    ) -> StoredSession | None:
-        """Refresh the session when it is close to expiry."""
-        return await refresh_session(self._refresh_auth, self.session_storage, margin_seconds)
+    ``admin`` sends an admin secret to Storage, GraphQL and Functions. It cannot
+    be combined with a session store or a caller's token, because the GraphQL
+    engine lets the admin secret override the user's token; use a separate
+    client for each, or set a role and session variables in
+    :class:`AdminSessionOptions`. Never use an admin secret in client-side code.
 
-    async def clear_session(self) -> None:
-        """Remove the current session without making a sign-out request."""
-        await self.session_storage.remove()
-
-    async def aclose(self) -> None:
-        """Close the internally owned HTTP connection pool, if any."""
-        if self._owns_http:
-            await self._http.aclose()
-
-    async def __aenter__(self) -> NhostClient:
-        return self
-
-    async def __aexit__(self, *_: object) -> None:
-        await self.aclose()
-
-
-def create_nhost_client(  # noqa: PLR0913 - explicit keyword API is intentional
-    *,
-    subdomain: str | None = None,
-    region: str | None = None,
-    auth_url: str | None = None,
-    storage_url: str | None = None,
-    graphql_url: str | None = None,
-    functions_url: str | None = None,
-    session_storage: SessionStorageBackend | None = None,
-    http_client: httpx.AsyncClient | None = None,
-    configure: Sequence[ClientConfiguration] = (),
-    timeout: httpx.Timeout | float | None = _DEFAULT_HTTP_TIMEOUT,
-) -> NhostClient:
-    """Create a bare Nhost client from explicit keyword configuration.
-
-    ``timeout`` applies to each SDK-built request, including when ``http_client``
-    is supplied. A timeout set explicitly for one request takes precedence.
-    """
-    if (subdomain is None) != (region is None):
-        raise ValueError("subdomain and region must be supplied together")
-
-    backend = session_storage if session_storage is not None else MemoryStorage()
-    sessions = SessionStorage(backend)
-    http = http_client if http_client is not None else httpx.AsyncClient(timeout=timeout)
-    request_http = (
-        http
-        if http_client is None
-        else cast(httpx.AsyncClient, _PerRequestTimeoutClient(http, timeout))
-    )
-    resolved_auth_url = generate_service_url(
-        "auth", subdomain=subdomain, region=region, custom_url=auth_url
-    )
-
-    auth = auth_module.AuthClient(resolved_auth_url, http_client=request_http)
-    refresh_auth = auth_module.AuthClient(resolved_auth_url, http_client=request_http)
-    storage = storage_module.StorageClient(
-        generate_service_url("storage", subdomain=subdomain, region=region, custom_url=storage_url),
-        http_client=request_http,
-    )
-    graphql = graphql_module.Client(
-        generate_service_url("graphql", subdomain=subdomain, region=region, custom_url=graphql_url),
-        http_client=request_http,
-    )
-    functions = functions_module.Client(
-        generate_service_url(
-            "functions", subdomain=subdomain, region=region, custom_url=functions_url
-        ),
-        http_client=request_http,
-    )
-
-    ctx = ConfigureContext(auth, refresh_auth, storage, graphql, functions, sessions)
-    for configure_client in configure:
-        configure_client(ctx)
-
-    return NhostClient(
-        auth,
-        refresh_auth,
-        storage,
-        graphql,
-        functions,
-        sessions,
-        http,
-        owns_http=http_client is None,
-    )
-
-
-def create_client(  # noqa: PLR0913 - explicit keyword API is intentional
-    *,
-    subdomain: str | None = None,
-    region: str | None = None,
-    auth_url: str | None = None,
-    storage_url: str | None = None,
-    graphql_url: str | None = None,
-    functions_url: str | None = None,
-    session_storage: SessionStorageBackend | None = None,
-    http_client: httpx.AsyncClient | None = None,
-    configure: Sequence[ClientConfiguration] = (),
-    timeout: httpx.Timeout | float | None = _DEFAULT_HTTP_TIMEOUT,
-) -> NhostClient:
-    """Create an application client with automatic session management.
-
-    ``timeout`` applies to SDK requests even when ``http_client`` is supplied.
+    ``middleware`` runs on every service request before the SDK's own, in list
+    order. ``timeout`` applies to each SDK-built request, including when
+    ``http_client`` is supplied; a timeout set explicitly for one request takes
+    precedence. A supplied ``http_client`` is left open by :meth:`aclose`.
 
     >>> import asyncio, uuid
     >>> from nhost.auth import SignUpEmailPasswordRequest
+    >>> from nhost.session import MemoryStore
     >>> async def main() -> str | None:
-    ...     async with create_client(subdomain="local", region="local") as nhost:
+    ...     async with Nhost(
+    ...         subdomain="local", region="local", session_store=MemoryStore()
+    ...     ) as nhost:
     ...         await nhost.auth.sign_up_email_password(
     ...             body=SignUpEmailPasswordRequest(
     ...                 email=f"ada-{uuid.uuid4()}@example.com",
@@ -330,46 +154,188 @@ def create_client(  # noqa: PLR0913 - explicit keyword API is intentional
     >>> asyncio.run(main())
     'user'
     """
-    return create_nhost_client(
-        subdomain=subdomain,
-        region=region,
-        auth_url=auth_url,
-        storage_url=storage_url,
-        graphql_url=graphql_url,
-        functions_url=functions_url,
-        session_storage=session_storage,
-        http_client=http_client,
-        configure=(*configure, with_client_side_session_middleware),
-        timeout=timeout,
-    )
 
+    auth: auth_module.AuthClient
+    storage: storage_module.StorageClient
+    graphql: graphql_module.Client
+    functions: functions_module.Client
 
-def create_server_client(  # noqa: PLR0913 - explicit keyword API is intentional
-    *,
-    session_storage: SessionStorageBackend,
-    subdomain: str | None = None,
-    region: str | None = None,
-    auth_url: str | None = None,
-    storage_url: str | None = None,
-    graphql_url: str | None = None,
-    functions_url: str | None = None,
-    http_client: httpx.AsyncClient | None = None,
-    configure: Sequence[ClientConfiguration] = (),
-    timeout: httpx.Timeout | float | None = _DEFAULT_HTTP_TIMEOUT,
-) -> NhostClient:
-    """Create a server client with explicit per-user session storage.
+    def __init__(  # noqa: PLR0913 - explicit keyword API is intentional
+        self,
+        *,
+        subdomain: str | None = None,
+        region: str | None = None,
+        auth_url: str | None = None,
+        storage_url: str | None = None,
+        graphql_url: str | None = None,
+        functions_url: str | None = None,
+        session_store: SessionStore | None = None,
+        multi_user_session_store: MultiUserSessionStore | None = None,
+        admin: AdminSessionOptions | None = None,
+        middleware: Sequence[Middleware] = (),
+        http_client: httpx.AsyncClient | None = None,
+        timeout: httpx.Timeout | float | None = _DEFAULT_HTTP_TIMEOUT,
+    ) -> None:
+        if (subdomain is None) != (region is None):
+            raise ValueError("subdomain and region must be supplied together")
+        if session_store is not None and multi_user_session_store is not None:
+            raise ValueError("pass session_store or multi_user_session_store, not both")
+        sessions = (
+            None
+            if session_store is None and multi_user_session_store is None
+            else SessionManager(
+                session_store=session_store, multi_user_session_store=multi_user_session_store
+            )
+        )
+        if admin is not None and sessions is not None:
+            raise ValueError(
+                "an admin secret cannot be combined with a session store: the GraphQL "
+                "engine lets the admin secret override the user's token"
+            )
 
-    ``timeout`` applies to SDK requests even when ``http_client`` is supplied.
-    """
-    return create_nhost_client(
-        subdomain=subdomain,
-        region=region,
-        auth_url=auth_url,
-        storage_url=storage_url,
-        graphql_url=graphql_url,
-        functions_url=functions_url,
-        session_storage=session_storage,
-        http_client=http_client,
-        configure=(*configure, with_server_side_session_middleware),
-        timeout=timeout,
-    )
+        def url(service: ServiceType, custom_url: str | None) -> str:
+            return generate_service_url(
+                service, subdomain=subdomain, region=region, custom_url=custom_url
+            )
+
+        http = http_client if http_client is not None else httpx.AsyncClient(timeout=timeout)
+        request_http = (
+            http
+            if http_client is None
+            else cast(httpx.AsyncClient, _PerRequestTimeoutClient(http, timeout))
+        )
+        resolved_auth_url = url("auth", auth_url)
+
+        # The refresh client has no middleware of its own, so a refresh is never
+        # seen, retried or captured by anything but the session manager.
+        self._refresh_auth = auth_module.AuthClient(resolved_auth_url, http_client=request_http)
+        services: tuple[
+            auth_module.AuthClient,
+            storage_module.StorageClient,
+            graphql_module.Client,
+            functions_module.Client,
+        ] = (
+            auth_module.AuthClient(resolved_auth_url, http_client=request_http),
+            storage_module.StorageClient(url("storage", storage_url), http_client=request_http),
+            graphql_module.Client(url("graphql", graphql_url), http_client=request_http),
+            functions_module.Client(url("functions", functions_url), http_client=request_http),
+        )
+        for service in services:
+            for custom in middleware:
+                service.add_middleware(custom)
+            if admin is not None and service is not services[0]:
+                service.add_middleware(with_admin_session_middleware(admin, service.base_url))
+            if sessions is not None:
+                service.add_middleware(session_refresh_middleware(self._refresh_auth, sessions))
+                service.add_middleware(
+                    update_session_from_response_middleware(sessions, resolved_auth_url)
+                )
+            service.add_middleware(attach_access_token_middleware(sessions, service.base_url))
+
+        self._unscoped = services
+        self._scope = SessionScope()
+        self._sessions = sessions
+        self._admin = admin is not None
+        self._http = http
+        self._owns_http = http_client is None
+        self.auth, self.storage, self.graphql, self.functions = services
+
+    def with_user_id(self, user_id: str) -> Nhost:
+        """Return a handle whose requests use the stored session of ``user_id``.
+
+        It is how a server built with ``multi_user_session_store`` says which
+        user a request is for. The handle shares this client's connection pool,
+        configuration and sessions; closing it closes nothing.
+
+        ``user_id`` must come from something the caller has already verified,
+        such as its own authenticated cookie session. Never take it from an
+        access token a client sent: the SDK does not verify its claims, so a
+        forged token could select another user's stored session.
+
+        Without a user ID, a request uses the one session of a
+        :class:`~nhost.session.SessionStore` and no session of a
+        :class:`~nhost.session.MultiUserSessionStore`. With one, a
+        :class:`~nhost.session.SessionStore`'s session is used only if it is
+        that user's.
+        """
+        return self._scoped(SessionScope(user_id=user_id, access_token=self._scope.access_token))
+
+    def with_access_token(self, access_token: str) -> Nhost:
+        """Return a handle whose requests authenticate with ``access_token``.
+
+        For a server acting on behalf of a caller that sent its own token. The
+        token is attached as-is: it is never stored, refreshed or replaced by a
+        session from a response, and the client's session store is left alone.
+        The handle shares this client's connection pool and configuration;
+        closing it closes nothing.
+
+        Raises :class:`ValueError` on a client with an admin secret, because
+        the GraphQL engine would let the admin secret override the token.
+        """
+        if self._admin:
+            raise ValueError(
+                "a caller's access token cannot be used on a client with an admin secret: "
+                "the GraphQL engine lets the admin secret override it"
+            )
+        return self._scoped(SessionScope(user_id=self._scope.user_id, access_token=access_token))
+
+    def _scoped(self, scope: SessionScope) -> Nhost:
+        handle = copy.copy(self)
+        handle._scope = scope
+        handle._owns_http = False
+        scope_middleware = session_scope_middleware(scope)
+        auth, storage, graphql, functions = self._unscoped
+        handle.auth = auth.with_middleware(scope_middleware)
+        handle.storage = storage.with_middleware(scope_middleware)
+        handle.graphql = graphql.with_middleware(scope_middleware)
+        handle.functions = functions.with_middleware(scope_middleware)
+        return handle
+
+    @property
+    def session_manager(self) -> SessionManager | None:
+        """The sessions this client and its middleware share, if it has a store."""
+        return self._sessions
+
+    def _session_manager(self) -> SessionManager:
+        if self._sessions is None:
+            raise NoSessionStoreError
+        return self._sessions
+
+    async def get_session(self) -> StoredSession | None:
+        """Return the stored session this handle selects, if any.
+
+        Raises :class:`~nhost.session.NoSessionStoreError` on a client without
+        a session store, and :class:`~nhost.session.SessionStoreError` if the
+        store cannot be read.
+        """
+        return await self._session_manager().get(self._scope.user_id)
+
+    async def refresh_session(
+        self, margin_seconds: int = DEFAULT_REFRESH_MARGIN_SECONDS
+    ) -> StoredSession | None:
+        """Refresh the session this handle selects if it expires within the margin.
+
+        See :meth:`~nhost.session.SessionManager.refresh`.
+        """
+        return await self._session_manager().refresh(
+            self._refresh_auth, user_id=self._scope.user_id, margin_seconds=margin_seconds
+        )
+
+    async def clear_session(self) -> None:
+        """Remove the session this handle selects, without a sign-out request."""
+        await self._session_manager().remove(self._scope.user_id)
+
+    async def aclose(self) -> None:
+        """Close the internally owned HTTP connection pool, if any.
+
+        A handle from :meth:`with_user_id` or :meth:`with_access_token` owns
+        nothing, so closing one does nothing.
+        """
+        if self._owns_http:
+            await self._http.aclose()
+
+    async def __aenter__(self) -> Nhost:
+        return self
+
+    async def __aexit__(self, *_: object) -> None:
+        await self.aclose()

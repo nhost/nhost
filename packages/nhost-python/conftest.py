@@ -22,7 +22,7 @@ import pytest
 # Doctests (by fully-qualified name) whose examples perform live backend I/O.
 # Everything else — including pure examples like ``generate_service_url`` — runs
 # offline as a canary that the doctest harness is wired.
-_BACKEND_DEPENDENT_DOCTESTS = frozenset({"nhost.nhost.create_client"})
+_BACKEND_DEPENDENT_DOCTESTS = frozenset({"nhost.nhost.Nhost"})
 
 
 def _backend_enabled() -> bool:
@@ -53,7 +53,7 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
     )
     for item in items:
         # A DoctestItem's name is the fully-qualified example name, e.g.
-        # "nhost.nhost.create_client".
+        # "nhost.nhost.Nhost".
         is_backend_doctest = (
             type(item).__name__ == "DoctestItem" and item.name in _BACKEND_DEPENDENT_DOCTESTS
         )
