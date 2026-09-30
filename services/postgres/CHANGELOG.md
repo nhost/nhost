@@ -2,6 +2,8 @@
 
 ### main
 
+- Improved startup and PITR recovery safety and error handling
+- Reindex before refreshing changed collation versions; keep PostgreSQL running if setup or repair fails
 - Updated PostgreSQL 17 overlay pin to 17.11
 - Updated PostgreSQL to 18.6
 - Dropped support for PostgreSQL 16 and 17

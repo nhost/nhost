@@ -178,7 +178,7 @@ in
         "MAX_REPLICATION_SLOTS=10"
         "SYNCHRONOUS_COMMIT=on"
         "HOT_STANDBY=on"
-        "PITR_TARGET_ACTION=shutdown"
+        "PITR_TARGET_ACTION=promote"
         "PITR_TARGET_TIMELINE=latest"
         "TRACK_IO_TIMING=off"
       ];

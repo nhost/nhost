@@ -6,6 +6,12 @@ See [plugins.md](./plugins.md). Changes to this manifest also regenerate
 `docs/src/content/docs/products/database/extensions.mdx`; follow the
 [documentation regeneration instructions](../../docs/README.md#generated-documentation).
 
+## Temporary files in the image
+
+The entrypoint runs as the `postgres` user (UID 999). The image's `/tmp` is
+root-owned and not writable by that user; use `/tmp/postgresql` for image-side
+temporary files. PITR preflight defaults there unless `TMPDIR` is explicitly set.
+
 ## Options
 
 Following env vars are available in the image (to be set in an Nhost cloud project via settings):
@@ -36,6 +42,24 @@ MAX_REPLICATION_SLOTS=10
 TRACK_IO_TIMING=off
 ```
 
+### PITR restore safety
+
+When `PITR_BASEBACKUP` is set, startup first uses `wal-g backup-list` to check
+that backup storage is reachable and that the requested backup is listed. For
+the symbolic `LATEST` selector, the check only confirms that at least one backup
+is available. If this preflight fails, the existing `PGDATA` is preserved.
+
+After a successful preflight, startup removes `PGDATA` and runs
+`wal-g backup-fetch` directly into that path. This avoids requiring space for two
+copies of the database, but it is not atomic: a later fetch failure destroys the
+old cluster and may leave a partial restore. The preflight therefore reduces
+obvious failures; it does not guarantee that the backup can be downloaded.
+
+PITR restores promote at the recovery target by default. The restore entrypoint
+then stops PostgreSQL, so a normal start on the same `PGDATA` retains the
+selected point in time. `PITR_TARGET_ACTION=shutdown` is available for explicit
+recovery workflows, but a normal start after shutdown can replay past the target.
+
 Following settings are available in the image but not directly configurable:
 
 ```
@@ -45,6 +69,6 @@ RESTORE_COMMAND=wal-g wal-fetch %f %p
 CHECKPOINT_TIMEOUT=5min
 SYNCHRONOUS_COMMIT=on
 HOT_STANDBY=on
-PITR_TARGET_ACTION=shutdown
+PITR_TARGET_ACTION=promote
 PITR_TARGET_TIMELINE=latest
 ```
