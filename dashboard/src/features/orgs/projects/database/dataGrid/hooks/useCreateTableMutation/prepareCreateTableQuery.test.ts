@@ -341,6 +341,32 @@ describe('prepareCreateTableQuery', () => {
     );
   });
 
+  it('should prepare a query with a multi-column unique constraint', () => {
+    const table: DatabaseTable = {
+      name: 'test_table',
+      primaryKey: ['id'],
+      columns: [
+        { name: 'id', type: 'uuid' },
+        { name: 'region', type: 'text' },
+        { name: 'code', type: 'text' },
+      ],
+      uniqueKeys: [
+        { columns: ['region', 'code'] },
+        { newName: 'test_table_code_id_key', columns: ['code', 'id'] },
+      ],
+    };
+
+    const transaction = prepareCreateTableQuery({
+      dataSource: 'default',
+      schema: 'public',
+      table,
+    });
+
+    expect(transaction[0].args.sql).toBe(
+      'CREATE TABLE public.test_table (id uuid NOT NULL, region text NOT NULL, code text NOT NULL, PRIMARY KEY (id), UNIQUE (region,code), CONSTRAINT test_table_code_id_key UNIQUE (code,id));',
+    );
+  });
+
   it('should add comments to columns', () => {
     const table: DatabaseTable = {
       name: 'test_table',
