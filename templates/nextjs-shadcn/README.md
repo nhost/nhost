@@ -96,6 +96,8 @@ The starter ships a complete `public.todos` feature with per-user row permission
 
 Use those files and the `add-table` skill as the copy-me pattern for new user-owned features.
 
+That is one of two ownership shapes, and it is worth knowing which you need before you start. `todos` is *per-user*: a `user_id` column on the row is the whole of the rule. Data a group shares wants the other shape, where a membership table records who is in the group and in what capacity, and permissions filter through that relationship instead of against a column. The `add-table` skill writes both out in full, including the trigger that lets whoever created a row be its first member — the one part of that shape with a security hole waiting in the obvious implementation.
+
 ## "I want to…" and the shared list
 
 An item is something you want to do, optionally somewhere in particular: *I want to go skateboarding*, or *I want to go skateboarding in Los Angeles, California*. The form is that sentence, and the location half is always there to fill in or leave empty.
@@ -115,7 +117,7 @@ So the page exists from the first sign-in, but it is empty until you share somet
 
 The stored value is an *opt-out*. Turning the page off writes `metadata.publicProfile = false`; turning it back on removes the key rather than writing `true`, so "never touched this setting" and "turned it back on" stay one state instead of two that can drift. Every permission below therefore tests `_not ... _contains false` rather than `_contains true`, and `frontend/src/lib/profile.ts` is the same rule for the UI.
 
-This is the part of the starter that shows a role other than `user`, and it is worth reading before you build your own public page:
+This is the part of the starter that shows a role other than `user`. It is the longest technical passage in this README and it exists because a `public` permission is the one most likely to leak something — not because every project needs one. **If nothing in what you are building is readable without signing in, skip to the next section**; none of it applies, and the shipped todos permissions are a per-user model you can copy without any of this. If you are building a public page, read it before you write the permission rather than after:
 
 - **The `public` role is the unauthenticated one.** Hasura answers a request carrying no token as `public`. Every other permission in this project filters by `X-Hasura-User-Id`; these are the ones that do not.
 - **Permissions filter through relationships.** `public_todos.yaml` requires `is_public` on the row *and*, through the `user` relationship, that the owner has not turned their page off. `storage_files.yaml` repeats that condition through `todos`, because a relationship filter matches raw rows rather than applying the related table's own permission.
@@ -228,6 +230,18 @@ Run these from `frontend/`:
 - `pnpm lint` — check with Biome. `pnpm format` — apply Biome's safe fixes (formatting, import sorting); it still exits non-zero if unfixable lint errors remain.
 - `pnpm test` — run the Vitest suites covering the proxy, session cookies, and storage helpers.
 - `pnpm build` — create a production build.
+
+## Live data, and what this stack does not give you
+
+Worth knowing before you design a feature around live updates, because the shape of the answer is not obvious from the schema.
+
+Hasura generates a `subscription_root`, and `frontend/schema.graphql` has one: for every tracked table it exposes the list field, the by-primary-key field, and a streaming field such as `todos_stream`. The first two are **live queries**, and a live query is not a push — Hasura multiplexes it and re-runs it on a timer. `backend/nhost/nhost.toml` sets that timer with `liveQueriesMultiplexedRefetchInterval = 1000`, documented as how often live queries are refetched, so one second is the floor on how stale one can be. Lowering it raises database load for every subscriber at once.
+
+This starter ships no subscription client. There is no `graphql-ws`, websocket or realtime package in `frontend/package.json`, the word `subscription` appears nowhere in `frontend/src/`, and the `@nhost/nhost-js` GraphQL client exposes a single `request()` that returns a promise — there is no subscribe method on it. Everything here is HTTP request/response with TanStack Query handling cache and refetch. Adding live data means adding a websocket client and wiring it yourself.
+
+The trap to avoid: finding `todos_stream` in the committed schema and concluding the project already has a live transport. Hasura generates a `_stream` field for every tracked table — there are four in this schema — and their presence says nothing about what this app uses.
+
+This is genuinely good for changefeeds, notification badges, and a shared list several people edit at human speed — anything where a second of staleness is invisible. It is not for sub-100ms interaction, presence at pointer-move rate, or offline edits that have to merge on reconnect. Those want a purpose-built layer, a CRDT such as Yjs or Automerge over a websocket provider, with Postgres as the snapshot store and this GraphQL API serving everything that is *not* the hot path: identity, membership, permissions, and the durable document. The latency floor above is structural rather than a tuning problem, so it is not worth trying to make the HTTP data layer do that job.
 
 ## Session cookie security
 
