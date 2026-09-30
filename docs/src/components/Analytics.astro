@@ -1,0 +1,216 @@
+---
+import { getSegmentWriteKey } from '../lib/analytics';
+
+const writeKey = getSegmentWriteKey();
+---
+
+{/* Segment Analytics.js snippet */}
+<script is:inline define:vars={{ writeKey }}>
+  (function() {
+    var analytics = (window.analytics = window.analytics || []);
+    if (!analytics.initialize) {
+      if (analytics.invoked) {
+        window.console &&
+          console.error &&
+          console.error("Segment snippet included twice.");
+      } else {
+        analytics.invoked = true;
+        analytics.methods = [
+          "trackSubmit",
+          "trackClick",
+          "trackLink",
+          "trackForm",
+          "pageview",
+          "identify",
+          "reset",
+          "group",
+          "track",
+          "ready",
+          "alias",
+          "debug",
+          "page",
+          "screen",
+          "once",
+          "off",
+          "on",
+          "addSourceMiddleware",
+          "addIntegrationMiddleware",
+          "setAnonymousId",
+          "addDestinationMiddleware",
+          "register",
+        ];
+        analytics.factory = function(e) {
+          return function() {
+            if (window.analytics.initialized) {
+              return window.analytics[e].apply(window.analytics, arguments);
+            }
+            var args = Array.prototype.slice.call(arguments);
+            if (
+              ["track", "screen", "alias", "group", "page", "identify"].indexOf(
+                e
+              ) > -1
+            ) {
+              var c = document.querySelector("link[rel='canonical']");
+              args.push({
+                __t: "bpc",
+                c: (c && c.getAttribute("href")) || void 0,
+                p: location.pathname,
+                u: location.href,
+                s: location.search,
+                t: document.title,
+                r: document.referrer,
+              });
+            }
+            args.unshift(e);
+            analytics.push(args);
+            return analytics;
+          };
+        };
+        for (var n = 0; n < analytics.methods.length; n++) {
+          var key = analytics.methods[n];
+          analytics[key] = analytics.factory(key);
+        }
+        analytics.load = function(key, options) {
+          var t = document.createElement("script");
+          t.type = "text/javascript";
+          t.async = true;
+          t.setAttribute("data-global-segment-analytics-key", "analytics");
+          t.src =
+            "https://cdn.segment.com/analytics.js/v1/" +
+            key +
+            "/analytics.min.js";
+          var r = document.getElementsByTagName("script")[0];
+          r.parentNode.insertBefore(t, r);
+          analytics._loadOptions = options;
+        };
+        analytics.SNIPPET_VERSION = "5.2.1";
+
+        // Share anonymousId across docs.nhost.io, nhost.io, and app.nhost.io
+        var host = window.location.hostname;
+        var cookieDomain =
+          host === "nhost.io" || host.endsWith(".nhost.io")
+            ? ".nhost.io"
+            : undefined;
+
+        analytics.load(writeKey, {
+          cookie: {
+            domain: cookieDomain,
+            sameSite: "Lax",
+          },
+        });
+      }
+    }
+  })();
+</script>
+
+{/* Client-side automatic pageview and event listeners */}
+<script>
+  import {
+    trackCodeCopy,
+    trackPageview,
+    trackSearchQuery,
+    trackSearchResultClick,
+  } from '../lib/analytics';
+
+  // 1. Automatic pageview on initial load and on Astro view transition navigations
+  let lastTrackedPath = '';
+
+  function handlePageview() {
+    const currentPath = window.location.pathname;
+    if (currentPath !== lastTrackedPath) {
+      lastTrackedPath = currentPath;
+      trackPageview();
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', handlePageview);
+  } else {
+    handlePageview();
+  }
+
+  document.addEventListener('astro:page-load', handlePageview);
+  document.addEventListener('astro:after-swap', handlePageview);
+
+  // 2. Search interactions tracking
+  let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  let currentSearchQuery = '';
+
+  // Listen for search input in Pagefind / Starlight search dialog
+  document.addEventListener('input', (e) => {
+    const target = e.target as HTMLElement | null;
+    if (
+      target &&
+      target instanceof HTMLInputElement &&
+      (target.classList.contains('pagefind-ui__search-input') ||
+        target.closest('#starlight__search') ||
+        target.closest('site-search'))
+    ) {
+      const query = target.value.trim();
+      currentSearchQuery = query;
+
+      if (searchDebounceTimer) {
+        clearTimeout(searchDebounceTimer);
+      }
+
+      searchDebounceTimer = setTimeout(() => {
+        if (query.length >= 2) {
+          trackSearchQuery(query);
+        }
+      }, 400);
+    }
+  });
+
+  // 3. Search result clicks & Code block copies
+  document.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement | null;
+    if (!target) return;
+
+    // Search result click
+    const resultLink = target.closest(
+      'a.pagefind-ui__result-link, .pagefind-ui__result a',
+    ) as HTMLAnchorElement | null;
+    if (resultLink) {
+      const searchInput = document.querySelector<HTMLInputElement>(
+        '.pagefind-ui__search-input, #starlight__search input, site-search input',
+      );
+      const query = searchInput?.value?.trim() || currentSearchQuery;
+      const title =
+        resultLink.querySelector('.pagefind-ui__result-title')?.textContent?.trim() ||
+        resultLink.textContent?.trim() ||
+        '';
+
+      trackSearchResultClick(query, resultLink.href, title);
+      return;
+    }
+
+    // Expressive Code copy button click
+    const copyBtn = target.closest(
+      '.expressive-code button, .expressive-code .copy button, figure.frame button[data-code]',
+    ) as HTMLButtonElement | null;
+    if (copyBtn) {
+      const container = copyBtn.closest('.expressive-code');
+      const pre = container?.querySelector('pre');
+      const language = pre?.getAttribute('data-language') || 'plaintext';
+      const code = copyBtn.getAttribute('data-code') || pre?.textContent || undefined;
+
+      trackCodeCopy(language, code);
+      return;
+    }
+
+    // Inline copy text button (CopyText.astro)
+    const copyTextBtn = target.closest('button.copy-text-btn') as HTMLElement | null;
+    if (copyTextBtn) {
+      const text = copyTextBtn.getAttribute('data-copy') || undefined;
+      trackCodeCopy('plaintext', text);
+      return;
+    }
+
+    // Copy page button (CopyPageButton.astro)
+    const copyPageBtn = target.closest('button.copy-page-btn') as HTMLElement | null;
+    if (copyPageBtn) {
+      trackCodeCopy('markdown', window.location.pathname);
+      return;
+    }
+  });
+</script>
