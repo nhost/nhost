@@ -119,6 +119,7 @@ describe('Clone row', () => {
   async function openClone(
     columns: NormalizedQueryDataRow[],
     row: Record<string, string>,
+    constraints: object[] = [],
   ) {
     server.use(
       http.post(
@@ -144,7 +145,7 @@ describe('Clone row', () => {
           }
 
           if (sql.includes('INFORMATION_SCHEMA.COLUMNS')) {
-            return HttpResponse.json([tuples(columns), tuples([])]);
+            return HttpResponse.json([tuples(columns), tuples(constraints)]);
           }
 
           return HttpResponse.json([
@@ -173,6 +174,24 @@ describe('Clone row', () => {
 
     expect(screen.getByLabelText(/^id/)).toHaveValue('1');
     expect(screen.getByLabelText(/^code/)).toHaveValue('A');
+  });
+
+  it('keeps columns in a composite unique constraint', async () => {
+    await openClone(
+      [
+        makeColumn({ column_name: 'club_id', is_unique: true }),
+        makeColumn({ column_name: 'user_id', is_unique: true }),
+      ],
+      { club_id: 'club', user_id: 'user' },
+      ['club_id', 'user_id'].map((column_name) => ({
+        column_name,
+        constraint_name: 'records_club_id_user_id_key',
+        constraint_type: 'u',
+      })),
+    );
+
+    expect(screen.getByLabelText(/^club_id/)).toHaveValue('club');
+    expect(screen.getByLabelText(/^user_id/)).toHaveValue('user');
   });
 
   it('clears primary and unique columns with defaults', async () => {
