@@ -10,10 +10,12 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
 	"regexp"
 	"slices"
 	"strings"
+	"syscall"
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/nhost/cli/clienv"
@@ -69,7 +71,7 @@ func Command() *cli.Command {
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name: flagName,
 				Usage: fmt.Sprintf(
-					"Project name, and the directory it lands in (default: %s, or [directory]'s name)",
+					"Project name, and the directory it lands in (default: %s, or the target directory's name)",
 					defaultProjectName,
 				),
 				Value: "",
@@ -104,7 +106,7 @@ func Command() *cli.Command {
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:  flagTemplatePath,
-				Usage: "Use a local template directory instead of downloading (offline/dev)",
+				Usage: "Use a local template directory instead of downloading (for offline or development use)",
 				Value: "",
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
@@ -185,10 +187,28 @@ func action(ctx context.Context, cmd *cli.Command) error {
 	prog := newProgress(ce, res.prompt, "Creating "+resolved.name)
 	defer prog.stop()
 
-	if err := stageProject(
-		ctx, prog, cmd, tmpl, resolved.name, target, resolved.packageManager,
-	); err != nil {
-		return err
+	// The slowest parts of a create are the templates-repo git clone and the
+	// recursive template copy, both of which run inside this staging call.
+	// Without this, an interrupting signal kills the process before the defers
+	// above can remove the staging directory and the directories the create
+	// made, leaving them behind; catching the signal here turns it into a
+	// cancelled context, which unwinds through the normal error path and lets
+	// those defers run. It is installed only around this call, after
+	// runInteractive has already returned, because runInteractive's prompts read
+	// stdin with a cooked-mode bufio.ReadString that only stops on an uncaught
+	// SIGINT: wrapping the whole action would swallow the one way to abort while
+	// a prompt is waiting.
+	stagingCtx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	stageErr := stageProject(
+		stagingCtx, prog, cmd, tmpl, resolved.name, target, resolved.packageManager,
+	)
+
+	stop()
+
+	if stageErr != nil {
+		return stageErr
 	}
 
 	// installNow ends up meaning what the rest of the command needs it to mean:
@@ -450,10 +470,17 @@ func addTemplate(
 	)
 }
 
-// localTemplateDir checks that a --template-path value is a directory and
-// resolves it to a real path. Resolving matters because filepath.WalkDir does
-// not follow a symlinked root, so a symlink to a template directory would
-// otherwise copy nothing and only fail later against the staging path.
+// localTemplateDir checks that a --template-path value is a directory holding a
+// template, and resolves it to a real path. Resolving matters because
+// filepath.WalkDir does not follow a symlinked root, so a symlink to a template
+// directory would otherwise copy nothing and only fail later against the
+// staging path.
+//
+// The frontend/package.json check is here, against the path the user gave,
+// because everything downstream of it names the staging directory instead: the
+// project name patch and the package-manager doc rewrite both read that file,
+// and the staging directory is deleted on the way out, so the failure arrived
+// as a path that no longer exists.
 func localTemplateDir(local string) (string, error) {
 	resolved, err := filepath.EvalSymlinks(local)
 	if err != nil {
@@ -467,6 +494,10 @@ func localTemplateDir(local string) (string, error) {
 
 	if !info.IsDir() {
 		return "", fmt.Errorf("--template-path %q: %w", local, errTemplateNotDirectory)
+	}
+
+	if !clienv.PathExists(filepath.Join(resolved, "frontend", "package.json")) {
+		return "", fmt.Errorf("--template-path %q: %w", local, errTemplateMissingFrontend)
 	}
 
 	return resolved, nil

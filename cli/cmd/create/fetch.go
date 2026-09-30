@@ -8,11 +8,17 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/nhost/nhost/cli/clienv"
 )
 
 var (
 	errTemplateNotDirectory = errors.New("template path is not a directory")
-	gitLookPath             = exec.LookPath //nolint:gochecknoglobals // test seam for git availability
+	// Every template supplies a frontend app, and the scaffolding reads
+	// frontend/package.json to set the project name and to rewrite the
+	// package-manager commands in the docs.
+	errTemplateMissingFrontend = errors.New("template has no frontend/package.json")
+	gitLookPath                = exec.LookPath //nolint:gochecknoglobals // test seam for git availability
 )
 
 func fetchTemplate(
@@ -62,6 +68,20 @@ func fetchTemplate(
 			repo,
 			ref,
 			errTemplateNotDirectory,
+		)
+	}
+
+	// Checked here, against the template as fetched, for the same reason the
+	// local path is checked in localTemplateDir: everything downstream names
+	// the staging directory, so without this the failure arrives several steps
+	// later pointing at a path the user never chose and that no longer exists.
+	if !clienv.PathExists(filepath.Join(src, "frontend", "package.json")) {
+		return fmt.Errorf(
+			"template %q in %s at %s: %w",
+			tmpl.name,
+			repo,
+			ref,
+			errTemplateMissingFrontend,
 		)
 	}
 
