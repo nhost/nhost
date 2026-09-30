@@ -317,7 +317,13 @@ export function Todos({
       sortOrder: items.length
         ? Math.min(...items.map((todo) => todo.sort_order)) - 1
         : 0,
-      isPublic: shareNew,
+      // The absent control means the absent decision. While the public page is
+      // off the eye is rendered nowhere - not here, not on a row - so
+      // `shareNew` is a preference nobody was shown and nobody could
+      // countermand. Sending it regardless wrote rows as shared, invisibly,
+      // and "Turn on public page" in this same component then published every
+      // one of them in a single click.
+      isPublic: profilePublished && shareNew,
     });
   };
 
