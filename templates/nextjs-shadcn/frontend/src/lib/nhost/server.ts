@@ -6,6 +6,7 @@ import {
 import { cookies } from 'next/headers';
 import type { NextRequest, NextResponse } from 'next/server';
 import { nhostRegion, nhostSubdomain } from './env';
+import { PROXY_REFRESH_MARGIN_SECONDS } from './refreshMargin';
 
 const key = DEFAULT_SESSION_KEY;
 
@@ -431,7 +432,7 @@ export async function handleNhostProxy(
   if (!session) {
     session = isPrefetch(request)
       ? storage.get()
-      : await nhost.refreshSession(60);
+      : await nhost.refreshSession(PROXY_REFRESH_MARGIN_SECONDS);
   }
 
   return {
