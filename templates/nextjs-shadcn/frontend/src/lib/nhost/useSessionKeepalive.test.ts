@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { PROXY_REFRESH_MARGIN_SECONDS } from '@/lib/nhost/refreshMargin';
 import {
   PROXY_REFRESH_MARGIN_MS,
   planKeepalive,
@@ -9,15 +10,28 @@ const NOW = 1_700_000_000_000;
 
 // The whole point of the keepalive is that the request it makes arrives while
 // the proxy is still willing to rotate. `handleNhostProxy` calls
-// `nhost.refreshSession(60)`, which returns the session untouched when the
-// token has more than 60s left, so a wake-up outside that window is a request
-// that changes nothing and a token that expires anyway.
+// `nhost.refreshSession(PROXY_REFRESH_MARGIN_SECONDS)`, which returns the
+// session untouched when the token has longer than that left, so a wake-up
+// outside the window is a request that changes nothing and a token that
+// expires anyway.
 //
-// This is the assertion to read first if someone changes either number: they
-// are one decision written in two files.
+// This is the assertion to read first if someone changes either number. The
+// margin itself is no longer written twice - `server.ts` and the hook both
+// read `refreshMargin.ts` - so what is left to get wrong is the relationship
+// between the margin and the wake-up, which is what these pin.
 describe('the wake-up lands inside the proxy refresh window', () => {
   it('asks for a refresh early enough that the proxy performs one', () => {
     expect(REFRESH_WITHIN_MS).toBeLessThan(PROXY_REFRESH_MARGIN_MS);
+  });
+
+  // The margin crosses a unit boundary on its way here: the proxy is told
+  // seconds, the wake-up is computed in milliseconds. A factor that came out
+  // too small is already caught above - at `* 100` the window is 6s and 45s is
+  // not less than that - so what this adds is the other direction, where the
+  // window grows instead. At `* 10_000` every relative assertion in this block
+  // still passes against a 600s window the proxy was never told about.
+  it('converts the proxy margin to milliseconds', () => {
+    expect(PROXY_REFRESH_MARGIN_MS).toBe(PROXY_REFRESH_MARGIN_SECONDS * 1000);
   });
 
   // Not just inside it, but with time for the round trip. A wake-up at 59s

@@ -3,18 +3,20 @@
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { nhost } from './client';
+import { PROXY_REFRESH_MARGIN_SECONDS } from './refreshMargin';
 
 /**
- * The margin `handleNhostProxy` hands to `nhost.refreshSession`.
+ * The margin `handleNhostProxy` hands to `nhost.refreshSession`, in the units
+ * the wake-up below is computed in.
  *
- * Duplicated here as a named value rather than left implicit, because the
- * wake-up below is only correct relative to it: the proxy declines to rotate a
- * token with more than this long to live, so waking earlier than this spends a
- * request on a proxy that decides there is nothing to do, and the token dies
- * anyway. Change the margin in `server.ts` and this has to move with it, which
- * is what `useSessionKeepalive.test.ts` pins.
+ * Derived from the shared constant rather than restated, because the wake-up
+ * is only correct relative to it: the proxy declines to rotate a token with
+ * more than this long to live, so waking earlier spends a request on a proxy
+ * that decides there is nothing to do, and the token dies anyway. `server.ts`
+ * reads the same constant when it calls `refreshSession`, so the two cannot
+ * drift apart - there is one number, not two that have to be kept in step.
  */
-export const PROXY_REFRESH_MARGIN_MS = 60_000;
+export const PROXY_REFRESH_MARGIN_MS = PROXY_REFRESH_MARGIN_SECONDS * 1000;
 
 /**
  * How long before expiry to ask for a refresh.
