@@ -29,9 +29,10 @@ import ForeignKeyEditorSection from './ForeignKeyEditorSection';
 import IdentityColumnSelect from './IdentityColumnSelect';
 import PrimaryKeySelect from './PrimaryKeySelect';
 import TableObjectsSection from './TableObjectsSection';
+import UniqueKeysSection from './UniqueKeysSection';
 
 export interface BaseTableFormValues
-  extends Omit<DatabaseTable, 'primaryKey' | 'identityColumn'> {
+  extends Omit<DatabaseTable, 'primaryKey' | 'identityColumn' | 'uniqueKeys'> {
   /**
    * The indices of the primary key columns.
    */
@@ -44,6 +45,10 @@ export interface BaseTableFormValues
    * Foreign keys of the table.
    */
   foreignKeyRelations?: ForeignKeyRelation[];
+  /**
+   * Multi-column UNIQUE constraints, as indices of their columns.
+   */
+  uniqueKeys?: { name?: string; newName?: string; columnIndices: string[] }[];
 }
 
 export interface BaseTableFormProps extends DialogFormProps {
@@ -151,6 +156,7 @@ const DIRTY_SOURCE_ID = 'base-table-form';
 
 const ACCORDION_SECTION_VALUES = [
   'columns',
+  'uniqueKeys',
   'foreignKeys',
   'constraints',
   'indexes',
@@ -197,6 +203,7 @@ export default function BaseTableForm({
 }: BaseTableFormProps) {
   const [openSections, setOpenSections] = useState<string[]>([
     'columns',
+    'uniqueKeys',
     'foreignKeys',
   ]);
   const { setDirtySource } = useDialog();
@@ -264,6 +271,15 @@ export default function BaseTableForm({
                 <PrimaryKeySelect />
                 <IdentityColumnSelect />
               </div>
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="uniqueKeys">
+            <AccordionTrigger className="px-6 py-2 text-lg">
+              Unique Constraints
+            </AccordionTrigger>
+            <AccordionContent className="pb-3" forceMount>
+              <UniqueKeysSection />
             </AccordionContent>
           </AccordionItem>
 

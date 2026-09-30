@@ -79,6 +79,18 @@ export default function prepareUpdateTableQuery({
     );
   }
 
+  // A multi-column UNIQUE constraint is listed on each of its columns, so a
+  // repeated name marks one. Those are managed through `uniqueKeys`; a column's
+  // own Unique checkbox only owns its single-column constraints.
+  const originalUniqueConstraintNames = originalColumns.flatMap(
+    ({ uniqueConstraints }) => uniqueConstraints ?? [],
+  );
+  const multiColumnUniqueKeyNames = new Set(
+    originalUniqueConstraintNames.filter(
+      (name, index) => originalUniqueConstraintNames.indexOf(name) !== index,
+    ),
+  );
+
   args = args.concat(
     ...updatedTable.columns.reduce<HasuraOperation[]>((updatedArgs, column) => {
       const baseVariables = {
@@ -102,7 +114,12 @@ export default function prepareUpdateTableQuery({
         ...updatedArgs,
         ...prepareUpdateColumnQuery({
           ...baseVariables,
-          originalColumn,
+          originalColumn: {
+            ...originalColumn,
+            uniqueConstraints: originalColumn.uniqueConstraints?.filter(
+              (name) => !multiColumnUniqueKeyNames.has(name),
+            ),
+          },
         }),
       ];
     }, []),
@@ -176,6 +193,47 @@ export default function prepareUpdateTableQuery({
       ),
     );
   }
+
+  // Multi-column UNIQUE constraints run after foreign key drops that may depend
+  // on them, and before foreign key creates that may reference them.
+  const keptUniqueKeyNames = new Set(
+    updatedTable.uniqueKeys?.map(({ name }) => name),
+  );
+  const droppedUniqueKeyNames = [...multiColumnUniqueKeyNames].filter(
+    (name) => !keptUniqueKeyNames.has(name),
+  );
+
+  args = args.concat(
+    ...droppedUniqueKeyNames.map((name) =>
+      getPreparedHasuraQuery(
+        dataSource,
+        'ALTER TABLE %I.%I DROP CONSTRAINT IF EXISTS %I',
+        schema,
+        originalTableName,
+        name,
+      ),
+    ),
+    ...(updatedTable.uniqueKeys ?? [])
+      .filter(({ name }) => !name)
+      .map(({ newName, columns }) =>
+        newName
+          ? getPreparedHasuraQuery(
+              dataSource,
+              'ALTER TABLE %I.%I ADD CONSTRAINT %I UNIQUE (%I)',
+              schema,
+              originalTableName,
+              newName,
+              columns,
+            )
+          : getPreparedHasuraQuery(
+              dataSource,
+              'ALTER TABLE %I.%I ADD UNIQUE (%I)',
+              schema,
+              originalTableName,
+              columns,
+            ),
+      ),
+  );
 
   if (isNotEmptyValue(updatedTable?.foreignKeyRelations)) {
     const originalForeignKeyRelationMap = originalForeignKeyRelations.reduce(
