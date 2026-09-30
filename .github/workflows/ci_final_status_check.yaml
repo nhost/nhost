@@ -34,10 +34,12 @@ jobs:
           echo "Validating PR title: $PR_TITLE"
 
           VALID_TYPES="feat|fix|chore|release"
+          # Keep in sync with the PKG list in .github/PULL_REQUEST_TEMPLATE.md
           VALID_PKGS="ai|auth|ci|cli|codegen|constellation|dashboard|deps|docs|"
           VALID_PKGS+="examples|functions|ghactivity|govulncheck-wrapper|"
           VALID_PKGS+="internal\/lib|landing|mcp|nhost-js|nixops|"
-          VALID_PKGS+="postgres|storage|observability|stripe-graphql-js"
+          VALID_PKGS+="postgres|storage|observability|"
+          VALID_PKGS+="stripe-graphql-js|templates"
 
           TITLE_PATTERN="^(${VALID_TYPES})"
           TITLE_PATTERN+="\((${VALID_PKGS})\)\!?: .+"
@@ -52,11 +54,13 @@ jobs:
             echo "  - chore:  mark this pull request as a maintenance item"
             echo ""
             echo "Valid PKGs:"
-            echo "  - ai, auth, ci, cli, codegen, constellation, dashboard,"
-            echo "  - deps, docs, examples, functions,"
-            echo "  - ghactivity, govulncheck-wrapper, landing, mcp, nhost-js,"
-            echo "  - nixops, postgres, storage, observability, internal/lib,"
-            echo "  - stripe-graphql-js"
+            # Derived from VALID_PKGS above so this list can't silently
+            # drift from the regex; the PR template bullet is the only
+            # other hand-maintained copy.
+            PKG_LIST="${VALID_PKGS//\\/}"
+            PKG_LIST="${PKG_LIST//|/, }"
+            fold -s -w 60 <<< "$PKG_LIST" \
+              | sed -e "s/[[:space:]]*$//" -e "s/^/  - /"
             echo ""
             echo "Examples:"
             echo "  - feat(cli): add new command for database migrations"
