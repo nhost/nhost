@@ -22,8 +22,7 @@ const originalColumns: DatabaseColumn[] = [
 ];
 
 describe('prepareUpdateTableQuery', () => {
-  test('should drop removed and add new multi-column unique constraints', () => {
-    // a+b is kept, c is single-column (owned by the column), d+e is removed.
+  it('should drop removed and add new multi-column unique constraints', () => {
     const columns: DatabaseColumn[] = [
       { id: 'a', name: 'a', type: 'text', uniqueConstraints: ['t_a_b_key'] },
       { id: 'b', name: 'b', type: 'text', uniqueConstraints: ['t_a_b_key'] },
@@ -57,7 +56,7 @@ describe('prepareUpdateTableQuery', () => {
     ]);
   });
 
-  test('unticking Unique only drops single-column unique constraints', () => {
+  it('unticking Unique only drops single-column unique constraints', () => {
     const columns: DatabaseColumn[] = [
       { id: 'b', name: 'b', type: 'text', uniqueConstraints: ['t_b_c_key'] },
       {
