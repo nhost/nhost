@@ -2,6 +2,7 @@ import { CircleHelpIcon, CircleUserIcon } from 'lucide-react';
 
 import { flattenTree } from '@/features/command-palette/lib/flatten';
 import { resolvePath } from '@/features/command-palette/lib/resolvePath';
+import { scoreNode } from '@/features/command-palette/lib/score';
 import { commandPaletteNavTree } from '@/features/command-palette/nav-tree';
 
 const allNodes = flattenTree(commandPaletteNavTree);
@@ -68,6 +69,9 @@ describe('commandPaletteNavTree', () => {
       'Functions',
     ]);
     expect(byId.get('project-run-settings')?.breadcrumb).toEqual(['Run']);
+    expect(byId.get('project-deployments-settings')?.breadcrumb).toEqual([
+      'Deployments',
+    ]);
     expect(byId.get('project-database-settings')?.breadcrumb).toEqual([
       'Database',
     ]);
@@ -199,6 +203,29 @@ describe('commandPaletteNavTree', () => {
       byId.get('project-auth-settings-custom-domain')?.gate,
     ).toBeUndefined();
   });
+
+  it('routes Deployments settings through the Deployments area', () => {
+    const byId = new Map(allNodes.map((node) => [node.id, node]));
+
+    expect(byId.get('project-deployments-settings')).toMatchObject({
+      title: 'Settings',
+      path: 'deployments/settings',
+      gate: 'settings',
+      keywords: expect.arrayContaining(['deployments', 'settings']),
+    });
+    expect(byId.has('project-settings-deployments')).toBe(false);
+  });
+
+  it.each(['github', 'branch', 'base directory', 'automatic deploys'])(
+    'finds Deployments settings by %s',
+    (query) => {
+      const node = allNodes.find(
+        ({ id }) => id === 'project-deployments-settings',
+      );
+
+      expect(node && scoreNode(query, node).score).toBeGreaterThan(0);
+    },
+  );
 
   it('routes Run settings through the Run area', () => {
     const byId = new Map(allNodes.map((node) => [node.id, node]));

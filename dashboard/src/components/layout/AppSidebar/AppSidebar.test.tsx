@@ -224,6 +224,32 @@ describe('AppSidebar', () => {
       );
     });
 
+    it.each([
+      [
+        'deployments/settings',
+        '/orgs/nhost/projects/dashboard/deployments/settings',
+      ],
+      [
+        'deployments/[deploymentId]',
+        '/orgs/nhost/projects/dashboard/deployments/deployment-id',
+      ],
+    ])('marks only Deployments active on %s', (route, asPath) => {
+      mockRoute(
+        `/orgs/[orgSlug]/projects/[appSubdomain]/${route}`,
+        asPath,
+        projectQuery,
+      );
+
+      render(<AppSidebar />);
+
+      expect(screen.getAllByRole('link', { current: 'page' })).toEqual([
+        screen.getByRole('link', { name: 'Deployments' }),
+      ]);
+      expect(
+        screen.getByRole('link', { name: 'Settings' }),
+      ).not.toHaveAttribute('aria-current');
+    });
+
     it('falls back to the path while router query params are not ready', () => {
       mockRoute(
         '/orgs/[orgSlug]/projects/[appSubdomain]/ai/file-stores',
@@ -264,6 +290,24 @@ describe('AppSidebar', () => {
         'href',
         '/orgs/nhost/projects/dashboard/logs',
       );
+    });
+
+    it('links Deployments to its settings page in self-hosted mode', () => {
+      vi.stubEnv('NEXT_PUBLIC_NHOST_PLATFORM', 'false');
+      mockRoute(
+        '/orgs/[orgSlug]/projects/[appSubdomain]/deployments/settings',
+        '/orgs/nhost/projects/dashboard/deployments/settings',
+        projectQuery,
+      );
+
+      render(<AppSidebar />);
+
+      const deployments = screen.getByRole('link', { name: 'Deployments' });
+      expect(deployments).toHaveAttribute(
+        'href',
+        '/orgs/nhost/projects/dashboard/deployments/settings',
+      );
+      expect(deployments).toHaveAttribute('aria-current', 'page');
     });
   });
 });
