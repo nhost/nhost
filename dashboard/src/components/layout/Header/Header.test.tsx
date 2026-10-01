@@ -16,9 +16,11 @@ const router = {
     appSubdomain?: string;
   },
   asPath: '/orgs/org-a/projects/project-a',
+  pathname: '/orgs/[orgSlug]/projects/[appSubdomain]',
   route: '/orgs/[orgSlug]/projects/[appSubdomain]',
   push,
   isReady: true,
+  events: { on: vi.fn(), off: vi.fn(), emit: vi.fn() },
 };
 
 const useCurrentOrgMock = vi.fn();
@@ -34,16 +36,21 @@ vi.mock('@/components/layout/AccountMenu', () => ({
   AccountMenu: () => <div>Account menu</div>,
 }));
 
-vi.mock('@/components/layout/MobileNav', () => ({
-  MobileNav: () => <div>Mobile nav</div>,
-}));
-
 vi.mock('@/components/layout/Header/HeaderNavigation', () => ({
   default: () => <nav>Header navigation</nav>,
 }));
 
 vi.mock('@/features/orgs/components/members/components/InboxPopover', () => ({
   InboxPopover: () => <div>Inbox</div>,
+  InboxSheet: () => null,
+  useInbox: () => ({
+    invites: [],
+    invitesLoading: false,
+    announcements: [],
+    announcementsLoading: false,
+    pendingOrganizationRequest: null,
+    hasUnread: false,
+  }),
 }));
 
 vi.mock('@/features/orgs/projects/hooks/useCurrentOrg', () => ({
@@ -66,6 +73,7 @@ const projectA = {
   id: 'project-a',
   name: 'Project A',
   subdomain: 'project-a',
+  appStates: [],
 };
 const orgA = {
   id: 'org-a',
@@ -89,6 +97,8 @@ beforeEach(() => {
   process.env.NEXT_PUBLIC_NHOST_CONFIGSERVER_URL =
     'https://local.graphql.local.nhost.run/v1';
   router.query = { orgSlug: 'org-a', appSubdomain: 'project-a' };
+  router.asPath = '/orgs/org-a/projects/project-a';
+  router.pathname = '/orgs/[orgSlug]/projects/[appSubdomain]';
   useIsPlatformMock.mockReturnValue(true);
   useCurrentOrgMock.mockReturnValue({
     org: orgA,
@@ -139,15 +149,46 @@ describe('Header', () => {
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
   });
 
-  it('does not render the command palette trigger on mobile', () => {
+  it('renders the icon trigger on mobile', () => {
     mockViewport('mobile');
 
     renderHeader();
 
     expect(
-      screen.queryByLabelText('Open command palette'),
+      screen.getByRole('button', { name: 'Open command palette' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText('Search or navigate to...'),
     ).not.toBeInTheDocument();
   });
+
+  it('renders the navigation sheet trigger on mobile organization pages', () => {
+    mockViewport('mobile');
+
+    renderHeader();
+
+    expect(
+      screen.getByRole('button', { name: 'Open navigation' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText('Dashboard')).not.toBeInTheDocument();
+  });
+
+  it.each(['/account', '/support/ticket', '/orgs/verify'])(
+    'keeps the logo instead of the navigation sheet on mobile at %s',
+    (path) => {
+      mockViewport('mobile');
+      router.query = {};
+      router.pathname = path;
+      router.asPath = path;
+
+      renderHeader();
+
+      expect(
+        screen.queryByRole('button', { name: 'Open navigation' }),
+      ).not.toBeInTheDocument();
+      expect(screen.getByLabelText('Dashboard')).toHaveAttribute('href', '/');
+    },
+  );
 
   it('opens help and support resources from the header', async () => {
     const user = new TestUserEvent();

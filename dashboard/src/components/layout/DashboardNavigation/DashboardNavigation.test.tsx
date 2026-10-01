@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
 import { vi } from 'vitest';
-import AppSidebar from '@/components/layout/AppSidebar/AppSidebar';
+import DashboardNavigation from '@/components/layout/DashboardNavigation/DashboardNavigation';
 import { mockRouter } from '@/tests/mocks';
 import { render, screen } from '@/tests/testUtils';
 
@@ -36,14 +36,14 @@ afterEach(() => {
   window.localStorage.removeItem('dashboard-sidebar-collapsed');
 });
 
-describe('AppSidebar', () => {
+describe('DashboardNavigation', () => {
   describe('organization routes', () => {
     it('renders organization links from the current org slug', () => {
       mockRoute('/orgs/[orgSlug]/projects', '/orgs/nhost/projects', {
         orgSlug: 'nhost',
       });
 
-      render(<AppSidebar />);
+      render(<DashboardNavigation />);
 
       expect(
         screen.getByRole('navigation', { name: 'Organization navigation' }),
@@ -73,7 +73,7 @@ describe('AppSidebar', () => {
         { orgSlug: 'nhost' },
       );
 
-      render(<AppSidebar />);
+      render(<DashboardNavigation />);
 
       expect(screen.getByRole('link', { name: 'General' })).toHaveAttribute(
         'aria-current',
@@ -89,7 +89,7 @@ describe('AppSidebar', () => {
         orgSlug: 'nhost',
       });
 
-      render(<AppSidebar />);
+      render(<DashboardNavigation />);
 
       expect(
         screen.getByRole('navigation', { name: 'Organization navigation' }),
@@ -104,7 +104,7 @@ describe('AppSidebar', () => {
     it('falls back to the path while router query params are not ready', () => {
       mockRoute('/orgs/[orgSlug]/projects/new', '/orgs/nhost/projects/new');
 
-      render(<AppSidebar />);
+      render(<DashboardNavigation />);
 
       expect(screen.getByRole('link', { name: 'Projects' })).toHaveAttribute(
         'href',
@@ -123,7 +123,7 @@ describe('AppSidebar', () => {
         projectQuery,
       );
 
-      render(<AppSidebar />);
+      render(<DashboardNavigation />);
 
       expect(
         screen.getByRole('navigation', { name: 'Project navigation' }),
@@ -154,7 +154,7 @@ describe('AppSidebar', () => {
         projectQuery,
       );
 
-      render(<AppSidebar />);
+      render(<DashboardNavigation />);
 
       expect(screen.getByRole('link', { name: 'GraphQL' })).toHaveAttribute(
         'aria-current',
@@ -172,7 +172,7 @@ describe('AppSidebar', () => {
         projectQuery,
       );
 
-      render(<AppSidebar />);
+      render(<DashboardNavigation />);
 
       expect(screen.getByRole('link', { name: 'Database' })).toHaveAttribute(
         'aria-current',
@@ -187,7 +187,7 @@ describe('AppSidebar', () => {
         projectQuery,
       );
 
-      render(<AppSidebar />);
+      render(<DashboardNavigation />);
 
       expect(screen.getByRole('link', { name: 'Storage' })).toHaveAttribute(
         'aria-current',
@@ -202,7 +202,7 @@ describe('AppSidebar', () => {
         projectQuery,
       );
 
-      render(<AppSidebar />);
+      render(<DashboardNavigation />);
 
       expect(screen.getByRole('link', { name: 'Functions' })).toHaveAttribute(
         'aria-current',
@@ -217,7 +217,7 @@ describe('AppSidebar', () => {
         projectQuery,
       );
 
-      render(<AppSidebar />);
+      render(<DashboardNavigation />);
 
       expect(screen.getByRole('link', { name: 'Run' })).toHaveAttribute(
         'aria-current',
@@ -241,7 +241,7 @@ describe('AppSidebar', () => {
         projectQuery,
       );
 
-      render(<AppSidebar />);
+      render(<DashboardNavigation />);
 
       expect(screen.getAllByRole('link', { current: 'page' })).toEqual([
         screen.getByRole('link', { name: 'Deployments' }),
@@ -258,7 +258,7 @@ describe('AppSidebar', () => {
         projectQuery,
       );
 
-      render(<AppSidebar />);
+      render(<DashboardNavigation />);
 
       expect(screen.getAllByRole('link', { current: 'page' })).toEqual([
         screen.getByRole('link', { name: 'Metrics' }),
@@ -275,7 +275,7 @@ describe('AppSidebar', () => {
         projectQuery,
       );
 
-      render(<AppSidebar />);
+      render(<DashboardNavigation />);
 
       expect(screen.getAllByRole('link', { current: 'page' })).toEqual([
         screen.getByRole('link', { name: 'AI' }),
@@ -291,7 +291,7 @@ describe('AppSidebar', () => {
         '/orgs/nhost/projects/dashboard/ai/file-stores',
       );
 
-      render(<AppSidebar />);
+      render(<DashboardNavigation />);
 
       expect(screen.getByRole('link', { name: 'AI' })).toHaveAttribute(
         'href',
@@ -312,7 +312,7 @@ describe('AppSidebar', () => {
         projectQuery,
       );
 
-      render(<AppSidebar />);
+      render(<DashboardNavigation />);
 
       expect(screen.queryByRole('link', { name: 'AI' })).toBeNull();
       expect(
@@ -335,7 +335,7 @@ describe('AppSidebar', () => {
         projectQuery,
       );
 
-      render(<AppSidebar />);
+      render(<DashboardNavigation />);
 
       const deployments = screen.getByRole('link', { name: 'Deployments' });
       expect(deployments).toHaveAttribute(
@@ -353,7 +353,7 @@ describe('AppSidebar', () => {
         projectQuery,
       );
 
-      render(<AppSidebar />);
+      render(<DashboardNavigation />);
 
       const metrics = screen.getByRole('link', { name: 'Metrics' });
       expect(metrics).toHaveAttribute(

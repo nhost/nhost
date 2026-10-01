@@ -62,12 +62,15 @@ beforeAll(async () => {
   server.listen({ onUnhandledRequest: 'error' });
   // Load the dynamically imported sidebar up front, so the test waits on React
   // rather than on the module's first transform.
-  await import('@/components/layout/AppSidebar');
+  await import('@/components/layout/DashboardSidebar');
 });
 
 beforeEach(() => {
   vi.stubEnv('NEXT_PUBLIC_NHOST_PLATFORM', 'true');
-  window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
+  window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+    ...mockMatchMediaValue(query),
+    matches: true,
+  }));
   vi.mocked(useRouter).mockReturnValue({
     ...mockRouter,
     pathname: '/orgs/[orgSlug]/projects',
@@ -101,14 +104,14 @@ describe('AppLayout', () => {
     // Absent from the first render, so the prerendered HTML never contains a
     // sidebar whose collapsed state hydration would leave stale.
     expect(
-      screen.queryByRole('complementary', { name: 'Organization navigation' }),
+      screen.queryByRole('navigation', { name: 'Organization navigation' }),
     ).not.toBeInTheDocument();
 
-    expect(
-      await screen.findByRole('complementary', {
-        name: 'Organization navigation',
-      }),
-    ).toHaveClass('w-[72px]');
+    const navigation = await screen.findByRole('navigation', {
+      name: 'Organization navigation',
+    });
+
+    expect(navigation.closest('aside')).toHaveClass('w-[72px]');
     expect(
       screen.getByRole('button', { name: 'Expand sidebar' }),
     ).toHaveAttribute('aria-pressed', 'true');
