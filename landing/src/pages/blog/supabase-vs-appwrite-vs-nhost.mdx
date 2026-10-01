@@ -32,9 +32,9 @@ I work at Nhost, but I've tried to keep this as neutral as possible by running t
 
 **Supabase** is a better fit for developers who want PostgreSQL at the core of their backend. It's ideal for people who are comfortable with SQL and relational databases and want more direct control over their data and database architecture.
 
-**Appwrite** is the better fit for developers who prefer a more traditional backend-as-a-service (BaaS) experience: you work through SDKs and APIs, on a platform that abstracts away most of the infrastructure and database details.
+**Appwrite** is the better fit for developers who prefer a more traditional backend-as-a-service experience: you work through SDKs and APIs, on a platform that abstracts away most of the infrastructure and database details.
 
-**Nhost** suits teams who want Postgres they own, a GraphQL API generated on top of it, and access rules enforced at the data layer rather than scattered across application code. That last part matters even more in agentic workflows: whether the request comes from a human, an application, or an AI agent, the same authorization rules determine what data can be accessed.
+**Nhost** suits teams who want Postgres they own, a GraphQL API generated on top of it, and access rules enforced at the data layer rather than scattered across application code. With AI agents this gets even more important: it doesn't matter who sends the request (a person, an app, or an agent). The same permission rules apply.
 
 ## Supabase vs Appwrite vs Nhost Overview
 
@@ -69,7 +69,7 @@ Auth / Storage               |                       |
 
 **Appwrite** is an API layer with storage engines behind it. Requests go to Appwrite, which resolves them against TablesDB, DocumentsDB or VectorsDB. Permissions are grants attached to tables and rows, enforced by Appwrite on the way through. Since 2.0 you can also provision a standalone Postgres or MySQL and point a driver at it directly, which skips both the API and the permissions.
 
-**Nhost** is Postgres with a GraphQL API generated from the schema. One endpoint serves queries, mutations and subscriptions, and the client introspects the types. Permissions are per-role rules stored as metadata rather than SQL, and Auth, Storage and Functions read the same session variables, so one rule covers a query, a subscription and a file download.
+**Nhost** is Postgres plus a GraphQL API generated from your schema, with permissions checked on every request. That makes it a good backend for AI apps: assistants and vector search are built in, and an agent can't see more than the user it works for.
 
 ![Supabase, Appwrite and Nhost dashboards side by side.](/images/blog/supabase-vs-appwrite/dashboard-comparison.png)
 
