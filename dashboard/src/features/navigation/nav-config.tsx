@@ -70,7 +70,7 @@ export const projectPages = definePages([
   {
     name: 'Functions',
     icon: <Code className="h-4 w-4" />,
-    route: 'functions',
+    route: 'functions/browser',
     slug: 'functions',
   },
   {
@@ -202,6 +202,20 @@ export const projectAuthPages = definePages([
   },
 ]);
 
+export const projectFunctionsPages = definePages([
+  {
+    name: 'Functions',
+    slug: 'functions',
+    route: 'functions/browser',
+  },
+  {
+    name: 'Settings',
+    slug: 'settings',
+    route: 'functions/settings',
+    gate: 'settings',
+  },
+]);
+
 export const projectStoragePages = definePages([
   {
     name: 'Storage',
@@ -296,5 +310,6 @@ export const projectSubPagesBySlug = {
   events: projectEventsPages,
   auth: projectAuthPages,
   storage: projectStoragePages,
+  functions: projectFunctionsPages,
   ai: projectAIPages,
 } satisfies Partial<Record<ProjectPage['slug'], ReadonlyArray<PageEntry>>>;
