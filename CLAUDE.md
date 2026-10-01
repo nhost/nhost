@@ -47,6 +47,13 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 - `examples/tutorials/` - full tutorials (Next.js, Vue, React Native)
 - `examples/docker-compose/` - self-hosting reference
 
+### Starter Templates (`templates/`)
+
+- What `nhost init --template <name>` scaffolds. A template is one directory whose top-level entries are laid over the project root, next to the `nhost/` folder `init` writes. The exception is `ui/`, which holds the alternative `--ui` component sets and is overlaid onto `frontend/src/components/ui` rather than copied to the root. There is no backend half, so a template must work against the plain backend with at most a `nhost.toml` change
+- Compiled into the CLI by `templates/embed.go`, which names each top-level entry explicitly because a template a developer ran `pnpm install` in has a `node_modules`. `templates/embed_test.go` fails on an entry present on disk but missing from the directives
+- Each template's `frontend/` sits outside the pnpm workspace with its own lockfile and Biome config, so it resolves package versions the way a user's scaffolded project does. Run `pnpm install` from inside it, never with `--ignore-workspace`
+- The catalogue lives in `cli/cmd/project/template.go`. `templates/README.md` is the maintainer doc: invariants, the CI guards, and how to add a template
+
 ### Build System (`build/`)
 
 - `build/makefiles/general.makefile` - shared Makefile targets (help, develop, check, build, build-docker-image, dev-env-up/down)

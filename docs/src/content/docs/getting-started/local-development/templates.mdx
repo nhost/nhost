@@ -1,0 +1,201 @@
+---
+title: Start from a template
+description: "Scaffold a frontend next to your Nhost backend with nhost init --template. The nextjs starter offers password, magic link, email code and OAuth sign-in, a shared session and a protected route."
+keywords: ["template", "starter", "scaffold", "nhost init", "Next.js", "shadcn/ui", "authentication", "CLI"]
+head:
+  - tag: title
+    content: "Start From a Template | Nhost Docs"
+sidebar:
+  label: Starter Templates
+---
+import { Card, CardGroup } from '@components';
+
+`nhost init --template` writes a working frontend next to the backend `nhost init` already scaffolds, so a new project can sign people in on the first run.
+
+Templates are compiled into the CLI binary. Nothing is fetched at init time, and a given CLI version always scaffolds the template it shipped with.
+
+## 1. Scaffold the project
+
+In an empty directory:
+
+```sh
+nhost init --template nextjs
+```
+
+Leave the name out and the CLI asks, in four steps: the template, its UI system, its package manager, and which sign-in methods to scaffold.
+
+```sh
+nhost init --template
+```
+
+Arrow keys move and enter accepts; on the sign-in methods, space toggles one on or off and at least one has to stay on. Each step opens on its default.
+
+Either way you get the usual backend plus a `frontend/` directory and the context files an AI assistant reads:
+
+```sh
+.
+├─ 📁 .claude          # Skills for this project, like removing a sign-in method
+├─ 📁 frontend         # The app, with its own package.json
+├─ 📁 functions        # Serverless functions (Node.js / TypeScript)
+├─ 📁 nhost            # Project & backend configuration
+├─ AGENTS.md           # What an assistant should know about this project
+├─ CLAUDE.md
+└─ SKILLS.md
+```
+
+The CLI installs nothing: `init` has never run a package manager, and the next steps it prints say what to run.
+
+### Choosing sign-in methods
+
+A template ships four sign-in methods and scaffolds the ones you ask for. Naming a template outright skips the question, so pass `--auth-methods` to choose without being asked:
+
+```sh
+nhost init --template nextjs --auth-methods password,magic-link
+```
+
+The default is email and password, the only method a stock backend already has switched on. That is also what you get when the command cannot ask, such as in a script or CI, where no prompt is shown at all.
+
+What you leave out is never written: its directory under `frontend/src/app/auth/` is not created and it is not listed in `frontend/src/app/signin/methods.ts`. Adding one afterwards means scaffolding into an empty directory again and copying it across, so it is worth naming them all up front if you are unsure.
+
+The flag also reads `NHOST_AUTH_METHODS`, and only applies alongside `--template`.
+
+### Choosing a UI system
+
+`--ui` picks what `frontend/src/components/ui/` is built from:
+
+```sh
+nhost init --template nextjs --ui none
+```
+
+| `--ui` | what you get |
+| --- | --- |
+| `none` | the components as plain Tailwind, with no UI dependencies. The default. |
+| `shadcn` | the same components from shadcn/ui, on Radix primitives. |
+
+Both offer the same modules with the same props, and nothing in the app imports past that directory, so the choice changes those files and nothing else. You can start on `none` and adopt shadcn/ui later with its own CLI, since the component paths are the ones it expects.
+
+`none` leaves `@radix-ui/react-label`, `@radix-ui/react-slot` and `class-variance-authority` out of `package.json`, and with them the lockfile the template ships, which no longer describes the project once its dependencies change. Your first install writes one that does.
+
+Like `--auth-methods`, it reads an environment variable, `NHOST_UI`, and only applies alongside `--template`.
+
+### Choosing a package manager
+
+`--package-manager` sets up the frontend for the manager you use:
+
+```sh
+nhost init --template nextjs --package-manager bun
+```
+
+| `--package-manager` | installs with | runs a script with |
+| --- | --- | --- |
+| `pnpm` | `pnpm install` | `pnpm dev`. The default. |
+| `bun` | `bun install` | `bun dev` |
+| `yarn` | `yarn` | `yarn dev` |
+| `npm` | `npm install` | `npm run dev` |
+
+Every command in the scaffolded `README.md` and agent-context files is written for the manager you picked, so nothing tells you to run something you do not have. Anything but `pnpm` also leaves out `pnpm-lock.yaml` and `pnpm-workspace.yaml`: a lockfile for a manager you are not using is worse than none, because it looks current. Your first install writes the lockfile your manager does use.
+
+It reads `NHOST_PACKAGE_MANAGER`, and only applies alongside `--template`.
+
+## 2. Run it
+
+```sh
+nhost up
+cd frontend
+pnpm install
+pnpm dev
+```
+
+The app is on `http://localhost:3000` and the backend is the local stack, so no environment variables are needed to start. Every email the backend sends locally lands in the mailbox at [https://local.mailhog.local.nhost.run](https://local.mailhog.local.nhost.run), which is where sign-in links, verification links and one-time codes turn up.
+
+## 3. Sign in
+
+The `nextjs` starter offers four methods. Each one is a single directory under `frontend/src/app/auth/` plus one line in `frontend/src/app/signin/methods.ts`, and nothing else in the app knows a method exists. That is what lets `--auth-methods` leave one out, and what lets you delete one afterwards.
+
+| Method | Directory | What the backend needs |
+| --- | --- | --- |
+| [Email and password](/products/auth/sign-in-email-password) | `auth/password/` | on by default |
+| [Magic link](/products/auth/sign-in-magic-link) | `auth/magic-link/` | `auth.method.emailPasswordless.enabled` |
+| [Email code](/products/auth/otp/email) | `auth/otp/` | `auth.method.otp.email.enabled` |
+| [GitHub or Google](/products/auth/providers/sign-in-provider) | `auth/oauth/` | a provider section and a secret |
+
+Scaffolding into an empty directory enables whichever of magic link and email code you asked for, because both are off in a stock backend and would otherwise fail on first run. The default selection asks for neither, so it writes no configuration at all. Password sign-up sends a verification email first: the account works once the link in it is opened, which is the backend's default and is deliberately left alone.
+
+Adding a template to a backend that already exists never rewrites its configuration. There the CLI names the methods to switch on yourself, and the table above says which setting each one needs.
+
+OAuth needs an app registered with the provider, so it is the one method that is off until you supply credentials. The callback URL for the local stack is `https://local.auth.local.nhost.run/v1/signin/provider/github/callback`, with `github` swapped for the provider you are setting up. Add the section to `nhost/nhost.toml`:
+
+```toml
+[auth.method.oauth.github]
+enabled = true
+clientId = "..."
+clientSecret = "{{ secrets.GITHUB_CLIENT_SECRET }}"
+```
+
+and the matching `GITHUB_CLIENT_SECRET=...` line to `.secrets`. Restart `nhost up` after changing either file.
+
+## 4. Keep only the methods you want
+
+Removing a method you scaffolded is two deletions, in either order:
+
+1. Delete its directory under `frontend/src/app/auth/`.
+2. Delete its line in `frontend/src/app/signin/methods.ts`.
+
+Then `pnpm build`, which type-checks the whole app and proves the rest still stands. Nothing outside a method's directory imports from it and the sign-in page reads only `methods.ts`, so there is nothing else to find. CI removes each method this way on every pull request, so a shared file that grows an import from one fails there rather than on your machine.
+
+## Add a frontend to an existing project
+
+Run the same command in a project that already has a `nhost/` folder. The CLI writes `frontend/`, plus whichever of `AGENTS.md`, `CLAUDE.md`, `SKILLS.md` and `.claude/` the project does not already have:
+
+```sh
+nhost init --template nextjs
+```
+
+Your configuration is left exactly as it is, which means the methods a fresh init would have enabled are yours to turn on. `frontend/README.md` lists them.
+
+An agent-context file or directory you already have is kept, and the CLI names the ones it skipped. To use the template's copy, scaffold into an empty directory and merge what you want by hand. An existing `frontend/` is different: the CLI refuses before writing anything, so a refusal leaves the directory as it was. Move it aside and run the command again.
+
+`--template` works with `--remote` too. The backend comes from the linked project, so its configuration is pulled rather than generated and no auth method is enabled on your behalf.
+
+## Where the session lives
+
+The session is a cookie, written by the proxy in `frontend/src/proxy.ts` and read by both server code and the browser client. The proxy is the only thing that refreshes the access token, and the browser client is built without the SDK's auto-refresh middleware for that reason: refresh tokens are single-use, so two refreshers race and the loser's failure deletes the session. Keep it that way.
+
+The proxy also redeems the `refreshToken` an auth email or an OAuth callback leaves on the URL, and only for a signed-out visitor: a link may sign someone in, it may not replace whoever is already signed in. Either way the token is stripped from the URL and the visitor is redirected to a clean one, because a refresh token the proxy declined is still a live credential if it stays in browser history.
+
+`frontend/src/app/protected/page.tsx` is the one page behind the session. The proxy is what turns a signed-out visitor away from it, carrying where they were going in a `?next=` parameter so they land there after signing in rather than on the home page. The page keeps its own guard for anything that reaches it another way.
+
+## Deploy the frontend
+
+Next.js inlines `NEXT_PUBLIC_*` variables at build time, so set these before `next build` rather than on the running host:
+
+```sh
+NEXT_PUBLIC_NHOST_SUBDOMAIN=<your subdomain>
+NEXT_PUBLIC_NHOST_REGION=<your region>
+NEXT_PUBLIC_APP_ORIGIN=https://your.app
+```
+
+`NEXT_PUBLIC_APP_ORIGIN` is where auth emails send people back to, so keep it in the backend's [`auth.redirections.allowedUrls`](/products/auth/client_and_redirect_urls). A build that leaves these unset permanently targets the local stack.
+
+## Available templates
+
+| Name | Stack | What it shows |
+| --- | --- | --- |
+| `nextjs` | Next.js (App Router), Tailwind v4, shadcn/ui or plain Tailwind | The sign-in methods you choose, a session shared by server and browser, one protected route. No database schema. |
+
+There is no schema to undo: the app uses only the `auth.users` table the backend ships with, so the first table you create is your own.
+
+<CardGroup cols={2}>
+  <Card title="Nhost CLI" icon="terminal" href="/getting-started/local-development/cli">
+    Install the CLI and run the backend locally
+  </Card>
+  <Card title="CLI Reference" icon="terminal" href="/reference/cli/commands">
+    Every command and flag, including `init --template`
+  </Card>
+  <Card title="Authentication" icon="lock" href="/products/auth">
+    Configure sign-in methods, JWTs and user management
+  </Card>
+  <Card title="Local Development" icon="laptop-code" href="/platform/cli/local-development">
+    Migrations, metadata and deploying to Nhost
+  </Card>
+</CardGroup>
