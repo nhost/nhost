@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/project"
 	"github.com/nhost/nhost/cli/project/env"
@@ -40,10 +41,20 @@ func commandDefault(_ context.Context, cmd *cli.Command) error {
 	return nil
 }
 
-func InitConfigAndSecrets(ce *clienv.CliEnv) error {
+// InitConfigAndSecrets writes the default nhost.toml and .secrets. Each
+// configure function is applied to the default config before it is written,
+// which is how a starter template gets the settings it needs on first run.
+func InitConfigAndSecrets(
+	ce *clienv.CliEnv,
+	configure ...func(*model.ConfigConfig),
+) error {
 	config, err := project.DefaultConfig()
 	if err != nil {
 		return fmt.Errorf("failed to create default config: %w", err)
+	}
+
+	for _, f := range configure {
+		f(config)
 	}
 
 	if err := clienv.MarshalFile(config, ce.Path.NhostToml(), toml.Marshal); err != nil {

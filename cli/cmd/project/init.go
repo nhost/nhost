@@ -26,12 +26,27 @@ const (
 var embeddedFS embed.FS
 
 func writeFS(srcFS fs.FS, srcRoot, dstRoot string) error {
+	return writeFSExcept(srcFS, srcRoot, dstRoot, nil)
+}
+
+// writeFSExcept copies a tree, leaving out the source paths named in skip
+// along with everything under them. Paths in skip are as they appear in srcFS,
+// so they are slash-separated whatever the host.
+func writeFSExcept(srcFS fs.FS, srcRoot, dstRoot string, skip map[string]bool) error {
 	return fs.WalkDir( //nolint:wrapcheck
 		srcFS,
 		srcRoot,
 		func(p string, d fs.DirEntry, err error) error {
 			if err != nil {
 				return fmt.Errorf("failed to walk %s: %w", p, err)
+			}
+
+			if skip[p] {
+				if d.IsDir() {
+					return fs.SkipDir
+				}
+
+				return nil
 			}
 
 			rel, err := filepath.Rel(srcRoot, p)
@@ -93,6 +108,24 @@ func CommandInit() *cli.Command {
 				Usage: "Add a starter frontend next to the backend. `NAME` picks one; a bare --template lists them",
 				Value: tv,
 			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:    flagAuthMethods,
+				Usage:   authMethodsUsage(),
+				Value:   defaultAuthMethods,
+				Sources: cli.EnvVars("NHOST_AUTH_METHODS"),
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:    flagUI,
+				Usage:   uiUsage(),
+				Value:   defaultUI,
+				Sources: cli.EnvVars("NHOST_UI"),
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:    flagPackageManager,
+				Usage:   packageManagerUsage(),
+				Value:   defaultPackageManager,
+				Sources: cli.EnvVars("NHOST_PACKAGE_MANAGER"),
+			},
 		},
 	}
 }
@@ -102,12 +135,33 @@ func commandInit(ctx context.Context, cmd *cli.Command, tv *templateValue) error
 
 	// Everything that can refuse runs before anything is written, so a typo
 	// or a cancelled picker leaves the directory as it was.
-	template, err := resolveTemplate(ce, cmd, tv)
+	template, asked, err := resolveTemplate(ce, cmd, tv)
 	if err != nil {
 		return err
 	}
 
-	if clienv.PathExists(ce.Path.NhostFolder()) {
+	// The order these run in is the order the questions are asked: what to
+	// build it with before what it does, since the stack is the decision the
+	// rest sit inside.
+	ui, err := resolveUISystem(ce, cmd, template, asked)
+	if err != nil {
+		return err
+	}
+
+	pm, err := resolvePackageManager(ce, cmd, template, asked)
+	if err != nil {
+		return err
+	}
+
+	methods, err := resolveAuthMethods(ce, cmd, template, asked)
+	if err != nil {
+		return err
+	}
+
+	// The same predicate the hard fail used, so --nhost-folder is honoured.
+	hasBackend := clienv.PathExists(ce.Path.NhostFolder())
+
+	if hasBackend && template == "" {
 		return errors.New("nhost folder already exists") //nolint:err113
 	}
 
@@ -118,24 +172,16 @@ func commandInit(ctx context.Context, cmd *cli.Command, tv *templateValue) error
 		}
 	}
 
-	if err := os.MkdirAll(ce.Path.NhostFolder(), 0o755); err != nil { //nolint:mnd
-		return fmt.Errorf("failed to create nhost folder: %w", err)
-	}
+	configures := writesAuthConfig(hasBackend, cmd.Bool(flagRemote))
 
-	ce.Infoln("Initializing Nhost project")
-
-	if err := config.InitConfigAndSecrets(ce); err != nil {
-		return fmt.Errorf("failed to initialize configuration: %w", err)
-	}
-
-	if cmd.Bool(flagRemote) {
-		if err := InitRemote(ctx, ce); err != nil {
-			return fmt.Errorf("failed to initialize remote project: %w", err)
-		}
-	} else {
-		if err := initProject(ce.Path); err != nil {
-			return fmt.Errorf("failed to initialize project: %w", err)
-		}
+	if hasBackend {
+		// An existing backend is left exactly as it is: no config is rewritten
+		// for the template, which is why the next steps name what to enable.
+		ce.Infoln("Found an existing Nhost project, adding only the %s template", template)
+	} else if err := initBackend(
+		ctx, ce, cmd, methods, configures,
+	); err != nil {
+		return err
 	}
 
 	if template == "" {
@@ -144,12 +190,65 @@ func commandInit(ctx context.Context, cmd *cli.Command, tv *templateValue) error
 		return nil
 	}
 
-	if err := writeTemplate(ce.Path, template, layout); err != nil {
+	if err := writeTemplate(
+		ce.Path, template, layout, methods, ui, pm,
+	); err != nil {
 		return err
 	}
 
 	printKeptEntries(ce, layout)
-	printTemplateNextSteps(ce, template)
+
+	printTemplateNextSteps(
+		ce, template, methodsToEnable(ce, methods, configures), pm,
+	)
+
+	return nil
+}
+
+// writesAuthConfig says whether init writes the settings the selected sign-in
+// methods need. It does only into the config it generates for a fresh local
+// backend: an existing backend's is left as it is, and --remote takes the
+// linked project's as it was pulled.
+func writesAuthConfig(hasBackend, remote bool) bool {
+	return !hasBackend && !remote
+}
+
+// initBackend writes a fresh backend: the nhost folder, its configuration and
+// secrets, and either the local layout or one pulled from the linked project.
+// configures says whether the selected methods' settings go into the config.
+func initBackend(
+	ctx context.Context,
+	ce *clienv.CliEnv,
+	cmd *cli.Command,
+	methods []signInMethod,
+	configures bool,
+) error {
+	if err := os.MkdirAll(ce.Path.NhostFolder(), 0o755); err != nil { //nolint:mnd
+		return fmt.Errorf("failed to create nhost folder: %w", err)
+	}
+
+	ce.Infoln("Initializing Nhost project")
+
+	var configure []func(*model.ConfigConfig)
+	if configures {
+		configure = authMethodConfigure(methods)
+	}
+
+	if err := config.InitConfigAndSecrets(ce, configure...); err != nil {
+		return fmt.Errorf("failed to initialize configuration: %w", err)
+	}
+
+	if cmd.Bool(flagRemote) {
+		if err := InitRemote(ctx, ce); err != nil {
+			return fmt.Errorf("failed to initialize remote project: %w", err)
+		}
+
+		return nil
+	}
+
+	if err := initProject(ce.Path); err != nil {
+		return fmt.Errorf("failed to initialize project: %w", err)
+	}
 
 	return nil
 }

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import NhostLogo from '@/components/NhostLogo';
 import SignOutButton from '@/components/SignOutButton';
 import { Button } from '@/components/ui/button';
 import { createNhostClient } from '@/lib/nhost/server';
@@ -12,8 +13,9 @@ export default async function Nav() {
       <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-3">
         <Link
           href="/"
-          className="font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex items-center gap-2 font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
+          <NhostLogo className="size-5" />
           Nhost
         </Link>
 

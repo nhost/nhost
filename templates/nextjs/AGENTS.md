@@ -6,8 +6,10 @@ It has two halves:
 - `nhost/` - the backend configuration. Migrations and metadata live here and
   are applied by `nhost up`. This template ships **none**: the app uses only
   the `auth.users` table the backend provides.
-- `frontend/` - a Next.js 16 (App Router) app with Tailwind v4 and shadcn/ui,
-  built around authentication. Read `frontend/README.md` first.
+- `frontend/` - a Next.js 16 (App Router) app with Tailwind v4, built around
+  authentication. Read `frontend/README.md` first. `src/components/ui/` holds
+  plain Tailwind modules the project owns, or the shadcn/ui versions of the
+  same API when it was scaffolded with `--ui shadcn`.
 
 ## Rules that are easy to break
 

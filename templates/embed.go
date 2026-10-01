@@ -25,4 +25,5 @@ import "embed"
 //go:embed nextjs/frontend/postcss.config.mjs nextjs/frontend/tsconfig.json
 //go:embed nextjs/frontend/vitest.config.ts
 //go:embed all:nextjs/frontend/src
+//go:embed all:nextjs/ui
 var FS embed.FS

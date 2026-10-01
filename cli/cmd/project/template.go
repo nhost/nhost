@@ -29,20 +29,18 @@ var (
 // folder init itself writes.
 type starterTemplate struct {
 	// name is the directory under templates/ and what --template takes.
-	name  string
+	name string
+	// label is what the picker shows, and it is the framework and nothing
+	// else. What the template scaffolds is the two questions after this one,
+	// so a gloss here would both answer them early and crowd the line.
 	label string
-	desc  string
 }
 
 // catalogue lists the templates the binary ships, in the order the picker
 // offers them. Adding one is an entry here and a directory under templates/.
 func catalogue() []starterTemplate {
 	return []starterTemplate{
-		{
-			name:  "nextjs",
-			label: "Next.js + shadcn/ui",
-			desc:  "App Router, Tailwind v4, every Nhost sign-in method side by side",
-		},
+		{name: "nextjs", label: "Next.js"},
 	}
 }
 
@@ -100,19 +98,24 @@ func (v *templateValue) IsBoolFlag() bool { return true }
 // resolveTemplate returns the template to lay down, or "" when --template was
 // not given. A bare --template asks with the picker; a name may follow the
 // flag either as --template=NAME or as the next word.
+//
+// The second return says the answer came from the picker, which is what tells
+// the caller there is a user here to ask the next question of.
 func resolveTemplate(
 	ce *clienv.CliEnv,
 	cmd *cli.Command,
 	tv *templateValue,
-) (string, error) {
+) (string, bool, error) {
 	args := cmd.Args().Slice()
 
 	if !tv.set {
 		if len(args) > 0 {
-			return "", fmt.Errorf("%w, got %q", errInitTakesNoArgs, strings.Join(args, " "))
+			return "", false, fmt.Errorf(
+				"%w, got %q", errInitTakesNoArgs, strings.Join(args, " "),
+			)
 		}
 
-		return "", nil
+		return "", false, nil
 	}
 
 	name := tv.name
@@ -121,20 +124,22 @@ func resolveTemplate(
 	}
 
 	if len(args) > 0 {
-		return "", fmt.Errorf("%w, got %q", errInitTakesNoArgs, strings.Join(args, " "))
+		return "", false, fmt.Errorf("%w, got %q", errInitTakesNoArgs, strings.Join(args, " "))
 	}
 
 	if name == "" {
-		return pickTemplate(ce)
+		picked, err := pickTemplate(ce)
+
+		return picked, err == nil, err
 	}
 
 	if _, ok := lookupTemplate(name); !ok {
-		return "", fmt.Errorf(
+		return "", false, fmt.Errorf(
 			"%w %q; available: %s", errUnknownTemplate, name, strings.Join(templateNames(), ", "),
 		)
 	}
 
-	return name, nil
+	return name, false, nil
 }
 
 // pickTemplate asks which template to use. In a terminal that is the arrow-key
@@ -145,7 +150,7 @@ func pickTemplate(ce *clienv.CliEnv) (string, error) {
 	items := make([]pickerItem, 0, len(cat))
 
 	for _, t := range cat {
-		items = append(items, pickerItem{Label: t.label, Desc: t.desc})
+		items = append(items, pickerItem{Label: t.label})
 	}
 
 	idx, err := promptPick(ce, "Template", items, 0)
@@ -158,6 +163,8 @@ func pickTemplate(ce *clienv.CliEnv) (string, error) {
 
 // templateEntries are the top-level entries a template lays over the project
 // root, which is also everything that can collide with what is already there.
+// The ui directory is not among them: it holds the template's alternative UI
+// systems, which are scaffolded into frontend/ rather than handed over whole.
 func templateEntries(name string) ([]string, error) {
 	entries, err := fs.ReadDir(templates.FS, name)
 	if err != nil {
@@ -165,7 +172,12 @@ func templateEntries(name string) ([]string, error) {
 	}
 
 	names := make([]string, 0, len(entries))
+
 	for _, e := range entries {
+		if e.Name() == uiDirPath {
+			continue
+		}
+
 		names = append(names, e.Name())
 	}
 
@@ -231,37 +243,244 @@ func planTemplate(
 	return layout, nil
 }
 
-// writeTemplate lays the entries the layout leaves to write over the project
-// root. If one fails it removes what it wrote, which planTemplate showed was
-// not there before, so a retry is not refused by a half-written frontend.
+// writeTemplate lays the template over the project root. If any step fails it
+// removes what it wrote, which planTemplate showed was not there before, so a
+// retry is not refused by a half-written frontend.
 func writeTemplate(
 	ps *clienv.PathStructure,
 	name string,
 	layout templateLayout,
+	methods []signInMethod,
+	ui uiSystem,
+	pm packageManager,
 ) error {
+	err := layTemplate(ps, name, layout, methods, ui, pm)
+	if err == nil {
+		return nil
+	}
+
 	for _, e := range layout.write {
-		err := writeFS(
-			templates.FS, path.Join(name, e), filepath.Join(ps.Root(), e),
-		)
-		if err == nil {
-			continue
+		dst := filepath.Join(ps.Root(), e)
+		if rmErr := os.RemoveAll(dst); rmErr != nil {
+			err = errors.Join(err, fmt.Errorf("removing %s: %w", dst, rmErr))
 		}
+	}
 
-		err = fmt.Errorf("writing template %s: %w", name, err)
+	return err
+}
 
-		for _, w := range layout.write {
-			dst := filepath.Join(ps.Root(), w)
-			if rmErr := os.RemoveAll(dst); rmErr != nil {
-				err = errors.Join(
-					err, fmt.Errorf("removing %s: %w", dst, rmErr),
-				)
-			}
-		}
+// layTemplate writes the entries the layout leaves to write, without the
+// sign-in methods that were not selected. A method is a directory under
+// authDirPath plus an entry in methods.ts and nothing else, so skipping the
+// directory and rewriting that one file is the whole of it - the same two steps
+// the template documents for removing a method by hand afterwards.
+func layTemplate(
+	ps *clienv.PathStructure,
+	name string,
+	layout templateLayout,
+	methods []signInMethod,
+	ui uiSystem,
+	pm packageManager,
+) error {
+	skip := unselectedAuthDirs(name, methods)
+	skip[path.Join(name, uiDirPath)] = true
 
+	for _, e := range layout.keep {
+		skip[path.Join(name, e)] = true
+	}
+
+	// A file belonging to a manager that was not chosen is never written,
+	// rather than written and removed. The same for one the UI system
+	// invalidates by changing the dependencies.
+	for _, d := range pm.drops {
+		skip[path.Join(name, d)] = true
+	}
+
+	for _, d := range ui.dropFiles {
+		skip[path.Join(name, d)] = true
+	}
+
+	if err := writeFSExcept(templates.FS, name, ps.Root(), skip); err != nil {
+		return fmt.Errorf("writing template %s: %w", name, err)
+	}
+
+	dst := filepath.Join(ps.Root(), filepath.FromSlash(methodsFilePath))
+	if err := os.WriteFile(dst, renderSignInMethods(methods), 0o600); err != nil { //nolint:mnd
+		return fmt.Errorf("writing %s: %w", dst, err)
+	}
+
+	if err := writeUISystem(ps, name, ui); err != nil {
 		return err
 	}
 
+	return retargetTemplateDocs(ps, name, pm, skip)
+}
+
+// retargetTemplateDocs rewrites the commands in every Markdown file the
+// template wrote, so a project scaffolded for one manager is never told to
+// run another. The files are found in the template rather than by walking the
+// project, and skip is what layTemplate left out, which keeps the rewrite to
+// what this command just wrote.
+func retargetTemplateDocs(
+	ps *clienv.PathStructure,
+	name string,
+	pm packageManager,
+	skip map[string]bool,
+) error {
+	if pm.name == defaultPackageManager {
+		return nil
+	}
+
+	return fs.WalkDir( //nolint:wrapcheck
+		templates.FS,
+		name,
+		func(p string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return fmt.Errorf("walking %s: %w", p, err)
+			}
+
+			if skip[p] {
+				if d.IsDir() {
+					return fs.SkipDir
+				}
+
+				return nil
+			}
+
+			if d.IsDir() || path.Ext(p) != ".md" {
+				return nil
+			}
+
+			rel, err := filepath.Rel(name, p)
+			if err != nil {
+				return fmt.Errorf("relative path for %s: %w", p, err)
+			}
+
+			// Built from the embedded filesystem's own walk, so every element of
+			// it is template content fixed at compile time rather than anything
+			// the caller supplies.
+			doc := filepath.Join(ps.Root(), rel)
+
+			data, err := os.ReadFile(doc)
+			if err != nil {
+				return fmt.Errorf("reading %s: %w", doc, err)
+			}
+
+			//nolint:mnd,gosec // 0o600 as everywhere here; doc is from the embedded FS
+			if err := os.WriteFile(doc, retargetDocs(data, pm), 0o600); err != nil {
+				return fmt.Errorf("writing %s: %w", doc, err)
+			}
+
+			return nil
+		},
+	)
+}
+
+// writeUISystem lays the chosen UI system's modules over the seam and takes the
+// dependencies it does not use out of the scaffolded package.json. The default
+// has neither an overlay nor anything to drop, because it is what frontend/
+// already holds.
+func writeUISystem(ps *clienv.PathStructure, name string, ui uiSystem) error {
+	if ui.overlay != "" {
+		src := path.Join(name, uiDirPath, ui.overlay)
+		dst := filepath.Join(ps.Root(), filepath.FromSlash(componentsUIPath))
+
+		if err := writeFS(templates.FS, src, dst); err != nil {
+			return fmt.Errorf("writing the %s UI system: %w", ui.name, err)
+		}
+	}
+
+	if len(ui.drops) == 0 {
+		return nil
+	}
+
+	pkg := filepath.Join(ps.Root(), "frontend", "package.json")
+
+	data, err := os.ReadFile(pkg)
+	if err != nil {
+		return fmt.Errorf("reading %s: %w", pkg, err)
+	}
+
+	trimmed, err := dropDependencies(data, ui.drops)
+	if err != nil {
+		return fmt.Errorf("adjusting %s for the %s UI system: %w", pkg, ui.name, err)
+	}
+
+	if err := os.WriteFile(pkg, trimmed, 0o600); err != nil { //nolint:mnd
+		return fmt.Errorf("writing %s: %w", pkg, err)
+	}
+
 	return nil
+}
+
+// unselectedAuthDirs are the method directories inside the embedded filesystem
+// that this selection leaves behind, as the paths writeFSExcept skips.
+func unselectedAuthDirs(name string, methods []signInMethod) map[string]bool {
+	selected := make(map[string]bool, len(methods))
+	for _, m := range methods {
+		selected[m.name] = true
+	}
+
+	skip := make(map[string]bool)
+
+	for _, m := range signInMethods() {
+		if !selected[m.name] {
+			skip[path.Join(name, authDirPath, m.name)] = true
+		}
+	}
+
+	return skip
+}
+
+// signInMethodsHeader is everything in methods.ts above the entries. The file
+// is generated rather than filtered because it is pure data with no imports by
+// design, so rendering it is exact where editing checked-in TypeScript from Go
+// would not be. TestRenderSignInMethodsMatchesTemplate holds this in step with
+// the copy the template ships.
+const signInMethodsHeader = `/**
+ * The sign-in methods this app offers, one line each.
+ *
+ * Every method is its own directory under ` + "`app/auth/`" + `, and nothing outside that
+ * directory imports from it. To drop a method: delete its directory, then
+ * delete its line here. That is the whole procedure - see README.md.
+ *
+ * This file has no imports on purpose: it is what lets the sign-in page list
+ * the methods without depending on any of them.
+ */
+export type SignInMethod = {
+  href: string;
+  title: string;
+  description: string;
+};
+
+export const methods: SignInMethod[] = [
+`
+
+// renderSignInMethods writes methods.ts for a selection, in catalogue order.
+func renderSignInMethods(methods []signInMethod) []byte {
+	var b strings.Builder
+
+	b.WriteString(signInMethodsHeader)
+
+	for _, m := range methods {
+		fmt.Fprintf(
+			&b,
+			"  {\n    href: '%s',\n    title: '%s',\n    description: '%s',\n  },\n",
+			tsQuote(m.href), tsQuote(m.title), tsQuote(m.description),
+		)
+	}
+
+	b.WriteString("];\n")
+
+	return []byte(b.String())
+}
+
+// tsQuote escapes what would otherwise end a single-quoted TypeScript string.
+// No catalogue entry needs it today; it is here so that one day adding a method
+// whose description carries an apostrophe does not emit a file that fails to
+// parse in the user's project rather than in CI.
+func tsQuote(s string) string {
+	return strings.NewReplacer(`\`, `\\`, `'`, `\'`).Replace(s)
 }
 
 // printKeptEntries names the agent-context entries the project already had,
@@ -280,13 +499,36 @@ func printKeptEntries(ce *clienv.CliEnv, layout templateLayout) {
 // printTemplateNextSteps says what to run now that the frontend is in place.
 // The CLI installs nothing itself: init has never run a package manager, and
 // that was the slowest and most failure-prone step of the command this
-// replaces. Every sign-in method is scaffolded, and a stock backend ships
-// magic link and the emailed code disabled, so their settings come first.
-func printTemplateNextSteps(ce *clienv.CliEnv, name string) {
+// replaces. toEnable are the selected sign-in methods the config leaves off,
+// which is possible only when init did not write it, and the line naming them
+// is skipped when there are none.
+func printTemplateNextSteps(
+	ce *clienv.CliEnv,
+	name string,
+	toEnable []string,
+	pm packageManager,
+) {
+	// A blank line between what just happened and what to do about it, so the
+	// next steps read as their own block rather than more progress output.
+	ce.Println("")
 	ce.Infoln("Added the %s template. Next:", name)
-	ce.Println("  For magic link and email code, set in nhost/nhost.toml:")
-	ce.Println("    auth.method.emailPasswordless.enabled = true")
-	ce.Println("    auth.method.otp.email.enabled = true")
-	ce.Println("  nhost up")
-	ce.Println("  cd frontend && pnpm install && pnpm dev")
+	ce.Println("")
+
+	if len(toEnable) > 0 {
+		ce.Println(
+			"  Enable %s in nhost/nhost.toml.", strings.Join(toEnable, " and "),
+		)
+		ce.Println("  frontend/README.md says which setting each one needs.")
+		ce.Println("")
+	}
+
+	// Split across two terminals because `nhost up` holds the first one, which
+	// is the step people are most often caught out by.
+	ce.Println("  Start the backend:")
+	ce.Println("    nhost up")
+	ce.Println("")
+	ce.Println("  Then, in another terminal, the frontend:")
+	ce.Println("    cd frontend")
+	ce.Println("    %s", pm.command("install"))
+	ce.Println("    %s", pm.command("dev"))
 }
