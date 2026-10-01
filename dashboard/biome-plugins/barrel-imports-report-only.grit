@@ -1,0 +1,24 @@
+language js
+
+pattern barrel_bypass($folder, $dir) {
+  $src where {
+    $src <: r"['\"]@/((?:.*/)?([^/]+))/([^/'\"]+)['\"]"($folder, $dir, $file),
+    $dir <: $file,
+    not $filename <: includes `$folder/`
+  }
+}
+
+or {
+  JsImportCombinedClause(source=$src),
+  JsImportNamespaceClause(source=$src),
+  JsExportFromClause(source=$src),
+  `import($src)`,
+  `vi.mock($src, $_)`,
+  `vi.mock($src)`,
+  `vi.importActual($src)`
+} as $node where {
+  $src <: barrel_bypass($folder, $dir),
+  not $node <: within `dynamic(() => import($_), $_)` ,
+  not $node <: within `dynamic(() => import($_))` ,
+  register_diagnostic(span=$src, message="Import through the folder's barrel (index.ts) instead of reaching into it.")
+}

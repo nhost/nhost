@@ -1,6 +1,12 @@
 {
   "root": false,
   "extends": "//",
+  "plugins": [
+    "./biome-plugins/barrel-imports-default-import.grit",
+    "./biome-plugins/barrel-imports-named-import.grit",
+    "./biome-plugins/barrel-imports-report-only.grit",
+    "./biome-plugins/test-sibling-imports.grit"
+  ],
   "linter": {
     "enabled": true,
     "rules": {

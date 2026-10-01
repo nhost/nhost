@@ -1,0 +1,14 @@
+language js
+
+or {
+  JsModuleSource() as $src,
+  `import($src)`,
+  `vi.mock($src, $_)`,
+  `vi.mock($src)`,
+  `vi.importActual($src)`
+} where {
+  $filename <: r".*\.(?:test|spec)\.tsx?",
+  $src <: r"['\"]@/([^'\"]+)['\"]"($spec),
+  $filename <: includes `$spec/`,
+  register_diagnostic(span=$src, message="Tests are siblings: import the file (./Foo), not the folder's own barrel.")
+}

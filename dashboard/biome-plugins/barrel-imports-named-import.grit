@@ -1,0 +1,18 @@
+language js
+
+pattern barrel_bypass($folder, $dir) {
+  $src where {
+    $src <: r"['\"]@/((?:.*/)?([^/]+))/([^/'\"]+)['\"]"($folder, $dir, $file),
+    $dir <: $file,
+    not $filename <: includes `$folder/`
+  }
+}
+
+or {
+  JsImportNamedClause(source=$src),
+  JsExportNamedFromClause(source=$src)
+} as $clause where {
+  $src <: barrel_bypass($folder, $dir),
+  register_diagnostic(span=$src, message="Import through the folder's barrel (index.ts) instead of reaching into it."),
+  if (not $clause <: contains r"\bdefault\b") { $src => `'@/$folder'` }
+}
