@@ -1,0 +1,234 @@
+---
+name: "templates: check and build"
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/templates_checks.yaml"
+      - "templates/**"
+
+      # `nhost init`, which the `ui-system` job scaffolds with
+      - "cli/cmd/project/**"
+  merge_group:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ startsWith(github.event_name, 'pull_request') && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
+  cancel-in-progress: ${{ startsWith(github.event_name, 'pull_request') }}
+
+# This workflow runs `pnpm install` and `next build`, so it executes lifecycle
+# scripts straight out of the pull request. `pull_request` rather than
+# `pull_request_target` is what keeps that off the repository's secrets; this
+# pins the token down to match. Each checkout below also drops the credential
+# with `persist-credentials: false`, rather than leaving it in `.git/config`
+# where those same lifecycle scripts could read it off disk.
+permissions:
+  contents: read
+
+jobs:
+  detect-changes:
+    uses: ./.github/workflows/wf_detect_changes.yaml
+    with:
+      patterns: |
+        .github/workflows/templates_checks.yaml
+        templates/**
+        cli/cmd/project/**
+
+  frontend:
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        # Add a template here when it lands, or it ships unchecked.
+        # templates/check-ci-matrix.sh fails the build if this list misses one.
+        template: [nextjs]
+    defaults:
+      run:
+        working-directory: templates/${{ matrix.template }}/frontend
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # No `version:` input: the action resolves pnpm from the monorepo root
+      # `packageManager` field, and errors out if the two ever disagree.
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: templates/${{ matrix.template }}/frontend/pnpm-lock.yaml
+
+      # The template ships its own pnpm-workspace.yaml, so pnpm treats it as a
+      # standalone workspace root instead of a member of the monorepo.
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm lint
+
+      - run: pnpm test
+
+      - run: pnpm build
+
+  # The template's promise is that each sign-in method can be deleted on its
+  # own: remove its directory and its entry in methods.ts, and the rest still
+  # builds. This job does exactly that, once per method, so a shared file that
+  # grows an import from a method fails here instead of on a user's machine.
+  delete-method:
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        template: [nextjs]
+        # One entry per directory under frontend/src/app/auth/.
+        # templates/check-ci-matrix.sh fails the build if this list misses one.
+        method: [password, magic-link, otp, oauth]
+    defaults:
+      run:
+        working-directory: templates/${{ matrix.template }}/frontend
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: templates/${{ matrix.template }}/frontend/pnpm-lock.yaml
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Remove the ${{ matrix.method }} method the documented way
+        env:
+          METHOD: ${{ matrix.method }}
+        run: |
+          rm -r "src/app/auth/$METHOD"
+          node - <<'JS'
+          const fs = require('node:fs');
+
+          const path = 'src/app/signin/methods.ts';
+          const href = `/auth/${process.env.METHOD}`;
+          const source = fs.readFileSync(path, 'utf8');
+
+          // The entry is the object literal whose href is the method's route,
+          // exactly what the README tells a user to delete.
+          const entry = new RegExp(
+            String.raw`  \{\n    href: '${href.replace(/\//g, '\\/')}',[\s\S]*?\n  \},\n`,
+          );
+          const trimmed = source.replace(entry, '');
+
+          if (trimmed === source) {
+            console.error(`::error file=${path}::no entry with href ${href}`);
+            process.exit(1);
+          }
+
+          fs.writeFileSync(path, trimmed);
+          JS
+
+          # The directory is gone and so is the only reference the design
+          # allows. Anything else that names the method is a leak from shared
+          # code, which is the regression this job exists to catch.
+          if grep -rn "auth/$METHOD" src; then
+            echo "::error::shared code still references auth/$METHOD after the method was removed"
+            exit 1
+          fi
+
+      - run: pnpm lint
+
+      - run: pnpm build
+
+  # A UI system other than shadcn changes more than the modules behind the
+  # seam: `none` also drops dependencies from package.json, and the lockfile
+  # with them. Laying `ui/` over `frontend/` here would build against the full
+  # shadcn node_modules, so an import of a dropped package would pass CI and
+  # fail in every default scaffold. This job scaffolds with the CLI instead,
+  # outside the repository, and installs and builds exactly what a user gets.
+  # Every sign-in method is scaffolded so each page is built against the UI
+  # system; the `delete-method` job already proves any of them can go. The
+  # `shadcn` system needs no entry: it is what `frontend/` already is, and the
+  # `frontend` job builds it.
+  ui-system:
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        template: [nextjs]
+        # One entry per directory under `templates/<template>/ui/`.
+        # templates/check-ci-matrix.sh fails the build if this list misses one.
+        ui: [none]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: templates/${{ matrix.template }}/frontend/pnpm-lock.yaml
+
+      - name: Scaffold ${{ matrix.template }} with the ${{ matrix.ui }} UI
+        env:
+          TEMPLATE: ${{ matrix.template }}
+          UI: ${{ matrix.ui }}
+          SCAFFOLD: ${{ runner.temp }}/scaffold
+        run: |
+          go build -o "$RUNNER_TEMP/nhost" ./cli
+
+          methods=$(find "templates/$TEMPLATE/frontend/src/app/auth" \
+            -mindepth 1 -maxdepth 1 -type d -printf '%f\n' |
+            sort | paste -sd, -)
+
+          mkdir "$SCAFFOLD"
+          cd "$SCAFFOLD"
+          "$RUNNER_TEMP/nhost" init --template "$TEMPLATE" --ui "$UI" \
+            --auth-methods "$methods"
+
+      # What the CLI tells a user to run. CI makes pnpm install frozen when the
+      # scaffold ships a lockfile; without one it resolves the way a user's
+      # first install does.
+      - run: pnpm install
+        working-directory: ${{ runner.temp }}/scaffold/frontend
+
+      - run: pnpm lint
+        working-directory: ${{ runner.temp }}/scaffold/frontend
+
+      - run: pnpm test
+        working-directory: ${{ runner.temp }}/scaffold/frontend
+
+      - run: pnpm build
+        working-directory: ${{ runner.temp }}/scaffold/frontend
+
+  # Cross-template, and deliberately without a `working-directory` default:
+  # both guards walk every `templates/*/` from the repository root.
+  agent-context:
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Check the duplicated agent-context files for drift
+        run: ./templates/check-agent-context.sh
+
+      - name: Check the CI matrix builds every template
+        run: ./templates/check-ci-matrix.sh
