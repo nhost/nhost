@@ -15,7 +15,6 @@ import { SettingsArea } from '@/features/orgs/projects/common/components/setting
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useRunServices } from '@/features/orgs/projects/common/hooks/useRunServices';
 import { AuthDomain } from '@/features/orgs/projects/custom-domains/settings/components/AuthDomain';
-import { HasuraDomain } from '@/features/orgs/projects/custom-domains/settings/components/HasuraDomain';
 import { RunServiceDomains } from '@/features/orgs/projects/custom-domains/settings/components/RunServiceDomains';
 import { ServerlessFunctionsDomain } from '@/features/orgs/projects/custom-domains/settings/components/ServerlessFunctionsDomain';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
@@ -23,7 +22,6 @@ import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimi
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
   useGetAuthenticationSettingsQuery,
-  useGetHasuraSettingsQuery,
   useGetServerlessFunctionsSettingsQuery,
 } from '@/generated/graphql';
 
@@ -44,12 +42,6 @@ export default function CustomDomains() {
       ...clientProps,
     });
 
-  const { data: hasuraData, error: hasuraError } = useGetHasuraSettingsQuery({
-    variables: { appId: project?.id },
-    skip: isFreePlan || !project?.id,
-    ...clientProps,
-  });
-
   const { data: functionsData, error: functionsError } =
     useGetServerlessFunctionsSettingsQuery({
       variables: { appId: project?.id },
@@ -69,15 +61,14 @@ export default function CustomDomains() {
     );
   }
 
-  if (authError || hasuraError || functionsError) {
-    throw authError || hasuraError || functionsError;
+  if (authError || functionsError) {
+    throw authError || functionsError;
   }
 
   const isInitialLoading =
     loadingProject ||
     !project?.id ||
     !authData ||
-    !hasuraData ||
     !functionsData ||
     (loadingRunServices && services.length === 0);
 
@@ -94,7 +85,7 @@ export default function CustomDomains() {
       <SettingsCard>
         <SettingsCardHeader
           title="Custom Domains"
-          description="Add a custom domain to Auth, Hasura, Functions, and your Run services for only a $10 flat fee 🚀"
+          description="Add a custom domain to Auth, Functions, and your Run services for only a $10 flat fee 🚀"
         />
         <SettingsCardFooter>
           <SettingsDocsLink
@@ -105,7 +96,6 @@ export default function CustomDomains() {
       </SettingsCard>
 
       <AuthDomain />
-      <HasuraDomain />
       <ServerlessFunctionsDomain />
       <RunServiceDomains services={services} />
     </div>

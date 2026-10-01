@@ -1,6 +1,7 @@
 import { CircleHelpIcon, CircleUserIcon } from 'lucide-react';
 
 import { flattenTree } from '@/features/command-palette/lib/flatten';
+import { resolvePath } from '@/features/command-palette/lib/resolvePath';
 import { commandPaletteNavTree } from '@/features/command-palette/nav-tree';
 
 const allNodes = flattenTree(commandPaletteNavTree);
@@ -56,6 +57,9 @@ describe('commandPaletteNavTree', () => {
     expect(byId.get('project-graphql-metadata')?.breadcrumb).toEqual([
       'GraphQL',
     ]);
+    expect(byId.get('project-graphql-settings')?.breadcrumb).toEqual([
+      'GraphQL',
+    ]);
     expect(byId.get('project-database-settings')?.breadcrumb).toEqual([
       'Database',
     ]);
@@ -106,6 +110,54 @@ describe('commandPaletteNavTree', () => {
       gate: 'platform',
       keywords: expect.arrayContaining(['allowed cidrs']),
     });
+  });
+
+  it('routes GraphQL settings through the GraphQL section', () => {
+    const byId = new Map(allNodes.map((node) => [node.id, node]));
+
+    expect(byId.get('project-graphql-settings')).toMatchObject({
+      title: 'Settings',
+      path: 'graphql/settings',
+      gate: 'settings',
+      keywords: expect.arrayContaining(['graphql', 'settings']),
+    });
+    expect(byId.has('project-settings-hasura')).toBe(false);
+    expect(byId.has('project-hasura')).toBe(false);
+    expect(byId.get('project-graphql-console')).toMatchObject({
+      title: 'Console',
+      path: 'graphql/console',
+      keywords: expect.arrayContaining(['hasura']),
+    });
+    expect(byId.get('project-graphql-settings-engine')).toMatchObject({
+      title: 'GraphQL Engine',
+      path: 'graphql/settings?tab=engine',
+    });
+    expect(byId.get('project-graphql-settings-custom-domain')).toMatchObject({
+      title: 'GraphQL Custom Domain',
+      path: 'graphql/settings?tab=custom-domain',
+    });
+    expect(
+      byId.get('project-graphql-settings-custom-domain')?.gate,
+    ).toBeUndefined();
+  });
+
+  it.each([
+    ['playground', 'graphql'],
+    ['remote-schemas', 'graphql/remote-schemas'],
+    ['actions', 'graphql/actions'],
+    ['metadata', 'graphql/metadata'],
+    ['console', 'graphql/console'],
+    ['settings', 'graphql/settings'],
+    ['settings-engine', 'graphql/settings?tab=engine'],
+    ['settings-access-and-tooling', 'graphql/settings?tab=access-and-tooling'],
+    ['settings-custom-domain', 'graphql/settings?tab=custom-domain'],
+    ['settings-rate-limiting', 'graphql/settings?tab=rate-limiting'],
+  ])('resolves the GraphQL %s destination in project scope', (slug, path) => {
+    const node = allNodes.find((item) => item.id === `project-graphql-${slug}`);
+    expect(node).toBeDefined();
+    expect(
+      resolvePath(node!, { orgSlug: 'xyz', appSubdomain: 'test-project' }),
+    ).toBe(`/orgs/xyz/projects/test-project/${path}`);
   });
 
   it('lists the project settings tabs next to Project Settings', () => {
