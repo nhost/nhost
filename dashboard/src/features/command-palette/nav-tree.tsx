@@ -429,6 +429,10 @@ const subPageChildren: Record<
       ],
     },
   ),
+  metrics: toSubPageNodes(projectSubPagesBySlug.metrics, 'project-metrics', {
+    metrics: ['metrics', 'observability', 'monitoring'],
+    settings: ['metrics', 'settings', 'alerting', 'smtp'],
+  }),
   ai: toSubPageNodes(projectSubPagesBySlug.ai, 'project-ai', {
     'auto-embeddings': ['ai', 'embeddings'],
     assistants: ['ai', 'agents'],
@@ -452,10 +456,6 @@ const settingsPageMeta: Record<
     ],
   },
   ai: { keywords: ['settings', 'embeddings'] },
-  metrics: {
-    id: 'project-settings-observability',
-    keywords: ['settings', 'metrics', 'monitoring'],
-  },
 };
 
 // The project settings page's own `?tab=` entries.
@@ -548,7 +548,12 @@ const projectPageMeta: Record<
     gatePathOnly: true,
   },
   logs: { keywords: ['log entries'] },
-  metrics: { keywords: ['observability', 'monitoring'] },
+  // Off-platform only the Metrics page is unavailable; its settings are not.
+  metrics: {
+    keywords: ['observability', 'monitoring'],
+    children: subPageChildren.metrics,
+    gatePathOnly: true,
+  },
   settings: {
     title: 'Settings (Project)',
     keywords: ['configuration'],
