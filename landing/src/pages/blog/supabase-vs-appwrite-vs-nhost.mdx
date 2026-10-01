@@ -138,7 +138,7 @@ With **Nhost**, a relation is a foreign key plus a name. You write the constrain
 
 ### The API layer
 
-Same query, three very different APIs. In Supabase the join hides inside a string. In Appwrite a missing dollar sign breaks the query. In Nhost you describe the response you want, and that's exactly what comes back.
+Here's the same query on all three. Supabase wraps SQL in a chain of methods, Appwrite gives you SDK calls with query helpers, and Nhost gives you GraphQL, where you write the shape of the response yourself.
 
 **Supabase:**
 
@@ -177,7 +177,7 @@ const rows = await tablesDB.listRows({
 })
 ```
 
-Note the `$createdAt`. Appwrite gives every row `$id`, `$createdAt`, and `$updatedAt` for free, and the dollar sign is how you tell its own fields from yours. Miss the dollar sign and the query fails.
+Note the `$createdAt`. Appwrite adds `$id`, `$createdAt` and `$updatedAt` to every row on its own, and the dollar sign shows which fields belong to Appwrite.
 
 **Nhost:**
 
@@ -203,24 +203,20 @@ const resp = await nhost.graphql.request({
 console.log(resp.body.data?.posts)
 ```
 
-Three APIs, three shapes. Supabase gives you SQL behind a method chain. Appwrite gives you SDK methods that never pretend to be a database. Nhost gives you a query language: the caller decides the shape of the response, so `author { name }` returns exactly that and nothing else, and nesting one level further costs no extra round trip.
+`author { name }` follows the link from each post to its author and returns just the name, nested inside the post. Go one level deeper and it's still a single request.
 
-It's also the shape that machine callers handle best. A typed, introspectable schema is a contract an agent can read before it writes a query, rather than guessing at endpoint names and hoping the response contains what it needs.
+The schema is typed, so your editor can autocomplete fields and flag a wrong field name before you run anything. AI agents get the same help: they can read the schema first and see which tables and fields exist before they write a query.
 
 ## Auth
 
-All three have a solid provider list, MFA and OIDC, and all three can act as an identity provider for other applications. The differences are narrower than the marketing suggests.
+All three have a solid provider list, MFA and OIDC, and each can act as an identity provider for other applications.
 
-**Supabase** added passkeys in beta (WebAuthn, biometrics, device PIN, or a hardware key) and OAuth 2.1 authorization-server capabilities, so your project can issue tokens to third-party apps and MCP clients. Auth users live in a Postgres table, which means custom claims, triggers, and joins against your own tables are trivially available. It also means a badly written trigger on signup can break sign-ups entirely.
+**Supabase** added passkeys in beta (WebAuthn, biometrics, device PIN, or a hardware key) and OAuth 2.1 authorization-server capabilities, so your project can issue tokens to third-party apps and MCP clients. Auth users live in a Postgres table, which makes custom claims, triggers, and joins against your own tables easy. It also means a badly written trigger on signup can break sign-ups entirely.
 
-**Appwrite 2.0's** OAuth server made two notable choices:
-
-- You host the consent screen. Users approving access to your app never bounce to a page that looks like someone else's product.
-- Client registration is an API in the client SDKs, not a form in the console. Which is the difference between "we support OAuth" and "you can build a self-serve developer portal on this."
-
-all three are fine. That matters if other developers will integrate with what you build. For an ordinary app with Google and email sign-in, it never comes up. An OAuth2 / OIDC provider is no longer the differentiator it was at launch, though. The specific thing Appwrite has is client registration as an SDK call rather than a console form.
-
+With **Appwrite 2.0**, you host the OAuth consent screen yourself, so users approving access stay on a page that looks like your product. Client registration is also an API call in the client SDKs, which lets you build a self-serve portal where other developers register their own apps. Both only help if other developers will build on top of your app.
 **Nhost Auth** handles email and password, magic links, one-time codes, WebAuthn and social sign-in, with MFA and OIDC. Users live in a Postgres table in the `auth` schema, so linking a user to their own rows is an ordinary foreign key, and any custom claim you define becomes a permission variable available inside every rule you write.
+
+**Nhost Auth** handles email and password, magic links, one-time codes, WebAuthn and social sign-in. Users live in a Postgres table in the `auth` schema, so you link a user to their rows with a regular foreign key. Any custom claim you add to a user can be used in your permission rules.
 
 ## Authorization rules
 
