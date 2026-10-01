@@ -41,11 +41,13 @@ vi.mock('@/features/orgs/projects/hooks/useAppClient', () => ({
 
 const getUseRouterObject = (bucketId?: string) => ({
   basePath: '',
-  pathname: '/orgs/[orgSlug]/projects/[appSubdomain]/storage/bucket/[bucketId]',
-  route: '/orgs/[orgSlug]/projects/[appSubdomain]/storage/bucket/[bucketId]',
+  pathname:
+    '/orgs/[orgSlug]/projects/[appSubdomain]/storage/buckets/[...bucketId]',
+  route:
+    '/orgs/[orgSlug]/projects/[appSubdomain]/storage/buckets/[...bucketId]',
   asPath: bucketId
-    ? `/orgs/xyz/projects/test-project/storage/bucket/${bucketId}`
-    : '/orgs/xyz/projects/test-project/storage',
+    ? `/orgs/xyz/projects/test-project/storage/buckets/${bucketId}`
+    : '/orgs/xyz/projects/test-project/storage/buckets',
   isLocaleDomain: false,
   isReady: true,
   isPreview: false,
@@ -209,11 +211,11 @@ describe('StorageSidebar', () => {
       const avatarsLink = screen.getByRole('link', { name: /avatars/i });
       expect(defaultLink).toHaveAttribute(
         'href',
-        '/orgs/xyz/projects/test-project/storage/bucket/default',
+        '/orgs/xyz/projects/test-project/storage/buckets/default',
       );
       expect(avatarsLink).toHaveAttribute(
         'href',
-        '/orgs/xyz/projects/test-project/storage/bucket/avatars',
+        '/orgs/xyz/projects/test-project/storage/buckets/avatars',
       );
     });
   });
@@ -287,7 +289,7 @@ describe('StorageSidebar', () => {
 
     await waitFor(() => {
       expect(routerObj.push).toHaveBeenCalledWith(
-        '/orgs/xyz/projects/test-project/storage',
+        '/orgs/xyz/projects/test-project/storage/buckets',
       );
     });
   });

@@ -26,9 +26,11 @@ vi.mock(
 
 const getUseRouterObject = (bucketId: string = 'default') => ({
   basePath: '',
-  pathname: '/orgs/xyz/projects/test-project/storage/bucket/[bucketId]',
-  route: '/orgs/[orgSlug]/projects/[appSubdomain]/storage/bucket/[bucketId]',
-  asPath: `/orgs/xyz/projects/test-project/storage/bucket/${bucketId}`,
+  pathname:
+    '/orgs/[orgSlug]/projects/[appSubdomain]/storage/buckets/[...bucketId]',
+  route:
+    '/orgs/[orgSlug]/projects/[appSubdomain]/storage/buckets/[...bucketId]',
+  asPath: `/orgs/xyz/projects/test-project/storage/buckets/${bucketId}`,
   isLocaleDomain: false,
   isReady: true,
   isPreview: false,
