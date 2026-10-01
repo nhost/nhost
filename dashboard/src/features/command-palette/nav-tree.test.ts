@@ -60,6 +60,7 @@ describe('commandPaletteNavTree', () => {
     expect(byId.get('project-graphql-settings')?.breadcrumb).toEqual([
       'GraphQL',
     ]);
+    expect(byId.get('project-auth-settings')?.breadcrumb).toEqual(['Auth']);
     expect(byId.get('project-database-settings')?.breadcrumb).toEqual([
       'Database',
     ]);
@@ -158,6 +159,38 @@ describe('commandPaletteNavTree', () => {
     expect(
       resolvePath(node!, { orgSlug: 'xyz', appSubdomain: 'test-project' }),
     ).toBe(`/orgs/xyz/projects/test-project/${path}`);
+  });
+
+  it('routes Auth settings through the Auth area', () => {
+    const byId = new Map(allNodes.map((node) => [node.id, node]));
+
+    expect(byId.get('project-auth-settings')).toMatchObject({
+      title: 'Settings',
+      path: 'auth/settings',
+      gate: 'settings',
+      keywords: expect.arrayContaining(['auth', 'settings']),
+    });
+    expect(byId.has('project-settings-authentication')).toBe(false);
+    expect(byId.has('project-settings-jwt')).toBe(false);
+    expect(byId.has('project-settings-sign-in-methods')).toBe(false);
+    expect(byId.has('project-settings-oauth2-provider')).toBe(false);
+    expect(byId.has('project-settings-roles-and-permissions')).toBe(false);
+    expect(byId.has('project-settings-smtp')).toBe(false);
+    expect(byId.get('project-auth-settings-jwt')).toMatchObject({
+      title: 'Auth JWT',
+      path: 'auth/settings?tab=jwt',
+    });
+    expect(byId.get('project-auth-settings-smtp')).toMatchObject({
+      title: 'Auth SMTP',
+      path: 'auth/settings?tab=smtp',
+    });
+    expect(byId.get('project-auth-settings-custom-domain')).toMatchObject({
+      title: 'Auth Custom Domain',
+      path: 'auth/settings?tab=custom-domain',
+    });
+    expect(
+      byId.get('project-auth-settings-custom-domain')?.gate,
+    ).toBeUndefined();
   });
 
   it('lists the project settings tabs next to Project Settings', () => {
