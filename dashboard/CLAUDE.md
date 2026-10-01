@@ -88,6 +88,16 @@ When creating a new feature page, check whether it needs to be added to:
 - Reference component test: `src/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/CustomCheckEditor.test.tsx` — MSW setup, `TestWrapper` with `react-hook-form`, grouping by `describe`, async assertions with `waitFor`.
 - Mock Next.js router with `vi.mock('next/router', ...)`. Do not mock components — mock responses (e.g., via MSW) instead. Mocking hooks like `useRouter` is acceptable.
 
+### Metrics charts
+
+Shared charting lives in `src/features/orgs/projects/common/metrics/`. Map data to `MetricSeries[]` plus `SeriesAccessors`, then render `MetricChart` (lines) or `StackedBarMetricChart` (stacked bars). Both wire the same interaction hooks, so reuse them in any new chart instead of copying the logic:
+
+- `useSeriesVisibility` — legend click to isolate, ⌘/Ctrl/Shift-click to toggle a series.
+- `usePinnedTooltip` — click to pin the tooltip, Escape to close; render `PinnedTooltip` / `HoverTooltipContent` from `MetricChartTooltip`.
+- `useDragToZoom` — drag to select a range; call `consumeDragClick()` in the click handler so a drag doesn't also pin.
+
+Time ranges stay per domain: `MetricsTimeRangeFilter` + `useMetricsTimeRangeUrlState` for relative (Grafana-style) ranges; billing uses billing-cycle ranges in `BillingMetricsPreview/utils/billingUsageTimeRange`.
+
 ## Tool Usage
 
 - **Prefer the LSP tool for TypeScript/TSX symbol lookups** — finding references, definitions, hover/type info, rename impact. The LSP understands aliased imports, re-exports through barrels, and dynamic imports; grep does not.
