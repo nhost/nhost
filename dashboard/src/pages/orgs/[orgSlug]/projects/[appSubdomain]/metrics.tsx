@@ -8,7 +8,7 @@ import { RetryableErrorBoundary } from '@/components/presentational/RetryableErr
 import { Button } from '@/components/ui/v3/button';
 import { Separator } from '@/components/ui/v3/separator';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -149,5 +149,5 @@ function MetricsPageContent() {
 }
 
 MetricsPage.getLayout = function getLayout(page: ReactElement) {
-  return <OrgLayout>{page}</OrgLayout>;
+  return <ProjectLayout>{page}</ProjectLayout>;
 };

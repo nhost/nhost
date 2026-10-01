@@ -7,7 +7,7 @@ import {
 } from '@/components/layout/SettingsCard';
 import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
-import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { ProjectLayout } from '@/features/orgs/layout/ProjectLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { MIN_AUTH_VERSION_OAUTH2 } from '@/features/orgs/projects/authentication/oauth2/constants';
 import { OAuth2ProviderSettings } from '@/features/orgs/projects/authentication/settings/components/OAuth2ProviderSettings';
@@ -82,10 +82,10 @@ export default function SettingsOAuth2ProviderPage() {
 
 SettingsOAuth2ProviderPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <OrgLayout>
+    <ProjectLayout>
       <SettingsLayout>
         <div className="mx-auto w-full max-w-5xl px-5 py-4">{page}</div>
       </SettingsLayout>
-    </OrgLayout>
+    </ProjectLayout>
   );
 };
