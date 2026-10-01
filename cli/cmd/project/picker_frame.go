@@ -78,6 +78,24 @@ func optionLine(selected bool, label string) string {
 	return frameMargin(frameBar) + frameGap + frameMargin(frameOff+" "+label)
 }
 
+// multiOptionLine is one choice in a checklist, which has two things to say at
+// once: the mark says whether the option is picked, and the brightness says
+// whether the cursor is on it. optionLine cannot do both, because there a mark
+// and a cursor are the same thing.
+func multiOptionLine(checked, cursor bool, label string) string {
+	mark := frameOff
+	if checked {
+		mark = frameOn
+	}
+
+	line := mark + " " + label
+	if cursor {
+		return frameMargin(frameBar) + frameGap + frameAnswer(line)
+	}
+
+	return frameMargin(frameBar) + frameGap + frameMargin(line)
+}
+
 // closeLine ends the frame, saying what the answer adds up to. An abandoned
 // question closes it with nothing, so the corner is all that is drawn.
 func closeLine(text string) string {

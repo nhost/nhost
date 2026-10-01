@@ -660,3 +660,187 @@ func TestReadActionsReportsAClosedTerminal(t *testing.T) {
 		t.Error("readActions() error = nil, want a failure")
 	}
 }
+
+// A checklist says two things per row, so the mark and the brightness have to
+// vary independently: the cursor can sit on an unchecked row, and a checked row
+// stays checked once the cursor leaves it.
+func TestRenderChecklist(t *testing.T) {
+	t.Parallel()
+
+	var output bytes.Buffer
+
+	renderChecklist(&output, []pickerItem{
+		{Label: "Email and password"},
+		{Label: "Magic link"},
+		{Label: "Email code"},
+	}, []bool{true, false, true}, 1, 80)
+
+	got := output.String()
+
+	if strings.Count(got, "\r\n") != 4 {
+		t.Errorf("rendered rows = %d, want 4:\n%q", strings.Count(got, "\r\n"), got)
+	}
+
+	for _, want := range []string{
+		frameOn + " Email and password",
+		frameOff + " Magic link",
+		frameOn + " Email code",
+		frameClose,
+	} {
+		if !strings.Contains(got, want) {
+			t.Errorf("render missing %q:\n%q", want, got)
+		}
+	}
+
+	if strings.Contains(got, "pick at least one") {
+		t.Errorf("a selection that has something picked is being told to pick:\n%q", got)
+	}
+}
+
+// Enter does nothing while the list is empty, so the frame has to say why.
+// A key that is silently ignored reads as a broken picker.
+func TestRenderChecklistSaysWhyEnterIsIgnored(t *testing.T) {
+	t.Parallel()
+
+	var output bytes.Buffer
+
+	renderChecklist(&output, []pickerItem{
+		{Label: "Email and password"},
+		{Label: "Magic link"},
+	}, []bool{false, false}, 0, 80)
+
+	if got := output.String(); !strings.Contains(got, "pick at least one") {
+		t.Errorf("nothing is picked and the frame does not say so:\n%q", got)
+	}
+}
+
+func TestMultiOptionLine(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		checked  bool
+		cursor   bool
+		wantMark string
+	}{
+		{name: "checked, cursor on it", checked: true, cursor: true, wantMark: frameOn},
+		{name: "checked, cursor elsewhere", checked: true, cursor: false, wantMark: frameOn},
+		{name: "unchecked, cursor on it", checked: false, cursor: true, wantMark: frameOff},
+		{name: "unchecked, cursor elsewhere", checked: false, cursor: false, wantMark: frameOff},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := multiOptionLine(tt.checked, tt.cursor, "otp")
+
+			if !strings.Contains(got, tt.wantMark+" otp") {
+				t.Errorf("multiOptionLine = %q, want the %q mark", got, tt.wantMark)
+			}
+		})
+	}
+}
+
+func TestAnyChecked(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		checked []bool
+		want    bool
+	}{
+		{name: "none", checked: []bool{false, false}, want: false},
+		{name: "one", checked: []bool{false, true}, want: true},
+		{name: "all", checked: []bool{true, true}, want: true},
+		{name: "empty", checked: nil, want: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := anyChecked(tt.checked); got != tt.want {
+				t.Errorf("anyChecked(%v) = %v, want %v", tt.checked, got, tt.want)
+			}
+		})
+	}
+}
+
+// Space is what a checklist adds to the key map, and it has to stay a no-op
+// for the single-answer picker that shares the decoder.
+func TestDecodeKeyToggle(t *testing.T) {
+	t.Parallel()
+
+	action, size := decodeKey([]byte{' '})
+
+	if action != actionToggle {
+		t.Errorf("decodeKey(space) = %v, want actionToggle", action)
+	}
+
+	if size != 1 {
+		t.Errorf("decodeKey(space) size = %d, want 1", size)
+	}
+
+	if got := moveSelection(2, actionToggle, 4); got != 2 {
+		t.Errorf("moveSelection with actionToggle = %d, want the cursor left at 2", got)
+	}
+}
+
+// The checklist shares the single-answer picker's frame, so it is held to the
+// same screen: one row for the question however narrow the terminal, and a
+// bare corner where a cancelled question was.
+//
+//nolint:paralleltest // swaps os.Stdin
+func TestPickMultiWithKeysScreen(t *testing.T) {
+	items := []pickerItem{{Label: "Email and password"}, {Label: "Magic link"}}
+
+	tests := []struct {
+		name    string
+		width   uint16
+		keys    string
+		wantErr error
+		want    []string
+	}{
+		{
+			name:    "answer on a narrow terminal",
+			width:   30,
+			keys:    "j \r",
+			wantErr: nil,
+			want: []string{
+				frameBar,
+				frameAsked + "  " + pickerHeading("Sign-in methods") + ":",
+				frameBar + "  " + frameOn + " Email and password, Magi",
+			},
+		},
+		{
+			name:    "cancel",
+			width:   80,
+			keys:    "q",
+			wantErr: errCancelled,
+			want:    []string{frameBar, frameClose},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			run := func(ce *clienv.CliEnv) error {
+				_, err := pickMultiWithKeys(
+					ce, "Sign-in methods", items, []bool{true, false}, 0,
+				)
+
+				return err
+			}
+
+			got, err := runOnTerminal(t, tt.width, tt.keys, run)
+			if !errors.Is(err, tt.wantErr) {
+				t.Fatalf("pickMultiWithKeys() = %v, want %v", err, tt.wantErr)
+			}
+
+			if !slices.Equal(got, tt.want) {
+				t.Errorf("screen =\n%s\nwant\n%s",
+					strings.Join(got, "\n"), strings.Join(tt.want, "\n"))
+			}
+		})
+	}
+}

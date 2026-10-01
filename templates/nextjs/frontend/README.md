@@ -1,12 +1,19 @@
-# Nhost + Next.js + shadcn/ui
+# Nhost + Next.js
 
 An auth starter. It signs people in, keeps a session for them across the server
 and the browser, and guards one page behind it. There is no database schema: the
 app uses only the `auth.users` table the backend ships with, so there is nothing
 to undo when you start building your own.
 
-Four sign-in methods are on offer and `nhost init --template` scaffolds all of
-them. `src/app/signin/methods.ts` lists the ones you have.
+Four sign-in methods are on offer and `nhost init --template` scaffolds the ones
+you asked for with `--auth-methods`, email and password by default.
+`src/app/signin/methods.ts` lists the ones you have.
+
+The components under `src/components/ui/` are plain Tailwind and yours to edit,
+unless you passed `--ui shadcn`, which swaps them for the shadcn/ui versions
+with the same props. Nothing else in the app changes either way: it only ever
+imports `@/components/ui/*`, so adopting shadcn/ui later is a matter of running
+its CLI over the same paths.
 
 ## Run it
 
@@ -19,25 +26,34 @@ pnpm install
 pnpm dev                      # http://localhost:3000
 ```
 
-Every email the backend sends locally lands in the mailbox at
-<https://local.mailhog.local.nhost.run>. That is where sign-in links,
-verification links and one-time codes turn up.
+Two addresses are worth keeping open while the local stack is up, and neither
+exists once you deploy:
+
+- <https://local.dashboard.local.nhost.run/orgs/local/projects/local> is the
+  dashboard for the local project: users, data, permissions and the GraphQL
+  API.
+- <https://local.mailhog.local.nhost.run> is the mailbox every local email
+  lands in, which is where sign-in links, verification links and one-time codes
+  turn up.
 
 ## The sign-in methods
 
 Each method is a directory under `src/app/auth/` and a line in
 `src/app/signin/methods.ts`. Nothing else in the app knows a method exists.
 
-| method | name | directory | what the backend needs |
+| method | `--auth-methods` name | directory | what the backend needs |
 | --- | --- | --- | --- |
 | Email and password | `password` | `auth/password/` | on by default |
 | Magic link | `magic-link` | `auth/magic-link/` | `auth.method.emailPasswordless.enabled = true` |
 | Email code | `otp` | `auth/otp/` | `auth.method.otp.email.enabled = true` |
 | GitHub or Google | `oauth` | `auth/oauth/` | a provider section, see below |
 
-Magic link and email code are off in a stock backend, and `nhost init` leaves
-them that way: set the two lines above in `nhost/nhost.toml` before using
-either. The next steps init prints name them too.
+When `nhost init` creates the backend, it enables whichever of magic link and
+email code you asked for, since both are off in a stock backend. The default
+asks for neither and so changes no configuration. A backend you already had, or
+one pulled from a linked project with `--remote`, keeps its `nhost.toml` as it
+was: init names the methods it still has off, and the lines above are yours to
+add.
 
 OAuth needs an app registered with the provider. Its callback URL for the local
 stack is `https://local.auth.local.nhost.run/v1/signin/provider/github/callback`

@@ -4,8 +4,8 @@ import '@/app/globals.css';
 import Nav from '@/components/Nav';
 
 export const metadata: Metadata = {
-  title: 'Nhost + Next.js + shadcn/ui',
-  description: 'An auth starter powered by Nhost, Next.js and shadcn/ui',
+  title: 'Nhost + Next.js',
+  description: 'An auth starter powered by Nhost and Next.js',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

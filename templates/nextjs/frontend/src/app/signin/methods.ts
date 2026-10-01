@@ -18,7 +18,7 @@ export const methods: SignInMethod[] = [
   {
     href: '/auth/password',
     title: 'Email and password',
-    description: 'Sign up or sign in with a password. Reset it by email.',
+    description: 'Sign up or sign in with a password.',
   },
   {
     href: '/auth/magic-link',
