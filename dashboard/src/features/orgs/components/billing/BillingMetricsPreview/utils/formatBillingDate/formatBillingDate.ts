@@ -1,0 +1,30 @@
+const DATE_FORMAT = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'UTC',
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+});
+
+const DAY_TICK_FORMAT = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'UTC',
+  month: 'short',
+  day: 'numeric',
+});
+
+export function formatBillingDayTick(timestamp: number): string {
+  return formatTimestampWith(timestamp, DAY_TICK_FORMAT);
+}
+
+export function formatBillingDayLabel(timestamp: number): string {
+  return formatTimestampWith(timestamp, DATE_FORMAT);
+}
+
+function formatTimestampWith(
+  timestamp: number,
+  formatter: Intl.DateTimeFormat,
+): string {
+  if (!Number.isFinite(timestamp)) {
+    return '';
+  }
+  return formatter.format(new Date(timestamp));
+}
