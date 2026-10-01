@@ -7,7 +7,7 @@ import { Form } from '@/components/form/Form';
 import { FormInput } from '@/components/form/FormInput';
 import { FormSelect } from '@/components/form/FormSelect';
 import { FormTextarea } from '@/components/form/FormTextarea';
-import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
+import { StandaloneLayout } from '@/components/layout/StandaloneLayout';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   FormControl,
@@ -27,6 +27,7 @@ import {
 import { SelectItem } from '@/components/ui/v3/select';
 import { Separator } from '@/components/ui/v3/separator';
 import { TextLink } from '@/components/ui/v3/text-link';
+import { AuthGuard } from '@/features/orgs/guards/AuthGuard';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {
   type GetOrganizationsQuery,
@@ -348,9 +349,9 @@ function TicketPage() {
 
 TicketPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <AuthenticatedLayout title="Help & Support | Nhost">
-      {page}
-    </AuthenticatedLayout>
+    <StandaloneLayout title="Help & Support | Nhost">
+      <AuthGuard>{page}</AuthGuard>
+    </StandaloneLayout>
   );
 };
 
