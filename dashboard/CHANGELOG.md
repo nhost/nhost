@@ -1,3 +1,17 @@
+## [@nhost/dashboard@3.6.1] - 2026-10-02
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Add recovery for stale metadata conflicts (#5078)
+- *(dashboard)* Route relationship creation through the shared error toast (#5082)
+- *(dashboard)* Preserve user-entered values when cloning rows (#5081)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#5087)
+- *(deps)* Update vulnerable dependencies (#5098)
+
 ## [@nhost/dashboard@3.6.0] - 2026-09-30
 
 ### 🚀 Features
