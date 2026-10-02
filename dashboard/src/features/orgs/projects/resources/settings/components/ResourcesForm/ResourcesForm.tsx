@@ -458,11 +458,20 @@ export default function ResourcesForm() {
                 labelClassName="sr-only"
                 containerClassName="space-y-0"
                 onCheckedChange={(checked) => {
-                  if (checked && !hasInitialValues) {
+                  if (hasInitialValues) {
+                    return;
+                  }
+
+                  if (checked) {
                     applyPresetToForm(form.setValue, form.trigger, 'standard', {
                       shouldDirty: false,
                     });
+                    return;
                   }
+
+                  // The preset values differ from the defaults, so RHF would
+                  // mark them dirty once `enabled` flips back to pristine.
+                  form.reset();
                 }}
               />
             }

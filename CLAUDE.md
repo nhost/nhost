@@ -83,6 +83,7 @@ Per-project `CLAUDE.md`s layer project-specific invariants on top of these — r
 - Go services are built with Nix and packaged as Docker images.
 - JS/TS packages are built with Turbo.
 - Changelogs generated with `git-cliff`.
+- Secret-bearing `pull_request_target` checks are gated by `.github/actions/check-permissions`, which approves one commit at a time (see `ci_safe_to_test.yaml`). Gated jobs must check out or fetch `github.event.pull_request.head.sha`, never a moving ref like `refs/pull/N/head`.
 
 ## Review Guidelines
 
