@@ -195,6 +195,7 @@ func convertTable(h hasura.TableMetadata) TableMetadata {
 		ObjectRelationships: convertObjectRelationships(h.ObjectRelationships),
 		ArrayRelationships:  convertArrayRelationships(h.ArrayRelationships),
 		RemoteRelationships: convertRemoteRelationships(h.RemoteRelationships),
+		ComputedFields:      convertComputedFields(h.ComputedFields),
 		SelectPermissions:   convertSelectPermissions(h.SelectPermissions),
 		InsertPermissions:   convertInsertPermissions(h.InsertPermissions),
 		UpdatePermissions:   convertUpdatePermissions(h.UpdatePermissions),
@@ -285,17 +286,63 @@ func convertRemoteRelationships(rels []hasura.RemoteRelationship) []RemoteRelati
 	return result
 }
 
+func convertComputedFields(list hasura.ComputedFieldList) []ComputedField {
+	if list.Entries == nil {
+		return nil
+	}
+
+	fields := make([]ComputedField, 0, len(list.Entries))
+	for _, entry := range list.Entries {
+		field := ComputedField{
+			Name: entry.Name,
+			Definition: ComputedFieldDefinition{
+				Function: FunctionSource{
+					Name:   entry.Function.Name,
+					Schema: entry.Function.Schema,
+				},
+				TableArgument:   entry.TableArgument,
+				SessionArgument: entry.SessionArgument,
+			},
+			Comment:     entry.Comment,
+			Raw:         entry.Raw,
+			DecodeError: "",
+		}
+		if entry.DecodeError != nil {
+			field.DecodeError = entry.DecodeError.Error()
+		}
+
+		fields = append(fields, field)
+	}
+
+	return fields
+}
+
 func convertSelectPermissions(perms []hasura.SelectPermission) []SelectPermission {
 	result := make([]SelectPermission, len(perms))
 	for i, p := range perms {
-		result[i] = SelectPermission{
-			Role: p.Role,
-			Permission: SelectPermissionConfig{
-				Columns:           p.Permission.Columns,
-				Filter:            normalizePermissionMap(p.Permission.Filter),
-				AllowAggregations: p.Permission.AllowAggregations,
-			},
+		config := SelectPermissionConfig{
+			Columns:               p.Permission.Columns,
+			ComputedFields:        nil,
+			InvalidComputedFields: nil,
+			Filter:                normalizePermissionMap(p.Permission.Filter),
+			AllowAggregations:     p.Permission.AllowAggregations,
 		}
+		for _, grant := range p.Permission.ComputedFields.Entries {
+			if grant.DecodeError != nil {
+				config.InvalidComputedFields = append(
+					config.InvalidComputedFields,
+					InvalidComputedFieldGrant{
+						Raw: grant.Raw, DecodeError: grant.DecodeError.Error(),
+					},
+				)
+
+				continue
+			}
+
+			config.ComputedFields = append(config.ComputedFields, grant.Name)
+		}
+
+		result[i] = SelectPermission{Role: p.Role, Permission: config}
 	}
 
 	return result

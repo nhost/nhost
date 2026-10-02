@@ -2,13 +2,22 @@ package metadata
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 
 	"github.com/pelletier/go-toml/v2"
 )
 
+var errInvalidComputedTOML = errors.New("invalid computed metadata for TOML export")
+
 // MarshalTOML encodes metadata to TOML using a map-based representation.
+// Invalid wire-only computed entries cannot be expressed in TOML without
+// losing their decode errors; reject export instead of silently widening grants.
 func MarshalTOML(m *Metadata) ([]byte, error) {
+	if err := validateComputedTOML(m); err != nil {
+		return nil, err
+	}
+
 	buf := &bytes.Buffer{}
 
 	enc := toml.NewEncoder(buf).
@@ -21,6 +30,53 @@ func MarshalTOML(m *Metadata) ([]byte, error) {
 	}
 
 	return stripEmptyTableHeaders(buf.Bytes()), nil
+}
+
+func validateComputedTOML(m *Metadata) error {
+	for _, db := range m.Databases {
+		for _, table := range db.Tables {
+			for i, field := range table.ComputedFields {
+				if field.DecodeError != "" || field.Name == "" ||
+					field.Definition.Function.Name == "" {
+					return fmt.Errorf(
+						"%w: invalid computed field in source %q table %q at index %d: %s",
+						errInvalidComputedTOML,
+						db.Name,
+						table.Table.Name,
+						i,
+						field.DecodeError,
+					)
+				}
+			}
+
+			for _, permission := range table.SelectPermissions {
+				if len(permission.Permission.InvalidComputedFields) != 0 {
+					return fmt.Errorf(
+						"%w: invalid computed grants in source %q table %q role %q",
+						errInvalidComputedTOML,
+						db.Name,
+						table.Table.Name,
+						permission.Role,
+					)
+				}
+
+				for i, grant := range permission.Permission.ComputedFields {
+					if grant == "" {
+						return fmt.Errorf(
+							"%w: empty computed grant in source %q table %q role %q at index %d",
+							errInvalidComputedTOML,
+							db.Name,
+							table.Table.Name,
+							permission.Role,
+							i,
+						)
+					}
+				}
+			}
+		}
+	}
+
+	return nil
 }
 
 // unmarshalTOML decodes TOML data from the map-based representation into Metadata.
