@@ -1,0 +1,51 @@
+---
+name: "nhost-plugin: check"
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/nhost-plugin_checks.yaml"
+      - ".claude-plugin/**"
+      - ".agents/plugins/**"
+      - "plugins/nhost/**"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/nhost-plugin_checks.yaml"
+      - ".claude-plugin/**"
+      - ".agents/plugins/**"
+      - "plugins/nhost/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: plugins/nhost
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: OpenAI directory rules and manifest consistency
+        run: node scripts/check-plugin.mjs
+
+      - name: claude plugin validate
+        run: |
+          npx -y @anthropic-ai/claude-code plugin validate .claude-plugin/plugin.json --strict
+          npx -y @anthropic-ai/claude-code plugin validate ../../.claude-plugin/marketplace.json --strict
+
+      - name: OpenAI skills-only archive
+        run: |
+          node scripts/build-openai-archive.mjs
+          python3 scripts/verify-openai-archive.py dist/*.zip
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: nhost-plugin-openai-upload
+          path: plugins/nhost/dist/nhost-openai-codex-format.zip

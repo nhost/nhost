@@ -1,0 +1,46 @@
+{
+  "name": "nhost",
+  "version": "0.1.0",
+  "description": "Build apps on Nhost: Postgres, GraphQL with role-based permissions, Auth, Storage and Functions. Skills for setup, database and permissions, auth, storage, functions and frontend integration, plus the Nhost CLI MCP server for schema, queries, migrations and docs search.",
+  "author": {
+    "name": "Nhost",
+    "url": "https://nhost.io"
+  },
+  "homepage": "https://docs.nhost.io",
+  "repository": "https://github.com/nhost/nhost",
+  "license": "MIT",
+  "keywords": [
+    "nhost",
+    "backend",
+    "postgres",
+    "graphql",
+    "auth",
+    "storage",
+    "serverless",
+    "mcp"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Nhost",
+    "shortDescription": "Build full apps on Nhost",
+    "longDescription": "The official Nhost plugin teaches the model to build on Nhost with current APIs. Nhost is a backend with Postgres, a GraphQL API with role-based permissions, authentication, file storage and serverless functions.\n\nThe skills cover the whole path from an empty folder to a working app: setting up a project with the Nhost CLI, designing tables and migrations, writing least-privilege GraphQL permissions so each user only sees their own data, adding email sign-up and sign-in, handling file uploads, writing serverless functions, and connecting React, Next.js, Vue, SvelteKit or React Native apps with @nhost/nhost-js.\n\nThe skills tell the model to check the current Nhost docs before writing code, to keep the admin secret out of frontend code, and to verify permissions before calling a task done.\n\nRequirements: macOS or Linux (Windows through WSL2), Docker for local development, and the Nhost CLI, which the setup skill installs if it's missing.",
+    "developerName": "Nhost",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://nhost.io",
+    "privacyPolicyURL": "https://nhost.io/legal/privacy-policy",
+    "termsOfServiceURL": "https://nhost.io/legal/terms-of-service",
+    "defaultPrompt": [
+      "Use Nhost to build a todo app with email sign-up where each user only sees their own todos.",
+      "Set up a local Nhost project and connect it to my React app.",
+      "Review my Nhost GraphQL permissions for security issues."
+    ],
+    "brandColor": "#0052CD",
+    "logo": "./assets/logo.svg",
+    "composerIcon": "./assets/logo.svg"
+  }
+}
