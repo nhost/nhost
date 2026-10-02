@@ -133,7 +133,7 @@ configuration:
 | `configuration.column_config.<col>.comment` | ⚪ | Dropped. |
 | `configuration.comment` | ⚪ | Table comment is dropped. |
 | `configuration.identifier` | ⚪ | Dropped. |
-| `computed_fields` (`name`, `definition.function`, `table_argument`, `session_argument`, `comment`) | 🔵 | Retained from Hasura YAML/JSON and in native TOML, **not served** in GraphQL. Both bare and schema-qualified function references load. Malformed individual entries retain their wire value and parse error for future reconciliation, rather than preventing metadata load. File export retains JSON-representable computed-field values in a best-effort snapshot; database export preserves the original JSON blob. `constellation metadata export` to TOML fails explicitly if computed definitions or grants are invalid rather than dropping their error markers. |
+| `computed_fields` (`name`, `definition.function`, `table_argument`, `session_argument`, `comment`) | 🔵 | Retained from Hasura YAML/JSON and in native TOML, **not served** in GraphQL. Both bare and schema-qualified function references load. On PostgreSQL sources, malformed or invalid individual entries retain their wire value and are recorded as `computed_field` inconsistencies during reconciliation, without preventing the rest of the source from serving. SQLite ignores computed definitions as before. File export retains JSON-representable computed-field values in a best-effort snapshot; database export preserves the original JSON blob. `constellation metadata export` to TOML fails explicitly if computed definitions or grants are invalid rather than dropping their error markers. |
 | `apollo_federation_config` | ❌ | No Apollo Federation support. |
 
 ---
@@ -156,7 +156,7 @@ parameterized SQL values.
 | `limit` | ⚪ | **Not enforced.** A per-role row `limit` is parsed away and has no effect — enforce row caps another way. |
 | `query_root_fields` | ⚪ | Cannot restrict which query root fields a role sees. |
 | `subscription_root_fields` | ⚪ | Same, for subscriptions. |
-| `computed_fields` | 🔵 | Explicit scalar computed-field grants are retained, **not served**. Malformed grant entries retain their wire value/error and never become valid grants. This does not enable computed predicates in `filter`/`check`; do not rely on such predicates for access control until enforcement is supported. |
+| `computed_fields` | 🔵 | On PostgreSQL, valid scalar grants are retained while selection is gated off. SQLite continues to ignore computed definitions and grants without computed-specific permission reconciliation. Invalid/malformed grants (including manual table-valued grants) make the **whole select permission** inconsistent and unavailable. A computed predicate identifiable from a definition or grant in a select/update/delete `filter` or insert/update `check` also makes the **whole permission** unavailable until predicate execution is implemented; the filter/check is never discarded to make a grant permissive. A key with neither definition nor grant (e.g. `missing_computed`) retains the existing source-wide unknown-key failure, unlike Hasura's permission-level inconsistency; see [inconsistencies](./inconsistencies.md) and [known differences](../../KNOWN_DIFFERENCES.md). |
 
 ### Insert permission
 
@@ -371,7 +371,7 @@ what Constellation serves.
 
 ## Sharp edges, in one place
 
-- **Nothing is rejected.** Unsupported sections and ignored fields load silently.
+- **Unsupported sections load silently, but invalid computed definitions and permissions are reconciled fail-closed.** Other ignored fields load silently.
   If a permission `limit`, a `pool_settings` block, or an `actions` list seems to
   have "no effect," that is expected — Constellation never read it.
 - **`limit` on select permissions does nothing.** Enforce row caps another way.
