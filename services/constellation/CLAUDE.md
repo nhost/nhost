@@ -127,7 +127,7 @@ The existing `integration/` suite compares Constellation with Nhost Hasura. Duri
 - **`connector/sql.Driver`** (5 methods): `Introspect()`, `ExecuteOperations()`, `ExecuteMultiplexedOperation()`, `Dialect()`, `Close()`. Implemented by `postgres.Client`, `sqlite.Client`.
 - **`Dialect`**: Abstracts all SQL syntax differences. Implementations: `PostgresDialect`, `SQLiteDialect`.
 - **`subscription.Handler`** (3 methods): `Start()`, `Stop()`, `Shutdown()`. Implemented by `sql/subscription.Handler`.
-- **`metadata.Source`** (4 methods): `InitialLoad()`, `Watch()`, `HasuraSnapshotJSON()`, `Close()`. Implementations: `FileMetadataSource` (one-time load), `DatabaseMetadataSource` (polls `hdb_catalog`). `HasuraSnapshotJSON()` returns `(nil, 0)` for the TOML file source and prior to `InitialLoad`.
+- **`metadata.Source`** (4 methods): `InitialLoad()`, `Watch()`, `HasuraSnapshotJSON()`, `Close()`. Implementations: `FileMetadataSource` (one-time load), `DatabaseMetadataSource` (polls `hdb_catalog`). `HasuraSnapshotJSON()` returns `(nil, 0)` for the TOML file source and prior to `InitialLoad`. When checking that `CONSTELLATION_METADATA_DATABASE_URL` polling has completed via `export_metadata`'s resource version, set `CONSTELLATION_HASURA_UPSTREAM_URL=`; otherwise the default proxy returns upstream Hasura metadata immediately instead of the polled snapshot.
 - **`websocket.MessageHandler`** (4 methods): `OnConnectionInit()`, `OnSubscribe()`, `OnComplete()`, `OnClose()`. Implemented by `controller.WebSocketHandler`.
 
 ## Key Architectural Concepts

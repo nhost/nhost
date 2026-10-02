@@ -2,21 +2,45 @@
   "version": 3,
   "sources": [
     {
-      "name": "computed_fixture",
+      "name": "cf_select",
       "kind": "postgres",
-      "configuration": {
-        "connection_info": {
-          "database_url": {"from_env": "HASURA_GRAPHQL_DATABASE_URL"}
-        }
-      },
+      "configuration": {"connection_info": {"database_url": {"from_env": "HASURA_GRAPHQL_DATABASE_URL"}, "isolation_level": "read-committed", "use_prepared_statements": false}},
       "tables": [
         {
-          "table": {"schema": "cf_fixture", "name": "items"},
+          "table": {"schema": "cf_select", "name": "items"},
+          "computed_fields": [
+            {"name": "item_label", "definition": {"function": {"schema": "cf_select", "name": "item_label"}}},
+            {"name": "item_payload", "definition": {"function": {"schema": "cf_select", "name": "item_payload"}}},
+            {"name": "item_score", "definition": {"function": {"schema": "cf_select", "name": "item_score"}}},
+            {"name": "item_second", "definition": {"function": {"schema": "cf_select", "name": "item_second"}, "table_argument": "item"}},
+            {"name": "item_tags", "definition": {"function": {"schema": "cf_select", "name": "item_tags"}}}
+          ],
           "select_permissions": [
-            {
-              "role": "cf_reader",
-              "permission": {"columns": ["id", "label"], "filter": {}}
-            }
+            {"role": "cf_no_grant", "permission": {"columns": ["id", "label"], "filter": {}}},
+            {"role": "cf_reader", "permission": {"columns": ["id", "label", "amount", "payload"], "computed_fields": ["item_label", "item_score", "item_second", "item_payload"], "filter": {}, "allow_aggregations": true}}
+          ]
+        },
+        {
+          "table": {"schema": "cf_select", "name": "tags"},
+          "select_permissions": [
+            {"role": "cf_reader", "permission": {"columns": ["id", "item_id", "label"], "filter": {}, "allow_aggregations": true}}
+          ]
+        }
+      ]
+    },
+    {
+      "name": "cf_predicates",
+      "kind": "postgres",
+      "configuration": {"connection_info": {"database_url": {"from_env": "HASURA_GRAPHQL_DATABASE_URL"}, "isolation_level": "read-committed", "use_prepared_statements": false}},
+      "tables": [
+        {
+          "table": {"schema": "cf_predicates", "name": "rules"},
+          "computed_fields": [
+            {"name": "rule_visible", "definition": {"function": {"schema": "cf_predicates", "name": "rule_visible"}}}
+          ],
+          "select_permissions": [
+            {"role": "cf_no_grant", "permission": {"columns": ["id", "label"], "filter": {}}},
+            {"role": "cf_reader", "permission": {"columns": ["id", "owner_id", "label"], "computed_fields": ["rule_visible"], "filter": {}}}
           ]
         }
       ]
