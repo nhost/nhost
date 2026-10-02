@@ -148,8 +148,8 @@ func (t *table) Initialize(
 	t.allTables = tables
 
 	t.initializeRootNames(md)
-	// The production roots constructor leaves this list empty; a white-box
-	// gated builder installs executable fields after table initialization.
+	// Root construction installs the executable scalar selections after
+	// initializing the table and its relationships.
 
 	if err := t.initializeRelationships(objects, tableObj, md, tables); err != nil {
 		return fmt.Errorf("error initializing relationships: %w", err)

@@ -7,7 +7,7 @@ import (
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/schema"
 )
 
-func TestComputedCapabilitiesDefaultOff(t *testing.T) {
+func TestComputedCapabilitiesSelectionEnabledOnlyOnPostgres(t *testing.T) {
 	t.Parallel()
 
 	for _, tt := range []struct {
@@ -26,9 +26,10 @@ func TestComputedCapabilitiesDefaultOff(t *testing.T) {
 				t.Fatalf("wrong backend computed capability: %+v", caps)
 			}
 
-			if caps.SupportsComputedScalarSelection || caps.SupportsComputedTableSelection ||
-				caps.SupportsComputedScalarInput || caps.SupportsComputedTableInput {
-				t.Fatalf("computed executor not ready: %+v", caps)
+			if caps.SupportsComputedScalarSelection != (tt.kind == schema.KindPostgres) ||
+				caps.SupportsComputedTableSelection || caps.SupportsComputedScalarInput ||
+				caps.SupportsComputedTableInput {
+				t.Fatalf("computed capability gates: %+v", caps)
 			}
 		})
 	}

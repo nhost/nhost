@@ -22,8 +22,8 @@ const (
 	computedInvalid computedKind = iota
 	computedScalar
 	computedTable
-	// Non-base scalar kinds await an oracle decision. Keep their grants while
-	// selection is gated rather than incorrectly revoking table access.
+	// Non-base argument kinds remain deferred until their GraphQL input
+	// coercion is implemented; supported base-return selections stay exposed.
 	computedDeferred
 	computedDeferredTable
 )
@@ -233,17 +233,11 @@ func validateComputedSignature(field metadata.ComputedField, fn *introspection.C
 		return computedInvalid, "scalar computed function cannot return SETOF"
 	}
 
-	switch fn.ReturnType.Kind {
-	case "b", "d", "e", "r", "m":
-	default:
-		return computedInvalid, "unsupported computed function return type kind"
+	if fn.ReturnType.Kind != "b" {
+		return computedInvalid, "computed scalar return type is not a BASE type"
 	}
 
 	if computedHasUnclassifiedArgument(fn) {
-		return computedDeferred, ""
-	}
-
-	if fn.ReturnType.Kind != "b" {
 		return computedDeferred, ""
 	}
 
@@ -252,9 +246,7 @@ func validateComputedSignature(field metadata.ComputedField, fn *introspection.C
 
 func computedHasUnclassifiedArgument(fn *introspection.ComputedFunction) bool {
 	for i, arg := range fn.Arguments {
-		if i != fn.RowArgument && (arg.Type.Kind != "b" || arg.Name == "") {
-			// Unnamed SQL inputs have no oracle-confirmed GraphQL numbering.
-			// Defer rather than exposing an input the executor cannot bind.
+		if i != fn.RowArgument && arg.Type.Kind != "b" {
 			return true
 		}
 	}

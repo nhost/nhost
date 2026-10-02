@@ -8,7 +8,7 @@ import (
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
 
-func TestUnnamedComputedUserArgumentDeferred(t *testing.T) {
+func TestUnnamedComputedUserArgumentReconciled(t *testing.T) {
 	t.Parallel()
 
 	md, objects := computedReconcileFixture()
@@ -26,16 +26,14 @@ func TestUnnamedComputedUserArgumentDeferred(t *testing.T) {
 	inc := metadata.NewInconsistencies()
 
 	got := reconcileMetadata(t.Context(), nil, inc, md, objects)
-	for _, field := range got.Tables[0].ComputedFields {
-		if field.Name == "label" {
-			t.Fatal("unnamed argument became an executable computed field")
-		}
+	if len(got.Tables[0].ComputedFields) != 2 || got.Tables[0].ComputedFields[0].Name != "label" {
+		t.Fatalf("unnamed argument was dropped: %+v", got.Tables[0].ComputedFields)
 	}
 
 	if len(got.Tables[0].SelectPermissions) != 1 ||
 		got.Tables[0].SelectPermissions[0].Role != "reader" {
 		t.Fatalf(
-			"deferred signature revoked unaffected grant: %+v",
+			"unnamed signature revoked grant: %+v",
 			got.Tables[0].SelectPermissions,
 		)
 	}

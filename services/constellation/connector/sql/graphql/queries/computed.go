@@ -41,17 +41,6 @@ func (t *table) initializeComputedScalars(
 			continue
 		}
 
-		unnamed := false
-		for i, arg := range lookup.Function.Arguments {
-			if i != lookup.Function.RowArgument && arg.Name == "" {
-				unnamed = true
-			}
-		}
-
-		if unnamed {
-			continue
-		}
-
 		t.computedScalars = append(t.computedScalars, computedScalar{
 			name:            field.Name,
 			function:        lookup.Function,
@@ -91,6 +80,7 @@ func (t *table) writeComputedScalar(
 	paramIndex int,
 ) ([]any, int, error) {
 	fn := selected.computed.function
+	argumentNames := fn.GraphQLArgumentNames(selected.computed.sessionArgument)
 
 	args := map[string]any{}
 	if arg := selected.field.Arguments.ForName("args"); arg != nil {
@@ -135,9 +125,8 @@ func (t *table) writeComputedScalar(
 			positionalEnd = i
 		}
 
-		if arg.Name == "" && i != fn.RowArgument {
-			name := fmt.Sprintf("arg_%d", i+1)
-			if _, present := args[name]; present {
+		if arg.Name == "" && argumentNames[i] != "" {
+			if _, present := args[argumentNames[i]]; present {
 				positionalEnd = i
 			}
 		}
@@ -166,12 +155,7 @@ func (t *table) writeComputedScalar(
 				value = encoded
 			}
 		default:
-			name := arg.Name
-			if name == "" {
-				name = fmt.Sprintf("arg_%d", i+1)
-			}
-
-			value, present = args[name]
+			value, present = args[argumentNames[i]]
 		}
 
 		if !present {
