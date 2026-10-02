@@ -1,3 +1,14 @@
+## [cli@1.52.0] - 2026-10-02
+
+### 🚀 Features
+
+- *(postgres)* Expose WAL and extension configuration (#5080)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.51.2
+
 ## [cli@1.51.2] - 2026-09-30
 
 ### ⚙️ Miscellaneous Tasks
