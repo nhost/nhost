@@ -4,24 +4,60 @@
 
 ## Calling contract
 
-```go
-err := pgmigrate.Migrate(
-    ctx,
-    logger,
-    database,
-    embeddedMigrations,
-    "postgres",
-    "service_schema",
-)
+Provision the schema before calling `Migrate`, for example as a database administrator (substitute your migration role):
+
+```sql
+CREATE SCHEMA IF NOT EXISTS service_schema AUTHORIZATION migration_role;
 ```
 
-The caller must create the service schema before calling `Migrate` and must supply a dedicated, short-lived migration `*sql.DB` that remains caller-owned. Do not reuse a service's long-lived application pool; migration bodies may change session state, and sharing that pool is unsupported. The library rolls back any unfinished migration transaction, then resets or discards the execution session before releasing it, but the caller must still close the migration pool after `Migrate` returns.
+With paired SQL files under `postgres/` alongside the Go source, one caller can use:
+
+```go
+package migrations
+
+import (
+	"context"
+	"database/sql"
+	"embed"
+	"errors"
+	"fmt"
+	"log/slog"
+
+	_ "github.com/lib/pq"
+	"github.com/nhost/nhost/internal/lib/pgmigrate"
+)
+
+//go:embed postgres/*.sql
+var embeddedMigrations embed.FS
+
+func Apply(ctx context.Context, dsn string, logger *slog.Logger) (err error) {
+	database, err := sql.Open("postgres", dsn)
+	if err != nil {
+		return fmt.Errorf("opening migration database: %w", err)
+	}
+	defer func() {
+		if closeErr := database.Close(); closeErr != nil {
+			err = errors.Join(err, fmt.Errorf("closing migration database: %w", closeErr))
+		}
+	}()
+
+	database.SetMaxOpenConns(2) // Enough for one Migrate caller.
+	if err := pgmigrate.Migrate(ctx, logger, database, embeddedMigrations, "postgres", "service_schema"); err != nil {
+		return fmt.Errorf("migrating service schema: %w", err)
+	}
+	return nil
+}
+```
+
+The caller must supply a dedicated, short-lived migration `*sql.DB` that remains caller-owned. Do not reuse a service's long-lived application pool; migration bodies may change session state, and sharing that pool is unsupported. The library attempts to roll back any unfinished migration transaction, then resets or discards the execution session before releasing it, but the caller must still close the migration pool after `Migrate` returns. `"postgres"` is an `io/fs` directory within the embedded filesystem, not a PostgreSQL connection string.
 
 The library acquires and closes two dedicated `*sql.Conn` values per concurrent `Migrate` caller: one executes migrations and holds the advisory lock, while the other reads catalog bodies. Configure the migration pool for at least two connections per concurrent caller. Acquisition of the second connection is bounded and fails with pool guidance rather than hanging indefinitely when, for example, `MaxOpenConns(1)` is configured.
 
-The caller context bounds setup and preflight, but it is not a wall-clock bound for `Migrate`. Once migration SQL starts, caller cancellation or deadline expiry does not interrupt it. After execution, catalog archival ignores caller cancellation but has a five-second timeout, and connection cleanup has a separate five-second timeout. `Migrate` returns after those attempts and reports archival or cleanup failures. Configure PostgreSQL timeouts for the migration role when migration SQL itself needs an execution bound.
+The caller context is used for connection acquisition, the outer advisory lock, catalog operations, and preflight, but does **not** strictly bound all setup: the upstream PostgreSQL driver checks/creates `schema_migrations` and reads its version using `context.Background()`. It is not a wall-clock bound for `Migrate`. Once migration SQL starts, caller cancellation or deadline expiry does not interrupt it. After execution, catalog archival ignores caller cancellation but has a five-second timeout, and connection cleanup uses a separate five-second timeout for its database operations. `Migrate` returns after those attempts and reports archival or cleanup failures. Configure PostgreSQL timeouts for the migration role when database operations need an execution bound.
 
 The target is inferred from the maximum version in the embedded bundle, so callers do not maintain a duplicate latest-version constant. Existing `<schema>.schema_migrations` state is reused. After catalog bootstrap, the library reads the clean migration state, reconciles the active catalog lineage with the embedded bundle, and hydrates missing rows without replaying migration SQL. Dirty state is never forced, reconciled, or repaired; an operator must inspect the failed migration and recover it explicitly.
+
+Migration execution is not one atomic transaction: the upstream driver marks each version dirty, runs its SQL, then marks it clean in separate steps. A failed SQL body can leave effects behind; the library's cleanup `ROLLBACK` only closes an unfinished transaction on its execution session, not previously committed work. Catalog reconciliation also happens before SQL runs. Conversely, `Migrate` can return an archival or cleanup error after migration SQL has succeeded and the schema version has changed. On any failure, inspect `<schema>.schema_migrations`, the catalog, and the affected schema before repairing or retrying; do not infer the database version from the return value alone.
 
 ## Migration authoring and catalog lineages
 
