@@ -1,16 +1,20 @@
-# Database-backed PostgreSQL migrations
+# PostgreSQL migrations for services
 
-`pgmigrate` validates an embedded `golang-migrate` bundle, archives its exact SQL bytes in PostgreSQL, and moves a prepared service schema to the bundle's highest version. The catalog lets an older `pgmigrate`-enabled image run down migrations that were registered by a newer image even when those files are not embedded in the older image.
+`pgmigrate` moves a service's PostgreSQL schema to the migration version shipped with the running build. If the build has newer migrations, it runs the `up` files. If the database is newer than the build, it runs the `down` files.
 
-## Calling contract
+It saves both files for every migration in the database. That means an older build can undo migrations from a newer build even though it doesn't have those files. **Both builds must use `pgmigrate`** for this to work.
 
-Provision the schema before calling `Migrate`, for example as a database administrator (substitute your migration role):
+## Get started
+
+Create the service schema before starting the service. `pgmigrate` creates its own tables inside the schema, but it does not create the schema itself. For example, during database setup:
 
 ```sql
-CREATE SCHEMA IF NOT EXISTS service_schema AUTHORIZATION migration_role;
+CREATE SCHEMA IF NOT EXISTS service_schema;
 ```
 
-With paired SQL files under `postgres/` alongside the Go source, one caller can use:
+The database user that runs migrations needs `USAGE` and `CREATE` on that schema. If that user didn't create the schema, grant those permissions during setup; see [Database permissions](#database-permissions).
+
+Put paired SQL files in a directory next to your Go code, such as `postgres/1_create_table.up.sql` and `postgres/1_create_table.down.sql`. Then call `Migrate` when the service starts:
 
 ```go
 package migrations
@@ -41,96 +45,119 @@ func Apply(ctx context.Context, dsn string, logger *slog.Logger) (err error) {
 		}
 	}()
 
-	database.SetMaxOpenConns(2) // Enough for one Migrate caller.
-	if err := pgmigrate.Migrate(ctx, logger, database, embeddedMigrations, "postgres", "service_schema"); err != nil {
+	database.SetMaxOpenConns(2) // Enough for one caller of Migrate.
+	if err := pgmigrate.Migrate(
+		ctx, logger, database, embeddedMigrations, "postgres", "service_schema",
+	); err != nil {
 		return fmt.Errorf("migrating service schema: %w", err)
 	}
 	return nil
 }
 ```
 
-The caller must supply a dedicated, short-lived migration `*sql.DB` that remains caller-owned. Do not reuse a service's long-lived application pool; migration bodies may change session state, and sharing that pool is unsupported. The library attempts to roll back any unfinished migration transaction, then resets or discards the execution session before releasing it, but the caller must still close the migration pool after `Migrate` returns. `"postgres"` is an `io/fs` directory within the embedded filesystem, not a PostgreSQL connection string.
+Here `"postgres"` is the directory inside `embeddedMigrations`; `"service_schema"` is the PostgreSQL schema name. There is no separate "latest version" setting: the highest version in the SQL files is the target.
 
-The library acquires and closes two dedicated `*sql.Conn` values per concurrent `Migrate` caller: one executes migrations and holds the advisory lock, while the other reads catalog bodies. Configure the migration pool for at least two connections per concurrent caller. Acquisition of the second connection is bounded and fails with pool guidance rather than hanging indefinitely when, for example, `MaxOpenConns(1)` is configured.
+Use a **separate database pool** for migrations, not the pool your service uses for normal queries. `Migrate` needs two connections at once: one runs SQL, and the other reads saved migrations. Allow at least two connections per call (`SetMaxOpenConns(2)` is enough for one call at a time). Close the pool after `Migrate` returns, as the example does. Before releasing its connections, `Migrate` tries to reset the one that ran SQL. If the pool allows only one connection, it fails within five seconds instead of waiting forever.
 
-The caller context is used for connection acquisition, the outer advisory lock, catalog operations, and preflight, but does **not** strictly bound all setup: the upstream PostgreSQL driver checks/creates `schema_migrations` and reads its version using `context.Background()`. It is not a wall-clock bound for `Migrate`. Once migration SQL starts, caller cancellation or deadline expiry does not interrupt it. After execution, catalog archival ignores caller cancellation but has a five-second timeout, and connection cleanup uses a separate five-second timeout for its database operations. `Migrate` returns after those attempts and reports archival or cleanup failures. Configure PostgreSQL timeouts for the migration role when database operations need an execution bound.
+## What happens when it runs
 
-The target is inferred from the maximum version in the embedded bundle, so callers do not maintain a duplicate latest-version constant. Existing `<schema>.schema_migrations` state is reused. After catalog bootstrap, the library reads the clean migration state, reconciles the active catalog lineage with the embedded bundle, and hydrates missing rows without replaying migration SQL. Dirty state is never forced, reconciled, or repaired; an operator must inspect the failed migration and recover it explicitly.
+On a successful run, the steps look like this:
 
-Migration execution is not one atomic transaction: the upstream driver marks each version dirty, runs its SQL, then marks it clean in separate steps. A failed SQL body can leave effects behind; the library's cleanup `ROLLBACK` only closes an unfinished transaction on its execution session, not previously committed work. Catalog reconciliation also happens before SQL runs. Conversely, `Migrate` can return an archival or cleanup error after migration SQL has succeeded and the schema version has changed. On any failure, inspect `<schema>.schema_migrations`, the catalog, and the affected schema before repairing or retrying; do not infer the database version from the return value alone.
-
-## Migration authoring and catalog lineages
-
-Migration directories must contain only paired `*.up.sql` and `*.down.sql` files accepted by `golang-migrate`. Every pair must use the same version and identifier, and both bodies must contain content beyond SQL comments and whitespace. Do not leave unrelated files or comment-only placeholders in a migration directory.
-
-`<schema>.schema_migration_catalog` stores each migration under a random UUID, links it to its predecessor UUID, and preserves its identifier, exact up/down bytes, SHA-256 checksums, and format version. Partial unique indexes enforce one version, root, and successor in the active lineage. Archived rows remain in the same table with `archived_at` and `archive_batch_id`, so their UUID-linked historical lineage remains inspectable while their sequence numbers can be reused by the active lineage.
-
-Rows through the currently applied version are immutable. Never rename an applied migration, change its predecessor, edit either body, or recalculate a different checksum. Unapplied active rows are also reused unchanged when they match the embedded bundle. When the embedded future differs, the library archives that inactive suffix before publishing the replacement. After a successful downgrade, it archives every row above the new target.
-
-An active lineage can be replaced in place only after the schema has been downgraded below its lowest diverging version. A single `Migrate` call never crosses a divergence at or below the applied version. When the bundles share a common lineage version, first deploy an image whose bundle maximum is at or below the last common version, then deploy the replacement image. For example, replacing `1 -> 2-beta -> 3-beta` with `1 -> 2-stable` requires an image targeting `1` to execute the beta down migrations from `3` to `1`; only after that succeeds can the squashed stable image target `2`.
-
-When the active and embedded bundles have no common lineage version, such as after a full-prefix squash that rewrites version `1`, `pgmigrate` cannot replace the lineage in place. Keep using an image compatible with the applied lineage, or plan an out-of-place transition: back up the database, initialize the replacement bundle in a fresh schema or database, and explicitly migrate the required application data. A disposable schema can instead be dropped and recreated during maintenance. Never manufacture a common version by editing catalog or migration-state rows.
-
-Checksums detect corruption and release drift; they do not authenticate a database writer. A principal able to replace both a body and its checksum can make a later image execute arbitrary SQL. Restrict catalog and state-table writes to the migration role. Operators can inspect active and archived bodies without modifying them, for example:
-
-```sql
-SELECT
-  migration.id,
-  migration.version,
-  predecessor.version AS previous_version,
-  migration.identifier,
-  convert_from(migration.up_sql, 'UTF8') AS up_sql,
-  convert_from(migration.down_sql, 'UTF8') AS down_sql,
-  encode(migration.up_sha256, 'hex') AS up_sha256,
-  encode(migration.down_sha256, 'hex') AS down_sha256,
-  migration.format_version,
-  migration.registered_at,
-  migration.archived_at,
-  migration.archive_batch_id
-FROM service_schema.schema_migration_catalog AS migration
-LEFT JOIN service_schema.schema_migration_catalog AS predecessor
-  ON predecessor.id = migration.previous_id
-ORDER BY migration.version, migration.registered_at;
+```text
+        This build's .up/.down files
+                     |
+          Check files; find target
+                     |
+           Lock schema migrations
+                     |
+   Create/reuse tables; read current version
+            (stop if dirty)
+                     |
+        Save SQL in the catalog table
+                     |
+     Check the path before running any SQL
+                     |
+       Database version vs. target?
+           /         |         \
+        lower       equal      higher
+          |           |           |
+    Run saved     No SQL     Run saved
+      up SQL                  down SQL
+          \           |           /
+           +----------+----------+
+                     |
+      Archive catalog rows above target
+                     |
+        Unlock; release connections
 ```
 
-### Catalog format compatibility
+If a step fails, `pgmigrate` stops and attempts to release its connections. A failure during or after SQL may still leave changes behind; see [Failures and timeouts](#failures-and-timeouts).
 
-Every `pgmigrate` release, including an older image used for rollback, reads and writes the same catalog. The bootstrap `CREATE ... IF NOT EXISTS` statements do not upgrade an existing table or indexes; schema changes need an explicit, idempotent `ALTER` for existing installations. While downgrade to v1-only images is supported, keep the v1 columns and their types intact, use explicitly named columns in readers and writers, and add only nullable or defaulted columns that older images can ignore. Do not add constraints that older inserts can violate, or rename, drop, or retype existing columns. Do not bump `format_version` for additive changes: v1-only images reject other values. A new format version requires an explicit rollout that gives up downgrade to images that only understand v1.
+1. `pgmigrate` checks the embedded files. Each version needs matching `up` and `down` files with the same name after the version number. Empty files, comment-only files, and unrelated files in that directory are rejected.
+2. It takes a database lock (the same one `golang-migrate` uses) so another call cannot migrate this schema at the same time. It creates or reuses `<schema>.schema_migrations` (the current version) and `<schema>.schema_migration_catalog` (the saved SQL). It checks that the current version isn't marked dirty, then saves the embedded SQL. If the database already has migration state but no catalog, it fills in the missing entries **without running that SQL again**.
+3. It checks that it can read every migration needed to reach the target before running the first one. It then runs migrations from the catalog: `up` SQL saved from this build or `down` SQL that may have been saved by a newer build. The underlying driver marks each migration dirty while it runs and clean when it finishes.
+4. After a downgrade, it marks catalog entries above the new version as archived. It keeps their SQL and history instead of deleting them, so those version numbers can be reused by a later release.
 
-## Locking, permissions, and rollout
+The catalog keeps the exact SQL, a SHA-256 checksum for each file, each migration's name, and which migration came before it. `pgmigrate` checks a saved file's checksum before running it. This catches damage or unexpected changes, but not an attacker who can edit both the SQL and its checksum. Only the migration user should be able to write to these tables.
 
-The wrapper serializes bootstrap, clean-state validation, catalog reconciliation, preflight, execution, and post-downgrade archival with the exact advisory-lock identity used by the upstream PostgreSQL driver: the current database, service schema, and `schema_migrations` table. It validates every linked body required for the requested direction before executing the first body. The upstream driver still controls per-migration dirty-state transitions.
+## Writing and changing migrations
 
-A dedicated migration role needs:
+Name files using the `golang-migrate` format, for example `2_add_name.up.sql` and `2_add_name.down.sql`. Both files must contain SQL, not just whitespace or comments. Keep other files out of the migration directory. Down migrations should undo the corresponding change where possible, but they can still lose data: back up important data and plan schema changes so old and new service versions can coexist during a rollout.
+
+**Don't edit a migration that has already run.** That includes its name, SQL, checksum, and place in the sequence. `pgmigrate` checks the build's files against the saved entries and rejects changes to applied migrations. It leaves matching entries alone. If files for migrations that have *not* run yet change, it archives the old entries and saves the replacements.
+
+If you need to replace migrations that have already run, downgrade first with a build that still knows the old sequence. For example, to replace `1 → 2-beta → 3-beta` with `1 → 2-stable`, first run a build targeting version `1` to execute the beta `down` files. Only then deploy the build containing `2-stable`. One call cannot both downgrade past a changed migration and replace it.
+
+If even version `1` changed, the builds have no migration in common. `pgmigrate` cannot make that change on the existing schema. Keep using a compatible build, or back up the database, create a fresh schema or database, and move the application data yourself. For a disposable schema, you can drop and recreate it during maintenance. Don't edit migration tables by hand to pretend the builds share a migration.
+
+## Failures and timeouts
+
+Migration SQL and version updates are **not one all-or-nothing transaction**. The driver marks a version dirty, runs its SQL, then marks it clean. If SQL fails, some changes may already have happened. `pgmigrate` tries to roll back any transaction left open on its connection, but that cannot undo changes already committed. It does not clear or repair a dirty migration for you.
+
+Saving migration files in the catalog happens before running SQL. Archiving and connection cleanup happen afterward. So an error does **not** necessarily mean the schema stayed at its old version. Before retrying or repairing a failed migration, inspect `<schema>.schema_migrations`, `<schema>.schema_migration_catalog`, and the affected tables. For example:
+
+```sql
+SELECT version, dirty FROM service_schema.schema_migrations;
+SELECT version, identifier, archived_at
+FROM service_schema.schema_migration_catalog
+ORDER BY version, registered_at;
+```
+
+Canceling the caller's context does not interrupt migration SQL once it starts. The context applies to most setup and catalog work, but it does **not** strictly bound the whole call: the upstream PostgreSQL driver checks or creates the state table and reads its version without using the caller's context. After SQL finishes, catalog archival and connection cleanup each use a separate five-second timeout for their database operations, even if the caller's context was canceled. Use PostgreSQL timeouts for the migration user if you need a bound on database operations.
+
+## Rolling out and rolling back
+
+Let only **one release** run migrations at a time. If old and new builds migrate the same database concurrently, they can keep moving it between their different target versions. Finish the schema change before sending mixed-version application traffic to that database.
+
+An older build can roll back migrations from a newer build only if it calls `pgmigrate.Migrate`. Builds from before the switch to `pgmigrate` cannot read the saved `down` SQL and will fail against a version above their bundled migrations. To roll back to one of those builds, first run a `pgmigrate` build that targets a version the older build knows. The first release of a service using `pgmigrate` should add **no new migrations**, so it can serve as that intermediate build.
+
+## Database permissions
+
+The database user that calls `Migrate` needs:
 
 - `CONNECT` on the database;
-- `USAGE` and `CREATE` on the already-existing service schema, to create the state/catalog tables and migration objects;
-- every object privilege required by the migration SQL for existing tables, sequences, functions, extensions, or other schemas.
+- `USAGE` and `CREATE` on the service schema (which must already exist);
+- whatever permissions the migration SQL needs on existing tables, sequences, functions, extensions, or other schemas.
 
-The role that creates the state and catalog tables owns them. If an administrator pre-creates either table, transfer ownership to the migration role: the state driver needs `SELECT`, `INSERT`, and `TRUNCATE`, while catalog reconciliation needs `SELECT`, `INSERT`, and `UPDATE`, and bootstrap must be able to maintain the catalog indexes. PostgreSQL advisory-lock functions are executable by ordinary roles by default; deployments that revoke those functions must explicitly grant their use to the migration role.
+Let this user create the migration tables when possible. If another user created them, make the migration user their owner: the state table needs `SELECT`, `INSERT`, and `TRUNCATE`; the catalog needs `SELECT`, `INSERT`, and `UPDATE`; and setup needs to create or maintain catalog indexes. PostgreSQL normally allows ordinary users to take advisory locks, but grant access if your database has revoked it.
 
-Only one release target may act as migration writer during a rollout. Do not start N and N+1 migration writers concurrently against one database: each image targets its own maximum and can alternate the schema between versions. Complete the schema transition before mixed application traffic.
+## Running tests
 
-Catalog-backed downgrade works only with images that call `pgmigrate.Migrate`: pre-adoption images cannot read the catalog and fail to start against a schema above their embedded migration maximum. To roll back to a pre-adoption release, first deploy a `pgmigrate`-enabled image whose bundle maximum is at or below that release's maximum, then roll back further. The first adopting release of each service should add no migrations so it can provide this stepping stone.
-
-A sequential beta-to-stable lineage replacement also needs an intermediate deployment whose bundle maximum is at or below the last common version; do not deploy a diverging stable bundle while a beta migration at or above the divergence is still applied. If there is no common lineage version, no intermediate `pgmigrate` target exists; keep a compatible image or use the planned reset or out-of-place transition described above. Down scripts can destroy data even when they are syntactically valid; use backups and expand/contract migrations for data-preserving rollouts.
-
-## Tests and PostgreSQL compatibility
-
-A direct command runs all unit tests but skips the PostgreSQL integration suite unless a DSN is supplied. Use a disposable database: the suite creates and drops schemas and login roles. Supply a key/value (not URL) DSN for a superuser role. The suite creates login roles without passwords, so authentication must allow those roles to connect (for example, `trust` on a local Unix socket, as configured by the Nix check):
+Without a PostgreSQL connection, `go test ./internal/lib/pgmigrate/...` runs unit tests and skips database tests. To run all tests, use a **disposable** database: the tests create and drop schemas and login roles. Provide a key/value DSN (not a URL) for a superuser, and allow the test-created roles to connect without passwords (for example, using `trust` on a local Unix socket):
 
 ```sh
 PGMIGRATE_TEST_DSN='host=/path/to/socket dbname=postgres sslmode=disable' \
   go test ./internal/lib/pgmigrate/...
 ```
 
-When starting PostgreSQL manually from a Nix store on macOS for the direct test command, check that the selected `initdb` binary is Darwin-native: multi-platform stores may also contain non-executable Linux builds.
-For manual `psql` inspection of that server, set `PGHOST` to its socket directory and `PGDATABASE` to the test database; `psql` does not read `PGMIGRATE_TEST_DSN`.
-
-The Nix check starts PostgreSQL, sets `PGMIGRATE_TEST_DSN`, and sets `PGMIGRATE_TEST_DATABASE_REQUIRED=1`, which turns a missing DSN into a test failure:
+The Nix check starts a test server and sets the DSN automatically. It fails if the DSN is missing:
 
 ```sh
 make -C internal/lib/pgmigrate check
 ```
 
-Catalog DDL deliberately uses a partial unique root index supported by PostgreSQL 13. The repository's Nix package no longer provides PostgreSQL 13, so the automated server run uses PostgreSQL 18 and serves as a structural PostgreSQL-14-and-later proxy while tests assert the PostgreSQL-13-compatible index definition.
+The catalog's indexes are designed for PostgreSQL 13 and later; the Nix check currently runs PostgreSQL 18, not PostgreSQL 13. If starting PostgreSQL from Nix manually on macOS, use a Darwin `initdb` binary. For manual `psql` inspection, set `PGHOST` and `PGDATABASE`; `psql` does not read `PGMIGRATE_TEST_DSN`.
+
+## If you change the catalog table
+
+Old builds still need to read and write the catalog after a rollback. `CREATE TABLE IF NOT EXISTS` does not update an existing table, so add explicit, repeatable `ALTER` statements for schema changes. Keep existing columns and their types. Add only columns that allow `NULL` or have defaults, and don't add constraints that reject old inserts. Keep `format_version` at `1` for additions that old builds can ignore; old builds reject other format versions. A new format version needs a rollout that gives up rollback to builds that only understand version `1`.
