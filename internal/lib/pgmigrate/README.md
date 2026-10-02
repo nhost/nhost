@@ -1,6 +1,6 @@
 # Database-backed PostgreSQL migrations
 
-`pgmigrate` validates an embedded `golang-migrate` bundle, archives its exact SQL bytes in PostgreSQL, and moves a prepared service schema to the bundle's highest version. The catalog lets an older image run down migrations that were registered by a newer image even when those files are not embedded in the older image.
+`pgmigrate` validates an embedded `golang-migrate` bundle, archives its exact SQL bytes in PostgreSQL, and moves a prepared service schema to the bundle's highest version. The catalog lets an older `pgmigrate`-enabled image run down migrations that were registered by a newer image even when those files are not embedded in the older image.
 
 ## Calling contract
 
@@ -69,7 +69,11 @@ A dedicated migration role needs:
 
 The role that creates the state and catalog tables owns them. If an administrator pre-creates either table, transfer ownership to the migration role: the state driver needs `SELECT`, `INSERT`, and `TRUNCATE`, while catalog reconciliation needs `SELECT`, `INSERT`, and `UPDATE`, and bootstrap must be able to maintain the catalog indexes. PostgreSQL advisory-lock functions are executable by ordinary roles by default; deployments that revoke those functions must explicitly grant their use to the migration role.
 
-Only one release target may act as migration writer during a rollout. Do not start N and N+1 migration writers concurrently against one database: each image targets its own maximum and can alternate the schema between versions. Complete the schema transition before mixed application traffic. A sequential beta-to-stable lineage replacement also needs an intermediate deployment whose bundle maximum is at or below the last common version; do not deploy a diverging stable bundle while a beta migration at or above the divergence is still applied. If there is no common lineage version, no intermediate `pgmigrate` target exists; keep a compatible image or use the planned reset or out-of-place transition described above. Down scripts can destroy data even when they are syntactically valid; use backups and expand/contract migrations for data-preserving rollouts.
+Only one release target may act as migration writer during a rollout. Do not start N and N+1 migration writers concurrently against one database: each image targets its own maximum and can alternate the schema between versions. Complete the schema transition before mixed application traffic.
+
+Catalog-backed downgrade works only with images that call `pgmigrate.Migrate`: pre-adoption images cannot read the catalog and fail to start against a schema above their embedded migration maximum. To roll back to a pre-adoption release, first deploy a `pgmigrate`-enabled image whose bundle maximum is at or below that release's maximum, then roll back further. The first adopting release of each service should add no migrations so it can provide this stepping stone.
+
+A sequential beta-to-stable lineage replacement also needs an intermediate deployment whose bundle maximum is at or below the last common version; do not deploy a diverging stable bundle while a beta migration at or above the divergence is still applied. If there is no common lineage version, no intermediate `pgmigrate` target exists; keep a compatible image or use the planned reset or out-of-place transition described above. Down scripts can destroy data even when they are syntactically valid; use backups and expand/contract migrations for data-preserving rollouts.
 
 ## Tests and PostgreSQL compatibility
 
