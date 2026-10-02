@@ -121,6 +121,20 @@ sequenceDiagram
 	A->>-C: Session (access + refresh tokens)
 ```
 
+## Elevating a Session with TOTP
+
+Users with TOTP activated can use it to [elevate their session](/products/auth/elevated-permissions) before performing sensitive actions:
+
+```js
+await nhost.auth.elevateTotp({
+  otp: '123456', // current 6-digit code from authenticator app
+});
+```
+
+:::note
+Generating a TOTP secret (`/mfa/totp/generate`) is one of the endpoints protected by [`auth.elevatedPrivileges`](/products/auth/elevated-permissions#protecting-auth-data). In `required` mode, users with no elevation method available can still set up TOTP as their first factor without elevating.
+:::
+
 ## Disabling MFA
 
 Users can disable MFA by providing a current TOTP code from their authenticator app:
