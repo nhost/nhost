@@ -17,6 +17,7 @@ import (
 
 const (
 	catalogTableName = "schema_migration_catalog"
+	// Keep v1 for additive catalog changes: older rollback images reject other format versions.
 	catalogFormatV1  = int64(1)
 	maximumChainRows = 2
 )
@@ -140,6 +141,11 @@ func newSQLCatalog(ctx context.Context, connection *sql.Conn, schema string) (*c
 	return newCatalog(ctx, &sqlCatalogDatabase{connection: connection}, schema)
 }
 
+// Every release, including older rollback images, reads and writes this catalog.
+// CREATE ... IF NOT EXISTS only handles fresh installs; existing catalogs need
+// explicit idempotent ALTERs. Add only nullable or defaulted columns that older
+// explicit reads/inserts can ignore; do not add constraints that reject old
+// inserts or rename, drop, or retype existing columns.
 func (c *catalog) bootstrap() error {
 	query := fmt.Sprintf(`
 CREATE TABLE IF NOT EXISTS %s (

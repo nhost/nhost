@@ -2,6 +2,7 @@
 package pgmigrate
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"database/sql"
@@ -401,6 +402,74 @@ func TestCatalogPublicationIsIdempotentAndAcceptsFutureRows(t *testing.T) {
 
 	if registeredAtAgain != registeredAt {
 		t.Fatalf("root registered_at changed from %q to %q", registeredAt, registeredAtAgain)
+	}
+}
+
+func TestCatalogDefaultedFutureColumnPreservesOlderPublicationAndReads(t *testing.T) {
+	t.Parallel()
+
+	database := openCatalogTestDatabase(t)
+	schema := createCatalogTestSchema(t, database, "")
+	catalog := sqlCatalogForTest(t, database, schema)
+
+	if err := catalog.bootstrap(); err != nil {
+		t.Fatalf("bootstrap() error = %v", err)
+	}
+
+	older := testBundle(testMigration(1, nil, "root"))
+	if err := catalog.publish(older); err != nil {
+		t.Fatalf("publish(older) before ALTER error = %v", err)
+	}
+
+	relation := catalogTestRelation(schema)
+	// catalogTestRelation quotes both identifiers before relation is interpolated into this statement.
+	addFutureColumn := fmt.Sprintf(
+		"ALTER TABLE %s ADD COLUMN future_metadata TEXT NOT NULL DEFAULT 'future'",
+		relation,
+	)
+	if _, err := database.ExecContext(t.Context(), addFutureColumn); err != nil {
+		t.Fatalf("adding defaulted future column: %v", err)
+	}
+
+	if err := catalog.bootstrap(); err != nil {
+		t.Fatalf("bootstrap() against evolved catalog error = %v", err)
+	}
+
+	// An old image still inserts all eight named columns, even for an existing row:
+	// PostgreSQL checks NOT NULL before resolving the version conflict.
+	if err := catalog.publish(older); err != nil {
+		t.Fatalf("publish(older) against evolved catalog error = %v", err)
+	}
+
+	future := testMigration(2, uintPointer(1), "future")
+	if err := catalog.publish(testBundle(older.migrations[0], future)); err != nil {
+		t.Fatalf("publish(future) against evolved catalog error = %v", err)
+	}
+
+	if err := catalog.publish(older); err != nil {
+		t.Fatalf("publish(older) with future row error = %v", err)
+	}
+
+	var defaultedRows int
+	if err := database.QueryRowContext(
+		t.Context(),
+		"SELECT count(*) FROM "+relation+
+			" WHERE archived_at IS NULL AND future_metadata = $1 AND format_version = 1",
+		"future",
+	).Scan(&defaultedRows); err != nil {
+		t.Fatalf("querying defaulted catalog rows: %v", err)
+	}
+
+	if defaultedRows != 2 {
+		t.Fatalf("defaulted catalog rows = %d, want 2", defaultedRows)
+	}
+
+	body, identifier := readCatalogSourceBody(t, newCatalogSource(catalog).ReadDown, 2)
+	if !bytes.Equal(body, future.downSQL) || identifier != future.identifier {
+		t.Fatalf(
+			"ReadDown(2) = %q, %q; want %q, %q",
+			body, identifier, future.downSQL, future.identifier,
+		)
 	}
 }
 

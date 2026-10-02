@@ -57,6 +57,10 @@ LEFT JOIN service_schema.schema_migration_catalog AS predecessor
 ORDER BY migration.version, migration.registered_at;
 ```
 
+### Catalog format compatibility
+
+Every `pgmigrate` release, including an older image used for rollback, reads and writes the same catalog. The bootstrap `CREATE ... IF NOT EXISTS` statements do not upgrade an existing table or indexes; schema changes need an explicit, idempotent `ALTER` for existing installations. While downgrade to v1-only images is supported, keep the v1 columns and their types intact, use explicitly named columns in readers and writers, and add only nullable or defaulted columns that older images can ignore. Do not add constraints that older inserts can violate, or rename, drop, or retype existing columns. Do not bump `format_version` for additive changes: v1-only images reject other values. A new format version requires an explicit rollout that gives up downgrade to images that only understand v1.
+
 ## Locking, permissions, and rollout
 
 The wrapper serializes bootstrap, clean-state validation, catalog reconciliation, preflight, execution, and post-downgrade archival with the exact advisory-lock identity used by the upstream PostgreSQL driver: the current database, service schema, and `schema_migrations` table. It validates every linked body required for the requested direction before executing the first body. The upstream driver still controls per-migration dirty-state transitions.
