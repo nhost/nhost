@@ -388,12 +388,12 @@ Both follow the same permission rules as any other request, so an assistant can 
 
 ## So which one
 
-**Supabase** is strongest when the database is the center of the application: relational data, SQL you're comfortable writing, and a team willing to own policies and migrations. It also carries everything that exists because Postgres is underneath - read replicas, CDC into a warehouse, foreign data wrappers, the extension ecosystem. Appwrite has no equivalent there.
+I know it's a cliché, but there's no single answer to which one is best. I built one small app on free plans, and a full picture would take running a real production app on each. But it did show the differences you hit on day one: how you link tables, how you write access rules, and what your API looks like.
 
-**Appwrite** fits teams building an application rather than a schema, where getting auth, files, functions and hosting from one vendor saves more time than direct database control would. What it has that the others don't is the network layer: a firewall and a domain registrar sitting in the same product as the backend, both Cloud-only.
+**Supabase** is for you if you open a SQL editor before you open the docs. Your app's hard part is the data: reports, joins, analytics, logic you'd happily write in Postgres. Supabase lets you keep all of that in the database, as long as someone on the team owns the policies.
 
-**Nhost** fits when you want Postgres you own and a typed API you don't have to build, with authorization that lives in the platform instead of spread through application code, including the paths an AI assistant takes. Fewer moving parts than the other two, and one model covering all of them.
+You're building a mobile app or a frontend-heavy product, and you'd like to never think about the database. Each user owns their own data, maybe shares it with a team. That's where **Appwrite** feels easiest: login, files, push notifications and hosting all sit in one console.
 
-All three are open source, all three have free tiers, and the app in this article took under an hour on each. Build it yourself before you trust anyone's comparison, including this one.
+Your app has states that decide who sees what: drafts and published posts, members of an org, archived records. Maybe you're also planning AI search or an assistant over user data. That's the case **Nhost** handles best, because one set of rules covers your queries, files and AI features.
 
 [Start building on Nhost for free](https://app.nhost.io/signup)
