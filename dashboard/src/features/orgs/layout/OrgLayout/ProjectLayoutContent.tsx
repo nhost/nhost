@@ -1,17 +1,15 @@
 import { useRouter } from 'next/router';
 import { NextSeo } from 'next-seo';
-import { useEffect } from 'react';
+import { type ComponentPropsWithoutRef, useEffect } from 'react';
 import { twMerge } from 'tailwind-merge';
 import type { AuthenticatedLayoutProps } from '@/components/layout/AuthenticatedLayout';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
-import type { BoxProps } from '@/components/ui/v2/Box';
-import { Box } from '@/components/ui/v2/Box';
+import ProjectViewWithState from '@/features/orgs/layout/OrgLayout/ProjectViewWithState';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import { useAuth } from '@/providers/Auth';
 import { getConfigServerUrl, isPlatform as isPlatformFn } from '@/utils/env';
-import ProjectViewWithState from './ProjectViewWithState';
 
 const platFormOnlyPages = [
   '/orgs/[orgSlug]/projects/[appSubdomain]/deployments',
@@ -40,13 +38,15 @@ export interface ProjectLayoutContentProps extends AuthenticatedLayoutProps {
   /**
    * Props passed to the internal `<main />` element.
    */
-  mainContainerProps?: BoxProps;
+  mainContainerProps?: ComponentPropsWithoutRef<'main'>;
 }
 
 function ProjectLayoutContent({
   children,
   mainContainerProps = {},
 }: ProjectLayoutContentProps) {
+  const { className: mainContainerClassName, ...mainContainerRest } =
+    mainContainerProps;
   const { route, push } = useRouter();
 
   const isPlatform = useIsPlatform();
@@ -92,17 +92,16 @@ function ProjectLayoutContent({
   }
 
   return (
-    <Box
-      component="main"
+    <main
+      {...mainContainerRest}
       className={twMerge(
         'relative h-full flex-auto overflow-y-auto',
-        mainContainerProps.className,
+        mainContainerClassName,
       )}
-      {...mainContainerProps}
     >
       <ProjectViewWithState>{children}</ProjectViewWithState>
       <NextSeo title={!isPlatform ? 'Local App' : project?.name} />
-    </Box>
+    </main>
   );
 }
 

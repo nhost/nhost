@@ -7,6 +7,7 @@ export default defineConfig({
       filters: {
         mode: 'exclude',
         tags: ['migrations', 'metadata'],
+        includeUnreferencedSchemas: true,
       },
     },
     output: {
@@ -14,8 +15,8 @@ export default defineConfig({
       target: 'generated',
       schemas: 'generated/schemas',
       client: 'fetch',
-      biome: true,
       clean: true,
+      formatter: 'biome',
     },
   },
 });

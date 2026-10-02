@@ -33,9 +33,8 @@ func (err *RequestError) Error() string {
 		return fmt.Sprintf("parameter %q in %s has an error: %s", v.Name, v.In, reason)
 	} else if v := err.RequestBody; v != nil {
 		return fmt.Sprintf("request body has an error: %s", reason)
-	} else {
-		return reason
 	}
+	return reason
 }
 
 func (err RequestError) Unwrap() error {

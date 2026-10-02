@@ -51,7 +51,7 @@ func sendMail( //nolint:funlen,cyclop
 	)
 
 	if useTLSConnection {
-		tlsconfig := &tls.Config{ //nolint:gosec,exhaustruct
+		tlsconfig := &tls.Config{ //nolint:exhaustruct
 			InsecureSkipVerify: false,
 			ServerName:         host,
 		}
@@ -78,7 +78,7 @@ func sendMail( //nolint:funlen,cyclop
 	}
 
 	if ok, _ := c.Extension("STARTTLS"); ok {
-		config := &tls.Config{ServerName: host} //nolint:gosec,exhaustruct
+		config := &tls.Config{ServerName: host} //nolint:exhaustruct
 		if err = c.StartTLS(config); err != nil {
 			return err //nolint:wrapcheck
 		}

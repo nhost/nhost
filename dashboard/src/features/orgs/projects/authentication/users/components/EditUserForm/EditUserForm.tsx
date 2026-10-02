@@ -1,5 +1,4 @@
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useTheme } from '@mui/material';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import kebabCase from 'just-kebab-case';
 import debounce from 'lodash.debounce';
@@ -7,18 +6,15 @@ import { ChevronDownIcon, CopyIcon } from 'lucide-react';
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import * as Yup from 'yup';
+import { z } from 'zod';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { FormCheckbox } from '@/components/form/FormCheckbox';
+import { FormInput } from '@/components/form/FormInput';
 import { FormSelect } from '@/components/form/FormSelect';
-import { Avatar } from '@/components/ui/v2/Avatar';
-import { Box } from '@/components/ui/v2/Box';
-import { Chip } from '@/components/ui/v2/Chip';
-import { IconButton } from '@/components/ui/v2/IconButton';
-import { Input } from '@/components/ui/v2/Input';
-import { InputLabel } from '@/components/ui/v2/InputLabel';
-import { Text } from '@/components/ui/v2/Text';
+import { FormTextarea } from '@/components/form/FormTextarea';
+import { Avatar } from '@/components/ui/v3/avatar';
+import { Badge } from '@/components/ui/v3/badge';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
@@ -40,6 +36,7 @@ import {
   useUpdateRemoteAppUserMutation,
 } from '@/generated/graphql';
 import type { RemoteAppUser } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/auth/users';
+import { useThemePreference } from '@/providers/Theme';
 import type { DialogFormProps } from '@/types/common';
 import { copy } from '@/utils/copy';
 
@@ -70,41 +67,38 @@ export interface EditUserFormProps extends DialogFormProps {
   roles: { [key: string]: boolean }[];
 }
 
-export const EditUserFormValidationSchema = Yup.object({
-  displayName: Yup.string(),
-  avatarURL: Yup.string(),
-  email: Yup.string()
-    .email('Invalid email address')
-    .required('This field is required.'),
-  emailVerified: Yup.boolean().optional(),
-  phoneNumber: Yup.string().nullable(),
-  phoneNumberVerified: Yup.boolean().optional(),
-  locale: Yup.string(),
-  defaultRole: Yup.string(),
-  roles: Yup.array().of(Yup.boolean()),
-  metadata: Yup.string().test(
-    'is-valid-json',
-    'Metadata must be valid JSON or empty',
-    (value) => {
-      if (value === '') {
-        return true;
-      } // Allow empty string as valid input
-      try {
-        if (value !== undefined) {
-          JSON.parse(value);
-          return true;
-        }
-        return false;
-      } catch {
-        return false;
-      }
-    },
-  ),
+const isValidMetadata = (value: string) => {
+  if (value === '') {
+    return true;
+  }
+  try {
+    JSON.parse(value);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+export const EditUserFormValidationSchema = z.object({
+  displayName: z.string().optional(),
+  avatarURL: z.string().optional(),
+  email: z
+    .string()
+    .min(1, 'This field is required.')
+    .email('Invalid email address'),
+  emailVerified: z.boolean().optional(),
+  phoneNumber: z.string().nullable().optional(),
+  phoneNumberVerified: z.boolean().optional(),
+  locale: z.string().optional(),
+  defaultRole: z.string().optional(),
+  roles: z.array(z.boolean()).optional(),
+  metadata: z
+    .string()
+    .refine(isValidMetadata, 'Metadata must be valid JSON or empty')
+    .optional(),
 });
 
-export type EditUserFormValues = Yup.InferType<
-  typeof EditUserFormValidationSchema
->;
+export type EditUserFormValues = z.infer<typeof EditUserFormValidationSchema>;
 
 export default function EditUserForm({
   location,
@@ -116,7 +110,7 @@ export default function EditUserForm({
 }: EditUserFormProps) {
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
-  const theme = useTheme();
+  const { resolvedTheme } = useThemePreference();
   const { onDirtyStateChange, openDialog } = useDialog();
   const { project } = useProject();
 
@@ -130,13 +124,13 @@ export default function EditUserForm({
 
   const form = useForm<EditUserFormValues>({
     reValidateMode: 'onSubmit',
-    resolver: yupResolver(EditUserFormValidationSchema),
+    resolver: zodResolver(EditUserFormValidationSchema),
     defaultValues: {
       avatarURL: user.avatarUrl,
       displayName: user.displayName,
-      email: user.email,
+      email: user.email ?? '',
       emailVerified: user.emailVerified,
-      phoneNumber: user.phoneNumber,
+      phoneNumber: user.phoneNumber ?? null,
       phoneNumberVerified: user.phoneNumberVerified,
       locale: user.locale,
       defaultRole: user.defaultRole,
@@ -146,10 +140,9 @@ export default function EditUserForm({
   });
 
   const {
-    register,
     setError,
     clearErrors,
-    formState: { errors, dirtyFields, isSubmitting, isValidating },
+    formState: { dirtyFields, isSubmitting, isValidating },
   } = form;
 
   const handleMetadataError = useMemo(() => {
@@ -172,7 +165,7 @@ export default function EditUserForm({
   }, [setError]);
 
   const handleMetadataChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
+    (event: React.ChangeEvent<HTMLTextAreaElement>) => {
       const { value } = event.target;
       if (value === '') {
         clearErrors('metadata'); // Clear errors when the input is explicitly cleared
@@ -247,27 +240,24 @@ export default function EditUserForm({
         className="flex flex-col overflow-hidden border-t-1 lg:flex-auto lg:content-between"
         onSubmit={onSubmit}
       >
-        <Box className="flex-auto divide-y overflow-y-auto">
-          <Box
-            component="section"
-            className="grid grid-flow-col p-6 lg:grid-cols-7"
-          >
+        <div className="flex-auto divide-y overflow-y-auto">
+          <section className="grid grid-flow-col p-6 lg:grid-cols-7">
             <div className="col-span-6 grid grid-flow-col place-content-start items-center gap-4">
-              <Avatar className="h-12 w-12" src={user.avatarUrl} />
+              <Avatar
+                className="h-12 w-12"
+                src={user.avatarUrl}
+                alt={user.displayName ?? undefined}
+                name={user.displayName ?? undefined}
+              />
               <div className="grid grid-flow-row items-center">
-                <Text className="font-medium text-lg">{user.displayName}</Text>
-                <Text className="font-normal text-sm+" color="secondary">
+                <p className="font-medium text-foreground text-lg">
+                  {user.displayName}
+                </p>
+                <p className="font-normal text-muted-foreground text-sm+">
                   {user.email}
-                </Text>
+                </p>
               </div>
-              {isUserBanned && (
-                <Chip
-                  component="span"
-                  color="error"
-                  size="small"
-                  label="Banned"
-                />
-              )}
+              {isUserBanned && <Badge variant="destructive">Banned</Badge>}
             </div>
             <div>
               <DropdownMenu>
@@ -298,19 +288,17 @@ export default function EditUserForm({
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-          </Box>
-          <Box
-            component="section"
-            className="grid grid-flow-row grid-cols-4 gap-8 p-6"
-          >
-            <InputLabel as="h3" className="col-span-1 self-center">
+          </section>
+          <section className="grid grid-flow-row grid-cols-4 gap-8 p-6">
+            <p className="col-span-1 self-center font-medium text-foreground text-sm leading-none">
               User ID
-            </InputLabel>
+            </p>
             <div className="col-span-3 grid grid-flow-col items-center justify-start gap-2">
-              <Text className="truncate font-medium">{user.id}</Text>
-              <IconButton
-                variant="borderless"
-                color="secondary"
+              <p className="truncate font-medium text-foreground">{user.id}</p>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground"
                 aria-label="Copy User ID"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -318,78 +306,66 @@ export default function EditUserForm({
                 }}
               >
                 <CopyIcon className="h-4 w-4" />
-              </IconButton>
+              </Button>
             </div>
 
-            <InputLabel as="h3" className="col-span-1 self-center">
+            <p className="col-span-1 self-center font-medium text-foreground text-sm leading-none">
               Created At
-            </InputLabel>
-            <Text className="col-span-3 font-medium">
+            </p>
+            <p className="col-span-3 font-medium text-foreground">
               {format(new Date(user.createdAt), 'yyyy-MM-dd HH:mm:ss')}
-            </Text>
+            </p>
 
-            <InputLabel as="h3" className="col-span-1 self-center">
+            <p className="col-span-1 self-center font-medium text-foreground text-sm leading-none">
               Last Seen
-            </InputLabel>
-            <Text className="col-span-3 font-medium">
+            </p>
+            <p className="col-span-3 font-medium text-foreground">
               {user.lastSeen
                 ? `${format(new Date(user.lastSeen), 'yyyy-MM-dd HH:mm:ss')}`
                 : '-'}
-            </Text>
-          </Box>
-          <Box component="section" className="grid grid-flow-row gap-8 p-6">
-            <Input
-              {...register('displayName')}
-              id="Display Name"
+            </p>
+          </section>
+          <section className="grid grid-flow-row gap-8 p-6">
+            <FormInput
+              control={form.control}
+              name="displayName"
               label="Display Name"
-              variant="inline"
               placeholder="Enter Display Name"
-              hideEmptyHelperText
-              error={!!errors.displayName}
-              helperText={errors?.displayName?.message}
-              fullWidth
+              inline
               autoComplete="off"
             />
-            <Input
-              {...register('avatarURL')}
-              id="Avatar URL"
+            <FormInput
+              control={form.control}
+              name="avatarURL"
               label="Avatar URL"
-              variant="inline"
               placeholder="Enter Avatar URL"
-              hideEmptyHelperText
-              error={!!errors.avatarURL}
-              helperText={errors?.avatarURL?.message}
-              fullWidth
+              inline
               autoComplete="off"
             />
-            <Input
-              {...register('email')}
-              id="email"
-              label="Email"
-              variant="inline"
-              placeholder="Enter Email"
-              hideEmptyHelperText
-              error={!!errors.email}
-              helperText={
-                errors.email ? (
-                  errors?.email?.message
-                ) : (
-                  <FormCheckbox
-                    control={form.control}
-                    name="emailVerified"
-                    label="Verified"
-                    aria-label="Email Verified"
-                  />
-                )
-              }
-              slotProps={{ helperText: { component: 'div' } }}
-              fullWidth
-              autoComplete="off"
-            />
+            <div className="grid gap-2">
+              <FormInput
+                control={form.control}
+                name="email"
+                label="Email"
+                placeholder="Enter Email"
+                inline
+                autoComplete="off"
+              />
+              <div className="sm:pl-56">
+                <FormCheckbox
+                  control={form.control}
+                  name="emailVerified"
+                  label="Verified"
+                  aria-label="Email Verified"
+                />
+              </div>
+            </div>
 
             <div className="col-span-1 my-1 grid grid-flow-col grid-cols-8 items-center">
               <div className="col-span-2">
-                <InputLabel as="h3">Password</InputLabel>
+                <p className="font-medium text-foreground text-sm leading-none">
+                  Password
+                </p>
               </div>
               <Button
                 variant="link"
@@ -400,30 +376,30 @@ export default function EditUserForm({
               </Button>
             </div>
 
-            <Input
-              {...register('phoneNumber')}
-              id="phoneNumber"
-              label="Phone Number"
-              variant="inline"
-              placeholder="Enter Phone Number"
-              error={!!errors.phoneNumber}
-              fullWidth
-              autoComplete="off"
-              helperText={
-                errors.phoneNumber ? (
-                  errors?.phoneNumber?.message
-                ) : (
-                  <FormCheckbox
-                    control={form.control}
-                    name="phoneNumberVerified"
-                    label="Verified"
-                    aria-label="Phone Number Verified"
-                    disabled={!form.watch('phoneNumber')}
-                  />
-                )
-              }
-              slotProps={{ helperText: { component: 'div' } }}
-            />
+            <div className="grid gap-2">
+              <FormInput
+                control={form.control}
+                name="phoneNumber"
+                label="Phone Number"
+                placeholder="Enter Phone Number"
+                inline
+                autoComplete="off"
+                transform={{
+                  in: (value) => value ?? '',
+                  out: (event) =>
+                    event.target.value === '' ? null : event.target.value,
+                }}
+              />
+              <div className="sm:pl-56">
+                <FormCheckbox
+                  control={form.control}
+                  name="phoneNumberVerified"
+                  label="Verified"
+                  aria-label="Phone Number Verified"
+                  disabled={!form.watch('phoneNumber')}
+                />
+              </div>
+            </div>
             <FormSelect
               control={form.control}
               name="locale"
@@ -438,20 +414,19 @@ export default function EditUserForm({
                 </SelectItem>
               ))}
             </FormSelect>
-          </Box>
-          <Box
-            component="section"
-            className="grid place-content-start gap-4 p-6 lg:grid-cols-4"
-          >
+          </section>
+          <section className="grid place-content-start gap-4 p-6 lg:grid-cols-4">
             <div className="col-span-1 items-center self-center align-middle">
-              <InputLabel as="h3">OAuth Providers</InputLabel>
+              <p className="font-medium text-foreground text-sm leading-none">
+                OAuth Providers
+              </p>
             </div>
             <div className="col-span-3 grid w-full grid-flow-row gap-y-6">
               {user.userProviders.length === 0 && (
                 <div className="grid grid-flow-col place-content-between gap-x-1">
-                  <Text className="font-normal" color="disabled">
+                  <p className="font-normal text-disabled">
                     This user has no OAuth providers connected.
-                  </Text>
+                  </p>
                 </div>
               )}
 
@@ -463,7 +438,7 @@ export default function EditUserForm({
                   <div className="span-cols-1 grid grid-flow-col gap-2">
                     <Image
                       src={
-                        theme.palette.mode === 'dark'
+                        resolvedTheme === 'dark'
                           ? `/assets/brands/light/${kebabCase(
                               provider.providerId,
                             )}.svg`
@@ -475,15 +450,15 @@ export default function EditUserForm({
                       height={25}
                       alt="Oauth provider logo"
                     />
-                    <Text className="font-medium capitalize">
+                    <p className="font-medium text-foreground capitalize">
                       {getReadableProviderName(provider.providerId)}
-                    </Text>
+                    </p>
                   </div>
                 </div>
               ))}
             </div>
-          </Box>
-          <Box component="section" className="grid grid-flow-row gap-y-10 p-6">
+          </section>
+          <section className="grid grid-flow-row gap-y-10 p-6">
             <FormSelect
               control={form.control}
               name="defaultRole"
@@ -502,9 +477,9 @@ export default function EditUserForm({
               ))}
             </FormSelect>
             <div className="grid grid-flow-row place-content-start gap-6 lg:grid-flow-col lg:grid-cols-8">
-              <InputLabel as="h3" className="col-span-2">
+              <p className="col-span-2 font-medium text-foreground text-sm leading-none">
                 Allowed Roles
-              </InputLabel>
+              </p>
               <div className="col-span-3 grid grid-flow-row gap-6">
                 {roles.map((role, i) => (
                   <FormCheckbox
@@ -516,32 +491,22 @@ export default function EditUserForm({
                 ))}
               </div>
             </div>
-          </Box>
-          <Box component="section" className="grid grid-flow-row gap-8 p-6">
-            <Input
-              {...register('metadata', { onChange: handleMetadataChange })}
-              id="metadata"
+          </section>
+          <section className="grid grid-flow-row gap-8 p-6">
+            <FormTextarea
+              control={form.control}
+              name="metadata"
               label="Metadata"
-              variant="inline"
-              hideEmptyHelperText
-              error={!!errors.metadata}
-              fullWidth
-              multiline
-              inputProps={{
-                className: 'resize-y min-h-[130px]',
-              }}
-              helperText={
-                errors.metadata
-                  ? errors.metadata.message
-                  : 'Enter valid JSON. This can be a number, boolean, array, or object.'
-              }
-              maxRows={100}
+              inline
+              className="min-h-[130px] resize-y"
+              onChange={handleMetadataChange}
+              helperText="Enter valid JSON. This can be a number, boolean, array, or object."
               autoComplete="off"
             />
-          </Box>
-        </Box>
+          </section>
+        </div>
 
-        <Box className="grid w-full flex-shrink-0 snap-end grid-flow-col justify-between gap-3 place-self-end border-t-1 p-2">
+        <div className="grid w-full flex-shrink-0 snap-end grid-flow-col justify-between gap-3 place-self-end border-t-1 p-2">
           <Button
             variant="outline"
             tabIndex={isDirty ? -1 : 0}
@@ -558,7 +523,7 @@ export default function EditUserForm({
           >
             Save
           </ButtonWithLoading>
-        </Box>
+        </div>
       </Form>
     </FormProvider>
   );

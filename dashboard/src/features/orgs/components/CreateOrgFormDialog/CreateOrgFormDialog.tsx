@@ -52,6 +52,7 @@ import { useUserData } from '@/hooks/useUserData';
 import { analytics } from '@/lib/segment';
 import { cn } from '@/lib/utils';
 import { ORGANIZATION_TYPES } from '@/utils/constants/organizationTypes';
+import { errorMessageIncludes } from '@/utils/databaseErrors';
 
 const createOrgFormSchema = z.object({
   name: z.string().min(2),
@@ -352,7 +353,13 @@ export default function CreateOrgDialog({
       {
         loadingMessage: 'Redirecting to checkout',
         successMessage: 'Success',
-        errorMessage: 'An error occurred while redirecting to checkout!',
+        errorMessage: (mutationError) =>
+          errorMessageIncludes(
+            mutationError,
+            'User already has a free organization',
+          )
+            ? 'You already have a free organization. Upgrade it or delete it before creating another.'
+            : 'An error occurred while creating the organization. Please try again.',
       },
     );
   };

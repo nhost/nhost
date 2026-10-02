@@ -372,8 +372,7 @@ func TestGqlValidationError_PlainErrorDoesNotMatch(t *testing.T) {
 	//nolint:err113 // test sentinel error used to verify error propagation
 	err := errors.New("plain error")
 
-	var valErr *gqlValidationError
-	if errors.As(err, &valErr) {
+	if _, ok := errors.AsType[*gqlValidationError](err); ok {
 		t.Fatal("expected errors.As to fail for plain error")
 	}
 }

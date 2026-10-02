@@ -14,19 +14,21 @@ import {
   DialogTrigger,
 } from '@/components/ui/v3/dialog';
 import { useRestoreApplicationDatabasePiTR } from '@/features/orgs/hooks/useRestoreApplicationDatabasePiTR';
+import BackupScheduledInfo from '@/features/orgs/projects/backups/components/common/BackupScheduledInfo';
+import {
+  BACKUP_OPERATION_COPY,
+  type BackupOperation,
+} from '@/features/orgs/projects/backups/components/common/backup-operation';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
-import BackupScheduledInfo from './BackupScheduledInfo';
 import StartRestoreConfirmationCheck from './StartRestoreConfirmationCheck';
 
 interface Props {
   fromAppId: string;
-  title: string;
   earliestBackupDate: string;
   disabled?: boolean;
-  dialogButtonText?: string;
-  dialogTriggerText?: string;
+  operation?: BackupOperation;
 }
 
 type RestoreBackupDialogButtonWrapperProps = Omit<
@@ -36,15 +38,11 @@ type RestoreBackupDialogButtonWrapperProps = Omit<
   earliestBackupDate?: string;
 };
 
-const DEFAULT_TRIGGER_BUTTON_TEXT = 'Start restore';
-
 function RestoreBackupDialogButton({
-  title,
   disabled,
   earliestBackupDate,
   fromAppId,
-  dialogButtonText = 'Restore backup',
-  dialogTriggerText = DEFAULT_TRIGGER_BUTTON_TEXT,
+  operation = 'restore',
 }: Props) {
   const [open, setOpen] = useState(false);
   const [isRestoreScheduled, setIsRestoreScheduled] = useState(false);
@@ -67,6 +65,8 @@ function RestoreBackupDialogButton({
 
   const { restoreApplicationDatabase, loading } =
     useRestoreApplicationDatabasePiTR();
+  const operationCopy = BACKUP_OPERATION_COPY[operation].pointInTime;
+  const toastMessages = BACKUP_OPERATION_COPY[operation].toastMessages;
 
   async function handleRestore() {
     if (isNotEmptyValue(restoreTargetTime)) {
@@ -75,7 +75,11 @@ function RestoreBackupDialogButton({
         recoveryTarget: restoreTargetTime,
         fromAppId: fromAppId === project?.id ? null : fromAppId,
       };
-      restoreApplicationDatabase(variables, () => setIsRestoreScheduled(true));
+      restoreApplicationDatabase(
+        variables,
+        () => setIsRestoreScheduled(true),
+        toastMessages,
+      );
     }
   }
 
@@ -153,18 +157,18 @@ function RestoreBackupDialogButton({
 
   const permanentlyDeleteCurrentDataCheckLabel = (
     <span>
-      I understand that restoring this backup will permanently delete all
-      current data for project <b>{project!.name}</b>.
+      I understand that {operationCopy.confirmationActionText} this backup will
+      permanently delete all current data for project <b>{project!.name}</b>.
     </span>
   );
 
   const dialogTitle = isRestoreScheduled
     ? 'Backup has been scheduled successfully.'
-    : title;
+    : operationCopy.dialogTitle;
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button disabled={disabled}>{dialogTriggerText}</Button>
+        <Button disabled={disabled}>{operationCopy.triggerButtonText}</Button>
       </DialogTrigger>
       <DialogContent
         className="text-foreground sm:max-w-xl"
@@ -179,6 +183,7 @@ function RestoreBackupDialogButton({
             onClose={handleClose}
             subdomain={project!.subdomain}
             orgSlug={org?.slug}
+            operation={operation}
           />
         )}
         {!isRestoreScheduled && (
@@ -218,7 +223,7 @@ function RestoreBackupDialogButton({
                 loading={loading}
                 onClick={handleRestore}
               >
-                {dialogButtonText}
+                {operationCopy.submitButtonText}
               </Button>
             </DialogFooter>
           </>
@@ -230,15 +235,21 @@ function RestoreBackupDialogButton({
 
 function RestoreBackupDialogButtonWrapper({
   earliestBackupDate,
+  operation = 'restore',
   ...props
 }: RestoreBackupDialogButtonWrapperProps) {
   if (isEmptyValue(earliestBackupDate)) {
-    return <Button disabled>{DEFAULT_TRIGGER_BUTTON_TEXT}</Button>;
+    return (
+      <Button disabled>
+        {BACKUP_OPERATION_COPY[operation].pointInTime.triggerButtonText}
+      </Button>
+    );
   }
 
   return (
     <RestoreBackupDialogButton
       earliestBackupDate={earliestBackupDate!}
+      operation={operation}
       {...props}
     />
   );

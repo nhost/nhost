@@ -2,6 +2,7 @@ package appconfig
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/nhost/be/services/mimir/model"
@@ -125,6 +126,24 @@ func HasuraStorageEnv( //nolint:funlen
 			Name:  "CLAMAV_SERVER",
 			Value: antivirusServer,
 		})
+	}
+
+	if it := cfg.GetStorage().GetImageTransformer(); it != nil {
+		env = append(
+			env,
+			EnvVar{
+				Name:       "IMAGE_TRANSFORMER_MAX_DIMENSION",
+				Value:      strconv.FormatUint(uint64(deptr(it.GetMaxImageOutputDimension())), 10),
+				SecretName: "",
+				IsSecret:   false,
+			},
+			EnvVar{
+				Name:       "IMAGE_TRANSFORMER_MAX_BLUR_SIGMA",
+				Value:      strconv.FormatUint(uint64(deptr(it.GetMaxBlurSigma())), 10),
+				SecretName: "",
+				IsSecret:   false,
+			},
+		)
 	}
 
 	return env, nil

@@ -16,7 +16,6 @@ import type {
   waitForOptions,
 } from '@testing-library/react';
 import {
-  fireEvent,
   render as rtlRender,
   waitForElementToBeRemoved as rtlWaitForElementToBeRemoved,
   screen,
@@ -186,25 +185,11 @@ export const createGraphqlMockResolver = (
   };
 };
 
-export const mockPointerEvent = () => {
-  // Note: Workaround based on https://github.com/radix-ui/primitives/issues/1382#issuecomment-1122069313
-  class MockPointerEvent extends Event {
-    button: number;
-
-    ctrlKey: boolean;
-
-    pointerType: string;
-
-    constructor(type: string, props: PointerEventInit) {
-      super(type, props);
-      this.button = props.button || 0;
-      this.ctrlKey = props.ctrlKey || false;
-      this.pointerType = props.pointerType || 'mouse';
-    }
-  }
-  window.PointerEvent = MockPointerEvent as any;
+export const mockScrollIntoViewAndPointerCapture = () => {
+  // jsdom workarounds based on:
+  // https://github.com/radix-ui/primitives/issues/1382#issuecomment-1122069313
+  // https://github.com/radix-ui/primitives/issues/1822#issuecomment-1359700182
   window.HTMLElement.prototype.scrollIntoView = vi.fn();
-  window.HTMLElement.prototype.releasePointerCapture = vi.fn();
   window.HTMLElement.prototype.hasPointerCapture = vi.fn();
 };
 
@@ -252,29 +237,6 @@ export class TestUserEvent {
   async paste(value: string) {
     await waitFor(async () => {
       await this.user.paste(value);
-    });
-  }
-
-  static async fireClickEvent(element: Document | Element | Window | Node) {
-    await waitFor(() => {
-      fireEvent(
-        element,
-        new MouseEvent('click', {
-          bubbles: true,
-          cancelable: true,
-        }),
-      );
-    });
-  }
-
-  static async fireTypeEvent(element: Element, text: string) {
-    await waitFor(() => {
-      fireEvent.change(element, {
-        target: { value: text },
-      });
-      fireEvent.input(element, {
-        target: { value: text },
-      });
     });
   }
 }

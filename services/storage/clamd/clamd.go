@@ -65,10 +65,10 @@ func sendChunk(conn net.Conn, data []byte) error {
 	var buf [4]byte
 
 	lenData := len(data)
-	buf[0] = byte(lenData >> 24) //nolint:mnd
-	buf[1] = byte(lenData >> 16) //nolint:mnd
-	buf[2] = byte(lenData >> 8)  //nolint:mnd
-	buf[3] = byte(lenData >> 0)
+	buf[0] = byte(lenData >> 24) //nolint:mnd,gosec // G115: intended low-byte truncation
+	buf[1] = byte(lenData >> 16) //nolint:mnd,gosec // G115: intended low-byte truncation
+	buf[2] = byte(lenData >> 8)  //nolint:mnd,gosec // G115: intended low-byte truncation
+	buf[3] = byte(lenData >> 0)  //nolint:gosec // G115: intended low-byte truncation
 
 	a := buf
 

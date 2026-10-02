@@ -4,7 +4,7 @@ import type { ReactElement } from 'react';
 import { useCallback } from 'react';
 import { CookieConsent } from '@/components/common/CookieConsent';
 import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
-import { Divider } from '@/components/ui/v2/Divider';
+import { Separator } from '@/components/ui/v3/separator';
 import { SignUpTabs } from '@/features/auth/SignUp/SignUpTabs';
 import { SignUpWithGithub } from '@/features/auth/SignUp/SignUpWithGithub';
 
@@ -144,10 +144,10 @@ export default function SignUpPage() {
               OR
             </p>
 
-            <Divider />
+            <Separator />
           </div>
           <SignUpTabs />
-          <Divider className="!my-2" />
+          <Separator className="my-2" />
           <p className="text-center text-[#A2B3BE] text-sm">
             By signing up, you agree to our{' '}
             <NextLink

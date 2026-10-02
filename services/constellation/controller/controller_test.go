@@ -32,7 +32,7 @@ import (
 )
 
 const (
-	testAdminSecret           = "test-admin-secret" //nolint:gosec
+	testAdminSecret           = "test-admin-secret"
 	negativeLimitIntegerError = "expected a non-negative 32-bit integer for type 'Int', but found an integer"
 )
 

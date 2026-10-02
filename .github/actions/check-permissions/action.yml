@@ -1,34 +1,76 @@
 name: 'Check Permissions'
-description: "Fail if the PR author lacks write permissions and the 'safe_to_test' label is not present"
+description: >-
+  Fail if the PR author lacks write permissions and the PR head commit has not
+  been approved with the 'safe_to_test' label
 
 runs:
   using: 'composite'
   steps:
     - shell: bash
+      env:
+        AUTHOR_ASSOCIATION: >-
+          ${{ github.event.pull_request.author_association }}
       run: |
         echo "github.event_name: ${{ github.event_name }}"
-        echo "github.event.pull_request.author_association: ${{ github.event.pull_request.author_association }}"
-    - name: "Fail if the PR author lacks write permission and the 'safe_to_test' label is not present"
+        echo "github.event.pull_request.author_association: ${AUTHOR_ASSOCIATION}"
+    # The 'safe-to-test' status is set by ci_safe_to_test.yaml when a
+    # maintainer adds the 'safe_to_test' label. Only nhost-helper-bot's counts:
+    # its key never reaches jobs running PR code.
+    - name: >-
+        Fail if the PR author lacks write permission and the head commit is
+        not approved
       if: >-
         github.event_name == 'pull_request_target' &&
-        ! contains(github.event.pull_request.labels.*.name, 'safe_to_test') &&
-        ! contains(fromJson('["nhost-helper-bot[bot]"]'), github.event.pull_request.user.login)
+        ! contains(
+          fromJson(
+            '["dependabot[bot]", "nhost-helper-bot[bot]"]'
+          ),
+          github.event.pull_request.user.login
+        )
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
         REPO: ${{ github.repository }}
         PR_USER: ${{ github.event.pull_request.user.login }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
       run: |
         set -euo pipefail
-        permission=$(gh api "repos/${REPO}/collaborators/${PR_USER}/permission" --jq '.permission')
+        permission=$(
+          gh api \
+            "repos/${REPO}/collaborators/${PR_USER}/permission" \
+            --jq '.permission'
+        )
         echo "Resolved repository permission for ${PR_USER}: ${permission}"
         case "${permission}" in
           admin | maintain | write)
-            echo "Author has write or higher permission; allowing checks to run."
-            ;;
-          *)
-            echo "::error::Author '${PR_USER}' has '${permission}' permission, which is below write."
-            echo "A maintainer must review the PR and add the 'safe_to_test' label to run secret-bearing checks."
-            exit 1
+            echo "Author has write or higher permission;" \
+              "allowing checks to run."
+            exit 0
             ;;
         esac
+
+        # Statuses are returned newest first; only the helper bot's latest
+        # 'safe-to-test' status for this exact SHA counts.
+        states=$(
+          gh api --paginate \
+            "repos/${REPO}/commits/${HEAD_SHA}/statuses" \
+            --jq '.[]
+              | select(
+                  .context == "safe-to-test" and
+                  .creator.login == "nhost-helper-bot[bot]"
+                )
+              | .state'
+        )
+        latest="${states%%$'\n'*}"
+        if [[ "${latest}" == "success" ]]; then
+          echo "Head commit ${HEAD_SHA} was approved with 'safe_to_test';" \
+            "allowing checks to run."
+          exit 0
+        fi
+
+        echo "::error::Author '${PR_USER}' has '${permission}'" \
+          "permission, which is below write, and commit ${HEAD_SHA}" \
+          "has not been approved."
+        echo "A maintainer must review this exact commit and add the" \
+          "'safe_to_test' label to run secret-bearing checks."
+        exit 1

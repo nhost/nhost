@@ -1,9 +1,6 @@
 #!/bin/sh
 set -euo pipefail
 
-# * Set the default package manager to use if cannot be guessed from lock files
-echo "defaultAgent=$PACKAGE_MANAGER" > ~/.nirc
-
 # * Look for the package.json file.
 # * If not found, create it in the "functions" directory.
 if [ -f "./functions/package.json" ]; then

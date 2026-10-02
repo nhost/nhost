@@ -2,8 +2,6 @@ import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 import { NavLink } from '@/components/common/NavLink';
 import { UnauthenticatedLayout } from '@/components/layout/UnauthenticatedLayout';
-import { Box } from '@/components/ui/v2/Box';
-import { Text } from '@/components/ui/v2/Text';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
 import SendVerificationEmailForm from '@/features/auth/SignIn/SignInWithEmailAndPassword/components/SendVerificationEmailForm';
 import useResendVerificationEmail from '@/features/auth/SignIn/SignInWithEmailAndPassword/hooks/useResendVerificationEmail';
@@ -24,20 +22,16 @@ export default function VerifyEmailPage() {
 
   return (
     <>
-      <Text
-        variant="h2"
-        component="h1"
-        className="text-center font-semibold text-3.5xl lg:text-4.5xl"
-      >
+      <h1 className="text-center font-semibold text-3.5xl lg:text-4.5xl">
         Verify your email
-      </Text>
+      </h1>
 
-      <Box className="grid grid-flow-row gap-4 rounded-md border bg-transparent p-6 lg:p-12">
+      <div className="grid grid-flow-row gap-4 rounded-md border bg-transparent p-6 lg:p-12">
         <div className="relative py-2">
-          <Text color="secondary" className="text-center text-sm">
+          <p className="text-center text-muted-foreground text-sm">
             Please check your inbox for the verification email. Follow the link
             to verify your email address and complete your registration.
-          </Text>
+          </p>
         </div>
         {email ? (
           <ButtonWithLoading
@@ -62,7 +56,7 @@ export default function VerifyEmailPage() {
             Sign In
           </NavLink>
         </div>
-      </Box>
+      </div>
     </>
   );
 }

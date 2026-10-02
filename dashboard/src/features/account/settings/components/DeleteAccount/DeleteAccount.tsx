@@ -19,6 +19,10 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import { useDeleteUserAccountMutation } from '@/generated/graphql';
 import { useUserData } from '@/hooks/useUserData';
 import { useAuth } from '@/providers/Auth';
+import {
+  errorMessageIncludes,
+  getViolatedConstraint,
+} from '@/utils/databaseErrors';
 
 export default function DeleteAccount() {
   const { signout } = useAuth();
@@ -43,8 +47,17 @@ export default function DeleteAccount() {
       {
         loadingMessage: 'Deleting your account...',
         successMessage: 'The account has been deleted successfully.',
-        errorMessage:
-          'An error occurred while deleting your account. Please try again.',
+        errorMessage: (error) => {
+          if (getViolatedConstraint(error) === 'apps_creator_user_id_fkey') {
+            return 'Your account still owns projects. Delete them before deleting your account.';
+          }
+
+          if (errorMessageIncludes(error, 'Cannot delete the last admin')) {
+            return 'You are the only admin of an organization. Promote another member to admin or delete the organization before deleting your account.';
+          }
+
+          return 'An error occurred while deleting your account. Please try again.';
+        },
       },
     );
 

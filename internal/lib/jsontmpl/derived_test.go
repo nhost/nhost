@@ -76,8 +76,7 @@ func TestDerivedFixtures(t *testing.T) {
 			case strings.HasPrefix(golden, "CRASH:"):
 				// Upstream crashes here; the port must surface a typed error
 				// rather than panicking. Message is a documented divergence.
-				var jerr *jsontmpl.Error
-				if !errors.As(renderErr, &jerr) {
+				if _, ok := errors.AsType[*jsontmpl.Error](renderErr); !ok {
 					t.Fatalf("expected *jsontmpl.Error for upstream CRASH fixture, got %T: %v",
 						renderErr, renderErr)
 				}

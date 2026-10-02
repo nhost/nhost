@@ -11,7 +11,7 @@ but you can also use it directly if you have a specific use case.
 You can import and use this package with:
 
 ```ts
-import { createClient } from "@nhost/nhost-js/auth";
+import { createAPIClient } from "@nhost/nhost-js/auth";
 ```
 
 # Usage
@@ -380,6 +380,33 @@ This method may return different T based on the response code:
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
+#### changeUserPhoneNumber()
+
+```ts
+changeUserPhoneNumber(body: UserPhoneNumberChangeRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
+```
+
+Summary: Change user phone number
+Request to change the authenticated user's phone number. A one-time password is sent
+via SMS to the new phone number; complete the change by calling
+`/user/phone-number/change/verify` with the OTP. The current `phone_number` is left
+unchanged until verification succeeds. Requires elevated permissions.
+
+This method may return different T based on the response code:
+
+- 200: OKResponse
+
+##### Parameters
+
+| Parameter  | Type                                                            |
+| ---------- | --------------------------------------------------------------- |
+| `body`     | [`UserPhoneNumberChangeRequest`](#userphonenumberchangerequest) |
+| `options?` | `RequestInit`                                                   |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+
 #### createPAT()
 
 ```ts
@@ -423,6 +450,32 @@ This method may return different T based on the response code:
 | ---------- | --------------------------------------------------- |
 | `body`     | [`UserDeanonymizeRequest`](#userdeanonymizerequest) |
 | `options?` | `RequestInit`                                       |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+
+#### deanonymizeUserSms()
+
+```ts
+deanonymizeUserSms(body: UserDeanonymizeSmsRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
+```
+
+Summary: Deanonymize an anonymous user with SMS OTP
+Convert an anonymous user to a regular user by adding a phone number. A one-time password is sent to the
+phone number; the user completes verification by calling `/signin/passwordless/sms/otp` with the OTP, which
+marks the phone number as verified and returns a session.
+
+This method may return different T based on the response code:
+
+- 200: OKResponse
+
+##### Parameters
+
+| Parameter  | Type                                                      |
+| ---------- | --------------------------------------------------------- |
+| `body`     | [`UserDeanonymizeSmsRequest`](#userdeanonymizesmsrequest) |
+| `options?` | `RequestInit`                                             |
 
 ##### Returns
 
@@ -917,7 +970,8 @@ Add a middleware function to the fetch chain
 refreshProviderToken(
    provider: SignInProvider,
    body: RefreshProviderTokenRequest,
-   options?: RequestInit): Promise<FetchResponse<ProviderSession>>;
+   options?: RequestInit
+): Promise<FetchResponse<ProviderSession>>;
 ```
 
 Summary: Refresh OAuth2 provider tokens
@@ -1194,7 +1248,8 @@ This method may return different T based on the response code:
 signInProviderURL(
    provider: SignInProvider,
    params?: SignInProviderParams,
-   options?: RequestInit): string;
+   options?: RequestInit
+): string;
 ```
 
 Summary: Sign in with an OAuth2 provider
@@ -1395,7 +1450,8 @@ This method may return different T based on the response code:
 signUpProviderURL(
    provider: SignInProvider,
    params?: SignUpProviderParams,
-   options?: RequestInit): string;
+   options?: RequestInit
+): string;
 ```
 
 Summary: Sign up with OAuth provider
@@ -1513,6 +1569,32 @@ This method may return different T based on the response code:
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
+#### verifyChangeUserPhoneNumber()
+
+```ts
+verifyChangeUserPhoneNumber(body: UserPhoneNumberChangeVerifyRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
+```
+
+Summary: Verify phone number change
+Complete a previously-requested phone number change by submitting the OTP that was
+sent via SMS. On success the staged phone number becomes the user's verified phone
+number. Requires elevated permissions.
+
+This method may return different T based on the response code:
+
+- 200: OKResponse
+
+##### Parameters
+
+| Parameter  | Type                                                                        |
+| ---------- | --------------------------------------------------------------------------- |
+| `body`     | [`UserPhoneNumberChangeVerifyRequest`](#userphonenumberchangeverifyrequest) |
+| `options?` | `RequestInit`                                                               |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+
 #### verifyElevateWebauthn()
 
 ```ts
@@ -1591,8 +1673,8 @@ This method may return different T based on the response code:
 verifySignInPasswordlessSms(body: SignInPasswordlessSmsOtpRequest, options?: RequestInit): Promise<FetchResponse<SignInPasswordlessSmsOtpResponse>>;
 ```
 
-Summary: Verify SMS OTP
-Complete passwordless SMS authentication by verifying the one-time password. Returns a session if validation is successful.
+Summary: Verify SMS OTP and complete authentication
+Complete passwordless SMS authentication by verifying the one-time password and returning a session.
 
 This method may return different T based on the response code:
 
@@ -2097,7 +2179,7 @@ Parameters for the oauth2Authorize method.
 
 ### Properties
 
-#### client_id
+#### client\_id
 
 ```ts
 client_id: string;
@@ -2105,7 +2187,7 @@ client_id: string;
 
 (string) - The OAuth2 client identifier (RFC 6749 Section 2.2).
 
-#### code_challenge?
+#### code\_challenge?
 
 ```ts
 optional code_challenge?: string;
@@ -2113,7 +2195,7 @@ optional code_challenge?: string;
 
 PKCE code challenge derived from the code verifier (RFC 7636 Section 4.2).
 
-#### code_challenge_method?
+#### code\_challenge\_method?
 
 ```ts
 optional code_challenge_method?: "S256";
@@ -2137,7 +2219,7 @@ optional prompt?: string;
 
 Space-delimited list of prompts to present to the user (OpenID Connect Core Section 3.1.2.1).
 
-#### redirect_uri
+#### redirect\_uri
 
 ```ts
 redirect_uri: string;
@@ -2153,7 +2235,7 @@ optional resource?: string;
 
 Resource indicator for the target service (RFC 8707).
 
-#### response_type
+#### response\_type
 
 ```ts
 response_type: string;
@@ -2183,7 +2265,7 @@ Opaque value used to maintain state between the request and callback (RFC 6749 S
 
 ### Properties
 
-#### client_id
+#### client\_id
 
 ```ts
 client_id: string;
@@ -2191,13 +2273,13 @@ client_id: string;
 
 (`string`) -
 
-#### code_challenge?
+#### code\_challenge?
 
 ```ts
 optional code_challenge?: string;
 ```
 
-#### code_challenge_method?
+#### code\_challenge\_method?
 
 ```ts
 optional code_challenge_method?: string;
@@ -2217,7 +2299,7 @@ optional nonce?: string;
 optional prompt?: string;
 ```
 
-#### redirect_uri
+#### redirect\_uri
 
 ```ts
 redirect_uri: string;
@@ -2231,7 +2313,7 @@ redirect_uri: string;
 optional resource?: string;
 ```
 
-#### response_type
+#### response\_type
 
 ```ts
 response_type: string;
@@ -2257,7 +2339,7 @@ optional state?: string;
 
 ### Properties
 
-#### authorization_endpoint
+#### authorization\_endpoint
 
 ```ts
 authorization_endpoint: string;
@@ -2265,43 +2347,43 @@ authorization_endpoint: string;
 
 (`string`) -
 
-#### authorization_response_iss_parameter_supported?
+#### authorization\_response\_iss\_parameter\_supported?
 
 ```ts
 optional authorization_response_iss_parameter_supported?: boolean;
 ```
 
-#### claims_supported?
+#### claims\_supported?
 
 ```ts
 optional claims_supported?: string[];
 ```
 
-#### client_id_metadata_document_supported?
+#### client\_id\_metadata\_document\_supported?
 
 ```ts
 optional client_id_metadata_document_supported?: boolean;
 ```
 
-#### code_challenge_methods_supported?
+#### code\_challenge\_methods\_supported?
 
 ```ts
 optional code_challenge_methods_supported?: string[];
 ```
 
-#### grant_types_supported?
+#### grant\_types\_supported?
 
 ```ts
 optional grant_types_supported?: string[];
 ```
 
-#### id_token_signing_alg_values_supported?
+#### id\_token\_signing\_alg\_values\_supported?
 
 ```ts
 optional id_token_signing_alg_values_supported?: string[];
 ```
 
-#### introspection_endpoint?
+#### introspection\_endpoint?
 
 ```ts
 optional introspection_endpoint?: string;
@@ -2315,7 +2397,7 @@ issuer: string;
 
 (`string`) -
 
-#### jwks_uri
+#### jwks\_uri
 
 ```ts
 jwks_uri: string;
@@ -2323,13 +2405,13 @@ jwks_uri: string;
 
 (`string`) -
 
-#### request_parameter_supported?
+#### request\_parameter\_supported?
 
 ```ts
 optional request_parameter_supported?: boolean;
 ```
 
-#### response_types_supported
+#### response\_types\_supported
 
 ```ts
 response_types_supported: string[];
@@ -2337,25 +2419,25 @@ response_types_supported: string[];
 
 (`string[]`) -
 
-#### revocation_endpoint?
+#### revocation\_endpoint?
 
 ```ts
 optional revocation_endpoint?: string;
 ```
 
-#### scopes_supported?
+#### scopes\_supported?
 
 ```ts
 optional scopes_supported?: string[];
 ```
 
-#### subject_types_supported?
+#### subject\_types\_supported?
 
 ```ts
 optional subject_types_supported?: string[];
 ```
 
-#### token_endpoint
+#### token\_endpoint
 
 ```ts
 token_endpoint: string;
@@ -2363,13 +2445,13 @@ token_endpoint: string;
 
 (`string`) -
 
-#### token_endpoint_auth_methods_supported?
+#### token\_endpoint\_auth\_methods\_supported?
 
 ```ts
 optional token_endpoint_auth_methods_supported?: string[];
 ```
 
-#### userinfo_endpoint?
+#### userinfo\_endpoint?
 
 ```ts
 optional userinfo_endpoint?: string;
@@ -2389,7 +2471,7 @@ error: string;
 
 (`string`) - OAuth2 error code
 
-#### error_description?
+#### error\_description?
 
 ```ts
 optional error_description?: string;
@@ -2403,13 +2485,13 @@ Human-readable error description
 
 ### Properties
 
-#### client_id?
+#### client\_id?
 
 ```ts
 optional client_id?: string;
 ```
 
-#### client_secret?
+#### client\_secret?
 
 ```ts
 optional client_secret?: string;
@@ -2423,7 +2505,7 @@ token: string;
 
 (`string`) -
 
-#### token_type_hint?
+#### token\_type\_hint?
 
 ```ts
 optional token_type_hint?: OAuth2IntrospectRequestToken_type_hint;
@@ -2443,7 +2525,7 @@ active: boolean;
 
 (`boolean`) -
 
-#### client_id?
+#### client\_id?
 
 ```ts
 optional client_id?: string;
@@ -2479,7 +2561,7 @@ optional scope?: string;
 optional sub?: string;
 ```
 
-#### token_type?
+#### token\_type?
 
 ```ts
 optional token_type?: string;
@@ -2523,7 +2605,7 @@ Parameters for the oauth2LoginGet method.
 
 ### Properties
 
-#### request_id
+#### request\_id
 
 ```ts
 request_id: string;
@@ -2593,13 +2675,13 @@ scopes: string[];
 
 ### Properties
 
-#### client_id?
+#### client\_id?
 
 ```ts
 optional client_id?: string;
 ```
 
-#### client_secret?
+#### client\_secret?
 
 ```ts
 optional client_secret?: string;
@@ -2613,7 +2695,7 @@ token: string;
 
 (`string`) -
 
-#### token_type_hint?
+#### token\_type\_hint?
 
 ```ts
 optional token_type_hint?: OAuth2RevokeRequestToken_type_hint;
@@ -2625,13 +2707,13 @@ optional token_type_hint?: OAuth2RevokeRequestToken_type_hint;
 
 ### Properties
 
-#### client_id?
+#### client\_id?
 
 ```ts
 optional client_id?: string;
 ```
 
-#### client_secret?
+#### client\_secret?
 
 ```ts
 optional client_secret?: string;
@@ -2643,13 +2725,13 @@ optional client_secret?: string;
 optional code?: string;
 ```
 
-#### code_verifier?
+#### code\_verifier?
 
 ```ts
 optional code_verifier?: string;
 ```
 
-#### grant_type
+#### grant\_type
 
 ```ts
 grant_type: OAuth2TokenRequestGrant_type;
@@ -2657,13 +2739,13 @@ grant_type: OAuth2TokenRequestGrant_type;
 
 (`OAuth2TokenRequestGrant_type`) -
 
-#### redirect_uri?
+#### redirect\_uri?
 
 ```ts
 optional redirect_uri?: string;
 ```
 
-#### refresh_token?
+#### refresh\_token?
 
 ```ts
 optional refresh_token?: string;
@@ -2681,7 +2763,7 @@ optional resource?: string;
 
 ### Properties
 
-#### access_token
+#### access\_token
 
 ```ts
 access_token: string;
@@ -2689,7 +2771,7 @@ access_token: string;
 
 (`string`) -
 
-#### expires_in
+#### expires\_in
 
 ```ts
 expires_in: number;
@@ -2697,13 +2779,13 @@ expires_in: number;
 
 (`number`) -
 
-#### id_token?
+#### id\_token?
 
 ```ts
 optional id_token?: string;
 ```
 
-#### refresh_token?
+#### refresh\_token?
 
 ```ts
 optional refresh_token?: string;
@@ -2715,7 +2797,7 @@ optional refresh_token?: string;
 optional scope?: string;
 ```
 
-#### token_type
+#### token\_type
 
 ```ts
 token_type: string;
@@ -2735,7 +2817,7 @@ token_type: string;
 optional email?: string;
 ```
 
-#### email_verified?
+#### email\_verified?
 
 ```ts
 optional email_verified?: boolean;
@@ -2753,13 +2835,13 @@ optional locale?: string;
 optional name?: string;
 ```
 
-#### phone_number?
+#### phone\_number?
 
 ```ts
 optional phone_number?: string;
 ```
 
-#### phone_number_verified?
+#### phone\_number\_verified?
 
 ```ts
 optional phone_number_verified?: boolean;
@@ -3338,7 +3420,7 @@ ticket: string;
 
 (`string`) - Ticket
 
-- Pattern - ^mfaTotp:.\*$
+- Pattern - ^mfaTotp:.*$
 
 ---
 
@@ -4224,10 +4306,10 @@ locale: string;
 #### metadata
 
 ```ts
-metadata: Record<string, unknown>;
+metadata: Record<string, unknown> | null;
 ```
 
-(`Record<string, unknown>`) - Custom metadata associated with the user
+(`Record<string, unknown> | null`) - Custom metadata associated with the user
 
 - Example - `{"firstName":"John","lastName":"Smith"}`
 
@@ -4320,6 +4402,28 @@ signInMethod: UserDeanonymizeRequestSignInMethod;
 ```
 
 (`UserDeanonymizeRequestSignInMethod`) - Which sign-in method to use
+
+---
+
+## UserDeanonymizeSmsRequest
+
+### Properties
+
+#### options?
+
+```ts
+optional options?: SignUpOptions;
+```
+
+#### phoneNumber
+
+```ts
+phoneNumber: string;
+```
+
+(`string`) - Phone number of the user
+
+- Example - `"+123456789"`
 
 ---
 
@@ -4471,7 +4575,7 @@ optional ticket?: string;
 ```
 
 Ticket to reset the password, required if the user is not authenticated
-Pattern - ^passwordReset\:.\*$
+Pattern - ^passwordReset\:.*$
 
 ---
 
@@ -4506,6 +4610,48 @@ email: string;
 ```ts
 optional options?: OptionsRedirectTo;
 ```
+
+---
+
+## UserPhoneNumberChangeRequest
+
+### Properties
+
+#### newPhoneNumber
+
+```ts
+newPhoneNumber: string;
+```
+
+(`string`) - New phone number to bind to the user once verified via SMS OTP
+
+- Example - `"+123456789"`
+
+---
+
+## UserPhoneNumberChangeVerifyRequest
+
+### Properties
+
+#### newPhoneNumber
+
+```ts
+newPhoneNumber: string;
+```
+
+(`string`) - The phone number that was previously requested via /user/phone-number/change
+
+- Example - `"+123456789"`
+
+#### otp
+
+```ts
+otp: string;
+```
+
+(`string`) - One-time password received via SMS at the new phone number
+
+- Example - `"123456"`
 
 ---
 
@@ -4646,12 +4792,7 @@ The authenticator attachment modality
 
 ```ts
 type AuthenticatorTransport =
-  | "usb"
-  | "nfc"
-  | "ble"
-  | "smart-card"
-  | "hybrid"
-  | "internal";
+  "usb" | "nfc" | "ble" | "smart-card" | "hybrid" | "internal";
 ```
 
 The authenticator transports that can be used
@@ -4721,7 +4862,7 @@ Error code identifying the specific application error
 
 ---
 
-## GetCode_challenge_method
+## GetCode\_challenge\_method
 
 ```ts
 type GetCode_challenge_method = "S256";
@@ -4737,7 +4878,7 @@ type IdTokenProvider = "apple" | "google";
 
 ---
 
-## OAuth2IntrospectRequestToken_type_hint
+## OAuth2IntrospectRequestToken\_type\_hint
 
 ```ts
 type OAuth2IntrospectRequestToken_type_hint = "access_token" | "refresh_token";
@@ -4745,7 +4886,7 @@ type OAuth2IntrospectRequestToken_type_hint = "access_token" | "refresh_token";
 
 ---
 
-## OAuth2RevokeRequestToken_type_hint
+## OAuth2RevokeRequestToken\_type\_hint
 
 ```ts
 type OAuth2RevokeRequestToken_type_hint = "access_token" | "refresh_token";
@@ -4753,7 +4894,7 @@ type OAuth2RevokeRequestToken_type_hint = "access_token" | "refresh_token";
 
 ---
 
-## OAuth2TokenRequestGrant_type
+## OAuth2TokenRequestGrant\_type
 
 ```ts
 type OAuth2TokenRequestGrant_type = "authorization_code" | "refresh_token";
@@ -4837,10 +4978,7 @@ Ticket
 
 ```ts
 type TicketTypeQuery =
-  | "emailVerify"
-  | "emailConfirmChange"
-  | "signinPasswordless"
-  | "passwordReset";
+  "emailVerify" | "emailConfirmChange" | "signinPasswordless" | "passwordReset";
 ```
 
 Type of the ticket

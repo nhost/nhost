@@ -10,6 +10,7 @@ import type { BaseEventTriggerFormValues } from '@/features/orgs/projects/events
 import { useCreateEventTriggerMutation } from '@/features/orgs/projects/events/event-triggers/hooks/useCreateEventTriggerMutation';
 import { buildEventTriggerDTO } from '@/features/orgs/projects/events/event-triggers/utils/buildEventTriggerDTO';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 
 const renderCreateEventTriggerButton = ({
   open,
@@ -27,6 +28,7 @@ const renderCreateEventTriggerButton = ({
 export default function CreateEventTriggerForm() {
   const { mutateAsync: createEventTrigger } = useCreateEventTriggerMutation();
   const { data: resourceVersion } = useGetMetadataResourceVersion();
+  const track = useTrackEvent();
   const router = useRouter();
   const { orgSlug, appSubdomain } = router.query;
 
@@ -38,6 +40,7 @@ export default function CreateEventTriggerForm() {
           args: eventTriggerDTO,
           resourceVersion: resourceVersion ?? undefined,
         });
+        track('Event Trigger Created');
         router.push(
           `/orgs/${orgSlug}/projects/${appSubdomain}/events/event-triggers/${data.triggerName}`,
         );

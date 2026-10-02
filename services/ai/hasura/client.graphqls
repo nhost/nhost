@@ -1,0 +1,71 @@
+fragment AiAutoEmbeddingsConfigurationFragment on aiAutoEmbeddingsConfiguration {
+    id
+    name
+    schemaName
+    tableName
+    columnName
+    model
+    query
+    mutation
+    lastRun
+}
+
+query GetAiAutoEmbeddingsConfigurations(
+    $where: aiAutoEmbeddingsConfiguration_bool_exp
+) {
+    aiAutoEmbeddingsConfigurations(where: $where) {
+        ...AiAutoEmbeddingsConfigurationFragment
+    }
+}
+
+query GetAiAutoEmbeddingsConfiguration($id: uuid!) {
+    aiAutoEmbeddingsConfiguration(id: $id) {
+        ...AiAutoEmbeddingsConfigurationFragment
+    }
+}
+
+query GetAgent($id: uuid!) {
+    aiAgent(id: $id) {
+        id
+        name
+        description
+        instructions
+        provider
+        model
+        toolsConfig
+        userID
+        createdAt
+        updatedAt
+    }
+}
+
+query GetAgentSession($id: uuid!) {
+    aiAgentSession(id: $id) {
+        id
+        agentID
+        userID
+        createdAt
+        updatedAt
+    }
+}
+
+query GetAgentMessages($where: aiAgentMessages_bool_exp) {
+    aiAgentMessages(where: $where, order_by: {createdAt: asc, seq: asc}) {
+        id
+        sessionID
+        role
+        content
+        toolCalls
+        toolCallID
+        toolName
+        createdAt
+    }
+}
+
+mutation InsertAgentMessages($objects: [aiAgentMessages_insert_input!]!) {
+    insertAiAgentMessages(objects: $objects) {
+        returning {
+            id
+        }
+    }
+}

@@ -1,4 +1,4 @@
-package crypto //nolint:revive
+package crypto
 
 import (
 	"crypto/aes"

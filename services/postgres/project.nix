@@ -35,7 +35,6 @@ let
 
   mkAsDir = image: pkgs.runCommand "image-as-dir" { } "${image.copyTo}/bin/copy-to dir:$out";
 
-  pg16 = mkPostgres pkgs.nhost.postgresql_16;
   pg17 = mkPostgres pkgs.nhost.postgresql_17;
   pg18 = mkPostgres pkgs.nhost.postgresql_18;
 in
@@ -47,13 +46,35 @@ in
         nativeBuildInputs = with pkgs; [
           nhost.postgresql_18
           diffutils
+          python3
         ];
       }
       ''
+        python3 -m unittest discover -s ${src}/tests -p 'test_*.py' -v
+
         PG_URL="postgres://postgres@localhost:5432/local"
+
+        sh ${src}/tests/pitr-promotion.sh \
+          ${src}/postgres/bin/init.sh
+        sh ${src}/tests/pitr-restore.sh \
+          ${src}/postgres/bin/init.sh
+        sh ${src}/tests/wal-fetch.sh \
+          ${src}/postgres/bin/wal-fetch.sh
+        sh ${src}/tests/startup-scripts.sh \
+          ${src}/postgres/bin/init.sh
+        sh ${src}/tests/repair-collation.sh \
+          ${src}/postgres/bin/repair-collation.sh
+        PGHOST=localhost PGPORT=5432 \
+          sh ${src}/tests/repair-collation-integration.sh \
+            ${src}/postgres/bin/repair-collation.sh
 
         psql \
           -f ${src}/tests/plugins.sql --no-psqlrc -1 -v "ON_ERROR_STOP=1" \
+          "$PG_URL"
+
+        # Do not add -1: the readiness procedure commits between worker-state polls.
+        psql \
+          -f ${src}/tests/pg_durable_http.sql --no-psqlrc -v "ON_ERROR_STOP=1" \
           "$PG_URL"
 
         # Verify plugins.md is up to date (only for PG18)
@@ -84,9 +105,6 @@ in
   };
 
   packages = rec {
-    pg16-package = pg16.package;
-    pg16-docker-image = pg16.dockerImage;
-    pg16-as-dir = mkAsDir pg16-docker-image;
     pg17-package = pg17.package;
     pg17-docker-image = pg17.dockerImage;
     pg17-as-dir = mkAsDir pg17-docker-image;

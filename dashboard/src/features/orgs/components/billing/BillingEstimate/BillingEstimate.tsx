@@ -1,4 +1,4 @@
-import { Divider } from '@/components/ui/v2/Divider';
+import { Separator } from '@/components/ui/v3/separator';
 import { useIsOrgAdmin } from '@/features/orgs/hooks/useIsOrgAdmin';
 import { BillingCycle } from './components/BillingCycle';
 import { BillingDetails } from './components/BillingDetails';
@@ -15,15 +15,15 @@ export default function BillingEstimate() {
           <span className="font-medium text-xl">Billing Estimate</span>
         </div>
         <div className="flex flex-col">
-          <Divider />
+          <Separator />
           <BillingCycle />
-          <Divider />
+          <Separator />
           <Estimate />
-          <Divider />
+          <Separator />
           <SpendingNotifications />
           {isOrgAdmin && (
             <>
-              <Divider />
+              <Separator />
               <BillingDetails />
             </>
           )}

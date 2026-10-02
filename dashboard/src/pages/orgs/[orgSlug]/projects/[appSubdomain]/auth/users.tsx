@@ -2,24 +2,25 @@ import debounce from 'lodash.debounce';
 import { PlusIcon, SearchIcon, UserIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import type { ChangeEvent, ReactElement } from 'react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Pagination } from '@/components/common/Pagination';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { Box } from '@/components/ui/v2/Box';
-import { Input } from '@/components/ui/v2/Input';
-import { Text } from '@/components/ui/v2/Text';
 import { Button } from '@/components/ui/v3/button';
+import { Input } from '@/components/ui/v3/input';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { CreateUserForm } from '@/features/orgs/projects/authentication/users/components/CreateUserForm';
 import { UsersBody } from '@/features/orgs/projects/authentication/users/components/UsersBody';
+import {
+  getPageNumberFromQuery,
+  useUrlPagination,
+} from '@/features/orgs/projects/common/hooks/useUrlPagination';
 import { getUserRoles } from '@/features/orgs/projects/roles/settings/utils/getUserRoles';
 import type { RemoteAppGetUsersAndAuthRolesQuery } from '@/generated/graphql';
 import { useRemoteAppGetUsersAndAuthRolesQuery } from '@/generated/graphql';
-import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
 import { isNotEmptyValue } from '@/lib/utils';
 import { getPaginationOffset } from '@/utils/getPaginationOffset';
 
@@ -27,6 +28,8 @@ export type RemoteAppUser = Exclude<
   RemoteAppGetUsersAndAuthRolesQuery['users'][0],
   '__typename'
 >;
+
+const ELEMENTS_PER_PAGE = 25;
 
 export default function UsersPage() {
   return (
@@ -41,18 +44,12 @@ function UsersPageContent() {
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();
   const [searchString, setSearchString] = useState<string>('');
 
-  const limit = useRef(25);
   const router = useRouter();
-  const [nrOfPages, setNrOfPages] = useState(1);
 
-  const [currentPage, setCurrentPage] = useState(
-    parseInt(router.query.page as string, 10) || 1,
-  );
-
-  const removeQueryParamsFromUrl = useRemoveQueryParamsFromUrl();
+  const currentPage = getPageNumberFromQuery(router.query.page);
 
   const offset = useMemo(
-    () => getPaginationOffset(currentPage, limit.current),
+    () => getPaginationOffset(currentPage, ELEMENTS_PER_PAGE),
     [currentPage],
   );
 
@@ -79,7 +76,7 @@ function UsersPageContent() {
                 },
               ],
             },
-      limit: limit.current,
+      limit: ELEMENTS_PER_PAGE,
       offset,
     }),
     [router.query.userId, searchString, offset],
@@ -95,42 +92,18 @@ function UsersPageContent() {
     client: remoteProjectGQLClient,
   });
 
-  /**
-   * If a user of the app enters the users tab with a page query param of the following structure:
-   * `users?page=2` this useEffect will update the current page to 2.
-   * which in turn will update the offset and trigger fetching the data with the new variables.
-   * If the user enters a page number that is greater than the number of pages we will redirect
-   * the user to the first page and update the URL.
-   *
-   * @remarks If the user navigates the page back and forth we handle the URL change through
-   * props passed to the Pagination component.
-   * @see {@link Pagination}
-   *
-   */
-  useEffect(() => {
-    if (router.query.page === undefined) {
-      setCurrentPage(1);
-      return;
-    }
-    if (router.query.page && typeof router.query.page === 'string') {
-      const pageNumber = parseInt(router.query.page, 10);
-      if (nrOfPages >= pageNumber || loadingRemoteAppUsersQuery) {
-        setCurrentPage(pageNumber);
-      } else {
-        setCurrentPage(1);
-      }
-    }
-  }, [nrOfPages, router.query.page, loadingRemoteAppUsersQuery]);
+  const totalUsersCount = searchString
+    ? (dataRemoteAppUsersAndAuthRoles?.filteredUsersAggreggate?.aggregate
+        ?.count ?? 0)
+    : (dataRemoteAppUsersAndAuthRoles?.usersAggregate?.aggregate?.count ?? 0);
 
-  /**
-   * If the user is on the first page, we want to remove the page query param from the URL.
-   * e.g. `users?page=1` -> `users`
-   */
-  useEffect(() => {
-    if (currentPage === 1 && isNotEmptyValue(router.query.page)) {
-      removeQueryParamsFromUrl('page');
-    }
-  }, [currentPage, removeQueryParamsFromUrl, router.query.page]);
+  const { nrOfPages, goToPage, goToNextPage, goToPreviousPage } =
+    useUrlPagination({
+      currentPage,
+      elementsPerPage: ELEMENTS_PER_PAGE,
+      totalNrOfElements: totalUsersCount,
+      loading: loadingRemoteAppUsersQuery,
+    });
 
   /**
    * If the users enters the page with a page query param with the following structure:
@@ -144,40 +117,13 @@ function UsersPageContent() {
     }
   }, [router.query.userId]);
 
-  /**
-   * We want to update the number of pages when the data changes
-   * (either fetch for the first time or making a search).
-   */
-  useEffect(() => {
-    if (loadingRemoteAppUsersQuery) {
-      return;
-    }
-    if (
-      dataRemoteAppUsersAndAuthRoles?.filteredUsersAggreggate.aggregate
-        ?.count &&
-      dataRemoteAppUsersAndAuthRoles?.usersAggregate.aggregate?.count
-    ) {
-      const userCount = searchString
-        ? dataRemoteAppUsersAndAuthRoles?.filteredUsersAggreggate?.aggregate
-            ?.count
-        : dataRemoteAppUsersAndAuthRoles?.usersAggregate?.aggregate?.count;
-
-      setNrOfPages(Math.ceil(userCount / limit.current));
-    }
-  }, [
-    dataRemoteAppUsersAndAuthRoles?.filteredUsersAggreggate?.aggregate?.count,
-    dataRemoteAppUsersAndAuthRoles?.usersAggregate?.aggregate?.count,
-    loadingRemoteAppUsersQuery,
-    searchString,
-  ]);
-
   const handleSearchStringChange = useMemo(
     () =>
       debounce((event: ChangeEvent<HTMLInputElement>) => {
-        setCurrentPage(1);
+        goToPage(1);
         setSearchString(event.target.value);
       }, 1000),
-    [],
+    [goToPage],
   );
 
   useEffect(
@@ -220,12 +166,10 @@ function UsersPageContent() {
       >
         <div className="flex shrink-0 grow-0 flex-col gap-3 sm:flex-row sm:place-content-between sm:items-center">
           <Input
-            className="w-full rounded-sm sm:w-72"
-            fullWidth
+            className="rounded-sm pl-9"
+            wrapperClassName="w-full sm:w-72"
             placeholder="Search users"
-            startAdornment={
-              <SearchIcon className="-mr-1 ml-2 h-4 w-4 shrink-0 text-disabled" />
-            }
+            prefix={<SearchIcon className="h-4 w-4 text-muted-foreground" />}
             onChange={handleSearchStringChange}
           />
           <Button
@@ -257,7 +201,7 @@ function UsersPageContent() {
       dataRemoteAppUsersAndAuthRoles?.filteredUsersAggreggate.aggregate?.count,
     )
       ? dataRemoteAppUsersAndAuthRoles.filteredUsersAggreggate.aggregate.count
-      : limit.current;
+      : ELEMENTS_PER_PAGE;
   const totalNrOfElements =
     searchString &&
     isNotEmptyValue(
@@ -269,12 +213,10 @@ function UsersPageContent() {
     <Container className="mx-auto max-w-9xl space-y-5 overflow-x-hidden">
       <div className="flex flex-col gap-3 sm:flex-row sm:place-content-between sm:items-center">
         <Input
-          className="w-full rounded-sm sm:w-72"
-          fullWidth
+          className="rounded-sm pl-9"
+          wrapperClassName="w-full sm:w-72"
           placeholder="Search users"
-          startAdornment={
-            <SearchIcon className="-mr-1 ml-2 h-4 w-4 shrink-0 text-disabled" />
-          }
+          prefix={<SearchIcon className="h-4 w-4 text-muted-foreground" />}
           onChange={handleSearchStringChange}
         />
         <Button
@@ -287,15 +229,15 @@ function UsersPageContent() {
         </Button>
       </div>
       {usersCount === 0 ? (
-        <Box className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-4 py-12 shadow-sm sm:px-48">
+        <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-4 py-12 shadow-sm sm:px-48">
           <UserIcon strokeWidth={1} className="h-10 w-10 text-disabled" />
           <div className="flex flex-col space-y-1">
-            <Text className="text-center font-medium" variant="h3">
+            <h3 className="text-center font-medium text-foreground text-lg">
               There are no users yet
-            </Text>
-            <Text variant="subtitle1" className="text-center">
+            </h3>
+            <p className="text-center text-muted-foreground text-sm">
               All users for your project will be listed here.
-            </Text>
+            </p>
           </div>
           <div className="flex flex-row place-content-between rounded-lg lg:w-[230px]">
             <Button className="w-full" onClick={openCreateUserDialog}>
@@ -303,35 +245,39 @@ function UsersPageContent() {
               Create User
             </Button>
           </div>
-        </Box>
+        </div>
       ) : (
         <div className="grid grid-flow-row gap-2 lg:w-9xl">
           <div className="grid h-full w-full grid-flow-row overflow-hidden pb-4">
-            <Box className="grid w-full border-b p-2 md:grid-cols-6">
-              <Text className="font-medium md:col-span-2">Name</Text>
-              <Text className="hidden font-medium md:block">Signed up at</Text>
-              <Text className="hidden font-medium md:block">Last Seen</Text>
-              <Text className="col-span-2 hidden font-medium md:block">
+            <div className="grid w-full border-b p-2 md:grid-cols-6">
+              <p className="font-medium text-foreground md:col-span-2">Name</p>
+              <p className="hidden font-medium text-foreground md:block">
+                Signed up at
+              </p>
+              <p className="hidden font-medium text-foreground md:block">
+                Last Seen
+              </p>
+              <p className="col-span-2 hidden font-medium text-foreground md:block">
                 OAuth Providers
-              </Text>
-            </Box>
+              </p>
+            </div>
             {dataRemoteAppUsersAndAuthRoles?.filteredUsersAggreggate.aggregate
               ?.count === 0 &&
               usersCount !== 0 && (
-                <Box className="flex flex-col items-center justify-center space-y-5 border-x border-b px-48 py-12">
+                <div className="flex flex-col items-center justify-center space-y-5 border-x border-b px-48 py-12">
                   <UserIcon
                     strokeWidth={1}
                     className="h-10 w-10 text-disabled"
                   />
                   <div className="flex flex-col space-y-1">
-                    <Text className="text-center font-medium" variant="h3">
+                    <h3 className="text-center font-medium text-foreground text-lg">
                       No results for &quot;{searchString}&quot;
-                    </Text>
-                    <Text variant="subtitle1" className="text-center">
+                    </h3>
+                    <p className="text-center text-muted-foreground text-sm">
                       Try a different search
-                    </Text>
+                    </p>
                   </div>
-                </Box>
+                </div>
               )}
             {thereAreUsers && (
               <div className="grid grid-flow-row gap-4">
@@ -347,27 +293,9 @@ function UsersPageContent() {
                   totalNrOfElements={totalNrOfElements}
                   itemsLabel="users"
                   elementsPerPage={elementsPerPage}
-                  onPrevPageClick={async () => {
-                    setCurrentPage((page) => page - 1);
-                    await router.push({
-                      pathname: router.pathname,
-                      query: { ...router.query, page: currentPage - 1 },
-                    });
-                  }}
-                  onNextPageClick={async () => {
-                    setCurrentPage((page) => page + 1);
-                    await router.push({
-                      pathname: router.pathname,
-                      query: { ...router.query, page: currentPage + 1 },
-                    });
-                  }}
-                  onPageChange={async (page) => {
-                    setCurrentPage(page);
-                    await router.push({
-                      pathname: router.pathname,
-                      query: { ...router.query, page },
-                    });
-                  }}
+                  onPrevPageClick={goToPreviousPage}
+                  onNextPageClick={goToNextPage}
+                  onPageChange={goToPage}
                 />
               </div>
             )}

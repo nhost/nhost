@@ -10,8 +10,6 @@ import {
   SettingsCardContent,
   SettingsCardHeader,
 } from '@/components/layout/SettingsCard';
-import { InlineCode } from '@/components/presentational/InlineCode';
-
 import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
@@ -19,6 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/v3/dropdown-menu';
+import { InlineCode } from '@/components/ui/v3/inline-code';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';

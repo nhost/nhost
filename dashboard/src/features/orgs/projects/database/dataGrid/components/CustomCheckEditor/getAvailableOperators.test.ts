@@ -19,16 +19,15 @@ describe('getAvailableOperators', () => {
     expect(result).toEqual(commonOperators);
   });
 
-  it.each([
-    'text',
-    'varchar',
-    'bpchar',
-  ])('should return common + text operators for %s column type', (columnType) => {
-    expect(getAvailableOperators(columnType)).toEqual([
-      ...commonOperators,
-      ...textSpecificOperators,
-    ]);
-  });
+  it.each(['text', 'varchar', 'bpchar'])(
+    'should return common + text operators for %s column type',
+    (columnType) => {
+      expect(getAvailableOperators(columnType)).toEqual([
+        ...commonOperators,
+        ...textSpecificOperators,
+      ]);
+    },
+  );
 
   it('should return common + jsonb operators for jsonb column type', () => {
     const result = getAvailableOperators('jsonb');

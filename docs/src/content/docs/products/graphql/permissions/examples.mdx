@@ -1,7 +1,7 @@
 ---
 title: Permission Examples
-description: Common patterns for setting up insert, select, update, and delete permissions
-keywords: ["permissions", "examples", "insert", "select", "update", "delete", "row-level security"]
+description: Common patterns for setting up insert, select, update, and delete permissions, and for granting roles access to Actions
+keywords: ["permissions", "examples", "insert", "select", "update", "delete", "row-level security", "actions"]
 head:
   - tag: title
     content: "Common Access Control Patterns by Operation | Nhost Docs"
@@ -9,7 +9,7 @@ sidebar:
   label: Examples
 ---
 
-Worked examples for the most common permission patterns. They build on the [Permissions overview](/products/graphql/permissions) and use the same `todos` table (`id`, `title`, `user_id`).
+Worked examples for the most common permission patterns. The table examples build on the [Permissions overview](/products/graphql/permissions) and use the same `todos` table (`id`, `title`, `user_id`).
 
 ## Insert Permissions
 
@@ -44,3 +44,24 @@ One of the most common permission requirements is that authenticated users shoul
 :::note
 The per-role row **limit** is enforced by the default engine. [Constellation](/products/graphql/constellation) currently parses it but does not enforce it, so if you rely on a hard row cap, also enforce it in your query (`limit:`) or application logic.
 :::
+
+## Action Permissions
+
+[Actions](/products/graphql/actions) are permissioned per role too, but the rules are simpler: a role either can call the Action or it cannot. By default, only the `admin` role can.
+
+![Actions section](/images/products/graphql/permissions/examples/actions-section.png)
+
+1. Go to the **GraphQL** > **Actions** section in the Nhost Dashboard.
+
+![Action menu with Edit Permissions](/images/products/graphql/permissions/examples/actions-edit-permissions.png)
+
+2. In the `⋯` menu of the Action you want to edit, click **Edit Permissions**.
+
+![Roles and permissions grid for an Action](/images/products/graphql/permissions/examples/actions-permissions-table.png)
+
+3. Click a permission cell to toggle whether that role is allowed to call the Action.
+4. Click **Allow**.
+
+The `admin` role is always allowed, and the `public` role is available for unauthenticated access. There are no column-level rules or row checks, because an Action resolves through your webhook rather than a table. Any filtering of what the caller may see belongs in the handler.
+
+To add or remove the roles listed here, go to **Settings** > **Roles and Permissions**.

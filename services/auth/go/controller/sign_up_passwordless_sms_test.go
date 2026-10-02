@@ -1,6 +1,7 @@
 package controller_test
 
 import (
+	"errors"
 	"testing"
 	"time"
 
@@ -17,7 +18,9 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func TestSignUpPasswordlessSms(t *testing.T) {
+// Keep the endpoint's table-driven success, retry, and error cases together so they
+// share the same request harness and configuration contract.
+func TestSignUpPasswordlessSms(t *testing.T) { //nolint:maintidx
 	t.Parallel()
 
 	getConfig := func() *controller.Config {
@@ -42,6 +45,11 @@ func TestSignUpPasswordlessSms(t *testing.T) {
 					sql.Text("+1234567890"),
 				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
+				mock.EXPECT().UpdateStagedSMSUser(
+					gomock.Any(),
+					gomock.Any(),
+				).Return(uuid.Nil, pgx.ErrNoRows)
+
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
 					cmpDBParams(
@@ -50,7 +58,8 @@ func TestSignUpPasswordlessSms(t *testing.T) {
 							Disabled:          false,
 							DisplayName:       "+1234567890",
 							AvatarUrl:         "",
-							PhoneNumber:       sql.Text("+1234567890"),
+							PhoneNumber:       pgtype.Text{},
+							NewPhoneNumber:    sql.Text("+1234567890"),
 							Otp:               "otp",
 							OtpHashExpiresAt:  sql.TimestampTz(time.Now().Add(time.Minute * 5)),
 							OtpMethodLastUsed: sql.Text("sms"),
@@ -93,6 +102,110 @@ func TestSignUpPasswordlessSms(t *testing.T) {
 			expectedResponse: api.SignUpPasswordlessSms200JSONResponse(api.OK),
 			jwtTokenFn:       nil,
 			expectedJWT:      nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withSMS(func(ctrl *gomock.Controller) *mock.MockSMSer {
+					mock := mock.NewMockSMSer(ctrl)
+
+					mock.EXPECT().SendVerificationCode(
+						t.Context(),
+						"+1234567890",
+						"en",
+					).Return("otp", time.Now().Add(time.Minute*5), nil)
+
+					return mock
+				}),
+			},
+		},
+
+		{
+			name:   "success - staged SMS signup retry",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByPhoneNumber(
+					gomock.Any(),
+					sql.Text("+1234567890"),
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
+
+				mock.EXPECT().UpdateStagedSMSUser(
+					gomock.Any(),
+					cmpDBParams(
+						sql.UpdateStagedSMSUserParams{
+							PhoneNumber:      sql.Text("+1234567890"),
+							Disabled:         false,
+							DisplayName:      "+1234567890",
+							Otp:              "otp",
+							OtpHashExpiresAt: sql.TimestampTz(time.Now().Add(time.Minute * 5)),
+							Locale:           "en",
+							DefaultRole:      "user",
+							Metadata:         []byte("null"),
+							Roles:            []string{"user", "me"},
+						},
+						testhelpers.FilterPathLast(
+							[]string{".OtpHashExpiresAt", "time()"},
+							cmpopts.EquateApproxTime(time.Minute),
+						),
+					),
+				).Return(userID, nil)
+
+				return mock
+			},
+			request: api.SignUpPasswordlessSmsRequestObject{
+				Body: &api.SignUpPasswordlessSmsRequest{
+					PhoneNumber: "+1234567890",
+					Options:     nil,
+				},
+			},
+			expectedResponse: api.SignUpPasswordlessSms200JSONResponse(api.OK),
+			jwtTokenFn:       nil,
+			expectedJWT:      nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withSMS(func(ctrl *gomock.Controller) *mock.MockSMSer {
+					mock := mock.NewMockSMSer(ctrl)
+
+					mock.EXPECT().SendVerificationCode(
+						t.Context(),
+						"+1234567890",
+						"en",
+					).Return("otp", time.Now().Add(time.Minute*5), nil)
+
+					return mock
+				}),
+			},
+		},
+
+		{
+			name:   "error - staged SMS signup lookup",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByPhoneNumber(
+					gomock.Any(),
+					sql.Text("+1234567890"),
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
+
+				mock.EXPECT().UpdateStagedSMSUser(
+					gomock.Any(),
+					gomock.Any(),
+				).Return(uuid.Nil, errors.New("database error")) //nolint:err113
+
+				return mock
+			},
+			request: api.SignUpPasswordlessSmsRequestObject{
+				Body: &api.SignUpPasswordlessSmsRequest{
+					PhoneNumber: "+1234567890",
+					Options:     nil,
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "internal-server-error",
+				Message: "Internal server error",
+				Status:  500,
+			},
+			jwtTokenFn:  nil,
+			expectedJWT: nil,
 			getControllerOpts: []getControllerOptsFunc{
 				withSMS(func(ctrl *gomock.Controller) *mock.MockSMSer {
 					mock := mock.NewMockSMSer(ctrl)

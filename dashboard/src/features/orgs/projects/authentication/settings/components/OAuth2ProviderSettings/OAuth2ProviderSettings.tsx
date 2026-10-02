@@ -33,6 +33,7 @@ import {
   useGetOAuth2ProviderSettingsQuery,
   useUpdateConfigMutation,
 } from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { cn } from '@/lib/utils';
 
 const validationSchema = Yup.object({
@@ -60,6 +61,7 @@ export default function OAuth2ProviderSettings() {
   const isPlatform = useIsPlatform();
   const { openDialog } = useDialog();
   const localMimirClient = useLocalMimirClient();
+  const track = useTrackEvent();
 
   const [updateConfig] = useUpdateConfigMutation({
     ...(!isPlatform ? { client: localMimirClient } : {}),
@@ -142,6 +144,9 @@ export default function OAuth2ProviderSettings() {
     await execPromiseWithErrorToast(
       async () => {
         await updateConfigPromise;
+        if (form.formState.dirtyFields.enabled && values.enabled) {
+          track('Sign In Method Enabled', { method: 'oauth2' });
+        }
         form.reset(values);
 
         if (!isPlatform) {

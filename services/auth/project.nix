@@ -28,6 +28,7 @@ let
 
       ../../internal/lib/oapi
       ../../internal/lib/hasura/metadata
+      ../../internal/lib/syncmap
 
       ./go/api/server.cfg.yaml
       ./go/api/types.cfg.yaml
@@ -48,6 +49,7 @@ let
       ./bunfig.toml
       ./tsconfig.json
       ./.env.example
+      ./go/sql/query.sql
       ./test
     ];
   };
@@ -59,7 +61,7 @@ let
 
   checkDeps = with pkgs; [
     nhost.nhost-cli
-    mockgen
+    nhost.mockgen
     nhost.oapi-codegen
     nhost.sqlc
     nhost.postgresql_18-client

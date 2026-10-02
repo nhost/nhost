@@ -75,8 +75,6 @@ type StreamCursorInfo struct {
 // UnmarshalJSON requires a pointer receiver to mutate; the read-only methods
 // (SQL, IsDescending, MarshalJSON) keep value receivers because they don't,
 // mirroring the standard library convention for JSON-marshalable scalar types.
-//
-//nolint:recvcheck // mixed receivers are intentional; see godoc above.
 type OrderDirection int
 
 // OrderDirection constants. The zero value (OrderAsc) is the implicit default

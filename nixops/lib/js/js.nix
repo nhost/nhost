@@ -38,7 +38,7 @@ let
       installPhase = ''
         mkdir -p $out
 
-        for absdir in $(pnpm list --recursive --depth=-1 --parseable); do
+        for absdir in $(pnpm list --recursive --depth=-1 --parseable ${pnpmOpts}); do
           dir=$(realpath --relative-to="$PWD" "$absdir")
           echo "  ➜ Copying node_modules for $dir"
           mkdir -p $out/$dir

@@ -51,6 +51,7 @@ export default function SMTPSettingsPage() {
     return (
       <div className="grid grid-flow-row gap-6">
         <UpgradeToProBanner
+          section="settings-smtp"
           title="To unlock custom SMTP, transfer this project to a Pro or Team organization."
           description=""
         />

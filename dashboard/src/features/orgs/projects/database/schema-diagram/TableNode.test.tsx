@@ -1,20 +1,13 @@
 import { ReactFlowProvider } from '@xyflow/react';
 import { vi } from 'vitest';
 import type { HasuraMetadataTable } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import {
-  mockPointerEvent,
-  render,
-  screen,
-  TestUserEvent,
-} from '@/tests/testUtils';
+import { render, screen, TestUserEvent } from '@/tests/testUtils';
 import {
   type TableActionsContextValue,
   TableActionsProvider,
 } from './TableActionsContext';
 import TableNode from './TableNode';
 import type { TableNodeData } from './useSchemaGraph';
-
-mockPointerEvent();
 
 function makeActions(
   overrides: Partial<TableActionsContextValue['actions']> = {},
@@ -133,14 +126,14 @@ describe('TableNode', () => {
     { objectType: 'VIEW' as const, label: 'View' },
     { objectType: 'MATERIALIZED VIEW' as const, label: 'Materialized View' },
     { objectType: 'FOREIGN TABLE' as const, label: 'Foreign Table' },
-  ])('renders the "$label" object-type icon in the header for a $objectType', ({
-    objectType,
-    label,
-  }) => {
-    renderNode({ ...baseData, objectType });
+  ])(
+    'renders the "$label" object-type icon in the header for a $objectType',
+    ({ objectType, label }) => {
+      renderNode({ ...baseData, objectType });
 
-    expect(screen.getByLabelText(label)).toBeInTheDocument();
-  });
+      expect(screen.getByLabelText(label)).toBeInTheDocument();
+    },
+  );
 
   it('renders the "Enum" icon for an enum table', () => {
     renderNode(baseData, {

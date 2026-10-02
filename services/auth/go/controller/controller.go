@@ -20,16 +20,6 @@ const (
 	InAMonth    = 30 * 24 * time.Hour
 	In10Minutes = 10 * time.Minute
 	In5Minutes  = 5 * time.Minute
-
-	// maxOTPVerificationAttempts is the email-OTP attempt cap and the single
-	// source of truth for it: it is passed into the VerifyEmailOTP query (as
-	// @max_attempts), which burns the code after this many wrong guesses.
-	maxOTPVerificationAttempts = 5
-
-	// Email-OTP verification outcomes returned by the VerifyEmailOTP query.
-	otpStatusOK      = "ok"
-	otpStatusBurned  = "burned"
-	otpStatusInvalid = "invalid"
 )
 
 func deptr[T any](x *T) T { //nolint:ireturn
@@ -52,7 +42,9 @@ type Emailer interface {
 
 type SMSer interface {
 	SendVerificationCode(ctx context.Context, to string, locale string) (string, time.Time, error)
-	CheckVerificationCode(ctx context.Context, to string, code string) (sql.AuthUser, error)
+	CheckVerificationCode(
+		ctx context.Context, to string, code string,
+	) (sql.AuthUser, string, error)
 }
 
 type DBClientGetUser interface {
@@ -63,6 +55,9 @@ type DBClientGetUser interface {
 		ctx context.Context, arg sql.GetUserByRefreshTokenHashParams,
 	) (sql.AuthUser, error)
 	GetUserByTicket(ctx context.Context, ticket pgtype.Text) (sql.AuthUser, error)
+	GetUserByPhoneNumberOtherThanSelf(
+		ctx context.Context, arg sql.GetUserByPhoneNumberOtherThanSelfParams,
+	) (sql.AuthUser, error)
 	VerifyEmailOTP(
 		ctx context.Context, arg sql.VerifyEmailOTPParams,
 	) (string, error)
@@ -85,6 +80,13 @@ type DBClientUpdateUser interface { //nolint:interfacebloat
 		arg sql.UpdateUserChangeEmailParams,
 	) (sql.AuthUser, error)
 	UpdateUserDeanonymize(ctx context.Context, arg sql.UpdateUserDeanonymizeParams) error
+	UpdateUserDeanonymizeSMS(ctx context.Context, arg sql.UpdateUserDeanonymizeSMSParams) error
+	UpdateUserChangePhoneNumber(
+		ctx context.Context, arg sql.UpdateUserChangePhoneNumberParams,
+	) error
+	UpdateUserConfirmChangePhoneNumber(
+		ctx context.Context, arg sql.UpdateUserConfirmChangePhoneNumberParams,
+	) (string, error)
 	UpdateUserLastSeen(ctx context.Context, id uuid.UUID) (pgtype.Timestamptz, error)
 	UpdateUserTicket(ctx context.Context, arg sql.UpdateUserTicketParams) (uuid.UUID, error)
 	UpdateUserChangePassword(
@@ -99,6 +101,9 @@ type DBClientUpdateUser interface { //nolint:interfacebloat
 	UpdateUserActiveMFAType(ctx context.Context, arg sql.UpdateUserActiveMFATypeParams) error
 	InsertSecurityKey(ctx context.Context, arg sql.InsertSecurityKeyParams) (uuid.UUID, error)
 	UpdateUserOTPHash(ctx context.Context, arg sql.UpdateUserOTPHashParams) (uuid.UUID, error)
+	UpdateStagedSMSUser(
+		ctx context.Context, arg sql.UpdateStagedSMSUserParams,
+	) (uuid.UUID, error)
 }
 
 type DBClientUserProvider interface {
@@ -130,6 +135,7 @@ type DBClient interface { //nolint:interfacebloat
 	GetSecurityKeys(ctx context.Context, userID uuid.UUID) ([]sql.AuthUserSecurityKey, error)
 	DeleteRefreshTokens(ctx context.Context, userID uuid.UUID) error
 	DeleteExpiredRefreshTokens(ctx context.Context) error
+	ReleaseExpiredStagedSMSDeanonymizations(ctx context.Context) error
 	DeleteRefreshToken(ctx context.Context, refreshTokenHash pgtype.Text) error
 	DeleteUserRoles(ctx context.Context, userID uuid.UUID) error
 	GetUserRoles(ctx context.Context, userID uuid.UUID) ([]sql.AuthUserRole, error)

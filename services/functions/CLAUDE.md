@@ -36,7 +36,7 @@ services/functions/
 
 - **server.js**: Discovers functions via glob, then creates a single shared esbuild context with one entry point per function (shares the parsed dependency graph across functions to keep memory bounded). Watches for changes via `ctx.watch()`; polls every 1s to detect added/removed files and recreates the context when the entry set changes. Routes are derived from file paths (e.g., `hello.ts` -> `/hello`). Index files map to parent directories. Builds are output to `/tmp/nhost-build/dist/<safeName>.js`, with generated wrappers in `/tmp/nhost-build/wrappers/`.
 - **local-wrapper.js**: Template that wraps each user function in an Express mini-app with JSON/URL-encoded body parsing (6MB limit), raw body preservation, invocation ID tracking, and error handling. The placeholder `%FUNCTION_PATH%` is replaced at build time.
-- **start.sh**: Docker entrypoint that detects whether `package.json` is at `./functions/` or `./`, validates a lock file exists, copies default `tsconfig.json`, installs dependencies via `nci` (@antfu/ni), and starts the server.
+- **start.sh**: Docker entrypoint that detects whether `package.json` is at `./functions/` or `./`, validates a lock file exists, copies default `tsconfig.json`, installs dependencies with the lockfile-selected package manager, and starts the server.
 - **Routing**: `functions/hello.ts` -> `/hello`, `functions/sub/index.ts` -> `/sub/`, `functions/_utils/` -> ignored. Route lookup is flexible: tries exact match, then without trailing slash, then with trailing slash.
 - **Docker images**: Built with nix2container. Three variants: Node 22 (default), Node 24, and Node 26. Images include Node.js, pnpm, git, python3, make, and g++ for native dependency compilation.
 

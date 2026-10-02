@@ -21,6 +21,7 @@ import {
 } from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
 import AggregationQuerySection from './sections/AggregationQuerySection';
@@ -255,6 +256,7 @@ export default function RolePermissionEditorForm({
 }: RolePermissionEditorFormProps) {
   const queryClient = useQueryClient();
   const { project } = useProject();
+  const track = useTrackEvent();
   const {
     mutateAsync: managePermission,
     error,
@@ -343,6 +345,7 @@ export default function RolePermissionEditorForm({
     await execPromiseWithErrorToast(
       async () => {
         await managePermissionPromise;
+        track('Permissions Configured', { role, action });
         onDirtyStateChange(false, location);
         onSubmit?.();
       },

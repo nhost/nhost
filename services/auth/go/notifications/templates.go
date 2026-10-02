@@ -52,7 +52,7 @@ func NewTemplatesFromFilesystem(
 
 			if info.Name() == "body.html" || info.Name() == "body.txt" ||
 				info.Name() == "subject.txt" {
-				f, err := os.ReadFile(path)
+				f, err := os.ReadFile(path) //nolint:gosec // G122: trusted local template dir
 				if err != nil {
 					return fmt.Errorf("error reading file: %w", err)
 				}

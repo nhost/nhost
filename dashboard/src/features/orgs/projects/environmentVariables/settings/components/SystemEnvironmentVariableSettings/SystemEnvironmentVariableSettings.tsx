@@ -8,9 +8,8 @@ import {
   SettingsCardHeader,
   SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
-import { InlineCode } from '@/components/presentational/InlineCode';
-
 import { Button } from '@/components/ui/v3/button';
+import { InlineCode } from '@/components/ui/v3/inline-code';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import {
   defaultRemoteBackendSlugs,
@@ -111,10 +110,10 @@ export default function SystemEnvironmentVariableSettings() {
           <div className="grid grid-cols-2 gap-2 px-4 lg:grid-cols-3">
             <p>NHOST_ADMIN_SECRET</p>
 
-            <div className="grid grid-flow-col items-center justify-start gap-2 lg:col-span-2">
-              <p className="truncate">
+            <div className="flex items-center gap-2 lg:col-span-2">
+              <p className="min-w-0 break-words">
                 {showAdminSecret ? (
-                  <InlineCode className="!text-sm font-medium">
+                  <InlineCode className="!text-sm whitespace-normal font-medium">
                     {adminSecret}
                   </InlineCode>
                 ) : (
@@ -126,6 +125,7 @@ export default function SystemEnvironmentVariableSettings() {
                 type="button"
                 variant="ghost"
                 size="icon"
+                className="shrink-0"
                 aria-label={
                   showAdminSecret ? 'Hide Admin Secret' : 'Show Admin Secret'
                 }
@@ -144,10 +144,10 @@ export default function SystemEnvironmentVariableSettings() {
           <div className="grid grid-cols-2 gap-2 px-4 lg:grid-cols-3">
             <p>NHOST_WEBHOOK_SECRET</p>
 
-            <div className="grid grid-flow-col items-center justify-start gap-2 lg:col-span-2">
-              <p className="truncate">
+            <div className="flex items-center gap-2 lg:col-span-2">
+              <p className="min-w-0 break-words">
                 {showWebhookSecret ? (
-                  <InlineCode className="!text-sm font-medium">
+                  <InlineCode className="!text-sm whitespace-normal font-medium">
                     {webhookSecret}
                   </InlineCode>
                 ) : (
@@ -159,6 +159,7 @@ export default function SystemEnvironmentVariableSettings() {
                 type="button"
                 variant="ghost"
                 size="icon"
+                className="shrink-0"
                 aria-label={
                   showWebhookSecret
                     ? 'Hide Webhook Secret'

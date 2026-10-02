@@ -33,6 +33,7 @@ import {
   useOrganizationNewRequestsLazyQuery,
   usePostOrganizationRequestMutation,
 } from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { useUserData } from '@/hooks/useUserData';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 
@@ -122,6 +123,7 @@ export default function NotificationsTray() {
 
   const [acceptInvite] = useOrganizationMemberInviteAcceptMutation();
   const [deleteInvite] = useDeleteOrganizationMemberInviteMutation();
+  const track = useTrackEvent();
 
   const handleAccept = async (invite: Invite) => {
     await execPromiseWithErrorToast(
@@ -130,6 +132,9 @@ export default function NotificationsTray() {
           variables: {
             inviteId: invite.id,
           },
+        });
+        track('Organization Invite Accepted', {
+          org_slug: invite.organization?.slug,
         });
 
         await refetchInvites();

@@ -632,7 +632,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 					},
 				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
-				mock.EXPECT().GetUserByEmail( //nolint:dupl
+				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@myapp.local"),
 				).Return(
@@ -777,7 +777,7 @@ func TestSignInIdToken(t *testing.T) { //nolint:maintidx
 		{
 			name:   "signin - simple - user disabled",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUserByProviderID( //nolint:dupl

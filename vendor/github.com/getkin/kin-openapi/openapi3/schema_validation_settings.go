@@ -21,6 +21,7 @@ type schemaValidationSettings struct {
 	patternValidationDisabled   bool
 	readOnlyValidationDisabled  bool
 	writeOnlyValidationDisabled bool
+	useJSONSchema2020           bool // Use JSON Schema 2020-12 validator for OpenAPI 3.1
 
 	regexCompiler RegexCompilerFunc
 
@@ -28,6 +29,11 @@ type schemaValidationSettings struct {
 	defaultsSet         func()
 
 	customizeMessageError func(err *SchemaError) string
+
+	// Per-validation format validators (checked before global ones)
+	stringFormats  map[string]StringFormatValidator
+	numberFormats  map[string]NumberFormatValidator
+	integerFormats map[string]IntegerFormatValidator
 }
 
 // FailFast returns schema validation errors quicker.
@@ -81,6 +87,76 @@ func SetSchemaErrorMessageCustomizer(f func(err *SchemaError) string) SchemaVali
 // SetSchemaRegexCompiler allows to override the regex implementation used to validate field "pattern".
 func SetSchemaRegexCompiler(c RegexCompilerFunc) SchemaValidationOption {
 	return func(s *schemaValidationSettings) { s.regexCompiler = c }
+}
+
+// WithStringFormatValidators adds per-validation string format validators.
+// These validators are checked before global SchemaStringFormats and allow
+// different validations for the same format name across different specs.
+func WithStringFormatValidators(validators map[string]StringFormatValidator) SchemaValidationOption {
+	return func(s *schemaValidationSettings) {
+		s.stringFormats = validators
+	}
+}
+
+// WithStringFormatValidator adds a single per-validation string format validator.
+// This validator is checked before global SchemaStringFormats and allows
+// different validations for the same format name across different specs.
+func WithStringFormatValidator(name string, validator StringFormatValidator) SchemaValidationOption {
+	return func(s *schemaValidationSettings) {
+		if s.stringFormats == nil {
+			s.stringFormats = make(map[string]StringFormatValidator)
+		}
+		s.stringFormats[name] = validator
+	}
+}
+
+// WithNumberFormatValidators adds per-validation number format validators.
+// These validators are checked before global SchemaNumberFormats and allow
+// different validations for the same format name across different specs.
+func WithNumberFormatValidators(validators map[string]NumberFormatValidator) SchemaValidationOption {
+	return func(s *schemaValidationSettings) {
+		s.numberFormats = validators
+	}
+}
+
+// WithNumberFormatValidator adds a single per-validation number format validator.
+// This validator is checked before global SchemaNumberFormats and allows
+// different validations for the same format name across different specs.
+func WithNumberFormatValidator(name string, validator NumberFormatValidator) SchemaValidationOption {
+	return func(s *schemaValidationSettings) {
+		if s.numberFormats == nil {
+			s.numberFormats = make(map[string]NumberFormatValidator)
+		}
+		s.numberFormats[name] = validator
+	}
+}
+
+// WithIntegerFormatValidators adds per-validation integer format validators.
+// These validators are checked before global SchemaIntegerFormats and allow
+// different validations for the same format name across different specs.
+func WithIntegerFormatValidators(validators map[string]IntegerFormatValidator) SchemaValidationOption {
+	return func(s *schemaValidationSettings) {
+		s.integerFormats = validators
+	}
+}
+
+// WithIntegerFormatValidator adds a single per-validation integer format validator.
+// This validator is checked before global SchemaIntegerFormats and allows
+// different validations for the same format name across different specs.
+func WithIntegerFormatValidator(name string, validator IntegerFormatValidator) SchemaValidationOption {
+	return func(s *schemaValidationSettings) {
+		if s.integerFormats == nil {
+			s.integerFormats = make(map[string]IntegerFormatValidator)
+		}
+		s.integerFormats[name] = validator
+	}
+}
+
+// EnableJSONSchema2020 enables JSON Schema 2020-12 compliant validation.
+// This enables support for OpenAPI 3.1 and JSON Schema 2020-12 features.
+// When enabled, validation uses the jsonschema library instead of the built-in validator.
+func EnableJSONSchema2020() SchemaValidationOption {
+	return func(s *schemaValidationSettings) { s.useJSONSchema2020 = true }
 }
 
 func newSchemaValidationSettings(opts ...SchemaValidationOption) *schemaValidationSettings {

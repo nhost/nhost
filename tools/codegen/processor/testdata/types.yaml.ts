@@ -62,6 +62,14 @@ export interface SimpleObjectNested {
     *    Format - date-time
  @property metadata (`Record<string, unknown>`) - Custom metadata associated with the file.
     *    Example - `{"alt":"Profile picture","category":"avatar"}`
+ @property requiredNullableMetadata (`Record<string, unknown> | null`) - Always-present metadata that may be null.
+ @property requiredNullableString (`string | null`) - Always-present string that may be null.
+ @property requiredNullableArray (`string[] | null`) - Always-present array that may be null.
+ @property nickname? (`string`) - Optional nickname declared nullable in OpenAPI.
+ @property extra? (`Record<string, unknown>`) - Optional free-form object declared nullable in OpenAPI.
+ @property aliases? (`(string | null)[]`) - Array whose individual items may be null.
+ @property labels? (`Record<string, string | null>`) - Typed map whose values may be null.
+ @property nullableTags? (`string[]`) - Optional array declared nullable in OpenAPI.
  @property data (`Blob`) - Base64 encoded data of the file.
     *    Format - binary
  @property tags? (`string[]`) - List of tags associated with the object.
@@ -100,6 +108,38 @@ export interface SimpleObject {
     *    Example - `{"alt":"Profile picture","category":"avatar"}`
    */
   metadata: Record<string, unknown>,
+  /**
+   * Always-present metadata that may be null.
+   */
+  requiredNullableMetadata: Record<string, unknown> | null,
+  /**
+   * Always-present string that may be null.
+   */
+  requiredNullableString: string | null,
+  /**
+   * Always-present array that may be null.
+   */
+  requiredNullableArray: string[] | null,
+  /**
+   * Optional nickname declared nullable in OpenAPI.
+   */
+  nickname?: string,
+  /**
+   * Optional free-form object declared nullable in OpenAPI.
+   */
+  extra?: Record<string, unknown>,
+  /**
+   * Array whose individual items may be null.
+   */
+  aliases?: (string | null)[],
+  /**
+   * Typed map whose values may be null.
+   */
+  labels?: Record<string, string | null>,
+  /**
+   * Optional array declared nullable in OpenAPI.
+   */
+  nullableTags?: string[],
   /**
    * Base64 encoded data of the file.
     *    Format - binary

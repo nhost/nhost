@@ -44,9 +44,7 @@ func (h *ValidationHandler) Load() error {
 	if h.Handler == nil {
 		h.Handler = http.DefaultServeMux
 	}
-	if h.AuthenticationFunc == nil {
-		h.AuthenticationFunc = NoopAuthenticationFunc
-	}
+	// NOTE: users MUST set AuthenticationFunc explicitly or expect ErrAuthenticationServiceMissing when verifying SecurityRequirements
 	if h.ErrorEncoder == nil {
 		h.ErrorEncoder = DefaultErrorEncoder
 	}

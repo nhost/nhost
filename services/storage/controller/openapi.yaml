@@ -64,6 +64,9 @@ paths:
                     format: binary
               required:
                 - file[]
+            encoding:
+              metadata[]:
+                contentType: application/json
       responses:
         "201":
           description: "Files successfully uploaded"
@@ -475,6 +478,9 @@ paths:
                   description: "New file content to replace the existing file"
                   type: string
                   format: binary
+            encoding:
+              metadata:
+                contentType: application/json
       responses:
         "200":
           description: "File successfully replaced"

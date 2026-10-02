@@ -43,8 +43,9 @@ export default function DeploymentListItem({
   const { org } = useCurrentOrg();
   const userData = useUserData();
 
-  const relativeDateOfDeployment = deployment.startedAt
-    ? formatDistanceToNowStrict(parseISO(deployment.startedAt), {
+  const deploymentDate = deployment.startedAt ?? deployment.createdAt;
+  const relativeDateOfDeployment = deploymentDate
+    ? formatDistanceToNowStrict(parseISO(deploymentDate), {
         addSuffix: true,
       })
     : '';

@@ -81,5 +81,5 @@ func DefaultErrorEncoder(_ context.Context, err error, w http.ResponseWriter) {
 		code = sc.StatusCode()
 	}
 	w.WriteHeader(code)
-	w.Write(body)
+	_, _ = w.Write(body)
 }

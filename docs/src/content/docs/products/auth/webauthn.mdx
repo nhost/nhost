@@ -108,10 +108,17 @@ sequenceDiagram
 Once a user signed up with a security key and verified their email if needed, they can use it to sign in.
 
 ```js
-await nhost.auth.signIn({
+import { startAuthentication } from '@simplewebauthn/browser';
+
+const response = await nhost.auth.signInWebauthn({
   email: 'joe@example.com',
-  securityKey: true,
 });
+
+const credential = await startAuthentication({
+  optionsJSON: response.body,
+});
+
+await nhost.auth.verifySignInWebauthn({ credential });
 ```
 
 ### Sign In Flow
@@ -144,7 +151,17 @@ sequenceDiagram
 Any signed-in user with a verified email can add a security key to their user account. It's possible to add multiple security keys.
 
 ```tsx
-const { key, error } = await nhost.auth.addSecurityKey('My iPhone');
+import { startRegistration } from '@simplewebauthn/browser';
+
+const response = await nhost.auth.addSecurityKey();
+const credential = await startRegistration({
+  optionsJSON: response.body,
+});
+
+await nhost.auth.verifyAddSecurityKey({
+  credential,
+  nickname: 'My iPhone',
+});
 ```
 
 ### Add Security Key Flow

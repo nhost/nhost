@@ -25,6 +25,7 @@ import {
   useInsertAssistantMutation,
   useUpdateAssistantMutation,
 } from '@/generated/graphite';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import type { DialogFormProps } from '@/types/common';
 import { type DeepRequired, removeTypename } from '@/utils/helpers';
 
@@ -102,6 +103,7 @@ export default function AssistantForm({
   location,
 }: AssistantFormProps) {
   const { onDirtyStateChange } = useDialog();
+  const track = useTrackEvent();
 
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();
 
@@ -195,6 +197,7 @@ export default function AssistantForm({
         },
       },
     });
+    track('AI Assistant Created');
   };
 
   const handleSubmit = async (

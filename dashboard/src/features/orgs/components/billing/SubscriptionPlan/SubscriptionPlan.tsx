@@ -36,6 +36,7 @@ import {
   useGetOrganizationPlansQuery,
 } from '@/generated/graphql';
 import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { cn } from '@/lib/utils';
 
 const changeOrgPlanForm = z.object({
@@ -44,6 +45,7 @@ const changeOrgPlanForm = z.object({
 
 export default function SubscriptionPlan() {
   const { org, refetch: refetchOrg } = useCurrentOrg();
+  const track = useTrackEvent();
   const [open, setOpen] = useState(false);
   const [stripeClientSecret, setStripeClientSecret] = useState('');
   const [changeOrgPlan] = useBillingChangeOrganizationPlanMutation();
@@ -105,6 +107,12 @@ export default function SubscriptionPlan() {
               organizationID,
               planID,
             },
+          });
+
+          const newPlan = plans.find((p) => p.id === planID);
+          track('Plan Changed', {
+            from_plan: plan.name,
+            to_plan: newPlan?.name,
           });
 
           await refetchOrg();
@@ -244,7 +252,7 @@ export default function SubscriptionPlan() {
             </div>
             <div className="flex w-full flex-row items-center justify-end gap-2">
               <ButtonWithLoading
-                className="h-fit truncate"
+                className="truncate"
                 variant="secondary"
                 onClick={handleUpdatePaymentDetails}
                 disabled={isFreeOrg}
@@ -252,11 +260,7 @@ export default function SubscriptionPlan() {
               >
                 <span className="truncate">Stripe Customer Portal</span>
               </ButtonWithLoading>
-              <Button
-                disabled={loading}
-                className="h-fit"
-                onClick={() => setOpen(true)}
-              >
+              <Button disabled={loading} onClick={() => setOpen(true)}>
                 Upgrade
               </Button>
             </div>

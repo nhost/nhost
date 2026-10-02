@@ -2,7 +2,24 @@
 
 Fork
 ----
-This fork is an improved version of the go-yaml/yaml package, designed to include line and column location information for YAML elements during unmarshalling.
+This fork is an improved version of the go-yaml/yaml package, enhanced to inject `__origin__` metadata into YAML mapping nodes during decoding, recording the file, line, and column of each key.
+
+To enable origin tracking, call `Origin` on the decoder before decoding:
+
+```go
+dec := yaml.NewDecoder(r)
+dec.Origin(true, "myfile.yaml")
+
+var v interface{}
+dec.Decode(&v)
+// Each decoded map now contains a synthetic "__origin__" key whose value is
+// a compact []interface{} sequence:
+//   [file, key_name, key_line, key_col, nf, f1_name, f1_delta, f1_col, ..., ns, s1_name, s1_count, (name, delta, col)×count, ...]
+// where nf = number of scalar/sequence fields, ns = number of sequences with item locations,
+// and deltas are line offsets from key_line.
+```
+
+Origin nodes are synthetic: their key node has `Line == 0` (since real YAML lines are 1-based), which allows callers to detect and strip them. The [oasdiff/yaml](https://github.com/oasdiff/yaml) package uses this to build an `OriginTree` before JSON conversion, keeping `__origin__` entirely out of the decoded struct.
 
 Introduction
 ------------
@@ -30,33 +47,19 @@ Specifically, as of v3 of the yaml package:
  - Does not support base-60 floats. These are gone from YAML 1.2, and were
    actually never supported by this package as it's clearly a poor choice.
 
-and offers backwards
-compatibility with YAML 1.1 in some cases.
-1.2, including support for
-anchors, tags, map merging, etc. Multi-document unmarshalling is not yet
-implemented, and base-60 floats from YAML 1.1 are purposefully not
-supported since they're a poor design and are gone in YAML 1.2.
-
 Installation and usage
 ----------------------
 
-The import path for the package is *gopkg.in/yaml.v3*.
+The import path for the package is *github.com/oasdiff/yaml3*.
 
 To install it, run:
 
-    go get gopkg.in/yaml.v3
+    go get github.com/oasdiff/yaml3
 
 API documentation
 -----------------
 
-If opened in a browser, the import path itself leads to the API documentation:
-
-  - [https://gopkg.in/yaml.v3](https://gopkg.in/yaml.v3)
-
-API stability
--------------
-
-The package API for yaml v3 will remain stable as described in [gopkg.in](https://gopkg.in).
+  - [https://pkg.go.dev/github.com/oasdiff/yaml3](https://pkg.go.dev/github.com/oasdiff/yaml3)
 
 
 License
@@ -76,7 +79,7 @@ import (
         "fmt"
         "log"
 
-        "oasdiff/yaml"
+        "github.com/oasdiff/yaml3"
 )
 
 var data = `

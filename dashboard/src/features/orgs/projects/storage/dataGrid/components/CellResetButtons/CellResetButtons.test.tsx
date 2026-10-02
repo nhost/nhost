@@ -213,29 +213,28 @@ describe('CellResetButtons', () => {
       expect(defaultNotPrevented).toBe(true);
     });
 
-    it.each([
-      'Enter',
-      'Escape',
-      'ArrowDown',
-    ])('does not advance to the next cell when %s is pressed', (key) => {
-      render(
-        <CellResetButtons
-          isNullable
-          hasDefault
-          onSetNull={vi.fn()}
-          onSetDefault={vi.fn()}
-        />,
-      );
+    it.each(['Enter', 'Escape', 'ArrowDown'])(
+      'does not advance to the next cell when %s is pressed',
+      (key) => {
+        render(
+          <CellResetButtons
+            isNullable
+            hasDefault
+            onSetNull={vi.fn()}
+            onSetDefault={vi.fn()}
+          />,
+        );
 
-      fireEvent.keyDown(screen.getByRole('button', { name: 'NULL' }), {
-        key,
-      });
-      fireEvent.keyDown(screen.getByRole('button', { name: 'DEFAULT' }), {
-        key,
-      });
+        fireEvent.keyDown(screen.getByRole('button', { name: 'NULL' }), {
+          key,
+        });
+        fireEvent.keyDown(screen.getByRole('button', { name: 'DEFAULT' }), {
+          key,
+        });
 
-      expect(focusNextCell).not.toHaveBeenCalled();
-    });
+        expect(focusNextCell).not.toHaveBeenCalled();
+      },
+    );
 
     it('stops propagation of the Tab keydown so the cell-level handler does not run', () => {
       const onDocumentKeyDown = vi.fn();

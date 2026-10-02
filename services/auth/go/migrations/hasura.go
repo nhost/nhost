@@ -464,7 +464,7 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 						Delete:          "deleteAuthUserSecurityKeys",
 						DeleteByPk:      "deleteAuthUserSecurityKey",
 					},
-					CustomColumnNames: map[string]string{
+					CustomColumnNames: map[string]string{ //nolint:gosec // G101: column-name mapping, not credentials
 						"id":                    "id",
 						"user_id":               "userId",
 						"credential_id":         "credentialId",

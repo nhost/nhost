@@ -21,7 +21,7 @@ import (
 	"github.com/nhost/nhost/services/constellation/graph"
 )
 
-const adminSecret = "nhost-admin-secret" //nolint:gosec
+const adminSecret = "nhost-admin-secret"
 
 //nolint:gochecknoglobals
 var (

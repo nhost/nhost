@@ -29,6 +29,11 @@ vitest run <file>           # Run a single test file
 vitest run --reporter=verbose src/features/orgs/layout/OrgLayout/OrganizationGuard.test.tsx  # Run specific test with verbose output
 ```
 
+Run Vitest with `dashboard/` as the working directory so it loads
+`vitest.config.mts` and resolves workspace dependencies such as `jsdom`.
+
+Route-entry tests for files under `src/pages/` belong under `src/tests/pages/` because the default Next.js page extensions treat colocated test files as routes.
+
 ### E2E Testing
 
 ```bash
@@ -70,7 +75,7 @@ These layer on top of the rules in `.claude/docs/javascript-design-rules.md`. An
 
 When creating a new feature page, check whether it needs to be added to:
 
-- The `overlayPages` list in `ProjectStateGuard.tsx`.
+- The `runningProjectPages` list in `projectStatePages.ts` (and `sidebarSkeletonPages` if the page has a sidebar), which gate the project-state screen via `requiresRunningProject()` / `hasSidebarSkeleton()`.
 - `ProjectPagesComboBox` or `ProjectSettingsPagesComboBox`.
 - `MainNav/nav-config.tsx`, which defines sidebar navigation.
 - `features/command-palette/nav-tree.tsx` for command-palette metadata and keywords.

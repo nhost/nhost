@@ -341,7 +341,7 @@ func (e *encoder) stringv(tag string, in reflect.Value) {
 		// Check to see if it would resolve to a specific
 		// tag when encoded unquoted. If it doesn't,
 		// there's no need to quote it.
-		rtag, _ := resolve("", s)
+		rtag, _ := resolve("", s, false)
 		canUsePlain = rtag == strTag && !(isBase60Float(s) || isOldBool(s))
 	}
 	// Note: it's possible for user code to emit invalid YAML
@@ -446,7 +446,7 @@ func (e *encoder) node(node *Node, tail string) {
 			if stag == strTag && node.Style&(SingleQuotedStyle|DoubleQuotedStyle|LiteralStyle|FoldedStyle) != 0 {
 				tag = ""
 			} else {
-				rtag, _ := resolve("", node.Value)
+				rtag, _ := resolve("", node.Value, false)
 				if rtag == stag {
 					tag = ""
 				} else if stag == strTag {

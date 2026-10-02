@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Yamashou/gqlgenc/clientv2"
+	"github.com/gqlgo/gqlgenc/clientv2"
 	"github.com/nhost/nhost/services/storage/api"
 	"github.com/nhost/nhost/services/storage/controller"
 )
@@ -14,8 +14,7 @@ import (
 var errFileNotInserted = errors.New("file was not inserted")
 
 func parseGraphqlError(err error) *controller.APIError {
-	var ghErr *clientv2.ErrorResponse
-	if errors.As(err, &ghErr) {
+	if ghErr, ok := errors.AsType[*clientv2.ErrorResponse](err); ok {
 		code, ok := (*ghErr.GqlErrors)[0].Extensions["code"]
 		if !ok {
 			return controller.InternalServerError(err)

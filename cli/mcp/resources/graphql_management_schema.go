@@ -23,14 +23,12 @@ func NewGraphqlManagement() *GraphqlManagement {
 
 func (t *GraphqlManagement) Register(server *server.MCPServer) {
 	server.AddResource(
-		mcp.Resource{
+		mcp.Resource{ //nolint:exhaustruct // mcp.Resource is an external type; omitted embedded Annotated is intentional
 			URI:  GraphqlManagementResourceURI,
 			Name: "graphql-management",
-			Annotated: mcp.Annotated{
-				Annotations: &mcp.Annotations{
-					Audience: []mcp.Role{"agent"},
-					Priority: 9.0, //nolint:mnd
-				},
+			Annotations: &mcp.Annotations{
+				Audience: []mcp.Role{"agent"},
+				Priority: 9.0, //nolint:mnd
 			},
 			Description: GraphqlManagementDescription,
 			MIMEType:    "text/plain",

@@ -9,9 +9,9 @@ import {
   SettingsCardHeader,
   SettingsDocsLink,
 } from '@/components/layout/SettingsCard';
-import { InlineCode } from '@/components/presentational/InlineCode';
 import { Alert } from '@/components/ui/v3/alert';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
+import { InlineCode } from '@/components/ui/v3/inline-code';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import {

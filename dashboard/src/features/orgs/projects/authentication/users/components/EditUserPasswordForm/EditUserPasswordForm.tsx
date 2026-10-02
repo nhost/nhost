@@ -1,12 +1,12 @@
-import { yupResolver } from '@hookform/resolvers/yup';
+import { zodResolver } from '@hookform/resolvers/zod';
 import bcrypt from 'bcryptjs';
 import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import * as Yup from 'yup';
+import { z } from 'zod';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
-import { Alert } from '@/components/ui/v2/Alert';
-import { Input } from '@/components/ui/v2/Input';
+import { FormPasswordInput } from '@/components/form/FormPasswordInput';
+import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -47,36 +47,41 @@ export default function EditUserPasswordForm({
   const passwordMinLength =
     data?.config?.auth?.method?.emailPassword?.passwordMinLength || 1;
 
-  const validationSchema = Yup.object({
-    password: Yup.string()
-      .label('Password')
-      .min(
-        passwordMinLength,
-        `Password must be at least ${passwordMinLength} characters long.`,
-      )
-      .required('This field is required.'),
-    cpassword: Yup.string()
-      .label('Password Confirmation')
-      .min(
-        passwordMinLength,
-        `Password must be at least ${passwordMinLength} characters long.`,
-      )
-      .oneOf([Yup.ref('password')], 'Passwords do not match')
-      .required('This field is required.'),
-  });
+  const validationSchema = z
+    .object({
+      password: z
+        .string()
+        .min(
+          passwordMinLength,
+          `Password must be at least ${passwordMinLength} characters long.`,
+        ),
+      cpassword: z
+        .string()
+        .min(
+          passwordMinLength,
+          `Password must be at least ${passwordMinLength} characters long.`,
+        ),
+    })
+    .refine((values) => values.password === values.cpassword, {
+      message: 'Passwords do not match',
+      path: ['cpassword'],
+    });
 
   const [editUserPasswordFormError, setEditUserPasswordFormError] =
     useState<Error | null>(null);
 
-  const form = useForm<Yup.InferType<typeof validationSchema>>({
-    defaultValues: {},
+  const form = useForm<z.infer<typeof validationSchema>>({
     reValidateMode: 'onSubmit',
-    resolver: yupResolver(validationSchema),
+    resolver: zodResolver(validationSchema),
+    defaultValues: {
+      password: '',
+      cpassword: '',
+    },
   });
 
   const handleSubmit = async ({
     password,
-  }: Yup.InferType<typeof validationSchema>) => {
+  }: z.infer<typeof validationSchema>) => {
     setEditUserPasswordFormError(null);
     const passwordHash = await bcrypt.hash(password, 10);
 
@@ -108,8 +113,7 @@ export default function EditUserPasswordForm({
   };
 
   const {
-    register,
-    formState: { errors, isSubmitting },
+    formState: { isSubmitting },
   } = form;
 
   return (
@@ -118,36 +122,25 @@ export default function EditUserPasswordForm({
         onSubmit={handleSubmit}
         className="grid grid-flow-row gap-6 px-6 pb-6"
       >
-        <Input
-          {...register('password')}
-          id="password"
-          type="password"
+        <FormPasswordInput
+          control={form.control}
+          name="password"
           label="Password"
           placeholder="Enter Password"
-          hideEmptyHelperText
-          error={!!errors.password}
-          helperText={errors?.password?.message}
-          fullWidth
           autoComplete="off"
-          autoFocus
         />
-        <Input
-          {...register('cpassword')}
-          id="confirm-password"
-          type="password"
+        <FormPasswordInput
+          control={form.control}
+          name="cpassword"
           label="Confirm Password"
           placeholder="Enter Password"
-          hideEmptyHelperText
-          error={!!errors.cpassword}
-          helperText={errors?.cpassword?.message}
-          fullWidth
           autoComplete="off"
         />
         {editUserPasswordFormError && (
-          <Alert severity="error">
-            <span className="text-left">
+          <Alert variant="destructive">
+            <AlertDescription className="text-left">
               <strong>Error:</strong> {editUserPasswordFormError.message}
-            </span>
+            </AlertDescription>
           </Alert>
         )}
         <div className="grid grid-flow-row gap-2">

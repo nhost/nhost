@@ -31,9 +31,9 @@ let
     };
 
   checkDeps = with pkgs; [
-    sqlc
-    mockgen
-    nhost-cli
+    nhost.sqlc
+    nhost.mockgen
+    nhost.nhost-cli
   ];
 
   buildInputs = with pkgs; [

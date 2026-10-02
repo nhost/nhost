@@ -332,10 +332,11 @@ func getRelationshipTarget(
 
 // getRelationshipTargetSchemaAndTable resolves the schema-qualified target
 // table referenced by a relationship's Using clause. For the forward-FK
-// shortcut (ForeignKeyColumns) the target is read off the first matching
-// introspection FK; all listed columns must agree on the same target schema
-// and name, otherwise the function returns empty strings so the caller drops
-// the relationship as misconfigured.
+// shortcut (ForeignKeyColumns) the target comes from the introspected constraint
+// whose column set exactly matches the listed columns, falling back to the first
+// matching FK entry for each column; all listed columns must agree on the same
+// target schema and name, otherwise the function returns empty strings so the
+// caller drops the relationship as misconfigured.
 func getRelationshipTargetSchemaAndTable(
 	tableInfo *introspection.Table,
 	using metadata.RelationshipUsing,

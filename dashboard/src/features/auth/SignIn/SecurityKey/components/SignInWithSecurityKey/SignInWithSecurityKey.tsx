@@ -2,9 +2,18 @@ import { Fingerprint } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import { useSignInWithSecurityKey } from '@/features/auth/SignIn/SecurityKey/hooks/useSignInWithSecurityKey';
+import { cn } from '@/lib/utils';
 import { VerifyEmailDialog } from './VerifyEmailDialog';
 
-function SignInWithSecurityKey() {
+export interface SignInWithSecurityKeyProps {
+  className?: string;
+  'aria-describedby'?: string;
+}
+
+function SignInWithSecurityKey({
+  className,
+  'aria-describedby': ariaDescribedBy,
+}: SignInWithSecurityKeyProps) {
   const [open, setOpen] = useState(false);
   function onNeedsEmailVerification() {
     setOpen(true);
@@ -17,9 +26,13 @@ function SignInWithSecurityKey() {
       <VerifyEmailDialog open={open} setOpen={setOpen} />
       <Button
         variant="ghost"
-        className="!bg-white !text-black disabled:!text-black disabled:!text-opacity-60 gap-2 text-sm+ hover:ring-2 hover:ring-white hover:ring-opacity-50"
+        className={cn(
+          '!bg-white !text-black disabled:!text-black disabled:!text-opacity-60 w-full gap-2 text-sm+ hover:ring-2 hover:ring-white hover:ring-opacity-50',
+          className,
+        )}
         disabled={disabled}
         onClick={signInWithSecurityKey}
+        aria-describedby={ariaDescribedBy}
       >
         <Fingerprint size={14} />
         Continue with a security key

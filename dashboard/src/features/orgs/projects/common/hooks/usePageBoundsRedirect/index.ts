@@ -1,1 +1,0 @@
-export { usePageBoundsRedirect } from './usePageBoundsRedirect';

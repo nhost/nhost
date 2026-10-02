@@ -34,7 +34,7 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 				},
 			},
 		},
-		Ai: &model.ConfigAI{
+		Ai: &model.ConfigAI{ //nolint:gosec // G101: example config values, not real credentials
 			Version: new("0.3.0"),
 			Resources: &model.ConfigAIResources{
 				Compute: &model.ConfigComputeResources{
@@ -42,7 +42,7 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 					Memory: 512,
 				},
 			},
-			Openai: &model.ConfigAIOpenai{
+			Openai: &model.ConfigAIOpenai{ //nolint:gosec // G101: example config values, not real credentials
 				Organization: new("org-id"),
 				ApiKey:       "opeanai-api-key",
 			},
@@ -118,7 +118,7 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 		},
 		Functions: &model.ConfigFunctions{
 			Node: &model.ConfigFunctionsNode{
-				Version: new(int(22)),
+				Version: new(int(24)),
 			},
 			Resources: &model.ConfigFunctionsResources{
 				Networking: &model.ConfigNetworking{
@@ -428,7 +428,9 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 				EffectiveCacheSize:            new("4GB"),
 				MaintenanceWorkMem:            new("64MB"),
 				CheckpointCompletionTarget:    new(float64(0.9)),
+				CheckpointTimeout:             new("5min"),
 				WalBuffers:                    new("-1"),
+				WalCompression:                new("off"),
 				DefaultStatisticsTarget:       new(int32(100)),
 				RandomPageCost:                new(float64(4)),
 				EffectiveIOConcurrency:        new(int32(1)),
@@ -443,8 +445,35 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 				WalLevel:                      new("replica"),
 				MaxWalSenders:                 new(int32(10)),
 				MaxReplicationSlots:           new(int32(10)),
+				MaxSlotWalKeepSize:            new("-1"),
 				ArchiveTimeout:                new(int32(300)),
 				TrackIoTiming:                 new("off"),
+				LogMinDurationStatement:       new("-1"),
+				LogAutovacuumMinDuration:      new("10min"),
+				LogTempFiles:                  new("-1"),
+				SharedPreloadLibraries: []string{
+					"pg_stat_statements", "pg_cron", "timescaledb", "pg_squeeze", "pg_search",
+				},
+				Extensions: &model.ConfigPostgresSettingsExtensions{
+					PgStatStatements: &model.ConfigPostgresSettingsExtensionsPgStatStatements{
+						Max:           new(int32(5000)),
+						Track:         new("top"),
+						TrackPlanning: new("off"),
+					},
+					Cron: &model.ConfigPostgresSettingsExtensionsCron{
+						Timezone:       new("GMT"),
+						MaxRunningJobs: new(int32(32)),
+						LogRun:         new("on"),
+					},
+					PgDurable: &model.ConfigPostgresSettingsExtensionsPgDurable{
+						MaxUserConnections: new(int32(10)),
+						RetentionDays:      new(int32(30)),
+						LogWorkflowSql:     new("off"),
+					},
+					Timescaledb: &model.ConfigPostgresSettingsExtensionsTimescaledb{
+						MaxBackgroundWorkers: new(int32(16)),
+					},
+				},
 			},
 			Pitr: &model.ConfigPostgresPitr{
 				Retention: new(uint8(7)),
@@ -455,12 +484,12 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 				User:     new("smtpUser"),
 				Password: new("smtpPassword"),
 				Sender:   new("smtpSender"),
-				Host:     new("smtpHost"),
+				Host:     new("smtp.example.com"),
 				Port:     new(uint16(587)), //nolint:mnd
 				Secure:   new(true),
 				Method:   new("LOGIN"),
 			},
-			Sms: &model.ConfigSms{
+			Sms: &model.ConfigSms{ //nolint:gosec // G101: example config values, not real credentials
 				Provider:           new("twilio"),
 				AccountSid:         "twilioAccountSid",
 				AuthToken:          "twilioAuthToken",
@@ -480,6 +509,10 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 				Networking: nil,
 				Replicas:   new(uint8(1)),
 				Autoscaler: nil,
+			},
+			ImageTransformer: &model.ConfigStorageImageTransformer{
+				MaxImageOutputDimension: new(uint32(8000)),
+				MaxBlurSigma:            new(uint32(250)),
 			},
 			RateLimit: &model.ConfigRateLimit{
 				Limit:    100,

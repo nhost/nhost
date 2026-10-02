@@ -15,6 +15,7 @@ import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimi
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useUpdateRunServiceConfigMutation } from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { isNotEmptyValue } from '@/lib/utils';
 
 interface RunServicePortProps {
@@ -35,6 +36,7 @@ export default function RunServicePortDomain({
   const { openDialog } = useDialog();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
+  const track = useTrackEvent();
   const [loading, setLoading] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const { project } = useProject();
@@ -94,6 +96,9 @@ export default function RunServicePortDomain({
           },
         });
 
+        if (!initialValue && isNotEmptyValue(formValues.runServicePortFQDN)) {
+          track('Custom Domain Added', { service: 'run' });
+        }
         form.reset(formValues);
 
         if (!isPlatform) {

@@ -63,6 +63,9 @@ export const createAPIClient = (
     params &&
     Object.entries(params)
       .flatMap(([key, value]) => {
+        if (value === null || value === undefined) {
+          return []
+        }
         if (key === "upstreamParams") {
           // deepObject with explode: true - upstreamParams[prop]=value
           if (typeof value === 'object' && value !== null && !Array.isArray(value)) {

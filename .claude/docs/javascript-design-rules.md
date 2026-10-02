@@ -10,7 +10,7 @@ The document has three sections: **Repo-wide rules** apply everywhere; **Dashboa
 
 ### Tooling
 
-- **Package manager:** `pnpm` 11.1.0. Never `npm` or `yarn` — `settings.json` denies them.
+- **Package manager:** `pnpm` 12.3.4. Never `npm` or `yarn` — `settings.json` denies them.
 - **Linter/formatter:** **Biome** (config in root `biome.json` and `dashboard/biome.json`). Single quotes, space indentation, import sorting.
 - **Monorepo orchestration:** **Turbo** (`turbo.json`). Run tasks via `turbo run <task>`.
 - **Node ≥ 22** required.
@@ -39,6 +39,7 @@ The document has three sections: **Repo-wide rules** apply everywhere; **Dashboa
 
 - No comments unless explaining complex logic — code should be self-explanatory.
 - No inline JSX comments like `{/* Section Name */}` to label sections.
+- In `.mdx` files, HTML `<!-- ... -->` comments are a parse error in MDX v3 (`@mdx-js/mdx` 3, used by `@astrojs/mdx` 7). When comments are necessary, use `{/* ... */}` instead, as with the generated-block markers in `docs/src/content/docs/products/database/extensions.mdx`.
 
 ---
 
@@ -48,9 +49,10 @@ Lives in `dashboard/`. Stack: React 19, TypeScript, Next.js (file-system routing
 
 ### Imports
 
-- **Absolute imports only**, via the `@/` alias (configured in `tsconfig.json`). Example: `import Button from '@/components/ui/v3/button';`.
-- **No relative imports** (`../`, `./`) — Biome enforces this.
-- Group imports: React → external libraries → absolute imports → absolute type imports.
+- Use **absolute imports via `@/`** for imports outside the current directory (configured in `tsconfig.json`). Example: `import Button from '@/components/ui/v3/button';`.
+- **Sibling imports may use `./...`**. Example: `import ConditionRow from './ConditionRow';`. Preserve existing sibling imports when making unrelated changes.
+- **No parent-directory imports** (`../...`) — Biome enforces this.
+- Group imports: React → external libraries → absolute imports → absolute type imports → sibling imports.
 - Type-only imports use `import type { Foo } from '@/types'`.
 - Imports from `@testing-library/react*` are restricted — use `@/tests/testUtils`.
 
@@ -114,6 +116,7 @@ When adding a new feature page, check whether it needs to be registered in each 
 
 - **Runner:** Vitest. Globals (`describe`, `it`, `expect`, `beforeEach`, etc.) are provided — do not import them.
 - **Component testing:** React Testing Library. Use `render()` and `screen` from `@/tests/testUtils`.
+- **Interactions:** use `TestUserEvent` from `@/tests/testUtils` (user-event). Use `fireEvent` only when user events can't express the test.
 - **API mocking:** MSW (Mock Service Worker). Mock responses, not components. Mocking hooks like `useRouter` is acceptable.
 - **Async assertions:** `waitFor()`.
 - **Next.js router:** mock with `vi.mock('next/router', ...)`.

@@ -1,13 +1,5 @@
 fragment Project on apps {
-  id
-  slug
-  name
-  repositoryProductionBranch
-  subdomain
-  createdAt
-  desiredState
-  nhostBaseFolder
-  automaticDeploys
+  ...ProjectBase
   config(resolve: true) {
     observability {
       grafana {
@@ -23,60 +15,5 @@ fragment Project on apps {
     ai {
       version
     }
-  }
-  featureFlags {
-    description
-    id
-    name
-    value
-  }
-  appStates(order_by: { createdAt: desc }, limit: 1) {
-    id
-    appId
-    message
-    stateId
-    createdAt
-  }
-  region {
-    id
-    countryCode
-    name
-    domain
-    city
-  }
-  legacyPlan {
-    id
-    name
-    price
-    isFree
-    featureMaxDbSize
-  }
-  githubRepository {
-    fullName
-  }
-  deployments(limit: 4, order_by: { deploymentStartedAt: desc }) {
-    id
-    commitSHA
-    commitMessage
-    commitUserName
-    deploymentStartedAt
-    deploymentEndedAt
-    commitUserAvatarUrl
-    deploymentStatus
-  }
-  pipelineRuns(limit: 4, order_by: { startedAt: desc }) {
-    id
-    name
-    startedAt
-    endedAt
-    status
-    input
-    appId
-    createdAt
-  }
-  creator {
-    id
-    email
-    displayName
   }
 }

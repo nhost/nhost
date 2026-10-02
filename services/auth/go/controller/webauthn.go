@@ -11,6 +11,7 @@ import (
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/google/uuid"
+	"github.com/nhost/nhost/internal/lib/syncmap"
 	"github.com/nhost/nhost/services/auth/go/api"
 )
 
@@ -50,7 +51,7 @@ type WebauthnChallenge struct {
 
 type Webauthn struct {
 	wa      *webauthn.WebAuthn
-	Storage map[string]WebauthnChallenge
+	Storage *syncmap.Map[string, WebauthnChallenge]
 }
 
 func NewWebAuthn(config Config) (*Webauthn, error) {
@@ -85,21 +86,23 @@ func NewWebAuthn(config Config) (*Webauthn, error) {
 
 	return &Webauthn{
 		wa:      wa,
-		Storage: make(map[string]WebauthnChallenge),
+		Storage: syncmap.New[string, WebauthnChallenge](),
 	}, nil
 }
 
 func (w *Webauthn) cleanCache() {
-	toDelete := make([]string, 0, len(w.Storage))
-	for k, v := range w.Storage {
-		// if expired
-		if time.Now().After(v.Session.Expires) {
-			toDelete = append(toDelete, k)
+	now := time.Now()
+	toDelete := make([]string, 0)
+	w.Storage.Range(func(key string, challenge WebauthnChallenge) bool {
+		if now.After(challenge.Session.Expires) {
+			toDelete = append(toDelete, key)
 		}
-	}
 
-	for _, k := range toDelete {
-		delete(w.Storage, k)
+		return true
+	})
+
+	for _, key := range toDelete {
+		w.Storage.Delete(key)
 	}
 }
 
@@ -118,11 +121,11 @@ func (w *Webauthn) BeginRegistration(
 		return nil, ErrInternalServerError
 	}
 
-	w.Storage[challenge.Response.Challenge.String()] = WebauthnChallenge{
+	w.Storage.Store(challenge.Response.Challenge.String(), WebauthnChallenge{
 		Session: *session,
 		User:    user,
 		Options: options,
-	}
+	})
 
 	return challenge, nil
 }
@@ -132,7 +135,7 @@ func (w *Webauthn) FinishRegistration(
 	response *protocol.ParsedCredentialCreationData,
 	logger *slog.Logger,
 ) (*webauthn.Credential, WebauthnUser, *APIError) {
-	challenge, ok := w.Storage[response.Response.CollectedClientData.Challenge]
+	challenge, ok := w.Storage.Load(response.Response.CollectedClientData.Challenge)
 	if !ok {
 		logger.InfoContext(ctx, "webauthn challenge not found")
 		return nil, WebauthnUser{}, ErrInvalidRequest
@@ -177,11 +180,11 @@ func (w *Webauthn) BeginLogin(
 		return nil, ErrInternalServerError
 	}
 
-	w.Storage[challenge.Response.Challenge.String()] = WebauthnChallenge{
+	w.Storage.Store(challenge.Response.Challenge.String(), WebauthnChallenge{
 		Session: *session,
 		User:    user,
 		Options: nil,
-	}
+	})
 
 	return challenge, nil
 }
@@ -192,7 +195,7 @@ func (w *Webauthn) FinishLogin(
 	userHandler webauthn.DiscoverableUserHandler,
 	logger *slog.Logger,
 ) (*webauthn.Credential, WebauthnUser, *APIError) {
-	challenge, ok := w.Storage[response.Response.CollectedClientData.Challenge]
+	challenge, ok := w.Storage.Load(response.Response.CollectedClientData.Challenge)
 	if !ok {
 		logger.InfoContext(ctx, "webauthn challenge not found")
 		return nil, WebauthnUser{}, ErrInvalidRequest
@@ -246,7 +249,7 @@ func (w *Webauthn) BeginDiscoverableLogin(
 		return nil, ErrInternalServerError
 	}
 
-	w.Storage[challenge.Response.Challenge.String()] = WebauthnChallenge{
+	w.Storage.Store(challenge.Response.Challenge.String(), WebauthnChallenge{
 		Session: *sessionData,
 		User: WebauthnUser{
 			ID:           uuid.Nil,
@@ -256,7 +259,7 @@ func (w *Webauthn) BeginDiscoverableLogin(
 			Discoverable: true,
 		},
 		Options: nil,
-	}
+	})
 
 	return challenge, nil
 }
@@ -267,7 +270,7 @@ func (w *Webauthn) FinishDiscoverableLogin(
 	userHandler webauthn.DiscoverableUserHandler,
 	logger *slog.Logger,
 ) (*webauthn.Credential, WebauthnUser, *APIError) {
-	challenge, ok := w.Storage[response.Response.CollectedClientData.Challenge]
+	challenge, ok := w.Storage.Load(response.Response.CollectedClientData.Challenge)
 	if !ok {
 		logger.InfoContext(ctx, "webauthn challenge not found")
 		return nil, WebauthnUser{}, ErrInvalidRequest

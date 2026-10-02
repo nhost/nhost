@@ -3,8 +3,14 @@ import type { Page } from '@playwright/test';
 import { snakeCase } from 'snake-case';
 import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
 import { expect, test } from '@/e2e/fixtures/auth-hook';
+import { cleanupTriggerTestIfNeeded } from '@/e2e/utils';
 
 const eventTriggersRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/events/event-triggers`;
+const eventTriggerName = `e2e_dashboard_event_${snakeCase(faker.lorem.words(2)).slice(0, 16)}`;
+
+test.beforeAll(async () => {
+  await cleanupTriggerTestIfNeeded('event');
+});
 
 async function fillBasicFields({
   page,
@@ -62,12 +68,10 @@ test('should create and delete an event trigger with transforms', async ({
   await page.goto(eventTriggersRoute);
   await page.waitForURL(eventTriggersRoute);
 
-  const triggerName = snakeCase(`e2e ${faker.lorem.words(2)}`);
-
   await page.getByRole('button', { name: /create event trigger/i }).click();
   await expect(page.getByText(/create a new event trigger/i)).toBeVisible();
 
-  await fillBasicFields({ page, triggerName });
+  await fillBasicFields({ page, triggerName: eventTriggerName });
 
   await page.getByText('Retry and Headers Settings').click();
 
@@ -89,10 +93,10 @@ test('should create and delete an event trigger with transforms', async ({
 
   await page.getByRole('button', { name: /^create$/i }).click();
 
-  await page.waitForURL(`${eventTriggersRoute}/${triggerName}`);
+  await page.waitForURL(`${eventTriggersRoute}/${eventTriggerName}`);
   await page.waitForSelector(
     'div:has-text("The event trigger has been created successfully.")',
   );
 
-  await deleteEventTrigger({ page, triggerName });
+  await deleteEventTrigger({ page, triggerName: eventTriggerName });
 });

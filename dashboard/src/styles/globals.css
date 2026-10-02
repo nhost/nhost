@@ -41,7 +41,7 @@ body {
 
 /* GraphiQL overrides */
 
-#__next .dark .graphiql-container {
+html.dark .graphiql-themed .graphiql-container {
   --color-primary: 349, 87%, 57%;
   --color-secondary: 263, 63%, 66%;
   --color-tertiary: 172, 66%, 50%;
@@ -94,6 +94,54 @@ body {
 
 .graphiql-container .graphiql-editors {
   @apply rounded-none shadow-none !important;
+}
+
+.graphiql-themed .graphiql-container .graphiql-main,
+.graphiql-themed .graphiql-container .graphiql-sessions {
+  background-color: hsl(var(--background-default));
+}
+
+.graphiql-themed .graphiql-container .graphiql-editors,
+.graphiql-themed .graphiql-container .graphiql-editor,
+.graphiql-themed .graphiql-container .CodeMirror,
+.graphiql-themed .graphiql-container .CodeMirror-gutters,
+.graphiql-themed .graphiql-container .graphiql-doc-explorer,
+.graphiql-themed
+  .graphiql-container
+  .graphiql-doc-explorer-search-input
+  + div
+  > ul,
+.graphiql-themed .graphiql-container .cm-searching {
+  background-color: hsl(var(--paper));
+}
+
+.graphiql-themed .graphiql-container .CodeMirror-linenumber,
+.graphiql-themed .graphiql-container .CodeMirror-line,
+.graphiql-themed .graphiql-container .graphiql-tabs button.graphiql-tab,
+.graphiql-themed .graphiql-container .graphiql-editor-tools-tabs button {
+  color: hsl(var(--disabled));
+}
+
+.graphiql-themed .graphiql-container .graphiql-editor-tools-tabs button.active,
+.graphiql-themed .graphiql-container .graphiql-tabs button.graphiql-tab-active,
+.graphiql-themed .graphiql-container .graphiql-markdown-description,
+.graphiql-themed .graphiql-container .graphiql-doc-explorer-section-title {
+  color: hsl(var(--muted-foreground));
+}
+
+.graphiql-themed
+  .graphiql-container
+  .graphiql-doc-explorer
+  .graphiql-doc-explorer-header {
+  color: hsl(var(--primary-text));
+}
+
+.graphiql-themed .graphiql-container .graphiql-tabs button {
+  outline: none;
+}
+
+.graphiql-themed .graphiql-container .CodeMirror-hint {
+  border-color: hsl(var(--divider));
 }
 
 /* Layout bugs on codemirror */
@@ -364,6 +412,10 @@ body {
   transform: none !important;
   position: relative !important;
   will-change: auto !important;
+}
+
+.loading-toast {
+  background-color: hsl(var(--error-toast-bg));
 }
 
 .error-toast.error-toast {

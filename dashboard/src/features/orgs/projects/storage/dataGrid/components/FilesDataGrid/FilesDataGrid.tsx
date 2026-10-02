@@ -1,11 +1,10 @@
 import type { CellContext, ColumnDef } from '@tanstack/react-table';
-import { useRouter } from 'next/router';
 import type { ChangeEvent } from 'react';
 import { useMemo } from 'react';
 import toast from 'react-hot-toast';
 import { ReadOnlyToggle } from '@/components/presentational/ReadOnlyToggle';
 import { Button } from '@/components/ui/v3/button';
-import { usePageBoundsRedirect } from '@/features/orgs/projects/common/hooks/usePageBoundsRedirect';
+import { useUrlPagination } from '@/features/orgs/projects/common/hooks/useUrlPagination';
 import { useDataGridQueryParams } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
 import { getBaseType } from '@/features/orgs/projects/database/dataGrid/utils/getBaseType';
 import { getDisplayType } from '@/features/orgs/projects/database/dataGrid/utils/getDisplayType';
@@ -25,6 +24,7 @@ import { useFilesAggregate } from '@/features/orgs/projects/storage/dataGrid/hoo
 import { filtersToFilesWhere } from '@/features/orgs/projects/storage/dataGrid/utils/filtersToFilesWhere';
 import type { Files, GetBucketQuery } from '@/generated/graphql';
 import { Order_By as OrderBy } from '@/generated/graphql';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { isNotEmptyValue } from '@/lib/utils';
 import { showLoadingToast, triggerToast } from '@/utils/toast';
 
@@ -177,9 +177,9 @@ export default function FilesDataGrid({
         : definition,
     );
   }, [bucket.downloadExpiration, bucket.presignedUrlsEnabled]);
-  const router = useRouter();
   const { project } = useProject();
   const appClient = useAppClient();
+  const track = useTrackEvent();
   const {
     appliedFilters,
     sortBy,
@@ -217,10 +217,14 @@ export default function FilesDataGrid({
     where,
   });
 
-  const numberOfPages = numberOfFiles ? Math.ceil(numberOfFiles / limit) : 0;
-  const currentPage = Math.min(currentOffset + 1, numberOfPages);
+  const { nrOfPages, goToNextPage, goToPreviousPage } = useUrlPagination({
+    currentPage: currentOffset + 1,
+    elementsPerPage: limit,
+    totalNrOfElements: numberOfFiles,
+    loading,
+  });
 
-  usePageBoundsRedirect(numberOfPages, loading);
+  const currentPage = Math.min(currentOffset + 1, nrOfPages);
 
   const hasFilterError = !!error && appliedFilters.length > 0;
   const memoizedData = useMemo(
@@ -231,24 +235,6 @@ export default function FilesDataGrid({
   async function refetchFilesAndAggregate() {
     await refetchFiles();
     await refetchFilesAggregate();
-  }
-
-  async function handleOpenPrevPage() {
-    const nextOffset = Math.max(currentOffset - 1, 0);
-
-    await router.push({
-      pathname: router.pathname,
-      query: { ...router.query, page: nextOffset + 1 },
-    });
-  }
-
-  async function handleOpenNextPage() {
-    const nextOffset = Math.min(currentOffset + 1, numberOfPages - 1);
-
-    await router.push({
-      pathname: router.pathname,
-      query: { ...router.query, page: nextOffset + 1 },
-    });
   }
 
   async function handleFileUpload(event: ChangeEvent<HTMLInputElement>) {
@@ -311,6 +297,7 @@ export default function FilesDataGrid({
           const fileId = fileMetadata.id;
 
           triggerToast(`File has been uploaded successfully (${fileId})`);
+          track('File Uploaded');
 
           await refetchFilesAndAggregate();
         } else {
@@ -379,10 +366,10 @@ export default function FilesDataGrid({
       controls={
         <FilesDataGridControls
           paginationProps={{
-            currentPage: Math.max(currentPage, 1),
-            totalPages: Math.max(numberOfPages, 1),
-            onOpenPrevPage: handleOpenPrevPage,
-            onOpenNextPage: handleOpenNextPage,
+            currentPage,
+            totalPages: nrOfPages,
+            onOpenPrevPage: goToPreviousPage,
+            onOpenNextPage: goToNextPage,
           }}
           fileUploadProps={{
             onChange: handleFileUpload,

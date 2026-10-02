@@ -71,6 +71,13 @@ export const ENV = {
   get AUTH_SMS_TEST_PHONE_NUMBERS() {
     return castStringArrayEnv('AUTH_SMS_TEST_PHONE_NUMBERS', []);
   },
+  // Host side of the dev SMS provider's output bind mount.
+  get AUTH_SMS_DEV_OUTPUT_DIR() {
+    return castStringEnv(
+      'AUTH_SMS_DEV_OUTPUT_DIR',
+      '/tmp/nhost-auth-sms-output',
+    );
+  },
 
   // TWILIO
   get AUTH_SMS_TWILIO_ACCOUNT_SID() {
@@ -185,7 +192,7 @@ export const ENV = {
   // },
   get AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS() {
     return castStringArrayEnv('AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS').map(
-      (v) => v.toLowerCase()
+      (v) => v.toLowerCase(),
     );
   },
   get AUTH_MFA_ENABLED() {
@@ -238,7 +245,7 @@ export const ENV = {
 
   get AUTH_VERSION() {
     return castStringEnv('AUTH_VERSION', '0.0.0-dev');
-  }
+  },
 
   // * See ../server.ts
   // get AUTH_SKIP_INIT() {

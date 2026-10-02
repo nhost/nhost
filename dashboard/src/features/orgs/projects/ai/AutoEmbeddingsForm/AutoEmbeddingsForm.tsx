@@ -16,6 +16,7 @@ import {
   useInsertGraphiteAutoEmbeddingsConfigurationMutation,
   useUpdateGraphiteAutoEmbeddingsConfigurationMutation,
 } from '@/generated/graphite';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import type { DialogFormProps } from '@/types/common';
 
 const AUTO_EMBEDDINGS_MODELS = [
@@ -69,6 +70,7 @@ export default function AutoEmbeddingsForm({
   location,
 }: AutoEmbeddingsFormProps) {
   const { onDirtyStateChange } = useDialog();
+  const track = useTrackEvent();
 
   const remoteProjectGQLClient = useRemoteApplicationGQLClient();
 
@@ -121,6 +123,7 @@ export default function AutoEmbeddingsForm({
         ...values,
       },
     });
+    track('AI Embedding Configured');
   };
 
   const handleSubmit = async (values: AutoEmbeddingsFormValues) => {

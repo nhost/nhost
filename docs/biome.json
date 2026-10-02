@@ -2,7 +2,12 @@
   "root": false,
   "extends": "//",
   "files": {
-    "includes": ["**", "!src/plugins/starlight-openapi"]
+    "includes": [
+      "**",
+      "!src/plugins/starlight-openapi",
+      "!public/openapi",
+      "!public/graphql"
+    ]
   },
   "linter": {
     "rules": {

@@ -1,14 +1,51 @@
-import fetch, { Response } from 'node-fetch';
-import { Response as SuperTestResponse } from 'supertest';
+import { readFileSync } from 'node:fs';
 import { createHash, randomBytes } from 'crypto';
+import { StatusCodes } from 'http-status-codes';
+import fetch, { type Response } from 'node-fetch';
+import type { ClientBase } from 'pg';
+import type { Response as SuperTestResponse } from 'supertest';
+import { v4 as uuidv4 } from 'uuid';
+import { request } from './server';
 import { ENV } from './src/env';
 import { verifyJwt } from './src/get-claims';
-import { request } from './server';
-import { StatusCodes } from 'http-status-codes';
-import { generateTicketExpiresAt } from './src/ticket';
 import { hashPassword } from './src/password';
-import { ClientBase } from 'pg';
-import { v4 as uuidv4 } from 'uuid';
+import { generateTicketExpiresAt } from './src/ticket';
+
+// Host side of the bind mount in build/dev/docker/docker-compose.yaml. Set via
+// AUTH_SMS_DEV_OUTPUT_DIR (the nix check passes .env.example through
+// `bun test --env-file`); the default matches the compose bind source.
+const SMS_OUTPUT_DIR = ENV.AUTH_SMS_DEV_OUTPUT_DIR;
+
+/**
+ * Read the latest SMS body for a phone number written by the dev SMS provider
+ * and extract the 6-digit OTP. The provider's output directory is bind mounted
+ * onto the host (see build/dev/docker/docker-compose.yaml), so this is a plain
+ * file read: the docker CLI is not on PATH inside the nix check derivation.
+ *
+ * This needs the docker daemon to share the host's /tmp, which holds for a local
+ * Linux daemon and for Docker Desktop on Mac, but not for Colima (configure it
+ * to mount /tmp) or a remote DOCKER_HOST.
+ */
+export const readSMSCode = (phoneNumber: string): string => {
+  const path = `${SMS_OUTPUT_DIR}/${phoneNumber}.txt`;
+  let text: string;
+  try {
+    text = readFileSync(path, 'utf-8');
+  } catch (err) {
+    throw new Error(
+      `No SMS output found for ${phoneNumber} at ${path}: ${err}`,
+    );
+  }
+  const match = text.match(/(\d{6})/);
+  if (!match) {
+    throw new Error(`No 6-digit code found in SMS for ${phoneNumber}: ${text}`);
+  }
+  return match[1];
+};
+
+/** A 6-digit code guaranteed to differ from otp, for deterministic wrong guesses. */
+export const wrongSMSCode = (otp: string): string =>
+  otp === '000000' ? '999999' : '000000';
 
 interface MailhogEmailAddress {
   Relays: string | null;
@@ -54,10 +91,10 @@ interface MailhogSearchResult {
 
 export const mailHogSearch = async (
   query: string,
-  fields = 'to'
+  fields = 'to',
 ): Promise<MailhogMessage[]> => {
   const response = await fetch(
-    `http://${ENV.AUTH_SMTP_HOST}:8025/api/v2/search?kind=${fields}&query=${query}`
+    `http://${ENV.AUTH_SMTP_HOST}:8025/api/v2/search?kind=${fields}&query=${query}`,
   );
   const jsonBody = await response.json();
   return (jsonBody as MailhogSearchResult).items;
@@ -70,13 +107,13 @@ const deleteMailHogEmail = async ({
     `http://${ENV.AUTH_SMTP_HOST}:8025/api/v1/messages/${ID}`,
     {
       method: 'DELETE',
-    }
+    },
   );
 };
 
 export const deleteAllMailHogEmails = async () => {
   const response = await fetch(
-    `http://${ENV.AUTH_SMTP_HOST}:8025/api/v2/messages`
+    `http://${ENV.AUTH_SMTP_HOST}:8025/api/v2/messages`,
   );
 
   const emails = ((await response.json()) as MailhogSearchResult).items;
@@ -88,12 +125,12 @@ export const deleteAllMailHogEmails = async () => {
 
 export const deleteEmailsOfAccount = async (email: string): Promise<void> =>
   (await mailHogSearch(email)).forEach(
-    async (message) => await deleteMailHogEmail(message)
+    async (message) => await deleteMailHogEmail(message),
   );
 
 export const getHeaderFromLatestEmailAndDelete = async (
   email: string,
-  header: string
+  header: string,
 ) => {
   const [message] = await mailHogSearch(email);
 
@@ -111,7 +148,7 @@ export const decodeAccessToken = async (accessToken: string | null) => {
   }
   try {
     return verifyJwt(accessToken);
-  } catch (err) {
+  } catch {
     return null;
   }
 };
@@ -121,7 +158,7 @@ export const decodeAccessToken = async (accessToken: string | null) => {
  * @param authorization Authorization header.
  */
 export const isValidAccessToken = async (
-  accessToken: string | null
+  accessToken: string | null,
 ): Promise<boolean> => (await decodeAccessToken(accessToken)) !== null;
 
 export const getUrlParameters = (res: SuperTestResponse) => {
@@ -134,7 +171,7 @@ export const getUrlParameters = (res: SuperTestResponse) => {
 };
 
 export const expectUrlParameters = (
-  res: SuperTestResponse
+  res: SuperTestResponse,
 ): jest.JestMatchers<string[]> => {
   const params = getUrlParameters(res);
   return expect(Array.from(params.keys()));
@@ -162,14 +199,14 @@ export const insertDbUser = async (
   email: string,
   password: string,
   verified = true,
-  disabled = false
+  disabled = false,
 ) => {
   const ticket = `verifyEmail:${uuidv4()}`;
   const ticketExpiresAt = generateTicketExpiresAt(60 * 60 * 24 * 30); // 30 days
   const queryString = `INSERT INTO auth.users(display_name, email, password_hash, email_verified, disabled, locale, ticket, ticket_expires_at)
     VALUES('${email}', '${email}', '${hashPassword(
-    password
-  )}', '${verified}', '${disabled}','en', '${ticket}', '${ticketExpiresAt.toISOString()}'
+      password,
+    )}', '${verified}', '${disabled}','en', '${ticket}', '${ticketExpiresAt.toISOString()}'
     )
     RETURNING id;`;
   return await client.query(queryString);

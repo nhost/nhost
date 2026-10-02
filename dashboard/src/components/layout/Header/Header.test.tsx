@@ -28,10 +28,6 @@ vi.mock('@/components/layout/AccountMenu', () => ({
   AccountMenu: () => <div>Account menu</div>,
 }));
 
-vi.mock('@/components/layout/LocalAccountMenu', () => ({
-  LocalAccountMenu: () => <div>Local account menu</div>,
-}));
-
 vi.mock('@/components/layout/MobileNav', () => ({
   MobileNav: () => <div>Mobile nav</div>,
 }));

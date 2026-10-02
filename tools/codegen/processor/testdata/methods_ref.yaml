@@ -48,6 +48,24 @@ paths:
                   type: string
                   description: "Target bucket identifier where files will be stored."
                   example: "user-uploads"
+                nullable-note:
+                  type: string
+                  nullable: true
+                  description: "Required multipart string that may be null."
+                nullable-tags:
+                  type: array
+                  nullable: true
+                  description: "Required multipart array that may be null."
+                  items:
+                    type: string
+                nullable-metadata:
+                  type: object
+                  nullable: true
+                  description: "Required multipart object that may be null."
+                  properties:
+                    label:
+                      type: string
+                      description: "Label stored with the upload."
                 metadata[]:
                   type: array
                   description: "Optional custom metadata for each uploaded file. Must match the order of the file[] array."
@@ -61,6 +79,9 @@ paths:
                     format: binary
               required:
                 - file[]
+                - nullable-note
+                - nullable-tags
+                - nullable-metadata
             encoding:
               file[]:
                 contentType: application/octet-stream

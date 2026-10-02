@@ -1,4 +1,3 @@
-import GlobalStyles from '@mui/material/GlobalStyles';
 import type { ErrorResponse, OAuth2LoginResponse } from '@nhost/nhost-js/auth';
 import type { FetchError } from '@nhost/nhost-js/fetch';
 import Image from 'next/image';
@@ -6,7 +5,6 @@ import { useRouter } from 'next/router';
 import { type ReactElement, useCallback, useEffect, useState } from 'react';
 import { BaseLayout } from '@/components/layout/BaseLayout';
 import { Container } from '@/components/layout/Container';
-import { ThemeProvider } from '@/components/ui/v2/ThemeProvider';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
@@ -231,20 +229,10 @@ export default function OAuth2AuthorizePage() {
 
 OAuth2AuthorizePage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <ThemeProvider color="dark">
-      <BaseLayout title="Authorize Application">
-        <GlobalStyles
-          styles={{
-            'html, body': {
-              backgroundColor: '#000 !important',
-            },
-            '#__next': {
-              overflow: 'auto',
-            },
-          }}
-        />
+    <BaseLayout title="Authorize Application">
+      <div className="dark h-screen overflow-auto bg-black text-foreground">
         {page}
-      </BaseLayout>
-    </ThemeProvider>
+      </div>
+    </BaseLayout>
   );
 };

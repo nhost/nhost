@@ -85,6 +85,13 @@ let
     '';
   };
 
+  glibcLoader = pkgs.runCommand "glibc-loader" { } ''
+    loader="${pkgs.stdenv.cc.bintools.dynamicLinker}"
+    mkdir -p $out/lib64 $out/lib
+    ln -s "$loader" "$out/lib64/$(basename "$loader")"
+    ln -s "$loader" "$out/lib/$(basename "$loader")"
+  '';
+
   mkDockerImage =
     {
       nodeRuntime,
@@ -101,6 +108,7 @@ let
             name = "image";
             paths = [
               pkgs.fakeNss
+              glibcLoader
               serverFiles
               pkgs.busybox
               nodeRuntime
@@ -129,7 +137,6 @@ let
               "PATH=${node_modules_runtime}/${submodule}/node_modules/.bin:${nodeRuntime}/bin:${pkgs.gitMinimal}/bin:${pkgs.openssh}/bin:/bin:/usr/bin"
               "SERVER_PATH=/opt/server"
               "NHOST_PROJECT_PATH=/opt/project"
-              "PACKAGE_MANAGER=pnpm"
               "NODE_OPTIONS=--enable-source-maps"
               "NPM_CONFIG_STORE_DIR=/opt/project/node_modules/.pnpm-store"
             ];

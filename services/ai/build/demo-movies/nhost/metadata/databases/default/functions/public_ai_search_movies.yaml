@@ -1,0 +1,7 @@
+function:
+  name: ai_search_movies
+  schema: public
+configuration:
+  custom_root_fields:
+    function: aiSearchMovies
+    function_aggregate: aiSearchMoviesAggregate

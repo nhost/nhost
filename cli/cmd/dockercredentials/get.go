@@ -49,7 +49,7 @@ func actionGet(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("failed to load session: %w", err)
 	}
 
-	b, err := json.Marshal(response{
+	b, err := json.Marshal(response{ //nolint:gosec // G117: docker cred-helper schema
 		ServerURL: input,
 		Username:  "nhost",
 		Secret:    token,

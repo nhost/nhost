@@ -1,4 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
+import { Lock } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { type ReactElement, useEffect, useMemo } from 'react';
@@ -19,22 +20,26 @@ import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { TransferProject } from '@/features/orgs/components/TransferProject';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
-import { RemoveApplicationModal } from '@/features/orgs/projects/common/components/RemoveApplicationModal';
+import { RemoveApplicationDialog } from '@/features/orgs/projects/common/components/RemoveApplicationDialog';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useIsCurrentUserOwner } from '@/features/orgs/projects/common/hooks/useIsCurrentUserOwner';
+import { useIsPauseDisabled } from '@/features/orgs/projects/common/hooks/useIsPauseDisabled';
+import { useIsPausing } from '@/features/orgs/projects/common/hooks/useIsPausing';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useIsUnpauseDisabled } from '@/features/orgs/projects/common/hooks/useIsUnpauseDisabled';
+import { useIsUnpausing } from '@/features/orgs/projects/common/hooks/useIsUnpausing';
+import { usePauseApplication } from '@/features/orgs/projects/common/hooks/usePauseApplication';
 import { useRunServices } from '@/features/orgs/projects/common/hooks/useRunServices';
+import { useUnpauseApplication } from '@/features/orgs/projects/common/hooks/useUnpauseApplication';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { getLockedProjectErrorMessage } from '@/features/orgs/utils/getLockedProjectErrorMessage';
 import {
-  GetOrganizationsDocument,
   useBillingDeleteAppMutation,
-  usePauseApplicationMutation,
-  useUnpauseApplicationMutation,
   useUpdateApplicationMutation,
 } from '@/generated/graphql';
-import { useUserData } from '@/hooks/useUserData';
+import { useTrackEvent } from '@/hooks/useTrackEvent';
 import { ApplicationStatus } from '@/types/application';
 import { slugifyString } from '@/utils/helpers';
 
@@ -52,13 +57,13 @@ export type ProjectNameValidationSchema = Yup.InferType<
 export default function SettingsGeneralPage() {
   const router = useRouter();
   const isPlatform = useIsPlatform();
-  const { openDialog, openAlertDialog, closeDialog } = useDialog();
+  const { openAlertDialog } = useDialog();
 
   const isOwner = useIsCurrentUserOwner();
   const { currentOrg: org } = useOrgs();
-  const userData = useUserData();
-  const { project, loading, refetch: refetchProject } = useProject();
+  const { project, loading } = useProject();
   const { state } = useAppState();
+  const track = useTrackEvent();
 
   const { services } = useRunServices();
 
@@ -76,27 +81,12 @@ export default function SettingsGeneralPage() {
 
   const [updateApp] = useUpdateApplicationMutation();
   const [deleteApplication] = useBillingDeleteAppMutation();
-  const [pauseApplication, { loading: pauseApplicationLoading }] =
-    usePauseApplicationMutation({
-      variables: { appId: project?.id },
-      refetchQueries: [
-        {
-          query: GetOrganizationsDocument,
-          variables: { userId: userData?.id },
-        },
-      ],
-    });
-
-  const [unpauseApplication, { loading: unpauseApplicationLoading }] =
-    useUnpauseApplicationMutation({
-      variables: { appId: project?.id },
-      refetchQueries: [
-        {
-          query: GetOrganizationsDocument,
-          variables: { userId: userData?.id },
-        },
-      ],
-    });
+  const { onPause, loading: pauseLoading } = usePauseApplication();
+  const { onUnpause, loading: unpauseLoading } = useUnpauseApplication();
+  const isPauseDisabled = useIsPauseDisabled();
+  const isUnpauseDisabled = useIsUnpauseDisabled();
+  const isPausing = useIsPausing();
+  const isUnpausing = useIsUnpausing();
 
   const form = useForm<ProjectNameValidationSchema>({
     mode: 'onSubmit',
@@ -149,7 +139,9 @@ export default function SettingsGeneralPage() {
       {
         loadingMessage: `Project name is being updated...`,
         successMessage: `Project name has been updated successfully.`,
-        errorMessage: `An error occurred while trying to update project name.`,
+        errorMessage: getLockedProjectErrorMessage(
+          'An error occurred while trying to update project name.',
+        ),
       },
     );
   }
@@ -162,57 +154,22 @@ export default function SettingsGeneralPage() {
             appID: project?.id,
           },
         });
+        track('Project Deleted');
 
         await router.push(`/orgs/${org?.slug}/projects`);
       },
       {
         loadingMessage: `Deleting ${project?.name}...`,
         successMessage: `${project?.name} has been deleted successfully.`,
-        errorMessage: `An error occurred while trying to delete the project "${project?.name}". Please try again.`,
+        errorMessage: getLockedProjectErrorMessage(
+          `An error occurred while trying to delete the project "${project?.name}". Please try again.`,
+        ),
       },
     );
   }
 
-  async function handlePauseApplication() {
-    await execPromiseWithErrorToast(
-      async () => {
-        await pauseApplication();
-        await new Promise((resolve) => {
-          setTimeout(resolve, 1000);
-        });
-        await refetchProject();
-      },
-      {
-        loadingMessage: `Pausing ${project?.name}...`,
-        successMessage: `${project?.name} will be paused, but please note that it may take some time to complete the process.`,
-        errorMessage: `An error occurred while trying to pause the project "${project?.name}". Please try again.`,
-      },
-    );
-  }
-
-  async function handleTriggerUnpausing() {
-    await execPromiseWithErrorToast(
-      async () => {
-        await unpauseApplication();
-        await new Promise((resolve) => {
-          setTimeout(resolve, 1000);
-        });
-        await refetchProject();
-      },
-      {
-        loadingMessage: 'Starting the project...',
-        successMessage: 'The project has been started successfully.',
-        errorMessage:
-          'An error occurred while waking up the project. Please try again.',
-      },
-    );
-  }
-  const isPaused = state === ApplicationStatus.Paused;
-  const isPausing = state === ApplicationStatus.Pausing;
-
-  const pausedDisabled = !isPlatform || pauseApplicationLoading;
-
-  const wakeUpDisabled = !isPlatform || unpauseApplicationLoading || isPausing;
+  const showWakeUpCard =
+    state === ApplicationStatus.Paused || state === ApplicationStatus.Unpausing;
 
   if (loading) {
     return <LoadingScreen />;
@@ -251,7 +208,7 @@ export default function SettingsGeneralPage() {
         </Form>
       </FormProvider>
 
-      {isPaused || isPausing ? (
+      {showWakeUpCard ? (
         <SettingsCard>
           <SettingsCardHeader
             title="Wake up Project"
@@ -261,18 +218,18 @@ export default function SettingsGeneralPage() {
           <SettingsCardFooter>
             <ButtonWithLoading
               type="button"
-              disabled={wakeUpDisabled}
-              loading={unpauseApplicationLoading || isPausing}
-              onClick={handleTriggerUnpausing}
+              disabled={isUnpauseDisabled}
+              loading={unpauseLoading || isUnpausing}
+              onClick={onUnpause}
               className="w-full sm:w-auto"
             >
-              {isPausing ? 'Pausing...' : 'Wake up'}
+              {isUnpausing ? 'Waking up...' : 'Wake up'}
             </ButtonWithLoading>
           </SettingsCardFooter>
         </SettingsCard>
       ) : null}
 
-      {!isPaused && !isPausing && (
+      {!showWakeUpCard && (
         <SettingsCard>
           <SettingsCardHeader
             title="Pause Project"
@@ -282,8 +239,8 @@ export default function SettingsGeneralPage() {
           <SettingsCardFooter>
             <ButtonWithLoading
               type="button"
-              disabled={pausedDisabled}
-              loading={pauseApplicationLoading}
+              disabled={isPauseDisabled}
+              loading={pauseLoading || isPausing}
               onClick={() => {
                 openAlertDialog({
                   title: 'Pause Project?',
@@ -327,13 +284,13 @@ export default function SettingsGeneralPage() {
                   ),
                   props: {
                     maxWidth: 'sm',
-                    onPrimaryAction: handlePauseApplication,
+                    onPrimaryAction: onPause,
                   },
                 });
               }}
               className="w-full sm:w-auto"
             >
-              Pause
+              {isPausing ? 'Pausing...' : 'Pause'}
             </ButtonWithLoading>
           </SettingsCardFooter>
         </SettingsCard>
@@ -341,7 +298,7 @@ export default function SettingsGeneralPage() {
 
       <TransferProject />
 
-      {isOwner && (
+      {isPlatform && (
         <SettingsCard className="border-destructive">
           <SettingsCardHeader
             title="Delete Project"
@@ -349,26 +306,27 @@ export default function SettingsGeneralPage() {
           />
 
           <SettingsCardFooter>
-            <ButtonWithLoading
-              type="button"
-              onClick={() => {
-                openDialog({
-                  component: (
-                    <RemoveApplicationModal
-                      close={closeDialog}
-                      handler={handleDeleteApplication}
-                    />
-                  ),
-                  props: {
-                    PaperProps: { className: 'max-w-sm' },
-                  },
-                });
-              }}
-              variant="destructive"
-              className="w-full sm:w-auto"
-            >
-              Delete
-            </ButtonWithLoading>
+            {!isOwner && (
+              <p className="flex items-center gap-2 text-muted-foreground text-sm sm:mr-auto">
+                <Lock className="h-4 w-4 shrink-0" />
+                Only organization admins can delete this project.
+              </p>
+            )}
+            <span className={!isOwner ? 'cursor-not-allowed' : undefined}>
+              <RemoveApplicationDialog
+                handler={handleDeleteApplication}
+                trigger={
+                  <ButtonWithLoading
+                    type="button"
+                    disabled={!isOwner}
+                    variant="destructive"
+                    className="w-full sm:w-auto"
+                  >
+                    Delete
+                  </ButtonWithLoading>
+                }
+              />
+            </span>
           </SettingsCardFooter>
         </SettingsCard>
       )}

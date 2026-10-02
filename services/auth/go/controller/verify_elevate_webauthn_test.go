@@ -313,7 +313,10 @@ func TestVerifyElevateWebauthn(t *testing.T) { //nolint:maintidx
 			}
 
 			if c.Webauthn != nil {
-				c.Webauthn.Storage["nM6om8lzvT5oxvRCFuAqRDOj-tlAq8FdP-eRNOwsfgs"] = sessionData
+				c.Webauthn.Storage.Store(
+					"nM6om8lzvT5oxvRCFuAqRDOj-tlAq8FdP-eRNOwsfgs",
+					sessionData,
+				)
 			}
 
 			ctx := t.Context()

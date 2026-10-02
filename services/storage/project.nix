@@ -55,7 +55,7 @@ let
   ];
 
   checkDeps = with pkgs; [
-    mockgen
+    nhost.mockgen
     nhost.oapi-codegen
     nhost.gqlgenc
     vacuum-go
@@ -229,7 +229,7 @@ rec {
         fakeNss
         dockerTools.caCertificates
       ]
-      ++ lib.optionals stdenv.isLinux [
+      ++ lib.optionals stdenv.hostPlatform.isLinux [
         busybox
       ];
     config = {

@@ -890,6 +890,79 @@ func TestReconcileMetadata_DropsForwardFKWithoutIntrospectedTarget(t *testing.T)
 		"public.orders.user", "no matching foreign key")
 }
 
+// TestReconcileMetadata_KeepsForwardFKWithEmptySchema covers SQLite's
+// schema-less introspection, where a valid foreign-key target has an empty
+// schema name but a non-empty table name.
+func TestReconcileMetadata_KeepsForwardFKWithEmptySchema(t *testing.T) {
+	t.Parallel()
+
+	objs := introspection.NewObjects()
+	objs.Schemas[""] = &introspection.Schema{
+		Tables: map[string]*introspection.Table{
+			"orgs": { //nolint:exhaustruct
+				Name:         "orgs",
+				IsInsertable: true,
+				IsUpdatable:  true,
+				Columns: []introspection.Column{
+					{Name: "id", Type: "integer"},
+				}, //nolint:exhaustruct
+				PrimaryKeys: []string{"id"},
+			},
+			"orders": { //nolint:exhaustruct
+				Name:         "orders",
+				IsInsertable: true,
+				IsUpdatable:  true,
+				Columns: []introspection.Column{ //nolint:exhaustruct
+					{Name: "id", Type: "integer"},
+					{Name: "org_id", Type: "integer"},
+				},
+				PrimaryKeys: []string{"id"},
+				ForeignKeys: []introspection.ForeignKey{
+					{
+						ColumnName:        "org_id",
+						ForeignTable:      "orgs",
+						ForeignColumnName: "id",
+					},
+				},
+			},
+		},
+	}
+
+	dbMeta := &metadata.DatabaseMetadata{ //nolint:exhaustruct
+		Name: "default",
+		Tables: []metadata.TableMetadata{ //nolint:exhaustruct
+			{
+				Table: metadata.TableSource{Name: "orders"},
+				ObjectRelationships: []metadata.ObjectRelationship{
+					{
+						Name: "org",
+						Using: metadata.RelationshipUsing{ //nolint:exhaustruct
+							ForeignKeyColumns: []string{"org_id"},
+						},
+					},
+				},
+			},
+			{Table: metadata.TableSource{Name: "orgs"}},
+		},
+	}
+
+	inc := metadata.NewInconsistencies()
+	out := reconcileMetadata(t.Context(), nil, inc, dbMeta, objs)
+
+	if len(out.Tables) != 2 {
+		t.Fatalf("expected both tables to survive, got %+v", out.Tables)
+	}
+
+	relationships := out.Tables[0].ObjectRelationships
+	if len(relationships) != 1 || relationships[0].Name != "org" {
+		t.Errorf("expected forward-FK relationship to survive, got %+v", relationships)
+	}
+
+	if inc.Len() != 0 {
+		t.Errorf("expected no inconsistencies, got %+v", inc.Snapshot())
+	}
+}
+
 // TestReconcileMetadata_DropsForwardFKWithResolvedButUntrackedTarget covers
 // the second failure branch of dropIfForwardFKBroken: the parent table's
 // introspected ForeignKeys resolve the forward shortcut to a target

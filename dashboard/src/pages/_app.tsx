@@ -23,11 +23,9 @@ import '@fontsource/roboto-mono/500.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { NextPage } from 'next';
 import type { AppProps } from 'next/app';
-import { useRouter } from 'next/router';
 import { PagesProgressBar as ProgressBar } from 'next-nprogress-bar';
 import { DefaultSeo } from 'next-seo';
 import type { ReactElement } from 'react';
-import { useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
 
 // Client-side cache, shared for the whole session of the user in the browser.
@@ -48,19 +46,6 @@ function MyApp({
   pageProps,
   emotionCache = clientSideEmotionCache,
 }: MyAppProps) {
-  const router = useRouter();
-
-  useEffect(() => {
-    // track page changes
-    const handleRouteChange = () => {
-      global.analytics?.page();
-    };
-    router.events.on('routeChangeComplete', handleRouteChange);
-    return () => {
-      router.events.off('routeChangeComplete', handleRouteChange);
-    };
-  }, [router.events]);
-
   const getLayout = Component.getLayout ?? ((page: ReactElement) => page);
 
   return (
@@ -75,7 +60,11 @@ function MyApp({
             connectToDevTools={process.env.NEXT_PUBLIC_ENV === 'dev'}
           >
             <AuthProvider>
-              <Toaster position="bottom-center" />
+              {/* z-index above the z-[9999] dialogs and z-[10000] popovers */}
+              <Toaster
+                position="bottom-center"
+                containerStyle={{ zIndex: 10001 }}
+              />
               <ThemeProvider storageKey={THEME_STORAGE_KEY}>
                 <RetryableErrorBoundary>
                   <TooltipProvider>

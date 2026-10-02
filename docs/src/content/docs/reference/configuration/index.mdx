@@ -130,14 +130,14 @@ Configuration for functions service
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `node` | object |  | Node.js runtime configuration for functions. |
-| `resources?` | object |  | Compute resources and scaling for the service. |
+| `resources?` | object |  | Networking configuration for the functions service. |
 | `rateLimit?` | [`RateLimit`](#ratelimit) |  | Rate limiting applied to the service. |
 
 ### `functions.node`
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `version` | `20` \| `22` | `22` | Version of the service image to deploy. |
+| `version` | `22` \| `24` \| `26` | `24` | Node.js major version used to run functions. |
 
 ### `functions.resources`
 
@@ -153,7 +153,7 @@ Configuration for auth service
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `version` | `string` | `"0.49.1"` | Version of auth, you can see available versions in the URL below: https://hub.docker.com/r/nhost/hasura-auth/tags Releases: https://github.com/nhost/hasura-auth/releases |
+| `version` | `string` | `"0.52.0"` | Version of auth, you can see available versions in the URL below: https://hub.docker.com/r/nhost/hasura-auth/tags Releases: https://github.com/nhost/hasura-auth/releases |
 | `resources?` | [`Resources`](#resources) |  | Resources for the service |
 | `elevatedPrivileges` | object |  | Settings for elevated-privilege operations. |
 | `redirections` | object |  | Allowed post-authentication redirect URLs. |
@@ -183,7 +183,7 @@ Configuration for auth service
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `enabled` | `bool` | `true` | Inverse of AUTH_DISABLE_SIGNUP |
+| `enabled` | `bool` | `true` | Allow new users to sign up. |
 | `disableNewUsers` | `bool` | `false` | Block newly registered users from signing in until activated. |
 | `disableAutoSignup` | `bool` | `false` | Require explicit account creation instead of signing users up on first login. |
 | `turnstile?` | object |  | Cloudflare Turnstile bot-protection settings. |
@@ -302,7 +302,7 @@ Configuration for auth service
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `hibpEnabled` | `bool` | `false` | Disabling email+password sign in is not implmented yet enabled: bool \| *true |
+| `hibpEnabled` | `bool` | `false` | Reject passwords found in known data breaches (Have I Been Pwned). |
 | `emailVerificationRequired` | `bool` | `true` | Require users to verify their email before signing in. |
 | `passwordMinLength` | `uint8 & >=3` | `9` | Minimum allowed password length. |
 
@@ -338,10 +338,10 @@ Configuration for auth service
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `enabled` | `bool` | `false` | Enable this feature. |
-| `clientId` | `string` |  | *(conditional)* Client id |
-| `keyId` | `string` |  | *(conditional)* Key id |
-| `teamId` | `string` |  | *(conditional)* Team id |
-| `privateKey` | `string` |  | *(conditional)* Private key |
+| `clientId` | `string` |  | *(conditional)* OAuth client ID. |
+| `keyId` | `string` |  | *(conditional)* Apple key ID. |
+| `teamId` | `string` |  | *(conditional)* Apple team ID. |
+| `privateKey` | `string` |  | *(conditional)* Apple private key. |
 | `audience?` | `string` |  | Expected audience claim for the provider's tokens. |
 | `scope?` | list of `string` |  | OAuth scopes requested from the provider. |
 
@@ -366,8 +366,8 @@ Includes all fields from [`StandardOauthProvider`](#standardoauthprovider).
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `enabled` | `bool` | `false` | Enable this feature. |
-| `consumerKey` | `string` |  | *(conditional)* Consumer key |
-| `consumerSecret` | `string` |  | *(conditional)* Consumer secret |
+| `consumerKey` | `string` |  | *(conditional)* Twitter (X) consumer key. |
+| `consumerSecret` | `string` |  | *(conditional)* Twitter (X) consumer secret. |
 
 ##### `auth.method.oauth.workos`
 
@@ -407,14 +407,14 @@ Includes all fields from [`StandardOauthProvider`](#standardoauthprovider).
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `enabled` | `bool` | `false` | Enable this feature. |
-| `issuer` | `string` |  | *(conditional)* Issuer |
+| `issuer` | `string` |  | *(conditional)* TOTP issuer name shown in authenticator apps. |
 
 ### `auth.oauth2Provider`
 
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `enabled` | `bool` | `false` | Enable this feature. |
-| `loginURL` | `string` |  | *(conditional)* Login url |
+| `loginURL` | `string` |  | *(conditional)* URL of your login page for the OAuth 2.0 authorization flow. |
 | `accessToken` | object |  | Access token settings. |
 | `refreshToken` | object |  | Refresh token settings. |
 | `clientIdMetadataDocument` | object |  | Client ID metadata document settings. |
@@ -449,7 +449,7 @@ Configuration for postgres service
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `version` | `string` | `"14.20-20251217-1"` | Version of postgres, you can see available versions in the URL below: https://hub.docker.com/r/nhost/postgres/tags |
+| `version` | `string` | `"18.6-20260930-1"` | Version of postgres, you can see available versions in the URL below: https://hub.docker.com/r/nhost/postgres/tags |
 | `resources` | object |  | Resources for the service |
 | `settings?` | object |  | Advanced configuration settings for the service. |
 | `pitr?` | object |  | Point-in-time recovery settings. |
@@ -482,7 +482,9 @@ Configuration for postgres service
 | `effectiveCacheSize` | `string` | `"4GB"` | Planner estimate of memory available for disk caching. |
 | `maintenanceWorkMem` | `string` | `"64MB"` | Memory used for maintenance operations such as VACUUM. |
 | `checkpointCompletionTarget` | `number` | `0.9` | Target fraction of the checkpoint interval over which to spread writes. |
+| `checkpointTimeout` | `string` | `"5min"` | Maximum time between automatic checkpoints (PostgreSQL accepts time units). |
 | `walBuffers` | `string` | `"-1"` | Memory used for write-ahead log buffers. |
+| `walCompression` | `string` | `"off"` | Compress full-page images in the write-ahead log. |
 | `defaultStatisticsTarget` | `int32` | `100` | Default sample size for table statistics. |
 | `randomPageCost` | `number` | `4.0` | Planner's estimated cost of a non-sequential disk page fetch. |
 | `effectiveIOConcurrency` | `int32` | `1` | Number of concurrent disk I/O operations the planner expects. |
@@ -497,8 +499,53 @@ Configuration for postgres service
 | `walLevel` | `string` | `"replica"` | Amount of information written to the write-ahead log. |
 | `maxWalSenders` | `int32` | `10` | Maximum number of concurrent WAL sender processes. |
 | `maxReplicationSlots` | `int32` | `10` | Maximum number of replication slots. |
+| `maxSlotWalKeepSize` | `string` | `"-1"` | Maximum WAL retained by replication slots; -1 disables the limit. |
 | `archiveTimeout` | `int32 & >=300 & <=1073741823` | `300` | Force a WAL segment switch after this many seconds. |
 | `trackIoTiming` | `"on"` \| `"off"` | `"off"` | Collect timing statistics for disk I/O. |
+| `logMinDurationStatement` | `string` | `"-1"` | Minimum statement duration to log; -1 disables logging. |
+| `logAutovacuumMinDuration` | `string` | `"10min"` | Minimum autovacuum duration to log; -1 disables logging. |
+| `logTempFiles` | `string` | `"-1"` | Minimum temporary file size to log; -1 disables logging. |
+| `sharedPreloadLibraries` | list of [`PostgresPreloadLibrary`](#postgrespreloadlibrary) | `["pg_stat_statements", "pg_cron", "timescaledb", "pg_squeeze", "pg_search"]` | Libraries to load, in order, when PostgreSQL starts. |
+| `extensions` | object |  | Settings for PostgreSQL extensions. |
+
+#### `postgres.settings.extensions`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `pgStatStatements` | object |  | Pg stat statements |
+| `cron` | object |  | Cron |
+| `pgDurable` | object |  | Pg durable |
+| `timescaledb` | object |  | Timescaledb |
+
+##### `postgres.settings.extensions.pgStatStatements`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `max` | `int32` | `5000` | Maximum distinct statements tracked. |
+| `track` | `"top"` \| `"all"` \| `"none"` | `"top"` | Which statements to track. |
+| `trackPlanning` | `"on"` \| `"off"` | `"off"` | Track planning time. |
+
+##### `postgres.settings.extensions.cron`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `timezone` | `string` | `"GMT"` | Time zone used for job schedules. |
+| `maxRunningJobs` | `int32` | `32` | Maximum concurrent jobs. |
+| `logRun` | `"off"` \| `"on"` | `"on"` | Record job runs. |
+
+##### `postgres.settings.extensions.pgDurable`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `maxUserConnections` | `int32` | `10` | Maximum concurrent workflow SQL connections. |
+| `retentionDays` | `int32` | `30` | Days to retain completed workflow instances. |
+| `logWorkflowSql` | `"on"` \| `"off"` | `"off"` | Log substituted workflow SQL, which may contain secrets. |
+
+##### `postgres.settings.extensions.timescaledb`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `maxBackgroundWorkers` | `int32` | `16` | Maximum number of background workers. |
 
 ### `postgres.pitr`
 
@@ -523,9 +570,10 @@ Configuration for storage service
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `version` | `string` | `"0.14.0"` | Version of storage service, you can see available versions in the URL below: https://hub.docker.com/r/nhost/hasura-storage/tags Releases: https://github.com/nhost/hasura-storage/releases |
+| `version` | `string` | `"0.15.1"` | Version of storage service, you can see available versions in the URL below: https://hub.docker.com/r/nhost/hasura-storage/tags Releases: https://github.com/nhost/hasura-storage/releases |
 | `resources?` | [`Resources`](#resources) `{networking?: null}` |  | Networking (custom domains at the moment) are not allowed as we need to do further configurations in the CDN. We will enable it again in the future. |
 | `antivirus?` | object |  | Antivirus scanning for uploaded files. |
+| `imageTransformer?` | object |  | Bounds applied to on-the-fly image transformations to keep a single request from exhausting the service's memory/CPU. Omit to use the storage service's built-in defaults. |
 | `rateLimit?` | [`RateLimit`](#ratelimit) |  | Rate limiting applied to the service. |
 
 ### `storage.antivirus`
@@ -536,13 +584,22 @@ Configuration for storage service
 |---|---|---|---|
 | `server` | `"tcp://run-clamav:3310"` |  | Address of the antivirus (ClamAV) server. |
 
+### `storage.imageTransformer`
+
+*Optional.*
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `maxImageOutputDimension` | `uint32 & >=1` | `8000` | Maximum width or height, in pixels, an image may be resized to. |
+| `maxBlurSigma` | `uint32 & >=1` | `250` | Maximum Gaussian blur sigma that may be applied to an image. |
+
 ## ai
 
 *Optional.* Configuration for graphite service
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `version` | `string` | `"0.8.1"` | Version of the service image to deploy. |
+| `version` | `string` | `"0.9.0"` | Version of the service image to deploy. |
 | `resources` | object |  | Compute resources and scaling for the service. |
 | `openai` | object |  | OpenAI API configuration. |
 | `autoEmbeddings` | object |  | Automatic embeddings generation settings. |
@@ -709,16 +766,16 @@ string & strings.MinRunes(2) & strings.MaxRunes(3)
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `enabled` | `bool` | `false` | Enable this feature. |
-| `clientId` | `string` |  | *(conditional)* Client id |
-| `clientSecret` | `string` |  | *(conditional)* Client secret |
+| `clientId` | `string` |  | *(conditional)* OAuth client ID. |
+| `clientSecret` | `string` |  | *(conditional)* OAuth client secret. |
 
 ### StandardOauthProviderWithScope
 
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `enabled` | `bool` | `false` | Enable this feature. |
-| `clientId` | `string` |  | *(conditional)* Client id |
-| `clientSecret` | `string` |  | *(conditional)* Client secret |
+| `clientId` | `string` |  | *(conditional)* OAuth client ID. |
+| `clientSecret` | `string` |  | *(conditional)* OAuth client secret. |
 | `audience?` | `string` |  | Expected audience claim for the provider's tokens. |
 | `scope?` | list of `string` |  | OAuth scopes requested from the provider. |
 
@@ -728,6 +785,12 @@ string & strings.MinRunes(2) & strings.MaxRunes(3)
 |---|---|---|---|
 | `cpu` | `uint32 & >=250 & <=30000` |  | milicpus, 1000 milicpus = 1 cpu |
 | `memory` | `uint32 & >=128 & <=62464` |  | MiB: 128MiB to 30GiB |
+
+### PostgresPreloadLibrary
+
+```cue
+"pg_stat_statements" | "pg_cron" | "timescaledb" | "pg_squeeze" | "pg_search" | "pg_durable" | "pg_ivm"
+```
 
 ### Smtp
 
@@ -803,7 +866,7 @@ Resource configuration for a service
 |---|---|---|---|
 | `emails?` | list of `string` |  | Email addresses to send alerts to. |
 | `pagerduty?` | list of object |  | PagerDuty alert contact. |
-| `discord?` | list of object |  | Discord OAuth provider. |
+| `discord?` | list of object |  | Discord alert contact. |
 | `slack?` | list of object |  | Slack alert contact. |
 | `webhook?` | list of object |  | Webhook alert contact. |
 
@@ -811,7 +874,7 @@ Resource configuration for a service
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `version` | `string` | `"0.1.0"` | Version of constellation, you can see available versions in the URL below: https://hub.docker.com/r/nhost/constellation/tags |
+| `version` | `string` | `"0.7.1"` | Version of constellation, you can see available versions in the URL below: https://hub.docker.com/r/nhost/constellation/tags |
 | `settings?` | object |  | Advanced configuration settings for the service. |
 
 #### `Constellation.settings`
