@@ -21,9 +21,11 @@ SELECT p.oid, fnns.nspname, p.proname,
              JOIN pg_namespace ns ON ns.oid = ty.typnamespace ORDER BY a.ord),
        ARRAY(SELECT ty.typname FROM unnest(COALESCE(p.proallargtypes, p.proargtypes::oid[]))
              WITH ORDINALITY AS a(oid, ord) JOIN pg_type ty ON ty.oid = a.oid ORDER BY a.ord),
+       ARRAY(SELECT ty.typtype::text FROM unnest(COALESCE(p.proallargtypes, p.proargtypes::oid[]))
+             WITH ORDINALITY AS a(oid, ord) JOIN pg_type ty ON ty.oid = a.oid ORDER BY a.ord),
        CASE WHEN p.proargmodes IS NULL THEN array_fill('i'::text, ARRAY[p.pronargs])
             ELSE ARRAY(SELECT mode::text FROM unnest(p.proargmodes) AS mode) END,
-       p.pronargdefaults, ret.oid, retns.nspname, ret.typname,
+       p.pronargdefaults, ret.oid, retns.nspname, ret.typname, ret.typtype::text,
        COALESCE(ret.typrelid, 0), p.proretset, p.provolatile::text,
        COALESCE(tbl.reltype, 0)
 FROM pg_proc p
@@ -42,11 +44,13 @@ type computedCatalogRow struct {
 	typeOIDs     []uint32
 	typeSchemas  []string
 	typeNames    []string
+	typeKinds    []string
 	modes        []string
 	defaults     int
 	returnOID    uint32
 	returnSchema string
 	returnName   string
+	returnKind   string
 	returnRelOID uint32
 	returnSet    bool
 	volatility   string
@@ -81,15 +85,8 @@ func lookupComputedFunction(
 
 	var candidates []computedCatalogRow
 	for rows.Next() {
-		var candidate computedCatalogRow
-		if err := rows.Scan(
-			&candidate.oid, &candidate.schema, &candidate.name,
-			&candidate.names, &candidate.typeOIDs,
-			&candidate.typeSchemas, &candidate.typeNames, &candidate.modes,
-			&candidate.defaults, &candidate.returnOID, &candidate.returnSchema,
-			&candidate.returnName, &candidate.returnRelOID, &candidate.returnSet,
-			&candidate.volatility, &candidate.rowTypeOID,
-		); err != nil {
+		candidate, err := scanComputedCatalogRow(rows)
+		if err != nil {
 			return introspection.ComputedFunctionLookup{}, fmt.Errorf(
 				"scanning computed function %s.%s: %w",
 				schema,
@@ -118,6 +115,23 @@ func lookupComputedFunction(
 	default:
 		return invalidComputedFunction("overloaded functions are not supported"), nil
 	}
+}
+
+func scanComputedCatalogRow(rows Rows) (computedCatalogRow, error) {
+	var candidate computedCatalogRow
+
+	err := rows.Scan(
+		&candidate.oid, &candidate.schema, &candidate.name, &candidate.names,
+		&candidate.typeOIDs, &candidate.typeSchemas, &candidate.typeNames, &candidate.typeKinds,
+		&candidate.modes, &candidate.defaults, &candidate.returnOID, &candidate.returnSchema,
+		&candidate.returnName, &candidate.returnKind, &candidate.returnRelOID, &candidate.returnSet,
+		&candidate.volatility, &candidate.rowTypeOID,
+	)
+	if err != nil {
+		return computedCatalogRow{}, fmt.Errorf("scanning computed catalog row: %w", err)
+	}
+
+	return candidate, nil
 }
 
 func invalidComputedFunction(reason string) introspection.ComputedFunctionLookup {
@@ -164,7 +178,10 @@ func resolveComputedSignature(
 		OID: row.oid, Schema: row.schema, Name: row.name,
 		Arguments: arguments, RowArgument: rowIndex,
 		ReturnType: introspection.PostgreSQLType{
-			OID: row.returnOID, Schema: row.returnSchema, Name: row.returnName,
+			OID:    row.returnOID,
+			Schema: row.returnSchema,
+			Name:   row.returnName,
+			Kind:   row.returnKind,
 		},
 		ReturnRelOID: row.returnRelOID, ReturnSet: row.returnSet, Volatility: volatility,
 	}, Reason: ""}
@@ -173,8 +190,7 @@ func resolveComputedSignature(
 func computedArguments(
 	row computedCatalogRow, tableArgument string,
 ) ([]introspection.ComputedFunctionArgument, int, string) {
-	if len(row.typeOIDs) != len(row.typeSchemas) || len(row.typeOIDs) != len(row.typeNames) ||
-		len(row.typeOIDs) != len(row.modes) {
+	if !completeComputedCatalogArguments(row) {
 		return nil, -1, "incomplete function argument catalog"
 	}
 
@@ -199,7 +215,10 @@ func computedArguments(
 
 		arguments = append(arguments, introspection.ComputedFunctionArgument{
 			Type: introspection.PostgreSQLType{
-				OID: oid, Schema: row.typeSchemas[i], Name: row.typeNames[i],
+				OID:    oid,
+				Schema: row.typeSchemas[i],
+				Name:   row.typeNames[i],
+				Kind:   row.typeKinds[i],
 			},
 			Name: name, Mode: mode, Position: i, HasDefault: false,
 		})
@@ -214,6 +233,18 @@ func computedArguments(
 	}
 
 	return arguments, rowIndex, ""
+}
+
+func completeComputedCatalogArguments(row computedCatalogRow) bool {
+	for _, count := range []int{
+		len(row.typeSchemas), len(row.typeNames), len(row.typeKinds), len(row.modes),
+	} {
+		if len(row.typeOIDs) != count {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (c *Client) introspectComputedFunctions(

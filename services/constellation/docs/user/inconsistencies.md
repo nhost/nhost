@@ -25,7 +25,7 @@ inconsistency and the server keeps running with whatever did load.
 | Loading metadata bytes from file/db | **Yes on initial load, No on reload** | Initial load wraps with `initial metadata load: …` and aborts startup. Reload errors are logged as `metadata reload failed, keeping current state` and the previous state continues serving. |
 | Parsing metadata bytes into types | **Yes on initial load, No on reload** | Same paths as above. |
 | Building a source connector (factory error, customization rejection) | No | Whole source dropped, recorded as `database` or `remote_schema`. |
-| Reconciling metadata against introspected source objects | No | Per-entity drops, recorded as `table` / `column` / `function` / `relationship` / `enum_values`. |
+| Reconciling metadata against introspected source objects | No | Per-entity drops, recorded as `table` / `column` / `function` / `relationship` / `enum_values` / `computed_field` / `<operation>_permission`. |
 | Composing per-role schemas | No | Whole role dropped on validation/merge failure, recorded as `role`. |
 
 ## Inconsistency kinds
@@ -89,10 +89,49 @@ exist on the introspected table. The reconciler checks the following sites:
 table — and every other permission entry — keeps serving. The table itself is
 unaffected.
 
-> **What is *not* checked:** column references buried inside `filter` /
-> `check` Hasura expressions are not walked, because doing so would require
-> running the full where-parser at build time. A missing column inside a
-> `filter` still produces a query-time error today, not an inconsistency.
+> **What is *not* checked:** ordinary missing column references inside
+> `filter` / `check` expressions are not reconciled per permission. The
+> existing permission parser can reject them during root construction,
+> dropping the source; this is distinct from a known computed-field reference.
+
+### `computed_field` and `<operation>_permission` (PostgreSQL source)
+
+An invalid table-owned computed definition (malformed wire entry, missing or
+ambiguous function, missing or non-IN row argument, volatile function,
+unsupported return or argument type kind, untracked SETOF composite target,
+non-IN non-row argument, or field-name collision) is recorded as `computed_field`
+and removed **individually**. PostgreSQL base types (`pg_type.typtype = 'b'`, including
+extension types outside `pg_catalog`) are accepted as scalar returns and
+non-row arguments; pseudo-types and non-table composites are rejected. Domain,
+enum, range and multirange returns or non-row arguments remain in raw metadata,
+but are excluded from effective fields pending verification against Hasura. Their
+scalar grants do not revoke table access; manual table-valued grants remain
+invalid regardless of argument kind. These unverified types are not exposed in
+GraphQL. A computed definition on SQLite is ignored as before, without
+computed-specific inconsistencies or grant revocation. Other fields and tables
+survive. Computed fields are not yet exposed in GraphQL, even when their
+definitions are valid.
+
+A select permission with an invalid/malformed computed grant is recorded as
+`select_permission` and removed **in its entirety**, including its filter;
+manual table-valued grants are invalid because target-table permissions derive
+them. A valid scalar grant alone remains a valid permission while selections
+are gated off. A select/update/delete filter or insert/update check referencing
+a known computed field, including through `_and`, `_or`, `_not`, local
+relationships, `_exists`, and aggregate relationship filters, cannot execute
+until computed predicates are supported: the **entire permission** is recorded
+as `<operation>_permission` and removed, not just its filter/check. Other roles
+and permissions on the same table remain available. A definition or a grant
+(on any role of that table) identifies a computed predicate, including if its
+function is missing. An unknown key with neither a definition nor a grant is
+not classified by its spelling. For example, a `missing_computed` filter without
+a matching definition or grant is an ordinary unknown key to Constellation:
+root construction fails and the **whole database source** is unavailable, even
+though Hasura marks only its `select_permission` inconsistent. A filter with an ordinary
+missing-column key has the same source-wide outcome in Constellation. This is
+an intentional, documented difference for invalid metadata, not supported
+computed-field parity; do not use unknown filter keys as an access-control
+mechanism.
 
 ### `function` (PostgreSQL source)
 
@@ -198,6 +237,8 @@ produce.
 | `table` | ✅ | ✅ | — |
 | `column` | ✅ | ✅ | — |
 | `function` | ✅ | — | — |
+| `computed_field` | ✅ | — | — |
+| `select_permission` / `insert_permission` / `update_permission` / `delete_permission` (computed references) | ✅ | — | — |
 | `relationship` | ✅ | ✅ | — |
 | `enum_values` | ✅ | ✅ | — |
 | `role` | ✅ | ✅ | ✅ |

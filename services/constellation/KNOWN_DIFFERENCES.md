@@ -9,6 +9,20 @@
 
 3. If all columns of a table are non-aggregatable (e.g. only jsonb columns), the `max`/`min` fields are omitted from the `_aggregate_fields` type entirely rather than exposing empty types.
 
+# Computed-field unknown filter keys (invalid metadata)
+
+Computed-field definitions and grants identify which filter keys are computed
+references. A permission filter referencing an unidentifiable key (no matching
+definition or grant) retains Constellation's existing unknown-key behavior: the
+**entire source** becomes unavailable. For a filter such as `missing_computed`
+with no matching definition or grant, Nhost Hasura v2 instead reports only
+that `select_permission` inconsistent and keeps the source. A filter with an
+ordinary missing-column key causes the same source-wide failure in
+Constellation. This intentional, documented difference applies only to invalid,
+unidentifiable keys: it is **not** supported computed-field parity. Identifiable
+computed predicates make only the affected permission unavailable until those
+predicates can be executed.
+
 # Mutations with no update permissions
 
 Update mutations are not generated for tables where the role has no update column permissions (i.e. the `_update_column` enum only contains `_PLACEHOLDER`). Hasura generates these mutations but they cannot actually update any columns, making them no-ops.
@@ -35,7 +49,7 @@ Hasura handles the same input inconsistently:
 
 A single explicit validation error is more consistent than Hasura's mix of silent
 no-op, empty object, and leaked SQL syntax error, so Constellation does not
-reproduce those behaviors. This is the one deliberate divergence: Constellation
+reproduce those behaviors. For empty update operators, Constellation
 rejects where Hasura no-ops.
 
 Requesting the **same column in more than one operator** (e.g. `_set` and `_inc`

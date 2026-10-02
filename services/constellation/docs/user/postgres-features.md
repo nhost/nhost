@@ -248,7 +248,7 @@ delete_permissions:
 - Session variables of the form `X-Hasura-*` are extracted from request headers or JWT Hasura claims by `controller/middleware/`.
 - `_eq: X-Hasura-User-Id` substitutes the session variable as a parameterized SQL value.
 - `set` (insert/update) writes column presets — including session variables — on every affected row.
-- **Not enforced:** a per-role `limit` on select permissions, plus `query_root_fields`, `subscription_root_fields`, `backend_only`, and `validate_input`. Computed-field definitions and select grants are retained from metadata, but **not served** in GraphQL; computed predicates are not enforced. See [hasura-metadata-support.md](./hasura-metadata-support.md).
+- **Not enforced:** a per-role `limit` on select permissions, plus `query_root_fields`, `subscription_root_fields`, `backend_only`, and `validate_input`. Computed-field definitions are reconciled per field but **not served** in GraphQL. Valid scalar select grants remain intact while selection is gated off; invalid grants and permissions with known computed predicates are removed as whole permissions and reported inconsistent, never served with their filter/check stripped. See [hasura-metadata-support.md](./hasura-metadata-support.md).
 
 ## Queries
 

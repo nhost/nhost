@@ -88,6 +88,16 @@ type Capabilities struct {
 	// SupportsFunctions gates the emission of GraphQL fields for tracked
 	// SQL functions.
 	SupportsFunctions bool
+	// SupportsComputedFields is the durable PostgreSQL backend capability;
+	// rollout gates below additionally require each executor to be ready.
+	SupportsComputedFields bool
+	// Computed-field rollout gates are intentionally off until their SQL
+	// executors cover every shared row and predicate context. They are separate
+	// for scalar/table selections and user-input predicates.
+	SupportsComputedScalarSelection bool
+	SupportsComputedTableSelection  bool
+	SupportsComputedScalarInput     bool
+	SupportsComputedTableInput      bool
 	// SupportsArrays gates the emission of <scalar>_array_comparison_exp
 	// input types and array-typed column fields on bool_exp inputs.
 	SupportsArrays bool
@@ -151,15 +161,20 @@ func ParseDBKind(s string) (DBKind, error) {
 // mis-namespaced types.
 func NewCapabilities(kind DBKind, dial dialect.Dialect) Capabilities {
 	return Capabilities{
-		Kind:                          kind,
-		SupportsRegex:                 dial.SupportsRegex(),
-		SupportsJSONB:                 dial.SupportsJSONB(),
-		SupportsDistinctOn:            dial.SupportsDistinctOn(),
-		SupportsFunctions:             dial.SupportsFunctions(),
-		SupportsArrays:                dial.SupportsArrays(),
-		SupportsSpatialTypes:          dial.SupportsSpatialTypes(),
-		SupportsVarianceAggregates:    dial.SupportsVarianceAggregates(),
-		SupportsStableVarianceOrderBy: dial.SupportsStableVarianceOrderBy(),
+		Kind:                            kind,
+		SupportsRegex:                   dial.SupportsRegex(),
+		SupportsJSONB:                   dial.SupportsJSONB(),
+		SupportsDistinctOn:              dial.SupportsDistinctOn(),
+		SupportsFunctions:               dial.SupportsFunctions(),
+		SupportsComputedFields:          kind == KindPostgres && dial.SupportsFunctions(),
+		SupportsComputedScalarSelection: false,
+		SupportsComputedTableSelection:  false,
+		SupportsComputedScalarInput:     false,
+		SupportsComputedTableInput:      false,
+		SupportsArrays:                  dial.SupportsArrays(),
+		SupportsSpatialTypes:            dial.SupportsSpatialTypes(),
+		SupportsVarianceAggregates:      dial.SupportsVarianceAggregates(),
+		SupportsStableVarianceOrderBy:   dial.SupportsStableVarianceOrderBy(),
 	}
 }
 

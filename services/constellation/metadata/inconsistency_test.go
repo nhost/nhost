@@ -13,6 +13,55 @@ func discardLogger() *slog.Logger {
 	return slog.New(slog.DiscardHandler)
 }
 
+func TestInconsistencies_ComputedEntities(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		record     func(*metadata.Inconsistencies)
+		kind       string
+		identifier string
+	}{
+		{
+			name: "field with lost name",
+			record: func(inc *metadata.Inconsistencies) {
+				inc.RecordComputedField(t.Context(), nil, "src", "public", "items", "", "malformed")
+			},
+			kind: metadata.InconsistencyKindComputedField, identifier: "public.items.",
+		},
+		{
+			name: "whole select permission",
+			record: func(inc *metadata.Inconsistencies) {
+				inc.RecordPermission(
+					t.Context(),
+					nil,
+					"select",
+					"src",
+					"public",
+					"items",
+					"reader",
+					"bad grant",
+				)
+			},
+			kind: metadata.InconsistencyKindSelectPermission, identifier: "public.items.reader",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			inc := metadata.NewInconsistencies()
+			tt.record(inc)
+
+			got := inc.Snapshot()
+			if len(got) != 1 || got[0].Kind != tt.kind || got[0].Name != tt.identifier ||
+				got[0].Source != "src" {
+				t.Fatalf("recorded inconsistency: %+v", got)
+			}
+		})
+	}
+}
+
 func TestInconsistencies_ConcurrentRecord(t *testing.T) {
 	t.Parallel()
 
