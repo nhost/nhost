@@ -50,6 +50,7 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 		TotpSecret:    sql.Text("encrypted-secret"),
 	}
 	plainUser := sql.AuthUser{ID: userID}
+	emailUser := sql.AuthUser{ID: userID, Email: sql.Text("jane@acme.com")}
 
 	cases := []testRequest[
 		api.GetElevationMethodsRequestObject,
@@ -183,11 +184,12 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 			config: func() *controller.Config {
 				c := getConfig()
 				c.TOTPEnabled = false
+				c.OTPEmailEnabled = false
 
 				return c
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
-				// The user row is not read when TOTP is off.
+				// The user row is not read when neither TOTP nor email OTP is on.
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(1), nil)
@@ -198,6 +200,59 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 			expectedResponse: api.GetElevationMethods200JSONResponse{
 				ElevationRequired: true,
 				Methods:           []api.ElevationMethod{api.ElevationMethodWebauthn},
+			},
+			jwtTokenFn:  jwtTokenFn,
+			expectedJWT: nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withElevationMode("recommended"),
+			},
+		},
+
+		{
+			name:   "email otp only",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(emailUser, nil)
+
+				return mock
+			},
+			request: api.GetElevationMethodsRequestObject{},
+			expectedResponse: api.GetElevationMethods200JSONResponse{
+				ElevationRequired: true,
+				Methods:           []api.ElevationMethod{api.ElevationMethodOtpEmail},
+			},
+			jwtTokenFn:  jwtTokenFn,
+			expectedJWT: nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withElevationMode("recommended"),
+			},
+		},
+
+		{
+			name: "email otp disabled, user with an email",
+			config: func() *controller.Config {
+				c := getConfig()
+				c.OTPEmailEnabled = false
+
+				return c
+			},
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				// /elevate/otp/email is a disabled endpoint, so the address is
+				// not a factor the user can elevate with.
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(emailUser, nil)
+
+				return mock
+			},
+			request: api.GetElevationMethodsRequestObject{},
+			expectedResponse: api.GetElevationMethods200JSONResponse{
+				ElevationRequired: false,
+				Methods:           []api.ElevationMethod{},
 			},
 			jwtTokenFn:  jwtTokenFn,
 			expectedJWT: nil,

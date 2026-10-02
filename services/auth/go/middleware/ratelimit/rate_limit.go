@@ -12,6 +12,7 @@ import (
 // endpints that send emails.
 func sendsEmail(path string, verifyEmailEnabled bool) bool {
 	base := []string{
+		"/elevate/otp/email",
 		"/signin/passwordless/email",
 		"/signin/otp/email",
 		"/signup/passwordless/email",

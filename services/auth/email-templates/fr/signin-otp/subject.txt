@@ -1,1 +1,1 @@
-Mot de passe à usage unique pour ${redirectTo}
+Votre code de vérification

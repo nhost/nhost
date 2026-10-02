@@ -1,1 +1,1 @@
-Contraseña de un solo uso para ${redirectTo}
+Tu código de verificación

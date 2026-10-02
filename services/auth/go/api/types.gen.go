@@ -139,6 +139,7 @@ func (e CredentialType) Valid() bool {
 
 // Defines values for ElevationMethod.
 const (
+	ElevationMethodOtpEmail ElevationMethod = "otp-email"
 	ElevationMethodTotp     ElevationMethod = "totp"
 	ElevationMethodWebauthn ElevationMethod = "webauthn"
 )
@@ -146,6 +147,8 @@ const (
 // Valid indicates whether the value is a known member of the ElevationMethod enum.
 func (e ElevationMethod) Valid() bool {
 	switch e {
+	case ElevationMethodOtpEmail:
+		return true
 	case ElevationMethodTotp:
 		return true
 	case ElevationMethodWebauthn:
@@ -1053,6 +1056,12 @@ type CredentialPropertiesOutput struct {
 
 // CredentialType The valid credential types
 type CredentialType string
+
+// ElevateOTPEmailVerifyRequest defines model for ElevateOTPEmailVerifyRequest.
+type ElevateOTPEmailVerifyRequest struct {
+	// Otp One time password
+	Otp string `json:"otp"`
+}
 
 // ElevateTotpRequest defines model for ElevateTotpRequest.
 type ElevateTotpRequest struct {
@@ -2010,6 +2019,9 @@ type VerifyTicketParams struct {
 
 // VerifyTicketParamsType defines parameters for VerifyTicket.
 type VerifyTicketParamsType string
+
+// VerifyElevateOTPEmailJSONRequestBody defines body for VerifyElevateOTPEmail for application/json ContentType.
+type VerifyElevateOTPEmailJSONRequestBody = ElevateOTPEmailVerifyRequest
 
 // ElevateTotpJSONRequestBody defines body for ElevateTotp for application/json ContentType.
 type ElevateTotpJSONRequestBody = ElevateTotpRequest

@@ -51,8 +51,21 @@ const paragraph = {
   color: '#3c4149',
 };
 
-const buttonContainer = {
+const codeContainer = {
   padding: '10px 0 0px',
+};
+
+const code = {
+  fontSize: '24px',
+  lineHeight: '32px',
+  margin: '16px 0',
+  color: '#0052cd',
+  fontWeight: '600',
+};
+
+const note = {
+  ...paragraph,
+  marginTop: '16px',
 };
 
 const reportLink = {
@@ -73,29 +86,23 @@ const linkColumn = {
   margin: 0,
 };
 
-const amazingText = {
-  fontSize:'24px',
-  lineHeight:'32px',
-  margin:'16px 0',
-  color:'#0052cd',
-  fontWeight:'600',
-}
-
 export function SignInOTP() {
-  const ticket = "${ticket}";
-  const redirectTo = "${redirectTo}";
+  const ticket = '${ticket}';
+
   return (
     <Html>
       <Head />
       <Body style={main}>
         <Container style={container}>
-          <Heading style={heading}>One-time Password</Heading>
-          <Text style={paragraph}>To signin to {redirectTo}, please, use the following one-time password:</Text>
-          <Section style={buttonContainer}>
-            <Text style={amazingText}>
-            {ticket}
-            </Text>
+          <Heading style={heading}>Your verification code</Heading>
+          <Text style={paragraph}>Use the following code to continue:</Text>
+          <Section style={codeContainer}>
+            <Text style={code}>{ticket}</Text>
           </Section>
+          <Text style={note}>
+            This code expires in 10 minutes. If you did not request it, you can
+            ignore this email.
+          </Text>
           <Hr style={hr} />
           <Section>
             <Row>
