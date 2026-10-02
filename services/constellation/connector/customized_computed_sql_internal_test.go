@@ -1,6 +1,7 @@
 package connector
 
 import (
+	"encoding/json"
 	"errors"
 	"log/slog"
 	"os"
@@ -19,6 +20,7 @@ import (
 	"github.com/vektah/gqlparser/v2/parser"
 )
 
+//nolint:gocognit,cyclop // Validation paths and customized type-name execution share one isolated SQL fixture.
 func TestCustomizedComputedSQLValidationPaths(t *testing.T) {
 	t.Parallel()
 
@@ -157,5 +159,52 @@ func TestCustomizedComputedSQLValidationPaths(t *testing.T) {
 				t.Fatalf("validation = %#v, want %#v", got, want)
 			}
 		})
+	}
+
+	prefixed, err := newCustomizedConnector("cf_select", inner,
+		metadata.Customization{TypeNamesPrefix: "Probe"}, customization.FlavorDatabase)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	roleSchemas, err := prefixed.GetSchema()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	doc := roleSchemas["cf_reader"].ToAST()
+	if doc.Definitions.ForName("Probecf_select_items") == nil ||
+		doc.Definitions.ForName("Probeitem_second_cf_select_items_args") == nil ||
+		doc.Definitions.ForName("item_second_cf_select_items_args") != nil {
+		t.Fatal("type_names prefix did not rename the computed args type alongside its row type")
+	}
+
+	selection, err := parser.ParseQuery(
+		&ast.Source{
+			Input: `query { cf_select_items(where:{id:{_eq:1}}) { item_second(args:{multiplier:2}) } }`,
+		},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	result, err := prefixed.Execute(t.Context(), selection.Operations[0], selection.Fragments,
+		nil, "cf_reader", nil, slog.Default())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	body, err := json.Marshal(result["cf_select_items"])
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var rows []map[string]any
+	if err := json.Unmarshal(body, &rows); err != nil {
+		t.Fatal(err)
+	}
+
+	if !reflect.DeepEqual(rows, []map[string]any{{"item_second": float64(25)}}) {
+		t.Fatalf("customized computed data = %s", body)
 	}
 }

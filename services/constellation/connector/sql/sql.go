@@ -75,8 +75,8 @@ type Connector struct {
 // but not in the source) are recorded on inconsistencies and dropped from
 // the effective metadata so the rest of the source keeps serving. Pass nil
 // for inconsistencies to drop those records on the floor. Optional capabilities
-// are an alpha-only selection gate for isolated tests; production callers omit
-// them and keep computed fields unavailable until shared row consumers work.
+// override only the PostgreSQL scalar selection gate for focused tests;
+// production uses the backend's enabled scalar-selection capability.
 func NewConnector(
 	ctx context.Context,
 	driver Driver,
@@ -139,19 +139,19 @@ func (c *Connector) GetSchema() (map[string]*graph.Schema, error) {
 // GetTypeName returns the GraphQL type name for a table identified as "schema.table".
 // Uses the custom name if configured, otherwise the table name.
 func (c *Connector) GetTypeName(identifier string) string {
-	schema, table, ok := strings.Cut(identifier, ".")
+	tableSchema, table, ok := strings.Cut(identifier, ".")
 	if !ok {
 		return ""
 	}
 
 	for i := range c.dbMeta.Tables {
 		t := &c.dbMeta.Tables[i]
-		if t.Table.Schema == schema && t.Table.Name == table {
+		if t.Table.Schema == tableSchema && t.Table.Name == table {
 			if t.Configuration.CustomName != "" {
 				return t.Configuration.CustomName
 			}
 
-			return t.Table.Name
+			return schema.DefaultTypeName(t.Table.Schema, t.Table.Name)
 		}
 	}
 
@@ -186,8 +186,8 @@ func reloadSchema(
 
 	caps := schema.NewCapabilities(kind, dial)
 	if len(capabilities) == 1 && caps.SupportsComputedFields {
-		// Production calls omit this temporary alpha gate. Tests inject a
-		// PostgreSQL capability value to exercise the full connector path.
+		// Keep the optional PostgreSQL scalar-selection override aligned with
+		// query roots. Production uses the enabled backend default.
 		caps.SupportsComputedScalarSelection = capabilities[0].SupportsComputedScalarSelection
 	}
 

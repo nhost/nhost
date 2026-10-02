@@ -32,7 +32,7 @@ func (t *table) buildMutationInsertCollectionSQL(
 		return core.SQLOperation{}, fmt.Errorf("failed to parse insert arguments: %w", err)
 	}
 
-	selection, err := t.astToMutationSelection(field, fragments)
+	selection, err := t.astToMutationSelection(field, fragments, role)
 	if err != nil {
 		return core.SQLOperation{}, fmt.Errorf("failed to parse selection set: %w", err)
 	}

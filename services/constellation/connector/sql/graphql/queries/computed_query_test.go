@@ -208,7 +208,7 @@ func computedResult(t *testing.T, pool *pgxpool.Pool, op core.SQLOperation) any 
 	return result
 }
 
-func TestComputedScalarQueriesGated(t *testing.T) {
+func TestComputedScalarQuerySelections(t *testing.T) {
 	t.Parallel()
 	//nolint:dogsled // The fixture returns roots, pool, objects, metadata and grouped ops; each test selects its needed values.
 	roots, pool, _, _, _ := computedTestFixture(t)

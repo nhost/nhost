@@ -79,10 +79,19 @@ func assertComputedFixtureSchema(t *testing.T, roleSchema *graph.Schema) {
 			continue
 		}
 
+		foundScalar := false
 		for _, field := range obj.Fields {
 			if field.Name == "item_label" {
-				t.Fatal("computed function appeared before its execution gate is enabled")
+				foundScalar = true
 			}
+
+			if field.Name == "item_tags" {
+				t.Fatal("table-valued computed field exposed before its execution gate")
+			}
+		}
+
+		if !foundScalar {
+			t.Fatal("production scalar selection missing from fixture role")
 		}
 
 		return

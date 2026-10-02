@@ -102,6 +102,29 @@ type ComputedFunction struct {
 	Volatility   Volatility
 }
 
+// GraphQLArgumentNames maps catalog slots to GraphQL input names. The row and
+// session slots are hidden, and only unnamed user inputs advance the arg_N counter.
+func (f ComputedFunction) GraphQLArgumentNames(sessionArgument string) []string {
+	names := make([]string, len(f.Arguments))
+	unnamed := 0
+
+	for i, arg := range f.Arguments {
+		if i == f.RowArgument || (sessionArgument != "" && arg.Name == sessionArgument) ||
+			arg.Mode != "i" {
+			continue
+		}
+
+		if arg.Name != "" {
+			names[i] = arg.Name
+		} else {
+			unnamed++
+			names[i] = fmt.Sprintf("arg_%d", unnamed)
+		}
+	}
+
+	return names
+}
+
 // ComputedFunctionLookup retains a per-field invalid signature instead of
 // making a bad field prevent introspection of the remaining source.
 type ComputedFunctionLookup struct {

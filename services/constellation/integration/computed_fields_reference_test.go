@@ -113,4 +113,34 @@ func TestComputedFieldReference(t *testing.T) { //nolint:paralleltest
 	if diff := cmp.Diff(hasura, constellation); diff != "" {
 		t.Errorf("live control responses differ (-hasura +constellation):\n%s", diff)
 	}
+
+	// The computed fixture has its own source and seeded data, so this
+	// selection is independent of ordinary integration mutations.
+	scalar := query{
+		Query: `query { cf_select_items(where:{id:{_eq:1}}) { item_label item_second(args:{multiplier:2}) } }`,
+		Role:  "cf_reader",
+	}
+
+	headers.Set("x-hasura-role", "cf_reader")
+
+	hasura, err = makeHTTPQuery(t.Context(), hasuraURL, scalar, headers)
+	if err != nil {
+		t.Fatalf("Hasura scalar selection: %v", err)
+	}
+
+	constellation, err = makeHTTPQuery(t.Context(), constellationURL, scalar, headers)
+	if err != nil {
+		t.Fatalf("Constellation scalar selection: %v", err)
+	}
+
+	want = map[string]any{"data": map[string]any{"cf_select_items": []any{
+		map[string]any{"item_label": "first", "item_second": float64(25)},
+	}}}
+	if diff := cmp.Diff(want, hasura); diff != "" {
+		t.Fatalf("Hasura fixture response changed (-want +got):\n%s", diff)
+	}
+
+	if diff := cmp.Diff(hasura, constellation); diff != "" {
+		t.Errorf("live scalar selection differs (-hasura +constellation):\n%s", diff)
+	}
 }

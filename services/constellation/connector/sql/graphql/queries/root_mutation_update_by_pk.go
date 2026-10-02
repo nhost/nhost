@@ -33,6 +33,7 @@ func (t *table) buildMutationUpdateByPkSQL(
 	columns, relationships, err := t.astToQuerySelection(
 		field,
 		fragments,
+		role,
 	)
 	if err != nil {
 		return core.SQLOperation{}, fmt.Errorf("failed to parse selection set: %w", err)

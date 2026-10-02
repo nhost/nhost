@@ -31,7 +31,7 @@ func TestValidateComputedFieldSignatures(t *testing.T) {
 			false,
 		},
 		{
-			"deferred enum return",
+			"invalid enum return",
 			func(_ *metadata.TableMetadata, fn *introspection.ComputedFunction) {
 				fn.ReturnType = introspection.PostgreSQLType{
 					Schema: "public",
@@ -40,7 +40,7 @@ func TestValidateComputedFieldSignatures(t *testing.T) {
 				}
 			},
 			"postgres",
-			false,
+			true,
 		},
 		{
 			"deferred domain argument",
@@ -197,7 +197,7 @@ func TestValidateComputedFieldSignatures(t *testing.T) {
 	}
 }
 
-func TestUnclassifiedTypeKindDoesNotRevokeScalarGrant(t *testing.T) {
+func TestNonBaseReturnRevokesGrantButNonBaseArgumentRemainsDeferred(t *testing.T) {
 	t.Parallel()
 
 	for _, kind := range []string{"d", "e", "r", "m"} {
@@ -226,14 +226,24 @@ func TestUnclassifiedTypeKindDoesNotRevokeScalarGrant(t *testing.T) {
 				inc := metadata.NewInconsistencies()
 
 				got := reconcileMetadata(t.Context(), nil, inc, md, objects)
+
+				invalidField := false
+				for _, item := range inc.Snapshot() {
+					if item.Kind == metadata.InconsistencyKindComputedField &&
+						item.Name == "public.users.label" {
+						invalidField = true
+					}
+				}
+
 				if len(got.Tables[0].ComputedFields) != len(md.Tables[0].ComputedFields)-2 ||
-					len(got.Tables[0].SelectPermissions) != 1 ||
-					hasComputedInconsistency(inc, metadata.InconsistencyKindSelectPermission) {
-					t.Fatalf(
-						"unclassified type revoked grant: %+v, %+v",
-						got.Tables[0],
-						inc.Snapshot(),
-					)
+					(len(got.Tables[0].SelectPermissions) == 0) != (position == "return") ||
+					hasComputedInconsistency(
+						inc,
+						metadata.InconsistencyKindSelectPermission,
+					) != (position == "return") ||
+					invalidField != (position == "return") {
+					t.Fatalf("non-base %s %s reconciliation: %+v, %+v", position, kind,
+						got.Tables[0], inc.Snapshot())
 				}
 			})
 		}

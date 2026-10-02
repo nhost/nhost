@@ -16,8 +16,8 @@ import (
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
 
-//nolint:cyclop // Exercises role schema, execution and default-off connector construction in one isolated testdb.
-func TestComputedScalarConnectorGated(t *testing.T) {
+//nolint:cyclop // Exercises role schema, execution, test override and default-on production construction in one isolated testdb.
+func TestComputedScalarConnectorDefaultOnAndOverride(t *testing.T) {
 	t.Parallel()
 
 	fixture := "../../integration/"
@@ -52,8 +52,7 @@ func TestComputedScalarConnectorGated(t *testing.T) {
 	}
 
 	driver := postgres.NewClient(pgPool)
-	// The constructor must derive backend capabilities once for both schema and
-	// roots, even when the alpha-only override contains only the rollout gate.
+	// An explicit test override must be projected consistently to schema and roots.
 	caps := schema.Capabilities{SupportsComputedScalarSelection: true}
 
 	connector, err := csql.NewConnector(
@@ -137,37 +136,37 @@ func TestComputedScalarConnectorGated(t *testing.T) {
 	if len(rows) != 1 || rows[0].Second != 25 || rows[0].Payload != "ready" {
 		t.Fatalf("connector response: %s", body)
 	}
-	// A new connector without injected capabilities remains off, even with the
+	// Production construction enables PostgreSQL scalar selections using the
 	// same effective metadata and database function signatures.
-	pgPoolOff, err := postgres.Open(t.Context(), pool.Config().ConnConfig.ConnString())
+	defaultPool, err := postgres.Open(t.Context(), pool.Config().ConnConfig.ConnString())
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	off, err := csql.NewConnector(
+	defaultConnector, err := csql.NewConnector(
 		t.Context(),
-		postgres.NewClient(pgPoolOff),
+		postgres.NewClient(defaultPool),
 		&md.Databases[0],
 		nil,
 		slog.Default(),
 	)
 	if err != nil {
-		pgPoolOff.Close()
+		defaultPool.Close()
 		t.Fatal(err)
 	}
 
-	t.Cleanup(off.Close)
+	t.Cleanup(defaultConnector.Close)
 
-	offSchemas, err := off.GetSchema()
+	defaultSchemas, err := defaultConnector.GetSchema()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if offSchemas["cf_reader"].ToAST().Definitions.ForName(
+	if defaultSchemas["cf_reader"].ToAST().Definitions.ForName(
 		"cf_select_items",
 	).Fields.ForName(
 		"item_second",
-	) != nil {
-		t.Fatal("production connector exposed gated field")
+	) == nil {
+		t.Fatal("production connector omitted scalar selection")
 	}
 }

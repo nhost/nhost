@@ -84,6 +84,27 @@ func forDatabase(
 				out = append(out, agg)
 			}
 		}
+
+		for _, rel := range table.RemoteRelationships {
+			toSource := rel.Definition.ToSource
+			if toSource == nil {
+				continue // db→remote-schema relationships use the schema resolver.
+			}
+
+			rm := &planner.RelationshipMetadata{
+				Name: rel.Name, SourceType: sourceType, TargetConnector: toSource.Source,
+				TargetTable: toSource.Table.Name, TargetTableSchema: toSource.Table.Schema,
+				JoinMapping:      toSource.FieldMapping,
+				IsArray:          toSource.RelationshipType == metadata.RelationshipTypeArray,
+				IsArrayAggregate: false, IsRemote: true,
+				LHSFields: nil, RemoteFieldPath: nil,
+			}
+
+			out = append(out, rm)
+			if agg := aggregateRelationship(rm); agg != nil {
+				out = append(out, agg)
+			}
+		}
 	}
 
 	return out

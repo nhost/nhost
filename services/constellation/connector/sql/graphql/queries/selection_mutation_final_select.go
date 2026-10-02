@@ -20,15 +20,30 @@ func (t *table) buildColumnSelections(
 	b *strings.Builder,
 	columns []columnSelection,
 	first *bool,
-) {
+	variables, sessionVariables map[string]any,
+	params []any,
+	paramIndex int,
+	argumentPath string,
+) ([]any, int, error) {
 	for _, colSel := range columns {
 		if !*first {
 			b.WriteString(", ")
 		}
 
-		if colSel.literal != "" {
+		switch {
+		case colSel.computed != nil:
+			var err error
+
+			params, paramIndex, err = t.writeComputedScalar(
+				b, colSel, "mutation_result", childArgumentPath(argumentPath, colSel.field),
+				variables, sessionVariables, params, paramIndex,
+			)
+			if err != nil {
+				return nil, 0, fmt.Errorf("building computed mutation result: %w", err)
+			}
+		case colSel.literal != "":
 			t.dialect.WriteJSONRowColumn(b, colSel.alias, "'"+colSel.literal+"'")
-		} else {
+		default:
 			expr := "mutation_result." + core.QuoteIdentifier(colSel.column.SQLName)
 			t.dialect.WriteJSONRowColumn(
 				b, colSel.alias, t.outputColumnExpression(expr, colSel.column),
@@ -37,6 +52,8 @@ func (t *table) buildColumnSelections(
 
 		*first = false
 	}
+
+	return params, paramIndex, nil
 }
 
 // buildNestedInsertSelection builds a selection from a nested insert CTE.
@@ -46,7 +63,11 @@ func (t *table) buildNestedInsertSelection(
 	cteName string,
 	fragments ast.FragmentDefinitionList,
 	first *bool,
-) error {
+	variables, sessionVariables map[string]any,
+	params []any,
+	paramIndex int,
+	role, argumentPath string,
+) ([]any, int, error) {
 	if !*first {
 		b.WriteString(", ")
 	}
@@ -54,9 +75,10 @@ func (t *table) buildNestedInsertSelection(
 	relColumns, _, err := relSel.relationship.table.astToQuerySelection(
 		relSel.field,
 		fragments,
+		role,
 	)
 	if err != nil {
-		return err
+		return nil, 0, err
 	}
 
 	// For nested inserts, use a scalar subquery wrapping the JSON row
@@ -69,12 +91,25 @@ func (t *table) buildNestedInsertSelection(
 			nestedExpr.WriteString(", ")
 		}
 
-		expr := core.QuoteIdentifier(sf.column.SQLName)
-		t.dialect.WriteJSONRowColumn(
-			nestedExpr,
-			sf.alias,
-			relSel.relationship.table.outputColumnExpression(expr, sf.column),
-		)
+		switch {
+		case sf.computed != nil:
+			params, paramIndex, err = relSel.relationship.table.writeComputedScalar(
+				nestedExpr, sf, cteName,
+				childArgumentPath(argumentPath, sf.field), variables, sessionVariables,
+				params, paramIndex,
+			)
+			if err != nil {
+				return nil, 0, fmt.Errorf("building nested computed returning: %w", err)
+			}
+		case sf.literal != "":
+			t.dialect.WriteJSONRowColumn(nestedExpr, sf.alias, "'"+sf.literal+"'")
+		default:
+			expr := core.QuoteIdentifier(sf.column.SQLName)
+			t.dialect.WriteJSONRowColumn(
+				nestedExpr, sf.alias,
+				relSel.relationship.table.outputColumnExpression(expr, sf.column),
+			)
+		}
 	}
 
 	t.dialect.WriteJSONRowSuffixNoAlias(nestedExpr)
@@ -86,7 +121,7 @@ func (t *table) buildNestedInsertSelection(
 
 	*first = false
 
-	return nil
+	return params, paramIndex, nil
 }
 
 // buildLateralJoinSelection builds a selection reference to a LATERAL join.
@@ -127,24 +162,28 @@ func (t *table) buildRelationshipSelectionsLateral(
 	nestedSelectionCTEs map[string]string,
 	fragments ast.FragmentDefinitionList,
 	first *bool,
-) error {
+	variables, sessionVariables map[string]any,
+	params []any,
+	paramIndex int,
+	role, argumentPath string,
+) ([]any, int, error) {
 	for _, relSel := range relationships {
 		if cteName, isNested := nestedSelectionCTEName(nestedSelectionCTEs, relSel); isNested {
-			if err := t.buildNestedInsertSelection(
-				b,
-				relSel,
-				cteName,
-				fragments,
-				first,
-			); err != nil {
-				return err
+			var err error
+
+			params, paramIndex, err = t.buildNestedInsertSelection(
+				b, relSel, cteName, fragments, first, variables, sessionVariables,
+				params, paramIndex, role, childArgumentPath(argumentPath, relSel.field),
+			)
+			if err != nil {
+				return nil, 0, err
 			}
 		} else {
 			t.buildLateralJoinSelection(b, relSel, first)
 		}
 	}
 
-	return nil
+	return params, paramIndex, nil
 }
 
 // buildLateralJoins builds LEFT OUTER JOIN LATERAL for non-nested relationships.
@@ -239,13 +278,22 @@ func (t *table) buildFinalSelect( //nolint:funlen
 	first := true
 
 	// Add column selections
-	t.buildColumnSelections(b, columns, &first)
+	var err error
+
+	params, paramIndex, err = t.buildColumnSelections(
+		b, columns, &first, variables, sessionVariables, params, paramIndex, argumentPath,
+	)
+	if err != nil {
+		return nil, err
+	}
 
 	if t.dialect.SupportsLateral() { //nolint:nestif
 		// PostgreSQL: reference LATERAL aliases + nested CTE subqueries
-		if err := t.buildRelationshipSelectionsLateral(
+		params, paramIndex, err = t.buildRelationshipSelectionsLateral(
 			b, relationships, nestedSelectionCTEs, fragments, &first,
-		); err != nil {
+			variables, sessionVariables, params, paramIndex, role, argumentPath,
+		)
+		if err != nil {
 			return nil, err
 		}
 
@@ -253,8 +301,6 @@ func (t *table) buildFinalSelect( //nolint:funlen
 		b.WriteString(" FROM mutation_result")
 
 		// Add LEFT OUTER JOIN LATERAL for each non-nested relationship
-		var err error
-
 		params, _, err = t.buildLateralJoins(
 			b, relationships, nestedSelectionCTEs, fragments, variables,
 			role, sessionVariables, roots, params, paramIndex, argumentPath,
@@ -270,9 +316,11 @@ func (t *table) buildFinalSelect( //nolint:funlen
 		// SQLite: embed relationships as correlated subqueries or nested CTE subqueries
 		for _, relSel := range relationships {
 			if cteName, isNested := nestedSelectionCTEName(nestedSelectionCTEs, relSel); isNested {
-				if err := t.buildNestedInsertSelection(
-					b, relSel, cteName, fragments, &first,
-				); err != nil {
+				params, paramIndex, err = t.buildNestedInsertSelection(
+					b, relSel, cteName, fragments, &first, variables, sessionVariables,
+					params, paramIndex, role, childArgumentPath(argumentPath, relSel.field),
+				)
+				if err != nil {
 					return nil, err
 				}
 			} else {

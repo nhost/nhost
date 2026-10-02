@@ -175,9 +175,9 @@ func TestGetTypeName(t *testing.T) {
 			expected:   "posts",
 		},
 		{
-			name:       "matches schema and table correctly",
+			name:       "matches the schema-qualified GraphQL type",
 			identifier: "other.users",
-			expected:   "users",
+			expected:   "other_users",
 		},
 		{
 			name:       "returns empty for nonexistent table",
