@@ -18,7 +18,7 @@ Nhost Auth exposes three independent settings under `auth.signUp` that together 
 | `auth.signUp.disableNewUsers` | Newly created users are marked disabled and can't sign in until an admin enables them. |
 | `auth.signUp.disableAutoSignup` | Sign-in endpoints stop auto-creating users; clients must call an explicit sign-up endpoint. |
 
-All three default to allowing sign-up (`enabled = true`, the two `disable*` flags `false`). Each one can be toggled independently from **Settings → Authentication** in the dashboard.
+All three default to allowing sign-up (`enabled = true`, the two `disable*` flags `false`). Each one can be toggled independently from **Auth → Settings → Authentication** in the dashboard.
 
 ## Block sign-up entirely
 
@@ -32,7 +32,7 @@ Turning `auth.signUp.enabled` off blocks every sign-up endpoint. Existing users 
   ```
   </TabItem>
   <TabItem label="Dashboard">
-  Settings → Authentication → **Disable Sign Ups**.
+  Auth → Settings → Authentication → **Disable Sign Ups**.
   </TabItem>
 </Tabs>
 
@@ -50,7 +50,7 @@ Turning `auth.signUp.disableNewUsers` on lets users register as usual, but every
   ```
   </TabItem>
   <TabItem label="Dashboard">
-  Settings → Authentication → **Disable New Users**.
+  Auth → Settings → Authentication → **Disable New Users**.
   </TabItem>
 </Tabs>
 
@@ -70,7 +70,7 @@ Turning `auth.signUp.disableAutoSignup` on separates the two flows. Sign-in endp
   ```
   </TabItem>
   <TabItem label="Dashboard">
-  Settings → Authentication → **Disable Auto Sign Up**.
+  Auth → Settings → Authentication → **Disable Auto Sign Up**.
   </TabItem>
 </Tabs>
 

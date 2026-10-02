@@ -45,7 +45,7 @@ The **value** input adapts to the operator:
 - `_is_null` — a `true`/`false` select.
 - `_in` / `_nin` — a multi-select where you can pick a session variable or enter literal values.
 - `_ceq` / `_cne` / `_cgt` / `_clt` / `_cgte` / `_clte` — a column picker; the right-hand side is another column on the same table.
-- Everything else — a combobox listing the session variables available for your project (`X-Hasura-User-Id`, `X-Hasura-Role`, plus any custom claims you've defined under **Settings → Roles and Permissions → Permission Variables**). You can also type a literal value.
+- Everything else — a combobox listing the session variables available for your project (`X-Hasura-User-Id`, `X-Hasura-Role`, plus any custom claims you've defined under **Auth → Settings → Roles and Permissions → Permission Variables**). You can also type a literal value.
 
 ## Groups and logical operators
 
