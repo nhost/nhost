@@ -59,10 +59,20 @@ export default function EditTableForm({
 
   const columns = data?.columns;
   const foreignKeyRelations = data?.foreignKeyRelations;
+  const candidateKeys = data?.candidateKeys;
 
-  const dataGridColumns = (columns || []).map((column) =>
-    normalizeDatabaseColumn(column),
-  );
+  // Not unique on its own if every key it belongs to spans several columns.
+  const dataGridColumns = (columns || []).map((column) => {
+    const normalizedColumn = normalizeDatabaseColumn(column);
+    const keys = (candidateKeys ?? []).filter(({ columns: keyColumns }) =>
+      keyColumns.includes(normalizedColumn.name),
+    );
+
+    return keys.length > 0 &&
+      keys.every(({ columns: keyColumns }) => keyColumns.length > 1)
+      ? { ...normalizedColumn, isUnique: false }
+      : normalizedColumn;
+  });
 
   const {
     mutateAsync: trackForeignKeyRelations,
@@ -90,6 +100,7 @@ export default function EditTableForm({
       name: originalTableName,
       columns: [],
       primaryKeyIndices: [],
+      uniqueKeys: [],
       identityColumnIndex: null,
       foreignKeyRelations: [],
     },
@@ -120,6 +131,25 @@ export default function EditTableForm({
         (column) => column.isIdentity,
       );
 
+      // Skips the primary key and bare unique indexes, which aren't UNIQUE constraints.
+      const uniqueConstraintNames = new Set(
+        dataGridColumns.flatMap(
+          ({ uniqueConstraints }) => uniqueConstraints ?? [],
+        ),
+      );
+      const uniqueKeys = (candidateKeys ?? [])
+        .filter(
+          ({ name, columns: keyColumns }) =>
+            keyColumns.length > 1 && uniqueConstraintNames.has(name),
+        )
+        .map(({ name, columns: keyColumns }) => ({
+          name,
+          columnIndices: keyColumns.map(
+            (column) =>
+              `${dataGridColumns.findIndex(({ id }) => id === column)}`,
+          ),
+        }));
+
       form.reset({
         name: originalTableName,
         columns: dataGridColumns.map((column) => ({
@@ -135,6 +165,7 @@ export default function EditTableForm({
           generationExpression: column.generationExpression,
         })),
         primaryKeyIndices,
+        uniqueKeys,
         identityColumnIndex:
           identityColumnIndex > -1 ? identityColumnIndex : null,
         foreignKeyRelations,
@@ -147,6 +178,7 @@ export default function EditTableForm({
     originalTableName,
     columnsStatus,
     foreignKeyRelations,
+    candidateKeys,
     dataGridColumns,
     formInitialized,
   ]);
@@ -159,6 +191,13 @@ export default function EditTableForm({
       const updatedTable: DatabaseTable = {
         ...values,
         primaryKey,
+        uniqueKeys: values.uniqueKeys?.map(
+          ({ name, newName, columnIndices }) => ({
+            name,
+            newName,
+            columns: columnIndices.map((index) => values.columns[+index].name),
+          }),
+        ),
         identityColumn:
           values.identityColumnIndex !== null &&
           typeof values.identityColumnIndex !== 'undefined'
