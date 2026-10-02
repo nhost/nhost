@@ -220,12 +220,14 @@ With **Appwrite 2.0**, you host the OAuth consent screen yourself, so users appr
 
 ## Authorization rules
 
-The test case is simple: one table, `posts`, with `title`, `body`, `published`, and an author. The app needs four basic rules:
+Authorization rules decide who can read and change which rows. To compare them, I wrote the same four rules for the `posts` table in my test app. Each post has a `title`, a `body`, a `published` flag and an author.
 
 1. Anonymous visitors see only posts where `published` is true
 2. Signed-in users can create posts
 3. Authors can edit and delete only their own
 4. Nobody else's drafts are visible to anyone
+
+I tested rules 1 and 4 on all three platforms. Rules 2 and 3 are set up on all three too, but I didn't test them end to end, since that needs real user accounts.
 
 **Supabase** does rules 1 and 4 in two policies:
 
@@ -237,11 +239,9 @@ create policy "authors read their own drafts"
 on public.posts for select to authenticated using (auth.uid() = author_id);
 ```
 
-I ran `select title, published from posts` from the dashboard's Anonymous role. One row came back out of two. The draft was invisible. That's the whole implementation.
+I ran `select title, published from posts` as the Anonymous role in the dashboard. One row came back out of two, and the draft didn't show up.
 
 ![Run as Anonymous in Supabase: one row back, the draft hidden.](/images/blog/supabase-vs-appwrite/supabase-run-as-anonymous.png)
-
-A note on scope: I directly tested rules 1 and 4 on all three platforms. Rules 2 and 3 are implemented in all three, but I didn't test them end to end because that would require real user accounts. So consider those two implemented, not proven.
 
 **Appwrite** cannot express rule 1 at all, and this is the finding I'd build the article around if I only had one. Its permission roles answer the question "who are you" - Any, All guests, All users, a specific user, a team. There is no place to put a condition about the row's own data. `published = true` is not a role. And filtering it in the query doesn't count: a query filter is a convention the caller can drop, a permission is enforced whether they cooperate or not.
 
