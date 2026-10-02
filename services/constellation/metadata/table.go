@@ -10,10 +10,37 @@ type TableMetadata struct {
 	ObjectRelationships []ObjectRelationship `json:"object_relationships,omitempty" toml:"object_relationships,omitempty"`
 	ArrayRelationships  []ArrayRelationship  `json:"array_relationships,omitempty"  toml:"array_relationships,omitempty"`
 	RemoteRelationships []RemoteRelationship `json:"remote_relationships,omitempty" toml:"remote_relationships,omitempty"`
+	ComputedFields      []ComputedField      `json:"computed_fields,omitempty"      toml:"computed_fields,omitempty"`
 	SelectPermissions   []SelectPermission   `json:"select_permissions,omitempty"   toml:"select_permissions,omitempty"`
 	InsertPermissions   []InsertPermission   `json:"insert_permissions,omitempty"   toml:"insert_permissions,omitempty"`
 	UpdatePermissions   []UpdatePermission   `json:"update_permissions,omitempty"   toml:"update_permissions,omitempty"`
 	DeletePermissions   []DeletePermission   `json:"delete_permissions,omitempty"   toml:"delete_permissions,omitempty"`
+}
+
+// ComputedField retains a table-owned PostgreSQL function definition. An
+// invalid wire entry carries both its original value and parse error for
+// later reconciliation; it is never interpreted as a valid field.
+type ComputedField struct {
+	Name        string                  `json:"name"              toml:"name"`
+	Definition  ComputedFieldDefinition `json:"definition"        toml:"definition"`
+	Comment     string                  `json:"comment,omitempty" toml:"comment,omitempty"`
+	Raw         []byte                  `json:"-"                 toml:"-"`
+	DecodeError string                  `json:"-"                 toml:"-"`
+}
+
+// ComputedFieldDefinition identifies the row-bound function and any named
+// row/session arguments specified in table metadata.
+type ComputedFieldDefinition struct {
+	Function        FunctionSource `json:"function"                   toml:"function"`
+	TableArgument   string         `json:"table_argument,omitempty"   toml:"table_argument,omitempty"`
+	SessionArgument string         `json:"session_argument,omitempty" toml:"session_argument,omitempty"`
+}
+
+// InvalidComputedFieldGrant retains an unparseable wire grant without
+// treating it as permission to access any computed field.
+type InvalidComputedFieldGrant struct {
+	Raw         []byte `json:"-" toml:"-"`
+	DecodeError string `json:"-" toml:"-"`
 }
 
 // TableSource identifies a table in the database.
@@ -86,6 +113,10 @@ type SelectPermissionConfig struct {
 	// Columns lists the columns this role is allowed to read. An empty list
 	// denies access to every column.
 	Columns []string `json:"columns,omitempty" toml:"columns,omitempty"`
+	// ComputedFields lists explicit scalar computed-field grants. Malformed
+	// wire members are kept separately and must not become grants.
+	ComputedFields        []string                    `json:"computed_fields,omitempty" toml:"computed_fields,omitempty"`
+	InvalidComputedFields []InvalidComputedFieldGrant `json:"-"                         toml:"-"`
 	// Filter is a Hasura-style boolean expression that is AND-ed into the
 	// WHERE clause of every SELECT this role issues against the table.
 	Filter map[string]any `json:"filter,omitempty" toml:"filter,omitempty"`
