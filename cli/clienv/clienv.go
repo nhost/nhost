@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -18,31 +19,22 @@ import (
 
 // sanitizeNameDrop matches every character a docker compose project name
 // cannot hold and that nothing better can be done with than dropping it.
-var sanitizeNameDrop = regexp.MustCompile(`[^a-zA-Z0-9._-]`)
+var sanitizeNameDrop = regexp.MustCompile(`[^a-zA-Z0-9_-]`)
 
 // sanitizeName turns a project name into one docker compose accepts --
 // `[a-z0-9][a-z0-9_-]*` -- or into the empty string when the name holds nothing
-// compose could be started from. What the empty string means is each caller's
-// to decide: WriteProjectName and projectNameFileSource.Lookup refuse a name
-// that sanitizes to it, while resolveProjectName passes the raw name on for
-// compose to refuse.
+// compose could be started from, which resolveProjectName then refuses.
 //
-// A dot becomes a dash rather than being dropped. Dropping it merged names that
-// are different projects: `my.app` and `myapp` both became `myapp`, so two
-// sibling projects shared one set of containers and one Postgres volume. The
-// mapping reduces those collisions rather than removing them -- no mapping into
-// compose's narrower alphabet can be one-to-one, and `my.app` and `my-app` now
-// land on the same `my-app`.
+// A dot is dropped, so `example.com` is `examplecom`. Mapping it to a dash
+// instead would rename the compose project of every existing project with a
+// dot in its name, and with it the Postgres volume, so its next `nhost up`
+// would start from an empty database.
 //
 // A name that still leads with a dash or underscore comes back empty rather
 // than trimmed into shape, because trimming merged `_myapp` into a neighbouring
 // `myapp` and quietly handed it that project's volume.
 func sanitizeName(name string) string {
 	lowered := strings.ToLower(sanitizeNameDrop.ReplaceAllString(name, ""))
-
-	// Leading dots go before the mapping below, so `.app` stays `app` rather
-	// than turning into a `-app` this function would then have to reject.
-	lowered = strings.ReplaceAll(strings.TrimLeft(lowered, "."), ".", "-")
 
 	if lowered == "" || !isComposeNameStart(lowered[0]) {
 		return ""
@@ -112,7 +104,7 @@ func FromCLI(cmd *cli.Command) *CliEnv {
 		cmd.String(flagNhostFolder),
 	)
 
-	return &CliEnv{
+	ce := &CliEnv{
 		stdout:         cmd.Writer,
 		stderr:         cmd.ErrWriter,
 		Path:           path,
@@ -121,16 +113,20 @@ func FromCLI(cmd *cli.Command) *CliEnv {
 		oauth2ClientID: cmd.String(flagOAuth2ClientID),
 		pat:            cmd.String(flagPAT),
 		branch:         cmd.String(flagBranch),
-		projectName:    resolveProjectName(cmd, path),
+		projectName:    "",
 		nhclient:       nil,
 		nhpublicclient: nil,
 		localSubdomain: cmd.String(flagLocalSubdomain),
 	}
+	ce.projectName = ce.resolveProjectName(cmd)
+
+	return ce
 }
 
 // resolveProjectName picks the docker compose project name, in the order
 // --project-name, NHOST_PROJECT_NAME, the recorded nhost/project-name, and
-// finally the working directory name the flag defaults to.
+// finally the working directory name. A blank flag or env value names no
+// project, so it falls through like an unset one.
 //
 // The recorded name is read here rather than as a flag ValueSource because a
 // source runs during parsing, before --nhost-folder is resolved, and so would
@@ -145,19 +141,39 @@ func FromCLI(cmd *cli.Command) *CliEnv {
 // very leading `_` and `-` this package refuses to trim, so a directory named
 // `_myapp` silently took over `myapp`'s containers and Postgres volume. Handing
 // compose the raw name gets the name refused out loud instead.
-func resolveProjectName(cmd *cli.Command, path *PathStructure) string {
+func (ce *CliEnv) resolveProjectName(cmd *cli.Command) string {
 	// IsSet covers both the flag and NHOST_PROJECT_NAME: a value taken from an
 	// env source marks the flag as set too.
-	if !cmd.IsSet(flagProjectName) {
-		src := &projectNameFileSource{path: path.ProjectNameFile()}
-		if name, found := src.Lookup(); found {
-			return name
-		}
+	name := cmd.String(flagProjectName)
+	if !cmd.IsSet(flagProjectName) || strings.TrimSpace(name) == "" {
+		name = ce.recordedProjectName()
 	}
 
-	name := cmd.String(flagProjectName)
 	if sanitized := sanitizeName(name); sanitized != "" {
 		return sanitized
+	}
+
+	return name
+}
+
+// recordedProjectName is the name in nhost/project-name, or the working
+// directory name when there is none. A file that exists but cannot be read
+// is reported rather than skipped quietly, since the directory name it falls
+// back to is often a generic one other projects share.
+func (ce *CliEnv) recordedProjectName() string {
+	dirName := filepath.Base(ce.Path.WorkingDir())
+
+	src := &projectNameFileSource{path: ce.Path.ProjectNameFile()}
+
+	name, found, err := src.Lookup()
+	if err != nil {
+		ce.Warnln("Using the directory name as the project name: %s", err)
+
+		return dirName
+	}
+
+	if !found {
+		return dirName
 	}
 
 	return name

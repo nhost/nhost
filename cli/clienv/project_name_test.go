@@ -1,8 +1,8 @@
 package clienv_test
 
 import (
+	"bytes"
 	"context"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -11,93 +11,6 @@ import (
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/urfave/cli/v3"
 )
-
-func TestWriteProjectName(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name    string
-		project string
-		want    string
-		wantErr bool
-	}{
-		{name: "plain name", project: "my-app", want: "my-app\n", wantErr: false},
-		{name: "name is lowercased", project: "My-App", want: "my-app\n", wantErr: false},
-		// A dot becomes a dash so that my.app and myapp stay two projects.
-		{name: "dots become dashes", project: "my.app", want: "my-app\n", wantErr: false},
-		{name: "a dotless name is untouched", project: "myapp", want: "myapp\n", wantErr: false},
-		{name: "unusable name", project: "...", want: "", wantErr: true},
-		{name: "empty name", project: "", want: "", wantErr: true},
-		// Compose refuses a project name that does not start with a letter or
-		// digit. Trimming the lead into shape would have merged `_myapp` into a
-		// neighbouring `myapp` and quietly handed it that project's volume, so
-		// such a name is refused here and the user is told instead.
-		{name: "leading dash is unusable", project: "-app", want: "", wantErr: true},
-		{name: "leading underscore is unusable", project: "_app", want: "", wantErr: true},
-		{name: "a leading dash never joins myapp", project: "-myapp", want: "", wantErr: true},
-		{
-			name:    "a leading underscore never joins myapp",
-			project: "_myapp",
-			want:    "",
-			wantErr: true,
-		},
-		// A leading dot goes before the dot-to-dash mapping, so it neither
-		// becomes a dash nor makes the name unusable.
-		{name: "leading dot is trimmed", project: ".app", want: "app\n", wantErr: false},
-		{name: "punctuation only is unusable", project: "--__", want: "", wantErr: true},
-		{name: "unicode only is unusable", project: "\u65e5\u672c\u8a9e", want: "", wantErr: true},
-		{name: "a leading digit is fine", project: "9lives", want: "9lives\n", wantErr: false},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			path := filepath.Join(t.TempDir(), "nhost", "project-name")
-
-			err := clienv.WriteProjectName(path, tt.project)
-			if (err != nil) != tt.wantErr {
-				t.Fatalf("WriteProjectName(%q) error = %v, wantErr %t", tt.project, err, tt.wantErr)
-			}
-
-			if tt.wantErr {
-				if _, err := os.Stat(path); err == nil {
-					t.Fatalf("WriteProjectName(%q) created a file for an unusable name", tt.project)
-				}
-
-				return
-			}
-
-			b, err := os.ReadFile(path)
-			if err != nil {
-				t.Fatalf("read project name file: %v", err)
-			}
-
-			if string(b) != tt.want {
-				t.Fatalf("project name file = %q, want %q", string(b), tt.want)
-			}
-		})
-	}
-}
-
-// A refused name comes back with the reason it was refused, and there are two
-// of them. `_myapp` has six usable characters and is turned away for the one it
-// starts with, so a message about having no usable characters described the
-// wrong name.
-func TestWriteProjectNameSaysWhyItRefusedTheName(t *testing.T) {
-	t.Parallel()
-
-	err := clienv.WriteProjectName(filepath.Join(t.TempDir(), "project-name"), "_myapp")
-	if err == nil {
-		t.Fatal("WriteProjectName(_myapp) error = nil, want a refusal")
-	}
-
-	for _, want := range []string{"start with a letter or number", `"_myapp"`} {
-		if !strings.Contains(err.Error(), want) {
-			t.Errorf("WriteProjectName(_myapp) error = %q, want it to mention %s", err, want)
-		}
-	}
-}
 
 // Subtests are serial: each one moves the process working directory and some
 // of them set NHOST_PROJECT_NAME.
@@ -108,14 +21,21 @@ func TestProjectNameResolution(t *testing.T) {
 		// thing the project name falls back to.
 		dir          string
 		fileContents string
-		env          string
-		folderEnv    string
-		args         []string
+		// fileIsDir puts a directory where nhost/project-name is read from, so
+		// the file exists but cannot be read.
+		fileIsDir bool
+		env       string
+		// emptyEnv sets NHOST_PROJECT_NAME even when env is the empty string.
+		emptyEnv  bool
+		folderEnv string
+		args      []string
 		// fromParent runs the command from the directory holding the backend
 		// rather than from the backend itself, which is the only way the
 		// project-structure flags point anywhere but the working directory.
 		fromParent bool
 		want       string
+		// wantOutput is text the CLI has to print while resolving the name.
+		wantOutput string
 	}{
 		{
 			name:         "falls back to the working directory name",
@@ -152,16 +72,41 @@ func TestProjectNameResolution(t *testing.T) {
 			args:         nil,
 			want:         "\u65e5\u672c\u8a9e",
 		},
-		// The recorded name is refused where it is read, so an unusable one
-		// falls through to the directory -- and an unusable directory is still
-		// handed over whole rather than resolving to nothing.
+		// A recorded name is pinned on purpose, so an unusable one is refused
+		// like any other rather than falling back to the directory, which for a
+		// backend/ is the shared project the file was written to escape.
 		{
-			name:         "an unusable recorded name falls back to the directory whole",
+			name:         "an unusable recorded name is passed on whole",
 			dir:          "_myapp",
 			fileContents: "_recorded\n",
 			env:          "",
 			args:         nil,
-			want:         "_myapp",
+			want:         "_recorded",
+		},
+		{
+			name:         "blank lines before the recorded name are skipped",
+			fileContents: "\n  \nmy-app\n",
+			env:          "",
+			args:         nil,
+			want:         "my-app",
+		},
+		{
+			name:       "an unreadable recorded name is reported",
+			fileIsDir:  true,
+			env:        "",
+			args:       nil,
+			want:       "backend",
+			wantOutput: filepath.Join("nhost", "project-name"),
+		},
+		// Dots are dropped, as they always were, so a dotted directory keeps
+		// the compose project, and with it the Postgres volume, it had.
+		{
+			name:         "a dotted directory keeps its compose project name",
+			dir:          "example.com",
+			fileContents: "",
+			env:          "",
+			args:         nil,
+			want:         "examplecom",
 		},
 		{
 			name:         "the recorded project name wins over the directory name",
@@ -171,7 +116,7 @@ func TestProjectNameResolution(t *testing.T) {
 			want:         "my-app",
 		},
 		{
-			name:         "an unusable file falls back to the directory name",
+			name:         "a blank file falls back to the directory name",
 			fileContents: "\n",
 			env:          "",
 			args:         nil,
@@ -183,6 +128,40 @@ func TestProjectNameResolution(t *testing.T) {
 			env:          "from-env",
 			args:         nil,
 			want:         "from-env",
+		},
+		// A blank value is what an empty `NHOST_PROJECT_NAME=` line in a .env
+		// file gives. It names no project, so it must not hand compose `-p ""`,
+		// which compose reads as the directory name.
+		{
+			name:         "an empty NHOST_PROJECT_NAME defers to the file",
+			fileContents: "my-app\n",
+			emptyEnv:     true,
+			args:         nil,
+			want:         "my-app",
+		},
+		{
+			name:     "an empty NHOST_PROJECT_NAME defers to the directory",
+			emptyEnv: true,
+			args:     nil,
+			want:     "backend",
+		},
+		{
+			name:         "a blank NHOST_PROJECT_NAME defers to the file",
+			fileContents: "my-app\n",
+			env:          "   ",
+			args:         nil,
+			want:         "my-app",
+		},
+		{
+			name:         "an empty --project-name defers to the file",
+			fileContents: "my-app\n",
+			args:         []string{"--project-name", ""},
+			want:         "my-app",
+		},
+		{
+			name: "an empty --project-name defers to the directory",
+			args: []string{"--project-name", ""},
+			want: "backend",
 		},
 		{
 			name:         "--project-name overrides the recorded name",
@@ -242,22 +221,9 @@ func TestProjectNameResolution(t *testing.T) {
 				dir = "backend"
 			}
 
-			root := filepath.Join(t.TempDir(), dir)
-			if err := os.MkdirAll(filepath.Join(root, "nhost"), 0o755); err != nil {
-				t.Fatalf("create backend folder: %v", err)
-			}
+			root := newBackend(t, dir, tt.fileContents, tt.fileIsDir)
 
-			if tt.fileContents != "" {
-				if err := os.WriteFile(
-					filepath.Join(root, "nhost", "project-name"),
-					[]byte(tt.fileContents),
-					0o600,
-				); err != nil {
-					t.Fatalf("write project name file: %v", err)
-				}
-			}
-
-			if tt.env != "" {
+			if tt.env != "" || tt.emptyEnv {
 				t.Setenv("NHOST_PROJECT_NAME", tt.env)
 			}
 
@@ -271,16 +237,50 @@ func TestProjectNameResolution(t *testing.T) {
 				t.Chdir(root)
 			}
 
-			if got := resolveProjectName(t, tt.args); got != tt.want {
+			got, output := resolveProjectName(t, tt.args)
+			if got != tt.want {
 				t.Fatalf("ProjectName() = %q, want %q", got, tt.want)
+			}
+
+			if !strings.Contains(output, tt.wantOutput) {
+				t.Fatalf("output %q does not mention %q", output, tt.wantOutput)
 			}
 		})
 	}
 }
 
+// newBackend creates a backend directory called dir with an nhost folder in
+// it, and puts contents in nhost/project-name, or a directory there instead
+// when fileIsDir is set.
+func newBackend(t *testing.T, dir, contents string, fileIsDir bool) string {
+	t.Helper()
+
+	root := filepath.Join(t.TempDir(), dir)
+	if err := os.MkdirAll(filepath.Join(root, "nhost"), 0o755); err != nil {
+		t.Fatalf("create backend folder: %v", err)
+	}
+
+	nameFile := filepath.Join(root, "nhost", "project-name")
+
+	if fileIsDir {
+		if err := os.Mkdir(nameFile, 0o755); err != nil {
+			t.Fatalf("create project name directory: %v", err)
+		}
+	}
+
+	if contents != "" {
+		if err := os.WriteFile(nameFile, []byte(contents), 0o600); err != nil {
+			t.Fatalf("write project name file: %v", err)
+		}
+	}
+
+	return root
+}
+
 // resolveProjectName runs a throwaway command with the real global flags and
-// returns the project name the CLI would hand to docker compose.
-func resolveProjectName(t *testing.T, args []string) string {
+// returns the project name the CLI would hand to docker compose, along with
+// what it printed.
+func resolveProjectName(t *testing.T, args []string) (string, string) {
 	t.Helper()
 
 	flags, err := clienv.Flags()
@@ -288,7 +288,10 @@ func resolveProjectName(t *testing.T, args []string) string {
 		t.Fatalf("Flags: %v", err)
 	}
 
-	var got string
+	var (
+		got    string
+		output bytes.Buffer
+	)
 
 	cmd := &cli.Command{
 		Name:  "nhost",
@@ -302,8 +305,8 @@ func resolveProjectName(t *testing.T, args []string) string {
 				},
 			},
 		},
-		Writer:    io.Discard,
-		ErrWriter: io.Discard,
+		Writer:    &output,
+		ErrWriter: &output,
 	}
 
 	argv := append([]string{"nhost"}, args...)
@@ -311,5 +314,5 @@ func resolveProjectName(t *testing.T, args []string) string {
 		t.Fatalf("run %s: %v", strings.Join(argv, " "), err)
 	}
 
-	return got
+	return got, output.String()
 }

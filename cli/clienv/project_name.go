@@ -3,62 +3,39 @@ package clienv
 import (
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
-	"path/filepath"
 	"strings"
 )
 
-const projectNameFilePerm = 0o644
-
-// errUnusableProjectName covers both reasons sanitizeName comes back empty: the
-// name holds nothing docker compose accepts, or what it does hold starts with a
-// character compose will not open a project name with.
-var errUnusableProjectName = errors.New(
-	"project name has no usable characters, or does not start with a letter or number",
-)
-
-// WriteProjectName records name at path as the docker compose project name for
-// this project. `nhost create` writes it into the generated backend so each
-// project keeps its own containers and database volume without the user
-// exporting NHOST_PROJECT_NAME.
-func WriteProjectName(path, name string) error {
-	sanitized := sanitizeName(name)
-	if sanitized == "" {
-		return fmt.Errorf("%w: %q", errUnusableProjectName, name)
-	}
-
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil { //nolint:mnd
-		return fmt.Errorf("failed to create folder for %s: %w", path, err)
-	}
-
-	if err := os.WriteFile(path, []byte(sanitized+"\n"), projectNameFilePerm); err != nil {
-		return fmt.Errorf("failed to write project name file %s: %w", path, err)
-	}
-
-	return nil
-}
-
-// projectNameFileSource reads the project name out of the file
-// WriteProjectName produced. Where it ranks is resolveProjectName's business,
-// not this type's: it only reports what the file holds, and stays silent when
-// the file is missing, unreadable, or holds nothing a compose project name can
-// be built from.
+// projectNameFileSource reads the project name recorded in nhost/project-name.
+// Nothing in the CLI writes that file: it is committed and hand-written, which
+// is what makes it the way to pin a compose project name for a layout the
+// working directory name gets wrong, such as a backend kept in a folder of its
+// own. Where it ranks, and what happens to a name compose would refuse, is
+// resolveProjectName's business: this type only reports what the file holds.
 type projectNameFileSource struct {
 	path string
 }
 
-func (s *projectNameFileSource) Lookup() (string, bool) {
+// Lookup returns the first non-blank line of the file, trimmed. A missing or
+// blank file is not a source; a file that exists but cannot be read is an
+// error.
+func (s *projectNameFileSource) Lookup() (string, bool, error) {
 	b, err := os.ReadFile(s.path)
+	if errors.Is(err, fs.ErrNotExist) {
+		return "", false, nil
+	}
+
 	if err != nil {
-		return "", false
+		return "", false, fmt.Errorf("failed to read project name: %w", err)
 	}
 
-	firstLine, _, _ := strings.Cut(string(b), "\n")
-
-	name := sanitizeName(firstLine)
-	if name == "" {
-		return "", false
+	for line := range strings.Lines(string(b)) {
+		if name := strings.TrimSpace(line); name != "" {
+			return name, true, nil
+		}
 	}
 
-	return name, true
+	return "", false, nil
 }

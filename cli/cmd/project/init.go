@@ -104,7 +104,7 @@ func commandInit(ctx context.Context, cmd *cli.Command) error {
 			return fmt.Errorf("failed to initialize remote project: %w", err)
 		}
 	} else {
-		if err := InitProject(ce.Path); err != nil {
+		if err := initProject(ce.Path); err != nil {
 			return fmt.Errorf("failed to initialize project: %w", err)
 		}
 	}
@@ -114,9 +114,9 @@ func commandInit(ctx context.Context, cmd *cli.Command) error {
 	return nil
 }
 
-// InitProject scaffolds the local project layout at the given path, creating
+// initProject scaffolds the local project layout at the given path, creating
 // every folder it writes into, including the nhost folder itself.
-func InitProject(ps *clienv.PathStructure) error {
+func initProject(ps *clienv.PathStructure) error {
 	if err := initFolders(ps); err != nil {
 		return err
 	}
@@ -173,7 +173,7 @@ func InitRemote(
 		return fmt.Errorf("failed to pull config: %w", err)
 	}
 
-	if err := InitProject(ce.Path); err != nil {
+	if err := initProject(ce.Path); err != nil {
 		return err
 	}
 

@@ -7,7 +7,7 @@ head:
     content: "Run Several Local Nhost Instances in Parallel | Nhost Docs"
 ---
 
-By default the name of the project is going to be the folder of the root of your project and it's goint to run on port 443 (https) and 5432 (postgres). If you need to run multiple projects or multiple instances of the same project at the same time you may need to override those. For instance:
+By default the name of the project is going to be the folder of the root of your project, unless one is recorded in `nhost/project-name` as described below, and it's goint to run on port 443 (https) and 5432 (postgres). If you need to run multiple projects or multiple instances of the same project at the same time you may need to override those. For instance:
 
 ```bash
 $ nhost up
@@ -106,3 +106,35 @@ alternativeproject-auth-1  | {"level":"info","message":"Applying metadata..."}
 alternativeproject-auth-1  | {"level":"info","message":"Metadata applied"}
 alternativeproject-auth-1  | {"level":"info","message":"Running on port 4000"}
 ```
+
+## Recording the project name
+
+Passing `--project-name` on every command is easy to forget, and the folder name
+is often generic. Two projects that both keep their backend in a `backend/`
+folder would share one set of containers and one Postgres volume. To give a
+project a name that follows it wherever it lives, write the name to
+`nhost/project-name` and commit it:
+
+```bash
+$ echo my-app > nhost/project-name
+$ nhost up
+```
+
+The file is read from the nhost folder, so it is also found when you point the
+CLI at the project with `--nhost-folder`. The name is resolved in this order.
+An empty `--project-name` or `NHOST_PROJECT_NAME` does not set the name, but an
+empty `--project-name` still takes the place of `NHOST_PROJECT_NAME`, so the
+name then comes from the file or the folder:
+
+1. `--project-name`
+2. `NHOST_PROJECT_NAME`
+3. the first non-blank line of `nhost/project-name`
+4. the name of the current folder
+
+Whichever value wins, the name is lowercased and any character other than
+ASCII letters, digits, `-` and `_` is dropped, so `My.App` becomes `myapp`. It
+then has to start with a letter or digit. A name that does not is not shortened
+to one that does, since that could take over another project's containers; it
+is passed to Docker Compose as written and Docker Compose refuses to start. If
+`nhost/project-name` exists but cannot be read, the CLI prints a warning and
+uses the folder name.

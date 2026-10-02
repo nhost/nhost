@@ -32,14 +32,7 @@ func TestProjectNameFileSourceLookup(t *testing.T) {
 		},
 		{
 			name:      "blank file is not a source",
-			contents:  "   \n",
-			writeFile: true,
-			want:      "",
-			wantFound: false,
-		},
-		{
-			name:      "file without usable characters is not a source",
-			contents:  "...\n",
+			contents:  "   \n\n",
 			writeFile: true,
 			want:      "",
 			wantFound: false,
@@ -52,50 +45,33 @@ func TestProjectNameFileSourceLookup(t *testing.T) {
 			wantFound: true,
 		},
 		{
-			name:      "name is lowercased and sanitized",
-			contents:  "My.App\n",
+			name:      "surrounding whitespace is trimmed",
+			contents:  "  my-app \r\n",
 			writeFile: true,
 			want:      "my-app",
 			wantFound: true,
 		},
-		// The file is committed, so it is hand-editable. A body compose would
-		// refuse has to fall through to the directory name rather than reach
-		// `docker compose -p` and fail there. It is not trimmed into shape:
-		// `-myapp` trimmed to `myapp` would silently join a sibling project
-		// already running under that name.
 		{
-			name:      "a leading dash is not a source",
-			contents:  "-app\n",
+			name:      "leading blank lines are skipped",
+			contents:  "\n  \nmy-app\n",
 			writeFile: true,
-			want:      "",
-			wantFound: false,
-		},
-		{
-			name:      "a leading dash never joins the name it would trim to",
-			contents:  "-myapp\n",
-			writeFile: true,
-			want:      "",
-			wantFound: false,
-		},
-		{
-			name:      "a leading underscore never joins the name it would trim to",
-			contents:  "_myapp\n",
-			writeFile: true,
-			want:      "",
-			wantFound: false,
-		},
-		{
-			name:      "a body compose could never accept is not a source",
-			contents:  "--__\n",
-			writeFile: true,
-			want:      "",
-			wantFound: false,
+			want:      "my-app",
+			wantFound: true,
 		},
 		{
 			name:      "only the first line is used",
 			contents:  "my-app\nleftovers\n",
 			writeFile: true,
 			want:      "my-app",
+			wantFound: true,
+		},
+		// Refusing a name compose cannot take is resolveProjectName's job, so
+		// the file reports it as written rather than as nothing.
+		{
+			name:      "a name compose would refuse is reported as written",
+			contents:  "_myapp\n",
+			writeFile: true,
+			want:      "_myapp",
 			wantFound: true,
 		},
 	}
@@ -113,11 +89,62 @@ func TestProjectNameFileSourceLookup(t *testing.T) {
 
 			src := &projectNameFileSource{path: path}
 
-			got, found := src.Lookup()
+			got, found, err := src.Lookup()
+			if err != nil {
+				t.Fatalf("Lookup: %v", err)
+			}
+
 			if got != tt.want || found != tt.wantFound {
 				t.Fatalf(
 					"Lookup() = (%q, %t), want (%q, %t)",
 					got, found, tt.want, tt.wantFound,
+				)
+			}
+		})
+	}
+}
+
+func TestProjectNameFileSourceLookupUnreadable(t *testing.T) {
+	t.Parallel()
+
+	src := &projectNameFileSource{path: t.TempDir()}
+
+	if got, found, err := src.Lookup(); err == nil {
+		t.Fatalf("Lookup() = (%q, %t, nil), want an error", got, found)
+	}
+}
+
+func TestSanitizeName(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{name: "a valid name is kept", input: "my-app", want: "my-app"},
+		{name: "a name is lowercased", input: "My_App", want: "my_app"},
+		// Dropping the dot is what main always did. Existing projects with a
+		// dot in their directory name keep their compose project and volume.
+		{name: "a dot is dropped", input: "example.com", want: "examplecom"},
+		{name: "a leading dot is dropped", input: ".app", want: "app"},
+		{name: "a leading digit is kept", input: "9lives", want: "9lives"},
+		{name: "nothing usable", input: "...", want: ""},
+		{name: "only unicode", input: "\u65e5\u672c\u8a9e", want: ""},
+		// Trimming these would join a sibling project already running under
+		// the trimmed name.
+		{name: "a leading dash", input: "-myapp", want: ""},
+		{name: "a leading underscore", input: "_myapp", want: ""},
+		{name: "only separators", input: "--__", want: ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := sanitizeName(tt.input); got != tt.want {
+				t.Fatalf(
+					"sanitizeName(%q) = %q, want %q", tt.input, got, tt.want,
 				)
 			}
 		})

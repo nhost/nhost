@@ -1,4 +1,4 @@
-package project_test
+package project
 
 import (
 	"os"
@@ -6,10 +6,11 @@ import (
 	"testing"
 
 	"github.com/nhost/nhost/cli/clienv"
-	cmdproject "github.com/nhost/nhost/cli/cmd/project"
 	"gopkg.in/yaml.v3"
 )
 
+// initProject starts from a directory with no nhost folder in it, which is
+// why it creates the folders before writing into them.
 func TestInitProject(t *testing.T) {
 	t.Parallel()
 
@@ -21,16 +22,18 @@ func TestInitProject(t *testing.T) {
 		filepath.Join(root, "nhost"),
 	)
 
-	if err := cmdproject.InitProject(ps); err != nil {
-		t.Fatalf("InitProject: %v", err)
+	if err := initProject(ps); err != nil {
+		t.Fatalf("initProject: %v", err)
 	}
 
+	nhostFolder := ps.NhostFolder()
+
 	for _, path := range []string{
-		filepath.Join(ps.NhostFolder(), "metadata"),
-		filepath.Join(ps.NhostFolder(), "migrations", "default"),
+		filepath.Join(nhostFolder, "metadata"),
+		filepath.Join(nhostFolder, "migrations", "default"),
 		filepath.Join(root, ".gitignore"),
 		filepath.Join(root, "functions", "package.json"),
-		filepath.Join(ps.NhostFolder(), "emails", "en", "signin-otp", "body.html"),
+		filepath.Join(nhostFolder, "emails", "en", "signin-otp", "body.html"),
 	} {
 		if _, err := os.Stat(path); err != nil {
 			t.Errorf("expected %s to exist: %v", path, err)
@@ -41,7 +44,9 @@ func TestInitProject(t *testing.T) {
 		Version int `yaml:"version"`
 	}
 
-	if err := clienv.UnmarshalFile(ps.HasuraConfig(), &hasuraConf, yaml.Unmarshal); err != nil {
+	if err := clienv.UnmarshalFile(
+		ps.HasuraConfig(), &hasuraConf, yaml.Unmarshal,
+	); err != nil {
 		t.Fatalf("failed to read hasura config: %v", err)
 	}
 
