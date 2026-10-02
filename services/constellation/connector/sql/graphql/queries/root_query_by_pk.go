@@ -49,7 +49,7 @@ func (t *table) buildQueryByPkSQL(
 		"_root",
 		t.tableFromClause(),
 		t.tableSourceRef(),
-		rootFieldName(field),
+		errorFieldName(field),
 		func(whereClause where.Clause, modifiers []arguments.QueryModifier) (where.Clause, []arguments.QueryModifier) {
 			return append(whereClause, where.NewAndFilter(pkConditions)), modifiers
 		},
@@ -181,7 +181,7 @@ func (t *table) buildQuerySQLWithNestedCTEs(
 	argumentPath string,
 	queryModifiers ...queryModifierFunc,
 ) ([]any, int, error) {
-	columns, relationships, err := t.astToQuerySelection(field, fragments)
+	columns, relationships, err := t.astToQuerySelection(field, fragments, role)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -199,7 +199,13 @@ func (t *table) buildQuerySQLWithNestedCTEs(
 	b.WriteString("SELECT ")
 	t.dialect.WriteJSONRowPrefix(b)
 
-	hasColumns := t.writeNodeColumnSelections(b, columns, baseAlias)
+	hasColumns, params, paramIndex, err := t.writeQueryNodeColumns(
+		b, columns, baseAlias, variables, sessionVariables, params, paramIndex,
+		argumentPath,
+	)
+	if err != nil {
+		return nil, 0, fmt.Errorf("building computed selection: %w", err)
+	}
 
 	if t.dialect.SupportsLateral() {
 		return t.buildQueryRelationshipsLateral(

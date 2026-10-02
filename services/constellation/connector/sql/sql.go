@@ -74,13 +74,16 @@ type Connector struct {
 // / columns / functions / relationships / enum tables that exist in metadata
 // but not in the source) are recorded on inconsistencies and dropped from
 // the effective metadata so the rest of the source keeps serving. Pass nil
-// for inconsistencies to drop those records on the floor.
+// for inconsistencies to drop those records on the floor. Optional capabilities
+// are an alpha-only selection gate for isolated tests; production callers omit
+// them and keep computed fields unavailable until shared row consumers work.
 func NewConnector(
 	ctx context.Context,
 	driver Driver,
 	dbMeta *metadata.DatabaseMetadata,
 	inconsistencies *metadata.Inconsistencies,
 	logger *slog.Logger,
+	capabilities ...schema.Capabilities,
 ) (*Connector, error) {
 	dial := driver.Dialect()
 
@@ -91,12 +94,22 @@ func NewConnector(
 
 	effectiveMeta := reconcileMetadata(ctx, logger, inconsistencies, dbMeta, objects)
 
-	roots, groupedAggOp, err := queries.BuildRoots(objects, effectiveMeta, dial)
+	kind, err := schema.ParseDBKind(effectiveMeta.Kind)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load schema: parsing database kind: %w", err)
+	}
+
+	caps := schema.NewCapabilities(kind, dial)
+	if len(capabilities) == 1 && caps.SupportsComputedFields {
+		caps.SupportsComputedScalarSelection = capabilities[0].SupportsComputedScalarSelection
+	}
+
+	roots, groupedAggOp, err := queries.BuildRoots(objects, effectiveMeta, dial, caps)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build GraphQL roots: %w", err)
 	}
 
-	schemas, err := reloadSchema(objects, effectiveMeta, dial)
+	schemas, err := reloadSchema(objects, effectiveMeta, dial, caps)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load schema: %w", err)
 	}
@@ -160,6 +173,7 @@ func reloadSchema(
 	objects *introspection.Objects,
 	dbMeta *metadata.DatabaseMetadata,
 	dial dialect.Dialect,
+	capabilities ...schema.Capabilities,
 ) (map[string]*graph.Schema, error) {
 	roles := collectRolesFromDatabaseMetadata(dbMeta)
 
@@ -171,6 +185,11 @@ func reloadSchema(
 	}
 
 	caps := schema.NewCapabilities(kind, dial)
+	if len(capabilities) == 1 && caps.SupportsComputedFields {
+		// Production calls omit this temporary alpha gate. Tests inject a
+		// PostgreSQL capability value to exercise the full connector path.
+		caps.SupportsComputedScalarSelection = capabilities[0].SupportsComputedScalarSelection
+	}
 
 	for _, role := range roles {
 		sch, err := schema.GenerateForRole(

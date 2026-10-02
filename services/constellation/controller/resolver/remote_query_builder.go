@@ -73,6 +73,7 @@ func buildRemoteQueryFromPlan(
 			sourceField:         rqp.Selection,
 			fragments:           fragments,
 			parentPath:          rqp.SourcePath,
+			namePath:            rqp.SourceNamePath,
 			localPhantomFields:  localPhantomFields,
 			localJoinAliases:    localJoinAliases,
 			remotePhantomFields: nil,
@@ -101,6 +102,7 @@ func buildRemoteQueryFromPlan(
 		sourceField:         rqp.Selection,
 		fragments:           fragments,
 		parentPath:          rqp.SourcePath,
+		namePath:            rqp.SourceNamePath,
 		localPhantomFields:  localPhantomFields,
 		localJoinAliases:    localJoinAliases,
 		remotePhantomFields: nil, // Set by resolver during BuildOperation.

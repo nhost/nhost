@@ -755,12 +755,8 @@ func (t *table) astToMutationSelection(
 
 	result.dialect = t.dialect
 
-	// Get root field alias for path building
-	// For mutations, paths need to be like "insert_user_profiles.returning.user"
-	rootAlias := field.Alias
-	if rootAlias == "" {
-		rootAlias = field.Name
-	}
+	// Error paths use field names, not response aliases.
+	rootErrorPath := errorFieldName(field)
 
 	collectFields = func(selectionSet ast.SelectionSet) {
 		if collectErr != nil {
@@ -770,7 +766,7 @@ func (t *table) astToMutationSelection(
 		for _, selection := range selectionSet {
 			switch sel := selection.(type) {
 			case *ast.Field:
-				collectErr = t.processMutationField(sel, fragments, rootAlias, &result)
+				collectErr = t.processMutationField(sel, fragments, rootErrorPath, &result)
 			case *ast.InlineFragment:
 				collectFields(sel.SelectionSet)
 			case *ast.FragmentSpread:
@@ -797,7 +793,7 @@ func (t *table) astToMutationSelection(
 func (t *table) processMutationField(
 	sel *ast.Field,
 	fragments ast.FragmentDefinitionList,
-	rootAlias string,
+	rootErrorPath string,
 	result *mutationSelection,
 ) error {
 	switch sel.Name {
@@ -809,7 +805,7 @@ func (t *table) processMutationField(
 		)
 	case "returning":
 		columns, relationships, err := t.astToQuerySelectionWithPath(
-			sel, fragments, rootAlias,
+			sel, fragments, rootErrorPath,
 		)
 		if err != nil {
 			return fmt.Errorf("failed to build mutation returning selection: %w", err)
@@ -822,7 +818,7 @@ func (t *table) processMutationField(
 
 		result.returning = selectionReturning{
 			alias:          returningAlias,
-			argumentPath:   childArgumentPath(rootAlias, sel),
+			argumentPath:   childArgumentPath(rootErrorPath, sel),
 			columns:        columns,
 			relationships:  relationships,
 			dialect:        t.dialect,

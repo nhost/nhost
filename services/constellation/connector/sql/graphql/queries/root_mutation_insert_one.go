@@ -51,7 +51,7 @@ func (t *table) buildMutationInsertOneSQL(
 		role,
 		sessionVariables,
 		roots,
-		rootFieldName(field),
+		errorFieldName(field),
 	)
 	if err != nil {
 		putBuilder(b)

@@ -183,6 +183,10 @@ func classifyStructuredConnectorError(err error) ([]map[string]any, bool) {
 		return []map[string]any{vErr.AsMap()}, true
 	}
 
+	if omitted, ok := errors.AsType[*arguments.ComputedOmissionError](err); ok {
+		return []map[string]any{omitted.AsMap()}, true
+	}
+
 	if dataErr, ok := errors.AsType[*arguments.DataExceptionError](err); ok {
 		return []map[string]any{dataErr.AsMap()}, true
 	}

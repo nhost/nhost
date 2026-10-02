@@ -110,6 +110,10 @@ type RemoteQueryPlan struct {
 	// SourcePath is the path to the parent data in results (e.g., "games.homeTeam").
 	SourcePath jsonpath.Path
 
+	// SourceNamePath is the same selection path using GraphQL field names, not
+	// result aliases. It is used only to render client validation error paths.
+	SourceNamePath jsonpath.Path
+
 	// TargetConnector is where to fetch related data from.
 	TargetConnector string
 
