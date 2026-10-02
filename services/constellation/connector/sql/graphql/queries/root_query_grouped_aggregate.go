@@ -254,7 +254,7 @@ func (t *table) writeGroupedAggregateStatement(
 
 	params, err = t.writeGroupedAggregateOuter(
 		b, params, paramIndex,
-		in.Fragments, sel.outerTypenames, sel.aggregateFields, sel.nodesFields, joinCol, alias,
+		in, sel.outerTypenames, sel.aggregateFields, sel.nodesFields, joinCol, alias,
 		sel.distinctOn, sel.orderBy, sourceAlias, sel.limitOffset,
 	)
 	if err != nil {
@@ -327,7 +327,7 @@ func groupedAggregateArgumentPath(in groupedaggdispatch.BuildInput) string {
 		return in.ArgumentPath
 	}
 
-	return rootFieldName(in.Field)
+	return errorFieldName(in.Field)
 }
 
 // writeGroupedAggregateCTE writes the base CTE that LEFT JOINs the target
@@ -630,7 +630,7 @@ func writeGroupedDistinctOrderBy(b *strings.Builder, orderBy *arguments.OrderBy)
 func (t *table) writeGroupedAggregateOuter( //nolint:funlen
 	b *strings.Builder,
 	params []any, paramIndex int,
-	fragments ast.FragmentDefinitionList,
+	in groupedaggdispatch.BuildInput,
 	outerTypenames []typenameSelection,
 	aggregateFields []aggregateFieldSelection,
 	nodesFields []aggregateNodesSelection,
@@ -690,10 +690,17 @@ func (t *table) writeGroupedAggregateOuter( //nolint:funlen
 		b.WriteByte(')')
 	}
 
+	argumentPath := in.ArgumentPath
+	if argumentPath == "" && in.Field != nil {
+		argumentPath = errorFieldName(in.Field)
+	}
+
 	for i := range nodesFields {
 		if err := t.writeGroupedAggregateNodes(
 			b, nodesFields[i].responseName, nodesFields[i].field,
-			fragments, joinCol, distinctOn, orderBy, sourceAlias,
+			in.Fragments, joinCol, distinctOn, orderBy, sourceAlias,
+			in.Variables, in.SessionVariables, in.Role, &params, &paramIndex,
+			childArgumentPath(argumentPath, nodesFields[i].field),
 		); err != nil {
 			return nil, err
 		}
@@ -780,8 +787,13 @@ func (t *table) writeGroupedAggregateNodes(
 	distinctOn *arguments.DistinctOn,
 	orderBy *arguments.OrderBy,
 	sourceAlias string,
+	variables, sessionVariables map[string]any,
+	role string,
+	params *[]any,
+	paramIndex *int,
+	argumentPath string,
 ) error {
-	columns, relationships, err := t.astToQuerySelection(nodesField, fragments)
+	columns, relationships, err := t.astToQuerySelection(nodesField, fragments, role)
 	if err != nil {
 		return err
 	}
@@ -797,7 +809,15 @@ func (t *table) writeGroupedAggregateNodes(
 	var rowB strings.Builder
 
 	t.dialect.WriteJSONRowPrefix(&rowB)
-	t.writeNodeColumnSelections(&rowB, columns, sourceAlias)
+
+	_, *params, *paramIndex, err = t.writeQueryNodeColumns(
+		&rowB, columns, sourceAlias, variables, sessionVariables, *params, *paramIndex,
+		argumentPath,
+	)
+	if err != nil {
+		return fmt.Errorf("building computed grouped nodes: %w", err)
+	}
+
 	t.dialect.WriteJSONRowSuffixNoAlias(&rowB)
 	t.writeGroupedNodesOrderBy(&rowB, distinctOn, orderBy, sourceAlias)
 

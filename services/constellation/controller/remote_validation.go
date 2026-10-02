@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/nhost/nhost/services/constellation/connector/groupedaggregate"
-	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 	"github.com/nhost/nhost/services/constellation/controller/planner"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -174,7 +173,7 @@ func remoteValidationOperation(
 	return &ast.OperationDefinition{ //nolint:exhaustruct
 		Operation:    ast.Query,
 		SelectionSet: ast.SelectionSet{field},
-	}, responseFieldName(field)
+	}, field.Name
 }
 
 func remoteTargetTableName(state *controllerState, rqp *planner.RemoteQueryPlan) string {
@@ -260,9 +259,14 @@ func singleTargetJoinColumn(joinMapping map[string]string) (string, bool) {
 }
 
 func remoteQueryArgumentPath(rqp *planner.RemoteQueryPlan) string {
-	path := make([]string, 0, len(rqp.SourcePath)+1)
-	path = append(path, rqp.SourcePath...)
-	path = append(path, rqp.OutputField)
+	names := rqp.SourceNamePath
+	if len(names) == 0 {
+		names = rqp.SourcePath
+	}
+
+	path := make([]string, 0, len(names)+1)
+	path = append(path, names...)
+	path = append(path, rqp.Selection.Name)
 
 	return strings.Join(path, ".selectionSet.")
 }
@@ -284,8 +288,11 @@ func remapRemoteValidationArgumentPath(
 		return err
 	}
 
-	if vErr, ok := errors.AsType[*arguments.QueryValidationError](err); ok {
-		vErr.RemapArgumentPath(func(path string) string {
+	if remapper, ok := errors.AsType[interface {
+		error
+		RemapArgumentPath(remap func(argumentPath string) (mappedPath string))
+	}](err); ok {
+		remapper.RemapArgumentPath(func(path string) string {
 			if remoteRootPath == "" || path == remoteRootPath {
 				return clientPath
 			}

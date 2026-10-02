@@ -11,6 +11,7 @@ import (
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/dialect"
 	groupedaggdispatch "github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/groupedaggregate"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/permissions"
+	graphqlschema "github.com/nhost/nhost/services/constellation/connector/sql/graphql/schema"
 	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
@@ -46,10 +47,28 @@ type Roots struct {
 // its introspection objects and metadata. It also returns a grouped-aggregate
 // Ops handle used by cross-database aggregate resolution. nil or empty
 // metadata yields a Roots with only an empty query map and an empty Ops.
-func BuildRoots( //nolint:funlen
+// Omitting capabilities keeps scalar computed selection off in production;
+// an injected PostgreSQL capability enables it only in isolated alpha tests.
+func BuildRoots(
 	objects *introspection.Objects,
 	md *metadata.DatabaseMetadata,
 	dialect dialect.Dialect,
+	capabilities ...graphqlschema.Capabilities,
+) (Roots, *groupedaggdispatch.Ops, error) {
+	scalarSelection := len(capabilities) == 1 && capabilities[0].SupportsComputedFields &&
+		capabilities[0].SupportsComputedScalarSelection
+
+	return buildRoots(objects, md, dialect, scalarSelection)
+}
+
+// buildRoots keeps the default-off production path separate from gated tests.
+//
+//nolint:funlen,cyclop // Established root registration spans query, mutation and subscription contexts.
+func buildRoots(
+	objects *introspection.Objects,
+	md *metadata.DatabaseMetadata,
+	dialect dialect.Dialect,
+	scalarSelection bool,
 ) (Roots, *groupedaggdispatch.Ops, error) {
 	if md == nil || len(md.Tables) == 0 {
 		return Roots{
@@ -87,6 +106,11 @@ func BuildRoots( //nolint:funlen
 	}
 
 	for i, tableMeta := range md.Tables {
+		if scalarSelection && dialect.SupportsFunctions() &&
+			(md.Kind == "postgres" || md.Kind == "") {
+			tables[i].initializeComputedScalars(objects, tableMeta)
+		}
+
 		if err := permissions.Initialize(tables[i], tables[i].permissions, tableMeta); err != nil {
 			return Roots{}, nil, fmt.Errorf("failed to initialize table %s.%s: %w",
 				tableMeta.Table.Schema, tableMeta.Table.Name, err)
@@ -194,7 +218,7 @@ func (r Roots) BuildQuery(
 		// Build the SQL query for this field
 		sqlOp, err := opFn(field, fragments, variables, role, sessionVariables, rootMap)
 		if err != nil {
-			err = annotateQueryValidationError(err, rootFieldName(field))
+			err = annotateQueryValidationError(err, errorFieldName(field))
 
 			return nil, fmt.Errorf("failed to build query for field %q: %w", field.Name, err)
 		}
@@ -220,9 +244,8 @@ func annotateQueryValidationError(err error, argumentPath string) error {
 	return err
 }
 
-// rootFieldName returns the name used to refer to a root field in a GraphQL
-// error path: the response alias when one is given, otherwise the field name.
-// This matches how Hasura builds the "$.selectionSet.<rootField>.args" path.
+// rootFieldName returns the response key used to label SQL output. Validation
+// paths use errorFieldName instead: Hasura reports field names, not aliases.
 func rootFieldName(field *ast.Field) string {
 	if field.Alias != "" {
 		return field.Alias
@@ -231,12 +254,14 @@ func rootFieldName(field *ast.Field) string {
 	return field.Name
 }
 
-// childArgumentPath appends a field (alias preferred) to the GraphQL selection
-// path suffix stamped on QueryValidationError. The suffix deliberately omits
-// the leading "$.selectionSet." and trailing ".args" because
-// QueryValidationError adds those when rendering the final GraphQL error.
+// errorFieldName names the GraphQL field in an error path, independently of
+// its SQL/response alias.
+func errorFieldName(field *ast.Field) string { return field.Name }
+
+// childArgumentPath appends a field name to the GraphQL selection path suffix.
+// QueryValidationError adds the leading "$.selectionSet." and trailing ".args".
 func childArgumentPath(parentPath string, field *ast.Field) string {
-	child := rootFieldName(field)
+	child := errorFieldName(field)
 	if parentPath == "" {
 		return child
 	}

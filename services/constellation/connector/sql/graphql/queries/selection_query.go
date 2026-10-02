@@ -9,9 +9,11 @@ import (
 )
 
 type columnSelection struct {
-	alias   string
-	column  *core.Column
-	literal string // holds a literal value (e.g., __typename); could be generalized to an interface
+	alias    string
+	column   *core.Column
+	literal  string // holds a literal value (e.g., __typename)
+	computed *computedScalar
+	field    *ast.Field
 }
 
 type relationshipSelection struct {
@@ -28,8 +30,9 @@ type relationshipSelection struct {
 func (t *table) astToQuerySelection(
 	field *ast.Field,
 	fragments ast.FragmentDefinitionList,
+	role ...string,
 ) ([]columnSelection, []relationshipSelection, error) {
-	return t.astToQuerySelectionWithPath(field, fragments, "")
+	return t.astToQuerySelectionWithPath(field, fragments, "", role...)
 }
 
 // astToQuerySelectionWithPath is like astToQuerySelection but allows specifying a parent path prefix.
@@ -39,7 +42,15 @@ func (t *table) astToQuerySelectionWithPath( //nolint:funlen,cyclop,gocognit
 	field *ast.Field,
 	fragments ast.FragmentDefinitionList,
 	parentPath string,
+	role ...string,
 ) ([]columnSelection, []relationshipSelection, error) {
+	// Missing role context must never turn a computed field into an admin
+	// selection (mutation returning passes it explicitly only in Phase 7).
+	selectedRole := ""
+	if len(role) > 0 {
+		selectedRole = role[0]
+	}
+
 	var (
 		columns       []columnSelection
 		relationships []relationshipSelection
@@ -47,16 +58,13 @@ func (t *table) astToQuerySelectionWithPath( //nolint:funlen,cyclop,gocognit
 		collectFields func(selectionSet ast.SelectionSet, currentPath string)
 	)
 
-	// Determine the field alias for path building
-	fieldAlias := field.Alias
-	if fieldAlias == "" {
-		fieldAlias = field.Name
-	}
+	// Validation paths use field names; response keys still use aliases.
+	fieldName := errorFieldName(field)
 
 	// Include parent path if provided (for mutations)
-	basePath := fieldAlias
+	basePath := fieldName
 	if parentPath != "" {
-		basePath = parentPath + "." + fieldAlias
+		basePath = parentPath + "." + fieldName
 	}
 
 	collectFields = func(selectionSet ast.SelectionSet, currentPath string) {
@@ -76,9 +84,11 @@ func (t *table) astToQuerySelectionWithPath( //nolint:funlen,cyclop,gocognit
 
 					if !hasColumnAlias(columns, alias) {
 						columns = append(columns, columnSelection{
-							alias:   alias,
-							literal: t.graphqlTypeName,
-							column:  nil,
+							alias:    alias,
+							literal:  t.graphqlTypeName,
+							column:   nil,
+							computed: nil,
+							field:    nil,
 						})
 					}
 
@@ -88,6 +98,24 @@ func (t *table) astToQuerySelectionWithPath( //nolint:funlen,cyclop,gocognit
 				if c := t.astToQuerySelectionColumn(sel); c != nil {
 					if !hasColumnAlias(columns, c.alias) {
 						columns = append(columns, *c)
+					}
+
+					continue
+				}
+
+				if computed := t.computedFromGraphqlName(sel.Name, selectedRole); computed != nil {
+					alias := rootFieldName(sel)
+					if !hasColumnAlias(columns, alias) {
+						columns = append(
+							columns,
+							columnSelection{
+								alias:    alias,
+								column:   nil,
+								literal:  "",
+								computed: computed,
+								field:    sel,
+							},
+						)
 					}
 
 					continue
@@ -173,9 +201,11 @@ func (t *table) astToQuerySelectionColumn(
 	}
 
 	return &columnSelection{
-		alias:   alias,
-		column:  c,
-		literal: "",
+		alias:    alias,
+		column:   c,
+		literal:  "",
+		computed: nil,
+		field:    nil,
 	}
 }
 
