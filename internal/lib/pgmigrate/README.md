@@ -77,7 +77,7 @@ A sequential beta-to-stable lineage replacement also needs an intermediate deplo
 
 ## Tests and PostgreSQL compatibility
 
-A direct command runs all unit tests but skips the PostgreSQL integration suite unless a DSN is supplied:
+A direct command runs all unit tests but skips the PostgreSQL integration suite unless a DSN is supplied. Use a disposable database: the suite creates and drops schemas and login roles. Supply a key/value (not URL) DSN for a superuser role. The suite creates login roles without passwords, so authentication must allow those roles to connect (for example, `trust` on a local Unix socket, as configured by the Nix check):
 
 ```sh
 PGMIGRATE_TEST_DSN='host=/path/to/socket dbname=postgres sslmode=disable' \

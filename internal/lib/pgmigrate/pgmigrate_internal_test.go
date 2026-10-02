@@ -1211,6 +1211,18 @@ func TestMigrateWithRestrictedSchemaRole(t *testing.T) {
 		t.Fatalf("pinging restricted database: %v", err)
 	}
 
+	// A connection that still runs as the administrator must not satisfy this check.
+	if err := checkRestrictedDatabaseUser(t.Context(), database, role); !errors.Is(
+		err,
+		errRestrictedDatabaseUserMismatch,
+	) {
+		t.Fatalf("checking administrator as restricted user: error = %v, want user mismatch", err)
+	}
+
+	if err := checkRestrictedDatabaseUser(t.Context(), restricted, role); err != nil {
+		t.Fatal(err)
+	}
+
 	if err := Migrate(
 		t.Context(),
 		discardLogger(),
@@ -1223,6 +1235,28 @@ func TestMigrateWithRestrictedSchemaRole(t *testing.T) {
 	}
 
 	assertMigrationState(t, restricted, schema, 1, false)
+}
+
+var errRestrictedDatabaseUserMismatch = errors.New(
+	"restricted database user mismatch; use a key/value DSN",
+)
+
+func checkRestrictedDatabaseUser(ctx context.Context, database *sql.DB, role string) error {
+	var currentUser string
+	if err := database.QueryRowContext(ctx, "SELECT current_user").Scan(&currentUser); err != nil {
+		return fmt.Errorf("checking restricted database user: %w", err)
+	}
+
+	if currentUser != role {
+		return fmt.Errorf(
+			"%w: current = %q, want %q",
+			errRestrictedDatabaseUserMismatch,
+			currentUser,
+			role,
+		)
+	}
+
+	return nil
 }
 
 type recordingMigrationSource struct {
