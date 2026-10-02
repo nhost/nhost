@@ -1,0 +1,25 @@
+{
+  "version": 3,
+  "sources": [
+    {
+      "name": "computed_fixture",
+      "kind": "postgres",
+      "configuration": {
+        "connection_info": {
+          "database_url": {"from_env": "HASURA_GRAPHQL_DATABASE_URL"}
+        }
+      },
+      "tables": [
+        {
+          "table": {"schema": "cf_fixture", "name": "items"},
+          "select_permissions": [
+            {
+              "role": "cf_reader",
+              "permission": {"columns": ["id", "label"], "filter": {}}
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
