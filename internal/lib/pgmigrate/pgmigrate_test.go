@@ -126,6 +126,13 @@ func createBlackBoxTestSchema(t *testing.T, database *sql.DB) string {
 	schema := fmt.Sprintf("pgmigrate_%x", digest[:8])
 
 	quotedSchema := pq.QuoteIdentifier(schema)
+	if _, err := database.ExecContext(
+		t.Context(),
+		"DROP SCHEMA IF EXISTS "+quotedSchema+" CASCADE",
+	); err != nil {
+		t.Fatalf("clearing stale test schema %q: %v", schema, err)
+	}
+
 	if _, err := database.ExecContext(t.Context(), "CREATE SCHEMA "+quotedSchema); err != nil {
 		t.Fatalf("creating test schema %q: %v", schema, err)
 	}

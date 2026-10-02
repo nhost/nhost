@@ -89,6 +89,7 @@ PGMIGRATE_TEST_DSN='host=/path/to/socket dbname=postgres sslmode=disable' \
 ```
 
 When starting PostgreSQL manually from a Nix store on macOS for the direct test command, check that the selected `initdb` binary is Darwin-native: multi-platform stores may also contain non-executable Linux builds.
+For manual `psql` inspection of that server, set `PGHOST` to its socket directory and `PGDATABASE` to the test database; `psql` does not read `PGMIGRATE_TEST_DSN`.
 
 The Nix check starts PostgreSQL, sets `PGMIGRATE_TEST_DSN`, and sets `PGMIGRATE_TEST_DATABASE_REQUIRED=1`, which turns a missing DSN into a test failure:
 
