@@ -1,0 +1,33 @@
+{
+  "source": "cf_predicates",
+  "table": {"schema": "cf_predicates", "name": "rules"},
+  "select_permission": {
+    "role": "cf_predicate_guard",
+    "permission": {
+      "columns": ["id", "label"],
+      "filter": {"rule_visible": {"_eq": true}}
+    }
+  },
+  "update_permission": {
+    "role": "cf_predicate_guard",
+    "permission": {
+      "columns": ["label"],
+      "filter": {"rule_visible": {"_eq": true}},
+      "check": {"rule_visible": {"_eq": true}}
+    }
+  },
+  "insert_permission": {
+    "role": "cf_predicate_guard",
+    "permission": {
+      "columns": ["id", "owner_id", "label"],
+      "check": {"rule_visible": {"_eq": true}}
+    }
+  },
+  "expected": {
+    "role": "cf_predicate_guard",
+    "query": "query { cf_predicates_rules(order_by:{id:asc}) { id label } }",
+    "response": {"data": {"cf_predicates_rules": [{"id": 1, "label": "visible"}]}},
+    "sql": "SELECT id, label FROM cf_predicates.rules AS r WHERE cf_predicates.rule_visible(r) ORDER BY id",
+    "sql_rows": [[1, "visible"]]
+  }
+}

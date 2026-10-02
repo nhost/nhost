@@ -1,0 +1,70 @@
+{
+  "oracle": "nhost/graphql-engine v2.48.10-ce",
+  "source": "cf_select",
+  "table": "cf_select.items",
+  "roles": [
+    {
+      "role": "admin",
+      "column_types": {"id": "Int!", "owner_id": "Int!", "label": "String!", "amount": "numeric!", "payload": "jsonb!"},
+      "column_bool_types": {"id": "Int_comparison_exp", "owner_id": "Int_comparison_exp", "label": "String_comparison_exp", "amount": "numeric_comparison_exp", "payload": "jsonb_comparison_exp"},
+      "column_order_types": {"id": "order_by", "owner_id": "order_by", "label": "order_by", "amount": "order_by", "payload": "order_by"},
+      "object_fields": {
+        "item_label": {"type": "String", "args": {}},
+        "item_payload": {"type": "jsonb", "args": {"path": "String"}},
+        "item_score": {"type": "numeric", "args": {"args": "item_score_cf_select_items_args"}},
+        "item_second": {"type": "numeric", "args": {"args": "item_second_cf_select_items_args!"}},
+        "item_tags": {"type": "[cf_select_tags!]", "args": {"distinct_on": "[cf_select_tags_select_column!]", "limit": "Int", "offset": "Int", "order_by": "[cf_select_tags_order_by!]", "where": "cf_select_tags_bool_exp"}}
+      },
+      "bool_fields": {"item_label": "String_comparison_exp", "item_payload": "jsonb_comparison_exp", "item_tags": "cf_select_tags_bool_exp"},
+      "order_fields": {"item_label": "order_by", "item_payload": "order_by", "item_tags_aggregate": "cf_select_tags_aggregate_order_by"},
+      "args_types": {"item_score_cf_select_items_args": {"multiplier": "Int"}, "item_second_cf_select_items_args": {"multiplier": "Int"}},
+      "absent_fields": ["item_score in bool_exp", "item_score in order_by"]
+    },
+    {
+      "role": "cf_reader",
+      "column_types": {"id": "Int!", "label": "String!", "amount": "numeric!", "payload": "jsonb!"},
+      "column_bool_types": {"id": "Int_comparison_exp", "label": "String_comparison_exp", "amount": "numeric_comparison_exp", "payload": "jsonb_comparison_exp"},
+      "column_order_types": {"id": "order_by", "label": "order_by", "amount": "order_by", "payload": "order_by"},
+      "object_fields": {
+        "item_label": {"type": "String", "args": {}},
+        "item_payload": {"type": "jsonb", "args": {"path": "String"}},
+        "item_score": {"type": "numeric", "args": {"args": "item_score_cf_select_items_args"}},
+        "item_second": {"type": "numeric", "args": {"args": "item_second_cf_select_items_args!"}},
+        "item_tags": {"type": "[cf_select_tags!]", "args": {"distinct_on": "[cf_select_tags_select_column!]", "limit": "Int", "offset": "Int", "order_by": "[cf_select_tags_order_by!]", "where": "cf_select_tags_bool_exp"}}
+      },
+      "bool_fields": {"item_label": "String_comparison_exp", "item_payload": "jsonb_comparison_exp", "item_tags": "cf_select_tags_bool_exp"},
+      "order_fields": {"item_label": "order_by", "item_payload": "order_by", "item_tags_aggregate": "cf_select_tags_aggregate_order_by"},
+      "args_types": {"item_score_cf_select_items_args": {"multiplier": "Int"}, "item_second_cf_select_items_args": {"multiplier": "Int"}},
+      "absent_fields": ["item_score in bool_exp", "item_score in order_by"]
+    },
+    {
+      "role": "cf_no_grant",
+      "column_types": {"id": "Int!", "label": "String!"},
+      "column_bool_types": {"id": "Int_comparison_exp", "label": "String_comparison_exp"},
+      "column_order_types": {"id": "order_by", "label": "order_by"},
+      "object_fields": {}, "bool_fields": {}, "order_fields": {}, "args_types": {},
+      "absent_fields": ["item_label", "item_payload", "item_score", "item_second", "item_tags", "item_score_cf_select_items_args", "item_second_cf_select_items_args"]
+    }
+  ],
+  "cases": [
+    {
+      "name": "scalar-args-json-and-table-return", "role": "cf_reader",
+      "query": "query { cf_select_items(order_by:{id:asc}) { id item_label item_score(args:{multiplier:2}) item_payload item_tags(order_by:{id:asc}) { id label } } }",
+      "response": {"data": {"cf_select_items": [
+        {"id": 1, "item_label": "first", "item_score": 25, "item_payload": {"status": "ready"}, "item_tags": [{"id": 1, "label": "one"}, {"id": 2, "label": "two"}]},
+        {"id": 2, "item_label": "second", "item_score": 6.5, "item_payload": {"status": "waiting"}, "item_tags": [{"id": 3, "label": "three"}]}
+      ]}}
+    },
+    {"name": "second-row-argument", "role": "cf_reader", "query": "query { cf_select_items(order_by:{id:asc}) { id item_second(args:{multiplier:2}) } }", "response": {"data": {"cf_select_items": [{"id": 1, "item_second": 25}, {"id": 2, "item_second": 6.5}]}}},
+    {"name": "default-argument", "role": "cf_reader", "query": "query { cf_select_items(where:{id:{_eq:1}}) { id item_score } }", "response": {"data": {"cf_select_items": [{"id": 1, "item_score": 12.5}]}}},
+    {"name": "required-argument-omitted", "role": "cf_reader", "query": "query { cf_select_items(where:{id:{_eq:1}}) { id item_second(args:{}) } }", "error": {"code": "not-supported", "message": "Non default arguments cannot be omitted"}},
+    {"name": "jsonb-path", "role": "cf_reader", "query": "query { cf_select_items(where:{id:{_eq:1}}) { id item_payload(path:\"status\") } }", "response": {"data": {"cf_select_items": [{"id": 1, "item_payload": "ready"}]}}},
+    {"name": "scalar-where-and-order", "role": "admin", "query": "query { cf_select_items(where:{item_label:{_eq:\"first\"}}, order_by:{item_label:asc}) { id item_label } }", "response": {"data": {"cf_select_items": [{"id": 1, "item_label": "first"}]}}},
+    {"name": "update-returning-row", "role": "admin", "query": "mutation { update_cf_select_items(where:{id:{_eq:1}}, _set:{label:\"changed\"}) { returning { id item_label item_score(args:{multiplier:2}) item_tags(order_by:{id:asc}) { id label } } } }", "response": {"data": {"update_cf_select_items": {"returning": [{"id": 1, "item_label": "changed", "item_score": 25, "item_tags": [{"id": 1, "label": "one"}, {"id": 2, "label": "two"}]}]}}}},
+    {"name": "jsonb-predicate", "role": "admin", "query": "query { cf_select_items(where:{item_payload:{_contains:{status:\"ready\"}}}) { id item_payload } }", "response": {"data": {"cf_select_items": [{"id": 1, "item_payload": {"status": "ready"}}]}}},
+    {"name": "argument-bearing-order-rejected", "role": "cf_reader", "query": "query { cf_select_items(order_by:{item_score:asc}) { id } }", "error": {"code": "validation-failed", "message": "field 'item_score' not found in type: 'cf_select_items_order_by'"}},
+    {"name": "ungranted-field-rejected", "role": "cf_no_grant", "query": "query { cf_select_items { item_label } }", "error": {"code": "validation-failed", "message": "field 'item_label' not found in type: 'cf_select_items'"}}
+  ],
+  "second_row_sql": {"query": "SELECT cf_select.item_second(2, i)::float8 FROM cf_select.items AS i ORDER BY i.id", "values": [25, 6.5]},
+  "sql": {"query": "SELECT i.id, cf_select.item_label(i), cf_select.item_score(i, 2)::float8, cf_select.item_payload(i)::text, (SELECT count(*) FROM cf_select.item_tags(i)) FROM cf_select.items AS i ORDER BY i.id", "rows": [[1, "first", 25, "{\"status\": \"ready\"}", 2], [2, "second", 6.5, "{\"status\": \"waiting\"}", 1]]}
+}

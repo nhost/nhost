@@ -1,0 +1,51 @@
+table:
+  name: items
+  schema: cf_select
+computed_fields:
+  - name: item_label
+    definition:
+      function:
+        name: item_label
+        schema: cf_select
+  - name: item_payload
+    definition:
+      function:
+        name: item_payload
+        schema: cf_select
+  - name: item_score
+    definition:
+      function:
+        name: item_score
+        schema: cf_select
+  - name: item_second
+    definition:
+      function:
+        name: item_second
+        schema: cf_select
+      table_argument: item
+  - name: item_tags
+    definition:
+      function:
+        name: item_tags
+        schema: cf_select
+select_permissions:
+  - role: cf_no_grant
+    permission:
+      columns:
+        - id
+        - label
+      filter: {}
+  - role: cf_reader
+    permission:
+      columns:
+        - id
+        - label
+        - amount
+        - payload
+      computed_fields:
+        - item_label
+        - item_score
+        - item_second
+        - item_payload
+      filter: {}
+      allow_aggregations: true
