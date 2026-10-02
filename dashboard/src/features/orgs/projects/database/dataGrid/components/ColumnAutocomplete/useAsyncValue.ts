@@ -228,8 +228,10 @@ export default function useAsyncValue({
     }
 
     const foreignKeyRelation = tableData?.foreignKeyRelations?.find(
-      ({ columnName }) => {
-        const normalizedColumnName = columnName.replace(/"/g, '');
+      ({ columns }) => {
+        const normalizedColumnNames = columns.map((column) =>
+          column.replace(/"/g, ''),
+        );
         const { foreign_key_constraint_on, manual_configuration } =
           currentRelationship.using || {};
 
@@ -238,8 +240,8 @@ export default function useAsyncValue({
         }
 
         if (manual_configuration) {
-          return Object.keys(manual_configuration.column_mapping).includes(
-            normalizedColumnName,
+          return Object.keys(manual_configuration.column_mapping).some(
+            (column) => normalizedColumnNames.includes(column),
           );
         }
 
@@ -248,7 +250,7 @@ export default function useAsyncValue({
         }
 
         return areStrArraysEqualOrdered(
-          [normalizedColumnName],
+          normalizedColumnNames,
           getForeignKeyConstraintColumns(foreign_key_constraint_on),
         );
       },
