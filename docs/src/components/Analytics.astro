@@ -4,7 +4,8 @@ import { getSegmentWriteKey } from '../lib/analytics';
 const writeKey = getSegmentWriteKey();
 ---
 
-{/* Segment Analytics.js snippet */}
+{/* Segment Analytics.js snippet - only loaded if writeKey is configured */}
+{writeKey && (
 <script is:inline define:vars={{ writeKey }}>
   (function() {
     var analytics = (window.analytics = window.analytics || []);
@@ -102,6 +103,7 @@ const writeKey = getSegmentWriteKey();
     }
   })();
 </script>
+)}
 
 {/* Client-side automatic pageview and event listeners */}
 <script>
@@ -192,24 +194,24 @@ const writeKey = getSegmentWriteKey();
       const container = copyBtn.closest('.expressive-code');
       const pre = container?.querySelector('pre');
       const language = pre?.getAttribute('data-language') || 'plaintext';
-      const code = copyBtn.getAttribute('data-code') || pre?.textContent || undefined;
 
-      trackCodeCopy(language, code);
+      trackCodeCopy(language);
       return;
     }
 
     // Inline copy text button (CopyText.astro)
     const copyTextBtn = target.closest('button.copy-text-btn') as HTMLElement | null;
     if (copyTextBtn) {
-      const text = copyTextBtn.getAttribute('data-copy') || undefined;
-      trackCodeCopy('plaintext', text);
+      trackCodeCopy('plaintext');
       return;
     }
 
-    // Copy page button (CopyPageButton.astro)
-    const copyPageBtn = target.closest('button.copy-page-btn') as HTMLElement | null;
-    if (copyPageBtn) {
-      trackCodeCopy('markdown', window.location.pathname);
+    // Copy page button (CopyPageButton.astro - "Copy as Markdown" option)
+    const copyPageOption = target.closest(
+      '.copy-page-option[data-action="copy"]',
+    ) as HTMLElement | null;
+    if (copyPageOption) {
+      trackCodeCopy('markdown');
       return;
     }
   });

@@ -5,12 +5,10 @@
  * @see https://github.com/nhost/nhost/issues/5016
  */
 
-export const DEFAULT_SEGMENT_WRITE_KEY = 'kD6QfDOMGR2IoJ9D1U1H5Q9X7AEjoVfN';
-
 /**
  * Returns the write key to use for Segment.
- * Defaults to the production nhost_dashboard source write key, with support
- * for runtime/build-time override via PUBLIC_ANALYTICS_WRITE_KEY.
+ * Configured via PUBLIC_ANALYTICS_WRITE_KEY environment variable.
+ * Returns empty string if not set, disabling Segment analytics.
  */
 export function getSegmentWriteKey(): string {
   if (
@@ -19,7 +17,7 @@ export function getSegmentWriteKey(): string {
   ) {
     return import.meta.env.PUBLIC_ANALYTICS_WRITE_KEY;
   }
-  return DEFAULT_SEGMENT_WRITE_KEY;
+  return '';
 }
 
 /**
@@ -109,10 +107,13 @@ export function trackSearchResultClick(
 export function trackCodeCopy(language?: string, code?: string): void {
   try {
     if (typeof window !== 'undefined' && window.analytics?.track) {
-      window.analytics.track('docs.code_block.copy', {
+      const properties: Record<string, unknown> = {
         language: language || 'plaintext',
-        code: code?.trim(),
-      });
+      };
+      if (code) {
+        properties.code = code.trim().slice(0, 300);
+      }
+      window.analytics.track('docs.code_block.copy', properties);
     }
   } catch (err) {
     console.error('[Analytics] Failed to track code copy:', err);

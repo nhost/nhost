@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { afterEach, beforeEach, describe, it } from 'node:test';
 import {
-  DEFAULT_SEGMENT_WRITE_KEY,
   getCookieDomain,
   getSegmentWriteKey,
   trackCodeCopy,
@@ -60,8 +59,8 @@ describe('analytics utilities', () => {
   });
 
   describe('getSegmentWriteKey', () => {
-    it('returns default write key when env var is not set', () => {
-      assert.equal(getSegmentWriteKey(), DEFAULT_SEGMENT_WRITE_KEY);
+    it('returns empty string when env var is not set', () => {
+      assert.equal(getSegmentWriteKey(), '');
     });
   });
 
@@ -140,23 +139,31 @@ describe('analytics utilities', () => {
   });
 
   describe('trackCodeCopy', () => {
-    it('calls window.analytics.track with docs.code_block.copy', () => {
-      trackCodeCopy('typescript', 'const client = new NhostClient();');
+    it('calls window.analytics.track with language only by default', () => {
+      trackCodeCopy('typescript');
       assert.equal(trackedEvents.length, 1);
       assert.equal(trackedEvents[0].event, 'docs.code_block.copy');
       assert.deepEqual(trackedEvents[0].properties, {
         language: 'typescript',
-        code: 'const client = new NhostClient();',
       });
     });
 
     it('defaults language to plaintext if unspecified', () => {
-      trackCodeCopy(undefined, 'npm install');
+      trackCodeCopy(undefined);
       assert.equal(trackedEvents.length, 1);
       assert.equal(trackedEvents[0].event, 'docs.code_block.copy');
       assert.deepEqual(trackedEvents[0].properties, {
         language: 'plaintext',
-        code: 'npm install',
+      });
+    });
+
+    it('truncates and trims code if provided', () => {
+      trackCodeCopy('bash', '  npm run dev  ');
+      assert.equal(trackedEvents.length, 1);
+      assert.equal(trackedEvents[0].event, 'docs.code_block.copy');
+      assert.deepEqual(trackedEvents[0].properties, {
+        language: 'bash',
+        code: 'npm run dev',
       });
     });
   });
