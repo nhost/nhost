@@ -68,6 +68,9 @@ type PostgreSQLType struct {
 	OID    uint32
 	Schema string
 	Name   string
+	// Kind is pg_type.typtype: b=base (including extension types), c=composite,
+	// d=domain, e=enum, p=pseudo, r=range, m=multirange.
+	Kind string
 }
 
 // ComputedFunctionArgument is a catalog argument in declaration order.
