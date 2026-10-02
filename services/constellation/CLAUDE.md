@@ -115,6 +115,10 @@ go test ./connector/sql/graphql/schema/... -update
 
 Golden file tests live in `testdata/` directories. Update them with the `-update` flag when making intentional changes to generated SQL or schemas.
 
+### Integration comparisons and regression tests
+
+The existing `integration/` suite compares Constellation with Nhost Hasura. During active development, use those comparisons for sanity checks and investigating reported differences, not as the sole or exhaustive source of regression coverage. Add direct Constellation tests with explicit expectations for implemented behavior (for example, metadata, schema, SQL, execution and permissions), and turn discovered bugs into independent regressions. Those tests should remain useful if the Hasura comparison harness is retired after stabilization. The scope of comparison tests for a particular feature belongs in that feature's plan, not in this project-wide guide.
+
 **Golden file ordering pitfall.** A subset of goldens are JSON-marshalled via `encoding/json/v2` from Go maps (e.g. `*_data.json` query result fixtures, `TestIntrospect/success.golden.json`, and aggregate result data). JSON v2 emits map keys in Go map iteration order, which is **deliberately randomized** — so re-running `-update` against an unchanged codebase produces a byte-different file even though the content is semantically identical. Treat noisy reorderings as nondeterminism artefacts, not real changes: revert them with `git checkout --` instead of committing. If a test passes against the existing golden, the golden is correct; don't run `-update` on it without a real reason. The same applies to `integration/schema.nhost.*.graphqls` produced by `nhost schema dump` (invoked from `integration/gen.sh`, which now shells out to the Nhost CLI in `cli/`) — those are byproducts of `integration/gen.sh` runs, not goldens proper. Only the GraphQL SDL goldens under `connector/.../testdata/*.graphqls` are deterministically ordered (via sorted scalar/type emission in `connector/sql/graphql/schema/scalars.go`) and safe to commit verbatim.
 
 ## Key Interfaces
