@@ -6,6 +6,8 @@
  */
 const featurePathOverrides: Record<string, string> = {
   '/storage/bucket': '/storage',
+  '/database/browser': '/database/browser/default',
+  '/database/native-queries': '/database/native-queries/default',
   '/database/schema': '/database/schema/default',
 };
 
