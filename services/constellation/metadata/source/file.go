@@ -72,8 +72,9 @@ func (s *FileMetadataSource) Watch(_ context.Context) <-chan metadata.Update {
 //
 // Fidelity caveat: the snapshot is a best-effort inspection view, NOT a
 // lossless inverse of the source YAML. Top-level keys the in-memory model
-// does not capture (e.g. actions, cron_triggers, event_triggers) are
-// dropped; `columns: "*"` may round-trip as a list; `,omitempty` on int/bool
+// does not capture (e.g. actions, cron_triggers) are dropped; table and
+// select-permission unknown keys (including event_triggers) survive when
+// JSON-representable; `columns: "*"` may round-trip as a list; `,omitempty` on int/bool
 // scalars (timeout_seconds, forward_client_headers) is a no-op in json/v2 so
 // absent fields export as zero values. Downstream callers needing the
 // authored metadata verbatim should read the source file directly — file

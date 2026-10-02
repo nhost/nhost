@@ -134,6 +134,32 @@ func TestDatabaseMetadataSource_HasuraSnapshotJSON_AfterInitialLoad(t *testing.T
 	}
 }
 
+func TestDatabaseComputedFieldSnapshotVerbatim(t *testing.T) {
+	t.Parallel()
+
+	const input = `{"sources":[{"name":"db","kind":"postgres","configuration":{"connection_info":{"database_url":"postgres://localhost/db"}},"tables":[{"table":{"schema":"public","name":"t"},"computed_fields":[{"name":"bad","definition":{"function":99}}],"select_permissions":[{"role":"r","permission":{"columns":["id"],"filter":{},"computed_fields":[null]}}]}]}],"version":3}`
+
+	store := &fakeStore{metadataRows: []fakeRow{{dest: []any{[]byte(input), int64(12)}}}}
+
+	src := newTestSource(store, time.Hour)
+	defer src.Close()
+
+	m, err := src.InitialLoad(t.Context())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if m.Databases[0].Tables[0].ComputedFields[0].DecodeError == "" ||
+		len(m.Databases[0].Tables[0].SelectPermissions[0].Permission.InvalidComputedFields) != 1 {
+		t.Fatalf("invalid entries lost from native metadata: %+v", m.Databases[0].Tables[0])
+	}
+
+	got, version := src.HasuraSnapshotJSON()
+	if !bytes.Equal(got, []byte(input)) || version != 12 {
+		t.Fatalf("database snapshot changed: %q, version %d", got, version)
+	}
+}
+
 // TestDatabaseMetadataSource_HasuraSnapshotJSON_NilBeforeLoad covers the
 // pre-InitialLoad state: getter returns (nil, 0).
 func TestDatabaseMetadataSource_HasuraSnapshotJSON_NilBeforeLoad(t *testing.T) {

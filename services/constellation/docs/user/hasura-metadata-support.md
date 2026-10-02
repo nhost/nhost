@@ -17,6 +17,7 @@ code that actually consumes each field (`connector/sql/graphql/schema`,
 |---|---|
 | ✅ **Supported** | Parsed **and** consumed. Behaves like Hasura (modulo the intentional divergences in [`KNOWN_DIFFERENCES.md`](../../KNOWN_DIFFERENCES.md)). |
 | 🟡 **Partial** | Works, but only in some forms or with caveats noted inline. |
+| 🔵 **Retained, not served** | Parsed and available to metadata conversion/export, but not exposed or enforced on the GraphQL request path. |
 | ⚪ **Ignored** | The surrounding object is parsed, but this field is **silently dropped** — no effect, no error. It looks configured but does nothing. |
 | ❌ **Unsupported** | The whole feature area is not modeled. The metadata key is never read. |
 
@@ -132,6 +133,7 @@ configuration:
 | `configuration.column_config.<col>.comment` | ⚪ | Dropped. |
 | `configuration.comment` | ⚪ | Table comment is dropped. |
 | `configuration.identifier` | ⚪ | Dropped. |
+| `computed_fields` (`name`, `definition.function`, `table_argument`, `session_argument`, `comment`) | 🔵 | Retained from Hasura YAML/JSON and in native TOML, **not served** in GraphQL. Both bare and schema-qualified function references load. Malformed individual entries retain their wire value and parse error for future reconciliation, rather than preventing metadata load. File export retains JSON-representable computed-field values in a best-effort snapshot; database export preserves the original JSON blob. `constellation metadata export` to TOML fails explicitly if computed definitions or grants are invalid rather than dropping their error markers. |
 | `apollo_federation_config` | ❌ | No Apollo Federation support. |
 
 ---
@@ -154,7 +156,7 @@ parameterized SQL values.
 | `limit` | ⚪ | **Not enforced.** A per-role row `limit` is parsed away and has no effect — enforce row caps another way. |
 | `query_root_fields` | ⚪ | Cannot restrict which query root fields a role sees. |
 | `subscription_root_fields` | ⚪ | Same, for subscriptions. |
-| `computed_fields` | ⚪ | Computed fields are unsupported entirely. |
+| `computed_fields` | 🔵 | Explicit scalar computed-field grants are retained, **not served**. Malformed grant entries retain their wire value/error and never become valid grants. This does not enable computed predicates in `filter`/`check`; do not rely on such predicates for access control until enforcement is supported. |
 
 ### Insert permission
 
@@ -353,7 +355,7 @@ what Constellation serves.
 | **Allowlist** | `add_collection_to_allowlist`, … | ❌ |
 | **RESTified endpoints** | `create_rest_endpoint` | ❌ |
 | **Inherited roles** | `add_inherited_role` | ❌ |
-| **Computed fields** | `*_add_computed_field` | ❌ (on the roadmap) |
+| **Computed field metadata operations** | `*_add_computed_field` | ⚠️ — Definitions/grants are retained but not served; native add/drop operations remain proxied to upstream Hasura, or `not-supported` without one. |
 | **API limits** | `set_api_limits` | ❌ |
 | **Network / TLS allowlist** | `add_host_to_tls_allowlist` | ❌ |
 | **Metrics config** | `set_metrics_config` | ❌ |
