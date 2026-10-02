@@ -48,6 +48,13 @@ func (c *Client) Introspect(
 
 	objs.Functions = funcs
 
+	computed, err := c.introspectComputedFunctions(ctx, dbMeta)
+	if err != nil {
+		return nil, fmt.Errorf("introspecting computed functions: %w", err)
+	}
+
+	objs.ComputedFunctions = computed
+
 	return objs, nil
 }
 

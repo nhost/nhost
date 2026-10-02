@@ -61,6 +61,51 @@ func (f FunctionReturnType) IsTableType() bool {
 	return f.TableSchema != "" && f.TableName != ""
 }
 
+// PostgreSQLType identifies a catalog type without relying on search_path.
+// OID is kept for exact row-type matching; Schema and Name can be safely
+// quoted separately when constructing a PostgreSQL type reference.
+type PostgreSQLType struct {
+	OID    uint32
+	Schema string
+	Name   string
+}
+
+// ComputedFunctionArgument is a catalog argument in declaration order.
+// Position counts OUT/TABLE arguments too, whereas HasDefault counts only
+// input-capable arguments from the end of the input list.
+type ComputedFunctionArgument struct {
+	Type PostgreSQLType
+	Name string
+	// Mode is the pg_proc argument mode: i=IN, o=OUT, b=INOUT,
+	// v=VARIADIC, t=TABLE output.
+	Mode       string
+	Position   int
+	HasDefault bool
+}
+
+// ComputedFunction is a unique, row-bound PostgreSQL signature. Unlike the
+// tracked-root Function it retains all argument modes and qualified types.
+type ComputedFunction struct {
+	OID uint32
+	// Schema and Name are the resolved pg_proc identity, including the
+	// public schema for a metadata reference that omitted its schema.
+	Schema       string
+	Name         string
+	Arguments    []ComputedFunctionArgument
+	RowArgument  int // zero-based position among all catalog arguments
+	ReturnType   PostgreSQLType
+	ReturnSet    bool
+	ReturnRelOID uint32
+	Volatility   Volatility
+}
+
+// ComputedFunctionLookup retains a per-field invalid signature instead of
+// making a bad field prevent introspection of the remaining source.
+type ComputedFunctionLookup struct {
+	Function *ComputedFunction
+	Reason   string
+}
+
 // Function represents introspected function metadata.
 // The schema and name are the components of the "schema.name" key in
 // Objects.Functions.
