@@ -266,6 +266,21 @@ func TestMigrateValidatesBeforeAcquiringConnections(t *testing.T) {
 			field:  "",
 		},
 		{
+			name: "blank migration identifier",
+			ctx: func(t *testing.T) context.Context {
+				t.Helper()
+
+				return t.Context()
+			},
+			fsys: fstest.MapFS{
+				"migrations/1_.up.sql":   &fstest.MapFile{Data: []byte("SELECT 1;")},
+				"migrations/1_.down.sql": &fstest.MapFile{Data: []byte("SELECT 2;")},
+			},
+			path:   "migrations",
+			schema: "app",
+			field:  "",
+		},
+		{
 			name: "nil context",
 			ctx: func(*testing.T) context.Context {
 				return nil

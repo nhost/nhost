@@ -83,6 +83,7 @@ func TestLoadBundleRejectsInvalidBundles(t *testing.T) {
 		fsys       fs.FS
 		path       string
 		wantIssue  string
+		wantPath   string
 		wantConfig bool
 	}{
 		{
@@ -129,6 +130,46 @@ func TestLoadBundleRejectsInvalidBundles(t *testing.T) {
 			}),
 			path:      "migrations",
 			wantIssue: "filename does not follow golang-migrate semantics",
+		},
+		{
+			name: "empty identifier in pair",
+			fsys: migrationFS(map[string]string{
+				"1_.up.sql":   "SELECT 1;",
+				"1_.down.sql": "SELECT 2;",
+			}),
+			path:      "migrations",
+			wantIssue: "filename must include a non-blank migration identifier",
+			wantPath:  "migrations/1_.down.sql",
+		},
+		{
+			name: "whitespace identifier in pair",
+			fsys: migrationFS(map[string]string{
+				"1_ .up.sql":   "SELECT 1;",
+				"1_ .down.sql": "SELECT 2;",
+			}),
+			path:      "migrations",
+			wantIssue: "filename must include a non-blank migration identifier",
+			wantPath:  "migrations/1_ .down.sql",
+		},
+		{
+			name: "empty identifier in up file",
+			fsys: migrationFS(map[string]string{
+				"1_first.down.sql": "SELECT 2;",
+				"1_.up.sql":        "SELECT 1;",
+			}),
+			path:      "migrations",
+			wantIssue: "filename must include a non-blank migration identifier",
+			wantPath:  "migrations/1_.up.sql",
+		},
+		{
+			name: "whitespace identifier in up file",
+			fsys: migrationFS(map[string]string{
+				"1_first.down.sql": "SELECT 2;",
+				"1_ .up.sql":       "SELECT 1;",
+			}),
+			path:      "migrations",
+			wantIssue: "filename must include a non-blank migration identifier",
+			wantPath:  "migrations/1_ .up.sql",
 		},
 		{
 			name: "version exceeds migration runner range",
@@ -236,6 +277,13 @@ func TestLoadBundleRejectsInvalidBundles(t *testing.T) {
 			}
 
 			assertErrorCategory(t, err, tt.wantConfig)
+
+			if tt.wantPath != "" {
+				bundleErr, ok := errors.AsType[*BundleError](err)
+				if !ok || bundleErr.Path != tt.wantPath {
+					t.Fatalf("loadBundle() error = %v, want bundle path %q", err, tt.wantPath)
+				}
+			}
 		})
 	}
 }

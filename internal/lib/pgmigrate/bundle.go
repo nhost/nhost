@@ -7,6 +7,7 @@ import (
 	"math"
 	"path"
 	"slices"
+	"strings"
 
 	"github.com/golang-migrate/migrate/v4/source"
 )
@@ -105,13 +106,9 @@ func addMigrationFile(
 	name string,
 	pairs map[uint]*migrationPair,
 ) error {
-	parsed, err := source.Parse(name)
+	parsed, err := parseMigrationFilename(migrationPath, name)
 	if err != nil {
-		return &BundleError{
-			Path:  path.Join(migrationPath, name),
-			Issue: "filename does not follow golang-migrate semantics",
-			Cause: err,
-		}
+		return err
 	}
 
 	pair, found := pairs[parsed.Version]
@@ -159,6 +156,27 @@ func addMigrationFile(
 	}
 
 	return setDirection(pair, parsed.Direction, file, migrationPath, name)
+}
+
+func parseMigrationFilename(migrationPath, name string) (*source.Migration, error) {
+	parsed, err := source.Parse(name)
+	if err != nil {
+		return nil, &BundleError{
+			Path:  path.Join(migrationPath, name),
+			Issue: "filename does not follow golang-migrate semantics",
+			Cause: err,
+		}
+	}
+
+	if strings.TrimSpace(parsed.Identifier) == "" {
+		return nil, &BundleError{
+			Path:  path.Join(migrationPath, name),
+			Issue: "filename must include a non-blank migration identifier",
+			Cause: nil,
+		}
+	}
+
+	return parsed, nil
 }
 
 func hasDirection(pair *migrationPair, direction source.Direction) bool {
