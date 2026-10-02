@@ -5,6 +5,7 @@ import { ThemeProvider } from '@/components/ui/v2/ThemeProvider';
 import { TooltipProvider } from '@/components/ui/v3/tooltip';
 import { NhostApolloProvider } from '@/providers/Apollo';
 import AuthProvider from '@/providers/Auth/AuthProvider';
+import { ElevationProvider } from '@/providers/Elevation';
 import { NhostProvider } from '@/providers/nhost';
 import '@/styles/fonts.css';
 import '@/styles/globals.css';
@@ -69,14 +70,16 @@ function MyApp({
                 <RetryableErrorBoundary>
                   <TooltipProvider>
                     <DialogProvider>
-                      <ProgressBar
-                        height="2px"
-                        color="#0052cd"
-                        options={{ showSpinner: false }}
-                      />
-                      <TreeNavStateProvider>
-                        {getLayout(<Component {...pageProps} />)}
-                      </TreeNavStateProvider>
+                      <ElevationProvider>
+                        <ProgressBar
+                          height="2px"
+                          color="#0052cd"
+                          options={{ showSpinner: false }}
+                        />
+                        <TreeNavStateProvider>
+                          {getLayout(<Component {...pageProps} />)}
+                        </TreeNavStateProvider>
+                      </ElevationProvider>
                     </DialogProvider>
                   </TooltipProvider>
                 </RetryableErrorBoundary>

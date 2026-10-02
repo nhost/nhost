@@ -35,6 +35,7 @@ import { DialogProvider } from '@/components/common/DialogProvider';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { createTheme } from '@/components/ui/v2/createTheme';
 import { AuthProvider } from '@/providers/Auth';
+import { ElevationProvider } from '@/providers/Elevation';
 import { NhostProvider } from '@/providers/nhost';
 import { ThemePreferenceProvider } from '@/providers/Theme';
 import { mockRouter, mockSession } from '@/tests/mocks';
@@ -122,7 +123,9 @@ function Providers({ children }: PropsWithChildren) {
                   <Toaster position="bottom-center" />
                   <ThemeProvider theme={theme}>
                     <ThemePreferenceProvider>
-                      <DialogProvider>{children}</DialogProvider>
+                      <DialogProvider>
+                        <ElevationProvider>{children}</ElevationProvider>
+                      </DialogProvider>
                     </ThemePreferenceProvider>
                   </ThemeProvider>
                 </AuthProvider>
