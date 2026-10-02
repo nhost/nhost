@@ -21,7 +21,15 @@ ordinary missing-column key causes the same source-wide failure in
 Constellation. This intentional, documented difference applies only to invalid,
 unidentifiable keys: it is **not** supported computed-field parity. Identifiable
 computed predicates make only the affected permission unavailable until those
-predicates can be executed.
+predicates can be executed. PostgreSQL scalar computed fields can be selected
+with role grants and bound arguments, but they are not yet included in any
+`_aggregate_fields`. Hasura includes eligible comparable scalar computed fields in `min`/`max`
+(the fixture confirms text and numeric fields), and numeric ones in `sum`,
+`avg`, `stddev`, `stddev_pop`, `stddev_samp`, `var_pop`, `var_samp` and
+`variance`, retaining `args` for argument-bearing fields.
+Computed `where`/`order_by` inputs and permission predicates
+remain unavailable; table-valued selections and scalar fields with non-base
+argument types remain hidden.
 
 # Mutations with no update permissions
 

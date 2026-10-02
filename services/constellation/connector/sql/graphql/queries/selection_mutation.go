@@ -198,6 +198,7 @@ type selectionReturning struct {
 	argumentPath  string
 	columns       []columnSelection
 	relationships []relationshipSelection
+	table         *table
 	dialect       dialect.Dialect
 	// nestedCTEs maps direct nested relationship names to the CTEs that contain
 	// their inserted rows for collection-insert returning selections, with child
@@ -310,13 +311,24 @@ func (s selectionReturning) writeReturningLateral( //nolint:funlen
 			b.WriteString(", ")
 		}
 
-		if colSel.literal != "" {
+		switch {
+		case colSel.computed != nil:
+			var err error
+
+			params, paramIndex, err = s.table.writeComputedScalar(
+				b, colSel, cteName, childArgumentPath(s.argumentPath, colSel.field),
+				variables, sessionVariables, params, paramIndex,
+			)
+			if err != nil {
+				return nil, 0, fmt.Errorf("building computed mutation returning: %w", err)
+			}
+		case colSel.literal != "":
 			b.WriteByte('\'')
 			b.WriteString(colSel.literal)
 			b.WriteString(`' AS "`)
 			b.WriteString(colSel.alias)
 			b.WriteByte('"')
-		} else {
+		default:
 			expr := cteName + "." + core.QuoteIdentifier(colSel.column.SQLName)
 			b.WriteString(outputColumnExpression(s.dialect, expr, colSel.column))
 			b.WriteString(" AS ")
@@ -387,13 +399,24 @@ func (s selectionReturning) writeReturningCorrelated( //nolint:funlen
 			b.WriteString(", ")
 		}
 
-		if colSel.literal != "" {
+		switch {
+		case colSel.computed != nil:
+			var err error
+
+			params, paramIndex, err = s.table.writeComputedScalar(
+				b, colSel, cteName, childArgumentPath(s.argumentPath, colSel.field),
+				variables, sessionVariables, params, paramIndex,
+			)
+			if err != nil {
+				return nil, 0, fmt.Errorf("building computed mutation returning: %w", err)
+			}
+		case colSel.literal != "":
 			b.WriteByte('\'')
 			b.WriteString(colSel.alias)
 			b.WriteString("', '")
 			b.WriteString(colSel.literal)
 			b.WriteByte('\'')
-		} else {
+		default:
 			b.WriteByte('\'')
 			b.WriteString(colSel.alias)
 			b.WriteString("', ")
@@ -746,6 +769,7 @@ func (s selectionReturning) writeLateralJoinsWithCTE(
 func (t *table) astToMutationSelection(
 	field *ast.Field,
 	fragments ast.FragmentDefinitionList,
+	role string,
 ) (mutationSelection, error) {
 	var (
 		result        mutationSelection
@@ -766,7 +790,7 @@ func (t *table) astToMutationSelection(
 		for _, selection := range selectionSet {
 			switch sel := selection.(type) {
 			case *ast.Field:
-				collectErr = t.processMutationField(sel, fragments, rootErrorPath, &result)
+				collectErr = t.processMutationField(sel, fragments, rootErrorPath, role, &result)
 			case *ast.InlineFragment:
 				collectFields(sel.SelectionSet)
 			case *ast.FragmentSpread:
@@ -794,6 +818,7 @@ func (t *table) processMutationField(
 	sel *ast.Field,
 	fragments ast.FragmentDefinitionList,
 	rootErrorPath string,
+	role string,
 	result *mutationSelection,
 ) error {
 	switch sel.Name {
@@ -805,7 +830,7 @@ func (t *table) processMutationField(
 		)
 	case "returning":
 		columns, relationships, err := t.astToQuerySelectionWithPath(
-			sel, fragments, rootErrorPath,
+			sel, fragments, rootErrorPath, role,
 		)
 		if err != nil {
 			return fmt.Errorf("failed to build mutation returning selection: %w", err)
@@ -821,6 +846,7 @@ func (t *table) processMutationField(
 			argumentPath:   childArgumentPath(rootErrorPath, sel),
 			columns:        columns,
 			relationships:  relationships,
+			table:          t,
 			dialect:        t.dialect,
 			nestedCTEs:     nil,
 			nestedCTENames: nil,

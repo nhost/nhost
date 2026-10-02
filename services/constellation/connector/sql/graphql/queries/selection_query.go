@@ -45,7 +45,7 @@ func (t *table) astToQuerySelectionWithPath( //nolint:funlen,cyclop,gocognit
 	role ...string,
 ) ([]columnSelection, []relationshipSelection, error) {
 	// Missing role context must never turn a computed field into an admin
-	// selection (mutation returning passes it explicitly only in Phase 7).
+	// selection; mutation returning passes its role explicitly.
 	selectedRole := ""
 	if len(role) > 0 {
 		selectedRole = role[0]

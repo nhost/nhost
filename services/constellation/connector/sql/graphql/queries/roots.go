@@ -47,8 +47,8 @@ type Roots struct {
 // its introspection objects and metadata. It also returns a grouped-aggregate
 // Ops handle used by cross-database aggregate resolution. nil or empty
 // metadata yields a Roots with only an empty query map and an empty Ops.
-// Omitting capabilities keeps scalar computed selection off in production;
-// an injected PostgreSQL capability enables it only in isolated alpha tests.
+// Callers building PostgreSQL roots pass the same capability set used by
+// schema generation so advertised scalar selections have executable roots.
 func BuildRoots(
 	objects *introspection.Objects,
 	md *metadata.DatabaseMetadata,
@@ -61,7 +61,7 @@ func BuildRoots(
 	return buildRoots(objects, md, dialect, scalarSelection)
 }
 
-// buildRoots keeps the default-off production path separate from gated tests.
+// buildRoots uses the selection capability shared with schema generation.
 //
 //nolint:funlen,cyclop // Established root registration spans query, mutation and subscription contexts.
 func buildRoots(

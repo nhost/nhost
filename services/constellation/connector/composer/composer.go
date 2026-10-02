@@ -87,6 +87,7 @@ func (c *Composer) Compose(
 	roleSchemas, allRoles := c.collectSchemas(ctx, logger)
 
 	relationships.Inject(roleSchemas, c.relationshipSpecs(), c.typeNameResolvers())
+	c.omitConflictingComputedArgs(ctx, logger, roleSchemas)
 
 	result := Result{
 		SchemaDocs:       make(map[string]*ast.SchemaDocument),

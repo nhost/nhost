@@ -31,7 +31,7 @@ func (t *table) buildMutationUpdateSQL( //nolint:dupl
 		return core.SQLOperation{}, fmt.Errorf("failed to parse update arguments: %w", err)
 	}
 
-	selection, err := t.astToMutationSelection(field, fragments)
+	selection, err := t.astToMutationSelection(field, fragments, role)
 	if err != nil {
 		return core.SQLOperation{}, fmt.Errorf("failed to parse selection set: %w", err)
 	}

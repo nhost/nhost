@@ -103,20 +103,24 @@ non-IN non-row argument, or field-name collision) is recorded as `computed_field
 and removed **individually**. PostgreSQL base types (`pg_type.typtype = 'b'`, including
 extension types outside `pg_catalog`) are accepted as scalar returns and
 non-row arguments; pseudo-types and non-table composites are rejected. Domain,
-enum, range and multirange returns or non-row arguments remain in raw metadata,
-but are excluded from effective fields pending verification against Hasura. Their
-scalar grants do not revoke table access; manual table-valued grants remain
-invalid regardless of argument kind. These unverified types are not exposed in
-GraphQL. A computed definition on SQLite is ignored as before, without
-computed-specific inconsistencies or grant revocation. Other fields and tables
-survive. Computed fields are not yet exposed in GraphQL, even when their
-definitions are valid.
+enum, range and multirange **returns** are invalid (Hasura requires BASE
+returns); a role granting one loses its entire select permission. Non-base
+non-row arguments remain in raw metadata but are excluded from effective
+fields pending input coercion support; their scalar grants do not revoke table
+access. Manual table-valued grants remain invalid regardless of argument kind.
+A computed definition on SQLite is ignored as before, without computed-specific
+inconsistencies or grant revocation. Other fields and tables survive. Valid
+PostgreSQL scalar selections are exposed to admin and granted roles, but
+computed predicates and table-valued selections are not yet executable.
 
 A select permission with an invalid/malformed computed grant is recorded as
 `select_permission` and removed **in its entirety**, including its filter;
 manual table-valued grants are invalid because target-table permissions derive
-them. A valid scalar grant alone remains a valid permission while selections
-are gated off. A select/update/delete filter or insert/update check referencing
+them. A valid scalar grant remains a valid permission even if its argument type
+is deferred; only executable scalar selections are exposed. A computed `_args`
+input type that conflicts with a different type in a composed role drops just
+the affected selection and records a `computed_field` inconsistency; the role
+and other fields remain. A select/update/delete filter or insert/update check referencing
 a known computed field, including through `_and`, `_or`, `_not`, local
 relationships, `_exists`, and aggregate relationship filters, cannot execute
 until computed predicates are supported: the **entire permission** is recorded

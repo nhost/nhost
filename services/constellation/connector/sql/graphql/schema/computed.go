@@ -12,7 +12,7 @@ import (
 // scalarComputedFields adds only reconciled, role-granted scalar selections.
 // A denied role must not receive even an otherwise unreferenced _args type.
 //
-//nolint:cyclop,gocognit,funlen // Role grants, signature checks, optional args and JSON paths are independent gates.
+//nolint:cyclop,funlen // Role grants, signature checks, optional args and JSON paths are independent gates.
 func scalarComputedFields(
 	s *graph.Schema,
 	table *metadata.TableMetadata,
@@ -34,20 +34,12 @@ func scalarComputedFields(
 			continue
 		}
 
-		// Reconciliation defers unnamed user arguments until the oracle's
-		// GraphQL numbering is classified. Guard direct schema generation too.
-		unnamed := false
-		for i, arg := range lookup.Function.Arguments {
-			if i != lookup.Function.RowArgument && arg.Name == "" {
-				unnamed = true
-			}
-		}
-
-		if unnamed || !computedSelectGrant(table, role, field.Name) {
+		if !computedSelectGrant(table, role, field.Name) {
 			continue
 		}
 
 		fn := lookup.Function
+		argumentNames := fn.GraphQLArgumentNames(field.Definition.SessionArgument)
 		scalar := getGraphQLScalarType(fn.ReturnType.Name)
 		used[scalar] = struct{}{}
 
@@ -55,7 +47,7 @@ func scalarComputedFields(
 		if description == "" {
 			description = fmt.Sprintf(
 				"A computed field, executes function %q",
-				fn.Schema+"."+fn.Name,
+				computedDescriptionName(fn.Schema, fn.Name),
 			)
 		}
 
@@ -71,14 +63,9 @@ func scalarComputedFields(
 
 		required := false
 		for i, arg := range fn.Arguments {
-			if i == fn.RowArgument || (field.Definition.SessionArgument != "" &&
-				arg.Name == field.Definition.SessionArgument) {
-				continue
-			}
-
-			name := arg.Name
+			name := argumentNames[i]
 			if name == "" {
-				name = fmt.Sprintf("arg_%d", i+1)
+				continue
 			}
 
 			typ := getGraphQLScalarType(arg.Type.Name)
@@ -116,7 +103,7 @@ func scalarComputedFields(
 					Description: fmt.Sprintf(
 						"input parameters for computed field %q defined on table %q",
 						field.Name,
-						table.Table.Schema+"."+table.Table.Name,
+						computedDescriptionName(table.Table.Schema, table.Table.Name),
 					),
 					DefaultValue: nil,
 					Directives:   nil,
@@ -141,6 +128,14 @@ func scalarComputedFields(
 	}
 
 	return fields
+}
+
+func computedDescriptionName(schema, name string) string {
+	if schema == "public" {
+		return name
+	}
+
+	return schema + "." + name
 }
 
 func computedSelectGrant(table *metadata.TableMetadata, role, name string) bool {

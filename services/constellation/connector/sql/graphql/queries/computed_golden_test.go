@@ -3,6 +3,9 @@ package queries_test
 import (
 	"os"
 	"testing"
+
+	"github.com/vektah/gqlparser/v2/ast"
+	"github.com/vektah/gqlparser/v2/parser"
 )
 
 func TestComputedScalarSQLGolden(t *testing.T) {
@@ -32,5 +35,47 @@ func TestComputedScalarSQLGolden(t *testing.T) {
 
 	if op.SQL+"\n" != string(golden) {
 		t.Fatalf("computed SQL differs from %s\ngot: %s", path, op.SQL)
+	}
+}
+
+func TestComputedScalarMutationSQLGolden(t *testing.T) {
+	t.Parallel()
+	//nolint:dogsled // Only roots are needed; the fixture owns the test database and catalog.
+	roots, _, _, _, _ := computedTestFixture(
+		t,
+	)
+
+	doc, err := parser.ParseQuery(
+		&ast.Source{
+			Input: `mutation { update_cf_select_items(where:{id:{_eq:1}}, _set:{label:"changed"}) { returning { item_label item_second(args:{multiplier:2}) } } }`,
+		},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ops, err := roots.BuildQuery(doc.Operations[0], doc.Fragments, nil, "admin", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(ops) != 1 {
+		t.Fatalf("operations = %d", len(ops))
+	}
+
+	path := "testdata/computed_scalar_mutation.sql"
+	if *updateGolden {
+		if err := os.WriteFile(path, []byte(ops[0].SQL+"\n"), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	golden, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if ops[0].SQL+"\n" != string(golden) {
+		t.Fatalf("computed mutation SQL differs from %s\ngot: %s", path, ops[0].SQL)
 	}
 }
