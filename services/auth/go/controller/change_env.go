@@ -34,6 +34,9 @@ func (ctrl *Controller) PostChangeEnv(c *gin.Context) { //nolint:funlen,cyclop
 		return
 	}
 
+	ctrl.wf.jwtGetter.totpEnabled = ctrl.config.TOTPEnabled
+	ctrl.wf.jwtGetter.webauthnEnabled = ctrl.config.WebauthnEnabled
+
 	if ctrl.config.CustomClaims == "" { //nolint:nestif
 		ctrl.wf.jwtGetter.customClaimer = nil
 	} else {

@@ -481,6 +481,30 @@ This method may return different T based on the response code:
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
+#### elevateTotp()
+
+```ts
+elevateTotp(body: ElevateTotpRequest, options?: RequestInit): Promise<FetchResponse<SessionPayload>>;
+```
+
+Summary: Elevate access for an already signed in user using TOTP MFA
+Verify a TOTP code to elevate the permissions of an already signed in user
+
+This method may return different T based on the response code:
+
+- 200: SessionPayload
+
+##### Parameters
+
+| Parameter  | Type                                        |
+| ---------- | ------------------------------------------- |
+| `body`     | [`ElevateTotpRequest`](#elevatetotprequest) |
+| `options?` | `RequestInit`                               |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
+
 #### elevateWebauthn()
 
 ```ts
@@ -503,6 +527,29 @@ This method may return different T based on the response code:
 ##### Returns
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`PublicKeyCredentialRequestOptions`](#publickeycredentialrequestoptions)&gt;&gt;
+
+#### getElevationMethods()
+
+```ts
+getElevationMethods(options?: RequestInit): Promise<FetchResponse<ElevationMethodsResponse>>;
+```
+
+Summary: Get available elevation methods
+Retrieve whether the authenticated user needs to elevate their session and which methods they can use to do it.
+
+This method may return different T based on the response code:
+
+- 200: ElevationMethodsResponse
+
+##### Parameters
+
+| Parameter  | Type          |
+| ---------- | ------------- |
+| `options?` | `RequestInit` |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`ElevationMethodsResponse`](#elevationmethodsresponse)&gt;&gt;
 
 #### getJWKs()
 
@@ -1986,6 +2033,48 @@ optional rk?: boolean;
 ```
 
 Indicates if the credential is a resident key
+
+---
+
+## ElevateTotpRequest
+
+### Properties
+
+#### otp
+
+```ts
+otp: string;
+```
+
+(`string`) - One time password
+
+---
+
+## ElevationMethodsResponse
+
+Elevation status of the user
+
+### Properties
+
+#### elevationRequired
+
+```ts
+elevationRequired: boolean;
+```
+
+(`boolean`) - Whether protected endpoints require an elevated session. When true and no methods are available, the user must set up a second factor first
+
+- Example - `true`
+
+#### methods
+
+```ts
+methods: ElevationMethod[];
+```
+
+(`ElevationMethod[]`) - Methods the user can use to elevate their session
+
+- Example - `["webauthn","totp"]`
 
 ---
 
@@ -4816,6 +4905,16 @@ type CredentialType = "public-key";
 ```
 
 The valid credential types
+
+---
+
+## ElevationMethod
+
+```ts
+type ElevationMethod = "webauthn" | "totp";
+```
+
+Method that can be used to elevate a session
 
 ---
 

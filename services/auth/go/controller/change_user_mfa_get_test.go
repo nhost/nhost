@@ -111,7 +111,7 @@ func TestGetMfaTotpGenerate(t *testing.T) {
 			name: "mfa disbled",
 			config: func() *controller.Config {
 				config := getConfig()
-				config.MfaEnabled = false
+				config.TOTPEnabled = false
 
 				return config
 			},
