@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"io"
@@ -37,8 +38,8 @@ var (
 // Post-execution catalog archival and connection cleanup each use a separate
 // five-second, cancellation-independent timeout before Migrate returns. The
 // caller owns the dedicated migration database; Migrate acquires and closes two
-// connections, resets the execution session before releasing it, and does not
-// close the pool. Sharing a long-lived application pool is unsupported.
+// connections, resets or discards the execution session before releasing it,
+// and does not close the pool. Sharing a long-lived application pool is unsupported.
 func Migrate(
 	ctx context.Context,
 	logger *slog.Logger,
@@ -165,6 +166,19 @@ func cleanupMigrationConnections(
 	cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), cleanupTimeout)
 	defer cancel()
 
+	var rollbackErr error
+	if executionConnection != nil {
+		// An explicit BEGIN in a failed migration may leave the session in an
+		// aborted transaction, where neither unlock nor DISCARD ALL can run.
+		if _, err := executionConnection.ExecContext(cleanupCtx, "ROLLBACK"); err != nil &&
+			!errors.Is(err, sql.ErrConnDone) {
+			rollbackErr = fmt.Errorf(
+				"rolling back PostgreSQL migration execution connection: %w",
+				err,
+			)
+		}
+	}
+
 	var unlockErr error
 	if outerLock != nil {
 		unlockErr = outerLock.unlock(cleanupCtx)
@@ -176,6 +190,7 @@ func cleanupMigrationConnections(
 
 	if joined := errors.Join(
 		operationErr,
+		rollbackErr,
 		unlockErr,
 		executionResetErr,
 		sourceCloseErr,
@@ -695,6 +710,17 @@ func resetMigrationConnection(ctx context.Context, connection *sql.Conn) error {
 	}
 
 	if _, err := connection.ExecContext(ctx, "DISCARD ALL"); err != nil {
+		// Do not return a failed-reset session (and its session-level locks) to
+		// the pool. Raw's ErrBadConn result makes database/sql discard it.
+		discardErr := connection.Raw(func(any) error { return driver.ErrBadConn })
+		if discardErr != nil && !errors.Is(discardErr, driver.ErrBadConn) &&
+			!errors.Is(discardErr, sql.ErrConnDone) {
+			return fmt.Errorf(
+				"resetting PostgreSQL migration execution connection: %w",
+				errors.Join(err, discardErr),
+			)
+		}
+
 		return fmt.Errorf("resetting PostgreSQL migration execution connection: %w", err)
 	}
 

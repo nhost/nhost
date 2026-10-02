@@ -15,7 +15,7 @@ err := pgmigrate.Migrate(
 )
 ```
 
-The caller must create the service schema before calling `Migrate` and must supply a dedicated, short-lived migration `*sql.DB` that remains caller-owned. Do not reuse a service's long-lived application pool; migration bodies may change session state, and sharing that pool is unsupported. The library resets the execution session before releasing it, but the caller must still close the migration pool after `Migrate` returns.
+The caller must create the service schema before calling `Migrate` and must supply a dedicated, short-lived migration `*sql.DB` that remains caller-owned. Do not reuse a service's long-lived application pool; migration bodies may change session state, and sharing that pool is unsupported. The library rolls back any unfinished migration transaction, then resets or discards the execution session before releasing it, but the caller must still close the migration pool after `Migrate` returns.
 
 The library acquires and closes two dedicated `*sql.Conn` values per concurrent `Migrate` caller: one executes migrations and holds the advisory lock, while the other reads catalog bodies. Configure the migration pool for at least two connections per concurrent caller. Acquisition of the second connection is bounded and fails with pool guidance rather than hanging indefinitely when, for example, `MaxOpenConns(1)` is configured.
 
@@ -79,6 +79,8 @@ A direct command runs all unit tests but skips the PostgreSQL integration suite 
 PGMIGRATE_TEST_DSN='host=/path/to/socket dbname=postgres sslmode=disable' \
   go test ./internal/lib/pgmigrate/...
 ```
+
+When starting PostgreSQL manually from a Nix store on macOS for the direct test command, check that the selected `initdb` binary is Darwin-native: multi-platform stores may also contain non-executable Linux builds.
 
 The Nix check starts PostgreSQL, sets `PGMIGRATE_TEST_DSN`, and sets `PGMIGRATE_TEST_DATABASE_REQUIRED=1`, which turns a missing DSN into a test failure:
 

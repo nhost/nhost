@@ -130,6 +130,43 @@ func TestCloseMigrationConnectionToleratesAlreadyClosedConnection(t *testing.T) 
 	}
 }
 
+func TestResetMigrationConnectionDiscardsFailedReset(t *testing.T) {
+	t.Parallel()
+
+	database := openCatalogTestDatabase(t)
+	database.SetMaxOpenConns(1)
+
+	connection, err := database.Conn(t.Context())
+	if err != nil {
+		t.Fatalf("database.Conn() error = %v", err)
+	}
+
+	if _, err := connection.ExecContext(t.Context(), "BEGIN"); err != nil {
+		t.Fatalf("starting explicit transaction: %v", err)
+	}
+
+	if _, err := connection.ExecContext(t.Context(), "SELECT 1/0"); err == nil {
+		t.Fatal("failing statement error = nil")
+	}
+
+	if err := resetMigrationConnection(t.Context(), connection); err == nil {
+		t.Fatal("resetMigrationConnection() error = nil, want failed DISCARD ALL")
+	}
+
+	if err := closeMigrationConnection(connection, "execution"); err != nil {
+		t.Fatalf("closeMigrationConnection() error = %v", err)
+	}
+
+	if open := database.Stats().OpenConnections; open != 0 {
+		t.Fatalf("connections after failed reset = %d, want 0", open)
+	}
+
+	var one int
+	if err := database.QueryRowContext(t.Context(), "SELECT 1").Scan(&one); err != nil {
+		t.Fatalf("querying pool after failed reset: %v", err)
+	}
+}
+
 func TestMigrationDirection(t *testing.T) {
 	t.Parallel()
 
@@ -985,13 +1022,24 @@ func TestMigrateUsesAndReleasesExactUpstreamLock(t *testing.T) {
 	// These cases poll pg_stat_activity and therefore intentionally run serially.
 	database := openCatalogTestDatabase(t)
 	database.SetMaxOpenConns(8)
+	// Keep the execution connection idle after Migrate so pool eviction cannot
+	// mask an aborted transaction or an unreleased advisory lock.
+	database.SetMaxIdleConns(8)
 
 	tests := []struct {
-		name    string
-		failure bool
+		name      string
+		failure   bool
+		begin     bool
+		wantError string
 	}{
-		{name: "success", failure: false},
-		{name: "migration failure", failure: true},
+		{name: "success", failure: false, begin: false, wantError: ""},
+		{name: "migration failure", failure: true, begin: false, wantError: ""},
+		{
+			name:      "explicit transaction failure",
+			failure:   true,
+			begin:     true,
+			wantError: "division by zero",
+		},
 	}
 
 	for _, tt := range tests {
@@ -1000,9 +1048,15 @@ func TestMigrateUsesAndReleasesExactUpstreamLock(t *testing.T) {
 			marker := fmt.Sprintf("pgmigrate_lock_%x", sha256.Sum256([]byte(t.Name())))
 
 			statement := fmt.Sprintf("SELECT pg_sleep(1) /* %s */;", marker)
-			if tt.failure {
+			switch {
+			case tt.begin:
+				statement += fmt.Sprintf(
+					" BEGIN; CREATE TABLE %s.lock_probe (id INTEGER); SELECT 1/0; COMMIT;",
+					pq.QuoteIdentifier(schema),
+				)
+			case tt.failure:
 				statement += " SELECT id FROM pgmigrate_missing_relation;"
-			} else {
+			default:
 				statement += fmt.Sprintf(
 					" CREATE TABLE %s.lock_probe (id INTEGER);",
 					pq.QuoteIdentifier(schema),
@@ -1038,8 +1092,32 @@ func TestMigrateUsesAndReleasesExactUpstreamLock(t *testing.T) {
 				t.Fatalf("Migrate() error = %v, want failure %t", err, tt.failure)
 			}
 
+			if tt.wantError != "" {
+				if !strings.Contains(err.Error(), tt.wantError) {
+					t.Fatalf("Migrate() error = %v, want %q", err, tt.wantError)
+				}
+
+				for _, cleanupError := range []string{
+					"releasing outer PostgreSQL migration advisory lock",
+					"resetting PostgreSQL migration execution connection",
+				} {
+					if strings.Contains(err.Error(), cleanupError) {
+						t.Errorf(
+							"Migrate() error = %v, unexpected cleanup error %q",
+							err,
+							cleanupError,
+						)
+					}
+				}
+			}
+
 			assertOuterLockAvailable(t, database, schema)
 			assertPoolReleased(t, database)
+
+			var one int
+			if err := database.QueryRowContext(t.Context(), "SELECT 1").Scan(&one); err != nil {
+				t.Fatalf("querying pool after migration: %v", err)
+			}
 		})
 	}
 }
