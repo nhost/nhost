@@ -1,0 +1,25 @@
+table:
+  name: rules
+  schema: cf_predicates
+computed_fields:
+  - name: rule_visible
+    definition:
+      function:
+        name: rule_visible
+        schema: cf_predicates
+select_permissions:
+  - role: cf_no_grant
+    permission:
+      columns:
+        - id
+        - label
+      filter: {}
+  - role: cf_reader
+    permission:
+      columns:
+        - id
+        - owner_id
+        - label
+      computed_fields:
+        - rule_visible
+      filter: {}

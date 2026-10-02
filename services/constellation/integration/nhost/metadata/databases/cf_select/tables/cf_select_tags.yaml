@@ -1,0 +1,12 @@
+table:
+  name: tags
+  schema: cf_select
+select_permissions:
+  - role: cf_reader
+    permission:
+      columns:
+        - id
+        - item_id
+        - label
+      filter: {}
+      allow_aggregations: true
