@@ -40,6 +40,8 @@ type table struct {
 	conflictNullsNotDistinct map[string]bool
 	relationships            []*relationship
 	functions                []*function
+	computedScalars          []computedScalar
+	computedGrants           map[string][]string
 
 	// allTables is retained so _exists permission predicates can resolve
 	// references to sibling tables within the same database.
@@ -76,6 +78,8 @@ func newTable(schemaName, tableName string, dialect dialect.Dialect) *table {
 		conflictNullsNotDistinct:     map[string]bool{},
 		relationships:                []*relationship{},
 		functions:                    []*function{},
+		computedScalars:              nil,
+		computedGrants:               nil,
 		allTables:                    nil,
 
 		permissions: permissions.NewStore(),
@@ -134,10 +138,18 @@ func (t *table) Initialize(
 	}
 
 	t.columns = columns
+
+	t.computedGrants = make(map[string][]string, len(md.SelectPermissions))
+	for _, permission := range md.SelectPermissions {
+		t.computedGrants[permission.Role] = permission.Permission.ComputedFields
+	}
+
 	t.conflictColumns, t.conflictNullsNotDistinct = tableConflictMetadata(tableObj)
 	t.allTables = tables
 
 	t.initializeRootNames(md)
+	// The production roots constructor leaves this list empty; a white-box
+	// gated builder installs executable fields after table initialization.
 
 	if err := t.initializeRelationships(objects, tableObj, md, tables); err != nil {
 		return fmt.Errorf("error initializing relationships: %w", err)

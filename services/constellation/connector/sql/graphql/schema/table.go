@@ -52,9 +52,10 @@ func generateForTable( //nolint:funlen
 		tableMeta, tableInfo, allowedColumns, role, md, usedScalars, neededEnums,
 	)
 
+	computedFields := scalarComputedFields(schema, tableMeta, objects, role, caps, usedScalars)
 	generateTableObjectType(
 		schema, tableMeta, tableInfo, customTableName, allowedColumns, role, md,
-		objects, generatedAggregateOrderBy, caps,
+		objects, generatedAggregateOrderBy, caps, computedFields,
 	)
 
 	generateTableQueryFields(
@@ -429,6 +430,7 @@ func generateTableObjectType(
 	objects *introspection.Objects,
 	generatedAggregateOrderBy map[string]struct{},
 	caps Capabilities,
+	computedFields []*graph.Field,
 ) {
 	fields := []*graph.Field{}
 
@@ -458,6 +460,7 @@ func generateTableObjectType(
 		fields = append(fields, field)
 	}
 
+	fields = append(fields, computedFields...)
 	fields = append(
 		fields, generateObjectRelationshipFields(tableMeta, tableInfo, role, md)...,
 	)

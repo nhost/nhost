@@ -38,7 +38,7 @@ func (t *table) buildQueryAggregateSQL(
 		alias,
 		t.tableFromClause(),
 		t.tableSourceRef(),
-		rootFieldName(field),
+		errorFieldName(field),
 	)
 	if err != nil {
 		putBuilder(b)
@@ -343,7 +343,7 @@ func (t *table) buildNodesFromCTE(
 	argumentPath string,
 ) ([]any, int, error) {
 	// Note: Remote relationships in aggregate nodes are not supported and are ignored
-	columns, relationships, err := t.astToQuerySelection(nodesField, fragments)
+	columns, relationships, err := t.astToQuerySelection(nodesField, fragments, role)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -352,7 +352,13 @@ func (t *table) buildNodesFromCTE(
 	b.WriteString("SELECT ")
 	t.dialect.WriteJSONRowPrefix(b)
 
-	first := t.writeNodeColumnSelections(b, columns, cteAlias)
+	first, params, paramIndex, err := t.writeQueryNodeColumns(
+		b, columns, cteAlias, variables, sessionVariables, params, paramIndex,
+		argumentPath,
+	)
+	if err != nil {
+		return nil, 0, fmt.Errorf("building computed aggregate nodes: %w", err)
+	}
 
 	if t.dialect.SupportsLateral() {
 		return t.buildNodesRelationshipsLateral(
@@ -521,7 +527,7 @@ func (t *table) buildNodesWithDistinctOn( //nolint:funlen
 	argumentPath string,
 	distinctOn *arguments.DistinctOn,
 ) ([]any, int, error) {
-	columns, relationships, err := t.astToQuerySelection(nodesField, fragments)
+	columns, relationships, err := t.astToQuerySelection(nodesField, fragments, role)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -530,7 +536,13 @@ func (t *table) buildNodesWithDistinctOn( //nolint:funlen
 	b.WriteString("SELECT ")
 	t.dialect.WriteJSONRowPrefix(b)
 
-	hasColumns := t.writeNodeColumnSelections(b, columns, cteAlias)
+	hasColumns, params, paramIndex, err := t.writeQueryNodeColumns(
+		b, columns, cteAlias, variables, sessionVariables, params, paramIndex,
+		argumentPath,
+	)
+	if err != nil {
+		return nil, 0, fmt.Errorf("building computed aggregate nodes: %w", err)
+	}
 
 	// Relationships (DISTINCT ON is PostgreSQL-only, so always use LATERAL here)
 	for _, relSel := range relationships {

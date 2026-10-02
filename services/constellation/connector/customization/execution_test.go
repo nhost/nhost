@@ -437,11 +437,11 @@ func TestForwardArgumentPathRestoresNamespace(t *testing.T) {
 			want:       "league.selectionSet.teams",
 		},
 		{
-			name:       "namespace and root aliases are preserved",
+			name:       "namespace and root aliases do not change validation paths",
 			cfg:        metadata.Customization{RootFieldsNamespace: "league"},
 			op:         namespacedOp("lg", "roster", "teams"),
-			nativePath: "roster.selectionSet.players",
-			want:       "lg.selectionSet.roster.selectionSet.players",
+			nativePath: "teams.selectionSet.players",
+			want:       "league.selectionSet.teams.selectionSet.players",
 		},
 		{
 			name: "native root name maps back to prefixed client root",
@@ -454,7 +454,25 @@ func TestForwardArgumentPathRestoresNamespace(t *testing.T) {
 			want:       "league.selectionSet.db_teams.selectionSet.players",
 		},
 		{
-			name:       "non-namespaced customization leaves path unchanged",
+			name: "prefix and alias restore client field name",
+			cfg:  metadata.Customization{RootFieldsPrefix: "db_"},
+			op: &ast.OperationDefinition{Operation: ast.Query, SelectionSet: ast.SelectionSet{
+				&ast.Field{Name: "db_teams", Alias: "t"},
+			}},
+			nativePath: "teams.selectionSet.players",
+			want:       "db_teams.selectionSet.players",
+		},
+		{
+			name: "suffix restores client field name",
+			cfg:  metadata.Customization{RootFieldsSuffix: "_db"},
+			op: &ast.OperationDefinition{Operation: ast.Query, SelectionSet: ast.SelectionSet{
+				&ast.Field{Name: "teams_db"},
+			}},
+			nativePath: "teams.selectionSet.players",
+			want:       "teams_db.selectionSet.players",
+		},
+		{
+			name:       "unmatched root path remains unchanged",
 			cfg:        metadata.Customization{RootFieldsPrefix: "db_"},
 			op:         &ast.OperationDefinition{Operation: ast.Query},
 			nativePath: "db_teams",

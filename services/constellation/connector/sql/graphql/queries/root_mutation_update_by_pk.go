@@ -42,7 +42,7 @@ func (t *table) buildMutationUpdateByPkSQL(
 
 	params, err := t.buildUpdateByPkSQL(
 		b, update, columns, relationships, fragments, variables, role, sessionVariables, roots,
-		rootFieldName(field),
+		errorFieldName(field),
 	)
 	if err != nil {
 		putBuilder(b)

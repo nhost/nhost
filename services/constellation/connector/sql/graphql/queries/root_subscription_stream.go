@@ -50,13 +50,13 @@ func (t *table) buildSubscriptionStreamSQL(
 		fragments,
 		variables,
 		role,
-		sessionVariables,
+		markSubscriptionTemplateSessionArgument(sessionVariables),
 		roots,
 		[]any{},
 		1,
 		"_root",
 		"_root",
-		rootFieldName(field),
+		errorFieldName(field),
 		streamArgs,
 	)
 	if err != nil {
@@ -175,7 +175,7 @@ func (t *table) buildStreamQuerySQL( //nolint:cyclop,funlen,gocognit,gocyclo,mai
 	streamArgs arguments.Stream,
 ) ([]any, int, error) {
 	// Note: Remote relationships are not supported in subscriptions and are ignored
-	columns, relationships, err := t.astToQuerySelection(field, fragments)
+	columns, relationships, err := t.astToQuerySelection(field, fragments, role)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -278,9 +278,18 @@ func (t *table) buildStreamQuerySQL( //nolint:cyclop,funlen,gocognit,gocyclo,mai
 			b.WriteString(", ")
 		}
 
-		if colSel.literal != "" {
+		switch {
+		case colSel.computed != nil:
+			params, paramIndex, err = t.writeComputedScalar(
+				b, colSel, baseAlias, childArgumentPath(argumentPath, colSel.field),
+				variables, sessionVariables, params, paramIndex,
+			)
+			if err != nil {
+				return nil, 0, fmt.Errorf("building computed stream selection: %w", err)
+			}
+		case colSel.literal != "":
 			t.dialect.WriteJSONRowColumn(b, colSel.alias, "'"+colSel.literal+"'")
-		} else {
+		default:
 			expr := core.QuoteIdentifier(baseAlias) + "." +
 				core.QuoteIdentifier(colSel.column.SQLName)
 			t.dialect.WriteJSONRowColumn(

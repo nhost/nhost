@@ -38,6 +38,9 @@ type remoteQuery struct {
 	// parentPath is where localPhantomFields live (e.g. "games.homeTeam" for
 	// a "games.homeTeam.department" relationship).
 	parentPath jsonpath.Path
+	// namePath follows GraphQL field names for validation errors; parentPath
+	// continues to address actual response keys for stitching.
+	namePath jsonpath.Path
 	// localPhantomFields stores source join columns; localJoinAliases maps any
 	// column injected under an internal alias to the actual response key.
 	localPhantomFields []string
@@ -190,12 +193,22 @@ func (rq *remoteQuery) getParentPath() jsonpath.Path {
 }
 
 // argumentPath returns the GraphQL argument-path suffix for rq.sourceField:
-// the parent result path plus the relationship output field, separated the way
-// Hasura reports nested GraphQL selection paths.
+// the client field-name path plus the relationship field name, separated the
+// way Hasura reports nested GraphQL selection paths.
 func (rq *remoteQuery) argumentPath() string {
-	path := make([]string, 0, len(rq.parentPath)+1)
-	path = append(path, rq.parentPath...)
-	path = append(path, rq.alias)
+	path := rq.namePath
+	if len(path) == 0 {
+		path = rq.parentPath
+	}
 
-	return strings.Join(path, ".selectionSet.")
+	parts := make([]string, 0, len(path)+1)
+
+	parts = append(parts, path...)
+	if rq.sourceField != nil {
+		parts = append(parts, rq.sourceField.Name)
+	} else {
+		parts = append(parts, rq.alias)
+	}
+
+	return strings.Join(parts, ".selectionSet.")
 }

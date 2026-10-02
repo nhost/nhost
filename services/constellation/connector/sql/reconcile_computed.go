@@ -252,7 +252,9 @@ func validateComputedSignature(field metadata.ComputedField, fn *introspection.C
 
 func computedHasUnclassifiedArgument(fn *introspection.ComputedFunction) bool {
 	for i, arg := range fn.Arguments {
-		if i != fn.RowArgument && arg.Type.Kind != "b" {
+		if i != fn.RowArgument && (arg.Type.Kind != "b" || arg.Name == "") {
+			// Unnamed SQL inputs have no oracle-confirmed GraphQL numbering.
+			// Defer rather than exposing an input the executor cannot bind.
 			return true
 		}
 	}

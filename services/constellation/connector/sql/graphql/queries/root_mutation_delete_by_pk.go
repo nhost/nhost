@@ -113,7 +113,7 @@ func (t *table) buildDeleteByPkSQL(
 		roots,
 		params,
 		paramIndex,
-		rootFieldName(field),
+		errorFieldName(field),
 	)
 	if err != nil {
 		return nil, err

@@ -257,8 +257,8 @@ func TestCustomizedConnectorValidateOperation(t *testing.T) {
 			{
 				name:       "aliased root",
 				op:         namespacedQueryOpWithTeamsField("roster", negativeLimitArguments()),
-				nativePath: "roster",
-				wantPath:   "$.selectionSet.league.selectionSet.roster.args.limit",
+				nativePath: "teams",
+				wantPath:   "$.selectionSet.league.selectionSet.teams.args.limit",
 			},
 		}
 

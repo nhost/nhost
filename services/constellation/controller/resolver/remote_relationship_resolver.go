@@ -287,10 +287,6 @@ func remoteOperationRootArgumentPath(operation *ast.OperationDefinition) string 
 			continue
 		}
 
-		if field.Alias != "" {
-			return field.Alias
-		}
-
 		return field.Name
 	}
 

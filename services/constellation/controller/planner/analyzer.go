@@ -86,7 +86,7 @@ func (a *analyzer) analyzeOperation(op *ast.OperationDefinition) *analysisResult
 
 		path := jsonpath.Parse(fieldName)
 
-		a.analyzeField(field, typeName, path, result)
+		a.analyzeField(field, typeName, path, result, jsonpath.Path{field.Name})
 	}
 
 	return result
@@ -98,19 +98,31 @@ func (a *analyzer) analyzeField(
 	typeName string,
 	path jsonpath.Path,
 	result *analysisResult,
+	names ...jsonpath.Path,
 ) {
 	if field.SelectionSet == nil {
 		return
 	}
 
+	namePath := path
+	if len(names) != 0 {
+		namePath = names[0]
+	}
+
 	// First pass: identify remote relationships and collect phantom field requirements
-	neededPhantoms, phantomForRel := a.collectRemoteRelationships(field, typeName, path, result)
+	neededPhantoms, phantomForRel := a.collectRemoteRelationships(
+		field,
+		typeName,
+		path,
+		namePath,
+		result,
+	)
 
 	// Process phantom fields if any are needed
 	a.processPhantomFields(field, path, neededPhantoms, phantomForRel, result)
 
 	// Second pass: recurse into non-relationship fields
-	a.recurseIntoNestedFields(field, typeName, path, result)
+	a.recurseIntoNestedFields(field, typeName, path, namePath, result)
 }
 
 // collectRemoteRelationships identifies remote relationship fields and builds query plans.
@@ -118,10 +130,10 @@ func (a *analyzer) analyzeField(
 func (a *analyzer) collectRemoteRelationships(
 	field *ast.Field,
 	typeName string,
-	path jsonpath.Path,
+	path, namePath jsonpath.Path,
 	result *analysisResult,
 ) (map[string]struct{}, string) {
-	return a.collectFromSelectionSet(field.SelectionSet, typeName, path, result)
+	return a.collectFromSelectionSet(field.SelectionSet, typeName, path, result, namePath)
 }
 
 // collectFromSelectionSet collects relationships from a selection set (used for fragments).
@@ -130,7 +142,13 @@ func (a *analyzer) collectFromSelectionSet(
 	typeName string,
 	path jsonpath.Path,
 	result *analysisResult,
+	names ...jsonpath.Path,
 ) (map[string]struct{}, string) {
+	namePath := path
+	if len(names) != 0 {
+		namePath = names[0]
+	}
+
 	neededPhantoms := make(map[string]struct{})
 
 	var phantomForRel string
@@ -149,7 +167,7 @@ func (a *analyzer) collectFromSelectionSet(
 
 			phantomForRel = rel.Name
 
-			rqp := a.buildRemoteQueryPlan(s, rel, path)
+			rqp := a.buildRemoteQueryPlan(s, rel, path, namePath)
 			result.RemoteQueries = append(result.RemoteQueries, rqp)
 
 		case *ast.FragmentSpread:
@@ -160,7 +178,7 @@ func (a *analyzer) collectFromSelectionSet(
 
 			frag := a.getFragment(s.Name)
 			subPhantoms, subRel := a.collectFromSelectionSet(
-				frag.SelectionSet, fragTypeName, path, result,
+				frag.SelectionSet, fragTypeName, path, result, namePath,
 			)
 			mergePhantomResults(neededPhantoms, subPhantoms, &phantomForRel, subRel)
 
@@ -171,7 +189,7 @@ func (a *analyzer) collectFromSelectionSet(
 			}
 
 			subPhantoms, subRel := a.collectFromSelectionSet(
-				s.SelectionSet, inlineTypeName, path, result,
+				s.SelectionSet, inlineTypeName, path, result, namePath,
 			)
 			mergePhantomResults(neededPhantoms, subPhantoms, &phantomForRel, subRel)
 		}
@@ -221,7 +239,7 @@ func (a *analyzer) getFragment(name string) *ast.FragmentDefinition {
 func (a *analyzer) buildRemoteQueryPlan(
 	subField *ast.Field,
 	rel *RelationshipMetadata,
-	path jsonpath.Path,
+	path, namePath jsonpath.Path,
 ) *RemoteQueryPlan {
 	outputField := subField.Name
 	if subField.Alias != "" {
@@ -239,6 +257,7 @@ func (a *analyzer) buildRemoteQueryPlan(
 		Name:                rel.Name,
 		SourceConnector:     a.sourceConnector,
 		SourcePath:          path,
+		SourceNamePath:      namePath,
 		TargetConnector:     rel.TargetConnector,
 		TargetTable:         rel.TargetTable,
 		TargetTableSchema:   rel.TargetTableSchema,
@@ -398,17 +417,17 @@ func fieldResponseKey(field *ast.Field) string {
 func (a *analyzer) recurseIntoNestedFields(
 	field *ast.Field,
 	typeName string,
-	path jsonpath.Path,
+	path, namePath jsonpath.Path,
 	result *analysisResult,
 ) {
-	a.recurseIntoSelectionSet(field.SelectionSet, typeName, path, result)
+	a.recurseIntoSelectionSet(field.SelectionSet, typeName, path, namePath, result)
 }
 
 // recurseIntoSelectionSet recursively analyzes a selection set (used for fragments).
 func (a *analyzer) recurseIntoSelectionSet(
 	selectionSet ast.SelectionSet,
 	typeName string,
-	path jsonpath.Path,
+	path, namePath jsonpath.Path,
 	result *analysisResult,
 ) {
 	for _, sel := range selectionSet {
@@ -430,7 +449,7 @@ func (a *analyzer) recurseIntoSelectionSet(
 			}
 
 			subPath := path.Child(subFieldName)
-			a.analyzeField(s, subTypeName, subPath, result)
+			a.analyzeField(s, subTypeName, subPath, result, namePath.Child(s.Name))
 
 		case *ast.FragmentSpread:
 			fragTypeName := a.resolveFragmentTypeName(s.Name, typeName)
@@ -439,7 +458,7 @@ func (a *analyzer) recurseIntoSelectionSet(
 			}
 
 			frag := a.getFragment(s.Name)
-			a.recurseIntoSelectionSet(frag.SelectionSet, fragTypeName, path, result)
+			a.recurseIntoSelectionSet(frag.SelectionSet, fragTypeName, path, namePath, result)
 
 		case *ast.InlineFragment:
 			inlineTypeName := typeName
@@ -447,7 +466,7 @@ func (a *analyzer) recurseIntoSelectionSet(
 				inlineTypeName = s.TypeCondition
 			}
 
-			a.recurseIntoSelectionSet(s.SelectionSet, inlineTypeName, path, result)
+			a.recurseIntoSelectionSet(s.SelectionSet, inlineTypeName, path, namePath, result)
 		}
 	}
 }

@@ -36,7 +36,7 @@ func (t *table) buildQueryCollectionSQL(
 		1,
 		"_root",
 		"_root",
-		rootFieldName(field),
+		errorFieldName(field),
 	)
 	if err != nil {
 		putBuilder(b)

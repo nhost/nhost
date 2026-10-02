@@ -243,7 +243,7 @@ func TestBuildNestedRelationshipValidationErrorPath(t *testing.T) {
 					orderList: orders(distinct_on: id, order_by: { user_id: asc }) { id }
 				}
 			}`,
-			wantPath: "$.selectionSet.people.selectionSet.orderList.args",
+			wantPath: "$.selectionSet.users.selectionSet.orders.args",
 		},
 		{
 			// The invalid relationship args live under the mutation's
@@ -261,7 +261,7 @@ func TestBuildNestedRelationshipValidationErrorPath(t *testing.T) {
 					}
 				}
 			}`,
-			wantPath: "$.selectionSet.insert_users.selectionSet.returning.selectionSet.orderList.args",
+			wantPath: "$.selectionSet.insert_users.selectionSet.returning.selectionSet.orders.args",
 		},
 	}
 
