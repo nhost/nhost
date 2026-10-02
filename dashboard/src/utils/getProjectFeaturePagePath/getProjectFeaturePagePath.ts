@@ -5,6 +5,7 @@
  * `/database/schema/default` does).
  */
 const featurePathOverrides: Record<string, string> = {
+  '/database/browser': '/database/browser/default',
   '/database/schema': '/database/schema/default',
   '/database/native-queries': '/database/native-queries/default',
   '/database/console': '/database/console/default',
