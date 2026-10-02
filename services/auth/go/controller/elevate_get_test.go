@@ -51,6 +51,11 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 	}
 	plainUser := sql.AuthUser{ID: userID}
 	emailUser := sql.AuthUser{ID: userID, Email: sql.Text("jane@acme.com")}
+	smsUser := sql.AuthUser{
+		ID:                  userID,
+		PhoneNumber:         sql.Text("+1234567890"),
+		PhoneNumberVerified: true,
+	}
 
 	cases := []testRequest[
 		api.GetElevationMethodsRequestObject,
@@ -185,11 +190,13 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 				c := getConfig()
 				c.TOTPEnabled = false
 				c.OTPEmailEnabled = false
+				c.OTPSmsEnabled = false
 
 				return c
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
-				// The user row is not read when neither TOTP nor email OTP is on.
+				// The user row is not read when no user-row-backed factor
+				// (TOTP, email OTP, SMS OTP) is on.
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(1), nil)
@@ -246,6 +253,88 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 
 				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
 				mock.EXPECT().GetUser(gomock.Any(), userID).Return(emailUser, nil)
+
+				return mock
+			},
+			request: api.GetElevationMethodsRequestObject{},
+			expectedResponse: api.GetElevationMethods200JSONResponse{
+				ElevationRequired: false,
+				Methods:           []api.ElevationMethod{},
+			},
+			jwtTokenFn:  jwtTokenFn,
+			expectedJWT: nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withElevationMode("recommended"),
+			},
+		},
+
+		{
+			name:   "sms otp only",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(smsUser, nil)
+
+				return mock
+			},
+			request: api.GetElevationMethodsRequestObject{},
+			expectedResponse: api.GetElevationMethods200JSONResponse{
+				ElevationRequired: true,
+				Methods:           []api.ElevationMethod{api.ElevationMethodOtpSms},
+			},
+			jwtTokenFn:  jwtTokenFn,
+			expectedJWT: nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withElevationMode("recommended"),
+			},
+		},
+
+		{
+			name:   "unverified phone number is not a factor",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				// A number nobody has proved control of cannot prove identity,
+				// so it must not be advertised as a way to elevate.
+				mock := mock.NewMockDBClient(ctrl)
+
+				user := smsUser
+				user.PhoneNumberVerified = false
+
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(user, nil)
+
+				return mock
+			},
+			request: api.GetElevationMethodsRequestObject{},
+			expectedResponse: api.GetElevationMethods200JSONResponse{
+				ElevationRequired: false,
+				Methods:           []api.ElevationMethod{},
+			},
+			jwtTokenFn:  jwtTokenFn,
+			expectedJWT: nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withElevationMode("recommended"),
+			},
+		},
+
+		{
+			name: "sms otp disabled, user with a verified phone number",
+			config: func() *controller.Config {
+				c := getConfig()
+				c.OTPSmsEnabled = false
+
+				return c
+			},
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				// SMS passwordless sign-in stays on in getConfig; only the OTP
+				// SMS capability is off, so the phone number is not a factor
+				// the user can elevate with.
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(smsUser, nil)
 
 				return mock
 			},

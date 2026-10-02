@@ -141,6 +141,7 @@ type JWTGetter struct {
 	totpEnabled          bool
 	webauthnEnabled      bool
 	otpEmailEnabled      bool
+	otpSmsEnabled        bool
 	db                   DBClient
 	jwks                 []api.JWK
 }
@@ -157,6 +158,7 @@ type ElevationConfig struct {
 	TOTPEnabled     bool
 	WebauthnEnabled bool
 	OTPEmailEnabled bool
+	OTPSmsEnabled   bool
 }
 
 func NewJWTGetter(
@@ -187,6 +189,7 @@ func NewJWTGetter(
 		totpEnabled:          elevation.TOTPEnabled,
 		webauthnEnabled:      elevation.WebauthnEnabled,
 		otpEmailEnabled:      elevation.OTPEmailEnabled,
+		otpSmsEnabled:        elevation.OTPSmsEnabled,
 		db:                   db,
 		jwks:                 jwks,
 	}, nil
@@ -528,7 +531,7 @@ func (j *JWTGetter) availableElevationMethods(
 		}
 	}
 
-	if !j.totpEnabled && !j.otpEmailEnabled {
+	if !j.totpEnabled && !j.otpEmailEnabled && !j.otpSmsEnabled {
 		return methods, nil
 	}
 
@@ -537,14 +540,16 @@ func (j *JWTGetter) availableElevationMethods(
 		return nil, fmt.Errorf("error getting user: %w", err)
 	}
 
-	if j.totpEnabled &&
-		user.ActiveMfaType.String == string(api.UserMfaRequestActiveMfaTypeTotp) &&
-		user.TotpSecret.String != "" {
+	if j.totpEnabled && hasActiveTOTP(user) {
 		methods = append(methods, api.ElevationMethodTotp)
 	}
 
-	if j.otpEmailEnabled && user.Email.Valid && user.Email.String != "" {
+	if j.otpEmailEnabled && hasEmail(user) {
 		methods = append(methods, api.ElevationMethodOtpEmail)
+	}
+
+	if j.otpSmsEnabled && hasVerifiedPhoneNumber(user) {
+		methods = append(methods, api.ElevationMethodOtpSms)
 	}
 
 	return methods, nil

@@ -829,6 +829,70 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 			requestURL: nil,
 			expectErr:  nil,
 		},
+
+		{
+			name: "BearerAuthElevated: elevated recommended, no security keys, otp sms enabled, user has a verified phone, claim not present",
+			elevation: controller.ElevationConfig{
+				Mode: "recommended", WebauthnEnabled: true, OTPSmsEnabled: true,
+			},
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(
+					sql.AuthUser{
+						PhoneNumber:         sql.Text("+1234567890"),
+						PhoneNumberVerified: true,
+					}, nil,
+				)
+
+				return mock
+			},
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr: &oapi.AuthenticatorError{
+				Scheme:  "BearerAuthElevated",
+				Code:    "unauthorized",
+				Message: "elevated claim required",
+			},
+		},
+
+		{
+			name: "BearerAuthElevated: elevated recommended, otp sms enabled, user has an unverified phone",
+			elevation: controller.ElevationConfig{
+				Mode: "recommended", WebauthnEnabled: true, OTPSmsEnabled: true,
+			},
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(
+					sql.AuthUser{PhoneNumber: sql.Text("+1234567890")}, nil,
+				)
+
+				return mock
+			},
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr:  nil,
+		},
+
+		{
+			name: "BearerAuthElevated: elevated recommended, otp sms disabled, user has a verified phone",
+			elevation: controller.ElevationConfig{
+				Mode: "recommended", WebauthnEnabled: true, OTPSmsEnabled: false,
+			},
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+
+				return mock
+			},
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr:  nil,
+		},
 	}
 
 	for _, tc := range cases {
