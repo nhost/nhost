@@ -229,7 +229,7 @@ Authorization rules decide who can read and change which rows. To compare them, 
 
 I tested rules 1 and 4 on all three platforms. Rules 2 and 3 are set up on all three too, but I didn't test them end to end, since that needs real user accounts.
 
-**Supabase** does rules 1 and 4 in two policies:
+**Supabase** covers published posts and private drafts with two policies:
 
 ```sql
 create policy "anyone reads published posts"
@@ -243,9 +243,9 @@ I ran `select title, published from posts` as the Anonymous role in the dashboar
 
 ![Run as Anonymous in Supabase: one row back, the draft hidden.](/images/blog/supabase-vs-appwrite/supabase-run-as-anonymous.png)
 
-**Appwrite** cannot express rule 1 at all, and this is the finding I'd build the article around if I only had one. Its permission roles answer the question "who are you" - Any, All guests, All users, a specific user, a team. There is no place to put a condition about the row's own data. `published = true` is not a role. And filtering it in the query doesn't count: a query filter is a convention the caller can drop, a permission is enforced whether they cooperate or not.
+**Appwrite** can't express "anonymous visitors see only published posts" at all, and this was the biggest difference I found. Its permission roles only describe who you are: Any, All guests, All users, a specific user or a team. There's nowhere to add a condition on the row's data, like `published = true`. You could filter by `published` in the query, but the caller can just leave that filter out. A permission applies either way.
 
-So you work around it, and the workaround has a cost. Here's what I actually had to do:
+Here's the workaround I used:
 
 1. Remove Any → Read at the table level. Leave it on and every draft is world-readable, because table permissions override row permissions.
 2. Enable Row security.
@@ -254,15 +254,21 @@ So you work around it, and the workaround has a cost. Here's what I actually had
 
 ![Appwrite row permissions: the draft's access granted to one user by hand.](/images/blog/supabase-vs-appwrite/appwrite-row-permissions.png)
 
-It works. The result is the same. But look at what happened to the schema: the `published` column is now decorative. The real publish switch is a permission you have to remember to write onto every row at creation time. Forget it on a published post and nobody sees it. Forget it the other way and a draft goes public. In Supabase there is nothing to forget, because the condition lives in one place instead of on every record.
+It works, but now the `published` column doesn't do anything. What actually publishes a post is a permission you have to add to each row when you create it. Forget it on a published post and nobody sees it. Add it to a draft by mistake and the draft goes public. In Supabase there's nothing to forget, because the rule is written once for the whole table.
 
-The ceiling shows up fast, too. "Users can read orders in their org, unless the order is archived, unless they're an admin" is four lines of SQL and a data-model redesign in a permission system.
+It also gets hard fast as rules get more complex. Something like "users can read orders in their org, unless the order is archived, unless they're an admin" is four lines of SQL in Supabase. In Appwrite you'd have to redesign your data model to fit it.
 
-And on Appwrite's native Postgres you get neither model, because there's no Appwrite in the request path to enforce anything. You write your own middleware, or you write RLS yourself against your own JWTs.
+Appwrite's native Postgres has no permissions at all, since requests go straight to the database and never pass through Appwrite. You'd have to write your own middleware or set up RLS yourself with your own JWTs. 
+
+Three roadblocks I hit in Appwrite that aren't in the docs:
+
+- Row permissions are invisible from the row. Open a row to edit it and you see the data fields only. Permissions live in the `...` menu under "Manage permissions." Looking at a record tells you nothing about who can read it.
+- Row-level permissions have no Create, only Read, Update, Delete. Logical, briefly confusing.
+- Custom permissions aren't validated. The field takes `user:[USER_ID]`, `team:[TEAM_ID]/[ROLE]`, or `member:[MEMBERSHIP_ID]` as free text. I typed a user ID that doesn't exist and it saved without complaint. A typo here is a silently broken rule.
 
 ### Nhost: the rule is a form
 
-Nhost answers rule 1 without SQL and without per-row grants. In the permissions editor you pick the role, pick the action, and build the condition from three dropdowns:
+In **Nhost** you can limit visitors to published posts without SQL and without per-row permissions. In the permissions editor you pick the role and the action, then build the condition from three dropdowns:
 
 ```text
 published   _eq   true
@@ -270,7 +276,7 @@ published   _eq   true
 
 ![Nhost's permission rule builder: published equals true, built from dropdowns.](/images/blog/supabase-vs-appwrite/nhost-rule-builder.png)
 
-Underneath that's `{"published": {"_eq": true}}`, and the editor will show you either view. Rule 3 is the same shape with a session variable instead of a literal:
+Underneath that's `{"published": {"_eq": true}}`, and the editor will show you either view. The rule that lets authors edit only their own posts looks the same, with the user's ID in place of a fixed value:
 
 ```json
 {"author_id": {"_eq": "X-Hasura-User-Id"}}
@@ -286,19 +292,23 @@ The playground has the same role switch the other two have. Set ROLE to `public`
 
 ![Nhost's GraphQL playground as the public role: one row back, the draft hidden.](/images/blog/supabase-vs-appwrite/nhost-run-as-public.png)
 
-One row out of two. The draft stayed on the server.
+OOne row came back out of two, and the draft stayed hidden.
 
-Expressed this way, the rule is data rather than code. It lives in metadata beside the schema, it's versioned with your migrations, and it's enforced on every path into that table: a query, a subscription, a file download, an AI assistant acting on a user's behalf. There's no second place to check and nothing to reimplement per endpoint.
+The rule is stored as metadata next to your schema and versioned with your migrations. Nhost applies it to every way into that table: queries, subscriptions, file downloads, and AI assistants acting for a user. You write it once and don't have to repeat it for each endpoint.
 
-The default is deny. No role except `admin` can read anything until you grant it, so a table you create and forget about is a table nobody can read.
+By default, access is denied. No role except `admin` can read anything until you grant it. If you create a table and forget to set permissions, it stays private, so nothing leaks by accident.
 
 ![Nhost's permissions matrix: roles down the side, actions across the top.](/images/blog/supabase-vs-appwrite/nhost-permissions-matrix.png)
 
-All three products can now show you what a given role actually sees, and this is the part of the tooling that changed most in 2026.
+### Testing what a role can see
 
-On Supabase, don't go looking for a thing called "RLS Tester" - I did, and it isn't a panel in the policy editor. What exists is a role switcher in the SQL editor: the dropdown next to Run offers postgres, Anonymous, and Authenticated (with a user picker and an MFA level), and it tells you plainly that postgres bypasses RLS.
+All three platforms let you check what a given role can see.
 
-**Appwrite's** equivalent is buried somewhere I didn't expect: the Explorer, its in-console API client. Pick TablesDB → List rows, fill in the database and table IDs, and there's an Act as: Guest / User toggle sitting right above the Send button. I ran it as Guest against my table and got back exactly this:
+On **Supabase**, don't look for something called "RLS Tester". I did, and there's no such panel in the policy editor. Instead, the SQL editor has a role switcher: the dropdown next to Run offers postgres, Anonymous and Authenticated (with a user picker and an MFA level). It also warns you that postgres bypasses RLS.
+
+The shield button on the Policies page doesn't test anything. It opens the AI Assistant, which can write a policy for you. The same page also offers to install a trigger that turns on RLS for every new table, but it's off by default.
+
+On **Appwrite**, it's in a place I didn't expect: the Explorer. Pick TablesDB → List rows, fill in the database and table IDs, and you'll see an Act as: Guest / User toggle right above the Send button. I ran it as Guest against my table and got back this:
 
 ```json
 {
@@ -312,38 +322,29 @@ On Supabase, don't go looking for a thing called "RLS Tester" - I did, and it is
 }
 ```
 
-One row out of two, 200 OK in 202 ms. The draft never left the server. Same proof as the other two, reached through a real HTTP request rather than a session with a role set.
+One row out of two, 200 OK in 202 ms, and the draft stayed hidden. This check goes through a real HTTP request, so it shows exactly what a client would get.
 
 ![Appwrite's Explorer: an in-console API client with an Act as Guest / User toggle.](/images/blog/supabase-vs-appwrite/appwrite-explorer.png)
 
-**Nhost's** is the least ceremonious of the three: the role switch sits in the GraphQL playground next to Run, and switching it re-runs the same query under a different role. No separate client, no headers to set.
+On **Nhost**, the role switch sits next to Run in the GraphQL playground. Switch it and the same query runs again under the new role. There's no separate client and no headers to set.
 
-The shield button on Supabase's Policies page, meanwhile, is something else entirely - it opens the AI Assistant, which will write a policy for you but won't test one.
+### Which permission model fits
 
-On that same page, Supabase offers to install a trigger that enables RLS on every new table. It's off by default.
+The real difference is what a rule can check. In **Supabase** a rule can check anything SQL can, but you have to write and maintain the SQL policies yourself. In **Appwrite** a rule can only check who the user is. That's easy for the whole team to read, but it stops working once access depends on what's in the row. In **Nhost** a rule can check both who the user is and what's in the row, and you build it in a form. That covers most apps, though not the most unusual cases.
 
-Three roadblocks I hit in Appwrite that aren't in the docs:
-
-- Row permissions are invisible from the row. Open a row to edit it and you see the data fields only. Permissions live in the `...` menu under "Manage permissions." Looking at a record tells you nothing about who can read it.
-- Row-level permissions have no Create, only Read, Update, Delete. Logical, briefly confusing.
-- Custom permissions aren't validated. The field takes `user:[USER_ID]`, `team:[TEAM_ID]/[ROLE]`, or `member:[MEMBERSHIP_ID]` as free text. I typed a user ID that doesn't exist and it saved without complaint. A typo here is a silently broken rule.
-
-So the axis isn't "powerful versus simple," it's what a rule is allowed to be _about_. Supabase lets a rule say anything SQL can say, and charges you a policy file and somebody to own it. Appwrite lets a rule say who you are, which is readable by anyone on the team and hits a ceiling the moment the answer depends on the row. Nhost lets a rule say who you are _and_ what the row contains, in a form, which covers most real apps and none of the exotic ones.
-
-Pick by looking at your hardest access rule. If it contains a condition your permission system can't express, you will end up writing that condition somewhere worse: in the client, in a wrapper endpoint, or on every row by hand.
+Look at the hardest access rule in your app. If your permission system can't express it, you'll end up writing that check somewhere worse: in the client, in a wrapper endpoint, or on every row by hand.
 
 ## Storage
 
-All three speak S3 now, removing the main reason to switch away from any of them.
+All three now support the S3 API, so you can use standard S3 tools with any of them.
 
-**Supabase** splits egress into cached and origin tiers, and has priced cached at $0.03/GB, roughly a third of origin. I'm quoting that from [their changelog](#) rather than from their pricing page, so double check costs before committing. If you serve images, the critical takeaway is the cost structure: serving cached assets is significantly cheaper than pulling directly from the origin.
+**Supabase** splits egress (outgoing traffic) into cached and origin tiers. Cached egress costs $0.03/GB, about a third of origin. I took that number from [their changelog](https://supabase.com/changelog/38119-3x-cheaper-egress-for-cache-hits), not their pricing page, so check it before you commit. If you serve a lot of images, making sure they come from the cache will noticeably cut your bill.
 
-**Appwrite** says its S3 API maps onto your existing buckets, so files uploaded via the AWS CLI show up in the console and vice versa. That's from [their 2.0 announcement](#) rather than a round-trip I ran myself - I stayed in the dashboard. Either address reaches the same bucket.
+**Appwrite** says its S3 API works with your existing buckets, so files you upload with the AWS CLI show up in the console, and the other way around. That's from [their 2.0 announcement](https://appwrite.io/blog/post/announcing-appwrite-2). I stayed in the dashboard and didn't test it myself.
 
-**Nhost** puts the permission layer in front of the object store rather than beside it. Uploads and downloads go through an API that checks the same role rules as the rest of your schema before it touches a file, writes metadata into Postgres, and applies image transforms on the way out. Presigned URLs, per-file permissions and CDN delivery come with it. One authorization model covers rows and files alike, evaluated against the same session variables.
+In **Nhost**, every upload and download goes through an API that checks the same permission rules as your tables. It also saves file metadata in Postgres and can resize or convert images on download. Presigned URLs, per-file permissions and CDN delivery are included. One set of rules covers both rows and files.
 
-The differences that matter for most apps come down to CDN performance, image transformations, and upload limits. Don't rely on vendor benchmarks; test these with your team's own typical file sizes.
-
+For most apps, the real differences are CDN speed, image transformations and upload limits. Don't trust vendor benchmarks here. Test with the file sizes your app actually uses.
 ## Functions, and the runtime arms race
 
 | Capability | Supabase | Appwrite | Nhost |
@@ -352,67 +353,38 @@ The differences that matter for most apps come down to CDN performance, image tr
 | Deploy | CLI, dashboard, Management API | CLI, console, Git triggers | Git push, CLI |
 | Language freedom | TypeScript/JavaScript | Wide | Narrow in Functions, unlimited in Run |
 
-**Appwrite's** runtime list is the widest of the three, and [Bun 1.4](#) landed on August 20th as both a function runtime and a build runtime for Appwrite Sites. It's the first Bun written in Rust rather than Zig; Appwrite's own numbers put builds 22% faster than Bun 1.3 on a Next.js app with 640 packages. Again: vendor benchmark, one workload, take it with a grain of salt.
+**Appwrite** supports the most runtimes of the three. On August 20th it added [Bun 1.4](https://appwrite.io/blog/post/announcing-bun-1-4-runtime), both for functions and as a build runtime for Appwrite Sites. It's the first Bun version written in Rust instead of Zig. Appwrite says builds are 22% faster than on Bun 1.3, measured on a Next.js app with 640 packages. That's a vendor benchmark on a single workload, so treat it with caution.
 
-**Supabase's** counter-argument is that one runtime means one set of behaviors to learn. If your functions are webhooks and glue, this doesn't matter. If you have a Python ML step in your pipeline, it decides the whole thing.
+**Supabase** gives you one runtime, which means one set of behaviors to learn. For webhooks and glue code, that's plenty. If your pipeline has a Python ML step, it's a dealbreaker.
 
-**Nhost** splits this into two products. Functions run JavaScript and TypeScript, deploy automatically when you push to the connected GitHub repository, and handle HTTP endpoints, event triggers, cron triggers and one-off scheduled events. Anything that isn't JavaScript goes to Run, which deploys an arbitrary Docker container alongside the stack, in Go, Python, Rust or anything that builds into an image, billed per vCPU and memory allocated.
+**Nhost** splits this into two products. Functions run JavaScript and TypeScript and deploy automatically when you push to the connected GitHub repo. They handle HTTP endpoints, event triggers, cron triggers and one-off scheduled events. For anything else there's Run, which deploys any Docker container next to your stack: Go, Python, Rust, or anything that builds into an image. You pay for the vCPU and memory you allocate.
 
-Cold starts: measure them. I'm not publishing numbers from a free tier and pretending they generalize, and you shouldn't trust anyone who does. Hit your own function 20 times after five idle minutes and look at your own p95.
+About cold starts: I'm not publishing numbers from a free tier, because they say little about production. Measure your own. Call your function 20 times after five idle minutes and check the p95.
 
 ## Realtime
 
-**Supabase Realtime** broadcasts database changes over WebSockets, gates channels through RLS policies, and [as of June 2026 supports binary payloads over Broadcast](#), which cuts JSON overhead if you're pushing sensor data or image frames. Realtime also picked up per-project settings for connection pool size and max concurrent clients, which you will need eventually.
+**Supabase Realtime** sends database changes over WebSockets and controls channel access with RLS policies. [Since June 2026, Broadcast also supports binary payloads](https://supabase.com/changelog/46834-realtime-broadcast-now-supports-binary-payloads), which cuts JSON overhead if you're pushing sensor data or image frames. You can now set the connection pool size and max concurrent clients per project, which you'll need once traffic grows.
 
-**Appwrite's** realtime rides on the same permission model as your data, so a client subscribed to a table only sees rows it's allowed to see, with no separate policy layer. 1.9.5 added a [Presences API](#) for online/typing/activity states, which is the feature everyone typically reimplements poorly by hand.
+**Appwrite** realtime uses the same permissions as your data, so a client subscribed to a table only sees rows it's allowed to see. Version 1.9.5 added a [Presences API](https://appwrite.io/blog/post/announcing-presences-api) for online, typing and activity states, a feature most teams end up building themselves. Appwrite's native Postgres has no realtime at all.
 
-**Nhost** does realtime as GraphQL subscriptions. You write the query you'd write as a one-off, swap `query` for `subscription`, and get a live stream over a WebSocket. The permission rules apply unchanged, so a subscribed client receives exactly the rows its role is allowed to see and nothing more.
-
-None of this reaches data sitting in Appwrite's native Postgres, which has no realtime layer in front of it.
+**Nhost** does realtime with GraphQL subscriptions. Take any query, change `query` to `subscription`, and you get a live stream over a WebSocket. The same permission rules apply, so a subscribed client only gets the rows its role is allowed to see.
 
 ## The AI in the console
 
-**Supabase and Appwrite** have quietly put a model in the dashboard, on the free tier, and they've aimed it at completely different problems.
+Supabase and Appwrite both have an AI assistant in the dashboard, on the free tier. They use it for different things.
 
-**Appwrite** aims it at the empty state. Creating a table offers "Smart column suggestions - enable AI to suggest useful columns based on your table name." An empty table offers "Suggest columns" and "Generate sample data" as first-class buttons next to "Create column." The bet is that the hard part is starting: you've named a thing `orders` and now you're staring at a blank schema.
+**Supabase** puts it on the Policies page. Its suggested prompts include "Set up RLS policies," "Query your data" and "Create a function." It's there to help with access rules, the part that's easiest to get wrong.
 
-**Supabase** aims it at the dangerous part. The Assistant lives on the Policies page and its listed ideas are things like "Set up RLS policies," "Query your data," "Create a function." The bet is that the hard part is the thing most likely to leak your database.
+**Appwrite** uses it to help you get started. When you create a table, it offers "Smart column suggestions" based on the table name. An empty table shows "Suggest columns" and "Generate sample data" buttons right next to "Create column."
 
-Both of those help you build the app. Neither ships with it.
+Both help you build your app. Neither becomes part of it.
 
-**Nhost** aims it at the application rather than the console, and ships it as a product called Graphite.
+**Nhost** puts AI inside the app itself, through a product called [Graphite](https://docs.nhost.io/products/ai/). It has two parts:
 
-Auto-Embeddings generates and refreshes embeddings as rows are inserted or changed, and adds two queries to your schema for every source you configure: one for natural-language search, one for finding objects similar to a given object. AI Assistants lets you define an assistant with a specific set of tools: named GraphQL queries, mutations, or webhooks it is allowed to call. So an assistant can read data, write data, or trigger a function, and only through the doors you opened.
+- **Auto-Embeddings** creates and updates embeddings as rows are added or changed. For each source you set up, it adds two queries to your schema: one for natural-language search and one for finding similar items.
+- **AI Assistants** lets you create an assistant and choose which tools it can use: specific GraphQL queries, mutations or webhooks. It can read data, write data or trigger a function, but only through the tools you give it.
 
-Both respect the session. An assistant's access to your data is limited to what the signed-in user can see, because it resolves through the same permission rules as every other request. Their AI helps the developer build the app; this one is something you ship inside it.
-
-## Beyond the basics: what each one uniquely offers
-
-**Supabase:**
-
-- Read replicas
-- Pipelines: managed change data capture (CDC) to BigQuery, public alpha, paid plans
-- Log drains and a mature observability story
-- Foreign data wrappers (query Stripe, MongoDB, and friends as if they were tables)
-- Multigres, the horizontal-scaling project, still 0.1 alpha and not something to plan around yet
-- The extension ecosystem, which is really "everything Postgres has"
-
-**Appwrite:**
-
-- Sites: static and framework hosting
-- Messaging: push, email, SMS as a first-class product
-- Firewall: rules on IP, hostname, path, method, headers, query params, user agent, or location, with deny / bypass / challenge / rate limit / redirect actions, and a preview of how many recent requests a rule would have matched before you enable it
-- Domains: an actual registrar, 160+ TLDs, DNS zone editing, MX presets, automatic TLS.
-- Native MySQL, if that's your world
-- Multiple data models in one project
-
-**Nhost:**
-
-- A typed GraphQL API generated from your schema, subscriptions and aggregates included
-- Permission rules that are both role-based and data-aware, versioned alongside your migrations
-- Graphite: auto-embeddings and AI assistants scoped by the same permissions as your users
-- Run: deploy any Docker container alongside the backend, in any language
-- Single-tenant services rather than shared infrastructure
+Both follow the same permission rules as any other request, so an assistant can only see what the signed-in user can see.
 
 ## So which one
 
