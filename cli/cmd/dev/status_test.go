@@ -14,7 +14,7 @@ import (
 func TestPrintInfo(t *testing.T) {
 	t.Parallel()
 
-	got := printInfo("myapp", 8443, 5433, false, runLinks([]*dockercompose.RunService{{
+	got := printInfo("myapp", 8443, 5433, false, []*dockercompose.RunService{{
 		Config: &model.ConfigRunServiceConfig{
 			Name:        "bun-gen",
 			Image:       nil,
@@ -41,7 +41,7 @@ func TestPrintInfo(t *testing.T) {
 		},
 		Path:       "/tmp/run.toml",
 		BindMounts: nil,
-	}}))
+	}})
 
 	for _, want := range []string{
 		"postgres://postgres:postgres@localhost:5433/local",
