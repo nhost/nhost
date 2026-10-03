@@ -48,6 +48,8 @@ func commandStatus(ctx context.Context, cmd *cli.Command) error {
 		return cli.Exit("failed to read service status: "+err.Error(), 1)
 	}
 
+	fmt.Fprintln(os.Stdout)
+
 	body, err := os.ReadFile(filepath.Join(ce.Path.DotNhostFolder(), devInfoFileName))
 	switch {
 	case err == nil:
