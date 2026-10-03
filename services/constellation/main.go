@@ -8,6 +8,8 @@ import (
 	"context"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/nhost/nhost/services/constellation/cmd"
 	metadatacmd "github.com/nhost/nhost/services/constellation/cmd/metadata"
@@ -61,6 +63,8 @@ func markdownDocs() *cli.Command {
 }
 
 func main() {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+
 	app := &cli.Command{ //nolint:exhaustruct
 		Name:    "constellation",
 		Version: Version,
@@ -72,7 +76,10 @@ func main() {
 		},
 	}
 
-	if err := app.Run(context.Background(), os.Args); err != nil {
+	err := app.Run(ctx, os.Args)
+	stop()
+
+	if err != nil {
 		log.Fatal(err)
 	}
 }

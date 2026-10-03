@@ -24,6 +24,7 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 
 - `internal/lib/oapi` - shared OpenAPI middleware and utilities
 - `internal/lib/clidocs` - CLI documentation generation
+- `internal/lib/serve` - shared logger construction, startup flag logging with secret redaction, and `Run(ctx, Options, ...Definition)` to build services, serve one public listener with an optional best-effort debug address, and shut down in order within one budget
 - `internal/lib/syncmap` - typed generic map safe for concurrent use
 
 ### Dashboard (`dashboard/`)
