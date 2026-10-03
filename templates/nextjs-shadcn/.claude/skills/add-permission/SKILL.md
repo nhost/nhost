@@ -1,0 +1,133 @@
+---
+name: add-permission
+description: Add or modify role-based insert, select, update, or delete access for an existing tracked table.
+---
+
+# Add a table permission
+
+Use this skill when a role needs new table access, a column must be exposed or hidden, or row ownership rules change. Run commands from the project root. Use `backend/nhost/metadata/databases/default/tables/public_todos.yaml` as the canonical example.
+
+## 1. Locate the tracked table
+
+Open `backend/nhost/metadata/databases/default/tables/<schema>_<table>.yaml`. Confirm that `backend/nhost/metadata/databases/default/tables/tables.yaml` includes it before editing permissions.
+
+Edit the existing role entry when one is present; do not create two entries for the same role in one permission section.
+
+## 2. Add the required permission shapes
+
+The following `user` permissions show the four supported operations for a table owned through `user_id`, which is the per-user shape. A table shared by a group filters through a membership relationship instead; the `add-table` skill writes that shape out in full, and the rules below about column lists and session variables apply to it unchanged. Replace the column names with the table's real columns and keep writable columns as narrow as possible.
+
+```yaml
+insert_permissions:
+  - role: user
+    permission:
+      check:
+        user_id:
+          _eq: X-Hasura-User-Id
+      set:
+        user_id: X-Hasura-User-Id
+      columns:
+        - title
+        - completed
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - user_id
+        - title
+        - completed
+        - created_at
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - title
+        - completed
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+      check: null
+delete_permissions:
+  - role: user
+    permission:
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+```
+
+Permission fields have distinct purposes:
+
+- `columns` is the exact allowlist visible or writable by the role.
+- `filter` limits existing rows for select, update, and delete.
+- `check` validates a proposed inserted or updated row.
+- `set` supplies a trusted session value during insert; use the session variable exactly as in the example (`X-Hasura-User-Id`). Hasura session variables are case-insensitive, so match the example's spelling for consistency rather than out of necessity.
+
+For non-owner policies, use the same session-variable comparison pattern against the appropriate column. Do not expose an ownership column in insert or update `columns`; set it from the authenticated session instead.
+
+### Rules for a role other than `user`
+
+**Skip this if nothing in your product is readable without signing in.** It is
+the longest part of this skill and it exists because a `public` permission is
+the one most likely to leak something, not because every project needs one.
+
+`public` is the role Hasura uses for a request with no token. The rules below
+generalise; the shipped shared-profile feature is only the illustration they are
+drawn from, and a different public surface would gate on different switches:
+
+- Gate on columns the owner controls. The shipped example needs two: the row
+  is flagged `todos.is_public`, and the owner has not turned their page off
+  from their profile page. That second switch is an *opt-out* - the page is on
+  by default - so the filter tests `_not ... _contains false` on
+  `metadata.publicProfile` rather than `_contains true`. One switch alone
+  exposes nothing: an item stays private until its eye is on, so nothing goes
+  public as a side effect of a single click.
+- Filter through a relationship when visibility belongs to a related row.
+  `public_todos.yaml` reaches the owner through `user`, and
+  `storage_files.yaml` reaches the item through `todos`.
+- Repeat the condition; do not lean on the related table's own permission. A
+  relationship filter matches raw rows. `storage_files.yaml` spells the whole
+  owner rule out again for that reason, and a shortcut there would leave every
+  private attachment readable.
+- Write a separate, shorter `columns` list. Do not reuse the `user` list. What
+  is left off is the whole protection: among the columns withheld today are
+  `auth.users.email`, `auth.users.display_name`, `auth.users.metadata`,
+  `auth.users.avatar_url`, and `todos.user_id`.
+- Two of those look harmless and are not, for the same reason: both quietly
+  contain the email address. `avatar_url`, for an account that never uploaded a
+  photo, holds the sign-up Gravatar URL, which embeds `md5(lowercase(email))`.
+  `display_name` is worse - Nhost auth defaults it to the address itself, in
+  plaintext, so `{ users { displayName } }` as `public` would return the
+  project's address book.
+- Prefer replacing a withheld column with a computed field over dropping it.
+  Neither of those two is simply gone: `/u/[id]` serves the picture from
+  `storage.files` under the same public-and-not-deleted condition, and the name
+  comes from the `publicDisplayName` computed field, which returns
+  `display_name` only when it is plainly something its owner typed. Test the
+  *shape* of such a value, not its equality with the thing you are hiding -
+  changing an email moves `email` and leaves the previous address sitting in
+  `display_name`, where no equality test against the current one can catch it.
+- Read that data with `createAnonymousClient()` from
+  `frontend/src/lib/nhost/server.ts`. The session client makes Hasura answer as
+  `user`, whose filter hides other people's rows, so the page breaks for
+  signed-in visitors and only for them.
+- Verify both directions after changing one of these. A private row must be
+  absent anonymously, and a shared one present. For an attachment that means
+  the file URL is a 404 before sharing and a 200 after.
+
+## 3. Apply and refresh the typed frontend
+
+Start or re-run the backend so it applies the metadata:
+
+```sh
+(cd backend && nhost up)
+```
+
+Permission changes alter the schema visible to the `user` role. Regenerate the committed schema and TypeScript documents as the required final step:
+
+```sh
+(cd frontend && pnpm codegen)
+```

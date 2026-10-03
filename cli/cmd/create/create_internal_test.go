@@ -340,6 +340,49 @@ func TestCreateRejectsTemplatePathThatIsNotADirectory(t *testing.T) {
 	assertNoStagingLeftovers(t, filepath.Join(workdir, "my-app"))
 }
 
+// A template without a frontend app is rejected against the path the user
+// typed. The scaffolding reads frontend/package.json several steps later, under
+// the staging directory, and that directory is removed on the way out - so the
+// failure used to name a path that no longer existed by the time anyone read
+// it.
+//
+//nolint:paralleltest // mutates process cwd via t.Chdir
+func TestCreateRejectsTemplatePathWithoutAFrontend(t *testing.T) {
+	workdir := t.TempDir()
+	templateDir := filepath.Join(workdir, "bare-template")
+
+	writeTestFile(t, filepath.Join(templateDir, "README.md"), "# no frontend\n")
+	t.Chdir(workdir)
+
+	var output bytes.Buffer
+
+	cmd := newTestRootCommand(t, &output)
+
+	err := cmd.Run(
+		context.Background(),
+		[]string{"nhost", "create", "--template-path", templateDir, "--no-install", "my-app"},
+	)
+	if err == nil {
+		t.Fatalf("create succeeded with a template that has no frontend\n%s", output.String())
+	}
+
+	if !errors.Is(err, errTemplateMissingFrontend) {
+		t.Errorf("error = %v, want errTemplateMissingFrontend", err)
+	}
+
+	if !strings.Contains(err.Error(), templateDir) {
+		t.Errorf("error %v does not name --template-path %s", err, templateDir)
+	}
+
+	// The staging path is an implementation detail and is gone by now, so it
+	// must not be what the user is pointed at.
+	if strings.Contains(err.Error(), stagingPrefix) {
+		t.Errorf("error %v names the staging directory", err)
+	}
+
+	assertNoStagingLeftovers(t, filepath.Join(workdir, "my-app"))
+}
+
 // `--template-path ~/templates/current`, where `current` is a symlink to the
 // real template, is ordinary developer setup for the flag's offline/dev
 // audience. filepath.WalkDir does not descend into a symlinked root, so the
@@ -1218,6 +1261,59 @@ func TestFetchTemplateGitNotInstalled(t *testing.T) {
 		if !strings.Contains(msg, want) {
 			t.Fatalf("error %q missing %q", msg, want)
 		}
+	}
+}
+
+// A template fetched from git gets the same layout check a local one does.
+// Without it a missing frontend surfaces several steps later, in a message
+// naming the staging directory - a path the user never chose, and one that has
+// been cleaned up by the time they read about it.
+func TestFetchTemplateMissingFrontend(t *testing.T) {
+	t.Parallel()
+
+	gitPath, err := exec.LookPath("git")
+	if err != nil {
+		t.Skip("git is not installed")
+	}
+
+	repo := t.TempDir()
+
+	backend := filepath.Join(repo, "templates", "no-frontend", "backend")
+
+	if mkErr := os.MkdirAll(backend, 0o755); mkErr != nil {
+		t.Fatalf("MkdirAll: %v", mkErr)
+	}
+
+	if wErr := os.WriteFile(filepath.Join(backend, "keep"), nil, 0o644); wErr != nil {
+		t.Fatalf("WriteFile: %v", wErr)
+	}
+
+	gitArgs := [][]string{
+		{"init", "--initial-branch=main"},
+		{"add", "."},
+		{
+			"-c", "user.email=t@example.com", "-c", "user.name=t",
+			"commit", "-m", "template",
+		},
+	}
+	for _, args := range gitArgs {
+		cmd := exec.Command(gitPath, args...)
+		cmd.Dir = repo
+
+		if out, runErr := cmd.CombinedOutput(); runErr != nil {
+			t.Fatalf("git %v: %v\n%s", args, runErr, out)
+		}
+	}
+
+	err = fetchTemplate(
+		context.Background(),
+		repo,
+		"main",
+		template{name: "no-frontend"},
+		t.TempDir(),
+	)
+	if !errors.Is(err, errTemplateMissingFrontend) {
+		t.Fatalf("error = %v, want errTemplateMissingFrontend", err)
 	}
 }
 

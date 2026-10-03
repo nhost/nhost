@@ -1,0 +1,164 @@
+table:
+  name: users
+  schema: auth
+configuration:
+  column_config:
+    avatar_url:
+      custom_name: avatarUrl
+    created_at:
+      custom_name: createdAt
+    display_name:
+      custom_name: displayName
+    email_verified:
+      custom_name: emailVerified
+    new_email:
+      custom_name: newEmail
+  custom_column_names:
+    avatar_url: avatarUrl
+    created_at: createdAt
+    display_name: displayName
+    email_verified: emailVerified
+    new_email: newEmail
+  custom_name: users
+  custom_root_fields:
+    delete: deleteUsers
+    delete_by_pk: deleteUser
+    insert: insertUsers
+    insert_one: insertUser
+    select: users
+    select_aggregate: usersAggregate
+    select_by_pk: user
+    update: updateUsers
+    update_by_pk: updateUser
+array_relationships:
+  - name: todos
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          name: todos
+          schema: public
+computed_fields:
+  - name: hasPassword
+    definition:
+      function:
+        name: user_has_password
+        schema: public
+    comment: Whether the account can sign in with a password.
+  - name: publicDisplayName
+    definition:
+      function:
+        name: user_public_display_name
+        schema: public
+    comment: The display name, but only once its owner has set one of their own.
+select_permissions:
+  # `publicDisplayName` is granted here as well as to `public`, and not because
+  # this role needs it - it can read `display_name` directly, two lines down.
+  # `frontend/schema.graphql` is dumped with `--role user`, so a field granted
+  # only to `public` is absent from the dump, and `pnpm codegen:types` then
+  # fails on the `/u/[id]` document that selects it.
+  - role: user
+    permission:
+      computed_fields:
+        - hasPassword
+        - publicDisplayName
+      columns:
+        - avatar_url
+        - created_at
+        - display_name
+        - email
+        - email_verified
+        - id
+        - metadata
+        - new_email
+      filter:
+        id:
+          _eq: X-Hasura-User-Id
+  # What a stranger sees on a shared list: enough to say whose it is once its
+  # owner has said so themselves, and no more. This is the master switch: turn
+  # it off and `/u/<id>` is gone, whatever is flagged on the rows. A
+  # soft-deleted account drops out of here the moment it is stamped.
+  #
+  # It is an *opt-out*, which is why the test reads `_not ... _contains false`
+  # rather than `_contains true`. A scaffolded project should have a working
+  # public page as soon as somebody signs in, so the absence of the flag means
+  # public and only the literal `false` withdraws it. `frontend/src/lib/
+  # profile.ts` states the same rule for the UI; this one enforces it.
+  #
+  # A fresh account's `metadata` is JSON `null` rather than SQL NULL - Nhost
+  # auth marshals an absent value to the literal `null` - and `'null'::jsonb`
+  # contains nothing, yielding false rather than NULL, so a brand new account
+  # passes both tests. A row holding SQL NULL would fail them and read as
+  # private, which is the safe way round for that edge case to break.
+  #
+  # `avatar_url` is deliberately not in this list. For an account that never
+  # uploaded a photo it holds the Gravatar URL assigned at sign-up, and that
+  # URL is `md5(lowercase(email))` - a reversible pseudonym for the address,
+  # harvestable in bulk because this filter has no per-id cap. `/u/<id>` gets
+  # the picture instead from `storage.files` (see `storage_files.yaml`'s
+  # `avatars` branch), which serves exactly the same published-and-not-deleted
+  # condition without ever naming the column that carries the hash.
+  #
+  # `created_at` is here for the "Since Sep 2026" line under the name, which
+  # is the one thing on a stranger's page that says whether it is a page worth
+  # trusting. Worth stating what that costs: the page prints a month, but the
+  # column answers to the microsecond, and anyone querying the API directly
+  # gets that precision. It is not a secret - it is the moment the account was
+  # made - but it is a distinguisher, so an account created in the same second
+  # as another is correlatable across the two. Acceptable for a starter's
+  # public profile; if it is not for yours, drop the column and compute a
+  # coarser value in a Postgres function exposed as a computed field.
+  #
+  # `display_name` is not on this list, and the reason is the same shape as the
+  # `avatar_url` one above. Nhost auth defaults the column to the address the
+  # account signed up with, so for every account that never set a name the raw
+  # column *is* their email - in plaintext, where `avatar_url` only carried a
+  # hash of it. This filter has no per-id cap, so one unauthenticated `{ users
+  # { displayName } }` would return the project's address book. The
+  # `publicDisplayName` computed field is granted instead, so an untouched
+  # account reads as NULL and a name its owner deliberately chose still reaches
+  # the page.
+  #
+  # That field withholds anything *shaped* like an address rather than anything
+  # *equal* to the current one, and the difference matters: changing an email
+  # leaves the previous address sitting in `display_name`, because auth moves
+  # `email` and never touches the name. An equality test sees two different
+  # strings there and lets the old address through. Read the function's own
+  # comment in `backend/nhost/migrations/default/
+  # 1700000000002_auth_user_computed_fields/up.sql` before narrowing it.
+  #
+  # What this list does still allow, stated plainly rather than left to be
+  # discovered: an anonymous caller can select `{ users { id createdAt
+  # publicDisplayName } }` and walk every account that has not turned its page
+  # off. That is ids, signup times, and any name an owner chose to publish -
+  # never an address, but not opaque ids either, because the computed field
+  # three lines below is on this same permission and a bulk walk collects it
+  # too. It is an enumerable list, and a project that cannot accept that wants
+  # a row limit on this permission or an opt-in filter rather than this
+  # opt-out one.
+  - role: public
+    permission:
+      computed_fields:
+        - publicDisplayName
+      columns:
+        - id
+        - created_at
+      filter:
+        _and:
+          - _not:
+              metadata:
+                _contains:
+                  publicProfile: false
+          - _not:
+              metadata:
+                _has_key: deletedAt
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - display_name
+        - metadata
+      filter:
+        id:
+          _eq: X-Hasura-User-Id
+      check: null

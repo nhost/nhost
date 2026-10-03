@@ -1,0 +1,236 @@
+---
+name: "templates: check and build"
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/templates_checks.yaml"
+      - "templates/**"
+  merge_group:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ startsWith(github.event_name, 'pull_request') && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
+  cancel-in-progress: ${{ startsWith(github.event_name, 'pull_request') }}
+
+# This workflow runs `pnpm install` and `next build`, so it executes lifecycle
+# scripts straight out of the pull request. `pull_request` rather than
+# `pull_request_target` is what keeps that off the repository's secrets; this
+# pins the token down to match. Each checkout below also drops the credential
+# with `persist-credentials: false`, rather than leaving it in `.git/config`
+# where those same lifecycle scripts could read it off disk.
+permissions:
+  contents: read
+
+jobs:
+  detect-changes:
+    uses: ./.github/workflows/wf_detect_changes.yaml
+    with:
+      patterns: |
+        .github/workflows/templates_checks.yaml
+        templates/**
+
+  frontend:
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        # Add a template here when it lands, or it ships unchecked.
+        template: [nextjs-shadcn]
+    defaults:
+      run:
+        working-directory: templates/${{ matrix.template }}/frontend
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # No `version:` input: the action resolves pnpm from the monorepo root
+      # `packageManager` field, and errors out if the two ever disagree.
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: templates/${{ matrix.template }}/frontend/pnpm-lock.yaml
+
+      # The template ships its own pnpm-workspace.yaml, so pnpm treats it as a
+      # standalone workspace root instead of a member of the monorepo.
+      - run: pnpm install --frozen-lockfile
+
+      - name: Verify generated GraphQL types
+        run: |
+          pnpm codegen:types
+          if [ -n "$(git status --porcelain -- src/gql)" ]; then
+            echo "::error::Generated GraphQL types are out of date."
+            echo "Fix: pnpm codegen:types && git add src/gql"
+            git status --porcelain -- src/gql
+            git --no-pager diff -- src/gql
+            exit 1
+          fi
+
+      - run: pnpm lint
+
+      - run: pnpm test
+
+      - run: pnpm build
+
+  # The other half of a template. Its functions are the example users copy, and
+  # they ship their own package.json and a strict tsconfig, so nothing else
+  # type-checks them. The metadata is what the permission rules live in, where a
+  # YAML typo silently changes who can read what.
+  backend:
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        template: [nextjs-shadcn]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: templates/${{ matrix.template }}/backend/functions/package-lock.json
+
+      # npm, not pnpm: this is what the functions runtime installs, and the
+      # template commits a package-lock.json for it.
+      #
+      # The compiler is invoked by path rather than through `npx`. A runner has
+      # no global TypeScript, and `npx tsc` answers that by downloading `tsc`
+      # from the registry - an unrelated squatted package that exits 1 with a
+      # riddle instead of a type error. By path, a missing dependency is an
+      # honest "No such file or directory" and nothing is ever fetched.
+      - name: Type-check the serverless functions
+        working-directory: templates/${{ matrix.template }}/backend/functions
+        run: |
+          npm ci
+          ./node_modules/.bin/tsc --noEmit
+
+      - name: Parse the backend metadata and the MCP config
+        run: |
+          python3 - "templates/${{ matrix.template }}" <<'PY'
+          import json, pathlib, sys, yaml
+
+          template = pathlib.Path(sys.argv[1])
+          failed = False
+
+          # Counted, because `rglob` on a directory that is not there yields
+          # nothing and raises nothing. Renaming or moving the metadata would
+          # otherwise leave this step reporting success having read no rules at
+          # all - the same vacuous pass `check-agent-context.sh` guards against.
+          # Both suffixes: a `.yml` file left out of the glob would be skipped
+          # in silence, and the counter below could not catch it while the
+          # `.yaml` files around it still parse.
+          metadata = template / "backend/nhost/metadata"
+          parsed = 0
+          for path in sorted(
+              p
+              for suffix in ("*.yaml", "*.yml")
+              for p in metadata.rglob(suffix)
+          ):
+              parsed += 1
+              try:
+                  yaml.safe_load(path.read_text())
+              except yaml.YAMLError as err:
+                  print(f"::error file={path}::{err}")
+                  failed = True
+
+          if parsed == 0:
+              print(f"::error::{metadata} holds no YAML to parse.")
+              failed = True
+
+          # Required of every template by templates/README.md, so its absence is
+          # a failure rather than a step to skip.
+          mcp = template / ".mcp.json"
+          if mcp.is_file():
+              try:
+                  mcp_config = json.loads(mcp.read_text())
+              except json.JSONDecodeError as err:
+                  print(f"::error file={mcp}::{err}")
+                  failed = True
+                  mcp_config = None
+
+              # The two properties templates/README.md names as the actual
+              # privilege switch: a `cwd` key is dropped by MCP clients, so
+              # `nhost mcp start` runs from the project root, finds no
+              # mcp-nhost.toml, and falls back to a default granting the
+              # local admin secret plus unrestricted queries, mutations, and
+              # metadata access. `env.NHOST_MCP_CONFIG_FILE` under `backend/`
+              # is what scopes it instead. JSON parsing alone would pass a
+              # config that regressed to either failure mode.
+              if mcp_config is not None:
+                  servers = mcp_config.get("mcpServers")
+                  if not isinstance(servers, dict) or not servers:
+                      print(
+                          f"::error file={mcp}::mcpServers is missing or "
+                          "empty."
+                      )
+                      failed = True
+                      servers = {}
+
+                  for name, server in servers.items():
+                      if isinstance(server, dict) and "cwd" in server:
+                          print(
+                              f"::error file={mcp}::mcpServers.{name} sets "
+                              "`cwd`, which MCP clients drop silently; use "
+                              "env.NHOST_MCP_CONFIG_FILE instead."
+                          )
+                          failed = True
+
+                  nhost_server = servers.get("nhost")
+                  if not isinstance(nhost_server, dict):
+                      print(f"::error file={mcp}::mcpServers.nhost is missing.")
+                      failed = True
+                  else:
+                      env = nhost_server.get("env")
+                      config_file = (
+                          env.get("NHOST_MCP_CONFIG_FILE")
+                          if isinstance(env, dict)
+                          else None
+                      )
+                      valid = (
+                          isinstance(config_file, str)
+                          and config_file.startswith("backend/")
+                      )
+                      if not valid:
+                          print(
+                              f"::error file={mcp}::mcpServers.nhost.env."
+                              "NHOST_MCP_CONFIG_FILE must be set and point "
+                              "under backend/, or the server falls back to "
+                              "an unscoped admin default."
+                          )
+                          failed = True
+          else:
+              print(f"::error::{mcp} is missing.")
+              failed = True
+
+          print(f"parsed {parsed} metadata file(s)")
+          sys.exit(1 if failed else 0)
+          PY
+
+  # Cross-template, and deliberately without a `working-directory` default:
+  # the guard walks every `templates/*/` from the repository root.
+  agent-context:
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Check the duplicated agent-context files for drift
+        run: ./templates/check-agent-context.sh
+
+      - name: Check the frontend/backend CI matrix builds every template
+        run: ./templates/check-ci-matrix.sh
