@@ -53,3 +53,7 @@ func (ctrl *Controller) ElevateOTPSms( //nolint:ireturn
 
 	return api.ElevateOTPSms200JSONResponse(api.OK), nil
 }
+
+func hasVerifiedPhoneNumber(user sql.AuthUser) bool {
+	return user.PhoneNumber.String != "" && user.PhoneNumberVerified
+}

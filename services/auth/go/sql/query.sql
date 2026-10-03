@@ -684,9 +684,18 @@ SET email_verified = true
 WHERE id = $1
 RETURNING *;
 
--- name: CountSecurityKeysUser :one
-SELECT COUNT(*) FROM auth.user_security_keys
-WHERE user_id = $1;
+-- name: GetElevationMethods :one
+SELECT
+    EXISTS (
+        SELECT 1 FROM auth.user_security_keys AS k
+        WHERE k.user_id = u.id
+    ) AS has_security_key,
+    COALESCE(u.active_mfa_type = 'totp' AND u.totp_secret <> '', false) AS has_totp,
+    COALESCE(u.email <> '', false) AS has_email,
+    COALESCE(u.phone_number <> '' AND u.phone_number_verified, false)
+        AS has_verified_phone_number
+FROM auth.users AS u
+WHERE u.id = $1;
 
 -- name: GetSecurityKeys :many
 SELECT *

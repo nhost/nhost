@@ -2,7 +2,9 @@ package controller
 
 import (
 	"context"
+	"errors"
 
+	"github.com/jackc/pgx/v5"
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
 )
@@ -19,6 +21,11 @@ func (ctrl *Controller) GetElevationMethods( //nolint:ireturn
 	}
 
 	methods, err := ctrl.wf.jwtGetter.availableElevationMethods(ctx, userID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		logger.WarnContext(ctx, "user not found")
+		return ctrl.sendError(ErrInvalidEmailPassword), nil
+	}
+
 	if err != nil {
 		logger.ErrorContext(ctx, "failed to list elevation methods", logError(err))
 		return ctrl.sendError(ErrInternalServerError), nil

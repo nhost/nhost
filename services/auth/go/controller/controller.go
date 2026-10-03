@@ -131,7 +131,7 @@ type DBClient interface { //nolint:interfacebloat
 	DBClientUserProvider
 	oauth2provider.DBClient
 
-	CountSecurityKeysUser(ctx context.Context, userID uuid.UUID) (int64, error)
+	GetElevationMethods(ctx context.Context, id uuid.UUID) (sql.GetElevationMethodsRow, error)
 	GetSecurityKeys(ctx context.Context, userID uuid.UUID) ([]sql.AuthUserSecurityKey, error)
 	DeleteRefreshTokens(ctx context.Context, userID uuid.UUID) error
 	DeleteExpiredRefreshTokens(ctx context.Context) error

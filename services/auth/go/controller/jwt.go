@@ -518,37 +518,30 @@ func (j *JWTGetter) availableElevationMethods(
 	ctx context.Context,
 	userID uuid.UUID,
 ) ([]api.ElevationMethod, error) {
+	if !j.webauthnEnabled && !j.totpEnabled && !j.otpEmailEnabled && !j.otpSmsEnabled {
+		return nil, nil
+	}
+
+	row, err := j.db.GetElevationMethods(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("error getting elevation methods: %w", err)
+	}
+
 	var methods []api.ElevationMethod
 
-	if j.webauthnEnabled {
-		n, err := j.db.CountSecurityKeysUser(ctx, userID)
-		if err != nil {
-			return nil, fmt.Errorf("error checking if user has security keys: %w", err)
-		}
-
-		if n > 0 {
-			methods = append(methods, api.ElevationMethodWebauthn)
-		}
+	if j.webauthnEnabled && row.HasSecurityKey {
+		methods = append(methods, api.ElevationMethodWebauthn)
 	}
 
-	if !j.totpEnabled && !j.otpEmailEnabled && !j.otpSmsEnabled {
-		return methods, nil
-	}
-
-	user, err := j.db.GetUser(ctx, userID)
-	if err != nil {
-		return nil, fmt.Errorf("error getting user: %w", err)
-	}
-
-	if j.totpEnabled && hasActiveTOTP(user) {
+	if j.totpEnabled && row.HasTotp.Bool {
 		methods = append(methods, api.ElevationMethodTotp)
 	}
 
-	if j.otpEmailEnabled && hasEmail(user) {
+	if j.otpEmailEnabled && row.HasEmail.Bool {
 		methods = append(methods, api.ElevationMethodOtpEmail)
 	}
 
-	if j.otpSmsEnabled && hasVerifiedPhoneNumber(user) {
+	if j.otpSmsEnabled && row.HasVerifiedPhoneNumber.Bool {
 		methods = append(methods, api.ElevationMethodOtpSms)
 	}
 
