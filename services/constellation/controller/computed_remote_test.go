@@ -183,4 +183,19 @@ func TestComputedSelectionViaCrossSource(t *testing.T) {
 	if !reflect.DeepEqual(resp.Data, want) {
 		t.Fatalf("cross-source result = %#v, want %#v", resp.Data, want)
 	}
+
+	// The source's shared bool_exp is also consumed before the remote join.
+	resp, err = ctrl.Resolve(adminSessionContext(t), controller.GraphQLRequest{
+		Query: `{ cf_predicates_rules(where:{rule_visible:{_eq:true}}) { item { item_label } } }`,
+	})
+	if err != nil || resp.Errors != nil {
+		t.Fatalf("cross-source computed predicate: response=%+v error=%v", resp, err)
+	}
+
+	want = map[string]any{"cf_predicates_rules": []any{map[string]any{
+		"item": map[string]any{"item_label": "first"},
+	}}}
+	if !reflect.DeepEqual(resp.Data, want) {
+		t.Fatalf("cross-source predicate result = %#v, want %#v", resp.Data, want)
+	}
 }

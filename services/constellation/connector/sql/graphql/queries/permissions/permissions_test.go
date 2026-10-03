@@ -72,6 +72,10 @@ func (t permissionLikeTable) LookupRelationship(_ string) permissions.Relationsh
 	return nil
 }
 
+func (t permissionLikeTable) ComputedScalarFromGraphqlName(string, string) core.ComputedExpression {
+	return nil
+}
+
 func (t permissionLikeTable) RelationshipFromGraphqlName(_ string) where.Relationship {
 	return nil
 }

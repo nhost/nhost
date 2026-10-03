@@ -130,6 +130,16 @@ func scalarComputedFields(
 	return fields
 }
 
+func computedRequiresUserArgs(field *graph.Field) bool {
+	for _, arg := range field.Arguments {
+		if arg.Name == "args" {
+			return true
+		}
+	}
+
+	return false
+}
+
 func computedDescriptionName(schema, name string) string {
 	if schema == "public" {
 		return name

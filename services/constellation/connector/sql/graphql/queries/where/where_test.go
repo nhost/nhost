@@ -34,6 +34,13 @@ func (s *stubTableForFieldComparison) RelationshipFromGraphqlName(
 	return nil
 }
 
+func (s *stubTableForFieldComparison) ComputedScalarFromGraphqlName(
+	string,
+	string,
+) core.ComputedExpression {
+	return nil
+}
+
 func (s *stubTableForFieldComparison) TableBySchemaName(
 	_, _ string,
 ) where.Table {
@@ -1232,6 +1239,10 @@ func (p *parseTestTable) TableFromClause() string  { return p.fromClause }
 
 func (p *parseTestTable) ColumnFromGraphqlName(name string) *core.Column {
 	return p.columns[name]
+}
+
+func (p *parseTestTable) ComputedScalarFromGraphqlName(string, string) core.ComputedExpression {
+	return nil
 }
 
 func (p *parseTestTable) RelationshipFromGraphqlName(name string) where.Relationship {

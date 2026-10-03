@@ -129,6 +129,9 @@ func (s *typenameSelection) Write(b *strings.Builder) {
 type aggregateColumnSelection struct {
 	responseName string
 	column       *core.Column
+	computed     *computedScalar
+	field        *ast.Field
+	argumentPath string
 }
 
 type aggregateFunctionSelection struct {
@@ -147,6 +150,7 @@ type aggregateFunctionSelection struct {
 	jsonBuildObject string
 }
 
+//nolint:funlen // Fragment-expanded physical and computed columns share one aggregate selection collector.
 func newAggregateFunctionSelection(
 	fieldName string,
 	responseName string,
@@ -154,6 +158,7 @@ func newAggregateFunctionSelection(
 	t *table,
 	selectionSet ast.SelectionSet,
 	fragments ast.FragmentDefinitionList,
+	role, argumentPath string,
 ) (*aggregateFunctionSelection, error) {
 	columns := make([]aggregateColumnSelection, 0, len(selectionSet))
 	fieldsTypeName := t.graphqlTypeName + "_" + fieldName + "_fields"
@@ -177,7 +182,12 @@ func newAggregateFunctionSelection(
 					continue
 				}
 
-				columns, collectErr = t.appendAggregateFunctionColumn(columns, s)
+				columns, collectErr = t.appendAggregateFunctionColumn(
+					columns,
+					s,
+					role,
+					argumentPath,
+				)
 				if collectErr != nil {
 					return
 				}
@@ -216,10 +226,16 @@ func newAggregateFunctionSelection(
 func (t *table) appendAggregateFunctionColumn(
 	columns []aggregateColumnSelection,
 	field *ast.Field,
+	role, argumentPath string,
 ) ([]aggregateColumnSelection, error) {
 	col := t.columnFromGraphqlName(field.Name)
+
+	var computed *computedScalar
 	if col == nil {
-		return nil, fmt.Errorf("%w: %s", errUnknownAggregateColumn, field.Name)
+		computed = t.computedFromGraphqlName(field.Name, role)
+		if computed == nil {
+			return nil, fmt.Errorf("%w: %s", errUnknownAggregateColumn, field.Name)
+		}
 	}
 
 	columnResponseName := fieldResponseName(field)
@@ -230,6 +246,9 @@ func (t *table) appendAggregateFunctionColumn(
 	return append(columns, aggregateColumnSelection{
 		responseName: columnResponseName,
 		column:       col,
+		computed:     computed,
+		field:        field,
+		argumentPath: childArgumentPath(argumentPath, field),
 	}), nil
 }
 
@@ -303,6 +322,82 @@ func (s *aggregateFunctionSelection) write(b *strings.Builder, source string) {
 	b.WriteString(")")
 }
 
+// writeBound renders computed aggregate operands at the final placeholder
+// position. Ordinary column selections retain their existing rendering.
+//
+//nolint:funlen // Keeps physical columns, computed operands and __typename in one JSON object writer.
+func (s *aggregateFunctionSelection) writeBound(
+	b *strings.Builder, source string, t *table,
+	variables, sessionVariables map[string]any,
+	qualifyColumns bool,
+	params []any, paramIndex int,
+) ([]any, int, error) {
+	b.WriteByte('\'')
+	b.WriteString(s.responseName)
+	b.WriteString("', ")
+	b.WriteString(s.jsonBuildObject)
+	b.WriteByte('(')
+
+	first := true
+	for _, sel := range s.Columns {
+		if !first {
+			b.WriteString(", ")
+		}
+
+		b.WriteByte('\'')
+		b.WriteString(sel.responseName)
+		b.WriteString("', ")
+
+		if sel.computed == nil {
+			columnSource := source
+			if !qualifyColumns {
+				columnSource = "" // Preserve ordinary aggregate SQL/goldens.
+			}
+
+			b.WriteString(outputColumnExpression(
+				s.dialect,
+				aggregateColumnExpression(s.FuncName, columnSource, sel.column),
+				sel.column,
+			))
+		} else {
+			b.WriteString(s.FuncName)
+			b.WriteByte('(')
+
+			var err error
+
+			params, paramIndex, err = t.writeComputedCall(
+				b, sel.computed, sel.field, strings.Trim(source, `"`),
+				sel.argumentPath, variables, sessionVariables, params, paramIndex,
+			)
+			if err != nil {
+				return nil, 0, fmt.Errorf(
+					"writing computed aggregate %s: %w",
+					sel.computed.name,
+					err,
+				)
+			}
+
+			b.WriteByte(')')
+		}
+
+		first = false
+	}
+
+	for i := range s.Typenames {
+		if !first {
+			b.WriteString(", ")
+		}
+
+		s.Typenames[i].Write(b)
+
+		first = false
+	}
+
+	b.WriteByte(')')
+
+	return params, paramIndex, nil
+}
+
 // aggregateFieldSelection is one `aggregate` field at the aggregate-root
 // scope. responseName is the field alias if present, otherwise "aggregate".
 type aggregateFieldSelection struct {
@@ -324,6 +419,8 @@ type aggregateSelectionCollector struct {
 	table           *table
 	fragments       ast.FragmentDefinitionList
 	variables       map[string]any
+	role            string
+	argumentPath    string
 	outerTypeName   string
 	outerTypenames  []typenameSelection
 	aggregateFields []aggregateFieldSelection
@@ -368,7 +465,9 @@ func (c *aggregateSelectionCollector) collectField(s *ast.Field) {
 	case typenameField:
 		c.outerTypenames = appendTypename(c.outerTypenames, s, c.outerTypeName)
 	case "aggregate":
-		aggSel, err := c.table.parseAggregateFields(s, c.fragments, c.variables)
+		aggSel, err := c.table.parseAggregateFields(
+			s, c.fragments, c.variables, c.role, childArgumentPath(c.argumentPath, s),
+		)
 		if err != nil {
 			c.err = err
 
@@ -426,11 +525,14 @@ func (t *table) astToAggregateSelection(
 	field *ast.Field,
 	fragments ast.FragmentDefinitionList,
 	variables map[string]any,
+	role, argumentPath string,
 ) ([]typenameSelection, []aggregateFieldSelection, []aggregateNodesSelection, error) {
 	c := &aggregateSelectionCollector{
 		table:           t,
 		fragments:       fragments,
 		variables:       variables,
+		role:            role,
+		argumentPath:    argumentPath,
 		outerTypeName:   t.graphqlTypeName + "_aggregate",
 		outerTypenames:  nil,
 		aggregateFields: nil,
@@ -509,6 +611,7 @@ func (t *table) appendAggregateField(
 	aggregateFieldsTypeName string,
 	fragments ast.FragmentDefinitionList,
 	variables map[string]any,
+	role, argumentPath string,
 ) ([]aggregateQuerySelection, error) {
 	switch f.Name {
 	case typenameField:
@@ -544,6 +647,7 @@ func (t *table) appendAggregateField(
 
 		a, err := newAggregateFunctionSelection(
 			f.Name, responseName, strings.ToUpper(f.Name), t, f.SelectionSet, fragments,
+			role, childArgumentPath(argumentPath, f),
 		)
 		if err != nil {
 			return nil, err
@@ -651,6 +755,7 @@ func (t *table) parseAggregateFields(
 	field *ast.Field,
 	fragments ast.FragmentDefinitionList,
 	variables map[string]any,
+	role, argumentPath string,
 ) ([]aggregateQuerySelection, error) {
 	var (
 		sel           []aggregateQuerySelection
@@ -669,7 +774,7 @@ func (t *table) parseAggregateFields(
 			switch s := selection.(type) {
 			case *ast.Field:
 				next, err := t.appendAggregateField(
-					sel, s, aggregateFieldsTypeName, fragments, variables,
+					sel, s, aggregateFieldsTypeName, fragments, variables, role, argumentPath,
 				)
 				if err != nil {
 					collectErr = err

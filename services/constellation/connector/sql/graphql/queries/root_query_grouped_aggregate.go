@@ -3,6 +3,7 @@ package queries
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/vektah/gqlparser/v2/ast"
@@ -118,6 +119,8 @@ func (t *table) BuildGroupedAggregateSQL(
 		in.Field,
 		in.Fragments,
 		in.Variables,
+		in.Role,
+		groupedAggregateArgumentPath(in),
 	)
 	if err != nil {
 		return core.SQLOperation{}, err
@@ -303,12 +306,18 @@ func (t *table) parseGroupedAggregateArguments(
 			limitOffset.offset = mod.Value
 			limitOffset.hasOffset = true
 		case *arguments.OrderBy:
-			// Relationship/aggregate ordering terms (Column == "") render
-			// correlated subqueries against the target table ref that cannot be
-			// threaded into the DISTINCT ON tiebreak or the per-group json_agg
-			// ordering; reject them. Scalar-column ordering is applied.
+			// Materialize computed scalar order terms in the base CTE so
+			// both per-group windowing and nodes use the same expression.
+			// Correlated relationship terms cannot be materialized here.
 			for i := range mod.Items {
-				if mod.Items[i].Column == "" {
+				if mod.Items[i].ComputedExpression() != nil {
+					alias := "__cs_computed_order_" + strconv.Itoa(i)
+					for t.columnFromSQLName(alias) != nil {
+						alias += "_"
+					}
+
+					mod.Items[i].Column = alias
+				} else if mod.Items[i].Column == "" {
 					return nil, nil, nil, limitOffset, ErrGroupedAggregateRelationshipOrderBy
 				}
 			}
@@ -363,7 +372,32 @@ func (t *table) writeGroupedAggregateCTE( //nolint:funlen
 	b.WriteString(groupedAggregateKeyCol)
 	b.WriteString(`" AS "`)
 	b.WriteString(groupedAggregateJoinKeyAlias)
-	b.WriteString(`" FROM `)
+	b.WriteByte('"')
+
+	if orderBy != nil {
+		for _, item := range orderBy.Items {
+			computed := item.ComputedExpression()
+			if computed == nil {
+				continue
+			}
+
+			b.WriteString(", ")
+
+			var err error
+
+			params, paramIndex, err = computed.WriteExpression(
+				b, tableRef, sessionVariables, params, paramIndex,
+			)
+			if err != nil {
+				return nil, 0, fmt.Errorf("writing grouped computed order: %w", err)
+			}
+
+			b.WriteString(" AS ")
+			core.WriteQuotedIdentifier(b, item.Column)
+		}
+	}
+
+	b.WriteString(" FROM ")
 
 	params, paramIndex = t.dialect.WriteGroupKeysFrom(
 		b,
@@ -684,7 +718,14 @@ func (t *table) writeGroupedAggregateOuter( //nolint:funlen
 				b.WriteString(", ")
 			}
 
-			t.writeGroupedAggregateSelection(b, agg, joinCol, sourceAlias)
+			var err error
+
+			params, paramIndex, err = t.writeGroupedAggregateSelection(
+				b, agg, joinCol, sourceAlias, in.Variables, in.SessionVariables, params, paramIndex,
+			)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		b.WriteByte(')')
@@ -738,7 +779,8 @@ func (t *table) writeGroupedAggregateOuter( //nolint:funlen
 // when a per-group limit/offset applies.
 func (t *table) writeGroupedAggregateSelection(
 	b *strings.Builder, agg aggregateQuerySelection, joinCol *core.Column, sourceAlias string,
-) {
+	variables, sessionVariables map[string]any, params []any, paramIndex int,
+) ([]any, int, error) {
 	if cs, ok := agg.(*countSelection); ok {
 		if len(cs.columns) == 0 {
 			b.WriteByte('\'')
@@ -747,21 +789,23 @@ func (t *table) writeGroupedAggregateSelection(
 			core.WriteQualifiedColumn(b, `"`+sourceAlias+`"`, joinCol.SQLName)
 			b.WriteByte(')')
 
-			return
+			return params, paramIndex, nil
 		}
 
 		cs.writeFiltered(b, `"`+sourceAlias+`"`, joinCol)
 
-		return
+		return params, paramIndex, nil
 	}
 
 	if fs, ok := agg.(*aggregateFunctionSelection); ok {
-		fs.write(b, `"`+sourceAlias+`"`)
-
-		return
+		return fs.writeBound(
+			b, `"`+sourceAlias+`"`, t, variables, sessionVariables, true, params, paramIndex,
+		)
 	}
 
 	agg.Write(b)
+
+	return params, paramIndex, nil
 }
 
 // writeGroupedAggregateNodes writes the nodes response entry: a json_agg of an
