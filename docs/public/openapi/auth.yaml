@@ -57,7 +57,7 @@ paths:
   /elevate:
     get:
       summary: Get available elevation methods
-      description: Retrieve whether the authenticated user needs to elevate their session and which methods they can use to do it.
+      description: List the authenticated user's available elevation methods, whether elevation is required under the configured mode, and whether the current session is elevated.
       operationId: getElevationMethods
       tags:
         - security
@@ -3000,9 +3000,14 @@ components:
             - "totp"
           items:
             $ref: "#/components/schemas/ElevationMethod"
+        sessionElevated:
+          type: boolean
+          description: "Whether the bearer token has an elevated claim matching its subject"
+          example: false
       required:
         - elevationRequired
         - methods
+        - sessionElevated
 
     ElevateTotpRequest:
       type: object
