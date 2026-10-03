@@ -73,6 +73,20 @@ func (mr *MockTableMockRecorder) ColumnFromSQLName(name any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ColumnFromSQLName", reflect.TypeOf((*MockTable)(nil).ColumnFromSQLName), name)
 }
 
+// ComputedScalarFromGraphqlName mocks base method.
+func (m *MockTable) ComputedScalarFromGraphqlName(name, role string) core.ComputedExpression {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ComputedScalarFromGraphqlName", name, role)
+	ret0, _ := ret[0].(core.ComputedExpression)
+	return ret0
+}
+
+// ComputedScalarFromGraphqlName indicates an expected call of ComputedScalarFromGraphqlName.
+func (mr *MockTableMockRecorder) ComputedScalarFromGraphqlName(name, role any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ComputedScalarFromGraphqlName", reflect.TypeOf((*MockTable)(nil).ComputedScalarFromGraphqlName), name, role)
+}
+
 // ConflictColumns mocks base method.
 func (m *MockTable) ConflictColumns(constraintName string) []string {
 	m.ctrl.T.Helper()

@@ -35,6 +35,11 @@ pnpm build
 pnpm preview
 ```
 
+When testing a build with `nix develop .#docs`, the dev shell links `node_modules`
+into the Nix store. If Astro reports `No cached compile metadata` for Starlight,
+run the build in a writable source copy with copied `node_modules`, as the Nix
+`docs` check does; a store-linked build can fail before compiling the pages.
+
 ## Writing Documentation
 
 Documentation pages live in `src/content/docs/`. Each `.md` or `.mdx` file becomes a page based on its path:

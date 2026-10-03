@@ -64,6 +64,9 @@ type Table interface {
 		role string, sessionVariables map[string]any, sourceRef string,
 	) ([]any, int, error)
 
+	// ComputedScalarFromGraphqlName resolves a granted, argument-free scalar.
+	ComputedScalarFromGraphqlName(name, role string) core.ComputedExpression
+
 	// Relationship resolves a GraphQL field name to its relationship.
 	// Returns a nil interface (not a typed-nil) when none matches.
 	//

@@ -348,6 +348,22 @@ func appendOrderByObject(
 			continue
 		}
 
+		if computed := t.ComputedScalarFromGraphqlName(field.Name, role); computed != nil {
+			direction, err := orderByDirection(field.Value)
+			if err != nil {
+				return nil, err
+			}
+
+			orderBy = append(orderBy, OrderByItem{
+				Column: "", Direction: direction,
+				term: &computedOrderTerm{
+					expression: computed, source: parentSource, sessionVariables: sessionVariables,
+				},
+			})
+
+			continue
+		}
+
 		items, err := appendRelationshipOrderBy(
 			t, field, parentSource, role, sessionVariables, gen,
 		)

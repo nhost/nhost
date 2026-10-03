@@ -29,6 +29,9 @@ type Table interface {
 	// Returns nil if no column matches.
 	ColumnFromGraphqlName(name string) *core.Column
 
+	// ComputedScalarFromGraphqlName resolves a granted, argument-free scalar.
+	ComputedScalarFromGraphqlName(name, role string) core.ComputedExpression
+
 	// RelationshipFromGraphqlName resolves a GraphQL field name to its
 	// relationship. Returns a nil interface (not a typed-nil) when no
 	// relationship matches.

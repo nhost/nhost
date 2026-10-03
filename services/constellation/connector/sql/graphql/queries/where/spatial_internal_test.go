@@ -26,6 +26,10 @@ func (s *spatialParseTable) ColumnFromGraphqlName(name string) *core.Column {
 	return s.columns[name]
 }
 
+func (s *spatialParseTable) ComputedScalarFromGraphqlName(string, string) core.ComputedExpression {
+	return nil
+}
+
 func (s *spatialParseTable) RelationshipFromGraphqlName(string) Relationship {
 	return nil
 }
@@ -459,9 +463,9 @@ func TestSpatialParsersRejectUnsupportedSurfaces(t *testing.T) {
 			wantErr: errSpatialCastTargetInvalid,
 		},
 		{
-			name:   "spatial cast on non-spatial column preserves unknown cast behavior",
+			name:   "cast on non-spatial non-jsonb column remains unknown",
 			d:      dialect.NewPostgresDialect(),
-			column: newColumn("data", "jsonb"),
+			column: newColumn("data", "text"),
 			value: fieldComparisonValue(
 				"_cast",
 				objectValue(child("String", fieldComparisonValue("_eq", stringValue("x")))),

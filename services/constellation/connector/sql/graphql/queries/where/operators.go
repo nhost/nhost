@@ -69,7 +69,7 @@ func stringArrayParser(
 ) operatorParser {
 	return func(
 		c *core.Column,
-		_ *comparisonTarget,
+		target *comparisonTarget,
 		v *ast.Value,
 		vars map[string]any,
 		d dialect.Dialect,
@@ -79,7 +79,15 @@ func stringArrayParser(
 			return nil, err
 		}
 
-		return build(c, keys, d), nil
+		stmt := build(c, keys, d)
+		switch filter := stmt.(type) {
+		case *jsonbHasKeysAllFilter:
+			filter.target = target
+		case *jsonbHasKeysAnyFilter:
+			filter.target = target
+		}
+
+		return stmt, nil
 	}
 }
 
@@ -96,12 +104,20 @@ func buildLike(
 
 		if negated {
 			return &notLikeFilter{
-				column: column, pattern: pattern, caseSensitive: caseSensitive, dialect: d,
+				column:        column,
+				target:        target,
+				pattern:       pattern,
+				caseSensitive: caseSensitive,
+				dialect:       d,
 			}
 		}
 
 		return &likeFilter{
-			column: column, pattern: pattern, caseSensitive: caseSensitive, dialect: d,
+			column:        column,
+			target:        target,
+			pattern:       pattern,
+			caseSensitive: caseSensitive,
+			dialect:       d,
 		}
 	}
 }
@@ -135,12 +151,20 @@ func buildRegex(negated, caseInsensitive bool) operatorParser {
 
 		if negated {
 			return &notRegexFilter{
-				column: column, pattern: pattern, caseSensitive: caseSensitive, dialect: d,
+				column:        column,
+				target:        target,
+				pattern:       pattern,
+				caseSensitive: caseSensitive,
+				dialect:       d,
 			}, nil
 		}
 
 		return &regexFilter{
-			column: column, pattern: pattern, caseSensitive: caseSensitive, dialect: d,
+			column:        column,
+			target:        target,
+			pattern:       pattern,
+			caseSensitive: caseSensitive,
+			dialect:       d,
 		}, nil
 	}
 }
@@ -190,7 +214,7 @@ func containmentParser(
 ) operatorParser {
 	return func(
 		c *core.Column,
-		_ *comparisonTarget,
+		target *comparisonTarget,
 		v *ast.Value,
 		vars map[string]any,
 		d dialect.Dialect,
@@ -214,7 +238,15 @@ func containmentParser(
 			return nil, fmt.Errorf("extracting containment jsonb: %w", err)
 		}
 
-		return buildJSONB(c, val, d), nil
+		stmt := buildJSONB(c, val, d)
+		switch filter := stmt.(type) {
+		case *jsonbContainsFilter:
+			filter.target = target
+		case *jsonbContainedInFilter:
+			filter.target = target
+		}
+
+		return stmt, nil
 	}
 }
 
@@ -278,7 +310,7 @@ func operatorParserTable() map[string]operatorParser {
 		"_iregex":  buildRegex(false, true),
 		"_niregex": buildRegex(true, true),
 		"_is_null": parseIsNull,
-		"_cast":    parseSpatialCast,
+		"_cast":    parseComparisonCast,
 		"_contains": containmentParser(
 			func(c *core.Column, vs []any, d dialect.Dialect) Statement {
 				return &arrayContainsFilter{
@@ -286,7 +318,7 @@ func operatorParserTable() map[string]operatorParser {
 				}
 			},
 			func(c *core.Column, v any, d dialect.Dialect) Statement {
-				return &jsonbContainsFilter{column: c.SQLName, value: v, dialect: d}
+				return &jsonbContainsFilter{column: c.SQLName, target: nil, value: v, dialect: d}
 			},
 		),
 		"_contained_in": containmentParser(
@@ -296,22 +328,37 @@ func operatorParserTable() map[string]operatorParser {
 				}
 			},
 			func(c *core.Column, v any, d dialect.Dialect) Statement {
-				return &jsonbContainedInFilter{column: c.SQLName, value: v, dialect: d}
+				return &jsonbContainedInFilter{column: c.SQLName, target: nil, value: v, dialect: d}
 			},
 		),
 		"_has_key": scalarParser(
-			func(c *core.Column, _ *comparisonTarget, v any, d dialect.Dialect) Statement {
-				return &jsonbHasKeyFilter{column: c.SQLName, key: values.AnyToString(v), dialect: d}
+			func(c *core.Column, target *comparisonTarget, v any, d dialect.Dialect) Statement {
+				return &jsonbHasKeyFilter{
+					column:  c.SQLName,
+					target:  target,
+					key:     values.AnyToString(v),
+					dialect: d,
+				}
 			},
 		),
 		"_has_keys_all": stringArrayParser(
 			func(c *core.Column, keys []string, d dialect.Dialect) Statement {
-				return &jsonbHasKeysAllFilter{column: c.SQLName, keys: keys, dialect: d}
+				return &jsonbHasKeysAllFilter{
+					column:  c.SQLName,
+					target:  nil,
+					keys:    keys,
+					dialect: d,
+				}
 			},
 		),
 		"_has_keys_any": stringArrayParser(
 			func(c *core.Column, keys []string, d dialect.Dialect) Statement {
-				return &jsonbHasKeysAnyFilter{column: c.SQLName, keys: keys, dialect: d}
+				return &jsonbHasKeysAnyFilter{
+					column:  c.SQLName,
+					target:  nil,
+					keys:    keys,
+					dialect: d,
+				}
 			},
 		),
 		"_st_3d_d_within": spatialDWithinParser(true),
