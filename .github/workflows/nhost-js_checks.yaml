@@ -32,6 +32,9 @@ on:
       # nhost-js
       - "packages/nhost-js/**"
 
+      # the backend the integration tests run against
+      - "packages/backend-sdk-tests/**"
+
       # apis
       - "services/auth/docs/openapi.yaml"
       - "services/storage/controller/openapi.yaml"
@@ -64,6 +67,7 @@ jobs:
         pnpm-lock.yaml
         turbo.json
         packages/nhost-js/**
+        packages/backend-sdk-tests/**
         services/auth/docs/openapi.yaml
         services/storage/controller/openapi.yaml
 

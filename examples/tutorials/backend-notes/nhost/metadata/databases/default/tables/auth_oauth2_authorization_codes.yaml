@@ -1,0 +1,36 @@
+table:
+  name: oauth2_authorization_codes
+  schema: auth
+configuration:
+  column_config:
+    auth_request_id:
+      custom_name: authRequestId
+    code_hash:
+      custom_name: codeHash
+    created_at:
+      custom_name: createdAt
+    expires_at:
+      custom_name: expiresAt
+    id:
+      custom_name: id
+  custom_column_names:
+    auth_request_id: authRequestId
+    code_hash: codeHash
+    created_at: createdAt
+    expires_at: expiresAt
+    id: id
+  custom_name: authOauth2AuthorizationCodes
+  custom_root_fields:
+    delete: deleteAuthOauth2AuthorizationCodes
+    delete_by_pk: deleteAuthOauth2AuthorizationCode
+    insert: insertAuthOauth2AuthorizationCodes
+    insert_one: insertAuthOauth2AuthorizationCode
+    select: authOauth2AuthorizationCodes
+    select_aggregate: authOauth2AuthorizationCodesAggregate
+    select_by_pk: authOauth2AuthorizationCode
+    update: updateAuthOauth2AuthorizationCodes
+    update_by_pk: updateAuthOauth2AuthorizationCode
+object_relationships:
+  - name: authRequest
+    using:
+      foreign_key_constraint_on: auth_request_id
