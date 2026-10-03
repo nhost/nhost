@@ -118,7 +118,7 @@ func TestInfoFromCompose(t *testing.T) {
 							Protocol:  "tcp",
 						}},
 					},
-					"hasura": {
+					"graphql": {
 						Labels: map[string]string{
 							"traefik.http.routers.hasura.tls": tt.tls,
 						},
