@@ -1,0 +1,143 @@
+---
+title: Agentic workflows
+description: "Connect an AI assistant to Nhost over MCP. Three setups: your local project, a cloud project through the CLI, and a hosted connector that needs no CLI at all."
+keywords: ["agentic workflows", "MCP", "AI assistant", "Claude", "Cursor", "Codex", "agents", "Nhost Cloud", "without CLI"]
+head:
+  - tag: title
+    content: "Connect AI Agents to Nhost | Nhost Docs"
+sidebar:
+  label: Agentic Workflows
+---
+import { Card, CardGroup, CopyText, Prompt } from '@components';
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+Nhost speaks the [Model Context Protocol](https://modelcontextprotocol.io/), so an AI assistant can work with your backend directly instead of guessing at it. Depending on how you connect, an assistant can read your GraphQL schema, run queries and mutations, write migrations and permission rules, and inspect or change your project's configuration on Nhost Cloud.
+
+<Prompt>
+Add a `published_at` column to `posts`, allow the `user` role to read only published rows, and show me the migration before applying it.
+</Prompt>
+
+## Pick your setup
+
+Which server you connect to depends on what you're working on and whether you use the CLI.
+
+| | [Local project](#local-project-with-the-cli) | [Cloud project](#cloud-project-with-the-cli) | [Nhost Cloud, no CLI](#nhost-cloud-without-the-cli) |
+|---|---|---|---|
+| **Server** | CLI MCP | CLI MCP | Hosted connector |
+| **Needs the CLI** | Yes | Yes, but no Docker | No |
+| **Transport** | Local process (stdio) | Local process (stdio) | Remote HTTP |
+| **Authentication** | Local admin secret | `nhost login` for the platform, PAT or admin secret per project | Your Nhost account, over OAuth2 |
+| **Reaches** | Your local stack | The cloud projects you configure, plus your orgs and project config | Your orgs, projects, deployments |
+| **Can write** | Yes — data, metadata, migrations | Only what you allow | No, read-only |
+
+All three are about *you* building on Nhost. If you instead want your **application's users** to talk to your app through their own assistant, that's a different server: see [Backend MCP](/products/ai/mcp).
+
+## Local project with the CLI
+
+The setup for day-to-day development. The CLI runs an MCP server on your machine that talks to the stack `nhost up` started, so an assistant can read your schema, query seeded data, and write migrations and permission rules as you work.
+
+Hand the onboarding file to your assistant and it will do the whole setup:
+
+<Tabs syncKey="assistant">
+<TabItem label="Claude Code">
+```sh
+curl -fsSL https://docs.nhost.io/install-mcp | claude
+```
+</TabItem>
+<TabItem label="Codex CLI">
+```sh
+curl -fsSL https://docs.nhost.io/install-mcp | codex exec -
+```
+</TabItem>
+<TabItem label="Gemini CLI">
+```sh
+curl -fsSL https://docs.nhost.io/install-mcp | gemini
+```
+</TabItem>
+<TabItem label="Other">
+```sh
+curl -fsSL https://docs.nhost.io/install-mcp | <your-assistant-cli>
+```
+</TabItem>
+</Tabs>
+
+For the manual steps, see [Development Setup](/platform/cli/mcp/development-setup).
+
+## Cloud project with the CLI
+
+If you [develop without a local stack](/getting-started/cloud-development/dashboard), the same CLI MCP server can point at a project on Nhost Cloud. You still need the CLI binary, but nothing runs in Docker — the server is a short-lived local process that forwards requests to your project's endpoints.
+
+This setup also covers the Nhost Cloud platform itself, so an assistant can list your organizations and projects and change project configuration the way you would in the dashboard.
+
+<Tabs syncKey="assistant">
+<TabItem label="Claude Code">
+```sh
+curl -fsSL https://docs.nhost.io/install-mcp-cloud | claude
+```
+</TabItem>
+<TabItem label="Codex CLI">
+```sh
+curl -fsSL https://docs.nhost.io/install-mcp-cloud | codex exec -
+```
+</TabItem>
+<TabItem label="Gemini CLI">
+```sh
+curl -fsSL https://docs.nhost.io/install-mcp-cloud | gemini
+```
+</TabItem>
+<TabItem label="Other">
+```sh
+curl -fsSL https://docs.nhost.io/install-mcp-cloud | <your-assistant-cli>
+```
+</TabItem>
+</Tabs>
+
+Access is read-only by default, and you decide which queries and mutations to open up per project. For the manual steps and the safety rules that matter once real data is involved, see [Cloud Setup](/platform/cli/mcp/cloud-setup).
+
+## Nhost Cloud without the CLI
+
+Nhost runs a hosted MCP server at <CopyText text="https://mcp.nhost.io" />. Add it as a remote connector in any client that supports one, sign in with your Nhost account, and the assistant can answer questions about your organizations, projects, and deployments. There is nothing to install and no token to copy.
+
+<Steps>
+
+1. In your client, add a custom connector or remote MCP server with the URL `https://mcp.nhost.io`.
+2. Authorize the request on the Nhost consent page.
+3. Ask the assistant about your projects.
+
+</Steps>
+
+Access is read-only and scoped to what your Nhost account can see. It cannot change project configuration or touch your project's own data — for that, use one of the CLI setups above.
+
+See [Nhost Cloud connector](/platform/cloud/mcp) for per-client steps and the full list of what it can answer.
+
+## Keeping an assistant in bounds
+
+An assistant connected over MCP acts with whatever credentials you hand it, so scope them deliberately:
+
+- **Give it the least access that makes the task possible.** `allow_queries` and `allow_mutations` restrict the `graphql-query` tool to named operations even when the underlying credential could do more. Start with `allow_mutations = []`.
+- **Keep admin secrets on local projects.** An admin secret bypasses permissions entirely. Use a [PAT](/platform/cli/mcp/cloud-setup#authenticate) against anything holding real data, so requests run under a role and your permission rules still apply.
+- **Enable metadata management only where you want schema changes.** `manage_metadata` requires an admin secret (a project authenticated with a PAT can't use it) and gives an assistant admin access to Hasura's management endpoints — migrations and permission rules, but also arbitrary SQL and GraphQL against your data. `allow_queries` and `allow_mutations` don't cover it, so read `manage_metadata = true` as full access to schema *and* data. That's what you want locally and almost never what you want in production.
+- **Review what it writes.** Migrations and permission rules are code. Read them before they reach an environment you care about.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Development Setup" icon="terminal" href="/platform/cli/mcp/development-setup">
+    Connect an assistant to your local project
+  </Card>
+  <Card title="Cloud Setup" icon="cloud" href="/platform/cli/mcp/cloud-setup">
+    Connect an assistant to a cloud project and the platform
+  </Card>
+  <Card title="Nhost Cloud Connector" icon="plug" href="/platform/cloud/mcp">
+    The hosted connector at mcp.nhost.io
+  </Card>
+  <Card title="MCP Configuration" icon="gear" href="/platform/cli/mcp/configuration">
+    Every option in mcp-nhost.toml
+  </Card>
+  <Card title="Backend MCP" icon="robot" href="/products/ai/mcp">
+    Give your own users an AI interface to your app
+  </Card>
+  <Card title="Troubleshooting" icon="wrench" href="/platform/cli/mcp/troubleshooting">
+    When the server or a tool call fails
+  </Card>
+</CardGroup>

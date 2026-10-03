@@ -9,6 +9,8 @@ head:
 
 Nhost's cloud development workflow allows you to develop against a cloud-hosted project while maintaining a minimal local environment. This approach combines the benefits of cloud infrastructure with local development tools, enabling seamless collaboration and deployment workflows.
 
+If you'd rather not run the CLI at all, see [Get up and running without the CLI](/getting-started/cloud-development/dashboard), which works entirely from the dashboard. To connect an AI assistant to a cloud project, see [Cloud Setup](/platform/cli/mcp/cloud-setup).
+
 ## Benefits of Cloud Development
 
 Cloud development with Nhost offers several key advantages:
@@ -54,6 +56,7 @@ nhost init --remote
 ```
 
 This command will:
+
 - Prompt you to sign in to your Nhost account
 - Display a list of your cloud projects
 - Allow you to select the project you want to work with
@@ -70,6 +73,7 @@ nhost up cloud --subdomain $SUBDOMAIN --postgres-url $POSTGRES_URL
 ```
 
 Replace the placeholder values with:
+
 - `your-project-subdomain`: The subdomain noted in step 2
 - `your-complete-postgres-url`: The connection string with your password from step 4
 
@@ -83,8 +87,8 @@ With your local development environment running, always use the local interfaces
 
 Access your local development tools at:
 
-- **Console**: https://local.hasura.local.nhost.run
-- **Dashboard**: https://local.dashboard.local.nhost.run
+- **Console**: [https://local.hasura.local.nhost.run](https://local.hasura.local.nhost.run)
+- **Dashboard**: [https://local.dashboard.local.nhost.run](https://local.dashboard.local.nhost.run)
 
 ### How Changes Are Tracked
 

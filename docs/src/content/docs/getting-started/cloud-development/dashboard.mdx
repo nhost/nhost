@@ -1,0 +1,161 @@
+---
+title: Get up and running without the CLI
+description: "Build on Nhost Cloud straight from the dashboard. Create a project, design your schema, set permissions, and connect your app without Docker or the Nhost CLI."
+keywords: ["cloud development", "no CLI", "dashboard", "without Docker", "getting started", "Nhost Cloud", "quickstart"]
+head:
+  - tag: title
+    content: "Develop on Nhost Cloud Without the CLI | Nhost Docs"
+sidebar:
+  label: Without the CLI
+---
+import { Card, CardGroup } from '@components';
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+You don't need the Nhost CLI or Docker to start building. Create a project on Nhost Cloud, design your schema in the dashboard, and point your app at the project's endpoints. This is the fastest way to get a working backend, and it's a good fit for prototypes, demos, and small apps maintained by one person.
+
+The [Nhost CLI](/getting-started/local-development/cli) is still the recommended setup for anything you plan to maintain with a team, because it versions your schema and configuration in Git. [Moving to the CLI later](#moving-to-the-cli-later) is a single command once the CLI is installed and Docker is running, and nothing you do here has to be thrown away.
+
+### 1. Create a project
+
+Sign in to the [Nhost dashboard](https://app.nhost.io) and create a project. Pick the region closest to your users. Provisioning takes a few seconds, after which the database, GraphQL API, Auth, and Storage are all running.
+
+### 2. Note your subdomain and region
+
+Your project's overview page shows its subdomain and region. Every service is reachable at a URL built from those two values:
+
+| Service | URL |
+|---------|-----|
+| **GraphQL** | `https://<subdomain>.graphql.<region>.nhost.run/v1` |
+| **Auth** | `https://<subdomain>.auth.<region>.nhost.run/v1` |
+| **Storage** | `https://<subdomain>.storage.<region>.nhost.run/v1` |
+| **Functions** | `https://<subdomain>.functions.<region>.nhost.run/v1` |
+
+The SDK builds these for you from the subdomain and region, so you rarely need to write them out by hand.
+
+### 3. Create your schema
+
+Open **Database** in the dashboard. You can create tables and relationships through the table editor, or run SQL directly from the **SQL Editor**:
+
+```sql SQL Editor
+CREATE TABLE movies (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  director VARCHAR(255),
+  release_year INTEGER,
+  genre VARCHAR(100),
+  rating FLOAT
+);
+```
+
+:::caution
+When running SQL that creates tables, keep **Track this** enabled. Untracked tables exist in Postgres but are not exposed through the GraphQL API.
+:::
+
+### 4. Set permissions
+
+New tables are not readable by anyone until you say so. Select the table, click **Edit Permissions**, and grant the roles you need — typically `select` for `user`, and `select` for `public` if the data is meant to be readable without signing in.
+
+Permissions are the security boundary for your project. Every request through the GraphQL API, from your frontend or from an AI assistant, runs under a role and is filtered by these rules. See [Permissions](/products/graphql/permissions) for the rule syntax and [permission variables](/products/graphql/permissions/permission-variables) for user-scoped rules.
+
+### 5. Connect your app
+
+Install the SDK and create a client with your subdomain and region:
+
+<Tabs syncKey="pkg">
+<TabItem label="npm">
+```sh
+npm install @nhost/nhost-js
+```
+</TabItem>
+<TabItem label="pnpm">
+```sh
+pnpm add @nhost/nhost-js
+```
+</TabItem>
+<TabItem label="Bun">
+```sh
+bun add @nhost/nhost-js
+```
+</TabItem>
+<TabItem label="Yarn">
+```sh
+yarn add @nhost/nhost-js
+```
+</TabItem>
+</Tabs>
+
+```js
+import { createClient } from "@nhost/nhost-js";
+
+// Replace <subdomain> and <region> with your project's values
+export const nhost = createClient({
+  subdomain: "<subdomain>",
+  region: "<region>",
+})
+```
+
+The [quickstarts](/getting-started/quickstart/react) walk through this end to end for React, Next.js, Vue, SvelteKit, and React Native. They all assume a cloud project created this way.
+
+### 6. Configure authentication
+
+Under **Auth** you can enable sign-in methods, customize email templates, and set your client and redirect URLs. Set the **Client URL** to where your app runs, and add any other origins your app redirects back to under **Allowed Redirect URLs** — auth flows reject redirects to URLs that aren't listed. See [Client and redirect URLs](/products/auth/client_and_redirect_urls).
+
+### 7. Add environment variables and secrets
+
+Backend configuration lives in the dashboard too. Use [environment variables](/platform/cloud/environment-variables) for values your services read at runtime, and [secrets](/platform/cloud/secrets) for anything sensitive, such as third-party API keys.
+
+### 8. Connect an AI assistant
+
+An AI assistant can read your schema, run queries, and manage your project's configuration over MCP. There's a path for this that needs no CLI at all, and one that uses the CLI purely as a local MCP server without running any containers.
+
+See [Agentic workflows](/getting-started/agentic-workflows) to pick the one that fits.
+
+## What you give up
+
+Working only in the dashboard means there is no record of how your project got into its current state:
+
+- **Schema changes are not versioned.** The dashboard applies changes directly instead of writing migration files, so you cannot review a change, revert it, or replay it on another project.
+- **Metadata and configuration are not in Git.** Permission rules, relationships, and project settings live only on the server.
+- **There is no second environment.** You cannot reproduce the project for staging or for a teammate without redoing the clicks.
+- **No Git-based deployments.** [Deployments](/platform/cloud/deployments) trigger from a repository containing an `nhost/` directory, which the CLI creates.
+
+None of these matter much while you are exploring. They start to matter as soon as a second person, or a second environment, is involved.
+
+## Moving to the CLI later
+
+Nothing is locked in. Unlike the rest of this page, this step has prerequisites:
+
+- The [Nhost CLI](/getting-started/local-development/cli#1-install-the-cli) installed.
+- An Nhost account to sign in with — run `nhost login` first, or let `nhost init --remote` prompt you. Either way it then asks which cloud project to pull from.
+- A running Docker daemon: the initial migration is generated by running the Hasura CLI in a container.
+
+With those in place, run the following from an empty directory:
+
+```sh
+nhost init --remote
+```
+
+This pulls the existing project's configuration, migrations, and metadata into a local `nhost/` directory you can commit. From there you can run the full stack locally with `nhost up`, or keep developing against the cloud project with [`nhost up cloud`](/platform/cli/cloud-development).
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Agentic Workflows" icon="robot" href="/getting-started/agentic-workflows">
+    Connect an AI assistant to your cloud project, with or without the CLI
+  </Card>
+  <Card title="React" icon="react" href="/getting-started/quickstart/react">
+    Connect your cloud project to a React app
+  </Card>
+  <Card title="Next.js" icon="react" href="/getting-started/quickstart/nextjs">
+    Connect your cloud project to a Next.js app
+  </Card>
+  <Card title="Nhost CLI" icon="terminal" href="/getting-started/local-development/cli">
+    Version your schema and configuration in Git
+  </Card>
+  <Card title="Permissions" icon="key" href="/products/graphql/permissions">
+    Control what each role can read and write
+  </Card>
+  <Card title="Nhost Cloud" icon="cloud" href="/platform/cloud">
+    Logs, metrics, custom domains, and compute resources
+  </Card>
+</CardGroup>

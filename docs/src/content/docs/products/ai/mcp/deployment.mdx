@@ -108,3 +108,9 @@ Point `MCP_AUTH_URL` and `MCP_GRAPHQL_ENDPOINT` at your local endpoints (for exa
 ## Configuration reference
 
 Every setting can be supplied as a flag or an environment variable. `MCP_GRAPHQL_ENDPOINT` and `MCP_AUTH_URL` are required. See [Configuration](/products/ai/mcp/configuration) for the full list.
+
+## MCP Registry
+
+Backend MCP is published to the [official MCP Registry](https://registry.modelcontextprotocol.io) as `io.github.nhost/mcp`, so clients and directories that read from the registry can discover it. The entry is metadata only — it points at the same `nhost/mcp` image and declares the two required environment variables above. Every release republishes it, so the version in the registry tracks the latest release.
+
+For a running instance you can connect to right now, Nhost hosts one for the Nhost Cloud platform itself. See [Nhost Cloud connector](/platform/cloud/mcp).
