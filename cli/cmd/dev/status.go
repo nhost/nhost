@@ -130,7 +130,11 @@ func publishedPort(svc *dockercompose.Service) (uint, error) {
 }
 
 func tlsEnabled(services map[string]*dockercompose.Service) bool {
-	hasura := services["hasura"]
+	for _, svc := range services {
+		if svc != nil && svc.Labels["traefik.http.routers.hasura.tls"] == "true" {
+			return true
+		}
+	}
 
-	return hasura != nil && hasura.Labels["traefik.http.routers.hasura.tls"] == "true"
+	return false
 }
