@@ -1,36 +1,44 @@
 import type { CSSProperties, ReactNode } from 'react';
 import type { ChartConfig } from '@/components/ui/v3/chart';
+import type {
+  PinnedPayloadEntry,
+  PinnedState,
+} from '@/features/orgs/projects/common/metrics/types';
 import { formatTimestampFull } from '@/features/orgs/projects/common/metrics/utils/formatters';
 import { cn } from '@/lib/utils';
 
-export interface PinnedPayloadEntry {
-  dataKey?: string | number;
-  name?: string | number;
-  value?: number | string;
-  color?: string | undefined;
-  payload?: { fill?: string };
-  type?: string;
-}
+// Recharts portals the tooltip and the legend into the same wrapper as
+// absolutely positioned siblings without a z-index, so the legend (mounted
+// later) would otherwise paint over the tooltip.
+export const TOOLTIP_WRAPPER_STYLE: CSSProperties = { zIndex: 20 };
 
-export interface PinnedState {
-  x: number;
-  y: number;
-  label: number;
-  payload: PinnedPayloadEntry[];
-}
-
-interface TooltipEntry {
+export interface TooltipEntry {
   key: string;
   label: ReactNode;
   value: number | string | undefined;
   color: string;
 }
 
+// Shared by the hover and the pinned tooltip so both render the same card.
+interface TooltipOptions {
+  valueFormatter?: (v: number) => string;
+  labelFormatter?: (timestamp: number) => string;
+  // A stacked bar draws its first series at the bottom, but the tooltip lists
+  // it first. Reversing lists the rows in the same top-to-bottom order as the
+  // bar's segments.
+  reverseEntries?: boolean;
+  renderFooter?: (
+    entries: TooltipEntry[],
+    label: number | string | undefined,
+  ) => ReactNode;
+}
+
 function toEntries(
   payload: PinnedPayloadEntry[],
   config: ChartConfig,
+  reverse = false,
 ): TooltipEntry[] {
-  return payload
+  const entries = payload
     .filter((p) => p.type !== 'none' && p.value != null)
     .map((p) => {
       const key = String(p.dataKey ?? p.name ?? 'value');
@@ -41,12 +49,12 @@ function toEntries(
         color: p.color ?? p.payload?.fill ?? 'hsl(var(--muted-foreground))',
       };
     });
+  return reverse ? entries.reverse() : entries;
 }
 
-interface TooltipCardProps {
+interface TooltipCardProps extends Omit<TooltipOptions, 'reverseEntries'> {
   label: number | string | undefined;
   entries: TooltipEntry[];
-  valueFormatter?: (v: number) => string;
   onClose?: VoidFunction;
   className?: string;
   style?: CSSProperties;
@@ -59,6 +67,8 @@ function TooltipCard({
   label,
   entries,
   valueFormatter,
+  labelFormatter,
+  renderFooter,
   onClose,
   className,
   style,
@@ -78,7 +88,11 @@ function TooltipCard({
       {...(onClose ? { role: 'dialog', 'aria-label': ariaLabel } : {})}
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="font-medium">{formatTimestampFull(label)}</div>
+        <div className="font-medium">
+          {labelFormatter && typeof label === 'number'
+            ? labelFormatter(label)
+            : formatTimestampFull(label)}
+        </div>
         <button
           type="button"
           onClick={onClose}
@@ -115,13 +129,13 @@ function TooltipCard({
           );
         })}
       </div>
+      {renderFooter?.(entries, label)}
     </div>
   );
 }
 
-interface HoverTooltipContentProps {
+interface HoverTooltipContentProps extends TooltipOptions {
   config: ChartConfig;
-  valueFormatter?: (v: number) => string;
   active?: boolean;
   payload?: PinnedPayloadEntry[];
   label?: number | string;
@@ -130,6 +144,9 @@ interface HoverTooltipContentProps {
 export function HoverTooltipContent({
   config,
   valueFormatter,
+  labelFormatter,
+  reverseEntries,
+  renderFooter,
   active,
   payload,
   label,
@@ -137,7 +154,7 @@ export function HoverTooltipContent({
   if (!active || !payload || payload.length === 0) {
     return null;
   }
-  const entries = toEntries(payload, config);
+  const entries = toEntries(payload, config, reverseEntries);
   if (entries.length === 0) {
     return null;
   }
@@ -146,14 +163,15 @@ export function HoverTooltipContent({
       label={label}
       entries={entries}
       valueFormatter={valueFormatter}
+      labelFormatter={labelFormatter}
+      renderFooter={renderFooter}
     />
   );
 }
 
-interface PinnedTooltipProps {
+interface PinnedTooltipProps extends TooltipOptions {
   pinned: PinnedState;
   config: ChartConfig;
-  valueFormatter?: (v: number) => string;
   onClose: VoidFunction;
 }
 
@@ -161,13 +179,18 @@ export function PinnedTooltip({
   pinned,
   config,
   valueFormatter,
+  labelFormatter,
+  reverseEntries,
+  renderFooter,
   onClose,
 }: PinnedTooltipProps) {
   return (
     <TooltipCard
       label={pinned.label}
-      entries={toEntries(pinned.payload, config)}
+      entries={toEntries(pinned.payload, config, reverseEntries)}
       valueFormatter={valueFormatter}
+      labelFormatter={labelFormatter}
+      renderFooter={renderFooter}
       onClose={onClose}
       interactive
       className="absolute z-10"
@@ -179,38 +202,4 @@ export function PinnedTooltip({
       ariaLabel="Pinned data point"
     />
   );
-}
-
-// Mirror the hover tooltip's placement (including recharts' edge-flipping) by
-// reading the live transform recharts set on its tooltip wrapper. Falls back
-// to activeCoordinate + default offset if the wrapper hasn't been positioned
-// yet (e.g., click without a prior hover).
-export function resolveTooltipPosition(
-  wrapperEl: HTMLDivElement | null,
-  cursor: {
-    activeCoordinate?: { x?: number; y?: number };
-    chartX?: number;
-    chartY?: number;
-  },
-): { x: number | null; y: number | null } {
-  const tooltipEl = wrapperEl?.querySelector(
-    '.recharts-tooltip-wrapper',
-  ) as HTMLElement | null;
-  if (tooltipEl && tooltipEl.style.visibility !== 'hidden') {
-    const match = tooltipEl.style.transform.match(
-      /translate\(\s*(-?[\d.]+)px\s*,\s*(-?[\d.]+)px\s*\)/,
-    );
-    if (match) {
-      return {
-        x: Number.parseFloat(match[1]),
-        y: Number.parseFloat(match[2]),
-      };
-    }
-  }
-  const fallbackX = cursor.activeCoordinate?.x ?? cursor.chartX;
-  const fallbackY = cursor.activeCoordinate?.y ?? cursor.chartY;
-  return {
-    x: fallbackX != null ? fallbackX + 10 : null,
-    y: fallbackY != null ? fallbackY + 10 : null,
-  };
 }
