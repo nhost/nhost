@@ -630,19 +630,27 @@ func upErr(
 	downOnError bool,
 	err error,
 ) error {
+	// Printed here even though the returned error is printed again on the way
+	// out: the prompt below has to say what went wrong, and by the time the
+	// caller prints the error the user has already answered.
 	ce.Warnln("%s", err.Error())
 
+	// The prompt decides whether to tear the environment down, not whether
+	// starting it worked, so every path below still reports the original
+	// failure. Returning nil here would have `nhost up` exit 0 on a backend that
+	// never came up.
 	if !downOnError {
 		ce.PromptMessage("Do you want to stop Nhost's development environment? [y/N] ")
 
-		resp, err := ce.PromptInput(false)
-		if err != nil {
-			ce.Warnln("failed to read input: %s", err)
-			return nil
+		resp, promptErr := ce.PromptInput(false)
+		if promptErr != nil {
+			ce.Warnln("failed to read input: %s", promptErr)
+
+			return err
 		}
 
 		if resp != "y" && resp != "Y" {
-			return nil
+			return err
 		}
 	}
 

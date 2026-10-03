@@ -25,6 +25,7 @@ jobs:
           [
             cli,
             dashboard,
+            packages/devtools,
             packages/nhost-js,
             packages/stripe-graphql-js,
             services/ai,

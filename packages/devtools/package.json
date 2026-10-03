@@ -1,0 +1,93 @@
+{
+  "name": "@nhost/devtools",
+  "version": "0.0.0-dev",
+  "description": "Development toolbar for Nhost projects",
+  "type": "module",
+  "main": "./dist/devtools.cjs",
+  "module": "./dist/devtools.js",
+  "types": "./dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/devtools.js",
+      "require": "./dist/devtools.cjs"
+    },
+    "./react": {
+      "types": "./dist/src/react/index.d.ts",
+      "import": "./dist/devtools/react.js",
+      "require": "./dist/devtools/react.cjs"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "react": [
+        "dist/src/react/index.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "pnpm tsc --watch",
+    "format": "biome format --write",
+    "test": "pnpm test:typecheck && pnpm test:lint && jest",
+    "test:lint": "biome check --error-on-warnings",
+    "test:typecheck": "pnpm tsc --noEmit",
+    "build": "rm -rf dist && pnpm build:types && pnpm build:js",
+    "build:types": "pnpm tsc -p tsconfig.json",
+    "build:js": "pnpm vite build --config vite.config.ts",
+    "generate": "echo 'nothing to generate'"
+  },
+  "keywords": [
+    "nhost",
+    "devtools",
+    "toolbar",
+    "development"
+  ],
+  "author": "Nhost",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nhost/nhost.git"
+  },
+  "homepage": "https://nhost.io",
+  "bugs": {
+    "url": "https://github.com/nhost/nhost/issues"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.15.17",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@types/rollup-plugin-peer-deps-external": "^2.2.6",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "rollup": "^4.59.0",
+    "rollup-plugin-peer-deps-external": "^2.2.4",
+    "terser": "^5.39.0",
+    "ts-jest": "^29.3.2",
+    "typescript": "5.8.3"
+  },
+  "sideEffects": false,
+  "dependencies": {
+    "tslib": "^2.8.1"
+  }
+}

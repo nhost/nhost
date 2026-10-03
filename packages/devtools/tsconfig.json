@@ -1,0 +1,21 @@
+{
+  "extends": "../../build/configs/tsconfig/library.json",
+  "compilerOptions": {
+    "lib": ["ESNext", "DOM"],
+    "jsx": "react-jsx",
+    "outDir": "./dist",
+    "baseUrl": ".",
+    "paths": {
+      "@nhost/devtools": ["src/index.ts"],
+      "@nhost/devtools/react": ["src/react/index.tsx"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": [
+    "node_modules",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "dist",
+    "**/__tests__/**"
+  ]
+}

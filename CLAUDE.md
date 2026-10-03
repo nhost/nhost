@@ -19,6 +19,7 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 ### CLI (`cli/`)
 
 - Go-based CLI for local development (`nhost dev`), project management, deployments, secrets, and MCP server
+- The CLI reference at `docs/src/content/docs/reference/cli/commands.mdx` is generated from the command tree. After changing a command or flag name, usage, or default text, regenerate it with `go run ./cli gen-docs > docs/src/content/docs/reference/cli/commands.mdx`; no CI job catches the drift
 
 ### Shared Libraries (`internal/lib/`)
 
@@ -33,6 +34,13 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 ### JavaScript SDK (`packages/nhost-js/`)
 
 - Client SDK providing auth, storage, GraphQL, and functions helpers. Builds to ESM, CJS, and UMD
+
+### Dev Toolbar (`packages/devtools/`)
+
+- `@nhost/devtools`, the development toolbar any Nhost project can add as a devDependency: a tab docked to a screen edge that opens links to the local Dashboard, Hasura and Mailhog
+- Two entry points: a framework-agnostic `mountNhostDevToolbar()` at the root, and a React wrapper at `@nhost/devtools/react`. `react` is an **optional** peer dependency, so the vanilla entry never pulls it in
+- Self-contained on purpose: it carries its own CSS and its own inlined icons, takes no runtime dependency beyond `tslib`, and reads no environment variables for configuration; the React wrapper's only env read is a `NODE_ENV === 'production'` guard. The backend is passed in as `subdomain`/`region` props, both defaulting to `local`
+- The React entry needs `'use client'` in its built output, which rollup strips and terser would drop from a banner. `vite.config.ts` writes it back in `generateBundle`; do not remove that plugin
 
 ### Documentation (`docs/`)
 

@@ -47,6 +47,13 @@ func (p PathStructure) NhostToml() string {
 	return filepath.Join(p.nhostFolder, "nhost.toml")
 }
 
+// ProjectNameFile is the committed file holding the docker compose project
+// name, so the local containers and volumes of a project scaffolded into a
+// generic directory such as backend/ stay isolated from every other project.
+func (p PathStructure) ProjectNameFile() string {
+	return filepath.Join(p.nhostFolder, "project-name")
+}
+
 func (p PathStructure) OverlaysFolder() string {
 	return filepath.Join(p.nhostFolder, "overlays")
 }

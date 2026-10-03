@@ -125,6 +125,22 @@ jobs:
       NHOST_BOT_APP_ID: ${{ secrets.NHOST_BOT_APP_ID }}
       NHOST_BOT_PRIVATE_KEY: ${{ secrets.NHOST_BOT_PRIVATE_KEY }}
 
+  devtools:
+    needs: extract-project
+    if: needs.extract-project.outputs.project == '@nhost/devtools'
+    uses: ./.github/workflows/wf_release_npm.yaml
+    with:
+      NAME: devtools
+      PATH: packages/devtools
+      VERSION: ${{ needs.extract-project.outputs.version }}
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
+      NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+      NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+      NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
+      DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_PRODUCTION }}
+
   nhost-js:
     needs: extract-project
     if: needs.extract-project.outputs.project == '@nhost/nhost-js'
