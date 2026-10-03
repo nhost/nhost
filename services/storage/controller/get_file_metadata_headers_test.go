@@ -244,6 +244,7 @@ func TestGetFileInfo(t *testing.T) {
 				image.NewTransformer(0, 0, 0),
 				nil,
 				logger,
+				"",
 			)
 
 			resp, err := ctrl.GetFileMetadataHeaders(

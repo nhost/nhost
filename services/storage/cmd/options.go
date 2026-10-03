@@ -23,6 +23,9 @@ var (
 // listener settings: whoever runs the service owns the listener, so the bind
 // address stays with the standalone serve command or the engine.
 type Options struct {
+	// Version is reported by the version endpoint.
+	Version string
+
 	// PublicURL is the externally reachable URL of the service, used to build
 	// presigned URLs.
 	PublicURL string
@@ -123,6 +126,7 @@ func (o Options) Validate() error {
 // validate; NewService does.
 func optionsFromCommand(cmd *cli.Command) Options {
 	return Options{
+		Version:                      cmd.Root().Version,
 		PublicURL:                    cmd.String(flagPublicURL),
 		APIRootPrefix:                cmd.String(flagAPIRootPrefix),
 		HasuraEndpoint:               cmd.String(flagHasuraEndpoint),
