@@ -84,7 +84,6 @@ func TestInfoFromCompose(t *testing.T) {
 			want: []string{
 				"postgres://postgres:postgres@localhost:5433/local",
 				"http://myapp.hasura.local.nhost.run:8443",
-				"tcp://localhost:5000",
 			},
 		},
 		{
@@ -97,7 +96,6 @@ func TestInfoFromCompose(t *testing.T) {
 			want: []string{
 				"postgres://postgres:postgres@localhost:5432/local",
 				"https://local.hasura.local.nhost.run",
-				"tcp://localhost:5000",
 			},
 		},
 	}
@@ -129,13 +127,6 @@ func TestInfoFromCompose(t *testing.T) {
 						Ports: []dockercompose.Port{{
 							Published: tt.postgres,
 							Target:    5432,
-							Protocol:  "tcp",
-						}},
-					},
-					"run-bun-gen": {
-						Ports: []dockercompose.Port{{
-							Published: "5000",
-							Target:    5000,
 							Protocol:  "tcp",
 						}},
 					},

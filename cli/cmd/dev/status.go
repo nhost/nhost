@@ -4,10 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math"
 	"os"
 	"path/filepath"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -96,13 +94,7 @@ func infoFromCompose(path string) (string, error) {
 		return "", fmt.Errorf("failed to read Postgres port: %w", err)
 	}
 
-	return printInfo(
-		subdomain,
-		httpPort,
-		postgresPort,
-		tlsEnabled(file.Services),
-		runLinksFromCompose(file.Services),
-	), nil
+	return printInfo(subdomain, httpPort, postgresPort, tlsEnabled(file.Services), nil), nil
 }
 
 func subdomainFrom(svc *dockercompose.Service) (string, error) {
@@ -138,51 +130,7 @@ func publishedPort(svc *dockercompose.Service) (uint, error) {
 }
 
 func tlsEnabled(services map[string]*dockercompose.Service) bool {
-	for _, svc := range services {
-		if svc != nil && svc.Labels["traefik.http.routers.hasura.tls"] == "true" {
-			return true
-		}
-	}
+	hasura := services["hasura"]
 
-	return false
-}
-
-func runLinksFromCompose(services map[string]*dockercompose.Service) []runLink {
-	names := make([]string, 0, len(services))
-	for name := range services {
-		if strings.HasPrefix(name, "run-") {
-			names = append(names, name)
-		}
-	}
-
-	sort.Strings(names)
-
-	links := make([]runLink, 0)
-
-	for _, name := range names {
-		svc := services[name]
-		if svc == nil {
-			continue
-		}
-
-		for _, port := range svc.Ports {
-			number, err := strconv.ParseUint(port.Published, 10, 64)
-			if err != nil || number == 0 || number > math.MaxUint16 {
-				continue
-			}
-
-			kind := port.Protocol
-			if kind == "" {
-				kind = "tcp"
-			}
-
-			links = append(links, runLink{
-				name: strings.TrimPrefix(name, "run-"),
-				kind: kind,
-				port: uint16(number),
-			})
-		}
-	}
-
-	return links
+	return hasura != nil && hasura.Labels["traefik.http.routers.hasura.tls"] == "true"
 }
