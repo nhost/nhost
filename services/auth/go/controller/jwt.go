@@ -492,7 +492,7 @@ func (j *JWTGetter) verifyElevatedClaim(
 		return false, fmt.Errorf("error parsing user id: %w", err)
 	}
 
-	if j.GetCustomClaim(token, "x-hasura-auth-elevated") == u {
+	if j.hasElevatedClaim(token) {
 		return true, nil
 	}
 
@@ -506,6 +506,13 @@ func (j *JWTGetter) verifyElevatedClaim(
 	}
 
 	return len(methods) == 0, nil
+}
+
+func (j *JWTGetter) hasElevatedClaim(token *jwt.Token) bool {
+	subject, err := token.Claims.GetSubject()
+
+	return err == nil && subject != "" &&
+		j.GetCustomClaim(token, "x-hasura-auth-elevated") == subject
 }
 
 func (j *JWTGetter) availableElevationMethods(
