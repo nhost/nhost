@@ -1,0 +1,4 @@
+# cargo-deny only checks advisories here; the shared lib runs
+# `cargo deny check advisories`.
+[advisories]
+version = 2
