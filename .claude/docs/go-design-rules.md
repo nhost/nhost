@@ -77,6 +77,8 @@ After every change to Go source files, before reporting work as complete, run fr
 1. `golines -w --base-formatter=gofumpt .`
 2. `golangci-lint run --fix ./...`
 
+Run these from the project's Nix shell (e.g. `nix develop .#cli -c golangci-lint run --fix ./cli/...`). A `golangci-lint` on your `PATH` that was built with an older toolchain aborts with `the Go language version (go1.26) used to build golangci-lint is lower than the targeted Go version (1.27.0)` before linting anything.
+
 Both commands operate on the whole project, not just the files you touched — this catches collateral fallout (import reorganisations, struct-field exhaustiveness, dead code). If either modifies files, re-stage them in the same commit. Treat any remaining `golangci-lint` finding as a blocker: either fix it or justify a targeted `//nolint:<linter>` with a comment.
 
 ---
