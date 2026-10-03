@@ -553,7 +553,13 @@ func up( //nolint:funlen
 
 	ce.Infoln("Nhost development environment started.")
 
-	info := printInfo(ce.LocalSubdomain(), httpPort, postgresPort, useTLS, runServicesCfg)
+	info := printInfo(
+		ce.LocalSubdomain(),
+		httpPort,
+		postgresPort,
+		useTLS,
+		runLinks(runServicesCfg),
+	)
 	if err := os.WriteFile( //nolint:gosec
 		filepath.Join(ce.Path.DotNhostFolder(), devInfoFileName),
 		[]byte(info),
@@ -567,11 +573,41 @@ func up( //nolint:funlen
 	return nil
 }
 
+type runLink struct {
+	name string
+	kind string
+	port uint16
+}
+
+func runLinks(services []*dockercompose.RunService) []runLink {
+	links := make([]runLink, 0)
+
+	for _, svc := range services {
+		if svc == nil || svc.Config == nil {
+			continue
+		}
+
+		for _, port := range svc.Config.GetPorts() {
+			if !deptr(port.GetPublish()) {
+				continue
+			}
+
+			links = append(links, runLink{
+				name: svc.Config.GetName(),
+				kind: port.GetType(),
+				port: port.GetPort(),
+			})
+		}
+	}
+
+	return links
+}
+
 func printInfo(
 	subdomain string,
 	httpPort, postgresPort uint,
 	useTLS bool,
-	runServices []*dockercompose.RunService,
+	links []runLink,
 ) string {
 	var buf bytes.Buffer
 
@@ -597,25 +633,21 @@ func printInfo(
 		))
 	}
 
-	for _, svc := range runServices {
-		for _, port := range svc.Config.GetPorts() {
-			if deptr(port.GetPublish()) {
-				fmt.Fprintf(
-					w,
-					"- run-%s:\t\tFrom laptop:\t%s://localhost:%d\n",
-					svc.Config.Name,
-					port.GetType(),
-					port.GetPort(),
-				)
-				fmt.Fprintf(
-					w,
-					"\t\tFrom services:\t%s://run-%s:%d\n",
-					port.GetType(),
-					svc.Config.Name,
-					port.GetPort(),
-				)
-			}
-		}
+	for _, link := range links {
+		fmt.Fprintf(
+			w,
+			"- run-%s:\t\tFrom laptop:\t%s://localhost:%d\n",
+			link.name,
+			link.kind,
+			link.port,
+		)
+		fmt.Fprintf(
+			w,
+			"\t\tFrom services:\t%s://run-%s:%d\n",
+			link.kind,
+			link.name,
+			link.port,
+		)
 	}
 
 	fmt.Fprintf(w, "\n")
