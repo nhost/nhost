@@ -91,8 +91,8 @@ type Capabilities struct {
 	// SupportsComputedFields is the durable PostgreSQL backend capability;
 	// rollout gates below additionally require each executor to be ready.
 	SupportsComputedFields bool
-	// PostgreSQL scalar selections are enabled; table selections and input
-	// predicates remain gated until their SQL executors are complete.
+	// PostgreSQL scalar selections and user inputs are enabled. Table-valued
+	// selections/inputs remain gated until their SQL executors are complete.
 	SupportsComputedScalarSelection bool
 	SupportsComputedTableSelection  bool
 	SupportsComputedScalarInput     bool
@@ -168,7 +168,7 @@ func NewCapabilities(kind DBKind, dial dialect.Dialect) Capabilities {
 		SupportsComputedFields:          kind == KindPostgres && dial.SupportsFunctions(),
 		SupportsComputedScalarSelection: kind == KindPostgres && dial.SupportsFunctions(),
 		SupportsComputedTableSelection:  false,
-		SupportsComputedScalarInput:     false,
+		SupportsComputedScalarInput:     kind == KindPostgres && dial.SupportsFunctions(),
 		SupportsComputedTableInput:      false,
 		SupportsArrays:                  dial.SupportsArrays(),
 		SupportsSpatialTypes:            dial.SupportsSpatialTypes(),

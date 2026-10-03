@@ -21,13 +21,42 @@ type stubTable struct {
 	permWriter      func(b *strings.Builder, params []any, paramIndex int) ([]any, int, error)
 }
 
-func (s *stubTable) Dialect() dialect.Dialect                        { return nil }
-func (s *stubTable) SchemaName() string                              { return "" }
-func (s *stubTable) TableFromClause() string                         { return s.tableFromClause }
-func (s *stubTable) ColumnFromGraphqlName(string) *core.Column       { return nil }
-func (s *stubTable) RelationshipFromGraphqlName(string) Relationship { return nil }
-func (s *stubTable) TableBySchemaName(_, _ string) Table             { return nil }
-func (s *stubTable) HasRowLevelPermissions(string) bool              { return s.hasRowLevelPerm }
+func (s *stubTable) Dialect() dialect.Dialect { return nil }
+
+func (s *stubTable) SchemaName() string { return "" }
+
+func (s *stubTable) TableFromClause() string { return s.tableFromClause }
+
+func (s *stubTable) ColumnFromGraphqlName(
+	string,
+) *core.Column {
+	return nil
+}
+
+func (s *stubTable) RelationshipFromGraphqlName(
+	string,
+) Relationship {
+	return nil
+}
+
+func (s *stubTable) ComputedScalarFromGraphqlName(
+	string,
+	string,
+) core.ComputedExpression {
+	return nil
+}
+
+func (s *stubTable) TableBySchemaName(
+	_, _ string,
+) Table {
+	return nil
+}
+
+func (s *stubTable) HasRowLevelPermissions(
+	string,
+) bool {
+	return s.hasRowLevelPerm
+}
 
 //nolint:nilnil // test stub returns nil/nil intentionally.
 func (s *stubTable) ParseFieldComparison(

@@ -110,8 +110,9 @@ fields pending input coercion support; their scalar grants do not revoke table
 access. Manual table-valued grants remain invalid regardless of argument kind.
 A computed definition on SQLite is ignored as before, without computed-specific
 inconsistencies or grant revocation. Other fields and tables survive. Valid
-PostgreSQL scalar selections are exposed to admin and granted roles, but
-computed predicates and table-valued selections are not yet executable.
+PostgreSQL scalar selections and argument-free computed user predicates
+and ordering are available to admin and granted roles; computed permission
+predicates/checks and table-valued selections are not yet executable.
 
 A select permission with an invalid/malformed computed grant is recorded as
 `select_permission` and removed **in its entirety**, including its filter;
@@ -123,7 +124,7 @@ the affected selection and records a `computed_field` inconsistency; the role
 and other fields remain. A select/update/delete filter or insert/update check referencing
 a known computed field, including through `_and`, `_or`, `_not`, local
 relationships, `_exists`, and aggregate relationship filters, cannot execute
-until computed predicates are supported: the **entire permission** is recorded
+until computed permission predicates/checks are supported: the **entire permission** is recorded
 as `<operation>_permission` and removed, not just its filter/check. Other roles
 and permissions on the same table remain available. A definition or a grant
 (on any role of that table) identifies a computed predicate, including if its

@@ -79,6 +79,8 @@ func appendRelationshipOrderBy(
 // Each leaf column produces one ORDER BY term rendering a correlated scalar
 // subquery; nested object relationships and aggregates recurse, wrapping the
 // inner expression in this relationship's subquery.
+//
+//nolint:funlen // Column, computed scalar and nested relationship branches share one correlated alias.
 func buildRelationshipOrderItems(
 	rel Relationship,
 	target Table,
@@ -107,6 +109,32 @@ func buildRelationshipOrderItems(
 					role, sessionVariables,
 				),
 				Direction: direction,
+			})
+
+			continue
+		}
+
+		if computed := target.ComputedScalarFromGraphqlName(child.Name, role); computed != nil {
+			direction, err := orderByDirection(child.Value)
+			if err != nil {
+				return nil, err
+			}
+
+			items = append(items, OrderByItem{
+				Column: "", Direction: direction,
+				term: newRelationshipOrderTerm(
+					rel,
+					target,
+					parentSource,
+					alias,
+					&computedOrderTerm{
+						expression:       computed,
+						source:           alias,
+						sessionVariables: sessionVariables,
+					},
+					role,
+					sessionVariables,
+				),
 			})
 
 			continue

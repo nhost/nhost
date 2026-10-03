@@ -49,6 +49,53 @@ func (t *table) initializeComputedScalars(
 	}
 }
 
+// ComputedScalarFromGraphqlName resolves only argument-free, granted inputs.
+// The selection surface is wider: Hasura accepts user arguments in selections
+// and aggregate outputs, but not in bool_exp or order_by.
+//
+//nolint:ireturn // The parser boundary deliberately returns the expression contract.
+func (t *table) ComputedScalarFromGraphqlName(
+	name, role string,
+) core.ComputedExpression {
+	computed := t.computedFromGraphqlName(name, role)
+	if computed == nil {
+		return nil
+	}
+
+	for _, name := range computed.function.GraphQLArgumentNames(computed.sessionArgument) {
+		if name != "" {
+			return nil
+		}
+	}
+
+	return &computedInput{table: t, computed: computed}
+}
+
+type computedInput struct {
+	table    *table
+	computed *computedScalar
+}
+
+func (input *computedInput) SQLType() string {
+	return input.computed.function.ReturnType.Name
+}
+
+func (input *computedInput) WriteExpression(
+	b *strings.Builder, source string, sessionVariables map[string]any,
+	params []any, paramIndex int,
+) ([]any, int, error) {
+	if source == input.table.cachedTableRef {
+		source = input.table.tableName
+	} else {
+		source = strings.Trim(source, `"`)
+	}
+
+	return input.table.writeComputedCall(
+		b, input.computed, nil, source, "", nil, sessionVariables,
+		params, paramIndex,
+	)
+}
+
 func (t *table) computedFromGraphqlName(name, role string) *computedScalar {
 	for i := range t.computedScalars {
 		if t.computedScalars[i].name != name {
@@ -69,8 +116,6 @@ func (t *table) computedFromGraphqlName(name, role string) *computedScalar {
 
 // writeComputedScalar binds every client/session value, preserving the catalog
 // argument positions even when the row is not the first function argument.
-//
-//nolint:cyclop,gocognit,gocyclo,funlen // Catalog slots, defaults and session markers share one parameter accumulator.
 func (t *table) writeComputedScalar(
 	b *strings.Builder,
 	selected columnSelection,
@@ -79,11 +124,53 @@ func (t *table) writeComputedScalar(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
-	fn := selected.computed.function
-	argumentNames := fn.GraphQLArgumentNames(selected.computed.sessionArgument)
+	var call strings.Builder
+
+	params, paramIndex, err := t.writeComputedCall(
+		&call, selected.computed, selected.field, alias, argumentPath,
+		variables, sessionVariables, params, paramIndex,
+	)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	expr := call.String()
+	if pgtypes.IsSpatial(selected.computed.function.ReturnType.Name) &&
+		t.dialect.SupportsSpatialTypes() {
+		expr = t.dialect.SpatialOutputExpression(expr, selected.computed.function.ReturnType.Name)
+	}
+
+	expr, params, paramIndex, err = t.computedPathExpression(
+		expr, selected, variables, argumentPath, params, paramIndex,
+	)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	t.dialect.WriteJSONRowColumn(b, selected.alias, expr)
+
+	return params, paramIndex, nil
+}
+
+//nolint:gocognit,cyclop,funlen // Catalog slots, defaults and session markers share one parameter accumulator.
+func (t *table) writeComputedCall(
+	call *strings.Builder, computed *computedScalar, field *ast.Field,
+	alias, argumentPath string, variables, sessionVariables map[string]any,
+	params []any, paramIndex int,
+) ([]any, int, error) {
+	fn := computed.function
+	argumentNames := fn.GraphQLArgumentNames(computed.sessionArgument)
 
 	args := map[string]any{}
-	if arg := selected.field.Arguments.ForName("args"); arg != nil {
+
+	var argument *ast.Argument
+	if field != nil {
+		argument = field.Arguments.ForName("args")
+	}
+
+	if argument != nil {
+		arg := argument
+
 		resolved, err := resolveComputedArgsValue(arg.Value, variables)
 		if err != nil {
 			return nil, 0, fmt.Errorf("resolving computed arguments: %w", err)
@@ -91,7 +178,7 @@ func (t *table) writeComputedScalar(
 
 		if resolved == nil {
 			invalid := arguments.NewComputedNullArgumentError(
-				"args", selected.computed.name+"_"+t.graphqlTypeName+"_args",
+				"args", computed.name+"_"+t.graphqlTypeName+"_args",
 			)
 			invalid.StampArgumentPath(argumentPath)
 
@@ -102,7 +189,7 @@ func (t *table) writeComputedScalar(
 
 		args, ok = resolved.(map[string]any)
 		if !ok {
-			return nil, 0, fmt.Errorf("%w: %s", errComputedArgsObject, selected.computed.name)
+			return nil, 0, fmt.Errorf("%w: %s", errComputedArgsObject, computed.name)
 		}
 	}
 
@@ -110,10 +197,9 @@ func (t *table) writeComputedScalar(
 		args = map[string]any{}
 	}
 
-	var call strings.Builder
-	core.WriteQuotedIdentifier(&call, fn.Schema)
+	core.WriteQuotedIdentifier(call, fn.Schema)
 	call.WriteByte('.')
-	core.WriteQuotedIdentifier(&call, fn.Name)
+	core.WriteQuotedIdentifier(call, fn.Name)
 	call.WriteByte('(')
 
 	wrote := false
@@ -143,7 +229,7 @@ func (t *table) writeComputedScalar(
 		switch {
 		case i == fn.RowArgument:
 			// Emitted below from the full physical row; no role-projected columns.
-		case arg.Name == selected.computed.sessionArgument && selected.computed.sessionArgument != "":
+		case arg.Name == computed.sessionArgument && computed.sessionArgument != "":
 			if isSubscriptionTemplateSessionArgument(sessionVariables) {
 				value = core.FunctionSessionArgument{SQLType: arg.Type.Name}
 			} else {
@@ -177,7 +263,7 @@ func (t *table) writeComputedScalar(
 		wrote = true
 
 		if i > positionalEnd && arg.Name != "" {
-			core.WriteQuotedIdentifier(&call, arg.Name)
+			core.WriteQuotedIdentifier(call, arg.Name)
 			call.WriteString(" := ")
 		}
 
@@ -187,9 +273,9 @@ func (t *table) writeComputedScalar(
 				names[j] = col.SQLName
 			}
 
-			dialect.WritePostgresComputedRow(&call, alias, t.schemaName, t.tableName, names)
+			dialect.WritePostgresComputedRow(call, alias, t.schemaName, t.tableName, names)
 		} else {
-			coerced, err := t.writeComputedArgument(&call, arg, value, paramIndex)
+			coerced, err := t.writeComputedArgument(call, arg, value, paramIndex)
 			if err != nil {
 				return nil, 0, err
 			}
@@ -200,20 +286,6 @@ func (t *table) writeComputedScalar(
 	}
 
 	call.WriteByte(')')
-
-	expr := call.String()
-	if pgtypes.IsSpatial(fn.ReturnType.Name) && t.dialect.SupportsSpatialTypes() {
-		expr = t.dialect.SpatialOutputExpression(expr, fn.ReturnType.Name)
-	}
-
-	expr, params, paramIndex, err := t.computedPathExpression(
-		expr, selected, variables, argumentPath, params, paramIndex,
-	)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	t.dialect.WriteJSONRowColumn(b, selected.alias, expr)
 
 	return params, paramIndex, nil
 }

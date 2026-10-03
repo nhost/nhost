@@ -222,6 +222,17 @@ func parseFieldOrRelationship(
 		return cond, nil
 	}
 
+	if computed := t.ComputedScalarFromGraphqlName(fieldName, role); computed != nil {
+		cond, err := parseComputedComparison(
+			t, computed, value, variables, sessionVariables,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse computed field %s: %w", fieldName, err)
+		}
+
+		return cond, nil
+	}
+
 	if relationship := t.RelationshipFromGraphqlName(fieldName); relationship != nil {
 		// `<rel>_aggregate` resolves to the same relationship as `<rel>` because
 		// the table lookup matches both name and aggregateName. Branch on the

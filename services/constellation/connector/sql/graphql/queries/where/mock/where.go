@@ -58,6 +58,20 @@ func (mr *MockTableMockRecorder) ColumnFromGraphqlName(name any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ColumnFromGraphqlName", reflect.TypeOf((*MockTable)(nil).ColumnFromGraphqlName), name)
 }
 
+// ComputedScalarFromGraphqlName mocks base method.
+func (m *MockTable) ComputedScalarFromGraphqlName(name, role string) core.ComputedExpression {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ComputedScalarFromGraphqlName", name, role)
+	ret0, _ := ret[0].(core.ComputedExpression)
+	return ret0
+}
+
+// ComputedScalarFromGraphqlName indicates an expected call of ComputedScalarFromGraphqlName.
+func (mr *MockTableMockRecorder) ComputedScalarFromGraphqlName(name, role any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ComputedScalarFromGraphqlName", reflect.TypeOf((*MockTable)(nil).ComputedScalarFromGraphqlName), name, role)
+}
+
 // Dialect mocks base method.
 func (m *MockTable) Dialect() dialect.Dialect {
 	m.ctrl.T.Helper()

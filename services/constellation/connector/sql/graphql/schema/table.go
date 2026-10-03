@@ -53,6 +53,14 @@ func generateForTable( //nolint:funlen
 	)
 
 	computedFields := scalarComputedFields(schema, tableMeta, objects, role, caps, usedScalars)
+	if caps.SupportsComputedScalarInput {
+		for _, field := range computedFields {
+			if !computedRequiresUserArgs(field) {
+				selectUsedScalars[field.Type.NamedType] = struct{}{}
+			}
+		}
+	}
+
 	generateTableObjectType(
 		schema, tableMeta, tableInfo, customTableName, allowedColumns, role, md,
 		objects, generatedAggregateOrderBy, caps, computedFields,
@@ -89,6 +97,7 @@ func generateForTable( //nolint:funlen
 	if allowAggregations(tableMeta, role) {
 		generateAggregateTypes(
 			schema, tableMeta, tableInfo, customTableName, qualifiedName, allowedColumns, md, caps,
+			computedFields,
 		)
 	}
 
@@ -104,6 +113,7 @@ func generateForTable( //nolint:funlen
 		generatedAggregateBoolExp,
 		selectUsedScalars,
 		caps,
+		computedFields,
 	)
 
 	if (tableInfo.IsInsertable || tableInfo.IsUpdatable) &&

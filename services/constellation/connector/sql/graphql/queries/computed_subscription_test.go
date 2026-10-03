@@ -83,6 +83,71 @@ func TestComputedScalarSubscriptionCohort(t *testing.T) {
 	}
 }
 
+func TestComputedScalarSubscriptionPredicateCohort(t *testing.T) {
+	t.Parallel()
+
+	//nolint:dogsled // This multiplex test needs only roots and the isolated database.
+	roots, pool, _, _, _ := computedTestFixture(t, true)
+	for _, tt := range []struct {
+		name, query string
+		cursor      map[string]any
+	}{
+		{"live", `subscription { cf_select_items(where:{session_label:{_eq:"first:user-a"}}) { id } }`, nil},
+		{"stream", `subscription { cf_select_items_stream(batch_size:2,cursor:[{initial_value:{id:0}}],where:{session_label:{_eq:"first:user-a"}}) { id } }`, map[string]any{"id": 0}},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			op := computedOperation(t, roots, tt.query,
+				map[string]any{"x-hasura-role": "cf_reader", "x-hasura-user-id": "template"})
+			params := multiplexed.PrepareParams([]string{"sub-a", "sub-b"}, map[string][]any{
+				"x-hasura-role": {
+					"cf_reader",
+					"cf_reader",
+				},
+				"x-hasura-user-id": {"user-a", "user-b"},
+			}, tt.cursor)
+			params = append(params, op.Parameters...)
+
+			rows, err := pool.Query(t.Context(), op.SQL, params...)
+			if err != nil {
+				t.Fatalf("multiplex predicate query: %v\n%s", err, op.SQL)
+			}
+			defer rows.Close()
+
+			counts := map[string]int{}
+			for rows.Next() {
+				var (
+					id  string
+					raw []byte
+				)
+				if err := rows.Scan(&id, &raw); err != nil {
+					t.Fatal(err)
+				}
+
+				var data map[string][]any
+				if err := json.Unmarshal(raw, &data); err != nil {
+					t.Fatal(err)
+				}
+
+				counts[id] = len(data["cf_select_items"+streamSuffix(tt.name)])
+			}
+
+			if err := rows.Err(); err != nil {
+				t.Fatal(err)
+			}
+
+			if counts["sub-a"] != 1 || counts["sub-b"] != 0 || len(counts) != 2 {
+				t.Fatalf(
+					"cohort predicate counts: %#v; SQL: %s; params: %#v",
+					counts,
+					op.SQL,
+					op.Parameters,
+				)
+			}
+		})
+	}
+}
+
 func streamSuffix(name string) string {
 	if name == "stream" {
 		return "_stream"

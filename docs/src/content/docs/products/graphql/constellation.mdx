@@ -69,7 +69,7 @@ Constellation serves these **GraphQL request-path** features; computed fields re
 - JWT and admin-secret authentication
 - Role-based [permissions](/products/graphql/permissions) (row- and column-level, presets, session variables)
 - [Remote schemas](/products/graphql/remote-schemas) and cross-source remote relationships
-- PostgreSQL scalar computed-field selections in queries, mutation results, and subscriptions, with role-specific grants and function arguments
+- PostgreSQL scalar computed-field selections, argument-free `where`/`order_by` inputs, and eligible aggregate outputs, with role-specific grants and bound function arguments. Hasura omits argument-bearing computed fields from row `where`/`order_by` and all computed fields from aggregate-order inputs; Constellation matches those omissions. Scalar aggregate outputs include eligible comparable fields in `min`/`max` and numeric fields in all eight numeric aggregate operators, retaining `args`.
 
 ## What still runs on Hasura
 
@@ -78,7 +78,7 @@ While Constellation is opt-in, metadata authoring and everything **off** the req
 - Metadata authoring API (the existing engine remains the source of truth for metadata)
 - [Events](/products/events): event triggers and cron/scheduled triggers
 - Actions, REST endpoints, allowlists, query collections
-- Inherited roles and native queries; table-valued computed selections, computed-field `where`/`order_by` inputs, permission predicates/checks, and non-base computed argument types are not yet served by Constellation. Scalar computed fields are not yet included in any `_aggregate_fields`: Hasura includes eligible comparable scalar computed fields in `min`/`max` (the fixture confirms text and numeric fields), and numeric ones in `sum`, `avg`, `stddev`, `stddev_pop`, `stddev_samp`, `var_pop`, `var_samp` and `variance`, retaining `args` for argument-bearing fields.
+- Inherited roles and native queries; table-valued computed selections, computed permission predicates/checks, and non-base computed argument types are not yet served by Constellation
 - MSSQL / BigQuery / Snowflake backends
 
 For the exhaustive, field-by-field map of what carries across and what is silently dropped, see the **[metadata support matrix](https://github.com/nhost/nhost/blob/main/services/constellation/docs/user/hasura-metadata-support.md)**.

@@ -36,7 +36,10 @@ func (t *table) buildSubscriptionStreamSQL(
 	}
 
 	// Parse stream-specific arguments
-	streamArgs, err := arguments.ParseStream(t, field.Arguments, variables, role, sessionVariables)
+	streamArgs, err := arguments.ParseStream(
+		t, field.Arguments, variables, role,
+		markSubscriptionTemplateSessionArgument(sessionVariables),
+	)
 	if err != nil {
 		return core.SQLOperation{}, fmt.Errorf("failed to parse stream arguments: %w", err)
 	}

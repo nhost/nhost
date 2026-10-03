@@ -78,7 +78,7 @@ func (t *table) writeQueryAggregateSQL( //nolint:cyclop,funlen
 	queryModifiers ...queryModifierFunc,
 ) ([]any, int, error) {
 	outerTypenames, aggregateFields, nodesFields, err := t.astToAggregateSelection(
-		field, fragments, variables,
+		field, fragments, variables, role, argumentPath,
 	)
 	if err != nil {
 		return nil, 0, err
@@ -176,9 +176,14 @@ func (t *table) writeQueryAggregateSQL( //nolint:cyclop,funlen
 	}
 
 	hasOuterFields := !firstOuter
-	hasOuterFields = t.writeAggregateFieldSelections(
+
+	hasOuterFields, params, paramIndex, err = t.writeAggregateFieldSelections(
 		b, aggregateFields, baseAlias, hasOuterFields,
+		variables, sessionVariables, params, paramIndex,
 	)
+	if err != nil {
+		return nil, 0, err
+	}
 
 	for i := range nodesFields {
 		params, paramIndex, err = t.writeAggregateNodes(
@@ -216,7 +221,9 @@ func (t *table) writeAggregateFieldSelections(
 	aggregateFields []aggregateFieldSelection,
 	baseAlias string,
 	hasPrecedingFields bool,
-) bool {
+	variables, sessionVariables map[string]any,
+	params []any, paramIndex int,
+) (bool, []any, int, error) {
 	hasOuterFields := hasPrecedingFields
 
 	for i := range aggregateFields {
@@ -241,7 +248,18 @@ func (t *table) writeAggregateFieldSelections(
 				b.WriteString(", ")
 			}
 
-			agg.Write(b)
+			if fn, ok := agg.(*aggregateFunctionSelection); ok {
+				var err error
+
+				params, paramIndex, err = fn.writeBound(
+					b, `"`+baseAlias+`"`, t, variables, sessionVariables, false, params, paramIndex,
+				)
+				if err != nil {
+					return false, nil, 0, err
+				}
+			} else {
+				agg.Write(b)
+			}
 		}
 
 		b.WriteString(`) FROM "`)
@@ -249,7 +267,7 @@ func (t *table) writeAggregateFieldSelections(
 		b.WriteString(`")`)
 	}
 
-	return hasOuterFields
+	return hasOuterFields, params, paramIndex, nil
 }
 
 //nolint:funlen // Keep aggregate-node SQL assembly cohesive with the surrounding CTE builder.

@@ -60,13 +60,21 @@ CREATE FUNCTION cf_select.item_nullable(item cf_select.items) RETURNS text LANGU
 AS $$ SELECT CASE WHEN item.id = 1 THEN NULL::text ELSE item.label END $$;
 CREATE FUNCTION cf_select.item_raises(item cf_select.items) RETURNS integer LANGUAGE sql STABLE
 AS $$ SELECT 1 / (item.id - 1) $$;
+CREATE FUNCTION cf_select.item_total(item cf_select.items) RETURNS numeric LANGUAGE sql STABLE
+AS $$ SELECT item.amount $$;
+CREATE FUNCTION cf_select.item_when(item cf_select.items) RETURNS date LANGUAGE sql STABLE
+AS $$ SELECT date '2026-01-02' + item.id - 1 $$;
+CREATE FUNCTION cf_select.item_uuid(item cf_select.items) RETURNS uuid LANGUAGE sql STABLE
+AS $$ SELECT '00000000-0000-0000-0000-000000000001'::uuid $$;
+CREATE FUNCTION cf_select.item_active(item cf_select.items) RETURNS boolean LANGUAGE sql STABLE
+AS $$ SELECT item.id = 1 $$;
 `)...)
 
 	md.Databases[0].Functions = append(md.Databases[0].Functions, metadata.FunctionMetadata{
 		Function:    metadata.FunctionSource{Schema: "cf_select", Name: "items_from_function"},
 		Permissions: []metadata.FunctionPermission{{Role: "cf_reader"}},
 	})
-	for _, name := range []string{"item_owner", "item_nullable", "item_raises"} {
+	for _, name := range []string{"item_owner", "item_nullable", "item_raises", "item_total", "item_when", "item_uuid", "item_active"} {
 		md.Databases[0].Tables[0].ComputedFields = append(
 			md.Databases[0].Tables[0].ComputedFields,
 			metadata.ComputedField{
@@ -86,6 +94,10 @@ AS $$ SELECT 1 / (item.id - 1) $$;
 				"item_owner",
 				"item_nullable",
 				"item_raises",
+				"item_total",
+				"item_when",
+				"item_uuid",
+				"item_active",
 			)
 		}
 	}
@@ -104,6 +116,19 @@ AS $$ SELECT 1 / (item.id - 1) $$;
 		},
 	)
 
+	// A test-only array relationship exercises aggregate filters over the
+	// computed target without changing the startup metadata/Hasura fixtures.
+	md.Databases[0].Tables[1].ArrayRelationships = append(
+		md.Databases[0].Tables[1].ArrayRelationships,
+		metadata.ArrayRelationship{
+			Name: "item_copies",
+			Using: metadata.RelationshipUsing{ManualConfiguration: &metadata.ManualConfiguration{
+				RemoteTable:   metadata.TableSource{Schema: "cf_select", Name: "items"},
+				ColumnMapping: map[string]string{"item_id": "id"},
+			}},
+		},
+	)
+
 	md.Databases[0].Tables[1].ObjectRelationships = append(
 		md.Databases[0].Tables[1].ObjectRelationships,
 		metadata.ObjectRelationship{
@@ -114,6 +139,8 @@ AS $$ SELECT 1 / (item.id - 1) $$;
 		ddl = append(ddl, []byte(`
 CREATE FUNCTION cf_select.session_label(item cf_select.items, session jsonb)
 RETURNS text LANGUAGE sql STABLE AS $$ SELECT item.label || ':' || (session->>'x-hasura-user-id') $$;
+CREATE FUNCTION cf_select.session_payload(item cf_select.items, session jsonb)
+RETURNS jsonb LANGUAGE sql STABLE AS $$ SELECT to_jsonb(item.label || ':' || (session->>'x-hasura-user-id')) $$;
 `)...)
 		table := &md.Databases[0].Tables[0]
 
@@ -126,11 +153,21 @@ RETURNS text LANGUAGE sql STABLE AS $$ SELECT item.label || ':' || (session->>'x
 				SessionArgument: "session",
 			},
 		})
+
+		table.ComputedFields = append(table.ComputedFields, metadata.ComputedField{
+			Name: "session_payload", Definition: metadata.ComputedFieldDefinition{
+				Function: metadata.FunctionSource{
+					Schema: "cf_select",
+					Name:   "session_payload",
+				},
+				SessionArgument: "session",
+			},
+		})
 		for i := range table.SelectPermissions {
 			if table.SelectPermissions[i].Role == "cf_reader" {
 				table.SelectPermissions[i].Permission.ComputedFields = append(
 					table.SelectPermissions[i].Permission.ComputedFields,
-					"session_label",
+					"session_label", "session_payload",
 				)
 			}
 		}

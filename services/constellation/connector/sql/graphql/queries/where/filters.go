@@ -318,6 +318,21 @@ func writeArrayTargetComparison(
 		return params, paramIndex, nil
 	}
 
+	if targetOverride != nil {
+		target.writeSQL(b, source)
+
+		if negated {
+			b.WriteString(" != ALL(")
+		} else {
+			b.WriteString(" = ANY(")
+		}
+
+		b.WriteString(d.TypeCast(d.Placeholder(paramIndex), target.sqlType+"[]"))
+		b.WriteByte(')')
+
+		return append(params, vals), paramIndex + 1, nil
+	}
+
 	if negated {
 		params, paramIndex = d.WriteArrayNotIn(
 			b, source, column.SQLName, target.sqlType, vals, params, paramIndex,
@@ -375,6 +390,7 @@ func arrayOperatorName(negated bool) string {
 }
 
 type likeFilter struct {
+	target        *comparisonTarget
 	column        string
 	pattern       string
 	caseSensitive bool
@@ -387,24 +403,16 @@ func (f *likeFilter) WriteCondition(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
-	placeholder := f.dialect.Placeholder(paramIndex)
+	writeLikePatternCondition(
+		b, source, f.column, f.target, f.caseSensitive, false,
+		f.dialect, f.dialect.Placeholder(paramIndex),
+	)
 
-	if f.caseSensitive {
-		core.WriteQualifiedColumn(b, source, f.column)
-		b.WriteByte(' ')
-		b.WriteString(f.dialect.Like())
-		b.WriteByte(' ')
-		b.WriteString(placeholder)
-	} else {
-		f.dialect.WriteILikeCondition(b, source, f.column, placeholder)
-	}
-
-	params = append(params, f.pattern)
-
-	return params, paramIndex + 1, nil
+	return append(params, f.pattern), paramIndex + 1, nil
 }
 
 type notLikeFilter struct {
+	target        *comparisonTarget
 	column        string
 	pattern       string
 	caseSensitive bool
@@ -417,24 +425,59 @@ func (f *notLikeFilter) WriteCondition(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
-	placeholder := f.dialect.Placeholder(paramIndex)
+	writeLikePatternCondition(
+		b, source, f.column, f.target, f.caseSensitive, true,
+		f.dialect, f.dialect.Placeholder(paramIndex),
+	)
 
-	if f.caseSensitive {
-		core.WriteQualifiedColumn(b, source, f.column)
+	return append(params, f.pattern), paramIndex + 1, nil
+}
+
+func writeLikePatternCondition(
+	b *strings.Builder, source, column string, target *comparisonTarget,
+	caseSensitive, negated bool, d dialect.Dialect, placeholder string,
+) {
+	switch {
+	case target != nil:
+		target.writeSQL(b, source)
+
+		switch {
+		case caseSensitive && negated:
+			b.WriteByte(' ')
+			b.WriteString(d.NotLike())
+			b.WriteByte(' ')
+		case caseSensitive:
+			b.WriteByte(' ')
+			b.WriteString(d.Like())
+			b.WriteByte(' ')
+		case negated:
+			b.WriteString(" NOT ILIKE ")
+		default:
+			b.WriteString(" ILIKE ")
+		}
+
+		b.WriteString(placeholder)
+	case caseSensitive:
+		core.WriteQualifiedColumn(b, source, column)
 		b.WriteByte(' ')
-		b.WriteString(f.dialect.NotLike())
+
+		if negated {
+			b.WriteString(d.NotLike())
+		} else {
+			b.WriteString(d.Like())
+		}
+
 		b.WriteByte(' ')
 		b.WriteString(placeholder)
-	} else {
-		f.dialect.WriteNotILikeCondition(b, source, f.column, placeholder)
+	case negated:
+		d.WriteNotILikeCondition(b, source, column, placeholder)
+	default:
+		d.WriteILikeCondition(b, source, column, placeholder)
 	}
-
-	params = append(params, f.pattern)
-
-	return params, paramIndex + 1, nil
 }
 
 type regexFilter struct {
+	target        *comparisonTarget
 	column        string
 	pattern       string
 	caseSensitive bool
@@ -447,7 +490,11 @@ func (f *regexFilter) WriteCondition(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
-	core.WriteQualifiedColumn(b, source, f.column)
+	if f.target != nil {
+		f.target.writeSQL(b, source)
+	} else {
+		core.WriteQualifiedColumn(b, source, f.column)
+	}
 
 	if f.caseSensitive {
 		b.WriteString(" ~ ")
@@ -463,6 +510,7 @@ func (f *regexFilter) WriteCondition(
 }
 
 type notRegexFilter struct {
+	target        *comparisonTarget
 	column        string
 	pattern       string
 	caseSensitive bool
@@ -475,7 +523,11 @@ func (f *notRegexFilter) WriteCondition(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
-	core.WriteQualifiedColumn(b, source, f.column)
+	if f.target != nil {
+		f.target.writeSQL(b, source)
+	} else {
+		core.WriteQualifiedColumn(b, source, f.column)
+	}
 
 	if f.caseSensitive {
 		b.WriteString(" !~ ")

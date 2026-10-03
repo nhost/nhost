@@ -74,7 +74,9 @@ func referenceVersion(ctx context.Context, graphqlURL string) (string, error) {
 // TestComputedFieldReference is a required live Hasura comparison. Keep this
 // test serial: later computed-field probes may temporarily change metadata/DDL
 // and must not run beside the existing parallel read-only integration cases.
-func TestComputedFieldReference(t *testing.T) { //nolint:paralleltest
+//
+//nolint:paralleltest,cyclop // Serial live sanity deliberately checks connectivity and both representative slices.
+func TestComputedFieldReference(t *testing.T) {
 	version, err := referenceVersion(t.Context(), hasuraURL)
 	if err != nil {
 		t.Fatalf("Hasura connectivity/version: %v", err)
@@ -142,5 +144,36 @@ func TestComputedFieldReference(t *testing.T) { //nolint:paralleltest
 
 	if diff := cmp.Diff(hasura, constellation); diff != "" {
 		t.Errorf("live scalar selection differs (-hasura +constellation):\n%s", diff)
+	}
+
+	// Scalar inputs and aggregate outputs use the same seeded source, but
+	// independent Constellation tests own the exhaustive expectations.
+	input := query{
+		Query: `query { cf_select_items(where:{item_label:{_eq:"first"}},order_by:{item_label:desc}) { id item_label } cf_select_items_aggregate { aggregate { sum { item_score(args:{multiplier:2}) } } } }`,
+		Role:  "cf_reader",
+	}
+
+	hasura, err = makeHTTPQuery(t.Context(), hasuraURL, input, headers)
+	if err != nil {
+		t.Fatalf("Hasura scalar input query: %v", err)
+	}
+
+	constellation, err = makeHTTPQuery(t.Context(), constellationURL, input, headers)
+	if err != nil {
+		t.Fatalf("Constellation scalar input query: %v", err)
+	}
+
+	want = map[string]any{"data": map[string]any{
+		"cf_select_items": []any{map[string]any{"id": float64(1), "item_label": "first"}},
+		"cf_select_items_aggregate": map[string]any{"aggregate": map[string]any{
+			"sum": map[string]any{"item_score": float64(31.5)},
+		}},
+	}}
+	if diff := cmp.Diff(want, hasura); diff != "" {
+		t.Fatalf("Hasura scalar input fixture changed (-want +got):\n%s", diff)
+	}
+
+	if diff := cmp.Diff(hasura, constellation); diff != "" {
+		t.Errorf("live scalar input responses differ (-hasura +constellation):\n%s", diff)
 	}
 }

@@ -19,17 +19,25 @@ with no matching definition or grant, Nhost Hasura v2 instead reports only
 that `select_permission` inconsistent and keeps the source. A filter with an
 ordinary missing-column key causes the same source-wide failure in
 Constellation. This intentional, documented difference applies only to invalid,
-unidentifiable keys: it is **not** supported computed-field parity. Identifiable
-computed predicates make only the affected permission unavailable until those
-predicates can be executed. PostgreSQL scalar computed fields can be selected
-with role grants and bound arguments, but they are not yet included in any
-`_aggregate_fields`. Hasura includes eligible comparable scalar computed fields in `min`/`max`
-(the fixture confirms text and numeric fields), and numeric ones in `sum`,
-`avg`, `stddev`, `stddev_pop`, `stddev_samp`, `var_pop`, `var_samp` and
-`variance`, retaining `args` for argument-bearing fields.
-Computed `where`/`order_by` inputs and permission predicates
-remain unavailable; table-valued selections and scalar fields with non-base
-argument types remain hidden.
+unidentifiable keys: it is **not** supported computed-field parity.
+Identifiable computed permission predicates make only the affected permission
+unavailable until those predicates can be executed.
+
+# Computed-field support during alpha
+
+PostgreSQL scalar computed fields support role-granted selection, argument-free
+row `where`/`order_by`, and Hasura's aggregate outputs: eligible comparable
+returns in `min`/`max` and numeric returns in the other eight operators, with
+bound `args` and the declared return type. Unlike the dynamic **column**
+aggregate support above, computed output eligibility follows Hasura's fixed
+set: boolean and JSONB are excluded from `min`/`max`, while date,
+timestamptz and uuid are included in SDL. In PostgreSQL installations without
+`min(uuid)`/`max(uuid)`, selecting those fields fails with SQLSTATE `42883` in
+both engines; advertised field availability is not a promise of a PostgreSQL
+aggregate function. Hasura omits computed fields from aggregate-order inputs and argument-bearing
+fields from row inputs. Identifiable computed permission predicates/checks remain unavailable;
+table-valued selections and scalar fields with non-base argument types stay
+hidden.
 
 # Mutations with no update permissions
 
