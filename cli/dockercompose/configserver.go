@@ -34,7 +34,7 @@ func configserver( //nolint: funlen
 		mountedVolumes = append(mountedVolumes, source)
 
 		bindings = append(bindings, Volume{
-			Type:     "bind",
+			Type:     bind,
 			Source:   source,
 			Target:   target,
 			ReadOnly: new(bool),
@@ -44,13 +44,13 @@ func configserver( //nolint: funlen
 	volumes := append(
 		[]Volume{
 			{
-				Type:     "bind",
+				Type:     bind,
 				Source:   nhostPath,
 				Target:   "/tmp/root/nhost",
 				ReadOnly: new(false),
 			},
 			{
-				Type:     "bind",
+				Type:     bind,
 				Source:   rootPath,
 				Target:   "/tmp/root",
 				ReadOnly: new(false),
@@ -62,7 +62,7 @@ func configserver( //nolint: funlen
 	containerDockerEndpoint := dockerURL.String()
 	if dockerURL.Scheme == "unix" {
 		volumes = append(volumes, Volume{
-			Type:     "bind",
+			Type:     bind,
 			Source:   dockerURL.Path,
 			Target:   "/var/run/docker.sock",
 			ReadOnly: new(true),
@@ -78,7 +78,7 @@ func configserver( //nolint: funlen
 		DependsOn:  map[string]DependsOn{},
 		EntryPoint: []string{},
 		Command: append([]string{
-			"configserver",
+			svcConfigserver,
 			"--enable-playground",
 			"--debug",
 		}, extraArgs...),
@@ -91,23 +91,23 @@ func configserver( //nolint: funlen
 		HealthCheck: nil,
 		Labels: Ingresses{
 			{
-				Name:    "configserver",
+				Name:    svcConfigserver,
 				TLS:     useTLS,
-				Rule:    traefikHostMatch("dashboard") + "&& PathPrefix(`/v1/configserver`)",
+				Rule:    traefikHostMatch(svcDashboard) + "&& PathPrefix(`/v1/configserver`)",
 				Port:    configserverPort,
 				Rewrite: nil,
 			},
 			{
 				Name:    "logs",
 				TLS:     useTLS,
-				Rule:    traefikHostMatch("dashboard") + "&& PathPrefix(`/v1/logs`)",
+				Rule:    traefikHostMatch(svcDashboard) + "&& PathPrefix(`/v1/logs`)",
 				Port:    configserverPort,
 				Rewrite: nil,
 			},
 		}.Labels(),
 		Networks:   nil,
 		Ports:      []Port{},
-		Restart:    "always",
+		Restart:    always,
 		User:       nil,
 		Volumes:    volumes,
 		WorkingDir: nil,

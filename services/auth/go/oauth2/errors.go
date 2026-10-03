@@ -12,18 +12,18 @@ type Error struct {
 
 func ErrorStatusCode(errCode string) int {
 	switch errCode {
-	case "invalid_request", "invalid_scope", "unsupported_response_type",
+	case invalidRequest, invalidScope, "unsupported_response_type",
 		"unsupported_grant_type", "invalid_client_metadata":
 		return http.StatusBadRequest
-	case "access_denied":
+	case accessDenied:
 		return http.StatusForbidden
-	case "invalid_client":
+	case invalidClient:
 		return http.StatusUnauthorized
-	case "invalid_grant":
+	case invalidGrant:
 		return http.StatusBadRequest
 	case "invalid_token":
 		return http.StatusUnauthorized
-	case "server_error":
+	case serverError:
 		return http.StatusInternalServerError
 	default:
 		return http.StatusBadRequest
@@ -52,3 +52,21 @@ func ErrorRedirectURL(redirectURI, state, issuer string, oauthErr *Error) string
 
 	return u.String()
 }
+
+// OAuth2/OIDC error codes, scopes, claims and messages.
+const (
+	clientIDIsRequired              = "Client ID is required"
+	internalServerError             = "Internal server error"
+	pkceS256                        = "S256"
+	unknownClient                   = "Unknown client"
+	userDoesNotHaveTheRequestedRole = "User does not have the requested role"
+	accessDenied                    = "access_denied"
+	scopeEmail                      = "email"
+	invalidClient                   = "invalid_client"
+	invalidGrant                    = "invalid_grant"
+	invalidRequest                  = "invalid_request"
+	invalidScope                    = "invalid_scope"
+	openid                          = "openid"
+	serverError                     = "server_error"
+	claimSub                        = "sub"
+)

@@ -50,7 +50,7 @@ func (c *Client) TrackFunction(ctx context.Context, schemaName, functionName str
 	req := TrackFunctionRequest{
 		Type: "pg_track_function",
 		Args: TrackFunctionRequestArgs{
-			Source: "default",
+			Source: sourceDefault,
 			Function: TrackFunctionRequestArgsFunction{
 				Schema: schemaName,
 				Name:   functionName,
@@ -74,7 +74,7 @@ func (c *Client) UntrackFunction(ctx context.Context, schemaName, functionName s
 	req := TrackFunctionRequest{
 		Type: "pg_untrack_function",
 		Args: TrackFunctionRequestArgs{
-			Source: "default",
+			Source: sourceDefault,
 			Function: TrackFunctionRequestArgsFunction{
 				Schema: schemaName,
 				Name:   functionName,

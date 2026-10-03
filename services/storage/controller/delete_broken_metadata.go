@@ -19,7 +19,7 @@ func (ctrl *Controller) deleteBrokenMetadata(
 
 	// Deletion runs as admin to match the admin-only listing above; the
 	// endpoint is already gated by the admin secret in AuthenticationFunc.
-	adminHeaders := http.Header{"x-hasura-admin-secret": []string{ctrl.hasuraAdminSecret}}
+	adminHeaders := http.Header{xHasuraAdminSecret: []string{ctrl.hasuraAdminSecret}}
 
 	for _, m := range missing {
 		if apiErr := ctrl.metadataStorage.DeleteFileByID(ctx, m.ID, adminHeaders); apiErr != nil {

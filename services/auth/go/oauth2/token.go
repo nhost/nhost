@@ -33,7 +33,7 @@ func (p *Provider) ValidateCodeExchange(
 	logger *slog.Logger,
 ) (*ValidatedCodeExchange, *Error) {
 	if req.Code == nil || *req.Code == "" {
-		return nil, &Error{Err: "invalid_request", Description: "Missing code"}
+		return nil, &Error{Err: invalidRequest, Description: "Missing code"}
 	}
 
 	codeHash := HashToken(*req.Code)
@@ -41,35 +41,35 @@ func (p *Provider) ValidateCodeExchange(
 	authReq, err := p.db.GetOAuth2AuthorizationCodeAuthRequest(ctx, codeHash)
 	if errors.Is(err, pgx.ErrNoRows) {
 		logger.WarnContext(ctx, "OAuth2 authorization code not found or expired")
-		return nil, &Error{Err: "invalid_grant", Description: "Invalid authorization code"}
+		return nil, &Error{Err: invalidGrant, Description: "Invalid authorization code"}
 	}
 
 	if err != nil {
 		logger.ErrorContext(ctx, "error getting OAuth2 authorization code", logError(err))
-		return nil, &Error{Err: "server_error", Description: "Internal server error"}
+		return nil, &Error{Err: serverError, Description: internalServerError}
 	}
 
 	if !authReq.UserID.Valid {
 		return nil, &Error{
-			Err: "invalid_grant", Description: "Authorization not completed",
+			Err: invalidGrant, Description: "Authorization not completed",
 		}
 	}
 
 	switch {
 	case authReq.RedirectUri != "":
 		if req.RedirectUri == nil || *req.RedirectUri != authReq.RedirectUri {
-			return nil, &Error{Err: "invalid_grant", Description: "redirect_uri mismatch"}
+			return nil, &Error{Err: invalidGrant, Description: "redirect_uri mismatch"}
 		}
 	default:
 		if req.RedirectUri != nil {
-			return nil, &Error{Err: "invalid_request", Description: "redirect_uri not expected"}
+			return nil, &Error{Err: invalidRequest, Description: "redirect_uri not expected"}
 		}
 	}
 
 	client, err := p.db.GetOAuth2ClientByClientID(ctx, authReq.ClientID)
 	if err != nil {
 		logger.ErrorContext(ctx, "error getting OAuth2 client", logError(err))
-		return nil, &Error{Err: "invalid_client", Description: "Unknown client"}
+		return nil, &Error{Err: invalidClient, Description: unknownClient}
 	}
 
 	if oauthErr := ValidatePKCE(
@@ -115,7 +115,7 @@ func (p *Provider) ValidateRefreshGrant(
 	logger *slog.Logger,
 ) (*ValidatedRefreshGrant, *Error) {
 	if req.RefreshToken == nil || *req.RefreshToken == "" {
-		return nil, &Error{Err: "invalid_request", Description: "Missing refresh_token"}
+		return nil, &Error{Err: invalidRequest, Description: "Missing refresh_token"}
 	}
 
 	tokenHash := HashToken(*req.RefreshToken)
@@ -123,22 +123,22 @@ func (p *Provider) ValidateRefreshGrant(
 	rt, err := p.db.GetOAuth2RefreshTokenByHash(ctx, tokenHash)
 	if errors.Is(err, pgx.ErrNoRows) {
 		logger.WarnContext(ctx, "OAuth2 refresh token not found")
-		return nil, &Error{Err: "invalid_grant", Description: "Invalid refresh token"}
+		return nil, &Error{Err: invalidGrant, Description: "Invalid refresh token"}
 	}
 
 	if err != nil {
 		logger.ErrorContext(ctx, "error getting OAuth2 refresh token", logError(err))
-		return nil, &Error{Err: "server_error", Description: "Internal server error"}
+		return nil, &Error{Err: serverError, Description: internalServerError}
 	}
 
 	if rt.ExpiresAt.Time.Before(time.Now()) {
-		return nil, &Error{Err: "invalid_grant", Description: "Refresh token expired"}
+		return nil, &Error{Err: invalidGrant, Description: "Refresh token expired"}
 	}
 
 	client, err := p.db.GetOAuth2ClientByClientID(ctx, rt.ClientID)
 	if err != nil {
 		logger.ErrorContext(ctx, "error getting OAuth2 client", logError(err))
-		return nil, &Error{Err: "invalid_client", Description: "Unknown client"}
+		return nil, &Error{Err: invalidClient, Description: unknownClient}
 	}
 
 	if oauthErr := p.authenticateClient(
@@ -172,14 +172,14 @@ func (p *Provider) IssueTokensFromRefresh( //nolint:funlen
 			logger.WarnContext(ctx, "user lacks requested graphql role", logError(err))
 
 			return nil, &Error{
-				Err:         "access_denied",
-				Description: "User does not have the requested role",
+				Err:         accessDenied,
+				Description: userDoesNotHaveTheRequestedRole,
 			}
 		}
 
 		logger.ErrorContext(ctx, "error creating OAuth2 access token", logError(err))
 
-		return nil, &Error{Err: "server_error", Description: "Internal server error"}
+		return nil, &Error{Err: serverError, Description: internalServerError}
 	}
 
 	newRefreshToken := uuid.NewString()
@@ -192,12 +192,12 @@ func (p *Provider) IssueTokensFromRefresh( //nolint:funlen
 	})
 	if errors.Is(err, pgx.ErrNoRows) {
 		logger.WarnContext(ctx, "OAuth2 refresh token already consumed")
-		return nil, &Error{Err: "invalid_grant", Description: "Invalid refresh token"}
+		return nil, &Error{Err: invalidGrant, Description: "Invalid refresh token"}
 	}
 
 	if err != nil {
 		logger.ErrorContext(ctx, "error rotating OAuth2 refresh token", logError(err))
-		return nil, &Error{Err: "server_error", Description: "Internal server error"}
+		return nil, &Error{Err: serverError, Description: internalServerError}
 	}
 
 	scope := strings.Join(rt.Scopes, " ")
@@ -210,7 +210,7 @@ func (p *Provider) IssueTokensFromRefresh( //nolint:funlen
 		Scope:        &scope,
 	}
 
-	if slices.Contains(rt.Scopes, "openid") {
+	if slices.Contains(rt.Scopes, openid) {
 		authTime := p.resolveAuthTime(ctx, rt.AuthRequestID)
 
 		idToken, err := p.createIDToken(
@@ -252,14 +252,14 @@ func (p *Provider) issueTokens( //nolint:funlen
 			logger.WarnContext(ctx, "user lacks requested graphql role", logError(err))
 
 			return nil, &Error{
-				Err:         "access_denied",
-				Description: "User does not have the requested role",
+				Err:         accessDenied,
+				Description: userDoesNotHaveTheRequestedRole,
 			}
 		}
 
 		logger.ErrorContext(ctx, "error creating access token", logError(err))
 
-		return nil, &Error{Err: "server_error", Description: "Internal server error"}
+		return nil, &Error{Err: serverError, Description: internalServerError}
 	}
 
 	refreshToken := uuid.NewString()
@@ -278,12 +278,12 @@ func (p *Provider) issueTokens( //nolint:funlen
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
 		logger.WarnContext(ctx, "OAuth2 authorization code already consumed")
-		return nil, &Error{Err: "invalid_grant", Description: "Invalid authorization code"}
+		return nil, &Error{Err: invalidGrant, Description: "Invalid authorization code"}
 	}
 
 	if err != nil {
 		logger.ErrorContext(ctx, "error consuming code and inserting refresh token", logError(err))
-		return nil, &Error{Err: "server_error", Description: "Internal server error"}
+		return nil, &Error{Err: serverError, Description: internalServerError}
 	}
 
 	scope := strings.Join(authReq.Scopes, " ")
@@ -296,7 +296,7 @@ func (p *Provider) issueTokens( //nolint:funlen
 		Scope:        &scope,
 	}
 
-	if slices.Contains(authReq.Scopes, "openid") {
+	if slices.Contains(authReq.Scopes, openid) {
 		nonce := authReqNonce(&authReq)
 
 		idToken, err := p.createIDToken(
@@ -329,9 +329,9 @@ func (p *Provider) createAccessToken(
 	logger *slog.Logger,
 ) (string, error) {
 	claims := jwt.MapClaims{
-		"sub":   userID.String(),
-		"aud":   clientID,
-		"scope": strings.Join(scopes, " "),
+		claimSub: userID.String(),
+		"aud":    clientID,
+		"scope":  strings.Join(scopes, " "),
 	}
 
 	if err := p.addGraphQLClaims(ctx, claims, scopes, userID, logger); err != nil {
@@ -415,7 +415,7 @@ func (p *Provider) createIDToken(
 	now := time.Now()
 
 	claims := jwt.MapClaims{
-		"sub":       userID.String(),
+		claimSub:    userID.String(),
 		"aud":       clientID,
 		"auth_time": authTime.Unix(),
 	}
@@ -463,23 +463,23 @@ func (p *Provider) authenticateClient(
 	reqClientSecret *string,
 ) *Error {
 	if reqClientID != nil && *reqClientID != client.ClientID {
-		return &Error{Err: "invalid_client", Description: "Client ID mismatch"}
+		return &Error{Err: invalidClient, Description: "Client ID mismatch"}
 	}
 
 	if !client.ClientSecretHash.Valid {
 		if reqClientID == nil {
-			return &Error{Err: "invalid_client", Description: "Client ID is required"}
+			return &Error{Err: invalidClient, Description: clientIDIsRequired}
 		}
 
 		return nil
 	}
 
 	if reqClientSecret == nil || *reqClientSecret == "" {
-		return &Error{Err: "invalid_client", Description: "Client secret required"}
+		return &Error{Err: invalidClient, Description: "Client secret required"}
 	}
 
 	if !p.verifySecret(*reqClientSecret, client.ClientSecretHash.String) {
-		return &Error{Err: "invalid_client", Description: "Invalid client credentials"}
+		return &Error{Err: invalidClient, Description: "Invalid client credentials"}
 	}
 
 	return nil

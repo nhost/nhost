@@ -305,16 +305,16 @@ func buildAggregateColumnOrderItems(
 //
 //nolint:gochecknoglobals // immutable lookup table.
 var aggregateOrderByFuncs = map[string]string{
-	"avg":         "avg",
-	"max":         "max",
-	"min":         "min",
-	"sum":         "sum",
-	"stddev":      "stddev",
-	"stddev_pop":  "stddev_pop",
-	"stddev_samp": "stddev_samp",
-	"var_pop":     "var_pop",
-	"var_samp":    "var_samp",
-	"variance":    "variance",
+	"avg":      "avg",
+	"max":      "max",
+	"min":      "min",
+	"sum":      "sum",
+	stddev:     stddev,
+	stddevPop:  stddevPop,
+	stddevSamp: stddevSamp,
+	varPop:     varPop,
+	varSamp:    varSamp,
+	variance:   variance,
 }
 
 // varianceOrderByFuncs is the subset of aggregateOrderByFuncs whose result is
@@ -324,12 +324,12 @@ var aggregateOrderByFuncs = map[string]string{
 //
 //nolint:gochecknoglobals // immutable lookup table.
 var varianceOrderByFuncs = map[string]bool{
-	"stddev":      true,
-	"stddev_pop":  true,
-	"stddev_samp": true,
-	"var_pop":     true,
-	"var_samp":    true,
-	"variance":    true,
+	stddev:     true,
+	stddevPop:  true,
+	stddevSamp: true,
+	varPop:     true,
+	varSamp:    true,
+	variance:   true,
 }
 
 // columnOrderExpr is the innermost expression of a relationship ordering

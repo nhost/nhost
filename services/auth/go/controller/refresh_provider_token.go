@@ -32,7 +32,7 @@ func (ctrl *Controller) RefreshProviderToken( //nolint:ireturn
 		oauth2.SetAuthURLParam("refresh_token", req.Body.RefreshToken),
 	)
 	if err != nil {
-		logger.ErrorContext(ctx, "failed to exchange code for token", "error", err)
+		logger.ErrorContext(ctx, "failed to exchange code for token", errorKey, err)
 		return ctrl.sendError(ErrOauthProviderError), nil
 	}
 

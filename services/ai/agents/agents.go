@@ -12,6 +12,9 @@ import (
 	"github.com/nhost/nhost/services/ai/hasura"
 )
 
+// errorKey is the response and log attribute key for error messages.
+const errorKey = "error"
+
 // ToolConfig holds credentials used by optional agent tools.
 type ToolConfig struct {
 	BraveKey  string

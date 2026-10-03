@@ -61,48 +61,48 @@ func ValidateCIMDURL(
 ) (*url.URL, *Error) {
 	u, err := url.Parse(clientID)
 	if err != nil {
-		return nil, &Error{Err: "invalid_client", Description: "Invalid client_id URL"}
+		return nil, &Error{Err: invalidClient, Description: "Invalid client_id URL"}
 	}
 
 	validScheme := u.Scheme == schemeHTTPS || (allowInsecure && u.Scheme == "http")
 	if !validScheme {
 		return nil, &Error{
-			Err:         "invalid_client",
+			Err:         invalidClient,
 			Description: "Client ID metadata document URL must use HTTPS",
 		}
 	}
 
 	if u.Path == "" || u.Path == "/" {
 		return nil, &Error{
-			Err:         "invalid_client",
+			Err:         invalidClient,
 			Description: "Client ID metadata document URL must have a path",
 		}
 	}
 
 	if u.Fragment != "" {
 		return nil, &Error{
-			Err:         "invalid_client",
+			Err:         invalidClient,
 			Description: "Client ID metadata document URL must not have a fragment",
 		}
 	}
 
 	if u.User != nil {
 		return nil, &Error{
-			Err:         "invalid_client",
+			Err:         invalidClient,
 			Description: "Client ID metadata document URL must not have credentials",
 		}
 	}
 
 	if hasDotSegments(u.Path) {
 		return nil, &Error{
-			Err:         "invalid_client",
+			Err:         invalidClient,
 			Description: "Client ID metadata document URL must not contain dot segments",
 		}
 	}
 
 	if !allowInsecure && isBlockedHost(ctx, u.Hostname()) {
 		return nil, &Error{
-			Err:         "invalid_client",
+			Err:         invalidClient,
 			Description: "Client ID metadata document URL must not point to a private address",
 		}
 	}
@@ -208,7 +208,7 @@ func FetchCIMDMetadata(
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, clientIDURL, nil)
 	if err != nil {
 		logger.ErrorContext(ctx, "error creating CIMD request", logError(err))
-		return nil, &Error{Err: "server_error", Description: "Internal server error"}
+		return nil, &Error{Err: serverError, Description: internalServerError}
 	}
 
 	req.Header.Set("Accept", "application/json")
@@ -220,7 +220,7 @@ func FetchCIMDMetadata(
 		)
 
 		return nil, &Error{
-			Err:         "invalid_client",
+			Err:         invalidClient,
 			Description: "Failed to fetch client metadata document",
 		}
 	}
@@ -235,7 +235,7 @@ func FetchCIMDMetadata(
 		)
 
 		return nil, &Error{
-			Err:         "invalid_client",
+			Err:         invalidClient,
 			Description: "Client metadata document returned non-200 status",
 		}
 	}
@@ -245,14 +245,14 @@ func FetchCIMDMetadata(
 		logger.WarnContext(ctx, "error reading CIMD response body", logError(err))
 
 		return nil, &Error{
-			Err:         "invalid_client",
+			Err:         invalidClient,
 			Description: "Failed to read client metadata document",
 		}
 	}
 
 	if len(body) > CIMDMaxResponseSize {
 		return nil, &Error{
-			Err:         "invalid_client",
+			Err:         invalidClient,
 			Description: "Client metadata document exceeds maximum size",
 		}
 	}
@@ -328,7 +328,7 @@ func validateRedirectURIOrigins(
 	clientURL, err := url.Parse(clientIDURL)
 	if err != nil {
 		return &Error{
-			Err:         "invalid_client",
+			Err:         invalidClient,
 			Description: "Invalid client_id URL",
 		}
 	}
@@ -345,7 +345,7 @@ func validateRedirectURIOrigins(
 			)
 
 			return &Error{
-				Err:         "invalid_client",
+				Err:         invalidClient,
 				Description: "redirect_uri is invalid",
 			}
 		}
@@ -365,7 +365,7 @@ func validateRedirectURIOrigins(
 			)
 
 			return &Error{
-				Err:         "invalid_client",
+				Err:         invalidClient,
 				Description: "redirect_uri must be on the same origin as the client_id or use a loopback address",
 			}
 		}
@@ -382,7 +382,7 @@ func parseCIMDMetadata(
 		logger.Warn("error parsing CIMD metadata", logError(err))
 
 		return nil, &Error{
-			Err:         "invalid_client",
+			Err:         invalidClient,
 			Description: "Invalid client metadata document JSON",
 		}
 	}
@@ -395,21 +395,21 @@ func parseCIMDMetadata(
 		)
 
 		return nil, &Error{
-			Err:         "invalid_client",
+			Err:         invalidClient,
 			Description: "Client ID in metadata does not match the URL",
 		}
 	}
 
 	if metadata.ClientSecret != nil || metadata.ClientSecretExpiresAt != nil {
 		return nil, &Error{
-			Err:         "invalid_client",
+			Err:         invalidClient,
 			Description: "Client metadata document must not contain client_secret fields",
 		}
 	}
 
 	if len(metadata.RedirectURIs) == 0 {
 		return nil, &Error{
-			Err:         "invalid_client",
+			Err:         invalidClient,
 			Description: "Client metadata document must contain at least one redirect_uri",
 		}
 	}
@@ -450,7 +450,7 @@ func (p *Provider) ResolveCIMDClient(
 		logger.ErrorContext(ctx, "error looking up CIMD client", logError(err))
 
 		return sql.AuthOauth2Client{}, &Error{ //nolint:exhaustruct
-			Err: "server_error", Description: "Internal server error",
+			Err: serverError, Description: internalServerError,
 		}
 	}
 
@@ -473,7 +473,7 @@ func (p *Provider) ResolveCIMDClient(
 			)
 
 			return sql.AuthOauth2Client{}, &Error{ //nolint:exhaustruct
-				Err:         "invalid_scope",
+				Err:         invalidScope,
 				Description: msg,
 			}
 		}
@@ -492,7 +492,7 @@ func (p *Provider) ResolveCIMDClient(
 		)
 
 		return sql.AuthOauth2Client{}, &Error{ //nolint:exhaustruct
-			Err: "server_error", Description: "Internal server error",
+			Err: serverError, Description: internalServerError,
 		}
 	}
 

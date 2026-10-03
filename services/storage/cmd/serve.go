@@ -292,39 +292,39 @@ func CommandServe() *cli.Command { //nolint:funlen
 				Name:     flagPublicURL,
 				Usage:    "public URL of the service",
 				Value:    "http://localhost:8000",
-				Category: "server",
+				Category: serverKey,
 				Sources:  cli.EnvVars("PUBLIC_URL"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     flagAPIRootPrefix,
 				Usage:    "API root prefix",
 				Value:    "/v1",
-				Category: "server",
+				Category: serverKey,
 				Sources:  cli.EnvVars("API_ROOT_PREFIX"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     flagBind,
 				Usage:    "bind the service to this address",
 				Value:    ":8000",
-				Category: "server",
+				Category: serverKey,
 				Sources:  cli.EnvVars("BIND"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     flagHasuraEndpoint,
 				Usage:    "Use this endpoint when connecting using graphql as metadata storage",
-				Category: "hasura",
+				Category: hasura,
 				Sources:  cli.EnvVars("HASURA_ENDPOINT"),
 			},
 			&cli.BoolFlag{ //nolint:exhaustruct
 				Name:     flagHasuraMetadata,
 				Usage:    "Apply Hasura's metadata",
-				Category: "hasura",
+				Category: hasura,
 				Sources:  cli.EnvVars("HASURA_METADATA"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     flagHasuraAdminSecret,
 				Usage:    "Hasura admin secret",
-				Category: "hasura",
+				Category: hasura,
 				Sources: cli.EnvVars(
 					"HASURA_GRAPHQL_ADMIN_SECRET",
 					"HASURA_GRAPHQL_ADMIN_SECRET",
@@ -334,7 +334,7 @@ func CommandServe() *cli.Command { //nolint:funlen
 				Name:     flagHasuraDBName,
 				Usage:    "Hasura database name",
 				Value:    "default",
-				Category: "hasura",
+				Category: hasura,
 				Sources:  cli.EnvVars("HASURA_DB_NAME"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
@@ -396,19 +396,19 @@ func CommandServe() *cli.Command { //nolint:funlen
 			&cli.BoolFlag{ //nolint:exhaustruct
 				Name:     flagCDNCacheControl,
 				Usage:    "Enable CDN-Cache-Control header middleware",
-				Category: "cdn",
+				Category: cdn,
 				Sources:  cli.EnvVars("CDN_CACHE_CONTROL"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     flagFastlyService,
 				Usage:    "Enable Fastly middleware and enable automated purges",
-				Category: "cdn",
+				Category: cdn,
 				Sources:  cli.EnvVars("FASTLY_SERVICE"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     flagFastlyKey,
 				Usage:    "Fastly CDN Key to authenticate purges",
-				Category: "cdn",
+				Category: cdn,
 				Sources:  cli.EnvVars("FASTLY_KEY"),
 			},
 			&cli.StringSliceFlag{ //nolint:exhaustruct
@@ -440,7 +440,7 @@ func CommandServe() *cli.Command { //nolint:funlen
 				Name:     flagImageTransformerWorkers,
 				Usage:    "number of concurrent image transformation workers (0 = 2 * GOMAXPROCS)",
 				Value:    0,
-				Category: "server",
+				Category: serverKey,
 				Sources:  cli.EnvVars("IMAGE_TRANSFORMER_WORKERS"),
 			},
 			&cli.IntFlag{ //nolint:exhaustruct
@@ -448,14 +448,14 @@ func CommandServe() *cli.Command { //nolint:funlen
 				Usage: "maximum width or height, in pixels, an image may be " +
 					"resized to; bounds libvips memory use per request",
 				Value:    image.DefaultMaxImageDimension,
-				Category: "server",
+				Category: serverKey,
 				Sources:  cli.EnvVars("IMAGE_TRANSFORMER_MAX_DIMENSION"),
 			},
 			&cli.FloatFlag{ //nolint:exhaustruct
 				Name:     flagImageTransformerMaxBlur,
 				Usage:    "maximum Gaussian blur sigma that may be applied to an image",
 				Value:    image.DefaultMaxBlurSigma,
-				Category: "server",
+				Category: serverKey,
 				Sources:  cli.EnvVars("IMAGE_TRANSFORMER_MAX_BLUR_SIGMA"),
 			},
 		},
@@ -578,3 +578,9 @@ func serve(ctx context.Context, cmd *cli.Command) error { //nolint:funlen
 
 	return nil
 }
+
+const (
+	cdn       = "cdn"
+	hasura    = "hasura"
+	serverKey = "server"
+)

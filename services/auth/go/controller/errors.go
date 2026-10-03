@@ -70,7 +70,7 @@ var (
 )
 
 func logError(err error) slog.Attr {
-	return slog.String("error", err.Error())
+	return slog.String(errorKey, err.Error())
 }
 
 type ErrorResponse api.ErrorResponse
@@ -700,7 +700,7 @@ func (ctrl *Controller) sendRedirectError(
 	errResponse := ctrl.getError(err)
 
 	redirectURL = appendURLValues(redirectURL, map[string]string{
-		"error":            string(errResponse.Error),
+		errorKey:           string(errResponse.Error),
 		"errorDescription": errResponse.Message,
 	})
 

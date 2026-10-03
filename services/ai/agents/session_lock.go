@@ -99,15 +99,15 @@ func (s *Service) acquireSessionLockOrRespond(
 	}
 
 	if errors.Is(err, errSessionBusy) {
-		c.JSON(http.StatusConflict, gin.H{"error": "session is busy"})
+		c.JSON(http.StatusConflict, gin.H{errorKey: "session is busy"})
 		return nil, false
 	}
 
 	logger.ErrorContext(
 		c.Request.Context(), "failed to acquire session lock",
-		slog.String("session_id", sessionID), slog.String("error", err.Error()),
+		slog.String("session_id", sessionID), slog.String(errorKey, err.Error()),
 	)
-	c.JSON(http.StatusInternalServerError, gin.H{"error": "internal error"})
+	c.JSON(http.StatusInternalServerError, gin.H{errorKey: "internal error"})
 
 	return nil, false
 }

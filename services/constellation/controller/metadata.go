@@ -54,7 +54,7 @@ func NewCaptureRawBody(maxBodyBytes int64) gin.HandlerFunc {
 		session := middleware.SessionFromContext(c.Request.Context())
 		if session == nil || !session.IsAdminSecret {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"error":          "unauthorized",
+				"error":          unauthorized,
 				"reason":         "admin secret required",
 				"securityScheme": securitySchemeAdminSecret,
 			})

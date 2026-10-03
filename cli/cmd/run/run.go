@@ -19,3 +19,10 @@ func Command() *cli.Command {
 		},
 	}
 }
+
+// Repeated flag descriptions and file names.
+const (
+	ifSpecifiedApplyThisOverlay = "If specified, apply this overlay"
+	serviceConfigurationFile    = "Service configuration file"
+	nhostRunServiceToml         = "nhost-run-service.toml"
+)

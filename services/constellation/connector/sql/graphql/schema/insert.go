@@ -29,8 +29,8 @@ func generateInsertOneField(
 	}
 	if hasConstraints {
 		args = append(args, &graph.Argument{ //nolint:exhaustruct
-			Name:        "on_conflict",
-			Description: "upsert condition",
+			Name:        onConflict,
+			Description: upsertCondition,
 			Type:        graph.NewNamedType(customTableName + "_on_conflict"),
 		})
 	}
@@ -69,8 +69,8 @@ func generateInsertManyField(
 	}
 	if hasConstraints {
 		args = append(args, &graph.Argument{ //nolint:exhaustruct
-			Name:        "on_conflict",
-			Description: "upsert condition",
+			Name:        onConflict,
+			Description: upsertCondition,
 			Type:        graph.NewNamedType(customTableName + "_on_conflict"),
 		})
 	}
@@ -216,8 +216,8 @@ func generateObjRelInsertInput(
 
 	if hasConstraints {
 		fields = append(fields, &graph.InputField{ //nolint:exhaustruct
-			Name:        "on_conflict",
-			Description: "upsert condition",
+			Name:        onConflict,
+			Description: upsertCondition,
 			Type:        graph.NewNamedType(customTableName + "_on_conflict"),
 		})
 	}
@@ -248,8 +248,8 @@ func generateArrRelInsertInput(
 
 	if hasConstraints {
 		fields = append(fields, &graph.InputField{ //nolint:exhaustruct
-			Name:        "on_conflict",
-			Description: "upsert condition",
+			Name:        onConflict,
+			Description: upsertCondition,
 			Type:        graph.NewNamedType(customTableName + "_on_conflict"),
 		})
 	}

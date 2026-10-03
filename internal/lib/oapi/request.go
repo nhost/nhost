@@ -31,27 +31,27 @@ func handleError(c *gin.Context, err error) {
 	switch {
 	case errors.As(err, &errSchema):
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error":  "schema-validation-error",
-			"reason": errSchema.Reason,
+			errorKey:  "schema-validation-error",
+			reasonKey: errSchema.Reason,
 		})
 	case errors.As(err, &errReq):
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error":  "request-validation-error",
-			"reason": errReq.Error(),
+			errorKey:  "request-validation-error",
+			reasonKey: errReq.Error(),
 		})
 	case errors.As(err, &errAuth):
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			"error":          errAuth.Code,
-			"reason":         errAuth.Message,
+			errorKey:         errAuth.Code,
+			reasonKey:        errAuth.Message,
 			"securityScheme": errAuth.Scheme,
 		})
 	case errors.As(err, &errSec):
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			"error":  "unauthorized",
-			"reason": errSec.Error(),
+			errorKey:  "unauthorized",
+			reasonKey: errSec.Error(),
 		})
 	default:
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{errorKey: err.Error()})
 	}
 }
 

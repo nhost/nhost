@@ -38,3 +38,8 @@ func Register(cfg *config.Config, server *server.MCPServer) error {
 
 	return nil
 }
+
+const (
+	agent     = "agent"
+	textPlain = "text/plain"
+)

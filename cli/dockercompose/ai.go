@@ -24,32 +24,32 @@ func ai(
 	return &Service{
 		Image: "nhost/graphite:" + *cfg.GetAi().GetVersion(),
 		DependsOn: map[string]DependsOn{
-			"graphql": {
-				Condition: "service_healthy",
+			svcGraphql: {
+				Condition: serviceHealthy,
 			},
-			"postgres": {
-				Condition: "service_healthy",
+			svcPostgres: {
+				Condition: serviceHealthy,
 			},
-			"auth": {
-				Condition: "service_healthy",
+			svcAuth: {
+				Condition: serviceHealthy,
 			},
 		},
 		EntryPoint: nil,
 		Command: []string{
-			"serve",
+			serve,
 		},
 		Environment: env,
 		ExtraHosts:  extraHosts,
 		Labels:      nil,
 		Networks:    nil,
 		Ports:       nil,
-		Restart:     "always",
+		Restart:     always,
 		User:        nil,
 		HealthCheck: &HealthCheck{
 			Test: []string{
-				"CMD", "graphite", "healthcheck",
+				healthCmd, "graphite", "healthcheck",
 			},
-			Timeout:     "60s",
+			Timeout:     healthTimeout,
 			Interval:    "5s",
 			StartPeriod: "10s",
 		},

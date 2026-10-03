@@ -13,7 +13,7 @@ import (
 func (ctrl *Controller) listOrphans(ctx context.Context) ([]string, *APIError) {
 	filesInHasura, apiErr := ctrl.metadataStorage.ListFiles(
 		ctx,
-		http.Header{"x-hasura-admin-secret": []string{ctrl.hasuraAdminSecret}},
+		http.Header{xHasuraAdminSecret: []string{ctrl.hasuraAdminSecret}},
 	)
 	if apiErr != nil {
 		return nil, apiErr
