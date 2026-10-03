@@ -3,25 +3,25 @@
 This is the Nhost Dashboard, a web application that allows you to manage your Nhost projects.
 To get started, you need to have an Nhost project. If you don't have one, you can [create a project here](https://app.nhost.io).
 
-First, install the dependencies:
+From the repository root, install the dependencies:
 
 ```bash
 pnpm install
 ```
 
-Then, build the packages that are used by the Nhost Dashboard:
+The dashboard depends on `@nhost/nhost-js`, which it imports from that package's build output. The root workspace has no `build` script. Build the SDK with:
 
 ```bash
-pnpm -w build
+pnpm build:nhost-js
 ```
 
-Finally, run the development server:
+Then start the development server:
 
 ```bash
-pnpm dev
+pnpm dev:dashboard
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see the result in your browser.
+`pnpm dev` from `dashboard/` starts the same server. Open [http://localhost:3000](http://localhost:3000) to see the result in your browser.
 
 ## Environment
 
