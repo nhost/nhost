@@ -180,6 +180,7 @@ export default defineConfig({
               link: '/getting-started',
               items: [
                 { label: 'Getting Started', slug: 'getting-started' },
+                { slug: 'getting-started/create-a-project' },
                 {
                   label: 'Quickstart',
                   collapsed: false,
