@@ -265,26 +265,6 @@ export default function BaseEventTriggerForm({
         <SheetContent
           showOverlay
           className="box flex w-xl flex-auto flex-col gap-0 p-0 sm:max-w-4xl md:w-4xl"
-          onPointerDownOutside={(e) => {
-            let element: Element | null = e.target as Element;
-            while (element) {
-              const className =
-                typeof element.className === 'string' ? element.className : '';
-              const ariaLive = element.getAttribute('aria-live');
-
-              if (
-                ariaLive === 'polite' ||
-                ariaLive === 'assertive' ||
-                (className.includes('rounded-lg') &&
-                  className.includes('text-white') &&
-                  className.includes('max-w-xl'))
-              ) {
-                e.preventDefault();
-                return;
-              }
-              element = element.parentElement;
-            }
-          }}
         >
           <SheetHeader className="p-6">
             <SheetTitle className="text-lg">{titleText}</SheetTitle>

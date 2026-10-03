@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 import * as React from 'react';
 
 import { cn } from '@/lib/utils';
+import { isInsideToaster } from '@/utils/toast/toaster';
 
 const Sheet = SheetPrimitive.Root;
 
@@ -67,6 +68,7 @@ const SheetContent = React.forwardRef<
       hideCloseButton,
       children,
       showOverlay = false,
+      onInteractOutside,
       ...props
     },
     ref,
@@ -77,6 +79,13 @@ const SheetContent = React.forwardRef<
         ref={ref}
         className={cn(sheetVariants({ side }), className)}
         {...props}
+        onInteractOutside={(event) => {
+          if (isInsideToaster(event.target)) {
+            event.preventDefault();
+            return;
+          }
+          onInteractOutside?.(event);
+        }}
       >
         {children}
         {!hideCloseButton && (
