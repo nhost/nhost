@@ -112,8 +112,12 @@ A computed definition on SQLite is ignored as before, without computed-specific
 inconsistencies or grant revocation. Other fields and tables survive. Valid
 PostgreSQL scalar selections and argument-free computed user predicates
 and ordering are available to admin and granted roles; argument-free scalar
-computed permission filters/checks execute without a selection grant. Table-valued
-selections and table-valued permission predicates remain unavailable.
+computed permission filters/checks execute without a selection grant. PostgreSQL
+`SETOF` tracked-table selections are available to roles with select access on
+the returned table, without a computed grant; that table's row filters and
+column permissions apply to the returned rows. Table-valued boolean/order
+inputs and table-valued permission predicates remain unavailable. An
+identifiable table-valued predicate removes its entire affected permission.
 
 A select permission with an invalid/malformed computed grant is recorded as
 `select_permission` and removed **in its entirety**, including its filter;

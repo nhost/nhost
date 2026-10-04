@@ -89,9 +89,12 @@ both engines; advertised field availability is not a promise of a PostgreSQL
 aggregate function. Hasura omits computed fields from aggregate-order inputs and argument-bearing
 fields from row inputs. Argument-free scalar permission filters/checks run against
 the physical row and may use session arguments, relationships and `_exists`;
-invalid references revoke only their permissions. Table-valued selections and
-scalar fields with non-base argument types stay
-hidden.
+invalid references revoke only their permissions. PostgreSQL `SETOF` tracked-table
+computed selections inherit the target table's select permissions (row and
+column), accept bound arguments and collection modifiers, and work in shared
+row selections; Hasura does not expose an aggregate sibling on the field.
+Table-valued boolean/order inputs and permission predicates remain gated;
+scalar fields with non-base argument types stay hidden.
 
 # Mutations with no update permissions
 

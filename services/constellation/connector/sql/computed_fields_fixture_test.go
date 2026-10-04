@@ -79,19 +79,24 @@ func assertComputedFixtureSchema(t *testing.T, roleSchema *graph.Schema) {
 			continue
 		}
 
-		foundScalar := false
+		foundScalar, foundTable := false, false
 		for _, field := range obj.Fields {
 			if field.Name == "item_label" {
 				foundScalar = true
 			}
 
 			if field.Name == "item_tags" {
-				t.Fatal("table-valued computed field exposed before its execution gate")
+				foundTable = field.Type.Elem != nil && field.Type.Elem.NonNull &&
+					field.Type.Elem.NamedType == "cf_select_tags" && !field.Type.NonNull
 			}
 		}
 
-		if !foundScalar {
-			t.Fatal("production scalar selection missing from fixture role")
+		if !foundScalar || !foundTable {
+			t.Fatalf(
+				"production computed selections missing: scalar=%t table=%t",
+				foundScalar,
+				foundTable,
+			)
 		}
 
 		return
@@ -139,7 +144,7 @@ func TestComputedFieldsFixtureSmoke(t *testing.T) {
 	assertComputedFixtureSchema(t, schemas["cf_reader"])
 
 	doc, err := parser.ParseQuery(&ast.Source{Input: `query {
-		cf_select_items(order_by: {id: asc}) { id label }
+		cf_select_items(order_by: {id: asc}) { id label item_tags(order_by: {id: asc}) { label } }
 	}`})
 	if err != nil {
 		t.Fatalf("parse computed fixture smoke query: %v", err)
@@ -160,6 +165,9 @@ func TestComputedFieldsFixtureSmoke(t *testing.T) {
 	var rows []struct {
 		ID    int    `json:"id"`
 		Label string `json:"label"`
+		Tags  []struct {
+			Label string `json:"label"`
+		} `json:"item_tags"`
 	}
 	if err := json.Unmarshal(payload, &rows); err != nil {
 		t.Fatalf("decode computed fixture result: %v", err)
@@ -168,7 +176,17 @@ func TestComputedFieldsFixtureSmoke(t *testing.T) {
 	want := []struct {
 		ID    int    `json:"id"`
 		Label string `json:"label"`
-	}{{1, "first"}, {2, "second"}}
+		Tags  []struct {
+			Label string `json:"label"`
+		} `json:"item_tags"`
+	}{
+		{1, "first", []struct {
+			Label string `json:"label"`
+		}{{"one"}, {"two"}}},
+		{2, "second", []struct {
+			Label string `json:"label"`
+		}{{"three"}}},
+	}
 	if diff := cmp.Diff(want, rows); diff != "" {
 		t.Errorf("fixture results differ (-want +got):\n%s", diff)
 	}

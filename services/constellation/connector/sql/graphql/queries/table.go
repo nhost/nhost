@@ -42,6 +42,7 @@ type table struct {
 	relationships            []*relationship
 	functions                []*function
 	computedScalars          []computedScalar
+	computedTables           []computedTable
 	computedGrants           map[string][]string
 
 	// allTables is retained so _exists permission predicates can resolve
@@ -81,6 +82,7 @@ func newTable(schemaName, tableName string, dialect dialect.Dialect) *table {
 		relationships:                []*relationship{},
 		functions:                    []*function{},
 		computedScalars:              nil,
+		computedTables:               nil,
 		computedGrants:               nil,
 		allTables:                    nil,
 

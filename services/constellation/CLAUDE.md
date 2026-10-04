@@ -120,7 +120,7 @@ go test ./connector/sql/graphql/schema/... -update
 
 Golden file tests live in `testdata/` directories. Update them with the `-update` flag when making intentional changes to generated SQL or schemas.
 
-After formatting, run `golines -l --base-formatter=gofumpt services/constellation` from the repo root; it lists files the required `golines -w` pass would still rewrite. An empty list is the formatter verification, including after lint auto-fixes.
+After the required root `golines -w --base-formatter=gofumpt .`, also run `golines -w --base-formatter=gofumpt services/constellation` when its files remain in `golines -l --base-formatter=gofumpt services/constellation`: the `.` invocation has not recursed into all Constellation files in practice. Verify the final `-l` output is empty, including after lint auto-fixes.
 
 ### Integration comparisons and regression tests
 
