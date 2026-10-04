@@ -820,9 +820,11 @@ func (t *table) writeGroupedAggregateSelection(
 // distinct_on columns when distinct_on is present (matching the root aggregate
 // path, which orders distinct_on nodes by the distinct columns).
 //
-// Nested same-database relationships inside cross-database aggregate nodes
-// are not supported in this first cut — they would require LATERAL joins
-// that don't compose with the GROUP BY here.
+// Ordinary nested relationships still need LATERAL joins that do not compose
+// with this GROUP BY. Table computed fields can use a correlated scalar
+// subquery inside each aggregate-row JSON expression instead.
+//
+//nolint:funlen // Grouped node serialization keeps the column and computed table JSON expressions together.
 func (t *table) writeGroupedAggregateNodes(
 	b *strings.Builder,
 	responseName string,
@@ -843,8 +845,10 @@ func (t *table) writeGroupedAggregateNodes(
 		return err
 	}
 
-	if len(relationships) > 0 {
-		return errGroupedAggregateNestedRelationships
+	for _, rel := range relationships {
+		if rel.computed == nil {
+			return errGroupedAggregateNestedRelationships
+		}
 	}
 
 	b.WriteString(", '")
@@ -855,12 +859,35 @@ func (t *table) writeGroupedAggregateNodes(
 
 	t.dialect.WriteJSONRowPrefix(&rowB)
 
-	_, *params, *paramIndex, err = t.writeQueryNodeColumns(
+	first, nextParams, nextIndex, err := t.writeQueryNodeColumns(
 		&rowB, columns, sourceAlias, variables, sessionVariables, *params, *paramIndex,
 		argumentPath,
 	)
 	if err != nil {
 		return fmt.Errorf("building computed grouped nodes: %w", err)
+	}
+
+	*params, *paramIndex = nextParams, nextIndex
+
+	for _, rel := range relationships {
+		if first {
+			rowB.WriteString(", ")
+		}
+
+		var relSQL strings.Builder
+
+		*params, *paramIndex, err = rel.buildSelectionSQL(
+			&relSQL, rel.field, fragments, variables, role, sessionVariables,
+			nil, *params, *paramIndex, sourceAlias,
+			sqlAlias(sourceAlias, ".r.", rel.alias), argumentPath,
+		)
+		if err != nil {
+			return fmt.Errorf("building grouped computed table %s: %w", rel.alias, err)
+		}
+
+		t.dialect.WriteJSONRowColumn(&rowB, rel.alias, "("+relSQL.String()+")")
+
+		first = true
 	}
 
 	t.dialect.WriteJSONRowSuffixNoAlias(&rowB)

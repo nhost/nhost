@@ -25,6 +25,7 @@ import (
 
 const computedFixtureDir = "../../../../integration/"
 
+//nolint:cyclop // The shared fixture installs optional scalar/table signatures before introspection.
 func computedTestFixture(
 	t *testing.T,
 	sessionFunction ...bool,
@@ -173,6 +174,10 @@ RETURNS jsonb LANGUAGE sql STABLE AS $$ SELECT to_jsonb(item.label || ':' || (se
 				)
 			}
 		}
+	}
+
+	if len(sessionFunction) > 1 && sessionFunction[1] {
+		ddl = extendComputedTableFixture(ddl, &md.Databases[0])
 	}
 
 	pool := testdb.NewPostgres(t, string(ddl), string(seed))

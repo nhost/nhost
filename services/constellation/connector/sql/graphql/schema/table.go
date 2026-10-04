@@ -53,6 +53,16 @@ func generateForTable( //nolint:funlen
 	)
 
 	computedFields := scalarComputedFields(schema, tableMeta, objects, role, caps, usedScalars)
+
+	tableFields := tableComputedFields(
+		schema,
+		tableMeta,
+		objects,
+		md,
+		role,
+		caps,
+		usedScalars,
+	)
 	if caps.SupportsComputedScalarInput {
 		for _, field := range computedFields {
 			if !computedRequiresUserArgs(field) {
@@ -63,7 +73,7 @@ func generateForTable( //nolint:funlen
 
 	generateTableObjectType(
 		schema, tableMeta, tableInfo, customTableName, allowedColumns, role, md,
-		objects, generatedAggregateOrderBy, caps, computedFields,
+		objects, generatedAggregateOrderBy, caps, append(computedFields, tableFields...),
 	)
 
 	generateTableQueryFields(

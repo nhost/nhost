@@ -465,7 +465,7 @@ func (t *table) buildNodesRelationshipsLateral(
 
 		b.WriteString(" LEFT OUTER JOIN LATERAL (")
 
-		params, paramIndex, err = relSel.relationship.buildSelectionSQL(
+		params, paramIndex, err = relSel.buildSelectionSQL(
 			b, relSel.field, fragments, variables, role, sessionVariables,
 			roots, params, paramIndex, cteAlias, relAlias, argumentPath,
 		)
@@ -509,7 +509,7 @@ func (t *table) buildNodesRelationshipsSubquery(
 		b.WriteString(relSel.alias)
 		b.WriteString("', (")
 
-		params, paramIndex, err = relSel.relationship.buildSelectionSQL(
+		params, paramIndex, err = relSel.buildSelectionSQL(
 			b, relSel.field, fragments, variables, role, sessionVariables,
 			roots, params, paramIndex, cteAlias, relAlias, argumentPath,
 		)
@@ -597,7 +597,7 @@ func (t *table) buildNodesWithDistinctOn( //nolint:funlen
 
 		b.WriteString(" LEFT OUTER JOIN LATERAL (")
 
-		params, paramIndex, err = relSel.relationship.buildSelectionSQL(
+		params, paramIndex, err = relSel.buildSelectionSQL(
 			b, relSel.field, fragments, variables, role, sessionVariables,
 			roots, params, paramIndex, cteAlias, relAlias, argumentPath,
 		)
