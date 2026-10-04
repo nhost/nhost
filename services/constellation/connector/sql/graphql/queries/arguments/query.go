@@ -2,6 +2,7 @@ package arguments
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/vektah/gqlparser/v2/ast"
 
@@ -323,6 +324,8 @@ func ParseOrderBy(
 // ordering (`<rel>_aggregate: <target>_aggregate_order_by`). The latter two
 // emit correlated-subquery ordering terms; everything else errors, matching the
 // schema, which only advertises those three shapes.
+//
+//nolint:funlen // Column, scalar, table aggregate and relationship terms share input order.
 func appendOrderByObject(
 	t Table,
 	orderBy []OrderByItem,
@@ -362,6 +365,21 @@ func appendOrderByObject(
 			})
 
 			continue
+		}
+
+		if name, ok := strings.CutSuffix(field.Name, "_aggregate"); ok {
+			if computed := t.ComputedTableFromGraphqlName(name, role); computed != nil {
+				items, err := appendComputedTableOrderBy(
+					t, computed, field.Value, parentSource, role, sessionVariables, gen,
+				)
+				if err != nil {
+					return nil, err
+				}
+
+				orderBy = append(orderBy, items...)
+
+				continue
+			}
 		}
 
 		items, err := appendRelationshipOrderBy(

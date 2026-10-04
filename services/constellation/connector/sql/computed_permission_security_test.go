@@ -134,7 +134,8 @@ func verifyComputedPermissionReverseTableOrder(t *testing.T) {
 	}{
 		{"object relationship", map[string]any{"item": map[string]any{"item_label": map[string]any{"_eq": "first"}}}, []int{1, 2}, false},
 		{"exists", map[string]any{"_exists": map[string]any{"_table": map[string]any{"schema": "cf_select", "name": "items"}, "_where": map[string]any{"item_label": map[string]any{"_eq": "first"}}}}, []int{1, 2, 3}, false},
-		{"unsupported computed aggregate", map[string]any{"item_copies_aggregate": map[string]any{"count": map[string]any{"filter": map[string]any{"item_label": map[string]any{"_eq": "first"}}, "predicate": map[string]any{"_gt": 0}}}}, nil, true},
+		{"unsupported scalar aggregate permission", map[string]any{"item_copies_aggregate": map[string]any{"count": map[string]any{"filter": map[string]any{"item_label": map[string]any{"_eq": "first"}}, "predicate": map[string]any{"_gt": 0}}}}, nil, true},
+		{"unsupported table aggregate permission", map[string]any{"item_copies_aggregate": map[string]any{"count": map[string]any{"filter": map[string]any{"item_tags": map[string]any{"id": map[string]any{"_eq": 2}}}, "predicate": map[string]any{"_gt": 0}}}}, nil, true},
 	} {
 		runPermissionCase(t, tc.name, func(t *testing.T) {
 			t.Helper()

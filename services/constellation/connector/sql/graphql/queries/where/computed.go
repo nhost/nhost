@@ -189,6 +189,72 @@ func SupportedComputedPermissionComparison(
 	return err == nil
 }
 
+// SupportedComputedTableColumnComparison validates a column predicate nested
+// beneath a computed-table permission before the permission is installed. In
+// particular, malformed comparison operators must not fail root construction.
+func SupportedComputedTableColumnComparison(sqlType string, isArray bool, comparison any,
+	resolve func(name string, root bool) (string, bool, bool),
+) bool {
+	operands, ok := comparison.(map[string]any)
+	if !ok {
+		operands = map[string]any{"_eq": comparison}
+	}
+
+	if !isArray {
+		return SupportedComputedPermissionComparison(sqlType, operands, resolve)
+	}
+
+	remaining := make(map[string]any, len(operands))
+	for key, operand := range operands {
+		if columnComparisonOperator(canonicalComparisonOperator(key)) != "" {
+			value, err := values.GoValueToAST(operand)
+			if err != nil {
+				return false
+			}
+
+			name, root, err := columnReference(value, nil)
+			if err != nil {
+				return false
+			}
+
+			rhsType, rhsArray, found := resolve(name, root)
+			if !found || !rhsArray || rhsType != sqlType {
+				return false
+			}
+
+			continue
+		}
+
+		if !supportedArrayPermissionOperator(canonicalComparisonOperator(key)) {
+			return false
+		}
+
+		remaining[key] = operand
+	}
+
+	value, err := values.GoValueToAST(remaining)
+	if err != nil {
+		return false
+	}
+
+	column := computedComparisonColumn(sqlType)
+	column.IsArray = true
+	target := newColumnComparisonTarget(column)
+	_, err = parseFieldComparisonValue(column, &target, value, nil, dialect.NewPostgresDialect())
+
+	return err == nil
+}
+
+func supportedArrayPermissionOperator(op string) bool {
+	switch op {
+	case "_contained_in", "_contains", "_eq", "_gt", "_gte", "_in", "_is_null",
+		"_lt", "_lte", "_neq", "_nin":
+		return true
+	default:
+		return false
+	}
+}
+
 func validComputedColumnReference(sqlType string, operand any,
 	resolvers []func(name string, root bool) (string, bool, bool),
 ) bool {

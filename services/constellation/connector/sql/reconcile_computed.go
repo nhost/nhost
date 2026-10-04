@@ -409,8 +409,9 @@ func dropComputedPredicate(ctx context.Context, logger *slog.Logger, inc *metada
 	return false
 }
 
-// computedDependency only classifies names identified by a definition or
-// grant. All other unknown keys remain the existing permission parser's job.
+// computedDependency classifies fields identified by a definition or grant,
+// plus malformed/missing targets of the known _exists operator. Other unknown
+// filter keys remain the existing permission parser's job.
 func computedDependency(
 	expr any,
 	table, root *metadata.TableMetadata,
@@ -492,8 +493,9 @@ func computedDependencyKey(key string, value any, table, root *metadata.TableMet
 		}
 
 		if kind, found := index[identity][key]; found {
-			if !insideAggregate &&
-				executableComputedPredicate(kind, table, root, key, value, objects) {
+			if !insideAggregate && executableComputedPredicate(
+				kind, table, root, key, value, tables, objects, index,
+			) {
 				return ""
 			}
 
@@ -509,16 +511,132 @@ func executableComputedPredicate(
 	table, root *metadata.TableMetadata,
 	name string,
 	value any,
-	objects *introspection.Objects,
+	tables []metadata.TableMetadata, objects *introspection.Objects, index computedIndex,
 ) bool {
-	if kind != computedScalar || !computedPermissionInput(table, name, objects) {
+	if !computedPermissionInput(table, name, objects) {
 		return false
 	}
 
 	lookup, ok := objects.GetComputedFunction(table.Table.Schema, table.Table.Name, name)
+	if !ok || lookup.Function == nil {
+		return false
+	}
 
-	return ok && lookup.Function != nil &&
-		computedPermissionOperators(lookup.Function.ReturnType.Name, value, table, root, objects)
+	if kind == computedScalar {
+		return computedPermissionOperators(
+			lookup.Function.ReturnType.Name,
+			value,
+			table,
+			root,
+			objects,
+		)
+	}
+
+	if kind != computedTable {
+		return false
+	}
+
+	target := findComputedTable(tables,
+		lookup.Function.ReturnType.Schema, lookup.Function.ReturnType.Name)
+	if target == nil {
+		return false
+	}
+
+	if _, ok := value.(map[string]any); !ok {
+		return false
+	}
+
+	return computedTablePredicateKnown(value, target, root, tables, objects, index)
+}
+
+// A recognized table function scopes its nested predicate. Unlike an ordinary
+// unknown root permission key, an unknown key inside that function is
+// identifiable as part of the table predicate and revokes only its permission.
+//
+//nolint:gocognit,cyclop // Nested boolean, _exists and target-field branches fail closed per permission.
+func computedTablePredicateKnown(value any, table, root *metadata.TableMetadata,
+	tables []metadata.TableMetadata, objects *introspection.Objects, index computedIndex,
+) bool {
+	fields, ok := value.(map[string]any)
+	if !ok || table == nil {
+		return false
+	}
+
+	for key, child := range fields {
+		switch key {
+		case "_and", "_or", "$and", "$or":
+			list, ok := child.([]any)
+			if !ok {
+				return false
+			}
+
+			for _, item := range list {
+				if !computedTablePredicateKnown(item, table, root, tables, objects, index) {
+					return false
+				}
+			}
+		case "_not", "$not":
+			if !computedTablePredicateKnown(child, table, root, tables, objects, index) {
+				return false
+			}
+		case "_exists", "$exists":
+			exists, ok := child.(map[string]any)
+			if !ok {
+				return false
+			}
+
+			schema, name, ok := computedExistsTable(exists["_table"])
+			if !ok {
+				return false
+			}
+
+			if !computedTablePredicateKnown(exists["_where"],
+				findComputedTable(tables, schema, name), root, tables, objects, index) {
+				return false
+			}
+		default:
+			if !computedTablePredicateFieldKnown(key, child, table, root, tables, objects, index) {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
+func computedTablePredicateFieldKnown(key string, value any, table, root *metadata.TableMetadata,
+	tables []metadata.TableMetadata, objects *introspection.Objects, index computedIndex,
+) bool {
+	// Metadata permission predicates use physical SQL column names, even when
+	// the target table exposes a different GraphQL name for that column.
+	if info, ok := objects.GetTable(table.Table.Schema, table.Table.Name); ok {
+		for _, column := range info.Columns {
+			if column.Name == key {
+				return where.SupportedComputedTableColumnComparison(
+					column.Type, column.IsArray, value,
+					computedPermissionColumnResolver(table, root, objects),
+				)
+			}
+		}
+	}
+
+	if next := computedRelationshipTable(table, key, tables, objects); next != nil {
+		return computedTablePredicateKnown(value, next, root, tables, objects, index)
+	}
+
+	if before, ok := strings.CutSuffix(key, "_aggregate"); ok {
+		if computedArrayRelationshipTable(table, before, tables, objects) != nil {
+			// Relationship-aggregate permission predicates are rejected by Hasura;
+			// this key is inside a known table computation, so revoke its permission.
+			return false
+		}
+	}
+
+	identity := introspection.ComputedTable{Schema: table.Table.Schema, Name: table.Table.Name}
+	kind, found := index[identity][key]
+
+	return found &&
+		executableComputedPredicate(kind, table, root, key, value, tables, objects, index)
 }
 
 // A permission predicate uses the same argument-free scalar expression as
@@ -560,29 +678,35 @@ func computedPermissionOperators(sqlType string, value any, table, root *metadat
 	}
 
 	return where.SupportedComputedPermissionComparison(sqlType, comparison,
-		func(name string, atRoot bool) (string, bool, bool) {
-			lookupTable := table
-			if atRoot {
-				lookupTable = root
-			}
+		computedPermissionColumnResolver(table, root, objects))
+}
 
-			if lookupTable == nil {
-				return "", false, false
-			}
+func computedPermissionColumnResolver(table, root *metadata.TableMetadata,
+	objects *introspection.Objects,
+) func(string, bool) (string, bool, bool) {
+	return func(name string, atRoot bool) (string, bool, bool) {
+		lookupTable := table
+		if atRoot {
+			lookupTable = root
+		}
 
-			info, found := objects.GetTable(lookupTable.Table.Schema, lookupTable.Table.Name)
-			if !found {
-				return "", false, false
-			}
-
-			for _, col := range info.Columns {
-				if col.Name == name {
-					return col.Type, col.IsArray, true
-				}
-			}
-
+		if lookupTable == nil {
 			return "", false, false
-		})
+		}
+
+		info, found := objects.GetTable(lookupTable.Table.Schema, lookupTable.Table.Name)
+		if !found {
+			return "", false, false
+		}
+
+		for _, col := range info.Columns {
+			if col.Name == name {
+				return col.Type, col.IsArray, true
+			}
+		}
+
+		return "", false, false
+	}
 }
 
 func computedKeyIsColumn(
@@ -599,30 +723,58 @@ func computedKeyIsColumn(
 	return false
 }
 
-func computedExistsDependency(value any, table, root *metadata.TableMetadata,
+// computedExistsTable follows Hasura's QualifiedTable default: an omitted or
+// null schema (or a bare table name) means public, never the containing table's
+// schema. Explicit schema, including SQLite's empty schema, retains precedence.
+func computedExistsTable(value any) (string, string, bool) {
+	switch ref := value.(type) {
+	case string:
+		return "public", ref, ref != ""
+	case map[string]any:
+		schema := "public"
+		if raw, exists := ref["schema"]; exists && raw != nil {
+			var ok bool
+
+			schema, ok = raw.(string)
+			if !ok {
+				return "", "", false
+			}
+		}
+
+		name, ok := ref["name"].(string)
+
+		return schema, name, ok && name != ""
+	default:
+		return "", "", false
+	}
+}
+
+func computedExistsDependency(value any, _, root *metadata.TableMetadata,
 	tables []metadata.TableMetadata, objects *introspection.Objects, index computedIndex,
 	insideAggregate bool,
 ) string {
 	exists, ok := value.(map[string]any)
 	if !ok {
-		return ""
+		return "_exists"
 	}
 
-	target, ok := exists["_table"].(map[string]any)
+	schema, name, ok := computedExistsTable(exists["_table"])
 	if !ok {
-		return ""
+		return "_exists"
 	}
 
-	schema, _ := target["schema"].(string)
-	name, _ := target["name"].(string)
+	target := findComputedTable(tables, schema, name)
+	if target == nil {
+		return "_exists"
+	}
 
-	if schema == "" {
-		schema = table.Table.Schema
+	if _, ok := exists["_where"].(map[string]any); !ok {
+		return "_exists"
 	}
 
 	return computedDependency(
 		exists["_where"],
-		findComputedTable(tables, schema, name),
+		target,
 		root, tables,
 		objects,
 		index,
@@ -657,9 +809,9 @@ func computedAggregateDependency(value any, target, root *metadata.TableMetadata
 			return dep
 		}
 
-		// This aggregate permission shape is not parsed by the existing
-		// permission executor. Revoke identifiable computed references but
-		// retain the Phase 8 source-wide baseline for computed-free metadata.
+		// Hasura rejects relationship-aggregate permission filters. Continue
+		// revoking only identifiable computed references in this shape; leave
+		// ordinary aggregate permission parsing unchanged.
 		if dep := computedDependency(
 			args["filter"],
 			target,

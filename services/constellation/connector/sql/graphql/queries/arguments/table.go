@@ -67,6 +67,12 @@ type Table interface {
 	// ComputedScalarFromGraphqlName resolves a granted, argument-free scalar.
 	ComputedScalarFromGraphqlName(name, role string) core.ComputedExpression
 
+	// ComputedTableFromGraphqlName resolves a role-visible, argument-free SETOF function.
+	ComputedTableFromGraphqlName(name, role string) core.ComputedTableExpression
+
+	// OrderTableBySchemaName resolves the returned table for computed aggregate ordering.
+	OrderTableBySchemaName(schema, name string) Table
+
 	// Relationship resolves a GraphQL field name to its relationship.
 	// Returns a nil interface (not a typed-nil) when none matches.
 	//

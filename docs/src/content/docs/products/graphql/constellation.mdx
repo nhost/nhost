@@ -69,8 +69,8 @@ Constellation serves these **GraphQL request-path** features; computed fields re
 - JWT and admin-secret authentication
 - Role-based [permissions](/products/graphql/permissions) (row- and column-level, presets, session variables)
 - [Remote schemas](/products/graphql/remote-schemas) and cross-source remote relationships
-- PostgreSQL scalar computed-field selections, argument-free `where`/`order_by` inputs, and eligible aggregate outputs, with role-specific grants and bound function arguments. Argument-free scalar computed fields are also enforced in role select/update/delete filters and insert/update checks, independently of selection grants. Hasura omits argument-bearing computed fields from row `where`/`order_by` and all computed fields from aggregate-order inputs; Constellation matches those omissions. Scalar aggregate outputs include eligible comparable fields in `min`/`max` and numeric fields in all eight numeric aggregate operators, retaining `args`.
-- PostgreSQL table-valued computed-field selections (`SETOF` tracked tables), including nested and mutation/subscription row results. The returned table's select permission controls field visibility and row/column access; `args`, `where`, `order_by`, `distinct_on`, `limit` and `offset` apply within each function result. Hasura exposes no aggregate sibling on these fields.
+- PostgreSQL scalar computed-field selections, argument-free `where`/`order_by` inputs, and eligible aggregate outputs, with role-specific grants and bound function arguments. Argument-free scalar computed fields are also enforced in role select/update/delete filters and insert/update checks, independently of selection grants. Hasura omits argument-bearing computed fields from row `where`/`order_by` and scalar computed fields from aggregate-order inputs; Constellation matches those omissions. Scalar aggregate outputs include eligible comparable fields in `min`/`max` and numeric fields in all eight numeric aggregate operators, retaining `args`.
+- PostgreSQL table-valued computed-field selections (`SETOF` tracked tables), including nested and mutation/subscription row results. The returned table's select permission controls field visibility and row/column access; `args`, `where`, `order_by`, `distinct_on`, `limit` and `offset` apply within each function result. Hasura exposes no aggregate selection sibling on these fields. Argument-free table functions also support row boolean EXISTS and `<field>_aggregate` ordering with the returned table's select row filter (matching patched Hasura v2.50.3-ce); metadata role filters/checks can reference them independently of a target select grant.
 
 ## What still runs on Hasura
 
@@ -79,7 +79,7 @@ While Constellation is opt-in, metadata authoring and everything **off** the req
 - Metadata authoring API (the existing engine remains the source of truth for metadata)
 - [Events](/products/events): event triggers and cron/scheduled triggers
 - Actions, REST endpoints, allowlists, query collections
-- Inherited roles and native queries; table-valued computed boolean/order inputs and permission predicates, and non-base computed argument types are not yet served by Constellation
+- Inherited roles and native queries; non-base computed argument types are not yet served by Constellation
 - MSSQL / BigQuery / Snowflake backends
 
 For the exhaustive, field-by-field map of what carries across and what is silently dropped, see the **[metadata support matrix](https://github.com/nhost/nhost/blob/main/services/constellation/docs/user/hasura-metadata-support.md)**.

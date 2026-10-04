@@ -36,6 +36,11 @@ RETURNS SETOF cf_select.tags LANGUAGE sql STABLE AS $$
     AND t.label LIKE needle || '%' AND session->>'x-hasura-user-id' = 'reader'
     ORDER BY t.id
 $$;
+CREATE FUNCTION cf_select.item_tags_for_session(item cf_select.items, session jsonb)
+RETURNS SETOF cf_select.tags LANGUAGE sql STABLE AS $$
+    SELECT t.id, t.item_id, t.label FROM cf_select.tags t
+    WHERE t.item_id = item.id AND t.label = session->>'x-hasura-tag-label'
+$$;
 CREATE FUNCTION cf_select.item_tags_error(item cf_select.items) RETURNS SETOF cf_select.tags
 LANGUAGE sql STABLE AS $$ SELECT t.id, t.item_id, t.label FROM cf_select.tags t WHERE t.item_id = 1 AND 1 / (item.id - 1) > 0 $$;
 CREATE FUNCTION cf_select.item_tags_null(item cf_select.items) RETURNS SETOF cf_select.tags
@@ -49,6 +54,16 @@ LANGUAGE sql STABLE AS $$ SELECT NULL::cf_select.tags WHERE item.id = 1 $$;
 				Function: metadata.FunctionSource{
 					Schema: "cf_select",
 					Name:   "item_tags_with_args",
+				},
+				SessionArgument: "session",
+			},
+		},
+		metadata.ComputedField{
+			Name: "item_tags_for_session",
+			Definition: metadata.ComputedFieldDefinition{
+				Function: metadata.FunctionSource{
+					Schema: "cf_select",
+					Name:   "item_tags_for_session",
 				},
 				SessionArgument: "session",
 			},
@@ -472,6 +487,108 @@ func TestComputedTableGroupedAggregateNodes(t *testing.T) {
 				row["_join_key"],
 				row["nodes"],
 				want[row["_join_key"]],
+			)
+		}
+	}
+}
+
+//nolint:paralleltest // Keep the added testdb pool serial under default package parallelism.
+func TestComputedTableGroupedAggregateInputs(t *testing.T) {
+	_, pool, objects, md, _ := computedTestFixture(t)
+	caps := schema.NewCapabilities(schema.KindPostgres, dialect.NewPostgresDialect())
+
+	_, grouped, err := queries.BuildRoots(objects, md, dialect.NewPostgresDialect(), caps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	doc, err := parser.ParseQuery(&ast.Source{Input: `query {
+		_root(where:{item_tags:{id:{_eq:3}}},order_by:{item_tags_aggregate:{count:desc}}) {
+			nodes { id }
+		}
+	}`})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	field, ok := doc.Operations[0].SelectionSet[0].(*ast.Field)
+	if !ok {
+		t.Fatalf("aggregate field: %T", doc.Operations[0].SelectionSet[0])
+	}
+
+	op, err := grouped.BuildGroupedAggregateSQL(groupedagg.BuildInput{
+		TableSchema: "cf_select", TableName: "items", Field: field,
+		Fragments: doc.Fragments, Role: "cf_reader", JoinColumnSQLName: "id",
+		JoinValues: []any{1, 2},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	got := computedResult(t, pool, op)
+
+	want := []any{
+		map[string]any{"_join_key": float64(1), "nodes": []any{}},
+		map[string]any{"_join_key": float64(2), "nodes": []any{map[string]any{"id": float64(2)}}},
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("grouped computed input: got %#v want %#v; SQL %s", got, want, op.SQL)
+	}
+
+	// Place both items in one grouped CTE so aggregate ordering actually
+	// compares their target-filtered counts rather than single-row groups.
+	if _, err := pool.Exec(
+		t.Context(),
+		`UPDATE cf_select.items SET owner_id=1 WHERE id=2`,
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	md.Tables[1].SelectPermissions[0].Permission.Filter = map[string]any{
+		"label": map[string]any{"_eq": "three"},
+	}
+
+	_, grouped, err = queries.BuildRoots(objects, md, dialect.NewPostgresDialect(), caps)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	doc, err = parser.ParseQuery(&ast.Source{Input: `query {
+		_root(order_by:[{item_tags_aggregate:{count:desc}},{id:asc}]) { nodes { id } }
+	}`})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	field, ok = doc.Operations[0].SelectionSet[0].(*ast.Field)
+	if !ok {
+		t.Fatalf("aggregate field: %T", doc.Operations[0].SelectionSet[0])
+	}
+
+	for _, tc := range []struct {
+		role string
+		ids  []any
+	}{
+		{"cf_reader", []any{map[string]any{"id": float64(2)}, map[string]any{"id": float64(1)}}},
+		{"admin", []any{map[string]any{"id": float64(1)}, map[string]any{"id": float64(2)}}},
+	} {
+		op, err := grouped.BuildGroupedAggregateSQL(groupedagg.BuildInput{
+			TableSchema: "cf_select", TableName: "items", Field: field,
+			Fragments: doc.Fragments, Role: tc.role, JoinColumnSQLName: "owner_id",
+			JoinValues: []any{1},
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		want := []any{map[string]any{"_join_key": float64(1), "nodes": tc.ids}}
+		if got := computedResult(t, pool, op); !reflect.DeepEqual(got, want) {
+			t.Fatalf(
+				"%s grouped target-filtered order: got %#v want %#v; SQL %s",
+				tc.role,
+				got,
+				want,
+				op.SQL,
 			)
 		}
 	}

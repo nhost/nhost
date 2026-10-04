@@ -75,16 +75,16 @@ func referenceVersion(ctx context.Context, graphqlURL string) (string, error) {
 // test serial: later computed-field probes may temporarily change metadata/DDL
 // and must not run beside the existing parallel read-only integration cases.
 //
-//nolint:paralleltest,cyclop // Serial live sanity deliberately checks connectivity and both representative slices.
+//nolint:paralleltest,cyclop,gocognit,gocyclo,maintidx // Serial live sanity checks both engines across representative slices.
 func TestComputedFieldReference(t *testing.T) {
 	version, err := referenceVersion(t.Context(), hasuraURL)
 	if err != nil {
 		t.Fatalf("Hasura connectivity/version: %v", err)
 	}
 
-	// The existing Nhost stack pins v2.48.10-ce in integration/nhost/nhost.toml.
-	if !strings.HasPrefix(version, "v2.48.10") {
-		t.Fatalf("unexpected Hasura version %q (expected v2.48.10)", version)
+	// The existing Nhost stack pins v2.50.3-ce in integration/nhost/nhost.toml.
+	if version != "v2.50.3-ce" {
+		t.Fatalf("unexpected Hasura version %q (expected v2.50.3-ce)", version)
 	}
 
 	if _, err := referenceVersion(t.Context(), constellationURL); err != nil {
@@ -173,6 +173,78 @@ func TestComputedFieldReference(t *testing.T) {
 	if diff := cmp.Diff(hasura, constellation); diff != "" {
 		t.Errorf("live table selection differs (-hasura +constellation):\n%s", diff)
 	}
+
+	// A table predicate filters over the function result; aggregate ordering
+	// uses those same returned rows. Lasting expectations live in connector tests.
+	tableInput := query{
+		Query: `query { cf_select_items(where:{item_tags:{id:{_eq:3}}},order_by:{item_tags_aggregate:{count:desc}}) { id } }`,
+		Role:  "cf_reader",
+	}
+
+	hasura, err = makeHTTPQuery(t.Context(), hasuraURL, tableInput, headers)
+	if err != nil {
+		t.Fatalf("Hasura table inputs: %v", err)
+	}
+
+	constellation, err = makeHTTPQuery(t.Context(), constellationURL, tableInput, headers)
+	if err != nil {
+		t.Fatalf("Constellation table inputs: %v", err)
+	}
+
+	want = map[string]any{"data": map[string]any{
+		"cf_select_items": []any{map[string]any{"id": float64(2)}},
+	}}
+	if diff := cmp.Diff(want, hasura); diff != "" {
+		t.Fatalf("Hasura table input fixture changed (-want +got):\n%s", diff)
+	}
+
+	if diff := cmp.Diff(hasura, constellation); diff != "" {
+		t.Errorf("live table input responses differ (-hasura +constellation):\n%s", diff)
+	}
+
+	// Static filtered roles pin the patched oracle's target-row protection
+	// without replacing metadata while other integration cases may query it.
+	for _, tc := range []struct {
+		name, role, graphql string
+		ids                 []any
+	}{
+		{"visible tag one", "cf_filtered_one", `query { cf_select_tags(order_by:{id:asc}) { id } }`, []any{map[string]any{"id": float64(1)}}},
+		{"hidden tag cannot satisfy EXISTS", "cf_filtered_one", `query { cf_select_items(where:{item_tags:{label:{_eq:"two"}}}) { id } }`, []any{}},
+		{"visible tag three", "cf_filtered_three", `query { cf_select_tags(order_by:{id:asc}) { id } }`, []any{map[string]any{"id": float64(3)}}},
+		{"aggregate ordering excludes hidden tags", "cf_filtered_three", `query { cf_select_items(order_by:[{item_tags_aggregate:{count:desc}},{id:asc}]) { id } }`, []any{map[string]any{"id": float64(2)}, map[string]any{"id": float64(1)}}},
+		{"unrestricted aggregate ordering control", "admin", `query { cf_select_items(order_by:[{item_tags_aggregate:{count:desc}},{id:asc}]) { id } }`, []any{map[string]any{"id": float64(1)}, map[string]any{"id": float64(2)}}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			headers.Set("x-hasura-role", tc.role)
+			q := query{Query: tc.graphql, Role: tc.role}
+
+			h, err := makeHTTPQuery(t.Context(), hasuraURL, q, headers)
+			if err != nil {
+				t.Fatalf("Hasura filtered table input: %v", err)
+			}
+
+			c, err := makeHTTPQuery(t.Context(), constellationURL, q, headers)
+			if err != nil {
+				t.Fatalf("Constellation filtered table input: %v", err)
+			}
+
+			root := "cf_select_items"
+			if strings.Contains(tc.graphql, "cf_select_tags(") {
+				root = "cf_select_tags"
+			}
+
+			want := map[string]any{"data": map[string]any{root: tc.ids}}
+			if diff := cmp.Diff(want, h); diff != "" {
+				t.Fatalf("patched Hasura filtered table result (-want +got):\n%s", diff)
+			}
+
+			if diff := cmp.Diff(h, c); diff != "" {
+				t.Errorf("filtered table input differs (-hasura +constellation):\n%s", diff)
+			}
+		})
+	}
+
+	headers.Set("x-hasura-role", "cf_reader")
 
 	// Scalar inputs and aggregate outputs use the same seeded source, but
 	// independent Constellation tests own the exhaustive expectations.

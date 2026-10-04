@@ -10,3 +10,21 @@ select_permissions:
         - label
       filter: {}
       allow_aggregations: true
+  - role: cf_filtered_one
+    permission:
+      columns:
+        - id
+        - item_id
+        - label
+      filter:
+        label:
+          _eq: one
+  - role: cf_filtered_three
+    permission:
+      columns:
+        - id
+        - item_id
+        - label
+      filter:
+        label:
+          _eq: three

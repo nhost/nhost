@@ -307,9 +307,9 @@ func (t *table) parseGroupedAggregateArguments(
 			limitOffset.offset = mod.Value
 			limitOffset.hasOffset = true
 		case *arguments.OrderBy:
-			// Materialize computed scalar order terms in the base CTE so
-			// both per-group windowing and nodes use the same expression.
-			// Correlated relationship terms cannot be materialized here.
+			// Materialize computed scalar and table aggregate order terms in
+			// the base CTE so windowing and nodes use the same expression.
+			// Ordinary relationship terms cannot be materialized here.
 			for i := range mod.Items {
 				if mod.Items[i].ComputedExpression() != nil {
 					alias := "__cs_computed_order_" + strconv.Itoa(i)

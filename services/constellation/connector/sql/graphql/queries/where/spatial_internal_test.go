@@ -30,6 +30,13 @@ func (s *spatialParseTable) ComputedScalarFromGraphqlName(string, string) core.C
 	return nil
 }
 
+func (s *spatialParseTable) ComputedTableFromGraphqlName(
+	string,
+	string,
+) core.ComputedTableExpression {
+	return nil
+}
+
 func (s *spatialParseTable) RelationshipFromGraphqlName(string) Relationship {
 	return nil
 }

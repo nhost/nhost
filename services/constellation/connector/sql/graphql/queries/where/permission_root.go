@@ -18,6 +18,8 @@ func writeConditionRoot(stmt Statement, b *strings.Builder, source, root string,
 		return f.writeWithRoot(b, source, root, params, index)
 	case *computedComparison:
 		return f.writeWithRoot(b, source, root, params, index)
+	case *computedTableFilter:
+		return f.writeWithRoot(b, source, root, params, index, subs)
 	case Clause:
 		for i, child := range f {
 			var err error

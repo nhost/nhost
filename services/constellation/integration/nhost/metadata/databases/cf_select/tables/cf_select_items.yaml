@@ -49,3 +49,13 @@ select_permissions:
         - item_payload
       filter: {}
       allow_aggregations: true
+  - role: cf_filtered_one
+    permission:
+      columns:
+        - id
+      filter: {}
+  - role: cf_filtered_three
+    permission:
+      columns:
+        - id
+      filter: {}

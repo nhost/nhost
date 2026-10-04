@@ -66,7 +66,8 @@ func (r *relationshipFilter) WriteCondition(
 
 // parseExists parses an _exists operator value into an existsFilter.
 // _exists targets a sibling table by (schema, name) and applies a where clause
-// against it. When _table.schema is omitted, t's schema is used.
+// against it. PostgreSQL permission references are normalized to an explicit
+// schema (default public) by the permission fixer before reaching this parser.
 func parseExists( //nolint:funlen,ireturn,nolintlint
 	t Table,
 	value *ast.Value,
@@ -110,9 +111,9 @@ func parseExists( //nolint:funlen,ireturn,nolintlint
 		return nil, errExistsTableNameRequired
 	}
 
-	// When _table.schema is omitted, default to the current table's schema.
-	// This stays compatible with Postgres metadata (public tables get "public")
-	// and works for SQLite, whose introspector returns every table under "".
+	// The permission fixer supplies PostgreSQL's explicit schema, including
+	// public for omitted or null metadata schemas. This fallback is for SQLite's
+	// flattened empty schema, which has no Hasura PostgreSQL equivalent.
 	if tableSchema == "" {
 		tableSchema = t.SchemaName()
 	}

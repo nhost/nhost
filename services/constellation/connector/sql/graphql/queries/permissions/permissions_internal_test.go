@@ -49,6 +49,10 @@ func (f *fakeTable) ComputedScalarFromGraphqlName(string, string) core.ComputedE
 	return nil
 }
 
+func (f *fakeTable) ComputedTableFromGraphqlName(string, string) core.ComputedTableExpression {
+	return nil
+}
+
 func (f *fakeTable) LookupRelationship(name string) Relationship {
 	r, ok := f.relationships[name]
 	if !ok {

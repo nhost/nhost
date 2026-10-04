@@ -49,7 +49,9 @@ var (
 	errExpectedMapForRelationshipPerm = errors.New("expected map for relationship permission")
 	errRelationshipNoLocalTargetTable = errors.New("has no local target table")
 	errExpectedMapForExistsOp         = errors.New("expected map for _exists operator")
-	errExpectedTableMapInExistsOp     = errors.New("expected _table map in _exists operator")
+	errExpectedTableMapInExistsOp     = errors.New(
+		"expected _table string or map in _exists operator",
+	)
 	errExpectedSchemaStringInExistsOp = errors.New(
 		"expected string for _table.schema in _exists operator",
 	)
@@ -80,6 +82,9 @@ type Table interface {
 	// metadata name. Permission filters are parsed with admin lookup, separately
 	// from the user's select grants and GraphQL input visibility.
 	ComputedScalarFromGraphqlName(name, role string) core.ComputedExpression
+
+	// ComputedTableFromGraphqlName identifies a table predicate independently of grants.
+	ComputedTableFromGraphqlName(name, role string) core.ComputedTableExpression
 
 	// LookupRelationship resolves a GraphQL field name to its relationship;
 	// returns a nil interface (not typed-nil) when no relationship matches.
@@ -402,6 +407,10 @@ func fixEntry(t, root Table, key string, value any) (fixedEntry, error) {
 		return fixedEntry{key: key, value: fixColumnComparisonValues(t, root, value)}, nil
 	}
 
+	if computed := t.ComputedTableFromGraphqlName(key, metadata.RoleAdmin); computed != nil {
+		return fixComputedTable(t, root, key, value, computed)
+	}
+
 	if rel := t.LookupRelationship(key); rel != nil {
 		return fixRelationship(rel, root, value)
 	}
@@ -409,6 +418,29 @@ func fixEntry(t, root Table, key string, value any) (fixedEntry, error) {
 	return fixedEntry{}, fmt.Errorf(
 		"%w: %s not found in table %s", errColumnOrRelationshipNotFound, key, t.Name(),
 	)
+}
+
+func fixComputedTable(t, root Table, key string, value any,
+	computed core.ComputedTableExpression,
+) (fixedEntry, error) {
+	target := t.SiblingTable(computed.TargetSchema(), computed.TargetName())
+	if target == nil {
+		return fixedEntry{}, fmt.Errorf("%w: computed target %s.%s",
+			errColumnOrRelationshipNotFound, computed.TargetSchema(), computed.TargetName())
+	}
+
+	comparison, ok := value.(map[string]any)
+	if !ok {
+		return fixedEntry{}, fmt.Errorf("%w: computed table %s",
+			errExpectedMapForRelationshipPerm, key)
+	}
+
+	fixed, err := fixColumnsRoot(target, root, comparison)
+	if err != nil {
+		return fixedEntry{}, fmt.Errorf("fixing computed table %s: %w", key, err)
+	}
+
+	return fixedEntry{key: key, value: fixed}, nil
 }
 
 // fixLogical rewrites a top-level "_and" or "_or" entry. Both share the
@@ -611,8 +643,9 @@ func fixValue(value any) any {
 }
 
 // fixExists rewrites the _where payload of an _exists operator against the
-// resolved sibling table. The _table reference is preserved as-is; only its
-// _where is normalised.
+// resolved sibling table. Bare names and omitted/null schemas resolve to public.
+// The _table reference is normalized to an explicit schema/name pair so the
+// where parser resolves the same table.
 func fixExists(t Table, value any) (map[string]any, error) {
 	return fixExistsRoot(t, t, value)
 }
@@ -623,18 +656,32 @@ func fixExistsRoot(t, root Table, value any) (map[string]any, error) {
 		return nil, errExpectedMapForExistsOp
 	}
 
-	tableRef, ok := existsMap["_table"].(map[string]any)
-	if !ok {
+	var schema, name string
+	switch ref := existsMap["_table"].(type) {
+	case string:
+		schema, name = "public", ref
+	case map[string]any:
+		schema = "public"
+		if rawSchema, exists := ref["schema"]; exists && rawSchema != nil {
+			var ok bool
+
+			schema, ok = rawSchema.(string)
+			if !ok {
+				return nil, errExpectedSchemaStringInExistsOp
+			}
+		}
+
+		var ok bool
+
+		name, ok = ref["name"].(string)
+		if !ok {
+			return nil, errExpectedNameStringInExistsOp
+		}
+	default:
 		return nil, errExpectedTableMapInExistsOp
 	}
 
-	schema, ok := tableRef["schema"].(string)
-	if !ok {
-		return nil, errExpectedSchemaStringInExistsOp
-	}
-
-	name, ok := tableRef["name"].(string)
-	if !ok {
+	if name == "" {
 		return nil, errExpectedNameStringInExistsOp
 	}
 
@@ -659,7 +706,7 @@ func fixExistsRoot(t, root Table, value any) (map[string]any, error) {
 	}
 
 	return map[string]any{
-		"_table": tableRef,
+		"_table": map[string]any{"schema": schema, "name": name},
 		"_where": fixedWhere,
 	}, nil
 }

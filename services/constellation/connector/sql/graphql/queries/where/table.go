@@ -14,12 +14,13 @@ import (
 // Table is the contract the where parser needs from a parent-package table.
 // It exposes column/relationship lookup, dialect access, sibling table lookup
 // for _exists, and row-level permission emission for relationship subqueries.
-type Table interface {
+type Table interface { //nolint:interfacebloat // One table adapter supplies all recursive where forms.
 	// Dialect returns the SQL dialect used to render placeholders, casts, etc.
 	Dialect() dialect.Dialect
 
-	// SchemaName returns the schema the table lives in. Used as the default
-	// schema for _exists when a where clause omits _table.schema.
+	// SchemaName returns the schema the table lives in. The _exists parser
+	// uses it only as a fallback for SQLite's flattened empty schema; PostgreSQL
+	// permission references already carry an explicit schema from the fixer.
 	SchemaName() string
 
 	// TableFromClause returns the FROM-clause source for this table.
@@ -31,6 +32,9 @@ type Table interface {
 
 	// ComputedScalarFromGraphqlName resolves a granted, argument-free scalar.
 	ComputedScalarFromGraphqlName(name, role string) core.ComputedExpression
+
+	// ComputedTableFromGraphqlName resolves a role-visible, argument-free SETOF function.
+	ComputedTableFromGraphqlName(name, role string) core.ComputedTableExpression
 
 	// RelationshipFromGraphqlName resolves a GraphQL field name to its
 	// relationship. Returns a nil interface (not a typed-nil) when no

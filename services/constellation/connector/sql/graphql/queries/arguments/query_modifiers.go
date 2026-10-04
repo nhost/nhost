@@ -83,7 +83,7 @@ func (item OrderByItem) writeExpr(
 	return params, paramIndex, nil
 }
 
-// ComputedExpression returns an argument-free computed scalar order term, if
+// ComputedExpression returns an argument-free computed order term, if
 // this item has one. Grouped aggregates materialize it once in their base CTE
 // so their window and nodes ordering can reference the same bound expression.
 //
@@ -91,6 +91,10 @@ func (item OrderByItem) writeExpr(
 func (item OrderByItem) ComputedExpression() core.ComputedExpression {
 	if computed, ok := item.term.(*computedOrderTerm); ok {
 		return computed.expression
+	}
+
+	if computed, ok := item.term.(*computedTableOrderTerm); ok {
+		return computed
 	}
 
 	return nil

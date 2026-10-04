@@ -16,9 +16,13 @@ transaction: at each level, relationship-free inputs use one statement, while
 inputs with any relationships run each row in input order. A row's before-parent
 objects run first, followed by the row, then arrays and implicit remote-FK
 `AfterParent` objects; arrays are depth-first per row. Siblings within each kind
-follow Hasura v2.48.10-ce's metadata-name hash traversal: UTF-8 `Text` from
-`text 2.1.1`, XXH3-64 seed zero from `hashable 1.4.7.0`, and low-to-high
-five-bit fragments from `unordered-containers 0.2.20`. Constellation vendors
+follow metadata-name hash traversal observed on Hasura v2.48.10-ce and
+reverified by the serialized forward/reverse insert and rollback suite against
+v2.50.3-ce. Its pinned dependencies are `text 2.1.3`, `hashable 1.5.1.0`
+(which updates xxHash to 0.8.3), and `unordered-containers 0.2.21`.
+Constellation hashes UTF-8 relationship names with seed-zero XXH3-64 and
+compares five-bit fragments low-to-high, as verified by the live order suite;
+this is version-coupled, not a guarantee for other Hasura images. Constellation vendors
 `github.com/zeebo/xxh3 v1.1.0`. A full 64-bit collision uses the relationship
 name as a deterministic tie-breaker; Hasura can instead use map insertion order
 for a full collision. The serialized version/order integration tripwire must be
@@ -72,8 +76,15 @@ Constellation. This intentional, documented difference applies only to invalid,
 unidentifiable keys: it is **not** supported computed-field parity.
 Identifiable invalid or unsupported computed predicate references make only the
 affected permission unavailable; executable argument-free PostgreSQL scalar
-references are enforced. Non-computed relationship-aggregate permission keys
-retain the existing parser behavior and can still fail source construction.
+references are enforced. `_exists._table` accepts a bare table name or a map
+with absent or null `schema`, resolving these forms against `public`, even when
+the containing table is in another schema. An invalid `_exists` value, table
+reference, `_where` map or untracked target revokes only its containing permission,
+including computed-free predicates; this also corrects the pre-existing
+source-wide failure for schema-less references. Ordinary unknown keys within a
+valid `_where` outside a recognized computed-table predicate retain the source-wide
+parser behavior. Non-computed
+relationship-aggregate permission keys can still fail source construction.
 
 # Computed-field support during alpha
 
@@ -86,15 +97,20 @@ set: boolean and JSONB are excluded from `min`/`max`, while date,
 timestamptz and uuid are included in SDL. In PostgreSQL installations without
 `min(uuid)`/`max(uuid)`, selecting those fields fails with SQLSTATE `42883` in
 both engines; advertised field availability is not a promise of a PostgreSQL
-aggregate function. Hasura omits computed fields from aggregate-order inputs and argument-bearing
+aggregate function. Hasura omits scalar computed fields from aggregate-order inputs and argument-bearing
 fields from row inputs. Argument-free scalar permission filters/checks run against
 the physical row and may use session arguments, relationships and `_exists`;
 invalid references revoke only their permissions. PostgreSQL `SETOF` tracked-table
 computed selections inherit the target table's select permissions (row and
 column), accept bound arguments and collection modifiers, and work in shared
 row selections; Hasura does not expose an aggregate sibling on the field.
-Table-valued boolean/order inputs and permission predicates remain gated;
-scalar fields with non-base argument types stay hidden.
+Argument-free table functions appear in row `bool_exp` as EXISTS and in
+`order_by` through the target's aggregate-order input; these user inputs
+respect returned-table select permissions, including row filters in patched
+Hasura v2.50.3-ce. Role table predicates execute without a target select grant and revoke the
+whole affected permission when invalid. Relationship-aggregate permission keys
+are rejected by Hasura; identifiable computed references there remain unavailable. Scalar fields with non-base
+argument types stay hidden.
 
 # Mutations with no update permissions
 
