@@ -18,6 +18,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/nhost/nhost/internal/lib/oapi"
 	"github.com/nhost/nhost/services/auth/go/api"
+	"github.com/nhost/nhost/services/auth/go/tokenpurpose"
 )
 
 const JWTContextKey = "nhost/auth/jwt"
@@ -375,10 +376,7 @@ func (j *JWTGetter) GetToken(
 		ns:    c,
 	}
 
-	token := jwt.NewWithClaims(j.method, claims)
-	if j.kid != "" {
-		token.Header["kid"] = j.kid
-	}
+	token := j.newToken(claims, tokenpurpose.Session)
 
 	ss, err := token.SignedString(j.signingKey)
 	if err != nil {
@@ -391,6 +389,7 @@ func (j *JWTGetter) GetToken(
 func (j *JWTGetter) SignTokenWithClaims(
 	claims jwt.MapClaims,
 	exp time.Time,
+	purpose tokenpurpose.Purpose,
 ) (string, error) {
 	now := time.Now()
 	iat := now.Unix()
@@ -399,10 +398,7 @@ func (j *JWTGetter) SignTokenWithClaims(
 	claims["iat"] = iat
 	claims["exp"] = exp.Unix()
 
-	token := jwt.NewWithClaims(j.method, &claims)
-	if j.kid != "" {
-		token.Header["kid"] = j.kid
-	}
+	token := j.newToken(&claims, purpose)
 
 	ss, err := token.SignedString(j.signingKey)
 	if err != nil {
@@ -412,7 +408,21 @@ func (j *JWTGetter) SignTokenWithClaims(
 	return ss, nil
 }
 
-func (j *JWTGetter) Validate(accessToken string) (*jwt.Token, error) {
+func (j *JWTGetter) newToken(claims jwt.Claims, purpose tokenpurpose.Purpose) *jwt.Token {
+	token := jwt.NewWithClaims(j.method, claims)
+	token.Header["typ"] = string(purpose)
+
+	if j.kid != "" {
+		token.Header["kid"] = j.kid
+	}
+
+	return token
+}
+
+func (j *JWTGetter) Validate(
+	accessToken string,
+	purpose tokenpurpose.Purpose,
+) (*jwt.Token, error) {
 	jwtToken, err := jwt.Parse(
 		accessToken,
 		func(_ *jwt.Token) (any, error) {
@@ -427,7 +437,79 @@ func (j *JWTGetter) Validate(accessToken string) (*jwt.Token, error) {
 		return nil, fmt.Errorf("error parsing token: %w", err)
 	}
 
+	if !j.hasPurpose(jwtToken, purpose) {
+		return nil, fmt.Errorf(
+			"%w: got %q, want %q", errTokenPurposeMismatch, jwtToken.Header["typ"], purpose,
+		)
+	}
+
 	return jwtToken, nil
+}
+
+func (j *JWTGetter) hasPurpose(token *jwt.Token, purpose tokenpurpose.Purpose) bool {
+	typ, _ := token.Header["typ"].(string)
+	if purpose.Matches(typ) {
+		return true
+	}
+
+	if purpose == tokenpurpose.Session {
+		return j.isLegacySessionToken(token)
+	}
+
+	if purpose == tokenpurpose.OAuth2AccessToken {
+		return isLegacyOAuth2AccessToken(token)
+	}
+
+	return false
+}
+
+// Remove me in auth@0.54.0.
+func hasLegacyType(token *jwt.Token) bool {
+	typ, _ := token.Header["typ"].(string)
+
+	return strings.EqualFold(typ, "JWT")
+}
+
+// Remove me in auth@0.54.0.
+func (j *JWTGetter) isLegacySessionToken(token *jwt.Token) bool {
+	if !hasLegacyType(token) {
+		return false
+	}
+
+	aud, err := token.Claims.GetAudience()
+	if err != nil || len(aud) > 0 {
+		return false
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return false
+	}
+
+	_, ok = claims[j.claimsNamespace].(map[string]any)
+
+	return ok
+}
+
+// Remove me in auth@0.54.0.
+func isLegacyOAuth2AccessToken(token *jwt.Token) bool {
+	if !hasLegacyType(token) {
+		return false
+	}
+
+	aud, err := token.Claims.GetAudience()
+	if err != nil || len(aud) == 0 {
+		return false
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return false
+	}
+
+	_, ok = claims["scope"].(string)
+
+	return ok
 }
 
 func (j *JWTGetter) FromContext(ctx context.Context) (*jwt.Token, bool) {
@@ -502,25 +584,50 @@ func (j *JWTGetter) isElevatedClaimOptional(requestPath string) bool {
 		)
 }
 
-func (j *JWTGetter) MiddlewareFunc(
+func schemePurpose(scheme string) (tokenpurpose.Purpose, bool) {
+	switch scheme {
+	case "BearerAuth", "BearerAuthElevated":
+		return tokenpurpose.Session, true
+	case "BearerAuthOAuth2":
+		return tokenpurpose.OAuth2AccessToken, true
+	default:
+		return "", false
+	}
+}
+
+func (j *JWTGetter) bearerToken(
 	ctx context.Context, input *openapi3filter.AuthenticationInput,
-) error {
+) (*jwt.Token, error) {
 	authHeader := input.RequestValidationInput.Request.Header.Get("Authorization")
 
 	parts := strings.Split(authHeader, " ")
 	if len(parts) != 2 || parts[0] != "Bearer" {
-		return &oapi.AuthenticatorError{
+		return nil, &oapi.AuthenticatorError{
 			Scheme:  input.SecuritySchemeName,
 			Code:    "unauthorized",
 			Message: "missing or malformed authorization header",
 		}
 	}
 
-	jwtToken, err := j.Validate(parts[1])
+	purpose, ok := schemePurpose(input.SecuritySchemeName)
+	if !ok {
+		slog.ErrorContext(
+			ctx, "security scheme accepts no token purpose",
+			slog.String("scheme", input.SecuritySchemeName),
+		)
+
+		return nil, &oapi.AuthenticatorError{
+			Scheme:  input.SecuritySchemeName,
+			Code:    "unauthorized",
+			Message: "unsupported security scheme",
+		}
+	}
+
+	jwtToken, err := j.Validate(parts[1], purpose)
 	if err != nil {
 		slog.WarnContext(ctx, "error validating JWT", slog.String("error", err.Error()))
 
-		return &oapi.AuthenticatorError{
+		return nil, &oapi.AuthenticatorError{
 			Scheme:  input.SecuritySchemeName,
 			Code:    "unauthorized",
 			Message: "invalid or expired token",
@@ -528,11 +635,22 @@ func (j *JWTGetter) MiddlewareFunc(
 	}
 
 	if !jwtToken.Valid {
-		return &oapi.AuthenticatorError{
+		return nil, &oapi.AuthenticatorError{
 			Scheme:  input.SecuritySchemeName,
 			Code:    "unauthorized",
 			Message: "invalid token",
 		}
+	}
+
+	return jwtToken, nil
+}
+
+func (j *JWTGetter) MiddlewareFunc(
+	ctx context.Context, input *openapi3filter.AuthenticationInput,
+) error {
+	jwtToken, err := j.bearerToken(ctx, input)
+	if err != nil {
+		return err
 	}
 
 	if input.SecuritySchemeName == "BearerAuthElevated" {

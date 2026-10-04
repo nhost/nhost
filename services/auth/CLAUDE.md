@@ -332,6 +332,14 @@ if apiErr != nil {
 }
 ```
 
+### Token Purposes
+
+Session tokens, OAuth2 access tokens, OIDC ID tokens and provider state tokens are all signed with the same key and issuer, so the signature alone cannot tell them apart. Each one carries its kind in the JWT `typ` header (`go/tokenpurpose`, RFC 8725 §3.11):
+
+- Sign with `JWTGetter.SignTokenWithClaims(claims, exp, purpose)`; `GetToken` always signs `tokenpurpose.Session`.
+- Validate with `JWTGetter.Validate(token, purpose)`, passing the only purpose the call site accepts. Never accept a token without checking its purpose.
+- OpenAPI security schemes map to purposes in `schemePurpose` (`go/controller/jwt.go`): `BearerAuth` and `BearerAuthElevated` accept session tokens, `BearerAuthOAuth2` accepts OAuth2 access tokens (`at+jwt`, RFC 9068). A new scheme accepts no token until it is added there.
+
 ### Optional Authentication
 
 ```go

@@ -268,6 +268,16 @@ The complete `#JWTSecret` schema, with every field and default, is documented in
 
 To verify JWTs inside Nhost Functions (for both symmetric and asymmetric keys), see the [JWT Verification guide](/products/functions/guides/jwt-verification).
 
+Nhost Auth signs every kind of token it issues with the same key, and marks each kind in the JWT's `typ` header:
+
+| Token | `typ` |
+|-------|-------|
+| Session access token, issued to your app on sign-in | `nhost-session+jwt` |
+| OAuth2 access token, issued to a third-party app by the [OAuth2 provider](/products/auth/oauth2-provider/tokens-and-scopes) | `at+jwt` |
+| OIDC ID token, issued to a third-party app by the OAuth2 provider | `JWT` |
+
+The GraphQL API, Storage and Functions do not look at `typ`. If you enable the OAuth2 provider and your own backend verifies tokens to identify the signed-in user, also check `typ`, so that a token issued to a third-party app is not accepted as the user's own session. Auth versions that predate typed tokens signed every kind with `typ: JWT`.
+
 ## Custom Claims
 
 You can attach extra information to your JWTs in the form of custom claims. These claims can be used for authorization purposes in your application. For more details on how to add custom claims to your JWTs and how to use them, see the [Permissions Variables](/products/graphql/permissions/permission-variables) documentation.

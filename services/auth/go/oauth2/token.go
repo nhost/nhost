@@ -15,6 +15,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/sql"
+	"github.com/nhost/nhost/services/auth/go/tokenpurpose"
 )
 
 var errUserLacksRequestedRole = errors.New("user does not have the requested graphql role")
@@ -340,7 +341,7 @@ func (p *Provider) createAccessToken(
 
 	exp := time.Now().Add(ttl)
 
-	raw, err := p.signer.SignTokenWithClaims(claims, exp)
+	raw, err := p.signer.SignTokenWithClaims(claims, exp, tokenpurpose.OAuth2AccessToken)
 	if err != nil {
 		return "", fmt.Errorf("error signing access token: %w", err)
 	}
@@ -434,7 +435,7 @@ func (p *Provider) createIDToken(
 
 	exp := now.Add(ttl)
 
-	raw, err := p.signer.SignTokenWithClaims(claims, exp)
+	raw, err := p.signer.SignTokenWithClaims(claims, exp, tokenpurpose.OIDCIDToken)
 	if err != nil {
 		return "", fmt.Errorf("error signing id token: %w", err)
 	}

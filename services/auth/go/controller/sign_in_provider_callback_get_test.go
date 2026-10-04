@@ -16,6 +16,7 @@ import (
 	"github.com/nhost/nhost/services/auth/go/controller/mock"
 	"github.com/nhost/nhost/services/auth/go/providers"
 	"github.com/nhost/nhost/services/auth/go/sql"
+	"github.com/nhost/nhost/services/auth/go/tokenpurpose"
 	"go.uber.org/mock/gomock"
 )
 
@@ -86,6 +87,7 @@ func getStateWithFlowAndPKCE(
 			"codeChallenge": codeChallenge,
 		},
 		time.Now().Add(time.Minute),
+		tokenpurpose.ProviderState,
 	)
 	if err != nil {
 		t.Fatalf("failed to sign state: %v", err)
@@ -1140,6 +1142,42 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			expectedResponse: controller.ErrorRedirectResponse{
 				Headers: struct{ Location string }{
 					Location: `^http://localhost:3000/connect-success\?error=disabled-user&errorDescription=User\+is\+disabled&state=some-random-state$`,
+				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
+
+		{
+			// Linking a provider identity to the user named by the connect
+			// token takes over the account, so the connect token must be the
+			// user's own session, never a token issued to an OAuth2 client.
+			name:   "connect - rejects an OAuth2 access token",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				return mock.NewMockDBClient(ctrl)
+			},
+			request: api.SignInProviderCallbackGetRequestObject{
+				Params: api.SignInProviderCallbackGetParams{
+					Code: new("valid-code-1"),
+					State: getState(
+						t,
+						jwtGetter,
+						new(signTestToken(
+							t, jwtGetter, userIDConnect, tokenpurpose.OAuth2AccessToken,
+							map[string]any{"aud": "some-client", "scope": "openid"},
+						)),
+						api.SignUpOptions{
+							RedirectTo: new("http://localhost:3000/connect-success"),
+						},
+					),
+				},
+				Provider: "fake",
+			},
+			expectedResponse: controller.ErrorRedirectResponse{
+				Headers: struct{ Location string }{
+					Location: `^http://localhost:3000/connect-success\?error=invalid-request&errorDescription=The\+request\+payload\+is\+incorrect&state=some-random-state$`,
 				},
 			},
 			expectedJWT:       nil,
