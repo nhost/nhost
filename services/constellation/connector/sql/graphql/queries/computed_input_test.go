@@ -181,6 +181,14 @@ func TestComputedScalarMutationPredicates(t *testing.T) {
 			`mutation { insert_cf_select_items_one(object:{id:1,owner_id:1,label:"changed",amount:5,payload:{}},on_conflict:{constraint:items_pkey,update_columns:[label],where:{item_label:{_eq:"first"}}}) { item_label } }`,
 			map[string]any{"item_label": "changed"},
 		},
+		{
+			"nested conflict",
+			`mutation { insert_cf_select_items_one(object:{id:1,owner_id:1,label:"changed",amount:5,payload:{},tags:{data:[{id:10,label:"nested"}]}},on_conflict:{constraint:items_pkey,update_columns:[label],where:{item_label:{_eq:"first"}}}) { item_label tags(where:{id:{_eq:10}}){id label} } }`,
+			map[string]any{
+				"item_label": "changed",
+				"tags":       []any{map[string]any{"id": float64(10), "label": "nested"}},
+			},
+		},
 	}
 	for _, tt := range cases {
 		t.Run(tt.name, func(t *testing.T) {

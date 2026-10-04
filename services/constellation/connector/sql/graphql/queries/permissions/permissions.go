@@ -946,7 +946,7 @@ type columnLookup func(sqlName string) *core.Column
 //
 // presentColumns is the set of column SQL names that carry a concrete value
 // for every row being inserted (the intersection across rows, plus FK columns
-// sourced from a parent CTE); a column outside it may fall back to its default
+// bound from a captured parent row); a column outside it may fall back to its default
 // for at least one row.
 func (s *Store) RequiresPostInsertCheck(
 	role string,

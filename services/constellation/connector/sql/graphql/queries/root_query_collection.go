@@ -53,6 +53,7 @@ func (t *table) buildQueryCollectionSQL(
 		Parameters:    params,
 		StreamCursors: nil,
 		Sequential:    nil,
+		Insert:        nil,
 	}, nil
 }
 
@@ -88,7 +89,6 @@ func (t *table) writeQueryCollectionSQL(
 		relName,
 		t.tableFromClause(),
 		t.tableSourceRef(),
-		nil,
 		argumentPath,
 		queryModifiers...,
 	)
@@ -108,7 +108,6 @@ func (t *table) writeQueryCollectionSQLFromSource(
 	relName string,
 	fromClause string,
 	sourceRef string,
-	nestedCTEs map[string]nestedReturningCTERef,
 	argumentPath string,
 	queryModifiers ...queryModifierFunc,
 ) ([]any, int, error) {
@@ -118,7 +117,7 @@ func (t *table) writeQueryCollectionSQLFromSource(
 	b.WriteString(relName)
 	b.WriteString(`" FROM (`)
 
-	params, paramIndex, err := t.buildQuerySQLWithNestedCTEs(
+	params, paramIndex, err := t.buildQuerySQL(
 		b,
 		field,
 		fragments,
@@ -132,7 +131,6 @@ func (t *table) writeQueryCollectionSQLFromSource(
 		alias,
 		fromClause,
 		sourceRef,
-		nestedCTEs,
 		argumentPath,
 		queryModifiers...,
 	)
