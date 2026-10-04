@@ -9,9 +9,10 @@ import (
 )
 
 // insertRelationshipLess emulates Data.HashMap.Strict's traversal of FieldName
-// Text in the pinned Hasura v2.48.10 image: hashable 1.4.7.0 uses XXH3-64
-// seed zero on UTF-8 Text; unordered-containers 0.2.20 compares five-bit
-// fragments starting at the least significant end. For a full-hash collision
+// Text in the pinned Hasura v2.50.3-ce image (text 2.1.3, hashable 1.5.1.0
+// with xxHash 0.8.3, unordered-containers 0.2.21): the observed order matches
+// seed-zero XXH3-64 on UTF-8 names and five-bit fragments from the least
+// significant end. For a full-hash collision
 // (which the pinned map can resolve by insertion order), use the metadata
 // name as a deterministic tie-breaker rather than GraphQL input order.
 func insertRelationshipLess(a, b string) bool {

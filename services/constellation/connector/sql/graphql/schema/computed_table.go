@@ -18,6 +18,7 @@ func tableComputedFields(
 	role string,
 	caps Capabilities,
 	used map[string]struct{},
+	generatedAggregateOrderBy map[string]struct{},
 ) []*graph.Field {
 	if !caps.SupportsComputedFields || !caps.SupportsComputedTableSelection {
 		return nil
@@ -44,6 +45,12 @@ func tableComputedFields(
 		}
 
 		targetName := getCustomOrDefaultTypeName(target)
+		if caps.SupportsComputedTableInput && !computedTableRequiresUserArgs(fn, field) {
+			maybeGenerateAggregateOrderByForTargetTable(
+				s, md, objects, target.Table.Schema, target.Table.Name, role,
+				generatedAggregateOrderBy, caps,
+			)
+		}
 
 		description := field.Comment
 		if description == "" {
@@ -63,6 +70,19 @@ func tableComputedFields(
 	}
 
 	return fields
+}
+
+func computedTableRequiresUserArgs(
+	fn *introspection.ComputedFunction,
+	field metadata.ComputedField,
+) bool {
+	for _, name := range fn.GraphQLArgumentNames(field.Definition.SessionArgument) {
+		if name != "" {
+			return true
+		}
+	}
+
+	return false
 }
 
 func computedTargetTable(

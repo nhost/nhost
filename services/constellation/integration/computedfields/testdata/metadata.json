@@ -17,13 +17,17 @@
           ],
           "select_permissions": [
             {"role": "cf_no_grant", "permission": {"columns": ["id", "label"], "filter": {}}},
-            {"role": "cf_reader", "permission": {"columns": ["id", "label", "amount", "payload"], "computed_fields": ["item_label", "item_score", "item_second", "item_payload"], "filter": {}, "allow_aggregations": true}}
+            {"role": "cf_reader", "permission": {"columns": ["id", "label", "amount", "payload"], "computed_fields": ["item_label", "item_score", "item_second", "item_payload"], "filter": {}, "allow_aggregations": true}},
+            {"role": "cf_filtered_one", "permission": {"columns": ["id"], "filter": {}}},
+            {"role": "cf_filtered_three", "permission": {"columns": ["id"], "filter": {}}}
           ]
         },
         {
           "table": {"schema": "cf_select", "name": "tags"},
           "select_permissions": [
-            {"role": "cf_reader", "permission": {"columns": ["id", "item_id", "label"], "filter": {}, "allow_aggregations": true}}
+            {"role": "cf_reader", "permission": {"columns": ["id", "item_id", "label"], "filter": {}, "allow_aggregations": true}},
+            {"role": "cf_filtered_one", "permission": {"columns": ["id", "item_id", "label"], "filter": {"label": {"_eq": "one"}}}},
+            {"role": "cf_filtered_three", "permission": {"columns": ["id", "item_id", "label"], "filter": {"label": {"_eq": "three"}}}}
           ]
         }
       ]

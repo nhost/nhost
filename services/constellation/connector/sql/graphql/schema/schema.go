@@ -169,7 +169,7 @@ func NewCapabilities(kind DBKind, dial dialect.Dialect) Capabilities {
 		SupportsComputedScalarSelection: kind == KindPostgres && dial.SupportsFunctions(),
 		SupportsComputedTableSelection:  kind == KindPostgres && dial.SupportsFunctions(),
 		SupportsComputedScalarInput:     kind == KindPostgres && dial.SupportsFunctions(),
-		SupportsComputedTableInput:      false,
+		SupportsComputedTableInput:      kind == KindPostgres && dial.SupportsFunctions(),
 		SupportsArrays:                  dial.SupportsArrays(),
 		SupportsSpatialTypes:            dial.SupportsSpatialTypes(),
 		SupportsVarianceAggregates:      dial.SupportsVarianceAggregates(),

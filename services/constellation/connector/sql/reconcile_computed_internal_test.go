@@ -210,7 +210,7 @@ func TestReconcileExecutableComputedPermissionKinds(t *testing.T) {
 		{"valid scalar", map[string]any{"label": map[string]any{"_eq": "visible"}}, true},
 		{"unknown operator", map[string]any{"label": map[string]any{"_unhandled": "visible"}}, false},
 		{"invalid function", map[string]any{"broken": map[string]any{"_eq": "visible"}}, false},
-		{"deferred table", map[string]any{"posts_for_user": map[string]any{"id": map[string]any{"_eq": 1}}}, false},
+		{"valid table", map[string]any{"posts_for_user": map[string]any{"id": map[string]any{"_eq": 1}}}, true},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()

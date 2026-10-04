@@ -62,6 +62,7 @@ func generateForTable( //nolint:funlen
 		role,
 		caps,
 		usedScalars,
+		generatedAggregateOrderBy,
 	)
 	if caps.SupportsComputedScalarInput {
 		for _, field := range computedFields {
@@ -124,6 +125,7 @@ func generateForTable( //nolint:funlen
 		selectUsedScalars,
 		caps,
 		computedFields,
+		tableFields,
 	)
 
 	if (tableInfo.IsInsertable || tableInfo.IsUpdatable) &&

@@ -115,6 +115,10 @@ func ContainsComputed(ws Statement) bool {
 		return true
 	}
 
+	if _, ok := ws.(*computedTableFilter); ok {
+		return true
+	}
+
 	switch child := ws.(type) {
 	case *relationshipFilter:
 		return ContainsComputed(child.conditions)
@@ -149,6 +153,8 @@ func containsRootColumn(ws Statement) bool {
 		return condition.root
 	case *computedComparison:
 		return condition.rootColumn
+	case *computedTableFilter:
+		return containsRootColumn(condition.conditions)
 	case *relationshipFilter:
 		return containsRootColumn(condition.conditions)
 	case *existsFilter:

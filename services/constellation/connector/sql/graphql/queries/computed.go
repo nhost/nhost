@@ -76,6 +76,47 @@ type computedInput struct {
 	computed *computedScalar
 }
 
+// ComputedTableFromGraphqlName resolves a table function independently of
+// scalar grants. The returned table's select access controls input visibility.
+//
+//nolint:ireturn // Shared where and order parsers consume this interface.
+func (t *table) ComputedTableFromGraphqlName(name, role string) core.ComputedTableExpression {
+	computed := t.computedTableFromGraphqlName(name, role)
+	if computed == nil {
+		return nil
+	}
+
+	for _, arg := range computed.call.function.GraphQLArgumentNames(computed.call.sessionArgument) {
+		if arg != "" {
+			return nil
+		}
+	}
+
+	return &computedTableInput{
+		call:   computedInput{table: t, computed: &computed.call},
+		target: computed.table,
+	}
+}
+
+type computedTableInput struct {
+	call   computedInput
+	target *table
+}
+
+func (input *computedTableInput) TargetSchema() string { return input.target.schemaName }
+func (input *computedTableInput) TargetName() string   { return input.target.tableName }
+func (input *computedTableInput) SQLType() string      { return input.call.SQLType() }
+func (input *computedTableInput) SourceColumns() []string {
+	return input.call.SourceColumns()
+}
+
+func (input *computedTableInput) WriteExpression(
+	b *strings.Builder, source string, sessionVariables map[string]any,
+	params []any, paramIndex int,
+) ([]any, int, error) {
+	return input.call.WriteExpression(b, source, sessionVariables, params, paramIndex)
+}
+
 func (input *computedInput) SQLType() string {
 	return input.computed.function.ReturnType.Name
 }

@@ -41,6 +41,20 @@ func (t *table) ConflictColumns(constraintName string) []string {
 	return append([]string(nil), columns...)
 }
 
+// OrderTableBySchemaName resolves the returned table for computed ordering.
+//
+//nolint:ireturn // The parser's table interface cannot share where.Table's return type.
+func (t *table) OrderTableBySchemaName(
+	schema, name string,
+) arguments.Table {
+	other := t.tableBySchemaName(schema, name)
+	if other == nil {
+		return nil
+	}
+
+	return other
+}
+
 // Relationship satisfies arguments.Table. Returns a nil interface (not a
 // typed-nil) when no relationship matches, so callers can compare against nil.
 func (t *table) Relationship(name string) arguments.Relationship { //nolint:ireturn,nolintlint
