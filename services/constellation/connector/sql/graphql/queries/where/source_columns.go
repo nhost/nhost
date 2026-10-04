@@ -1,5 +1,7 @@
 package where
 
+import "slices"
+
 // sourceColumnRef is implemented by filters that reference a single column from the source.
 type sourceColumnRef interface {
 	sourceColumn() string
@@ -49,6 +51,18 @@ func (f *lessThanFilter) sourceColumn() string {
 func (f *lessThanOrEqualFilter) sourceColumn() string {
 	return sourceColumnForTarget(f.column, f.target)
 }
+
+func (f *columnComparisonFilter) sourceColumns() []string {
+	columns := []string{sourceColumnForTarget(f.column, f.target)}
+	if !f.root {
+		return append(columns, f.rhs.SQLName)
+	}
+
+	return columns
+}
+
+func (f *ltreeFilter) sourceColumn() string    { return sourceColumnForTarget(f.column, f.target) }
+func (f *similarFilter) sourceColumn() string  { return sourceColumnForTarget(f.column, f.target) }
 func (f *likeFilter) sourceColumn() string     { return f.column }
 func (f *notLikeFilter) sourceColumn() string  { return f.column }
 func (f *regexFilter) sourceColumn() string    { return f.column }
@@ -88,6 +102,65 @@ func (c Clause) children() []Statement     { return c }
 func (f *andFilter) children() []Statement { return f.conditions }
 func (f *orFilter) children() []Statement  { return f.conditions }
 func (f *notFilter) children() []Statement { return []Statement{f.condition} }
+
+// ContainsComputed reports whether a clause reads a complete physical row
+// through a computed function. Insert checks containing one must run on the
+// post-INSERT RETURNING row, never on a partial input projection.
+func ContainsComputed(ws Statement) bool {
+	if ws == nil {
+		return false
+	}
+
+	if _, ok := ws.(*computedComparison); ok {
+		return true
+	}
+
+	switch child := ws.(type) {
+	case *relationshipFilter:
+		return ContainsComputed(child.conditions)
+	case *existsFilter:
+		return ContainsComputed(child.conditions)
+	case *aggregateRelationshipFilter:
+		return ContainsComputed(child.filter)
+	}
+
+	composite, ok := ws.(compositeFilter)
+	if !ok {
+		return false
+	}
+
+	return slices.ContainsFunc(composite.children(), ContainsComputed)
+}
+
+// ContainsRootColumn reports whether a column comparison reaches the root
+// row through any nested relationship or _exists. An insert's input projection
+// may omit that column, so the check must use the physical RETURNING row.
+func ContainsRootColumn(ws Statement) bool {
+	return containsRootColumn(ws)
+}
+
+func containsRootColumn(ws Statement) bool {
+	if ws == nil {
+		return false
+	}
+
+	switch condition := ws.(type) {
+	case *columnComparisonFilter:
+		return condition.root
+	case *computedComparison:
+		return condition.rootColumn
+	case *relationshipFilter:
+		return containsRootColumn(condition.conditions)
+	case *existsFilter:
+		return containsRootColumn(condition.conditions)
+	case *aggregateRelationshipFilter:
+		return containsRootColumn(condition.filter)
+	case compositeFilter:
+		return slices.ContainsFunc(condition.children(), containsRootColumn)
+	default:
+		return false
+	}
+}
 
 // CollectSourceColumns extracts all column SQL names that a Statement
 // references from its source. This is used to ensure the data subquery in

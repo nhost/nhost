@@ -105,12 +105,15 @@ func buildRoots(
 		}
 	}
 
-	for i, tableMeta := range md.Tables {
-		if scalarSelection && dialect.SupportsFunctions() &&
-			(md.Kind == "postgres" || md.Kind == "") {
+	// Permission filters can traverse relationships and _exists into any sibling,
+	// regardless of metadata ordering. Install every computed lookup first.
+	if scalarSelection && dialect.SupportsFunctions() && (md.Kind == "postgres" || md.Kind == "") {
+		for i, tableMeta := range md.Tables {
 			tables[i].initializeComputedScalars(objects, tableMeta)
 		}
+	}
 
+	for i, tableMeta := range md.Tables {
 		if err := permissions.Initialize(tables[i], tables[i].permissions, tableMeta); err != nil {
 			return Roots{}, nil, fmt.Errorf("failed to initialize table %s.%s: %w",
 				tableMeta.Table.Schema, tableMeta.Table.Name, err)

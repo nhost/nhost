@@ -70,8 +70,10 @@ that `select_permission` inconsistent and keeps the source. A filter with an
 ordinary missing-column key causes the same source-wide failure in
 Constellation. This intentional, documented difference applies only to invalid,
 unidentifiable keys: it is **not** supported computed-field parity.
-Identifiable computed permission predicates make only the affected permission
-unavailable until those predicates can be executed.
+Identifiable invalid or unsupported computed predicate references make only the
+affected permission unavailable; executable argument-free PostgreSQL scalar
+references are enforced. Non-computed relationship-aggregate permission keys
+retain the existing parser behavior and can still fail source construction.
 
 # Computed-field support during alpha
 
@@ -85,8 +87,10 @@ timestamptz and uuid are included in SDL. In PostgreSQL installations without
 `min(uuid)`/`max(uuid)`, selecting those fields fails with SQLSTATE `42883` in
 both engines; advertised field availability is not a promise of a PostgreSQL
 aggregate function. Hasura omits computed fields from aggregate-order inputs and argument-bearing
-fields from row inputs. Identifiable computed permission predicates/checks remain unavailable;
-table-valued selections and scalar fields with non-base argument types stay
+fields from row inputs. Argument-free scalar permission filters/checks run against
+the physical row and may use session arguments, relationships and `_exists`;
+invalid references revoke only their permissions. Table-valued selections and
+scalar fields with non-base argument types stay
 hidden.
 
 # Mutations with no update permissions

@@ -35,6 +35,20 @@ func (f *fakeTable) ColumnFromSQLName(name string) *core.Column {
 	return f.columns[name]
 }
 
+func (f *fakeTable) ColumnFromGraphqlName(name string) *core.Column {
+	for _, col := range f.columns {
+		if col.GraphqlName == name {
+			return col
+		}
+	}
+
+	return nil
+}
+
+func (f *fakeTable) ComputedScalarFromGraphqlName(string, string) core.ComputedExpression {
+	return nil
+}
+
 func (f *fakeTable) LookupRelationship(name string) Relationship {
 	r, ok := f.relationships[name]
 	if !ok {

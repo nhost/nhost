@@ -2,6 +2,7 @@ package where
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/vektah/gqlparser/v2/ast"
 
@@ -119,6 +120,30 @@ func buildLike(
 			caseSensitive: caseSensitive,
 			dialect:       d,
 		}
+	}
+}
+
+// buildSimilar uses PostgreSQL SIMILAR TO, never interpolating the pattern.
+func buildSimilar(negated bool) operatorParser {
+	return func(c *core.Column, target *comparisonTarget, v *ast.Value,
+		vars map[string]any, d dialect.Dialect,
+	) (Statement, error) {
+		if !d.SupportsRegex() {
+			return nil, errRegexUnsupportedByDialect
+		}
+
+		pattern, err := resolveTargetScalarValue(c, target, v, vars)
+		if err != nil {
+			return nil, err
+		}
+
+		return &similarFilter{
+			column:  c,
+			target:  target,
+			pattern: pattern,
+			negated: negated,
+			dialect: d,
+		}, nil
 	}
 }
 
@@ -253,9 +278,24 @@ func containmentParser(
 // operatorParserFor consults the dispatch table used by ParseFieldComparison.
 // Adding a new operator means adding one entry to operatorParserTable.
 func operatorParserFor(name string) (operatorParser, bool) {
-	parser, ok := operatorParserTable()[name]
+	parser, ok := operatorParserTable()[canonicalComparisonOperator(name)]
 
 	return parser, ok
+}
+
+// Hasura accepts both `_` and `$` prefixes in metadata bool expressions.
+// `_ne` is Hasura's canonical not-equal spelling; `_neq` is retained for
+// Constellation's existing column input/schema compatibility.
+func canonicalComparisonOperator(name string) string {
+	if strings.HasPrefix(name, "$") {
+		name = "_" + name[1:]
+	}
+
+	if name == "_ne" {
+		return "_neq"
+	}
+
+	return name
 }
 
 //nolint:funlen // operator dispatch table is intentionally kept in one place.
@@ -301,16 +341,22 @@ func operatorParserTable() map[string]operatorParser {
 				return &notInFilter{column: c, target: target, values: vs, dialect: d}
 			},
 		),
-		"_like":    scalarParser(buildLike(false, false)),
-		"_nlike":   scalarParser(buildLike(true, false)),
-		"_ilike":   scalarParser(buildLike(false, true)),
-		"_nilike":  scalarParser(buildLike(true, true)),
-		"_regex":   buildRegex(false, false),
-		"_nregex":  buildRegex(true, false),
-		"_iregex":  buildRegex(false, true),
-		"_niregex": buildRegex(true, true),
-		"_is_null": parseIsNull,
-		"_cast":    parseComparisonCast,
+		"_like":     scalarParser(buildLike(false, false)),
+		"_nlike":    scalarParser(buildLike(true, false)),
+		"_ilike":    scalarParser(buildLike(false, true)),
+		"_nilike":   scalarParser(buildLike(true, true)),
+		"_similar":  buildSimilar(false),
+		"_nsimilar": buildSimilar(true),
+		"_regex":    buildRegex(false, false),
+		"_nregex":   buildRegex(true, false),
+		"_iregex":   buildRegex(false, true),
+		"_niregex":  buildRegex(true, true),
+		"_is_null":  parseIsNull,
+		"_cast": func(c *core.Column, target *comparisonTarget, v *ast.Value,
+			vars map[string]any, d dialect.Dialect,
+		) (Statement, error) {
+			return parseComparisonCast(c, target, v, vars, d)
+		},
 		"_contains": containmentParser(
 			func(c *core.Column, vs []any, d dialect.Dialect) Statement {
 				return &arrayContainsFilter{
@@ -361,7 +407,14 @@ func operatorParserTable() map[string]operatorParser {
 				}
 			},
 		),
-		"_st_3d_d_within": spatialDWithinParser(true),
+		"_ancestor":         ltreeParser("@>", "ltree", false),
+		"_ancestor_any":     ltreeParser("@>", "ltree", true),
+		"_descendant":       ltreeParser("<@", "ltree", false),
+		"_descendant_any":   ltreeParser("<@", "ltree", true),
+		"_matches":          ltreeParser("~", "lquery", false),
+		"_matches_any":      ltreeParser("?", "lquery", true),
+		"_matches_fulltext": ltreeParser("@", "ltxtquery", false),
+		"_st_3d_d_within":   spatialDWithinParser(true),
 		"_st_3d_intersects": spatialPredicateParser(
 			dialect.SpatialPredicate3DIntersects,
 			spatialOperatorGeometryOnly,

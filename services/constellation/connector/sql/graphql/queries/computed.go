@@ -80,6 +80,15 @@ func (input *computedInput) SQLType() string {
 	return input.computed.function.ReturnType.Name
 }
 
+func (input *computedInput) SourceColumns() []string {
+	columns := make([]string, len(input.table.columns))
+	for i, col := range input.table.columns {
+		columns[i] = col.SQLName
+	}
+
+	return columns
+}
+
 func (input *computedInput) WriteExpression(
 	b *strings.Builder, source string, sessionVariables map[string]any,
 	params []any, paramIndex int,
@@ -230,7 +239,7 @@ func (t *table) writeComputedCall(
 		case i == fn.RowArgument:
 			// Emitted below from the full physical row; no role-projected columns.
 		case arg.Name == computed.sessionArgument && computed.sessionArgument != "":
-			if isSubscriptionTemplateSessionArgument(sessionVariables) {
+			if isComputedSessionTemplate(sessionVariables) {
 				value = core.FunctionSessionArgument{SQLType: arg.Type.Name}
 			} else {
 				encoded, err := marshalSessionArgument(arg.Name, sessionVariables)
@@ -288,6 +297,14 @@ func (t *table) writeComputedCall(
 	call.WriteByte(')')
 
 	return params, paramIndex, nil
+}
+
+func isComputedSessionTemplate(sessionVariables map[string]any) bool {
+	if isSubscriptionTemplateSessionArgument(sessionVariables) {
+		return true
+	}
+
+	return sessionVariables[core.PermissionSessionTemplateKey] == true
 }
 
 // GraphQL substitutes null for an unset optional variable supplied as a field

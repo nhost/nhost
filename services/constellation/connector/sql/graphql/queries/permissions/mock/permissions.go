@@ -43,6 +43,20 @@ func (m *MockTable) EXPECT() *MockTableMockRecorder {
 	return m.recorder
 }
 
+// ColumnFromGraphqlName mocks base method.
+func (m *MockTable) ColumnFromGraphqlName(name string) *core.Column {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ColumnFromGraphqlName", name)
+	ret0, _ := ret[0].(*core.Column)
+	return ret0
+}
+
+// ColumnFromGraphqlName indicates an expected call of ColumnFromGraphqlName.
+func (mr *MockTableMockRecorder) ColumnFromGraphqlName(name any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ColumnFromGraphqlName", reflect.TypeOf((*MockTable)(nil).ColumnFromGraphqlName), name)
+}
+
 // ColumnFromSQLName mocks base method.
 func (m *MockTable) ColumnFromSQLName(name string) *core.Column {
 	m.ctrl.T.Helper()
@@ -55,6 +69,20 @@ func (m *MockTable) ColumnFromSQLName(name string) *core.Column {
 func (mr *MockTableMockRecorder) ColumnFromSQLName(name any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ColumnFromSQLName", reflect.TypeOf((*MockTable)(nil).ColumnFromSQLName), name)
+}
+
+// ComputedScalarFromGraphqlName mocks base method.
+func (m *MockTable) ComputedScalarFromGraphqlName(name, role string) core.ComputedExpression {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ComputedScalarFromGraphqlName", name, role)
+	ret0, _ := ret[0].(core.ComputedExpression)
+	return ret0
+}
+
+// ComputedScalarFromGraphqlName indicates an expected call of ComputedScalarFromGraphqlName.
+func (mr *MockTableMockRecorder) ComputedScalarFromGraphqlName(name, role any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ComputedScalarFromGraphqlName", reflect.TypeOf((*MockTable)(nil).ComputedScalarFromGraphqlName), name, role)
 }
 
 // LookupRelationship mocks base method.

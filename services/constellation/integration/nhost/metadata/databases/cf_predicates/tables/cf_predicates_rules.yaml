@@ -14,6 +14,14 @@ select_permissions:
         - id
         - label
       filter: {}
+  - role: cf_predicate_guard
+    permission:
+      columns:
+        - id
+        - label
+      filter:
+        rule_visible:
+          _eq: true
   - role: cf_reader
     permission:
       columns:
@@ -23,3 +31,13 @@ select_permissions:
       computed_fields:
         - rule_visible
       filter: {}
+insert_permissions:
+  - role: cf_predicate_guard
+    permission:
+      columns:
+        - id
+        - owner_id
+        - label
+      check:
+        rule_visible:
+          _eq: true

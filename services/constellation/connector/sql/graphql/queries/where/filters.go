@@ -476,6 +476,31 @@ func writeLikePatternCondition(
 	}
 }
 
+type similarFilter struct {
+	column  *core.Column
+	target  *comparisonTarget
+	pattern any
+	negated bool
+	dialect dialect.Dialect
+}
+
+func (f *similarFilter) WriteCondition(
+	b *strings.Builder, source string, params []any, paramIndex int,
+) ([]any, int, error) {
+	target := comparisonTargetFor(f.column, f.target)
+	target.writeSQL(b, source)
+
+	if f.negated {
+		b.WriteString(" NOT SIMILAR TO ")
+	} else {
+		b.WriteString(" SIMILAR TO ")
+	}
+
+	b.WriteString(f.dialect.TypeCast(f.dialect.Placeholder(paramIndex), target.sqlType))
+
+	return append(params, f.pattern), paramIndex + 1, nil
+}
+
 type regexFilter struct {
 	target        *comparisonTarget
 	column        string
