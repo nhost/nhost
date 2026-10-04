@@ -114,14 +114,16 @@ type Relationship interface {
 	FKColumns() []string
 
 	// FKSourceColumns maps each FK column populated by a nested insert to the
-	// column read from the source CTE. For array relationships the source CTE is
-	// the parent row; for object relationships it is the nested target row.
+	// column captured from the source row. Arrays and implicit after-parent
+	// objects read the parent row; before-parent objects read the nested target row.
 	FKSourceColumns() map[string]string
 
-	// IsArray reports whether this is an array relationship (vs an object
-	// relationship). Array relationships place the FK on the child row;
-	// object relationships place it on the parent.
+	// IsArray reports whether this is an array relationship (vs an object relationship).
 	IsArray() bool
+
+	// InsertAfterParent identifies an object relationship with its foreign key
+	// on the remote table. Manual relationships remain before-parent.
+	InsertAfterParent() bool
 
 	// Name is the relationship's GraphQL field name. Used by order_by to tell
 	// an object/array relationship key from its `<name>_aggregate` key.

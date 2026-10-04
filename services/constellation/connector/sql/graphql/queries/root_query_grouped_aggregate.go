@@ -158,6 +158,7 @@ func (t *table) BuildGroupedAggregateSQL(
 		Parameters:    params,
 		StreamCursors: nil,
 		Sequential:    nil,
+		Insert:        nil,
 	}, nil
 }
 

@@ -391,8 +391,7 @@ CREATE TABLE public.exercise_log_sets (
   FOREIGN KEY (parent_id, parent_kind) REFERENCES public.exercise_logs(id, kind) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
--- notes / note_replies: nested array-rel + post-check + parent-CTE
--- substitution fixture.
+-- notes / note_replies: nested array-rel + post-insert check fixture.
 CREATE TABLE public.notes (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   author_id UUID NOT NULL,

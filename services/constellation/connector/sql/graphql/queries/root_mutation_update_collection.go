@@ -64,6 +64,7 @@ func (t *table) buildMutationUpdateSQL( //nolint:dupl
 		Parameters:    params,
 		StreamCursors: nil,
 		Sequential:    nil,
+		Insert:        nil,
 	}, nil
 }
 
@@ -73,7 +74,7 @@ func (t *table) buildMutationUpdateSQL( //nolint:dupl
 // When the role has no post-update check, it emits a single
 // "cteName AS (UPDATE ... RETURNING *)". When the role has a non-empty update
 // "check" predicate, it instead emits the all-or-nothing post-mutation shape —
-// mirroring buildSingleInsertCTEPostCheck — so cteName still resolves to the
+// as in the flat insert post-check — so cteName still resolves to the
 // updated rows but only after every RETURNING * row has been validated against
 // the check (the entire mutation aborts if any row fails):
 //
@@ -184,7 +185,8 @@ func (t *table) writeUpdateStatementCTE(
 // satisfy the role's update "check" predicate, evaluated against the real
 // post-update column values. The CTE yields status=1 when every row passes and
 // otherwise raises the same dialect error as the insert post-check, aborting
-// the whole mutation (all-or-nothing). Mirrors buildPostCheckCTEWithName.
+// the whole mutation (all-or-nothing). Uses the same post-check shape as
+// buildPostCheckCTE.
 func (t *table) buildUpdatePostCheckCTE(
 	b *strings.Builder,
 	checkName string,

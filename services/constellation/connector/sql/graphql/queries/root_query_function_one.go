@@ -78,5 +78,6 @@ func (t *table) buildQueryFunctionOneSQL(
 		Parameters:    params,
 		StreamCursors: nil,
 		Sequential:    nil,
+		Insert:        nil,
 	}, nil
 }

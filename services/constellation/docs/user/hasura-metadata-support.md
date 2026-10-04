@@ -222,7 +222,7 @@ array_relationships:
 | `foreign_key_constraint_on: { column, table }` | ✅ | FK on the remote table pointing back. |
 | `foreign_key_constraint_on: [col1, col2]` / `{ columns: […], table }` | ✅ | Composite foreign keys are parsed and consumed. |
 | `using.manual_configuration` (`remote_table`, `column_mapping`) | ✅ | Multi-entry `column_mapping` forms a composite join key. |
-| `using.manual_configuration.insertion_order` (array rels) | ⚪ | Dropped. |
+| `using.manual_configuration.insertion_order` (object rels) | ⚪ | Dropped; explicit `after_parent` remains unsupported. |
 | relationship `comment` | ⚪ | Dropped. |
 
 For every `foreign_key_constraint_on` form—single-column or composite,
@@ -231,7 +231,11 @@ foreign-key constraint whose column set exactly matches the configured column
 or columns. It preserves the configured order when pairing join columns. If no
 exact constraint is available, it falls back to the first introspected
 foreign-key match for each configured column. Every column must resolve, and
-parent-table forms must resolve to one target table.
+parent-table forms must resolve to one target table. For nested PostgreSQL
+inserts, object relationships with a remote-table foreign key (`{table, column}`
+or `{table, columns}`) run after the parent row and its arrays; same-table-FK
+and manual object relationships run before the parent. This implicit timing does
+not implement `manual_configuration.insertion_order`.
 
 ### Remote relationships (table → other source / remote schema)
 

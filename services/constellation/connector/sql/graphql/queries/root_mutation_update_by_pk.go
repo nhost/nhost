@@ -60,6 +60,7 @@ func (t *table) buildMutationUpdateByPkSQL(
 		Parameters:    params,
 		StreamCursors: nil,
 		Sequential:    nil,
+		Insert:        nil,
 	}, nil
 }
 
@@ -106,8 +107,7 @@ func (t *table) buildUpdateByPkSQL(
 		b,
 		columns,
 		relationships,
-		nil, // no nested selection CTEs
-		nil, // no nested force-ref CTEs
+
 		fragments,
 		variables,
 		role,

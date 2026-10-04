@@ -414,7 +414,7 @@ type tableColumnInfo struct {
 // DESC (the DESC form cannot alias the rowid), and PK declarations that
 // otherwise diverge from the integer-affinity-as-alias shortcut. Views
 // always pass false.
-func getColumnsAndPKs(
+func getColumnsAndPKs( //nolint:funlen // PRAGMA scan and returned column metadata are one pass.
 	ctx context.Context, q Querier, tableName string, hasExplicitPKIndex bool,
 ) (tableColumnInfo, error) {
 	query := "PRAGMA table_xinfo(" + core.QuoteIdentifier(tableName) + ")"
@@ -450,17 +450,18 @@ func getColumnsAndPKs(
 		declaredType[name] = colType
 
 		columns = append(columns, introspection.Column{
-			Name:           name,
-			Type:           mappedType,
-			IsNullable:     !notNull,
-			IsGenerated:    hidden == 2 || hidden == 3, // virtual or stored generated
-			IsIdentity:     false,                      // populated by markRowidAliasIdentity
-			IsArray:        false,
-			SupportsMinMax: typeSupportsMinMax(mappedType),
-			SupportsInc:    typeSupportsInc(mappedType),
-			SupportsAgg:    typeSupportsAgg(mappedType),
-			Default:        dfltValue,
-			Comment:        nil, // SQLite has no column comments
+			Name:            name,
+			Type:            mappedType,
+			PhysicalSQLType: "",
+			IsNullable:      !notNull,
+			IsGenerated:     hidden == 2 || hidden == 3, // virtual or stored generated
+			IsIdentity:      false,                      // populated by markRowidAliasIdentity
+			IsArray:         false,
+			SupportsMinMax:  typeSupportsMinMax(mappedType),
+			SupportsInc:     typeSupportsInc(mappedType),
+			SupportsAgg:     typeSupportsAgg(mappedType),
+			Default:         dfltValue,
+			Comment:         nil, // SQLite has no column comments
 		})
 
 		if pk > 0 {

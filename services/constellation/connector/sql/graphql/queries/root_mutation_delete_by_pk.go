@@ -61,6 +61,7 @@ func (t *table) buildMutationDeleteByPkSQL(
 		Parameters:    params,
 		StreamCursors: nil,
 		Sequential:    nil,
+		Insert:        nil,
 	}, nil
 }
 
@@ -105,8 +106,7 @@ func (t *table) buildDeleteByPkSQL(
 		b,
 		columns,
 		relationships,
-		nil,
-		nil,
+
 		fragments,
 		variables,
 		role,

@@ -114,6 +114,10 @@ type Column struct {
 	Name string
 	// Type is the database-native type name (e.g. "text", "int4", "_text").
 	Type string
+	// PhysicalSQLType is the PostgreSQL catalog's original, schema-qualified
+	// and SQL-quoted pg_type identity. Unlike Type it does not unwrap domains
+	// or array element types. Empty on SQLite and hand-built test objects.
+	PhysicalSQLType string
 	// IsNullable is true if the column accepts NULL.
 	IsNullable bool
 	// IsGenerated is true if the column is computed by the database and

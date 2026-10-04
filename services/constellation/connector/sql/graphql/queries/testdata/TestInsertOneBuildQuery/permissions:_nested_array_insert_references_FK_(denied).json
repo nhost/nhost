@@ -1,17 +1,62 @@
 [
   {
     "Name": "insert_kb_entries_one",
-    "SQL": "WITH check_mutation_result AS (SELECT * FROM (SELECT $1::text AS \"title\", $2::text AS \"summary\", $3::text AS \"content\", $4::uuid AS \"uploader_id\") AS data WHERE true), mutation_result AS (INSERT INTO \"public\".\"kb_entries\" (\"title\", \"summary\", \"content\", \"uploader_id\") SELECT check_mutation_result.\"title\", check_mutation_result.\"summary\", check_mutation_result.\"content\", check_mutation_result.\"uploader_id\" FROM check_mutation_result RETURNING *), check_nested_kb_entry_departments AS (SELECT * FROM (SELECT $5::uuid AS \"department_id\", mutation_result.\"id\" AS \"kb_entry_id\" FROM mutation_result UNION ALL SELECT $6::uuid AS \"department_id\", mutation_result.\"id\" AS \"kb_entry_id\" FROM mutation_result) AS data WHERE EXISTS (SELECT 1 FROM mutation_result g WHERE data.\"kb_entry_id\" = g.\"id\" AND g.\"uploader_id\" = $7::uuid) AND data.\"department_id\" = ANY($8::uuid[])), nested_kb_entry_departments_check_count AS (SELECT CASE WHEN (SELECT COUNT(*) FROM check_nested_kb_entry_departments) >= 2 THEN 1 ELSE (SELECT 0 FROM (SELECT constellation_throw_error('check constraint of an insert/update permission has failed', 'ZZ901')) x) END AS status), nested_kb_entry_departments AS (INSERT INTO \"public\".\"kb_entry_departments\" (\"department_id\", \"kb_entry_id\") SELECT check_nested_kb_entry_departments.\"department_id\", mutation_result.\"id\" FROM check_nested_kb_entry_departments, mutation_result WHERE (SELECT status FROM nested_kb_entry_departments_check_count) = 1 RETURNING *) SELECT row_to_json((SELECT \"_e\" FROM (SELECT mutation_result.\"title\" AS \"title\") AS \"_e\")) FROM mutation_result WHERE (SELECT COUNT(*) FROM nested_kb_entry_departments) IS NOT NULL",
-    "Parameters": [
-      "Multi-row nested array denied",
-      "summary",
-      "content",
-      "550e8400-e29b-41d4-a716-446655440001",
-      "2db9de0a-b9ba-416e-8619-783a399ae2b3",
-      "fd1e6bba-c292-4b2f-872e-ae16146cdd82",
-      "550e8400-e29b-41d4-a716-446655440001",
-      "{fd1e6bba-c292-4b2f-872e-ae16146cdd82}"
-    ],
-    "StreamCursors": null
+    "SQL": "",
+    "Parameters": null,
+    "StreamCursors": null,
+    "Insert": {
+      "Root": {
+        "Batch": null,
+        "Objects": [
+          {
+            "Row": {
+              "SQL": "WITH check_mutation_result AS (SELECT * FROM (SELECT $1::text AS \"title\", $2::text AS \"summary\", $3::text AS \"content\", $4::uuid AS \"uploader_id\") AS data WHERE true), mutation_result AS (INSERT INTO \"public\".\"kb_entries\" (\"title\", \"summary\", \"content\", \"uploader_id\") SELECT check_mutation_result.\"title\", check_mutation_result.\"summary\", check_mutation_result.\"content\", check_mutation_result.\"uploader_id\" FROM check_mutation_result RETURNING *) SELECT COALESCE(json_agg(row_to_json(\"_physical\")), '[]'::json) FROM (SELECT \"id\"::text AS \"id\", \"title\"::text AS \"title\", \"summary\"::text AS \"summary\", \"content\"::text AS \"content\", \"uploader_id\"::text AS \"uploader_id\", \"created_at\"::text AS \"created_at\", \"updated_at\"::text AS \"updated_at\", \"embeddings\"::text AS \"embeddings\", \"embeddings_outdated\"::text AS \"embeddings_outdated\" FROM mutation_result) AS \"_physical\"",
+              "Parameters": [
+                "Multi-row nested array denied",
+                "summary",
+                "content",
+                "550e8400-e29b-41d4-a716-446655440001"
+              ],
+              "TableRef": "\"public\".\"kb_entries\""
+            },
+            "Before": null,
+            "Arrays": [
+              {
+                "Name": "kb_entry_departments",
+                "Level": {
+                  "Batch": {
+                    "SQL": "WITH check_mutation_result AS (SELECT * FROM (SELECT $1::uuid AS \"department_id\", $2::text::pg_catalog.uuid AS \"kb_entry_id\" UNION ALL SELECT $3::uuid AS \"department_id\", $4::text::pg_catalog.uuid AS \"kb_entry_id\") AS data WHERE EXISTS (SELECT 1 FROM \"public\".\"kb_entries\" g WHERE data.\"kb_entry_id\" = g.\"id\" AND g.\"uploader_id\" = $5::uuid) AND data.\"department_id\" = ANY($6::uuid[])), check_count AS (SELECT CASE WHEN (SELECT COUNT(*) FROM check_mutation_result) >= 2 THEN 1 ELSE (SELECT 0 FROM (SELECT constellation_throw_error('check constraint of an insert/update permission has failed', 'ZZ901')) x) END AS status), mutation_result AS (INSERT INTO \"public\".\"kb_entry_departments\" (\"department_id\", \"kb_entry_id\") SELECT check_mutation_result.\"department_id\", check_mutation_result.\"kb_entry_id\" FROM check_mutation_result WHERE (SELECT status FROM check_count) = 1 RETURNING *) SELECT COALESCE(json_agg(row_to_json(\"_physical\")), '[]'::json) FROM (SELECT \"id\"::text AS \"id\", \"kb_entry_id\"::text AS \"kb_entry_id\", \"department_id\"::text AS \"department_id\" FROM mutation_result) AS \"_physical\"",
+                    "Parameters": [
+                      "2db9de0a-b9ba-416e-8619-783a399ae2b3",
+                      {
+                        "Source": "$parent",
+                        "TableRef": "\"public\".\"kb_entries\"",
+                        "Column": "id"
+                      },
+                      "fd1e6bba-c292-4b2f-872e-ae16146cdd82",
+                      {
+                        "Source": "$parent",
+                        "TableRef": "\"public\".\"kb_entries\"",
+                        "Column": "id"
+                      },
+                      "550e8400-e29b-41d4-a716-446655440001",
+                      "{fd1e6bba-c292-4b2f-872e-ae16146cdd82}"
+                    ],
+                    "TableRef": "\"public\".\"kb_entry_departments\""
+                  },
+                  "Objects": null
+                }
+              }
+            ],
+            "AfterObjects": null
+          }
+        ]
+      },
+      "FinalSQL": "WITH mutation_result AS (SELECT (value ->> 'id')::text::pg_catalog.uuid AS \"id\", (value ->> 'title')::text::pg_catalog.text AS \"title\", (value ->> 'summary')::text::pg_catalog.text AS \"summary\", (value ->> 'content')::text::pg_catalog.text AS \"content\", (value ->> 'uploader_id')::text::pg_catalog.uuid AS \"uploader_id\", (value ->> 'created_at')::text::pg_catalog.timestamptz AS \"created_at\", (value ->> 'updated_at')::text::pg_catalog.timestamptz AS \"updated_at\", (value ->> 'embeddings')::text::pg_catalog.text AS \"embeddings\", (value ->> 'embeddings_outdated')::text::pg_catalog.bool AS \"embeddings_outdated\" FROM json_array_elements($1::json) AS \"_rows\"(value)) SELECT row_to_json((SELECT \"_e\" FROM (SELECT mutation_result.\"title\" AS \"title\") AS \"_e\")) FROM mutation_result",
+      "FinalParameters": [
+        null
+      ],
+      "Collection": false
+    }
   }
 ]

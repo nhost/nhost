@@ -2,6 +2,8 @@ package queries_test
 
 import (
 	"encoding/json"
+	"encoding/json/jsontext"
+	"log/slog"
 	"os"
 	"reflect"
 	"testing"
@@ -233,7 +235,26 @@ func computedResult(t *testing.T, pool *pgxpool.Pool, op core.SQLOperation) any 
 	t.Helper()
 
 	var raw []byte
-	if err := pool.QueryRow(t.Context(), op.SQL, op.Parameters...).Scan(&raw); err != nil {
+	if op.Insert != nil {
+		pgPool, err := postgres.Open(t.Context(), pool.Config().ConnConfig.ConnString())
+		if err != nil {
+			t.Fatalf("Open: %v", err)
+		}
+		defer pgPool.Close()
+
+		results, err := postgres.NewClient(pgPool).ExecuteOperations(t.Context(),
+			[]core.SQLOperation{op}, slog.New(slog.DiscardHandler))
+		if err != nil {
+			t.Fatalf("dependent SQL: %v", err)
+		}
+
+		value, ok := results[op.Name].(jsontext.Value)
+		if !ok {
+			t.Fatalf("dependent result = %T", results[op.Name])
+		}
+
+		raw = value
+	} else if err := pool.QueryRow(t.Context(), op.SQL, op.Parameters...).Scan(&raw); err != nil {
 		t.Fatalf("SQL: %v\n%s", err, op.SQL)
 	}
 

@@ -10,6 +10,7 @@ import (
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
 )
 
+//nolint:funlen // One root dispatch retains shared validation for flat and dependent inserts.
 func (t *table) buildMutationInsertOneSQL(
 	field *ast.Field,
 	fragments ast.FragmentDefinitionList,
@@ -37,6 +38,22 @@ func (t *table) buildMutationInsertOneSQL(
 	)
 	if err != nil {
 		return core.SQLOperation{}, fmt.Errorf("failed to parse selection set: %w", err)
+	}
+
+	if len(insertObj.NestedInserts) > 0 {
+		// A dependent write cannot share the parent INSERT's statement
+		// snapshot. SQLite receives the plan solely to reject it explicitly.
+		if !t.dialect.SupportsDependentInsertSteps() {
+			return newInsertOperation(alias, unsupportedInsertPlan()), nil
+		}
+
+		plan, err := t.buildInsertOnePlan(insertObj, onConflict, columns, relationships,
+			fragments, variables, role, sessionVariables, roots, errorFieldName(field))
+		if err != nil {
+			return core.SQLOperation{}, fmt.Errorf("failed to build dependent insert: %w", err)
+		}
+
+		return newInsertOperation(alias, &plan), nil
 	}
 
 	b := getBuilder()
@@ -69,6 +86,7 @@ func (t *table) buildMutationInsertOneSQL(
 		Parameters:    params,
 		StreamCursors: nil,
 		Sequential:    nil,
+		Insert:        nil,
 	}, nil
 }
 
@@ -87,16 +105,14 @@ func (t *table) buildInsertSQL(
 	argumentPath string,
 ) ([]any, error) {
 	params := make([]any, 0, 16) //nolint:mnd
-	paramIndex := 1
 
 	// Build the mutation CTEs
-	cteSQL, params, paramIndex, nestedCTERefs, err := t.buildInsertMutationCTE(
+	cteSQL, params, paramIndex, err := t.buildInsertMutationCTE(
 		[]arguments.InsertObject{insertObj},
 		onConflict,
 		role,
 		sessionVariables,
 		params,
-		paramIndex,
 	)
 	if err != nil {
 		return nil, err
@@ -110,8 +126,7 @@ func (t *table) buildInsertSQL(
 		b,
 		columns,
 		relationships,
-		nestedCTERefs.direct,
-		nestedCTERefs.allNames,
+
 		fragments,
 		variables,
 		role,

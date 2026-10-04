@@ -9,8 +9,8 @@ import (
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
 )
 
-func (t *table) buildMutationUpdateManySQL(
-	field *ast.Field,
+//nolint:funlen // New exhaustive operation field extends existing update-many dispatch.
+func (t *table) buildMutationUpdateManySQL(field *ast.Field,
 	fragments ast.FragmentDefinitionList,
 	variables map[string]any,
 	role string,
@@ -63,6 +63,7 @@ func (t *table) buildMutationUpdateManySQL(
 			Parameters:    params,
 			StreamCursors: nil,
 			Sequential:    nil,
+			Insert:        nil,
 		}
 
 		putBuilder(b)
@@ -74,5 +75,6 @@ func (t *table) buildMutationUpdateManySQL(
 		Parameters:    nil,
 		StreamCursors: nil,
 		Sequential:    sequential,
+		Insert:        nil,
 	}, nil
 }

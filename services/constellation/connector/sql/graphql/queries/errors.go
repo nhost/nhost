@@ -3,8 +3,9 @@ package queries
 import "errors"
 
 var (
-	errFieldDoesNotExist  = errors.New("field does not exist")
-	errRemoteRelationship = errors.New(
+	errInvalidDependentInsert = errors.New("invalid dependent insert")
+	errFieldDoesNotExist      = errors.New("field does not exist")
+	errRemoteRelationship     = errors.New(
 		"remote relationship - handled by remote join executor",
 	)
 	errFunctionNotFound = errors.New(
@@ -19,11 +20,6 @@ var (
 
 	errFunctionDoesNotReturnTableType = errors.New("function does not return a table type")
 	errArgsMustBeObject               = errors.New("args must be an object")
-
-	errNestedInsertTargetTableType = errors.New(
-		"nested insert target table has unexpected type",
-	)
-	errPartitionedParentCTECountMismatch = errors.New("partitioned parent CTE count mismatch")
 
 	errRelationshipTargetTableNotFound = errors.New(
 		"unable to find relationship target table",

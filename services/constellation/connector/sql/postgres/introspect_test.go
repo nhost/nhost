@@ -95,6 +95,7 @@ type columnScan struct {
 	tableName      string
 	columnName     string
 	typeName       string
+	physicalType   string
 	isNullable     string
 	isGenerated    bool
 	isIdentity     bool
@@ -732,22 +733,23 @@ func fillUniqueConstraintScan(t *testing.T, dest []any, row uniqueConstraintScan
 func fillColumnScan(t *testing.T, dest []any, row columnScan) {
 	t.Helper()
 
-	if len(dest) != 12 {
-		t.Fatalf("expected 12 scan destinations, got %d", len(dest))
+	if len(dest) != 13 {
+		t.Fatalf("expected 13 scan destinations, got %d", len(dest))
 	}
 
 	assignDest(t, dest[0], row.tableName)
 	assignDest(t, dest[1], row.columnName)
 	assignDest(t, dest[2], row.typeName)
-	assignDest(t, dest[3], row.isNullable)
-	assignDest(t, dest[4], row.isGenerated)
-	assignDest(t, dest[5], row.isIdentity)
-	assignDest(t, dest[6], row.isArray)
-	assignDest(t, dest[7], row.supportsMinMax)
-	assignDest(t, dest[8], row.supportsInc)
-	assignDest(t, dest[9], row.supportsAgg)
-	assignDest(t, dest[10], row.columnDefault)
-	assignDest(t, dest[11], row.columnComment)
+	assignDest(t, dest[3], row.physicalType)
+	assignDest(t, dest[4], row.isNullable)
+	assignDest(t, dest[5], row.isGenerated)
+	assignDest(t, dest[6], row.isIdentity)
+	assignDest(t, dest[7], row.isArray)
+	assignDest(t, dest[8], row.supportsMinMax)
+	assignDest(t, dest[9], row.supportsInc)
+	assignDest(t, dest[10], row.supportsAgg)
+	assignDest(t, dest[11], row.columnDefault)
+	assignDest(t, dest[12], row.columnComment)
 }
 
 func assignDest[T any](t *testing.T, dst any, v T) {

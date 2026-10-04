@@ -64,6 +64,12 @@ func ReinitializeTestData(t *testing.T) {
 // Tables are listed in reverse dependency order to avoid foreign key conflicts.
 func cleanTables(ctx context.Context, conn *pgx.Conn) error {
 	tables := []string{
+		"cf_insert_order.events",
+		"cf_insert_order.after_0",
+		"cf_insert_order.after_1",
+		"cf_insert_order.child",
+		"cf_insert_order.parent",
+		"cf_insert_order.before_object",
 		"cf_select.tags",
 		"cf_select.items",
 		"cf_predicates.rules",

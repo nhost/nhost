@@ -13,6 +13,15 @@
       use_prepared_statements: true
   tables: "!include default/tables/tables.yaml"
   functions: "!include default/functions/functions.yaml"
+- name: cf_insert_order
+  kind: postgres
+  configuration:
+    connection_info:
+      database_url:
+        from_env: HASURA_GRAPHQL_DATABASE_URL
+      isolation_level: read-committed
+      use_prepared_statements: false
+  tables: "!include cf_insert_order/tables/tables.yaml"
 - name: cf_predicates
   kind: postgres
   configuration:

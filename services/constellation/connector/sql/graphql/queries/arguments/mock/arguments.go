@@ -310,6 +310,20 @@ func (mr *MockRelationshipMockRecorder) FKSourceColumns() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FKSourceColumns", reflect.TypeOf((*MockRelationship)(nil).FKSourceColumns))
 }
 
+// InsertAfterParent mocks base method.
+func (m *MockRelationship) InsertAfterParent() bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InsertAfterParent")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// InsertAfterParent indicates an expected call of InsertAfterParent.
+func (mr *MockRelationshipMockRecorder) InsertAfterParent() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertAfterParent", reflect.TypeOf((*MockRelationship)(nil).InsertAfterParent))
+}
+
 // IsArray mocks base method.
 func (m *MockRelationship) IsArray() bool {
 	m.ctrl.T.Helper()

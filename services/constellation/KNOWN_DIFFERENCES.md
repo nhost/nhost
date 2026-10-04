@@ -9,6 +9,56 @@
 
 3. If all columns of a table are non-aggregatable (e.g. only jsonb columns), the `max`/`min` fields are omitted from the `_aggregate_fields` type entirely rather than exposing empty types.
 
+# PostgreSQL nested inserts and permission-check error presentation
+
+Dependent PostgreSQL inserts now execute on one connection and one source
+transaction: at each level, relationship-free inputs use one statement, while
+inputs with any relationships run each row in input order. A row's before-parent
+objects run first, followed by the row, then arrays and implicit remote-FK
+`AfterParent` objects; arrays are depth-first per row. Siblings within each kind
+follow Hasura v2.48.10-ce's metadata-name hash traversal: UTF-8 `Text` from
+`text 2.1.1`, XXH3-64 seed zero from `hashable 1.4.7.0`, and low-to-high
+five-bit fragments from `unordered-containers 0.2.20`. Constellation vendors
+`github.com/zeebo/xxh3 v1.1.0`. A full 64-bit collision uses the relationship
+name as a deterministic tie-breaker; Hasura can instead use map insertion order
+for a full collision. The serialized version/order integration tripwire must be
+rechecked when changing the Hasura image or its transitive Haskell libraries.
+Explicit `manual_configuration.insertion_order: after_parent` for **object**
+relationships remains unsupported (the key is dropped); the implicit
+remote-table-FK ordering does not implement that manual key.
+
+Parent and child physical `RETURNING` columns are captured as `::text`, with SQL
+NULL preserved, then passed in bound parameters and cast to catalog-derived,
+schema-qualified column types. Flat computed `returning` stays in its original
+INSERT statement's snapshot; nested `returning` reads after the dependent
+statements. Trigger-created rows are not included in `affected_rows`. Each dependent
+node requires a separate PostgreSQL statement/round trip when its level has
+relationships; deep or wide nested writes can have higher latency than a flat
+insert. The entire chain remains atomic on one source transaction.
+
+**Presentation-only exception approved by the operator:** a rejected insert or
+update permission check (flat or nested insert, INSERT/DO UPDATE upsert, update,
+update_by_pk or update_many) retains Constellation's existing SQLSTATE `ZZ901`
+error message chain under the root operation wrapper, instead of Hasura's
+`permission-error` code/path. Denial, transaction rollback and stored rows must
+still agree. A zero-row parent with array or implicit after-parent descendants
+also returns a Constellation-style error envelope rather than Hasura's
+`not-supported` envelope; it must roll back prior writes. A before-parent
+object whose own insert affects zero rows likewise fails and rolls back with
+Constellation's envelope rather than Hasura's `not-supported` envelope. Explicit client input
+for a parent-determined FK is a `validation-failed` error with Hasura's
+message and nested GraphQL argument path (`object[0]` for `insert_one`,
+`objects[i]` for collection inserts), **not** part of this presentation
+exception. Role insert presets are separate from client input: a preset on a
+relationship-determined FK wins over the relationship's captured value without
+triggering determined-FK validation, as in Hasura. The role schema excludes
+preset columns from client insert inputs; direct planner calls still distinguish
+client columns from presets and reject explicit overlapping client FKs.
+The 12 older integration fixtures with `expected:` overrides are
+Constellation-only error contract tests: the integration harness skips its
+Hasura request for those cases. Live denial parity is asserted separately by
+serialized two-endpoint tests that reset and inspect persisted rows.
+
 # Computed-field unknown filter keys (invalid metadata)
 
 Computed-field definitions and grants identify which filter keys are computed

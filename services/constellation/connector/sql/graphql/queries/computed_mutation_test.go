@@ -120,9 +120,14 @@ func TestComputedScalarMutationReturning(t *testing.T) {
 				t.Fatalf("operations = %d", len(ops))
 			}
 
-			if !strings.Contains(ops[0].SQL, `::"cf_select"."items"`) ||
-				!strings.Contains(ops[0].SQL, "$1") {
-				t.Fatalf("missing anonymous row cast or bound arguments: %s", ops[0].SQL)
+			sqlText := ops[0].SQL
+			if ops[0].Insert != nil {
+				sqlText = ops[0].Insert.FinalSQL
+			}
+
+			if !strings.Contains(sqlText, `::"cf_select"."items"`) ||
+				!strings.Contains(sqlText, "$1") {
+				t.Fatalf("missing typed row cast or bound arguments: %s", sqlText)
 			}
 
 			got := computedResult(t, pool, ops[0])
