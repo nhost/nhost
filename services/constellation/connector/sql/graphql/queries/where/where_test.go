@@ -1227,6 +1227,7 @@ type parseTestTable struct {
 	schemaName   string
 	fromClause   string
 	columns      map[string]*core.Column
+	computed     map[string]core.ComputedExpression
 	relationship map[string]where.Relationship
 	siblings     map[string]where.Table
 	roleHasPerms map[string]bool
@@ -1241,8 +1242,8 @@ func (p *parseTestTable) ColumnFromGraphqlName(name string) *core.Column {
 	return p.columns[name]
 }
 
-func (p *parseTestTable) ComputedScalarFromGraphqlName(string, string) core.ComputedExpression {
-	return nil
+func (p *parseTestTable) ComputedScalarFromGraphqlName(name, _ string) core.ComputedExpression {
+	return p.computed[name]
 }
 
 func (p *parseTestTable) RelationshipFromGraphqlName(name string) where.Relationship {

@@ -8,6 +8,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/where"
 	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
@@ -392,9 +393,17 @@ func dropComputedPredicate(ctx context.Context, logger *slog.Logger, inc *metada
 	source string, table *metadata.TableMetadata, role, operation string, predicate map[string]any,
 	tables []metadata.TableMetadata, objects *introspection.Objects, index computedIndex,
 ) bool {
-	if dep := computedDependency(predicate, table, tables, objects, index); dep != "" {
+	if dep := computedDependency(
+		predicate,
+		table,
+		table,
+		tables,
+		objects,
+		index,
+		false,
+	); dep != "" {
 		return recordComputedPermission(ctx, logger, inc, source, table, role, operation,
-			fmt.Sprintf("computed predicate %q is not executable", dep))
+			fmt.Sprintf("permission predicate %q is not executable", dep))
 	}
 
 	return false
@@ -402,8 +411,13 @@ func dropComputedPredicate(ctx context.Context, logger *slog.Logger, inc *metada
 
 // computedDependency only classifies names identified by a definition or
 // grant. All other unknown keys remain the existing permission parser's job.
-func computedDependency(expr any, table *metadata.TableMetadata, tables []metadata.TableMetadata,
-	objects *introspection.Objects, index computedIndex,
+func computedDependency(
+	expr any,
+	table, root *metadata.TableMetadata,
+	tables []metadata.TableMetadata,
+	objects *introspection.Objects,
+	index computedIndex,
+	insideAggregate bool,
 ) string {
 	obj, ok := expr.(map[string]any)
 	if !ok || table == nil {
@@ -411,7 +425,16 @@ func computedDependency(expr any, table *metadata.TableMetadata, tables []metada
 	}
 
 	for key, value := range obj {
-		if dep := computedDependencyKey(key, value, table, tables, objects, index); dep != "" {
+		if dep := computedDependencyKey(
+			key,
+			value,
+			table,
+			root,
+			tables,
+			objects,
+			index,
+			insideAggregate,
+		); dep != "" {
 			return dep
 		}
 	}
@@ -419,14 +442,23 @@ func computedDependency(expr any, table *metadata.TableMetadata, tables []metada
 	return ""
 }
 
-func computedDependencyKey(key string, value any, table *metadata.TableMetadata,
+func computedDependencyKey(key string, value any, table, root *metadata.TableMetadata,
 	tables []metadata.TableMetadata, objects *introspection.Objects, index computedIndex,
+	insideAggregate bool,
 ) string {
 	switch key {
-	case "_and", "_or":
+	case "_and", "_or", "$and", "$or":
 		if list, ok := value.([]any); ok {
 			for _, child := range list {
-				if dep := computedDependency(child, table, tables, objects, index); dep != "" {
+				if dep := computedDependency(
+					child,
+					table,
+					root,
+					tables,
+					objects,
+					index,
+					insideAggregate,
+				); dep != "" {
 					return dep
 				}
 			}
@@ -434,11 +466,11 @@ func computedDependencyKey(key string, value any, table *metadata.TableMetadata,
 			return ""
 		}
 
-		return computedDependency(value, table, tables, objects, index)
-	case "_not":
-		return computedDependency(value, table, tables, objects, index)
-	case "_exists":
-		return computedExistsDependency(value, table, tables, objects, index)
+		return computedDependency(value, table, root, tables, objects, index, insideAggregate)
+	case "_not", "$not":
+		return computedDependency(value, table, root, tables, objects, index, insideAggregate)
+	case "_exists", "$exists":
+		return computedExistsDependency(value, table, root, tables, objects, index, insideAggregate)
 	default:
 		identity := introspection.ComputedTable{Schema: table.Table.Schema, Name: table.Table.Name}
 		// SQL columns (including customized names), local relationships and
@@ -448,24 +480,109 @@ func computedDependencyKey(key string, value any, table *metadata.TableMetadata,
 		}
 
 		if next := computedRelationshipTable(table, key, tables, objects); next != nil {
-			return computedDependency(value, next, tables, objects, index)
+			return computedDependency(value, next, root, tables, objects, index, insideAggregate)
 		}
 
 		if before, ok := strings.CutSuffix(key, "_aggregate"); ok {
-			// Object relationships have no aggregate key; their suffixed names
-			// can instead identify computed fields on the current table.
-			next := computedArrayRelationshipTable(table, before, tables, objects)
-			if next != nil {
-				return computedAggregateDependency(value, next, tables, objects, index)
+			// Retain computed-free aggregate handling; only identifiable invalid
+			// computed arguments/filters revoke this permission.
+			if next := computedArrayRelationshipTable(table, before, tables, objects); next != nil {
+				return computedAggregateDependency(value, next, root, tables, objects, index)
 			}
 		}
 
-		if _, found := index[identity][key]; found {
+		if kind, found := index[identity][key]; found {
+			if !insideAggregate &&
+				executableComputedPredicate(kind, table, root, key, value, objects) {
+				return ""
+			}
+
 			return key
 		}
 
 		return ""
 	}
+}
+
+func executableComputedPredicate(
+	kind computedKind,
+	table, root *metadata.TableMetadata,
+	name string,
+	value any,
+	objects *introspection.Objects,
+) bool {
+	if kind != computedScalar || !computedPermissionInput(table, name, objects) {
+		return false
+	}
+
+	lookup, ok := objects.GetComputedFunction(table.Table.Schema, table.Table.Name, name)
+
+	return ok && lookup.Function != nil &&
+		computedPermissionOperators(lookup.Function.ReturnType.Name, value, table, root, objects)
+}
+
+// A permission predicate uses the same argument-free scalar expression as
+// user bool_exp. A valid selection with required/optional user arguments is
+// not a valid permission input; its permission must remain unavailable.
+func computedPermissionInput(
+	table *metadata.TableMetadata,
+	name string,
+	objects *introspection.Objects,
+) bool {
+	lookup, ok := objects.GetComputedFunction(table.Table.Schema, table.Table.Name, name)
+	if !ok || lookup.Function == nil {
+		return false
+	}
+
+	for _, field := range table.ComputedFields {
+		if field.Name != name {
+			continue
+		}
+
+		for _, arg := range lookup.Function.GraphQLArgumentNames(field.Definition.SessionArgument) {
+			if arg != "" {
+				return false
+			}
+		}
+
+		return true
+	}
+
+	return false
+}
+
+func computedPermissionOperators(sqlType string, value any, table, root *metadata.TableMetadata,
+	objects *introspection.Objects,
+) bool {
+	comparison, ok := value.(map[string]any)
+	if !ok {
+		comparison = map[string]any{"_eq": value}
+	}
+
+	return where.SupportedComputedPermissionComparison(sqlType, comparison,
+		func(name string, atRoot bool) (string, bool, bool) {
+			lookupTable := table
+			if atRoot {
+				lookupTable = root
+			}
+
+			if lookupTable == nil {
+				return "", false, false
+			}
+
+			info, found := objects.GetTable(lookupTable.Table.Schema, lookupTable.Table.Name)
+			if !found {
+				return "", false, false
+			}
+
+			for _, col := range info.Columns {
+				if col.Name == name {
+					return col.Type, col.IsArray, true
+				}
+			}
+
+			return "", false, false
+		})
 }
 
 func computedKeyIsColumn(
@@ -482,8 +599,9 @@ func computedKeyIsColumn(
 	return false
 }
 
-func computedExistsDependency(value any, table *metadata.TableMetadata,
+func computedExistsDependency(value any, table, root *metadata.TableMetadata,
 	tables []metadata.TableMetadata, objects *introspection.Objects, index computedIndex,
+	insideAggregate bool,
 ) string {
 	exists, ok := value.(map[string]any)
 	if !ok {
@@ -505,13 +623,14 @@ func computedExistsDependency(value any, table *metadata.TableMetadata,
 	return computedDependency(
 		exists["_where"],
 		findComputedTable(tables, schema, name),
-		tables,
+		root, tables,
 		objects,
 		index,
+		insideAggregate,
 	)
 }
 
-func computedAggregateDependency(value any, target *metadata.TableMetadata,
+func computedAggregateDependency(value any, target, root *metadata.TableMetadata,
 	tables []metadata.TableMetadata, objects *introspection.Objects, index computedIndex,
 ) string {
 	body, ok := value.(map[string]any)
@@ -538,7 +657,18 @@ func computedAggregateDependency(value any, target *metadata.TableMetadata,
 			return dep
 		}
 
-		if dep := computedDependency(args["filter"], target, tables, objects, index); dep != "" {
+		// This aggregate permission shape is not parsed by the existing
+		// permission executor. Revoke identifiable computed references but
+		// retain the Phase 8 source-wide baseline for computed-free metadata.
+		if dep := computedDependency(
+			args["filter"],
+			target,
+			root,
+			tables,
+			objects,
+			index,
+			true,
+		); dep != "" {
 			return dep
 		}
 	}

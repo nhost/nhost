@@ -176,4 +176,33 @@ func TestComputedFieldReference(t *testing.T) {
 	if diff := cmp.Diff(hasura, constellation); diff != "" {
 		t.Errorf("live scalar input responses differ (-hasura +constellation):\n%s", diff)
 	}
+
+	// The predicate role has no computed selection grant; its filter still
+	// evaluates the full physical row without exposing the computed field.
+	guard := query{
+		Query: `query { cf_predicates_rules(order_by:{id:asc}) { id label } }`,
+		Role:  "cf_predicate_guard",
+	}
+	headers.Set("x-hasura-role", guard.Role)
+
+	hasura, err = makeHTTPQuery(t.Context(), hasuraURL, guard, headers)
+	if err != nil {
+		t.Fatalf("Hasura permission query: %v", err)
+	}
+
+	constellation, err = makeHTTPQuery(t.Context(), constellationURL, guard, headers)
+	if err != nil {
+		t.Fatalf("Constellation permission query: %v", err)
+	}
+
+	want = map[string]any{"data": map[string]any{"cf_predicates_rules": []any{
+		map[string]any{"id": float64(1), "label": "visible"},
+	}}}
+	if diff := cmp.Diff(want, hasura); diff != "" {
+		t.Fatalf("Hasura permission fixture changed (-want +got):\n%s", diff)
+	}
+
+	if diff := cmp.Diff(hasura, constellation); diff != "" {
+		t.Errorf("live computed permission responses differ (-hasura +constellation):\n%s", diff)
+	}
 }
