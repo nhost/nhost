@@ -69,6 +69,11 @@ make build                    # Nix build -> ./result/bin/constellation
 make build-docker-image       # Docker container for native arch
 ```
 
+Nix flake source filtering excludes untracked files: before a Nix build of new Go
+sources or fixtures, use `git add -N <new paths>` (intent-to-add, without staging
+file contents). Otherwise the local `go test` can pass while Nix reports missing
+symbols from omitted files.
+
 ### Dev Environments
 
 ```bash
@@ -119,9 +124,50 @@ After formatting, run `golines -l --base-formatter=gofumpt services/constellatio
 
 ### Integration comparisons and regression tests
 
+PostgreSQL dependent inserts use `core.InsertPlan`, built in
+`connector/sql/graphql/queries/mutation_insert_steps.go` and run by
+`connector/sql/postgres/insert_steps.go` on the root transaction. Test nested
+mutations through `postgres.Client.ExecuteOperations`, not `op.SQL` (the flat
+insert path still uses SQL). Testdb on `:5433` has a default `go test -p` and
+`-parallel` connection budget: reuse and close pools at test cleanup; never
+add a second pool per subtest or reduce global parallelism to mask exhaustion.
+Use package-scoped `go generate` for changed interfaces, not `go generate
+./...` (unrelated live-schema clients may be rewritten). Hasura cleanup
+mutations need distinct aliases so every cleanup field executes. Root mutation
+`returning` uses captured root rows without reapplying their select filter;
+related selections still apply target select permissions. In typed transport
+fixtures, a manual relationship mapping over `json` may carry insert FKs, but
+cannot serve as a returning join (`json = json` has no PostgreSQL operator);
+use an ID-only sibling relationship to assert nested returning separately.
+`cf_insert_order.parent.label` is NOT NULL: include it in live FK-validation
+probes or the constraint error can precede the intended validation check.
+Hasura's FK-validation path for an after-parent object relationship includes
+`.data[0]` (the object is executed through an array batch); a before-parent
+object relationship reports `.data` without an index. Hasura runs
+`insert_<table>_one` through its multi-object path, so execution-time errors
+(including FK validation) are rooted at `args.object[0]`, while parse-time
+GraphQL errors use `args.object`; collection inserts use `args.objects[i]`.
+Hasura validates each inserted row before its before-parent objects: client columns overlapping
+parent-determined columns first, then each before-parent object relationship
+(in hash order) whose columns overlap parent-determined or client columns.
+Mirror that order in planning. Role insert presets are not client columns:
+they override the FK supplied by an array, implicit after-parent object or
+before-parent object relationship. Keep parsed client-column provenance so an
+explicit client FK still fails validation even if that column also has a
+preset (the role schema normally hides preset columns). Preset session values
+still pass through typed parameter binding and ordinary permission checks.
+In direct `ApplyInsertPresets` tests, use matching lowercase session markers
+(`x-hasura-user-id`): metadata normalization ordinarily supplies that form,
+but the argument helper itself looks up session keys exactly.
+
 `make check` runs `integration/` against the running `constellation` container at
 `:8000`. After Go changes, run `make dev-env-down && make dev-env-up` before the
 live comparison, or it tests a stale build. Do not start a second stack.
+When refreshing an already running stack with `nhost up --apply-seeds`, verify
+its migration/seed logs and metadata consistency instead of trusting exit 0:
+the CLI can report migration or duplicate-seed errors and still return success.
+It also exports/normalizes metadata filenames before applying metadata; restore
+any intentionally named static fixture files/references after this refresh.
 
 The existing `integration/` suite compares Constellation with Nhost Hasura. During active development, use those comparisons for sanity checks and investigating reported differences, not as the sole or exhaustive source of regression coverage. Add direct Constellation tests with explicit expectations for implemented behavior (for example, metadata, schema, SQL, execution and permissions), and turn discovered bugs into independent regressions. Those tests should remain useful if the Hasura comparison harness is retired after stabilization. The scope of comparison tests for a particular feature belongs in that feature's plan, not in this project-wide guide.
 

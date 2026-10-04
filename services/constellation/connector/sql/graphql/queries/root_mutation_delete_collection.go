@@ -70,6 +70,7 @@ func (t *table) buildMutationDeleteCollectionSQL(
 		Parameters:    params,
 		StreamCursors: nil,
 		Sequential:    nil,
+		Insert:        nil,
 	}, nil
 }
 

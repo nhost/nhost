@@ -1,0 +1,73 @@
+table:
+  schema: cf_insert_order
+  name: parent
+object_relationships:
+  # Metadata and GraphQL input orders deliberately differ from the XXH3 order.
+  - name: obj_rel_0000
+    using:
+      foreign_key_constraint_on:
+        table:
+          schema: cf_insert_order
+          name: after_0
+        column: parent_id
+  - name: obj_rel_0001
+    using:
+      foreign_key_constraint_on: before_id
+  - name: obj_rel_0224
+    using:
+      foreign_key_constraint_on:
+        table:
+          schema: cf_insert_order
+          name: after_1
+        column: parent_id
+array_relationships:
+  - name: qa
+    using:
+      manual_configuration:
+        remote_table:
+          schema: cf_insert_order
+          name: child
+        column_mapping:
+          id: parent_id
+  - name: rel_arr_00000
+    using:
+      manual_configuration:
+        remote_table:
+          schema: cf_insert_order
+          name: child
+        column_mapping:
+          id: parent_id
+  - name: rel_arr_02120
+    using:
+      manual_configuration:
+        remote_table:
+          schema: cf_insert_order
+          name: child
+        column_mapping:
+          id: parent_id
+  - name: arr_mmmmmmmmmmmmmmmmmmmmmmmmmmmmmm_00000
+    using:
+      manual_configuration:
+        remote_table:
+          schema: cf_insert_order
+          name: child
+        column_mapping:
+          id: parent_id
+select_permissions:
+  - role: cf_insert_guard
+    permission:
+      columns: [id, label, before_id]
+      filter: {}
+insert_permissions:
+  - role: cf_insert_guard
+    permission:
+      columns: [id, label, before_id]
+      check:
+        _not:
+          _exists:
+            _table:
+              schema: cf_insert_order
+              name: parent
+            _where:
+              label:
+                _eq: blocked

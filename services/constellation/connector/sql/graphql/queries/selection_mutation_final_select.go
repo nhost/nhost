@@ -56,74 +56,6 @@ func (t *table) buildColumnSelections(
 	return params, paramIndex, nil
 }
 
-// buildNestedInsertSelection builds a selection from a nested insert CTE.
-func (t *table) buildNestedInsertSelection(
-	b *strings.Builder,
-	relSel relationshipSelection,
-	cteName string,
-	fragments ast.FragmentDefinitionList,
-	first *bool,
-	variables, sessionVariables map[string]any,
-	params []any,
-	paramIndex int,
-	role, argumentPath string,
-) ([]any, int, error) {
-	if !*first {
-		b.WriteString(", ")
-	}
-
-	relColumns, _, err := relSel.relationship.table.astToQuerySelection(
-		relSel.field,
-		fragments,
-		role,
-	)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	// For nested inserts, use a scalar subquery wrapping the JSON row
-	nestedExpr := &strings.Builder{}
-	nestedExpr.WriteString("(SELECT ")
-	t.dialect.WriteJSONRowPrefix(nestedExpr)
-
-	for j, sf := range relColumns {
-		if j > 0 {
-			nestedExpr.WriteString(", ")
-		}
-
-		switch {
-		case sf.computed != nil:
-			params, paramIndex, err = relSel.relationship.table.writeComputedScalar(
-				nestedExpr, sf, cteName,
-				childArgumentPath(argumentPath, sf.field), variables, sessionVariables,
-				params, paramIndex,
-			)
-			if err != nil {
-				return nil, 0, fmt.Errorf("building nested computed returning: %w", err)
-			}
-		case sf.literal != "":
-			t.dialect.WriteJSONRowColumn(nestedExpr, sf.alias, "'"+sf.literal+"'")
-		default:
-			expr := core.QuoteIdentifier(sf.column.SQLName)
-			t.dialect.WriteJSONRowColumn(
-				nestedExpr, sf.alias,
-				relSel.relationship.table.outputColumnExpression(expr, sf.column),
-			)
-		}
-	}
-
-	t.dialect.WriteJSONRowSuffixNoAlias(nestedExpr)
-	nestedExpr.WriteString(" FROM ")
-	nestedExpr.WriteString(cteName)
-	nestedExpr.WriteString(" LIMIT 1)")
-
-	t.dialect.WriteJSONRowColumn(b, relSel.alias, nestedExpr.String())
-
-	*first = false
-
-	return params, paramIndex, nil
-}
-
 // buildLateralJoinSelection builds a selection reference to a LATERAL join.
 func (t *table) buildLateralJoinSelection(
 	b *strings.Builder,
@@ -141,56 +73,10 @@ func (t *table) buildLateralJoinSelection(
 	*first = false
 }
 
-func nestedSelectionCTEName(
-	nestedSelectionCTEs map[string]string,
-	relSel relationshipSelection,
-) (string, bool) {
-	key := relSel.alias
-	if relSel.field != nil {
-		key = relSel.field.Name
-	}
-
-	cteName, ok := nestedSelectionCTEs[key]
-
-	return cteName, ok
-}
-
-// buildRelationshipSelectionsLateral builds relationship selections for LATERAL join mode.
-func (t *table) buildRelationshipSelectionsLateral(
-	b *strings.Builder,
-	relationships []relationshipSelection,
-	nestedSelectionCTEs map[string]string,
-	fragments ast.FragmentDefinitionList,
-	first *bool,
-	variables, sessionVariables map[string]any,
-	params []any,
-	paramIndex int,
-	role, argumentPath string,
-) ([]any, int, error) {
-	for _, relSel := range relationships {
-		if cteName, isNested := nestedSelectionCTEName(nestedSelectionCTEs, relSel); isNested {
-			var err error
-
-			params, paramIndex, err = t.buildNestedInsertSelection(
-				b, relSel, cteName, fragments, first, variables, sessionVariables,
-				params, paramIndex, role, childArgumentPath(argumentPath, relSel.field),
-			)
-			if err != nil {
-				return nil, 0, err
-			}
-		} else {
-			t.buildLateralJoinSelection(b, relSel, first)
-		}
-	}
-
-	return params, paramIndex, nil
-}
-
-// buildLateralJoins builds LEFT OUTER JOIN LATERAL for non-nested relationships.
+// buildLateralJoins builds LEFT OUTER JOIN LATERAL for returning relationships.
 func (t *table) buildLateralJoins(
 	b *strings.Builder,
 	relationships []relationshipSelection,
-	nestedSelectionCTEs map[string]string,
 	fragments ast.FragmentDefinitionList,
 	variables map[string]any,
 	role string,
@@ -201,11 +87,6 @@ func (t *table) buildLateralJoins(
 	argumentPath string,
 ) ([]any, int, error) {
 	for _, relSel := range relationships {
-		// Skip relationships that were direct nested inserts.
-		if _, isNested := nestedSelectionCTEName(nestedSelectionCTEs, relSel); isNested {
-			continue
-		}
-
 		relAlias := sqlAlias("mutation_result.r.", relSel.alias)
 
 		b.WriteString(" LEFT OUTER JOIN LATERAL (")
@@ -244,8 +125,6 @@ func (t *table) buildFinalSelect( //nolint:funlen
 	b *strings.Builder,
 	columns []columnSelection,
 	relationships []relationshipSelection,
-	nestedSelectionCTEs map[string]string,
-	nestedCTENames []string,
 	fragments ast.FragmentDefinitionList,
 	variables map[string]any,
 	role string,
@@ -255,19 +134,11 @@ func (t *table) buildFinalSelect( //nolint:funlen
 	paramIndex int,
 	argumentPath string,
 ) ([]any, error) {
-	// nestedForceRefNames lists every nested-insert CTE this top-level
-	// insert produced. Emitted as a no-op WHERE so the gated subset
-	// (array-rel children with a post-INSERT check) is not elided by
-	// Postgres. Non-gated CTEs are referenced redundantly but harmlessly
-	// — see writeNestedCTEForceRef.
-	nestedForceRefNames := sortedNestedCTENames(nestedCTENames)
-
 	if len(columns) == 0 && len(relationships) == 0 {
 		// No fields selected, just return the mutated row
 		b.WriteString("SELECT ")
 		b.WriteString(t.dialect.ToJSON("mutation_result.*"))
 		b.WriteString(" FROM mutation_result")
-		writeNestedCTEForceRef(b, nestedForceRefNames)
 
 		return params, nil
 	}
@@ -287,72 +158,52 @@ func (t *table) buildFinalSelect( //nolint:funlen
 		return nil, err
 	}
 
-	if t.dialect.SupportsLateral() { //nolint:nestif
-		// PostgreSQL: reference LATERAL aliases + nested CTE subqueries
-		params, paramIndex, err = t.buildRelationshipSelectionsLateral(
-			b, relationships, nestedSelectionCTEs, fragments, &first,
-			variables, sessionVariables, params, paramIndex, role, argumentPath,
-		)
-		if err != nil {
-			return nil, err
+	if t.dialect.SupportsLateral() {
+		for _, rel := range relationships {
+			t.buildLateralJoinSelection(b, rel, &first)
 		}
 
 		t.dialect.WriteJSONRowSuffixNoAlias(b)
 		b.WriteString(" FROM mutation_result")
 
-		// Add LEFT OUTER JOIN LATERAL for each non-nested relationship
+		// Add LEFT OUTER JOIN LATERAL for each returning relationship.
 		params, _, err = t.buildLateralJoins(
-			b, relationships, nestedSelectionCTEs, fragments, variables,
+			b, relationships, fragments, variables,
 			role, sessionVariables, roots, params, paramIndex, argumentPath,
 		)
 		if err != nil {
 			return nil, err
 		}
-
-		// Append the nested-CTE force reference AFTER the LATERAL joins
-		// so it parses as a SELECT-level WHERE clause.
-		writeNestedCTEForceRef(b, nestedForceRefNames)
 	} else {
-		// SQLite: embed relationships as correlated subqueries or nested CTE subqueries
+		// SQLite embeds relationships as correlated subqueries.
 		for _, relSel := range relationships {
-			if cteName, isNested := nestedSelectionCTEName(nestedSelectionCTEs, relSel); isNested {
-				params, paramIndex, err = t.buildNestedInsertSelection(
-					b, relSel, cteName, fragments, &first, variables, sessionVariables,
-					params, paramIndex, role, childArgumentPath(argumentPath, relSel.field),
-				)
-				if err != nil {
-					return nil, err
-				}
-			} else {
-				if !first {
-					b.WriteString(", ")
-				}
-
-				relAlias := sqlAlias("mutation_result.r.", relSel.alias)
-
-				b.WriteByte('\'')
-				b.WriteString(relSel.alias)
-				b.WriteString("', (")
-
-				var err error
-
-				params, paramIndex, err = relSel.relationship.buildSelectionSQL(
-					b, relSel.field, fragments, variables, role, sessionVariables,
-					roots, params, paramIndex, "mutation_result", relAlias, argumentPath,
-				)
-				if err != nil {
-					return nil, fmt.Errorf("error building relationship %s: %w", relSel.alias, err)
-				}
-
-				b.WriteString(")")
-
-				first = false
+			if !first {
+				b.WriteString(", ")
 			}
+
+			relAlias := sqlAlias("mutation_result.r.", relSel.alias)
+
+			b.WriteByte('\'')
+			b.WriteString(relSel.alias)
+			b.WriteString("', (")
+
+			var relErr error
+
+			params, paramIndex, relErr = relSel.relationship.buildSelectionSQL(
+				b, relSel.field, fragments, variables, role, sessionVariables,
+				roots, params, paramIndex, "mutation_result", relAlias, argumentPath,
+			)
+			if relErr != nil {
+				return nil, fmt.Errorf("error building relationship %s: %w", relSel.alias, relErr)
+			}
+
+			b.WriteString(")")
+
+			first = false
 		}
 
 		t.dialect.WriteJSONRowSuffixNoAlias(b)
 		b.WriteString(" FROM mutation_result")
-		writeNestedCTEForceRef(b, nestedForceRefNames)
 	}
 
 	return params, nil

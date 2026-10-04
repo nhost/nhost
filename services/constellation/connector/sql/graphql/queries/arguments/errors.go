@@ -3,6 +3,7 @@ package arguments
 import (
 	"errors"
 	"fmt"
+	"strings"
 )
 
 // ErrInvalidArgument is the sentinel error wrapped by every client-actionable
@@ -92,6 +93,35 @@ func newEmptyUpdateError() *QueryValidationError {
 		fmt.Errorf("%w: %s", ErrInvalidArgument, emptyUpdateMessage),
 		"",
 	)
+}
+
+// NewDeterminedInsertColumnError reports a client-supplied column that a
+// relationship insert must populate. The path is relative to the root field's
+// args and is built from validated GraphQL relationship names and list indexes.
+func NewDeterminedInsertColumnError(
+	columns []string,
+	beforeRelationship, path string,
+) *QueryValidationError {
+	quoted := make([]string, len(columns))
+	for i, col := range columns {
+		quoted[i] = fmt.Sprintf("%q", col)
+	}
+
+	var message string
+	if beforeRelationship != "" {
+		message = fmt.Sprintf(
+			"cannot insert object relationship %q as %s column values are already determined",
+			beforeRelationship,
+			strings.Join(quoted, ", "),
+		)
+	} else {
+		message = fmt.Sprintf(
+			"cannot insert %s columns as their values are already being determined by parent insert",
+			strings.Join(quoted, ", "),
+		)
+	}
+
+	return newQueryValidationError(message, fmt.Errorf("%w: %s", ErrInvalidArgument, message), path)
 }
 
 // newDuplicateUpdateColumnError mirrors Hasura's "Column found in multiple

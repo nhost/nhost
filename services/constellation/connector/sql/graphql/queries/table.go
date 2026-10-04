@@ -36,6 +36,7 @@ type table struct {
 
 	pkColumns                []*core.Column
 	columns                  []*core.Column
+	physicalColumnTypes      map[string]string
 	conflictColumns          map[string][]string
 	conflictNullsNotDistinct map[string]bool
 	relationships            []*relationship
@@ -74,6 +75,7 @@ func newTable(schemaName, tableName string, dialect dialect.Dialect) *table {
 		mutationDeleteByPkName:       "",
 		pkColumns:                    []*core.Column{},
 		columns:                      []*core.Column{},
+		physicalColumnTypes:          map[string]string{},
 		conflictColumns:              map[string][]string{},
 		conflictNullsNotDistinct:     map[string]bool{},
 		relationships:                []*relationship{},
@@ -103,8 +105,10 @@ func (t *table) Initialize(
 	}
 
 	columns := make([]*core.Column, len(tableObj.Columns))
+	t.physicalColumnTypes = make(map[string]string, len(columns))
 
 	for i, colObj := range tableObj.Columns {
+		t.physicalColumnTypes[colObj.Name] = colObj.PhysicalSQLType
 		graphqlName := colObj.Name
 
 		if c, found := md.Configuration.ColumnConfig[colObj.Name]; found && c.CustomName != "" {
