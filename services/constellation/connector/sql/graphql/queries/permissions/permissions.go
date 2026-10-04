@@ -23,6 +23,7 @@
 package permissions
 
 import (
+	json "encoding/json/v2"
 	"errors"
 	"fmt"
 	"strings"
@@ -72,6 +73,14 @@ type Table interface {
 	// Returns nil when no column matches.
 	ColumnFromSQLName(name string) *core.Column
 
+	// ColumnFromGraphqlName distinguishes custom GraphQL aliases from physical SQL names.
+	ColumnFromGraphqlName(name string) *core.Column
+
+	// ComputedScalarFromGraphqlName resolves an executable predicate by its
+	// metadata name. Permission filters are parsed with admin lookup, separately
+	// from the user's select grants and GraphQL input visibility.
+	ComputedScalarFromGraphqlName(name, role string) core.ComputedExpression
+
 	// LookupRelationship resolves a GraphQL field name to its relationship;
 	// returns a nil interface (not typed-nil) when no relationship matches.
 	//
@@ -94,7 +103,7 @@ type Table interface {
 	// Calling convention from this package: parsePermissionFilter is the sole
 	// call site and always invokes
 	//
-	//   t.ParseWhere(v, nil, "", nil, 0, where.PermissionAliases)
+	//   t.ParseWhere(v, nil, metadata.RoleAdmin, permission template, 0, where.PermissionAliases)
 	//
 	// The wide signature exists so a single *table value can satisfy both
 	// permissions.Table and arguments.Table (whose call sites do exercise
@@ -186,6 +195,8 @@ func NewStore() *Store {
 // declared in md and stores them in s, keyed by role. It runs after table
 // columns and relationships are already in place on t — the normaliser walks
 // them when rewriting SQL column names and recursing into relationships.
+// Computed scalars must be initialized on ALL sibling tables first: a filter
+// can reach a later table through a relationship, _exists or an aggregate.
 //
 // Each per-role entry: normalise → AST → parse into where.Clause via
 // parsePermissionFilter. The two-step metadata-to-AST round-trip lets the
@@ -279,7 +290,14 @@ func parsePermissionFilter(
 		)
 	}
 
-	clause, err := t.ParseWhere(v, nil, "", nil, 0, where.PermissionAliases)
+	clause, err := t.ParseWhere(
+		v,
+		nil,
+		metadata.RoleAdmin,
+		map[string]any{core.PermissionSessionTemplateKey: true},
+		0,
+		where.PermissionAliases,
+	)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"failed to parse %s permission filter for role %s: %w", kind, role, err,
@@ -293,7 +311,7 @@ func parsePermissionFilter(
 // take a list of sub-filters and recurse.
 func isLogicalConnective(key string) bool {
 	switch key {
-	case "_and", "_or":
+	case "_and", "_or", "$and", "$or":
 		return true
 	}
 
@@ -304,7 +322,14 @@ func isLogicalConnective(key string) bool {
 // take a single value (and only need x-hasura-* lowercasing for that value).
 func isComparisonOperator(key string) bool {
 	switch key {
-	case "_eq", "_neq", "_gt", "_lt", "_gte", "_lte", "_like", "_nlike":
+	case "_eq", "_neq", "_ne", "_gt", "_lt", "_gte", "_lte", "_like", "_nlike",
+		"_ilike", "_nilike", "_similar", "_nsimilar", "_regex", "_nregex", "_iregex", "_niregex",
+		"_in", "_nin", "_is_null", "_contains", "_contained_in", "_has_key", "_has_keys_any",
+		"_has_keys_all", "_cast", "_ceq", "_cne", "_cneq", "_cgt", "_clt", "_cgte", "_clte",
+		"_ancestor", "_ancestor_any", "_descendant", "_descendant_any", "_matches",
+		"_matches_any", "_matches_fulltext", "_st_contains", "_st_crosses", "_st_equals",
+		"_st_overlaps", "_st_touches", "_st_within", "_st_intersects", "_st_3d_intersects",
+		"_st_d_within", "_st_3d_d_within":
 		return true
 	}
 
@@ -322,10 +347,14 @@ func isComparisonOperator(key string) bool {
 // the fixLogical/fixNot/fixExists/fixComparison/fixColumnKey/fixRelationship
 // helpers so each shape's type checks stay co-located with its logic.
 func fixColumns(t Table, permissions map[string]any) (map[string]any, error) {
+	return fixColumnsRoot(t, t, permissions)
+}
+
+func fixColumnsRoot(t, root Table, permissions map[string]any) (map[string]any, error) {
 	fixed := make(map[string]any, len(permissions))
 
 	for key, value := range permissions {
-		out, err := fixEntry(t, key, value)
+		out, err := fixEntry(t, root, key, value)
 		if err != nil {
 			return nil, err
 		}
@@ -336,36 +365,45 @@ func fixColumns(t Table, permissions map[string]any) (map[string]any, error) {
 	return fixed, nil
 }
 
-// fixedEntry is one key/value pair after normalisation. The key may differ
-// from the input key when a SQL column name is rewritten to its GraphQL
-// equivalent or a relationship's display name is used.
+// fixedEntry is one key/value pair after normalisation. Keep distinct logical
+// aliases as distinct keys: Hasura ANDs every bool-exp entry, even when both
+// _and and $and (or another alias pair) occur in the same object.
 type fixedEntry struct {
 	key   string
 	value any
 }
 
-func fixEntry(t Table, key string, value any) (fixedEntry, error) {
+func fixEntry(t, root Table, key string, value any) (fixedEntry, error) {
 	if isLogicalConnective(key) {
-		return fixLogical(t, key, value)
+		entry, err := fixLogical(t, root, key, value)
+		return entry, err
 	}
 
 	switch key {
-	case "_not":
-		return fixNot(t, value)
-	case "_exists":
-		return fixExistsEntry(t, value)
+	case "_not", "$not":
+		return fixNot(t, root, key, value)
+	case "_exists", "$exists":
+		return fixExistsEntry(t, root, key, value)
 	}
 
-	if isComparisonOperator(key) {
+	if isComparisonOperator(key) ||
+		strings.HasPrefix(key, "$") && isComparisonOperator("_"+key[1:]) {
 		return fixComparison(key, value), nil
 	}
 
 	if column := t.ColumnFromSQLName(key); column != nil {
-		return fixedEntry{key: column.GraphqlName, value: fixValue(value)}, nil
+		return fixedEntry{
+			key:   column.GraphqlName,
+			value: fixColumnComparisonValues(t, root, value),
+		}, nil
+	}
+
+	if t.ComputedScalarFromGraphqlName(key, metadata.RoleAdmin) != nil {
+		return fixedEntry{key: key, value: fixColumnComparisonValues(t, root, value)}, nil
 	}
 
 	if rel := t.LookupRelationship(key); rel != nil {
-		return fixRelationship(rel, value)
+		return fixRelationship(rel, root, value)
 	}
 
 	return fixedEntry{}, fmt.Errorf(
@@ -375,7 +413,7 @@ func fixEntry(t Table, key string, value any) (fixedEntry, error) {
 
 // fixLogical rewrites a top-level "_and" or "_or" entry. Both share the
 // "list of sub-filter maps" shape, so they go through the same helper.
-func fixLogical(t Table, key string, value any) (fixedEntry, error) {
+func fixLogical(t, root Table, key string, value any) (fixedEntry, error) {
 	list, ok := value.([]any)
 	if !ok {
 		return fixedEntry{}, fmt.Errorf("%w: %s", errExpectedListForLogicalOp, key)
@@ -391,7 +429,7 @@ func fixLogical(t Table, key string, value any) (fixedEntry, error) {
 			)
 		}
 
-		fixedItem, err := fixColumns(t, itemMap)
+		fixedItem, err := fixColumnsRoot(t, root, itemMap)
 		if err != nil {
 			return fixedEntry{}, fmt.Errorf(
 				"failed to fix permission columns for logical operator %s: %w", key, err,
@@ -404,27 +442,27 @@ func fixLogical(t Table, key string, value any) (fixedEntry, error) {
 	return fixedEntry{key: key, value: fixedList}, nil
 }
 
-func fixNot(t Table, value any) (fixedEntry, error) {
+func fixNot(t, root Table, key string, value any) (fixedEntry, error) {
 	notMap, ok := value.(map[string]any)
 	if !ok {
 		return fixedEntry{}, errExpectedMapForNotOp
 	}
 
-	fixedNot, err := fixColumns(t, notMap)
+	fixedNot, err := fixColumnsRoot(t, root, notMap)
 	if err != nil {
 		return fixedEntry{}, fmt.Errorf("failed to fix permission columns for _not: %w", err)
 	}
 
-	return fixedEntry{key: "_not", value: fixedNot}, nil
+	return fixedEntry{key: key, value: fixedNot}, nil
 }
 
-func fixExistsEntry(t Table, value any) (fixedEntry, error) {
-	fixedExists, err := fixExists(t, value)
+func fixExistsEntry(t, root Table, key string, value any) (fixedEntry, error) {
+	fixedExists, err := fixExistsRoot(t, root, value)
 	if err != nil {
 		return fixedEntry{}, fmt.Errorf("failed to fix _exists permission columns: %w", err)
 	}
 
-	return fixedEntry{key: "_exists", value: fixedExists}, nil
+	return fixedEntry{key: key, value: fixedExists}, nil
 }
 
 // fixComparison handles "_eq"/"_neq"/etc. at the top level: lowercase any
@@ -437,7 +475,7 @@ func fixComparison(op string, value any) fixedEntry {
 	return fixedEntry{key: op, value: value}
 }
 
-func fixRelationship(rel Relationship, value any) (fixedEntry, error) {
+func fixRelationship(rel Relationship, root Table, value any) (fixedEntry, error) {
 	relPerms, ok := value.(map[string]any)
 	if !ok {
 		return fixedEntry{}, fmt.Errorf(
@@ -452,7 +490,7 @@ func fixRelationship(rel Relationship, value any) (fixedEntry, error) {
 		)
 	}
 
-	fixedRel, err := fixColumns(target, relPerms)
+	fixedRel, err := fixColumnsRoot(target, root, relPerms)
 	if err != nil {
 		return fixedEntry{}, fmt.Errorf(
 			"failed to fix permission columns for relationship %s: %w", rel.Name(), err,
@@ -462,19 +500,107 @@ func fixRelationship(rel Relationship, value any) (fixedEntry, error) {
 	return fixedEntry{key: rel.Name(), value: fixedRel}, nil
 }
 
+// Column comparison operands are identifiers, not session values. Map SQL
+// column names to their GraphQL names on the appropriate table before parsing.
+// Invalid paths are left untouched for the where parser to reject.
+func fixColumnComparisonValues(t, root Table, value any) any {
+	comparison, ok := value.(map[string]any)
+	if !ok {
+		return map[string]any{"_eq": fixValue(value)}
+	}
+
+	fixed := make(map[string]any, len(comparison))
+	for op, rhs := range comparison {
+		switch "_" + strings.TrimLeft(op, "_$") {
+		case "_ceq", "_cne", "_cneq", "_cgt", "_clt", "_cgte", "_clte":
+			fixed[op] = fixColumnReferenceValue(t, root, rhs)
+		case "_cast":
+			fixed[op] = fixComputedCastColumns(t, root, rhs)
+		default:
+			fixed[op] = fixValue(rhs)
+		}
+	}
+
+	return fixed
+}
+
+func fixComputedCastColumns(t, root Table, value any) any {
+	cast, ok := value.(map[string]any)
+	if !ok {
+		return fixValue(value)
+	}
+
+	fixed := make(map[string]any, len(cast))
+	for name, child := range cast {
+		fixed[name] = fixColumnComparisonValues(t, root, child)
+	}
+
+	return fixed
+}
+
+const rootColumnPathLength = 2
+
+func fixColumnReferenceValue(t, root Table, rhs any) any {
+	name, found := rhs.(string)
+
+	table := t
+	if path, ok := rhs.([]any); ok {
+		switch len(path) {
+		case 1:
+			name, found = path[0].(string)
+		case rootColumnPathLength:
+			if marker, ok := path[0].(string); ok && marker == "$" {
+				name, found = path[1].(string)
+				table = root
+			}
+		}
+	}
+
+	if !found || table == nil {
+		return rhs
+	}
+
+	col := table.ColumnFromSQLName(name)
+	if col == nil {
+		// A GraphQL custom name is valid in user where inputs, but Hasura's
+		// permission column-comparison RHS accepts physical SQL names only.
+		// Reject it instead of letting the where parser resolve that alias.
+		if table.ColumnFromGraphqlName(name) != nil {
+			return map[string]any{"invalid_column": name}
+		}
+
+		return rhs
+	}
+
+	if path, ok := rhs.([]any); ok {
+		copyPath := append([]any(nil), path...)
+		copyPath[len(copyPath)-1] = col.GraphqlName
+
+		return copyPath
+	}
+
+	return col.GraphqlName
+}
+
 // fixValue lowercases any string starting with "x-hasura-" anywhere inside v,
-// recursing through maps and slices. Mutates maps and slices in place; scalars
-// are returned unchanged (Go value semantics).
+// recursing through maps and slices. Returns copies of maps and slices;
+// scalars are returned unchanged.
 func fixValue(value any) any {
 	switch v := value.(type) {
 	case map[string]any:
+		out := make(map[string]any, len(v))
 		for key, val := range v {
-			v[key] = fixValue(val)
+			out[key] = fixValue(val)
 		}
+
+		return out
 	case []any:
+		out := make([]any, len(v))
 		for i, item := range v {
-			v[i] = fixValue(item)
+			out[i] = fixValue(item)
 		}
+
+		return out
 	case string:
 		if strings.HasPrefix(strings.ToLower(v), "x-hasura-") {
 			return strings.ToLower(v)
@@ -488,6 +614,10 @@ func fixValue(value any) any {
 // resolved sibling table. The _table reference is preserved as-is; only its
 // _where is normalised.
 func fixExists(t Table, value any) (map[string]any, error) {
+	return fixExistsRoot(t, t, value)
+}
+
+func fixExistsRoot(t, root Table, value any) (map[string]any, error) {
 	existsMap, ok := value.(map[string]any)
 	if !ok {
 		return nil, errExpectedMapForExistsOp
@@ -518,7 +648,7 @@ func fixExists(t Table, value any) (map[string]any, error) {
 		return nil, fmt.Errorf("%w: %s.%s", errTableNotFoundForExistsOp, schema, name)
 	}
 
-	fixedWhere, err := fixColumns(target, whereMap)
+	fixedWhere, err := fixColumnsRoot(target, root, whereMap)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"failed to fix _exists _where columns for %s.%s: %w",
@@ -607,9 +737,34 @@ func SubstituteSessionVariable(v any, sessionVariables map[string]any) (any, err
 		return out, nil
 	case []string:
 		return substituteStringArray(v, sessionVariables)
+	case core.FunctionSessionArgument:
+		return substituteFunctionSessionArgument(v, sessionVariables)
 	}
 
 	return v, nil
+}
+
+func substituteFunctionSessionArgument(
+	marker core.FunctionSessionArgument, sessionVariables map[string]any,
+) (any, error) {
+	// A multiplexed cohort supplies typed per-subscriber values. Leave the
+	// whole-session marker for Multiplex to rewrite to result_vars->'session'.
+	for _, session := range sessionVariables {
+		if _, template := session.(core.SessionVarValue); template {
+			return marker, nil
+		}
+	}
+
+	if sessionVariables == nil {
+		sessionVariables = map[string]any{}
+	}
+
+	encoded, err := json.Marshal(sessionVariables, json.Deterministic(true))
+	if err != nil {
+		return nil, fmt.Errorf("serializing computed permission session: %w", err)
+	}
+
+	return string(encoded), nil
 }
 
 // substituteStringArray resolves session-variable references inside the
@@ -956,6 +1111,13 @@ func (s *Store) RequiresPostInsertCheck(
 	clause, ok := s.Insert[role]
 	if !ok {
 		return false
+	}
+
+	if where.ContainsComputed(clause) || where.ContainsRootColumn(clause) {
+		// Pre-insert data is not a complete typed physical row. Even when
+		// every input column is supplied, defaults, triggers and nested inserts
+		// can change the value read by the function.
+		return true
 	}
 
 	for _, colName := range where.CollectSourceColumns(clause) {

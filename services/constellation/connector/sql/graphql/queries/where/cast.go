@@ -15,11 +15,11 @@ import (
 //nolint:ireturn // Operator dispatch returns the shared Statement abstraction.
 func parseComparisonCast(
 	column *core.Column, target *comparisonTarget, value *ast.Value,
-	variables map[string]any, d dialect.Dialect,
+	variables map[string]any, d dialect.Dialect, tables ...Table,
 ) (Statement, error) {
 	base := comparisonTargetFor(column, target)
 	if pgtypes.IsSpatial(base.sqlType) {
-		return parseSpatialCast(column, target, value, variables, d)
+		return parseSpatialCast(column, target, value, variables, d, tables...)
 	}
 
 	if base.sqlType != "jsonb" || !d.SupportsJSONB() {
@@ -48,7 +48,13 @@ func parseComparisonCast(
 			},
 		}
 
-		condition, err := parseFieldComparisonValue(column, cast, child.Value, variables, d)
+		condition, err := parseFieldComparisonValue(
+			column,
+			cast,
+			child.Value,
+			variables,
+			d,
+			tables...)
 		if err != nil {
 			return nil, fmt.Errorf("parsing jsonb _cast.String: %w", err)
 		}

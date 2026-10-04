@@ -111,8 +111,9 @@ access. Manual table-valued grants remain invalid regardless of argument kind.
 A computed definition on SQLite is ignored as before, without computed-specific
 inconsistencies or grant revocation. Other fields and tables survive. Valid
 PostgreSQL scalar selections and argument-free computed user predicates
-and ordering are available to admin and granted roles; computed permission
-predicates/checks and table-valued selections are not yet executable.
+and ordering are available to admin and granted roles; argument-free scalar
+computed permission filters/checks execute without a selection grant. Table-valued
+selections and table-valued permission predicates remain unavailable.
 
 A select permission with an invalid/malformed computed grant is recorded as
 `select_permission` and removed **in its entirety**, including its filter;
@@ -121,11 +122,12 @@ them. A valid scalar grant remains a valid permission even if its argument type
 is deferred; only executable scalar selections are exposed. A computed `_args`
 input type that conflicts with a different type in a composed role drops just
 the affected selection and records a `computed_field` inconsistency; the role
-and other fields remain. A select/update/delete filter or insert/update check referencing
-a known computed field, including through `_and`, `_or`, `_not`, local
-relationships, `_exists`, and aggregate relationship filters, cannot execute
-until computed permission predicates/checks are supported: the **entire permission** is recorded
-as `<operation>_permission` and removed, not just its filter/check. Other roles
+and other fields remain. A select/update/delete filter or insert/update check referencing a valid,
+argument-free PostgreSQL scalar computed field is enforced, including through
+logical operators, local relationships and `_exists`. An identifiable invalid
+or unexecutable computed reference is recorded as `<operation>_permission` and
+the **entire affected permission** is removed, not just its filter/check.
+Non-computed relationship-aggregate filters retain their existing parser behavior. Other roles
 and permissions on the same table remain available. A definition or a grant
 (on any role of that table) identifies a computed predicate, including if its
 function is missing. An unknown key with neither a definition nor a grant is

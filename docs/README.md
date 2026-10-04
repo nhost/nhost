@@ -39,6 +39,8 @@ When testing a build with `nix develop .#docs`, the dev shell links `node_module
 into the Nix store. If Astro reports `No cached compile metadata` for Starlight,
 run the build in a writable source copy with copied `node_modules`, as the Nix
 `docs` check does; a store-linked build can fail before compiling the pages.
+Preserve pnpm's internal symlinks when copying (`cp -a "$source"/. docs/node_modules/`);
+`cp -RL` flattens them and breaks transitive package resolution.
 
 ## Writing Documentation
 

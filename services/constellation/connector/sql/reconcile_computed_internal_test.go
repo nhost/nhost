@@ -103,7 +103,20 @@ func TestReconcileComputedFieldPermissions(t *testing.T) {
 			[]metadata.InvalidComputedFieldGrant{{DecodeError: "not a list"}},
 			false,
 		},
-		{"scalar predicate", map[string]any{"label": map[string]any{"_eq": "a"}}, nil, nil, false},
+		{
+			"executable scalar predicate",
+			map[string]any{"label": map[string]any{"_eq": "a"}},
+			nil,
+			nil,
+			true,
+		},
+		{
+			"invalid scalar operator",
+			map[string]any{"label": map[string]any{"_unknown": "a"}},
+			nil,
+			nil,
+			false,
+		},
 		{
 			"nested invalid function",
 			map[string]any{
@@ -184,6 +197,72 @@ func hasComputedInconsistency(inc *metadata.Inconsistencies, kind string) bool {
 	}
 
 	return false
+}
+
+func TestReconcileExecutableComputedPermissionKinds(t *testing.T) {
+	t.Parallel()
+
+	for _, tt := range []struct {
+		name      string
+		predicate map[string]any
+		kept      bool
+	}{
+		{"valid scalar", map[string]any{"label": map[string]any{"_eq": "visible"}}, true},
+		{"unknown operator", map[string]any{"label": map[string]any{"_unhandled": "visible"}}, false},
+		{"invalid function", map[string]any{"broken": map[string]any{"_eq": "visible"}}, false},
+		{"deferred table", map[string]any{"posts_for_user": map[string]any{"id": map[string]any{"_eq": 1}}}, false},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			md, objects := computedReconcileFixture()
+			md.Tables[0].SelectPermissions = []metadata.SelectPermission{
+				{Role: "guard", Permission: metadata.SelectPermissionConfig{
+					Columns: []string{"id"}, Filter: tt.predicate,
+				}},
+			}
+			md.Tables[0].InsertPermissions = []metadata.InsertPermission{
+				{Role: "guard", Permission: metadata.InsertPermissionConfig{Check: tt.predicate}},
+			}
+			md.Tables[0].UpdatePermissions = []metadata.UpdatePermission{
+				{
+					Role: "guard",
+					Permission: metadata.UpdatePermissionConfig{
+						Filter: tt.predicate,
+						Check:  tt.predicate,
+					},
+				},
+			}
+			md.Tables[0].DeletePermissions = []metadata.DeletePermission{
+				{Role: "guard", Permission: metadata.DeletePermissionConfig{Filter: tt.predicate}},
+			}
+			inc := metadata.NewInconsistencies()
+			out := reconcileMetadata(t.Context(), nil, inc, md, objects)
+
+			got := out.Tables[0]
+			if (len(got.SelectPermissions) == 1) != tt.kept ||
+				(len(got.InsertPermissions) == 1) != tt.kept ||
+				(len(got.UpdatePermissions) == 1) != tt.kept ||
+				(len(got.DeletePermissions) == 1) != tt.kept {
+				t.Fatalf(
+					"whole permissions not reconciled: %+v, inconsistencies %+v",
+					got,
+					inc.Snapshot(),
+				)
+			}
+
+			if !tt.kept {
+				for _, kind := range []string{
+					metadata.InconsistencyKindSelectPermission, metadata.InconsistencyKindInsertPermission,
+					metadata.InconsistencyKindUpdatePermission, metadata.InconsistencyKindDeletePermission,
+				} {
+					if !hasComputedInconsistency(inc, kind) {
+						t.Errorf("missing %s inconsistency", kind)
+					}
+				}
+			}
+		})
+	}
 }
 
 func TestComputedPredicateRelationshipTraversal(t *testing.T) {
@@ -587,8 +666,8 @@ func TestComputedObjectRelationshipAggregateSuffixIsNotReserved(t *testing.T) {
 	inc := metadata.NewInconsistencies()
 
 	got := reconcileMetadata(t.Context(), nil, inc, md, objects)
-	if len(got.Tables) != 2 || len(got.Tables[0].SelectPermissions) != 1 ||
-		got.Tables[0].SelectPermissions[0].Role != "other" ||
+	if len(got.Tables) != 2 || len(got.Tables[0].SelectPermissions) != 2 ||
+		got.Tables[0].SelectPermissions[0].Role != "guarded" ||
 		len(
 			got.Tables[0].ComputedFields,
 		) != 3 || got.Tables[0].ComputedFields[2].Name != field.Name {
@@ -599,7 +678,6 @@ func TestComputedObjectRelationshipAggregateSuffixIsNotReserved(t *testing.T) {
 		)
 	}
 
-	var permissionFailure bool
 	for _, entry := range inc.Snapshot() {
 		if entry.Kind == metadata.InconsistencyKindComputedField &&
 			entry.Name == "public.users."+field.Name {
@@ -608,15 +686,8 @@ func TestComputedObjectRelationshipAggregateSuffixIsNotReserved(t *testing.T) {
 
 		if entry.Kind == metadata.InconsistencyKindSelectPermission &&
 			entry.Name == "public.users.guarded" {
-			permissionFailure = strings.Contains(
-				entry.Reason,
-				`computed predicate "profile_aggregate"`,
-			)
+			t.Fatalf("executable scalar predicate revoked permission: %+v", entry)
 		}
-	}
-
-	if !permissionFailure {
-		t.Fatalf("computed filter was not isolated as select_permission: %+v", inc.Snapshot())
 	}
 }
 
@@ -648,10 +719,14 @@ func TestComputedPredicateForwardFK(t *testing.T) {
 	inc := metadata.NewInconsistencies()
 
 	got := reconcileMetadata(t.Context(), nil, inc, md, objects)
-	if len(got.Tables[1].SelectPermissions) != 1 ||
-		got.Tables[1].SelectPermissions[0].Role != "other" ||
-		!hasComputedInconsistency(inc, metadata.InconsistencyKindSelectPermission) {
-		t.Fatalf("forward-FK predicate not isolated: %+v; %+v", got.Tables[1], inc.Snapshot())
+	if len(got.Tables[1].SelectPermissions) != 2 ||
+		got.Tables[1].SelectPermissions[0].Role != "blocked" ||
+		hasComputedInconsistency(inc, metadata.InconsistencyKindSelectPermission) {
+		t.Fatalf(
+			"valid forward-FK scalar predicate unavailable: %+v; %+v",
+			got.Tables[1],
+			inc.Snapshot(),
+		)
 	}
 }
 

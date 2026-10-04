@@ -226,10 +226,7 @@ func unknownFilterMetadata(
 		for j := range db.Tables {
 			table := &db.Tables[j]
 			if columnOnly {
-				table.ComputedFields = nil
-				for k := range table.SelectPermissions {
-					table.SelectPermissions[k].Permission.ComputedFields = nil
-				}
+				stripComputedControl(table, db.Name)
 			}
 
 			if db.Name == "cf_select" && table.Table.Name == "items" {
@@ -245,6 +242,29 @@ func unknownFilterMetadata(
 	}
 
 	return md
+}
+
+// stripComputedControl keeps the unknown-key control free of all computed
+// metadata, including the startup guard on the independent predicate source.
+func stripComputedControl(table *metadata.TableMetadata, source string) {
+	table.ComputedFields = nil
+	for k := range table.SelectPermissions {
+		table.SelectPermissions[k].Permission.ComputedFields = nil
+	}
+
+	if source != "cf_predicates" {
+		return
+	}
+
+	kept := table.SelectPermissions[:0]
+	for _, permission := range table.SelectPermissions {
+		if permission.Role != "cf_predicate_guard" {
+			kept = append(kept, permission)
+		}
+	}
+
+	table.SelectPermissions = kept
+	table.InsertPermissions = nil
 }
 
 func setComputedReaderGrant(md *metadata.Metadata, fields []string) {
