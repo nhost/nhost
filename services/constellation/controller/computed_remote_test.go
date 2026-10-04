@@ -227,6 +227,16 @@ func TestComputedSelectionViaCrossSource(
 			}},
 		},
 		{
+			name: "array with computed target predicate and ordering",
+			query: `{ cf_predicates_rules(order_by:{id:asc}) {
+				items(where:{item_tags:{id:{_eq:3}}},order_by:{item_tags_aggregate:{count:desc}}) { id }
+			} }`,
+			want: map[string]any{"cf_predicates_rules": []any{
+				map[string]any{"items": []any{}},
+				map[string]any{"items": []any{map[string]any{"id": float64(2)}}},
+			}},
+		},
+		{
 			name: "array with target filter",
 			query: `{ cf_predicates_rules(order_by:{id:asc}) {
 				items(where:{id:{_gt:1}}) { item_tags { id label } }
@@ -256,6 +266,21 @@ func TestComputedSelectionViaCrossSource(
 					"nodes": []any{map[string]any{"id": float64(2), "item_tags": []any{
 						map[string]any{"id": float64(3), "label": "three"},
 					}}},
+				}},
+			}},
+		},
+		{
+			name: "grouped aggregate with computed filter",
+			query: `{ cf_predicates_rules(order_by:{id:asc}) {
+				items_aggregate(where:{item_tags:{id:{_eq:3}}}) { aggregate { count } nodes { id } }
+			} }`,
+			want: map[string]any{"cf_predicates_rules": []any{
+				map[string]any{"items_aggregate": map[string]any{
+					"aggregate": map[string]any{"count": float64(0)}, "nodes": []any{},
+				}},
+				map[string]any{"items_aggregate": map[string]any{
+					"aggregate": map[string]any{"count": float64(1)},
+					"nodes":     []any{map[string]any{"id": float64(2)}},
 				}},
 			}},
 		},

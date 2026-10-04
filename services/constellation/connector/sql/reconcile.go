@@ -31,14 +31,17 @@ const permissionAllColumns = "*"
 //   - Functions: dropped when absent from objects.Functions (kind=function).
 //   - PostgreSQL computed fields: invalid definitions are dropped individually;
 //     invalid grants and unexecutable computed predicates drop their permission.
+//     Malformed _exists operators or untracked targets also drop their containing
+//     permission, including when its predicate has no computed references.
 //   - Object/Array relationships: dropped when the target table (only when
 //     it lives in the same source) does not exist (kind=relationship).
 //   - Raw to_source remote relationships: dropped when relationship_type is
 //     missing or not one of object/array (kind=relationship).
 //
 // Reconciliation is intentionally scoped: Hasura-expression Filter/Check
-// trees inside permissions are walked only for computed-field dependencies;
-// ordinary unknown keys retain their existing root-construction behavior.
+// trees inside permissions are walked for computed-field dependencies and
+// malformed or untracked _exists references; ordinary unknown keys retain
+// their existing root-construction behavior.
 // Cross-source relationship targets are not validated here — the composer's
 // relationship layer handles those.
 func reconcileMetadata(

@@ -93,6 +93,9 @@ unaffected.
 > `filter` / `check` expressions are not reconciled per permission. The
 > existing permission parser can reject them during root construction,
 > dropping the source; this is distinct from a known computed-field reference.
+> On PostgreSQL, malformed `_exists` values, table references and `_where` maps,
+> or untracked targets, are checked per permission even without computed fields;
+> unknown keys inside a valid `_where` keep the existing parser behavior.
 
 ### `computed_field` and `<operation>_permission` (PostgreSQL source)
 
@@ -115,9 +118,17 @@ and ordering are available to admin and granted roles; argument-free scalar
 computed permission filters/checks execute without a selection grant. PostgreSQL
 `SETOF` tracked-table selections are available to roles with select access on
 the returned table, without a computed grant; that table's row filters and
-column permissions apply to the returned rows. Table-valued boolean/order
-inputs and table-valued permission predicates remain unavailable. An
-identifiable table-valued predicate removes its entire affected permission.
+column permissions apply to the returned rows. Argument-free table functions
+also appear in row `bool_exp` as an EXISTS over the function result and in
+`order_by` as `<field>_aggregate` (without a selection aggregate sibling).
+User predicates and aggregate ordering apply the returned table's row and
+column permissions, including its select row filter (matching patched Hasura
+v2.50.3-ce). Metadata permission predicates instead evaluate independently
+of the target select grant and filter. Role select/update/delete filters and insert/update checks
+may use argument-free table predicates without a select grant on the returned
+table; their predicate sees the full function result, as in Hasura. An
+identifiable invalid, argument-bearing or unexecutable table predicate removes
+its entire affected permission.
 
 A select permission with an invalid/malformed computed grant is recorded as
 `select_permission` and removed **in its entirety**, including its filter;
@@ -127,11 +138,18 @@ is deferred; only executable scalar selections are exposed. A computed `_args`
 input type that conflicts with a different type in a composed role drops just
 the affected selection and records a `computed_field` inconsistency; the role
 and other fields remain. A select/update/delete filter or insert/update check referencing a valid,
-argument-free PostgreSQL scalar computed field is enforced, including through
-logical operators, local relationships and `_exists`. An identifiable invalid
-or unexecutable computed reference is recorded as `<operation>_permission` and
-the **entire affected permission** is removed, not just its filter/check.
-Non-computed relationship-aggregate filters retain their existing parser behavior. Other roles
+argument-free PostgreSQL scalar or table computed field is enforced, including
+through logical operators, local relationships and `_exists`.
+On PostgreSQL, `_exists._table` accepts a bare name or an object with an
+optional schema; omitted and `null` schemas mean `public`, not the containing
+table's schema. An invalid `_exists` value, table reference, `_where` map or
+untracked target revokes only the containing permission, including for
+computed-free predicates. An identifiable invalid or unexecutable computed
+reference is likewise recorded as `<operation>_permission` and the **entire
+affected permission** is removed, not just its filter/check.
+Hasura rejects relationship-aggregate permission keys; identifiable computed
+references inside them revoke the affected permission. Non-computed aggregate
+permission keys retain their existing parser behavior. Other roles
 and permissions on the same table remain available. A definition or a grant
 (on any role of that table) identifies a computed predicate, including if its
 function is missing. An unknown key with neither a definition nor a grant is
@@ -139,8 +157,9 @@ not classified by its spelling. For example, a `missing_computed` filter without
 a matching definition or grant is an ordinary unknown key to Constellation:
 root construction fails and the **whole database source** is unavailable, even
 though Hasura marks only its `select_permission` inconsistent. A filter with an ordinary
-missing-column key has the same source-wide outcome in Constellation. This is
-an intentional, documented difference for invalid metadata, not supported
+missing-column key has the same source-wide outcome in Constellation, including
+an unknown key inside a valid `_exists._where` outside a recognized computed-table
+predicate. This is an intentional, documented difference for invalid metadata, not supported
 computed-field parity; do not use unknown filter keys as an access-control
 mechanism.
 
@@ -249,7 +268,7 @@ produce.
 | `column` | ✅ | ✅ | — |
 | `function` | ✅ | — | — |
 | `computed_field` | ✅ | — | — |
-| `select_permission` / `insert_permission` / `update_permission` / `delete_permission` (computed references) | ✅ | — | — |
+| `select_permission` / `insert_permission` / `update_permission` / `delete_permission` (computed references or invalid PostgreSQL `_exists`) | ✅ | — | — |
 | `relationship` | ✅ | ✅ | — |
 | `enum_values` | ✅ | ✅ | — |
 | `role` | ✅ | ✅ | ✅ |

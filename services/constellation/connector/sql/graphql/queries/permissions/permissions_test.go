@@ -33,6 +33,13 @@ func (t hasInsertCheckTable) ComputedScalarFromGraphqlName(string, string) core.
 	return nil
 }
 
+func (t hasInsertCheckTable) ComputedTableFromGraphqlName(
+	string,
+	string,
+) core.ComputedTableExpression {
+	return nil
+}
+
 func (t hasInsertCheckTable) LookupRelationship(_ string) permissions.Relationship {
 	return nil
 }
@@ -81,6 +88,13 @@ func (t permissionLikeTable) LookupRelationship(_ string) permissions.Relationsh
 }
 
 func (t permissionLikeTable) ComputedScalarFromGraphqlName(string, string) core.ComputedExpression {
+	return nil
+}
+
+func (t permissionLikeTable) ComputedTableFromGraphqlName(
+	string,
+	string,
+) core.ComputedTableExpression {
 	return nil
 }
 

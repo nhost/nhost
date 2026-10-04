@@ -37,6 +37,7 @@ func aggregateOrderByTable(
 	// array-relationship aggregate ordering path.
 	tbl.EXPECT().ColumnFromGraphqlName("employees_aggregate").Return(nil)
 	tbl.EXPECT().ComputedScalarFromGraphqlName("employees_aggregate", "admin").Return(nil)
+	tbl.EXPECT().ComputedTableFromGraphqlName("employees", "admin").Return(nil)
 	tbl.EXPECT().Relationship("employees_aggregate").Return(rel)
 
 	rel.EXPECT().Name().Return("employees").AnyTimes()

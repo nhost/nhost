@@ -175,8 +175,8 @@ A relationship-free level remains one multirow statement; at a related level,
 input rows run one at a time. Within each row, before-parent objects, the row
 and its insert/actual-upsert check, arrays depth-first, then implicit
 remote-table-FK after-parent objects execute in that order. Relationship
-siblings follow the pinned Hasura v2.48.10-ce hash-map order, not input field
-order; see `KNOWN_DIFFERENCES.md` for the version/dependency coupling and
+siblings follow the Hasura hash-map order first probed on v2.48.10-ce and
+reverified on v2.50.3-ce, not input field order; see `KNOWN_DIFFERENCES.md` for the version/dependency coupling and
 collision fallback. Explicit client FK columns overlapping relationship-determined
 values are rejected during planning before any write; server insert presets are
 not client columns and win over relationship-determined FKs. A zero-row parent

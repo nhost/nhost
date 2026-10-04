@@ -46,6 +46,10 @@ func (s *stubTable) ComputedScalarFromGraphqlName(
 	return nil
 }
 
+func (s *stubTable) ComputedTableFromGraphqlName(string, string) core.ComputedTableExpression {
+	return nil
+}
+
 func (s *stubTable) TableBySchemaName(
 	_, _ string,
 ) Table {

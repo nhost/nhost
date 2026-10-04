@@ -59,6 +59,51 @@ func TestContainsComputedParsedFilter(t *testing.T) {
 	}
 }
 
+func TestSupportedComputedTableColumnComparison(t *testing.T) {
+	t.Parallel()
+
+	resolve := func(name string, root bool) (string, bool, bool) {
+		if name == "labels" && !root {
+			return "_text", true, true
+		}
+
+		return "", false, false
+	}
+
+	for _, tc := range []struct {
+		name  string
+		value any
+		want  bool
+	}{
+		{"array contains", map[string]any{"_contains": []any{"a"}}, true},
+		{"array column reference", map[string]any{"_ceq": "labels"}, true},
+		{"array wrong reference", map[string]any{"_ceq": "missing"}, false},
+		{"array wrong scalar operator", map[string]any{"_like": "a%"}, false},
+		{"array unknown operator", map[string]any{"_unsupported": 1}, false},
+		{"scalar unknown operator", map[string]any{"_unsupported": 1}, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			isArray := tc.name != "scalar unknown operator"
+
+			typ := "_text"
+			if !isArray {
+				typ = "text"
+			}
+
+			if got := where.SupportedComputedTableColumnComparison(
+				typ,
+				isArray,
+				tc.value,
+				resolve,
+			); got != tc.want {
+				t.Fatalf("support = %v, want %v", got, tc.want)
+			}
+		})
+	}
+}
+
 func TestSupportedComputedPermissionComparison(t *testing.T) {
 	t.Parallel()
 

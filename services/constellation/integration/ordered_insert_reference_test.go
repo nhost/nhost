@@ -125,9 +125,9 @@ func TestOrderedInsertReference(
 		t.Fatalf("Hasura /v1/version: %v", err)
 	}
 
-	if version != "v2.48.10-ce" {
+	if version != "v2.50.3-ce" {
 		t.Fatalf(
-			"Hasura order coupling changed: /v1/version=%q; expected v2.48.10-ce (hashable 1.4.7.0/text 2.1.1/unordered-containers 0.2.20); re-probe before changing XXH3 order",
+			"Hasura order coupling changed: /v1/version=%q; expected v2.50.3-ce; re-probe before changing XXH3 order",
 			version,
 		)
 	}

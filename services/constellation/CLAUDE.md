@@ -120,6 +120,11 @@ go test ./connector/sql/graphql/schema/... -update
 
 Golden file tests live in `testdata/` directories. Update them with the `-update` flag when making intentional changes to generated SQL or schemas.
 
+`golangci-lint run --fix` may flatten an embedded-struct literal into promoted
+fields, which then fails `exhaustruct` on a second lint pass. For a composite
+adapter that needs all fields initialized, prefer a named member with forwarding
+methods rather than an embedded field and verify a second lint run is clean.
+
 After the required root `golines -w --base-formatter=gofumpt .`, also run `golines -w --base-formatter=gofumpt services/constellation` when its files remain in `golines -l --base-formatter=gofumpt services/constellation`: the `.` invocation has not recursed into all Constellation files in practice. Verify the final `-l` output is empty, including after lint auto-fixes.
 
 ### Integration comparisons and regression tests
@@ -129,7 +134,11 @@ PostgreSQL dependent inserts use `core.InsertPlan`, built in
 `connector/sql/postgres/insert_steps.go` on the root transaction. Test nested
 mutations through `postgres.Client.ExecuteOperations`, not `op.SQL` (the flat
 insert path still uses SQL). Testdb on `:5433` has a default `go test -p` and
-`-parallel` connection budget: reuse and close pools at test cleanup; never
+`-parallel` connection budget: its default DSN disables TLS because pgx's
+`sslmode=prefer` against the TLS-disabled testdb creates two backends per
+connection attempt; under SCRAM and default parallelism this can exhaust the
+postmaster child limit (53300) even with few active sessions. Respect an
+explicit `DATABASE_URL`. Reuse and close pools at test cleanup; never
 add a second pool per subtest or reduce global parallelism to mask exhaustion.
 For large independent computed-permission testdb matrices, keep one parallel top-level test with sequential per-case subtests and close each connector in the case cleanup; making every matrix top-level test parallel exhausts :5433 even though each individual case closes its pool. Use package-scoped `go generate` for changed interfaces, not `go generate
 ./...` (unrelated live-schema clients may be rewritten). Hasura cleanup
@@ -168,6 +177,28 @@ its migration/seed logs and metadata consistency instead of trusting exit 0:
 the CLI can report migration or duplicate-seed errors and still return success.
 It also exports/normalizes metadata filenames before applying metadata; restore
 any intentionally named static fixture files/references after this refresh.
+It also sorts `cf_select` YAML permission entries, which breaks the checked-in
+YAML/JSON fixture parity and index-based tests: restore their original order
+(`cf_filtered_*` roles last) before the full gate.
+The existing Hasura image is v2.50.3-ce: the required `TestOrderedInsertReference`
+revalidated forward/reversed nested insert order, FK errors and rollback on
+that image. `cf_filtered_one`/`cf_filtered_three` are static roles used to
+compare target-filtered computed-table EXISTS and aggregate ordering without
+mutating live metadata. `integration/computedfields/testdata/metadata.json` has
+no relationships on `cf_select.tags`: permission tests that traverse `item`
+or `item_copies` must add the relationship locally, or an unknown relationship
+can revoke a permission before the intended nested predicate is checked.
+Hasura PostgreSQL `QualifiedTable` accepts a bare name or an object whose
+`schema` is absent or null; these mean `public`, never the containing table's
+schema. Hasura exports explicit schema strings, so hand-authored metadata is
+where these cases arise. Test public defaults against a public-only physical
+column when the parent schema also has a table with the same name; otherwise
+reconciliation can validate the wrong table without a regression failing.
+Multiplexed computed permissions with a SQL function
+`session_argument` must retain a `core.SessionVarValue` template marker so the
+permission writer emits a per-subscriber whole-session parameter; serializing
+the template map would include its private NUL-key sentinel and fail PostgreSQL
+JSONB parsing (22P05).
 
 The existing `integration/` suite compares Constellation with Nhost Hasura. During active development, use those comparisons for sanity checks and investigating reported differences, not as the sole or exhaustive source of regression coverage. Add direct Constellation tests with explicit expectations for implemented behavior (for example, metadata, schema, SQL, execution and permissions), and turn discovered bugs into independent regressions. Those tests should remain useful if the Hasura comparison harness is retired after stabilization. The scope of comparison tests for a particular feature belongs in that feature's plan, not in this project-wide guide.
 
@@ -194,10 +225,10 @@ The existing `integration/` suite compares Constellation with Nhost Hasura. Duri
 - **Permission injection**: The permissions package (`connector/sql/graphql/queries/permissions/`) exposes a `Store` that resolves per-role select/insert/update/delete rules, wraps queries with additional WHERE clauses, and restricts visible columns. Permissions can reference session variables (`X-Hasura-User-Id`, etc.) which are substituted at execution time.
 - **Subscriptions**: SQL subscriptions use multiplexed polling (`connector/sql/subscription/`). The `cohortManager` groups subscriptions with identical queries into cohorts sharing a single SQL poll; the `streamCohortManager` handles cursor-based `subscription_stream`. Both are unexported and constructed through `subscription.Handler`.
 - **Atomic state swaps**: `Controller` uses `atomic.Pointer[controllerState]` for lock-free metadata hot-reload. In-flight requests complete against old state; new requests use updated state. Old connectors and subscription handlers are shut down in a background goroutine. When modifying controller state, always work through `buildState()` -- never mutate `controllerState` fields directly.
-- **Inconsistency-tolerant builds**: once `metadata.Source` returns a parsed document, every downstream failure is recorded as a `metadata.Inconsistency` and the offending entity is dropped at the finest granularity available — whole source (`database`/`remote_schema`), whole role (`role`), or one table/column/function/relationship/enum_values entry within a source. The collector lives on `controllerState` and is exposed by `Controller.Inconsistencies()`. SQL-source filtering happens in `connector/sql/reconcile.go`; driver-level introspection (`introspectEnumValues`, `introspectFunctions`) silently elides per-entity gaps so reconcile can record them rather than aborting the whole connector. PostgreSQL computed functions are resolved per table/field and bad definitions drop only that field; a malformed/invalid computed grant or a known computed reference in a select/update/delete filter or insert/update check drops the **entire affected permission**, never its filter/check alone. Valid scalar grants enable executable PostgreSQL scalar selections and argument-free user `where`/`order_by` inputs; aggregate outputs include Hasura-eligible comparable/numeric returns and retain user `args`. Argument-bearing computed fields do not occur in row inputs, and Hasura includes no computed aggregate-order inputs. Argument-free PostgreSQL scalar computed permission filters/checks execute independently
+- **Inconsistency-tolerant builds**: once `metadata.Source` returns a parsed document, every downstream failure is recorded as a `metadata.Inconsistency` and the offending entity is dropped at the finest granularity available — whole source (`database`/`remote_schema`), whole role (`role`), or one table/column/function/relationship/enum_values entry within a source. The collector lives on `controllerState` and is exposed by `Controller.Inconsistencies()`. SQL-source filtering happens in `connector/sql/reconcile.go`; driver-level introspection (`introspectEnumValues`, `introspectFunctions`) silently elides per-entity gaps so reconcile can record them rather than aborting the whole connector. PostgreSQL computed functions are resolved per table/field and bad definitions drop only that field; a malformed/invalid computed grant or a known computed reference in a select/update/delete filter or insert/update check drops the **entire affected permission**, never its filter/check alone. Valid scalar grants enable executable PostgreSQL scalar selections and argument-free user `where`/`order_by` inputs; aggregate outputs include Hasura-eligible comparable/numeric returns and retain user `args`. Argument-free table-valued fields occur as boolean EXISTS and `<field>_aggregate` order inputs, with target select permissions; they also execute in role filters/checks without target select access. Argument-bearing computed fields do not occur in row inputs, and Hasura includes no **scalar** computed aggregate-order inputs. Argument-free PostgreSQL scalar computed permission filters/checks execute independently
 of select grants after all tables' computed lookups are initialized; identifiable
 invalid or unexecutable predicates still drop their whole permission.
-Non-computed relationship-aggregate permission parsing retains its prior behavior;
+Hasura rejects relationship-aggregate permission keys; identifiable computed references nested there revoke the permission, and non-computed aggregate permission parsing retains its prior behavior;
 grants with accepted but deferred non-base argument types remain while their
 selections are omitted. Non-base return types are invalid and revoke the affected select permission; unrelated permissions survive. Computed argument names count only unnamed user inputs after excluding row/session slots; named inputs do not advance `arg_N`. Hasura's default computed descriptions omit `public.` for public function/table names but qualify non-public names. Conflicting `_args` input types in composed roles drop only the affected selection and record a `computed_field` inconsistency. A definition or grant on the table identifies a computed predicate across roles, including if the function is invalid. A key with neither definition nor grant cannot be inferred as computed from its spelling: an unidentifiable `missing_computed` filter key retains the ordinary unknown filter key's **source-wide** root-construction failure. Hasura drops only that invalid key's permission; this is a documented invalid-key divergence, not supported computed-field parity. Keep a column-only unknown-key control when changing this behavior. **User-facing rules**: see `docs/user/inconsistencies.md` for the full catalogue, what each kind drops, and the source-type matrix.
 - **Authentication flow**: `controller/middleware` extracts session from requests in priority order: (1) admin secret header grants admin role, (2) JWT token validated against configured secrets with Hasura claims extraction, (3) fallback to public role. Session variables from `X-Hasura-*` headers are injected into SQL permission WHERE clauses.
