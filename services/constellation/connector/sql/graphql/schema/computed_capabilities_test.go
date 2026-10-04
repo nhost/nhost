@@ -28,7 +28,7 @@ func TestComputedCapabilitiesSelectionEnabledOnlyOnPostgres(t *testing.T) {
 
 			if caps.SupportsComputedScalarSelection != (tt.kind == schema.KindPostgres) ||
 				caps.SupportsComputedScalarInput != (tt.kind == schema.KindPostgres) ||
-				caps.SupportsComputedTableSelection ||
+				caps.SupportsComputedTableSelection != (tt.kind == schema.KindPostgres) ||
 				caps.SupportsComputedTableInput {
 				t.Fatalf("computed capability gates: %+v", caps)
 			}

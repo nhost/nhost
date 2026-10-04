@@ -371,7 +371,7 @@ func (s selectionReturning) writeReturningCorrelated( //nolint:funlen
 
 		var err error
 
-		params, paramIndex, err = relSel.relationship.buildSelectionSQL(
+		params, paramIndex, err = relSel.buildSelectionSQL(
 			b, relSel.field, fragments, variables, role, sessionVariables,
 			roots, params, paramIndex, cteName, relAlias, s.argumentPath,
 		)
@@ -410,7 +410,7 @@ func (s selectionReturning) writeLateralJoinsWithCTE(
 
 		var err error
 
-		params, paramIndex, err = relSel.relationship.buildSelectionSQL(
+		params, paramIndex, err = relSel.buildSelectionSQL(
 			b, relSel.field, fragments, variables, role, sessionVariables,
 			roots, params, paramIndex, cteName, relAlias, s.argumentPath,
 		)

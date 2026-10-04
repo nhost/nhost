@@ -1,0 +1,12 @@
+[
+  {
+    "Name": "cf_select_items",
+    "SQL": "SELECT coalesce(json_agg(\"_root\"), '[]') AS \"_root\" FROM (WITH \"_root.base\" AS (SELECT * FROM \"cf_select\".\"items\" WHERE \"cf_select\".\"items\".\"id\" = $1::int4) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.r.item_tags\".\"item_tags\" AS \"item_tags\") AS \"_e\")) AS \"_root\" FROM \"_root.base\" LEFT OUTER JOIN LATERAL (SELECT coalesce(json_agg(\"_root.r.item_tags\"), '[]') AS \"item_tags\" FROM (WITH \"_root.r.item_tags.base\" AS (SELECT * FROM \"cf_select\".\"item_tags\"(\"item\" := ROW(\"_root.base\".\"id\", \"_root.base\".\"owner_id\", \"_root.base\".\"label\", \"_root.base\".\"amount\", \"_root.base\".\"payload\")::\"cf_select\".\"items\") AS \"_root.r.item_tags.source\" WHERE \"_root.r.item_tags.source\".\"id\" > $2::int4 AND \"_root.r.item_tags.source\".\"label\" = $3::text ORDER BY \"id\" ASC) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.r.item_tags.base\".\"id\" AS \"id\") AS \"_e\")) AS \"_root.r.item_tags\" FROM \"_root.r.item_tags.base\") AS \"_root.r.item_tags\") AS \"_root.r.item_tags\" ON ('true')) AS \"_root\"",
+    "Parameters": [
+      1,
+      0,
+      "two"
+    ],
+    "StreamCursors": null
+  }
+]

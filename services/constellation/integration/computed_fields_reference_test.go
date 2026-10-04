@@ -146,6 +146,34 @@ func TestComputedFieldReference(t *testing.T) {
 		t.Errorf("live scalar selection differs (-hasura +constellation):\n%s", diff)
 	}
 
+	// A table computed field inherits access to the returned table without an
+	// explicit computed-field grant on its parent.
+	table := query{
+		Query: `query { cf_select_items(where:{id:{_eq:1}}) { item_tags(order_by:{id:desc},limit:1) { id label } } }`,
+		Role:  "cf_reader",
+	}
+
+	hasura, err = makeHTTPQuery(t.Context(), hasuraURL, table, headers)
+	if err != nil {
+		t.Fatalf("Hasura table selection: %v", err)
+	}
+
+	constellation, err = makeHTTPQuery(t.Context(), constellationURL, table, headers)
+	if err != nil {
+		t.Fatalf("Constellation table selection: %v", err)
+	}
+
+	want = map[string]any{"data": map[string]any{"cf_select_items": []any{
+		map[string]any{"item_tags": []any{map[string]any{"id": float64(2), "label": "two"}}},
+	}}}
+	if diff := cmp.Diff(want, hasura); diff != "" {
+		t.Fatalf("Hasura table fixture response changed (-want +got):\n%s", diff)
+	}
+
+	if diff := cmp.Diff(hasura, constellation); diff != "" {
+		t.Errorf("live table selection differs (-hasura +constellation):\n%s", diff)
+	}
+
 	// Scalar inputs and aggregate outputs use the same seeded source, but
 	// independent Constellation tests own the exhaustive expectations.
 	input := query{

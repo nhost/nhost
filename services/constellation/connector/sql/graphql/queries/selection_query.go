@@ -19,6 +19,8 @@ type columnSelection struct {
 type relationshipSelection struct {
 	alias        string
 	relationship *relationship
+	computed     *computedTable
+	parent       *table
 	field        *ast.Field
 }
 
@@ -116,6 +118,39 @@ func (t *table) astToQuerySelectionWithPath( //nolint:funlen,cyclop,gocognit
 								field:    sel,
 							},
 						)
+					}
+
+					continue
+				}
+
+				if computed := t.computedTableFromGraphqlName(
+					sel.Name,
+					selectedRole,
+				); computed != nil {
+					alias := rootFieldName(sel)
+
+					merged := false
+					for i := range relationships {
+						if relationships[i].alias == alias {
+							relationships[i].field.SelectionSet = append(
+								relationships[i].field.SelectionSet, sel.SelectionSet...,
+							)
+							merged = true
+
+							break
+						}
+					}
+
+					if !merged {
+						field := *sel
+						field.SelectionSet = append(ast.SelectionSet(nil), sel.SelectionSet...)
+						relationships = append(relationships, relationshipSelection{
+							alias:        alias,
+							relationship: nil,
+							computed:     computed,
+							parent:       t,
+							field:        &field,
+						})
 					}
 
 					continue
@@ -234,6 +269,8 @@ func (t *table) astToQueryRelationships(
 	return &relationshipSelection{
 		alias:        alias,
 		relationship: r,
+		computed:     nil,
+		parent:       nil,
 		field:        sel,
 	}, false
 }

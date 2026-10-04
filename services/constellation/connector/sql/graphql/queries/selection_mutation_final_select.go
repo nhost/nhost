@@ -93,7 +93,7 @@ func (t *table) buildLateralJoins(
 
 		var err error
 
-		params, paramIndex, err = relSel.relationship.buildSelectionSQL(
+		params, paramIndex, err = relSel.buildSelectionSQL(
 			b,
 			relSel.field,
 			fragments,
@@ -189,7 +189,7 @@ func (t *table) buildFinalSelect( //nolint:funlen
 
 			var relErr error
 
-			params, paramIndex, relErr = relSel.relationship.buildSelectionSQL(
+			params, paramIndex, relErr = relSel.buildSelectionSQL(
 				b, relSel.field, fragments, variables, role, sessionVariables,
 				roots, params, paramIndex, "mutation_result", relAlias, argumentPath,
 			)

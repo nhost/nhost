@@ -336,7 +336,7 @@ func (t *table) buildQueryRelationshipsLateral(
 
 		var err error
 
-		params, paramIndex, err = relSel.relationship.buildSelectionSQL(
+		params, paramIndex, err = relSel.buildSelectionSQL(
 			b, relSel.field, fragments, variables, role, sessionVariables,
 			roots, params, paramIndex, baseAlias, relAlias, argumentPath,
 		)
@@ -382,7 +382,7 @@ func (t *table) buildQueryRelationshipsSubquery(
 
 		var err error
 
-		params, paramIndex, err = relSel.relationship.buildSelectionSQL(
+		params, paramIndex, err = relSel.buildSelectionSQL(
 			b, relSel.field, fragments, variables, role, sessionVariables,
 			roots, params, paramIndex, baseAlias, relAlias, argumentPath,
 		)

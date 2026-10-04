@@ -3,6 +3,7 @@ package controller_test
 import (
 	"context"
 	"log/slog"
+	"net/http"
 	"os"
 	"reflect"
 	"testing"
@@ -96,14 +97,20 @@ func TestComputedSelectionViaRemoteDatabaseResult(t *testing.T) {
 	}
 
 	resp, err := ctrl.Resolve(adminSessionContext(t), controller.GraphQLRequest{
-		Query: `{ remote_items { item { item_label item_second(args:{multiplier:2}) } } }`,
+		Query: `{ remote_items { item { item_label item_second(args:{multiplier:2}) item_tags(order_by:{id:asc}) { id label } } } }`,
 	})
 	if err != nil || resp.Errors != nil {
 		t.Fatalf("remote-to-database computed selection: response=%+v error=%v", resp, err)
 	}
 
 	want := map[string]any{"remote_items": []any{map[string]any{
-		"item": map[string]any{"item_label": "first", "item_second": float64(25)},
+		"item": map[string]any{
+			"item_label": "first", "item_second": float64(25),
+			"item_tags": []any{
+				map[string]any{"id": float64(1), "label": "one"},
+				map[string]any{"id": float64(2), "label": "two"},
+			},
+		},
 	}}}
 	if !reflect.DeepEqual(resp.Data, want) {
 		t.Fatalf("remote-to-database result = %#v, want %#v", resp.Data, want)
@@ -119,7 +126,10 @@ func (s computedStaticSource) Watch(context.Context) <-chan metadata.Update { re
 func (s computedStaticSource) HasuraSnapshotJSON() ([]byte, int64)          { return nil, 0 }
 func (s computedStaticSource) Close()                                       {}
 
-func TestComputedSelectionViaCrossSource(t *testing.T) {
+//nolint:tparallel // Subtests share one pool and run sequentially to respect the testdb connection budget.
+func TestComputedSelectionViaCrossSource(
+	t *testing.T,
+) {
 	t.Parallel()
 
 	ddl, err := os.ReadFile(
@@ -161,7 +171,33 @@ func TestComputedSelectionViaCrossSource(t *testing.T) {
 				Table:            metadata.TableSource{Schema: "cf_select", Name: "items"},
 			}},
 		},
+		{
+			Name: "items",
+			Definition: metadata.RemoteRelationshipDef{ToSource: &metadata.ToSourceRelationship{
+				FieldMapping:     map[string]string{"owner_id": "id"},
+				RelationshipType: metadata.RelationshipTypeArray,
+				Source:           "cf_select",
+				Table:            metadata.TableSource{Schema: "cf_select", Name: "items"},
+			}},
+		},
 	}
+	md.Databases[0].Tables[1].RemoteRelationships = []metadata.RemoteRelationship{{
+		Name: "rule",
+		Definition: metadata.RemoteRelationshipDef{ToSource: &metadata.ToSourceRelationship{
+			FieldMapping:     map[string]string{"item_id": "owner_id"},
+			RelationshipType: metadata.RelationshipTypeObject,
+			Source:           "cf_predicates",
+			Table:            metadata.TableSource{Schema: "cf_predicates", Name: "rules"},
+		}},
+	}}
+	// A restricted target row must stay hidden after a cross-source join.
+	for i := range md.Databases[0].Tables[1].SelectPermissions {
+		permission := &md.Databases[0].Tables[1].SelectPermissions[i]
+		if permission.Role == "cf_reader" {
+			permission.Permission.Filter = map[string]any{"id": map[string]any{"_gte": 2}}
+		}
+	}
+
 	logger := slog.New(slog.DiscardHandler)
 
 	ctrl, err := controller.New(t.Context(), time.Second, testAdminSecret, false,
@@ -170,32 +206,116 @@ func TestComputedSelectionViaCrossSource(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	resp, err := ctrl.Resolve(adminSessionContext(t), controller.GraphQLRequest{
-		Query: `{ cf_predicates_rules(where:{id:{_eq:1}}) { item { item_second(args:{multiplier:2}) } } }`,
-	})
-	if err != nil || resp.Errors != nil {
-		t.Fatalf("cross-source computed selection: response=%+v error=%v", resp, err)
+	tests := []struct {
+		name, query, role string
+		want              map[string]any
+	}{
+		{
+			name: "object with ordered computed rows",
+			query: `{ cf_predicates_rules(order_by:{id:asc}) { item {
+				item_second(args:{multiplier:2}) item_tags(order_by:{id:desc},limit:1) { id label }
+			} } }`,
+			want: map[string]any{"cf_predicates_rules": []any{
+				map[string]any{"item": map[string]any{
+					"item_second": float64(25),
+					"item_tags":   []any{map[string]any{"id": float64(2), "label": "two"}},
+				}},
+				map[string]any{"item": map[string]any{
+					"item_second": float64(6.5),
+					"item_tags":   []any{map[string]any{"id": float64(3), "label": "three"}},
+				}},
+			}},
+		},
+		{
+			name: "array with target filter",
+			query: `{ cf_predicates_rules(order_by:{id:asc}) {
+				items(where:{id:{_gt:1}}) { item_tags { id label } }
+			} }`,
+			want: map[string]any{"cf_predicates_rules": []any{
+				map[string]any{"items": []any{}},
+				map[string]any{"items": []any{map[string]any{"item_tags": []any{
+					map[string]any{"id": float64(3), "label": "three"},
+				}}}},
+			}},
+		},
+		{
+			name: "grouped aggregate nodes",
+			query: `{ cf_predicates_rules(order_by:{id:asc}) {
+				items_aggregate { aggregate { count } nodes { id item_tags { id label } } }
+			} }`,
+			want: map[string]any{"cf_predicates_rules": []any{
+				map[string]any{"items_aggregate": map[string]any{
+					"aggregate": map[string]any{"count": float64(1)},
+					"nodes": []any{map[string]any{"id": float64(1), "item_tags": []any{
+						map[string]any{"id": float64(1), "label": "one"},
+						map[string]any{"id": float64(2), "label": "two"},
+					}}},
+				}},
+				map[string]any{"items_aggregate": map[string]any{
+					"aggregate": map[string]any{"count": float64(1)},
+					"nodes": []any{map[string]any{"id": float64(2), "item_tags": []any{
+						map[string]any{"id": float64(3), "label": "three"},
+					}}},
+				}},
+			}},
+		},
+		{
+			name: "nested remote relationship with phantom join column",
+			query: `{ cf_select_items(order_by:{id:asc}) { item_tags(order_by:{id:asc}) {
+				label rule { id }
+			} } }`,
+			want: map[string]any{"cf_select_items": []any{
+				map[string]any{"item_tags": []any{
+					map[string]any{"label": "one", "rule": map[string]any{"id": float64(1)}},
+					map[string]any{"label": "two", "rule": map[string]any{"id": float64(1)}},
+				}},
+				map[string]any{"item_tags": []any{
+					map[string]any{"label": "three", "rule": map[string]any{"id": float64(2)}},
+				}},
+			}},
+		},
+		{
+			name: "target row permission after stitching",
+			role: "cf_reader",
+			query: `{ cf_predicates_rules(order_by:{id:asc}) {
+				item { item_tags(order_by:{id:asc}) { id label } }
+			} }`,
+			want: map[string]any{"cf_predicates_rules": []any{
+				map[string]any{"item": map[string]any{"item_tags": []any{
+					map[string]any{"id": float64(2), "label": "two"},
+				}}},
+				map[string]any{"item": map[string]any{"item_tags": []any{
+					map[string]any{"id": float64(3), "label": "three"},
+				}}},
+			}},
+		},
+		{
+			name:  "scalar predicate before join",
+			query: `{ cf_predicates_rules(where:{rule_visible:{_eq:true}}) { item { item_label } } }`,
+			want: map[string]any{"cf_predicates_rules": []any{map[string]any{
+				"item": map[string]any{"item_label": "first"},
+			}}},
+		},
 	}
+	for _, tt := range tests { //nolint:paralleltest // Sequential queries avoid exceeding the shared testdb connection budget.
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := adminSessionContext(t)
+			if tt.role != "" {
+				// With no JWT, the role override requires the admin credential; otherwise middleware uses public.
+				ctx = runSessionMiddleware(t, http.Header{
+					"X-Hasura-Admin-Secret": {testAdminSecret},
+					"X-Hasura-Role":         {tt.role},
+				})
+			}
 
-	want := map[string]any{"cf_predicates_rules": []any{map[string]any{
-		"item": map[string]any{"item_second": float64(25)},
-	}}}
-	if !reflect.DeepEqual(resp.Data, want) {
-		t.Fatalf("cross-source result = %#v, want %#v", resp.Data, want)
-	}
+			resp, err := ctrl.Resolve(ctx, controller.GraphQLRequest{Query: tt.query})
+			if err != nil || resp.Errors != nil {
+				t.Fatalf("cross-source selection: response=%+v error=%v", resp, err)
+			}
 
-	// The source's shared bool_exp is also consumed before the remote join.
-	resp, err = ctrl.Resolve(adminSessionContext(t), controller.GraphQLRequest{
-		Query: `{ cf_predicates_rules(where:{rule_visible:{_eq:true}}) { item { item_label } } }`,
-	})
-	if err != nil || resp.Errors != nil {
-		t.Fatalf("cross-source computed predicate: response=%+v error=%v", resp, err)
-	}
-
-	want = map[string]any{"cf_predicates_rules": []any{map[string]any{
-		"item": map[string]any{"item_label": "first"},
-	}}}
-	if !reflect.DeepEqual(resp.Data, want) {
-		t.Fatalf("cross-source predicate result = %#v, want %#v", resp.Data, want)
+			if !reflect.DeepEqual(resp.Data, tt.want) {
+				t.Fatalf("cross-source result = %#v, want %#v", resp.Data, tt.want)
+			}
+		})
 	}
 }

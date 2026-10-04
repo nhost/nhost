@@ -57,18 +57,20 @@ func BuildRoots(
 ) (Roots, *groupedaggdispatch.Ops, error) {
 	scalarSelection := len(capabilities) == 1 && capabilities[0].SupportsComputedFields &&
 		capabilities[0].SupportsComputedScalarSelection
+	tableSelection := len(capabilities) == 1 && capabilities[0].SupportsComputedFields &&
+		capabilities[0].SupportsComputedTableSelection
 
-	return buildRoots(objects, md, dialect, scalarSelection)
+	return buildRoots(objects, md, dialect, scalarSelection, tableSelection)
 }
 
 // buildRoots uses the selection capability shared with schema generation.
 //
-//nolint:funlen,cyclop // Established root registration spans query, mutation and subscription contexts.
+//nolint:funlen,cyclop,gocognit // All computed lookups precede permission parsing across operation kinds.
 func buildRoots(
 	objects *introspection.Objects,
 	md *metadata.DatabaseMetadata,
 	dialect dialect.Dialect,
-	scalarSelection bool,
+	scalarSelection, tableSelection bool,
 ) (Roots, *groupedaggdispatch.Ops, error) {
 	if md == nil || len(md.Tables) == 0 {
 		return Roots{
@@ -107,9 +109,15 @@ func buildRoots(
 
 	// Permission filters can traverse relationships and _exists into any sibling,
 	// regardless of metadata ordering. Install every computed lookup first.
-	if scalarSelection && dialect.SupportsFunctions() && (md.Kind == "postgres" || md.Kind == "") {
+	if dialect.SupportsFunctions() && (md.Kind == "postgres" || md.Kind == "") {
 		for i, tableMeta := range md.Tables {
-			tables[i].initializeComputedScalars(objects, tableMeta)
+			if scalarSelection {
+				tables[i].initializeComputedScalars(objects, tableMeta)
+			}
+
+			if tableSelection {
+				tables[i].initializeComputedTables(objects, tableMeta, md.Tables, tablesByKey)
+			}
 		}
 	}
 
