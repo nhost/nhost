@@ -21,8 +21,8 @@ export default function RateLimitField({
     <div className="px-4">
       {title ? <p className="py-4 font-semibold">{title}</p> : null}
       <div className="flex flex-col gap-8 lg:flex-row">
-        <div className="flex flex-row items-center gap-2">
-          <span>Limit</span>
+        <div className="flex flex-row items-start gap-2">
+          <span className="flex h-10 items-center">Limit</span>
           <FormInput
             control={control}
             name={`${id}.limit`}
@@ -33,8 +33,8 @@ export default function RateLimitField({
             autoComplete="off"
           />
         </div>
-        <div className="flex flex-row items-center gap-2">
-          <span>Interval</span>
+        <div className="flex flex-row items-start gap-2">
+          <span className="flex h-10 items-center">Interval</span>
           <FormInput
             control={control}
             name={`${id}.interval`}
