@@ -77,6 +77,14 @@ class ImageSettingsTests(unittest.TestCase):
             f"'{opt_in}'",
         )
 
+    def test_output_plugin_libraries_are_fixed(self):
+        # Keep PostgreSQL's built-in output plugins and the bundled pg_squeeze plugin.
+        # Unlike shared_preload_libraries, this is not an environment override.
+        self.assertEqual(
+            ASSIGNMENTS["output_plugin_libraries"],
+            "'pgoutput,test_decoding,pg_squeeze'",
+        )
+
     def test_checkpoint_timeout_has_default(self):
         self.assertEqual(DEFAULTS["CHECKPOINT_TIMEOUT"], "5min")
         self.assertEqual(ASSIGNMENTS["checkpoint_timeout"], "$CHECKPOINT_TIMEOUT")

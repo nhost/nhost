@@ -142,7 +142,11 @@ The image and Cloud defaults match whether or not `[postgres.settings]` exists.
 Both omit `pg_durable` and `pg_ivm`; include either in
 `sharedPreloadLibraries` (or `SHARED_PRELOAD_LIBRARIES` for the image) alongside
 all other required libraries if you use it. Preloading an extension does not
-run `CREATE EXTENSION`. For pg_squeeze, set `WAL_LEVEL=logical` before using
+run `CREATE EXTENSION`. The fixed `output_plugin_libraries` allowlist permits
+PostgreSQL's `pgoutput` and `test_decoding` plus the bundled `pg_squeeze`
+logical-decoding output plugin. It does not preload libraries or enable logical
+replication; adding a plugin allows replication users to load it, so only trusted
+output plugins belong there. For pg_squeeze, set `WAL_LEVEL=logical` before using
 its logical-decoding based squeeze operations; the image defaults to `replica`.
 
 ### PITR restore safety
