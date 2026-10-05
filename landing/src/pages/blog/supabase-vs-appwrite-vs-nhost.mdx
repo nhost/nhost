@@ -75,7 +75,7 @@ Auth / Storage               |                       |
 
 ## Data modeling
 
-This used to be an easy choice between Postgres and documents. Now all three offer Postgres in some form, so that's no longer what sets them apart.
+It used to be an easy choice between Postgres and documents. Now all three offer Postgres in some form, so that's no longer what sets them apart.
 
 ### Supabase: one store, and you extend it
 
@@ -95,7 +95,7 @@ Appwrite 2.0 added four new stores, so the full list now looks like this:
 - **Native Postgres**: a standard Postgres, outside Appwrite's permissions and realtime.
 - **Native MySQL**: the same, for MySQL.
 
-The Databases page only lets you create three of these: TablesDB, DocumentsDB and VectorsDB. Native Postgres and MySQL aren't there. They do show up in the Explorer, Appwrite's in-console API client, where the PostgreSQL service alone has 33 endpoints. So they exist, but on my plan you reach them through the API, not the dashboard.
+The Databases page only lets you create three types of databases: TablesDB, DocumentsDB and VectorsDB. The Native Postgres and MySQL options aren't there on my free plan. They do show up in the Explorer, Appwrite's in-console API client, where the PostgreSQL service alone has 37 endpoints. Appwrite runs them as paid dedicated instances, so the free dashboard doesn't offer them.
 
 The free plan caps you at one database, so I couldn't create a second to try another type.
 
@@ -105,7 +105,7 @@ The free plan caps you at one database, so I couldn't create a second to try ano
 
 Your data lives in a standard Postgres with full SQL access. Extensions install the usual way, with `CREATE EXTENSION` in a migration: pgvector, PostGIS, pg_cron, uuid-ossp, pg_trgm. When you create a table, Nhost reads the schema and generates a typed GraphQL API for it, with filters, ordering, pagination, aggregates and live subscriptions.
 
-You choose which tables go into the API. The SQL editor has a "Track this" toggle, and a table created without it exists in Postgres but not in your API. It works like the permissions: nothing is reachable until you allow it.
+You choose which tables go into the API. The SQL editor has a "Track this" toggle, and only tables created with it turned on show up in your API. It works like the permissions, so nothing is reachable until you enable it.
 
 ### Relations: a constraint versus a field
 
@@ -153,7 +153,7 @@ const { data, error } = await supabase
 
 That `author:authors(...)` bit is a join, resolved by PostgREST because it can see the foreign key I added earlier. Once the syntax clicks it's fast to write, but until then the error messages don't help much.
 
-New tables in the `public` schema are no longer exposed to it automatically, and that becomes mandatory for every project on October 30th, 2026. I checked a project created before the cutover, and the old behavior is still live. "Automatically expose new tables" was on, and two tables I'd just made in SQL were already answering on the REST endpoint. I never touched the setting.
+New tables in the `public` schema are no longer exposed to it automatically, and that becomes mandatory for every project from October 30th, 2026 onward. I checked a project created before the cutover, and the old behavior is still live. "Automatically expose new tables" was on, and two tables I'd just made in SQL were already answering on the REST endpoint. I never touched the setting.
 
 Supabase also no longer enables `pg_graphql` automatically, and introspection is off by default for new projects since 1.6.0. If you want GraphQL on Supabase, you have to turn it on yourself.
 
@@ -214,7 +214,6 @@ All three have a solid provider list, MFA and OIDC, and each can act as an ident
 **Supabase** added passkeys in beta (WebAuthn, biometrics, device PIN, or a hardware key) and OAuth 2.1 authorization-server capabilities, so your project can issue tokens to third-party apps and MCP clients. Auth users live in a Postgres table, which makes custom claims, triggers, and joins against your own tables easy. It also means a badly written trigger on signup can break sign-ups entirely.
 
 With **Appwrite 2.0**, you host the OAuth consent screen yourself, so users approving access stay on a page that looks like your product. Client registration is also an API call in the client SDKs, which lets you build a self-serve portal where other developers register their own apps. Both only help if other developers will build on top of your app.
-**Nhost Auth** handles email and password, magic links, one-time codes, WebAuthn and social sign-in, with MFA and OIDC. Users live in a Postgres table in the `auth` schema, so linking a user to their own rows is an ordinary foreign key, and any custom claim you define becomes a permission variable available inside every rule you write.
 
 **Nhost Auth** handles email and password, magic links, one-time codes, WebAuthn and social sign-in. Users live in a Postgres table in the `auth` schema, so you link a user to their rows with a regular foreign key. Any custom claim you add to a user can be used in your permission rules.
 
