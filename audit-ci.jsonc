@@ -8,6 +8,12 @@
     // by the React Native example dev/build tooling (metro), not shipped to prod.
     // Remove once image-size ships a patched version.
     "GHSA-w3rx-r6r6-pgpr", // https://github.com/advisories/GHSA-w3rx-r6r6-pgpr (CVE-2025-71330)
-    "GHSA-5p2g-fcmc-qvqq" // https://github.com/advisories/GHSA-5p2g-fcmc-qvqq (CVE-2025-71329)
+    "GHSA-5p2g-fcmc-qvqq", // https://github.com/advisories/GHSA-5p2g-fcmc-qvqq (CVE-2025-71329)
+    // braces stack-exhaustion DoS via deeply nested patterns. No fixed release
+    // exists yet: every published version (<=3.0.3) is affected. Only pulled in
+    // transitively via micromatch/chokidar by dev/build tooling (tailwindcss,
+    // jest, graphql-codegen, orval, metro, starlight), not shipped to prod.
+    // Remove once braces ships a patched version.
+    "GHSA-vfj7-8cjw-p6xm" // https://github.com/advisories/GHSA-vfj7-8cjw-p6xm (CVE-2026-93687)
   ]
 }
