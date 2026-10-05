@@ -14,6 +14,12 @@
     // transitively via micromatch/chokidar by dev/build tooling (tailwindcss,
     // jest, graphql-codegen, orval, metro, starlight), not shipped to prod.
     // Remove once braces ships a patched version.
-    "GHSA-vfj7-8cjw-p6xm" // https://github.com/advisories/GHSA-vfj7-8cjw-p6xm (CVE-2026-93687)
+    "GHSA-vfj7-8cjw-p6xm", // https://github.com/advisories/GHSA-vfj7-8cjw-p6xm (CVE-2026-93687)
+    // node-forge RSA PKCS#1 v1.5 signature forgery via nested DigestAlgorithm
+    // elements. No fixed release exists yet: every published version (<=1.4.0)
+    // is affected. Only pulled in transitively by @expo/cli in the React Native
+    // examples (local dev tooling), not shipped to prod.
+    // Remove once node-forge ships a patched version.
+    "GHSA-86w9-cpqp-85rv" // https://github.com/advisories/GHSA-86w9-cpqp-85rv (CVE-2026-85393)
   ]
 }
