@@ -11,7 +11,8 @@ permissions: {}
 
 jobs:
   label-external:
-    # GitHub reports organization members as MEMBER.
+    # Public members are MEMBER; private members can appear as CONTRIBUTOR.
+    # Check repository permission below before labeling the remaining authors.
     if: >-
       !contains(
         fromJSON('["OWNER", "MEMBER"]'),
@@ -28,11 +29,32 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
+          AUTHOR: >-
+            ${{ github.event.issue.user.login ||
+                github.event.pull_request.user.login }}
           NUMBER: >-
             ${{ github.event.issue.number ||
                 github.event.pull_request.number }}
         run: |
           set -euo pipefail
+          # The helper bot is trusted even without collaborator permission.
+          if [[ "${AUTHOR}" == 'nhost-helper-bot[bot]' ]]; then
+            exit 0
+          fi
+
+          permission=$(
+            gh api "repos/${REPO}/collaborators/${AUTHOR}/permission" \
+              --jq '.permission'
+          )
+          case "${permission}" in
+            admin | maintain | write) exit 0 ;;
+            read | triage | none) ;;
+            *)
+              echo "::error::Unexpected author permission: ${permission}"
+              exit 1
+              ;;
+          esac
+
           printf '%s\n' '{"labels":["external"]}' |
             gh api --method POST --input - \
               "repos/${REPO}/issues/${NUMBER}/labels"
