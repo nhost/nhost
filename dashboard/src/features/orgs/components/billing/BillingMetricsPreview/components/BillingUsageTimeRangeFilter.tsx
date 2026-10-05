@@ -20,10 +20,12 @@ import {
   type BillingUsageRangeBounds,
   type BillingUsageRangePreset,
   type BillingUsageTimeRange,
+  getBillingUsagePresetCycleMonth,
   isBillingUsageCalendarDayDisabled,
   resolveBillingUsageTimeRange,
   validateBillingUsageTimeRange,
 } from '@/features/orgs/components/billing/BillingMetricsPreview/utils/billingUsageTimeRange';
+import { cn } from '@/lib/utils';
 
 const TRIGGER_FORMAT = 'MMM d, HH:mm';
 
@@ -105,7 +107,9 @@ export default function BillingUsageTimeRangeFilter({
               data-testid="billingUsageTimeRangeTrigger"
             >
               <CalendarIcon className="h-4 w-4" />
-              <span className="tabular-nums">{formatTriggerLabel(value)}</span>
+              <span className="tabular-nums">
+                {formatTriggerLabel(value, bounds)}
+              </span>
             </Button>
           </PopoverTrigger>
         </TooltipTrigger>
@@ -119,24 +123,42 @@ export default function BillingUsageTimeRangeFilter({
       </Tooltip>
       <PopoverContent
         align="end"
-        className="w-[34rem] max-w-[calc(100vw-2rem)] p-0"
+        className="w-[37rem] max-w-[calc(100vw-2rem)] p-0"
       >
         <div className="flex flex-col sm:flex-row">
           <div className="flex flex-col gap-1 border-b p-3 sm:min-w-[190px] sm:border-r sm:border-b-0">
             <span className="px-2 pb-1 font-medium text-muted-foreground text-xs">
               Quick ranges
             </span>
-            {BILLING_USAGE_RANGE_PRESETS.map((preset) => (
-              <Button
-                key={preset}
-                variant={activePreset === preset ? 'secondary' : 'ghost'}
-                size="sm"
-                className="justify-start font-normal"
-                onClick={() => handlePresetClick(preset)}
-              >
-                {BILLING_USAGE_PRESET_LABELS[preset]}
-              </Button>
-            ))}
+            {BILLING_USAGE_RANGE_PRESETS.map((preset) => {
+              const cycleMonth = getBillingUsagePresetCycleMonth(
+                preset,
+                bounds,
+              );
+              const active = activePreset === preset;
+              return (
+                <Button
+                  key={preset}
+                  variant={active ? 'secondary' : 'ghost'}
+                  size="sm"
+                  className="group justify-between gap-3 font-normal"
+                  onClick={() => handlePresetClick(preset)}
+                >
+                  {BILLING_USAGE_PRESET_LABELS[preset]}
+                  {cycleMonth ? (
+                    <span
+                      className={cn(
+                        'text-xs',
+                        !active &&
+                          'text-muted-foreground group-hover:text-accent-foreground',
+                      )}
+                    >
+                      {cycleMonth}
+                    </span>
+                  ) : null}
+                </Button>
+              );
+            })}
           </div>
           <div className="flex w-full flex-col gap-3 p-3 sm:w-[340px]">
             <span className="px-1 pb-1 font-medium text-muted-foreground text-xs">
@@ -188,9 +210,14 @@ export default function BillingUsageTimeRangeFilter({
   );
 }
 
-function formatTriggerLabel(range: BillingUsageTimeRange): string {
+function formatTriggerLabel(
+  range: BillingUsageTimeRange,
+  bounds: BillingUsageRangeBounds,
+): string {
   if (range.kind === 'preset') {
-    return BILLING_USAGE_PRESET_LABELS[range.preset];
+    const label = BILLING_USAGE_PRESET_LABELS[range.preset];
+    const cycleMonth = getBillingUsagePresetCycleMonth(range.preset, bounds);
+    return cycleMonth ? `${label} · ${cycleMonth}` : label;
   }
   return `${format(parseISO(range.from), TRIGGER_FORMAT)} → ${format(
     parseISO(range.to),

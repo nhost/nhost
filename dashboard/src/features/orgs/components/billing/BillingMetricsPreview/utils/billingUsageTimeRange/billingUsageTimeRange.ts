@@ -4,6 +4,7 @@ const MIN_END_TICK_GAP_DAYS = 3;
 
 export const BILLING_USAGE_RANGE_PRESETS = [
   'currentBillingCycle',
+  'previousBillingCycle',
   '7d',
   '30d',
   '60d',
@@ -11,6 +12,15 @@ export const BILLING_USAGE_RANGE_PRESETS = [
 
 export type BillingUsageRangePreset =
   (typeof BILLING_USAGE_RANGE_PRESETS)[number];
+
+export function isBillingUsageRangePreset(
+  value: unknown,
+): value is BillingUsageRangePreset {
+  return (
+    typeof value === 'string' &&
+    (BILLING_USAGE_RANGE_PRESETS as readonly string[]).includes(value)
+  );
+}
 
 export type BillingUsageTimeRange =
   | { kind: 'preset'; preset: BillingUsageRangePreset }
@@ -42,6 +52,7 @@ export const BILLING_USAGE_PRESET_LABELS: Record<
   string
 > = {
   currentBillingCycle: 'Current billing cycle',
+  previousBillingCycle: 'Previous billing cycle',
   '7d': 'Last 7 days',
   '30d': 'Last 30 days',
   '60d': 'Last 60 days',
@@ -52,6 +63,31 @@ const PRESET_DAYS: Partial<Record<BillingUsageRangePreset, number>> = {
   '30d': 30,
   '60d': 60,
 };
+
+const CYCLE_MONTH_FORMAT = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'UTC',
+  month: 'short',
+  year: 'numeric',
+});
+
+// Names the UTC calendar month a billing-cycle preset covers, e.g. "Sep 2026".
+export function getBillingUsagePresetCycleMonth(
+  preset: BillingUsageRangePreset,
+  bounds: BillingUsageRangeBounds,
+): string | undefined {
+  switch (preset) {
+    case 'currentBillingCycle':
+      return CYCLE_MONTH_FORMAT.format(
+        new Date(bounds.currentBillingCycleStart),
+      );
+    case 'previousBillingCycle':
+      return CYCLE_MONTH_FORMAT.format(
+        new Date(previousBillingCycleStart(bounds.currentBillingCycleStart)),
+      );
+    default:
+      return undefined;
+  }
+}
 
 export function resolveBillingUsageTimeRange(
   range: BillingUsageTimeRange,
@@ -69,6 +105,21 @@ export function resolveBillingUsageTimeRange(
     return {
       from: new Date(Math.max(min.getTime(), cycleStart.getTime())),
       to: max,
+    };
+  }
+
+  // The previous cycle is clipped to the retained reports: after two 31-day
+  // months its first day or two fall outside the 60-day window.
+  if (range.preset === 'previousBillingCycle') {
+    const cycleEnd = new Date(bounds.currentBillingCycleStart).getTime();
+    return {
+      from: new Date(
+        Math.max(
+          min.getTime(),
+          previousBillingCycleStart(bounds.currentBillingCycleStart),
+        ),
+      ),
+      to: new Date(Math.min(max.getTime(), cycleEnd - 1)),
     };
   }
 
@@ -192,6 +243,11 @@ function createWeeklyTicks(firstTick: number, lastTick: number): number[] {
   }
   ticks.push(lastTick);
   return ticks;
+}
+
+function previousBillingCycleStart(currentBillingCycleStart: string): number {
+  const cycleStart = new Date(currentBillingCycleStart);
+  return Date.UTC(cycleStart.getUTCFullYear(), cycleStart.getUTCMonth() - 1, 1);
 }
 
 function startOfUtcDay(timestamp: number): number {

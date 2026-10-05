@@ -1,4 +1,5 @@
 import { ExternalLinkIcon } from 'lucide-react';
+import { useRouter } from 'next/router';
 import type { ReactNode } from 'react';
 import {
   Tabs,
@@ -16,16 +17,47 @@ import { BillingMetricsPreview } from '@/features/orgs/components/billing/Billin
 import { useCustomerPortal } from '@/features/orgs/components/billing/hooks/useCustomerPortal';
 import { SubscriptionPlan } from '@/features/orgs/components/billing/SubscriptionPlan';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
+import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
+
+const BILLING_TABS = ['plan', 'usage'] as const;
+
+type BillingTab = (typeof BILLING_TABS)[number];
+
+function isBillingTab(value: unknown): value is BillingTab {
+  return (
+    typeof value === 'string' &&
+    (BILLING_TABS as readonly string[]).includes(value)
+  );
+}
 
 export default function BillingTabs() {
+  const router = useRouter();
   const { org } = useCurrentOrg();
   const { openCustomerPortal, loading } = useCustomerPortal();
   const isPaidOrg = org?.plan?.isFree === false;
+  const tab = getSingleQueryParam(router.query.tab);
+  // Usage is disabled on free plans, so a link to it lands on Plan instead.
+  const activeTab: BillingTab =
+    isBillingTab(tab) && (tab !== 'usage' || isPaidOrg) ? tab : 'plan';
+
+  const handleTabChange = (newTab: string) => {
+    if (!isBillingTab(newTab)) {
+      return;
+    }
+    router.replace(
+      {
+        pathname: router.pathname,
+        query: { ...router.query, tab: newTab },
+      },
+      undefined,
+      { shallow: true, scroll: false },
+    );
+  };
 
   // Invoices opens Stripe instead of a panel, so it's a button styled like a
   // tab that shares the tablist's pill without being part of the tablist.
   return (
-    <Tabs defaultValue="plan">
+    <Tabs value={activeTab} onValueChange={handleTabChange}>
       <div className="inline-flex h-10 items-center rounded-md bg-muted p-1 text-muted-foreground">
         <TabsList
           aria-label="Organization billing sections"

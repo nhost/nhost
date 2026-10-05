@@ -1,12 +1,10 @@
 import type { ReactNode } from 'react';
-import { useCallback, useId, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import {
   Bar,
   BarChart,
   CartesianGrid,
   type DefaultLegendContentProps,
-  Rectangle,
-  type RectangleProps,
   ReferenceArea,
   ReferenceLine,
   XAxis,
@@ -34,7 +32,6 @@ import type {
 } from '@/features/orgs/projects/common/metrics/types';
 import { buildChart } from '@/features/orgs/projects/common/metrics/utils/buildChart';
 import { buildValueTicks } from '@/features/orgs/projects/common/metrics/utils/buildValueTicks';
-import type { Row } from '@/features/orgs/projects/common/metrics/utils/seriesGeometry';
 import { cn } from '@/lib/utils';
 
 interface StackedBarReferenceLine {
@@ -55,8 +52,6 @@ export interface StackedBarMetricChartProps {
   verticalReferenceLines?: StackedBarReferenceLine[];
   timeDomain?: [number, number];
   xTicks?: number[];
-  // The bucket that is still being reported, drawn hatched.
-  partialTimestamp?: number;
   height?: number;
   minWidth?: number;
   maxBarSize?: number;
@@ -81,10 +76,6 @@ const PLOT_MARGIN_TOP = 8;
 // bar can cover them.
 const REFERENCE_LABEL_MARGIN_TOP = 24;
 const REFERENCE_LABEL_GAP = 6;
-
-interface BarShapeProps extends RectangleProps {
-  payload?: Row;
-}
 
 interface TooltipFooterProps {
   entries: TooltipEntry[];
@@ -169,32 +160,6 @@ function VerticalReferenceLineLabel({
   );
 }
 
-function HatchPatternDefs({
-  keys,
-  idFor,
-}: {
-  keys: string[];
-  idFor: (key: string) => string;
-}) {
-  return (
-    <defs>
-      {keys.map((key) => (
-        <pattern
-          key={key}
-          id={idFor(key)}
-          width={6}
-          height={6}
-          patternUnits="userSpaceOnUse"
-          patternTransform="rotate(45)"
-        >
-          <rect width={6} height={6} fill={`var(--color-${key})`} />
-          <rect width={3} height={6} fill="hsl(var(--card))" opacity={0.55} />
-        </pattern>
-      ))}
-    </defs>
-  );
-}
-
 export default function StackedBarMetricChart({
   data,
   accessors,
@@ -207,7 +172,6 @@ export default function StackedBarMetricChart({
   verticalReferenceLines,
   timeDomain,
   xTicks,
-  partialTimestamp,
   height = 260,
   minWidth,
   maxBarSize,
@@ -230,36 +194,6 @@ export default function StackedBarMetricChart({
       onZoomRange?.(from, to);
     },
   });
-  const instanceId = useId().replace(/:/g, '');
-  const patternIdFor = useCallback(
-    (key: string) => `hatch-${instanceId}-${key}`,
-    [instanceId],
-  );
-
-  // Recharts rebuilds every bar when an axis formatter, the legend content or
-  // a bar shape changes identity. A rebuilt bar loses the click or double-click
-  // in progress on it, so these stay stable across re-renders.
-  const partialBarShapes = useMemo(
-    () =>
-      partialTimestamp == null
-        ? undefined
-        : new Map(
-            keys.map((key) => [
-              key,
-              (props: BarShapeProps) => (
-                <Rectangle
-                  {...props}
-                  fill={
-                    Number(props.payload?.timestamp) === partialTimestamp
-                      ? `url(#${patternIdFor(key)})`
-                      : props.fill
-                  }
-                />
-              ),
-            ]),
-          ),
-    [keys, partialTimestamp, patternIdFor],
-  );
 
   const yTicks = useMemo(() => {
     const tallestBar = Math.max(
@@ -333,6 +267,9 @@ export default function StackedBarMetricChart({
     ),
   };
 
+  // Recharts rebuilds every bar when an axis formatter or the legend content
+  // changes identity. A rebuilt bar loses the click or double-click in progress
+  // on it, so the legend stays stable across re-renders.
   const renderLegend = useCallback(
     ({ payload }: DefaultLegendContentProps) =>
       payload?.length ? (
@@ -381,9 +318,6 @@ export default function StackedBarMetricChart({
             onMouseUp={onZoomRange ? zoom.handleMouseUp : undefined}
             onDoubleClick={onZoomOut ? handleDoubleClick : undefined}
           >
-            {partialTimestamp != null ? (
-              <HatchPatternDefs keys={keys} idFor={patternIdFor} />
-            ) : null}
             <CartesianGrid vertical={false} strokeDasharray="3 3" />
             <ReferenceLine y={0} stroke="hsl(var(--border))" />
             {referenceLines?.map((referenceLine) => (
@@ -452,7 +386,6 @@ export default function StackedBarMetricChart({
                 hide={hiddenSet.has(key)}
                 isAnimationActive={false}
                 maxBarSize={maxBarSize}
-                shape={partialBarShapes?.get(key)}
               />
             ))}
             {zoom.selection ? (

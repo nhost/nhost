@@ -17,7 +17,6 @@ type BillingUsageProjectKind = 'active' | 'deleted' | 'deletedGroup';
 export interface BillingUsagePeriod {
   periodStart: string;
   periodEnd: string;
-  latestDay: number;
   latestReportEnd: string;
 }
 
@@ -57,14 +56,12 @@ export function getBillingUsagePeriod(
     ...reports.map((report) => new Date(report.reportEnds).getTime()),
   );
 
-  const latestDay = startOfUtcDay(latestReportEnd);
-  const periodEnd = latestDay + DAY_MS;
+  const periodEnd = startOfUtcDay(latestReportEnd) + DAY_MS;
   const periodStart = periodEnd - days * DAY_MS;
 
   return {
     periodStart: new Date(periodStart).toISOString(),
     periodEnd: new Date(periodEnd).toISOString(),
-    latestDay,
     latestReportEnd: new Date(latestReportEnd).toISOString(),
   };
 }

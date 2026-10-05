@@ -22,6 +22,7 @@ import {
   BILLING_USAGE_REPORT_LABELS,
   BILLING_USAGE_REPORT_UNITS,
 } from '@/features/orgs/components/billing/BillingMetricsPreview/constants';
+import { useBillingUsageTimeRangeUrlState } from '@/features/orgs/components/billing/BillingMetricsPreview/hooks/useBillingUsageTimeRangeUrlState';
 import {
   BILLING_USAGE_REPORT_TYPES,
   type BillingMetricsData,
@@ -29,12 +30,12 @@ import {
 } from '@/features/orgs/components/billing/BillingMetricsPreview/types';
 import {
   type BillingUsageRangeBounds,
-  type BillingUsageTimeRange,
   DEFAULT_BILLING_USAGE_TIME_RANGE,
   resolveBillingUsageTimeRange,
   toBillingUsageTimeAxis,
   toBillingUsageZoomOutRange,
   toBillingUsageZoomRange,
+  validateBillingUsageTimeRange,
 } from '@/features/orgs/components/billing/BillingMetricsPreview/utils/billingUsageTimeRange';
 import {
   formatBillingDayLabel,
@@ -69,9 +70,8 @@ export default function BillingUsageChart({
 }: BillingUsageChartProps) {
   const [selectedType, setSelectedType] =
     useState<BillingUsageReportType>('egress');
-  const [range, setRange] = useState<BillingUsageTimeRange>(
-    DEFAULT_BILLING_USAGE_TIME_RANGE,
-  );
+  const { range: requestedRange, setRange } =
+    useBillingUsageTimeRangeUrlState();
   const period = useMemo(
     () => getBillingUsagePeriod(data.usageReports, BILLING_USAGE_HISTORY_DAYS),
     [data.usageReports],
@@ -88,6 +88,12 @@ export default function BillingUsageChart({
         : undefined,
     [currentCycle, period],
   );
+  // A shared link can outlive the retained reports, so a range that no longer
+  // fits them falls back to the default.
+  const range =
+    bounds && validateBillingUsageTimeRange(requestedRange, bounds)
+      ? DEFAULT_BILLING_USAGE_TIME_RANGE
+      : requestedRange;
   const resolvedRange = useMemo(
     () => (bounds ? resolveBillingUsageTimeRange(range, bounds) : undefined),
     [bounds, range],
@@ -297,7 +303,6 @@ export default function BillingUsageChart({
             verticalReferenceLines={nextInvoiceMarkers}
             timeDomain={timeDomain}
             xTicks={timeAxis?.ticks}
-            partialTimestamp={period?.latestDay}
             minWidth={840}
             maxBarSize={28}
             allowDecimals={false}
