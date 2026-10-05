@@ -8,8 +8,10 @@ import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatfo
 import { DatabaseArea } from '@/features/orgs/projects/database/layout';
 import { NativeQueriesBrowserSidebar } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesBrowserSidebar';
 import { NativeQueriesEmptyState } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesEmptyState';
+import { NativeQueriesUpgradeRequired } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesUpgradeRequired';
 import { NoLogicalModelsEmptyState } from '@/features/orgs/projects/database/native-queries/components/NoLogicalModelsEmptyState';
 import { useGetLogicalModels } from '@/features/orgs/projects/database/native-queries/hooks/useGetLogicalModels';
+import { useIsNativeQueriesSupported } from '@/features/orgs/projects/database/native-queries/hooks/useIsNativeQueriesSupported';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 function NativeQueriesIndexContent() {
@@ -44,6 +46,8 @@ export default function NativeQueriesIndexPage() {
   const { project } = useProject();
   const isPlatform = useIsPlatform();
   const { dataSourceSlug } = useRouter().query;
+  const { loading: loadingSupport, isSupported } =
+    useIsNativeQueriesSupported();
 
   if (dataSourceSlug !== 'default') {
     return (
@@ -58,8 +62,12 @@ export default function NativeQueriesIndexPage() {
     );
   }
 
-  if (isPlatform && !project?.config?.hasura.adminSecret) {
+  if (loadingSupport || (isPlatform && !project?.config?.hasura.adminSecret)) {
     return <LoadingScreen />;
+  }
+
+  if (!isSupported) {
+    return <NativeQueriesUpgradeRequired />;
   }
 
   return <NativeQueriesIndexContent />;
