@@ -85,8 +85,8 @@ jobs:
 
       - name: "Create a new project"
         run: |
-          export NHOST_CLI_AUTH_URL="https://mytpiiwxeyrvlqrxuknp.auth.eu-central-1.nhost.run/v1"
-          export NHOST_CLI_GRAPHQL_URL="https://mytpiiwxeyrvlqrxuknp.graphql.eu-central-1.nhost.run/v1"
+          export NHOST_CLI_AUTH_URL="https://otsispdzcwxyqzbfntmj.auth.eu-central-1.nhost.run/v1"
+          export NHOST_CLI_GRAPHQL_URL="https://otsispdzcwxyqzbfntmj.graphql.eu-central-1.nhost.run/v1"
 
           unzip /home/runner/artifacts/cli-artifact-linux-x86_64-0.0.0-dev/result.zip
 
