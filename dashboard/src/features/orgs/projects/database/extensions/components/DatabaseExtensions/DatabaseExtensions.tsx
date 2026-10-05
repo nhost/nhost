@@ -59,9 +59,12 @@ export default function DatabaseExtensions() {
       .toLowerCase()
       .includes(normalizedSearch),
   );
-  const popularExtensions = POPULAR_EXTENSIONS.flatMap((name) =>
-    filteredExtensions.filter((extension) => extension.name === name),
-  );
+  // Popular is a browsing aid; hide it while searching so results appear once.
+  const popularExtensions = normalizedSearch
+    ? []
+    : POPULAR_EXTENSIONS.flatMap((name) =>
+        extensions.filter((extension) => extension.name === name),
+      );
 
   function openDialog(action: ExtensionAction, extension: PostgresExtension) {
     setDialog((current) => ({

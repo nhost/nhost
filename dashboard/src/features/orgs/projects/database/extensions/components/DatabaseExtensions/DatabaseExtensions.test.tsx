@@ -238,24 +238,23 @@ describe('DatabaseExtensions', () => {
     ).toBeInTheDocument();
   });
 
-  it('filters both sections by name, comment, and display name', async () => {
+  it('searches a single deduplicated list by name, comment, and display name', async () => {
     const user = new TestUserEvent();
     await renderPage();
     const search = screen.getByRole('textbox', { name: 'Search extensions' });
 
     await user.type(search, 'pgvector');
 
-    expect(screen.getAllByTestId('extension-card-vector')).toHaveLength(2);
+    expect(
+      screen.queryByRole('region', { name: 'Popular extensions' }),
+    ).not.toBeInTheDocument();
+    expect(screen.getAllByTestId('extension-card-vector')).toHaveLength(1);
     expect(
       screen.queryByTestId('extension-card-postgis'),
     ).not.toBeInTheDocument();
 
     await user.clear(search);
     await user.type(search, 'case-insensitive');
-
-    expect(
-      screen.queryByRole('region', { name: 'Popular extensions' }),
-    ).not.toBeInTheDocument();
     expect(screen.getByTestId('extension-card-citext')).toBeInTheDocument();
 
     await user.clear(search);
