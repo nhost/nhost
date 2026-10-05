@@ -1,15 +1,7 @@
-import { Info, Lock } from 'lucide-react';
+import { Blocks, Info, Lock } from 'lucide-react';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
 import { InlineCode } from '@/components/ui/v3/inline-code';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/v3/table';
 import {
   Tooltip,
   TooltipContent,
@@ -26,7 +18,7 @@ import { cn } from '@/lib/utils';
 
 export type ExtensionAction = 'install' | 'uninstall';
 
-export interface ExtensionsTableProps {
+export interface ExtensionsGridProps {
   ariaLabel: 'Popular extensions' | 'All extensions';
   extensions: PostgresExtension[];
   onAction: (action: ExtensionAction, extension: PostgresExtension) => void;
@@ -58,7 +50,7 @@ function BuiltInIndicator({ reason }: { reason: string }) {
       <TooltipTrigger asChild>
         <button
           type="button"
-          className="ml-auto inline-flex h-9 cursor-help items-center gap-1.5 rounded-md border border-dashed px-3 font-medium text-muted-foreground text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="inline-flex h-9 cursor-help items-center gap-1.5 rounded-md border border-dashed px-3 font-medium text-muted-foreground text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <Lock className="h-4 w-4" aria-hidden />
           Built-in
@@ -71,63 +63,99 @@ function BuiltInIndicator({ reason }: { reason: string }) {
   );
 }
 
-function ExtensionRow({
+function getVersionLabel(extension: PostgresExtension) {
+  const { default_version: available, installed_version: installed } =
+    extension;
+
+  if (installed === null) {
+    return available === null ? null : `v${available}`;
+  }
+
+  if (available !== null && available !== installed) {
+    return `v${installed} (v${available} available)`;
+  }
+
+  return `v${installed}`;
+}
+
+function ExtensionCard({
   extension,
   onAction,
-}: Pick<ExtensionsTableProps, 'onAction'> & { extension: PostgresExtension }) {
+}: Pick<ExtensionsGridProps, 'onAction'> & { extension: PostgresExtension }) {
   const displayName = getExtensionDisplayName(extension.name);
   const isInstalled = extension.installed_version !== null;
   const action = isInstalled ? 'uninstall' : 'install';
   const label = isInstalled ? 'Uninstall' : 'Install';
   const protectedReason = PROTECTED_EXTENSIONS.get(extension.name);
   const isBuiltIn = isInstalled && protectedReason !== undefined;
-  const dimmedCell = cn(isBuiltIn && 'opacity-50');
+  const dimmed = cn(isBuiltIn && 'opacity-50');
+  const versionLabel = getVersionLabel(extension);
 
   return (
-    <TableRow
-      data-testid={`extension-row-${extension.name}`}
+    <div
+      data-testid={`extension-card-${extension.name}`}
       data-built-in={isBuiltIn || undefined}
-      className={cn(isBuiltIn && 'bg-muted hover:bg-muted')}
+      className={cn(
+        'flex flex-col gap-4 rounded-lg border bg-background p-4',
+        isBuiltIn && 'bg-muted',
+      )}
     >
-      <TableCell className={cn('break-words', dimmedCell)}>
-        <div className="flex items-center gap-1.5">
-          {isBuiltIn && <Lock className="h-3.5 w-3.5 shrink-0" aria-hidden />}
-          <a
-            href={getExtensionDocsUrl(extension.name)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={cn(
-              'font-medium underline decoration-muted-foreground/50 underline-offset-4 hover:decoration-current',
-              isBuiltIn
-                ? 'text-muted-foreground'
-                : 'text-foreground hover:text-primary',
-            )}
-          >
-            {displayName}
-          </a>
-          {PRELOAD_REQUIRED_EXTENSIONS.has(extension.name) && <PreloadHint />}
-        </div>
-        {extension.comment && (
-          <p className="mt-1 text-muted-foreground text-sm">
-            {extension.comment}
-          </p>
+      <div className="flex items-start gap-2">
+        {isBuiltIn ? (
+          <Lock
+            className={cn('mt-[2px] h-5 w-5 shrink-0', dimmed)}
+            aria-hidden
+          />
+        ) : (
+          <Blocks className="mt-[2px] h-5 w-5 shrink-0" aria-hidden />
         )}
-      </TableCell>
-      <TableCell className={cn('text-right tabular-nums', dimmedCell)}>
-        {extension.default_version ?? '—'}
-      </TableCell>
-      <TableCell className={cn('text-right tabular-nums', dimmedCell)}>
-        {extension.installed_version ?? '—'}
-      </TableCell>
-      <TableCell className={cn('pl-8', dimmedCell)}>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <div className={cn('flex items-center gap-1.5', dimmed)}>
+            <a
+              href={getExtensionDocsUrl(extension.name)}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={displayName}
+              className={cn(
+                'truncate font-bold underline decoration-muted-foreground/50 underline-offset-4 hover:decoration-current',
+                isBuiltIn
+                  ? 'text-muted-foreground'
+                  : 'text-foreground hover:text-primary',
+              )}
+            >
+              {displayName}
+            </a>
+            {PRELOAD_REQUIRED_EXTENSIONS.has(extension.name) && <PreloadHint />}
+          </div>
+          {versionLabel && (
+            <span
+              className={cn(
+                'text-muted-foreground text-xs tabular-nums',
+                dimmed,
+              )}
+            >
+              {versionLabel}
+            </span>
+          )}
+        </div>
         <Badge
           variant={isInstalled && !isBuiltIn ? 'default' : 'outline'}
-          className={cn(isBuiltIn && 'text-muted-foreground')}
+          className={cn('shrink-0', isBuiltIn && 'text-muted-foreground')}
         >
           {isInstalled ? 'Installed' : 'Available'}
         </Badge>
-      </TableCell>
-      <TableCell className="text-right">
+      </div>
+
+      <p
+        className={cn(
+          'line-clamp-2 flex-1 text-muted-foreground text-sm',
+          dimmed,
+        )}
+      >
+        {extension.comment}
+      </p>
+
+      <div className="flex justify-end">
         {isBuiltIn ? (
           <BuiltInIndicator reason={protectedReason} />
         ) : (
@@ -141,43 +169,28 @@ function ExtensionRow({
             {label}
           </Button>
         )}
-      </TableCell>
-    </TableRow>
+      </div>
+    </div>
   );
 }
 
-export default function ExtensionsTable({
+export default function ExtensionsGrid({
   ariaLabel,
   extensions,
   onAction,
-}: ExtensionsTableProps) {
+}: ExtensionsGridProps) {
   return (
     <section aria-label={ariaLabel} className="space-y-3">
       <h2 className="font-semibold text-lg">{ariaLabel}</h2>
 
-      <div className="overflow-hidden rounded-md border">
-        <Table className="min-w-[50rem] table-fixed">
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead className="w-36 text-right">Default version</TableHead>
-              <TableHead className="w-36 text-right">
-                Installed version
-              </TableHead>
-              <TableHead className="w-28 pl-8">Status</TableHead>
-              <TableHead className="w-32 text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {extensions.map((extension) => (
-              <ExtensionRow
-                key={extension.name}
-                extension={extension}
-                onAction={onAction}
-              />
-            ))}
-          </TableBody>
-        </Table>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
+        {extensions.map((extension) => (
+          <ExtensionCard
+            key={extension.name}
+            extension={extension}
+            onAction={onAction}
+          />
+        ))}
       </div>
     </section>
   );

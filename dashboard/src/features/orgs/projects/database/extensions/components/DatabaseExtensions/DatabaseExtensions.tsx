@@ -6,8 +6,8 @@ import { Spinner } from '@/components/ui/v3/spinner';
 import { TextLink } from '@/components/ui/v3/text-link';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
-import type { ExtensionAction } from '@/features/orgs/projects/database/extensions/components/ExtensionsTable';
-import { ExtensionsTable } from '@/features/orgs/projects/database/extensions/components/ExtensionsTable';
+import type { ExtensionAction } from '@/features/orgs/projects/database/extensions/components/ExtensionsGrid';
+import { ExtensionsGrid } from '@/features/orgs/projects/database/extensions/components/ExtensionsGrid';
 import { InstallExtensionDialog } from '@/features/orgs/projects/database/extensions/components/InstallExtensionDialog';
 import { UninstallExtensionDialog } from '@/features/orgs/projects/database/extensions/components/UninstallExtensionDialog';
 import {
@@ -108,7 +108,7 @@ export default function DatabaseExtensions() {
       </div>
 
       {popularExtensions.length > 0 && (
-        <ExtensionsTable
+        <ExtensionsGrid
           ariaLabel="Popular extensions"
           extensions={popularExtensions}
           onAction={openDialog}
@@ -116,7 +116,7 @@ export default function DatabaseExtensions() {
       )}
 
       {filteredExtensions.length > 0 ? (
-        <ExtensionsTable
+        <ExtensionsGrid
           ariaLabel="All extensions"
           extensions={filteredExtensions}
           onAction={openDialog}

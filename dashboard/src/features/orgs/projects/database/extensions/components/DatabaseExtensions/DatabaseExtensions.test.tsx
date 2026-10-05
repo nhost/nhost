@@ -193,8 +193,8 @@ async function renderPage() {
   return screen.findByRole('region', { name: 'All extensions' });
 }
 
-function getRow(region: HTMLElement, name: string) {
-  return within(region).getByTestId(`extension-row-${name}`);
+function getCard(region: HTMLElement, name: string) {
+  return within(region).getByTestId(`extension-card-${name}`);
 }
 
 async function openTooltip(trigger: HTMLElement) {
@@ -220,15 +220,15 @@ describe('DatabaseExtensions', () => {
 
     expect(
       within(popular)
-        .getAllByTestId(/^extension-row-/)
-        .map((row) => row.getAttribute('data-testid')),
+        .getAllByTestId(/^extension-card-/)
+        .map((card) => card.getAttribute('data-testid')),
     ).toEqual([
-      'extension-row-vector',
-      'extension-row-postgis',
-      'extension-row-pg_cron',
-      'extension-row-uuid-ossp',
+      'extension-card-vector',
+      'extension-card-postgis',
+      'extension-card-pg_cron',
+      'extension-card-uuid-ossp',
     ]);
-    expect(within(all).getAllByTestId(/^extension-row-/)).toHaveLength(
+    expect(within(all).getAllByTestId(/^extension-card-/)).toHaveLength(
       catalog.length,
     );
     expect(
@@ -238,16 +238,16 @@ describe('DatabaseExtensions', () => {
     ).toBeInTheDocument();
   });
 
-  it('filters both tables by name, comment, and display name', async () => {
+  it('filters both sections by name, comment, and display name', async () => {
     const user = new TestUserEvent();
     await renderPage();
     const search = screen.getByRole('textbox', { name: 'Search extensions' });
 
     await user.type(search, 'pgvector');
 
-    expect(screen.getAllByTestId('extension-row-vector')).toHaveLength(2);
+    expect(screen.getAllByTestId('extension-card-vector')).toHaveLength(2);
     expect(
-      screen.queryByTestId('extension-row-postgis'),
+      screen.queryByTestId('extension-card-postgis'),
     ).not.toBeInTheDocument();
 
     await user.clear(search);
@@ -256,7 +256,7 @@ describe('DatabaseExtensions', () => {
     expect(
       screen.queryByRole('region', { name: 'Popular extensions' }),
     ).not.toBeInTheDocument();
-    expect(screen.getByTestId('extension-row-citext')).toBeInTheDocument();
+    expect(screen.getByTestId('extension-card-citext')).toBeInTheDocument();
 
     await user.clear(search);
     await user.type(search, 'missing extension');
@@ -268,13 +268,13 @@ describe('DatabaseExtensions', () => {
     const all = await renderPage();
 
     expect(
-      within(getRow(all, 'pg_cron')).getByRole('link', { name: 'pg_cron' }),
+      within(getCard(all, 'pg_cron')).getByRole('link', { name: 'pg_cron' }),
     ).toHaveAttribute(
       'href',
       'https://docs.nhost.io/products/database/extensions#pg_cron',
     );
     expect(
-      within(getRow(all, 'vector')).getByRole('link', { name: 'pgvector' }),
+      within(getCard(all, 'vector')).getByRole('link', { name: 'pgvector' }),
     ).toHaveAttribute(
       'href',
       'https://docs.nhost.io/products/database/extensions#pgvector',
@@ -284,7 +284,7 @@ describe('DatabaseExtensions', () => {
   it('explains the preload requirement in a tooltip', async () => {
     const all = await renderPage();
     const tooltip = await openTooltip(
-      within(getRow(all, 'pg_cron')).getByRole('button', {
+      within(getCard(all, 'pg_cron')).getByRole('button', {
         name: 'Preload requirement',
       }),
     );
@@ -296,7 +296,7 @@ describe('DatabaseExtensions', () => {
 
   it('locks built-in extensions instead of offering uninstall', async () => {
     const all = await renderPage();
-    const citext = getRow(all, 'citext');
+    const citext = getCard(all, 'citext');
 
     expect(citext).toHaveAttribute('data-built-in', 'true');
     expect(
