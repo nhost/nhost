@@ -17,6 +17,7 @@ import { NativeQueriesBrowserSidebarSkeleton } from '@/features/orgs/projects/da
 import { NativeQueryListItem } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesBrowserSidebar/NativeQueryListItem';
 import { useGetLogicalModels } from '@/features/orgs/projects/database/native-queries/hooks/useGetLogicalModels';
 import { useGetNativeQueries } from '@/features/orgs/projects/database/native-queries/hooks/useGetNativeQueries';
+import { useIsNativeQueriesSupported } from '@/features/orgs/projects/database/native-queries/hooks/useIsNativeQueriesSupported';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 const CreateLogicalModelForm = dynamic(
@@ -210,8 +211,14 @@ function NativeQueriesBrowserSidebarContent() {
 export default function NativeQueriesBrowserSidebar() {
   const isPlatform = useIsPlatform();
   const { project } = useProject();
+  const { loading: loadingSupport, isSupported } =
+    useIsNativeQueriesSupported();
 
-  if (isPlatform && !project?.config?.hasura.adminSecret) {
+  if (
+    loadingSupport ||
+    !isSupported ||
+    (isPlatform && !project?.config?.hasura.adminSecret)
+  ) {
     return null;
   }
 
