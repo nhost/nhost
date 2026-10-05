@@ -1,0 +1,38 @@
+---
+name: "label: external authors"
+on:
+  issues:
+    types: [opened]
+  # Needed for write access on fork PRs; no PR code is checked out or run.
+  pull_request_target: # zizmor: ignore[dangerous-triggers]
+    types: [opened]
+
+permissions: {}
+
+jobs:
+  label-external:
+    # GitHub reports organization members as MEMBER.
+    if: >-
+      !contains(
+        fromJSON('["OWNER", "MEMBER"]'),
+        github.event.issue.author_association ||
+        github.event.pull_request.author_association
+      )
+    runs-on: ubuntu-slim
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      # pull_request_target uses the base branch; never check out PR code.
+      - name: Add external label
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          NUMBER: >-
+            ${{ github.event.issue.number ||
+                github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          printf '%s\n' '{"labels":["external"]}' |
+            gh api --method POST --input - \
+              "repos/${REPO}/issues/${NUMBER}/labels"
