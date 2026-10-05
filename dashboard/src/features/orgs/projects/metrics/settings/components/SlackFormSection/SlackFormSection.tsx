@@ -3,6 +3,7 @@ import { useFieldArray, useFormContext } from 'react-hook-form';
 import { FormInput } from '@/components/form/FormInput';
 import { Alert } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
+import { Label } from '@/components/ui/v3/label';
 import {
   Tooltip,
   TooltipContent,
@@ -74,7 +75,7 @@ export default function SlackFormSection() {
             </Alert>
           )}
           {fields.map((field, index) => (
-            <div key={field.id} className="flex w-full items-center gap-2">
+            <div key={field.id} className="flex w-full items-start gap-2">
               <div className="grid flex-grow gap-4 lg:grid-cols-9">
                 <FormInput
                   control={control}
@@ -165,14 +166,21 @@ export default function SlackFormSection() {
                 />
               </div>
 
-              <Button
-                variant="ghost"
-                className="text-destructive hover:text-destructive"
-                aria-label="Remove Slack channel"
-                onClick={() => handleRemove(index)}
-              >
-                <TrashIcon className="h-6 w-4" />
-              </Button>
+              <div className="space-y-2">
+                <Label aria-hidden="true" className="invisible">
+                  {'\u00A0'}
+                </Label>
+                <div className="flex">
+                  <Button
+                    variant="ghost"
+                    className="h-10 text-destructive hover:text-destructive"
+                    aria-label="Remove Slack channel"
+                    onClick={() => handleRemove(index)}
+                  >
+                    <TrashIcon className="h-6 w-4" />
+                  </Button>
+                </div>
+              </div>
             </div>
           ))}
         </div>
