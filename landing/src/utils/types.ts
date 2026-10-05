@@ -24,6 +24,10 @@ export interface Article {
   seoTitle?: string
   /** SEO meta description. Keep under 145 chars. */
   seoDescription?: string
+  /** Headline of the end-of-post CTA box. Falls back to the default text. */
+  endCtaText?: string
+  /** Button label of the end-of-post CTA box. Falls back to the default label. */
+  endCtaButton?: string
 }
 
 export interface Customer {
