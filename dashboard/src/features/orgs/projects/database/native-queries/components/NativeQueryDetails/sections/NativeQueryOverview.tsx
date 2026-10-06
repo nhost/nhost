@@ -3,6 +3,7 @@ import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
 import NextLink from 'next/link';
 import { NativeQueriesDetailsSection } from '@/features/orgs/projects/database/native-queries/components/NativeQueriesDetailsSection';
+import { codeMirrorAppBackground } from '@/lib/codeMirrorAppTheme';
 import { useThemePreference } from '@/providers/Theme';
 import type { NativeQueryItem } from '@/utils/hasura-api/generated/schemas';
 
@@ -27,7 +28,7 @@ export default function NativeQueryOverview({
             minHeight="180px"
             className="overflow-hidden rounded-md border"
             theme={resolvedTheme === 'light' ? githubLight : githubDark}
-            extensions={[sql({ dialect: PostgreSQL })]}
+            extensions={[sql({ dialect: PostgreSQL }), codeMirrorAppBackground]}
             editable={false}
             readOnly
           />
