@@ -1,5 +1,5 @@
 import type { PropsWithChildren } from 'react';
-import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
+import { AreaLayout } from '@/features/orgs/projects/common/layout/AreaLayout';
 import RunRouteTabs from '@/features/orgs/projects/run/layout/RunRouteTabs';
 
 /**
@@ -8,15 +8,5 @@ import RunRouteTabs from '@/features/orgs/projects/run/layout/RunRouteTabs';
  * the tabs.
  */
 export default function RunArea({ children }: PropsWithChildren) {
-  return (
-    <div className="flex h-full flex-col">
-      <div className="shrink-0 px-4 pt-3 pb-4">
-        <RunRouteTabs />
-      </div>
-
-      <div className="flex min-h-0 flex-1 flex-col">
-        <ProjectStateGate>{children}</ProjectStateGate>
-      </div>
-    </div>
-  );
+  return <AreaLayout tabs={<RunRouteTabs />}>{children}</AreaLayout>;
 }

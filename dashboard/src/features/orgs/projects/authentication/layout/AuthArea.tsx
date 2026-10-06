@@ -1,6 +1,6 @@
 import type { PropsWithChildren } from 'react';
-import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
 import AuthRouteTabs from '@/features/orgs/projects/authentication/layout/AuthRouteTabs';
+import { AreaLayout } from '@/features/orgs/projects/common/layout/AreaLayout';
 
 /**
  * Route tabs above the project-state gate, so a paused project's Auth pages
@@ -8,15 +8,5 @@ import AuthRouteTabs from '@/features/orgs/projects/authentication/layout/AuthRo
  * the tabs.
  */
 export default function AuthArea({ children }: PropsWithChildren) {
-  return (
-    <div className="flex h-full flex-col">
-      <div className="shrink-0 px-4 pt-3 pb-4">
-        <AuthRouteTabs />
-      </div>
-
-      <div className="flex min-h-0 flex-1 flex-col">
-        <ProjectStateGate>{children}</ProjectStateGate>
-      </div>
-    </div>
-  );
+  return <AreaLayout tabs={<AuthRouteTabs />}>{children}</AreaLayout>;
 }

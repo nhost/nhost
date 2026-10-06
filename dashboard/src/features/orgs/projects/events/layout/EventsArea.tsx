@@ -1,5 +1,5 @@
 import type { PropsWithChildren } from 'react';
-import { ProjectStateGate } from '@/features/orgs/guards/ProjectStateGate';
+import { AreaLayout } from '@/features/orgs/projects/common/layout/AreaLayout';
 import EventsRouteTabs from '@/features/orgs/projects/events/layout/EventsRouteTabs';
 
 /**
@@ -7,15 +7,5 @@ import EventsRouteTabs from '@/features/orgs/projects/events/layout/EventsRouteT
  * rendered as-is below the tabs.
  */
 export default function EventsArea({ children }: PropsWithChildren) {
-  return (
-    <div className="flex h-full flex-col">
-      <div className="shrink-0 px-4 pt-3 pb-4">
-        <EventsRouteTabs />
-      </div>
-
-      <div className="flex min-h-0 flex-1 flex-col">
-        <ProjectStateGate>{children}</ProjectStateGate>
-      </div>
-    </div>
-  );
+  return <AreaLayout tabs={<EventsRouteTabs />}>{children}</AreaLayout>;
 }
