@@ -60,7 +60,7 @@ Nhost hosts a read-only connector at <CopyText text="https://mcp.nhost.io" /> th
 
 </Steps>
 
-It cannot change configuration or touch your project's data. See [Platform connector](/platform/cloud/mcp).
+It cannot change configuration or touch your project's data. See [Hosted MCP server](/platform/cloud/mcp).
 
 ## Keep it in bounds
 
@@ -74,9 +74,9 @@ An assistant acts with whatever credentials you hand it.
 
 ## Which setup am I using?
 
-| | Local project | Cloud project | Platform connector |
+| | Local project | Cloud project | Hosted server |
 |---|---|---|---|
-| **Server** | CLI MCP | CLI MCP | Hosted connector |
+| **Server** | CLI MCP | CLI MCP | Hosted MCP |
 | **Needs the CLI** | Yes | Yes, but no Docker | No |
 | **Transport** | Local process (stdio) | Local process (stdio) | Remote HTTP |
 | **Authentication** | Local admin secret | `nhost login` for the platform, PAT or admin secret per project | Your Nhost account, over OAuth2 |

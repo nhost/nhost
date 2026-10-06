@@ -721,6 +721,9 @@ export default defineConfig({
                   collapsed: false,
                   items: [
                     { slug: 'platform/cloud' },
+                    // Account-level rather than a per-project setting, so it
+                    // sits above the run of project settings below.
+                    { slug: 'platform/cloud/mcp' },
                     { slug: 'platform/cloud/subdomain' },
                     { slug: 'platform/cloud/compute-resources' },
                     { slug: 'platform/cloud/service-replicas' },
@@ -732,7 +735,6 @@ export default defineConfig({
                     { slug: 'platform/cloud/custom-domains' },
                     { slug: 'platform/cloud/rate-limits' },
                     { slug: 'platform/cloud/tls' },
-                    { slug: 'platform/cloud/mcp' },
                     { slug: 'platform/cloud/billing' },
                   ],
                 },

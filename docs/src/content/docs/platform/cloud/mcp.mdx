@@ -1,5 +1,5 @@
 ---
-title: Platform connector
+title: Hosted MCP server
 description: >-
   Connect an AI assistant to Nhost Cloud with a hosted MCP server. Add one URL,
   sign in with your Nhost account, and ask about your projects and deployments.
@@ -14,6 +14,8 @@ import { CopyText, Prompt } from '@components';
 Nhost runs a hosted MCP server for the Nhost Cloud platform at <CopyText text="https://mcp.nhost.io" />. Add it as a remote connector in any MCP client that supports one and an AI assistant can answer questions about your organizations, projects, and deployments.
 
 There is nothing to install, no config file, and no token to copy. You sign in with your Nhost account over OAuth2 and your client keeps the session.
+
+It runs [Backend MCP](/products/ai/mcp), the same service you can deploy in front of your own project. What differs is where it points: at Nhost Cloud's own backend, pinned to a read-only role.
 
 <Prompt>
 Which of my projects had a failed deployment in the last week?
