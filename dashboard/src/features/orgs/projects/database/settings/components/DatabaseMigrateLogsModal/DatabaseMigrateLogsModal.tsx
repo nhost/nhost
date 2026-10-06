@@ -8,7 +8,7 @@ export default function DatabaseMigrateLogsModal() {
   if (error) {
     return (
       <div className="pt-2">
-        <div className="min-h-80 bg-[#21324b] p-4 dark:bg-[#2f363d]">
+        <div className="min-h-80 bg-console-background p-4">
           <p className="font-mono text-white">
             Could not fetch logs. Error: {error.message}
           </p>
@@ -20,7 +20,7 @@ export default function DatabaseMigrateLogsModal() {
   if (loading) {
     return (
       <div className="pt-2">
-        <div className="min-h-80 bg-[#21324b] p-4 dark:bg-[#2f363d]">
+        <div className="min-h-80 bg-console-background p-4">
           <p className="font-mono text-white">Loading...</p>
         </div>
       </div>
@@ -30,7 +30,7 @@ export default function DatabaseMigrateLogsModal() {
   if (logs.length === 0) {
     return (
       <div className="pt-2">
-        <div className="min-h-80 bg-[#21324b] p-4 dark:bg-[#2f363d]">
+        <div className="min-h-80 bg-console-background p-4">
           <p className="font-mono text-white">No logs found</p>
         </div>
       </div>
@@ -39,7 +39,7 @@ export default function DatabaseMigrateLogsModal() {
 
   return (
     <div className="pt-2">
-      <div className="min-h-80 bg-[#21324b] p-4 dark:bg-[#2f363d]">
+      <div className="min-h-80 bg-console-background p-4">
         {logs.map((logObj) => {
           if (logObj?.level && logObj?.msg) {
             return (

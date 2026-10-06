@@ -212,7 +212,7 @@ export default function ResourceBreakdownChart() {
       : null;
 
   return (
-    <div className="flex flex-col gap-4 rounded-lg border bg-card p-4">
+    <div className="flex flex-col gap-4 rounded-lg border p-4">
       <div className="flex flex-col gap-2">
         <div className="flex items-baseline justify-between gap-2">
           <span className="font-medium text-sm">CPU</span>

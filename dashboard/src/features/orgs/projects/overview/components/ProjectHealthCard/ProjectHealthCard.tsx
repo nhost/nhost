@@ -67,7 +67,7 @@ export default function ProjectHealthCard({
   const showCheckIcon = state === ServiceState.Running;
   const shouldBlink = state === ServiceState.Updating;
   const cardClassName = cn(
-    'grid aspect-square min-w-12 max-w-14 grid-flow-row gap-0 rounded-md border bg-card p-0 shadow-sm',
+    'grid aspect-square min-w-12 max-w-14 grid-flow-row gap-0 rounded-md border p-0 shadow-sm',
     tooltip &&
       'cursor-default outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
     className,

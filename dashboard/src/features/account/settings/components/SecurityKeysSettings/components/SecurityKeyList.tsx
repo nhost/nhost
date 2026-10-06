@@ -12,7 +12,7 @@ type SecurityKeyProps = {
 
 function SecurityKey({ id, nickname }: SecurityKeyProps) {
   return (
-    <div className="flex w-full items-center justify-between rounded-lg border border-[#EAEDF0] px-2 py-2 dark:border-[#2F363D]">
+    <div className="flex w-full items-center justify-between rounded-lg border border-border px-2 py-2">
       <div className="flex justify-start gap-3">
         <Fingerprint />
         <span>{nickname || id}</span>

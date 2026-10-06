@@ -254,7 +254,7 @@ export default function StorageRolePermissionEditorForm({
 
       <Form
         onSubmit={handleSubmit}
-        className="flex flex-auto flex-col content-between overflow-hidden border-t-1 bg-[#fafafa] text-sm+ dark:bg-[#151a22]"
+        className="flex flex-auto flex-col content-between overflow-hidden border-t-1 text-sm+"
       >
         <div className="grid flex-auto grid-flow-row content-start gap-6 overflow-auto py-4">
           <PermissionSettingsSection

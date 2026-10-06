@@ -51,7 +51,7 @@ FunctionsPage.getLayout = function getLayout(page: ReactElement) {
         <FunctionsArea>
           <div className="flex h-full">
             <FunctionsBrowserSidebar />
-            <div className="box flex w-full flex-auto flex-col overflow-x-hidden bg-default">
+            <div className="box flex w-full flex-auto flex-col overflow-x-hidden">
               {page}
             </div>
           </div>
