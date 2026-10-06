@@ -1,5 +1,3 @@
-import Link from 'next/link';
-import { useRouter } from 'next/router';
 import {
   type ComponentPropsWithoutRef,
   createContext,
@@ -8,12 +6,12 @@ import {
   useContext,
   useId,
 } from 'react';
+import { SidebarItem, SidebarSectionTitle } from '@/components/layout/Sidebar';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
-import { isRouteActive } from '@/lib/route-navigation';
 import { cn } from '@/lib/utils';
 
 interface NavigationListContextValue {
@@ -31,7 +29,6 @@ export const NavigationListContext = createContext<NavigationListContextValue>({
 interface NavigationListProps {
   ariaLabel: string;
   children: ReactNode;
-  footer?: ReactNode;
   className?: string;
 }
 
@@ -82,55 +79,32 @@ function NavigationListItem({
   label,
   href,
   icon,
-  activePath = href,
+  activePath,
   exact = false,
   disabled,
 }: NavigationListItemProps) {
   const { collapsed } = useContext(NavigationListContext);
-  const { asPath } = useRouter();
-  const active = isRouteActive(asPath, activePath, exact);
-  const itemClassName = cn(
-    'flex h-10 w-full items-center rounded-lg font-medium text-muted-foreground text-sm transition-colors hover:bg-accent hover:text-accent-foreground',
-    collapsed ? 'justify-center px-0' : 'justify-start gap-3 px-3',
-    active &&
-      'bg-[#ebf3ff] text-primary hover:bg-[#ebf3ff] dark:bg-muted dark:hover:bg-muted',
-    disabled &&
-      'cursor-not-allowed opacity-50 hover:bg-transparent hover:text-muted-foreground',
-  );
-  const content = (
-    <>
-      <span
-        aria-hidden="true"
-        className="flex size-5 shrink-0 items-center justify-center"
-      >
-        {icon}
-      </span>
-      <span className={cn('truncate', collapsed && 'sr-only')}>{label}</span>
-    </>
-  );
-
-  const navItem = disabled ? (
-    <div
-      aria-current={active ? 'page' : undefined}
-      aria-disabled="true"
-      className={itemClassName}
-    >
-      {content}
-    </div>
-  ) : (
-    <Link
-      href={href}
-      aria-current={active ? 'page' : undefined}
-      className={itemClassName}
-    >
-      {content}
-    </Link>
-  );
 
   return (
     <li>
       <SidebarTooltip collapsed={collapsed} label={label}>
-        {navItem}
+        <SidebarItem
+          href={href}
+          activePath={activePath}
+          exact={exact}
+          disabled={disabled}
+          className={cn(collapsed && 'justify-center py-2')}
+        >
+          <span
+            aria-hidden="true"
+            className="flex size-4 shrink-0 items-center justify-center"
+          >
+            {icon}
+          </span>
+          <span className={cn('truncate', collapsed && 'sr-only')}>
+            {label}
+          </span>
+        </SidebarItem>
       </SidebarTooltip>
     </li>
   );
@@ -140,6 +114,7 @@ function NavigationListSection({
   label,
   children,
   id,
+  className,
   ...props
 }: NavigationListSectionProps) {
   const { collapsed } = useContext(NavigationListContext);
@@ -147,21 +122,21 @@ function NavigationListSection({
   const labelId = label ? (id ? `${id}-heading` : generatedLabelId) : undefined;
 
   return (
-    <section id={id} aria-labelledby={labelId} {...props}>
+    <section
+      id={id}
+      aria-labelledby={labelId}
+      className={cn('mt-[1.2rem] first:mt-0', className)}
+      {...props}
+    >
       {label && !collapsed && (
-        <h2
-          id={labelId}
-          className="px-3 pt-5 pb-2 font-semibold text-2xs text-muted-foreground uppercase tracking-[0.16em]"
-        >
-          {label}
-        </h2>
+        <SidebarSectionTitle id={labelId}>{label}</SidebarSectionTitle>
       )}
       {label && collapsed && (
         <h2 id={labelId} className="sr-only">
           {label}
         </h2>
       )}
-      <ul className="flex flex-col gap-1">{children}</ul>
+      <ul className={cn('flex flex-col', collapsed && 'gap-1')}>{children}</ul>
     </section>
   );
 }
@@ -169,7 +144,6 @@ function NavigationListSection({
 function NavigationList({
   ariaLabel,
   children,
-  footer,
   className,
 }: NavigationListProps) {
   return (
@@ -180,12 +154,6 @@ function NavigationList({
       <div className="min-h-0 flex-1 overflow-y-auto p-2">
         <div className="flex flex-col gap-1">{children}</div>
       </div>
-
-      {footer && (
-        <div className="shrink-0 border-t p-2">
-          <ul className="flex flex-col gap-1">{footer}</ul>
-        </div>
-      )}
     </nav>
   );
 }
