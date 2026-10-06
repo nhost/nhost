@@ -33,8 +33,6 @@ export default defineConfig({
     // follows the redirect, so `curl -fsSL https://docs.nhost.io/install-mcp | claude`
     // still works.
     '/install-mcp': '/install-mcp.md',
-    // Same arrangement for the cloud onboarding file.
-    '/install-mcp-cloud': '/install-mcp-cloud.md',
     // Short, memorable entry point to the human-facing MCP overview.
     '/mcp': '/platform/cli/mcp',
     // The per-client page only repeated the registration commands that the setup

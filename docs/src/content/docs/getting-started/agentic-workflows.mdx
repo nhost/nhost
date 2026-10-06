@@ -71,28 +71,7 @@ If you [develop without a local stack](/getting-started/cloud-development/dashbo
 
 This setup also covers the Nhost Cloud platform itself, so an assistant can list your organizations and projects and change project configuration the way you would in the dashboard.
 
-<Tabs syncKey="assistant">
-<TabItem label="Claude Code">
-```sh
-curl -fsSL https://docs.nhost.io/install-mcp-cloud | claude
-```
-</TabItem>
-<TabItem label="Codex CLI">
-```sh
-curl -fsSL https://docs.nhost.io/install-mcp-cloud | codex exec -
-```
-</TabItem>
-<TabItem label="Gemini CLI">
-```sh
-curl -fsSL https://docs.nhost.io/install-mcp-cloud | gemini
-```
-</TabItem>
-<TabItem label="Other">
-```sh
-curl -fsSL https://docs.nhost.io/install-mcp-cloud | <your-assistant-cli>
-```
-</TabItem>
-</Tabs>
+Use the same onboarding file as above. It asks whether the project is local or on Nhost Cloud before it writes anything, then follows the matching branch, so answer "Nhost Cloud" and give it your subdomain and region.
 
 Access is read-only by default, and you decide which queries and mutations to open up per project. For the manual steps and the safety rules that matter once real data is involved, see [Cloud Setup](/platform/cli/mcp/cloud-setup).
 
@@ -110,7 +89,7 @@ Nhost runs a hosted MCP server at <CopyText text="https://mcp.nhost.io" />. Add 
 
 Access is read-only and scoped to what your Nhost account can see. It cannot change project configuration or touch your project's own data. For that, use one of the CLI setups above.
 
-See [Nhost Cloud connector](/platform/cloud/mcp) for per-client steps and the full list of what it can answer.
+See [Platform connector](/platform/cloud/mcp) for per-client steps and the full list of what it can answer.
 
 ## Keeping an assistant in bounds
 

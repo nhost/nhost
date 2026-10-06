@@ -31,35 +31,35 @@ Unlike the [local setup](/platform/cli/mcp/development-setup), this points an as
 
 ## Let an AI assistant set it up
 
-Hand your assistant the onboarding file and it will walk you through the choices and write the configuration:
+Hand your assistant the onboarding file and it will walk you through the choices and write the configuration. The same file covers local and cloud projects, so answer "Nhost Cloud" when it asks which kind this is:
 
 <Tabs syncKey="assistant">
 <TabItem label="Claude Code">
 ```bash Terminal
-curl -fsSL https://docs.nhost.io/install-mcp-cloud | claude
+curl -fsSL https://docs.nhost.io/install-mcp | claude
 ```
 </TabItem>
 <TabItem label="Codex CLI">
 ```bash Terminal
-curl -fsSL https://docs.nhost.io/install-mcp-cloud | codex exec -
+curl -fsSL https://docs.nhost.io/install-mcp | codex exec -
 ```
 </TabItem>
 <TabItem label="Gemini CLI">
 ```bash Terminal
-curl -fsSL https://docs.nhost.io/install-mcp-cloud | gemini
+curl -fsSL https://docs.nhost.io/install-mcp | gemini
 ```
 </TabItem>
 <TabItem label="Cursor">
 Open Cursor's Agent chat and paste:
 
 ```text
-Set up the Nhost MCP server against my Nhost Cloud project: https://docs.nhost.io/install-mcp-cloud
+Set up the Nhost MCP server against my Nhost Cloud project: https://docs.nhost.io/install-mcp
 ```
 
 </TabItem>
 <TabItem label="Other">
 ```bash Terminal
-curl -fsSL https://docs.nhost.io/install-mcp-cloud | <your-assistant-cli>
+curl -fsSL https://docs.nhost.io/install-mcp | <your-assistant-cli>
 ```
 </TabItem>
 </Tabs>
@@ -300,5 +300,5 @@ Rules worth holding to:
 ## Next steps
 
 - [Configuration](/platform/cli/mcp/configuration): every option in `mcp-nhost.toml`.
-- [Nhost Cloud connector](/platform/cloud/mcp): read-only platform access with no CLI at all.
+- [Platform connector](/platform/cloud/mcp): read-only platform access with no CLI at all.
 - [Overview](/platform/cli/mcp): the full list of tools and resources.
