@@ -253,7 +253,7 @@ export default function RemoveApplicationDialog({
               />
 
               <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-                <AlertDialogCancel className="mt-0" disabled={loadingRemove}>
+                <AlertDialogCancel disabled={loadingRemove}>
                   Cancel
                 </AlertDialogCancel>
 

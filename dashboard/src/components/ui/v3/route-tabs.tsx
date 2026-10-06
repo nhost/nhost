@@ -41,7 +41,7 @@ function DesktopRouteTabs({
     <nav className={cn('overflow-x-auto', className)} {...props}>
       <div
         className={cn(
-          'inline-flex h-10 items-center justify-start gap-6 text-muted-foreground',
+          'inline-flex h-10 items-center justify-start gap-6 text-muted-foreground dark:text-sidebar-foreground',
           listClassName,
         )}
       >
@@ -134,7 +134,7 @@ export function RouteTabLink({
 
   const active = isRouteActive(asPath, href, exact);
   const tabClassName = cn(
-    'inline-flex h-10 items-center justify-center whitespace-nowrap border-transparent border-b-2 px-0 font-medium text-sm ring-offset-background transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 data-[state=active]:border-foreground data-[state=active]:text-foreground',
+    'inline-flex h-10 items-center justify-center whitespace-nowrap border-transparent border-b-2 px-0 font-semibold text-sm ring-offset-background transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 data-[state=active]:border-primary data-[state=active]:text-primary',
     disabled && 'pointer-events-none opacity-50 hover:text-muted-foreground',
     className,
   );

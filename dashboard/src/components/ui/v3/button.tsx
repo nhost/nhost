@@ -9,11 +9,14 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-primary text-white hover:bg-primary/90',
-        destructive:
-          'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+        // "Soft emboss" primary button: gradient fill with an inset bevel.
+        default: 'btn-emboss btn-emboss-primary',
+        // "Soft emboss" danger button, same recipe in the destructive reds.
+        destructive: 'btn-emboss btn-emboss-danger',
         outline:
-          'border bg-background hover:bg-accent hover:text-accent-foreground',
+          'border border-input bg-transparent hover:bg-accent hover:text-accent-foreground',
+        // "Soft emboss" secondary button: bordered, transparent background.
+        'outline-emboss': 'btn-emboss btn-emboss-secondary',
         secondary:
           'bg-secondary text-secondary-foreground hover:bg-secondary-hover',
         ghost: 'text-accent-foreground hover:bg-accent',
