@@ -23,8 +23,8 @@ DONE WHEN: My AI assistant lists the Nhost MCP tools and `get-schema` returns th
 
 1. Ask me which kind of project this is, and do not write anything until I answer:
 
-   - **Local** — a project running on my machine through `nhost up`. Full access is fine; nothing here is real.
-   - **Nhost Cloud** — a hosted project that may hold real data. Access is scoped, and credentials are involved.
+   - **Local**: a project running on my machine through `nhost up`. Full access is fine; nothing here is real.
+   - **Nhost Cloud**: a hosted project that may hold real data. Access is scoped, and credentials are involved.
 
    Everything below is split into a **Local** and a **Cloud** branch. Follow only the one I chose. If I want both in one configuration, do the Local branch first and then work through steps 4 and 5 in full for the cloud half, adding it as a second `[[projects]]` entry instead of replacing the local one. Do not skip those steps: they carry the access questions and the credential rules, and neither is optional just because a local project is already configured.
 
