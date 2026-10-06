@@ -17,7 +17,7 @@ This guide points the Nhost CLI's MCP server at **Nhost Cloud**. It covers two k
 - **Platform access**: your organizations, projects, and project configuration, through the `cloud-graphql-query` tool. This is the dashboard's data, reachable from an assistant.
 - **Project access**: the data and schema of a specific cloud project, through `graphql-query`, `get-schema`, and optionally `manage-graphql`.
 
-The server itself still runs locally as a short-lived process, so this works whether or not you run a local stack. If you [build from the dashboard](/getting-started/cloud-development/dashboard), you need the CLI binary for this but nothing else: no Docker, no `nhost up`.
+The server itself still runs locally as a short-lived process, so this works whether or not you run a local stack. If you [build with an assistant](/getting-started/build-with-an-assistant) rather than running commands yourself, you need the CLI binary for this but nothing else: no Docker, no `nhost up`.
 
 :::caution
 Unlike the [local setup](/platform/cli/mcp/development-setup), this points an assistant at real data. Read [Scoping access](#scoping-access) before you configure a production project.
@@ -300,5 +300,5 @@ Rules worth holding to:
 ## Next steps
 
 - [Configuration](/platform/cli/mcp/configuration): every option in `mcp-nhost.toml`.
-- [Platform connector](/platform/cloud/mcp): read-only platform access with no CLI at all.
+- [Platform connector](/platform/cloud/mcp): read-only access to your organizations, projects, and deployments.
 - [Overview](/platform/cli/mcp): the full list of tools and resources.

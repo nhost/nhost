@@ -1,6 +1,6 @@
 ---
 title: Agentic workflows
-description: "Connect an AI assistant to Nhost over MCP. Three setups: your local project, a cloud project through the CLI, and a hosted connector that needs no CLI at all."
+description: "Connect an AI assistant to Nhost over MCP. Three setups: your local project, a cloud project through the CLI, and a hosted connector for your organizations and deployments."
 keywords: ["agentic workflows", "MCP", "AI assistant", "Claude", "Cursor", "Codex", "agents", "Nhost Cloud", "without CLI"]
 head:
   - tag: title
@@ -21,7 +21,7 @@ Add a `published_at` column to `posts`, allow the `user` role to read only publi
 
 Which server you connect to depends on what you're working on and whether you use the CLI.
 
-| | [Local project](#local-project-with-the-cli) | [Cloud project](#cloud-project-with-the-cli) | [Nhost Cloud, no CLI](#nhost-cloud-without-the-cli) |
+| | [Local project](#local-project-with-the-cli) | [Cloud project](#cloud-project-with-the-cli) | [Platform connector](#hosted-platform-connector) |
 |---|---|---|---|
 | **Server** | CLI MCP | CLI MCP | Hosted connector |
 | **Needs the CLI** | Yes | Yes, but no Docker | No |
@@ -67,7 +67,7 @@ For the manual steps, see [Development Setup](/platform/cli/mcp/development-setu
 
 ## Cloud project with the CLI
 
-If you [develop without a local stack](/getting-started/cloud-development/dashboard), the same CLI MCP server can point at a project on Nhost Cloud. You still need the CLI binary, but nothing runs in Docker. The server is a short-lived local process that forwards requests to your project's endpoints.
+The same CLI MCP server can point at a project on Nhost Cloud instead of a local one. You still need the CLI binary, but nothing runs in Docker. The server is a short-lived local process that forwards requests to your project's endpoints.
 
 This setup also covers the Nhost Cloud platform itself, so an assistant can list your organizations and projects and change project configuration the way you would in the dashboard.
 
@@ -75,7 +75,7 @@ Use the same onboarding file as above. It asks whether the project is local or o
 
 Access is read-only by default, and you decide which queries and mutations to open up per project. For the manual steps and the safety rules that matter once real data is involved, see [Cloud Setup](/platform/cli/mcp/cloud-setup).
 
-## Nhost Cloud without the CLI
+## Hosted platform connector
 
 Nhost runs a hosted MCP server at <CopyText text="https://mcp.nhost.io" />. Add it as a remote connector in any client that supports one, sign in with your Nhost account, and the assistant can answer questions about your organizations, projects, and deployments. There is nothing to install and no token to copy.
 

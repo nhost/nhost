@@ -35,6 +35,10 @@ export default defineConfig({
     '/install-mcp': '/install-mcp.md',
     // Short, memorable entry point to the human-facing MCP overview.
     '/mcp': '/platform/cli/mcp',
+    // The dashboard onboarding page was reframed around building with an
+    // assistant, which covers local and cloud rather than the dashboard alone.
+    '/getting-started/cloud-development/dashboard':
+      '/getting-started/build-with-an-assistant',
     // The per-client page only repeated the registration commands that the setup
     // guides already carry inline, so it was removed; keep the URL working.
     '/platform/cli/mcp/clients': '/platform/cli/mcp/development-setup',
@@ -200,13 +204,13 @@ export default defineConfig({
                   items: [{ slug: 'getting-started/local-development/cli' }],
                 },
                 {
-                  label: 'Nhost Cloud',
+                  label: 'Agentic Development',
                   collapsed: false,
                   items: [
-                    { slug: 'getting-started/cloud-development/dashboard' },
+                    { slug: 'getting-started/agentic-workflows' },
+                    { slug: 'getting-started/build-with-an-assistant' },
                   ],
                 },
-                { slug: 'getting-started/agentic-workflows' },
                 {
                   label: 'Tutorials',
                   collapsed: false,
