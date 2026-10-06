@@ -1,7 +1,5 @@
 import OrganizationNavigation from '@/components/layout/DashboardNavigation/OrganizationNavigation';
-import ProjectNavigation, {
-  ProjectNavigationFooter,
-} from '@/components/layout/DashboardNavigation/ProjectNavigation';
+import ProjectNavigation from '@/components/layout/DashboardNavigation/ProjectNavigation';
 import { useCurrentRoute } from '@/components/layout/DashboardNavigation/useCurrentRoute';
 import { NavigationList } from '@/components/layout/NavigationList';
 
@@ -18,7 +16,6 @@ export default function DashboardNavigation() {
       ariaLabel={
         isProjectRoute ? 'Project navigation' : 'Organization navigation'
       }
-      footer={isProjectRoute && <ProjectNavigationFooter />}
     >
       {isProjectRoute ? <ProjectNavigation /> : <OrganizationNavigation />}
     </NavigationList>

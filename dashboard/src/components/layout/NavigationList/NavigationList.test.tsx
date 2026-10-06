@@ -1,9 +1,12 @@
 import { CogIcon, DatabaseIcon, HomeIcon, SparklesIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { vi } from 'vitest';
-import { NavigationList } from '@/components/layout/NavigationList';
+import {
+  NavigationList,
+  NavigationListContext,
+} from '@/components/layout/NavigationList';
 import { mockRouter } from '@/tests/mocks';
-import { render, screen } from '@/tests/testUtils';
+import { fireEvent, render, screen, within } from '@/tests/testUtils';
 
 vi.mock('next/router', () => ({
   useRouter: vi.fn(),
@@ -15,16 +18,7 @@ function setPath(asPath: string) {
 
 function renderNav() {
   return render(
-    <NavigationList
-      ariaLabel="Test navigation"
-      footer={
-        <NavigationList.Item
-          label="Settings"
-          href="/settings"
-          icon={<CogIcon className="size-4" />}
-        />
-      }
-    >
+    <NavigationList ariaLabel="Test navigation">
       <NavigationList.Section>
         <NavigationList.Item
           label="Overview"
@@ -44,6 +38,13 @@ function renderNav() {
           href="/database"
           icon={<DatabaseIcon className="size-4" />}
           disabled
+        />
+      </NavigationList.Section>
+      <NavigationList.Section>
+        <NavigationList.Item
+          label="Settings"
+          href="/settings"
+          icon={<CogIcon className="size-4" />}
         />
       </NavigationList.Section>
     </NavigationList>,
@@ -121,7 +122,7 @@ describe('NavigationList.Item active state', () => {
 });
 
 describe('NavigationList', () => {
-  it('renders expanded sections, links, footer, and active state', () => {
+  it('renders expanded sections, links, and active state', () => {
     renderNav();
 
     expect(
@@ -149,5 +150,30 @@ describe('NavigationList', () => {
     expect(
       screen.getByText('Database').closest('[aria-disabled="true"]'),
     ).toBeInTheDocument();
+  });
+
+  it('shows the tooltip for a disabled item when collapsed', async () => {
+    render(
+      <NavigationListContext.Provider value={{ collapsed: true }}>
+        <NavigationList ariaLabel="Test navigation">
+          <NavigationList.Section>
+            <NavigationList.Item
+              label="Database"
+              href="/database"
+              icon={<DatabaseIcon className="size-4" />}
+              disabled
+            />
+          </NavigationList.Section>
+        </NavigationList>
+      </NavigationListContext.Provider>,
+    );
+
+    const item = screen
+      .getByText('Database')
+      .closest('[aria-disabled="true"]') as HTMLElement;
+    fireEvent.pointerMove(item);
+
+    const tooltip = await screen.findByRole('tooltip');
+    expect(within(tooltip).getByText('Database')).toBeInTheDocument();
   });
 });

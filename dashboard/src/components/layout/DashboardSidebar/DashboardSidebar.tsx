@@ -31,7 +31,7 @@ export default function DashboardSidebar({
     <NavigationListContext.Provider value={{ collapsed }}>
       <aside
         className={cn(
-          'flex h-full shrink-0 flex-col border-r bg-background transition-[width] duration-200 ease-in-out',
+          'flex h-full shrink-0 flex-col border-r transition-[width] duration-200 ease-in-out',
           collapsed ? COLLAPSED_WIDTH_CLASS : EXPANDED_WIDTH_CLASS,
           className,
         )}
@@ -39,21 +39,21 @@ export default function DashboardSidebar({
       >
         {children}
 
-        <div className="flex h-16 shrink-0 items-center justify-center border-t px-2">
+        <div
+          className={cn(
+            'flex shrink-0 items-center px-2 pt-1 pb-3',
+            collapsed ? 'justify-center' : 'justify-start',
+          )}
+        >
           <Button
             type="button"
-            variant="ghost"
-            size="icon"
+            variant="subtle"
             aria-label={toggleLabel}
             aria-pressed={collapsed}
-            className="size-10 text-muted-foreground"
+            className="h-7 w-7"
             onClick={() => setCollapsed(!collapsed)}
           >
-            {collapsed ? (
-              <ChevronRight className="size-4" />
-            ) : (
-              <ChevronLeft className="size-4" />
-            )}
+            {collapsed ? <ChevronRight /> : <ChevronLeft />}
           </Button>
         </div>
       </aside>
