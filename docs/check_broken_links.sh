@@ -47,6 +47,16 @@ for pattern in "${SKIP[@]}"; do
   skip_args+=(--skip "$pattern")
 done
 
+# Files under public/ are copied to dist/client/ verbatim and served as raw
+# markdown, so the HTML crawl above never parses them. The `install-mcp*.md`
+# onboarding files are fetched and executed by AI assistants, so a dead URL in
+# one is as bad as a dead link on a page. linkinator parses markdown when given
+# a .md path directly, so pass them as extra locations in the same run.
+markdown_args=()
+while IFS= read -r md; do
+  markdown_args+=("$md")
+done < <(find dist/client -maxdepth 1 -name '*.md' | sort)
+
 results="$(mktemp)"
 trap 'rm -f "$results"' EXIT
 
@@ -55,7 +65,7 @@ trap 'rm -f "$results"' EXIT
 # stderr. `set +e` so a non-zero exit (broken links found) doesn't abort
 # before we print the summary below.
 set +e
-pnpm exec linkinator dist/client/ \
+pnpm exec linkinator dist/client/ "${markdown_args[@]}" \
   --recurse \
   --concurrency 10 \
   --timeout 30000 \

@@ -1,12 +1,12 @@
 ---
-title: Get up and running without the CLI
+title: Get up and running on Nhost Cloud
 description: "Build on Nhost Cloud straight from the dashboard. Create a project, design your schema, set permissions, and connect your app without Docker or the Nhost CLI."
-keywords: ["cloud development", "no CLI", "dashboard", "without Docker", "getting started", "Nhost Cloud", "quickstart"]
+keywords: ["Nhost Cloud", "dashboard", "no CLI", "without Docker", "getting started", "quickstart"]
 head:
   - tag: title
-    content: "Develop on Nhost Cloud Without the CLI | Nhost Docs"
+    content: "Nhost Cloud Quickstart Guide | Nhost Docs"
 sidebar:
-  label: Without the CLI
+  label: Dashboard
 ---
 import { Card, CardGroup } from '@components';
 import { Tabs, TabItem } from '@astrojs/starlight/components';
@@ -136,6 +136,10 @@ nhost init --remote
 ```
 
 This pulls the existing project's configuration, migrations, and metadata into a local `nhost/` directory you can commit. From there you can run the full stack locally with `nhost up`, or keep developing against the cloud project with [`nhost up cloud`](/platform/cli/cloud-development).
+
+:::caution
+Once you have a local copy, stop making schema and configuration changes in the hosted dashboard. `nhost up cloud` re-applies your complete local state to the project, so changes made in the hosted dashboard afterwards are not tracked locally and can be overwritten. Make them through the local dashboard and console instead, as described in [Cloud Development](/platform/cli/cloud-development).
+:::
 
 ## Next steps
 

@@ -1,6 +1,8 @@
 # nhost-mcp-cloud
 
-> The Nhost CLI ships an MCP server that connects an AI assistant to Nhost Cloud, so it can query a cloud project's data and schema and manage organizations and project configuration. This file sets it up against a **cloud** project. For a local project started with `nhost up`, use <https://docs.nhost.io/install-mcp> instead.
+> The Nhost CLI ships an MCP server that connects an AI assistant to Nhost Cloud, so it can query a cloud project's data and schema and manage organizations and project configuration. This file sets it up against a cloud project. For a local project started with `nhost up`, use <https://docs.nhost.io/install-mcp> instead.
+
+STOP FIRST: If all I want is to ask questions about my organizations, projects and deployments, do not use this file. Tell me to add <https://mcp.nhost.io> as a remote connector in my client and sign in when prompted. That server is hosted by Nhost and needs no CLI, no config file and no token, but it is read-only and cannot reach a project's own data or change anything. Ask me which I want before continuing. Everything below is for reaching a project's own data and schema, or for write access.
 
 I want you to set up the Nhost MCP server against my Nhost Cloud account. Execute the steps below, and stop to ask me whenever a step needs a decision or a value only I have.
 
@@ -24,10 +26,10 @@ IMPORTANT: This points at real data. Do not widen access beyond what I ask for. 
 
 2. Ask me these questions before writing anything:
 
-   - Which project? I need to give you its **subdomain** and **region**.
+   - Which project? I need to give you its subdomain and region.
    - Should the assistant be able to manage the Nhost Cloud platform (list organizations and projects, read and change project configuration)? If yes, ask whether mutations should be enabled, and default to no.
-   - Should the assistant be able to change project **data**? Default to read-only.
-   - Should the assistant be able to change the project's **schema, metadata, and permissions**? Default to no. This requires an admin secret and is only appropriate for a throwaway or staging project.
+   - Should the assistant be able to change project data? Default to read-only.
+   - Should the assistant be able to change the project's schema, metadata, and permissions? Default to no. This requires an admin secret and is only appropriate for a throwaway or staging project.
 
 3. Create the config file at `.nhost/mcp-nhost.toml`. Start from this read-only template and adjust it only to match my answers:
 
@@ -54,10 +56,10 @@ IMPORTANT: This points at real data. Do not widen access beyond what I ask for. 
 
 4. Register the MCP server with my AI assistant. Pass the credential variables through the client's own server definition: the server reads them from the environment of the process the client spawns, and exporting them in my shell only reaches that process if I launch the client from the same shell, which is never the case for Cursor or any other GUI client. Detect which client I use and apply the matching setup:
 
-   - **Claude Code**: `claude mcp add nhost -e NHOST_PROJECT_PAT=<token> -- nhost mcp start`
-   - **Codex CLI**: `codex mcp add nhost --env NHOST_PROJECT_PAT=<token> -- nhost mcp start`
-   - **Gemini CLI**: `gemini mcp add -s user -e NHOST_PROJECT_PAT=<token> nhost nhost mcp start`
-   - **Cursor** (or any client using an `mcpServers` JSON block):
+   - Claude Code: `claude mcp add nhost -e NHOST_PROJECT_PAT=<token> -- nhost mcp start`
+   - Codex CLI: `codex mcp add nhost --env NHOST_PROJECT_PAT=<token> -- nhost mcp start`
+   - Gemini CLI: `gemini mcp add -s user -e NHOST_PROJECT_PAT=<token> nhost nhost mcp start`
+   - Cursor (or any client using an `mcpServers` JSON block):
 
      ```json
      {
@@ -77,10 +79,10 @@ IMPORTANT: This points at real data. Do not widen access beyond what I ask for. 
 
    If you are running the CLI through `npx`, swap the command inside those same registrations. The `--` separator is not optional: without it the client CLI parses `-y` as one of its own flags instead of passing it to `npx`.
 
-   - **Claude Code**: `claude mcp add nhost -e NHOST_PROJECT_PAT=<token> -- npx -y @nhost/cli@latest mcp start`
-   - **Codex CLI**: `codex mcp add nhost --env NHOST_PROJECT_PAT=<token> -- npx -y @nhost/cli@latest mcp start`
-   - **Gemini CLI**: `gemini mcp add -s user -e NHOST_PROJECT_PAT=<token> nhost npx -- -y @nhost/cli@latest mcp start`. Gemini takes the command as a positional argument, so the separator goes after `npx` rather than before it; putting it before makes Gemini reject the command for a missing argument.
-   - **Cursor** (or any client using an `mcpServers` JSON block): keep the `env` object and set `"command": "npx"` with `"args": ["-y", "@nhost/cli@latest", "mcp", "start"]`.
+   - Claude Code: `claude mcp add nhost -e NHOST_PROJECT_PAT=<token> -- npx -y @nhost/cli@latest mcp start`
+   - Codex CLI: `codex mcp add nhost --env NHOST_PROJECT_PAT=<token> -- npx -y @nhost/cli@latest mcp start`
+   - Gemini CLI: `gemini mcp add -s user -e NHOST_PROJECT_PAT=<token> nhost npx -- -y @nhost/cli@latest mcp start`. Gemini takes the command as a positional argument, so the separator goes after `npx` rather than before it; putting it before makes Gemini reject the command for a missing argument.
+   - Cursor (or any client using an `mcpServers` JSON block): keep the `env` object and set `"command": "npx"` with `"args": ["-y", "@nhost/cli@latest", "mcp", "start"]`.
 
    The server reads `.nhost/mcp-nhost.toml` relative to the directory it starts in. If my client launches it somewhere else, add `--config-file=<absolute path>` to the arguments.
 

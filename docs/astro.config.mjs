@@ -37,6 +37,9 @@ export default defineConfig({
     '/install-mcp-cloud': '/install-mcp-cloud.md',
     // Short, memorable entry point to the human-facing MCP overview.
     '/mcp': '/platform/cli/mcp',
+    // The per-client page only repeated the registration commands that the setup
+    // guides already carry inline, so it was removed; keep the URL working.
+    '/platform/cli/mcp/clients': '/platform/cli/mcp/development-setup',
     // Renamed during the GraphQL docs neutralization, so existing links and
     // indexed URLs keep working.
     '/products/graphql/configuring-hasura': '/products/graphql/configuration',
@@ -199,7 +202,7 @@ export default defineConfig({
                   items: [{ slug: 'getting-started/local-development/cli' }],
                 },
                 {
-                  label: 'Cloud Development',
+                  label: 'Nhost Cloud',
                   collapsed: false,
                   items: [
                     { slug: 'getting-started/cloud-development/dashboard' },
@@ -745,7 +748,6 @@ export default defineConfig({
                         { slug: 'platform/cli/mcp/development-setup' },
                         { slug: 'platform/cli/mcp/cloud-setup' },
                         { slug: 'platform/cli/mcp/configuration' },
-                        { slug: 'platform/cli/mcp/clients' },
                         { slug: 'platform/cli/mcp/troubleshooting' },
                       ],
                     },
