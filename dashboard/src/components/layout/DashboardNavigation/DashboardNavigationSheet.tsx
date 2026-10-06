@@ -38,12 +38,12 @@ export default function DashboardNavigationSheet() {
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button
-          variant="ghost"
+          variant="subtle"
           size="icon"
           aria-label="Open navigation"
           className="shrink-0"
         >
-          <MenuIcon className="size-5" />
+          <MenuIcon />
         </Button>
       </SheetTrigger>
 
@@ -57,12 +57,11 @@ export default function DashboardNavigationSheet() {
           <SheetTitle className="truncate text-base">{title}</SheetTitle>
           <SheetClose asChild>
             <Button
-              variant="ghost"
-              size="icon"
+              variant="subtle"
               aria-label="Close navigation"
-              className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
+              className="shrink-0"
             >
-              <XIcon className="size-4" />
+              <XIcon />
             </Button>
           </SheetClose>
         </div>

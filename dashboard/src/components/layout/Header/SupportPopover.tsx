@@ -16,13 +16,8 @@ export default function SupportPopover() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Help and support"
-          className="h-8 w-8 rounded-full p-0 text-muted-foreground"
-        >
-          <CircleHelpIcon className="size-4" />
+        <Button variant="subtle" aria-label="Help and support">
+          <CircleHelpIcon />
         </Button>
       </PopoverTrigger>
 
@@ -45,7 +40,7 @@ export default function SupportPopover() {
             href={DISCORD_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 rounded-md bg-primary px-3 py-4 text-white transition-colors hover:bg-primary/90 hover:text-white"
+            className="btn-emboss-primary-gradient-only flex items-center gap-3 rounded-md px-3 py-2"
           >
             <DiscordIcon className="size-7 shrink-0" />
             <span className="min-w-0 flex-1">

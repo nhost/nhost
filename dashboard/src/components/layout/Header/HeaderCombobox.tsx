@@ -9,13 +9,13 @@ import { cn } from '@/lib/utils';
 // trigger; after it, a link plus an icon-only trigger. The two caps add up to
 // the same width.
 const headerComboboxClassName =
-  'h-9 min-w-0 max-w-[15.25rem] gap-2 border-0 bg-background px-3 py-0 font-medium text-foreground hover:bg-accent dark:hover:bg-muted';
+  'h-9 min-w-0 max-w-[15.25rem] gap-2 border-0 bg-transparent px-3 py-0 font-medium text-foreground hover:bg-neutral-100 dark:hover:bg-accent';
 
 const headerComboboxIconClassName =
-  'h-9 w-9 justify-center border-0 bg-background px-0 py-0 font-medium text-foreground hover:bg-accent dark:hover:bg-muted';
+  'h-9 w-9 justify-center border-0 bg-transparent px-0 py-0 font-medium text-foreground hover:bg-neutral-100 dark:hover:bg-accent';
 
 const headerComboboxLinkClassName =
-  'inline-flex h-9 min-w-0 max-w-52 items-center justify-start gap-2 overflow-hidden rounded-md border-0 bg-background px-3 py-0 font-medium text-foreground whitespace-nowrap hover:bg-accent dark:hover:bg-muted';
+  'inline-flex h-9 min-w-0 max-w-52 items-center justify-start gap-2 overflow-hidden rounded-md border-0 bg-transparent px-3 py-0 font-medium text-foreground whitespace-nowrap transition-colors hover:bg-background hover:text-primary';
 
 interface HeaderComboboxProps
   extends Omit<
