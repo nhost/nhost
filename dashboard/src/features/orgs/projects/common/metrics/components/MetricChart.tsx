@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   CartesianGrid,
   type DefaultLegendContentProps,
@@ -17,14 +17,16 @@ import {
 import InteractiveChartLegend from '@/features/orgs/projects/common/metrics/components/InteractiveChartLegend';
 import {
   HoverTooltipContent,
-  type PinnedPayloadEntry,
-  type PinnedState,
   PinnedTooltip,
-  resolveTooltipPosition,
+  TOOLTIP_WRAPPER_STYLE,
 } from '@/features/orgs/projects/common/metrics/components/MetricChartTooltip';
 import ScaleCapture from '@/features/orgs/projects/common/metrics/components/ScaleCapture';
+import { useDragToZoom } from '@/features/orgs/projects/common/metrics/hooks/useDragToZoom';
+import { usePinnedTooltip } from '@/features/orgs/projects/common/metrics/hooks/usePinnedTooltip';
+import { useSeriesVisibility } from '@/features/orgs/projects/common/metrics/hooks/useSeriesVisibility';
 import { useTimeAxis } from '@/features/orgs/projects/common/metrics/hooks/useTimeAxis';
 import type {
+  ChartMouseEvent,
   MetricSeries,
   SeriesAccessors,
 } from '@/features/orgs/projects/common/metrics/types';
@@ -44,14 +46,6 @@ export interface MetricChartProps {
   // series via internal state (resets on unmount).
   hiddenKeys?: string[];
   onHiddenKeysChange?: (next: string[]) => void;
-}
-
-interface ChartMouseEvent {
-  activeLabel?: string | number;
-  activeTooltipIndex?: number | string | null;
-  activeCoordinate?: { x?: number; y?: number };
-  chartX?: number;
-  chartY?: number;
 }
 
 // Ignore drag selections shorter than this — prevents accidental hairline
@@ -76,51 +70,19 @@ export default function MetricChart({
 
   const { ticks, tickFormatter } = useTimeAxis(xDomain);
 
-  const [internalHidden, setInternalHidden] = useState<string[]>([]);
-  const hidden = hiddenKeys ?? internalHidden;
-  const setHidden = useCallback(
-    (next: string[]) => {
-      if (onHiddenKeysChange) {
-        onHiddenKeysChange(next);
-      }
-      if (hiddenKeys === undefined) {
-        setInternalHidden(next);
-      }
+  const { hiddenSet, handleLegendClick } = useSeriesVisibility({
+    keys,
+    hiddenKeys,
+    onHiddenKeysChange,
+  });
+  const pin = usePinnedTooltip({ rows, keys, hiddenSet, config });
+  const zoom = useDragToZoom({
+    minRange: MIN_ZOOM_RANGE_MS,
+    onZoomRange: (from, to) => {
+      pin.clearPinned();
+      onZoomRange?.(from, to);
     },
-    [onHiddenKeysChange, hiddenKeys],
-  );
-  const hiddenSet = useMemo(() => new Set(hidden), [hidden]);
-
-  const handleLegendClick = useCallback(
-    (
-      key: string,
-      opts: { metaKey: boolean; ctrlKey: boolean; shiftKey: boolean },
-    ) => {
-      if (opts.metaKey || opts.ctrlKey || opts.shiftKey) {
-        const next = hiddenSet.has(key)
-          ? hidden.filter((k) => k !== key)
-          : [...hidden, key];
-        const nextSet = new Set(next);
-        const visibleAfter = keys.filter((k) => !nextSet.has(k));
-        setHidden(visibleAfter.length === 0 ? [] : next);
-        return;
-      }
-      const visible = keys.filter((k) => !hiddenSet.has(k));
-      if (visible.length === 1 && visible[0] === key) {
-        setHidden([]);
-        return;
-      }
-      setHidden(keys.filter((k) => k !== key));
-    },
-    [hidden, hiddenSet, keys, setHidden],
-  );
-
-  const [refAreaLeft, setRefAreaLeft] = useState<number | null>(null);
-  const [refAreaRight, setRefAreaRight] = useState<number | null>(null);
-  const justDraggedRef = useRef(false);
-
-  const [pinned, setPinned] = useState<PinnedState | null>(null);
-  const chartWrapperRef = useRef<HTMLDivElement | null>(null);
+  });
 
   const [focusedKey, setFocusedKey] = useState<string | null>(null);
   const xScaleRef = useRef<ScaleFunction | null>(null);
@@ -173,113 +135,33 @@ export default function MetricChart({
     [keys, rows, hiddenSet],
   );
 
-  useEffect(() => {
-    if (!pinned) {
-      return undefined;
-    }
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setPinned(null);
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [pinned]);
-
   const isEmpty = rows.length === 0 || keys.length === 0;
-
-  const handleMouseDown = (e: ChartMouseEvent) => {
-    const timestampMs = Number(e?.activeLabel);
-    if (Number.isNaN(timestampMs)) {
-      return;
-    }
-    setRefAreaLeft(timestampMs);
-    setRefAreaRight(null);
-    justDraggedRef.current = false;
-  };
 
   const handleMouseMove = (e: ChartMouseEvent) => {
     updateFocusedKey(e);
-    if (refAreaLeft === null) {
-      return;
-    }
-    const timestampMs = Number(e?.activeLabel);
-    if (Number.isNaN(timestampMs)) {
-      return;
-    }
-    if (timestampMs !== refAreaLeft) {
-      justDraggedRef.current = true;
-    }
-    setRefAreaRight(timestampMs);
+    zoom.handleMouseMove(e);
   };
 
   const handleMouseLeave = () => {
     setFocusedKey(null);
   };
 
-  const handleMouseUp = () => {
-    const ll = refAreaLeft;
-    const rr = refAreaRight;
-    setRefAreaLeft(null);
-    setRefAreaRight(null);
-    if (ll === null || rr === null || ll === rr) {
-      return;
-    }
-    const [from, to] = ll < rr ? [ll, rr] : [rr, ll];
-    if (to - from < MIN_ZOOM_RANGE_MS) {
-      return;
-    }
-    setPinned(null);
-    onZoomRange?.(from, to);
-  };
-
   const handleClick = (e: ChartMouseEvent) => {
-    if (justDraggedRef.current) {
-      justDraggedRef.current = false;
-      return;
+    if (!zoom.consumeDragClick()) {
+      pin.togglePinAt(e);
     }
-    const label = Number(e?.activeLabel);
-    const row = rows.find((r) => r.timestamp === label);
-
-    if (e?.activeTooltipIndex == null || !row) {
-      setPinned(null);
-      return;
-    }
-
-    const { x, y } = resolveTooltipPosition(chartWrapperRef.current, e);
-    if (x == null || y == null) {
-      setPinned(null);
-      return;
-    }
-
-    const payload: PinnedPayloadEntry[] = keys
-      .filter((key) => !hiddenSet.has(key))
-      .map((key) => ({
-        dataKey: key,
-        name: key,
-        value: row[key] ?? undefined,
-        color: config[key]?.color,
-      }))
-      .filter((p) => p.value !== undefined);
-
-    if (payload.length === 0) {
-      setPinned(null);
-      return;
-    }
-
-    setPinned((prev) => (prev ? null : { x, y, label, payload }));
   };
 
   const handleDoubleClick = () => {
-    setPinned(null);
+    pin.clearPinned();
     onZoomOut?.();
   };
 
   const chartProps = {
     data: rows,
-    onMouseDown: handleMouseDown,
+    onMouseDown: zoom.handleMouseDown,
     onMouseMove: handleMouseMove,
-    onMouseUp: handleMouseUp,
+    onMouseUp: zoom.handleMouseUp,
     onMouseLeave: handleMouseLeave,
     onClick: handleClick,
     onDoubleClick: handleDoubleClick,
@@ -310,7 +192,7 @@ export default function MetricChart({
       ) : (
         <div
           className="relative [&_.recharts-wrapper:focus-visible]:outline-none [&_.recharts-wrapper:focus]:outline-none [&_.recharts-wrapper]:outline-none"
-          ref={chartWrapperRef}
+          ref={pin.wrapperRef}
         >
           <ChartContainer
             config={config}
@@ -341,8 +223,9 @@ export default function MetricChart({
                 }
               />
               <ChartTooltip
-                cursor={!pinned}
-                active={pinned ? false : undefined}
+                cursor={!pin.pinned}
+                active={pin.pinned ? false : undefined}
+                wrapperStyle={TOOLTIP_WRAPPER_STYLE}
                 content={tooltipContent}
               />
               <ChartLegend content={renderLegend} />
@@ -360,10 +243,10 @@ export default function MetricChart({
                   zIndex={focusedKey === key ? 500 : undefined}
                 />
               ))}
-              {refAreaLeft !== null && refAreaRight !== null ? (
+              {zoom.selection ? (
                 <ReferenceArea
-                  x1={refAreaLeft}
-                  x2={refAreaRight}
+                  x1={zoom.selection.from}
+                  x2={zoom.selection.to}
                   strokeOpacity={0.3}
                   fillOpacity={0.1}
                 />
@@ -371,12 +254,12 @@ export default function MetricChart({
             </LineChart>
           </ChartContainer>
 
-          {pinned ? (
+          {pin.pinned ? (
             <PinnedTooltip
-              pinned={pinned}
+              pinned={pin.pinned}
               config={config}
               valueFormatter={valueFormatter}
-              onClose={() => setPinned(null)}
+              onClose={pin.clearPinned}
             />
           ) : null}
         </div>
