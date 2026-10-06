@@ -56,6 +56,7 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 
 - `tools/betterleaks` - secret-scanning configuration, ignore list and per-rule tests, plus a wrapper that bakes them into the pinned `betterleaks` build from `nixops/overlays/go.nix`
 - `tools/codegen` - code generation utilities
+- `tools/configdocs` - Go generator for the `nhost.toml` configuration reference, checked and built through its own Nix project
 - `tools/ghactivity` - `gh` CLI extension (binary `gh-activity`, invoked as `gh activity ...`) that builds a markdown stand-up report of a user's GitHub PR/issue activity in an org over a time window
 - `tools/govulncheck-wrapper` - wrapper around `govulncheck` for the monorepo's vulnerability scanning workflow
 
@@ -83,6 +84,7 @@ Per-project `CLAUDE.md`s layer project-specific invariants on top of these — r
 - Go services are built with Nix and packaged as Docker images.
 - JS/TS packages are built with Turbo.
 - Changelogs generated with `git-cliff`.
+- Secret-bearing `pull_request_target` checks are gated by `.github/actions/check-permissions`, which approves one commit at a time (see `ci_safe_to_test.yaml`). Gated jobs must check out or fetch `github.event.pull_request.head.sha`, never a moving ref like `refs/pull/N/head`.
 
 ## Review Guidelines
 
