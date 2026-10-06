@@ -1,6 +1,6 @@
 ---
 title: Agentic workflows
-description: "Connect an AI assistant to Nhost over MCP. Three setups: your local project, a cloud project through the CLI, and a hosted connector for your organizations and deployments."
+description: "Connect an AI assistant to Nhost over MCP. Two servers: the CLI's, pointed at a local or cloud project, and a hosted one for your organizations and deployments."
 keywords: ["agentic workflows", "MCP", "AI assistant", "Claude", "Cursor", "Codex", "agents", "Nhost Cloud"]
 head:
   - tag: title
@@ -50,7 +50,7 @@ Add a `published_at` column to `posts`, allow the `user` role to read only publi
 
 ### Or connect without installing anything
 
-Nhost hosts a read-only connector at <CopyText text="https://mcp.nhost.io" /> that answers questions about your organizations, projects, and deployments.
+Nhost hosts a read-only MCP server at <CopyText text="https://mcp.nhost.io" /> that answers questions about your organizations, projects, and deployments.
 
 <Steps>
 
@@ -72,18 +72,16 @@ An assistant acts with whatever credentials you hand it.
 
 [Scoping access](/platform/cli/mcp/cloud-setup#scoping-access) covers the rest, including why `manage_metadata` is broader than it looks.
 
-## Which setup am I using?
+## Which server am I using?
 
-| | Local project | Cloud project | Hosted server |
-|---|---|---|---|
-| **Server** | CLI MCP | CLI MCP | Hosted MCP |
-| **Needs the CLI** | Yes | Yes, but no Docker | No |
-| **Transport** | Local process (stdio) | Local process (stdio) | Remote HTTP |
-| **Authentication** | Local admin secret | `nhost login` for the platform, PAT or admin secret per project | Your Nhost account, over OAuth2 |
-| **Reaches** | Your local stack | The cloud projects you configure, plus your orgs and project config | Your orgs, projects, deployments |
-| **Can write** | Yes: data, metadata, migrations | Only what you allow | No, read-only |
+| | CLI MCP server | Hosted MCP server |
+|---|---|---|
+| **What it is** | Part of the Nhost CLI | [Backend MCP](/products/ai/mcp), run by Nhost |
+| **Points at** | One project, local or on Nhost Cloud | Your orgs, projects, deployments |
+| **Runs** | On your machine | On Nhost's servers |
+| **Setup** | Install the CLI | Nothing to install |
 
-All three are about *you* building on Nhost. To give your **application's users** an AI interface to your app, that's a different server: see [Backend MCP](/products/ai/mcp).
+Both of these are for *you*. [Backend MCP](/products/ai/mcp) is the service behind the hosted one, and it is also what you deploy in front of your own project to give your **application's users** an AI interface. Same service, your backend.
 
 ## Next steps
 

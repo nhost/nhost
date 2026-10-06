@@ -54,7 +54,7 @@ Clients that only support local (stdio) servers can't connect to this one. Use t
 
 ## What it can do
 
-The connector exposes the three [Backend MCP](/products/ai/mcp) tools (`get-schema`, `graphql-query`, and `graphql-mutation`) over the Nhost Cloud platform's own GraphQL API. An assistant typically calls `get-schema` first to learn the data model, then queries it.
+It exposes the three [Backend MCP](/products/ai/mcp) tools (`get-schema`, `graphql-query`, and `graphql-mutation`) over the Nhost Cloud platform's own GraphQL API. An assistant typically calls `get-schema` first to learn the data model, then queries it.
 
 It's useful for questions you'd otherwise answer by clicking through the dashboard:
 
@@ -66,7 +66,7 @@ It's useful for questions you'd otherwise answer by clicking through the dashboa
 
 ## What it can't do
 
-This connector covers the platform, not your project's own contents. It cannot:
+This server covers the platform, not your project's own contents. It cannot:
 
 - read or write the data in your project's database
 - change project configuration, environment variables, or secrets
@@ -74,14 +74,14 @@ This connector covers the platform, not your project's own contents. It cannot:
 
 For any of those, use the [CLI MCP server](/platform/cli/mcp/cloud-setup), which authenticates as you and can write when you configure it to.
 
-The `user_mcp` role's permissions will widen over time as this connector develops, so what it can answer today is a floor, not a ceiling.
+The `user_mcp` role's permissions will widen over time as this server develops, so what it can answer today is a floor, not a ceiling.
 
 ## How it's built
 
-The connector is an instance of the open-source [Backend MCP](/products/ai/mcp) service, deployed on Nhost Run against the Nhost Cloud platform's own backend, with `MCP_ENFORCE_ROLE=user_mcp`. It's the same service you can deploy in front of your own project to give **your** users an AI interface. See [Deployment](/products/ai/mcp/deployment).
+The server is an instance of the open-source [Backend MCP](/products/ai/mcp) service, deployed on Nhost Run against the Nhost Cloud platform's own backend, with `MCP_ENFORCE_ROLE=user_mcp`. It's the same service you can deploy in front of your own project to give **your** users an AI interface. See [Deployment](/products/ai/mcp/deployment).
 
 ## Next steps
 
-- [Agentic workflows](/getting-started/agentic-workflows): the three ways to connect an assistant to Nhost.
+- [Agentic workflows](/getting-started/agentic-workflows): the two servers you can connect an assistant to.
 - [Cloud Setup](/platform/cli/mcp/cloud-setup): CLI MCP against a cloud project, with write access when you want it.
 - [Backend MCP](/products/ai/mcp): run this service in front of your own project.
