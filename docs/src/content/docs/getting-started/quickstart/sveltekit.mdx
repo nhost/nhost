@@ -9,18 +9,21 @@ sidebar:
   label: Svelte
 ---
 import { Tabs, TabItem } from '@astrojs/starlight/components';
-import { Prompt } from '@components';
+import { Divider, Prompt } from '@components';
 
 <Prompt
-  title="Using Claude Code, Codex, or another AI assistant?"
-  copy="Create an Nhost project with a movies table (title, director, release year, genre, rating), track it for GraphQL, and let signed-in users read it."
+  label="Build with an assistant"
+  title="Share this with Claude Code, Codex, or any AI assistant."
+  copy="Create an Nhost project with a movies table (title, director, release year, genre, rating), seed it with the sample rows from https://docs.nhost.io/getting-started/quickstart/sveltekit, track it for GraphQL, and let signed-in users read it."
 >
-Create an Nhost project with a movies table (title, director, release year, genre, rating), track it for GraphQL, and let signed-in users read it.
+Create an Nhost project with a movies table (title, director, release year, genre, rating), seed it with the sample rows from https://docs.nhost.io/getting-started/quickstart/sveltekit, track it for GraphQL, and let signed-in users read it.
 
 <Fragment slot="footer">
-[Connect your assistant](/getting-started/agentic-workflows) · [What to check afterwards](/getting-started/build-with-an-assistant)
+[Connect your assistant](/getting-started/agentic-workflows#connect-your-assistant) | [What to check afterwards](/getting-started/build-with-an-assistant#check-3-things-yourself)
 </Fragment>
 </Prompt>
+
+<Divider label="Or set it up yourself" />
 
 
 
