@@ -204,10 +204,7 @@ function DataBrowserSidebarContent({
                       <span className="font-medium">{schema.schema_name}</span>
                     </p>
                     {isSchemaLocked(schema.schema_name) && (
-                      <Lock
-                        className="text-[#556378] dark:text-[#a2b3be]"
-                        size={12}
-                      />
+                      <Lock className="text-muted-foreground" size={12} />
                     )}
                   </div>
                 </SelectItem>

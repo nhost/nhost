@@ -201,7 +201,7 @@ export default function OnboardingPage() {
             {invites.map((invite) => (
               <div
                 key={invite.id}
-                className="rounded-lg border border-border bg-card p-6 shadow-sm"
+                className="rounded-lg border border-border p-6 shadow-sm"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
@@ -305,7 +305,7 @@ export default function OnboardingPage() {
         </div>
       </div>
 
-      <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
+      <div className="rounded-lg border border-border p-6 shadow-sm">
         <div className="mb-6 text-center">
           <h2 className="mb-2 font-bold text-2xl">Welcome to Nhost!</h2>
           <p className="text-muted-foreground">

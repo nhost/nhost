@@ -35,7 +35,7 @@ function PointInTimeBackupInfo({
   const disableStartRestoreButton = loading || isEmptyValue(earliestBackupDate);
 
   return (
-    <div className="rounded-lg border border-[#EAEDF0] dark:border-[#2F363D]">
+    <div className="rounded-lg border border-border">
       <div className="flex w-full flex-col items-start gap-6 p-4">
         <h3 className="text-[0.9375] leading-[1.375]">
           {title || 'Restore your database from a backup'}
@@ -58,10 +58,10 @@ function PointInTimeBackupInfo({
         </div>
       </div>
       <div
-        className={cn(
-          'flex w-full items-center border-[#EAEDF0] border-t p-4 dark:border-[#2F363D]',
-          { 'justify-between': showLink, 'justify-end': !showLink },
-        )}
+        className={cn('flex w-full items-center border-border border-t p-4', {
+          'justify-between': showLink,
+          'justify-end': !showLink,
+        })}
       >
         {showLink && <LearnMoreAboutPiTRLink />}
         <RestoreBackupDialogButton

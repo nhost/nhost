@@ -54,7 +54,7 @@ export default function CostEstimate() {
     (autoscaleExtraVCPU / RESOURCE_VCPU_MULTIPLIER) * RESOURCE_VCPU_PRICE;
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border bg-card p-4">
+    <div className="flex flex-col gap-3 rounded-lg border p-4">
       <div className="flex items-center gap-1.5">
         <span className="font-medium text-sm">Estimated cost</span>
         <Tooltip>

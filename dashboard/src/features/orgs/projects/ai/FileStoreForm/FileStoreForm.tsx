@@ -195,10 +195,10 @@ export default function FileStoreForm({
                   }
                 >
                   <FormControl>
-                    <MultiSelectTrigger className="w-full rounded-sm hover:bg-accent dark:border-[#2f363d] dark:bg-[#171d26] dark:hover:bg-[#1b2534]">
+                    <MultiSelectTrigger className="w-full rounded-sm hover:bg-accent">
                       <MultiSelectValue
                         placeholder="Select Buckets"
-                        placeHolderClassName="text-[#9ca7b7]"
+                        placeHolderClassName="text-muted-foreground"
                       />
                     </MultiSelectTrigger>
                   </FormControl>
@@ -208,7 +208,7 @@ export default function FileStoreForm({
                         <MultiSelectItem
                           key={opt.value}
                           value={opt.value}
-                          className="data-[selected='true']:bg-accent data-[selected='true']:dark:bg-[#1b2534]"
+                          className="data-[selected='true']:bg-accent"
                         >
                           {opt.label}
                         </MultiSelectItem>

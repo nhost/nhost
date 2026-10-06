@@ -31,7 +31,7 @@ export default function UpgradeToProBanner({
   const handleTransferDialogOpen = () => setTransferProjectDialogOpen(true);
 
   return (
-    <div className="flex flex-col justify-between space-y-4 rounded-md bg-primary-light p-4 text-foreground lg:flex-row lg:items-center lg:space-y-0 dark:bg-[#1b2534]">
+    <div className="flex flex-col justify-between space-y-4 rounded-md bg-primary-highlight p-4 text-foreground lg:flex-row lg:items-center lg:space-y-0">
       <div className="flex flex-col justify-between space-y-4">
         <div className="space-y-2">
           <div className="flex xs:flex-row flex-col xs:space-x-2 space-y-2 xs:space-y-0">

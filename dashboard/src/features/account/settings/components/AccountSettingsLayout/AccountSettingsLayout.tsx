@@ -15,7 +15,7 @@ export default function AccountSettingsLayout({
     <StandaloneLayout {...props}>
       <AuthGuard>
         <div className="relative flex h-full flex-auto overflow-y-auto">
-          <div className="flex w-full flex-auto flex-col overflow-x-hidden bg-background-default">
+          <div className="flex w-full flex-auto flex-col overflow-x-hidden">
             <RetryableErrorBoundary>{children}</RetryableErrorBoundary>
           </div>
         </div>

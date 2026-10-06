@@ -154,7 +154,7 @@ export default function MetricsTab({ fn }: MetricsTabProps) {
                 <span>
                   Please try again in a few minutes. This is usually temporary.
                 </span>
-                <div className="rounded bg-[#f4f7f9] py-2 dark:bg-[#21262d]">
+                <div className="rounded bg-muted py-2">
                   <CodeBlock
                     copyToClipboardToastTitle="Error details"
                     className="!mt-0 text-sm"

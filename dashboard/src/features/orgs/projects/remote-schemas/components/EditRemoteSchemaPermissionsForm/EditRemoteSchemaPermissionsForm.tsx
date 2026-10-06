@@ -234,7 +234,7 @@ export default function EditRemoteSchemaPermissionsForm({
             </span>
           </div>
 
-          <Table containerClassName="bg-card">
+          <Table>
             <TableHeader className="block">
               <TableRow className="grid grid-cols-2 items-center">
                 <TableHead className="border-b-0 p-2">Role</TableHead>
