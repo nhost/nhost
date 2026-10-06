@@ -11,13 +11,17 @@ sidebar:
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 import { Prompt } from '@components';
 
-**Using Claude Code, Codex, Cursor, or another AI assistant?** [Connect it to Nhost](/getting-started/agentic-workflows) and paste this instead of working through the steps below:
-
-<Prompt copy="Create an Nhost project with a movies table (title, director, release year, genre, rating), track it for GraphQL, and let signed-in users read it.">
+<Prompt
+  label="Skip the setup"
+  title="Using Claude Code, Codex, Cursor, or another AI assistant?"
+  copy="Create an Nhost project with a movies table (title, director, release year, genre, rating), track it for GraphQL, and let signed-in users read it."
+>
 Create an Nhost project with a movies table (title, director, release year, genre, rating), track it for GraphQL, and let signed-in users read it.
-</Prompt>
 
-It runs the CLI and writes the migration. [Build with an assistant](/getting-started/build-with-an-assistant) covers what to check afterwards.
+<Fragment slot="footer">
+Paste that instead of working through the steps below. [Connect your assistant](/getting-started/agentic-workflows) first; [Build with an assistant](/getting-started/build-with-an-assistant) covers what to check afterwards.
+</Fragment>
+</Prompt>
 
 
 

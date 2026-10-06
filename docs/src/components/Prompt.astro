@@ -3,9 +3,13 @@ interface Props {
   label?: string;
   /** Text to put on the clipboard. Omit to render the prompt without a button. */
   copy?: string;
+  /** Lead-in shown above the prompt, inside the box, so the two read as one unit. */
+  title?: string;
 }
 
-const { label = 'Prompt', copy } = Astro.props;
+const { label = 'Prompt', copy, title } = Astro.props;
+// Slotted content is optional; only draw the footer rule when it is used.
+const hasFooter = Astro.slots.has('footer');
 ---
 
 <figure class="prompt">
@@ -47,7 +51,15 @@ const { label = 'Prompt', copy } = Astro.props;
       )
     }
   </figcaption>
+  {title && <p class="prompt-title">{title}</p>}
   <div class="prompt-body"><slot /></div>
+  {
+    hasFooter && (
+      <div class="prompt-footer">
+        <slot name="footer" />
+      </div>
+    )
+  }
 </figure>
 
 <style>
@@ -138,6 +150,29 @@ const { label = 'Prompt', copy } = Astro.props;
     border-color: #1a7f37;
   }
 
+  .prompt-title {
+    /* Same margin reset as the body: Starlight would otherwise open a 1rem gap. */
+    margin-top: 0.5rem !important;
+    margin-bottom: 0 !important;
+    color: var(--sl-color-white);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.45;
+  }
+
+  .prompt-footer {
+    margin-top: 0.875rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--sl-color-gray-5);
+    color: var(--sl-color-gray-3);
+    font-size: 0.8125rem;
+    line-height: 1.55;
+  }
+
+  .prompt-footer :global(p) {
+    margin: 0 !important;
+  }
+
   .prompt-body {
     /* Starlight gives any element following a sibling `--sl-content-gap-y` of
        top margin, which would open a 1rem gap under the label. Zero it and set
@@ -147,6 +182,17 @@ const { label = 'Prompt', copy } = Astro.props;
     font-size: 1.0625rem;
     font-weight: 500;
     line-height: 1.6;
+  }
+
+  /* With a title above it the prompt is the quoted utterance rather than the
+     headline, so step it back and mark it as speech. */
+  .prompt-title + .prompt-body {
+    margin-top: 0.625rem;
+    padding-inline-start: 0.75rem;
+    border-inline-start: 2px solid var(--sl-color-gray-5);
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--sl-color-gray-1);
   }
 
   /* Slotted MDX content renders as paragraphs; keep them flush inside the box. */
