@@ -16,7 +16,7 @@ export default function DeploymentsPage() {
 
   if (!project?.githubRepository) {
     return (
-      <Container className="mt-12 grid max-w-3xl grid-flow-row gap-4 text-center antialiased">
+      <Container className="grid max-w-3xl grid-flow-row gap-4 pt-8 pb-8 text-center antialiased">
         <div className="mx-auto flex w-centImage flex-col text-center">
           <Image
             src="/assets/githubRepo.svg"
@@ -47,8 +47,8 @@ export default function DeploymentsPage() {
   }
 
   return (
-    <Container className="mx-auto flex max-w-5xl flex-col space-y-2">
-      <div className="mt-4 flex flex-row place-content-between">
+    <Container className="mx-auto flex max-w-5xl flex-col space-y-2 pt-8 pb-8">
+      <div className="flex flex-row place-content-between">
         <h1 className="font-medium text-2xl">Deployments</h1>
       </div>
 

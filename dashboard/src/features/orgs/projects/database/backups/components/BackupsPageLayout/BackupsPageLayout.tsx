@@ -23,7 +23,7 @@ export default function BackupsPageLayout({
   if (isPlanFree) {
     return (
       <Container
-        className="grid grid-flow-row gap-6 bg-transparent py-6"
+        className="grid grid-flow-row gap-6 bg-transparent py-0"
         rootClassName="bg-transparent"
       >
         <UpgradeToProBanner
@@ -36,7 +36,7 @@ export default function BackupsPageLayout({
   }
 
   return (
-    <Container className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent py-6">
+    <Container className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent py-0">
       <RetryableErrorBoundary>{children}</RetryableErrorBoundary>
     </Container>
   );

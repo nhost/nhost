@@ -36,7 +36,7 @@ function MetricsPageContent() {
 
   if (loadingOrg || loadingProject) {
     return (
-      <Container>
+      <Container className="pt-8 pb-8">
         <Spinner size="medium" wrapperClassName="gap-2">
           Loading project...
         </Spinner>
@@ -47,7 +47,7 @@ function MetricsPageContent() {
   if (org?.plan?.isFree) {
     return (
       <Container
-        className="grid grid-flow-row gap-6 bg-transparent"
+        className="grid grid-flow-row gap-6 bg-transparent pt-8 pb-8"
         rootClassName="bg-transparent"
       >
         <UpgradeToProBanner
@@ -68,8 +68,8 @@ function MetricsPageContent() {
   }
 
   return (
-    <Container>
-      <div className="mx-auto w-full max-w-md px-6 py-4 text-left">
+    <Container className="pt-8 pb-8">
+      <div className="mx-auto w-full max-w-md px-6 text-left">
         <div className="grid grid-flow-row gap-1">
           <div className="mx-auto">
             <Image

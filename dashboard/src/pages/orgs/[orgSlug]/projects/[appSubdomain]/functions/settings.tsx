@@ -169,11 +169,11 @@ FunctionsSettingsPage.getLayout = function getLayout(page: ReactElement) {
     <AppLayout>
       <ProjectScope>
         <FunctionsArea>
-          <div className="mx-auto flex h-full w-full max-w-6xl flex-col md:flex-row">
+          <div className="mx-auto flex h-full w-full max-w-6xl flex-col pt-8 md:flex-row">
             <FunctionsSettingsSidebar />
             <div className="min-w-0 flex-1">
               <SettingsGuard>
-                <SettingsArea>{page}</SettingsArea>
+                <SettingsArea className="pt-0">{page}</SettingsArea>
               </SettingsGuard>
             </div>
           </div>

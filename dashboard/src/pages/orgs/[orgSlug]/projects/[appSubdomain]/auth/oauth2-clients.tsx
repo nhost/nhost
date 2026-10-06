@@ -148,7 +148,7 @@ function OAuth2ClientsPageContent() {
     !isVersionGte(auth.configuredVersion, MIN_AUTH_VERSION_OAUTH2)
   ) {
     return (
-      <Container className="mx-auto max-w-9xl space-y-5">
+      <Container className="mx-auto max-w-9xl space-y-5 pt-8 pb-8">
         <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
           <div className="flex flex-col space-y-1">
             <h3 className="text-center font-medium text-foreground text-lg">
@@ -195,7 +195,7 @@ function OAuth2ClientsPageContent() {
 
   if (!oauth2Enabled) {
     return (
-      <Container className="mx-auto max-w-9xl space-y-5">
+      <Container className="mx-auto max-w-9xl space-y-5 pt-8 pb-8">
         <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
           <div className="flex flex-col space-y-1">
             <h3 className="text-center font-medium text-foreground text-lg">
@@ -222,7 +222,7 @@ function OAuth2ClientsPageContent() {
   if (clientsLoading) {
     return (
       <Container
-        className="flex h-full max-w-9xl flex-col"
+        className="flex h-full max-w-9xl flex-col pt-8 pb-8"
         rootClassName="h-full"
       >
         <div className="flex shrink-0 grow-0 flex-row place-content-between">
@@ -255,7 +255,7 @@ function OAuth2ClientsPageContent() {
   const clientsCount = totalNrOfElements;
 
   return (
-    <Container className="mx-auto max-w-9xl space-y-5 overflow-x-hidden">
+    <Container className="mx-auto max-w-9xl space-y-5 overflow-x-hidden pt-8 pb-8">
       <div className="flex flex-row place-content-between">
         <Input
           className="rounded-sm pl-9"
