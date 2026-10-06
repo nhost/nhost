@@ -104,6 +104,8 @@ overrides:
   "browserslist@<=4.28.6": "4.28.7"
   "fflate@>=0.7.0 <0.7.5": ">=0.7.5 <0.8.0"
   "brace-expansion@>=4.0.0 <5.0.12": ">=5.0.12"
+  "seroval@<=1.6.2": "1.6.3"
+  "postcss-selector-parser@<7.1.6": "7.1.6"
 
 minimumReleaseAgeExclude:
   - path-to-regexp@6.3.0
