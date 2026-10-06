@@ -9,14 +9,15 @@ sidebar:
   label: Svelte
 ---
 import { Tabs, TabItem } from '@astrojs/starlight/components';
+import { Prompt } from '@components';
 
-:::tip[Let an assistant do the setup]
-Connect an AI assistant over MCP and ask for the project and schema instead of clicking through them:
+**Using Claude Code, Codex, Cursor, or another AI assistant?** [Connect it to Nhost](/getting-started/agentic-workflows) and paste this instead of working through the steps below:
 
-> Create an Nhost project with a movies table, and let signed-in users read it.
+<Prompt copy="Create an Nhost project with a movies table (title, director, release year, genre, rating), track it for GraphQL, and let signed-in users read it.">
+Create an Nhost project with a movies table (title, director, release year, genre, rating), track it for GraphQL, and let signed-in users read it.
+</Prompt>
 
-It runs the CLI and writes the migration. See [Build with an assistant](/getting-started/build-with-an-assistant).
-:::
+It runs the CLI and writes the migration. [Build with an assistant](/getting-started/build-with-an-assistant) covers what to check afterwards.
 
 
 

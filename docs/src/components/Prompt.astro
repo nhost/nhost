@@ -1,9 +1,11 @@
 ---
 interface Props {
   label?: string;
+  /** Text to put on the clipboard. Omit to render the prompt without a button. */
+  copy?: string;
 }
 
-const { label = 'Prompt' } = Astro.props;
+const { label = 'Prompt', copy } = Astro.props;
 ---
 
 <figure class="prompt">
@@ -23,6 +25,27 @@ const { label = 'Prompt' } = Astro.props;
       ></path>
     </svg>
     {label}
+    {
+      copy && (
+        <button class="prompt-copy" type="button" data-prompt-copy={copy} aria-label="Copy prompt">
+          <svg
+            width="13"
+            height="13"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+          </svg>
+          <span class="prompt-copy-label">Copy</span>
+        </button>
+      )
+    }
   </figcaption>
   <div class="prompt-body"><slot /></div>
 </figure>
@@ -47,7 +70,9 @@ const { label = 'Prompt' } = Astro.props;
   .prompt-label {
     display: flex;
     align-items: center;
-    gap: 0.375rem;
+    /* No flex gap: the icon owns its own trailing margin so the copy button can
+       be pushed to the far edge without inheriting the label's spacing. */
+    gap: 0;
     /* The perceived gap is mostly the label's leading, so flatten line-height
        rather than leaning on margin alone. */
     margin-bottom: 0;
@@ -59,9 +84,58 @@ const { label = 'Prompt' } = Astro.props;
     color: var(--sl-color-text-accent);
   }
 
-  .prompt-label svg {
+  .prompt-label > svg {
     width: 0.875rem;
     height: 0.875rem;
+    margin-inline-end: 0.375rem;
+  }
+
+  .prompt-copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3125rem;
+    margin-inline-start: auto;
+    padding: 0.1875rem 0.4375rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.3125rem;
+    background: transparent;
+    color: var(--sl-color-gray-2);
+    font-family: var(--sl-font);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0.75;
+    transition: opacity 0.15s, color 0.15s, border-color 0.15s;
+  }
+
+  .prompt-copy:hover,
+  .prompt-copy:focus-visible {
+    opacity: 1;
+    color: var(--sl-color-white);
+    border-color: var(--sl-color-gray-4);
+  }
+
+  .prompt-copy:focus-visible {
+    outline: 2px solid var(--sl-color-gray-3);
+    outline-offset: 1px;
+  }
+
+  .prompt-copy svg {
+    width: 0.8125rem;
+    height: 0.8125rem;
+  }
+
+  .prompt-copy.copied {
+    opacity: 1;
+    color: #3fb950;
+    border-color: #3fb950;
+  }
+
+  :global([data-theme='light']) .prompt-copy.copied {
+    color: #1a7f37;
+    border-color: #1a7f37;
   }
 
   .prompt-body {
@@ -84,3 +158,42 @@ const { label = 'Prompt' } = Astro.props;
     margin-top: 0.5rem !important;
   }
 </style>
+
+<script>
+  let controller: AbortController;
+  const timers = new WeakMap<HTMLElement, ReturnType<typeof setTimeout>>();
+
+  function initPromptCopy() {
+    controller?.abort();
+    controller = new AbortController();
+    const { signal } = controller;
+
+    document.querySelectorAll<HTMLButtonElement>('.prompt-copy').forEach((btn) => {
+      const label = btn.querySelector<HTMLElement>('.prompt-copy-label');
+      btn.addEventListener(
+        'click',
+        () => {
+          navigator.clipboard
+            .writeText(btn.dataset.promptCopy || '')
+            .then(() => {
+              clearTimeout(timers.get(btn));
+              btn.classList.add('copied');
+              if (label) label.textContent = 'Copied!';
+              timers.set(
+                btn,
+                setTimeout(() => {
+                  btn.classList.remove('copied');
+                  if (label) label.textContent = 'Copy';
+                }, 2000),
+              );
+            })
+            .catch(() => {});
+        },
+        { signal },
+      );
+    });
+  }
+
+  initPromptCopy();
+  document.addEventListener('astro:after-swap', initPromptCopy);
+</script>
