@@ -11,6 +11,7 @@ sidebar:
   label: Cloud Setup
 ---
 import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+import { Prompt } from '@components';
 
 This guide points the Nhost CLI's MCP server at **Nhost Cloud**. It covers two kinds of access, and you can enable either or both:
 
@@ -52,9 +53,9 @@ curl -fsSL https://docs.nhost.io/install-mcp | gemini
 <TabItem label="Cursor">
 Open Cursor's Agent chat and paste:
 
-```text
+<Prompt copy="Set up the Nhost MCP server against my Nhost Cloud project: https://docs.nhost.io/install-mcp">
 Set up the Nhost MCP server against my Nhost Cloud project: https://docs.nhost.io/install-mcp
-```
+</Prompt>
 
 </TabItem>
 <TabItem label="Other">
