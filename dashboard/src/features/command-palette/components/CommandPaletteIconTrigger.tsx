@@ -14,10 +14,9 @@ export default function CommandPaletteIconTrigger({
       aria-keyshortcuts="Meta+K Control+K"
       aria-label="Open command palette"
       onClick={onOpen}
-      size="icon"
-      variant="ghost"
+      variant="subtle"
     >
-      <Search className="h-4 w-4" />
+      <Search />
     </Button>
   );
 }

@@ -25,17 +25,17 @@ export default function InboxPopoverTrigger({
   return (
     <Button
       ref={inboxAnchorRef}
-      variant="ghost"
-      className={cn('relative flex h-8 w-8 items-center p-0', className)}
+      variant="subtle"
+      className={cn('relative', className)}
       aria-label="Inbox"
       aria-haspopup="dialog"
       aria-expanded={open}
       aria-controls={open ? INBOX_POPOVER_ID : undefined}
       onClick={() => setInboxOpen(!open)}
     >
-      <Bell className="h-4.5 w-4.5" />
+      <Bell />
       {hasUnread && (
-        <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary ring-2 ring-paper" />
+        <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary ring-2 ring-background" />
       )}
     </Button>
   );
