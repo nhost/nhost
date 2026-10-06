@@ -1,5 +1,5 @@
-import Link from 'next/link';
-import { type NextRouter, useRouter } from 'next/router';
+import type Link from 'next/link';
+import { useRouter } from 'next/router';
 import {
   Children,
   type ComponentPropsWithoutRef,
@@ -10,6 +10,7 @@ import {
   useContext,
 } from 'react';
 import { useMediaQuery } from '@/components/common/useMediaQuery';
+import { SidebarItem, SidebarSectionTitle } from '@/components/layout/Sidebar';
 import {
   Select,
   SelectContent,
@@ -19,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
-import { isQueryActive, isRouteActive } from '@/lib/route-navigation';
+import { isLinkActive } from '@/lib/route-navigation';
 import { cn } from '@/lib/utils';
 
 const AreaSidebarPresentationContext = createContext<'desktop' | 'mobile'>(
@@ -78,22 +79,6 @@ function getLinkValue(href: AreaSidebarLinkProps['href']) {
   return typeof href === 'string' ? href : JSON.stringify(href);
 }
 
-function isSidebarLinkActive(
-  router: NextRouter,
-  { href, exact }: Pick<AreaSidebarLinkProps, 'href' | 'exact'>,
-) {
-  if (typeof href === 'string') {
-    return isRouteActive(router.asPath, href, exact);
-  }
-
-  const path = href.pathname ?? router.pathname;
-  return (
-    (isRouteActive(router.asPath, path, exact) ||
-      isRouteActive(router.pathname, path, exact)) &&
-    isQueryActive(router.query, href.search || href.query)
-  );
-}
-
 function MobileAreaSidebar({
   ariaLabel,
   children,
@@ -101,7 +86,7 @@ function MobileAreaSidebar({
   const router = useRouter();
   const links = getSidebarLinks(children);
   const activeLink = links.find((link) =>
-    isSidebarLinkActive(router, link.props),
+    isLinkActive(router, link.props.href, link.props.exact),
   );
 
   return (
@@ -151,7 +136,7 @@ export function AreaSidebarNav({
         aria-label={ariaLabel}
         className={cn(
           isDesktop
-            ? 'flex h-full min-h-0 flex-col gap-6 px-4 py-6'
+            ? 'flex h-full min-h-0 flex-col gap-[1.2rem] p-2'
             : 'min-w-0 px-5 pt-2',
           className,
         )}
@@ -208,16 +193,11 @@ export function AreaSidebarGroup({
   return (
     <section className={className} {...props}>
       {label && (
-        <h2
-          className={cn(
-            'px-3 pb-2 font-semibold text-2xs text-muted-foreground uppercase tracking-[0.16em]',
-            labelClassName,
-          )}
-        >
+        <SidebarSectionTitle className={labelClassName}>
           {label}
-        </h2>
+        </SidebarSectionTitle>
       )}
-      <ul className={cn('flex flex-col gap-1', listClassName)}>{children}</ul>
+      <ul className={cn('flex flex-col', listClassName)}>{children}</ul>
     </section>
   );
 }
@@ -239,7 +219,6 @@ export function AreaSidebarLink({
   ...props
 }: AreaSidebarLinkProps) {
   const isMobile = useContext(AreaSidebarPresentationContext) === 'mobile';
-  const router = useRouter();
 
   if (isMobile) {
     return (
@@ -253,35 +232,17 @@ export function AreaSidebarLink({
     );
   }
 
-  const active = isSidebarLinkActive(router, { href, exact });
-  const linkClassName = cn(
-    'flex h-10 w-full items-center rounded-lg pr-3 pl-6 font-medium text-muted-foreground text-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-    active && 'bg-muted text-primary hover:bg-muted hover:text-primary',
-    disabled &&
-      'cursor-not-allowed opacity-50 hover:bg-transparent hover:text-muted-foreground',
-    itemClassName,
-  );
-
   return (
     <li className={className}>
-      {disabled ? (
-        <span
-          aria-current={active ? 'page' : undefined}
-          aria-disabled="true"
-          className={linkClassName}
-        >
-          {children}
-        </span>
-      ) : (
-        <Link
-          aria-current={active ? 'page' : undefined}
-          className={linkClassName}
-          href={href}
-          {...props}
-        >
-          {children}
-        </Link>
-      )}
+      <SidebarItem
+        href={href}
+        exact={exact}
+        disabled={disabled}
+        className={itemClassName}
+        {...props}
+      >
+        {children}
+      </SidebarItem>
     </li>
   );
 }

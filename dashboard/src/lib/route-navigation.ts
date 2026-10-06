@@ -1,4 +1,6 @@
 import type { UrlObject } from 'node:url';
+import type { LinkProps } from 'next/link';
+import type { NextRouter } from 'next/router';
 
 function normalizePath(path: string) {
   return path.split(/[?#]/)[0].replace(/\/+$/, '') || '/';
@@ -50,5 +52,28 @@ export function isRouteActive(asPath: string, href: string, exact = false) {
     (currentPath === targetPath ||
       (!exact && currentPath.startsWith(`${targetPath}/`))) &&
     (!exact || isQueryActive(getQueryString(asPath), getQueryString(href)))
+  );
+}
+
+type RouterLocation = Pick<NextRouter, 'asPath' | 'pathname' | 'query'>;
+
+/**
+ * Whether a link points at the current route. Accepts both string and object
+ * hrefs; for object hrefs the query has to match too.
+ */
+export function isLinkActive(
+  router: RouterLocation,
+  href: LinkProps['href'],
+  exact = false,
+) {
+  if (typeof href === 'string') {
+    return isRouteActive(router.asPath, href, exact);
+  }
+
+  const path = href.pathname ?? router.pathname;
+  return (
+    (isRouteActive(router.asPath, path, exact) ||
+      isRouteActive(router.pathname, path, exact)) &&
+    isQueryActive(router.query, href.search || href.query)
   );
 }

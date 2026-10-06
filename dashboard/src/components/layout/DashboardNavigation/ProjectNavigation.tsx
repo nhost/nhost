@@ -28,20 +28,6 @@ function useProjectBaseHref() {
   return `/orgs/${orgSlug}/projects/${appSubdomain}`;
 }
 
-export function ProjectNavigationFooter() {
-  const baseHref = useProjectBaseHref();
-  const settingsDisabled = useSettingsDisabled();
-
-  return (
-    <NavigationList.Item
-      label="Settings"
-      href={`${baseHref}/settings`}
-      icon={<CogIcon className={iconClassName} />}
-      disabled={settingsDisabled}
-    />
-  );
-}
-
 export default function ProjectNavigation() {
   const baseHref = useProjectBaseHref();
   const isPlatform = useIsPlatform();
@@ -137,6 +123,17 @@ export default function ProjectNavigation() {
           icon={<GaugeIcon className={iconClassName} />}
           activePath={`${baseHref}/metrics`}
           disabled={!isPlatform && settingsDisabled}
+        />
+      </NavigationList.Section>
+
+      <div className="-mx-2 my-2 border-t" />
+
+      <NavigationList.Section className="mt-0">
+        <NavigationList.Item
+          label="Settings"
+          href={`${baseHref}/settings`}
+          icon={<CogIcon className={iconClassName} />}
+          disabled={settingsDisabled}
         />
       </NavigationList.Section>
     </>
