@@ -294,7 +294,7 @@ describe('DatabaseExtensions', () => {
 
     const tooltip = await openTooltip(
       user,
-      within(citext).getByRole('button', { name: 'Built-in' }),
+      within(citext).getByText('Built-in'),
     );
 
     expect(tooltip).toHaveTextContent(/^Cannot be uninstalled\./);

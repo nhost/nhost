@@ -31,13 +31,10 @@ function BuiltInIndicator({ reason }: { reason: string }) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <button
-          type="button"
-          className="inline-flex h-9 cursor-help items-center gap-1.5 rounded-md border border-dashed px-3 font-medium text-muted-foreground text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
+        <span className="inline-flex h-9 cursor-help items-center gap-1.5 font-medium text-muted-foreground text-sm">
           <Lock className="h-4 w-4" aria-hidden />
           Built-in
-        </button>
+        </span>
       </TooltipTrigger>
       <TooltipContent side="left" sideOffset={6} className="max-w-xs">
         Cannot be uninstalled. {reason}

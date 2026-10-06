@@ -23,7 +23,6 @@ function ExtensionCard({
 }: Pick<ExtensionsGridProps, 'onAction'> & { extension: PostgresExtension }) {
   const displayName = getExtensionDisplayName(extension.name);
   const isBuiltIn = isExtensionBuiltIn(extension);
-  const dimmed = cn(isBuiltIn && 'opacity-50');
   const versionLabel = getExtensionVersionLabel(extension);
 
   return (
@@ -36,7 +35,7 @@ function ExtensionCard({
       )}
     >
       <div className="flex items-start justify-between gap-2">
-        <div className={cn('flex min-w-0 items-center gap-1.5', dimmed)}>
+        <div className="flex min-w-0 items-center gap-1.5">
           {isBuiltIn ? (
             <Lock className="h-5 w-5 shrink-0" aria-hidden />
           ) : (
@@ -59,23 +58,13 @@ function ExtensionCard({
           {PRELOAD_REQUIRED_EXTENSIONS.has(extension.name) && <PreloadHint />}
         </div>
         {versionLabel && (
-          <span
-            className={cn(
-              'mt-[3px] shrink-0 text-muted-foreground text-xs tabular-nums',
-              dimmed,
-            )}
-          >
+          <span className="mt-[3px] shrink-0 text-muted-foreground text-xs tabular-nums">
             {versionLabel}
           </span>
         )}
       </div>
 
-      <p
-        className={cn(
-          'line-clamp-2 flex-1 text-muted-foreground text-sm',
-          dimmed,
-        )}
-      >
+      <p className="line-clamp-2 flex-1 text-muted-foreground text-sm">
         {extension.comment}
       </p>
 

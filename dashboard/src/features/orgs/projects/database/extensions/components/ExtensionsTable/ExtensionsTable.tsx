@@ -3,8 +3,6 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
-  TableHeader,
   TableRow,
 } from '@/components/ui/v3/table';
 import type { ExtensionAction } from '@/features/orgs/projects/database/extensions/components/ExtensionActionControl';
@@ -31,7 +29,6 @@ function ExtensionRow({
 }: Pick<ExtensionsTableProps, 'onAction'> & { extension: PostgresExtension }) {
   const displayName = getExtensionDisplayName(extension.name);
   const isBuiltIn = isExtensionBuiltIn(extension);
-  const dimmedCell = cn(isBuiltIn && 'opacity-50');
 
   return (
     <TableRow
@@ -39,7 +36,7 @@ function ExtensionRow({
       data-built-in={isBuiltIn || undefined}
       className={cn(isBuiltIn && 'bg-muted hover:bg-muted')}
     >
-      <TableCell className={cn('break-words', dimmedCell)}>
+      <TableCell className="w-56 break-words">
         <div className="flex items-center gap-1.5">
           {isBuiltIn && <Lock className="h-3.5 w-3.5 shrink-0" aria-hidden />}
           <a
@@ -58,15 +55,13 @@ function ExtensionRow({
           {PRELOAD_REQUIRED_EXTENSIONS.has(extension.name) && <PreloadHint />}
         </div>
       </TableCell>
-      <TableCell
-        className={cn('text-muted-foreground tabular-nums', dimmedCell)}
-      >
+      <TableCell className="w-44 pr-8 text-right text-muted-foreground tabular-nums">
         {getExtensionVersionLabel(extension) ?? '—'}
       </TableCell>
-      <TableCell className={cn('text-muted-foreground', dimmedCell)}>
+      <TableCell className="text-muted-foreground">
         {extension.comment}
       </TableCell>
-      <TableCell className="text-right">
+      <TableCell className="w-32 text-right">
         <ExtensionActionControl extension={extension} onAction={onAction} />
       </TableCell>
     </TableRow>
@@ -78,26 +73,16 @@ export default function ExtensionsTable({
   onAction,
 }: ExtensionsTableProps) {
   return (
-    <div className="overflow-hidden rounded-md border">
-      <Table className="min-w-[48rem] table-fixed">
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-56">Name</TableHead>
-            <TableHead className="w-44">Version</TableHead>
-            <TableHead>Description</TableHead>
-            <TableHead className="w-32 text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {extensions.map((extension) => (
-            <ExtensionRow
-              key={extension.name}
-              extension={extension}
-              onAction={onAction}
-            />
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+    <Table className="min-w-[48rem] table-fixed">
+      <TableBody>
+        {extensions.map((extension) => (
+          <ExtensionRow
+            key={extension.name}
+            extension={extension}
+            onAction={onAction}
+          />
+        ))}
+      </TableBody>
+    </Table>
   );
 }
