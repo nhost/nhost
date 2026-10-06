@@ -284,7 +284,6 @@ html.dark .graphiql-themed .graphiql-container {
     --background-default: 0, 0%, 98%;
     --primary-text: 222.2 84% 4.9%;
     --data-cell-bg: 216, 12.2%, 92%;
-    --data-cell-bg-odd: 220, 13%, 95.5%;
     --data-cell-bg-hover: 213.3, 14.8%, 88%;
     --data-cell-bg-disabled: 210, 8%, 85%;
     --data-table-border-color: 210, 16.7%, 92.9%;
@@ -359,7 +358,6 @@ html.dark .graphiql-themed .graphiql-container {
       0 16px 32px -8px rgb(0 0 0 / 0.6), 0 4px 12px -2px rgb(0 0 0 / 0.45);
     --background-default: 214.29, 8.24%, 16.67%;
     --data-cell-bg: 214.7, 24.1%, 15.5%;
-    --data-cell-bg-odd: 216, 21.7%, 18%;
     --data-cell-bg-hover: 215 20% 22%;
     --data-cell-bg-disabled: 215, 12%, 19%;
     --data-table-border-color: 210, 13%, 21.2%;
