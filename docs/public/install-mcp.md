@@ -21,7 +21,7 @@ DONE WHEN: My AI assistant lists the Nhost MCP tools (`graphql-query`, `get-sche
 
 2. Check whether `.nhost/mcp-nhost.toml` already exists before writing anything. <https://docs.nhost.io/install-mcp-cloud> writes that same path for a cloud project, so if I have already run that one here, writing this file replaces its configuration. If the file is there, show me what it holds and ask before overwriting it, and offer to keep both by adding the local project as a second `[[projects]]` entry alongside the cloud one.
 
-   Then create the config file at `.nhost/mcp-nhost.toml` in the project root with the following contents. This grants the assistant full access to the local project only — never point this at a production project.
+   Then create the config file at `.nhost/mcp-nhost.toml` in the project root with the following contents. This grants the assistant full access to the local project only. Never point this at a production project.
 
    ```toml
    [[projects]]

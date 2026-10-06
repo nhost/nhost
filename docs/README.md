@@ -64,8 +64,8 @@ Unexpected character `/` (U+002F) before local name, expected a character that c
 name, such as a letter, `$`, or `_` (note: to create a link in MDX, use `[text](url)`)
 ```
 
-Write `[https://example.com](https://example.com)` instead: it renders the same, compiles, and —
-unlike a bare URL — is not rewritten into an autolink by markdown formatters that enforce
+Write `[https://example.com](https://example.com)` instead: it renders the same, compiles, and,
+unlike a bare URL, is not rewritten into an autolink by markdown formatters that enforce
 "no bare URLs" (markdownlint MD034). Plain `.md` pages are unaffected.
 
 ### Adding to Sidebar

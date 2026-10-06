@@ -10,7 +10,7 @@ OBJECTIVE: Configure the Nhost CLI MCP server against my Nhost Cloud project and
 
 DONE WHEN: My AI assistant lists the Nhost MCP tools and `get-schema` returns the schema of the cloud project I named.
 
-IMPORTANT: This points at real data. Do not widen access beyond what I ask for. Never write a real token or admin secret into `mcp-nhost.toml`, or into any other file inside the repository — in the config file use `$VAR` interpolation, which the server expands at startup. Note the syntax is `$VAR` and not `${VAR}`; braces are not supported and would be sent literally as the credential. The real value belongs in my client's own configuration (step 4) and nowhere else. Never commit credentials.
+IMPORTANT: This points at real data. Do not widen access beyond what I ask for. Never write a real token or admin secret into `mcp-nhost.toml`, or into any other file inside the repository. In the config file use `$VAR` interpolation, which the server expands at startup. Note the syntax is `$VAR` and not `${VAR}`; braces are not supported and would be sent literally as the credential. The real value belongs in my client's own configuration (step 4) and nowhere else. Never commit credentials.
 
 ## TODO
 

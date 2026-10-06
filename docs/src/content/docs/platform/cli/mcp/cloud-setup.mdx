@@ -14,10 +14,10 @@ import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 
 This guide points the Nhost CLI's MCP server at **Nhost Cloud**. It covers two kinds of access, and you can enable either or both:
 
-- **Platform access** — your organizations, projects, and project configuration, through the `cloud-graphql-query` tool. This is the dashboard's data, reachable from an assistant.
-- **Project access** — the data and schema of a specific cloud project, through `graphql-query`, `get-schema`, and optionally `manage-graphql`.
+- **Platform access**: your organizations, projects, and project configuration, through the `cloud-graphql-query` tool. This is the dashboard's data, reachable from an assistant.
+- **Project access**: the data and schema of a specific cloud project, through `graphql-query`, `get-schema`, and optionally `manage-graphql`.
 
-The server itself still runs locally as a short-lived process, so this works whether or not you run a local stack. If you [build from the dashboard](/getting-started/cloud-development/dashboard), you need the CLI binary for this but nothing else — no Docker, no `nhost up`.
+The server itself still runs locally as a short-lived process, so this works whether or not you run a local stack. If you [build from the dashboard](/getting-started/cloud-development/dashboard), you need the CLI binary for this but nothing else: no Docker, no `nhost up`.
 
 :::caution
 Unlike the [local setup](/platform/cli/mcp/development-setup), this points an assistant at real data. Read [Scoping access](#scoping-access) before you configure a production project.
@@ -87,7 +87,7 @@ export NHOST_PAT=3f1b9c7e-5a42-4d8e-9f10-2c6b8e4a7d35
 The assistant then acts as you, with your permissions across every organization and project you can reach. Queries are always allowed when the section is present; mutations, which change project configuration, require `enable_mutations = true`.
 
 :::caution[Platform access includes secrets]
-The `[cloud]` section grants read access to the whole platform API, which includes each project's environment variables and secrets in plaintext — among them `HASURA_GRAPHQL_ADMIN_SECRET`, the JWT secrets and the webhook secret, for every project your account can reach.
+The `[cloud]` section grants read access to the whole platform API, which includes each project's environment variables and secrets in plaintext, among them `HASURA_GRAPHQL_ADMIN_SECRET`, the JWT secrets and the webhook secret, for every project your account can reach.
 
 `enable_mutations = false` does not change this. It blocks writes only; the allowed query list for the platform is always `["*"]`, so an assistant with `[cloud]` can read a production project's admin secret and use it anywhere. Add the section only when you want that, and leave it out when you only need access to a project's own data.
 :::
@@ -130,7 +130,7 @@ Add the platform section on top of that only if you want the assistant managing 
 enable_mutations = false
 ```
 
-`$NHOST_PROJECT_PAT` is interpolated from the environment when the server starts, which keeps the token out of the file. The syntax is `$VAR`, without braces — `${VAR}` is passed through literally and would be sent as the credential. See [Configuration](/platform/cli/mcp/configuration) for every option.
+`$NHOST_PROJECT_PAT` is interpolated from the environment when the server starts, which keeps the token out of the file. The syntax is `$VAR`, without braces. `${VAR}` is passed through literally and would be sent as the credential. See [Configuration](/platform/cli/mcp/configuration) for every option.
 
 The environment it reads is the server process's own, not yours, and an unset variable interpolates to an empty string rather than failing. [Passing the credentials through](#passing-the-credentials-through) is what puts the value there.
 
@@ -140,7 +140,7 @@ A staging project you're happy for an assistant to change looks like this instea
 [[projects]]
 subdomain = "my-app-staging"
 region = "eu-central-1"
-description = "Staging project — safe to modify"
+description = "Staging project, safe to modify"
 admin_secret = "$NHOST_STAGING_ADMIN_SECRET"
 manage_metadata = true
 allow_queries = ["*"]
@@ -162,7 +162,7 @@ It makes the widening choices that matter here on your behalf, so what it produc
 - Answering yes to Nhost Cloud access writes `enable_mutations = true`. It never asks about mutations separately, so the assistant can change project configuration anywhere your account reaches.
 - Every project it configures gets `allow_queries = ["*"]` and `allow_mutations = ["*"]`. There's no prompt to narrow either one.
 
-It also prompts for the PAT or admin secret itself and writes what you type into `.nhost/mcp-nhost.toml` verbatim, which is the one thing this page tells you not to do. The file is created with owner-only permissions, but nothing adds `.nhost/` to your `.gitignore` — that entry ships with `nhost init`, which the dashboard-first setup described above never runs.
+It also prompts for the PAT or admin secret itself and writes what you type into `.nhost/mcp-nhost.toml` verbatim, which is the one thing this page tells you not to do. The file is created with owner-only permissions, but nothing adds `.nhost/` to your `.gitignore`. That entry ships with `nhost init`, which the dashboard-first setup described above never runs.
 
 The wizard prints the configuration and asks `Proceed? (y/N)` before saving. Against anything holding real data, read that preview and answer `n`, then write the file yourself. If you do let it save, treat the result as containing a live credential: replace the literal value with `$VAR` interpolation, confirm `.nhost/` is ignored before you commit anything, and rotate the token if it already reached a commit.
 
@@ -172,7 +172,7 @@ Point your client at `nhost mcp start`. The registration also has to carry the `
 
 ### Passing the credentials through
 
-The server inherits the environment of the process your client spawns it from, so `export NHOST_PROJECT_PAT=...` only reaches it when you launch the client from that same shell — never for Cursor or another GUI client. Attach the variables to the server definition itself:
+The server inherits the environment of the process your client spawns it from, so `export NHOST_PROJECT_PAT=...` only reaches it when you launch the client from that same shell, never for Cursor or another GUI client. Attach the variables to the server definition itself:
 
 <Tabs syncKey="assistant">
 <TabItem label="Claude Code">
@@ -212,7 +212,7 @@ Add an `env` object alongside `command` and `args`:
 
 Repeat the flag or the key for every variable your configuration file names, `NHOST_PAT` and `NHOST_ADMIN_SECRET` included. `NHOST_MCP_CONFIG_FILE` goes here too, for clients that accept environment variables but not arguments.
 
-The CLI-based clients refuse to overwrite a server that already exists rather than updating it, so if you registered `nhost` earlier, remove it first — `claude mcp remove nhost`, `codex mcp remove nhost`, or `gemini mcp remove -s user nhost` — and run the command above again. A registration left over from an earlier attempt is the usual reason the tools list correctly but every call fails on authentication.
+The CLI-based clients refuse to overwrite a server that already exists rather than updating it, so if you registered `nhost` earlier, remove it first with `claude mcp remove nhost`, `codex mcp remove nhost`, or `gemini mcp remove -s user nhost`, then run the command above again. A registration left over from an earlier attempt is the usual reason the tools list correctly but every call fails on authentication.
 
 :::caution
 This moves the credential out of `mcp-nhost.toml` and into your client's configuration, where it sits in plain text. Prefer your client's user-level configuration over a project-local file such as `.cursor/mcp.json`, and keep either one out of version control. This is why the Gemini commands carry `-s user`: `gemini mcp add` defaults to `-s project`, which writes `.gemini/settings.json` into your working directory rather than `~/.gemini/settings.json`.
@@ -291,14 +291,14 @@ Rules worth holding to:
 
 1. **Start read-only.** `allow_mutations = []` on every project, then open up named mutations as you find you need them. This expresses intent and catches mistakes; it is not what stops a request, so do not rely on it alone against production.
 2. **Prefer a PAT over an admin secret** anywhere real data lives, so permissions still apply. Better still, create the PAT for a user whose role is limited to what the assistant should see.
-3. **Leave `manage_metadata` off** except on projects you'd be happy to rebuild. It requires an admin secret and enables the `manage-graphql` tool, which reaches Hasura's management endpoints as admin — migrations and permission rules, but also arbitrary SQL and GraphQL against your data. `allow_queries` and `allow_mutations` don't cover that tool, so `allow_mutations = []` plus `manage_metadata = true` is not a read-only configuration.
+3. **Leave `manage_metadata` off** except on projects you'd be happy to rebuild. It requires an admin secret and enables the `manage-graphql` tool, which reaches Hasura's management endpoints as admin, meaning migrations and permission rules, but also arbitrary SQL and GraphQL against your data. `allow_queries` and `allow_mutations` don't cover that tool, so `allow_mutations = []` plus `manage_metadata = true` is not a read-only configuration.
 4. **Keep credentials out of the file.** Use `$VAR` interpolation and don't commit real tokens.
-5. **Name your projects clearly.** `description = "Production — do not modify"` is read by the assistant and does real work.
+5. **Name your projects clearly.** `description = "Production, do not modify"` is read by the assistant and does real work.
 
 </Steps>
 
 ## Next steps
 
-- [Configuration](/platform/cli/mcp/configuration) — every option in `mcp-nhost.toml`.
-- [Nhost Cloud connector](/platform/cloud/mcp) — read-only platform access with no CLI at all.
-- [Overview](/platform/cli/mcp) — the full list of tools and resources.
+- [Configuration](/platform/cli/mcp/configuration): every option in `mcp-nhost.toml`.
+- [Nhost Cloud connector](/platform/cloud/mcp): read-only platform access with no CLI at all.
+- [Overview](/platform/cli/mcp): the full list of tools and resources.

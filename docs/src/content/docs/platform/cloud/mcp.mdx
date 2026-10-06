@@ -24,15 +24,15 @@ Which of my projects had a failed deployment in the last week?
 <Steps>
 
 1. In your client, add a custom connector or remote MCP server with the URL `https://mcp.nhost.io`.
-2. Your client sends you to the Nhost consent page, showing the scopes it's asking for — typically `openid`, `graphql:role:user_mcp`, and `offline_access`.
+2. Your client sends you to the Nhost consent page, showing the scopes it's asking for, typically `openid`, `graphql:role:user_mcp`, and `offline_access`.
 3. Approve the request. The client completes the OAuth2 flow and the tools become available.
 
 </Steps>
 
 Per-client instructions:
 
-- **Claude** — **Settings → Connectors** (or **Customize → Connectors** in some versions), then **+ Add custom connector**.
-- **Cursor** — add it under Cursor Settings → MCP:
+- **Claude**: **Settings → Connectors** (or **Customize → Connectors** in some versions), then **+ Add custom connector**.
+- **Cursor**: add it under Cursor Settings → MCP:
 
   ```json
   {
@@ -44,15 +44,15 @@ Per-client instructions:
   }
   ```
 
-- **Any other client** that supports remote MCP servers with OAuth2 — add an HTTP/remote server with the same URL and complete the authorization when prompted.
+- **Any other client** that supports remote MCP servers with OAuth2: add an HTTP/remote server with the same URL and complete the authorization when prompted.
 
 :::note
-Clients that only support local (stdio) servers can't connect to this one. Use the [CLI MCP server](/platform/cli/mcp/cloud-setup) instead — it runs locally and reaches the same platform data.
+Clients that only support local (stdio) servers can't connect to this one. Use the [CLI MCP server](/platform/cli/mcp/cloud-setup) instead, which runs locally and reaches the same platform data.
 :::
 
 ## What it can do
 
-The connector exposes the three [Backend MCP](/products/ai/mcp) tools — `get-schema`, `graphql-query`, and `graphql-mutation` — over the Nhost Cloud platform's own GraphQL API. An assistant typically calls `get-schema` first to learn the data model, then queries it.
+The connector exposes the three [Backend MCP](/products/ai/mcp) tools (`get-schema`, `graphql-query`, and `graphql-mutation`) over the Nhost Cloud platform's own GraphQL API. An assistant typically calls `get-schema` first to learn the data model, then queries it.
 
 It's useful for questions you'd otherwise answer by clicking through the dashboard:
 
@@ -76,10 +76,10 @@ The `user_mcp` role's permissions will widen over time as this connector develop
 
 ## How it's built
 
-The connector is an instance of the open-source [Backend MCP](/products/ai/mcp) service, deployed on Nhost Run against the Nhost Cloud platform's own backend, with `MCP_ENFORCE_ROLE=user_mcp`. It's the same service you can deploy in front of your own project to give **your** users an AI interface — see [Deployment](/products/ai/mcp/deployment).
+The connector is an instance of the open-source [Backend MCP](/products/ai/mcp) service, deployed on Nhost Run against the Nhost Cloud platform's own backend, with `MCP_ENFORCE_ROLE=user_mcp`. It's the same service you can deploy in front of your own project to give **your** users an AI interface. See [Deployment](/products/ai/mcp/deployment).
 
 ## Next steps
 
-- [Agentic workflows](/getting-started/agentic-workflows) — the three ways to connect an assistant to Nhost.
-- [Cloud Setup](/platform/cli/mcp/cloud-setup) — CLI MCP against a cloud project, with write access when you want it.
-- [Backend MCP](/products/ai/mcp) — run this service in front of your own project.
+- [Agentic workflows](/getting-started/agentic-workflows): the three ways to connect an assistant to Nhost.
+- [Cloud Setup](/platform/cli/mcp/cloud-setup): CLI MCP against a cloud project, with write access when you want it.
+- [Backend MCP](/products/ai/mcp): run this service in front of your own project.

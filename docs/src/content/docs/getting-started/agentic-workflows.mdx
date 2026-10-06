@@ -28,7 +28,7 @@ Which server you connect to depends on what you're working on and whether you us
 | **Transport** | Local process (stdio) | Local process (stdio) | Remote HTTP |
 | **Authentication** | Local admin secret | `nhost login` for the platform, PAT or admin secret per project | Your Nhost account, over OAuth2 |
 | **Reaches** | Your local stack | The cloud projects you configure, plus your orgs and project config | Your orgs, projects, deployments |
-| **Can write** | Yes — data, metadata, migrations | Only what you allow | No, read-only |
+| **Can write** | Yes: data, metadata, migrations | Only what you allow | No, read-only |
 
 All three are about *you* building on Nhost. If you instead want your **application's users** to talk to your app through their own assistant, that's a different server: see [Backend MCP](/products/ai/mcp).
 
@@ -67,7 +67,7 @@ For the manual steps, see [Development Setup](/platform/cli/mcp/development-setu
 
 ## Cloud project with the CLI
 
-If you [develop without a local stack](/getting-started/cloud-development/dashboard), the same CLI MCP server can point at a project on Nhost Cloud. You still need the CLI binary, but nothing runs in Docker — the server is a short-lived local process that forwards requests to your project's endpoints.
+If you [develop without a local stack](/getting-started/cloud-development/dashboard), the same CLI MCP server can point at a project on Nhost Cloud. You still need the CLI binary, but nothing runs in Docker. The server is a short-lived local process that forwards requests to your project's endpoints.
 
 This setup also covers the Nhost Cloud platform itself, so an assistant can list your organizations and projects and change project configuration the way you would in the dashboard.
 
@@ -108,7 +108,7 @@ Nhost runs a hosted MCP server at <CopyText text="https://mcp.nhost.io" />. Add 
 
 </Steps>
 
-Access is read-only and scoped to what your Nhost account can see. It cannot change project configuration or touch your project's own data — for that, use one of the CLI setups above.
+Access is read-only and scoped to what your Nhost account can see. It cannot change project configuration or touch your project's own data. For that, use one of the CLI setups above.
 
 See [Nhost Cloud connector](/platform/cloud/mcp) for per-client steps and the full list of what it can answer.
 
@@ -118,7 +118,7 @@ An assistant connected over MCP acts with whatever credentials you hand it, so s
 
 - **Give it the least access that makes the task possible.** `allow_queries` and `allow_mutations` narrow the `graphql-query` tool to named operations, so start with `allow_mutations = []`. Read them as defence in depth rather than a wall: the check doesn't resolve fragments, so it won't catch everything. The credential is the real boundary, which is why the next point matters more.
 - **Keep admin secrets on local projects.** An admin secret bypasses permissions entirely. Use a [PAT](/platform/cli/mcp/cloud-setup#authenticate) against anything holding real data, so requests run under a role and your permission rules still apply.
-- **Enable metadata management only where you want schema changes.** `manage_metadata` requires an admin secret (a project authenticated with a PAT can't use it) and gives an assistant admin access to Hasura's management endpoints — migrations and permission rules, but also arbitrary SQL and GraphQL against your data. `allow_queries` and `allow_mutations` don't cover it, so read `manage_metadata = true` as full access to schema *and* data. That's what you want locally and almost never what you want in production.
+- **Enable metadata management only where you want schema changes.** `manage_metadata` requires an admin secret (a project authenticated with a PAT can't use it) and gives an assistant admin access to Hasura's management endpoints, meaning migrations and permission rules, but also arbitrary SQL and GraphQL against your data. `allow_queries` and `allow_mutations` don't cover it, so read `manage_metadata = true` as full access to schema *and* data. That's what you want locally and almost never what you want in production.
 - **Review what it writes.** Migrations and permission rules are code. Read them before they reach an environment you care about.
 
 ## Next steps
