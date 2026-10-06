@@ -81,7 +81,7 @@ nhost login
 In an environment where an interactive login isn't possible, set `NHOST_PAT` instead to a personal access token created under **Personal Access Tokens** on your [account page](https://app.nhost.io/account):
 
 ```bash Terminal
-export NHOST_PAT=3f1b9c7e-5a42-4d8e-9f10-2c6b8e4a7d35
+export NHOST_PAT=<your-personal-access-token>
 ```
 
 The assistant then acts as you, with your permissions across every organization and project you can reach. Queries are always allowed when the section is present; mutations, which change project configuration, require `enable_mutations = true`.
@@ -177,17 +177,17 @@ The server inherits the environment of the process your client spawns it from, s
 <Tabs syncKey="assistant">
 <TabItem label="Claude Code">
 ```bash Terminal
-claude mcp add nhost -e NHOST_PROJECT_PAT=<token> -- nhost mcp start
+claude mcp add nhost -e NHOST_PROJECT_PAT=<your-project-pat> -- nhost mcp start
 ```
 </TabItem>
 <TabItem label="Codex CLI">
 ```bash Terminal
-codex mcp add nhost --env NHOST_PROJECT_PAT=<token> -- nhost mcp start
+codex mcp add nhost --env NHOST_PROJECT_PAT=<your-project-pat> -- nhost mcp start
 ```
 </TabItem>
 <TabItem label="Gemini CLI">
 ```bash Terminal
-gemini mcp add -s user -e NHOST_PROJECT_PAT=<token> nhost nhost mcp start
+gemini mcp add -s user -e NHOST_PROJECT_PAT=<your-project-pat> nhost nhost mcp start
 ```
 </TabItem>
 <TabItem label="Cursor">
@@ -200,7 +200,7 @@ Add an `env` object alongside `command` and `args`:
       "command": "nhost",
       "args": ["mcp", "start"],
       "env": {
-        "NHOST_PROJECT_PAT": "<token>"
+        "NHOST_PROJECT_PAT": "<your-project-pat>"
       }
     }
   }
@@ -225,7 +225,7 @@ Cursor can keep the value out of that file entirely: `envFile` points at an envi
 If you don't want the CLI on your `PATH`, run it through `npx`. Registration looks the same, with the command swapped:
 
 ```bash Terminal
-claude mcp add nhost -e NHOST_PROJECT_PAT=<token> -- npx -y @nhost/cli@latest mcp start
+claude mcp add nhost -e NHOST_PROJECT_PAT=<your-project-pat> -- npx -y @nhost/cli@latest mcp start
 ```
 
 Pin the version rather than tracking `@latest` if you want the server to behave the same tomorrow as it does today. Startup is slower than a local binary, because `npx` resolves the package on every launch.
@@ -252,7 +252,7 @@ Your client should list the `nhost` server and the project tools. Ask the assist
 echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"get-schema","arguments":{"subdomain":"my-app","role":"user","summary":true}},"id":1}' | nhost mcp start
 ```
 
-That command runs in your own shell rather than the one your client spawns, so export the variables your configuration file names before running it (`export NHOST_PROJECT_PAT=<token>`). Without that it fails on authentication for a reason that has nothing to do with your client's setup.
+That command runs in your own shell rather than the one your client spawns, so export the variables your configuration file names before running it (`export NHOST_PROJECT_PAT=<your-project-pat>`). Without that it fails on authentication for a reason that has nothing to do with your client's setup.
 
 If you added a `[cloud]` section, `cloud-graphql-query` appears alongside the project tools and you can check the platform too:
 

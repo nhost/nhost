@@ -25,7 +25,7 @@ Not sure which one you need? See the [Backend MCP vs. CLI MCP comparison](/produ
 :::tip[Connect an AI assistant]
 Give your AI assistant the link <CopyText text="https://docs.nhost.io/install-mcp" /> and it will read the onboarding instructions, ask whether the project is local or on Nhost Cloud, and set up the MCP server for it.
 
-See [Development Setup](/platform/cli/mcp/development-setup#let-an-ai-assistant-set-it-up) for the per-client commands and the manual steps, or [Cloud Setup](/platform/cli/mcp/cloud-setup) to point the same server at a project on Nhost Cloud.
+See [Local Setup](/platform/cli/mcp/development-setup#let-an-ai-assistant-set-it-up) for the per-client commands and the manual steps, or [Cloud Setup](/platform/cli/mcp/cloud-setup) to point the same server at a project on Nhost Cloud.
 :::
 
 Not using the CLI at all? Nhost runs a hosted connector for the platform at <CopyText text="https://mcp.nhost.io" />. See [Platform connector](/platform/cloud/mcp). [Agentic workflows](/getting-started/agentic-workflows) compares all three setups.
@@ -91,7 +91,7 @@ One of the CLI MCP's key security advantages is the ability to specify exactly w
 [[projects]]
 subdomain = "my-blog"
 region = "eu-central-1"
-pat = "3f1b9c7e-5a42-4d8e-9f10-2c6b8e4a7d35"
+pat = "<your-project-pat>"
 allow_queries = ["getBlogs", "getComments"]
 allow_mutations = ["insertBlog", "insertComment"]
 ```

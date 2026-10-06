@@ -111,9 +111,9 @@ DONE WHEN: My AI assistant lists the Nhost MCP tools and `get-schema` returns th
 
    On the Cloud branch, pass the credential variables through the client's own server definition: the server reads them from the environment of the process the client spawns, and exporting them in my shell only reaches that process if I launch the client from the same shell, which is never the case for Cursor or any other GUI client.
 
-   - Claude Code: `claude mcp add nhost -e NHOST_PROJECT_PAT=<token> -- nhost mcp start`
-   - Codex CLI: `codex mcp add nhost --env NHOST_PROJECT_PAT=<token> -- nhost mcp start`
-   - Gemini CLI: `gemini mcp add -s user -e NHOST_PROJECT_PAT=<token> nhost nhost mcp start`
+   - Claude Code: `claude mcp add nhost -e NHOST_PROJECT_PAT=<your-project-pat> -- nhost mcp start`
+   - Codex CLI: `codex mcp add nhost --env NHOST_PROJECT_PAT=<your-project-pat> -- nhost mcp start`
+   - Gemini CLI: `gemini mcp add -s user -e NHOST_PROJECT_PAT=<your-project-pat> nhost nhost mcp start`
    - Cursor (or any client using an `mcpServers` JSON block):
 
      ```json
@@ -123,7 +123,7 @@ DONE WHEN: My AI assistant lists the Nhost MCP tools and `get-schema` returns th
            "command": "nhost",
            "args": ["mcp", "start"],
            "env": {
-             "NHOST_PROJECT_PAT": "<token>"
+             "NHOST_PROJECT_PAT": "<your-project-pat>"
            }
          }
        }
@@ -138,7 +138,7 @@ DONE WHEN: My AI assistant lists the Nhost MCP tools and `get-schema` returns th
 
    - Claude Code: `claude mcp add nhost -- npx -y @nhost/cli@latest mcp start`
    - Codex CLI: `codex mcp add nhost -- npx -y @nhost/cli@latest mcp start`
-   - Gemini CLI: `gemini mcp add -s user nhost npx -- -y @nhost/cli@latest mcp start`, or with a credential on the Cloud branch, `gemini mcp add -s user -e NHOST_PROJECT_PAT=<token> nhost npx -- -y @nhost/cli@latest mcp start`. Gemini takes the command as a positional argument, so the separator goes after `npx` rather than before it; putting it before makes Gemini reject the command for a missing argument.
+   - Gemini CLI: `gemini mcp add -s user nhost npx -- -y @nhost/cli@latest mcp start`, or with a credential on the Cloud branch, `gemini mcp add -s user -e NHOST_PROJECT_PAT=<your-project-pat> nhost npx -- -y @nhost/cli@latest mcp start`. Gemini takes the command as a positional argument, so the separator goes after `npx` rather than before it; putting it before makes Gemini reject the command for a missing argument.
    - Cursor (or any client using an `mcpServers` JSON block): set `"command": "npx"` with `"args": ["-y", "@nhost/cli@latest", "mcp", "start"]`.
 
    Add the credential flags or the `env` object to those `npx` forms too if I am on the Cloud branch.
@@ -155,7 +155,7 @@ DONE WHEN: My AI assistant lists the Nhost MCP tools and `get-schema` returns th
    echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"get-schema","arguments":{"subdomain":"local","role":"admin","summary":true}},"id":1}' | nhost mcp start
    ```
 
-   On the Cloud branch, substituting my subdomain. This runs in my own shell rather than the one the client spawns, so export the variables the config file names first (for example `export NHOST_PROJECT_PAT=<token>`), or it will fail on auth for that reason alone:
+   On the Cloud branch, substituting my subdomain. This runs in my own shell rather than the one the client spawns, so export the variables the config file names first (for example `export NHOST_PROJECT_PAT=<your-project-pat>`), or it will fail on auth for that reason alone:
 
    ```bash
    echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"get-schema","arguments":{"subdomain":"MY_SUBDOMAIN","role":"user","summary":true}},"id":1}' | nhost mcp start
