@@ -105,7 +105,7 @@ export default function AutoEmbeddingsPage() {
   if (isPlatform && org?.plan?.isFree) {
     return (
       <Container
-        className="grid grid-flow-row gap-6 bg-transparent"
+        className="grid grid-flow-row gap-6 bg-transparent pt-8 pb-8"
         rootClassName="bg-transparent"
       >
         <UpgradeToProBanner
@@ -123,7 +123,7 @@ export default function AutoEmbeddingsPage() {
 
   if (aiServiceUnavailable || !isGraphiteEnabled) {
     return (
-      <div className="w-full bg-background p-4">
+      <div className="w-full px-4 pt-8 pb-8">
         <Alert className="grid w-full grid-flow-col place-content-between items-center gap-2">
           <p>
             To enable graphite, configure the service first in{' '}
@@ -147,7 +147,7 @@ export default function AutoEmbeddingsPage() {
 
   if (autoEmbeddingsConfigurations.length === 0 && !loading) {
     return (
-      <div className="w-full bg-background p-6">
+      <div className="w-full px-6 pt-8 pb-8">
         <div className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
           <EmbeddingsIcon className="h-10 w-10" />
           <div className="flex flex-col space-y-1">

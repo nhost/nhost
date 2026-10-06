@@ -19,7 +19,7 @@ ScheduledBackupsPage.getLayout = function getLayout(page: ReactElement) {
     <AppLayout>
       <ProjectScope>
         <DatabaseArea>
-          <div className="mx-auto flex h-full w-full max-w-6xl flex-col md:flex-row">
+          <div className="mx-auto flex h-full w-full max-w-6xl flex-col pt-8 pb-8 md:flex-row">
             <BackupsSidebar />
             <div className="min-w-0 flex-1">{page}</div>
           </div>
