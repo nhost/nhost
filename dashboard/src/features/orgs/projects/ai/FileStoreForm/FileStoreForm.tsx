@@ -225,7 +225,7 @@ export default function FileStoreForm({
         </div>
 
         <div className="flex w-full flex-row justify-between rounded border-t p-4">
-          <Button variant="outline" onClick={onCancel}>
+          <Button variant="outline-emboss" onClick={onCancel}>
             Cancel
           </Button>
           <Button type="submit" disabled={isSubmitting}>

@@ -79,7 +79,7 @@ function ConfirmDisconnectGithubModal({
       </div>
 
       <div className="mt-6 flex items-center justify-end gap-2">
-        <Button variant="outline" onClick={close}>
+        <Button variant="outline-emboss" onClick={close}>
           Cancel
         </Button>
         <ButtonWithLoading

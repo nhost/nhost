@@ -19,7 +19,7 @@ export default function OverviewRepository() {
         <div className="mt-6 flex flex-row place-content-between rounded-lg">
           <NavLink
             href={`/orgs/${org?.slug}/projects/${project?.subdomain}/deployments/settings`}
-            variant="outline"
+            variant="outline-emboss"
             className="h-9 w-full gap-2"
           >
             <GitHubIcon className="h-4 w-4" />

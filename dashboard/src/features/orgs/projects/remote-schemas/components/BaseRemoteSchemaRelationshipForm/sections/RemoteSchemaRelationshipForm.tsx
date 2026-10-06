@@ -195,7 +195,7 @@ export default function RemoteSchemaRelationshipForm({
         <div className="mt-auto flex justify-between gap-2 border-foreground/20 border-t-1 px-6 pt-4">
           <Button
             type="button"
-            variant="outline"
+            variant="outline-emboss"
             disabled={isSubmitting}
             onClick={onCancel}
           >
