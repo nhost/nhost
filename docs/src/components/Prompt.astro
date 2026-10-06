@@ -334,12 +334,11 @@ const hasFooter = Astro.slots.has('footer');
     font-weight: 700;
   }
 
-  /* Dimmer than a body link: these are secondary to the prompt above them. */
+  /* Only the weight is reset: the paragraph above carries 700 to thicken the
+     separator, and the links keep the page's own link colour. */
   .prompt-footer :global(a) {
-    color: color-mix(in srgb, var(--sl-color-text-accent) 60%, var(--sl-color-gray-3));
     font-weight: 400;
   }
-
 
   /* The separator between links is a bare text node in the MDX, so the space
      around it has to come off the links. The last one stays flush right. */
@@ -349,11 +348,6 @@ const hasFooter = Astro.slots.has('footer');
 
   .prompt-footer :global(a + a) {
     margin-inline-start: 0.3125rem;
-  }
-
-  .prompt-footer :global(a:hover),
-  .prompt-footer :global(a:focus-visible) {
-    color: var(--sl-color-text-accent);
   }
 
 </style>
