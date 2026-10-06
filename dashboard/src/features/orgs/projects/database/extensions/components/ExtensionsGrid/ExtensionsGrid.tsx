@@ -1,5 +1,4 @@
-import { Blocks, Info, Lock } from 'lucide-react';
-import { Badge } from '@/components/ui/v3/badge';
+import { Blocks, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/v3/button';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import {
@@ -7,6 +6,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
+import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import {
   getExtensionDisplayName,
   getExtensionDocsUrl,
@@ -26,21 +26,10 @@ export interface ExtensionsGridProps {
 
 function PreloadHint() {
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <button
-          type="button"
-          aria-label="Preload requirement"
-          className="inline-flex cursor-help rounded-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <Info className="h-4 w-4" aria-hidden />
-        </button>
-      </TooltipTrigger>
-      <TooltipContent side="right" sideOffset={6} className="max-w-xs">
-        Requires <InlineCode>shared_preload_libraries</InlineCode>, which Nhost
-        preloads by default.
-      </TooltipContent>
-    </Tooltip>
+    <InfoTooltip>
+      Requires <InlineCode>shared_preload_libraries</InlineCode>, which Nhost
+      preloads by default.
+    </InfoTooltip>
   );
 }
 
@@ -96,8 +85,8 @@ function ExtensionCard({
       data-testid={`extension-card-${extension.name}`}
       data-built-in={isBuiltIn || undefined}
       className={cn(
-        'flex flex-col gap-4 rounded-lg border bg-background p-4',
-        isBuiltIn && 'bg-muted',
+        'flex flex-col gap-3 rounded-lg border p-4',
+        isBuiltIn ? 'bg-background' : 'bg-muted',
       )}
     >
       <div className="flex items-start gap-2">
@@ -130,7 +119,7 @@ function ExtensionCard({
           {versionLabel && (
             <span
               className={cn(
-                'text-muted-foreground text-xs tabular-nums',
+                'mt-1 text-muted-foreground text-xs tabular-nums',
                 dimmed,
               )}
             >
@@ -138,24 +127,6 @@ function ExtensionCard({
             </span>
           )}
         </div>
-        <Badge
-          variant={isInstalled && !isBuiltIn ? 'default' : 'outline'}
-          className={cn('shrink-0', isBuiltIn && 'text-muted-foreground')}
-        >
-          {isInstalled ? 'Installed' : 'Available'}
-        </Badge>
-      </div>
-
-      <p
-        className={cn(
-          'line-clamp-2 flex-1 text-muted-foreground text-sm',
-          dimmed,
-        )}
-      >
-        {extension.comment}
-      </p>
-
-      <div className="flex justify-end">
         {isBuiltIn ? (
           <BuiltInIndicator reason={protectedReason} />
         ) : (
@@ -170,6 +141,10 @@ function ExtensionCard({
           </Button>
         )}
       </div>
+
+      <p className={cn('line-clamp-2 text-muted-foreground text-sm', dimmed)}>
+        {extension.comment}
+      </p>
     </div>
   );
 }

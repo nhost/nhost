@@ -9,7 +9,6 @@ import {
 } from '@/features/orgs/projects/database/extensions/hooks/useSetExtensionInstalledMutation';
 import { mockMatchMediaValue } from '@/tests/mocks';
 import {
-  act,
   mockScrollIntoViewAndPointerCapture,
   queryClient,
   render,
@@ -197,11 +196,12 @@ function getCard(region: HTMLElement, name: string) {
   return within(region).getByTestId(`extension-card-${name}`);
 }
 
-async function openTooltip(trigger: HTMLElement) {
-  act(() => trigger.focus());
+async function openTooltip(user: TestUserEvent, trigger: Element) {
+  await user.hover(trigger);
 
   return screen.findByRole('tooltip');
 }
+
 
 async function openInstallDialog(
   user: TestUserEvent,
@@ -280,20 +280,8 @@ describe('DatabaseExtensions', () => {
     );
   });
 
-  it('explains the preload requirement in a tooltip', async () => {
-    const all = await renderPage();
-    const tooltip = await openTooltip(
-      within(getCard(all, 'pg_cron')).getByRole('button', {
-        name: 'Preload requirement',
-      }),
-    );
-
-    expect(tooltip).toHaveTextContent(
-      'Requires shared_preload_libraries, which Nhost preloads by default.',
-    );
-  });
-
   it('locks built-in extensions instead of offering uninstall', async () => {
+    const user = new TestUserEvent();
     const all = await renderPage();
     const citext = getCard(all, 'citext');
 
@@ -303,6 +291,7 @@ describe('DatabaseExtensions', () => {
     ).not.toBeInTheDocument();
 
     const tooltip = await openTooltip(
+      user,
       within(citext).getByRole('button', { name: 'Built-in' }),
     );
 

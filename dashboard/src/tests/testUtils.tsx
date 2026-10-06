@@ -239,6 +239,12 @@ export class TestUserEvent {
       await this.user.paste(value);
     });
   }
+
+  async hover(element: Element) {
+    await waitFor(async () => {
+      await this.user.hover(element);
+    });
+  }
 }
 
 // Asserts that the given string is rendered as the visible textContent of
