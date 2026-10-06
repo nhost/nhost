@@ -135,10 +135,12 @@ With those in place, run the following from an empty directory:
 nhost init --remote
 ```
 
-This pulls the existing project's configuration, migrations, and metadata into a local `nhost/` directory you can commit. From there you can run the full stack locally with `nhost up`, or keep developing against the cloud project with [`nhost up cloud`](/platform/cli/cloud-development).
+This pulls the existing project's configuration, migrations, and metadata into a local `nhost/` directory you can commit. From there, `nhost up` runs the full stack locally and needs nothing further.
+
+The other option, [`nhost up cloud`](/platform/cli/cloud-development), keeps you working against the cloud project but needs more than the prerequisites above: it requires a `--postgres-url`, and getting one means enabling Public Access on the database and resetting its password in the dashboard. The password reset is not reversible, so follow [Cloud Development](/platform/cli/cloud-development) rather than running the command from here.
 
 :::caution
-Once you have a local copy, stop making schema and configuration changes in the hosted dashboard. `nhost up cloud` re-applies your complete local state to the project, so changes made in the hosted dashboard afterwards are not tracked locally and can be overwritten. Make them through the local dashboard and console instead, as described in [Cloud Development](/platform/cli/cloud-development).
+Once you have a local copy, that copy is the source of truth — stop making schema and configuration changes in the hosted dashboard. Both ways of pushing it back re-apply your complete local state: `nhost up cloud` directly, and [Git deployments](/platform/cloud/deployments) when they apply GraphQL metadata. Either way, changes made in the hosted dashboard afterwards are not tracked locally and can be overwritten. Make them through the local dashboard and console instead, as described in [Cloud Development](/platform/cli/cloud-development).
 :::
 
 ## Next steps

@@ -11,7 +11,7 @@ DONE WHEN: My AI assistant lists the Nhost MCP tools (`graphql-query`, `get-sche
 ## TODO
 
 - [ ] Confirm the Nhost CLI is installed and my local project is running
-- [ ] Create the MCP config file `.nhost/mcp-nhost.toml`
+- [ ] Check for an existing config file, then create `.nhost/mcp-nhost.toml`
 - [ ] Register the MCP server with my AI assistant
 - [ ] Verify the tools are available and `get-schema` works
 
@@ -19,7 +19,9 @@ DONE WHEN: My AI assistant lists the Nhost MCP tools (`graphql-query`, `get-sche
 
 1. Confirm prerequisites. Run `nhost --version` to check the CLI is installed. If it is missing, install it with `curl -sSL https://raw.githubusercontent.com/nhost/nhost/main/cli/get.sh | bash`. Then make sure the local stack is running with `nhost up` (this requires Docker). The local GraphQL endpoint is `https://local.graphql.local.nhost.run/v1`.
 
-2. Create the config file at `.nhost/mcp-nhost.toml` in the project root with the following contents. This grants the assistant full access to the local project only — never point this at a production project.
+2. Check whether `.nhost/mcp-nhost.toml` already exists before writing anything. <https://docs.nhost.io/install-mcp-cloud> writes that same path for a cloud project, so if I have already run that one here, writing this file replaces its configuration. If the file is there, show me what it holds and ask before overwriting it, and offer to keep both by adding the local project as a second `[[projects]]` entry alongside the cloud one.
+
+   Then create the config file at `.nhost/mcp-nhost.toml` in the project root with the following contents. This grants the assistant full access to the local project only — never point this at a production project.
 
    ```toml
    [[projects]]
@@ -48,7 +50,7 @@ DONE WHEN: My AI assistant lists the Nhost MCP tools (`graphql-query`, `get-sche
      }
      ```
 
-   The server reads `.nhost/mcp-nhost.toml` automatically, so no extra flags are needed.
+   The server reads `.nhost/mcp-nhost.toml` relative to the directory it starts in. If my client launches it somewhere else, add `--config-file=<absolute path>` to the arguments.
 
 4. Verify the setup. Confirm the client lists the `nhost` server and its tools. If the client is unavailable, run this directly to confirm the server responds with the local schema:
 

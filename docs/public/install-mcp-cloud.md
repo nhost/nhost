@@ -6,7 +6,7 @@ STOP FIRST: If all I want is to ask questions about my organizations, projects a
 
 I want you to set up the Nhost MCP server against my Nhost Cloud account. Execute the steps below, and stop to ask me whenever a step needs a decision or a value only I have.
 
-OBJECTIVE: Configure the Nhost CLI MCP server against my Nhost Cloud project and register it with my AI assistant, with read-only access unless I explicitly ask for more.
+OBJECTIVE: Configure the Nhost CLI MCP server against my Nhost Cloud project and register it with my AI assistant, granting nothing I did not explicitly ask for. Read-only is not the same as harmless here: platform read access exposes secrets in plaintext, so treat the question in step 2 as a real decision rather than a safe default.
 
 DONE WHEN: My AI assistant lists the Nhost MCP tools and `get-schema` returns the schema of the cloud project I named.
 
@@ -16,7 +16,7 @@ IMPORTANT: This points at real data. Do not widen access beyond what I ask for. 
 
 - [ ] Confirm the Nhost CLI is available and I am authenticated
 - [ ] Ask me which project and which kind of access I want
-- [ ] Create the MCP config file `.nhost/mcp-nhost.toml`
+- [ ] Check for an existing config file, then create `.nhost/mcp-nhost.toml`
 - [ ] Register the MCP server with my AI assistant
 - [ ] Verify the tools are available and `get-schema` works
 
@@ -27,16 +27,15 @@ IMPORTANT: This points at real data. Do not widen access beyond what I ask for. 
 2. Ask me these questions before writing anything:
 
    - Which project? I need to give you its subdomain and region.
-   - Should the assistant be able to manage the Nhost Cloud platform (list organizations and projects, read and change project configuration)? If yes, ask whether mutations should be enabled, and default to no.
+   - Should the assistant be able to manage the Nhost Cloud platform (list organizations and projects, read and change project configuration)? Default to no. Before I answer, tell me what read access to the platform actually includes: every project's environment variables and secrets, in plaintext, for every project my account can see, including the Hasura admin secret. Setting `enable_mutations = false` does not reduce that. It blocks writes only, and the entire platform schema stays readable, so an assistant with platform access can read the admin secret of a production project and use it elsewhere. Only say yes if I want that. If I do, ask separately whether mutations should be enabled, and default to no.
    - Should the assistant be able to change project data? Default to read-only.
    - Should the assistant be able to change the project's schema, metadata, and permissions? Default to no. This requires an admin secret and is only appropriate for a throwaway or staging project.
 
-3. Create the config file at `.nhost/mcp-nhost.toml`. Start from this read-only template and adjust it only to match my answers:
+3. Check whether `.nhost/mcp-nhost.toml` already exists before writing anything. <https://docs.nhost.io/install-mcp> writes that same path for a local project, so if I have already run that one here, writing this file replaces its configuration. If the file is there, show me what it holds and ask before overwriting it, and offer to keep both by adding the cloud project as a second `[[projects]]` entry alongside the local one.
+
+   Then create the config file at `.nhost/mcp-nhost.toml`. Start from this template, which grants project access only, and adjust it to match my answers:
 
    ```toml
-   [cloud]
-   enable_mutations = false
-
    [[projects]]
    subdomain = "MY_SUBDOMAIN"
    region = "MY_REGION"
@@ -48,7 +47,14 @@ IMPORTANT: This points at real data. Do not widen access beyond what I ask for. 
 
    Notes:
 
-   - Drop the `[cloud]` section entirely if I said no to platform access.
+   - Add a `[cloud]` section only if I explicitly said yes to platform access in step 2, and only then:
+
+     ```toml
+     [cloud]
+     enable_mutations = false
+     ```
+
+     This is the section that exposes every project's secrets and admin secret to the assistant, so leave it out unless I asked for it.
    - `pat` is a project PAT, created against that project's own Auth service. If I do not have one, tell me how to create it: `curl -X POST https://<subdomain>.auth.<region>.nhost.run/v1/pat -H "Authorization: Bearer <access-token>" -H "Content-Type: application/json" -d '{"expiresAt":"2027-01-01T00:00:00Z","metadata":{"name":"mcp"}}'`, using the access token of a signed-in user of that project.
    - Use `admin_secret = "$NHOST_ADMIN_SECRET"` in place of `pat` only if I asked for schema/metadata management, and add `manage_metadata = true` in that case. An admin secret bypasses all permissions.
    - Keep the `$VAR` form and note which variables the file names. The server interpolates them from its own environment at startup, and an unset variable becomes an empty string instead of an error, so step 4 has to put them there.
@@ -86,11 +92,15 @@ IMPORTANT: This points at real data. Do not widen access beyond what I ask for. 
 
    The server reads `.nhost/mcp-nhost.toml` relative to the directory it starts in. If my client launches it somewhere else, add `--config-file=<absolute path>` to the arguments.
 
-5. Verify the setup. Confirm the client lists the `nhost` server and its tools. With `[cloud]` configured, `cloud-graphql-query` should be among them. The tool list alone does not prove the credentials arrived: an unset variable interpolates to an empty string, so the server starts and registers every tool either way. A call that fails with an authentication error while the tool list looks correct means the variable did not reach the server, so check step 4 before you suspect the token itself. If the client is unavailable, run these directly:
+5. Verify the setup. Confirm the client lists the `nhost` server and its tools. With `[cloud]` configured, `cloud-graphql-query` should be among them. The tool list alone does not prove the credentials arrived: an unset variable interpolates to an empty string, so the server starts and registers every tool either way. A call that fails with an authentication error while the tool list looks correct means the variable did not reach the server, so check step 4 before you suspect the token itself.
+
+   If the client is unavailable, run the project check directly. It runs in my own shell rather than the one the client spawns, so export the variables the config file names first (for example `export NHOST_PROJECT_PAT=<token>`), or it will fail on auth for that reason alone:
 
    ```bash
    echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"get-schema","arguments":{"subdomain":"MY_SUBDOMAIN","role":"user","summary":true}},"id":1}' | nhost mcp start
    ```
+
+   Run the next one only if I said yes to platform access in step 2 and you added a `[cloud]` section. Otherwise skip it: `cloud-graphql-query` is registered only when `[cloud]` is present, so without that section the call returns `tool 'cloud-graphql-query' not found`, which is the expected result for a project-only setup rather than something to debug. This command authenticates from my CLI session (`nhost login`) or `NHOST_PAT`, not from the config file, so the exports above do not apply to it:
 
    ```bash
    echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"cloud-graphql-query","arguments":{"query":"{ apps { id subdomain name } }"}},"id":1}' | nhost mcp start

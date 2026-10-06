@@ -36,6 +36,8 @@ All three are about *you* building on Nhost. If you instead want your **applicat
 
 The setup for day-to-day development. The CLI runs an MCP server on your machine that talks to the stack `nhost up` started, so an assistant can read your schema, query seeded data, and write migrations and permission rules as you work.
 
+This one assumes a local project already running. If you don't have one yet, work through [Get up and running with the Nhost CLI](/getting-started/local-development/cli) first, otherwise `nhost up` exits with `no nhost project found`.
+
 Hand the onboarding file to your assistant and it will do the whole setup:
 
 <Tabs syncKey="assistant">
@@ -114,7 +116,7 @@ See [Nhost Cloud connector](/platform/cloud/mcp) for per-client steps and the fu
 
 An assistant connected over MCP acts with whatever credentials you hand it, so scope them deliberately:
 
-- **Give it the least access that makes the task possible.** `allow_queries` and `allow_mutations` restrict the `graphql-query` tool to named operations even when the underlying credential could do more. Start with `allow_mutations = []`.
+- **Give it the least access that makes the task possible.** `allow_queries` and `allow_mutations` narrow the `graphql-query` tool to named operations, so start with `allow_mutations = []`. Read them as defence in depth rather than a wall: the check doesn't resolve fragments, so it won't catch everything. The credential is the real boundary, which is why the next point matters more.
 - **Keep admin secrets on local projects.** An admin secret bypasses permissions entirely. Use a [PAT](/platform/cli/mcp/cloud-setup#authenticate) against anything holding real data, so requests run under a role and your permission rules still apply.
 - **Enable metadata management only where you want schema changes.** `manage_metadata` requires an admin secret (a project authenticated with a PAT can't use it) and gives an assistant admin access to Hasura's management endpoints — migrations and permission rules, but also arbitrary SQL and GraphQL against your data. `allow_queries` and `allow_mutations` don't cover it, so read `manage_metadata = true` as full access to schema *and* data. That's what you want locally and almost never what you want in production.
 - **Review what it writes.** Migrations and permission rules are code. Read them before they reach an environment you care about.
