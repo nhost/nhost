@@ -123,7 +123,7 @@ export default function DataGridBody<T extends UnknownDataGridRow>({
       {rows.length === 0 && !loading && (
         <div className="flex flex-nowrap">
           <div
-            className="box dark:!text-[#a2b3be] inline-flex h-12 items-center border-r-1 border-b-1 px-2 py-1.5 text-xs"
+            className="box dark:!text-muted-foreground inline-flex h-12 items-center border-r-1 border-b-1 px-2 py-1.5 text-xs"
             style={{
               width: totalColumnsWidth,
             }}
@@ -144,10 +144,14 @@ export default function DataGridBody<T extends UnknownDataGridRow>({
               width: totalColumnsWidth,
             }}
             className={cn(
-              'flex scroll-mt-10 border-b-1 border-b-transparent last:border-b-data-table-border-color',
+              // Plain dividers instead of zebra stripes, with a neutral hover.
+              // Both backgrounds stay opaque: the sticky checkbox and actions
+              // cells use `bg-inherit`, so a see-through row would let
+              // horizontally scrolled cells show through them.
+              'flex scroll-mt-10 border-b-1 border-b-data-table-border-color',
               isRowDisabled?.(row)
                 ? 'bg-data-cell-bg-disabled'
-                : 'odd:bg-data-cell-bg-odd even:bg-data-cell-bg hover:bg-data-cell-bg-hover',
+                : 'bg-background hover:bg-[color-mix(in_srgb,hsl(var(--muted))_60%,hsl(var(--background)))]',
             )}
             role="row"
             onKeyDown={(event) => handleKeyDown(event, row.id)}

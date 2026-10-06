@@ -39,7 +39,7 @@ export default function DataGridHeaderButton<
         role="columnheader"
         variant="ghost"
         className={cn(
-          'h-fit w-full rounded-none p-0 text-xs focus:outline-none motion-safe:transition-colors dark:hover:bg-[#21262d]',
+          'h-fit w-full rounded-none p-0 text-xs focus:outline-none motion-safe:transition-colors dark:hover:bg-accent',
         )}
         disabled={!canSort}
         onClick={column.getToggleSortingHandler()}

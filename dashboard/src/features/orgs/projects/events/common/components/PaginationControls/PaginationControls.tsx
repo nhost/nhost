@@ -63,7 +63,7 @@ export default function PaginationControls({
           disabled={hasNoPreviousPage}
           onClick={onPrev}
           aria-label="Previous page"
-          className="h-max w-max border-none bg-transparent dark:hover:bg-[#2f363d]"
+          className="h-max w-max border-none bg-transparent dark:hover:bg-accent"
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
@@ -76,7 +76,7 @@ export default function PaginationControls({
           disabled={hasNoNextPage}
           onClick={onNext}
           aria-label="Next page"
-          className="h-max w-max border-none bg-transparent dark:hover:bg-[#2f363d]"
+          className="h-max w-max border-none bg-transparent dark:hover:bg-accent"
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
