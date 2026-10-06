@@ -18,6 +18,7 @@ import (
 	"github.com/nhost/nhost/services/auth/go/notifications"
 	"github.com/nhost/nhost/services/auth/go/oidc"
 	"github.com/nhost/nhost/services/auth/go/sql"
+	"github.com/nhost/nhost/services/auth/go/tokenpurpose"
 	"github.com/oapi-codegen/runtime/types"
 )
 
@@ -753,7 +754,7 @@ func (wf *Workflows) VerifyJWTToken(
 ) *APIError {
 	token = strings.TrimPrefix(token, "Bearer ")
 
-	jwtToken, err := wf.jwtGetter.Validate(token)
+	jwtToken, err := wf.jwtGetter.Validate(token, tokenpurpose.Session)
 	if err != nil {
 		logger.WarnContext(ctx, "invalid JWT token", logError(err))
 		return ErrUnauthenticatedUser

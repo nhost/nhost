@@ -19,6 +19,7 @@ import (
 	"github.com/nhost/nhost/internal/lib/oapi"
 	"github.com/nhost/nhost/services/auth/go/controller"
 	"github.com/nhost/nhost/services/auth/go/controller/mock"
+	"github.com/nhost/nhost/services/auth/go/tokenpurpose"
 	"go.uber.org/mock/gomock"
 )
 
@@ -60,7 +61,7 @@ func TestGetJWTFunc(t *testing.T) {
 			expectedToken: &jwt.Token{
 				Raw:    "ignored",
 				Method: &jwt.SigningMethodHMAC{Name: "HS256", Hash: crypto.SHA256},
-				Header: map[string]any{"alg": string("HS256"), "typ": string("JWT")},
+				Header: map[string]any{"alg": string("HS256"), "typ": string("nhost-session+jwt")},
 				Claims: jwt.MapClaims{
 					"exp": float64(1.708103735e+09),
 					"https://hasura.io/jwt/claims": map[string]any{
@@ -96,7 +97,7 @@ func TestGetJWTFunc(t *testing.T) {
 			expectedToken: &jwt.Token{
 				Raw:    "ignored",
 				Method: &jwt.SigningMethodHMAC{Name: "HS256", Hash: crypto.SHA256},
-				Header: map[string]any{"alg": string("HS256"), "typ": string("JWT")},
+				Header: map[string]any{"alg": string("HS256"), "typ": string("nhost-session+jwt")},
 				Claims: jwt.MapClaims{
 					"exp": float64(1.708103735e+09),
 					"https://hasura.io/jwt/claims": map[string]any{
@@ -132,7 +133,7 @@ func TestGetJWTFunc(t *testing.T) {
 			expectedToken: &jwt.Token{
 				Raw:    "ignored",
 				Method: &jwt.SigningMethodHMAC{Name: "HS256", Hash: crypto.SHA256},
-				Header: map[string]any{"alg": string("HS256"), "typ": string("JWT")},
+				Header: map[string]any{"alg": string("HS256"), "typ": string("nhost-session+jwt")},
 				Claims: jwt.MapClaims{
 					"exp": float64(1.708103735e+09),
 					"some/namespace": map[string]any{
@@ -168,7 +169,7 @@ func TestGetJWTFunc(t *testing.T) {
 			expectedToken: &jwt.Token{
 				Raw:    "ignored",
 				Method: &jwt.SigningMethodHMAC{Name: "HS256", Hash: crypto.SHA256},
-				Header: map[string]any{"alg": string("HS256"), "typ": string("JWT")},
+				Header: map[string]any{"alg": string("HS256"), "typ": string("nhost-session+jwt")},
 				Claims: jwt.MapClaims{
 					"exp": 1.708103735e+09,
 					"https://hasura.io/jwt/claims": map[string]any{
@@ -264,7 +265,7 @@ func TestGetJWTFunc(t *testing.T) {
 
 			t.Logf("token = %v", accessToken)
 
-			decodedToken, err := jwtGetter.Validate(accessToken)
+			decodedToken, err := jwtGetter.Validate(accessToken, tokenpurpose.Session)
 			if err != nil {
 				t.Fatalf("fn() err = %v; want nil", err)
 			}
@@ -286,6 +287,7 @@ func signTestToken(
 	t *testing.T,
 	jwtGetter *controller.JWTGetter,
 	userID uuid.UUID,
+	purpose tokenpurpose.Purpose,
 	extraClaims map[string]any,
 ) string {
 	t.Helper()
@@ -302,7 +304,7 @@ func signTestToken(
 
 	maps.Copy(claims, extraClaims)
 
-	token, err := jwtGetter.SignTokenWithClaims(claims, time.Now().Add(24*time.Hour))
+	token, err := jwtGetter.SignTokenWithClaims(claims, time.Now().Add(24*time.Hour), purpose)
 	if err != nil {
 		t.Fatalf("failed to sign test token: %v", err)
 	}
@@ -310,7 +312,7 @@ func signTestToken(
 	return token
 }
 
-func TestMiddlewareFunc(t *testing.T) {
+func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 	t.Parallel()
 
 	userID := uuid.MustParse("f90782de-f0a3-41fe-b778-01e4f80c2413")
@@ -320,8 +322,8 @@ func TestMiddlewareFunc(t *testing.T) {
 		t.Fatalf("failed to create signing jwt getter: %v", err)
 	}
 
-	nonElevatedToken := signTestToken(t, signingGetter, userID, nil)
-	elevatedToken := signTestToken(t, signingGetter, userID, map[string]any{
+	nonElevatedToken := signTestToken(t, signingGetter, userID, tokenpurpose.Session, nil)
+	elevatedToken := signTestToken(t, signingGetter, userID, tokenpurpose.Session, map[string]any{
 		"https://hasura.io/jwt/claims": map[string]any{
 			"x-hasura-allowed-roles":     []string{"me", "user", "editor"},
 			"x-hasura-auth-elevated":     userID.String(),
@@ -330,6 +332,40 @@ func TestMiddlewareFunc(t *testing.T) {
 			"x-hasura-user-is-anonymous": "false",
 		},
 	})
+	// An access token for a client granted the "graphql" scope also carries
+	// the Hasura claims, which signTestToken adds to every token.
+	oauth2AccessToken := signTestToken(
+		t, signingGetter, userID, tokenpurpose.OAuth2AccessToken,
+		map[string]any{"aud": "some-client", "scope": "openid graphql"},
+	)
+	oidcIDToken := signTestToken(
+		t, signingGetter, userID, tokenpurpose.OIDCIDToken,
+		map[string]any{"aud": "some-client"},
+	)
+	providerStateToken := signTestToken(
+		t, signingGetter, userID, tokenpurpose.ProviderState, nil,
+	)
+	// Sessions signed before session tokens had their own type used the
+	// default "JWT" type, the one OIDC ID tokens still carry.
+	legacySessionToken := signTestToken(
+		t, signingGetter, userID, tokenpurpose.OIDCIDToken, nil,
+	)
+	legacyOAuth2AccessToken := signTestToken(
+		t, signingGetter, userID, tokenpurpose.OIDCIDToken,
+		map[string]any{"aud": "some-client", "scope": "openid graphql"},
+	)
+	legacyTypeWithoutHasuraClaims := signTestToken(
+		t, signingGetter, userID, tokenpurpose.OIDCIDToken,
+		map[string]any{"https://hasura.io/jwt/claims": nil},
+	)
+
+	rejected := func(scheme string) error {
+		return &oapi.AuthenticatorError{
+			Scheme:  scheme,
+			Code:    "unauthorized",
+			Message: "invalid or expired token",
+		}
+	}
 
 	cases := []struct {
 		name         string
@@ -481,6 +517,160 @@ func TestMiddlewareFunc(t *testing.T) {
 			scheme:     "BearerAuthElevated",
 			requestURL: &url.URL{Path: "/user/webauthn/verify"},
 			expectErr:  nil,
+		},
+
+		{
+			name:         "BearerAuth: rejects an OAuth2 access token",
+			elevatedMode: "disabled",
+			db:           mock.NewMockDBClient,
+			token:        oauth2AccessToken,
+			scheme:       "BearerAuth",
+			requestURL:   nil,
+			expectErr:    rejected("BearerAuth"),
+		},
+
+		{
+			name:         "BearerAuth: rejects an OIDC ID token",
+			elevatedMode: "disabled",
+			db:           mock.NewMockDBClient,
+			token:        oidcIDToken,
+			scheme:       "BearerAuth",
+			requestURL:   nil,
+			expectErr:    rejected("BearerAuth"),
+		},
+
+		{
+			name:         "BearerAuth: rejects a provider state token",
+			elevatedMode: "disabled",
+			db:           mock.NewMockDBClient,
+			token:        providerStateToken,
+			scheme:       "BearerAuth",
+			requestURL:   nil,
+			expectErr:    rejected("BearerAuth"),
+		},
+
+		{
+			name:         "BearerAuth: accepts a legacy session token",
+			elevatedMode: "disabled",
+			db:           mock.NewMockDBClient,
+			token:        legacySessionToken,
+			scheme:       "BearerAuth",
+			requestURL:   nil,
+			expectErr:    nil,
+		},
+
+		{
+			name:         "BearerAuth: rejects a legacy-typed token without Hasura claims",
+			elevatedMode: "disabled",
+			db:           mock.NewMockDBClient,
+			token:        legacyTypeWithoutHasuraClaims,
+			scheme:       "BearerAuth",
+			requestURL:   nil,
+			expectErr:    rejected("BearerAuth"),
+		},
+
+		{
+			name:         "BearerAuth: rejects a legacy OAuth2 access token",
+			elevatedMode: "disabled",
+			db:           mock.NewMockDBClient,
+			token:        legacyOAuth2AccessToken,
+			scheme:       "BearerAuth",
+			requestURL:   nil,
+			expectErr:    rejected("BearerAuth"),
+		},
+
+		{
+			name:         "BearerAuthElevated: elevated disabled, rejects a legacy OAuth2 access token",
+			elevatedMode: "disabled",
+			db:           mock.NewMockDBClient,
+			token:        legacyOAuth2AccessToken,
+			scheme:       "BearerAuthElevated",
+			requestURL:   nil,
+			expectErr:    rejected("BearerAuthElevated"),
+		},
+
+		{
+			name:         "BearerAuthElevated: elevated disabled, rejects an OAuth2 access token",
+			elevatedMode: "disabled",
+			db:           mock.NewMockDBClient,
+			token:        oauth2AccessToken,
+			scheme:       "BearerAuthElevated",
+			requestURL:   nil,
+			expectErr:    rejected("BearerAuthElevated"),
+		},
+
+		{
+			name:         "BearerAuthElevated: elevated disabled, rejects an OIDC ID token",
+			elevatedMode: "disabled",
+			db:           mock.NewMockDBClient,
+			token:        oidcIDToken,
+			scheme:       "BearerAuthElevated",
+			requestURL:   nil,
+			expectErr:    rejected("BearerAuthElevated"),
+		},
+
+		{
+			name:         "BearerAuthOAuth2: accepts an OAuth2 access token",
+			elevatedMode: "disabled",
+			db:           mock.NewMockDBClient,
+			token:        oauth2AccessToken,
+			scheme:       "BearerAuthOAuth2",
+			requestURL:   nil,
+			expectErr:    nil,
+		},
+
+		{
+			name:         "BearerAuthOAuth2: accepts a legacy OAuth2 access token",
+			elevatedMode: "disabled",
+			db:           mock.NewMockDBClient,
+			token:        legacyOAuth2AccessToken,
+			scheme:       "BearerAuthOAuth2",
+			requestURL:   nil,
+			expectErr:    nil,
+		},
+
+		{
+			name:         "BearerAuthOAuth2: rejects a session token",
+			elevatedMode: "disabled",
+			db:           mock.NewMockDBClient,
+			token:        nonElevatedToken,
+			scheme:       "BearerAuthOAuth2",
+			requestURL:   nil,
+			expectErr:    rejected("BearerAuthOAuth2"),
+		},
+
+		{
+			name:         "BearerAuthOAuth2: rejects a legacy session token",
+			elevatedMode: "disabled",
+			db:           mock.NewMockDBClient,
+			token:        legacySessionToken,
+			scheme:       "BearerAuthOAuth2",
+			requestURL:   nil,
+			expectErr:    rejected("BearerAuthOAuth2"),
+		},
+
+		{
+			name:         "BearerAuthOAuth2: rejects an OIDC ID token",
+			elevatedMode: "disabled",
+			db:           mock.NewMockDBClient,
+			token:        oidcIDToken,
+			scheme:       "BearerAuthOAuth2",
+			requestURL:   nil,
+			expectErr:    rejected("BearerAuthOAuth2"),
+		},
+
+		{
+			name:         "unknown scheme accepts no token",
+			elevatedMode: "disabled",
+			db:           mock.NewMockDBClient,
+			token:        nonElevatedToken,
+			scheme:       "SomeOtherScheme",
+			requestURL:   nil,
+			expectErr: &oapi.AuthenticatorError{
+				Scheme:  "SomeOtherScheme",
+				Code:    "unauthorized",
+				Message: "unsupported security scheme",
+			},
 		},
 	}
 

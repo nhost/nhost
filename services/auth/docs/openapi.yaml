@@ -1305,7 +1305,7 @@ paths:
   /token/verify:
     post:
       summary: Verify JWT token
-      description: Verify the validity of a JWT access token. If no request body is provided, the Authorization header will be used for verification.
+      description: Verify the validity of a session access token issued on sign-in. If no request body is provided, the Authorization header will be used for verification. Access tokens and ID tokens issued by the OAuth2 provider are rejected; verify OAuth2 access tokens with /oauth2/introspect instead.
       operationId: verifyToken
       tags:
         - session
@@ -2031,7 +2031,7 @@ paths:
       tags:
         - user
       security:
-        - BearerAuth: []
+        - BearerAuthOAuth2: []
       responses:
         "200":
           description: UserInfo claims
@@ -2052,7 +2052,7 @@ paths:
       tags:
         - user
       security:
-        - BearerAuth: []
+        - BearerAuthOAuth2: []
       responses:
         "200":
           description: UserInfo claims
@@ -2205,11 +2205,16 @@ components:
     BearerAuth:
       type: http
       scheme: bearer
-      description: "Bearer authentication with JWT access token. Used to authenticate requests to protected endpoints."
+      description: "Bearer authentication with a session access token issued on sign-in. Used to authenticate requests to protected endpoints. Access tokens and ID tokens issued by the OAuth2 provider are not accepted."
     BearerAuthElevated:
       type: http
       scheme: bearer
       description: "Bearer authentication that requires elevated permissions. Used for sensitive operations that may require additional security measures such as recent authentication. For details see https://docs.nhost.io/products/auth/elevated-permissions"
+    BearerAuthOAuth2:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "Bearer authentication with an access token issued by the OAuth2 provider to an OAuth2 client (a JWT with the at+jwt type, RFC 9068). Session access tokens are not accepted."
 
   schemas:
     AttestationFormat:
@@ -3602,7 +3607,7 @@ components:
       properties:
         token:
           type: string
-          description: JWT token to verify
+          description: Session access token to verify
 
     # =========================================================================
     # OAuth2/OIDC Identity Provider schemas

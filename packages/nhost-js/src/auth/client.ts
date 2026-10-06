@@ -1761,10 +1761,10 @@ export interface VerifyAddSecurityKeyResponse {
 
 /**
  * 
- @property token? (`string`) - JWT token to verify*/
+ @property token? (`string`) - Session access token to verify*/
 export interface VerifyTokenRequest {
   /**
-   * JWT token to verify
+   * Session access token to verify
    */
   token?: string;
 }
@@ -3004,7 +3004,7 @@ If the user already exists at callback time, they are redirected with `error=use
 
   /**
      Summary: Verify JWT token
-     Verify the validity of a JWT access token. If no request body is provided, the Authorization header will be used for verification.
+     Verify the validity of a session access token issued on sign-in. If no request body is provided, the Authorization header will be used for verification. Access tokens and ID tokens issued by the OAuth2 provider are rejected; verify OAuth2 access tokens with /oauth2/introspect instead.
 
      This method may return different T based on the response code:
      - 200: string

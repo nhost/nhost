@@ -1768,7 +1768,7 @@ verifyToken(body?: VerifyTokenRequest, options?: RequestInit): Promise<FetchResp
 ```
 
 Summary: Verify JWT token
-Verify the validity of a JWT access token. If no request body is provided, the Authorization header will be used for verification.
+Verify the validity of a session access token issued on sign-in. If no request body is provided, the Authorization header will be used for verification. Access tokens and ID tokens issued by the OAuth2 provider are rejected; verify OAuth2 access tokens with /oauth2/introspect instead.
 
 This method may return different T based on the response code:
 
@@ -4757,7 +4757,7 @@ Type of the ticket. Deprecated, no longer used
 optional token?: string;
 ```
 
-JWT token to verify
+Session access token to verify
 
 # Type Aliases
 

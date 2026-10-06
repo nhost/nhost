@@ -11,6 +11,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/nhost/nhost/services/auth/go/api"
+	"github.com/nhost/nhost/services/auth/go/tokenpurpose"
 )
 
 func (p *Provider) IntrospectToken(
@@ -100,7 +101,7 @@ func (p *Provider) introspectAccessToken(
 	token string,
 	clientID string,
 ) *api.OAuth2IntrospectResponse {
-	jwtToken, err := p.signer.Validate(token)
+	jwtToken, err := p.signer.Validate(token, tokenpurpose.OAuth2AccessToken)
 	if err != nil {
 		return nil
 	}

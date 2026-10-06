@@ -262,11 +262,27 @@ default = "default-value"
   </TabItem>
 </Tabs>
 
+:::caution
+Don't use `claims_map` to supply missing roles for tokens signed by Nhost Auth. This can grant GraphQL and Storage access to ID tokens or OAuth2 access tokens without a `graphql` scope.
+:::
+
 The complete `#JWTSecret` schema, with every field and default, is documented in the [configuration reference](/reference/configuration#jwtsecret).
 
 ## Verify a JWT
 
 To verify JWTs inside Nhost Functions (for both symmetric and asymmetric keys), see the [JWT Verification guide](/products/functions/guides/jwt-verification).
+
+Nhost Auth signs every kind of token it issues with the same key, and marks each kind in the JWT's `typ` header:
+
+| Token | `typ` |
+|-------|-------|
+| Session access token, issued to your app on sign-in | `nhost-session+jwt` |
+| OAuth2 access token, issued to a third-party app by the [OAuth2 provider](/products/auth/oauth2-provider/tokens-and-scopes) | `at+jwt` |
+| OIDC ID token, issued to a third-party app by the OAuth2 provider | `JWT` |
+
+When your own code expects a session token, for example in [Functions](/products/functions/guides/jwt-verification), check for `typ: nhost-session+jwt` to reject tokens issued for other purposes, such as those the OAuth2 provider issues to third-party apps. Older Auth versions used `typ: JWT` for all token types.
+
+The GraphQL API and Storage don't need this check: they authorize from the token's role claims, which OAuth2 access tokens carry only when the app was granted a [`graphql` scope](/products/auth/oauth2-provider/tokens-and-scopes#the-graphql-scope).
 
 ## Custom Claims
 

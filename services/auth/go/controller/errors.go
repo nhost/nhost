@@ -26,6 +26,8 @@ var errDuplicateClientCredentials = errors.New(
 	"client credentials MUST NOT be provided in both the Authorization header and the request body",
 )
 
+var errTokenPurposeMismatch = errors.New("token purpose mismatch")
+
 var (
 	ErrJWTConfiguration = errors.New("jwt-configuration")
 

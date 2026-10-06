@@ -23,6 +23,7 @@ import (
 	"github.com/nhost/nhost/services/auth/go/providers"
 	"github.com/nhost/nhost/services/auth/go/sql"
 	"github.com/nhost/nhost/services/auth/go/testhelpers"
+	"github.com/nhost/nhost/services/auth/go/tokenpurpose"
 	"go.uber.org/mock/gomock"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -442,7 +443,7 @@ func assertSession(
 	if expectedSession == nil {
 		token = nil
 	} else {
-		token, err = jwtGetter.Validate(expectedSession.AccessToken)
+		token, err = jwtGetter.Validate(expectedSession.AccessToken, tokenpurpose.Session)
 		if err != nil {
 			t.Fatalf("failed to get claims: %v", err)
 		}
