@@ -34,7 +34,7 @@ describe('DashboardSidebar', () => {
     renderSidebar();
 
     expect(screen.getByRole('complementary')).toHaveClass('w-[200px]');
-    expect(screen.getByText('Overview')).not.toHaveClass('sr-only');
+    expect(screen.getByText('Overview')).not.toHaveClass('opacity-0');
   });
 
   it('collapses to icon-only navigation and persists the state', () => {
@@ -44,8 +44,13 @@ describe('DashboardSidebar', () => {
 
     expect(screen.getByRole('complementary')).toHaveClass('w-[72px]');
     expect(window.localStorage.getItem(storageKey)).toBe('true');
-    expect(screen.getByText('Overview')).toHaveClass('sr-only');
-    expect(screen.getByText('Build')).toHaveClass('sr-only');
+    // Labels stay in the DOM (they're the links' accessible names) and are
+    // only faded out while the sidebar narrows over them.
+    expect(screen.getByText('Overview')).toHaveClass('opacity-0');
+    expect(screen.getByRole('link', { name: 'Overview' })).toBeInTheDocument();
+    expect(screen.getByText('Build').parentElement?.parentElement).toHaveClass(
+      'grid-rows-[0fr]',
+    );
     expect(
       screen.getByRole('button', { name: 'Expand sidebar' }),
     ).toHaveAttribute('aria-pressed', 'true');

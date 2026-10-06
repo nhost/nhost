@@ -6,7 +6,7 @@ import {
   NavigationListContext,
 } from '@/components/layout/NavigationList';
 import { mockRouter } from '@/tests/mocks';
-import { fireEvent, render, screen, within } from '@/tests/testUtils';
+import { act, fireEvent, render, screen, within } from '@/tests/testUtils';
 
 vi.mock('next/router', () => ({
   useRouter: vi.fn(),
@@ -175,5 +175,61 @@ describe('NavigationList', () => {
 
     const tooltip = await screen.findByRole('tooltip');
     expect(within(tooltip).getByText('Database')).toBeInTheDocument();
+  });
+
+  it('keeps the same item elements when collapsing, so the transitions run', () => {
+    function renderWithCollapsed(collapsed: boolean) {
+      return (
+        <NavigationListContext.Provider value={{ collapsed }}>
+          <NavigationList ariaLabel="Test navigation">
+            <NavigationList.Section>
+              <NavigationList.Item
+                label="Overview"
+                href="/overview"
+                icon={<HomeIcon className="size-4" />}
+              />
+            </NavigationList.Section>
+          </NavigationList>
+        </NavigationListContext.Provider>
+      );
+    }
+
+    const { rerender } = render(renderWithCollapsed(false));
+    const link = screen.getByRole('link', { name: 'Overview' });
+
+    rerender(renderWithCollapsed(true));
+    expect(screen.getByRole('link', { name: 'Overview' })).toBe(link);
+
+    rerender(renderWithCollapsed(false));
+    expect(screen.getByRole('link', { name: 'Overview' })).toBe(link);
+  });
+
+  it('does not show a tooltip for an item hovered before collapsing', async () => {
+    function renderWithCollapsed(collapsed: boolean) {
+      return (
+        <NavigationListContext.Provider value={{ collapsed }}>
+          <NavigationList ariaLabel="Test navigation">
+            <NavigationList.Section>
+              <NavigationList.Item
+                label="Settings"
+                href="/settings"
+                icon={<CogIcon className="size-4" />}
+              />
+            </NavigationList.Section>
+          </NavigationList>
+        </NavigationListContext.Provider>
+      );
+    }
+
+    const { rerender } = render(renderWithCollapsed(false));
+    const link = screen.getByRole('link', { name: 'Settings' });
+    fireEvent.pointerMove(link);
+    // Let the tooltip's open timer fire, like a pointer passing over the item.
+    await act(() => new Promise((resolve) => setTimeout(resolve, 10)));
+    fireEvent.pointerLeave(link);
+
+    rerender(renderWithCollapsed(true));
+
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
   });
 });

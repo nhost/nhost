@@ -31,7 +31,7 @@ export default function DashboardSidebar({
     <NavigationListContext.Provider value={{ collapsed }}>
       <aside
         className={cn(
-          'flex h-full shrink-0 flex-col border-r transition-[width] duration-200 ease-in-out',
+          'flex h-full shrink-0 flex-col overflow-hidden border-r transition-[width] duration-300 ease-in-out motion-reduce:transition-none',
           collapsed ? COLLAPSED_WIDTH_CLASS : EXPANDED_WIDTH_CLASS,
           className,
         )}
@@ -39,10 +39,12 @@ export default function DashboardSidebar({
       >
         {children}
 
+        {/* The padding keeps the 28px toggle on the same axis as the nav
+            icons, and animates with them to the center when collapsed. */}
         <div
           className={cn(
-            'flex shrink-0 items-center px-2 pt-1 pb-3',
-            collapsed ? 'justify-center' : 'justify-start',
+            'flex shrink-0 items-center pt-1 pb-3 transition-[padding] duration-300 ease-in-out motion-reduce:transition-none',
+            collapsed ? 'pl-[22px]' : 'pl-2.5',
           )}
         >
           <Button
