@@ -1,6 +1,6 @@
 ---
 title: Build with an AI assistant
-description: "Describe the change, let an AI assistant run the Nhost CLI and write the migration, then review and commit what it wrote."
+description: "Connect an AI assistant over MCP, describe the change, and it runs the Nhost CLI and writes the migration. You review and commit."
 keywords: ["AI assistant", "agentic development", "MCP", "no CLI", "migrations", "getting started", "Nhost Cloud", "local development"]
 head:
   - tag: title
@@ -8,34 +8,43 @@ head:
 sidebar:
   label: Build with an assistant
 ---
-import { Card, CardGroup } from '@components';
+import { Card, CardGroup, Prompt } from '@components';
 
-You do not have to learn the Nhost CLI. Connect an assistant, describe what you want, and it runs the commands and writes the migration files. You review them and commit.
+Connect an AI assistant over MCP, describe the change you want, and it runs the Nhost CLI and writes the migration files. You review them and commit.
 
-> Add a movies table with a title, director, and rating, and let signed-in users read it.
+<Prompt
+  title="Ask for what you want, in words"
+  copy="Add a movies table with a title, director, and rating, and let signed-in users read it."
+>
+Add a movies table with a title, director, and rating, and let signed-in users read it.
+</Prompt>
 
-That works the same whether the backend runs on your machine or on Nhost Cloud. The [quickstarts](/getting-started/quickstart/react) each show the assistant path alongside the manual one.
+This works the same whether your backend runs locally on your machine or on Nhost Cloud. Check out the [quickstarts](/getting-started/quickstart/react) for a framework-specific start.
+
+## 1. Connect your assistant
 
 <CardGroup cols={2}>
   <Card title="Connect an assistant" icon="robot" href="/getting-started/agentic-workflows">
-    Pick a setup and point it at your project
+    One command, for a local or cloud project
   </Card>
   <Card title="Scope what it can do" icon="key" href="/platform/cli/mcp/cloud-setup#scoping-access">
     Full access locally, read-only against real data
   </Card>
 </CardGroup>
 
-## Three things to check yourself
+Give it full access on a local project. Nothing there is real, and the faster loop is worth more than the guardrails. Against a project on Nhost Cloud, start read-only and widen deliberately.
+
+## 2. Check 3 things yourself
 
 The assistant does the work. These are the parts worth your own eyes.
 
-**Read the migration.** Every schema change writes a file under `nhost/migrations/`. That file is what runs against every other environment, so reading it is the fastest way to catch a column type or a nullability choice you did not intend.
+**Read the migration.** Every schema change writes a file under `nhost/migrations/`. That file runs against every other environment, so reading it is the fastest way to catch a column type or a nullability choice you did not intend.
 
-**Verify permissions.** They are the security boundary for your project: every GraphQL request runs under a role and is filtered by these rules, including the assistant's own. Describe the rule in chat, then open **Database → Permissions** in the dashboard and read back what was applied. See [Permissions](/products/graphql/permissions).
+**Verify permissions.** They are the security boundary for your project: every GraphQL request runs under a role and is filtered by these rules, including the assistant's own. Open **Database → Permissions** in the dashboard and read back what was applied. See [Permissions](/products/graphql/permissions).
 
-**Set secrets yourself.** Ask the assistant which variables a service needs, then enter the values through the dashboard so the real credential never passes through a chat transcript. See [secrets](/platform/cloud/secrets).
+**Set secrets yourself.** Ask which variables a service needs, then enter the values through the dashboard so the real credential never passes through a chat transcript. See [secrets](/platform/cloud/secrets).
 
-## Commit what it wrote
+## 3. Commit what it wrote
 
 This is what makes the workflow durable rather than a pile of untracked changes. The assistant writes migrations under `nhost/migrations/`, metadata under `nhost/metadata/`, and configuration in `nhost.toml`. Commit them, and the project becomes reproducible: another developer runs `nhost up` and gets the same backend, and [deployments](/platform/cloud/deployments) apply the same migrations to Nhost Cloud.
 
