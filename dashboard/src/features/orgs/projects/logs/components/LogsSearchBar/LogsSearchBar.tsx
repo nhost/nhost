@@ -64,7 +64,7 @@ const LogsSearchBar = forwardRef<HTMLInputElement, LogsSearchBarProps>(
     return (
       <div
         className={cn(
-          'flex items-center gap-2 border-b border-divider bg-paper px-3 py-2',
+          'flex items-center gap-2 border-b border-divider px-3 py-2',
           className,
         )}
       >
