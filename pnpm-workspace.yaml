@@ -106,6 +106,8 @@ overrides:
   "brace-expansion@>=4.0.0 <5.0.12": ">=5.0.12"
   "seroval@<=1.6.2": "1.6.3"
   "postcss-selector-parser@<7.1.6": "7.1.6"
+  "source-map-js@<1.2.2": "1.2.2"
+  "@graphql-tools/utils@<=12.0.0": "12.0.1"
 
 minimumReleaseAgeExclude:
   - path-to-regexp@6.3.0
