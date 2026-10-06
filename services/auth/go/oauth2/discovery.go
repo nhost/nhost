@@ -41,7 +41,7 @@ func (p *Provider) BuildDiscoveryResponse() api.OAuth2DiscoveryResponse {
 		ClaimsSupported: &[]string{
 			claimSub,
 			"name",
-			scopeEmail,
+			claimEmail,
 			"email_verified",
 			"picture",
 			"locale",

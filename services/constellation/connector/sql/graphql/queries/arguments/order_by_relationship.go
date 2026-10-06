@@ -297,6 +297,17 @@ func buildAggregateColumnOrderItems(
 	return items, nil
 }
 
+// GraphQL aggregate function names accepted in aggregate order_by objects; the
+// dialect renders the backend-specific SQL.
+const (
+	stddev     = "stddev"
+	stddevPop  = "stddev_pop"
+	stddevSamp = "stddev_samp"
+	varPop     = "var_pop"
+	varSamp    = "var_samp"
+	variance   = "variance"
+)
+
 // aggregateOrderByFuncs is the closed set of aggregate order_by object keys.
 // count is handled separately (COUNT(*)). bool_and/bool_or are intentionally
 // absent — Hasura does not expose them in aggregate order_by. The values are

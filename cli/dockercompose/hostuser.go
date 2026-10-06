@@ -19,7 +19,10 @@ const (
 )
 
 // For rootful docker daemon.
-const defaultDockerEndpoint = "unix:///var/run/docker.sock"
+const (
+	dockerSocketPath      = "/var/run/docker.sock"
+	defaultDockerEndpoint = "unix://" + dockerSocketPath
+)
 
 type dockerHostResolution struct {
 	dockerURL       *url.URL
@@ -107,7 +110,7 @@ func autoUser(hostOS, endpoint string, uid, gid int) string {
 		return "" // ssh://, tcp://, npipe://
 	}
 
-	if path != "/var/run/docker.sock" &&
+	if path != dockerSocketPath &&
 		path != "/run/docker.sock" &&
 		path != "/var/run/podman/podman.sock" &&
 		path != "/run/podman/podman.sock" {

@@ -185,7 +185,7 @@ func finalizeMaxIterations(
 		}
 	}
 
-	if err := writeEventAndFlush(writer, errorKey, maxIterationsExceededWarn); err != nil {
+	if err := writeEventAndFlush(writer, sseEventError, maxIterationsExceededWarn); err != nil {
 		return LoopResult{Messages: newMessages, PendingCalls: nil}, err
 	}
 

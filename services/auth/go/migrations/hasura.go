@@ -80,7 +80,7 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 									Schema: schemaAuth,
 									Name:   tableRefreshTokens,
 								},
-								Columns: []string{typeKey},
+								Columns: []string{colType},
 							},
 						},
 					},
@@ -117,7 +117,7 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 				},
 				ObjectRelationships: []metadata.ObjectRelationshipConfig{
 					{
-						Name: roleUser,
+						Name: fieldUser,
 						Using: metadata.ObjectRelationshipConfigUsing{
 							ForeignKeyConstraintOn: colUserID,
 						},
@@ -147,7 +147,7 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 						DeleteByPk:      "deleteAuthRole",
 					},
 					CustomColumnNames: map[string]string{
-						colRole: colRole,
+						colRole: fieldRole,
 					},
 				},
 				ArrayRelationships: []metadata.ArrayRelationshipConfig{
@@ -212,7 +212,7 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 				},
 				ObjectRelationships: []metadata.ObjectRelationshipConfig{
 					{
-						Name: roleUser,
+						Name: fieldUser,
 						Using: metadata.ObjectRelationshipConfigUsing{
 							ForeignKeyConstraintOn: colUserID,
 						},
@@ -251,12 +251,12 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 						"id":         "id",
 						colCreatedAt: fieldCreatedAt,
 						colUserID:    fieldUserID,
-						colRole:      colRole,
+						colRole:      fieldRole,
 					},
 				},
 				ObjectRelationships: []metadata.ObjectRelationshipConfig{
 					{
-						Name: roleUser,
+						Name: fieldUser,
 						Using: metadata.ObjectRelationshipConfigUsing{
 							ForeignKeyConstraintOn: colUserID,
 						},
@@ -279,10 +279,10 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 					Name:   tableUsers,
 				},
 				Configuration: metadata.Configuration{ //nolint:exhaustruct
-					CustomName: tableUsers,
+					CustomName: fieldUsers,
 					CustomRootFields: metadata.CustomRootFields{ //nolint:exhaustruct
-						Select:          tableUsers,
-						SelectByPk:      roleUser,
+						Select:          fieldUsers,
+						SelectByPk:      fieldUser,
 						SelectAggregate: "usersAggregate",
 						Insert:          "insertUsers",
 						InsertOne:       "insertUser",
@@ -473,7 +473,7 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 				},
 				ObjectRelationships: []metadata.ObjectRelationshipConfig{
 					{
-						Name: roleUser,
+						Name: fieldUser,
 						Using: metadata.ObjectRelationshipConfigUsing{
 							ForeignKeyConstraintOn: colUserID,
 						},
@@ -506,8 +506,8 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 						colClientID:                    fieldClientID,
 						"client_secret_hash":           "clientSecretHash",
 						"redirect_uris":                "redirectUris",
-						colScopes:                      colScopes,
-						typeKey:                        typeKey,
+						colScopes:                      fieldScopes,
+						colType:                        fieldType,
 						"metadata":                     "metadata",
 						"metadata_document_fetched_at": "metadataDocumentFetchedAt",
 						"created_by":                   "createdBy",
@@ -575,7 +575,7 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 					CustomColumnNames: map[string]string{
 						"id":                    "id",
 						colClientID:             fieldClientID,
-						colScopes:               colScopes,
+						colScopes:               fieldScopes,
 						"redirect_uri":          "redirectUri",
 						"state":                 "state",
 						"nonce":                 "nonce",
@@ -598,7 +598,7 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 						},
 					},
 					{
-						Name: roleUser,
+						Name: fieldUser,
 						Using: metadata.ObjectRelationshipConfigUsing{
 							ForeignKeyConstraintOn: colUserID,
 						},
@@ -698,7 +698,7 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 						colAuthRequestID: "authRequestId",
 						colClientID:      fieldClientID,
 						colUserID:        fieldUserID,
-						colScopes:        colScopes,
+						colScopes:        fieldScopes,
 						colCreatedAt:     fieldCreatedAt,
 						colExpiresAt:     fieldExpiresAt,
 					},
@@ -717,7 +717,7 @@ func authTables() []metadata.TrackTable { //nolint: funlen,maintidx
 						},
 					},
 					{
-						Name: roleUser,
+						Name: fieldUser,
 						Using: metadata.ObjectRelationshipConfigUsing{
 							ForeignKeyConstraintOn: colUserID,
 						},
@@ -765,14 +765,18 @@ const (
 	fieldRefreshTokens       = "refreshTokens"
 	tableRefreshTokens       = "refresh_tokens"
 	colRole                  = "role"
+	fieldRole                = "role"
 	colScopes                = "scopes"
-	typeKey                  = "type"
+	fieldScopes              = "scopes"
+	colType                  = "type"
+	fieldType                = "type"
 	fieldUpdatedAt           = "updatedAt"
 	colUpdatedAt             = "updated_at"
-	roleUser                 = "user"
+	fieldUser                = "user"
 	fieldUserID              = "userId"
 	colUserID                = "user_id"
 	tableUserProviders       = "user_providers"
 	tableUserRoles           = "user_roles"
 	tableUsers               = "users"
+	fieldUsers               = "users"
 )

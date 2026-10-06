@@ -46,7 +46,7 @@ func ports(host, container uint) []Port {
 
 	return []Port{
 		{
-			Mode:      svcIngress,
+			Mode:      portModeIngress,
 			Target:    container,
 			Published: strconv.FormatUint(uint64(host), 10),
 			Protocol:  tcp,
@@ -301,7 +301,7 @@ func traefik(
 		volumes = append(volumes, Volume{
 			Type:     bind,
 			Source:   dockerURL.Path,
-			Target:   "/var/run/docker.sock",
+			Target:   dockerSocketPath,
 			ReadOnly: new(true),
 			// Relabel the socket with a shared SELinux label so traefik can
 			// reach the docker daemon on SELinux/Podman hosts (no-op elsewhere).
@@ -334,7 +334,7 @@ func traefik(
 		Networks:    networkAliases(traefikAliases(subdomain)...),
 		Ports: []Port{
 			{
-				Mode:      svcIngress,
+				Mode:      portModeIngress,
 				Target:    port,
 				Published: strconv.FormatUint(uint64(port), 10),
 				Protocol:  tcp,
@@ -920,24 +920,25 @@ func ComposeFileFromConfig( //nolint:funlen
 
 // Repeated docker-compose service names, mount types and healthcheck tokens.
 const (
-	spider          = "--spider"
-	v1PathRegex     = "/v1(/|$$)(.*)"
-	healthTimeout   = "60s"
-	healthCmd       = "CMD"
-	healthCmdShell  = "CMD-SHELL"
-	always          = "always"
-	svcAuth         = "auth"
-	bind            = "bind"
-	svcConfigserver = "configserver"
-	svcConsole      = "console"
-	svcDashboard    = "dashboard"
-	svcGraphql      = "graphql"
-	svcIngress      = "ingress"
-	svcMailhog      = "mailhog"
-	svcPostgres     = "postgres"
-	serve           = "serve"
-	serviceHealthy  = "service_healthy"
-	tcp             = "tcp"
-	volumeType      = "volume"
-	wget            = "wget"
+	spider            = "--spider"
+	v1PathRegex       = "/v1(/|$$)(.*)"
+	healthTimeout     = "60s"
+	healthStartPeriod = "60s"
+	healthCmd         = "CMD"
+	healthCmdShell    = "CMD-SHELL"
+	always            = "always"
+	svcAuth           = "auth"
+	bind              = "bind"
+	svcConfigserver   = "configserver"
+	svcConsole        = "console"
+	svcDashboard      = "dashboard"
+	svcGraphql        = "graphql"
+	svcMailhog        = "mailhog"
+	svcPostgres       = "postgres"
+	serve             = "serve"
+	serviceHealthy    = "service_healthy"
+	portModeIngress   = "ingress"
+	tcp               = "tcp"
+	volumeType        = "volume"
+	wget              = "wget"
 )

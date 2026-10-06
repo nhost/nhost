@@ -85,7 +85,7 @@ func graphql( //nolint:funlen
 			},
 			Timeout:     healthTimeout,
 			Interval:    "5s",
-			StartPeriod: healthTimeout,
+			StartPeriod: healthStartPeriod,
 		},
 		Labels:     labels.Labels(),
 		Networks:   networkAliases("hasura-service"),
@@ -189,7 +189,7 @@ func console( //nolint:funlen
 			},
 			Timeout:     healthTimeout,
 			Interval:    "5s",
-			StartPeriod: healthTimeout,
+			StartPeriod: healthStartPeriod,
 		},
 		Labels: Ingresses{
 			{

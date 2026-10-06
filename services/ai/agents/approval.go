@@ -199,7 +199,7 @@ func (s *Service) resumeAfterApproval(
 			)
 		}
 
-		_ = writer.WriteEvent(errorKey, "internal error")
+		_ = writer.WriteEvent(sseEventError, "internal error")
 		writer.Flush()
 
 		return

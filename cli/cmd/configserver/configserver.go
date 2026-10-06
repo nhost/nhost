@@ -28,6 +28,8 @@ const (
 	storageLocalRunServicesPath = "storage-local-run-services-path"
 	appIDFlag                   = "app-id"
 	dockerComposeProjectEnv     = "DOCKER_COMPOSE_PROJECT"
+	categoryServer              = "server"
+	categoryPlugins             = "plugins"
 )
 
 // dashboardOriginRe matches the origins where the CLI-instantiated dashboard
@@ -50,7 +52,7 @@ func Command() *cli.Command {
 				Name:     bindFlag,
 				Usage:    "bind address",
 				Value:    ":8088",
-				Category: server,
+				Category: categoryServer,
 			},
 			&cli.BoolFlag{ //nolint: exhaustruct
 				Name:     debugFlag,
@@ -65,34 +67,34 @@ func Command() *cli.Command {
 			&cli.BoolFlag{ //nolint: exhaustruct
 				Name:     enablePlaygroundFlag,
 				Usage:    "enable graphql playground (under /v1)",
-				Category: server,
+				Category: categoryServer,
 				Sources:  cli.EnvVars("ENABLE_PLAYGROUND"),
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     storageLocalConfigPath,
 				Usage:    "Path to the local mimir config file",
 				Value:    "/tmp/root/nhost/nhost.toml",
-				Category: pluginsKey,
+				Category: categoryPlugins,
 				Sources:  cli.EnvVars("STORAGE_LOCAL_CONFIG_PATH"),
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     storageLocalSecretsPath,
 				Usage:    "Path to the local mimir secrets file",
 				Value:    "/tmp/root/.secrets",
-				Category: pluginsKey,
+				Category: categoryPlugins,
 				Sources:  cli.EnvVars("STORAGE_LOCAL_SECRETS_PATH"),
 			},
 			&cli.StringSliceFlag{ //nolint: exhaustruct
 				Name:     storageLocalRunServicesPath,
 				Usage:    "Path to the local mimir run services files",
-				Category: pluginsKey,
+				Category: categoryPlugins,
 				Sources:  cli.EnvVars("STORAGE_LOCAL_RUN_SERVICES_PATH"),
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     appIDFlag,
 				Usage:    "App ID this configserver instance represents",
 				Value:    ZeroUUID,
-				Category: server,
+				Category: categoryServer,
 				Sources:  cli.EnvVars("NHOST_APP_ID"),
 			},
 		},
@@ -241,9 +243,3 @@ func serve(_ context.Context, cmd *cli.Command) error {
 
 	return nil
 }
-
-// Repeated config keys.
-const (
-	pluginsKey = "plugins"
-	server     = "server"
-)

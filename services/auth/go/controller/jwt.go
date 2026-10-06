@@ -511,7 +511,7 @@ func (j *JWTGetter) MiddlewareFunc(
 	if len(parts) != 2 || parts[0] != "Bearer" {
 		return &oapi.AuthenticatorError{
 			Scheme:  input.SecuritySchemeName,
-			Code:    unauthorized,
+			Code:    codeUnauthorized,
 			Message: "missing or malformed authorization header",
 		}
 	}
@@ -522,7 +522,7 @@ func (j *JWTGetter) MiddlewareFunc(
 
 		return &oapi.AuthenticatorError{
 			Scheme:  input.SecuritySchemeName,
-			Code:    unauthorized,
+			Code:    codeUnauthorized,
 			Message: "invalid or expired token",
 		}
 	}
@@ -530,7 +530,7 @@ func (j *JWTGetter) MiddlewareFunc(
 	if !jwtToken.Valid {
 		return &oapi.AuthenticatorError{
 			Scheme:  input.SecuritySchemeName,
-			Code:    unauthorized,
+			Code:    codeUnauthorized,
 			Message: "invalid token",
 		}
 	}
@@ -549,7 +549,7 @@ func (j *JWTGetter) MiddlewareFunc(
 
 			return &oapi.AuthenticatorError{
 				Scheme:  input.SecuritySchemeName,
-				Code:    unauthorized,
+				Code:    codeUnauthorized,
 				Message: "error verifying elevated claim",
 			}
 		}
@@ -557,7 +557,7 @@ func (j *JWTGetter) MiddlewareFunc(
 		if !found {
 			return &oapi.AuthenticatorError{
 				Scheme:  input.SecuritySchemeName,
-				Code:    unauthorized,
+				Code:    codeUnauthorized,
 				Message: "elevated claim required",
 			}
 		}

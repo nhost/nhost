@@ -68,5 +68,6 @@ const (
 	invalidScope                    = "invalid_scope"
 	openid                          = "openid"
 	serverError                     = "server_error"
+	claimEmail                      = "email"
 	claimSub                        = "sub"
 )

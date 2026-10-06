@@ -11,7 +11,7 @@ import (
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 )
 
-const schemaName = schemaStorage
+const schemaName = "storage"
 
 //go:embed postgres/*.sql
 var postgresMigrations embed.FS

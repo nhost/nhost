@@ -137,13 +137,3 @@ func (d *DistinctOn) WriteSQL(b *strings.Builder) {
 
 	b.WriteString(")")
 }
-
-// SQL aggregate function names.
-const (
-	stddev     = "stddev"
-	stddevPop  = "stddev_pop"
-	stddevSamp = "stddev_samp"
-	varPop     = "var_pop"
-	varSamp    = "var_samp"
-	variance   = "variance"
-)

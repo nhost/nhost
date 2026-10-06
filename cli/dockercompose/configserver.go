@@ -6,6 +6,8 @@ import (
 	"slices"
 )
 
+const cmdConfigserver = "configserver"
+
 func configserver( //nolint: funlen
 	dockerURL *url.URL,
 	image,
@@ -64,7 +66,7 @@ func configserver( //nolint: funlen
 		volumes = append(volumes, Volume{
 			Type:     bind,
 			Source:   dockerURL.Path,
-			Target:   "/var/run/docker.sock",
+			Target:   dockerSocketPath,
 			ReadOnly: new(true),
 			// Relabel the socket with a shared SELinux label so the config
 			// server can reach the docker daemon on SELinux/Podman hosts.
@@ -78,7 +80,7 @@ func configserver( //nolint: funlen
 		DependsOn:  map[string]DependsOn{},
 		EntryPoint: []string{},
 		Command: append([]string{
-			svcConfigserver,
+			cmdConfigserver,
 			"--enable-playground",
 			"--debug",
 		}, extraArgs...),

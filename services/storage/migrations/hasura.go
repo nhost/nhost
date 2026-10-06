@@ -19,7 +19,7 @@ func storageTables(dbName string) []metadata.TrackTable { //nolint:funlen
 			Args: metadata.PgTrackTableArgs{
 				Source: dbName,
 				Table: metadata.Table{
-					Schema: schemaStorage,
+					Schema: schemaName,
 					Name:   tableBuckets,
 				},
 				Configuration: metadata.Configuration{
@@ -52,7 +52,7 @@ func storageTables(dbName string) []metadata.TrackTable { //nolint:funlen
 						Using: metadata.ArrayRelationshipConfigUsing{
 							ForeignKeyConstraintOn: metadata.ForeignKeyConstraintOn{
 								Table: metadata.Table{
-									Schema: schemaStorage,
+									Schema: schemaName,
 									Name:   tableFiles,
 								},
 								Columns: []string{colBucketID},
@@ -67,7 +67,7 @@ func storageTables(dbName string) []metadata.TrackTable { //nolint:funlen
 			Args: metadata.PgTrackTableArgs{
 				Source: dbName,
 				Table: metadata.Table{
-					Schema: schemaStorage,
+					Schema: schemaName,
 					Name:   tableFiles,
 				},
 				Configuration: metadata.Configuration{
@@ -112,14 +112,14 @@ func storageTables(dbName string) []metadata.TrackTable { //nolint:funlen
 			Args: metadata.PgTrackTableArgs{
 				Source: dbName,
 				Table: metadata.Table{
-					Schema: schemaStorage,
-					Name:   virus,
+					Schema: schemaName,
+					Name:   tableVirus,
 				},
 				Configuration: metadata.Configuration{
-					CustomName: virus,
+					CustomName: tableVirus,
 					CustomRootFields: metadata.CustomRootFields{
 						Select:          "viruses",
-						SelectByPk:      virus,
+						SelectByPk:      tableVirus,
 						SelectAggregate: "virusesAggregate",
 						Insert:          "insertViruses",
 						InsertOne:       "insertVirus",
@@ -134,7 +134,7 @@ func storageTables(dbName string) []metadata.TrackTable { //nolint:funlen
 						colUpdatedAt:   fieldUpdatedAt,
 						"file_id":      "fileId",
 						"filename":     "filename",
-						virus:          virus,
+						colVirus:       fieldVirus,
 						"user_session": "userSession",
 					},
 				},
@@ -176,8 +176,9 @@ const (
 	colCreatedAt   = "created_at"
 	tableFiles     = "files"
 	pgTrackTable   = "pg_track_table"
-	schemaStorage  = "storage"
 	fieldUpdatedAt = "updatedAt"
 	colUpdatedAt   = "updated_at"
-	virus          = "virus"
+	tableVirus     = "virus"
+	colVirus       = "virus"
+	fieldVirus     = "virus"
 )

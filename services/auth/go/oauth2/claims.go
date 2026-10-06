@@ -32,7 +32,7 @@ func (p *Provider) addScopedIDTokenClaims(
 	}
 
 	if slices.Contains(scopes, scopeEmail) && user.Email.Valid {
-		claims[scopeEmail] = user.Email.String
+		claims[claimEmail] = user.Email.String
 		claims["email_verified"] = user.EmailVerified
 	}
 

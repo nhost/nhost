@@ -23,6 +23,8 @@ import (
 )
 
 const (
+	flagCategoryAgents           = "agents"
+	flagCategoryServer           = "server"
 	flagPathPrefix               = "path-prefix"
 	flagBind                     = "bind"
 	flagDebug                    = "debug"
@@ -56,13 +58,13 @@ func CommandServe() *cli.Command { //nolint:funlen
 				Name:     flagPathPrefix,
 				Usage:    "prefix for all routes",
 				Value:    "/v1",
-				Category: "server",
+				Category: flagCategoryServer,
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagBind,
 				Usage:    "bind address",
 				Value:    ":8090",
-				Category: "server",
+				Category: flagCategoryServer,
 			},
 			&cli.BoolFlag{ //nolint: exhaustruct
 				Name:     flagDebug,
@@ -79,7 +81,7 @@ func CommandServe() *cli.Command { //nolint:funlen
 				Name:     flagAllowCORSOrigin,
 				Usage:    "Allow CORS from these origins",
 				Value:    cli.NewStringSlice("*"),
-				Category: "server",
+				Category: flagCategoryServer,
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagNhostGraphqlURL,
@@ -141,21 +143,21 @@ func CommandServe() *cli.Command { //nolint:funlen
 				Name:     flagAgentProviders,
 				Usage:    "JSON array of configured agent provider declarations",
 				Value:    "",
-				Category: "agents",
+				Category: flagCategoryAgents,
 				EnvVars:  []string{"AGENT_PROVIDERS"},
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagBraveKey,
 				Usage:    "Brave Search API key",
 				Value:    "",
-				Category: "agents",
+				Category: flagCategoryAgents,
 				EnvVars:  []string{"BRAVE_API_KEY"},
 			},
 			&cli.StringFlag{ //nolint: exhaustruct
 				Name:     flagTavilyKey,
 				Usage:    "Tavily Search API key",
 				Value:    "",
-				Category: "agents",
+				Category: flagCategoryAgents,
 				EnvVars:  []string{"TAVILY_API_KEY"},
 			},
 		},

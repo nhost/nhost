@@ -59,7 +59,7 @@ func constellation( //nolint:funlen
 			},
 			Timeout:     healthTimeout,
 			Interval:    "5s",
-			StartPeriod: healthTimeout,
+			StartPeriod: healthStartPeriod,
 		},
 		Labels: Ingresses{
 			{

@@ -33,7 +33,7 @@ func run(
 			}
 
 			ports = append(ports, Port{
-				Mode:      svcIngress,
+				Mode:      portModeIngress,
 				Target:    uint(p.GetPort()),
 				Published: strconv.FormatUint(uint64(p.GetPort()), 10),
 				Protocol:  proto,

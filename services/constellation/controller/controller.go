@@ -381,7 +381,7 @@ func NewFromConnectors(
 	return ctrl, nil
 }
 
-// Repeated response keys.
+// Repeated GraphQL error keys and auth error codes.
 const (
 	messageKey   = "message"
 	unauthorized = "unauthorized"

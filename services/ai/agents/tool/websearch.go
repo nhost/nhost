@@ -27,6 +27,7 @@ var (
 const (
 	webSearchTimeout    = 15 * time.Second
 	webSearchMaxResults = 5
+	webSearchKeyQuery   = "query"
 )
 
 // WebSearchConfig holds configuration for the web search tool.
@@ -58,16 +59,17 @@ func (w *WebSearch) Definition() provider.ToolDefinition {
 		Parameters: map[string]any{
 			schemaKeyType: schemaTypeObject,
 			schemaKeyProperties: map[string]any{
-				keyQuery: map[string]any{
+				webSearchKeyQuery: map[string]any{
 					schemaKeyType:        schemaTypeString,
 					schemaKeyDescription: "The search query",
 				},
 			},
-			schemaKeyRequired: []string{keyQuery},
+			schemaKeyRequired: []string{webSearchKeyQuery},
 		},
 	}
 }
 
+// The JSON tag must stay in sync with webSearchKeyQuery.
 type webSearchArgs struct {
 	Query string `json:"query"`
 }
@@ -83,7 +85,7 @@ func (w *WebSearch) Execute(
 		return "", fmt.Errorf("failed to parse arguments: %w", err)
 	}
 
-	logger.InfoContext(ctx, "performing web search", slog.String(keyQuery, args.Query))
+	logger.InfoContext(ctx, "performing web search", slog.String("query", args.Query))
 
 	switch w.config.Provider {
 	case "brave":
@@ -137,7 +139,7 @@ func (w *WebSearch) searchTavily(
 	logger *slog.Logger,
 ) (string, error) {
 	payload, err := json.Marshal(map[string]any{
-		keyQuery:      query,
+		"query":       query,
 		"max_results": webSearchMaxResults,
 	})
 	if err != nil {

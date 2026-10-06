@@ -3,7 +3,7 @@ package providers
 //nolint:gochecknoglobals
 var (
 	// DefaultGoogleScopes defines the default scopes for Google OAuth2.
-	DefaultGoogleScopes = []string{openid, scopeEmail, scopeProfile}
+	DefaultGoogleScopes = []string{scopeOpenID, scopeEmail, scopeProfile}
 
 	// DefaultGithubScopes defines the default scopes for GitHub OAuth2.
 	DefaultGithubScopes = []string{"user:email"}
@@ -12,7 +12,7 @@ var (
 	DefaultAppleScopes = []string{"name", scopeEmail}
 
 	// DefaultLinkedInScopes defines the default scopes for LinkedIn OAuth2.
-	DefaultLinkedInScopes = []string{openid, scopeProfile, scopeEmail}
+	DefaultLinkedInScopes = []string{scopeOpenID, scopeProfile, scopeEmail}
 
 	// DefaultDiscordScopes defines the default scopes for Discord OAuth2.
 	DefaultDiscordScopes = []string{"identify", scopeEmail}
@@ -33,10 +33,10 @@ var (
 	DefaultWorkOSScopes = []string{""}
 
 	// DefaultAzureadScopes defines the default scopes for AzureAd OAuth2.
-	DefaultAzureadScopes = []string{scopeEmail, scopeProfile, openid, "offline_access"}
+	DefaultAzureadScopes = []string{scopeEmail, scopeProfile, scopeOpenID, "offline_access"}
 
 	// DefaultEntraIDScopes defines the default scopes for EntraID OAuth2.
-	DefaultEntraIDScopes = []string{scopeEmail, scopeProfile, openid, "offline_access"}
+	DefaultEntraIDScopes = []string{scopeEmail, scopeProfile, scopeOpenID, "offline_access"}
 
 	// DefaultFacebookScopes defines the default scopes for Facebook OAuth2.
 	DefaultFacebookScopes = []string{scopeEmail}

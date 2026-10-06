@@ -9,6 +9,11 @@ import (
 	"github.com/nhost/be/services/mimir/schema/appconfig"
 )
 
+const (
+	postgresCommand   = "postgres"
+	postgresSuperUser = "postgres"
+)
+
 func postgres( //nolint:funlen
 	cfg *model.ConfigConfig,
 	port uint,
@@ -34,8 +39,8 @@ func postgres( //nolint:funlen
 	envars, err := appconfig.PostgresEnv(
 		cfg,
 		"local",
-		svcPostgres,
-		svcPostgres,
+		postgresSuperUser,
+		postgresSuperUser,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get postgres env vars: %w", err)
@@ -53,7 +58,7 @@ func postgres( //nolint:funlen
 		DependsOn:  nil,
 		EntryPoint: nil,
 		Command: []string{
-			svcPostgres,
+			postgresCommand,
 			"-c", "config_file=/etc/postgresql.conf",
 			"-c", "hba_file=/etc/pg_hba_local.conf",
 		},
@@ -65,13 +70,13 @@ func postgres( //nolint:funlen
 			},
 			Timeout:     healthTimeout,
 			Interval:    "5s",
-			StartPeriod: healthTimeout,
+			StartPeriod: healthStartPeriod,
 		},
 		Labels:   nil,
 		Networks: networkAliases("postgres-service"),
 		Ports: []Port{
 			{
-				Mode:      svcIngress,
+				Mode:      portModeIngress,
 				Target:    postgresPort,
 				Published: strconv.FormatUint(uint64(port), 10),
 				Protocol:  tcp,

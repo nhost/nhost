@@ -20,6 +20,15 @@ const (
 	InAMonth    = 30 * 24 * time.Hour
 	In10Minutes = 10 * time.Minute
 	In5Minutes  = 5 * time.Minute
+
+	// Repeated JSON response and URL query keys.
+	errorKey   = "error"
+	messageKey = "message"
+	stateKey   = "state"
+
+	// codeUnauthorized is the oapi.AuthenticatorError.Code returned for every
+	// failed bearer-token check.
+	codeUnauthorized = "unauthorized"
 )
 
 func deptr[T any](x *T) T { //nolint:ireturn
@@ -250,11 +259,3 @@ func (ctrl *Controller) newOAuth2Provider() *oauth2provider.Provider {
 		nil,
 	)
 }
-
-// Repeated response keys.
-const (
-	errorKey     = "error"
-	messageKey   = "message"
-	stateKey     = "state"
-	unauthorized = "unauthorized"
-)

@@ -15,7 +15,10 @@ import (
 	"golang.org/x/oauth2"
 )
 
-const appleMaxAge = time.Hour * 24 * 180
+const (
+	appleMaxAge = time.Hour * 24 * 180
+	claimEmail  = "email"
+)
 
 type Apple struct {
 	*oauth2.Config
@@ -120,7 +123,7 @@ func (a *Apple) GetProfile(
 		return oidc.Profile{}, fmt.Errorf("failed to validate id token: %w", err)
 	}
 
-	email, err := oidc.GetClaim[string](token, scopeEmail)
+	email, err := oidc.GetClaim[string](token, claimEmail)
 	if err != nil {
 		return oidc.Profile{}, fmt.Errorf("failed to get email claim: %w", err)
 	}

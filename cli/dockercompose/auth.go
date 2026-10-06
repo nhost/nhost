@@ -86,7 +86,7 @@ func auth( //nolint:funlen
 			Test:        []string{healthCmd, wget, spider, "-S", "http://localhost:4000/healthz"},
 			Timeout:     healthTimeout,
 			Interval:    "5s",
-			StartPeriod: healthTimeout,
+			StartPeriod: healthStartPeriod,
 		},
 		Labels: Ingresses{
 			{

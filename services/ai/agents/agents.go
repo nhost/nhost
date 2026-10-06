@@ -12,8 +12,12 @@ import (
 	"github.com/nhost/nhost/services/ai/hasura"
 )
 
-// errorKey is the response and log attribute key for error messages.
-const errorKey = "error"
+const (
+	// errorKey is the response and log attribute key for error messages.
+	errorKey = "error"
+	// sseEventError is the client-facing SSE event name for errors.
+	sseEventError = "error"
+)
 
 // ToolConfig holds credentials used by optional agent tools.
 type ToolConfig struct {

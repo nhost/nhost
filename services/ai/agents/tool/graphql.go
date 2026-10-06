@@ -22,6 +22,8 @@ const (
 	graphqlTimeout              = 30 * time.Second
 	graphqlMaxResponseSize      = 1 << 20  // 1 MB
 	graphqlMaxIntrospectionSize = 10 << 20 // 10 MB
+	graphqlKeyQuery             = "query"
+	graphqlKeyVariables         = "variables"
 )
 
 var (
@@ -148,7 +150,7 @@ func (g *GraphQLGetSchema) doIntrospection(
 	summary bool,
 ) (*graphqlutil.ResponseIntrospection, error) {
 	body, err := json.Marshal(map[string]any{
-		keyQuery: introspectionQuery(summary),
+		graphqlKeyQuery: introspectionQuery(summary),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal introspection query: %w", err)
@@ -229,20 +231,21 @@ func (g *GraphQLQuery) Definition() provider.ToolDefinition {
 		Parameters: map[string]any{
 			schemaKeyType: schemaTypeObject,
 			schemaKeyProperties: map[string]any{
-				keyQuery: map[string]any{
+				graphqlKeyQuery: map[string]any{
 					schemaKeyType:        schemaTypeString,
 					schemaKeyDescription: "The GraphQL query to execute.",
 				},
-				keyVariables: map[string]any{
+				graphqlKeyVariables: map[string]any{
 					schemaKeyType:        schemaTypeObject,
 					schemaKeyDescription: "Optional variables for the query.",
 				},
 			},
-			schemaKeyRequired: []string{keyQuery},
+			schemaKeyRequired: []string{graphqlKeyQuery},
 		},
 	}
 }
 
+// The JSON tags must stay in sync with graphqlKeyQuery and graphqlKeyVariables.
 type graphqlQueryArgs struct {
 	Query     string         `json:"query"`
 	Variables map[string]any `json:"variables"`
@@ -296,16 +299,16 @@ func (g *GraphQLMutation) Definition() provider.ToolDefinition {
 		Parameters: map[string]any{
 			schemaKeyType: schemaTypeObject,
 			schemaKeyProperties: map[string]any{
-				keyQuery: map[string]any{
+				graphqlKeyQuery: map[string]any{
 					schemaKeyType:        schemaTypeString,
 					schemaKeyDescription: "The GraphQL mutation to execute.",
 				},
-				keyVariables: map[string]any{
+				graphqlKeyVariables: map[string]any{
 					schemaKeyType:        schemaTypeObject,
 					schemaKeyDescription: "Optional variables for the mutation.",
 				},
 			},
-			schemaKeyRequired: []string{keyQuery},
+			schemaKeyRequired: []string{graphqlKeyQuery},
 		},
 	}
 }
@@ -343,8 +346,8 @@ func executeGraphQL(
 	logger *slog.Logger,
 ) (string, error) {
 	body, err := json.Marshal(map[string]any{
-		keyQuery:     query,
-		keyVariables: variables,
+		graphqlKeyQuery:     query,
+		graphqlKeyVariables: variables,
 	})
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal query: %w", err)

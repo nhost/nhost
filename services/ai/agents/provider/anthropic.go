@@ -60,7 +60,7 @@ func newAnthropicMessagesConfiguration(
 		baseURL,
 		headers,
 		validateAnthropicMessagesURL,
-		[]string{"x-stainless-"},
+		[]string{stainlessHeaderPrefix},
 		nil,
 	)
 	if err != nil {

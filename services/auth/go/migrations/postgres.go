@@ -14,8 +14,6 @@ import (
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 )
 
-const schemaName = schemaAuth
-
 //go:embed postgres/*.sql
 var postgresMigrations embed.FS
 
@@ -29,7 +27,7 @@ func checkIfWeNeedToMigrate(
 	if err := db.QueryRowContext(
 		ctx,
 		"SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = $1 AND table_name = $2)",
-		schemaName,
+		schemaAuth,
 		"schema_migrations",
 	).Scan(&exists); err != nil {
 		return 0, fmt.Errorf("error checking if migrations table exists: %w", err)
@@ -43,7 +41,7 @@ func checkIfWeNeedToMigrate(
 	if err := db.QueryRowContext(
 		ctx,
 		"SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = $1 AND table_name = $2)",
-		schemaName,
+		schemaAuth,
 		"migrations",
 	).Scan(&exists); err != nil {
 		return 0, fmt.Errorf("error checking if migrations table exists: %w", err)
@@ -84,7 +82,7 @@ func ApplyPostgresMigration(
 
 	driver, err := postgres.WithInstance(
 		db,
-		&postgres.Config{SchemaName: schemaName}, //nolint:exhaustruct
+		&postgres.Config{SchemaName: schemaAuth}, //nolint:exhaustruct
 	)
 	if err != nil {
 		return fmt.Errorf("problem creating postgres driver: %w", err)

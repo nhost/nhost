@@ -354,7 +354,7 @@ func toGeminiToolSchema(tools []ToolDefinition) []*genai.FunctionDeclaration {
 func geminiParametersJSONSchema(params map[string]any) map[string]any {
 	if len(params) == 0 {
 		return map[string]any{
-			"type":       "object",
+			jsonTypeKey:  "object",
 			"properties": map[string]any{},
 		}
 	}
