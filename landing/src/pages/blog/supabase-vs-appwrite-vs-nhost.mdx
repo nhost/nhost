@@ -132,7 +132,7 @@ That's five decisions up front instead of one statement, though the form does sh
 
 The console also warns that the column key on the related side can't be renamed later. In Postgres you can drop and recreate a foreign key whenever you like.
 
-With Nhost, a relation is a foreign key plus a name. You write the constraint in SQL as usual, then give the link a name for the API. The dashboard spots your foreign keys and lists them under **Suggested Relationships** with the names already filled in. One click and `author { name }` works. You can nest it as deep as you want, and it all comes back in one request, with no join to write in each query.
+With Nhost, a relation is a foreign key plus a name. You write the constraint in SQL as usual, then give the link a name for the API. The dashboard spots your foreign keys and lists them under "Suggested Relationships" with the names already filled in. One click and `author { name }` works. You can nest it as deep as you want, and it all comes back in one request, with no join to write in each query.
 
 ![Nhost's Edit Relationships panel: the author relation created from a foreign key.](/images/blog/supabase-vs-appwrite/nhost-relationships.png)
 
@@ -301,9 +301,9 @@ By default, access is denied. No role except `admin` can read anything until you
 
 ### Testing what a role can see
 
-All three platforms let you check what a given role can see.
+All three platforms let you run a query as a role other than your own, so you can see what a visitor or a signed-in user would get back before they find the gap themselves.
 
-On Supabase, don't look for something called "RLS Tester". I did, and there's no such panel in the policy editor. Instead, the SQL editor has a role switcher: the dropdown next to Run offers postgres, Anonymous and Authenticated (with a user picker and an MFA level). It also warns you that postgres bypasses RLS.
+On Supabase, don't look for an "RLS Tester", meaning a panel that previews a table the way a chosen role would see it, with the row-level security policies applied. I did, and there's no such thing in the policy editor. What you get instead is a role switcher in the SQL editor: the dropdown next to Run offers postgres, Anonymous and Authenticated (with a user picker and an MFA level). It also warns you that postgres bypasses row-level security, so a query run under it returns every row and tells you nothing about what a real visitor sees.
 
 The shield button on the Policies page doesn't test anything. It opens the AI Assistant, which can write a policy for you. The same page also offers to install a trigger that turns on RLS for every new table, but it's off by default.
 
@@ -391,11 +391,11 @@ I know it's a cliché, but there's no single answer to which one is best. I buil
 
 Supabase is for you if you open a SQL editor before you open the docs. Your app's hard part is the data: reports, joins, analytics, logic you'd happily write in Postgres. Supabase lets you keep all of that in the database, as long as someone on the team owns the policies.
 
-You're building a mobile app or a frontend-heavy product, and you'd like to never think about the database. Each user owns their own data, maybe shares it with a team. That's where Appwrite feels easiest: login, files, push notifications and hosting all sit in one console.
+Appwrite is for you if you're building a mobile app or a frontend-heavy product and would rather never think about the database. Each user owns their own data, maybe shares it with a team. That's the shape Appwrite fits best, with login, files, push notifications and hosting all in one console.
 
-You want AI agents to work inside your app on your users' behalf, through Claude, ChatGPT or your own assistant. That's where Nhost is furthest ahead. Its MCP service signs agents in through Nhost Auth, so every call runs as that user, with that user's permissions. Graphite adds search and assistants under the same rules.
+Nhost is for you if you want AI agents working inside your app on your users' behalf, through Claude, ChatGPT or your own assistant. That's where it's furthest ahead. Its MCP service signs agents in through Nhost Auth, so every call runs as that user, with that user's permissions. Graphite adds search and assistants under the same rules.
 
-None of these is a bad choice, and all three got a working app out of me without much fuss. The one that fits is usually the one whose defaults match how you already think about your data, which is easier to feel than to read about. So if you're torn between two of them, build the same small thing on both. That's where this whole post came from, and it taught me more than any comparison table, including the ones above.
+None of these are bad choices, and all three got a working app out of me without much fuss. The one that fits is usually the one whose defaults match how you already think about your data, which is easier to feel than to read about. So if you're torn between two of them, build the same small thing on both. That's where this whole post came from, and it taught me more than any comparison table, including the ones above.
 
 If Nhost sounds like your fit, the free plan is enough to run the same test yourself.
 
