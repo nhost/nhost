@@ -34,7 +34,7 @@ function SignInWithSecurityKey({
         onClick={signInWithSecurityKey}
         aria-describedby={ariaDescribedBy}
       >
-        <Fingerprint size={14} />
+        <Fingerprint />
         Continue with a security key
       </Button>
     </>
