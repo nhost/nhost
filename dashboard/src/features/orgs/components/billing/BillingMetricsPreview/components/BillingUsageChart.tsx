@@ -61,12 +61,14 @@ export interface BillingUsageChartProps {
   data: BillingMetricsData;
   refreshing: boolean;
   onRefresh: VoidFunction;
+  showIncludedUsage: boolean;
 }
 
 export default function BillingUsageChart({
   data,
   refreshing,
   onRefresh,
+  showIncludedUsage,
 }: BillingUsageChartProps) {
   const [selectedType, setSelectedType] =
     useState<BillingUsageReportType>('egress');
@@ -299,7 +301,9 @@ export default function BillingUsageChart({
                 ? 'Selected project total'
                 : 'Selected projects total'
             }
-            referenceLines={[usageReferenceLine]}
+            referenceLines={
+              showIncludedUsage ? [usageReferenceLine] : undefined
+            }
             verticalReferenceLines={nextInvoiceMarkers}
             timeDomain={timeDomain}
             xTicks={timeAxis?.ticks}

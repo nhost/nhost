@@ -14,6 +14,7 @@ export default function BillingMetricsPreview() {
   const isOrgAdmin = useIsOrgAdmin();
   const { data, loading, error, refetch } = useBillingMetrics();
   const isPermissionResolved = Boolean(org) && Boolean(user?.id);
+  const isEnterprisePlan = Boolean(org?.plan?.name?.startsWith('Enterprise'));
 
   if (!isPermissionResolved) {
     return null;
@@ -52,6 +53,7 @@ export default function BillingMetricsPreview() {
         data={data}
         refreshing={loading}
         onRefresh={() => refetch()}
+        showIncludedUsage={!isEnterprisePlan}
       />
       <CurrentTrackedResourcesTable data={data} />
     </div>
