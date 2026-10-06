@@ -56,7 +56,7 @@ function GithubAuthButton({
       onClick={signInWithGithub}
       aria-describedby={ariaDescribedBy}
     >
-      <SiGithub size={14} /> {buttonText}
+      <SiGithub /> {buttonText}
     </Button>
   );
 }
