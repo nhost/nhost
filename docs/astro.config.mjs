@@ -199,17 +199,17 @@ export default defineConfig({
                   ],
                 },
                 {
-                  label: 'Local Development',
-                  collapsed: false,
-                  items: [{ slug: 'getting-started/local-development/cli' }],
-                },
-                {
                   label: 'Agentic Development',
                   collapsed: false,
                   items: [
                     { slug: 'getting-started/agentic-workflows' },
                     { slug: 'getting-started/build-with-an-assistant' },
                   ],
+                },
+                {
+                  label: 'Local Development',
+                  collapsed: false,
+                  items: [{ slug: 'getting-started/local-development/cli' }],
                 },
                 {
                   label: 'Tutorials',

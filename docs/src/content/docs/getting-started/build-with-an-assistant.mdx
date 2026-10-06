@@ -1,6 +1,6 @@
 ---
 title: Build with an AI assistant
-description: "Develop on Nhost by describing what you want to an AI assistant. It runs the CLI, applies the change, and writes the migration, while you review and commit."
+description: "Describe the change, let an AI assistant run the Nhost CLI and write the migration, then review and commit what it wrote."
 keywords: ["AI assistant", "agentic development", "MCP", "no CLI", "migrations", "getting started", "Nhost Cloud", "local development"]
 head:
   - tag: title
@@ -9,153 +9,43 @@ sidebar:
   label: Build with an assistant
 ---
 import { Card, CardGroup } from '@components';
-import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-You do not have to learn the Nhost CLI to build on Nhost. Connect an AI assistant to your project and describe what you want instead. The assistant runs the commands, applies the change, and writes the migration files; you review what it wrote and commit it.
+You do not have to learn the Nhost CLI. Connect an assistant, describe what you want, and it runs the commands and writes the migration files. You review them and commit.
 
-This works the same way whether your backend runs on your machine or on Nhost Cloud. The difference is only which project the assistant is pointed at, and how much it is allowed to do there.
+> Add a movies table with a title, director, and rating, and let signed-in users read it.
 
-The dashboard still matters, but as the place you go to **check** what happened rather than the place you click through to make it happen.
-
-## 1. Connect an assistant
-
-Everything below assumes your assistant can reach an Nhost project over MCP. Set that up first:
+That works the same whether the backend runs on your machine or on Nhost Cloud. The [quickstarts](/getting-started/quickstart/react) each show the assistant path alongside the manual one.
 
 <CardGroup cols={2}>
-  <Card title="Agentic workflows" icon="robot" href="/getting-started/agentic-workflows">
-    Pick a setup and connect your assistant
+  <Card title="Connect an assistant" icon="robot" href="/getting-started/agentic-workflows">
+    Pick a setup and point it at your project
   </Card>
-  <Card title="Scoping access" icon="key" href="/platform/cli/mcp/cloud-setup#scoping-access">
-    Decide what it is allowed to change
+  <Card title="Scope what it can do" icon="key" href="/platform/cli/mcp/cloud-setup#scoping-access">
+    Full access locally, read-only against real data
   </Card>
 </CardGroup>
 
-For a local project, give the assistant full access. Nothing there is real, and the faster loop is worth more than the guardrails. For a project on Nhost Cloud, start read-only and widen deliberately.
+## Three things to check yourself
 
-## 2. Start a project
+The assistant does the work. These are the parts worth your own eyes.
 
-Ask the assistant to set one up rather than running anything yourself:
+**Read the migration.** Every schema change writes a file under `nhost/migrations/`. That file is what runs against every other environment, so reading it is the fastest way to catch a column type or a nullability choice you did not intend.
 
-> Set up a new Nhost project here and start it locally.
+**Verify permissions.** They are the security boundary for your project: every GraphQL request runs under a role and is filtered by these rules, including the assistant's own. Describe the rule in chat, then open **Database → Permissions** in the dashboard and read back what was applied. See [Permissions](/products/graphql/permissions).
 
-It runs `nhost init` and `nhost up`, which brings up Postgres, the GraphQL API, Auth, and Storage in Docker. If you would rather build against Nhost Cloud, create the project at [app.nhost.io](https://app.nhost.io) and ask the assistant to pull it down instead:
+**Set secrets yourself.** Ask the assistant which variables a service needs, then enter the values through the dashboard so the real credential never passes through a chat transcript. See [secrets](/platform/cloud/secrets).
 
-> Pull my Nhost Cloud project into this directory.
+## Commit what it wrote
 
-That runs `nhost init --remote`, which fetches the project's configuration, migrations, and metadata into a local `nhost/` directory you can commit.
-
-## 3. Describe your schema
-
-Tables, columns, and relationships are things you can ask for in words:
-
-> Add a movies table with a title, director, release year, genre, and a rating. Titles are required.
-
-The assistant creates the table and writes a migration file for it. Ask to see the migration before you move on; that file is what will run against every other environment, and reading it is the fastest way to catch a column type or a nullability choice you did not intend.
-
-:::caution
-A table that exists in Postgres is not automatically exposed through the GraphQL API. If a new table does not show up in your queries, ask the assistant to track it.
-:::
-
-## 4. Set permissions
-
-New tables are readable by nobody until you say otherwise. Describe the rule rather than filling in a matrix:
-
-> Let signed-in users read all movies, and only let them update rows they created.
-
-Permissions are the security boundary for your project. Every request through the GraphQL API runs under a role and is filtered by these rules, including the requests your assistant makes. This is the one step worth verifying by hand: open **Database → Permissions** in the dashboard and read back what was applied. See [Permissions](/products/graphql/permissions) for the rule syntax and [permission variables](/products/graphql/permissions/permission-variables) for user-scoped rules.
-
-## 5. Connect your app
-
-Ask for the client setup and the assistant will install the SDK and wire it up:
-
-> Add the Nhost SDK to this app and connect it to my project.
-
-<Tabs syncKey="pkg">
-<TabItem label="npm">
-```sh
-npm install @nhost/nhost-js
-```
-</TabItem>
-<TabItem label="pnpm">
-```sh
-pnpm add @nhost/nhost-js
-```
-</TabItem>
-<TabItem label="Bun">
-```sh
-bun add @nhost/nhost-js
-```
-</TabItem>
-<TabItem label="Yarn">
-```sh
-yarn add @nhost/nhost-js
-```
-</TabItem>
-</Tabs>
-
-```js
-import { createClient } from "@nhost/nhost-js";
-
-export const nhost = createClient({
-  subdomain: "<subdomain>",
-  region: "<region>",
-})
-```
-
-Every service is addressed from that same subdomain and region, so the SDK builds the URLs for you:
-
-| Service | URL |
-|---------|-----|
-| **GraphQL** | `https://<subdomain>.graphql.<region>.nhost.run/v1` |
-| **Auth** | `https://<subdomain>.auth.<region>.nhost.run/v1` |
-| **Storage** | `https://<subdomain>.storage.<region>.nhost.run/v1` |
-| **Functions** | `https://<subdomain>.functions.<region>.nhost.run/v1` |
-
-For a local project both values are `local`. For a cloud project they are on the project's overview page. The [quickstarts](/getting-started/quickstart/react) walk this through end to end for React, Next.js, Vue, SvelteKit, and React Native.
-
-## 6. Configure auth and secrets
-
-Sign-in methods, email templates, redirect URLs, environment variables, and secrets are all project configuration, which the assistant can read and change when you let it:
-
-> Enable email and password sign-in, and set the client URL to localhost:3000.
-
-Set the **Client URL** to where your app runs, and list every origin your app redirects back to; auth flows reject redirects to URLs that are not listed. See [Client and redirect URLs](/products/auth/client_and_redirect_urls), [environment variables](/platform/cloud/environment-variables), and [secrets](/platform/cloud/secrets).
-
-:::caution
-Secrets are the one thing worth setting yourself. Ask the assistant which variables a service needs, then put the values in through the dashboard so the real credential never passes through a chat transcript.
-:::
-
-## 7. Review and commit
-
-This is what makes the workflow durable rather than a pile of untracked clicks. The assistant writes real files:
-
-- **Migrations** under `nhost/migrations/`, one per schema change
-- **Metadata** under `nhost/metadata/`, covering permissions, relationships, and tracked tables
-- **Configuration** in `nhost.toml`
-
-Read them, then commit. From there the project is reproducible: another developer runs `nhost up` and gets the same backend, and [deployments](/platform/cloud/deployments) apply the same migrations to Nhost Cloud.
-
-If you skip this step and let changes accumulate only on the server, you lose the thing that makes the rest of it work. Ask the assistant to show you a diff whenever you are not sure what changed.
+This is what makes the workflow durable rather than a pile of untracked changes. The assistant writes migrations under `nhost/migrations/`, metadata under `nhost/metadata/`, and configuration in `nhost.toml`. Commit them, and the project becomes reproducible: another developer runs `nhost up` and gets the same backend, and [deployments](/platform/cloud/deployments) apply the same migrations to Nhost Cloud.
 
 ## Next steps
 
 <CardGroup cols={2}>
-  <Card title="Agentic workflows" icon="robot" href="/getting-started/agentic-workflows">
-    The three ways to connect an assistant
+  <Card title="React" icon="react" href="/getting-started/quickstart/react">
+    Build an app, with or without an assistant
   </Card>
   <Card title="Nhost CLI" icon="terminal" href="/getting-started/local-development/cli">
     Run the commands yourself when you want to
-  </Card>
-  <Card title="React" icon="react" href="/getting-started/quickstart/react">
-    Connect your project to a React app
-  </Card>
-  <Card title="Permissions" icon="key" href="/products/graphql/permissions">
-    Control what each role can read and write
-  </Card>
-  <Card title="Deployments" icon="rocket" href="/platform/cloud/deployments">
-    Push what you committed to Nhost Cloud
-  </Card>
-  <Card title="Nhost Cloud" icon="cloud" href="/platform/cloud">
-    Logs, metrics, custom domains, and compute
   </Card>
 </CardGroup>
