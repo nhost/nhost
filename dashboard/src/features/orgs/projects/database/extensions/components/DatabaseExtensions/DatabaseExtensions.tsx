@@ -6,17 +6,18 @@ import { Spinner } from '@/components/ui/v3/spinner';
 import { TextLink } from '@/components/ui/v3/text-link';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserEmptyState';
-import type { ExtensionAction } from '@/features/orgs/projects/database/extensions/components/ExtensionsGrid';
+import type { ExtensionAction } from '@/features/orgs/projects/database/extensions/components/ExtensionActionControl';
 import { ExtensionsGrid } from '@/features/orgs/projects/database/extensions/components/ExtensionsGrid';
+import { ExtensionsTable } from '@/features/orgs/projects/database/extensions/components/ExtensionsTable';
 import { InstallExtensionDialog } from '@/features/orgs/projects/database/extensions/components/InstallExtensionDialog';
 import { UninstallExtensionDialog } from '@/features/orgs/projects/database/extensions/components/UninstallExtensionDialog';
 import {
   EXTENSIONS_DOCS_URL,
-  getExtensionDisplayName,
   POPULAR_EXTENSIONS,
 } from '@/features/orgs/projects/database/extensions/constants';
 import type { PostgresExtension } from '@/features/orgs/projects/database/extensions/hooks/usePostgresExtensionsQuery';
 import { usePostgresExtensionsQuery } from '@/features/orgs/projects/database/extensions/hooks/usePostgresExtensionsQuery';
+import { getExtensionDisplayName } from '@/features/orgs/projects/database/extensions/utils/getExtensionDisplayName';
 
 interface DialogState {
   action: ExtensionAction;
@@ -59,12 +60,9 @@ export default function DatabaseExtensions() {
       .toLowerCase()
       .includes(normalizedSearch),
   );
-  // Popular is a browsing aid; hide it while searching so results appear once.
-  const popularExtensions = normalizedSearch
-    ? []
-    : POPULAR_EXTENSIONS.flatMap((name) =>
-        extensions.filter((extension) => extension.name === name),
-      );
+  const popularExtensions = POPULAR_EXTENSIONS.flatMap((name) =>
+    extensions.filter((extension) => extension.name === name),
+  );
 
   function openDialog(action: ExtensionAction, extension: PostgresExtension) {
     setDialog((current) => ({
@@ -99,37 +97,42 @@ export default function DatabaseExtensions() {
         )}
       </header>
 
-      <div className="relative max-w-md">
-        <Search className="pointer-events-none absolute top-1/2 left-3 z-10 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          aria-label="Search extensions"
-          placeholder="Search extensions..."
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          className="h-10 pl-8 text-sm"
-        />
-      </div>
-
       {popularExtensions.length > 0 && (
-        <ExtensionsGrid
-          ariaLabel="Popular extensions"
-          extensions={popularExtensions}
-          onAction={openDialog}
-        />
+        <section aria-label="Popular extensions" className="space-y-3">
+          <h2 className="font-semibold text-lg">Popular extensions</h2>
+          <ExtensionsGrid
+            extensions={popularExtensions}
+            onAction={openDialog}
+          />
+        </section>
       )}
 
-      {filteredExtensions.length > 0 ? (
-        <ExtensionsGrid
-          ariaLabel="All extensions"
-          extensions={filteredExtensions}
-          onAction={openDialog}
-        />
-      ) : (
-        <DataBrowserEmptyState
-          title="No matching extensions"
-          description="Try a different search term."
-        />
-      )}
+      <section aria-label="All extensions" className="space-y-3">
+        <h2 className="font-semibold text-lg">All extensions</h2>
+
+        <div className="relative max-w-md">
+          <Search className="pointer-events-none absolute top-1/2 left-3 z-10 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            aria-label="Search extensions"
+            placeholder="Search extensions..."
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            className="h-10 pl-8 text-sm"
+          />
+        </div>
+
+        {filteredExtensions.length > 0 ? (
+          <ExtensionsTable
+            extensions={filteredExtensions}
+            onAction={openDialog}
+          />
+        ) : (
+          <DataBrowserEmptyState
+            title="No matching extensions"
+            description="Try a different search term."
+          />
+        )}
+      </section>
 
       {dialog && (
         <ExtensionDialog

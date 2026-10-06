@@ -1,4 +1,12 @@
-import { Blocks, Lock } from 'lucide-react';
+import { Lock } from 'lucide-react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/v3/table';
 import type { ExtensionAction } from '@/features/orgs/projects/database/extensions/components/ExtensionActionControl';
 import {
   ExtensionActionControl,
@@ -12,43 +20,34 @@ import { getExtensionVersionLabel } from '@/features/orgs/projects/database/exte
 import { isExtensionBuiltIn } from '@/features/orgs/projects/database/extensions/utils/isExtensionBuiltIn';
 import { cn } from '@/lib/utils';
 
-export interface ExtensionsGridProps {
+export interface ExtensionsTableProps {
   extensions: PostgresExtension[];
   onAction: (action: ExtensionAction, extension: PostgresExtension) => void;
 }
 
-function ExtensionCard({
+function ExtensionRow({
   extension,
   onAction,
-}: Pick<ExtensionsGridProps, 'onAction'> & { extension: PostgresExtension }) {
+}: Pick<ExtensionsTableProps, 'onAction'> & { extension: PostgresExtension }) {
   const displayName = getExtensionDisplayName(extension.name);
   const isBuiltIn = isExtensionBuiltIn(extension);
-  const dimmed = cn(isBuiltIn && 'opacity-50');
-  const versionLabel = getExtensionVersionLabel(extension);
+  const dimmedCell = cn(isBuiltIn && 'opacity-50');
 
   return (
-    <div
-      data-testid={`extension-card-${extension.name}`}
+    <TableRow
+      data-testid={`extension-row-${extension.name}`}
       data-built-in={isBuiltIn || undefined}
-      className={cn(
-        'flex flex-col gap-3 rounded-lg border p-4',
-        isBuiltIn ? 'bg-background' : 'bg-muted',
-      )}
+      className={cn(isBuiltIn && 'bg-muted hover:bg-muted')}
     >
-      <div className="flex items-start justify-between gap-2">
-        <div className={cn('flex min-w-0 items-center gap-1.5', dimmed)}>
-          {isBuiltIn ? (
-            <Lock className="h-5 w-5 shrink-0" aria-hidden />
-          ) : (
-            <Blocks className="h-5 w-5 shrink-0" aria-hidden />
-          )}
+      <TableCell className={cn('break-words', dimmedCell)}>
+        <div className="flex items-center gap-1.5">
+          {isBuiltIn && <Lock className="h-3.5 w-3.5 shrink-0" aria-hidden />}
           <a
             href={getExtensionDocsUrl(extension.name)}
             target="_blank"
             rel="noopener noreferrer"
-            title={displayName}
             className={cn(
-              'truncate font-bold underline decoration-muted-foreground/50 underline-offset-4 hover:decoration-current',
+              'font-medium underline decoration-muted-foreground/50 underline-offset-4 hover:decoration-current',
               isBuiltIn
                 ? 'text-muted-foreground'
                 : 'text-foreground hover:text-primary',
@@ -58,47 +57,47 @@ function ExtensionCard({
           </a>
           {PRELOAD_REQUIRED_EXTENSIONS.has(extension.name) && <PreloadHint />}
         </div>
-        {versionLabel && (
-          <span
-            className={cn(
-              'mt-[3px] shrink-0 text-muted-foreground text-xs tabular-nums',
-              dimmed,
-            )}
-          >
-            {versionLabel}
-          </span>
-        )}
-      </div>
-
-      <p
-        className={cn(
-          'line-clamp-2 flex-1 text-muted-foreground text-sm',
-          dimmed,
-        )}
+      </TableCell>
+      <TableCell
+        className={cn('text-muted-foreground tabular-nums', dimmedCell)}
       >
+        {getExtensionVersionLabel(extension) ?? '—'}
+      </TableCell>
+      <TableCell className={cn('text-muted-foreground', dimmedCell)}>
         {extension.comment}
-      </p>
-
-      <div className="flex justify-end">
+      </TableCell>
+      <TableCell className="text-right">
         <ExtensionActionControl extension={extension} onAction={onAction} />
-      </div>
-    </div>
+      </TableCell>
+    </TableRow>
   );
 }
 
-export default function ExtensionsGrid({
+export default function ExtensionsTable({
   extensions,
   onAction,
-}: ExtensionsGridProps) {
+}: ExtensionsTableProps) {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-4">
-      {extensions.map((extension) => (
-        <ExtensionCard
-          key={extension.name}
-          extension={extension}
-          onAction={onAction}
-        />
-      ))}
+    <div className="overflow-hidden rounded-md border">
+      <Table className="min-w-[48rem] table-fixed">
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-56">Name</TableHead>
+            <TableHead className="w-44">Version</TableHead>
+            <TableHead>Description</TableHead>
+            <TableHead className="w-32 text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {extensions.map((extension) => (
+            <ExtensionRow
+              key={extension.name}
+              extension={extension}
+              onAction={onAction}
+            />
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 }

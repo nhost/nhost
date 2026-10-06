@@ -5,8 +5,8 @@ import { useAdminApiTarget } from '@/features/orgs/projects/common/hooks/useAdmi
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { POSTGRES_FUNCTIONS_QUERY_KEY } from '@/features/orgs/projects/database/dataGrid/hooks/usePostgresFunctionsQuery';
 import { normalizeQueryError } from '@/features/orgs/projects/database/dataGrid/utils/normalizeQueryError';
-import { getExtensionDisplayName } from '@/features/orgs/projects/database/extensions/constants';
 import { POSTGRES_EXTENSIONS_QUERY_KEY } from '@/features/orgs/projects/database/extensions/hooks/usePostgresExtensionsQuery';
+import { getExtensionDisplayName } from '@/features/orgs/projects/database/extensions/utils/getExtensionDisplayName';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { getHasuraMigrationsApiUrl } from '@/utils/env';

@@ -192,8 +192,8 @@ async function renderPage() {
   return screen.findByRole('region', { name: 'All extensions' });
 }
 
-function getCard(region: HTMLElement, name: string) {
-  return within(region).getByTestId(`extension-card-${name}`);
+function getRow(region: HTMLElement, name: string) {
+  return within(region).getByTestId(`extension-row-${name}`);
 }
 
 async function openTooltip(user: TestUserEvent, trigger: Element) {
@@ -201,7 +201,6 @@ async function openTooltip(user: TestUserEvent, trigger: Element) {
 
   return screen.findByRole('tooltip');
 }
-
 
 async function openInstallDialog(
   user: TestUserEvent,
@@ -214,7 +213,7 @@ async function openInstallDialog(
 }
 
 describe('DatabaseExtensions', () => {
-  it('lists Popular extensions first and every extension under All', async () => {
+  it('lists popular cards above the table with every extension', async () => {
     const all = await renderPage();
     const popular = screen.getByRole('region', { name: 'Popular extensions' });
 
@@ -228,7 +227,7 @@ describe('DatabaseExtensions', () => {
       'extension-card-pg_cron',
       'extension-card-uuid-ossp',
     ]);
-    expect(within(all).getAllByTestId(/^extension-card-/)).toHaveLength(
+    expect(within(all).getAllByTestId(/^extension-row-/)).toHaveLength(
       catalog.length,
     );
     expect(
@@ -238,42 +237,45 @@ describe('DatabaseExtensions', () => {
     ).toBeInTheDocument();
   });
 
-  it('searches a single deduplicated list by name, comment, and display name', async () => {
+  it('filters the table by name, comment, and display name while popular cards stay', async () => {
     const user = new TestUserEvent();
-    await renderPage();
+    const all = await renderPage();
     const search = screen.getByRole('textbox', { name: 'Search extensions' });
 
     await user.type(search, 'pgvector');
 
     expect(
-      screen.queryByRole('region', { name: 'Popular extensions' }),
-    ).not.toBeInTheDocument();
-    expect(screen.getAllByTestId('extension-card-vector')).toHaveLength(1);
+      within(all)
+        .getAllByTestId(/^extension-row-/)
+        .map((row) => row.getAttribute('data-testid')),
+    ).toEqual(['extension-row-vector']);
     expect(
-      screen.queryByTestId('extension-card-postgis'),
-    ).not.toBeInTheDocument();
+      screen.getByRole('region', { name: 'Popular extensions' }),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId('extension-card-postgis')).toBeInTheDocument();
 
     await user.clear(search);
     await user.type(search, 'case-insensitive');
-    expect(screen.getByTestId('extension-card-citext')).toBeInTheDocument();
+    expect(getRow(all, 'citext')).toBeInTheDocument();
 
     await user.clear(search);
     await user.type(search, 'missing extension');
 
-    expect(screen.getByText('No matching extensions')).toBeInTheDocument();
+    expect(within(all).getByText('No matching extensions')).toBeInTheDocument();
+    expect(screen.getByTestId('extension-card-vector')).toBeInTheDocument();
   });
 
   it('links extension names to their documentation section', async () => {
     const all = await renderPage();
 
     expect(
-      within(getCard(all, 'pg_cron')).getByRole('link', { name: 'pg_cron' }),
+      within(getRow(all, 'pg_cron')).getByRole('link', { name: 'pg_cron' }),
     ).toHaveAttribute(
       'href',
       'https://docs.nhost.io/products/database/extensions#pg_cron',
     );
     expect(
-      within(getCard(all, 'vector')).getByRole('link', { name: 'pgvector' }),
+      within(getRow(all, 'vector')).getByRole('link', { name: 'pgvector' }),
     ).toHaveAttribute(
       'href',
       'https://docs.nhost.io/products/database/extensions#pgvector',
@@ -283,7 +285,7 @@ describe('DatabaseExtensions', () => {
   it('locks built-in extensions instead of offering uninstall', async () => {
     const user = new TestUserEvent();
     const all = await renderPage();
-    const citext = getCard(all, 'citext');
+    const citext = getRow(all, 'citext');
 
     expect(citext).toHaveAttribute('data-built-in', 'true');
     expect(

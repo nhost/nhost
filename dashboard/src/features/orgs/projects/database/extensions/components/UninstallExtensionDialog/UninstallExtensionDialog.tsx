@@ -13,9 +13,9 @@ import {
 import { ButtonWithLoading, buttonVariants } from '@/components/ui/v3/button';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { TextLink } from '@/components/ui/v3/text-link';
-import { getExtensionDisplayName } from '@/features/orgs/projects/database/extensions/constants';
 import type { PostgresExtension } from '@/features/orgs/projects/database/extensions/hooks/usePostgresExtensionsQuery';
 import { useSetExtensionInstalledMutation } from '@/features/orgs/projects/database/extensions/hooks/useSetExtensionInstalledMutation';
+import { getExtensionDisplayName } from '@/features/orgs/projects/database/extensions/utils/getExtensionDisplayName';
 
 export interface UninstallExtensionDialogProps {
   extension: PostgresExtension;

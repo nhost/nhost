@@ -20,12 +20,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
-import { getExtensionDisplayName } from '@/features/orgs/projects/database/extensions/constants';
 import type { PostgresExtension } from '@/features/orgs/projects/database/extensions/hooks/usePostgresExtensionsQuery';
 import {
   getInstallExtensionSQL,
   useSetExtensionInstalledMutation,
 } from '@/features/orgs/projects/database/extensions/hooks/useSetExtensionInstalledMutation';
+import { getExtensionDisplayName } from '@/features/orgs/projects/database/extensions/utils/getExtensionDisplayName';
 import { useThemePreference } from '@/providers/Theme';
 
 export interface InstallExtensionDialogProps {
