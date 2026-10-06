@@ -26,7 +26,7 @@ DONE WHEN: My AI assistant lists the Nhost MCP tools and `get-schema` returns th
    - **Local** — a project running on my machine through `nhost up`. Full access is fine; nothing here is real.
    - **Nhost Cloud** — a hosted project that may hold real data. Access is scoped, and credentials are involved.
 
-   Everything below is split into a **Local** and a **Cloud** branch. Follow only the one I chose. If I want both in one configuration, do the Local branch first, then add the cloud project as a second `[[projects]]` entry using the Cloud branch's template.
+   Everything below is split into a **Local** and a **Cloud** branch. Follow only the one I chose. If I want both in one configuration, do the Local branch first and then work through steps 4 and 5 in full for the cloud half, adding it as a second `[[projects]]` entry instead of replacing the local one. Do not skip those steps: they carry the access questions and the credential rules, and neither is optional just because a local project is already configured.
 
 2. **Local branch.** Confirm prerequisites. Run `nhost --version` to check the CLI is installed. If it is missing, install it with `curl -sSL https://raw.githubusercontent.com/nhost/nhost/main/cli/get.sh | bash`. Then make sure the local stack is running with `nhost up` (this requires Docker). The local GraphQL endpoint is `https://local.graphql.local.nhost.run/v1`.
 
@@ -45,7 +45,9 @@ DONE WHEN: My AI assistant lists the Nhost MCP tools and `get-schema` returns th
    allow_mutations = ["*"]
    ```
 
-   No credentials are involved: `nhost-admin-secret` is the CLI's fixed local value, not a secret. Skip to step 6.
+   No credentials are involved: `nhost-admin-secret` is the CLI's fixed local value, not a secret.
+
+   If I asked for a local project only, skip to step 6. If I asked for both, continue to step 4 now and do the cloud half before registering anything.
 
 4. **Cloud branch.** Confirm prerequisites. Run `nhost --version`. If the CLI is missing, either install it with `curl -sSL https://raw.githubusercontent.com/nhost/nhost/main/cli/get.sh | bash`, or plan to run it through `npx -y @nhost/cli@latest` and use that form everywhere below. Then run `nhost login` so the CLI has credentials for the Nhost Cloud platform. If an interactive login is not possible, ask me for a personal access token and use it as `NHOST_PAT` in the environment rather than writing it to a file. I create that token under "Personal Access Tokens" at <https://app.nhost.io/account>.
 
@@ -136,7 +138,7 @@ DONE WHEN: My AI assistant lists the Nhost MCP tools and `get-schema` returns th
 
    - Claude Code: `claude mcp add nhost -- npx -y @nhost/cli@latest mcp start`
    - Codex CLI: `codex mcp add nhost -- npx -y @nhost/cli@latest mcp start`
-   - Gemini CLI: `gemini mcp add -s user nhost npx -- -y @nhost/cli@latest mcp start`. Gemini takes the command as a positional argument, so the separator goes after `npx` rather than before it; putting it before makes Gemini reject the command for a missing argument.
+   - Gemini CLI: `gemini mcp add -s user nhost npx -- -y @nhost/cli@latest mcp start`, or with a credential on the Cloud branch, `gemini mcp add -s user -e NHOST_PROJECT_PAT=<token> nhost npx -- -y @nhost/cli@latest mcp start`. Gemini takes the command as a positional argument, so the separator goes after `npx` rather than before it; putting it before makes Gemini reject the command for a missing argument.
    - Cursor (or any client using an `mcpServers` JSON block): set `"command": "npx"` with `"args": ["-y", "@nhost/cli@latest", "mcp", "start"]`.
 
    Add the credential flags or the `env` object to those `npx` forms too if I am on the Cloud branch.
@@ -147,7 +149,13 @@ DONE WHEN: My AI assistant lists the Nhost MCP tools and `get-schema` returns th
 
    On the Cloud branch the tool list alone does not prove the credentials arrived: an unset variable interpolates to an empty string, so the server starts and registers every tool either way. A call that fails with an authentication error while the tool list looks correct means the variable did not reach the server, so check step 6 before you suspect the token itself.
 
-   If the client is unavailable, run the project check directly, substituting the subdomain and role for my branch (`local` and `admin` for Local, my project's subdomain and `user` for Cloud). On the Cloud branch this runs in my own shell rather than the one the client spawns, so export the variables the config file names first (for example `export NHOST_PROJECT_PAT=<token>`), or it will fail on auth for that reason alone:
+   If the client is unavailable, run the project check directly. On the Local branch:
+
+   ```bash
+   echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"get-schema","arguments":{"subdomain":"local","role":"admin","summary":true}},"id":1}' | nhost mcp start
+   ```
+
+   On the Cloud branch, substituting my subdomain. This runs in my own shell rather than the one the client spawns, so export the variables the config file names first (for example `export NHOST_PROJECT_PAT=<token>`), or it will fail on auth for that reason alone:
 
    ```bash
    echo '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"get-schema","arguments":{"subdomain":"MY_SUBDOMAIN","role":"user","summary":true}},"id":1}' | nhost mcp start
