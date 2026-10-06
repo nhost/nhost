@@ -1,8 +1,9 @@
 import { vi } from 'vitest';
 import SidebarPinButton from '@/components/layout/MainNav/SidebarPinButton';
-import { fireEvent, render, screen } from '@/tests/testUtils';
+import { render, screen, TestUserEvent } from '@/tests/testUtils';
 
-it('renders the pin action and handles clicks', () => {
+it('renders the pin action and handles clicks', async () => {
+  const user = new TestUserEvent();
   const onClick = vi.fn();
 
   render(<SidebarPinButton pinned={false} onClick={onClick} />);
@@ -11,7 +12,7 @@ it('renders the pin action and handles clicks', () => {
   expect(button).toHaveAttribute('aria-pressed', 'false');
   expect(button).toHaveClass('h-8', 'w-8');
 
-  fireEvent.click(button);
+  await user.click(button);
 
   expect(onClick).toHaveBeenCalledOnce();
 });

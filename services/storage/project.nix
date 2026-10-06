@@ -229,7 +229,7 @@ rec {
         fakeNss
         dockerTools.caCertificates
       ]
-      ++ lib.optionals stdenv.isLinux [
+      ++ lib.optionals stdenv.hostPlatform.isLinux [
         busybox
       ];
     config = {
