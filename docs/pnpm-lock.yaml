@@ -79,6 +79,10 @@ overrides:
   browserslist@<=4.28.6: 4.28.7
   fflate@>=0.7.0 <0.7.5: '>=0.7.5 <0.8.0'
   brace-expansion@>=4.0.0 <5.0.12: '>=5.0.12'
+  seroval@<=1.6.2: 1.6.3
+  postcss-selector-parser@<7.1.6: 7.1.6
+  source-map-js@<1.2.2: 1.2.2
+  '@graphql-tools/utils@<=12.0.0': 12.0.1
 
 packageExtensionsChecksum: sha256-gRFeykwiwMfEE6etcYx6N48XwVeKzxbqNveL7KTQgSQ=
 
@@ -105,8 +109,8 @@ importers:
         specifier: ^0.41.7
         version: 0.41.7
       '@lucide/astro':
-        specifier: ^1.51.0
-        version: 1.51.0(astro@7.3.5(@astrojs/markdown-remark@7.3.1)(@types/node@24.19.1)(@vercel/functions@3.9.11)(tsx@4.23.15)(yaml@2.9.1))
+        specifier: ^1.52.0
+        version: 1.52.0(astro@7.3.5(@astrojs/markdown-remark@7.3.1)(@types/node@24.19.1)(@vercel/functions@3.9.11)(tsx@4.23.15)(yaml@2.9.1))
       '@readme/openapi-parser':
         specifier: ^6.3.1
         version: 6.3.1(openapi-types@12.1.3)
@@ -826,8 +830,8 @@ packages:
   '@jridgewell/sourcemap-codec@1.6.0':
     resolution: {integrity: sha512-T7jf+5zgsZHwNJ4lvQ7/aezbyk0nNX+zJVWpmHA7VYsEx7a7qr5Rg5IbtJFqkgze5Y2sruq1RUY8Q837Od7iFw==}
 
-  '@lucide/astro@1.51.0':
-    resolution: {integrity: sha512-tZkfwLj/4FFnkCNxRywfmj7r8XrZwpPMVQS1ud1U7y5IVXBnz+mxCnmEk/ZXbc7JiQZAnz0C3CAiVBZs/eh+QQ==}
+  '@lucide/astro@1.52.0':
+    resolution: {integrity: sha512-Vyo3sHYPtLvP5fbvqrMSMutcRzu8tbZXG6xFylrDnpeGVjLisokqKrWKuEm6K4IKwxkTrKK/xyXkVBE0WjxZKg==}
     peerDependencies:
       astro: ^4 || ^5 || ^6 || ^7
 
@@ -2355,8 +2359,8 @@ packages:
   mdast-util-directive@3.1.1:
     resolution: {integrity: sha512-Gqpa3MHorXYEZ0VfbroyvBlVKUfz371V6mIERqOYMcb0W1D3LwmFq1ZW4O2TDrbn+4ZmGLwMWeFRJgYZ+bc5fQ==}
 
-  mdast-util-find-and-replace@3.0.2:
-    resolution: {integrity: sha512-Tmd1Vg/m3Xz43afeNxDIhWRtFZgM2VLyaf4vSTYwudTyeuTneoL3qtWMA5jeLyz/O1vDJmmV4QuScFCA2tBPwg==}
+  mdast-util-find-and-replace@3.0.3:
+    resolution: {integrity: sha512-xPgpDNl0/OXHsI7TlaIs22lWnH3KlpvZdXG1ET/m/YT2Hhdkx8lJV4kLphE6l9simyM4KPDFBwas08BgEob6Jw==}
 
   mdast-util-from-markdown@2.1.0:
     resolution: {integrity: sha512-KRLgmPaP2H1ul2bpoJkOS+9pAcDAAj9Nu1mqLnh8NLeJG5tlvj42TH80PIGBpROWlRXLk0lDrWNuZCFy/tsB4A==}
@@ -2709,8 +2713,8 @@ packages:
     peerDependencies:
       postcss: '>=8.5.10'
 
-  postcss-selector-parser@6.1.4:
-    resolution: {integrity: sha512-bIoJLOmjCO1S9XdY/DcnR5hJxvrDir1PbGChrzXG3vw0/FOliy/fA3dmdhQ441kah4gKv+TwckGzex6wNS5cnQ==}
+  postcss-selector-parser@7.1.6:
+    resolution: {integrity: sha512-7qASPzhKF2l2KLboRZux8CCTRMdGiV08vWmyKzPz22qZ7ZjQBOeY7rNzNoCLSUiftJ7HUq0GERHmxw/t0dCdMw==}
     engines: {node: '>=4'}
 
   postcss-value-parser@4.2.0:
@@ -2886,10 +2890,10 @@ packages:
     resolution: {integrity: sha512-HXuLAX2pu/UByPpaeo/TaMfvMIi+1QqIoPJYCcAtU8QkVNwgR6MPlGuCQTErV1JwraaMbYaWVIBX7mppzGLATQ==}
     engines: {node: '>=10'}
     peerDependencies:
-      seroval: ^1.0
+      seroval: 1.6.3
 
-  seroval@1.5.6:
-    resolution: {integrity: sha512-rVQVWjjSvlINzaQPZH5JFqsqEsIWdTxY3iJZCnTL/5gQbXIRooVZKI60tVCkOVfzcRPejboxO2t0P89dg5mQaA==}
+  seroval@1.6.3:
+    resolution: {integrity: sha512-5PwLbVPpT4DEki1hYVSSsoxWY6xCNMVucAVLK/CH0mXSDfp/I4KaAex72q80GNt5hpn7CCMGdSpIg4YGqH/wXQ==}
     engines: {node: '>=10'}
 
   sharp@0.35.5:
@@ -3956,7 +3960,7 @@ snapshots:
 
   '@jridgewell/sourcemap-codec@1.6.0': {}
 
-  '@lucide/astro@1.51.0(astro@7.3.5(@astrojs/markdown-remark@7.3.1)(@types/node@24.19.1)(@vercel/functions@3.9.11)(tsx@4.23.15)(yaml@2.9.1))':
+  '@lucide/astro@1.52.0(astro@7.3.5(@astrojs/markdown-remark@7.3.1)(@types/node@24.19.1)(@vercel/functions@3.9.11)(tsx@4.23.15)(yaml@2.9.1))':
     dependencies:
       astro: 7.3.5(@astrojs/markdown-remark@7.3.1)(@types/node@24.19.1)(@vercel/functions@3.9.11)(tsx@4.23.15)(yaml@2.9.1)
 
@@ -5651,7 +5655,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  mdast-util-find-and-replace@3.0.2:
+  mdast-util-find-and-replace@3.0.3:
     dependencies:
       '@types/mdast': 4.0.4
       escape-string-regexp: 5.0.0
@@ -5680,7 +5684,7 @@ snapshots:
       '@types/mdast': 4.0.4
       ccount: 2.0.1
       devlop: 1.1.0
-      mdast-util-find-and-replace: 3.0.2
+      mdast-util-find-and-replace: 3.0.3
       micromark-util-character: 2.1.1
 
   mdast-util-gfm-footnote@2.1.0:
@@ -6292,9 +6296,9 @@ snapshots:
   postcss-nested@6.2.0(postcss@8.5.28):
     dependencies:
       postcss: 8.5.28
-      postcss-selector-parser: 6.1.4
+      postcss-selector-parser: 7.1.6
 
-  postcss-selector-parser@6.1.4:
+  postcss-selector-parser@7.1.6:
     dependencies:
       cssesc: 3.0.0
       util-deprecate: 1.0.2
@@ -6594,11 +6598,11 @@ snapshots:
 
   semver@7.8.5: {}
 
-  seroval-plugins@1.5.6(seroval@1.5.6):
+  seroval-plugins@1.5.6(seroval@1.6.3):
     dependencies:
-      seroval: 1.5.6
+      seroval: 1.6.3
 
-  seroval@1.5.6: {}
+  seroval@1.6.3: {}
 
   sharp@0.35.5(@types/node@24.19.1):
     dependencies:
@@ -6666,8 +6670,8 @@ snapshots:
   solid-js@1.9.15:
     dependencies:
       csstype: 3.2.3
-      seroval: 1.5.6
-      seroval-plugins: 1.5.6(seroval@1.5.6)
+      seroval: 1.6.3
+      seroval-plugins: 1.5.6(seroval@1.6.3)
 
   solid-transition-group@0.2.3(solid-js@1.9.15):
     dependencies:
