@@ -84,7 +84,7 @@ export default function OverviewTopBar() {
         <NavLink
           href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings`}
           className="flex h-10 gap-2"
-          variant="outline"
+          variant="outline-emboss"
         >
           Settings
           <CogIcon className="h-4 w-4" />
