@@ -18,6 +18,7 @@ import {
   useGetConfigRawJsonQuery,
   useReplaceConfigRawJsonMutation,
 } from '@/generated/graphql';
+import { codeMirrorAppBackground } from '@/lib/codeMirrorAppTheme';
 import { getToastStyleProps } from '@/utils/constants/settings';
 
 const removeTOMLIndentation = (tomlStr: string) => {
@@ -155,7 +156,7 @@ export default function TOMLEditor() {
             height="100%"
             width="100%"
             theme={theme.palette.mode === 'light' ? bbedit : githubDark}
-            extensions={[StreamLanguage.define(toml)]}
+            extensions={[StreamLanguage.define(toml), codeMirrorAppBackground]}
             onChange={onChange}
           />
         )}
