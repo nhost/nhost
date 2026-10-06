@@ -47,6 +47,9 @@ export default defineConfig({
     // development and the split is which project the server points at.
     '/platform/cli/mcp/development-setup':
       '/platform/cli/mcp/local-development-setup',
+    // "Platform connector" collided with the docs' own Platform section, and the
+    // URL said mcp where three different MCP servers are documented.
+    '/platform/cloud/mcp': '/platform/cloud/hosted-mcp-server',
     // Renamed during the GraphQL docs neutralization, so existing links and
     // indexed URLs keep working.
     '/products/graphql/configuring-hasura': '/products/graphql/configuration',
@@ -723,7 +726,7 @@ export default defineConfig({
                     { slug: 'platform/cloud' },
                     // Account-level rather than a per-project setting, so it
                     // sits above the run of project settings below.
-                    { slug: 'platform/cloud/mcp' },
+                    { slug: 'platform/cloud/hosted-mcp-server' },
                     { slug: 'platform/cloud/subdomain' },
                     { slug: 'platform/cloud/compute-resources' },
                     { slug: 'platform/cloud/service-replicas' },
