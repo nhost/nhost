@@ -62,6 +62,10 @@ When the `graphql` scope is requested, the access token includes GraphQL-compati
 
 Without the `graphql` scope, the `https://hasura.io/jwt/claims` namespace is omitted from the access token.
 
+:::note
+Storage checks file permissions through your GraphQL API, so an access token with the `graphql` or `graphql:role:xxxx` scope also works with [Storage](/products/storage): the app can upload, download and manage the files that the granted roles have permission to access. Keep this in mind when deciding which clients may request these scopes.
+:::
+
 ### The `graphql:role:xxxx` Scope
 
 The `graphql:role:xxxx` scope works like the `graphql` scope but **narrows the claims** to specific roles. This is useful when a third-party integration should only see a subset of the user's roles.
@@ -128,7 +132,7 @@ The ID token is issued when the `openid` scope is requested. It contains identit
 
 The `nonce` claim is included in the ID token if a `nonce` parameter was provided in the authorization request. It is **not** included on refresh.
 
-The ID token's JWT header includes `typ: JWT`. The ID token tells the client who signed in; it is not a credential, and Nhost Auth, the UserInfo endpoint and resource servers reject it as a bearer token.
+The ID token's JWT header includes `typ: JWT`. The ID token identifies the signed-in user to the OAuth2 client; it must not be used as a bearer access token for resource APIs.
 
 ## UserInfo Endpoint
 

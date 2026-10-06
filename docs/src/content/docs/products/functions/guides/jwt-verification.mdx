@@ -11,6 +11,12 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 This guide shows how to verify JSON Web Tokens inside an Nhost Function. For background on JWT configuration (key types, generation, and external signing), see [JSON Web Tokens](/products/auth/jwt).
 
+Nhost Auth signs every kind of token it issues with the same key: the session access tokens your users receive on sign-in, short-lived tokens used during sign-in flows, and, if you use the [OAuth2 provider](/products/auth/oauth2-provider/tokens-and-scopes), the access tokens and ID tokens it issues to third-party apps. A valid signature alone therefore does not mean the request comes from the user's own session. Each kind is marked in the token's `typ` header (see [Verify a JWT](/products/auth/jwt#verify-a-jwt)), and the examples below accept only session tokens, whose `typ` is `nhost-session+jwt`.
+
+:::note
+Auth versions that predate typed tokens sign session tokens with `typ: JWT`, so on those versions the examples below reject every request. Upgrade Auth before adding the `typ` check. Session tokens issued before the upgrade still carry `typ: JWT` and will be rejected by these examples until clients obtain newly issued session tokens.
+:::
+
 ## Dependencies
 
 ```shell
@@ -25,9 +31,10 @@ Use this approach when your project signs JWTs with a symmetric key (`HS256`/`HS
 ```ts title="./functions/verify-symmetric.ts"
 import type { Request, Response } from 'express'
 import process from 'node:process'
-import jwt from 'jsonwebtoken'
+import jwt, { type Jwt } from 'jsonwebtoken'
 
 const JWT_SECRET = process.env.HASURA_GRAPHQL_JWT_SECRET
+const SESSION_TOKEN_TYPE = 'nhost-session+jwt'
 
 export default (req: Request, res: Response) => {
   const authHeader = req.headers.authorization
@@ -38,16 +45,22 @@ export default (req: Request, res: Response) => {
 
   const token = authHeader.split(' ')[1]
 
-  const verifyToken = new Promise((resolve, reject) => {
-    jwt.verify(token, JWT_SECRET, { algorithms: ['HS256', 'HS384', 'HS512'] }, (err, decoded) => {
-      if (err) reject(err)
-      else resolve(decoded)
-    })
+  const verifyToken = new Promise<Jwt>((resolve, reject) => {
+    jwt.verify(
+      token,
+      JWT_SECRET,
+      { algorithms: ['HS256', 'HS384', 'HS512'], complete: true },
+      (err, decoded) => {
+        if (err) reject(err)
+        else if (decoded?.header.typ !== SESSION_TOKEN_TYPE) reject(new Error('not a session token'))
+        else resolve(decoded)
+      },
+    )
   })
 
   verifyToken
     .then((decoded) => {
-      res.status(200).json({ token: decoded })
+      res.status(200).json({ token: decoded.payload })
     })
     .catch((err) => {
       res.status(401).json({ error: `Unauthorized: ${err}` })
@@ -72,11 +85,12 @@ https://[subdomain].auth.[region].nhost.run/v1/.well-known/jwks.json
 ```ts title="./functions/verify-asymmetric.ts"
 import type { Request, Response } from 'express'
 import process from 'node:process'
-import jwt from 'jsonwebtoken'
+import jwt, { type Jwt } from 'jsonwebtoken'
 import jwksClient from 'jwks-rsa'
 
 const subdomain = process.env.NHOST_SUBDOMAIN
 const region = process.env.NHOST_REGION
+const SESSION_TOKEN_TYPE = 'nhost-session+jwt'
 
 const client = jwksClient({
   jwksUri: `https://${subdomain}.auth.${region}.nhost.run/v1/.well-known/jwks.json`,
@@ -93,7 +107,7 @@ export default (req: Request, res: Response) => {
 
   const token = authHeader.split(' ')[1]
 
-  const verifyToken = new Promise((resolve, reject) => {
+  const verifyToken = new Promise<Jwt>((resolve, reject) => {
     jwt.verify(
       token,
       (header, callback) => {
@@ -102,9 +116,10 @@ export default (req: Request, res: Response) => {
           callback(null, key.getPublicKey())
         })
       },
-      { algorithms: ['RS256', 'RS384', 'RS512'] },
+      { algorithms: ['RS256', 'RS384', 'RS512'], complete: true },
       (err, decoded) => {
         if (err) reject(err)
+        else if (decoded?.header.typ !== SESSION_TOKEN_TYPE) reject(new Error('not a session token'))
         else resolve(decoded)
       },
     )
@@ -112,7 +127,7 @@ export default (req: Request, res: Response) => {
 
   verifyToken
     .then((decoded) => {
-      res.status(200).json({ token: decoded })
+      res.status(200).json({ token: decoded.payload })
     })
     .catch((err) => {
       res.status(401).json({ error: `Unauthorized: ${err}` })
