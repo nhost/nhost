@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
+import { SignInRightColumn } from '@/components/auth/SignInRightColumn';
 import { NavLink } from '@/components/common/NavLink';
 import { Form } from '@/components/form/Form';
 import { FormInput } from '@/components/form/FormInput';
@@ -67,7 +68,7 @@ export default function ResetPasswordPage() {
               name="newPassword"
               type="password"
               label="New Password"
-              className="!bg-transparent border-border text-white placeholder:text-white"
+              className="!bg-transparent border-border"
             />
 
             <FormInput
@@ -75,11 +76,10 @@ export default function ResetPasswordPage() {
               name="confirmNewPassword"
               type="password"
               label="Confirm New Password"
-              className="!bg-transparent border-border text-white placeholder:text-white"
+              className="!bg-transparent border-border"
             />
 
             <ButtonWithLoading
-              className="!bg-white !text-black disabled:!text-black disabled:!text-opacity-60"
               size="lg"
               type="submit"
               disabled={formState.isSubmitting}
@@ -91,22 +91,22 @@ export default function ResetPasswordPage() {
         </FormProvider>
       </div>
 
-      <p className="text-center text-[#A2B3BE] text-base lg:text-lg">
+      <div className="rounded-md border bg-transparent p-4 text-center text-base text-muted-foreground lg:text-lg">
         Go back to{' '}
-        <NavLink
-          href="/signin/email"
-          className="px-0 font-medium text-[1.125rem] text-white"
-        >
+        <NavLink href="/signin/email" className="px-0 font-medium text-lg">
           Sign In
         </NavLink>
-      </p>
+      </div>
     </>
   );
 }
 
 ResetPasswordPage.getLayout = function getLayout(page: ReactElement) {
   return (
-    <UnauthenticatedLayout title="Request Password Reset">
+    <UnauthenticatedLayout
+      title="Request Password Reset"
+      rightColumnContent={<SignInRightColumn />}
+    >
       {page}
     </UnauthenticatedLayout>
   );
