@@ -61,16 +61,20 @@ function SidebarTooltip({
   label: string;
   children: ReactNode;
 }) {
-  if (!collapsed) {
-    return children;
-  }
-
+  // Always render the tooltip wrapper and only toggle its content. Swapping
+  // the wrapper in and out would remount the item, and its collapse
+  // transitions would never run. `disableHoverableContent` makes leaving the
+  // item close the tooltip by itself; otherwise the (unrendered) content is in
+  // charge of closing it, and an item hovered while expanded would show its
+  // tooltip as soon as the sidebar collapses.
   return (
-    <Tooltip>
+    <Tooltip disableHoverableContent>
       <TooltipTrigger asChild>{children}</TooltipTrigger>
-      <TooltipContent side="right" sideOffset={8}>
-        {label}
-      </TooltipContent>
+      {collapsed && (
+        <TooltipContent side="right" sideOffset={8}>
+          {label}
+        </TooltipContent>
+      )}
     </Tooltip>
   );
 }
@@ -93,7 +97,10 @@ function NavigationListItem({
           activePath={activePath}
           exact={exact}
           disabled={disabled}
-          className={cn(collapsed && 'justify-center py-2')}
+          className={cn(
+            'transition-[color,background-color,padding] ease-in-out [transition-duration:150ms,150ms,300ms] motion-reduce:transition-none',
+            collapsed && 'pl-5',
+          )}
         >
           <span
             aria-hidden="true"
@@ -101,7 +108,14 @@ function NavigationListItem({
           >
             {icon}
           </span>
-          <span className={cn('truncate', collapsed && 'sr-only')}>
+          <span
+            className={cn(
+              'overflow-hidden whitespace-nowrap transition-opacity motion-reduce:transition-none',
+              collapsed
+                ? 'text-clip opacity-0 duration-300 ease-in-out'
+                : 'text-ellipsis opacity-100 delay-100 duration-300',
+            )}
+          >
             {label}
           </span>
         </SidebarItem>
@@ -128,15 +142,23 @@ function NavigationListSection({
       className={cn('mt-[1.2rem] first:mt-0', className)}
       {...props}
     >
-      {label && !collapsed && (
-        <SidebarSectionTitle id={labelId}>{label}</SidebarSectionTitle>
+      {label && (
+        // Collapses its height with the grid-rows trick instead of unmounting,
+        // so the items below glide up rather than jump.
+        <div
+          className={cn(
+            'grid transition-[grid-template-rows,opacity] duration-300 ease-in-out motion-reduce:transition-none',
+            collapsed ? 'grid-rows-[0fr] opacity-0' : 'grid-rows-[1fr]',
+          )}
+        >
+          <div className="min-h-0 overflow-hidden">
+            <SidebarSectionTitle id={labelId} className="whitespace-nowrap">
+              {label}
+            </SidebarSectionTitle>
+          </div>
+        </div>
       )}
-      {label && collapsed && (
-        <h2 id={labelId} className="sr-only">
-          {label}
-        </h2>
-      )}
-      <ul className={cn('flex flex-col', collapsed && 'gap-1')}>{children}</ul>
+      <ul className="flex flex-col">{children}</ul>
     </section>
   );
 }
@@ -151,7 +173,7 @@ function NavigationList({
       aria-label={ariaLabel}
       className={cn('flex min-h-0 flex-1 flex-col', className)}
     >
-      <div className="min-h-0 flex-1 overflow-y-auto p-2">
+      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-2">
         <div className="flex flex-col gap-1">{children}</div>
       </div>
     </nav>
