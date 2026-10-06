@@ -41,7 +41,12 @@ export default defineConfig({
       '/getting-started/build-with-an-assistant',
     // The per-client page only repeated the registration commands that the setup
     // guides already carry inline, so it was removed; keep the URL working.
-    '/platform/cli/mcp/clients': '/platform/cli/mcp/development-setup',
+    // Points at the renamed target rather than chaining through the old one.
+    '/platform/cli/mcp/clients': '/platform/cli/mcp/local-development-setup',
+    // "Development Setup" read as the opposite of "Cloud Setup", when both are
+    // development and the split is which project the server points at.
+    '/platform/cli/mcp/development-setup':
+      '/platform/cli/mcp/local-development-setup',
     // Renamed during the GraphQL docs neutralization, so existing links and
     // indexed URLs keep working.
     '/products/graphql/configuring-hasura': '/products/graphql/configuration',
@@ -747,7 +752,7 @@ export default defineConfig({
                       collapsed: true,
                       items: [
                         { slug: 'platform/cli/mcp' },
-                        { slug: 'platform/cli/mcp/development-setup' },
+                        { slug: 'platform/cli/mcp/local-development-setup' },
                         { slug: 'platform/cli/mcp/cloud-setup' },
                         { slug: 'platform/cli/mcp/configuration' },
                         { slug: 'platform/cli/mcp/troubleshooting' },
