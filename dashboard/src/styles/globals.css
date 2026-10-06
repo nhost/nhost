@@ -293,7 +293,6 @@ html.dark .graphiql-themed .graphiql-container {
        (Database, Storage, Functions, Actions, Events, Remote Schemas)
        highlights a selected item the same way the main nav does. */
     --table-selected: 0 0% 96.1%;
-    --default: 0 0% 98.04%;
     --primary-highlight: 216 100% 40.2% / 8%;
     --primary-gradient-from: 217.01 88.55% 44.51%;
     --primary-gradient-to: 215.88 100% 40%;
@@ -363,7 +362,6 @@ html.dark .graphiql-themed .graphiql-container {
     --data-table-border-color: 210, 13%, 21.2%;
     --primary-main: 217.8 100% 64%;
     --table-selected: 214.4 7.2% 19%;
-    --default: 216.92 23.64% 10.78%;
     --primary-highlight: 217.8 100% 64% / 16%;
     --primary-gradient-from: 216 86.67% 44.12%;
     --primary-gradient-mid: 216 90.48% 41.18%;

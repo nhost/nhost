@@ -148,14 +148,14 @@ export default function SocialProvidersSettings() {
 
       <SettingsCardContent>
         {isGithubConnected ? (
-          <div className="flex w-fit flex-row items-center justify-start gap-2 rounded-md bg-[#f4f7f9] p-2 dark:bg-[#21262c]">
+          <div className="flex w-fit flex-row items-center justify-start gap-2 rounded-md bg-muted p-2">
             <GitHubIcon />
             <span className="font-medium">Connected</span>
           </div>
         ) : (
           <Button
             variant="outline"
-            className="flex w-fit flex-row gap-2 bg-white text-sm+ hover:bg-[#e2e8ef] dark:bg-[#171d26] dark:hover:bg-[#2f363e]"
+            className="flex w-fit flex-row gap-2 bg-background text-sm+ hover:bg-accent"
             onClick={handleConnectGithub}
           >
             <GitHubIcon />

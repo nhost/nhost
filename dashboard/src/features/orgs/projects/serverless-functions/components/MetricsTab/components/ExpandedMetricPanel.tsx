@@ -73,7 +73,7 @@ export default function ExpandedMetricPanel({
         onClick={onClose}
         className="absolute inset-0 cursor-default"
       />
-      <div className="relative flex min-h-0 flex-1 flex-col gap-4 rounded-lg border bg-card p-4 shadow-sm">
+      <div className="relative flex min-h-0 flex-1 flex-col gap-4 rounded-lg border p-4 shadow-sm">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1">
             <h2 className="font-semibold text-foreground text-lg">

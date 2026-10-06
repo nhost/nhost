@@ -134,8 +134,8 @@ export const RemoteSchemaTree = forwardRef<
       style={
         theme.palette.mode === 'dark'
           ? {
-              backgroundColor: '#171d26',
-              color: '#e3e3e3',
+              backgroundColor: 'hsl(var(--background))',
+              color: 'hsl(var(--foreground))',
             }
           : undefined
       }

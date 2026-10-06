@@ -9,7 +9,7 @@ export function InlineCode({
   return (
     <code
       className={cn(
-        'relative max-w-xs truncate rounded bg-[#eaedf0] px-1 font-mono text-[11px] dark:bg-[#2f363d]',
+        'relative max-w-xs truncate rounded bg-neutral-200 px-1 font-mono text-[11px] dark:bg-muted',
         className,
       )}
       {...props}

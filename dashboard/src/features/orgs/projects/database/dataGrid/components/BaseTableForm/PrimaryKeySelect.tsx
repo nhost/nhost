@@ -46,10 +46,10 @@ export default function PrimaryKeySelect() {
             </FormLabel>
             <MultiSelect onValuesChange={field.onChange} values={field.value}>
               <FormControl>
-                <MultiSelectTrigger className="!mt-3 h-10 w-full rounded-sm hover:bg-[#ebf3ff] dark:border-[#2f363d] dark:bg-[#171d26] dark:hover:bg-[#1b2534]">
+                <MultiSelectTrigger className="!mt-3 h-10 w-full rounded-sm hover:bg-accent">
                   <MultiSelectValue
                     placeholder="Add Primary Key"
-                    placeHolderClassName="text-[#9ca7b7]"
+                    placeHolderClassName="text-muted-foreground"
                   />
                 </MultiSelectTrigger>
               </FormControl>
@@ -66,7 +66,7 @@ export default function PrimaryKeySelect() {
                       key={col.value}
                       value={col.value}
                       keywords={[col.label]}
-                      className="data-[selected='true']:bg-[#ebf3ff] data-[selected='true']:dark:bg-[#1b2534]"
+                      className="data-[selected='true']:bg-accent"
                     >
                       {col.label}
                     </MultiSelectItem>
