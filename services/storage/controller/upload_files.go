@@ -88,7 +88,7 @@ func (ctrl *Controller) scanAndReportVirus(
 
 		if err := ctrl.metadataStorage.InsertVirus(
 			ctx, fileID, filename, err.GetDataString("virus"), userSession,
-			http.Header{"x-hasura-admin-secret": []string{ctrl.hasuraAdminSecret}},
+			http.Header{xHasuraAdminSecret: []string{ctrl.hasuraAdminSecret}},
 		); err != nil {
 			err := err.ExtendError("problem inserting virus into database")
 			return err
@@ -133,7 +133,7 @@ func (ctrl *Controller) processFile(
 		_ = ctrl.metadataStorage.DeleteFileByID(
 			ctx,
 			file.ID,
-			http.Header{"x-hasura-admin-secret": []string{ctrl.hasuraAdminSecret}},
+			http.Header{xHasuraAdminSecret: []string{ctrl.hasuraAdminSecret}},
 		)
 
 		return api.FileMetadata{}, apiErr.ExtendError("problem uploading file to storage")
@@ -142,7 +142,7 @@ func (ctrl *Controller) processFile(
 	metadata, apiErr := ctrl.metadataStorage.PopulateMetadata(
 		ctx,
 		file.ID, file.Name, file.header.Size, bucket.ID, etag, true, contentType, file.Metadata,
-		http.Header{"x-hasura-admin-secret": []string{ctrl.hasuraAdminSecret}},
+		http.Header{xHasuraAdminSecret: []string{ctrl.hasuraAdminSecret}},
 	)
 	if apiErr != nil {
 		return api.FileMetadata{}, apiErr.ExtendError(
@@ -161,7 +161,7 @@ func (ctrl *Controller) upload(
 	bucket, err := ctrl.metadataStorage.GetBucketByID(
 		ctx,
 		request.bucketID,
-		http.Header{"x-hasura-admin-secret": []string{ctrl.hasuraAdminSecret}},
+		http.Header{xHasuraAdminSecret: []string{ctrl.hasuraAdminSecret}},
 	)
 	if err != nil {
 		return nil, err

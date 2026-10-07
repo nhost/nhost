@@ -63,6 +63,7 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 ## Development Environment
 
 - Go services use Nix dev shells. Enter with: `nix develop .\#<project-name>` (e.g., `nix develop .\#auth`)
+- On macOS, use the `storage` dev shell for module-wide lint runs; narrower shells such as `ai` and `cli` omit the `pkg-config` dependency needed to type-check the storage image package. Use project shells for targeted package linting.
 - Each service has a `project.nix` and a `Makefile` that includes `build/makefiles/general.makefile`
 - Common Makefile targets: `make help`, `make develop`, `make check`, `make build`, `make build-docker-image`, `make dev-env-up`, `make dev-env-down`
 - JS/TS packages use pnpm 12.3.4 (not npm or yarn) with Turbo for orchestration

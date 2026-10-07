@@ -25,14 +25,14 @@ func (p *Provider) GetUserinfo( //nolint:funlen
 
 	if err != nil {
 		logger.ErrorContext(ctx, "error getting user", logError(err))
-		return nil, &Error{Err: "server_error", Description: "Internal server error"}
+		return nil, &Error{Err: serverError, Description: internalServerError}
 	}
 
 	var (
 		email         *string
 		emailVerified *bool
 	)
-	if slices.Contains(scopes, "email") && user.Email.Valid {
+	if slices.Contains(scopes, scopeEmail) && user.Email.Valid {
 		email = &user.Email.String
 		emailVerified = &user.EmailVerified
 	}
@@ -104,7 +104,7 @@ func (p *Provider) addUserinfoGraphQLClaims(
 	if err != nil {
 		logger.ErrorContext(ctx, "error resolving user roles", logError(err))
 
-		return &Error{Err: "server_error", Description: "Internal server error"}
+		return &Error{Err: serverError, Description: internalServerError}
 	}
 
 	allowedRoles := roles.AllowedRoles
@@ -114,8 +114,8 @@ func (p *Provider) addUserinfoGraphQLClaims(
 		for _, r := range graphqlRoles {
 			if !slices.Contains(roles.AllowedRoles, r) {
 				return &Error{
-					Err:         "access_denied",
-					Description: "User does not have the requested role",
+					Err:         accessDenied,
+					Description: userDoesNotHaveTheRequestedRole,
 				}
 			}
 		}
@@ -130,7 +130,7 @@ func (p *Provider) addUserinfoGraphQLClaims(
 	if err != nil {
 		logger.ErrorContext(ctx, "error creating GraphQL claims", logError(err))
 
-		return &Error{Err: "server_error", Description: "Internal server error"}
+		return &Error{Err: serverError, Description: internalServerError}
 	}
 
 	resp.Set(ns, c)

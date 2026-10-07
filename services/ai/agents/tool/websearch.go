@@ -27,6 +27,7 @@ var (
 const (
 	webSearchTimeout    = 15 * time.Second
 	webSearchMaxResults = 5
+	webSearchKeyQuery   = "query"
 )
 
 // WebSearchConfig holds configuration for the web search tool.
@@ -56,18 +57,19 @@ func (w *WebSearch) Definition() provider.ToolDefinition {
 		Description: "Search the web for current information. " +
 			"Use this when you need up-to-date information that may not be in your training data.",
 		Parameters: map[string]any{
-			"type": "object",
-			"properties": map[string]any{
-				"query": map[string]any{
-					"type":        "string",
-					"description": "The search query",
+			schemaKeyType: schemaTypeObject,
+			schemaKeyProperties: map[string]any{
+				webSearchKeyQuery: map[string]any{
+					schemaKeyType:        schemaTypeString,
+					schemaKeyDescription: "The search query",
 				},
 			},
-			"required": []string{"query"},
+			schemaKeyRequired: []string{webSearchKeyQuery},
 		},
 	}
 }
 
+// The JSON tag must stay in sync with webSearchKeyQuery.
 type webSearchArgs struct {
 	Query string `json:"query"`
 }

@@ -36,7 +36,7 @@ func newOpenAIResponsesConfiguration(
 		baseURL,
 		headers,
 		validateOpenAIResponsesURL,
-		[]string{"x-stainless-"},
+		[]string{stainlessHeaderPrefix},
 		nil,
 	)
 }

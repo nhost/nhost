@@ -8,11 +8,6 @@ import (
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
 
-const (
-	scalarJSON  = "json"
-	scalarJSONB = "jsonb"
-)
-
 // generateForTable generates all GraphQL schema elements for a single table.
 func generateForTable( //nolint:funlen
 	schema *graph.Schema,
@@ -450,7 +445,7 @@ func generateTableObjectType(
 				{
 					Name:        "path",
 					Description: "JSON select path",
-					Type:        graph.NewNamedType("String"),
+					Type:        graph.NewNamedType(scalarString),
 				},
 			}
 		}

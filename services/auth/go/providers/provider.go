@@ -85,3 +85,10 @@ func (m Map) Get(name string) *Provider {
 
 	return nil
 }
+
+// Repeated OIDC scope names.
+const (
+	scopeEmail   = "email"
+	scopeOpenID  = "openid"
+	scopeProfile = "profile"
+)

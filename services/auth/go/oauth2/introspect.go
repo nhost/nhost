@@ -22,15 +22,15 @@ func (p *Provider) IntrospectToken(
 
 	if req.ClientId == nil || *req.ClientId == "" {
 		return nil, &Error{
-			Err:         "invalid_client",
-			Description: "Client ID is required",
+			Err:         invalidClient,
+			Description: clientIDIsRequired,
 		}
 	}
 
 	client, err := p.db.GetOAuth2ClientByClientID(ctx, *req.ClientId)
 	if err != nil {
 		logger.ErrorContext(ctx, "error getting OAuth2 client", logError(err))
-		return nil, &Error{Err: "invalid_client", Description: "Unknown client"}
+		return nil, &Error{Err: invalidClient, Description: unknownClient}
 	}
 
 	if oauthErr := p.authenticateClient(

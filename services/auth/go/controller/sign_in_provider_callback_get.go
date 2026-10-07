@@ -99,7 +99,7 @@ func (ctrl *Controller) signinProviderProviderCallbackValidate(
 		}
 
 		if stateData.State != nil && *stateData.State != "" {
-			values["state"] = *stateData.State
+			values[stateKey] = *stateData.State
 		}
 
 		redirectTo = appendURLValues(redirectTo, values)
@@ -115,7 +115,7 @@ func (ctrl *Controller) signinProviderProviderCallbackValidate(
 
 	if stateData.State != nil && *stateData.State != "" {
 		optionsRedirectTo = appendURLValues(optionsRedirectTo, map[string]string{
-			"state": *stateData.State,
+			stateKey: *stateData.State,
 		})
 	}
 

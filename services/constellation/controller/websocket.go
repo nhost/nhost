@@ -476,7 +476,7 @@ func (h *webSocketHandler) sendErrors(id string, errs []map[string]any) {
 // sendError sends an error message to the client.
 func (h *webSocketHandler) sendError(id string, errMsg string) {
 	select {
-	case h.sendCh <- websocket.NewErrorMessage(id, []map[string]any{{"message": errMsg}}):
+	case h.sendCh <- websocket.NewErrorMessage(id, []map[string]any{{messageKey: errMsg}}):
 	default:
 	}
 }

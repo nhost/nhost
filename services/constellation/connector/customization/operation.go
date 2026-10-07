@@ -426,7 +426,7 @@ func (c *Customizer) fragmentCarriesRootFields(typeCondition string) bool {
 // fields; one written on any other type does not.
 func isRootOperationType(typeCondition string) bool {
 	switch typeCondition {
-	case "Query", "Mutation", "Subscription":
+	case "Query", mutation, subscription:
 		return true
 	default:
 		return false

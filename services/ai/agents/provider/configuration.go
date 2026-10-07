@@ -11,6 +11,7 @@ import (
 )
 
 const (
+	jsonTypeKey                       = "type"
 	providerTypeAnthropicMessages     = "anthropic_messages"
 	providerTypeGoogleGemini          = "google_gemini"
 	providerTypeOpenAIChatCompletions = "openai_chat_completions"
@@ -278,7 +279,7 @@ func decodeProviderDeclaration(
 				declarationIndex,
 				"name must be a string",
 			)
-		case "type":
+		case jsonTypeKey:
 			declaration.providerType, err = decodeString(
 				decoder,
 				declarationIndex,
@@ -317,7 +318,7 @@ func validateRequiredDeclarationFields(
 	seen map[string]struct{},
 	declarationIndex int,
 ) error {
-	for _, required := range []string{"name", "type", "configuration"} {
+	for _, required := range []string{"name", jsonTypeKey, "configuration"} {
 		if _, ok := seen[required]; !ok {
 			return newAgentProviderConfigurationError(
 				declarationIndex,

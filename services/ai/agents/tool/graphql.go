@@ -22,6 +22,8 @@ const (
 	graphqlTimeout              = 30 * time.Second
 	graphqlMaxResponseSize      = 1 << 20  // 1 MB
 	graphqlMaxIntrospectionSize = 10 << 20 // 10 MB
+	graphqlKeyQuery             = "query"
+	graphqlKeyVariables         = "variables"
 )
 
 var (
@@ -77,12 +79,13 @@ func (g *GraphQLGetSchema) Definition() provider.ToolDefinition {
 		Description: "Retrieve the GraphQL schema via introspection. " +
 			"Use summary mode first for an overview, then full mode for specific details.",
 		Parameters: map[string]any{
-			"type": "object",
-			"properties": map[string]any{
+			schemaKeyType: schemaTypeObject,
+			schemaKeyProperties: map[string]any{
 				"summary": map[string]any{
-					"type":        "boolean",
-					"description": "If true, return a JSON summary of query/mutation names. If false, return the full SDL schema.",
-					"default":     true,
+					schemaKeyType: "boolean",
+					schemaKeyDescription: "If true, return a JSON summary of query/mutation names. " +
+						"If false, return the full SDL schema.",
+					"default": true,
 				},
 			},
 		},
@@ -147,7 +150,7 @@ func (g *GraphQLGetSchema) doIntrospection(
 	summary bool,
 ) (*graphqlutil.ResponseIntrospection, error) {
 	body, err := json.Marshal(map[string]any{
-		"query": introspectionQuery(summary),
+		graphqlKeyQuery: introspectionQuery(summary),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal introspection query: %w", err)
@@ -226,22 +229,23 @@ func (g *GraphQLQuery) Definition() provider.ToolDefinition {
 			"For mutations, use graphql_mutation. " +
 			"Retrieve the schema first to know available operations.",
 		Parameters: map[string]any{
-			"type": "object",
-			"properties": map[string]any{
-				"query": map[string]any{
-					"type":        "string",
-					"description": "The GraphQL query to execute.",
+			schemaKeyType: schemaTypeObject,
+			schemaKeyProperties: map[string]any{
+				graphqlKeyQuery: map[string]any{
+					schemaKeyType:        schemaTypeString,
+					schemaKeyDescription: "The GraphQL query to execute.",
 				},
-				"variables": map[string]any{
-					"type":        "object",
-					"description": "Optional variables for the query.",
+				graphqlKeyVariables: map[string]any{
+					schemaKeyType:        schemaTypeObject,
+					schemaKeyDescription: "Optional variables for the query.",
 				},
 			},
-			"required": []string{"query"},
+			schemaKeyRequired: []string{graphqlKeyQuery},
 		},
 	}
 }
 
+// The JSON tags must stay in sync with graphqlKeyQuery and graphqlKeyVariables.
 type graphqlQueryArgs struct {
 	Query     string         `json:"query"`
 	Variables map[string]any `json:"variables"`
@@ -293,18 +297,18 @@ func (g *GraphQLMutation) Definition() provider.ToolDefinition {
 			"For read-only queries, use graphql_query. " +
 			"Retrieve the schema first to know available operations.",
 		Parameters: map[string]any{
-			"type": "object",
-			"properties": map[string]any{
-				"query": map[string]any{
-					"type":        "string",
-					"description": "The GraphQL mutation to execute.",
+			schemaKeyType: schemaTypeObject,
+			schemaKeyProperties: map[string]any{
+				graphqlKeyQuery: map[string]any{
+					schemaKeyType:        schemaTypeString,
+					schemaKeyDescription: "The GraphQL mutation to execute.",
 				},
-				"variables": map[string]any{
-					"type":        "object",
-					"description": "Optional variables for the mutation.",
+				graphqlKeyVariables: map[string]any{
+					schemaKeyType:        schemaTypeObject,
+					schemaKeyDescription: "Optional variables for the mutation.",
 				},
 			},
-			"required": []string{"query"},
+			schemaKeyRequired: []string{graphqlKeyQuery},
 		},
 	}
 }
@@ -342,8 +346,8 @@ func executeGraphQL(
 	logger *slog.Logger,
 ) (string, error) {
 	body, err := json.Marshal(map[string]any{
-		"query":     query,
-		"variables": variables,
+		graphqlKeyQuery:     query,
+		graphqlKeyVariables: variables,
 	})
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal query: %w", err)

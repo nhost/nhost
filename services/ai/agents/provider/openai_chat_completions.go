@@ -25,7 +25,7 @@ func newOpenAIChatCompletionsConfiguration(
 		baseURL,
 		headers,
 		validateOpenAIChatCompletionsURL,
-		[]string{"x-stainless-"},
+		[]string{stainlessHeaderPrefix},
 		nil,
 	)
 }

@@ -77,7 +77,7 @@ func (r *databaseResolver) BuildOperation(rq *remoteQuery) *ast.OperationDefinit
 
 	// Copy over any existing arguments except 'where' (we override it)
 	for _, arg := range rq.sourceField.Arguments {
-		if arg.Name != "where" {
+		if arg.Name != where {
 			remoteField.Arguments = append(remoteField.Arguments, arg)
 		}
 	}
@@ -147,7 +147,7 @@ func (r *databaseResolver) buildWhereArgument(rq *remoteQuery) *ast.Argument {
 	}
 
 	return &ast.Argument{ //nolint:exhaustruct
-		Name: "where",
+		Name: where,
 		Value: &ast.Value{ //nolint:exhaustruct
 			Kind:     ast.ObjectValue,
 			Children: children,
@@ -295,7 +295,7 @@ func buildColumnAliasMapRecursive(
 
 func findWhereArgument(args ast.ArgumentList) *ast.Argument {
 	for _, arg := range args {
-		if arg.Name == "where" {
+		if arg.Name == where {
 			return arg
 		}
 	}
@@ -437,3 +437,7 @@ func valueKindForType(v any) ast.ValueKind {
 		return ast.StringValue
 	}
 }
+
+const (
+	where = "where"
+)

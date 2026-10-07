@@ -21,7 +21,7 @@ func (ctrl *Controller) listBrokenMetadata(ctx context.Context) ([]FileSummary, 
 	// is already gated by the admin secret in AuthenticationFunc.
 	filesInHasura, apiErr := ctrl.metadataStorage.ListFiles(
 		ctx,
-		http.Header{"x-hasura-admin-secret": []string{ctrl.hasuraAdminSecret}},
+		http.Header{xHasuraAdminSecret: []string{ctrl.hasuraAdminSecret}},
 	)
 	if apiErr != nil {
 		return nil, apiErr

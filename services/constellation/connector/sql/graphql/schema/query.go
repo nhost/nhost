@@ -103,7 +103,7 @@ func collectionArguments(customTableName string, caps Capabilities) []*graph.Arg
 			),
 		},
 		&graph.Argument{ //nolint:exhaustruct
-			Name:        "where",
+			Name:        where,
 			Description: "filter the rows returned",
 			Type:        graph.NewNamedType(customTableName + "_bool_exp"),
 		},
@@ -431,7 +431,7 @@ func generateTableSelectColumnEnum(
 
 		description := getColumnDescription(&col)
 		if description == "" {
-			description = "column name"
+			description = columnNameLabel
 		}
 
 		values = append(values, &graph.EnumValue{ //nolint:exhaustruct

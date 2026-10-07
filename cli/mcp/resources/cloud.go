@@ -42,11 +42,11 @@ func (t *Cloud) Register(server *server.MCPServer) {
 			URI:  CloudResourceURI,
 			Name: "nhost-cloud",
 			Annotations: &mcp.Annotations{
-				Audience: []mcp.Role{"agent"},
+				Audience: []mcp.Role{agent},
 				Priority: 9.0, //nolint:mnd
 			},
 			Description: CloudDescription,
-			MIMEType:    "text/plain",
+			MIMEType:    textPlain,
 			Meta:        nil,
 		},
 		t.handle,
@@ -59,7 +59,7 @@ func (t *Cloud) handle(
 	return []mcp.ResourceContents{
 		mcp.TextResourceContents{
 			URI:      request.Params.URI,
-			MIMEType: "text/plain",
+			MIMEType: textPlain,
 			Text:     t.schema,
 			Meta:     nil,
 		},

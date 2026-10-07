@@ -161,7 +161,7 @@ func (c *Controller) classifyConnectorError(
 	}
 
 	return []map[string]any{{
-		"message": sanitizeConnectorError(ctx, logger, c.devMode, err),
+		messageKey: sanitizeConnectorError(ctx, logger, c.devMode, err),
 	}}
 }
 
@@ -199,17 +199,17 @@ func classifyStructuredConnectorError(err error) ([]map[string]any, bool) {
 var (
 	errResponseSessionNotFound = &GraphQLResponse{
 		Data:        nil,
-		Errors:      []map[string]any{{"message": "session not found in context"}},
+		Errors:      []map[string]any{{messageKey: "session not found in context"}},
 		rawResponse: nil,
 	}
 	errResponseOperationNotFound = &GraphQLResponse{
 		Data:        nil,
-		Errors:      []map[string]any{{"message": "operation not found"}},
+		Errors:      []map[string]any{{messageKey: "operation not found"}},
 		rawResponse: nil,
 	}
 	errResponseNoConnector = &GraphQLResponse{
 		Data:        nil,
-		Errors:      []map[string]any{{"message": "no connector available"}},
+		Errors:      []map[string]any{{messageKey: "no connector available"}},
 		rawResponse: nil,
 	}
 )

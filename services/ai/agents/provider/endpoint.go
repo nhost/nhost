@@ -14,6 +14,8 @@ import (
 	"unicode/utf8"
 )
 
+const stainlessHeaderPrefix = "x-stainless-"
+
 var (
 	errInvalidProviderBaseURL = errors.New("invalid provider base URL")
 	errInvalidProviderHeaders = errors.New("invalid provider headers")

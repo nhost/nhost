@@ -70,7 +70,7 @@ var (
 )
 
 func logError(err error) slog.Attr {
-	return slog.String("error", err.Error())
+	return slog.String(errorKey, err.Error())
 }
 
 type ErrorResponse api.ErrorResponse
@@ -693,6 +693,11 @@ func (response ErrorRedirectResponse) VisitSignUpProviderResponse(
 	return response.visit(w)
 }
 
+const (
+	redirectErrorParam            = "error"
+	redirectErrorDescriptionParam = "errorDescription"
+)
+
 func (ctrl *Controller) sendRedirectError(
 	redirectURL *url.URL,
 	err *APIError,
@@ -700,8 +705,8 @@ func (ctrl *Controller) sendRedirectError(
 	errResponse := ctrl.getError(err)
 
 	redirectURL = appendURLValues(redirectURL, map[string]string{
-		"error":            string(errResponse.Error),
-		"errorDescription": errResponse.Message,
+		redirectErrorParam:            string(errResponse.Error),
+		redirectErrorDescriptionParam: errResponse.Message,
 	})
 
 	return ErrorRedirectResponse{
