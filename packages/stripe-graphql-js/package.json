@@ -57,7 +57,7 @@
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20.19.43",
-    "rollup": "^4.63.5",
+    "rollup": "^4.64.0",
     "rollup-plugin-peer-deps-external": "^2.2.4",
     "terser": "^5.51.2",
     "typescript": "catalog:"

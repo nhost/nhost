@@ -73,6 +73,14 @@
             ;
         };
 
+        configdocsf = import ./tools/configdocs/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
         constellationf = import ./services/constellation/project.nix {
           inherit
             self
@@ -240,6 +248,7 @@
           betterleaks = betterleaksf.check;
           cli = clif.check;
           codegen = codegenf.check;
+          configdocs = configdocsf.check;
           constellation = constellationf.check;
           ghactivity = ghactivityf.check;
           govulncheck-wrapper = govulncheck-wrapperf.check;
@@ -390,6 +399,7 @@
           betterleaks = betterleaksf.devShell;
           cli = clif.devShell;
           codegen = codegenf.devShell;
+          configdocs = configdocsf.devShell;
           constellation = constellationf.devShell;
           ghactivity = ghactivityf.devShell;
           govulncheck-wrapper = govulncheck-wrapperf.devShell;
@@ -421,6 +431,7 @@
           cli-npm = clif.cli-npm;
           cli-docker-image = clif.dockerImage;
           codegen = codegenf.package;
+          configdocs = configdocsf.package;
           constellation = constellationf.package;
           constellation-docker-image = constellationf.dockerImage;
           ghactivity = ghactivityf.package;

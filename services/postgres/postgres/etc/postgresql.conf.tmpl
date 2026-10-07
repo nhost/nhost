@@ -315,6 +315,8 @@ max_wal_senders = $MAX_WAL_SENDERS # max number of walsender processes
                                 # (change requires restart)
 max_replication_slots = $MAX_REPLICATION_SLOTS # max number of replication slots
                                 # (change requires restart)
+# Only logical-decoding output plugins belong here; this does not preload them.
+output_plugin_libraries = 'pgoutput,test_decoding,pg_squeeze'
 #wal_keep_size = 0              # in megabytes; 0 disables
 max_slot_wal_keep_size = $MAX_SLOT_WAL_KEEP_SIZE # in megabytes; -1 disables
 #wal_sender_timeout = 60s       # in milliseconds; 0 disables
