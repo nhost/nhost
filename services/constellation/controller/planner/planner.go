@@ -50,10 +50,12 @@ func New(
 // - What each connector should execute (with phantom field hints)
 // - What remote relationships need to be resolved
 // - The order of operations (dependencies).
+// variables are the coerced request variables used to evaluate selection directives.
 func (p *QueryPlanner) Plan(
 	operation *ast.OperationDefinition,
 	fragments ast.FragmentDefinitionList,
 	role string,
+	variables map[string]any,
 ) (*QueryPlan, error) {
 	schema := p.schemas[role]
 	if schema == nil {
@@ -70,45 +72,96 @@ func (p *QueryPlanner) Plan(
 	fieldsByConnector := p.groupFieldsByConnector(operation)
 
 	for connectorName, fields := range fieldsByConnector {
-		relationships := p.relationshipsByConnector[connectorName]
-
-		analyzer := newAnalyzer(
-			connectorName,
-			schema,
-			relationships,
-			operation.Operation,
-			fragments,
+		primary, remotes := p.planConnector(
+			operation, fields, connectorName, schema, fragments, variables,
 		)
-
-		subOp := transform.BuildSubOperation(operation, fields)
-		analysis := analyzer.analyzeOperation(subOp)
-
-		transformer := transform.NewTransformer(
-			schema,
-			toRemoteRelationships(relationships),
-			connectorName,
-			p.typeToConnectors,
-		)
-		transformResult := transformer.Transform(subOp, fragments)
-
-		// Phantom fields are injected into the clean operation, which is already
-		// a clone (safe to mutate).
-		transform.InjectPhantomFields(
-			transformResult.CleanOperation,
-			toPhantomSpecs(analysis.PhantomFields),
-		)
-
-		plan.PrimaryQueries = append(plan.PrimaryQueries, &PrimaryQuery{
-			Connector:      connectorName,
-			CleanOperation: transformResult.CleanOperation,
-			CleanFragments: transformResult.CleanFragments,
-			PhantomFields:  analysis.PhantomFields,
-		})
-
-		plan.RemoteQueries = append(plan.RemoteQueries, analysis.RemoteQueries...)
+		plan.PrimaryQueries = append(plan.PrimaryQueries, primary)
+		plan.RemoteQueries = append(plan.RemoteQueries, remotes...)
 	}
 
 	return plan, nil
+}
+
+func (p *QueryPlanner) planConnector(
+	operation *ast.OperationDefinition,
+	fields []ast.Selection,
+	connectorName string,
+	schema *ast.Schema,
+	fragments ast.FragmentDefinitionList,
+	variables map[string]any,
+) (*PrimaryQuery, []*RemoteQueryPlan) {
+	analyzer := newAnalyzer(
+		connectorName, schema, nil, operation.Operation, fragments,
+	)
+	for owner, relationships := range p.relationshipsByConnector {
+		analyzer.relationshipLookup[owner] = make(map[string]*RelationshipMetadata)
+		for _, rel := range relationships {
+			if transform.FieldReturnTypeOnType(schema, rel.SourceType, rel.Name) != "" {
+				analyzer.relationshipLookup[owner][rel.SourceType+"."+rel.Name] = rel
+			}
+		}
+	}
+
+	analyzer.variables = variables
+	subOp := transform.BuildSubOperation(operation, fields)
+	analysis := analyzer.analyzeOperation(subOp)
+
+	transformer := transform.NewTransformer(
+		schema, toRemoteRelationships(p.relationshipsByConnector[connectorName]),
+		connectorName, p.typeToConnectors,
+	)
+	transformResult := transformer.Transform(subOp, fragments)
+
+	// Phantoms under a remote result belong in that result's target operation,
+	// not the initial connector's cleaned operation.
+	var primaryPhantoms []*PhantomFieldSpec
+	for _, spec := range analysis.PhantomFields {
+		if !isUnderRemoteResult(spec.Path, analysis.RemoteQueries) {
+			primaryPhantoms = append(primaryPhantoms, spec)
+		}
+	}
+
+	transform.InjectPhantomFields(
+		transformResult.CleanOperation,
+		toPhantomSpecs(primaryPhantoms),
+		transformResult.CleanFragments,
+	)
+
+	for _, remote := range analysis.RemoteQueries {
+		remote.Selection = prepareRemoteSelection(remote, analysis, schema, fragments, variables)
+	}
+
+	return &PrimaryQuery{
+		Connector:      connectorName,
+		CleanOperation: transformResult.CleanOperation,
+		CleanFragments: transformResult.CleanFragments,
+		PhantomFields:  primaryPhantoms,
+	}, analysis.RemoteQueries
+}
+
+func isUnderRemoteResult(path []string, remotes []*RemoteQueryPlan) bool {
+	for _, remote := range remotes {
+		output := remote.SourcePath.Child(remote.OutputField)
+		if pathHasPrefix(path, output) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func pathHasPrefix(path, prefix []string) bool {
+	if len(path) < len(prefix) {
+		return false
+	}
+
+	for i, part := range prefix {
+		if path[i] != part {
+			return false
+		}
+	}
+
+	return true
 }
 
 // groupFieldsByConnector groups root-level selections by their owning connector.

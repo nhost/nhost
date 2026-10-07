@@ -6,7 +6,7 @@
 // statically analyses an operation and emits a [QueryPlan] describing the
 // remote relationships it found, this package consumes that plan during
 // request execution. The single integration point is
-// [RemoteRelationshipResolver.Resolve], invoked by controller.Resolve once
+// [RemoteRelationshipResolver.ResolvePlanned], invoked by controller.Resolve once
 // the primary connector has produced the parent rows.
 //
 // # Resolution strategies
@@ -43,7 +43,7 @@
 //
 // # Pipeline
 //
-// For every remoteQuery in the plan, Resolve walks the same five-stage
+// For every remoteQuery in the plan, ResolvePlanned walks the same five-stage
 // pipeline:
 //
 //  1. Build — the strategy turns the parent join keys and the user's
@@ -57,16 +57,16 @@
 //  4. Stitch — the strategy builds a lookup keyed by join column and
 //     copies the matching remote rows into each parent row under the
 //     relationship field name.
-//  5. Strip — phantom join columns the planner injected solely to support
-//     the join (remotePhantomFields per-query, localPhantomFields once at
-//     the end) are removed so they never appear in the client response.
+//  5. Strip — target join-column phantoms are removed from this query's own
+//     result maps after stitching. Source and child-key phantoms are removed
+//     only after all descendants have read them.
 //
 // # Position in the controller pipeline
 //
-// controller.Resolve calls into this package twice per request: once via
-// [BuildRemoteQueriesFromPlan] to materialise the [remoteQuery] slice from
-// the planner's output, and once via [RemoteRelationshipResolver.Resolve]
-// to execute and stitch them after the primary connector pass. The package
+// controller.Resolve calls [RemoteRelationshipResolver.ResolvePlanned] after
+// the primary connector pass, building each query from its stitched parent.
+// [BuildRemoteQueriesFromPlan] and [RemoteRelationshipResolver.Resolve] retain
+// the earlier eager-build path for compatibility and isolated strategy tests. The package
 // owns no mutable state of its own — RemoteRelationshipResolver is built
 // once per controllerState reload and reused for every request that sees
 // that snapshot.
@@ -83,6 +83,8 @@ import (
 
 	"github.com/nhost/nhost/services/constellation/connector"
 	"github.com/nhost/nhost/services/constellation/connector/groupedaggregate"
+	connectorrelationships "github.com/nhost/nhost/services/constellation/connector/relationships"
+	"github.com/nhost/nhost/services/constellation/controller/planner"
 	"github.com/nhost/nhost/services/constellation/internal/jsonpath"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -125,18 +127,11 @@ func New(connectors map[string]connector.Connector) *RemoteRelationshipResolver 
 	}
 }
 
-// Resolve executes all pending remote queries and stitches results into the parent data.
-// After this returns, results are complete and clean (phantom fields removed).
-//
-// The resolution process:
-// 1. Execute each remote query against its target connector
-// 2. Handle nested remote queries recursively
-// 3. Stitch results into the parent data
-// 4. Remove remote phantom fields immediately after stitching each query
-// 5. Remove all local phantom fields after all queries complete.
-//
-// pendingQueries is an opaque slice produced by [BuildRemoteQueriesFromPlan];
-// callers should obtain it from that constructor and pass it through unchanged.
+// Resolve executes already-built queries using the historical eager-build
+// path. It is retained for compatibility and strategy tests; callers with
+// dependent remote relationships must use ResolvePlanned. Target phantoms are
+// removed per result; local phantoms are removed after all queries complete.
+// pendingQueries is produced by [BuildRemoteQueriesFromPlan].
 func (r *RemoteRelationshipResolver) Resolve(
 	ctx context.Context,
 	results map[string]any,
@@ -155,7 +150,40 @@ func (r *RemoteRelationshipResolver) Resolve(
 		}
 	}
 
-	// Remove all local phantom fields after all remote queries complete
+	r.removeAllLocalPhantomFields(results, pendingQueries)
+
+	return nil
+}
+
+// ResolvePlanned materializes each remote query only after its parent has
+// been stitched. One query per response path batches all available parent
+// rows, including those nested inside remote arrays and aggregate nodes.
+func (r *RemoteRelationshipResolver) ResolvePlanned(
+	ctx context.Context,
+	results map[string]any,
+	plan *planner.QueryPlan,
+	fragments ast.FragmentDefinitionList,
+	resolveTypeName func(string, string) string,
+	variables map[string]any,
+	role string,
+	sessionVariables map[string]any,
+	logger *slog.Logger,
+) error {
+	pendingQueries := make([]*remoteQuery, 0, len(plan.RemoteQueries))
+	for _, remote := range plan.RemoteQueries {
+		rq := buildRemoteQueryFromPlan(results, remote, fragments, resolveTypeName)
+		if rq == nil {
+			continue
+		}
+
+		pendingQueries = append(pendingQueries, rq)
+		if err := r.executeAndStitch(
+			ctx, results, rq, fragments, variables, role, sessionVariables, logger,
+		); err != nil {
+			return err
+		}
+	}
+
 	r.removeAllLocalPhantomFields(results, pendingQueries)
 
 	return nil
@@ -172,8 +200,12 @@ func (r *RemoteRelationshipResolver) executeAndStitch(
 	sessionVariables map[string]any,
 	logger *slog.Logger,
 ) error {
-	// Skip if no join arguments (all parent rows had null join keys)
+	// No remote call is needed when every parent has a null key, but the
+	// requested field must still be present on each parent (including nested
+	// rows and aliases). Hasura returns null even for array relationships.
 	if len(rq.joinArguments) == 0 {
+		rq.stitchNullResults(results)
+
 		return nil
 	}
 
@@ -186,6 +218,30 @@ func (r *RemoteRelationshipResolver) executeAndStitch(
 		)
 	}
 
+	if err := r.setDatabaseTargetTypes(rq, role); err != nil {
+		return err
+	}
+
+	if rq.collectionInfo != nil && hasPerParentCollectionModifiers(rq.sourceField, variables) {
+		return r.executeAndStitchCollection(
+			ctx, results, rq, fragments, variables, role, sessionVariables, logger,
+		)
+	}
+
+	return r.executeAndStitchOperation(ctx, results, rq, fragments, variables,
+		role, sessionVariables, logger)
+}
+
+func (r *RemoteRelationshipResolver) executeAndStitchOperation(
+	ctx context.Context,
+	results map[string]any,
+	rq *remoteQuery,
+	fragments ast.FragmentDefinitionList,
+	variables map[string]any,
+	role string,
+	sessionVariables map[string]any,
+	logger *slog.Logger,
+) error {
 	// Build the remote operation using the resolver
 	remoteOp := rq.buildOperation()
 	if remoteOp == nil {
@@ -196,7 +252,7 @@ func (r *RemoteRelationshipResolver) executeAndStitch(
 	// The remote operation is a standalone query sent to the target connector,
 	// so variable references (e.g., $stats) must be replaced with their actual values
 	// since the remote operation has no variable definitions.
-	resolveVariableReferences(remoteOp.SelectionSet, variables)
+	remoteOp.SelectionSet = resolveVariableReferences(remoteOp.SelectionSet, variables)
 
 	// Get the target connector
 	targetConnector := r.connectors[rq.targetConnector]
@@ -209,6 +265,11 @@ func (r *RemoteRelationshipResolver) executeAndStitch(
 	// (e.g., "fragment X on localTable { ... }") that would cause validation
 	// errors on the remote schema.
 	filteredFragments := collectReferencedFragments(remoteOp, fragments)
+	for i, fragment := range filteredFragments {
+		copyFragment := *fragment
+		copyFragment.SelectionSet = resolveVariableReferences(fragment.SelectionSet, variables)
+		filteredFragments[i] = &copyFragment
+	}
 
 	// Execute the remote query
 	remoteExecResult, err := targetConnector.Execute(
@@ -234,11 +295,46 @@ func (r *RemoteRelationshipResolver) executeAndStitch(
 	resultLookup := rq.buildResultLookup(remoteResults)
 
 	rq.stitchResults(results, resultLookup)
+	// Remove only from this query's result maps: a later stitch at the same
+	// response path may contain a user-selected column with the same name.
+	removeRemoteResultPhantoms(remoteResults, rq.remotePhantomFields)
 
-	// Remove phantom fields from remote results AFTER stitching
-	if len(rq.remotePhantomFields) > 0 {
-		rq.removePhantomFieldsFromRemoteResults(remoteResults)
+	return nil
+}
+
+func removeRemoteResultPhantoms(results []any, fields []string) {
+	for _, result := range results {
+		if row, ok := result.(map[string]any); ok {
+			for _, field := range fields {
+				delete(row, field)
+			}
+		}
 	}
+}
+
+// The JSON/JSONB _in predicate accepts JSON text, not a raw GraphQL
+// string/array. The admin schema supplies type information for physical
+// relationships whose target join column is hidden from the caller.
+func (r *RemoteRelationshipResolver) setDatabaseTargetTypes(rq *remoteQuery, role string) error {
+	db, ok := rq.resolver.(*databaseResolver)
+	if !ok {
+		return nil
+	}
+
+	target := r.connectors[rq.targetConnector]
+	if target == nil {
+		return nil // executeAndStitch reports the missing connector below.
+	}
+
+	schemas, err := target.GetSchema()
+	if err != nil {
+		return fmt.Errorf("loading remote target schema: %w", err)
+	}
+
+	db.setTargetTypes(
+		schemas[role], schemas["admin"],
+		connectorrelationships.CustomizedTypeName(target, db.targetTableName),
+	)
 
 	return nil
 }

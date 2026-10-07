@@ -26,6 +26,15 @@ type SchemaProvider interface {
 	GetTypeName(identifier string) string
 }
 
+// computedJoinKeyResolver is implemented by SQL connectors and their schema
+// decorators; it answers against reconciled metadata rather than raw input.
+// Other providers fail closed for computed keys.
+//
+//go:generate mockgen -package mock -destination mock/computed_join_key_resolver.go . computedJoinKeyResolver
+type computedJoinKeyResolver interface {
+	HasComputedJoinKey(tableSchema, tableName, key string) bool
+}
+
 // Composer binds a provider set and metadata together so that [Composer.Compose]
 // can be invoked against them. Instances are immutable handles: they do not
 // retain state across calls and are safe to reuse for repeated compositions.
@@ -247,6 +256,8 @@ func (c *Composer) typeNameResolvers() map[string]relationships.TypeNameResolver
 // [relationships.RelationshipSpec] values. Specs whose source connector is
 // not registered as a provider, or whose source table is an enum, are
 // dropped here so Inject never sees them.
+//
+//nolint:gocognit // One translation walks table and remote-schema relationship variants.
 func (c *Composer) relationshipSpecs() []relationships.RelationshipSpec {
 	var specs []relationships.RelationshipSpec
 
@@ -261,12 +272,16 @@ func (c *Composer) relationshipSpecs() []relationships.RelationshipSpec {
 				continue
 			}
 
-			sourceType := dbConn.GetTypeName(
-				table.Table.Schema + "." + table.Table.Name,
+			sourceType := relationships.SchemaTypeName(
+				dbConn, table.Table.Schema+"."+table.Table.Name,
 			)
 
 			for _, rel := range table.RemoteRelationships {
 				if spec, ok := dbRelationshipSpec(db.Name, sourceType, rel); ok {
+					if !populateComputedJoinKeys(&spec, table, rel, dbConn) {
+						continue
+					}
+
 					specs = append(specs, spec)
 				}
 			}
@@ -284,6 +299,60 @@ func (c *Composer) relationshipSpecs() []relationships.RelationshipSpec {
 	}
 
 	return specs
+}
+
+// populateComputedJoinKeys projects table-owned definitions and per-role grants
+// into the relationship. The source connector's reconciled function identity
+// and role schema must both admit the key. A stale/invalid definition cannot
+// be mistaken for an identically named physical column.
+func populateComputedJoinKeys(
+	spec *relationships.RelationshipSpec,
+	table metadata.TableMetadata,
+	rel metadata.RemoteRelationship,
+	provider SchemaProvider,
+) bool {
+	var lhs []string
+	if rel.Definition.ToSource != nil {
+		for key := range rel.Definition.ToSource.FieldMapping {
+			lhs = append(lhs, key)
+		}
+	} else if rel.Definition.ToRemoteSchema != nil {
+		lhs = rel.Definition.ToRemoteSchema.LHSFields
+	}
+
+	for _, key := range lhs {
+		for _, field := range table.ComputedFields {
+			if field.Name != key {
+				continue
+			}
+
+			resolver, ok := provider.(computedJoinKeyResolver)
+			if !ok || !resolver.HasComputedJoinKey(table.Table.Schema, table.Table.Name, key) {
+				return false
+			}
+
+			if spec.ComputedKeys == nil {
+				spec.ComputedKeys = make(map[string]map[string]bool)
+			}
+
+			grants := make(map[string]bool)
+			for _, permission := range table.SelectPermissions {
+				grants[permission.Role] = slices.Contains(permission.Permission.ComputedFields, key)
+			}
+
+			spec.ComputedKeys[key] = grants
+
+			break
+		}
+	}
+
+	if len(spec.ComputedKeys) > 0 && rel.Definition.ToSource != nil {
+		for _, target := range rel.Definition.ToSource.FieldMapping {
+			spec.TargetJoinFields = append(spec.TargetJoinFields, target)
+		}
+	}
+
+	return true
 }
 
 // dbRelationshipSpec translates a metadata RemoteRelationship (rooted in a
@@ -305,6 +374,8 @@ func dbRelationshipSpec(
 		return relationships.RelationshipSpec{
 			SourceConnector:   dbName,
 			SourceType:        sourceType,
+			ComputedKeys:      nil,
+			TargetJoinFields:  nil,
 			Name:              rel.Name,
 			TargetConnector:   toSource.Source,
 			TargetIdentifier:  toSource.Table.Schema + "." + toSource.Table.Name,
@@ -327,6 +398,8 @@ func dbRelationshipSpec(
 		return relationships.RelationshipSpec{
 			SourceConnector:   dbName,
 			SourceType:        sourceType,
+			ComputedKeys:      nil,
+			TargetJoinFields:  nil,
 			Name:              rel.Name,
 			TargetConnector:   toRS.RemoteSchema,
 			TargetIdentifier:  path[0].FieldName,
@@ -378,6 +451,8 @@ func rsRelationshipSpec(
 	return relationships.RelationshipSpec{
 		SourceConnector:   rsName,
 		SourceType:        typeName,
+		ComputedKeys:      nil,
+		TargetJoinFields:  nil,
 		Name:              rel.Name,
 		TargetConnector:   toSource.Source,
 		TargetIdentifier:  toSource.Table.Schema + "." + toSource.Table.Name,

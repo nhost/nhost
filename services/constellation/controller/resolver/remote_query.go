@@ -32,6 +32,7 @@ type remoteQuery struct {
 	alias           string
 	isArray         bool
 	joinArguments   []*remoteJoinArgument
+	sourceColumns   []string // LHS fields, including fields hidden behind phantom aliases
 	sourceField     *ast.Field
 	fragments       ast.FragmentDefinitionList
 
@@ -54,6 +55,10 @@ type remoteQuery struct {
 	// grouped-aggregate queries this is nil; the executor uses the
 	// aggregateInfo fields below instead of going through resolver.
 	resolver remoteQueryResolver
+
+	// collectionInfo routes paginated and distinct remote arrays through one
+	// target-side LATERAL batch instead of applying modifiers to all keys at once.
+	collectionInfo *aggregateInfo
 
 	// aggregateInfo, when non-nil, marks this remoteQuery as a cross-database
 	// grouped-aggregate relationship and carries the inputs needed to invoke
@@ -137,6 +142,12 @@ func (rq *remoteQuery) stitchResults(results map[string]any, resultLookup map[st
 	outputName := rq.alias
 
 	rq.parentPath.ForEach(results, func(parentRow map[string]any) {
+		if rq.parentJoinKeyIsNull(parentRow) {
+			parentRow[outputName] = nil
+
+			return
+		}
+
 		key := rq.getJoinKeyFromParent(parentRow)
 		matches := resultLookup[key]
 
@@ -159,16 +170,32 @@ func (rq *remoteQuery) stitchResults(results map[string]any, resultLookup map[st
 	})
 }
 
-// removePhantomFieldsFromRemoteResults removes phantom fields from remote
-// results. Like stitchResults, this is identical across resolver strategies.
-func (rq *remoteQuery) removePhantomFieldsFromRemoteResults(results []any) {
-	for _, result := range results {
-		if resultMap, ok := result.(map[string]any); ok {
-			for _, field := range rq.remotePhantomFields {
-				delete(resultMap, field)
-			}
+// stitchNullResults fills requested fields when there are no non-null keys.
+// It also handles remote-schema relationships without querying that schema;
+// no Hasura parity claim is made for that unprobed null-LHS case.
+func (rq *remoteQuery) stitchNullResults(results map[string]any) {
+	if rq.parentPath.IsEmpty() {
+		return
+	}
+
+	rq.parentPath.ForEach(results, func(parentRow map[string]any) {
+		parentRow[rq.alias] = nil
+	})
+}
+
+func (rq *remoteQuery) parentJoinKeyIsNull(parentRow map[string]any) bool {
+	for _, col := range rq.sourceColumns {
+		lookupKey := col
+		if alias, ok := rq.localJoinAliases[col]; ok {
+			lookupKey = alias
+		}
+
+		if parentRow[lookupKey] == nil {
+			return true
 		}
 	}
+
+	return false
 }
 
 // getLocalPhantomFields returns the local phantom response keys to delete.

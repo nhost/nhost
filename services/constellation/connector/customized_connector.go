@@ -7,9 +7,17 @@ import (
 	"log/slog"
 
 	"github.com/nhost/nhost/services/constellation/connector/customization"
+	"github.com/nhost/nhost/services/constellation/connector/groupedaggregate"
 	"github.com/nhost/nhost/services/constellation/graph"
 	"github.com/nhost/nhost/services/constellation/metadata"
 	"github.com/vektah/gqlparser/v2/ast"
+)
+
+var (
+	errGroupedCollectionUnavailable = errors.New(
+		"remote array target cannot execute per-parent modifiers",
+	)
+	errGroupedAggregateUnavailable = errors.New("grouped aggregate unavailable")
 )
 
 // customizedConnector decorates a Connector with Hasura-style schema
@@ -20,22 +28,16 @@ import (
 // of this, so the decorator works uniformly for SQL, remote-schema, and
 // in-memory connectors.
 //
-// Customization × cross-connector remote relationships is not yet handled:
-// the composer injects relationship fields keyed by native type names (it calls
-// GetTypeName, which this decorator delegates to inner unchanged), which this
-// decorator's schema renames. No metadata in use combines the two (the
-// namespaced remote schema declares no remote relationships), so it is left as
-// a follow-up. Unlike field_names -- rejected at construction because it lives
-// in the Customization config -- this combination cannot be guarded in
-// newCustomizedConnector: remote relationships live in
-// metadata.DatabaseMetadata.Tables[].RemoteRelationships /
-// RemoteSchemaMetadata.RemoteRelationships, neither of which is passed to the
-// constructor, and the *targeted* side (another source pointing at this one) is
-// only visible to the composer, which holds the full metadata.Metadata. The
-// divergence is pinned by TestCustomizedConnectorRelationshipNamingDivergence so
-// any change to the GetTypeName-vs-schema naming contract is caught.
-// Subscriptions, which flow through a separate handler rather than Execute, are
-// likewise not yet customized.
+// Database to_source relationships also work from a root-field namespace
+// with a type-name prefix: the composer and planner use published type names,
+// while GetTypeName retains native names for target root execution. The
+// controller decodes namespaced rows before stitching and phantom cleanup.
+// Type-prefixed/suffixed database targets support ordinary joins, per-parent
+// collections and grouped aggregates through native table identity; computed
+// keys still require role grants and selectable target SQL columns. Unknown
+// native types cannot be synthesized by applying a prefix. Other source and
+// target combinations are not implied by these verified database shapes.
+// Subscriptions flow through a separate customized handler, not Execute.
 type customizedConnector struct {
 	name       string
 	inner      Connector
@@ -119,6 +121,154 @@ func (c *customizedConnector) GetSchema() (map[string]*graph.Schema, error) {
 	return c.schemas, nil
 }
 
+// HasComputedJoinKey forwards reconciled SQL identity through the schema
+// decorator. Non-SQL connectors cannot authorize computed LHS joins.
+func (c *customizedConnector) HasComputedJoinKey(tableSchema, tableName, key string) bool {
+	provider, ok := c.inner.(interface {
+		HasComputedJoinKey(tableSchema, tableName, key string) bool
+	})
+	if !ok {
+		return false
+	}
+
+	return provider.HasComputedJoinKey(tableSchema, tableName, key)
+}
+
+// HasSelectableJoinColumn forwards SQL column identity and role grants through
+// source customization. Only the SQL connector can authorize a target column.
+func (c *customizedConnector) HasSelectableJoinColumn(identifier, role, name string) bool {
+	provider, ok := c.inner.(interface {
+		HasSelectableJoinColumn(identifier, role, name string) bool
+	})
+	if !ok {
+		return false
+	}
+
+	return provider.HasSelectableJoinColumn(identifier, role, name)
+}
+
+// ExecuteGroupedCollection forwards target-side per-parent array windows to a
+// capable inner connector. Grouped SQL uses native table identity and nested
+// field names rather than a customized root.
+func (c *customizedConnector) ExecuteGroupedCollection(
+	ctx context.Context,
+	req groupedaggregate.Request,
+	role string,
+	sessionVariables map[string]any,
+	logger *slog.Logger,
+) (map[string]any, error) {
+	provider, ok := c.inner.(interface {
+		ExecuteGroupedCollection(
+			ctx context.Context, req groupedaggregate.Request, role string,
+			sessionVariables map[string]any, logger *slog.Logger,
+		) (map[string]any, error)
+	})
+	if !ok {
+		return nil, errGroupedCollectionUnavailable
+	}
+
+	results, err := provider.ExecuteGroupedCollection(ctx, req, role, sessionVariables, logger)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"executing grouped collection on customized connector %s: %w",
+			c.name,
+			err,
+		)
+	}
+
+	return forwardGroupedTypeNames(results, req, c.customizer, true), nil
+}
+
+// ExecuteGroupedAggregate forwards grouped SQL using native table identity.
+// Unlike a root GraphQL operation, the request has no customized root to undo.
+func (c *customizedConnector) ExecuteGroupedAggregate(
+	ctx context.Context,
+	req groupedaggregate.Request,
+	role string,
+	sessionVariables map[string]any,
+	logger *slog.Logger,
+) (map[string]any, error) {
+	provider, ok := c.inner.(groupedaggregate.Executor)
+	if !ok {
+		return nil, fmt.Errorf(
+			"%w on customized connector %s",
+			errGroupedAggregateUnavailable,
+			c.name,
+		)
+	}
+
+	results, err := provider.ExecuteGroupedAggregate(ctx, req, role, sessionVariables, logger)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"executing grouped aggregate on customized connector %s: %w",
+			c.name,
+			err,
+		)
+	}
+
+	// Grouped SQL bypasses ForwardResult. Remap selected __typename values in
+	// aggregate nodes without touching the inner connector's result maps.
+	return forwardGroupedTypeNames(results, req, c.customizer, false), nil
+}
+
+func forwardGroupedTypeNames(
+	results map[string]any, req groupedaggregate.Request,
+	customizer *customization.Customizer, collection bool,
+) map[string]any {
+	out := make(map[string]any, len(results))
+	for key, value := range results {
+		if req.Field == nil {
+			out[key] = forwardGroupedValue(value, customizer)
+
+			continue
+		}
+
+		selections := req.Field.SelectionSet
+		if collection {
+			// Collection groups wrap each requested row inside nodes; aggregate
+			// groups already have the aggregate field's own selection shape.
+			selections = ast.SelectionSet{&ast.Field{ //nolint:exhaustruct
+				Name: "nodes", SelectionSet: selections,
+			}}
+		}
+
+		out[key] = customizer.ForwardSelectionValue(value, selections, req.Fragments)
+	}
+
+	return out
+}
+
+func forwardGroupedValue(value any, customizer *customization.Customizer) any {
+	switch typed := value.(type) {
+	case map[string]any:
+		out := make(map[string]any, len(typed))
+		for key, entry := range typed {
+			if key == "__typename" {
+				if native, ok := entry.(string); ok {
+					if customized := customizer.TypeName(native); customized != "" {
+						out[key] = customized
+
+						continue
+					}
+				}
+			}
+
+			out[key] = forwardGroupedValue(entry, customizer)
+		}
+
+		return out
+	case []any:
+		out := make([]any, len(typed))
+		for i, entry := range typed {
+			out[i] = forwardGroupedValue(entry, customizer)
+		}
+
+		return out
+	default:
+		return value
+	}
+}
+
 func (c *customizedConnector) Execute(
 	ctx context.Context,
 	operation *ast.OperationDefinition,
@@ -128,7 +278,7 @@ func (c *customizedConnector) Execute(
 	sessionVariables map[string]any,
 	logger *slog.Logger,
 ) (map[string]any, error) {
-	nativeOp, nativeFragments := c.customizer.ReverseOperation(operation, fragments)
+	nativeOp, nativeFragments := c.customizer.ReverseOperation(operation, fragments, variables)
 
 	result, err := c.inner.Execute(
 		ctx, nativeOp, nativeFragments, variables, role, sessionVariables, logger,
@@ -160,7 +310,7 @@ func (c *customizedConnector) ValidateOperation(
 	role string,
 	sessionVariables map[string]any,
 ) error {
-	nativeOp, nativeFragments := c.customizer.ReverseOperation(operation, fragments)
+	nativeOp, nativeFragments := c.customizer.ReverseOperation(operation, fragments, variables)
 
 	if err := c.inner.ValidateOperation(
 		nativeOp, nativeFragments, variables, role, sessionVariables,
@@ -174,24 +324,32 @@ func (c *customizedConnector) ValidateOperation(
 }
 
 func (c *customizedConnector) remapQueryValidationArgumentPath(
-	err error,
-	operation *ast.OperationDefinition,
-	fragments ast.FragmentDefinitionList,
+	err error, operation *ast.OperationDefinition, fragments ast.FragmentDefinitionList,
 ) error {
-	if remapper, ok := errors.AsType[queryValidationArgumentPathRemapper](err); ok {
-		remapper.RemapArgumentPath(func(path string) string {
-			return c.customizer.ForwardArgumentPath(path, operation, fragments)
-		})
+	remapper, ok := errors.AsType[queryValidationArgumentPathRemapper](err)
+	if !ok {
+		return err
 	}
+
+	// SQL stamps native field names, not response aliases. Preserve Hasura's
+	// field-name path even if several lifted namespace aliases are ambiguous.
+	remapper.RemapArgumentPath(func(path string) string {
+		return c.customizer.ForwardArgumentPath(path, operation, fragments)
+	})
 
 	return err
 }
 
-// GetTypeName delegates unchanged. The composer resolves database relationship
-// source types through this; remote-schema relationship types come from
-// metadata directly. See the customization × relationships note on the type.
+// GetTypeName retains the native table name for internal root-query execution.
+// Composed relationship fields use GetCustomizedTypeName for the exposed SDL.
 func (c *customizedConnector) GetTypeName(identifier string) string {
 	return c.inner.GetTypeName(identifier)
+}
+
+// GetCustomizedTypeName maps a real native type into this connector's role SDL.
+// An unknown native name returns empty instead of fabricating a type.
+func (c *customizedConnector) GetCustomizedTypeName(native string) string {
+	return c.customizer.TypeName(native)
 }
 
 func (c *customizedConnector) Close() {

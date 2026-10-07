@@ -146,6 +146,212 @@ func TestComputedFieldReference(t *testing.T) {
 		t.Errorf("live scalar selection differs (-hasura +constellation):\n%s", diff)
 	}
 
+	// The startup fixture pins a real non-null same-source match for text
+	// object/array keys, the text array's aggregate sibling, and a JSONB object key. Compare only the granted role;
+	// the denied-key divergence is asserted separately below.
+	joined := query{
+		Query: `query { cf_select_items(where:{id:{_eq:1}}) {
+			cf_label_object { id } cf_label_array(order_by:{id:asc}) { id }
+			cf_label_array_aggregate { aggregate { count } nodes { id } }
+			cf_payload_object { id }
+		} }`,
+		Role: "cf_reader",
+	}
+
+	hasura, err = makeHTTPQuery(t.Context(), hasuraURL, joined, headers)
+	if err != nil {
+		t.Fatalf("Hasura granted computed join: %v", err)
+	}
+
+	constellation, err = makeHTTPQuery(t.Context(), constellationURL, joined, headers)
+	if err != nil {
+		t.Fatalf("Constellation granted computed join: %v", err)
+	}
+
+	want = map[string]any{"data": map[string]any{"cf_select_items": []any{map[string]any{
+		"cf_label_object": map[string]any{"id": float64(1)},
+		"cf_label_array":  []any{map[string]any{"id": float64(1)}},
+		"cf_label_array_aggregate": map[string]any{
+			"aggregate": map[string]any{"count": float64(1)},
+			"nodes":     []any{map[string]any{"id": float64(1)}},
+		},
+		"cf_payload_object": map[string]any{"id": float64(1)},
+	}}}}
+	if diff := cmp.Diff(want, hasura); diff != "" {
+		t.Fatalf("Hasura computed join fixture did not match (-want +got):\n%s", diff)
+	}
+
+	if diff := cmp.Diff(hasura, constellation); diff != "" {
+		t.Errorf("granted computed join differs (-hasura +constellation):\n%s", diff)
+	}
+
+	// Two distinct parent keys must each retain their own limit window. The
+	// old single target LIMIT returned [] for the second parent even though
+	// Hasura returns id 2; offset-only windows are compared on the same
+	// immutable startup rows without adding metadata or seed data.
+	for _, tc := range []struct {
+		name, args string
+		want       []any
+	}{
+		{"limit", "limit:1,order_by:{id:asc}", []any{
+			map[string]any{"cf_label_array": []any{map[string]any{"id": float64(1)}}},
+			map[string]any{"cf_label_array": []any{map[string]any{"id": float64(2)}}},
+		}},
+		{"offset", "offset:1,order_by:{id:asc}", []any{
+			map[string]any{"cf_label_array": []any{}},
+			map[string]any{"cf_label_array": []any{}},
+		}},
+	} {
+		t.Run("per-parent array "+tc.name, func(t *testing.T) {
+			q := query{Query: `query { cf_select_items(order_by:{id:asc}) {
+				cf_label_array(` + tc.args + `) { id }
+			} }`, Role: "cf_reader"}
+
+			h, err := makeHTTPQuery(t.Context(), hasuraURL, q, headers)
+			if err != nil {
+				t.Fatalf("Hasura: %v", err)
+			}
+
+			c, err := makeHTTPQuery(t.Context(), constellationURL, q, headers)
+			if err != nil {
+				t.Fatalf("Constellation: %v", err)
+			}
+
+			want := map[string]any{"data": map[string]any{"cf_select_items": tc.want}}
+			if diff := cmp.Diff(want, h); diff != "" {
+				t.Fatalf("Hasura fixture changed (-want +got):\n%s", diff)
+			}
+
+			if diff := cmp.Diff(h, c); diff != "" {
+				t.Errorf("per-parent pagination differs (-hasura +constellation):\n%s", diff)
+			}
+		})
+	}
+
+	// The unchanged userProfiles fixture has multiple departments for each
+	// populated parent. Offset must return a positive second row per parent,
+	// not the empty window exercised by the computed startup items above.
+	for _, tc := range []struct{ name, args string }{
+		{"positive offset", "order_by:{department_id:asc},offset:1,limit:1"},
+		{"distinct on", "distinct_on:[role],order_by:[{role:asc},{department_id:asc}]"},
+	} {
+		t.Run("static remote array "+tc.name, func(t *testing.T) {
+			q := query{Query: `query { userProfiles(order_by:{id:asc}) {
+				id departments(` + tc.args + `) { department_id role }
+			} }`, Role: "admin"}
+			adminHeaders := http.Header{}
+			adminHeaders.Set("x-hasura-admin-secret", adminSecret)
+
+			h, queryErr := makeHTTPQuery(t.Context(), hasuraURL, q, adminHeaders)
+			if queryErr != nil {
+				t.Fatal(queryErr)
+			}
+
+			c, queryErr := makeHTTPQuery(t.Context(), constellationURL, q, adminHeaders)
+			if queryErr != nil {
+				t.Fatal(queryErr)
+			}
+
+			envelope, ok := h.(map[string]any)
+			if !ok {
+				t.Fatalf("Hasura response is not an object: %#v", h)
+			}
+
+			data, ok := envelope["data"].(map[string]any)
+			if !ok {
+				t.Fatalf("Hasura response missing data: %#v", h)
+			}
+
+			parents, ok := data["userProfiles"].([]any)
+			if !ok || len(parents) < 2 {
+				t.Fatalf("expected multiple static parents: %#v", h)
+			}
+
+			positive := 0
+			for _, value := range parents {
+				parent, ok := value.(map[string]any)
+				if !ok {
+					t.Fatalf("malformed parent: %#v", value)
+				}
+
+				if children, ok := parent["departments"].([]any); ok && len(children) > 0 {
+					positive++
+				}
+			}
+
+			if positive < 2 {
+				t.Fatalf("expected positive per-parent windows for at least two parents: %#v", h)
+			}
+
+			if diff := cmp.Diff(h, c); diff != "" {
+				t.Errorf("static remote array differs (-hasura +constellation):\n%s", diff)
+			}
+		})
+	}
+
+	// The same checked-in fixture also permits a nested remote-of-remote
+	// positive comparison without mutating Hasura metadata or DDL.
+	nestedJoin := query{
+		Query: `query { cf_select_items(where:{id:{_eq:1}}) {
+			cf_label_object { id cf_label_array(order_by:{id:asc}) { id } }
+		} }`,
+		Role: "cf_reader",
+	}
+
+	hasura, err = makeHTTPQuery(t.Context(), hasuraURL, nestedJoin, headers)
+	if err != nil {
+		t.Fatalf("Hasura nested computed join: %v", err)
+	}
+
+	constellation, err = makeHTTPQuery(t.Context(), constellationURL, nestedJoin, headers)
+	if err != nil {
+		t.Fatalf("Constellation nested computed join: %v", err)
+	}
+
+	want = map[string]any{"data": map[string]any{"cf_select_items": []any{map[string]any{
+		"cf_label_object": map[string]any{
+			"id":             float64(1),
+			"cf_label_array": []any{map[string]any{"id": float64(1)}},
+		},
+	}}}}
+	if diff := cmp.Diff(want, hasura); diff != "" {
+		t.Fatalf("Hasura nested join fixture changed (-want +got):\n%s", diff)
+	}
+
+	if diff := cmp.Diff(hasura, constellation); diff != "" {
+		t.Errorf("live nested join differs (-hasura +constellation):\n%s", diff)
+	}
+
+	headers.Set("x-hasura-role", "cf_no_grant")
+
+	denied := query{
+		Query: `query { cf_select_items(where:{id:{_eq:1}}) { cf_label_object { id } } }`,
+		Role:  "cf_no_grant",
+	}
+
+	hasura, err = makeHTTPQuery(t.Context(), hasuraURL, denied, headers)
+	if err != nil {
+		t.Fatalf("Hasura denied-key contrast: %v", err)
+	}
+
+	constellation, err = makeHTTPQuery(t.Context(), constellationURL, denied, headers)
+	if err != nil {
+		t.Fatalf("Constellation denied-key contrast: %v", err)
+	}
+
+	if diff := cmp.Diff(map[string]any{"data": map[string]any{"cf_select_items": []any{
+		map[string]any{"cf_label_object": map[string]any{"id": float64(1)}},
+	}}}, hasura); diff != "" {
+		t.Errorf("Hasura denied-key contrast changed (-want +got):\n%s", diff)
+	}
+
+	deniedResponse, ok := constellation.(map[string]any)
+	if !ok || deniedResponse["errors"] == nil {
+		t.Errorf("Constellation must reject denied computed join: %v", constellation)
+	}
+
+	headers.Set("x-hasura-role", "cf_reader")
+
 	// A table computed field inherits access to the returned table without an
 	// explicit computed-field grant on its parent.
 	table := query{

@@ -233,17 +233,21 @@ type Customizer struct {
 	// reverse direction must treat such a fragment as root and strip the
 	// root-field prefix/suffix from its selections. Populated by Apply.
 	wrapperTypes map[string]struct{}
+	// wrapperNativeTypes maps namespace wrapper fragments back to the native
+	// operation root after ReverseOperation lifts their selections.
+	wrapperNativeTypes map[string]string
 }
 
 // New returns a Customizer for cfg with the given source flavor. The returned
 // value must be reused for both Apply and the reverse-direction calls.
 func New(cfg metadata.Customization, flavor Flavor) *Customizer {
 	return &Customizer{
-		cfg:          cfg,
-		flavor:       flavor,
-		typeForward:  make(map[string]string),
-		typeInverse:  make(map[string]string),
-		wrapperTypes: make(map[string]struct{}),
+		cfg:                cfg,
+		flavor:             flavor,
+		typeForward:        make(map[string]string),
+		typeInverse:        make(map[string]string),
+		wrapperTypes:       make(map[string]struct{}),
+		wrapperNativeTypes: make(map[string]string),
 	}
 }
 
@@ -274,6 +278,20 @@ func (c *Customizer) Apply(s *graph.Schema) *graph.Schema {
 	r := newRenamer(s, c.cfg, c.flavor)
 
 	rootNames := rootTypeNames(s)
+	if c.cfg.RootFieldsNamespace != "" {
+		for _, root := range []struct {
+			kind string
+			name *string
+		}{
+			{"Query", s.QueryType},
+			{"Mutation", s.MutationType},
+			{"Subscription", s.SubscriptionType},
+		} {
+			if root.name != nil {
+				c.wrapperNativeTypes[r.wrapperTypeName(root.kind)] = *root.name
+			}
+		}
+	}
 
 	c.recordTypeMaps(r, rootNames)
 
@@ -301,6 +319,13 @@ func (c *Customizer) Apply(s *graph.Schema) *graph.Schema {
 	r.rewriteDefinitionNames(s, rootNames)
 
 	return s
+}
+
+// TypeName maps a native connector type to the name published by Apply.
+// Unknown types are never synthesized from a prefix: invalid metadata cannot
+// resolve to an unrelated customized object.
+func (c *Customizer) TypeName(native string) string {
+	return c.typeForward[native]
 }
 
 // recordTypeMaps records the native<->customized type-name mapping for every

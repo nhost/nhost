@@ -3,6 +3,8 @@ package customization_test
 import (
 	"bytes"
 	"encoding/json/jsontext"
+	json "encoding/json/v2"
+	"reflect"
 	"testing"
 
 	"github.com/nhost/nhost/services/constellation/connector/customization"
@@ -472,6 +474,16 @@ func TestForwardArgumentPathRestoresNamespace(t *testing.T) {
 			want:       "teams_db.selectionSet.players",
 		},
 		{
+			name: "multiple aliases still use GraphQL field names",
+			cfg:  metadata.Customization{RootFieldsNamespace: "league"},
+			op: &ast.OperationDefinition{Operation: ast.Query, SelectionSet: ast.SelectionSet{
+				namespacedOp("a", "", "teams").SelectionSet[0],
+				namespacedOp("b", "x", "teams").SelectionSet[0],
+			}},
+			nativePath: "teams.selectionSet.players",
+			want:       "league.selectionSet.teams.selectionSet.players",
+		},
+		{
 			name:       "unmatched root path remains unchanged",
 			cfg:        metadata.Customization{RootFieldsPrefix: "db_"},
 			op:         &ast.OperationDefinition{Operation: ast.Query},
@@ -893,5 +905,213 @@ func TestForwardResultRawTypenameViaFragmentSpread(t *testing.T) {
 
 	if got := first["__typename"]; got != "LeagueTeam" {
 		t.Errorf("__typename = %v, want LeagueTeam (remapped via fragment spread)", got)
+	}
+}
+
+func namespaceSelectionField(t *testing.T, selection ast.Selection) *ast.Field {
+	t.Helper()
+
+	field, ok := selection.(*ast.Field)
+	if !ok {
+		t.Fatalf("expected field, got %T", selection)
+	}
+
+	return field
+}
+
+func TestNamespaceOccurrencesHaveIndependentNativeKeys(t *testing.T) {
+	t.Parallel()
+
+	c := customization.New(metadata.Customization{
+		RootFieldsNamespace: "league", TypeNamesPrefix: "League",
+	}, customization.FlavorDatabase)
+	c.Apply(newTestSchema())
+
+	fragment := &ast.FragmentDefinition{
+		Name:          "W",
+		TypeCondition: "Leagueleague_query",
+		SelectionSet: ast.SelectionSet{
+			&ast.Field{Name: "teams", SelectionSet: ast.SelectionSet{&ast.Field{Name: "id"}}},
+		},
+	}
+	fragments := ast.FragmentDefinitionList{fragment}
+
+	field := func(alias string, selections ast.SelectionSet) *ast.Field {
+		return &ast.Field{Name: "league", Alias: alias, SelectionSet: selections}
+	}
+	for _, tc := range []struct {
+		name          string
+		first, second *ast.Field
+	}{
+		{
+			"normal", field("one", ast.SelectionSet{&ast.FragmentSpread{Name: "W"}}),
+			field("two", ast.SelectionSet{&ast.Field{Name: "teams", SelectionSet: ast.SelectionSet{&ast.Field{Name: "id"}}}}),
+		},
+		{
+			"reversed", field("two", ast.SelectionSet{&ast.Field{Name: "teams", SelectionSet: ast.SelectionSet{&ast.Field{Name: "id"}}}}),
+			field("one", ast.SelectionSet{&ast.FragmentSpread{Name: "W"}}),
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			op := &ast.OperationDefinition{
+				Operation:    ast.Query,
+				SelectionSet: ast.SelectionSet{tc.first, tc.second},
+			}
+
+			native, _ := c.ReverseOperation(op, fragments)
+
+			keys := make(map[string]string)
+			for i, sel := range native.SelectionSet {
+				root := namespaceSelectionField(t, sel)
+
+				original := namespaceSelectionField(t, op.SelectionSet[i]).Alias
+				if root.Name != "teams" || root.Alias == "" || root.Alias == "teams" {
+					t.Fatalf("non-disambiguated native root: %#v", root)
+				}
+
+				keys[original] = root.Alias
+			}
+
+			if keys["one"] == keys["two"] {
+				t.Fatalf("root collision: %#v", keys)
+			}
+
+			result := c.ForwardResult(map[string]any{
+				keys["one"]: []any{map[string]any{"id": 1}},
+				keys["two"]: []any{map[string]any{"id": 2}},
+			}, op, fragments)
+			if !reflect.DeepEqual(result, map[string]any{
+				"one": map[string]any{"teams": []any{map[string]any{"id": 1}}},
+				"two": map[string]any{"teams": []any{map[string]any{"id": 2}}},
+			}) {
+				t.Errorf("independent namespace result: %#v", result)
+			}
+
+			if got := c.ForwardArgumentPath(
+				"teams.selectionSet.players",
+				op,
+				fragments,
+			); got != "league.selectionSet.teams.selectionSet.players" {
+				t.Errorf("validation path = %q", got)
+			}
+		})
+	}
+}
+
+// Repeated GraphQL response keys must be collected before raw SQL values are
+// walked: each occurrence reads the same native union, not a separate row.
+func TestForwardResultCollectsRepeatedSelections(t *testing.T) {
+	t.Parallel()
+
+	item := func(selections ...ast.Selection) *ast.Field {
+		return &ast.Field{Name: "teams", SelectionSet: selections}
+	}
+	id := &ast.Field{Name: "id"}
+	typename := &ast.Field{Name: "__typename"}
+	rel := &ast.Field{Name: "physical_kids", SelectionSet: ast.SelectionSet{
+		&ast.Field{Name: "id"}, &ast.Field{Name: "__typename"},
+	}}
+	wrapper := &ast.FragmentDefinition{
+		Name: "W", TypeCondition: "Catalogcatalog_query",
+		SelectionSet: ast.SelectionSet{item(id)},
+	}
+	fragments := ast.FragmentDefinitionList{wrapper}
+	spread := &ast.FragmentSpread{Name: "W"}
+
+	rows := jsontext.Value(
+		`[{"id":1,"__typename":"Team","physical_kids":[{"id":101,"__typename":"Team"}]}]`,
+	)
+
+	original := bytes.Clone(rows)
+	for _, tc := range []struct {
+		name       string
+		selections ast.SelectionSet
+	}{
+		{"direct typename first", ast.SelectionSet{item(typename), item(id, rel)}},
+		{"direct typename last", ast.SelectionSet{item(id, rel), item(typename)}},
+		{"wrapper first", ast.SelectionSet{spread, item(typename, rel)}},
+		{"wrapper last", ast.SelectionSet{item(typename, rel), spread}},
+		{"fragment typename first", ast.SelectionSet{item(&ast.FragmentSpread{Name: "T"}), item(id, rel)}},
+		{"fragment typename last", ast.SelectionSet{item(id, rel), item(&ast.FragmentSpread{Name: "T"})}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			for _, prefix := range []string{"", "Catalog"} {
+				cfg := metadata.Customization{
+					RootFieldsNamespace: "catalog",
+					TypeNamesPrefix:     prefix,
+				}
+				c := customization.New(cfg, customization.FlavorDatabase)
+				c.Apply(newTestSchema())
+
+				fragmentType := &ast.FragmentDefinition{
+					Name: "T", TypeCondition: prefix + "Team",
+					SelectionSet: ast.SelectionSet{typename},
+				}
+				op := &ast.OperationDefinition{Operation: ast.Query, SelectionSet: ast.SelectionSet{
+					&ast.Field{Name: "catalog", SelectionSet: tc.selections},
+				}}
+				result := c.ForwardResult(map[string]any{"teams": rows}, op,
+					append(append(ast.FragmentDefinitionList(nil), fragments...), fragmentType))
+
+				encoded, err := json.Marshal(result)
+				if err != nil {
+					t.Fatal(err)
+				}
+
+				want := `{"catalog":{"teams":[{"id":1,"__typename":"` + prefix +
+					`Team","physical_kids":[{"id":101,"__typename":"` + prefix + `Team"}]}]}}`
+
+				var actual, expected any
+				if err := json.Unmarshal(encoded, &actual); err != nil {
+					t.Fatal(err)
+				}
+
+				if err := json.Unmarshal([]byte(want), &expected); err != nil {
+					t.Fatal(err)
+				}
+
+				if !reflect.DeepEqual(actual, expected) {
+					t.Errorf("prefix %q: got %s, want %s", prefix, encoded, want)
+				}
+
+				if !bytes.Equal(rows, original) {
+					t.Errorf("native raw rows changed: %s", rows)
+				}
+			}
+		})
+	}
+}
+
+func TestForwardSelectionValueAliasesAndFragments(t *testing.T) {
+	t.Parallel()
+
+	c := namespacedCustomizer()
+	fragments := ast.FragmentDefinitionList{&ast.FragmentDefinition{
+		Name: "Types", TypeCondition: "LeagueTeam", SelectionSet: ast.SelectionSet{
+			&ast.Field{Alias: "t", Name: "__typename"},
+		},
+	}}
+	original := map[string]any{"nodes": []any{map[string]any{
+		"id": 1, "__typename": "Team", "t": "Team",
+	}}}
+	selections := ast.SelectionSet{&ast.Field{Name: "nodes", SelectionSet: ast.SelectionSet{
+		&ast.Field{Name: "id"}, &ast.Field{Name: "__typename"}, &ast.FragmentSpread{Name: "Types"},
+	}}}
+
+	got := c.ForwardSelectionValue(original, selections, fragments)
+	if want := map[string]any{"nodes": []any{map[string]any{
+		"id": 1, "__typename": "LeagueTeam", "t": "LeagueTeam",
+	}}}; !reflect.DeepEqual(got, want) {
+		t.Errorf("grouped alias and fragment: %#v", got)
+	}
+
+	if want := map[string]any{"nodes": []any{map[string]any{
+		"id": 1, "__typename": "Team", "t": "Team",
+	}}}; !reflect.DeepEqual(original, want) {
+		t.Errorf("forwarded grouped value mutated input: %#v", original)
 	}
 }

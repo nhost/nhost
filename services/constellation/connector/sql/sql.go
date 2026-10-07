@@ -158,6 +158,63 @@ func (c *Connector) GetTypeName(identifier string) string {
 	return ""
 }
 
+// HasComputedJoinKey reports whether a table-owned computed definition survived
+// PostgreSQL reconciliation. The composer uses this to distinguish a valid
+// function from a physical column that happens to share an invalid field name;
+// schema field presence alone cannot make that distinction.
+func (c *Connector) HasComputedJoinKey(tableSchema, tableName, key string) bool {
+	if c.dbMeta.Kind != "postgres" && c.dbMeta.Kind != "" {
+		return false
+	}
+
+	for i := range c.dbMeta.Tables {
+		table := &c.dbMeta.Tables[i]
+		if table.Table.Schema != tableSchema || table.Table.Name != tableName {
+			continue
+		}
+
+		for _, field := range table.ComputedFields {
+			if field.Name == key {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+// HasSelectableJoinColumn authorizes only role-selectable physical columns on
+// the specified reconciled table. The select_column enum is generated directly
+// from introspected columns and role grants, unlike the output object type,
+// which can also contain relationships and computed scalar fields.
+func (c *Connector) HasSelectableJoinColumn(identifier, role, name string) bool {
+	typeName := c.GetTypeName(identifier)
+	if typeName == "" {
+		return false
+	}
+
+	roleSchema := c.schemas[role]
+	if roleSchema == nil {
+		return false
+	}
+
+	for _, enum := range roleSchema.Enums {
+		if enum.Name != typeName+"_select_column" {
+			continue
+		}
+
+		for _, value := range enum.Values {
+			if value.Name == name {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	return false
+}
+
 // NewSubscriptionHandler creates a subscription handler for this backend.
 // The returned subscription.Handler is non-nil; callers may dereference the
 // result without a nil check. The controller relies on this contract when

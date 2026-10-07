@@ -12,6 +12,7 @@ package relationships
 
 import (
 	"github.com/nhost/nhost/services/constellation/connector"
+	connectorrelationships "github.com/nhost/nhost/services/constellation/connector/relationships"
 	"github.com/nhost/nhost/services/constellation/controller/planner"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
@@ -61,7 +62,9 @@ func forDatabase(
 			continue
 		}
 
-		sourceType := dbConn.GetTypeName(table.Table.Schema + "." + table.Table.Name)
+		sourceType := connectorrelationships.SchemaTypeName(
+			dbConn, table.Table.Schema+"."+table.Table.Name,
+		)
 
 		for _, rel := range table.ObjectRelationships {
 			if rm := forDatabaseRelationship(sourceType, rel.Name, rel.Using, false); rm != nil {
@@ -85,29 +88,91 @@ func forDatabase(
 			}
 		}
 
-		for _, rel := range table.RemoteRelationships {
-			toSource := rel.Definition.ToSource
-			if toSource == nil {
-				continue // db→remote-schema relationships use the schema resolver.
+		out = append(out, forRawRemoteRelationships(table, sourceType)...)
+	}
+
+	return out
+}
+
+func forRawRemoteRelationships(
+	table metadata.TableMetadata, sourceType string,
+) []*planner.RelationshipMetadata {
+	var out []*planner.RelationshipMetadata
+	for _, rel := range table.RemoteRelationships {
+		if rel.Definition.ToSource == nil {
+			// Hasura decoding already lowered to_remote_schema to an object or
+			// array relationship and renamed its column_config LHS references.
+			// Only native/TOML raw-only relationships need this planner entry.
+			if !hasLoweredRelationship(table, rel.Name) {
+				if rm := remoteSchemaRelationship(sourceType, rel); rm != nil {
+					out = append(out, rm)
+				}
 			}
 
-			rm := &planner.RelationshipMetadata{
-				Name: rel.Name, SourceType: sourceType, TargetConnector: toSource.Source,
-				TargetTable: toSource.Table.Name, TargetTableSchema: toSource.Table.Schema,
-				JoinMapping:      toSource.FieldMapping,
-				IsArray:          toSource.RelationshipType == metadata.RelationshipTypeArray,
-				IsArrayAggregate: false, IsRemote: true,
-				LHSFields: nil, RemoteFieldPath: nil,
-			}
+			continue
+		}
 
-			out = append(out, rm)
-			if agg := aggregateRelationship(rm); agg != nil {
-				out = append(out, agg)
-			}
+		toSource := rel.Definition.ToSource
+		rm := &planner.RelationshipMetadata{
+			Name: rel.Name, SourceType: sourceType, TargetConnector: toSource.Source,
+			TargetTable: toSource.Table.Name, TargetTableSchema: toSource.Table.Schema,
+			JoinMapping:      toSource.FieldMapping,
+			IsArray:          toSource.RelationshipType == metadata.RelationshipTypeArray,
+			IsArrayAggregate: false, IsRemote: true,
+			LHSFields: nil, RemoteFieldPath: nil,
+		}
+
+		out = append(out, rm)
+		if agg := aggregateRelationship(rm); agg != nil {
+			out = append(out, agg)
 		}
 	}
 
 	return out
+}
+
+func hasLoweredRelationship(table metadata.TableMetadata, name string) bool {
+	for _, object := range table.ObjectRelationships {
+		if object.Name == name {
+			return true
+		}
+	}
+
+	for _, array := range table.ArrayRelationships {
+		if array.Name == name {
+			return true
+		}
+	}
+
+	return false
+}
+
+func remoteSchemaRelationship(
+	sourceType string, rel metadata.RemoteRelationship,
+) *planner.RelationshipMetadata {
+	toRS := rel.Definition.ToRemoteSchema
+	if toRS == nil {
+		return nil
+	}
+
+	path := metadata.ExtractRemoteFieldPath(toRS.RemoteField)
+	if len(path) == 0 {
+		return nil
+	}
+
+	plannerPath := make([]planner.RemoteFieldPathEntry, len(path))
+	for i, entry := range path {
+		plannerPath[i] = planner.RemoteFieldPathEntry{
+			FieldName: entry.FieldName, Arguments: entry.Arguments,
+		}
+	}
+
+	return &planner.RelationshipMetadata{
+		Name: rel.Name, SourceType: sourceType,
+		TargetConnector: toRS.RemoteSchema, TargetTable: "", TargetTableSchema: "",
+		JoinMapping: nil, IsArray: false, IsArrayAggregate: false, IsRemote: true,
+		LHSFields: toRS.LHSFields, RemoteFieldPath: plannerPath,
+	}
 }
 
 // forRemoteSchema builds rs→db relationship metadata for a single remote

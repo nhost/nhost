@@ -62,6 +62,12 @@ var errGroupedAggregateReservedResponseName = errors.New(
 	"grouped aggregate response name is reserved",
 )
 
+// ErrAmbiguousGroupedAggregateJoinColumn rejects a mapping that names different
+// physical columns in GraphQL and SQL. The grouped aggregate retains SQL-name
+// semantics, but cannot safely use a different column from the one authorized
+// by the computed-key target GraphQL-field select gate.
+var ErrAmbiguousGroupedAggregateJoinColumn = errors.New("ambiguous grouped aggregate join column")
+
 // groupedLimitOffset carries the per-group limit/offset parsed from the
 // aggregate query arguments. hasLimit/hasOffset distinguish "absent" from an
 // explicit value (limit: 0 is a valid request meaning "no rows", distinct from
@@ -101,13 +107,9 @@ func (lo groupedLimitOffset) effectiveOffset() int {
 func (t *table) BuildGroupedAggregateSQL(
 	in groupedaggdispatch.BuildInput,
 ) (core.SQLOperation, error) {
-	joinCol := t.columnFromSQLName(in.JoinColumnSQLName)
-	if joinCol == nil {
-		return core.SQLOperation{}, fmt.Errorf(
-			"%w: %q on table %s.%s",
-			errUnknownJoinColumn,
-			in.JoinColumnSQLName, t.schemaName, t.tableName,
-		)
+	joinCol, err := t.groupedAggregateJoinColumn(in.JoinColumnSQLName)
+	if err != nil {
+		return core.SQLOperation{}, err
 	}
 
 	alias := in.Field.Alias
@@ -160,6 +162,30 @@ func (t *table) BuildGroupedAggregateSQL(
 		Sequential:    nil,
 		Insert:        nil,
 	}, nil
+}
+
+// groupedAggregateJoinColumn preserves unambiguous SQL-name mappings. The
+// computed-key gate authorizes a GraphQL field of the target role, so a name
+// resolving to a different SQL column must never reach the aggregate writer.
+func (t *table) groupedAggregateJoinColumn(name string) (*core.Column, error) {
+	joinCol := t.columnFromSQLName(name)
+
+	graphqlCol := t.columnFromGraphqlName(name)
+	if joinCol != nil && graphqlCol != nil && joinCol.SQLName != graphqlCol.SQLName {
+		return nil, fmt.Errorf(
+			"%w: %q on table %s.%s",
+			ErrAmbiguousGroupedAggregateJoinColumn, name, t.schemaName, t.tableName,
+		)
+	}
+
+	if joinCol == nil {
+		return nil, fmt.Errorf(
+			"%w: %q on table %s.%s",
+			errUnknownJoinColumn, name, t.schemaName, t.tableName,
+		)
+	}
+
+	return joinCol, nil
 }
 
 // groupedAggregateSelection bundles the parsed selection and arguments of a

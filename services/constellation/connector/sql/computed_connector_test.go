@@ -70,6 +70,22 @@ func TestComputedScalarConnectorDefaultOnAndOverride(t *testing.T) {
 
 	t.Cleanup(connector.Close)
 
+	for _, tc := range []struct {
+		schema, table, key string
+		want               bool
+	}{
+		{"cf_select", "items", "item_label", true},
+		{"cf_select", "items", "item_payload", true},
+		{"cf_select", "items", "missing_computed", false},
+		{"cf_select", "tags", "item_label", false},
+		{"public", "items", "item_label", false},
+	} {
+		if got := connector.HasComputedJoinKey(tc.schema, tc.table, tc.key); got != tc.want {
+			t.Errorf("HasComputedJoinKey(%q, %q, %q) = %t, want %t",
+				tc.schema, tc.table, tc.key, got, tc.want)
+		}
+	}
+
 	schemas, err := connector.GetSchema()
 	if err != nil {
 		t.Fatal(err)

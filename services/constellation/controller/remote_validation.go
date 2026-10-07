@@ -227,9 +227,14 @@ func remoteAggregateValidationRequest(
 
 	req, err := groupedaggregate.NewRequest(groupedaggregate.Request{
 		TableSchema:       rqp.TargetTableSchema,
+		AllowEmptySchema:  false,
 		TableName:         rqp.TargetTable,
 		JoinColumnSQLName: targetCol,
 		JoinValues:        []any{""},
+		JoinColumns:       nil,
+		JoinTuples:        nil,
+		JSONTargets:       nil,
+		JSONTarget:        false,
 		Field:             rqp.Selection,
 		ArgumentPath:      clientPath,
 		Fragments:         fragments,

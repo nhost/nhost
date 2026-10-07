@@ -2,11 +2,14 @@ package resolver
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
 
+	"github.com/nhost/nhost/services/constellation/connector"
 	"github.com/nhost/nhost/services/constellation/connector/groupedaggregate"
+	connectorrelationships "github.com/nhost/nhost/services/constellation/connector/relationships"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
@@ -52,7 +55,8 @@ func (r *RemoteRelationshipResolver) executeAndStitchAggregate(
 		sourceCol, targetCol = s, t
 	}
 
-	if _, ok := r.connectors[rq.targetConnector]; !ok {
+	target, ok := r.connectors[rq.targetConnector]
+	if !ok {
 		return fmt.Errorf("%w: %s", errTargetConnectorNotFound, rq.targetConnector)
 	}
 
@@ -61,23 +65,20 @@ func (r *RemoteRelationshipResolver) executeAndStitchAggregate(
 		return fmt.Errorf("%w: %s", errAggregateConnectorNotSupported, rq.targetConnector)
 	}
 
-	joinValues := uniqueJoinValues(rq.joinArguments, sourceCol)
-	if len(joinValues) == 0 {
-		return nil
+	jsonTarget, err := aggregateTargetIsJSON(target, info, targetCol, role)
+	if err != nil {
+		return err
 	}
 
-	req, err := groupedaggregate.NewRequest(groupedaggregate.Request{
-		TableSchema:       info.targetTableSchema,
-		TableName:         info.targetTableName,
-		JoinColumnSQLName: targetCol,
-		JoinValues:        joinValues,
-		Field:             rq.sourceField,
-		ArgumentPath:      rq.argumentPath(),
-		Fragments:         fragments,
-		Variables:         variables,
-	})
+	req, err := newAggregateRequest(rq, sourceCol, targetCol, jsonTarget, fragments, variables)
 	if err != nil {
-		return fmt.Errorf("building grouped aggregate request: %w", err)
+		return err
+	}
+
+	if len(req.JoinValues) == 0 {
+		stitchAggregateResults(rq, results, nil, sourceCol, jsonTarget)
+
+		return nil
 	}
 
 	perKey, err := exec.ExecuteGroupedAggregate(
@@ -91,15 +92,96 @@ func (r *RemoteRelationshipResolver) executeAndStitchAggregate(
 		return fmt.Errorf("grouped aggregate execution failed: %w", err)
 	}
 
-	stitchAggregateResults(rq, results, perKey, sourceCol)
+	stitchAggregateResults(rq, results, perKey, sourceCol, jsonTarget)
 
 	return nil
+}
+
+func newAggregateRequest(
+	rq *remoteQuery, sourceCol, targetCol string, jsonTarget bool,
+	fragments ast.FragmentDefinitionList, variables map[string]any,
+) (groupedaggregate.Request, error) {
+	joinValues, err := aggregateJoinValues(rq.joinArguments, sourceCol, jsonTarget)
+	if err != nil {
+		return groupedaggregate.Request{}, err
+	}
+
+	if len(joinValues) == 0 {
+		var empty groupedaggregate.Request
+
+		return empty, nil
+	}
+
+	req, err := groupedaggregate.NewRequest(groupedaggregate.Request{
+		TableSchema:       rq.aggregateInfo.targetTableSchema,
+		AllowEmptySchema:  false,
+		TableName:         rq.aggregateInfo.targetTableName,
+		JoinColumnSQLName: targetCol,
+		JoinValues:        joinValues,
+		JoinColumns:       nil,
+		JoinTuples:        nil,
+		JSONTargets:       nil,
+		JSONTarget:        jsonTarget,
+		Field:             rq.sourceField,
+		ArgumentPath:      rq.argumentPath(),
+		Fragments:         fragments,
+		Variables:         variables,
+	})
+	if err != nil {
+		return groupedaggregate.Request{}, fmt.Errorf("building grouped aggregate request: %w", err)
+	}
+
+	return req, nil
+}
+
+func aggregateTargetIsJSON(
+	target connector.Connector, info *aggregateInfo, targetCol, role string,
+) (bool, error) {
+	if target == nil {
+		return false, nil
+	}
+
+	schemas, err := target.GetSchema()
+	if err != nil {
+		return false, fmt.Errorf("loading aggregate target schema: %w", err)
+	}
+
+	typeName := target.GetTypeName(info.targetTableSchema + "." + info.targetTableName)
+	db := newDatabaseResolver(nil, typeName)
+	db.setTargetTypes(
+		schemas[role], schemas["admin"],
+		connectorrelationships.CustomizedTypeName(target, typeName),
+	)
+
+	return db.jsonColumns[targetCol], nil
+}
+
+func aggregateJoinValues(
+	joinArgs []*remoteJoinArgument,
+	sourceCol string,
+	jsonTarget bool,
+) ([]any, error) {
+	joinValues := uniqueJoinValues(joinArgs, sourceCol, jsonTarget)
+	if !jsonTarget {
+		return joinValues, nil
+	}
+
+	for i, value := range joinValues {
+		encoded, err := json.Marshal(value)
+		if err != nil {
+			return nil, fmt.Errorf("encoding aggregate JSON join key: %w", err)
+		}
+
+		joinValues[i] = string(encoded)
+	}
+
+	return joinValues, nil
 }
 
 // uniqueJoinValues collects the non-nil, deduplicated values of sourceCol
 // across all join arguments. Used to build the IN-list for a grouped
 // aggregate execution.
-func uniqueJoinValues(joinArgs []*remoteJoinArgument, sourceCol string) []any {
+func uniqueJoinValues(joinArgs []*remoteJoinArgument, sourceCol string, jsonTarget bool) []any {
 	joinValues := make([]any, 0, len(joinArgs))
 	seen := make(map[string]struct{}, len(joinArgs))
 
@@ -110,6 +192,10 @@ func uniqueJoinValues(joinArgs []*remoteJoinArgument, sourceCol string) []any {
 		}
 
 		key := joinValueDedupKey(v)
+		if jsonTarget {
+			key = groupedaggregate.JoinKey(v, true)
+		}
+
 		if _, ok := seen[key]; ok {
 			continue
 		}
@@ -130,6 +216,7 @@ func stitchAggregateResults(
 	results map[string]any,
 	perKey map[string]any,
 	sourceCol string,
+	jsonTarget bool,
 ) {
 	parentPath := rq.getParentPath()
 	if parentPath.IsEmpty() {
@@ -151,7 +238,7 @@ func stitchAggregateResults(
 			return
 		}
 
-		key := fmt.Sprintf("%v", v)
+		key := groupedaggregate.JoinKey(v, jsonTarget)
 		if entry, ok := perKey[key]; ok {
 			parentRow[outputName] = entry
 

@@ -14,8 +14,9 @@ import (
 //
 // op and fragments are the customized operation/fragments (as received by the
 // decorator's Execute), and result is keyed by the response keys the connector
-// returned — which match the customized response keys because ReverseOperation
-// preserves them via aliases.
+// returned — ordinary roots retain client response keys; multiple namespace
+// occurrences use collision-checked internal aliases that this walker maps
+// back to each client's namespace response key.
 func (c *Customizer) ForwardResult(
 	result map[string]any,
 	op *ast.OperationDefinition,
@@ -28,11 +29,28 @@ func (c *Customizer) ForwardResult(
 	w := &resultWalker{
 		customizer:   c,
 		fragments:    fragments,
+		aliases:      c.namespaceLiftAliases(op, fragments),
 		typenameMemo: make(map[*ast.Field]bool),
 		remapsTypeNm: c.remapsTypeNames(),
 	}
 
-	return w.object(op.SelectionSet, result, true)
+	return w.object(op.SelectionSet, result, true, "")
+}
+
+// ForwardSelectionValue remaps a grouped value using the client's selection,
+// including aliases and fragment spreads, without changing the inner result.
+func (c *Customizer) ForwardSelectionValue(
+	value any, selections ast.SelectionSet, fragments ast.FragmentDefinitionList,
+) any {
+	w := &resultWalker{
+		customizer:   c,
+		fragments:    fragments,
+		aliases:      nil,
+		typenameMemo: make(map[*ast.Field]bool),
+		remapsTypeNm: c.remapsTypeNames(),
+	}
+
+	return w.value(selections, value, w.selectionsSelectTypename(selections))
 }
 
 // resultWalker rebuilds a response map by walking the customized selection set
@@ -40,6 +58,7 @@ func (c *Customizer) ForwardResult(
 type resultWalker struct {
 	customizer *Customizer
 	fragments  ast.FragmentDefinitionList
+	aliases    namespaceLiftAliases
 	// typenameMemo caches, per field, whether that field's selection subtree
 	// selects __typename anywhere (so the raw-JSON fast path can be kept for
 	// subtrees that don't, even when type renaming is enabled).
@@ -56,28 +75,45 @@ func (w *resultWalker) object(
 	selections ast.SelectionSet,
 	data map[string]any,
 	root bool,
+	namespaceKey string,
 ) map[string]any {
 	out := make(map[string]any, len(data))
-	w.collect(selections, data, root, out)
+	// GraphQL collects compatible occurrences of a response key before resolving
+	// its value. The native connector has already returned their union; walking
+	// each occurrence separately can discard fields from a raw JSON value or
+	// leave a native __typename behind, depending on occurrence order.
+	fields := make([]*ast.Field, 0, len(selections))
+	byKey := make(map[string]*ast.Field)
+	w.collectFields(selections, &fields, byKey)
+
+	for _, field := range fields {
+		w.field(field, data, root, namespaceKey, out)
+	}
 
 	return out
 }
 
-func (w *resultWalker) collect(
-	selections ast.SelectionSet,
-	data map[string]any,
-	root bool,
-	out map[string]any,
+func (w *resultWalker) collectFields(
+	selections ast.SelectionSet, fields *[]*ast.Field, byKey map[string]*ast.Field,
 ) {
 	for _, selection := range selections {
 		switch sel := selection.(type) {
 		case *ast.Field:
-			w.field(sel, data, root, out)
+			key := responseKey(sel)
+			if prior := byKey[key]; prior != nil && prior.Name == sel.Name {
+				prior.SelectionSet = append(prior.SelectionSet, sel.SelectionSet...)
+				continue
+			}
+
+			merged := *sel
+			merged.SelectionSet = append(ast.SelectionSet(nil), sel.SelectionSet...)
+			byKey[key] = &merged
+			*fields = append(*fields, &merged)
 		case *ast.InlineFragment:
-			w.collect(sel.SelectionSet, data, root, out)
+			w.collectFields(sel.SelectionSet, fields, byKey)
 		case *ast.FragmentSpread:
 			if def := w.fragments.ForName(sel.Name); def != nil {
-				w.collect(def.SelectionSet, data, root, out)
+				w.collectFields(def.SelectionSet, fields, byKey)
 			}
 		}
 	}
@@ -87,22 +123,25 @@ func (w *resultWalker) field(
 	field *ast.Field,
 	data map[string]any,
 	root bool,
+	namespaceKey string,
 	out map[string]any,
 ) {
-	key := field.Alias
-	if key == "" {
-		key = field.Name
-	}
+	key := responseKey(field)
 
 	if root && field.Name == w.customizer.cfg.RootFieldsNamespace {
 		// The namespace field's children were returned lifted to this level;
 		// re-nest them under the namespace response key.
-		out[key] = w.object(field.SelectionSet, data, false)
+		out[key] = w.object(field.SelectionSet, data, false, key)
 
 		return
 	}
 
-	value, ok := data[key]
+	nativeKey := key
+	if namespaceKey != "" {
+		nativeKey = w.aliases.key(namespaceKey, key, key)
+	}
+
+	value, ok := data[nativeKey]
 	if !ok {
 		return
 	}
@@ -136,7 +175,7 @@ func (w *resultWalker) field(
 func (w *resultWalker) value(selections ast.SelectionSet, data any, selectsTypename bool) any {
 	switch typed := data.(type) {
 	case map[string]any:
-		return w.object(selections, typed, false)
+		return w.object(selections, typed, false, "")
 	case []any:
 		rebuilt := make([]any, len(typed))
 		for i, elem := range typed {

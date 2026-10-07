@@ -206,6 +206,74 @@ func TestInject_DBToDBArrayWithSQLArgs(t *testing.T) {
 	}
 }
 
+type selectableTarget struct {
+	relationships.TypeNameResolver
+	relationships.SelectableJoinColumnResolver
+}
+
+func TestInject_ComputedTargetJoinColumns(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name          string
+		capable       bool
+		targetField   bool
+		columnSelect  bool
+		computed      bool
+		wantInjection bool
+		wantCalls     int
+	}{
+		{"capability absent", false, true, false, true, false, 0},
+		{"column denied", true, true, false, true, false, 1},
+		{"role field absent", true, false, true, true, false, 0},
+		{"column and field accepted", true, true, true, true, true, 1},
+		{"physical key unchanged", false, true, false, false, true, 0},
+		{"physical key ignores column resolver", true, true, false, false, true, 0},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			source := emptyObject("users")
+
+			target := emptyObject("posts")
+			if tc.targetField {
+				target.Fields = []*graph.Field{
+					{Name: "itemLabel", Type: graph.NewNamedType("String")},
+				}
+			}
+
+			schemas := map[string]map[string]*graph.Schema{
+				"source": {"reader": newSchema(source)},
+				"target": {"reader": newSchema(target, emptyObject("posts_aggregate"))},
+			}
+
+			spec := dbArraySpec("source", "users", "children", "target", "public.posts")
+			if tc.computed {
+				spec.TargetJoinFields = []string{"itemLabel"}
+			}
+
+			targetResolver := newResolver(t, map[string]string{"public.posts": "posts"})
+
+			var resolver relationships.TypeNameResolver = targetResolver
+			if tc.capable {
+				column := mock.NewMockSelectableJoinColumnResolver(gomock.NewController(t))
+				column.EXPECT().HasSelectableJoinColumn("public.posts", "reader", "itemLabel").
+					Return(tc.columnSelect).Times(tc.wantCalls)
+				resolver = selectableTarget{targetResolver, column}
+			}
+
+			relationships.Inject(schemas, []relationships.RelationshipSpec{spec},
+				map[string]relationships.TypeNameResolver{"target": resolver})
+
+			for _, name := range []string{"children", "children_aggregate"} {
+				if got := findField(source, name) != nil; got != tc.wantInjection {
+					t.Errorf("%s injected = %t, want %t", name, got, tc.wantInjection)
+				}
+			}
+		})
+	}
+}
+
 func TestInject_DBToDBObject(t *testing.T) {
 	t.Parallel()
 
@@ -517,12 +585,11 @@ func TestInject_DuplicateRelationshipFieldSkipped(t *testing.T) {
 	}
 }
 
-func TestInject_UnknownTargetConnectorIdentifierFallback(t *testing.T) {
+func TestInject_UnknownTargetConnectorFailsClosed(t *testing.T) {
 	t.Parallel()
 
-	// rs→db where target connector is not registered: resolveTypeName
-	// should fall back to the identifier ("public.orders"). The schema
-	// uses that identifier as the type name so the field gets injected.
+	// A missing target connector cannot prove a GraphQL type, even if an
+	// unrelated schema happens to own an object named like the identifier.
 	rsTypeObj := emptyObject("User")
 	dbTargetObj := emptyObject("public.orders")
 
@@ -538,10 +605,8 @@ func TestInject_UnknownTargetConnectorIdentifierFallback(t *testing.T) {
 	// "db" is intentionally NOT in the connectors map.
 	relationships.Inject(roleSchemas, specs, map[string]relationships.TypeNameResolver{})
 
-	if findField(rsTypeObj, "orders") == nil {
-		t.Fatal(
-			"expected 'orders' field even when target connector is unregistered (identifier fallback)",
-		)
+	if findField(rsTypeObj, "orders") != nil {
+		t.Fatal("unregistered target must not inject a relationship")
 	}
 }
 
@@ -930,5 +995,43 @@ func TestInject_DBToRemoteSchema_DegenerateTypeDescriptionFallsBackToEmpty(t *te
 			"description = %q, want empty (base-type lookup short-circuits)",
 			field.Description,
 		)
+	}
+}
+
+func TestInject_DBToTypeRenamedRemoteSchemaRemainsUnavailable(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name, published string
+		want            bool
+	}{
+		{"native remote type", "Config", true},
+		{"type-prefixed remote type", "RsConfig", false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			source := emptyObject("users")
+			query := &graph.ObjectType{Name: "Query", Fields: []*graph.Field{{
+				Name: "userConfig", Type: graph.NewNamedType(tc.published),
+			}}}
+			schemas := map[string]map[string]*graph.Schema{
+				"db": {"user": newSchema(source)},
+				"rs": {"user": newSchema(query, emptyObject(tc.published))},
+			}
+			resolver := decoratedTypeResolver{
+				native:     map[string]string{"userConfig": "Config"},
+				customized: map[string]string{"Config": tc.published},
+			}
+			relationships.Inject(
+				schemas,
+				[]relationships.RelationshipSpec{dbToRemoteSchemaSpec(nil)},
+				map[string]relationships.TypeNameResolver{"rs": resolver},
+			)
+
+			if got := findField(source, "config") != nil; got != tc.want {
+				t.Errorf("remote schema relationship injected = %t, want %t", got, tc.want)
+			}
+		})
 	}
 }
