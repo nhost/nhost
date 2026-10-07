@@ -35,7 +35,7 @@ export default function PrimaryKeySelect() {
   );
 
   return (
-    <div className="pb- col-span-8 py-3 font-[Inter]">
+    <div className="pb- col-span-8 py-3">
       <FormField
         control={control}
         name="primaryKeyIndices"

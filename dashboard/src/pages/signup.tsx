@@ -18,7 +18,7 @@ declare global {
 }
 
 const rightColumnContent = (
-  <div className="grid gap-6 font-[Inter]">
+  <div className="grid gap-6">
     <div className="text-center">
       <h2 className="mb-2 font-semibold text-2xl text-white">
         Everything you need to ship faster
@@ -126,7 +126,7 @@ export default function SignUpPage() {
 
   return (
     <>
-      <div className="flex flex-col gap-12 pt-4 font-[Inter]">
+      <div className="flex flex-col gap-12 pt-4">
         <div className="text-center">
           <h1 className="mb-3 font-semibold text-3.5xl lg:text-4.5xl">
             Build. Deploy. Scale.

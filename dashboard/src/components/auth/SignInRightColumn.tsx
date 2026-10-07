@@ -2,7 +2,7 @@ import Image from 'next/image';
 
 export function SignInRightColumn() {
   return (
-    <div className="grid gap-6 font-[Inter]">
+    <div className="grid gap-6">
       <div className="text-center">
         <h2 className="mb-2 font-semibold text-2xl text-white">
           Ship 10x faster

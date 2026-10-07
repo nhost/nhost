@@ -22,7 +22,7 @@ export default function StandaloneLayout({
     <BaseLayout className="flex h-full flex-col" {...props}>
       <Header className="shrink-0 py-1" />
 
-      <main className="relative flex min-h-0 flex-1 flex-col overflow-y-auto bg-accent-background">
+      <main className="relative flex min-h-0 flex-1 flex-col overflow-y-auto bg-background">
         <RetryableErrorBoundary
           errorMessageProps={{ className: 'flex flex-col items-center' }}
           resetKeys={[router.asPath]}
