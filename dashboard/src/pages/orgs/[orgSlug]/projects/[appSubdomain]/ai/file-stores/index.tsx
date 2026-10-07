@@ -4,6 +4,7 @@ import { type ReactElement, useMemo } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { AppLayout } from '@/components/layout/AppLayout';
+import { Container } from '@/components/layout/Container';
 import { Alert } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
 import { FileStoresIcon } from '@/components/ui/v3/icons/FileStoresIcon';
@@ -73,7 +74,10 @@ export default function FileStoresPage() {
 
   if (isPlatform && org?.plan?.isFree) {
     return (
-      <div className="px-4 pt-8 pb-8">
+      <Container
+        className="grid grid-flow-row gap-6 bg-transparent pt-8 pb-8"
+        rootClassName="bg-transparent"
+      >
         <UpgradeToProBanner
           section="ai-file-stores"
           title="Upgrade to Nhost Pro."
@@ -84,7 +88,7 @@ export default function FileStoresPage() {
             </p>
           }
         />
-      </div>
+      </Container>
     );
   }
 
