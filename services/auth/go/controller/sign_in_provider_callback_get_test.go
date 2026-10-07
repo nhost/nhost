@@ -697,6 +697,113 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 		},
 
 		{
+			name: "signin - email found - email not allowed",
+			config: func() *controller.Config {
+				c := getConfig()
+				c.AllowedEmails = []string{"not@anemail.blah"}
+
+				return c
+			},
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByProviderID(
+					gomock.Any(),
+					sql.GetUserByProviderIDParams{
+						ProviderID:     "fake",
+						ProviderUserID: "1234567890",
+					},
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
+
+				mock.EXPECT().GetUserByEmail(
+					gomock.Any(),
+					sql.Text("user1@fake.com"),
+				).Return(
+
+					sql.AuthUser{
+						ID: userID,
+						CreatedAt: pgtype.Timestamptz{
+							Time: time.Now(),
+						},
+						Disabled:      false,
+						DisplayName:   "Jane",
+						Email:         sql.Text("user1@fake.com"),
+						EmailVerified: true,
+						DefaultRole:   "user",
+					}, nil,
+				)
+
+				return mock
+			},
+			request: api.SignInProviderCallbackGetRequestObject{
+				Params: api.SignInProviderCallbackGetParams{
+					Code:  new("valid-code-1"),
+					State: getState(t, jwtGetter, nil, api.SignUpOptions{}),
+				},
+				Provider: "fake",
+			},
+			expectedResponse: controller.ErrorRedirectResponse{
+				Headers: struct{ Location string }{
+					Location: `^http://localhost:3000\?error=invalid-email-password&errorDescription=Incorrect\+email\+or\+password&state=some-random-state$`,
+				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
+
+		{
+			name:   "signin - email found - user disabled",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByProviderID(
+					gomock.Any(),
+					sql.GetUserByProviderIDParams{
+						ProviderID:     "fake",
+						ProviderUserID: "1234567890",
+					},
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
+
+				mock.EXPECT().GetUserByEmail(
+					gomock.Any(),
+					sql.Text("user1@fake.com"),
+				).Return(
+
+					sql.AuthUser{
+						ID: userID,
+						CreatedAt: pgtype.Timestamptz{
+							Time: time.Now(),
+						},
+						Disabled:      true,
+						DisplayName:   "Jane",
+						Email:         sql.Text("user1@fake.com"),
+						EmailVerified: true,
+						DefaultRole:   "user",
+					}, nil,
+				)
+
+				return mock
+			},
+			request: api.SignInProviderCallbackGetRequestObject{
+				Params: api.SignInProviderCallbackGetParams{
+					Code:  new("valid-code-1"),
+					State: getState(t, jwtGetter, nil, api.SignUpOptions{}),
+				},
+				Provider: "fake",
+			},
+			expectedResponse: controller.ErrorRedirectResponse{
+				Headers: struct{ Location string }{
+					Location: `^http://localhost:3000\?error=disabled-user&errorDescription=User\+is\+disabled&state=some-random-state$`,
+				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: nil,
+		},
+
+		{
 			name:   "signin - user disabled",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
