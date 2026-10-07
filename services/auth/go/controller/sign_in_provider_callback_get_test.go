@@ -645,7 +645,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			getControllerOpts: nil,
 		},
 
-		{
+		{ //nolint:dupl // Table-driven OAuth error cases share the same mock setup.
 			name:   "signin - simple - email found - email not verified - refuses to link",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -752,7 +752,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			getControllerOpts: nil,
 		},
 
-		{
+		{ //nolint:dupl // Table-driven OAuth error cases share the same mock setup.
 			name:   "signin - email found - user disabled",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
