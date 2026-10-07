@@ -1,9 +1,10 @@
 /**
  * The sign-in methods this app offers, one line each.
  *
- * Every method is its own directory under `app/auth/`, and nothing outside that
- * directory imports from it. To drop a method: delete its directory, then
- * delete its line here. That is the whole procedure - see README.md.
+ * Every method is its own directory under `src/app/auth/`, and nothing
+ * outside that directory imports from it. To drop a method: delete its
+ * directory, then delete its line here. That is the whole procedure - see
+ * README.md.
  *
  * This file has no imports on purpose: it is what lets the sign-in page list
  * the methods without depending on any of them.
