@@ -1,7 +1,6 @@
 ---
 name: "auth: check and build"
 on:
-  push:
   pull_request_target:
     paths:
       - ".github/workflows/auth_checks.yaml"
