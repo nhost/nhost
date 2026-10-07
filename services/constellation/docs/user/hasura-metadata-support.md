@@ -260,10 +260,36 @@ remote_relationships:
 
 | Field | Status | Notes |
 |---|---|---|
-| `definition.to_source` (`source`, `table`, `relationship_type`, `field_mapping`) | ✅ | Cross-database relationship, resolved post-execution by `controller/resolver`. |
-| `definition.to_remote_schema` (`remote_schema`, `lhs_fields`, `remote_field`) | ✅ | Database → remote-schema relationship. Column renames thread through `lhs_fields`/`remote_field` arguments. |
+| `definition.to_source` (`source`, `table`, `relationship_type`, `field_mapping`) | ✅ | Cross-database relationship, resolved post-execution by `controller/resolver`. Argument-free PostgreSQL scalar computed fields may serve as the LHS key for object or array joins; text→text and JSONB→JSONB (object, string, array and number values) have positive matches. For computed keys Constellation requires each target mapping to name a role-selectable GraphQL column (not merely a relationship or other field), unlike Hasura; target row filters still apply. Remote arrays apply `limit` and `offset` per non-null parent key on PostgreSQL (including `offset` without `limit`), and `limit` with optional `offset` per key on SQLite, including multi-column mappings. PostgreSQL also applies `distinct_on` per key. Duplicate keys share the same window. SQLite-target remote arrays expose `distinct_on` but it fails at execution; `offset` without `limit` also fails at execution on SQLite. |
+| `definition.to_remote_schema` (`remote_schema`, `lhs_fields`, `remote_field`) | ✅ | Database → remote-schema relationship. Column renames thread through `lhs_fields`/`remote_field` arguments. Argument-free text computed keys (including session-bound keys) can bind a remote `ID!` input; all JSON/JSONB computed keys are excluded from remote-schema relationships regardless of remote argument type; Hasura's JSONB-object→`ID!` fails at execution. |
 
-See [`docs/developers/remote-relationships.md`](../developers/remote-relationships.md)
+Computed LHS keys require an **explicit select grant for each role** (admin is
+implicitly granted). Without it, the relationship is absent from that role's
+SDL and cannot be used; unlike Hasura v2.50.3-ce, a denied key is never used
+as a phantom join field. Argument-bearing and table-valued computed keys are
+not joinable. For computed `to_source` keys, every target mapping must be the
+GraphQL name of a selectable physical target column; a relationship or computed
+field cannot satisfy this gate, even if it shares a hidden column's SQL name.
+The relationship and its aggregate sibling are omitted otherwise. This is a
+deliberate stricter rule than Hasura's positive join through
+a denied target column (an equality oracle); physical-key relationships do not use
+these computed-key authorization gates. JSONB targets bind typed JSON values
+for object/array joins, including physical keys whose target column is role-hidden; JSONB array `_aggregate` siblings bind and stitch typed
+keys for computed and physical JSONB keys. PostgreSQL `json` targets lack `json = json`, so ordinary and grouped joins into them fail at execution, as in Hasura’s equality join. GeoJSON object keys are also
+JSON-encoded, fixing physical geometry joins.
+Target row filters still apply. Hasura interprets `field_mapping` targets as
+physical SQL names. Constellation's aggregate siblings retain that interpretation
+for unambiguous names, but fail closed (no counts or nodes) if a name also
+identifies a *different* GraphQL target column. This prevents an aggregate from
+joining on a denied SQL column after the computed-key gate checked a permitted
+GraphQL column. A renamed target mapped only by its GraphQL name still fails on
+the aggregate path; physical SQL-name mappings continue to work for aggregates
+when unambiguous. See the known difference below. As with other cross-connector remote
+relationships, WebSocket subscriptions reject remote relationship selections
+before polling, even though the shared row type appears in subscription SDL;
+queries and mutation `returning` use the resolver. See the
+[known difference](../../KNOWN_DIFFERENCES.md#computed-remote-relationship-join-keys)
+and [`docs/developers/remote-relationships.md`](../developers/remote-relationships.md)
 for the planner/resolver mechanics.
 
 ---
@@ -388,8 +414,22 @@ what Constellation serves.
   (`remote_schemas[].definition.customization`): root-field
   namespacing/prefix/suffix and `type_names` renaming. Two carve-outs: database
   `naming_convention` is ignored, and remote-schema `field_names` is **rejected at
-  startup** (not silently dropped). Combining `customization` with remote
-  relationships on the same source is not yet handled.
+  startup** (not silently dropped). A database `to_source` relationship's
+  **source** may use a root-field namespace alone or with a type-name prefix;
+  role-hidden physical join columns are not returned, and computed join keys
+  still require grants. Root-field and type-name prefix/suffix customization
+  on a database **target** supports object/array joins, per-parent paginated
+  arrays and eligible `<relationship>_aggregate` siblings. Target row/column
+  permissions still apply. Untracked target identifiers are not inferred from
+  prefixes. Two aliases of a **database** source namespace retain independent
+  arguments and results; compatible native duplicate-root selections merge
+  only for databases. Validation errors use GraphQL field names rather than
+  response aliases. Two aliases of a namespaced remote schema forward children
+  unaliased and unmerged: identical children work, but differing arguments
+  are rejected by remote conflicting-fields validation rather than executing
+  independently. Database-to-remote-schema relationships into
+  type-renamed remote schemas remain unavailable; other remote-schema
+  customization combinations have not been established by these tests.
 - **`kind` must be `postgres` or `sqlite`;** other backends fail at startup.
 
 ## See also

@@ -409,17 +409,31 @@ func BuildSubOperation(
 	}
 }
 
-// InjectPhantomFields mutates the operation in place to include phantom fields
-// at the paths specified by the given specs.
-// This should be called on a clean operation (which is already a clone),
-// so no additional cloning is needed.
-func InjectPhantomFields(operation *ast.OperationDefinition, specs []PhantomSpec) {
+// InjectPhantomFields adds join keys only to the selected response paths.
+// The operation is clean, but named fragment definitions are shared: spreads
+// traversed for injection are inlined at their use site before modification.
+func InjectPhantomFields(
+	operation *ast.OperationDefinition,
+	specs []PhantomSpec,
+	fragments ...ast.FragmentDefinitionList,
+) {
 	if len(specs) == 0 {
 		return
 	}
 
+	var definitions ast.FragmentDefinitionList
+	if len(fragments) > 0 {
+		definitions = fragments[0]
+	}
+
 	for _, spec := range specs {
-		injectFieldsAtPath(operation.SelectionSet, []string(spec.Path), spec.Fields, spec.Aliases)
+		injectFieldsAtPath(
+			operation.SelectionSet,
+			[]string(spec.Path),
+			spec.Fields,
+			spec.Aliases,
+			definitions,
+		)
 	}
 }
 
@@ -430,38 +444,93 @@ func injectFieldsAtPath(
 	path []string,
 	fields []string,
 	aliases map[string]string,
+	fragments ast.FragmentDefinitionList,
 ) {
 	if len(path) == 0 || len(fields) == 0 {
 		return
 	}
 
-	for _, sel := range ss {
-		field, ok := sel.(*ast.Field)
-		if !ok {
-			continue
+	for i, sel := range ss {
+		switch s := sel.(type) {
+		case *ast.Field:
+			if fieldResponseKey(s) != path[0] {
+				continue
+			}
+
+			if len(path) == 1 {
+				injectFieldsIntoSelectionSet(s, fields, aliases)
+			} else {
+				injectFieldsAtPath(s.SelectionSet, path[1:], fields, aliases, fragments)
+			}
+		case *ast.InlineFragment:
+			injectFieldsAtPath(s.SelectionSet, path, fields, aliases, fragments)
+		case *ast.FragmentSpread:
+			fragment := fragments.ForName(s.Name)
+			if fragment == nil || !selectionContainsPath(fragment.SelectionSet, path, fragments) {
+				continue
+			}
+
+			// A definition can be spread at unrelated paths. Copy its subtree
+			// before injecting, retaining both definition and spread directives.
+			local := &ast.InlineFragment{ //nolint:exhaustruct
+				TypeCondition: fragment.TypeCondition,
+				Directives: append(
+					append(ast.DirectiveList(nil), fragment.Directives...),
+					s.Directives...),
+				SelectionSet: copyPhantomSelections(fragment.SelectionSet),
+				Position:     s.Position,
+			}
+			ss[i] = local
+			injectFieldsAtPath(local.SelectionSet, path, fields, aliases, fragments)
 		}
-
-		fieldName := field.Name
-		if field.Alias != "" {
-			fieldName = field.Alias
-		}
-
-		if fieldName != path[0] {
-			continue
-		}
-
-		if len(path) == 1 {
-			injectFieldsIntoSelectionSet(field, fields, aliases)
-
-			return
-		}
-
-		if field.SelectionSet != nil {
-			injectFieldsAtPath(field.SelectionSet, path[1:], fields, aliases)
-		}
-
-		return
 	}
+}
+
+func selectionContainsPath(
+	ss ast.SelectionSet,
+	path []string,
+	fragments ast.FragmentDefinitionList,
+) bool {
+	for _, sel := range ss {
+		switch s := sel.(type) {
+		case *ast.Field:
+			if fieldResponseKey(s) == path[0] &&
+				(len(path) == 1 || selectionContainsPath(s.SelectionSet, path[1:], fragments)) {
+				return true
+			}
+		case *ast.InlineFragment:
+			if selectionContainsPath(s.SelectionSet, path, fragments) {
+				return true
+			}
+		case *ast.FragmentSpread:
+			if def := fragments.ForName(s.Name); def != nil &&
+				selectionContainsPath(def.SelectionSet, path, fragments) {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func copyPhantomSelections(ss ast.SelectionSet) ast.SelectionSet {
+	copied := make(ast.SelectionSet, len(ss))
+	for i, sel := range ss {
+		switch s := sel.(type) {
+		case *ast.Field:
+			field := *s
+			field.SelectionSet = copyPhantomSelections(s.SelectionSet)
+			copied[i] = &field
+		case *ast.InlineFragment:
+			inline := *s
+			inline.SelectionSet = copyPhantomSelections(s.SelectionSet)
+			copied[i] = &inline
+		default:
+			copied[i] = sel
+		}
+	}
+
+	return copied
 }
 
 // injectFieldsIntoSelectionSet adds fields to a field's selection set if not already present.

@@ -19,6 +19,9 @@ import (
 // requested schema.table has no registered Builder.
 var ErrTableNotRegistered = errors.New("table not registered for grouped aggregate builds")
 
+// ErrGroupedCollectionBuilderUnavailable indicates a registered table cannot build remote arrays.
+var ErrGroupedCollectionBuilderUnavailable = errors.New("grouped collection builder unavailable")
+
 // ResultJoinKeyField is the internal JSON field used to carry each grouped
 // aggregate row's join key from the SQL builder to the SQL connector parser.
 // It is reserved for this transport contract and must not be emitted as a
@@ -64,6 +67,13 @@ type BuildInput struct {
 	// JoinValues are the distinct join keys to filter on; the build returns
 	// one aggregate row per value (empty groups included).
 	JoinValues []any
+	// JoinColumns and JoinTuples transport collection keys in source-column
+	// order. Each JoinColumns entry is a target GraphQL field name (SQL names
+	// are accepted as a fallback); each tuple has one value per target column.
+	// Collection builds resolve JoinColumnSQLName the same way when JoinColumns
+	// is empty. Grouped-aggregate builds still require a SQL name there.
+	JoinColumns []string
+	JoinTuples  [][]any
 }
 
 // Builder builds a grouped-aggregate SQL statement for a single target table.
@@ -96,6 +106,44 @@ type Ops struct {
 // internal state of an implementor after New returns are visible to dispatch.
 func New(builders map[string]Builder) *Ops {
 	return &Ops{builders: maps.Clone(builders)}
+}
+
+// BuildGroupedCollectionSQL uses the same registered table builders for a
+// bounded, per-key remote array fetch. The root registry supplies local nested
+// relationship builders; the target table and role remain scoped to this Ops.
+func (o *Ops) BuildGroupedCollectionSQL(
+	in BuildInput, roots map[string]core.Operation,
+) (core.SQLOperation, error) {
+	builder, ok := o.builders[in.TableSchema+"."+in.TableName]
+	if !ok {
+		return core.SQLOperation{}, fmt.Errorf(
+			"%w: %s.%s",
+			ErrTableNotRegistered,
+			in.TableSchema,
+			in.TableName,
+		)
+	}
+
+	collection, ok := builder.(interface {
+		BuildGroupedCollectionSQL(in BuildInput, roots map[string]core.Operation) (core.SQLOperation, error)
+	})
+	if !ok {
+		return core.SQLOperation{}, fmt.Errorf(
+			"%w: %s.%s", ErrGroupedCollectionBuilderUnavailable, in.TableSchema, in.TableName,
+		)
+	}
+
+	op, err := collection.BuildGroupedCollectionSQL(in, roots)
+	if err != nil {
+		return core.SQLOperation{}, fmt.Errorf(
+			"grouped collection build for %s.%s: %w",
+			in.TableSchema,
+			in.TableName,
+			err,
+		)
+	}
+
+	return op, nil
 }
 
 // BuildGroupedAggregateSQL builds a grouped aggregate SQL operation for the

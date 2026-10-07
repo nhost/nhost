@@ -1,9 +1,7 @@
 package resolver
 
 import (
-	"fmt"
 	"sort"
-	"strings"
 
 	"github.com/nhost/nhost/services/constellation/controller/planner"
 	"github.com/nhost/nhost/services/constellation/metadata"
@@ -15,8 +13,9 @@ import (
 // Returns the resolved GraphQL type name, or the table name as fallback.
 type typeNameResolver func(connectorName, identifier string) string
 
-// BuildRemoteQueriesFromPlan builds remoteQuery objects from plan metadata and execution results.
-// This replaces the connector-level remote query building, centralizing the logic in the controller.
+// BuildRemoteQueriesFromPlan eagerly builds remoteQuery objects from the
+// initial results. Retained for compatibility and isolated strategy tests;
+// production uses ResolvePlanned so child joins can read stitched parent rows.
 func BuildRemoteQueriesFromPlan(
 	results map[string]any,
 	plan *planner.QueryPlan,
@@ -31,7 +30,7 @@ func BuildRemoteQueriesFromPlan(
 
 	for _, rqp := range plan.RemoteQueries {
 		rq := buildRemoteQueryFromPlan(results, rqp, fragments, resolveTypeName)
-		if rq != nil && len(rq.joinArguments) > 0 {
+		if rq != nil {
 			remoteQueries = append(remoteQueries, rq)
 		}
 	}
@@ -46,20 +45,13 @@ func buildRemoteQueryFromPlan(
 	fragments ast.FragmentDefinitionList,
 	resolveTypeName typeNameResolver,
 ) *remoteQuery {
-	joinArgs := extractJoinArgumentsFromPlan(results, rqp)
-	if len(joinArgs) == 0 {
+	if rqp.SourcePath.IsEmpty() || len(rqp.SourcePath.ToRows(results)) == 0 {
 		return nil
 	}
 
-	var (
-		localPhantomFields []string
-		localJoinAliases   map[string]string
-	)
+	joinArgs := extractJoinArgumentsFromPlan(results, rqp)
 
-	if rqp.SourcePhantomFields != nil {
-		localPhantomFields = rqp.SourcePhantomFields.Fields
-		localJoinAliases = rqp.SourcePhantomFields.Aliases
-	}
+	localPhantomFields, localJoinAliases := sourcePhantoms(rqp)
 
 	// Grouped-aggregate cross-DB relationships bypass the resolver/operation
 	// pipeline and go directly through the target connector's
@@ -70,6 +62,7 @@ func buildRemoteQueryFromPlan(
 			alias:               rqp.OutputField,
 			isArray:             true,
 			joinArguments:       joinArgs,
+			sourceColumns:       getSourceColumns(rqp),
 			sourceField:         rqp.Selection,
 			fragments:           fragments,
 			parentPath:          rqp.SourcePath,
@@ -79,6 +72,7 @@ func buildRemoteQueryFromPlan(
 			remotePhantomFields: nil,
 			remoteJoinAliases:   nil,
 			resolver:            nil,
+			collectionInfo:      nil,
 			aggregateInfo: &aggregateInfo{
 				targetTableSchema: rqp.TargetTableSchema,
 				targetTableName:   rqp.TargetTable,
@@ -99,6 +93,7 @@ func buildRemoteQueryFromPlan(
 		alias:               rqp.OutputField,
 		isArray:             rqp.IsArray,
 		joinArguments:       joinArgs,
+		sourceColumns:       getSourceColumns(rqp),
 		sourceField:         rqp.Selection,
 		fragments:           fragments,
 		parentPath:          rqp.SourcePath,
@@ -108,8 +103,29 @@ func buildRemoteQueryFromPlan(
 		remotePhantomFields: nil, // Set by resolver during BuildOperation.
 		remoteJoinAliases:   nil, // Set by resolver during BuildOperation when needed.
 		resolver:            resolver,
+		collectionInfo:      collectionInfoFromPlan(rqp),
 		aggregateInfo:       nil,
 	}
+}
+
+func collectionInfoFromPlan(rqp *planner.RemoteQueryPlan) *aggregateInfo {
+	if !rqp.IsArray || rqp.ResolverType != planner.ResolverKindDatabase {
+		return nil
+	}
+
+	return &aggregateInfo{
+		targetTableSchema: rqp.TargetTableSchema,
+		targetTableName:   rqp.TargetTable,
+		joinMapping:       rqp.JoinMapping,
+	}
+}
+
+func sourcePhantoms(rqp *planner.RemoteQueryPlan) ([]string, map[string]string) {
+	if rqp.SourcePhantomFields == nil {
+		return nil, nil
+	}
+
+	return rqp.SourcePhantomFields.Fields, rqp.SourcePhantomFields.Aliases
 }
 
 // extractJoinArgumentsFromPlan extracts join arguments from results based on the plan.
@@ -187,7 +203,7 @@ func buildJoinArguments(
 				break
 			}
 
-			keyParts = append(keyParts, fmt.Sprintf("%v", val))
+			keyParts = append(keyParts, joinValueDedupKey(val))
 			values[sourceCol] = val
 		}
 
@@ -195,7 +211,7 @@ func buildJoinArguments(
 			continue
 		}
 
-		key := strings.Join(keyParts, "|")
+		key := joinPartsKey(keyParts)
 		if _, exists := seen[key]; exists {
 			continue
 		}

@@ -564,6 +564,7 @@ func TestAnalyzeField_NoSelectionSetIsNoOp(t *testing.T) {
 	}
 
 	a.analyzeField(field, "users", jsonpath.Parse("users"), result)
+	a.finishPhantoms(result)
 
 	if len(result.PhantomFields) != 0 {
 		t.Errorf("expected no phantom fields, got %d", len(result.PhantomFields))
@@ -598,6 +599,7 @@ func TestAnalyzeField_SkipsPhantomWhenColumnAlreadySelected(t *testing.T) {
 	}
 
 	a.analyzeField(field, "users", jsonpath.Parse("users"), result)
+	a.finishPhantoms(result)
 
 	if len(result.PhantomFields) != 0 {
 		t.Errorf(
@@ -642,6 +644,7 @@ func TestAnalyzeField_AliasedUnrelatedFieldDoesNotSuppressPhantom(t *testing.T) 
 	}
 
 	a.analyzeField(field, "users", jsonpath.Parse("users"), result)
+	a.finishPhantoms(result)
 
 	if len(result.PhantomFields) != 1 {
 		t.Fatalf("expected one phantom field spec, got %+v", result.PhantomFields)
@@ -699,7 +702,9 @@ func TestAnalyzer_CollectOwnResponseKeyFields_ExpandsFragmentsAndIgnoresRenamedF
 		},
 	}
 
-	ownResponseKeys := a.collectOwnResponseKeyFields(field)
+	ownResponseKeys := make(map[string]struct{})
+	a.collectOwnResponseKeyFieldsFromSelections(field.SelectionSet, ownResponseKeys)
+
 	for _, want := range []string{"id", "created_at", "name"} {
 		if _, ok := ownResponseKeys[want]; !ok {
 			t.Errorf("expected %q in own-response-key fields, got %v", want, ownResponseKeys)
@@ -716,7 +721,9 @@ func TestAnalyzer_CollectOwnResponseKeyFields_ExpandsFragmentsAndIgnoresRenamedF
 		}
 	}
 
-	responseKeys := a.collectResponseKeys(field)
+	responseKeys := make(map[string]struct{})
+	a.collectResponseKeysFromSelections(field.SelectionSet, responseKeys)
+
 	for _, want := range []string{"id", "user_email", "created_at", "name"} {
 		if _, ok := responseKeys[want]; !ok {
 			t.Errorf("expected %q in response keys, got %v", want, responseKeys)

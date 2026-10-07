@@ -1,12 +1,16 @@
 package connector
 
 import (
+	"context"
 	"errors"
 	"log/slog"
+	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/nhost/nhost/services/constellation/connector/customization"
+	"github.com/nhost/nhost/services/constellation/connector/groupedaggregate"
+	"github.com/nhost/nhost/services/constellation/connector/remoteschema"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 	"github.com/nhost/nhost/services/constellation/metadata"
 	"github.com/vektah/gqlparser/v2/ast"
@@ -171,6 +175,196 @@ func assertWrappedError(t *testing.T, err, innerErr error) {
 
 	if !strings.Contains(err.Error(), "customized connector default") {
 		t.Errorf("error not annotated with connector name: %v", err)
+	}
+}
+
+type groupedCollectionFake struct {
+	Connector
+
+	response map[string]any
+	err      error
+	got      groupedaggregate.Request
+	role     string
+	session  map[string]any
+	logger   *slog.Logger
+}
+
+func (f *groupedCollectionFake) HasSelectableJoinColumn(_, _, name string) bool {
+	return name == "itemLabel"
+}
+
+func (f *groupedCollectionFake) ExecuteGroupedCollection(
+	_ context.Context, req groupedaggregate.Request, role string,
+	session map[string]any, logger *slog.Logger,
+) (map[string]any, error) {
+	f.got, f.role, f.session, f.logger = req, role, session, logger
+
+	return f.response, f.err
+}
+
+func (f *groupedCollectionFake) ExecuteGroupedAggregate(
+	_ context.Context, req groupedaggregate.Request, role string,
+	session map[string]any, logger *slog.Logger,
+) (map[string]any, error) {
+	f.got, f.role, f.session, f.logger = req, role, session, logger
+
+	return f.response, f.err
+}
+
+//nolint:cyclop // Checks both optional capabilities, forwarding arguments/errors and fail-closed behavior.
+func TestCustomizedConnectorForwardsTargetCapabilities(t *testing.T) {
+	t.Parallel()
+
+	inner := &groupedCollectionFake{
+		Connector: &fakeConnector{schema: teamSchema()},
+		response:  map[string]any{"first": map[string]any{"nodes": []any{101}}},
+	}
+
+	wrapper, err := newCustomizedConnector("target", inner,
+		metadata.Customization{RootFieldsPrefix: "pfx_"}, customization.FlavorDatabase)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, tc := range []struct {
+		column string
+		want   bool
+	}{
+		{"itemLabel", true}, {"otherLabel", false},
+	} {
+		if got := wrapper.HasSelectableJoinColumn(
+			"public.kids",
+			"reader",
+			tc.column,
+		); got != tc.want {
+			t.Errorf("HasSelectableJoinColumn(%q) = %t, want %t", tc.column, got, tc.want)
+		}
+	}
+
+	req := groupedaggregate.Request{
+		TableSchema: "public", TableName: "kids",
+		JoinColumns: []string{"itemLabel"}, JoinTuples: [][]any{{"first"}, {"second"}},
+	}
+	session := map[string]any{"x-hasura-user-id": "1"}
+	logger := slog.Default()
+
+	got, err := wrapper.ExecuteGroupedCollection(t.Context(), req, "reader", session, logger)
+	if err != nil || !reflect.DeepEqual(got, inner.response) ||
+		!reflect.DeepEqual(inner.got, req) ||
+		inner.role != "reader" ||
+		!reflect.DeepEqual(inner.session, session) ||
+		inner.logger != logger {
+		t.Fatalf("grouped forwarding result=%#v error=%v inner=%+v", got, err, inner)
+	}
+
+	aggregate, aggErr := wrapper.ExecuteGroupedAggregate(
+		t.Context(), req, "reader", session, logger,
+	)
+	if aggErr != nil || !reflect.DeepEqual(aggregate, inner.response) ||
+		!reflect.DeepEqual(inner.got, req) || inner.role != "reader" ||
+		!reflect.DeepEqual(inner.session, session) || inner.logger != logger {
+		t.Fatalf("aggregate forwarding result=%#v error=%v inner=%+v", aggregate, aggErr, inner)
+	}
+
+	inner.err = errCustomizedExecBoom
+	if _, err := wrapper.ExecuteGroupedAggregate(
+		t.Context(), req, "reader", session, logger,
+	); !errors.Is(err, errCustomizedExecBoom) {
+		t.Fatalf("aggregate error = %v, want inner error", err)
+	}
+
+	if _, err := wrapper.ExecuteGroupedCollection(
+		t.Context(),
+		req,
+		"reader",
+		session,
+		logger,
+	); !errors.Is(
+		err,
+		errCustomizedExecBoom,
+	) {
+		t.Fatalf("grouped error = %v, want inner error", err)
+	}
+
+	uncapable, err := newCustomizedConnector("target", &fakeConnector{schema: teamSchema()},
+		metadata.Customization{RootFieldsNamespace: "catalog"}, customization.FlavorDatabase)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if uncapable.HasSelectableJoinColumn("public.kids", "reader", "itemLabel") {
+		t.Error("non-capable inner authorized target column")
+	}
+
+	if result, err := uncapable.ExecuteGroupedCollection(
+		t.Context(),
+		req,
+		"reader",
+		session,
+		logger,
+	); result != nil ||
+		err == nil ||
+		!strings.Contains(err.Error(), "cannot execute per-parent modifiers") {
+		t.Fatalf("non-capable grouped result=%#v error=%v", result, err)
+	}
+
+	if result, err := uncapable.ExecuteGroupedAggregate(
+		t.Context(), req, "reader", session, logger,
+	); result != nil || err == nil || !strings.Contains(err.Error(), "grouped aggregate unavailable") {
+		t.Fatalf("non-capable aggregate result=%#v error=%v", result, err)
+	}
+}
+
+//nolint:tparallel,paralleltest // The grouped fake records calls; subtests share it sequentially.
+func TestCustomizedConnectorGroupedTypenames(t *testing.T) {
+	t.Parallel()
+
+	inner := &groupedCollectionFake{
+		Connector: &fakeConnector{schema: teamSchema()},
+		response: map[string]any{
+			"first": map[string]any{"nodes": []any{
+				map[string]any{"__typename": "Team", "id": 101},
+			}},
+		},
+	}
+
+	wrapper, err := newCustomizedConnector("target", inner,
+		metadata.Customization{TypeNamesPrefix: "League"}, customization.FlavorDatabase)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, tc := range []struct {
+		name string
+		run  func() (map[string]any, error)
+	}{
+		{"collection", func() (map[string]any, error) {
+			return wrapper.ExecuteGroupedCollection(t.Context(), groupedaggregate.Request{}, "admin", nil, nil)
+		}},
+		{"aggregate", func() (map[string]any, error) {
+			return wrapper.ExecuteGroupedAggregate(t.Context(), groupedaggregate.Request{}, "admin", nil, nil)
+		}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			got, callErr := tc.run()
+			if callErr != nil {
+				t.Fatal(callErr)
+			}
+
+			want := map[string]any{"first": map[string]any{"nodes": []any{
+				map[string]any{"__typename": "LeagueTeam", "id": 101},
+			}}}
+			if !reflect.DeepEqual(got, want) {
+				t.Errorf("grouped result = %#v want %#v", got, want)
+			}
+
+			original := map[string]any{"first": map[string]any{"nodes": []any{
+				map[string]any{"__typename": "Team", "id": 101},
+			}}}
+			if !reflect.DeepEqual(inner.response, original) {
+				t.Errorf("inner result mutated: %#v", inner.response)
+			}
+		})
 	}
 }
 
@@ -400,6 +594,62 @@ func TestCustomizedConnectorExecute(t *testing.T) {
 	}
 }
 
+type countingValidationConnector struct {
+	fakeConnector
+
+	calls int
+}
+
+func (f *countingValidationConnector) ValidateOperation(
+	op *ast.OperationDefinition, fragments ast.FragmentDefinitionList,
+	variables map[string]any, role string, session map[string]any,
+) error {
+	f.calls++
+
+	return f.fakeConnector.ValidateOperation(op, fragments, variables, role, session)
+}
+
+func TestCustomizedConnectorMultiAliasValidationPathUsesFieldNames(t *testing.T) {
+	t.Parallel()
+
+	inner := &countingValidationConnector{
+		schema: teamSchema(), validateErr: stampedNegativeLimitValidationError(t, "teams"),
+	}
+
+	conn, err := newCustomizedConnector("default", inner,
+		metadata.Customization{RootFieldsNamespace: "league"}, customization.FlavorDatabase)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	op := &ast.OperationDefinition{Operation: ast.Mutation, SelectionSet: ast.SelectionSet{
+		&ast.Field{Name: "league", Alias: "a", SelectionSet: ast.SelectionSet{
+			&ast.Field{Name: "teams", SelectionSet: ast.SelectionSet{&ast.Field{Name: "id"}}},
+		}},
+		&ast.Field{Name: "league", Alias: "b", SelectionSet: ast.SelectionSet{
+			&ast.Field{
+				Name: "teams", Alias: "x", Arguments: negativeLimitArguments(),
+				SelectionSet: ast.SelectionSet{&ast.Field{Name: "id"}},
+			},
+		}},
+	}}
+
+	err = conn.ValidateOperation(op, nil, nil, metadata.RoleAdmin, nil)
+	assertQueryValidationErrorPath(t, err, "$.selectionSet.league.selectionSet.teams.args.limit")
+
+	if inner.calls != 1 {
+		t.Errorf("validation invoked %d times; want exactly once", inner.calls)
+	}
+
+	inner.execErr = stampedNegativeLimitValidationError(t, "teams")
+	_, err = conn.Execute(t.Context(), op, nil, nil, metadata.RoleAdmin, nil, slog.Default())
+	assertQueryValidationErrorPath(t, err, "$.selectionSet.league.selectionSet.teams.args.limit")
+
+	if inner.calls != 1 {
+		t.Errorf("Execute reran validation: %d calls", inner.calls)
+	}
+}
+
 func TestCustomizedConnectorExecuteRemapsQueryValidationErrorPath(t *testing.T) {
 	t.Parallel()
 
@@ -445,6 +695,104 @@ func TestCustomizedConnectorExecuteRemapsQueryValidationErrorPath(t *testing.T) 
 
 	if !strings.Contains(err.Error(), "executing customized connector default") {
 		t.Errorf("error not annotated with connector name: %v", err)
+	}
+}
+
+// A remote server stamps its own response key on field errors. Database-only
+// disambiguation aliases must not be sent to remote schemas without remapping
+// those remote errors first.
+type remoteErrorFake struct {
+	fakeConnector
+}
+
+func (f *remoteErrorFake) Execute(
+	_ context.Context, op *ast.OperationDefinition, _ ast.FragmentDefinitionList,
+	_ map[string]any, _ string, _ map[string]any, _ *slog.Logger,
+) (map[string]any, error) {
+	f.gotOp = op
+
+	field, ok := op.SelectionSet[0].(*ast.Field)
+	if !ok {
+		return nil, errCustomizedExecBoom
+	}
+
+	key := field.Name
+	if field.Alias != "" {
+		key = field.Alias
+	}
+
+	return nil, remoteschema.NewGraphQLError([]remoteschema.RemoteError{{
+		Message: "boom", Path: []any{key},
+	}})
+}
+
+func TestRemoteSchemaNamespaceErrorPathDoesNotContainInternalAlias(t *testing.T) {
+	t.Parallel()
+
+	for _, aliases := range [][]string{{"a"}, {"a", "b"}} {
+		name := strings.Join(aliases, "_")
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			inner := &remoteErrorFake{schema: teamSchema()}
+
+			conn, err := newCustomizedConnector("remote", inner,
+				metadata.Customization{RootFieldsNamespace: "league"},
+				customization.FlavorRemoteSchema)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			selections := make(ast.SelectionSet, 0, len(aliases))
+			for i, alias := range aliases {
+				id := "first"
+				if i > 0 {
+					id = "second"
+				}
+
+				selections = append(selections, &ast.Field{
+					Name: "league", Alias: alias,
+					SelectionSet: ast.SelectionSet{&ast.Field{
+						Name: "teams",
+						Arguments: ast.ArgumentList{&ast.Argument{Name: "id", Value: &ast.Value{
+							Kind: ast.StringValue, Raw: id,
+						}}},
+						SelectionSet: ast.SelectionSet{&ast.Field{Name: "id"}},
+					}},
+				})
+			}
+
+			_, err = conn.Execute(t.Context(), &ast.OperationDefinition{
+				Operation: ast.Query, SelectionSet: selections,
+			}, nil, nil, metadata.RoleAdmin, nil, slog.Default())
+
+			var remoteErr *remoteschema.GraphQLError
+			if !errors.As(err, &remoteErr) || len(remoteErr.Errors) != 1 {
+				t.Fatalf("remote error lost: %v", err)
+			}
+
+			if len(inner.gotOp.SelectionSet) != len(aliases) {
+				t.Fatalf("remote roots = %d, want %d", len(inner.gotOp.SelectionSet), len(aliases))
+			}
+
+			for i, selection := range inner.gotOp.SelectionSet {
+				root, ok := selection.(*ast.Field)
+				if !ok || root.Name != "teams" || root.Alias != "" ||
+					strings.HasPrefix(root.Alias, "_constellation_ns_") ||
+					root.Arguments.ForName("id").Value.Raw !=
+						[]string{"first", "second"}[i] {
+					t.Errorf(
+						"remote root %d lost its argument or gained an alias: %#v",
+						i,
+						selection,
+					)
+				}
+			}
+
+			if got := remoteErr.Errors[0].Path; !reflect.DeepEqual(got, []any{"teams"}) {
+				t.Errorf("remote error path = %#v, want native teams", got)
+			}
+		})
 	}
 }
 
@@ -537,88 +885,50 @@ func TestCustomizedConnectorClose(t *testing.T) {
 	}
 }
 
-// TestCustomizedConnectorRelationshipNamingDivergence pins the documented
-// (and currently unguarded) limitation called out on the customizedConnector
-// type: the decorator renames types in the schema it advertises (via
-// Apply/GetSchema) but GetTypeName still returns the inner connector's NATIVE
-// name. The composer keys remote-relationship field injection off GetTypeName
-// (connector/composer/composer.go:231 calls dbConn.GetTypeName(...) and injects
-// the relationship field onto that type), so for a customized source it would
-// target the native type name (Team) -- a type the customized schema no longer
-// contains, having renamed it to LeagueTeam. That divergence is exactly why the
-// type comment says "no metadata in use combines the two": pairing a namespaced
-// source with a remote relationship is silently wrong.
-//
-// A construction-time guard mirroring the field_names check is NOT feasible:
-// newCustomizedConnector only receives (name, inner, cfg metadata.Customization,
-// flavor). cfg carries namespace/prefix/suffix/type-mapping/field_names only --
-// field_names CAN be rejected because it lives in cfg, but remote relationships
-// live in dbMeta.Tables[].RemoteRelationships / rsMeta.RemoteRelationships,
-// which are never passed to the constructor. The constructor also cannot see the
-// targeted side (another source pointing AT this one); only the composer, which
-// holds the full metadata.Metadata, can. This test therefore pins the behaviour
-// so the relationship-injection contract (GetTypeName == native, schema ==
-// renamed) is captured and any future change that silently alters it is caught.
-func TestCustomizedConnectorRelationshipNamingDivergence(t *testing.T) {
+// TestCustomizedConnectorRelationshipTypeName separates the native root name
+// used by connector execution from the exposed type used for injection.
+func TestCustomizedConnectorRelationshipTypeName(t *testing.T) {
 	t.Parallel()
 
-	// The composer reads the source type the relationship is injected onto via
-	// GetTypeName; the inner connector returns its native type name verbatim.
 	inner := &fakeConnector{schema: teamSchema(), typeName: "Team"}
 
-	conn, err := newCustomizedConnector(
-		"default",
-		inner,
-		metadata.Customization{
-			RootFieldsNamespace: "league",
-			TypeNamesPrefix:     "League",
-		},
-		customization.FlavorDatabase,
-	)
+	conn, err := newCustomizedConnector("default", inner, metadata.Customization{
+		RootFieldsNamespace: "league", TypeNamesPrefix: "League",
+	}, customization.FlavorDatabase)
 	if err != nil {
-		t.Fatalf("newCustomizedConnector: %v", err)
+		t.Fatal(err)
 	}
 
-	// GetTypeName returns the NATIVE name (Team) -- this is what the composer
-	// would inject the remote-relationship field onto.
-	gotTypeName := conn.GetTypeName("public.team")
-	if gotTypeName != "Team" {
-		t.Fatalf("GetTypeName = %q, want native Team (the relationship target)", gotTypeName)
+	if got := conn.GetTypeName("public.team"); got != "Team" {
+		t.Errorf("native root = %q", got)
 	}
 
-	schemas, err := conn.GetSchema()
-	if err != nil {
-		t.Fatalf("GetSchema: %v", err)
+	if got := conn.GetCustomizedTypeName("Team"); got != "LeagueTeam" {
+		t.Errorf("published type = %q", got)
 	}
 
-	schema := schemas[metadata.RoleAdmin]
-	if schema == nil {
-		t.Fatalf("admin schema missing: %#v", schemas)
+	if got := conn.GetCustomizedTypeName("Ghost"); got != "" {
+		t.Errorf("unknown type = %q", got)
 	}
 
-	// The advertised schema renamed Team -> LeagueTeam, so the type the composer
-	// injects the relationship field onto (gotTypeName == Team) does NOT exist in
-	// the customized schema. This divergence is the documented silent-wrong path.
-	var hasNative, hasRenamed bool
+	schemas, schemaErr := conn.GetSchema()
+	if schemaErr != nil {
+		t.Fatal(schemaErr)
+	}
 
-	for _, ty := range schema.Types {
-		switch ty.Name {
-		case gotTypeName: // "Team"
-			hasNative = true
-		case "LeagueTeam":
-			hasRenamed = true
+	found := false
+	for _, object := range schemas[metadata.RoleAdmin].Types {
+		if object.Name == "LeagueTeam" {
+			found = true
+		}
+
+		if object.Name == "Team" {
+			t.Error("native Team unexpectedly published")
 		}
 	}
 
-	if hasNative {
-		t.Errorf(
-			"customized schema unexpectedly contains native type %q; relationship-injection divergence no longer holds",
-			gotTypeName,
-		)
-	}
-
-	if !hasRenamed {
-		t.Errorf("customized schema missing renamed type LeagueTeam: %#v", schema.Types)
+	if !found {
+		t.Error("published LeagueTeam absent")
 	}
 }
 
@@ -644,5 +954,71 @@ func TestNewCustomizedConnectorRejectsFieldNames(t *testing.T) {
 
 	if !strings.Contains(err.Error(), "field_names") {
 		t.Errorf("error should mention field_names, got: %v", err)
+	}
+}
+
+//nolint:paralleltest,tparallel // Both variants reuse one fake whose request/result fields are inspected after each call.
+func TestCustomizedConnectorGroupedTypenameSelections(t *testing.T) {
+	t.Parallel()
+
+	inner := &groupedCollectionFake{
+		Connector: &fakeConnector{schema: teamSchema()},
+		response: map[string]any{"first": map[string]any{"nodes": []any{
+			map[string]any{"id": 101, "t": "Team", "__typename": "Team"},
+		}}},
+	}
+
+	wrapper, err := newCustomizedConnector("target", inner,
+		metadata.Customization{TypeNamesPrefix: "League"}, customization.FlavorDatabase)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fragment := &ast.FragmentDefinition{
+		Name:          "Types",
+		TypeCondition: "LeagueTeam",
+		SelectionSet: ast.SelectionSet{
+			&ast.Field{Alias: "t", Name: "__typename"},
+		},
+	}
+	fragments := ast.FragmentDefinitionList{fragment}
+
+	nodeSelection := ast.SelectionSet{
+		&ast.Field{Name: "id"}, &ast.Field{Name: "__typename"}, &ast.FragmentSpread{Name: "Types"},
+	}
+	for _, tc := range []struct {
+		name  string
+		field *ast.Field
+		run   func(groupedaggregate.Request) (map[string]any, error)
+	}{
+		{"collection", &ast.Field{Name: "kids", SelectionSet: nodeSelection}, func(req groupedaggregate.Request) (map[string]any, error) {
+			return wrapper.ExecuteGroupedCollection(t.Context(), req, "admin", nil, nil)
+		}},
+		{"aggregate", &ast.Field{Name: "kids_aggregate", SelectionSet: ast.SelectionSet{
+			&ast.Field{Name: "nodes", SelectionSet: nodeSelection},
+		}}, func(req groupedaggregate.Request) (map[string]any, error) {
+			return wrapper.ExecuteGroupedAggregate(t.Context(), req, "admin", nil, nil)
+		}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			got, runErr := tc.run(groupedaggregate.Request{Field: tc.field, Fragments: fragments})
+			if runErr != nil {
+				t.Fatal(runErr)
+			}
+
+			want := map[string]any{"first": map[string]any{"nodes": []any{
+				map[string]any{"id": 101, "t": "LeagueTeam", "__typename": "LeagueTeam"},
+			}}}
+			if !reflect.DeepEqual(got, want) {
+				t.Errorf("grouped selected names = %#v want %#v", got, want)
+			}
+
+			original := map[string]any{"first": map[string]any{"nodes": []any{
+				map[string]any{"id": 101, "t": "Team", "__typename": "Team"},
+			}}}
+			if !reflect.DeepEqual(inner.response, original) {
+				t.Errorf("inner grouped result mutated: %#v", inner.response)
+			}
+		})
 	}
 }
