@@ -212,7 +212,7 @@ function TicketPage() {
                           onValuesChange={field.onChange}
                         >
                           <FormControl>
-                            <MultiSelectTrigger className="w-full rounded-sm hover:bg-accent-background dark:border-[#2f363d] dark:bg-[#171d26] dark:hover:bg-[#1b2534]">
+                            <MultiSelectTrigger className="w-full rounded-sm hover:bg-accent dark:border-[#2f363d] dark:bg-[#171d26] dark:hover:bg-[#1b2534]">
                               <MultiSelectValue
                                 placeholder="Select Services"
                                 placeHolderClassName="text-[#9ca7b7]"

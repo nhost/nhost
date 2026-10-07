@@ -18,8 +18,7 @@ const ARGUMENT_TYPES = [
   'boolean',
 ];
 
-const argumentFieldClasses =
-  '!border-input !bg-background dark:!bg-accent-background';
+const argumentFieldClasses = '!border-input !bg-background';
 
 type AssistantFormPath = Path<AssistantFormValues>;
 
@@ -92,7 +91,7 @@ export default function ArgumentsFormSection({
                     control={form.control}
                     name={typeField}
                     placeholder="Select argument type"
-                    className="border-input bg-background dark:bg-accent-background"
+                    className="border-input bg-background"
                     containerClassName="space-y-0"
                     contentClassName="z-[10000] w-[270px] min-w-0"
                   >

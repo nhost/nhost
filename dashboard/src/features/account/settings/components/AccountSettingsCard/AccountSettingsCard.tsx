@@ -11,7 +11,7 @@ export default function AccountSettingsCard({
   return (
     <SettingsCard
       className={cn(
-        "border-[#EAEDF0] bg-white font-['Inter_var'] dark:border-[#2F363D] dark:bg-paper",
+        "border-[#EAEDF0] bg-white dark:border-[#2F363D] dark:bg-paper",
         className,
       )}
       {...props}
