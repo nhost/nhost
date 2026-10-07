@@ -5,7 +5,7 @@
 #
 # The jobs take what they run against from their own `strategy.matrix`, not
 # from discovering templates/*/ the way this repo's other guards do. A template,
-# a method directory under frontend/src/app/auth/ or a UI system under ui/
+# a method directory under the template's own auth/ or a UI system under ui/
 # landing without a matching combination ships green while CI runs zero times
 # for it: never installed, never linted, never tested, never built, and never
 # proven to survive deleting a sign-in method. check-agent-context.sh cannot
@@ -66,6 +66,39 @@ def subdirs(path):
     )
 
 
+def auth_dir(template):
+    """Where a template keeps its sign-in method directories.
+
+    A framework decides its own layout: the App Router's is src/app/auth, and
+    nothing says the next template's will be. Naming one here would make this
+    guard silently check nothing for every other template, which is the exact
+    failure it exists to prevent, so the directory is found rather than named.
+    """
+    root = f"templates/{template}/frontend/src"
+    matches = [
+        os.path.join(dirpath, name)
+        for dirpath, dirnames, _ in os.walk(root)
+        for name in dirnames
+        if name == "auth"
+    ]
+
+    if len(matches) != 1:
+        print(
+            f"::error::expected exactly one `auth` directory under {root}, "
+            f"found {len(matches)}: {', '.join(sorted(matches)) or 'none'}. "
+            "This guard cannot tell which holds the sign-in methods."
+        )
+        return None
+
+    return matches[0]
+
+
+auth_dirs = {t: auth_dir(t) for t in templates}
+
+if any(d is None for d in auth_dirs.values()):
+    sys.exit(1)
+
+
 # Each job, named explicitly rather than inferred from the workflow's job list,
 # with the axes its matrix must cover and every combination of them that exists
 # on disk. `agent-context` discovers templates itself and has no matrix at all,
@@ -74,11 +107,7 @@ required = {
     "frontend": (("template",), {(t,) for t in templates}),
     "delete-method": (
         ("template", "method"),
-        {
-            (t, m)
-            for t in templates
-            for m in subdirs(f"templates/{t}/frontend/src/app/auth")
-        },
+        {(t, m) for t in templates for m in subdirs(auth_dirs[t])},
     ),
     "ui-system": (
         ("template", "ui"),
