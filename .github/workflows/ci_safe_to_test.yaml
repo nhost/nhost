@@ -1,0 +1,267 @@
+---
+name: "ci: safe to test"
+
+# Turns the 'safe_to_test' label into a one-shot approval of the PR head
+# commit at the moment the label was added:
+#
+#   1. verify the labeler has write access
+#   2. verify the PR head has not moved since the label was added
+#   3. record a 'safe-to-test' commit status on that SHA as nhost-helper-bot
+#      (.github/actions/check-permissions only accepts statuses from it)
+#   4. re-run the pull_request_target checks and the final status check for
+#      that SHA so they pick up the approval
+#   5. remove the label again
+#
+# A later push produces a new SHA without the status, so the approval can't
+# carry over to code the maintainer hasn't seen. This workflow never checks
+# out or runs PR code.
+on:
+  pull_request_target:
+    types: [labeled]
+
+permissions: {}
+
+jobs:
+  approve:
+    if: github.event.label.name == 'safe_to_test'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    concurrency:
+      group: ${{ github.workflow }}-pr-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
+
+    permissions:
+      actions: write
+      issues: write
+      pull-requests: write
+
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_USER: ${{ github.event.pull_request.user.login }}
+      LABELER: ${{ github.event.sender.login }}
+      APPROVED_SHA: ${{ github.event.pull_request.head.sha }}
+
+    steps:
+      - name: Verify labeler has write access
+        shell: bash
+        run: |
+          set -euo pipefail
+          permission=$(
+            gh api \
+              "repos/${REPO}/collaborators/${LABELER}/permission" \
+              --jq '.permission'
+          )
+          echo "Resolved repository permission for ${LABELER}: ${permission}"
+          case "${permission}" in
+            admin | maintain | write)
+              ;;
+            *)
+              echo "::error::Labeler '${LABELER}' has '${permission}'" \
+                "permission, which is below write. Only users with write" \
+                "access can approve a commit with 'safe_to_test'."
+              exit 1
+              ;;
+          esac
+
+      - name: Verify the PR still points at the labeled commit
+        id: pr
+        shell: bash
+        run: |
+          set -euo pipefail
+          pr=$(
+            gh api "repos/${REPO}/pulls/${PR_NUMBER}" \
+              --jq '"\(.state) \(.head.sha)"'
+          )
+          read -r state head_sha <<< "${pr}"
+          if [[ "${state}" != "open" ]]; then
+            echo "::error::PR #${PR_NUMBER} is ${state}; nothing to approve."
+            exit 1
+          fi
+          if [[ "${head_sha}" != "${APPROVED_SHA}" ]]; then
+            echo "::error::The PR head moved from ${APPROVED_SHA} to" \
+              "${head_sha} after the label was added. Review the new" \
+              "commit and add 'safe_to_test' again."
+            exit 1
+          fi
+
+          case "${PR_USER}" in
+            "dependabot[bot]" | "nhost-helper-bot[bot]")
+              echo "needed=false" >> "$GITHUB_OUTPUT"
+              exit 0
+              ;;
+          esac
+          permission=$(
+            gh api \
+              "repos/${REPO}/collaborators/${PR_USER}/permission" \
+              --jq '.permission'
+          )
+          case "${permission}" in
+            admin | maintain | write)
+              echo "Author '${PR_USER}' has '${permission}' permission;" \
+                "no approval needed."
+              echo "needed=false" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "needed=true" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+
+      - name: Generate App token
+        id: app-token
+        if: steps.pr.outputs.needed == 'true'
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.NHOST_BOT_APP_ID }}
+          private-key: ${{ secrets.NHOST_BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-statuses: write
+
+      - name: Record approval of the labeled commit
+        if: steps.pr.outputs.needed == 'true'
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: |
+            const labeler = process.env.LABELER;
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: process.env.APPROVED_SHA,
+              state: 'success',
+              context: 'safe-to-test',
+              description: `Approved by @${labeler} for secret-bearing checks`,
+              target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+            });
+            core.info(`Approved ${process.env.APPROVED_SHA} on behalf of @${labeler}`);
+
+      - name: Re-run checks for the approved commit
+        if: steps.pr.outputs.needed == 'true'
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const sha = process.env.APPROVED_SHA;
+            const SELF = '.github/workflows/ci_safe_to_test.yaml';
+            const FINAL = '.github/workflows/ci_final_status_check.yaml';
+            const POLL_INTERVAL_MS = 10_000;
+            const MAX_WAIT_MS = 10 * 60_000;
+            const RERUN = ['failure', 'cancelled', 'timed_out', 'startup_failure'];
+
+            const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+            const workflowPath = (run) => run.path.split('@')[0];
+
+            async function latestRuns() {
+              const runs = await github.paginate(
+                github.rest.actions.listWorkflowRunsForRepo,
+                { owner, repo, head_sha: sha, per_page: 100 },
+              );
+              const byWorkflow = new Map();
+              for (const run of runs) {
+                const current = byWorkflow.get(run.workflow_id);
+                if (!current || new Date(run.created_at) > new Date(current.created_at)) {
+                  byWorkflow.set(run.workflow_id, run);
+                }
+              }
+              const latest = [...byWorkflow.values()];
+              return {
+                gated: latest.filter(
+                  (r) =>
+                    r.event === 'pull_request_target' &&
+                    workflowPath(r) !== SELF &&
+                    workflowPath(r) !== FINAL,
+                ),
+                final: latest.find((r) => workflowPath(r) === FINAL),
+              };
+            }
+
+            async function waitFor(done, what) {
+              for (let waited = 0; waited < MAX_WAIT_MS; waited += POLL_INTERVAL_MS) {
+                const runs = await latestRuns();
+                if (done(runs)) return runs;
+                core.info(`Waiting for ${what}...`);
+                await sleep(POLL_INTERVAL_MS);
+              }
+              throw new Error(`Timed out waiting for ${what}`);
+            }
+
+            // An in-progress final status check is about to fail on the old
+            // gate failures, and a run can't be re-run until it completes, so
+            // stop it now and re-run it after the checks. A run still waiting
+            // for fork approval ('action_required') isn't running; once a
+            // maintainer approves it, it sees the re-runs.
+            let { final } = await latestRuns();
+            if (final && final.status !== 'completed') {
+              core.info(`Cancelling in-progress final status check #${final.id}`);
+              await github.rest.actions.cancelWorkflowRun({ owner, repo, run_id: final.id });
+              ({ final } = await waitFor(
+                (r) => !r.final || r.final.status === 'completed',
+                'the final status check to stop',
+              ));
+            }
+
+            const { gated } = await waitFor(
+              (r) => r.gated.every((run) => run.status === 'completed'),
+              'in-progress checks to finish',
+            );
+            if (gated.length === 0) {
+              throw new Error(
+                `No pull_request_target runs found for ${sha}. Push a new commit, then add 'safe_to_test' again.`,
+              );
+            }
+
+            const errors = [];
+            let rerun = 0;
+            for (const run of gated.filter((r) => RERUN.includes(r.conclusion))) {
+              try {
+                await github.rest.actions.reRunWorkflow({ owner, repo, run_id: run.id });
+                core.info(`Re-running ${run.name} (#${run.id})`);
+                rerun++;
+              } catch (e) {
+                // GitHub refuses re-runs more than 30 days after the original run.
+                errors.push(`${run.name} (#${run.id}): ${e.message}`);
+              }
+            }
+
+            if (final && final.conclusion !== 'action_required') {
+              try {
+                await github.rest.actions.reRunWorkflow({ owner, repo, run_id: final.id });
+                core.info(`Re-running ${final.name} (#${final.id})`);
+              } catch (e) {
+                errors.push(`${final.name} (#${final.id}): ${e.message}`);
+              }
+            } else if (final) {
+              core.notice(
+                `${final.name} is waiting for fork approval; approve it to report the re-run results.`,
+              );
+            }
+
+            core.info(`Re-ran ${rerun} of ${gated.length} checks for ${sha}`);
+            if (errors.length > 0) {
+              throw new Error(
+                `Could not re-run:\n- ${errors.join('\n- ')}\n` +
+                  `Push a new commit (e.g. Update branch), then add 'safe_to_test' again.`,
+              );
+            }
+
+      - name: Remove the label
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api --method DELETE \
+            "repos/${REPO}/issues/${PR_NUMBER}/labels/safe_to_test" \
+            > /dev/null || echo "Label already removed"
+
+      - name: Report failure on the PR
+        if: failure()
+        shell: bash
+        env:
+          RUN_URL: >-
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          gh pr comment "${PR_NUMBER}" --repo "${REPO}" --body \
+            "\`safe_to_test\` added by @${LABELER} could not be applied to ${APPROVED_SHA}. See ${RUN_URL} for details."

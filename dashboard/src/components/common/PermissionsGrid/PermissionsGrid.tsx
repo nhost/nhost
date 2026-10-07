@@ -2,16 +2,15 @@ import { twMerge } from 'tailwind-merge';
 import { FullPermissionIcon } from '@/components/ui/v3/icons/FullPermissionIcon';
 import { NoPermissionIcon } from '@/components/ui/v3/icons/NoPermissionIcon';
 import { PartialPermissionIcon } from '@/components/ui/v3/icons/PartialPermissionIcon';
-import type { DatabaseAction } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
 export type AccessLevel = 'full' | 'partial' | 'none';
 
-export interface PermissionsGridProps {
+export interface PermissionsGridProps<TAction extends string> {
   roles: string[];
-  actions: DatabaseAction[];
-  actionLabels: Record<DatabaseAction, string>;
-  getAccessLevel: (role: string, action: DatabaseAction) => AccessLevel;
-  onSelect: (role: string, action: DatabaseAction) => void;
+  actions: TAction[];
+  actionLabels: Record<TAction, string>;
+  getAccessLevel: (role: string, action: TAction) => AccessLevel;
+  onSelect: (role: string, action: TAction) => void;
 }
 
 const gridColsMap: Record<number, string> = {
@@ -33,13 +32,13 @@ function AccessLevelIcon({ level }: { level: AccessLevel }) {
   return <FullPermissionIcon />;
 }
 
-export default function PermissionsGrid({
+export default function PermissionsGrid<TAction extends string>({
   roles,
   actions,
   actionLabels,
   getAccessLevel,
   onSelect,
-}: PermissionsGridProps) {
+}: PermissionsGridProps<TAction>) {
   const gridCols = gridColsMap[actions.length + 1] || 'grid-cols-5';
 
   return (

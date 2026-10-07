@@ -24,6 +24,8 @@ on:
 
       # docs
       - docs/**
+      - tools/configdocs/**
+      - services/postgres/plugins.md
 
       # nhost-js
       - packages/nhost-js/**
@@ -37,7 +39,10 @@ on:
   merge_group:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ startsWith(github.event_name, 'pull_request') && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
+  group: >-
+    ${{ github.workflow }}-${{ startsWith(github.event_name, 'pull_request') &&
+    format('pr-{0}', github.event.pull_request.number) ||
+    format('push-{0}', github.sha) }}
   cancel-in-progress: ${{ startsWith(github.event_name, 'pull_request') }}
 
 jobs:
@@ -61,6 +66,8 @@ jobs:
         pnpm-lock.yaml
         turbo.json
         docs/**
+        tools/configdocs/**
+        services/postgres/plugins.md
         packages/nhost-js/**
         services/auth/docs/openapi.yaml
         services/storage/controller/openapi.yaml
@@ -83,7 +90,9 @@ jobs:
     with:
       NAME: docs
       PATH: docs
-      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+      GIT_REF: >-
+        ${{ github.event_name == 'pull_request_target' &&
+        github.event.pull_request.head.sha || github.sha }}
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
@@ -99,7 +108,9 @@ jobs:
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
       NAME: docs
-      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+      GIT_REF: >-
+        ${{ github.event_name == 'pull_request_target' &&
+        github.event.pull_request.head.sha || github.sha }}
       ENVIRONMENT: preview
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
@@ -111,17 +122,3 @@ jobs:
       VERCEL_PROJECT_ID: ${{ secrets.DOCS_VERCEL_PROJECT_ID }}
       VERCEL_DEPLOY_TOKEN: ${{ secrets.DASHBOARD_VERCEL_DEPLOY_TOKEN }}
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-
-  remove_label:
-    runs-on: ubuntu-latest
-    needs:
-      - detect-changes
-      - check-permissions
-    if: |
-      needs.detect-changes.outputs.should_run == 'true' &&
-      contains(github.event.pull_request.labels.*.name, 'safe_to_test')
-    steps:
-      - uses: actions-ecosystem/action-remove-labels@v1
-        with:
-          labels: |
-            safe_to_test

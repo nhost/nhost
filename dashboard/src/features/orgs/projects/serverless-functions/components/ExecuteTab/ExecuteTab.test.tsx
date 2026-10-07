@@ -3,7 +3,7 @@ import { setupServer } from 'msw/node';
 import { FormData as UndiciFormData } from 'undici';
 import {
   fireEvent,
-  mockPointerEvent,
+  mockScrollIntoViewAndPointerCapture,
   render,
   screen,
   TestUserEvent,
@@ -44,7 +44,7 @@ afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
 beforeEach(() => {
-  mockPointerEvent();
+  mockScrollIntoViewAndPointerCapture();
   captured = { contentType: null };
 });
 
@@ -61,11 +61,9 @@ async function pickContentType(user: TestUserEvent, contentType: string) {
   await user.click(screen.getByRole('option', { name: contentType }));
 }
 
-function clickSend() {
-  // user.click + mockPointerEvent does not trigger implicit form submit;
-  // fireEvent.click works because it skips the pointer sequence.
+async function clickSend(user: TestUserEvent) {
   const [sendButton] = screen.getAllByRole('button', { name: 'Send' });
-  fireEvent.click(sendButton);
+  await user.click(sendButton);
 }
 
 describe('ExecuteTab', () => {
@@ -86,7 +84,7 @@ describe('ExecuteTab', () => {
     await user.type(keyInputs[1], 'role');
     await user.type(valueInputs[1], 'admin');
 
-    clickSend();
+    await clickSend(user);
 
     await waitFor(() => {
       expect(captured.body).toBe('name=Alice&role=admin');
@@ -108,7 +106,7 @@ describe('ExecuteTab', () => {
     const file = new File(['hello'], 'hello.txt', { type: 'text/plain' });
     fireEvent.change(fileInput, { target: { files: [file] } });
 
-    clickSend();
+    await clickSend(user);
 
     await waitFor(() => {
       expect(captured.contentType).toMatch(
@@ -139,7 +137,7 @@ describe('ExecuteTab', () => {
     await user.type(screen.getByPlaceholderText('Parameter name'), 'field');
     await user.type(screen.getByPlaceholderText('Value'), 'val');
 
-    clickSend();
+    await clickSend(user);
 
     await waitFor(() => {
       expect(captured.contentType).toMatch(

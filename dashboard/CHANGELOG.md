@@ -1,3 +1,37 @@
+## [@nhost/dashboard@3.6.0] - 2026-09-30
+
+### 🚀 Features
+
+- *(dashboard)* Add last sign-in method badge (#4984)
+- *(dashboard)* Manage logical models and native queries (#4792)
+- *(dashboard)* Manage logical model and native queries permissions (#4793)
+- *(dashboard)* Manage native queries relationships (#4777)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Isolate project config errors (#4818)
+- *(dashboard)* Improve multiline text tooltip accessibility with keyboard (#4978)
+- *(dashboard)* Stop unscheduled deployments hiding the live one (#5023)
+- *(dashboard)* Prevent unintended permission changes (#5062)
+- *(dashboard)* Refetch metadata version before tracking a new table (#5076)
+- *(dashboard)* Prepare shared UI for native queries (#4823)
+- *(dashboard)* Generalize PermissionsGrid actions and allow locking RoleActionSwitcher (#4824)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Bump Go to 1.27 (#4887)
+- *(dashboard)* Add native query and logical model metadata contracts (#4791)
+- *(dashboard)* Use jsdom's native PointerEvent in tests (#5068)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4973)
+- *(deps)* Update vulnerable dependencies (#4998)
+- *(deps)* Update vulnerable dependencies (#5056)
+
 ## [@nhost/dashboard@3.5.3] - 2026-09-07
 
 ### 🐛 Bug Fixes
