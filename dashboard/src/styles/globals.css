@@ -115,6 +115,19 @@ html.dark .graphiql-themed .graphiql-container {
   background-color: transparent;
 }
 
+.graphiql-themed .graphiql-container .graphiql-query-editor {
+  background-color: hsl(var(--background));
+}
+
+.graphiql-themed .graphiql-container .graphiql-editor-tools,
+.graphiql-themed .graphiql-container .graphiql-editor-tool {
+  background-color: hsl(var(--muted) / 0.5);
+}
+
+.graphiql-themed .graphiql-container .graphiql-response {
+  background-color: hsl(var(--muted));
+}
+
 .graphiql-themed .graphiql-container .CodeMirror-linenumber,
 .graphiql-themed .graphiql-container .CodeMirror-line,
 .graphiql-themed .graphiql-container .graphiql-tabs button.graphiql-tab,
