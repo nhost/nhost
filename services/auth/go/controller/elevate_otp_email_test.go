@@ -249,6 +249,33 @@ func TestElevateOTPEmail(t *testing.T) { //nolint:maintidx
 		},
 
 		{
+			name:   "unverified email, verification not required",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				user := getSigninUser(userID)
+				user.EmailVerified = false
+
+				mock.EXPECT().GetUser(
+					gomock.Any(),
+					userID,
+				).Return(user, nil)
+
+				return mock
+			},
+			request: api.ElevateOTPEmailRequestObject{},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "unverified-user",
+				Message: "User is not verified.",
+				Status:  401,
+			},
+			jwtTokenFn:        jwtTokenFn,
+			expectedJWT:       nil,
+			getControllerOpts: []getControllerOptsFunc{},
+		},
+
+		{
 			// A user without an email address fails the email access-control
 			// check inside GetUserFromJWTInContext, so no OTP can be requested.
 			name:   "user has no email",

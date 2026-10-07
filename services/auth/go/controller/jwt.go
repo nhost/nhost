@@ -543,7 +543,7 @@ func (j *JWTGetter) availableElevationMethods(
 		methods = append(methods, api.ElevationMethodTotp)
 	}
 
-	if j.otpEmailEnabled && user.Email.Valid && user.Email.String != "" {
+	if j.otpEmailEnabled && hasVerifiedEmail(user) {
 		methods = append(methods, api.ElevationMethodOtpEmail)
 	}
 

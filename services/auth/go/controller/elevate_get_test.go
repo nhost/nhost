@@ -50,7 +50,11 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 		TotpSecret:    sql.Text("encrypted-secret"),
 	}
 	plainUser := sql.AuthUser{ID: userID}
-	emailUser := sql.AuthUser{ID: userID, Email: sql.Text("jane@acme.com")}
+	emailUser := sql.AuthUser{
+		ID:            userID,
+		Email:         sql.Text("jane@acme.com"),
+		EmailVerified: true,
+	}
 
 	cases := []testRequest[
 		api.GetElevationMethodsRequestObject,
@@ -223,6 +227,32 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 			expectedResponse: api.GetElevationMethods200JSONResponse{
 				ElevationRequired: true,
 				Methods:           []api.ElevationMethod{api.ElevationMethodOtpEmail},
+			},
+			jwtTokenFn:  jwtTokenFn,
+			expectedJWT: nil,
+			getControllerOpts: []getControllerOptsFunc{
+				withElevationMode("recommended"),
+			},
+		},
+
+		{
+			name:   "unverified email is not a factor",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				user := emailUser
+				user.EmailVerified = false
+
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(user, nil)
+
+				return mock
+			},
+			request: api.GetElevationMethodsRequestObject{},
+			expectedResponse: api.GetElevationMethods200JSONResponse{
+				ElevationRequired: false,
+				Methods:           []api.ElevationMethod{},
 			},
 			jwtTokenFn:  jwtTokenFn,
 			expectedJWT: nil,

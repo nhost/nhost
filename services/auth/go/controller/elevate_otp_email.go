@@ -26,6 +26,11 @@ func (ctrl *Controller) ElevateOTPEmail( //nolint:ireturn
 		return ctrl.sendError(apiErr), nil
 	}
 
+	if !hasVerifiedEmail(user) {
+		logger.WarnContext(ctx, "user has no usable email elevation factor")
+		return ctrl.sendError(ErrUnverifiedUser), nil
+	}
+
 	otp, err := generateOTP()
 	if err != nil {
 		logger.ErrorContext(ctx, "error generating OTP", logError(err))
@@ -60,4 +65,8 @@ func (ctrl *Controller) ElevateOTPEmail( //nolint:ireturn
 	}
 
 	return api.ElevateOTPEmail200JSONResponse(api.OK), nil
+}
+
+func hasVerifiedEmail(user sql.AuthUser) bool {
+	return user.Email.String != "" && user.EmailVerified
 }

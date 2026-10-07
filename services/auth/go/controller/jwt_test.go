@@ -759,7 +759,7 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 		},
 
 		{
-			name: "BearerAuthElevated: elevated recommended, no security keys, otp email enabled, user has email, claim not present",
+			name: "BearerAuthElevated: elevated recommended, no security keys, otp email enabled, user has a verified email, claim not present",
 			elevation: controller.ElevationConfig{
 				Mode: "recommended", WebauthnEnabled: true, OTPEmailEnabled: true,
 			},
@@ -767,7 +767,7 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 				mock := mock.NewMockDBClient(ctrl)
 				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
 				mock.EXPECT().GetUser(gomock.Any(), userID).Return(
-					sql.AuthUser{Email: sql.Text("jane@acme.com")}, nil,
+					sql.AuthUser{Email: sql.Text("jane@acme.com"), EmailVerified: true}, nil,
 				)
 
 				return mock
@@ -791,6 +791,46 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 			token:      elevatedToken,
 			scheme:     "BearerAuthElevated",
 			requestURL: nil,
+			expectErr:  nil,
+		},
+
+		{
+			name: "BearerAuthElevated: elevated recommended, otp email enabled, user has an unverified email",
+			elevation: controller.ElevationConfig{
+				Mode: "recommended", WebauthnEnabled: true, OTPEmailEnabled: true,
+			},
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(
+					sql.AuthUser{Email: sql.Text("jane@acme.com")}, nil,
+				)
+
+				return mock
+			},
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr:  nil,
+		},
+
+		{
+			name: "BearerAuthElevated: elevated required, otp email enabled, unverified email, add first security key",
+			elevation: controller.ElevationConfig{
+				Mode: "required", WebauthnEnabled: true, OTPEmailEnabled: true,
+			},
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(
+					sql.AuthUser{Email: sql.Text("jane@acme.com")}, nil,
+				)
+
+				return mock
+			},
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: &url.URL{Path: "/user/webauthn/add"},
 			expectErr:  nil,
 		},
 
