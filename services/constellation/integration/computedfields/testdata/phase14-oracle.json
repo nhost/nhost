@@ -1,0 +1,3080 @@
+{
+  "engine": "Hasura v2.50.3-ce",
+  "source": "Redacted isolated observations from phase14 nonbase/public/focused-return oracle records; no metadata export, endpoint or credential.",
+  "disposable_numeric_setof_and_sibling": {
+    "source": "Serialized isolated tracked-table probe on pinned Hasura v2.50.3-ce; each GraphQL operation was separately requested. No shared seeded row was mutated.",
+    "role_sdl": "Admin and granted reader expose nullable numeric scalar, numeric_comparison_exp bool input, order_by enum input, and numeric max output. Tracked-table returns (SETOF and single composite) are lists and inherit returned-table select access without an explicit grant.",
+    "numeric_direct": {
+      "zero": "null by_pk parent",
+      "one": 2,
+      "two": {
+        "message": "database query error",
+        "code": "unexpected",
+        "path": "$"
+      }
+    },
+    "numeric_where": "zero and one each fail independently with database query error/unexpected/$, including a granted-role one-row query and an isolated fixture with the two-row case removed; text control one also fails",
+    "numeric_order_parent_ids": [
+      102,
+      103,
+      103
+    ],
+    "numeric_aggregate_max": 4,
+    "mutation_returning": {
+      "numeric_insert_one": "one yields 5; zero yields null mutation field but persists; two errors with unexpected at insert args.object path and rolls back the row",
+      "numeric_update_by_pk": "zero yields null mutation field; two errors with unexpected at $",
+      "setof_table_insert": "zero []; one [101]; two [101,102]",
+      "single_composite_insert": "one [102]; missing [{id:null,amount:null}]",
+      "single_composite_update_by_pk": "one [102]"
+    },
+    "table_direct": {
+      "setof_zero": [],
+      "setof_one_ids": [
+        101
+      ],
+      "setof_two_ids": [
+        101,
+        102
+      ],
+      "single_missing": [
+        {
+          "id": null,
+          "amount": null
+        }
+      ]
+    },
+    "aggregate_sibling_collision": "Consistent metadata, zero inconsistencies: row SDL contains both a relationship aggregate object and a same-named numeric computed field; order_by contains duplicate same-named input entries, one aggregate-order object and one order_by enum. Constellation deliberately omits only the ambiguous computed selection.",
+    "scope": "Earlier numeric/text-only scratch classification; superseded for additional return kinds and public enum arguments by disposable_final_types_p11."
+  },
+  "scalar_object_collision_p13": {
+    "engine": "Hasura v2.50.3-ce",
+    "fixture": "A tracked disposable cf_select row object and a PUBLIC computed-argument enum shared GraphQL name cf_select_cf_probe_p13_rows",
+    "ungranted_attempt": {"http_status": 500, "code": "unexpected", "path": "$.args", "reason": "conflicting GraphQL type definitions: computed argument scalar versus tracked row object"},
+    "granted_attempt": {"http_status": 500, "code": "unexpected", "path": "$.args", "reason": "same conflicting scalar/object definitions"},
+    "post_rejection": "Both metadata replacements were atomic: zero inconsistencies, no computed definition or grant installed. Admin, reader and no-grant roles retained their existing item and scratch-row roots and the tracked scratch object with id. Read-only item and scratch queries still succeeded; the uninstalled computed selection failed GraphQL validation.",
+    "control_limit": "A unique PUBLIC enum was created, but its computed definition was inside the same rejected replacement: separate acceptance was not established. No other type-name collision permutation was probed.",
+    "constellation_approved_difference": "Metadata can be accepted; only the ambiguous computed selection is omitted with a computed_field inconsistency. Unrelated roots and grants survive. This differs from Hasura's atomic metadata rejection."
+  },
+  "collision_matrix_summary": {
+    "source": "Serialized restored scratch replace_metadata variants on the existing source (separately authorized Phase 14 oracle); redacted summary only",
+    "ordinary_collisions": "Column, configured custom name, relationship and to_source relationship collisions invalidate the computed definition; an explicit invalid computed grant revokes the reader select permission.",
+    "aggregate_sibling": "A relationship _aggregate sibling left Hasura metadata consistent and emitted duplicate row and order_by field names; Constellation omits only the ambiguous computed selection under the separately approved exception."
+  },
+  "nullable_remote_schema_key_summary": {
+    "source": "Serialized restored scratch replace_metadata variant on a disposable key fixture; redacted summary only",
+    "outcome": "Null LHS key returned null and non-null key returned a matching object for both granted and ungranted roles on Hasura v2.50.3-ce. Constellation requires the select grant under the Phase 13 approval."
+  },
+  "inherited_column_controls": {
+    "source": "Read-only Hasura v2.50.3-ce column-only probes in Phase 14 independent review pass 2; outcomes are summarized, not fabricated response envelopes.",
+    "queries": [
+      {
+        "graphql": "query { cf_select_items(where: { id: { _eq: \"1\" } }) { id } }",
+        "outcome": "accepted and executed; Constellation rejects the quoted Int during GraphQL validation"
+      },
+      {
+        "graphql": "query { cf_select_items_by_pk(id: \"1\") { id } }",
+        "outcome": "accepted and executed; Constellation rejects the quoted Int during GraphQL validation"
+      },
+      {
+        "graphql": "query { cf_select_items(where: { id: { _eq: 2.5 } }) { id } }",
+        "outcome": "parse-failed with Hasura path; Constellation returns a GraphQL validation error with locations"
+      },
+      {
+        "graphql": "query { cf_select_items(where: { id: { _eq: 2147483648 } }) { id } }",
+        "outcome": "parse-failed with Hasura path; Constellation reaches pgx int4 encoding (sanitized in production)"
+      }
+    ]
+  },
+  "nonpublic_custom": [
+    {
+      "label": "query domain_int_good",
+      "response": {
+        "errors": [
+          {
+            "message": "type \"cf_probe_posint\" does not exist",
+            "extensions": {
+              "path": "$",
+              "code": "constraint-error"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "label": "query domain_int_number",
+      "response": {
+        "errors": [
+          {
+            "message": "A string is expected for type: cf_probe_posint",
+            "extensions": {
+              "path": "$.selectionSet.cf_select_items.selectionSet.cf_probe_domain_int.args.args.n",
+              "code": "parse-failed"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "label": "query domain_int_null",
+      "response": {
+        "errors": [
+          {
+            "message": "type \"cf_probe_posint\" does not exist",
+            "extensions": {
+              "path": "$",
+              "code": "constraint-error"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "label": "query domain_int_variable",
+      "response": {
+        "errors": [
+          {
+            "message": "type \"cf_probe_posint\" does not exist",
+            "extensions": {
+              "path": "$",
+              "code": "constraint-error"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "label": "query enum_number",
+      "response": {
+        "errors": [
+          {
+            "message": "A string is expected for type: cf_probe_mood",
+            "extensions": {
+              "path": "$.selectionSet.cf_select_items.selectionSet.cf_probe_enum.args.args.m",
+              "code": "parse-failed"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "label": "query array_list",
+      "response": {
+        "errors": [
+          {
+            "message": "A string is expected for type: _int4",
+            "extensions": {
+              "path": "$.selectionSet.cf_select_items.selectionSet.cf_probe_array.args.args.ids",
+              "code": "parse-failed"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "label": "add text_array",
+      "response": {
+        "http_status": 400,
+        "error": "Inconsistent object: in table \"cf_select.items\": in computed field \"cf_probe_text_array\": the computed field \"cf_probe_text_array\" cannot be added to table \"cf_select.items\" because the function \"cf_select.cf_probe_text_array\" returning type _text is not a BASE type",
+        "path": "$.args",
+        "code": "invalid-configuration"
+      }
+    }
+  ],
+  "public_domain": {
+    "string_2": {
+      "data": {
+        "cf_select_items": [
+          {
+            "cf_probe_public_posint": 14.5
+          }
+        ]
+      },
+      "errors": []
+    },
+    "number_2": {
+      "data": null,
+      "errors": [
+        {
+          "message": "A string is expected for type: cf_probe_public_posint",
+          "code": "parse-failed",
+          "path": "$.selectionSet.cf_select_items.selectionSet.cf_probe_public_posint.args.args.n"
+        }
+      ]
+    },
+    "null": {
+      "data": {
+        "cf_select_items": [
+          {
+            "cf_probe_public_posint": null
+          }
+        ]
+      },
+      "errors": []
+    },
+    "invalid_0": {
+      "data": null,
+      "errors": [
+        {
+          "message": "Check constraint violation. value for domain cf_probe_public_posint violates check constraint \"cf_probe_public_posint_check\"",
+          "code": "permission-error",
+          "path": "$"
+        }
+      ]
+    },
+    "invalid_x": {
+      "data": null,
+      "errors": [
+        {
+          "message": "invalid input syntax for type integer: \"x\"",
+          "code": "data-exception",
+          "path": "$"
+        }
+      ]
+    }
+  },
+  "return_cases": [
+    {
+      "label": "table one_tag",
+      "operation": "query{cf_select_items(order_by:{id:asc}){id cf_probe_p6_one_tag{id item_id label}}}",
+      "role": "admin",
+      "data": {
+        "cf_select_items": [
+          {
+            "id": 1,
+            "cf_probe_p6_one_tag": [
+              {
+                "id": 1,
+                "item_id": 1,
+                "label": "one"
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "cf_probe_p6_one_tag": [
+              {
+                "id": null,
+                "item_id": null,
+                "label": null
+              }
+            ]
+          }
+        ]
+      },
+      "errors": []
+    },
+    {
+      "label": "table one_tag",
+      "operation": "query{cf_select_items(order_by:{id:asc}){id cf_probe_p6_one_tag{id item_id label}}}",
+      "role": "cf_reader",
+      "data": {
+        "cf_select_items": [
+          {
+            "id": 1,
+            "cf_probe_p6_one_tag": [
+              {
+                "id": 1,
+                "item_id": 1,
+                "label": "one"
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "cf_probe_p6_one_tag": [
+              {
+                "id": null,
+                "item_id": null,
+                "label": null
+              }
+            ]
+          }
+        ]
+      },
+      "errors": []
+    },
+    {
+      "label": "table one_tag",
+      "operation": "query{cf_select_items(order_by:{id:asc}){id cf_probe_p6_one_tag{id item_id label}}}",
+      "role": "cf_filtered_one",
+      "data": {
+        "cf_select_items": [
+          {
+            "id": 1,
+            "cf_probe_p6_one_tag": [
+              {
+                "id": 1,
+                "item_id": 1,
+                "label": "one"
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "cf_probe_p6_one_tag": []
+          }
+        ]
+      },
+      "errors": []
+    },
+    {
+      "label": "table one_tag",
+      "operation": "query{cf_select_items(order_by:{id:asc}){id cf_probe_p6_one_tag{id item_id label}}}",
+      "role": "cf_filtered_three",
+      "data": {
+        "cf_select_items": [
+          {
+            "id": 1,
+            "cf_probe_p6_one_tag": []
+          },
+          {
+            "id": 2,
+            "cf_probe_p6_one_tag": []
+          }
+        ]
+      },
+      "errors": []
+    },
+    {
+      "label": "table one_tag",
+      "operation": "query{cf_select_items(order_by:{id:asc}){id cf_probe_p6_one_tag{id item_id label}}}",
+      "role": "cf_no_grant",
+      "data": null,
+      "errors": [
+        {
+          "message": "field 'cf_probe_p6_one_tag' not found in type: 'cf_select_items'",
+          "code": "validation-failed",
+          "path": "$.selectionSet.cf_select_items.selectionSet.cf_probe_p6_one_tag"
+        }
+      ]
+    },
+    {
+      "label": "table null_tag",
+      "operation": "query{cf_select_items(order_by:{id:asc}){id cf_probe_p6_null_tag{id item_id label}}}",
+      "role": "admin",
+      "data": {
+        "cf_select_items": [
+          {
+            "id": 1,
+            "cf_probe_p6_null_tag": [
+              {
+                "id": null,
+                "item_id": null,
+                "label": null
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "cf_probe_p6_null_tag": [
+              {
+                "id": null,
+                "item_id": null,
+                "label": null
+              }
+            ]
+          }
+        ]
+      },
+      "errors": []
+    },
+    {
+      "label": "table null_tag",
+      "operation": "query{cf_select_items(order_by:{id:asc}){id cf_probe_p6_null_tag{id item_id label}}}",
+      "role": "cf_reader",
+      "data": {
+        "cf_select_items": [
+          {
+            "id": 1,
+            "cf_probe_p6_null_tag": [
+              {
+                "id": null,
+                "item_id": null,
+                "label": null
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "cf_probe_p6_null_tag": [
+              {
+                "id": null,
+                "item_id": null,
+                "label": null
+              }
+            ]
+          }
+        ]
+      },
+      "errors": []
+    },
+    {
+      "label": "table null_tag",
+      "operation": "query{cf_select_items(order_by:{id:asc}){id cf_probe_p6_null_tag{id item_id label}}}",
+      "role": "cf_filtered_one",
+      "data": {
+        "cf_select_items": [
+          {
+            "id": 1,
+            "cf_probe_p6_null_tag": []
+          },
+          {
+            "id": 2,
+            "cf_probe_p6_null_tag": []
+          }
+        ]
+      },
+      "errors": []
+    },
+    {
+      "label": "table null_tag",
+      "operation": "query{cf_select_items(order_by:{id:asc}){id cf_probe_p6_null_tag{id item_id label}}}",
+      "role": "cf_filtered_three",
+      "data": {
+        "cf_select_items": [
+          {
+            "id": 1,
+            "cf_probe_p6_null_tag": []
+          },
+          {
+            "id": 2,
+            "cf_probe_p6_null_tag": []
+          }
+        ]
+      },
+      "errors": []
+    },
+    {
+      "label": "table null_tag",
+      "operation": "query{cf_select_items(order_by:{id:asc}){id cf_probe_p6_null_tag{id item_id label}}}",
+      "role": "cf_no_grant",
+      "data": null,
+      "errors": [
+        {
+          "message": "field 'cf_probe_p6_null_tag' not found in type: 'cf_select_items'",
+          "code": "validation-failed",
+          "path": "$.selectionSet.cf_select_items.selectionSet.cf_probe_p6_null_tag"
+        }
+      ]
+    },
+    {
+      "label": "table missing_tag",
+      "operation": "query{cf_select_items(order_by:{id:asc}){id cf_probe_p6_missing_tag{id item_id label}}}",
+      "role": "admin",
+      "data": {
+        "cf_select_items": [
+          {
+            "id": 1,
+            "cf_probe_p6_missing_tag": [
+              {
+                "id": null,
+                "item_id": null,
+                "label": null
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "cf_probe_p6_missing_tag": [
+              {
+                "id": null,
+                "item_id": null,
+                "label": null
+              }
+            ]
+          }
+        ]
+      },
+      "errors": []
+    },
+    {
+      "label": "table missing_tag",
+      "operation": "query{cf_select_items(order_by:{id:asc}){id cf_probe_p6_missing_tag{id item_id label}}}",
+      "role": "cf_reader",
+      "data": {
+        "cf_select_items": [
+          {
+            "id": 1,
+            "cf_probe_p6_missing_tag": [
+              {
+                "id": null,
+                "item_id": null,
+                "label": null
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "cf_probe_p6_missing_tag": [
+              {
+                "id": null,
+                "item_id": null,
+                "label": null
+              }
+            ]
+          }
+        ]
+      },
+      "errors": []
+    },
+    {
+      "label": "table missing_tag",
+      "operation": "query{cf_select_items(order_by:{id:asc}){id cf_probe_p6_missing_tag{id item_id label}}}",
+      "role": "cf_filtered_one",
+      "data": {
+        "cf_select_items": [
+          {
+            "id": 1,
+            "cf_probe_p6_missing_tag": []
+          },
+          {
+            "id": 2,
+            "cf_probe_p6_missing_tag": []
+          }
+        ]
+      },
+      "errors": []
+    },
+    {
+      "label": "table missing_tag",
+      "operation": "query{cf_select_items(order_by:{id:asc}){id cf_probe_p6_missing_tag{id item_id label}}}",
+      "role": "cf_filtered_three",
+      "data": {
+        "cf_select_items": [
+          {
+            "id": 1,
+            "cf_probe_p6_missing_tag": []
+          },
+          {
+            "id": 2,
+            "cf_probe_p6_missing_tag": []
+          }
+        ]
+      },
+      "errors": []
+    },
+    {
+      "label": "table missing_tag",
+      "operation": "query{cf_select_items(order_by:{id:asc}){id cf_probe_p6_missing_tag{id item_id label}}}",
+      "role": "cf_no_grant",
+      "data": null,
+      "errors": [
+        {
+          "message": "field 'cf_probe_p6_missing_tag' not found in type: 'cf_select_items'",
+          "code": "validation-failed",
+          "path": "$.selectionSet.cf_select_items.selectionSet.cf_probe_p6_missing_tag"
+        }
+      ]
+    },
+    {
+      "label": "table untracked_tag",
+      "operation": "query{cf_select_items(order_by:{id:asc}){id cf_probe_p6_untracked_tag{id item_id label}}}",
+      "role": "admin",
+      "data": {
+        "cf_select_items": [
+          {
+            "id": 1,
+            "cf_probe_p6_untracked_tag": [
+              {
+                "id": 9999,
+                "item_id": 1,
+                "label": "ghost"
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "cf_probe_p6_untracked_tag": [
+              {
+                "id": 9999,
+                "item_id": 2,
+                "label": "ghost"
+              }
+            ]
+          }
+        ]
+      },
+      "errors": []
+    },
+    {
+      "label": "table untracked_tag",
+      "operation": "query{cf_select_items(order_by:{id:asc}){id cf_probe_p6_untracked_tag{id item_id label}}}",
+      "role": "cf_reader",
+      "data": {
+        "cf_select_items": [
+          {
+            "id": 1,
+            "cf_probe_p6_untracked_tag": [
+              {
+                "id": 9999,
+                "item_id": 1,
+                "label": "ghost"
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "cf_probe_p6_untracked_tag": [
+              {
+                "id": 9999,
+                "item_id": 2,
+                "label": "ghost"
+              }
+            ]
+          }
+        ]
+      },
+      "errors": []
+    },
+    {
+      "label": "table untracked_tag",
+      "operation": "query{cf_select_items(order_by:{id:asc}){id cf_probe_p6_untracked_tag{id item_id label}}}",
+      "role": "cf_filtered_one",
+      "data": {
+        "cf_select_items": [
+          {
+            "id": 1,
+            "cf_probe_p6_untracked_tag": []
+          },
+          {
+            "id": 2,
+            "cf_probe_p6_untracked_tag": []
+          }
+        ]
+      },
+      "errors": []
+    },
+    {
+      "label": "table untracked_tag",
+      "operation": "query{cf_select_items(order_by:{id:asc}){id cf_probe_p6_untracked_tag{id item_id label}}}",
+      "role": "cf_filtered_three",
+      "data": {
+        "cf_select_items": [
+          {
+            "id": 1,
+            "cf_probe_p6_untracked_tag": []
+          },
+          {
+            "id": 2,
+            "cf_probe_p6_untracked_tag": []
+          }
+        ]
+      },
+      "errors": []
+    },
+    {
+      "label": "table untracked_tag",
+      "operation": "query{cf_select_items(order_by:{id:asc}){id cf_probe_p6_untracked_tag{id item_id label}}}",
+      "role": "cf_no_grant",
+      "data": null,
+      "errors": [
+        {
+          "message": "field 'cf_probe_p6_untracked_tag' not found in type: 'cf_select_items'",
+          "code": "validation-failed",
+          "path": "$.selectionSet.cf_select_items.selectionSet.cf_probe_p6_untracked_tag"
+        }
+      ]
+    },
+    {
+      "label": "setof direct setof_zero",
+      "operation": "query{cf_select_items(order_by:{id:asc}){id cf_probe_p6_setof_zero}}",
+      "role": "admin",
+      "data": {
+        "cf_select_items": [
+          null,
+          null
+        ]
+      },
+      "errors": []
+    },
+    {
+      "label": "setof direct setof_zero",
+      "operation": "query{cf_select_items(order_by:{id:asc}){id cf_probe_p6_setof_zero}}",
+      "role": "cf_reader",
+      "data": {
+        "cf_select_items": [
+          null,
+          null
+        ]
+      },
+      "errors": []
+    },
+    {
+      "label": "setof direct setof_one",
+      "operation": "query{cf_select_items(order_by:{id:asc}){id cf_probe_p6_setof_one}}",
+      "role": "admin",
+      "data": {
+        "cf_select_items": [
+          {
+            "id": 1,
+            "cf_probe_p6_setof_one": "single1"
+          },
+          {
+            "id": 2,
+            "cf_probe_p6_setof_one": "single2"
+          }
+        ]
+      },
+      "errors": []
+    },
+    {
+      "label": "setof direct setof_one",
+      "operation": "query{cf_select_items(order_by:{id:asc}){id cf_probe_p6_setof_one}}",
+      "role": "cf_reader",
+      "data": {
+        "cf_select_items": [
+          {
+            "id": 1,
+            "cf_probe_p6_setof_one": "single1"
+          },
+          {
+            "id": 2,
+            "cf_probe_p6_setof_one": "single2"
+          }
+        ]
+      },
+      "errors": []
+    },
+    {
+      "label": "setof direct setof_many",
+      "operation": "query{cf_select_items(order_by:{id:asc}){id cf_probe_p6_setof_many}}",
+      "role": "admin",
+      "data": null,
+      "errors": [
+        {
+          "message": "database query error",
+          "code": "unexpected",
+          "path": "$"
+        }
+      ]
+    },
+    {
+      "label": "setof direct setof_many",
+      "operation": "query{cf_select_items(order_by:{id:asc}){id cf_probe_p6_setof_many}}",
+      "role": "cf_reader",
+      "data": null,
+      "errors": [
+        {
+          "message": "database query error",
+          "code": "unexpected",
+          "path": "$"
+        }
+      ]
+    },
+    {
+      "label": "setof where setof_zero",
+      "operation": "query{cf_select_items(where:{cf_probe_p6_setof_zero:{_eq:\"v1\"}},order_by:{id:asc}){id}}",
+      "role": "admin",
+      "data": null,
+      "errors": [
+        {
+          "message": "database query error",
+          "code": "unexpected",
+          "path": "$"
+        }
+      ]
+    },
+    {
+      "label": "setof order setof_zero",
+      "operation": "query{cf_select_items(order_by:{cf_probe_p6_setof_zero:asc}){id}}",
+      "role": "admin",
+      "data": {
+        "cf_select_items": []
+      },
+      "errors": []
+    },
+    {
+      "label": "setof aggregate setof_zero",
+      "operation": "query{cf_select_items_aggregate{aggregate{max{cf_probe_p6_setof_zero}}}}",
+      "role": "admin",
+      "data": {
+        "cf_select_items_aggregate": {
+          "aggregate": {
+            "max": {
+              "cf_probe_p6_setof_zero": null
+            }
+          }
+        }
+      },
+      "errors": []
+    },
+    {
+      "label": "setof where setof_one",
+      "operation": "query{cf_select_items(where:{cf_probe_p6_setof_one:{_eq:\"v1\"}},order_by:{id:asc}){id}}",
+      "role": "admin",
+      "data": null,
+      "errors": [
+        {
+          "message": "database query error",
+          "code": "unexpected",
+          "path": "$"
+        }
+      ]
+    },
+    {
+      "label": "setof order setof_one",
+      "operation": "query{cf_select_items(order_by:{cf_probe_p6_setof_one:asc}){id}}",
+      "role": "admin",
+      "data": {
+        "cf_select_items": [
+          {
+            "id": 1
+          },
+          {
+            "id": 2
+          }
+        ]
+      },
+      "errors": []
+    },
+    {
+      "label": "setof aggregate setof_one",
+      "operation": "query{cf_select_items_aggregate{aggregate{max{cf_probe_p6_setof_one}}}}",
+      "role": "admin",
+      "data": {
+        "cf_select_items_aggregate": {
+          "aggregate": {
+            "max": {
+              "cf_probe_p6_setof_one": "single2"
+            }
+          }
+        }
+      },
+      "errors": []
+    },
+    {
+      "label": "setof where setof_many",
+      "operation": "query{cf_select_items(where:{cf_probe_p6_setof_many:{_eq:\"v1\"}},order_by:{id:asc}){id}}",
+      "role": "admin",
+      "data": null,
+      "errors": [
+        {
+          "message": "database query error",
+          "code": "unexpected",
+          "path": "$"
+        }
+      ]
+    },
+    {
+      "label": "setof order setof_many",
+      "operation": "query{cf_select_items(order_by:{cf_probe_p6_setof_many:asc}){id}}",
+      "role": "admin",
+      "data": {
+        "cf_select_items": [
+          {
+            "id": 2
+          },
+          {
+            "id": 2
+          }
+        ]
+      },
+      "errors": []
+    },
+    {
+      "label": "setof aggregate setof_many",
+      "operation": "query{cf_select_items_aggregate{aggregate{max{cf_probe_p6_setof_many}}}}",
+      "role": "admin",
+      "data": {
+        "cf_select_items_aggregate": {
+          "aggregate": {
+            "max": {
+              "cf_probe_p6_setof_many": "v2"
+            }
+          }
+        }
+      },
+      "errors": []
+    },
+    {
+      "label": "enum bare",
+      "operation": "query{cf_select_items(where:{id:{_eq:1}}){cf_probe_p6_enum(args:{m:happy})}}",
+      "role": "admin",
+      "data": null,
+      "errors": [
+        {
+          "message": "type \"cf_probe_p6_mood\" does not exist",
+          "code": "constraint-error",
+          "path": "$"
+        }
+      ]
+    },
+    {
+      "label": "enum quoted",
+      "operation": "query{cf_select_items(where:{id:{_eq:1}}){cf_probe_p6_enum(args:{m:\"happy\"})}}",
+      "role": "admin",
+      "data": null,
+      "errors": [
+        {
+          "message": "type \"cf_probe_p6_mood\" does not exist",
+          "code": "constraint-error",
+          "path": "$"
+        }
+      ]
+    },
+    {
+      "label": "enum numeric",
+      "operation": "query{cf_select_items(where:{id:{_eq:1}}){cf_probe_p6_enum(args:{m:1})}}",
+      "role": "admin",
+      "data": null,
+      "errors": [
+        {
+          "message": "A string is expected for type: cf_probe_p6_mood",
+          "code": "parse-failed",
+          "path": "$.selectionSet.cf_select_items.selectionSet.cf_probe_p6_enum.args.args.m"
+        }
+      ]
+    }
+  ],
+  "role_sdl": [
+    {
+      "label": "SDL row",
+      "role": "admin",
+      "fields": [
+        {
+          "name": "cf_probe_p6_enum",
+          "type": {
+            "kind": "SCALAR",
+            "name": "String",
+            "ofType": null
+          },
+          "args": [
+            {
+              "name": "args",
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "INPUT_OBJECT",
+                  "name": "cf_probe_p6_enum_cf_select_items_args"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "cf_probe_p6_missing_tag",
+          "type": {
+            "kind": "LIST",
+            "name": null,
+            "ofType": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "cf_select_tags"
+              }
+            }
+          },
+          "args": [
+            {
+              "name": "distinct_on",
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null
+                }
+              }
+            },
+            {
+              "name": "limit",
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            {
+              "name": "offset",
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            {
+              "name": "order_by",
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null
+                }
+              }
+            },
+            {
+              "name": "where",
+              "type": {
+                "kind": "INPUT_OBJECT",
+                "name": "cf_select_tags_bool_exp",
+                "ofType": null
+              }
+            }
+          ]
+        },
+        {
+          "name": "cf_probe_p6_null_tag",
+          "type": {
+            "kind": "LIST",
+            "name": null,
+            "ofType": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "cf_select_tags"
+              }
+            }
+          },
+          "args": [
+            {
+              "name": "distinct_on",
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null
+                }
+              }
+            },
+            {
+              "name": "limit",
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            {
+              "name": "offset",
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            {
+              "name": "order_by",
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null
+                }
+              }
+            },
+            {
+              "name": "where",
+              "type": {
+                "kind": "INPUT_OBJECT",
+                "name": "cf_select_tags_bool_exp",
+                "ofType": null
+              }
+            }
+          ]
+        },
+        {
+          "name": "cf_probe_p6_one_tag",
+          "type": {
+            "kind": "LIST",
+            "name": null,
+            "ofType": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "cf_select_tags"
+              }
+            }
+          },
+          "args": [
+            {
+              "name": "distinct_on",
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null
+                }
+              }
+            },
+            {
+              "name": "limit",
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            {
+              "name": "offset",
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            {
+              "name": "order_by",
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null
+                }
+              }
+            },
+            {
+              "name": "where",
+              "type": {
+                "kind": "INPUT_OBJECT",
+                "name": "cf_select_tags_bool_exp",
+                "ofType": null
+              }
+            }
+          ]
+        },
+        {
+          "name": "cf_probe_p6_setof_many",
+          "type": {
+            "kind": "SCALAR",
+            "name": "String",
+            "ofType": null
+          },
+          "args": []
+        },
+        {
+          "name": "cf_probe_p6_setof_one",
+          "type": {
+            "kind": "SCALAR",
+            "name": "String",
+            "ofType": null
+          },
+          "args": []
+        },
+        {
+          "name": "cf_probe_p6_setof_zero",
+          "type": {
+            "kind": "SCALAR",
+            "name": "String",
+            "ofType": null
+          },
+          "args": []
+        },
+        {
+          "name": "cf_probe_p6_untracked_tag",
+          "type": {
+            "kind": "LIST",
+            "name": null,
+            "ofType": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "cf_select_tags"
+              }
+            }
+          },
+          "args": [
+            {
+              "name": "distinct_on",
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null
+                }
+              }
+            },
+            {
+              "name": "limit",
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            {
+              "name": "offset",
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            {
+              "name": "order_by",
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null
+                }
+              }
+            },
+            {
+              "name": "where",
+              "type": {
+                "kind": "INPUT_OBJECT",
+                "name": "cf_select_tags_bool_exp",
+                "ofType": null
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "SDL bool",
+      "role": "admin",
+      "fields": [
+        {
+          "name": "cf_probe_p6_missing_tag",
+          "type": {
+            "kind": "INPUT_OBJECT",
+            "name": "cf_select_tags_bool_exp",
+            "ofType": null
+          }
+        },
+        {
+          "name": "cf_probe_p6_null_tag",
+          "type": {
+            "kind": "INPUT_OBJECT",
+            "name": "cf_select_tags_bool_exp",
+            "ofType": null
+          }
+        },
+        {
+          "name": "cf_probe_p6_one_tag",
+          "type": {
+            "kind": "INPUT_OBJECT",
+            "name": "cf_select_tags_bool_exp",
+            "ofType": null
+          }
+        },
+        {
+          "name": "cf_probe_p6_setof_many",
+          "type": {
+            "kind": "INPUT_OBJECT",
+            "name": "String_comparison_exp",
+            "ofType": null
+          }
+        },
+        {
+          "name": "cf_probe_p6_setof_one",
+          "type": {
+            "kind": "INPUT_OBJECT",
+            "name": "String_comparison_exp",
+            "ofType": null
+          }
+        },
+        {
+          "name": "cf_probe_p6_setof_zero",
+          "type": {
+            "kind": "INPUT_OBJECT",
+            "name": "String_comparison_exp",
+            "ofType": null
+          }
+        },
+        {
+          "name": "cf_probe_p6_untracked_tag",
+          "type": {
+            "kind": "INPUT_OBJECT",
+            "name": "cf_select_tags_bool_exp",
+            "ofType": null
+          }
+        }
+      ]
+    },
+    {
+      "label": "SDL order",
+      "role": "admin",
+      "fields": [
+        {
+          "name": "cf_probe_p6_missing_tag_aggregate",
+          "type": {
+            "kind": "INPUT_OBJECT",
+            "name": "cf_select_tags_aggregate_order_by",
+            "ofType": null
+          }
+        },
+        {
+          "name": "cf_probe_p6_null_tag_aggregate",
+          "type": {
+            "kind": "INPUT_OBJECT",
+            "name": "cf_select_tags_aggregate_order_by",
+            "ofType": null
+          }
+        },
+        {
+          "name": "cf_probe_p6_one_tag_aggregate",
+          "type": {
+            "kind": "INPUT_OBJECT",
+            "name": "cf_select_tags_aggregate_order_by",
+            "ofType": null
+          }
+        },
+        {
+          "name": "cf_probe_p6_setof_many",
+          "type": {
+            "kind": "ENUM",
+            "name": "order_by",
+            "ofType": null
+          }
+        },
+        {
+          "name": "cf_probe_p6_setof_one",
+          "type": {
+            "kind": "ENUM",
+            "name": "order_by",
+            "ofType": null
+          }
+        },
+        {
+          "name": "cf_probe_p6_setof_zero",
+          "type": {
+            "kind": "ENUM",
+            "name": "order_by",
+            "ofType": null
+          }
+        },
+        {
+          "name": "cf_probe_p6_untracked_tag_aggregate",
+          "type": {
+            "kind": "INPUT_OBJECT",
+            "name": "cf_select_tags_aggregate_order_by",
+            "ofType": null
+          }
+        }
+      ]
+    },
+    {
+      "label": "SDL max",
+      "role": "admin",
+      "fields": [
+        {
+          "name": "cf_probe_p6_enum",
+          "type": {
+            "kind": "SCALAR",
+            "name": "String"
+          }
+        },
+        {
+          "name": "cf_probe_p6_setof_many",
+          "type": {
+            "kind": "SCALAR",
+            "name": "String"
+          }
+        },
+        {
+          "name": "cf_probe_p6_setof_one",
+          "type": {
+            "kind": "SCALAR",
+            "name": "String"
+          }
+        },
+        {
+          "name": "cf_probe_p6_setof_zero",
+          "type": {
+            "kind": "SCALAR",
+            "name": "String"
+          }
+        }
+      ]
+    },
+    {
+      "label": "SDL row",
+      "role": "cf_reader",
+      "fields": [
+        {
+          "name": "cf_probe_p6_enum",
+          "type": {
+            "kind": "SCALAR",
+            "name": "String",
+            "ofType": null
+          },
+          "args": [
+            {
+              "name": "args",
+              "type": {
+                "kind": "NON_NULL",
+                "name": null,
+                "ofType": {
+                  "kind": "INPUT_OBJECT",
+                  "name": "cf_probe_p6_enum_cf_select_items_args"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "cf_probe_p6_missing_tag",
+          "type": {
+            "kind": "LIST",
+            "name": null,
+            "ofType": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "cf_select_tags"
+              }
+            }
+          },
+          "args": [
+            {
+              "name": "distinct_on",
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null
+                }
+              }
+            },
+            {
+              "name": "limit",
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            {
+              "name": "offset",
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            {
+              "name": "order_by",
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null
+                }
+              }
+            },
+            {
+              "name": "where",
+              "type": {
+                "kind": "INPUT_OBJECT",
+                "name": "cf_select_tags_bool_exp",
+                "ofType": null
+              }
+            }
+          ]
+        },
+        {
+          "name": "cf_probe_p6_null_tag",
+          "type": {
+            "kind": "LIST",
+            "name": null,
+            "ofType": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "cf_select_tags"
+              }
+            }
+          },
+          "args": [
+            {
+              "name": "distinct_on",
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null
+                }
+              }
+            },
+            {
+              "name": "limit",
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            {
+              "name": "offset",
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            {
+              "name": "order_by",
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null
+                }
+              }
+            },
+            {
+              "name": "where",
+              "type": {
+                "kind": "INPUT_OBJECT",
+                "name": "cf_select_tags_bool_exp",
+                "ofType": null
+              }
+            }
+          ]
+        },
+        {
+          "name": "cf_probe_p6_one_tag",
+          "type": {
+            "kind": "LIST",
+            "name": null,
+            "ofType": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "cf_select_tags"
+              }
+            }
+          },
+          "args": [
+            {
+              "name": "distinct_on",
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null
+                }
+              }
+            },
+            {
+              "name": "limit",
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            {
+              "name": "offset",
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            {
+              "name": "order_by",
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null
+                }
+              }
+            },
+            {
+              "name": "where",
+              "type": {
+                "kind": "INPUT_OBJECT",
+                "name": "cf_select_tags_bool_exp",
+                "ofType": null
+              }
+            }
+          ]
+        },
+        {
+          "name": "cf_probe_p6_setof_many",
+          "type": {
+            "kind": "SCALAR",
+            "name": "String",
+            "ofType": null
+          },
+          "args": []
+        },
+        {
+          "name": "cf_probe_p6_setof_one",
+          "type": {
+            "kind": "SCALAR",
+            "name": "String",
+            "ofType": null
+          },
+          "args": []
+        },
+        {
+          "name": "cf_probe_p6_setof_zero",
+          "type": {
+            "kind": "SCALAR",
+            "name": "String",
+            "ofType": null
+          },
+          "args": []
+        },
+        {
+          "name": "cf_probe_p6_untracked_tag",
+          "type": {
+            "kind": "LIST",
+            "name": null,
+            "ofType": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "cf_select_tags"
+              }
+            }
+          },
+          "args": [
+            {
+              "name": "distinct_on",
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null
+                }
+              }
+            },
+            {
+              "name": "limit",
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            {
+              "name": "offset",
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            {
+              "name": "order_by",
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null
+                }
+              }
+            },
+            {
+              "name": "where",
+              "type": {
+                "kind": "INPUT_OBJECT",
+                "name": "cf_select_tags_bool_exp",
+                "ofType": null
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "SDL row",
+      "role": "cf_filtered_one",
+      "fields": [
+        {
+          "name": "cf_probe_p6_missing_tag",
+          "type": {
+            "kind": "LIST",
+            "name": null,
+            "ofType": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "cf_select_tags"
+              }
+            }
+          },
+          "args": [
+            {
+              "name": "distinct_on",
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null
+                }
+              }
+            },
+            {
+              "name": "limit",
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            {
+              "name": "offset",
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            {
+              "name": "order_by",
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null
+                }
+              }
+            },
+            {
+              "name": "where",
+              "type": {
+                "kind": "INPUT_OBJECT",
+                "name": "cf_select_tags_bool_exp",
+                "ofType": null
+              }
+            }
+          ]
+        },
+        {
+          "name": "cf_probe_p6_null_tag",
+          "type": {
+            "kind": "LIST",
+            "name": null,
+            "ofType": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "cf_select_tags"
+              }
+            }
+          },
+          "args": [
+            {
+              "name": "distinct_on",
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null
+                }
+              }
+            },
+            {
+              "name": "limit",
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            {
+              "name": "offset",
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            {
+              "name": "order_by",
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null
+                }
+              }
+            },
+            {
+              "name": "where",
+              "type": {
+                "kind": "INPUT_OBJECT",
+                "name": "cf_select_tags_bool_exp",
+                "ofType": null
+              }
+            }
+          ]
+        },
+        {
+          "name": "cf_probe_p6_one_tag",
+          "type": {
+            "kind": "LIST",
+            "name": null,
+            "ofType": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "cf_select_tags"
+              }
+            }
+          },
+          "args": [
+            {
+              "name": "distinct_on",
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null
+                }
+              }
+            },
+            {
+              "name": "limit",
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            {
+              "name": "offset",
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            {
+              "name": "order_by",
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null
+                }
+              }
+            },
+            {
+              "name": "where",
+              "type": {
+                "kind": "INPUT_OBJECT",
+                "name": "cf_select_tags_bool_exp",
+                "ofType": null
+              }
+            }
+          ]
+        },
+        {
+          "name": "cf_probe_p6_untracked_tag",
+          "type": {
+            "kind": "LIST",
+            "name": null,
+            "ofType": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "cf_select_tags"
+              }
+            }
+          },
+          "args": [
+            {
+              "name": "distinct_on",
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null
+                }
+              }
+            },
+            {
+              "name": "limit",
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            {
+              "name": "offset",
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            {
+              "name": "order_by",
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null
+                }
+              }
+            },
+            {
+              "name": "where",
+              "type": {
+                "kind": "INPUT_OBJECT",
+                "name": "cf_select_tags_bool_exp",
+                "ofType": null
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "SDL row",
+      "role": "cf_filtered_three",
+      "fields": [
+        {
+          "name": "cf_probe_p6_missing_tag",
+          "type": {
+            "kind": "LIST",
+            "name": null,
+            "ofType": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "cf_select_tags"
+              }
+            }
+          },
+          "args": [
+            {
+              "name": "distinct_on",
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null
+                }
+              }
+            },
+            {
+              "name": "limit",
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            {
+              "name": "offset",
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            {
+              "name": "order_by",
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null
+                }
+              }
+            },
+            {
+              "name": "where",
+              "type": {
+                "kind": "INPUT_OBJECT",
+                "name": "cf_select_tags_bool_exp",
+                "ofType": null
+              }
+            }
+          ]
+        },
+        {
+          "name": "cf_probe_p6_null_tag",
+          "type": {
+            "kind": "LIST",
+            "name": null,
+            "ofType": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "cf_select_tags"
+              }
+            }
+          },
+          "args": [
+            {
+              "name": "distinct_on",
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null
+                }
+              }
+            },
+            {
+              "name": "limit",
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            {
+              "name": "offset",
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            {
+              "name": "order_by",
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null
+                }
+              }
+            },
+            {
+              "name": "where",
+              "type": {
+                "kind": "INPUT_OBJECT",
+                "name": "cf_select_tags_bool_exp",
+                "ofType": null
+              }
+            }
+          ]
+        },
+        {
+          "name": "cf_probe_p6_one_tag",
+          "type": {
+            "kind": "LIST",
+            "name": null,
+            "ofType": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "cf_select_tags"
+              }
+            }
+          },
+          "args": [
+            {
+              "name": "distinct_on",
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null
+                }
+              }
+            },
+            {
+              "name": "limit",
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            {
+              "name": "offset",
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            {
+              "name": "order_by",
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null
+                }
+              }
+            },
+            {
+              "name": "where",
+              "type": {
+                "kind": "INPUT_OBJECT",
+                "name": "cf_select_tags_bool_exp",
+                "ofType": null
+              }
+            }
+          ]
+        },
+        {
+          "name": "cf_probe_p6_untracked_tag",
+          "type": {
+            "kind": "LIST",
+            "name": null,
+            "ofType": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "cf_select_tags"
+              }
+            }
+          },
+          "args": [
+            {
+              "name": "distinct_on",
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null
+                }
+              }
+            },
+            {
+              "name": "limit",
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            {
+              "name": "offset",
+              "type": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            {
+              "name": "order_by",
+              "type": {
+                "kind": "LIST",
+                "name": null,
+                "ofType": {
+                  "kind": "NON_NULL",
+                  "name": null
+                }
+              }
+            },
+            {
+              "name": "where",
+              "type": {
+                "kind": "INPUT_OBJECT",
+                "name": "cf_select_tags_bool_exp",
+                "ofType": null
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "SDL row",
+      "role": "cf_no_grant",
+      "fields": []
+    }
+  ],
+  "disposable_final_types_p11": {
+    "engine": "v2.50.3-ce",
+    "scope": "Redacted per-case scratch probe on disposable rows/functions, restored and independently verified; client errors preserve only non-sensitive category/path/message. Public enum and array are test-local, not a nonpublic execution claim.",
+    "scalar_setof_role_sdl": {
+      "i4": {
+        "row": "Int",
+        "bool": "Int_comparison_exp",
+        "order": "order_by",
+        "aggregates": [
+          "max",
+          "min",
+          "sum",
+          "avg"
+        ]
+      },
+      "f8": {
+        "row": "float8",
+        "bool": "float8_comparison_exp",
+        "order": "order_by",
+        "aggregates": [
+          "max",
+          "min",
+          "sum",
+          "avg"
+        ]
+      },
+      "bool": {
+        "row": "Boolean",
+        "bool": "Boolean_comparison_exp",
+        "order": "order_by",
+        "aggregates": []
+      },
+      "date": {
+        "row": "date",
+        "bool": "date_comparison_exp",
+        "order": "order_by",
+        "aggregates": [
+          "max",
+          "min"
+        ]
+      },
+      "uuid": {
+        "row": "uuid",
+        "bool": "uuid_comparison_exp",
+        "order": "order_by",
+        "aggregates": [
+          "max",
+          "min"
+        ]
+      },
+      "jsonb": {
+        "row": "jsonb",
+        "bool": "jsonb_comparison_exp",
+        "order": "order_by",
+        "aggregates": []
+      },
+      "citext": {
+        "row": "citext",
+        "bool": "citext_comparison_exp",
+        "order": "order_by",
+        "aggregates": [
+          "max",
+          "min"
+        ]
+      },
+      "text": {
+        "row": "String",
+        "bool": "String_comparison_exp",
+        "order": "order_by",
+        "aggregates": [
+          "max",
+          "min"
+        ]
+      },
+      "numeric": {
+        "row": "numeric",
+        "bool": "numeric_comparison_exp",
+        "order": "order_by",
+        "aggregates": [
+          "max",
+          "min",
+          "sum",
+          "avg"
+        ]
+      }
+    },
+    "public_enum_arguments": {
+      "scalar": [
+        {
+          "name": "m",
+          "type": {
+            "kind": "SCALAR",
+            "name": "cf_probe_p11_mood",
+            "ofType": null
+          }
+        }
+      ],
+      "array": [
+        {
+          "name": "m",
+          "type": {
+            "kind": "SCALAR",
+            "name": "_cf_probe_p11_mood",
+            "ofType": null
+          }
+        }
+      ]
+    },
+    "cases": [
+      {
+        "case": "i4 direct zero",
+        "value": [
+          null
+        ]
+      },
+      {
+        "case": "i4 direct one",
+        "value": [
+          1
+        ]
+      },
+      {
+        "case": "i4 direct many",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "i4 where zero",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "i4 where one",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "i4 where many",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "i4 order_by",
+        "value": [
+          2,
+          3,
+          3,
+          3
+        ]
+      },
+      {
+        "case": "i4 max",
+        "value": 3
+      },
+      {
+        "case": "i4 min",
+        "value": 1
+      },
+      {
+        "case": "i4 sum",
+        "value": 7
+      },
+      {
+        "case": "i4 avg",
+        "value": 1.75
+      },
+      {
+        "case": "f8 direct zero",
+        "value": [
+          null
+        ]
+      },
+      {
+        "case": "f8 direct one",
+        "value": [
+          1
+        ]
+      },
+      {
+        "case": "f8 direct many",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "f8 where zero",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "f8 where one",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "f8 where many",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "f8 order_by",
+        "value": [
+          2,
+          3,
+          3,
+          3
+        ]
+      },
+      {
+        "case": "f8 max",
+        "value": 3
+      },
+      {
+        "case": "f8 min",
+        "value": 1
+      },
+      {
+        "case": "f8 sum",
+        "value": 7
+      },
+      {
+        "case": "f8 avg",
+        "value": 1.75
+      },
+      {
+        "case": "bool direct zero",
+        "value": [
+          null
+        ]
+      },
+      {
+        "case": "bool direct one",
+        "value": [
+          true
+        ]
+      },
+      {
+        "case": "bool direct many",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "bool where zero",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "bool where one",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "bool where many",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "bool order_by",
+        "value": [
+          3,
+          2,
+          3,
+          3
+        ]
+      },
+      {
+        "case": "date direct zero",
+        "value": [
+          null
+        ]
+      },
+      {
+        "case": "date direct one",
+        "value": [
+          "2020-01-02"
+        ]
+      },
+      {
+        "case": "date direct many",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "date where zero",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "date where one",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "date where many",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "date order_by",
+        "value": [
+          2,
+          3,
+          3,
+          3
+        ]
+      },
+      {
+        "case": "date max",
+        "value": "2020-01-04"
+      },
+      {
+        "case": "date min",
+        "value": "2020-01-02"
+      },
+      {
+        "case": "uuid direct zero",
+        "value": [
+          null
+        ]
+      },
+      {
+        "case": "uuid direct one",
+        "value": [
+          "00000000-0000-0000-0000-000000000001"
+        ]
+      },
+      {
+        "case": "uuid direct many",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "uuid where zero",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "uuid where one",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "uuid where many",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "uuid order_by",
+        "value": [
+          2,
+          3,
+          3,
+          3
+        ]
+      },
+      {
+        "case": "uuid max",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "uuid min",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "jsonb direct zero",
+        "value": [
+          null
+        ]
+      },
+      {
+        "case": "jsonb direct one",
+        "value": [
+          {
+            "n": 1
+          }
+        ]
+      },
+      {
+        "case": "jsonb direct many",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "jsonb where zero",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "jsonb where one",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "jsonb where many",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "jsonb order_by",
+        "value": [
+          2,
+          3,
+          3,
+          3
+        ]
+      },
+      {
+        "case": "citext direct zero",
+        "value": [
+          null
+        ]
+      },
+      {
+        "case": "citext direct one",
+        "value": [
+          "value1"
+        ]
+      },
+      {
+        "case": "citext direct many",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "citext where zero",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "citext where one",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "citext where many",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "citext order_by",
+        "value": [
+          2,
+          3,
+          3,
+          3
+        ]
+      },
+      {
+        "case": "citext max",
+        "value": "value3"
+      },
+      {
+        "case": "citext min",
+        "value": "value1"
+      },
+      {
+        "case": "text direct zero",
+        "value": [
+          null
+        ]
+      },
+      {
+        "case": "text direct one",
+        "value": [
+          "value1"
+        ]
+      },
+      {
+        "case": "text direct many",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "text where zero",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "text where one",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "text where many",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "text order_by",
+        "value": [
+          2,
+          3,
+          3,
+          3
+        ]
+      },
+      {
+        "case": "text max",
+        "value": "value3"
+      },
+      {
+        "case": "text min",
+        "value": "value1"
+      },
+      {
+        "case": "numeric direct zero",
+        "value": [
+          null
+        ]
+      },
+      {
+        "case": "numeric direct one",
+        "value": [
+          1
+        ]
+      },
+      {
+        "case": "numeric direct many",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "numeric where zero",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "numeric where one",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "numeric where many",
+        "value": {
+          "error": {
+            "category": "unexpected",
+            "path": "$",
+            "message": "database query error"
+          }
+        }
+      },
+      {
+        "case": "numeric order_by",
+        "value": [
+          2,
+          3,
+          3,
+          3
+        ]
+      },
+      {
+        "case": "numeric max",
+        "value": 3
+      },
+      {
+        "case": "numeric min",
+        "value": 1
+      },
+      {
+        "case": "numeric sum",
+        "value": 7
+      },
+      {
+        "case": "numeric avg",
+        "value": 1.75
+      },
+      {
+        "case": "public enum bare",
+        "value": [
+          "happy"
+        ]
+      },
+      {
+        "case": "public enum quoted",
+        "value": [
+          "happy"
+        ]
+      },
+      {
+        "case": "public enum numeric",
+        "value": {
+          "error": {
+            "category": "parse-failed",
+            "path": "$.selectionSet.cf_select_cf_probe_p11_rows.selectionSet.cf_probe_p11_public_enum.args.args.m",
+            "message": "A string is expected for type: cf_probe_p11_mood"
+          }
+        }
+      },
+      {
+        "case": "public enum invalid",
+        "value": {
+          "error": {
+            "category": "data-exception",
+            "path": "$",
+            "message": "invalid input value for enum cf_probe_p11_mood: \"angry\""
+          }
+        }
+      },
+      {
+        "case": "public enum null",
+        "value": [
+          "NULL"
+        ]
+      },
+      {
+        "case": "public enum default",
+        "value": [
+          "happy"
+        ]
+      },
+      {
+        "case": "public enum[] bare",
+        "value": {
+          "error": {
+            "category": "data-exception",
+            "path": "$",
+            "message": "malformed array literal: \"happy\""
+          }
+        }
+      },
+      {
+        "case": "public enum[] quoted array",
+        "value": [
+          "happy"
+        ]
+      },
+      {
+        "case": "public enum[] list",
+        "value": {
+          "error": {
+            "category": "parse-failed",
+            "path": "$.selectionSet.cf_select_cf_probe_p11_rows.selectionSet.cf_probe_p11_public_enum_array.args.args.m",
+            "message": "A string is expected for type: _cf_probe_p11_mood"
+          }
+        }
+      },
+      {
+        "case": "public enum[] numeric",
+        "value": {
+          "error": {
+            "category": "parse-failed",
+            "path": "$.selectionSet.cf_select_cf_probe_p11_rows.selectionSet.cf_probe_p11_public_enum_array.args.args.m",
+            "message": "A string is expected for type: _cf_probe_p11_mood"
+          }
+        }
+      },
+      {
+        "case": "public enum[] invalid",
+        "value": {
+          "error": {
+            "category": "data-exception",
+            "path": "$",
+            "message": "invalid input value for enum cf_probe_p11_mood: \"angry\""
+          }
+        }
+      },
+      {
+        "case": "public enum[] null",
+        "value": [
+          "NULL"
+        ]
+      },
+      {
+        "case": "public enum[] default",
+        "value": [
+          "happy"
+        ]
+      }
+    ],
+    "nonpublic_enum": "Earlier p6 accepted bare and quoted enum literals through parsing, then returned constraint-error/$ type-not-found; this record establishes no successful nonpublic Hasura enum execution.",
+    "postflight": "Canonical metadata SHA-256 74c4412f87b822b1633f6aea0518e949e0f2815b523519636595a13fa7294cd6 and seeded counts 2/3/2 unchanged; zero probe catalog objects and metadata references."
+  }
+}

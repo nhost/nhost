@@ -8,6 +8,7 @@ import (
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
 
+//nolint:maintidx // The signature variants intentionally share a table-driven validation matrix.
 func TestValidateComputedFieldSignatures(t *testing.T) {
 	t.Parallel()
 
@@ -31,6 +32,86 @@ func TestValidateComputedFieldSignatures(t *testing.T) {
 			false,
 		},
 		{
+			"invalid array return",
+			func(_ *metadata.TableMetadata, fn *introspection.ComputedFunction) {
+				fn.ReturnType = introspection.PostgreSQLType{
+					Schema: "pg_catalog", Name: "_text", Kind: "b", IsArray: true,
+				}
+			},
+			"postgres", true,
+		},
+		{
+			"valid setof base return",
+			func(_ *metadata.TableMetadata, fn *introspection.ComputedFunction) {
+				fn.ReturnSet = true
+			},
+			"postgres", false,
+		},
+		{
+			"observed numeric setof",
+			func(_ *metadata.TableMetadata, fn *introspection.ComputedFunction) {
+				fn.ReturnSet = true
+				fn.ReturnType = introspection.PostgreSQLType{
+					Schema: "pg_catalog",
+					Name:   "numeric",
+					Kind:   "b",
+				}
+			},
+			"postgres", false,
+		},
+		{
+			"classified integer setof",
+			func(_ *metadata.TableMetadata, fn *introspection.ComputedFunction) {
+				fn.ReturnSet = true
+				fn.ReturnType = introspection.PostgreSQLType{
+					Schema: "pg_catalog", Name: "int4", Kind: "b",
+				}
+			},
+			"postgres", false,
+		},
+		{
+			"unclassified extension base setof stays hidden",
+			func(_ *metadata.TableMetadata, fn *introspection.ComputedFunction) {
+				fn.ReturnSet = true
+				fn.ReturnType = introspection.PostgreSQLType{
+					Schema: "public", Name: "vector", Kind: "b",
+				}
+			},
+			"postgres", true,
+		},
+		{
+			"unclassified catalog base setof stays hidden",
+			func(_ *metadata.TableMetadata, fn *introspection.ComputedFunction) {
+				fn.ReturnSet = true
+				fn.ReturnType = introspection.PostgreSQLType{
+					Schema: "pg_catalog", Name: "money", Kind: "b",
+				}
+			},
+			"postgres", true,
+		},
+		{
+			"nonpublic citext lookalike stays hidden",
+			func(_ *metadata.TableMetadata, fn *introspection.ComputedFunction) {
+				fn.ReturnSet = true
+				fn.ReturnType = introspection.PostgreSQLType{
+					Schema: "private", Name: "citext", Kind: "b",
+				}
+			},
+			"postgres", true,
+		},
+		{
+			"valid single table return",
+			func(_ *metadata.TableMetadata, fn *introspection.ComputedFunction) {
+				fn.ReturnRelOID = 1
+				fn.ReturnType = introspection.PostgreSQLType{
+					Schema: "public",
+					Name:   "posts",
+					Kind:   "c",
+				}
+			},
+			"postgres", false,
+		},
+		{
 			"invalid enum return",
 			func(_ *metadata.TableMetadata, fn *introspection.ComputedFunction) {
 				fn.ReturnType = introspection.PostgreSQLType{
@@ -43,7 +124,7 @@ func TestValidateComputedFieldSignatures(t *testing.T) {
 			true,
 		},
 		{
-			"deferred domain argument",
+			"domain argument",
 			func(_ *metadata.TableMetadata, fn *introspection.ComputedFunction) {
 				fn.Arguments = append(fn.Arguments, introspection.ComputedFunctionArgument{
 					Mode: "i",
@@ -75,7 +156,7 @@ func TestValidateComputedFieldSignatures(t *testing.T) {
 				Mode: "i",
 				Type: introspection.PostgreSQLType{Schema: "public", Name: "other", Kind: "c"},
 			})
-		}, "postgres", true},
+		}, "postgres", false},
 		{"no function name", func(t *metadata.TableMetadata, _ *introspection.ComputedFunction) {
 			t.ComputedFields[0].Definition.Function.Name = ""
 		}, "postgres", true},
@@ -197,10 +278,10 @@ func TestValidateComputedFieldSignatures(t *testing.T) {
 	}
 }
 
-func TestNonBaseReturnRevokesGrantButNonBaseArgumentRemainsDeferred(t *testing.T) {
+func TestNonBaseReturnRevokesGrantAndAcceptedArgumentsRemainServed(t *testing.T) {
 	t.Parallel()
 
-	for _, kind := range []string{"d", "e", "r", "m"} {
+	for _, kind := range []string{"c", "d", "e", "r", "m"} {
 		for _, position := range []string{"return", "argument"} {
 			t.Run(kind+"_"+position, func(t *testing.T) {
 				t.Parallel()
@@ -209,6 +290,7 @@ func TestNonBaseReturnRevokesGrantButNonBaseArgumentRemainsDeferred(t *testing.T
 				fn := objects.ComputedFunctions[introspection.ComputedTable{Schema: "public", Name: "users"}]["label"].Function
 
 				typ := introspection.PostgreSQLType{Schema: "public", Name: "custom", Kind: kind}
+
 				if position == "return" {
 					fn.ReturnType = typ
 				} else {
@@ -235,7 +317,12 @@ func TestNonBaseReturnRevokesGrantButNonBaseArgumentRemainsDeferred(t *testing.T
 					}
 				}
 
-				if len(got.Tables[0].ComputedFields) != len(md.Tables[0].ComputedFields)-2 ||
+				expectedFields := len(md.Tables[0].ComputedFields) - 1
+				if position == "return" {
+					expectedFields--
+				}
+
+				if len(got.Tables[0].ComputedFields) != expectedFields ||
 					(len(got.Tables[0].SelectPermissions) == 0) != (position == "return") ||
 					hasComputedInconsistency(
 						inc,
@@ -250,7 +337,32 @@ func TestNonBaseReturnRevokesGrantButNonBaseArgumentRemainsDeferred(t *testing.T
 	}
 }
 
-func TestUnclassifiedTableArgumentNeverExposesField(t *testing.T) {
+func TestVolatileComputedDefinitionRevokesGrantedRole(t *testing.T) {
+	t.Parallel()
+
+	md, objects := computedReconcileFixture()
+	fn := objects.ComputedFunctions[introspection.ComputedTable{Schema: "public", Name: "users"}]["label"].Function
+	fn.Volatility = introspection.VolatilityVolatile
+	md.Tables[0].SelectPermissions = []metadata.SelectPermission{
+		{Role: "reader", Permission: metadata.SelectPermissionConfig{
+			Columns: []string{"id"}, ComputedFields: []string{"label"},
+		}},
+		{Role: "other", Permission: metadata.SelectPermissionConfig{Columns: []string{"id"}}},
+	}
+	inc := metadata.NewInconsistencies()
+
+	got := reconcileMetadata(t.Context(), nil, inc, md, objects)
+	if len(got.Tables[0].ComputedFields) != 1 ||
+		got.Tables[0].ComputedFields[0].Name != "posts_for_user" ||
+		len(got.Tables[0].SelectPermissions) != 1 ||
+		got.Tables[0].SelectPermissions[0].Role != "other" ||
+		!hasComputedInconsistency(inc, metadata.InconsistencyKindComputedField) ||
+		!hasComputedInconsistency(inc, metadata.InconsistencyKindSelectPermission) {
+		t.Fatalf("volatile field or grant survived: %+v, %+v", got.Tables[0], inc.Snapshot())
+	}
+}
+
+func TestDomainTableArgumentRetainsFieldButRejectsInvalidGrant(t *testing.T) {
 	t.Parallel()
 
 	md, objects := computedReconcileFixture()
@@ -267,13 +379,15 @@ func TestUnclassifiedTableArgumentNeverExposesField(t *testing.T) {
 	inc := metadata.NewInconsistencies()
 
 	got := reconcileMetadata(t.Context(), nil, inc, md, objects)
-	if len(got.Tables[0].ComputedFields) != 1 || got.Tables[0].ComputedFields[0].Name != "label" ||
+	if len(got.Tables[0].ComputedFields) != 2 ||
+		got.Tables[0].ComputedFields[1].Name != "posts_for_user" ||
 		len(
 			got.Tables[0].SelectPermissions,
-		) != 1 || got.Tables[0].SelectPermissions[0].Role != "other" ||
+		) != 1 ||
+		got.Tables[0].SelectPermissions[0].Role != "other" ||
 		!hasComputedInconsistency(inc, metadata.InconsistencyKindSelectPermission) {
 		t.Fatalf(
-			"deferred table signature or invalid table grant survived: %+v, %+v",
+			"accepted table signature or invalid table grant lost: %+v, %+v",
 			got.Tables[0],
 			inc.Snapshot(),
 		)

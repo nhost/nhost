@@ -8,6 +8,38 @@ import (
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 )
 
+func TestNewComputedScalarInputError(t *testing.T) {
+	t.Parallel()
+
+	for _, tt := range []struct {
+		typeName, name string
+	}{
+		{"p14_posint", "n"},
+		{"p14_pair", "p"},
+		{"_int4", "ids"},
+	} {
+		t.Run(tt.typeName, func(t *testing.T) {
+			t.Parallel()
+
+			err := arguments.NewComputedScalarInputError(
+				tt.typeName, tt.name, "cf_select_items.selectionSet.p14_field",
+			)
+
+			want := map[string]any{
+				"message": "A string is expected for type: " + tt.typeName,
+				"extensions": map[string]any{
+					"code": "parse-failed",
+					"path": "$.selectionSet.cf_select_items.selectionSet.p14_field.args.args." + tt.name,
+				},
+			}
+			if !errors.Is(err, arguments.ErrInvalidArgument) ||
+				!reflect.DeepEqual(err.AsMap(), want) {
+				t.Fatalf("custom scalar error = %+v, want %+v", err.AsMap(), want)
+			}
+		})
+	}
+}
+
 func TestNewComputedNullArgumentError(t *testing.T) {
 	t.Parallel()
 

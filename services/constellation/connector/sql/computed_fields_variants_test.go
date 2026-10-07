@@ -2,18 +2,23 @@ package sql_test
 
 import (
 	json "encoding/json/v2"
+	"log/slog"
 	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/jackc/pgx/v5"
+	"github.com/vektah/gqlparser/v2/ast"
+	"github.com/vektah/gqlparser/v2/parser"
 
+	csql "github.com/nhost/nhost/services/constellation/connector/sql"
+	"github.com/nhost/nhost/services/constellation/connector/sql/postgres"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
 
-// These cases replay metadata/DDL inputs in an isolated PostgreSQL database.
-// The inconsistent kinds and GraphQL errors are reference expectations, not
-// assertions that Constellation can reconcile or serve computed fields yet.
+// These cases replay reference metadata/DDL inputs in an isolated PostgreSQL
+// database. The variants also have separate reconciliation and served-role
+// assertions; replaying the wire data alone does not prove GraphQL behavior.
 type computedVariant struct {
 	Name               string         `json:"name"`
 	Source             string         `json:"source"`
@@ -203,6 +208,142 @@ func TestComputedFieldsVariantReplay(t *testing.T) {
 			// Each variant is a complete document, independent of integration YAML.
 			assertLoadableComputedMetadata(t, wire)
 		})
+	}
+}
+
+// The reference accepts a second field pointing at the same function. Pin
+// the independently served role SDL and values; replaying metadata and SQL
+// separately does not prove that both fields survive reconciliation.
+func TestComputedAliasSameFunctionServed(t *testing.T) {
+	t.Parallel()
+
+	md := computedAliasMetadata(t)
+	fixtureDB := computedTestDB(t)
+
+	pool, err := postgres.Open(t.Context(), fixtureDB.Config().ConnString())
+	if err != nil {
+		t.Fatalf("open fixture: %v", err)
+	}
+
+	inc := metadata.NewInconsistencies()
+
+	connector, err := csql.NewConnector(
+		t.Context(),
+		postgres.NewClient(pool),
+		&md.Databases[0],
+		inc,
+		slog.Default(),
+	)
+	if err != nil {
+		pool.Close()
+		t.Fatalf("build alias connector: %v", err)
+	}
+
+	t.Cleanup(connector.Close)
+
+	if len(inc.Snapshot()) != 0 {
+		t.Fatalf("alias marked inconsistent: %+v", inc.Snapshot())
+	}
+
+	assertComputedAliasRoleSchema(t, connector)
+
+	doc, err := parser.ParseQuery(&ast.Source{Input: `query {
+		cf_select_items(where:{id:{_eq:1}}) { item_label column_collision }
+	}`})
+	if err != nil {
+		t.Fatalf("parse alias query: %v", err)
+	}
+
+	result, err := connector.Execute(t.Context(), doc.Operations[0], doc.Fragments,
+		nil, "admin", nil, slog.Default())
+	if err != nil {
+		t.Fatalf("execute alias query: %v", err)
+	}
+
+	body, err := json.Marshal(result["cf_select_items"])
+	if err != nil {
+		t.Fatalf("encode result: %v", err)
+	}
+
+	var rows []struct {
+		Label string `json:"item_label"`
+		Alias string `json:"column_collision"`
+	}
+	if err := json.Unmarshal(body, &rows); err != nil {
+		t.Fatalf("decode result: %v", err)
+	}
+
+	if len(rows) != 1 || rows[0].Label != "first" || rows[0].Alias != "first" {
+		t.Fatalf("alias and original results: %s", body)
+	}
+}
+
+func computedAliasMetadata(t *testing.T) *metadata.Metadata {
+	t.Helper()
+
+	var fixture struct {
+		Accepted []computedVariant `json:"accepted_variants"`
+	}
+	if err := json.Unmarshal(
+		computedFixture(t, "inconsistent_contract.json"),
+		&fixture,
+	); err != nil {
+		t.Fatalf("decode variants: %v", err)
+	}
+
+	wire := loadComputedMetadata(t)
+
+	table := computedVariantTable(t, wire.Sources, computedVariant{
+		Source: "cf_select", Table: "cf_select.items",
+	})
+	for _, tc := range fixture.Accepted {
+		if tc.Name == "alias-to-same-function" {
+			table["computed_fields"] = append(
+				computedVariantFields(t, table, "computed_fields"),
+				tc.Definition,
+			)
+
+			encoded, err := json.Marshal(wire)
+			if err != nil {
+				t.Fatalf("encode alias metadata: %v", err)
+			}
+
+			md, err := metadata.FromHasuraJSON(encoded)
+			if err != nil {
+				t.Fatalf("load alias metadata: %v", err)
+			}
+
+			return md
+		}
+	}
+
+	t.Fatal("accepted alias fixture absent")
+
+	return nil
+}
+
+func assertComputedAliasRoleSchema(t *testing.T, connector *csql.Connector) {
+	t.Helper()
+
+	schemas, err := connector.GetSchema()
+	if err != nil {
+		t.Fatalf("get role schemas: %v", err)
+	}
+
+	for _, tc := range []struct {
+		role, field string
+		present     bool
+	}{
+		{"admin", "item_label", true},
+		{"admin", "column_collision", true},
+		{"cf_reader", "item_label", true},
+		{"cf_reader", "column_collision", false},
+	} {
+		definition := schemas[tc.role].ToAST().Definitions.ForName("cf_select_items")
+		if definition == nil || (definition.Fields.ForName(tc.field) != nil) != tc.present {
+			t.Errorf("%s field %s visibility = %v, want %v", tc.role, tc.field,
+				definition != nil && definition.Fields.ForName(tc.field) != nil, tc.present)
+		}
 	}
 }
 

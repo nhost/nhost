@@ -23,9 +23,11 @@ SELECT p.oid, fnns.nspname, p.proname,
              WITH ORDINALITY AS a(oid, ord) JOIN pg_type ty ON ty.oid = a.oid ORDER BY a.ord),
        ARRAY(SELECT ty.typtype::text FROM unnest(COALESCE(p.proallargtypes, p.proargtypes::oid[]))
              WITH ORDINALITY AS a(oid, ord) JOIN pg_type ty ON ty.oid = a.oid ORDER BY a.ord),
+       ARRAY(SELECT ty.typcategory = 'A' FROM unnest(COALESCE(p.proallargtypes, p.proargtypes::oid[]))
+             WITH ORDINALITY AS a(oid, ord) JOIN pg_type ty ON ty.oid = a.oid ORDER BY a.ord),
        CASE WHEN p.proargmodes IS NULL THEN array_fill('i'::text, ARRAY[p.pronargs])
             ELSE ARRAY(SELECT mode::text FROM unnest(p.proargmodes) AS mode) END,
-       p.pronargdefaults, ret.oid, retns.nspname, ret.typname, ret.typtype::text,
+       p.pronargdefaults, ret.oid, retns.nspname, ret.typname, ret.typtype::text, ret.typcategory = 'A',
        COALESCE(ret.typrelid, 0), p.proretset, p.provolatile::text,
        COALESCE(tbl.reltype, 0)
 FROM pg_proc p
@@ -45,12 +47,14 @@ type computedCatalogRow struct {
 	typeSchemas  []string
 	typeNames    []string
 	typeKinds    []string
+	arrays       []bool
 	modes        []string
 	defaults     int
 	returnOID    uint32
 	returnSchema string
 	returnName   string
 	returnKind   string
+	returnArray  bool
 	returnRelOID uint32
 	returnSet    bool
 	volatility   string
@@ -121,11 +125,26 @@ func scanComputedCatalogRow(rows Rows) (computedCatalogRow, error) {
 	var candidate computedCatalogRow
 
 	err := rows.Scan(
-		&candidate.oid, &candidate.schema, &candidate.name, &candidate.names,
-		&candidate.typeOIDs, &candidate.typeSchemas, &candidate.typeNames, &candidate.typeKinds,
-		&candidate.modes, &candidate.defaults, &candidate.returnOID, &candidate.returnSchema,
-		&candidate.returnName, &candidate.returnKind, &candidate.returnRelOID, &candidate.returnSet,
-		&candidate.volatility, &candidate.rowTypeOID,
+		&candidate.oid,
+		&candidate.schema,
+		&candidate.name,
+		&candidate.names,
+		&candidate.typeOIDs,
+		&candidate.typeSchemas,
+		&candidate.typeNames,
+		&candidate.typeKinds,
+		&candidate.arrays,
+		&candidate.modes,
+		&candidate.defaults,
+		&candidate.returnOID,
+		&candidate.returnSchema,
+		&candidate.returnName,
+		&candidate.returnKind,
+		&candidate.returnArray,
+		&candidate.returnRelOID,
+		&candidate.returnSet,
+		&candidate.volatility,
+		&candidate.rowTypeOID,
 	)
 	if err != nil {
 		return computedCatalogRow{}, fmt.Errorf("scanning computed catalog row: %w", err)
@@ -178,10 +197,11 @@ func resolveComputedSignature(
 		OID: row.oid, Schema: row.schema, Name: row.name,
 		Arguments: arguments, RowArgument: rowIndex,
 		ReturnType: introspection.PostgreSQLType{
-			OID:    row.returnOID,
-			Schema: row.returnSchema,
-			Name:   row.returnName,
-			Kind:   row.returnKind,
+			OID:     row.returnOID,
+			Schema:  row.returnSchema,
+			Name:    row.returnName,
+			Kind:    row.returnKind,
+			IsArray: row.returnArray,
 		},
 		ReturnRelOID: row.returnRelOID, ReturnSet: row.returnSet, Volatility: volatility,
 	}, Reason: ""}
@@ -215,10 +235,11 @@ func computedArguments(
 
 		arguments = append(arguments, introspection.ComputedFunctionArgument{
 			Type: introspection.PostgreSQLType{
-				OID:    oid,
-				Schema: row.typeSchemas[i],
-				Name:   row.typeNames[i],
-				Kind:   row.typeKinds[i],
+				OID:     oid,
+				Schema:  row.typeSchemas[i],
+				Name:    row.typeNames[i],
+				Kind:    row.typeKinds[i],
+				IsArray: row.arrays[i],
 			},
 			Name: name, Mode: mode, Position: i, HasDefault: false,
 		})
@@ -237,7 +258,7 @@ func computedArguments(
 
 func completeComputedCatalogArguments(row computedCatalogRow) bool {
 	for _, count := range []int{
-		len(row.typeSchemas), len(row.typeNames), len(row.typeKinds), len(row.modes),
+		len(row.typeSchemas), len(row.typeNames), len(row.typeKinds), len(row.arrays), len(row.modes),
 	} {
 		if len(row.typeOIDs) != count {
 			return false

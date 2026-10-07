@@ -25,8 +25,7 @@ func (t *table) initializeComputedTables(
 ) {
 	for _, field := range parent.ComputedFields {
 		lookup, found := objects.GetComputedFunction(t.schemaName, t.tableName, field.Name)
-		if !found || lookup.Function == nil || !lookup.Function.ReturnSet ||
-			lookup.Function.ReturnRelOID == 0 {
+		if !found || lookup.Function == nil || lookup.Function.ReturnRelOID == 0 {
 			continue
 		}
 

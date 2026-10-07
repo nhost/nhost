@@ -132,6 +132,7 @@ func TestGetTypeName(t *testing.T) {
 	t.Parallel()
 
 	c := &Connector{
+		setofJoinKeys: nil,
 		dbMeta: &metadata.DatabaseMetadata{
 			Tables: []metadata.TableMetadata{
 				{

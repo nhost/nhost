@@ -88,7 +88,7 @@ relationship-aggregate permission keys can still fail source construction.
 
 # Computed remote-relationship join keys
 
-PostgreSQL scalar computed fields with no user arguments can supply the LHS
+Argument-free, non-SETOF PostgreSQL scalar computed fields can supply the LHS
 key for `to_source` object/array and `to_remote_schema` relationships. Session
 arguments are bound for each request. Text keys and JSONB-to-JSONB source
 joins have positive results for objects, strings, arrays and numbers. JSONB
@@ -98,8 +98,10 @@ fixes physical JSONB-key aggregate siblings (covered by a Constellation-only
 regression); the computed siblings match a live Hasura v2.50.3-ce probe.
 All JSON/JSONB computed keys are excluded from `to_remote_schema` relationships, regardless
 of argument type: the live Hasura JSONB-object→`ID!` definition validates but
-fails during execution. Argument-bearing and table-valued computed keys are
-unavailable. Target row filters always apply; computed-key joins additionally
+fails during execution. Argument-bearing, table-valued and scalar `SETOF`
+computed keys are unavailable. Relationships keyed by these shapes are omitted
+for every role (including admin), without an inconsistency; Hasura's acceptance
+of scalar `SETOF` keys has not been probed. Target row filters always apply; computed-key joins additionally
 require each mapping target to name an actual role-selectable target column in GraphQL, not a relationship or computed field. Hasura v2.50.3-ce rejects remote
 relationships in subscriptions; Constellation's WebSocket preflight rejects
 them too. PostgreSQL `json` targets lack `json = json`, so ordinary and
@@ -159,9 +161,15 @@ even though both engines declare array and aggregate fields `NON_NULL` in SDL.
 A JSONB null key never matches target JSONB null. A non-null unmatched key
 still produces object `null`, array `[]`, or an empty aggregate.
 
-A null `to_remote_schema` LHS also produces explicit `null` without a remote
-request. This is consistent with Hasura's remote-join source but has not been
-compared against a live Hasura remote schema.
+A null `to_remote_schema` LHS produces explicit `null` without a remote
+request; a non-null computed team ID joins the real team without exposing a
+phantom key. A serialized Hasura v2.50.3-ce oracle returned null for item 1
+and the team for item 2 to both granted and ungranted roles. Constellation's
+independent `controller/TestComputedNullRemoteSchemaKeyAndGrant` pins the
+null/non-null results for a granted role and the Phase 13 approved stricter
+behavior: an ungranted role cannot see or use the relationship. The selected
+response never includes the internal key. This comparison does **not** waive
+the grant requirement.
 
 # Computed-field support during alpha
 
@@ -177,17 +185,125 @@ both engines; advertised field availability is not a promise of a PostgreSQL
 aggregate function. Hasura omits scalar computed fields from aggregate-order inputs and argument-bearing
 fields from row inputs. Argument-free scalar permission filters/checks run against
 the physical row and may use session arguments, relationships and `_exists`;
-invalid references revoke only their permissions. PostgreSQL `SETOF` tracked-table
-computed selections inherit the target table's select permissions (row and
-column), accept bound arguments and collection modifiers, and work in shared
-row selections; Hasura does not expose an aggregate sibling on the field.
+invalid references revoke only their permissions. PostgreSQL tracked-table
+returns (both `SETOF` and single composite) inherit the target table's select
+permissions (row and column), accept bound arguments and collection modifiers,
+and work in shared row selections; an explicit computed-field grant for a table
+return instead revokes the granting select permission. A single-table function
+returning no SQL row or a NULL composite yields one all-null object in the
+list for unrestricted target roles; target row filters may exclude that object.
+Hasura does not expose an aggregate selection sibling on the field. `SETOF`
+base-type returns are nullable scalar fields, including row boolean/order and
+eligible aggregate output inputs. Direct multi-row selection fails with SQLSTATE
+`21000`, predicates with `0A000`, while ordering can multiply parent rows;
+`max` reduces returned rows; aggregate `count`, physical columns, computed operands and `nodes` share one expanded row source. A parent producing zero values disappears and a parent producing three appears three times; multiple selected SETOF functions expand in PostgreSQL target-list lockstep (not a Cartesian product). This also holds for nested and per-key windowed grouped aggregates. `avg` and variance operate on those flattened rows, not per-parent averages. Only independently classified `pg_catalog` scalar `SETOF` returns `text`, `numeric`, `int4`, `float8`, `bool`, `date`, `uuid`, `jsonb` and installed `public.citext` are enabled. Boolean/JSONB expose no min/max/sum/avg; date/citext expose min/max; numeric/int4/float8 also expose numeric aggregates. UUID min/max are advertised but fail at execution with 42883 on installations without those PostgreSQL aggregates, as on pinned Hasura. Vector, spatial, array and other untested BASE returns remain gated.
+For the enabled scalar SETOF kinds, a zero-row direct scalar yields a null parent,
+a multi-row direct scalar errors (`21000`), and even a zero/one-row user `where`
+errors (`0A000`). Select filters, insert/update checks and update/delete filters
+referencing these enabled scalar SETOF fields are retained but fail closed with
+PostgreSQL `0A000` on execution; no attempted write persists. Hasura's permission
+predicates were not separately probed (only user `where` was). Ordering drops
+zero-cardinality parents and duplicates
+multi-cardinality parents. In single-object mutation returning, zero gives a
+null mutation field while the write persists; collection `returning` preserves
+one null array element per zero-cardinality affected row and keeps
+`affected_rows` accurate. Multi-row returning raises PostgreSQL `21000` and
+rolls back the entire same-source mutation (including other affected rows).
+Clients see Constellation's inherited production database-error sanitizer or
+the raw chain in dev mode, **not** necessarily `21000` in the GraphQL response. Tracked-table
+`SETOF` zero/one/many yields `[]`/one/many, whereas a missing single composite
+returns a list containing an all-null row for unrestricted target roles.
+
+**Approved scalar/object metadata collision (Hasura v2.50.3-ce):** A
+PUBLIC computed-argument enum whose GraphQL scalar name equals a tracked
+scratch table's object type caused `replace_metadata` to reject atomically
+(HTTP 500 `unexpected`, path `$.args`) with and without the reader grant, even
+with `allow_inconsistent_metadata: true`. Neither definition nor grant was
+installed and existing roots/roles remained intact. Constellation instead
+accepts the metadata but records a `computed_field` inconsistency and omits
+only the colliding computed selection and orphan argument types; valid roots
+and grants survive. This is a narrow, approved **metadata-acceptance** difference,
+not a Hasura parity claim for other scalar/object, enum or input collisions.
+The control computed field was submitted in the same rejected replacement and
+its independent Hasura acceptance is unproven. Redacted evidence is under
+`integration/computedfields/testdata/phase14-oracle.json`.
+
+**Approved aggregate-sibling collision (Hasura v2.50.3-ce):** With a computed
+field named exactly like an existing array relationship's `<rel>_aggregate`
+sibling, Hasura reports consistent metadata but emits **two** fields of that
+name in both the row SDL (object and scalar) and `order_by` (aggregate-order
+object and `order_by` enum). Constellation instead records a `computed_field`
+inconsistency and omits only the ambiguous computed selection and its grant;
+the real array relationship and its aggregate sibling, unrelated roots and
+select permissions remain available to authorized roles. This exception does
+not change exact relationship/column collision handling or permission gates.
 Argument-free table functions appear in row `bool_exp` as EXISTS and in
 `order_by` through the target's aggregate-order input; these user inputs
 respect returned-table select permissions, including row filters in patched
 Hasura v2.50.3-ce. Role table predicates execute without a target select grant and revoke the
 whole affected permission when invalid. Relationship-aggregate permission keys
-are rejected by Hasura; identifiable computed references there remain unavailable. Scalar fields with non-base
-argument types stay hidden.
+are rejected by Hasura; identifiable computed references there remain unavailable.
+
+**Approved narrow custom-argument runtime difference (Hasura v2.50.3-ce):**
+Hasura accepts and exposes non-public schema-qualified domain (integer/text),
+enum and composite computed arguments, including a domain argument to a
+`SETOF` tracked-table function. Its string, null and variable-valued requests for these types
+fail with `constraint-error`, path `$`, and `type "<type>" does not exist`;
+its omitted enum default executes. A public-schema domain control instead
+executes `n:"2"` (14.5) and `n:null` (null); `n:2` is `parse-failed`
+with `A string is expected for type: <type>` at the input argument path,
+`n:"0"` is a `permission-error` domain check and `n:"x"` a
+`data-exception` integer-input failure (both at `$`).
+Constellation exposes the same role-granted fields, custom scalar and `_args`
+names (composite input `<type>_scalar`), and string-only parse rule, but uses
+**bound, schema-qualified casts** so accepted non-public custom inputs can
+execute and return data rather than reproducing the pinned type-not-found
+failure. Invalid values still go through PostgreSQL validation; null/default
+and target select permissions remain in force. A disposable public enum/enum-array Hasura control accepts bare `happy` and quoted `"happy"` for a scalar, rejects numeric with `parse-failed` at `$.selectionSet.<root>.selectionSet.<field>.args.args.m`, and reports `data-exception` at `$` for an invalid label. For the array, bare `happy` is a malformed-array `data-exception` at `$`, quoted `"{happy}"` succeeds, list `[happy]` and numeric are `parse-failed` at the argument path, invalid label is `data-exception` at `$`, and null/default execute in both shapes. Constellation uses the shared string-token parser plus qualified casts. Earlier nonpublic enum requests parsed both bare and quoted names but then failed with the pinned type-not-found error; that observation does not prove nonpublic Hasura execution parity. Built-in `int4range`, `int4multirange`,
+`int[]` and user-enum-array string inputs execute with bound casts; non-string
+inputs are rejected. Array **returns**, including `text[]`, are not BASE
+returns: their definitions are inconsistent, and an explicit grant revokes only
+the granting select permission. This exception does not permit new argument
+kinds, unsupported return signatures, broader grants or changes to unrelated
+errors. Selected serialized, redacted v2.50.3-ce observations are checked in at
+`integration/computedfields/testdata/phase14-oracle.json`; independent
+Constellation-only contracts are in `connector/sql/computed_{custom_arguments,return_signatures}_test.go`.
+
+## Inherited database-error sanitization and strict Int inputs (approved Phase 14)
+
+Constellation retains its pre-Phase-1 production database-error sanitizer:
+computed public-domain check failures (SQLSTATE 23514), computed invalid
+integer casts (22P02), and a physical `int4range` column's invalid literal
+(22P02) return `errors: [{message: "internal server error (trace id: …)"}]`
+without Hasura `extensions.code`/`path` or raw SQL, input, constraint, or
+SQLSTATE details. Dev mode instead returns the raw `failed to execute
+operations: … (SQLSTATE …)` chain, still without Hasura extensions. Hasura
+v2.50.3-ce returns `permission-error` for domain 23514 and `data-exception`
+for invalid cast 22P02, with PostgreSQL details and path `$`. This is an
+**inherited security/presentation difference**, not an assertion of equal
+error envelopes or a general waiver for other database errors. Successful
+public-domain inputs and the fail/accept outcomes remain required. The
+independent HTTP/controller test `controller/TestComputedArgumentHTTPInheritedErrorAndIntControls`
+pins both modes and a physical-column control on isolated testdb; the earlier
+column-only raw-chain precedent is `integration/misc_multi_database_test.go`.
+The pinned engine's read-only column-only outcomes are summarized under
+`inherited_column_controls` in the checked-in redacted
+`integration/computedfields/testdata/phase14-oracle.json` (not claimed as exact
+error envelopes).
+
+Constellation also retains strict GraphQL `Int` input handling in both computed
+arguments (`item_score.multiplier`) and physical-column predicates (`id._eq`).
+A **quoted** Int (`"3"` computed, `"1"` column) is rejected with `Int cannot
+represent non-integer value` and GraphQL `locations`, while Hasura v2.50.3-ce
+**accepts and executes** those quoted strings in both paths. Floats (`2.5`)
+are rejected with validation locations in Constellation versus Hasura's
+`parse-failed` path; literals outside int4 (`2147483648`) reach pgx encoding
+and are sanitized in production / returned as raw encode errors in dev mode,
+while Hasura responds `parse-failed`. Valid unquoted Int values work in both.
+This is an inherited **success-versus-rejection** difference for quoted Int,
+not presentation-only and not permission to relax other scalar coercion. The
+same independent HTTP test pins all three edges in both column and computed
+paths. Neither sanitizer nor Int parser was changed for this phase.
 
 # Mutations with no update permissions
 

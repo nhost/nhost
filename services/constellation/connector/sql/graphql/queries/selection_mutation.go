@@ -36,6 +36,8 @@ func (s mutationSelection) WriteSQL(
 }
 
 // WriteSQLWithCTE writes the SELECT for mutation results using a custom CTE name.
+//
+//nolint:funlen // The mutation response closes the selected row projection and shared JSON envelope together.
 func (s mutationSelection) WriteSQLWithCTE(
 	b *strings.Builder,
 	cteName string,
@@ -86,7 +88,15 @@ func (s mutationSelection) WriteSQLWithCTE(
 	}
 
 	if hasReturning {
-		b.WriteString(") AS \"_e\"))")
+		if s.returning.hasSetReturningColumn() && s.dialect.SupportsLateral() {
+			b.WriteString(`) AS "_e")), `)
+			b.WriteString(s.dialect.EmptyJSONArray())
+			b.WriteString(`) FROM `)
+			b.WriteString(cteName)
+			b.WriteString("))")
+		} else {
+			b.WriteString(") AS \"_e\"))")
+		}
 	} else {
 		b.WriteString(")")
 	}
@@ -219,6 +229,16 @@ func (s selectionReturning) writeSQLWithCTE(
 	)
 }
 
+func (s selectionReturning) hasSetReturningColumn() bool {
+	for _, col := range s.columns {
+		if col.computed != nil && col.computed.function.ReturnSet {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (s selectionReturning) writeReturningLateral( //nolint:funlen
 	cteName string,
 	alias string,
@@ -231,14 +251,22 @@ func (s selectionReturning) writeReturningLateral( //nolint:funlen
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
-	// PostgreSQL: json_agg(row_to_json("_e")) over subquery + LATERAL JOINs
+	// A scalar subquery per written row preserves its place on a zero-row SRF
+	// and raises 21000 (rolling back the mutation) on a multi-row SRF.
+	setReturning := s.hasSetReturningColumn()
+
 	b.WriteByte('\'')
 	b.WriteString(alias)
 	b.WriteString("', (SELECT COALESCE(")
-	b.WriteString(s.dialect.JSONAggRawExpr(`row_to_json("_e")`))
-	b.WriteString(", ")
-	b.WriteString(s.dialect.EmptyJSONArray())
-	b.WriteString(") FROM (SELECT ")
+
+	if setReturning {
+		b.WriteString(`json_agg((SELECT row_to_json("_e") FROM (SELECT `)
+	} else {
+		b.WriteString(s.dialect.JSONAggRawExpr(`row_to_json("_e")`))
+		b.WriteString(", ")
+		b.WriteString(s.dialect.EmptyJSONArray())
+		b.WriteString(") FROM (SELECT ")
+	}
 
 	for i, colSel := range s.columns {
 		if i > 0 {
@@ -290,8 +318,14 @@ func (s selectionReturning) writeReturningLateral( //nolint:funlen
 		b.WriteByte('"')
 	}
 
-	b.WriteString(" FROM ")
-	b.WriteString(cteName)
+	if setReturning {
+		// Keep the LATERAL relationship projections inside the scalar row
+		// subquery, correlated to the outer mutation CTE row.
+		b.WriteString(` FROM (SELECT 1) AS "__cs_row"`)
+	} else {
+		b.WriteString(" FROM ")
+		b.WriteString(cteName)
+	}
 
 	params, paramIndex, err := s.writeLateralJoinsWithCTE(
 		cteName, b, fragments, variables, role, sessionVariables, roots, params, paramIndex,

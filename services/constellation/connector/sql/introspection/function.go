@@ -71,6 +71,8 @@ type PostgreSQLType struct {
 	// Kind is pg_type.typtype: b=base (including extension types), c=composite,
 	// d=domain, e=enum, p=pseudo, r=range, m=multirange.
 	Kind string
+	// IsArray is catalog typcategory=A; array types also have typtype=b.
+	IsArray bool
 }
 
 // ComputedFunctionArgument is a catalog argument in declaration order.

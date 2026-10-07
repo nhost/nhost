@@ -159,6 +159,23 @@ func (t *table) writeQueryAggregateSQL( //nolint:cyclop,funlen
 
 	b.WriteString(") ")
 
+	operands, expanded := expandedAggregateOperands(aggregateFields, t)
+
+	aggregateSource := baseAlias
+	if len(operands) > 0 {
+		aggregateSource = "_root.expanded"
+
+		params, paramIndex, err = t.writeExpandedAggregateCTE(
+			b, baseAlias, aggregateSource, "", groupedLimitOffset{
+				limit: 0, offset: 0, hasLimit: false, hasOffset: false,
+			}, operands, expanded,
+			variables, sessionVariables, params, paramIndex,
+		)
+		if err != nil {
+			return nil, 0, err
+		}
+	}
+
 	// Build the outer SELECT with json_build_object
 	b.WriteString("SELECT ")
 	b.WriteString(t.dialect.JSONBuildObject())
@@ -179,8 +196,8 @@ func (t *table) writeQueryAggregateSQL( //nolint:cyclop,funlen
 	hasOuterFields := !firstOuter
 
 	hasOuterFields, params, paramIndex, err = t.writeAggregateFieldSelections(
-		b, aggregateFields, baseAlias, hasOuterFields,
-		variables, sessionVariables, params, paramIndex,
+		b, aggregateFields, aggregateSource, hasOuterFields,
+		variables, sessionVariables, params, paramIndex, expanded,
 	)
 	if err != nil {
 		return nil, 0, err
@@ -199,7 +216,7 @@ func (t *table) writeQueryAggregateSQL( //nolint:cyclop,funlen
 			distinctOn,
 			nodesFields[i].responseName,
 			nodesFields[i].field,
-			baseAlias,
+			aggregateSource,
 			argumentPath,
 			hasOuterFields,
 		)
@@ -224,6 +241,7 @@ func (t *table) writeAggregateFieldSelections(
 	hasPrecedingFields bool,
 	variables, sessionVariables map[string]any,
 	params []any, paramIndex int,
+	expanded map[*ast.Field]string,
 ) (bool, []any, int, error) {
 	hasOuterFields := hasPrecedingFields
 
@@ -253,7 +271,16 @@ func (t *table) writeAggregateFieldSelections(
 				var err error
 
 				params, paramIndex, err = fn.writeBound(
-					b, `"`+baseAlias+`"`, t, variables, sessionVariables, false, params, paramIndex,
+					b,
+					`"`+baseAlias+`"`,
+					t,
+					variables,
+					sessionVariables,
+					false,
+					"",
+					params,
+					paramIndex,
+					expanded,
 				)
 				if err != nil {
 					return false, nil, 0, err

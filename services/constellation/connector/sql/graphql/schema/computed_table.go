@@ -31,8 +31,7 @@ func tableComputedFields(
 			parent.Table.Name,
 			field.Name,
 		)
-		if !ok || lookup.Function == nil || !lookup.Function.ReturnSet ||
-			lookup.Function.ReturnRelOID == 0 {
+		if !ok || lookup.Function == nil || lookup.Function.ReturnRelOID == 0 {
 			continue
 		}
 
@@ -118,7 +117,7 @@ func tableComputedArguments(
 		}
 
 		arg := fn.Arguments[i]
-		typ := getGraphQLScalarType(arg.Type.Name)
+		typ := computedArgumentScalar(arg.Type)
 		used[typ] = struct{}{}
 		userArgs = append(userArgs, &graph.InputField{
 			Name:         name,
