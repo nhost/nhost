@@ -19,12 +19,6 @@ const (
 	// password is the one method nhost.toml ships enabled, so scaffolding it
 	// alone leaves the configuration untouched.
 	defaultAuthMethods = "password"
-
-	// authDirPath and methodsFilePath are where a template keeps its sign-in
-	// methods, relative to the template's own directory. Both are paths inside
-	// the embedded filesystem, so they are slash-separated regardless of host.
-	authDirPath     = "frontend/src/app/auth"
-	methodsFilePath = "frontend/src/app/signin/methods.ts"
 )
 
 var (
@@ -37,8 +31,10 @@ var (
 )
 
 // signInMethod is one of the sign-in methods a template ships. name is both
-// what --auth-methods takes and the directory under frontend/src/app/auth/,
-// so a selection maps to files without a second table to keep in step.
+// what --auth-methods takes and the directory under the template's own
+// authDir, so a selection maps to files without a second table to keep in
+// step. The catalogue is shared by every template, which is why a template
+// added later owes the same four directories.
 type signInMethod struct {
 	name  string
 	href  string

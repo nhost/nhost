@@ -188,15 +188,15 @@ func TestRenderSignInMethodsMatchesTemplate(t *testing.T) {
 		t.Run(tmpl.name, func(t *testing.T) {
 			t.Parallel()
 
-			committed, err := fs.ReadFile(templates.FS, path.Join(tmpl.name, methodsFilePath))
+			committed, err := fs.ReadFile(templates.FS, path.Join(tmpl.name, tmpl.methodsFile))
 			if err != nil {
-				t.Fatalf("reading %s from the template: %v", methodsFilePath, err)
+				t.Fatalf("reading %s from the template: %v", tmpl.methodsFile, err)
 			}
 
 			if got := renderSignInMethods(signInMethods()); !bytes.Equal(got, committed) {
 				t.Errorf(
 					"generated %s differs from the one %s ships\n--- generated ---\n%s\n--- committed ---\n%s",
-					methodsFilePath,
+					tmpl.methodsFile,
 					tmpl.name,
 					got,
 					committed,
@@ -216,7 +216,7 @@ func TestEveryAuthMethodIsEmbedded(t *testing.T) {
 			t.Run(tmpl.name+"/"+m.name, func(t *testing.T) {
 				t.Parallel()
 
-				dir := path.Join(tmpl.name, authDirPath, m.name)
+				dir := path.Join(tmpl.name, tmpl.authDir, m.name)
 
 				entries, err := fs.ReadDir(templates.FS, dir)
 				if err != nil {

@@ -23,12 +23,10 @@ const (
 	// It sits beside frontend/ rather than inside it: it is how the template is
 	// built, not part of what a project receives, so it is kept out of both the
 	// collision check and the copy.
+	//
+	// Unlike the seam it overlays onto, this one is the same for every template:
+	// it is where the CLI looks, not where the framework puts its components.
 	uiDirPath = "ui"
-
-	// componentsUIPath is the seam. Everything else in the app imports these
-	// modules and nothing imports past them, so swapping what is behind the
-	// path is the whole of changing UI system.
-	componentsUIPath = "frontend/src/components/ui"
 )
 
 var (
@@ -55,8 +53,13 @@ type uiSystem struct {
 	dropFiles []string
 }
 
-// uiSystems lists the options in the order the picker offers them.
-func uiSystems() []uiSystem {
+// reactUISystems is what a template whose components are React is scaffolded
+// with: the plain Tailwind set the template already holds, or shadcn/ui. One
+// function shared by those templates rather than a copy per catalogue entry,
+// since the set is the same wherever the components are React and sit behind
+// the same seam. A Vue or Svelte template needs its own, because the shadcn
+// ports for those frameworks are different packages.
+func reactUISystems() []uiSystem {
 	return []uiSystem{
 		{
 			name:      "none",
@@ -79,12 +82,35 @@ func uiSystems() []uiSystem {
 	}
 }
 
-func uiNames() []string {
-	all := uiSystems()
-	names := make([]string, 0, len(all))
+func uiNames(systems []uiSystem) []string {
+	names := make([]string, 0, len(systems))
 
-	for _, u := range all {
+	for _, u := range systems {
 		names = append(names, u.name)
+	}
+
+	return names
+}
+
+// allUINames is every UI system any template offers, in catalogue order and
+// without repeats. The flag's help is built before a template is known, so it
+// names the union; asking for one the chosen template does not offer is
+// refused by resolveUISystem with that template's own list.
+func allUINames() []string {
+	var names []string
+
+	seen := make(map[string]bool)
+
+	for _, t := range catalogue() {
+		for _, u := range t.uiSystems {
+			if seen[u.name] {
+				continue
+			}
+
+			seen[u.name] = true
+
+			names = append(names, u.name)
+		}
 	}
 
 	return names
@@ -96,11 +122,11 @@ func uiNames() []string {
 // The backticks are urfave's placeholder syntax, as on --auth-methods.
 func uiUsage() string {
 	return "UI system the template scaffolds. `NAME` is one of: " +
-		strings.Join(uiNames(), ", ")
+		strings.Join(allUINames(), ", ")
 }
 
-func lookupUI(name string) (uiSystem, bool) {
-	for _, u := range uiSystems() {
+func lookupUI(systems []uiSystem, name string) (uiSystem, bool) {
+	for _, u := range systems {
 		if u.name == name {
 			return u, true
 		}
@@ -127,17 +153,23 @@ func resolveUISystem(
 		return uiSystem{}, nil //nolint:exhaustruct // the no-template answer
 	}
 
+	tmpl, ok := lookupTemplate(template)
+	if !ok {
+		return uiSystem{}, fmt.Errorf("%w %q", errUnknownTemplate, template)
+	}
+
 	name := strings.TrimSpace(cmd.String(flagUI))
 
-	ui, ok := lookupUI(name)
+	ui, ok := lookupUI(tmpl.uiSystems, name)
 	if !ok {
 		return uiSystem{}, fmt.Errorf(
-			"%w %q; available: %s", errUnknownUI, name, strings.Join(uiNames(), ", "),
+			"%w %q; available: %s",
+			errUnknownUI, name, strings.Join(uiNames(tmpl.uiSystems), ", "),
 		)
 	}
 
 	if asked && !cmd.IsSet(flagUI) {
-		return pickUISystem(ce, ui)
+		return pickUISystem(ce, tmpl.uiSystems, ui)
 	}
 
 	return ui, nil
@@ -149,9 +181,11 @@ func resolveUISystem(
 // stands, as with the sign-in methods. Falling back to the numbered list here
 // would spend a second line of piped input, and `printf '1\n' | nhost init
 // --template` is documented to scaffold on one.
-func pickUISystem(ce *clienv.CliEnv, fallback uiSystem) (uiSystem, error) {
-	all := uiSystems()
-
+func pickUISystem(
+	ce *clienv.CliEnv,
+	all []uiSystem,
+	fallback uiSystem,
+) (uiSystem, error) {
 	items := make([]pickerItem, 0, len(all))
 	cursor := 0
 
