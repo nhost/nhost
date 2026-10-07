@@ -414,8 +414,8 @@ config validate after making changes to your nhost.toml file to ensure it is val
 			Resources: []mcp.Resource{
 				{
 					Annotations: &mcp.Annotations{
-						Audience: []mcp.Role{"agent"},
-						Priority: 9,
+						Audience: []mcp.Role{mcp.RoleAssistant},
+						Priority: 1,
 					},
 					URI:         "schema://graphql-management",
 					Name:        "graphql-management",
@@ -425,8 +425,8 @@ config validate after making changes to your nhost.toml file to ensure it is val
 
 				{
 					Annotations: &mcp.Annotations{
-						Audience: []mcp.Role{"agent"},
-						Priority: 9,
+						Audience: []mcp.Role{mcp.RoleAssistant},
+						Priority: 1,
 					},
 					URI:         "schema://nhost-cloud",
 					Name:        "nhost-cloud",
@@ -435,8 +435,8 @@ config validate after making changes to your nhost.toml file to ensure it is val
 				},
 				{
 					Annotations: &mcp.Annotations{
-						Audience: []mcp.Role{"agent"},
-						Priority: 9,
+						Audience: []mcp.Role{mcp.RoleAssistant},
+						Priority: 1,
 					},
 					URI:         "schema://nhost.toml",
 					Name:        "nhost.toml",
