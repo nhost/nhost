@@ -26,6 +26,7 @@ const (
 	groupedAggregateWindowKeysAlias = "_root.keys"
 	groupedAggregateJoinKeyAlias    = "__cs_join_key"
 	groupedAggregateRowNumberCol    = "__cs_rn"
+	groupedAggregateExpandedAlias   = "_root.expanded"
 )
 
 // ErrGroupedAggregateDistinctOnUnsupported is returned when a cross-database
@@ -282,10 +283,23 @@ func (t *table) writeGroupedAggregateStatement(
 		sourceAlias = groupedAggregateWindowedAlias
 	}
 
+	operands, expanded := expandedAggregateOperands(sel.aggregateFields, t)
+	if len(operands) > 0 {
+		params, paramIndex, err = t.writeExpandedAggregateCTE(
+			b, sourceAlias, groupedAggregateExpandedAlias, joinCol.SQLName, sel.limitOffset,
+			operands, expanded, in.Variables, in.SessionVariables, params, paramIndex,
+		)
+		if err != nil {
+			return "", nil, err
+		}
+
+		sourceAlias = groupedAggregateExpandedAlias
+	}
+
 	params, err = t.writeGroupedAggregateOuter(
 		b, params, paramIndex,
 		in, sel.outerTypenames, sel.aggregateFields, sel.nodesFields, joinCol, alias,
-		sel.distinctOn, sel.orderBy, sourceAlias, sel.limitOffset,
+		sel.distinctOn, sel.orderBy, sourceAlias, sel.limitOffset, expanded,
 	)
 	if err != nil {
 		return "", nil, err
@@ -688,9 +702,12 @@ func writeGroupedDistinctOrderBy(b *strings.Builder, orderBy *arguments.OrderBy)
 // operation contract of Driver.ExecuteOperations: the value is a JSON array
 // of group objects, each shaped with the reserved internal join key plus the
 // requested GraphQL response names.
-func (t *table) writeGroupedAggregateOuter( //nolint:funlen
+//
+//nolint:funlen,cyclop // Group-key retention, windowing and expansion share this boundary.
+func (t *table) writeGroupedAggregateOuter(
 	b *strings.Builder,
-	params []any, paramIndex int,
+	params []any,
+	paramIndex int,
 	in groupedaggdispatch.BuildInput,
 	outerTypenames []typenameSelection,
 	aggregateFields []aggregateFieldSelection,
@@ -701,12 +718,13 @@ func (t *table) writeGroupedAggregateOuter( //nolint:funlen
 	orderBy *arguments.OrderBy,
 	sourceAlias string,
 	limitOffset groupedLimitOffset,
+	expanded map[*ast.Field]string,
 ) ([]any, error) {
 	// The join key is unambiguous (single source) in the common case but exposed
 	// on both sides of the windowed LEFT JOIN, so qualify it to the key-set alias
 	// there to keep the json output and GROUP BY referencing one column.
 	joinKeyRef := ""
-	if limitOffset.active() {
+	if limitOffset.active() || len(expanded) > 0 {
 		joinKeyRef = `"` + groupedAggregateWindowKeysAlias + `"`
 	}
 
@@ -748,7 +766,8 @@ func (t *table) writeGroupedAggregateOuter( //nolint:funlen
 			var err error
 
 			params, paramIndex, err = t.writeGroupedAggregateSelection(
-				b, agg, joinCol, sourceAlias, in.Variables, in.SessionVariables, params, paramIndex,
+				b, agg, joinCol, sourceAlias,
+				in.Variables, in.SessionVariables, params, paramIndex, expanded,
 			)
 			if err != nil {
 				return nil, err
@@ -780,9 +799,23 @@ func (t *table) writeGroupedAggregateOuter( //nolint:funlen
 	// rows back onto the distinct join-key set so groups whose entire window is
 	// filtered out (limit: 0, or an offset past the group size) still emit count
 	// 0 / nodes []. Otherwise read the base CTE directly (no window, no churn).
-	if limitOffset.active() {
+	switch {
+	case len(expanded) > 0:
+		b.WriteString(`(SELECT DISTINCT "`)
+		b.WriteString(groupedAggregateJoinKeyAlias)
+		b.WriteString(`" FROM "`)
+		b.WriteString(groupedAggregateBaseAlias)
+		b.WriteString(`") AS "`)
+		b.WriteString(groupedAggregateWindowKeysAlias)
+		b.WriteString(`" LEFT JOIN "`)
+		b.WriteString(sourceAlias)
+		b.WriteString(`" ON `)
+		core.WriteQualifiedColumn(b, joinKeyRef, groupedAggregateJoinKeyAlias)
+		b.WriteString(` = `)
+		core.WriteQualifiedColumn(b, `"`+sourceAlias+`"`, groupedAggregateJoinKeyAlias)
+	case limitOffset.active():
 		params, _ = t.writeGroupedWindowedFrom(b, params, paramIndex, joinCol, limitOffset)
-	} else {
+	default:
 		b.WriteByte('"')
 		b.WriteString(sourceAlias)
 		b.WriteByte('"')
@@ -807,6 +840,7 @@ func (t *table) writeGroupedAggregateOuter( //nolint:funlen
 func (t *table) writeGroupedAggregateSelection(
 	b *strings.Builder, agg aggregateQuerySelection, joinCol *core.Column, sourceAlias string,
 	variables, sessionVariables map[string]any, params []any, paramIndex int,
+	expanded map[*ast.Field]string,
 ) ([]any, int, error) {
 	if cs, ok := agg.(*countSelection); ok {
 		if len(cs.columns) == 0 {
@@ -826,7 +860,16 @@ func (t *table) writeGroupedAggregateSelection(
 
 	if fs, ok := agg.(*aggregateFunctionSelection); ok {
 		return fs.writeBound(
-			b, `"`+sourceAlias+`"`, t, variables, sessionVariables, true, params, paramIndex,
+			b,
+			`"`+sourceAlias+`"`,
+			t,
+			variables,
+			sessionVariables,
+			true,
+			joinCol.SQLName,
+			params,
+			paramIndex,
+			expanded,
 		)
 	}
 

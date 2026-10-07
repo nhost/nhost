@@ -12,10 +12,11 @@ func TestOmitConflictingComputedArgsBeforeRoleComposition(t *testing.T) {
 	t.Parallel()
 
 	for _, tc := range []struct {
-		name    string
-		table   string
-		other   *graph.Schema
-		omitted bool
+		name      string
+		table     string
+		inputType string
+		other     *graph.Schema
+		omitted   bool
 	}{
 		{
 			name:  "remote schema input type collision",
@@ -32,6 +33,22 @@ func TestOmitConflictingComputedArgsBeforeRoleComposition(t *testing.T) {
 			omitted: true,
 		},
 		{
+			name:  "conflicting custom scalar input",
+			table: "cf.items", inputType: "p14_pair_scalar",
+			other: &graph.Schema{Inputs: []*graph.InputObjectType{{
+				Name: "value_cf_items_args", Fields: []*graph.InputField{{Name: "scale", Type: graph.NewNamedType("p14_posint")}},
+			}}},
+			omitted: true,
+		},
+		{
+			name:  "identical custom scalar input is shared",
+			table: "cf.items", inputType: "p14_pair_scalar",
+			other: &graph.Schema{Inputs: []*graph.InputObjectType{{
+				Name: "value_cf_items_args", Fields: []*graph.InputField{{Name: "scale", Type: graph.NewNamedType("p14_pair_scalar")}},
+			}}},
+			omitted: false,
+		},
+		{
 			name:  "identical input is shared",
 			table: "cf.items",
 			other: &graph.Schema{Inputs: []*graph.InputObjectType{{
@@ -43,9 +60,14 @@ func TestOmitConflictingComputedArgsBeforeRoleComposition(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
+			inputType := tc.inputType
+			if inputType == "" {
+				inputType = "Int"
+			}
+
 			input := &graph.InputObjectType{
 				Name:   "value_cf_items_args",
-				Fields: []*graph.InputField{{Name: "scale", Type: graph.NewNamedType("Int")}},
+				Fields: []*graph.InputField{{Name: "scale", Type: graph.NewNamedType(inputType)}},
 			}
 			field := &graph.Field{
 				Name: "value", Type: graph.NewNamedType("Int"),
@@ -147,16 +169,23 @@ func TestComputedArgsConflictRetainsRole(t *testing.T) {
 				Fields: []*graph.Field{{Name: "items", Type: graph.NewNamedType("cf_items")}},
 			},
 			{
-				Name:   "cf_items",
-				Fields: []*graph.Field{{Name: "id", Type: graph.NewNamedType("Int")}, computed},
+				Name: "cf_items",
+				Fields: []*graph.Field{
+					{Name: "id", Type: graph.NewNamedType("Int")},
+					{Name: "echo", Type: graph.NewNamedType("p14_pair_scalar")},
+					computed,
+				},
 			},
 		},
 		Inputs: []*graph.InputObjectType{
 			{
-				Name:   "value_cf_items_args",
-				Fields: []*graph.InputField{{Name: "scale", Type: graph.NewNamedType("Int")}},
+				Name: "value_cf_items_args",
+				Fields: []*graph.InputField{
+					{Name: "scale", Type: graph.NewNamedType("p14_pair_scalar")},
+				},
 			},
 		},
+		Scalars: []*graph.ScalarType{{Name: "p14_pair_scalar"}},
 	}
 	remote := &graph.Schema{
 		QueryType: &root,
@@ -183,7 +212,9 @@ func TestComputedArgsConflictRetainsRole(t *testing.T) {
 	doc := result.SchemaDocs["reader"]
 	if doc == nil || doc.Definitions.ForName("cf_items").Fields.ForName("value") != nil ||
 		doc.Definitions.ForName("query_root").Fields.ForName("remoteValue") == nil ||
-		doc.Definitions.ForName("query_root").Fields.ForName("items") == nil {
+		doc.Definitions.ForName("query_root").Fields.ForName("items") == nil ||
+		doc.Definitions.ForName("cf_items").Fields.ForName("echo") == nil ||
+		doc.Definitions.ForName("p14_pair_scalar") == nil {
 		t.Fatalf("computed collision removed the role or unrelated roots: %+v", doc)
 	}
 
@@ -196,5 +227,150 @@ func TestComputedArgsConflictRetainsRole(t *testing.T) {
 	items := inconsistencies.Snapshot()
 	if len(items) != 1 || items[0].Kind != metadata.InconsistencyKindComputedField {
 		t.Fatalf("collision inconsistency: %+v", items)
+	}
+}
+
+// The custom argument scalar must not turn an unrelated source's non-scalar
+// definition into a whole-role failure (including the implicit admin role).
+//
+//nolint:cyclop // The role and type-kind matrix shares one adversarial composed schema shape.
+func TestComputedScalarCollisionKeepsRolesAndOtherSources(t *testing.T) {
+	t.Parallel()
+
+	for _, kind := range []string{"object", "enum", "input", "same-source object"} {
+		t.Run(kind, func(t *testing.T) {
+			t.Parallel()
+
+			root := "query_root"
+
+			const scalar = "p14_mood"
+
+			makeSQL := func() *graph.Schema {
+				return &graph.Schema{
+					QueryType: &root,
+					Types: []*graph.ObjectType{
+						{
+							Name: root,
+							Fields: []*graph.Field{
+								{Name: "items", Type: graph.NewNamedType("cf_items")},
+							},
+						},
+						{Name: "cf_items", Fields: []*graph.Field{
+							{Name: "id", Type: graph.NewNamedType("Int")},
+							{
+								Name: "mood",
+								Type: graph.NewNamedType("String"),
+								Arguments: []*graph.Argument{
+									{
+										Name:        "args",
+										Type:        graph.NewNamedType("mood_cf_items_args"),
+										Description: `input parameters for computed field "mood" defined on table "cf.items"`,
+									},
+								},
+							},
+						}},
+					},
+					Inputs: []*graph.InputObjectType{
+						{
+							Name: "mood_cf_items_args",
+							Fields: []*graph.InputField{
+								{Name: "m", Type: graph.NewNamedType(scalar)},
+							},
+						},
+					},
+					Scalars: []*graph.ScalarType{{Name: scalar}},
+				}
+			}
+
+			other := &graph.Schema{QueryType: &root, Types: []*graph.ObjectType{
+				{
+					Name:   root,
+					Fields: []*graph.Field{{Name: "otherRoot", Type: graph.NewNamedType("String")}},
+				},
+			}}
+			switch kind {
+			case "object":
+				other.Types = append(
+					other.Types,
+					&graph.ObjectType{
+						Name:   scalar,
+						Fields: []*graph.Field{{Name: "id", Type: graph.NewNamedType("Int")}},
+					},
+				)
+			case "enum":
+				other.Enums = []*graph.EnumType{
+					{Name: scalar, Values: []*graph.EnumValue{{Name: "OK"}}},
+				}
+			case "input":
+				other.Inputs = []*graph.InputObjectType{
+					{
+						Name:   scalar,
+						Fields: []*graph.InputField{{Name: "id", Type: graph.NewNamedType("Int")}},
+					},
+				}
+			case "same-source object":
+				// The same connector can emit a non-scalar with the name of an
+				// independently generated computed argument scalar.
+			}
+
+			providers := map[string]SchemaProvider{}
+
+			dbSchemas := map[string]*graph.Schema{"admin": makeSQL(), "reader": makeSQL()}
+			if kind == "same-source object" {
+				for _, schema := range dbSchemas {
+					schema.Types = append(
+						schema.Types,
+						&graph.ObjectType{
+							Name:   scalar,
+							Fields: []*graph.Field{{Name: "id", Type: graph.NewNamedType("Int")}},
+						},
+					)
+				}
+			}
+
+			providers["db"] = stubSchemaProvider{schemas: dbSchemas}
+			providers["other"] = stubSchemaProvider{
+				schemas: map[string]*graph.Schema{"admin": other, "reader": other},
+			}
+			inc := metadata.NewInconsistencies()
+			c := New(providers, &metadata.Metadata{Databases: []metadata.DatabaseMetadata{
+				{
+					Name: "db",
+					Tables: []metadata.TableMetadata{
+						{Table: metadata.TableSource{Schema: "cf", Name: "items"}},
+					},
+				},
+				{Name: "other"},
+			}}, inc)
+
+			result := c.Compose(t.Context(), slog.Default())
+			for _, role := range []string{"admin", "reader"} {
+				doc := result.SchemaDocs[role]
+				if doc == nil || doc.Definitions.ForName(root).Fields.ForName("items") == nil ||
+					doc.Definitions.ForName(root).Fields.ForName("otherRoot") == nil ||
+					doc.Definitions.ForName("cf_items").Fields.ForName("mood") != nil ||
+					doc.Definitions.ForName("cf_items").Fields.ForName("id") == nil ||
+					doc.Definitions.ForName("mood_cf_items_args") != nil ||
+					doc.Definitions.ForName(scalar) == nil {
+					t.Fatalf(
+						"role %s lost unrelated fields or retained invalid argument: %+v",
+						role,
+						doc,
+					)
+				}
+			}
+
+			items := inc.Snapshot()
+			if len(items) != 2 {
+				t.Fatalf("expected one computed inconsistency per role: %+v", items)
+			}
+
+			for _, item := range items {
+				if item.Kind != metadata.InconsistencyKindComputedField ||
+					item.Name != "cf.items.mood" {
+					t.Fatalf("unexpected inconsistency: %+v", item)
+				}
+			}
+		})
 	}
 }

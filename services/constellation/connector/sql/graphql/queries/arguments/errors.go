@@ -33,6 +33,7 @@ const (
 	// graphqlCodeValidationFailed is the extensions.code Hasura attaches to query
 	// validation failures and that Constellation mirrors byte-for-byte.
 	graphqlCodeValidationFailed = "validation-failed"
+	graphqlCodeParseFailed      = "parse-failed"
 
 	// graphqlCodeDataException is the extensions.code Hasura attaches to safe
 	// database data exceptions such as a negative OFFSET.
@@ -46,9 +47,9 @@ const (
 
 // QueryValidationError is a query-validation failure that must surface to the
 // client with the same GraphQL error envelope Hasura produces: an
-// extensions.code of "validation-failed" and an extensions.path of
-// "$.selectionSet.<fieldPath>.args" (or that path plus the offending argument
-// name when Hasura reports an argument-specific failure). Its client-facing
+// extensions.code of "validation-failed" (or "parse-failed" for string-only
+// computed scalars) and an extensions.path of "$.selectionSet.<fieldPath>.args"
+// (or that path plus the offending argument name). Its client-facing
 // message and wrapped sentinel errors are private so packages outside
 // arguments cannot smuggle arbitrary raw error strings through the controller's
 // structured-error bypass.
@@ -62,6 +63,21 @@ type QueryValidationError struct {
 	err          error
 	argumentPath string
 	argumentName string
+	code         string
+}
+
+// NewComputedScalarInputError rejects non-string values for PostgreSQL's
+// string-only custom computed argument scalars before executing any SQL.
+func NewComputedScalarInputError(
+	typeName, argumentName, argumentPath string,
+) *QueryValidationError {
+	message := "A string is expected for type: " + typeName
+	err := newQueryValidationError(message, fmt.Errorf("%w: %s", ErrInvalidArgument, message),
+		"args."+argumentName)
+	err.code = graphqlCodeParseFailed
+	err.StampArgumentPath(argumentPath)
+
+	return err
 }
 
 // newDistinctOnOrderByMismatchError returns the Hasura-compatible validation
@@ -179,6 +195,7 @@ func newQueryValidationError(message string, err error, argumentName string) *Qu
 		err:          err,
 		argumentPath: "",
 		argumentName: argumentName,
+		code:         graphqlCodeValidationFailed,
 	}
 }
 
@@ -293,14 +310,14 @@ func (e *QueryValidationError) Unwrap() error {
 }
 
 // AsMap renders the error in Hasura's GraphQL error response shape: the safe
-// validation message plus an extensions block carrying the "validation-failed"
-// code and the "$.selectionSet.<fieldPath>.args" path. No top-level path or
-// locations are emitted, matching Hasura.
+// validation message, its fixed constructor-selected error code, and the
+// "$.selectionSet.<fieldPath>.args" path. No top-level path or locations
+// are emitted, matching Hasura.
 func (e *QueryValidationError) AsMap() map[string]any {
 	return map[string]any{
 		"message": e.clientMessage(),
 		"extensions": map[string]any{
-			"code": graphqlCodeValidationFailed,
+			"code": e.code,
 			"path": e.extensionsPath(),
 		},
 	}

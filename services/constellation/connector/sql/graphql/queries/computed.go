@@ -35,9 +35,8 @@ func (t *table) initializeComputedScalars(
 ) {
 	for _, field := range md.ComputedFields {
 		lookup, found := objects.GetComputedFunction(t.schemaName, t.tableName, field.Name)
-		if !found || lookup.Function == nil || lookup.Function.ReturnSet ||
-			lookup.Function.ReturnRelOID != 0 ||
-			lookup.Function.ReturnType.Kind != "b" {
+		if !found || lookup.Function == nil || lookup.Function.ReturnRelOID != 0 ||
+			lookup.Function.ReturnType.Kind != "b" || lookup.Function.ReturnType.IsArray {
 			continue
 		}
 
@@ -202,7 +201,7 @@ func (t *table) writeComputedScalar(
 	return params, paramIndex, nil
 }
 
-//nolint:gocognit,cyclop,funlen // Catalog slots, defaults and session markers share one parameter accumulator.
+//nolint:gocognit,cyclop,gocyclo,funlen // Catalog slots, defaults and session markers share one accumulator.
 func (t *table) writeComputedCall(
 	call *strings.Builder, computed *computedScalar, field *ast.Field,
 	alias, argumentPath string, variables, sessionVariables map[string]any,
@@ -325,8 +324,14 @@ func (t *table) writeComputedCall(
 
 			dialect.WritePostgresComputedRow(call, alias, t.schemaName, t.tableName, names)
 		} else {
-			coerced, err := t.writeComputedArgument(call, arg, value, paramIndex)
+			coerced, err := t.writeComputedArgument(
+				call, arg, argumentNames[i], value, paramIndex,
+			)
 			if err != nil {
+				if invalid, ok := errors.AsType[*arguments.QueryValidationError](err); ok {
+					invalid.StampArgumentPath(argumentPath)
+				}
+
 				return nil, 0, err
 			}
 
@@ -388,9 +393,25 @@ func resolveComputedArgsValue(value *ast.Value, variables map[string]any) (any, 
 }
 
 func (t *table) writeComputedArgument(
-	b *strings.Builder, arg introspection.ComputedFunctionArgument, value any, paramIndex int,
+	b *strings.Builder,
+	arg introspection.ComputedFunctionArgument,
+	name string,
+	value any,
+	paramIndex int,
 ) (any, error) {
 	placeholder := t.dialect.Placeholder(paramIndex)
+	// Hasura parses PostgreSQL custom scalars and array inputs as strings,
+	// never as GraphQL object/list/number literals. Use a text parameter so
+	// pgx cannot attempt binary encoding for a user-defined type, and qualify
+	// the SQL cast independently of the database search_path.
+	stringScalar := arg.Type.Kind != "b" || arg.Type.IsArray
+	if stringScalar && value != nil {
+		_, isString := value.(string)
+		if !isString {
+			return nil, arguments.NewComputedScalarInputError(arg.Type.Name, name, "")
+		}
+	}
+
 	if pgtypes.IsSpatial(arg.Type.Name) && t.dialect.SupportsSpatialTypes() {
 		coerced, err := values.CoerceSQLValue(arg.Type.Name, value)
 		if err != nil {
@@ -403,6 +424,11 @@ func (t *table) writeComputedArgument(
 	}
 
 	b.WriteString(placeholder)
+
+	if stringScalar {
+		b.WriteString("::text")
+	}
+
 	// PostgreSQL needs a concrete type for nullable / JSON placeholders.
 	b.WriteString("::")
 	core.WriteQuotedIdentifier(b, arg.Type.Schema)

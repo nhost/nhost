@@ -23,10 +23,6 @@ const (
 	computedInvalid computedKind = iota
 	computedScalar
 	computedTable
-	// Non-base argument kinds remain deferred until their GraphQL input
-	// coercion is implemented; supported base-return selections stay exposed.
-	computedDeferred
-	computedDeferredTable
 )
 
 func reconcileComputedFields(
@@ -45,17 +41,19 @@ func reconcileComputedFields(
 		t := &effective.Tables[i]
 		key := introspection.ComputedTable{Schema: t.Table.Schema, Name: t.Table.Name}
 		index[key] = make(map[string]computedKind)
+		ambiguousSiblings := make(map[string]struct{})
 
 		indexComputedGrants(t.SelectPermissions, index[key])
 
-		counts := make(map[string]int, len(t.ComputedFields))
-		for _, field := range t.ComputedFields {
-			counts[field.Name]++
-		}
+		counts := computedNameCounts(t.ComputedFields)
 
 		fields := make([]metadata.ComputedField, 0, len(t.ComputedFields))
 		for _, field := range t.ComputedFields {
 			kind, reason := validateComputedField(original.Kind, t, field, objects, tracked)
+			if computedAggregateSiblingConflict(t, field.Name) {
+				ambiguousSiblings[field.Name] = struct{}{}
+			}
+
 			if counts[field.Name] > 1 {
 				reason = "duplicate computed field name"
 			}
@@ -72,14 +70,11 @@ func reconcileComputedFields(
 			}
 
 			index[key][field.Name] = kind
-			// Deferred signatures must not enter the effective metadata even
-			// if a later rollout enables computed-field schema capabilities.
-			if kind != computedDeferred && kind != computedDeferredTable {
-				fields = append(fields, field)
-			}
+			fields = append(fields, field)
 		}
 
 		t.ComputedFields = fields
+		omitAmbiguousComputedGrants(t, ambiguousSiblings)
 	}
 
 	for i := range effective.Tables {
@@ -93,6 +88,31 @@ func reconcileComputedFields(
 			effective.Tables,
 			objects,
 			index,
+		)
+	}
+}
+
+func computedNameCounts(fields []metadata.ComputedField) map[string]int {
+	counts := make(map[string]int, len(fields))
+	for _, field := range fields {
+		counts[field.Name]++
+	}
+
+	return counts
+}
+
+// A sibling collision has a valid relationship and a separately invalid
+// computed selection. Remove only that selection's grant; retaining the
+// invalid grant would revoke the role's otherwise valid select root.
+func omitAmbiguousComputedGrants(table *metadata.TableMetadata, siblings map[string]struct{}) {
+	for i := range table.SelectPermissions {
+		permission := &table.SelectPermissions[i].Permission
+		permission.ComputedFields = slices.DeleteFunc(
+			slices.Clone(permission.ComputedFields),
+			func(name string) bool {
+				_, ambiguous := siblings[name]
+				return ambiguous
+			},
 		)
 	}
 }
@@ -181,6 +201,19 @@ func computedNameConflict(
 	return ""
 }
 
+// Only the generated aggregate sibling of an array relationship has this
+// exception. Exact relationship and column collisions keep their usual
+// invalid-grant behavior.
+func computedAggregateSiblingConflict(table *metadata.TableMetadata, name string) bool {
+	for _, rel := range table.ArrayRelationships {
+		if name == rel.Name+"_aggregate" {
+			return true
+		}
+	}
+
+	return false
+}
+
 func validComputedName(name string) bool {
 	if name == "" {
 		return false
@@ -219,40 +252,41 @@ func validateComputedSignature(field metadata.ComputedField, fn *introspection.C
 			Schema: fn.ReturnType.Schema,
 			Name:   fn.ReturnType.Name,
 		}
-		if _, ok := tracked[target]; !ok || !fn.ReturnSet {
-			return computedInvalid, "computed function must return SETOF a tracked table"
-		}
-
-		if computedHasUnclassifiedArgument(fn) {
-			return computedDeferredTable, ""
+		if _, ok := tracked[target]; !ok {
+			return computedInvalid, "computed function must return a tracked table"
 		}
 
 		return computedTable, ""
 	}
 
-	if fn.ReturnSet {
-		return computedInvalid, "scalar computed function cannot return SETOF"
-	}
-
-	if fn.ReturnType.Kind != "b" {
+	if fn.ReturnType.Kind != "b" || fn.ReturnType.IsArray {
 		return computedInvalid, "computed scalar return type is not a BASE type"
 	}
 
-	if computedHasUnclassifiedArgument(fn) {
-		return computedDeferred, ""
+	// Only independently classified scalar SETOF types are executable. Catalog
+	// BASE also includes unrelated extension, vector and spatial types.
+	if fn.ReturnSet && !supportedComputedScalarSetof(fn.ReturnType.Schema, fn.ReturnType.Name) {
+		return computedInvalid, "unsupported SETOF scalar return type"
 	}
 
 	return computedScalar, ""
 }
 
-func computedHasUnclassifiedArgument(fn *introspection.ComputedFunction) bool {
-	for i, arg := range fn.Arguments {
-		if i != fn.RowArgument && arg.Type.Kind != "b" {
-			return true
-		}
+func supportedComputedScalarSetof(schema, name string) bool {
+	if schema == "public" && name == "citext" {
+		return true
 	}
 
-	return false
+	if schema != "pg_catalog" {
+		return false
+	}
+
+	switch name {
+	case "text", "numeric", "int4", "float8", "bool", "date", "uuid", "jsonb":
+		return true
+	default:
+		return false
+	}
 }
 
 func validateComputedArguments(
@@ -284,7 +318,7 @@ func validateComputedArguments(
 
 func computedScalarArgumentKind(kind string) bool {
 	switch kind {
-	case "b", "d", "e", "r", "m":
+	case "b", "c", "d", "e", "r", "m":
 		return true
 	default:
 		return false
@@ -356,8 +390,7 @@ func invalidComputedSelect(ctx context.Context, logger *slog.Logger, inc *metada
 	key := introspection.ComputedTable{Schema: table.Table.Schema, Name: table.Table.Name}
 	for _, grant := range p.Permission.ComputedFields {
 		kind, exists := index[key][grant]
-		if !exists || kind == computedInvalid || kind == computedTable ||
-			kind == computedDeferredTable {
+		if !exists || kind != computedScalar {
 			return recordComputedPermission(ctx, logger, inc, source, table, p.Role, "select",
 				fmt.Sprintf("invalid scalar computed field grant %q", grant))
 		}

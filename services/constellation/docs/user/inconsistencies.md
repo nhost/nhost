@@ -103,14 +103,19 @@ An invalid table-owned computed definition (malformed wire entry, missing or
 ambiguous function, missing or non-IN row argument, volatile function,
 unsupported return or argument type kind, untracked SETOF composite target,
 non-IN non-row argument, or field-name collision) is recorded as `computed_field`
-and removed **individually**. PostgreSQL base types (`pg_type.typtype = 'b'`, including
-extension types outside `pg_catalog`) are accepted as scalar returns and
-non-row arguments; pseudo-types and non-table composites are rejected. Domain,
-enum, range and multirange **returns** are invalid (Hasura requires BASE
-returns); a role granting one loses its entire select permission. Non-base
-non-row arguments remain in raw metadata but are excluded from effective
-fields pending input coercion support; their scalar grants do not revoke table
-access. Manual table-valued grants remain invalid regardless of argument kind.
+and removed **individually**. Non-array PostgreSQL BASE scalar returns include
+extension types outside `pg_catalog`, but `SETOF` scalar returns are enabled
+only for independently classified `pg_catalog.text`, `numeric`, `int4`,
+`float8`, `bool`, `date`, `uuid`, `jsonb` and installed `public.citext`.
+Arrays (including `text[]`, despite catalog `typtype = 'b'`) and unclassified
+`SETOF` base returns are invalid; a role granting one loses its entire select
+permission. Domain, enum, range and multirange **returns** are also invalid.
+BASE non-row arguments are accepted; pseudo-type arguments are rejected.
+Domain, enum, range, multirange, composite and array **arguments** (including
+user-defined element types) are exposed as string-only custom scalars;
+composites use `<type>_scalar`. Values or nulls use bound, qualified
+PostgreSQL casts, and invalid values fail at the database.
+Manual table-valued grants remain invalid regardless of argument kind.
 A computed definition on SQLite is ignored as before, without computed-specific
 inconsistencies or grant revocation. Other fields and tables survive. Valid
 PostgreSQL scalar selections and argument-free computed user predicates
@@ -133,11 +138,20 @@ its entire affected permission.
 A select permission with an invalid/malformed computed grant is recorded as
 `select_permission` and removed **in its entirety**, including its filter;
 manual table-valued grants are invalid because target-table permissions derive
-them. A valid scalar grant remains a valid permission even if its argument type
-is deferred; only executable scalar selections are exposed. A computed `_args`
-input type that conflicts with a different type in a composed role drops just
-the affected selection and records a `computed_field` inconsistency; the role
-and other fields remain. A select/update/delete filter or insert/update check referencing a valid,
+them. A valid scalar grant exposes its executable selection, including supported
+custom argument scalars; an ungranted role sees neither the field nor its
+private `_args` input type. A computed `_args`
+input type or computed-argument scalar name that conflicts with a non-scalar
+composed type drops just the affected selection and records a `computed_field`
+inconsistency; the role and other fields remain. For the specifically probed
+PUBLIC argument enum versus tracked-row object type-name collision, Hasura
+v2.50.3-ce instead atomically rejects metadata replacement (even with
+`allow_inconsistent_metadata: true`); Constellation's metadata acceptance and
+narrow fail-closed omission are an approved difference, not metadata parity.
+An exact computed `<rel>_aggregate` array-relationship sibling collision
+also omits only the ambiguous computed field and its grant, retaining the
+select permission and genuine relationship; Hasura exposes duplicate names.
+These two omissions are exceptions to the usual invalid-grant rule. A select/update/delete filter or insert/update check referencing a valid,
 argument-free PostgreSQL scalar or table computed field is enforced, including
 through logical operators, local relationships and `_exists`.
 On PostgreSQL, `_exists._table` accepts a bare name or an object with an
@@ -238,6 +252,10 @@ Recorded when schema composition fails for a specific role. Triggers:
 **Effect:** only that role is dropped from `validatedSchemas`. Requests for
 that role get the standard "no schema available for role: X" response. Other
 roles continue serving with the connectors that did merge successfully.
+
+## Reload and export timing
+
+A successful metadata reload builds new effective computed fields, role schemas, SQL roots and inconsistencies together before swapping the served state. A failed reload keeps the previous served state. On a polled database source, native `export_metadata` instead reads the latest **raw** metadata snapshot: it may include a newly invalid computed definition or grant before the served state changes. When a Hasura upstream is configured, export and metadata writes are proxied upstream, not served from this snapshot. Do not use export's resource version as evidence of the current role schema; verify role introspection and a representative query after reload. File-source export is best-effort, not an exact copy of unknown metadata keys.
 
 ## How inconsistencies surface today
 

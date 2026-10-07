@@ -61,11 +61,12 @@ type Driver interface {
 // Required fields have no sensible zero value; direct struct-literal
 // construction is unsupported. Use [NewConnector].
 type Connector struct {
-	driver       Driver
-	schemas      map[string]*graph.Schema
-	roots        queries.Roots
-	groupedAggOp *groupedaggdispatch.Ops
-	dbMeta       *metadata.DatabaseMetadata
+	driver        Driver
+	schemas       map[string]*graph.Schema
+	roots         queries.Roots
+	groupedAggOp  *groupedaggdispatch.Ops
+	dbMeta        *metadata.DatabaseMetadata
+	setofJoinKeys map[string]bool
 }
 
 // NewConnector creates a Connector by introspecting the database, reconciling
@@ -114,12 +115,27 @@ func NewConnector(
 		return nil, fmt.Errorf("failed to load schema: %w", err)
 	}
 
+	setofJoinKeys := make(map[string]bool)
+	for _, table := range effectiveMeta.Tables {
+		for _, field := range table.ComputedFields {
+			lookup, found := objects.GetComputedFunction(
+				table.Table.Schema,
+				table.Table.Name,
+				field.Name,
+			)
+			if found && lookup.Function != nil && lookup.Function.ReturnSet {
+				setofJoinKeys[table.Table.Schema+"\x00"+table.Table.Name+"\x00"+field.Name] = true
+			}
+		}
+	}
+
 	return &Connector{
-		driver:       driver,
-		schemas:      schemas,
-		roots:        roots,
-		groupedAggOp: groupedAggOp,
-		dbMeta:       effectiveMeta,
+		driver:        driver,
+		schemas:       schemas,
+		roots:         roots,
+		groupedAggOp:  groupedAggOp,
+		dbMeta:        effectiveMeta,
+		setofJoinKeys: setofJoinKeys,
 	}, nil
 }
 
@@ -158,10 +174,10 @@ func (c *Connector) GetTypeName(identifier string) string {
 	return ""
 }
 
-// HasComputedJoinKey reports whether a table-owned computed definition survived
-// PostgreSQL reconciliation. The composer uses this to distinguish a valid
-// function from a physical column that happens to share an invalid field name;
-// schema field presence alone cannot make that distinction.
+// HasComputedJoinKey reports whether a non-SETOF table-owned computed scalar
+// survived PostgreSQL reconciliation. The composer uses this to distinguish a
+// valid scalar key from an invalid definition or a physical column with the
+// same name; a SETOF result cannot identify one target row per parent.
 func (c *Connector) HasComputedJoinKey(tableSchema, tableName, key string) bool {
 	if c.dbMeta.Kind != "postgres" && c.dbMeta.Kind != "" {
 		return false
@@ -175,7 +191,7 @@ func (c *Connector) HasComputedJoinKey(tableSchema, tableName, key string) bool 
 
 		for _, field := range table.ComputedFields {
 			if field.Name == key {
-				return true
+				return !c.setofJoinKeys[tableSchema+"\x00"+tableName+"\x00"+key]
 			}
 		}
 	}
