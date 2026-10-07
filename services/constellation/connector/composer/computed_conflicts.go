@@ -57,7 +57,13 @@ func (c *Composer) omitRoleComputedConflicts(
 	conflicts := make(map[string]map[*graph.Field]computedArgumentOwner)
 	for _, owner := range owners {
 		input := findInput(roleSchemas[owner.connector][role], owner.input)
-		if input == nil || !hasComputedInputConflict(role, input, roleSchemas) {
+		if input == nil || !hasComputedInputConflict(role, input, roleSchemas) &&
+			!hasComputedScalarConflict(
+				role,
+				input,
+				roleSchemas[owner.connector][role],
+				roleSchemas,
+			) {
 			continue
 		}
 
@@ -156,14 +162,180 @@ func withoutComputedSelections(
 		remove[owner.input] = struct{}{}
 	}
 
+	pruneOrphanedComputedArgumentTypes(&copySchema, schema, remove)
+
+	return &copySchema
+}
+
+//nolint:cyclop // A scalar is orphaned only after checking inputs, object/interface fields and directive references.
+func pruneOrphanedComputedArgumentTypes(
+	copySchema, schema *graph.Schema, remove map[string]struct{},
+) {
+	// A generated input (or one of its scalars) can belong to more than one
+	// computed selection. Keep it whenever a surviving field still uses it.
+	keepInputsUsedBySurvivingFields(remove, copySchema)
+
 	copySchema.Inputs = make([]*graph.InputObjectType, 0, len(schema.Inputs))
+
+	orphanedScalars := make(map[string]struct{})
 	for _, input := range schema.Inputs {
-		if _, omitted := remove[input.Name]; !omitted {
+		if _, omitted := remove[input.Name]; omitted {
+			for _, field := range input.Fields {
+				orphanedScalars[namedGraphType(field.Type)] = struct{}{}
+			}
+		} else {
 			copySchema.Inputs = append(copySchema.Inputs, input)
 		}
 	}
 
-	return &copySchema
+	// A surviving object field may refer to a tracked object with the same
+	// name as the orphaned argument scalar. That object reference must not
+	// preserve the conflicting scalar (nor erase the object) after omission.
+	protectScalar := func(typ *graph.Type) {
+		name := namedGraphType(typ)
+		if !conflictsWithScalar(copySchema, name) {
+			delete(orphanedScalars, name)
+		}
+	}
+
+	for _, input := range copySchema.Inputs {
+		for _, field := range input.Fields {
+			protectScalar(field.Type)
+		}
+	}
+
+	for _, obj := range copySchema.Types {
+		for _, field := range obj.Fields {
+			protectScalar(field.Type)
+
+			for _, arg := range field.Arguments {
+				protectScalar(arg.Type)
+			}
+		}
+	}
+
+	for _, iface := range copySchema.Interfaces {
+		for _, field := range iface.Fields {
+			protectScalar(field.Type)
+
+			for _, arg := range field.Arguments {
+				protectScalar(arg.Type)
+			}
+		}
+	}
+
+	for _, directive := range copySchema.Directives {
+		for _, arg := range directive.Arguments {
+			protectScalar(arg.Type)
+		}
+	}
+
+	copySchema.Scalars = make([]*graph.ScalarType, 0, len(schema.Scalars))
+	for _, scalar := range schema.Scalars {
+		if _, orphaned := orphanedScalars[scalar.Name]; !orphaned {
+			copySchema.Scalars = append(copySchema.Scalars, scalar)
+		}
+	}
+}
+
+func keepInputsUsedBySurvivingFields(remove map[string]struct{}, schema *graph.Schema) {
+	for _, obj := range schema.Types {
+		for _, field := range obj.Fields {
+			for _, arg := range field.Arguments {
+				delete(remove, namedGraphType(arg.Type))
+			}
+		}
+	}
+
+	for _, iface := range schema.Interfaces {
+		for _, field := range iface.Fields {
+			for _, arg := range field.Arguments {
+				delete(remove, namedGraphType(arg.Type))
+			}
+		}
+	}
+
+	for _, directive := range schema.Directives {
+		for _, arg := range directive.Arguments {
+			delete(remove, namedGraphType(arg.Type))
+		}
+	}
+}
+
+func namedGraphType(typ *graph.Type) string {
+	for typ != nil && typ.Elem != nil {
+		typ = typ.Elem
+	}
+
+	if typ == nil {
+		return ""
+	}
+
+	return typ.NamedType
+}
+
+func hasComputedScalarConflict(
+	role string, input *graph.InputObjectType, source *graph.Schema,
+	roleSchemas map[string]map[string]*graph.Schema,
+) bool {
+	for _, field := range input.Fields {
+		name := namedGraphType(field.Type)
+		if !hasScalar(source, name) {
+			continue
+		}
+
+		for _, schemas := range roleSchemas {
+			if schemas[role] != nil && conflictsWithScalar(schemas[role], name) {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func hasScalar(schema *graph.Schema, name string) bool {
+	for _, scalar := range schema.Scalars {
+		if scalar.Name == name {
+			return true
+		}
+	}
+
+	return false
+}
+
+func conflictsWithScalar(schema *graph.Schema, name string) bool {
+	for _, input := range schema.Inputs {
+		if input.Name == name {
+			return true
+		}
+	}
+
+	for _, obj := range schema.Types {
+		if obj.Name == name {
+			return true
+		}
+	}
+
+	for _, enum := range schema.Enums {
+		if enum.Name == name {
+			return true
+		}
+	}
+
+	for _, iface := range schema.Interfaces {
+		if iface.Name == name {
+			return true
+		}
+	}
+
+	for _, union := range schema.Unions {
+		if union.Name == name {
+			return true
+		}
+	}
+
+	return false
 }
 
 func computedArgumentOwners(source string, schema *graph.Schema) []computedArgumentOwner {

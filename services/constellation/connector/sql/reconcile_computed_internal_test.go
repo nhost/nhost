@@ -535,6 +535,7 @@ func TestComputedNameCollisionPreservesOrdinaryFilters(t *testing.T) {
 		filter       map[string]any
 		relationship string
 		grantOnly    bool
+		keepGrant    bool
 	}{
 		{name: "column", field: "id", filter: map[string]any{"id": map[string]any{"_eq": 1}}},
 		{name: "custom column", field: "label", relationship: "custom column", filter: map[string]any{
@@ -548,7 +549,7 @@ func TestComputedNameCollisionPreservesOrdinaryFilters(t *testing.T) {
 		}},
 		{
 			name: "aggregate relationship definition", field: "posts_aggregate", relationship: "array",
-			filter: map[string]any{"posts_aggregate": map[string]any{"count": map[string]any{
+			keepGrant: true, filter: map[string]any{"posts_aggregate": map[string]any{"count": map[string]any{
 				"predicate": map[string]any{"_gt": 0},
 			}}},
 		},
@@ -600,15 +601,19 @@ func TestComputedNameCollisionPreservesOrdinaryFilters(t *testing.T) {
 				}
 			}
 
+			wantPermissions := 1 + boolInt(tt.keepGrant)
 			if len(got.Tables[0].ComputedFields) != 2*boolInt(tt.grantOnly) ||
-				len(got.Tables[0].SelectPermissions) != 1 ||
+				len(got.Tables[0].SelectPermissions) != wantPermissions ||
 				got.Tables[0].SelectPermissions[0].Role != "filtered" ||
 				!reflect.DeepEqual(
 					got.Tables[0].SelectPermissions[0].Permission.Filter,
 					tt.filter,
 				) ||
 				collisionRecorded == tt.grantOnly ||
-				!hasComputedInconsistency(inc, metadata.InconsistencyKindSelectPermission) {
+				hasComputedInconsistency(
+					inc,
+					metadata.InconsistencyKindSelectPermission,
+				) == tt.keepGrant {
 				t.Fatalf(
 					"collision changed ordinary permission: metadata=%+v inconsistent=%+v",
 					got.Tables[0],

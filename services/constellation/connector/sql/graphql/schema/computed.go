@@ -29,8 +29,7 @@ func scalarComputedFields(
 	for _, field := range table.ComputedFields {
 		lookup, ok := objects.GetComputedFunction(table.Table.Schema, table.Table.Name, field.Name)
 		if !ok || lookup.Function == nil || lookup.Function.ReturnRelOID != 0 ||
-			lookup.Function.ReturnSet ||
-			lookup.Function.ReturnType.Kind != "b" {
+			lookup.Function.ReturnType.Kind != "b" || lookup.Function.ReturnType.IsArray {
 			continue
 		}
 
@@ -68,7 +67,7 @@ func scalarComputedFields(
 				continue
 			}
 
-			typ := getGraphQLScalarType(arg.Type.Name)
+			typ := computedArgumentScalar(arg.Type)
 			used[typ] = struct{}{}
 
 			if !arg.HasDefault {
@@ -128,6 +127,16 @@ func scalarComputedFields(
 	}
 
 	return fields
+}
+
+// Hasura exposes a composite input as a string-only custom scalar rather than
+// as a GraphQL object. Other accepted argument types use their PostgreSQL name.
+func computedArgumentScalar(typ introspection.PostgreSQLType) string {
+	if typ.Kind == "c" {
+		return typ.Name + "_scalar"
+	}
+
+	return getGraphQLScalarType(typ.Name)
 }
 
 func computedRequiresUserArgs(field *graph.Field) bool {
