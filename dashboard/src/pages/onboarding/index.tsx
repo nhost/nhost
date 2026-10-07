@@ -380,7 +380,7 @@ export default function OnboardingPage() {
                       >
                         {plansData?.plans?.map((plan) => (
                           <FormItem key={plan.id}>
-                            <FormLabel className="flex w-full cursor-pointer items-center justify-between rounded-lg border p-4 hover:bg-accent-background">
+                            <FormLabel className="flex w-full cursor-pointer items-center justify-between rounded-lg border p-4 hover:bg-accent">
                               <div className="flex items-center space-x-3">
                                 <FormControl>
                                   <RadioGroupItem value={plan.id} />

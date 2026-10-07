@@ -106,7 +106,7 @@ export default function MetricsTab({ fn }: MetricsTabProps) {
   }, [range, setRange]);
 
   return (
-    <div className="relative flex h-full flex-col bg-accent-background">
+    <div className="relative flex h-full flex-col bg-background">
       <div
         aria-hidden
         className="pointer-events-none invisible absolute inset-x-6 top-6 grid grid-cols-1 gap-4 xl:grid-cols-2"
