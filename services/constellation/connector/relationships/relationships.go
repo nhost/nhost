@@ -12,8 +12,9 @@
 // Inject; the spec is the contract this package operates on, not the raw
 // metadata tree.
 //
-// [TypeNameResolver] is the only external dependency. The Connector interface
-// in connector/connector.go satisfies it implicitly via GetTypeName, and the
+// [TypeNameResolver] resolves types, while SQL targets additionally implement
+// [SelectableJoinColumnResolver] for computed-key target column authorization.
+// The Connector interface in connector/connector.go satisfies TypeNameResolver via GetTypeName, and the
 // connector→GraphQL type-name mapping is exercised end-to-end by the
 // integration tests in integration/query_remote_relationships_test.go (which
 // wire real SQL and remote-schema connectors and assert that injected
@@ -38,6 +39,15 @@ type TypeNameResolver interface {
 	GetTypeName(identifier string) string
 }
 
+// SelectableJoinColumnResolver proves that a target name is an actual SQL
+// column exposed to the role, rather than merely a field on its GraphQL type.
+// Non-SQL connectors do not satisfy this capability and fail closed.
+//
+//go:generate mockgen -package mock -destination mock/selectable_join_column_resolver.go . SelectableJoinColumnResolver
+type SelectableJoinColumnResolver interface {
+	HasSelectableJoinColumn(identifier, role, name string) bool
+}
+
 // RelationshipSpec is the narrow projection of metadata that Inject needs to
 // graft a single remote-relationship field onto schemas. The composer
 // translates *metadata.Metadata into a []RelationshipSpec before calling
@@ -58,6 +68,12 @@ type RelationshipSpec struct {
 	// SourceType is the GraphQL type name on the source connector to which the
 	// relationship field is grafted.
 	SourceType string
+	// ComputedKeys identifies scalar computed LHS fields, with their explicit
+	// select grants. Nil means this relationship uses only physical columns.
+	ComputedKeys map[string]map[string]bool
+	// TargetJoinFields are the target columns used by a computed-key to_source
+	// join. They must be selectable on the target for the current role.
+	TargetJoinFields []string
 	// Name is the GraphQL field name to graft onto SourceType.
 	Name string
 	// TargetConnector is the name of the connector that owns the target type.
@@ -111,32 +127,39 @@ func Inject(
 		resolved := spec
 		resolved.TargetIdentifier = resolveTypeName(
 			connectors, spec.TargetConnector, spec.TargetIdentifier,
+			spec.RemoteFieldName == "",
 		)
 
 		if resolved.RemoteFieldName != "" {
 			addRemoteSchemaRelFieldToSchemas(roleSchemas, resolved)
 		} else {
-			addRelFieldToSchemas(roleSchemas, resolved)
+			addRelFieldToSchemas(
+				roleSchemas,
+				resolved,
+				spec.TargetIdentifier,
+				connectors[spec.TargetConnector],
+			)
 		}
 	}
 }
 
-// resolveTypeName resolves a type name via the target connector's GetTypeName.
-// Falls back to the identifier if the connector is not found or returns empty.
+// resolveTypeName uses published database target types for to_source joins.
+// Remote-schema joins retain their native target type identity; type-renamed
+// remote-schema targets are not an established combination.
 func resolveTypeName(
 	connectors map[string]TypeNameResolver,
-	connectorName, identifier string,
+	connectorName, identifier string, toSource bool,
 ) string {
-	conn, ok := connectors[connectorName]
-	if !ok {
-		return identifier
+	connector := connectors[connectorName]
+	if connector == nil {
+		return ""
 	}
 
-	if typeName := conn.GetTypeName(identifier); typeName != "" {
-		return typeName
+	if toSource {
+		return SchemaTypeName(connector, identifier)
 	}
 
-	return identifier
+	return connector.GetTypeName(identifier)
 }
 
 // addRelFieldToSchemas adds a db→db (or rs→db) relationship field to all role
@@ -144,6 +167,8 @@ func resolveTypeName(
 func addRelFieldToSchemas(
 	roleSchemas map[string]map[string]*graph.Schema,
 	spec RelationshipSpec,
+	targetIdentifier string,
+	connector TypeNameResolver,
 ) {
 	schemas, ok := roleSchemas[spec.SourceConnector]
 	if !ok {
@@ -152,13 +177,27 @@ func addRelFieldToSchemas(
 
 	targetType := spec.TargetIdentifier
 
+	types := relationshipTargetTypes(connector, targetIdentifier)
+	if spec.WithSQLArgs &&
+		(types.selectColumn == "" || types.orderBy == "" || types.boolExp == "") {
+		return // A renamed input type was not produced; do not publish a broken field.
+	}
+
 	for role, schema := range schemas {
 		if !targetTypeExistsInSchemas(roleSchemas, spec.TargetConnector, targetType, role) {
 			continue
 		}
 
 		objectType := findObjectType(schema, spec.SourceType)
-		if objectType == nil {
+		if objectType == nil || !computedKeysAvailable(objectType, spec, role) ||
+			!targetJoinFieldsAvailable(
+				roleSchemas[spec.TargetConnector][role],
+				targetType,
+				spec.TargetJoinFields,
+				targetIdentifier,
+				role,
+				connector,
+			) {
 			continue
 		}
 
@@ -167,17 +206,21 @@ func addRelFieldToSchemas(
 		}
 
 		if spec.IsArray {
-			addArrayRelField(objectType, spec.Name, targetType, spec.WithSQLArgs)
+			addArrayRelField(objectType, spec.Name, targetType, spec.WithSQLArgs, types)
 
 			// Expose <rel>_aggregate alongside the array field when the target
 			// connector publishes the matching <target>_aggregate type for
 			// this role. SQL connectors do; remote-schema connectors don't.
-			aggTargetType := targetType + "_aggregate"
 			aggFieldName := spec.Name + "_aggregate"
 
 			if !fieldExists(objectType, aggFieldName) &&
-				targetTypeExistsInSchemas(roleSchemas, spec.TargetConnector, aggTargetType, role) {
-				addArrayAggregateRelField(objectType, aggFieldName, targetType, spec.WithSQLArgs)
+				targetTypeExistsInSchemas(
+					roleSchemas,
+					spec.TargetConnector,
+					types.aggregate,
+					role,
+				) {
+				addArrayAggregateRelField(objectType, aggFieldName, spec.WithSQLArgs, types)
 			}
 		} else {
 			objectType.Fields = append(objectType.Fields, &graph.Field{
@@ -191,37 +234,34 @@ func addRelFieldToSchemas(
 	}
 }
 
-// addArrayAggregateRelField adds the "<rel>_aggregate" sibling field for a
-// cross-database array relationship. Its return type is "<target>_aggregate"
-// (the same type the target connector exposes for its own root-level
-// aggregate field), with the standard SQL filtering arguments when withSQLArgs
-// is true.
+// addArrayAggregateRelField adds an aggregate sibling with the target's
+// actual type name (a type suffix belongs after _aggregate, not before it).
 func addArrayAggregateRelField(
-	objectType *graph.ObjectType, name, targetType string, withSQLArgs bool,
+	objectType *graph.ObjectType, name string, withSQLArgs bool, types relationshipTypes,
 ) {
 	field := &graph.Field{
 		Name:        name,
 		Description: "An aggregate over an array relationship",
-		Type:        graph.NewNonNullType(targetType + "_aggregate"),
+		Type:        graph.NewNonNullType(types.aggregate),
 		Arguments:   nil,
 		Directives:  nil,
 	}
 
 	if withSQLArgs {
-		field.Arguments = sqlListArgs(targetType)
+		field.Arguments = sqlListArgs(types)
 	}
 
 	objectType.Fields = append(objectType.Fields, field)
 }
 
-// sqlListArgs returns the standard SQL filtering arguments (distinct_on, limit,
-// offset, order_by, where) for an array or aggregate field over typeName.
-func sqlListArgs(typeName string) []*graph.Argument {
+// sqlListArgs uses the target's published input types, not suffixes applied
+// to its already-customized object name.
+func sqlListArgs(types relationshipTypes) []*graph.Argument {
 	return []*graph.Argument{
 		{
 			Name:        "distinct_on",
 			Description: "distinct select on columns",
-			Type:        graph.NewListType(graph.NewNonNullType(typeName + "_select_column")),
+			Type:        graph.NewListType(graph.NewNonNullType(types.selectColumn)),
 		},
 		{
 			Name:        "limit",
@@ -236,12 +276,12 @@ func sqlListArgs(typeName string) []*graph.Argument {
 		{
 			Name:        "order_by",
 			Description: "sort the rows by one or more columns",
-			Type:        graph.NewListType(graph.NewNonNullType(typeName + "_order_by")),
+			Type:        graph.NewListType(graph.NewNonNullType(types.orderBy)),
 		},
 		{
 			Name:        "where",
 			Description: "filter the rows returned",
-			Type:        graph.NewNamedType(typeName + "_bool_exp"),
+			Type:        graph.NewNamedType(types.boolExp),
 		},
 	}
 }
@@ -276,7 +316,7 @@ func addRemoteSchemaRelFieldToSchemas(
 			continue
 		}
 
-		if fieldExists(objectType, spec.Name) {
+		if !computedKeysAvailable(objectType, spec, role) || fieldExists(objectType, spec.Name) {
 			continue
 		}
 
@@ -307,6 +347,68 @@ func addRemoteSchemaRelFieldToSchemas(
 
 		objectType.Fields = append(objectType.Fields, field)
 	}
+}
+
+// computedKeysAvailable requires an explicit grant and an executable scalar
+// selection in this role's source schema. In particular, a stale definition,
+// argument-bearing function or table-valued function cannot supply a phantom.
+func computedKeysAvailable(source *graph.ObjectType, spec RelationshipSpec, role string) bool {
+	for key, grants := range spec.ComputedKeys {
+		if role != "admin" && !grants[role] {
+			return false
+		}
+
+		var selected *graph.Field
+		for _, field := range source.Fields {
+			if field.Name == key {
+				selected = field
+				break
+			}
+		}
+
+		if selected == nil || selected.Type == nil || selected.Type.NamedType == "" {
+			return false
+		}
+
+		for _, arg := range selected.Arguments {
+			if arg.Name == "args" {
+				return false
+			}
+		}
+
+		// JSON/JSONB computed keys are excluded for every remote-schema
+		// destination, regardless of the remote argument's declared type.
+		if spec.RemoteFieldName != "" && (selected.Type.NamedType == "jsonb" ||
+			selected.Type.NamedType == "json") {
+			return false
+		}
+	}
+
+	return true
+}
+
+func targetJoinFieldsAvailable(
+	schema *graph.Schema, typeName string, fields []string,
+	identifier, role string, connector TypeNameResolver,
+) bool {
+	if len(fields) == 0 {
+		return true
+	}
+
+	target := findObjectType(schema, typeName)
+
+	columns, ok := connector.(SelectableJoinColumnResolver)
+	if target == nil || !ok {
+		return false
+	}
+
+	for _, name := range fields {
+		if !fieldExists(target, name) || !columns.HasSelectableJoinColumn(identifier, role, name) {
+			return false
+		}
+	}
+
+	return true
 }
 
 // findFieldOnQueryType locates a field by name on the Query root type of the given schema.
@@ -422,7 +524,9 @@ func findObjectType(schema *graph.Schema, name string) *graph.ObjectType {
 
 // addArrayRelField adds an array relationship field to an ObjectType.
 // If withSQLArgs is true, it adds SQL-specific arguments (distinct_on, limit, offset, order_by, where).
-func addArrayRelField(objectType *graph.ObjectType, name, typeName string, withSQLArgs bool) {
+func addArrayRelField(
+	objectType *graph.ObjectType, name, typeName string, withSQLArgs bool, types relationshipTypes,
+) {
 	field := &graph.Field{
 		Name:        name,
 		Description: "An array relationship",
@@ -432,7 +536,7 @@ func addArrayRelField(objectType *graph.ObjectType, name, typeName string, withS
 	}
 
 	if withSQLArgs {
-		field.Arguments = sqlListArgs(typeName)
+		field.Arguments = sqlListArgs(types)
 	}
 
 	objectType.Fields = append(objectType.Fields, field)

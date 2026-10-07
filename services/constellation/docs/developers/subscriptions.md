@@ -90,12 +90,14 @@ The package owns no business logic — see `controller/websocket/doc.go` for its
 
 ```go
 operation, fragments, validatedVariables, err := parseAndValidateQuery(...)
+plan, err := state.queryPlanner.Plan(operation, fragments, session.Role, validatedVariables)
+if plan.HasRemoteQueries() { /* send not-supported error frame; do not start polling */ return }
 dbName := getConnectorForOperation(state, operation)
 subHandler := state.subHandlers[dbName]
 h.startSubscription(ctx, id, payload, subHandler, operation, fragments, validatedVariables, logger)
 ```
 
-`parseAndValidateQuery` is the subscription twin of `Resolve`'s parse step — it hits the same `queryCache`, runs `gqlparser` validation, and coerces variables. Routing is the simplest possible: pick the connector that owns the first root field. Subscriptions don't fan out across connectors (the planner rejects subscriptions with remote relationships in `Controller.execute`).
+`parseAndValidateQuery` is the subscription twin of `Resolve`'s parse step — it hits the same `queryCache`, runs `gqlparser` validation, and coerces variables. Routing is the simplest possible: pick the connector that owns the first root field. Subscriptions don't fan out across connectors: `OnSubscribe` rejects remote relationships after validation, before registering a subscription or starting SQL polling, matching Hasura's rejection. Ordinary subscriptions continue on their owning connector.
 
 `startSubscription` calls `subHandler.Start`, gets a `<-chan subscription.Update`, and spawns `forwardUpdates` to translate updates into `next`/`error` frames.
 

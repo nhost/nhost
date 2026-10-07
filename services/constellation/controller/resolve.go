@@ -16,7 +16,6 @@ import (
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	"github.com/nhost/nhost/services/constellation/controller/planner"
 	"github.com/nhost/nhost/services/constellation/controller/planner/transform"
-	"github.com/nhost/nhost/services/constellation/controller/resolver"
 	"github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/gqlerror"
@@ -360,7 +359,7 @@ func (c *Controller) resolveData(
 	logger *slog.Logger,
 	requirePrevalidation bool,
 ) (map[string]any, []map[string]any, *GraphQLResponse) {
-	plan, err := state.queryPlanner.Plan(operation, fragments, role)
+	plan, err := state.queryPlanner.Plan(operation, fragments, role, variables)
 	if err != nil {
 		// validatedSchemas is checked upstream; Plan only errs on internal
 		// failures and ErrSchemaForRoleNotFound (which is unreachable here).
@@ -396,16 +395,12 @@ func (c *Controller) resolveData(
 	if len(allErrors) > 0 {
 		// Strip phantom join columns even on the partial-error path so the
 		// internal join keys the planner injected never reach the client. The
-		// error branch skips resolveRemoteRelationships, so SQL results are still
-		// raw jsontext.Value; unmarshal them first because Path.Delete only
-		// traverses parsed maps/slices. Failure to unmarshal must not fail the
-		// already-degraded response — log and continue.
+		// error branch skips resolveRemoteRelationships, so SQL rows may still
+		// be raw JSON under a customized namespace. If decoding fails, discard
+		// partial data rather than returning unstripped role-hidden join keys.
 		if plan.HasRemoteQueries() {
 			if err := unmarshalRawResults(results); err != nil {
-				logger.WarnContext(
-					ctx, "could not unmarshal partial results for phantom cleanup",
-					slog.String("error", err.Error()),
-				)
+				return nil, nil, errorResponse(sanitizeConnectorError(ctx, logger, c.devMode, err))
 			}
 
 			removePhantomFieldsFromPlan(results, plan)
@@ -625,10 +620,8 @@ func (c *Controller) resolveRemoteRelationships(
 		return errorResponse(sanitizeConnectorError(ctx, logger, c.devMode, err))
 	}
 
-	pendingQueries := resolver.BuildRemoteQueriesFromPlan(
-		results,
-		plan,
-		fragments,
+	if err := state.remoteRelationshipResolver.ResolvePlanned(
+		ctx, results, plan, fragments,
 		func(connectorName, identifier string) string {
 			if conn := state.connectors[connectorName]; conn != nil {
 				return conn.GetTypeName(identifier)
@@ -636,15 +629,7 @@ func (c *Controller) resolveRemoteRelationships(
 
 			return ""
 		},
-	)
-
-	if len(pendingQueries) == 0 {
-		return nil
-	}
-
-	if err := state.remoteRelationshipResolver.Resolve(
-		ctx, results, pendingQueries,
-		fragments, variables, role, sessionVariables, logger,
+		variables, role, sessionVariables, logger,
 	); err != nil {
 		return &GraphQLResponse{
 			Data:        nil,

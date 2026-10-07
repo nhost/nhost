@@ -86,6 +86,83 @@ valid `_where` outside a recognized computed-table predicate retain the source-w
 parser behavior. Non-computed
 relationship-aggregate permission keys can still fail source construction.
 
+# Computed remote-relationship join keys
+
+PostgreSQL scalar computed fields with no user arguments can supply the LHS
+key for `to_source` object/array and `to_remote_schema` relationships. Session
+arguments are bound for each request. Text keys and JSONB-to-JSONB source
+joins have positive results for objects, strings, arrays and numbers. JSONB
+array `_aggregate` siblings bind and stitch typed JSON keys, keeping strings
+distinct from numbers and correctly grouping objects and arrays. This also
+fixes physical JSONB-key aggregate siblings (covered by a Constellation-only
+regression); the computed siblings match a live Hasura v2.50.3-ce probe.
+All JSON/JSONB computed keys are excluded from `to_remote_schema` relationships, regardless
+of argument type: the live Hasura JSONB-object→`ID!` definition validates but
+fails during execution. Argument-bearing and table-valued computed keys are
+unavailable. Target row filters always apply; computed-key joins additionally
+require each mapping target to name an actual role-selectable target column in GraphQL, not a relationship or computed field. Hasura v2.50.3-ce rejects remote
+relationships in subscriptions; Constellation's WebSocket preflight rejects
+them too. PostgreSQL `json` targets lack `json = json`, so ordinary and
+grouped joins into them fail at execution, as in Hasura's equality join.
+
+**Deliberate Hasura v2.50.3-ce authorization difference:** a role without the
+computed field's explicit select grant does not see or use a relationship keyed
+by it, even though Hasura may join internally using that denied key. The
+relationship is absent from the role's SDL; no phantom join-key value reaches
+the response. Admin has implicit access. This restriction applies only to
+computed LHS keys; existing physical-column relationship rules are unchanged.
+
+**Deliberate Hasura v2.50.3-ce authorization difference (target key):** for a
+computed-key `to_source` join, a role unable to select every mapped target column
+cannot see the relationship or its aggregate sibling in its SDL, even when it has the LHS computed
+select grant and target row access. A serialized live Hasura probe granted
+`item_label` and target `id` but denied target `label`: Hasura exposed and
+positively joined `cf_label_object` and `cf_label_array` through `label`, while
+direct `label` selection failed. That join is an equality oracle for a hidden
+target value. Constellation intentionally prevents it: a relationship named
+like a renamed, hidden column's physical SQL name does not count as a selectable
+column, even if that relationship is visible or the role is admin. Target row filters
+still apply separately. Physical-key relationships do not use this
+computed-key target-column gate; JSONB-key binding also works when the target
+column is role-hidden.
+
+**Aggregate target name collisions:** Hasura interprets `field_mapping` target
+names as physical SQL column names and may join through a hidden target column.
+Constellation's computed-key target grant gate checks a role-selectable GraphQL
+*column* against the target SQL connector's column enum, and its
+ordinary/paginated arrays use GraphQL-first names. Aggregate siblings retain
+SQL-name interpretation for unambiguous names (including physical names), but
+reject a mapping if that name is both a GraphQL name and a different column's
+SQL name. This fails the entire aggregate query without counts or nodes, even
+for admin and physical-key aggregates, rather than allowing a hidden-value
+oracle through the computed-key gate. GraphQL-only names of renamed target
+columns still fail for aggregates; SQL-name mappings to renamed targets can
+still fail on the ordinary array path. Neither failure grants extra access.
+
+# SQLite remote-array pagination arguments
+
+SQLite-target remote arrays apply `limit` (with optional `offset`) per parent
+join key. Unlike SQLite root fields, remote arrays currently expose
+`distinct_on`, but it fails at SQL execution. `offset` without `limit` also
+fails at SQL execution on SQLite root and remote fields. These two failures
+predate computed remote-join-key support; they are not supported pagination
+forms.
+
+# Remote relationships with null join keys
+
+For every physical- or computed-key `to_source` relationship, a null parent
+key (SQL NULL or JSONB literal null) produces an explicit `null` for object,
+array and aggregate fields, including inside another remote result. Previously
+Constellation omitted the field for all-null batches and returned `[]` for a
+null-key array in a mixed batch. The new response deliberately matches Hasura
+even though both engines declare array and aggregate fields `NON_NULL` in SDL.
+A JSONB null key never matches target JSONB null. A non-null unmatched key
+still produces object `null`, array `[]`, or an empty aggregate.
+
+A null `to_remote_schema` LHS also produces explicit `null` without a remote
+request. This is consistent with Hasura's remote-join source but has not been
+compared against a live Hasura remote schema.
+
 # Computed-field support during alpha
 
 PostgreSQL scalar computed fields support role-granted selection, argument-free

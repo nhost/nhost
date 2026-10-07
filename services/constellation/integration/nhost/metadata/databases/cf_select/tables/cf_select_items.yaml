@@ -28,6 +28,28 @@ computed_fields:
       function:
         name: item_tags
         schema: cf_select
+remote_relationships:
+  - name: cf_label_object
+    definition:
+      to_source:
+        source: cf_select
+        table: {name: items, schema: cf_select}
+        relationship_type: object
+        field_mapping: {item_label: label}
+  - name: cf_label_array
+    definition:
+      to_source:
+        source: cf_select
+        table: {name: items, schema: cf_select}
+        relationship_type: array
+        field_mapping: {item_label: label}
+  - name: cf_payload_object
+    definition:
+      to_source:
+        source: cf_select
+        table: {name: items, schema: cf_select}
+        relationship_type: object
+        field_mapping: {item_payload: payload}
 select_permissions:
   - role: cf_no_grant
     permission:

@@ -5,6 +5,26 @@ metadata model used for PostgreSQL sources where SQLite can support the same
 semantics. Some PostgreSQL features have no SQLite equivalent; this page records
 the customer-visible differences that follow from those limits.
 
+SQLite-target cross-source array relationships apply `limit` (with optional
+`offset`) per non-null parent join tuple, including composite mappings. The
+target row filter and user predicates apply before each tuple's window. Multiple
+tuples use bounded batched statements (chunked when necessary), not an unbounded
+fetch and post-slice. `offset` without `limit` currently fails at SQL execution
+on SQLite, including root queries. SQLite root fields do not expose `distinct_on`,
+but SQLite-target **remote arrays do expose it** and currently fail at SQL
+execution when it is used. Neither form is supported yet.
+
+For cross-source relationships joining into SQLite `JSON`/`JSONB`-declared
+columns, keys are matched against **stored JSON text**, not PostgreSQL-style
+semantic JSON equality. Numbers and strings remain distinct (including `1`
+versus `"1"`); SQL NULL and JSON `null` parent keys yield null relationships.
+The stored key must have the same canonical spelling as the serialized parent
+value: minified JSON with sorted object keys and Go JSON escapes for `<`, `>`
+and `&`. A key stored with other whitespace, object-key order, HTML escaping
+or numeric spelling may not match, even when it represents the same JSON value.
+This applies to ordinary object and array joins as well as per-parent paginated
+arrays. Use PostgreSQL JSONB join columns if semantic JSON equality is needed.
+
 ## SQLite write mutations are not executable yet
 
 Tracked SQLite tables still advertise the full PostgreSQL **write** mutation
