@@ -193,7 +193,7 @@ func TestRenderSignInMethodsMatchesTemplate(t *testing.T) {
 				t.Fatalf("reading %s from the template: %v", tmpl.methodsFile, err)
 			}
 
-			if got := renderSignInMethods(signInMethods()); !bytes.Equal(got, committed) {
+			if got := renderSignInMethods(tmpl, signInMethods()); !bytes.Equal(got, committed) {
 				t.Errorf(
 					"generated %s differs from the one %s ships\n--- generated ---\n%s\n--- committed ---\n%s",
 					tmpl.methodsFile,
