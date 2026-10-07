@@ -74,9 +74,6 @@ export default function ProjectNavigation() {
           icon={<ZapIcon className={iconClassName} />}
           activePath={`${baseHref}/events`}
         />
-      </NavigationList.Section>
-
-      <NavigationList.Section label="Compute">
         <NavigationList.Item
           label="AI"
           href={`${baseHref}/ai/assistants`}
@@ -84,6 +81,9 @@ export default function ProjectNavigation() {
           activePath={`${baseHref}/ai`}
           disabled={settingsDisabled}
         />
+      </NavigationList.Section>
+
+      <NavigationList.Section label="Compute">
         <NavigationList.Item
           label="Functions"
           href={`${baseHref}/functions/browser`}

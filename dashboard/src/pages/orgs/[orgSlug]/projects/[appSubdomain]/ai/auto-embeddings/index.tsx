@@ -105,7 +105,7 @@ export default function AutoEmbeddingsPage() {
   if (isPlatform && org?.plan?.isFree) {
     return (
       <Container
-        className="grid grid-flow-row gap-6 bg-transparent pt-8 pb-8"
+        className="grid max-w-5xl grid-flow-row gap-6 bg-transparent pt-8 pb-8"
         rootClassName="bg-transparent"
       >
         <UpgradeToProBanner
