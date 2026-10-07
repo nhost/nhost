@@ -120,7 +120,7 @@ func TestUIDropsAreDeclaredByTheTemplate(t *testing.T) {
 			t.Fatalf("reading package.json for %s: %v", tmpl.name, err)
 		}
 
-		for _, ui := range uiSystems() {
+		for _, ui := range tmpl.uiSystems {
 			if len(ui.drops) == 0 {
 				continue
 			}
@@ -142,16 +142,16 @@ func TestUIDropsAreDeclaredByTheTemplate(t *testing.T) {
 func TestUINoneCoversEveryModuleWithADependency(t *testing.T) {
 	t.Parallel()
 
-	none, ok := lookupUI("none")
-	if !ok {
-		t.Fatal(`lookupUI("none") not found`)
-	}
-
 	for _, tmpl := range catalogue() {
 		t.Run(tmpl.name, func(t *testing.T) {
 			t.Parallel()
 
-			seam := path.Join(tmpl.name, componentsUIPath)
+			none, ok := lookupUI(tmpl.uiSystems, defaultUI)
+			if !ok {
+				t.Fatalf("%s offers no %q UI system", tmpl.name, defaultUI)
+			}
+
+			seam := path.Join(tmpl.name, tmpl.componentsUI)
 
 			modules, err := fs.ReadDir(templates.FS, seam)
 			if err != nil {
@@ -199,7 +199,7 @@ func TestUIOverlaysAreEmbedded(t *testing.T) {
 	t.Parallel()
 
 	for _, tmpl := range catalogue() {
-		for _, ui := range uiSystems() {
+		for _, ui := range tmpl.uiSystems {
 			if ui.overlay == "" {
 				continue
 			}
