@@ -1,0 +1,85 @@
+import { type FormEvent, useId, useState } from 'react';
+import { useNavigate } from 'react-router';
+import { setNewPassword } from '@/auth/password/actions';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useAuth } from '@/lib/nhost/AuthProvider';
+
+export default function ResetPasswordForm() {
+  const { nhost } = useAuth();
+  const navigate = useNavigate();
+  const passwordId = useId();
+  const confirmId = useId();
+
+  const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [error, setError] = useState<string | undefined>();
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSubmit = async (event: FormEvent): Promise<void> => {
+    event.preventDefault();
+    setError(undefined);
+
+    if (password !== confirm) {
+      setError('The two passwords do not match.');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const result = await setNewPassword(nhost, password);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+
+      void navigate('/');
+    } catch (err) {
+      console.error('Error changing the password:', err);
+      setError('The request did not reach the server. Try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor={passwordId}>New password</Label>
+        <Input
+          id={passwordId}
+          type="password"
+          autoComplete="new-password"
+          required
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          disabled={isSaving}
+        />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <Label htmlFor={confirmId}>Confirm new password</Label>
+        <Input
+          id={confirmId}
+          type="password"
+          autoComplete="new-password"
+          required
+          value={confirm}
+          onChange={(event) => setConfirm(event.target.value)}
+          disabled={isSaving}
+        />
+      </div>
+
+      {error ? (
+        <p role="alert" className="text-destructive text-sm">
+          {error}
+        </p>
+      ) : null}
+
+      <Button type="submit" disabled={isSaving}>
+        {isSaving ? 'Saving…' : 'Save password'}
+      </Button>
+    </form>
+  );
+}

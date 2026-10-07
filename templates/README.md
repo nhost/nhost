@@ -37,6 +37,7 @@ lockfile with a plain `pnpm install` from inside `frontend/`, never with
 | name | stack | what it shows |
 | --- | --- | --- |
 | `nextjs` | Next.js 16 (App Router), Tailwind v4, plain components or shadcn/ui | the sign-in methods you choose, a session shared by server and browser, one protected route. No schema. |
+| `react` | React 19 on Vite, Tailwind v4, plain components or shadcn/ui | the same app with no server: a browser-held session the SDK refreshes, routes found by glob, one protected route. No schema. |
 
 ## Develop and test a template locally
 
@@ -168,11 +169,16 @@ The two guards below run in CI; run them before pushing:
    `none` entry, which is what `--ui` defaults to.
 4. Add `//go:embed` directives for its top-level entries in
    `templates/embed.go`. `go test ./templates/...` tells you what is missing.
-5. Add the name to `matrix.template` in the `frontend`, `delete-method` and
+5. Add it to the source fileset in `cli/project.nix`, cutting out its
+   `node_modules` and build output the way the other templates do. A plain
+   `go build` sees the whole working tree and passes without this, so the
+   first thing that notices is the Nix build in CI, and what it reports is the
+   `//go:embed` directive from step 4 failing on a directory that is not there.
+6. Add the name to `matrix.template` in the `frontend`, `delete-method` and
    `ui-system` jobs of `.github/workflows/templates_checks.yaml`, the method
    directories to `matrix.method`, and the `ui/` directories to `matrix.ui`.
-6. Add a row to [Available templates](#available-templates).
-7. Regenerate the CLI reference if the flag's help changed:
+7. Add a row to [Available templates](#available-templates).
+8. Regenerate the CLI reference if the flag's help changed:
    `go run ./cli gen-docs > docs/src/content/docs/reference/cli/commands.mdx`.
 
 ## How templates are delivered

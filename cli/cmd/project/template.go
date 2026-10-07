@@ -70,6 +70,14 @@ func catalogue() []starterTemplate {
 			componentsUI: "frontend/src/components/ui",
 			uiSystems:    reactUISystems(),
 		},
+		{
+			name:         "react",
+			label:        "React",
+			authDir:      "frontend/src/auth",
+			methodsFile:  "frontend/src/signin/methods.ts",
+			componentsUI: "frontend/src/components/ui",
+			uiSystems:    reactUISystems(),
+		},
 	}
 }
 
