@@ -36,7 +36,7 @@ function Account() {
   if (!user) {
     return (
       <Button asChild variant="ghost" size="sm">
-        <Link to="/signin">Sign in</Link>
+        <Link to="/signin?intent=sign-in">Sign in</Link>
       </Button>
     );
   }

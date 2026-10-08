@@ -1,4 +1,3 @@
-import { Link } from 'react-router';
 import MagicLinkForm from '@/auth/magic-link/MagicLinkForm';
 import {
   Card,
@@ -8,6 +7,9 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { localMailboxURL } from '@/lib/nhost/env';
+import OtherWaysLink from '@/signin/OtherWaysLink';
+import { signInQuery } from '@/signin/query';
+import { useIntent } from '@/signin/useIntent';
 import { useNext } from '@/signin/useNext';
 
 /**
@@ -17,6 +19,8 @@ import { useNext } from '@/signin/useNext';
  */
 export default function MagicLinkPage() {
   const next = useNext();
+  const intent = useIntent();
+  const query = signInQuery(next, intent);
 
   return (
     <div className="mx-auto max-w-md">
@@ -29,12 +33,7 @@ export default function MagicLinkPage() {
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <MagicLinkForm next={next} mailboxURL={localMailboxURL()} />
-          <Link
-            to="/signin"
-            className="text-muted-foreground text-sm underline underline-offset-4 outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            Other ways to sign in
-          </Link>
+          <OtherWaysLink query={query} />
         </CardContent>
       </Card>
     </div>

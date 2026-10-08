@@ -1,4 +1,3 @@
-import { Link } from 'react-router';
 import OAuthButtons from '@/auth/oauth/OAuthButtons';
 import { providers } from '@/auth/oauth/providers';
 import {
@@ -10,6 +9,9 @@ import {
 } from '@/components/ui/card';
 import { useAuth } from '@/lib/nhost/AuthProvider';
 import { appOrigin } from '@/lib/nhost/env';
+import OtherWaysLink from '@/signin/OtherWaysLink';
+import { signInQuery } from '@/signin/query';
+import { useIntent } from '@/signin/useIntent';
 import { useNext } from '@/signin/useNext';
 
 /**
@@ -25,6 +27,8 @@ import { useNext } from '@/signin/useNext';
 export default function OAuthPage() {
   const { nhost } = useAuth();
   const next = useNext();
+  const intent = useIntent();
+  const query = signInQuery(next, intent);
 
   const links = providers.map(({ id, label }) => ({
     id,
@@ -47,12 +51,7 @@ export default function OAuthPage() {
             A provider only works once it is enabled in <code>nhost.toml</code>.
             The README&apos;s OAuth section has the callback URL and the config.
           </p>
-          <Link
-            to="/signin"
-            className="text-muted-foreground text-sm underline-offset-4 hover:underline"
-          >
-            Other ways to sign in
-          </Link>
+          <OtherWaysLink query={query} />
         </CardContent>
       </Card>
     </div>

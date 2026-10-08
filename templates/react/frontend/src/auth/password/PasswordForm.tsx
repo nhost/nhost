@@ -1,10 +1,12 @@
 import { type FormEvent, useId, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { requestPasswordReset, signIn, signUp } from '@/auth/password/actions';
+import CheckYourInbox from '@/components/CheckYourInbox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/lib/nhost/AuthProvider';
+import type { Intent } from '@/signin/intent';
 
 type Mode = 'sign-in' | 'sign-up';
 
@@ -12,13 +14,24 @@ type Mode = 'sign-in' | 'sign-up';
 // to type: the next step happens in the visitor's inbox.
 type Sent = 'verification' | 'reset';
 
-export default function PasswordForm({ next }: { next: string }) {
+export default function PasswordForm({
+  next,
+  intent,
+  mailboxURL,
+}: {
+  next: string;
+  intent: Intent;
+  mailboxURL: string | null;
+}) {
   const { nhost } = useAuth();
   const navigate = useNavigate();
   const emailId = useId();
   const passwordId = useId();
 
-  const [mode, setMode] = useState<Mode>('sign-in');
+  // Opens on whatever the link that sent them here asked for, which is sign-up
+  // unless it said otherwise: a fresh local backend has no accounts in it, so
+  // a sign-in form would be a dead end.
+  const [mode, setMode] = useState<Mode>(intent);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [sent, setSent] = useState<Sent | undefined>();
@@ -88,7 +101,7 @@ export default function PasswordForm({ next }: { next: string }) {
   if (sent === 'verification') {
     return (
       <div className="flex flex-col gap-2 text-sm">
-        <p className="font-medium">Check your inbox</p>
+        <CheckYourInbox url={mailboxURL} />
         <p className="text-muted-foreground">
           We sent a verification link to {email}. Opening it confirms the
           address and signs you in.
@@ -100,7 +113,7 @@ export default function PasswordForm({ next }: { next: string }) {
   if (sent === 'reset') {
     return (
       <div className="flex flex-col gap-2 text-sm">
-        <p className="font-medium">Check your inbox</p>
+        <CheckYourInbox url={mailboxURL} />
         <p className="text-muted-foreground">
           If that address has an account, a reset link is on its way.
         </p>

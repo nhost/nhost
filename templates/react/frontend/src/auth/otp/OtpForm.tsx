@@ -1,6 +1,7 @@
 import { type FormEvent, useId, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { sendCode, verifyCode } from '@/auth/otp/actions';
+import CheckYourInbox from '@/components/CheckYourInbox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -86,24 +87,12 @@ export default function OtpForm({
   if (step === 'code') {
     return (
       <form onSubmit={handleVerify} className="flex flex-col gap-4">
-        <p className="text-muted-foreground text-sm">
-          We sent a code to {email}.
-          {mailboxURL ? (
-            <>
-              {' '}
-              Locally it lands in the{' '}
-              <a
-                href={mailboxURL}
-                target="_blank"
-                rel="noreferrer"
-                className="underline underline-offset-4"
-              >
-                mailbox
-              </a>
-              .
-            </>
-          ) : null}
-        </p>
+        <div className="flex flex-col gap-2">
+          <CheckYourInbox url={mailboxURL} />
+          <p className="text-muted-foreground text-sm">
+            We sent a code to {email}.
+          </p>
+        </div>
 
         <div className="flex flex-col gap-2">
           <Label htmlFor={codeId}>Code</Label>
