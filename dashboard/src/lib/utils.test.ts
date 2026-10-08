@@ -1,4 +1,4 @@
-import { isEmptyValue, isJSONString } from './utils';
+import { areStrArraysEqualOrdered, isEmptyValue, isJSONString } from './utils';
 
 test('returns true when the value is undefined or "undefined"', () => {
   expect(isEmptyValue(undefined)).toBe(true);
@@ -37,6 +37,24 @@ test('returns false when the value is an Error', () => {
 test('returns false when the value is either a number or string', () => {
   expect(isEmptyValue(1234)).toBe(false);
   expect(isEmptyValue('Hello there')).toBe(false);
+});
+
+test('compares string arrays in order', () => {
+  expect(
+    areStrArraysEqualOrdered(
+      ['tenant_id', 'order_id'],
+      ['tenant_id', 'order_id'],
+    ),
+  ).toBe(true);
+  expect(
+    areStrArraysEqualOrdered(
+      ['tenant_id', 'order_id'],
+      ['order_id', 'tenant_id'],
+    ),
+  ).toBe(false);
+  expect(
+    areStrArraysEqualOrdered(['tenant_id'], ['tenant_id', 'order_id']),
+  ).toBe(false);
 });
 
 test('returns true when the value is a valid JSON string', () => {
