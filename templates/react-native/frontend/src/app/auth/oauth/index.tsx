@@ -61,8 +61,11 @@ async function signInWithProvider(
   try {
     const result = await WebBrowser.openAuthSessionAsync(authUrl, returnTo);
 
-    // `dismiss` and `cancel` are the user closing the browser, which is not a
-    // failure and has nothing to report.
+    // `dismiss` and `cancel` have nothing to report. Usually the user closed
+    // the browser, but on Android `dismiss` only means the app came back to
+    // the front, which the callback itself can cause. That callback still
+    // arrives as a link event: `AuthProvider` redeems it and the router
+    // follows it to `next`, so this must not be read as a failed sign-in.
     if (result.type !== 'success') {
       return {};
     }
