@@ -4,18 +4,27 @@ import {
   createContext,
   type ReactNode,
   use,
+  useCallback,
   useEffect,
   useMemo,
   useState,
 } from 'react';
 import { nhostRegion, nhostSubdomain } from '@/lib/nhost/env';
-import { hasLinkToken, redeemLinkToken } from '@/lib/nhost/linkToken';
+import {
+  hasLinkToken,
+  readLinkError,
+  redeemLinkToken,
+} from '@/lib/nhost/linkToken';
 import { watchSession } from '@/lib/nhost/watchSession';
 
 type AuthValue = {
   nhost: NhostClient;
   session: Session | null;
   isLoading: boolean;
+  // Why the link or provider redirect this page load arrived from did not
+  // sign the visitor in, or null when it did not arrive from a failed one.
+  linkError: string | null;
+  clearLinkError: () => void;
 };
 
 const AuthContext = createContext<AuthValue | null>(null);
@@ -59,6 +68,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // or someone who is being signed in is offered "Sign in" meanwhile.
   const [isLoading, setIsLoading] = useState(hasLinkToken);
 
+  // Read here for the same reason as the session: `redeemLinkToken` takes it
+  // off the URL, and the page has to know it on its first render.
+  const [linkError, setLinkError] = useState(readLinkError);
+  const clearLinkError = useCallback(() => setLinkError(null), []);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -89,8 +103,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [nhost]);
 
   const value = useMemo<AuthValue>(
-    () => ({ nhost, session, isLoading }),
-    [nhost, session, isLoading],
+    () => ({ nhost, session, isLoading, linkError, clearLinkError }),
+    [nhost, session, isLoading, linkError, clearLinkError],
   );
 
   return <AuthContext value={value}>{children}</AuthContext>;

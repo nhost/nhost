@@ -1,6 +1,11 @@
 import type { NhostClient } from '@nhost/nhost-js';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { hasLinkToken, redeemLinkToken } from '@/lib/nhost/linkToken';
+import {
+  hasLinkToken,
+  linkErrorMessage,
+  readLinkError,
+  redeemLinkToken,
+} from '@/lib/nhost/linkToken';
 
 const ROUTER_STATE = { idx: 0, key: 'default', usr: null };
 
@@ -146,4 +151,66 @@ describe('redeemLinkToken', () => {
     expect(replaceState).not.toHaveBeenCalled();
     expect(client.refreshSession).not.toHaveBeenCalled();
   });
+
+  // What a disabled provider or an expired email link comes back with.
+  describe('when the auth service sent an error instead', () => {
+    beforeEach(() => {
+      location.search =
+        '?error=disabled-endpoint&errorDescription=This+endpoint+is+disabled&tab=1';
+      vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    });
+
+    it('can be read before it is taken off the URL', () => {
+      expect(readLinkError()).toBe(linkErrorMessage('disabled-endpoint'));
+    });
+
+    it('takes it off the URL and tries no exchange', async () => {
+      const client = fakeClient({ stored: false });
+
+      await redeemLinkToken(asClient(client));
+
+      expect(location.search).toBe('?tab=1');
+      expect(readLinkError()).toBeNull();
+      expect(client.refreshSession).not.toHaveBeenCalled();
+      expect(client.auth.refreshToken).not.toHaveBeenCalled();
+    });
+
+    it('hands the description to the console, not the page', async () => {
+      await redeemLinkToken(asClient(fakeClient({ stored: false })));
+
+      expect(console.warn).toHaveBeenCalledWith(
+        expect.any(String),
+        'disabled-endpoint',
+        'This endpoint is disabled',
+      );
+    });
+  });
+});
+
+describe('linkErrorMessage', () => {
+  // The description is whatever the link says, so the page never shows it.
+  it('never repeats what the link says', () => {
+    expect(linkErrorMessage('Call us at evil.example')).not.toContain(
+      'evil.example',
+    );
+  });
+
+  it('explains the codes a fresh project runs into', () => {
+    expect(linkErrorMessage('disabled-endpoint')).toMatch(/not enabled/);
+    expect(linkErrorMessage('invalid-ticket')).toMatch(/expired/);
+    expect(linkErrorMessage('unverified-user')).toMatch(/Verify/);
+    expect(linkErrorMessage('signup-disabled')).toMatch(/sign-ups/);
+  });
+
+  // An object lookup would hand back what every object inherits, and React
+  // throws on rendering it, so the crafted link would take the page down.
+  it.each(['__proto__', 'toString', 'constructor', 'hasOwnProperty'])(
+    'treats %s as an unknown code',
+    (code) => {
+      const message = linkErrorMessage(code);
+
+      expect(typeof message).toBe('string');
+      expect(message).toBe(linkErrorMessage('not-a-code'));
+    },
+  );
 });

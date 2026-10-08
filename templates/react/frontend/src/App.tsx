@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react';
 import { Route, Routes } from 'react-router';
+import LinkErrorNotice from '@/components/LinkErrorNotice';
 import Nav from '@/components/Nav';
 import Home from '@/Home';
 import ProtectedPage from '@/protected/ProtectedPage';
@@ -34,6 +35,7 @@ export default function App() {
     <>
       <Nav />
       <main className="mx-auto max-w-4xl px-6 py-10">
+        <LinkErrorNotice />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/signin" element={<SignInPage />} />

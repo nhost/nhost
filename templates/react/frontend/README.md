@@ -123,7 +123,10 @@ browser back with a `refreshToken` on the URL, and
 else, so it does not sit in history, then exchanges it for a session once at
 startup. It only does so for a signed-out visitor: a link may sign someone in,
 it may not replace whoever is already signed in. It is single use, so nothing
-else should try to redeem it.
+else should try to redeem it. When the redirect fails, a provider that is not
+enabled yet or an expired link, the service sends an `error` code instead. That
+is taken off the URL the same way, and the page the visitor lands on says what
+went wrong in its own words; the service's description goes to the console.
 
 ## Deploy
 
