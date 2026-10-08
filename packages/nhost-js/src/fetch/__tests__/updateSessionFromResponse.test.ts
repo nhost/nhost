@@ -179,7 +179,7 @@ describe('updateSessionFromResponseMiddleware', () => {
     // `/elevate` has no trailing slash, so the `/elevate/` check must skip it.
     await run(
       'https://local.auth.local.nhost.run/v1/elevate',
-      { elevationRequired: true, methods: ['totp'] },
+      { elevationRequired: true, methods: ['totp'], sessionElevated: false },
       200,
       'GET',
     );

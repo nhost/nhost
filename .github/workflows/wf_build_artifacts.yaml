@@ -139,9 +139,6 @@ jobs:
 
       - name: "Build docker image"
         run: |
-          sudo chmod 755 /run/containers
-          sudo mkdir -p "/run/containers/$(id -u runner)"
-          sudo chown runner: "/run/containers/$(id -u runner)"
           make build-docker-image
         if: ${{ inputs.DOCKER && runner.os != 'macOS' }}
 

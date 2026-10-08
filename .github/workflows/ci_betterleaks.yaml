@@ -33,16 +33,10 @@ jobs:
 
       - name: "Fetch the revisions under review"
         env:
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          MERGE_GROUP_REF: ${{ github.event.merge_group.head_ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}
         run: |
           set -euo pipefail
-          if [ -n "${PR_NUMBER}" ]; then
-            src="refs/pull/${PR_NUMBER}/head"
-          else
-            src="${MERGE_GROUP_REF}"
-          fi
-          git fetch --no-tags --force origin "${src}:refs/nhost/under-review"
+          git fetch --no-tags --force origin "${HEAD_SHA}:refs/nhost/under-review"
 
       - name: Setup Nix with Cache
         uses: ./.github/actions/setup-nix
@@ -77,13 +71,3 @@ jobs:
             --validation-max-requests 100 \
             --validation-rps 5 \
             --timeout 900
-
-  remove_label:
-    runs-on: ubuntu-latest
-    needs: [check-permissions]
-    if: contains(github.event.pull_request.labels.*.name, 'safe_to_test')
-    steps:
-      - uses: actions-ecosystem/action-remove-labels@v1
-        with:
-          labels: |
-            safe_to_test

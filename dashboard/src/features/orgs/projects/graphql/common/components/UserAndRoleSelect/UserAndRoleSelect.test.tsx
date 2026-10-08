@@ -1,7 +1,7 @@
 import UserAndRoleSelect from '@/features/orgs/projects/graphql/common/components/UserAndRoleSelect/UserAndRoleSelect';
 import {
   act,
-  mockPointerEvent,
+  mockScrollIntoViewAndPointerCapture,
   render,
   screen,
   TestUserEvent,
@@ -33,7 +33,7 @@ vi.mock('@/generated/graphql', async (importOriginal) => {
   };
 });
 
-mockPointerEvent();
+mockScrollIntoViewAndPointerCapture();
 
 const usersResponse = {
   data: {

@@ -1,3 +1,18 @@
+## [cli@1.51.2] - 2026-09-30
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.51.1
+- *(postgres)* Generate extension reference (#5024)
+- *(functions)* Bump references to 2.3.2
+- *(dashboard)* Bump references to 3.6.0
+- *(cli)* Update schema and versions (#5088)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#5087)
+
 ## [cli@1.51.1] - 2026-09-16
 
 ### ⚙️ Miscellaneous Tasks

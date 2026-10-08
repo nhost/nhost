@@ -1,7 +1,7 @@
 ---
 title: List of Available Extensions
-description: Browse all PostgreSQL extensions available on Nhost, including pgvector, PostGIS, pg_cron, and uuid-ossp, with versions and details.
-keywords: ["PostgreSQL extensions", "pgvector", "PostGIS", "pg_cron", "uuid-ossp", "postgres plugins", "database extensions"]
+description: Browse all PostgreSQL extensions available on Nhost, including pgvector, PostGIS, pg_cron, pg_durable, and uuid-ossp, with versions and details.
+keywords: ["PostgreSQL extensions", "pgvector", "PostGIS", "pg_cron", "pg_durable", "uuid-ossp", "postgres plugins", "database extensions"]
 head:
   - tag: title
     content: "Supported PostgreSQL Extensions on Nhost | Nhost Docs"
@@ -12,74 +12,79 @@ head:
 In the table below you can find a list of available extensions with Nhost Postgres:
 
 
-| Name | Version | Comment |
-|------|---------|---------|
-| address_standardizer | 3.6.1 | Used to parse an address into constituent elements. Generally used to support geocoding address normalization step. |
-| address_standardizer_data_us | 3.6.1 | Address Standardizer US dataset example |
-| amcheck | 1.5 | functions for verifying relation integrity |
-| autoinc | 1.0 | functions for autoincrementing fields |
-| bloom | 1.0 | bloom access method - signature file based index |
-| btree_gin | 1.3 | support for indexing common datatypes in GIN |
-| btree_gist | 1.8 | support for indexing common datatypes in GiST |
-| citext | 1.8 | data type for case-insensitive character strings |
-| cube | 1.5 | data type for multidimensional cubes |
-| dblink | 1.2 | connect to other PostgreSQL databases from within a database |
-| dict_int | 1.0 | text search dictionary template for integers |
-| dict_xsyn | 1.0 | text search dictionary template for extended synonym processing |
-| earthdistance | 1.2 | calculate great-circle distances on the surface of the Earth |
-| file_fdw | 1.0 | foreign-data wrapper for flat file access |
-| fuzzystrmatch | 1.2 | determine similarities and distance between strings |
-| hstore | 1.8 | data type for storing sets of (key, value) pairs |
-| http | 1.7 | HTTP client for PostgreSQL, allows web page retrieval inside the database. |
-| hypopg | 1.4.2 | Hypothetical indexes for PostgreSQL |
-| insert_username | 1.0 | functions for tracking who changed a table |
-| intagg | 1.1 | integer aggregator and enumerator (obsolete) |
-| intarray | 1.5 | functions, operators, and index support for 1-D arrays of integers |
-| ip4r | 2.4 | |
-| isn | 1.3 | data types for international product numbering standards |
-| lo | 1.2 | Large Object maintenance |
-| ltree | 1.3 | data type for hierarchical tree-like structures |
-| moddatetime | 1.0 | functions for tracking last modification time |
-| pageinspect | 1.13 | inspect the contents of database pages at a low level |
-| pg_buffercache | 1.6 | examine the shared buffer cache |
-| pg_cron | 1.6 | Job scheduler for PostgreSQL |
-| pg_freespacemap | 1.3 | examine the free space map (FSM) |
-| pg_hashids | 1.3 | pg_hashids |
-| pg_ivm | 1.13 | incremental view maintenance on PostgreSQL |
-| pg_jsonschema | 0.3.3 | pg_jsonschema |
-| pg_logicalinspect | 1.0 | functions to inspect logical decoding components |
-| pg_prewarm | 1.2 | prewarm relation data |
-| pg_repack | 1.5.3 | Reorganize tables in PostgreSQL databases with minimal locks |
-| pg_search | 0.21.1 | pg_search: Full text search for PostgreSQL using BM25 |
-| pg_squeeze | 1.9 | A tool to remove unused space from a relation. |
-| pg_stat_statements | 1.12 | track planning and execution statistics of all SQL statements executed |
-| pg_surgery | 1.0 | extension to perform surgery on a damaged relation |
-| pg_trgm | 1.6 | text similarity measurement and index searching based on trigrams |
-| pg_visibility | 1.2 | examine the visibility map (VM) and page-level visibility info |
-| pg_walinspect | 1.1 | functions to inspect contents of PostgreSQL Write-Ahead Log |
-| pgcrypto | 1.4 | cryptographic functions |
-| pgmq | 1.8.0 | A lightweight message queue. Like AWS SQS and RSMQ but on Postgres. |
-| pgrouting | 4.0.0 | pgRouting Extension |
-| pgrowlocks | 1.2 | show row-level locking information |
-| pgstattuple | 1.5 | show tuple-level statistics |
-| plpgsql | 1.0 | PL/pgSQL procedural language |
-| postgis | 3.6.1 | PostGIS geometry and geography spatial types and functions |
-| postgis_raster | 3.6.1 | PostGIS raster types and functions |
-| postgis_tiger_geocoder | 3.6.1 | PostGIS tiger geocoder and reverse geocoder |
-| postgis_topology | 3.6.1 | PostGIS topology spatial types and functions |
-| postgres_fdw | 1.2 | foreign-data wrapper for remote PostgreSQL servers |
-| refint | 1.0 | functions for implementing referential integrity (obsolete) |
-| seg | 1.4 | data type for representing line segments or floating-point intervals |
-| sslinfo | 1.2 | information about SSL certificates |
-| tablefunc | 1.0 | functions that manipulate whole tables, including crosstab |
-| tcn | 1.0 | Triggered change notifications |
-| timescaledb | 2.24.0 | Enables scalable inserts and complex queries for time-series data |
-| tsm_system_rows | 1.0 | TABLESAMPLE method which accepts number of rows as a limit |
-| tsm_system_time | 1.0 | TABLESAMPLE method which accepts time in milliseconds as a limit |
-| unaccent | 1.1 | text search dictionary that removes accents |
-| uuid-ossp | 1.1 | generate universally unique identifiers (UUIDs) |
-| vector | 0.8.1 | vector data type and ivfflat and hnsw access methods |
-| xml2 | 1.2 | XPath querying and XSLT |
+{/*BEGIN GENERATED POSTGRES EXTENSIONS*/}
+
+| Name | Version | Description |
+| ---- | ------- | ----------- |
+| address_standardizer|3.6.4|Used to parse an address into constituent elements. Generally used to support geocoding address normalization step.|
+| address_standardizer_data_us|3.6.4|Address Standardizer US dataset example|
+| amcheck|1.5|functions for verifying relation integrity|
+| autoinc|1.0|functions for autoincrementing fields|
+| bloom|1.0|bloom access method - signature file based index|
+| btree_gin|1.3|support for indexing common datatypes in GIN|
+| btree_gist|1.8|support for indexing common datatypes in GiST|
+| citext|1.8|data type for case-insensitive character strings|
+| cube|1.5|data type for multidimensional cubes|
+| dblink|1.2|connect to other PostgreSQL databases from within a database|
+| dict_int|1.0|text search dictionary template for integers|
+| dict_xsyn|1.0|text search dictionary template for extended synonym processing|
+| earthdistance|1.2|calculate great-circle distances on the surface of the Earth|
+| file_fdw|1.0|foreign-data wrapper for flat file access|
+| fuzzystrmatch|1.2|determine similarities and distance between strings|
+| hstore|1.8|data type for storing sets of (key, value) pairs|
+| http|1.7|HTTP client for PostgreSQL, allows web page retrieval inside the database.|
+| hypopg|1.4.3|Hypothetical indexes for PostgreSQL|
+| insert_username|1.0|functions for tracking who changed a table|
+| intagg|1.1|integer aggregator and enumerator (obsolete)|
+| intarray|1.5|functions, operators, and index support for 1-D arrays of integers|
+| ip4r|2.4|data types and operators for storing, indexing, and manipulating IPv4 and IPv6 addresses and ranges|
+| isn|1.3|data types for international product numbering standards|
+| lo|1.2|Large Object maintenance|
+| ltree|1.3|data type for hierarchical tree-like structures|
+| moddatetime|1.0|functions for tracking last modification time|
+| pageinspect|1.13|inspect the contents of database pages at a low level|
+| pg_buffercache|1.6|examine the shared buffer cache|
+| pg_cron|1.6|Job scheduler for PostgreSQL|
+| pg_durable|0.2.8|pg_durable: SQL-native durable orchestrations for PostgreSQL|
+| pg_freespacemap|1.3|examine the free space map (FSM)|
+| pg_hashids|1.3|pg_hashids|
+| pg_ivm|1.15|incremental view maintenance on PostgreSQL|
+| pg_jsonschema|0.3.4|pg_jsonschema|
+| pg_logicalinspect|1.0|functions to inspect logical decoding components|
+| pg_prewarm|1.2|prewarm relation data|
+| pg_repack|1.5.3|Reorganize tables in PostgreSQL databases with minimal locks|
+| pg_search|0.25.11|pg_search: Full text search for PostgreSQL using BM25|
+| pg_squeeze|1.9|A tool to remove unused space from a relation.|
+| pg_stat_statements|1.12|track planning and execution statistics of all SQL statements executed|
+| pg_surgery|1.0|extension to perform surgery on a damaged relation|
+| pg_trgm|1.6|text similarity measurement and index searching based on trigrams|
+| pg_visibility|1.2|examine the visibility map (VM) and page-level visibility info|
+| pg_walinspect|1.1|functions to inspect contents of PostgreSQL Write-Ahead Log|
+| pgcrypto|1.4|cryptographic functions|
+| pgmq|1.13.0|A lightweight message queue. Like AWS SQS and RSMQ but on Postgres.|
+| pgrouting|4.0.2|pgRouting Extension|
+| pgrowlocks|1.2|show row-level locking information|
+| pgstattuple|1.5|show tuple-level statistics|
+| plpgsql|1.0|PL/pgSQL procedural language|
+| postgis|3.6.4|PostGIS geometry and geography spatial types and functions|
+| postgis_raster|3.6.4|PostGIS raster types and functions|
+| postgis_tiger_geocoder|3.6.4|PostGIS tiger geocoder and reverse geocoder|
+| postgis_topology|3.6.4|PostGIS topology spatial types and functions|
+| postgres_fdw|1.2|foreign-data wrapper for remote PostgreSQL servers|
+| refint|1.0|functions for implementing referential integrity (obsolete)|
+| seg|1.4|data type for representing line segments or floating-point intervals|
+| sslinfo|1.2|information about SSL certificates|
+| tablefunc|1.0|functions that manipulate whole tables, including crosstab|
+| tcn|1.0|Triggered change notifications|
+| timescaledb|2.30.0|Enables scalable inserts and complex queries for time-series data|
+| tsm_system_rows|1.0|TABLESAMPLE method which accepts number of rows as a limit|
+| tsm_system_time|1.0|TABLESAMPLE method which accepts time in milliseconds as a limit|
+| unaccent|1.1|text search dictionary that removes accents|
+| uuid-ossp|1.1|generate universally unique identifiers (UUIDs)|
+| vector|0.8.6|vector data type and ivfflat and hnsw access methods|
+| xml2|1.2|XPath querying and XSLT|
+
+{/*END GENERATED POSTGRES EXTENSIONS*/}
 
 In addition, you can find more information about some of the extensions below
 
@@ -244,8 +249,10 @@ To install the extension you can create a migration with the following contents:
 
 ```sql
 SET ROLE postgres;
-CREATE EXTENSION vector;
+CREATE EXTENSION IF NOT EXISTS vector;
 ```
+
+pg_search 0.25+ may already have installed `vector` through `CASCADE` or the image's startup upgrade, so this migration works when `vector` is already present.
 
 To uninstall it, you can use the following migration:
 
@@ -254,6 +261,8 @@ SET ROLE postgres;
 DROP EXTENSION vector;
 ```
 
+pg_search 0.25+ depends on `vector`, so this migration fails while pg_search is installed (including when an upgrade installed `vector` for pg_search). If you intend to remove both extensions, first review and explicitly drop any dependent BM25 indexes, then drop pg_search before dropping `vector`. Do not use `DROP EXTENSION vector CASCADE;` as a shortcut: it also drops pg_search and its dependent BM25 indexes.
+
 ### Resources
 
 - [GitHub](https://github.com/pgvector/pgvector)
@@ -261,6 +270,8 @@ DROP EXTENSION vector;
 ## pg_cron
 
 pg_cron is a simple cron-based job scheduler for PostgreSQL (10 or higher) that runs inside the database as an extension. It uses the same syntax as regular cron, but it allows you to schedule PostgreSQL commands directly from the database. You can also use '[1-59] seconds' to schedule a job based on an interval.
+
+Preload `pg_cron` via `postgres.settings.sharedPreloadLibraries` to run scheduled jobs.
 
 ### Managing
 
@@ -281,6 +292,85 @@ DROP EXTENSION pg_cron;
 ### Resources
 
 - [GitHub](https://github.com/citusdata/pg_cron)
+
+## pg_durable
+
+pg_durable provides SQL-native durable orchestrations that persist their state in PostgreSQL and resume after crashes, restarts, and failovers.
+
+:::caution
+This is a limitation of pg_durable: the extension does not register its `df.instances`, `df.nodes`, and `df.vars` tables for logical dumps, so their data is excluded from `pg_dump`. Nhost daily backups, manual `pg_dump`/`pg_restore`, and daily-backup imports into another project therefore do **not** preserve pg_durable workflows. Restoring one loses workflow definitions, status, results, and variables. Engine data in `_duroxide` can still be restored, leaving orphaned engine rows; the background worker can also conflict with `pg_restore` while recreating those objects. [Point-in-time recovery](/products/database/backups#point-in-time-recovery) uses physical backups and preserves workflow state.
+:::
+
+### Managing
+
+Preload `pg_durable` via `postgres.settings.sharedPreloadLibraries` for its
+background worker. The extension does not grant access to
+`PUBLIC`. To enable it for workflows submitted through Nhost GraphQL, create
+this migration:
+
+```sql
+SET ROLE postgres;
+CREATE EXTENSION pg_durable;
+RESET ROLE;
+```
+
+In Nhost databases, `nhost_hasura` inherits membership in `postgres`, which owns the `df` objects. It already has full access to pg_durable, so `df.grant_usage('nhost_hasura')` would be redundant. In particular, it can execute `df.http()` and `df.http_multipart()` without an HTTP-specific grant and bypasses row-level security on `df.instances`, `df.nodes`, and `df.vars`: it can see and change workflows submitted by other roles.
+
+After the migration commits, the `df.*` functions exist, but the background worker initializes asynchronously. During the first 1–5 seconds, calls can fail with:
+
+```text
+pg_durable background worker not yet initialized — try again in a moment
+```
+
+Retry the call after a short delay.
+
+Nhost leaves `pg_durable.enable_superuser_instances` at its default of `off`. Workflows must therefore be submitted by a non-superuser role with `LOGIN`, because the background worker reconnects as the role captured by `df.start()`. Do not submit as `postgres` or `nhost_admin`; both are superusers and `df.start()` rejects them. The `nhost_hasura` role used by Nhost GraphQL is a non-superuser `LOGIN` role, but it can `SET ROLE postgres`; this setting does not restrict the SQL its workflows can run.
+
+To enforce per-role isolation and HTTP opt-in, submit workflows through a direct PostgreSQL connection as a dedicated login role that is not a member of `postgres`, rather than through Nhost GraphQL as `nhost_hasura`. For example, create a least-privileged role in the installation migration:
+
+```sql
+SET ROLE postgres;
+CREATE ROLE durable_executor
+  LOGIN
+  NOSUPERUSER
+  NOCREATEDB
+  NOCREATEROLE
+  NOREPLICATION
+  NOBYPASSRLS;
+SELECT df.grant_usage('durable_executor');
+RESET ROLE;
+```
+
+Configure authentication for the role through your normal secrets workflow rather than committing credentials in a migration. Grant it only the additional table and function privileges required by its workflow SQL.
+
+:::caution
+For security, Nhost sets `postgres.settings.extensions.pgDurable.logWorkflowSql` to `off` by default (see [Configuring Postgres](/products/database/configuring-postgres)), which sets `pg_durable.log_workflow_sql` to `off` and prevents the worker from logging SQL after `{var}` substitution. Setting it to `on` logs substituted SQL, which may contain secrets; enable it only temporarily for debugging. This does **not** disable all logging: submitted `df.start()` statements and final workflow results, including HTTP response bodies, can still appear in the Database logs available to project members with log access. Keep credentials out of workflow definitions and results, and do not assume `df.setvar()` makes secrets safe to include in logged statements or results.
+:::
+
+### HTTP egress and access control
+
+Nhost builds pg_durable with the `http-allow-all` feature, enabling unrestricted HTTP destinations. `df.http()` and `df.http_multipart()` can contact any HTTP or HTTPS destination reachable from PostgreSQL. Fresh pg_durable installations revoke execution of both HTTP functions from `PUBLIC`. For roles that do not inherit `postgres`, `df.grant_usage` without `include_http => true` does not grant HTTP execution; a database administrator must explicitly opt them into HTTP egress:
+
+```sql
+SET ROLE postgres;
+SELECT df.grant_usage('app_role', include_http => true);
+```
+
+Equivalent direct `GRANT EXECUTE` statements can grant either HTTP function more narrowly. Do not grant HTTP execution to roles that do not require outbound network access. Workflows submitted through Nhost GraphQL run as `nhost_hasura`, which inherits HTTP execution from `postgres`; they can always make HTTP requests without this grant.
+
+To uninstall the extension, use the following migration:
+
+```sql
+SET ROLE postgres;
+DROP EXTENSION pg_durable CASCADE;
+```
+
+`CASCADE` is required and removes pg_durable's workflow state. Wait at least 20 seconds before recreating the extension so its background worker can shut down fully.
+
+### Resources
+
+- [GitHub](https://github.com/microsoft/pg_durable)
+- [Documentation](https://microsoft.github.io/pg_durable/)
 
 ## pg_hashids
 
@@ -309,6 +399,10 @@ DROP EXTENSION pg_hashids;
 ## pg_ivm
 
 The pg_ivm module provides Incremental View Maintenance (IVM) feature for PostgreSQL.
+
+Preload `pg_ivm` via `postgres.settings.sharedPreloadLibraries` for incremental
+view maintenance across sessions. Alternatively, preload it in
+each session with `session_preload_libraries`.
 
 Incremental View Maintenance (IVM) is a way to make materialized views up-to-date in which only incremental changes are computed and applied on views rather than recomputing the contents from scratch as REFRESH MATERIALIZED VIEW does. IVM can update materialized views more efficiently than recomputation when only small parts of the view are changed.
 
@@ -379,22 +473,26 @@ DROP EXTENSION pg_repack;
 
 ### Resources
 
-- [GitHub](https://github.com/cybertec-postgresql/pg_squeeze)
+- [GitHub](https://github.com/reorg/pg_repack)
 
 ## pg_search
 
 pg_search is a Postgres extension that enables full text search over heap tables using the BM25 algorithm. It is built on top of Tantivy, the Rust-based alternative to Apache Lucene, using pgrx.
 
+Preload `pg_search` via `postgres.settings.sharedPreloadLibraries` before using BM25 search.
+
 ### Managing
 
-To install the extension you can create a migration with the following contents:
+pg_search 0.25+ requires pgvector (`vector`). To install both extensions in a fresh database, create a migration with the following contents:
 
 ```sql
 SET ROLE postgres;
-CREATE EXTENSION pg_search;
+CREATE EXTENSION pg_search CASCADE;
 ```
 
-To uninstall it, you can use the following migration:
+`CASCADE` installs `vector` if it is not already installed. Dropping pg_search does not remove `vector`.
+
+To uninstall pg_search, you can use the following migration:
 
 ```sql
 SET ROLE postgres;
@@ -409,6 +507,8 @@ DROP EXTENSION pg_search;
 ## pg_squeeze
 
 PostgreSQL extension that removes unused space from a table and optionally sorts tuples according to particular index (as if CLUSTER command was executed concurrently with regular reads / writes). In fact we try to replace pg_repack extension.
+
+Preload `pg_squeeze` via `postgres.settings.sharedPreloadLibraries` before installing it.
 
 ### Managing
 
@@ -435,6 +535,8 @@ DROP EXTENSION pg_squeeze;
 
 The pg_stat_statements module provides a means for tracking planning and execution statistics of all SQL statements executed by a server.
 
+Preload `pg_stat_statements` via `postgres.settings.sharedPreloadLibraries` to collect statistics across sessions.
+
 ### Managing
 
 To install the extension you can create a migration with the following contents:
@@ -458,6 +560,8 @@ DROP EXTENSION pg_stat_statements;
 ## timescaledb
 
 TimescaleDB is an open-source database designed to make SQL scalable for time-series data. It is engineered up from PostgreSQL and packaged as a PostgreSQL extension, providing automatic partitioning across time and space (partitioning key), as well as full SQL support.
+
+Preload `timescaledb` via `postgres.settings.sharedPreloadLibraries` for its background workers.
 
 ### Managing
 

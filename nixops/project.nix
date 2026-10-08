@@ -1,4 +1,5 @@
 {
+  self,
   pkgs,
   nix2containerPkgs,
   nixops-lib,
@@ -68,6 +69,11 @@ let
       pkg-config
       nhost.playwright-driver
       nhost.pnpm
+      nhost.postgresql_14-client
+      nhost.postgresql_15-client
+      nhost.postgresql_16-client
+      nhost.postgresql_17
+      nhost.postgresql_17-client
       nhost.postgresql_18
       nhost.postgresql_18-client
       python312Packages.certbot-dns-route53
@@ -78,9 +84,9 @@ let
       vale
       nhost.wal-g
     ])
-    ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
+    ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [
     ]
-    ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
+    ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
       pkgs.apple-sdk_14
     ];
 
@@ -146,6 +152,7 @@ in
           root = ../.;
           fileset = fs.fileFilter (f: f.hasExt "nix") ../.;
         };
+        overlay = self.overlays.default;
       })
     ];
   };

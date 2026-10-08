@@ -1086,6 +1086,9 @@ type ElevationMethodsResponse struct {
 
 	// Methods Methods the user can use to elevate their session
 	Methods []ElevationMethod `json:"methods"`
+
+	// SessionElevated Whether the bearer token has an elevated claim matching its subject
+	SessionElevated bool `json:"sessionElevated"`
 }
 
 // ErrorResponse Standardized error response

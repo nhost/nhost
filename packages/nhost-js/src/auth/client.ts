@@ -867,7 +867,9 @@ export type ElevationMethod = 'webauthn' | 'totp' | 'otp-email';
  @property elevationRequired (`boolean`) - Whether protected endpoints require an elevated session. When true and no methods are available, the user must set up a second factor first
     *    Example - `true`
  @property methods (`ElevationMethod[]`) - Methods the user can use to elevate their session
-    *    Example - `["webauthn","totp"]`*/
+    *    Example - `["webauthn","totp"]`
+ @property sessionElevated (`boolean`) - Whether the bearer token has an elevated claim matching its subject
+    *    Example - `false`*/
 export interface ElevationMethodsResponse {
   /**
    * Whether protected endpoints require an elevated session. When true and no methods are available, the user must set up a second factor first
@@ -879,6 +881,11 @@ export interface ElevationMethodsResponse {
    *    Example - `["webauthn","totp"]`
    */
   methods: ElevationMethod[];
+  /**
+   * Whether the bearer token has an elevated claim matching its subject
+   *    Example - `false`
+   */
+  sessionElevated: boolean;
 }
 
 /**
@@ -2642,7 +2649,7 @@ export interface Client {
 
   /**
      Summary: Get available elevation methods
-     Retrieve whether the authenticated user needs to elevate their session and which methods they can use to do it.
+     List the authenticated user's available elevation methods, whether elevation is required under the configured mode, and whether the current session is elevated.
 
      This method may return different T based on the response code:
      - 200: ElevationMethodsResponse

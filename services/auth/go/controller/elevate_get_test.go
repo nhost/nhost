@@ -19,7 +19,17 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 
 	userID := uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB")
 
-	jwtTokenFn := func() *jwt.Token {
+	newJWTToken := func(elevatedClaim string) *jwt.Token {
+		customClaims := map[string]any{
+			"x-hasura-allowed-roles":     []any{"user", "me"},
+			"x-hasura-default-role":      "user",
+			"x-hasura-user-id":           userID.String(),
+			"x-hasura-user-is-anonymous": "false",
+		}
+		if elevatedClaim != "" {
+			customClaims["x-hasura-auth-elevated"] = elevatedClaim
+		}
+
 		return &jwt.Token{
 			Raw:    "",
 			Method: jwt.SigningMethodHS256,
@@ -28,19 +38,20 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 				"typ": "JWT",
 			},
 			Claims: jwt.MapClaims{
-				"exp": float64(time.Now().Add(900 * time.Second).Unix()),
-				"https://hasura.io/jwt/claims": map[string]any{
-					"x-hasura-allowed-roles":     []any{"user", "me"},
-					"x-hasura-default-role":      "user",
-					"x-hasura-user-id":           userID.String(),
-					"x-hasura-user-is-anonymous": "false",
-				},
-				"iat": float64(time.Now().Unix()),
-				"iss": "hasura-auth",
-				"sub": userID.String(),
+				"exp":                          float64(time.Now().Add(900 * time.Second).Unix()),
+				"https://hasura.io/jwt/claims": customClaims,
+				"iat":                          float64(time.Now().Unix()),
+				"iss":                          "hasura-auth",
+				"sub":                          userID.String(),
 			},
 			Signature: []byte{},
 			Valid:     true,
+		}
+	}
+	jwtTokenFn := func() *jwt.Token { return newJWTToken("") }
+	jwtTokenWithElevatedClaimFn := func(claim string) func() *jwt.Token {
+		return func() *jwt.Token {
+			return newJWTToken(claim)
 		}
 	}
 
@@ -61,6 +72,48 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 		api.GetElevationMethodsResponseObject,
 	]{
 		{
+			name:   "already elevated session",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(totpUser, nil)
+
+				return mock
+			},
+			request: api.GetElevationMethodsRequestObject{},
+			expectedResponse: api.GetElevationMethods200JSONResponse{
+				ElevationRequired: true,
+				Methods:           []api.ElevationMethod{api.ElevationMethodTotp},
+				SessionElevated:   true,
+			},
+			jwtTokenFn: jwtTokenWithElevatedClaimFn(userID.String()),
+			getControllerOpts: []getControllerOptsFunc{
+				withElevationMode("recommended"),
+			},
+		},
+		{
+			name:   "elevated claim belongs to another user",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(totpUser, nil)
+
+				return mock
+			},
+			request: api.GetElevationMethodsRequestObject{},
+			expectedResponse: api.GetElevationMethods200JSONResponse{
+				ElevationRequired: true,
+				Methods:           []api.ElevationMethod{api.ElevationMethodTotp},
+				SessionElevated:   false,
+			},
+			jwtTokenFn: jwtTokenWithElevatedClaimFn("d0902ee3-d160-4853-af6a-8d4b6248117e"),
+			getControllerOpts: []getControllerOptsFunc{
+				withElevationMode("recommended"),
+			},
+		},
+		{
 			name:   "both factors available",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
@@ -74,6 +127,7 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 			request: api.GetElevationMethodsRequestObject{},
 			expectedResponse: api.GetElevationMethods200JSONResponse{
 				ElevationRequired: true,
+				SessionElevated:   false,
 				Methods: []api.ElevationMethod{
 					api.ElevationMethodWebauthn,
 					api.ElevationMethodTotp,
@@ -100,6 +154,7 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 			request: api.GetElevationMethodsRequestObject{},
 			expectedResponse: api.GetElevationMethods200JSONResponse{
 				ElevationRequired: true,
+				SessionElevated:   false,
 				Methods:           []api.ElevationMethod{api.ElevationMethodWebauthn},
 			},
 			jwtTokenFn:  jwtTokenFn,
@@ -123,6 +178,7 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 			request: api.GetElevationMethodsRequestObject{},
 			expectedResponse: api.GetElevationMethods200JSONResponse{
 				ElevationRequired: true,
+				SessionElevated:   false,
 				Methods:           []api.ElevationMethod{api.ElevationMethodTotp},
 			},
 			jwtTokenFn:  jwtTokenFn,
@@ -146,6 +202,7 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 			request: api.GetElevationMethodsRequestObject{},
 			expectedResponse: api.GetElevationMethods200JSONResponse{
 				ElevationRequired: false,
+				SessionElevated:   false,
 				Methods:           []api.ElevationMethod{},
 			},
 			jwtTokenFn:  jwtTokenFn,
@@ -174,6 +231,7 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 			request: api.GetElevationMethodsRequestObject{},
 			expectedResponse: api.GetElevationMethods200JSONResponse{
 				ElevationRequired: true,
+				SessionElevated:   false,
 				Methods:           []api.ElevationMethod{api.ElevationMethodTotp},
 			},
 			jwtTokenFn:  jwtTokenFn,
@@ -203,6 +261,7 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 			request: api.GetElevationMethodsRequestObject{},
 			expectedResponse: api.GetElevationMethods200JSONResponse{
 				ElevationRequired: true,
+				SessionElevated:   false,
 				Methods:           []api.ElevationMethod{api.ElevationMethodWebauthn},
 			},
 			jwtTokenFn:  jwtTokenFn,
@@ -307,6 +366,7 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 			request: api.GetElevationMethodsRequestObject{},
 			expectedResponse: api.GetElevationMethods200JSONResponse{
 				ElevationRequired: false,
+				SessionElevated:   false,
 				Methods:           []api.ElevationMethod{api.ElevationMethodTotp},
 			},
 			jwtTokenFn:  jwtTokenFn,
@@ -330,6 +390,7 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 			request: api.GetElevationMethodsRequestObject{},
 			expectedResponse: api.GetElevationMethods200JSONResponse{
 				ElevationRequired: true,
+				SessionElevated:   false,
 				Methods:           []api.ElevationMethod{},
 			},
 			jwtTokenFn:  jwtTokenFn,
@@ -358,6 +419,7 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 			request: api.GetElevationMethodsRequestObject{},
 			expectedResponse: api.GetElevationMethods200JSONResponse{
 				ElevationRequired: false,
+				SessionElevated:   false,
 				Methods:           []api.ElevationMethod{},
 			},
 			jwtTokenFn:  jwtTokenFn,
@@ -381,6 +443,7 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 			request: api.GetElevationMethodsRequestObject{},
 			expectedResponse: api.GetElevationMethods200JSONResponse{
 				ElevationRequired: true,
+				SessionElevated:   false,
 				Methods:           []api.ElevationMethod{},
 			},
 			jwtTokenFn:        jwtTokenFn,

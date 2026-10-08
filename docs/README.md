@@ -58,19 +58,20 @@ keywords: [keyword1, keyword2]
 
 The sidebar is configured in `astro.config.mjs` using `starlightSidebarTopics`. Add new pages to the appropriate section.
 
-## Reference Documentation (generated)
+## Generated Documentation
 
-The reference pages under `src/content/docs/reference/`, along with the spec and schema copies
-under `public/`, are generated from source and committed to the repo, so `pnpm dev`/`pnpm
-build` use them as-is. Run `pnpm generate` only after changing one of their sources, then
-commit the result:
+Some documentation pages under `src/content/docs/`, along with the spec and schema copies under
+`public/`, are generated from source and committed to the repo, so `pnpm dev`/`pnpm build`
+use them as-is. Run `pnpm generate` only after changing one of their sources, then commit the
+result:
 
-| Source changed | Regenerated output |
-| --- | --- |
-| CLI command tree (`cli/`; see `internal/lib/clidocs`) | `reference/cli/commands.mdx` |
-| `packages/nhost-js` (TypeDoc) | `reference/javascript/nhost-js/**` |
-| OpenAPI schemas (auth, storage) | `src/schemas/*.yaml`, `public/openapi/*.{yaml,json}` |
-| Cloud GraphQL schema (`cli/mcp/resources/cloud_schema*.graphql`) | `public/graphql/*.graphql` |
+| Source changed                                                   | Regenerated output                                   |
+| ---------------------------------------------------------------- | ---------------------------------------------------- |
+| CLI command tree (`cli/`; see `internal/lib/clidocs`)            | `reference/cli/commands.mdx`                         |
+| `packages/nhost-js` (TypeDoc)                                    | `reference/javascript/nhost-js/**`                   |
+| OpenAPI schemas (auth, storage)                                  | `src/schemas/*.yaml`, `public/openapi/*.{yaml,json}` |
+| Cloud GraphQL schema (`cli/mcp/resources/cloud_schema*.graphql`) | `public/graphql/*.graphql`                           |
+| PostgreSQL extension manifest (`services/postgres/plugins.md`)   | `products/database/extensions.mdx`                   |
 
 Run it in the docs Nix dev shell (`nix develop .#docs`, which provides the `cli` binary)
 on Linux — the TypeDoc/OpenAPI steps use GNU `sed`, which misbehaves on macOS.
