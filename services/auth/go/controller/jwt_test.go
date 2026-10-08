@@ -572,8 +572,10 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 				// With AUTH_API_PREFIX set the request URL carries the prefix
 				// but the matched route path does not.
 				mock := mock.NewMockDBClient(ctrl)
-				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
-				mock.EXPECT().GetUser(gomock.Any(), userID).Return(sql.AuthUser{}, nil)
+
+				mock.EXPECT().GetElevationMethods(gomock.Any(), userID).Return(
+					sql.GetElevationMethodsRow{}, nil,
+				)
 
 				return mock
 			},

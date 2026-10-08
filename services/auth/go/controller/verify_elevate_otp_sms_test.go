@@ -176,7 +176,7 @@ func TestVerifyElevateOTPSms(t *testing.T) { //nolint:maintidx
 
 				return c
 			},
-			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUser(

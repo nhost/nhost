@@ -74,8 +74,8 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
-				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
-				mock.EXPECT().GetUser(gomock.Any(), userID).Return(totpUser, nil)
+
+				mock.EXPECT().GetElevationMethods(gomock.Any(), userID).Return(totpUser, nil)
 
 				return mock
 			},
@@ -95,8 +95,8 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
-				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
-				mock.EXPECT().GetUser(gomock.Any(), userID).Return(totpUser, nil)
+
+				mock.EXPECT().GetElevationMethods(gomock.Any(), userID).Return(totpUser, nil)
 
 				return mock
 			},
