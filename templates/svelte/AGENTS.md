@@ -26,9 +26,11 @@ It has two halves:
    and `prerender = false`, and the adapter is `adapter-static` with an
    `index.html` fallback. Do not add a `+page.server.ts` or a `+server.ts`:
    nothing would run them, and the session lives in the browser.
-4. **The session is read before the first page renders.** The root
-   `+layout.ts` awaits `startAuth()`. Nothing needs a loading check, and
-   adding one would be dead code.
+4. **The session is read before the first page renders.**
+   `frontend/src/hooks.client.ts` awaits `startAuth()` in its `init` hook.
+   Nothing needs a loading check, and adding one would be dead code. Do not
+   move it into a layout's `load`: SvelteKit writes the starting URL back
+   after loads finish, which would restore the link token rule 5 strips.
 5. **The token on the URL is redeemed once, at startup.**
    `frontend/src/lib/nhost/linkToken.ts` exchanges the `refreshToken` query
    parameter that auth emails and the OAuth callback come back with, then

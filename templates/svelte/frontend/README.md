@@ -117,11 +117,12 @@ rest.
 what keeps it reactive through the call: destructuring it reads it once and
 never sees another change.
 
-The root `+layout.ts` awaits `startAuth()`, and SvelteKit runs a layout's load
-before the page it wraps. That is what makes the first render already know
-whether there is a session, so nothing flashes a signed-out view and no
-protected route bounces a signed-in visitor on reload. It costs nothing on an
-ordinary load, because with no token on the URL there is no request to make.
+`src/hooks.client.ts` awaits `startAuth()` in its `init` hook, which SvelteKit
+runs before it reads the URL or renders anything. That is what makes the first
+render already know whether there is a session, so nothing flashes a signed-out
+view and no protected route bounces a signed-in visitor on reload. It costs
+nothing on an ordinary load, because with no token on the URL there is no
+request to make.
 
 **Read this before shipping something sensitive.** A browser app has nowhere to
 put a refresh token that JavaScript cannot reach. Anything that manages to run

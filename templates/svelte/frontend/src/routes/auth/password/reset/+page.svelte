@@ -6,8 +6,8 @@ import ResetPasswordForm from './ResetPasswordForm.svelte';
 
 // The reset email's link goes through the auth service, which sends the
 // browser back here with a refresh token that `lib/nhost/linkToken.ts`
-// redeems on the way in. That happens in `startAuth`, which the root
-// `+layout.ts` awaits, so by the time this renders a session means the link
+// redeems on the way in. That happens in `startAuth`, which
+// `hooks.client.ts` awaits, so by the time this renders a session means the link
 // worked and no session means it was expired or already used.
 const auth = useAuth();
 

@@ -27,6 +27,22 @@ export async function redeemLinkToken(nhost: NhostClient): Promise<void> {
     return;
   }
 
+  // Off the URL before the exchange, so it is gone even if the request hangs
+  // or fails. It is single use, so it will not work on a reload, and leaving
+  // it in the address bar puts it in browser history and in the `Referer` of
+  // anything this page loads next. The native `history` rather than
+  // `$app/navigation`, because this runs before the router has started.
+  params.delete(LINK_TOKEN_PARAM);
+
+  const query = params.toString();
+  const { pathname, hash } = window.location;
+
+  window.history.replaceState(
+    window.history.state,
+    '',
+    `${pathname}${query ? `?${query}` : ''}${hash}`,
+  );
+
   try {
     await nhost.auth.refreshToken({ refreshToken: token });
   } catch (err) {
@@ -34,19 +50,5 @@ export async function redeemLinkToken(nhost: NhostClient): Promise<void> {
     // nothing to recover: the visitor stays signed out and can ask for
     // another one.
     console.error('Could not sign in from that link:', err);
-  } finally {
-    // Off the URL either way. It is single use, so it will not work on a
-    // reload, and leaving it in the address bar puts it in browser history
-    // and in the `Referer` of anything this page loads next.
-    params.delete(LINK_TOKEN_PARAM);
-
-    const query = params.toString();
-    const { pathname, hash } = window.location;
-
-    window.history.replaceState(
-      null,
-      '',
-      `${pathname}${query ? `?${query}` : ''}${hash}`,
-    );
   }
 }

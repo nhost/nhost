@@ -39,11 +39,11 @@ nhost.sessionStorage.onChange((next) => {
 /**
  * Reads the stored session, redeeming a token on the URL first.
  *
- * The root `+layout.ts` awaits this, so it has finished before the first page
+ * `hooks.client.ts` awaits this, so it has finished before the first page
  * renders: a signed-in visitor never flashes as signed out, and a protected
  * page never bounces them in that frame. It costs nothing on an ordinary load,
  * because with no token on the URL `redeemLinkToken` returns without a
- * request.
+ * request. It must not throw: a rejection there stops the app from starting.
  */
 export async function startAuth(): Promise<void> {
   // An arrival from an auth email or an OAuth callback carries the session on

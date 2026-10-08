@@ -14,8 +14,8 @@ const auth = useAuth();
 // no matter what this page renders.
 const user = $derived(auth.session?.user);
 
-// Nothing here guards against an unread session: the root `+layout.ts`
-// awaits `startAuth` before this renders, so the stored session is already
+// Nothing here guards against an unread session: `hooks.client.ts` awaits
+// `startAuth` before this renders, so the stored session is already
 // known and a signed-in visitor reloading is never bounced.
 //
 // An effect rather than a one-off check so that signing out in another tab
