@@ -1,6 +1,8 @@
 import {
   buildExtensionMigration,
+  getDropExtensionStatement,
   getInstallExtensionSQL,
+  getUninstallExtensionSQL,
 } from './useSetExtensionInstalledMutation';
 
 function runSql(sql: string) {
@@ -13,20 +15,33 @@ function runSql(sql: string) {
 }
 
 describe('getInstallExtensionSQL', () => {
-  it('quotes the name and pins the version as a literal', () => {
+  it('quotes the name and installs the default version', () => {
     expect(getInstallExtensionSQL('uuid-ossp')).toBe(
-      'SET ROLE postgres;\nCREATE EXTENSION IF NOT EXISTS "uuid-ossp";\nRESET ROLE;',
+      'SET LOCAL ROLE postgres;\nCREATE EXTENSION IF NOT EXISTS "uuid-ossp";',
     );
-    expect(getInstallExtensionSQL('pg_cron', "1'5")).toBe(
-      "SET ROLE postgres;\nCREATE EXTENSION IF NOT EXISTS pg_cron VERSION '1''5';\nRESET ROLE;",
+  });
+
+  it('adds CASCADE only when asked to install dependencies', () => {
+    expect(getInstallExtensionSQL('pg_search', { cascade: true })).toBe(
+      'SET LOCAL ROLE postgres;\nCREATE EXTENSION IF NOT EXISTS pg_search CASCADE;',
+    );
+  });
+});
+
+describe('getDropExtensionStatement', () => {
+  it('drops without CASCADE unless the extension needs it', () => {
+    expect(getDropExtensionStatement('uuid-ossp')).toBe(
+      'DROP EXTENSION IF EXISTS "uuid-ossp"',
+    );
+    expect(getDropExtensionStatement('pg_durable')).toBe(
+      'DROP EXTENSION IF EXISTS pg_durable CASCADE',
     );
   });
 });
 
 describe('buildExtensionMigration', () => {
   it('runs the install SQL verbatim and rolls back with DROP IF EXISTS', () => {
-    const sql =
-      "SET ROLE postgres;\nCREATE EXTENSION vector VERSION '0.7.4';\nRESET ROLE;";
+    const sql = 'SET LOCAL ROLE postgres;\nCREATE EXTENSION vector;';
 
     expect(
       buildExtensionMigration(
@@ -39,25 +54,34 @@ describe('buildExtensionMigration', () => {
       skip_execution: false,
       up: runSql(sql),
       down: runSql(
-        'SET ROLE postgres;\nDROP EXTENSION IF EXISTS vector;\nRESET ROLE;',
+        'SET LOCAL ROLE postgres;\nDROP EXTENSION IF EXISTS vector;',
       ),
     });
   });
 
-  it('uninstalls without CASCADE and rolls back by reinstalling', () => {
+  it('runs the uninstall SQL verbatim and rolls back by reinstalling', () => {
+    const sql = getUninstallExtensionSQL('uuid-ossp');
+
+    expect(sql).toBe(
+      'SET LOCAL ROLE postgres;\nDROP EXTENSION IF EXISTS "uuid-ossp";',
+    );
     expect(
       buildExtensionMigration(
-        { name: 'uuid-ossp', installed: false },
+        { name: 'uuid-ossp', installed: false, sql },
         'default',
       ),
     ).toEqual({
       name: 'drop_extension_uuid_ossp',
       datasource: 'default',
       skip_execution: false,
-      up: runSql(
-        'SET ROLE postgres;\nDROP EXTENSION IF EXISTS "uuid-ossp";\nRESET ROLE;',
-      ),
+      up: runSql(sql),
       down: runSql(getInstallExtensionSQL('uuid-ossp')),
     });
+  });
+
+  it('uninstalls pg_durable with CASCADE', () => {
+    expect(getUninstallExtensionSQL('pg_durable')).toBe(
+      'SET LOCAL ROLE postgres;\nDROP EXTENSION IF EXISTS pg_durable CASCADE;',
+    );
   });
 });

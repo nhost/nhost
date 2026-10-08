@@ -10,7 +10,6 @@ import {
   ExtensionActionControl,
   PreloadHint,
 } from '@/features/orgs/projects/database/extensions/components/ExtensionActionControl';
-import { PRELOAD_REQUIRED_EXTENSIONS } from '@/features/orgs/projects/database/extensions/constants';
 import type { PostgresExtension } from '@/features/orgs/projects/database/extensions/hooks/usePostgresExtensionsQuery';
 import { getExtensionDisplayName } from '@/features/orgs/projects/database/extensions/utils/getExtensionDisplayName';
 import { getExtensionDocsUrl } from '@/features/orgs/projects/database/extensions/utils/getExtensionDocsUrl';
@@ -20,20 +19,26 @@ import { cn } from '@/lib/utils';
 
 export interface ExtensionsTableProps {
   extensions: PostgresExtension[];
+  /**
+   * Libraries PostgreSQL preloaded at startup; `undefined` when unknown.
+   */
+  preloadedLibraries?: string[];
   onAction: (action: ExtensionAction, extension: PostgresExtension) => void;
 }
 
 function ExtensionRow({
   extension,
+  preloadedLibraries,
   onAction,
-}: Pick<ExtensionsTableProps, 'onAction'> & { extension: PostgresExtension }) {
+}: Omit<ExtensionsTableProps, 'extensions'> & {
+  extension: PostgresExtension;
+}) {
   const displayName = getExtensionDisplayName(extension.name);
   const isBuiltIn = isExtensionBuiltIn(extension);
 
   return (
     <TableRow
       data-testid={`extension-row-${extension.name}`}
-      data-built-in={isBuiltIn || undefined}
       className={cn(isBuiltIn && 'bg-muted hover:bg-muted')}
     >
       <TableCell className="w-56 break-words">
@@ -52,7 +57,10 @@ function ExtensionRow({
           >
             {displayName}
           </a>
-          {PRELOAD_REQUIRED_EXTENSIONS.has(extension.name) && <PreloadHint />}
+          <PreloadHint
+            extensionName={extension.name}
+            preloadedLibraries={preloadedLibraries}
+          />
         </div>
       </TableCell>
       <TableCell className="w-44 pr-8 text-right text-muted-foreground tabular-nums">
@@ -70,6 +78,7 @@ function ExtensionRow({
 
 export default function ExtensionsTable({
   extensions,
+  preloadedLibraries,
   onAction,
 }: ExtensionsTableProps) {
   return (
@@ -79,6 +88,7 @@ export default function ExtensionsTable({
           <ExtensionRow
             key={extension.name}
             extension={extension}
+            preloadedLibraries={preloadedLibraries}
             onAction={onAction}
           />
         ))}

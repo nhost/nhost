@@ -4,7 +4,6 @@ import {
   ExtensionActionControl,
   PreloadHint,
 } from '@/features/orgs/projects/database/extensions/components/ExtensionActionControl';
-import { PRELOAD_REQUIRED_EXTENSIONS } from '@/features/orgs/projects/database/extensions/constants';
 import type { PostgresExtension } from '@/features/orgs/projects/database/extensions/hooks/usePostgresExtensionsQuery';
 import { getExtensionDisplayName } from '@/features/orgs/projects/database/extensions/utils/getExtensionDisplayName';
 import { getExtensionDocsUrl } from '@/features/orgs/projects/database/extensions/utils/getExtensionDocsUrl';
@@ -14,13 +13,20 @@ import { cn } from '@/lib/utils';
 
 export interface ExtensionsGridProps {
   extensions: PostgresExtension[];
+  /**
+   * Libraries PostgreSQL preloaded at startup; `undefined` when unknown.
+   */
+  preloadedLibraries?: string[];
   onAction: (action: ExtensionAction, extension: PostgresExtension) => void;
 }
 
 function ExtensionCard({
   extension,
+  preloadedLibraries,
   onAction,
-}: Pick<ExtensionsGridProps, 'onAction'> & { extension: PostgresExtension }) {
+}: Omit<ExtensionsGridProps, 'extensions'> & {
+  extension: PostgresExtension;
+}) {
   const displayName = getExtensionDisplayName(extension.name);
   const isBuiltIn = isExtensionBuiltIn(extension);
   const versionLabel = getExtensionVersionLabel(extension);
@@ -28,7 +34,6 @@ function ExtensionCard({
   return (
     <div
       data-testid={`extension-card-${extension.name}`}
-      data-built-in={isBuiltIn || undefined}
       className={cn(
         'flex flex-col gap-3 rounded-lg border p-4',
         isBuiltIn ? 'bg-background' : 'bg-muted',
@@ -55,7 +60,10 @@ function ExtensionCard({
           >
             {displayName}
           </a>
-          {PRELOAD_REQUIRED_EXTENSIONS.has(extension.name) && <PreloadHint />}
+          <PreloadHint
+            extensionName={extension.name}
+            preloadedLibraries={preloadedLibraries}
+          />
         </div>
         {versionLabel && (
           <span className="mt-[3px] shrink-0 text-muted-foreground text-xs tabular-nums">
@@ -77,6 +85,7 @@ function ExtensionCard({
 
 export default function ExtensionsGrid({
   extensions,
+  preloadedLibraries,
   onAction,
 }: ExtensionsGridProps) {
   return (
@@ -85,6 +94,7 @@ export default function ExtensionsGrid({
         <ExtensionCard
           key={extension.name}
           extension={extension}
+          preloadedLibraries={preloadedLibraries}
           onAction={onAction}
         />
       ))}

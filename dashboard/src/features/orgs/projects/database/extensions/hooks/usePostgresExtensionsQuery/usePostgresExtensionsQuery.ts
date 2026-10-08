@@ -14,9 +14,9 @@ export interface PostgresExtension {
   installed_version: string | null;
   comment: string | null;
   /**
-   * Installable versions, newest first.
+   * Extensions the default version depends on.
    */
-  versions: string[];
+  requires: string[];
 }
 
 const EXTENSIONS_SQL = `SELECT row_to_json(extension_data) AS data FROM (
@@ -25,15 +25,10 @@ const EXTENSIONS_SQL = `SELECT row_to_json(extension_data) AS data FROM (
     e.default_version,
     e.installed_version,
     e.comment,
-    COALESCE(
-      (
-        SELECT array_agg(v.version)
-        FROM pg_available_extension_versions v
-        WHERE v.name = e.name AND v.version NOT IN ('ANY', 'unpackaged')
-      ),
-      '{}'
-    ) AS versions
+    COALESCE(d.requires, '{}') AS requires
   FROM pg_available_extensions e
+  LEFT JOIN pg_available_extension_versions d
+    ON d.name = e.name AND d.version = e.default_version
   ORDER BY e.name ASC
 ) extension_data`;
 
@@ -62,21 +57,11 @@ async function fetchPostgresExtensions(
   // The first row holds the column names; each other row is one JSON value.
   const [, ...rows] = (data as QueryResult<string[][]>[])[0].result;
 
-  let extensions: PostgresExtension[];
-
   try {
-    extensions = rows.map(([row]) => JSON.parse(row));
+    return rows.map(([row]) => JSON.parse(row));
   } catch {
     throw new Error('Received an invalid extensions catalog.');
   }
-
-  for (const { versions } of extensions) {
-    versions.sort((left, right) =>
-      right.localeCompare(left, undefined, { numeric: true }),
-    );
-  }
-
-  return extensions;
 }
 
 export default function usePostgresExtensionsQuery(dataSource: string) {

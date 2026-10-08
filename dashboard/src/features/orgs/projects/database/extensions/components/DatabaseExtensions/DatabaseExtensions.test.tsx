@@ -2,13 +2,17 @@ import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
 import { toast } from 'react-hot-toast';
 import { DatabaseExtensions } from '@/features/orgs/projects/database/extensions/components/DatabaseExtensions';
+import { DEFAULT_PRELOADED_LIBRARIES } from '@/features/orgs/projects/database/extensions/constants';
 import type { PostgresExtension } from '@/features/orgs/projects/database/extensions/hooks/usePostgresExtensionsQuery';
 import {
   buildExtensionMigration,
   getInstallExtensionSQL,
+  getUninstallExtensionSQL,
 } from '@/features/orgs/projects/database/extensions/hooks/useSetExtensionInstalledMutation';
 import { mockMatchMediaValue } from '@/tests/mocks';
+import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
 import {
+  act,
   mockScrollIntoViewAndPointerCapture,
   queryClient,
   render,
@@ -17,6 +21,7 @@ import {
   waitFor,
   within,
 } from '@/tests/testUtils';
+import { ApplicationStatus } from '@/types/application';
 
 const HASURA_URL = 'https://local.hasura.local.nhost.run';
 const MIGRATIONS_URL = `${HASURA_URL}/apis/migrate`;
@@ -25,6 +30,7 @@ const mocks = vi.hoisted(() => ({
   useRouter: vi.fn(),
   useIsPlatform: vi.fn(),
   useProject: vi.fn(),
+  useAppState: vi.fn(),
 }));
 
 vi.mock('next/router', () => ({ useRouter: mocks.useRouter }));
@@ -35,6 +41,15 @@ vi.mock('@/features/orgs/projects/common/hooks/useIsPlatform', () => ({
 
 vi.mock('@/features/orgs/projects/hooks/useProject', () => ({
   useProject: mocks.useProject,
+}));
+
+vi.mock('@/features/orgs/projects/common/hooks/useAppState', () => ({
+  useAppState: mocks.useAppState,
+}));
+
+// Local config requests go through the test Apollo client.
+vi.mock('@/features/orgs/projects/hooks/useLocalMimirClient', () => ({
+  useLocalMimirClient: () => undefined,
 }));
 
 vi.mock('@uiw/react-codemirror', () => ({
@@ -66,47 +81,79 @@ const catalog: PostgresExtension[] = [
     default_version: '1.6',
     installed_version: '1.6',
     comment: 'data type for case-insensitive character strings',
-    versions: ['1.6'],
+    requires: [],
+  },
+  {
+    name: 'cube',
+    default_version: '1.5',
+    installed_version: null,
+    comment: 'data type for multidimensional cubes',
+    requires: [],
+  },
+  {
+    name: 'earthdistance',
+    default_version: '1.2',
+    installed_version: null,
+    comment: 'calculate great-circle distances on the surface of the Earth',
+    requires: ['cube'],
   },
   {
     name: 'hstore',
     default_version: '1.8',
     installed_version: null,
     comment: 'data type for storing sets of key/value pairs',
-    versions: ['1.8'],
+    requires: [],
   },
   {
     name: 'pg_cron',
     default_version: '1.6',
     installed_version: null,
     comment: 'job scheduler for PostgreSQL',
-    versions: ['1.6', '1.5'],
+    requires: [],
+  },
+  {
+    name: 'pg_durable',
+    default_version: '0.2.8',
+    installed_version: '0.2.8',
+    comment: 'SQL-native durable orchestrations for PostgreSQL',
+    requires: [],
+  },
+  {
+    name: 'pg_ivm',
+    default_version: '1.15',
+    installed_version: null,
+    comment: 'incremental view maintenance on PostgreSQL',
+    requires: [],
   },
   {
     name: 'postgis',
     default_version: '3.6.1',
     installed_version: '3.6.1',
     comment: 'PostGIS geometry and geography spatial types and functions',
-    versions: ['3.6.1'],
+    requires: [],
   },
   {
     name: 'uuid-ossp',
     default_version: '1.1',
     installed_version: null,
     comment: 'generate universally unique identifiers',
-    versions: ['1.1'],
+    requires: [],
   },
   {
     name: 'vector',
     default_version: '0.8.1',
     installed_version: null,
     comment: 'vector data type and ivfflat and hnsw access methods',
-    versions: ['0.8.1'],
+    requires: [],
   },
 ];
 
 let catalogRequests = 0;
 let writeRequests: Array<{ url: string; body: unknown }> = [];
+let preloadedLibraries: string[] = [];
+// `null` mirrors a project that never set `sharedPreloadLibraries`.
+let configuredLibraries: string[] | null = null;
+let configUpdates: unknown[] = [];
 
 function postgresError(status_code: string, message: string) {
   return {
@@ -131,10 +178,20 @@ function migrationError(status_code: string, message: string) {
 const server = setupServer(
   http.post(`${HASURA_URL}/v2/query`, async ({ request }) => {
     const body = (await request.json()) as {
-      args: Array<{ args: { read_only: boolean } }>;
+      args: Array<{ args: { read_only: boolean; sql: string } }>;
     };
+    const { read_only: readOnly, sql } = body.args[0].args;
 
-    if (body.args[0].args.read_only) {
+    if (readOnly && sql.includes('shared_preload_libraries')) {
+      return HttpResponse.json([
+        {
+          result_type: 'TuplesOk',
+          result: [['current_setting'], [preloadedLibraries.join(',')]],
+        },
+      ]);
+    }
+
+    if (readOnly) {
       catalogRequests += 1;
 
       return HttpResponse.json([
@@ -154,6 +211,34 @@ const server = setupServer(
 
     return HttpResponse.json({ name: 'migration', version: 1 });
   }),
+  nhostGraphQLLink.query('GetConfiguredPreloadLibraries', () =>
+    HttpResponse.json({
+      data: {
+        config: {
+          __typename: 'ConfigConfig',
+          id: 'ConfigConfig',
+          postgres: {
+            __typename: 'ConfigPostgres',
+            settings: configuredLibraries && {
+              __typename: 'ConfigPostgresSettings',
+              sharedPreloadLibraries: configuredLibraries,
+            },
+          },
+        },
+      },
+    }),
+  ),
+  nhostGraphQLLink.mutation('UpdateConfig', ({ variables }) => {
+    configUpdates.push(variables.config);
+    configuredLibraries =
+      variables.config.postgres.settings.sharedPreloadLibraries;
+
+    return HttpResponse.json({
+      data: {
+        updateConfig: { __typename: 'ConfigConfig', id: 'ConfigConfig' },
+      },
+    });
+  }),
 );
 
 beforeAll(() => {
@@ -169,8 +254,10 @@ beforeEach(() => {
     },
   });
   mocks.useIsPlatform.mockReturnValue(false);
+  mocks.useAppState.mockReturnValue({ state: ApplicationStatus.Live });
   mocks.useProject.mockReturnValue({
     project: {
+      id: 'project-id',
       subdomain: 'local',
       region: { name: 'local', domain: 'local.nhost.run' },
       config: { hasura: { adminSecret: 'nhost-admin-secret' } },
@@ -178,6 +265,9 @@ beforeEach(() => {
   });
   catalogRequests = 0;
   writeRequests = [];
+  preloadedLibraries = [...DEFAULT_PRELOADED_LIBRARIES];
+  configuredLibraries = null;
+  configUpdates = [];
 });
 afterEach(() => {
   server.resetHandlers();
@@ -196,12 +286,6 @@ function getRow(region: HTMLElement, name: string) {
   return within(region).getByTestId(`extension-row-${name}`);
 }
 
-async function openTooltip(user: TestUserEvent, trigger: Element) {
-  await user.hover(trigger);
-
-  return screen.findByRole('tooltip');
-}
-
 async function openInstallDialog(
   user: TestUserEvent,
   region: HTMLElement,
@@ -210,6 +294,18 @@ async function openInstallDialog(
   await user.click(within(region).getByTestId(`install-extension-${name}`));
 
   return screen.findByRole('dialog');
+}
+
+function getInstallButton(dialog: HTMLElement) {
+  return within(dialog).getByTestId('confirm-install-extension');
+}
+
+async function waitUntilInstallable(dialog: HTMLElement) {
+  await waitFor(() => expect(getInstallButton(dialog)).toBeEnabled());
+}
+
+function getPreloadStep(dialog: HTMLElement) {
+  return within(dialog).getAllByRole('listitem')[0];
 }
 
 describe('DatabaseExtensions', () => {
@@ -283,25 +379,16 @@ describe('DatabaseExtensions', () => {
   });
 
   it('locks built-in extensions instead of offering uninstall', async () => {
-    const user = new TestUserEvent();
     const all = await renderPage();
     const citext = getRow(all, 'citext');
 
-    expect(citext).toHaveAttribute('data-built-in', 'true');
+    expect(within(citext).getByText('Built-in')).toBeInTheDocument();
     expect(
       within(citext).queryByTestId('uninstall-extension-citext'),
     ).not.toBeInTheDocument();
-
-    const tooltip = await openTooltip(
-      user,
-      within(citext).getByText('Built-in'),
-    );
-
-    expect(tooltip).toHaveTextContent(/^Cannot be uninstalled\./);
   });
 
   it('throws catalog errors to the error boundary', async () => {
-    vi.spyOn(console, 'error').mockImplementation(() => undefined);
     server.use(
       http.post(`${HASURA_URL}/v2/query`, () =>
         HttpResponse.json(
@@ -327,9 +414,6 @@ describe('DatabaseExtensions', () => {
       const sql = `-- pinned\n${getInstallExtensionSQL('uuid-ossp')}`;
 
       expect(editor).toHaveValue(getInstallExtensionSQL('uuid-ossp'));
-      expect(
-        within(dialog).queryByRole('combobox', { name: 'Version' }),
-      ).not.toBeInTheDocument();
 
       await user.clear(editor);
       await user.paste(sql);
@@ -354,33 +438,6 @@ describe('DatabaseExtensions', () => {
       ).toBeInTheDocument();
     });
 
-    it('regenerates the SQL for the selected version', async () => {
-      const user = new TestUserEvent();
-      const dialog = await openInstallDialog(
-        user,
-        await renderPage(),
-        'pg_cron',
-      );
-      const editor = within(dialog).getByRole('textbox', { name: 'SQL' });
-      const versionSelect = within(dialog).getByRole('combobox', {
-        name: 'Version',
-      });
-
-      expect(versionSelect).toHaveTextContent('1.6 (default)');
-
-      await user.click(versionSelect);
-      await user.click(await screen.findByRole('option', { name: '1.5' }));
-
-      expect(editor).toHaveValue(getInstallExtensionSQL('pg_cron', '1.5'));
-
-      await user.click(versionSelect);
-      await user.click(
-        await screen.findByRole('option', { name: '1.6 (default)' }),
-      );
-
-      expect(editor).toHaveValue(getInstallExtensionSQL('pg_cron'));
-    });
-
     it('cannot be dismissed while running and shows errors inline', async () => {
       const user = new TestUserEvent();
       let respond: VoidFunction = () => undefined;
@@ -402,6 +459,7 @@ describe('DatabaseExtensions', () => {
         await renderPage(),
         'pg_cron',
       );
+      await waitUntilInstallable(dialog);
 
       await user.click(within(dialog).getByTestId('confirm-install-extension'));
       await waitFor(() =>
@@ -435,11 +493,232 @@ describe('DatabaseExtensions', () => {
       await waitFor(() =>
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
       );
+      expect(within(all).getByTestId('install-extension-hstore')).toHaveFocus();
       dialog = await openInstallDialog(user, all, 'hstore');
 
       expect(within(dialog).getByRole('textbox', { name: 'SQL' })).toHaveValue(
         getInstallExtensionSQL('hstore'),
       );
+      expect(dialog).not.toHaveTextContent('Also installs');
+    });
+
+    it('installs missing dependencies with CASCADE', async () => {
+      const user = new TestUserEvent();
+      const dialog = await openInstallDialog(
+        user,
+        await renderPage(),
+        'earthdistance',
+      );
+
+      expect(within(dialog).getByRole('textbox', { name: 'SQL' })).toHaveValue(
+        getInstallExtensionSQL('earthdistance', { cascade: true }),
+      );
+      expect(dialog).toHaveTextContent(
+        'Also installs cube, which earthdistance depends on.',
+      );
+    });
+  });
+
+  describe('preloaded libraries', () => {
+    it('marks the preload step done when Postgres already loads the library', async () => {
+      const user = new TestUserEvent();
+      const dialog = await openInstallDialog(
+        user,
+        await renderPage(),
+        'pg_cron',
+      );
+
+      await waitUntilInstallable(dialog);
+      expect(getPreloadStep(dialog)).toHaveAttribute('data-state', 'complete');
+      expect(getPreloadStep(dialog)).toHaveTextContent(
+        'Postgres loads pg_cron at startup.',
+      );
+      expect(configUpdates).toEqual([]);
+    });
+
+    it('adds the library locally and installs after nhost up', async () => {
+      const user = new TestUserEvent();
+      const dialog = await openInstallDialog(
+        user,
+        await renderPage(),
+        'pg_ivm',
+      );
+
+      await user.click(
+        await within(dialog).findByRole('button', {
+          name: 'Add to preloaded libraries',
+        }),
+      );
+
+      expect(await within(dialog).findByText('$ nhost up')).toBeInTheDocument();
+      expect(configUpdates).toEqual([
+        {
+          postgres: {
+            settings: {
+              sharedPreloadLibraries: [
+                ...DEFAULT_PRELOADED_LIBRARIES,
+                'pg_ivm',
+              ],
+            },
+          },
+        },
+      ]);
+      expect(getInstallButton(dialog)).toBeDisabled();
+
+      await user.click(
+        within(dialog).getByRole('button', { name: 'Check again' }),
+      );
+
+      await waitFor(() =>
+        expect(getPreloadStep(dialog)).toHaveTextContent(
+          'Postgres has not loaded pg_ivm yet.',
+        ),
+      );
+
+      preloadedLibraries = [...preloadedLibraries, 'pg_ivm'];
+      await user.click(
+        within(dialog).getByRole('button', { name: 'Check again' }),
+      );
+
+      await waitUntilInstallable(dialog);
+      expect(getPreloadStep(dialog)).toHaveAttribute('data-state', 'complete');
+      expect(getInstallButton(dialog)).toHaveFocus();
+
+      await user.click(getInstallButton(dialog));
+
+      await waitFor(() =>
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument(),
+      );
+      expect(writeRequests).toEqual([
+        {
+          url: MIGRATIONS_URL,
+          body: buildExtensionMigration(
+            {
+              name: 'pg_ivm',
+              installed: true,
+              sql: getInstallExtensionSQL('pg_ivm'),
+            },
+            'default',
+          ),
+        },
+      ]);
+    });
+
+    it('waits for the platform restart before enabling install', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+
+      try {
+        const user = new TestUserEvent({
+          advanceTimers: vi.advanceTimersByTime,
+        });
+        mocks.useIsPlatform.mockReturnValue(true);
+        configuredLibraries = ['pg_cron'];
+        const dialog = await openInstallDialog(
+          user,
+          await renderPage(),
+          'pg_ivm',
+        );
+
+        await user.click(
+          await within(dialog).findByRole('button', {
+            name: 'Add to preloaded libraries',
+          }),
+        );
+
+        expect(
+          await within(dialog).findByText(
+            'Restarting Postgres to load pg_ivm...',
+          ),
+        ).toBeInTheDocument();
+        expect(configUpdates).toEqual([
+          {
+            postgres: {
+              settings: { sharedPreloadLibraries: ['pg_cron', 'pg_ivm'] },
+            },
+          },
+        ]);
+        expect(getInstallButton(dialog)).toBeDisabled();
+
+        preloadedLibraries = [...preloadedLibraries, 'pg_ivm'];
+        await act(() => vi.advanceTimersByTimeAsync(10_000));
+
+        await waitUntilInstallable(dialog);
+        expect(getPreloadStep(dialog)).toHaveAttribute(
+          'data-state',
+          'complete',
+        );
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('keeps waiting for a restart started earlier', async () => {
+      const user = new TestUserEvent();
+      mocks.useIsPlatform.mockReturnValue(true);
+      configuredLibraries = [...DEFAULT_PRELOADED_LIBRARIES, 'pg_ivm'];
+      const dialog = await openInstallDialog(
+        user,
+        await renderPage(),
+        'pg_ivm',
+      );
+
+      expect(
+        await within(dialog).findByText(
+          'Restarting Postgres to load pg_ivm...',
+        ),
+      ).toBeInTheDocument();
+      expect(
+        within(dialog).queryByRole('button', { name: /^Add/ }),
+      ).not.toBeInTheDocument();
+      expect(getInstallButton(dialog)).toBeDisabled();
+    });
+
+    it('stops waiting when deploying the new settings fails', async () => {
+      const user = new TestUserEvent();
+      mocks.useIsPlatform.mockReturnValue(true);
+      mocks.useAppState.mockReturnValue({
+        state: ApplicationStatus.Errored,
+        project: {
+          appStates: [{ message: 'invalid configuration' }],
+        },
+      });
+      configuredLibraries = [...DEFAULT_PRELOADED_LIBRARIES, 'pg_ivm'];
+      const dialog = await openInstallDialog(
+        user,
+        await renderPage(),
+        'pg_ivm',
+      );
+
+      expect(
+        await within(dialog).findByText('Postgres did not restart'),
+      ).toBeInTheDocument();
+      expect(dialog).toHaveTextContent('invalid configuration');
+      expect(
+        within(getPreloadStep(dialog)).queryByRole('progressbar'),
+      ).not.toBeInTheDocument();
+      expect(getInstallButton(dialog)).toBeDisabled();
+    });
+
+    it('does not change the libraries when the settings fail to load', async () => {
+      const user = new TestUserEvent();
+      server.use(
+        nhostGraphQLLink.query('GetConfiguredPreloadLibraries', () =>
+          HttpResponse.json({ errors: [{ message: 'config unavailable' }] }),
+        ),
+      );
+      const dialog = await openInstallDialog(
+        user,
+        await renderPage(),
+        'pg_ivm',
+      );
+
+      expect(
+        await within(dialog).findByText(/Could not load the project settings/),
+      ).toBeInTheDocument();
+      expect(
+        within(dialog).queryByRole('button', { name: /^Add/ }),
+      ).not.toBeInTheDocument();
+      expect(getInstallButton(dialog)).toBeDisabled();
     });
   });
 
@@ -465,7 +744,11 @@ describe('DatabaseExtensions', () => {
             type: 'bulk',
             version: 1,
             args: buildExtensionMigration(
-              { name: 'postgis', installed: false },
+              {
+                name: 'postgis',
+                installed: false,
+                sql: getUninstallExtensionSQL('postgis'),
+              },
               'default',
             ).up,
           },
@@ -477,7 +760,45 @@ describe('DatabaseExtensions', () => {
       expect(screen.queryByText(/creates a migration/)).not.toBeInTheDocument();
     });
 
-    it('stays open with the dependents error and a link to the SQL editor', async () => {
+    it('records the edited SQL as a migration', async () => {
+      const user = new TestUserEvent();
+      const all = await renderPage();
+
+      await user.click(within(all).getByTestId('uninstall-extension-postgis'));
+      const dialog = await screen.findByRole('alertdialog');
+      const editor = within(dialog).getByRole('textbox', { name: 'SQL' });
+      const sql = getUninstallExtensionSQL('postgis').replace(
+        'postgis;',
+        'postgis CASCADE;',
+      );
+
+      expect(editor).toHaveValue(getUninstallExtensionSQL('postgis'));
+
+      await user.clear(editor);
+      await user.paste(sql);
+      await user.click(
+        within(dialog).getByTestId('confirm-uninstall-extension'),
+      );
+
+      await waitFor(() =>
+        expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument(),
+      );
+      expect(writeRequests).toEqual([
+        {
+          url: MIGRATIONS_URL,
+          body: buildExtensionMigration(
+            { name: 'postgis', installed: false, sql },
+            'default',
+          ),
+        },
+      ]);
+      expect(
+        (writeRequests[0].body as ReturnType<typeof buildExtensionMigration>)
+          .down[0].args.sql,
+      ).toBe(getInstallExtensionSQL('postgis'));
+    });
+
+    it('stays open and explains how to drop dependent objects', async () => {
       const user = new TestUserEvent();
       server.use(
         http.post(MIGRATIONS_URL, () =>
@@ -500,12 +821,72 @@ describe('DatabaseExtensions', () => {
           'cannot drop extension postgis because other objects depend on it',
         ),
       ).toBeInTheDocument();
-      expect(
-        within(dialog).getByRole('link', { name: 'SQL editor' }),
-      ).toHaveAttribute(
-        'href',
-        '/orgs/local/projects/local/database/browser/default/editor',
+      expect(dialog).toHaveTextContent(
+        'Remove the dependent objects first, or add CASCADE to the SQL above',
       );
+    });
+
+    it('shows other errors without the dependent objects advice', async () => {
+      const user = new TestUserEvent();
+      server.use(http.post(MIGRATIONS_URL, () => HttpResponse.error()));
+      const all = await renderPage();
+
+      await user.click(within(all).getByTestId('uninstall-extension-postgis'));
+      const dialog = await screen.findByRole('alertdialog');
+      await user.click(
+        within(dialog).getByTestId('confirm-uninstall-extension'),
+      );
+
+      expect(
+        await within(dialog).findByText('Could not uninstall postgis'),
+      ).toBeInTheDocument();
+      expect(dialog).not.toHaveTextContent('Remove the dependent objects');
+    });
+
+    it('drops pg_durable with CASCADE after warning about its workflow state', async () => {
+      const user = new TestUserEvent();
+      mocks.useIsPlatform.mockReturnValue(true);
+      const all = await renderPage();
+
+      await user.click(
+        within(all).getByTestId('uninstall-extension-pg_durable'),
+      );
+      const dialog = await screen.findByRole('alertdialog');
+
+      expect(within(dialog).getByRole('textbox', { name: 'SQL' })).toHaveValue(
+        getUninstallExtensionSQL('pg_durable'),
+      );
+      expect(dialog).toHaveTextContent(/deletes all pg_durable workflow state/);
+      expect(
+        within(dialog).getByRole('link', {
+          name: 'Point-in-time recovery settings',
+        }),
+      ).toHaveAttribute('href', '/orgs/local/projects/local/settings/database');
+
+      await user.click(
+        within(dialog).getByTestId('confirm-uninstall-extension'),
+      );
+
+      await waitFor(() =>
+        expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument(),
+      );
+      expect(writeRequests).toEqual([
+        {
+          url: `${HASURA_URL}/v2/query`,
+          body: {
+            type: 'bulk',
+            version: 1,
+            args: buildExtensionMigration(
+              {
+                name: 'pg_durable',
+                installed: false,
+                sql: getUninstallExtensionSQL('pg_durable'),
+              },
+              'default',
+            ).up,
+          },
+        },
+      ]);
     });
   });
 });
