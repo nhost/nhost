@@ -16,6 +16,7 @@ const auth = useAuth();
 const uid = $props.id();
 const emailId = `${uid}-email`;
 const codeId = `${uid}-code`;
+const sentId = `${uid}-sent`;
 
 let step = $state<Step>('email');
 let email = $state('');
@@ -68,6 +69,13 @@ async function handleVerify(event: SubmitEvent): Promise<void> {
   }
 }
 
+// The code step mounts only once a code is sent, and by then the email form
+// and the button that had focus are gone. Focusing the code field, which is
+// described by the "we sent a code" text, is what announces the new step.
+function focusOnMount(node: HTMLElement): void {
+  node.focus();
+}
+
 function backToEmail(): void {
   step = 'email';
   otp = '';
@@ -77,7 +85,7 @@ function backToEmail(): void {
 
 {#if step === 'code'}
   <form class="flex flex-col gap-4" onsubmit={handleVerify}>
-    <div class="flex flex-col gap-2">
+    <div id={sentId} class="flex flex-col gap-2">
       <CheckYourInbox url={mailboxUrl} />
       <p class="text-muted-foreground text-sm">
         We sent a code to {email}.
@@ -88,6 +96,8 @@ function backToEmail(): void {
       <Label for={codeId}>Code</Label>
       <Input
         id={codeId}
+        aria-describedby={sentId}
+        {@attach focusOnMount}
         type="text"
         inputmode="numeric"
         autocomplete="one-time-code"
