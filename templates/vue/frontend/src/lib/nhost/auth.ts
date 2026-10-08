@@ -2,7 +2,7 @@ import { createClient, type NhostClient } from '@nhost/nhost-js';
 import type { Session } from '@nhost/nhost-js/auth';
 import { type Ref, readonly, shallowRef } from 'vue';
 import { nhostRegion, nhostSubdomain } from '@/lib/nhost/env';
-import { redeemLinkToken } from '@/lib/nhost/linkToken';
+import { readLinkError, redeemLinkToken } from '@/lib/nhost/linkToken';
 
 /**
  * The one Nhost client this app uses.
@@ -30,6 +30,10 @@ const nhost: NhostClient = createClient({
 // sign-in to install proxies nothing reads through.
 const session = shallowRef<Session | null>(null);
 
+// Why the link or provider redirect this page load arrived from did not sign
+// the visitor in, or null when it did not arrive from a failed one.
+const linkError = shallowRef<string | null>(null);
+
 // Fires for this tab's own writes and for other tabs', so signing out in one
 // tab signs out the rest. Subscribed at module scope, before `startAuth`
 // redeems a token, so the session that redemption stores is not missed.
@@ -49,7 +53,9 @@ nhost.sessionStorage.onChange((next) => {
 export async function startAuth(): Promise<void> {
   // An arrival from an auth email or an OAuth callback carries the session on
   // the URL, so it has to be taken before the first read or the visitor
-  // renders as signed out and the token is lost.
+  // renders as signed out and the token is lost. A failed one carries an
+  // error instead, read here because redeeming takes it off the URL.
+  linkError.value = readLinkError();
   await redeemLinkToken(nhost);
 
   session.value = nhost.getUserSession();
@@ -58,6 +64,12 @@ export async function startAuth(): Promise<void> {
 type AuthValue = {
   nhost: NhostClient;
   session: Readonly<Ref<Session | null>>;
+  linkError: Readonly<Ref<string | null>>;
+  clearLinkError: () => void;
+};
+
+const clearLinkError = (): void => {
+  linkError.value = null;
 };
 
 /**
@@ -68,5 +80,10 @@ type AuthValue = {
  * would not have signed anyone in anyway.
  */
 export function useAuth(): AuthValue {
-  return { nhost, session: readonly(session) as Readonly<Ref<Session | null>> };
+  return {
+    nhost,
+    session: readonly(session) as Readonly<Ref<Session | null>>,
+    linkError: readonly(linkError),
+    clearLinkError,
+  };
 }
