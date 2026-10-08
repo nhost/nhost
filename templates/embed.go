@@ -36,4 +36,15 @@ import "embed"
 //go:embed react/frontend/tsconfig.json react/frontend/vite.config.ts
 //go:embed all:react/frontend/src
 //go:embed all:react/ui
+//go:embed vue/AGENTS.md vue/CLAUDE.md vue/SKILLS.md
+//go:embed all:vue/.claude
+//go:embed vue/frontend/.env.example vue/frontend/.gitignore
+//go:embed vue/frontend/README.md
+//go:embed vue/frontend/biome.json vue/frontend/components.json
+//go:embed vue/frontend/env.d.ts vue/frontend/index.html
+//go:embed vue/frontend/package.json
+//go:embed vue/frontend/pnpm-lock.yaml vue/frontend/pnpm-workspace.yaml
+//go:embed vue/frontend/tsconfig.json vue/frontend/vite.config.ts
+//go:embed all:vue/frontend/src
+//go:embed all:vue/ui
 var FS embed.FS

@@ -42,7 +42,7 @@ jobs:
       matrix:
         # Add a template here when it lands, or it ships unchecked.
         # templates/check-ci-matrix.sh fails the build if this list misses one.
-        template: [nextjs, react]
+        template: [nextjs, react, vue]
     defaults:
       run:
         working-directory: templates/${{ matrix.template }}/frontend
@@ -83,7 +83,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        template: [nextjs, react]
+        template: [nextjs, react, vue]
         # One entry per directory under the template's own auth/ directory.
         # templates/check-ci-matrix.sh fails the build if this list misses one.
         method: [password, magic-link, otp, oauth]
@@ -175,7 +175,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        template: [nextjs, react]
+        template: [nextjs, react, vue]
         # One entry per directory under `templates/<template>/ui/`.
         # templates/check-ci-matrix.sh fails the build if this list misses one.
         ui: [none]

@@ -136,6 +136,47 @@ func TestUIDropsAreDeclaredByTheTemplate(t *testing.T) {
 	}
 }
 
+// moduleSource is everything a module behind the seam is written in: the file
+// itself, or every file under it when the module is a directory.
+//
+// Both shapes are real. React keeps one file per module, so `button.tsx` is
+// the whole of Button; shadcn-vue keeps a directory, so Button is
+// `button/Button.vue` plus the `button/index.ts` that holds its variants, and
+// either file can be the one that imports a dropped dependency.
+func moduleSource(t *testing.T, p string) []byte {
+	t.Helper()
+
+	var src []byte
+
+	err := fs.WalkDir(
+		templates.FS,
+		p,
+		func(entry string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+
+			if d.IsDir() {
+				return nil
+			}
+
+			data, err := fs.ReadFile(templates.FS, entry)
+			if err != nil {
+				return err
+			}
+
+			src = append(src, data...)
+
+			return nil
+		},
+	)
+	if err != nil {
+		t.Fatalf("reading %s: %v", p, err)
+	}
+
+	return src
+}
+
 // The seam only holds if every module that reaches for a component library has
 // a replacement. This is what tells whoever adds a Radix import to card.tsx
 // that the none variant now owes a card.tsx too.
@@ -161,10 +202,7 @@ func TestUINoneCoversEveryModuleWithADependency(t *testing.T) {
 			overlay := path.Join(tmpl.name, uiDirPath, none.overlay)
 
 			for _, m := range modules {
-				src, err := fs.ReadFile(templates.FS, path.Join(seam, m.Name()))
-				if err != nil {
-					t.Fatalf("reading %s: %v", m.Name(), err)
-				}
+				src := moduleSource(t, path.Join(seam, m.Name()))
 
 				needs := false
 
@@ -174,7 +212,7 @@ func TestUINoneCoversEveryModuleWithADependency(t *testing.T) {
 					}
 				}
 
-				_, err = fs.Stat(templates.FS, path.Join(overlay, m.Name()))
+				_, err := fs.Stat(templates.FS, path.Join(overlay, m.Name()))
 				has := err == nil
 
 				switch {

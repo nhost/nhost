@@ -82,6 +82,33 @@ func reactUISystems() []uiSystem {
 	}
 }
 
+// vueUISystems is the same choice for a template whose components are Vue.
+// It is its own function rather than a parameter to the one above because the
+// dependencies differ: shadcn-vue is built on reka-ui, and its Input and Label
+// reach for @vueuse/core, none of which the React set has.
+func vueUISystems() []uiSystem {
+	return []uiSystem{
+		{
+			name:      "none",
+			label:     "None",
+			overlay:   "none",
+			dropFiles: []string{"frontend/pnpm-lock.yaml"},
+			drops: []string{
+				"@vueuse/core",
+				"class-variance-authority",
+				"reka-ui",
+			},
+		},
+		{
+			name:      "shadcn",
+			label:     "shadcn-vue",
+			overlay:   "",
+			drops:     nil,
+			dropFiles: nil,
+		},
+	}
+}
+
 func uiNames(systems []uiSystem) []string {
 	names := make([]string, 0, len(systems))
 

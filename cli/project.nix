@@ -69,6 +69,10 @@ let
         (fs.maybeMissing ../templates/react/frontend/node_modules)
         (fs.maybeMissing ../templates/react/frontend/dist)
       ]))
+      (fs.difference ../templates/vue (fs.unions [
+        (fs.maybeMissing ../templates/vue/frontend/node_modules)
+        (fs.maybeMissing ../templates/vue/frontend/dist)
+      ]))
 
       # docs
       ../docs/embed.go

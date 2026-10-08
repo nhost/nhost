@@ -20,9 +20,12 @@ import (
 func ignored(path string) bool {
 	parts := strings.Split(path, "/")
 
-	// the patterns anchored to the frontend root
+	// the patterns anchored to the frontend root. `dist` is where a Vite
+	// template's `pnpm build` lands, so it is here for the same reason as the
+	// rest: running the build before `go test ./templates/...` must not turn
+	// the output into "on disk but not embedded".
 	if len(parts) > 2 && parts[1] == "frontend" &&
-		slices.Contains([]string{"coverage", "out", "build"}, parts[2]) {
+		slices.Contains([]string{"coverage", "out", "build", "dist"}, parts[2]) {
 		return true
 	}
 

@@ -78,6 +78,14 @@ func catalogue() []starterTemplate {
 			componentsUI: "frontend/src/components/ui",
 			uiSystems:    reactUISystems(),
 		},
+		{
+			name:         "vue",
+			label:        "Vue",
+			authDir:      "frontend/src/auth",
+			methodsFile:  "frontend/src/signin/methods.ts",
+			componentsUI: "frontend/src/components/ui",
+			uiSystems:    vueUISystems(),
+		},
 	}
 }
 

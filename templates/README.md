@@ -38,6 +38,7 @@ lockfile with a plain `pnpm install` from inside `frontend/`, never with
 | --- | --- | --- |
 | `nextjs` | Next.js 16 (App Router), Tailwind v4, plain components or shadcn/ui | the sign-in methods you choose, a session shared by server and browser, one protected route. No schema. |
 | `react` | React 19 on Vite, Tailwind v4, plain components or shadcn/ui | the same app with no server: a browser-held session the SDK refreshes, routes found by glob, one protected route. No schema. |
+| `vue` | Vue 3 on Vite, Tailwind v4, plain components or shadcn-vue | the `react` app in Vue: one module-scope client, a session read before mount so nothing flashes signed out, routes found by glob. No schema. |
 
 ## Develop and test a template locally
 
@@ -109,6 +110,15 @@ The two guards below run in CI; run them before pushing:
   project.
   `TestUINoneCoversEveryModuleWithADependency` fails when a module grows an
   import a UI system drops but has no replacement.
+- **A module behind the seam is a file or a directory, whichever the component
+  library writes.** React's shadcn/ui puts Button in `ui/button.tsx`;
+  shadcn-vue puts it in `ui/button/`, as `Button.vue` plus the `index.ts`
+  holding its variants. Both shapes are kept as the library's own CLI writes
+  them, so running `shadcn-vue add dialog` in a scaffolded project lands beside
+  what the template shipped rather than next to a flattened copy of it. The
+  overlay mirrors whichever shape the seam uses and need only carry the files
+  that differ: `ui/none/input/` replaces `Input.vue` and leaves the `index.ts`
+  re-export alone.
 - **A UI system that changes dependencies drops the lockfile too.** `pnpm-lock.yaml`
   describes `frontend/package.json` as the template ships it, so a scaffold that
   removes packages from that file invalidates it. Shipping it anyway passes
