@@ -319,6 +319,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 				image.NewTransformer(0, 0, 0),
 				nil,
 				logger,
+				"",
 			)
 
 			resp, err := ctrl.GetFile(
@@ -452,6 +453,7 @@ func TestGetFileRejectsOversizedDerivedDimension(t *testing.T) {
 		image.NewTransformer(0, 0, 0),
 		nil,
 		logger,
+		"",
 	)
 
 	resp, err := ctrl.GetFile(
