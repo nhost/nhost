@@ -34,13 +34,17 @@ lockfile with a plain `pnpm install` from inside `frontend/`, never with
 
 ## Available templates
 
+A template is named for its framework and nothing else. Components are the
+project's own plain Tailwind by default; shadcn is opt-in per template with
+`--ui shadcn`, so it is a flag rather than part of what the template is.
+
 | name | stack | what it shows |
 | --- | --- | --- |
-| `nextjs` | Next.js 16 (App Router), Tailwind v4, plain components or shadcn/ui | the sign-in methods you choose, a session shared by server and browser, one protected route. No schema. |
-| `react` | React 19 on Vite, Tailwind v4, plain components or shadcn/ui | the same app with no server: a browser-held session the SDK refreshes, routes found by glob, one protected route. No schema. |
-| `vue` | Vue 3 on Vite, Tailwind v4, plain components or shadcn-vue | the `react` app in Vue: one module-scope client, a session read before mount so nothing flashes signed out, routes found by glob. No schema. |
-| `svelte` | SvelteKit as an SPA (`ssr = false`, adapter-static), Tailwind v4, plain components or shadcn-svelte | the same app again, with the framework's own file-based routing instead of a glob and runes for the session. No schema. |
-| `react-native` | Expo (SDK 57), NativeWind, Expo Router or React Navigation | the same app on a device: an AsyncStorage session, auth links arriving as deep links, OAuth through a browser session. No schema. |
+| `nextjs` | Next.js 16 (App Router), Tailwind v4 | the sign-in methods you choose, a session shared by server and browser, one protected route. No schema. |
+| `react` | React 19 on Vite, Tailwind v4 | the same app with no server: a browser-held session the SDK refreshes, routes found by glob, one protected route. No schema. |
+| `vue` | Vue 3 on Vite, Tailwind v4 | the `react` app in Vue: one module-scope client, a session read before mount so nothing flashes signed out, routes found by glob. No schema. |
+| `svelte` | SvelteKit as an SPA (`ssr = false`, adapter-static), Tailwind v4 | the same app again, with the framework's own file-based routing instead of a glob and runes for the session. No schema. |
+| `react-native` | Expo (SDK 57), NativeWind; Expo Router or React Navigation | the same app on a device: an AsyncStorage session, auth links arriving as deep links, OAuth through a browser session. No schema. |
 
 ## Develop and test a template locally
 
