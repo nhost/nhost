@@ -218,12 +218,13 @@ The two guards below run in CI; run them before pushing:
    same four sign-in method directories under `authDir`, since the method
    catalogue in `cli/cmd/project/authmethod.go` is shared by every template and
    carries the configuration each method needs on a fresh backend. Where they
-   sit is the framework's call, but not their names: the `delete-method` job
-   and `check-ci-matrix.sh` find them by name rather than reading the
-   catalogue, so `authDir` must end in the only directory named `auth` under
-   `frontend/src`, and `methodsFile` must be the only `methods.ts` there. A React
-   template takes `reactUISystems()`; another framework needs its own, with a
-   `none` entry, which is what `--ui` defaults to.
+   sit is the framework's call, but not their names: the `delete-method`,
+   `ui-system` and `navigation` jobs and `check-ci-matrix.sh` find them by name
+   rather than reading the catalogue, so `authDir` must end in the only
+   directory named `auth` under `frontend/src`, and `methodsFile` must be the
+   only `methods.ts` there. A React template takes `reactUISystems()`; another
+   framework needs its own, with a `none` entry, which is what `--ui` defaults
+   to.
 4. Add `//go:embed` directives for its top-level entries in
    `templates/embed.go`. `go test ./templates/...` tells you what is missing.
 5. Add it to the source fileset in `cli/project.nix`, cutting out its
