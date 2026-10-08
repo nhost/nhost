@@ -103,6 +103,14 @@ The two guards below run in CI; run them before pushing:
   each method the documented way and builds, so a leak fails CI. `--auth-methods`
   depends on the same isolation: it skips the directories of the methods that
   were not asked for.
+- **Each template's `frontend/package.json` carries a version, and it is yours
+  to bump.** It is the only record a scaffolded project has of which template
+  it came from, so a user asking why their copy differs from the docs can be
+  answered by it. Bump the minor for a change a user would notice - new copy, a
+  new component, a changed default - and the patch for a fix that leaves the
+  shape alone. They move independently: a change to one template does not touch
+  the others' numbers. Nothing enforces this, so it is a habit rather than a
+  guard.
 - **Shipped Markdown is rewritten for the chosen package manager.** Commands in
   the template's own docs are written as `pnpm <script>`, and `retargetDocs`
   turns them into the chosen manager's form at scaffold time - which is not a
