@@ -303,8 +303,8 @@ This is a limitation of pg_durable: the extension does not register its `df.inst
 
 ### Managing
 
-Preload `pg_durable` via `postgres.settings.sharedPreloadLibraries` for its
-background worker. The extension does not grant access to
+Preload `pg_durable` via `postgres.settings.sharedPreloadLibraries` before
+installing it. The extension does not grant access to
 `PUBLIC`. To enable it for workflows submitted through Nhost GraphQL, create
 this migration:
 
@@ -479,7 +479,7 @@ DROP EXTENSION pg_repack;
 
 pg_search is a Postgres extension that enables full text search over heap tables using the BM25 algorithm. It is built on top of Tantivy, the Rust-based alternative to Apache Lucene, using pgrx.
 
-Preload `pg_search` via `postgres.settings.sharedPreloadLibraries` before using BM25 search.
+Preload `pg_search` via `postgres.settings.sharedPreloadLibraries` before installing it.
 
 ### Managing
 
