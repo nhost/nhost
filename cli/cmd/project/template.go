@@ -304,10 +304,11 @@ func writeTemplate(
 }
 
 // layTemplate writes the entries the layout leaves to write, without the
-// sign-in methods that were not selected. A method is a directory under
-// authDirPath plus an entry in methods.ts and nothing else, so skipping the
-// directory and rewriting that one file is the whole of it - the same two steps
-// the template documents for removing a method by hand afterwards.
+// sign-in methods that were not selected. A method is a directory under the
+// template's authDir plus an entry in its methodsFile and nothing else, so
+// skipping the directory and rewriting that one file is the whole of it - the
+// same two steps the template documents for removing a method by hand
+// afterwards.
 func layTemplate(
 	ps *clienv.PathStructure,
 	tmpl starterTemplate,
