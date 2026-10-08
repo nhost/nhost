@@ -12,6 +12,7 @@ import {
 } from 'react';
 import { nhostRegion, nhostSubdomain } from '@/lib/nhost/env';
 import { redeemLinkToken } from '@/lib/nhost/linkToken';
+import { startAuth } from '@/lib/nhost/startAuth';
 import { AsyncSessionStorage } from '@/lib/nhost/storage';
 
 type AuthValue = {
@@ -50,51 +51,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const [session, setSession] = useState<Session | null>(null);
 
-  // Starts true so nothing renders a signed-out view before the stored
-  // session has been read off disk. Reading it is asynchronous here, unlike
-  // the web templates' localStorage, so this is doing real work.
+  // True until the stored session has been read off disk and the link the
+  // app was opened with has been redeemed, and again while a link that
+  // arrives later is. Auth emails and the OAuth callback come back as those
+  // links, so until then nobody knows who the user is about to be.
   const [isLoading, setIsLoading] = useState(true);
 
-  // The deep link this app was opened with, and every one that arrives while
-  // it is running. Auth emails and the OAuth callback come back this way.
-  const url = Linking.useURL();
-
   useEffect(() => {
-    let cancelled = false;
-
     const unsubscribe = nhost.sessionStorage.onChange((next) =>
       setSession(next),
     );
 
-    const start = async (): Promise<void> => {
-      await storage.hydrate();
-
-      if (cancelled) {
-        return;
-      }
-
-      setSession(nhost.getUserSession());
-      setIsLoading(false);
-    };
-
-    void start();
+    const stop = startAuth({
+      hydrate: () => storage.hydrate(),
+      initialURL: () => Linking.getInitialURL(),
+      listen: (onURL) => {
+        const subscription = Linking.addEventListener('url', ({ url }) =>
+          onURL(url),
+        );
+        return () => subscription.remove();
+      },
+      redeem: (url) => redeemLinkToken(nhost, url),
+      onLoading: (loading) => {
+        // Hydrating writes nothing through the client, so `onChange` does
+        // not hear it.
+        setSession(nhost.getUserSession());
+        setIsLoading(loading);
+      },
+    });
 
     return () => {
-      cancelled = true;
+      stop();
       unsubscribe();
     };
   }, [nhost, storage]);
-
-  // Separate from the hydrate effect because this one runs again for every
-  // link that arrives, and hydrating twice would undo a session the first
-  // link had just stored.
-  useEffect(() => {
-    if (!url) {
-      return;
-    }
-
-    void redeemLinkToken(nhost, url);
-  }, [nhost, url]);
 
   const value = useMemo<AuthValue>(
     () => ({ nhost, session, isLoading }),

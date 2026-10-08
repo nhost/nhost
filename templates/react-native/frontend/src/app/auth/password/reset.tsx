@@ -76,8 +76,9 @@ export default function ResetPasswordScreen() {
     }
   };
 
-  // The token is redeemed as the link arrives, so waiting is what keeps a
-  // working link from being reported as expired.
+  // `isLoading` stays true until the link that opened this screen has been
+  // redeemed, so waiting is what keeps a working link from being reported as
+  // expired.
   if (isLoading) {
     return null;
   }

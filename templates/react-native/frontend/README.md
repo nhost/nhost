@@ -187,7 +187,9 @@ the access token itself when a request goes out within 60s of expiry.
 The SDK reads storage synchronously and AsyncStorage is asynchronous, so
 `src/lib/nhost/storage.ts` keeps the session in memory, answers reads from
 there, and mirrors every write to disk. `hydrate()` fills that memory on
-launch, which is what `isLoading` is waiting for.
+launch. `isLoading` waits for that and then for the link the app was opened
+with to be redeemed, and is true again while a later link is;
+`src/lib/nhost/startAuth.ts` runs them in that order.
 
 **Read this before shipping something sensitive.** AsyncStorage is not
 encrypted: it is a file in the app's sandbox. That is fine against another app

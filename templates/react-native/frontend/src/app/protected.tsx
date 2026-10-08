@@ -14,8 +14,9 @@ import { useAuth } from '@/lib/nhost/AuthProvider';
 export default function Protected() {
   const { session, isLoading } = useAuth();
 
-  // Nothing is decided until the stored session has been read off disk, or a
-  // signed-in user reopening the app would be bounced to sign-in first.
+  // Nothing is decided until the stored session has been read off disk and an
+  // emailed link has been redeemed, or a user who is signed in, or about to
+  // be, would be bounced to sign-in first.
   if (isLoading) {
     return null;
   }

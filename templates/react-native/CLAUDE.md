@@ -34,8 +34,11 @@ It has two halves:
 4. **The session is read off disk before anything decides.**
    `src/lib/nhost/storage.ts` keeps it in AsyncStorage. The SDK reads storage
    synchronously, so the session is held in memory and written through, and
-   `hydrate()` fills that memory on launch. Until `isLoading` is false nothing
-   knows whether anyone is signed in.
+   `hydrate()` fills that memory on launch. `src/lib/nhost/startAuth.ts` then
+   redeems the link the app was opened with, and each link that arrives
+   later, one at a time. `isLoading` covers all of it, so it goes true again
+   while a later link is redeemed. Until it is false nothing knows whether
+   anyone is signed in.
 5. **Coming back into the app is a deep link, not a URL.** Auth emails and the
    OAuth callback reopen the app on the scheme in `app.json`.
    `src/lib/nhost/linkToken.ts` reads the refresh token out of that link and
