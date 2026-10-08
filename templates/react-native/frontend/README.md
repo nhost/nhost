@@ -9,6 +9,16 @@ Four sign-in methods are on offer and `nhost init --template` scaffolds the ones
 you asked for with `--auth-methods`, email and password by default.
 `src/signin/methods.ts` lists the ones you have.
 
+The password form opens on **sign up**, because a fresh local backend has no
+accounts in it yet. Signing in and signing up are kept apart: the home screen
+offers both, and the screen that wants the other mode is opened with an
+`intent` of `sign-in`.
+
+Anywhere the app says "check your inbox", those words open the local mailbox,
+since against a local backend that is where the email went. They go back to
+being plain text once the app targets a real project and the email really does
+arrive in yours.
+
 The components under `src/components/ui/` are plain NativeWind and yours to
 edit. There is no shadcn/ui option here: that library is built on Radix and the
 DOM, neither of which exists on a device.

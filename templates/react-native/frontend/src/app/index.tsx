@@ -20,18 +20,36 @@ export default function Home() {
       <Card>
         <CardHeader>
           <CardTitle>
-            {user ? 'You are signed in' : 'You are signed out'}
+            {user ? 'You are signed in' : 'You are not signed in'}
           </CardTitle>
           <CardDescription>
             {user
               ? `Signed in as ${user.email ?? user.id}.`
-              : 'Pick a sign-in method to get a session.'}
+              : 'Create an account, or sign in to one you already have.'}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button onPress={() => go.push(user ? '/protected' : '/signin')}>
-            {user ? 'Open the protected screen' : 'Sign in'}
-          </Button>
+          {user ? (
+            <Button onPress={() => go.push('/protected')}>
+              Open the protected screen
+            </Button>
+          ) : (
+            <>
+              {/* Sign up first: a fresh local backend has no accounts in it. */}
+              <Button onPress={() => go.push('/signin')}>Sign up</Button>
+              <Button
+                variant="outline"
+                onPress={() =>
+                  go.push({
+                    pathname: '/signin',
+                    params: { intent: 'sign-in' },
+                  })
+                }
+              >
+                Sign in
+              </Button>
+            </>
+          )}
         </CardContent>
       </Card>
     </Screen>

@@ -2,7 +2,8 @@ import type { NhostClient } from '@nhost/nhost-js';
 import type { ErrorResponse } from '@nhost/nhost-js/auth';
 import type { FetchError } from '@nhost/nhost-js/fetch';
 import { useState } from 'react';
-import { Linking, Text, View } from 'react-native';
+import { View } from 'react-native';
+import { CheckYourInbox } from '@/components/CheckYourInbox';
 import { Screen } from '@/components/Screen';
 import { Button } from '@/components/ui/Button';
 import {
@@ -18,6 +19,7 @@ import { Label } from '@/components/ui/Label';
 import { useGo } from '@/lib/navigation';
 import { useAuth } from '@/lib/nhost/AuthProvider';
 import { localMailboxURL } from '@/lib/nhost/env';
+import { OtherWaysLink } from '@/signin/OtherWaysLink';
 
 type OtpActionResult = { error?: string; success?: boolean };
 
@@ -80,7 +82,7 @@ export default function OtpScreen() {
   const { nhost } = useAuth();
   const go = useGo();
   const next = useNext();
-  const mailboxURL = localMailboxURL();
+  const _mailboxURL = localMailboxURL();
 
   const [step, setStep] = useState<Step>('email');
   const [email, setEmail] = useState('');
@@ -131,7 +133,11 @@ export default function OtpScreen() {
     <Screen>
       <Card>
         <CardHeader>
-          <CardTitle>Email code</CardTitle>
+          {step === 'code' ? (
+            <CheckYourInbox />
+          ) : (
+            <CardTitle>Email code</CardTitle>
+          )}
           <CardDescription>
             {step === 'code'
               ? `We sent a code to ${email}.`
@@ -141,16 +147,6 @@ export default function OtpScreen() {
         <CardContent>
           {step === 'code' ? (
             <>
-              {mailboxURL ? (
-                <Text
-                  accessibilityRole="link"
-                  className="text-neutral-500 text-sm underline"
-                  onPress={() => void Linking.openURL(mailboxURL)}
-                >
-                  Running locally? Open the local mailbox
-                </Text>
-              ) : null}
-
               <View className="gap-2">
                 <Label>Code</Label>
                 <Input
@@ -224,14 +220,7 @@ export default function OtpScreen() {
               </Button>
             </>
           )}
-
-          <Text
-            accessibilityRole="link"
-            className="text-neutral-500 text-sm underline"
-            onPress={() => go.push('/signin')}
-          >
-            Other ways to sign in
-          </Text>
+          <OtherWaysLink />
         </CardContent>
       </Card>
     </Screen>

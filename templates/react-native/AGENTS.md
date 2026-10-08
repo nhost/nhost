@@ -62,6 +62,26 @@ It has two halves:
    client-side check as authorization.
 10. **Config, not schema.** Enabling an auth method is a `nhost.toml` change,
    not a migration.
+11. **Sign up is the default, and an `intent` param is what changes it.** The
+   password form opens on sign-up, because anyone running this against a fresh
+   local backend has no account yet. A link that wants the other mode carries
+   an `intent` of `sign-in`; `frontend/src/signin/intent.ts` parses it.
+   Nothing is gated on it, so a missing or crafted value costs nothing.
+   `frontend/src/signin/route.ts` builds every link that carries it, and it is
+   the only thing that does: `next` and `intent` both have to survive the hop
+   out to a method and the hop back, and a second builder is how one of them
+   gets dropped. It uses only the navigation seam's types, so it works under
+   either navigation system.
+12. **"Check your inbox" is the link to the local mailbox.** Against a local
+   backend the email is in Mailhog, so every state that waits on one titles
+   itself with `<CheckYourInbox />` and those words open it. They stay plain
+   text once the app targets a real project, where a link would be a lie about
+   where the email is.
+13. **The back-link counts the methods.** `--auth-methods` can scaffold
+   one, and "Other ways to sign in" would then promise choices that do not
+   exist. `frontend/src/signin/OtherWaysLink.tsx` reads
+   `methods.ts` and renders nothing when there is only one. It counts rather
+   than naming any method, which is what lets it be shared.
 
 ## Adding a table
 

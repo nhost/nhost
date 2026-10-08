@@ -2,7 +2,8 @@ import type { NhostClient } from '@nhost/nhost-js';
 import type { ErrorResponse } from '@nhost/nhost-js/auth';
 import type { FetchError } from '@nhost/nhost-js/fetch';
 import { useState } from 'react';
-import { Linking, Text, View } from 'react-native';
+import { View } from 'react-native';
+import { CheckYourInbox } from '@/components/CheckYourInbox';
 import { Screen } from '@/components/Screen';
 import { Button } from '@/components/ui/Button';
 import {
@@ -19,6 +20,7 @@ import { useGo } from '@/lib/navigation';
 import { useAuth } from '@/lib/nhost/AuthProvider';
 import { localMailboxURL } from '@/lib/nhost/env';
 import { authRedirectURL } from '@/lib/nhost/redirect';
+import { OtherWaysLink } from '@/signin/OtherWaysLink';
 
 /**
  * Emails a sign-in link. Opening it on the device reopens this app on a deep
@@ -63,9 +65,9 @@ import { useNext } from '@/signin/useNext';
  */
 export default function MagicLinkScreen() {
   const { nhost } = useAuth();
-  const go = useGo();
+  const _go = useGo();
   const next = useNext();
-  const mailboxURL = localMailboxURL();
+  const _mailboxURL = localMailboxURL();
 
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
@@ -96,22 +98,13 @@ export default function MagicLinkScreen() {
       <Screen>
         <Card>
           <CardHeader>
-            <CardTitle>Check your inbox</CardTitle>
+            <CheckYourInbox />
             <CardDescription>
               A sign-in link is on its way to {email}. Open it on this device
               and it signs you in here.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {mailboxURL ? (
-              <Text
-                accessibilityRole="link"
-                className="text-neutral-500 text-sm underline"
-                onPress={() => void Linking.openURL(mailboxURL)}
-              >
-                Running locally? Open the local mailbox
-              </Text>
-            ) : null}
             <Button
               variant="ghost"
               size="sm"
@@ -162,14 +155,7 @@ export default function MagicLinkScreen() {
           >
             {isSending ? 'Sending…' : 'Send me a link'}
           </Button>
-
-          <Text
-            accessibilityRole="link"
-            className="text-neutral-500 text-sm underline"
-            onPress={() => go.push('/signin')}
-          >
-            Other ways to sign in
-          </Text>
+          <OtherWaysLink />
         </CardContent>
       </Card>
     </Screen>

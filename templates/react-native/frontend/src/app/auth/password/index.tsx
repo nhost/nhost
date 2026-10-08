@@ -2,7 +2,8 @@ import type { NhostClient } from '@nhost/nhost-js';
 import type { ErrorResponse } from '@nhost/nhost-js/auth';
 import type { FetchError } from '@nhost/nhost-js/fetch';
 import { useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { CheckYourInbox } from '@/components/CheckYourInbox';
 import { Screen } from '@/components/Screen';
 import { Button } from '@/components/ui/Button';
 import {
@@ -18,6 +19,8 @@ import { Label } from '@/components/ui/Label';
 import { useGo } from '@/lib/navigation';
 import { useAuth } from '@/lib/nhost/AuthProvider';
 import { authRedirectURL } from '@/lib/nhost/redirect';
+import { OtherWaysLink } from '@/signin/OtherWaysLink';
+import { useIntent } from '@/signin/useIntent';
 import { useNext } from '@/signin/useNext';
 
 // The calls this screen makes, kept here rather than in a module beside it.
@@ -117,8 +120,12 @@ export default function PasswordScreen() {
   const { nhost } = useAuth();
   const go = useGo();
   const next = useNext();
+  const intent = useIntent();
 
-  const [mode, setMode] = useState<Mode>('sign-in');
+  // Opens on whatever the link that sent them here asked for, which is sign-up
+  // unless it said otherwise: a fresh local backend has no accounts in it, so a
+  // sign-in form would be a dead end.
+  const [mode, setMode] = useState<Mode>(intent);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [sent, setSent] = useState<Sent | undefined>();
@@ -184,7 +191,7 @@ export default function PasswordScreen() {
       <Screen>
         <Card>
           <CardHeader>
-            <CardTitle>Check your inbox</CardTitle>
+            <CheckYourInbox />
             <CardDescription>
               {sent === 'verification'
                 ? `We sent a verification link to ${email}. Opening it on this device confirms the address and signs you in.`
@@ -271,14 +278,7 @@ export default function PasswordScreen() {
               </Button>
             ) : null}
           </View>
-
-          <Text
-            accessibilityRole="link"
-            className="text-neutral-500 text-sm underline"
-            onPress={() => go.push('/signin')}
-          >
-            Other ways to sign in
-          </Text>
+          <OtherWaysLink />
         </CardContent>
       </Card>
     </Screen>

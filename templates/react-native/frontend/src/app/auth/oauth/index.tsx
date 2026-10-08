@@ -17,6 +17,7 @@ import { useGo } from '@/lib/navigation';
 import { useAuth } from '@/lib/nhost/AuthProvider';
 import { redeemLinkToken } from '@/lib/nhost/linkToken';
 import { authRedirectURL } from '@/lib/nhost/redirect';
+import { OtherWaysLink } from '@/signin/OtherWaysLink';
 
 /**
  * The providers this screen offers. Adding one is a line here and a section in
@@ -130,14 +131,7 @@ export default function OAuthScreen() {
             app's deep link has to be in auth.redirections.allowedUrls. The
             README's OAuth section has both.
           </Text>
-
-          <Text
-            accessibilityRole="link"
-            className="text-neutral-500 text-sm underline"
-            onPress={() => go.push('/signin')}
-          >
-            Other ways to sign in
-          </Text>
+          <OtherWaysLink />
         </CardContent>
       </Card>
     </Screen>
