@@ -7,6 +7,7 @@ import {
   inboxAnchorRef,
   isInboxOpen,
 } from '@/features/orgs/components/members/components/InboxPopover/inboxStore';
+import { PlatformOnly } from '@/features/orgs/projects/common/components/PlatformOnly';
 
 export interface MobileAccountMenuProps {
   hasUnreadInbox: boolean;
@@ -33,8 +34,10 @@ export default function MobileAccountMenu({
       <Separator />
 
       <div className="grid gap-1 p-2">
-        <AccountMenuUpgrade />
-        <AccountMenuInbox hasUnread={hasUnreadInbox} />
+        <PlatformOnly>
+          <AccountMenuUpgrade />
+          <AccountMenuInbox hasUnread={hasUnreadInbox} />
+        </PlatformOnly>
         <SupportLinks />
       </div>
     </AccountMenu>

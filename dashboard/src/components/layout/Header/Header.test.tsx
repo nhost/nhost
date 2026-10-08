@@ -213,6 +213,19 @@ describe('Header', () => {
     expect(inboxMocks.InboxPopoverTrigger).toHaveBeenCalled();
   });
 
+  it('hides the platform actions outside the platform', () => {
+    useIsPlatformMock.mockReturnValue(false);
+
+    renderHeader();
+
+    expect(
+      screen.queryByRole('link', { name: 'Upgrade' }),
+    ).not.toBeInTheDocument();
+    expect(inboxMocks.InboxPopoverTrigger).not.toHaveBeenCalled();
+    expect(inboxMocks.InboxPopover).not.toHaveBeenCalled();
+    expect(createOrgDialogMocks.mount).not.toHaveBeenCalled();
+  });
+
   it('opens the inbox from the account menu instead of a bell on mobile', () => {
     mockViewport('mobile');
 
@@ -406,14 +419,11 @@ describe('Header', () => {
     ).toHaveAttribute('href', 'https://discord.com/invite/9V7Qb2U');
   });
 
-  it('navigates to billing and opens the upgrade modal', async () => {
-    const user = new TestUserEvent();
-
+  it('links to billing with the upgrade modal open', () => {
     renderHeader();
 
-    await user.click(screen.getByRole('button', { name: 'Upgrade' }));
-
-    expect(push).toHaveBeenCalledWith(
+    expect(screen.getByRole('link', { name: 'Upgrade' })).toHaveAttribute(
+      'href',
       '/orgs/org-a/billing?openUpgradeModal=true',
     );
   });
