@@ -72,6 +72,10 @@ in `app.json`, which is `nhoststarter` until you change it.
 but only when nobody is signed in. Any web page or app can open the scheme, so
 a link that replaced a signed-in session would let its sender move the user
 into the sender's account. Sign out first to follow a link for another one.
+When the link fails, a provider that is not enabled yet or an expired email
+link, the service sends an `error` code instead. The app says what went wrong
+in its own words above the screen the link opens, and the service's
+description goes to the console.
 Under Expo Go the scheme is the development server's `exp://.../--/` URL
 instead, which `Linking.createURL` handles, so the flow works in development
 without a second configuration.

@@ -1,6 +1,15 @@
 import type { NhostClient } from '@nhost/nhost-js';
-import { describe, expect, it, vi } from 'vitest';
-import { linkToken, redeemLinkToken } from '@/lib/nhost/linkToken';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import {
+  linkErrorMessage,
+  linkToken,
+  readLinkError,
+  redeemLinkToken,
+} from '@/lib/nhost/linkToken';
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 // The shapes a deep link actually arrives in. Under Expo Go it is the
 // development server's URL with a `--` separator; in a real build it is the
@@ -29,6 +38,50 @@ describe('linkToken', () => {
     expect(linkToken('nhoststarter:///protected')).toBeNull();
     expect(linkToken('nhoststarter:///protected?next=%2Fhome')).toBeNull();
     expect(linkToken('')).toBeNull();
+  });
+});
+
+describe('readLinkError', () => {
+  // Any web page or app can open the scheme with a description of its
+  // choosing, so the user is shown the app's own sentence for the code.
+  it('says what the code means, not what the link says', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    for (const url of [
+      'nhoststarter:///protected?error=disabled-endpoint&errorDescription=Call+evil.example',
+      'exp://10.0.0.2:8081/--/protected?error=disabled-endpoint&errorDescription=Call+evil.example',
+    ]) {
+      expect(readLinkError(url)).toBe(
+        'That sign-in method is not enabled on the backend yet.',
+      );
+    }
+
+    expect(warn).toHaveBeenCalledWith(
+      'The auth service sent this app an error:',
+      'disabled-endpoint',
+      'Call evil.example',
+    );
+  });
+
+  it('is null for a link that carries no error', () => {
+    expect(readLinkError('nhoststarter:///protected?refreshToken=abc')).toBe(
+      null,
+    );
+    expect(readLinkError('nhoststarter:///protected')).toBeNull();
+  });
+});
+
+describe('linkErrorMessage', () => {
+  it('falls back for a code it does not know', () => {
+    expect(linkErrorMessage('internal-server-error')).toBe(
+      'Signing in did not work.',
+    );
+  });
+
+  // An object lookup would find what every object inherits.
+  it('falls back for a code named after an inherited property', () => {
+    expect(linkErrorMessage('__proto__')).toBe('Signing in did not work.');
+    expect(linkErrorMessage('toString')).toBe('Signing in did not work.');
   });
 });
 

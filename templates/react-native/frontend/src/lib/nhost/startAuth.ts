@@ -1,4 +1,4 @@
-import { linkToken } from '@/lib/nhost/linkToken';
+import { linkToken, readLinkError } from '@/lib/nhost/linkToken';
 
 type AuthStart = {
   // Reads the stored session into memory. Must not throw.
@@ -11,12 +11,18 @@ type AuthStart = {
   // Turns a link's token into a session. Must not throw.
   redeem: (url: string) => Promise<void>;
   onLoading: (isLoading: boolean) => void;
+  // Why the latest link did not sign anyone in, or null for one carrying a
+  // token instead.
+  onLinkError: (message: string | null) => void;
 };
 
 /**
  * Reads the stored session, then redeems the link the app was opened with,
  * then every link that arrives after it, one at a time, and reports through
- * `onLoading` whether any of that is still running.
+ * `onLoading` whether any of that is still running. A link carrying an error
+ * from the auth service instead of a token takes its turn the same way, so a
+ * later link's answer always replaces an earlier one's, and the error is in
+ * place by the time loading ends.
  *
  * Each step can change who is signed in, so nothing should decide until the
  * last one has finished. A screen that decided during a redemption would treat
@@ -33,6 +39,7 @@ export function startAuth({
   listen,
   redeem,
   onLoading,
+  onLinkError,
 }: AuthStart): () => void {
   let stopped = false;
   let pending = 0;
@@ -57,15 +64,35 @@ export function startAuth({
       });
   };
 
-  // A link without a token is only navigation and leaves the session as it
-  // is. The one just taken is skipped too: its token is single use.
+  // A link with neither a token nor an error is only navigation and leaves the
+  // session as it is. The one just taken is skipped too: its token is single
+  // use. A link that only carried an error spent nothing, so it is not
+  // remembered, and opening it again says so again. Each link replaces the
+  // error the one before it left. One carrying an error is not redeemed even
+  // if it has a token too: the service never sends both, so somebody else put
+  // that link together.
   const take = (url: string | null): void => {
-    if (!url || url === last || !linkToken(url)) {
+    if (!url || url === last) {
       return;
     }
 
-    last = url;
-    run(() => redeem(url));
+    const error = readLinkError(url);
+
+    if (!error && !linkToken(url)) {
+      return;
+    }
+
+    if (!error) {
+      last = url;
+    }
+
+    run(async () => {
+      onLinkError(error);
+
+      if (!error) {
+        await redeem(url);
+      }
+    });
   };
 
   // Subscribed before anything is awaited, so a link that arrives during

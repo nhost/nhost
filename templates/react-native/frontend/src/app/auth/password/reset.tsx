@@ -15,7 +15,7 @@ import {
 import { ErrorText } from '@/components/ui/ErrorText';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
-import { useGo } from '@/lib/navigation';
+import { useGo, useParams } from '@/lib/navigation';
 import { useAuth } from '@/lib/nhost/AuthProvider';
 
 // Inline for the same reason as the sign-in screen's calls: Expo Router turns
@@ -45,11 +45,17 @@ async function setNewPassword(
 
 // The reset email's link goes through the auth service, which reopens this app
 // on a deep link carrying a refresh token that `lib/nhost/linkToken.ts`
-// redeems. So a session means the link worked, and no session means it was
-// expired or already used.
+// redeems, or an error when the link expired or was already used. The error
+// is checked first: a user who was already signed in still has a session when
+// the link fails, and it is not the link's. Nor does a session prove the link
+// signed them in, since a link never replaces one, so the form says whose
+// password it changes rather than how they got here.
 export default function ResetPasswordScreen() {
   const { nhost, session, isLoading } = useAuth();
   const go = useGo();
+  // Off this screen's own link rather than `useAuth().linkError`, which the
+  // user can dismiss: dismissing the reason must not bring the form back.
+  const { error: linkFailed } = useParams<{ error: string }>();
 
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | undefined>();
@@ -65,8 +71,8 @@ export default function ResetPasswordScreen() {
         return;
       }
 
-      // The link already signed them in, so there is nowhere to send them but
-      // on into the app.
+      // They are already signed in, so there is nowhere to send them but on into
+      // the app.
       go.replace('/protected');
     } catch (err) {
       console.error('Error changing the password:', err);
@@ -83,15 +89,16 @@ export default function ResetPasswordScreen() {
     return null;
   }
 
-  if (!session) {
+  if (linkFailed || !session) {
     return (
       <Screen>
         <Card>
           <CardHeader>
             <CardTitle>This link no longer works</CardTitle>
             <CardDescription>
-              It has expired or was already used. Request another one and open
-              it on this device.
+              {/* With an error, the notice above already says why. */}
+              {linkFailed ? null : 'It has expired or was already used. '}
+              Request another one and open it on this device.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -104,13 +111,17 @@ export default function ResetPasswordScreen() {
     );
   }
 
+  const account =
+    session.user?.email ?? session.user?.phoneNumber ?? 'this account';
+
   return (
     <Screen>
       <Card>
         <CardHeader>
           <CardTitle>Choose a new password</CardTitle>
           <CardDescription>
-            The link signed you in as {session.user?.email ?? 'this account'}.
+            You are signed in as {account}. The new password is for that
+            account.
           </CardDescription>
         </CardHeader>
         <CardContent>

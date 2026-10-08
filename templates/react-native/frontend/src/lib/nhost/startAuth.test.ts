@@ -1,7 +1,15 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { linkErrorMessage } from '@/lib/nhost/linkToken';
 import { startAuth } from '@/lib/nhost/startAuth';
 
 const LINK = 'nhoststarter:///protected?refreshToken=abc123';
+const FAILED =
+  'nhoststarter:///auth/password/reset?error=invalid-ticket&errorDescription=Expired';
+const EXPIRED = linkErrorMessage('invalid-ticket');
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 function deferred(): { promise: Promise<void>; resolve: VoidFunction } {
   let resolve: VoidFunction = () => {};
@@ -39,6 +47,7 @@ function setup(initial: string | null = null) {
       events.push(`redeemed ${url}`);
     },
     onLoading: (isLoading) => events.push(`loading ${isLoading}`),
+    onLinkError: (message) => events.push(`link error ${message}`),
   });
 
   return {
@@ -124,6 +133,96 @@ describe('startAuth', () => {
     arrive('nhoststarter:///protected');
 
     expect(events.length).toBe(before);
+  });
+
+  // So the notice is up by the time the screen the link opens stops waiting.
+  it('reports a failed link before it stops loading, and redeems nothing', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { events, hydrated } = setup(FAILED);
+
+    hydrated();
+    await vi.waitFor(() => expect(events.at(-1)).toBe('loading false'));
+
+    expect(events).toContain(`link error ${EXPIRED}`);
+    expect(events.indexOf(`link error ${EXPIRED}`)).toBeGreaterThan(
+      events.indexOf('hydrated'),
+    );
+    expect(events.some((event) => event.startsWith('redeem'))).toBe(false);
+  });
+
+  it('is loading while a failed link that arrives later is reported', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { events, hydrated, arrive } = setup();
+
+    hydrated();
+    await vi.waitFor(() => expect(events.at(-1)).toBe('loading false'));
+
+    arrive(FAILED);
+    expect(events.at(-1)).toBe('loading true');
+
+    await vi.waitFor(() => expect(events.at(-1)).toBe('loading false'));
+    expect(events.at(-2)).toBe(`link error ${EXPIRED}`);
+  });
+
+  // It spent nothing, and a user who dismissed the notice and taps the same
+  // expired email again has to be told again.
+  it('reports a failed link each time it is opened', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { events, hydrated, arrive } = setup(FAILED);
+
+    hydrated();
+    await vi.waitFor(() => expect(events.at(-1)).toBe('loading false'));
+
+    arrive(FAILED);
+    await vi.waitFor(() => expect(events.at(-1)).toBe('loading false'));
+
+    expect(events.filter((event) => event === `link error ${EXPIRED}`)).toEqual(
+      [`link error ${EXPIRED}`, `link error ${EXPIRED}`],
+    );
+  });
+
+  it('still skips a token already taken when a failed link came between', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { events, hydrated, redeemed, arrive } = setup(LINK);
+
+    hydrated();
+    await vi.waitFor(() => expect(events).toContain(`redeem ${LINK}`));
+    redeemed();
+    await vi.waitFor(() => expect(events.at(-1)).toBe('loading false'));
+
+    arrive(FAILED);
+    await vi.waitFor(() => expect(events.at(-1)).toBe('loading false'));
+    const before = events.length;
+    arrive(LINK);
+
+    expect(events.length).toBe(before);
+  });
+
+  it('clears the error when a link with a token follows', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { events, hydrated, redeemed, arrive } = setup(FAILED);
+
+    hydrated();
+    await vi.waitFor(() => expect(events.at(-1)).toBe('loading false'));
+
+    arrive(LINK);
+    await vi.waitFor(() => expect(events).toContain(`redeem ${LINK}`));
+    expect(events.at(-2)).toBe('link error null');
+    redeemed();
+    await vi.waitFor(() => expect(events.at(-1)).toBe('loading false'));
+  });
+
+  // The service never sends both, so a link that has both was put together by
+  // somebody else.
+  it('does not redeem a token on a link that also carries an error', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { events, hydrated } = setup(`${FAILED}&refreshToken=abc123`);
+
+    hydrated();
+    await vi.waitFor(() => expect(events.at(-1)).toBe('loading false'));
+
+    expect(events).toContain(`link error ${EXPIRED}`);
+    expect(events.some((event) => event.startsWith('redeem'))).toBe(false);
   });
 
   it('starts nothing new once stopped', async () => {

@@ -15,7 +15,7 @@ import {
 import { ErrorText } from '@/components/ui/ErrorText';
 import { useGo } from '@/lib/navigation';
 import { useAuth } from '@/lib/nhost/AuthProvider';
-import { redeemLinkToken } from '@/lib/nhost/linkToken';
+import { readLinkError, redeemLinkToken } from '@/lib/nhost/linkToken';
 import { authRedirectURL } from '@/lib/nhost/redirect';
 import { OtherWaysLink } from '@/signin/OtherWaysLink';
 
@@ -36,7 +36,8 @@ const providers = [
  * page load with a token on the URL. There is no page to leave here, so the
  * app opens the system browser as a modal session instead and is handed the
  * callback URL when it closes. That URL carries the refresh token, which is
- * redeemed the same way a deep link's would be.
+ * redeemed the same way a deep link's would be, or an error when the provider
+ * is not enabled or refused the sign-in.
  *
  * `openAuthSessionAsync` is what makes it a session rather than just opening a
  * browser: it is tied to this app, so the callback comes straight back and the
@@ -46,12 +47,16 @@ async function signInWithProvider(
   nhost: NhostClient,
   provider: SignInProvider,
   next: string,
-): Promise<{ error?: string; success?: boolean }> {
+): Promise<{ error?: string; linkError?: string; success?: boolean }> {
   const returnTo = authRedirectURL(next);
 
   const authUrl = nhost.auth.signInProviderURL(provider, {
     redirectTo: returnTo,
   });
+
+  // Read before the browser opens: on Android the callback can also arrive as
+  // a link event and be redeemed before this screen is handed it.
+  const signedInBefore = nhost.getUserSession() !== null;
 
   try {
     const result = await WebBrowser.openAuthSessionAsync(authUrl, returnTo);
@@ -62,13 +67,27 @@ async function signInWithProvider(
       return {};
     }
 
-    await redeemLinkToken(nhost, result.url);
+    // Shown in the notice a failed email link uses rather than under the
+    // buttons: on Android this same callback can also arrive as a link event,
+    // which reports it there, and two places would say it twice.
+    const linkError = readLinkError(result.url);
 
-    if (!nhost.getUserSession()) {
-      return { error: 'That sign-in did not complete. Try again.' };
+    if (linkError) {
+      return { linkError };
     }
 
-    return { success: true };
+    await redeemLinkToken(nhost, result.url);
+
+    // Only a session where there was none is this sign-in. A link never
+    // replaces a signed-in user, so one who was here before still is,
+    // whatever the callback said.
+    if (nhost.getUserSession()) {
+      return signedInBefore
+        ? { error: 'You are already signed in. Sign out first.' }
+        : { success: true };
+    }
+
+    return { error: 'That sign-in did not complete. Try again.' };
   } catch (err) {
     console.error('Error signing in with a provider:', err);
 
@@ -79,7 +98,7 @@ async function signInWithProvider(
 import { useNext } from '@/signin/useNext';
 
 export default function OAuthScreen() {
-  const { nhost } = useAuth();
+  const { nhost, setLinkError } = useAuth();
   const go = useGo();
   const next = useNext();
 
@@ -88,9 +107,15 @@ export default function OAuthScreen() {
 
   const handlePress = async (id: (typeof providers)[number]['id']) => {
     setError(undefined);
+    setLinkError(null);
     setPending(id);
     try {
       const result = await signInWithProvider(nhost, id, next);
+      if (result.linkError) {
+        setLinkError(result.linkError);
+        return;
+      }
+
       if (result.error) {
         setError(result.error);
         return;

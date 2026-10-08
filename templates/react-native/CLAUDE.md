@@ -47,7 +47,10 @@ It has two halves:
    sender's account. Build the link with
    `authRedirectURL()` in `src/lib/nhost/redirect.ts` - never by hand, because
    that is the one place that stops a crafted `next` from sending the user's
-   emailed link somewhere else.
+   emailed link somewhere else. A failed link comes back with `error` instead,
+   which `startAuth` reads in its turn into `useAuth().linkError` as one of
+   the app's own sentences; show that, and never the `errorDescription` a link
+   carries, since anyone can write one.
 6. **Sign-in methods are isolated.** Each is one directory under
    `frontend/src/app/auth/` plus one line in
    `frontend/src/signin/methods.ts`. A method may import from `@/lib/*`,

@@ -14,11 +14,16 @@ import { nhostRegion, nhostSubdomain } from '@/lib/nhost/env';
 import { redeemLinkToken } from '@/lib/nhost/linkToken';
 import { startAuth } from '@/lib/nhost/startAuth';
 import { AsyncSessionStorage } from '@/lib/nhost/storage';
+import { watchSignIn } from '@/lib/nhost/watchSignIn';
 
 type AuthValue = {
   nhost: NhostClient;
   session: Session | null;
   isLoading: boolean;
+  // Why the latest link or provider callback did not sign the user in, in the
+  // app's own words, or null when it did not fail.
+  linkError: string | null;
+  setLinkError: (message: string | null) => void;
 };
 
 const AuthContext = createContext<AuthValue | null>(null);
@@ -57,13 +62,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // links, so until then nobody knows who the user is about to be.
   const [isLoading, setIsLoading] = useState(true);
 
+  const [linkError, setLinkError] = useState<string | null>(null);
+
   useEffect(() => {
-    const unsubscribe = nhost.sessionStorage.onChange((next) =>
-      setSession(next),
-    );
+    // Someone signing in has moved on from whatever link failed before, and
+    // the notice would otherwise follow them through the app.
+    const signIns = watchSignIn(() => setLinkError(null));
+
+    const show = (next: Session | null): void => {
+      signIns.seen(next);
+      setSession(next);
+    };
+
+    const unsubscribe = nhost.sessionStorage.onChange(show);
 
     const stop = startAuth({
-      hydrate: () => storage.hydrate(),
+      hydrate: async () => {
+        await storage.hydrate();
+        signIns.hydrated(nhost.getUserSession());
+      },
       initialURL: () => Linking.getInitialURL(),
       listen: (onURL) => {
         const subscription = Linking.addEventListener('url', ({ url }) =>
@@ -75,9 +92,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       onLoading: (loading) => {
         // Hydrating writes nothing through the client, so `onChange` does
         // not hear it.
-        setSession(nhost.getUserSession());
+        show(nhost.getUserSession());
         setIsLoading(loading);
       },
+      onLinkError: setLinkError,
     });
 
     return () => {
@@ -87,8 +105,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [nhost, storage]);
 
   const value = useMemo<AuthValue>(
-    () => ({ nhost, session, isLoading }),
-    [nhost, session, isLoading],
+    () => ({ nhost, session, isLoading, linkError, setLinkError }),
+    [nhost, session, isLoading, linkError],
   );
 
   return <AuthContext value={value}>{children}</AuthContext>;
