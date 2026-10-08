@@ -20,12 +20,12 @@ export default async function Home() {
       <Card>
         <CardHeader>
           <CardTitle>
-            {user ? 'You are signed in' : 'You are signed out'}
+            {user ? 'You are signed in' : 'You are not signed in'}
           </CardTitle>
           <CardDescription>
             {user
               ? `Signed in as ${user.email ?? user.id}.`
-              : 'Pick a sign-in method to get a session.'}
+              : 'Create an account, or sign in to one you already have.'}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex gap-2">
@@ -34,9 +34,15 @@ export default async function Home() {
               <Link href="/protected">Open the protected page</Link>
             </Button>
           ) : (
-            <Button asChild>
-              <Link href="/signin">Sign in</Link>
-            </Button>
+            <>
+              {/* Sign up first: a fresh local backend has no accounts in it. */}
+              <Button asChild>
+                <Link href="/signin">Sign up</Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link href="/signin?intent=sign-in">Sign in</Link>
+              </Button>
+            </>
           )}
         </CardContent>
       </Card>

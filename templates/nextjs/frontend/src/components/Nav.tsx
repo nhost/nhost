@@ -26,7 +26,7 @@ export default async function Nav() {
           </div>
         ) : (
           <Button asChild variant="ghost" size="sm">
-            <Link href="/signin">Sign in</Link>
+            <Link href="/signin?intent=sign-in">Sign in</Link>
           </Button>
         )}
       </div>

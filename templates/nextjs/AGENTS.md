@@ -24,7 +24,27 @@ It has two halves:
 3. **Removing a method is two deletions**: the directory and its line in
    `methods.ts`. Then stop `pnpm dev`, delete `frontend/.next` and run
    `pnpm build`: the dev server's route types there still import the page.
-4. **Config, not schema.** Enabling an auth method is a `nhost.toml` change,
+4. **Sign up is the default, and `?intent=` is what changes it.** `PasswordForm`
+   opens on sign-up, because anyone running this against a fresh local backend
+   has no account yet. A link that wants the other mode says
+   `?intent=sign-in`; `frontend/src/app/signin/intent.ts` parses it. Nothing is
+   gated on it, so a missing or crafted value costs nothing.
+   `frontend/src/app/signin/query.ts` builds every link that carries it, and it
+   is the only thing that does: `next` and `intent` both have to survive the
+   hop out to a method and the hop back, and a second builder is how one of
+   them gets dropped.
+5. **"Check your inbox" is the link to the local mailbox.** Against a local
+   backend the email is in Mailhog, so every state that waits on one heads
+   itself with `<CheckYourInbox />` and those words open it. They stay plain
+   text once the app targets a real project, where a link would be a lie about
+   where the email is. The page resolves the URL and passes it in, which is
+   what keeps `lib/nhost/env` out of the client bundle.
+6. **The back-link counts the methods.** `--auth-methods` can scaffold one, and
+   "Other ways to sign in" would then promise choices that do not exist.
+   `frontend/src/app/signin/OtherWaysLink.tsx` reads `methods.ts` and renders
+   nothing when there is only one. It counts rather than naming any method,
+   which is what lets it be shared.
+7. **Config, not schema.** Enabling an auth method is a `nhost.toml` change,
    not a migration.
 
 ## Adding a table
