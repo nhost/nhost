@@ -1,14 +1,14 @@
 import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
 
 export const article = {
-   title: 'Best vibe coding tools in 2026: same prompt, five tools',
+   title: 'Best vibe coding tools in 2026: 5 tested on one prompt',
   description:
     'I gave Lovable, Bolt, Base44, Replit and v0 the same prompt with one requirement buried in it, then opened each database to see where the access rules ended up.',
   image: '/images/blog/best-vibe-coding-tools/cover.png',
   date: '2026-10-03',
-  seoTitle: 'Best Vibe Coding Tools in Q4 2026: Hands-On Comparison',
+  seoTitle: 'Best Vibe Coding Tools in 2026: Hands-On Comparison',
   seoDescription:
-    'Lovable, Bolt, Base44, Replit and v0 given the same prompt. Build times, interruptions, and where each one put the rules that decide who can read your data.',
+    'I gave Lovable, Bolt, Base44, Replit and v0 one identical task with a privacy requirement buried in it to see where the access rules ended up.',
   authors: [
     {
       name: 'Max Serdiukov',
@@ -24,19 +24,19 @@ export default (props) => <BlogPostLayout article={article} {...props} />
 
 Up front: I had never used a vibe coding tool before writing this. The closest I had come was building a couple of internal apps with Claude Code and Nhost.
 
-I decided not to write an AI-generated comparison of pricing, features, integrations and other public info you already know. I built one small app on each of the most popular vibe coding platforms, and here is what I wanted to find out:
+I decided not to write an AI-generated comparison of pricing, features, integrations and other public info you already know. I built one small app on each of the most popular vibe coding platforms (Lovable, Bolt, Base44, Replit and v0), and here is what I wanted to find out:
 
 - how long it takes to get to something that actually works
 - how many times I have to step in and fix things
-- where each tool puts the rules that decide who can see what
+- where each tool sets permissions
 - whether it notices its own mistakes
-- what it costs out of a free plan
+- free plan limits
 
-**Spoiler alert.** Four of the five produced a working app. Three handled that rule correctly. One shipped the app to a public URL without asking. Another left an endpoint open that its own security scanner had already flagged and chosen not to fix.
+**Spoiler alert.** Four of the five produced a working app. Three locked down individual votes in the database. One shipped the app to a public URL without asking. Another left an endpoint open, even though its own security scanner flagged it.
 
 ## The prompt
 
-All tools are on a free plan. Zero chat history. Literally my first interaction. Every tool received this, word for word, as the first and only instruction:
+Every tool ran on a free plan, with no chat history. This was my first prompt in each one:
 
 > Build a polling app.
 >
@@ -50,9 +50,9 @@ All tools are on a free plan. Zero chat history. Literally my first interaction.
 >
 > Keep it minimal, styling does not matter.
 
-I expected "nobody can find out how another specific user voted" to be the difficult one. An app can satisfy it on screen while leaving the vote table readable to anyone who queries the database another way.
+I expected the hardest part to be "nobody can find out how another specific user voted". An app can hide votes on screen and still leave them open to anyone who queries the database directly.
 
-Nothing in the prompt mentions security, row-level rules, or backends. That was deliberate. The point was to see the decision making behind each tool, and what it delivers when an average person is the one prompting.
+Nothing in the prompt mentions security, row-level rules, or backends. That was on purpose. I wanted to see what each tool decides on its own, and what it builds when a regular person writes the prompt.
 
 ## Results
 
@@ -64,65 +64,65 @@ Nothing in the prompt mentions security, row-level rules, or backends. That was 
 | Replit | 10:30 | 0 | 0 | Enforced in the API instead | Yes |
 | v0 | abandoned at 14:00 | 2 | 7 | Never reached that step | Yes |
 
-## Lovable finished first and then argued with itself
+## Fastest build: Lovable rewrote its own work twice
 
 Three minutes, no questions, no corrections from me. It opened with a single line about setting up the backend, then wrote three database migrations in a row.
 
-The first one created the tables and closed the vote rows:
+The first one created the tables and locked down the votes:
 
 ```sql
 CREATE POLICY "votes_select_own" ON public.votes FOR SELECT
 TO authenticated USING (auth.uid() = user_id);
 ```
 
-The database itself only returns a vote to the person who cast it. Ask it for everyone's votes and you still get back your own. One vote per person is a database rule too:
+The database itself only returns a vote to the person who cast it. Ask it for everyone's votes and you still get back only your own. One vote per person is a database rule too:
 
 ```sql
 UNIQUE (poll_id, user_id)
 ```
 
-Totals arrived through a view that could count rows without exposing them, marked `security_invoker = false` so it ran as its owner.
+Totals came from a view that counts votes without showing who cast them. It's marked security_invoker = false, so it runs with the owner's rights.
 
-Then it changed its mind. The second migration dropped that view for a function and shut the door behind it:
+Then it changed its mind. The second migration replaced the view with a function and limited who can call it:
 
 ```sql
 REVOKE ALL ON FUNCTION public.poll_option_counts() FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.poll_option_counts() TO authenticated, service_role;
 ```
 
-The third migration dropped the function too. Vote counts became a column on the options table, updated by a trigger whenever someone votes. That opens a new problem, so it closed it:
+The third migration dropped the function too. Vote counts became a column on the options table, updated by a trigger whenever someone votes. That created a new hole, but it closed that too:
 
 ```sql
 REVOKE UPDATE ON public.poll_options FROM authenticated;
 ```
 
-Without that line, anyone logged in could write to the counter directly and make up a result.
+Without that line, anyone logged in could write to the counter directly and fake the results.
 
-So [Lovable](https://lovable.dev) rewrote its own work twice in three minutes, each time closing a way someone could have got at the votes. Its built-in security scanner reported nothing when I opened it afterwards.
+[Lovable](https://lovable.dev) rewrote its own work twice in three minutes, each time closing a way someone could have got at the votes. Its built-in security scanner reported nothing when I opened it afterwards.
 
 ![Lovable: the votes_select_own policy in the migration it wrote](/images/blog/best-vibe-coding-tools/lovable.png)
 
 In the same message where it told me individual votes were locked down, it offered to switch off email confirmation so new accounts could log in right away.
 
-## Bolt built the same thing and left one door open
+## One open door in Bolt's build
 
-Three minutes fifty. Before writing a line, [Bolt](https://bolt.new) said it was loading its database guidance, because the task involved schema design and access policies. Then it read the config files and laid out a five-step plan. The migration it wrote opens with a long comment explaining the security model in plain English.
+Three minutes fifty. Before writing any code, [Bolt](https://bolt.new) said it was loading its database guidance, because the task involved schema design and access policies. Then it read the config files and laid out a five-step plan. The migration it wrote opens with a long comment explaining the security model in plain English.
 
 What it built is almost identical to Lovable's. Row-level security on every table. Votes readable only by the person who cast them. One vote per person enforced by a unique constraint. No updates or deletes on votes at all, so a vote can't be changed once it's in. Nobody can see how you voted.
 
-What it skipped was the last line. `get_poll_results`, the function that returns vote counts, runs as `SECURITY DEFINER` and was never locked down. Bolt's own Security Audit names the problem twice:
+It skipped the last line. `get_poll_results`, the function that returns vote counts, runs as `SECURITY DEFINER` and was never locked down. Bolt's own Security Audit flags it twice:
 
 > `public.get_poll_results(p_poll_id uuid)` can be executed by the `anon` role via `/rest/v1/rpc/get_poll_results`
 
-Anyone with a poll's id can read its results over the public REST endpoint **without an account**, on an app whose entire interface sits behind a login. Lovable wrote the same function and revoked it. Bolt wrote it and stopped.
+Anyone with a poll's id can read its results over the public REST endpoint **without an account**, even though the whole app sits behind a login. Lovable wrote the same function and revoked it. Bolt wrote it and stopped.
 
-Nobody's individual vote escapes, only the totals. That still contradicts the app's own design, and it is precisely the difference between Bolt and Lovable: both platforms scanned the project, both found this class of problem, and only one of them fixed it before handing the app over. Bolt surfaced an "Ask Bolt to fix" button instead. If you never open the Security tab, you never learn it exists.
+Individual votes are still private, only the totals leak. Bolt's scanner caught this, but the agent didn't fix it. It just added an "Ask Bolt to fix" button in the Security tab, so you only find out if you go looking.
 
 ![Bolt's security audit: anon can execute the results function](/images/blog/best-vibe-coding-tools/bolt.png)
 
-## Base44 got permissions right and publishing wrong
+## Base44 made the app public without asking
 
-Four minutes thirty. [Base44](https://base44.com) read its own capability guides first, checked the existing auth pages, then built entities, backend functions and pages in a single batch.
+[Base44](https://base44.com) took four minutes thirty. It read its own capability guides first, checked the existing auth pages, then built entities, backend functions and pages in a single batch.
 
 There is no SQL here at all. Access control is a permission table per entity, and the agent filled it in correctly:
 
@@ -133,57 +133,57 @@ There is no SQL here at all. Access control is a permission table per entity, an
 
 The Vote row means anyone signed in can cast a vote, and only the person who cast it can read it back. Same result as Lovable's policy, just set in a table instead of written in SQL.
 
-Base44 also ran through the app to check the result: created a poll, voted, saw the marker on its own choice, tried to vote again and got refused, deleted the poll, ended up at the empty state.
+Base44 also tested the app itself: created a poll, voted, saw the marker on its own choice, tried to vote again and got refused, deleted the poll, and landed on the empty screen.
 
-And then the app went up on a public address **without anyone asking for it**. Visibility reads Public, the URL was live before I looked at anything, and no publish step ever happened. Everyone else left the project private. So the tool that handled the data best is also the one that opened it to the internet by default.
+Then it put the app on a public URL **without asking**. Visibility was set to Public and the link was live before I touched anything.
 
 ![Base44: the finished app with a vote cast, already live on a public base44.app address](/images/blog/best-vibe-coding-tools/base44.png)
 
-## Replit took three times longer and showed nothing
+## Ten minutes of loading spinner on Replit
 
-I sat there for ten and a half minutes looking at a loading spinner. [Replit](https://replit.com) doesn't show you what it's doing, so there was nothing on screen the whole time. Eventually I refreshed the page and the app was already finished. Its own log says the work took seven minutes.
+I sat there for ten and a half minutes looking at a loading spinner. [Replit](https://replit.com) doesn't show you what it's doing. Eventually I got bored and refreshed and the app, surprisingly it was already built. Its own log says the work took seven minutes.
 
-Replit took a different approach. Instead of a page talking straight to a database, it wrote a server: an API in front of its own Postgres, with sign-in handled by Clerk, a third-party service it pulled in without mentioning it. The browser never touches the database, so the access rules live in the API.
+Instead of letting the page talk to the database, it wrote a server: an API in front of its own Postgres. Sign-in runs on Clerk, a third-party service it added without telling me. The browser never touches the database, so the access rules live in the API.
 
-It also ran live checks and reported them: typecheck passes, production build passes, health endpoint returns 200, and a request for poll data without a session returns 401. No other tool checked its own login wall against the running app.
+It also ran live checks and reported them: typecheck passes, production build passes, health endpoint returns 200, and a request for poll data without a session returns 401. None of the others tested their login wall on the running app.
 
 ![Replit's verification list, including the 401 on unauthenticated access](/images/blog/best-vibe-coding-tools/replit.png)
 
 ## v0 never finished
 
-[v0](https://v0.app) wants your input on everything. It opened by asking permission to connect a Neon database, then wanted an auth secret generated with `openssl rand -base64 32` in a terminal and pasted into the project variables. The "need setup help" button sitting next to that request suggests they know what they're asking of people who bought a tool to avoid exactly this.
+[v0](https://v0.app) wants your input on everything. It opened by asking permission to connect a Neon database, then wanted an auth secret generated with `openssl rand -base64 32` in a terminal and pasted into the project variables. There's a "need setup help" button right next to it, so they know it's a lot to ask from people who picked a tool to avoid exactly this.
 
-Five approval dialogs followed. "This task may cause potentially destructive actions, and requires approval", every time, with a block of raw SQL underneath. Creating an empty table counts as potentially destructive. One of them was the previous statement again with a single column type changed, which I only caught by going back and comparing. Somewhere around the sixth the plain-English explanation disappeared and only the parameters were left.
+Five approval dialogs followed. "This task may cause potentially destructive actions, and requires approval", every time, with a block of raw SQL underneath. Creating an empty table counts as potentially destructive. One was the previous statement again with one column type changed. I only noticed because I went back and compared. By the end, the plain-English explanation was gone and only the parameters were left.
 
-The last dialog was the accounts table, passwords and tokens included. I approved it and then switched v0 to make any further changes without asking me.
+The last dialog was the accounts table, passwords and tokens included. I approved it and then told v0 to stop asking for approval.
 
 The run then broke on `BetterAuthError: Database schema mismatch`, with the auth library's own tables missing. A "fix with v0" button handled that in two minutes.
 
-Meanwhile the progress tracker had not moved off "Task 0 of 5 complete", sitting directly under a message announcing the app was built and verified. I asked v0 if it was finished. It said no: the code existed and the sign-in page loaded, but signing up, creating a poll and voting had never been tried.
+The progress tracker was still at "Task 0 of 5 complete", right under a message saying the app was built and verified. I asked v0 if it was finished. It said no: the code existed and the sign-in page loaded, but signing up, creating a poll and voting had never been tried.
 
-So I stopped at fourteen minutes, with a login page, a database full of tables, and no way for anyone to actually use it. Of the five, v0 is **the only one that didn't finish**.
+I stopped at fourteen minutes. There was a login page and a database full of tables, but no way to actually use the app.
 
 ![v0: "Task 0 of 5 complete", and its answer when I asked if the app was finished](/images/blog/best-vibe-coding-tools/v0.png)
 
 ## Free plan limits
 
-The units aren't comparable, which doesn't help. Lovable spent 1.9 of the 5 build credits it gives per day, so roughly two apps of this size daily. Bolt used about 100,000 tokens against a 300,000 daily ceiling and a million a month, so about three. Base44 and Replit don't expose a simple per-run figure, and v0's free tier now restricts you to its smallest model.
+Each tool counts usage differently, so it's not apples to apples. Lovable spent 1.9 of the 5 build credits it gives per day, enough for about two apps like this a day. Bolt used about 100,000 tokens against a 300,000 daily ceiling and a million a month, so about three. Base44 and Replit don't expose a simple per-run figure, and v0's free tier now restricts you to its smallest model.
 
 ## Where the rules ended up
 
-Three of the four that finished put the privacy rule in the database, without being asked and without being told the words "row-level security". The part I'd worried about turned out to be the part they were good at.
+Three of the four that finished put the privacy rule in the database, without being asked and without being told the words "row-level security". The part I worried about most turned out to be what they did best.
 
 Row-level rules protect rows. They don't protect a function that runs with elevated privileges, and you need one of those to show totals without showing ballots. Lovable revoked execute on its function; Bolt left the same function callable by anonymous users. **Identical schemas, one line apart.**
 
-Replit put its rules in the API instead, so nothing in the database itself stops a query. That works until an endpoint forgets to check, and you can't see it from the outside the way you can read a policy.
+Replit put its rules in the API instead, so nothing in the database itself stops a query. That works until one endpoint forgets to check. And from the outside, you can't inspect an API the way you can read a database policy.
 
 ## Newly: bonus run
 
-[Newly](https://newly.app) sits outside the table for two reasons. I ran it on a paid plan I happened to have (there's no free tier at all). Also it builds native iOS and Android apps, generating React Native and Expo code underneath.
+[Newly](https://newly.app) sits outside the table for two reasons. I ran it on a paid plan I happened to have (there's no free tier at all). It also builds native iOS and Android apps, generating React Native and Expo code underneath.
 
-So when the prompt mentioned different browsers, Newly built phone apps and ran them in a simulator.
+When the prompt mentioned different browsers, Newly built phone apps and ran them in a simulator.
 
-The whole run took 14 minutes 50 seconds, with no questions and nothing to fix. The longer time comes from building for two platforms, booting a simulator, and a compile step the web tools don't have, since they just ship a page to a URL. Underneath is Newly's own backend, with the access rules in its API, the same place Replit put them. There's no permissions screen to screenshot, but you can download the lot, app and backend, as a ZIP, or point it at a GitHub repository.
+The whole run took 14 minutes 50 seconds, with no questions and nothing to fix. It took longer because it builds for two platforms, boots a simulator and compiles the app. The web tools just put a page on a URL. Underneath is Newly's own backend, with the access rules in its API, the same place Replit put them. There's no permissions screen to screenshot, but you can download everything, app and backend, as a ZIP, or point it at a GitHub repository.
 
 ![Newly: the poll app running in the iOS simulator](/images/blog/best-vibe-coding-tools/newly.png)
 
