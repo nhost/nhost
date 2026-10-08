@@ -1,3 +1,4 @@
+import type { StoredSession } from '@nhost/nhost-js/session';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { startAuth, useAuth } from '@/lib/nhost/auth';
 import { linkErrorMessage } from '@/lib/nhost/linkToken';
@@ -11,8 +12,8 @@ const replaceState = vi.fn((_state: unknown, _title: string, url: string) => {
   location.hash = next.hash;
 });
 
-// Only the error path: it never reaches the network, so the real client and
-// its in-memory storage are enough.
+// Only paths that never reach the network, so the real client and its
+// in-memory storage are enough.
 describe('startAuth', () => {
   beforeEach(() => {
     Object.assign(location, {
@@ -20,10 +21,13 @@ describe('startAuth', () => {
       search: '?error=invalid-ticket&errorDescription=Call+evil.example',
       hash: '',
     });
-    vi.stubGlobal('window', {
-      location,
-      history: { state: null, replaceState },
-    });
+    vi.stubGlobal(
+      'window',
+      Object.assign(new EventTarget(), {
+        location,
+        history: { state: null, replaceState },
+      }),
+    );
     vi.spyOn(console, 'warn').mockImplementation(() => undefined);
   });
 
@@ -54,5 +58,26 @@ describe('startAuth', () => {
     await startAuth();
 
     expect(useAuth().linkError.value).toBeNull();
+  });
+
+  // Another tab's write reaches this one only as a `storage` event, so this is
+  // what stops a tab rendering a visitor who signed out elsewhere.
+  it('follows another tab signing in and out', async () => {
+    location.search = '';
+    await startAuth();
+    const { nhost, session } = useAuth();
+    const theirs = { refreshToken: 'theirs' } as unknown as StoredSession;
+    const stored = vi.spyOn(nhost, 'getUserSession').mockReturnValue(theirs);
+
+    window.dispatchEvent(
+      Object.assign(new Event('storage'), { key: 'nhostSession' }),
+    );
+    expect(session.value).toEqual(theirs);
+
+    stored.mockReturnValue(null);
+    window.dispatchEvent(
+      Object.assign(new Event('storage'), { key: 'nhostSession' }),
+    );
+    expect(session.value).toBeNull();
   });
 });

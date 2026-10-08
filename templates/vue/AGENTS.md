@@ -15,9 +15,10 @@ It has two halves:
 
 1. **One client, created once.** `frontend/src/lib/nhost/auth.ts` calls
    `createClient` at module scope and exports it through `useAuth()`. That
-   client owns the refresh timer and keeps the session in `localStorage`.
-   Creating a second one anywhere gives you two rotators of a single-use
-   refresh token. Always reach for `useAuth()`.
+   client keeps the session in `localStorage`, and the app follows the
+   session through its `sessionStorage.onChange`, which hears only writes made
+   through that instance. A sign-in or sign-out through a second client would
+   leave the app rendering the old visitor. Always reach for `useAuth()`.
 2. **The session is read before the app mounts.** `main.ts` awaits
    `startAuth()`, so by the first render the stored session is known. Nothing
    needs an `isLoading` check, and adding one would be dead code. If you make
