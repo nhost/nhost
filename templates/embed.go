@@ -58,4 +58,20 @@ import "embed"
 //go:embed svelte/frontend/vite.config.ts
 //go:embed all:svelte/frontend/src
 //go:embed all:svelte/ui
+//go:embed react-native/AGENTS.md react-native/CLAUDE.md react-native/SKILLS.md
+//go:embed all:react-native/.claude
+//go:embed react-native/frontend/.env.example react-native/frontend/.gitignore
+//go:embed react-native/frontend/README.md
+//go:embed react-native/frontend/app.json react-native/frontend/babel.config.js
+//go:embed react-native/frontend/biome.json react-native/frontend/global.css
+//go:embed react-native/frontend/metro.config.js
+//go:embed react-native/frontend/nativewind-env.d.ts
+//go:embed react-native/frontend/package.json
+//go:embed react-native/frontend/pnpm-lock.yaml
+//go:embed react-native/frontend/pnpm-workspace.yaml
+//go:embed react-native/frontend/tailwind.config.js
+//go:embed react-native/frontend/tsconfig.json
+//go:embed react-native/frontend/vitest.config.mts
+//go:embed all:react-native/frontend/src
+//go:embed all:react-native/navigation
 var FS embed.FS

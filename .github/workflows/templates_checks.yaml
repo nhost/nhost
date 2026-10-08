@@ -42,7 +42,7 @@ jobs:
       matrix:
         # Add a template here when it lands, or it ships unchecked.
         # templates/check-ci-matrix.sh fails the build if this list misses one.
-        template: [nextjs, react, vue, svelte]
+        template: [nextjs, react, vue, svelte, react-native]
     defaults:
       run:
         working-directory: templates/${{ matrix.template }}/frontend
@@ -83,7 +83,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        template: [nextjs, react, vue, svelte]
+        template: [nextjs, react, vue, svelte, react-native]
         # One entry per directory under the template's own auth/ directory.
         # templates/check-ci-matrix.sh fails the build if this list misses one.
         method: [password, magic-link, otp, oauth]
@@ -179,6 +179,11 @@ jobs:
         # One entry per directory under `templates/<template>/ui/`.
         # templates/check-ci-matrix.sh fails the build if this list misses one.
         ui: [none]
+        # react-native is deliberately absent from the template axis above. It
+        # has no `ui/` directory: there is no shadcn port for React Native, so
+        # `frontend/` is the only UI system it offers and the `frontend` job
+        # already builds it. A combination here would scaffold a `ui` that does
+        # not exist.
     steps:
       - uses: actions/checkout@v7
         with:
@@ -218,6 +223,78 @@ jobs:
       # What the CLI tells a user to run. CI makes pnpm install frozen when the
       # scaffold ships a lockfile; without one it resolves the way a user's
       # first install does.
+      - run: pnpm install
+        working-directory: ${{ runner.temp }}/scaffold/frontend
+
+      - run: pnpm lint
+        working-directory: ${{ runner.temp }}/scaffold/frontend
+
+      - run: pnpm test
+        working-directory: ${{ runner.temp }}/scaffold/frontend
+
+      - run: pnpm build
+        working-directory: ${{ runner.temp }}/scaffold/frontend
+
+  # A navigation system is the same kind of swap as a UI system, and cannot be
+  # checked where it sits for the same reason: `navigation/` is outside
+  # `frontend/`, so nothing typechecks it there, and it brings a package.json
+  # naming a different library. Building `frontend/` would build the wrong one.
+  # So this scaffolds with the CLI, outside the repository, and installs and
+  # builds exactly what a user gets. The default system needs no entry: it is
+  # what `frontend/` already is, and the `frontend` job builds it.
+  navigation:
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        # One entry per directory under `templates/<template>/navigation/`.
+        # templates/check-ci-matrix.sh fails the build if this list misses one.
+        # Only react-native offers a choice, so this is listed as explicit
+        # combinations rather than crossed axes.
+        include:
+          - template: react-native
+            navigation: navigation
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: templates/${{ matrix.template }}/frontend/pnpm-lock.yaml
+
+      - name: Scaffold ${{ matrix.template }} with ${{ matrix.navigation }}
+        env:
+          TEMPLATE: ${{ matrix.template }}
+          NAVIGATION: ${{ matrix.navigation }}
+          SCAFFOLD: ${{ runner.temp }}/scaffold
+        run: |
+          go build -o "$RUNNER_TEMP/nhost" ./cli
+
+          auth_dir=$(find "templates/$TEMPLATE/frontend/src" -type d -name auth)
+
+          methods=$(find "$auth_dir" \
+            -mindepth 1 -maxdepth 1 -type d -printf '%f\n' |
+            sort | paste -sd, -)
+
+          mkdir "$SCAFFOLD"
+          cd "$SCAFFOLD"
+          "$RUNNER_TEMP/nhost" init --template "$TEMPLATE" \
+            --navigation "$NAVIGATION" --auth-methods "$methods"
+
+      # Without a lockfile, which this system drops, pnpm resolves the way a
+      # user's first install does.
       - run: pnpm install
         working-directory: ${{ runner.temp }}/scaffold/frontend
 

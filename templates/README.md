@@ -40,6 +40,7 @@ lockfile with a plain `pnpm install` from inside `frontend/`, never with
 | `react` | React 19 on Vite, Tailwind v4, plain components or shadcn/ui | the same app with no server: a browser-held session the SDK refreshes, routes found by glob, one protected route. No schema. |
 | `vue` | Vue 3 on Vite, Tailwind v4, plain components or shadcn-vue | the `react` app in Vue: one module-scope client, a session read before mount so nothing flashes signed out, routes found by glob. No schema. |
 | `svelte` | SvelteKit as an SPA (`ssr = false`, adapter-static), Tailwind v4, plain components or shadcn-svelte | the same app again, with the framework's own file-based routing instead of a glob and runes for the session. No schema. |
+| `react-native` | Expo (SDK 57), NativeWind, Expo Router or React Navigation | the same app on a device: an AsyncStorage session, auth links arriving as deep links, OAuth through a browser session. No schema. |
 
 ## Develop and test a template locally
 
@@ -78,6 +79,15 @@ The two guards below run in CI; run them before pushing:
   maps `src/routes/` to URLs, so the `svelte` template uses that directly and a
   method directory simply is its route. The invariant is the same either way:
   nothing names a method anywhere except `methods.ts`.
+- **Where a method's code can sit is the router's decision too.** Expo Router
+  turns every file under its root into a route, including ones that export no
+  component, so in `react-native` a method's calls live in the file that *is*
+  its route rather than in a module beside it. The one thing that would have
+  been repeated four times, building the deep link an auth email comes back to,
+  is in `src/lib/nhost/redirect.ts` instead, where it is tested once. Nothing
+  outside a method's directory may name it, including test fixtures: the
+  `delete-method` job greps for exactly that, and a path like
+  `/auth/password/reset` written in shared code fails it.
 - **Sign-in methods are isolated.** Each is one directory under
   `frontend/src/app/auth/` plus one entry in `frontend/src/app/signin/methods.ts`,
   which has no imports. A method imports only from `@/lib/nhost/*`,
@@ -128,6 +138,25 @@ The two guards below run in CI; run them before pushing:
   overlay mirrors whichever shape the seam uses and need only carry the files
   that differ: `ui/none/input/` replaces `Input.vue` and leaves the `index.ts`
   re-export alone.
+- **A template may offer a second axis of its own.** `react-native` is the only
+  framework here with two navigation libraries in common use, so it is the only
+  one with `navSystems` and the only one `--navigation` applies to; passing it
+  to any other template is refused. The swap works the same way `--ui` does,
+  behind a seam: `frontend/src/lib/navigation.tsx` is the only module that
+  imports a navigation library, screens import only from it, and the overlay
+  under `templates/react-native/navigation/<name>/` replaces that file, the app
+  shell and `package.json`. It is laid over `frontend/` rather than one
+  directory inside it, because changing navigation changes the entry point and
+  the dependencies too, and `dropFiles` removes what the default needed and this
+  one does not. The `navigation` job scaffolds and builds each one, for the same
+  reason the `ui-system` job exists: nothing typechecks `navigation/` where it
+  sits.
+- **Not every template offers a UI system to choose.** `react-native` ships one
+  entry, `none`, which is the NativeWind set in `frontend/` - shadcn/ui is built
+  on Radix and the DOM, so there is no port to offer beside it. It therefore has
+  no `ui/` directory and is excluded from the `ui-system` job's template axis;
+  the `frontend` job builds the only system it has. `--ui shadcn` against it is
+  refused with its own list, which is what `resolveUISystem` is for.
 - **A UI system that changes dependencies drops the lockfile too.** `pnpm-lock.yaml`
   describes `frontend/package.json` as the template ships it, so a scaffold that
   removes packages from that file invalidates it. Shipping it anyway passes

@@ -1,0 +1,8 @@
+preferWorkspacePackages: false
+
+# React Native's Metro bundler resolves modules by walking node_modules on
+# disk, so the app is installed with a flat node_modules rather than pnpm's
+# default symlinked store. This is what the Expo documentation asks for, and
+# without it Metro fails to resolve the transitive native modules Expo's own
+# packages reach for.
+nodeLinker: hoisted

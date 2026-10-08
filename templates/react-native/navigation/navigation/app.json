@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "Nhost Starter",
+    "slug": "nhost-starter",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "scheme": "nhoststarter",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.example.nhoststarter"
+    },
+    "android": {
+      "package": "com.example.nhoststarter",
+      "edgeToEdgeEnabled": true
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    }
+  }
+}

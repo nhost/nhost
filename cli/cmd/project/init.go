@@ -121,6 +121,12 @@ func CommandInit() *cli.Command {
 				Sources: cli.EnvVars("NHOST_UI"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
+				Name:    flagNavigation,
+				Usage:   navUsage(),
+				Value:   defaultNavigation,
+				Sources: cli.EnvVars("NHOST_NAVIGATION"),
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagPackageManager,
 				Usage:   packageManagerUsage(),
 				Value:   defaultPackageManager,
@@ -144,6 +150,11 @@ func commandInit(ctx context.Context, cmd *cli.Command, tv *templateValue) error
 	// build it with before what it does, since the stack is the decision the
 	// rest sit inside.
 	ui, err := resolveUISystem(ce, cmd, template, asked)
+	if err != nil {
+		return err
+	}
+
+	nav, err := resolveNavigationSystem(ce, cmd, template, asked)
 	if err != nil {
 		return err
 	}
@@ -191,7 +202,7 @@ func commandInit(ctx context.Context, cmd *cli.Command, tv *templateValue) error
 	}
 
 	if err := writeTemplate(
-		ce.Path, template, layout, methods, ui, pm,
+		ce.Path, template, layout, methods, ui, nav, pm,
 	); err != nil {
 		return err
 	}

@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # Fails when the CI matrix in .github/workflows/templates_checks.yaml does not
-# build every template, delete-proof every sign-in method and build every UI
-# system, or names one that does not exist.
+# build every template, delete-proof every sign-in method, or build every UI
+# and navigation system, or names one that does not exist.
 #
 # The jobs take what they run against from their own `strategy.matrix`, not
 # from discovering templates/*/ the way this repo's other guards do. A template,
-# a method directory under the template's own auth/ or a UI system under ui/
-# landing without a matching combination ships green while CI runs zero times
-# for it: never installed, never linted, never tested, never built, and never
+# a method directory under the template's own auth/, a UI system under ui/ or a
+# navigation system under navigation/ landing without a matching combination
+# ships green while CI runs zero times for it: never installed, never linted, never tested, never built, and never
 # proven to survive deleting a sign-in method. check-agent-context.sh cannot
 # see this gap - it verifies the duplicated agent-context Markdown, not what CI
 # actually executes - so this is a separate check for a separate concern.
@@ -112,6 +112,14 @@ required = {
     "ui-system": (
         ("template", "ui"),
         {(t, u) for t in templates for u in subdirs(f"templates/{t}/ui")},
+    ),
+    "navigation": (
+        ("template", "navigation"),
+        {
+            (t, n)
+            for t in templates
+            for n in subdirs(f"templates/{t}/navigation")
+        },
     ),
 }
 

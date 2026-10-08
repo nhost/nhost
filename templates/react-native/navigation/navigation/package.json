@@ -1,0 +1,43 @@
+{
+  "name": "react-native",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.ts",
+  "scripts": {
+    "dev": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "build": "tsc --noEmit && expo export --platform android",
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@nhost/nhost-js": "^4.7.2",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@react-navigation/native": "^7.1.19",
+    "@react-navigation/native-stack": "^7.3.28",
+    "@types/react": "~19.2.18",
+    "clsx": "^2.1.1",
+    "expo": "~57.0.27",
+    "expo-constants": "~57.0.21",
+    "expo-linking": "~57.0.12",
+    "expo-status-bar": "~57.0.1",
+    "expo-web-browser": "~57.0.3",
+    "nativewind": "^4.2.7",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-reanimated": "4.5.1",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.26.2",
+    "react-native-web": "^0.21.3",
+    "tailwind-merge": "^3.7.0",
+    "tailwindcss": "^3.4.17",
+    "typescript": "~6.0.3"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.15",
+    "vitest": "^4.1.10"
+  }
+}

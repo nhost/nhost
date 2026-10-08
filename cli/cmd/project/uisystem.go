@@ -134,6 +134,24 @@ func svelteUISystems() []uiSystem {
 	}
 }
 
+// nativeUISystems is what a React Native template is scaffolded with: the
+// NativeWind components the template already holds, and nothing else. There is
+// no shadcn port for React Native - shadcn/ui is built on Radix and the DOM,
+// neither of which exists on a device - so this is one entry rather than a
+// choice. It is still named `none`, because that is the default every template
+// is required to offer and it is what `frontend/` already is here.
+func nativeUISystems() []uiSystem {
+	return []uiSystem{
+		{
+			name:      "none",
+			label:     "None",
+			overlay:   "",
+			drops:     nil,
+			dropFiles: nil,
+		},
+	}
+}
+
 func uiNames(systems []uiSystem) []string {
 	names := make([]string, 0, len(systems))
 

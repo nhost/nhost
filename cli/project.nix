@@ -78,6 +78,11 @@ let
         (fs.maybeMissing ../templates/svelte/frontend/.svelte-kit)
         (fs.maybeMissing ../templates/svelte/frontend/build)
       ]))
+      (fs.difference ../templates/react-native (fs.unions [
+        (fs.maybeMissing ../templates/react-native/frontend/node_modules)
+        (fs.maybeMissing ../templates/react-native/frontend/.expo)
+        (fs.maybeMissing ../templates/react-native/frontend/dist)
+      ]))
 
       # docs
       ../docs/embed.go

@@ -36,8 +36,9 @@ func ignored(path string) bool {
 	for _, name := range parts {
 		switch {
 		case name == "node_modules", name == ".next", name == ".vercel",
-			name == ".svelte-kit",
+			name == ".svelte-kit", name == ".expo",
 			name == ".DS_Store", name == "next-env.d.ts",
+			name == "expo-env.d.ts",
 			strings.HasSuffix(name, ".tsbuildinfo"),
 			strings.HasSuffix(name, ".pem"),
 			strings.HasPrefix(name, "npm-debug.log"),

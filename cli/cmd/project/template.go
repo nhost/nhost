@@ -56,6 +56,11 @@ type starterTemplate struct {
 	// a component library is written for one framework: shadcn/ui is React, and
 	// its Vue and Svelte ports are different packages.
 	uiSystems []uiSystem
+	// navSystems are the navigation libraries this template can be scaffolded
+	// with, or none when the framework leaves no choice. A Next.js app routes
+	// with Next's router and a SvelteKit app with SvelteKit's; Expo is the one
+	// here with two answers in common use, so it is the one that asks.
+	navSystems []navigationSystem
 }
 
 // catalogue lists the templates the binary ships, in the order the picker
@@ -98,6 +103,19 @@ func catalogue() []starterTemplate {
 			methodsFile:  "frontend/src/lib/signin/methods.ts",
 			componentsUI: "frontend/src/lib/components/ui",
 			uiSystems:    svelteUISystems(),
+		},
+		{
+			// Expo Router turns every file under its root into a route, so
+			// src/app holds routes and nothing else: a method's code lives in
+			// the file that is its route, and the list it is named in lives
+			// outside with the rest of the shared code.
+			name:         "react-native",
+			label:        "React Native",
+			authDir:      "frontend/src/app/auth",
+			methodsFile:  "frontend/src/signin/methods.ts",
+			componentsUI: "frontend/src/components/ui",
+			uiSystems:    nativeUISystems(),
+			navSystems:   expoNavigationSystems(),
 		},
 	}
 }
@@ -221,8 +239,9 @@ func pickTemplate(ce *clienv.CliEnv) (string, error) {
 
 // templateEntries are the top-level entries a template lays over the project
 // root, which is also everything that can collide with what is already there.
-// The ui directory is not among them: it holds the template's alternative UI
-// systems, which are scaffolded into frontend/ rather than handed over whole.
+// The ui and navigation directories are not among them: they hold the
+// template's alternatives, which are scaffolded into frontend/ rather than
+// handed over whole.
 func templateEntries(name string) ([]string, error) {
 	entries, err := fs.ReadDir(templates.FS, name)
 	if err != nil {
@@ -232,7 +251,7 @@ func templateEntries(name string) ([]string, error) {
 	names := make([]string, 0, len(entries))
 
 	for _, e := range entries {
-		if e.Name() == uiDirPath {
+		if e.Name() == uiDirPath || e.Name() == navDirPath {
 			continue
 		}
 
@@ -310,6 +329,7 @@ func writeTemplate(
 	layout templateLayout,
 	methods []signInMethod,
 	ui uiSystem,
+	nav navigationSystem,
 	pm packageManager,
 ) error {
 	tmpl, ok := lookupTemplate(name)
@@ -317,7 +337,7 @@ func writeTemplate(
 		return fmt.Errorf("%w %q", errUnknownTemplate, name)
 	}
 
-	err := layTemplate(ps, tmpl, layout, methods, ui, pm)
+	err := layTemplate(ps, tmpl, layout, methods, ui, nav, pm)
 	if err == nil {
 		return nil
 	}
@@ -344,12 +364,14 @@ func layTemplate(
 	layout templateLayout,
 	methods []signInMethod,
 	ui uiSystem,
+	nav navigationSystem,
 	pm packageManager,
 ) error {
 	name := tmpl.name
 
 	skip := unselectedAuthDirs(tmpl, methods)
 	skip[path.Join(name, uiDirPath)] = true
+	skip[path.Join(name, navDirPath)] = true
 
 	for _, e := range layout.keep {
 		skip[path.Join(name, e)] = true
@@ -363,6 +385,10 @@ func layTemplate(
 	}
 
 	for _, d := range ui.dropFiles {
+		skip[path.Join(name, d)] = true
+	}
+
+	for _, d := range nav.dropFiles {
 		skip[path.Join(name, d)] = true
 	}
 
@@ -380,6 +406,10 @@ func layTemplate(
 	}
 
 	if err := writeUISystem(ps, tmpl, ui); err != nil {
+		return err
+	}
+
+	if err := writeNavigationSystem(ps, tmpl, nav); err != nil {
 		return err
 	}
 

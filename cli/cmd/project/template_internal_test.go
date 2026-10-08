@@ -308,8 +308,12 @@ func TestWriteTemplateRemovesWhatItWroteOnFailure(t *testing.T) {
 		dropFiles: nil,
 	}
 
+	// nextjs offers no navigation system, so the zero value is what init
+	// resolves for it.
+	nav := navigationSystem{} //nolint:exhaustruct
+
 	if err := writeTemplate(
-		ps, "nextjs", layout, signInMethods(), broken, pm,
+		ps, "nextjs", layout, signInMethods(), broken, nav, pm,
 	); err == nil {
 		t.Fatal("writeTemplate with a missing overlay succeeded")
 	}

@@ -466,6 +466,7 @@ Initialize a new Nhost project.
 | | |
 | --- | --- |
 | `--auth-methods=""` | Sign-in methods to scaffold, comma separated. `LIST` is any of: password, magic-link, otp, oauth. Default: `"password"`. Env: `$NHOST_AUTH_METHODS`. |
+| `--navigation=""` | Navigation system the template scaffolds, where it offers a choice. `NAME` is one of: router, navigation. Default: `"router"`. Env: `$NHOST_NAVIGATION`. |
 | `--package-manager=""` | Package manager the template is set up for. `NAME` is one of: pnpm, bun, yarn, npm. Default: `"pnpm"`. Env: `$NHOST_PACKAGE_MANAGER`. |
 | `--remote` | Initialize pulling configuration, migrations and metadata from the linked project. Env: `$NHOST_REMOTE`. |
 | `--template=""` | Add a starter frontend next to the backend. `NAME` picks one; a bare --template lists them. |
