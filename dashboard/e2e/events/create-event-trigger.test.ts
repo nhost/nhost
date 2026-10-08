@@ -86,7 +86,7 @@ test('should create and delete an event trigger with transforms', async ({
   await page.getByText('Configure Transformation').click();
 
   await page.getByRole('button', { name: /add options transform/i }).click();
-  await page.getByLabel('PUT').click();
+  await page.getByRole('radio', { name: 'PUT' }).click();
   await page.getByPlaceholder(/url template/i).fill('/api/webhook');
 
   await page.getByRole('button', { name: /add payload transform/i }).click();

@@ -26,7 +26,10 @@ const mockRoute = (
 
 beforeEach(() => {
   vi.stubEnv('NEXT_PUBLIC_NHOST_PLATFORM', 'true');
-  vi.stubEnv('NEXT_PUBLIC_NHOST_CONFIGSERVER_URL', 'https://config.local');
+  vi.stubEnv(
+    'NEXT_PUBLIC_NHOST_CONFIGSERVER_URL',
+    'https://my-config-server.com',
+  );
   window.localStorage.removeItem('dashboard-sidebar-collapsed');
 });
 

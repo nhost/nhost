@@ -90,7 +90,14 @@ function DatabaseObjectActions({
   const deleteLabel = deleteLabels[objectType] || 'Delete';
 
   return (
-    <DropdownMenu open={open} onOpenChange={handleOnOpenChange}>
+    <DropdownMenu
+      open={open}
+      onOpenChange={handleOnOpenChange}
+      // The menu items open MUI drawers/dialogs. A modal Radix menu would
+      // still have `#__next` aria-hidden when MUI opens, so MUI's ModalManager
+      // treats it as already hidden and never restores it on close.
+      modal={false}
+    >
       <DropdownMenuTrigger
         className={cn(className)}
         disabled={disabled}
