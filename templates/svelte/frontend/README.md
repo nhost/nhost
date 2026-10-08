@@ -40,6 +40,11 @@ pnpm install
 pnpm dev                      # http://localhost:3000
 ```
 
+If something already holds port 3000 the dev server stops instead of moving to
+another one, because auth links only come back to an address the backend was
+told to allow. Moving the app means changing `server.port` in `vite.config.ts`,
+`VITE_APP_ORIGIN` and the backend's `auth.redirections.allowedUrls` together.
+
 Two addresses are worth keeping open while the local stack is up, and neither
 exists once you deploy:
 
