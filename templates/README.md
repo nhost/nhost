@@ -88,11 +88,13 @@ The two guards below run in CI; run them before pushing:
   outside a method's directory may name it, including test fixtures: the
   `delete-method` job greps for exactly that, and a path like
   `/auth/password/reset` written in shared code fails it.
-- **Sign-in methods are isolated.** Each is one directory under
-  `frontend/src/app/auth/` plus one entry in `frontend/src/app/signin/methods.ts`,
-  which has no imports. A method imports only from `@/lib/nhost/*`,
-  `@/components/*` and `@/app/signin/destination`; nothing shared imports from
-  a method. The `delete-method` job in
+- **Sign-in methods are isolated.** Each is one directory under the template's
+  `authDir` plus one entry in its `methodsFile`, which has no imports; for
+  `nextjs` those are `frontend/src/app/auth/` and
+  `frontend/src/app/signin/methods.ts`. Besides its own directory, a method
+  imports only shared code (`lib/`, `components/`, and the sign-in modules
+  beside `methods.ts` such as `destination`), never another method; nothing
+  shared imports from a method. The `delete-method` job in
   [`templates_checks.yaml`](../.github/workflows/templates_checks.yaml) removes
   each method the documented way and builds, so a leak fails CI. `--auth-methods`
   depends on the same isolation: it skips the directories of the methods that
