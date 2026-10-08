@@ -34,10 +34,11 @@ const (
 // is reachable. The subdomain segment is intentionally restricted to a single
 // DNS label (`[^./]+`) — stricter than traefik's `.+` host-regexp — so that
 // only the canonical `<sub>.dashboard.local.nhost.run` (and the bare
-// `local.dashboard.nhost.run`) form is credentialed-CORS eligible. An optional
-// non-standard HTTP(S) port is permitted.
+// `local.dashboard.nhost.run`) form is credentialed-CORS eligible. `localhost`
+// and `127.0.0.1` are also accepted so a dashboard running from source can
+// reach the configserver.
 var dashboardOriginRe = regexp.MustCompile(
-	`^https?://([^./]+\.dashboard\.local\.nhost\.run|local\.dashboard\.nhost\.run)(:\d+)?$`,
+	`^https?://([^./]+\.dashboard\.local\.nhost\.run|local\.dashboard\.nhost\.run|localhost|127\.0\.0\.1)(:\d+)?$`,
 )
 
 func Command() *cli.Command {
