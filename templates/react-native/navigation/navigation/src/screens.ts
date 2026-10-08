@@ -1,3 +1,4 @@
+/// <reference types="expo/types" />
 import type { ComponentType } from 'react';
 
 /**
@@ -12,24 +13,15 @@ import type { ComponentType } from 'react';
  *
  * `require.context` is Metro's, and it is what Expo Router is built on too.
  */
-type RequireContext = {
-  keys(): string[];
-  <T>(id: string): T;
-};
 
-type ContextRequire = {
-  context(dir: string, deep: boolean, filter: RegExp): RequireContext;
-};
-
-// SAFETY: `require.context` is Metro's, not Node's, so the ambient `require`
-// type does not describe it. Metro rewrites this call at build time into a
-// generated module, which is why it has to be written as a literal call it can
-// recognise rather than built up. Expo Router reads the same directory the same
-// way. If the bundler ever stopped providing it the app would fail to build,
-// not misbehave at runtime.
-const contextRequire = require as unknown as ContextRequire;
-
-const modules = contextRequire.context('./app', true, /\.tsx$/);
+// SAFETY: Metro bundles the screens only because it finds this call written
+// literally as `require.context(...)` and rewrites it into a generated module.
+// Aliasing `require` or building the arguments up still builds and type-checks,
+// but bundles no screens and throws on launch; the `navigation` CI job checks
+// the bundle for that. The reference at the top types the call: the
+// `expo-env.d.ts` that would otherwise do it is gitignored, so a fresh checkout
+// has none.
+const modules = require.context('./app', true, /\.tsx$/);
 
 export type Screen = {
   /** The path this screen is at, which is also its name in the navigator. */

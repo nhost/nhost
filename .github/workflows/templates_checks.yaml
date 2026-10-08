@@ -304,8 +304,28 @@ jobs:
       - run: pnpm test
         working-directory: ${{ runner.temp }}/scaffold/frontend
 
-      - run: pnpm build
+      # The flag reaches `expo export`, which then writes a source map.
+      - run: pnpm build --source-maps
         working-directory: ${{ runner.temp }}/scaffold/frontend
+
+      # A system that finds its screens at runtime can build cleanly and still
+      # bundle none of them: Metro leaves a `require.context` it does not
+      # recognise as a call that throws on launch. The source map lists every
+      # module that made it into the bundle, so each screen has to be there.
+      - name: Check every screen was bundled
+        working-directory: ${{ runner.temp }}/scaffold/frontend
+        run: |
+          map=$(find dist -name '*.map')
+          status=0
+
+          while IFS= read -r screen; do
+            if ! grep -qF "/$screen\"" "$map"; then
+              echo "::error::$screen is not in the bundle"
+              status=1
+            fi
+          done < <(find src/app -name '*.tsx')
+
+          exit "$status"
 
   # Cross-template, and deliberately without a `working-directory` default:
   # both guards walk every `templates/*/` from the repository root.

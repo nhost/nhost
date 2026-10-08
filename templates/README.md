@@ -164,7 +164,9 @@ The two guards below run in CI; run them before pushing:
   the dependencies too, and `dropFiles` removes what the default needed and this
   one does not. The `navigation` job scaffolds and builds each one, for the same
   reason the `ui-system` job exists: nothing typechecks `navigation/` where it
-  sits.
+  sits. It then checks the export's source map for every screen under
+  `src/app`, because a system that finds its screens at runtime builds cleanly
+  even when it bundles none of them.
 - **Not every template offers a UI system to choose.** `react-native` ships one
   entry, `none`, which is the NativeWind set in `frontend/` - shadcn/ui is built
   on Radix and the DOM, so there is no port to offer beside it. It therefore has
