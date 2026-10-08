@@ -1,6 +1,24 @@
 {
   "engine": "Hasura v2.50.3-ce",
-  "source": "Redacted isolated observations from phase14 nonbase/public/focused-return oracle records; no metadata export, endpoint or credential.",
+  "source": "Redacted isolated observations from restored Hasura v2.50.3-ce scratch probes; no metadata export, endpoint or credential.",
+  "setof_followup": {
+    "source": "One serialized scratch-table probe in the existing cf_select source; separate GraphQL operations on disposable rows only. Metadata was restored before dropping exact owned functions/table, without CASCADE, and an independent read-only postflight passed.",
+    "collection_returning": {
+      "insert": "Zero returns affected_rows 1 and [null] and persists the inserted row; one returns one object and persists; multiple values return unexpected at $.selectionSet.insert_cf_select_cf_probe_follow_rows.args.objects and roll back the insert. A mixed zero/one/many batch rolls back every inserted row.",
+      "upsert_do_update": "Zero and one return affected_rows 1 with [null] and one object respectively and update their disposable rows; multiple values return unexpected at insert args.objects and leave the previous row unchanged.",
+      "update": "Zero and one return affected_rows 1 with [null] and one object respectively and update their rows; multiple values return unexpected at $ and leave the row unchanged.",
+      "update_many": "Zero and one return a one-element mutation-response array with affected_rows 1 and [null] or one object; multiple values return unexpected at $ and leave the row unchanged.",
+      "delete": "Zero and one return affected_rows 1 with [null] and one object respectively and delete their rows; multiple values return unexpected at $ and retain the row. All database errors have message database query error."
+    },
+    "permission_predicates": "A select filter, insert check, update filter, separately reached update check and delete filter using the SETOF int4 field were each accepted with consistent metadata and visible role roots, but every independent execution failed with database query error/unexpected (insert_one path $.selectionSet.insert_cf_select_cf_probe_follow_rows_one.args.object; other paths $). No attempted scratch write persisted. The observed Hasura envelope does not waive Constellation's approved production sanitizer.",
+    "setof_remote_key": {
+      "metadata": "A to_source object relationship mapped a SETOF text key to a tracked text column; both granted and ungranted role variants had consistent metadata and zero inconsistencies.",
+      "roles": "Admin, reader without the key grant, reader with the grant and a role with no computed grant all exposed the relationship; a one-value key joined its target even for ungranted roles.",
+      "cardinality": "A zero-value key yielded a null parent element; multiple values failed with database query error/unexpected at $. These were independent requests.",
+      "constellation_approved_difference": "Constellation omits every SETOF-keyed remote relationship, including for admin and granted roles, without an inconsistency. It does not expose an ungranted computed value as a join key."
+    },
+    "restoration": "Two private mode-0600 recovery exports agreed. Canonical metadata SHA256 74c4412f87b822b1633f6aea0518e949e0f2815b523519636595a13fa7294cd6 and seeded-content SHA256 a91c0151d326ec37c6acf76373130a016700fd41ff28db01e25459a419f6c376 matched before and after; seeded counts 2/3/2, zero scratch catalog objects/metadata references/inconsistencies. A separate read-only postflight independently confirmed the same."
+  },
   "disposable_numeric_setof_and_sibling": {
     "source": "Serialized isolated tracked-table probe on pinned Hasura v2.50.3-ce; each GraphQL operation was separately requested. No shared seeded row was mutated.",
     "role_sdl": "Admin and granted reader expose nullable numeric scalar, numeric_comparison_exp bool input, order_by enum input, and numeric max output. Tracked-table returns (SETOF and single composite) are lists and inherit returned-table select access without an explicit grant.",

@@ -272,8 +272,13 @@ implicitly granted). Without it, the relationship is absent from that role's
 SDL and cannot be used; unlike Hasura v2.50.3-ce, a denied key is never used
 as a phantom join field. Argument-bearing, table-valued and scalar `SETOF`
 computed keys are not joinable: their relationships are omitted even from admin
-SDL, with no inconsistency, while other roots survive. Hasura's acceptance of
-scalar `SETOF` keys has not been probed. For computed `to_source` keys, every target mapping must be the
+SDL, with no inconsistency, while other roots survive. Hasura v2.50.3-ce was
+probed with a disposable `SETOF text` key: its `to_source` object relationship
+was exposed and joined for admin and roles **without** a key grant; zero values
+produced null parent elements and multiple values failed. Constellation
+intentionally omits this relationship even for granted roles rather than expose
+a multi-valued or role-hidden join key. Other SETOF key forms were not probed.
+For computed `to_source` keys, every target mapping must be the
 GraphQL name of a selectable physical target column; a relationship or computed
 field cannot satisfy this gate, even if it shares a hidden column's SQL name.
 The relationship and its aggregate sibling are omitted otherwise. This is a
