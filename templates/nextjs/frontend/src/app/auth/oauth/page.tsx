@@ -1,5 +1,7 @@
-import Link from 'next/link';
 import { signInDestination } from '@/app/signin/destination';
+import { signInIntent } from '@/app/signin/intent';
+import OtherWaysLink from '@/app/signin/OtherWaysLink';
+import { signInQuery } from '@/app/signin/query';
 import {
   Card,
   CardContent,
@@ -25,10 +27,14 @@ export const dynamic = 'force-dynamic';
 export default async function OAuth({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string | string[] }>;
+  searchParams: Promise<{
+    next?: string | string[];
+    intent?: string | string[];
+  }>;
 }) {
-  const { next } = await searchParams;
+  const { next, intent } = await searchParams;
   const destination = signInDestination(next);
+  const query = signInQuery(destination, signInIntent(intent));
 
   const nhost = await createNhostClient();
   const links = providers.map(({ id, label }) => ({
@@ -52,12 +58,7 @@ export default async function OAuth({
             A provider only works once it is enabled in <code>nhost.toml</code>.
             The README&apos;s OAuth section has the callback URL and the config.
           </p>
-          <Link
-            href="/signin"
-            className="text-muted-foreground text-sm underline-offset-4 hover:underline"
-          >
-            Other ways to sign in
-          </Link>
+          <OtherWaysLink query={query} />
         </CardContent>
       </Card>
     </div>
