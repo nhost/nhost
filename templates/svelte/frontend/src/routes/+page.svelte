@@ -12,18 +12,22 @@ const user = $derived(auth.session?.user);
   <Card.Root>
     <Card.Header>
       <Card.Title>
-        {user ? 'You are signed in' : 'You are signed out'}
+        {user ? 'You are signed in' : 'You are not signed in'}
       </Card.Title>
       <Card.Description>
         {user
           ? `Signed in as ${user.email ?? user.id}.`
-          : 'Pick a sign-in method to get a session.'}
+          : 'Create an account, or sign in to one you already have.'}
       </Card.Description>
     </Card.Header>
     <Card.Content class="flex gap-2">
-      <Button href={user ? '/protected' : '/signin'}>
-        {user ? 'Open the protected page' : 'Sign in'}
-      </Button>
+      {#if user}
+        <Button href="/protected">Open the protected page</Button>
+      {:else}
+        <!-- Sign up first: a fresh local backend has no accounts in it. -->
+        <Button href="/signin">Sign up</Button>
+        <Button href="/signin?intent=sign-in" variant="outline">Sign in</Button>
+      {/if}
     </Card.Content>
   </Card.Root>
 </div>

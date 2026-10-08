@@ -1,12 +1,19 @@
 <script lang="ts">
+import { untrack } from 'svelte';
 import { goto } from '$app/navigation';
+import CheckYourInbox from '$lib/components/CheckYourInbox.svelte';
 import { Button } from '$lib/components/ui/button';
 import { Input } from '$lib/components/ui/input';
 import { Label } from '$lib/components/ui/label';
 import { useAuth } from '$lib/nhost/auth.svelte';
+import type { Intent } from '$lib/signin/intent';
 import { requestPasswordReset, signIn, signUp } from './actions';
 
-let { next }: { next: string } = $props();
+let {
+  next,
+  intent,
+  mailboxUrl,
+}: { next: string; intent: Intent; mailboxUrl: string | null } = $props();
 
 type Mode = 'sign-in' | 'sign-up';
 
@@ -22,7 +29,14 @@ const uid = $props.id();
 const emailId = `${uid}-email`;
 const passwordId = `${uid}-password`;
 
-let mode = $state<Mode>('sign-in');
+// Opens on whatever the link that sent them here asked for, which is sign-up
+// unless it said otherwise: a fresh local backend has no accounts in it, so a
+// sign-in form would be a dead end.
+//
+// `untrack` because the initial value is all that is wanted: the form owns
+// `mode` from then on, and a visitor who has switched to sign-in should not be
+// moved back by anything re-reading the URL.
+let mode = $state<Mode>(untrack(() => intent));
 let email = $state('');
 let password = $state('');
 let sent = $state<Sent | undefined>();
@@ -92,7 +106,7 @@ async function handleForgotPassword(): Promise<void> {
 
 {#if sent === 'verification'}
   <div class="flex flex-col gap-2 text-sm">
-    <p class="font-medium">Check your inbox</p>
+    <CheckYourInbox url={mailboxUrl} />
     <p class="text-muted-foreground">
       We sent a verification link to {email}. Opening it confirms the address
       and signs you in.
@@ -100,7 +114,7 @@ async function handleForgotPassword(): Promise<void> {
   </div>
 {:else if sent === 'reset'}
   <div class="flex flex-col gap-2 text-sm">
-    <p class="font-medium">Check your inbox</p>
+    <CheckYourInbox url={mailboxUrl} />
     <p class="text-muted-foreground">
       If that address has an account, a reset link is on its way.
     </p>

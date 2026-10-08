@@ -29,7 +29,9 @@ const user = $derived(auth.session?.user);
         <SignOutButton />
       </div>
     {:else}
-      <Button href="/signin" variant="ghost" size="sm">Sign in</Button>
+      <Button href="/signin?intent=sign-in" variant="ghost" size="sm"
+        >Sign in</Button
+      >
     {/if}
   </div>
 </nav>

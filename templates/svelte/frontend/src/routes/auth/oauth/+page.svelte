@@ -2,7 +2,10 @@
 import * as Card from '$lib/components/ui/card';
 import { useAuth } from '$lib/nhost/auth.svelte';
 import { appOrigin } from '$lib/nhost/env';
+import { pageIntent } from '$lib/signin/intentFrom';
 import { nextDestination } from '$lib/signin/next';
+import OtherWaysLink from '$lib/signin/OtherWaysLink.svelte';
+import { signInQuery } from '$lib/signin/query';
 import OAuthButtons from './OAuthButtons.svelte';
 import { providers } from './providers';
 
@@ -17,6 +20,8 @@ import { providers } from './providers';
  */
 const auth = useAuth();
 const next = $derived(nextDestination());
+const intent = $derived(pageIntent());
+const query = $derived(signInQuery(next, intent));
 
 const links = $derived(
   providers.map(({ id, label }) => ({
@@ -41,12 +46,7 @@ const links = $derived(
         A provider only works once it is enabled in <code>nhost.toml</code>. The
         README's OAuth section has the callback URL and the config.
       </p>
-      <a
-        href="/signin"
-        class="text-muted-foreground text-sm underline-offset-4 hover:underline"
-      >
-        Other ways to sign in
-      </a>
+      <OtherWaysLink {query} />
     </Card.Content>
   </Card.Root>
 </div>

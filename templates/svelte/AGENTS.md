@@ -47,6 +47,25 @@ It has two halves:
    the access token. Never treat a client-side check as authorization.
 9. **Config, not schema.** Enabling an auth method is a `nhost.toml` change,
    not a migration.
+10. **Sign up is the default, and `?intent=` is what changes it.** The
+   password form opens on sign-up, because anyone running this against a fresh
+   local backend has no account yet. A link that wants the other mode says
+   `?intent=sign-in`; `frontend/src/lib/signin/intent.ts` parses it.
+   Nothing is gated on it, so a missing or crafted value costs nothing.
+   `frontend/src/lib/signin/query.ts` builds every link that carries it, and it
+   is the only thing that does: `next` and `intent` both have to survive the
+   hop out to a method and the hop back, and a second builder is how one of
+   them gets dropped.
+11. **"Check your inbox" is the link to the local mailbox.** Against a local
+   backend the email is in Mailhog, so every state that waits on one heads
+   itself with `<CheckYourInbox />` and those words open it. They stay plain
+   text once the app targets a real project, where a link would be a lie about
+   where the email is.
+12. **The back-link counts the methods.** `--auth-methods` can scaffold
+   one, and "Other ways to sign in" would then promise choices that do not
+   exist. `frontend/src/lib/signin/OtherWaysLink.svelte` reads
+   `methods.ts` and renders nothing when there is only one. It counts rather
+   than naming any method, which is what lets it be shared.
 
 ## Adding a table
 

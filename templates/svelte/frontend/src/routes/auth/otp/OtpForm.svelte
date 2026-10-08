@@ -1,5 +1,6 @@
 <script lang="ts">
 import { goto } from '$app/navigation';
+import CheckYourInbox from '$lib/components/CheckYourInbox.svelte';
 import { Button } from '$lib/components/ui/button';
 import { Input } from '$lib/components/ui/input';
 import { Label } from '$lib/components/ui/label';
@@ -76,18 +77,12 @@ function backToEmail(): void {
 
 {#if step === 'code'}
   <form class="flex flex-col gap-4" onsubmit={handleVerify}>
-    <p class="text-muted-foreground text-sm">
-      We sent a code to {email}.
-      {#if mailboxUrl}
-        Locally it lands in the
-        <a
-          href={mailboxUrl}
-          target="_blank"
-          rel="noreferrer"
-          class="underline underline-offset-4">mailbox</a
-        >.
-      {/if}
-    </p>
+    <div class="flex flex-col gap-2">
+      <CheckYourInbox url={mailboxUrl} />
+      <p class="text-muted-foreground text-sm">
+        We sent a code to {email}.
+      </p>
+    </div>
 
     <div class="flex flex-col gap-2">
       <Label for={codeId}>Code</Label>

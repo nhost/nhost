@@ -1,4 +1,5 @@
 <script lang="ts">
+import CheckYourInbox from '$lib/components/CheckYourInbox.svelte';
 import { Button } from '$lib/components/ui/button';
 import { Input } from '$lib/components/ui/input';
 import { Label } from '$lib/components/ui/label';
@@ -46,21 +47,13 @@ function useDifferentAddress(): void {
 
 {#if sent}
   <div class="flex flex-col gap-4">
-    <p class="text-sm">
-      A sign-in link is on its way to {email}. Opening it signs you in on this
-      device.
-    </p>
-    {#if mailboxUrl}
+    <div class="flex flex-col gap-2">
+      <CheckYourInbox url={mailboxUrl} />
       <p class="text-muted-foreground text-sm">
-        Running locally? The email is in the
-        <a
-          href={mailboxUrl}
-          target="_blank"
-          rel="noreferrer"
-          class="underline underline-offset-4">local mailbox</a
-        >.
+        A sign-in link is on its way to {email}. Opening it signs you in on this
+        device.
       </p>
-    {/if}
+    </div>
     <Button
       type="button"
       variant="ghost"

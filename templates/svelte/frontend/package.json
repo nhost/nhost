@@ -1,9 +1,10 @@
 {
   "name": "svelte",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "scripts": {
+    "prepare": "svelte-kit sync || echo ''",
     "dev": "vite dev",
     "build": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json && vite build",
     "preview": "vite preview",
