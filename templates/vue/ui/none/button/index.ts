@@ -31,8 +31,12 @@ const buttonSize = {
   'icon-lg': 'size-10',
 } as const;
 
-export type ButtonVariant = keyof typeof buttonVariant;
-export type ButtonSize = keyof typeof buttonSize;
+// The shape cva's `VariantProps` gives the shadcn-vue version, so code that
+// imports this type from `@/components/ui/button` builds with either.
+export type ButtonVariants = {
+  variant?: keyof typeof buttonVariant | null;
+  size?: keyof typeof buttonSize | null;
+};
 
 /**
  * The class list for a button, as a function so a link can be made to look
@@ -43,11 +47,7 @@ export function buttonVariants({
   variant,
   size,
   class: className,
-}: {
-  variant?: ButtonVariant | null;
-  size?: ButtonSize | null;
-  class?: ClassValue;
-} = {}): string {
+}: ButtonVariants & { class?: ClassValue } = {}): string {
   return cn(
     buttonBase,
     buttonVariant[variant ?? 'default'],

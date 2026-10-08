@@ -1,25 +1,40 @@
 <script lang="ts">
 import type { ClassValue } from 'clsx';
 import {
+  Comment,
   cloneVNode,
   computed,
   defineComponent,
+  Fragment,
   h,
+  mergeProps,
   type PropType,
   type VNode,
 } from 'vue';
-import { type ButtonSize, type ButtonVariant, buttonVariants } from '.';
+import { type ButtonVariants, buttonVariants } from '.';
+
+/**
+ * A slot's vnodes with every fragment opened up. `<slot />` forwarded from a
+ * wrapper component arrives as a fragment, and the element `asChild` is after
+ * is inside it, not the fragment itself.
+ */
+function flatten(nodes: VNode[]): VNode[] {
+  return nodes.flatMap((node) =>
+    node.type === Fragment ? flatten(node.children as VNode[]) : [node],
+  );
+}
 
 /**
  * A button, or whatever element `as` names.
  *
  * Written as a render function rather than a template because of `asChild`:
- * that branch does not render an element of its own, it takes the single child
+ * that branch does not render an element of its own, it takes the first child
  * it was given and merges the button's look onto it, which is what lets a
- * `RouterLink` keep being a link while looking like a button. `cloneVNode` is
- * what does the merging, and it already combines `class` and `style` and keeps
- * both sides' event handlers, so this stands in for the reka-ui `Primitive`
- * the shadcn-vue version delegates to.
+ * `RouterLink` keep being a link while looking like a button. This stands in
+ * for the reka-ui `Primitive` the shadcn-vue version delegates to, and merges
+ * the way it does: attributes passed to the button win over its own, the
+ * child's props win over both, and `class`, `style` and event handlers combine
+ * rather than replace.
  *
  * `inheritAttrs: false` because the attributes are applied by hand below; left
  * on, Vue would also put them on the rendered element and they would land
@@ -34,8 +49,11 @@ export default defineComponent({
       default: 'button',
     },
     asChild: { type: Boolean, default: false },
-    variant: { type: String as PropType<ButtonVariant | null>, default: null },
-    size: { type: String as PropType<ButtonSize | null>, default: null },
+    variant: {
+      type: String as PropType<ButtonVariants['variant']>,
+      default: null,
+    },
+    size: { type: String as PropType<ButtonVariants['size']>, default: null },
     // Anything `cn` accepts, which is what the shadcn-vue version takes as
     // `HTMLAttributes['class']`. Declared as the three runtime types rather
     // than left open, so Vue does not read a bound array or object as an
@@ -55,31 +73,37 @@ export default defineComponent({
     );
 
     return () => {
-      const children = slots.default?.() ?? [];
-
-      if (!props.asChild) {
-        return h(
-          props.as,
-          { ...attrs, 'data-slot': 'button', class: classes.value },
-          children,
-        );
-      }
-
-      // A fragment, a comment or whitespace can come through as its own vnode,
-      // so the element is picked out rather than assumed to be first.
-      const child = children.find(
-        (node: VNode) => typeof node.type !== 'symbol',
+      const own = mergeProps(
+        {
+          'data-slot': 'button',
+          'data-variant': props.variant,
+          'data-size': props.size,
+          class: classes.value,
+        },
+        attrs,
       );
 
-      if (!child) {
-        return null;
+      if (!props.asChild) {
+        return h(props.as, own, slots.default?.());
       }
 
-      return cloneVNode(child, {
-        ...attrs,
-        'data-slot': 'button',
-        class: classes.value,
-      });
+      const children = flatten(slots.default?.() ?? []);
+      const index = children.findIndex((node) => node.type !== Comment);
+      const child = children[index];
+
+      if (!child) {
+        return children;
+      }
+
+      // The child's `ref` stays on the vnode it came from: merged in here it
+      // would be bound to this component instead of the one that set it.
+      const { ref: _ref, ...childProps } = child.props ?? {};
+      children[index] = cloneVNode(
+        { ...child, props: {} },
+        mergeProps(own, childProps),
+      );
+
+      return children.length === 1 ? children[0] : children;
     };
   },
 });
