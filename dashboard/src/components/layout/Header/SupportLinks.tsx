@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { PlatformOnly } from '@/features/orgs/projects/common/components/PlatformOnly';
 
 const DOCS_URL = 'https://docs.nhost.io';
 const STATUS_URL = 'https://status.nhost.io';
@@ -36,21 +36,24 @@ function SupportLink({ href, icon, children }: SupportLinkProps) {
 
 /** The Support, Docs and Status rows. The host provides the list container. */
 export default function SupportLinks() {
-  const isPlatform = useIsPlatform();
-
   return (
     <>
-      {isPlatform && (
+      <PlatformOnly>
         <SupportLink href="/support" icon={<LifeBuoyIcon className="size-4" />}>
           Support
         </SupportLink>
-      )}
+      </PlatformOnly>
       <SupportLink href={DOCS_URL} icon={<BookOpenIcon className="size-4" />}>
         Docs
       </SupportLink>
-      <SupportLink href={STATUS_URL} icon={<ActivityIcon className="size-4" />}>
-        Status
-      </SupportLink>
+      <PlatformOnly>
+        <SupportLink
+          href={STATUS_URL}
+          icon={<ActivityIcon className="size-4" />}
+        >
+          Status
+        </SupportLink>
+      </PlatformOnly>
     </>
   );
 }

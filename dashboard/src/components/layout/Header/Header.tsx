@@ -30,6 +30,7 @@ import {
   InboxPopoverTrigger,
   useInbox,
 } from '@/features/orgs/components/members/components/InboxPopover';
+import { PlatformOnly } from '@/features/orgs/projects/common/components/PlatformOnly';
 import { getSingleQueryParam } from '@/utils/getSingleQueryParam';
 import HeaderNavigation from './HeaderNavigation';
 
@@ -109,17 +110,15 @@ export default function Header({ className, ...props }: HeaderProps) {
 
         {isDesktop ? (
           <>
-            {isFreeOrganization && upgradeHref && (
-              <Button
-                onClick={() => router.push(upgradeHref)}
-                size="xs"
-                variant="outline-emboss"
-              >
-                Upgrade
-              </Button>
-            )}
+            <PlatformOnly>
+              {isFreeOrganization && upgradeHref && (
+                <Button asChild size="xs" variant="outline-emboss">
+                  <Link href={upgradeHref}>Upgrade</Link>
+                </Button>
+              )}
 
-            <InboxPopoverTrigger hasUnread={inbox.hasUnread} />
+              <InboxPopoverTrigger hasUnread={inbox.hasUnread} />
+            </PlatformOnly>
             <SupportPopover />
             <AccountMenu />
           </>
@@ -133,12 +132,14 @@ export default function Header({ className, ...props }: HeaderProps) {
           the bell or to the mobile account menu; the organization switcher of
           either layout opens the dialog. */}
       <CommandPalette {...paletteProps} />
-      <InboxPopover inbox={inbox} />
-      <CreateOrgFormDialog
-        hideNewOrgButton
-        isOpen={createOrgDialogOpen}
-        onOpenStateChange={setCreateOrgDialogOpen}
-      />
+      <PlatformOnly>
+        <InboxPopover inbox={inbox} />
+        <CreateOrgFormDialog
+          hideNewOrgButton
+          isOpen={createOrgDialogOpen}
+          onOpenStateChange={setCreateOrgDialogOpen}
+        />
+      </PlatformOnly>
     </header>
   );
 }

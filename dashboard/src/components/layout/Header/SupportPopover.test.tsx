@@ -20,12 +20,12 @@ afterEach(() => {
 
 describe('SupportPopover', () => {
   it.each([
-    { platform: 'true', showsSupport: true },
-    { platform: 'false', showsSupport: false },
-    { platform: undefined, showsSupport: false },
+    { platform: 'true', showsPlatformLinks: true },
+    { platform: 'false', showsPlatformLinks: false },
+    { platform: undefined, showsPlatformLinks: false },
   ])(
-    'shows Support only on-platform when NEXT_PUBLIC_NHOST_PLATFORM=$platform',
-    async ({ platform, showsSupport }) => {
+    'shows Support and Status only on-platform when NEXT_PUBLIC_NHOST_PLATFORM=$platform',
+    async ({ platform, showsPlatformLinks }) => {
       vi.stubEnv('NEXT_PUBLIC_NHOST_PLATFORM', platform);
       const user = new TestUserEvent();
 
@@ -39,24 +39,27 @@ describe('SupportPopover', () => {
         await screen.findByText('Resources to keep you shipping.'),
       ).toBeInTheDocument();
 
-      if (showsSupport) {
+      if (showsPlatformLinks) {
         expect(screen.getByRole('link', { name: 'Support' })).toHaveAttribute(
           'href',
           '/support',
         );
+        expect(screen.getByRole('link', { name: 'Status' })).toHaveAttribute(
+          'href',
+          'https://status.nhost.io',
+        );
       } else {
         expect(
           screen.queryByRole('link', { name: 'Support' }),
+        ).not.toBeInTheDocument();
+        expect(
+          screen.queryByRole('link', { name: 'Status' }),
         ).not.toBeInTheDocument();
       }
 
       expect(screen.getByRole('link', { name: 'Docs' })).toHaveAttribute(
         'href',
         'https://docs.nhost.io',
-      );
-      expect(screen.getByRole('link', { name: 'Status' })).toHaveAttribute(
-        'href',
-        'https://status.nhost.io',
       );
       expect(
         screen.getByRole('link', { name: /Join us on Discord/ }),
