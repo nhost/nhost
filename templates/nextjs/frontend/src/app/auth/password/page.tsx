@@ -1,6 +1,8 @@
-import Link from 'next/link';
 import PasswordForm from '@/app/auth/password/PasswordForm';
 import { signInDestination } from '@/app/signin/destination';
+import { signInIntent } from '@/app/signin/intent';
+import OtherWaysLink from '@/app/signin/OtherWaysLink';
+import { signInQuery } from '@/app/signin/query';
 import {
   Card,
   CardContent,
@@ -8,16 +10,22 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { localMailboxURL } from '@/lib/nhost/env';
 
 export const dynamic = 'force-dynamic';
 
 export default async function Password({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string | string[] }>;
+  searchParams: Promise<{
+    next?: string | string[];
+    intent?: string | string[];
+  }>;
 }) {
-  const { next } = await searchParams;
+  const { next, intent } = await searchParams;
   const destination = signInDestination(next);
+  const chosen = signInIntent(intent);
+  const query = signInQuery(destination, chosen);
 
   return (
     <div className="mx-auto max-w-md">
@@ -29,13 +37,12 @@ export default async function Password({
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <PasswordForm next={destination} />
-          <Link
-            href="/signin"
-            className="text-muted-foreground text-sm underline-offset-4 hover:underline"
-          >
-            Other ways to sign in
-          </Link>
+          <PasswordForm
+            next={destination}
+            intent={chosen}
+            mailboxURL={localMailboxURL()}
+          />
+          <OtherWaysLink query={query} />
         </CardContent>
       </Card>
     </div>
