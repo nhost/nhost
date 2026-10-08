@@ -124,16 +124,9 @@ func FromCLI(cmd *cli.Command) *CliEnv {
 }
 
 // resolveProjectName picks the docker compose project name, in the order
-// --project-name, NHOST_PROJECT_NAME, the recorded nhost/project-name, and
-// finally the working directory name. A blank flag or env value names no
-// project, so it falls through like an unset one.
-//
-// The recorded name is read here rather than as a flag ValueSource because a
-// source runs during parsing, before --nhost-folder is resolved, and so would
-// only ever find ./nhost/project-name. Reading it against the resolved path is
-// what lets `nhost up --nhost-folder backend/nhost` reach the same project the
-// backend directory records, instead of falling back to the directory name and
-// bringing up a second set of containers and a second Postgres volume.
+// --project-name, NHOST_PROJECT_NAME, and finally the working directory name.
+// A blank flag or env value names no project, so it falls through like an unset
+// one.
 //
 // A name sanitizeName can make nothing of is passed on raw instead of as the
 // empty string, because compose reads an empty -p as no -p at all: it names the
@@ -146,34 +139,11 @@ func (ce *CliEnv) resolveProjectName(cmd *cli.Command) string {
 	// env source marks the flag as set too.
 	name := cmd.String(flagProjectName)
 	if !cmd.IsSet(flagProjectName) || strings.TrimSpace(name) == "" {
-		name = ce.recordedProjectName()
+		name = filepath.Base(ce.Path.WorkingDir())
 	}
 
 	if sanitized := sanitizeName(name); sanitized != "" {
 		return sanitized
-	}
-
-	return name
-}
-
-// recordedProjectName is the name in nhost/project-name, or the working
-// directory name when there is none. A file that exists but cannot be read
-// is reported rather than skipped quietly, since the directory name it falls
-// back to is often a generic one other projects share.
-func (ce *CliEnv) recordedProjectName() string {
-	dirName := filepath.Base(ce.Path.WorkingDir())
-
-	src := &projectNameFileSource{path: ce.Path.ProjectNameFile()}
-
-	name, found, err := src.Lookup()
-	if err != nil {
-		ce.Warnln("Using the directory name as the project name: %s", err)
-
-		return dirName
-	}
-
-	if !found {
-		return dirName
 	}
 
 	return name

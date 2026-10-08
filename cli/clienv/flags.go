@@ -108,15 +108,11 @@ func Flags() ([]cli.Flag, error) { //nolint:funlen
 			Value:    nhostFolder,
 			Category: "Project structure",
 		},
-		// The nhost/project-name file is not a ValueSource: a source is consulted
-		// while the flags are still being parsed, so it cannot see the resolved
-		// --nhost-folder and would always read ./nhost/project-name. FromCLI
-		// applies it instead, against the folder the flags actually name.
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:        flagProjectName,
 			Usage:       "Project name",
 			Value:       filepath.Base(fullWorkingDir),
-			DefaultText: "<nhost/project-name or directory name>",
+			DefaultText: "<project-directory-name>",
 			Sources:     cli.EnvVars("NHOST_PROJECT_NAME"),
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
