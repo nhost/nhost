@@ -54,7 +54,7 @@ func (ctrl *Controller) ElevateOTPEmail( //nolint:ireturn
 		LinkTypeNone,
 		otp,
 		ctrl.config.ClientURL.String(),
-		notifications.TemplateNameSigninOTP,
+		notifications.TemplateNameElevateOTP,
 		user.DisplayName,
 		user.Email.String,
 		"",

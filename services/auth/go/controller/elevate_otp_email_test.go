@@ -59,7 +59,7 @@ func TestElevateOTPEmail(t *testing.T) { //nolint:maintidx
 			gomock.Any(),
 			"jane@acme.com",
 			"en",
-			notifications.TemplateNameSigninOTP,
+			notifications.TemplateNameElevateOTP,
 			testhelpers.GomockCmpOpts(
 				notifications.TemplateData{
 					Link:        "",
@@ -367,7 +367,7 @@ func TestElevateOTPEmail(t *testing.T) { //nolint:maintidx
 						gomock.Any(),
 						"jane@acme.com",
 						"en",
-						notifications.TemplateNameSigninOTP,
+						notifications.TemplateNameElevateOTP,
 						gomock.Any(),
 					).Return(errors.New("smtp error")) //nolint:err113
 
