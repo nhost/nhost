@@ -127,8 +127,8 @@ function InstallExtensionDialogContent({
 
       {extension.name === 'pg_squeeze' && (
         <p className="text-muted-foreground text-sm">
-          Squeezing tables may require configuring the WAL level and
-          replication slots in your Postgres settings.{' '}
+          Squeezing tables may require configuring the WAL level and replication
+          slots in your Postgres settings.{' '}
           <TextLink href={getExtensionDocsUrl(extension.name)} external>
             Learn more
           </TextLink>
