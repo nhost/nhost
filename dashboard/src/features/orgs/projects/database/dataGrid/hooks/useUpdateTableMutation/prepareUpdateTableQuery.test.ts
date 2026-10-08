@@ -183,10 +183,10 @@ describe('prepareUpdateTableQuery', () => {
       ],
       foreignKeyRelations: [
         {
-          columnName: 'author_id',
+          columns: ['author_id'],
           referencedSchema: 'public',
           referencedTable: 'test_table_2',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -237,10 +237,10 @@ describe('prepareUpdateTableQuery', () => {
       originalForeignKeyRelations: [
         {
           name: 'test_table_author_id_fkey',
-          columnName: 'author_id',
+          columns: ['author_id'],
           referencedSchema: 'public',
           referencedTable: 'test_table_2',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -273,10 +273,10 @@ describe('prepareUpdateTableQuery', () => {
       foreignKeyRelations: [
         {
           name: 'test_table_author_id_fkey',
-          columnName: 'author_id',
+          columns: ['author_id'],
           referencedSchema: 'public',
           referencedTable: 'test_table_3',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
@@ -292,10 +292,10 @@ describe('prepareUpdateTableQuery', () => {
       originalForeignKeyRelations: [
         {
           name: 'test_table_author_id_fkey',
-          columnName: 'author_id',
+          columns: ['author_id'],
           referencedSchema: 'public',
           referencedTable: 'test_table_2',
-          referencedColumn: 'id',
+          referencedColumns: ['id'],
           updateAction: 'RESTRICT',
           deleteAction: 'RESTRICT',
         },
