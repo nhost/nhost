@@ -96,8 +96,11 @@ globs, so there is nothing else to find.
 In `localStorage`, refresh token included, written by the SDK. One client is
 created in `src/lib/nhost/AuthProvider.tsx` and shared through context, and it
 refreshes the access token itself when a request goes out within 60s of expiry.
-`sessionStorage.onChange` is what keeps React in step, and because the browser
-fires it across tabs, signing out in one tab signs out the rest.
+There is no timer, and `navigator.locks` keeps two tabs from spending the same
+refresh token at once. `src/lib/nhost/watchSession.ts` keeps React in step:
+`sessionStorage.onChange` reports this tab's own writes, and the browser's
+`storage` event reports other tabs', so signing in or out in one tab does the
+same in the rest.
 
 **Read this before shipping something sensitive.** A browser app has nowhere to
 put a refresh token that JavaScript cannot reach. Anything that manages to run

@@ -10,7 +10,15 @@ import {
 import { useAuth } from '@/lib/nhost/AuthProvider';
 
 export default function Home() {
-  const { session } = useAuth();
+  const { session, isLoading } = useAuth();
+
+  // Auth emails and the OAuth callback land here by default, and until their
+  // token is redeemed this page would tell a visitor who is being signed in
+  // that they are signed out.
+  if (isLoading) {
+    return null;
+  }
+
   const user = session?.user;
 
   return (

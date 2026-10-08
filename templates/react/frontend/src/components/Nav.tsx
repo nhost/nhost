@@ -5,9 +5,6 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/nhost/AuthProvider';
 
 export default function Nav() {
-  const { session } = useAuth();
-  const user = session?.user;
-
   return (
     <nav className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
       <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-3">
@@ -19,19 +16,37 @@ export default function Nav() {
           Nhost
         </Link>
 
-        {user ? (
-          <div className="flex items-center gap-3">
-            <span className="text-muted-foreground text-sm">
-              {user.email ?? user.id}
-            </span>
-            <SignOutButton />
-          </div>
-        ) : (
-          <Button asChild variant="ghost" size="sm">
-            <Link to="/signin">Sign in</Link>
-          </Button>
-        )}
+        <Account />
       </div>
     </nav>
+  );
+}
+
+function Account() {
+  const { session, isLoading } = useAuth();
+
+  // While a link token is redeemed it is not yet known who the visitor is, so
+  // this offers nothing and only holds the bar's height.
+  if (isLoading) {
+    return <div className="h-8" />;
+  }
+
+  const user = session?.user;
+
+  if (!user) {
+    return (
+      <Button asChild variant="ghost" size="sm">
+        <Link to="/signin">Sign in</Link>
+      </Button>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-3">
+      <span className="text-muted-foreground text-sm">
+        {user.email ?? user.id}
+      </span>
+      <SignOutButton />
+    </div>
   );
 }

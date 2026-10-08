@@ -13,8 +13,9 @@ import { signInHref } from '@/signin/destination';
 export default function ProtectedPage() {
   const { session, isLoading } = useAuth();
 
-  // Nothing is decided until the stored session has been read, or a signed-in
-  // visitor reloading this page would be bounced to sign-in for one frame.
+  // Nothing is decided until a token on the URL has been redeemed, or a
+  // visitor arriving from a link with `next=/protected` would be bounced to
+  // sign-in while the link was signing them in.
   if (isLoading) {
     return null;
   }

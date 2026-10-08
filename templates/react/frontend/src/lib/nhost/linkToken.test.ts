@@ -1,6 +1,6 @@
 import type { NhostClient } from '@nhost/nhost-js';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { redeemLinkToken } from '@/lib/nhost/linkToken';
+import { hasLinkToken, redeemLinkToken } from '@/lib/nhost/linkToken';
 
 const ROUTER_STATE = { idx: 0, key: 'default', usr: null };
 
@@ -127,6 +127,14 @@ describe('redeemLinkToken', () => {
 
     expect(client.auth.refreshToken).toHaveBeenCalledOnce();
     expect(client.getUserSession()).toEqual({ refreshToken: 'from-link' });
+  });
+
+  it('reports a token on the URL until it has been taken off', () => {
+    expect(hasLinkToken()).toBe(true);
+
+    void redeemLinkToken(asClient(fakeClient({ stored: false })));
+
+    expect(hasLinkToken()).toBe(false);
   });
 
   it('leaves the URL alone when there is no token', async () => {

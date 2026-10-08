@@ -10,6 +10,16 @@ export const LINK_TOKEN_PARAM = 'refreshToken';
 const redemptions = new WeakMap<NhostClient, Promise<void>>();
 
 /**
+ * Whether this page load arrived with a token to redeem, and so does not yet
+ * know who the visitor is.
+ */
+export function hasLinkToken(): boolean {
+  return Boolean(
+    new URLSearchParams(window.location.search).get(LINK_TOKEN_PARAM),
+  );
+}
+
+/**
  * Turns the token on the URL into a stored session, and takes it off the URL.
  *
  * In an app with a server this is the server's job, because the token can be

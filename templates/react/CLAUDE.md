@@ -16,9 +16,11 @@ It has two halves:
 
 1. **One client, created once.** `frontend/src/lib/nhost/AuthProvider.tsx`
    calls `createClient` in a `useMemo` with no dependencies and shares it
-   through context. That client owns the refresh timer and keeps the session
-   in `localStorage`. Creating a second one anywhere gives you two rotators of
-   a single-use refresh token. Always reach for `useAuth()`.
+   through context. That client keeps the session in `localStorage`, and the
+   app follows the session through its `sessionStorage.onChange`, which hears
+   only writes made through that instance. A sign-in or sign-out through a
+   second client would leave the app rendering the old visitor. Always reach
+   for `useAuth()`.
 2. **The token on the URL is redeemed once, at startup.**
    `frontend/src/lib/nhost/linkToken.ts` strips the `refreshToken` query
    parameter that auth emails and the OAuth callback come back with from the
