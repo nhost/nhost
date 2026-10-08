@@ -1,5 +1,7 @@
-import Link from 'next/link';
 import { signInDestination } from '@/app/signin/destination';
+import { signInIntent } from '@/app/signin/intent';
+import OtherWaysLink from '@/app/signin/OtherWaysLink';
+import { signInQuery } from '@/app/signin/query';
 import {
   Card,
   CardContent,
@@ -15,10 +17,14 @@ export const dynamic = 'force-dynamic';
 export default async function OtpSignIn({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string | string[] }>;
+  searchParams: Promise<{
+    next?: string | string[];
+    intent?: string | string[];
+  }>;
 }) {
-  const { next } = await searchParams;
+  const { next, intent } = await searchParams;
   const destination = signInDestination(next);
+  const query = signInQuery(destination, signInIntent(intent));
 
   return (
     <div className="mx-auto max-w-md">
@@ -31,12 +37,7 @@ export default async function OtpSignIn({
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <OtpForm next={destination} mailboxURL={localMailboxURL()} />
-          <Link
-            href="/signin"
-            className="text-muted-foreground text-sm underline underline-offset-4"
-          >
-            Other ways to sign in
-          </Link>
+          <OtherWaysLink query={query} />
         </CardContent>
       </Card>
     </div>
