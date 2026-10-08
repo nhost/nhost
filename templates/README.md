@@ -171,10 +171,13 @@ The two guards below run in CI; run them before pushing:
   lints, tests and builds, so it has to equal the whole-catalogue render;
   `TestRenderSignInMethodsMatchesTemplate` fails when the two drift. Edit the
   Go catalogue and copy the render out, not the TypeScript on its own.
-- **The proxy is the only token refresher.** `frontend/src/proxy.ts` rotates
-  the refresh token; `frontend/src/lib/nhost/client.ts` is built without the
-  SDK's auto-refresh middleware. Two rotators race on a single-use token and
-  the loser's failure deletes the session.
+- **Each template has exactly one refresh-token rotator.** Two rotators race
+  on a single-use token and the loser's failure deletes the session. In
+  `nextjs` it is the proxy: `frontend/src/proxy.ts` rotates the refresh token
+  and `frontend/src/lib/nhost/client.ts` is built without the SDK's
+  auto-refresh middleware. The other templates have no server, so the rotator
+  is the one client under `frontend/src/lib/nhost/`, which keeps that
+  middleware.
 - **The agent bundle is mandatory and duplicated.** `AGENTS.md` and `CLAUDE.md`
   are byte-identical; each `.claude/skills/<name>/SKILL.md` body equals its
   `## <Title>` section of `SKILLS.md` once the frontmatter and `# Title` line
@@ -186,8 +189,8 @@ The two guards below run in CI; run them before pushing:
   a template instead of embedding the directory, because a developer who ran
   `pnpm install` in it has a `node_modules` there. `templates/embed_test.go`
   compares the embedded set to disk and fails on any entry that is on disk but
-  not in the directives. The Nix fileset in `cli/project.nix` cuts
-  `node_modules` and `.next` out for the same reason.
+  not in the directives. The Nix fileset in `cli/project.nix` cuts each
+  template's `node_modules` and build output out for the same reason.
 - **The CI matrix is checked.** `frontend`, `delete-method` and `ui-system`
   take what they run from their own `strategy.matrix`; a template, method
   directory or `ui/` directory with no matching combination runs zero times
@@ -214,13 +217,20 @@ The two guards below run in CI; run them before pushing:
    its `authDir`, `methodsFile`, `componentsUI` and `uiSystems`. It needs the
    same four sign-in method directories under `authDir`, since the method
    catalogue in `cli/cmd/project/authmethod.go` is shared by every template and
-   carries the configuration each method needs on a fresh backend. A React
+   carries the configuration each method needs on a fresh backend. Where they
+   sit is the framework's call, but not their names: the `delete-method` job
+   and `check-ci-matrix.sh` find them by name rather than reading the
+   catalogue, so `authDir` must end in the only directory named `auth` under
+   `frontend/src`, and `methodsFile` must be the only `methods.ts` there. A React
    template takes `reactUISystems()`; another framework needs its own, with a
    `none` entry, which is what `--ui` defaults to.
 4. Add `//go:embed` directives for its top-level entries in
    `templates/embed.go`. `go test ./templates/...` tells you what is missing.
 5. Add it to the source fileset in `cli/project.nix`, cutting out its
-   `node_modules` and build output the way the other templates do. A plain
+   `node_modules` and build output the way the other templates do, and add any
+   build output its `.gitignore` names that `ignored()` in
+   `templates/embed_test.go` does not already skip; otherwise building it makes
+   `go test` ask for that output in `embed.go`. A plain
    `go build` sees the whole working tree and passes without this, so the
    first thing that notices is the Nix build in CI, and what it reports is the
    `//go:embed` directive from step 4 failing on a directory that is not there.

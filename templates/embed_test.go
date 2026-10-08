@@ -24,9 +24,13 @@ func ignored(path string) bool {
 	// template's `pnpm build` lands and `build` is where SvelteKit's
 	// adapter-static does, so they are here for the same reason as the rest:
 	// running the build before `go test ./templates/...` must not turn the
-	// output into "on disk but not embedded".
+	// output into "on disk but not embedded". `android` and `ios` are where
+	// Expo's prebuild writes the native projects.
 	if len(parts) > 2 && parts[1] == "frontend" &&
-		slices.Contains([]string{"coverage", "out", "build", "dist"}, parts[2]) {
+		slices.Contains(
+			[]string{"coverage", "out", "build", "dist", "android", "ios"},
+			parts[2],
+		) {
 		return true
 	}
 
@@ -40,6 +44,7 @@ func ignored(path string) bool {
 			name == ".DS_Store", name == "next-env.d.ts",
 			name == "expo-env.d.ts",
 			strings.HasSuffix(name, ".tsbuildinfo"),
+			strings.Contains(name, ".orig."),
 			strings.HasSuffix(name, ".pem"),
 			strings.HasPrefix(name, "npm-debug.log"),
 			strings.HasPrefix(name, "yarn-debug.log"),
