@@ -691,7 +691,7 @@ SELECT
         WHERE k.user_id = u.id
     ) AS has_security_key,
     COALESCE(u.active_mfa_type = 'totp' AND u.totp_secret <> '', false) AS has_totp,
-    COALESCE(u.email <> '', false) AS has_email,
+    COALESCE(u.email <> '' AND u.email_verified, false) AS has_verified_email,
     COALESCE(u.phone_number <> '' AND u.phone_number_verified, false)
         AS has_verified_phone_number
 FROM auth.users AS u

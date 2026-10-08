@@ -270,7 +270,7 @@ SELECT
         WHERE k.user_id = u.id
     ) AS has_security_key,
     COALESCE(u.active_mfa_type = 'totp' AND u.totp_secret <> '', false) AS has_totp,
-    COALESCE(u.email <> '', false) AS has_email,
+    COALESCE(u.email <> '' AND u.email_verified, false) AS has_verified_email,
     COALESCE(u.phone_number <> '' AND u.phone_number_verified, false)
         AS has_verified_phone_number
 FROM auth.users AS u
@@ -280,7 +280,7 @@ WHERE u.id = $1
 type GetElevationMethodsRow struct {
 	HasSecurityKey         bool
 	HasTotp                pgtype.Bool
-	HasEmail               pgtype.Bool
+	HasVerifiedEmail       pgtype.Bool
 	HasVerifiedPhoneNumber pgtype.Bool
 }
 
@@ -290,7 +290,7 @@ func (q *Queries) GetElevationMethods(ctx context.Context, id uuid.UUID) (GetEle
 	err := row.Scan(
 		&i.HasSecurityKey,
 		&i.HasTotp,
-		&i.HasEmail,
+		&i.HasVerifiedEmail,
 		&i.HasVerifiedPhoneNumber,
 	)
 	return i, err

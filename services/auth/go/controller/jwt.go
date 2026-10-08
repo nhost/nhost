@@ -544,7 +544,7 @@ func (j *JWTGetter) availableElevationMethods(
 		methods = append(methods, api.ElevationMethodTotp)
 	}
 
-	if j.otpEmailEnabled && row.HasEmail.Bool {
+	if j.otpEmailEnabled && row.HasVerifiedEmail.Bool {
 		methods = append(methods, api.ElevationMethodOtpEmail)
 	}
 

@@ -749,7 +749,9 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				mock := mock.NewMockDBClient(ctrl)
 				mock.EXPECT().GetElevationMethods(gomock.Any(), userID).Return(
-					sql.GetElevationMethodsRow{HasEmail: pgtype.Bool{Bool: true, Valid: true}}, nil,
+					sql.GetElevationMethodsRow{
+						HasVerifiedEmail: pgtype.Bool{Bool: true, Valid: true},
+					}, nil,
 				)
 
 				return mock
@@ -783,9 +785,10 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 			},
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				mock := mock.NewMockDBClient(ctrl)
-				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
-				mock.EXPECT().GetUser(gomock.Any(), userID).Return(
-					sql.AuthUser{Email: sql.Text("jane@acme.com")}, nil,
+				mock.EXPECT().GetElevationMethods(gomock.Any(), userID).Return(
+					sql.GetElevationMethodsRow{
+						HasVerifiedEmail: pgtype.Bool{Bool: false, Valid: true},
+					}, nil,
 				)
 
 				return mock
@@ -803,9 +806,10 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 			},
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				mock := mock.NewMockDBClient(ctrl)
-				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
-				mock.EXPECT().GetUser(gomock.Any(), userID).Return(
-					sql.AuthUser{Email: sql.Text("jane@acme.com")}, nil,
+				mock.EXPECT().GetElevationMethods(gomock.Any(), userID).Return(
+					sql.GetElevationMethodsRow{
+						HasVerifiedEmail: pgtype.Bool{Bool: false, Valid: true},
+					}, nil,
 				)
 
 				return mock
@@ -845,7 +849,9 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				mock := mock.NewMockDBClient(ctrl)
 				mock.EXPECT().GetElevationMethods(gomock.Any(), userID).Return(
-					sql.GetElevationMethodsRow{HasEmail: pgtype.Bool{Bool: true, Valid: true}}, nil,
+					sql.GetElevationMethodsRow{
+						HasVerifiedEmail: pgtype.Bool{Bool: true, Valid: true},
+					}, nil,
 				)
 
 				return mock

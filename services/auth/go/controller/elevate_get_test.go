@@ -62,7 +62,7 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 	keyUser := sql.GetElevationMethodsRow{HasSecurityKey: true}
 	keyAndTOTPUser := sql.GetElevationMethodsRow{HasSecurityKey: true, HasTotp: yes}
 	plainUser := sql.GetElevationMethodsRow{}
-	emailUser := sql.GetElevationMethodsRow{HasEmail: yes}
+	emailUser := sql.GetElevationMethodsRow{HasVerifiedEmail: yes}
 	smsUser := sql.GetElevationMethodsRow{HasVerifiedPhoneNumber: yes}
 
 	cases := []testRequest[
@@ -292,11 +292,11 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
-				user := emailUser
-				user.EmailVerified = false
-
-				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
-				mock.EXPECT().GetUser(gomock.Any(), userID).Return(user, nil)
+				mock.EXPECT().GetElevationMethods(gomock.Any(), userID).Return(
+					sql.GetElevationMethodsRow{
+						HasVerifiedEmail: pgtype.Bool{Bool: false, Valid: true},
+					}, nil,
+				)
 
 				return mock
 			},
