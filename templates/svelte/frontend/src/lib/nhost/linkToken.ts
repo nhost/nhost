@@ -18,10 +18,8 @@ export const LINK_TOKEN_PARAM = 'refreshToken';
  * session to storage, so there is nothing to persist by hand.
  */
 export async function redeemLinkToken(nhost: NhostClient): Promise<void> {
-  // `URLSearchParams` rather than `new URL`: it reads the part of the address
-  // this cares about and has no malformed input to throw on.
-  const params = new URLSearchParams(window.location.search);
-  const token = params.get(LINK_TOKEN_PARAM);
+  const url = new URL(window.location.href);
+  const token = url.searchParams.get(LINK_TOKEN_PARAM);
 
   if (!token) {
     return;
@@ -32,16 +30,12 @@ export async function redeemLinkToken(nhost: NhostClient): Promise<void> {
   // it in the address bar puts it in browser history and in the `Referer` of
   // anything this page loads next. The native `history` rather than
   // `$app/navigation`, because this runs before the router has started.
-  params.delete(LINK_TOKEN_PARAM);
-
-  const query = params.toString();
-  const { pathname, hash } = window.location;
-
-  window.history.replaceState(
-    window.history.state,
-    '',
-    `${pathname}${query ? `?${query}` : ''}${hash}`,
-  );
+  //
+  // Handed over whole rather than rebuilt from `pathname`: a link can land on
+  // a path like `//evil.example`, which read back as a relative URL names
+  // another origin, and `replaceState` throws on that instead of stripping.
+  url.searchParams.delete(LINK_TOKEN_PARAM);
+  window.history.replaceState(window.history.state, '', url);
 
   // A link may sign in a visitor who is signed out; it may not replace somebody
   // who is already here. Redeeming on sight would let a crafted link swap a

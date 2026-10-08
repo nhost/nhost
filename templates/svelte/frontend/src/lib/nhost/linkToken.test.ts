@@ -2,16 +2,29 @@ import type { NhostClient } from '@nhost/nhost-js';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { redeemLinkToken } from '$lib/nhost/linkToken';
 
+// `replaceState` refuses a URL on another origin the way the browser does.
 function stubWindow(url: string) {
-  const { pathname, search, hash } = new URL(url, 'http://localhost');
-  const replaceState = vi.fn();
+  const location = new URL(url, 'http://localhost');
+  const replaceState = vi.fn(
+    (_state: unknown, _unused: string, target: string | URL) => {
+      if (new URL(target, location).origin !== location.origin) {
+        throw new DOMException('Not this origin', 'SecurityError');
+      }
+    },
+  );
 
   vi.stubGlobal('window', {
-    location: { pathname, search, hash },
+    location,
     history: { state: null, replaceState },
   });
 
   return replaceState;
+}
+
+function strippedTo(replaceState: ReturnType<typeof stubWindow>) {
+  const target = replaceState.mock.lastCall?.[2];
+
+  return target && new URL(target, 'http://localhost').href;
 }
 
 function clientWith(
@@ -72,7 +85,7 @@ describe('redeemLinkToken', () => {
 
     expect(spy).not.toHaveBeenCalled();
     expect(nhost.getUserSession()).toEqual({ refreshToken: 'mine' });
-    expect(replaceState).toHaveBeenCalledWith(null, '', '/?keep=1');
+    expect(strippedTo(replaceState)).toBe('http://localhost/?keep=1');
   });
 
   it('still redeems when the stored session turns out to be dead', async () => {
@@ -97,10 +110,8 @@ describe('redeemLinkToken', () => {
     void redeemLinkToken(nhost);
 
     expect(refreshSession).toHaveBeenCalledOnce();
-    expect(replaceState).toHaveBeenCalledWith(
-      null,
-      '',
-      '/protected?keep=1#top',
+    expect(strippedTo(replaceState)).toBe(
+      'http://localhost/protected?keep=1#top',
     );
   });
 
@@ -110,6 +121,19 @@ describe('redeemLinkToken', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
 
     await expect(redeemLinkToken(nhost)).resolves.toBeUndefined();
-    expect(replaceState).toHaveBeenCalledWith(null, '', '/');
+    expect(strippedTo(replaceState)).toBe('http://localhost/');
+  });
+
+  // A redirect to `/..//evil.example` lands on the path `//evil.example`, and
+  // that path on its own is a URL for another origin.
+  it('strips the token on a path that reads as another origin', async () => {
+    const replaceState = stubWindow(
+      'http://localhost//evil.example?refreshToken=abc',
+    );
+    const { nhost, spy } = clientWith(async () => undefined);
+
+    await expect(redeemLinkToken(nhost)).resolves.toBeUndefined();
+    expect(strippedTo(replaceState)).toBe('http://localhost//evil.example');
+    expect(spy).toHaveBeenCalledWith({ refreshToken: 'abc' });
   });
 });
