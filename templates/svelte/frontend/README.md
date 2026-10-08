@@ -21,8 +21,8 @@ really does arrive in yours.
 The components under `src/lib/components/ui/` are plain Tailwind and yours to edit,
 unless you passed `--ui shadcn`, which swaps them for the shadcn-svelte versions
 with the same props. Nothing else in the app changes either way: it only ever
-imports `@/components/ui/*`, so adopting shadcn-svelte later is a matter of running
-its CLI over the same paths.
+imports `$lib/components/ui/*`, so adopting shadcn-svelte later is a matter of
+running its CLI over the same paths.
 
 This is a single-page app: SvelteKit is configured with `ssr = false` and
 `adapter-static`, so it builds to static files and there is no server of your
