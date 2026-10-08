@@ -12,9 +12,9 @@ async function handleSignOut(): Promise<void> {
   error = undefined;
   isSigningOut = true;
   try {
-    // Clears the stored session, which the storage subscription in
-    // `lib/nhost/auth.svelte.ts` is listening to, so every tab drops to
-    // signed out without this having to tell them.
+    // Clears the stored session, which the session watch in
+    // `lib/nhost/watchSession.ts` hears in this tab and every other one, so
+    // they all drop to signed out without this having to tell them.
     await auth.nhost.auth.signOut({
       refreshToken: auth.nhost.getUserSession()?.refreshToken ?? '',
     });

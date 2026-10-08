@@ -16,9 +16,10 @@ It has two halves:
 
 1. **One client, created once.** `frontend/src/lib/nhost/auth.svelte.ts` calls
    `createClient` at module scope and exports it through `useAuth()`. That
-   client owns the refresh timer and keeps the session in `localStorage`.
-   Creating a second one anywhere gives you two rotators of a single-use
-   refresh token. Always reach for `useAuth()`.
+   client keeps the session in `localStorage`, and the app follows the
+   session through its `sessionStorage.onChange`, which hears only writes made
+   through that instance. A sign-in or sign-out through a second client would
+   leave the app rendering the old visitor. Always reach for `useAuth()`.
 2. **`useAuth().session` is a getter, and has to stay one.** That is what keeps
    it reactive through the function call. Destructuring it (`const { session }
    = useAuth()`) reads it once and never updates again.

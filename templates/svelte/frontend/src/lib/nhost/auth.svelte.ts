@@ -2,22 +2,25 @@ import { createClient, type NhostClient } from '@nhost/nhost-js';
 import type { Session } from '@nhost/nhost-js/auth';
 import { nhostRegion, nhostSubdomain } from '$lib/nhost/env';
 import { redeemLinkToken } from '$lib/nhost/linkToken';
+import { watchSession } from '$lib/nhost/watchSession';
 
 /**
  * The one Nhost client this app uses.
  *
  * `createClient` is the browser client: it keeps the session in
  * `localStorage` and refreshes the access token itself, through the default
- * middleware, whenever a request goes out within 60s of expiry. That is the
- * whole session design here. Nothing on a server is involved, so nothing else
- * is rotating the refresh token and there is no second writer to arbitrate
- * with.
+ * middleware, whenever a request goes out within 60s of expiry. There is no
+ * timer: a tab that sends nothing refreshes nothing. Nothing on a server is
+ * involved. The only other writers are this app's other tabs, and the SDK
+ * serialises refreshes with `navigator.locks`, which every client on the
+ * origin shares, so two tabs do not spend the same single-use refresh token.
  *
- * It is a module-level constant rather than something a component creates: the
- * client owns the refresh timer and the in-flight-refresh deduplication, so a
- * second instance would be a second rotator of a single-use token. This app
- * never renders on a server - `+layout.ts` turns SSR off - so there is no
- * request whose state could leak into the next one through module scope.
+ * It is a module-level constant rather than something a component creates
+ * because the session here follows it: `sessionStorage.onChange` hears only
+ * writes made through this instance, so a sign-in or sign-out through a second
+ * client would leave the app rendering the old visitor. This app never renders
+ * on a server - `+layout.ts` turns SSR off - so there is no request whose
+ * state could leak into the next one through module scope.
  */
 const nhost: NhostClient = createClient({
   subdomain: nhostSubdomain(),
@@ -29,23 +32,26 @@ const nhost: NhostClient = createClient({
 // wrapper around it.
 let session = $state<Session | null>(null);
 
-// Fires for this tab's own writes and for other tabs', so signing out in one
-// tab signs out the rest. Subscribed at module scope, before `startAuth`
-// redeems a token, so the session that redemption stores is not missed.
-nhost.sessionStorage.onChange((next) => {
-  session = next;
-});
-
 /**
- * Reads the stored session, redeeming a token on the URL first.
+ * Starts following the stored session, redeeming a token on the URL first.
  *
- * `hooks.client.ts` awaits this, so it has finished before the first page
- * renders: a signed-in visitor never flashes as signed out, and a protected
- * page never bounces them in that frame. It costs nothing on an ordinary load,
- * because with no token on the URL `redeemLinkToken` returns without a
- * request. It must not throw: a rejection there stops the app from starting.
+ * From then on `session` tracks this tab's own writes and other tabs', so
+ * signing in or out in one tab does the same in the rest.
+ *
+ * `hooks.client.ts` calls this once and awaits it, so it has finished before
+ * the first page renders: a signed-in visitor never flashes as signed out, and
+ * a protected page never bounces them in that frame. It costs nothing on an
+ * ordinary load, because with no token on the URL `redeemLinkToken` returns
+ * without a request. It must not throw: a rejection there stops the app from
+ * starting.
  */
 export async function startAuth(): Promise<void> {
+  // Started before the token is redeemed, so the session that redemption
+  // stores is not missed.
+  watchSession(nhost, (next) => {
+    session = next;
+  });
+
   // An arrival from an auth email or an OAuth callback carries the session on
   // the URL, so it has to be taken before the first read or the visitor
   // renders as signed out and the token is lost.
@@ -64,7 +70,7 @@ type AuthValue = {
  *
  * `session` is a getter rather than a value: that is what keeps it reactive
  * through the call, so a component reading `auth.session` re-renders when the
- * storage subscription above replaces it.
+ * session watch above replaces it.
  */
 export function useAuth(): AuthValue {
   return {

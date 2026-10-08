@@ -108,10 +108,12 @@ find.
 In `localStorage`, refresh token included, written by the SDK. One client is
 created in `src/lib/nhost/auth.svelte.ts`, at module scope so there can only
 ever be one, and it refreshes the access token itself when a request goes out
-within 60s of expiry. `sessionStorage.onChange` writes the session into a
-`$state` rune that every component reads through `useAuth()`, and because the
-browser fires that event across tabs, signing out in one tab signs out the
-rest.
+within 60s of expiry. There is no timer, and `navigator.locks` keeps two tabs
+from spending the same refresh token at once. `src/lib/nhost/watchSession.ts`
+keeps the `$state` rune every component reads through `useAuth()` in step:
+`sessionStorage.onChange` reports this tab's own writes, and the browser's
+`storage` event reports other tabs', so signing in or out in one tab does the
+same in the rest.
 
 `useAuth()` hands the session back as a getter rather than a value. That is
 what keeps it reactive through the call: destructuring it reads it once and
