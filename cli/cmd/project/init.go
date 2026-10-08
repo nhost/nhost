@@ -146,25 +146,7 @@ func commandInit(ctx context.Context, cmd *cli.Command, tv *templateValue) error
 		return err
 	}
 
-	// The order these run in is the order the questions are asked: what to
-	// build it with before what it does, since the stack is the decision the
-	// rest sit inside.
-	ui, err := resolveUISystem(ce, cmd, template, asked)
-	if err != nil {
-		return err
-	}
-
-	nav, err := resolveNavigationSystem(ce, cmd, template, asked)
-	if err != nil {
-		return err
-	}
-
-	pm, err := resolvePackageManager(ce, cmd, template, asked)
-	if err != nil {
-		return err
-	}
-
-	methods, err := resolveAuthMethods(ce, cmd, template, asked)
+	choices, err := resolveTemplateChoices(ce, cmd, template, asked)
 	if err != nil {
 		return err
 	}
@@ -190,7 +172,7 @@ func commandInit(ctx context.Context, cmd *cli.Command, tv *templateValue) error
 		// for the template, which is why the next steps name what to enable.
 		ce.Infoln("Found an existing Nhost project, adding only the %s template", template)
 	} else if err := initBackend(
-		ctx, ce, cmd, methods, configures,
+		ctx, ce, cmd, choices.methods, configures,
 	); err != nil {
 		return err
 	}
@@ -202,7 +184,8 @@ func commandInit(ctx context.Context, cmd *cli.Command, tv *templateValue) error
 	}
 
 	if err := writeTemplate(
-		ce.Path, template, layout, methods, ui, nav, pm,
+		ce.Path, template, layout,
+		choices.methods, choices.ui, choices.nav, choices.pm,
 	); err != nil {
 		return err
 	}
@@ -210,10 +193,52 @@ func commandInit(ctx context.Context, cmd *cli.Command, tv *templateValue) error
 	printKeptEntries(ce, layout)
 
 	printTemplateNextSteps(
-		ce, template, methodsToEnable(ce, methods, configures), pm,
+		ce, template, methodsToEnable(ce, choices.methods, configures), choices.pm,
 	)
 
 	return nil
+}
+
+// templateChoices is what a template is scaffolded with. Without a template
+// every field is its zero value.
+type templateChoices struct {
+	ui      uiSystem
+	nav     navigationSystem
+	pm      packageManager
+	methods []signInMethod
+}
+
+// resolveTemplateChoices answers the questions that follow the template. The
+// order these run in is the order the questions are asked: what to build it
+// with before what it does, since the stack is the decision the rest sit
+// inside.
+func resolveTemplateChoices(
+	ce *clienv.CliEnv,
+	cmd *cli.Command,
+	template string,
+	asked bool,
+) (templateChoices, error) {
+	ui, err := resolveUISystem(ce, cmd, template, asked)
+	if err != nil {
+		return templateChoices{}, err
+	}
+
+	nav, err := resolveNavigationSystem(ce, cmd, template, asked)
+	if err != nil {
+		return templateChoices{}, err
+	}
+
+	pm, err := resolvePackageManager(ce, cmd, template, asked)
+	if err != nil {
+		return templateChoices{}, err
+	}
+
+	methods, err := resolveAuthMethods(ce, cmd, template, asked)
+	if err != nil {
+		return templateChoices{}, err
+	}
+
+	return templateChoices{ui: ui, nav: nav, pm: pm, methods: methods}, nil
 }
 
 // writesAuthConfig says whether init writes the settings the selected sign-in

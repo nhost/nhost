@@ -74,6 +74,7 @@ func catalogue() []starterTemplate {
 			methodsFile:  "frontend/src/app/signin/methods.ts",
 			componentsUI: "frontend/src/components/ui",
 			uiSystems:    reactUISystems(),
+			navSystems:   nil,
 		},
 		{
 			name:         "react",
@@ -82,6 +83,7 @@ func catalogue() []starterTemplate {
 			methodsFile:  "frontend/src/signin/methods.ts",
 			componentsUI: "frontend/src/components/ui",
 			uiSystems:    reactUISystems(),
+			navSystems:   nil,
 		},
 		{
 			name:         "vue",
@@ -90,6 +92,7 @@ func catalogue() []starterTemplate {
 			methodsFile:  "frontend/src/signin/methods.ts",
 			componentsUI: "frontend/src/components/ui",
 			uiSystems:    vueUISystems(),
+			navSystems:   nil,
 		},
 		{
 			// SvelteKit routes are directories under src/routes, so a method's
@@ -103,6 +106,7 @@ func catalogue() []starterTemplate {
 			methodsFile:  "frontend/src/lib/signin/methods.ts",
 			componentsUI: "frontend/src/lib/components/ui",
 			uiSystems:    svelteUISystems(),
+			navSystems:   nil,
 		},
 		{
 			// Expo Router turns every file under its root into a route, so

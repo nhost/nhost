@@ -151,7 +151,7 @@ func resolveNavigationSystem(
 ) (navigationSystem, error) {
 	if template == "" {
 		if cmd.IsSet(flagNavigation) {
-			return navigationSystem{}, errNavNeedsTmpl //nolint:exhaustruct
+			return navigationSystem{}, errNavNeedsTmpl
 		}
 
 		return navigationSystem{}, nil //nolint:exhaustruct // the no-template answer
@@ -163,12 +163,12 @@ func resolveNavigationSystem(
 			"%w %q",
 			errUnknownTemplate,
 			template,
-		) //nolint:exhaustruct
+		)
 	}
 
 	if len(tmpl.navSystems) == 0 {
 		if cmd.IsSet(flagNavigation) {
-			return navigationSystem{}, fmt.Errorf( //nolint:exhaustruct
+			return navigationSystem{}, fmt.Errorf(
 				"%s %w", template, errNavUnsupported,
 			)
 		}
@@ -180,7 +180,7 @@ func resolveNavigationSystem(
 
 	nav, ok := lookupNav(tmpl.navSystems, name)
 	if !ok {
-		return navigationSystem{}, fmt.Errorf( //nolint:exhaustruct
+		return navigationSystem{}, fmt.Errorf(
 			"%w %q; available: %s",
 			errUnknownNav, name, strings.Join(navNames(tmpl.navSystems), ", "),
 		)
@@ -218,7 +218,7 @@ func pickNavigationSystem(
 	case errors.Is(err, errNoRawTerminal):
 		return fallback, nil
 	case err != nil:
-		return navigationSystem{}, err //nolint:exhaustruct
+		return navigationSystem{}, err
 	}
 
 	return all[idx], nil

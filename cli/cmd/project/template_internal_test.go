@@ -310,7 +310,7 @@ func TestWriteTemplateRemovesWhatItWroteOnFailure(t *testing.T) {
 
 	// nextjs offers no navigation system, so the zero value is what init
 	// resolves for it.
-	nav := navigationSystem{} //nolint:exhaustruct
+	nav := navigationSystem{}
 
 	if err := writeTemplate(
 		ps, "nextjs", layout, signInMethods(), broken, nav, pm,
