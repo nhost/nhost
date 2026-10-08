@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import MagicLinkForm from '@/auth/magic-link/MagicLinkForm.vue';
 import {
   Card,
@@ -8,6 +9,9 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { localMailboxURL } from '@/lib/nhost/env';
+import OtherWaysLink from '@/signin/OtherWaysLink.vue';
+import { signInQuery } from '@/signin/query';
+import { useIntent } from '@/signin/useIntent';
 import { useNext } from '@/signin/useNext';
 
 /**
@@ -16,6 +20,8 @@ import { useNext } from '@/signin/useNext';
  * with a refresh token `lib/nhost/linkToken.ts` redeems on arrival.
  */
 const next = useNext();
+const intent = useIntent();
+const query = computed(() => signInQuery(next.value, intent.value));
 const mailboxUrl = localMailboxURL();
 </script>
 
@@ -30,12 +36,7 @@ const mailboxUrl = localMailboxURL();
       </CardHeader>
       <CardContent class="flex flex-col gap-4">
         <MagicLinkForm :next="next" :mailbox-url="mailboxUrl" />
-        <RouterLink
-          to="/signin"
-          class="text-muted-foreground text-sm underline underline-offset-4 outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          Other ways to sign in
-        </RouterLink>
+        <OtherWaysLink :query="query" />
       </CardContent>
     </Card>
   </div>

@@ -7,8 +7,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { DEFAULT_DESTINATION } from '@/signin/destination';
+import type { Intent } from '@/signin/intent';
 import { methods } from '@/signin/methods';
+import { signInQuery } from '@/signin/query';
+import { useIntent } from '@/signin/useIntent';
 import { useNext } from '@/signin/useNext';
 
 /**
@@ -16,25 +18,37 @@ import { useNext } from '@/signin/useNext';
  * `/auth/<method>`; this page only links to them, from the data in
  * `methods.ts`, so deleting a method never breaks it.
  *
- * `next` is where the visitor was going when a protected page sent them here.
- * It is passed along to whichever method they pick, so that page can finish
- * the trip after signing them in.
+ * `next` is where the visitor was going when a protected page sent them here,
+ * and `intent` is whether they came to sign up or to sign in. Both are passed
+ * along to whichever method they pick: one so that page can finish the trip,
+ * the other so a form opens on the right mode.
  */
-const next = useNext();
 
-const query = computed(() =>
-  next.value === DEFAULT_DESTINATION
-    ? ''
-    : `?next=${encodeURIComponent(next.value)}`,
-);
+// What the page says depends on why the visitor is here. Neither heading names
+// a method, so both survive any selection.
+const copy: Record<Intent, { title: string; description: string }> = {
+  'sign-up': {
+    title: 'Create an account',
+    description: 'Choose how you want to sign up.',
+  },
+  'sign-in': {
+    title: 'Sign in',
+    description: 'Choose how you want to sign in.',
+  },
+};
+
+const next = useNext();
+const intent = useIntent();
+
+const query = computed(() => signInQuery(next.value, intent.value));
 </script>
 
 <template>
   <div class="mx-auto max-w-md">
     <Card>
       <CardHeader>
-        <CardTitle>Sign in</CardTitle>
-        <CardDescription>Choose how you want to sign in.</CardDescription>
+        <CardTitle>{{ copy[intent].title }}</CardTitle>
+        <CardDescription>{{ copy[intent].description }}</CardDescription>
       </CardHeader>
       <CardContent class="flex flex-col gap-2">
         <RouterLink

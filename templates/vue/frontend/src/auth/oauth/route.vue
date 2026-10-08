@@ -11,6 +11,9 @@ import {
 } from '@/components/ui/card';
 import { useAuth } from '@/lib/nhost/auth';
 import { appOrigin } from '@/lib/nhost/env';
+import OtherWaysLink from '@/signin/OtherWaysLink.vue';
+import { signInQuery } from '@/signin/query';
+import { useIntent } from '@/signin/useIntent';
 import { useNext } from '@/signin/useNext';
 
 /**
@@ -25,6 +28,8 @@ import { useNext } from '@/signin/useNext';
  */
 const { nhost } = useAuth();
 const next = useNext();
+const intent = useIntent();
+const query = computed(() => signInQuery(next.value, intent.value));
 
 const links = computed(() =>
   providers.map(({ id, label }) => ({
@@ -50,12 +55,7 @@ const links = computed(() =>
           A provider only works once it is enabled in <code>nhost.toml</code>.
           The README's OAuth section has the callback URL and the config.
         </p>
-        <RouterLink
-          to="/signin"
-          class="text-muted-foreground text-sm underline-offset-4 hover:underline"
-        >
-          Other ways to sign in
-        </RouterLink>
+        <OtherWaysLink :query="query" />
       </CardContent>
     </Card>
   </div>

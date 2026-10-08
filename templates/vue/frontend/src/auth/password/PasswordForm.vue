@@ -2,12 +2,18 @@
 import { ref, useId } from 'vue';
 import { useRouter } from 'vue-router';
 import { requestPasswordReset, signIn, signUp } from '@/auth/password/actions';
+import CheckYourInbox from '@/components/CheckYourInbox.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/lib/nhost/auth';
+import type { Intent } from '@/signin/intent';
 
-const props = defineProps<{ next: string }>();
+const props = defineProps<{
+  next: string;
+  intent: Intent;
+  mailboxUrl: string | null;
+}>();
 
 type Mode = 'sign-in' | 'sign-up';
 
@@ -20,7 +26,10 @@ const router = useRouter();
 const emailId = useId();
 const passwordId = useId();
 
-const mode = ref<Mode>('sign-in');
+// Opens on whatever the link that sent them here asked for, which is sign-up
+// unless it said otherwise: a fresh local backend has no accounts in it, so a
+// sign-in form would be a dead end.
+const mode = ref<Mode>(props.intent);
 const email = ref('');
 const password = ref('');
 const sent = ref<Sent | undefined>();
@@ -89,7 +98,7 @@ const handleForgotPassword = async (): Promise<void> => {
 
 <template>
   <div v-if="sent === 'verification'" class="flex flex-col gap-2 text-sm">
-    <p class="font-medium">Check your inbox</p>
+    <CheckYourInbox :url="mailboxUrl" />
     <p class="text-muted-foreground">
       We sent a verification link to {{ email }}. Opening it confirms the
       address and signs you in.
@@ -97,7 +106,7 @@ const handleForgotPassword = async (): Promise<void> => {
   </div>
 
   <div v-else-if="sent === 'reset'" class="flex flex-col gap-2 text-sm">
-    <p class="font-medium">Check your inbox</p>
+    <CheckYourInbox :url="mailboxUrl" />
     <p class="text-muted-foreground">
       If that address has an account, a reset link is on its way.
     </p>

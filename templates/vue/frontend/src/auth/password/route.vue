@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import PasswordForm from '@/auth/password/PasswordForm.vue';
 import {
   Card,
@@ -7,9 +8,16 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { localMailboxURL } from '@/lib/nhost/env';
+import OtherWaysLink from '@/signin/OtherWaysLink.vue';
+import { signInQuery } from '@/signin/query';
+import { useIntent } from '@/signin/useIntent';
 import { useNext } from '@/signin/useNext';
 
 const next = useNext();
+const intent = useIntent();
+const query = computed(() => signInQuery(next.value, intent.value));
+const mailboxUrl = localMailboxURL();
 </script>
 
 <template>
@@ -22,13 +30,12 @@ const next = useNext();
         </CardDescription>
       </CardHeader>
       <CardContent class="flex flex-col gap-4">
-        <PasswordForm :next="next" />
-        <RouterLink
-          to="/signin"
-          class="text-muted-foreground text-sm underline-offset-4 hover:underline"
-        >
-          Other ways to sign in
-        </RouterLink>
+        <PasswordForm
+          :next="next"
+          :intent="intent"
+          :mailbox-url="mailboxUrl"
+        />
+        <OtherWaysLink :query="query" />
       </CardContent>
     </Card>
   </div>

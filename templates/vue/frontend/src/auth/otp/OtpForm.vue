@@ -2,6 +2,7 @@
 import { ref, useId } from 'vue';
 import { useRouter } from 'vue-router';
 import { sendCode, verifyCode } from '@/auth/otp/actions';
+import CheckYourInbox from '@/components/CheckYourInbox.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -74,18 +75,12 @@ const backToEmail = (): void => {
     class="flex flex-col gap-4"
     @submit.prevent="handleVerify"
   >
-    <p class="text-muted-foreground text-sm">
-      We sent a code to {{ email }}.
-      <template v-if="mailboxUrl">
-        Locally it lands in the
-        <a
-          :href="mailboxUrl"
-          target="_blank"
-          rel="noreferrer"
-          class="underline underline-offset-4"
-        >mailbox</a>.
-      </template>
-    </p>
+    <div class="flex flex-col gap-2">
+      <CheckYourInbox :url="mailboxUrl" />
+      <p class="text-muted-foreground text-sm">
+        We sent a code to {{ email }}.
+      </p>
+    </div>
 
     <div class="flex flex-col gap-2">
       <Label :for="codeId">Code</Label>

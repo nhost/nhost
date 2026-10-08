@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, useId } from 'vue';
 import { sendMagicLink } from '@/auth/magic-link/actions';
+import CheckYourInbox from '@/components/CheckYourInbox.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -44,19 +45,13 @@ const useDifferentAddress = (): void => {
 
 <template>
   <div v-if="sent" class="flex flex-col gap-4">
-    <p class="text-sm">
-      A sign-in link is on its way to {{ email }}. Opening it signs you in on
-      this device.
-    </p>
-    <p v-if="mailboxUrl" class="text-muted-foreground text-sm">
-      Running locally? The email is in the
-      <a
-        :href="mailboxUrl"
-        target="_blank"
-        rel="noreferrer"
-        class="underline underline-offset-4"
-      >local mailbox</a>.
-    </p>
+    <div class="flex flex-col gap-2">
+      <CheckYourInbox :url="mailboxUrl" />
+      <p class="text-muted-foreground text-sm">
+        A sign-in link is on its way to {{ email }}. Opening it signs you in on
+        this device.
+      </p>
+    </div>
     <Button
       type="button"
       variant="ghost"

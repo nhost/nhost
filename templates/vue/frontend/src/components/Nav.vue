@@ -32,7 +32,7 @@ const user = computed(() => session.value?.user);
         <SignOutButton />
       </div>
       <Button v-else as-child variant="ghost" size="sm">
-        <RouterLink to="/signin">Sign in</RouterLink>
+        <RouterLink to="/signin?intent=sign-in">Sign in</RouterLink>
       </Button>
     </div>
   </nav>
