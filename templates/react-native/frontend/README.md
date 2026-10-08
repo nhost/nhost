@@ -68,7 +68,10 @@ here: the only way back into a native app is a deep link on the scheme declared
 in `app.json`, which is `nhoststarter` until you change it.
 
 `src/lib/nhost/redirect.ts` builds those links, and
-`src/lib/nhost/linkToken.ts` reads the refresh token out of one and redeems it.
+`src/lib/nhost/linkToken.ts` reads the refresh token out of one and redeems it,
+but only when nobody is signed in. Any web page or app can open the scheme, so
+a link that replaced a signed-in session would let its sender move the user
+into the sender's account. Sign out first to follow a link for another one.
 Under Expo Go the scheme is the development server's `exp://.../--/` URL
 instead, which `Linking.createURL` handles, so the flow works in development
 without a second configuration.

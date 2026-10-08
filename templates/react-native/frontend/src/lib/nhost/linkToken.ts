@@ -27,6 +27,8 @@ export function linkToken(url: string): string | null {
   return new URLSearchParams(query).get(LINK_TOKEN_PARAM);
 }
 
+const redemptions = new WeakMap<NhostClient, Promise<void>>();
+
 /**
  * Turns a token from a deep link into a stored session.
  *
@@ -34,14 +36,46 @@ export function linkToken(url: string): string | null {
  * session to storage, so there is nothing to persist by hand. It is single
  * use: a link that was already opened, or has expired, fails here and leaves
  * the user signed out with nothing to recover but asking for another one.
+ *
+ * Calls with the same client run one after another. The OAuth screen redeems
+ * the callback it is handed, and on Android the same callback can also arrive
+ * as a link event; run side by side, both would pass the signed-in check below
+ * before either had a session, and the second would spend a used token.
  */
-export async function redeemLinkToken(
+export function redeemLinkToken(
   nhost: NhostClient,
   url: string,
 ): Promise<void> {
+  const run = () => redeem(nhost, url);
+  const redemption = (redemptions.get(nhost) ?? Promise.resolve()).then(
+    run,
+    run,
+  );
+
+  redemptions.set(nhost, redemption);
+
+  return redemption;
+}
+
+async function redeem(nhost: NhostClient, url: string): Promise<void> {
   const token = linkToken(url);
 
   if (!token) {
+    return;
+  }
+
+  // A link may sign in a user who is signed out; it may not replace somebody
+  // who is already here. The app's scheme can be opened by any web page or
+  // app, so redeeming on sight would let a crafted link swap a signed-in
+  // user's session for the sender's, and everything they saved next would
+  // land in the sender's account. Checked after a refresh, which drops a
+  // stored session the auth service rejects, so a dead session does not cost
+  // the user a link that still works. This relies on `startAuth` having read
+  // the stored session first; before that, memory is empty and the check
+  // would pass anyone.
+  await nhost.refreshSession();
+
+  if (nhost.getUserSession()) {
     return;
   }
 

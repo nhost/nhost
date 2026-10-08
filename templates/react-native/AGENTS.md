@@ -42,7 +42,9 @@ It has two halves:
 5. **Coming back into the app is a deep link, not a URL.** Auth emails and the
    OAuth callback reopen the app on the scheme in `app.json`.
    `src/lib/nhost/linkToken.ts` reads the refresh token out of that link and
-   redeems it. Build the link with
+   redeems it, only when nobody is signed in: any page or app can open the
+   scheme, and a link that replaced a session would move the user into the
+   sender's account. Build the link with
    `authRedirectURL()` in `src/lib/nhost/redirect.ts` - never by hand, because
    that is the one place that stops a crafted `next` from sending the user's
    emailed link somewhere else.
