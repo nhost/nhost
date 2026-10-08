@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/urfave/cli/v3"
 )
 
 const (
@@ -17,8 +16,8 @@ const (
 	poolMinHealthCheckPeriod = time.Minute
 )
 
-func getDBPool(ctx context.Context, cmd *cli.Command) (*pgxpool.Pool, error) {
-	config, err := pgxpool.ParseConfig(cmd.String(flagPostgresConnection))
+func getDBPool(ctx context.Context, opts Options) (*pgxpool.Pool, error) {
+	config, err := pgxpool.ParseConfig(opts.PostgresConnection)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse database config: %w", err)
 	}
