@@ -9,6 +9,15 @@ Four sign-in methods are on offer and `nhost init --template` scaffolds the ones
 you asked for with `--auth-methods`, email and password by default.
 `src/app/signin/methods.ts` lists the ones you have.
 
+The password form opens on **sign up**, because a fresh local backend has no
+accounts in it yet. Signing in and signing up are kept apart: the home page
+offers both, and a link asks for the other mode with `?intent=sign-in`.
+
+Anywhere the app says "check your inbox", those words are a link to the local
+mailbox, since against a local backend that is where the email went. They go
+back to being plain text once the app targets a real project and the email
+really does arrive in yours.
+
 The components under `src/components/ui/` are plain Tailwind and yours to edit,
 unless you passed `--ui shadcn`, which swaps them for the shadcn/ui versions
 with the same props. Nothing else in the app changes either way: it only ever
