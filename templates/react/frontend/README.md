@@ -21,7 +21,7 @@ stored, read "Where the session lives" below before you build on it.
 
 ## Run it
 
-You need Node 22+, pnpm and a running local backend:
+You need Node 22.22+, pnpm and a running local backend:
 
 ```sh
 nhost up                      # from the project root, next to nhost/
