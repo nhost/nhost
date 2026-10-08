@@ -1,6 +1,7 @@
 'use client';
 
 import { type FormEvent, useId, useState } from 'react';
+import CheckYourInbox from '@/components/CheckYourInbox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -49,24 +50,13 @@ export default function MagicLinkForm({
   if (sent) {
     return (
       <div className="flex flex-col gap-4">
-        <p className="text-sm">
-          A sign-in link is on its way to {email}. Opening it signs you in on
-          this device.
-        </p>
-        {mailboxURL ? (
+        <div className="flex flex-col gap-2">
+          <CheckYourInbox url={mailboxURL} />
           <p className="text-muted-foreground text-sm">
-            Running locally? The email is in the{' '}
-            <a
-              href={mailboxURL}
-              target="_blank"
-              rel="noreferrer"
-              className="underline underline-offset-4"
-            >
-              local mailbox
-            </a>
-            .
+            A sign-in link is on its way to {email}. Opening it signs you in on
+            this device.
           </p>
-        ) : null}
+        </div>
         <Button
           type="button"
           variant="ghost"
