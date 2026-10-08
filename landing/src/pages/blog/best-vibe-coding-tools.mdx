@@ -81,7 +81,7 @@ The database itself only returns a vote to the person who cast it. Ask it for ev
 UNIQUE (poll_id, user_id)
 ```
 
-Totals came from a view that counts votes without showing who cast them. It's marked security_invoker = false, so it runs with the owner's rights.
+Totals came from a view that counts votes without showing who cast them. It's marked `security_invoker = false`, so it runs with the owner's rights.
 
 Then it changed its mind. The second migration replaced the view with a function and limited who can call it:
 
@@ -90,7 +90,7 @@ REVOKE ALL ON FUNCTION public.poll_option_counts() FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.poll_option_counts() TO authenticated, service_role;
 ```
 
-The third migration dropped the function too. Vote counts became a column on the options table, updated by a trigger whenever someone votes. That created a new hole, but it closed that too:
+The third migration dropped the function too. Vote counts became a column on the options table, updated by a trigger whenever someone votes. That created a new hole, and it closed that too:
 
 ```sql
 REVOKE UPDATE ON public.poll_options FROM authenticated;
@@ -110,7 +110,7 @@ Three minutes fifty. Before writing any code, [Bolt](https://bolt.new) said it w
 
 What it built is almost identical to Lovable's. Row-level security on every table. Votes readable only by the person who cast them. One vote per person enforced by a unique constraint. No updates or deletes on votes at all, so a vote can't be changed once it's in. Nobody can see how you voted.
 
-It skipped the last line. `get_poll_results`, the function that returns vote counts, runs as `SECURITY DEFINER` and was never locked down. Bolt's own Security Audit flags it twice:
+It skipped one line. `get_poll_results`, the function that returns vote counts, runs as `SECURITY DEFINER` and was never locked down. Bolt's own Security Audit flags it twice:
 
 > `public.get_poll_results(p_poll_id uuid)` can be executed by the `anon` role via `/rest/v1/rpc/get_poll_results`
 
@@ -141,7 +141,7 @@ Then it put the app on a public URL **without asking**. Visibility was set to Pu
 
 ## Ten minutes of loading spinner on Replit
 
-I sat there for ten and a half minutes looking at a loading spinner. [Replit](https://replit.com) doesn't show you what it's doing. Eventually I got bored and refreshed and the app, surprisingly it was already built. Its own log says the work took seven minutes.
+I sat there for ten and a half minutes looking at a loading spinner. [Replit](https://replit.com) doesn't show you what it's doing. Eventually I got bored and refreshed the page. Surprisingly, the app was already built. Its own log says the work took seven minutes.
 
 Instead of letting the page talk to the database, it wrote a server: an API in front of its own Postgres. Sign-in runs on Clerk, a third-party service it added without telling me. The browser never touches the database, so the access rules live in the API.
 
