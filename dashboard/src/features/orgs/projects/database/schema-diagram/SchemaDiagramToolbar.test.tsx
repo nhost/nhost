@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
 import {
-  mockPointerEvent,
+  mockScrollIntoViewAndPointerCapture,
   render,
   screen,
   TestUserEvent,
@@ -10,7 +10,7 @@ import SchemaDiagramToolbar, {
   type SchemaDiagramToolbarProps,
 } from './SchemaDiagramToolbar';
 
-mockPointerEvent();
+mockScrollIntoViewAndPointerCapture();
 
 function setup(overrides: Partial<SchemaDiagramToolbarProps> = {}) {
   const onRoleChange = vi.fn();

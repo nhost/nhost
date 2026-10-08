@@ -20,6 +20,12 @@ func (ctrl *Controller) GetElevationMethods( //nolint:ireturn
 		return ctrl.sendError(apiErr), nil
 	}
 
+	jwtToken, ok := ctrl.wf.jwtGetter.FromContext(ctx)
+	if !ok {
+		logger.ErrorContext(ctx, "jwt token missing after user id was read from context")
+		return ctrl.sendError(ErrInternalServerError), nil
+	}
+
 	methods, err := ctrl.wf.jwtGetter.availableElevationMethods(ctx, userID)
 	if errors.Is(err, pgx.ErrNoRows) {
 		logger.WarnContext(ctx, "user not found")
@@ -40,5 +46,6 @@ func (ctrl *Controller) GetElevationMethods( //nolint:ireturn
 	return api.GetElevationMethods200JSONResponse{
 		ElevationRequired: ctrl.wf.jwtGetter.elevationRequired(methods),
 		Methods:           methods,
+		SessionElevated:   ctrl.wf.jwtGetter.hasElevatedClaim(jwtToken),
 	}, nil
 }

@@ -35,7 +35,9 @@ the copy on the PR head, so a PR **can** add a fingerprint to suppress its own
 reviewed false positive in the same PR. The merge only adds; a PR cannot drop
 or empty a base suppression. The cost is that a PR can suppress one of its own
 findings, so a reviewer must read the `.betterleaksignore` diff — the scan is
-gated by `check-permissions` (write access or the `safe_to_test` label).
+gated by `check-permissions`: authors with write access and the trusted bots
+(`dependabot[bot]`, `nhost-helper-bot[bot]`) pass, anyone else needs a
+maintainer to approve the exact head commit with the `safe_to_test` label.
 
 CI fails only on findings whose validation status is `valid` (the validator
 confirmed the secret is live) or `none` (the rule has no validator). A rotated
@@ -85,8 +87,10 @@ this directory.
   So here you'd add: `path/to/file.go:private-key:12`
 
 Commit and push — CI re-runs and the finding is gone. You can do this in the
-**same PR**; no separate PR needed. (The one exception is a change to
-`betterleaks.toml` itself, which only takes effect once merged.)
+**same PR**; no separate PR needed. If you don't have write access, the new
+commit needs a maintainer to add `safe_to_test` again before the scan runs.
+(The one exception is a change to `betterleaks.toml` itself, which only takes
+effect once merged.)
 
 ### Ignoring a finding (`.betterleaksignore`)
 

@@ -8,7 +8,7 @@ import hasuraMetadataQuery from '@/tests/msw/mocks/rest/hasuraMetadataQuery';
 import tableQuery from '@/tests/msw/mocks/rest/tableQuery';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import {
-  mockPointerEvent,
+  mockScrollIntoViewAndPointerCapture,
   render,
   screen,
   TestUserEvent,
@@ -67,7 +67,7 @@ describe('ColumnPresetsSection', () => {
   });
 
   beforeEach(() => {
-    mockPointerEvent();
+    mockScrollIntoViewAndPointerCapture();
     mocks.useRouter.mockReturnValue({
       basePath: '',
       pathname: '/orgs/xyz/projects/test-project',

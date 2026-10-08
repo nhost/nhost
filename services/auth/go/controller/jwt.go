@@ -482,7 +482,7 @@ func (j *JWTGetter) ToContext(ctx context.Context, jwtToken *jwt.Token) context.
 func (j *JWTGetter) verifyElevatedClaim(
 	ctx context.Context,
 	token *jwt.Token,
-	requestPath string,
+	routePath string,
 ) (bool, error) {
 	if j.elevatedClaimMode == elevatedClaimDisabled {
 		return true, nil
@@ -498,11 +498,11 @@ func (j *JWTGetter) verifyElevatedClaim(
 		return false, fmt.Errorf("error parsing user id: %w", err)
 	}
 
-	if j.GetCustomClaim(token, "x-hasura-auth-elevated") == u {
+	if j.hasElevatedClaim(token) {
 		return true, nil
 	}
 
-	if !j.isElevatedClaimOptional(requestPath) {
+	if !j.isElevatedClaimOptional(routePath) {
 		return false, nil
 	}
 
@@ -512,6 +512,13 @@ func (j *JWTGetter) verifyElevatedClaim(
 	}
 
 	return len(methods) == 0, nil
+}
+
+func (j *JWTGetter) hasElevatedClaim(token *jwt.Token) bool {
+	subject, err := token.Claims.GetSubject()
+
+	return err == nil && subject != "" &&
+		j.GetCustomClaim(token, "x-hasura-auth-elevated") == subject
 }
 
 func (j *JWTGetter) availableElevationMethods(
@@ -548,7 +555,7 @@ func (j *JWTGetter) availableElevationMethods(
 	return methods, nil
 }
 
-func (j *JWTGetter) isElevatedClaimOptional(requestPath string) bool {
+func (j *JWTGetter) isElevatedClaimOptional(routePath string) bool {
 	return j.elevatedClaimMode == elevatedClaimRecommended ||
 		slices.Contains(
 			[]string{
@@ -556,7 +563,7 @@ func (j *JWTGetter) isElevatedClaimOptional(requestPath string) bool {
 				"/user/webauthn/verify",
 				"/mfa/totp/generate",
 			},
-			requestPath,
+			routePath,
 		)
 }
 
@@ -609,12 +616,12 @@ func (j *JWTGetter) MiddlewareFunc(
 	}
 
 	if input.SecuritySchemeName == "BearerAuthElevated" {
-		var requestPath string
-		if input.RequestValidationInput.Request.URL != nil {
-			requestPath = input.RequestValidationInput.Request.URL.Path
+		var routePath string
+		if input.RequestValidationInput.Route != nil {
+			routePath = input.RequestValidationInput.Route.Path
 		}
 
-		found, err := j.verifyElevatedClaim(ctx, jwtToken, requestPath)
+		found, err := j.verifyElevatedClaim(ctx, jwtToken, routePath)
 		if err != nil {
 			slog.WarnContext(
 				ctx, "error verifying elevated claim", slog.String("error", err.Error()),

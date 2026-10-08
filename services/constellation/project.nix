@@ -53,7 +53,7 @@ let
 
   buildInputs = [ ];
 
-  nativeBuildInputs = pkgs.lib.optionals pkgs.stdenv.isDarwin [
+  nativeBuildInputs = pkgs.lib.optionals pkgs.stdenv.hostPlatform.isDarwin [
     pkgs.apple-sdk_14
   ];
 in

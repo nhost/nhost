@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/getkin/kin-openapi/openapi3filter"
+	"github.com/getkin/kin-openapi/routers"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/go-cmp/cmp"
@@ -352,6 +353,7 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 		token      string
 		scheme     string
 		requestURL *url.URL
+		routePath  string
 		expectErr  error
 	}{
 		{
@@ -557,6 +559,28 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 			token:      nonElevatedToken,
 			scheme:     "BearerAuthElevated",
 			requestURL: &url.URL{Path: "/user/webauthn/add"},
+			routePath:  "/user/webauthn/add",
+			expectErr:  nil,
+		},
+
+		{
+			name: "BearerAuthElevated: elevated required, no security keys, add first security key behind api prefix",
+			elevation: controller.ElevationConfig{
+				Mode: "required", TOTPEnabled: true, WebauthnEnabled: true,
+			},
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				// With AUTH_API_PREFIX set the request URL carries the prefix
+				// but the matched route path does not.
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(sql.AuthUser{}, nil)
+
+				return mock
+			},
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: &url.URL{Path: "/v1/user/webauthn/add"},
+			routePath:  "/user/webauthn/add",
 			expectErr:  nil,
 		},
 
@@ -576,6 +600,7 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 			token:      nonElevatedToken,
 			scheme:     "BearerAuthElevated",
 			requestURL: &url.URL{Path: "/user/webauthn/verify"},
+			routePath:  "/user/webauthn/verify",
 			expectErr:  nil,
 		},
 
@@ -597,6 +622,7 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 			token:      nonElevatedToken,
 			scheme:     "BearerAuthElevated",
 			requestURL: &url.URL{Path: "/mfa/totp/generate"},
+			routePath:  "/mfa/totp/generate",
 			expectErr:  nil,
 		},
 
@@ -618,6 +644,7 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 			token:      nonElevatedToken,
 			scheme:     "BearerAuthElevated",
 			requestURL: &url.URL{Path: "/mfa/totp/generate"},
+			routePath:  "/mfa/totp/generate",
 			expectErr: &oapi.AuthenticatorError{
 				Scheme:  "BearerAuthElevated",
 				Code:    "unauthorized",
@@ -715,7 +742,7 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 		},
 
 		{
-			name: "BearerAuthElevated: elevated recommended, no security keys, otp email enabled, user has email, claim not present",
+			name: "BearerAuthElevated: elevated recommended, no security keys, otp email enabled, user has a verified email, claim not present",
 			elevation: controller.ElevationConfig{
 				Mode: "recommended", WebauthnEnabled: true, OTPEmailEnabled: true,
 			},
@@ -746,6 +773,47 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 			token:      elevatedToken,
 			scheme:     "BearerAuthElevated",
 			requestURL: nil,
+			expectErr:  nil,
+		},
+
+		{
+			name: "BearerAuthElevated: elevated recommended, otp email enabled, user has an unverified email",
+			elevation: controller.ElevationConfig{
+				Mode: "recommended", WebauthnEnabled: true, OTPEmailEnabled: true,
+			},
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(
+					sql.AuthUser{Email: sql.Text("jane@acme.com")}, nil,
+				)
+
+				return mock
+			},
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr:  nil,
+		},
+
+		{
+			name: "BearerAuthElevated: elevated required, otp email enabled, unverified email, add first security key",
+			elevation: controller.ElevationConfig{
+				Mode: "required", WebauthnEnabled: true, OTPEmailEnabled: true,
+			},
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(
+					sql.AuthUser{Email: sql.Text("jane@acme.com")}, nil,
+				)
+
+				return mock
+			},
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: &url.URL{Path: "/user/webauthn/add"},
+			routePath:  "/user/webauthn/add",
 			expectErr:  nil,
 		},
 
@@ -865,6 +933,7 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 			input := &openapi3filter.AuthenticationInput{
 				RequestValidationInput: &openapi3filter.RequestValidationInput{
 					Request: request,
+					Route:   &routers.Route{Path: tc.routePath},
 				},
 				SecuritySchemeName: tc.scheme,
 			}

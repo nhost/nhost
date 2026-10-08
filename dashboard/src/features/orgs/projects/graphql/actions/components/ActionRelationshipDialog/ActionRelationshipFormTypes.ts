@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { getRelationshipNameSchema } from '@/features/orgs/projects/database/dataGrid/components/BaseRelationshipDialog/BaseRelationshipFormTypes';
+import { getGraphQLIdentifierSchema } from '@/features/orgs/projects/common/utils/getGraphQLIdentifierSchema';
 import type { ActionRelationship } from '@/features/orgs/projects/graphql/actions/utils/actionRelationships';
 
 const fieldMappingSchema = z.object({
@@ -17,7 +17,7 @@ export function createActionRelationshipFormSchema(
   const outputFieldNameSet = new Set(outputFieldNames);
 
   return z.object({
-    name: getRelationshipNameSchema('Name')
+    name: getGraphQLIdentifierSchema('Name')
       .refine((name) => !existingNameSet.has(name), {
         message: 'A relationship with this name already exists.',
       })
