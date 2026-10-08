@@ -3,6 +3,7 @@ import {
   createRouter,
   createWebHistory,
   type RouteRecordRaw,
+  type Router,
 } from 'vue-router';
 import Home from '@/Home.vue';
 import ProtectedPage from '@/protected/ProtectedPage.vue';
@@ -38,12 +39,22 @@ const authRoutes: RouteRecordRaw[] = Object.entries(pages).map(
   }),
 );
 
-export const router = createRouter({
-  history: createWebHistory(),
-  routes: [
-    { path: '/', component: Home },
-    { path: '/signin', component: SignInPage },
-    { path: '/protected', component: ProtectedPage },
-    ...authRoutes,
-  ],
-});
+/**
+ * The app's router, created on demand rather than at import.
+ *
+ * `createWebHistory` reads the address when it is called, and the first
+ * navigation writes what it read back to the address bar. Created at import,
+ * that is before `startAuth` takes the link token off the URL, so the router
+ * would put the token straight back. `main.ts` calls this after `startAuth`.
+ */
+export function createAppRouter(): Router {
+  return createRouter({
+    history: createWebHistory(),
+    routes: [
+      { path: '/', component: Home },
+      { path: '/signin', component: SignInPage },
+      { path: '/protected', component: ProtectedPage },
+      ...authRoutes,
+    ],
+  });
+}

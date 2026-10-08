@@ -2,7 +2,7 @@ import { createApp } from 'vue';
 import App from '@/App.vue';
 import '@/index.css';
 import { startAuth } from '@/lib/nhost/auth';
-import { router } from '@/router';
+import { createAppRouter } from '@/router';
 
 // Awaited before mounting so the first render already knows whether there is a
 // session: no signed-out flash, and no protected route bouncing a signed-in
@@ -10,4 +10,5 @@ import { router } from '@/router';
 // this resolves without a request.
 await startAuth();
 
-createApp(App).use(router).mount('#app');
+// The router is created only now, from the address `startAuth` left behind.
+createApp(App).use(createAppRouter()).mount('#app');

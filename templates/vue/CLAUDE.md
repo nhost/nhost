@@ -23,10 +23,15 @@ It has two halves:
    needs an `isLoading` check, and adding one would be dead code. If you make
    `startAuth` slower, you delay first paint.
 3. **The token on the URL is redeemed once, at startup.**
-   `frontend/src/lib/nhost/linkToken.ts` exchanges the `refreshToken` query
-   parameter that auth emails and the OAuth callback come back with, then
-   strips it from the address bar. Do not redeem it again from a page: it is
-   single use.
+   `frontend/src/lib/nhost/linkToken.ts` strips the `refreshToken` query
+   parameter that auth emails and the OAuth callback come back with from the
+   address bar, then exchanges it, but only for a signed-out visitor: a link
+   may sign someone in, it may not replace whoever is already signed in. Do
+   not redeem it again from a page: it is single use. A failed redirect comes
+   back with `error` instead, which is stripped the same way and read once
+   into `useAuth().linkError`; read it from there, not from the URL, and do
+   not render the `errorDescription` a link carries. The router is created
+   after `startAuth()` because it writes back the address it starts from.
 4. **Sign-in methods are isolated.** Each is one directory under
    `frontend/src/auth/` holding a `route.vue`, plus one line in
    `frontend/src/signin/methods.ts`. A method may import from
