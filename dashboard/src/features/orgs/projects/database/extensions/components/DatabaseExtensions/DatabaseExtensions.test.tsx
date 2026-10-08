@@ -114,7 +114,7 @@ const catalog: PostgresExtension[] = [
   {
     name: 'pg_durable',
     default_version: '0.2.8',
-    installed_version: '0.2.8',
+    installed_version: null,
     comment: 'SQL-native durable orchestrations for PostgreSQL',
     requires: [],
   },
@@ -148,6 +148,7 @@ const catalog: PostgresExtension[] = [
   },
 ];
 
+let catalogRows = catalog;
 let catalogRequests = 0;
 let writeRequests: Array<{ url: string; body: unknown }> = [];
 let preloadedLibraries: string[] = [];
@@ -197,7 +198,10 @@ const server = setupServer(
       return HttpResponse.json([
         {
           result_type: 'TuplesOk',
-          result: [['data'], ...catalog.map((row) => [JSON.stringify(row)])],
+          result: [
+            ['data'],
+            ...catalogRows.map((row) => [JSON.stringify(row)]),
+          ],
         },
       ]);
     }
@@ -263,6 +267,7 @@ beforeEach(() => {
       config: { hasura: { adminSecret: 'nhost-admin-secret' } },
     },
   });
+  catalogRows = catalog;
   catalogRequests = 0;
   writeRequests = [];
   preloadedLibraries = [...DEFAULT_PRELOADED_LIBRARIES];
@@ -536,12 +541,24 @@ describe('DatabaseExtensions', () => {
       expect(configUpdates).toEqual([]);
     });
 
-    it('adds the library locally and installs after nhost up', async () => {
+    it('installs pg_ivm without a preload step', async () => {
       const user = new TestUserEvent();
       const dialog = await openInstallDialog(
         user,
         await renderPage(),
         'pg_ivm',
+      );
+
+      expect(within(dialog).queryByRole('listitem')).not.toBeInTheDocument();
+      expect(getInstallButton(dialog)).toBeEnabled();
+    });
+
+    it('adds the library locally and installs after nhost up', async () => {
+      const user = new TestUserEvent();
+      const dialog = await openInstallDialog(
+        user,
+        await renderPage(),
+        'pg_durable',
       );
 
       await user.click(
@@ -557,7 +574,7 @@ describe('DatabaseExtensions', () => {
             settings: {
               sharedPreloadLibraries: [
                 ...DEFAULT_PRELOADED_LIBRARIES,
-                'pg_ivm',
+                'pg_durable',
               ],
             },
           },
@@ -571,11 +588,11 @@ describe('DatabaseExtensions', () => {
 
       await waitFor(() =>
         expect(getPreloadStep(dialog)).toHaveTextContent(
-          'Postgres has not loaded pg_ivm yet.',
+          'Postgres has not loaded pg_durable yet.',
         ),
       );
 
-      preloadedLibraries = [...preloadedLibraries, 'pg_ivm'];
+      preloadedLibraries = [...preloadedLibraries, 'pg_durable'];
       await user.click(
         within(dialog).getByRole('button', { name: 'Check again' }),
       );
@@ -594,9 +611,9 @@ describe('DatabaseExtensions', () => {
           url: MIGRATIONS_URL,
           body: buildExtensionMigration(
             {
-              name: 'pg_ivm',
+              name: 'pg_durable',
               installed: true,
-              sql: getInstallExtensionSQL('pg_ivm'),
+              sql: getInstallExtensionSQL('pg_durable'),
             },
             'default',
           ),
@@ -616,7 +633,7 @@ describe('DatabaseExtensions', () => {
         const dialog = await openInstallDialog(
           user,
           await renderPage(),
-          'pg_ivm',
+          'pg_durable',
         );
 
         await user.click(
@@ -627,19 +644,19 @@ describe('DatabaseExtensions', () => {
 
         expect(
           await within(dialog).findByText(
-            'Restarting Postgres to load pg_ivm...',
+            'Restarting Postgres to load pg_durable...',
           ),
         ).toBeInTheDocument();
         expect(configUpdates).toEqual([
           {
             postgres: {
-              settings: { sharedPreloadLibraries: ['pg_cron', 'pg_ivm'] },
+              settings: { sharedPreloadLibraries: ['pg_cron', 'pg_durable'] },
             },
           },
         ]);
         expect(getInstallButton(dialog)).toBeDisabled();
 
-        preloadedLibraries = [...preloadedLibraries, 'pg_ivm'];
+        preloadedLibraries = [...preloadedLibraries, 'pg_durable'];
         await act(() => vi.advanceTimersByTimeAsync(10_000));
 
         await waitUntilInstallable(dialog);
@@ -655,16 +672,16 @@ describe('DatabaseExtensions', () => {
     it('keeps waiting for a restart started earlier', async () => {
       const user = new TestUserEvent();
       mocks.useIsPlatform.mockReturnValue(true);
-      configuredLibraries = [...DEFAULT_PRELOADED_LIBRARIES, 'pg_ivm'];
+      configuredLibraries = [...DEFAULT_PRELOADED_LIBRARIES, 'pg_durable'];
       const dialog = await openInstallDialog(
         user,
         await renderPage(),
-        'pg_ivm',
+        'pg_durable',
       );
 
       expect(
         await within(dialog).findByText(
-          'Restarting Postgres to load pg_ivm...',
+          'Restarting Postgres to load pg_durable...',
         ),
       ).toBeInTheDocument();
       expect(
@@ -682,11 +699,11 @@ describe('DatabaseExtensions', () => {
           appStates: [{ message: 'invalid configuration' }],
         },
       });
-      configuredLibraries = [...DEFAULT_PRELOADED_LIBRARIES, 'pg_ivm'];
+      configuredLibraries = [...DEFAULT_PRELOADED_LIBRARIES, 'pg_durable'];
       const dialog = await openInstallDialog(
         user,
         await renderPage(),
-        'pg_ivm',
+        'pg_durable',
       );
 
       expect(
@@ -709,7 +726,7 @@ describe('DatabaseExtensions', () => {
       const dialog = await openInstallDialog(
         user,
         await renderPage(),
-        'pg_ivm',
+        'pg_durable',
       );
 
       expect(
@@ -846,6 +863,11 @@ describe('DatabaseExtensions', () => {
     it('drops pg_durable with CASCADE after warning about its workflow state', async () => {
       const user = new TestUserEvent();
       mocks.useIsPlatform.mockReturnValue(true);
+      catalogRows = catalog.map((row) =>
+        row.name === 'pg_durable'
+          ? { ...row, installed_version: row.default_version }
+          : row,
+      );
       const all = await renderPage();
 
       await user.click(

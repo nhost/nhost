@@ -5,7 +5,8 @@ export const POPULAR_EXTENSIONS = ['vector', 'postgis', 'pg_cron', 'uuid-ossp'];
 
 // Mirror the `sharedPreloadLibraries` default and the `PostgresPreloadLibrary`
 // values of the nhost.toml configuration. Each library is named after the
-// extension that needs it.
+// extension that needs it. `pg_ivm` is left out: it installs and maintains its
+// views without being preloaded.
 export const DEFAULT_PRELOADED_LIBRARIES = [
   'pg_stat_statements',
   'pg_cron',
@@ -17,7 +18,6 @@ export const DEFAULT_PRELOADED_LIBRARIES = [
 export const PRELOAD_LIBRARY_EXTENSIONS = new Set([
   ...DEFAULT_PRELOADED_LIBRARIES,
   'pg_durable',
-  'pg_ivm',
 ]);
 
 const CREATED_AT_INIT =
