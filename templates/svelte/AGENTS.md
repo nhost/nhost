@@ -32,10 +32,11 @@ It has two halves:
    move it into a layout's `load`: SvelteKit writes the starting URL back
    after loads finish, which would restore the link token rule 5 strips.
 5. **The token on the URL is redeemed once, at startup.**
-   `frontend/src/lib/nhost/linkToken.ts` exchanges the `refreshToken` query
-   parameter that auth emails and the OAuth callback come back with, then
-   strips it from the address bar. Do not redeem it again from a page: it is
-   single use.
+   `frontend/src/lib/nhost/linkToken.ts` strips the `refreshToken` query
+   parameter that auth emails and the OAuth callback come back with from the
+   address bar before anything is awaited, then exchanges it, but only for a
+   signed-out visitor: a link may sign someone in, it may not replace whoever
+   is already signed in. Do not redeem it again from a page: it is single use.
 6. **Sign-in methods are isolated.** Each is one directory under
    `frontend/src/routes/auth/` holding its `+page.svelte` and the code only it
    uses, plus one line in `frontend/src/lib/signin/methods.ts`. A method may

@@ -43,6 +43,20 @@ export async function redeemLinkToken(nhost: NhostClient): Promise<void> {
     `${pathname}${query ? `?${query}` : ''}${hash}`,
   );
 
+  // A link may sign in a visitor who is signed out; it may not replace somebody
+  // who is already here. Redeeming on sight would let a crafted link swap a
+  // signed-in visitor's session for the sender's, and everything they wrote
+  // next would land in the sender's account. Checked after a refresh, which
+  // drops an expired stored session the auth service rejects, so a dead
+  // session does not cost the visitor a link that still works. Not forced
+  // with `0`: the SDK keeps a session whose access token is still valid even
+  // when the refresh fails, so forcing would only rotate a live token.
+  await nhost.refreshSession();
+
+  if (nhost.getUserSession()) {
+    return;
+  }
+
   try {
     await nhost.auth.refreshToken({ refreshToken: token });
   } catch (err) {
