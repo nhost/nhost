@@ -129,7 +129,7 @@ export default function PortsFormSection() {
                   </SelectContent>
                 </Select>
 
-                <div className="flex items-center gap-2">
+                <div className="flex h-10 items-center gap-2">
                   <Switch
                     id={`${field.id}-publish`}
                     checked={!!formValues.ports?.[index]?.publish}

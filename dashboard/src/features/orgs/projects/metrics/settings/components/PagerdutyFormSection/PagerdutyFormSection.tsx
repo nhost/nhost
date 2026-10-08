@@ -2,6 +2,7 @@ import { InfoIcon, PlusIcon, Trash2 as TrashIcon } from 'lucide-react';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import { FormInput } from '@/components/form/FormInput';
 import { Button } from '@/components/ui/v3/button';
+import { Label } from '@/components/ui/v3/label';
 import {
   Select,
   SelectContent,
@@ -66,7 +67,7 @@ export default function PagerdutyFormSection() {
       {fields?.length > 0 ? (
         <div className="flex flex-col gap-12">
           {fields.map((field, index) => (
-            <div key={field.id} className="flex w-full items-center gap-2">
+            <div key={field.id} className="flex w-full items-start gap-2">
               <div className="grid flex-grow gap-4 lg:grid-cols-9">
                 <FormInput
                   control={control}
@@ -77,13 +78,8 @@ export default function PagerdutyFormSection() {
                   autoComplete="off"
                 />
 
-                <div className="grid gap-1 lg:col-span-2">
-                  <label
-                    htmlFor={`${field.id}-severity`}
-                    className="font-medium text-sm+"
-                  >
-                    Severity
-                  </label>
+                <div className="space-y-2 self-start lg:col-span-2">
+                  <Label htmlFor={`${field.id}-severity`}>Severity</Label>
                   <Select
                     value={formValues.pagerduty?.at(index)?.severity || ''}
                     onValueChange={(value) => onChangeSeverity(value, index)}
@@ -128,14 +124,21 @@ export default function PagerdutyFormSection() {
                 />
               </div>
 
-              <Button
-                variant="ghost"
-                className="text-destructive hover:text-destructive"
-                aria-label="Remove PagerDuty integration"
-                onClick={() => remove(index)}
-              >
-                <TrashIcon className="h-6 w-4" />
-              </Button>
+              <div className="space-y-2">
+                <Label aria-hidden="true" className="invisible">
+                  {'\u00A0'}
+                </Label>
+                <div className="flex">
+                  <Button
+                    variant="ghost"
+                    className="h-10 text-destructive hover:text-destructive"
+                    aria-label="Remove PagerDuty integration"
+                    onClick={() => remove(index)}
+                  >
+                    <TrashIcon className="h-6 w-4" />
+                  </Button>
+                </div>
+              </div>
             </div>
           ))}
         </div>

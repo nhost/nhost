@@ -50,7 +50,7 @@ export default function KeyValueQueryParams() {
                 autoComplete="off"
               />
             </div>
-            <div className="col-span-1 flex h-10 items-center justify-center self-start pt-2">
+            <div className="col-span-1 flex h-10 items-center justify-center self-start">
               <span className="text-center text-foreground">:</span>
             </div>
             <div className="col-span-4 self-start">
@@ -64,7 +64,7 @@ export default function KeyValueQueryParams() {
               />
             </div>
 
-            <div className="col-span-1 self-start pt-3">
+            <div className="col-span-1 flex h-10 items-center justify-end self-start">
               <Button
                 type="button"
                 variant="ghost"

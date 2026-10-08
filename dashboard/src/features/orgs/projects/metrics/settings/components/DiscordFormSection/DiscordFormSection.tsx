@@ -2,6 +2,7 @@ import { InfoIcon, PlusIcon, Trash2 as TrashIcon } from 'lucide-react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { FormInput } from '@/components/form/FormInput';
 import { Button } from '@/components/ui/v3/button';
+import { Label } from '@/components/ui/v3/label';
 import {
   Tooltip,
   TooltipContent,
@@ -45,7 +46,7 @@ export default function DiscordFormSection() {
       {fields?.length > 0 ? (
         <div className="flex flex-col gap-12">
           {fields.map((field, index) => (
-            <div key={field.id} className="flex w-full items-center gap-2">
+            <div key={field.id} className="flex w-full items-start gap-2">
               <div className="flex flex-1 flex-col gap-2">
                 <FormInput
                   control={control}
@@ -64,14 +65,21 @@ export default function DiscordFormSection() {
                   autoComplete="off"
                 />
               </div>
-              <Button
-                variant="ghost"
-                className="text-destructive hover:text-destructive"
-                aria-label="Remove Discord webhook"
-                onClick={() => remove(index)}
-              >
-                <TrashIcon className="h-6 w-4" />
-              </Button>
+              <div className="space-y-2">
+                <Label aria-hidden="true" className="invisible">
+                  {'\u00A0'}
+                </Label>
+                <div className="flex">
+                  <Button
+                    variant="ghost"
+                    className="h-10 text-destructive hover:text-destructive"
+                    aria-label="Remove Discord webhook"
+                    onClick={() => remove(index)}
+                  >
+                    <TrashIcon className="h-6 w-4" />
+                  </Button>
+                </div>
+              </div>
             </div>
           ))}
         </div>
