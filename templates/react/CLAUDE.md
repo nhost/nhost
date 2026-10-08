@@ -20,10 +20,11 @@ It has two halves:
    in `localStorage`. Creating a second one anywhere gives you two rotators of
    a single-use refresh token. Always reach for `useAuth()`.
 2. **The token on the URL is redeemed once, at startup.**
-   `frontend/src/lib/nhost/linkToken.ts` exchanges the `refreshToken` query
-   parameter that auth emails and the OAuth callback come back with, then
-   strips it from the address bar. Do not redeem it again from a page: it is
-   single use.
+   `frontend/src/lib/nhost/linkToken.ts` strips the `refreshToken` query
+   parameter that auth emails and the OAuth callback come back with from the
+   address bar, then exchanges it, but only for a signed-out visitor: a link
+   may sign someone in, it may not replace whoever is already signed in. Do
+   not redeem it again from a page: it is single use.
 3. **Sign-in methods are isolated.** Each is one directory under
    `frontend/src/auth/` holding a `route.tsx`, plus one line in
    `frontend/src/signin/methods.ts`. A method may import from
