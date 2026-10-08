@@ -32,16 +32,27 @@ func TestProjectNameResolution(t *testing.T) {
 			want: "backend",
 		},
 		// A name nothing usable can be made of reaches docker compose as it was
-		// given. Resolving it to the empty string handed compose `-p ""`, which
-		// compose reads as no project name at all: it names the project after
-		// the directory and trims the leading `_` itself, so `_myapp` took over
-		// the containers and Postgres volume of a sibling `myapp` instead of
-		// being refused.
+		// given. Resolving it to the empty string would hand compose `-p ""`,
+		// which compose reads as no project name at all: it names the project
+		// after the directory and trims the leading `_` and `-` itself, so the
+		// project could come up on the name a sibling is already using.
+		//
+		// This directory is the case that does not change: the name survived
+		// sanitizing before this too, and compose refused it then as it does now.
 		{
 			name: "a working directory compose would refuse is passed on whole",
 			dir:  "_myapp",
 			args: nil,
 			want: "_myapp",
+		},
+		// This directory is the case that does change. Nothing survives
+		// sanitizing, so it used to resolve to the empty string and compose was
+		// left to name the project after the directory itself.
+		{
+			name: "a working directory with nothing usable in it is passed on whole",
+			dir:  "\u65e5\u672c\u8a9e",
+			args: nil,
+			want: "\u65e5\u672c\u8a9e",
 		},
 		{
 			name: "a --project-name compose would refuse is passed on whole",

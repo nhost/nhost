@@ -31,8 +31,9 @@ var sanitizeNameDrop = regexp.MustCompile(`[^a-zA-Z0-9_-]`)
 // would start from an empty database.
 //
 // A name that still leads with a dash or underscore comes back empty rather
-// than trimmed into shape, because trimming merged `_myapp` into a neighbouring
-// `myapp` and quietly handed it that project's volume.
+// than trimmed into shape. Trimming would turn `_myapp` into `myapp` and hand
+// it a neighbouring project's containers and Postgres volume, so the name is
+// reported as unusable and resolveProjectName lets compose refuse it.
 func sanitizeName(name string) string {
 	lowered := strings.ToLower(sanitizeNameDrop.ReplaceAllString(name, ""))
 
@@ -130,10 +131,14 @@ func FromCLI(cmd *cli.Command) *CliEnv {
 //
 // A name sanitizeName can make nothing of is passed on raw instead of as the
 // empty string, because compose reads an empty -p as no -p at all: it names the
-// project after --project-directory and normalises that name by trimming the
-// very leading `_` and `-` this package refuses to trim, so a directory named
-// `_myapp` silently took over `myapp`'s containers and Postgres volume. Handing
-// compose the raw name gets the name refused out loud instead.
+// project after --project-directory and normalises that name on the way,
+// trimming the very leading `_` and `-` this package refuses to trim. A
+// directory holding nothing a name can be made of could therefore come up on
+// the name a sibling project is already using. Handing compose the raw name
+// gets it refused out loud instead.
+//
+// A directory already named `_myapp` is unaffected: the name survived
+// sanitizing before this too, and compose refused it then as it does now.
 func (ce *CliEnv) resolveProjectName(cmd *cli.Command) string {
 	// IsSet covers both the flag and NHOST_PROJECT_NAME: a value taken from an
 	// env source marks the flag as set too.
