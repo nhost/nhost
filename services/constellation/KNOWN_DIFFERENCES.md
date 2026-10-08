@@ -100,8 +100,16 @@ All JSON/JSONB computed keys are excluded from `to_remote_schema` relationships,
 of argument type: the live Hasura JSONB-object→`ID!` definition validates but
 fails during execution. Argument-bearing, table-valued and scalar `SETOF`
 computed keys are unavailable. Relationships keyed by these shapes are omitted
-for every role (including admin), without an inconsistency; Hasura's acceptance
-of scalar `SETOF` keys has not been probed. Target row filters always apply; computed-key joins additionally
+for every role (including admin), without an inconsistency. A restored Hasura
+v2.50.3-ce scratch probe found that a `SETOF text` key's `to_source` object
+relationship was exposed with consistent metadata **even without the computed
+select grant**: one value joined its target, zero produced a null parent element,
+and multiple values failed with `database query error`/`unexpected` at `$`.
+Constellation deliberately keeps the SETOF relationship unavailable even for
+admin and granted roles, rather than expose a multi-valued join key or let an
+ungranted role join on a hidden computed value. This narrow security/correctness
+difference is recorded in `integration/computedfields/testdata/phase14-oracle.json`;
+it does not establish parity for other SETOF key shapes. Target row filters always apply; computed-key joins additionally
 require each mapping target to name an actual role-selectable target column in GraphQL, not a relationship or computed field. Hasura v2.50.3-ce rejects remote
 relationships in subscriptions; Constellation's WebSocket preflight rejects
 them too. PostgreSQL `json` targets lack `json = json`, so ordinary and
@@ -201,16 +209,26 @@ For the enabled scalar SETOF kinds, a zero-row direct scalar yields a null paren
 a multi-row direct scalar errors (`21000`), and even a zero/one-row user `where`
 errors (`0A000`). Select filters, insert/update checks and update/delete filters
 referencing these enabled scalar SETOF fields are retained but fail closed with
-PostgreSQL `0A000` on execution; no attempted write persists. Hasura's permission
-predicates were not separately probed (only user `where` was). Ordering drops
+PostgreSQL `0A000` on execution; no attempted write persists. A restored Hasura
+v2.50.3-ce scratch probe accepted separate select-filter, insert-check,
+update-filter, update-check and delete-filter metadata, but each request failed
+with `database query error`/`unexpected` and made no scratch-row write. These
+outcomes match the denial/rollback behavior; Constellation retains its approved
+production error sanitizer rather than Hasura's client envelope. Ordering drops
 zero-cardinality parents and duplicates
 multi-cardinality parents. In single-object mutation returning, zero gives a
 null mutation field while the write persists; collection `returning` preserves
 one null array element per zero-cardinality affected row and keeps
 `affected_rows` accurate. Multi-row returning raises PostgreSQL `21000` and
 rolls back the entire same-source mutation (including other affected rows).
-Clients see Constellation's inherited production database-error sanitizer or
-the raw chain in dev mode, **not** necessarily `21000` in the GraphQL response. Tracked-table
+A restored Hasura v2.50.3-ce scratch probe confirmed collection insert,
+upsert DO UPDATE, update, update_many and delete `returning`: zero produces
+`[null]` while persisting the successful operation, one produces an object,
+and multiple values fail and roll back the entire scratch mutation (including
+a mixed-cardinality insert). Hasura responds with `unexpected` and a database
+query error; Constellation uses the inherited production database-error
+sanitizer or the raw chain in dev mode, **not** necessarily `21000` in the
+GraphQL response. Tracked-table
 `SETOF` zero/one/many yields `[]`/one/many, whereas a missing single composite
 returns a list containing an all-null row for unrestricted target roles.
 
