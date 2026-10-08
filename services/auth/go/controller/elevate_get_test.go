@@ -372,9 +372,8 @@ func TestGetElevationMethods(t *testing.T) { //nolint:maintidx
 				return c
 			},
 			db: func(ctrl *gomock.Controller) controller.DBClient {
-				// SMS passwordless sign-in stays on in getConfig; only the OTP
-				// SMS capability is off, so the phone number is not a factor
-				// the user can elevate with.
+				// The same flag controls SMS passwordless sign-in and elevation.
+				// With it disabled, a verified phone is not an available elevation method.
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetElevationMethods(gomock.Any(), userID).Return(smsUser, nil)
