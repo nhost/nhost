@@ -109,6 +109,31 @@ func vueUISystems() []uiSystem {
 	}
 }
 
+// svelteUISystems is the same choice again for a template whose components are
+// Svelte. shadcn-svelte is built on bits-ui and builds its class lists with
+// tailwind-variants, so neither the React nor the Vue list describes it.
+func svelteUISystems() []uiSystem {
+	return []uiSystem{
+		{
+			name:      "none",
+			label:     "None",
+			overlay:   "none",
+			dropFiles: []string{"frontend/pnpm-lock.yaml"},
+			drops: []string{
+				"bits-ui",
+				"tailwind-variants",
+			},
+		},
+		{
+			name:      "shadcn",
+			label:     "shadcn-svelte",
+			overlay:   "",
+			drops:     nil,
+			dropFiles: nil,
+		},
+	}
+}
+
 func uiNames(systems []uiSystem) []string {
 	names := make([]string, 0, len(systems))
 

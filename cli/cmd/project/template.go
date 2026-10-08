@@ -86,6 +86,19 @@ func catalogue() []starterTemplate {
 			componentsUI: "frontend/src/components/ui",
 			uiSystems:    vueUISystems(),
 		},
+		{
+			// SvelteKit routes are directories under src/routes, so a method's
+			// pages and its code sit in the same directory the route is, and
+			// deleting it is what removes the route. The shared list it is named
+			// in is not a route, so it lives in $lib like the rest of the code
+			// the routes import.
+			name:         "svelte",
+			label:        "Svelte",
+			authDir:      "frontend/src/routes/auth",
+			methodsFile:  "frontend/src/lib/signin/methods.ts",
+			componentsUI: "frontend/src/lib/components/ui",
+			uiSystems:    svelteUISystems(),
+		},
 	}
 }
 

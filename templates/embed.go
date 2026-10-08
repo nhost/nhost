@@ -47,4 +47,15 @@ import "embed"
 //go:embed vue/frontend/tsconfig.json vue/frontend/vite.config.ts
 //go:embed all:vue/frontend/src
 //go:embed all:vue/ui
+//go:embed svelte/AGENTS.md svelte/CLAUDE.md svelte/SKILLS.md
+//go:embed all:svelte/.claude
+//go:embed svelte/frontend/.env.example svelte/frontend/.gitignore
+//go:embed svelte/frontend/README.md
+//go:embed svelte/frontend/biome.json svelte/frontend/components.json
+//go:embed svelte/frontend/package.json
+//go:embed svelte/frontend/pnpm-lock.yaml svelte/frontend/pnpm-workspace.yaml
+//go:embed svelte/frontend/svelte.config.js svelte/frontend/tsconfig.json
+//go:embed svelte/frontend/vite.config.ts
+//go:embed all:svelte/frontend/src
+//go:embed all:svelte/ui
 var FS embed.FS

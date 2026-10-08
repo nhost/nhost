@@ -73,6 +73,11 @@ let
         (fs.maybeMissing ../templates/vue/frontend/node_modules)
         (fs.maybeMissing ../templates/vue/frontend/dist)
       ]))
+      (fs.difference ../templates/svelte (fs.unions [
+        (fs.maybeMissing ../templates/svelte/frontend/node_modules)
+        (fs.maybeMissing ../templates/svelte/frontend/.svelte-kit)
+        (fs.maybeMissing ../templates/svelte/frontend/build)
+      ]))
 
       # docs
       ../docs/embed.go

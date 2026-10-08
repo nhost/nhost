@@ -1,0 +1,35 @@
+{
+  "name": "svelte",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json && vite build",
+    "preview": "vite preview",
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@nhost/nhost-js": "^4.7.2",
+    "bits-ui": "^2.19.5",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.7.0",
+    "tailwind-variants": "^3.3.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.15",
+    "@sveltejs/adapter-static": "^3.0.9",
+    "@sveltejs/kit": "^2.46.4",
+    "@sveltejs/vite-plugin-svelte": "^6.2.1",
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/node": "^22.10.5",
+    "svelte": "^5.42.2",
+    "svelte-check": "^4.3.2",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5",
+    "vite": "^7.1.5",
+    "vitest": "^4.1.10"
+  }
+}

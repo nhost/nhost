@@ -39,6 +39,7 @@ lockfile with a plain `pnpm install` from inside `frontend/`, never with
 | `nextjs` | Next.js 16 (App Router), Tailwind v4, plain components or shadcn/ui | the sign-in methods you choose, a session shared by server and browser, one protected route. No schema. |
 | `react` | React 19 on Vite, Tailwind v4, plain components or shadcn/ui | the same app with no server: a browser-held session the SDK refreshes, routes found by glob, one protected route. No schema. |
 | `vue` | Vue 3 on Vite, Tailwind v4, plain components or shadcn-vue | the `react` app in Vue: one module-scope client, a session read before mount so nothing flashes signed out, routes found by glob. No schema. |
+| `svelte` | SvelteKit as an SPA (`ssr = false`, adapter-static), Tailwind v4, plain components or shadcn-svelte | the same app again, with the framework's own file-based routing instead of a glob and runes for the session. No schema. |
 
 ## Develop and test a template locally
 
@@ -69,6 +70,14 @@ The two guards below run in CI; run them before pushing:
 
 ## Maintainer invariants
 
+- **A template's routing is the framework's, not a shape imposed on it.** The
+  `nextjs`, `react` and `vue` templates have no routing convention to inherit,
+  so they discover method pages from disk - the App Router does it itself, and
+  the other two glob `./auth/**/route.*` - which is what keeps a deleted method
+  from leaving a route table importing a module that is gone. SvelteKit already
+  maps `src/routes/` to URLs, so the `svelte` template uses that directly and a
+  method directory simply is its route. The invariant is the same either way:
+  nothing names a method anywhere except `methods.ts`.
 - **Sign-in methods are isolated.** Each is one directory under
   `frontend/src/app/auth/` plus one entry in `frontend/src/app/signin/methods.ts`,
   which has no imports. A method imports only from `@/lib/nhost/*`,
