@@ -28,8 +28,8 @@ async function handleSubmit(event: SubmitEvent): Promise<void> {
       return;
     }
 
-    // The link already signed them in, so there is nowhere to send them but
-    // on into the app.
+    // They are already signed in, so there is nowhere to send them but on into
+    // the app.
     await goto('/protected');
   } catch (err) {
     console.error('Error changing the password:', err);

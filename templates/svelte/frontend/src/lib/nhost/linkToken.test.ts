@@ -1,6 +1,10 @@
 import type { NhostClient } from '@nhost/nhost-js';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { redeemLinkToken } from '$lib/nhost/linkToken';
+import {
+  linkErrorMessage,
+  readLinkError,
+  redeemLinkToken,
+} from '$lib/nhost/linkToken';
 
 // `replaceState` refuses a URL on another origin the way the browser does.
 function stubWindow(url: string) {
@@ -52,6 +56,7 @@ function clientWith(
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 describe('redeemLinkToken', () => {
@@ -124,6 +129,27 @@ describe('redeemLinkToken', () => {
     expect(strippedTo(replaceState)).toBe('http://localhost/');
   });
 
+  // A failed redirect carries no token, and a reload would otherwise report
+  // the same error again.
+  it('takes an error off the URL without a request', async () => {
+    const replaceState = stubWindow(
+      '/protected?error=invalid-ticket&errorDescription=Expired&keep=1',
+    );
+    const { nhost, spy, refreshSession } = clientWith(async () => undefined);
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    await redeemLinkToken(nhost);
+
+    expect(strippedTo(replaceState)).toBe('http://localhost/protected?keep=1');
+    expect(warn).toHaveBeenCalledWith(
+      'The auth service sent this page an error:',
+      'invalid-ticket',
+      'Expired',
+    );
+    expect(refreshSession).not.toHaveBeenCalled();
+    expect(spy).not.toHaveBeenCalled();
+  });
+
   // A redirect to `/..//evil.example` lands on the path `//evil.example`, and
   // that path on its own is a URL for another origin.
   it('strips the token on a path that reads as another origin', async () => {
@@ -135,5 +161,39 @@ describe('redeemLinkToken', () => {
     await expect(redeemLinkToken(nhost)).resolves.toBeUndefined();
     expect(strippedTo(replaceState)).toBe('http://localhost//evil.example');
     expect(spy).toHaveBeenCalledWith({ refreshToken: 'abc' });
+  });
+});
+
+describe('readLinkError', () => {
+  it('is null on an ordinary load', () => {
+    stubWindow('/protected?keep=1');
+
+    expect(readLinkError()).toBeNull();
+  });
+
+  // Anyone can send a link with a description of their choosing, so the
+  // visitor is shown the app's own sentence for the code.
+  it('says what the code means, not what the link says', () => {
+    stubWindow(
+      '/?error=disabled-endpoint&errorDescription=Call+evil.example+now',
+    );
+
+    expect(readLinkError()).toBe(
+      'That sign-in method is not enabled on the backend yet.',
+    );
+  });
+});
+
+describe('linkErrorMessage', () => {
+  it('falls back for a code it does not know', () => {
+    expect(linkErrorMessage('internal-server-error')).toBe(
+      'Signing in did not work.',
+    );
+  });
+
+  // An object lookup would find what every object inherits.
+  it('falls back for a code named after an inherited property', () => {
+    expect(linkErrorMessage('__proto__')).toBe('Signing in did not work.');
+    expect(linkErrorMessage('toString')).toBe('Signing in did not work.');
   });
 });

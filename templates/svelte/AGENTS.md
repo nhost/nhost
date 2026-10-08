@@ -38,6 +38,9 @@ It has two halves:
    address bar before anything is awaited, then exchanges it, but only for a
    signed-out visitor: a link may sign someone in, it may not replace whoever
    is already signed in. Do not redeem it again from a page: it is single use.
+   A failed redirect comes back with `error` instead, which is stripped the
+   same way and read once into `useAuth().linkError`; read it from there, not
+   from the URL, and do not render the `errorDescription` a link carries.
 6. **Sign-in methods are isolated.** Each is one directory under
    `frontend/src/routes/auth/` holding its `+page.svelte` and the code only it
    uses, plus one line in `frontend/src/lib/signin/methods.ts`. A method may

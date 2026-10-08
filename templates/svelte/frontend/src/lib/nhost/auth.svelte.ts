@@ -1,7 +1,7 @@
 import { createClient, type NhostClient } from '@nhost/nhost-js';
 import type { Session } from '@nhost/nhost-js/auth';
 import { nhostRegion, nhostSubdomain } from '$lib/nhost/env';
-import { redeemLinkToken } from '$lib/nhost/linkToken';
+import { readLinkError, redeemLinkToken } from '$lib/nhost/linkToken';
 import { watchSession } from '$lib/nhost/watchSession';
 
 /**
@@ -32,6 +32,10 @@ const nhost: NhostClient = createClient({
 // wrapper around it.
 let session = $state<Session | null>(null);
 
+// Why the link or provider redirect this page load arrived from did not sign
+// the visitor in, or null when it did not arrive from a failed one.
+let linkError = $state<string | null>(null);
+
 /**
  * Starts following the stored session, redeeming a token on the URL first.
  *
@@ -54,7 +58,9 @@ export async function startAuth(): Promise<void> {
 
   // An arrival from an auth email or an OAuth callback carries the session on
   // the URL, so it has to be taken before the first read or the visitor
-  // renders as signed out and the token is lost.
+  // renders as signed out and the token is lost. A failed one carries an
+  // error instead, read here because redeeming takes it off the URL.
+  linkError = readLinkError();
   await redeemLinkToken(nhost);
 
   session = nhost.getUserSession();
@@ -63,14 +69,20 @@ export async function startAuth(): Promise<void> {
 type AuthValue = {
   nhost: NhostClient;
   readonly session: Session | null;
+  readonly linkError: string | null;
+  clearLinkError: () => void;
+};
+
+const clearLinkError = (): void => {
+  linkError = null;
 };
 
 /**
  * The client and the current session, for any component that needs either.
  *
- * `session` is a getter rather than a value: that is what keeps it reactive
- * through the call, so a component reading `auth.session` re-renders when the
- * session watch above replaces it.
+ * `session` and `linkError` are getters rather than values: that is what
+ * keeps them reactive through the call, so a component reading `auth.session`
+ * re-renders when the session watch above replaces it.
  */
 export function useAuth(): AuthValue {
   return {
@@ -78,5 +90,9 @@ export function useAuth(): AuthValue {
     get session() {
       return session;
     },
+    get linkError() {
+      return linkError;
+    },
+    clearLinkError,
   };
 }

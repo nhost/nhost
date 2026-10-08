@@ -14,9 +14,10 @@ import { providers } from './providers';
  *
  * This is a redirect, not a request: each button sends the browser to the
  * auth service, which does the provider round-trip and comes back to
- * `redirectTo` with a refresh token on the URL. That token is redeemed by
- * `lib/nhost/linkToken.ts` when the app loads again, so this page never sees
- * the callback.
+ * `redirectTo` with a refresh token on the URL, or with an error when the
+ * provider is not enabled or the sign-in was refused. `lib/nhost/linkToken.ts`
+ * handles both when the app loads again, redeeming the token or putting the
+ * error in the notice above the page, so this page never sees the callback.
  */
 const auth = useAuth();
 const next = $derived(nextDestination());
