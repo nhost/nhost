@@ -41,7 +41,10 @@ describe.each([
 
   it('keeps only the settings, as a drill-only group, off-platform', () => {
     vi.stubEnv('NEXT_PUBLIC_NHOST_PLATFORM', 'false');
-    vi.stubEnv('NEXT_PUBLIC_NHOST_CONFIGSERVER_URL', 'https://config.local');
+    vi.stubEnv(
+      'NEXT_PUBLIC_NHOST_CONFIGSERVER_URL',
+      'https://my-config-server.com',
+    );
 
     const group = getNode(groupId);
 

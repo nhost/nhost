@@ -54,7 +54,10 @@ async function openSheet(user: TestUserEvent) {
 
 beforeEach(() => {
   vi.stubEnv('NEXT_PUBLIC_NHOST_PLATFORM', 'true');
-  vi.stubEnv('NEXT_PUBLIC_NHOST_CONFIGSERVER_URL', 'https://config.local');
+  vi.stubEnv(
+    'NEXT_PUBLIC_NHOST_CONFIGSERVER_URL',
+    'https://my-config-server.com',
+  );
   events.on.mockReset();
   events.off.mockReset();
   useOrgsMock.mockReturnValue({ currentOrg: { name: 'Nhost Org' } });

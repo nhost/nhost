@@ -98,7 +98,9 @@ test('should be able to upgrade an organization', async () => {
     page.getByRole('heading', { name: 'Subscription plan' }),
   ).toBeVisible();
 
-  const upgradeButton = page.getByRole('button', { name: 'Upgrade' });
+  const upgradeButton = page
+    .getByRole('main')
+    .getByRole('button', { name: 'Upgrade' });
   await expect(upgradeButton).toBeEnabled();
   await upgradeButton.click();
 
