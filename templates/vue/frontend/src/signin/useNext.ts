@@ -8,7 +8,7 @@ import { signInDestination } from '@/signin/destination';
  * Every sign-in method needs this and none of them should be re-deriving it,
  * so it lives beside `signInDestination` rather than inside any one of them.
  * The value is always a path on this site: see `destination.ts` for why that
- * takes the URL parser rather than a pattern.
+ * takes both a check that the path is in canonical form and the URL parser.
  */
 export function useNext(): ComputedRef<string> {
   const route = useRoute();
