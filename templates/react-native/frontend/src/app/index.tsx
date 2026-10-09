@@ -1,3 +1,4 @@
+import { ActivityIndicator, View } from 'react-native';
 import { Screen } from '@/components/Screen';
 import { Button } from '@/components/ui/Button';
 import {
@@ -11,9 +12,26 @@ import { useGo } from '@/lib/navigation';
 import { useAuth } from '@/lib/nhost/AuthProvider';
 
 export default function Home() {
-  const { session } = useAuth();
+  const { session, isLoading } = useAuth();
   const go = useGo();
   const user = session?.user;
+
+  // Every launch lands here, and so does a link that names nowhere else, whose
+  // redemption is a round trip to the server. Until that is done the
+  // signed-out card would be wrong for someone being signed in, and a blank
+  // screen would look stuck, so the frame stays up with a spinner.
+  if (isLoading) {
+    return (
+      <Screen>
+        <View className="items-center py-12">
+          <ActivityIndicator
+            accessibilityLabel="Checking whether you are signed in"
+            color="#171717"
+          />
+        </View>
+      </Screen>
+    );
+  }
 
   return (
     <Screen>

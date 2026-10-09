@@ -18,8 +18,9 @@ export const SESSION_KEY = 'nhostSession';
  *
  * That leaves one thing the caller has to do: `hydrate` before the client is
  * asked for a session, or the first `get` of a launch answers null and the
- * user looks signed out despite having a stored session. `AuthProvider` awaits
- * it before rendering.
+ * user looks signed out despite having a stored session. `AuthProvider` runs
+ * it first and holds `isLoading` true until it is done, and screens wait on
+ * that flag rather than on this.
  *
  * A failed write is logged rather than thrown. The session in memory is still
  * good, so the app keeps working and the user is signed in; what is lost is
