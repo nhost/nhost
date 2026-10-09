@@ -127,7 +127,7 @@ fields, which then fails `exhaustruct` on a second lint pass. For a composite
 adapter that needs all fields initialized, prefer a named member with forwarding
 methods rather than an embedded field and verify a second lint run is clean.
 
-After the required root `golines -w --base-formatter=gofumpt .`, also run `golines -w --base-formatter=gofumpt services/constellation` when its files remain in `golines -l --base-formatter=gofumpt services/constellation`: the `.` invocation has not recursed into all Constellation files in practice. Verify the final `-l` output is empty, including after lint auto-fixes.
+After the required root `golines -w --base-formatter=gofumpt .`, also run `golines -w --base-formatter=gofumpt services/constellation` when its files remain in `golines -l --base-formatter=gofumpt services/constellation`: the `.` invocation has not recursed into all Constellation files in practice. Verify the final `-l` output is empty, including after lint auto-fixes. For whole-root lint, use the storage Nix shell so `pkg-config` can find libvips for `services/storage/image`.
 
 ### Integration comparisons and regression tests
 
@@ -188,11 +188,14 @@ second stack or a metadata replacement.
 When refreshing an already running stack with `nhost up --apply-seeds`, verify
 its migration/seed logs and metadata consistency instead of trusting exit 0:
 the CLI can report migration or duplicate-seed errors and still return success.
-It also exports/normalizes metadata filenames before applying metadata; restore
-any intentionally named static fixture files/references after this refresh.
-It also sorts `cf_select` YAML permission entries, which breaks the checked-in
-YAML/JSON fixture parity and index-based tests: restore their original order
-(`cf_filtered_*` roles last) before the full gate.
+After applying metadata it runs `hasura metadata export`. Keep the integration
+fixtures in the CLI export's canonical form (`<schema>_<table>.yaml` filenames,
+role/name-sorted lists and exported YAML formatting); a normal refresh should
+leave tracked metadata unchanged. The computed fixture parity test compares
+named permission and relationship entries by identity, not list position.
+The ordered-insert parent fixture has name-sorted metadata relationships;
+`orderedInsertQuery` intentionally uses a different GraphQL input order, and
+the expected XXH3 traversal order is pinned by `TestOrderedInsertReference`.
 The existing Hasura image is v2.50.3-ce: the required `TestOrderedInsertReference`
 revalidated forward/reversed nested insert order, FK errors and rollback on
 that image. `cf_filtered_one`/`cf_filtered_three` are static roles used to
