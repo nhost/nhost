@@ -12,17 +12,15 @@ const Stack = createNativeStackNavigator();
 /**
  * Deep links, mapped the way the screens are named.
  *
- * A screen's name is its path, so the mapping is the identity with the leading
- * slash taken off - which is what lets an auth email reopen the app on the
- * screen its link points at. Expo Router does this from the file tree; here it
- * is the same list, read once.
+ * Each screen is matched by its path, which is what lets an auth email reopen
+ * the app on the screen its link points at. Expo Router does this from the
+ * file tree; here it is the same list, read once. `useGo()` reads a path
+ * through this too, so going somewhere and being linked there agree.
  */
 const linking = {
   prefixes: [Linking.createURL('/')],
   config: {
-    screens: Object.fromEntries(
-      screens.map(({ name }) => [name, name.replace(/^\//, '')]),
-    ),
+    screens: Object.fromEntries(screens.map(({ name, path }) => [name, path])),
   },
 };
 

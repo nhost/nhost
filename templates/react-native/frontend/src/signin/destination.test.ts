@@ -52,16 +52,12 @@ describe('signInDestination', () => {
   });
 
   // Safe only because the value comes back as given. Decoding it first would
-  // turn the percent-encoded forms into paths a URL parser reads as `//` or
-  // `/\`, and normalizing it would turn `/..//evil.example` into
-  // `//evil.example`.
-  it('keeps encoded and dot-segment forms as given', () => {
+  // turn these into paths a URL parser reads as `//` or `/\`.
+  it('keeps encoded forms as given', () => {
     for (const path of [
       '/%09/evil.example',
       '/%2F%2Fevil.example',
       '/%5Cevil.example',
-      '/..//evil.example',
-      '/.//evil.example',
     ]) {
       const kept = signInDestination(path);
 
@@ -69,6 +65,23 @@ describe('signInDestination', () => {
       expect(new URL(kept, 'https://app.example').origin).toBe(
         'https://app.example',
       );
+    }
+  });
+
+  // Expo Router resolves these as a URL and React Navigation reads them as
+  // written, so the same `next` would land on different screens under each.
+  it('refuses a path the two navigation systems would read differently', () => {
+    for (const path of [
+      '/auth/../protected',
+      '/./protected',
+      '/..//evil.example',
+      '/.//evil.example',
+      '/protected#top',
+      '/protected?tab=1#top',
+      '/a b',
+      '/notes/café',
+    ]) {
+      expect(signInDestination(path)).toBe(DEFAULT_DESTINATION);
     }
   });
 

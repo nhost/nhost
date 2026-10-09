@@ -38,7 +38,19 @@ const RESOLUTION_BASE = 'https://placeholder.invalid';
  * check and leaves the site.
  *
  * So resolve it the way the browser will, and keep it only if it landed back
- * here. What is returned is the original string rather than the parsed form: a
+ * here.
+ *
+ * Then keep it only if resolving left its path as written and it has no
+ * fragment, because the two navigation systems read it differently and agree
+ * only then. Expo Router parses it as a URL, which resolves dot segments and
+ * turns a fragment into a parameter; React Navigation matches each segment as
+ * written and has no fragment. So `/auth/../protected` or `/protected#top`
+ * would land on the protected screen under one and on the home screen under
+ * the other. The query is not held to this: both read it into parameters.
+ * A path with a character the parser percent-encodes, like `/notes/café` or
+ * `/notes/my note`, changes too, so it also falls back to the default.
+ *
+ * What is returned is the original string rather than the parsed form: a
  * value that resolves to this origin resolves to it again wherever it is used,
  * and re-serializing would percent-encode a query string that callers
  * round-trip through `signInHref`.
@@ -61,7 +73,11 @@ export function signInDestination(
     return DEFAULT_DESTINATION;
   }
 
-  if (resolved.origin !== RESOLUTION_BASE) {
+  if (
+    resolved.origin !== RESOLUTION_BASE ||
+    resolved.pathname !== next.split('?', 1)[0] ||
+    next.includes('#')
+  ) {
     return DEFAULT_DESTINATION;
   }
 

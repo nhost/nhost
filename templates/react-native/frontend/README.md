@@ -176,9 +176,12 @@ only module that imports a navigation library. Screens use `useGo()`,
 | routes | the framework reads `src/app/` | `src/screens.ts` reads the same directory with `require.context` and registers each screen under its path |
 | shell | `src/app/_layout.tsx` | `src/App.tsx` |
 
-Both read `src/app/` to find screens, and in both a screen's path is its name,
-so `signin/methods.ts` is correct either way and deleting a method directory
-removes its route under both.
+Both read `src/app/` to find screens, and in both a path reaches a screen the
+way a deep link to it does, so `signin/methods.ts` is correct either way and
+deleting a method directory removes its route under both. React Navigation
+follows Expo Router's `[id]`, `(group)`, `[...rest]` and `+not-found` names,
+though a catch-all gets no parameter for the segments it took, and without a
+`+not-found` screen a path no screen is at goes home.
 
 If you add something to the seam, add it to both copies: the one in
 `frontend/src/lib/navigation.tsx` and the one the other system ships. CI

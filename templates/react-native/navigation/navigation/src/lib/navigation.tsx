@@ -1,10 +1,12 @@
 import {
+  LinkingContext,
   type NavigationProp,
   StackActions,
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import { useEffect, useMemo } from 'react';
+import { useContext, useEffect, useMemo } from 'react';
+import { target } from '@/lib/target';
 
 /**
  * Everything this app does with its navigation library, and the only module
@@ -16,18 +18,14 @@ import { useEffect, useMemo } from 'react';
  * expose, add it here rather than importing `@react-navigation/native` in a
  * screen.
  *
- * A screen's name in the navigator is its path - `src/screens.ts` registers
- * them that way - so a `Destination` is the same string on either side of the
- * seam, and `signin/methods.ts` is correct for both.
+ * A `Destination` is the same string on either side of the seam, and
+ * `signin/methods.ts` is correct for both, because a path is read here the way
+ * a deep link to it is.
  */
 
 export type Destination = string | { pathname: string; params: Params };
 
 export type Params = Record<string, string>;
-
-function target(to: Destination): [string, Params | undefined] {
-  return typeof to === 'string' ? [to, undefined] : [to.pathname, to.params];
-}
 
 // The screens are registered by path and take their parameters as a plain
 // record, which is all this seam ever passes.
@@ -43,21 +41,22 @@ export function useGo(): {
   replace: (to: Destination) => void;
 } {
   const navigation = useNavigation<Nav>();
+  const config = useContext(LinkingContext).options?.config;
 
   return useMemo(
     () => ({
       push: (to: Destination) => {
-        const [name, params] = target(to);
+        const [name, params] = target(to, config);
         navigation.navigate(name, params);
       },
       replace: (to: Destination) => {
-        const [name, params] = target(to);
+        const [name, params] = target(to, config);
         // The stack's own action for taking the place of the screen on top,
         // rather than pushing over it.
         navigation.dispatch(StackActions.replace(name, params));
       },
     }),
-    [navigation],
+    [navigation, config],
   );
 }
 
