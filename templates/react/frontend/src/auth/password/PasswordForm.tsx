@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/lib/nhost/AuthProvider';
 import type { Intent } from '@/signin/intent';
+import { signInQuery } from '@/signin/query';
 
 type Mode = 'sign-in' | 'sign-up';
 
@@ -39,8 +40,12 @@ export default function PasswordForm({
   const [isPending, setIsPending] = useState(false);
 
   const switchMode = (): void => {
-    setMode(mode === 'sign-in' ? 'sign-up' : 'sign-in');
+    const other = mode === 'sign-in' ? 'sign-up' : 'sign-in';
+    setMode(other);
     setError(undefined);
+    // "Other ways to sign in" is built from the URL, so the URL has to say
+    // which mode the visitor switched to.
+    void navigate({ search: signInQuery(next, other) }, { replace: true });
   };
 
   const handleSubmit = async (event: FormEvent): Promise<void> => {
