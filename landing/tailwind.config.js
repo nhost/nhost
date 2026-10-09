@@ -99,6 +99,35 @@ module.exports = {
         sans: ['Inter var', ...defaultTheme.fontFamily.sans],
         mona: ['"Mona Sans"', ...defaultTheme.fontFamily.sans],
       },
+      typography: {
+        DEFAULT: {
+          css: {
+            code: {
+              color: '#5b88d1',
+              backgroundColor: 'rgba(43, 79, 150, 0.22)',
+              border: '1px solid rgba(43, 79, 150, 0.55)',
+              padding: '0.22em 0.55em',
+              borderRadius: '0.3rem',
+              fontWeight: '500',
+            },
+            'code::before': { content: 'none' },
+            'code::after': { content: 'none' },
+            // The plugin only resets `color` for these nested contexts, so the
+            // pill above would otherwise leak into headings, links, quotes and
+            // table headers.
+            'h1 code, h2 code, h3 code, h4 code, a code, blockquote code, thead th code':
+              {
+                backgroundColor: 'transparent',
+                border: 'none',
+                padding: '0',
+                borderRadius: '0',
+              },
+            // Everything else the pill sets is already reset by the plugin's own
+            // `pre code` defaults; only the `border` shorthand needs clearing.
+            'pre code': { border: 'none' },
+          },
+        },
+      },
     },
   },
   plugins: [require('@tailwindcss/typography')],

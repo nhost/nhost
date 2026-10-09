@@ -1,0 +1,397 @@
+import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
+
+export const article = {
+  title: 'Supabase vs Appwrite vs Nhost: what I found with all three dashboards open',
+  description:
+    'I built the same small app on the free tiers of Supabase, Appwrite and Nhost, in the dashboards rather than the docs, and wrote down where they actually differ on data models, permissions, auth, and APIs.',
+  image: '/images/blog/supabase-vs-appwrite/cover.png',
+  date: '2026-10-09',
+  seoTitle: 'Supabase vs Appwrite vs Nhost: Hands-On Comparison (2026)',
+  seoDescription:
+    'I built the same app in all three. How they differ on data models, permissions, auth and APIs, tested in the dashboards rather than copied from the docs.',
+  authors: [
+    {
+      name: 'Max Serdiukov',
+      title: 'Product Marketer',
+      avatarUrl: '/images/avatars/max.jpeg',
+      url: 'https://twitter.com/true_marketer',
+    },
+  ],
+  tags: ['Comparison', 'Supabase', 'Appwrite', 'Nhost'],
+}
+
+export default (props) => <BlogPostLayout article={article} {...props} />
+
+I picked a bad month to write this. It's October, and all three platforms have been shipping consistently. However, the basics I tested, how each one handles data, permissions and APIs, won't change overnight.
+
+So here's what this is: a hands-on comparison in October 2026 of Supabase, Appwrite and Nhost, from building the same small app three times. All three on free plans, all three through the dashboards rather than the CLI. Serious builders lean on the CLI, I know, but the dashboard is where most people form their first opinion of a platform, so that's the lens I'm using.
+
+I work at Nhost, but I've tried to keep this as neutral as possible by running the same test across the board. I intend to be transparent, so I'll mention when I'm repeating a vendor's claims rather than something I checked myself.
+
+## TL;DR
+
+Supabase is a better fit for developers who want PostgreSQL at the core of their backend. It works if you're comfortable with SQL and don't mind writing and maintaining your own access rules in it.
+
+Appwrite feels like a classic backend-as-a-service. You work through SDKs and APIs, and the platform hides most of the database and infrastructure from you.
+
+Nhost is Postgres plus a GraphQL API generated from your schema, with permissions checked on every request. That makes it a good backend for AI apps: assistants and vector search are built in, and an agent can't see more than the user it works for.
+
+## Supabase vs Appwrite vs Nhost Overview
+
+|  | Supabase | Appwrite | Nhost |
+| --- | --- | --- | --- |
+| **What's underneath** | A Postgres you can take elsewhere | Five stores, or a standalone Postgres beside the platform | A Postgres you can take elsewhere |
+| **The API you get** | REST and SQL, GraphQL as an extension | SDK methods | GraphQL, typed and introspectable |
+| **How access rules are written** | SQL policies | Role grants, per table and per row | Role rules with conditions on the data |
+| **Access before you configure anything** | Open until row-level security is switched on | Denied | Denied |
+| **What those rules cover** | Anything that reaches Postgres | The platform APIs, not the standalone Postgres | Queries, subscriptions, files and assistants |
+
+## What each one actually is, in one picture
+
+```text
+ SUPABASE              APPWRITE 2.0                NHOST
+ ========              ============                =====
+
+ your app                your app                your app
+     |                       |                       |
+ PostgREST /            Appwrite API            GraphQL API
+Auth / Storage               |                       |
+     |              +--------+--------+              |
+  POSTGRES        TablesDB  Docs   Vectors        POSTGRES
+(the product)      (managed by Appwrite)        (the product)
+
+                  ...and off to the side,
+                  no Appwrite in the path:
+                     NATIVE PG / MySQL
+```
+
+Supabase builds everything on top of Postgres, so your tables, users and files all live in one database. Permissions are SQL rules called row-level security (RLS), and Postgres checks them on every query to decide which rows each user gets back.
+
+Appwrite puts its own API in front of the database, so your app never talks to the database directly. You set permissions on tables and rows, and Appwrite checks them on every request. The exception is Appwrite's standalone Postgres, which you connect to directly, so its permissions don't apply there.
+
+Nhost turns your Postgres schema into a GraphQL API, so every table you expose is ready to query from your app. You write a permission rule once per role, and it applies everywhere: queries, live updates, file downloads, AI assistants.
+
+![Supabase, Appwrite and Nhost dashboards side by side.](/images/blog/supabase-vs-appwrite/dashboard-comparison.png)
+
+## Data modeling
+
+All three offer Postgres now. Supabase and Nhost have been built on it since day one, and Appwrite recently added a standalone Postgres too. The difference is in what each one builds around the database.
+
+### Supabase: one store, and you extend it
+
+You get Postgres. When you need something Postgres doesn't do natively, you can install an extension. Vectors are `pgvector`. Queues are `pgmq`. Cron is `pg_cron`. Geospatial is PostGIS. Full-text search is built in.
+
+The upside is that everything lives in one place with one consistency model and one backup. You can join your embeddings against your users in a single query, and nobody has to think about which system owns which record.
+
+The downside is that everything shares one database. Vectors, queues and cron jobs all compete for the same server, and Postgres limits how many connections it accepts at once. That's true of any Postgres-based platform.
+
+### Appwrite: separate databases for tables, documents and vectors
+
+Appwrite 2.0 added four new stores, so the full list now looks like this:
+
+- **TablesDB**: structured data with relations, queried through Appwrite's API.
+- **DocumentsDB**: schemaless JSON (Beta).
+- **VectorsDB**: embeddings and similarity search. You set the vector size when you create the collection (Beta).
+- **Native Postgres**: a standard Postgres, outside Appwrite's permissions and realtime.
+- **Native MySQL**: the same, for MySQL.
+
+On the Databases page you can only create three types of databases: TablesDB, DocumentsDB and VectorsDB. The Native Postgres and MySQL options aren't there, because Appwrite runs them as paid dedicated instances. They do show up in the Explorer (Appwrite's in-console API client, where the PostgreSQL service alone has 37 endpoints).
+
+The free plan caps you at one database, so I couldn't create a second one to try another type.
+
+![Appwrite's Databases page: three creatable types, DocumentsDB and VectorsDB in beta.](/images/blog/supabase-vs-appwrite/appwrite-database-types.png)
+
+### Nhost: Postgres, with the API generated from it
+
+Your data lives in a standard Postgres with full SQL access. Extensions install the usual way, with `CREATE EXTENSION` in a migration: pgvector, PostGIS, pg_cron, uuid-ossp, pg_trgm. When you create a table, Nhost reads the schema and generates a typed GraphQL API for it, with filters, ordering, pagination, aggregates and live subscriptions.
+
+You choose which tables go into the API. The SQL editor has a "Track this" toggle, and only tables created with it turned on show up in your API. It works like the permissions, so nothing is reachable until you enable it.
+
+### Relations: a constraint versus a field
+
+I linked posts to authors, and each platform handles that link differently.
+
+In Supabase a relation is just a foreign key:
+
+```sql
+alter table public.posts add constraint posts_author_id_fkey
+  foreign key (author_id) references public.authors (id);
+```
+
+That one statement does two jobs. It stops a post from pointing to an author who doesn't exist, and it lets PostgREST turn `.select('*, authors(name)')` into a join, because the API reads your foreign keys.
+
+Appwrite treats a relation as a column type you set up in a form. Creating one asked me five things:
+
+1. One-way or two-way
+2. Which table to link to
+3. What to call the column on each side
+4. The cardinality: one-to-one, one-to-many, many-to-one or many-to-many
+5. What happens on delete: Set NULL, Cascade or Restrict
+
+That's five decisions up front instead of one statement, though the form does show a plain-English summary of your choices.
+
+The console also warns that the column key on the related side can't be renamed later. In Postgres you can drop and recreate a foreign key whenever you like.
+
+With Nhost, a relation is a foreign key plus a name. You write the constraint in SQL as usual, then give the link a name for the API. The dashboard spots your foreign keys and lists them under "Suggested Relationships" with the names already filled in. One click and `author { name }` works. You can nest it as deep as you want, and it all comes back in one request, with no join to write in each query.
+
+![Nhost's Edit Relationships panel: the author relation created from a foreign key.](/images/blog/supabase-vs-appwrite/nhost-relationships.png)
+
+### The API layer
+
+Here's the same query on all three. Supabase wraps SQL in a chain of methods, Appwrite gives you SDK calls with query helpers, and Nhost gives you GraphQL, where you write the shape of the response yourself.
+
+**Supabase:**
+
+```ts
+const { data, error } = await supabase
+  .from('posts')
+  .select('id, title, author:authors(name)')
+  .eq('published', true)
+  .order('created_at', { ascending: false })
+  .limit(20)
+```
+
+That `author:authors(...)` bit is a join, resolved by PostgREST because it can see the foreign key I added earlier. Once the syntax clicks it's fast to write, but until then the error messages don't help much.
+
+New tables in the `public` schema are no longer exposed to it automatically, and that becomes mandatory for every project from October 30th, 2026 onward. I checked a project created before the cutover, and the old behavior is still live. "Automatically expose new tables" was on, and two tables I'd just made in SQL were already answering on the REST endpoint. I never touched the setting.
+
+Supabase also no longer enables `pg_graphql` automatically, and since version 1.6.0 of the extension, introspection is off by default for new projects. If you want GraphQL on Supabase, you have to turn it on yourself.
+
+![Supabase's Data API settings, with "Automatically expose new tables" still on.](/images/blog/supabase-vs-appwrite/supabase-data-api-settings.png)
+
+**Appwrite:**
+
+```ts
+import { TablesDB, Query } from 'appwrite'
+
+const tablesDB = new TablesDB(client)
+
+const rows = await tablesDB.listRows({
+  databaseId: 'main',
+  tableId: 'posts',
+  queries: [
+    Query.equal('published', [true]),
+    Query.orderDesc('$createdAt'),
+    Query.limit(20),
+  ],
+})
+```
+
+Note the `$createdAt`. Appwrite adds `$id`, `$createdAt` and `$updatedAt` to every row on its own, and the dollar sign shows which fields belong to Appwrite.
+
+**Nhost:**
+
+```ts
+import { createClient } from '@nhost/nhost-js'
+
+const nhost = createClient({ subdomain, region })
+
+const resp = await nhost.graphql.request({
+  query: `query {
+    posts(
+      where: { published: { _eq: true } }
+      order_by: { created_at: desc }
+      limit: 20
+    ) {
+      id
+      title
+      author { name }
+    }
+  }`
+})
+
+console.log(resp.body.data?.posts)
+```
+
+`author { name }` follows the link from each post to its author and returns just the name, nested inside the post. Go one level deeper and it's still a single request.
+
+The schema is typed, so your editor can autocomplete fields and flag a wrong field name before you run anything. AI agents get the same help: they can read the schema first and see which tables and fields exist before they write a query.
+
+## Auth
+
+All three have a solid provider list, MFA and OIDC, and each can act as an identity provider for other applications.
+
+Supabase added passkeys in beta (WebAuthn, biometrics, device PIN, or a hardware key) and OAuth 2.1 authorization-server capabilities, so your project can issue tokens to third-party apps and MCP clients. Auth users live in a Postgres table, which makes custom claims, triggers, and joins against your own tables easy. It also means a badly written trigger on sign-up can break sign-ups entirely.
+
+With Appwrite, you host the OAuth consent screen yourself, so users approving access stay on a page that looks like your product. Client registration is also an API call in the client SDKs, which lets you build a self-serve portal where other developers register their own apps. Both only help if other developers will build on top of your app.
+
+Nhost Auth handles email and password, magic links, one-time codes, WebAuthn and social sign-in. Users live in a Postgres table in the `auth` schema, so you link a user to their rows with a regular foreign key. Any custom claim you add to a user can be used in your permission rules.
+
+## Authorization rules
+
+Authorization rules decide who can read and change which rows. To compare them, I wrote the same four rules for the `posts` table in my test app. Each post has a `title`, a `body`, a `published` flag and an author.
+
+1. Anonymous visitors see only posts where `published` is true
+2. Signed-in users can create posts
+3. Authors can edit and delete only their own
+4. Nobody else's drafts are visible to anyone
+
+Supabase covers published posts and private drafts with two policies:
+
+```sql
+create policy "anyone reads published posts"
+on public.posts for select using (published = true);
+
+create policy "authors read their own drafts"
+on public.posts for select to authenticated using (auth.uid() = author_id);
+```
+
+I ran `select title, published from posts` as the Anonymous role in the dashboard. One row came back out of two, and the draft didn't show up.
+
+![Run as Anonymous in Supabase: one row back, the draft hidden.](/images/blog/supabase-vs-appwrite/supabase-run-as-anonymous.png)
+
+Appwrite can't express "anonymous visitors see only published posts" at all, and this was the biggest difference I found. Its permission roles only describe who you are: Any, All guests, All users, a specific user or a team. There's nowhere to add a condition on the row's data, like `published = true`. You could filter by `published` in the query, but the caller can just leave that filter out. A permission applies either way.
+
+Here's the workaround I used:
+
+1. Remove Any → Read at the table level. Leave it on and every draft is world-readable, because table permissions override row permissions.
+2. Enable Row security.
+3. On the published row, add Any → Read by hand.
+4. On the draft, add only `user:demo-author-1` with read, update, delete.
+
+![Appwrite row permissions: the draft's access granted to one user by hand.](/images/blog/supabase-vs-appwrite/appwrite-row-permissions.png)
+
+It works, but now the `published` column doesn't do anything. What actually publishes a post is a permission you have to add to each row when you create it. Forget it on a published post and nobody sees it. Add it to a draft by mistake and the draft goes public. In Supabase there's nothing to forget, because the rule is written once for the whole table.
+
+It also gets hard fast as rules get more complex. Something like "users can read orders in their org, unless the order is archived, unless they're an admin" is four lines of SQL in Supabase. In Appwrite you'd have to redesign your data model to fit it.
+
+Appwrite's native Postgres has no permissions at all, since requests go straight to the database and never pass through Appwrite. You'd have to write your own middleware or set up RLS yourself with your own JWTs.
+
+Three roadblocks I hit in Appwrite that aren't in the docs:
+
+- Row permissions are invisible from the row. Open a row to edit it and you see the data fields only. Permissions live in the `...` menu under "Manage permissions". Looking at a record tells you nothing about who can read it.
+- Row-level permissions have no Create, only Read, Update, Delete. Logical, briefly confusing.
+- Custom permissions aren't validated. The field takes `user:[USER_ID]`, `team:[TEAM_ID]/[ROLE]`, or `member:[MEMBERSHIP_ID]` as free text. I typed a user ID that doesn't exist and it saved without complaint. A typo here is a silently broken rule.
+
+### Nhost: the rule is a form
+
+In Nhost you can limit visitors to published posts without SQL and without per-row permissions. In the permissions editor you pick the role and the action, then build the condition from three dropdowns:
+
+```text
+published   _eq   true
+```
+
+![Nhost's permission rule builder: published equals true, built from dropdowns.](/images/blog/supabase-vs-appwrite/nhost-rule-builder.png)
+
+Underneath that's `{"published": {"_eq": true}}`, and the editor will show you either view. The rule that lets authors edit only their own posts looks the same, with the user's ID in place of a fixed value:
+
+```json
+{"author_id": {"_eq": "X-Hasura-User-Id"}}
+```
+
+The playground has the same role switch the other two have. Set ROLE to `public`, run the query, and:
+
+```json
+{ "data": { "posts": [
+    { "title": "Hello from Nhost", "published": true }
+] } }
+```
+
+![Nhost's GraphQL playground as the public role: one row back, the draft hidden.](/images/blog/supabase-vs-appwrite/nhost-run-as-public.png)
+
+One row came back out of two, and the draft stayed hidden.
+
+The rule is stored as metadata next to your schema and versioned with your migrations. Nhost applies it to every way into that table: queries, subscriptions, file downloads, and AI assistants acting for a user. You write it once and don't have to repeat it for each endpoint.
+
+By default, access is denied. No role except `admin` can read anything until you grant it. If you create a table and forget to set permissions, it stays private, so nothing leaks by accident.
+
+![Nhost's permissions matrix: roles down the side, actions across the top.](/images/blog/supabase-vs-appwrite/nhost-permissions-matrix.png)
+
+### Testing what a role can see
+
+All three platforms let you run a query as a role other than your own, so you can see what a visitor or a signed-in user would get back before they find the gap themselves.
+
+On Supabase, don't look for an "RLS Tester", meaning a panel that previews a table the way a chosen role would see it, with the row-level security policies applied. I did, and there's no such thing in the policy editor. What you get instead is a role switcher in the SQL editor: the dropdown next to Run offers postgres, Anonymous and Authenticated (with a user picker and an MFA level). It also warns you that postgres bypasses row-level security, so a query run under it returns every row and tells you nothing about what a real visitor sees.
+
+The shield button on the Policies page doesn't test anything. It opens the AI Assistant, which can write a policy for you. The same page also offers to install a trigger that turns on RLS for every new table, but it's off by default.
+
+On Appwrite, it's in a place I didn't expect: the Explorer. Pick TablesDB → List rows, fill in the database and table IDs, and you'll see an Act as: Guest / User toggle right above the Send button. I ran it as Guest against my table and got back this:
+
+```json
+{
+  "total": 1,
+  "rows": [
+    {
+      "title": "Hello from Appwrite",
+      "body": "Public post, visible to everyone."
+    }
+  ]
+}
+```
+
+One row out of two, 200 OK in 202 ms, and the draft stayed hidden. This check goes through a real HTTP request, so it shows exactly what a client would get.
+
+![Appwrite's Explorer: an in-console API client with an Act as Guest / User toggle.](/images/blog/supabase-vs-appwrite/appwrite-explorer.png)
+
+On Nhost, the role switch sits next to Run in the GraphQL playground. Switch it and the same query runs again under the new role. There's no separate client and no headers to set.
+
+### Which permission model fits
+
+The real difference is what a rule can check. Supabase lets a rule check anything SQL can, but you have to write and maintain the SQL policies yourself. Appwrite only checks who the user is, which is easy for the whole team to read but stops working once access depends on what's in the row. Nhost checks both the user and the row, and you build the rule in a form. If a rule gets too complex for the form, you can still write that part in SQL.
+
+Think of the hardest access rule in your app. If your permission system can't express it, you'll end up writing that check somewhere worse: in the client, in a wrapper endpoint, or on every row by hand.
+
+## Storage
+
+Each platform protects files the same way it protects your data.
+
+Supabase keeps a record of every file in a Postgres table and protects it with RLS policies, like any other table. If you can write a policy for a row, you can write one for a file. It also works with standard S3 tools, so you can manage files from the AWS CLI.
+
+Appwrite gives each bucket and each file its own permissions, using the same roles as tables: Any, All guests, All users, a specific user or a team. That brings the same limit as with tables: a rule can check who the user is, but not anything about the file or the data it belongs to. Appwrite also says its buckets now work with standard S3 tools.
+
+In Nhost, every upload and download goes through an API that checks the same permission rules as your tables. File records live in Postgres, so you can use the same conditions on files that you use on rows. It can also resize or convert images on download.
+
+Most apps have public files (like avatars, product images) and private ones (invoices or user uploads). When you test a platform, upload one of each and see who can open it.
+
+## Functions, and the runtime arms race
+
+| Capability | Supabase | Appwrite | Nhost |
+| --- | --- | --- | --- |
+| Runtime | Deno 2.1, all regions | Node, Bun 1.4, Deno, Python, PHP, Ruby, Rust, and more | JavaScript/TypeScript, plus any container via Run |
+| Deploy | CLI, dashboard, Management API | CLI, console, Git triggers | Git push, CLI |
+| Language freedom | JavaScript/TypeScript | Wide | Narrow in Functions, unlimited in Run |
+
+Appwrite supports the most runtimes of the three, from Node and Python to Rust, and it recently added Bun 1.4.
+
+Supabase gives you one runtime, which means one set of behaviors to learn. For webhooks and glue code, that's plenty. If your pipeline has a Python ML step, it's a dealbreaker.
+
+Nhost splits this into two products. Functions run JavaScript/TypeScript and handle HTTP endpoints, event triggers, cron triggers and one-off scheduled events. For anything else there's Nhost Run, which deploys any Docker container next to your stack: Go, Python, Rust, or anything that builds into an image.
+
+## Realtime
+
+Supabase Realtime sends database changes over WebSockets and controls channel access with RLS policies. Broadcast also supports binary payloads now, which cuts JSON overhead if you're pushing sensor data or image frames. The dashboard also lets you set the connection pool size and max concurrent clients per project, which you'll need once traffic grows.
+
+Appwrite realtime uses the same permissions as your data, so a client subscribed to a table only sees rows it's allowed to see. It also has a Presences API for online, typing and activity states, a feature most teams end up building themselves, available on both Cloud and self-hosted. Appwrite's native Postgres has no realtime at all.
+
+Nhost does realtime with GraphQL subscriptions. Take any query, change `query` to `subscription`, and you get a live stream over a WebSocket. The same permission rules apply, so a subscribed client only gets the rows its role is allowed to see.
+
+## Where the AI lives
+
+While building the test app, I ran into AI features in all three dashboards. What they're for turned out to be quite different.
+
+Supabase and Appwrite both have an AI assistant in the dashboard, free tier included. Supabase puts it on the Policies page, with prompts like "Set up RLS policies" and "Query your data". Appwrite uses it to get you started: when you create a table, it suggests columns based on the table name and can fill an empty table with sample data.
+
+Both help you, the developer, while you build. Neither gives you an AI feature you can put in front of your users.
+
+Nhost has AI features you build into your app. Its AI service, [Graphite](https://docs.nhost.io/products/ai/), comes in two parts:
+
+- **Auto-Embeddings** generates embeddings automatically when rows are added or changed, and adds GraphQL queries to your schema for natural-language search and finding similar items. The embeddings live in Postgres with pgvector, so you can also query them yourself.
+- **AI Assistants** let your users chat with your data. You give each assistant a set of tools (GraphQL queries, mutations or any HTTP endpoint), and the model asks Graphite to run them. It never touches the database itself. Different assistants can see different parts of your data, and you decide which users can use which assistant.
+
+There's also a Backend MCP Server, which lets AI clients like Claude or Cursor connect to your app's API. Users sign in through Nhost Auth, so the agent works with their account.
+
+All of it runs under the user's session, so the AI only gets data that user is allowed to see.
+
+## So which one
+
+I know it's a cliché, but there's no single answer to which one is best. I built one small app on free plans, and a full picture would take running a real production app on each. But it did show the differences you hit on day one: how you link tables, how you write access rules, and what your API looks like.
+
+**Supabase** is for you if you open a SQL editor before you open the docs. Your app's hard part is the data: reports, joins, analytics, logic you'd happily write in Postgres. Supabase lets you keep all of that in the database, as long as someone on the team owns the policies.
+
+**Appwrite** is for you if you're building a mobile app or a frontend-heavy product and would rather never think about the database. Each user owns their own data, maybe shares it with a team. That's the shape Appwrite fits best, with login, files, push notifications and hosting all in one console.
+
+**Nhost** is for you if you want AI agents working inside your app on your users' behalf, through Claude, ChatGPT or your own assistant. That's where it's furthest ahead. Its MCP service signs agents in through Nhost Auth, so every call runs as that user, with that user's permissions. Graphite adds search and assistants under the same rules.
+
+If Nhost sounds like your fit, the free plan is enough to run the same test yourself.
+
+[Start building on Nhost for free](https://app.nhost.io/signup)

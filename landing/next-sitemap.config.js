@@ -58,7 +58,12 @@ function gitLastmod(file) {
     })
       .toString()
       .trim()
-    return out || null
+    // Pin the UTC offset format: older git prints `+00:00` for `%cI` while
+    // recent versions print `Z`. Both are the same instant and both are valid
+    // `lastmod` values, but leaving it to git makes this committed artifact's
+    // bytes depend on the contributor's git version, which churns every UTC
+    // entry in the sitemap on every regeneration.
+    return out ? out.replace(/\+00:00$/, 'Z') : null
   } catch (error) {
     return null
   }
