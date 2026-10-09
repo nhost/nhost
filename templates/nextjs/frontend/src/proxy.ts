@@ -48,6 +48,13 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   return applySessionCookies(NextResponse.next({ request }));
 }
 
+// The second entry runs the proxy on the paths the first leaves out whenever
+// a link token is on them, since a crafted redirectTo can point an auth email
+// at any path on this origin. It has to be the literal: Next reads this config
+// without running the module, so `LINK_TOKEN_PARAM` cannot be used here.
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  matcher: [
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    { source: '/:path*', has: [{ type: 'query', key: 'refreshToken' }] },
+  ],
 };

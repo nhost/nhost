@@ -91,6 +91,48 @@ puts on the URL, then redirects to a clean URL so the token does not sit in
 history. It only does so for a signed-out visitor: a link may sign someone in,
 it may not replace whoever is already signed in.
 
+A crafted `redirectTo` can point an auth email at any path on this origin, so
+the proxy runs wherever a `refreshToken` lands, including the static files and
+API routes it otherwise skips. The template sets no `basePath`. If you add one,
+Next prefixes every proxy matcher with it, so the proxy alone never sees a link
+that lands outside it: with a `basePath` of `/app`, a link to
+`/app/..//elsewhere` resolves to `/elsewhere`. Narrowing the backend's allowed
+URLs to the `basePath` does not stop that, because the backend compares the URL
+before the browser resolves the `..`. Add a redirect to `next.config.ts` that
+sends those requests back under the `basePath`, where the proxy strips the
+token:
+
+```ts
+basePath: '/app',
+experimental: { caseSensitiveRoutes: true },
+async redirects() {
+  return [
+    {
+      source: '/:path((?!app(?:/|$)).*)',
+      has: [{ type: 'query', key: 'refreshToken' }],
+      destination: '/app/:path',
+      basePath: false,
+      permanent: false,
+    },
+  ];
+},
+```
+
+Replace all three `app`s with your `basePath`, escaping any regex characters
+such as `.` in the source. The source has to skip paths already under it, or
+`/app/protected?refreshToken=...` redirects to `/app/app/protected` and on
+forever. It has to skip only that exact case, which is what
+`caseSensitiveRoutes` is for: Next matches redirect sources case-insensitively
+but checks the `basePath` case-sensitively, so without the flag
+`/APP/x?refreshToken=...` is neither redirected nor proxied and 404s with the
+token still in the URL. The flag applies to every header, redirect and rewrite
+source. Writing `(?-i:app)` in the source instead closes the same gap without
+it on Node 24, but `next build` rejects it on Node 22.
+
+The rest of the template does not handle a `basePath` yet: the proxy's
+redirect to sign in and the `redirectTo` that auth emails and OAuth send people
+back to are built without it, so they land on a 404.
+
 Keeping the refresh token away from JavaScript bounds what an XSS can take: an
 access token that stops working within minutes, not a session that renews
 itself for a month. The browser client only reads, so sign in and out through
