@@ -39,6 +39,11 @@ pnpm install
 pnpm dev                      # then press i, a, or scan the QR code
 ```
 
+On a local backend `nhost init` created there is nothing to configure first:
+it already allows the links the app comes back on, see "Coming back into the
+app" below. On a backend you already had, or one init pulled with `--remote`,
+do what init's next steps named before you sign up.
+
 ### Pointing the app at your backend
 
 This is the one thing that is harder than on the web. `nhost up` serves the
@@ -76,21 +81,44 @@ When the link fails, a provider that is not enabled yet or an expired email
 link, the service sends an `error` code instead. The app says what went wrong
 in its own words above the screen the link opens, and the service's
 description goes to the console.
-Under Expo Go the scheme is the development server's `exp://.../--/` URL
-instead, which `Linking.createURL` handles, so the flow works in development
-without a second configuration.
+Under Expo Go, which is what `pnpm dev` runs the app in, `Linking.createURL`
+builds the development server's `exp://<host>:<port>/--/...` URL instead.
 
-Every link the backend is asked to redirect to has to be in
-`auth.redirections.allowedUrls` in `nhost.toml`, or it refuses:
+The backend refuses to redirect to anything but its `clientUrl` and what
+`auth.redirections.allowedUrls` allows. When `nhost init` creates a local
+backend it allows both kinds of link, in two different places:
 
-```toml
-[auth.redirections]
-allowedUrls = ["nhoststarter://", "exp://"]
-```
+- `nhoststarter://` in `nhost/nhost.toml`, the configuration every
+  environment shares.
+- `exp://` in `nhost/overlays/local.json`, which only the local backend
+  applies.
 
-Two consequences worth knowing. An auth email has to be opened **on the
-device** running the app, because the scheme resolves to that device's copy.
-And if you rename the scheme in `app.json`, rename it here too.
+`exp://` has to be allowed whole, since its host is whatever address the
+development server is on, and allowed whole it matches a link into any project
+Expo Go can load, including one someone else runs. Against the local backend
+that costs nothing, because every email it sends lands in the local mailbox.
+On a project real people sign in to, anyone could request a sign-in link for
+someone else's address and have that person's session delivered to their own
+project. That is why it is in the local overlay, which nothing deploys.
+The overlay appends to the `allowedUrls` list in `nhost.toml`, so that line has
+to stay, even as `allowedUrls = []`: remove it, or let `nhost config pull`
+replace it from a project that allows nothing, and `nhost up` and `nhost config
+validate` fail with "doc is missing path" without naming the overlay.
+
+A backend you already had, or one pulled with `--remote`, keeps its
+configuration as it was, and init names the entries it is missing. Add
+`nhoststarter://` to `allowedUrls` in `nhost.toml`, and `exp://` for the
+local backend only with `nhost config edit --subdomain local`, which writes
+that overlay.
+
+Expo Go against a real project, the way to develop on a phone, needs that
+project to allow the development server's own address, the one `pnpm dev`
+prints, such as `exp://192.168.1.20:8081`. Allow that address and not bare
+`exp://`, and remove it before real people sign in.
+
+An auth email has to be opened on the device running the app, because the
+scheme resolves to that device's copy. And if you rename the scheme in
+`app.json`, rename it in `nhost.toml` too.
 
 ## The sign-in methods
 
@@ -229,8 +257,9 @@ Everything in the bundle ships to the device and anyone can unpack it, so none
 of it may be a secret.
 
 Before a store build, change `scheme`, `ios.bundleIdentifier` and
-`android.package` in `app.json` to your own, and keep `allowedUrls` in step
-with the new scheme.
+`android.package` in `app.json` to your own, and the scheme in `allowedUrls`
+with them. The production project's `allowedUrls` should hold that scheme and
+no `exp://` entry at all.
 
 ## Scripts
 

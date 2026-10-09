@@ -61,6 +61,17 @@ type starterTemplate struct {
 	// with Next's router and a SvelteKit app with SvelteKit's; Expo is the one
 	// here with two answers in common use, so it is the one that asks.
 	navSystems []navigationSystem
+	// redirectURLs are where the app asks the auth service to send a user
+	// back to, beyond the clientUrl a stock backend already allows. A web
+	// template comes back to that origin and has none; a native app comes
+	// back on its own scheme.
+	redirectURLs []string
+	// localRedirectURLs are allowed by the local backend only, through its
+	// overlay rather than nhost.toml, because they can only be allowed whole:
+	// Expo Go's URL carries whatever host the dev server is on, and exp://
+	// allowed on a deployed project would let a link deliver a session to
+	// any project Expo Go can load.
+	localRedirectURLs []string
 }
 
 // catalogue lists the templates the binary ships, in the order the picker
@@ -75,6 +86,9 @@ func catalogue() []starterTemplate {
 			componentsUI: "frontend/src/components/ui",
 			uiSystems:    reactUISystems(),
 			navSystems:   nil,
+
+			redirectURLs:      nil,
+			localRedirectURLs: nil,
 		},
 		{
 			name:         "react",
@@ -84,6 +98,9 @@ func catalogue() []starterTemplate {
 			componentsUI: "frontend/src/components/ui",
 			uiSystems:    reactUISystems(),
 			navSystems:   nil,
+
+			redirectURLs:      nil,
+			localRedirectURLs: nil,
 		},
 		{
 			name:         "vue",
@@ -93,6 +110,9 @@ func catalogue() []starterTemplate {
 			componentsUI: "frontend/src/components/ui",
 			uiSystems:    vueUISystems(),
 			navSystems:   nil,
+
+			redirectURLs:      nil,
+			localRedirectURLs: nil,
 		},
 		{
 			// SvelteKit routes are directories under src/routes, so a method's
@@ -107,6 +127,9 @@ func catalogue() []starterTemplate {
 			componentsUI: "frontend/src/lib/components/ui",
 			uiSystems:    svelteUISystems(),
 			navSystems:   nil,
+
+			redirectURLs:      nil,
+			localRedirectURLs: nil,
 		},
 		{
 			// Expo Router turns every file under its root into a route, so
@@ -120,6 +143,11 @@ func catalogue() []starterTemplate {
 			componentsUI: "frontend/src/components/ui",
 			uiSystems:    nativeUISystems(),
 			navSystems:   expoNavigationSystems(),
+
+			// The scheme in frontend/app.json, which is what a build comes
+			// back on, and Expo Go, which is what `pnpm dev` runs in.
+			redirectURLs:      []string{"nhoststarter://"},
+			localRedirectURLs: []string{"exp://"},
 		},
 	}
 }
@@ -613,13 +641,13 @@ func printKeptEntries(ce *clienv.CliEnv, layout templateLayout) {
 // printTemplateNextSteps says what to run now that the frontend is in place.
 // The CLI installs nothing itself: init has never run a package manager, and
 // that was the slowest and most failure-prone step of the command this
-// replaces. toEnable are the selected sign-in methods the config leaves off,
-// which is possible only when init did not write it, and the line naming them
-// is skipped when there are none.
+// replaces. toAdd is what the config lacks, which is possible only when init
+// did not write it, and each line naming some of it is skipped when there is
+// none.
 func printTemplateNextSteps(
 	ce *clienv.CliEnv,
 	name string,
-	toEnable []string,
+	toAdd configToAdd,
 	pm packageManager,
 ) {
 	// A blank line between what just happened and what to do about it, so the
@@ -628,13 +656,7 @@ func printTemplateNextSteps(
 	ce.Infoln("Added the %s template. Next:", name)
 	ce.Println("")
 
-	if len(toEnable) > 0 {
-		ce.Println(
-			"  Enable %s in nhost/nhost.toml.", strings.Join(toEnable, " and "),
-		)
-		ce.Println("  frontend/README.md says which setting each one needs.")
-		ce.Println("")
-	}
+	printConfigToAdd(ce, toAdd)
 
 	// Split across two terminals because `nhost up` holds the first one, which
 	// is the step people are most often caught out by.
@@ -645,4 +667,38 @@ func printTemplateNextSteps(
 	ce.Println("    cd frontend")
 	ce.Println("    %s", pm.command("install"))
 	ce.Println("    %s", pm.command("dev"))
+}
+
+// printConfigToAdd names the settings the app needs that the config lacks, or
+// prints nothing when it lacks none.
+func printConfigToAdd(ce *clienv.CliEnv, toAdd configToAdd) {
+	if len(toAdd.methods) == 0 && len(toAdd.redirects) == 0 &&
+		len(toAdd.localRedirects) == 0 {
+		return
+	}
+
+	if len(toAdd.methods) > 0 {
+		ce.Println(
+			"  Enable %s in nhost/nhost.toml.", strings.Join(toAdd.methods, " and "),
+		)
+	}
+
+	if len(toAdd.redirects) > 0 {
+		ce.Println(
+			"  Add %s to auth.redirections.allowedUrls in nhost/nhost.toml.",
+			strings.Join(toAdd.redirects, " and "),
+		)
+	}
+
+	// Never into nhost.toml, which a deployed project reads too.
+	if len(toAdd.localRedirects) > 0 {
+		ce.Println(
+			"  Add %s to allowedUrls for the local backend only, with",
+			strings.Join(toAdd.localRedirects, " and "),
+		)
+		ce.Println("  `nhost config edit --subdomain local`.")
+	}
+
+	ce.Println("  frontend/README.md says what each setting is for.")
+	ce.Println("")
 }

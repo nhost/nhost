@@ -23,7 +23,10 @@ templates/nextjs/
 
 Everything a user gets is in that tree. There is no backend half: a template
 must work against the plain backend `nhost init` writes, with at most a
-configuration change (see `configure` in `cli/cmd/project/template.go`).
+configuration change: the settings each sign-in method needs
+(`cli/cmd/project/authmethod.go`) and the redirect targets the template names
+in its catalogue entry (`redirectURLs` and `localRedirectURLs` in
+`cli/cmd/project/template.go`).
 Migrations, metadata and functions are the user's to add.
 
 `frontend/` is deliberately **outside** the pnpm workspace. It ships its own
@@ -228,7 +231,10 @@ The two guards below run in CI; run them before pushing:
    `check-agent-context.sh` fails if they drift.
 2. Generate the lockfile: `cd templates/<name>/frontend && pnpm install`.
 3. Add the template to the catalogue in `cli/cmd/project/template.go`, naming
-   its `authDir`, `methodsFile`, `componentsUI` and `uiSystems`. It needs the
+   its `authDir`, `methodsFile`, `componentsUI` and `uiSystems`, and any
+   redirect target beyond the backend's `clientUrl` that the app sends. A
+   target only development needs, and that can only be allowed whole, goes in
+   `localRedirectURLs`, which reaches the local backend alone. It needs the
    same four sign-in method directories under `authDir`, since the method
    catalogue in `cli/cmd/project/authmethod.go` is shared by every template and
    carries the configuration each method needs on a fresh backend. Where they

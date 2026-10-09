@@ -27,11 +27,12 @@ export const nhostRegion = (): string =>
  * only way back into a native app is a deep link on the scheme declared in
  * `app.json`. `Linking.createURL` builds that, and it builds the right one for
  * however the app is running - `nhoststarter://` in a real build, and the
- * development server's `exp://.../--/` URL under Expo Go, which is what makes
- * the flow work in development without a second configuration.
+ * development server's `exp://.../--/` URL under Expo Go.
  *
  * Every value this returns has to be in the backend's
  * `auth.redirections.allowedUrls`, or the service refuses to redirect to it.
+ * `nhost init` allows the scheme in nhost.toml and `exp://` in the local
+ * overlay only; the README's "Coming back into the app" says why.
  */
 export const redirectURL = (path: string): string =>
   Linking.createURL(path.startsWith('/') ? path : `/${path}`);

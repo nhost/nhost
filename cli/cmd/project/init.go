@@ -172,7 +172,7 @@ func commandInit(ctx context.Context, cmd *cli.Command, tv *templateValue) error
 		// for the template, which is why the next steps name what to enable.
 		ce.Infoln("Found an existing Nhost project, adding only the %s template", template)
 	} else if err := initBackend(
-		ctx, ce, cmd, choices.methods, configures,
+		ctx, ce, cmd, template, choices.methods, configures,
 	); err != nil {
 		return err
 	}
@@ -193,7 +193,7 @@ func commandInit(ctx context.Context, cmd *cli.Command, tv *templateValue) error
 	printKeptEntries(ce, layout)
 
 	printTemplateNextSteps(
-		ce, template, methodsToEnable(ce, choices.methods, configures), choices.pm,
+		ce, template, missingConfig(ce, template, choices.methods, configures), choices.pm,
 	)
 
 	return nil
@@ -251,11 +251,13 @@ func writesAuthConfig(hasBackend, remote bool) bool {
 
 // initBackend writes a fresh backend: the nhost folder, its configuration and
 // secrets, and either the local layout or one pulled from the linked project.
-// configures says whether the selected methods' settings go into the config.
+// configures says whether what the template and the selected methods need goes
+// into the config.
 func initBackend(
 	ctx context.Context,
 	ce *clienv.CliEnv,
 	cmd *cli.Command,
+	template string,
 	methods []signInMethod,
 	configures bool,
 ) error {
@@ -265,9 +267,11 @@ func initBackend(
 
 	ce.Infoln("Initializing Nhost project")
 
+	tmpl, _ := lookupTemplate(template)
+
 	var configure []func(*model.ConfigConfig)
 	if configures {
-		configure = authMethodConfigure(methods)
+		configure = append(authMethodConfigure(methods), allowRedirects(tmpl.redirectURLs))
 	}
 
 	if err := config.InitConfigAndSecrets(ce, configure...); err != nil {
@@ -284,6 +288,12 @@ func initBackend(
 
 	if err := initProject(ce.Path); err != nil {
 		return fmt.Errorf("failed to initialize project: %w", err)
+	}
+
+	if configures {
+		if err := writeLocalRedirects(ce.Path, tmpl.localRedirectURLs); err != nil {
+			return fmt.Errorf("failed to initialize project: %w", err)
+		}
 	}
 
 	return nil

@@ -10,6 +10,7 @@ import (
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/nhost/cli/clienv"
+	"github.com/nhost/nhost/cli/cmd/config"
 	cmdproject "github.com/nhost/nhost/cli/cmd/project"
 	"github.com/pelletier/go-toml/v2"
 	"github.com/urfave/cli/v3"
@@ -505,6 +506,97 @@ func TestInitTemplateSkipsMethodsAlreadyOnInExistingBackend(t *testing.T) {
 
 	if strings.Contains(output, "otp") {
 		t.Errorf("next steps named otp, already on in nhost.toml:\n%s", output)
+	}
+}
+
+// The react-native app comes back on deep links, which a stock backend refuses,
+// so a fresh backend has to allow them or the first sign-up fails. Expo Go's
+// exp:// goes in the local overlay only, never into nhost.toml.
+//
+//nolint:paralleltest // changes the working directory
+func TestInitTemplateAllowsTheAppsRedirects(t *testing.T) {
+	dir := t.TempDir()
+
+	output, err := runInit(t, dir, "--template", "react-native")
+	if err != nil {
+		t.Fatalf("init --template react-native: %v\n%s", err, output)
+	}
+
+	cfg := readConfig(t, dir)
+
+	shared := []string{"nhoststarter://"}
+	if got := cfg.Auth.Redirections.AllowedUrls; !slices.Equal(got, shared) {
+		t.Errorf("nhost.toml allowedUrls = %v, want %v", got, shared)
+	}
+
+	local, err := config.ApplyJSONPatches(
+		*cfg, filepath.Join(dir, "nhost", "overlays", "local.json"),
+	)
+	if err != nil {
+		t.Fatalf("applying the local overlay: %v", err)
+	}
+
+	want := []string{"nhoststarter://", "exp://"}
+	if got := local.Auth.Redirections.AllowedUrls; !slices.Equal(got, want) {
+		t.Errorf("local allowedUrls = %v, want %v", got, want)
+	}
+
+	if strings.Contains(output, "allowedUrls") {
+		t.Errorf("next steps asked for redirects init already allowed:\n%s", output)
+	}
+
+	web := t.TempDir()
+	if _, err := runInit(t, web, "--template", "nextjs"); err != nil {
+		t.Fatalf("init --template nextjs: %v", err)
+	}
+
+	if _, err := os.Stat(filepath.Join(web, "nhost", "overlays")); !os.IsNotExist(err) {
+		t.Errorf("a web template wrote a local overlay: %v", err)
+	}
+}
+
+// An existing backend is left as it is, so the next steps have to name the
+// redirects it is missing, each where it belongs.
+//
+//nolint:paralleltest // changes the working directory
+func TestInitTemplateNamesRedirectsOnExistingBackend(t *testing.T) {
+	dir := t.TempDir()
+
+	if _, err := runInit(t, dir); err != nil {
+		t.Fatalf("first init: %v", err)
+	}
+
+	before, err := os.ReadFile(filepath.Join(dir, "nhost", "nhost.toml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	output, err := runInit(t, dir, "--template", "react-native")
+	if err != nil {
+		t.Fatalf("init --template over a backend: %v\n%s", err, output)
+	}
+
+	for _, want := range []string{
+		"Add nhoststarter:// to auth.redirections.allowedUrls in nhost/nhost.toml",
+		"Add exp:// to allowedUrls for the local backend only",
+		"nhost config edit --subdomain local",
+	} {
+		if !strings.Contains(output, want) {
+			t.Errorf("next steps do not say %q:\n%s", want, output)
+		}
+	}
+
+	after, err := os.ReadFile(filepath.Join(dir, "nhost", "nhost.toml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !bytes.Equal(before, after) {
+		t.Error("nhost.toml changed; an existing backend must be left as it is")
+	}
+
+	if _, err := os.Stat(filepath.Join(dir, "nhost", "overlays")); !os.IsNotExist(err) {
+		t.Errorf("an existing backend was given an overlay: %v", err)
 	}
 }
 

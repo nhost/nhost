@@ -268,23 +268,41 @@ func manualAuthMethods(
 	return names
 }
 
-// methodsToEnable names the selected methods the project's config leaves off,
-// for the next steps. A config init wrote itself already has them on.
-func methodsToEnable(
+// configToAdd is what the scaffolded app needs from the project's config and
+// does not find there, for the next steps to name.
+type configToAdd struct {
+	// methods are the selected sign-in methods the config leaves off.
+	methods []string
+	// redirects are the template's redirect targets the config does not allow.
+	redirects []string
+	// localRedirects are those the local backend alone should allow.
+	localRedirects []string
+}
+
+// missingConfig reads what the project's config still lacks for the template
+// and the selected methods. A config init wrote itself lacks nothing.
+func missingConfig(
 	ce *clienv.CliEnv,
+	template string,
 	methods []signInMethod,
 	wroteConfig bool,
-) []string {
+) configToAdd {
 	if wroteConfig {
-		return nil
+		return configToAdd{methods: nil, redirects: nil, localRedirects: nil}
 	}
 
 	cfg, err := readLocalConfig(ce.Path)
 	if err != nil {
-		ce.Warnln("Could not check which sign-in methods are on: %v", err)
+		ce.Warnln("Could not check what the configuration already has: %v", err)
 	}
 
-	return manualAuthMethods(methods, cfg)
+	tmpl, _ := lookupTemplate(template)
+
+	return configToAdd{
+		methods:        manualAuthMethods(methods, cfg),
+		redirects:      missingRedirects(tmpl.redirectURLs, cfg),
+		localRedirects: missingRedirects(tmpl.localRedirectURLs, cfg),
+	}
 }
 
 // readLocalConfig reads nhost.toml with the overlay `nhost up` applies on top,
