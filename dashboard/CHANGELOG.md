@@ -1,3 +1,20 @@
+## [@nhost/dashboard@3.6.1] - 2026-10-09
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Add recovery for stale metadata conflicts (#5078)
+- *(dashboard)* Route relationship creation through the shared error toast (#5082)
+- *(dashboard)* Preserve user-entered values when cloning rows (#5081)
+- *(dashboard)* Fix PAT token contrast in dark mode and unstyled toasts (#5124)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#5087)
+- *(deps)* Update vulnerable dependencies (#5098)
+- *(deps)* Update vulnerable dependencies (#5123)
+- *(deps)* Update vulnerable dependencies (#5135)
+
 ## [@nhost/dashboard@3.6.0] - 2026-09-30
 
 ### 🚀 Features
