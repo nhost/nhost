@@ -1,12 +1,14 @@
 <script lang="ts">
 import { untrack } from 'svelte';
 import { goto } from '$app/navigation';
+import { page } from '$app/state';
 import CheckYourInbox from '$lib/components/CheckYourInbox.svelte';
 import { Button } from '$lib/components/ui/button';
 import { Input } from '$lib/components/ui/input';
 import { Label } from '$lib/components/ui/label';
 import { useAuth } from '$lib/nhost/auth.svelte';
 import type { Intent } from '$lib/signin/intent';
+import { signInQuery } from '$lib/signin/query';
 import { requestPasswordReset, signIn, signUp } from './actions';
 
 let {
@@ -46,6 +48,13 @@ let isPending = $state(false);
 function switchMode(): void {
   mode = mode === 'sign-in' ? 'sign-up' : 'sign-in';
   error = undefined;
+  // "Other ways to sign in" is built from the URL, so the URL has to say which
+  // mode the visitor switched to.
+  void goto(`${page.url.pathname}${signInQuery(next, mode)}`, {
+    replaceState: true,
+    keepFocus: true,
+    noScroll: true,
+  });
 }
 
 async function handleSubmit(event: SubmitEvent): Promise<void> {
