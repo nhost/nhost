@@ -9,10 +9,15 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useAuth } from '@/lib/nhost/auth';
+import { DEFAULT_DESTINATION } from '@/signin/destination';
+import { signInQuery } from '@/signin/query';
 
 const { session } = useAuth();
 
 const user = computed(() => session.value?.user);
+
+const signUpLink = `/signin${signInQuery(DEFAULT_DESTINATION, 'sign-up')}`;
+const signInLink = `/signin${signInQuery(DEFAULT_DESTINATION, 'sign-in')}`;
 </script>
 
 <template>
@@ -37,10 +42,10 @@ const user = computed(() => session.value?.user);
         <template v-else>
           <!-- Sign up first: a fresh local backend has no accounts in it. -->
           <Button as-child>
-            <RouterLink to="/signin">Sign up</RouterLink>
+            <RouterLink :to="signUpLink">Sign up</RouterLink>
           </Button>
           <Button as-child variant="outline">
-            <RouterLink to="/signin?intent=sign-in">Sign in</RouterLink>
+            <RouterLink :to="signInLink">Sign in</RouterLink>
           </Button>
         </template>
       </CardContent>

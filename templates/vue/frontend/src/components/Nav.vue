@@ -4,10 +4,14 @@ import NhostLogo from '@/components/NhostLogo.vue';
 import SignOutButton from '@/components/SignOutButton.vue';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/nhost/auth';
+import { DEFAULT_DESTINATION } from '@/signin/destination';
+import { signInQuery } from '@/signin/query';
 
 const { session } = useAuth();
 
 const user = computed(() => session.value?.user);
+
+const signInLink = `/signin${signInQuery(DEFAULT_DESTINATION, 'sign-in')}`;
 </script>
 
 <template>
@@ -32,7 +36,7 @@ const user = computed(() => session.value?.user);
         <SignOutButton />
       </div>
       <Button v-else as-child variant="ghost" size="sm">
-        <RouterLink to="/signin?intent=sign-in">Sign in</RouterLink>
+        <RouterLink :to="signInLink">Sign in</RouterLink>
       </Button>
     </div>
   </nav>
