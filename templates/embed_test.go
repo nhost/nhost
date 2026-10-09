@@ -221,3 +221,59 @@ func TestFSMatchesDisk(t *testing.T) {
 		})
 	}
 }
+
+// gitignoreSamples turns a frontend/.gitignore pattern into paths it matches:
+// one at the frontend root and, for a pattern git matches at any depth, one
+// further down. negated reports a `!` pattern, whose paths must stay reported.
+func gitignoreSamples(template, pattern string) ([]string, bool) {
+	negated := strings.HasPrefix(pattern, "!")
+	pattern = strings.TrimSuffix(strings.TrimPrefix(pattern, "!"), "/")
+	anchored := strings.Contains(pattern, "/")
+	name := strings.ReplaceAll(strings.TrimPrefix(pattern, "/"), "*", "x")
+
+	paths := []string{template + "/frontend/" + name}
+	if !anchored {
+		paths = append(paths, template+"/frontend/src/"+name)
+	}
+
+	return paths, negated
+}
+
+// TestIgnoredCoversEachGitignore checks ignored() against what each template's
+// frontend/.gitignore keeps out of git, so a pattern added there is not first
+// noticed when the output it ignores lands on disk.
+func TestIgnoredCoversEachGitignore(t *testing.T) {
+	t.Parallel()
+
+	// left out of ignored() on purpose; see the comment on its switch.
+	yarnOnly := []string{"/.pnp", ".pnp.*", ".yarn/*"}
+
+	for _, template := range discovered(t) {
+		t.Run(template, func(t *testing.T) {
+			t.Parallel()
+
+			data, err := os.ReadFile(filepath.Join(template, "frontend", ".gitignore"))
+			if err != nil {
+				t.Fatalf("reading the frontend .gitignore: %v", err)
+			}
+
+			for line := range strings.Lines(string(data)) {
+				pattern := strings.TrimSpace(line)
+				if pattern == "" || strings.HasPrefix(pattern, "#") ||
+					slices.Contains(yarnOnly, pattern) {
+					continue
+				}
+
+				paths, negated := gitignoreSamples(template, pattern)
+				for _, path := range paths {
+					if ignored(path) == negated {
+						t.Errorf(
+							"ignored(%q) = %v, want %v for .gitignore line %q",
+							path, negated, !negated, pattern,
+						)
+					}
+				}
+			}
+		})
+	}
+}
