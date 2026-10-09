@@ -2,14 +2,6 @@ table:
   name: tags
   schema: cf_select
 select_permissions:
-  - role: cf_reader
-    permission:
-      columns:
-        - id
-        - item_id
-        - label
-      filter: {}
-      allow_aggregations: true
   - role: cf_filtered_one
     permission:
       columns:
@@ -28,3 +20,11 @@ select_permissions:
       filter:
         label:
           _eq: three
+  - role: cf_reader
+    permission:
+      columns:
+        - id
+        - item_id
+        - label
+      filter: {}
+      allow_aggregations: true

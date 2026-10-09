@@ -7,6 +7,16 @@ computed_fields:
       function:
         name: rule_visible
         schema: cf_predicates
+insert_permissions:
+  - role: cf_predicate_guard
+    permission:
+      check:
+        rule_visible:
+          _eq: true
+      columns:
+        - id
+        - owner_id
+        - label
 select_permissions:
   - role: cf_no_grant
     permission:
@@ -31,13 +41,3 @@ select_permissions:
       computed_fields:
         - rule_visible
       filter: {}
-insert_permissions:
-  - role: cf_predicate_guard
-    permission:
-      columns:
-        - id
-        - owner_id
-        - label
-      check:
-        rule_visible:
-          _eq: true

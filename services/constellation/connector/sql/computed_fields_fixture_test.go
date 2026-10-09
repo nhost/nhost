@@ -4,8 +4,10 @@ import (
 	"encoding/json/jsontext"
 	json "encoding/json/v2"
 	"log/slog"
+	"maps"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"testing"
 
@@ -410,6 +412,55 @@ func TestComputedFieldsMetadataFixture(t *testing.T) {
 	}
 }
 
+// The CLI export names these files by schema and table; Nix omits untracked
+// replacements, so missing canonical files break metadata loads in the check.
+func TestOrderedInsertMetadataFixturePaths(t *testing.T) {
+	t.Parallel()
+
+	const tablesDir = "../../integration/nhost/metadata/databases/cf_insert_order/tables"
+
+	names := []string{"after_0", "after_1", "before_object", "child", "events", "parent"}
+
+	wantIncludes := make([]string, 0, len(names))
+	for _, name := range names {
+		filename := "cf_insert_order_" + name + ".yaml"
+		wantIncludes = append(wantIncludes, "!include "+filename)
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			var table struct {
+				Table struct {
+					Name   string `yaml:"name"`
+					Schema string `yaml:"schema"`
+				} `yaml:"table"`
+			}
+			if err := yaml.Unmarshal(
+				computedFile(t, filepath.Join(tablesDir, filename)),
+				&table,
+			); err != nil {
+				t.Fatalf("decode exported table: %v", err)
+			}
+
+			if table.Table.Name != name || table.Table.Schema != "cf_insert_order" {
+				t.Fatalf("wrong table identity in %s: %+v", filename, table.Table)
+			}
+		})
+	}
+
+	var includes []string
+	if err := yaml.Unmarshal(
+		computedFile(t, filepath.Join(tablesDir, "tables.yaml")),
+		&includes,
+	); err != nil {
+		t.Fatalf("decode ordered-insert table list: %v", err)
+	}
+
+	if diff := cmp.Diff(wantIncludes, includes); diff != "" {
+		t.Errorf("exported table filenames/order differ (-want +got):\n%s", diff)
+	}
+}
+
 func checkComputedDirectorySource(
 	t *testing.T,
 	source computedMetadataSource,
@@ -502,13 +553,119 @@ func checkComputedDirectoryTable(t *testing.T, source string, table map[string]a
 		t.Fatalf("decode directory table: %v", err)
 	}
 
-	// Compare definitions and grants, including aggregate access, so the
-	// standalone metadata cannot silently diverge from the live YAML.
-	if diff := cmp.Diff(normalizeComputedYAML(t, directory), table); diff != "" {
+	// Hasura exports named entries by role/name; their order does not change
+	// grants or relationships. Keep every entry's contents in the comparison.
+	if diff := cmp.Diff(
+		canonicalComputedMetadataLists(t, normalizeComputedYAML(t, directory)),
+		canonicalComputedMetadataLists(t, table),
+	); diff != "" {
 		t.Errorf("%s/%s directory/JSON drift (-YAML +JSON):\n%s", source, name, diff)
 	}
 
 	return "!include " + source + "_" + name + ".yaml"
+}
+
+func canonicalComputedMetadataLists(t *testing.T, table map[string]any) map[string]any {
+	t.Helper()
+
+	canonical := make(map[string]any, len(table))
+	maps.Copy(canonical, table)
+
+	for key, identity := range map[string]string{
+		"computed_fields": "name", "remote_relationships": "name",
+		"object_relationships": "name", "array_relationships": "name",
+		"select_permissions": "role", "insert_permissions": "role",
+		"update_permissions": "role", "delete_permissions": "role",
+	} {
+		entries, ok := table[key].([]any)
+		if !ok {
+			continue
+		}
+
+		type namedEntry struct {
+			name  string
+			value any
+		}
+
+		named := make([]namedEntry, len(entries))
+		for i, entry := range entries {
+			item, ok := entry.(map[string]any)
+			if !ok {
+				t.Fatalf("%s[%d] is not a metadata object: %T", key, i, entry)
+			}
+
+			name, ok := item[identity].(string)
+			if !ok || name == "" {
+				t.Fatalf("%s[%d] has no %s: %v", key, i, identity, item)
+			}
+
+			named[i] = namedEntry{name: name, value: entry}
+		}
+
+		sort.Slice(named, func(i, j int) bool { return named[i].name < named[j].name })
+
+		ordered := make([]any, len(named))
+		for i, entry := range named {
+			if i > 0 && named[i-1].name == entry.name {
+				t.Fatalf("duplicate %s %q in %s", identity, entry.name, key)
+			}
+
+			ordered[i] = entry.value
+		}
+
+		canonical[key] = ordered
+	}
+
+	return canonical
+}
+
+func TestCanonicalComputedMetadataLists(t *testing.T) {
+	t.Parallel()
+
+	permissions := []any{
+		map[string]any{
+			"role":       "reader",
+			"permission": map[string]any{"filter": map[string]any{}},
+		},
+		map[string]any{
+			"role":       "filtered",
+			"permission": map[string]any{"filter": map[string]any{"id": 1}},
+		},
+	}
+	relationships := []any{
+		map[string]any{"name": "object", "definition": "target-a"},
+		map[string]any{"name": "array", "definition": "target-b"},
+	}
+	left := map[string]any{
+		"select_permissions":   permissions,
+		"remote_relationships": relationships,
+	}
+	right := map[string]any{
+		"select_permissions":   []any{permissions[1], permissions[0]},
+		"remote_relationships": []any{relationships[1], relationships[0]},
+	}
+
+	if diff := cmp.Diff(
+		canonicalComputedMetadataLists(t, left),
+		canonicalComputedMetadataLists(t, right),
+	); diff != "" {
+		t.Fatalf("named list ordering changed metadata parity (-left +right):\n%s", diff)
+	}
+
+	// An order-insensitive comparison must still reject a changed permission.
+	right["select_permissions"] = []any{
+		map[string]any{
+			"role":       "filtered",
+			"permission": map[string]any{"filter": map[string]any{}},
+		},
+		permissions[0],
+	}
+	if cmp.Equal(
+		canonicalComputedMetadataLists(t, left),
+		canonicalComputedMetadataLists(t, right),
+	) {
+		t.Fatal("changed filter must fail metadata parity")
+	}
 }
 
 // computedContractConn provides a new, independently seeded testdb to each

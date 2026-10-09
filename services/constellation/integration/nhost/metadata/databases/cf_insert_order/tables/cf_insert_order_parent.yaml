@@ -1,73 +1,82 @@
 table:
-  schema: cf_insert_order
   name: parent
+  schema: cf_insert_order
 object_relationships:
-  # Metadata and GraphQL input orders deliberately differ from the XXH3 order.
   - name: obj_rel_0000
     using:
       foreign_key_constraint_on:
-        table:
-          schema: cf_insert_order
-          name: after_0
         column: parent_id
+        table:
+          name: after_0
+          schema: cf_insert_order
   - name: obj_rel_0001
     using:
       foreign_key_constraint_on: before_id
   - name: obj_rel_0224
     using:
       foreign_key_constraint_on:
-        table:
-          schema: cf_insert_order
-          name: after_1
         column: parent_id
+        table:
+          name: after_1
+          schema: cf_insert_order
 array_relationships:
-  - name: qa
-    using:
-      manual_configuration:
-        remote_table:
-          schema: cf_insert_order
-          name: child
-        column_mapping:
-          id: parent_id
-  - name: rel_arr_00000
-    using:
-      manual_configuration:
-        remote_table:
-          schema: cf_insert_order
-          name: child
-        column_mapping:
-          id: parent_id
-  - name: rel_arr_02120
-    using:
-      manual_configuration:
-        remote_table:
-          schema: cf_insert_order
-          name: child
-        column_mapping:
-          id: parent_id
   - name: arr_mmmmmmmmmmmmmmmmmmmmmmmmmmmmmm_00000
     using:
       manual_configuration:
-        remote_table:
-          schema: cf_insert_order
-          name: child
         column_mapping:
           id: parent_id
-select_permissions:
-  - role: cf_insert_guard
-    permission:
-      columns: [id, label, before_id]
-      filter: {}
+        insertion_order: null
+        remote_table:
+          name: child
+          schema: cf_insert_order
+  - name: qa
+    using:
+      manual_configuration:
+        column_mapping:
+          id: parent_id
+        insertion_order: null
+        remote_table:
+          name: child
+          schema: cf_insert_order
+  - name: rel_arr_00000
+    using:
+      manual_configuration:
+        column_mapping:
+          id: parent_id
+        insertion_order: null
+        remote_table:
+          name: child
+          schema: cf_insert_order
+  - name: rel_arr_02120
+    using:
+      manual_configuration:
+        column_mapping:
+          id: parent_id
+        insertion_order: null
+        remote_table:
+          name: child
+          schema: cf_insert_order
 insert_permissions:
   - role: cf_insert_guard
     permission:
-      columns: [id, label, before_id]
       check:
         _not:
           _exists:
             _table:
-              schema: cf_insert_order
               name: parent
+              schema: cf_insert_order
             _where:
               label:
                 _eq: blocked
+      columns:
+        - id
+        - label
+        - before_id
+select_permissions:
+  - role: cf_insert_guard
+    permission:
+      columns:
+        - id
+        - label
+        - before_id
+      filter: {}

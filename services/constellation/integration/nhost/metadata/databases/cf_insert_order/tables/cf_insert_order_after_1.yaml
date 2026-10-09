@@ -1,3 +1,3 @@
 table:
+  name: after_1
   schema: cf_insert_order
-  name: events
