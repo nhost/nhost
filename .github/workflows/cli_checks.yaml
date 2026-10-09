@@ -35,10 +35,11 @@ on:
       # auth email templates (embedded into the CLI by `nhost init`)
       - "services/auth/email-templates/**"
 
-      # starter templates (embedded into the CLI by `nhost init --template`)
+      # starter templates (embedded into the CLI by `nhost init --template`).
+      # A change inside a template is tested by the `go-tests` job in
+      # templates_checks.yaml, which needs no build or secrets.
       - "templates/embed.go"
       - "templates/embed_test.go"
-      - "templates/nextjs/**"
 
       # docs
       - "docs/**"
@@ -74,7 +75,6 @@ jobs:
         services/auth/email-templates/**
         templates/embed.go
         templates/embed_test.go
-        templates/nextjs/**
         docs/**
 
   check-permissions:
