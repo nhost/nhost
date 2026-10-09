@@ -159,6 +159,59 @@ func TestComputedTablePermissionInputs(t *testing.T) {
 	}
 }
 
+//nolint:paralleltest // Reuse one testdb connector for the nested target permission and controls.
+func TestComputedTableFilterPreservesTargetPermissionRoot(t *testing.T) {
+	md, db := permissionFixture(t)
+	if _, err := db.Exec(t.Context(), `
+		INSERT INTO cf_select.tags (id, item_id, label) VALUES (4, 1, 'one');
+		CREATE FUNCTION cf_select.tag_peers(tag cf_select.tags) RETURNS SETOF cf_select.tags
+		LANGUAGE sql STABLE AS $$ SELECT t.id, t.item_id, t.label FROM cf_select.tags t
+		WHERE t.id = 4 AND tag.id IN (1, 2) $$;
+	`); err != nil {
+		t.Fatal(err)
+	}
+
+	md.Tables[1].ComputedFields = append(md.Tables[1].ComputedFields, metadata.ComputedField{
+		Name: "tag_peers", Definition: metadata.ComputedFieldDefinition{
+			Function: metadata.FunctionSource{Schema: "cf_select", Name: "tag_peers"},
+		},
+	})
+	md.Tables[0].SelectPermissions = append(md.Tables[0].SelectPermissions,
+		metadata.SelectPermission{Role: "alias_guard", Permission: metadata.SelectPermissionConfig{
+			Columns: []string{"id"}, Filter: map[string]any{},
+		}})
+	md.Tables[1].SelectPermissions = append(md.Tables[1].SelectPermissions,
+		metadata.SelectPermission{Role: "alias_guard", Permission: metadata.SelectPermissionConfig{
+			Columns: []string{"id", "label"}, Filter: map[string]any{
+				"tag_peers": map[string]any{"label": map[string]any{
+					"_ceq": []any{"$", "label"},
+				}},
+			},
+		}})
+
+	conn, inc := permissionConnector(t, md, db.Config().ConnString())
+	if len(inc.Snapshot()) != 0 {
+		t.Fatalf("nested target permission dropped: %+v", inc.Snapshot())
+	}
+
+	for _, tc := range []struct {
+		name, query, root string
+		want              []int
+	}{
+		{"target control", `query { cf_select_tags(order_by:{id:asc}) { id } }`, "cf_select_tags", []int{1}},
+		{"visible target", `query { cf_select_items(where:{item_tags:{id:{_eq:1}}}) { id } }`, "cf_select_items", []int{1}},
+		{"hidden target", `query { cf_select_items(where:{item_tags:{id:{_eq:2}}}) { id } }`, "cf_select_items", []int{}},
+		{"any permitted target", `query { cf_select_items(where:{item_tags:{}}) { id } }`, "cf_select_items", []int{1}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			got := permissionIDs(t, conn, "alias_guard", tc.query, tc.root)
+			if !reflect.DeepEqual(got, tc.want) {
+				t.Fatalf("rows: %v, want %v", got, tc.want)
+			}
+		})
+	}
+}
+
 //nolint:paralleltest // Keep the additional testdb connector within the default connection budget.
 func TestComputedTablePermissionSession(t *testing.T) {
 	md, db := permissionFixture(t)
