@@ -47,11 +47,27 @@ do what init's next steps named before you sign up.
 ### Pointing the app at your backend
 
 This is the one thing that is harder than on the web. `nhost up` serves the
-backend at `https://local.*.local.nhost.run`, which resolves on your machine
-and nowhere else. A simulator on the same machine can reach it. A phone cannot.
+backend at `https://local.*.local.nhost.run`, names that resolve to
+`127.0.0.1`. That address is your machine only from something that shares its
+network, which the iOS simulator does and the Android emulator and a phone do
+not.
 
-- **iOS simulator or Android emulator**: it works as is.
-- **A real device**: run `nhost up` and expose it to your network, then set
+- iOS simulator: it works as is.
+- Android emulator: `127.0.0.1` is the emulator itself, and your machine is
+  `10.0.2.2` from inside it. Start the backend on the subdomain that resolves
+  there, and run the app against the same one:
+
+  ```sh
+  nhost --local-subdomain 10-0-2-2 up             # from the project root
+  EXPO_PUBLIC_NHOST_SUBDOMAIN=10-0-2-2 pnpm dev   # from frontend/
+  ```
+
+  The stack still answers on `local.*` while it runs this way, but the URLs it
+  prints, the links in its emails, an OAuth provider's callback URL and the
+  dashboard's own calls to the backend all move to `10-0-2-2`, which only the
+  emulator can reach. Go back to a plain `nhost up` when you are done with the
+  emulator.
+- A real device: run `nhost up` and expose it to your network, then set
   `EXPO_PUBLIC_NHOST_SUBDOMAIN` and `EXPO_PUBLIC_NHOST_REGION` to a project
   the device can reach - a real Nhost project is the simplest answer while
   developing on hardware.

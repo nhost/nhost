@@ -125,6 +125,7 @@ cd frontend && pnpm install && pnpm dev    # Expo dev server
 pnpm lint && pnpm test && pnpm build       # lint, tests, type-checked bundle
 ```
 
-A device or simulator cannot reach `local.nhost.run`; `frontend/README.md`
-says what to point it at instead. Local emails are captured at
+`local.*.local.nhost.run` resolves to `127.0.0.1`, so the iOS simulator reaches
+the local stack as is, while the Android emulator and a phone do not;
+`frontend/README.md` says what to do for each. Local emails are captured at
 <https://local.mailhog.local.nhost.run>.
