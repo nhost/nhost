@@ -1,7 +1,7 @@
 ---
 title: Start from a template
 description: "Scaffold a frontend next to your Nhost backend with nhost init --template. The nextjs starter offers password, magic link, email code and OAuth sign-in, a shared session and a protected route."
-keywords: ["template", "starter", "scaffold", "nhost init", "Next.js", "shadcn/ui", "authentication", "CLI"]
+keywords: ["template", "starter", "scaffold", "nhost init", "Next.js", "React", "Vue", "SvelteKit", "React Native", "Expo", "shadcn/ui", "authentication", "CLI"]
 head:
   - tag: title
     content: "Start From a Template | Nhost Docs"
@@ -76,7 +76,26 @@ Both offer the same modules with the same props, and nothing in the app imports 
 
 `none` leaves `@radix-ui/react-label`, `@radix-ui/react-slot` and `class-variance-authority` out of `package.json`, and with them the lockfile the template ships, which no longer describes the project once its dependencies change. Your first install writes one that does.
 
+`react-native` offers `none` alone, its NativeWind components: shadcn/ui is built on the DOM, so there is no port to choose. The CLI does not ask, and refuses `--ui shadcn`.
+
 Like `--auth-methods`, it reads an environment variable, `NHOST_UI`, and only applies alongside `--template`.
+
+### Choosing a navigation system
+
+`--navigation` applies to `react-native` alone, the one template whose framework has two navigation libraries in common use:
+
+```sh
+nhost init --template react-native --navigation navigation
+```
+
+| `--navigation` | what you get |
+| --- | --- |
+| `router` | Expo Router, which reads the screens from `frontend/src/app/`. The default. |
+| `navigation` | React Navigation's native stack, with the same screens under `frontend/src/app/` registered by their paths in `frontend/src/screens.ts`. |
+
+Screens reach the library only through `frontend/src/lib/navigation.tsx`, so the choice changes no screen. It changes that module, the entry point and app shell, `app.json`, which loses the `expo-router` plugin, and `package.json`. `navigation` also adds `screens.ts` and the helpers it and `navigation.tsx` are built on, and leaves out the lockfile the template ships, which describes Expo Router's dependencies. Your first install writes one that does.
+
+It reads `NHOST_NAVIGATION`, and only applies alongside `--template`. Passing it with any other template is refused rather than ignored.
 
 ### Choosing a package manager
 
@@ -181,7 +200,13 @@ NEXT_PUBLIC_APP_ORIGIN=https://your.app
 
 | Name | Stack | What it shows |
 | --- | --- | --- |
-| `nextjs` | Next.js (App Router), Tailwind v4, shadcn/ui or plain Tailwind | The sign-in methods you choose, a session shared by server and browser, one protected route. No database schema. |
+| `nextjs` | Next.js 16 (App Router), Tailwind v4 | The sign-in methods you choose, a session shared by server and browser, one protected route. No database schema. |
+| `react` | React 19 on Vite, Tailwind v4 | The same app with no server: a browser-held session the SDK refreshes, one protected route. No database schema. |
+| `vue` | Vue 3 on Vite, Tailwind v4 | The `react` app in Vue, with the session read before mount so nothing flashes signed out. No database schema. |
+| `svelte` | SvelteKit as an SPA, Tailwind v4 | The same app with SvelteKit's own file-based routing and runes for the session. No database schema. |
+| `react-native` | Expo (SDK 57), NativeWind; Expo Router or React Navigation | The same app on a device: an AsyncStorage session, auth links arriving as deep links, OAuth through a browser session. No database schema. |
+
+The walkthrough on this page uses `nextjs`. The others scaffold the same app in their framework's own layout, and each one's `frontend/README.md` says where things live and how to run it.
 
 There is no schema to undo: the app uses only the `auth.users` table the backend ships with, so the first table you create is your own.
 
