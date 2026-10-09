@@ -49,8 +49,9 @@ type jsonPatchOp struct {
 // writeLocalRedirects allows urls on the local backend alone, by appending them
 // in the overlay rather than writing them into nhost.toml. Appending keeps a
 // change to the list in nhost.toml in effect locally too. The overlay needs
-// that list to exist, which allowRedirects sees to for any template with
-// local entries. It writes nothing when there are no urls.
+// that list to exist, and nhost.toml only has it when allowRedirects was given
+// at least one url, so a template with localRedirectURLs must also have
+// redirectURLs. It writes nothing when there are no urls.
 func writeLocalRedirects(ps *clienv.PathStructure, urls []string) error {
 	if len(urls) == 0 {
 		return nil

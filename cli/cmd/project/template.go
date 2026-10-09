@@ -70,7 +70,8 @@ type starterTemplate struct {
 	// overlay rather than nhost.toml, because they can only be allowed whole:
 	// Expo Go's URL carries whatever host the dev server is on, and exp://
 	// allowed on a deployed project would let a link deliver a session to
-	// any project Expo Go can load.
+	// any project Expo Go can load. The overlay appends to the list
+	// redirectURLs creates, so a template with these needs one of those too.
 	localRedirectURLs []string
 }
 
@@ -144,8 +145,8 @@ func catalogue() []starterTemplate {
 			uiSystems:    nativeUISystems(),
 			navSystems:   expoNavigationSystems(),
 
-			// The scheme in frontend/app.json, which is what a build comes
-			// back on, and Expo Go, which is what `pnpm dev` runs in.
+			// The scheme in each app.json the template ships, which is what a
+			// build comes back on, and Expo Go, which is what `pnpm dev` runs in.
 			redirectURLs:      []string{"nhoststarter://"},
 			localRedirectURLs: []string{"exp://"},
 		},

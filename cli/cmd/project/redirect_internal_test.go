@@ -2,6 +2,7 @@ package project
 
 import (
 	"encoding/json"
+	"io"
 	"io/fs"
 	"os"
 	"path"
@@ -12,15 +13,17 @@ import (
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/nhost/cli/clienv"
+	"github.com/nhost/nhost/cli/cmd/config"
 	nhostproject "github.com/nhost/nhost/cli/project"
 	"github.com/nhost/nhost/templates"
 	"github.com/pelletier/go-toml/v2"
 )
 
 // A native template comes back on the scheme in its app.json, so the backend
-// init writes has to allow that scheme or no sign-in link works in a build.
-// Expo Go's exp:// is allowed whole, so it must never be in the shared list a
-// deployed project reads.
+// init writes has to allow that scheme or no sign-in link works in a build. A
+// navigation overlay brings an app.json of its own, which is the one a project
+// scaffolded with it gets. Expo Go's exp:// is allowed whole, so it must never
+// be in the shared list a deployed project reads.
 func TestRedirectURLsFollowTheAppScheme(t *testing.T) {
 	t.Parallel()
 
@@ -37,23 +40,87 @@ func TestRedirectURLsFollowTheAppScheme(t *testing.T) {
 				}
 			}
 
-			b, err := fs.ReadFile(templates.FS, path.Join(tmpl.name, "frontend", "app.json"))
+			apps := []string{path.Join(tmpl.name, navRootPath, "app.json")}
+			for _, nav := range tmpl.navSystems {
+				if nav.overlay != "" {
+					apps = append(apps, path.Join(tmpl.name, navDirPath, nav.overlay, "app.json"))
+				}
+			}
+
+			for _, p := range apps {
+				b, err := fs.ReadFile(templates.FS, p)
+				if err != nil {
+					continue
+				}
+
+				var app struct {
+					Expo struct {
+						Scheme string `json:"scheme"`
+					} `json:"expo"`
+				}
+
+				if err := json.Unmarshal(b, &app); err != nil {
+					t.Fatalf("parsing %s: %v", p, err)
+				}
+
+				if want := app.Expo.Scheme + "://"; !slices.Contains(tmpl.redirectURLs, want) {
+					t.Errorf("redirectURLs = %v, want %q from %s", tmpl.redirectURLs, want, p)
+				}
+			}
+		})
+	}
+}
+
+// The overlay writeLocalRedirects writes appends to allowedUrls, which only
+// exists in nhost.toml when allowRedirects had a shared entry to put there. A
+// template with local entries and no shared ones would get a local backend
+// that refuses to start, so each one is scaffolded the way init does it and
+// the local config has to read.
+func TestLocalRedirectURLsApplyToTheConfigInitWrites(t *testing.T) {
+	t.Parallel()
+
+	for _, tmpl := range catalogue() {
+		if len(tmpl.localRedirectURLs) == 0 {
+			continue
+		}
+
+		t.Run(tmpl.name, func(t *testing.T) {
+			t.Parallel()
+
+			root := t.TempDir()
+			ps := clienv.NewPathStructure(
+				root, root, filepath.Join(root, ".nhost"), filepath.Join(root, "nhost"),
+			)
+
+			if err := os.MkdirAll(ps.NhostFolder(), 0o755); err != nil {
+				t.Fatal(err)
+			}
+
+			ce := clienv.New(io.Discard, io.Discard, ps, "", "", "", "", "", "", "")
+			if err := config.InitConfigAndSecrets(
+				ce,
+				append(authMethodConfigure(signInMethods()), allowRedirects(tmpl.redirectURLs))...,
+			); err != nil {
+				t.Fatalf("InitConfigAndSecrets: %v", err)
+			}
+
+			if err := writeLocalRedirects(ps, tmpl.localRedirectURLs); err != nil {
+				t.Fatalf("writeLocalRedirects: %v", err)
+			}
+
+			got, err := readLocalConfig(ps)
 			if err != nil {
-				return
+				t.Fatalf(
+					"the local overlay does not apply (localRedirectURLs needs "+
+						"at least one entry in redirectURLs): %v",
+					err,
+				)
 			}
 
-			var app struct {
-				Expo struct {
-					Scheme string `json:"scheme"`
-				} `json:"expo"`
-			}
-
-			if err := json.Unmarshal(b, &app); err != nil {
-				t.Fatalf("parsing app.json: %v", err)
-			}
-
-			if want := app.Expo.Scheme + "://"; !slices.Contains(tmpl.redirectURLs, want) {
-				t.Errorf("redirectURLs = %v, want %q from app.json", tmpl.redirectURLs, want)
+			if missing := missingRedirects(
+				append(slices.Clone(tmpl.redirectURLs), tmpl.localRedirectURLs...), got,
+			); len(missing) > 0 {
+				t.Errorf("the local backend does not allow %v", missing)
 			}
 		})
 	}
