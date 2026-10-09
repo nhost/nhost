@@ -1,3 +1,9 @@
+## [constellation@0.7.2] - 2026-10-09
+
+### Chore
+
+- *(deps)* Bump go and govulncheck (#5162)
+
 ## [constellation@0.7.1] - 2026-09-30
 
 ### 🐛 Bug Fixes
