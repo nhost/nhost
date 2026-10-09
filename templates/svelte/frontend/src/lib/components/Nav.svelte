@@ -3,10 +3,14 @@ import NhostLogo from '$lib/components/NhostLogo.svelte';
 import SignOutButton from '$lib/components/SignOutButton.svelte';
 import { Button } from '$lib/components/ui/button';
 import { useAuth } from '$lib/nhost/auth.svelte';
+import { DEFAULT_DESTINATION } from '$lib/signin/destination';
+import { signInQuery } from '$lib/signin/query';
 
 const auth = useAuth();
 
 const user = $derived(auth.session?.user);
+
+const signInLink = `/signin${signInQuery(DEFAULT_DESTINATION, 'sign-in')}`;
 </script>
 
 <nav
@@ -29,9 +33,7 @@ const user = $derived(auth.session?.user);
         <SignOutButton />
       </div>
     {:else}
-      <Button href="/signin?intent=sign-in" variant="ghost" size="sm"
-        >Sign in</Button
-      >
+      <Button href={signInLink} variant="ghost" size="sm">Sign in</Button>
     {/if}
   </div>
 </nav>
