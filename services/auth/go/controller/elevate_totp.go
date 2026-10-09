@@ -7,9 +7,10 @@ import (
 	"github.com/nhost/nhost/services/auth/go/api"
 )
 
-func (ctrl *Controller) VerifySignInMfaTotp( //nolint:ireturn
-	ctx context.Context, req api.VerifySignInMfaTotpRequestObject,
-) (api.VerifySignInMfaTotpResponseObject, error) {
+func (ctrl *Controller) ElevateTotp( //nolint:ireturn
+	ctx context.Context,
+	request api.ElevateTotpRequestObject,
+) (api.ElevateTotpResponseObject, error) {
 	logger := oapimw.LoggerFromContext(ctx)
 
 	if !ctrl.config.TOTPEnabled {
@@ -17,7 +18,7 @@ func (ctrl *Controller) VerifySignInMfaTotp( //nolint:ireturn
 		return ctrl.sendError(ErrDisabledEndpoint), nil
 	}
 
-	user, apiErr := ctrl.wf.GetUserByTicket(ctx, req.Body.Ticket, logger)
+	user, apiErr := ctrl.wf.GetUserFromJWTInContext(ctx, logger)
 	if apiErr != nil {
 		return ctrl.sendError(apiErr), nil
 	}
@@ -38,19 +39,23 @@ func (ctrl *Controller) VerifySignInMfaTotp( //nolint:ireturn
 		return ctrl.sendError(ErrInternalServerError), nil
 	}
 
-	valid := ctrl.totp.Validate(req.Body.Otp, string(totpSecret))
-	if !valid {
+	if !ctrl.totp.Validate(request.Body.Otp, string(totpSecret)) {
 		logger.WarnContext(ctx, "invalid totp")
 		return ctrl.sendError(ErrInvalidTotp), nil
 	}
 
-	session, err := ctrl.wf.NewSession(ctx, user, nil, logger)
+	session, err := ctrl.wf.NewSession(
+		ctx,
+		user,
+		map[string]any{"x-hasura-auth-elevated": user.ID.String()},
+		logger,
+	)
 	if err != nil {
-		logger.ErrorContext(ctx, "error getting new session", logError(err))
+		logger.ErrorContext(ctx, "failed to create elevated session", logError(err))
 		return ctrl.sendError(ErrInternalServerError), nil
 	}
 
-	return api.VerifySignInMfaTotp200JSONResponse{
+	return api.ElevateTotp200JSONResponse{
 		Session: session,
 	}, nil
 }
