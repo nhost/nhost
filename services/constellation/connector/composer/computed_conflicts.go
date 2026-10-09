@@ -76,8 +76,18 @@ func (c *Composer) omitRoleComputedConflicts(
 
 	for source, selections := range conflicts {
 		roleSchemas[source][role] = withoutComputedSelections(roleSchemas[source][role], selections)
+
+		recorded := make(map[string]struct{}, len(selections))
 		for _, owner := range selections {
 			tableSchema, tableName := c.computedOwnerTable(owner)
+
+			identity := tableSchema + "\x00" + tableName + "\x00" + owner.field
+			if _, exists := recorded[identity]; exists {
+				continue
+			}
+
+			recorded[identity] = struct{}{}
+
 			c.inconsistencies.RecordComputedField(
 				ctx,
 				logger,
@@ -248,26 +258,12 @@ func withoutDroppedOutputTypes(fields []*graph.Field, dropped map[string]struct{
 	return kept
 }
 
-//nolint:cyclop // A scalar is orphaned only after checking inputs, object/interface fields and directive references.
 func pruneOrphanedComputedArgumentTypes(
 	copySchema, schema *graph.Schema, remove map[string]struct{},
 ) {
-	// A generated input (or one of its scalars) can belong to more than one
-	// computed selection. Keep it whenever a surviving field still uses it.
-	keepInputsUsedBySurvivingFields(remove, copySchema)
+	unmarkedRemove := splitComputedInputRemovals(copySchema, schema, remove)
 
-	copySchema.Inputs = make([]*graph.InputObjectType, 0, len(schema.Inputs))
-
-	orphanedScalars := make(map[string]struct{})
-	for _, input := range schema.Inputs {
-		if _, omitted := remove[input.Name]; omitted {
-			for _, field := range input.Fields {
-				orphanedScalars[namedGraphType(field.Type)] = struct{}{}
-			}
-		} else {
-			copySchema.Inputs = append(copySchema.Inputs, input)
-		}
-	}
+	orphanedScalars := omitComputedArgumentInputs(copySchema, schema, remove, unmarkedRemove)
 
 	// A surviving object field may refer to a tracked object with the same
 	// name as the orphaned argument scalar. That object reference must not
@@ -317,6 +313,55 @@ func pruneOrphanedComputedArgumentTypes(
 			copySchema.Scalars = append(copySchema.Scalars, scalar)
 		}
 	}
+}
+
+func omitComputedArgumentInputs(
+	copySchema, schema *graph.Schema, markedRemove, unmarkedRemove map[string]struct{},
+) map[string]struct{} {
+	copySchema.Inputs = make([]*graph.InputObjectType, 0, len(schema.Inputs))
+	orphanedScalars := make(map[string]struct{})
+
+	for _, input := range schema.Inputs {
+		_, markedOmitted := markedRemove[input.Name]
+
+		_, unmarkedOmitted := unmarkedRemove[input.Name]
+		if input.ComputedArgument && markedOmitted || !input.ComputedArgument && unmarkedOmitted {
+			for _, field := range input.Fields {
+				orphanedScalars[namedGraphType(field.Type)] = struct{}{}
+			}
+		} else {
+			copySchema.Inputs = append(copySchema.Inputs, input)
+		}
+	}
+
+	return orphanedScalars
+}
+
+// Marked inputs belong to computed selections even when a tracked function
+// refers to the same type name. Legacy unmarked inputs retain the existing
+// reference-based pruning rule. A surviving computed selection can share its
+// input with an omitted one, so it keeps the marked definition.
+func splitComputedInputRemovals(
+	copySchema, schema *graph.Schema, remove map[string]struct{},
+) map[string]struct{} {
+	unmarkedRemove := make(map[string]struct{}, len(remove))
+	for name := range remove {
+		unmarkedRemove[name] = struct{}{}
+	}
+
+	for _, input := range schema.Inputs {
+		if input.ComputedArgument {
+			delete(unmarkedRemove, input.Name)
+		}
+	}
+
+	keepInputsUsedBySurvivingFields(unmarkedRemove, copySchema)
+
+	for _, owner := range computedArgumentOwners("", copySchema) {
+		delete(remove, owner.input)
+	}
+
+	return unmarkedRemove
 }
 
 func keepInputsUsedBySurvivingFields(remove map[string]struct{}, schema *graph.Schema) {
@@ -455,13 +500,18 @@ func computedArgumentOwners(source string, schema *graph.Schema) []computedArgum
 }
 
 func findInput(schema *graph.Schema, name string) *graph.InputObjectType {
+	var fallback *graph.InputObjectType
 	for _, input := range schema.Inputs {
 		if input.Name == name {
-			return input
+			if input.ComputedArgument {
+				return input
+			}
+
+			fallback = input
 		}
 	}
 
-	return nil
+	return fallback
 }
 
 func conflictsWithInput(schema *graph.Schema, input *graph.InputObjectType) bool {
