@@ -55,9 +55,9 @@ export type ButtonProps = {
  *
  * On the web a button that navigates has to stay an anchor, so the shadcn/ui
  * versions of this component merge their look onto a link. A React Native app
- * has no anchors: navigation is `router.push` from an `onPress`, which is what
- * a button already does. So `Link` wraps a Button where the web templates
- * would have done the opposite.
+ * has no anchors: a control navigates by calling `push`, `replace` or `backTo`
+ * on `useGo()` from `@/lib/navigation` in its `onPress`, which a Button already
+ * takes. So there is nothing to merge a Button onto.
  */
 export function Button({
   children,
