@@ -17,6 +17,8 @@ import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { useGo, useParams } from '@/lib/navigation';
 import { useAuth } from '@/lib/nhost/AuthProvider';
+import { DEFAULT_DESTINATION } from '@/signin/destination';
+import { signInRoute } from '@/signin/route';
 
 // Inline for the same reason as the sign-in screen's calls: Expo Router turns
 // every file under `src/app` into a route, so a method's code lives in the
@@ -60,6 +62,7 @@ export default function ResetPasswordScreen() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | undefined>();
   const [isPending, setIsPending] = useState(false);
+  const [changed, setChanged] = useState(false);
 
   const handleSubmit = async (): Promise<void> => {
     setError(undefined);
@@ -71,9 +74,7 @@ export default function ResetPasswordScreen() {
         return;
       }
 
-      // They are already signed in, so there is nowhere to send them but on into
-      // the app.
-      go.replace('/protected');
+      setChanged(true);
     } catch (err) {
       console.error('Error changing the password:', err);
       setError('The request did not reach the server. Try again.');
@@ -86,6 +87,46 @@ export default function ResetPasswordScreen() {
   // redeemed, so waiting is what keeps a working link from being reported as
   // expired.
   if (isLoading) {
+    return null;
+  }
+
+  // A password change revokes every session the account has, so whoever held
+  // the old password or a stolen refresh token is cut off, and the SDK clears
+  // this one too. Checked before the session, which by then is gone: the
+  // change worked, and the link did not fail. The password form opens on
+  // sign-in, since the new password is what they have just typed.
+  if (changed) {
+    return (
+      <Screen>
+        <Card>
+          <CardHeader>
+            <CardTitle>Password changed</CardTitle>
+            <CardDescription>
+              Changing it signed you out everywhere, this device included. Sign
+              in again with the new password.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+              onPress={() =>
+                go.replace(
+                  signInRoute('/auth/password', DEFAULT_DESTINATION, 'sign-in'),
+                )
+              }
+            >
+              Sign in
+            </Button>
+          </CardContent>
+        </Card>
+      </Screen>
+    );
+  }
+
+  // The SDK clears the session as soon as the server accepts the change, while
+  // `changeUserPassword` is still reading the response, so `changed` is set a
+  // moment later. Showing nothing in between keeps that moment from reading as
+  // a dead link.
+  if (isPending && !session) {
     return null;
   }
 
