@@ -26,6 +26,7 @@
     "@sveltejs/vite-plugin-svelte": "^6.2.1",
     "@tailwindcss/vite": "^4.0.0",
     "@types/node": "^22.10.5",
+    "happy-dom": "^20.14.5",
     "svelte": "^5.42.2",
     "svelte-check": "^4.3.2",
     "tailwindcss": "^4.0.0",
