@@ -8,14 +8,27 @@ import {
 
 const ROUTER_STATE = { back: null, current: '/protected', position: 0 };
 
-const location = { pathname: '/', search: '', hash: '' };
+const location = {
+  pathname: '/',
+  search: '',
+  hash: '',
+  get href() {
+    return `http://localhost${this.pathname}${this.search}${this.hash}`;
+  },
+};
 
-const replaceState = vi.fn((_state: unknown, _title: string, url: string) => {
-  const next = new URL(url, 'http://localhost');
-  location.pathname = next.pathname;
-  location.search = next.search;
-  location.hash = next.hash;
-});
+// Refuses a URL on another origin the way the browser does.
+const replaceState = vi.fn(
+  (_state: unknown, _title: string, url: string | URL) => {
+    const next = new URL(url, location.href);
+    if (next.origin !== 'http://localhost') {
+      throw new DOMException('Not this origin', 'SecurityError');
+    }
+    location.pathname = next.pathname;
+    location.search = next.search;
+    location.hash = next.hash;
+  },
+);
 
 const fakeClient = ({ stored }: { stored: boolean }) => {
   let session: object | null = stored ? { refreshToken: 'mine' } : null;
@@ -104,8 +117,9 @@ describe('redeemLinkToken', () => {
     expect(replaceState).toHaveBeenCalledWith(
       ROUTER_STATE,
       '',
-      '/protected?tab=1#top',
+      expect.any(URL),
     );
+    expect(location.href).toBe('http://localhost/protected?tab=1#top');
   });
 
   it('strips the token even when the link no longer works', async () => {
@@ -116,6 +130,19 @@ describe('redeemLinkToken', () => {
     await redeemLinkToken(asClient(client));
 
     expect(location.search).toBe('?tab=1');
+  });
+
+  // A redirect to `/..//evil.example` lands on the path `//evil.example`, and
+  // that path on its own is a URL for another origin.
+  it('strips the token on a path that reads as another origin', async () => {
+    location.pathname = '//evil.example';
+    const client = fakeClient({ stored: false });
+
+    await expect(redeemLinkToken(asClient(client))).resolves.toBeUndefined();
+    expect(location.href).toBe('http://localhost//evil.example?tab=1#top');
+    expect(client.auth.refreshToken).toHaveBeenCalledWith({
+      refreshToken: 'link-token',
+    });
   });
 
   it('leaves the URL alone when there is no token', async () => {

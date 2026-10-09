@@ -3,14 +3,23 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { startAuth, useAuth } from '@/lib/nhost/auth';
 import { linkErrorMessage } from '@/lib/nhost/linkToken';
 
-const location = { pathname: '/', search: '', hash: '' };
+const location = {
+  pathname: '/',
+  search: '',
+  hash: '',
+  get href() {
+    return `http://localhost${this.pathname}${this.search}${this.hash}`;
+  },
+};
 
-const replaceState = vi.fn((_state: unknown, _title: string, url: string) => {
-  const next = new URL(url, 'http://localhost');
-  location.pathname = next.pathname;
-  location.search = next.search;
-  location.hash = next.hash;
-});
+const replaceState = vi.fn(
+  (_state: unknown, _title: string, url: string | URL) => {
+    const next = new URL(url, location.href);
+    location.pathname = next.pathname;
+    location.search = next.search;
+    location.hash = next.hash;
+  },
+);
 
 // Only paths that never reach the network, so the real client and its
 // in-memory storage are enough.

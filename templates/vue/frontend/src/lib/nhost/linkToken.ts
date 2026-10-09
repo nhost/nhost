@@ -86,13 +86,11 @@ export function readLinkError(): string | null {
  * session to storage, so there is nothing to persist by hand.
  */
 export async function redeemLinkToken(nhost: NhostClient): Promise<void> {
-  // `URLSearchParams` rather than `new URL`: it reads the part of the address
-  // this cares about and has no malformed input to throw on.
-  const params = new URLSearchParams(window.location.search);
-  const token = params.get(LINK_TOKEN_PARAM);
-  const error = params.get(LINK_ERROR_PARAM);
+  const url = new URL(window.location.href);
+  const token = url.searchParams.get(LINK_TOKEN_PARAM);
+  const error = url.searchParams.get(LINK_ERROR_PARAM);
 
-  if (!LINK_PARAMS.some((name) => params.has(name))) {
+  if (!LINK_PARAMS.some((name) => url.searchParams.has(name))) {
     return;
   }
 
@@ -103,7 +101,7 @@ export async function redeemLinkToken(nhost: NhostClient): Promise<void> {
     console.warn(
       'The auth service sent this page an error:',
       error,
-      params.get(LINK_ERROR_DESCRIPTION_PARAM),
+      url.searchParams.get(LINK_ERROR_DESCRIPTION_PARAM),
     );
   }
 
@@ -112,18 +110,14 @@ export async function redeemLinkToken(nhost: NhostClient): Promise<void> {
   // the exchange would otherwise leave it in session history. An error goes
   // too, or a reload would report it again. The router is created after this
   // returns, so it starts from the clean address.
+  //
+  // Handed over whole rather than rebuilt from `pathname`: a link can land on
+  // a path like `//evil.example`, which read back as a relative URL names
+  // another origin, and `replaceState` throws on that instead of stripping.
   for (const name of LINK_PARAMS) {
-    params.delete(name);
+    url.searchParams.delete(name);
   }
-
-  const query = params.toString();
-  const { pathname, hash } = window.location;
-
-  window.history.replaceState(
-    window.history.state,
-    '',
-    `${pathname}${query ? `?${query}` : ''}${hash}`,
-  );
+  window.history.replaceState(window.history.state, '', url);
 
   if (!token) {
     return;
