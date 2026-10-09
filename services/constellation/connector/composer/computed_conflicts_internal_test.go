@@ -104,14 +104,9 @@ func TestOmitConflictingComputedArgsBeforeRoleComposition(t *testing.T) {
 			c.omitConflictingComputedArgs(t.Context(), slog.Default(), roles)
 
 			got := roles["db"]["reader"]
-			if (len(got.Types[0].Fields) == 0) != tc.omitted ||
-				(len(got.Inputs) == 0) != tc.omitted {
-				t.Fatalf(
-					"computed selection/input omission = %t/%t; want %t",
-					len(got.Types[0].Fields) == 0,
-					len(got.Inputs) == 0,
-					tc.omitted,
-				)
+			if (len(got.Types) == 0) != tc.omitted || (len(got.Inputs) == 0) != tc.omitted {
+				t.Fatalf("computed selection/type/input omission = %d/%d; omitted = %t",
+					len(got.Types), len(got.Inputs), tc.omitted)
 			}
 
 			if len(source.Types[0].Fields) != 1 || len(source.Inputs) != 1 {
