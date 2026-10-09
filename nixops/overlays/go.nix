@@ -177,17 +177,22 @@ rec {
     doCheck = false;
   };
 
-  gqlgen = prev.gqlgen.overrideAttrs (oldAttrs: rec {
-    version = "0.17.91";
-    src = final.fetchFromGitHub {
-      owner = "99designs";
-      repo = "gqlgen";
-      rev = "v${version}";
-      sha256 = "sha256-z4VCso3IxV8R9ov9qeyO9UH7DqExe1ybJF6eTaV7odI=";
-    };
-    vendorHash = "sha256-jOwBUeDPOctjeJGIEH7TxcNWX4jF/j1DyNk+FKrLQMQ=";
-    doCheck = false;
-  });
+  gqlgen =
+    (prev.gqlgen.override { inherit (final.nhost) buildGoModule; }).overrideAttrs
+      (oldAttrs: rec {
+        version = "0.17.91";
+        src = final.fetchFromGitHub {
+          owner = "99designs";
+          repo = "gqlgen";
+          rev = "v${version}";
+          sha256 = "sha256-z4VCso3IxV8R9ov9qeyO9UH7DqExe1ybJF6eTaV7odI=";
+        };
+        # golang.org/x/tools < v0.50.0 can't decode the export data written by
+        # go 1.27.2 and breaks code generation. Drop once upstream bumps it.
+        patches = [ ./patches/gqlgen-x-tools-v0.50.0.patch ];
+        vendorHash = "sha256-pOr9U3UmiVV7FL4gDxBqgodY0HNdCLjvXucIY+/dS28=";
+        doCheck = false;
+      });
 
   gqlgenc = final.nhost.buildGoModule rec {
     pname = "gqlgenc";
@@ -198,7 +203,9 @@ rec {
       rev = "v${version}";
       sha256 = "sha256-zb7hXGULyaLYEhcoJhirzlQCBblO3kPhCjp3obT6XTc=";
     };
-    vendorHash = "sha256-aEujwQJ1rvKzuIZnN/sTD+mmp3FEDSOUwPqKGgYX89Y=";
+    # See gqlgen above. Drop once upstream bumps golang.org/x/tools.
+    patches = [ ./patches/gqlgenc-x-tools-v0.50.0.patch ];
+    vendorHash = "sha256-anLcdB4D2ENbdjfm5K5tMCpVFnLaxPu+o1jCJklelE4=";
     doCheck = false;
     subPackages = [ "./." ];
     meta = with final.lib; {
