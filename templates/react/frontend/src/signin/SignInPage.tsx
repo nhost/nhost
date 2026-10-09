@@ -23,15 +23,34 @@ import { signInQuery } from '@/signin/query';
  */
 
 // What the page says depends on why the visitor is here. Neither heading names
-// a method, so both survive any selection.
-const copy: Record<Intent, { title: string; description: string }> = {
+// a method, so both survive any selection. Each also offers the other intent,
+// since a protected page sends a visitor here without one and the page then
+// opens on sign up, whether or not they have an account.
+const copy: Record<
+  Intent,
+  {
+    title: string;
+    description: string;
+    switchTo: { intent: Intent; prompt: string; label: string };
+  }
+> = {
   'sign-up': {
     title: 'Create an account',
     description: 'Choose how you want to sign up.',
+    switchTo: {
+      intent: 'sign-in',
+      prompt: 'Already have an account?',
+      label: 'Sign in',
+    },
   },
   'sign-in': {
     title: 'Sign in',
     description: 'Choose how you want to sign in.',
+    switchTo: {
+      intent: 'sign-up',
+      prompt: 'New here?',
+      label: 'Create an account',
+    },
   },
 };
 
@@ -40,6 +59,7 @@ export default function SignInPage() {
   const destination = signInDestination(params.get('next') ?? undefined);
   const intent = signInIntent(params.get('intent') ?? undefined);
   const query = signInQuery(destination, intent);
+  const { switchTo } = copy[intent];
 
   return (
     <div className="mx-auto max-w-md">
@@ -61,6 +81,15 @@ export default function SignInPage() {
               </div>
             </Link>
           ))}
+          <p className="pt-2 text-muted-foreground text-sm">
+            {switchTo.prompt}{' '}
+            <Link
+              to={`/signin${signInQuery(destination, switchTo.intent)}`}
+              className="text-foreground underline-offset-4 hover:underline"
+            >
+              {switchTo.label}
+            </Link>
+          </p>
         </CardContent>
       </Card>
     </div>

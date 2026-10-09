@@ -1,21 +1,26 @@
 import { type FormEvent, useId, useState } from 'react';
-import { useNavigate } from 'react-router';
 import { setNewPassword } from '@/auth/password/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/lib/nhost/AuthProvider';
 
-export default function ResetPasswordForm() {
+export default function ResetPasswordForm({
+  isSaving,
+  onSavingChange,
+  onChanged,
+}: {
+  isSaving: boolean;
+  onSavingChange: (isSaving: boolean) => void;
+  onChanged: () => void;
+}) {
   const { nhost } = useAuth();
-  const navigate = useNavigate();
   const passwordId = useId();
   const confirmId = useId();
 
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState<string | undefined>();
-  const [isSaving, setIsSaving] = useState(false);
 
   const handleSubmit = async (event: FormEvent): Promise<void> => {
     event.preventDefault();
@@ -26,7 +31,7 @@ export default function ResetPasswordForm() {
       return;
     }
 
-    setIsSaving(true);
+    onSavingChange(true);
     try {
       const result = await setNewPassword(nhost, password);
       if (result.error) {
@@ -34,12 +39,12 @@ export default function ResetPasswordForm() {
         return;
       }
 
-      void navigate('/');
+      onChanged();
     } catch (err) {
       console.error('Error changing the password:', err);
       setError('The request did not reach the server. Try again.');
     } finally {
-      setIsSaving(false);
+      onSavingChange(false);
     }
   };
 
