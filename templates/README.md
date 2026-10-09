@@ -112,8 +112,12 @@ The two guards below run in CI; run them before pushing:
   answered by it. Bump the minor for a change a user would notice - new copy, a
   new component, a changed default - and the patch for a fix that leaves the
   shape alone. They move independently: a change to one template does not touch
-  the others' numbers. Nothing enforces this, so it is a habit rather than a
-  guard.
+  the others' numbers. Nothing enforces the bump, so it is a habit rather than a
+  guard. A navigation overlay's `package.json` replaces the template's, so it
+  moves with it: the same version, scripts and shared dependency versions,
+  differing only in the entry point and the navigation library's own packages.
+  `TestNavigationOverlayPackageJSONFollowsTheFrontend` fails on any other
+  difference.
 - **Shipped Markdown is rewritten for the chosen package manager.** Commands in
   the template's own docs are written as `pnpm <script>`, and `retargetDocs`
   turns them into the chosen manager's form at scaffold time - which is not a
@@ -244,11 +248,13 @@ The two guards below run in CI; run them before pushing:
    its `authDir`, `methodsFile`, `componentsUI` and `uiSystems`, and any
    redirect target beyond the backend's `clientUrl` that the app sends. A
    target only development needs, and that can only be allowed whole, goes in
-   `localRedirectURLs`, which reaches the local backend alone. It needs the
-   same four sign-in method directories under `authDir`, since the method
-   catalogue in `cli/cmd/project/authmethod.go` is shared by every template and
-   carries the configuration each method needs on a fresh backend. Where they
-   sit is the framework's call, but not their names: the `delete-method`,
+   `localRedirectURLs`, which reaches the local backend alone; it appends to
+   the list `redirectURLs` creates, so it needs at least one entry there too.
+   The template needs the same four sign-in method directories under
+   `authDir`, since the method catalogue in `cli/cmd/project/authmethod.go` is
+   shared by every template and carries the configuration each method needs
+   on a fresh backend. Where they sit is the framework's call, but not their
+   names: the `delete-method`,
    `ui-system` and `navigation` jobs and `check-ci-matrix.sh` find them by name
    rather than reading the catalogue, so `authDir` must end in the only
    directory named `auth` under `frontend/src`, and `methodsFile` must be the
