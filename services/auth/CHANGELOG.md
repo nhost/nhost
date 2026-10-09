@@ -1,3 +1,14 @@
+## [auth@0.53.0] - 2026-10-09
+
+### 🚀 Features
+
+- *(postgres)* Update postgres to 18.6 and drop support for 16 and 17 (#5020)
+
+
+### 🐛 Bug Fixes
+
+- *(auth)* Don't convert OAuth access errors to internal-server-error (#5058)
+
 ## [auth@0.52.0] - 2026-09-15
 
 ### 🚀 Features
