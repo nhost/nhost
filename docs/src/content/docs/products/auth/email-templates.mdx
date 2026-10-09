@@ -28,6 +28,9 @@ nhost
 ├── config.yaml
 ├── emails
 │   ├── en
+│   │   ├── elevate-otp
+│   │   │   ├── body.html
+│   │   │   └── subject.txt
 │   │   ├── email-confirm-change
 │   │   │   ├── body.html
 │   │   │   └── subject.txt
@@ -46,6 +49,9 @@ nhost
 │   │   └── signin-passwordless-sms
 │   │       └── body.txt
 │   └── fr
+│       ├── elevate-otp
+│       │   ├── body.html
+│       │   └── subject.txt
 │       ├── email-confirm-change
 │       │   ├── body.html
 │       │   └── subject.txt
@@ -146,10 +152,11 @@ For instance:
 - se.email-verify
 - se.password-reset
 
-Additionally, if you want to use the passwordless sign-in or OTP sign-in emails, you need to create the following templates as well:
+Additionally, if you want to use passwordless sign-in, email OTP sign-in, or session elevation via email OTP, create the corresponding templates as well:
 
 - $locale.signin-passwordless
 - $locale.signin-otp
+- $locale.elevate-otp
 
 After these two steps have been completed, the Auth service will leverage these templates instead of the ones described in the previous section.
 
