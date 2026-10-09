@@ -149,7 +149,11 @@ export default function OtpScreen() {
             <>
               <View className="gap-2">
                 <Label>Code</Label>
+                {/* Keyed apart from the email field: without the keys React
+                    reuses that field here, and autoFocus acts only on mount. */}
                 <Input
+                  key="code"
+                  autoFocus
                   accessibilityLabel="Code"
                   autoComplete="one-time-code"
                   keyboardType="number-pad"
@@ -198,6 +202,7 @@ export default function OtpScreen() {
               <View className="gap-2">
                 <Label>Email</Label>
                 <Input
+                  key="email"
                   accessibilityLabel="Email"
                   autoCapitalize="none"
                   autoComplete="email"
