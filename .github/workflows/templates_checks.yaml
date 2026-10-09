@@ -6,7 +6,8 @@ on:
       - ".github/workflows/templates_checks.yaml"
       - "templates/**"
 
-      # `nhost init`, which the `ui-system` job scaffolds with
+      # `nhost init`, which the `ui-system` job scaffolds with and the
+      # `go-tests` job tests
       - "cli/cmd/project/**"
   merge_group:
 
@@ -356,6 +357,31 @@ jobs:
           done < <(find src/app -name '*.tsx')
 
           exit "$status"
+
+  # The Go tests that read the templates: `templates/embed_test.go` holds the
+  # embed directives and `ignored()` to what is on disk, and the
+  # `cli/cmd/project` tests hold each template to its catalogue entry. The cli
+  # workflow runs them too, but only as part of building and publishing the
+  # CLI with the repository's secrets, which a change inside a template needs
+  # none of.
+  go-tests:
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      # What the cli workflow's Nix check sets for the same tests.
+      - run: go test ./templates/... ./cli/cmd/project/...
+        env:
+          GOEXPERIMENT: jsonv2
 
   # Cross-template, and deliberately without a `working-directory` default:
   # both guards walk every `templates/*/` from the repository root.
