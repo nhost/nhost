@@ -1,8 +1,9 @@
 import type { Session } from '@nhost/nhost-js/auth';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { createSSRApp, shallowRef } from 'vue';
+import { type Component, createSSRApp, shallowRef } from 'vue';
 import { renderToString } from 'vue/server-renderer';
 import { createMemoryHistory, createRouter } from 'vue-router';
+import PasswordChanged from '@/auth/password/reset/PasswordChanged.vue';
 import ResetPasswordRoute from '@/auth/password/reset/route.vue';
 
 const session = shallowRef<Session | null>(null);
@@ -16,13 +17,13 @@ const signedIn = (user?: Partial<Session['user']>): Session =>
   ({ user: user && { id: 'b1946ac9', ...user } }) as Session;
 
 // The server renderer rather than a DOM, as in `LinkErrorNotice.test.ts`.
-async function render(): Promise<string> {
+async function render(page: Component = ResetPasswordRoute): Promise<string> {
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [{ path: '/:p(.*)', component: { render: () => null } }],
   });
 
-  return renderToString(createSSRApp(ResetPasswordRoute).use(router));
+  return renderToString(createSSRApp(page).use(router));
 }
 
 describe('password reset page', () => {
@@ -58,11 +59,31 @@ describe('password reset page', () => {
     expect(html).toContain('This link no longer works');
   });
 
+  // Only the sign-in mode offers to send a reset link, and the form opens on
+  // sign up without an intent.
+  it('asks for a new link on the form that can send one', async () => {
+    expect(await render()).toContain('href="/auth/password?intent=sign-in"');
+
+    linkError.value = 'This link has expired.';
+
+    expect(await render()).toContain('href="/auth/password?intent=sign-in"');
+  });
+
   it('names the account even without a user on the session', async () => {
     session.value = signedIn();
 
     const html = await render();
 
     expect(html).toContain('signed in as this account.');
+  });
+});
+
+describe('password changed card', () => {
+  it('sends them to sign in with the new password', async () => {
+    const html = await render(PasswordChanged);
+
+    expect(html).toContain('Password changed');
+    expect(html).toContain('signed you out everywhere');
+    expect(html).toContain('href="/auth/password?intent=sign-in"');
   });
 });

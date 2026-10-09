@@ -1,23 +1,23 @@
 <script setup lang="ts">
 import { ref, useId } from 'vue';
-import { useRouter } from 'vue-router';
 import { setNewPassword } from '@/auth/password/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/lib/nhost/auth';
 
+const pending = defineModel<boolean>('pending', { default: false });
+const emit = defineEmits<{ changed: [] }>();
+
 const { nhost } = useAuth();
-const router = useRouter();
 const passwordId = useId();
 
 const password = ref('');
 const error = ref<string | undefined>();
-const isPending = ref(false);
 
 const handleSubmit = async (): Promise<void> => {
   error.value = undefined;
-  isPending.value = true;
+  pending.value = true;
   try {
     const result = await setNewPassword(nhost, password.value);
     if (result.error) {
@@ -25,14 +25,12 @@ const handleSubmit = async (): Promise<void> => {
       return;
     }
 
-    // They are already signed in, so there is nowhere to send them but on into
-    // the app.
-    await router.push('/protected');
+    emit('changed');
   } catch (err) {
     console.error('Error changing the password:', err);
     error.value = 'The request did not reach the server. Try again.';
   } finally {
-    isPending.value = false;
+    pending.value = false;
   }
 };
 </script>
@@ -47,7 +45,7 @@ const handleSubmit = async (): Promise<void> => {
         type="password"
         autocomplete="new-password"
         required
-        :disabled="isPending"
+        :disabled="pending"
       />
     </div>
 
@@ -55,8 +53,8 @@ const handleSubmit = async (): Promise<void> => {
       {{ error }}
     </p>
 
-    <Button type="submit" :disabled="isPending || !password">
-      {{ isPending ? 'Saving…' : 'Save the new password' }}
+    <Button type="submit" :disabled="pending || !password">
+      {{ pending ? 'Saving…' : 'Save the new password' }}
     </Button>
   </form>
 </template>

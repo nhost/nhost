@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue';
+import PasswordChanged from '@/auth/password/reset/PasswordChanged.vue';
 import ResetPasswordForm from '@/auth/password/reset/ResetPasswordForm.vue';
+import { passwordSignIn, resetView } from '@/auth/password/reset/resetView';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -19,11 +22,25 @@ import { useAuth } from '@/lib/nhost/auth';
 // prove the link signed them in, since a link never replaces one, so the
 // form says whose password it changes rather than how they got here.
 const { session, linkError } = useAuth();
+
+const pending = ref(false);
+const changed = ref(false);
+
+const view = computed(() =>
+  resetView({
+    changed: changed.value,
+    pending: pending.value,
+    signedIn: session.value !== null,
+    linkFailed: linkError.value !== null,
+  }),
+);
 </script>
 
 <template>
-  <div v-if="linkError || !session" class="mx-auto max-w-md">
-    <Card>
+  <div class="mx-auto max-w-md">
+    <PasswordChanged v-if="view === 'changed'" />
+
+    <Card v-else-if="view === 'link-failed'">
       <CardHeader>
         <CardTitle>This link no longer works</CardTitle>
         <CardDescription>
@@ -37,25 +54,25 @@ const { session, linkError } = useAuth();
       </CardHeader>
       <CardContent>
         <Button as-child>
-          <RouterLink to="/auth/password">Request a new link</RouterLink>
+          <RouterLink :to="passwordSignIn">Request a new link</RouterLink>
         </Button>
       </CardContent>
     </Card>
-  </div>
 
-  <div v-else class="mx-auto max-w-md">
-    <Card>
+    <!-- Hidden rather than removed while waiting, so the form is still there
+    to report the change when its call returns. -->
+    <Card v-else v-show="view !== 'waiting'">
       <CardHeader>
         <CardTitle>Choose a new password</CardTitle>
         <CardDescription>
           You are signed in as
           {{
-            session.user?.email ?? session.user?.phoneNumber ?? 'this account'
+            session?.user?.email ?? session?.user?.phoneNumber ?? 'this account'
           }}. The new password is for that account.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ResetPasswordForm />
+        <ResetPasswordForm v-model:pending="pending" @changed="changed = true" />
       </CardContent>
     </Card>
   </div>
