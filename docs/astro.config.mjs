@@ -35,6 +35,21 @@ export default defineConfig({
     '/install-mcp': '/install-mcp.md',
     // Short, memorable entry point to the human-facing MCP overview.
     '/mcp': '/platform/cli/mcp',
+    // The dashboard onboarding page was reframed around building with an
+    // assistant, which covers local and cloud rather than the dashboard alone.
+    '/getting-started/cloud-development/dashboard':
+      '/getting-started/build-with-an-assistant',
+    // The per-client page only repeated the registration commands that the setup
+    // guides already carry inline, so it was removed; keep the URL working.
+    // Points at the renamed target rather than chaining through the old one.
+    '/platform/cli/mcp/clients': '/platform/cli/mcp/local-development-setup',
+    // "Development Setup" read as the opposite of "Cloud Setup", when both are
+    // development and the split is which project the server points at.
+    '/platform/cli/mcp/development-setup':
+      '/platform/cli/mcp/local-development-setup',
+    // "Platform connector" collided with the docs' own Platform section, and the
+    // URL said mcp where three different MCP servers are documented.
+    '/platform/cloud/mcp': '/platform/cloud/hosted-mcp-server',
     // Renamed during the GraphQL docs neutralization, so existing links and
     // indexed URLs keep working.
     '/products/graphql/configuring-hasura': '/products/graphql/configuration',
@@ -106,7 +121,7 @@ export default defineConfig({
             '- Every project is addressed by a `subdomain` and a `region`, which together form service URLs such as `https://{subdomain}.auth.{region}.nhost.run/v1`.',
             '- The GraphQL API is generated from your Postgres schema, with role-based permissions declared as metadata rather than written in application code.',
             "- Two engines can serve that API. Constellation is Nhost's own GraphQL engine, a Hasura-compatible drop-in replacement that runs the same traffic on around 90% less memory. It is alpha and opt-in today: enabled per project through an `[experimental.constellation]` block in `nhost.toml`, running alongside Hasura rather than replacing it, and set to become the default over time. Both engines expose the same API, so these docs say 'the GraphQL API' rather than naming an engine.",
-            "- Nhost has two MCP servers. The Backend MCP Server exposes a project's own GraphQL API to assistants, authenticating end users through Nhost Auth so every operation runs with that user's permissions. The CLI MCP server runs locally, authenticates as you, and manages local and Nhost Cloud projects; its Cloud schema is linked below.",
+            "- Nhost has two MCP servers. The Backend MCP Server exposes a project's own GraphQL API to assistants, authenticating end users through Nhost Auth so every operation runs with that user's permissions. The CLI MCP server runs locally, authenticates as you, and manages local and Nhost Cloud projects; its Cloud schema is linked below. Nhost also hosts a Backend MCP instance for the Nhost Cloud platform at https://mcp.nhost.io, which any OAuth2-capable MCP client can add as a remote connector for read-only access to the user's own organizations, projects and deployments.",
             '- The `@nhost/nhost-js` SDK is the primary client and wraps auth, storage, GraphQL and functions in a single client.',
             '- The Auth and Storage REST APIs have machine-readable OpenAPI specs; see the optional links below rather than inferring endpoints from prose.',
           ].join('\n'),
@@ -189,6 +204,14 @@ export default defineConfig({
                     { slug: 'getting-started/quickstart/vue' },
                     { slug: 'getting-started/quickstart/sveltekit' },
                     { slug: 'getting-started/quickstart/reactnative' },
+                  ],
+                },
+                {
+                  label: 'Agentic Development',
+                  collapsed: false,
+                  items: [
+                    { slug: 'getting-started/agentic-workflows' },
+                    { slug: 'getting-started/build-with-an-assistant' },
                   ],
                 },
                 {
@@ -701,6 +724,9 @@ export default defineConfig({
                   collapsed: false,
                   items: [
                     { slug: 'platform/cloud' },
+                    // Account-level rather than a per-project setting, so it
+                    // sits above the run of project settings below.
+                    { slug: 'platform/cloud/hosted-mcp-server' },
                     { slug: 'platform/cloud/subdomain' },
                     { slug: 'platform/cloud/compute-resources' },
                     { slug: 'platform/cloud/service-replicas' },
@@ -731,9 +757,9 @@ export default defineConfig({
                       collapsed: true,
                       items: [
                         { slug: 'platform/cli/mcp' },
-                        { slug: 'platform/cli/mcp/development-setup' },
+                        { slug: 'platform/cli/mcp/local-development-setup' },
+                        { slug: 'platform/cli/mcp/cloud-setup' },
                         { slug: 'platform/cli/mcp/configuration' },
-                        { slug: 'platform/cli/mcp/clients' },
                         { slug: 'platform/cli/mcp/troubleshooting' },
                       ],
                     },

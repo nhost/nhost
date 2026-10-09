@@ -1,0 +1,60 @@
+---
+title: Build with an AI assistant
+description: "Connect an AI assistant over MCP, describe the change, and it runs the Nhost CLI and writes the migration. You review and commit."
+keywords: ["AI assistant", "agentic development", "MCP", "migrations", "getting started", "Nhost Cloud", "local development"]
+head:
+  - tag: title
+    content: "Build on Nhost with an AI Assistant | Nhost Docs"
+sidebar:
+  label: Build with an assistant
+---
+import { Card, CardGroup, Prompt } from '@components';
+
+Connect an AI assistant over MCP, describe the change you want, and it runs the Nhost CLI and writes the migration files. You review them and commit.
+
+<Prompt
+  title="Tell your assistant what you want to build."
+  copy="Add a movies table with a title, director, and rating, and let signed-in users read it."
+>
+Add a movies table with a title, director, and rating, and let signed-in users read it.
+</Prompt>
+
+This works the same whether your backend runs locally on your machine or on Nhost Cloud. Check out the [quickstarts](/getting-started/quickstart/react) for a framework-specific start.
+
+## Connect your assistant
+
+<CardGroup cols={2}>
+  <Card title="Connect an assistant" icon="robot" href="/getting-started/agentic-workflows">
+    One command, for a local or cloud project
+  </Card>
+  <Card title="Scope what it can do" icon="key" href="/platform/cli/mcp/cloud-setup#scoping-access">
+    Full access locally, read-only against real data
+  </Card>
+</CardGroup>
+
+Give it full access on a local project. Nothing there is real, and the faster loop is worth more than the guardrails. Against a project on Nhost Cloud, start read-only and widen deliberately.
+
+## Check 3 things yourself
+
+The assistant does the work. These are the parts worth your own eyes.
+
+1. **Read the migration.** Every schema change writes a file under `nhost/migrations/`. That file runs against every other environment, so reading it is the fastest way to catch a column type or a nullability choice you did not intend.
+
+2. **Verify permissions.** They are the security boundary for your project: every GraphQL request runs under a role and is filtered by these rules, including the assistant's own. Open **Database → Permissions** in the dashboard and read back what was applied. See [Permissions](/products/graphql/permissions).
+
+3. **Set secrets yourself.** Ask which variables a service needs, then enter the values through the dashboard so the real credential never passes through a chat transcript. See [secrets](/platform/cloud/secrets).
+
+## Commit what it wrote
+
+This is what makes the workflow durable rather than a pile of untracked changes. The assistant writes migrations under `nhost/migrations/`, metadata under `nhost/metadata/`, and configuration in `nhost.toml`. Commit them, and the project becomes reproducible: another developer runs `nhost up` and gets the same backend, and [deployments](/platform/cloud/deployments) apply the same migrations to Nhost Cloud.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="React" icon="react" href="/getting-started/quickstart/react">
+    Build an app, with or without an assistant
+  </Card>
+  <Card title="Nhost CLI" icon="terminal" href="/getting-started/local-development/cli">
+    Run the commands yourself when you want to
+  </Card>
+</CardGroup>

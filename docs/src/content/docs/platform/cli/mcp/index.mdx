@@ -15,7 +15,7 @@ import { CopyText } from '@components';
 The Nhost CLI ships with the CLI MCP server, which lets you interact with your Nhost projects through AI assistants using the Model Context Protocol. It provides secure, controlled access to your GraphQL data, project configuration, and documentation—with granular permissions that let you specify exactly which queries and mutations an LLM can execute. For development, it streamlines your workflow by enabling AI-assisted schema management, metadata changes, and migrations, while providing direct access to your GraphQL schema for intelligent query building.
 
 :::note[CLI vs. Backend MCP Server]
-This is the CLI MCP server — it runs on your machine (`nhost mcp start`), authenticates as you (admin secret or PAT), and helps you build and manage your projects.
+This is the CLI MCP server. It runs on your machine (`nhost mcp start`), authenticates as you (admin secret or PAT), and helps you build and manage your projects.
 
 To instead expose your project to your end users' AI assistants in production, use the [Backend MCP Server](/products/ai/mcp).
 
@@ -23,10 +23,12 @@ Not sure which one you need? See the [Backend MCP vs. CLI MCP comparison](/produ
 :::
 
 :::tip[Connect an AI assistant]
-Give your AI assistant the link <CopyText text="https://docs.nhost.io/install-mcp" /> and it will read the onboarding instructions and set up the MCP server for your local project.
+Give your AI assistant the link <CopyText text="https://docs.nhost.io/install-mcp" /> and it will read the onboarding instructions, ask whether the project is local or on Nhost Cloud, and set up the MCP server for it.
 
-See [Development Setup](/platform/cli/mcp/development-setup#let-an-ai-assistant-set-it-up) for the per-client commands and the manual steps.
+See [Local Development Setup](/platform/cli/mcp/local-development-setup#let-an-ai-assistant-set-it-up) for the per-client commands and the manual steps, or [Cloud Setup](/platform/cli/mcp/cloud-setup) to point the same server at a project on Nhost Cloud.
 :::
+
+Not using the CLI at all? Nhost runs a hosted MCP server for the platform at <CopyText text="https://mcp.nhost.io" />. See [Hosted MCP server](/platform/cloud/hosted-mcp-server). [Agentic workflows](/getting-started/agentic-workflows#which-server-am-i-using) compares the two servers.
 
 ## Overview
 
@@ -89,7 +91,7 @@ One of the CLI MCP's key security advantages is the ability to specify exactly w
 [[projects]]
 subdomain = "my-blog"
 region = "eu-central-1"
-pat = "nhp_project_specific_pat"
+pat = "<your-project-pat>"
 allow_queries = ["getBlogs", "getComments"]
 allow_mutations = ["insertBlog", "insertComment"]
 ```
@@ -107,4 +109,4 @@ manage_metadata = true
 
 This allows the LLM to create migrations, manage permissions, and handle schema changes through the `manage-graphql` tool.
 
-For more details, see the [configuration](/platform/cli/mcp/configuration) page.
+For more details, see the [configuration](/platform/cli/mcp/configuration) page. For what these settings mean once an assistant is pointed at a project holding real data, see [Scoping access](/platform/cli/mcp/cloud-setup#scoping-access).

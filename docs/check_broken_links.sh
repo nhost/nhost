@@ -47,6 +47,22 @@ for pattern in "${SKIP[@]}"; do
   skip_args+=(--skip "$pattern")
 done
 
+# Files under public/ are copied to dist/client/ verbatim and served as raw
+# markdown, so the HTML crawl above never parses them. The `install-mcp*.md`
+# onboarding files are fetched and executed by AI assistants, so a dead URL in
+# one is as bad as a dead link on a page. linkinator parses markdown when given
+# a .md path directly, so pass them as extra locations in the same run.
+#
+# The locations are server-relative because --server-root is set below:
+# linkinator only infers the root from the scanned directory when it gets a
+# single location, and falls back to process.cwd() for more than one, which
+# would serve docs/ instead of docs/dist/client and 404 every root-absolute
+# link and /_astro/ asset.
+markdown_args=()
+while IFS= read -r md; do
+  markdown_args+=("/${md#dist/client/}")
+done < <(find dist/client -maxdepth 1 -name '*.md' | sort)
+
 results="$(mktemp)"
 trap 'rm -f "$results"' EXIT
 
@@ -55,7 +71,8 @@ trap 'rm -f "$results"' EXIT
 # stderr. `set +e` so a non-zero exit (broken links found) doesn't abort
 # before we print the summary below.
 set +e
-pnpm exec linkinator dist/client/ \
+pnpm exec linkinator / "${markdown_args[@]}" \
+  --server-root dist/client \
   --recurse \
   --concurrency 10 \
   --timeout 30000 \

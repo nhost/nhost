@@ -13,12 +13,14 @@ interface Props {
 const { light, dark, alt, width, height, class: className } = Astro.props;
 ---
 
-<span class={className} data-theme-image>
+<div class={className} data-theme-image>
   <Image src={light} alt={alt} width={width} height={height} class="theme-image theme-image-light" loading="lazy" decoding="async" />
   <Image src={dark} alt={alt} width={width} height={height} class="theme-image theme-image-dark" loading="lazy" decoding="async" />
-</span>
+</div>
 
 <style>
+  /* A div, not a span: Starlight's content spacing rule excludes spans as the
+     preceding sibling, so whatever followed the image got no top margin. */
   [data-theme-image] {
     display: block;
   }
