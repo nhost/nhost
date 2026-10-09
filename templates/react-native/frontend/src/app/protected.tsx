@@ -10,6 +10,8 @@ import {
 } from '@/components/ui/Card';
 import { Redirect } from '@/lib/navigation';
 import { useAuth } from '@/lib/nhost/AuthProvider';
+import { DEFAULT_INTENT } from '@/signin/intent';
+import { signInRoute } from '@/signin/route';
 
 export default function Protected() {
   const { session, isLoading } = useAuth();
@@ -30,7 +32,7 @@ export default function Protected() {
 
   if (!user) {
     return (
-      <Redirect to={{ pathname: '/signin', params: { next: '/protected' } }} />
+      <Redirect to={signInRoute('/signin', '/protected', DEFAULT_INTENT)} />
     );
   }
 

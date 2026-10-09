@@ -1,12 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import {
-  DEFAULT_DESTINATION,
-  signInDestination,
-  signInHref,
-} from '@/signin/destination';
+import { DEFAULT_DESTINATION, signInDestination } from '@/signin/destination';
 
 describe('signInDestination', () => {
-  it('keeps a path on this site', () => {
+  it('keeps a path inside the app', () => {
     expect(signInDestination('/profile')).toBe('/profile');
     expect(signInDestination('/protected/settings?tab=1')).toBe(
       '/protected/settings?tab=1',
@@ -18,9 +14,10 @@ describe('signInDestination', () => {
     expect(signInDestination('')).toBe(DEFAULT_DESTINATION);
   });
 
-  // A `?next=` arrives from whatever put the visitor on the sign-in page, so
-  // it is attacker-controlled: anything that leaves this origin is dropped.
-  it('refuses to send anyone off this origin', () => {
+  // A `next` arrives from whatever opened the sign-in screen, a deep link
+  // included, so it is attacker-controlled: anything that leaves the app is
+  // dropped.
+  it('refuses to send anyone out of the app', () => {
     for (const hostile of [
       'https://evil.example/login',
       '//evil.example',
@@ -32,8 +29,8 @@ describe('signInDestination', () => {
     }
   });
 
-  // The forms that look like a path but are not. Each of these resolves to
-  // https://evil.example/ in a browser, and each one passes a "starts with one
+  // The forms that look like a path but are not. A URL parser resolves each of
+  // these to https://evil.example/, and each one passes a "starts with one
   // slash but not two" check, which is why this is decided by resolving the
   // value rather than by matching its shape.
   it('refuses the forms a URL parser reads as another origin', () => {
@@ -90,21 +87,5 @@ describe('signInDestination', () => {
     expect(signInDestination(['//evil.example', '/profile'])).toBe(
       DEFAULT_DESTINATION,
     );
-  });
-});
-
-describe('signInHref', () => {
-  it('encodes the destination into the query', () => {
-    expect(signInHref('/protected')).toBe('/signin?next=%2Fprotected');
-  });
-
-  it('round-trips through signInDestination', () => {
-    const destination = '/protected/settings?tab=api&q=a b';
-    const next = new URL(
-      signInHref(destination),
-      'http://localhost',
-    ).searchParams.get('next');
-
-    expect(signInDestination(next ?? undefined)).toBe(destination);
   });
 });
