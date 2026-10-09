@@ -1,3 +1,18 @@
+## [functions@2.3.3] - 2026-10-09
+
+### ⚙️ Miscellaneous Tasks
+
+- *(functions)* Serve example greetings as plain text to prevent reflected XSS (#5160)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#5087)
+- *(deps)* Update vulnerable dependencies (#5098)
+- *(deps)* Update vulnerable dependencies (#5103)
+- *(deps)* Update vulnerable dependencies (#5123)
+- *(deps)* Update vulnerable dependencies (#5135)
+
 ## [functions@2.3.2] - 2026-09-30
 
 ### 🐛 Bug Fixes
