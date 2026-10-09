@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { passwordSignIn } from '@/app/auth/password/reset/passwordSignIn';
 import ResetPasswordForm from '@/app/auth/password/reset/ResetPasswordForm';
 import { Button } from '@/components/ui/button';
 import {
@@ -31,7 +32,7 @@ export default async function ResetPassword() {
           </CardHeader>
           <CardContent>
             <Button asChild>
-              <Link href="/auth/password">Request a new link</Link>
+              <Link href={passwordSignIn}>Request a new link</Link>
             </Button>
           </CardContent>
         </Card>

@@ -1,14 +1,14 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { type FormEvent, useId, useState } from 'react';
+import { type FormEvent, use, useId, useState } from 'react';
 import { setNewPassword } from '@/app/auth/password/actions';
+import { PasswordChangedContext } from '@/app/auth/password/reset/PasswordChanged';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 export default function ResetPasswordForm() {
-  const router = useRouter();
+  const onChanged = use(PasswordChangedContext);
   const passwordId = useId();
   const confirmId = useId();
 
@@ -34,8 +34,7 @@ export default function ResetPasswordForm() {
         return;
       }
 
-      router.push('/');
-      router.refresh();
+      onChanged();
     } catch (err) {
       console.error('Error changing the password:', err);
       setError('The request did not reach the server. Try again.');
