@@ -140,13 +140,17 @@ A select permission with an invalid/malformed computed grant is recorded as
 manual table-valued grants are invalid because target-table permissions derive
 them. A valid scalar grant exposes its executable selection, including supported
 custom argument scalars; an ungranted role sees neither the field nor its
-private `_args` input type. A computed `_args`
-input type or computed-argument scalar name that conflicts with a non-scalar
-composed type drops just the affected selection and records a `computed_field`
-inconsistency; the role and other fields remain. For the specifically probed
-PUBLIC argument enum versus tracked-row object type-name collision, Hasura
-v2.50.3-ce instead atomically rejects metadata replacement (even with
-`allow_inconsistent_metadata: true`); Constellation's metadata acceptance and
+private `_args` input type. A computed `_args` input that differs from a
+composed input of the same name, or a computed `_args` input or argument scalar
+whose name conflicts with a non-scalar composed type, drops just the affected
+selection and records a `computed_field`
+inconsistency; the role and other fields remain. If the omitted selection was
+an aggregate family's only operand, its now-empty output type and the
+corresponding aggregate field are also removed; `count`, other aggregate
+families and `nodes` remain. Hasura v2.50.3-ce instead atomically rejects
+both the probed PUBLIC argument enum versus tracked-row object collision and
+cross-source differing `_args` inputs, even with
+`allow_inconsistent_metadata: true`. Constellation's metadata acceptance and
 narrow fail-closed omission are an approved difference, not metadata parity.
 An exact computed `<rel>_aggregate` array-relationship sibling collision
 also omits only the ambiguous computed field and its grant, retaining the

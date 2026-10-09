@@ -162,9 +162,90 @@ func withoutComputedSelections(
 		remove[owner.input] = struct{}{}
 	}
 
+	pruneEmptyComputedSelectionTypes(&copySchema, schema)
 	pruneOrphanedComputedArgumentTypes(&copySchema, schema, remove)
 
 	return &copySchema
+}
+
+// Remove only object types made empty by the omission, then remove fields that
+// reference them. A removed field can empty another type, so repeat until the
+// role schema has no new empty objects. Never discard operation root types.
+func pruneEmptyComputedSelectionTypes(copySchema, original *graph.Schema) {
+	roots := make(map[string]struct{})
+	for _, name := range []*string{original.QueryType, original.MutationType, original.SubscriptionType} {
+		if name != nil {
+			roots[*name] = struct{}{}
+		}
+	}
+	// gqlparser uses these names when no explicit operation root is provided.
+	for _, name := range []string{"Query", "Mutation", "Subscription"} {
+		roots[name] = struct{}{}
+	}
+
+	copySchema.Interfaces = append([]*graph.InterfaceType(nil), original.Interfaces...)
+
+	wasNonEmpty := make(map[string]bool, len(original.Types))
+	for _, obj := range original.Types {
+		wasNonEmpty[obj.Name] = len(obj.Fields) > 0
+	}
+
+	for {
+		dropped := make(map[string]struct{})
+
+		kept := copySchema.Types[:0]
+		for _, obj := range copySchema.Types {
+			_, root := roots[obj.Name]
+			if !root && wasNonEmpty[obj.Name] && len(obj.Fields) == 0 {
+				dropped[obj.Name] = struct{}{}
+				continue
+			}
+
+			kept = append(kept, obj)
+		}
+
+		copySchema.Types = kept
+
+		if len(dropped) == 0 {
+			return
+		}
+
+		for _, obj := range copySchema.Types {
+			obj.Fields = withoutDroppedOutputTypes(obj.Fields, dropped)
+		}
+
+		for i, iface := range copySchema.Interfaces {
+			fields := withoutDroppedOutputTypes(iface.Fields, dropped)
+			if len(fields) != len(iface.Fields) {
+				clone := *iface
+				clone.Fields = fields
+				copySchema.Interfaces[i] = &clone
+			}
+		}
+	}
+}
+
+func withoutDroppedOutputTypes(fields []*graph.Field, dropped map[string]struct{}) []*graph.Field {
+	var kept []*graph.Field
+	for i, field := range fields {
+		if _, ok := dropped[namedGraphType(field.Type)]; ok {
+			if kept == nil {
+				kept = append(make([]*graph.Field, 0, len(fields)-1), fields[:i]...)
+			}
+
+			continue
+		}
+
+		if kept != nil {
+			kept = append(kept, field)
+		}
+	}
+
+	if kept == nil {
+		return fields
+	}
+
+	return kept
 }
 
 //nolint:cyclop // A scalar is orphaned only after checking inputs, object/interface fields and directive references.
