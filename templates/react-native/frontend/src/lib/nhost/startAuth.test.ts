@@ -4,7 +4,7 @@ import { startAuth } from '@/lib/nhost/startAuth';
 
 const LINK = 'nhoststarter:///protected?refreshToken=abc123';
 const FAILED =
-  'nhoststarter:///auth/password/reset?error=invalid-ticket&errorDescription=Expired';
+  'nhoststarter:///protected?error=invalid-ticket&errorDescription=Expired';
 const EXPIRED = linkErrorMessage('invalid-ticket');
 
 afterEach(() => {

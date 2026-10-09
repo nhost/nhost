@@ -17,9 +17,9 @@ describe('signInRoute', () => {
     });
   });
 
-  it('carries next and intent', () => {
-    expect(signInRoute('/auth/password', '/protected', 'sign-in')).toEqual({
-      pathname: '/auth/password',
+  it('carries next and intent to the path it is given', () => {
+    expect(signInRoute('/somewhere', '/protected', 'sign-in')).toEqual({
+      pathname: '/somewhere',
       params: { next: '/protected', intent: 'sign-in' },
     });
   });
