@@ -165,14 +165,14 @@ rec {
 
   govulncheck = final.nhost.buildGoModule rec {
     pname = "govulncheck";
-    version = "1.1.4";
+    version = "1.8.0";
     src = final.fetchFromGitHub {
       owner = "golang";
       repo = "vuln";
       rev = "v${version}";
-      sha256 = "sha256-d1JWh/K+65p0TP5vAQbSyoatjN4L5nm3VEA+qBSrkAA=";
+      sha256 = "sha256-OvgAEWf7WtPNXZEZYNeSqy7dZP9cF3wfQSt9WU79OIM=";
     };
-    vendorHash = "sha256-MSTKDeWVxD2Fa6fNoku4EwFwC90XZ5acnM67crcgXDg=";
+    vendorHash = "sha256-wSSxsmEzpFiaDfRsgFWOtA9UnoENm57VVltB+MA6y0E=";
     subPackages = [ "cmd/govulncheck" ];
     doCheck = false;
   };
