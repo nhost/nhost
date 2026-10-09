@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { type FormEvent, useId, useState } from 'react';
 import {
   requestPasswordReset,
@@ -8,6 +8,7 @@ import {
   signUp,
 } from '@/app/auth/password/actions';
 import type { Intent } from '@/app/signin/intent';
+import { signInQuery } from '@/app/signin/query';
 import CheckYourInbox from '@/components/CheckYourInbox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,6 +30,7 @@ export default function PasswordForm({
   mailboxURL: string | null;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const emailId = useId();
   const passwordId = useId();
 
@@ -48,8 +50,12 @@ export default function PasswordForm({
   };
 
   const switchMode = (): void => {
-    setMode(mode === 'sign-in' ? 'sign-up' : 'sign-in');
+    const other = mode === 'sign-in' ? 'sign-up' : 'sign-in';
+    setMode(other);
     setError(undefined);
+    // "Other ways to sign in" is built from the URL, so the URL has to say
+    // which mode the visitor switched to.
+    router.replace(`${pathname}${signInQuery(next, other)}`, { scroll: false });
   };
 
   const handleSubmit = async (event: FormEvent): Promise<void> => {
