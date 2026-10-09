@@ -1,12 +1,21 @@
 package project
 
 import (
+	"bytes"
+	"context"
+	"errors"
+	"fmt"
 	"io/fs"
+	"os"
 	"path"
+	"path/filepath"
 	"slices"
+	"strings"
 	"testing"
 
+	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/templates"
+	"github.com/urfave/cli/v3"
 )
 
 // A template that offers a choice has to offer the default, since that is what
@@ -151,6 +160,275 @@ func TestNavigationOverlayReplacesTheSeam(t *testing.T) {
 					)
 				}
 			})
+		}
+	}
+}
+
+// The overlay is written after methods.ts and after the unselected method
+// directories were skipped, so a file of its own at either place would put back
+// what the selection took out.
+func TestNavigationOverlayLeavesTheSignInMethodsAlone(t *testing.T) {
+	t.Parallel()
+
+	for _, tmpl := range catalogue() {
+		for _, nav := range tmpl.navSystems {
+			if nav.overlay == "" {
+				continue
+			}
+
+			t.Run(tmpl.name+"/"+nav.name, func(t *testing.T) {
+				t.Parallel()
+
+				dir := path.Join(tmpl.name, navDirPath, nav.overlay)
+				methods := strings.TrimPrefix(tmpl.methodsFile, navRootPath+"/")
+				auth := strings.TrimPrefix(tmpl.authDir, navRootPath+"/")
+
+				err := fs.WalkDir(
+					templates.FS, dir,
+					func(p string, _ fs.DirEntry, err error) error {
+						if err != nil {
+							return err
+						}
+
+						rel := strings.TrimPrefix(p, dir+"/")
+						if rel == methods || rel == auth || strings.HasPrefix(rel, auth+"/") {
+							t.Errorf(
+								"%s ships %s, which init writes from the selection",
+								nav.name,
+								rel,
+							)
+						}
+
+						return nil
+					},
+				)
+				if err != nil {
+					t.Fatalf("walking %s: %v", dir, err)
+				}
+			})
+		}
+	}
+}
+
+func resolveNavWith(
+	t *testing.T,
+	template string,
+	args ...string,
+) (navigationSystem, error) {
+	t.Helper()
+
+	var (
+		got    navigationSystem
+		gotErr error
+		output bytes.Buffer
+	)
+
+	cmd := &cli.Command{
+		Name: "init",
+		Flags: []cli.Flag{
+			&cli.StringFlag{Name: flagNavigation, Value: defaultNavigation},
+		},
+		Action: func(_ context.Context, c *cli.Command) error {
+			got, gotErr = resolveNavigationSystem(newTestEnv(&output), c, template, false)
+
+			return nil
+		},
+	}
+
+	if err := cmd.Run(t.Context(), append([]string{"init"}, args...)); err != nil {
+		t.Fatalf("parsing %q: %v", args, err)
+	}
+
+	return got, gotErr
+}
+
+func TestResolveNavigationSystem(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		template  string
+		args      []string
+		want      string
+		wantErr   error
+		wantInErr string
+	}{
+		{name: "default", template: "react-native", want: defaultNavigation},
+		{
+			name:     "named",
+			template: "react-native",
+			args:     []string{"--navigation", "navigation"},
+			want:     "navigation",
+		},
+		{
+			name:      "unknown",
+			template:  "react-native",
+			args:      []string{"--navigation", "expo"},
+			wantErr:   errUnknownNav,
+			wantInErr: "router, navigation",
+		},
+		{
+			name:      "on a template without a choice",
+			template:  "nextjs",
+			args:      []string{"--navigation", "router"},
+			wantErr:   errNavUnsupported,
+			wantInErr: "nextjs",
+		},
+		{name: "template without a choice and no flag", template: "nextjs", want: ""},
+		{
+			name:     "without a template",
+			template: "",
+			args:     []string{"--navigation", "navigation"},
+			wantErr:  errNavNeedsTmpl,
+		},
+		{name: "no template and no flag", template: "", want: ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got, err := resolveNavWith(t, tt.template, tt.args...)
+
+			if !errors.Is(err, tt.wantErr) {
+				t.Fatalf("resolveNavigationSystem error = %v, want %v", err, tt.wantErr)
+			}
+
+			if tt.wantInErr != "" && (err == nil || !strings.Contains(err.Error(), tt.wantInErr)) {
+				t.Errorf("error %v does not mention %q", err, tt.wantInErr)
+			}
+
+			if tt.wantErr == nil && got.name != tt.want {
+				t.Errorf("resolveNavigationSystem = %q, want %q", got.name, tt.want)
+			}
+		})
+	}
+}
+
+// Scaffolding with each navigation system, and with some methods left out,
+// has to give the overlay's files, none of the files it drops unless the
+// overlay brings its own, and the selection's methods and nothing else.
+func TestWriteTemplateWithEachNavigationSystem(t *testing.T) {
+	t.Parallel()
+
+	methods, err := parseAuthMethods("password,otp")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	pm, _ := lookupPackageManager(defaultPackageManager)
+
+	for _, tmpl := range catalogue() {
+		for _, nav := range tmpl.navSystems {
+			t.Run(tmpl.name+"/"+nav.name, func(t *testing.T) {
+				t.Parallel()
+
+				root := t.TempDir()
+				ps := clienv.NewPathStructure(
+					root,
+					root,
+					filepath.Join(root, ".nhost"),
+					filepath.Join(root, "nhost"),
+				)
+
+				layout, err := planTemplate(ps, tmpl.name)
+				if err != nil {
+					t.Fatalf("planTemplate: %v", err)
+				}
+
+				ui, _ := lookupUI(tmpl.uiSystems, defaultUI)
+
+				if err := writeTemplate(
+					ps, tmpl.name, layout, methods, ui, nav, pm,
+				); err != nil {
+					t.Fatalf("writeTemplate: %v", err)
+				}
+
+				assertNavigationOverlayWritten(t, root, tmpl, nav)
+				assertSignInMethodsWritten(t, root, tmpl, methods)
+			})
+		}
+	}
+}
+
+func assertNavigationOverlayWritten(
+	t *testing.T,
+	root string,
+	tmpl starterTemplate,
+	nav navigationSystem,
+) {
+	t.Helper()
+
+	overlay := path.Join(tmpl.name, navDirPath, nav.overlay)
+
+	for _, d := range nav.dropFiles {
+		rel := strings.TrimPrefix(d, navRootPath+"/")
+
+		want, replaceErr := fs.ReadFile(templates.FS, path.Join(overlay, rel))
+		got, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(d)))
+
+		switch {
+		case replaceErr != nil && err == nil:
+			t.Errorf("%s drops %s, but the scaffold has it", nav.name, d)
+		case replaceErr == nil && !bytes.Equal(got, want):
+			t.Errorf("%s replaces %s, but the scaffold has a different copy", nav.name, d)
+		}
+	}
+
+	if nav.overlay == "" {
+		return
+	}
+
+	err := fs.WalkDir(templates.FS, overlay, func(p string, e fs.DirEntry, err error) error {
+		if err != nil || e.IsDir() {
+			return err
+		}
+
+		want, err := fs.ReadFile(templates.FS, p)
+		if err != nil {
+			return fmt.Errorf("reading %s: %w", p, err)
+		}
+
+		rel := strings.TrimPrefix(p, overlay+"/")
+		dst := filepath.Join(root, navRootPath, filepath.FromSlash(rel))
+
+		got, err := os.ReadFile(dst)
+		if err != nil || !bytes.Equal(got, want) {
+			t.Errorf("%s/%s is not the %s overlay's copy (%v)", navRootPath, rel, nav.name, err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("walking %s: %v", overlay, err)
+	}
+}
+
+func assertSignInMethodsWritten(
+	t *testing.T,
+	root string,
+	tmpl starterTemplate,
+	methods []signInMethod,
+) {
+	t.Helper()
+
+	got, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(tmpl.methodsFile)))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if want := renderSignInMethods(tmpl, methods); !bytes.Equal(got, want) {
+		t.Errorf("%s is\n%s\nwant\n%s", tmpl.methodsFile, got, want)
+	}
+
+	for _, m := range signInMethods() {
+		dir := filepath.Join(root, filepath.FromSlash(tmpl.authDir), m.name)
+
+		_, err := os.Stat(dir)
+		if selected := slices.ContainsFunc(
+			methods, func(s signInMethod) bool { return s.name == m.name },
+		); selected != (err == nil) {
+			t.Errorf("%s present = %t, want %t", dir, err == nil, selected)
 		}
 	}
 }
