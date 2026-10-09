@@ -81,6 +81,7 @@ const subPageChildren: Record<
     browser: ['database', 'tables', 'rows'],
     schema: ['database', 'schema', 'columns'],
     'native-queries': ['database', 'native queries', 'logical models'],
+    extensions: ['database', 'extensions', 'postgres', 'pgvector', 'postgis'],
   }),
   graphql: toSubPageNodes(projectSubPagesBySlug.graphql, 'project-graphql', {
     playground: ['graphql', 'api', 'console'],
