@@ -39,6 +39,14 @@ const RESOLUTION_BASE = 'https://placeholder.invalid';
  * A path with a character the parser percent-encodes, like `/notes/café` or
  * `/notes/my note`, changes too, so it also falls back to the default.
  *
+ * The web templates also refuse a path that is not in canonical form, because
+ * the auth service re-encodes a `redirectTo` it is given, and that can turn
+ * `/a|b/..%2F..%2F%2Fevil.example` into a path that resolves to
+ * `//evil.example`, which a browser reads as another origin. That is not
+ * refused here. A link back into this app opens a screen by matching its path
+ * rather than being navigated to, and what this returns never starts with
+ * `//`, the one form of path Expo Router hands to the system browser.
+ *
  * What is returned is the original string rather than the parsed form: a
  * value that resolves to the base resolves to it again wherever it is used,
  * and re-serializing would percent-encode its query string.
