@@ -21,6 +21,7 @@ import { useAuth } from '@/lib/nhost/AuthProvider';
 import { localMailboxURL } from '@/lib/nhost/env';
 import { authRedirectURL } from '@/lib/nhost/redirect';
 import { OtherWaysLink } from '@/signin/OtherWaysLink';
+import { useNext } from '@/signin/useNext';
 
 /**
  * Emails a sign-in link. Opening it on the device reopens this app on a deep
@@ -52,8 +53,6 @@ async function sendMagicLink(
     return { error: `Could not send the link: ${error.message}` };
   }
 }
-
-import { useNext } from '@/signin/useNext';
 
 /**
  * Magic link sign-in. The screen only sends the email: the link in it goes to

@@ -20,6 +20,7 @@ import { useGo } from '@/lib/navigation';
 import { useAuth } from '@/lib/nhost/AuthProvider';
 import { localMailboxURL } from '@/lib/nhost/env';
 import { OtherWaysLink } from '@/signin/OtherWaysLink';
+import { useNext } from '@/signin/useNext';
 
 type OtpActionResult = { error?: string; success?: boolean };
 
@@ -69,8 +70,6 @@ async function verifyCode(
     return { error: `Could not verify the code: ${error.message}` };
   }
 }
-
-import { useNext } from '@/signin/useNext';
 
 type Step = 'email' | 'code';
 

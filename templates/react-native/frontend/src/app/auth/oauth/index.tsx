@@ -18,6 +18,7 @@ import { useAuth } from '@/lib/nhost/AuthProvider';
 import { readLinkError, redeemLinkToken } from '@/lib/nhost/linkToken';
 import { authRedirectURL } from '@/lib/nhost/redirect';
 import { OtherWaysLink } from '@/signin/OtherWaysLink';
+import { useNext } from '@/signin/useNext';
 
 /**
  * The providers this screen offers. Adding one is a line here and a section in
@@ -97,8 +98,6 @@ async function signInWithProvider(
     return { error: 'Could not reach the provider. Try again.' };
   }
 }
-
-import { useNext } from '@/signin/useNext';
 
 export default function OAuthScreen() {
   const { nhost, setLinkError } = useAuth();
