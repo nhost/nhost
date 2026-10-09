@@ -3,12 +3,14 @@ package project
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
+	"reflect"
 	"slices"
 	"strings"
 	"testing"
@@ -244,6 +246,111 @@ func TestNavigationOverlayKeepsTheUIDrops(t *testing.T) {
 						"and would put back the dependencies %s drop",
 					nav.name, strings.Join(dropping, ", "),
 				)
+			})
+		}
+	}
+}
+
+// flattenPackageJSON reads a package.json into one entry per top-level field,
+// and one per key of a field that is an object, so two copies compare field by
+// field.
+func flattenPackageJSON(t *testing.T, p string) map[string]any {
+	t.Helper()
+
+	b, err := fs.ReadFile(templates.FS, p)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var pkg map[string]any
+	if err := json.Unmarshal(b, &pkg); err != nil {
+		t.Fatalf("parsing %s: %v", p, err)
+	}
+
+	flat := make(map[string]any)
+
+	for k, v := range pkg {
+		obj, ok := v.(map[string]any)
+		if !ok {
+			flat[k] = v
+
+			continue
+		}
+
+		for sub, sv := range obj {
+			flat[k+"."+sub] = sv
+		}
+	}
+
+	return flat
+}
+
+// differingKeys are the keys whose values a and b disagree on, including the
+// ones only one of them has, sorted.
+func differingKeys(a, b map[string]any) []string {
+	var keys []string
+
+	for k, v := range a {
+		if !reflect.DeepEqual(v, b[k]) {
+			keys = append(keys, k)
+		}
+	}
+
+	for k := range b {
+		if _, ok := a[k]; !ok {
+			keys = append(keys, k)
+		}
+	}
+
+	slices.Sort(keys)
+
+	return keys
+}
+
+// An overlay's package.json replaces the template's, so it is a hand-kept copy
+// of it. A copy that falls behind ships a different Expo or React, or an older
+// template version, to everyone who picks that system, and the navigation job
+// resolves without a lockfile, so it builds whatever the copy names.
+func TestNavigationOverlayPackageJSONFollowsTheFrontend(t *testing.T) {
+	t.Parallel()
+
+	// What an overlay may differ in, keyed by template/overlay: the entry point
+	// and the navigation library's own packages. Keys are as flattenPackageJSON
+	// writes them.
+	differences := map[string][]string{
+		"react-native/navigation": {
+			"main",
+			"dependencies.expo-router",
+			"dependencies.@react-navigation/native",
+			"dependencies.@react-navigation/native-stack",
+		},
+	}
+
+	for _, tmpl := range catalogue() {
+		for _, nav := range tmpl.navSystems {
+			if nav.overlay == "" {
+				continue
+			}
+
+			t.Run(tmpl.name+"/"+nav.name, func(t *testing.T) {
+				t.Parallel()
+
+				overlaid := path.Join(tmpl.name, navDirPath, nav.overlay, "package.json")
+				if _, err := fs.Stat(templates.FS, overlaid); err != nil {
+					return
+				}
+
+				shipped := flattenPackageJSON(t, path.Join(tmpl.name, navRootPath, "package.json"))
+				got := flattenPackageJSON(t, overlaid)
+
+				for _, k := range differingKeys(shipped, got) {
+					if !slices.Contains(differences[tmpl.name+"/"+nav.overlay], k) {
+						t.Errorf(
+							"%s has %s = %v, but %s/package.json has %v",
+							overlaid, k, got[k], navRootPath, shipped[k],
+						)
+					}
+				}
 			})
 		}
 	}
