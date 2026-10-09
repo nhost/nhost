@@ -28,6 +28,7 @@
     "@types/node": "^22.10.5",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "happy-dom": "^20.14.5",
     "tailwindcss": "^4.0.0",
     "typescript": "^5",
     "vitest": "^4.1.10"
