@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, useId } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { requestPasswordReset, signIn, signUp } from '@/auth/password/actions';
 import CheckYourInbox from '@/components/CheckYourInbox.vue';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/lib/nhost/auth';
 import type { Intent } from '@/signin/intent';
+import { signInQuery } from '@/signin/query';
 
 const props = defineProps<{
   next: string;
@@ -22,6 +23,7 @@ type Mode = 'sign-in' | 'sign-up';
 type Sent = 'verification' | 'reset';
 
 const { nhost } = useAuth();
+const route = useRoute();
 const router = useRouter();
 const emailId = useId();
 const passwordId = useId();
@@ -39,6 +41,9 @@ const isPending = ref(false);
 const switchMode = (): void => {
   mode.value = mode.value === 'sign-in' ? 'sign-up' : 'sign-in';
   error.value = undefined;
+  // "Other ways to sign in" is built from the URL, so the URL has to say which
+  // mode the visitor switched to.
+  void router.replace(`${route.path}${signInQuery(props.next, mode.value)}`);
 };
 
 const handleSubmit = async (): Promise<void> => {
