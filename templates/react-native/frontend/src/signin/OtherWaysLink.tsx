@@ -20,6 +20,9 @@ import { useNext } from '@/signin/useNext';
  * `next` and `intent` are read here rather than taken as props, so every
  * method screen gets a back link that remembers both without passing anything.
  * There is no server half on a device to resolve them on the way through.
+ *
+ * It goes back rather than forward: the sign-in screen is normally the one
+ * beneath, and pushing another would leave two of it on the stack.
  */
 export function OtherWaysLink() {
   const go = useGo();
@@ -34,7 +37,7 @@ export function OtherWaysLink() {
     <Text
       accessibilityRole="link"
       className="text-neutral-500 text-sm underline"
-      onPress={() => go.push(signInRoute('/signin', next, intent))}
+      onPress={() => go.backTo(signInRoute('/signin', next, intent))}
     >
       Other ways to sign in
     </Text>

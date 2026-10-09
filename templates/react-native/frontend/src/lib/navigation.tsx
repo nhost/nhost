@@ -35,10 +35,15 @@ function href(to: Destination) {
  * Moves to another screen. `push` adds to the history, `replace` takes the
  * place of the screen it leaves, which is what signing in wants: the back
  * gesture should not return to the form someone has just finished with.
+ *
+ * `backTo` returns to the screen at `to` when it is beneath this one, with the
+ * parameters `to` carries, and takes the place of this one when it is not.
+ * Going back somewhere with `push` stacks a second copy of it.
  */
 export function useGo(): {
   push: (to: Destination) => void;
   replace: (to: Destination) => void;
+  backTo: (to: Destination) => void;
 } {
   const router = useRouter();
 
@@ -46,6 +51,7 @@ export function useGo(): {
     () => ({
       push: (to: Destination) => router.push(href(to) as never),
       replace: (to: Destination) => router.replace(href(to) as never),
+      backTo: (to: Destination) => router.dismissTo(href(to) as never),
     }),
     [router],
   );

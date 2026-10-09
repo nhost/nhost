@@ -1,5 +1,11 @@
+import {
+  type ParamListBase,
+  type StackNavigationState,
+  StackRouter,
+} from '@react-navigation/native';
 import { describe, expect, it, vi } from 'vitest';
-import { target } from '@/lib/target';
+import type { Params } from '@/lib/navigation';
+import { backTo, target } from '@/lib/target';
 import { linkPath } from '@/linkPath';
 
 // `@react-navigation/native` is `@react-navigation/core` plus the parts that
@@ -73,5 +79,49 @@ describe('target', () => {
       { id: '42' },
     ]);
     expect(target('/nowhere', withCatchAll)).toEqual(['/+not-found', {}]);
+  });
+});
+
+describe('backTo', () => {
+  const screens = config(['/', '/signin', '/auth/password']);
+  const router = StackRouter({});
+  const options = {
+    routeNames: Object.keys(screens.screens),
+    routeParamList: {},
+    routeGetIdList: {},
+  };
+  const carried = { next: '/protected', intent: 'sign-in' };
+
+  function stack(...routes: [string, Params?][]) {
+    return router.getRehydratedState(
+      { routes: routes.map(([name, params]) => ({ name, params })) },
+      options,
+    );
+  }
+
+  // What a method's "Other ways to sign in" link leaves on the stack.
+  function backToSignIn(state: StackNavigationState<ParamListBase>) {
+    const action = backTo({ pathname: '/signin', params: carried }, screens);
+
+    return router
+      .getStateForAction(state, action, options)
+      ?.routes.map(({ name, params }) => [name, params]);
+  }
+
+  it('returns to the screen beneath rather than stacking another', () => {
+    expect(
+      backToSignIn(
+        stack(['/'], ['/signin', carried], ['/auth/password', carried]),
+      ),
+    ).toEqual([
+      ['/', undefined],
+      ['/signin', carried],
+    ]);
+  });
+
+  it("takes the current screen's place when nothing beneath matches", () => {
+    expect(backToSignIn(stack(['/auth/password', carried]))).toEqual([
+      ['/signin', carried],
+    ]);
   });
 });

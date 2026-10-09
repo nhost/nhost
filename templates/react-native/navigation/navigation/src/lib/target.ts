@@ -2,6 +2,7 @@ import {
   getStateFromPath,
   type LinkingOptions,
   type ParamListBase,
+  StackActions,
 } from '@react-navigation/native';
 import type { Destination, Params } from '@/lib/navigation';
 
@@ -42,4 +43,16 @@ export function target(
   }
 
   return [route.name, { ...(route.params as Params | undefined), ...params }];
+}
+
+/**
+ * The stack action that returns to the screen at `to`, with the parameters `to`
+ * carries.
+ *
+ * It pops back to the nearest screen of that name beneath the current one, and
+ * when there is none, as when a deep link opened the app on the current screen,
+ * it takes the current screen's place.
+ */
+export function backTo(to: Destination, config: LinkingConfig) {
+  return StackActions.popTo(...target(to, config));
 }

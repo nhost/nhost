@@ -6,7 +6,7 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import { useContext, useEffect, useMemo } from 'react';
-import { target } from '@/lib/target';
+import { backTo, target } from '@/lib/target';
 
 /**
  * The navigation library as the screens see it: they reach React Navigation
@@ -33,10 +33,15 @@ type Nav = NavigationProp<Record<string, Params | undefined>>;
  * Moves to another screen. `push` adds to the history, `replace` takes the
  * place of the screen it leaves, which is what signing in wants: the back
  * gesture should not return to the form someone has just finished with.
+ *
+ * `backTo` returns to the screen at `to` when it is beneath this one, with the
+ * parameters `to` carries, and takes the place of this one when it is not.
+ * Going back somewhere with `push` stacks a second copy of it.
  */
 export function useGo(): {
   push: (to: Destination) => void;
   replace: (to: Destination) => void;
+  backTo: (to: Destination) => void;
 } {
   const navigation = useNavigation<Nav>();
   const config = useContext(LinkingContext).options?.config;
@@ -52,6 +57,9 @@ export function useGo(): {
         // The stack's own action for taking the place of the screen on top,
         // rather than pushing over it.
         navigation.dispatch(StackActions.replace(name, params));
+      },
+      backTo: (to: Destination) => {
+        navigation.dispatch(backTo(to, config));
       },
     }),
     [navigation, config],
