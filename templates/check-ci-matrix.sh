@@ -114,11 +114,12 @@ required = {
         {(t, u) for t in templates for u in subdirs(f"templates/{t}/ui")},
     ),
     "navigation": (
-        ("template", "navigation"),
+        ("template", "navigation", "method"),
         {
-            (t, n)
+            (t, n, m)
             for t in templates
             for n in subdirs(f"templates/{t}/navigation")
+            for m in subdirs(auth_dirs[t])
         },
     ),
 }

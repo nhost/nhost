@@ -242,6 +242,10 @@ jobs:
   # So this scaffolds with the CLI, outside the repository, and installs and
   # builds exactly what a user gets. The default system needs no entry: it is
   # what `frontend/` already is, and the `frontend` job builds it.
+  #
+  # Each run leaves one sign-in method out, which is the `delete-method` job's
+  # proof for this system: that job builds `frontend/`, so it never sees the
+  # route table here. Every screen is still built, in the runs that keep it.
   navigation:
     needs: [detect-changes]
     if: needs.detect-changes.outputs.should_run == 'true'
@@ -250,13 +254,24 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # One entry per directory under `templates/<template>/navigation/`.
+        # One entry per directory under `templates/<template>/navigation/`,
+        # crossed with one per directory under the template's own auth/.
         # templates/check-ci-matrix.sh fails the build if this list misses one.
         # Only react-native offers a choice, so this is listed as explicit
         # combinations rather than crossed axes.
         include:
           - template: react-native
             navigation: navigation
+            method: password
+          - template: react-native
+            navigation: navigation
+            method: magic-link
+          - template: react-native
+            navigation: navigation
+            method: otp
+          - template: react-native
+            navigation: navigation
+            method: oauth
     steps:
       - uses: actions/checkout@v7
         with:
@@ -274,10 +289,11 @@ jobs:
           cache: pnpm
           cache-dependency-path: templates/${{ matrix.template }}/frontend/pnpm-lock.yaml
 
-      - name: Scaffold ${{ matrix.template }} with ${{ matrix.navigation }}
+      - name: Scaffold ${{ matrix.template }} with ${{ matrix.navigation }}, without ${{ matrix.method }}
         env:
           TEMPLATE: ${{ matrix.template }}
           NAVIGATION: ${{ matrix.navigation }}
+          METHOD: ${{ matrix.method }}
           SCAFFOLD: ${{ runner.temp }}/scaffold
         run: |
           go build -o "$RUNNER_TEMP/nhost" ./cli
@@ -285,13 +301,27 @@ jobs:
           auth_dir=$(find "templates/$TEMPLATE/frontend/src" -type d -name auth)
 
           methods=$(find "$auth_dir" \
-            -mindepth 1 -maxdepth 1 -type d -printf '%f\n' |
+            -mindepth 1 -maxdepth 1 -type d -not -name "$METHOD" -printf '%f\n' |
             sort | paste -sd, -)
 
           mkdir "$SCAFFOLD"
           cd "$SCAFFOLD"
           "$RUNNER_TEMP/nhost" init --template "$TEMPLATE" \
             --navigation "$NAVIGATION" --auth-methods "$methods"
+
+      # The same leak the `delete-method` job greps for, over what the overlay
+      # brought too. The docs list every method a user could have chosen, so
+      # Markdown is left out; this runs before install, so there is no
+      # node_modules to search.
+      - name: Check nothing names ${{ matrix.method }}
+        working-directory: ${{ runner.temp }}/scaffold/frontend
+        env:
+          METHOD: ${{ matrix.method }}
+        run: |
+          if grep -rn --exclude='*.md' "auth/$METHOD" .; then
+            echo "::error::the scaffold still references auth/$METHOD without that method"
+            exit 1
+          fi
 
       # Without a lockfile, which this system drops, pnpm resolves the way a
       # user's first install does.

@@ -93,8 +93,8 @@ The two guards below run in CI; run them before pushing:
   been repeated four times, building the deep link an auth email comes back to,
   is in `src/lib/nhost/redirect.ts` instead, where it is tested once. Nothing
   outside a method's directory may name it, including test fixtures: the
-  `delete-method` job greps for exactly that, and a path like
-  `/auth/password/reset` written in shared code fails it.
+  `delete-method` and `navigation` jobs grep for exactly that, and a path like
+  `/auth/password/reset` written in shared code fails them.
 - **Sign-in methods are isolated.** Each is one directory under the template's
   `authDir` plus one entry in its `methodsFile`, which has no imports; for
   `nextjs` those are `frontend/src/app/auth/` and
@@ -167,9 +167,11 @@ The two guards below run in CI; run them before pushing:
   the dependencies too, and `dropFiles` removes what the default needed and this
   one does not. The `navigation` job scaffolds and builds each one, for the same
   reason the `ui-system` job exists: nothing typechecks `navigation/` where it
-  sits. It then checks the export's source map for every screen under
-  `src/app`, because a system that finds its screens at runtime builds cleanly
-  even when it bundles none of them.
+  sits. It scaffolds once per sign-in method, leaving that method out and
+  grepping for it, since the `delete-method` job builds only `frontend/` and
+  never sees the overlay's route table. It then checks the export's source map
+  for every screen under `src/app`, because a system that finds its screens at
+  runtime builds cleanly even when it bundles none of them.
 - **Not every template offers a UI system to choose.** `react-native` ships one
   entry, `none`, which is the NativeWind set in `frontend/` - shadcn/ui is built
   on Radix and the DOM, so there is no port to offer beside it. It therefore has
@@ -208,10 +210,11 @@ The two guards below run in CI; run them before pushing:
   compares the embedded set to disk and fails on any entry that is on disk but
   not in the directives. The Nix fileset in `cli/project.nix` cuts each
   template's `node_modules` and build output out for the same reason.
-- **The CI matrix is checked.** `frontend`, `delete-method` and `ui-system`
-  take what they run from their own `strategy.matrix`; a template, method
-  directory or `ui/` directory with no matching combination runs zero times
-  there. [`check-ci-matrix.sh`](check-ci-matrix.sh) expands each literal
+- **The CI matrix is checked.** `frontend`, `delete-method`, `ui-system` and
+  `navigation` take what they run from their own `strategy.matrix`; a
+  template, method directory, `ui/` or `navigation/` directory with no
+  matching combination runs zero times there.
+  [`check-ci-matrix.sh`](check-ci-matrix.sh) expands each literal
   matrix by GitHub's documented `exclude:` and `include:` rules and fails the
   build on a combination that is missing or names something not on disk. A
   matrix built from an expression such as `fromJSON` fails the check rather
@@ -258,6 +261,8 @@ The two guards below run in CI; run them before pushing:
 6. Add the name to `matrix.template` in the `frontend`, `delete-method` and
    `ui-system` jobs of `.github/workflows/templates_checks.yaml`, the method
    directories to `matrix.method`, and the `ui/` directories to `matrix.ui`.
+   A template with `navigation/` directories also needs an `include:` entry in
+   the `navigation` job for each one and each method.
 7. Add a row to [Available templates](#available-templates).
 8. Regenerate the CLI reference if the flag's help changed:
    `go run ./cli gen-docs > docs/src/content/docs/reference/cli/commands.mdx`.
