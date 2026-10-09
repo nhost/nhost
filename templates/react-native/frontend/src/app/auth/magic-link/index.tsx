@@ -16,9 +16,7 @@ import {
 import { ErrorText } from '@/components/ui/ErrorText';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
-import { useGo } from '@/lib/navigation';
 import { useAuth } from '@/lib/nhost/AuthProvider';
-import { localMailboxURL } from '@/lib/nhost/env';
 import { authRedirectURL } from '@/lib/nhost/redirect';
 import { OtherWaysLink } from '@/signin/OtherWaysLink';
 import { useNext } from '@/signin/useNext';
@@ -64,9 +62,7 @@ async function sendMagicLink(
  */
 export default function MagicLinkScreen() {
   const { nhost } = useAuth();
-  const _go = useGo();
   const next = useNext();
-  const _mailboxURL = localMailboxURL();
 
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);

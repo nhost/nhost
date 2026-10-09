@@ -56,3 +56,15 @@ export function target(
 export function backTo(to: Destination, config: LinkingConfig) {
   return StackActions.popTo(...target(to, config));
 }
+
+/**
+ * The stack action that opens the screen at `to` over the current one.
+ *
+ * `navigate` would reuse the screen on top when it has the same name and only
+ * swap its parameters, so going from `/notes/1` to `/notes/2` would leave
+ * nothing to go back to. This always adds a screen, as Expo Router's `push`
+ * does.
+ */
+export function push(to: Destination, config: LinkingConfig) {
+  return StackActions.push(...target(to, config));
+}

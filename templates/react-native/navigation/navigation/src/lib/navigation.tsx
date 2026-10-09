@@ -6,7 +6,7 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import { useContext, useEffect, useMemo } from 'react';
-import { backTo, target } from '@/lib/target';
+import { backTo, push, target } from '@/lib/target';
 
 /**
  * The navigation library as the screens see it: they reach React Navigation
@@ -49,8 +49,7 @@ export function useGo(): {
   return useMemo(
     () => ({
       push: (to: Destination) => {
-        const [name, params] = target(to, config);
-        navigation.navigate(name, params);
+        navigation.dispatch(push(to, config));
       },
       replace: (to: Destination) => {
         const [name, params] = target(to, config);

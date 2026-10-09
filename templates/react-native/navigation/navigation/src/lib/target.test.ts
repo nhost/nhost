@@ -5,7 +5,7 @@ import {
 } from '@react-navigation/native';
 import { describe, expect, it, vi } from 'vitest';
 import type { Params } from '@/lib/navigation';
-import { backTo, target } from '@/lib/target';
+import { backTo, push, target } from '@/lib/target';
 import { linkPath } from '@/linkPath';
 
 // `@react-navigation/native` is `@react-navigation/core` plus the parts that
@@ -82,36 +82,65 @@ describe('target', () => {
   });
 });
 
-describe('backTo', () => {
-  const screens = config(['/', '/signin', '/auth/password']);
-  const router = StackRouter({});
+// The app's one stack, run as the container would run it.
+const router = StackRouter({});
+
+function stackOf(screens: ReturnType<typeof config>) {
   const options = {
     routeNames: Object.keys(screens.screens),
     routeParamList: {},
     routeGetIdList: {},
   };
-  const carried = { next: '/protected', intent: 'sign-in' };
 
-  function stack(...routes: [string, Params?][]) {
-    return router.getRehydratedState(
-      { routes: routes.map(([name, params]) => ({ name, params })) },
-      options,
-    );
-  }
+  return {
+    of: (...routes: [string, Params?][]) =>
+      router.getRehydratedState(
+        { routes: routes.map(([name, params]) => ({ name, params })) },
+        options,
+      ),
+    after: (
+      state: StackNavigationState<ParamListBase>,
+      action: Parameters<typeof router.getStateForAction>[1],
+    ) =>
+      router
+        .getStateForAction(state, action, options)
+        ?.routes.map(({ name, params }) => [name, params]),
+  };
+}
+
+describe('push', () => {
+  const stack = stackOf(app);
+
+  it('adds a screen over one of the same name', () => {
+    const state = stack.of(['/'], ['/notes/[id]', { id: '1' }]);
+
+    expect(stack.after(state, push('/notes/2', app))).toEqual([
+      ['/', undefined],
+      ['/notes/[id]', { id: '1' }],
+      ['/notes/[id]', { id: '2' }],
+    ]);
+  });
+});
+
+describe('backTo', () => {
+  // A method's screen, named for none of the real ones: CI deletes each method
+  // and fails on anything outside its directory that still names it.
+  const screens = config(['/', '/signin', '/auth/example']);
+  const stack = stackOf(screens);
+  const carried = { next: '/protected', intent: 'sign-in' };
 
   // What a method's "Other ways to sign in" link leaves on the stack.
   function backToSignIn(state: StackNavigationState<ParamListBase>) {
-    const action = backTo({ pathname: '/signin', params: carried }, screens);
-
-    return router
-      .getStateForAction(state, action, options)
-      ?.routes.map(({ name, params }) => [name, params]);
+    return stack.after(
+      state,
+      backTo({ pathname: '/signin', params: carried }, screens),
+    );
   }
 
   it('returns to the screen beneath rather than stacking another', () => {
     expect(
       backToSignIn(
-        stack(['/'], ['/signin', carried], ['/auth/password', carried]),
+        stack.of(['/'], ['/signin', carried], ['/auth/example', carried]),
       ),
     ).toEqual([
       ['/', undefined],
@@ -120,7 +149,7 @@ describe('backTo', () => {
   });
 
   it("takes the current screen's place when nothing beneath matches", () => {
-    expect(backToSignIn(stack(['/auth/password', carried]))).toEqual([
+    expect(backToSignIn(stack.of(['/auth/example', carried]))).toEqual([
       ['/signin', carried],
     ]);
   });

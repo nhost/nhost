@@ -18,7 +18,6 @@ import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { useGo } from '@/lib/navigation';
 import { useAuth } from '@/lib/nhost/AuthProvider';
-import { localMailboxURL } from '@/lib/nhost/env';
 import { OtherWaysLink } from '@/signin/OtherWaysLink';
 import { useNext } from '@/signin/useNext';
 
@@ -81,7 +80,6 @@ export default function OtpScreen() {
   const { nhost } = useAuth();
   const go = useGo();
   const next = useNext();
-  const _mailboxURL = localMailboxURL();
 
   const [step, setStep] = useState<Step>('email');
   const [email, setEmail] = useState('');
