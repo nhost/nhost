@@ -102,8 +102,11 @@ unaffected.
 An invalid table-owned computed definition (malformed wire entry, missing or
 ambiguous function, missing or non-IN row argument, volatile function,
 unsupported return or argument type kind, untracked SETOF composite target,
-non-IN non-row argument, or field-name collision) is recorded as `computed_field`
-and removed **individually**. Non-array PostgreSQL BASE scalar returns include
+non-IN non-row argument, field-name collision, or exposed computed argument name
+that is not a GraphQL identifier, begins with reserved `__`, or duplicates
+another exposed name, including a generated `arg_N`) is recorded as
+`computed_field` and removed **individually**. Hidden row/session argument
+names are not checked. Non-array PostgreSQL BASE scalar returns include
 extension types outside `pg_catalog`, but `SETOF` scalar returns are enabled
 only for independently classified `pg_catalog.text`, `numeric`, `int4`,
 `float8`, `bool`, `date`, `uuid`, `jsonb` and installed `public.citext`.

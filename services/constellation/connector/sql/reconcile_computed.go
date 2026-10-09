@@ -417,6 +417,29 @@ func validateComputedArguments(
 		}
 	}
 
+	// A duplicate or reserved input field makes validation drop the whole role,
+	// rather than just this computed selection. Check only the exposed slots.
+	seen := make(map[string]struct{})
+	for _, name := range fn.GraphQLArgumentNames(field.Definition.SessionArgument) {
+		if name == "" {
+			continue
+		}
+
+		if !validComputedName(name) {
+			return "computed function argument name is not a GraphQL identifier"
+		}
+
+		if strings.HasPrefix(name, "__") {
+			return "computed function argument name is reserved"
+		}
+
+		if _, duplicate := seen[name]; duplicate {
+			return "duplicate computed function argument name"
+		}
+
+		seen[name] = struct{}{}
+	}
+
 	return ""
 }
 

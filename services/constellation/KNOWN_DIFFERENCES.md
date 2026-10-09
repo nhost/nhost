@@ -86,6 +86,26 @@ valid `_where` outside a recognized computed-table predicate retain the source-w
 parser behavior. Non-computed
 relationship-aggregate permission keys can still fail source construction.
 
+# Computed function argument names (Hasura v2.50.3-ce)
+
+Every exposed catalog or generated input name must be a valid GraphQL
+identifier, not start with reserved `__`, and not duplicate another exposed
+name (including an unnamed input's `arg_N`). Constellation rejects only the computed field at reconciliation, and
+revokes a select permission explicitly granting that invalid field; other
+fields, roles and unrelated roots remain available. Row and session inputs are
+hidden and are not subject to this check.
+
+Hasura accepts `__x` and a named `arg_1` alongside an unnamed input with the
+same generated name; it exposes reserved or duplicate input fields, and one
+supplied duplicate value binds to both function parameters. Constellation's
+validated role schema cannot retain those fields without losing the entire
+admin/granted role, so this is an intentional fail-closed selection difference.
+Hasura rejects names such as `a$b`, quoted `my-arg`, and non-ASCII `ñame`
+**atomically** at metadata validation, including with
+`allow_inconsistent_metadata: true`. Constellation's field-local inconsistency
+is narrower metadata acceptance, not exact Hasura rejection parity. This rule
+is limited to computed fields; tracked root functions are unchanged.
+
 # Computed remote-relationship join keys
 
 Argument-free, non-SETOF PostgreSQL scalar computed fields can supply the LHS
